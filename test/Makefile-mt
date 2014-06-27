@@ -1,0 +1,48 @@
+CFLAGS = -I.. -g
+CXXFLAGS = $(CFLAGS) -DMUSCLE_ENABLE_ZLIB_ENCODING -DMUSCLE_AVOID_NEWNOTHROW -DMUSCLE_SINGLE_THREAD_ONLY
+LFLAGS =  
+LIBS =
+EXECUTABLES = testreflectclient
+REGEXOBJS = 
+ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o crc32.o inftrees.o compress.o inffast.o
+
+VPATH = ../hashtable ../message ../iogateway ../reflector ../regex ../util ../syslog ../system ../dataio ../zlib ../zlib/zlib
+
+ifeq ($(OSTYPE),beos)
+  VPATH += ../besupport
+  EXECUTABLES += testreflectclient 
+  ifeq ($(BE_HOST_CPU),ppc)
+    CXX = mwcc
+    REGEXOBJS = regcomp.o regerror.o regexec.o regfree.o
+    VPATH += ../regex/regex
+    CFLAGS += -I../regex/regex
+  else
+    LIBS = -lbe -lnet -lroot
+    ifeq ($(shell ls 2>/dev/null -1 /boot/develop/headers/be/bone/bone_api.h), /boot/develop/headers/be/bone/bone_api.h)
+      CFLAGS += -I/boot/develop/headers/be/bone -DBONE
+      LIBS = -nodefaultlibs -lbind -lsocket -lbe -lroot -L/boot/beos/system/lib
+    endif   
+  endif
+else
+  ifeq ($(OSTYPE),freebsd4.0)
+     CXXFLAGS += -I/usr/include/machine
+  else
+     ifeq ($(OSTYPE),darwin)
+        CXX = c++
+        CXXFLAGS += -I/usr/include/machine
+     else
+        ifeq ($(SYSTEM),AtheOS)
+           VPATH += ../atheossupport
+           EXECUTABLES += testreflectclient
+           LIBS = -latheos
+        endif
+     endif
+  endif
+endif
+
+
+# Makes all the programs that can be made using just cross-platform code
+all : $(EXECUTABLES)
+
+testreflectclient : MemoryAllocator.o ConvertMessages.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o PlainTextMessageIOGateway.o String.o testreflectclient.o MessageTransceiverThread.o NetworkUtilityFunctions.o SysLog.o PulseNode.o Thread.o SetupSystem.o PathMatcher.o StringMatcher.o AbstractReflectSession.o DumbReflectSession.o StorageReflectSession.o ReflectServer.o ServerComponent.o ByteBuffer.o ZLibCodec.o QueryFilter.o $(REGEXOBJS) $(ZLIBOBJS)
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)

@@ -1,0 +1,20 @@
+Thisis the first successful dialog on the Delphi share client - before I implemented username lookups..
+
+--------
+
+Connected...
+(0) <Unknown>
+Welcome to TyCom Systems - BeShares' First Fiber-based (15000/2000) Server!
+
+Type "Atrus rules" for this server rules list
+
+(400) <Unknown> mervin-delphi is my delphi client ;-)
+(400) <Unknown> somebody else say something ;-)
+(406) <Unknown> woo
+(369) <Unknown> something
+(366) <Unknown> expensivelesbian (WinXP), i have -> www.bug-nordic.org/haiku.php (a lot of pics, so may take some time to load)
+(379) <Unknown> something
+(403) <Unknown> something
+(406) <Unknown> you can tell the witty ones here
+(400) <Unknown> yep... my delphi beshare client half works...
+(369) <Unknown> it's late in the uk

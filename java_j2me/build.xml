@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="MicroMUSCLE" default="build-lib" basedir=".">
+	<property file="build.properties"/>
+	
+	<taskdef resource="antenna.properties" classpath="support/antenna-bin-1.0.0.jar"/>
+	
+	<target name="javadocs">
+		<javadoc packagenames="com.*" sourcepath="src" destdir="docs" author="true" version="true" Windowtitle="MicroMUSCLE API"/>
+	</target>
+	
+	<!-- Builds the muscle.jar J2ME library. Note, we preverify these classes! -->
+	<target name="build-lib">
+		<mkdir dir="lib"/>
+		<wtkbuild srcdir="src"
+		          destdir="classes"
+		          preverify="true"
+				excludes="com/lcs/micromuscle/test/**"
+				/>
+		
+		<!-- we just create a normal jar of the preverified classes -->
+		<jar destfile="lib/muscle.jar" basedir="classes" index="true">
+			<manifest>
+				<attribute name="Built-By" value="${user.name}"/>
+				<section name="common">
+					<attribute name="Specification-Title" value="MicroMUSCLE"/>
+					<attribute name="Specification-Version" value="1.00"/>
+				</section>
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="clean">
+		<delete file="lib/muscle.jar"/>
+		<delete dir="classes"/>
+		<delete dir="docs"/>
+		<delete>
+			<fileset dir="." includes="testclient.**"/>
+		</delete>
+	</target>
+	
+	<!-- 
+		The targets below demonstrate building a MIDlet linked to muscle.jar.
+	     It would be a good idea to use this as a guide when creating your own
+		build.xml for your own application
+	-->
+	<target name="build-midlet" depends="build-lib">
+		<!-- Define the .jad file descriptors -->
+		<wtkjad jadfile="testclient.jad" 
+			   jarfile="testclient.jar" 
+			   name="MUSCLE TestClient" 
+			   vendor="Meyer Sound Laboratories, Inc." 
+			   version="1.0.0"
+		>
+		   	<midlet name="TestClient" class="com.lcs.micromuscle.test.TestClient"/>
+		</wtkjad>
+		
+		<!-- clean up the leftovers from the build-lib target -->
+		<delete dir="classes"/>
+		<mkdir dir="classes"/>
+		
+		<!-- Compile. Note that we do _NOT_ preverify here! -->
+		<wtkbuild srcdir="src" 
+		          destdir="classes" 
+				preverify="false" 
+				includes="com/lcs/micromuscle/test/**"
+		/>
+		
+		<!-- Package. Add lib/muscle.jar to the libclasspath, and preverify
+		     our entire archive.
+		-->
+		<wtkpackage jarfile="testclient.jar" 
+		            jadfile="testclient.jad" 
+				  obfuscate="false" 
+				  preverify="true" 
+				  libclasspath="lib/muscle.jar"
+		>
+			<fileset dir="classes"/>
+		</wtkpackage>
+	</target>
+	
+	<!-- Demonstrates how to run the MIDlet -->
+	<target name="run" depends="build-midlet">
+		<wtkrun jadfile="testclient.jad" device="${device.profile}" wait="true"/>
+	</target>
+</project>

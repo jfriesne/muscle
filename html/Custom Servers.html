@@ -1,0 +1,403 @@
+<HTML>
+<HEAD>
+   <H1>Implementing a Custom Server with MUSCLE</H1>
+   <H4>v6.05 / Jeremy Friesner / Meyer Sound Laboratories Inc / jaf@meyersound.com 6/27/2014</H4>
+</HEAD>
+<BODY bgcolor=#ffffff>
+<H2>Introduction</H2>
+As you may be aware, MUSCLE includes a fairly powerful general purpose server program named 'muscled'.  muscled allows an arbitrary number of client machines to connect to it at once, share data, and send messages to each other in a many-to-many fashion.  Because muscled includes a built-in database, 'live' database queries, pattern matching support, and so on, many applications can be implemented using muscled 'out of the box', without any modifications.  BeShare is an example of an application for which no modifications to muscled are needed.
+<p>
+However, there are some things that muscled does not do, such as read or write from the hard disk, authenticate users, or implement application-specific logic.  But if your client-server application needs to do such things, don't worry, the muscled architecture can be seamlessly extended to include the functionality you require.  This document will show you how to do that.
+<p>
+This document assumes that you have some basic knowledge of C++, and how MUSCLE works (at least from a client program's perspective).  If you don't, you may want to review the <a href="http://www.lcscanada.com/muscle/muscle/html/Beginners%20Guide.html">Beginner's Guide to MUSCLE programming</a>.  You will want to have the MUSCLE header files (muscle/*/*.h) handy as you read along, as this document does not attempt to be comprehensive in its API descriptions.
+<p>
+Note that the server side of MUSCLE is 100% single-threaded by default.  It uses multiplexed non-blocking I/O and message queues to achieve a multithreaded effect, but is single-threaded for purposes of stability and portability.  Trying to integrate multithreaded code into a MUSCLE server is possible, but usually not necessary.  I suggest you stick with the single-thread model if you can, it's not as bad as you think ;^).
+
+<H2>Customizing muscled</H2>
+
+Of course you could always customize muscled by simply going in and changing sections of the MUSCLE server code.  Since the MUSCLE source code is available, it is easy to do this--however, I recommend not doing so unless it is absolutely necessary.  Changing the code in the MUSCLE archive means that you have essentially 'forked' the code, and you won't be able to easily synchronize your code base with future versions of the MUSCLE archive.  A better way to do it (in almost every case) is to consider the MUSCLE classes 'read-only', and implement your customizations by subclassing them as necessary.  I have successfully created three different custom servers this way already, so it's very likely that what you want to do can be done by subclassing.  With that in mind, I will begin by describing the server-side classes that are most useful to subclass:
+
+<H3>class AbstractReflectSession (muscle/reflector/AbstractReflectSession.h)</H3>
+
+The AbstractReflectSession class is an abstract base class, each object of which represents a single client connection.  The server holds a list of AbstractReflectSession objects, so e.g. if 12 clients are connected to the server, the server will have 12 items in this list.  Each AbstractReflectSession object holds a MessageIOGateway that is used for communicating with the client.  Just as importantly, each AbstractReflectSession object overrides several virtual methods that together implement most of the server-side logic.  Here is a brief rundown of some of the more important methods in this interface:
+
+<ol>
+<li>
+<i>virtual status_t AttachedToServer();</i>
+<p>
+   When the server receives a new TCP connection from a client, it uses the factory object passed in to its constructor to create a new AbstractReflectSession object.  After the session object is created and initialized, this method is called on it.  Here is where you can do any setup work that needs to be done for your new client, and return B_NO_ERROR if everything is okay.  If something has gone horribly wrong, you can return B_ERROR, and the connection to the client will be closed, and this session object deleted.  Be sure to call your superclass's AttachedToServer() method as the first thing in your implementation, otherwise your session won't get set up properly!
+</li>
+<p>
+<li>
+<i>virtual void AboutToDetachFromServer();</i>
+<p>
+   Called by the ReflectServer when it is about to remove this session from its list of active sessions.  Any last-minute cleanup work you need to do can be done here.  Be sure to call your superclasses' AboutToDetachFromServer() as the last thing in your implementation, so it can clean up its stuff as well.
+</li>
+<p>
+<li>
+<i>virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);</i>
+ <p> 
+   This method is called whenever your session's client computer has sent a Message to the MUSCLE server.  You would generally implement this method to parse the Message and respond appropriately to your client's request.  Be sure to call your superclass's implementation of this method for any messages that you can't parse yourself.
+</li>
+<p>
+<li>
+<i>virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData);</i>
+<p>
+   This method is called whenever another AbstractReflectSession has sent you a Message.  It is via this method that clients can interact with each other, e.g. for client A to send a message through the MUSCLE server to client B, it would go something like this:
+   <ol>
+      <li>client computer A sends a Message over the TCP connection to the MUSCLE server.</li>
+      <li>MessageReceivedFromGateway() is called on client A's session object.</li>
+      <li>A's session object parses the Message, and decides that the message is for client B.  So it calls MessageReceivedFromSession() on client B's session object.</li>
+      <li> B's session object's MessageReceivedFromSession() calls AddOutgoingMessage() to send the Message on to client B.</li>
+   </ol>
+   Again, be sure to call your superclass's implementation of this method for any messages that you don't know how to handle yourself.
+</li>
+</ol>
+
+There are quite a few other methods to call or override in the AbstractReflectSession class, but the three above are the ones that you will almost certainly want to handle in any custom server.
+<p>
+When implementing your own session logic, there are several different "pre-made" AbstractReflectSession subclasses to choose from.  Depending on how much code you want to re-use, you can override AbstractReflectSession directly and handle everything yourself, or you can override one of the following, and take advantage of the logic already provided:
+<p>
+<ol>
+<li>DumbReflectSession (muscle/reflector/DumbReflectSession.h).  As the name implies, this subclass of AbstractReflectSession doesn't do much.  All it does is take each Message it receives from its client, and send it on to all the other connected clients, for a sort of "broadcast" effect.  I'm not sure how often this logic is useful (unless you have bandwidth to burn), but it is there, and it also serves as a simple example of subclassing AbstractReflectSession.
+</li>
+<li>StorageReflectSession (muscle/reflector/StorageReflectSession.h).  This is the class where practically all of muscled's standard features are implemented.  The database, the pattern matching, the getting and setting of parameters, the live queries, and all of the other PR_COMMAND_* operations are implemented in this class.  Given that, you may find it useful in many situations to subclass this class, handling any Messages you recognize in your class, and passing the rest down to StorageReflectSession for normal muscled-style handling. 
+</li>
+</ol>
+
+
+
+
+<H3>class ReflectServer (muscle/reflector/ReflectServer.h)</H3>
+
+The ReflectServer class is a singleton-style class in the MUSCLE framework;  it represents the server itself.  This is the object that holds the list of AbstractReflectSessions, listens for incoming TCP connections, and coordinates the data traffic and messaging between clients and sessions.  Given all this, the ReflectServer class isn't very large; this is because most of the high-level functionality is handled by the AbstractReflectSession objects themselves.  The ReflectServer class can be used as is, or you can subclass it to gain more customized behaviour.  The following methods, in particular, might be useful to override:
+
+<ol>
+<li>
+<i>virtual status_t ReadyToRun();</i>
+<p>
+   Called when the server starts up.  You can do any initialization work here, and return B_NO_ERROR if you are ready to go.  (B_ERROR will abort startup).
+</li>
+<p>
+<li>
+<i>virtual void Cleanup(); </i>
+<p>
+   Must be called just before the ReflectServer object is deleted.  Default implementation detaches all sessions from the server.  You can override this method to do any additional tidying up if you like.
+</li>
+<p>
+<li>
+<i>virtual uint64 GetPulseTime(const PulseArgs &);</i>
+<br>
+<i>virtual void Pulse(const PulseArgs &);</i>
+<p>
+   If you need actions to be performed at a specific time (as opposed to only doing things in response to incoming Messages), you can override these two methods.  Note that this sort of behaviour is discouraged if you can avoid it, as it is easy to abuse.  (Remember that polling is inefficient and evil!)  GetPulseTime() can be overridden to specify when Pulse() should be called next.  By default, Pulse() is never called (i.e. the default implementation of GetPulseTime() returns MUSCLE_NEVER_PULSE).
+</li>
+</ol>
+
+When implementing your own custom server, you'll want to have your own main() function that instantiates the server.  The regular muscled's main() function can be found in muscle/server/muscled.cpp -- don't link this file into your code, but you may want to copy it into your own server's directory and modify it to run your custom code.  An extremely minimal main() might look like this:
+
+<pre>// Factory class for my custom session type
+class MySessionFactory : public ReflectSessionFactory
+{
+public:
+   // Note that (clientAddress) and (serverAddress) are ignored, we don't care about them for now */
+   virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & serverAddress)
+   {
+      AbstractReflectSessionRef ret(newnothrow MyReflectSessionSubclass());
+      if (ret == NULL) WARN_OUT_OF_MEMORY;
+      return ret;
+   }
+};
+
+int main(int argc, char ** argv)
+{
+   CompleteSetupSystem css;
+   ReflectServer myServer;  // instantiate regular ReflectServer or your own subclass
+   myServer.PutAcceptFactory(2960, ReflectSessionFactoryRef(new MySessionFactory));  // Whenever we get a connection on port 2960, use my factory to create a new session object
+   status_t ret = myServer.ServerProcessLoop();  // everything happens here!  Will not return for a long time (if ever!)
+   if (ret == B_NO_ERROR) printf("Server terminated normally.\n");
+                     else printf("Server exited with an error condition!\n");
+   myServer.Cleanup();
+   return 0;
+}
+</pre><p>
+
+The ServerProcessLoop() method is where all the serving get done--it won't return until the server decides to quit--either due to a critical error, or because your code told it to shut down (by calling EndServer()).
+
+<h3>class AbstractMessageIOGateway (muscle/iogateway/AbstractMessageIOGateway.h)</h3>
+
+The AbstractMessageIOGateway class is a class that represents the interface between the byte-stream-oriented world of a DataIO object, and the series-of-Messages world of MUSCLE.  That is, the AbstractMessageIOGateway's job is to convert a stream of incoming bytes into a series of incoming Messages, and to convert a series of outgoing Messages into a stream of outgoing bytes.  The AbstractMessageIOGateway class also contains code to handle FIFO queueing of outgoing Messages in case the TCP socket can't transmit fast enough to keep up.
+<p>
+Note that if you are creating a new, custom server application, you almost certainly WON'T need to make your own AbstractMessageIOGateway subclass.  MUSCLE comes with a very nice MessageIOGateway class, which knows how to translate any Message into the standard MUSCLE byte-stream format.  The MessageIOGateway class is used by default, and in most cases, it is all you need.  An additional benefit to sticking with the standard MessageIOGateway class is that you will remain stream-compatible with other MUSCLE code that is out there--defining your own AbstractMessageIOGateway class means breaking protocol compatibility, which may cause headaches later on.  Nonetheless, there are situations where a custom IO gateway is useful:
+
+<ol>
+<li>You need to use an existing non-MUSCLE protocol.  For example, at LCS our custom server needed to be able to send and receive MIDI Sysex messages, so we created a custom IO gateway to translate MIDI into Messages and vice versa.  You could create IO gateways to convert Messages into ASCII text, HTML, XML, or other formats.
+</li>
+<p>
+<li>The existing MUSCLE byte protocol uses too much bandwidth for you.  While the MessageIOGateway's byte stream format doesn't go out its way to be inefficient, it is a generalized format, which means it can't make many assumptions about the data it is transmitting.  For example, MessageIOGateway has to transmit all field names explicitely, whereas if you know you will always be putting just a single float value in each message, you could make a custom gateway that encodes each message in as little as four bytes.  Before doing this, however, be sure to weigh the costs of incompatibility against the gained efficiency.  If your messages aren't going to be sent very often, the saved bytes may not be worth the lost flexibility.
+</li>
+</ol>
+
+If you have decided that a custom IO gateway is the way to go, here are some of the virtual methods you will want to implement/override:
+
+<ol>
+<li>
+<i>virtual bool HasBytesToOutput() const;</i>
+<p>
+This method must return true if and only if you have bytes ready to send out over the TCP connection.  It is used to determine whether or not the MUSCLE server should wake up and call DoOutputImplementation() when there is room to send more bytes.
+</li>
+<p>
+<li>
+<i>virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);</i>
+<p>
+This method is called when you have bytes to send (see above) and there is space in the TCP buffers to send it.  You should attempt to write up to (maxBytes) bytes of data to your DataIO object (i.e. get the next message from the outgoing message queue, convert it to bytes, send the bytes, repeat), and return the number of bytes you were actually able to send.  If you encounter an error, return -1 to indicate that.  Returning -1 is taken to mean that the stream has been broken, and will usually result in the termination of the session.  This method should never block.
+</li>
+<p>
+</li>
+<li>
+<i>virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & target, uint32 maxBytes = MUSCLE_NO_LIMIT);</i>
+<p>
+This method is called whenever incoming bytes are available on your DataIO object's TCP stream.  You should read up to (maxBytes) of data, convert as many bytes as possible into Message objects, and call target.CallMessageReceivedFromGateway(msg, NULL) for any Message that you create.  Any bytes that represent a partial message (i.e. you don't have the entire Message's worth yet) should be held in a local buffer somehow, for next time.  This method should also return the number of bytes that were actually read, or -1 if there was an error reading.
+</li>
+</ol>
+ 
+For certain formats, you may be able to override MessageIOGateway instead of AbstractMessageIOGateway, and thus avoid having to do all the byte-by-byte parsing work yourself.  MessageIOGateway can be used for any byte-stream format where each message consists of a fixed-size header followed by a variable number of bytes of message body.  It must be possible to tell the number of bytes of message body by looking at the message header.  If your protocol fits these criteria, you can simply override the FlattenedMessageBodySize(), FlattenMessage(), UnflattenMessage(), HeaderSize(), and GetBodySize() methods to fit your byte protocol, and MessageIOGateway can handle the rest of the parsing for you.
+
+To get your IO gateway subclass to actually be used in the server, you will need to be using your own AbstractReflectSession subclass, and override its CreateGateway() method to return an instance of your AbstractMessageIOGateway subclass.  Your CreateGateway() method override should look something like this:
+
+<pre>AbstractMessageIOGatewayRef
+MyReflectSession ::
+CreateGateway()
+{
+   AbstractMessageIOGatewayRef ret(newnothrow MyGateway);  // My custom I/O gateway!
+   if (ret() == NULL) WARN_OUT_OF_MEMORY;
+   return ret;
+}
+</pre><p>
+
+
+<h2>Accessing AbstractReflectSession functionality</h2>
+
+The AbstractReflectSession class is somewhat misnamed--it isn't completely abstract.  There is some useful functionality built into it.  What follows is a list of some of the more useful non-virtual functions in this class.  Note that most of these shouldn't be called before AttachedToServer() has been called.
+
+<ol>
+<li><i>Message & GetCentralState() const;</i>
+<p> 
+   This method returns a reference to a Message that is shared by all sessions.  Any session may access or alter this message, and other sessions can call GetCentralState() to see the changes.  For example, StorageReflectSession uses this message to store the root of the node database.  Please be gentle while altering the central state message, however, as other sessions may be relying on their data being there.
+</li>
+<p>
+<li><i>const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const;</i>
+<p>
+   Returns a read-only reference to the current set of sessions attached to
+   the server.  Handy if you need "down and dirty" direct access to the other sessions.  
+   (Note that this type of direct access usually leads to dynamic casting, and the same functionality 
+   can often be implemented more cleanly by message passing... BroadcastToAllSessions() is helpful here)
+</li>
+<p>
+<li><i>AbstractReflectSession GetSession(const String & idStr) const;</i>
+<li><i>AbstractReflectSession GetSession(uint32 id) const;</i>
+<p>     
+   Given a session ID (expressed either as a string or an integer), returns you a reference to that session... or a NULL reference if no such session exists.
+</li>
+<p>
+<li><i>status_t AddNewSession(const AbstractReflectSessionRef & session, const ConstSocketRef & socket);</i>
+<p>
+   Adds the given new session to the session list.  (socket) should be the socket used by the new session
+   (the server will watch this socket to determine when incoming data is available), or a NULL ConstSocketRef if 
+   the new session has no TCP socket of its own (i.e. a 'fake' session)
+</li>
+<li><i>status_t AddNewConnectSession(const AbstractReflectSessionRef & session, uint32 targetIP, uint16 targetPort);</i>
+<p>
+   Also adds the given new session to the session list.  But instead of immediately being active using a given
+   socket, this method takes the IP address of a remote host that you would like your muscle server to connect out to.
+   The connection will be done asynchronously, and (session)'s AsyncConnectCompleted() method will be called when the
+   connection completes successfully.  (If the connection fails, (session) will be detached from the server and discarded)
+</li>
+<p>
+<li><i>void EndSession();</i>
+<p> 
+   Sort of a session's hara-kiri method.  Call this on a session and that session will be marked for removal and deletion by the server at the next opportunity.  The session isn't deleted immediately (as it may be in the middle of an operation), but will be ASAP.  
+</li>
+<p>
+<li><i>status_t ReplaceSession(const AbstractReflectSessionRef & newSession);</i>
+<p> 
+   Causes the session to be terminated, and (newSession) to be put in its place.  (newSession) will be
+   given the same TCP socket and IOGateway as the old session had.  This method is a quick way to swap
+   out the server-side logic of a session while maintaining its connection to the client.  
+</li>
+</ol>
+
+<h2>Accessing StorageReflectSession functionality</h2>
+
+If you have chosen to subclass the StorageReflectSession subclass, you may want to access some of the StorageReflectSession class's features directly.  The easiest way to do this in simple cases is to just create your own Message and pass it to StorageReflectSession::MessageReceivedFromGateway(), where it will be handled just as if the message had come from the client itself.  For example:
+
+<pre>void 
+MyReflectSession ::
+SetupMyStuff(const Message & msg1, const Message & msg2, const Message & msg3)
+{
+   // Add our three messages as nodes in our database
+   MessageRef msg = GetMessageFromPool(PR_COMMAND_SETDATA);
+   if (msg())
+   {
+      msg()->AddMessage("appnodes/node1", msg1);
+      msg()->AddMessage("appnodes/node2", msg2);
+      msg()->AddMessage("appnodes/node3", msg3);
+      StorageReflectSession::MessageReceivedFromGateway(msg);
+   }
+   else WARN_OUT_OF_MEMORY;
+}
+</pre><p>
+
+The above technique will work for any message type that is supported for clients (i.e. PR_COMMAND_*).  The semantics will be the same as they would be for the client, if it were to send the same message.
+<p>
+If you need more control than the client messaging API can provide, however, you can call the public and protected members of the StorageReflectSession class directly.  For example, you can create or set nodes in your subtree of the database by calling SetDataNode():
+
+<pre>void 
+MyReflectSession ::
+SetupMyStuff2(const MessageRef & msg1, const MessageRef & msg2, const MessageRef & msg3)
+{
+   SetDataNode("appnodes/node1", msg1, true, true);
+   SetDataNode("appnodes/node2", msg2, true, true);
+   SetDataNode("appnodes/node3", msg3, true, true);
+}
+</pre><p>
+
+This method gives you some additional control, allowing you to specify whether or not nodes should be created or overwritten (the third and fourth arguments of SetDataNode()).
+<p>
+Sometimes you'll want to do your own queries of the server-side database.  One way to do this would be to create a PR_COMMAND_GETDATA message, pass it to StorageReflectSession::MessageReceivedFromGateway(), and then parse the resulting PR_RESULTS_DATAITEMS message that is given to your MessageReceivedFromSession() method.  But that method is somewhat inefficient, and a little bit error-prone (how are you to know which PR_REZULTS_DATAITEMS message corresponds with which PR_COMMAND_GETDATA message?).  A better way to do it is by setting up your own query callback.  In the following example, we will execute a query for all connected clients' session nodes ("*/*"), and our callback will be executed once for every node that matches the query string.
+
+<pre>void
+MyReflectSession ::
+FindAllSessionNodes()
+{
+   Queue<String> myList;  // collect results here
+
+   WildPathMatcher matcher;
+   matcher.PutPathString("*/*", QueryFilterRef());
+   matcher.DoTraversal((PathMatchCallback)MyCallback, this, *_globalRoot, true, &myList);
+
+   // (myList) now contains path names of all session nodes...
+}
+
+int
+MyReflectSession ::
+MyCallback(DataNode & node, void * userData)
+{
+   printf("MyCallback called for node: [%s]\n", node.GetNodePath());
+   printf("Message for this node is: ");
+   const Message * nodeData = node.GetData()->GetItemPointer();
+   if (nodeData) nodeData->PrintToStream();
+            else printf("<null>\n");
+   Queue<String> * myList = (Queue<String> *) userData;  // as passed in to DoTraversal()
+   myList->AddTail(node.GetNodePath());
+   return node.GetDepth();   // continue traversal as usual
+}
+</pre><p>
+
+The above code also demonstrates the use of the (userData) field to carry additional information into the callback.  Whatever value you pass in as the last argument of DoTraversal() is passed back to your callback method, to do with as you wish.  Here it is used to pass in a pointer to a Queue to which the path names of the matching nodes are added.
+<p>
+The return value of your callback function is also important.  It should specify the node-depth at which to continue the traversal.  This value can be used to dynamically prune the search of the database tree, for efficiency.  For a full traversal, you should always return node.GetDepth().  On the other hand, if you have found the data you wanted and wish to terminate the search immediately, you would return 0.  Or, if you wanted the search to continue at the next session node, you could return 2 (which is the level of the session nodes in the tree).  As a final example, if you want the search to continue, but not to recurse into the subtree below the current node, you would return node.GetDepth()-1.
+<p>
+A WildPathMatcher can do a query made up of several path strings at once.  For example, if you wanted to do a query on all host nodes AND all session nodes, you could do this:
+
+<pre>WildPathMatcher matcher;
+matcher.PutPathString("*", QueryFilterRef());   // query on all host nodes (level 1)
+matcher.PutPathString("*/*", QueryFilterRef()); // query on all session nodes (level 2)
+matcher.DoTraversal((PathMatchCallback)MyCustomCallback, this, *_globalRoot, true, NULL);
+</pre><p>
+
+A single traversal will not trigger the callback function for any given node more than once, even if that node is matched by more than one path string.
+<p>
+The third argument to DoTraversal() (*_globalRoot in the examples above) is the node to start the search at.  For searches of the entire database, *_globalRoot is the correct value to place here; however you may wish to limit your search to only a subtree of the database tree.  For example, if you wish to make your search relative to the current session's node only (and thus search only nodes that your own session created), you could put *_sessionDir.GetItemPointer() here instead.  Note that using a different starting point does change the semantics of the path strings... e.g. in that case "*" would mean all children underneath the session node, rather than all children beneath the root node.
+
+<p>
+Leading slashes in the path strings are NOT handled by the WildPathMatcher--all WildPathMatcher path strings are taken to be relative paths, and are relative to the node passed in as the third argument to DoTraversal().  If you want to be able to handle leading slashes and give a default prefix to relative path strings, you may find the method WildPathMatcher::AdjustStringPrefix() to be useful.  
+
+<p>
+
+<h2>PushSubscriptionMessages()</h2>
+
+As nodes in the database are created or updated, MUSCLE generates messages to send back to clients who have posted subscriptions that match the updated nodes.  These messages are not sent the clients' outgoing message queues immediately, but rather are stored in a separate collection cache until either a sufficient number of update messages are gathered, or the server is ready to go back to sleep for lack of activity.  This behaviour allows the server to reduce messaging overhead by sending out fewer update messages.  In some cases, however, the ordering of outgoing messages is important.  In these cases, you can call StorageReflectSession::PushSubscriptionMessages() to force the collection cache to be purged immediately.  Note that PushSubscriptionMessages() will clear the collection caches of all sessions, not just your own.
+
+
+<h2>Fake Clients</h2>
+
+One feature of the MUSCLE server architecture is that it is very session-oriented.  All database and messaging operations are handled on a per-session level, with each session owning its own subtree of the database.  Each session (and hence each session's subtree) only lasts as long as that client remains connected to the server.  This is fine if your database is to be equally shared amongst all clients, but sometimes you want to have an area of the database that is not uniquely tied to any individual client; one that will persist even if all clients disconnect.  The MUSCLE architecture doesn't have direct support for this type of database storage; however, you can fake it nicely by creating a "fake" session.  This session is "fake" in that it doesn't correspond to any client program, and has no TCP connection of its own; rather, it exists solely to talk to other server-side sessions, and provide a storage area that will last as long as the server is running.  Such a session would generally be created by your ReflectServer subclass's ReadyToRun() method, although there is nothing that says it couldn't be created at another time.  Example code to create such a session:
+
+<pre>status_t
+MyReflectServer ::
+ReadyToRun()
+{
+   status_t ret = ReflectServer::ReadyToRun();
+   if (ret != B_NO_ERROR) return ret;
+
+   FakeSession * fakeSession = newnothrow FakeSession();
+   if (fakeSession)
+   {
+      // Add with socket = ConstSocketRef(), meaning there is no client for this session.
+      if (AddNewSession(AbstractReflectSessionRef(fakeSession), ConstSocketRef()) == B_NO_ERROR)
+      {
+         return B_NO_ERROR;  // success!
+      }            
+   }
+   else WARN_OUT_OF_MEMORY;
+
+   return B_ERROR;
+}
+</pre><p>
+
+Once created and added, this session can handle messages from the other sessions, create database nodes, and do just about anything any other session can do (except send messages to its client, as it doesn't have one).
+
+
+<h2>Logging</h2>
+
+MUSCLE comes with a built in logging facility, which can be used to log debug info to stdout and/or to a file.  The MUSCLE logging API is defined in muscle/syslog/SysLog.h.  The most commonly used logging function is LogTime(), which work much like printf(), except that it takes an additional parameter, the minimum log level.  The minimum log level is used to determine whether or not this log message will actually be recorded or not.  There are separate logging thresholds for logging-to-console and logging-to-file, and log entries will only be recorded if their log level is less than or equal to these thresholds.   These thresholds default to MUSCLE_LOG_INFO for console logging, and MUSCLE_LOG_NONE for file logging, but these thresholds can be changed at any time by calling SetConsolLogLevel() or SetFileLogLevel(), respectively.  When the first log entry to a file is recorded, a log file will be created in the current directory, with the current date and time as part of the log file name.  Here is an example LogTime() call:
+
+<pre>LogTime(MUSCLE_LOG_CRITICALERROR, "The sky is falling!  You have %i minutes to live!\n", minutesToLive);</pre><p>
+
+This call would cause a log entry like this to be generated:
+
+<pre>[C 11/27 15:03:33] The sky is falling!  You have 5 minutes to live!</pre><p>
+
+The letter in the second column indicates the log level, followed by the date and time, and finally the log message.  Note that the carriage return should be included in your messages text.  This is so that you can assemble a log message from several log calls if you wish.  Log() is the same as LogTime(), except that the bracketed level/time/date header isn't printed.
+<p>
+You may, in some cases, wish to do other things with the log message besides printing it to stdout or to a log file.  In that case, you can use AddLogCallback() to install your own LogCallback object.  This object's Log() method will be called whenever a message is logged, and you can then handle it as you wish.
+
+
+<h2>Handling Out-of-Memory Conditions</h2>
+
+Handling out-of-memory errors well is a very tricky problem, to the extent that many programs don't attempt to handle out-of-memory conditions at all; they just assume that problem won't happen, and crash if it does.  This methodology may be okay for games, or client programs where a crash isn't catastrophic, but if a central program like a muscled server crashes, it can inconvenience many people (or in LCS's case, stop a musical in mid-chorus!), so it is very important that the server not crash, no matter what.  Because of this, muscled is designed to handle out-of-memory conditions without crashing; if you want, your extension code can too.  
+<p>
+MUSCLE code doesn't use C++ exceptions.  This is because I'm not comfortable with the way exceptions integrate into C++; it's far too easy to get a memory leak or other unexpected result when an exception is thrown.  Instead, MUSCLE uses the classic C-style method of handling errors--error codes are returned, and manually propogated up to the code that can handle them.  (yes, it's a bit tedious.  Yes, I still like it better than C++ exceptions.  No whining!  ;^))
+<p>
+The standard C++ new operator throws a bad_alloc exception when it cannot allocate the requested amount of memory.  To avoid this, MUSCLE code uses the new (nothrow) operator instead.  To make things a little more flexible and easier to key in, MUSCLE #defines a synonym, "newnothrow", which means the same thing.  The canonical MUSCLE style of dynamically allocating something is this:
+
+<pre>Something * thing = newnothrow Something();
+if (thing)
+{
+   DoStuffWith(thing);
+   [...]
+   delete thing;  // now that we're done with it
+}
+else WARN_OUT_OF_MEMORY;
+</pre><p>
+
+The WARN_OUT_OF_MEMORY macro simply logs a message like this:
+
+<pre>[C 11/27 15:03:33] ERROR--OUT OF MEMORY (MyCode.cpp:396)
+</pre><p>
+
+So later on, when you are trying to figure out why your code didn't get executed, you will know there was a problem allocating memory.  
+<p>
+Another feature that MUSCLE offers (via the MemoryAllocator classes) is automatic memory-usage tracking and out-of-memory callbacks.  The memory-usage-tracking allows you to place an upper limit on dynamic memory allocation, either to guarantee that your server won't overtax the machine it is running on, or just to test your out-of-memory handling code.  See the code at the beginning of main() in muscled.cpp for an example of how to set up memory tracking/limiting.  (Note that malloc/free calls aren't tracked--but you should always use new/delete for all your allocations anyway).
+<p>
+Out-of-memory callbacks let you free up unecessary memory in the event of a memory shortage.  For example, MUSCLE uses ObjectPools to reduce the number of memory allocations and deletions that must be done on a regular basis.  As such, MUSCLE may have several hundred unused objects lying around, awaiting reuse.  When the new operator detects a shortage, however, it calls an out-of-memory callback that knows how to drain these pools, thus freeing up some extra memory and allowing the server a little more breathing room.  You can use a AutoCleanupProxyMemoryAllocator and some OutOfMemoryCallback objects to configure this behaviour (again, see the beginning of muscle.cpp's main() function for an example).
+<p>
+
+<h2>Conclusion</h2>
+
+That's what I can think of to document server-side MUSCLE programming for now.  I'm sure there is plenty more that I haven't covered here; let me know if there is something you think should be included that I haven't mentioned, or you have a question that isn't answered clearly in this text.  My email address is jaf@lcsaudio.com.
+<p>
+-Jeremy
+</BODY>
+</HTML>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project default="jar" name="Build the muscle jar for this version" basedir=".">
+
+    <target name="init">
+    	<mkdir dir="src"/>
+    	<mkdir dir="bin"/>
+	<copy todir="src/com">
+	    <fileset dir="com"/>
+	</copy>
+    </target>
+	
+    <target name="build" depends="init" >
+    	<javac destdir="bin" debug="on">
+    		<src path="src" />
+	</javac>
+    </target>
+    
+    <target name="minimaljar" depends="build">
+    	<jar destfile="muscle.jar" basedir="bin" index="true" excludes="com/jcraft/**/*.*" >
+	  <manifest>
+		    <attribute name="Built-By" value="${user.name}"/>
+		    <section name="common">
+		      <attribute name="Specification-Title" value="Muscle"/>
+		      <attribute name="Specification-Version" value="3.30"/>
+		      <attribute name="Specification-Vendor" value="Meyer Sound Laboratories, Inc."/>
+		    </section>
+	  </manifest>
+	  
+	</jar>
+    </target>
+
+
+    <target name="jar" depends="build">
+    	<jar destfile="muscle.jar" basedir="bin" index="true" >
+	  <manifest>
+		    <attribute name="Built-By" value="${user.name}"/>
+		    <section name="common">
+		      <attribute name="Specification-Title" value="Muscle"/>
+		      <attribute name="Specification-Version" value="3.30"/>
+		      <attribute name="Specification-Vendor" value="Meyer Sound Laboratories, Inc."/>
+		    </section>
+	  </manifest>
+	  
+	</jar>
+    </target>
+
+    <target name='clean'>
+	<delete file='muscle.jar'/>
+	<delete dir='src'/>
+	<delete dir='bin'/>
+    </target>
+
+    <target name="javadocs" depends="init">
+        <javadoc packagenames="com.meyer.*" sourcepath="src" destdir="javadoc"/>
+    </target>
+</project>

@@ -1,0 +1,45 @@
+package musclecomponents;
+
+{$R *.RES}
+{$ALIGN ON}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Muscle delphi components'}
+{$IMPLICITBUILD OFF}
+
+requires
+  vcl50;
+
+contains
+  MessageTransceiver in 'MessageTransceiver.pas',
+  MessageQueue in 'MessageQueue.pas',
+  IOGateway in 'IOGateway.pas',
+  Locker in 'Locker.pas',
+  Message in 'Message.pas',
+  Flattenable in 'Flattenable.pas',
+  MuscleExceptions in 'MuscleExceptions.pas',
+  Point in 'Point.pas',
+  Rect in 'Rect.pas',
+  StorageReflectConstants in 'StorageReflectConstants.pas',
+  TypeConstants in 'TypeConstants.pas',
+  Semaphore in 'semaphore.pas';
+
+end.
