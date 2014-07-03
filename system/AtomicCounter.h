@@ -182,12 +182,14 @@ private:
    long _count;
 #elif defined(__APPLE__)
    volatile int32_t _count;
-#elif defined(__BEOS__) || defined(__HAIKU__)
+#elif defined(__BEOS__)
 # if defined(B_BEOS_VERSION_5)
    vint32 _count;
 # else
    int32 _count;
 # endif
+#elif defined(__HAIKU__)
+   int32 _count;
 #elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY) || defined(MUSCLE_USE_X86_INLINE_ASSEMBLY)
    volatile int _count;
 #else
