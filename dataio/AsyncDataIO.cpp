@@ -71,6 +71,12 @@ void AsyncDataIO :: Shutdown()
    }
 }
 
+void AsyncDataIO :: ShutdownInternalThread(bool waitForThread)
+{
+   _mainThreadNotifySocket.Reset();  // so that the internal thread will know to exit now
+   Thread::ShutdownInternalThread(waitForThread); 
+}
+
 status_t AsyncDataIO :: StartInternalThread()
 {
    if (CreateConnectedSocketPair(_mainThreadNotifySocket, _ioThreadNotifySocket) != B_NO_ERROR) return B_ERROR;
@@ -98,6 +104,13 @@ void AsyncDataIO :: InternalThreadEntry()
    uint32 fromSlaveIOBufReadIdx  = 0;  // which byte to read out of (fromSlaveIOBuf) next
    uint32 fromSlaveIOBufNumValid = 0;  // how many bytes are currently in (fromSlaveIOBuf) (including already-read ones)
 
+   // Copy these out to member variables so that WriteToMainThread() can access them
+   _fromSlaveIOBuf         = fromSlaveIOBuf;
+   _fromSlaveIOBufSize     = sizeof(fromSlaveIOBuf);
+   _fromSlaveIOBufReadIdx  = &fromSlaveIOBufReadIdx;
+   _fromSlaveIOBufNumValid = &fromSlaveIOBufNumValid;
+
+   uint64 pulseTime = MUSCLE_TIME_NEVER;
    SocketMultiplexer multiplexer;
    while(keepGoing)
    {
@@ -116,11 +129,20 @@ void AsyncDataIO :: InternalThreadEntry()
       }
       if (notifyFD >= 0) multiplexer.RegisterSocketForReadReady(notifyFD);  // always be on the lookout for notifications...
 
-      // we block here, waiting for data availability
-      if (multiplexer.WaitForEvents() < 0) break;
+      pulseTime = InternalThreadGetPulseTime(pulseTime);
+      if (multiplexer.WaitForEvents(pulseTime) < 0) break; // we block here, waiting for data availability or for the next pulse time
+      if (pulseTime != MUSCLE_TIME_NEVER)
+      {
+         uint64 now = GetRunTime64();
+         if (now >= pulseTime) InternalThreadPulse(pulseTime);
+      }
 
-      // All the notify socket needs to do is make select() return.  We just read the junk notify-bytes and ignore them.
-      char junk[128]; if ((notifyFD >= 0)&&(multiplexer.IsSocketReadyForRead(notifyFD))) (void) ReceiveData(_ioThreadNotifySocket, junk, sizeof(junk), false);
+      // All the notify socket needs to do is make WaitForEvents() return.  We just read the junk notify-bytes and ignore them.
+      if ((notifyFD >= 0)&&(multiplexer.IsSocketReadyForRead(notifyFD))) 
+      {
+         char junk[128]; 
+         if (ReceiveData(_ioThreadNotifySocket, junk, sizeof(junk), false) < 0) break;
+      }
 
       // Determine how many bytes until the next command in the output stream (we want them to be executed at the same point
       // in the I/O thread's output stream as they were called at in the main thread's output stream)
@@ -214,6 +236,18 @@ void AsyncDataIO :: InternalThreadEntry()
          }
       }
    }
+}
+
+// Should only be called from inside InternalThreadEntry() (e.g. by InternalThreadPulse())
+uint32 AsyncDataIO :: WriteToMainThread(const uint8 * bytes, uint32 numBytes, bool allowPartial)
+{
+   uint32 freeSpaceAvailable = _fromSlaveIOBufSize-(*_fromSlaveIOBufNumValid);
+   if ((allowPartial == false)&&(freeSpaceAvailable < numBytes)) return 0;
+
+   uint32 numToWrite = muscleMin(numBytes, freeSpaceAvailable);
+   memcpy(_fromSlaveIOBuf+(*_fromSlaveIOBufNumValid), bytes, numToWrite);
+   (*_fromSlaveIOBufNumValid) += numToWrite;
+   return numToWrite;
 }
 
 }; // end namespace muscle

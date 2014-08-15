@@ -2288,21 +2288,9 @@ static bool IsFloatingPointNumber(const char * d)
    }
 }
 
-uint64 ParseHumanReadableTimeIntervalString(const String & s)
+static uint64 GetTimeUnitMultiplier(const String & l, uint64 defaultValue)
 {
-   if ((s.EqualsIgnoreCase("forever"))||(s.EqualsIgnoreCase("never"))||(s.StartsWithIgnoreCase("inf"))) return MUSCLE_TIME_NEVER;
-
-   /** Find first digit */
-   const char * d = s();
-   while((*d)&&(isdigit(*d) == false)) d++;
-   if (*d == '\0') return 0;
-
-   /** Find first letter */
-   const char * l = s();
-   while((*l)&&(isalpha(*l) == false)) l++;
-   if (*l == '\0') l = "s";  // default to seconds
-
-   uint64 multiplier = _timeUnits[TIME_UNIT_SECOND];   // default units is seconds
+   uint64 multiplier = defaultValue;
    String tmp(l); tmp = tmp.ToLowerCase();
         if ((tmp.StartsWith("us"))||(tmp.StartsWith("micro"))) multiplier = _timeUnits[TIME_UNIT_MICROSECOND];
    else if ((tmp.StartsWith("ms"))||(tmp.StartsWith("milli"))) multiplier = _timeUnits[TIME_UNIT_MILLISECOND];
@@ -2313,7 +2301,24 @@ uint64 ParseHumanReadableTimeIntervalString(const String & s)
    else if (tmp.StartsWith("d"))                               multiplier = _timeUnits[TIME_UNIT_DAY];
    else if (tmp.StartsWith("w"))                               multiplier = _timeUnits[TIME_UNIT_WEEK];
    else if (tmp.StartsWith("y"))                               multiplier = _timeUnits[TIME_UNIT_YEAR];
+   return multiplier;
+}
 
+uint64 ParseHumanReadableTimeIntervalString(const String & s)
+{
+   if ((s.EqualsIgnoreCase("forever"))||(s.EqualsIgnoreCase("never"))||(s.StartsWithIgnoreCase("inf"))) return MUSCLE_TIME_NEVER;
+
+   /** Find first digit */
+   const char * d = s();
+   while((*d)&&(isdigit(*d) == false)) d++;
+   if (*d == '\0') return GetTimeUnitMultiplier(s, 0);  // in case the string is just "second" or "hour" or etc.
+
+   /** Find first letter */
+   const char * l = s();
+   while((*l)&&(isalpha(*l) == false)) l++;
+   if (*l == '\0') l = "s";  // default to seconds
+
+   uint64 multiplier = GetTimeUnitMultiplier(l, _timeUnits[TIME_UNIT_SECOND]);   // default units is seconds
    const char * afterLetters = l;
    while((*afterLetters)&&((*afterLetters==',')||(isalpha(*afterLetters)||(isspace(*afterLetters))))) afterLetters++;
 

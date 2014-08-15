@@ -174,7 +174,7 @@ public:
    void SetCount(int32 c) {_count = c;}
 
 private:
-#if defined(MUSCLE_SINGLE_THREAD_ONLY)
+#if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(__HAIKU__)
    int32 _count;
 #elif defined(__ATHEOS__)
    atomic_t _count;
@@ -182,7 +182,7 @@ private:
    long _count;
 #elif defined(__APPLE__)
    volatile int32_t _count;
-#elif defined(__BEOS__) || defined(__HAIKU__)
+#elif defined(__BEOS__)
 # if defined(B_BEOS_VERSION_5)
    vint32 _count;
 # else

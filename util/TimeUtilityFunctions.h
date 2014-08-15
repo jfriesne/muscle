@@ -16,7 +16,7 @@
 # include <kernel/OS.h>
 #endif
 
-#if defined(TARGET_PLATFORM_XENOMAI)
+#if defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
 # include "native/timer.h"
 #endif
 
@@ -196,7 +196,7 @@ uint64 GetCurrentTime64(uint32 timeType=MUSCLE_TIMEZONE_UTC);
  */
 #if defined(__BEOS__) || defined(__HAIKU__)
 inline uint64 GetRunTime64() {return system_time();}
-#elif defined(TARGET_PLATFORM_XENOMAI)
+#elif defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
 inline uint64 GetRunTime64() {return rt_timer_tsc2ns(rt_timer_tsc())/1000;}
 #else
 uint64 GetRunTime64();

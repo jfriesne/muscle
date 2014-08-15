@@ -258,3 +258,6 @@ of your Makefile to alter muscle's behaviour:
    they are copied.  This is handy for verifying that the C++11
    move semantics are being used as expected.
 
+-DMUSCLE_AVOID_XENOMAI
+   Tells MUSCLE not to use Xenomai APIs, not even if 
+   TARGET_PLATFORM_XENOMAI is defined.

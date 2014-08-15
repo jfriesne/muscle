@@ -295,6 +295,7 @@ NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, bool isBeingRem
 
    if (GetSubscriptionsEnabled())
    {
+      ConstMessageRef constNewData = modifiedNode.GetData();
       if (_subscriptions.GetNumFilters() > 0)
       {
          ConstMessageRef constOldData = oldData;  // We need a non-const ConstMessageRef to pass to MatchesNode(), in case MatchesNode() changes the ref -- even though we won't use the changed data
@@ -308,21 +309,21 @@ NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, bool isBeingRem
          }
          else if (constOldData())
          {
-            ConstMessageRef constNewData = modifiedNode.GetData();
             bool matchesNow = _subscriptions.MatchesNode(modifiedNode, constNewData, 0);
 
                  if ((matchedBefore == false)&&(matchesNow == false)) return;                 // no change in status, so no update is necessary
             else if ((matchedBefore)&&(matchesNow == false))          isBeingRemoved = true;  // no longer matches, so we need to send a node-removed update
          }
          else if (matchedBefore == false) return;  // Adding a new node:  only notify the client if it matches at least one of his QueryFilters
+         else (void) _subscriptions.MatchesNode(modifiedNode, constNewData, 0);  // just in case one our QueryFilters needs to modify (constNewData)
       }
-      NodeChangedAux(modifiedNode, isBeingRemoved);
+      NodeChangedAux(modifiedNode, CastAwayConstFromRef(constNewData), isBeingRemoved);
    }
 }
 
 void
 StorageReflectSession ::
-NodeChangedAux(DataNode & modifiedNode, bool isBeingRemoved)
+NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, bool isBeingRemoved)
 {
    TCHECKPOINT;
 
@@ -342,11 +343,11 @@ NodeChangedAux(DataNode & modifiedNode, bool isBeingRemoved)
                // So in this case we have to force a flush of the current message now, and 
                // then add the new notification to the next one!
                PushSubscriptionMessages();
-               NodeChangedAux(modifiedNode, isBeingRemoved);  // and then start again
+               NodeChangedAux(modifiedNode, nodeData, isBeingRemoved);  // and then start again
             }
             else _nextSubscriptionMessage()->AddString(PR_NAME_REMOVED_DATAITEMS, np);
          }
-         else _nextSubscriptionMessage()->AddMessage(np, modifiedNode.GetData());
+         else _nextSubscriptionMessage()->AddMessage(np, nodeData);
       }
       if (_nextSubscriptionMessage()->GetNumNames() >= _maxSubscriptionMessageItems) PushSubscriptionMessages(); 
    }
@@ -1190,7 +1191,7 @@ ChangeQueryFilterCallback(DataNode & node, void * ud)
    ConstMessageRef constMsg2 = node.GetData();
    bool oldMatches = ((constMsg1() == NULL)||(oldFilter == NULL)||(oldFilter->Matches(constMsg1, &node)));
    bool newMatches = ((constMsg2() == NULL)||(newFilter == NULL)||(newFilter->Matches(constMsg2, &node)));
-   if (oldMatches != newMatches) NodeChangedAux(node, oldMatches);
+   if (oldMatches != newMatches) NodeChangedAux(node, CastAwayConstFromRef(constMsg2), oldMatches);
    return node.GetDepth();  // continue traversal as usual
 }
 
@@ -1358,23 +1359,15 @@ PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry &
    TCHECKPOINT;
 
    const StringMatcherQueue * nextSubscription = entry.GetParser()();
-   int pd = nextSubscription->GetNumItems();
-   if (pd == ((int32)node.GetDepth())-rootDepth)  // only paths with the same number of clauses as the node's path (less rootDepth) can ever match
+   if ((int32)nextSubscription->GetNumItems() != ((int32)node.GetDepth())-rootDepth) return false;  // only paths with the same number of clauses as the node's path (less rootDepth) can ever match
+
+   DataNode * travNode = &node;
+   for (int j=nextSubscription->GetNumItems()-1; j>=rootDepth; j--,travNode=travNode->GetParent())
    {
-      DataNode * travNode = &node;
-      bool match = true;  // optimistic default
-      for (int j=nextSubscription->GetNumItems()-1; j>=rootDepth; j--,travNode=travNode->GetParent())
-      {
-         StringMatcher * nextMatcher = nextSubscription->GetItemAt(j)->GetItemPointer();
-         if ((nextMatcher)&&(nextMatcher->Match(travNode->GetNodeName()()) == false))
-         {
-            match = false;
-            break; 
-         }
-      }
-      if (match) return entry.FilterMatches(optData, &node);
+      StringMatcher * nextMatcher = nextSubscription->GetItemAt(j)->GetItemPointer();
+      if ((nextMatcher)&&(nextMatcher->Match(travNode->GetNodeName()()) == false)) return false;
    }
-   return false;
+   return entry.FilterMatches(optData, &node);
 }
 
 uint32

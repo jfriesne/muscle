@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "dataio/FileDataIO.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/ByteBuffer.h"
 
@@ -69,12 +70,31 @@ static void Test(uint32 dataFlags)
    printf("rcs="); for (uint32 i=0; i<nr; i++) printf(" [%f,%f,%f,%f]", rcs[i][0], rcs[i][1], rcs[i][2], rcs[i][3]); printf("\n");
 }
 
-// This program exercises the String class.
-int main(void) 
+// This program exercises the ByteBuffer class.
+int main(int argc, char ** argv) 
 {
-   Test(DATA_FLAG_NATIVE_ENDIAN);
-   Test(DATA_FLAG_LITTLE_ENDIAN);
-   Test(DATA_FLAG_BIG_ENDIAN);
-
+   if (argc > 1)
+   {
+      const char * fileName = argv[1];
+      FILE * f = fopen(fileName, "rb");
+      if (f)
+      {
+         FileDataIO fdio(f);
+         ByteBufferRef buf = GetByteBufferFromPool(fdio);
+         if (buf())
+         {
+            printf("File [%s] is " UINT32_FORMAT_SPEC " bytes long.  Contents of the file are as follows:\n", fileName, buf()->GetNumBytes());
+            PrintHexBytes(buf);
+         }
+         else printf("Error reading file [%s]\n", fileName);
+      }
+      else printf("Error, couldn't open file [%s] for reading\n", fileName);
+   }
+   else
+   {
+      Test(DATA_FLAG_NATIVE_ENDIAN);
+      Test(DATA_FLAG_LITTLE_ENDIAN);
+      Test(DATA_FLAG_BIG_ENDIAN);
+   }
    return 0;
 }

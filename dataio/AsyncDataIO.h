@@ -5,7 +5,6 @@
 
 #include "dataio/DataIO.h"
 #include "system/Thread.h"
-#include "util/ByteBuffer.h"
 
 namespace muscle {
 
@@ -31,6 +30,13 @@ public:
    /** This must be called before using the AsyncDataIO object! */
    virtual status_t StartInternalThread();
 
+   /** This may be called before deleting the AsyncDataIO object.  It will be called by the AsyncDataIO destructor
+     * in any case, but if you subclassed AsyncDataIO you will want to call it from your subclass's destructor as well,
+     * to avoid race conditions.
+     * @param waitForThread If true, this method call won't return until the thread has gone away.  defaults to true.
+     */
+   virtual void ShutdownInternalThread(bool waitForThread = true);
+
    virtual int32 Read(void * buffer, uint32 size);
    virtual int32 Write(const void * buffer, uint32 size);
    virtual status_t Seek(int64 offset, int whence);
@@ -55,6 +61,30 @@ public:
 
 protected:
    virtual void InternalThreadEntry();
+
+   /** Called in the internal thread; should return the next time the internal thread should be forced to wake up and
+     * call InternalThreadPulse().   Default implementation returns MUSCLE_TIME_NEVER, meaning that InternalThreadPulse()
+     * will never be called by default.
+     * @param prevPulseTime the time that was previously returned by this method, or MUSCLE_TIME_NEVER if this method
+     *                      was never previously called.
+     */
+   virtual uint64 InternalThreadGetPulseTime(uint64 prevPulseTime) {(void) prevPulseTime; return MUSCLE_TIME_NEVER;}
+
+   /** Called in the internal thread at roughly the time specified by GetInternalThreadPulseTime().
+     * Default implementation is a no-op. 
+     * @param scheduledPulseTime the time that this method was supposed to be called at (actually call timing may vary somewhat)
+     */
+   virtual void InternalThreadPulse(uint64 scheduledPulseTime) {(void) scheduledPulseTime;}
+
+   /** May be called by the internal thread to write bytes to the main thread.  These bytes will appear to the
+     * main thread as if they had come from the DataIO's normal source.  This is useful for test situations where
+     * you want to create mock input data without requiring the presence of a real input device.
+     * @param bytes The bytes to send to the main thread
+     * @param numBytes How many bytes (bytes) points to
+     * @param allowPartialWrite Iff false, then this call will either write all of the bytes or none of them.
+     * @returns The number of bytes that were actually written.
+     */
+   uint32 WriteToMainThread(const uint8 * bytes, uint32 numBytes, bool allowPartialWrite);
 
 private:
    int32 SlaveRead(void * buffer, uint32 size)        {return _slaveIO() ? _slaveIO()->Read(buffer, size)  : -1;}
@@ -92,6 +122,12 @@ private:
    uint64 _mainThreadBytesWritten;
    Mutex _asyncCommandsMutex;
    Queue<AsyncCommand> _asyncCommands;
+
+   // values below should be accessed from within the internal thread only!
+   char * _fromSlaveIOBuf;
+   uint32 _fromSlaveIOBufSize;
+   uint32 * _fromSlaveIOBufReadIdx;
+   uint32 * _fromSlaveIOBufNumValid;
 };
 
 }; // end namespace muscle

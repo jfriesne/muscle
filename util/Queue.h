@@ -1543,8 +1543,12 @@ Queue<ItemType>::SwapContentsAux(Queue<ItemType> & largeThat)
    // Now adopt his dynamic buffer
    _queue     = largeThat._queue;
    _queueSize = largeThat._queueSize;
-   _headIndex = largeThat._headIndex;
-   _tailIndex = largeThat._tailIndex;
+   if (_queueSize > 0)
+   {
+      _headIndex = largeThat._headIndex;
+      _tailIndex = largeThat._tailIndex;
+   }
+   else _headIndex = _tailIndex = 0;  // avoid static-analyzer warning in this case
    
    // And point him back at his small-buffer
    if (ni > 0)

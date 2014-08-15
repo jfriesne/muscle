@@ -5,6 +5,30 @@ key:  - new feature
       * bug fixed
       o other
 
+6.06 Released 8/15/2014
+   - ParseHumanReadableTimeIntervalString() can now parse strings
+     where only the time-unit is specified.  (e.g. "second" now
+     returns 1000000)
+   - Added GetInternalThreadPulseTime(), InternalThreadPulse(),
+     WriteToMainThread(), and ShutdownInternalThread() methods 
+     to the AsyncDataIO class, so that it can be subclassed for
+     use in impersonating a "live" socket, using test data 
+     internally generated inside its I/O thread.
+   o Added code to testbytebuffer.cpp, so that if a filename is
+     passed as an argument, the contents of the specified file 
+     will be printed to stdout in annotated-hex format.
+   o Added support for a -DMUSCLE_AVOID_XENOMAI flag, to be used
+     when compiling with -DTARGET_PLATFORM_XENOMAI but we don't
+     want MUSCLE to use Xenomai anyway.
+   * Merged in Augustin Cavalier's patch to get MUSCLE to
+     compile again under Haiku.
+   * Modified the Queue code to avoid a static-analyizer warning.
+   * Fixed a valgrind hit in AbstractReflectSession::Reconnect().
+   * Fixed a bug in AsyncDataIO that would cause it to hang
+     when being shut down.
+   * Fixed a bug that could cause a QueryFilter's replacement
+     ConstMessageRef object to be ignored in certain circumstances.
+
 6.05 Released 6/27/2014
    - Upgraded the captive zlib implementation to v1.2.8.
    o Moved public repository from FreeCode to GitHub, because

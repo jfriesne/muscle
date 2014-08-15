@@ -497,7 +497,7 @@ protected:
    DECLARE_MUSCLE_TRAVERSAL_CALLBACK(StorageReflectSession, PassMessageCallback);    /** Matching nodes are sent the given message.  */
 
 private:
-   void NodeChangedAux(DataNode & modifiedNode, bool isBeingRemoved);
+   void NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, bool isBeingRemoved);
    void UpdateDefaultMessageRoute();
    status_t RemoveParameter(const String & paramName, bool & retUpdateDefaultMessageRoute);
    int PassMessageCallbackAux(DataNode & node, const MessageRef & msgRef, bool matchSelfOkay);

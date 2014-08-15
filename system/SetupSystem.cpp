@@ -576,7 +576,7 @@ static inline uint32 get_tbu() {uint32 tbu; asm volatile("mftbu %0" : "=r" (tbu)
 #endif
 
 // For BeOS, this is an in-line function, defined in util/TimeUtilityFunctions.h
-#if !(defined(__BEOS__) || defined(__HAIKU__) || defined(TARGET_PLATFORM_XENOMAI))
+#if !(defined(__BEOS__) || defined(__HAIKU__) || (defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)))
 /** Defined here since every MUSCLE program will have to include this file anyway... */
 uint64 GetRunTime64()
 {
