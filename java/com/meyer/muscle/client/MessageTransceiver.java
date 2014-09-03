@@ -265,7 +265,7 @@ public class MessageTransceiver implements MessageListener
                {
                  _channel  = s;
                  _failTag = cmsg._failTag;
-                 new MessageReceiver(_channel, _connectionID);
+                 new MessageReceiver(s, _connectionID);
                  if (_channel.isOpen()) sendReply(cmsg._successTag);  // ok, done!
                }
                else sendReply(cmsg._failTag);
@@ -313,64 +313,81 @@ public class MessageTransceiver implements MessageListener
       /** Logic for our receive-incoming-data thread */
       private class MessageReceiver implements MessageListener
       {
+	     public MessageReceiver(SocketChannel in, int cid) {
+		     _in = in;
+		     _connectionID = cid;
+		     try {
+			     _buffer = ByteBuffer.allocateDirect(in.socket().getReceiveBufferSize());
+		     } catch (Exception ex) {
+			     _buffer = ByteBuffer.allocateDirect(128 * 1024); // default receiver-buffer-size, 128k.
+		     }
+		     _buffer.order(ByteOrder.LITTLE_ENDIAN);
+		     _buffer.mark();
+		     (new MessageQueue(this)).postMessage(null);  // start the background reader thread
+	     }
+
          public MessageReceiver(ByteChannel in, int cid)
          {
             _in = in;
             _connectionID = cid;
+	        _buffer = ByteBuffer.allocateDirect(128 * 1024); // default receiver-buffer-size, 128k.
+            _buffer.order(ByteOrder.LITTLE_ENDIAN);
+	        _buffer.mark();
             (new MessageQueue(this)).postMessage(null);  // start the background reader thread
          }
          
-         public void messageReceived(Object msg, int numLeft)
+         public synchronized void messageReceived(Object msg, int numLeft)
          {
             int maxIncomingMessageSize = _gateway.getMaximumIncomingMessageSize();
-            
-            ByteBuffer buffer = ByteBuffer.allocate(128*1024); // default receive-buffer-size is 128KB, per my discussion with Lior
-            buffer.order(ByteOrder.LITTLE_ENDIAN);
-            int numBytesRead;
+
+	        _buffer.reset();
+	        int numBytesRead;
             try {
                while(true) {
-                  numBytesRead = _in.read(buffer);
+                  numBytesRead = _in.read(_buffer);
                   if (numBytesRead < 0) {
                      // The peer has disconnected, so go away.
                      _sendQueue.postMessage(this);
                      break;
                   }
-                  buffer.limit(buffer.position());
-                  buffer.rewind();
+	              _buffer.flip();
                   try {
-                      while (buffer.remaining() > 0) {
-                         buffer.mark();
-                         sendReply(_gateway.unflattenMessage(buffer));
+                      while (_buffer.remaining() > 0) {
+                         _buffer.mark();
+                         sendReply(_gateway.unflattenMessage(_buffer));
                       }
-                      buffer.compact();
+                      _buffer.compact();
                   }
                   catch (NotEnoughDataException ned)
                   {
-                      int eodPosition = buffer.position();
-                      buffer.reset();
+                      int eodPosition = _buffer.limit();
+                      _buffer.reset(); // Move back to the mark() prior to invoking unflattenMessage.
 
                       // Check if there is a need to enlarge the buffer
-                      if (buffer.capacity() < (eodPosition + ned.getNumMissingBytes() - buffer.position())) {
+                      if (_buffer.capacity() < (eodPosition + ned.getNumMissingBytes() - _buffer.position())) {
                           // The data will exceed the buffer, even after compacting.
-                          int desiredSize = buffer.capacity() + ned.getNumMissingBytes();
-                          int doubleSize = buffer.capacity()*2;
+                          int desiredSize = _buffer.capacity() + ned.getNumMissingBytes();
+                          int doubleSize = _buffer.capacity()*2;
                           if (desiredSize < doubleSize) desiredSize = (doubleSize < maxIncomingMessageSize) ? doubleSize : maxIncomingMessageSize;
                           if (desiredSize <= maxIncomingMessageSize) 
                           {
-                             ByteBuffer tmp = ByteBuffer.allocate(desiredSize);
+                             ByteBuffer tmp = ByteBuffer.allocateDirect(desiredSize);
                              tmp.order(ByteOrder.LITTLE_ENDIAN);
-                             tmp.put(buffer);
-                             buffer = tmp;
+                             tmp.put(_buffer);
+	                         tmp.limit(_buffer.limit());
+	                         tmp.position(_buffer.position());
+                             tmp.mark();
+                             _buffer = tmp;
                           }
                           else {
                              // Not enough memory for the message that is expected, and not allowed to allocate enough memory.
-                             throw new UnflattenFormatException("Incoming message too large:  "+(buffer.capacity() + ned.getNumMissingBytes())+"/"+maxIncomingMessageSize);
+                             throw new UnflattenFormatException("Incoming message too large:  "+(_buffer.capacity() + ned.getNumMissingBytes())+"/"+maxIncomingMessageSize);
                           }
                       }
                       else {
-                          int newPosition = eodPosition - buffer.position();
-                    	  buffer.compact();
-                    	  buffer.position(newPosition);
+                          int newPosition = eodPosition - _buffer.position(); // limit - mark, see reset() before capacity checks.
+                    	  _buffer.compact();
+                    	  _buffer.position(newPosition);
                       }
                   }
                }
@@ -385,6 +402,7 @@ public class MessageTransceiver implements MessageListener
          
          private int _connectionID;
          private ByteChannel _in;
+	     private ByteBuffer _buffer;
       }
       
       private Object _failTag              = null;

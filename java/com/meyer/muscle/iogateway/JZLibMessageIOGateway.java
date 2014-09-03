@@ -148,7 +148,10 @@ public class JZLibMessageIOGateway extends MessageIOGateway
    
    public Message unflattenMessage(ByteBuffer in) throws IOException, UnflattenFormatException , NotEnoughDataException
    {
-      if (in.remaining() < 8) throw new NotEnoughDataException(8-in.remaining());
+      if (in.remaining() < 8) {
+	      in.position(in.limit());
+	      throw new NotEnoughDataException(8-in.remaining());
+      }
 
       int numBytes = in.getInt();
       if (numBytes > getMaximumIncomingMessageSize()) throw new UnflattenFormatException("Incoming message was too large! (" + numBytes + " bytes, " + getMaximumIncomingMessageSize() + " allowed!)");
