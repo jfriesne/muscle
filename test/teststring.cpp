@@ -43,6 +43,16 @@ int main(void)
    }
 #endif
 
+   {
+      // Test to make sure that when a string is set equal to an empty string, it deletes its buffer.
+      // (That way long strings can't build up in an ObjectPool somewhere)
+      String longString = "this is a very long string.  Well okay it's not THAT long, but long enough.";
+      const String & emptyString = GetDefaultObjectForType<String>();
+      printf("Before copy:   longString bufSize=" UINT32_FORMAT_SPEC ", emptyString bufSize="UINT32_FORMAT_SPEC "\n", longString.GetNumAllocatedBytes(), emptyString.GetNumAllocatedBytes());
+      longString = emptyString;
+      printf(" After copy:   longString bufSize=" UINT32_FORMAT_SPEC ", emptyString bufSize="UINT32_FORMAT_SPEC "\n", longString.GetNumAllocatedBytes(), emptyString.GetNumAllocatedBytes());
+   }
+
 #ifdef TEST_REPLACE_METHOD
    while(1)
    {

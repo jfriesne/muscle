@@ -59,6 +59,14 @@ int main(void)
    }
 #endif
 
+   // FogBugz #10274:  make sure we flush the Queue's allocated buffer when setting the Queue to empty
+   {
+      Queue<int> q; for (int i=0; i<1000; i++) q.AddTail(i);
+      printf("Before setting equal to empty, q's allocated-slots size is: " UINT32_FORMAT_SPEC "\n", q.GetNumAllocatedItemSlots());
+      q = GetDefaultObjectForType< Queue<int> >();
+      printf(" After setting equal to empty, q's allocated-slots size is: " UINT32_FORMAT_SPEC "\n", q.GetNumAllocatedItemSlots());
+   }
+
    // Test muscleSwap()
    {
       Queue<String> q1, q2;

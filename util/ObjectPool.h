@@ -61,6 +61,9 @@ public:
      */
    virtual uint32 FlushCachedObjects() = 0;
 
+   /** Should print this object's state to stdout.  Used for debugging. */
+   virtual void PrintToStream() const = 0;
+
    /** Walks the linked list of all AbstractObjectRecyclers, calling
      * FlushCachedObjects() on each one, until all cached objects have been destroyed.
      * This method is called by the SetupSystem destructor, to ensure that
@@ -68,6 +71,9 @@ public:
      * ordering issues do not cause bad memory writes, etc.
      */
    static void GlobalFlushAllCachedObjects();
+
+   /** Prints information about the AbstractObjectRecyclers to stdout. */
+   static void GlobalPrintRecyclersToStream();
 
 private:
    AbstractObjectRecycler * _prev;
@@ -181,6 +187,33 @@ public:
     
    /** Implemented to call Drain() and return the number of objects drained. */
    virtual uint32 FlushCachedObjects() {uint32 ret = 0; (void) Drain(&ret); return ret;}
+
+   /** Returns the name of the class of objects this pool is designed to hold. */
+   const char * GetObjectClassName() const {return typeid(Object).name();}
+
+   /** Prints this object's state to stdout.  Used for debugging. */
+   virtual void PrintToStream() const
+   {
+      uint32 numSlabs            = 0;
+      uint32 minItemsInUseInSlab = MUSCLE_NO_LIMIT;
+      uint32 maxItemsInUseInSlab = 0;
+      uint32 totalItemsInUse     = 0;
+      if (_mutex.Lock() == B_NO_ERROR)
+      {
+         const ObjectSlab * slab = _firstSlab;
+         while(slab)
+         {
+            numSlabs++;
+            slab->GetUsageStats(minItemsInUseInSlab, maxItemsInUseInSlab, totalItemsInUse);
+            slab = slab->GetNext();
+         }
+         _mutex.Unlock();
+      }
+      if (minItemsInUseInSlab == MUSCLE_NO_LIMIT) minItemsInUseInSlab = 0;  // just to avoid questions
+
+      uint32 slabSizeItems = NUM_OBJECTS_PER_SLAB;
+      printf("ObjectPool<%s> contains " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-slot slabs, with " UINT32_FORMAT_SPEC " total items in use (%.1f%% loading, " UINT32_FORMAT_SPEC " total bytes).   LightestSlab=" UINT32_FORMAT_SPEC ", HeaviestSlab=" UINT32_FORMAT_SPEC " (" UINT32_FORMAT_SPEC " bytes per item)\n", GetObjectClassName(), numSlabs, slabSizeItems, totalItemsInUse, (numSlabs>0)?(100.0f*(((float)totalItemsInUse)/(numSlabs*slabSizeItems))):0.0f, (uint32)(numSlabs*sizeof(ObjectSlab)), minItemsInUseInSlab, maxItemsInUseInSlab, (uint32) sizeof(Object));
+   }
 
    /** Removes all "spare" objects from the pool and deletes them. 
      * This method is thread-safe.
@@ -370,6 +403,13 @@ private:
       void SetNext(ObjectSlab * next) {_next = next;}
       ObjectSlab * GetNext() const {return _next;}
 
+      void GetUsageStats(uint32 & min, uint32 & max, uint32 & total) const
+      {
+         min = muscleMin(min, (uint32)_numNodesInUse);
+         max = muscleMax(max, (uint32)_numNodesInUse);
+         total += _numNodesInUse;
+      }
+
    private:
       ObjectPool * _pool;
       ObjectSlab * _prev;
@@ -432,6 +472,11 @@ private:
          uint32 ret = sizeof(_data);
          for (uint32 i=0; i<ARRAYITEMS(_nodes); i++) ret += _nodes[i].GetTotalDataSize();
          return ret;
+      }
+
+      void GetUsageStats(uint32 & min, uint32 & max, uint32 & total) const
+      {
+         _data.GetUsageStats(min, max, total);
       }
 
    private:

@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.06"
-#define MUSCLE_VERSION        60600  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.07"
+#define MUSCLE_VERSION        60700  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -379,29 +379,47 @@ template <typename T> T & GetGlobalObjectForType()
 # define MUSCLE_MAY_ALIAS
 #endif
 
-/** Returns the smallest of the two arguments */
-template<typename T> inline const T & muscleMin(const T & p1, const T & p2) {return (p1 < p2) ? p1 : p2;}
+#ifdef MUSCLE_USE_CPLUSPLUS11
+
+/** Returns the smaller of the two arguments */
+template<typename T> T muscleMin(T arg1, T arg2) {return (arg1<arg2) ? arg1 : arg2;}
+
+/** Returns the smallest of all of the arguments */
+template<typename T1, typename ...T2> T1 muscleMin(T1 arg1, T2... args) {return muscleMin(arg1, muscleMin(args...));}
+
+/** Returns the larger of the two arguments */
+template<typename T> T muscleMax(T arg1, T arg2) {return (arg1>arg2) ? arg1 : arg2;}
+
+/** Returns the largest of all of the arguments */
+template<typename T1, typename ...T2> T1 muscleMax(T1 arg1, T2... args) {return muscleMax(arg1, muscleMax(args...));}
+
+#else
+
+/** Returns the smaller of the two arguments */
+template<typename T> inline T muscleMin(T p1, T p2) {return (p1 < p2) ? p1 : p2;}
 
 /** Returns the smallest of the three arguments */
-template<typename T> inline const T & muscleMin(const T & p1, const T & p2, const T & p3) {return muscleMin(p3, muscleMin(p1, p2));}
+template<typename T> inline T muscleMin(T p1, T p2, T p3) {return muscleMin(p3, muscleMin(p1, p2));}
 
 /** Returns the smallest of the four arguments */
-template<typename T> inline const T & muscleMin(const T & p1, const T & p2, const T & p3, const T & p4) {return muscleMin(p3, p4, muscleMin(p1, p2));}
+template<typename T> inline T muscleMin(T p1, T p2, T p3, T p4) {return muscleMin(p3, p4, muscleMin(p1, p2));}
 
 /** Returns the smallest of the five arguments */
-template<typename T> inline const T & muscleMin(const T & p1, const T & p2, const T & p3, const T & p4, const T & p5) {return muscleMin(p3, p4, p5, muscleMin(p1, p2));}
+template<typename T> inline T muscleMin(T p1, T p2, T p3, T p4, T p5) {return muscleMin(p3, p4, p5, muscleMin(p1, p2));}
 
-/** Returns the largest of the two arguments */
-template<typename T> inline const T & muscleMax(const T & p1, const T & p2) {return (p1 < p2) ? p2 : p1;}
+/** Returns the larger of the two arguments */
+template<typename T> inline T muscleMax(T p1, T p2) {return (p1 < p2) ? p2 : p1;}
 
 /** Returns the largest of the three arguments */
-template<typename T> inline const T & muscleMax(const T & p1, const T & p2, const T & p3) {return muscleMax(p3, muscleMax(p1, p2));}
+template<typename T> inline T muscleMax(T p1, T p2, T p3) {return muscleMax(p3, muscleMax(p1, p2));}
 
 /** Returns the largest of the four arguments */
-template<typename T> inline const T & muscleMax(const T & p1, const T & p2, const T & p3, const T & p4) {return muscleMax(p3, p4, muscleMax(p1, p2));}
+template<typename T> inline T muscleMax(T p1, T p2, T p3, T p4) {return muscleMax(p3, p4, muscleMax(p1, p2));}
 
 /** Returns the largest of the five arguments */
-template<typename T> inline const T & muscleMax(const T & p1, const T & p2, const T & p3, const T & p4, const T & p5) {return muscleMax(p3, p4, p5, muscleMax(p1, p2));}
+template<typename T> inline T muscleMax(T p1, T p2, T p3, T p4, T p5) {return muscleMax(p3, p4, p5, muscleMax(p1, p2));}
+
+#endif
 
 namespace ugly_swapcontents_method_sfinae_implementation
 {
@@ -473,7 +491,7 @@ template<typename T, int size> inline bool muscleArrayIndexIsValid(int i, T(&)[s
   * @param hi a maximum value
   * @returns The value in the range [lo, hi] that is closest to (v).
   */
-template<typename T> inline const T & muscleClamp(const T & v, const T & lo, const T & hi) {return (v < lo) ? lo : ((v > hi) ? hi : v);}
+template<typename T> inline T muscleClamp(T v, T lo, T hi) {return (v < lo) ? lo : ((v > hi) ? hi : v);}
 
 /** Returns true iff (v) is in the range [lo,hi].
   * @param v A value
@@ -481,7 +499,7 @@ template<typename T> inline const T & muscleClamp(const T & v, const T & lo, con
   * @param hi A maximum value
   * @returns true iff (v >= lo) and (v <= hi)
   */
-template<typename T> inline bool muscleInRange(const T & v, const T & lo, const T & hi) {return ((v >= lo)&&(v <= hi));}
+template<typename T> inline bool muscleInRange(T v, T lo, T hi) {return ((v >= lo)&&(v <= hi));}
 
 /** Returns -1 if arg1 is larger, or 1 if arg2 is larger, or 0 if they are equal.
   * @param arg1 First item to compare
@@ -491,13 +509,13 @@ template<typename T> inline bool muscleInRange(const T & v, const T & lo, const 
 template<typename T> inline int muscleCompare(const T & arg1, const T & arg2) {return (arg2<arg1) ? 1 : ((arg1<arg2) ? -1 : 0);}
 
 /** Returns the absolute value of (arg) */
-template<typename T> inline T muscleAbs(const T & arg) {return (arg<0)?(-arg):arg;}
+template<typename T> inline T muscleAbs(T arg) {return (arg<0)?(-arg):arg;}
 
 /** Rounds the given float to the nearest integer value. */
 inline int muscleRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
 
 /** Returns -1 if the value is less than zero, +1 if it is greater than zero, or 0 otherwise. */
-template<typename T> inline int muscleSgn(const T & arg) {return (arg<0)?-1:((arg>0)?1:0);}
+template<typename T> inline int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
 
 #endif  /* __cplusplus */
 

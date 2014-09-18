@@ -2601,7 +2601,7 @@ CopyFrom(const HashtableBase<KeyType, ValueType, RHSHashFunctorType> & rhs, bool
 {
    if (((const void *)(this)) == ((const void *)(&rhs))) return B_NO_ERROR;
 
-   if (clearFirst) this->Clear();
+   if (clearFirst) this->Clear((rhs.IsEmpty())&&(this->_tableSize>MUSCLE_HASHTABLE_DEFAULT_CAPACITY));  // FogBugz #10274
    if (rhs.HasItems())
    {
       if ((EnsureSize(this->GetNumItems()+rhs.GetNumItems()) != B_NO_ERROR)||(this->EnsureTableAllocated() != B_NO_ERROR)) return B_ERROR;

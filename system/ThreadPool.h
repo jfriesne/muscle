@@ -98,6 +98,12 @@ public:
    /** Returns the maximum number of threads this ThreadPool is allowed to keep around at once time (as specified in the constructor) */
    uint32 GetMaxThreadCount() const {return _maxThreadCount;}
 
+   /** Used for debugging only */
+   virtual void PrintToStream() const 
+   {
+      printf("ThreadPool %p:  _maxThreadCount=" UINT32_FORMAT_SPEC ", _shuttingDown=%i, _threadIDCounter=" UINT32_FORMAT_SPEC ", _availableThreads=" UINT32_FORMAT_SPEC ", _activeThreads=" UINT32_FORMAT_SPEC ", _registeredClients=" UINT32_FORMAT_SPEC ", _pendingMessages=" UINT32_FORMAT_SPEC ", _deferredMessages=" UINT32_FORMAT_SPEC ", _waitingForCompletion=" UINT32_FORMAT_SPEC "\n", this, _maxThreadCount, _shuttingDown, _threadIDCounter, _availableThreads.GetNumItems(), _activeThreads.GetNumItems(), _registeredClients.GetNumItems(), _pendingMessages.GetNumItems(), _deferredMessages.GetNumItems(), _waitingForCompletion.GetNumItems());
+   }
+
 protected:
    /** Starts the specified Thread object's internal thread running.
      * Broken out into a virtual method so that the Thread's attributes (stack size, etc) can be customized if desired.   

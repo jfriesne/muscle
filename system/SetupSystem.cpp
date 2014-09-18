@@ -836,6 +836,21 @@ void AbstractObjectRecycler :: GlobalFlushAllCachedObjects()
    if (m) m->Unlock();
 }
 
+void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
+{
+   Mutex * m = GetGlobalMuscleLock();
+   if ((m)&&(m->Lock() != B_NO_ERROR)) m = NULL;
+
+   const AbstractObjectRecycler * r = _firstRecycler;
+   while(r) 
+   {
+      r->PrintToStream();
+      r = r->_next;
+   }
+
+   if (m) m->Unlock();
+}
+
 static CompleteSetupSystem * _activeCSS = NULL;
 CompleteSetupSystem * CompleteSetupSystem :: GetCurrentCompleteSetupSystem() {return _activeCSS;}
 

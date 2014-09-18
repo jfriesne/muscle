@@ -28,7 +28,7 @@ status_t String::SetFromString(const String & s, uint32 firstChar, uint32 afterL
       b[len]  = '\0';
       _length = len;
    }
-   else Clear();
+   else ClearAndFlush();
 
    return B_NO_ERROR;
 }

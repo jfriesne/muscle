@@ -683,8 +683,9 @@ Queue<ItemType>::operator =(const Queue& rhs)
 {
    if (this != &rhs)
    {
-      uint32 numItems = rhs.GetNumItems();
-      if (EnsureSize(numItems, true) == B_NO_ERROR) for (uint32 i=0; i<numItems; i++) (*this)[i] = rhs[i];
+      uint32 hisNumItems = rhs.GetNumItems();
+           if (hisNumItems == 0) Clear(true);  // FogBugz #10274
+      else if (EnsureSize(hisNumItems, true) == B_NO_ERROR) for (uint32 i=0; i<hisNumItems; i++) (*this)[i] = rhs[i];
    }
    return *this;
 }

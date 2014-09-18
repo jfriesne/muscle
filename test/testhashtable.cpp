@@ -341,6 +341,15 @@ int main(int argc, char ** argv)
 
    if (temp.HasName("inter")) return DoInteractiveTest();
 
+   // Make sure that setting equal to an empty Hashtable clears the buffer (FogBugz #10274)
+   {
+      Hashtable<String,String> table;
+      for (int32 i=0; i<1000; i++) table.Put(String("xxx%1").Arg(i), "foo");
+      printf("Before copy-from-empty, table allocation is " UINT32_FORMAT_SPEC "\n", table.GetNumAllocatedItemSlots()); 
+      table = GetDefaultObjectForType< Hashtable<String,String> > ();
+      printf(" After copy-from-empty, table allocation is " UINT32_FORMAT_SPEC "\n", table.GetNumAllocatedItemSlots()); 
+   }
+
    // Test C++11 move semantics to make sure they aren't stealing
    {
       String key = "key";

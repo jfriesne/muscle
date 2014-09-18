@@ -139,6 +139,11 @@ int main(int argc, char ** argv)
                   ref()->AddString("info", "This is a user message");
                break;
 
+               case 'i':
+                  ref()->what = PR_COMMAND_PING;
+                  ref()->AddString("Test ping", "yeah");
+               break;
+
                case 's':
                {
                   ref()->what = PR_COMMAND_SETDATA;

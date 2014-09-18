@@ -1209,7 +1209,7 @@ Message & Message :: operator=(const Message & rhs)
 
    if (this != &rhs)
    {
-      Clear();
+      Clear((rhs._entries.IsEmpty())&&(_entries.GetNumAllocatedItemSlots()>MUSCLE_HASHTABLE_DEFAULT_CAPACITY));  // FogBugz #10274
       what = rhs.what;
       for (HashtableIterator<String, RefCountableRef> it(rhs._entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
       {

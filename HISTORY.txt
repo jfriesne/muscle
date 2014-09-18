@@ -5,6 +5,56 @@ key:  - new feature
       * bug fixed
       o other
 
+6.07 Released 9/18/2014
+   - Added a GlobalPrintRecyclersToStream() method to the 
+     AbstractObjectRecycler class, for better debugging and
+     analysis of the ObjectPool's memory usage.
+   - Added an abstract PrintToStream() method to the 
+     AbstactObjectRecycler class, and a concrete implementation
+     of that method to the ObjectPool and ThreadPool classes.
+   - Added a testobjectpool.cpp test program to the tests
+     folder, as a quick sanity check for the ObjectPool class.
+   - Java performance improvement from Bryan Varner: Switched to a 
+     direct byte buffer, which is allocated by the OS outside of 
+     the GC's managed space.
+   - Java performance improvement from Bryan Varner: Scoped the 
+     receiving byte buffer to the receiver, which cut down on a 
+     lot of time spent allocating short-lived buffers.
+   - Java performance improvement from Bryan Varner: Added a 
+     constructor for the MessageReceiver to allocate it's buffer 
+     to the same size as the sockets underlying buffer and made 
+     use of the call where possible.
+   - Added a GetObjectClassName() method to the ObjectPool class.
+   - The GetNetworkInterfaceInfos() function now supports a new
+     bit named GNII_INCLUDE_UNADDRESSED_INTERFACES, which tells
+     it to return even network interfaces with no IP address.
+   - The default value of the (includeBits) argument to 
+     GetNetworkInterfaceInfos() is now GNII_INCLUDE_ALL_ADDRESSED_INTERFACES
+     rather than GNII_INCLUDE_ALL_INTERFACES, to reflect the nuance
+     that was added above; the default behavior is unchanged, though.
+   - When -DMUSCLE_USE_CPLUSPLUS11 is defined, muscleMin() and
+     muscleMax() now use variadic templates so that they can
+     accept any number of arguments (rather than just up to five).
+   o Java fix from Bryan Varner:  Updated the handling code for 
+     NotEnoughDataExceptions to no longer rely on the position of 
+     the buffer (but rather look at the buffer limit, or the amount 
+     previously read into the buffer) -- which basically makes the 
+     above change unnecessary, but I'm paranoid.
+   o Changed the Message, Queue, Hashtable, and String classes so 
+     that when they are set equal to an empty/default object, they 
+     now free any large dynamically-allocated buffer they may be holding.  
+     This avoids excessive memory usage by objects that have been 
+     returned to an ObjectPool after being used to hold large amounts 
+     of data.
+   o Modified muscleMin(), muscleMax(), muscleSgn(), muscleClamp(),
+     and musclAbs() to take arguments and return by value rather 
+     than by const-reference.
+   * Java fix from Bryan Varner:  Fixed a bug causing communication 
+     failures in the NIO message unflattening.
+   * Java fix from Bryan Varner:  Prior to throwing a 
+     NotEnoughDataException the position of the buffer wasn't 
+     being updated in MessageIOGateway and JZLibMessageIOGateway.
+
 6.06 Released 8/15/2014
    - ParseHumanReadableTimeIntervalString() can now parse strings
      where only the time-unit is specified.  (e.g. "second" now

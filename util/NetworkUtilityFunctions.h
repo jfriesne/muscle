@@ -900,6 +900,7 @@ enum {
    GNII_INCLUDE_ENABLED_INTERFACES     = 0x10, // If set, enabled (aka "up") interfaces will be returned
    GNII_INCLUDE_DISABLED_INTERFACES    = 0x20, // If set, disabled (aka "down") interfaces will be returned
    GNII_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT = 0x40, // If set, loopback interfaces will be returned only if no other interfaces are found
+   GNII_INCLUDE_UNADDRESSED_INTERFACES = 0x80, // If set, we'll include even interfaces that don't have a valid IP address
 
    // For convenience, GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES will specify interfaces of the family specified by MUSCLE_AVOID_IPV6's presence/abscence.
 #ifdef MUSCLE_AVOID_IPV6
@@ -908,7 +909,8 @@ enum {
    GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_INCLUDE_IPV6_INTERFACES,
 #endif
 
-   GNII_INCLUDE_ALL_INTERFACES  = 0xFFFFFFFF,  // If set, all interfaces will be returned
+   GNII_INCLUDE_ALL_INTERFACES           = 0xFFFFFFFF,  // If set, all interfaces will be returned
+   GNII_INCLUDE_ALL_ADDRESSED_INTERFACES = (GNII_INCLUDE_ALL_INTERFACES & ~(GNII_INCLUDE_UNADDRESSED_INTERFACES))  // default setting -- all interfaces with an IP address
 };
 
 /** This function queries the local OS for information about all available network
@@ -917,11 +919,11 @@ enum {
   * @param results On success, zero or more NetworkInterfaceInfo objects will
   *                be added to this Queue for you to look at.
   * @param includeBits A chord of GNII_INCLUDE_* bits indicating which types of network interface you want to be
-  *                    included in the returned list.  Defaults to GNII_INCLUDE_ALL_INTERFACES, which indicates that
-  *                    no filtering of the returned list should be done.
+  *                    included in the returned list.  Defaults to GNII_INCLUDE_ALL_ADDRESSED_INTERFACES, which
+  *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
   * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory, call not implemented for the current OS, etc)
   */
-status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 includeBits = GNII_INCLUDE_ALL_INTERFACES);
+status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 includeBits = GNII_INCLUDE_ALL_ADDRESSED_INTERFACES);
 
 /** This is a more limited version of GetNetworkInterfaceInfos(), included for convenience.
   * Instead of returning all information about the local host's network interfaces, this
@@ -930,12 +932,12 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
   * by GetBroadcastAddress().
   * @param retAddresses On success, zero or more ip_addresses will be added to this Queue for you to look at.
   * @param includeBits A chord of GNII_INCLUDE_* bits indicating which types of network interface you want to be
-  *                    included in the returned list.  Defaults to GNII_INCLUDE_ALL_INTERFACES, which indicates that
-  *                    no filtering of the returned list should be done.
+  *                    included in the returned list.  Defaults to GNII_INCLUDE_ALL_ADDRESSED_INTERFACES, which 
+  *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
   * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory,
   *          call not implemented for the current OS, etc)
   */
-status_t GetNetworkInterfaceAddresses(Queue<ip_address> & retAddresses, uint32 includeBits = GNII_INCLUDE_ALL_INTERFACES);
+status_t GetNetworkInterfaceAddresses(Queue<ip_address> & retAddresses, uint32 includeBits = GNII_INCLUDE_ALL_ADDRESSED_INTERFACES);
 
 #ifndef MUSCLE_AVOID_MULTICAST_API
 

@@ -1122,13 +1122,20 @@ static bool IsGNIIBitMatch(const ip_address & ip, bool isInterfaceEnabled, uint3
    if (((includeBits & GNII_INCLUDE_ENABLED_INTERFACES)  == 0)&&( isInterfaceEnabled)) return false;
    if (((includeBits & GNII_INCLUDE_DISABLED_INTERFACES) == 0)&&(!isInterfaceEnabled)) return false;
 
-   bool isLoopback = IsStandardLoopbackDeviceAddress(ip);
-   if (((includeBits & GNII_INCLUDE_LOOPBACK_INTERFACES)    == 0)&&( isLoopback)) return false;
-   if (((includeBits & GNII_INCLUDE_NONLOOPBACK_INTERFACES) == 0)&&(!isLoopback)) return false;
+   if (ip == invalidIP)
+   {
+      if ((includeBits & GNII_INCLUDE_UNADDRESSED_INTERFACES) == 0) return false;  // FogBugz #10286
+   }
+   else
+   {
+      bool isLoopback = IsStandardLoopbackDeviceAddress(ip);
+      if (((includeBits & GNII_INCLUDE_LOOPBACK_INTERFACES)    == 0)&&( isLoopback)) return false;
+      if (((includeBits & GNII_INCLUDE_NONLOOPBACK_INTERFACES) == 0)&&(!isLoopback)) return false;
 
-   bool isIPv4 = IsIPv4Address(ip);
-   if (( isIPv4)&&((includeBits & GNII_INCLUDE_IPV4_INTERFACES) == 0)) return false;
-   if ((!isIPv4)&&((includeBits & GNII_INCLUDE_IPV6_INTERFACES) == 0)) return false;
+      bool isIPv4 = IsIPv4Address(ip);
+      if (( isIPv4)&&((includeBits & GNII_INCLUDE_IPV4_INTERFACES) == 0)) return false;
+      if ((!isIPv4)&&((includeBits & GNII_INCLUDE_IPV6_INTERFACES) == 0)) return false;
+   }
 
    return true;
 }
@@ -1161,7 +1168,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
             ip_address broadcastIP = SockAddrToIPAddr(p->ifa_broadaddr);
             bool isEnabled         = ((p->ifa_flags & IFF_UP)      != 0);
             bool hasCopper         = ((p->ifa_flags & IFF_RUNNING) != 0);
-            if ((unicastIP != invalidIP)&&(IsGNIIBitMatch(unicastIP, isEnabled, includeBits)))
+            if (IsGNIIBitMatch(unicastIP, isEnabled, includeBits))
             {
 #ifndef MUSCLE_AVOID_IPV6
                unicastIP.SetInterfaceIndex(if_nametoindex(p->ifa_name));  // so the user can find out; it will be ignore by the TCP stack
