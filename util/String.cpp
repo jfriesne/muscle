@@ -21,7 +21,7 @@ status_t String::SetFromString(const String & s, uint32 firstChar, uint32 afterL
    uint32 len = (afterLastChar > firstChar) ? (afterLastChar-firstChar) : 0;
    if (len > 0)
    {
-      if (EnsureBufferSize(len+1, false) != B_NO_ERROR) return B_ERROR;  // guaranteed not to realloc in the (&s==this) case
+      if (EnsureBufferSize(len+1, false, false) != B_NO_ERROR) return B_ERROR;  // guaranteed not to realloc in the (&s==this) case
 
       char * b = GetBuffer();
       memmove(b, s()+firstChar, len);  // memmove() is used in case (&s==this)
@@ -44,7 +44,7 @@ status_t String::SetCstr(const char * str, uint32 maxLen)
    if (maxLen > 0)
    {
       if (str[maxLen-1] != '\0') maxLen++;  // make room to add the NUL byte if necessary
-      if (EnsureBufferSize(maxLen, false) != B_NO_ERROR) return B_ERROR;  // guaranteed not to realloc in the IsCharInLocalArray(str) case
+      if (EnsureBufferSize(maxLen, false, false) != B_NO_ERROR) return B_ERROR;  // guaranteed not to realloc in the IsCharInLocalArray(str) case
 
       char * b = GetBuffer();
       memmove(b, str, maxLen-1);  // memmove() is used in case (str) points into our array
@@ -60,7 +60,7 @@ String &
 String::operator+=(const String &other)
 {
    uint32 otherLen = other.Length();  // save this value first, in case (&other==this)
-   if ((otherLen > 0)&&(EnsureBufferSize(Length()+otherLen+1, true) == B_NO_ERROR))
+   if ((otherLen > 0)&&(EnsureBufferSize(Length()+otherLen+1, true, false) == B_NO_ERROR))
    {
       memmove(GetBuffer()+_length, other(), otherLen+1);  // memmove() is used in case (&other==this)
       _length += otherLen;
@@ -76,7 +76,7 @@ String::operator+=(const char * other)
    if (otherLen > 0)
    {
       if (IsCharInLocalArray(other)) return operator+=(String(other,otherLen));  // avoid potential free-ing of (other) inside EnsureBufferSize()
-      if (EnsureBufferSize(Length()+otherLen+1, true) == B_NO_ERROR)
+      if (EnsureBufferSize(Length()+otherLen+1, true, false) == B_NO_ERROR)
       {
          memcpy(GetBuffer()+_length, other, otherLen+1);
          _length += otherLen;
@@ -519,16 +519,36 @@ String String :: AppendWord(const String & str, const char * sep) const
                                                                           else return String(*this).Append(str);
 }
 
+static uint32 NextPowerOfTwo(uint32 n)
+{
+   // This code was stolen from:  http://stackoverflow.com/a/1322548/131930
+
+   n--;
+   n |= n >> 1;   // Divide by 2^k for consecutive doublings of k up to 32,
+   n |= n >> 2;   // and then or the results.
+   n |= n >> 4;
+   n |= n >> 8;
+   n |= n >> 16;
+   n++;           // The result is a number of 1 bits equal to the number
+                  // of bits in the original number, plus 1. That's the
+                  // next highest power of 2.
+   return n;
+}
+
 static uint32 GetNextBufferSize(uint32 bufLen)
 {
    // For very small strings, we'll try to conserve memory by betting that they won't expand much more
-   if (bufLen < 32) return bufLen+4;
+   if (bufLen < 32) return bufLen+SMALL_MUSCLE_STRING_LENGTH;
 
    static const uint32 STRING_PAGE_SIZE       = 4096;
    static const uint32 STRING_MALLOC_OVERHEAD = 12;  // we assume that malloc() might need as many as 12 bytes for book keeping
 
    // For medium-length strings, do a geometric expansion to reduce the number of reallocations
-   if (bufLen < (STRING_PAGE_SIZE-STRING_MALLOC_OVERHEAD)) return bufLen*2;
+   uint32 geomLen = NextPowerOfTwo((bufLen-1)*2);
+#ifdef MUSCLE_ENABLE_MEMORY_TRACKING
+   geomLen -= sizeof(size_t);  // so that the internal allocation size will be a power of two, after GlobalMemoryAllocator.cpp adds its header bytes
+#endif
+   if (geomLen < (STRING_PAGE_SIZE-STRING_MALLOC_OVERHEAD)) return geomLen;
 
    // For large (multi-page) allocations, we'll increase by one page.  According to Trolltech, modern implementations
    // of realloc() don't actually copy the entire large buffer, they just rearrange the memory map and add
@@ -541,62 +561,84 @@ static uint32 GetNextBufferSize(uint32 bufLen)
 // are available for storing data in.  (requestedBufLen) should include
 // the terminating NUL.  If (retainValue) is true, the current string value
 // will be retained; otherwise it should be set right after this call returns...
-status_t String::EnsureBufferSize(uint32 requestedBufLen, bool retainValue)
+status_t String::EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bool allowShrink)
 {
-   if (requestedBufLen <= _bufferLen) return B_NO_ERROR;  // if we're already big enough, then there is nothing to do!
+   if (allowShrink ? (requestedBufLen == _bufferLen) : (requestedBufLen <= _bufferLen)) return B_NO_ERROR;
 
-   // If we're doing a first-time allocation, allocate exactly the number of the bytes requested.
-   // If it's a re-allocation, allocate more than requested as it's more likely to happen yet another time.
-   bool wasDyn = IsArrayDynamicallyAllocated();
-   uint32 newBufLen = wasDyn ? GetNextBufferSize(requestedBufLen) : requestedBufLen;
+   // If we're doing a first-time allocation or a shrink, allocate exactly the number of the bytes requested.
+   // If it's a re-allocation, allocate more than requested in the hopes avoiding another realloc in the future.
+   char * newBuf = NULL;
+   bool arrayWasDynamicallyAllocated = IsArrayDynamicallyAllocated();
+   uint32 newBufLen = ((allowShrink)||(requestedBufLen <= SMALL_MUSCLE_STRING_LENGTH+1)||((IsEmpty())&&(!arrayWasDynamicallyAllocated))) ? requestedBufLen : GetNextBufferSize(requestedBufLen);
+   if (newBufLen == 0)
+   {
+      ClearAndFlush();
+      return B_NO_ERROR; 
+   }
+
+   bool goToSmallBufferMode = ((allowShrink)&&(newBufLen <= (SMALL_MUSCLE_STRING_LENGTH+1)));
+   uint32 newMaxLength = newBufLen-1;
    if (retainValue)
    {
-      if (wasDyn)
+      if (arrayWasDynamicallyAllocated)
       {
-         // Here we call muscleRealloc() to (hopefully) avoid unnecessary data copying
-         char * newBuf = (char *)muscleRealloc(_strData._bigBuffer, newBufLen);
-         if (newBuf)
+         if (goToSmallBufferMode)
          {
-            _strData._bigBuffer = newBuf;
-            _bufferLen = newBufLen;
+            char * bigBuffer = _strData._bigBuffer; // guaranteed not to be equal to _strData._smallBuffer.  Gotta make this copy now because the memcpy() below will munge the pointer
+            memcpy(_strData._smallBuffer, bigBuffer, newBufLen);  // copy the data back into our inline array
+            _strData._smallBuffer[newMaxLength] = '\0';  // make sure we're terminated (could be an issue if we're shrinking)
+            _length    = muscleMin(_length, newMaxLength);
+            _bufferLen = sizeof(_strData._smallBuffer);
+            muscleFree(bigBuffer);   // get rid of the dynamically allocated array we were using before
+            return B_NO_ERROR;       // return now to avoid setting _strData._bigBuffer below
          }
          else
          {
-            WARN_OUT_OF_MEMORY;
-            return B_ERROR;
+            // Here we call muscleRealloc() to (hopefully) avoid unnecessary data copying
+            newBuf = (char *) muscleRealloc(_strData._bigBuffer, newBufLen);
+            if (newBuf == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
          }
       }
-      else
+      else 
       {
-         // Oops, muscleRealloc() won't do in this case.... we'll just have to copy the bytes over
-         char * newBuf = (char *) muscleAlloc(newBufLen);
-         if (newBuf) *newBuf = '\0';  // ensure NUL termination
+         if (goToSmallBufferMode)
+         {
+            // In the was-small-buffer, still-is-small-buffer case, all we need to do is truncate the string
+            _strData._smallBuffer[newMaxLength] = '\0';
+            _length = muscleMin(Length(), newMaxLength);
+            // Setting _bufferLen isn't necessary here, since we are already in small-mode
+            return B_NO_ERROR;       // return now to avoid setting _strData._bigBuffer below
+         }
          else
          {
-            WARN_OUT_OF_MEMORY;
-            return B_ERROR;
+            // Oops, muscleRealloc() won't do in this case.... we'll just have to copy the bytes over
+            newBuf = (char *) muscleAlloc(newBufLen);
+            if (newBuf == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+            memcpy(newBuf, GetBuffer(), muscleMin(Length()+1, newBufLen));
          }
-
-         memcpy(newBuf, GetBuffer(), Length()+1);
-         _strData._bigBuffer = newBuf;
-         _bufferLen = newBufLen;
       }
    }
    else
    {
-      // If the caller doesn't care about retaining the value, then it's
-      // probably cheaper just to free our existing buffer (if any) and alloc a new one.
-      char * newBuf = (char *) muscleAlloc(newBufLen);
-      if (newBuf) *newBuf = '\0';  // ensure the new buffer is NUL terminated
+      // If the caller doesn't care about retaining this String's value, then it's
+      // probably cheaper just to allocate a new buffer and free the old one.
+      if (goToSmallBufferMode)
+      {
+         ClearAndFlush();    // might as well just dump everything
+         return B_NO_ERROR;  // return now to avoid setting _strData._bigBuffer below
+      }
       else
       {
-         WARN_OUT_OF_MEMORY;
-         return B_ERROR;
+         newBuf = (char *) muscleAlloc(newBufLen);
+         if (newBuf == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+         newBuf[0] = '\0';  // avoid potential user-visible garbage bytes
+         if (arrayWasDynamicallyAllocated) muscleFree(_strData._bigBuffer);
       }
-      if (wasDyn) muscleFree(_strData._bigBuffer);
-      _strData._bigBuffer = newBuf;
-      _bufferLen = newBufLen;
    }
+
+   newBuf[muscleMin(Length(), newMaxLength)] = '\0';   // ensure new char array is terminated (it might not be if allowShrink is true)
+   _strData._bigBuffer = newBuf;
+   _bufferLen          = newBufLen;
 
    return B_NO_ERROR;
 }

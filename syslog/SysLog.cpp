@@ -1625,20 +1625,12 @@ static DefaultFileLogger _dfl;
 
 status_t LockLog()
 {
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-   return B_NO_ERROR;
-#else
    return _logMutex.Lock();
-#endif
 }
 
 status_t UnlockLog()
 {
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-   return B_NO_ERROR;
-#else
    return _logMutex.Unlock();
-#endif
 }
 
 const char * GetLogLevelName(int ll)
@@ -1862,6 +1854,8 @@ void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
 #endif
 }
 
+static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if we are logging out-of-memory errors but our LogCallbacks try to allocate memory to do the log operation :^P
+
 #define DO_LOGGING_CALLBACK(cb) \
 {                               \
    va_list argList;             \
@@ -1885,6 +1879,7 @@ status_t LogTime(int ll, const char * fmt, ...)
 #endif
 
    status_t lockRet = LockLog();
+   if (_inWarnOutOfMemory.GetCount() < 2)  // avoid potential infinite recursion (while still allowing the first Out-of-memory message to attempt to get into the log)
    {
       // First, log the preamble
       time_t when = time(NULL);
@@ -1912,7 +1907,7 @@ status_t LogTime(int ll, const char * fmt, ...)
          va_end(dummyList);
       }
       DO_LOGGING_CALLBACK(_dcl);  // must be outside of the braces!
-   
+
       // Then log the actual message as supplied by the user
       if (lockRet == B_NO_ERROR) DO_LOGGING_CALLBACKS;
    }
@@ -2364,6 +2359,7 @@ void WarnOutOfMemory(const char * file, int line)
    // Yes, this technique is open to race conditions and other lossage.
    // But it will work in the one-error-only case, which is good enough
    // for now.
+   NestCountGuard ncg(_inWarnOutOfMemory);  // avoid potential infinite recursion if LogCallbacks called by LogTime() try to allocate more memory and also fail
    LogTime(MUSCLE_LOG_CRITICALERROR, "ERROR--OUT OF MEMORY!  (" INT32_FORMAT_SPEC " bytes at %s:%i)\n", GetAndClearFailedMemoryRequestSize(), file, line);
 }
 

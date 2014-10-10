@@ -48,9 +48,48 @@ int main(void)
       // (That way long strings can't build up in an ObjectPool somewhere)
       String longString = "this is a very long string.  Well okay it's not THAT long, but long enough.";
       const String & emptyString = GetDefaultObjectForType<String>();
-      printf("Before copy:   longString bufSize=" UINT32_FORMAT_SPEC ", emptyString bufSize="UINT32_FORMAT_SPEC "\n", longString.GetNumAllocatedBytes(), emptyString.GetNumAllocatedBytes());
+      printf("Before copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize="UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
       longString = emptyString;
-      printf(" After copy:   longString bufSize=" UINT32_FORMAT_SPEC ", emptyString bufSize="UINT32_FORMAT_SPEC "\n", longString.GetNumAllocatedBytes(), emptyString.GetNumAllocatedBytes());
+      printf(" After copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize="UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
+   }
+
+   {
+      printf("Testing string-buffer-expansion behavior...\n");
+
+      String shortString = "1234567890";
+      printf("shortString=[%s] length=" UINT32_FORMAT_SPEC " numAllocedBytes=" UINT32_FORMAT_SPEC "\n", shortString(), shortString.Length(), shortString.GetNumAllocatedBytes());
+
+      // Watch the behavior of the buffer size
+      uint32 numAllocedBytes = 0;
+      String s;
+      for (int i=0; i<50000; i++)
+      {
+         s += 'x';
+         uint32 newNumAlloced = s.GetNumAllocatedBytes();
+         if (newNumAlloced != numAllocedBytes)
+         {
+            printf("i=%i s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", i, s.Length(), newNumAlloced);
+            numAllocedBytes = newNumAlloced;
+         }
+      }
+      if (s.ShrinkToFit() == B_NO_ERROR) printf("After ShrinkToFit():  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
+                                    else printf("ShrinkToFit() failed!\n");
+
+      s = "Now I'm small";
+      printf("After setting small:  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
+
+      if (s.ShrinkToFit() == B_NO_ERROR) printf("After ShrinkToFit to small():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
+                                    else printf("ShrinkToFit() to small failed!\n");
+
+      s = "tiny";
+      printf("After setting tiny:  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
+      if (s.ShrinkToFit() == B_NO_ERROR) printf("After ShrinkToFit to tiny():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
+                                    else printf("ShrinkToFit() to tiny failed!\n");
+
+      s = "tin";
+      printf("After setting tin:  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
+      if (s.ShrinkToFit() == B_NO_ERROR) printf("After ShrinkToFit to tin():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
+                                    else printf("ShrinkToFit() to tin failed!\n");
    }
 
 #ifdef TEST_REPLACE_METHOD

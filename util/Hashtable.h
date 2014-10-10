@@ -1476,21 +1476,31 @@ public:
    /** This method resizes the Hashtable larger if necessary, so that it has at least (newTableSize)
     *  entries in it.  It is not necessary to call this method, but if you know in advance how many
     *  items you will be adding to the table, you can make the population of the table more efficient
-    *  by calling this method before adding the items.  This method will only grow the table, it will
-    *  never shrink it.
+    *  by calling this method before adding the items.  Unless (allowShrink) is set to true, this
+    *  method will only grow the table, it will never shrink it.
     *  @param newTableSize Number of slots that you wish to have in the table (note that this is different
     *                      from the number of actual items in the table)
+    *  @param allowShrink If set to true and (newTableSize) is less than the current number of slots in
+    *                     the table, EnsureSize() will shrink the table down to muscleMax(newTableSize, GetNumItems()).
     *  @return B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
     */
-   status_t EnsureSize(uint32 newTableSize);
+   status_t EnsureSize(uint32 newTableSize, bool allowShrink = false);
 
    /** Convenience wrapper around EnsureSize():  This method ensures that this Hashtable has enough 
      * extra space allocated to fit another (numExtras) items without having to do a reallocation.
      * If it doesn't, it will do a reallocation so that it does have at least that much extra space.
-     * @param numExtras How many extra items we want to ensure room for.  Defaults to 1.
+     * @param numExtraSlots How many extra items we want to ensure room for.  Defaults to 1.
      * @returns B_NO_ERROR if the extra space now exists, or B_ERROR on failure (out of memory?)
      */
-   status_t EnsureCanPut(uint32 numExtras = 1) {return EnsureSize(this->GetNumItems()+numExtras);}
+   status_t EnsureCanPut(uint32 numExtraSlots = 1) {return EnsureSize(this->GetNumItems()+numExtraSlots, false);}
+
+   /** Convenience wrapper around EnsureSize():  This method shrinks the Hashtable so that its size is
+     * equal to the size of the data it contains, plus (numExtraSlots).
+     * @param numExtraSlots the number of extra empty slots the Hashtable should contains after the shrink.
+     *                      Defaults to zero.
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   status_t ShrinkToFit(uint32 numExtraSlots = 0) {return EnsureSize(this->GetNumItems()+numExtraSlots, true);}
 
    /** Sorts this Hashtable's contents according to its built-in sort ordering. 
      * Specifically, if this object is an OrderedKeysHashtable, the contents will be sorted by key;
@@ -2613,9 +2623,9 @@ CopyFrom(const HashtableBase<KeyType, ValueType, RHSHashFunctorType> & rhs, bool
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
 status_t
-HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 requestedSize)
+HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 requestedSize, bool allowShrink)
 {
-   if (requestedSize <= this->_tableSize) return B_NO_ERROR;  // no need to do anything if we're already big enough!
+   if (allowShrink ? (requestedSize == this->_tableSize) : (requestedSize <= this->_tableSize)) return B_NO_ERROR;
 
    // 1. Initialize the scratch space for our active iterators.
    {

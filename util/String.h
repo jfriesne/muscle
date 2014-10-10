@@ -156,7 +156,7 @@ public:
     */
    String & operator += (char ch)
    {
-      if (EnsureBufferSize(Length()+2, true) == B_NO_ERROR)
+      if (EnsureBufferSize(Length()+2, true, false) == B_NO_ERROR)
       {
          GetBuffer()[_length++] = ch;
          WriteNULTerminatorByte();
@@ -328,6 +328,12 @@ public:
 
    /** Similar to Clear(), except this version also frees up any dynamically allocated character arary we may have cached. */
    void ClearAndFlush();
+
+   /** Shrinks our internally allocated buffer down so that it is just big enough to hold the current string (plus numExtraBytes)
+     * @param numExtraBytes an additional number of bytes that the buffer should have room for.  Defaults to zero.
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   status_t ShrinkToFit(uint32 numExtraBytes = 0) {return EnsureBufferSize(Length()+1+numExtraBytes, true, true);}
 
    /** Sets our state from the given C-style string.
      * @param str The new string to copy from.  If maxLen is negative, this may be NULL.
@@ -837,7 +843,7 @@ public:
     *  @param numChars How much space to pre-allocate, in ASCII characters.
     *  @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory).
     */ 
-   status_t Prealloc(uint32 numChars) {return EnsureBufferSize(numChars+1, true);}
+   status_t Prealloc(uint32 numChars) {return EnsureBufferSize(numChars+1, true, false);}
 
    /** Removes (numCharsToTruncate) characters from the end of this string.
      * @param numCharsToTruncate How many characters to truncate.  If greater than the
@@ -1005,7 +1011,7 @@ public:
 
 private:
    bool IsSpaceChar(char c) const {return ((c==' ')||(c=='\t')||(c=='\r')||(c=='\n'));}
-   status_t EnsureBufferSize(uint32 newBufLen, bool retainValue);
+   status_t EnsureBufferSize(uint32 newBufLen, bool retainValue, bool allowShrink);
    String ArgAux(const char * buf) const;
    bool IsArrayDynamicallyAllocated() const {return (_bufferLen>sizeof(_strData._smallBuffer));}
    char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}

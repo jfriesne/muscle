@@ -5,6 +5,22 @@ key:  - new feature
       * bug fixed
       o other
 
+6.08 Released 10/10/2014
+   - Added a ShrinkToFit() convenience method to the Queue,
+     Hashtable, and String classes.  This method shrinks the
+     object so that the amount of memory it has allocated internally
+     matches the size of the data it is actually holding.
+   - Hashtable::EnsureSize() and Queue::EnsureSize() now take an optional 
+     (allowShrink) argument, that (if set to true) allows the object's
+     internally-allocated array to be reallocated smaller if it is larger 
+     than necessary.
+   o Tweaked the buffer-expansion behavior of the String class to 
+     be a bit more efficient.
+   * Added a guard against a potential infinite recursion that
+     could occur while logging an "OUT OF MEMORY" error after
+     a memory allocation failure, if a LogCallback tried to
+     allocate memory.
+
 6.07 Released 9/18/2014
    - Added a GlobalPrintRecyclersToStream() method to the 
      AbstractObjectRecycler class, for better debugging and

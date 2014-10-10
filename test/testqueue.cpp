@@ -61,7 +61,22 @@ int main(void)
 
    // FogBugz #10274:  make sure we flush the Queue's allocated buffer when setting the Queue to empty
    {
-      Queue<int> q; for (int i=0; i<1000; i++) q.AddTail(i);
+      // Watch the behavior of the buffer size
+      Queue<int> q;
+      uint32 numAllocedSlots = 0;
+      for (int i=0; i<50000; i++)
+      {
+         q.AddTail(i);
+         uint32 newNumAlloced = q.GetNumAllocatedItemSlots();
+         if (newNumAlloced != numAllocedSlots)
+         {
+            printf("i=%i q.GetNumItems()=" UINT32_FORMAT_SPEC " q.GetNumAllocatedItemSlots()=" UINT32_FORMAT_SPEC "\n", i, q.GetNumItems(), newNumAlloced);
+            numAllocedSlots = newNumAlloced;
+         }
+      }
+      if (q.ShrinkToFit() == B_NO_ERROR) printf("After ShrinkToFit():  q.GetNumItems()=" UINT32_FORMAT_SPEC " q.GetNumAllocatedItemSlots()=" UINT32_FORMAT_SPEC "\n", q.GetNumItems(), q.GetNumAllocatedItemSlots());
+                                    else printf("ShrinkToFit() failed!\n");
+
       printf("Before setting equal to empty, q's allocated-slots size is: " UINT32_FORMAT_SPEC "\n", q.GetNumAllocatedItemSlots());
       q = GetDefaultObjectForType< Queue<int> >();
       printf(" After setting equal to empty, q's allocated-slots size is: " UINT32_FORMAT_SPEC "\n", q.GetNumAllocatedItemSlots());

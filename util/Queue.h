@@ -429,17 +429,28 @@ public:
     *                           necessary.  That way the likelihood of another reallocation being necessary
     *                           in the near future is reduced.  Default value is zero, indicating that
     *                           no extra slots will be allocated.  This argument is ignored if (setNumItems) is true.
+    *  @param allowShrink If set to true, the array will be reallocated even if the new array size is smaller than the 
+    *                     existing size.  Defaults to false (i.e. only reallocate if the desired size is greater than
+    *                     the existing size).
     *  @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory)
     */
-   status_t EnsureSize(uint32 numSlots, bool setNumItems = false, uint32 extraReallocItems = 0) {return EnsureSizeAux(numSlots, setNumItems, extraReallocItems, NULL);}
+   status_t EnsureSize(uint32 numSlots, bool setNumItems = false, uint32 extraReallocItems = 0, bool allowShrink = false) {return EnsureSizeAux(numSlots, setNumItems, extraReallocItems, NULL, allowShrink);}
 
    /** Convenience wrapper around EnsureSize():  This method ensures that this Queue has enough 
-     * extra space allocated to fit another (numExtras) items without having to do a reallocation.
+     * extra space allocated to fit another (numExtraSlots) items without having to do a reallocation.
      * If it doesn't, it will do a reallocation so that it does have at least that much extra space.
-     * @param numExtras How many extra items we want to ensure room for.  Defaults to 1.
+     * @param numExtraSlots How many extra items we want to ensure room for.  Defaults to 1.
      * @returns B_NO_ERROR if the extra space now exists, or B_ERROR on failure (out of memory?)
      */
-   status_t EnsureCanAdd(uint32 numExtras = 1) {return EnsureSize(GetNumItems()+numExtras);}
+   status_t EnsureCanAdd(uint32 numExtraSlots = 1) {return EnsureSize(GetNumItems()+numExtraSlots);}
+
+   /** Convenience wrapper around EnsureSize():  This method shrinks the Queue so that its size is
+     * equal to the size of the data it contains, plus (numExtraSlots).
+     * @param numExtraSlots the number of extra empty slots the Queue should contains after the shrink.
+     *                      Defaults to zero.
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   status_t ShrinkToFit(uint32 numExtraSlots = 0) {return EnsureSize(GetNumItems()+numExtraSlots, false, 0, true);}
 
    /** Convenience method -- works the same as IndexOf() but returns a boolean instead of an int32 index.
     *  @param item The item to look for.
@@ -627,8 +638,8 @@ public:
    const ItemType * GetRawArrayPointer() const {return _queue;}
 
 private:
-   status_t EnsureSizeAux(uint32 numSlots, ItemType ** optRetOldArray) {return EnsureSizeAux(numSlots, false, 0, optRetOldArray);}
-   status_t EnsureSizeAux(uint32 numSlots, bool setNumItems, uint32 extraReallocItems, ItemType ** optRetOldArray);
+   status_t EnsureSizeAux(uint32 numSlots, ItemType ** optRetOldArray) {return EnsureSizeAux(numSlots, false, 0, optRetOldArray, false);}
+   status_t EnsureSizeAux(uint32 numSlots, bool setNumItems, uint32 extraReallocItems, ItemType ** optRetOldArray, bool allowShrink);
    const ItemType * GetArrayPointerAux(uint32 whichArray, uint32 & retLength) const;
    void SwapContentsAux(Queue<ItemType> & that);
 
@@ -734,7 +745,7 @@ Queue<ItemType>::
 AddTailAndGet(QQ_SinkItemParam item)
 {
    ItemType * oldArray;
-   if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray) != B_NO_ERROR) return NULL;
+   if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray, false) != B_NO_ERROR) return NULL;
 
    if (_itemCount == 0) _headIndex = _tailIndex = 0;
                    else _tailIndex = NextIndex(_tailIndex);
@@ -783,7 +794,7 @@ AddTailMulti(const ItemType * items, uint32 numItems)
    uint32 rhs = 0;
 
    ItemType * oldArray;
-   if (EnsureSizeAux(newSize, true, 0, &oldArray) != B_NO_ERROR) return B_ERROR;
+   if (EnsureSizeAux(newSize, true, 0, &oldArray, false) != B_NO_ERROR) return B_ERROR;
    for (uint32 i=mySize; i<newSize; i++) (*this)[i] = items[rhs++];
    delete [] oldArray;  // must be done after all references to (items)
    return B_NO_ERROR;
@@ -796,7 +807,7 @@ Queue<ItemType>::
 AddHeadAndGet(QQ_SinkItemParam item)
 {
    ItemType * oldArray;
-   if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray) != B_NO_ERROR) return NULL;
+   if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray, false) != B_NO_ERROR) return NULL;
    if (_itemCount == 0) _headIndex = _tailIndex = 0;
                    else _headIndex = PrevIndex(_headIndex);
    _itemCount++;
@@ -1100,7 +1111,7 @@ InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems)
    uint32 newSize = oldSize+numNewItems;
 
    ItemType * oldItems;
-   if (EnsureSizeAux(newSize, true, &oldItems) != B_NO_ERROR) return B_ERROR;
+   if (EnsureSizeAux(newSize, true, &oldItems, NULL, false) != B_NO_ERROR) return B_ERROR;
    int32 si = 0;
    for (uint32 i=index; i<oldSize; i++)           (*this)[i+numNewItems] = (*this)[i];
    for (uint32 i=index; i<index+numNewItems; i++) (*this)[i]             = items[si++];
@@ -1136,17 +1147,18 @@ Clear(bool releaseCachedBuffers)
 template <class ItemType>
 status_t 
 Queue<ItemType>::
-EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** retOldArray)
+EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** retOldArray, bool allowShrink)
 {
    if (retOldArray) *retOldArray = NULL;  // default value, will be set non-NULL iff the old array needs deleting later
 
-   if ((_queue == NULL)||(_queueSize < size))
+   if ((_queue == NULL)||(allowShrink ? (_queueSize != (size+extraPreallocs)) : (_queueSize < size)))
    {
       const uint32 sqLen = ARRAYITEMS(_smallQueue);
       uint32 temp    = size + extraPreallocs;
       uint32 newQLen = muscleMax((uint32)SMALL_QUEUE_SIZE, ((setNumItems)||(temp <= sqLen)) ? muscleMax(sqLen,temp) : temp);
 
       ItemType * newQueue = ((_queue == _smallQueue)||(newQLen > sqLen)) ? newnothrow_array(ItemType,newQLen) : _smallQueue;
+
       if (newQueue == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
       if (newQueue == _smallQueue) newQLen = sqLen;
       
