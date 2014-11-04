@@ -48,9 +48,9 @@ int main(void)
       // (That way long strings can't build up in an ObjectPool somewhere)
       String longString = "this is a very long string.  Well okay it's not THAT long, but long enough.";
       const String & emptyString = GetDefaultObjectForType<String>();
-      printf("Before copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize="UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
+      printf("Before copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize=" UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
       longString = emptyString;
-      printf(" After copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize="UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
+      printf(" After copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize=" UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
    }
 
    {

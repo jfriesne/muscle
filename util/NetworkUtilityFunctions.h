@@ -327,11 +327,14 @@ private:
   *                        will attempt to determine the host machine's actual primary IP
   *                        address and return that instead.  Otherwise, 127.0.0.1 will be
   *                        returned in this case.  Defaults to false.
+  * @param preferIPv6 If set to true, and both IPv4 and IPv6 addresses are returned for the specified
+  *                   hostname, then the IPv6 address will be returned.  If false, the IPv4 address
+  *                   will be returned.  Defaults to true.
   * @return The associated IP address (local endianness), or 0 on failure.
   * @note This function may invoke a synchronous DNS lookup, which means that it may take
   *       a long time to return (e.g. if the DNS server is not responding)
   */
-ip_address GetHostByName(const char * name, bool expandLocalhost = false);
+ip_address GetHostByName(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
 
 /** Sets the parameters for GetHostByName()'s internal DNS-results LRU cache.
   * Note that this cache is disabled by default, so by default every call to GetHostByName()

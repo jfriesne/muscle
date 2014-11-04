@@ -338,7 +338,7 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
 #endif
 
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
-   bool doUnsetInterfaceIndex = false;  // and remember to set it back afterwards
+   int oldInterfaceIndex = -1;  // and remember to set it back afterwards
 #endif
 
    int fd = sock.GetFileDescriptor();
@@ -360,11 +360,15 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
              SET_SOCKADDR_IP(toAddr, optToIP);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
              // Work-around for MacOS/X problem (?) where the interface index in the specified IP address doesn't get used
-             if ((optToIP.GetInterfaceIndex() != 0)&&(IsMulticastIPAddress(optToIP))&&(GetSocketMulticastSendInterfaceIndex(sock) == 0))
+             if ((optToIP.GetInterfaceIndex() != 0)&&(IsMulticastIPAddress(optToIP)))
              {
-                // temporarily set the socket's interface index to the desired one
-                if (SetSocketMulticastSendInterfaceIndex(sock, optToIP.GetInterfaceIndex()) != B_NO_ERROR) return -1;
-                doUnsetInterfaceIndex = true;  // and remember to set it back afterwards
+                int oidx = GetSocketMulticastSendInterfaceIndex(sock);
+                if (oidx != (int) optToIP.GetInterfaceIndex())
+                {
+                   // temporarily set the socket's interface index to the desired one
+                   if (SetSocketMulticastSendInterfaceIndex(sock, optToIP.GetInterfaceIndex()) != B_NO_ERROR) return -1;
+                   oldInterfaceIndex = oidx;  // and remember to set it back afterwards
+                }
              }
 #endif
           }
@@ -376,7 +380,7 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
        if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
        int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
-       if (doUnsetInterfaceIndex) (void) SetSocketMulticastSendInterfaceIndex(sock, 0);  // gotta do this AFTER computing the return value, as it clears errno!
+       if (oldInterfaceIndex >= 0) (void) SetSocketMulticastSendInterfaceIndex(sock, oldInterfaceIndex);  // gotta do this AFTER computing the return value, as it clears errno!
 #endif
        return ret;
    }
@@ -671,15 +675,16 @@ void SetHostNameCacheSettings(uint32 maxEntries, uint64 expirationTime)
    while(_hostCache.GetNumItems() > _maxHostCacheSize) (void) _hostCache.RemoveLast();
 }
 
-static String GetHostByNameKey(const char * name, bool expandLocalhost)
+static String GetHostByNameKey(const char * name, bool expandLocalhost, bool preferIPv6)
 {
    String ret(name);
    ret = ret.ToLowerCase();
    if (expandLocalhost) ret += '!';  // so that a cached result from GetHostByName("foo", false) won't be returned for GetHostByName("foo", true)
+   if (preferIPv6)      ret += '?';  // ditto
    return ret;
 }
 
-ip_address GetHostByName(const char * name, bool expandLocalhost)
+ip_address GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6)
 {
    if (IsIPAddress(name))
    {
@@ -690,7 +695,7 @@ ip_address GetHostByName(const char * name, bool expandLocalhost)
    }
    else if (_maxHostCacheSize > 0)
    {
-      String s = GetHostByNameKey(name, expandLocalhost);
+      String s = GetHostByNameKey(name, expandLocalhost, preferIPv6);
       MutexGuard mg(_hostCacheMutex);
       const DNSRecord * r = _hostCache.Get(s);
       if (r)
@@ -712,6 +717,7 @@ ip_address GetHostByName(const char * name, bool expandLocalhost)
    struct addrinfo hints; memset(&hints, 0, sizeof(hints));
    hints.ai_family   = AF_UNSPEC;     // We're not too particular, for now
    hints.ai_socktype = SOCK_STREAM;   // so we don't get every address twice (once for UDP and once for TCP)
+   ip_address ret6 = invalidIP;
    if (getaddrinfo(name, NULL, &hints, &result) == 0)
    {
       struct addrinfo * next = result;
@@ -720,22 +726,31 @@ ip_address GetHostByName(const char * name, bool expandLocalhost)
          switch(next->ai_family)
          {
             case AF_INET:
-               ret.SetBits(ntohl(((struct sockaddr_in *) next->ai_addr)->sin_addr.s_addr), 0);  // read IPv4 address into low bits of IPv6 address structure
-               ret.SetLowBits(ret.GetLowBits() | ((uint64)0xFFFF)<<32);                         // and make it IPv6-mapped (why doesn't AI_V4MAPPED do this?)
+               if (IsValidAddress(ret) == false)
+               {
+                  ret.SetBits(ntohl(((struct sockaddr_in *) next->ai_addr)->sin_addr.s_addr), 0);  // read IPv4 address into low bits of IPv6 address structure
+                  ret.SetLowBits(ret.GetLowBits() | ((uint64)0xFFFF)<<32);                         // and make it IPv6-mapped (why doesn't AI_V4MAPPED do this?)
+               }
             break;
 
             case AF_INET6:
-            {
-               struct sockaddr_in6 * sin6 = (struct sockaddr_in6 *) next->ai_addr;
-               uint32 tmp = sin6->sin6_scope_id;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
-               ret.ReadFromNetworkArray(sin6->sin6_addr.s6_addr, &tmp);
-            }
+               if (IsValidAddress(ret6) == false)
+               {
+                  struct sockaddr_in6 * sin6 = (struct sockaddr_in6 *) next->ai_addr;
+                  uint32 tmp = sin6->sin6_scope_id;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
+                  ret6.ReadFromNetworkArray(sin6->sin6_addr.s6_addr, &tmp);
+               }
             break;
          }
-         if (ret == invalidIP) next = next->ai_next;
-                          else break;
+         next = next->ai_next;
       }
       freeaddrinfo(result);
+
+      if (IsValidAddress(ret))
+      {
+         if ((preferIPv6)&&(IsValidAddress(ret6))) ret = ret6;
+      }
+      else ret = ret6;
    }
 #endif
 
@@ -744,7 +759,7 @@ ip_address GetHostByName(const char * name, bool expandLocalhost)
    if (_maxHostCacheSize > 0)
    {
       // Store our result in the cache for later
-      String s = GetHostByNameKey(name, expandLocalhost);
+      String s = GetHostByNameKey(name, expandLocalhost, preferIPv6);
       MutexGuard mg(_hostCacheMutex);
       DNSRecord * r = _hostCache.PutAndGet(s, DNSRecord(ret, (_hostCacheEntryLifespan==MUSCLE_TIME_NEVER)?MUSCLE_TIME_NEVER:(GetRunTime64()+_hostCacheEntryLifespan)));
       if (r)

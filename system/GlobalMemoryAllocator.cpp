@@ -46,6 +46,9 @@
 
 namespace muscle {
 
+// For debugging:  Uncomment this if you want a diagnostic printed whenever someone allocates more than 8KB of RAM at a time
+//#define DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD (8*1024)
+
 extern void SetFailedMemoryRequestSize(uint32 numBytes);  // FogBugz #7547
 
 # if MUSCLE_ENABLE_MEMORY_PARANOIA > 0
@@ -163,7 +166,14 @@ void * muscleAlloc(size_t userSize, bool retryOnFailure)
          MemoryParanoiaPrepareBuffer(internalPtr, 0);
 #endif
          userPtr = CONVERT_INTERNAL_TO_USER_POINTER(internalPtr);
-//printf("+"UINT32_FORMAT_SPEC" = "UINT32_FORMAT_SPEC" userPtr=%p\n", (uint32)internalSize, (uint32)_currentlyAllocatedBytes, userPtr);
+
+#ifdef DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
+         if (internalSize > DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD) 
+         {
+            printf("+" UINT32_FORMAT_SPEC " = " UINT32_FORMAT_SPEC " userPtr=%p\n", (uint32)internalSize, (uint32)_currentlyAllocatedBytes, userPtr);
+            PrintStackTrace();
+         }
+#endif
       }
       else if (ma) ma->AboutToFree(_currentlyAllocatedBytes+internalSize, internalSize);  // FogBugz #4494:  roll back the call to AboutToAllocate()!
    }
@@ -239,7 +249,14 @@ void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
             _currentlyAllocatedBytes += growBy;  // only reflect the newly-allocated bytes
             *newInternalPtr = newInternalSize;  // our little header tag so that muscleFree() will know how big the allocation was
             newUserPtr = CONVERT_INTERNAL_TO_USER_POINTER(newInternalPtr);
-//printf("r+"UINT32_FORMAT_SPEC"(->"UINT32_FORMAT_SPEC") = "UINT32_FORMAT_SPEC" oldUserPtr=%p newUserPtr=%p\n", (uint32)growBy, (uint32)newInternalSize, (uint32)_currentlyAllocatedBytes, oldUserPtr, newUserPtr);
+
+#ifdef DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
+            if (growBy >= DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD) 
+            {
+               printf("r+" UINT32_FORMAT_SPEC "(->" UINT32_FORMAT_SPEC ") = " UINT32_FORMAT_SPEC " oldUserPtr=%p newUserPtr=%p\n", (uint32)growBy, (uint32)newInternalSize, (uint32)_currentlyAllocatedBytes, oldUserPtr, newUserPtr);
+               PrintStackTrace();
+            }
+#endif
 
 #if MUSCLE_ENABLE_MEMORY_PARANOIA > 0
             MemoryParanoiaPrepareBuffer(newInternalPtr, oldUserSize);
@@ -274,7 +291,10 @@ void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
       {
          *newInternalPtr = newInternalSize;  // our little header tag so that muscleFree() will know how big the allocation is now
          _currentlyAllocatedBytes -= shrinkBy;
-//printf("r-"UINT32_FORMAT_SPEC"(->"UINT32_FORMAT_SPEC") = "UINT32_FORMAT_SPEC" oldUserPtr=%p newUserPtr=%p\n", (uint32)shrinkBy, (uint32)newInternalSize, (uint32)_currentlyAllocatedBytes, oldUserPtr, newUserPtr);
+
+#ifdef DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
+         if (shrinkBy >= DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD) printf("r-" UINT32_FORMAT_SPEC "(->" UINT32_FORMAT_SPEC ") = " UINT32_FORMAT_SPEC " oldUserPtr=%p newUserPtr=%p\n", (uint32)shrinkBy, (uint32)newInternalSize, (uint32)_currentlyAllocatedBytes, oldUserPtr, newUserPtr);
+#endif
 
 #if MUSCLE_ENABLE_MEMORY_PARANOIA > 0
          MemoryParanoiaPrepareBuffer(newInternalPtr, MUSCLE_NO_LIMIT);
@@ -322,7 +342,10 @@ void muscleFree(void * userPtr)
       _currentlyAllocatedBytes -= *internalPtr;
 
       if (ma) ma->AboutToFree(_currentlyAllocatedBytes, *internalPtr);
-//printf("-"UINT32_FORMAT_SPEC" = "UINT32_FORMAT_SPEC" userPtr=%p\n", (uint32)*internalPtr, (uint32)_currentlyAllocatedBytes, userPtr);
+
+#ifdef DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
+      if (*internalPtr >= DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD) printf("-" UINT32_FORMAT_SPEC " = " UINT32_FORMAT_SPEC " userPtr=%p\n", (uint32)*internalPtr, (uint32)_currentlyAllocatedBytes, userPtr);
+#endif
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
       if (glock) (void) glock->Unlock();

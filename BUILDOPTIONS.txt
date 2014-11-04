@@ -261,3 +261,9 @@ of your Makefile to alter muscle's behaviour:
 -DMUSCLE_AVOID_XENOMAI
    Tells MUSCLE not to use Xenomai APIs, not even if 
    TARGET_PLATFORM_XENOMAI is defined.
+
+-DDEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD=n
+    If defined, whenever muscleAlloc() is called with a request size
+    greater than (n), information about the allocation and a stack
+    trace will be printed to stdout.  Good for quickly figuring out who 
+    is allocating big contiguous chunks of memory.

@@ -5,6 +5,32 @@ key:  - new feature
       * bug fixed
       o other
 
+6.09 Released 11/3/2014
+   - Added a (preferIPv6) argument to GetHostByName().  If
+     left as true (the default value), GetHostByName() will 
+     prefer to return an IPv6 address over an IPv4 address.
+   - Added support for a DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
+     compiler-flag into GlobalMemoryAllocator.cpp.  When this
+     flag is set to a value (in bytes), any memory allocations
+     greater than the value will result in a message and a stack
+     trace being printed to stdout.
+   - When MUSCLE_USE_CPLUSPLUS11 is defined, the PODHashFunctor
+     class will provoke a compile-time error if the program tries to
+     use a struct or class as a KeyType in a Hashtable and the
+     struct/class does not have a "uint32 HashCode const" method 
+     defined.  (Previously the code would compile without error, and 
+     then hashing errors would occur at runtime due to the object's
+     padding bytes being uninitialized)
+   * The MCRASH() macro now calls abort() rather than assert(false),
+     so that a crash will actually occur, even if the code was
+     compiled with -DNDEBUG.
+   o The Windows implementation of MCRASH() now calls RaiseException(),
+     so that the crash will behave more like an actual caused-by-a-bug
+     crash (in particular, a Windows Structured Exception will be raised)
+   o Updated SendDataUDP() to work around a "feature" in OS/X 10.10 (aka 
+     Yosemite) that causes setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_IF) 
+     to fail when setting the socket's interface-index value back to 0.
+
 6.08 Released 10/10/2014
    - Added a ShrinkToFit() convenience method to the Queue,
      Hashtable, and String classes.  This method shrinks the

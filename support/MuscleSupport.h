@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.08"
-#define MUSCLE_VERSION        60800  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.09"
+#define MUSCLE_VERSION        60900  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -75,7 +75,8 @@
 
 #ifdef __cplusplus
 # ifdef MUSCLE_USE_CPLUSPLUS11
-#  include <utility>  // for std::move()
+#  include <type_traits>  // for static_assert()
+#  include <utility>      // for std::move()
 # endif
 #else
 # define NEW_H_NOT_AVAILABLE
@@ -154,7 +155,12 @@ using std::set_new_handler;
 # define MASSERT(x,msg) {if(!(x)) MCRASH(msg)}
 #endif
 
-#define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); assert(false);}
+#ifdef WIN32
+# define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); RaiseException(EXCEPTION_BREAKPOINT, 0, 0, NULL);}
+#else
+# define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); abort();}
+#endif
+
 #define MEXIT(retVal,msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
 #define WARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)
 #define MCHECKPOINT muscle::LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
@@ -1101,7 +1107,14 @@ static inline uint32 CalculateChecksumForDouble(double v) {uint64 le = (v==0.0) 
 template <class KeyType> class PODHashFunctor
 {
 public:
-   uint32 operator()(const KeyType & x) const {return CalculateHashCode(x);}
+   uint32 operator()(const KeyType & x) const 
+   {
+#ifdef MUSCLE_USE_CPLUSPLUS11
+      static_assert(!std::is_class<KeyType>::value, "PODHashFunctor cannot be used on class or struct objects, because the object's compiler-inserted padding bytes would be unitialized and therefore they would cause inconsistent hash-code generation.  Try adding a 'uint32 HashCode() const' method to the class/struct instead.");
+      static_assert(!std::is_union<KeyType>::value, "PODHashFunctor cannot be used on union objects.");
+#endif
+      return CalculateHashCode(x);
+   }
    bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const {return (k1==k2);}
 };
 
