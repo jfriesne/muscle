@@ -19,6 +19,16 @@ public:
       }
       LogTime(MUSCLE_LOG_INFO, "Network configuration change detected%s\n", s());
    }
+
+   virtual void ComputerIsAboutToSleep()
+   {
+      LogTime(MUSCLE_LOG_INFO, "This computer is about to go to sleep!\n");
+   }
+
+   virtual void ComputerJustWokeUp()
+   {
+      LogTime(MUSCLE_LOG_INFO, "This computer just re-awoke from sleep!\n");
+   }
 };
 
 int main(int /*argc*/, char ** /*argv*/) 

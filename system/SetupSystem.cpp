@@ -706,7 +706,11 @@ uint64 GetRunTime64()
 #if !(defined(__BEOS__) || defined(__HAIKU__))
 status_t Snooze64(uint64 micros)
 {
-   if (micros == MUSCLE_TIME_NEVER) while(Snooze64(DaysToMicros(1)) == B_NO_ERROR) {/* empty */}
+   if (micros == MUSCLE_TIME_NEVER) 
+   {
+      while(Snooze64(DaysToMicros(1)) == B_NO_ERROR) {/* empty */}
+      return B_ERROR;  // we should never exit the while loop above; so if we got here, it's an error
+   }
 
 #if __ATHEOS__
    return (snooze(micros) >= 0) ? B_NO_ERROR : B_ERROR;

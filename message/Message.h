@@ -1234,7 +1234,7 @@ public:
     *  Any data that was already in (moveTo) under (fieldName) will be replaced.
     *  @param fieldName Name of an existing field (in this Message) to be moved.
     *  @param moveTo A Message to move the specified field into.
-    *  @result B_NO_ERROR on success, or B_ERROR if there is an error moving the field.
+    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error moving the field.
     */
    status_t MoveName(const String & fieldName, Message & moveTo) {return MoveName(fieldName, moveTo, fieldName);}
 
@@ -1244,7 +1244,7 @@ public:
     *  @param oldFieldName Name of an existing field (in this Message) to be moved.
     *  @param moveTo A Message to move the field into.
     *  @param newFieldName The name the field should have in the new Message.
-    *  @result B_NO_ERROR on success, or B_ERROR if there is an error moving the field.
+    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error moving the field.
     */
    status_t MoveName(const String & oldFieldName, Message & moveTo, const String & newFieldName);
 
@@ -1252,7 +1252,7 @@ public:
     *  Any data that was already in (copyTo) under (fieldName) will be replaced.
     *  @param fieldName Name of an existing field (in this Message) to be copied.
     *  @param copyTo A Message to copy the field into.
-    *  @result B_NO_ERROR on success, or B_ERROR if there is an error copying the field.
+    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error copying the field.
     */
    status_t CopyName(const String & fieldName, Message & copyTo) const {return CopyName(fieldName, copyTo, fieldName);}
 
@@ -1262,7 +1262,7 @@ public:
     *  @param oldFieldName Name of an existing field (in this Message) to be copied.
     *  @param copyTo A Message to copy the field into.
     *  @param newFieldName The name the field should have in the new Message.
-    *  @result B_NO_ERROR on success, or B_ERROR if there is an error copying the field.
+    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error copying the field.
     */
    status_t CopyName(const String & oldFieldName, Message & copyTo, const String & newFieldName) const;
 
@@ -1275,7 +1275,7 @@ public:
     *  when using it or you may get unexpected results...
     *  @param fieldName Name of an existing field to be shared.
     *  @param shareTo A Message to share the field into.
-    *  @result B_NO_ERROR on success, or B_ERROR if there is an error sharing the field.
+    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error sharing the field.
     */
    status_t ShareName(const String & fieldName, Message & shareTo) const {return ShareName(fieldName, shareTo, fieldName);}
 
@@ -1290,7 +1290,7 @@ public:
     *  @param oldFieldName Name of an existing field to be shared.
     *  @param shareTo A Message to share the field into.
     *  @param newFieldName The name the field should have in the new Message.
-    *  @result B_NO_ERROR on success, or B_ERROR if there is an error sharing the field.
+    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error sharing the field.
     */
    status_t ShareName(const String & oldFieldName, Message & shareTo, const String & newFieldName) const;
 

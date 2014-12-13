@@ -267,3 +267,9 @@ of your Makefile to alter muscle's behaviour:
     greater than (n), information about the allocation and a stack
     trace will be printed to stdout.  Good for quickly figuring out who 
     is allocating big contiguous chunks of memory.
+
+-DMUSCLE_AVOID_AUTOCHOOSE_SWAP
+    If set, MuscleSupport.h will define muscleSwap() the simple, 
+    old-fashioned way.  This is less efficient, but avoiding the SFINAE
+    mumbo-jumbo helps the code compile on older compilers (e.g. gcc 3.x)
+    that don't handle SFINAE correctly.

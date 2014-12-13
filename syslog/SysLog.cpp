@@ -2303,21 +2303,22 @@ uint64 ParseHumanReadableTimeIntervalString(const String & s)
 {
    if ((s.EqualsIgnoreCase("forever"))||(s.EqualsIgnoreCase("never"))||(s.StartsWithIgnoreCase("inf"))) return MUSCLE_TIME_NEVER;
 
-   /** Find first digit */
-   const char * d = s();
-   while((*d)&&(isdigit(*d) == false)) d++;
-   if (*d == '\0') return GetTimeUnitMultiplier(s, 0);  // in case the string is just "second" or "hour" or etc.
+   /** Find the first digit in the string */
+   const char * digits = s();
+   while((*digits)&&(isdigit(*digits) == false)) digits++;
+   if (*digits == '\0') return GetTimeUnitMultiplier(s, 0);  // in case the string is just "second" or "hour" or etc.
 
-   /** Find first letter */
-   const char * l = s();
-   while((*l)&&(isalpha(*l) == false)) l++;
-   if (*l == '\0') l = "s";  // default to seconds
+   /** Find first letter after the digits */
+   const char * letters = digits;
+   while((*letters)&&(isalpha(*letters) == false)) letters++;
+   if (*letters == '\0') letters = "s";  // default to seconds
 
-   uint64 multiplier = GetTimeUnitMultiplier(l, _timeUnits[TIME_UNIT_SECOND]);   // default units is seconds
-   const char * afterLetters = l;
+   uint64 multiplier = GetTimeUnitMultiplier(letters, _timeUnits[TIME_UNIT_SECOND]);   // default units is seconds
+
+   const char * afterLetters = letters;
    while((*afterLetters)&&((*afterLetters==',')||(isalpha(*afterLetters)||(isspace(*afterLetters))))) afterLetters++;
 
-   uint64 ret = IsFloatingPointNumber(d) ? (uint64)(atof(d)*multiplier) : (Atoull(d)*multiplier);
+   uint64 ret = IsFloatingPointNumber(digits) ? (uint64)(atof(digits)*multiplier) : (Atoull(digits)*multiplier);
    if (*afterLetters) ret += ParseHumanReadableTimeIntervalString(afterLetters);
    return ret;
 }

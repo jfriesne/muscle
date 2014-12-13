@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.09"
-#define MUSCLE_VERSION        60900  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.10"
+#define MUSCLE_VERSION        61000  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -427,6 +427,20 @@ template<typename T> inline T muscleMax(T p1, T p2, T p3, T p4, T p5) {return mu
 
 #endif
 
+#if defined(__GNUC__) && (__GNUC__ <= 3) && !defined(MUSCLE_AVOID_AUTOCHOOSE_SWAP)
+# define MUSCLE_AVOID_AUTOCHOOSE_SWAP
+#endif
+
+#ifdef MUSCLE_AVOID_AUTOCHOOSE_SWAP
+
+/** Swaps the two arguments.  (Primitive version, used only for old compilers like G++ 3.x that can't handle the SFINAE)
+  * @param t1 First item to swap.  After this method returns, it will be equal to the old value of t2.
+  * @param t2 Second item to swap.  After this method returns, it will be equal to the old value of t1.
+  */
+template<typename T> inline void muscleSwap(T & t1, T & t2) {T t=t1; t1 = t2; t2 = t;}
+
+#else
+
 namespace ugly_swapcontents_method_sfinae_implementation
 {
    // This code was from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
@@ -483,6 +497,8 @@ namespace ugly_swapcontents_method_sfinae_implementation
   * @param t2 Second item to swap.  After this method returns, it will be equal to the old value of t1.
   */
 template<typename T> inline void muscleSwap(T & t1, T & t2) {typename ugly_swapcontents_method_sfinae_implementation::AutoChooseSwapperHelper<T>::Type swapper(t1,t2);}
+
+#endif
 
 /** Returns true iff (i) is a valid index into array (a)
   * @param i An index value
@@ -1190,6 +1206,26 @@ public:
 template <> class AutoChooseHashFunctorHelper<const void *> {typedef PODHashFunctor<const void *> Type;};
 template <> class AutoChooseHashFunctorHelper<char *>       {typedef PODHashFunctor<char *>       Type;};
 template <> class AutoChooseHashFunctorHelper<void *>       {typedef PODHashFunctor<void *>       Type;};
+
+// Hacked-in support for g++ 3.x compilers, that don't handle the AutoChooseHashFunctionHelper SFINAE magic properly
+#if defined(__GNUC__) && (__GNUC__ <= 3)
+# define AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(x) template <> class muscle::AutoChooseHashFunctorHelper<x> {public: typedef muscle::PODHashFunctor<x> Type;}
+# define AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK_WITH_NAMESPACE(ns,x) }; namespace muscle {template <> class AutoChooseHashFunctorHelper<ns::x> {public: typedef PODHashFunctor<ns::x> Type;};}; namespace ns {
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(int);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(int8);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(uint8);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(int16);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(uint16);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(int32);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(uint32);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(int64);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(uint64);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(const char *);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(float);
+#else
+# define AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(x)
+# define AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK_WITH_NAMESPACE(ns,x)
+#endif
 
 #endif
 

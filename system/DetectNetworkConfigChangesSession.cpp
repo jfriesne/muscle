@@ -5,6 +5,11 @@
 #undef FORWARD_DECLARE_SIGNAL_INTERFACES_CHANGED
 
 #ifdef __APPLE__
+# include <mach/mach_port.h>
+# include <mach/mach_interface.h>
+# include <mach/mach_init.h>
+# include <IOKit/pwr_mgt/IOPMLib.h>
+# include <IOKit/IOMessage.h>
 # include <SystemConfiguration/SystemConfiguration.h>
 #elif WIN32
 # if defined(_WIN32_WINNT) && (_WIN32_WINNT < 0x0600) && !defined(MUSCLE_AVOID_NETIOAPI)
@@ -34,15 +39,22 @@ static void SignalInterfacesChanged(DetectNetworkConfigChangesSession * s, const
    MessageRef msg;  // demand-allocated
    if (optInterfaceNames.HasItems())
    {
-      msg = GetMessageFromPool();
+      msg = GetMessageFromPool(DetectNetworkConfigChangesSession::DNCCS_MESSAGE_INTERFACES_CHANGED);
       if (msg()) for (HashtableIterator<String, Void> iter(optInterfaceNames); iter.HasData(); iter++) msg()->AddString("if", iter.GetKey());
    }
+   static Message _msg(DetectNetworkConfigChangesSession::DNCCS_MESSAGE_INTERFACES_CHANGED);
+   s->ThreadSafeSendMessageToOwner(msg() ? msg : MessageRef(&_msg, false));
+}
+#endif
 
+#ifndef __linux__
+status_t DetectNetworkConfigChangesSession :: ThreadSafeSendMessageToOwner(const MessageRef & msg)
+{
 #ifdef WIN32
    // Needed because Windows notification callbacks get called from various threads
-   MutexGuard mg(s->_sendMessageToOwnerMutex);
+   MutexGuard mg(_sendMessageToOwnerMutex);
 #endif
-   s->SendMessageToOwner(msg);
+   return SendMessageToOwner(msg);
 }
 #endif
 
@@ -58,7 +70,8 @@ DetectNetworkConfigChangesSession :: DetectNetworkConfigChangesSession() :
    _explicitDelayMicros(MUSCLE_TIME_NEVER),
    _callbackTime(MUSCLE_TIME_NEVER),
    _enabled(true),
-   _changeAllPending(false)
+   _changeAllPending(false),
+   _isComputerSleeping(false)
 {
    // empty
 }
@@ -79,6 +92,16 @@ void DetectNetworkConfigChangesSession :: ScheduleSendReport()
 }
 
 void DetectNetworkConfigChangesSession :: NetworkInterfacesChanged(const Hashtable<String, Void> &)
+{
+   // default implementation is a no-op.
+}
+
+void DetectNetworkConfigChangesSession :: ComputerIsAboutToSleep()
+{
+   // default implementation is a no-op.
+}
+
+void DetectNetworkConfigChangesSession :: ComputerJustWokeUp()
 {
    // default implementation is a no-op.
 }
@@ -116,15 +139,34 @@ void DetectNetworkConfigChangesSession :: MessageReceivedFromGateway(const Messa
    MessageRef ref;
    while(GetNextReplyFromInternalThread(ref) >= 0) 
    {
-      sendReport = true;  // we only need to send one report, even for multiple Messages
-      if ((ref())&&(_changeAllPending == false))
+      if (ref() == NULL)
       {
-         if (ref()->HasName("if", B_STRING_TYPE))
-         {
-            const String * ifName;
-            for (int32 i=0; ref()->FindString("if", i, &ifName) == B_NO_ERROR; i++) _pendingChangedInterfaceNames.PutWithDefault(*ifName);
-         }
-         else _changeAllPending = true;  // no interfaces specified means "it could be anything"
+         LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession:  Internal thread exited!\n");
+         continue;
+      }
+     
+      switch(ref()->what)
+      {
+         case DNCCS_MESSAGE_INTERFACES_CHANGED:
+            sendReport = true;  // we only need to send one report, even for multiple Messages
+            if ((ref())&&(_changeAllPending == false))
+            {
+               if (ref()->HasName("if", B_STRING_TYPE))
+               {
+                  const String * ifName;
+                  for (int32 i=0; ref()->FindString("if", i, &ifName) == B_NO_ERROR; i++) _pendingChangedInterfaceNames.PutWithDefault(*ifName);
+               }
+               else _changeAllPending = true;  // no interfaces specified means "it could be anything"
+            }
+         break;
+
+         case DNCCS_MESSAGE_ABOUT_TO_SLEEP:
+            ComputerIsAboutToSleep();
+         break;
+
+         case DNCCS_MESSAGE_JUST_WOKE_UP:
+            ComputerJustWokeUp();
+         break;
       }
    }
    if (sendReport) ScheduleSendReport();
@@ -429,10 +471,123 @@ VOID __stdcall InterfaceCallbackDemo(IN PVOID context, IN PMIB_IPINTERFACE_ROW i
 
 #endif
 
+#if defined(__APPLE__) || defined(WIN32)
+static void MySleepCallbackAux(DetectNetworkConfigChangesSession * s, bool isGoingToSleep) {s->MySleepCallbackAux(isGoingToSleep);}
+
+void DetectNetworkConfigChangesSession :: MySleepCallbackAux(bool isAboutToSleep)
+{
+   if (isAboutToSleep != _isComputerSleeping)
+   {
+      _isComputerSleeping = isAboutToSleep;
+
+      static Message _aboutToSleepMessage(DNCCS_MESSAGE_ABOUT_TO_SLEEP);
+      static Message _justWokeUpMessage(DNCCS_MESSAGE_JUST_WOKE_UP);
+      (void) ThreadSafeSendMessageToOwner(MessageRef(isAboutToSleep ? &_aboutToSleepMessage : &_justWokeUpMessage, false));
+   }       
+}
+#endif
+
+#ifdef __APPLE__
+static void * GetRootPortPointerFromSession(const DetectNetworkConfigChangesSession * s) {return s->_rootPortPointer;}
+static void MySleepCallBack(void * refCon, io_service_t /*service*/, natural_t messageType, void * messageArgument)
+{
+   //printf("messageType %08lx, arg %08lx\n", (long unsigned int)messageType, (long unsigned int)messageArgument);
+   DetectNetworkConfigChangesSession * s = (DetectNetworkConfigChangesSession *)refCon;
+   io_connect_t * root_port = (io_connect_t *) GetRootPortPointerFromSession(s);
+
+   switch(messageType)
+   {
+      case kIOMessageCanSystemSleep:
+         /* Idle sleep is about to kick in. This message will not be sent for forced sleep.
+            Applications have a chance to prevent sleep by calling IOCancelPowerChange.
+            Most applications should not prevent idle sleep.
+
+            Power Management waits up to 30 seconds for you to either allow or deny idle
+            sleep. If you don't acknowledge this power change by calling either
+            IOAllowPowerChange or IOCancelPowerChange, the system will wait 30
+            seconds then go to sleep.
+         */
+
+         //Uncomment to cancel idle sleep
+         //IOCancelPowerChange(*root_port, (long)messageArgument);
+
+         // we will allow idle sleep
+         IOAllowPowerChange(*root_port, (long)messageArgument);
+       break;
+ 
+       case kIOMessageSystemWillSleep:
+          /* The system WILL go to sleep. If you do not call IOAllowPowerChange or
+             IOCancelPowerChange to acknowledge this message, sleep will be
+             delayed by 30 seconds.
+
+             NOTE: If you call IOCancelPowerChange to deny sleep it returns
+             kIOReturnSuccess, however the system WILL still go to sleep.
+          */
+          MySleepCallbackAux(s, true);
+          IOAllowPowerChange(*root_port, (long)messageArgument);
+       break;
+
+       case kIOMessageSystemWillPowerOn:
+          //System has started the wake up process...
+       break;
+ 
+       case kIOMessageSystemHasPoweredOn:
+          // System has finished waking up...
+          MySleepCallbackAux(s, false);
+       break;
+
+       default:
+          // empty
+       break;
+   }
+}
+
+#endif
+
+#ifdef WIN32
+static LRESULT CALLBACK window_message_handler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+   if (message == WM_POWERBROADCAST)
+   {
+      switch(wParam)
+      {
+         case PBT_APMRESUMEAUTOMATIC: case PBT_APMRESUMESUSPEND: case PBT_APMQUERYSUSPENDFAILED: case PBT_APMRESUMECRITICAL:
+            MySleepCallbackAux((DetectNetworkConfigChangesSession *)(GetWindowLongPtr(hWnd, GWL_USERDATA)), false);
+         break;
+
+         case PBT_APMQUERYSUSPEND: case PBT_APMSUSPEND:
+            MySleepCallbackAux((DetectNetworkConfigChangesSession *)(GetWindowLongPtr(hWnd, GWL_USERDATA)), true);
+         break;
+
+         default:
+            // empty
+         break;
+      }
+   }
+   return DefWindowProc(hWnd, message, wParam, lParam);
+}
+#endif
+
 void DetectNetworkConfigChangesSession :: InternalThreadEntry()
 {
 # ifdef __APPLE__
    _threadRunLoop = CFRunLoopGetCurrent();
+
+   // notification port allocated by IORegisterForSystemPower
+   IONotificationPortRef powerNotifyPortRef = NULL;
+   io_object_t notifierObject;    // notifier object, used to deregister later
+   void * refCon = (void *) this; // this parameter is passed to the callback
+   CFRunLoopSourceRef powerNotifyRunLoopSource = NULL;
+ 
+   // register to receive system sleep notifications
+   io_connect_t root_port = IORegisterForSystemPower(refCon, &powerNotifyPortRef, MySleepCallBack, &notifierObject);
+   _rootPortPointer = &root_port;
+   if (root_port != 0)
+   {
+      powerNotifyRunLoopSource = IONotificationPortGetRunLoopSource(powerNotifyPortRef);
+      CFRunLoopAddSource(_threadRunLoop, powerNotifyRunLoopSource, kCFRunLoopCommonModes);
+   }
+   else LogTime(MUSCLE_LOG_WARNING, "DetectNetworkConfigChangesSession::InternalThreadEntry():  IORegisterForSystemPower() failed\n");
 
    SCDynamicStoreRef storeRef = NULL;
    CFRunLoopSourceRef sourceRef = NULL;
@@ -456,14 +611,42 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
       CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sourceRef, kCFRunLoopDefaultMode);
       CFRelease(storeRef);
       CFRelease(sourceRef);
-   }
-# elif WIN32
 
+   }
+   if (powerNotifyRunLoopSource) CFRunLoopRemoveSource(CFRunLoopGetCurrent(), powerNotifyRunLoopSource, kCFRunLoopDefaultMode);
+   if (powerNotifyPortRef) 
+   {
+      (void) IODeregisterForSystemPower(&root_port);
+      (void) IONotificationPortDestroy(powerNotifyPortRef);
+   }
+
+# elif WIN32
+#define WINDOW_CLASS_NAME   L"DetectNetworkConfigChangesSession_HiddenWndClass"
+#define WINDOW_MENU_NAME    L"DetectNetworkConfigChangesSession_MainMenu"
+
+   // Gotta create a hidden window to receive WM_POWERBROADCAST events, lame-o!
+   // Register the window class for the main window. 
+   WNDCLASS window_class; memset(&window_class, 0, sizeof(window_class));
+   window_class.style          = 0;
+   window_class.lpfnWndProc    = (WNDPROC) window_message_handler;
+   window_class.cbClsExtra     = 0;
+   window_class.cbWndExtra     = 0;
+   window_class.hInstance      = NULL;
+   window_class.hIcon          = LoadIcon((HINSTANCE) NULL, IDI_APPLICATION);
+   window_class.hCursor        = LoadCursor((HINSTANCE) NULL, IDC_ARROW);
+   window_class.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
+   window_class.lpszMenuName   = WINDOW_MENU_NAME; 
+   window_class.lpszClassName  = WINDOW_CLASS_NAME; 
+   (void) RegisterClass(&window_class); // Deliberately not checking result, per Chris Guzak at http://msdn.microsoft.com/en-us/library/windows/desktop/ms633586(v=vs.85).aspx
+  
+   // This window will never be shown; its only purpose is to allow us to receive WM_POWERBROADCAST events so we can alert the calling code to sleep and wake events
+   HWND hiddenWindow = CreateWindowW(WINDOW_CLASS_NAME, L"", WS_OVERLAPPEDWINDOW, -1, -1, 0, 0, (HWND)NULL, (HMENU) NULL, NULL, (LPVOID)NULL); 
+   if (hiddenWindow) SetWindowLongPtr(hiddenWindow, GWL_USERDATA, (LONG) this);  // ok because we don't need access to (this) in WM_CREATE
+                else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession::InternalThreadEntry():  CreateWindow() failed!\n");
+   
 # ifndef MUSCLE_AVOID_NETIOAPI
-   HANDLE handle1 = MY_INVALID_HANDLE_VALUE;
-   HANDLE handle2 = MY_INVALID_HANDLE_VALUE;
-   (void) NotifyUnicastIpAddressChange(AF_UNSPEC, &AddressCallbackDemo,   this, FALSE, &handle1);
-   (void) NotifyIpInterfaceChange(     AF_UNSPEC, &InterfaceCallbackDemo, this, FALSE, &handle2);
+   HANDLE handle1 = MY_INVALID_HANDLE_VALUE; (void) NotifyUnicastIpAddressChange(AF_UNSPEC, &AddressCallbackDemo,   this, FALSE, &handle1);
+   HANDLE handle2 = MY_INVALID_HANDLE_VALUE; (void) NotifyIpInterfaceChange(     AF_UNSPEC, &InterfaceCallbackDemo, this, FALSE, &handle2);
 #endif
 
    OVERLAPPED olap; memset(&olap, 0, sizeof(olap));
@@ -476,22 +659,29 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
          int nacRet = NotifyAddrChange(&junk, &olap); 
          if ((nacRet == NO_ERROR)||(WSAGetLastError() == WSA_IO_PENDING))
          {
-            ::HANDLE events[] = {olap.hEvent, _wakeupSignal};
-            switch(WaitForMultipleObjects(ARRAYITEMS(events), events, false, INFINITE))
+            if (hiddenWindow)
             {
-               case WAIT_OBJECT_0: 
-               {        
-                  // Serialized since the NotifyUnicast*Change() callbacks
-                  // get called from a different thread
-                  MutexGuard mg(_sendMessageToOwnerMutex);
-                  SendMessageToOwner(MessageRef());
-               }          
-               break;
+               MSG message;
+               while(PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) DispatchMessage(&message); 
+            }
 
-               default:
-                  (void) CancelIPChangeNotify(&olap);
-                  _threadKeepGoing = false;
-               break;
+            ::HANDLE events[] = {olap.hEvent, _wakeupSignal};
+            DWORD waitResult = hiddenWindow ? MsgWaitForMultipleObjects(ARRAYITEMS(events), events, false, INFINITE, QS_ALLINPUT) : WaitForMultipleObjects(ARRAYITEMS(events), events, false, INFINITE);
+            if (waitResult == WAIT_OBJECT_0)
+            {
+               // Serialized since the NotifyUnicast*Change() callbacks get called from a different thread
+               static Message _msg(DNCCS_MESSAGE_INTERFACES_CHANGED);
+               ThreadSafeSendMessageToOwner(MessageRef(&_msg, false));
+            }          
+            else if ((hiddenWindow)&&(waitResult == DWORD(WAIT_OBJECT_0+ARRAYITEMS(events))))
+            {
+               // Message received from Window-message-handler; go around the loop to process it
+            }
+            else 
+            {
+               // Anything else is an error and we should pack it in
+               (void) CancelIPChangeNotify(&olap);
+               _threadKeepGoing = false;
             }
          }
          else 
@@ -508,6 +698,9 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
    if (handle2 != MY_INVALID_HANDLE_VALUE) CancelMibChangeNotify2(handle2);
    if (handle1 != MY_INVALID_HANDLE_VALUE) CancelMibChangeNotify2(handle1);
 # endif
+
+   if (hiddenWindow) DestroyWindow(hiddenWindow);
+   // Deliberately leaving the window_class registered here, since to do otherwise could be thread-unsafe
 
 # else
 #  error "NetworkInterfacesSession:  OS not supported!"

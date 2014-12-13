@@ -5,6 +5,21 @@ key:  - new feature
       * bug fixed
       o other
 
+6.10 Released 12/12/2014
+   - The DetectNetworkConfigChangesSession class now has
+     ComputerIsAboutToSleep() and ComputerJustWokeUp() 
+     callback methods that are called at the times indicated
+     by their names.  Currently this functionality is 
+     implemented only under MacOS/X and Windows.
+   o Added work-arounds for gcc-3.x SFINAE incompatibilities
+     to MuscleSupport.h
+   o Updated the muscle.dox file using doxygen -u so that
+     it is now up-to-date (as of DOxygen 1.8.8)
+   * If a string like "for 10 seconds" was passed to 
+     ParseHumanReadableTimeIntervalString(), the "for"
+     prefix would cause the returned value to be twice
+     what it was expected to be.  Fixed.
+
 6.09 Released 11/3/2014
    - Added a (preferIPv6) argument to GetHostByName().  If
      left as true (the default value), GetHostByName() will 

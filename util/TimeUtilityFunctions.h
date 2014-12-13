@@ -139,7 +139,7 @@ inline void Convert64ToTimeVal(uint64 val, struct timeval & retStruct)
 /** Convenience function:  Returns true true iff (t1 < t2)
  *  @param t1 a time value
  *  @param t2 another time value
- *  @result true iff t1 < t2
+ *  @returns true iff t1 < t2
  */
 inline bool IsLessThan(const struct timeval & t1, const struct timeval & t2)
 {
