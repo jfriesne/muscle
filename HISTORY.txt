@@ -5,6 +5,29 @@ key:  - new feature
       * bug fixed
       o other
 
+6.11 Released 2/2/2015
+   - When compiled under Windows, SetupSystem.cpp now contains
+     #pragma commands so that necessary Windows-libraries will
+     be automatically linked in.  This means the user no longer
+     has to spend time chasing down so many linker errors when 
+     setting up a new project file.
+   o MutexGuard's argument is now a const reference, since 
+     Mutex::Lock() and Mutex::Unlock() are const methods.
+   o Removed AbstractReflectSession::GetDefaultHostName()
+     and replaced it with a new method named
+     AbstractReflectSession::GenerateHostName().  The new
+     method lets the session subclass choose a custom 
+     hostname for the session even if the IP address 
+     determination didn't fail.
+   o Added some private/unimplemented method overloads for
+     MessageTransceiverThread::AddNewConnectSession() and
+     QMessageTransceiverHandler::SetupAsNewConnectSession()
+     so that if the caller tries to call these methods
+     with timeout-values but forgets to include the
+     (expandLocalhost) argument, the error will be caught
+     at compile-time rather than causing unexpected run-time
+     behavior.
+
 6.10 Released 12/12/2014
    - The DetectNetworkConfigChangesSession class now has
      ComputerIsAboutToSleep() and ComputerJustWokeUp() 

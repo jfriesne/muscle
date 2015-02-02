@@ -23,6 +23,8 @@ namespace muscle {
 
 extern bool _mainReflectServerCatchSignals;  // from SetupSystem.cpp
 
+static const char * DEFAULT_SESSION_HOSTNAME = "_unknown_";
+
 status_t
 ReflectServer ::
 AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
@@ -119,9 +121,10 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
          ip_address ip = GetPeerIPAddress(sock, true);
          const String * remapString = _remapIPs.Get(ip);
          char ipbuf[64]; Inet_NtoA(ip, ipbuf);
-         newSession->_hostName = remapString ? *remapString : ((ip != invalidIP) ? String(ipbuf) : newSession->GetDefaultHostName());
+
+         newSession->_hostName = newSession->GenerateHostName(ip, remapString ? *remapString : String((ip != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME));
       }
-      else newSession->_hostName = newSession->GetDefaultHostName();
+      else newSession->_hostName = newSession->GenerateHostName(invalidIP, DEFAULT_SESSION_HOSTNAME);
    }
 
         if (AttachNewSession(ref) == B_NO_ERROR) return B_NO_ERROR;
@@ -164,7 +167,7 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const ip_address & d
          session->SetConnectingAsync((usingFakeBrokenConnection == false)&&(session->_isConnected == false));
 
          char ipbuf[64]; Inet_NtoA(destIP, ipbuf);
-         session->_hostName = (destIP != invalidIP) ? ipbuf : "_unknown_";
+         session->_hostName = session->GenerateHostName(destIP, (destIP != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME);
 
          if (AddNewSession(ref, sock) == B_NO_ERROR)
          {
@@ -200,7 +203,7 @@ AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const ip_addr
       session->_asyncConnectDest = IPAddressAndPort(destIP, port);
       session->_reconnectViaTCP  = true;
       char ipbuf[64]; Inet_NtoA(destIP, ipbuf);
-      session->_hostName = (destIP != invalidIP) ? ipbuf : "_unknown_";
+      session->_hostName = session->GenerateHostName(destIP, (destIP != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME);
       status_t ret = AddNewSession(ref, ConstSocketRef());
       if (ret == B_NO_ERROR)
       {

@@ -46,6 +46,9 @@ protected:
      */
    virtual status_t MessageReceivedFromOwner(const MessageRef & msgRef, uint32 numLeft);
 
+   /** Overridden so that internal thread sessions will show up under the "hostname" of "InternalThreadSessions". */
+   virtual String GenerateHostName(const ip_address & /*ip*/, const String & /*defaultName*/) const {return "InternalThreadSessions";}
+
 private:
    /** Entry point for the internal thread -- overridden to customize the event loop with a poll timeout.
      * So in addition to handling any Messages received from the MUSCLE thread, this event loop will also

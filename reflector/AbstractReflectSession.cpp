@@ -314,13 +314,6 @@ DisconnectSession()
 
 String
 AbstractReflectSession ::
-GetDefaultHostName() const
-{
-   return "_unknown_";  // This used to be "<unknown>" but that interfered with MUSCLE's pattern matching that looks for a number range between angle brackets!  --jaf
-}
-
-String
-AbstractReflectSession ::
 GetSessionDescriptionString() const
 {
    uint16 port = _ipAddressAndPort.GetPort();
@@ -457,6 +450,13 @@ GetSessionWriteSelectSocket() const
 {
    const DataIORef & dio = GetDataIO();
    return dio() ? dio()->GetWriteSelectSocket() : GetNullSocket();
+}
+
+String 
+AbstractReflectSession :: 
+GenerateHostName(const ip_address & /*ip*/, const String & defaultHostName) const
+{
+   return defaultHostName;
 }
 
 }; // end namespace muscle

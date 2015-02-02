@@ -519,6 +519,12 @@ protected:
    virtual ThreadWorkerSessionRef CreateDefaultWorkerSession(QMessageTransceiverThread & thread);
 
 private:
+   /** These method are here (and private, and unimplemented) just to make sure the developer doesn't forget to include the (expandLocalhost) argument. */
+   status_t SetupAsNewConnectSession(IMessageTransceiverMaster &, const String &, uint16, uint64);           // deliberately private and unimplemented!
+   status_t SetupAsNewConnectSession(IMessageTransceiverMaster &, const String &, uint16, uint64, uint64);   // deliberately private and unimplemented!
+   status_t SetupAsNewConnectSession(IMessageTransceiverMaster &, const String &, uint16, const ThreadWorkerSessionRef &, uint64);          // deliberately private and unimplemented!
+   status_t SetupAsNewConnectSession(IMessageTransceiverMaster &, const String &, uint16, const ThreadWorkerSessionRef &, uint64, uint64);  // deliberately private and unimplemented!
+
    friend class QMessageTransceiverThread;
    friend class QMessageTransceiverThreadPool;
 

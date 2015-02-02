@@ -307,13 +307,6 @@ public:
    /** Should return a pretty, human readable string identifying this class.  */
    virtual const char * GetTypeName() const = 0;
 
-   /** May be overridden to return the host name string we should be assigned
-    *  if no host name could be automatically determined by the ReflectServer
-    *  (i.e. if we had no associated socket at the time).
-    *  Default implementation returns "_unknown_".
-    */
-   virtual String GetDefaultHostName() const;
-
    /** Convenience method -- returns a human-readable string describing our
     *  type, our hostname, our session ID, and what port we are connected to.
     */
@@ -478,6 +471,15 @@ public:
 protected:
    /** Set by StorageReflectSession::AttachedToServer() */
    void SetSessionRootPath(const String & p) {_sessionRootPath = p;}
+
+   /** When a hostname is being chosen to represent this session (i.e. at the first
+    *  level of the MUSCLE node-tree), this method is called to allow the subclass
+    *  to choose a different name instead.
+    *  @param ip The IP address associated with this session, or invalidIP if none is known.
+    *  @param defaultHostName The hostname that the system suggests be used for this session.
+    *  Default implementation just returns (defaultHostName), i.e. it goes with the suggested name.
+    */
+   virtual String GenerateHostName(const ip_address & ip, const String & defaultHostName) const;
 
 private:
    void SetPolicyAux(AbstractSessionIOPolicyRef & setRef, uint32 & setChunk, const AbstractSessionIOPolicyRef & newRef, bool isInput);

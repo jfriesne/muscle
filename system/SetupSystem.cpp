@@ -19,6 +19,10 @@
 #endif
 
 #ifdef WIN32
+# pragma comment(lib, "ws2_32.lib")
+# pragma comment(lib, "winmm.lib")
+# pragma comment(lib, "iphlpapi.lib")
+# pragma comment(lib, "version.lib")
 # include <signal.h>
 # include <mmsystem.h>
 #else

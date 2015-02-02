@@ -245,7 +245,7 @@ public:
    /** Constructor.  Locks the specified Mutex.
      * @param m The Mutex to lock. 
      */
-   MutexGuard(Mutex & m) : _mutex(m)
+   MutexGuard(const Mutex & m) : _mutex(m)
    {
       if (_mutex.Lock() == B_NO_ERROR) _isMutexLocked = true;
       else
@@ -267,7 +267,7 @@ public:
 private:
    MutexGuard(const MutexGuard &);  // copy ctor, deliberately inaccessible
 
-   Mutex & _mutex;
+   const Mutex & _mutex;
    bool _isMutexLocked;
 };
 
