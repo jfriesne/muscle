@@ -203,7 +203,7 @@ FilterInputBuffer(char * buf, uint32 & bufLen, uint32 /*maxLen*/)
       if (_inSubnegotiation) keepChar = false; 
       if (keepChar) *output++ = c;  // strip out any telnet control/escape codes
    }
-   bufLen = output-buf;
+   bufLen = (uint32) (output-buf);
 }
 
 }; // end namespace muscle

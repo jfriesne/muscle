@@ -1176,8 +1176,8 @@ private:
       }
    }
 
-   const KeyType & GetKeyFromCookie(void * c) const {return (((HashtableEntryBase *)c)->_key);}
-   ValueType & GetValueFromCookie(void * c) const  {return (((HashtableEntryBase *)c)->_value);}
+   const KeyType & GetKeyFromCookie(void * c) const {return ((static_cast<const HashtableEntryBase *>(c))->_key);}
+   ValueType & GetValueFromCookie(  void * c) const {return ((static_cast<HashtableEntryBase *>(c))->_value);}
 
    HashtableEntryBase * GetSubsequentEntry(void * entryPtr, uint32 flags) const 
    {

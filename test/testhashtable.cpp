@@ -644,8 +644,8 @@ int main(int argc, char ** argv)
 
    printf("Begin torture test!\n");
    _state = 4;
-   bool fastClear = false;
    {
+      bool fastClear = false;
       Hashtable<String, uint32> t;
       for (uint32 numEntries=1; numEntries < 1000; numEntries++)
       {

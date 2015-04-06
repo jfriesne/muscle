@@ -29,7 +29,11 @@ extern "C" {
 #endif
 
 /* === regex2.h === */
+#ifdef _M_AMD64
+typedef __int64 regoff_t;
+#else
 typedef off_t regoff_t;
+#endif
 typedef struct {
 	int re_magic;
 	size_t re_nsub;		/* number of parenthesized subexpressions */

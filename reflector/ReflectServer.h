@@ -4,6 +4,7 @@
 #define MuscleReflectServer_h
 
 #include "reflector/AbstractReflectSession.h"
+#include "support/NotCopyable.h"
 #include "util/NestCount.h"
 #include "util/SocketMultiplexer.h"
 
@@ -15,7 +16,7 @@ namespace muscle {
  *  This class can be used as-is, or subclassed if necessary.
  *  There is typically only one ReflectServer object present in a given MUSCLE server program.
  */
-class ReflectServer : public RefCountable, public PulseNode, private PulseNodeManager, private CountedObject<ReflectServer>
+class ReflectServer : public RefCountable, public PulseNode, private PulseNodeManager, private CountedObject<ReflectServer>, private NotCopyable
 {
 public: 
    /** Constructor. */

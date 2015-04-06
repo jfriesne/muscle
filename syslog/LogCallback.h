@@ -16,7 +16,7 @@ class LogCallbackArgs
 {
 public:
    /** Default Constructor */
-   LogCallbackArgs() : _when(0), _logLevel(MUSCLE_LOG_INFO), _sourceFile(""), _sourceFunction(""), _sourceLine(0), _text("") {/* empty */}
+   LogCallbackArgs() : _when(0), _logLevel(MUSCLE_LOG_INFO), _sourceFile(""), _sourceFunction(""), _sourceLine(0), _text(""), _argList(NULL) {/* empty */}
 
    /** Constructor 
      * @param when Timestamp for this log message, in (seconds past 1970) format.

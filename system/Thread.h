@@ -3,6 +3,7 @@
 #ifndef MuscleThread_h
 #define MuscleThread_h
 
+#include "support/NotCopyable.h"
 #include "system/Mutex.h"
 #include "message/Message.h"
 #include "util/Queue.h"
@@ -43,7 +44,7 @@ namespace muscle {
   * It also includes support for sending Messages to the thread, receiving reply Messages from the thread,
   * and for waiting for the thread to exit.
   */
-class Thread : private CountedObject<Thread>
+class Thread : private CountedObject<Thread>, private NotCopyable
 {
 public:
    /** Constructor.  Does very little (in particular, the internal thread is not started here...
@@ -427,11 +428,11 @@ private:
 #elif defined(__BEOS__) || defined(__HAIKU__)
    typedef thread_id muscle_thread_key;
    thread_id _thread;
-   static int32 InternalThreadEntryFunc(void * This) {((Thread *)This)->InternalThreadEntryAux(); return 0;}
+   static int32 InternalThreadEntryFunc(void * This) {static_cast<Thread *>(This)->InternalThreadEntryAux(); return 0;}
 #elif defined(__ATHEOS__)
    typedef thread_id muscle_thread_key;
    thread_id _thread;
-   static void InternalThreadEntryFunc(void * This) {((Thread *)This)->InternalThreadEntryAux();}
+   static void InternalThreadEntryFunc(void * This) {static_cast<Thread *>(This)->InternalThreadEntryAux();}
 #endif
 
    static muscle_thread_key GetCurrentThreadKey();

@@ -123,7 +123,7 @@ int32 ZLibDataIO :: Read(void * buffer, uint32 size)
       if (_inputStreamOkay)
       {
          if (_readInflater.avail_in == 0) _readInflater.next_in = _toInflateBuf;
-         int32 bytesRead = _slaveIO()->Read(_readInflater.next_in, (_toInflateBuf+sizeof(_toInflateBuf))-_readInflater.next_in);
+         int32 bytesRead = _slaveIO()->Read(_readInflater.next_in, (int32)((_toInflateBuf+sizeof(_toInflateBuf))-_readInflater.next_in));
          if (bytesRead >= 0)
          {
             _readInflater.avail_in += bytesRead;
@@ -140,20 +140,20 @@ int32 ZLibDataIO :: Write(const void * buffer, uint32 size)
    return WriteAux(buffer, size, false);
 }
 
-#define ZLIB_WRITE_SEND_TO_SLAVE                                                                  \
-   if (_writeDeflater.next_out > _sendToSlave)                                                    \
-   {                                                                                              \
-      int32 bytesWritten = _slaveIO()->Write(_sendToSlave, _writeDeflater.next_out-_sendToSlave); \
-      if (bytesWritten >= 0)                                                                      \
-      {                                                                                           \
-         _sendToSlave += bytesWritten;                                                            \
-         if (_sendToSlave == _writeDeflater.next_out)                                             \
-         {                                                                                        \
-            _sendToSlave = _writeDeflater.next_out = _deflatedBuf;                                \
-            _writeDeflater.avail_out = sizeof(_deflatedBuf);                                      \
-         }                                                                                        \
-      }                                                                                           \
-      else return -1;                                                                             \
+#define ZLIB_WRITE_SEND_TO_SLAVE                                                                           \
+   if (_writeDeflater.next_out > _sendToSlave)                                                             \
+   {                                                                                                       \
+      int32 bytesWritten = _slaveIO()->Write(_sendToSlave, (int32)(_writeDeflater.next_out-_sendToSlave)); \
+      if (bytesWritten >= 0)                                                                               \
+      {                                                                                                    \
+         _sendToSlave += bytesWritten;                                                                     \
+         if (_sendToSlave == _writeDeflater.next_out)                                                      \
+         {                                                                                                 \
+            _sendToSlave = _writeDeflater.next_out = _deflatedBuf;                                         \
+            _writeDeflater.avail_out = sizeof(_deflatedBuf);                                               \
+         }                                                                                                 \
+      }                                                                                                    \
+      else return -1;                                                                                      \
    }
 
 int32 ZLibDataIO :: WriteAux(const void * buffer, uint32 size, bool flushAtEnd)

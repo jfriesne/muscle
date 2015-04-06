@@ -80,7 +80,11 @@ static int nope = 0;		/* for use in asserts; shuts lint up */
 				(m)->vn = 0; }
 #define	STATETEARDOWN(m)	{ free((m)->space); }
 #define	SETUP(v)	((v) = &m->space[m->vn++ * m->g->nstates])
-#define	onestate	int
+#ifdef _M_AMD64
+#define    onestate    __int64
+#else
+#define    onestate    int
+#endif
 #define	INIT(o, n)	((o) = (n))
 #define	INC(o)	((o)++)
 #define	ISSTATEIN(v, o)	((v)[o])

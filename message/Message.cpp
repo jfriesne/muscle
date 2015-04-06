@@ -15,12 +15,12 @@ MessageRef::ItemPool * GetMessagePool() {return &_messagePool;}
 static ConstMessageRef _emptyMsgRef(&_messagePool.GetDefaultObject(), false);
 const ConstMessageRef & GetEmptyMessageRef() {return _emptyMsgRef;}
 
-#define DECLARECLONE(X)                  \
-   RefCountableRef X :: Clone() const    \
-   {                                     \
-      RefCountableRef ref(NEWFIELD(X));  \
-      if (ref()) *((X*)ref()) = *this;   \
-      return ref;                        \
+#define DECLARECLONE(X)                             \
+   RefCountableRef X :: Clone() const               \
+   {                                                \
+      RefCountableRef ref(NEWFIELD(X));             \
+      if (ref()) *(static_cast<X*>(ref())) = *this; \
+      return ref;                                   \
    }
 
 #ifdef MUSCLE_DISABLE_MESSAGE_FIELD_POOLS
@@ -173,12 +173,12 @@ public:
 
    virtual status_t AddDataItem(const void * item, uint32 size)
    {
-      return (size == sizeof(DataType)) ? (item ? _data.AddTail(*((DataType *)item)) : _data.AddTail()) : B_ERROR;
+      return (size == sizeof(DataType)) ? (item ? _data.AddTail(*(reinterpret_cast<const DataType *>(item))) : _data.AddTail()) : B_ERROR;
    }
 
    virtual status_t PrependDataItem(const void * item, uint32 size)
    {
-      return (size == sizeof(DataType)) ? (item ? _data.AddHead(*((DataType *)item)) : _data.AddHead()) : B_ERROR;
+      return (size == sizeof(DataType)) ? (item ? _data.AddHead(*(reinterpret_cast<const DataType *>(item))) : _data.AddHead()) : B_ERROR;
    }
 
    virtual uint32 GetItemSize(uint32 /*index*/) const {return sizeof(DataType);}
@@ -196,7 +196,7 @@ public:
 
    virtual status_t ReplaceDataItem(uint32 index, const void * data, uint32 size)
    {
-      return (size == sizeof(DataType)) ? _data.ReplaceItemAt(index, *((DataType *)data)) : B_ERROR;
+      return (size == sizeof(DataType)) ? _data.ReplaceItemAt(index, *(static_cast<const DataType *>(data))) : B_ERROR;
    }
 
    virtual bool ElementsAreFixedSize() const {return true;}
@@ -354,7 +354,7 @@ public:
 
    virtual void Flatten(uint8 * buffer) const
    {
-      DataType * dBuf = (DataType *) buffer;
+      DataType * dBuf = reinterpret_cast<DataType *>(buffer);
       switch(this->_data.GetNumItems())
       {
          case 0:
@@ -395,7 +395,7 @@ public:
          // be stored in a single, contiguous array like this, but in this case we've
          // called Clear() and then EnsureSize(), so we know that the array's headPointer
          // is at the front of the array, and we are safe to do this.  --jaf
-         ConvertFromNetworkByteOrder(this->_data.HeadPointer(), (DataType *)buffer, numItems);
+         ConvertFromNetworkByteOrder(this->_data.HeadPointer(), reinterpret_cast<const DataType *>(buffer), numItems);
          return B_NO_ERROR;
       }
       else return B_ERROR;
@@ -512,9 +512,8 @@ public:
 
    virtual void Flatten(uint8 * buffer) const
    {
-      uint8 * dBuf = (uint8 *) buffer;
       uint32 numItems = _data.GetNumItems(); 
-      for (uint32 i=0; i<numItems; i++) dBuf[i] = (uint8) (_data[i] ? 1 : 0);
+      for (uint32 i=0; i<numItems; i++) buffer[i] = (uint8) (_data[i] ? 1 : 0);
    }
 
    virtual status_t Unflatten(const uint8 * buffer, uint32 numBytes)
@@ -523,8 +522,7 @@ public:
 
       if (_data.EnsureSize(numBytes) == B_NO_ERROR)
       {
-         uint8 * dBuf = (uint8 *) buffer;
-         for (uint32 i=0; i<numBytes; i++) if (_data.AddTail((dBuf[i] != 0) ? true : false) != B_NO_ERROR) return B_ERROR;
+         for (uint32 i=0; i<numBytes; i++) if (_data.AddTail((buffer[i] != 0) ? true : false) != B_NO_ERROR) return B_ERROR;
          return B_NO_ERROR;
       }
       else return B_ERROR;
@@ -575,7 +573,7 @@ public:
 protected:
    virtual void ConvertToNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
    {
-      int16 * writeToHere16 = (int16 *) writeToHere;
+      int16 * writeToHere16 = static_cast<int16 *>(writeToHere);
       const int16 * readFromHere16 = (const int16 *) readFromHere;
       for (uint32 i=0; i<numItems; i++) muscleCopyOut(&writeToHere16[i], B_HOST_TO_LENDIAN_INT16(readFromHere16[i]));
    }
@@ -960,8 +958,8 @@ protected:
 
       for (int32 i=GetNumItems()-1; i>=0; i--) 
       {
-         const ByteBuffer * myBuf  = (const ByteBuffer *) this->ItemAt(i)();
-         const ByteBuffer * hisBuf = (const ByteBuffer *) trhs->ItemAt(i)();
+         const ByteBuffer * myBuf  = static_cast<const ByteBuffer *>(this->ItemAt(i)());
+         const ByteBuffer * hisBuf = static_cast<const ByteBuffer *>(trhs->ItemAt(i)());
          if (((myBuf != NULL)!=(hisBuf != NULL))||((myBuf)&&(*myBuf != *hisBuf))) return false;
       }
       return true;
@@ -1070,8 +1068,8 @@ protected:
 
       for (int32 i=GetNumItems()-1; i>=0; i--) 
       {
-         const Message * myMsg  = (const Message *) this->ItemAt(i)();
-         const Message * hisMsg = (const Message *) trhs->ItemAt(i)();
+         const Message * myMsg  = static_cast<const Message *>(this->ItemAt(i)());
+         const Message * hisMsg = static_cast<const Message *>(trhs->ItemAt(i)());
          if (((myMsg != NULL)!=(hisMsg != NULL))||((myMsg)&&(*myMsg != *hisMsg))) return false;
       }
       return true;
@@ -1316,7 +1314,7 @@ const AbstractDataArray * Message :: GetArrayAndTypeCode(const String & arrayNam
 RefCountableRef Message :: GetArrayRef(const String & arrayName, uint32 tc) const
 {
    RefCountableRef array;
-   if ((_entries.Get(arrayName, array) == B_NO_ERROR)&&(tc != B_ANY_TYPE)&&(tc != ((const AbstractDataArray *)array())->TypeCode())) array.Reset();
+   if ((_entries.Get(arrayName, array) == B_NO_ERROR)&&(tc != B_ANY_TYPE)&&(tc != (static_cast<const AbstractDataArray *>(array()))->TypeCode())) array.Reset();
    return array;
 }
 
@@ -1355,7 +1353,7 @@ AbstractDataArray * Message :: GetOrCreateArray(const String & arrayName, uint32
          if (newEntry()) (static_cast<ByteBufferDataArray*>(newEntry()))->SetTypeCode(tc);
          break;
    }
-   return ((newEntry())&&(_entries.Put(arrayName, newEntry) == B_NO_ERROR)) ? (AbstractDataArray*)newEntry() : NULL;
+   return ((newEntry())&&(_entries.Put(arrayName, newEntry) == B_NO_ERROR)) ? static_cast<AbstractDataArray*>(newEntry()) : NULL;
 }
 
 status_t Message :: Rename(const String & oldFieldName, const String & newFieldName) 
@@ -1786,7 +1784,7 @@ status_t Message :: RemoveData(const String & fieldName, uint32 index)
 
 status_t Message :: FindString(const String & fieldName, uint32 index, const char * & setMe) const
 {
-   const StringDataArray * ada = (const StringDataArray *)GetArray(fieldName, B_STRING_TYPE);
+   const StringDataArray * ada = static_cast<const StringDataArray *>(GetArray(fieldName, B_STRING_TYPE));
    if ((ada)&&(index < ada->GetNumItems()))
    {
       setMe = ada->ItemAt(index)();
@@ -1797,7 +1795,7 @@ status_t Message :: FindString(const String & fieldName, uint32 index, const cha
 
 status_t Message :: FindString(const String & fieldName, uint32 index, const String ** setMe) const 
 {
-   const StringDataArray * ada = (const StringDataArray *)GetArray(fieldName, B_STRING_TYPE);
+   const StringDataArray * ada = static_cast<const StringDataArray *>(GetArray(fieldName, B_STRING_TYPE));
    if ((ada)&&(index < ada->GetNumItems()))
    {
       *setMe = &ada->ItemAt(index);
@@ -1808,7 +1806,7 @@ status_t Message :: FindString(const String & fieldName, uint32 index, const Str
 
 status_t Message :: FindString(const String & fieldName, uint32 index, String & str) const 
 {
-   const StringDataArray * ada = (const StringDataArray *)GetArray(fieldName, B_STRING_TYPE);
+   const StringDataArray * ada = static_cast<const StringDataArray *>(GetArray(fieldName, B_STRING_TYPE));
    if ((ada)&&(index < ada->GetNumItems()))
    {
       str = ada->ItemAt(index);
@@ -1929,7 +1927,7 @@ status_t Message :: FindDataItemAux(const String & fieldName, uint32 index, uint
 
 status_t Message :: FindPoint(const String & fieldName, uint32 index, Point & point) const 
 {
-   const PointDataArray * array = (const PointDataArray *)GetArray(fieldName, B_POINT_TYPE);
+   const PointDataArray * array = static_cast<const PointDataArray *>(GetArray(fieldName, B_POINT_TYPE));
    if ((array == NULL)||(index >= array->GetNumItems())) return B_ERROR;
    point = array->ItemAt(index);
    return B_NO_ERROR;
@@ -1937,7 +1935,7 @@ status_t Message :: FindPoint(const String & fieldName, uint32 index, Point & po
 
 status_t Message :: FindRect(const String & fieldName, uint32 index, Rect & rect) const 
 {
-   const RectDataArray * array = (const RectDataArray *)GetArray(fieldName, B_RECT_TYPE);
+   const RectDataArray * array = static_cast<const RectDataArray *>(GetArray(fieldName, B_RECT_TYPE));
    if ((array == NULL)||(index >= array->GetNumItems())) return B_ERROR;
    rect = array->ItemAt(index);
    return B_NO_ERROR;
@@ -1945,7 +1943,7 @@ status_t Message :: FindRect(const String & fieldName, uint32 index, Rect & rect
 
 status_t Message :: FindTag(const String & fieldName, uint32 index, RefCountableRef & tag) const 
 {
-   const TagDataArray * array = (const TagDataArray*)GetArray(fieldName, B_TAG_TYPE);
+   const TagDataArray * array = static_cast<const TagDataArray*>(GetArray(fieldName, B_TAG_TYPE));
    if ((array == NULL)||(index >= array->GetNumItems())) return B_ERROR;
    tag = array->ItemAt(index);
    return B_NO_ERROR;
@@ -1968,7 +1966,7 @@ status_t Message :: FindMessage(const String & fieldName, uint32 index, Message 
 
 status_t Message :: FindMessage(const String & fieldName, uint32 index, MessageRef & ref) const
 {
-   const MessageDataArray * array = (const MessageDataArray *) GetArray(fieldName, B_MESSAGE_TYPE);
+   const MessageDataArray * array = static_cast<const MessageDataArray *>(GetArray(fieldName, B_MESSAGE_TYPE));
    if ((array == NULL)||(index >= array->GetNumItems())) return B_ERROR;
    ref = array->ItemAt(index);
    return B_NO_ERROR;
@@ -2320,7 +2318,7 @@ bool Message :: FieldsAreSubsetOf(const Message & rhs, bool compareContents) con
    for (HashtableIterator<String, RefCountableRef> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const RefCountableRef * hisNextValue = rhs._entries.Get(iter.GetKey());
-      if ((hisNextValue == NULL)||((static_cast<const AbstractDataArray*>(iter.GetValue()()))->IsEqualTo((const AbstractDataArray*)(hisNextValue->GetItemPointer()), compareContents) == false)) return false;
+      if ((hisNextValue == NULL)||((static_cast<const AbstractDataArray*>(iter.GetValue()()))->IsEqualTo(static_cast<const AbstractDataArray*>(hisNextValue->GetItemPointer()), compareContents) == false)) return false;
    }
    return true;
 }

@@ -442,7 +442,7 @@ DataNode * DataNode :: FindFirstMatchingNode(const char * path, uint32 maxDepth)
          if ((_children == NULL)||(maxDepth == 0)) return NULL;
 
          const char * nextSlash = strchr(path, '/');
-         String childKey(path, (nextSlash)?(nextSlash-path):MUSCLE_NO_LIMIT);
+         String childKey(path, (nextSlash)?((uint32)(nextSlash-path)):MUSCLE_NO_LIMIT);
          const char * recurseArg = nextSlash?(nextSlash+1):"";
 
          if (CanWildcardStringMatchMultipleValues(childKey))
@@ -476,7 +476,7 @@ DataNodeRef DataNode :: GetDescendantAux(const char * subPath) const
    const char * slash = strchr(subPath, '/');
    if (slash)
    {
-      DataNodeRef child = GetChild(String(subPath, slash-subPath));
+      DataNodeRef child = GetChild(String(subPath, (uint32)(slash-subPath)));
       return child() ? child()->GetDescendantAux(slash+1) : DataNodeRef();
    }
    else return GetChild(subPath);

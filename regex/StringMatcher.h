@@ -65,6 +65,11 @@ public:
     * Note:  In v5.84 and above, this syntax has been extended further to allow multiple ranges.  For example,
     * "<19-21,25,30-50>" would match the IDs 19 through 21, 25, and 30-50, all inclusive.
     *
+    * Note:  In v6.12 and above, the presence of a backtick character (`) at the front of the string will
+    * force the string to be parsed as a regex rather than a wildcard pattern.  (The backtick itself will not 
+    * be included in the regex string).  That way raw regex strings can be used in contexts that would otherwise
+    * not permit the user to specify isSimpleFormat=false (e.g. in MUSCLE subscription strings)
+    *
     * Also, simple patterns that begin with a tilde (~) will be logically negated, e.g. ~A* will match all
     * strings that do NOT begin with the character A.
     *

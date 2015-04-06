@@ -36,7 +36,7 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMem
 
          allowAccess = !isGrantList;  // if there is a list, you're off it unless you're on it!
 
-         const ip_address * ips = (const ip_address *) sm();
+         const ip_address * ips = reinterpret_cast<const ip_address *>(sm());
          uint32 numIPs = sm.GetAreaSize()/sizeof(ip_address);
          for (uint32 i=0; i<numIPs; i++)
          {

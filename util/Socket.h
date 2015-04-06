@@ -3,6 +3,7 @@
 #ifndef MuscleSocket_h
 #define MuscleSocket_h
 
+#include "support/NotCopyable.h"
 #include "util/RefCount.h"
 #include "util/CountedObject.h"
 
@@ -15,7 +16,7 @@ namespace muscle {
   * object (and thereby automatically close its held file descriptor) when the file 
   * descriptor is no longer needed for anything.
   */
-class Socket : public RefCountable, public CountedObject<Socket>
+class Socket : public RefCountable, public CountedObject<Socket>, private NotCopyable
 {
 public:
    /** Default constructor. */
@@ -55,9 +56,6 @@ public:
 
 private:
    friend class ObjectPool<Socket>;
-
-   /** Copy constructor, private and unimplemented on purpose */
-   Socket(const Socket &);
 
    /** Assignment operator, used only for ObjectPool recycling, private on purpose */
    Socket & operator = (const Socket & /*rhs*/) {Clear(); return *this;}

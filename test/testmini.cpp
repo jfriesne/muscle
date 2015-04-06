@@ -230,9 +230,9 @@ int main(int, char **)
 {
    Message m;
    MMessage * mmsg = CreateTestMessage(1, m);
-   MMessage * mmsg2 = NULL;
    if (mmsg)
    {
+      MMessage * mmsg2 = NULL;
       MMessage * clone = MMCloneMessage(mmsg);
       if (clone)
       {

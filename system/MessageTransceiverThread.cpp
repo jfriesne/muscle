@@ -569,7 +569,7 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
    }
 }
 
-ThreadSupervisorSession :: ThreadSupervisorSession()
+ThreadSupervisorSession :: ThreadSupervisorSession() : _mtt(NULL)
 {
    // empty
 }

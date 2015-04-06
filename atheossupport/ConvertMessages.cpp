@@ -31,7 +31,7 @@ status_t ConvertToAMessage(const Message & from, os::Message & to)
          {
             case B_POINT_TYPE:
             {
-               const Point * p = (const Point *)nextItem;
+               const Point * p = static_cast<const Point *>(nextItem);
                os::Point bpoint(p->x(), p->y());
                if (to.AddPoint(n, bpoint) != B_NO_ERROR) return B_ERROR;
             }
@@ -39,7 +39,7 @@ status_t ConvertToAMessage(const Message & from, os::Message & to)
 
             case B_RECT_TYPE:
             {
-               const Rect * r = (const Rect *)nextItem;
+               const Rect * r = static_cast<const Rect *>(nextItem);
                os::Rect brect(r->left(), r->top(), r->right(), r->bottom());
                if (to.AddRect(n, brect) != B_NO_ERROR) return B_ERROR;
             }
@@ -47,7 +47,7 @@ status_t ConvertToAMessage(const Message & from, os::Message & to)
  
             case B_MESSAGE_TYPE:
             {
-               MessageRef * msgRef = (MessageRef *) nextItem;
+               MessageRef * msgRef = stat_cast<MessageRef *>(nextItem);
                os::Message amsg;
                if (msgRef->GetItemPointer() == NULL) return B_ERROR;
                if (ConvertToAMessage(*msgRef->GetItemPointer(), amsg) != B_NO_ERROR) return B_ERROR;
@@ -88,7 +88,7 @@ status_t ConvertFromAMessage(const os::Message & from, Message & to)
             {
                case os::T_POINT:
                {
-                  const os::Point * p = (const os::Point *)nextItem;
+                  const os::Point * p = static_cast<const os::Point *>(nextItem);
                   Point pPoint(p->x, p->y);
                   if (to.AddPoint(name.c_str(), pPoint) != B_NO_ERROR) return B_ERROR;
                }
@@ -96,7 +96,7 @@ status_t ConvertFromAMessage(const os::Message & from, Message & to)
 
                case os::T_RECT:
                {
-                  const os::Rect * r = (const os::Rect *)nextItem;
+                  const os::Rect * r = static_cast<const os::Rect *>(nextItem);
                   Rect pRect(r->left, r->top, r->right, r->bottom);
                   if (to.AddRect(name.c_str(), pRect) != B_NO_ERROR) return B_ERROR;
                }
@@ -105,7 +105,7 @@ status_t ConvertFromAMessage(const os::Message & from, Message & to)
                case os::T_MESSAGE:
                {
                   os::Message amsg;
-                  if (amsg.Unflatten((const uint8 *)nextItem) != B_NO_ERROR) return B_ERROR;
+                  if (amsg.Unflatten(static_cast<const uint8 *>(nextItem)) != B_NO_ERROR) return B_ERROR;
                   Message * newMsg = newnothrow Message;
                   if (newMsg)
                   {

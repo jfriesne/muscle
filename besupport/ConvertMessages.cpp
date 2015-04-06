@@ -29,7 +29,7 @@ status_t ConvertToBMessage(const Message & from, BMessage & to)
          {
             case B_POINT_TYPE:
             {
-               const Point * p = (const Point *)nextItem;
+               const Point * p = static_cast<const Point *>(nextItem);
                BPoint bpoint(p->x(), p->y());
                if (to.AddPoint(n(), bpoint) != B_NO_ERROR) return B_ERROR;
             }
@@ -37,7 +37,7 @@ status_t ConvertToBMessage(const Message & from, BMessage & to)
 
             case B_RECT_TYPE:
             {
-               const Rect * r = (const Rect *)nextItem;
+               const Rect * r = static_cast<const Rect *>(nextItem);
                BRect brect(r->left(), r->top(), r->right(), r->bottom());
                if (to.AddRect(n(), brect) != B_NO_ERROR) return B_ERROR;
             }
@@ -45,7 +45,7 @@ status_t ConvertToBMessage(const Message & from, BMessage & to)
  
             case B_MESSAGE_TYPE:
             {
-               MessageRef * msgRef = (MessageRef *) nextItem;
+               MessageRef * msgRef = static_cast<MessageRef *>(nextItem);
                BMessage bmsg;
                if (msgRef->GetItemPointer() == NULL) return B_ERROR;
                if (ConvertToBMessage(*msgRef->GetItemPointer(), bmsg) != B_NO_ERROR) return B_ERROR;
@@ -89,7 +89,7 @@ status_t ConvertFromBMessage(const BMessage & from, Message & to)
          {
             case B_POINT_TYPE:
             {
-               const BPoint * p = (const BPoint *)nextItem;
+               const BPoint * p = static_cast<const BPoint *>(nextItem);
                Point pPoint(p->x, p->y);
                if (to.AddPoint(name, pPoint) != B_NO_ERROR) return B_ERROR;
             }
@@ -97,7 +97,7 @@ status_t ConvertFromBMessage(const BMessage & from, Message & to)
 
             case B_RECT_TYPE:
             {
-               const BRect * r = (const BRect *)nextItem;
+               const BRect * r = static_cast<const BRect *>(nextItem);
                Rect pRect(r->left, r->top, r->right, r->bottom);
                if (to.AddRect(name, pRect) != B_NO_ERROR) return B_ERROR;
             }
@@ -106,7 +106,7 @@ status_t ConvertFromBMessage(const BMessage & from, Message & to)
             case B_MESSAGE_TYPE:
             {
                BMessage bmsg;
-               if (bmsg.Unflatten((const char *)nextItem) != B_NO_ERROR) return B_ERROR;
+               if (bmsg.Unflatten(static_cast<const char *>(nextItem)) != B_NO_ERROR) return B_ERROR;
                Message * newMsg = newnothrow Message;
                if (newMsg)
                {

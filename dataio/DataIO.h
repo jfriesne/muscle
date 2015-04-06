@@ -3,6 +3,7 @@
 #ifndef MuscleDataIO_h
 #define MuscleDataIO_h
 
+#include "support/NotCopyable.h"
 #include "util/Socket.h"
 #include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
 #include "util/CountedObject.h"
@@ -10,7 +11,7 @@
 namespace muscle {
  
 /** Abstract base class for a byte-stream Data I/O interface, similar to Be's BDataIO.  */
-class DataIO : public RefCountable, private CountedObject<DataIO>
+class DataIO : public RefCountable, private CountedObject<DataIO>, private NotCopyable
 {
 public:
    /** Values to pass in to DataIO::Seek()'s second parameter */

@@ -70,7 +70,7 @@ public:
 
 #define DECLARE_MUSCLE_TRAVERSAL_CALLBACK(sessionClass, funcName) \
  int funcName(DataNode & node, void * userData); \
- static int funcName##Func(StorageReflectSession * This, DataNode & node, void * userData) {return ((sessionClass *)This)->funcName(node, userData);}
+ static int funcName##Func(StorageReflectSession * This, DataNode & node, void * userData) {return (static_cast<sessionClass *>(This))->funcName(node, userData);}
 
 /** An intelligent AbstractReflectSession that knows how to
  *  store data on the server, and filter using wildcards.  This class

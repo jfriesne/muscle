@@ -160,11 +160,10 @@ int main(int argc, char ** argv)
 
          text = text.Trim();
          StringTokenizer tok(text());
-         const char * targetSessionID = "*";
          if (text.StartsWith("/msg "))
          {
             (void) tok();
-            targetSessionID = tok();
+            const char * targetSessionID = tok();
             String sendText = String(tok.GetRemainderOfString()).Trim();
             if (sendText.HasChars()) gw.AddOutgoingMessage(GenerateChatMessage(targetSessionID, sendText()));
          }

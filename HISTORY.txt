@@ -5,6 +5,28 @@ key:  - new feature
       * bug fixed
       o other
 
+6.12 Released 4/6/2015
+   - The Python message_transceiver_thread class will now
+     fall back to connecting via IPv4 if the supplied hostname
+     cannot be expanded to an IPv6 address (and vice versa).
+   o Added a NotCopyable base class to various classes 
+     (Socket, DataNode, AbstractReflectSession, etc) so that
+     the compiler will verify that they are not being copied.
+   o The StringMatcher class now interprets any simple wildcard
+     string starting with a backtick character (`) as indicating
+     a non-simple regex string.  That way it is possible to use
+     the standard regex functionality, if desired, in contexts
+     that otherwise provide no way to indicate that a string
+     is meant to be a full regex string and not a simple wildcard
+     string (e.g. in MUSCLE subscription strings)
+   o Tweaked the codebase to get rid of a number of style 
+     problems and minor errors that were reported by cppcheck.
+   * Added a patch to the captive regex library to fix a 
+     potential int32-overrun in regcomp().  Thanks to Mika
+     Linkdqvist for supplying me with the patch.
+   * Merged in some patches from Mika Lindqvist to avoid 
+     some warnings when compiling in a 64-bit environment.
+
 6.11 Released 2/2/2015
    - When compiled under Windows, SetupSystem.cpp now contains
      #pragma commands so that necessary Windows-libraries will

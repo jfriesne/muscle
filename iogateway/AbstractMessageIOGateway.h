@@ -5,6 +5,7 @@
 
 #include "dataio/DataIO.h"
 #include "message/Message.h"
+#include "support/NotCopyable.h"
 #include "util/Queue.h"
 #include "util/RefCount.h"
 #include "util/NetworkUtilityFunctions.h"
@@ -103,7 +104,7 @@ protected:
  *  Abstract base class representing an object that can send/receive 
  *  Messages via a DataIO byte-stream.
  */
-class AbstractMessageIOGateway : public RefCountable, public AbstractGatewayMessageReceiver, public PulseNode, private CountedObject<AbstractMessageIOGateway>
+class AbstractMessageIOGateway : public RefCountable, public AbstractGatewayMessageReceiver, public PulseNode, private CountedObject<AbstractMessageIOGateway>, private NotCopyable
 {
 public:
    /** Default Constructor. */

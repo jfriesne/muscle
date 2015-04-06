@@ -93,31 +93,31 @@ public:
    inline Point RightTop() const {return Point(right(), top());}
 
    /** Set the left top corner of the rectangle. */
-   inline void SetLeftTop(const Point p) {left() = p.x(); top() = p.y();}
+   inline void SetLeftTop(const Point & p) {left() = p.x(); top() = p.y();}
 
    /** Set the right bottom corner of the rectangle. */
-   inline void SetRightBottom(const Point p) {right() = p.x(); bottom() = p.y();}
+   inline void SetRightBottom(const Point & p) {right() = p.x(); bottom() = p.y();}
 
    /** Set the left bottom corner of the rectangle. */
-   inline void SetLeftBottom(const Point p) {left() = p.x(); bottom() = p.y();}
+   inline void SetLeftBottom(const Point & p) {left() = p.x(); bottom() = p.y();}
 
    /** Set the right top corner of the rectangle. */
-   inline void SetRightTop(const Point p) {right() = p.x(); top() = p.y();}
+   inline void SetRightTop(const Point & p) {right() = p.x(); top() = p.y();}
 
    /** Makes the rectangle smaller by the amount specified in both the x and y dimensions */
-   inline void InsetBy(Point p) {InsetBy(p.x(), p.y());}
+   inline void InsetBy(const Point & p) {InsetBy(p.x(), p.y());}
 
    /** Makes the rectangle smaller by the amount specified in both the x and y dimensions */
    inline void InsetBy(float dx, float dy) {left() += dx; top() += dy; right() -= dx; bottom() -= dy;}
 
    /** Translates the rectangle by the amount specified in both the x and y dimensions */
-   inline void OffsetBy(Point p) {OffsetBy(p.x(), p.y());}
+   inline void OffsetBy(const Point & p) {OffsetBy(p.x(), p.y());}
 
    /** Translates the rectangle by the amount specified in both the x and y dimensions */
    inline void OffsetBy(float dx, float dy) {left() += dx; top() += dy; right() += dx; bottom() += dy;}
 
    /** Translates the rectangle so that its top left corner is at the point specified. */
-   inline void OffsetTo(Point p) {OffsetTo(p.x(), p.y());}
+   inline void OffsetTo(const Point & p) {OffsetTo(p.x(), p.y());}
 
    /** Translates the rectangle so that its top left corner is at the point specified. */
    inline void OffsetTo(float x, float y) {right() = x + Width(); bottom() = y + Height(); left() = x; top() = y;}
@@ -130,7 +130,7 @@ public:
    }
 
    /** Returns a rectangle whose area is the intersecting subset of this rectangle's and (r)'s */
-   inline Rect operator&(Rect r) const 
+   inline Rect operator&(const Rect & r) const 
    {
       Rect ret(*this);
       if (this != &r)
@@ -144,7 +144,7 @@ public:
    }
 
    /** Returns a rectangle whose area is a superset of the union of this rectangle's and (r)'s */
-   inline Rect operator|(Rect r) const 
+   inline Rect operator|(const Rect & r) const 
    {
       Rect ret(*this);
       if (this != &r)
@@ -164,7 +164,7 @@ public:
    inline Rect & operator &= (const Rect & rhs) {(*this) = (*this) & rhs; return *this;}
 
    /** Returns true iff this rectangle and (r) overlap in space. */
-   inline bool Intersects(Rect r) const {return (r&(*this)).IsValid();}
+   inline bool Intersects(const Rect & r) const {return (r&(*this)).IsValid();}
 
    /** Returns true iff this rectangle's area is non imaginary (i.e. Width() and Height()) are both non-negative) */
    inline bool IsValid() const {return ((Width() >= 0.0f)&&(Height() >= 0.0f));}
@@ -185,7 +185,7 @@ public:
    inline int32 IntegerHeight() const {return (int32)ceil(Height());}
 
    /** Returns true iff this rectangle contains the specified point. */
-   inline bool Contains(Point p) const {return ((p.x() >= left())&&(p.x() <= right())&&(p.y() >= top())&&(p.y() <= bottom()));}
+   inline bool Contains(const Point & p) const {return ((p.x() >= left())&&(p.x() <= right())&&(p.y() >= top())&&(p.y() <= bottom()));}
 
    /** Returns true iff this rectangle fully the specified rectangle. */
    inline bool Contains(Rect p) const {return ((Contains(p.LeftTop()))&&(Contains(p.RightTop()))&&(Contains(p.LeftBottom()))&&(Contains(p.RightBottom())));}

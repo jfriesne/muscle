@@ -454,7 +454,7 @@ char *should;
 	}
 
 	len = (int)(sub.rm_eo - sub.rm_so);
-	shlen = (int)strlen(should);
+	shlen = should ? (int)strlen(should) : 0;  // potential NULL dereference fixed by jaf
 	p = str + sub.rm_so;
 
 	/* check for not supposed to match */

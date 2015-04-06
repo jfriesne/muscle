@@ -975,8 +975,9 @@ status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg)
 bool FileExists(const char * filePath)
 {
    FILE * fp = fopen(filePath, "rb");
+   bool ret = (fp != NULL);  // gotta take this value before calling fclose(), or cppcheck complains
    if (fp) fclose(fp);
-   return (fp != NULL);
+   return ret;
 }
 
 status_t RenameFile(const char * oldPath, const char * newPath)
@@ -1054,9 +1055,9 @@ void Win32AllocateStdioConsole()
 {
    // Open a console for debug output to appear in
    AllocConsole();
-   freopen("conin$",  "r", stdin);
-   freopen("conout$", "w", stdout);
-   freopen("conout$", "w", stderr);
+   (void) freopen("conin$",  "r", stdin);
+   (void) freopen("conout$", "w", stdout);
+   (void) freopen("conout$", "w", stderr);
 }
 #endif
 

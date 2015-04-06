@@ -337,52 +337,52 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
 # define MUSCLE_USE_IFIDX_WORKAROUND 1
 #endif
 
-#ifdef MUSCLE_USE_IFIDX_WORKAROUND
-   int oldInterfaceIndex = -1;  // and remember to set it back afterwards
-#endif
-
    int fd = sock.GetFileDescriptor();
    if (fd >= 0)
    {
-       int s;
-       if ((optToPort)||(optToIP != invalidIP))
-       {
-          DECLARE_SOCKADDR(toAddr, NULL, 0);
-          if ((optToPort == 0)||(optToIP == invalidIP))
-          {
-             // Fill in the values with our socket's current target-values, as defaults
-             muscle_socklen_t length = sizeof(sockaddr_in);
-             if ((getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0)||(GET_SOCKADDR_FAMILY(toAddr) != MUSCLE_SOCKET_FAMILY)) return -1;
-          }
-
-          if (optToIP != invalidIP) 
-          {
-             SET_SOCKADDR_IP(toAddr, optToIP);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
-             // Work-around for MacOS/X problem (?) where the interface index in the specified IP address doesn't get used
-             if ((optToIP.GetInterfaceIndex() != 0)&&(IsMulticastIPAddress(optToIP)))
-             {
-                int oidx = GetSocketMulticastSendInterfaceIndex(sock);
-                if (oidx != (int) optToIP.GetInterfaceIndex())
-                {
-                   // temporarily set the socket's interface index to the desired one
-                   if (SetSocketMulticastSendInterfaceIndex(sock, optToIP.GetInterfaceIndex()) != B_NO_ERROR) return -1;
-                   oldInterfaceIndex = oidx;  // and remember to set it back afterwards
-                }
-             }
+      int oldInterfaceIndex = -1;  // and remember to set it back afterwards
 #endif
-          }
-          if (optToPort) SET_SOCKADDR_PORT(toAddr, optToPort);
-          s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
-       }
-       else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
 
-       if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
-       int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
+      int s;
+      if ((optToPort)||(optToIP != invalidIP))
+      {
+         DECLARE_SOCKADDR(toAddr, NULL, 0);
+         if ((optToPort == 0)||(optToIP == invalidIP))
+         {
+            // Fill in the values with our socket's current target-values, as defaults
+            muscle_socklen_t length = sizeof(sockaddr_in);
+            if ((getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0)||(GET_SOCKADDR_FAMILY(toAddr) != MUSCLE_SOCKET_FAMILY)) return -1;
+         }
+
+         if (optToIP != invalidIP) 
+         {
+            SET_SOCKADDR_IP(toAddr, optToIP);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
-       if (oldInterfaceIndex >= 0) (void) SetSocketMulticastSendInterfaceIndex(sock, oldInterfaceIndex);  // gotta do this AFTER computing the return value, as it clears errno!
+            // Work-around for MacOS/X problem (?) where the interface index in the specified IP address doesn't get used
+            if ((optToIP.GetInterfaceIndex() != 0)&&(IsMulticastIPAddress(optToIP)))
+            {
+               int oidx = GetSocketMulticastSendInterfaceIndex(sock);
+               if (oidx != (int) optToIP.GetInterfaceIndex())
+               {
+                  // temporarily set the socket's interface index to the desired one
+                  if (SetSocketMulticastSendInterfaceIndex(sock, optToIP.GetInterfaceIndex()) != B_NO_ERROR) return -1;
+                  oldInterfaceIndex = oidx;  // and remember to set it back afterwards
+               }
+            }
 #endif
-       return ret;
+         }
+         if (optToPort) SET_SOCKADDR_PORT(toAddr, optToPort);
+         s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
+      }
+      else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
+
+      if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
+      int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
+#ifdef MUSCLE_USE_IFIDX_WORKAROUND
+      if (oldInterfaceIndex >= 0) (void) SetSocketMulticastSendInterfaceIndex(sock, oldInterfaceIndex);  // gotta do this AFTER computing the return value, as it clears errno!
+#endif
+      return ret;
    }
    else return -1;
 }

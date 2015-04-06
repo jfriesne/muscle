@@ -199,10 +199,26 @@ template <typename DataType> inline DataType NQFDoMaskOp(uint8 maskOp, const Dat
       case NQF_MASK_OP_NAND: return ~(msgVal & mask);
       case NQF_MASK_OP_NOR:  return ~(msgVal | mask);
       case NQF_MASK_OP_XNOR: return ~(msgVal ^ mask);
-      default:           return msgVal;
+      default:               return msgVal;
    }
 }
 
+// Separate implementation for bool because you can't use bitwise negate on a bool, the result is undefined 
+// and causes unecessary implicit int<->bool casts (per Mika)
+template<> inline bool NQFDoMaskOp(uint8 maskOp, const bool & msgVal, const bool & mask)
+{
+   switch(maskOp)
+   {
+      case NQF_MASK_OP_NONE: return msgVal;
+      case NQF_MASK_OP_AND:  return msgVal & mask;
+      case NQF_MASK_OP_OR:   return msgVal | mask;
+      case NQF_MASK_OP_XOR:  return msgVal ^ mask;
+      case NQF_MASK_OP_NAND: return !(msgVal & mask);
+      case NQF_MASK_OP_NOR:  return !(msgVal | mask);
+      case NQF_MASK_OP_XNOR: return !(msgVal ^ mask);
+      default:               return msgVal;
+   }
+}
 // Dummy specializations for mask operations, for types that don't have bitwise operations defined.
 template<> inline Point  NQFDoMaskOp(uint8 /*maskOp*/, const Point &  /*msgVal*/, const Point &  /*argVal*/) {return Point();}
 template<> inline Rect   NQFDoMaskOp(uint8 /*maskOp*/, const Rect &   /*msgVal*/, const Rect &   /*argVal*/) {return Rect();}

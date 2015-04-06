@@ -95,7 +95,7 @@ void PrintStackTrace()
    char ** strings = backtrace_symbols(array, 256);
    if (strings)
    {
-      fprintf(optFile, "--Stack trace follows (%zd frames):\n", size);
+      fprintf(optFile, "--Stack trace follows (%i frames):\n", (int) size);
       for (size_t i = 0; i < size; i++) fprintf(optFile, "  %s\n", strings[i]);
       fprintf(optFile, "--End Stack trace\n");
       free(strings);
@@ -1872,18 +1872,18 @@ status_t _LogTime(const char * sourceFile, const char * sourceFunction, int sour
 status_t LogTime(int ll, const char * fmt, ...)
 #endif
 {
-#ifndef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
-   static const char * sourceFile = "";
-   static const char * sourceFunction = "";
-   static const int sourceLine = -1;
-#endif
-
    status_t lockRet = LockLog();
    if (_inWarnOutOfMemory.GetCount() < 2)  // avoid potential infinite recursion (while still allowing the first Out-of-memory message to attempt to get into the log)
    {
       // First, log the preamble
       time_t when = time(NULL);
       char buf[128];
+
+#ifndef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
+      static const char * sourceFile     = "";
+      static const char * sourceFunction = "";
+      static const int sourceLine        = -1;
+#endif
 
       // First, send to the log file
       {
@@ -1955,14 +1955,14 @@ status_t LogStackTrace(int ll, uint32 maxDepth)
 
 status_t Log(int ll, const char * fmt, ...)
 {
-   // No way to get these, since #define Log() as a macro causes
-   // nasty namespace collisions with other methods/functions named Log()
-   static const char * sourceFile     = "";
-   static const char * sourceFunction = "";
-   static const int sourceLine        = -1;
-
    status_t lockRet = LockLog();
    {
+      // No way to get these, since #define Log() as a macro causes
+      // nasty namespace collisions with other methods/functions named Log()
+      static const char * sourceFile     = "";
+      static const char * sourceFunction = "";
+      static const int sourceLine        = -1;
+
       time_t when = time(NULL);  // don't inline this, ya dummy
       DO_LOGGING_CALLBACK(_dfl);
       DO_LOGGING_CALLBACK(_dcl);

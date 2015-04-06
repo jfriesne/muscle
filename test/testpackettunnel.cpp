@@ -31,7 +31,7 @@ public:
 protected:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData)
    {
-      const IPAddressAndPort & iap = *((const IPAddressAndPort *)userData);
+      const IPAddressAndPort & iap = *(static_cast<const IPAddressAndPort *>(userData));
       LogTime(MUSCLE_LOG_TRACE, "RECEIVED MESSAGE from [%s]: (flatSize=" UINT32_FORMAT_SPEC ") (what=" UINT32_FORMAT_SPEC ") ---\n", iap.ToString()(), msg()->FlattenedSize(), msg()->what);
       if (msg()->what == _recvWhatCounter)
       {

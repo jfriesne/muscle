@@ -94,6 +94,7 @@ int cflags;
 	register struct parse *p = &pa;
 	register int i;
 	register size_t len;
+	register size_t maxlen;
 #ifdef REDEBUG
 #	define	GOODFLAGS(f)	(f)
 #else
@@ -116,7 +117,23 @@ int cflags;
 							(NC-1)*sizeof(cat_t));
 	if (g == NULL)
 		return(REG_ESPACE);
+	/*
+	 * Limit the pattern space to avoid a 32-bit overflow on buffer
+	 * extension.  Also avoid any signed overflow in case of conversion
+	 * so make the real limit based on a 31-bit overflow.
+	 *
+	 * Likely not applicable on 64-bit systems but handle the case
+	 * generically (who are we to stop people from using ~715MB+
+	 * patterns?).
+	 */
+	maxlen = ((size_t)-1 >> 1) / sizeof(sop) * 2 / 3;
+	if (len >= maxlen) {
+	    free((char *)g);
+	    return(REG_ESPACE);
+	}
 	p->ssize = len/(size_t)2*(size_t)3 + (size_t)1;	/* ugh */
+	assert(p->ssize >= len);
+
 	p->strip = (sop *)malloc(p->ssize * sizeof(sop));
 	p->slen = 0;
 	if (p->strip == NULL) {
@@ -795,7 +812,11 @@ int endc;			/* name ended by endc,']' */
 {
 	register char *sp = p->next;
 	register struct cname *cp;
+#ifdef _M_AMD64
+	register __int64 len;
+#else
 	register int len;
+#endif
 
 	while (MORE() && !SEETWO(endc, ']'))
 		NEXT();

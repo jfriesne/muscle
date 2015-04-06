@@ -4,13 +4,14 @@
 #define MuscleDirectory_h
 
 #include "support/MuscleSupport.h"
+#include "support/NotCopyable.h"
 #include "util/CountedObject.h"
 #include "util/RefCount.h"
 
 namespace muscle {
 
 /** A cross-platform API for iterating over the contents of a specified filesystem directory. */
-class Directory : public RefCountable, private CountedObject<Directory>
+class Directory : public RefCountable, private CountedObject<Directory>, private NotCopyable
 {
 public:
    /** Default constructor:  creates an invalid Directory object.  */

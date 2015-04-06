@@ -75,65 +75,70 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
       }
       else SetBit(STRINGMATCHER_BIT_NEGATE, false);
 
-      // Special case for strings of form e.g. "<15-23>", which is interpreted to
-      // match integers in the range 15-23, inclusive.  Yeah, it's an ungraceful
-      // hack, but also quite useful since regex won't do that in general.
-      if (str[0] == '<')
+      // Special case as of MUSCLE v6.12:  if the first char is a backtick, ignore it, but parse the remaining string as a regex instead (for Mika)
+      if (str[0] == '`') str++;  // note that I deliberately do not clear the STRINGMATCHER_BIT_SIMPLE bit, since the backtick-prefix is not part of the official regex spec
+      else
       {
-         const char * rBracket = strchr(str+1, '>');
-         if ((rBracket)&&(*(rBracket+1)=='\0'))   // the right-bracket must be the last char in the string!
+         // Special case for strings of form e.g. "<15-23>", which is interpreted to
+         // match integers in the range 15-23, inclusive.  Yeah, it's an ungraceful
+         // hack, but also quite useful since regex won't do that in general.
+         if (str[0] == '<')
          {
-            StringTokenizer clauses(&str[1], ",");
-            const char * clause;
-            while((clause=clauses()) != NULL)
+            const char * rBracket = strchr(str+1, '>');
+            if ((rBracket)&&(*(rBracket+1)=='\0'))   // the right-bracket must be the last char in the string!
             {
-               uint32 min = 0, max = MUSCLE_NO_LIMIT;  // defaults to be used in case one side of the dash is missing (e.g. "-36" means <=36, or "36-" means >=36)
-
-               const char * dash = strchr(clause, '-');
-               if (dash)
+               StringTokenizer clauses(&str[1], ",");
+               const char * clause;
+               while((clause=clauses()) != NULL)
                {
-                  String beforeDash;
-                  if (dash>clause) {beforeDash.SetCstr(clause, dash-clause); beforeDash = beforeDash.Trim();}
+                  uint32 min = 0, max = MUSCLE_NO_LIMIT;  // defaults to be used in case one side of the dash is missing (e.g. "-36" means <=36, or "36-" means >=36)
 
-                  String afterDash(dash+1); afterDash = afterDash.Trim();
+                  const char * dash = strchr(clause, '-');
+                  if (dash)
+                  {
+                     String beforeDash;
+                     if (dash>clause) {beforeDash.SetCstr(clause, dash-clause); beforeDash = beforeDash.Trim();}
 
-                  if (beforeDash.HasChars()) min = atoi(beforeDash());
-                  if (afterDash.HasChars())  max = atoi(afterDash());
-               }
-               else if (clause[0] != '>') min = max = atoi(String(clause).Trim()());
-               
-               _ranges.AddTail(IDRange(min,max));
-            }
-         }
-      }
+                     String afterDash(dash+1); afterDash = afterDash.Trim();
 
-      if (_ranges.IsEmpty())
-      {
-         if ((str[0] == '\\')&&(str[1] == '<')) str++;  // special case escape of initial < for "\<15-23>"
-
-         regexPattern = "^(";
-
-         bool escapeMode = false;
-         for (const char * ptr = str; *ptr != '\0'; ptr++)
-         {
-            char c = *ptr;
-
-            if (escapeMode) escapeMode = false;
-            else
-            {
-               switch(c)
-               {
-                  case ',':  c = '|';              break;  // commas are treated as union-bars
-                  case '.':  regexPattern += '\\'; break;  // dots are considered literals, so escape those
-                  case '*':  regexPattern += '.';  break;  // hmmm.
-                  case '?':  c = '.';              break;  // question marks mean any-single-char
-                  case '\\': escapeMode = true;    break;  // don't transform the next character!
+                     if (beforeDash.HasChars()) min = atoi(beforeDash());
+                     if (afterDash.HasChars())  max = atoi(afterDash());
+                  }
+                  else if (clause[0] != '>') min = max = atoi(String(clause).Trim()());
+                  
+                  _ranges.AddTail(IDRange(min,max));
                }
             }
-            regexPattern += c;
          }
-         if (escapeMode) regexPattern += '\\';  // just in case the user left a trailing backslash
-         regexPattern += ")$";
+
+         if (_ranges.IsEmpty())
+         {
+            if ((str[0] == '\\')&&(str[1] == '<')) str++;  // special case escape of initial < for "\<15-23>"
+
+            regexPattern = "^(";
+
+            bool escapeMode = false;
+            for (const char * ptr = str; *ptr != '\0'; ptr++)
+            {
+               char c = *ptr;
+
+               if (escapeMode) escapeMode = false;
+               else
+               {
+                  switch(c)
+                  {
+                     case ',':  c = '|';              break;  // commas are treated as union-bars
+                     case '.':  regexPattern += '\\'; break;  // dots are considered literals, so escape those
+                     case '*':  regexPattern += '.';  break;  // hmmm.
+                     case '?':  c = '.';              break;  // question marks mean any-single-char
+                     case '\\': escapeMode = true;    break;  // don't transform the next character!
+                  }
+               }
+               regexPattern += c;
+            }
+            if (escapeMode) regexPattern += '\\';  // just in case the user left a trailing backslash
+            regexPattern += ")$";
+         }
       }
    }
    else SetBit(STRINGMATCHER_BIT_NEGATE, false);
@@ -270,6 +275,8 @@ bool HasRegexTokens(const char * str)
 
 bool CanWildcardStringMatchMultipleValues(const char * str)
 {
+   if (str[0] == '`') return true;  // Backtick prefix means what follows is a regex, so we'll assume it can match multiple items
+
    bool prevCharWasEscape = false;
    const char * s = str;
    while(*s)

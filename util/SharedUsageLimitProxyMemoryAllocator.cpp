@@ -45,13 +45,13 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(int32 byteD
 {
    if (byteDelta > 0)
    {
-      if (byteDelta > _localCachedBytes)
+      if ((size_t)byteDelta > _localCachedBytes)
       {
          // Hmm, we don't have enough bytes locally, better ask for some from the shared region
          int32 wantBytes = ((byteDelta/CACHE_BYTES)+1)*CACHE_BYTES; // round up to nearest multiple
          if (ChangeDaemonCounterAux(wantBytes) == B_NO_ERROR) _localCachedBytes += wantBytes;
       }
-      if (byteDelta > _localCachedBytes) return B_ERROR;  // still not enough!?
+      if ((size_t)byteDelta > _localCachedBytes) return B_ERROR;  // still not enough!?
       _localCachedBytes -= byteDelta;
    }
    else
@@ -59,7 +59,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(int32 byteD
       _localCachedBytes -= byteDelta;  // actually adds, since byteDelta is negative
       if (_localCachedBytes > 2*CACHE_BYTES)
       {
-         int32 diffBytes = _localCachedBytes-CACHE_BYTES;  // FogBugz #4569 -- reduce cache to our standard cache size
+         int32 diffBytes = (int32)(_localCachedBytes-CACHE_BYTES);  // FogBugz #4569 -- reduce cache to our standard cache size
          if (ChangeDaemonCounterAux(-diffBytes) == B_NO_ERROR) _localCachedBytes -= diffBytes;
       }
    }
@@ -117,7 +117,7 @@ size_t SharedUsageLimitProxyMemoryAllocator :: CalculateTotalAllocationSum() con
 status_t SharedUsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t cab, size_t arb)
 {
    status_t ret = B_ERROR;
-   if (ChangeDaemonCounter(arb) == B_NO_ERROR)
+   if (ChangeDaemonCounter((int32)arb) == B_NO_ERROR)
    {
       ret = ProxyMemoryAllocator::AboutToAllocate(cab, arb);
       if (ret != B_NO_ERROR) (void) ChangeDaemonCounter(-((int32)arb)); // roll back!

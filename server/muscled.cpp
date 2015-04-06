@@ -26,7 +26,7 @@ int muscledmainAux(int argc, char ** argv, void * cookie)
 {
    TCHECKPOINT;
 
-   UsageLimitProxyMemoryAllocator * usageLimitAllocator = (UsageLimitProxyMemoryAllocator*)cookie;
+   UsageLimitProxyMemoryAllocator * usageLimitAllocator = static_cast<UsageLimitProxyMemoryAllocator*>(cookie);
 
    uint32 maxBytes           = MUSCLE_NO_LIMIT;
    uint32 maxNodesPerSession = MUSCLE_NO_LIMIT;

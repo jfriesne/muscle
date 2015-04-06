@@ -569,9 +569,12 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                         // If the filter is different, then we need to change our subscribed-set to
                         // report the addition of nodes that match the new filter but not the old, and 
                         // report the removal of the nodes that match the old filter but not the new.  Whew!
-                        void * args[] = {(void *)subscriptionFilter, (void *)filter()};
                         NodePathMatcher temp;
-                        if (temp.PutPathString(fixPath, ConstQueryFilterRef()) == B_NO_ERROR) (void) temp.DoTraversal((PathMatchCallback)ChangeQueryFilterCallbackFunc, this, GetGlobalRoot(), false, args);
+                        if (temp.PutPathString(fixPath, ConstQueryFilterRef()) == B_NO_ERROR)
+                        {
+                           void * args[] = {(void *)subscriptionFilter, (void *)filter()};
+                           (void) temp.DoTraversal((PathMatchCallback)ChangeQueryFilterCallbackFunc, this, GetGlobalRoot(), false, args);
+                        }
                      }
 
                      // And now, set e's filter to the new filter.
@@ -928,7 +931,7 @@ public:
 
 int StorageReflectSession :: FindNodesCallback(DataNode & node, void * userData)
 {
-   FindMatchingNodesData * data = (FindMatchingNodesData *) userData;
+   FindMatchingNodesData * data = static_cast<FindMatchingNodesData *>(userData);
    if (data->_results.AddTail(DataNodeRef(&node)) != B_NO_ERROR)
    {
       data->_ret = B_ERROR;  // Oops, out of memory!
@@ -1124,7 +1127,7 @@ FindSessionsCallback(DataNode & node, void * userData)
    AbstractReflectSessionRef sref = GetSession(n->GetNodeName());
 
    StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(sref());
-   FindMatchingSessionsData * data = (FindMatchingSessionsData *) userData;
+   FindMatchingSessionsData * data = static_cast<FindMatchingSessionsData *>(userData);
    if ((next)&&(data->_results.Put(&next->GetSessionIDString(), sref) != B_NO_ERROR))
    {
       data->_ret = B_ERROR;  // Oops, out of memory!
@@ -1158,7 +1161,7 @@ GetSubtreesCallback(DataNode & node, void * ud)
    TCHECKPOINT;
 
    void ** args    = (void **)ud;
-   Message * reply = (Message *) args[0];
+   Message * reply = static_cast<Message *>(args[0]);
    int32 maxDepth  = (int32) ((long)args[1]);
 
    bool inMyOwnSubtree = false;  // default:  actual value will only be calculated if it makes a difference
@@ -1185,8 +1188,8 @@ StorageReflectSession ::
 ChangeQueryFilterCallback(DataNode & node, void * ud)
 {
    void ** args = (void **) ud;
-   const QueryFilter * oldFilter = (const QueryFilter *) args[0];
-   const QueryFilter * newFilter = (const QueryFilter *) args[1];
+   const QueryFilter * oldFilter = static_cast<const QueryFilter *>(args[0]);
+   const QueryFilter * newFilter = static_cast<const QueryFilter *>(args[1]);
    ConstMessageRef constMsg1 = node.GetData();
    ConstMessageRef constMsg2 = node.GetData();
    bool oldMatches = ((constMsg1() == NULL)||(oldFilter == NULL)||(oldFilter->Matches(constMsg1, &node)));
@@ -1296,7 +1299,7 @@ InsertOrderedDataCallback(DataNode & node, void * userData)
    TCHECKPOINT;
 
    void ** args = (void **) userData;
-   const Message * insertMsg = (const Message *) args[0];
+   const Message * insertMsg = static_cast<const Message *>(args[0]);
    Hashtable<String, DataNodeRef> * optRetResults = (Hashtable<String, DataNodeRef> *) args[1];
    for (MessageFieldNameIterator iter = insertMsg->GetFieldNameIterator(B_MESSAGE_TYPE); iter.HasData(); iter++)
    {
@@ -1327,7 +1330,7 @@ ReorderDataCallback(DataNode & node, void * userData)
    if (indexNode)
    {
       DataNodeRef childNodeRef;
-      if (indexNode->GetChild(node.GetNodeName(), childNodeRef) == B_NO_ERROR) indexNode->ReorderChild(childNodeRef, (const String *) userData, this);
+      if (indexNode->GetChild(node.GetNodeName(), childNodeRef) == B_NO_ERROR) indexNode->ReorderChild(childNodeRef, static_cast<const String *>(userData), this);
    }
    return node.GetDepth();
 }

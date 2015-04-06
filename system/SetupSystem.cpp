@@ -1180,7 +1180,7 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
       // A simple, single-line format
       if (optDesc) fprintf(optFile, "%s: ", optDesc);
       fprintf(optFile, "[");
-      for (uint32 i=0; i<numBytes; i++) fprintf(optFile, "%s%02x", (i==0)?"":" ", buf[i]);
+      for (uint32 i=0; i<numBytes; i++) fprintf(optFile, "%s%02x", (i==0)?"":" ", (unsigned int) buf[i]);
       fprintf(optFile, "]\n");
    }
    else
@@ -1398,7 +1398,7 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
       // A simple, single-line format
       if (optDesc) {ret += optDesc; ret += ": ";}
       ret += '[';
-      for (uint32 i=0; i<numBytes; i++) {char xbuf[32]; sprintf(xbuf, "%s%02x", (i==0)?"":" ", buf[i]); ret += xbuf;}
+      for (uint32 i=0; i<numBytes; i++) {char xbuf[32]; sprintf(xbuf, "%s%02x", (i==0)?"":" ", (unsigned int) buf[i]); ret += xbuf;}
       ret += ']';
    }
    else

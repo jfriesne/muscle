@@ -48,11 +48,11 @@ class MessageTransceiverThread(threading.Thread):
    you will get a Message object as your notification.  (See GetNextIncomingEvent() for details on notification).
    """
 
-   def __init__(self, hostname, port, acceptFrom=None, useIPv6=0):
+   def __init__(self, hostname, port, acceptFrom=None, preferIPv6=0):
       """This constructor creates a MessageTransceiverThread that does an outgoing TCP connection.
 
-      (hostname) is the hostname (or IP address string) of the host to connect to (e.g. "beshare.befaqs.com"
-                 or "132.239.50.8").  If (hostname) is set to None, then this MessageTransceiverThread will 
+      (hostname) is the hostname (or IP address string) of the host to connect to (e.g. "www.meyersound.com"
+                 or "132.239.50.8" or etc).  If (hostname) is set to None, then this MessageTransceiverThread will 
                  be configured to accept incoming TCP connections, instead of initiating an outgoing one.
       (port) is the port number to connect to or accept on (e.g. 2960 is the default MUSCLE server port).
              If you are accepting, and (port) is set to zero, the system will choose a port number for you.
@@ -60,7 +60,7 @@ class MessageTransceiverThread(threading.Thread):
       (acceptfrom) is only relevant if you are accepting incoming connections, i.e. if (hostname) was None.
                    If specified, it is the only IP address that is allowed to connect to you.  If left as
                    None, however, any IP address is allowed to connect to you.
-      (useIPv6) if set to 1, we'll use IPv6 networking instead of IPv4
+      (preferIPv6) if set to 1, we'll use IPv6 networking instead of IPv4
 
       Note that you will need to also call start() before the internal TCP connection thread will start executing."""
 
@@ -72,7 +72,7 @@ class MessageTransceiverThread(threading.Thread):
       self.__acceptsocket = None
       self.__mainsocket   = None
       self.__threadsocket = None
-      self.__useIPv6      = useIPv6
+      self.__preferIPv6   = preferIPv6
 
       # Used internally by the MessageTransceiverThread class, to clean up
       self._endSession = IOError()
@@ -89,7 +89,7 @@ class MessageTransceiverThread(threading.Thread):
 
       # Set up our internal socket-based thread notification/wakeup system
       acceptsock = socket.socket(self.__getSocketFamily(), socket.SOCK_STREAM)
-      if (self.__useIPv6):
+      if (self.__preferIPv6):
          acceptsock.bind(("::1", 0))
       else:
          acceptsock.bind(("127.0.0.1", 0))
@@ -172,23 +172,12 @@ class MessageTransceiverThread(threading.Thread):
       """Entry point for the internal thread.  Don't call this method; call start() instead."""
       toremote = None
       try:
-         connectStillInProgress = 0
+         self._connectStillInProgress = 0
          if self.__acceptsocket == None:
-            toremote = socket.socket(self.__getSocketFamily(), socket.SOCK_STREAM)
-            toremote.setblocking(0)
             try:
-               r = socket.getaddrinfo(self.__hostname, self.__port, self.__getSocketFamily(), socket.SOCK_STREAM, socket.IPPROTO_IP, socket.AI_CANONNAME)
-               if ((r != None) and (len(r) > 0)):   # paranoia
-                  toremote.connect(r[0][4])
-               else:
-                  raise socket.error
-            except socket.error, why:
-               if why[0] in (EINPROGRESS, EALREADY, EWOULDBLOCK):
-                  connectStillInProgress = 1
-               else:
-                  raise
-            if connectStillInProgress == 0:
-               self.__sendReplyToMainThread(MTT_EVENT_CONNECTED)
+               toremote = self.__createConnectingSocket(False)  # FogBugz 10491:  if we can't connect with our preferred protocol (e.g. IPv6)...
+            except socket.error:
+               toremote = self.__createConnectingSocket(True)   # ... then we'll try again with the other protocol (e.g. IPv4)
 
          # setup the lists we will select() on in advance, to avoid having to do it every time
          inlist       = [toremote, self.__threadsocket]
@@ -203,12 +192,12 @@ class MessageTransceiverThread(threading.Thread):
             try:
                waitingForAccept = self.__acceptsocket != None and toremote == None
 
-               if (outHeader != None or outBody != None or connectStillInProgress) and waitingForAccept == 0:
+               if (outHeader != None or outBody != None or self._connectStillInProgress) and waitingForAccept == 0:
                   useoutlist = outlist
                else:
                   useoutlist = emptylist
 
-               if connectStillInProgress:
+               if self._connectStillInProgress:
                   useinlist = notifyonly
                elif waitingForAccept:
                   useinlist = notifyaccept
@@ -252,10 +241,10 @@ class MessageTransceiverThread(threading.Thread):
                      raise self._endSession
 
                if toremote in outready:
-                  if connectStillInProgress:
+                  if self._connectStillInProgress:
                      toremote.send("") # finalize the connect          # everyone else can get by with just this
                      self.__sendReplyToMainThread(MTT_EVENT_CONNECTED)
-                     connectStillInProgress = 0
+                     self._connectStillInProgress = 0
                   else:
                      if outHeader != None:
                         numSent = toremote.send(outHeader)
@@ -305,10 +294,37 @@ class MessageTransceiverThread(threading.Thread):
          return None, None  # oops, nothing more to send for the moment
 
    def __getSocketFamily(self):
-      if (self.__useIPv6 == 1):
+      if (self.__preferIPv6 == 1):
          return socket.AF_INET6
       else:
          return socket.AF_INET
+
+   def __createConnectingSocket(self, useAlternateSocketFamily):
+      family = self.__getSocketFamily()
+      if (useAlternateSocketFamily):
+         if (family == socket.AF_INET6):
+            family = socket.AF_INET
+         else:
+            family = socket.AF_INET6
+
+      remoteSocket = socket.socket(family, socket.SOCK_STREAM)
+      remoteSocket.setblocking(0)
+      try:
+         r = socket.getaddrinfo(self.__hostname, self.__port, family, socket.SOCK_STREAM, socket.IPPROTO_IP, socket.AI_CANONNAME)
+         if ((r != None) and (len(r) > 0)):   # paranoia
+            remoteSocket.connect(r[0][4])
+         else:
+            raise socket.error
+      except socket.error, why:
+         if why[0] in (EINPROGRESS, EALREADY, EWOULDBLOCK):
+            self._connectStillInProgress = 1
+         else:
+            raise
+
+      if self._connectStillInProgress == 0:
+         self.__sendReplyToMainThread(MTT_EVENT_CONNECTED)
+
+      return remoteSocket
 
 # -----------------------------------------------------------------------------------------------
 #

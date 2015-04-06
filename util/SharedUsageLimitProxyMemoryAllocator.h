@@ -84,7 +84,7 @@ private:
    mutable SharedMemory _shared;
    int32 _memberID;
    uint32 _groupSize;
-   int32 _localCachedBytes;
+   size_t _localCachedBytes;
 };
 
 }; // end namespace muscle

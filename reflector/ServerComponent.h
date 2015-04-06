@@ -4,6 +4,7 @@
 #define MuscleServerComponent_h
 
 #include "message/Message.h"
+#include "support/NotCopyable.h"
 #include "util/RefCount.h"
 #include "util/PulseNode.h"
 #include "util/NetworkUtilityFunctions.h"  // for ip_address
@@ -26,7 +27,7 @@ DECLARE_REFTYPES(ReflectSessionFactory);
  *  in one way or another, to help define the ReflectServer's behaviour.  This
  *  class provides callback wrappers that let you operate on the server's state.
  */
-class ServerComponent : public RefCountable, public PulseNode, private CountedObject<ServerComponent>
+class ServerComponent : public RefCountable, public PulseNode, private CountedObject<ServerComponent>, private NotCopyable
 {
 public:
    /** Default Constructor. */

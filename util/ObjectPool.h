@@ -422,7 +422,7 @@ private:
    // number and not a very large positive number that crashes the compiler!
    enum {
       NUM_OBJECTS_PER_SLAB_AUX = (((int)MUSCLE_POOL_SLAB_SIZE-(int)sizeof(ObjectSlabData))/(int)sizeof(ObjectNode)),
-      NUM_OBJECTS_PER_SLAB     = (NUM_OBJECTS_PER_SLAB_AUX>1)?NUM_OBJECTS_PER_SLAB_AUX:1
+      NUM_OBJECTS_PER_SLAB     = ((NUM_OBJECTS_PER_SLAB_AUX>1)?NUM_OBJECTS_PER_SLAB_AUX:1)
    };
    
    class ObjectSlab
