@@ -128,8 +128,8 @@ int cflags;
 	 */
 	maxlen = ((size_t)-1 >> 1) / sizeof(sop) * 2 / 3;
 	if (len >= maxlen) {
-	    free((char *)g);
-	    return(REG_ESPACE);
+		free((char *)g);
+		return(REG_ESPACE);
 	}
 	p->ssize = len/(size_t)2*(size_t)3 + (size_t)1;	/* ugh */
 	assert(p->ssize >= len);
@@ -1026,6 +1026,8 @@ register struct parse *p;
 	register cset *cs;
 	register size_t css = (size_t)p->g->csetsize;
 	register int i;
+	register cset *t1;
+	register uch *t2;
 
 	if (no >= p->ncsalloc) {	/* need another column of space */
 		p->ncsalloc += CHAR_BIT;
@@ -1035,16 +1037,25 @@ register struct parse *p;
 		if (p->g->sets == NULL)
 			p->g->sets = (cset *)malloc(nc * sizeof(cset));
 		else
-			p->g->sets = (cset *)realloc((char *)p->g->sets,
-							nc * sizeof(cset));
+		{
+			t1 = (cset *)realloc((char *)p->g->sets,
+				nc * sizeof(cset));
+			if (t1 == NULL)
+				free(p->g->sets);
+			p->g->sets = t1;
+		}
 		if (p->g->setbits == NULL)
 			p->g->setbits = (uch *)malloc(nbytes);
 		else {
-			p->g->setbits = (uch *)realloc((char *)p->g->setbits,
-								nbytes);
-			/* xxx this isn't right if setbits is now NULL */
-			for (i = 0; i < no; i++)
-				p->g->sets[i].ptr = p->g->setbits + css*(i/CHAR_BIT);
+			t2 = (uch *)realloc((char *)p->g->setbits,
+				nbytes);
+			if (t2 != NULL)
+			{
+				p->g->setbits = t2;
+
+				for (i = 0; i < no; i++)
+					p->g->sets[i].ptr = p->g->setbits + css*(i/CHAR_BIT);
+			}
 		}
 		if (p->g->sets != NULL && p->g->setbits != NULL)
 			(void) memset((char *)p->g->setbits + (nbytes - css),
@@ -1176,12 +1187,18 @@ register cset *cs;
 register char *cp;
 {
 	register size_t oldend = cs->smultis;
+	register char *tmultis;
 
 	cs->smultis += strlen(cp) + 1;
 	if (cs->multis == NULL)
 		cs->multis = malloc(cs->smultis);
 	else
-		cs->multis = realloc(cs->multis, cs->smultis);
+	{
+		tmultis = realloc(cs->multis, cs->smultis);
+		if (tmultis == NULL)
+			free(cs->multis);
+		cs->multis = tmultis;
+	}
 	if (cs->multis == NULL) {
 		SETERROR(REG_ESPACE);
 		return;
@@ -1206,6 +1223,7 @@ register char *cp;
 {
 	register char *fp = mcfind(cs, cp);
 	register size_t len = strlen(fp);
+	register char *tmultis;
 
 	assert(fp != NULL);
 	(void) memmove(fp, fp + len + 1,
@@ -1218,7 +1236,10 @@ register char *cp;
 		return;
 	}
 
-	cs->multis = realloc(cs->multis, cs->smultis);
+	tmultis = realloc(cs->multis, cs->smultis);
+	if (tmultis == NULL)
+		free(cs->multis);
+	cs->multis = tmultis;
 	assert(cs->multis != NULL);
 }
 
@@ -1525,8 +1546,8 @@ struct parse *p;
 register struct re_guts *g;
 {
 	register sop *scan;
-	sop *start;
-	register sop *newstart;
+	sop *start = NULL;
+	register sop *newstart = NULL;
 	register sopno newlen;
 	register sop s;
 	register char *cp;
@@ -1586,6 +1607,7 @@ register struct re_guts *g;
 	}
 	cp = g->must;
 	scan = start;
+	assert(scan != NULL); /* xxx */
 	for (i = g->mlen; i > 0; i--) {
 		while (OP(s = *scan++) != OCHAR)
 			continue;
