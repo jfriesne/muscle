@@ -4,10 +4,10 @@ How to build a muscle server ("muscled")
   go to the 'vc++' subfolder and follow the directions in the
   README.txt file there.
 
-- For all other operating systems (MacOS/X, Linux, BSD, 
+- For all other operating systems (MacOS/X, Linux, BSD,
   Win32+Cygnus, etc), simply cd to the 'server' folder and
   type 'make' or 'gmake' (whichever your system prefers to use).
-  Note that if zlib headers aren't installed on your system, you may 
+  Note that if zlib headers aren't installed on your system, you may
   need to go into the 'zlib/zlib' folder and do a "./configure;make"
   first.
 

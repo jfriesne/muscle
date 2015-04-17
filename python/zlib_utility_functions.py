@@ -66,7 +66,7 @@ if __name__ == "__main__":
    msg = DeflateMessage(msg)
    print "---------------------\nDeflated flatSize=", msg.FlattenedSize()
    msg.PrintToStream()
-    
+
    msg = InflateMessage(msg)
    print "---------------------\nReinflated flatSize=", msg.FlattenedSize()
    msg.PrintToStream()

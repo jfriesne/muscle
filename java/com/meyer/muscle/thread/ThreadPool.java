@@ -29,7 +29,7 @@ public final class ThreadPool implements Runnable
      * right away, or wait until there is a thread available.
      */
    public synchronized void startThread(Runnable target)
-   {      
+   {
       _tasks.appendElement(target);
       if ((_idleThreadCount <= 0)&&(_threadCount < _highMark))
       {
@@ -51,7 +51,7 @@ public final class ThreadPool implements Runnable
    public void run()
    {
       boolean keepGoing = true;
-      
+
       while(keepGoing)
       {
          // Keep running tasks as long as any are available
@@ -74,7 +74,7 @@ public final class ThreadPool implements Runnable
             }
 
             // Important that this is done in an unsynchronized section, to avoid locking the pool
-            if (nextTask != null) 
+            if (nextTask != null)
             {
                try {
                   nextTask.run();  // do it!
@@ -85,7 +85,7 @@ public final class ThreadPool implements Runnable
             }
             else break;  // go back to sleep until more tasks are available
          }
- 
+
          if (keepGoing)
          {
             // No more tasks left:  go to sleep
@@ -106,7 +106,7 @@ public final class ThreadPool implements Runnable
    }
 
    private static ThreadPool _defaultThreadPool = new ThreadPool();  // singleton
-   
+
    private ThreadGroup _threadGroup = new ThreadGroup("Muscle Threads");
    private Queue _tasks = new Queue();  // Runnables that need to be run
    private int _idleThreadCount = 0;    // how many threads are idle

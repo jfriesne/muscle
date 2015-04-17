@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -13,7 +13,7 @@ using namespace muscle;
 #define TEST(x) if (!(x)) printf("Test failed, line %i\n",__LINE__)
 
 // This program exercises the String class.
-int main(void) 
+int main(void)
 {
 #ifdef TEST_MEMMEM
    char lookIn[512]; printf("Enter LookIn  string: "); fflush(stdout); if (fgets(lookIn, sizeof(lookIn), stdin) == NULL) lookIn[0] = '\0';
@@ -129,7 +129,7 @@ int main(void)
 
    String scale("do"); scale = scale.AppendWord("re", ", ").AppendWord("mi").AppendWord(String("fa")).AppendWord("so").AppendWord("la").AppendWord("ti").AppendWord("do");
    printf("scale = [%s]\n", scale());
-   
+
    String rem("Hello sailor");
    printf("[%s]\n", (rem+"maggot"-"sailor")());
    rem -= "llo";

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/TCPSocketDataIO.h"
 #include "iogateway/MessageIOGateway.h"
@@ -76,7 +76,7 @@ int main(int argc, char ** argv)
          return 0;
       }
    }
-   
+
    const char * colon = strchr(hostName, ':');
    int16 port = (colon) ? atoi(colon+1) : 2960;
 
@@ -178,7 +178,7 @@ int main(int argc, char ** argv)
                break;
             }
          }
-      }     
+      }
    }
    LogTime(MUSCLE_LOG_INFO, "Exiting. (" UINT32_FORMAT_SPEC" errors)\n", errorCount);
    return 0;

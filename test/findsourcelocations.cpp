@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "dataio/FileDataIO.h"
@@ -13,7 +13,7 @@ using namespace muscle;
 
 static void CheckFile(const String & path, uint32 code)
 {
-   FileDataIO dio(fopen(path(), "r"));
+   FileDataIO dio(muscleFopen(path(), "r"));
    if (dio.GetFile())
    {
       String fileName = path.Substring(GetFilePathSeparator());
@@ -67,7 +67,7 @@ static void DoSearch(const String & path, uint32 code)
 // This program accepts a source-code-location key (e.g. "FB72", as shown in MUSCLE Log messages
 // when -DMUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME is defined) and iterates over all .c, .cpp, and .h
 // files in or under the specified directory and prints out any lines that match the code.
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 

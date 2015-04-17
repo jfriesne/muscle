@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "dataio/RS232DataIO.h"
@@ -8,7 +8,7 @@ using namespace muscle;
 #define TEST(x) if ((x) != B_NO_ERROR) printf("Test failed, line %i\n",__LINE__)
 #define TESTSIZE(x) if ((x) < 0) printf("Test failed, line %i\n",__LINE__)
 
-int main(int /*argc*/, char ** /*argv*/) 
+int main(int /*argc*/, char ** /*argv*/)
 {
    RS232DataIO io("/dev/ttyS0", 38400, true);
    if (io.IsPortAvailable())

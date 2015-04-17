@@ -27,9 +27,9 @@ public:
    BitChord & operator =(const BitChord & rhs) {if (this != &rhs) {for (int i=0; i<NUM_WORDS; i++) _words[i] = rhs._words[i];} return *this;}
 
    /** Returns a BitChord that is the bitwise inverse of this BitChord. */
-   BitChord operator ~() const 
+   BitChord operator ~() const
    {
-      BitChord ret; for (uint32 i=0; i<NUM_WORDS; i++) ret._words[i] = ~_words[i]; 
+      BitChord ret; for (uint32 i=0; i<NUM_WORDS; i++) ret._words[i] = ~_words[i];
       ret.ClearExtraBits();  // don't let (ret) get into a non-normalized state
       return ret;
    }
@@ -38,7 +38,7 @@ public:
    bool AreAnyBitsSet() const
    {
       for (uint32 i=0; i<NUM_WORDS; i++) if (_words[i] != 0) return true;
-      return false; 
+      return false;
    }
 
    /** Returns true iff all bits in this bit-chord are set. */
@@ -47,7 +47,7 @@ public:
       if (NumBits == NUM_BITS_PER_WORD*NUM_WORDS)
       {
          for (uint32 i=0; i<NUM_WORDS; i++) if (_words[i] != ~0) return false;
-         return true; 
+         return true;
       }
       else
       {
@@ -92,7 +92,7 @@ public:
    }
 
    /** Sets the state of the specified bit */
-   void SetBit(unsigned int whichBit, bool value) 
+   void SetBit(unsigned int whichBit, bool value)
    {
       MASSERT(whichBit < NumBits, "BitChord::SetBit:  whichBit was out of range!\n");
       unsigned int & w = _words[whichBit/NUM_BITS_PER_WORD];
@@ -105,7 +105,7 @@ public:
    void ClearAllBits() {for (uint32 i=0; i<NUM_WORDS; i++) _words[i] = 0;}
 
    /** Sets all our bits to true */
-   void SetAllBits() 
+   void SetAllBits()
    {
       for (uint32 i=0; i<NUM_WORDS; i++) _words[i] = ~0;
       ClearExtraBits();
@@ -126,14 +126,14 @@ public:
          if (c != 0) foundNonZero = true;
          if (foundNonZero)
          {
-            char buf[4]; 
-            sprintf(buf, "%s%02x", (ret.IsEmpty())?"":" ", c);
+            char buf[4];
+            muscleSprintf(buf, "%s%02x", (ret.IsEmpty())?"":" ", c);
             ret += buf;
          }
       }
       return ret;
    }
- 
+
 private:
    void ClearExtraBits()
    {

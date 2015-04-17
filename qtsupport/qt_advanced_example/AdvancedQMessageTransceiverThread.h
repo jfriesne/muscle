@@ -13,7 +13,7 @@ enum {
 // what-codes in this range are intended to be processed by
 // the sessions in the MUSCLE thread
 enum {
-   FIRST_ADVANCED_COMMAND = 1097102947, // 'Advc' 
+   FIRST_ADVANCED_COMMAND = 1097102947, // 'Advc'
 
    ADVANCED_COMMAND_ENDSESSION = FIRST_ADVANCED_COMMAND,
    // [... more commands for the MUSCLE thread to process could be added here...]
@@ -22,10 +22,10 @@ enum {
 };
 
 // what-codes in this range are intended to be processed by
-// the internal/slave threads that were spawned by the 
+// the internal/slave threads that were spawned by the
 // ThreadedInternalSessions that are held by the MUSCLE thread.
 enum {
-   FIRST_INTERNAL_THREAD_COMMAND = 1231975540, // 'Intt'  
+   FIRST_INTERNAL_THREAD_COMMAND = 1231975540, // 'Intt'
 
    INTERNAL_THREAD_COMMAND_HURRYUP = FIRST_INTERNAL_THREAD_COMMAND,
    // [... more commands for the internal/slave threads to process could be added here...]
@@ -52,11 +52,11 @@ protected:
    // Overridden just to re-enable logging messages for debugging purposes
    virtual ReflectServerRef CreateReflectServer();
 
-   // Overridden to make the supervisor session a 
+   // Overridden to make the supervisor session a
    // AdvancedThreadSupervisorSession so we can include our logic
    virtual ThreadSupervisorSessionRef CreateSupervisorSession();
 
-   // Overridden to make the supervisor session a 
+   // Overridden to make the supervisor session a
    // AdvancedThreadWorkerSession so we can include our logic
    virtual ThreadWorkerSessionRef CreateDefaultWorkerSession();
 };
@@ -77,7 +77,7 @@ public:
 };
 
 /** This supervisor session is subclassed so we can add our own logic to it
-  * if we want to (currently we don't need to do that) 
+  * if we want to (currently we don't need to do that)
   */
 class AdvancedThreadSupervisorSession : public ThreadSupervisorSession
 {

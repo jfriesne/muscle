@@ -59,7 +59,7 @@ public:
     *  returns B_NO_ERROR iff the archive's what code matches our TypeCode().
     *  @param archive The archive to restore our state from.
     *  @returns B_NO_ERROR on success, or B_ERROR on failure.
-    */     
+    */
    virtual status_t SetFromArchive(const Message & archive);
 
    /** Should be overridden to return the appropriate QUERY_FILTER_TYPE_* code. */
@@ -67,7 +67,7 @@ public:
 
    /** Must be implemented to return true iff (msg) matches the criterion.
      * @param msg Reference to a read-only Message to check to see whether it matches our criteria or not.  The QueryFilter is allowed to
-     *            retarget this ConstMessageRef to point at a different Message if it wants to; the different Message will be used in the 
+     *            retarget this ConstMessageRef to point at a different Message if it wants to; the different Message will be used in the
      *            resulting query output.
      * @param optNode The DataNode object the matching is being done on, or NULL if the DataNode is not available.
      * @returns true iff the Messages matches, else false.
@@ -144,7 +144,7 @@ private:
 class ValueExistsQueryFilter : public ValueQueryFilter
 {
 public:
-   /** Default constructor.  
+   /** Default constructor.
      * @param typeCode Type code to check for.  Default to B_ANY_TYPE (a wildcard value)
      */
    ValueExistsQueryFilter(uint32 typeCode = B_ANY_TYPE) : _typeCode(typeCode) {/* empty */}
@@ -203,7 +203,7 @@ template <typename DataType> inline DataType NQFDoMaskOp(uint8 maskOp, const Dat
    }
 }
 
-// Separate implementation for bool because you can't use bitwise negate on a bool, the result is undefined 
+// Separate implementation for bool because you can't use bitwise negate on a bool, the result is undefined
 // and causes unecessary implicit int<->bool casts (per Mika)
 template<> inline bool NQFDoMaskOp(uint8 maskOp, const bool & msgVal, const bool & mask)
 {
@@ -243,7 +243,7 @@ public:
    NumericQueryFilter(const String & fieldName, uint8 op, DataType value, uint32 index = 0) : ValueQueryFilter(fieldName, index), _value(value), _mask(), _op(op), _maskOp(NQF_MASK_OP_NONE), _assumeDefault(false) {/* empty */}
 
    /** Constructor.  This constructor is similar to the constructor shown above,
-     * except that when this constructor is used, if the specified item does not exist in 
+     * except that when this constructor is used, if the specified item does not exist in
      * the matched Message, this QueryFilter will act as if the Message contained the
      * specified assumedValue.  This is useful when the Message has been encoded with
      * the expectation that missing fields should be assumed equivalent to well known
@@ -278,7 +278,7 @@ public:
          _value  = *((DataType *)dt);
          _maskOp = archive.GetInt8("mop");
          _mask   = ((archive.FindData("msk", DataTypeCode, &dt, &numBytes) == B_NO_ERROR)&&(numBytes == sizeof(_mask))) ? *((DataType *)dt) : DataType();
-         
+
          if (archive.FindData("val", DataTypeCode, 1, &dt, &numBytes) == B_NO_ERROR)
          {
             _assumeDefault = true;
@@ -296,7 +296,7 @@ public:
       (void) optNode;  // shut compiler and DOxygen up
 
       const DataType * valueInMsg;
-     
+
       const void * p;
            if (msg()->FindData(GetFieldName(), DataTypeCode, GetIndex(), &p, NULL) == B_NO_ERROR) valueInMsg = (const DataType *)p;
       else if (_assumeDefault) valueInMsg = &_default;
@@ -305,7 +305,7 @@ public:
       return (_maskOp == NQF_MASK_OP_NONE) ? MatchesAux(*valueInMsg) : MatchesAux(NQFDoMaskOp(_maskOp, *valueInMsg, _mask));
    }
 
-   /** Set the operator to use.  
+   /** Set the operator to use.
      * @param op One of the OP_* values enumerated below.
      */
    void SetOperator(uint8 op) {_op = op;}
@@ -320,7 +320,7 @@ public:
 
    /** Returns the currently specified value, as specified in the constructor or in SetValue() */
    DataType GetValue() const {return _value;}
- 
+
    /** Operators defined for our expressions */
    enum {
       OP_EQUAL_TO = 0,             /**< This operator represents '==' */
@@ -377,7 +377,7 @@ private:
    DataType _value;
    DataType _mask;
    uint8 _op, _maskOp;
-   
+
    bool _assumeDefault;
    DataType _default;
 };
@@ -418,7 +418,7 @@ private:
 class AndOrQueryFilter : public MultiQueryFilter
 {
 public:
-   /** Default constructor.  Creates an AND filter with no children. 
+   /** Default constructor.  Creates an AND filter with no children.
      * @param minMatches The minimum number of children that must match before this filter considers
      *                   the match to be valid.  Default to MUSCLE_NO_LIMIT, meaning all children must match.
      */
@@ -483,14 +483,14 @@ private:
 class NandNotQueryFilter : public MultiQueryFilter
 {
 public:
-   /** Default constructor.  Creates an NAND filter with no children. 
+   /** Default constructor.  Creates an NAND filter with no children.
      * @param maxMatches The maximum number of children that may match before this filter considers
      *                   the match to be invalid.  Defaults to 0, meaning no children may match.
      */
    NandNotQueryFilter(uint32 maxMatches = 0) : _maxMatches(maxMatches) {/* empty */}
 
    /** Convenience constructor for simple unary 'not' operation.
-     * @param child Child whose logic we should negate.  This child is added to our child list, and the MaxMatchCount is set to zero. 
+     * @param child Child whose logic we should negate.  This child is added to our child list, and the MaxMatchCount is set to zero.
      */
    NandNotQueryFilter(const ConstQueryFilterRef & child) : _maxMatches(0)
    {
@@ -526,7 +526,7 @@ public:
 
    /** Set the maximum number of children that may match the target Message in order for this
      * filter to match the target Message.  If the specified number is greater than the number of
-     * child filters held by this QueryFilter, then this filter fails to match only if every one 
+     * child filters held by this QueryFilter, then this filter fails to match only if every one
      * of the child filters match.
      * @param maxMatches Maximum number of child filters that may match.
      */
@@ -582,7 +582,7 @@ public:
    virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
    /** Set the sub-filter to use on the target's sub-Message.
-     * @param childFilter Filter to use, or a NULL reference to indicate that any sub-Message found should match. 
+     * @param childFilter Filter to use, or a NULL reference to indicate that any sub-Message found should match.
      */
    void SetChildFilter(const ConstQueryFilterRef & childFilter) {_childFilter = childFilter;}
 
@@ -609,7 +609,7 @@ public:
    StringQueryFilter(const String & fieldName, uint8 op, const String & value, uint32 index = 0) : ValueQueryFilter(fieldName, index), _value(value), _op(op), _assumeDefault(false), _matcher(NULL) {/* empty */}
 
    /** Constructor.  This constructor is similar to the constructor shown above,
-     * except that when this constructor is used, if the specified item does not exist in 
+     * except that when this constructor is used, if the specified item does not exist in
      * the matched Message, this QueryFilter will act as if the Message contained the
      * specified assumedValue.  This is useful when the Message has been encoded with
      * the expectation that missing fields should be assumed equivalent to well known
@@ -630,7 +630,7 @@ public:
    virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_STRING;}
    virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
-   /** Set the operator to use.  
+   /** Set the operator to use.
      * @param op One of the OP_* values enumerated below.
      */
    void SetOperator(uint8 op) {if (op != _op) {_op = op; FreeMatcher();}}
@@ -645,7 +645,7 @@ public:
 
    /** Returns the currently specified value, as specified in the constructor or in SetValue() */
    const String & GetValue() const {return _value;}
- 
+
    enum {
       OP_EQUAL_TO = 0,                         /**< This token represents '==', e.g. nextValue==myValue (case sensitive) */
       OP_LESS_THAN,                            /**< This token represents '<',  e.g. nextValue<myValue  (case sensitive) */
@@ -719,7 +719,7 @@ public:
    RawDataQueryFilter(const String & fieldName, uint8 op, const ByteBufferRef & value, uint32 typeCode = B_ANY_TYPE, uint32 index = 0) : ValueQueryFilter(fieldName, index), _value(value), _op(op), _typeCode(typeCode) {/* empty */}
 
    /** Constructor.  This constructor is similar to the constructor shown above,
-     * except that when this constructor is used, if the specified item does not exist in 
+     * except that when this constructor is used, if the specified item does not exist in
      * the matched Message, this QueryFilter will act as if the Message contained the
      * specified assumedValue.  This is useful when the Message has been encoded with
      * the expectation that missing fields should be assumed equivalent to well known
@@ -738,7 +738,7 @@ public:
    virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_RAWDATA;}
    virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
-   /** Set the operator to use.  
+   /** Set the operator to use.
      * @param op One of the OP_* values enumerated below.
      */
    void SetOperator(uint8 op) {_op = op;}
@@ -763,7 +763,7 @@ public:
 
    /** Returns the currently specified value, as specified in the constructor or in SetValue() */
    ByteBufferRef GetValue() const {return _value;}
- 
+
    enum {
       OP_EQUAL_TO = 0,              /**< This token represents '==' */
       OP_LESS_THAN,                 /**< This token represents '<'  */
@@ -781,9 +781,9 @@ public:
    };
 
    /** Call this to specify an assumed default value that should be used when the
-     * Message we are matching against doesn't have an actual value itself. 
+     * Message we are matching against doesn't have an actual value itself.
      * Call this with a NULL reference if you don't want to use an assumed default value.
-     */ 
+     */
    void SetAssumedDefault(const ByteBufferRef & bufRef) {_default = bufRef;}
 
    /** Returns the current assumed default value, or a NULL reference if there is none. */
@@ -812,7 +812,7 @@ public:
      */
    virtual QueryFilterRef CreateQueryFilter(uint32 typeCode) const = 0;
 
-   /** Convenience method:  Attempts to create, populate, and return a QueryFilter object from 
+   /** Convenience method:  Attempts to create, populate, and return a QueryFilter object from
      *                      the given Message, by first calling CreateQueryFilter(msg.what),
      *                      and then calling SetFromArchive(msg) on the return QueryFilter object.
      * @param msg A Message object that was previously filled out by the SaveToArchive() method
@@ -839,7 +839,7 @@ public:
 
 /** Returns a reference to the globally installed QueryFilterFactory object
   * that is used to create QueryFilter objects.  This method is guaranteed
-  * never to return a NULL reference -- even if you call 
+  * never to return a NULL reference -- even if you call
   * SetglobalQueryFilterFactory(QueryFilterFactoryRef()), this method
   * will fall back to returning a reference to a MuscleQueryFilterFactory
   * object (which is also what it does by default).

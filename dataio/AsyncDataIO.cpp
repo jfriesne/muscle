@@ -41,7 +41,7 @@ status_t AsyncDataIO :: Seek(int64 offset, int whence)
 
 void AsyncDataIO :: FlushOutput()
 {
-   if (IsInternalThreadRunning()) 
+   if (IsInternalThreadRunning())
    {
       if (_asyncCommandsMutex.Lock() == B_NO_ERROR)
       {
@@ -64,7 +64,7 @@ void AsyncDataIO :: Shutdown()
          if (ret == B_NO_ERROR) NotifyInternalThread();
       }
    }
-   else if (_slaveIO()) 
+   else if (_slaveIO())
    {
       _slaveIO()->Shutdown();
       _slaveIO.Reset();
@@ -74,18 +74,18 @@ void AsyncDataIO :: Shutdown()
 void AsyncDataIO :: ShutdownInternalThread(bool waitForThread)
 {
    _mainThreadNotifySocket.Reset();  // so that the internal thread will know to exit now
-   Thread::ShutdownInternalThread(waitForThread); 
+   Thread::ShutdownInternalThread(waitForThread);
 }
 
 status_t AsyncDataIO :: StartInternalThread()
 {
    if (CreateConnectedSocketPair(_mainThreadNotifySocket, _ioThreadNotifySocket) != B_NO_ERROR) return B_ERROR;
-   return Thread::StartInternalThread(); 
+   return Thread::StartInternalThread();
 }
 
 void AsyncDataIO :: NotifyInternalThread()
 {
-   char buf = 'j'; 
+   char buf = 'j';
    (void) SendData(_mainThreadNotifySocket, &buf, sizeof(buf), false);
 }
 
@@ -94,7 +94,7 @@ void AsyncDataIO :: InternalThreadEntry()
    bool exitWhenDoneWriting = false;
    bool keepGoing = true;
    uint64 ioThreadBytesWritten = 0;
-   AsyncCommand curCmd; 
+   AsyncCommand curCmd;
 
    char fromMainThreadBuf[4096];
    uint32 fromMainThreadBufReadIdx  = 0;  // which byte to read out of (fromMainThreadBuf) next
@@ -138,9 +138,9 @@ void AsyncDataIO :: InternalThreadEntry()
       }
 
       // All the notify socket needs to do is make WaitForEvents() return.  We just read the junk notify-bytes and ignore them.
-      if ((notifyFD >= 0)&&(multiplexer.IsSocketReadyForRead(notifyFD))) 
+      if ((notifyFD >= 0)&&(multiplexer.IsSocketReadyForRead(notifyFD)))
       {
-         char junk[128]; 
+         char junk[128];
          if (ReceiveData(_ioThreadNotifySocket, junk, sizeof(junk), false) < 0) break;
       }
 
@@ -205,7 +205,7 @@ void AsyncDataIO :: InternalThreadEntry()
             if ((fromSlaveIOBufReadIdx < fromSlaveIOBufNumValid)&&(multiplexer.IsSocketReadyForWrite(fromMainFD)))
             {
                int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromSlaveIOBuf[fromSlaveIOBufReadIdx], fromSlaveIOBufNumValid-fromSlaveIOBufReadIdx, false);
-               if (bytesWritten >= 0) 
+               if (bytesWritten >= 0)
                {
                   fromSlaveIOBufReadIdx += bytesWritten;
                   if (fromSlaveIOBufReadIdx == fromSlaveIOBufNumValid) fromSlaveIOBufReadIdx = fromSlaveIOBufNumValid = 0;
@@ -230,7 +230,7 @@ void AsyncDataIO :: InternalThreadEntry()
                if (_slaveIO()) _slaveIO()->Shutdown();
             break;
 
-            default: 
+            default:
                LogTime(MUSCLE_LOG_ERROR, "AsyncDataIO:  Unknown ASYNC_COMMAND code %u\n", curCmd.GetCommand());
             break;
          }

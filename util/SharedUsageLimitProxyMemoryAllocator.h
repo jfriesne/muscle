@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifndef SharedUsageLimitProxyMemoryAllocator_h
 #define SharedUsageLimitProxyMemoryAllocator_h
@@ -8,8 +8,8 @@
 
 namespace muscle {
 
-/** This MemoryAllocator decorates its slave MemoryAllocator to 
-  * enforce a user-defined per-process-group limit on how much 
+/** This MemoryAllocator decorates its slave MemoryAllocator to
+  * enforce a user-defined per-process-group limit on how much
   * memory may be allocated at any given time.  Note that this
   * class depends on the SharedMemory class to operate, so this
   * class will only work on operating systems for which SharedMemory
@@ -18,7 +18,7 @@ namespace muscle {
 class SharedUsageLimitProxyMemoryAllocator : public ProxyMemoryAllocator
 {
 public:
-   /** Constructor.  
+   /** Constructor.
      * @param groupKey A string that is used as a key by all processes in the group.
      *                 Any process that uses the same key will use the same shared memory limit.
      * @param memberID Our member ID in the group.  This number should be between zero and (groupSize-1) inclusive,
@@ -26,7 +26,7 @@ public:
      *                 of how much memory each process in the group is using.  If the memberID is less than zero,
      *                 this allocator will not track memory used by this process, and is then useful only to
      *                 watch memory used by other processes.
-     * @param groupSize The maximum number of process that may be in the group.  
+     * @param groupSize The maximum number of process that may be in the group.
      *                  This value should be the same for all process in a given group.
      * @param slaveRef Reference to a sub-MemoryAllocator whose methods we will call through to.
      * @param maxBytes The maximum number of bytes that may be allocated, in aggregate, by all the process

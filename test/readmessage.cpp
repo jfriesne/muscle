@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -16,16 +16,16 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    const char * fileName = (argc > 1) ? argv[1] : "test.msg";
-   FILE * fpIn = fopen(fileName, "rb");
+   FILE * fpIn = muscleFopen(fileName, "rb");
    if (fpIn)
    {
       uint32 bufSize = 100*1024; // if your message is >100KB flattened, then tough luck
-      uint8 * buf = new uint8[bufSize]; 
+      uint8 * buf = new uint8[bufSize];
       int numBytesRead = fread(buf, 1, bufSize, fpIn);
       printf("Read %i bytes from [%s]\n", numBytesRead, fileName);
 
       Message msg;
-      if (msg.Unflatten(buf, numBytesRead) == B_NO_ERROR) 
+      if (msg.Unflatten(buf, numBytesRead) == B_NO_ERROR)
       {
          printf("Message is:\n");
          msg.PrintToStream();
@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
             infMsg()->PrintToStream();
          }
       }
-      else 
+      else
       {
          printf("Error unflattening message! (%i bytes read)\n", numBytesRead);
          retVal = 10;
@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
       fclose(fpIn);
       delete [] buf;
    }
-   else 
+   else
    {
       printf("Could not read input flattened-message file [%s]\n", fileName);
       retVal = 10;

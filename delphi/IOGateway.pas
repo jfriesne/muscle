@@ -107,7 +107,7 @@ var
   t: cardinal;
 begin
   if (msg = nil) then exit;
-  
+
   t := msg.flattenedSize;
   dataout.write(t, sizeof(cardinal));
   t :=  MUSCLE_MESSAGE_ENCODING_DEFAULT;

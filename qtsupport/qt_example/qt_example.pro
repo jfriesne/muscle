@@ -23,7 +23,7 @@ INCLUDEPATH += $$MUSCLE_DIR
 #DEFINES += MUSCLE_USE_CPLUSPLUS11
 #unix:mac:QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
 
-win32:INCLUDEPATH += $$MUSCLE_DIR/regex/regex 
+win32:INCLUDEPATH += $$MUSCLE_DIR/regex/regex
 
 MUSCLE_SOURCES = $$MUSCLE_DIR/iogateway/AbstractMessageIOGateway.cpp  \
                  $$MUSCLE_DIR/iogateway/MessageIOGateway.cpp          \

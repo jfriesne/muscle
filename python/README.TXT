@@ -22,7 +22,7 @@ python_chat.py - A VERY simple Python-based BeShare chat client, to
                  demonstrate how to use the Python MUSCLE APIs.
 
 
-All public methods in these files are commented, and most files 
-have well-commented testing stubs at the bottom that demonstrate 
+All public methods in these files are commented, and most files
+have well-commented testing stubs at the bottom that demonstrate
 how to use the class.
 

@@ -37,9 +37,9 @@ inline const Message & GetEmptyMessage() {return GetDefaultObjectForType<Message
 /** Same as GetEmptyMessage(), except it returns a ConstMessageRef instead of a Message. */
 const ConstMessageRef & GetEmptyMessageRef();
 
-/** This function returns a pointer to a singleton ObjectPool that can be 
+/** This function returns a pointer to a singleton ObjectPool that can be
  *  used to minimize the number of Message allocations and deletions by
- *  recycling the Message objects.  
+ *  recycling the Message objects.
  */
 MessageRef::ItemPool * GetMessagePool();
 
@@ -103,15 +103,15 @@ MessageRef GetLightweightCopyOfMessageFromPool(ObjectPool<Message> & pool, const
 class AbstractDataArray;
 
 /** This is an iterator that allows you to efficiently iterate over the field names in a Message. */
-class MessageFieldNameIterator
+class MessageFieldNameIterator MUSCLE_FINAL_CLASS
 {
 public:
-   /** Default constructor.   
+   /** Default constructor.
     *  Creates an "empty" iterator;  Use the assignment operator to turn the iterator into something useful.
     */
    MessageFieldNameIterator() : _typeCode(B_ANY_TYPE) {/* empty */}
 
-   /** This form of the constructor creates an iterator that will iterate over field names in the given Message. 
+   /** This form of the constructor creates an iterator that will iterate over field names in the given Message.
      * @param msg the Message whose field names we want to iterate over
      * @param type Type of fields you wish to iterate over, or B_ANY_TYPE to iterate over all fields.
      * @param flags Bit-chord of HTIT_FLAG_* flags you want to use to affect the iteration behaviour.
@@ -151,41 +151,41 @@ private:
 
 // Version number of the Message serialization protocol.
 // Will be the first four bytes of each serialized Message buffer.
-// Only buffers beginning with version numbers between these two 
+// Only buffers beginning with version numbers between these two
 // constants (inclusive) will be Unflattened as Messages.
 #define OLDEST_SUPPORTED_PROTOCOL_VERSION 1347235888 // 'PM00'
 #define CURRENT_PROTOCOL_VERSION          1347235888 // 'PM00'
 
-/** 
+/**
  *  The Message class implements a serializable container for named, typed data.
  *
  *  Messages are the foundation of the MUSCLE data-exchange protocol, and
  *  they are used to send data between computers, processes, and threads
- *  in a standardized, type-safe, expressive, endian-neutral, and 
+ *  in a standardized, type-safe, expressive, endian-neutral, and
  *  language-neutral manner.  A Message object can be serialized into
- *  a series of bytes on one machine by calling Flatten() on it, and 
- *  after those bytes have been sent across the network, the same Message 
+ *  a series of bytes on one machine by calling Flatten() on it, and
+ *  after those bytes have been sent across the network, the same Message
  *  can be recreated on the destination machine by calling Unflatten().
  *
- *  This enables efficient and reliable transmission of arbitrarily complex structured data.  
+ *  This enables efficient and reliable transmission of arbitrarily complex structured data.
  *  A flattened Message can be as small as 12 bytes, or as large as 4 gigabytes.
  *
- *  Each Message object has a single 32-bit integer 'what code', which 
- *  can be set to any 32-bit value (often a PR_COMMAND_* or PR_RESULT_* 
+ *  Each Message object has a single 32-bit integer 'what code', which
+ *  can be set to any 32-bit value (often a PR_COMMAND_* or PR_RESULT_*
  *  value, as enumerated in StorageReflectConstants.h)
- *  
- *  Each Message can also hold a number of data fields.  Each data field 
- *  in a Message is assigned a name string (which also can be arbitrary, 
- *  although various strings may have particular meanings in various contexts), 
- *  and has a specified data type.  The field names are used as keys to lookup 
- *  their associated data, so each field in the Message must have a name that is 
- *  unique relative to the other fields in the same Message.  (Note: to make 
- *  MUSCLE code more readable and less susceptible to typos, the field name strings 
- *  that MUSCLE's PR_COMMAND_* Messages recognize are encoded as PR_NAME_* defines 
+ *
+ *  Each Message can also hold a number of data fields.  Each data field
+ *  in a Message is assigned a name string (which also can be arbitrary,
+ *  although various strings may have particular meanings in various contexts),
+ *  and has a specified data type.  The field names are used as keys to lookup
+ *  their associated data, so each field in the Message must have a name that is
+ *  unique relative to the other fields in the same Message.  (Note: to make
+ *  MUSCLE code more readable and less susceptible to typos, the field name strings
+ *  that MUSCLE's PR_COMMAND_* Messages recognize are encoded as PR_NAME_* defines
  *  in StorageReflectConstants.h)
- *  
- *  Each data field in a Message holds an array of one or more data items of the 
- *  field's specified type, stored (internally) as a double-ended Queue.  
+ *
+ *  Each data field in a Message holds an array of one or more data items of the
+ *  field's specified type, stored (internally) as a double-ended Queue.
  *
  *  The Message class has built-in support for fields containing the following data types:
  *    - Boolean: via AddBool(), FindBool(), GetBool(), etc.
@@ -212,7 +212,7 @@ private:
  *  containing user-defined objects of arbitary type.  In order to be added to a Message,
  *  a non-built-in object must derive from Flattenable (if you wish to add it to the Message
  *  in its flattened-bytes form, and later on restore it via FindFlat()), or alternatively
- *  the object can be derived from FlatCountable, in which case you can add a reference to 
+ *  the object can be derived from FlatCountable, in which case you can add a reference to
  *  your object (again via AddFlat()) to the Message, and the Message will hold on to your
  *  object directly rather than to a buffer of its flattened bytes.  This can be more efficient,
  *  since when done this way the object need not be serialized and later reconstructed, unless/until
@@ -227,7 +227,7 @@ private:
  *  Note that for quick debugging purposes, it is possible to dump a Message's contents to stdout
  *  at any time by calling PrintToStream() on the Message.
  */
-class Message : public FlatCountable, public Cloneable, private CountedObject<Message>
+class Message MUSCLE_FINAL_CLASS : public FlatCountable, public Cloneable, private CountedObject<Message>
 {
 public:
    /** 32 bit what code, for quick identification of message types.  Set this however you like. */
@@ -283,7 +283,7 @@ public:
    /** @return true iff there are no fields in this Message. */
    bool IsEmpty() const {return (_entries.IsEmpty());}
 
-   /** Prints debug info describing the contents of this Message to stdout. 
+   /** Prints debug info describing the contents of this Message to stdout.
      * @param optFile If non-NULL, the text will be printed to this file.  If left as NULL, stdout will be used as a default.
      * @param maxRecurseLevel The maximum level of nested sub-Messages that we will print.  Defaults to MUSCLE_NO_LIMIT.
      * @param indentLevel Number of spaces to indent each printed line.  Used while recursing to format nested messages text nicely
@@ -304,7 +304,7 @@ public:
     *  @param old_entry Field name to rename from.
     *  @param new_entry Field name to rename to.  If a field with this name already exists,
     *                   it will be replaced.
-    *  @return B_NO_ERROR on success, or B_ERROR if a field named (old_entry) couldn't be found. 
+    *  @return B_NO_ERROR on success, or B_ERROR if a field named (old_entry) couldn't be found.
     */
    status_t Rename(const String & old_entry, const String & new_entry);
 
@@ -316,7 +316,7 @@ public:
 
    /** Returns The number of bytes it would take to flatten this Message into a byte buffer. */
    virtual uint32 FlattenedSize() const;
- 
+
    /**
     *  Converts this Message into a flattened buffer of bytes that can be saved to disk
     *  or sent over a network, and later converted back into an identical Message object.
@@ -343,7 +343,7 @@ public:
 
    /** Adds a new int8 to the Message.
     *  @param fieldName Name of the field to add (or add to)
-    *  @param val The int8 to add 
+    *  @param val The int8 to add
     *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
     */
    status_t AddInt8(const String & fieldName, int8 val);
@@ -408,7 +408,7 @@ public:
     *  @param msgRef Reference to the Message to add
     *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
     */
-   status_t AddMessage(const String & fieldName, const MessageRef & msgRef); 
+   status_t AddMessage(const String & fieldName, const MessageRef & msgRef);
 
    /** Calls SaveToArchive() on the specified object to save its
     *  state into a Message, then adds the resulting Message into this Message.
@@ -441,8 +441,8 @@ public:
 
    /** Flattens a Flattenable object and adds the resulting bytes into this Message.
     *  @param fieldName Name of the field to add (or add to)
-    *  @param obj The Flattenable object (or at least an object with TypeCode(), Flatten(), 
-    *             and FlattenedSize() methods).  Flatten() is called on this object, and the 
+    *  @param obj The Flattenable object (or at least an object with TypeCode(), Flatten(),
+    *             and FlattenedSize() methods).  Flatten() is called on this object, and the
     *             resulting bytes are appended to the given field in this Message.
     *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
     */
@@ -466,9 +466,9 @@ public:
       return AddFlat(fieldName, fcRef);
    }
 
-   /** Adds a new ephemeral-tag-item to this Message.  Tags are references to arbitrary 
-    *  ref-countable C++ objects;  They can be added to a Message as a matter of convenience 
-    *  to the local program, but note that they are not persistent--they won't get 
+   /** Adds a new ephemeral-tag-item to this Message.  Tags are references to arbitrary
+    *  ref-countable C++ objects;  They can be added to a Message as a matter of convenience
+    *  to the local program, but note that they are not persistent--they won't get
     *  Flatten()'d with the rest of the contents of the Message!
     *  @param fieldName Name of the field to add (or add to)
     *  @param tagRef Reference to the tag object to add.
@@ -489,7 +489,7 @@ public:
     *                  is a known type such as B_INT32_TYPE or B_RECT_TYPE, (numBytes)
     *                  may be a multiple of the datatype's size, allowing you to add
     *                  multiple entries with a single call.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or (numBytes) isn't a multiple (type)'s 
+    *  @return B_NO_ERROR on success, B_ERROR if out of memory or (numBytes) isn't a multiple (type)'s
     *          known size, or a type conflict occurred.
     */
    status_t AddData(const String & fieldName, uint32 type, const void *data, uint32 numBytes) {return AddDataAux(fieldName, data, numBytes, type, false);}
@@ -551,7 +551,7 @@ public:
    status_t PrependDouble(const String & fieldName, double val);
 
    /** Prepends a new Message to the beginning of a field array in the Message.
-    *  Note that this method is less efficient than the AddMessage(MessageRef) method, 
+    *  Note that this method is less efficient than the AddMessage(MessageRef) method,
     *  as this method necessitates making a copy of (msg) and all the data it contains.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param msg The Message to add or prepend
@@ -567,7 +567,7 @@ public:
     *  @param msgRef Reference to the Message to add or prepend
     *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
     */
-   status_t PrependMessage(const String & fieldName, const MessageRef & msgRef); 
+   status_t PrependMessage(const String & fieldName, const MessageRef & msgRef);
 
    /** Calls SaveToArchive() on the specified object to save its
     *  state into a Message, then prepends the resulting Message into this Message.
@@ -600,8 +600,8 @@ public:
 
    /** Flattens a Flattenable object and adds the resulting bytes into this Message.
     *  @param fieldName Name of the field to add (or prepend to)
-    *  @param obj The Flattenable object (or at least an object with TypeCode(), Flatten(), 
-    *             and FlattenedSize() methods).  Flatten() is called on this object, and the 
+    *  @param obj The Flattenable object (or at least an object with TypeCode(), Flatten(),
+    *             and FlattenedSize() methods).  Flatten() is called on this object, and the
     *             resulting bytes are appended to the given field in this Message.
     *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
     */
@@ -625,9 +625,9 @@ public:
       return PrependFlat(fieldName, fcRef);
    }
 
-   /** Prepends a new ephemeral-tag-item to this Message.  Tags are references to arbitrary 
-    *  ref-countable C++ objects;  They can be added to a Message as a matter of convenience 
-    *  to the local program, but note that they are not persistent--they won't get 
+   /** Prepends a new ephemeral-tag-item to this Message.  Tags are references to arbitrary
+    *  ref-countable C++ objects;  They can be added to a Message as a matter of convenience
+    *  to the local program, but note that they are not persistent--they won't get
     *  Flatten()'d with the rest of the contents of the Message!
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param tagRef Reference to the tag object to add or prepend.
@@ -648,7 +648,7 @@ public:
     *                  is a known type such as B_INT32_TYPE or B_RECT_TYPE, (numBytes)
     *                  may be a multiple of the datatype's size, allowing you to add
     *                  multiple entries with a single call.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or (numBytes) isn't a multiple (type)'s 
+    *  @return B_NO_ERROR on success, B_ERROR if out of memory or (numBytes) isn't a multiple (type)'s
     *          known size, or a type conflict occurred.
     */
    status_t PrependData(const String & fieldName, uint32 type, const void *data, uint32 numBytes) {return AddDataAux(fieldName, data, numBytes, type, true);}
@@ -667,7 +667,7 @@ public:
     */
    status_t RemoveName(const String & fieldName);
 
-   /** Clears all fields from the Message. 
+   /** Clears all fields from the Message.
     *  @param releaseCachedBuffers If set true, any cached buffers we are holding will be immediately freed.
     *                              Otherwise, they will be kept around for future re-use.
     */
@@ -723,7 +723,7 @@ public:
     *  @param val On success, the value of the int16 is written into this object.
     *  @return B_NO_ERROR if the int16 value was found, or B_ERROR if it wasn't.
     */
-   status_t FindInt16(const String & fieldName, uint32 index, int16 & val) const {return FindDataItemAux(fieldName, index, B_INT16_TYPE, &val, sizeof(int16));} 
+   status_t FindInt16(const String & fieldName, uint32 index, int16 & val) const {return FindDataItemAux(fieldName, index, B_INT16_TYPE, &val, sizeof(int16));}
 
    /** As above, only (index) isn't specified.  It is assumed to be zero. */
    status_t FindInt16(const String & fieldName, int16 & value) const {return FindInt16(fieldName, 0, value);}
@@ -734,7 +734,7 @@ public:
     *  @param val On success, the value of the int32 is written into this object.
     *  @return B_NO_ERROR if the int32 value was found, or B_ERROR if it wasn't.
     */
-   status_t FindInt32(const String & fieldName, uint32 index, int32 & val) const {return FindDataItemAux(fieldName, index, B_INT32_TYPE, &val, sizeof(int32));} 
+   status_t FindInt32(const String & fieldName, uint32 index, int32 & val) const {return FindDataItemAux(fieldName, index, B_INT32_TYPE, &val, sizeof(int32));}
 
    /** As above, only (index) isn't specified.  It is assumed to be zero. */
    status_t FindInt32(const String & fieldName, int32 & value) const {return FindInt32(fieldName, 0, value);}
@@ -745,7 +745,7 @@ public:
     *  @param val On success, the value of the int64 is written into this object.
     *  @return B_NO_ERROR if the int64 value was found, or B_ERROR if it wasn't.
     */
-   status_t FindInt64(const String & fieldName, uint32 index, int64 & val) const {return FindDataItemAux(fieldName, index, B_INT64_TYPE, &val, sizeof(int64));}  
+   status_t FindInt64(const String & fieldName, uint32 index, int64 & val) const {return FindDataItemAux(fieldName, index, B_INT64_TYPE, &val, sizeof(int64));}
 
    /** As above, only (index) isn't specified.  It is assumed to be zero. */
    status_t FindInt64(const String & fieldName, int64 & value) const {return FindInt64(fieldName, 0, value);}
@@ -756,7 +756,7 @@ public:
     *  @param val On success, the value of the boolean is written into this object.
     *  @return B_NO_ERROR if the boolean value was found, or B_ERROR if it wasn't.
     */
-   status_t FindBool(const String & fieldName, uint32 index, bool & val) const {return FindDataItemAux(fieldName, index, B_BOOL_TYPE, &val, sizeof(bool));} 
+   status_t FindBool(const String & fieldName, uint32 index, bool & val) const {return FindDataItemAux(fieldName, index, B_BOOL_TYPE, &val, sizeof(bool));}
 
    /** As above, only (index) isn't specified.  It is assumed to be zero. */
    status_t FindBool(const String & fieldName, bool & value) const {return FindBool(fieldName, 0, value);}
@@ -827,7 +827,7 @@ public:
    template<class T> inline status_t FindArchiveMessage(const String & fieldName, T & obj) const {return FindArchiveMessage(fieldName, 0, obj);}
 
    /** Convenience method:  Retrieves a Message value from this Message,
-    *  and if successful, calls SetFromArchive(foundMsg) on the passed-in object.  
+    *  and if successful, calls SetFromArchive(foundMsg) on the passed-in object.
     *  If the specified sub-Message is not found, this method calls SetFromArchive(defaultMsg) on the object instead.
     *  @param fieldName The field name to look for the Message value under.
     *  @param index The index of the Message item in its field entry.
@@ -838,7 +838,7 @@ public:
     */
    template<class T> inline status_t FindArchiveMessageWithDefault(const String & fieldName, uint32 index, T & obj, const Message & defaultMsg = GetEmptyMessage()) const
    {
-      MessageRef msg; 
+      MessageRef msg;
       return (FindMessage(fieldName, index, msg) == B_NO_ERROR) ? obj.SetFromArchive(*msg()) : obj.SetFromArchive(defaultMsg);
    }
 
@@ -898,7 +898,7 @@ public:
       }
       return B_ERROR;
    }
-         
+
    /** As above, only (index) isn't specified.  It is assumed to be zero. */
    template <class T> status_t FindFlat(const String & fieldName, T & obj) const {return FindFlat(fieldName, 0, obj);}
 
@@ -952,7 +952,7 @@ public:
    /** As above, only (index) isn't specified.  It is assumed to be zero. */
    status_t FindData(const String & fieldName, uint32 type, const void **data, uint32 *numBytes) const {return FindData(fieldName, type, 0, data, numBytes);}
 
-   /** As above, only this returns a pointer to an array that you can write directly into, for efficiency.  
+   /** As above, only this returns a pointer to an array that you can write directly into, for efficiency.
     *  You should be very careful with this method, though, as you will be writing into the guts of this Message.
     *  The returned pointer is not guaranteed to be valid after the Message is modified by any method!
     *  @see FindData(...)
@@ -1118,7 +1118,7 @@ public:
    /** As above, only (index) isn't specified.  It is assumed to be zero. */
    status_t ReplaceMessage(bool okayToAdd, const String & fieldName, const MessageRef & msgRef) {return ReplaceMessage(okayToAdd, fieldName, 0, msgRef);}
 
-   /** Replace a Message value in an existing Message field with a new value 
+   /** Replace a Message value in an existing Message field with a new value
     *  that was generated by calling SaveToArchive() on the passed in object.
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
@@ -1138,8 +1138,8 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
     *  @param fieldName Name of the field to add (or add to)
     *  @param index The index of the entry within the field name to modify
-    *  @param obj The Flattenable object (or at least an object with TypeCode(), Flatten(), 
-    *             and FlattenedSize() methods).  Flatten() is called on this object, and the 
+    *  @param obj The Flattenable object (or at least an object with TypeCode(), Flatten(),
+    *             and FlattenedSize() methods).  Flatten() is called on this object, and the
     *             resulting bytes are appended to the given field in this Message.
     *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
     */
@@ -1161,7 +1161,7 @@ public:
    status_t ReplaceFlat(bool okayToAdd, const String & fieldName, FlatCountableRef & ref) {return ReplaceFlat(okayToAdd, fieldName, 0, ref);}
 
    /** As above, only (ref) is specified as a ByteBufferRef, to save you having to do the necessary casting to FlatCountableRef yourself */
-   status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & ref) 
+   status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & ref)
    {
       FlatCountableRef fcRef; fcRef.SetFromRefCountableRefUnchecked(ref.GetRefCountableRef());
       return ReplaceFlat(okayToAdd, fieldName, index, fcRef);
@@ -1201,7 +1201,7 @@ public:
 
    /** Convenience method:  Returns the first field name of the given type, or NULL if none is found.
      * @param optTypeCode If specified, only field names with the specified type will be considered.
-     *                    If left as the default (B_ANY_TYPE), then the first field name of any type will be returned. 
+     *                    If left as the default (B_ANY_TYPE), then the first field name of any type will be returned.
      * @returns a pointer to the returned field's name String on success, or NULL on failure.  Note that this pointer
      *          is not guaranteed to remain valid if the Message is modified.
      */
@@ -1209,7 +1209,7 @@ public:
 
    /** Convenience method:  Returns the last field name of the given type, or NULL if none is found.
      * @param optTypeCode If specified, only field names with the specified type will be considered.
-     *                    If left as the default (B_ANY_TYPE), then the last field name of any type will be returned. 
+     *                    If left as the default (B_ANY_TYPE), then the last field name of any type will be returned.
      * @returns a pointer to the returned field's name String on success, or NULL on failure.  Note that this pointer
      *          is not guaranteed to remain valid if the Message is modified.
      */
@@ -1218,19 +1218,19 @@ public:
    /** Returns true iff there is a field with the given name and type present in the Message.
     *  @param fieldName the field name to look for.
     *  @param type the type to look for, or B_ANY_TYPE if type isn't important to you.
-    *  @return true if such a field exists, else false. 
+    *  @return true if such a field exists, else false.
     */
    bool HasName(const String & fieldName, uint32 type = B_ANY_TYPE) const {return (GetArray(fieldName, type) != NULL);}
 
    /** Returns the number of values in the field with the given name and type in the Message.
     *  @param fieldName the field name to look for.
     *  @param type the type to look for, or B_ANY_TYPE if type isn't important to you.
-    *  @return The number of values stored under (fieldName) if a field of the right type exists, 
+    *  @return The number of values stored under (fieldName) if a field of the right type exists,
     *          or zero if the field doesn't exist or isn't of a matching type.
     */
    uint32 GetNumValuesInName(const String & fieldName, uint32 type = B_ANY_TYPE) const;
 
-   /** Takes the field named (fieldName) in this message, and moves the field into (moveTo). 
+   /** Takes the field named (fieldName) in this message, and moves the field into (moveTo).
     *  Any data that was already in (moveTo) under (fieldName) will be replaced.
     *  @param fieldName Name of an existing field (in this Message) to be moved.
     *  @param moveTo A Message to move the specified field into.
@@ -1238,7 +1238,7 @@ public:
     */
    status_t MoveName(const String & fieldName, Message & moveTo) {return MoveName(fieldName, moveTo, fieldName);}
 
-   /** Take the data under (oldFieldName) in this message, and moves it into (moveTo), 
+   /** Take the data under (oldFieldName) in this message, and moves it into (moveTo),
     *  where it will appear under the field name (newFieldName).
     *  Any data that was already in (moveTo) under (newFieldName) will be replaced.
     *  @param oldFieldName Name of an existing field (in this Message) to be moved.
@@ -1266,7 +1266,7 @@ public:
     */
    status_t CopyName(const String & oldFieldName, Message & copyTo, const String & newFieldName) const;
 
-   /** Take the data under (fieldName) in this message, and shares it into (shareTo). 
+   /** Take the data under (fieldName) in this message, and shares it into (shareTo).
     *  Any data that was under (fieldName) in (shareTo) will be replaced.
     *  This operation is similar to CopyName(), except that no copy of the field
     *  data is made:  instead, the field becomes shared between the two Messages,
@@ -1279,7 +1279,7 @@ public:
     */
    status_t ShareName(const String & fieldName, Message & shareTo) const {return ShareName(fieldName, shareTo, fieldName);}
 
-   /** Take the data under (oldFieldName) in this message, and shares it into (shareTo), 
+   /** Take the data under (oldFieldName) in this message, and shares it into (shareTo),
     *  where it will appear under the field name (newFieldName).
     *  Any data that was under (newFieldName) in (shareTo) will be replaced.
     *  This operation is similar to CopyName(), except that no copy of the field
@@ -1330,7 +1330,7 @@ public:
    /** Examines the specified field to see if it is referenced more than once (e.g. by
      * another Message object).  If it is referenced more than once, makes a copy of the
      * field (including its contents) and replaces the shared field with the copy.
-     * If the field is not referenced more than once, this method returns B_NO_ERROR 
+     * If the field is not referenced more than once, this method returns B_NO_ERROR
      * without doing anything.
      * This method is handy when you are about to modify a field in a Message and you want
      * to first make sure that the field isn't shared by any other Messages.
@@ -1354,7 +1354,7 @@ public:
      */
    void * GetPointerToNormalizedFieldData(const String & fieldName, uint32 * retItemCount, uint32 type = B_ANY_TYPE);
 
-   /** 
+   /**
     * Swaps the contents and 'what' code of this Message with the specified Message.
     * This is a very efficient, O(1) operation.
     * @param swapWith Message whose contents should be swapped with this one.
@@ -1420,8 +1420,8 @@ public:
      * copy can be significantly cheaper than doing a full copy (e.g. with the assignment operator),
      * but you need to be aware of the potential side effects if you then go on to modify
      * the contents of either Message's fields.  Use with caution!
-     * @param rhs The Message to make this Message into a light-weight copy of. 
-     */ 
+     * @param rhs The Message to make this Message into a light-weight copy of.
+     */
    void BecomeLightweightCopyOf(const Message & rhs) {what = rhs.what; _entries = rhs._entries;}
 
    /** Convenience method for retrieving a C-string pointer to a string data item inside a Message.
@@ -1525,10 +1525,10 @@ private:
 
    status_t ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & bufRef, uint32 tc);
    status_t ReplaceDataAux(bool okayToAdd, const String & fieldName, uint32 index, void * dataBuf, uint32 bufSize, uint32 tc);
- 
+
    const String * GetExtremeFieldNameStringAux(uint32 optTypeCode, bool isLast) const
    {
-      if (optTypeCode == B_ANY_TYPE) return isLast ? _entries.GetLastKey() : _entries.GetFirstKey(); 
+      if (optTypeCode == B_ANY_TYPE) return isLast ? _entries.GetLastKey() : _entries.GetFirstKey();
 
       MessageFieldNameIterator iter(*this, optTypeCode, HTIT_FLAG_NOREGISTER|(isLast?HTIT_FLAG_BACKWARDS:0));
       return iter.HasData() ? &iter.GetFieldName() : NULL;
@@ -1536,7 +1536,7 @@ private:
 
    // Iterator support methods
    friend class MessageFieldNameIterator;
-   Hashtable<String, RefCountableRef> _entries;   
+   Hashtable<String, RefCountableRef> _entries;
 };
 
 // Template specializations so that the *Flat() methods do the right thing when called with a String or Message object as the argument
@@ -1586,7 +1586,7 @@ template<class T> inline MessageRef GetArchiveMessageFromPool(const T & objectTo
 }
 
 /** Convenience method:  Given a Message that was previously created via GetArchiveMessageFromPool<T>(),
-  * creates and returns an object of type T, and calls SetFromArchive() on the object so that it 
+  * creates and returns an object of type T, and calls SetFromArchive() on the object so that it
   * represents the state that was saved into the Message.
   * @param msg The Message to extract the returned object's state-data from
   * @returns a reference to the new object on success, or a NULL reference on failure.

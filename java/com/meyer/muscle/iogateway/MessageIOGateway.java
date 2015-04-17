@@ -16,27 +16,27 @@ import com.meyer.muscle.support.NotEnoughDataException;
 import com.meyer.muscle.support.UnflattenFormatException;
 
 /** A gateway that converts to and from the 'standard' MUSCLE flattened message byte stream. */
-public class MessageIOGateway implements AbstractMessageIOGateway 
+public class MessageIOGateway implements AbstractMessageIOGateway
 {
    private int _outgoingEncoding;
    private ByteBuffer _outgoing;
-    
-   public MessageIOGateway() 
+
+   public MessageIOGateway()
    {
       _outgoingEncoding = MUSCLE_MESSAGE_DEFAULT_ENCODING;
    }
-    
+
    public MessageIOGateway(int encoding)
    {
       setOutgoingEncoding(encoding);
    }
-   
-   public void setOutgoingEncoding(int newEncoding) 
+
+   public void setOutgoingEncoding(int newEncoding)
    {
       if ((newEncoding < MUSCLE_MESSAGE_DEFAULT_ENCODING) || (newEncoding > MUSCLE_MESSAGE_ENCODING_ZLIB_9)) throw new UnsupportedOperationException("The argument is not a supported encoding");
       _outgoingEncoding = newEncoding;
    }
-    
+
    /** Returns this gateway's current MUSCLE_MESSAGE_ENCODING_* value */
    public final int getOutgoingEncoding()
    {
@@ -45,10 +45,10 @@ public class MessageIOGateway implements AbstractMessageIOGateway
 
    /** Set the largest allowable size for incoming Message objects.  Default value is Integer.MAX_VALUE. */
    public void setMaximumIncomingMessageSize(int maxSize) {_maximumIncomingMessageSize = maxSize;}
-    
+
    /** Returns the current maximum-incoming-message-size.  Default value is Integer.MAX_VALUE. */
    public int getMaximumIncomingMessageSize() {return _maximumIncomingMessageSize;}
-    
+
    public Message unflattenMessage(ByteBuffer in) throws IOException, UnflattenFormatException, NotEnoughDataException
    {
       if (in.remaining() < 8) {
@@ -61,17 +61,17 @@ public class MessageIOGateway implements AbstractMessageIOGateway
 
       int encoding = in.getInt();
       if (encoding != MUSCLE_MESSAGE_DEFAULT_ENCODING) throw new IOException("ByteBuffer: " + in + " numBytes: " + numBytes + " encoding: " + encoding);
-      if (in.remaining() < numBytes) 
+      if (in.remaining() < numBytes)
       {
           in.position(in.limit());
-          throw new NotEnoughDataException(numBytes-in.remaining()); 
+          throw new NotEnoughDataException(numBytes-in.remaining());
       }
 
       Message pmsg = new Message();
       pmsg.unflatten(in, numBytes);
       return pmsg;
    }
-    
+
    /** Reads from the input stream until a Message can be assembled and returned.
      * @param in The input stream to read from.
      * @throws IOException if there is an error reading from the stream.
@@ -84,7 +84,7 @@ public class MessageIOGateway implements AbstractMessageIOGateway
       if (numBytes > getMaximumIncomingMessageSize()) throw new UnflattenFormatException("Incoming message was too large! (" + numBytes + " bytes, " + getMaximumIncomingMessageSize() + " allowed!)");
 
       int encoding = in.readInt();
-      if (encoding != MUSCLE_MESSAGE_DEFAULT_ENCODING) throw new IOException(); 
+      if (encoding != MUSCLE_MESSAGE_DEFAULT_ENCODING) throw new IOException();
       Message pmsg = new Message();
       pmsg.unflatten(in, numBytes);
       return pmsg;
@@ -121,7 +121,7 @@ public class MessageIOGateway implements AbstractMessageIOGateway
       }
       _outgoing.rewind();
       _outgoing.limit(8+flattenedSize);
-      
+
       _outgoing.putInt(flattenedSize);
       _outgoing.putInt(MUSCLE_MESSAGE_DEFAULT_ENCODING);
       msg.flatten(_outgoing);
@@ -130,15 +130,15 @@ public class MessageIOGateway implements AbstractMessageIOGateway
       if (out instanceof SelectableChannel)
       {
          SelectableChannel sc = (SelectableChannel) out;
-         if (!sc.isBlocking()) 
+         if (!sc.isBlocking())
          {
            int numBytesWritten = 0;
-           
+
            Selector selector = Selector.open();
            sc.register(selector, SelectionKey.OP_WRITE);
-           while(_outgoing.remaining() > 0) 
+           while(_outgoing.remaining() > 0)
            {
-              if (numBytesWritten == 0) 
+              if (numBytesWritten == 0)
               {
                  selector.select();
 
@@ -154,8 +154,8 @@ public class MessageIOGateway implements AbstractMessageIOGateway
       }
       else out.write(_outgoing);
    }
-   
-   public ByteBuffer flattenMessage(Message msg) throws IOException 
+
+   public ByteBuffer flattenMessage(Message msg) throws IOException
    {
       ByteBuffer buffer;
       int flattenedSize = msg.flattenedSize();
@@ -163,15 +163,15 @@ public class MessageIOGateway implements AbstractMessageIOGateway
       buffer.order(ByteOrder.LITTLE_ENDIAN);
       buffer.rewind();
       buffer.limit(8+flattenedSize);
-       
+
       buffer.putInt(flattenedSize);
       buffer.putInt(MUSCLE_MESSAGE_DEFAULT_ENCODING);
       msg.flatten(buffer);
       buffer.rewind();
       return buffer;
    }
-   
-   protected final static int ZLIB_CODEC_HEADER_INDEPENDENT = 2053925219; // 'zlic'    
+
+   protected final static int ZLIB_CODEC_HEADER_INDEPENDENT = 2053925219; // 'zlic'
    protected final static int ZLIB_CODEC_HEADER_DEPENDENT   = 2053925218; // 'zlib'
    private int _maximumIncomingMessageSize = Integer.MAX_VALUE;
 }

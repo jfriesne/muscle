@@ -18,7 +18,7 @@ namespace muscle {
   * The current implementation only works under Windows and POSIX, but other implementations may be
   * added in the future.
   */
-class SharedMemory : private CountedObject<SharedMemory>
+class SharedMemory MUSCLE_FINAL_CLASS : private CountedObject<SharedMemory>
 {
 public:
    /** Default constructor.  You'll need to call SetArea() before this object will be useful. */
@@ -32,7 +32,7 @@ public:
     *  Note that created areas will remain until DeleteArea() is called (if it isn't called,
     *  they will persist even after the process has terminated!)
     *  @see IsCreatedLocally() to determine if the area got created by this call or not.
-    *  @param areaName Name of the shared memory area to open or create.  
+    *  @param areaName Name of the shared memory area to open or create.
     *                  If NULL, then a new, unnamed area will be created.
     *  @param createSize If a new area needs to be created, this is the minimum size of the
     *                    created area, in bytes.  If zero, auto-creation of a shared area is disabled.
@@ -44,7 +44,7 @@ public:
    status_t SetArea(const char * areaName, uint32 createSize = 0, bool returnLocked = false);
 
    /** Unlocks any current locks, and terminates our relationship with the current shared memory area.
-    *  @returns B_NO_ERROR on success, or B_ERROR if we had no current area. 
+    *  @returns B_NO_ERROR on success, or B_ERROR if we had no current area.
     */
    void UnsetArea();
 
@@ -61,7 +61,7 @@ public:
    status_t LockAreaReadOnly() {return LockArea(true);}
 
    /** Locks the current area using an exclusive locking mode.  It is guaranteed
-    *  that no more than one process will have an exclusive lock on a given area 
+    *  that no more than one process will have an exclusive lock on a given area
     *  at any given time.
     *  It is safe to read or modify the shared memory area while this lock is active,
     *  but if you will not need to modify anything, then it is more efficient to
@@ -83,11 +83,11 @@ public:
 
    /** Returns true iff we created our memory area ourselves, or false if we found
     *  it already created.  The returned value is meaningless if there is no current area.
-    */ 
+    */
    bool IsCreatedLocally() const {return _isCreatedLocally;}
 
    /** Returns the name of our current area (as passed in to SetArea() or
-    *  generated within SetArea(), or "" if we have no current area. 
+    *  generated within SetArea(), or "" if we have no current area.
     */
    const String & GetAreaName() const {return _areaName;}
 

@@ -59,7 +59,7 @@ public:
    /** Returns a socket to select() on to be notified when there is data
      * ready to be read.  Note that this works even under Windows, as long
      * as this object was created with (blocking==false), and the returned
-     * socket is only used for select() (call StdinDataIO::Read() to do the 
+     * socket is only used for select() (call StdinDataIO::Read() to do the
      * actual data reading)
      */
    virtual const ConstSocketRef & GetReadSelectSocket() const;

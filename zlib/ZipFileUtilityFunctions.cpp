@@ -77,7 +77,7 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
             if ((newBaseName.HasChars())&&(newBaseName.EndsWith('/') == false)) newBaseName += '/';
             newBaseName += fn;
 
-            // Message fields we treat as sub-directories   
+            // Message fields we treat as sub-directories
             MessageRef subMsg;
             for (int32 i=0; msg.FindMessage(fn, i, subMsg) == B_NO_ERROR; i++) if (WriteZipFileAux(zf, newBaseName, *subMsg(), compressionLevel, fileInfo) != B_NO_ERROR) return B_ERROR;
          }
@@ -116,7 +116,7 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
 
 status_t WriteZipFile(const char * fileName, const Message & msg, int compressionLevel, uint64 fileCreationTime)
 {
-   FileDataIO fio(fopen(fileName, "wb"));
+   FileDataIO fio(muscleFopen(fileName, "wb"));
    return WriteZipFile(fio, msg, compressionLevel, fileCreationTime);
 }
 
@@ -139,7 +139,7 @@ status_t WriteZipFile(DataIO & writeTo, const Message & msg, int compressionLeve
    if (zf)
    {
       zip_fileinfo * fi = NULL;
-      zip_fileinfo fileInfo;  
+      zip_fileinfo fileInfo;
       {
          memset(&fileInfo, 0, sizeof(fileInfo));
          HumanReadableTimeValues v;
@@ -154,10 +154,10 @@ status_t WriteZipFile(DataIO & writeTo, const Message & msg, int compressionLeve
             fileInfo.tmz_date.tm_year = v.GetYear();
          }
       }
-      
+
       status_t ret = WriteZipFileAux(zf, "", msg, compressionLevel, fi);
       zipClose(zf, NULL);
-      return ret; 
+      return ret;
    }
    else return B_ERROR;
 }
@@ -183,7 +183,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
             {
                // Demand-allocate a sub-message
                MessageRef subMsg;
-               if (m->FindMessage(fn, subMsg) != B_NO_ERROR) 
+               if (m->FindMessage(fn, subMsg) != B_NO_ERROR)
                {
                   if ((m->AddMessage(fn, Message()) != B_NO_ERROR)||(m->FindMessage(fn, subMsg) != B_NO_ERROR)) return B_ERROR;
                }
@@ -208,7 +208,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
 
 MessageRef ReadZipFile(const char * fileName, bool loadData)
 {
-   FileDataIO fio(fopen(fileName, "rb"));
+   FileDataIO fio(muscleFopen(fileName, "rb"));
    return ReadZipFile(fio, loadData);
 }
 

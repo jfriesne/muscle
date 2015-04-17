@@ -1,5 +1,5 @@
-muscled should compile fine with nothing more than a "cd muscle/server ; make" 
-but if you feel like hacking around, here is a list of some 
+muscled should compile fine with nothing more than a "cd muscle/server ; make"
+but if you feel like hacking around, here is a list of some
 compile-time constants that you can define in the CXXFLAGS variable
 of your Makefile to alter muscle's behaviour:
 
@@ -16,27 +16,27 @@ of your Makefile to alter muscle's behaviour:
    will be defined a typedef'd alias for a uint32 (rather than a C++ class
    that holds 128 bits of data).
 
--DMUSCLE_SINGLE_THREAD_ONLY 
-   Makes the Mutex class's methods compile down to no-ops.  Specify this if 
+-DMUSCLE_SINGLE_THREAD_ONLY
+   Makes the Mutex class's methods compile down to no-ops.  Specify this if
    you are able to guarantee that your program will never access MUSCLE
    code from more than one thread.
 
 -DMUSCLE_USE_EPOLL
    Causes the SocketMultiplexer class to use the epoll() Linux system
-   call instead of select().  This method is less portable, but 
+   call instead of select().  This method is less portable, but
    avoids the FD_SETSIZE limitation that select() introduces.
    Note that this flag is mutually exclusive with -DMUSCLE_USE_KQUEUE and
    -DMUSCLE_USE_POLL.
 
 -DMUSCLE_USE_POLL
    Causes the SocketMultiplexer class to use the poll() system
-   call instead of select().  This method is slightly less portable, but 
+   call instead of select().  This method is slightly less portable, but
    avoids the FD_SETSIZE limitation that select() introduces.
    Note that this flag is mutually exclusive with -DMUSCLE_USE_KQUEUE
    and -DMUSCLE_USE_EPOLL.
 
 -DMUSCLE_USE_KQUEUE
-   Causes the SocketMultiplexer class to use the kqueue() and kevent() 
+   Causes the SocketMultiplexer class to use the kqueue() and kevent()
    system calls instead of select().  This method is less portable, but
    avoids the FD_SETSIZE limitation that select() introduces.
    Note that this flag is mutually exclusive with -DMUSCLE_USE_POLL and
@@ -50,30 +50,30 @@ of your Makefile to alter muscle's behaviour:
    when the asynchronous connection should time out and fail.
 
 -DMUSCLE_CATCH_SIGNALS_BY_DEFAULT
-   If specified, ReflectServer will by default set up a signal 
-   handler to catch signals (e.g. Control-C), and gracefully 
+   If specified, ReflectServer will by default set up a signal
+   handler to catch signals (e.g. Control-C), and gracefully
    exit its event loop when they are detected.  Without this
    flag, MUSCLE signal-handling routines will only be set up
    if you explicitly call SetSignalHandlingEnabled(true)
    somewhere in your code.
- 
+
 -DMUSCLE_USE_LIBRT
    If specified, GetRunTime64() and Snooze64() will use librt's
    high-resolution timing functions instead of the low-resolution
-   ones supplied by older operating systems.  Note that if you 
+   ones supplied by older operating systems.  Note that if you
    specify this flag, you should link with librt as well (-lrt).
 
 -DMUSCLE_AVOID_MULTICAST_API
-   Set this to omit the multicast API calls in NetworkUtilityFunctions.h.  
+   Set this to omit the multicast API calls in NetworkUtilityFunctions.h.
    This might be useful to do if compiling on a platform where multicast
    APIs aren't supported.
 
 -DMUSCLE_ENABLE_KEEPALIVE_API
    Set this to make the TCP keepalive API calls in NetworkUtilityFunctions.h
    available for use.  (it's disabled by default to make sure that the
-   keepalive functions won't break the build on platforms that don't 
-   support keepalive).  Note that muscled itself won't use keepalive even 
-   if this constant is specified; the functions are a convenience for 
+   keepalive functions won't break the build on platforms that don't
+   support keepalive).  Note that muscled itself won't use keepalive even
+   if this constant is specified; the functions are a convenience for
    other MUSCLE-based applications to use if they wish.
 
 -DMUSCLE_64_BIT_PLATFORM
@@ -91,17 +91,17 @@ of your Makefile to alter muscle's behaviour:
    Tell the Muscle Thread/Mutex/etc classes to prefer to use Qt Threading APIs over Win32 calls
    when both are available.  (By default, Win32 calls are preferred when running under Windows)
 
--DMUSCLE_ENABLE_MEMORY_PARANOIA=N 
+-DMUSCLE_ENABLE_MEMORY_PARANOIA=N
    Put N overwrite-guards before and after each malloc() buffer, watch them for memory corruption
 
--DMUSCLE_NO_EXCEPTIONS 
+-DMUSCLE_NO_EXCEPTIONS
    Tells muscle that exceptions won't be used.
 
--DMUSCLE_ENABLE_MEMORY_TRACKING 
+-DMUSCLE_ENABLE_MEMORY_TRACKING
    Enables system memory usage tracking (wrappers for new and delete that allow muscled to
    put an upper bound on the amount of memory it dynamically allocates, etc)
 
--DMUSCLE_AVOID_ASSERTIONS 
+-DMUSCLE_AVOID_ASSERTIONS
    makes MASSERT statements into no-ops
 
 -DMUSCLE_AVOID_SIGNAL_HANDLING
@@ -111,50 +111,50 @@ of your Makefile to alter muscle's behaviour:
 -DMUSCLE_AVOID_INLINE_ASSEMBLY
    tells muscle to use boring old C/C++ code and avoid using any clever assembly-language code
 
--DMUSCLE_ENABLE_ZLIB_ENCODING 
+-DMUSCLE_ENABLE_ZLIB_ENCODING
    enables support for zlib compression of Messages
 
--DMUSCLE_TRACE_CHECKPOINTS=N 
+-DMUSCLE_TRACE_CHECKPOINTS=N
    enable TCHECKPOINT tracing of last N checkpoints
 
--DMUSCLE_DISABLE_MESSAGE_FIELD_POOLS 
+-DMUSCLE_DISABLE_MESSAGE_FIELD_POOLS
    turn off Object pooling for Message field objects; helpful for debugging
 
--DMUSCLE_MAX_OUTPUT_CHUNK=N 
+-DMUSCLE_MAX_OUTPUT_CHUNK=N
    tell muscled not to send() more than N bytes of output per call
 
--DMUSCLE_INLINE_LOGGING 
+-DMUSCLE_INLINE_LOGGING
    turn Log(), LogTime(), etc into simple printf() passthroughs
 
--DMUSCLE_DISABLE_LOGGING 
+-DMUSCLE_DISABLE_LOGGING
    turn Log(), LogTime(), etc into no-ops
 
--DMUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS 
+-DMUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS
    Use Mutexes to simulate atomic inc/dec operations; useful if no other method is available
 
 -DMUSCLE_MUTEX_POOL_SIZE=N
    If -DMUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS is defined, then this can be defined to set the size of the Mutex pool to use.  Defaults to 256.
 
--DMUSCLE_POWERPC_TIMEBASE_HZ=N 
+-DMUSCLE_POWERPC_TIMEBASE_HZ=N
    Use mftb/mftbu for GetRunTime64() calls.  N is the frequency at which the register is incremented
 
--DMUSCLE_USE_PTHREADS 
+-DMUSCLE_USE_PTHREADS
    Use pthreads for thread operations
 
--DMUSCLE_DEFAULT_TCP_STALL_TIMEOUT=N 
-   Number of microseconds to wait for a client to read TCP data before 
+-DMUSCLE_DEFAULT_TCP_STALL_TIMEOUT=N
+   Number of microseconds to wait for a client to read TCP data before
    giving up and closing his connection (defaults to 20 minutes' worth)
 
--DMUSCLE_FD_SETSIZE=N 
+-DMUSCLE_FD_SETSIZE=N
    Redefine the fd_setsize to another value (useful under Windows, where the default setsize is a measly 64)
 
--DMUSCLE_AVOID_NEWNOTHROW 
+-DMUSCLE_AVOID_NEWNOTHROW
    Turns newnothrow into a synonym for "new", instead of "new (nothrow)"
 
--DMUSCLE_AVOID_FORKPTY 
+-DMUSCLE_AVOID_FORKPTY
    Tells the ChildProcessDataIO class not to compile in calls to forkpty(); instead it will use fork() only
 
--DMUSCLE_HASHTABLE_DEFAULT_CAPACITY=X 
+-DMUSCLE_HASHTABLE_DEFAULT_CAPACITY=X
    Number of value slots to initially pre-allocate in a Hashtable, by default (defaults to 7)
    Note that the pre-allocation is done the first time an object is Put() into the Hashtable.
    A new, empty Hashtable will have no pre-allocated slots.
@@ -162,11 +162,11 @@ of your Makefile to alter muscle's behaviour:
 -DSMALL_QUEUE_SIZE=N
    Number of value slots to initially pre-allocate in a Queue, by default.  (defaults to 3)
 
--DSMALL_MUSCLE_STRING_LENGTH=N 
+-DSMALL_MUSCLE_STRING_LENGTH=N
    strings <= this length will be stored inline in the String object to avoid a malloc()... default is 7
 
 -DMUSCLE_USE_QUERYPERFORMANCECOUNTER
-   Tells MUSCLE's GetRunTime64() to use the higher-resolution 
+   Tells MUSCLE's GetRunTime64() to use the higher-resolution
    QueryPerformanceCounter() API instead of timeGetTime() when running under Windows.
    Specifying this flag increases GetRunTime64()'s accuracy, but QueryPerformanceCounter()
    is known not to work on some hardware.
@@ -183,7 +183,7 @@ of your Makefile to alter muscle's behaviour:
    is greater than 2.00f (or whatever the preprocessor-define's value is,
    divided by 100).  If it is, a log message, debug info, and a stack trace
    will be printed.  Only enable this compiler flag when doing debugging/
-   development/optimization (i.e. when you want to check to see if you 
+   development/optimization (i.e. when you want to check to see if you
    have any hash functions that aren't performing well), since it will
    significantly slow down your program when it is enabled.
 
@@ -242,8 +242,8 @@ of your Makefile to alter muscle's behaviour:
    does impose some overhead, though -- about 16 bytes of RAM per
    Hashtable object, and a small amount of CPU overhead imposed
    by using an AtomicCounter.  If you want to avoid that overhead
-   and you're confident that you will always supply the 
-   HTIT_FLAG_NOREGISTER argument whenever you are doing 
+   and you're confident that you will always supply the
+   HTIT_FLAG_NOREGISTER argument whenever you are doing
    concurrent iterations over a Hashtable (or Message), you can
    supply this flag on the command line to avoid the overhead.
 
@@ -259,17 +259,17 @@ of your Makefile to alter muscle's behaviour:
    move semantics are being used as expected.
 
 -DMUSCLE_AVOID_XENOMAI
-   Tells MUSCLE not to use Xenomai APIs, not even if 
+   Tells MUSCLE not to use Xenomai APIs, not even if
    TARGET_PLATFORM_XENOMAI is defined.
 
 -DDEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD=n
     If defined, whenever muscleAlloc() is called with a request size
     greater than (n), information about the allocation and a stack
-    trace will be printed to stdout.  Good for quickly figuring out who 
+    trace will be printed to stdout.  Good for quickly figuring out who
     is allocating big contiguous chunks of memory.
 
 -DMUSCLE_AVOID_AUTOCHOOSE_SWAP
-    If set, MuscleSupport.h will define muscleSwap() the simple, 
+    If set, MuscleSupport.h will define muscleSwap() the simple,
     old-fashioned way.  This is less efficient, but avoiding the SFINAE
     mumbo-jumbo helps the code compile on older compilers (e.g. gcc 3.x)
     that don't handle SFINAE correctly.

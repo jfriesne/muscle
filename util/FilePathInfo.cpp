@@ -10,7 +10,7 @@
 
 namespace muscle {
 
-FilePathInfo :: FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool isSymlink, uint64 fileSizeBytes, uint64 aTime, uint64 cTime, uint64 mTime) 
+FilePathInfo :: FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool isSymlink, uint64 fileSizeBytes, uint64 aTime, uint64 cTime, uint64 mTime)
    : _flags((exists?(1<<FPI_FLAG_EXISTS):0)|(isRegularFile?(1<<FPI_FLAG_ISREGULARFILE):0)|(isDir?(1<<FPI_FLAG_ISDIRECTORY):0)|(isSymlink?(1<<FPI_FLAG_ISSYMLINK):0)),
      _size(fileSizeBytes), _atime(aTime), _ctime(cTime), _mtime(mTime)
 {
@@ -103,10 +103,10 @@ void FilePathInfo :: Reset()
 }
 
 #ifdef WIN32
-uint64 FilePathInfo :: InternalizeFileTime(const FILETIME & ft) const 
+uint64 FilePathInfo :: InternalizeFileTime(const FILETIME & ft) const
 {
    // subtract (1970-1601) to convert from Windows time base, in 100ns units
-   const uint64 diffTime = ((uint64)116444736)*NANOS_PER_SECOND; 
+   const uint64 diffTime = ((uint64)116444736)*NANOS_PER_SECOND;
    uint64 wft = (((uint64)ft.dwHighDateTime)<<32)|((uint64)ft.dwLowDateTime);
    if (wft <= diffTime) return 0;
    return ((wft-diffTime)/10);  // convert to MUSCLE-style microseconds

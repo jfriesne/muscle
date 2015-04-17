@@ -20,7 +20,7 @@ namespace muscle {
  *  a compile error if the programmer tries to use its copy-constructor
  *  or its assignment operator.
  */
-class NotCopyable 
+class NotCopyable
 {
 public:
    NotCopyable() {/* empty */}

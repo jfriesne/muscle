@@ -40,7 +40,7 @@ int main(int argc, char ** argv)
          if (waitResult == WAIT_TIMEOUT)
          {
             MessageRef msg = GetMessageFromPool(PR_COMMAND_GETPARAMETERS);
-            if (msg()) 
+            if (msg())
             {
                printf("Sending PR_COMMAND_GETPARAMETERS message to server...\n");
                mtt.SendMessageToSessions(msg);
@@ -55,45 +55,45 @@ int main(int argc, char ** argv)
             {
                switch(eventCode)
                {
-                  case MTT_EVENT_INCOMING_MESSAGE: 
+                  case MTT_EVENT_INCOMING_MESSAGE:
                      printf("EVENT: A new message from the remote computer is ready to process.  The Message is:\n");
                      if (msg()) msg()->PrintToStream();
                   break;
 
-                  case MTT_EVENT_SESSION_ACCEPTED:              
+                  case MTT_EVENT_SESSION_ACCEPTED:
                      printf("EVENT: A new session has been created by one of our factory objects\n");
                   break;
 
-                  case MTT_EVENT_SESSION_ATTACHED:              
+                  case MTT_EVENT_SESSION_ATTACHED:
                      printf("EVENT: A new session has been attached to the local server\n");
                   break;
 
-                  case MTT_EVENT_SESSION_CONNECTED:             
+                  case MTT_EVENT_SESSION_CONNECTED:
                      printf("EVENT: A session on the local server has completed its connection to the remote one\n");
                   break;
 
-                  case MTT_EVENT_SESSION_DISCONNECTED:          
+                  case MTT_EVENT_SESSION_DISCONNECTED:
                      printf("EVENT: A session on the local server got disconnected from its remote peer\n");
                      keepGoing = false;  // no sense in continuing now!
                   break;
 
-                  case MTT_EVENT_SESSION_DETACHED:              
+                  case MTT_EVENT_SESSION_DETACHED:
                      printf("EVENT: A session on the local server has detached (and been destroyed)\n");
                   break;
 
-                  case MTT_EVENT_FACTORY_ATTACHED:              
+                  case MTT_EVENT_FACTORY_ATTACHED:
                      printf("EVENT: A ReflectSessionFactory object has been attached to the server\n");
                   break;
 
-                  case MTT_EVENT_FACTORY_DETACHED:              
+                  case MTT_EVENT_FACTORY_DETACHED:
                      printf("EVENT: A ReflectSessionFactory object has been detached (and been destroyed)\n");
                   break;
 
-                  case MTT_EVENT_OUTPUT_QUEUES_DRAINED:         
+                  case MTT_EVENT_OUTPUT_QUEUES_DRAINED:
                      printf("EVENT: Output queues of sessions previously specified in RequestOutputQueuesDrainedNotification() have drained\n");
                   break;
 
-                  case MTT_EVENT_SERVER_EXITED:                 
+                  case MTT_EVENT_SERVER_EXITED:
                      printf("EVENT: The ReflectServer event loop has terminated\n");
                   break;
 

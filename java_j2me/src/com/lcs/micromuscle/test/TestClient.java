@@ -13,36 +13,36 @@ import com.meyer.micromuscle.iogateway.AbstractMessageIOGateway;
 
 public class TestClient extends MIDlet implements CommandListener, MessageListener, StorageReflectConstants {
 	Display display;
-	
+
 	Command cmdExit;
 	Command cmdConnect;
 	Command cmdDisconnect;
 	Command cmdClear;
 	Command cmdSend;
-	
+
 	TextBox txtIO;
-	
+
 	Form frmConnectParams;
 	TextField txtHost;
 	TextField txtPort;
-	
+
 	MessageTransceiver mc;
-	
+
 	public TestClient() {
 		display = Display.getDisplay(this);
-		
+
 		cmdConnect = new Command("Connect", Command.OK, 1);
 		cmdDisconnect = new Command("Disconnect", Command.OK, 3);
 		cmdExit = new Command("Exit", Command.EXIT, 3);
 		cmdClear = new Command("Clear", Command.OK, 1);
 		cmdSend = new Command("Send", Command.OK, 2);
-		
+
 		txtIO = new TextBox("I/O", "", 512, TextField.ANY);
 		txtIO.addCommand(cmdClear);
 		txtIO.addCommand(cmdSend);
 		txtIO.addCommand(cmdDisconnect);
 		txtIO.setCommandListener(this);
-		
+
 		frmConnectParams = new Form("Connection Settings");
 		txtHost = new TextField("Host:", "30.243.231.39", 18, TextField.ANY);
 		txtPort = new TextField("Port:", "2960", 4, TextField.NUMERIC);
@@ -51,27 +51,27 @@ public class TestClient extends MIDlet implements CommandListener, MessageListen
 		frmConnectParams.addCommand(cmdConnect);
 		frmConnectParams.addCommand(cmdExit);
 		frmConnectParams.setCommandListener(this);
-		
+
 		MessageQueue mq = new MessageQueue(this);
 		mc = new MessageTransceiver(mq, AbstractMessageIOGateway.MUSCLE_MESSAGE_ENCODING_ZLIB_6);
 	}
-	
+
 	protected void startApp() {
 		display.setCurrent(frmConnectParams);
 	}
-	
+
 	protected void pauseApp() {
 	}
-	
+
 	protected void destroyApp(boolean unconditional) {
 		mc.disconnect();
 	}
-	
+
 	private void exit() {
 		destroyApp(false);
 		notifyDestroyed();
 	}
-	
+
 	public void commandAction(Command c, Displayable d) {
 		if (c == cmdExit) {
 			exit();
@@ -85,16 +85,16 @@ public class TestClient extends MIDlet implements CommandListener, MessageListen
 			sendCommands(txtIO.getString());
 		}
 	}
-	
+
 	private void connect() {
 		mc.connect(txtHost.getString(), Integer.parseInt(txtPort.getString()), "Session Connected", "Session Disconnected");
 		display.setCurrent(txtIO);
 	}
-	
+
 	private void disconnect() {
 		mc.disconnect();
 	}
-	
+
 	public synchronized void messageReceived(Object message, int numLeft) {
 		if (message instanceof Message) {
 			txtIO.setString(message.toString());
@@ -107,10 +107,10 @@ public class TestClient extends MIDlet implements CommandListener, MessageListen
 			}
 		}
 	}
-	
+
 	private void sendCommands(String line) {
 		StringTokenizer st = new StringTokenizer(line);
-		
+
 		String command = st.nextToken();
 		Message msg = new Message(PR_COMMAND_PING);
 		if (command.equalsIgnoreCase("q")) {
@@ -132,7 +132,7 @@ public class TestClient extends MIDlet implements CommandListener, MessageListen
 			msg.setBooleans("booleans", booleans);
 			String [] strings = {"Hey", "What's going on?"};
 			msg.setStrings("strings", strings);
-			
+
 			Message q = (Message) msg.cloneFlat();
 			Message r = new Message(1234);
 			r.setString("I'm way", "down here!");
@@ -171,7 +171,7 @@ public class TestClient extends MIDlet implements CommandListener, MessageListen
 			for (int i=0; i<numFloats; i++) {
 				lotsafloats[i] = (float)i;
 			}
-			msg.setFloats("four_megabytes_of_floats", lotsafloats);                  
+			msg.setFloats("four_megabytes_of_floats", lotsafloats);
 		} else if (command.equals("toobig")) {
 			msg.what = PR_COMMAND_PING;
 			int numFloats = 2*1024*1024;
@@ -179,36 +179,36 @@ public class TestClient extends MIDlet implements CommandListener, MessageListen
 			for (int i=0; i<numFloats; i++) {
 				lotsafloats[i] = (float)i;
 			}
-			msg.setFloats("eight_megabytes_of_floats", lotsafloats);                  
+			msg.setFloats("eight_megabytes_of_floats", lotsafloats);
 		}
-		
+
 		if (msg != null) {
 			mc.sendOutgoingMessage(msg);
 		}
 	}
-	
+
 	/**
 	 * Super hack-job StringTokenizer! This -should- work, but nothing here is guaranteed!
 	 */
 	private class StringTokenizer {
 		String st;
 		int tokLoc;
-		
+
 		String defDelims = " \t\n\r\f";
-		
+
 		StringTokenizer(String string) {
 			st = string;
 			tokLoc = 0;
 		}
-		
+
 		public boolean hasMoreTokens() {
 			return tokLoc < st.length();
 		}
-		
+
 		public String nextToken() {
 			return nextToken(defDelims);
 		}
-		
+
 		public String nextToken(String delims) {
 			// IMPLEMENT
 			int stStart = tokLoc;
@@ -224,28 +224,28 @@ public class TestClient extends MIDlet implements CommandListener, MessageListen
 			tokLoc = stEnd + 1;
 			return st.substring(stStart, stEnd);
 		}
-		
+
 		public boolean hasMoreElements() {
 			return hasMoreTokens();
 		}
-		
+
 		public Object nextElement() {
 			return nextToken();
 		}
-		
+
 		public int countTokens() {
 			int count = 0;
 			// Remember the position
 			int oldEnd = tokLoc;
-			
+
 			while (hasMoreTokens()) {
 				nextToken();
 				count++;
 			}
-			
+
 			// Restore the position
 			tokLoc = oldEnd;
-			
+
 			return count;
 		}
 	}

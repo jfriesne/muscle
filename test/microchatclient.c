@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <netdb.h>
 #include <unistd.h>
@@ -126,7 +126,7 @@ enum
    NET_CLIENT_PING,
    NET_CLIENT_PONG,
    NET_CLIENT_SCAN_THREAD_REPORT
-};                       
+};
 
 /* ditto */
 enum
@@ -137,17 +137,17 @@ enum
    BESHARE_HOME_DEPTH,     /* used to separate our stuff from other (non-BeShare) data on the same server */
    USER_NAME_DEPTH,        /* user's handle node would be found here */
    FILE_INFO_DEPTH         /* user's shared file list is here */
-};         
+};
 
 static void Inet_NtoA(uint32 addr, char * ipbuf)
 {
-   sprintf(ipbuf, INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"", (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
+   muscleSprintf(ipbuf, INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"", (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
 }
 
 static int ConnectToIP(uint32 hostIP, uint16 port)
 {
    char ipbuf[16];
-   struct sockaddr_in saAddr; 
+   struct sockaddr_in saAddr;
    int s;
 
    Inet_NtoA(hostIP, ipbuf);
@@ -203,7 +203,7 @@ static void SendChatMessage(UMessageGateway * gw, const char * targetSessionID, 
    if (UMIsMessageValid(&chatMessage))
    {
       /* Specify which client(s) the Message should be forwarded to by muscled */
-      char buf[1024]; sprintf(buf, "/*/%s/beshare", targetSessionID);
+      char buf[1024]; muscleSprintf(buf, "/*/%s/beshare", targetSessionID);
       UMAddString(&chatMessage, PR_NAME_KEYS, buf);
 
       /* Add a "session" field so that the target clients will know who the             */
@@ -271,7 +271,7 @@ static void UploadLocalUserStatus(UMessageGateway * gw, const char * status)
       }
       else UGOutgoingMessageCancelled(gw, &uploadMsg);
    }
-}              
+}
 
 /* Returns a pointer into (path) after the (depth)'th '/' char */
 static const char * GetPathClause(int depth, const char * path)
@@ -280,14 +280,14 @@ static const char * GetPathClause(int depth, const char * path)
    for (i=0; i<depth; i++)
    {
       const char * nextSlash = strchr(path, '/');
-      if (nextSlash == NULL) 
+      if (nextSlash == NULL)
       {
          path = NULL;
          break;
       }
       path = nextSlash + 1;
    }
-   return path;          
+   return path;
 }
 
 /* Returns the depth of the given path string (e.g. "/"==0, "/hi"==1, "/hi/there"==2, etc) */
@@ -401,7 +401,7 @@ int main(int argc, char ** argv)
 
       /* Tell the server we want to be updated about the beshare-specific attributes of other clients */
       SendServerSubscription(&gw, "SUBSCRIBE:beshare/*", UFalse);
- 
+
       /* the main event loop */
       while(keepGoing)
       {
@@ -426,7 +426,7 @@ int main(int argc, char ** argv)
          FD_SET(STDIN_FILENO, &readSet);
 #endif
 
-         while(keepGoing) 
+         while(keepGoing)
          {
             if (select(maxfd+1, &readSet, &writeSet, NULL, timeout) < 0) printf("microreflectclient: select() failed!\n");
 
@@ -446,7 +446,7 @@ int main(int argc, char ** argv)
                   char * nextSpace = strchr(buf+5, ' '); /* after the target ID */
                   if (nextSpace)
                   {
-                      *nextSpace = '\0';   
+                      *nextSpace = '\0';
                       SendChatMessage(&gw, buf+5, nextSpace+1);
                   }
                   else printf("Can't send private /msg, no message text was specified!\n");
@@ -467,7 +467,7 @@ int main(int argc, char ** argv)
 
                buf[0] = '\0';
             }
-   
+
             {
                UMessage msg = {0};
                UBool reading    = FD_ISSET(s, &readSet);
@@ -491,13 +491,13 @@ int main(int argc, char ** argv)
                            {
                               UMAddString(&pongMsg, "session", replyTo);
 
-                              char * keyBuf = malloc(strlen(replyTo)+3+8+1);
+                              int replyToLen = strlen(replyTo);
+                              char * keyBuf = malloc(3+replyToLen+8+1);
                               if (keyBuf)
                               {
-                                 keyBuf[0] = '\0';
-                                 strcat(keyBuf, "/*/");
-                                 strcat(keyBuf, replyTo);
-                                 strcat(keyBuf, "/beshare");
+                                 memcpy(keyBuf, "/*/", 3);
+                                 memcpy(keyBuf+3, replyTo, replyToLen);
+                                 memcpy(keyBuf+3+replyToLen, "/beshare\0", 8+1);
                                  UMAddString(&pongMsg, PR_NAME_KEYS, keyBuf);
                                  free(keyBuf);
                               }
@@ -516,11 +516,11 @@ int main(int argc, char ** argv)
                         if ((text)&&(session))
                         {
                            int sid = atoi(session);
-                           if (strncmp(text, "/me ", 4) == 0) printf("<ACTION>: %s %s\n", GetUserName(users, sid), &text[4]); 
+                           if (strncmp(text, "/me ", 4) == 0) printf("<ACTION>: %s %s\n", GetUserName(users, sid), &text[4]);
                                                          else printf("%s(%s): %s\n", UMGetBool(&msg, "private", 0) ? "<PRIVATE>: ":"", GetUserName(users, sid), text);
                         }
                      }
-                     break;     
+                     break;
 
                      case PR_RESULT_DATAITEMS:
                      {
@@ -540,13 +540,13 @@ int main(int argc, char ** argv)
                                  switch(GetPathDepth(nodepath))
                                  {
                                     case USER_NAME_DEPTH:
-                                       if (strncmp(GetPathClause(USER_NAME_DEPTH, nodepath), "name", 4) == 0) 
+                                       if (strncmp(GetPathClause(USER_NAME_DEPTH, nodepath), "name", 4) == 0)
                                        {
                                           const char * userName = GetUserName(users, sid);
-                                          if (userName) 
+                                          if (userName)
                                           {
                                              printf("User [%s] has disconnected.\n", userName);
-                                             RemoveUserName(&users, sid); 
+                                             RemoveUserName(&users, sid);
                                           }
                                        }
                                        break;
@@ -625,7 +625,7 @@ int main(int argc, char ** argv)
                FD_SET(STDIN_FILENO, &readSet);
             }
          }
-      } 
+      }
       close(s);
    }
    else printf("Connection to [%s:%i] failed!\n", hostName, port);

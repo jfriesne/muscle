@@ -18,7 +18,7 @@ namespace muscle.support {
     // 'LONG',  // a.k.a. int in C#
     public const int B_INT32_TYPE   = 1280265799;
 
-    // 'SHRT',  // a.k.a. short in C# 
+    // 'SHRT',  // a.k.a. short in C#
     public const int B_INT16_TYPE   = 1397248596;
 
     // 'BYTE',  // a.k.a. byte in C#
@@ -42,10 +42,10 @@ namespace muscle.support {
     // 'OPTR',
     public const int B_OBJECT_TYPE  = 1330664530;
 
-    // 'RAWT',  
+    // 'RAWT',
     public const int B_RAW_TYPE     = 1380013908;
 
-    // 'MIME',  
+    // 'MIME',
     public const int B_MIME_TYPE    = 1296649541;
   }
 }

@@ -16,7 +16,7 @@ enum {
 
 #define AST_NAME_SOCKET "socket"  // field name where we store our ConstSocketRef in our reply Messages.
 
-/** A thread that waits for TCP connections on a given port, and when it gets one, 
+/** A thread that waits for TCP connections on a given port, and when it gets one,
   * it sends the socket to its owner via a ConstSocketRef.
   */
 class AcceptSocketsThread : public Thread, private CountedObject<AcceptSocketsThread>
@@ -27,7 +27,7 @@ public:
 
    /** Constructor.
      * @param port Port to listen on, or 0 if we should select our own port.
-     *             If the latter, you can call GetPort() to find out which port was selected. 
+     *             If the latter, you can call GetPort() to find out which port was selected.
      * @param optFrom If specified, the IP address to accept connections from.  If left as zero,
      *                then connections will be accepted from any IP address.
      */
@@ -43,7 +43,7 @@ public:
    uint16 GetPort() const {return _port;}
 
    /** Tries to allocate a socket to listen on the given port.  Will close any previously existing
-     * socket first.  Does not work if the internal thread is already running. 
+     * socket first.  Does not work if the internal thread is already running.
      * @param port Which port to allocate a socket to listen on, or zero if you wish for the system to choose.
      * @param optInterfaceIP if specified, this should be the IP address of a local network interface
      *                       to listen for incoming connections on.  If left unspecified (or set to invalidIP)

@@ -5,8 +5,8 @@ namespace muscle.message {
   /// </summary>
   public class MessageException : System.Exception {
     public MessageException(string s) : base(s) { }
-      
-    public MessageException() : 
+
+    public MessageException() :
       base("Error accessing a Message field") { }
   }
 }

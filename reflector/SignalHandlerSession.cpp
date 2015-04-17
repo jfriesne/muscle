@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "reflector/SignalHandlerSession.h"
 #include "system/SignalMultiplexer.h"
@@ -10,7 +10,7 @@ ConstSocketRef SignalHandlerSession :: CreateDefaultSocket()
 {
    ConstSocketRef sock;
    (void) CreateConnectedSocketPair(sock, _handlerSocket);
-   return sock; 
+   return sock;
 }
 
 int32 SignalHandlerSession :: DoInput(AbstractGatewayMessageReceiver &, uint32)

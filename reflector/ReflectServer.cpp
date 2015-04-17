@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "reflector/ReflectServer.h"
 # include "reflector/StorageReflectConstants.h"
@@ -51,12 +51,12 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
             // create the new DataIO for the gateway; this must always be done on the fly
             // since it depends on the socket being used.
             DataIORef io = newSession->CreateDataIO(s);
-            if (io()) 
+            if (io())
             {
 #ifdef MUSCLE_ENABLE_SSL
                if (_inDoAccept.IsInBatch())
                {
-                  if (_privateKey()) 
+                  if (_privateKey())
                   {
                      if (dynamic_cast<TCPSocketDataIO *>(io()) != NULL)  // We only support SSL over TCP, for now
                      {
@@ -66,7 +66,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
                         {
                            if ((sslIO->SetPublicKeyCertificate(_privateKey) == B_NO_ERROR)&&(sslIO->SetPrivateKey(_privateKey()->GetBuffer(), _privateKey()->GetNumBytes()) == B_NO_ERROR))
                            {
-                              io = sslIORef; 
+                              io = sslIORef;
                               gatewayRef.SetRef(newnothrow SSLSocketAdapterGateway(gatewayRef));
                               if (gatewayRef() == NULL) {WARN_OUT_OF_MEMORY; newSession->SetOwner(NULL); return B_ERROR;}
                            }
@@ -78,7 +78,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
                }
                else if (_inDoConnect.IsInBatch())
                {
-                  if (_publicKey()) 
+                  if (_publicKey())
                   {
                      if (dynamic_cast<TCPSocketDataIO *>(io()) != NULL)  // We only support SSL over TCP, for now
                      {
@@ -88,7 +88,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
                         {
                            if (sslIO->SetPublicKeyCertificate(_publicKey) == B_NO_ERROR)
                            {
-                              io = sslIORef; 
+                              io = sslIORef;
                               gatewayRef.SetRef(newnothrow SSLSocketAdapterGateway(gatewayRef));
                               if (gatewayRef() == NULL) {WARN_OUT_OF_MEMORY; newSession->SetOwner(NULL); return B_ERROR;}
                            }
@@ -151,7 +151,7 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const ip_address & d
       if (sock() == NULL)
       {
          ConstSocketRef tempSockRef;  // tempSockRef represents the closed remote end of the failed connection and is intentionally closed ASAP
-         if (CreateConnectedSocketPair(sock, tempSockRef) == B_NO_ERROR) 
+         if (CreateConnectedSocketPair(sock, tempSockRef) == B_NO_ERROR)
          {
             session->_isConnected = false;
             usingFakeBrokenConnection = true;
@@ -172,7 +172,7 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const ip_address & d
          if (AddNewSession(ref, sock) == B_NO_ERROR)
          {
             if (autoReconnectDelay != MUSCLE_TIME_NEVER) session->SetAutoReconnectDelay(autoReconnectDelay);
-            if (session->_isConnected) 
+            if (session->_isConnected)
             {
                session->_wasConnected = true;
                session->AsyncConnectCompleted();
@@ -234,7 +234,7 @@ AttachNewSession(const AbstractReflectSessionRef & ref)
          if (_doLogging) LogTime(MUSCLE_LOG_DEBUG, "New %s (" UINT32_FORMAT_SPEC " total)\n", newSession->GetSessionDescriptionString()(), _sessions.GetNumItems());
          return B_NO_ERROR;
       }
-      else 
+      else
       {
          newSession->AboutToDetachFromServer();  // well, it *was* attached, if only for a moment
          newSession->DoOutput(MUSCLE_NO_LIMIT);  // one last chance for him to send any leftover data!
@@ -268,7 +268,7 @@ ReflectServer :: Cleanup()
       for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
       {
          AbstractReflectSessionRef nextValue = iter.GetValue();
-         if (nextValue()) 
+         if (nextValue())
          {
             AbstractReflectSession & ars = *nextValue();
             ars.SetFullyAttachedToServer(false);
@@ -280,7 +280,7 @@ ReflectServer :: Cleanup()
          }
       }
    }
-  
+
    // Detach all factories
    RemoveAcceptFactory(0);
 
@@ -305,7 +305,7 @@ GetServerName() const
 
 /** Makes sure the given policy has its BeginIO() called, if necessary, and returns it */
 uint32
-ReflectServer :: 
+ReflectServer ::
 CheckPolicy(Hashtable<AbstractSessionIOPolicyRef, Void> & policies, const AbstractSessionIOPolicyRef & policyRef, const PolicyHolder & ph, uint64 now) const
 {
    AbstractSessionIOPolicy * p = policyRef();
@@ -318,7 +318,7 @@ CheckPolicy(Hashtable<AbstractSessionIOPolicyRef, Void> & policies, const Abstra
       if ((ph.GetSession())&&(p->_hasBegun == false))
       {
          CallSetCycleStartTime(*p, now);
-         p->BeginIO(now); 
+         p->BeginIO(now);
          p->_hasBegun = true;
       }
    }
@@ -346,7 +346,7 @@ void ReflectServer :: CheckForOutOfMemory(const AbstractReflectSessionRef & optS
 #endif
 }
 
-status_t 
+status_t
 ReflectServer ::
 ServerProcessLoop()
 {
@@ -379,7 +379,7 @@ ServerProcessLoop()
    }
 #endif
 
-   if (ReadyToRun() != B_NO_ERROR) 
+   if (ReadyToRun() != B_NO_ERROR)
    {
       if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "Server:  ReadyToRun() failed, aborting.\n");
       return B_ERROR;
@@ -397,12 +397,12 @@ ServerProcessLoop()
          {
             const IPAddressAndPort & iap = iter.GetKey();
             LogTime(MUSCLE_LOG_DEBUG, "%s is listening on port %u ", GetServerName(), iap.GetPort());
-            if (iap.GetIPAddress() == invalidIP) 
+            if (iap.GetIPAddress() == invalidIP)
             {
                Log(MUSCLE_LOG_DEBUG, "on all network interfaces.\n");
                listeningOnAll = true;
             }
-            else Log(MUSCLE_LOG_DEBUG, "on network interface %s\n", Inet_NtoA(iap.GetIPAddress())()); 
+            else Log(MUSCLE_LOG_DEBUG, "on network interface %s\n", Inet_NtoA(iap.GetIPAddress())());
          }
 
          if (listeningOnAll)
@@ -411,12 +411,12 @@ ServerProcessLoop()
             if ((GetNetworkInterfaceInfos(ifs) == B_NO_ERROR)&&(ifs.HasItems()))
             {
                LogTime(MUSCLE_LOG_DEBUG, "This host's network interface addresses are as follows:\n");
-               for (uint32 i=0; i<ifs.GetNumItems(); i++) 
+               for (uint32 i=0; i<ifs.GetNumItems(); i++)
                {
                   LogTime(MUSCLE_LOG_DEBUG, "- %s (%s)\n", Inet_NtoA(ifs[i].GetLocalAddress())(), ifs[i].GetName()());
                }
             }
-            else LogTime(MUSCLE_LOG_ERROR, "Could not retrieve this server's network interface addresses list.\n"); 
+            else LogTime(MUSCLE_LOG_ERROR, "Could not retrieve this server's network interface addresses list.\n");
          }
       }
       else LogTime(MUSCLE_LOG_DEBUG, "Server is not listening on any ports.\n");
@@ -476,7 +476,7 @@ ServerProcessLoop()
                      if (sessionWriteFD >= 0)
                      {
                         bool out;
-                        if (session->IsConnectingAsync()) 
+                        if (session->IsConnectingAsync())
                         {
                            out = true;  // so we can watch for the async-connect event
 #if defined(WIN32)
@@ -490,7 +490,7 @@ ServerProcessLoop()
                            out = ((session->_maxOutputChunk > 0)||((g->GetDataIO()())&&(g->GetDataIO()()->HasBufferedOutput())));
                         }
 
-                        if (out) 
+                        if (out)
                         {
                            (void) _multiplexer.RegisterSocketForWriteReady(sessionWriteFD);
                            if (session->_lastByteOutputAt == 0) session->_lastByteOutputAt = now;  // the bogged-session-clock starts ticking when we first want to write...
@@ -580,7 +580,7 @@ ServerProcessLoop()
                CallPulseAux(*session, session->GetCycleStartTime());
                {
                   AbstractMessageIOGateway * gateway = session->GetGateway()();
-                  if (gateway) 
+                  if (gateway)
                   {
                      TCHECKPOINT;
 
@@ -727,7 +727,7 @@ ServerProcessLoop()
 void ReflectServer :: ShutdownIOFor(AbstractReflectSession * session)
 {
    AbstractMessageIOGateway * gw = session->GetGateway()();
-   if (gw) 
+   if (gw)
    {
       DataIO * io = gw->GetDataIO()();
       if (io) io->Shutdown();  // so we won't try to do I/O on this one anymore
@@ -789,19 +789,19 @@ status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSock
          AbstractReflectSessionRef newSessionRef;
          if (optFactory) newSessionRef = optFactory->CreateSession(ipbuf, nip);
 
-         if (newSessionRef()) 
+         if (newSessionRef())
          {
             if (newSessionRef()->_isExpendable.HasValueBeenSet() == false) newSessionRef()->SetExpendable(true);
             newSessionRef()->_ipAddressAndPort = iap;
             newSessionRef()->_isConnected      = true;
-            if (AddNewSession(newSessionRef, newSocket) == B_NO_ERROR) 
+            if (AddNewSession(newSessionRef, newSocket) == B_NO_ERROR)
             {
-               newSessionRef()->_wasConnected = true;   
+               newSessionRef()->_wasConnected = true;
                return B_NO_ERROR;  // success!
             }
             else
             {
-               newSessionRef()->_isConnected = false;   
+               newSessionRef()->_isConnected = false;
                newSessionRef()->_ipAddressAndPort.Reset();
             }
          }
@@ -856,7 +856,7 @@ ReflectServer ::
 GetSession(const String & name) const
 {
    AbstractReflectSessionRef ref;
-   (void) _sessions.Get(&name, ref); 
+   (void) _sessions.Get(&name, ref);
    return ref;
 }
 
@@ -864,7 +864,7 @@ AbstractReflectSessionRef
 ReflectServer ::
 GetSession(uint32 id) const
 {
-   char buf[64]; sprintf(buf, UINT32_FORMAT_SPEC, id);
+   char buf[64]; muscleSprintf(buf, UINT32_FORMAT_SPEC, id);
    return GetSession(buf);
 }
 
@@ -873,7 +873,7 @@ ReflectServer ::
 GetFactory(uint16 port, const ip_address & optInterfaceIP) const
 {
    ReflectSessionFactoryRef ref;
-   (void) _factories.Get(IPAddressAndPort(optInterfaceIP, port), ref); 
+   (void) _factories.Get(IPAddressAndPort(optInterfaceIP, port), ref);
    return ref;
 }
 
@@ -916,12 +916,12 @@ bool ReflectServer :: DisconnectSession(AbstractReflectSession * session)
    AbstractMessageIOGateway * oldGW = session->GetGateway()();
    DataIO * oldIO = oldGW ? oldGW->GetDataIO()() : NULL;
 
-   bool ret = session->ClientConnectionClosed(); 
+   bool ret = session->ClientConnectionClosed();
 
    AbstractMessageIOGateway * newGW = session->GetGateway()();
    DataIO * newIO = newGW ? newGW->GetDataIO()() : NULL;
 
-   if (ret) 
+   if (ret)
    {
       ShutdownIOFor(session);
       AddLameDuckSession(session);
@@ -964,7 +964,7 @@ PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const
             {
                f->SetOwner(this);
                if (optRetPort) *optRetPort = port;
-               if (f->AttachedToServer() == B_NO_ERROR) 
+               if (f->AttachedToServer() == B_NO_ERROR)
                {
                   f->SetFullyAttachedToServer(true);
                   return B_NO_ERROR;
@@ -991,7 +991,7 @@ RemoveAcceptFactoryAux(const IPAddressAndPort & iap)
    {
       ref()->SetFullyAttachedToServer(false);
       ref()->AboutToDetachFromServer();
-      _lameDuckFactories.AddTail(ref);  // we'll actually have (factory) deleted later on, since at the moment 
+      _lameDuckFactories.AddTail(ref);  // we'll actually have (factory) deleted later on, since at the moment
                                         // we could be in the middle of one of (ref())'s own method calls!
       (void) _factories.Remove(iap);  // must call this AFTER the AboutToDetachFromServer() call!
 
@@ -1018,8 +1018,8 @@ RemoveAcceptFactory(uint16 port, const ip_address & optInterfaceIP)
    }
 }
 
-status_t 
-ReflectServer :: 
+status_t
+ReflectServer ::
 FinalizeAsyncConnect(const AbstractReflectSessionRef & ref)
 {
    AbstractReflectSession * session = ref();
@@ -1033,7 +1033,7 @@ FinalizeAsyncConnect(const AbstractReflectSessionRef & ref)
    return B_ERROR;
 }
 
-uint64 
+uint64
 ReflectServer ::
 GetNumAvailableBytes() const
 {
@@ -1044,8 +1044,8 @@ GetNumAvailableBytes() const
    return ((uint64)-1);
 #endif
 }
- 
-uint64 
+
+uint64
 ReflectServer ::
 GetMaxNumBytes() const
 {
@@ -1056,8 +1056,8 @@ GetMaxNumBytes() const
    return ((uint64)-1);
 #endif
 }
- 
-uint64 
+
+uint64
 ReflectServer ::
 GetNumUsedBytes() const
 {

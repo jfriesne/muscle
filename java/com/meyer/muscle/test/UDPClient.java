@@ -16,14 +16,14 @@ import com.meyer.muscle.thread.MessageQueue;
 public class UDPClient extends DatagramPacketTransceiver {
 	MessageQueue sendQueue;
 	MessageQueue receiveQueue;
-	
+
 	public UDPClient() throws Exception {
 // Using a slave gateway
 //		super(new DatagramSocket(1234, InetAddress.getLocalHost()), null, MessageIOGatewayFactory.getMessageIOGateway(AbstractMessageIOGateway.MUSCLE_MESSAGE_ENCODING_ZLIB_9));
 // Raw Message I/O
 		super(new DatagramSocket(1234, InetAddress.getLocalHost()));
 		sendQueue = new MessageQueue(this);
-		
+
 		receiveQueue = new MessageQueue(new MessageListener() {
 			public synchronized void messageReceived(Object message, int numLeftInQueue) throws Exception {
 				System.out.println("Received: " + message);
@@ -31,7 +31,7 @@ public class UDPClient extends DatagramPacketTransceiver {
 		});
 		setListenQueue(receiveQueue);
 	}
-	
+
 	public DatagramPacket prepPacket(DatagramPacket packet) {
 		try {
 			packet.setAddress(InetAddress.getLocalHost());
@@ -40,7 +40,7 @@ public class UDPClient extends DatagramPacketTransceiver {
 		packet.setPort(1234);
 		return packet;
 	}
-	
+
 	public static void main(String[] args) {
 		try {
 			UDPClient foo = new UDPClient();

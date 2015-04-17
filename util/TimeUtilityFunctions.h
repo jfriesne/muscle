@@ -40,82 +40,82 @@ namespace muscle {
 /** How many nanoseconds are in one second (1000000000) */
 #define NANOS_PER_SECOND   ((int64)1000000000)
 
-/** Given a value in seconds, returns the equivalent number of nanoseconds. 
+/** Given a value in seconds, returns the equivalent number of nanoseconds.
   * @param s A time value, in seconds.
   */
 inline int64 SecondsToNanos(int64 s)     {return s*NANOS_PER_SECOND;}
 
-/** Given a value in seconds, returns the equivalent number of microseconds. 
+/** Given a value in seconds, returns the equivalent number of microseconds.
   * @param s A time value, in seconds.
   */
 inline int64 SecondsToMicros(int64 s)    {return s*MICROS_PER_SECOND;}
 
-/** Given a value in seconds, returns the equivalent number of milliseconds. 
+/** Given a value in seconds, returns the equivalent number of milliseconds.
   * @param s A time value, in seconds.
   */
 inline int64 SecondsToMillis(int64 s)    {return s*MILLIS_PER_SECOND;}
 
-/** Given a value in milliseconds, returns the equivalent number of nanoseconds. 
+/** Given a value in milliseconds, returns the equivalent number of nanoseconds.
   * @param ms A time value, in milliseconds.
   */
 inline int64 MillisToNanos(int64 ms)     {return ms*(1000*1000);}
 
-/** Given a value in milliseconds, returns the equivalent number of nanoseconds. 
+/** Given a value in milliseconds, returns the equivalent number of nanoseconds.
   * @param ms A time value, in milliseconds.
   */
 inline int64 MillisToMicros(int64 ms)    {return ms*1000;}
 
-/** Given a value in milliseconds, returns the equivalent number of nanoseconds. 
+/** Given a value in milliseconds, returns the equivalent number of nanoseconds.
   * @param ms A time value, in milliseconds.
   */
 inline int64 MillisToSeconds(int64 ms)   {return ms/MILLIS_PER_SECOND;}
 
-/** Given a value in microseconds, returns the equivalent number of nanoseconds. 
+/** Given a value in microseconds, returns the equivalent number of nanoseconds.
   * @param us A time value, in microseconds.
   */
 inline int64 MicrosToNanos(int64 us)     {return us*1000;}
 
-/** Given a value in microseconds, returns the equivalent number of milliseconds. 
+/** Given a value in microseconds, returns the equivalent number of milliseconds.
   * @param us A time value, in microseconds.
   */
 inline int64 MicrosToMillis(int64 us)    {return us/1000;}
 
-/** Given a value in microseconds, returns the equivalent number of seconds. 
+/** Given a value in microseconds, returns the equivalent number of seconds.
   * @param us A time value, in microseconds.
   */
 inline int64 MicrosToSeconds(int64 us)   {return us/MICROS_PER_SECOND;}
 
-/** Given a value in nanoseconds, returns the equivalent number of microseconds. 
+/** Given a value in nanoseconds, returns the equivalent number of microseconds.
   * @param ns A time value, in nanoseconds.
   */
 inline int64 NanosToMicros(int64 ns)     {return ns/1000;}
 
-/** Given a value in nanoseconds, returns the equivalent number of milliseconds. 
+/** Given a value in nanoseconds, returns the equivalent number of milliseconds.
   * @param ns A time value, in nanoseconds.
   */
 inline int64 NanosToMillis(int64 ns)     {return ns/(1000*1000);}
 
-/** Given a value in nanoseconds, returns the equivalent number of seconds. 
+/** Given a value in nanoseconds, returns the equivalent number of seconds.
   * @param ns A time value, in nanoseconds.
   */
 inline int64 NanosToSeconds(int64 ns)    {return ns/NANOS_PER_SECOND;}
 
-/** Given a value in minutes, returns the equivalent number of microseconds. 
+/** Given a value in minutes, returns the equivalent number of microseconds.
   * @param m A time value, in minutes.
   */
 inline int64 MinutesToMicros(int64 m)    {return SecondsToMicros(m*60);}
 
-/** Given a value in hours, returns the equivalent number of microseconds. 
+/** Given a value in hours, returns the equivalent number of microseconds.
   * @param h A time value, in hours.
   */
 inline int64 HoursToMicros(int64 h)      {return MinutesToMicros(h*60);}
 
-/** Given a value in days, returns the equivalent number of microseconds. 
+/** Given a value in days, returns the equivalent number of microseconds.
   * @param d A time value, in days.
   */
 inline int64 DaysToMicros(int64 d)       {return HoursToMicros(d*24);}
 
-/** Given a value in weeks, returns the equivalent number of microseconds. 
+/** Given a value in weeks, returns the equivalent number of microseconds.
   * @param w A time value, in weeks.
   */
 inline int64 WeeksToMicros(int64 w)      {return DaysToMicros(w*7);}
@@ -164,7 +164,7 @@ inline void AddTimeVal(struct timeval & addToThis, const struct timeval & addThi
 /** Convenience function: Subtracts (subtractThis) from (subtractFromThis)
  *  @param subtractFromThis A time value.  On return, this time value will have been modified.
  *  @param subtractThis Another time value, that will be subtracted from (subtractFromThis).
- */ 
+ */
 inline void SubtractTimeVal(struct timeval & subtractFromThis, const struct timeval & subtractThis)
 {
    subtractFromThis.tv_sec  -= subtractThis.tv_sec;
@@ -178,8 +178,8 @@ inline void SubtractTimeVal(struct timeval & subtractFromThis, const struct time
 
 /** Returns the current real-time clock time as a uint64.  The returned value is expressed
  *  as microseconds since the beginning of the year 1970.
- *  @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the value returned will be the current UTC time.  
- *                  If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the returned value will include the proper 
+ *  @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the value returned will be the current UTC time.
+ *                  If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the returned value will include the proper
  *                  offset to make the time be the current time as expressed in this machine's local time zone.
  *                  For any other value, the behaviour of this function is undefined.
  *  @note that the values returned by this function are NOT guaranteed to be monotonically increasing!
@@ -204,8 +204,8 @@ uint64 GetRunTime64();
 
 /** Given a run-time value, returns the equivalent current-time value.
   * @param runTime64 A run-time value, e.g. as returned by GetRunTime64().
-  * @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the value returned will be the equivalent UTC time.  
-  *                 If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the returned value will include the proper 
+  * @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the value returned will be the equivalent UTC time.
+  *                 If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the returned value will include the proper
   *                 offset to make the time be the equivalent time as expressed in this machine's local time zone.
   *                 For any other value, the behaviour of this function is undefined.
   * @returns a current-time value, as might have been returned by GetCurrentTime64(timeType) at the specified run-time.
@@ -216,7 +216,7 @@ inline uint64 GetCurrentTime64ForRunTime64(uint64 runTime64, uint32 timeType=MUS
 
 /** Given a current-time value, returns the equivalent run-time value.
   * @param currentTime64 A current-time value, e.g. as returned by GetCurrentTime64(timeType).
-  * @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the (currentTime64) argument will be interpreted as a UTC time.  
+  * @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the (currentTime64) argument will be interpreted as a UTC time.
   *                 If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the (currentTime64) argument will be interpreted as
   *                 a current-time in this machine's local time zone.
   *                 For any other value, the behaviour of this function is undefined.
@@ -245,7 +245,7 @@ status_t Snooze64(uint64 micros);
 inline bool OnceEvery(const struct timeval & interval, struct timeval & lastTime)
 {
    uint64 now64 = GetRunTime64();
-   struct timeval now; 
+   struct timeval now;
    Convert64ToTimeVal(now64, now);
    if (!IsLessThan(now, lastTime))
    {
@@ -273,7 +273,7 @@ inline bool OnceEvery(uint64 interval, uint64 & lastTime)
    return false;
 }
 
-/** This handy macro will print out, twice a second, 
+/** This handy macro will print out, twice a second,
  *  the average number of times per second it is being called.
  */
 #define PRINT_CALLS_PER_SECOND(x) \

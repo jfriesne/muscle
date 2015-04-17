@@ -1,13 +1,13 @@
 #include "dataio/MultiDataIO.h"
 
 namespace muscle {
- 
+
 int32 MultiDataIO :: Read(void * buffer, uint32 size)
 {
    if (HasChildren())
    {
       int32 ret = GetFirstChild()->Read(buffer, size);
-      if (ret < 0) 
+      if (ret < 0)
       {
          if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1))
          {
@@ -21,7 +21,7 @@ int32 MultiDataIO :: Read(void * buffer, uint32 size)
    return 0;
 }
 
-int32 MultiDataIO :: Write(const void * buffer, uint32 size) 
+int32 MultiDataIO :: Write(const void * buffer, uint32 size)
 {
    int64 newSeekPos       = -1;  // just to shut the compiler up
    uint32 maxWrittenBytes = 0;
@@ -29,14 +29,14 @@ int32 MultiDataIO :: Write(const void * buffer, uint32 size)
    for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--)
    {
       int32 childRet = _childIOs[i]()->Write(buffer, muscleMin(size, minWrittenBytes));
-      if (childRet < 0) 
+      if (childRet < 0)
       {
          if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1)) (void) _childIOs.RemoveItemAt(i);
                                                                else return -1;
       }
       else
       {
-         if ((uint32)childRet < minWrittenBytes) 
+         if ((uint32)childRet < minWrittenBytes)
          {
             minWrittenBytes = childRet;
             newSeekPos      = _childIOs[i]()->GetPosition();
@@ -55,12 +55,12 @@ int32 MultiDataIO :: Write(const void * buffer, uint32 size)
    return (maxWrittenBytes > 0) ? minWrittenBytes : 0;  // the conditional is there in case minWrittenBytes is still MUSCLE_NO_LIMIT
 }
 
-void MultiDataIO :: FlushOutput() 
+void MultiDataIO :: FlushOutput()
 {
    for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--) _childIOs[i]()->FlushOutput();
 }
 
-void MultiDataIO :: WriteBufferedOutput() 
+void MultiDataIO :: WriteBufferedOutput()
 {
    for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--) _childIOs[i]()->WriteBufferedOutput();
 }
@@ -70,7 +70,7 @@ uint32 MultiDataIO :: GetPacketMaximumSize() const
    return (HasChildren()) ? GetFirstChild()->GetPacketMaximumSize() : 0;
 }
 
-bool MultiDataIO :: HasBufferedOutput() const 
+bool MultiDataIO :: HasBufferedOutput() const
 {
    for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--) if (_childIOs[i]()->HasBufferedOutput()) return true;
    return false;
@@ -80,7 +80,7 @@ status_t MultiDataIO :: SeekAll(uint32 first, int64 offset, int whence)
 {
    for (int32 i=_childIOs.GetNumItems()-1; i>=(int32)first; i--)
    {
-      if (_childIOs[i]()->Seek(offset, whence) != B_NO_ERROR) 
+      if (_childIOs[i]()->Seek(offset, whence) != B_NO_ERROR)
       {
          if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1)) (void) _childIOs.RemoveItemAt(i);
                                                                else return B_ERROR;

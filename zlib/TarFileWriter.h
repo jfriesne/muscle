@@ -27,18 +27,18 @@ public:
      * @param append If true, written data will be appended to this file; otherwise
      *               if the file already exists it will be deleted and replaced.
      * This constructor is equivalent to the default constructor, plus calling SetFile().
-     */ 
+     */
    TarFileWriter(const char * outputFileName, bool append);
 
    /** Constructor.
      * @param dio Reference to a DataIO to use to write data out.
      * This constructor is equivalent to the default constructor, plus calling SetFile().
-     */ 
+     */
    TarFileWriter(const DataIORef & dio);
 
    /** Destructor. */
    ~TarFileWriter();
-   
+
    /** Closes the current file (if any is open) and returns to the just-default-constructed state.
      * @returns B_NO_ERROR on success, or B_ERROR if there was an error writing out header data.
      *          Note that the file will always be closed, even if we return B_ERROR.
@@ -49,12 +49,12 @@ public:
      * @param outputFileName Name/path of the .tar file to write to
      * @param append If true, new written data will be appended to the existing file; otherwise
      *               if the file already exists it will be deleted and replaced.
-     */ 
+     */
    status_t SetFile(const char * outputFileName, bool append);
 
    /** Closes the currently open file (if any) and uses the specified DataIO instead.
      * @param dioRef Reference to The DataIORef to use to output .tar data to, or a NULL Ref to close only.
-     */ 
+     */
    void SetFile(const DataIORef & dioRef);
 
    /** Writes a .tar header fle-block with the given information.
@@ -69,9 +69,9 @@ public:
      */
    status_t WriteFileHeader(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkedFileName);
 
-   /** Writes (numBytes) of data into the current file block.  
+   /** Writes (numBytes) of data into the current file block.
      * Three must be a file-header currently active for this call to succeed.
-     * @param fileData Pointer to some data bytes to write into the tar file.  
+     * @param fileData Pointer to some data bytes to write into the tar file.
      * @param numBytes How many bytes (fileData) points to.
      * @returns B_NO_ERROR on success, or B_ERROR on failure.
      */

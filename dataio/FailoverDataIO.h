@@ -7,7 +7,7 @@
 #include "util/Queue.h"
 
 namespace muscle {
- 
+
 class FailoverDataIO;
 
 /** This class represents any object that can receive a callback notification that a failover has occurred. */
@@ -29,7 +29,7 @@ public:
 /** This DataIO holds a list of one or more other DataIO objects, and uses the only
   * first one until an error occurs.  If an error occurs, it will discard the first
   * held DataIO and start using the second one instead (and so on).  This is useful
-  * for providing automatic failover/redundancy for important connections. 
+  * for providing automatic failover/redundancy for important connections.
   */
 class FailoverDataIO : public DataIO, private CountedObject<FailoverDataIO>
 {
@@ -55,7 +55,7 @@ public:
       return -1;
    }
 
-   virtual int32 Write(const void * buffer, uint32 size) 
+   virtual int32 Write(const void * buffer, uint32 size)
    {
       while(HasChild())
       {
@@ -102,19 +102,19 @@ public:
    /** Returns a read/write reference to our list of child DataIO objects. */
    Queue<DataIORef> & GetChildDataIOs() {return _childIOs;}
 
-   /** Called whenever a child DataIO reports an error.  Default implementation 
+   /** Called whenever a child DataIO reports an error.  Default implementation
      * removes the first DataIORef from the queue, prints an error to the log,
-     * and calls DataIOFailover() on the current failover notification target 
-     * (if any; see SetFailoverNotifyTarget() for details) 
+     * and calls DataIOFailover() on the current failover notification target
+     * (if any; see SetFailoverNotifyTarget() for details)
      */
-   virtual void Failover() 
+   virtual void Failover()
    {
       (void) _childIOs.RemoveHead();
       if (HasChild()) LogTime(_logErrorLevel, "FailoverDataIO:  Child IO errored out, failing over to next child ("UINT32_FORMAT_SPEC" children left)!\n", _childIOs.GetNumItems());
                  else LogTime(_logErrorLevel, "FailoverDataIO:  Child IO errored out, no backup children left!\n");
       if (_target) _target->DataIOFailover(*this);
    }
-   
+
    /** Call this to set the object that we should call DataIOFailover() on when a failover occurs. */
    void SetFailoverNotifyTarget(IFailoverNotifyTarget * t) {_target = t;}
 

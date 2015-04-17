@@ -33,7 +33,7 @@ public:
      *                            Otherwise, our destructor will leave (signalHandle) open.
      */
    Win32MessageTransceiverThread(::HANDLE signalHandle, bool closeHandleWhenDone) : _replyThreadID(0), _signalValue(0), _signalHandle(signalHandle), _closeHandleWhenDone(closeHandleWhenDone) {/* empty */}
-   
+
    /**
     *  Destructor.  You will generally want to call ShutdownInternalThread()
     *  before destroying this object.
@@ -61,8 +61,8 @@ public:
    /** Returns the reply thread ID that was passed in to our constructor, or 0 if there wasn't one. */
    DWORD GetReplyThreadID() const {return _replyThreadID;}
 
-   /** Used to set the reply thread ID when the constructor call isn't appropriate. 
-     * @param replyThreadID The new thread ID to call PostThreadMessage() on to signal the user thread. 
+   /** Used to set the reply thread ID when the constructor call isn't appropriate.
+     * @param replyThreadID The new thread ID to call PostThreadMessage() on to signal the user thread.
      *                      This value is only used if the SignalHandle value is set to INVALID_HANDLE_VALUE.
      */
    void SetReplyThreadID(DWORD replyThreadID) {_replyThreadID = replyThreadID;}
@@ -77,9 +77,9 @@ public:
 
 protected:
    /** Overridden to send a signal the specified windows thread */
-   virtual void SignalOwner() 
+   virtual void SignalOwner()
    {
-      if (_signalHandle != INVALID_HANDLE_VALUE) SetEvent(_signalHandle); 
+      if (_signalHandle != INVALID_HANDLE_VALUE) SetEvent(_signalHandle);
                                             else PostThreadMessage(_replyThreadID, _signalValue, 0, 0);
    }
 
@@ -118,7 +118,7 @@ private:
   *                      printf("Received Message from network!\n");
   *                      if (nextMsgRef()) nextMsgRef()->PrintToStream();
   *                   break;
-  *                
+  *
   *                   case MTT_EVENT_SESSION_CONNECTED:
   *                      printf("Connected to remote peer complete!\n");
   *                   break;
@@ -163,7 +163,7 @@ private:
   *                      printf("Received Message from network!\n");
   *                      if (nextMsgRef()) nextMsgRef()->PrintToStream();
   *                   break;
-  *                
+  *
   *                   case MTT_EVENT_SESSION_CONNECTED:
   *                      printf("Connected to remote peer complete!\n");
   *                   break;

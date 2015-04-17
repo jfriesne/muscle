@@ -14,7 +14,7 @@ namespace muscle {
   *
   * The QSocket object emits signals whenever it receives data, which you
   * can connect to your Muscle client. eg.
-  *                         
+  *
   *  connect(muscleSocket, SIGNAL(hostFound()), SLOT(slotHostFound()));
   *  connect(muscleSocket, SIGNAL(connected()), SLOT(slotConnected()));
   *  connect(muscleSocket, SIGNAL(readyRead()), SLOT(slotReadyRead()));
@@ -25,9 +25,9 @@ namespace muscle {
   *
   * @author Jonathon Padfield
   */
-class QSocketDataIO : public DataIO  
+class QSocketDataIO : public DataIO
 {
-public: 
+public:
    /** Class constructor.
     *  @param newSocket a QSocket object that was allocated off the heap.  This object becomes owner of newSocket.
     */
@@ -36,7 +36,7 @@ public:
    /** Destructor - deletes the held QSocket (if any) */
    virtual ~QSocketDataIO() {Shutdown();}
 
-   /** Reads up to (size) bytes of new data from the QSocket into (buffer).  
+   /** Reads up to (size) bytes of new data from the QSocket into (buffer).
     *  Returns the actual number of bytes placed, or a negative value if there
     *  was an error.
     *  @param buffer Buffer to write the bytes into

@@ -13,7 +13,7 @@ namespace muscle {
 /** The 'what' code that will be found in incoming Messages. */
 #define PR_COMMAND_RAW_DATA 1919181923 // 'rddc'
 
-/** 
+/**
  * This gateway is very crude; it can be used to write raw data to a TCP socket, and
  * to retrieve data from the socket in chunks of a specified size range.
  */
@@ -65,9 +65,9 @@ private:
    uint32 _maxChunkSize;
 };
 
-/** 
+/**
  * This class is the same as a RawDataMessageIOGateway, except that it is instrumented
- * to keep track of the number of bytes of raw data currently in its outgoing-Message 
+ * to keep track of the number of bytes of raw data currently in its outgoing-Message
  * queue.
  */
 class CountedRawDataMessageIOGateway : public RawDataMessageIOGateway
@@ -83,7 +83,7 @@ public:
 
 protected:
    virtual MessageRef PopNextOutgoingMessage();
- 
+
 private:
    uint32 GetNumRawBytesInMessage(const MessageRef & messageRef) const;
 

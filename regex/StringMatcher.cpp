@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "regex/StringMatcher.h"
@@ -22,7 +22,7 @@ StringMatcherRef GetStringMatcherFromPool(const String & matchString, bool isSim
 StringMatcher::StringMatcher() : _bits(0)
 {
    // empty
-} 
+}
 
 StringMatcher :: StringMatcher(const String & str, bool simple) : _bits(0)
 {
@@ -53,7 +53,7 @@ StringMatcher & StringMatcher :: operator = (const StringMatcher & rhs)
    return *this;
 }
 
-status_t StringMatcher :: SetPattern(const String & s, bool isSimple) 
+status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
 {
    TCHECKPOINT;
 
@@ -97,7 +97,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
                   if (dash)
                   {
                      String beforeDash;
-                     if (dash>clause) {beforeDash.SetCstr(clause, dash-clause); beforeDash = beforeDash.Trim();}
+                     if (dash>clause) {beforeDash.SetCstr(clause, (int32)(dash-clause)); beforeDash = beforeDash.Trim();}
 
                      String afterDash(dash+1); afterDash = afterDash.Trim();
 
@@ -105,7 +105,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
                      if (afterDash.HasChars())  max = atoi(afterDash());
                   }
                   else if (clause[0] != '>') min = max = atoi(String(clause).Trim()());
-                  
+
                   _ranges.AddTail(IDRange(min,max));
                }
             }
@@ -173,7 +173,7 @@ bool StringMatcher :: Match(const char * const str) const
    else if (muscleInRange(str[0], '0', '9'))
    {
       uint32 id = (uint32) atoi(str);
-      for (uint32 i=0; i<_ranges.GetNumItems(); i++) 
+      for (uint32 i=0; i<_ranges.GetNumItems(); i++)
       {
          const IDRange & r = _ranges[i];
          if (muscleInRange(id, r.GetMin(), r.GetMax())) {ret = true; break;}
@@ -192,15 +192,15 @@ String StringMatcher :: ToString() const
    else
    {
       s += '<';
-      for (uint32 i=0; i<_ranges.GetNumItems(); i++) 
+      for (uint32 i=0; i<_ranges.GetNumItems(); i++)
       {
          if (i > 0) s += ',';
          const IDRange & r = _ranges[i];
          uint32 min = r.GetMin();
          uint32 max = r.GetMax();
          char buf[128];
-         if (max > min) sprintf(buf, UINT32_FORMAT_SPEC "-" UINT32_FORMAT_SPEC, min, max);
-                   else sprintf(buf, UINT32_FORMAT_SPEC, min);
+         if (max > min) muscleSprintf(buf, UINT32_FORMAT_SPEC "-" UINT32_FORMAT_SPEC, min, max);
+                   else muscleSprintf(buf, UINT32_FORMAT_SPEC, min);
          s += buf;
       }
       s += '>';
@@ -218,8 +218,8 @@ bool IsRegexToken(char c, bool isFirstCharInString)
         return true;
 
       case '<': case '~':   // these chars are only special if they are the first character in the string
-         return isFirstCharInString; 
- 
+         return isFirstCharInString;
+
       default:
          return false;
    }
@@ -264,7 +264,7 @@ bool HasRegexTokens(const char * str)
    while(*str)
    {
       if (IsRegexToken(*str, isFirst)) return true;
-      else 
+      else
       {
          str++;
          isFirst = false;
@@ -302,14 +302,14 @@ bool MakeRegexCaseInsensitive(String & str)
      if ((next >= 'A')&&(next <= 'Z'))
      {
         char buf[5];
-        sprintf(buf, "[%c%c]", next, next+('a'-'A'));
+        muscleSprintf(buf, "[%c%c]", next, next+('a'-'A'));
         ret += buf;
         changed = true;
      }
      else if ((next >= 'a')&&(next <= 'z'))
      {
         char buf[5];
-        sprintf(buf, "[%c%c]", next, next+('A'-'a'));
+        muscleSprintf(buf, "[%c%c]", next, next+('A'-'a'));
         ret += buf;
         changed = true;
      }

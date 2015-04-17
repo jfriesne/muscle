@@ -36,13 +36,13 @@ if os.name == 'nt':
     ENOTCONN    = 10057
     ESHUTDOWN   = 10058
 else:
-    from errno import EALREADY, EINPROGRESS, EWOULDBLOCK, ECONNRESET, ENOTCONN, ESHUTDOWN 
+    from errno import EALREADY, EINPROGRESS, EWOULDBLOCK, ECONNRESET, ENOTCONN, ESHUTDOWN
 
 class MessageTransceiverThread(threading.Thread):
    """Python implementation of the MUSCLE MessageTransceiverThread class.
 
    This class represents an asynchronous TCP connection over which MUSCLE Messages may be sent and received
-   asynchronously, without ever blocking the main thread of execution.  When the TCP connection is established, 
+   asynchronously, without ever blocking the main thread of execution.  When the TCP connection is established,
    you will be notified with an MTT_EVENT_CONNECTED event.  When the TCP connection fails or is broken, you will
    be notified with an MTT_EVENT_DISCONNECTED event.  Whenever a Message is received over the TCP connection,
    you will get a Message object as your notification.  (See GetNextIncomingEvent() for details on notification).
@@ -52,7 +52,7 @@ class MessageTransceiverThread(threading.Thread):
       """This constructor creates a MessageTransceiverThread that does an outgoing TCP connection.
 
       (hostname) is the hostname (or IP address string) of the host to connect to (e.g. "www.meyersound.com"
-                 or "132.239.50.8" or etc).  If (hostname) is set to None, then this MessageTransceiverThread will 
+                 or "132.239.50.8" or etc).  If (hostname) is set to None, then this MessageTransceiverThread will
                  be configured to accept incoming TCP connections, instead of initiating an outgoing one.
       (port) is the port number to connect to or accept on (e.g. 2960 is the default MUSCLE server port).
              If you are accepting, and (port) is set to zero, the system will choose a port number for you.
@@ -115,7 +115,7 @@ class MessageTransceiverThread(threading.Thread):
    def Destroy(self):
       """Shuts down the internal thread, closes any TCP connection and releases all held resources.
 
-         Call this method when you are done using this object forever and want it to go away.  
+         Call this method when you are done using this object forever and want it to go away.
          This method is typically called by your main thread of execution."""
       if (self.__outQ != None):
          self.SendOutgoingMessage(self._endSession)  # special 'please die' code
@@ -134,7 +134,7 @@ class MessageTransceiverThread(threading.Thread):
       return self.__port
 
    def GetNextIncomingEvent(self, block=0):
-      """Returns the next incoming event object, or None if the incoming-event-queue is empty.  
+      """Returns the next incoming event object, or None if the incoming-event-queue is empty.
 
          Incoming event objects will be one of the following three things:
             MTT_EVENT_CONNECTED    - TCP connection has been established
@@ -150,19 +150,19 @@ class MessageTransceiverThread(threading.Thread):
          return None
 
    def GetNotificationSocket(self):
-      """Returns a socket that your main thread may select() or recv() on to wait for incoming network events.  
+      """Returns a socket that your main thread may select() or recv() on to wait for incoming network events.
 
-         Whenever a new event is ready, a byte will be sent to this socket.  Recv() it, then call 
-         GetNextIncomingEvent() repeatedly to get all the new events, until it returns None.  
-         Note:  please do not close() or write to this socket; it is still owned by (and used by) 
+         Whenever a new event is ready, a byte will be sent to this socket.  Recv() it, then call
+         GetNextIncomingEvent() repeatedly to get all the new events, until it returns None.
+         Note:  please do not close() or write to this socket; it is still owned by (and used by)
                 this MessageTransceiverThread object."""
       return self.__mainsocket
 
    def NotifyMainThread(self):
-      """This method is called by the MessageTransceiverThread's internal thread whenever 
+      """This method is called by the MessageTransceiverThread's internal thread whenever
          it wants to notify the main thread that there is a new event ready for the main
-         thread to process.  This method's default behaviour is to send a byte to the 
-         notification socket (see GetNotificationSocket(), above), which will wake up 
+         thread to process.  This method's default behaviour is to send a byte to the
+         notification socket (see GetNotificationSocket(), above), which will wake up
          the main thread if the main thread is blocking on that socket (via recv() or
          select() or whatnot).  However, if you wish to wake up the main thread using a
          different mechanism, feel free to override this method to do something more appropriate."""
@@ -346,11 +346,11 @@ if __name__ == "__main__":
          MessageTransceiverThread.__init__(self, hostname, port)
 
       # Overridden to merely dequeue and print out any new incoming Messages or events.
-      # Note that this isn't usually the best way to handle incoming events in a 'real' 
+      # Note that this isn't usually the best way to handle incoming events in a 'real'
       # program, since this method is executed in the internal network thread and not in
       # the main thread.  In a more complex program, doing stuff here could easily lead
-      # to race conditions.  Therefore, a better-written program would notify the main 
-      # thread, and the main thread would respond by picking up the queued events and    
+      # to race conditions.  Therefore, a better-written program would notify the main
+      # thread, and the main thread would respond by picking up the queued events and
       # handle them locally, instead.  But this will do, for testing.
       # (see pythonchat.py for an example of a program that does things the right way)
       def NotifyMainThread(self):
@@ -395,7 +395,7 @@ if __name__ == "__main__":
          mtt.Destroy()
          print "Bye bye!"
          sys.exit()
-      else: 
+      else:
          m = message.Message(666)
          m.PutString("special message!", nextline)
          mtt.SendOutgoingMessage(m)

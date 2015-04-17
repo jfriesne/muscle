@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "regex/SegmentedStringMatcher.h"
@@ -20,7 +20,7 @@ SegmentedStringMatcherRef GetSegmentedStringMatcherFromPool(const String & match
 SegmentedStringMatcher::SegmentedStringMatcher() : _negate(false)
 {
    // empty
-} 
+}
 
 SegmentedStringMatcher :: SegmentedStringMatcher(const String & str, bool simple, const char * sc) : _negate(false)
 {
@@ -35,12 +35,12 @@ SegmentedStringMatcher :: ~SegmentedStringMatcher()
 void SegmentedStringMatcher :: Clear()
 {
    _negate = false;
-   _pattern.Clear();   
-   _sepChars.Clear();   
+   _pattern.Clear();
+   _sepChars.Clear();
    _segments.Clear();
 }
 
-status_t SegmentedStringMatcher::SetPattern(const String & s, bool isSimple, const char * sc) 
+status_t SegmentedStringMatcher::SetPattern(const String & s, bool isSimple, const char * sc)
 {
    Clear();
 
@@ -66,7 +66,7 @@ status_t SegmentedStringMatcher::SetPattern(const String & s, bool isSimple, con
 bool SegmentedStringMatcher::MatchAux(const char * const str) const
 {
    StringTokenizer tok(str, _sepChars());
-   for (uint32 i=0; i<_segments.GetNumItems(); i++) 
+   for (uint32 i=0; i<_segments.GetNumItems(); i++)
    {
       const char * t = tok();
       if (t == NULL) return false;
@@ -82,11 +82,11 @@ String SegmentedStringMatcher :: ToString() const
    String ret;
    for (uint32 i=0; i<_segments.GetNumItems(); i++)
    {
-      if (ret.HasChars()) ret += '/'; 
+      if (ret.HasChars()) ret += '/';
       const StringMatcher * sm = _segments[i]();
       ret += sm ? sm->ToString() : "*";
    }
-   return ret; 
+   return ret;
 }
 
 }; // end namespace muscle

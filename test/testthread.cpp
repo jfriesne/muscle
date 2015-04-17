@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "system/Thread.h"
@@ -33,7 +33,7 @@ public:
 };
 
 // This program exercises the Thread class.
-int main(void) 
+int main(void)
 {
    CompleteSetupSystem css;
 

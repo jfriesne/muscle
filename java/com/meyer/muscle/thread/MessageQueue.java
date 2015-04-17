@@ -6,9 +6,9 @@ import com.meyer.muscle.queue.Queue;
 /** This object represents a "thread" of message processing.
  *  Anyone may post a message to it at any time, and it will
  *  queue up incoming messages and dole them out to its listeners,
- *  asynchronously but in order.  Each listener is guaranteed 
- *  to see the message objects in the order they were posted to 
- *  the MessageQueue, but when there are multiple MessageListeners, 
+ *  asynchronously but in order.  Each listener is guaranteed
+ *  to see the message objects in the order they were posted to
+ *  the MessageQueue, but when there are multiple MessageListeners,
  *  their messageReceived() callbacks will be called in parallel.
  */
 public class MessageQueue implements MessageListener, Runnable
@@ -33,7 +33,7 @@ public class MessageQueue implements MessageListener, Runnable
 
       // start the processing thread if it isn't already going
       if (_threadActive == false)
-      {      
+      {
          _threadActive = true;
          ((_threadPool != null) ? _threadPool : ThreadPool.getDefaultThreadPool()).startThread(this);
       }
@@ -52,22 +52,22 @@ public class MessageQueue implements MessageListener, Runnable
       }
    }
 
-   /** Add a listener to our listeners list 
+   /** Add a listener to our listeners list
     *  Note:  Done asynchronously.
     */
    public void addListener(MessageListener listener) {postMessage(new ListControlMessage(listener, true));}
 
-   /** Remove a listener from our listeners list 
+   /** Remove a listener from our listeners list
     *  Note:  Done asynchronously.
     */
    public void removeListener(MessageListener listener) {postMessage(new ListControlMessage(listener, false));}
 
-   /** Remove all listeners from our listeners list. 
+   /** Remove all listeners from our listeners list.
     *  Note:  Done asynchronously.
     */
    public void clearListeners(MessageListener listener) {postMessage(new ListControlMessage(null, false));}
 
-   /** Called on all attached MessageListeners whenever a MessageQueue receives a message. 
+   /** Called on all attached MessageListeners whenever a MessageQueue receives a message.
     *  This implementation simply calls postMessage(message).  It is here so you can
     *  chain MessageQueues together by adding them as MessageListeners to one another.
     *  @param message The received message object (may be any Java class).
@@ -80,8 +80,8 @@ public class MessageQueue implements MessageListener, Runnable
     *  @param tp The ThreadPool to get Thread objects from, or null if you wish to use the default again.
     */
    public synchronized void setThreadPool(ThreadPool tp) {_threadPool = tp;}
-   
-   /** Implementation detail, please ignore this. */ 
+
+   /** Implementation detail, please ignore this. */
    public void run()
    {
       synchronized(this)
@@ -101,36 +101,36 @@ public class MessageQueue implements MessageListener, Runnable
       {
          Object nextMessage;
          int messagesLeft;
- 
+
          // Grab the next message out of the message queue
-         synchronized(this) 
+         synchronized(this)
          {
             if (_messageQueue.size() > 0)
             {
                nextMessage  = _messageQueue.removeFirstElement();
-               messagesLeft = _messageQueue.size();  
+               messagesLeft = _messageQueue.size();
             }
-            else 
+            else
             {
                _threadActive = false;
                _myThread = null;
                break;   // bye bye!
             }
          }
-     
+
          // Process the message (unsynchronized)
          if (nextMessage instanceof ListControlMessage)
          {
             ListControlMessage lcm = (ListControlMessage) nextMessage;
-            if (lcm._add) 
+            if (lcm._add)
             {
                if (_listeners != null) _listeners.appendElement(new MessageQueue(lcm._listener));
-               else  
+               else
                {
-                  if (_listener != null) 
+                  if (_listener != null)
                   {
                      // convert to multi-listener (asynchronous) mode
-                     _listeners = new Queue(); 
+                     _listeners = new Queue();
                      _listeners.appendElement(new MessageQueue(_listener));
                      _listeners.appendElement(new MessageQueue(lcm._listener));
                      _listener = null;
@@ -140,7 +140,7 @@ public class MessageQueue implements MessageListener, Runnable
             }
             else
             {
-               if (lcm._listener != null) 
+               if (lcm._listener != null)
                {
                   if (_listeners != null)
                   {
@@ -161,8 +161,8 @@ public class MessageQueue implements MessageListener, Runnable
                   }
                   else if (_listener == lcm._listener) _listener = null;
                }
-               else 
-               {   
+               else
+               {
                   _listeners = null;
                   _listener  = null;
                }
@@ -170,7 +170,7 @@ public class MessageQueue implements MessageListener, Runnable
          }
          else
          {
-            if (_listener != null) 
+            if (_listener != null)
             {
                try {
                   _listener.messageReceived(nextMessage, messagesLeft);
@@ -179,9 +179,9 @@ public class MessageQueue implements MessageListener, Runnable
                   ex.printStackTrace();
                }
             }
-            else if (_listeners != null) 
+            else if (_listeners != null)
             {
-               for (int i=_listeners.size()-1; i>=0; i--) 
+               for (int i=_listeners.size()-1; i>=0; i--)
                {
                   try {
                      ((MessageQueue)_listeners.elementAt(i)).messageReceived(nextMessage, messagesLeft);
@@ -203,12 +203,12 @@ public class MessageQueue implements MessageListener, Runnable
    {
       public ThreadInterruptor(Thread thread) {_thread = thread;}
       public void run() {_thread.interrupt();}
-   
+
       private Thread _thread;
    }
 
    /** Message class used to add or remove listeners */
-   private class ListControlMessage 
+   private class ListControlMessage
    {
       public ListControlMessage(MessageListener l, boolean add)
       {
@@ -219,7 +219,7 @@ public class MessageQueue implements MessageListener, Runnable
       public MessageListener _listener;
       public boolean _add;
    }
-   
+
    private Queue _messageQueue = new Queue();      // shared (synchronized this)
    private MessageListener _listener = null;       // used if we have exactly one listener
    private Queue _listeners = null;                // used if we have more than one listener

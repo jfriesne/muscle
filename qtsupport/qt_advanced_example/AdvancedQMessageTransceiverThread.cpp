@@ -8,7 +8,7 @@
 
 using namespace muscle;
 
-// Overridden to handle messages coming from the ThreadSupervisorSession (and therefore 
+// Overridden to handle messages coming from the ThreadSupervisorSession (and therefore
 // by extension, from the GUI thread)
 void AdvancedThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void * userData)
 {
@@ -45,7 +45,7 @@ AdvancedQMessageTransceiverThread :: AdvancedQMessageTransceiverThread()
 {
    // We want our ThreadWorkerSessions to handle Messages from their remote peers themselves, not just
    // forward all incoming Messages to the GUI thread, so we'll tell the MessageTransceiverThread that.
-   SetForwardAllIncomingMessagesToSupervisor(false); 
+   SetForwardAllIncomingMessagesToSupervisor(false);
 
    // Set up a factory to accept incoming TCP connections on our port, for remote sessions to use to connect to us
    if (PutAcceptFactory(ADVANCED_EXAMPLE_PORT, ThreadWorkerSessionFactoryRef(newnothrow AdvancedThreadWorkerSessionFactory)) != B_NO_ERROR) printf("AdvancedQMessageTransceiverThread ctor:  Error, couldn't create accept-factory on port %i!\n", ADVANCED_EXAMPLE_PORT);

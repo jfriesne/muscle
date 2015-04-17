@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "system/SetupSystem.h"
@@ -10,7 +10,7 @@ using namespace muscle;
 static float GetDiffHours(uint64 t1, uint64 t2) {return (float) ((double)((int64)t1 - (int64) t2))/(60.0 * 60.0 * (double)MICROS_PER_SECOND);}
 
 // This program is used to test out muscle's time/date interpretation functions
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 

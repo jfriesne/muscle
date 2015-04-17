@@ -9,19 +9,19 @@ PulseNode :: PulseNode() : _parent(NULL), _aggregatePulseTime(MUSCLE_TIME_NEVER)
    for (uint32 i=0; i<NUM_LINKED_LISTS; i++) _firstChild[i] = _lastChild[i] = NULL;
 }
 
-PulseNode :: ~PulseNode() 
+PulseNode :: ~PulseNode()
 {
    // unlink everybody, but don't delete anyone; no ownership is implied here!
    if (_parent) _parent->RemovePulseChild(this);
    ClearPulseChildren();
 }
 
-uint64 PulseNode :: GetPulseTime(const PulseArgs &) 
+uint64 PulseNode :: GetPulseTime(const PulseArgs &)
 {
    return MUSCLE_TIME_NEVER;
 }
 
-void PulseNode :: Pulse(const PulseArgs &) 
+void PulseNode :: Pulse(const PulseArgs &)
 {
    // empty
 }
@@ -39,7 +39,7 @@ void PulseNode :: InvalidatePulseTime(bool clearPrevResult)
 void PulseNode :: GetPulseTimeAux(uint64 now, uint64 & min)
 {
    // First, update myself, if necessary...
-   if (_myScheduledTimeValid == false) 
+   if (_myScheduledTimeValid == false)
    {
       _myScheduledTimeValid = true;
       _myScheduledTime = GetPulseTime(PulseArgs(now, _myScheduledTime));
@@ -60,7 +60,7 @@ void PulseNode :: GetPulseTimeAux(uint64 now, uint64 & min)
 
 void PulseNode :: PulseAux(uint64 now)
 {
-   if ((_myScheduledTimeValid)&&(now >= _myScheduledTime)) 
+   if ((_myScheduledTimeValid)&&(now >= _myScheduledTime))
    {
       Pulse(PulseArgs(now, _myScheduledTime));
       _myScheduledTimeValid = false;
@@ -153,7 +153,7 @@ void PulseNode :: ReschedulePulseChild(PulseNode * child, int whichList)
 
          case LINKED_LIST_NEEDSRECALC:
             if (_parent) _parent->ReschedulePulseChild(this, LINKED_LIST_NEEDSRECALC);  // if our child is rescheduled that reschedules us too!
-         case LINKED_LIST_UNSCHEDULED: 
+         case LINKED_LIST_UNSCHEDULED:
          {
             // These lists are unsorted, so we can just quickly append the child to the head of the list
             if (_firstChild[whichList])

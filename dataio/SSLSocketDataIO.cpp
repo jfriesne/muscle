@@ -50,19 +50,19 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
    if (ok == false) Shutdown();  // might as well clean up now
 }
 
-SSLSocketDataIO :: ~SSLSocketDataIO() 
+SSLSocketDataIO :: ~SSLSocketDataIO()
 {
    Shutdown();
 }
 
-void SSLSocketDataIO :: Shutdown() 
+void SSLSocketDataIO :: Shutdown()
 {
    if (_ssl)  {SSL_shutdown(CAST_SSL); SSL_free(CAST_SSL); _ssl = NULL;}
    if (_ctx)  {SSL_CTX_free(CAST_CTX); _ctx = NULL;}
    TCPSocketDataIO::Shutdown();
 }
 
-status_t SSLSocketDataIO :: SetPrivateKey(const char * path) 
+status_t SSLSocketDataIO :: SetPrivateKey(const char * path)
 {
    return ((_ssl)&&(SSL_use_PrivateKey_file(CAST_SSL, path, SSL_FILETYPE_PEM) == 1)) ? B_NO_ERROR : B_ERROR;
 }
@@ -87,11 +87,11 @@ status_t SSLSocketDataIO :: SetPrivateKey(const uint8 * bytes, uint32 numBytes)
    return ret;
 }
 
-status_t SSLSocketDataIO :: SetPublicKeyCertificate(const char * path) 
+status_t SSLSocketDataIO :: SetPublicKeyCertificate(const char * path)
 {
    if (_ssl == NULL) return B_ERROR;
 
-   FileDataIO fdio(fopen(path, "rb"));
+   FileDataIO fdio(muscleFopen(path, "rb"));
    if (fdio.GetFile() == NULL) return B_ERROR;
 
    ByteBufferRef buf = GetByteBufferFromPool((uint32)fdio.GetLength());
@@ -99,7 +99,7 @@ status_t SSLSocketDataIO :: SetPublicKeyCertificate(const char * path)
 }
 
 status_t SSLSocketDataIO :: SetPublicKeyCertificate(const uint8 * bytes, uint32 numBytes)
-{       
+{
    return _ssl ? SetPublicKeyCertificate(GetByteBufferFromPool(numBytes, bytes)) : B_ERROR;
 }
 
@@ -115,7 +115,7 @@ status_t SSLSocketDataIO :: SetPublicKeyCertificate(const ConstByteBufferRef & b
       X509 * x509Cert = PEM_read_bio_X509(in, NULL, CAST_SSL->ctx->default_passwd_callback, CAST_SSL->ctx->default_passwd_callback_userdata);
       if (x509Cert)
       {
-         if (SSL_use_certificate(CAST_SSL, x509Cert) == 1) 
+         if (SSL_use_certificate(CAST_SSL, x509Cert) == 1)
          {
             _publicKey = buf;
             ret = B_NO_ERROR;
@@ -127,7 +127,7 @@ status_t SSLSocketDataIO :: SetPublicKeyCertificate(const ConstByteBufferRef & b
    return ret;
 }
 
-int32 SSLSocketDataIO :: Read(void *buffer, uint32 size) 
+int32 SSLSocketDataIO :: Read(void *buffer, uint32 size)
 {
    if (_ssl == NULL) return -1;
 
@@ -144,7 +144,7 @@ int32 SSLSocketDataIO :: Read(void *buffer, uint32 size)
          _sslState |=  SSL_STATE_READ_WANTS_WRITEABLE_SOCKET;
          bytes = 0;
       }
-      else if (err == SSL_ERROR_WANT_READ) 
+      else if (err == SSL_ERROR_WANT_READ)
       {
          // We have to wait until our socket is readable, and then repeat our SSL_read() call.
          _sslState |=  SSL_STATE_READ_WANTS_READABLE_SOCKET;
@@ -160,7 +160,7 @@ int32 SSLSocketDataIO :: Read(void *buffer, uint32 size)
    return bytes;
 }
 
-int32 SSLSocketDataIO :: Write(const void *buffer, uint32 size) 
+int32 SSLSocketDataIO :: Write(const void *buffer, uint32 size)
 {
    if (_ssl == NULL) return -1;
 
@@ -184,7 +184,7 @@ int32 SSLSocketDataIO :: Write(const void *buffer, uint32 size)
          _sslState |=  SSL_STATE_WRITE_WANTS_WRITEABLE_SOCKET;
          bytes = 0;
       }
-      else 
+      else
       {
          fprintf(stderr,"SSL_write() ERROR!");
          ERR_print_errors_fp(stderr);
@@ -193,7 +193,7 @@ int32 SSLSocketDataIO :: Write(const void *buffer, uint32 size)
    return bytes;
 }
 
-const ConstSocketRef & SSLSocketDataIO :: GetReadSelectSocket() const 
+const ConstSocketRef & SSLSocketDataIO :: GetReadSelectSocket() const
 {
    return ((_forceReadReady)||((_ssl)&&(SSL_pending(CAST_SSL)>0))) ? _alwaysReadableSocket : TCPSocketDataIO::GetReadSelectSocket();
 }

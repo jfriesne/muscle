@@ -11,7 +11,7 @@ public:
 
    virtual void NetworkInterfacesChanged(const Hashtable<String, Void> & interfaceNames)
    {
-      String s; 
+      String s;
       if (interfaceNames.HasItems())
       {
          s = " on these interfaces: ";
@@ -31,7 +31,7 @@ public:
    }
 };
 
-int main(int /*argc*/, char ** /*argv*/) 
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;  // set up our environment
 

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <limits.h>   // for PATH_MAX
 #include "dataio/ChildProcessDataIO.h"
@@ -101,10 +101,10 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
             {
                SafeCloseHandle(childStdinWrite);  // we'll use the dup from now on
 
-               PROCESS_INFORMATION piProcInfo; 
+               PROCESS_INFORMATION piProcInfo;
                memset(&piProcInfo, 0, sizeof(piProcInfo));
 
-               STARTUPINFOA siStartInfo;         
+               STARTUPINFOA siStartInfo;
                {
                   memset(&siStartInfo, 0, sizeof(siStartInfo));
                   siStartInfo.cb         = sizeof(siStartInfo);
@@ -130,7 +130,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                   _childThread    = piProcInfo.hThread;
 
                   if (_blocking) return B_NO_ERROR;  // done!
-                  else 
+                  else
                   {
                      // For non-blocking, we must have a separate proxy thread do the I/O for us :^P
                      _wakeupSignal = CreateEvent(0, false, false, 0);
@@ -180,7 +180,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       // New-fangled forkpty() implementation
       int masterFD = -1;
       pid = forkpty(&masterFD, NULL, NULL, NULL);
-           if (pid > 0) _handle = GetConstSocketRefFromPool(masterFD); 
+           if (pid > 0) _handle = GetConstSocketRefFromPool(masterFD);
       else if (pid == 0)
       {
          // Turn off the echo, we don't want to see that back on stdout
@@ -266,7 +266,7 @@ bool ChildProcessDataIO :: IsChildProcessAvailable() const
 #else
    return (_handle.GetFileDescriptor() >= 0);
 #endif
-} 
+}
 
 status_t ChildProcessDataIO :: KillChildProcess()
 {
@@ -377,7 +377,7 @@ int32 ChildProcessDataIO :: Read(void *buf, uint32 len)
          DWORD actual_read;
          if (ReadFile(_readFromStdout, buf, len, &actual_read, NULL)) return actual_read;
       }
-      else 
+      else
       {
          int32 ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
          if (ret >= 0) SetEvent(_wakeupSignal);  // wake up the thread in case he has more data to give us
@@ -403,7 +403,7 @@ int32 ChildProcessDataIO :: Write(const void *buf, uint32 len)
          DWORD actual_write;
          if (WriteFile(_writeToStdin, buf, len, &actual_write, 0)) return actual_write;
       }
-      else 
+      else
       {
          int32 ret = SendData(_masterNotifySocket, buf, len, _blocking);
          if (ret > 0) SetEvent(_wakeupSignal);  // wake up the thread so he'll check his socket for our new data
@@ -417,7 +417,7 @@ int32 ChildProcessDataIO :: Write(const void *buf, uint32 len)
 }
 
 void ChildProcessDataIO :: FlushOutput()
-{ 
+{
    // not implemented
 }
 
@@ -430,7 +430,7 @@ const ConstSocketRef & ChildProcessDataIO :: GetChildSelectSocket() const
 {
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    return _blocking ? GetNullSocket() : _masterNotifySocket;
-#else 
+#else
    return _handle;
 #endif
 }
@@ -543,7 +543,7 @@ void ChildProcessDataIO :: IOThreadEntry()
                }
                else break;
             }
-            else 
+            else
             {
                IOThreadAbort();  // child process exited?
                break;

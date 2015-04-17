@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -25,25 +25,27 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
             for (i=0; i<ITEM_COUNT; i++)
             {
                char buf[128+ITEM_COUNT];
-               sprintf(buf, "This is test string #" UINT32_FORMAT_SPEC " ", i);
-               for (uint32 j=0; j<i; j++) strcat(buf, "A");
+               muscleSprintf(buf, "This is test string #" UINT32_FORMAT_SPEC " ", i);
+               char * b = strchr(buf, '\0');
+               for (uint32 j=0; j<i; j++) *b++ = 'A';
+               *b = '\0';
 
                data[i] = MBStrdupByteBuffer(buf);
                m.AddString("testStrings", buf);
             }
-         } 
+         }
          else printf("Error allocating string field!\n");
       }
       {
          MBool * data = MMPutBoolField(msg, false, "testBools", ITEM_COUNT);
          if (data)
          {
-            for (i=0; i<ITEM_COUNT; i++) 
+            for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = (i%2) ? true : false;
                m.AddBool("testBools", data[i]);
             }
-         } 
+         }
          else printf("Error allocating bool field!\n");
       }
       {
@@ -55,62 +57,62 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
                data[i] = i;
                m.AddInt8("testInt8s", data[i]);
             }
-         } 
+         }
          else printf("Error allocating int8 field!\n");
       }
       {
          int16 * data = MMPutInt16Field(msg, false, "testInt16s", ITEM_COUNT);
          if (data)
          {
-            for (i=0; i<ITEM_COUNT; i++) 
+            for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = i;
                m.AddInt16("testInt16s", data[i]);
             }
-         } 
+         }
          else printf("Error allocating int16 field!\n");
       }
       {
          int32 * data = MMPutInt32Field(msg, false, "testInt32s", ITEM_COUNT);
          if (data)
          {
-            for (i=0; i<ITEM_COUNT; i++) 
+            for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = i;
                m.AddInt32("testInt32s", data[i]);
             }
-         } 
+         }
          else printf("Error allocating int32 field!\n");
       }
       {
          int64 * data = MMPutInt64Field(msg, false, "testInt64s", ITEM_COUNT);
          if (data)
          {
-            for (i=0; i<ITEM_COUNT; i++) 
+            for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = i;
                m.AddInt64("testInt64s", data[i]);
             }
-         } 
+         }
          else printf("Error allocating int64 field!\n");
       }
       {
          float * data = MMPutFloatField(msg, false, "testFloats", ITEM_COUNT);
          if (data)
          {
-            for (i=0; i<ITEM_COUNT; i++) 
+            for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = i;
                m.AddFloat("testFloats", data[i]);
             }
-         } 
+         }
          else printf("Error allocating float field!\n");
       }
       {
          double * data = MMPutDoubleField(msg, false, "testDoubles", ITEM_COUNT);
          if (data)
          {
-            for (i=0; i<ITEM_COUNT; i++) 
+            for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = i;
                m.AddDouble("testDoubles", data[i]);
@@ -122,7 +124,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          MMessage ** data = MMPutMessageField(msg, false, "testMessages", ITEM_COUNT);
          if (data)
          {
-            for (i=0; i<ITEM_COUNT; i++) 
+            for (i=0; i<ITEM_COUNT; i++)
             {
                if (recurseCount > 0)
                {
@@ -130,7 +132,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
                   data[i] = CreateTestMessage(recurseCount-1, subMsg);
                   m.AddMessage("testMessages", subMsg);
                }
-               else 
+               else
                {
                   data[i] = MMAllocMessage(i);
                   m.AddMessage("testMessages", Message(i));
@@ -144,12 +146,12 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          if (data)
          {
             char * c = (char *) data;  // doesn't matter what it is, really... this is just for testing
-            for (i=0; i<ITEM_COUNT; i++) 
+            for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = &c[i];  // note that these aren't pointers to anything in particular... don't dereference them!
                m.AddPointer("testPointers", data[i]);
             }
-         } 
+         }
          else printf("Error allocating pointer field!\n");
       }
       {
@@ -162,7 +164,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
                data[i].y = i+ITEM_COUNT;
                m.AddPoint("testPoints", Point(data[i].x, data[i].y));
             }
-         } 
+         }
          else printf("Error allocating point field!\n");
 
          if (MMRenameField(msg, "testX", "testPoints") != B_NO_ERROR) printf("ERROR:  MMRenameField() failed!\n");
@@ -180,18 +182,20 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
                data[i].bottom = i+(ITEM_COUNT*3);
                m.AddRect("testRects", Rect(data[i].left, data[i].top, data[i].right, data[i].bottom));
             }
-         } 
+         }
          else printf("Error allocating rect field!\n");
       }
       {
-         MByteBuffer ** data = MMPutDataField(msg, false, 0x666, "testDatas", ITEM_COUNT); 
+         MByteBuffer ** data = MMPutDataField(msg, false, 0x666, "testDatas", ITEM_COUNT);
          if (data)
          {
             for (i=0; i<ITEM_COUNT; i++)
             {
                char buf[128+ITEM_COUNT];
-               sprintf(buf, "This is test data #" UINT32_FORMAT_SPEC " ", i);
-               for (uint32 j=0; j<i; j++) strcat(buf, "B");
+               muscleSprintf(buf, "This is test data #" UINT32_FORMAT_SPEC " ", i);
+               char * b = strchr(buf, '\0');
+               for (uint32 j=0; j<i; j++) *b++ = 'B';
+               *b = '\0';
 
                data[i] = MBStrdupByteBuffer(buf);
                m.AddData("testDatas", 0x666, buf, ((uint32)strlen(buf))+1);
@@ -241,7 +245,7 @@ int main(int, char **)
          MMFreeMessage(clone);
       }
       else printf("ERROR cloning MMessage!\n");
-   
+
       uint8 * buf = NULL, * mmbuf = NULL, * mmbuf2 = NULL;
       uint32 bufSize = 0, mmBufSize = 0, mmBuf2Size = 0;
 
@@ -307,15 +311,15 @@ int main(int, char **)
             for (uint32 i=0; i<bufSize; i++) printf("%02x ", buf[i]); printf("\n");
          }
       }
- 
+
       if ((buf)&&(mmbuf))
       {
          if ((bufSize == mmBufSize)&&(mmBuf2Size == bufSize))
          {
             bool sawMismatch = false;
-            for (uint32 i=0; i<bufSize; i++) 
+            for (uint32 i=0; i<bufSize; i++)
             {
-               if ((buf[i] != mmbuf[i])||((mmbuf2)&&(buf[i] != mmbuf2[i]))) 
+               if ((buf[i] != mmbuf[i])||((mmbuf2)&&(buf[i] != mmbuf2[i])))
                {
                   printf("BYTE MISMATCH AT POSITION " UINT32_FORMAT_SPEC":  %02x vs %02x or %02x\n", i, buf[i], mmbuf[i], mmbuf2?mmbuf2[i]:0);
                   sawMismatch = true;

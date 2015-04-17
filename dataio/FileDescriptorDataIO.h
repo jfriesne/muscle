@@ -48,7 +48,7 @@ public:
     *  @param buffer Buffer to read the bytes from.
     *  @param size Number of bytes in the buffer.
     *  @return Number of bytes written, or -1 on error.
-    *  @see DataIO::Write()    
+    *  @see DataIO::Write()
     */
    virtual int32 Write(const void * buffer, uint32 size);
 
@@ -56,7 +56,7 @@ public:
     *  Implemented as a no-op (I don't believe file descriptors need flushing?)
     */
    virtual void FlushOutput();
-   
+
    /**
     * Enables or disables blocking I/O on this file descriptor.
     * If this object is to be used by an AbstractMessageIOGateway,
@@ -74,11 +74,11 @@ public:
 
    /** Seeks to the specified point in the file stream.
     *  @param offset Where to seek to.
-    *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END. 
+    *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END.
     *  @return B_NO_ERROR on success, B_ERROR on failure.
-    */ 
+    */
    virtual status_t Seek(int64 offset, int whence);
-   
+
    /** Returns our current position in the file */
    virtual int64 GetPosition() const;
 

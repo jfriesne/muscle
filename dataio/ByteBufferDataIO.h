@@ -33,13 +33,13 @@ public:
    /** Returns the current byte buffer reference we are using. */
    const ByteBufferRef & GetBuffer() const {return _buf;}
 
-   /** 
+   /**
     *  Copies bytes from our ByteBuffer into (buffer).  If we have no buffer, returns -1.
     *  @param buffer Points to a buffer to read bytes into.
     *  @param size Number of bytes in the buffer.
     *  @return zero.
     */
-   virtual int32 Read(void * buffer, uint32 size)  
+   virtual int32 Read(void * buffer, uint32 size)
    {
       if (_buf())
       {
@@ -51,13 +51,13 @@ public:
       return -1;
    }
 
-   /** 
+   /**
     *  Writes bytes into our write buffer.  If we have no write buffer, or we cannot allocate more memory for the write buffer, returns -1.
     *  @param buffer Points to a buffer to write bytes from.
     *  @param size Number of bytes in the buffer.
     *  @return (size).
     */
-   virtual int32 Write(const void * buffer, uint32 size) 
+   virtual int32 Write(const void * buffer, uint32 size)
    {
       if (_buf() == NULL) return -1;
 
@@ -70,7 +70,7 @@ public:
          memset(_buf()->GetBuffer()+oldBufSize, 0, preallocBytes-oldBufSize);  // make sure newly alloc'd memory is zeroed out!
          (void) _buf()->SetNumBytes(pastOffset, true);  // guaranteed not to fail
       }
-      
+
       memcpy(_buf()->GetBuffer()+_seekPos, buffer, size);
       _seekPos += size;
       return size;
@@ -79,9 +79,9 @@ public:
    /** Seeks to the specified point in our ByteBuffer.
     *  Note that only 32-bit seeks are supported in this implementation.
     *  @param offset Where to seek to.
-    *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END. 
+    *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END.
     *  @return B_NO_ERROR on success, B_ERROR on failure
-    */ 
+    */
    virtual status_t Seek(int64 offset, int whence)
    {
       uint32 fileLen = _buf() ? _buf()->GetNumBytes() : 0;
@@ -98,16 +98,16 @@ public:
       _seekPos = newSeekPos;
       return B_NO_ERROR;
    }
-   
+
    virtual int64 GetPosition() const {return _seekPos;}
 
-   /** 
+   /**
     *  No-op method.
     *  This method doesn't do anything at all.
     */
    virtual void FlushOutput() {/* empty */}
 
-   /** Disable us! */ 
+   /** Disable us! */
    virtual void Shutdown() {_buf.Reset();}
 
    /** Can't select on this one, sorry */

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "regex/StringMatcher.h"
@@ -6,7 +6,7 @@
 using namespace muscle;
 
 // Just some quick testing of the StringMatcher class...
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    if (argc <= 1)
    {

@@ -23,7 +23,7 @@ class ByteBuffer;  // forward reference to avoid chicken-and-egg problems
  *  to save itself into an array of bytes, and recover its state from
  *  an array of bytes.
  */
-class Flattenable 
+class Flattenable
 {
 public:
    /** Constructor */
@@ -41,13 +41,13 @@ public:
    /** Should return the number of bytes needed to store this object in its current state.  */
    virtual uint32 FlattenedSize() const = 0;
 
-   /** 
-    *  Should store this object's state into (buffer). 
+   /**
+    *  Should store this object's state into (buffer).
     *  @param buffer The bytes to write this object's stat into.  Buffer must be at least FlattenedSize() bytes long.
     */
    virtual void Flatten(uint8 *buffer) const = 0;
 
-   /** 
+   /**
     *  Should return true iff a buffer with uint32 (code) can be used to reconstruct
     *  this object's state.  Defaults implementation returns true iff (code) equals TypeCode() or B_RAW_DATA.
     *  @param code A type code constant, e.g. B_RAW_TYPE or B_STRING_TYPE, or something custom.
@@ -55,7 +55,7 @@ public:
     */
    virtual bool AllowsTypeCode(uint32 code) const {return ((code == B_RAW_TYPE)||(code == TypeCode()));}
 
-   /** 
+   /**
     *  Should attempt to restore this object's state from the given buffer.
     *  @param buf The buffer of bytes to unflatten from.
     *  @param size Number of bytes in the buffer.
@@ -63,28 +63,28 @@ public:
     */
    virtual status_t Unflatten(const uint8 *buf, uint32 size) = 0;
 
-   /** 
-    *  Causes (copyTo)'s state to set from this Flattenable, if possible. 
+   /**
+    *  Causes (copyTo)'s state to set from this Flattenable, if possible.
     *  Default implementation is not very efficient, since it has to flatten
-    *  this object into a byte buffer, and then unflatten the bytes back into 
-    *  (copyTo).  However, you can override CopyFromImplementation() to provide 
+    *  this object into a byte buffer, and then unflatten the bytes back into
+    *  (copyTo).  However, you can override CopyFromImplementation() to provide
     *  a more efficient implementation when possible.
     *  @param copyTo Object to make into the equivalent of this object.  (copyTo)
     *                May be any subclass of Flattenable.
     *  @return B_NO_ERROR on success, or B_ERROR on failure (typecode mismatch, out-of-memory, etc)
     */
-   status_t CopyTo(Flattenable & copyTo) const 
+   status_t CopyTo(Flattenable & copyTo) const
    {
       return (this == &copyTo) ? B_NO_ERROR : ((copyTo.AllowsTypeCode(TypeCode())) ? copyTo.CopyFromImplementation(*this) : B_ERROR);
    }
 
-   /** 
-    *  Causes our state to be set from (copyFrom)'s state, if possible. 
+   /**
+    *  Causes our state to be set from (copyFrom)'s state, if possible.
     *  Default implementation is not very efficient, since it has to flatten
-    *  (copyFrom) into a byte buffer, and then unflatten the bytes back into 
-    *  (this).  However, you can override CopyFromImplementation() to provide 
+    *  (copyFrom) into a byte buffer, and then unflatten the bytes back into
+    *  (this).  However, you can override CopyFromImplementation() to provide
     *  a more efficient implementation when possible.
-    *  @param copyFrom Object to read from to set the state of this object.  
+    *  @param copyFrom Object to read from to set the state of this object.
     *                  (copyFrom) may be any subclass of Flattenable.
     *  @return B_NO_ERROR on success, or B_ERROR on failure (typecode mismatch, out-of-memory, etc)
     */
@@ -93,7 +93,7 @@ public:
       return (this == &copyFrom) ? B_NO_ERROR : ((AllowsTypeCode(copyFrom.TypeCode())) ? CopyFromImplementation(copyFrom) : B_ERROR);
    }
 
-   /** 
+   /**
     * Convenience method for writing data into a byte buffer.
     * Writes data consecutively into a byte buffer.  The output buffer is
     * assumed to be large enough to hold the data.
@@ -107,8 +107,8 @@ public:
       memcpy(&outBuf[*writeOffset], copyFrom, blockSize);
       *writeOffset += blockSize;
    };
-    
-   /** 
+
+   /**
     * Convenience method for safely reading bytes from a byte buffer.  (Checks to avoid buffer overrun problems)
     * @param inBuf Flat buffer to read bytes from
     * @param inputBufferBytes total size of the input buffer
@@ -125,8 +125,8 @@ public:
       return B_NO_ERROR;
    };
 
-   /** Convenience method.  Flattens this object into the supplied ByteBuffer object. 
-     * @param outBuf the ByteBuffer to dump our flattened bytes into.  
+   /** Convenience method.  Flattens this object into the supplied ByteBuffer object.
+     * @param outBuf the ByteBuffer to dump our flattened bytes into.
      * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
      */
    status_t FlattenToByteBuffer(ByteBuffer & outBuf) const;
@@ -145,7 +145,7 @@ public:
 
    /** Convenience method.  Allocates an appropriately sized ByteBuffer object via GetByteBufferFromPool(), Flatten()s
      * this object into the byte buffer, and returns the resulting ByteBufferRef.  Returns a NULL reference on failure (out of memory?)
-     */ 
+     */
    Ref<ByteBuffer> FlattenToByteBuffer() const;
 
    /** Convenience method.  Flattens this object to the given DataIO object.
@@ -175,36 +175,36 @@ public:
    status_t UnflattenFromDataIO(DataIO & inputStream, int32 optReadSize, uint32 optMaxReadSize = MUSCLE_NO_LIMIT);
 
 protected:
-   /** 
-    *  Called by CopyFrom() and CopyTo().  Sets our state from (copyFrom) if 
-    *  possible.  Default implementation is not very efficient, since it has 
-    *  to flatten (copyFrom) into a byte buffer, and then unflatten the bytes 
-    *  back into (this).  However, you can override CopyFromImplementation() 
+   /**
+    *  Called by CopyFrom() and CopyTo().  Sets our state from (copyFrom) if
+    *  possible.  Default implementation is not very efficient, since it has
+    *  to flatten (copyFrom) into a byte buffer, and then unflatten the bytes
+    *  back into (this).  However, you can override CopyFromImplementation()
     *  to provide a more efficient implementation when possible.
     *  @param copyFrom Object to set this object's state from.
-    *                  May be any subclass of Flattenable, but it has been 
-    *                  pre-screened by CopyFrom() (or CopyTo()) to make sure 
+    *                  May be any subclass of Flattenable, but it has been
+    *                  pre-screened by CopyFrom() (or CopyTo()) to make sure
     *                  it's not (*this), and that we allow its type code.
     *  @return B_NO_ERROR on success, or B_ERROR on failure (out-of-memory, etc)
     */
    virtual status_t CopyFromImplementation(const Flattenable & copyFrom);
 };
 
-/** This class is here to support lightweight subclasses that want to have a Flattenable-like 
-  * API (Flatten(), Unflatten(), etc) without incurring the one-word-per-object memory 
+/** This class is here to support lightweight subclasses that want to have a Flattenable-like
+  * API (Flatten(), Unflatten(), etc) without incurring the one-word-per-object memory
   * required by the presence of virtual methods.  To use this class, subclass your
   * class from this one and declare Flatten(), Unflatten(), FlattenedSize(), etc methods
   * in your class, but don't make them virtual.  That will be enough to allow you to
   * use Message::AddFlat(), Message::FindFlat(), etc on your objects, with no extra
   * memory overhead.  See the MUSCLE Point and Rect classes for examples of this technique.
-  */ 
-class PseudoFlattenable 
+  */
+class PseudoFlattenable
 {
 public:
    /**
     * Dummy implemention of CopyFrom().  It's here only so that Message::FindFlat() will
     * compile when called with a PseudoFlattenable object as an argument.
-    * @param copyFrom This parameter is ignored.   
+    * @param copyFrom This parameter is ignored.
     * @returns B_ERROR always, because given that this object is not a Flattenable object,
     *          it's assumed that it can't receive the state of a Flattenable object either.
     *          (but if that's not the case for your class, your subclass can implement its

@@ -74,16 +74,16 @@ public:
 template <class ObjectType> class CountedObject
 {
 public:
-   /** Default Constructor.  */      
-   CountedObject() 
+   /** Default Constructor.  */
+   CountedObject()
    {
 #ifndef MUSCLE_AVOID_OBJECT_COUNTING
       GetGlobalObjectForType< ObjectCounter<ObjectType> >().IncrementCounter();
 #endif
    }
 
-   /** Copy Constructor.  */      
-   CountedObject(const CountedObject<ObjectType> & /*rhs*/) 
+   /** Copy Constructor.  */
+   CountedObject(const CountedObject<ObjectType> & /*rhs*/)
    {
 #ifndef MUSCLE_AVOID_OBJECT_COUNTING
       GetGlobalObjectForType< ObjectCounter<ObjectType> >().IncrementCounter();
@@ -91,7 +91,7 @@ public:
    }
 
    /** Destructor (deliberately not virtual, to avoid a vtable-pointer size-penalty) */
-   ~CountedObject() 
+   ~CountedObject()
    {
 #ifndef MUSCLE_AVOID_OBJECT_COUNTING
       GetGlobalObjectForType< ObjectCounter<ObjectType> >().DecrementCounter();

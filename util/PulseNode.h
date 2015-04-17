@@ -11,7 +11,7 @@ namespace muscle {
 class PulseNode;
 class PulseNodeManager;
 
-/** Interface class for any object that can schedule Pulse() calls for itself via 
+/** Interface class for any object that can schedule Pulse() calls for itself via
  *  its PulseNodeManager.   (Typically the PulseNodeManager role is played by
  *  the ReflectServer class)
  */
@@ -28,15 +28,15 @@ protected:
    /** This class is used to encapsulate the arguments to GetPulseTime() and Pulse(), so that
      * there is less data to place on the stack in each callback call.
      */
-   class PulseArgs
+   class PulseArgs MUSCLE_FINAL_CLASS
    {
    public:
-      /** Returns the approximate time (in microseconds) at which our Pulse() method was called.  
+      /** Returns the approximate time (in microseconds) at which our Pulse() method was called.
         * Calling this method is cheaper than calling GetRunTime64() directly.
         */
       uint64 GetCallbackTime() const {return _callTime;}
 
-      /** Returns the time (in microseconds) at which our Pulse() method was supposed to be called at.  
+      /** Returns the time (in microseconds) at which our Pulse() method was supposed to be called at.
         * Note that the actual call time (as returned by GetCallbackTime() will generally be a bit larger
         * than the value returned by GetScheduledTime(), as computers are not infinitely fast and therefore
         * they will have some latency before scheduled calls are executed.
@@ -48,8 +48,8 @@ protected:
 
       PulseArgs(uint64 callTime, uint64 prevTime) : _callTime(callTime), _prevTime(prevTime) {/* empty */}
 
-      uint64 _callTime; 
-      uint64 _prevTime; 
+      uint64 _callTime;
+      uint64 _prevTime;
    };
 
 public:
@@ -60,7 +60,7 @@ public:
     * <ol>
     *   <li>When the PulseNode is first probed by the PulseNodeManager</li>
     *   <li>Immediately after our Pulse() method has returned</li>
-    *   <li>Soon after InvalidatePulseTime() has been called one or more times 
+    *   <li>Soon after InvalidatePulseTime() has been called one or more times
     *       (InvalidatePulseTime() calls are merged together for efficiency)</li>
     * </ol>
     * The default implementation always returns MUSCLE_TIME_NEVER.
@@ -95,14 +95,14 @@ public:
     *           args.GetScheduledTime() The time this Pulse() call was scheduled to occur at, in
     *                      microseconds, as previously returned by GetPulseTime(). Note
     *                      that unless your computer is infinitely fast, this time will
-    *                      always be at least a bit less than (now), since there is a delay 
-    *                      between when the program gets woken up to service the next Pulse() 
-    *                      call, and when the call actually happens.  (you may be able to 
+    *                      always be at least a bit less than (now), since there is a delay
+    *                      between when the program gets woken up to service the next Pulse()
+    *                      call, and when the call actually happens.  (you may be able to
     *                      use this value to compensate for the slippage, if it bothers you)
     */
    virtual void Pulse(const PulseArgs & args);
 
-   /** 
+   /**
     *  Adds the given child into our set of child PulseNodes.  Any PulseNode in our
     *  set of children will have its pulsing needs taken care of by us, but it is
     *  not considered "owned" by this PulseNode--it will not be deleted when we are.
@@ -120,13 +120,13 @@ public:
    /** Removes all children from our set of child PulseNodes */
    void ClearPulseChildren();
 
-   /** Returns true iff the given child is in our set of child PulseNodes. 
+   /** Returns true iff the given child is in our set of child PulseNodes.
      * @param child the child to look for.
      */
    bool ContainsPulseChild(PulseNode * child) const {return ((child)&&(child->_parent == this));}
 
-   /** Returns when this object wants its call to Pulse() scheduled next, or MUSCLE_TIME_NEVER 
-    *  if it has no call to Pulse() currently scheduled. 
+   /** Returns when this object wants its call to Pulse() scheduled next, or MUSCLE_TIME_NEVER
+    *  if it has no call to Pulse() currently scheduled.
     */
    uint64 GetScheduledPulseTime() const {return _myScheduledTime;}
 
@@ -137,8 +137,8 @@ public:
    uint64 GetCycleStartTime() const {return _parent ? _parent->GetCycleStartTime() : _cycleStartedAt;}
 
    /** Sets the maximum number of microseconds that this class should allow its callback
-    *  methods to execute for (relative to the cycle start time, as shown above).  Note 
-    *  that this value is merely a suggestion;  it remains up to the subclass's callback 
+    *  methods to execute for (relative to the cycle start time, as shown above).  Note
+    *  that this value is merely a suggestion;  it remains up to the subclass's callback
     *  methods to ensure that the suggestion is actually followed.
     *  @param maxUsecs Maximum number of microseconds that the time slice should last for.
     *                  If set to MUSCLE_TIME_NEVER, that indicates that there is no suggested limit.
@@ -150,8 +150,8 @@ public:
     */
    uint64 GetSuggestedMaximumTimeSlice() const {return _maxTimeSlice;}
 
-   /** Convenience method -- returns true iff the current value of the run-time 
-    *  clock (GetRunTime64()) indicates that our suggested time slice has expired.  
+   /** Convenience method -- returns true iff the current value of the run-time
+    *  clock (GetRunTime64()) indicates that our suggested time slice has expired.
     *  This method is cheap to call often.
     */
    bool IsSuggestedTimeSliceExpired() const {return ((_timeSlicingSuggested)&&(GetRunTime64() >= (_cycleStartedAt+_maxTimeSlice)));}
@@ -165,7 +165,7 @@ public:
     *                        prevResult is passed in as MUSCLE_TIME_NEVER.  If false,
     *                        the prevResult value will be left alone.
     */
-   void InvalidatePulseTime(bool clearPrevResult = true); 
+   void InvalidatePulseTime(bool clearPrevResult = true);
 
    /** Returns a pointer to this PulseNode's parent PulseNode, if any. */
    PulseNode * GetPulseParent() const {return _parent;}
@@ -208,8 +208,8 @@ private:
    friend class PulseNodeManager;
 };
 
-/** Subclasses of this class are allowed to manage PulseNode objects by 
-  * calling their GetPulseTimeAux() and PulseAux() methods (indirectly).  
+/** Subclasses of this class are allowed to manage PulseNode objects by
+  * calling their GetPulseTimeAux() and PulseAux() methods (indirectly).
   * Most code won't need to use this class.
   */
 class PulseNodeManager

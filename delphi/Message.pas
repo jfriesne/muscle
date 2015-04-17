@@ -1,5 +1,5 @@
 {-----------------------------------------------------------------------------
- Unit Name: 
+ Unit Name:
  Author:    Matthew Emson
  Date:      05/06/2003
  Purpose:   Generic OO Message class for IPC.
@@ -27,8 +27,8 @@
                  bridge conversion routine to BMessage classes.
             1.6  16/09/2004, M Emson    |
                  Removed all the legacy and additional cruft. Renamed
-                 TNewBMessage to TBMessage. Moved a load of              
-                 ImucscleMessage routines into IBMessage to simplify     
+                 TNewBMessage to TBMessage. Moved a load of
+                 ImucscleMessage routines into IBMessage to simplify
                  Access to them.
             1.7  04/07/2005, M Emson
                  Updated and cleaned for release to LCS for inclusion

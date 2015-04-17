@@ -26,24 +26,24 @@ public class TestClient implements MessageListener, StorageReflectConstants
          System.out.println("Usage java com.meyer.muscle.test.TestClient 12.18.240.15");
          System.exit(5);
       }
-      
+
       new TestClient(args[0], (args.length >= 2) ? (new Integer(args[1])).intValue() : 2960);
    }
-   
+
    public TestClient(String hostName, int port)
-   {      
+   {
       // Connect here....
       MessageTransceiver mc = new MessageTransceiver(new MessageQueue(this), AbstractMessageIOGateway.MUSCLE_MESSAGE_ENCODING_ZLIB_6, 6*1024*1024);
       System.out.println("Connecting to " + hostName + ":" + port);
       mc.connect(hostName, port, "Session Connected", "Session Disconnected");
-       
+
       // Listen for user input
       try {
          BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
          String nextLine;
          while((nextLine = br.readLine()) != null)
          {
-            System.out.println("You typed: ["+nextLine+"]");  
+            System.out.println("You typed: ["+nextLine+"]");
             StringTokenizer st = new StringTokenizer(nextLine);
             try {
                String command = st.nextToken();
@@ -67,7 +67,7 @@ public class TestClient implements MessageListener, StorageReflectConstants
                   msg.setBooleans("booleans", booleans);
                   String [] strings = {"Hey", "What's going on?"};
                   msg.setStrings("strings", strings);
-                  
+
                   Message q = (Message) msg.cloneFlat();
                   Message r = new Message(1234);
                   r.setString("I'm way", "down here!");
@@ -77,7 +77,7 @@ public class TestClient implements MessageListener, StorageReflectConstants
                else if (command.equals("s")) {
                   msg.what = PR_COMMAND_SETDATA;
                   msg.setMessage(st.nextToken(), new Message(1234));
-               }   
+               }
                else if (command.equals("k")) {
                   msg.what = PR_COMMAND_KICK;
                   msg.setString(PR_NAME_KEYS, st.nextToken());
@@ -93,35 +93,35 @@ public class TestClient implements MessageListener, StorageReflectConstants
                else if (command.equals("g")) {
                   msg.what = PR_COMMAND_GETDATA;
                   msg.setString(PR_NAME_KEYS, st.nextToken());
-               }   
+               }
                else if (command.equals("p")) {
                   msg.what = PR_COMMAND_SETPARAMETERS;
                   msg.setString(st.nextToken(), "");
-               }   
+               }
                else if (command.equals("P")) {
                   msg.what = PR_COMMAND_GETPARAMETERS;
-               }   
+               }
                else if (command.equals("d")) {
                   msg.what = PR_COMMAND_REMOVEDATA;
                   msg.setString(PR_NAME_KEYS, st.nextToken());
-               }   
+               }
                else if (command.equals("D")) {
                   msg.what = PR_COMMAND_REMOVEPARAMETERS;
                   msg.setString(PR_NAME_KEYS, st.nextToken());
-               }              
+               }
                else if (command.equals("big")) {
                   msg.what = PR_COMMAND_PING;
                   int numFloats = 1*1024*1024;
                   float lotsafloats[] = new float[numFloats];  // 4MB worth of floats!
                   for (int i=0; i<numFloats; i++) lotsafloats[i] = (float)i;
-                  msg.setFloats("four_megabytes_of_floats", lotsafloats);                  
+                  msg.setFloats("four_megabytes_of_floats", lotsafloats);
                }
                else if (command.equals("toobig")) {
                   msg.what = PR_COMMAND_PING;
                   int numFloats = 2*1024*1024;
                   float lotsafloats[] = new float[numFloats];  // 8MB worth of floats!
                   for (int i=0; i<numFloats; i++) lotsafloats[i] = (float)i;
-                  msg.setFloats("eight_megabytes_of_floats", lotsafloats);                  
+                  msg.setFloats("eight_megabytes_of_floats", lotsafloats);
                }
                else if (command.equals("e")) {
                    msg.what = PR_COMMAND_SETPARAMETERS;
@@ -131,7 +131,7 @@ public class TestClient implements MessageListener, StorageReflectConstants
             }
             catch(NoSuchElementException ex) {
                System.out.println("Missing argument!");
-            }   
+            }
          }
       }
       catch(UnflattenFormatException ex) {
@@ -140,11 +140,11 @@ public class TestClient implements MessageListener, StorageReflectConstants
       catch(IOException ex) {
          ex.printStackTrace();
       }
-           
+
       System.out.println("Bye!");
       mc.disconnect();
    }
-   
+
    /** Note that this method will be called from another thread! */
    public synchronized void messageReceived(Object message, int numLeft)
    {
@@ -153,6 +153,6 @@ public class TestClient implements MessageListener, StorageReflectConstants
       {
          System.out.println("Got non-Message: " + message);
          if (message.equals("Session Disconnected")) System.exit(5);
-      }      
+      }
    }
 }

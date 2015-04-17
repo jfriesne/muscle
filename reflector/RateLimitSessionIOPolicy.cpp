@@ -6,34 +6,34 @@ namespace muscle {
 
 #define CUTOFF (_byteLimit/2)
 
-RateLimitSessionIOPolicy :: 
+RateLimitSessionIOPolicy ::
 RateLimitSessionIOPolicy(uint32 maxRate, uint32 primeBytes) : _maxRate(maxRate), _byteLimit(primeBytes), _lastTransferAt(0), _transferTally(0)
 {
    // empty
 }
 
-RateLimitSessionIOPolicy :: 
+RateLimitSessionIOPolicy ::
 ~RateLimitSessionIOPolicy()
 {
    // empty
 }
 
-void 
-RateLimitSessionIOPolicy :: 
+void
+RateLimitSessionIOPolicy ::
 PolicyHolderAdded(const PolicyHolder &)
 {
    // empty
 }
 
-void 
-RateLimitSessionIOPolicy :: 
+void
+RateLimitSessionIOPolicy ::
 PolicyHolderRemoved(const PolicyHolder &)
 {
    // empty
 }
 
-void 
-RateLimitSessionIOPolicy :: 
+void
+RateLimitSessionIOPolicy ::
 BeginIO(uint64 now)
 {
    UpdateTransferTally(now);
@@ -51,7 +51,7 @@ uint64
 RateLimitSessionIOPolicy ::
 GetPulseTime(const PulseArgs & args)
 {
-   // Schedule a pulse for when we estimate _transferTally will sink back down to zero.  
+   // Schedule a pulse for when we estimate _transferTally will sink back down to zero.
    return ((_maxRate > 0)&&(_transferTally>=CUTOFF))?(args.GetCallbackTime()+((_transferTally*MICROS_PER_SECOND)/_maxRate)):MUSCLE_TIME_NEVER;
 }
 
@@ -76,7 +76,7 @@ UpdateTransferTally(uint64 now)
    else _transferTally = MUSCLE_NO_LIMIT;  // disable all writing by pretending we just wrote a whole lot
 }
 
-bool 
+bool
 RateLimitSessionIOPolicy ::
 OkayToTransfer(const PolicyHolder &)
 {
@@ -88,23 +88,23 @@ OkayToTransfer(const PolicyHolder &)
    else return false;
 }
 
-uint32 
-RateLimitSessionIOPolicy :: 
+uint32
+RateLimitSessionIOPolicy ::
 GetMaxTransferChunkSize(const PolicyHolder &)
 {
    MASSERT(_numParticipants>0, "RateLimitSessionIOPolicy::GetMax: no participants!?!?");
    return (_transferTally<_byteLimit)?((_byteLimit-_transferTally)/_numParticipants):0;
 }
 
-void 
-RateLimitSessionIOPolicy :: 
+void
+RateLimitSessionIOPolicy ::
 BytesTransferred(const PolicyHolder &, uint32 numBytes)
 {
    _transferTally += numBytes;
 }
 
-void 
-RateLimitSessionIOPolicy :: 
+void
+RateLimitSessionIOPolicy ::
 EndIO(uint64)
 {
    // empty

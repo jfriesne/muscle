@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifndef MuscleSystemInfos_h
 #define MuscleSystemInfos_h
@@ -7,8 +7,8 @@
 
 namespace muscle {
 
-/** Returns a human-readable name for the operating system that the code has 
-  * been compiled on.  For example, "Windows", "MacOS/X", or "Linux".  If the 
+/** Returns a human-readable name for the operating system that the code has
+  * been compiled on.  For example, "Windows", "MacOS/X", or "Linux".  If the
   * operating system's name is unknown, returns "Unknown".
   * @param defaultString What to return if we don't know what the host OS is.  Defaults to "Unknown".
   */
@@ -16,7 +16,7 @@ const char * GetOSName(const char * defaultString = "Unknown");
 
 enum {
    SYSTEM_PATH_CURRENT = 0, // our current working directory
-   SYSTEM_PATH_EXECUTABLE,  // directory where our process's executable binary is 
+   SYSTEM_PATH_EXECUTABLE,  // directory where our process's executable binary is
    SYSTEM_PATH_TEMPFILES,   // scratch directory where temp files may be stored
    SYSTEM_PATH_USERHOME,    // the current user's home folder
    SYSTEM_PATH_DESKTOP,     // the current user's desktop folder
@@ -33,7 +33,7 @@ enum {
   *               path name,  The path is guaranteed to end with a file
   *               separator character (i.e. "/" or "\\", as appropriate).
   * @returns B_NO_ERROR on success, or B_ERROR if the requested path could
-  *          not be determined. 
+  *          not be determined.
   */
 status_t GetSystemPath(uint32 whichPath, String & outStr);
 

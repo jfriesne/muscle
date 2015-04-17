@@ -10,9 +10,9 @@
 namespace muscle {
 
 /** This is a convenience decorator factory; it holds a set of "ban patterns", and a
-  * set of "require patterns".  It will refuse to grant access to any clients whose host 
+  * set of "require patterns".  It will refuse to grant access to any clients whose host
   * IP match at least one ban pattern, or who don't match at least one require pattern
-  * (if there are any require patterns)  For IP addresses that don't match a pattern, 
+  * (if there are any require patterns)  For IP addresses that don't match a pattern,
   * the request is passed through to the held factory.
   */
 class FilterSessionFactory : public ProxySessionFactory
@@ -39,8 +39,8 @@ public:
    virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & factoryInfo);
 
    /** Implemented to handle PR_COMMAND_(ADD/REMOVE)(BANS/REQUIRES) messages from our sessions */
-   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void * userData);       
-   /** Add a new ban pattern to our set of ban patterns 
+   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void * userData);
+   /** Add a new ban pattern to our set of ban patterns
      * @param banPattern Pattern to match against (e.g. "192.168.0.*")
      * @return B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
      */

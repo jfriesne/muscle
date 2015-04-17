@@ -78,7 +78,7 @@ const ip_address broadcastIP = ((uint32)-1);
   * should be enabled.  This flag is set to true by default; if you want to set it to false you
   * would typically do so only at the top of main() and then not set it again.
   * This automatic remapping is useful if you want your software to handle both IPv4 and IPv6
-  * traffic without having to open separate IPv4 and IPv6 sockets and without having to do any 
+  * traffic without having to open separate IPv4 and IPv6 sockets and without having to do any
   * special modification of IPv4 addresses.   The only time you'd need to set this flag to false
   * is if you need to run IPv6 traffic over non-IPv6-aware routers, in which case you'd need
   * to use the ::x.y.z.w address space for actual IPv6 traffic instead.
@@ -94,7 +94,7 @@ bool GetAutomaticIPv4AddressMappingEnabled();
 /** This class represents an IPv6 network address, including the 128-bit IP
   * address and the interface index field (necessary for connecting to link-local addresses)
   */
-class ip_address
+class ip_address MUSCLE_FINAL_CLASS
 {
 public:
    ip_address(uint64 lowBits = 0, uint64 highBits = 0, uint32 interfaceIndex = 0) : _lowBits(lowBits), _highBits(highBits), _interfaceIndex(interfaceIndex) {/* empty */}
@@ -106,7 +106,7 @@ public:
    bool operator ==               (const ip_address & rhs) const {return ((EqualsIgnoreInterfaceIndex(rhs))&&(_interfaceIndex == rhs._interfaceIndex));}
    bool operator !=               (const ip_address & rhs) const {return !(*this == rhs);}
 
-   bool operator < (const ip_address & rhs) const 
+   bool operator < (const ip_address & rhs) const
    {
       if (_highBits < rhs._highBits) return true;
       if (_highBits > rhs._highBits) return false;
@@ -115,7 +115,7 @@ public:
       return (_interfaceIndex < rhs._interfaceIndex);
    }
 
-   bool operator > (const ip_address & rhs) const 
+   bool operator > (const ip_address & rhs) const
    {
       if (_highBits < rhs._highBits) return false;
       if (_highBits > rhs._highBits) return true;
@@ -148,7 +148,7 @@ public:
    uint32 HashCode() const {return CalculateHashCode(_interfaceIndex)+CalculateHashCode(_lowBits)+CalculateHashCode(_highBits);}
 
    /** Writes our address into the specified uint8 array, in the required network-friendly order.
-     * @param networkBuf If non-NULL, the 16-byte network-array to write to.  Typically you would pass in 
+     * @param networkBuf If non-NULL, the 16-byte network-array to write to.  Typically you would pass in
      *                   mySockAddr_in6.sin6_addr.s6_addr as the argument to this function.
      * @param optInterfaceIndex If non-NULL, this value will receive a copy of our interface index.  Typically
      *                          you would pass a pointer to mySockAddr_in6.sin6_addr.sin6_scope_id here.
@@ -164,7 +164,7 @@ public:
    }
 
    /** Reads our address in from the specified uint8 array, in the required network-friendly order.
-     * @param networkBuf If non-NULL, a 16-byte network-endian-array to read from.  Typically you would pass in 
+     * @param networkBuf If non-NULL, a 16-byte network-endian-array to read from.  Typically you would pass in
      *                    mySockAddr_in6.sin6_addr.s6_addr as the argument to this function.
      * @param optInterfaceIndex If non-NULL, this value will be used to set this object's _interfaceIndex value.
      */
@@ -201,13 +201,13 @@ const ip_address broadcastIP(0x01, ((uint64)0xFF02)<<48);
 
 #endif
 
-/** IPv4 Numeric representation of broadcast (255.255.255.255), for convenience 
+/** IPv4 Numeric representation of broadcast (255.255.255.255), for convenience
   * This constant is defined in both IPv6 and IPv4 modes, since sometimes you
   * need to do an IPv4 broadcast even in an IPv6 program
   */
 const ip_address broadcastIP_IPv4 = ip_address((uint32)-1);
 
-/** IPv4 Numeric representation of broadcast (255.255.255.255), for convenience 
+/** IPv4 Numeric representation of broadcast (255.255.255.255), for convenience
   * This constant is defined in both IPv6 and IPv4 modes, since sometimes you
   * need to do an IPv4 broadcast even in an IPv6 program
   */
@@ -217,7 +217,7 @@ const ip_address localhostIP_IPv4 = ip_address((((uint32)127)<<24)|((uint32)1));
   * useful things on the two such as using them as key values in a hash table,
   * converting them to/from user-readable strings, etc.
   */
-class IPAddressAndPort
+class IPAddressAndPort MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.   Creates an IPAddressAndPort object with the address field
@@ -239,37 +239,37 @@ public:
    /** Copy constructor */
    IPAddressAndPort(const IPAddressAndPort & rhs) : _ip(rhs._ip), _port(rhs._port) {/* empty */}
 
-   /** Comparison operator.  Returns true iff (rhs) is equal to this object. 
-     * @param rhs The IPAddressAndPort object to compare this object to. 
+   /** Comparison operator.  Returns true iff (rhs) is equal to this object.
+     * @param rhs The IPAddressAndPort object to compare this object to.
      */
    bool operator == (const IPAddressAndPort & rhs) const {return (_ip == rhs._ip)&&(_port == rhs._port);}
 
-   /** Comparison operator.  Returns true iff (rhs) is not equal to this object. 
-     * @param rhs The IPAddressAndPort object to compare this object to. 
+   /** Comparison operator.  Returns true iff (rhs) is not equal to this object.
+     * @param rhs The IPAddressAndPort object to compare this object to.
      */
    bool operator != (const IPAddressAndPort & rhs) const {return !(*this==rhs);}
 
    /** Comparison operator.  Returns true iff this object is "less than" (rhs).
      * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
+     * @param rhs The IPAddressAndPort object to compare this object to.
      */
    bool operator < (const IPAddressAndPort & rhs) const {return ((_ip < rhs._ip)||((_ip == rhs._ip)&&(_port < rhs._port)));}
 
    /** Comparison operator.  Returns true iff this object is "greater than" (rhs).
      * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
+     * @param rhs The IPAddressAndPort object to compare this object to.
      */
    bool operator > (const IPAddressAndPort & rhs) const {return ((_ip > rhs._ip)||((_ip == rhs._ip)&&(_port > rhs._port)));}
 
    /** Comparison operator.  Returns true iff this object is "less than or equal to" (rhs).
      * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
+     * @param rhs The IPAddressAndPort object to compare this object to.
      */
    bool operator <= (const IPAddressAndPort & rhs) const {return !(*this>rhs);}
 
    /** Comparison operator.  Returns true iff this object is "greater than or equal to" (rhs).
      * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
+     * @param rhs The IPAddressAndPort object to compare this object to.
      */
    bool operator >= (const IPAddressAndPort & rhs) const {return !(*this<rhs);}
 
@@ -364,7 +364,7 @@ void SetHostNameCacheSettings(uint32 maxCacheSize, uint64 expirationTimeMicros);
  */
 ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTitle = NULL, bool debugOutputOnErrorsOnly = true, uint64 maxConnectPeriod = MUSCLE_TIME_NEVER, bool expandLocalhost = false);
 
-/** Mostly as above, only with the target IP address specified numerically, rather than as an ASCII string. 
+/** Mostly as above, only with the target IP address specified numerically, rather than as an ASCII string.
  *  This version of connect will never do a DNS lookup.
  * @param hostIP The numeric host IP address to connect to.
  * @param port The port number to connect to.
@@ -412,7 +412,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, ip_address * optRetLocalInfo 
  */
 int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsBlockingIO);
 
-/** Identical to ReceiveData(), except that this function's logic is adjusted to handle UDP semantics properly. 
+/** Identical to ReceiveData(), except that this function's logic is adjusted to handle UDP semantics properly.
  *  @param sock The socket to read from.
  *  @param buffer Location to place the received bytes into.
  *  @param bufferSizeBytes Number of bytes available at the location indicated by (buffer).
@@ -476,13 +476,13 @@ int32 WriteData(const ConstSocketRef & fd, const void * buffer, uint32 bufferSiz
   * It will return the created socket, which may or may not be fully connected yet.
   * If it is connected, (retIsReady) will be to true, otherwise it will be set to false.
   * If (retIsReady) is false, then you can use select() to find out when the state of the
-  * socket has changed:  select() will return ready-to-write on the socket when it is 
-  * fully connected (or when the connection fails), at which point you can call 
-  * FinalizeAsyncConnect() on the socket:  if FinalizeAsyncConnect() succeeds, the connection 
+  * socket has changed:  select() will return ready-to-write on the socket when it is
+  * fully connected (or when the connection fails), at which point you can call
+  * FinalizeAsyncConnect() on the socket:  if FinalizeAsyncConnect() succeeds, the connection
   * succeeded; if not, the connection failed.
   * @param hostIP 32-bit IP address to connect to (hostname isn't used as hostname lookups can't be made asynchronous AFAIK)
   * @param port Port to connect to.
-  * @param retIsReady On success, this bool is set to true iff the socket is ready to use, or 
+  * @param retIsReady On success, this bool is set to true iff the socket is ready to use, or
   *                   false to indicate that an asynchronous connection is now in progress.
   * @return A non-NULL ConstSocketRef (which is likely still in the process of connecting) on success, or a NULL ConstSocketRef if the accept failed.
   */
@@ -490,14 +490,14 @@ ConstSocketRef ConnectAsync(const ip_address & hostIP, uint16 port, bool & retIs
 
 /** As above, only this version of ConnectAsync() takes an IPAddressAndPort object instead of separate IP address and port arguments.
   * @param iap IP address and port to connect to.
-  * @param retIsReady On success, this bool is set to true iff the socket is ready to use, or 
+  * @param retIsReady On success, this bool is set to true iff the socket is ready to use, or
   *                   false to indicate that an asynchronous connection is now in progress.
   * @return A non-NULL ConstSocketRef (which is likely still in the process of connecting) on success, or a NULL ConstSocketRef if the accept failed.
   */
 inline ConstSocketRef ConnectAsync(const IPAddressAndPort & iap, bool & retIsReady) {return ConnectAsync(iap.GetIPAddress(), iap.GetPort(), retIsReady);}
 
 /** When a socket that was connecting asynchronously finally
-  * selects ready-for-write to indicate that the asynchronous connect 
+  * selects ready-for-write to indicate that the asynchronous connect
   * attempt has reached a conclusion, call this method.  It will finalize
   * the connection and make it ready for use.
   * @param sock The socket that was connecting asynchronously
@@ -514,7 +514,7 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock);
 /** Shuts the given socket down.  (Note that you don't generally need to call this function; it's generally
  *  only useful if you need to half-shutdown the socket, e.g. stop the output direction but not the input
  *  direction)
- *  @param sock The socket to shutdown communication on. 
+ *  @param sock The socket to shutdown communication on.
  *  @param disableReception If true, further reception of data will be disabled on this socket.
  *  @param disableTransmission If true, further transmission of data will be disabled on this socket.
  *  @return B_NO_ERROR on success, or B_ERROR on failure.
@@ -555,7 +555,7 @@ String Inet_NtoA(const ip_address & ipAddress, bool preferIPv4Style = false);
 bool IsIPAddress(const char * s);
 
 /** Given a dotted-quad IP address in ASCII format (e.g. "192.168.0.1"), returns
-  * the equivalent IP address in ip_address (packed binary) form. 
+  * the equivalent IP address in ip_address (packed binary) form.
   * @param buf numeric IP address in ASCII.
   * @returns IP address as a ip_address, or invalidIP on failure.
   */
@@ -566,7 +566,7 @@ String GetLocalHostName();
 
 /** Reurns the IP address that the given socket is connected to.
  *  @param sock The socket descriptor to find out info about.
- *  @param expandLocalhost If true, then if the peer's ip address is reported as 127.0.0.1, this 
+ *  @param expandLocalhost If true, then if the peer's ip address is reported as 127.0.0.1, this
  *                         function will attempt to determine the host machine's actual primary IP
  *                         address and return that instead.  Otherwise, 127.0.0.1 will be
  *                         returned in this case.
@@ -586,7 +586,7 @@ ip_address GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, u
  */
 status_t CreateConnectedSocketPair(ConstSocketRef & retSocket1, ConstSocketRef & retSocket2, bool blocking = false);
 
-/** Enables or disables blocking I/O on the given socket. 
+/** Enables or disables blocking I/O on the given socket.
  *  (Default for a socket is blocking mode enabled)
  *  @param sock the socket descriptor to act on.
  *  @param enabled Whether I/O on this socket should be enabled or not.
@@ -600,14 +600,14 @@ status_t SetSocketBlockingEnabled(const ConstSocketRef & sock, bool enabled);
  *  @note this function is not implemented under Windows (as Windows doesn't appear to provide any method to
  *        obtain this information from a socket).  Under Windows, this method will simply log an erorr message
  *        and return false.
- */ 
+ */
 bool GetSocketBlockingEnabled(const ConstSocketRef & sock);
 
 /**
   * Turns Nagle's algorithm (output packet buffering/coalescing) on or off.
   * @param sock the socket descriptor to act on.
-  * @param enabled If true, data will be held momentarily before sending, 
-  *                to allow for bigger packets.  If false, each Write() 
+  * @param enabled If true, data will be held momentarily before sending,
+  *                to allow for bigger packets.  If false, each Write()
   *                call will cause a new packet to be sent immediately.
   * @return B_NO_ERROR on success, B_ERROR on error.
   */
@@ -616,7 +616,7 @@ status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabl
 /** Returns true iff the given socket has Nagle's algorithm enabled.
  *  @param sock the socket descriptor to query.
  *  @returns true iff the socket is has Nagle's algorithm enabled, or false if it does not (or if it is an invalid socket)
- */ 
+ */
 bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock);
 
 /**
@@ -628,7 +628,7 @@ bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock);
   */
 status_t SetSocketSendBufferSize(const ConstSocketRef & sock, uint32 sendBufferSizeBytes);
 
-/** 
+/**
   * Returns the current size of the socket's TCP send buffer.
   * @param sock The socket to query.
   * @return The size of the socket's TCP send buffer, in bytes, or -1 on error (e.g. invalid socket)
@@ -644,7 +644,7 @@ int32 GetSocketSendBufferSize(const ConstSocketRef & sock);
   */
 status_t SetSocketReceiveBufferSize(const ConstSocketRef & sock, uint32 receiveBufferSizeBytes);
 
-/** 
+/**
   * Returns the current size of the socket's TCP receive buffer.
   * @param sock The socket to query.
   * @return The size of the socket's TCP receive buffer, in bytes, or -1 on error (e.g. invalid socket)
@@ -653,10 +653,10 @@ int32 GetSocketReceiveBufferSize(const ConstSocketRef & sock);
 
 /** This class is an interface to an object that can have its SocketCallback() method called
   * at the appropriate times when certain actions are performed on a socket.  By installing
-  * a GlobalSocketCallback object via SetGlobalSocketCallback(), behaviors can be set for all 
+  * a GlobalSocketCallback object via SetGlobalSocketCallback(), behaviors can be set for all
   * sockets in the process, which can be simpler than changing every individual code path
   * to install those behaviors on a per-socket basis.
-  */ 
+  */
 class GlobalSocketCallback : private CountedObject<GlobalSocketCallback>
 {
 public:
@@ -686,7 +686,7 @@ public:
 /** Set the global socket-callback object for this process.
   * @param cb The object whose SocketCallback() method should be called by Connect(),
   *           Accept(), FinalizeAsyncConnect(), etc, or NULL to have no more callbacks
-  */ 
+  */
 void SetGlobalSocketCallback(GlobalSocketCallback * cb);
 
 /** Returns the currently installed GlobalSocketCallback object, or NULL if there is none installed. */
@@ -704,11 +704,11 @@ GlobalSocketCallback * GetGlobalSocketCallback();
   * @param maxProbeCount The number of keepalive-ping probes that must go unanswered before the TCP connection is closed.
   *                      Passing zero to this argument will disable keepalive-ping behavior.
   * @param idleTime The amount of time (in microseconds) of inactivity on the TCP socket that must pass before the
-  *                 first keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by  
+  *                 first keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by
   *                 the operating system, so the actual timeout period may be somewhat more or less than the specified number
   *                 of microseconds.  (Currently it gets rounded up to the nearest second)
   * @param retransmitTime The amount of time (in microseconds) of further inactivity on the TCP socket that must pass before the
-  *                       next keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by  
+  *                       next keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by
   *                       the operating system, so the actual timeout period may be somewhat more or less than the specified number
   *                       of microseconds.  (Currently it gets rounded up to the nearest second)
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
@@ -723,7 +723,7 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
   * @param retRetransmitTime if non-NULL, the transmit-time of the socket will be written into this argument.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   * @see SetSocketKeepAliveBehavior()
-  */ 
+  */
 status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMaxProbeCount, uint64 * retIdleTime, uint64 * retRetransmitTime);
 
 #endif
@@ -748,7 +748,7 @@ ip_address GetLocalHostIPOverride();
  */
 ConstSocketRef CreateUDPSocket();
 
-/** Attempts to given UDP socket to the given port.  
+/** Attempts to given UDP socket to the given port.
  *  @param sock The UDP socket (previously created by CreateUDPSocket())
  *  @param port UDP port ID to bind the socket to.  If zero, the system will choose a port ID.
  *  @param optRetPort if non-NULL, then on successful return the value this pointer points to will contain
@@ -757,11 +757,11 @@ ConstSocketRef CreateUDPSocket();
  *                 packets addressed to this IP address will be accepted.  Defaults to zero,
  *                 meaning that packets addressed to any of this machine's IP addresses will
  *                 be accepted.  (This parameter is typically only useful on machines with
- *                 multiple IP addresses) 
+ *                 multiple IP addresses)
  *  @param allowShared If set to true, the port will be set up so that multiple processes
- *                     can bind to it simultaneously.  This is useful for sockets that are 
+ *                     can bind to it simultaneously.  This is useful for sockets that are
  *                     to be receiving broadcast UDP packets, since then you can run multiple
- *                     UDP broadcast receivers on a single computer. 
+ *                     UDP broadcast receivers on a single computer.
  *  @returns B_NO_ERROR on success, or B_ERROR on failure.
  */
 status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRetPort = NULL, const ip_address & optFrom = invalidIP, bool allowShared = false);
@@ -808,7 +808,7 @@ bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock);
   * localhost loopback device.  (e.g. 127.0.0.1 or ::1 or fe80::1)
   * @param ip an IP address.
   * @returns true iff (ip) is a well-known loopback device address.  Note that this function
-  *          does NOT check to see if an arbitrary IP address actually maps to the local host;  
+  *          does NOT check to see if an arbitrary IP address actually maps to the local host;
   *          it merely sees if (ip) is one of a few hard-coded values as described above.
   */
 bool IsStandardLoopbackDeviceAddress(const ip_address & ip);
@@ -833,7 +833,7 @@ bool IsValidAddress(const ip_address & ip);
 bool IsIPv4Address(const ip_address & ip);
 
 /** This little container class is used to return data from the GetNetworkInterfaceInfos() function, below */
-class NetworkInterfaceInfo
+class NetworkInterfaceInfo MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Sets all member variables to default values. */
@@ -871,7 +871,7 @@ public:
    /** Returns true iff this interface is currently enabled ("up"). */
    bool IsEnabled() const {return _enabled;}
 
-   /** Returns true iff this network interface is currently plugged in to anything 
+   /** Returns true iff this network interface is currently plugged in to anything
      * (i.e. iff the Ethernet cable is connected to the jack).
      * Note that copper detection is not currently supported under Windows, so
      * under Windows this will always return false.
@@ -935,7 +935,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
   * by GetBroadcastAddress().
   * @param retAddresses On success, zero or more ip_addresses will be added to this Queue for you to look at.
   * @param includeBits A chord of GNII_INCLUDE_* bits indicating which types of network interface you want to be
-  *                    included in the returned list.  Defaults to GNII_INCLUDE_ALL_ADDRESSED_INTERFACES, which 
+  *                    included in the returned list.  Defaults to GNII_INCLUDE_ALL_ADDRESSED_INTERFACES, which
   *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
   * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory,
   *          call not implemented for the current OS, etc)

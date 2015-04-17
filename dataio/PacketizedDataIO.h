@@ -9,9 +9,9 @@
 namespace muscle {
 
 /**
- * This class can be used to "wrap" a streaming I/O object (for example a TCPSocketDataIO) in order to make 
+ * This class can be used to "wrap" a streaming I/O object (for example a TCPSocketDataIO) in order to make
  * it appear like a packet-based I/O object (e.g. a UDPSocketDataIO) to the calling code.
- * 
+ *
  * It does this by inserting message-length fields into the outgoing byte stream, and parsing
  * message-length fields from the incoming byte stream, so that data will be returned in Read()
  * in the same chunk sizes that it was originally passed in to Write() on the other end.  Note
@@ -28,7 +28,7 @@ public:
     *  Constructor.
     *  @param slaveIO The underlying streaming DataIO object to pass calls on through to.
     *  @param maxTransferUnit the maximum "packet size" we should support.  Calls to
-    *         Read() or Write() with more than this many bytes specified will be truncated, 
+    *         Read() or Write() with more than this many bytes specified will be truncated,
     *         analogous to the way too-large packets are handled by UDP.
     */
    PacketizedDataIO(const DataIORef & slaveIO, uint32 maxTransferUnit = MUSCLE_NO_LIMIT);
@@ -68,7 +68,7 @@ private:
    uint32 _inputBufferSize;
    uint32 _inputBufferSizeBytesRead;
    uint32 _inputBufferBytesRead;
-  
+
    ByteBuffer _outputBuffer;
    uint32 _outputBufferBytesSent;
 };

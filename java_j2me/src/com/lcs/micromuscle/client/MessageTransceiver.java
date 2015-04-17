@@ -30,7 +30,7 @@ public class MessageTransceiver implements MessageListener
     *  @param repliesTo where to send status & reply messages
     *  @param compressionLevel the outgoing compression level to use
     */
-   public MessageTransceiver(MessageQueue repliesTo, int compressionLevel) 
+   public MessageTransceiver(MessageQueue repliesTo, int compressionLevel)
    {
       _repliesTo = repliesTo;
       _gateway = MessageIOGatewayFactory.getMessageIOGateway(compressionLevel);
@@ -54,7 +54,7 @@ public class MessageTransceiver implements MessageListener
     *  @param failTag Any value you want--if non-null, this will be sent back to indicate that the connection failed or was broken.
     *  @param compressionLevel the outgoing compression level to use.
     */
-   public MessageTransceiver(MessageQueue repliesTo, StreamConnection s, Object successTag, Object failTag, int compressionLevel) 
+   public MessageTransceiver(MessageQueue repliesTo, StreamConnection s, Object successTag, Object failTag, int compressionLevel)
    {
       _repliesTo = repliesTo;
       _gateway   = MessageIOGatewayFactory.getMessageIOGateway(compressionLevel);
@@ -158,17 +158,17 @@ public class MessageTransceiver implements MessageListener
    {
       _sendQueue.postMessage(msg);
    }
-   
+
    /**
     * Set a tag that will be sent whenever our queue of outgoing Messages
     * becomes empty.  (Default is NULL, meaning that no notifications will be sent)
     * @param tag The notification tag to send, or NULL to disable.
     */
-   public void setNotifyOutputQueueDrainedTag(Object tag) 
+   public void setNotifyOutputQueueDrainedTag(Object tag)
    {
       _outputQueueDrainedTag = tag;
    }
-   
+
    /** Any received Messages will be sent out to the TCP socket */
    public void messageReceived(Object msg, int numLeft)
    {
@@ -186,7 +186,7 @@ public class MessageTransceiver implements MessageListener
          _failTag    = failTag;
          _sock       = null;
       }
-     
+
      public ConnectMessage(ServerSocketConnection s, Object successTag, Object failTag)
      {
         _hostName   = null;
@@ -195,7 +195,7 @@ public class MessageTransceiver implements MessageListener
         _failTag    = failTag;
         _sock       = s;
       }
-     
+
       public String _hostName;
       public int    _port;
       public Object _successTag;
@@ -293,10 +293,10 @@ public class MessageTransceiver implements MessageListener
             }
          }
          else if (message instanceof MessageReceiver) disconnect(((MessageReceiver)message).connectionID());
-         
-         if (numLeft == 0) 
+
+         if (numLeft == 0)
          {
-            if (_out != null) 
+            if (_out != null)
             {
                try {
                   _out.flush();
@@ -308,7 +308,7 @@ public class MessageTransceiver implements MessageListener
             if (_outputQueueDrainedTag != null) sendReply(_outputQueueDrainedTag);
          }
       }
-   
+
       /** Close the connection and notify the user (only if the connection ID is correct) */
       private void disconnect(int id)
       {
@@ -329,13 +329,13 @@ public class MessageTransceiver implements MessageListener
             _connectionID++;
          }
       }
-   
+
       /** Send a message back to the user */
       private void sendReply(Object replyObj)
       {
          if ((_repliesTo != null)&&(replyObj != null)) _repliesTo.postMessage(replyObj);
       }
-   
+
       /** Logic for our receive-incoming-data thread */
       private class MessageReceiver implements MessageListener
       {
@@ -345,7 +345,7 @@ public class MessageTransceiver implements MessageListener
             _connectionID = cid;
             (new MessageQueue(this)).postMessage(null);  // start the background reader thread
          }
-         
+
          public void messageReceived(Object msg, int numLeft)
          {
             try {
@@ -356,30 +356,30 @@ public class MessageTransceiver implements MessageListener
                _sendQueue.postMessage(this);
             }
          }
-         
+
          public int connectionID() {return _connectionID;}
-         
+
          private int _connectionID;
          private DataInput _in;
       }
-      
+
       private Object _failTag          = null;
       private StreamConnection _socket = null;
       private LEDataOutputStream _out  = null;
    }
-   
+
    // A little class for doing TCP connects in a separate thread (so the MessageTransceiver won't block during the connect) */
    private class ConnectThread implements MessageListener
    {
       private MessageQueue myQueue = null;
-      
+
       public ConnectThread(ConnectMessage cmsg)
       {
          _cmsg = cmsg;
          myQueue = new MessageQueue(this);
          myQueue.postMessage(null);  // just to kick off the thread
       }
-      
+
       public void messageReceived(Object obj, int numLeft)
       {
          try {
@@ -390,19 +390,19 @@ public class MessageTransceiver implements MessageListener
          }
          _sendQueue.postMessage(this);
       }
-      
+
       public Runnable getThread(){
          return myQueue;
       }
-      
+
       public void interrupt(){
          myQueue.interrupt();
       }
-      
+
       public StreamConnection _socket = null;
       public ConnectMessage _cmsg;
    }
-   
+
    // A little class for listening for TCP connections in a separate thread. -- Author: Bryan Varner
    // We override the listener method of ConnectThread and block for any incoming connections to said port.
    private class ListenThread extends ConnectThread
@@ -411,16 +411,16 @@ public class MessageTransceiver implements MessageListener
       {
          super(cmsg);
       }
-      
+
       public void messageReceived(Object obj, int numLeft)
       {
          ServerSocketConnection servSock = _cmsg._sock;
-       
+
          try {
             while(true) {
                // At this point we know we want at least one connection, we'll test for continuance at the end.
                _socket = servSock.acceptAndOpen();
-               
+
                if (_continuallyListen == false)
                {
                   // If we aren't supposed to keep listening, post this object, killing this thread.
@@ -437,7 +437,7 @@ public class MessageTransceiver implements MessageListener
          }
       }
    }
-      
+
    private AbstractMessageIOGateway _gateway;
    private MessageQueue _repliesTo;
    private MessageQueue _sendQueue;

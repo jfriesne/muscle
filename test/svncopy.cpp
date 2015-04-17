@@ -19,7 +19,7 @@ static void FlushAdds(String & s)
   * The list of files can be created via "tar tf archive.tar", etc.
   *
   * Note that for new repositories, svn import can do the same job as this utility; probably
-  * better.  But this utility is useful when you need to bulk-upgrade an existing SVN 
+  * better.  But this utility is useful when you need to bulk-upgrade an existing SVN
   * repository from a non-SVN archive (e.g. if you are keeping 3rd party code in SVN
   * and want to upgrade your SVN repository to the new release)
   *
@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
 
    for (uint32 i=0; i<mkdirs.GetNumItems(); i++) printf("mkdir \"./%s\"\n", mkdirs[i]());
    for (uint32 i=0; i<copies.GetNumItems(); i++) printf("cp \"%s%s\" \"./%s\"\n", inPath(), copies[i](), copies[i]());
-  
+
    // Directory adds must be done separately, since if some fail we want the others to continue
    for (uint32 i=0; i<mkdirs.GetNumItems(); i++) printf("svn add \"./%s\"\n", mkdirs[i]());
 
@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
       const String & next = copies[i];
       if (next.Length() + temp.Length() >= MAX_LINE_LENGTH-10) FlushAdds(temp);
       temp += String("\"./%1\" ").Arg(next);
-   } 
+   }
    FlushAdds(temp);
 
    return 0;

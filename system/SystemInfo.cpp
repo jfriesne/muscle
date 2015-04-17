@@ -125,11 +125,12 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       case SYSTEM_PATH_EXECUTABLE: // executable's directory
       {
 #ifdef WIN32
-         found = muscleInRange((int)GetModuleFileNameA(NULL, buf, sizeof(buf)), (int)1, (int)sizeof(buf)-1);
-         if (found)
+         DWORD len = GetModuleFileNameA(NULL, buf, sizeof(buf));
+         if ((len > 0)&&(len < sizeof(buf)))
          {
+            found = true;
             PathRemoveFileSpecA(buf);
-            if (found) outStr = buf;
+            outStr = buf;
          }
 #else
 # ifdef __APPLE__
@@ -149,7 +150,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
 # else
          // For Linux, anyway, we can try to find out our pid's executable via the /proc filesystem
          // And it can't hurt to at least try it under other OS's, anyway...
-         char linkName[64]; sprintf(linkName, "/proc/%i/exe", getpid());
+         char linkName[64]; muscleSprintf(linkName, "/proc/%i/exe", getpid());
          char linkVal[1024];
          int rl = readlink(linkName, linkVal, sizeof(linkVal));
          if ((rl >= 0)&&(rl < (int)sizeof(linkVal)))
@@ -179,11 +180,20 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
 
       case SYSTEM_PATH_USERHOME:  // user's home directory
       {
-         const char * homeDir = getenv("HOME");
 #ifdef WIN32
-         if (homeDir == NULL) homeDir = getenv("USERPROFILE");
-#endif
+         char homeDir[4096];
+         DWORD res = GetEnvironmentVariableA("HOME", homeDir, sizeof(homeDir));
+         if (res == 0)
+            res = GetEnvironmentVariableA("USERPROFILE", homeDir, sizeof(homeDir));
+
+         if (res > 0)
+#else
+         const char * homeDir = getenv("HOME");
+         if (homeDir == NULL)
+            homeDir = getenv("USERPROFILE");
+
          if (homeDir)
+#endif
          {
             found = true;
             outStr = homeDir;
@@ -212,8 +222,9 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       case SYSTEM_PATH_ROOT:  // the highest possible directory
       {
 #ifdef WIN32
-         const char * homeDrive = getenv("HOMEDRIVE");
-         if (homeDrive)
+         char homeDrive[4096];
+         DWORD res = GetEnvironmentVariableA("HOMEDRIVE", homeDrive, sizeof(homeDrive));
+         if (res > 0)
          {
             outStr = homeDrive;
             found = true;
@@ -243,7 +254,7 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
    if (get_system_info(&info) == B_NO_ERROR)
    {
       retNumProcessors = info.cpu_count;
-      return B_NO_ERROR;  
+      return B_NO_ERROR;
    }
 #elif defined(__APPLE__)
    host_basic_info_data_t hostInfo;
@@ -259,8 +270,8 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
    retNumProcessors = info.dwNumberOfProcessors;
    return B_NO_ERROR;
 #elif defined(__linux__)
-   FILE * f = fopen("/proc/cpuinfo", "r");
-   if (f) 
+   FILE * f = muscleFopen("/proc/cpuinfo", "r");
+   if (f)
    {
       retNumProcessors = 0;
       char line[256];

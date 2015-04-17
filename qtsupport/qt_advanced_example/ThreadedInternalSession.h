@@ -8,7 +8,7 @@ using namespace muscle;
 /** This class is an example of a MUSCLE session object that spawns its own internal thread to do
   * asynchronous processing.  Note that the internal thread is NOT allowed to touch any of the MUSCLE
   * database or ReflectServer nodes directly, or it will suffer from race conditions.  The internal thread
-  * can only do its own separate work, and comunicate with the MUSCLE thread by sending or receiving 
+  * can only do its own separate work, and comunicate with the MUSCLE thread by sending or receiving
   * Message objects to/from the MUSCLE thread.
   */
 class ThreadedInternalSession : public AdvancedThreadWorkerSession, private Thread
@@ -22,7 +22,7 @@ public:
    /** Called during setup.  Overridden to start the internal thread running. */
    virtual status_t AttachedToServer();
 
-   /** Our SignalMessageIOGateway gateway sends us an empty dummy Message whenever it wants us to check our 
+   /** Our SignalMessageIOGateway gateway sends us an empty dummy Message whenever it wants us to check our
     * internal thread's reply-messages-queue.  We respond by grabbing all of the Messages from the internal thread's queue,
     * and handing them over to the superclass's MesageReceivedFromGateway() method, as if they came from a regular
     * old (TCP-connected) AdvancedThreadWorkerSession's client process.

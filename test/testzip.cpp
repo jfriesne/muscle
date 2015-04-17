@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
          break;
       }
    }
-   
+
    MessageRef msg = ReadZipFile(argv[1], loadData);
    if (msg())
    {
@@ -48,6 +48,6 @@ int main(int argc, char ** argv)
       }
    }
    else printf("Error reading .zip file [%s]\n", argv[1]);
-   
+
    return 0;
 }

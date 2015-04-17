@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <netdb.h>
 #include <unistd.h>
@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
    Message args; (void) ParseArgs(argc, argv, args);
    const char * target = args.GetCstr("sendto", "localhost");
    const char * bindto = args.GetCstr("listen", "3960");
-   bool useRawGateway  = args.HasName("raw"); 
+   bool useRawGateway  = args.HasName("raw");
    if (useRawGateway) printf("Using RawDataMessageIOGateway...\n");
 
    ConstSocketRef s = CreateUDPSocket();
@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
    uint16 actualPort;
    if (BindUDPSocket(s, bindPort, &actualPort) == B_NO_ERROR) printf("Bound socket to port %u\n", actualPort);
                                                          else printf("Error, couldn't bind to port %u\n", bindPort);
-   
+
    MessageIOGateway gw;
    RawDataMessageIOGateway rgw;
    UDPSocketDataIO * udpIO = new UDPSocketDataIO(s, false);
@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
       if (agw->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
       multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
 
-      while(s()) 
+      while(s())
       {
          if (multiplexer.WaitForEvents() < 0) printf("testudp: WaitForEvents() failed!\n");
          if (multiplexer.IsSocketReadyForRead(STDIN_FILENO))
@@ -98,9 +98,9 @@ int main(int argc, char ** argv)
 
                   case 's':
                      ref()->what = PR_COMMAND_SETDATA;
-                     ref()->AddMessage(&text[2], Message(MAKETYPE("HELO"))); 
+                     ref()->AddMessage(&text[2], Message(MAKETYPE("HELO")));
                   break;
-      
+
                   case 'k':
                      ref()->what = PR_COMMAND_KICK;
                      ref()->AddString(PR_NAME_KEYS, &text[2]);
@@ -120,7 +120,7 @@ int main(int argc, char ** argv)
                      ref()->what = PR_COMMAND_GETDATA;
                      ref()->AddString(PR_NAME_KEYS, &text[2]);
                   break;
-      
+
                   case 'G':
                      ref()->what = PR_COMMAND_GETDATATREES;
                      ref()->AddString(PR_NAME_KEYS, &text[2]);
@@ -131,26 +131,26 @@ int main(int argc, char ** argv)
                      send = false;
                      s.Reset();
                   break;
-      
+
                   case 'p':
                      ref()->what = PR_COMMAND_SETPARAMETERS;
                      ref()->AddString(&text[2], "");
                   break;
-      
+
                   case 'P':
                      ref()->what = PR_COMMAND_GETPARAMETERS;
                   break;
-      
+
                   case 'd':
                      ref()->what = PR_COMMAND_REMOVEDATA;
                      ref()->AddString(PR_NAME_KEYS, &text[2]);
                   break;
-      
+
                   case 'D':
                      ref()->what = PR_COMMAND_REMOVEPARAMETERS;
                      ref()->AddString(PR_NAME_KEYS, &text[2]);
                   break;
-      
+
                   case 't':
                   {
                      // test all data types
@@ -183,8 +183,8 @@ int main(int argc, char ** argv)
                   break;
                }
             }
-   
-            if (send) 
+
+            if (send)
             {
                printf("Sending message...\n");
 //             ref()->PrintToStream();
@@ -192,7 +192,7 @@ int main(int argc, char ** argv)
             }
             text[0] = '\0';
          }
-   
+
          bool reading = multiplexer.IsSocketReadyForRead(fd);
          bool writing = multiplexer.IsSocketReadyForWrite(fd);
          bool writeError = ((writing)&&(agw->DoOutput() < 0));

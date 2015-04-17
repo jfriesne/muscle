@@ -13,29 +13,29 @@ import com.meyer.micromuscle.support.LEDataInputStream;
 import com.meyer.micromuscle.support.LEDataOutputStream;
 import com.meyer.micromuscle.support.UnflattenFormatException;
 
-class JZLibMessageIOGateway extends MessageIOGateway 
+class JZLibMessageIOGateway extends MessageIOGateway
 {
    protected ZStream _deflateStream;
    protected ZStream _inflateStream;
-   
+
    protected ByteArrayOutputStream _outputByteBuffer;
    protected LEDataOutputStream _leOutputStream;
 
-   public JZLibMessageIOGateway() 
+   public JZLibMessageIOGateway()
    {
       super();
    }
 
-   public JZLibMessageIOGateway(int encoding) 
+   public JZLibMessageIOGateway(int encoding)
    {
       super(encoding);
    }
 
-   public Message unflattenMessage(DataInput in) throws IOException, UnflattenFormatException 
+   public Message unflattenMessage(DataInput in) throws IOException, UnflattenFormatException
    {
       int numBytes = in.readInt();
       int encoding = in.readInt();
-      if (encoding == MUSCLE_MESSAGE_DEFAULT_ENCODING) 
+      if (encoding == MUSCLE_MESSAGE_DEFAULT_ENCODING)
       {
          Message pmsg = new Message();
          pmsg.unflatten(in, numBytes);
@@ -45,7 +45,7 @@ class JZLibMessageIOGateway extends MessageIOGateway
       int flatSize = in.readInt();
       boolean needToInit = false;
       boolean independent = (independentValue == ZLIB_CODEC_HEADER_INDEPENDENT);
-      if (_inflateStream == null) 
+      if (_inflateStream == null)
       {
          _inflateStream = new ZStream();
          needToInit = true;
@@ -71,48 +71,48 @@ class JZLibMessageIOGateway extends MessageIOGateway
       }
 
       if (err != JZlib.Z_OK) throw new IOException("Inflator failed");
-      
+
       // Reassemble the message
       Message pmsg = new Message();
       LEDataInputStream dis = new LEDataInputStream(new ByteArrayInputStream(uncompressedData));
       pmsg.unflatten(dis, flatSize);
       return pmsg;
    }
-   
-   public void flattenMessage(DataOutput out, Message msg) throws IOException 
+
+   public void flattenMessage(DataOutput out, Message msg) throws IOException
    {
       int flatSize = msg.flattenedSize();
-      if ((_outgoingEncoding <= MUSCLE_MESSAGE_DEFAULT_ENCODING)||(flatSize <= 32)) 
+      if ((_outgoingEncoding <= MUSCLE_MESSAGE_DEFAULT_ENCODING)||(flatSize <= 32))
       {
          super.flattenMessage(out, msg);
          return;
       }
       // Else, we need to compress the message.
-   
+
       boolean independent = false;
-      if (_deflateStream == null) 
+      if (_deflateStream == null)
       {
          _deflateStream = new ZStream();
          _deflateStream.deflateInit(_outgoingEncoding - MUSCLE_MESSAGE_DEFAULT_ENCODING, 15); // suppress the zlib headers
-         
+
          _outputByteBuffer = new ByteArrayOutputStream(flatSize);
          _leOutputStream = new LEDataOutputStream (_outputByteBuffer);
          independent = true;
       }
       msg.flatten(_leOutputStream);
       _leOutputStream.flush();
-      
+
       byte[] compressed = new byte[flatSize];
-      
+
       _deflateStream.next_in = _outputByteBuffer.toByteArray();
       _deflateStream.next_in_index = 0;
       _deflateStream.next_out = compressed;
       _deflateStream.next_out_index = 0;
       _deflateStream.avail_in = _deflateStream.next_in.length;
       _deflateStream.avail_out = compressed.length;
-      
+
       int err = JZlib.Z_DATA_ERROR;
-      while (_deflateStream.avail_in > 0) 
+      while (_deflateStream.avail_in > 0)
       {
          err = _deflateStream.deflate(JZlib.Z_SYNC_FLUSH);
          if ((err == JZlib.Z_STREAM_ERROR)||(err == JZlib.Z_DATA_ERROR)||(err == JZlib.Z_NEED_DICT)||(err == JZlib.Z_BUF_ERROR)) throw new IOException("Problem compressing the outgoing message.");

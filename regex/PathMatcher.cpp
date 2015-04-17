@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "regex/PathMatcher.h"
 #include "util/StringTokenizer.h"
@@ -13,7 +13,7 @@ void PathMatcher :: AdjustStringPrefix(String & path, const char * optPrepend) c
    if (path.HasChars())
    {
            if (path[0] == '/') path = path.Substring(1);
-      else if (optPrepend)     
+      else if (optPrepend)
       {
          String temp(optPrepend);  // gcc/BeOS chokes on more compact code than this :^P
          temp += '/';
@@ -23,7 +23,7 @@ void PathMatcher :: AdjustStringPrefix(String & path, const char * optPrepend) c
    }
 }
 
-status_t PathMatcher :: RemovePathString(const String & wildpath) 
+status_t PathMatcher :: RemovePathString(const String & wildpath)
 {
    PathMatcherEntry temp;
    if (_entries.Remove(wildpath, temp) == B_NO_ERROR)
@@ -38,7 +38,7 @@ status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilte
 {
    TCHECKPOINT;
 
-   if (path.HasChars()) 
+   if (path.HasChars())
    {
       StringMatcherQueue * newQ = GetStringMatcherQueuePool()->ObtainObject();
       if (newQ)
@@ -59,7 +59,7 @@ status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilte
                smRef.SetRef(smPool->ObtainObject());
                if ((smRef() == NULL)||(smRef()->SetPattern(temp()) != B_NO_ERROR)) return B_ERROR;
             }
-            if (newQ->AddTail(smRef) != B_NO_ERROR) return B_ERROR;
+            if (newQ->GetStringMatchers().AddTail(smRef) != B_NO_ERROR) return B_ERROR;
             lastSlashPos = slashPos;
          }
          if (_entries.Put(path, PathMatcherEntry(qRef, filter)) == B_NO_ERROR)
@@ -80,7 +80,7 @@ status_t PathMatcher :: PutPathsFromMessage(const char * pathFieldName, const ch
 
    ConstQueryFilterRef filter;  // declared here so that queries can "bleed down" the list without being specified multiple times
    String str;
-   for (uint32 i=0; msg.FindString(pathFieldName, i, str) == B_NO_ERROR; i++) 
+   for (uint32 i=0; msg.FindString(pathFieldName, i, str) == B_NO_ERROR; i++)
    {
       if (optFilterFieldName)
       {
@@ -131,8 +131,8 @@ bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, c
    uint32 numClauses = GetPathDepth(path);
    for (HashtableIterator<String, PathMatcherEntry> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
-      const StringMatcherQueue * nextSubscription = iter.GetValue().GetParser()();      
-      if ((nextSubscription)&&(nextSubscription->GetNumItems() == numClauses))
+      const StringMatcherQueue * nextSubscription = iter.GetValue().GetParser()();
+      if ((nextSubscription)&&(nextSubscription->GetStringMatchers().GetNumItems() == numClauses))
       {
          bool matched = true;  // default
 
@@ -140,15 +140,15 @@ bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, c
          for (uint32 j=0; j<numClauses; j++)
          {
             const char * nextToken = tok();
-            const StringMatcher * nextMatcher = nextSubscription->GetItemAt(j)->GetItemPointer();
-            if ((nextToken == NULL)||((nextMatcher)&&(nextMatcher->Match(nextToken) == false))) 
+            const StringMatcher * nextMatcher = nextSubscription->GetStringMatchers().GetItemAt(j)->GetItemPointer();
+            if ((nextToken == NULL)||((nextMatcher)&&(nextMatcher->Match(nextToken) == false)))
             {
                matched = false;
                break;
             }
          }
 
-         if (matched) 
+         if (matched)
          {
             ConstMessageRef constMsg(optMessage, false);
             const QueryFilter * filter = iter.GetValue().GetFilter()();
@@ -165,14 +165,14 @@ const char * GetPathClause(int depth, const char * path)
    for (int i=0; i<depth; i++)
    {
       const char * nextSlash = strchr(path, '/');
-      if (nextSlash == NULL) 
+      if (nextSlash == NULL)
       {
          path = NULL;
          break;
       }
       path = nextSlash + 1;
    }
-   return path;          
+   return path;
 }
 
 String GetPathClauseString(int depth, const char * path)
@@ -207,10 +207,10 @@ int GetPathDepth(const char * path)
 String StringMatcherQueue :: ToString() const
 {
    String ret;
-   for (uint32 i=0; i<GetNumItems(); i++)
+   for (uint32 i=0; i<_queue.GetNumItems(); i++)
    {
       if (ret.HasChars()) ret += ' ';
-      const StringMatcherRef & smr = (*this)[i];
+      const StringMatcherRef & smr = _queue[i];
       if (smr()) ret += smr()->ToString();
             else ret += "(null)";
    }
@@ -224,7 +224,7 @@ String PathMatcherEntry :: ToString() const
    if (_parser()) ret += _parser()->ToString().Prepend("Parser=[").Append("]");
    if (_filter())
    {
-      char buf[128]; sprintf(buf, "%sfilter=%p", ret.HasChars()?" ":"", _filter());
+      char buf[128]; muscleSprintf(buf, "%sfilter=%p", ret.HasChars()?" ":"", _filter());
       ret += buf;
    }
    return ret;

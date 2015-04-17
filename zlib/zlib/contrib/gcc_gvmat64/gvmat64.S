@@ -297,18 +297,18 @@ LastMatchGood:
 
         cmp bx,word ptr [rsi + r8 - 1]
         jz  LookupLoopIsZero
-				
-						
-						
+
+
+
 LookupLoop1:
         and r8d, edx
 
         movzx   r8d, word ptr [rdi + r8*2]
         cmp r8d, ebp
         jbe LeaveNow
-		
-		
-		
+
+
+
         sub edx, 0x00010000
 		BEFORE_JMP
         js  LeaveNow
@@ -459,7 +459,7 @@ LoopCmps:
         jnz  LoopCmps
         jmp  LenMaximum
 		AFTER_JMP
-		
+
 LeaveLoopCmps16: add rdx,8
 LeaveLoopCmps8: add rdx,8
 LeaveLoopCmps:
@@ -481,8 +481,8 @@ LeaveLoopCmps:
 LenLower32:
         shr eax,16
         add rdx,2
-		
-LenLower:		
+
+LenLower:
         sub al, 1
         adc rdx, 0
 //;;; Calculate the length of the match. If it is longer than MAX_MATCH,

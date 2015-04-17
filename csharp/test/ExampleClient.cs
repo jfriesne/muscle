@@ -25,9 +25,9 @@ namespace muscle.test {
       if (args.Length >= 3)
 	port = System.Int32.Parse(args[2]);
 
-      new ExampleClient(host, port); 
+      new ExampleClient(host, port);
     }
-      
+
     public ExampleClient(string hostName, int port)
     {
       Client client = new Client(hostName, port);
@@ -54,7 +54,7 @@ namespace muscle.test {
       }
     }
 
-    public void ConnectCallback(IAsyncResult ar) 
+    public void ConnectCallback(IAsyncResult ar)
     {
       Client client = (Client) ar.AsyncState;
       client.EndConnect(ar);
@@ -70,13 +70,13 @@ namespace muscle.test {
     }
 
     public void MessagesCallback(Message [] messages,
-				 Client client, 
-				 object state) 
+				 Client client,
+				 object state)
     {
       foreach (Message message in messages) {
 	System.Console.WriteLine(message.ToString());
       }
     }
-    
+
   }
 }

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/RS232DataIO.h"
 
@@ -11,6 +11,7 @@
 
 #if defined(WIN32) || defined(__CYGWIN__)
 # include <process.h>  // for _beginthreadex()
+# include <Shlwapi.h>  // for IsOS()
 # include "util/Queue.h"
 # define USE_WINDOWS_IMPLEMENTATION
 #else
@@ -40,12 +41,12 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking) : 
    if (_handle != INVALID_HANDLE_VALUE)
    {
       SetupComm(_handle, 32768, 32768);
-      
+
       DCB dcb;
       dcb.DCBlength = sizeof(DCB);
       GetCommState((void *)_handle, &dcb);
-      
-      char modebuf[128]; sprintf(modebuf, "%s baud="UINT32_FORMAT_SPEC" parity=N data=8 stop=1", port, baudRate);
+
+      char modebuf[128]; muscleSprintf(modebuf, "%s baud="UINT32_FORMAT_SPEC" parity=N data=8 stop=1", port, baudRate);
       if (BuildCommDCBA(modebuf, &dcb))
       {
          dcb.fBinary           = 1;
@@ -68,7 +69,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking) : 
             tmout.ReadTotalTimeoutConstant    = 0;
             tmout.WriteTotalTimeoutMultiplier = 0;
             tmout.WriteTotalTimeoutConstant   = 0;
-            if ((SetCommTimeouts(_handle, &tmout))&&(SetCommMask(_handle, EV_TXEMPTY|EV_RXCHAR))) 
+            if ((SetCommTimeouts(_handle, &tmout))&&(SetCommMask(_handle, EV_TXEMPTY|EV_RXCHAR)))
             {
                if (_blocking == false)
                {
@@ -164,7 +165,7 @@ bool RS232DataIO :: IsPortAvailable() const
 #else
    return (_handle.GetFileDescriptor() >= 0);
 #endif
-} 
+}
 
 void RS232DataIO :: Close()
 {
@@ -199,7 +200,7 @@ int32 RS232DataIO :: Read(void *buf, uint32 len)
          DWORD actual_read;
          if (ReadFile(_handle, buf, len, &actual_read, 0)) return actual_read;
       }
-      else 
+      else
       {
          int32 ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
          if (ret >= 0) SetEvent(_wakeupSignal);  // wake up the thread in case he has more data to give us
@@ -222,7 +223,7 @@ int32 RS232DataIO :: Write(const void *buf, uint32 len)
          DWORD actual_write;
          if (WriteFile(_handle, buf, len, &actual_write, 0)) return actual_write;
       }
-      else 
+      else
       {
          int32 ret = SendData(_masterNotifySocket, buf, len, _blocking);
          if (ret > 0) SetEvent(_wakeupSignal);  // wake up the thread so he'll check his socket for our new data
@@ -236,12 +237,12 @@ int32 RS232DataIO :: Write(const void *buf, uint32 len)
 }
 
 void RS232DataIO :: FlushOutput()
-{ 
-   if (IsPortAvailable()) 
+{
+   if (IsPortAvailable())
    {
 #ifdef USE_WINDOWS_IMPLEMENTATION
       // not implemented yet!
-#else 
+#else
       int fd = _handle.GetFileDescriptor();
       if (fd >= 0) tcdrain(fd);
 #endif
@@ -252,7 +253,7 @@ const ConstSocketRef & RS232DataIO :: GetSerialSelectSocket() const
 {
 #ifdef USE_WINDOWS_IMPLEMENTATION
    return _blocking ? GetNullSocket() : _masterNotifySocket;
-#else 
+#else
    return _handle;
 #endif
 }
@@ -265,12 +266,16 @@ void RS232DataIO :: Shutdown()
 status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
 {
 #ifdef USE_WINDOWS_IMPLEMENTATION
-   // This implementation stolen from PJ Naughter's (pjn@indigo.ie) post 
+   // This implementation stolen from PJ Naughter's (pjn@indigo.ie) post
    // at http://www.codeproject.com/system/enumports.asp
    //
    // Under NT-based versions of Windows, use the QueryDosDevice API, since it's more efficient
+#if _MSC_VER >= 1800
+   if (IsOS(OS_NT))
+#else
    OSVERSIONINFO osvi; osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
    if (GetVersionEx(&osvi)&&(osvi.dwPlatformId == VER_PLATFORM_WIN32_NT))
+#endif
    {
       char szDevices[65535];
       DWORD dwChars = QueryDosDeviceA(NULL, szDevices, 65535);
@@ -294,11 +299,11 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
       // On 95/98 open up each port to determine their existence
       // Up to 255 COM ports are supported so we iterate through all of them seeing
       // if we can open them or if we fail to open them, get an access denied or general error error.
-      // Both of these cases indicate that there is a COM port at that number. 
+      // Both of these cases indicate that there is a COM port at that number.
       for (uint32 i=1; i<256; i++)
       {
          // Try to open the port
-         char buf[128]; sprintf(buf, "COM"UINT32_FORMAT_SPEC, i);
+         char buf[128]; muscleSprintf(buf, "COM"UINT32_FORMAT_SPEC, i);
          ::HANDLE hPort = CreateFileA(buf, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0);
          if (hPort == INVALID_HANDLE_VALUE)
          {
@@ -346,12 +351,12 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
 # else
    for (int i=0; /*empty*/; i++)
    {
-      char buf[64]; 
+      char buf[64];
 #  if defined(__BEOS__) || defined(__HAIKU__)
-      sprintf(buf, "/dev/ports/serial%i", i+1);
+      muscleSprintf(buf, "/dev/ports/serial%i", i+1);
       int temp = open(buf, O_RDWR | O_NONBLOCK);
 #  else
-      sprintf(buf, "/dev/ttyS%i", i);
+      muscleSprintf(buf, "/dev/ttyS%i", i);
       int temp = open(buf, O_RDWR | O_NOCTTY);
 #  endif
       if (temp >= 0)
@@ -442,7 +447,7 @@ void RS232DataIO :: IOThreadEntry()
          {
             if (eventMask & EV_RXCHAR) checkRead = true;
          }
-         else 
+         else
          {
             DWORD err = GetLastError();
             if (err == ERROR_IO_PENDING) isWaiting = true;
@@ -468,7 +473,7 @@ void RS232DataIO :: IOThreadEntry()
             {
                ProcessReadBytes(inQueue, inBuf._buf, pendingReadBytes);
                pendingReadBytes = 0;
-            }           
+            }
             ResetEvent(_ovRead.hEvent);
          }
          break;
@@ -489,7 +494,7 @@ void RS232DataIO :: IOThreadEntry()
          break;
       }
 
- 
+
       // Dump serial data into inQueue as much as possible...
       if ((pendingReadBytes == 0)&&(checkRead))
       {
@@ -540,7 +545,7 @@ void RS232DataIO :: IOThreadEntry()
             int32 numBytesToRead = sizeof(outBuf._buf)-outBuf._length;
             int32 numBytesRead = (numBytesToRead > 0) ? ReceiveData(_slaveNotifySocket, &outBuf._buf[outBuf._length], numBytesToRead, false) : 0;
             if (numBytesRead > 0) outBuf._length += numBytesRead;
-      
+
             // Try to write the bytes from outBuf to the serial port
             int32 numBytesToWrite = outBuf._length-outBuf._index;
             if (numBytesToWrite > 0)
@@ -548,13 +553,13 @@ void RS232DataIO :: IOThreadEntry()
                DWORD numBytesWritten;
                if (WriteFile(_handle, &outBuf._buf[outBuf._index], numBytesToWrite, &numBytesWritten, &_ovWrite))
                {
-                  if (numBytesWritten > 0) 
+                  if (numBytesWritten > 0)
                   {
                      ProcessWriteBytes(outBuf, numBytesWritten);
                      keepGoing = true;  // see if we can write some more....
                   }
                }
-               else 
+               else
                {
                   if (GetLastError() == ERROR_IO_PENDING) pendingWriteBytes = numBytesToWrite;
                                                      else LogTime(MUSCLE_LOG_ERROR, "RS232SerialDataIO: WriteFile() failed!  err="INT32_FORMAT_SPEC"\n", GetLastError());

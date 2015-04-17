@@ -132,7 +132,7 @@ int cflags;
 		return(REG_ESPACE);
 	}
 	p->ssize = len/(size_t)2*(size_t)3 + (size_t)1;	/* ugh */
-	assert(p->ssize >= len);
+	assert((size_t) p->ssize >= len);
 
 	p->strip = (sop *)malloc(p->ssize * sizeof(sop));
 	p->slen = 0;
@@ -1053,8 +1053,10 @@ register struct parse *p;
 			{
 				p->g->setbits = t2;
 
-				for (i = 0; i < no; i++)
-					p->g->sets[i].ptr = p->g->setbits + css*(i/CHAR_BIT);
+				if (p->g->sets != NULL) {
+					for (i = 0; i < no; i++)
+						p->g->sets[i].ptr = p->g->setbits + css*(i/CHAR_BIT);
+				}
 			}
 		}
 		if (p->g->sets != NULL && p->g->setbits != NULL)

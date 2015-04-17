@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -51,21 +51,21 @@ static void LogChecksum(const uint8 * buf, uint32 numBytes)
 
 static void LogBytes(const uint8 * buf, uint32 numBytes, const char * optDesc)
 {
-   if (_useHex) 
+   if (_useHex)
    {
       if (!_quietSend) LogHexBytes(MUSCLE_LOG_INFO, buf, numBytes, optDesc);
       if (_printChecksums) LogChecksum(buf, numBytes);
    }
-   else 
+   else
    {
-      if (_decorateOutput) 
+      if (_decorateOutput)
       {
          LogTime(MUSCLE_LOG_INFO, "/-----------Begin " UINT32_FORMAT_SPEC " bytes of %s%sAscii Data-----------\\\n", numBytes, optDesc?optDesc:"", optDesc?" ":"");
 
          bool atFront = true;
-         for (uint32 i=0; i<numBytes; i++) 
+         for (uint32 i=0; i<numBytes; i++)
          {
-            if (atFront) 
+            if (atFront)
             {
                LogTime(MUSCLE_LOG_INFO, "| ");
                atFront = false;
@@ -112,7 +112,7 @@ static void DoSession(DataIO & io)
             uint8 * b = spamBuf() ? spamBuf()->GetBuffer() : NULL;
             if (b)
             {
-               uint8 v = (uint8)(spamTime%256); 
+               uint8 v = (uint8)(spamTime%256);
                for (uint32 i=0; i<_spamSize; i++) b[i] = v++;  // just some nice arbitrary data
                spamBytesSent = io.WriteFully(b, _spamSize);
             }
@@ -124,7 +124,7 @@ static void DoSession(DataIO & io)
          {
             uint8 buf[2048];
             int32 ret = io.Read(buf, sizeof(buf));
-            if (ret > 0) 
+            if (ret > 0)
             {
                if (_printReceivedBytes)
                {
@@ -138,7 +138,7 @@ static void DoSession(DataIO & io)
                }
                else LogTime(MUSCLE_LOG_DEBUG, "Received " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of data.\n", ret, sizeof(buf));
             }
-            else if (ret < 0) 
+            else if (ret < 0)
             {
                LogTime(MUSCLE_LOG_ERROR, "Read() returned " INT32_FORMAT_SPEC ", aborting!\n", ret);
                break;
@@ -149,7 +149,7 @@ static void DoSession(DataIO & io)
             while(1)
             {
                int32 bytesRead = stdinGateway.DoInput(receiver);
-               if (bytesRead < 0) 
+               if (bytesRead < 0)
                {
                   stdinFD = -1;  // indicate that stdin is no longer available
                   break;
@@ -161,11 +161,11 @@ static void DoSession(DataIO & io)
             // (Main benefit is that this makes for prettier pretty-printed output on the receiving, if the receiver is another hexterm)
             ByteBufferRef outBuf = GetByteBufferFromPool();
             MessageRef nextMsg;
-            while(receiver.RemoveHead(nextMsg) == B_NO_ERROR)
+            while(receiver.GetMessages().RemoveHead(nextMsg) == B_NO_ERROR)
             {
                const char * b;
                for (int32 i=0; (nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &b) == B_NO_ERROR); i++)
-               { 
+               {
                   ByteBufferRef nextBuf;
                   if (_useHex) nextBuf = ParseHexBytes(b);
                   else
@@ -182,15 +182,15 @@ static void DoSession(DataIO & io)
                   }
                }
             }
-  
+
             if (outBuf())
             {
                uint32 wrote = io.WriteFully(outBuf()->GetBuffer(), outBuf()->GetNumBytes());
-               if (wrote == outBuf()->GetNumBytes()) 
+               if (wrote == outBuf()->GetNumBytes())
                {
                   if (_decorateOutput) LogBytes(outBuf()->GetBuffer(), outBuf()->GetNumBytes(), "Sent");
                }
-               else 
+               else
                {
                   LogTime(MUSCLE_LOG_ERROR, "Error, Write() only wrote " INT32_FORMAT_SPEC " of " UINT32_FORMAT_SPEC " bytes... aborting!\n", wrote, outBuf()->GetNumBytes());
                   break;
@@ -211,7 +211,7 @@ static void DoUDPSession(const String & optHost, uint16 port)
       LogTime(MUSCLE_LOG_ERROR, "Error creating UDP socket!\n");
       return;
    }
- 
+
    UDPSocketDataIO udpIO(ss, false);
    if (optHost.HasChars())
    {
@@ -252,7 +252,7 @@ static void DoUDPSession(const String & optHost, uint16 port)
       }
       else LogTime(MUSCLE_LOG_ERROR, "Could not look up target hostname [%s]\n", optHost());
    }
-   else 
+   else
    {
       if (BindUDPSocket(ss, port) == B_NO_ERROR)
       {
@@ -352,7 +352,7 @@ int hextermmain(const char * argv0, const Message & args)
          String serName;
          for (int32 i=devs.GetNumItems()-1; i>=0; i--)
          {
-            if (devs[i] == devName) 
+            if (devs[i] == devName)
             {
                serName = devs[i];
                break;
@@ -369,7 +369,7 @@ int hextermmain(const char * argv0, const Message & args)
             }
             else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open serial device %s (baud rate " UINT32_FORMAT_SPEC ").\n", serName(), baudRate);
          }
-         else 
+         else
          {
             LogTime(MUSCLE_LOG_CRITICALERROR, "Serial device %s not found.\n", devName());
             LogTime(MUSCLE_LOG_CRITICALERROR, "Available serial devices are:\n");
@@ -396,7 +396,7 @@ int hextermmain(const char * argv0, const Message & args)
       if (as())
       {
          LogTime(MUSCLE_LOG_INFO, "Listening for incoming TCP connections on port %i\n", port);
-         while(true) 
+         while(true)
          {
             ip_address acceptedFromIP;
             ConstSocketRef ss = Accept(as, &acceptedFromIP);
@@ -424,7 +424,7 @@ int hextermmain(const char * argv0, const Message & args)
 // Hex bytes are displayed and entered in ASCII format.
 // Good for interactive debugging of low-level protocols like MIDI.
 #ifndef UNIFIED_DAEMON
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 

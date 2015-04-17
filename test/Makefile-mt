@@ -1,16 +1,16 @@
 CFLAGS = -I.. -g
 CXXFLAGS = $(CFLAGS) -DMUSCLE_ENABLE_ZLIB_ENCODING -DMUSCLE_AVOID_NEWNOTHROW -DMUSCLE_SINGLE_THREAD_ONLY
-LFLAGS =  
+LFLAGS =
 LIBS =
 EXECUTABLES = testreflectclient
-REGEXOBJS = 
+REGEXOBJS =
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o crc32.o inftrees.o compress.o inffast.o
 
 VPATH = ../hashtable ../message ../iogateway ../reflector ../regex ../util ../syslog ../system ../dataio ../zlib ../zlib/zlib
 
 ifeq ($(OSTYPE),beos)
   VPATH += ../besupport
-  EXECUTABLES += testreflectclient 
+  EXECUTABLES += testreflectclient
   ifeq ($(BE_HOST_CPU),ppc)
     CXX = mwcc
     REGEXOBJS = regcomp.o regerror.o regexec.o regfree.o
@@ -21,7 +21,7 @@ ifeq ($(OSTYPE),beos)
     ifeq ($(shell ls 2>/dev/null -1 /boot/develop/headers/be/bone/bone_api.h), /boot/develop/headers/be/bone/bone_api.h)
       CFLAGS += -I/boot/develop/headers/be/bone -DBONE
       LIBS = -nodefaultlibs -lbind -lsocket -lbe -lroot -L/boot/beos/system/lib
-    endif   
+    endif
   endif
 else
   ifeq ($(OSTYPE),freebsd4.0)

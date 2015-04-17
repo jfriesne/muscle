@@ -58,9 +58,9 @@ status_t DetectNetworkConfigChangesSession :: ThreadSafeSendMessageToOwner(const
 }
 #endif
 
-DetectNetworkConfigChangesSession :: DetectNetworkConfigChangesSession() : 
+DetectNetworkConfigChangesSession :: DetectNetworkConfigChangesSession() :
 #ifndef __linux__
-   _threadKeepGoing(false), 
+   _threadKeepGoing(false),
 #endif
 #ifdef __APPLE__
    _threadRunLoop(NULL), // paranoia
@@ -137,14 +137,14 @@ void DetectNetworkConfigChangesSession :: MessageReceivedFromGateway(const Messa
 #ifndef __linux__
    bool sendReport = false;
    MessageRef ref;
-   while(GetNextReplyFromInternalThread(ref) >= 0) 
+   while(GetNextReplyFromInternalThread(ref) >= 0)
    {
       if (ref() == NULL)
       {
          LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession:  Internal thread exited!\n");
          continue;
       }
-     
+
       switch(ref()->what)
       {
          case DNCCS_MESSAGE_INTERFACES_CHANGED:
@@ -205,7 +205,7 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
                        _pendingChangedInterfaceNames.PutWithDefault((const char *) RTA_DATA(a));
                   sendReport = true;
                }
-               break; 
+               break;
 
                default:
                   // do nothing
@@ -276,7 +276,7 @@ void DetectNetworkConfigChangesSession :: SignalInternalThread()
 static OSStatus MoreSCErrorBoolean(Boolean success)
 {
    OSStatus err = noErr;
-   if (!success) 
+   if (!success)
    {
       int scErr = SCError();
       if (scErr == kSCStatusOK) scErr = kSCStatusFailed;
@@ -296,7 +296,7 @@ static void StoreRecordFunc(const void * key, const void * value, void * context
    if ((keyStr)&&(propList))
    {
       String k = CFStringGetCStringPtr(keyStr, kCFStringEncodingMacRoman);
-      if (k.StartsWith("State:/Network/Interface/")) 
+      if (k.StartsWith("State:/Network/Interface/"))
       {
          String interfaceName = k.Substring(25).Substring(0, "/");
          (void) ((Hashtable<String, String> *)(context))->Put(k, interfaceName);
@@ -336,7 +336,7 @@ static OSStatus CreateIPAddressListChangeCallbackSCF(SCDynamicStoreCallBack call
    context.info = contextPtr;
    ref = SCDynamicStoreCreate(NULL, CFSTR("AddIPAddressListChangeCallbackSCF"), callback, &context);
    err = MoreSCError(ref);
-   if (err == noErr) 
+   if (err == noErr)
    {
       // This pattern is "State:/Network/Service/[^/]+/IPv4".
       patterns[0] = SCDynamicStoreKeyCreateNetworkServiceEntity(NULL, kSCDynamicStoreDomainState, kSCCompAnyRegex, kSCEntNetIPv4);  // FogBugz #6075
@@ -356,7 +356,7 @@ static OSStatus CreateIPAddressListChangeCallbackSCF(SCDynamicStoreCallBack call
    }
 
    // Tell SCF that we want to watch changes in keys that match that pattern list, then create our run loop source.
-   if (err == noErr) 
+   if (err == noErr)
    {
        patternList = CFArrayCreate(NULL, (const void **) patterns, 3, &kCFTypeArrayCallBacks);
        err = CFQError(patternList);
@@ -374,7 +374,7 @@ static OSStatus CreateIPAddressListChangeCallbackSCF(SCDynamicStoreCallBack call
    }
 
    if (err == noErr) err = MoreSCErrorBoolean(SCDynamicStoreSetNotificationKeys(ref, NULL, patternList));
-   if (err == noErr) 
+   if (err == noErr)
    {
        rls = SCDynamicStoreCreateRunLoopSource(NULL, ref, 0);
        err = MoreSCError(rls);
@@ -385,7 +385,7 @@ static OSStatus CreateIPAddressListChangeCallbackSCF(SCDynamicStoreCallBack call
    CFQRelease(patterns[1]);
    CFQRelease(patterns[2]);
    CFQRelease(patternList);
-   if (err != noErr) 
+   if (err != noErr)
    {
       CFQRelease(ref);
       ref = NULL;
@@ -483,7 +483,7 @@ void DetectNetworkConfigChangesSession :: MySleepCallbackAux(bool isAboutToSleep
       static Message _aboutToSleepMessage(DNCCS_MESSAGE_ABOUT_TO_SLEEP);
       static Message _justWokeUpMessage(DNCCS_MESSAGE_JUST_WOKE_UP);
       (void) ThreadSafeSendMessageToOwner(MessageRef(isAboutToSleep ? &_aboutToSleepMessage : &_justWokeUpMessage, false));
-   }       
+   }
 }
 #endif
 
@@ -514,7 +514,7 @@ static void MySleepCallBack(void * refCon, io_service_t /*service*/, natural_t m
          // we will allow idle sleep
          IOAllowPowerChange(*root_port, (long)messageArgument);
        break;
- 
+
        case kIOMessageSystemWillSleep:
           /* The system WILL go to sleep. If you do not call IOAllowPowerChange or
              IOCancelPowerChange to acknowledge this message, sleep will be
@@ -530,7 +530,7 @@ static void MySleepCallBack(void * refCon, io_service_t /*service*/, natural_t m
        case kIOMessageSystemWillPowerOn:
           //System has started the wake up process...
        break;
- 
+
        case kIOMessageSystemHasPoweredOn:
           // System has finished waking up...
           MySleepCallbackAux(s, false);
@@ -578,7 +578,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
    io_object_t notifierObject;    // notifier object, used to deregister later
    void * refCon = (void *) this; // this parameter is passed to the callback
    CFRunLoopSourceRef powerNotifyRunLoopSource = NULL;
- 
+
    // register to receive system sleep notifications
    io_connect_t root_port = IORegisterForSystemPower(refCon, &powerNotifyPortRef, MySleepCallBack, &notifierObject);
    _rootPortPointer = &root_port;
@@ -594,7 +594,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
    if (CreateIPAddressListChangeCallbackSCF(IPConfigChangedCallback, this, &storeRef, &sourceRef, _scKeyToInterfaceName) == noErr)
    {
       CFRunLoopAddSource(CFRunLoopGetCurrent(), sourceRef, kCFRunLoopDefaultMode);
-      while(_threadKeepGoing) 
+      while(_threadKeepGoing)
       {
          CFRunLoopRun();
          while(1)
@@ -605,7 +605,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
             {
                if (MessageReceivedFromOwner(msgRef, numLeft) != B_NO_ERROR) _threadKeepGoing = false;
             }
-            else break; 
+            else break;
          }
       }
       CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sourceRef, kCFRunLoopDefaultMode);
@@ -614,7 +614,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
 
    }
    if (powerNotifyRunLoopSource) CFRunLoopRemoveSource(CFRunLoopGetCurrent(), powerNotifyRunLoopSource, kCFRunLoopDefaultMode);
-   if (powerNotifyPortRef) 
+   if (powerNotifyPortRef)
    {
       (void) IODeregisterForSystemPower(&root_port);
       (void) IONotificationPortDestroy(powerNotifyPortRef);
@@ -625,7 +625,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
 #define WINDOW_MENU_NAME    L"DetectNetworkConfigChangesSession_MainMenu"
 
    // Gotta create a hidden window to receive WM_POWERBROADCAST events, lame-o!
-   // Register the window class for the main window. 
+   // Register the window class for the main window.
    WNDCLASS window_class; memset(&window_class, 0, sizeof(window_class));
    window_class.style          = 0;
    window_class.lpfnWndProc    = (WNDPROC) window_message_handler;
@@ -635,15 +635,15 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
    window_class.hIcon          = LoadIcon((HINSTANCE) NULL, IDI_APPLICATION);
    window_class.hCursor        = LoadCursor((HINSTANCE) NULL, IDC_ARROW);
    window_class.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
-   window_class.lpszMenuName   = WINDOW_MENU_NAME; 
-   window_class.lpszClassName  = WINDOW_CLASS_NAME; 
+   window_class.lpszMenuName   = WINDOW_MENU_NAME;
+   window_class.lpszClassName  = WINDOW_CLASS_NAME;
    (void) RegisterClass(&window_class); // Deliberately not checking result, per Chris Guzak at http://msdn.microsoft.com/en-us/library/windows/desktop/ms633586(v=vs.85).aspx
-  
+
    // This window will never be shown; its only purpose is to allow us to receive WM_POWERBROADCAST events so we can alert the calling code to sleep and wake events
-   HWND hiddenWindow = CreateWindowW(WINDOW_CLASS_NAME, L"", WS_OVERLAPPEDWINDOW, -1, -1, 0, 0, (HWND)NULL, (HMENU) NULL, NULL, (LPVOID)NULL); 
+   HWND hiddenWindow = CreateWindowW(WINDOW_CLASS_NAME, L"", WS_OVERLAPPEDWINDOW, -1, -1, 0, 0, (HWND)NULL, (HMENU) NULL, NULL, (LPVOID)NULL);
    if (hiddenWindow) SetWindowLongPtr(hiddenWindow, GWL_USERDATA, (LONG) this);  // ok because we don't need access to (this) in WM_CREATE
                 else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession::InternalThreadEntry():  CreateWindow() failed!\n");
-   
+
 # ifndef MUSCLE_AVOID_NETIOAPI
    HANDLE handle1 = MY_INVALID_HANDLE_VALUE; (void) NotifyUnicastIpAddressChange(AF_UNSPEC, &AddressCallbackDemo,   this, FALSE, &handle1);
    HANDLE handle2 = MY_INVALID_HANDLE_VALUE; (void) NotifyIpInterfaceChange(     AF_UNSPEC, &InterfaceCallbackDemo, this, FALSE, &handle2);
@@ -656,13 +656,13 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
       while(_threadKeepGoing)
       {
          ::HANDLE junk;
-         int nacRet = NotifyAddrChange(&junk, &olap); 
+         int nacRet = NotifyAddrChange(&junk, &olap);
          if ((nacRet == NO_ERROR)||(WSAGetLastError() == WSA_IO_PENDING))
          {
             if (hiddenWindow)
             {
                MSG message;
-               while(PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) DispatchMessage(&message); 
+               while(PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) DispatchMessage(&message);
             }
 
             ::HANDLE events[] = {olap.hEvent, _wakeupSignal};
@@ -672,19 +672,19 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
                // Serialized since the NotifyUnicast*Change() callbacks get called from a different thread
                static Message _msg(DNCCS_MESSAGE_INTERFACES_CHANGED);
                ThreadSafeSendMessageToOwner(MessageRef(&_msg, false));
-            }          
+            }
             else if ((hiddenWindow)&&(waitResult == DWORD(WAIT_OBJECT_0+ARRAYITEMS(events))))
             {
                // Message received from Window-message-handler; go around the loop to process it
             }
-            else 
+            else
             {
                // Anything else is an error and we should pack it in
                (void) CancelIPChangeNotify(&olap);
                _threadKeepGoing = false;
             }
          }
-         else 
+         else
          {
             LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession:  NotifyAddrChange() failed, code %i (%i)\n", nacRet, WSAGetLastError());
             break;

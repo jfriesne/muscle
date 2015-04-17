@@ -46,7 +46,7 @@ bool QAcceptSocketsThread :: event(QEvent * event)
       {
          switch(next()->what)
          {
-            case AST_EVENT_NEW_SOCKET_ACCEPTED:      
+            case AST_EVENT_NEW_SOCKET_ACCEPTED:
             {
                RefCountableRef tag;
                if (next()->FindTag(AST_NAME_SOCKET, tag) == B_NO_ERROR)

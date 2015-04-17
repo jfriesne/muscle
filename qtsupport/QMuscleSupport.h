@@ -21,7 +21,7 @@ public:
    /** Returns a hash code for the given QString object.
      * @param str The QString to calculate a hash code for.
      */
-   uint32 operator () (const QString & str) const 
+   uint32 operator () (const QString & str) const
    {
 #if QT_VERSION >= 0x040000
       return qHash(str);

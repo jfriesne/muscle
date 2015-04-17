@@ -308,7 +308,7 @@ LoopCmps:
 		notw	%ax
 		bsfw	%ax, %ax
 		jnz	LeaveLoopCmps
-		
+
 		/* this is the only iteration of the loop with a possibility of having
 		   incremented rdx by 0x108 (each loop iteration add 16*4 = 0x40
 		   and (0x40*4)+8=0x108 */
@@ -316,13 +316,13 @@ LoopCmps:
 		jz LenMaximum
 		add	$8, %rdx
 
-		
+
 		pmovmskb %xmm3, %rax
 		notw	%ax
 		bsfw	%ax, %ax
 		jnz	LeaveLoopCmps
-		
-		
+
+
 		add	$16, %rdx
 
 
@@ -330,7 +330,7 @@ LoopCmps:
 		notw	%ax
 		bsfw	%ax, %ax
 		jnz	LeaveLoopCmps
-		
+
 		add	$16, %rdx
 
 
@@ -338,16 +338,16 @@ LoopCmps:
 		notw	%ax
 		bsfw	%ax, %ax
 		jnz	LeaveLoopCmps
-		
+
 		add	$16, %rdx
-		
+
 		jmp	LoopCmps
 LeaveLoopCmps:	add	%rax, %rdx
 #else
 		mov	(%windowbestlen, %rdx), %rax
 		xor	(%prev, %rdx), %rax
 		jnz	LeaveLoopCmps
-		
+
 		mov	8(%windowbestlen, %rdx), %rax
 		xor	8(%prev, %rdx), %rax
 		jnz	LeaveLoopCmps8
@@ -355,7 +355,7 @@ LeaveLoopCmps:	add	%rax, %rdx
 		mov	16(%windowbestlen, %rdx), %rax
 		xor	16(%prev, %rdx), %rax
 		jnz	LeaveLoopCmps16
-				
+
 		add	$24, %rdx
 		jnz	LoopCmps
 		jmp	LenMaximum

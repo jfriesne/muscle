@@ -8,8 +8,8 @@ modification, are permitted provided that the following conditions are met:
   1. Redistributions of source code must retain the above copyright notice,
      this list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright 
-     notice, this list of conditions and the following disclaimer in 
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
      the documentation and/or other materials provided with the distribution.
 
   3. The names of the authors may not be used to endorse or promote products
@@ -44,19 +44,19 @@ final class Tree{
   static final private int HEAP_SIZE=(2*L_CODES+1);
 
   // Bit length codes must not exceed MAX_BL_BITS bits
-  static final int MAX_BL_BITS=7; 
+  static final int MAX_BL_BITS=7;
 
   // end of block literal code
-  static final int END_BLOCK=256; 
+  static final int END_BLOCK=256;
 
   // repeat previous bit length 3-6 times (2 bits of repeat count)
-  static final int REP_3_6=16; 
+  static final int REP_3_6=16;
 
   // repeat a zero length 3-10 times  (3 bits of repeat count)
-  static final int REPZ_3_10=17; 
+  static final int REPZ_3_10=17;
 
   // repeat a zero length 11-138 times  (7 bits of repeat count)
-  static final int REPZ_11_138=18; 
+  static final int REPZ_11_138=18;
 
   // extra bits for each length code
   static final int[] extra_lbits={
@@ -357,7 +357,7 @@ final class Tree{
       res|=code&1;
       code>>>=1;
       res<<=1;
-    } 
+    }
     while(--len>0);
     return res>>>1;
   }

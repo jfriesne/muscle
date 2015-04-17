@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "iogateway/RawDataMessageIOGateway.h"
 
@@ -16,14 +16,14 @@ RawDataMessageIOGateway ::
    delete [] _recvScratchSpace;
 }
 
-int32 
+int32
 RawDataMessageIOGateway ::
 DoOutputImplementation(uint32 maxBytes)
 {
    TCHECKPOINT;
 
    const Message * msg = _sendMsgRef();
-   if (msg == NULL) 
+   if (msg == NULL)
    {
       // try to get the next message from our queue
       _sendMsgRef = PopNextOutgoingMessage();
@@ -37,7 +37,7 @@ DoOutputImplementation(uint32 maxBytes)
       {
          // Try to get the next field from our message message
          if (msg->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, ++_sendBufIndex, &_sendBuf, (uint32*)(&_sendBufLength)) == B_NO_ERROR) _sendBufByteOffset = 0;
-         else 
+         else
          {
             _sendMsgRef.Reset();  // no more data available?  Go to the next message then.
             return DoOutputImplementation(maxBytes);
@@ -77,7 +77,7 @@ DoOutputImplementation(uint32 maxBytes)
 }
 
 
-int32 
+int32
 RawDataMessageIOGateway ::
 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
@@ -101,7 +101,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if ((msg())&&(msg()->AddFlat(PR_NAME_DATA_CHUNKS, bufRef) == B_NO_ERROR))
             {
                ret += bytesRead;
-               maxBytes = (maxBytes>(uint32)bytesRead) ? (maxBytes-bytesRead) : 0;         
+               maxBytes = (maxBytes>(uint32)bytesRead) ? (maxBytes-bytesRead) : 0;
                receiver.CallMessageReceivedFromGateway(msg);  // Call receive immediately; that way he can found out the source via GetDataIO()()->GetSourceOfLastReadPacket() if necessary
             }
          }
@@ -115,7 +115,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
       Message * inMsg = _recvMsgRef();
       if (_minChunkSize > 0)
       {
-         // Minimum-chunk-size mode:  we read bytes directly into the Message's data field until it is full, then 
+         // Minimum-chunk-size mode:  we read bytes directly into the Message's data field until it is full, then
          // forward that message on to the user code and start the next.  Advantage of this is:  no data-copying necessary!
          if (inMsg == NULL)
          {
@@ -154,7 +154,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
       else
       {
          // Immediate-forward mode... Read data into a temporary buffer, and immediately forward it to the user.
-         if (_recvScratchSpace == NULL) 
+         if (_recvScratchSpace == NULL)
          {
             // demand-allocate a scratch buffer
             const uint32 maxScratchSpaceSize = 8192;  // we probably won't ever get more than this much at once anyway
@@ -181,7 +181,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    return ret;
 }
 
-bool 
+bool
 RawDataMessageIOGateway ::
 HasBytesToOutput() const
 {
@@ -199,8 +199,8 @@ Reset()
    _recvMsgRef.Reset();
 }
 
-MessageRef 
-RawDataMessageIOGateway :: 
+MessageRef
+RawDataMessageIOGateway ::
 PopNextOutgoingMessage()
 {
    return GetOutgoingMessageQueue().RemoveHeadWithDefault();
@@ -224,7 +224,7 @@ status_t CountedRawDataMessageIOGateway :: AddOutgoingMessage(const MessageRef &
 void CountedRawDataMessageIOGateway :: Reset()
 {
    RawDataMessageIOGateway::Reset();
-   _outgoingByteCount = 0;   
+   _outgoingByteCount = 0;
 }
 
 MessageRef CountedRawDataMessageIOGateway :: PopNextOutgoingMessage()

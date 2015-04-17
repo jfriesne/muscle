@@ -23,21 +23,21 @@ static void * GetRootPortPointerFromSession(const DetectNetworkConfigChangesSess
 # endif
 #endif
 
-/** This class watches the set of available network interfaces and calls its 
-  * NetworkInterfacesChanged() virtual method when a network-configuration change 
+/** This class watches the set of available network interfaces and calls its
+  * NetworkInterfacesChanged() virtual method when a network-configuration change
   * has been detected.  The default implementation of NetworkInterfacesChanged() is a no-op,
-  * so you will want to subclass this class and implement your own version of 
+  * so you will want to subclass this class and implement your own version of
   * NetworkInterfacesChanged() that does something useful (like posting a log message,
   * or tearing down and recreating any sockets that relied on the old networking config).
-  *  
+  *
   * Note that this functionality is currently implemented for Linux, Windows, and MacOS/X only.
   * Note also that the Windows and MacOS/X implementations currently make use of the MUSCLE
   * Thread class, and therefore won't compile if -DMUSCLE_SINGLE_THREAD_ONLY is set.
-  * 
+  *
   * As of MUSCLE v6.10, this class also provides notification callbacks when the host
   * computer is about to go to sleep, and when it has just reawoken from sleep.  This can
-  * be useful e.g. if you want to make sure your program's TCP connections get cleanly 
-  * disconnected and are not left open while the host computer is sleeping.  This 
+  * be useful e.g. if you want to make sure your program's TCP connections get cleanly
+  * disconnected and are not left open while the host computer is sleeping.  This
   * functionality is currently implemented under MacOS/X and Windows only.
   *
   * @see tests/testnetconfigdetect.cpp for an example usage of this class.
@@ -70,7 +70,7 @@ public:
 #endif
 
    /** This method can be called to disable or enable this session.
-     * A disabled session will not call NetworkInterfacesChanged(), even if a network interface change is detected. 
+     * A disabled session will not call NetworkInterfacesChanged(), even if a network interface change is detected.
      * The default state of this session is enabled.
      * @param e True to enable calling of NetworkInterfacesChanged() when appropriate, or false to disable it.
      */
@@ -128,7 +128,7 @@ private:
    void ScheduleSendReport();
 
    enum {
-      DNCCS_MESSAGE_INTERFACES_CHANGED = 1684956003, // 'dncc' 
+      DNCCS_MESSAGE_INTERFACES_CHANGED = 1684956003, // 'dncc'
       DNCCS_MESSAGE_ABOUT_TO_SLEEP,
       DNCCS_MESSAGE_JUST_WOKE_UP
    };

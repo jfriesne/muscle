@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "system/SetupSystem.h"
 #include "util/BatchOperator.h"
@@ -36,7 +36,7 @@ public:
    void PrintToStream() const {printf("TestArgsA:  [%s] %i\n", _s, _i);}
 
 private:
-   const char * _s; 
+   const char * _s;
    int _i;
 };
 
@@ -60,7 +60,7 @@ public:
    void PrintToStream() const {printf("TestArgsB:  [%s] %i\n", _s, _i);}
 
 private:
-   const char * _s; 
+   const char * _s;
    int _i;
 };
 

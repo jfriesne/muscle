@@ -7,14 +7,14 @@ import java.io.IOException;
 /** A Java equivalent to Be's BPoint class */
 public class Point implements Flattenable
 {
-   /** Our data members, exposed for convenience */   
+   /** Our data members, exposed for convenience */
    public float x = 0.0f;
    public float y = 0.0f;
 
    /** Default constructor, sets the point to be (0, 0) */
    public Point() { /* empty */ }
 
-   /** Constructor where you specify the initial value of the point 
+   /** Constructor where you specify the initial value of the point
     *  @param X Initial X position
     *  @param Y Initial Y position
     */
@@ -29,13 +29,13 @@ public class Point implements Flattenable
     */
    public void setEqualTo(Flattenable setFromMe) throws ClassCastException
    {
-      Point p = (Point) setFromMe; 
+      Point p = (Point) setFromMe;
       set(p.x, p.y);
    }
-   
+
    /** Sets a new value for the point.
-    *  @param X The new X value 
-    *  @param Y The new Y value 
+    *  @param X The new X value
+    *  @param Y The new Y value
     */
    public void set(float X, float Y) {x = X; y = Y;}
 
@@ -54,13 +54,13 @@ public class Point implements Flattenable
 
    public String toString() {return "Point: " + x + " " + y;}
 
-   /** Returns another Point whose values are the sum of this point's values and (p)'s values. 
+   /** Returns another Point whose values are the sum of this point's values and (p)'s values.
     *  @param rhs Point to add
     *  @return Resulting point
     */
    public Point add(Point rhs) {return new Point(x+rhs.x, y+rhs.y);}
 
-   /** Returns another Point whose values are the difference of this point's values and (p)'s values. 
+   /** Returns another Point whose values are the difference of this point's values and (p)'s values.
     *  @param rhs Point to subtract from this
     *  @return Resulting point
     */
@@ -93,15 +93,15 @@ public class Point implements Flattenable
 
    /** Returns true. */
    public boolean isFixedSize() {return true;}
-   
+
    /** Returns B_POINT_TYPE. */
    public int typeCode() {return TypeConstants.B_POINT_TYPE;}
-   
+
    /** Returns 8 (2*sizeof(float)) */
    public int flattenedSize() {return 8;}
-   
-   /** 
-    *  Should store this object's state into (buffer). 
+
+   /**
+    *  Should store this object's state into (buffer).
     *  @param out The DataOutput to send the data to.
     *  @throws IOException if there is a problem writing out the output bytes.
     */
@@ -110,13 +110,13 @@ public class Point implements Flattenable
       out.writeFloat(x);
       out.writeFloat(y);
    }
-   
-   /** 
+
+   /**
     *  Returns true iff (code) is B_POINT_TYPE.
     */
    public boolean allowsTypeCode(int code) {return (code == B_POINT_TYPE);}
-   
-   /** 
+
+   /**
     *  Should attempt to restore this object's state from the given buffer.
     *  @param in The stream to read the object from.
     *  @throws IOException if there is a problem reading in the input bytes.
@@ -127,7 +127,7 @@ public class Point implements Flattenable
       x = in.readFloat();
       y = in.readFloat();
    }
-   
+
    public int hashCode() {return Float.floatToIntBits(x) + Float.floatToIntBits(y);}
 }
 

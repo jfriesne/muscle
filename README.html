@@ -12,20 +12,20 @@ SSL support code contributed by Nathan Whitehorn
 Note:  To compile the server, cd to the "server" subdirectory
 and type 'make'.  The server executable, "muscled", should be
 generated.  You can run this server from the command line, (type
-"muscled help" to get info about some options) and connect to it 
-with any MUSCLE-aware program. 
+"muscled help" to get info about some options) and connect to it
+with any MUSCLE-aware program.
 <p>
 Alternatively, if you prefer a server that runs as a GUI program
 and you have Qt installed, you can cd to the "qtsupport/qt_muscled"
 subdirectory and type "qmake; make".  A GUI server program named
 qt_muscled will be created.
 <p>
-The main goal of these classes is to provide an easy way to use 
-BMessage-style message passing across a network of heterogeneous 
-(MacOS/X, Linux, Windows, BSD, Unix, etc) systems.  The secondary goal 
-is just to provide some handy data containers and other utility classes.  
+The main goal of these classes is to provide an easy way to use
+BMessage-style message passing across a network of heterogeneous
+(MacOS/X, Linux, Windows, BSD, Unix, etc) systems.  The secondary goal
+is just to provide some handy data containers and other utility classes.
 <p>
-All of this code (except the atheossupport, besupport, and qtsupport 
+All of this code (except the atheossupport, besupport, and qtsupport
 directories) should compile under any up-to-date C++ compiler--
 no proprietary APIs are used except inside of the appropriate #ifdefs.
 <p>
@@ -56,12 +56,12 @@ Directory contents descriptions follow:
 <b>dataio/</b>
 <p>
    This directory contains the DataIO interface class, which is an abstraction
-   for any file-like device that can read or write sequences of bytes, and 
-   (optionally) seek to a specified position.  The DataIO class defines an 
-   interface for devices that you can Read() bytes from or Write() bytes to.  
-   This folder also includes some useful implementations of the DataIO interface, 
+   for any file-like device that can read or write sequences of bytes, and
+   (optionally) seek to a specified position.  The DataIO class defines an
+   interface for devices that you can Read() bytes from or Write() bytes to.
+   This folder also includes some useful implementations of the DataIO interface,
    including the following:
-   <p> 
+   <p>
    <table>
     <tr><td>AsyncDataIO</td><td>Wrapper that delegates I/O calls to an internal I/O thread</td></tr>
     <tr><td>ByteBufferDataIO</td><td>For file-style reading/writing to a ByteBuffer held in memory</td></tr>
@@ -93,7 +93,7 @@ Directory contents descriptions follow:
 <b>html/</b>
 <p>
    This directory contains various HTML documentation for the MUSCLE project,
-   including the Beginner's Guide to MUSCLE, a document on how to create 
+   including the Beginner's Guide to MUSCLE, a document on how to create
    custom MUSCLE servers, and the autodoc folder that contains files useful
    for creating API documentation using the DOxygen documentation tool.
 <p>
@@ -102,19 +102,19 @@ Directory contents descriptions follow:
 <b>iogateway/</b>
 <p>
    This directory contains the AbstractMessageIOGateway interface.
-   An AbstractMessageIOGatweay is a "gateway" object that knows 
-   how to manage bidirectional FIFO Message-stream traffic going to and 
-   coming from a DataIO object.  A gateway object queues outgoing MessageRefs, 
+   An AbstractMessageIOGatweay is a "gateway" object that knows
+   how to manage bidirectional FIFO Message-stream traffic going to and
+   coming from a DataIO object.  A gateway object queues outgoing MessageRefs,
    and when there is room in the outgoing buffer to send one, it flattens the
    next MessageRef in the outgoing-message-queue into a sequence of bytes,
-   and sends those bytes out via the DataIO object.  It also reads bytes 
+   and sends those bytes out via the DataIO object.  It also reads bytes
    coming in from the DataIO object and assembles those bytes back into
    Message objects, which are then handed back to the AbstractGatewayMessageReceiver
    specified by the calling code.
 
-   This directory also contains some useful implementations of the  
+   This directory also contains some useful implementations of the
    AbstractMessageIOGateway interfaces, which are as follows:
-   <p> 
+   <p>
    <table>
     <tr><td>MessageIOGateway</td><td>Flattens Messages to the standard MUSCLE flattened-message binary format</td></tr>
     <tr><td>PacketTunnelIOGateway</td><td>Flattens Messages into a series of fixed-size packets suitable for UDP transmission</td></tr>
@@ -168,7 +168,7 @@ Directory contents descriptions follow:
 </table>
 <p>
 <li>
-    Message is a subclass of Flattenable (see below), and therefore a Message can be serialized 
+    Message is a subclass of Flattenable (see below), and therefore a Message can be serialized
     into a "flattened" buffer-of-bytes, which can be sent across a network or saved to a file,
     and later the bytes can be unflattened back into an equivalent Message object.  This is the
     basis for most MUSCLE network communication.  The flattening and unflattening is endian-aware,
@@ -190,7 +190,7 @@ Directory contents descriptions follow:
    They can be used in cases where (for whatever reason) you want to code your
    program in C only and avoid C++.  They aren't as easy-to-use as the C++ implementation,
    but they should be sufficient for simple things, and they compile down to only
-   a few dozen kilobytes of object code.  See the testmini.c and minireflectclient.c 
+   a few dozen kilobytes of object code.  See the testmini.c and minireflectclient.c
    test files in the tests directory for examples on how they are used.
 <p>
 </li>
@@ -201,7 +201,7 @@ Directory contents descriptions follow:
    These APIs are C implementations of the C++ Message and MessageIOGateway classes.
    These APIs go even farther towards minimalism than the minimessage APIs:  in
    particular, these APIs never allocate or free any data.  Instead of converting
-   the message's flattened-data-bytes into a separate in-memory data structure like 
+   the message's flattened-data-bytes into a separate in-memory data structure like
    Message and MiniMessage do, MicroMessage operates on the flattened-data-bytes directly.
    This makes for a potentially much more efficient implementation; the main downside
    is that when creating a MicroMessage, you can only append data; you cannot insert
@@ -215,7 +215,7 @@ Directory contents descriptions follow:
    You can use the code in this directory to enable your Python scripts to talk
    to a MUSCLE server or any other program that speaks the MUSCLE Message protocol.
    Also included in this directory is some C++ glue code (in PythonUtilityFunctions.cpp)
-   that is useful when embedding Python code into C++ code -- the glue code uses MUSCLE 
+   that is useful when embedding Python code into C++ code -- the glue code uses MUSCLE
    Messages as to transfer arguments from C++ to Python context and back again.
 <p>
 </li>
@@ -225,7 +225,7 @@ Directory contents descriptions follow:
 <p>
    This directory contains several classes that support clients that use TrollTech's
    Qt cross-platform GUI API.  The main one is the QMessageTransceiverThread class,
-   which is a Qt-aware subclass of the MessageTransceiverThread class.  
+   which is a Qt-aware subclass of the MessageTransceiverThread class.
 
    Using a QMessageTransceiverThread for your network I/O makes network communication
    very simple; instead of dealing with bytes and network protocols, you simply
@@ -245,29 +245,29 @@ Directory contents descriptions follow:
 </li>
 <li>
 <b>reflector/</b>
-<p> 
+<p>
    This directory contains server code for an n-way
    "message crossbar server" program.  This program will listen
    on a specified port for TCP connections, and will allow the
    TCP connections to "talk to each other" by forwarding Messages from
    one client to another (or to multiple others).
-   The ServerProcessLoop() method implements the server's event loop, 
+   The ServerProcessLoop() method implements the server's event loop,
    while the AbstractReflectSession class is the interface for the server's side
-   of a TCP connection.  There are currently two subclasses of 
+   of a TCP connection.  There are currently two subclasses of
    AbstractReflectSession included:  the DumbReflectSession
    class just reflects all received Messages to all connected clients, while
    the StorageReflectSession class adds nice features like wildcard-based
    Message routing, server-side data storage, and "notify-me-on-change"
-   subscription services.  (See the MUSCLE Beginner's Guide for more info on this)  
+   subscription services.  (See the MUSCLE Beginner's Guide for more info on this)
    More elaborate logic can be added by creating subclasses of these classes.
 <p>
 </li>
 <li>
 <b>regex/</b>
-<p> 
+<p>
    This directory contains code to support the use of regular expressions.
-   This includes some C++ pattern-matching utility classes, as well as a 
-   sub-folder containing Henry Spencer's freeware C regex engine, for use 
+   This includes some C++ pattern-matching utility classes, as well as a
+   sub-folder containing Henry Spencer's freeware C regex engine, for use
    in OS's that do not provide their own regex library.
 <p>
    Classes implemented in this directory include:
@@ -283,7 +283,7 @@ Directory contents descriptions follow:
 </li>
 <li>
 <b>sdlsupport/</b>
-<p> 
+<p>
    This directory contains the SDLMessageTransceiverThread class, which is
    a handy way to implement MUSCLE communication ability into your SDL program.
    SDLMessageTransceiverThread class is just a thin wrapper subclass around
@@ -302,8 +302,8 @@ Directory contents descriptions follow:
 <b>support/</b>
 <p>
    This directory contains various "small things" needed to compile the
-   rest of the code.  These include byte-ordering macros, BeOS-style type 
-   codes, typedefs, and result constants, and the Flattenable 
+   rest of the code.  These include byte-ordering macros, BeOS-style type
+   codes, typedefs, and result constants, and the Flattenable
    interface definition.
 <p>
 </li>
@@ -344,7 +344,7 @@ Directory contents descriptions follow:
 </li>
 <li>
 <b>test/</b>
-<p>   
+<p>
    This directory contains various test programs that I use
    to test and develop the code, and a Makefile to build them with.
    <p>
@@ -414,7 +414,7 @@ Directory contents descriptions follow:
    </table>
    <p>
 
-<p>   
+<p>
 </li>
 <li>
 <b>util/</b>
@@ -428,7 +428,7 @@ Directory contents descriptions follow:
       BatchOperator is a templated mechanism for ensuring that a specified
       method gets called on the first-level recursion into a call tree, and
       that a matching method gets called on the final recursion out of the call tree.
-      This is handy for making sure that setup and shutdown code is called a the 
+      This is handy for making sure that setup and shutdown code is called a the
       correct times.
    </p>
    <b>ByteBuffer</b>
@@ -466,7 +466,7 @@ Directory contents descriptions follow:
    <b>DebugTimer</b>
    <p>
       DebugTimer is a useful utility class that is useful for debugging
-      performance problems.  It records the current time in its 
+      performance problems.  It records the current time in its
       constructor, and then in its destructor it prints out the
       time that has elapsed since then (if the elapsed time is more
       than a specified minimum time).
@@ -477,7 +477,7 @@ Directory contents descriptions follow:
    <p>
       FilePathInfo is a platform-neutral API for querying the various
       properties of an entry at a specified location in a file system
-      (e.g. is a file, a directory, or a symlink, how large is it, 
+      (e.g. is a file, a directory, or a symlink, how large is it,
       when was it created or modified, etc)
    <p>
    </li>
@@ -488,10 +488,10 @@ Directory contents descriptions follow:
       key and value types and the traditional O(1) lookup time.
       In addition to that, it includes other nice features, such
       as "safe" iterators (so you can modify the Hashtable while
-      iterating through it), minimal-frequency memory allocations, 
-      and the ability to sort the table by key or by value (it 
-      maintains the ordering of the objects placed into the table).  
-      Hashtable is used by the Message class, but is also quite 
+      iterating through it), minimal-frequency memory allocations,
+      and the ability to sort the table by key or by value (it
+      maintains the ordering of the objects placed into the table).
+      Hashtable is used by the Message class, but is also quite
       useful on its own.
    <p>
    </li>
@@ -507,19 +507,19 @@ Directory contents descriptions follow:
    <li>
    <b>NetworkUtilityFunctions</b>
    <p>
-      NetworkUtilityFunctions.cpp is a repository for common BSD socket 
-      operations (like setting up sockets to connect or accept connections) 
+      NetworkUtilityFunctions.cpp is a repository for common BSD socket
+      operations (like setting up sockets to connect or accept connections)
       that I'm tired of writing over and over again.  I think my API
-      is much easier to use than the plain sockets API, although my 
+      is much easier to use than the plain sockets API, although my
       API handles TCP connections only.
    <p>
    </li>
    <li>
    <b>ObjectPool</b>
    <p>
-      The ObjectPool class is used to avoid excessive deletions and allocations 
-      of commonly used objects (such as Messages or RefCountMems).  
-      It works by recycling the items for re-use, and is templated so it can be 
+      The ObjectPool class is used to avoid excessive deletions and allocations
+      of commonly used objects (such as Messages or RefCountMems).
+      It works by recycling the items for re-use, and is templated so it can be
       used for any type of object.
    <p>
    </li>
@@ -535,23 +535,23 @@ Directory contents descriptions follow:
    </li>
    <li>
    <b>Queue</b>
-   <p>  
-      The Queue class is just a little templatized double-ended 
-      queue (i.e. AddHead(), AddTail(), RemoveHead(), and RemoveTail() 
-      are O(1) operations).  It can be used as a Vector, Stack, or FIFO.  
+   <p>
+      The Queue class is just a little templatized double-ended
+      queue (i.e. AddHead(), AddTail(), RemoveHead(), and RemoveTail()
+      are O(1) operations).  It can be used as a Vector, Stack, or FIFO.
       It's templatized for easy, type-safe reuse.
    <p>
    </li>
    <li>
    <b>RefCount</b>
    <p>
-      The RefCount class implements generic reference counting for C++ 
-      objects or arrays.  To enable reference counting on an object, you 
-      simply create a single Ref for that object, and (optionally) 
-      make one or more copies of the Ref via the copy constructor 
-      or the equals operator.   Then, when the last Ref object 
-      disappears, the C++ object or array is automatically deleted. It's 
-      not a garbage collector, but it beats having to keep track of all your 
+      The RefCount class implements generic reference counting for C++
+      objects or arrays.  To enable reference counting on an object, you
+      simply create a single Ref for that object, and (optionally)
+      make one or more copies of the Ref via the copy constructor
+      or the equals operator.   Then, when the last Ref object
+      disappears, the C++ object or array is automatically deleted. It's
+      not a garbage collector, but it beats having to keep track of all your
       allocations by hand...
    <p>
    </li>
@@ -568,17 +568,17 @@ Directory contents descriptions follow:
    <li>
    <b>SocketMultiplexer</b>
    <p>
-      An easy-to-use wrapper around the socket() (or poll()) socket-multiplexing API.  
+      An easy-to-use wrapper around the socket() (or poll()) socket-multiplexing API.
       To use the poll()-based implementation, compile your code with -DMUSCLE_USE_POLL
    <p>
    </li>
    <li>
    <b>String</b>
    <p>
-      The String class is just your basic character-string class, 
-      in this case inspired by the java.lang.String class from Java.  
-      This class was originally written by Michael Olivero (mike95@mike95.com) 
-      and modified by myself.  String extends Flattenable, 
+      The String class is just your basic character-string class,
+      in this case inspired by the java.lang.String class from Java.
+      This class was originally written by Michael Olivero (mike95@mike95.com)
+      and modified by myself.  String extends Flattenable,
       so it can be serialized in a generic manner.
    <p>
    </li>
@@ -592,7 +592,7 @@ Directory contents descriptions follow:
    <li>
    <b>TimeUtilityFunctions</b>
    <p>
-      TimeUtilityFunctions.h is a repository of functions for dealing with 
+      TimeUtilityFunctions.h is a repository of functions for dealing with
       microsecond-accurate timing issues.
    <p>
    </li>
@@ -600,24 +600,24 @@ Directory contents descriptions follow:
 </li>
 <li>
 <b>vc++/</b>
-<p>   
+<p>
    This directory contains project files for building muscled under Visual C++
    for Windows.  These files were provided by Vitaliy Mikitchenko (aka VitViper)
-<p>   
+<p>
 </li>
 <li>
 <b>winsupport/</b>
-<p>   
+<p>
    This directory contains the Win32MessageTransceiverThread class, which is
    useful for interface MUSCLE code to the standard Win32 GUI event loop.
    You can use this class to enable your Win32 C and C++ programs to communicate
-   with a MUSCLE server or any other program that speaks the MUSCLE Message 
+   with a MUSCLE server or any other program that speaks the MUSCLE Message
    protocol.
 <p>
 </li>
 <li>
 <b>zlib/</b>
-<p>   
+<p>
    This directory contains a subfolder named zlib (which contains the complete
    source code of the zlib compressor/decompressor package).  This directory
    also contains some zlib-related muscle source, including ZLibCodec, which is a
@@ -625,7 +625,7 @@ Directory contents descriptions follow:
    a wrapper class for transparent compression and decompression of I/O streams,
    and ZLibUtilityFunctions, which contain some convenience functions for quickly
    compressing and decompressing a Message in a compatible manner.
-<p>   
+<p>
 </li>
 </ol>
 <p>

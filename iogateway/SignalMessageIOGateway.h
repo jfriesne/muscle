@@ -7,7 +7,7 @@
 
 namespace muscle {
 
-/** 
+/**
  * This gateway is simple almost to the point of being crippled... all it does
  * is read data from its socket, and whenever it has read some data, it
  * will add a user-specified MessageRef to its incoming Message queue.
@@ -16,7 +16,7 @@ namespace muscle {
 class SignalMessageIOGateway : public AbstractMessageIOGateway, private CountedObject<SignalMessageIOGateway>
 {
 public:
-   /** Constructor.  Creates a SignalMessageIOGateway with a NULL signal message reference.  
+   /** Constructor.  Creates a SignalMessageIOGateway with a NULL signal message reference.
      */
    SignalMessageIOGateway() {/* empty */}
 

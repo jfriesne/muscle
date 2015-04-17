@@ -53,7 +53,7 @@ SOURCES	+= $$MUSCLE_DIR/message/Message.cpp \
         $$MUSCLE_DIR/util/PulseNode.cpp \
         $$MUSCLE_DIR/util/SocketMultiplexer.cpp \
         $$MUSCLE_DIR/server/muscled.cpp \
-        qt_muscled.cpp 
+        qt_muscled.cpp
 
 win32:SOURCES	+= $$MUSCLE_DIR/regex/regex/regcomp.c \
         $$MUSCLE_DIR/regex/regex/regerror.c \

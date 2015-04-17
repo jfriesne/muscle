@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifdef MUSCLE_ENABLE_SSL
 # include "dataio/SSLSocketDataIO.h"
@@ -34,7 +34,7 @@ int main(int argc, char ** argv)
 
    // We'll receive plain text over stdin
    StdinDataIO stdinIO(false);
-   PlainTextMessageIOGateway stdinGateway; 
+   PlainTextMessageIOGateway stdinGateway;
    stdinGateway.SetDataIO(DataIORef(&stdinIO, false));
 
    // And send and receive flattened Message objects over our TCP socket
@@ -50,11 +50,11 @@ int main(int argc, char ** argv)
    {
       const char * a = argv[i];
       if (strncmp(a, "publickey=", 10) == 0)
-      { 
+      {
          a += 10;  // skip past the 'publickey=' part
          SSLSocketDataIO * sslIO = new SSLSocketDataIO(sock, false, false);
          DataIORef sslIORef(sslIO);
-         if (sslIO->SetPublicKeyCertificate(a) == B_NO_ERROR) 
+         if (sslIO->SetPublicKeyCertificate(a) == B_NO_ERROR)
          {
             LogTime(MUSCLE_LOG_INFO, "Using public key certificate file [%s] to connect to server\n", a);
             networkIORef = sslIORef;
@@ -201,7 +201,7 @@ int main(int argc, char ** argv)
                   nextTimeoutTime = 0;
                }
                break;
- 
+
                case 'x':
                {
                   ref()->what = PR_COMMAND_SETPARAMETERS;
@@ -252,7 +252,7 @@ int main(int argc, char ** argv)
                break;
             }
 
-            if (send) 
+            if (send)
             {
                printf("Sending message...\n");
                ref()->PrintToStream();

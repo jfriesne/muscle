@@ -3,7 +3,7 @@
  Author:    Matthew Emson
  Date:      30-Oct-2003
  Purpose:   Interfaced TPersistent alike
- History:   
+ History:
 -----------------------------------------------------------------------------}
 
 // This file is based on MUSCLE, Copyright 2007 Meyer Sound Laboratories Inc.
@@ -105,7 +105,7 @@ type
 
     //mainly for testing...
     function toString: string; virtual; abstract;
-    
+
 end;
 
 implementation

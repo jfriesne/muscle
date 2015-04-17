@@ -262,7 +262,7 @@ bool StringQueryFilter :: DoMatch(const String & s) const
    if (_matcher == NULL)
    {
       switch(_op)
-      { 
+      {
          case OP_SIMPLE_WILDCARD_MATCH:
             _matcher = newnothrow StringMatcher(_value, true);
             if (_matcher == NULL) WARN_OUT_OF_MEMORY;
@@ -348,7 +348,7 @@ bool RawDataQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) cons
    {
       case OP_EQUAL_TO:     return ((hisNumBytes == myNumBytes)&&(memcmp(myBytes, hisBytes, clen) == 0));
 
-      case OP_LESS_THAN:                
+      case OP_LESS_THAN:
       {
          int mret = memcmp(hisBytes, myBytes, clen);
          if (mret < 0) return true;
@@ -429,7 +429,7 @@ static QueryFilterFactoryRef _customQueryFilterFactoryRef;
 QueryFilterFactoryRef GetGlobalQueryFilterFactory()
 {
    if (_customQueryFilterFactoryRef()) return _customQueryFilterFactoryRef;
-                                  else return QueryFilterFactoryRef(&_defaultQueryFilterFactory, false);   
+                                  else return QueryFilterFactoryRef(&_defaultQueryFilterFactory, false);
 }
 
 void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory)

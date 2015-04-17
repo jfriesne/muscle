@@ -11,19 +11,19 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.12"
-#define MUSCLE_VERSION        61200  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.20"
+#define MUSCLE_VERSION        62000  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
- * The MUSCLE API provides a robust, somewhat scalable, cross-platform client-server solution for 
- * network-distributed applications for Linux, MacOS/X, BSD, Windows, BeOS, AtheOS, and other operating 
- * systems.  It allows (n) client programs (each of which may be running on a separate computer and/or 
- * under a different OS) to communicate with each other in a many-to-many message-passing style.  It 
- * employs a central server to which client programs may connect or disconnect at any time  (This design 
- * is similar to other client-server systems such as Quake servers, IRC servers, and Napster servers, 
- * but more general in application).  In addition to the client-server system, MUSCLE contains classes 
- * to support peer-to-peer message streaming connections, as well as some handy miscellaneous utility 
+ * The MUSCLE API provides a robust, somewhat scalable, cross-platform client-server solution for
+ * network-distributed applications for Linux, MacOS/X, BSD, Windows, BeOS, AtheOS, and other operating
+ * systems.  It allows (n) client programs (each of which may be running on a separate computer and/or
+ * under a different OS) to communicate with each other in a many-to-many message-passing style.  It
+ * employs a central server to which client programs may connect or disconnect at any time  (This design
+ * is similar to other client-server systems such as Quake servers, IRC servers, and Napster servers,
+ * but more general in application).  In addition to the client-server system, MUSCLE contains classes
+ * to support peer-to-peer message streaming connections, as well as some handy miscellaneous utility
  * classes, all of which are documented here.
  *
  * All classes documented here should compile under most modern OS's with a modern C++ compiler.
@@ -31,8 +31,8 @@
  * Templates are used throughout; exceptions are not.  The code is usable in multithreaded environments,
  * as long as you are careful.
  *
- * As distributed, the server side of the software is ready to compile and run, but to do much with it 
- * you'll want to write your own client software.  Example client software can be found in the "test" 
+ * As distributed, the server side of the software is ready to compile and run, but to do much with it
+ * you'll want to write your own client software.  Example client software can be found in the "test"
  * subdirectory.
  */
 
@@ -77,9 +77,22 @@
 # ifdef MUSCLE_USE_CPLUSPLUS11
 #  include <type_traits>  // for static_assert()
 #  include <utility>      // for std::move()
+#  if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ < 7)
+#   define MUSCLE_FINAL_CLASS          /* work-around for g++ bug #50811 */
+#  else
+#   define MUSCLE_FINAL_CLASS final
+#  endif
+# else
+#  define MUSCLE_FINAL_CLASS
 # endif
 #else
 # define NEW_H_NOT_AVAILABLE
+#endif
+
+// For non-C++-11 environments, we don't have the ability to make a class final, so we just define
+// MUSCLE_FINAL_CLASS to expand to nothing, and leave it up to the user to know not to subclass the class.
+#ifndef MUSCLE_FINAL_CLASS
+# define MUSCLE_FINAL_CLASS
 #endif
 
 /* Borland C++ builder also runs under Win32, but it doesn't set this flag So we'd better set it ourselves. */
@@ -244,6 +257,10 @@ typedef void * muscleVoidPointer;  /* it's a bit easier, syntax-wise, to use thi
 #  define  INT64_FORMAT_SPEC_NOPERCENT "lli"
 #  define UINT64_FORMAT_SPEC_NOPERCENT "llu"
 #  define XINT64_FORMAT_SPEC_NOPERCENT "llx"
+# elif defined(_MSC_VER)
+#  define  INT64_FORMAT_SPEC_NOPERCENT "I64i"
+#  define UINT64_FORMAT_SPEC_NOPERCENT "I64u"
+#  define XINT64_FORMAT_SPEC_NOPERCENT "I64x"
 # else
 #  define  INT64_FORMAT_SPEC_NOPERCENT "li"
 #  define UINT64_FORMAT_SPEC_NOPERCENT "lu"
@@ -469,7 +486,7 @@ namespace ugly_swapcontents_method_sfinae_implementation
       {
 #ifdef MUSCLE_USE_CPLUSPLUS11
          T tmp(std::move(t1));
-         t1 = std::move(t2); 
+         t1 = std::move(t2);
          t2 = std::move(tmp);
 #else
          T tmp = t1;
@@ -540,6 +557,21 @@ inline int muscleRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-
 template<typename T> inline int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
 
 #endif  /* __cplusplus */
+
+/** muscleSprintf() expands to the most secure variant of sprintf() available on the current build platform */
+#if defined(__cplusplus) && (_MSC_VER >= 1400)
+# define muscleSprintf  sprintf_s  /* Ooh, template magic! */
+# define muscleSnprintf sprintf_s  /* Yes, sprintf_s is correct here! (this version is usable when template magic isn't possible) -jaf */
+# define muscleStrcpy   strcpy_s   /* Ooh, template magic! */
+static inline char * muscleStrncpy(char * to, const char * from, size_t maxLen) {(void) strcpy_s(to, maxLen, from); return to;}
+static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * fp; return (fopen_s(&fp, path, mode) == 0) ? fp : NULL;}
+#else
+# define muscleSprintf  sprintf
+# define muscleSnprintf snprintf
+# define muscleStrcpy   strcpy
+# define muscleStrncpy  strncpy
+# define muscleFopen    fopen
+#endif
 
 #if !defined(__BEOS__) && !defined(__HAIKU__)
 
@@ -1082,13 +1114,13 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed = 0);
   */
 uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int seed = 0);
 
-/** Convenience method; returns the hash code of the given data item.  Any POD type will do. 
+/** Convenience method; returns the hash code of the given data item.  Any POD type will do.
   * @param val The value to calculate a hashcode for
   * @returns a hash code.
   */
 template<typename T> inline uint32 CalculateHashCode(const T & val) {return CalculateHashCode(&val, sizeof(val));}
 
-/** Convenience method; returns the 64-bit hash code of the given data item.  Any POD type will do. 
+/** Convenience method; returns the 64-bit hash code of the given data item.  Any POD type will do.
   * @param val The value to calculate a hashcode for
   * @returns a hash code.
   */
@@ -1123,7 +1155,7 @@ static inline uint32 CalculateChecksumForDouble(double v) {uint64 le = (v==0.0) 
 template <class KeyType> class PODHashFunctor
 {
 public:
-   uint32 operator()(const KeyType & x) const 
+   uint32 operator()(const KeyType & x) const
    {
 #ifdef MUSCLE_USE_CPLUSPLUS11
       static_assert(!std::is_class<KeyType>::value, "PODHashFunctor cannot be used on class or struct objects, because the object's compiler-inserted padding bytes would be unitialized and therefore they would cause inconsistent hash-code generation.  Try adding a 'uint32 HashCode() const' method to the class/struct instead.");

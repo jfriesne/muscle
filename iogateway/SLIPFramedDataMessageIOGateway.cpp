@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "iogateway/SLIPFramedDataMessageIOGateway.h"
 
@@ -17,11 +17,11 @@ SLIPFramedDataMessageIOGateway :: ~SLIPFramedDataMessageIOGateway()
 int32 SLIPFramedDataMessageIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
    int32 ret = RawDataMessageIOGateway::DoInputImplementation(*this, maxBytes);
-   if (_pendingMessage()) 
+   if (_pendingMessage())
    {
-      MessageRef msg; 
+      MessageRef msg;
       muscleSwap(_pendingMessage, msg);  // paranoia wrt re-entrancy
-      receiver.CallMessageReceivedFromGateway(msg); 
+      receiver.CallMessageReceivedFromGateway(msg);
    }
    return ret;
 }
@@ -61,7 +61,7 @@ static ByteBufferRef SLIPEncodeBytes(const uint8 * bytes, uint32 numBytes)
       {
          switch(bytes[i])
          {
-            case SLIP_END: 
+            case SLIP_END:
                *out++ = SLIP_ESC;
                *out++ = SLIP_ESCAPE_END;
             break;
@@ -105,7 +105,7 @@ MessageRef SLIPFramedDataMessageIOGateway :: PopNextOutgoingMessage()
 
 void SLIPFramedDataMessageIOGateway :: AddPendingByte(uint8 b)
 {
-   if (_pendingBuffer() == NULL) 
+   if (_pendingBuffer() == NULL)
    {
       _pendingBuffer = GetByteBufferFromPool(256);  // An arbitrary initial size, since I can't think of any good heuristic
       if (_pendingBuffer()) _pendingBuffer()->Clear(false);  // but make it look empty
@@ -135,7 +135,7 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
             _lastReceivedCharWasEscape = false;
          }
          else
-         { 
+         {
             switch(b)
             {
                case SLIP_END:
@@ -154,7 +154,7 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
                default:
                   AddPendingByte(b);
                break;
-            } 
+            }
             _lastReceivedCharWasEscape = (b==SLIP_ESC);
          }
       }

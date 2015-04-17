@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-/** @defgroup micromessagegateway The MicroMessageGateway C function API 
+/** @defgroup micromessagegateway The MicroMessageGateway C function API
  *  These functions are all defined in MicroMessageGateway(.c,.h), and are stand-alone
  *  C functions that provide functionality similar to that of the C++
  *  MessageIOGateway class.
@@ -49,7 +49,7 @@ void UGGatewayInitialize(UMessageGateway * gateway, uint8 * inputBuffer, uint32 
   */
 typedef int32 (*UGSendFunc)(const uint8 * buf, uint32 numBytes, void * arg);
 
-/** Typedef for a callback function that knows how to read data from 
+/** Typedef for a callback function that knows how to read data from
   * (a file, the network, a serial line, wherever) and write it into a supplied buffer.
   * @param buf The buffer to write bytes to.
   * @param numBytes The number of bytes available for writing at (buf)

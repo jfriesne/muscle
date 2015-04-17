@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <netdb.h>
 #include <unistd.h>
@@ -44,14 +44,14 @@ enum {
 
 // This BeOS-specific program is used to test the muscled server.  It is more-or-less
 // functionally equivalent to the portablereflectclient, but exercises the BeOS-specific
-// functionality found in the besupport class as well. 
+// functionality found in the besupport class as well.
 class MyLooper : public BLooper
 {
 public:
-   MyLooper(MessageTransceiverThread & mtt) : 
+   MyLooper(MessageTransceiverThread & mtt) :
 #ifdef __ATHEOS__
      Looper(""),
-#endif     
+#endif
    _transThread(mtt) {}
 
 #ifdef __ATHEOS__
@@ -62,14 +62,14 @@ public:
    {
 #ifdef __ATHEOS__
       switch(msg->GetCode())
-#else      
+#else
       switch(msg->what)
 #endif
-	{
+      {
          case MUSCLE_THREAD_SIGNAL:
          {
             uint32 code;
-            MessageRef ref; 
+            MessageRef ref;
             String session;
             uint32 factoryID;
             IPAddressAndPort location;
@@ -107,8 +107,8 @@ public:
          default:
             printf("MyLooper:  Received unknown BMessage:\n");
 #ifndef __ATHEOS__
-	   msg->PrintToStream();
-#endif	   
+            msg->PrintToStream();
+#endif
          break;
       }
    }
@@ -175,8 +175,8 @@ int main(int argc, char ** argv)
    char * hostName = "localhost";
    int port = 0;
 
-   int method = -1;  
-   if (argc > 1) 
+   int method = -1;
+   if (argc > 1)
    {
       if (strcmp(argv[1], "-connect") == 0)
       {
@@ -184,7 +184,7 @@ int main(int argc, char ** argv)
          if (argc > 2) hostName = argv[2];
          if (argc > 3) port = atoi(argv[3]);
          if (port <= 0) port = 2960;
-      } 
+      }
       else if (strcmp(argv[1], "-connectsync") == 0)
       {
          method = METHOD_MANUAL;
@@ -220,7 +220,7 @@ int main(int argc, char ** argv)
 
                switch(text[0])
                {
-                  case 'r': 
+                  case 'r':
                      printf("Requesting output-queues-drained notification\n");
                      mtt.RequestOutputQueuesDrainedNotification(MessageRef());
                      send = false;
@@ -233,7 +233,7 @@ int main(int argc, char ** argv)
                      ref()->AddString(PR_NAME_SESSION, "nerdboy");  // should be changed transparently by the server
                   }
                   break;
-   
+
                   case 'i':
                   {
                      StringTokenizer tok(&text[2]);
@@ -290,7 +290,7 @@ int main(int argc, char ** argv)
                   case 'B':
                      ref()->what = PR_COMMAND_REMOVEBANS;
                      ref()->AddString(PR_NAME_KEYS, &text[2]);
-                  break;             
+                  break;
 
                   case 'G':
                      ref()->what = PR_COMMAND_GETDATA;
@@ -380,7 +380,7 @@ int main(int argc, char ** argv)
                   break;
                }
 
-               if (send) 
+               if (send)
                {
                   printf("Sending message...\n");
 //                  ref()->PrintToStream();

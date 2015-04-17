@@ -21,9 +21,9 @@ status_t ThreadedInternalSession :: AttachedToServer()
    return ((_gatewayOK)&&(AdvancedThreadWorkerSession::AttachedToServer() == B_NO_ERROR)) ? StartInternalThread() : B_ERROR;
 }
 
-// Our SignalMessageIOGateway gateway sends us an empty dummy Message whenever it wants us to check our 
-// internal thread's reply-messages-queue.  We respond here (in the MUSCLE thread) by grabbing all of the Messages 
-// from the internal thread's queue, and handing them over to the superclass's MesageReceivedFromGateway() 
+// Our SignalMessageIOGateway gateway sends us an empty dummy Message whenever it wants us to check our
+// internal thread's reply-messages-queue.  We respond here (in the MUSCLE thread) by grabbing all of the Messages
+// from the internal thread's queue, and handing them over to the superclass's MesageReceivedFromGateway()
 // method, as if they came from a regular old (TCP-connected) AdvancedThreadWorkerSession's client process.
 void ThreadedInternalSession :: MessageReceivedFromGateway(const MessageRef & /*dummyMsg*/, void * userData)
 {
@@ -90,7 +90,7 @@ void ThreadedInternalSession :: InternalThreadEntry()
    char threadIDString[20];
    printf("internal-slave-thread %s is now ALIVE!!!\n", muscle_thread_id::GetCurrentThreadID().ToString(threadIDString));
 
-   if (_args()) 
+   if (_args())
    {
       printf("Startup arguments for internal-slave-thread %s are:\n", threadIDString);
       _args()->PrintToStream();  // a real program would probably use some data from here, not just print it out
@@ -103,15 +103,15 @@ void ThreadedInternalSession :: InternalThreadEntry()
       // in MUSCLE_TIME_NEVER as the second argument to WaitForNextMessageFromOwner() (or just use
       // the default implementation of Thread::InternalThreadEntry(), which does that same thing)
       //
-      // Alternatively, if you never want to block in WaitForNextMessageFromOwner() you could pass 0 as 
+      // Alternatively, if you never want to block in WaitForNextMessageFromOwner() you could pass 0 as
       // the second argument, and that would cause WaitForNextMessageFromOwner() to always return immediately.
       MessageRef msgRef;
       int32 numLeftInQueue = WaitForNextMessageFromOwner(msgRef, _nextStatusPostTime);
-      if ((numLeftInQueue >= 0)&&(MessageReceivedFromOwner(msgRef, numLeftInQueue) != B_NO_ERROR)) 
+      if ((numLeftInQueue >= 0)&&(MessageReceivedFromOwner(msgRef, numLeftInQueue) != B_NO_ERROR))
       {
          // MessageReceivedFromOwner() returned an error, that means this thread needs to exit!
          break;
-      }         
+      }
 
       uint64 now = GetRunTime64();
       if (now >= _nextStatusPostTime)

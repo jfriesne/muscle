@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "system/ThreadPool.h"
 
@@ -25,7 +25,7 @@ void IThreadPoolClient :: SetThreadPool(ThreadPool * tp)
       if (_threadPool) _threadPool->RegisterClient(this);
    }
 }
-   
+
 ThreadPool :: ThreadPool(uint32 maxThreadCount) : _maxThreadCount(maxThreadCount), _shuttingDown(false), _threadIDCounter(0)
 {
    (void) _availableThreads.EnsureSize(maxThreadCount);
@@ -136,7 +136,7 @@ status_t ThreadPool :: SendMessageToThreadPool(IThreadPoolClient * client, const
    MutexGuard mg(_poolLock);
 
    bool * isBeingHandled = mg.IsMutexLocked() ? _registeredClients.Get(client) : NULL;
-   if (isBeingHandled == NULL) return B_ERROR;   
+   if (isBeingHandled == NULL) return B_ERROR;
 
    Queue<MessageRef> * mq = ((*isBeingHandled)?_deferredMessages:_pendingMessages).GetOrPut(client);
    if ((mq == NULL)||(mq->AddTail(msg) != B_NO_ERROR)) return B_ERROR;
@@ -178,7 +178,7 @@ void ThreadPool :: DispatchPendingMessagesUnsafe()
                   *isBeingHandled = true;  // this is to note that this client now has a Thread that is processing its data
                   (void) _pendingMessages.RemoveFirst();
                }
-               else 
+               else
                {
                   (void) _activeThreads.MoveToTable(tRef()->GetThreadID(), _availableThreads);  // roll back!
                   break;
