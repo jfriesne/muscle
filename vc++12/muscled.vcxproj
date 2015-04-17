@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5723BD9A-B23F-4F4F-8D12-C246D8B3D788}</ProjectGuid>
-    <RootNamespace>admin</RootNamespace>
+    <ProjectGuid>{6A82FF6A-1634-45EB-AAB4-6360EA6F19B0}</ProjectGuid>
+    <RootNamespace>muscled</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -38,6 +38,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
@@ -73,10 +74,10 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Build\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Build\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\Build\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Junk\admin\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Junk\admin\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Junk\admin\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\Junk\admin\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Junk\muscled\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Junk\muscled\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Junk\muscled\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\Junk\muscled\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
@@ -84,19 +85,19 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
-      <TypeLibraryName>.\Junk/admin.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Junk/muscled.tlb</TypeLibraryName>
       <HeaderFileName>
       </HeaderFileName>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\zlib\zlib\win32;.\;..\;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;MUSCLE_ENABLE_ZLIB_ENCODING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\;..\;..\..\;..\..\zlib\zlib\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;UNICODE;NDEBUG;_CONSOLE;MUSCLE_ENABLE_ZLIB_ENCODING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>.\Junk/admin.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>.\Junk/muscled.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Junk/</AssemblerListingLocation>
       <ObjectFileName>.\Junk/</ObjectFileName>
       <ProgramDataBaseFileName>.\Junk/</ProgramDataBaseFileName>
@@ -104,15 +105,15 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>muscle.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;winmm.lib;iphlpapi.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>Build/admin.exe</OutputFile>
+      <OutputFile>Build\muscled.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>.\Build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>.\Junk/admin.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Junk/muscled.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
@@ -121,40 +122,40 @@
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Junk/admin.bsc</OutputFile>
+      <OutputFile>.\Junk/muscled.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
-      <TypeLibraryName>.\Junk/admin.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Junk/muscled.tlb</TypeLibraryName>
       <HeaderFileName>
       </HeaderFileName>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\zlib\zlib\win32;.\;..\;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;MUSCLE_ENABLE_ZLIB_ENCODING;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\;..\;..\..\;..\..\zlib\zlib\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;UNICODE;NDEBUG;_CONSOLE;MUSCLE_ENABLE_ZLIB_ENCODING;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>.\Junk/admin.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>.\Junk/muscled.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Junk/</AssemblerListingLocation>
       <ObjectFileName>.\Junk/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Junk/admin</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>.\Junk/muscled</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>muscle.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;winmm.lib;iphlpapi.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>Build/admin.exe</OutputFile>
+      <OutputFile>Build\muscled.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>.\Build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>.\Junk/admin.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Junk/muscled.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
@@ -162,40 +163,41 @@
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Junk/admin.bsc</OutputFile>
+      <OutputFile>.\Junk/muscled.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
-      <TypeLibraryName>.\Junk/admin.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Junk/muscled.tlb</TypeLibraryName>
       <HeaderFileName>
       </HeaderFileName>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\zlib\zlib\win32;.\;..\;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;DEBUG;_CONSOLE;MUSCLE_ENABLE_ZLIB_ENCODING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\;..\;..\..\;..\..\zlib\zlib\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;UNICODE;DEBUG;_CONSOLE;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>.\Junk/admin.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>.\Junk/muscled.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Junk/</AssemblerListingLocation>
       <ObjectFileName>.\Junk/</ObjectFileName>
       <ProgramDataBaseFileName>.\Junk/</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>muscle.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;winmm.lib;iphlpapi.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>Build/admin.exe</OutputFile>
+      <AdditionalDependencies>Build\muscle.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;winmm.lib;iphlpapi.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>Build\muscled.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>.\Build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>.\Junk/admin.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Junk/muscled.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
@@ -205,40 +207,40 @@
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Junk/admin.bsc</OutputFile>
+      <OutputFile>.\Junk/muscled.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
-      <TypeLibraryName>.\Junk/admin.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Junk/muscled.tlb</TypeLibraryName>
       <HeaderFileName>
       </HeaderFileName>
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\zlib\zlib\win32;.\;..\;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;DEBUG;_CONSOLE;MUSCLE_ENABLE_ZLIB_ENCODING;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\;..\;..\..\;..\..\zlib\zlib\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;UNICODE;DEBUG;_CONSOLE;MUSCLE_ENABLE_ZLIB_ENCODING;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>.\Junk/admin.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>.\Junk/muscled.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Junk/</AssemblerListingLocation>
       <ObjectFileName>.\Junk/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Junk/admin</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>.\Junk/muscled</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>muscle.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;winmm.lib;iphlpapi.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>Build/admin.exe</OutputFile>
+      <AdditionalDependencies>Build\muscle.lib;odbc32.lib;odbccp32.lib;ws2_32.lib;winmm.lib;iphlpapi.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>Build\muscled.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>.\Build;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ProgramDatabaseFile>.\Junk/admin.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Junk/muscled.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
@@ -247,11 +249,11 @@
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Junk/admin.bsc</OutputFile>
+      <OutputFile>.\Junk/muscled.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\server\admin.cpp">
+    <ClCompile Include="..\server\muscled.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
