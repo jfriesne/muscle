@@ -1,7 +1,7 @@
 /*
 ;uInt longest_match_x64(
 ;    deflate_state *s,
-;    IPos cur_match);                             // current match 
+;    IPos cur_match);                             // current match
 
 ; gvmat64.S -- Asm portion of the optimized longest_match for 32 bits x86_64
 ;  (AMD64 on Athlon 64, Opteron, Phenom

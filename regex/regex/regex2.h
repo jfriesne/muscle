@@ -41,7 +41,7 @@
  * immediately *preceding* "execution" of that operator.
  */
 #ifdef _M_AMD64
-typedef __int64 sop;        /* strip operator */
+typedef __int64 sop;	/* strip operator */
 typedef __int64 sopno;
 #else
 typedef long sop;		/* strip operator */
@@ -131,7 +131,7 @@ struct re_guts {
 	cat_t *categories;	/* ->catspace[-CHAR_MIN] */
 	char *must;		/* match must contain this string */
 #ifdef _M_AMD64
-	__int64 mlen;        /* length of must */
+	__int64 mlen;	/* length of must */
 #else
 	int mlen;		/* length of must */
 #endif

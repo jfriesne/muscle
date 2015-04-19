@@ -112,7 +112,7 @@ printf("#define dsNiceMatch     (%3u)(%%rdi)\n",(int)(((char*)&(s->nice_match))-
 #define dsGoodMatch	(188)(%rdi)
 #define dsNiceMatch	(192)(%rdi)
 
-#else 
+#else
 
 #ifndef STRUCT_OFFSET
 #	define STRUCT_OFFSET	(0)
@@ -310,7 +310,7 @@ LoopCmps:
 		jnz	LeaveLoopCmps
 		
 		/* this is the only iteration of the loop with a possibility of having
-		   incremented rdx by 0x108 (each loop iteration add 16*4 = 0x40 
+		   incremented rdx by 0x108 (each loop iteration add 16*4 = 0x40
 		   and (0x40*4)+8=0x108 */
 		add	$8, %rdx
 		jz LenMaximum

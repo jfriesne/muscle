@@ -79,7 +79,7 @@ size_t errbuf_size;
 		for (r = rerrs; r->code >= 0; r++)
 			if (r->code == target)
 				break;
-	
+
 		if (regerrcode&REG_ITOA) {
 			if (r->code >= 0)
 #if __STDC_WANT_SECURE_LIB__
