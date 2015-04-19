@@ -74,7 +74,7 @@ size_t errbuf_size;
 	char convbuf[50];
 
 	if (regerrcode == REG_ATOI)
-		s = regatoi(preg, convbuf);
+		s = regatoi(preg, convbuf, 50);
 	else {
 		for (r = rerrs; r->code >= 0; r++)
 			if (r->code == target)
@@ -82,9 +82,17 @@ size_t errbuf_size;
 	
 		if (regerrcode&REG_ITOA) {
 			if (r->code >= 0)
+#if __STDC_WANT_SECURE_LIB__
+				(void) strcpy_s(convbuf, 50, r->name);
+#else
 				(void) strcpy(convbuf, r->name);
+#endif
 			else
+#if __STDC_WANT_SECURE_LIB__
+				sprintf_s(convbuf, 50, "REG_0x%x", target);
+#else
 				sprintf(convbuf, "REG_0x%x", target);
+#endif
 			assert(strlen(convbuf) < sizeof(convbuf));
 			s = convbuf;
 		} else
@@ -94,9 +102,17 @@ size_t errbuf_size;
 	len = strlen(s) + 1;
 	if (errbuf_size > 0) {
 		if (errbuf_size > len)
+#if __STDC_WANT_SECURE_LIB__
+			(void) strcpy_s(errbuf, errbuf_size, s);
+#else
 			(void) strcpy(errbuf, s);
+#endif
 		else {
+#if __STDC_WANT_SECURE_LIB__
+			(void) strncpy_s(errbuf, errbuf_size, s, errbuf_size-1);
+#else
 			(void) strncpy(errbuf, s, errbuf_size-1);
+#endif
 			errbuf[errbuf_size-1] = '\0';
 		}
 	}
@@ -106,12 +122,13 @@ size_t errbuf_size;
 
 /*
  - regatoi - internal routine to implement REG_ATOI
- == static char *regatoi(const regex_t *preg, char *localbuf);
+ == static char *regatoi(const regex_t *preg, char *localbuf, size_t localsize);
  */
 static char *
-regatoi(preg, localbuf)
+regatoi(preg, localbuf, localsize)
 const regex_t *preg;
 char *localbuf;
+size_t localsize;
 {
 	register struct rerr *r;
 
@@ -121,6 +138,10 @@ char *localbuf;
 	if (r->code < 0)
 		return("0");
 
-	sprintf(localbuf, "%d", r->code);
+#if __STDC_WANT_SECURE_LIB__
+	sprintf_s(localbuf, localsize, "%d", r->code);
+#else
+	snprintf(localbuf, localsize, "%d", r->code);
+#endif
 	return(localbuf);
 }

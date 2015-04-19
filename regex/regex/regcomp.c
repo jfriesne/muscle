@@ -1187,7 +1187,11 @@ register char *cp;
 		return;
 	}
 
+#if __STDC_WANT_SECURE_LIB__
+	(void) strcpy_s(cs->multis + oldend - 1, cs->smultis - oldend + 1, cp);
+#else
 	(void) strcpy(cs->multis + oldend - 1, cp);
+#endif
 	cs->multis[cs->smultis - 1] = '\0';
 }
 
@@ -1278,6 +1282,8 @@ mccase(p, cs)
 register struct parse *p;
 register cset *cs;
 {
+	(void)p;  /* avoid compiler warnings */
+	(void)cs; /* avoid compiler warnings */
 	assert(cs->multis == NULL);	/* xxx */
 }
 
