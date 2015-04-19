@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <netdb.h>
 #include <unistd.h>
@@ -126,7 +126,7 @@ enum
    NET_CLIENT_PING,
    NET_CLIENT_PONG,
    NET_CLIENT_SCAN_THREAD_REPORT
-};                       
+};
 
 /* ditto */
 enum
@@ -137,17 +137,17 @@ enum
    BESHARE_HOME_DEPTH,     /* used to separate our stuff from other (non-BeShare) data on the same server */
    USER_NAME_DEPTH,        /* user's handle node would be found here */
    FILE_INFO_DEPTH         /* user's shared file list is here */
-};         
+};
 
 static void Inet_NtoA(uint32 addr, char * ipbuf)
 {
-   sprintf(ipbuf, INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"", (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
+   muscleSprintf(ipbuf, INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"", (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
 }
 
 static int ConnectToIP(uint32 hostIP, uint16 port)
 {
    char ipbuf[16];
-   struct sockaddr_in saAddr; 
+   struct sockaddr_in saAddr;
    int s;
 
    Inet_NtoA(hostIP, ipbuf);
@@ -203,11 +203,11 @@ static MMessage * GenerateChatMessage(const char * targetSessionID, const char *
    if (chatMessage)
    {
       /* Specify which client(s) the Message should be forwarded to by muscled */
-      MByteBuffer ** sb = MMPutStringField(chatMessage, MFalse, PR_NAME_KEYS, 1); 
+      MByteBuffer ** sb = MMPutStringField(chatMessage, MFalse, PR_NAME_KEYS, 1);
       if (sb)
       {
          char buf[1024];
-         sprintf(buf, "/*/%s/beshare", targetSessionID);
+         muscleSprintf(buf, "/*/%s/beshare", targetSessionID);
          sb[0] = MBStrdupByteBuffer(buf);
       }
 
@@ -215,20 +215,20 @@ static MMessage * GenerateChatMessage(const char * targetSessionID, const char *
       /* Message came from.  Note that muscled will automatically set this field        */
       /* to its proper value, so we don't have to; we just have to make sure it exists. */
       {
-         MByteBuffer ** sb = MMPutStringField(chatMessage, MFalse, "session", 1); 
+         MByteBuffer ** sb = MMPutStringField(chatMessage, MFalse, "session", 1);
          if (sb) sb[0] = MBStrdupByteBuffer("blah");  /* will be set by server */
       }
 
       /* Include the chat text that the user typed in to stdin */
       {
-         MByteBuffer ** sb = MMPutStringField(chatMessage, MFalse, "text", 1); 
+         MByteBuffer ** sb = MMPutStringField(chatMessage, MFalse, "text", 1);
          if (sb) sb[0] = MBStrdupByteBuffer(messageText);  /* will be set by server */
       }
 
       /* And lastly, if the Message wasn't meant to be a public chat message,  */
       /* include a "private" keyword to let the receiver know it's a private   */
       /* communication, so they can print it in a different color or whatever. */
-      if (strcmp(targetSessionID, "*")) 
+      if (strcmp(targetSessionID, "*"))
       {
          MBool * b = MMPutBoolField(chatMessage, MFalse, "private", 1);
          if (b) *b = MTrue;
@@ -248,14 +248,14 @@ static MMessage * GenerateServerSubscription(const char * subscriptionString, MB
       MBool * b = MMPutBoolField(queryMsg, MFalse, subscriptionString, 1);
       if (b) *b = MTrue;  /* the value doesn't signify anything */
 
-      if (quietly) 
+      if (quietly)
       {
          MBool * b = MMPutBoolField(queryMsg, MFalse, PR_NAME_SUBSCRIBE_QUIETLY, 1);
          if (b) *b = MTrue;  /* suppress the initial-state response from muscled */
       }
    }
    return queryMsg;
-}        
+}
 
 /* Generates a MMessage that tells the server to post some interesting information */
 /* about our client, for the other clients to see.                                 */
@@ -263,12 +263,12 @@ static MMessage * GenerateSetLocalUserName(const char * name)
 {
    MMessage * uploadMsg = MMAllocMessage(PR_COMMAND_SETDATA);
    if (uploadMsg)
-   { 
+   {
       MMessage * nameMsg = MMAllocMessage(0);
       if (nameMsg)
       {
          {
-            MByteBuffer ** sb = MMPutStringField(nameMsg, MFalse, "name", 1); 
+            MByteBuffer ** sb = MMPutStringField(nameMsg, MFalse, "name", 1);
             if (sb) sb[0] = MBStrdupByteBuffer(name);
          }
 
@@ -279,22 +279,22 @@ static MMessage * GenerateSetLocalUserName(const char * name)
          }
 
          {
-            MByteBuffer ** sb = MMPutStringField(nameMsg, MFalse, "version_name", 1); 
+            MByteBuffer ** sb = MMPutStringField(nameMsg, MFalse, "version_name", 1);
             if (sb) sb[0] = MBStrdupByteBuffer("MUSCLE C mini chat client");
          }
 
          {
-            MByteBuffer ** sb = MMPutStringField(nameMsg, MFalse, "version_num", 1); 
+            MByteBuffer ** sb = MMPutStringField(nameMsg, MFalse, "version_num", 1);
             if (sb) sb[0] = MBStrdupByteBuffer(VERSION_STRING);
          }
 
          {
-            MByteBuffer ** sb = MMPutStringField(nameMsg, MFalse, "host_os", 1); 
+            MByteBuffer ** sb = MMPutStringField(nameMsg, MFalse, "host_os", 1);
             if (sb) sb[0] = MBStrdupByteBuffer(GetOSName());
          }
 
          {
-            MMessage ** mf = MMPutMessageField(uploadMsg, MFalse, "beshare/name", 1); 
+            MMessage ** mf = MMPutMessageField(uploadMsg, MFalse, "beshare/name", 1);
             if (mf) mf[0] = nameMsg;
          }
       }
@@ -305,7 +305,7 @@ static MMessage * GenerateSetLocalUserName(const char * name)
       }
    }
    return uploadMsg;
-}              
+}
 
 /* Generates a message to set this client's user-status on the server (e.g. "Here" or "Away") */
 static MMessage * GenerateSetLocalUserStatus(const char * status)
@@ -317,11 +317,11 @@ static MMessage * GenerateSetLocalUserStatus(const char * status)
       if (statusMsg)
       {
          {
-            MByteBuffer ** sb = MMPutStringField(statusMsg, MFalse, "userstatus", 1); 
+            MByteBuffer ** sb = MMPutStringField(statusMsg, MFalse, "userstatus", 1);
             if (sb) sb[0] = MBStrdupByteBuffer(status);
          }
          {
-            MMessage ** mf = MMPutMessageField(uploadMsg, MFalse, "beshare/userstatus", 1); 
+            MMessage ** mf = MMPutMessageField(uploadMsg, MFalse, "beshare/userstatus", 1);
             if (mf) mf[0] = statusMsg;
          }
       }
@@ -332,7 +332,7 @@ static MMessage * GenerateSetLocalUserStatus(const char * status)
       }
    }
    return uploadMsg;
-}              
+}
 
 /* Returns a pointer into (path) after the (depth)'th '/' char */
 static const char * GetPathClause(int depth, const char * path)
@@ -341,14 +341,14 @@ static const char * GetPathClause(int depth, const char * path)
    for (i=0; i<depth; i++)
    {
       const char * nextSlash = strchr(path, '/');
-      if (nextSlash == NULL) 
+      if (nextSlash == NULL)
       {
          path = NULL;
          break;
       }
       path = nextSlash + 1;
    }
-   return path;          
+   return path;
 }
 
 /* Returns the depth of the given path string (e.g. "/"==0, "/hi"==1, "/hi/there"==2, etc) */
@@ -488,7 +488,7 @@ int main(int argc, char ** argv)
             MMFreeMessage(msg);
          }
       }
- 
+
       /* the main event loop */
       while(keepGoing)
       {
@@ -514,7 +514,7 @@ int main(int argc, char ** argv)
          FD_SET(STDIN_FILENO, &readSet);
 #endif
 
-         while(keepGoing) 
+         while(keepGoing)
          {
             if (select(maxfd+1, &readSet, &writeSet, NULL, timeout) < 0) printf("minireflectclient: select() failed!\n");
 
@@ -535,7 +535,7 @@ int main(int argc, char ** argv)
                   char * nextSpace = strchr(buf+5, ' '); /* after the target ID */
                   if (nextSpace)
                   {
-                      *nextSpace = '\0';   
+                      *nextSpace = '\0';
                       sendMsg = GenerateChatMessage(buf+5, nextSpace+1);
                   }
                   else printf("Can't send private /msg, no message text was specified!\n");
@@ -554,7 +554,7 @@ int main(int argc, char ** argv)
                else if (strncmp(buf, "/quit", 5) == 0) keepGoing = MFalse;
                else                                    sendMsg = GenerateChatMessage("*", buf);
 
-               if (sendMsg) 
+               if (sendMsg)
                {
 /* printf("Sending message...\n"); */
 /* MMPrintToStream(sendMsg); */
@@ -563,7 +563,7 @@ int main(int argc, char ** argv)
                }
                buf[0] = '\0';
             }
-   
+
             {
                MMessage * msg = NULL;
                MBool reading    = FD_ISSET(s, &readSet);
@@ -602,7 +602,7 @@ int main(int argc, char ** argv)
                               }
                               else MBFreeByteBuffer(temp);
                            }
-                              
+
                            MMRemoveField(msg, "version");
                            {
                               MByteBuffer ** sb = MMPutStringField(msg, MFalse, "version", 1);
@@ -620,13 +620,13 @@ int main(int argc, char ** argv)
                         MByteBuffer ** sessionField = MMGetStringField(msg, "session", NULL);
                         if ((textField)&&(sessionField))
                         {
-                           const char * text = (const char *) &textField[0]->bytes; 
+                           const char * text = (const char *) &textField[0]->bytes;
                            int session       = atoi((const char *)&sessionField[0]->bytes);
-                           if (strncmp(text, "/me ", 4) == 0) printf("<ACTION>: %s %s\n", GetUserName(users, session), &text[4]); 
+                           if (strncmp(text, "/me ", 4) == 0) printf("<ACTION>: %s %s\n", GetUserName(users, session), &text[4]);
                                                          else printf("%s(%s): %s\n", MMGetBoolField(msg, "private", NULL) ? "<PRIVATE>: ":"", GetUserName(users, session), text);
                         }
                      }
-                     break;     
+                     break;
 
                      case PR_RESULT_DATAITEMS:
                      {
@@ -647,13 +647,13 @@ int main(int argc, char ** argv)
                                  switch(GetPathDepth(nodepath))
                                  {
                                     case USER_NAME_DEPTH:
-                                       if (strncmp(GetPathClause(USER_NAME_DEPTH, nodepath), "name", 4) == 0) 
+                                       if (strncmp(GetPathClause(USER_NAME_DEPTH, nodepath), "name", 4) == 0)
                                        {
                                           const char * userName = GetUserName(users, sid);
-                                          if (userName) 
+                                          if (userName)
                                           {
                                              printf("User [%s] has disconnected.\n", userName);
-                                             RemoveUserName(&users, sid); 
+                                             RemoveUserName(&users, sid);
                                           }
                                        }
                                        break;
@@ -730,7 +730,7 @@ int main(int argc, char ** argv)
                FD_SET(STDIN_FILENO, &readSet);
             }
          }
-      } 
+      }
       close(s);
    }
    else printf("Connection to [%s:%i] failed!\n", hostName, port);

@@ -12,12 +12,12 @@ Win32FileHandleDataIO(::HANDLE handle) : _handle(handle)
 }
 
 Win32FileHandleDataIO ::
-~Win32FileHandleDataIO() 
+~Win32FileHandleDataIO()
 {
    if (_handle != INVALID_HANDLE_VALUE) CloseHandle(_handle);
 }
 
-int32 Win32FileHandleDataIO :: Read(void * buffer, uint32 size)  
+int32 Win32FileHandleDataIO :: Read(void * buffer, uint32 size)
 {
    if (_handle != INVALID_HANDLE_VALUE)
    {
@@ -29,7 +29,7 @@ int32 Win32FileHandleDataIO :: Read(void * buffer, uint32 size)
 
 int32 Win32FileHandleDataIO :: Write(const void * buffer, uint32 size)
 {
-   if (_handle != INVALID_HANDLE_VALUE) 
+   if (_handle != INVALID_HANDLE_VALUE)
    {
       DWORD writeCount;
       return WriteFile(_handle, buffer, size, &writeCount, 0) ? writeCount : -1;
@@ -49,7 +49,7 @@ status_t Win32FileHandleDataIO :: SetBlockingIOEnabled(bool blocking)
 
 void Win32FileHandleDataIO :: Shutdown()
 {
-   if (_handle != INVALID_HANDLE_VALUE) 
+   if (_handle != INVALID_HANDLE_VALUE)
    {
       CloseHandle(_handle);
       _handle = INVALID_HANDLE_VALUE;

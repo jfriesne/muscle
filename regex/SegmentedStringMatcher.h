@@ -14,7 +14,7 @@ namespace muscle {
   * to match "*foo/bar*" against "foot/ball".  This can be useful when you want to operate
   * on segmented paths with level-by-level matching semantics.
   */
-class SegmentedStringMatcher : public RefCountable
+class SegmentedStringMatcher MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Default Constructor. */
@@ -22,11 +22,11 @@ public:
 
    /** A constructor that sets the given expression.  See SetPattern() for argument semantics.  */
    SegmentedStringMatcher(const String & matchString, bool isSimpleFormat = true, const char * segmentSeparatorChars = "/");
-    
+
    /** Destructor */
    ~SegmentedStringMatcher();
 
-   /** 
+   /**
     * Set a new wildcard pattern or regular expression for this SegmentedStringMatcher to use in future Match() calls.
     * @param expression The new globbing pattern or regular expression to match with.  It may be segmented using any of the
     *                   separator characters specified in our constructor.
@@ -36,7 +36,7 @@ public:
     * @return B_NO_ERROR on success, B_ERROR on error (e.g. expression wasn't parsable, or out of memory)
     */
    status_t SetPattern(const String & expression, bool isSimpleFormat=true, const char * segmentSeparatorChars = "/");
-    
+
    /** Returns the pattern String as it was previously passed in to SetPattern() */
    const String & GetPattern() const {return _pattern;}
 
@@ -53,7 +53,7 @@ public:
     * @return true iff (matchString) matches, false otherwise.
     */
    bool Match(const char * const matchString) const {return _negate ? !MatchAux(matchString) : MatchAux(matchString);}
-    
+
    /** Convenience method:  Same as above, but takes a String object instead of a (const char *). */
    inline bool Match(const String & matchString) const {return Match(matchString());}
 

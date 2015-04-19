@@ -27,7 +27,7 @@ QMessageTransceiverThread :: ~QMessageTransceiverThread()
    for (HashtableIterator<uint32, QMessageTransceiverHandler *> iter(_handlers); iter.HasData(); iter++) iter.GetValue()->ClearRegistrationFields();
 }
 
-status_t QMessageTransceiverThread :: SendMessageToSessions(const MessageRef & msgRef, const char * optDistPath)       
+status_t QMessageTransceiverThread :: SendMessageToSessions(const MessageRef & msgRef, const char * optDistPath)
 {
    // This method is reimplemented here so it can be a Qt "slot" method
    return MessageTransceiverThread :: SendMessageToSessions(msgRef, optDistPath);
@@ -74,7 +74,7 @@ void QMessageTransceiverThread :: HandleQueuedIncomingEvents()
                seenIncomingMessage = true;
                emit BeginMessageBatch();
             }
-            emit MessageReceived(next, sessionID); 
+            emit MessageReceived(next, sessionID);
          break;
 
          case MTT_EVENT_SESSION_ACCEPTED:      emit SessionAccepted(sessionID, factoryID, iap); break;
@@ -136,7 +136,7 @@ void QMessageTransceiverThread :: Reset()
    for (HashtableIterator<uint32, QMessageTransceiverHandler *> iter(_handlers); iter.HasData(); iter++) iter.GetValue()->ClearRegistrationFields();
    _handlers.Clear();
 
-   MessageTransceiverThread::Reset(); 
+   MessageTransceiverThread::Reset();
 }
 
 status_t QMessageTransceiverThread :: RegisterHandler(QMessageTransceiverThread & thread, QMessageTransceiverHandler * handler, const ThreadWorkerSessionRef & sessionRef)
@@ -145,7 +145,7 @@ status_t QMessageTransceiverThread :: RegisterHandler(QMessageTransceiverThread 
    else
    {
       int32 id = sessionRef() ? (int32)sessionRef()->GetSessionID() : -1;
-      if ((id >= 0)&&(_handlers.Put(id, handler) == B_NO_ERROR)) 
+      if ((id >= 0)&&(_handlers.Put(id, handler) == B_NO_ERROR))
       {
          handler->_master    = this;
          handler->_mtt       = this;
@@ -189,7 +189,7 @@ QMessageTransceiverThreadPool :: ~QMessageTransceiverThreadPool()
 
 void QMessageTransceiverThreadPool :: ShutdownAllThreads()
 {
-   for (HashtableIterator<QMessageTransceiverThread *, Void> iter(_threads); iter.HasData(); iter++) 
+   for (HashtableIterator<QMessageTransceiverThread *, Void> iter(_threads); iter.HasData(); iter++)
    {
       QMessageTransceiverThread * mtt = iter.GetKey();
       mtt->ShutdownInternalThread();
@@ -197,12 +197,12 @@ void QMessageTransceiverThreadPool :: ShutdownAllThreads()
    }
    _threads.Clear();
 }
- 
+
 QMessageTransceiverThread * QMessageTransceiverThreadPool :: CreateThread()
 {
    QMessageTransceiverThread * newThread = newnothrow QMessageTransceiverThread;
    if (newThread == NULL) WARN_OUT_OF_MEMORY;
-   return newThread; 
+   return newThread;
 }
 
 QMessageTransceiverThread * QMessageTransceiverThreadPool :: ObtainThread()
@@ -226,7 +226,7 @@ QMessageTransceiverThread * QMessageTransceiverThreadPool :: ObtainThread()
 status_t QMessageTransceiverThreadPool :: RegisterHandler(QMessageTransceiverThread & thread, QMessageTransceiverHandler * handler, const ThreadWorkerSessionRef & sessionRef)
 {
    if (thread.RegisterHandler(thread, handler, sessionRef) == B_NO_ERROR)
-   { 
+   {
       handler->_master = this;  // necessary since QMessageTransceiverThread::RegisterHandler will have overwritten it
       if (thread.GetHandlers().GetNumItems() >= _maxSessionsPerThread) (void) _threads.MoveToFront(&thread);
       return B_NO_ERROR;
@@ -282,7 +282,7 @@ status_t QMessageTransceiverHandler :: SetupAsNewConnectSession(IMessageTranscei
    {
       ThreadWorkerSessionRef sRef = optSessionRef;
       if (sRef() == NULL) sRef = CreateDefaultWorkerSession(*thread);  // gotta do this now so we can know its ID
-      if ((sRef())&&(master.RegisterHandler(*thread, this, sRef) == B_NO_ERROR)) 
+      if ((sRef())&&(master.RegisterHandler(*thread, this, sRef) == B_NO_ERROR))
       {
          if (thread->AddNewConnectSession(targetIPAddress, port, sRef, autoReconnectDelay, maxAsyncConnectPeriod) == B_NO_ERROR) return B_NO_ERROR;
          master.UnregisterHandler(*thread, this, true);

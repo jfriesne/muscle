@@ -56,7 +56,7 @@ int32 PacketizedDataIO :: Read(void * buffer, uint32 size)
 
 int32 PacketizedDataIO :: Write(const void * buffer, uint32 size)
 {
-   if (size > _maxTransferUnit) 
+   if (size > _maxTransferUnit)
    {
       LogTime(MUSCLE_LOG_ERROR, "PacketizedDataIO:  Error, tried to send packet with size " UINT32_FORMAT_SPEC ", max transfer unit is set to " UINT32_FORMAT_SPEC "\n", size, _maxTransferUnit);
       return -1;
@@ -77,7 +77,7 @@ int32 PacketizedDataIO :: Write(const void * buffer, uint32 size)
       ret = size;
    }
 
-   if (WriteBufferedOutputAux() != B_NO_ERROR) 
+   if (WriteBufferedOutputAux() != B_NO_ERROR)
    {
       return -1;
    }
@@ -91,7 +91,7 @@ status_t PacketizedDataIO :: WriteBufferedOutputAux()
    if (_outputBufferBytesSent < bufSize)
    {
       int32 bytesSent = SlaveWrite(_outputBuffer.GetBuffer()+_outputBufferBytesSent, bufSize-_outputBufferBytesSent);
-      if (bytesSent >= 0) 
+      if (bytesSent >= 0)
       {
          _outputBufferBytesSent += bytesSent;
          if (_outputBufferBytesSent == bufSize)

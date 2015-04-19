@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-/** @defgroup minimessagegateway The MiniMessageGateway C function API 
+/** @defgroup minimessagegateway The MiniMessageGateway C function API
  *  These functions are all defined in MiniMessageGateway(.c,.h), and are stand-alone
  *  C functions that provide functionality similar to that of the C++
  *  MessageIOGateway class.
@@ -31,7 +31,7 @@ typedef struct _MMessageGateway MMessageGateway;
   */
 typedef int32 (*MGSendFunc)(const uint8 * buf, uint32 numBytes, void * arg);
 
-/** Typedef for a callback function that knows how to read data from 
+/** Typedef for a callback function that knows how to read data from
   * (a file, the network, a serial line, wherever) and write it into a supplied buffer.
   * @param buf The buffer to write bytes to.
   * @param numBytes The number of bytes available for writing at (buf)
@@ -42,8 +42,8 @@ typedef int32 (*MGReceiveFunc)(uint8 * buf, uint32 numBytes, void * arg);
 
 /** Allocates and initializes a new MMessageGateway.
   * @returns a newly allocated MMessageGateway, or NULL on failure.  If non-NULL, it becomes the
-  *          the responsibility of the calling code to call MMFreeMessageGateway() on the 
-  *          MMessageGateway when it is done using it. 
+  *          the responsibility of the calling code to call MMFreeMessageGateway() on the
+  *          MMessageGateway when it is done using it.
   */
 MMessageGateway * MGAllocMessageGateway();
 

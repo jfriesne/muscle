@@ -138,7 +138,7 @@ begin
     locker.Unlock;
   end;
   except
-    on e: exception do 
+    on e: exception do
     MessageBox(0, pchar(e.message), '', 0);
   end;
 end;

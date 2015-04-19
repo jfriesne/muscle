@@ -6,8 +6,8 @@ namespace muscle.message {
 
   public class FieldTypeMismatchException : MessageException {
     public FieldTypeMismatchException(string s) : base(s) { }
-	
-    public FieldTypeMismatchException() : 
+
+    public FieldTypeMismatchException() :
       base("Message entry type mismatch") { }
   }
 }

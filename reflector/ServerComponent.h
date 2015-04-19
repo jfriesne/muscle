@@ -22,7 +22,7 @@ DECLARE_REFTYPES(ReflectSessionFactory);
 # define MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS MUSCLE_TIME_NEVER
 #endif
 
-/** 
+/**
  *  This class represents any object that can be added to a ReflectServer object
  *  in one way or another, to help define the ReflectServer's behaviour.  This
  *  class provides callback wrappers that let you operate on the server's state.
@@ -39,7 +39,7 @@ public:
    /**
     * This method is called when this object has been added to
     * a ReflectServer object.  When this method is called, it
-    * is okay to call the other methods in the ServerComponent API.  
+    * is okay to call the other methods in the ServerComponent API.
     * Should return B_NO_ERROR if everything is okay; something
     * else if there is a problem and the attachment should be aborted.
     * Default implementation does nothing and returns B_NO_ERROR.
@@ -82,7 +82,7 @@ public:
    /** Returns true if we are attached to the ReflectServer object, false if we are not.  */
    bool IsAttachedToServer() const {return (_owner != NULL);}
 
-   /** Returns true if we are attached FULLY to the ReflectServer object, false if we are not. 
+   /** Returns true if we are attached FULLY to the ReflectServer object, false if we are not.
      * The difference between this method and IsAttachedToServer() is that this method only returns
      * true after AttachedToServer() has completed successully, and before AboutToDetachFromServer()
      * has been called.  Compare that to IsAttachedToServer()'s which returns true during the
@@ -108,10 +108,10 @@ protected:
 
    /** Returns the number of bytes that are currently available to be allocated */
    uint64 GetNumAvailableBytes() const;
- 
+
    /** Returns the maximum number of bytes that may be allocated at any given time */
    uint64 GetMaxNumBytes() const;
- 
+
    /** Returns the number of bytes that are currently allocated */
    uint64 GetNumUsedBytes() const;
 
@@ -126,8 +126,8 @@ protected:
 
    /**
     * Returns a reference to a Message that is shared by all objects in
-    * a single ReflectServer.  This message can be used for whatever 
-    * purpose the ServerComponents care to; it is not used by the 
+    * a single ReflectServer.  This message can be used for whatever
+    * purpose the ServerComponents care to; it is not used by the
     * server itself.  (Note that StorageReflectSessions add data to
     * this Message and expect it to remain there, so be careful not
     * to remove or overwrite it if you are using StorageReflectSessions)
@@ -170,7 +170,7 @@ protected:
     *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
     *                              is used; typically this means that it will be left up to the operating system how long to wait
     *                              before timing out the connection attempt.
-    * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error 
+    * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error
     *                    (out-of-memory or the connect attempt failed immediately).
     */
    status_t AddNewConnectSession(const AbstractReflectSessionRef & session, const ip_address & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
@@ -209,14 +209,14 @@ protected:
     * @return A reference to the session with the given session ID, or a NULL reference on failure.
     */
    AbstractReflectSessionRef GetSession(uint32 id) const;
-   
+
    /**
     * Looks up a session connected to our ReflectServer via its session ID string.
     * @param id The ID string of the session you are looking for.
     * @return A reference to the session with the given session ID, or a NULL reference on failure.
     */
    AbstractReflectSessionRef GetSession(const String & id) const;
-   
+
    /** Convenience method:  Returns a pointer to the first session of the specified type.  Returns NULL if no session of the specified type is found.
      * @note this method iterates over the session list, so it's not as efficient as one might hope.
      */
@@ -257,7 +257,7 @@ protected:
 
    /** Given a port number, returns a reference to the factory of that port, or a NULL reference if no
 such factory exists. */
-   ReflectSessionFactoryRef GetFactory(uint16) const;         
+   ReflectSessionFactoryRef GetFactory(uint16) const;
 
 private:
    ReflectServer * _owner;

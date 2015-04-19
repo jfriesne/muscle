@@ -11,9 +11,9 @@
 namespace muscle {
 
 DECLARE_REFTYPES(StringMatcher);
- 
+
 /** A reference-countable list of references to StringMatcher objects */
-class StringMatcherQueue : public Queue<StringMatcherRef>, public RefCountable
+class StringMatcherQueue MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Constructor. */
@@ -21,6 +21,15 @@ public:
 
    /** Returns a human-readable string representing this StringMatcherQueue, for easier debugging */
    String ToString() const;
+
+   /** Returns a read/write reference to our list of StringMatcher references. */
+   const Queue<StringMatcherRef> & GetStringMatchers() const {return _queue;}
+
+   /** Returns a read-only reference to our list of StringMatcher references. */
+   Queue<StringMatcherRef> & GetStringMatchers() {return _queue;}
+
+private:
+   Queue<StringMatcherRef> _queue;
 };
 
 /** Type for a reference to a queue of StringMatcher objects. */
@@ -28,7 +37,7 @@ DECLARE_REFTYPES(StringMatcherQueue);
 
 /** Returns a point to a singleton ObjectPool that can be used
  *  to minimize the number of StringMatcherQueue allocations and deletions
- *  by recycling the StringMatcherQueue objects 
+ *  by recycling the StringMatcherQueue objects
  */
 StringMatcherQueueRef::ItemPool * GetStringMatcherQueuePool();
 
@@ -36,13 +45,13 @@ StringMatcherQueueRef::ItemPool * GetStringMatcherQueuePool();
  *  that test a wildcarded path, and optionally, the QueryFilter object that tests the content
  *  of matching Messages.
  */
-class PathMatcherEntry
+class PathMatcherEntry MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor */
    PathMatcherEntry() {/* empty */}
 
-   /** Constructor 
+   /** Constructor
      * @param parser Reference to the list of StringMatcher objects that represent our wildcarded path.
      * @param filter Optional reference to the QueryFilter object that filters matching nodes by content.
      */
@@ -50,7 +59,7 @@ public:
 
    /** Returns a reference to our list of StringMatchers. */
    StringMatcherQueueRef GetParser() const {return _parser;}
- 
+
    /** Returns a reference to our QueryFilter object.  May be a NULL reference. */
    ConstQueryFilterRef GetFilter() const {return _filter;}
 
@@ -72,7 +81,7 @@ private:
    ConstQueryFilterRef _filter;
 };
 
-/** This class is used to do efficient regex-pattern-matching of one or more query strings (e.g. ".*./.*./j*remy/fries*") 
+/** This class is used to do efficient regex-pattern-matching of one or more query strings (e.g. ".*./.*./j*remy/fries*")
   * against various path strings (e.g. "12.18.240.15/123/jeremy/friesner").  A given path string is said to 'match'
   * if it matches at least one of the query strings added to this object.
   * Note that the search strings are always treated as relative paths -- if you pass in a search string with
@@ -99,7 +108,7 @@ public:
     *  a leading slash, then it will be interpeted as a relative query with the first level of the query looking
     *  for nodes with name "".
     *  @param path a string of form "x/y/z/...", representing a pattern-matching function.
-    *  @param filter Reference to a QueryFilter object to use to filter Messages that match our path.  If the 
+    *  @param filter Reference to a QueryFilter object to use to filter Messages that match our path.  If the
     *                reference is a NULL reference, then no filtering will be done.
     *  @return B_NO_ERROR on success, B_ERROR if out of memory.
     */
@@ -141,7 +150,7 @@ public:
     * @param optNode this DataNode pointer will be passed to the QueryFilter objects.
     */
    bool MatchesPath(const char * path, const Message * optMessage, const DataNode * optNode) const;
-    
+
    /**
     * Utility method.
     * If (w) starts with '/', this method will remove the slash.
@@ -156,9 +165,9 @@ public:
      * @param path Name of the PathMatcherEntry to update the filter of
      * @param newFilter The new filter to give to PathMatcherEntry.  May be a NULL ref if no filter is desired.
      * @note You should always set an entries filter via this method rather than calling SetEntry() on
-     *       the PathMatcherEntry object directly; that way, the PathMatcher class can keep its filters-count 
+     *       the PathMatcherEntry object directly; that way, the PathMatcher class can keep its filters-count
      *       up to date.
-     * @returns B_NO_ERROR on success, or B_ERROR if an entry with the given path could not be found. 
+     * @returns B_NO_ERROR on success, or B_ERROR if an entry with the given path could not be found.
      */
    status_t SetFilterForEntry(const String & path, const ConstQueryFilterRef & newFilter);
 
@@ -182,7 +191,7 @@ DECLARE_REFTYPES(PathMatcher);
 const char * GetPathClause(int depth, const char * path);
 
 /** As above, but returns a String object for just the given clause,
- *  instead of the entire remainder of the string.  This version is 
+ *  instead of the entire remainder of the string.  This version is
  *  somewhat less efficient, but easier to user.
  *  @param depth the depth in the path to search for (0 == root, 1 == first level, 2 == second, etc.)
  *  @param path the path string (e.g. "/x/y/z/...") to search through
@@ -195,7 +204,7 @@ String GetPathClauseString(int depth, const char * path);
  *  @returns The number of clauses in (path).  (a.k.a the 'depth' of (path))
  *           For example, "" and "/" return 0, "/test" returns 1, "test/me"
  *           returns 2, "/test/me/thoroughly" returns 3.
- *          
+ *
  */
 int GetPathDepth(const char * path);
 

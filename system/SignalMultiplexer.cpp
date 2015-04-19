@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #if defined(__linux__) || defined(__APPLE__)
 # define MUSCLE_USE_POSIX_SIGNALS 1
@@ -35,7 +35,7 @@ static BOOL Win32SignalHandlerCallbackFunc(DWORD sigNum) {SignalMultiplexer::Get
 static void POSIXSignalHandlerCallbackFunc(int sigNum)   {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(sigNum);}
 #endif
 
-status_t SignalMultiplexer :: AddHandler(ISignalHandler * s) 
+status_t SignalMultiplexer :: AddHandler(ISignalHandler * s)
 {
    MutexGuard m(_mutex);
    if (_handlers.AddTail(s) != B_NO_ERROR) return B_ERROR;
@@ -47,7 +47,7 @@ status_t SignalMultiplexer :: AddHandler(ISignalHandler * s)
    }
 }
 
-void SignalMultiplexer :: RemoveHandler(ISignalHandler * s) 
+void SignalMultiplexer :: RemoveHandler(ISignalHandler * s)
 {
    MutexGuard m(_mutex);
    if (_handlers.RemoveFirstInstanceOf(s) == B_NO_ERROR) (void) UpdateSignalSets();
@@ -102,7 +102,7 @@ status_t SignalMultiplexer :: RegisterSignals()
    for (uint32 i=0; i<_currentSignalSet.GetNumItems(); i++)
    {
       int sigNum = _currentSignalSet[i];
-      if (sigaction(sigNum, &newact, NULL) == -1) 
+      if (sigaction(sigNum, &newact, NULL) == -1)
       {
          LogTime(MUSCLE_LOG_WARNING, "Could not install signal handler for signal #%i\n", sigNum);
          UnregisterSignals();

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "system/Thread.h"
 #include "util/NetworkUtilityFunctions.h"
@@ -125,7 +125,7 @@ void Thread :: ShutdownInternalThread(bool waitForThread)
    }
 }
 
-status_t Thread :: SendMessageToInternalThread(const MessageRef & ref) 
+status_t Thread :: SendMessageToInternalThread(const MessageRef & ref)
 {
    return SendMessageAux(MESSAGE_THREAD_INTERNAL, ref);
 }
@@ -157,12 +157,12 @@ status_t Thread :: SendMessageAux(int whichQueue, const MessageRef & replyRef)
    return ret;
 }
 
-void Thread :: SignalInternalThread() 
+void Thread :: SignalInternalThread()
 {
    SignalAux(MESSAGE_THREAD_OWNER);  // we send a byte on the owner's socket and the byte comes out on the internal socket
 }
 
-void Thread :: SignalOwner() 
+void Thread :: SignalOwner()
 {
    SignalAux(MESSAGE_THREAD_INTERNAL);  // we send a byte on the internal socket and the byte comes out on the owner's socket
 }
@@ -172,7 +172,7 @@ void Thread :: SignalAux(int whichSocket)
    if (_messageSocketsAllocated)
    {
       int fd = _threadData[whichSocket]._messageSocket.GetFileDescriptor();
-      if (fd >= 0) 
+      if (fd >= 0)
       {
          char junk = 'S';
          (void) send_ignore_eintr(fd, &junk, sizeof(junk), 0);
@@ -201,9 +201,9 @@ int32 Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref
       int msgfd;
       if ((ret < 0)&&((msgfd = tsd._messageSocket.GetFileDescriptor()) >= 0))  // no Message available?  then we'll have to wait until there is one!
       {
-         // block until either 
-         //   (a) a new-message-signal-byte wakes us, or 
-         //   (b) we reach our wakeup/timeout time, or 
+         // block until either
+         //   (a) a new-message-signal-byte wakes us, or
+         //   (b) we reach our wakeup/timeout time, or
          //   (c) a user-specified socket in the socket set selects as ready-for-something
          for (uint32 i=0; i<ARRAYITEMS(tsd._socketSets); i++)
          {
@@ -245,7 +245,7 @@ void Thread :: InternalThreadEntry()
       MessageRef msgRef;
       int32 numLeft = WaitForNextMessageFromOwner(msgRef);
       if ((numLeft >= 0)&&(MessageReceivedFromOwner(msgRef, numLeft) != B_NO_ERROR)) break;
-   } 
+   }
 }
 
 status_t Thread :: MessageReceivedFromOwner(const MessageRef & ref, uint32)
@@ -306,7 +306,7 @@ Thread * Thread :: GetCurrentThread()
 {
    muscle_thread_key key = GetCurrentThreadKey();
 
-   Thread * ret = NULL; 
+   Thread * ret = NULL;
    if (_curThreadsMutex.Lock() == B_NO_ERROR)
    {
       (void) _curThreads.Get(key, ret);
@@ -401,7 +401,7 @@ void CheckThreadStackUsage(const char * fileName, uint32 line)
          }
       }
    }
-   else 
+   else
    {
       char buf[20];
       printf("Warning, CheckThreadStackUsage() called from non-MUSCLE thread %s at (%s:" UINT32_FORMAT_SPEC ")\n", muscle_thread_id::GetCurrentThreadID().ToString(buf), fileName, line);

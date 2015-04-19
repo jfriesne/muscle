@@ -67,7 +67,7 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
 {
    TCHECKPOINT;
 
-   ByteBufferRef ret; 
+   ByteBufferRef ret;
    if ((rawBytes)&&(_deflateOkay))
    {
       if ((independent)&&(deflateReset(&_deflater) != Z_OK))
@@ -87,7 +87,7 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
          _deflater.next_out  = ret()->GetBuffer()+ZLIB_CODEC_HEADER_SIZE+addHeaderBytes;
          _deflater.total_out = 0;
          _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
-         
+
          if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(ret()->SetNumBytes(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes, true) == B_NO_ERROR))
          {
             (void) ret()->FreeExtraBytes();  // no sense keeping all that extra space around, is there?
@@ -98,7 +98,7 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
             muscleCopyOut(compBytes, magic);
 
             const uint32 rawLen = B_HOST_TO_LENDIAN_INT32(numRaw);
-            muscleCopyOut(&compBytes[sizeof(magic)], rawLen); 
+            muscleCopyOut(&compBytes[sizeof(magic)], rawLen);
 //printf("Deflated " UINT32_FORMAT_SPEC" bytes to " UINT32_FORMAT_SPEC" bytes\n", numRaw, ret()->GetNumBytes());
          }
          else ret.Reset();  // oops, something went wrong!

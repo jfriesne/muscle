@@ -9,8 +9,8 @@ namespace muscle {
 
 /** A simple templated class that holds a single value of the template-specified type.
   * The only difference between using a TamperEvidentValue<T> and just using the T object directly
-  * is that the TamperEvidentValue class will automatically set a flag whenever the stored 
-  * value is set (via SetValue() or assignment operator), so that you can tell later on if 
+  * is that the TamperEvidentValue class will automatically set a flag whenever the stored
+  * value is set (via SetValue() or assignment operator), so that you can tell later on if
   * anyone has explicitly set this value after it was constructed.
   */
 template <typename T> class TamperEvidentValue

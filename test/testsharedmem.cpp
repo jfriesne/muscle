@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -11,7 +11,7 @@ static const char * TEST_KEY       = "testsharedmem_key";
 static const uint32 TEST_AREA_SIZE = 4096;
 
 // This program exercises the Message class.
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    bool deleteArea = ((argc > 1)&&(strncmp(argv[1], "del", 3) == 0));
 
@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
          uint8 * a = m.GetAreaPointer();
          uint32 s = m.GetAreaSize();
 
-         if (m.IsCreatedLocally()) 
+         if (m.IsCreatedLocally())
          {
             LogTime(MUSCLE_LOG_INFO, "Created new shared memory area %s\n", m.GetAreaName()());
             for (uint32 i=0; i<s; i++) a[i] = base;
@@ -58,7 +58,7 @@ int main(int argc, char ** argv)
 
                m.UnlockArea();
             }
-            else 
+            else
             {
                LogTime(MUSCLE_LOG_ERROR, "Exclusive Lock failed!  Maybe the area was deleted!\n");
                break;
@@ -77,9 +77,9 @@ int main(int argc, char ** argv)
 
                m.UnlockArea();
             }
-            else 
+            else
             {
-               LogTime(MUSCLE_LOG_ERROR, "Exclusive Lock failed!  Maybe the area was deleted!\n");
+               LogTime(MUSCLE_LOG_ERROR, "Read-Only Lock failed!  Maybe the area was deleted!\n");
                break;
             }
 

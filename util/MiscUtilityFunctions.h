@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifndef MuscleMiscUtilityFunctions_h
 #define MuscleMiscUtilityFunctions_h
@@ -38,7 +38,7 @@ status_t ParseArgs(int argc, char ** argv, Message & addTo, bool caseSensitive =
  *  keyword "begin" or "end".  These lines delineate a sub-section,
  *  which will show up in (addTo) as a sub-Message.  This can
  *  be useful for expressing hierarchical data.  The "begin" line
- *  may optionally contain the name to store the sub-Message under; 
+ *  may optionally contain the name to store the sub-Message under;
  *  if no name is present, the sub-Message will be added with name "".
  *  Multiple sub-sections with the same name are supported.
  *
@@ -74,7 +74,7 @@ status_t UnparseFile(const Message & readFrom, FILE * file);
   * @param readFrom The Message to scan for data to write to (file).
   *                 This Message should be of the same structure as returned by ParseFile().
   * @return A string representation of (readFrom) on success, or "" on failure.
-  *         Note that only fields of B_STRING_TYPE and B_MESSAGE_TYPE in (readFrom) 
+  *         Note that only fields of B_STRING_TYPE and B_MESSAGE_TYPE in (readFrom)
   *         will be converted into string format.  Other data types will be ignored.
   */
 String UnparseFile(const Message & readFrom);
@@ -100,7 +100,7 @@ status_t ParseArgs(const String & arg, Message & addTo, bool caseSensitive = fal
 /** This does the inverse operation of ParseArgs().  That is to say, it
   * takes a Message that was previously created via ParseArgs() and returns
   * a String representing the same data.  Note that the returned String isn't
-  * guaranteed to be identical to the one that was previously passed in to 
+  * guaranteed to be identical to the one that was previously passed in to
   * ParseArgs(); in particular, any comments will have been stripped out,
   * and the order of the items may be different in some cases.
   * @param argMsg A Message containing String field indicating the arguments
@@ -164,25 +164,25 @@ status_t ParseArgs(const String & arg, Queue<String> & addTo, bool caseSensitive
 /** This does the inverse operation of ParseArgs().  That is to say, it
   * takes a Queue that was previously created via ParseArgs() and returns
   * a String representing the same data.  Note that the returned String isn't
-  * guaranteed to be identical to the one that was previously passed in to 
+  * guaranteed to be identical to the one that was previously passed in to
   * ParseArgs(); in particular, any comments will have been stripped out.
   * @param argQ A Queue containing String field indicating the arguments to add to the String
   * @param startIdx Index to start reading the Queue at.  Defaults to zero.
   * @param afterEndIdx One greater than the largest index in the Queue to read.  If this value
   *                    is greater than the length of the queue, it will be treated as if it was the
-  *                    length of the Queue.  Defaults to MUSCLE_NO_LIMIT. 
+  *                    length of the Queue.  Defaults to MUSCLE_NO_LIMIT.
   * @return The resulting String.
   */
 String UnparseArgs(const Queue<String> & argQ, uint32 startIdx=0, uint32 afterEndIdx=MUSCLE_NO_LIMIT);
 
-/** Convenience method:  Looks for a given hostname or hostname:port string in 
+/** Convenience method:  Looks for a given hostname or hostname:port string in
  *  the given field of the args Message, and returns the appropriate parsed
  *  values if it is found.
  *  @param args the Message that was returned by ParseArg().
  *  @param fn the field name to look for in (args)
  *  @param retHost On successful return, the hostname or IP address to connect to will be written here.
  *  @param retPort On successful return, if a port number was parsed it will be written here.
- *  @param portRequired If false, this function will succeed even if no port was specified. 
+ *  @param portRequired If false, this function will succeed even if no port was specified.
  *                      If true, the function will fail if a port was not specified (e.g. "localhost:5555").
  *                      Defaults to false.
  *  @param argIdx The field index to use when parsing the argument string from (args).  Defaults to zero.
@@ -195,7 +195,7 @@ status_t ParseConnectArg(const Message & args, const String & fn, String & retHo
  *  @param arg The connect string (e.g. "localhost:2960")
  *  @param retHost On successful return, the hostname or IP address to connect to will be written here.
  *  @param retPort On successful return, if a port number was parsed it will be written here.
- *  @param portRequired If false, this function will succeed even if no port was specified. 
+ *  @param portRequired If false, this function will succeed even if no port was specified.
  *                      If true, the function will fail if a port was not specified (e.g. "localhost:5555").
  *                      Defaults to false.
  *  @returns B_NO_ERROR if an argument was parsed, or B_ERROR if it wasn't.
@@ -228,7 +228,7 @@ status_t ParsePortArg(const Message & args, const String & fn, uint16 & retPort,
 bool ParseBool(const String & word, bool defaultValue=true);
 
 /** Looks for some globally useful startup arguments in the (args)
- *  Message and handles them by calling the appropriate setup routines.  
+ *  Message and handles them by calling the appropriate setup routines.
  *  Recognized arguments currently include the following:
  *     daemon                -- Non-Windows only:  Run this process in the background
  *     localhost=ip          -- Treat connections from localhost as if they were coming from (ip)
@@ -255,7 +255,7 @@ void ExitWithoutCleanup(int exitCode);
 /** Calls fork(), setsid(), chdir(), umask(), etc, to fork an independent daemon process.
  *  Also closes all open file descriptors.
  *  Note that this function will call ExitWithoutCleanup() on the parent process if successful,
- *  and thus won't ever return in that process. 
+ *  and thus won't ever return in that process.
  *  @param optNewDir If specified, the daemon will chdir() to the directory specified here.
  *  @param optOutputTo Where to redirect stderr and stdout to.  Defaults to "/dev/null".
  *                     If set to NULL, or if the output device can't be opened, output
@@ -269,7 +269,7 @@ status_t BecomeDaemonProcess(const char * optNewDir = NULL, const char * optOutp
 /** Returns true iff we are a daemon process created via BecomeDaemonProcess() or SpawnDaemonProcess() */
 bool IsDaemonProcess();
 
-/** Same as BecomeDaemonProcess(), except that the parent process returns as well as the child process.  
+/** Same as BecomeDaemonProcess(), except that the parent process returns as well as the child process.
  *  @param returningAsParent Set to true on return of the parent process, or false on return of the child process.
  *  @param optNewDir If specified, the child will chdir() to the directory specified here.
  *  @param optOutputTo Where to redirect stderr and stdout to.  Defaults to "/dev/null".
@@ -278,10 +278,10 @@ bool IsDaemonProcess();
  *  @param createOutputFileIfNecessary if set true, and (optOutputTo) can't be opened,
  *                                     (optOutputTo) will be created.
  *  @return B_NO_ERROR (twice!) on success, B_ERROR on failure.
- */ 
+ */
 status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir = NULL, const char * optOutputTo = "/dev/null", bool createOutputFileIfNecessary = true);
 
-/** Convenience function:  Removes any ANSI formatting escape-sequences from (s), so 
+/** Convenience function:  Removes any ANSI formatting escape-sequences from (s), so
   * that (s) can be displayed as plain text without a bunch of garbage showing up in it.
   */
 void RemoveANSISequences(String & s);
@@ -339,10 +339,10 @@ status_t DenybbleizeData(const String & nybbleizedText, ByteBuffer & retBuf);
   */
 String NybbleizeString(const String & str);
 
-/** Convenience function:  Returns a string which is the denybbleized 
-  * representation of the passed-in nybbleized string.  
+/** Convenience function:  Returns a string which is the denybbleized
+  * representation of the passed-in nybbleized string.
   * @param nybStr A string to denybbleize.  Note that not all nybbleized
-  *               strings can be de-nybblized correctly back into a 
+  *               strings can be de-nybblized correctly back into a
   *               String object:  in particular, if the de-nybbleized
   *               data contains any NUL bytes, then the String
   *               returned by this function will be truncated at the first NUL.
@@ -356,7 +356,7 @@ String DenybbleizeString(const String & nybStr);
   * @param lookIn The buffer to look for the sub-region inside
   * @param numLookInBytes The number of bytes pointed to by (lookIn)
   * @param lookFor The byte pattern to look for inside of (lookin)
-  * @param numLookForBytes The number of bytes pointed to by (lookFor) 
+  * @param numLookForBytes The number of bytes pointed to by (lookFor)
   * @returns A pointer to the first instance of (lookFor) found inside of (lookIn), or NULL
   *          if no such pattern was found inside of (lookIn).
   */
@@ -541,7 +541,7 @@ String HexBytesToString(const Queue<uint8> & bytes);
   * Message out of a set of zero or more other Messages.  Here's how it works:
   * If (batchMsg) is a NULL ref, then (batchMsg) is set to reference the same
   * Message as (newMsg).  If (batchMsg) is a PR_COMMAND_BATCH Message, then
-  * (newMsg) is appended to its PR_NAME_KEYS field.  Otherwise, a new 
+  * (newMsg) is appended to its PR_NAME_KEYS field.  Otherwise, a new
   * PR_COMMAND_BATCH Message is created, and both (batchMsg) and (newMsg) are
   * added to it.
   * @param batchMsg Reference to the Message that you will want to eventually
@@ -553,7 +553,7 @@ String HexBytesToString(const Queue<uint8> & bytes);
   */
 status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg);
 
-/** Returns true iff the file with the specified path exists. 
+/** Returns true iff the file with the specified path exists.
   * @param filePath Path of the file to check for.
   * @returns true if the file exists (and is readable), false otherwise.
   */
@@ -588,7 +588,7 @@ status_t DeleteFile(const char * filePath);
 String GetHumanReadableProgramNameFromArgv0(const char * argv0);
 
 #ifdef WIN32
-/** This function is only available on Win32, and does the 
+/** This function is only available on Win32, and does the
   * standard AllocConsole() and freopen() trick to cause a
   * Console window to appear and be available for stdin/stdout/stderr
   * to operate on.

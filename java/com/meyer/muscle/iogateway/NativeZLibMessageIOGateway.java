@@ -16,30 +16,30 @@ import com.meyer.muscle.message.Message;
 import com.meyer.muscle.support.LEDataOutputStream;
 
 /**
- * Support outgoing compression only, using the java.util.zip classes from the JDK. 
+ * Support outgoing compression only, using the java.util.zip classes from the JDK.
  * This doesn't work very well because of a few bugs in the JDK.
  *  http://developer.java.sun.com/developer/bugParade/bugs/4255743.html
  *  http://developer.java.sun.com/developer/bugParade/bugs/4206909.html
- *   
+ *
  */
-class NativeZLibMessageIOGateway extends MessageIOGateway 
+class NativeZLibMessageIOGateway extends MessageIOGateway
 {
    protected Inflater _inflater;
    protected Deflater _deflater;
    protected ByteArrayOutputStream _baos;
    protected DataOutput _dos;
-   
-   public NativeZLibMessageIOGateway() 
+
+   public NativeZLibMessageIOGateway()
    {
       super();
    }
 
-   public NativeZLibMessageIOGateway(int encoding) 
+   public NativeZLibMessageIOGateway(int encoding)
    {
       super(encoding);
    }
-   
-   public void setOutgoingEncoding(int newEncoding) 
+
+   public void setOutgoingEncoding(int newEncoding)
    {
       super.setOutgoingEncoding(newEncoding);
       _deflater = null;
@@ -49,20 +49,20 @@ class NativeZLibMessageIOGateway extends MessageIOGateway
    {
       int oge = getOutgoingEncoding();
 
-      if (oge <= MUSCLE_MESSAGE_DEFAULT_ENCODING) 
+      if (oge <= MUSCLE_MESSAGE_DEFAULT_ENCODING)
       {
          super.flattenMessage(out, msg);
          return;
       }
       int flatSize = msg.flattenedSize();
-      if (flatSize < 32) 
+      if (flatSize < 32)
       {
          super.flattenMessage(out, msg);
          return;
       }
 
       boolean independent = false;
-      if (_deflater == null) 
+      if (_deflater == null)
       {
          _deflater = new Deflater(oge - MUSCLE_MESSAGE_DEFAULT_ENCODING, false);
          _baos = new ByteArrayOutputStream(flatSize);
@@ -72,13 +72,13 @@ class NativeZLibMessageIOGateway extends MessageIOGateway
 
       ByteBuffer data = ByteBuffer.allocate(flatSize);
       data.order(ByteOrder.LITTLE_ENDIAN);
-      
+
       msg.flatten(data);
       data.rewind();
-      
+
       _dos.write(data.array());
       ((OutputStream) _dos).flush();
-      
+
       data = ByteBuffer.allocate(16 + _baos.size());
       data.order(ByteOrder.LITTLE_ENDIAN);
 
@@ -90,7 +90,7 @@ class NativeZLibMessageIOGateway extends MessageIOGateway
       out.write(data);
       _baos.reset();
    }
-   
+
    public void flattenMessage(DataOutput out, Message msg) throws IOException
    {
       int oge = getOutgoingEncoding();
@@ -102,7 +102,7 @@ class NativeZLibMessageIOGateway extends MessageIOGateway
       }
 
       boolean independent = false;
-      if (_deflater == null) 
+      if (_deflater == null)
       {
          _deflater = new Deflater(oge - MUSCLE_MESSAGE_DEFAULT_ENCODING, false);
          _baos = new ByteArrayOutputStream(flatSize);
@@ -119,12 +119,12 @@ class NativeZLibMessageIOGateway extends MessageIOGateway
       out.write(_baos.toByteArray());
       _baos.reset();
    }
-   
-   static class DeflaterStreamResetHack extends DeflaterOutputStream 
+
+   static class DeflaterStreamResetHack extends DeflaterOutputStream
    {
       private int _level;
 
-      public DeflaterStreamResetHack(OutputStream out, Deflater def, int level) 
+      public DeflaterStreamResetHack(OutputStream out, Deflater def, int level)
       {
          super(out, def, 1024);
          this._level = level;
@@ -135,13 +135,13 @@ class NativeZLibMessageIOGateway extends MessageIOGateway
       /**
        * Insure all remaining data will be output.
        */
-      public void flush() throws IOException 
+      public void flush() throws IOException
       {
          /**
           * Now this is tricky: We force the Deflater to flush
           * its data by switching compression level.
-          * As yet, a perplexingly simple workaround for 
-          * http://developer.java.sun.com/developer/bugParade/bugs/4255743.html 
+          * As yet, a perplexingly simple workaround for
+          * http://developer.java.sun.com/developer/bugParade/bugs/4255743.html
           */
          def.setInput(EMPTYBYTEARRAY, 0, 0);
          def.setLevel(Deflater.NO_COMPRESSION);

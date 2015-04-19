@@ -13,7 +13,7 @@ namespace muscle.iogateway {
   public interface AbstractMessageIOGateway {
 
     /// <summary>
-    /// Reads from the input stream until a Message can be assembled and 
+    /// Reads from the input stream until a Message can be assembled and
     /// returned.
     /// </summary>
     /// <param name="inputStream">The input stream from which to read.</param>
@@ -22,7 +22,7 @@ namespace muscle.iogateway {
     /// <returns>The next assembled Message.</returns>
 
     Message unflattenMessage(Stream inputStream);
-    
+
     /// <summary>
     /// Converts the given Message into bytes and sends it out the stream.
     /// </summary>

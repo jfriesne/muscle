@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "support/MuscleSupport.h"
@@ -11,8 +11,8 @@ int main(int argc, char ** argv)
    {
       char * code = argv[1];
       uint32 val = strtod(code, NULL);
-      
-      for (int i=3; i>=0; i--) 
+
+      for (int i=3; i>=0; i--)
       {
          char c = (char) ((val>>(i*8))&0xFF);
          putc(c, stdout);

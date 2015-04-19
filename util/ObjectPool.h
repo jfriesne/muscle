@@ -9,7 +9,7 @@
 namespace muscle {
 
 // Uncomment this #define to disable object pools (i.e. turn them into
-// simple passthroughs to the new/delete operators).  
+// simple passthroughs to the new/delete operators).
 // This is helpful if you are trying to track down memory leaks.
 //#define DISABLE_OBJECT_POOLING 1
 
@@ -29,7 +29,7 @@ public:
    /** Virtual dtor to keep C++ honest */
    virtual ~AbstractObjectGenerator() {/* empty */}
 
-   /** Should be implemented to pass through to ObtainObject(). 
+   /** Should be implemented to pass through to ObtainObject().
      * Useful for handling different types of ObjectPool interchangably.
      * Note that the caller is responsible for deleting or recycling
      * the returned object!
@@ -38,7 +38,7 @@ public:
 };
 
 /** An interface that must be implemented by all ObjectPool classes.
-  * Used to support polymorphism in our reference counting. 
+  * Used to support polymorphism in our reference counting.
   */
 class AbstractObjectRecycler
 {
@@ -88,12 +88,12 @@ class AbstractObjectManager : public AbstractObjectGenerator, public AbstractObj
    // empty
 };
 
-/** A thread-safe templated object pooling class that helps reduce the number of 
- *  dynamic allocations and deallocations in your app.  Instead of calling 'new Object', 
+/** A thread-safe templated object pooling class that helps reduce the number of
+ *  dynamic allocations and deallocations in your app.  Instead of calling 'new Object',
  *  you call myObjectPool.ObtainObject(), and instead of calling 'delete Object', you call
  *  myObjectPool.ReleaseObject().  The advantage is that the ObjectPool will
  *  keep (up to a certain number of) "spare" Objects around, and recycle them back
- *  to you as needed. 
+ *  to you as needed.
  */
 template <class Object, int MUSCLE_POOL_SLAB_SIZE=DEFAULT_MUSCLE_POOL_SLAB_SIZE> class ObjectPool : public AbstractObjectManager
 {
@@ -101,20 +101,20 @@ public:
    /**
     *  Constructor.
     *  @param maxPoolSize the approximate maximum number of recycled objects that may be kept around for future reuse at any one time.  Defaults to 100.
-    */      
+    */
    ObjectPool(uint32 maxPoolSize=100) : _curPoolSize(0), _maxPoolSize(maxPoolSize), _firstSlab(NULL), _lastSlab(NULL)
    {
       MASSERT(NUM_OBJECTS_PER_SLAB<=65535, "Too many objects per ObjectSlab, uint16 indices will overflow!");
    }
 
-   /** 
+   /**
     *  Destructor.  Deletes all objects in the pool.
     */
    virtual ~ObjectPool()
    {
       while(_firstSlab)
       {
-         if (_firstSlab->IsInUse()) 
+         if (_firstSlab->IsInUse())
          {
             LogTime(MUSCLE_LOG_CRITICALERROR, "~ObjectPool %p (%s):  slab %p is still in use when we destroy it!\n", this, _firstSlab->GetObjectClassName(), _firstSlab);
             _firstSlab->PrintToStream();
@@ -155,7 +155,7 @@ public:
    /** Adds the given object to our "standby" object list to be recycled, or
     *  deletes it if the "standby" list is already at its maximum size.
     *  This method is thread-safe.
-    *  @param obj An Object to recycle or delete.  May be NULL.  
+    *  @param obj An Object to recycle or delete.  May be NULL.
     */
    void ReleaseObject(Object * obj)
    {
@@ -184,7 +184,7 @@ public:
 
    /** AbstractObjectRecycler API:  Useful for polymorphism */
    virtual void RecycleObject(void * obj) {ReleaseObject((Object *)obj);}
-    
+
    /** Implemented to call Drain() and return the number of objects drained. */
    virtual uint32 FlushCachedObjects() {uint32 ret = 0; (void) Drain(&ret); return ret;}
 
@@ -215,7 +215,7 @@ public:
       printf("ObjectPool<%s> contains " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-slot slabs, with " UINT32_FORMAT_SPEC " total items in use (%.1f%% loading, " UINT32_FORMAT_SPEC " total bytes).   LightestSlab=" UINT32_FORMAT_SPEC ", HeaviestSlab=" UINT32_FORMAT_SPEC " (" UINT32_FORMAT_SPEC " bytes per item)\n", GetObjectClassName(), numSlabs, slabSizeItems, totalItemsInUse, (numSlabs>0)?(100.0f*(((float)totalItemsInUse)/(numSlabs*slabSizeItems))):0.0f, (uint32)(numSlabs*sizeof(ObjectSlab)), minItemsInUseInSlab, maxItemsInUseInSlab, (uint32) sizeof(Object));
    }
 
-   /** Removes all "spare" objects from the pool and deletes them. 
+   /** Removes all "spare" objects from the pool and deletes them.
      * This method is thread-safe.
      * @param optSetNumDrained If non-NULL, this value will be set to the number of objects destroyed.
      * @returns B_NO_ERROR on success, or B_ERROR if it couldn't lock the lock for some reason.
@@ -281,7 +281,7 @@ public:
      * in turn (including objects in use and objects in reserve).  Note that this
      * method will only compile if the Object type has a GetTotalDataSize() method.
      */
-   uint32 GetTotalDataSize() const 
+   uint32 GetTotalDataSize() const
    {
       uint32 ret = sizeof(*this);
       if (_mutex.Lock() == B_NO_ERROR)
@@ -300,7 +300,7 @@ public:
    /** Returns the total number of items currently allocated by this ObjectPool.
      * Note that the returned figure includes both objects in use and objects in reserve.
      */
-   uint32 GetNumAllocatedItemSlots() const 
+   uint32 GetNumAllocatedItemSlots() const
    {
       uint32 ret = 0;
       if (_mutex.Lock() == B_NO_ERROR)
@@ -323,7 +323,7 @@ private:
 
    enum {INVALID_NODE_INDEX = ((uint16)-1)};  // the index-version of a NULL pointer
 
-   class ObjectNode : public Object
+   class ObjectNode
    {
    public:
       ObjectNode() : _arrayIndex(INVALID_NODE_INDEX), _nextIndex(INVALID_NODE_INDEX) {/* empty */}
@@ -335,10 +335,16 @@ private:
       uint16 GetNextIndex() const {return _nextIndex;}
 
       const char * GetObjectClassName() const {return typeid(Object).name();}
- 
+
+      const Object & GetObject() const {return _object;}
+      Object & GetObject() {return _object;}
+
+      ObjectNode * GetObjectNodeFromObjectPointer(Object * object) {return reinterpret_cast<ObjectNode *>(reinterpret_cast<uint8 *>(object)-((reinterpret_cast<uint8*>(&_object)-reinterpret_cast<uint8 *>(this))));}
+
    private:
+      Object _object;
       uint16 _arrayIndex;
-      uint16 _nextIndex;   // only valid when we are in the free list 
+      uint16 _nextIndex;   // only valid when we are in the free list
    };
 
    friend class ObjectSlab;  // for VC++ compatibility, this must be here
@@ -389,7 +395,7 @@ private:
       void PushObjectNode(ObjectNode * node)
       {
          node->SetNextIndex(_firstFreeNodeIndex);
-         _firstFreeNodeIndex = node->GetArrayIndex(); 
+         _firstFreeNodeIndex = node->GetArrayIndex();
          --_numNodesInUse;
       }
 
@@ -424,7 +430,7 @@ private:
       NUM_OBJECTS_PER_SLAB_AUX = (((int)MUSCLE_POOL_SLAB_SIZE-(int)sizeof(ObjectSlabData))/(int)sizeof(ObjectNode)),
       NUM_OBJECTS_PER_SLAB     = ((NUM_OBJECTS_PER_SLAB_AUX>1)?NUM_OBJECTS_PER_SLAB_AUX:1)
    };
-   
+
    class ObjectSlab
    {
    public:
@@ -437,10 +443,10 @@ private:
 
       // Note:  this method assumes a node is available!  Don't call it without
       //        calling HasAvailableNodes() first to check, or you will crash!
-      ObjectNode * ObtainObjectNode() 
+      ObjectNode * ObtainObjectNode()
       {
          ObjectNode * node = &_nodes[_data.GetFirstFreeNodeIndex()];
-         _data.PopObjectNode(node); 
+         _data.PopObjectNode(node);
          return node;
       }
 
@@ -470,7 +476,7 @@ private:
       uint32 GetTotalDataSize() const
       {
          uint32 ret = sizeof(_data);
-         for (uint32 i=0; i<ARRAYITEMS(_nodes); i++) ret += _nodes[i].GetTotalDataSize();
+         for (uint32 i=0; i<ARRAYITEMS(_nodes); i++) ret += _nodes[i].GetObject().GetTotalDataSize();
          return ret;
       }
 
@@ -478,6 +484,8 @@ private:
       {
          _data.GetUsageStats(min, max, total);
       }
+
+      ObjectNode * GetObjectNodeFromObjectPointer(Object * obj) {return _nodes[0].GetObjectNodeFromObjectPointer(obj);}
 
    private:
       friend class ObjectSlabData;
@@ -494,7 +502,8 @@ private:
       Object * ret = NULL;
       if ((_firstSlab)&&(_firstSlab->HasAvailableNodes()))
       {
-         ret = _firstSlab->ObtainObjectNode();
+         ObjectNode * on = _firstSlab->ObtainObjectNode();
+         ret = on ? &on->GetObject() : NULL;
          if ((_firstSlab->HasAvailableNodes() == false)&&(_firstSlab != _lastSlab))
          {
             // Move _firstSlab out of the way (to the end of the slab list) for next time
@@ -509,7 +518,7 @@ private:
          ObjectSlab * slab = newnothrow ObjectSlab(this);
          if (slab)
          {
-            ret = slab->ObtainObjectNode();  // guaranteed not to fail, since slab is new
+            ret = &slab->ObtainObjectNode()->GetObject();  // guaranteed not to fail, since slab is new
             if (slab->HasAvailableNodes()) slab->PrependToSlabList();
                                       else slab->AppendToSlabList();  // could happen, if NUM_OBJECTS_PER_SLAB==1
             _curPoolSize += NUM_OBJECTS_PER_SLAB;
@@ -520,11 +529,11 @@ private:
       return ret;
    }
 
-   // Must be called with _mutex locked!   Returns either NULL, or a pointer 
+   // Must be called with _mutex locked!   Returns either NULL, or a pointer
    // an ObjectSlab that should be deleted outside of the critical section.
    ObjectSlab * ReleaseObjectAux(Object * obj)
    {
-      ObjectNode * objNode = static_cast<ObjectNode *>(obj);
+      ObjectNode * objNode = _firstSlab ? _firstSlab->GetObjectNodeFromObjectPointer(obj) : NULL;
       ObjectSlab * objSlab = reinterpret_cast<ObjectSlab *>(objNode-objNode->GetArrayIndex());
 
       objSlab->ReleaseObjectNode(objNode);  // guaranteed to work, since we know (obj) is in use in (objSlab)
@@ -535,7 +544,7 @@ private:
          objSlab->RemoveFromSlabList();
          return objSlab;
       }
-      else if (objSlab != _firstSlab) 
+      else if (objSlab != _firstSlab)
       {
          objSlab->RemoveFromSlabList();
          objSlab->PrependToSlabList();

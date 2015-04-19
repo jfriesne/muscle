@@ -32,7 +32,7 @@ public:
    uint32 GetMaxIncomingMessageSize() const {return _maxIncomingMessageSize;}
 
 protected:
-   /** If we have a limited maximum size for incoming messages, then this method 
+   /** If we have a limited maximum size for incoming messages, then this method
      * demand-allocate the session's gateway, and set its max incoming message size if possible.
      * @return B_NO_ERROR on success, or B_ERROR on failure (out of memory or the created gateway
      *         wasn't a MessageIOGateway)
@@ -62,7 +62,7 @@ public:
      * @param path The relative path of the node that is about to be traversed.
      * @param nodeData A reference to the Message to be associated with this node.
      *                 If desired, this can be replaced with a different MessageRef instead
-     *                 (but be careful not to modify the Message that (nodeData) points to; 
+     *                 (but be careful not to modify the Message that (nodeData) points to;
      *                 instead, allocate a new Message and set (nodeData) to point to it.
      */
    virtual bool MatchPath(const String & path, MessageRef & nodeData) const = 0;
@@ -89,7 +89,7 @@ public:
 
    /** Called after the constructor, when the session is ready to interact with the server.
     *  @return B_NO_ERROR if everything is okay to go, B_ERROR if there was a problem
-    *          setting up, or if the IP address of our client has been banned. 
+    *          setting up, or if the IP address of our client has been banned.
     */
    virtual status_t AttachedToServer();
 
@@ -111,7 +111,7 @@ public:
      */
    void PrintSessionsInfo() const;
 
-   /** Prints to stdout a report of what ReflectSessionFactories are currently present on this server, 
+   /** Prints to stdout a report of what ReflectSessionFactories are currently present on this server,
      * and what interfaces and ports they are listening on.
      */
    void PrintFactoriesInfo() const;
@@ -176,9 +176,9 @@ protected:
     */
    status_t RestoreNodeTreeFromMessage(const Message & msg, const String & path, bool loadData, bool appendToIndex = false, uint32 maxDepth = MUSCLE_NO_LIMIT, const ITraversalPruner * optPruner = NULL, bool quiet = false);
 
-   /** 
+   /**
      * Create and insert a new node into one or more ordered child indices in the node tree.
-     * This method is similar to calling MessageReceivedFromGateway() with a PR_COMMAND_INSERTORDEREDDATA 
+     * This method is similar to calling MessageReceivedFromGateway() with a PR_COMMAND_INSERTORDEREDDATA
      * Message, only it gives more information back about what happened.
      * @param insertMsg a PR_COMMAND_INSERTORDEREDDATA Message specifying what insertions should be done.
      * @param optRetNewNodes If non-NULL, any newly-created DataNodes will be adde to this table for your inspection.
@@ -187,7 +187,7 @@ protected:
    virtual status_t InsertOrderedData(const MessageRef & insertMsg, Hashtable<String, DataNodeRef> * optRetNewNodes);
 
    /**
-     * Utility method:  Adds a new child node to the specified parent node. 
+     * Utility method:  Adds a new child node to the specified parent node.
      * This method calls through to parentNode.InsertOrderedChild(), but also updates the StorageReflectSession's own internal state as necessary.
      * @param parentNode The node to add the new child node to.
      * @param data Reference to a message to create a new child node for.
@@ -242,7 +242,7 @@ protected:
        * @returns The number of times (cb) was called by this traversal.
        */
       uint32 DoTraversal(PathMatchCallback cb, StorageReflectSession * This, DataNode & node, bool useFilters, void * userData);
- 
+
       /**
        * Returns the number of path-strings that we contain that match (node).
        * Note this is a bit more expensive than MatchesNode(), as we can't use short-circuit boolean logic here!
@@ -299,7 +299,7 @@ protected:
    /** Convenience method:  Adds sessions that contain nodes that match the given pattern to the passed-in Hashtable.
     *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah")
     *                  If the nodePath is a zero-length String, all sessions will match.
-    *  @param filter If non-NULL, only nodes whose data Messages match this filter will have their sessions added 
+    *  @param filter If non-NULL, only nodes whose data Messages match this filter will have their sessions added
     *                to the (retSessions) table.
     *  @param retSessions A table that will on return contain the set of matching sessions, keyed by their session ID strings.
     *  @param matchSelf If true, we will include as a candidate for pattern matching.  Otherwise we won't.
@@ -308,7 +308,7 @@ protected:
     */
    status_t FindMatchingSessions(const String & nodePath, const ConstQueryFilterRef & filter, Hashtable<const String *, AbstractReflectSessionRef> & retSessions, bool matchSelf, uint32 maxResults = MUSCLE_NO_LIMIT) const;
 
-   /** Convenience method:  Same as FindMatchingSessions(), but finds only the first matching session.  
+   /** Convenience method:  Same as FindMatchingSessions(), but finds only the first matching session.
      * Returns a reference to the first matching session on success, or a NULL reference on failue.
      */
    AbstractReflectSessionRef FindMatchingSession(const String & nodePath, const ConstQueryFilterRef & filter, bool matchSelf) const;
@@ -326,7 +326,7 @@ protected:
    status_t SendMessageToMatchingSessions(const MessageRef & msgRef, const String & nodePath, const ConstQueryFilterRef & filter, bool matchSelf);
 
    /** Convenience method:  Adds nodes that match the specified path to the passed-in Queue.
-    *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah").  
+    *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah").
                        If it's a relative path, only nodes in the current session's subtree will be searched.
     *  @param filter If non-NULL, only nodes whose data Messages match this filter will be added to the (retMatchingNodes) table.
     *  @param retMatchingNodes A Queue that will on return contain the list of matching nodes.
@@ -335,7 +335,7 @@ protected:
     */
    status_t FindMatchingNodes(const String & nodePath, const ConstQueryFilterRef & filter, Queue<DataNodeRef> & retMatchingNodes, uint32 maxResults = MUSCLE_NO_LIMIT) const;
 
-   /** Convenience method:  Same as FindMatchingNodes(), but finds only the first matching node.  
+   /** Convenience method:  Same as FindMatchingNodes(), but finds only the first matching node.
      * Returns a reference to the first matching node on success, or a NULL reference on failue.
      */
    DataNodeRef FindMatchingNode(const String & nodePath, const ConstQueryFilterRef & filter) const;
@@ -376,7 +376,7 @@ protected:
     */
    virtual void NotifySubscribersThatNodeIndexChanged(DataNode & node, char op, uint32 index, const String & key);
 
-   /** Called by NotifySubscribersThatNodeChanged(), to tell us that (node) has been 
+   /** Called by NotifySubscribersThatNodeChanged(), to tell us that (node) has been
     *  created, modified, or is about to be destroyed.
     *  @param node The node that was modified, created, or is about to be destroyed.
     *  @param oldData If the node is being modified, this argument contains the node's previously
@@ -386,7 +386,7 @@ protected:
     */
    virtual void NodeChanged(DataNode & node, const MessageRef & oldData, bool isBeingRemoved);
 
-   /** Called by NotifySubscribersThatIndexChanged() to tell us how (node)'s index has been modified.  
+   /** Called by NotifySubscribersThatIndexChanged() to tell us how (node)'s index has been modified.
     *  @param node The node whose index was changed.
     *  @param op The INDEX_OP_* opcode of the change.  (Note that currently INDEX_OP_CLEARED is never used here)
     *  @param index The index at which the operation took place (not defined for clear operations)
@@ -395,14 +395,14 @@ protected:
    virtual void NodeIndexChanged(DataNode & node, char op, uint32 index, const String & key);
 
    /**
-    * Takes any messages that were created in the NodeChanged() callbacks and 
+    * Takes any messages that were created in the NodeChanged() callbacks and
     * sends them to their owner's MessageReceivedFromSession() method for
     * processing and eventual forwarding to the client.
     */
    void PushSubscriptionMessages();
 
    /** Auxilliary helper method for PushSubscriptionMessages() */
-   void PushSubscriptionMessage(MessageRef & msgRef); 
+   void PushSubscriptionMessage(MessageRef & msgRef);
 
    /**
     * Executes a data-gathering tree traversal based on the PR_NAME_KEYS specified in the given message.
@@ -441,7 +441,7 @@ protected:
    /**
     * Convenience method:  Uses the given path to lookup a single node in the node tree
     * and return it.  As of MUSCLE v4.11, wildcarding is supported in the path argument.
-    * If (path) begins with a '/', the search will begin with the root node of the tree; 
+    * If (path) begins with a '/', the search will begin with the root node of the tree;
     * if not, it will begin with this session's node.  Returns NULL on failure.
     * @param path The fully specified path to a single node in the database.
     * @return A pointer to the specified DataNode, or NULL if the node wasn't found.
@@ -523,7 +523,7 @@ private:
     */
    void NodeCreated(DataNode & node);
 
-   /** Tells other sessions that we have a new node available.  
+   /** Tells other sessions that we have a new node available.
     *  Private because subclasses should override NotifySubscriberThatNodeChanged(), not this.
     *  @param newNode The newly available node.
     */
@@ -546,41 +546,41 @@ private:
    StorageReflectSessionSharedData * InitSharedData();
 
    /** our current parameter set */
-   Message _parameters;  
+   Message _parameters;
 
    /** cached to be sent when a subscription triggers */
-   MessageRef _nextSubscriptionMessage;  
+   MessageRef _nextSubscriptionMessage;
 
    /** cached to be sent when an index subscription triggers */
-   MessageRef _nextIndexSubscriptionMessage;  
+   MessageRef _nextIndexSubscriptionMessage;
 
    /** Points to shared data object; this object is the same for all StorageReflectSessions */
-   StorageReflectSessionSharedData * _sharedData;       
+   StorageReflectSessionSharedData * _sharedData;
 
    /** this session's subdir (grandchild of _globalRoot) */
-   DataNodeRef _sessionDir;      
+   DataNodeRef _sessionDir;
 
    /** Our session's set of active subscriptions */
-   NodePathMatcher _subscriptions;  
+   NodePathMatcher _subscriptions;
 
    /** Where user messages get sent if no PR_NAME_KEYS field is present */
-   NodePathMatcher _defaultMessageRoute;  
+   NodePathMatcher _defaultMessageRoute;
    Message _defaultMessageRouteMessage;
 
    /** Whether or not we set to report subscription updates or not */
-   bool _subscriptionsEnabled;            
+   bool _subscriptionsEnabled;
 
    /** Maximum number of subscription update fields per PR_RESULT message */
-   uint32 _maxSubscriptionMessageItems;    
+   uint32 _maxSubscriptionMessageItems;
 
    /** Optimization flag:  set true the first time we index a node */
-   bool _indexingPresent;                 
+   bool _indexingPresent;
 
    /** The number of database nodes we currently have created */
-   uint32 _currentNodeCount;              
+   uint32 _currentNodeCount;
 
    /** The maximum number of database nodes we are allowed to create */
-   uint32 _maxNodeCount;                  
+   uint32 _maxNodeCount;
 
    /** Our node class needs access to our internals too */
    friend class StorageReflectSession :: NodePathMatcher;

@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-/** @defgroup micromessage The MicroMessage C function API 
+/** @defgroup micromessage The MicroMessage C function API
  *  These functions are all defined in MicroMessage(.c,.h), and are stand-alone
  *  C functions that provide a way for C programs to use MUSCLE Messages.
  *  This is a very bare-bones implentation that does not do any dynamic memory
@@ -40,7 +40,7 @@ typedef struct _URect {
    float bottom; /**< bottom edge of the rectangle */
 } URect;
 
-/** Definition of our opaque handle to a UMessage object.  
+/** Definition of our opaque handle to a UMessage object.
   * Note that all fields in this struct are private and subject to change --
   * do not access them directly, call the functions declared below instead!
   */
@@ -87,8 +87,8 @@ void UMIteratorAdvance(UMessageFieldNameIterator * iter);
   * This function will write the initial header data into (buf), and keep a pointer to
   * (buf) for use in future calls.
   * This function should be called on any UMessage object before using it to add new message data.
-  * @param msg Pointer to the UMessage object to initialize. 
-  * @param buf Pointer to the byte buffer the UMessage object should use for its 
+  * @param msg Pointer to the UMessage object to initialize.
+  * @param buf Pointer to the byte buffer the UMessage object should use for its
   *            flattened-data storage.  This buffer must remain valid for as long
   *            as the UMessage object is in use.
   * @param numBytesInBuf Number of usable bytes at (buf).  Must be at least 12.
@@ -101,7 +101,7 @@ status_t UMInitializeToEmptyMessage(UMessage * msg, uint8 * buf, uint32 numBytes
   * Initializes a UMessage object and associates it with the specified byte buffer that already
   * contains flattened message data.  The UMessage will be flagged as being read-only.
   * This function should be called on any UMessage object before using it to read received message data.
-  * @param msg Pointer to the UMessage object to initialize. 
+  * @param msg Pointer to the UMessage object to initialize.
   * @param buf Pointer to the read-only byte buffer the UMessage object should examine
   *            to read existing flattened-data.  This buffer must remain valid for as long
   *            as the UMessage object is in use.
@@ -131,9 +131,9 @@ UBool UMIsMessageReadOnly(const UMessage * msg);
   */
 UBool UMIsMessageValid(const UMessage * msg);
 
-/** 
+/**
   * Returns the number of data-fields in (msg).
-  * @param msg The UMessage to query. 
+  * @param msg The UMessage to query.
   */
 uint32 UMGetNumFields(const UMessage * msg);
 
@@ -152,23 +152,23 @@ uint32 UMGetNumItemsInField(const UMessage * msg, const char * fieldName, uint32
   */
 uint32 UMGetFieldTypeCode(const UMessage * msg, const char * fieldName);
 
-/** 
+/**
   * Returns the current size of (msg)'s flattened-data-buffer, in bytes.
   * Note that this value includes only valid bytes, not "spare" bytes that are in the buffer but aren't currently being used.
-  * @param msg The UMessage to query. 
+  * @param msg The UMessage to query.
   */
 uint32 UMGetFlattenedSize(const UMessage * msg);
 
-/** 
+/**
   * Returns the current the maximum number of bytes (msg)'s buffer can contain.
   * Note that this value includes all bytes in the buffer, whether they have had data written to them or not.
-  * @param msg The UMessage to query. 
+  * @param msg The UMessage to query.
   */
 uint32 UMGetMaximumSize(const UMessage * msg);
 
-/** 
+/**
   * Returns a pointer to the buffer that (msg) is using.  This buffer contains UMGetFlattenedSize(msg) valid bytes of data.
-  * @param msg The UMessage to query. 
+  * @param msg The UMessage to query.
   */
 const uint8 * UMGetFlattenedBuffer(const UMessage * msg);
 
@@ -281,7 +281,7 @@ static inline status_t UMAddDouble(UMessage * msg, const char * fieldName, doubl
   * @param numVals The number of child sub-UMessages pointed to by (vals).
   * @returns B_NO_ERROR on success, or B_ERROR on failure (out of space, or field-name semantics would be violated?)
   * @note This method of adding child-UMessages requires copying all of the child-UMessages' data over from their
-  *       buffers into the (msg)'s buffer.  As such, it may be inefficient, particularly if the child-UMessages are 
+  *       buffers into the (msg)'s buffer.  As such, it may be inefficient, particularly if the child-UMessages are
   *       large.  For a more efficient approach to message-composition, see the UMInlineAddMessage() function.
   */
 status_t UMAddMessages(UMessage * msg, const char * fieldName, const UMessage * messageArray, uint32 numVals);
@@ -337,7 +337,7 @@ status_t UMAddData(UMessage * msg, const char * fieldName, uint32 dataType, cons
 
 /** This function can be used to create a sub-Message directly within its parent UMessage.
   * This can be more efficient than the usual UMAddMessage()/UMAddMessages() route, as it avoids
-  * having to make a copy of the child UMessage after the child UMessage is complete.  
+  * having to make a copy of the child UMessage after the child UMessage is complete.
   * @param parentMsg The UMessage that the new child UMessage will be a child of.
   * @param fieldName The field name that the child UMessage should appear udner, inside the parent.
   * @param whatCode The what-code to assign to the child UMessage.
@@ -613,7 +613,7 @@ static inline UMessage UMGetMessage(const UMessage * msg, const char * fieldName
 /** By default, the MicroMessage API will check (when adding a new field to a Message) to make sure that no other fields with the
   * same name already exist in the message.  It does this check because Message field names are required to be unique within the
   * Message they are directly a part of, and other Message implementations do not support a Message that contains multiple different
-  * fields with the same name.  However, this check can be inefficient in Messages with many fields, as doing this check is an  
+  * fields with the same name.  However, this check can be inefficient in Messages with many fields, as doing this check is an
   * O(N) operation, so you can call this method to disable the check.  Note that you are still responsible for making sure that
   * no duplicate fields exist, this only disables the check to verify that.
   * @param enforce New value for the global enforce-field-name-uniqueness flag.  Default value of this flag is true.

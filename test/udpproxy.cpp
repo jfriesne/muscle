@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -18,13 +18,13 @@ static status_t ReadIncomingData(const String & desc, DataIO & readIO, const Soc
    {
       uint8 buf[4096];
       int32 ret = readIO.Read(buf, sizeof(buf));
-      if (ret > 0) 
+      if (ret > 0)
       {
          LogTime(MUSCLE_LOG_TRACE, "Read " INT32_FORMAT_SPEC" bytes from %s:\n", ret, desc());
          LogHexBytes(MUSCLE_LOG_TRACE, buf, ret);
-     
+
          ByteBufferRef toNetworkBuf = GetByteBufferFromPool(ret, buf);
-         if (toNetworkBuf()) (void) outQ.AddTail(toNetworkBuf); 
+         if (toNetworkBuf()) (void) outQ.AddTail(toNetworkBuf);
       }
       else if (ret < 0) {LogTime(MUSCLE_LOG_ERROR, "Error, readIO.Read() returned %i\n", ret); return B_ERROR;}
    }
@@ -39,7 +39,7 @@ static status_t WriteOutgoingData(const String & desc, DataIO & writeIO, const S
       {
          ByteBufferRef & firstBuf = outQ.Head();
          uint32 bufSize = firstBuf()->GetNumBytes();
-         if (writeIdx >= bufSize) 
+         if (writeIdx >= bufSize)
          {
             outQ.RemoveHead();
             writeIdx = 0;
@@ -87,7 +87,7 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
          if (WriteOutgoingData(aDesc, aIO, multiplexer, outgoingAData, aIndex) != B_NO_ERROR) return B_ERROR;
          if (WriteOutgoingData(bDesc, bIO, multiplexer, outgoingBData, bIndex) != B_NO_ERROR) return B_ERROR;
       }
-      else 
+      else
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed!\n");
          return B_ERROR;
@@ -101,7 +101,7 @@ static void LogUsage()
 }
 
 // This program acts as a proxy to redirect UDP packets to a further source (and back)
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 

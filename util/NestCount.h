@@ -9,9 +9,9 @@ namespace muscle {
 
 /** This class represents a counter of nested function calls.  It is essentially just a uint32,
   * but made into a class so that it can be auto-initialized to zero, protected from arbitrary
-  * value changes, etc. 
+  * value changes, etc.
   */
-class NestCount
+class NestCount MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Sets the nest count to zero. */
@@ -45,7 +45,7 @@ private:
  *  and decrements the NestCount in its destructor.  It's useful for reliably
  *  tracking call-nest-counts in functions with multiple return() points.
  */
-class NestCountGuard
+class NestCountGuard MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor.  Increments the specified counter value.

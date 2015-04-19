@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -12,7 +12,7 @@ using namespace muscle;
 #define NEGATIVETEST(x) if ((x) == B_NO_ERROR) printf("Operation succeeded when it should not have, line " INT32_FORMAT_SPEC "\n", __LINE__);
 
 // This program tests the Message <-> Message conversion functions in the atheossupport directory.
-int main(void) 
+int main(void)
 {
    CompleteSetupSystem css;
 
@@ -60,8 +60,8 @@ int main(void)
 
    Message rSub, rDeep;
    if ((mmsg.FindMessage("TestMessage", rSub) == B_NO_ERROR)&&
-       (rSub.FindMessage("Russian Dolls", rDeep) == B_NO_ERROR)) 
-   { 
+       (rSub.FindMessage("Russian Dolls", rDeep) == B_NO_ERROR))
+   {
       printf("Nested messages are:\n");
       rSub.PrintToStream();
       rDeep.PrintToStream();
@@ -77,10 +77,10 @@ int main(void)
       TEST(ConvertToAMessage(mmsg, aMsg));
       uint32 flatSize = mmsg.FlattenedSize();
       if (flatSize != origSize) printf("ERROR, FLATTENED SIZE CHANGED " UINT32_FORMAT_SPEC" -> " UINT32_FORMAT_SPEC"\n", origSize, flatSize);
-      uint8 * buf = new uint8[flatSize]; 
+      uint8 * buf = new uint8[flatSize];
       mmsg.Flatten(buf);
       TEST(mmsg.Unflatten(buf, flatSize));
       delete [] buf;
-   } 
+   }
    return 0;
 }

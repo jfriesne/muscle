@@ -16,7 +16,7 @@ namespace muscle {
 class AbstractMessageIOGateway;
 
 /** Interface for any object that wishes to be notified by AbstractMessageIOGateway::DoInput() about received Messages. */
-class AbstractGatewayMessageReceiver 
+class AbstractGatewayMessageReceiver
 {
 public:
    /** Default constructor */
@@ -25,8 +25,8 @@ public:
    /** Destructor */
    virtual ~AbstractGatewayMessageReceiver() {/* empty */}
 
-   /** This method calls MessageReceivedFromGateway() and then AfterMessageReceivedFromGateway(). 
-    *  AbstractMessageIOGateway::DoInput() should call this method whenever it has received a new 
+   /** This method calls MessageReceivedFromGateway() and then AfterMessageReceivedFromGateway().
+    *  AbstractMessageIOGateway::DoInput() should call this method whenever it has received a new
     *  Message from its DataIO object..
     *  @param msg MessageRef containing the new Message
     *  @param userData This is a miscellaneous value that may be used by some gateways for various purposes.
@@ -86,22 +86,37 @@ private:
 };
 
 /** Handy utility class for programs that don't want to define their own custom subclass
- *  just to gather incoming Messages a gateway -- this receiver just adds the received 
+ *  just to gather incoming Messages a gateway -- this receiver just adds the received
  *  Messages to the tail of the Queue, which your code can then pick up later on at its leisure.
  *  (For high-bandwidth stuff, this isn't as memory efficient, but for simple programs it's good enough)
  */
-class QueueGatewayMessageReceiver : public AbstractGatewayMessageReceiver, public Queue<MessageRef>
+class QueueGatewayMessageReceiver : public AbstractGatewayMessageReceiver
 {
 public:
    /** Default constructor */
    QueueGatewayMessageReceiver() {/* empty */}
 
+   /** Returns a read-only reference to our held Queue of received Messages. */
+   const Queue<MessageRef> & GetMessages() const {return _messageQueue;}
+
+   /** Returns a read-only reference to our held Queue of received Messages. */
+   Queue<MessageRef> & GetMessages() {return _messageQueue;}
+
+   /** Convenience method, provided for backwards compatibility with older code. */
+   status_t RemoveHead(MessageRef & msg) {return _messageQueue.RemoveHead(msg);}
+
+   /** Convenience method, provided for backwards compatibility with older code. */
+   bool HasItems() const {return _messageQueue.HasItems();}
+
 protected:
-   virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData) {(void) userData; (void) AddTail(msg);}
+   virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData) {(void) userData; (void) _messageQueue.AddTail(msg);}
+
+private:
+   Queue<MessageRef> _messageQueue;
 };
 
 /**
- *  Abstract base class representing an object that can send/receive 
+ *  Abstract base class representing an object that can send/receive
  *  Messages via a DataIO byte-stream.
  */
 class AbstractMessageIOGateway : public RefCountable, public AbstractGatewayMessageReceiver, public PulseNode, private CountedObject<AbstractMessageIOGateway>, private NotCopyable
@@ -114,7 +129,7 @@ public:
    virtual ~AbstractMessageIOGateway();
 
    /**
-    * Appends the given message reference to the end of our list of outgoing messages to send.  Never blocks.  
+    * Appends the given message reference to the end of our list of outgoing messages to send.  Never blocks.
     * @param messageRef A reference to the Message to send out through the gateway.
     * @return B_NO_ERROR on success, B_ERROR iff for some reason the message can't be queued (out of memory?)
     */
@@ -132,11 +147,11 @@ public:
    int32 DoOutput(uint32 maxBytes = MUSCLE_NO_LIMIT) {return DoOutputImplementation(maxBytes);}
 
    /**
-    * Reads some more incoming message bytes from the wire.  
+    * Reads some more incoming message bytes from the wire.
     * Any time a new Message is received, MessageReceivedFromGateway() should be
     * called on the provided AbstractGatewayMessageReceiver to notify him about it.
     * @note Do not override this method!  Override DoInputImplementation() instead!
-    * @param receiver An object to call MessageReceivedFromGateway() on whenever a new 
+    * @param receiver An object to call MessageReceivedFromGateway() on whenever a new
     *                 incoming Message is available.
     * @param maxBytes optional limit on the number of bytes that should be read in.
     *                 Defaults to MUSCLE_NO_LIMIT (which is a very large number)
@@ -144,10 +159,10 @@ public:
     * @return The number of bytes read, or a negative value if the connection has been broken
     *         or some other catastrophic condition has occurred.
     */
-   int32 DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT) 
+   int32 DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT)
    {
       receiver.DoInputBegins();
-      int32 ret = DoInputImplementation(receiver, maxBytes); 
+      int32 ret = DoInputImplementation(receiver, maxBytes);
       receiver.DoInputEnds();
       return ret;
    }
@@ -161,9 +176,9 @@ public:
    virtual bool IsReadyForInput() const;
 
    /**
-    * Should return true if this gateway has bytes that are queued up 
+    * Should return true if this gateway has bytes that are queued up
     * and waiting to be sent across the wire.  Should return false if
-    * there are no bytes ready to send, or if the connection has been 
+    * there are no bytes ready to send, or if the connection has been
     * closed or hosed.
     */
    virtual bool HasBytesToOutput() const = 0;
@@ -171,7 +186,7 @@ public:
    /** Returns the number of microseconds that output to this gateway's
     *  client should be allowed to stall for.  If the output stalls for
     *  longer than this amount of time, the connection will be closed.
-    *  Return MUSCLE_TIME_NEVER to disable stall limit checking.  
+    *  Return MUSCLE_TIME_NEVER to disable stall limit checking.
     *  Default behaviour is to forward this call to the held DataIO object.
     */
    virtual uint64 GetOutputStallLimit() const;
@@ -184,14 +199,14 @@ public:
    /** This method must resets the gateway's encoding and decoding state to its default state.
     *  Any partially completed sends and receives should be cleared, so that the gateway
     *  is ready to send and receive fresh data streams.
-    *  Default implementation clears the "hosed" flag and clears the outgoing-Messages queue. 
+    *  Default implementation clears the "hosed" flag and clears the outgoing-Messages queue.
     *  Subclasses should override this to reset their parse-state variables appropriately too.
     */
    virtual void Reset();
 
    /**
     * By default, the AbstractMessageIOGateway calls Flush() on its DataIO's
-    * output stream whenever the last outgoing message in the outgoing message queue 
+    * output stream whenever the last outgoing message in the outgoing message queue
     * is sent.  Call SetFlushOnEmpty(false) to inhibit this behavior (e.g. for bandwidth
     * efficiency when low message latency is not a requirement).
     * @param flush If true, auto-flushing will be enabled.  If false, it will be disabled.
@@ -218,17 +233,17 @@ public:
    /** Returns true iff we are hosed--that is, we've experienced an unrecoverable error. */
    bool IsHosed() const {return _hosed;}
 
-   /** This is a convenience method for when you want to do simple synchronous 
-     * (RPC-style) communications.  This method will run its own little event loop and not 
-     * return until all of this I/O gateway's outgoing Messages have been sent out.  
-     * Subclasses of the AbstractMessageIOGateway class that support doing so may augment 
-     * this method's logic so that this method does not return until the corresponding 
-     * reply Messages have been received and passed to (optReceiver) as well, but since that 
-     * functionality is dependent on the particulars of the gateway subclass's protocol, 
+   /** This is a convenience method for when you want to do simple synchronous
+     * (RPC-style) communications.  This method will run its own little event loop and not
+     * return until all of this I/O gateway's outgoing Messages have been sent out.
+     * Subclasses of the AbstractMessageIOGateway class that support doing so may augment
+     * this method's logic so that this method does not return until the corresponding
+     * reply Messages have been received and passed to (optReceiver) as well, but since that
+     * functionality is dependent on the particulars of the gateway subclass's protocol,
      * this base method does not do that.
-     * @param optReceiver If non-NULL, then any Messages are received from the remote end 
+     * @param optReceiver If non-NULL, then any Messages are received from the remote end
      *                 of the during the time that ExecuteSynchronousMessaging() is
-     *                 executing will be passed to (optReceiver)'s MessageReceivedFromGateway() 
+     *                 executing will be passed to (optReceiver)'s MessageReceivedFromGateway()
      *                 method.  If NULL, then no data will be read from the socket.
      * @param timeoutPeriod A timeout period for this method.  If left as MUSCLE_TIME_NEVER
      *                (the default), then no timeout is applied.  If set to another value,
@@ -257,10 +272,10 @@ protected:
    virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT) = 0;
 
    /**
-    * Reads some more incoming message bytes from the wire.  
+    * Reads some more incoming message bytes from the wire.
     * Any time a new Message is received, MessageReceivedFromGateway() should be
     * called on the provided AbstractGatewayMessageReceiver to notify him about it.
-    * @param receiver An object to call MessageReceivedFromGateway() on whenever a new 
+    * @param receiver An object to call MessageReceivedFromGateway() on whenever a new
     *                 incoming Message is available.
     * @param maxBytes optional limit on the number of bytes that should be read in.
     *                 Defaults to MUSCLE_NO_LIMIT (which is a very large number)
@@ -272,21 +287,21 @@ protected:
 
    /** Call this method to flag this gateway as hosed--that is, to say that an unrecoverable error has occurred. */
    void SetHosed() {_hosed = true;}
-  
+
 protected:
    /** Called by ExecuteSynchronousMessaging() to see if we are still awaiting our reply Messages.  Default implementation calls HasBytesToOutput() and returns that value. */
    virtual bool IsStillAwaitingSynchronousMessagingReply() const {return HasBytesToOutput();}
 
-   /** Called by ExecuteSynchronousMessaging() when a Message is received.  Default implementation just passes the call on to the like-named method in (r) */ 
+   /** Called by ExecuteSynchronousMessaging() when a Message is received.  Default implementation just passes the call on to the like-named method in (r) */
    virtual void SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r) {r.MessageReceivedFromGateway(msg, userData);}
 
-   /** Called by ExecuteSynchronousMessaging() after a Message is received.  Default implementation just passes the call on to the like-named method in (r) */ 
+   /** Called by ExecuteSynchronousMessaging() after a Message is received.  Default implementation just passes the call on to the like-named method in (r) */
    virtual void SynchronousAfterMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r) {r.AfterMessageReceivedFromGateway(msg, userData);}
 
-   /** Called by ExecuteSynchronousMessaging() when a batch of Messages is about to be received.  Default implementation just passes the call on to the like-named method in (r) */ 
+   /** Called by ExecuteSynchronousMessaging() when a batch of Messages is about to be received.  Default implementation just passes the call on to the like-named method in (r) */
    virtual void SynchronousBeginMessageReceivedFromGatewayBatch(AbstractGatewayMessageReceiver & r) {r.BeginMessageReceivedFromGatewayBatch();}
 
-   /** Called by ExecuteSynchronousMessaging() when all Messages in a batch have been received.  Default implementation just passes the call on to the like-named method in (r) */ 
+   /** Called by ExecuteSynchronousMessaging() when all Messages in a batch have been received.  Default implementation just passes the call on to the like-named method in (r) */
    virtual void SynchronousEndMessageReceivedFromGatewayBatch(AbstractGatewayMessageReceiver & r) {r.EndMessageReceivedFromGatewayBatch();}
 
    /** Implementation of the AbstracteMessageIOGatewayReceiver interface:  calls AddOutgoingMessage(msg).

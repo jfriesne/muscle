@@ -7,7 +7,7 @@
 
 namespace muscle {
 
-/** 
+/**
  * This policy allows you to enforce an aggregate maximum bandwidth usage for the set
  * of AbstractReflectSessionSessions that use it.  Each policy object may referenced by
  * zero or more PolicyHolders at once.
@@ -15,7 +15,7 @@ namespace muscle {
 class RateLimitSessionIOPolicy : public AbstractSessionIOPolicy, private CountedObject<RateLimitSessionIOPolicy>
 {
 public:
-   /** Constructor.  
+   /** Constructor.
      * @param maxRate The maximum aggregate transfer rate to be enforced for all sessions
      *                that use this policy, in bytes per second.
      * @param primeBytes When the bytes first start to flow, the policy allows the first (primeBytes)

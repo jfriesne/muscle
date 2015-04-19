@@ -10,7 +10,7 @@ public class MessageException extends Exception
    {
       super(s);
    }
-    
+
    public MessageException()
    {
       super("Error accessing a Message field");

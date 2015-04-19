@@ -11,9 +11,9 @@ namespace muscle {
  *  a member object but, without requiring its constructor to be called at the usual C++ construct-object time.
  *
  *  Instead, the wrapped object's constructor gets called at a time of the caller's choosing;
- *  typically when the wrapped object is first accessed.  This can be useful to avoid the 
- *  overhead of constructing an object that may or may not ever be actually used for anything, 
- *  while at the same time avoiding the overhead and uncertainty of a separate dynamic memory 
+ *  typically when the wrapped object is first accessed.  This can be useful to avoid the
+ *  overhead of constructing an object that may or may not ever be actually used for anything,
+ *  while at the same time avoiding the overhead and uncertainty of a separate dynamic memory
  *  allocation for the object.
  */
 template <typename T> class DemandConstructedObject
@@ -32,7 +32,7 @@ public:
    ~DemandConstructedObject() {if (_objPointer) _objPointer->~T();}
 
    /** Assignment operator. */
-   DemandConstructedObject & operator=(const DemandConstructedObject & from) 
+   DemandConstructedObject & operator=(const DemandConstructedObject & from)
    {
       if (from.IsObjectConstructed()) GetObject() = from.GetObjectUnchecked();
                                  else (void) EnsureObjectDestructed();
@@ -40,7 +40,7 @@ public:
    }
 
    /** Assignment operator */
-   DemandConstructedObject & operator=(const T & from) 
+   DemandConstructedObject & operator=(const T & from)
    {
       (void) GetObject() = from;
       return *this;

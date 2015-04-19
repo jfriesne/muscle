@@ -25,7 +25,7 @@ enum
    MUSCLE_LOG_DEBUG,            // things the programmer is debugging with
    MUSCLE_LOG_TRACE,            // exhaustively detailed output
    NUM_MUSCLE_LOGLEVELS
-}; 
+};
 
 // Define this constant in your Makefile (i.e. -DMUSCLE_DISABLE_LOGGING) to turn all the
 // Log commands into no-ops.
@@ -114,7 +114,7 @@ inline status_t SetConsoleLogLevel(int)               {return B_NO_ERROR;}
 inline void CloseCurrentLogFile()                     {/* empty */}
 #else
 
-/** Returns the MUSCLE_LOG_* equivalent of the given keyword string 
+/** Returns the MUSCLE_LOG_* equivalent of the given keyword string
  *  @param keyword a string such as "debug", "log", or "info".
  *  @return A MUSCLE_LOG_* value
  */
@@ -129,7 +129,7 @@ int GetFileLogLevel();
  *  (note that this may be different from the log file name actually used,
  *  since the logging mechanism will choose a name when the log is first opened
  *  if no manually specified name was chosen)
- *  @return a file name or file path representing where the user would like the 
+ *  @return a file name or file path representing where the user would like the
  *          log file to be written.
  */
 String GetFileLogName();
@@ -160,7 +160,7 @@ int GetConsoleLogLevel();
  */
 int GetMaxLogLevel();
 
-/** Sets the log filter level for logging to a file.  
+/** Sets the log filter level for logging to a file.
  *  Any calls to Log*() that specify a log level greater than (loglevel)
  *  will be suppressed.  Default level is MUSCLE_LOG_NONE (i.e. no file logging is done)
  *  @param loglevel The MUSCLE_LOG_* value to use in determining which log messages to save to disk.
@@ -260,7 +260,7 @@ status_t LogTime(int logLevel, const char * fmt, ...);
 
 #endif
 
-/** Ensures that all previously logged output is actually sent.  That is, it simply 
+/** Ensures that all previously logged output is actually sent.  That is, it simply
  *  calls fflush() on any streams that we are logging to.
  *  @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
  */
@@ -284,7 +284,7 @@ status_t LockLog();
 status_t UnlockLog();
 
 /** This is similar to LogStackTrace(), except that the stack trace is printed directly
-  * to stdout (or another file you specify) instead of via calls to Log() and LogTime().  
+  * to stdout (or another file you specify) instead of via calls to Log() and LogTime().
   * This call is handy when you need to print a stack trace in situations where the log
   * isn't available.
   * @param optFile If non-NULL, the text will be printed to this file.  If left as NULL, stdout will be used as a default.
@@ -353,7 +353,7 @@ uint32 SourceCodeLocationKeyFromString(const String & s);
 #endif
 
 /** This class represents all the fields necessary to present a human with a human-readable time/date stamp.  Objects of this class are typically populated by the GetHumanReadableTimeValues() function, below. */
-class HumanReadableTimeValues
+class HumanReadableTimeValues MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor */
@@ -480,18 +480,18 @@ enum {
 
 /** Given a uint64 representing a time in microseconds since 1970,
   * (e.g. as returned by GetCurrentTime64()), returns the same value
-  * as a set of more human-friendly units.  
+  * as a set of more human-friendly units.
   *
   * @param timeUS a time in microseconds since 1970.  Note that the interpretation of this value depends on
   *               the value passed in to the (timeType) argument.
   * @param retValues On success, this object will be filled out with the various human-readable time/date value fields
   *                  that human beings like to read.  See the HumanReadableTimeValues class documentation for details.
-  * @param timeType If set to MUSCLE_TIMEZONE_UTC (the default) then (timeUS) will be interpreted as being in UTC, 
-  *                 and will be converted to the local time zone as part of the conversion process.  If set to 
-  *                 MUSCLE_TIMEZONE_LOCAL, on the other hand, then (timeUS) will be assumed to be already 
+  * @param timeType If set to MUSCLE_TIMEZONE_UTC (the default) then (timeUS) will be interpreted as being in UTC,
+  *                 and will be converted to the local time zone as part of the conversion process.  If set to
+  *                 MUSCLE_TIMEZONE_LOCAL, on the other hand, then (timeUS) will be assumed to be already
   *                 in the local time zone, and no time zone conversion will be done.
-  *                 Note that the values returned are ALWAYS in reference to local time 
-  *                 zone -- the (timeType) argument governs how (timeUS) should be interpreted.  
+  *                 Note that the values returned are ALWAYS in reference to local time
+  *                 zone -- the (timeType) argument governs how (timeUS) should be interpreted.
   *                 (timeType) does NOT control the meaning of the return values.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   */
@@ -501,22 +501,22 @@ status_t GetHumanReadableTimeValues(uint64 timeUS, HumanReadableTimeValues & ret
   * this function returns the corresponding microseconds-since-1970 value.
   * @param values The HumanReadableTimeValues object to examine
   * @param retTimeUS On success, the corresponding uint64 is written here (in microseconds-since-1970)
-  * @param timeType If set to MUSCLE_TIMEZONE_UTC (the default) then (values) will be interpreted as being in UTC, 
-  *                 and (retTimeUS) be converted to the local time zone as part of the conversion process.  If set to 
+  * @param timeType If set to MUSCLE_TIMEZONE_UTC (the default) then (values) will be interpreted as being in UTC,
+  *                 and (retTimeUS) be converted to the local time zone as part of the conversion process.  If set to
   *                 MUSCLE_TIMEZONE_LOCAL, on the other hand, then no time zone conversion will be done.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   */
 status_t GetTimeStampFromHumanReadableTimeValues(const HumanReadableTimeValues & values, uint64 & retTimeUS, uint32 timeType = MUSCLE_TIMEZONE_UTC);
 
 /** Given a uint64 representing a time in microseconds since 1970,
-  * (e.g. as returned by GetCurrentTime64()), returns an equivalent 
-  * human-readable time/date string.  The format of the returned 
+  * (e.g. as returned by GetCurrentTime64()), returns an equivalent
+  * human-readable time/date string.  The format of the returned
   * time string is "YYYY/MM/DD HH:MM:SS".
   * @param timeUS a time in microseconds since 1970.  Note that the interpretation of this value depends on
   *               the value passed in to the (timeType) argument.
-  * @param timeType If set to MUSCLE_TIMEZONE_UTC (the default) then (timeUS) will be interpreted as being in UTC, 
-  *                 and will be converted to the local time zone as part of the conversion process.  If set to 
-  *                 MUSCLE_TIMEZONE_LOCAL, on the other hand, then (timeUS) will be assumed to be already 
+  * @param timeType If set to MUSCLE_TIMEZONE_UTC (the default) then (timeUS) will be interpreted as being in UTC,
+  *                 and will be converted to the local time zone as part of the conversion process.  If set to
+  *                 MUSCLE_TIMEZONE_LOCAL, on the other hand, then (timeUS) will be assumed to be already
   *                 in the local time zone, and no time zone conversion will be done.
   * @returns The equivalent ASCII string, or "" on failure.
   */
@@ -526,7 +526,7 @@ String GetHumanReadableTimeString(uint64 timeUS, uint32 timeType = MUSCLE_TIMEZO
   * Given a time string of the format "YYYY/MM/DD HH:MM:SS",
   * returns the equivalent time value in microseconds since 1970.
   * @param str An ASCII string representing a time.
-  * @param timeType If set to MUSCLE_TIMEZONE_UTC (the default) then the returned value will be UTC. 
+  * @param timeType If set to MUSCLE_TIMEZONE_UTC (the default) then the returned value will be UTC.
   *                 If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, then the returned value will
   *                 be expressed as a time of the local time zone.
   * @returns The equivalent time value, or zero on failure.
@@ -545,7 +545,7 @@ uint64 ParseHumanReadableTimeString(const String & str, uint32 timeType = MUSCLE
   *   w  = weeks
   * As a special case, the string "forever" will parse to MUSCLE_TIME_NEVER.
   * If no suffix is supplied, the units are presumed to be in seconds.
-  * @param str The string to parse 
+  * @param str The string to parse
   * @returns a time interval value, in microseconds.
   */
 uint64 ParseHumanReadableTimeIntervalString(const String & str);

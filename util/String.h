@@ -11,7 +11,7 @@
 #ifndef MuscleString_h
 #define MuscleString_h
 
-#include <ctype.h> 
+#include <ctype.h>
 #include "support/Flattenable.h"
 #include "syslog/SysLog.h"
 #include "system/GlobalMemoryAllocator.h"  // for muscleFree()
@@ -75,11 +75,11 @@ inline int Strncasecmp(const char * s1, const char * s2, size_t n)
 }
 
 /** An arbitrary-length character-string class.  Represents a dynamically resizable, NUL-terminated ASCII string.
-  * This class can be used to hold UTF8-encoded strings as well, but because the code in this class is not 
-  * UTF8-aware, certain operations (such as Reverse() and ToLowerCase()) will not do the right thing when used in 
+  * This class can be used to hold UTF8-encoded strings as well, but because the code in this class is not
+  * UTF8-aware, certain operations (such as Reverse() and ToLowerCase()) will not do the right thing when used in
   * conjunction with non-ASCII UTF8 data.
   */
-class String : public PseudoFlattenable
+class String MUSCLE_FINAL_CLASS : public PseudoFlattenable
 {
 public:
    /** Constructor.
@@ -88,17 +88,17 @@ public:
     *                this String (not including the NUL terminator byte).
     *                Default is unlimited (i.e. scan the entire string no matter how long it is)
     */
-   String(const char * str = NULL, uint32 maxLen = MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0) 
+   String(const char * str = NULL, uint32 maxLen = MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(str?STRING_OP_CSTR_CTOR:STRING_OP_DEFAULT_CTOR);
-      ClearSmallBuffer(); 
+      ClearSmallBuffer();
       if (str) (void) SetCstr(str, maxLen);
    }
 
-   /** Copy Constructor. 
+   /** Copy Constructor.
      * @param str String to become a copy of.
      */
-   String(const String & str) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0) 
+   String(const String & str) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_COPY_CTOR);
       ClearSmallBuffer(); (void) SetFromString(str);
@@ -107,46 +107,46 @@ public:
    /** This constructor sets this String to be a substring of the specified String.
      * @param str String to become a copy of.
      * @param beginIndex Index of the first character in (str) to include.
-     * @param endIndex Index after the last character in (str) to include.  
+     * @param endIndex Index after the last character in (str) to include.
      *                 Defaults to a very large number, so that by default the entire remainder of the string is included.
      */
-   String(const String & str, uint32 beginIndex, uint32 endIndex=MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0) 
+   String(const String & str, uint32 beginIndex, uint32 endIndex=MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_PARTIAL_COPY_CTOR);
       ClearSmallBuffer(); (void) SetFromString(str, beginIndex, endIndex);
    }
 
    /** Destructor. */
-   ~String() 
+   ~String()
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_DTOR);
       if (IsArrayDynamicallyAllocated()) muscleFree(_strData._bigBuffer);
    }
 
-   /** Assignment Operator. 
+   /** Assignment Operator.
      * @param val Pointer to the C-style string to copy from.  If NULL, this string will become "".
      */
-   String & operator = (const char * val) 
+   String & operator = (const char * val)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_SET_FROM_CSTR);
       (void) SetCstr(val); return *this;
    }
 
-   /** Assignment Operator. 
+   /** Assignment Operator.
      * @param rhs String to become a copy of.
      */
-   String & operator = (const String & rhs) 
+   String & operator = (const String & rhs)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_SET_FROM_STRING);
       (void) SetFromString(rhs); return *this;
    }
 
-   /** Append Operator. 
+   /** Append Operator.
     *  @param rhs A string to append to this string.
     */
    String & operator += (const String & rhs);
 
-   /** Append Operator. 
+   /** Append Operator.
     *  @param rhs A string to append to this string.  If NULL, this operation is a no-op.
     */
    String & operator += (const char * rhs);
@@ -163,15 +163,15 @@ public:
       }
       return *this;
    }
-   
-   /** Remove Operator. 
+
+   /** Remove Operator.
     *  @param rhs A substring to remove from this string;  the
     *             last instance of the substring will be cut out.
     *             If (rhs) is not found, there is no effect.
     */
    String & operator -= (const String & rhs);
 
-   /** Remove Operator. 
+   /** Remove Operator.
     *  @param rhs A substring to remove from this string;  the
     *             last instance of the substring will be cut out.
     *             If (rhs) is not found, there is no effect.
@@ -184,7 +184,7 @@ public:
     *            not found, there is no effect.
     */
    String & operator -= (const char ch);
-   
+
    /** Append 'Stream' Operator.
     *  @param rhs A String to append to this string.
     *  @return a non const String refrence to 'this' so you can chain appends.
@@ -196,18 +196,18 @@ public:
     *  @return a non const String refrence to 'this' so you can chain appends.
     */
    String & operator << (const char * rhs) {return (*this += rhs);}
-   
+
    /** Append 'Stream' Operator.
     *  @param rhs An int to append to this string.
     *  @return a non const String refrence to 'this' so you can chain appends.
     */
-   String & operator << (int rhs);   
+   String & operator << (int rhs);
 
    /** Append 'Stream' Operator.
     *  @param rhs A float to append to this string. Formatting is set at 2 decimals of precision.
     *  @return a non const String refrence to 'this' so you can chain appends.
     */
-   String & operator << (float rhs);   
+   String & operator << (float rhs);
 
    /** Append 'Stream' Operator.
     *  @param rhs A bool to append to this string. Converts to 'true' and 'false' strings appropriately.
@@ -235,42 +235,42 @@ public:
      */
    bool operator != (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") != 0);}
 
-   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically. 
+   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically.
      * @param rhs A string to compare ourself with
      */
    bool operator < (const String & rhs) const {return (this == &rhs) ? false : (strcmp(Cstr(), rhs.Cstr()) < 0);}
 
-   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically. 
+   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically.
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator < (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") < 0);}
 
-   /** Comparison Operator.  Returns true if this string comes after (rhs) lexically. 
+   /** Comparison Operator.  Returns true if this string comes after (rhs) lexically.
      * @param rhs A string to compare ourself with
      */
    bool operator > (const String & rhs) const {return (this == &rhs) ? false : (strcmp(Cstr(), rhs.Cstr()) > 0);}
 
-   /** Comparison Operator.  Returns true if this string comes after (rhs) lexically. 
+   /** Comparison Operator.  Returns true if this string comes after (rhs) lexically.
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator > (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") > 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically. 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically.
      * @param rhs A string to compare ourself with
      */
    bool operator <= (const String & rhs) const {return (this == &rhs) ? true : (strcmp(Cstr(), rhs.Cstr()) <= 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically. 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically.
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator <= (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") <= 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically. 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically.
      * @param rhs A string to compare ourself with
      */
    bool operator >= (const String & rhs) const {return (this == &rhs) ? true : (strcmp(Cstr(), rhs.Cstr()) >= 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically. 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically.
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator >= (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") >= 0);}
@@ -296,8 +296,8 @@ public:
     *  @return A character value.
     */
    char CharAt(uint32 index) const {return operator[](index);}
- 
-   /** Compares this string to another string using strcmp() 
+
+   /** Compares this string to another string using strcmp()
      * @param rhs A string to compare ourself with
      */
    int CompareTo(const String & rhs) const {return strcmp(Cstr(), rhs.Cstr());}
@@ -307,7 +307,7 @@ public:
      */
    int CompareTo(const char * rhs) const {return strcmp(Cstr(), rhs?rhs:"");}
 
-   /** Compares this string to another string using NumericAwareStrcmp() 
+   /** Compares this string to another string using NumericAwareStrcmp()
      * @param rhs A string to compare ourself with
      */
    int NumericAwareCompareTo(const String & rhs) const {return NumericAwareStrcmp(Cstr(), rhs.Cstr());}
@@ -321,7 +321,7 @@ public:
    const char * Cstr() const {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
 
    /** Convenience synonym for Cstr(). */
-   const char * operator()() const {return Cstr();}  
+   const char * operator()() const {return Cstr();}
 
    /** Clears this string so that it contains no characters.  Equivalent to setting this string to "". */
    void Clear() {_length = 0; WriteNULTerminatorByte();}
@@ -347,9 +347,9 @@ public:
      * that it allows you to optionally specify a maximum length, and it allows you to detect
      * out-of-memory errors.
      * @param str The new string to copy from.
-     * @param beginIndex Index of the first character in (str) to include.  
+     * @param beginIndex Index of the first character in (str) to include.
      *                   Defaults to zero, so that by default the entire string is included.
-     * @param endIndex Index after the last character in (str) to include.  
+     * @param endIndex Index after the last character in (str) to include.
      *                 Defaults to a very large number, so that by default the entire remainder of the string is included.
      * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
      */
@@ -366,49 +366,49 @@ public:
    /** Returns true iff this string is not a zero-length string. */
    bool HasChars() const {return (_length > 0);}
 
-   /** Returns true iff this string starts with (prefix) 
+   /** Returns true iff this string starts with (prefix)
      * @param c a character to check for at the end of this String.
      */
    bool EndsWith(char c) const {return (_length > 0)&&(Cstr()[_length-1] == c);}
 
-   /** Returns true iff this string ends with (suffix) 
+   /** Returns true iff this string ends with (suffix)
      * @param suffix a String to check for at the end of this String.
      */
    bool EndsWith(const String & suffix) const {return (Length() < suffix.Length()) ? false : (strcmp(Cstr()+(Length()-suffix.Length()), suffix.Cstr()) == 0);}
 
-   /** Returns true iff this string ends with (suffix) 
+   /** Returns true iff this string ends with (suffix)
      * @param suffix a String to check for at the end of this String.  NULL pointers are treated as a synonym for "".
      */
    bool EndsWith(const char * suffix) const
-   { 
+   {
       if (suffix == NULL) suffix = "";
       uint32 suffixLen = (uint32) strlen(suffix);
-      return (Length() < suffixLen) ? false : (strcmp(Cstr()+(Length()-suffixLen), suffix) == 0); 
+      return (Length() < suffixLen) ? false : (strcmp(Cstr()+(Length()-suffixLen), suffix) == 0);
    }
 
-   /** Returns true iff this string is equal to (string), as determined by strcmp(). 
+   /** Returns true iff this string is equal to (string), as determined by strcmp().
      * @param str a String to compare this String with.
      */
    bool Equals(const String & str) const {return (*this == str);}
 
-   /** Returns true iff this string is equal to (str), as determined by strcmp(). 
+   /** Returns true iff this string is equal to (str), as determined by strcmp().
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool Equals(const char * str) const {return (*this == str);}
 
-   /** Returns true iff this string contains a single character (c). 
+   /** Returns true iff this string contains a single character (c).
      * @param c a character to compare this String with.
      */
    bool Equals(char c) const {return (_length == 1)&&(Cstr()[0] == c);}
 
-   /** Returns the first index of (ch) in this string starting at or after (fromIndex), or -1 if not found. 
+   /** Returns the first index of (ch) in this string starting at or after (fromIndex), or -1 if not found.
      * @param ch A character to look for in this string.
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
      */
    int IndexOf(char ch, uint32 fromIndex = 0) const
    {
-      const char * temp = (fromIndex < Length()) ? strchr(Cstr()+fromIndex, ch) : NULL; 
-      return temp ? (int)(temp - Cstr()) : -1; 
+      const char * temp = (fromIndex < Length()) ? strchr(Cstr()+fromIndex, ch) : NULL;
+      return temp ? (int)(temp - Cstr()) : -1;
    }
 
    /** Returns true iff (ch) is contained in this string.
@@ -429,7 +429,7 @@ public:
      */
    bool Contains(const char * str, uint32 fromIndex = 0) const {return (IndexOf(str, fromIndex) >= 0);}
 
-   /** Returns the first index of substring (str) in this string starting at or after (fromIndex), or -1 if not found. 
+   /** Returns the first index of substring (str) in this string starting at or after (fromIndex), or -1 if not found.
      * @param str A String to look for in this string.
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
      */
@@ -449,7 +449,7 @@ public:
       return temp ? (int)(temp - Cstr()) : -1;
    }
 
-   /** Returns the last index of (ch) in this string starting at or after (fromIndex), or -1 if not found. 
+   /** Returns the last index of (ch) in this string starting at or after (fromIndex), or -1 if not found.
      * @param ch A character to look for in this string.
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
      */
@@ -464,12 +464,12 @@ public:
       return -1;
    }
 
-   /** Returns the last index of substring (str) in this string  
+   /** Returns the last index of substring (str) in this string
      * @param str A String to look for in this string.
      */
    int LastIndexOf(const String & str) const {return (str.Length() <= Length()) ? LastIndexOf(str, Length()-str.Length()) : -1;}
 
-   /** Returns the last index of substring (str) in this string 
+   /** Returns the last index of substring (str) in this string
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    int LastIndexOf(const char * str) const
@@ -485,7 +485,7 @@ public:
      */
    int LastIndexOf(const String & str, uint32 fromIndex) const;
 
-   /** Returns the last index of substring (str) in this string starting at or after (fromIndex), or -1 if not found. 
+   /** Returns the last index of substring (str) in this string starting at or after (fromIndex), or -1 if not found.
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
      */
@@ -500,27 +500,27 @@ public:
      */
    uint32 GetNumAllocatedBytes() const {return _bufferLen;}
 
-   /** Returns the number of instances of (c) in this string. 
+   /** Returns the number of instances of (c) in this string.
      * @param ch The character to count the number of instances of in this String.
      */
    uint32 GetNumInstancesOf(char ch) const;
 
-   /** Returns the number of instances of (substring) in this string. 
+   /** Returns the number of instances of (substring) in this string.
      * @param substring String to count the number of instances of in this String.
      */
    uint32 GetNumInstancesOf(const String & substring) const;
 
-   /** Returns the number of instances of (substring) in this string. 
+   /** Returns the number of instances of (substring) in this string.
      * @param substring C string to count the number of instances of in this String.
      */
    uint32 GetNumInstancesOf(const char * substring) const;
 
-   /** Returns true iff this string starts with (c) 
+   /** Returns true iff this string starts with (c)
      * @param c The character to see if this string starts with or not
      */
    bool StartsWith(char c) const {return (*Cstr() == c);}
 
-   /** Returns true iff this string starts with (prefix) 
+   /** Returns true iff this string starts with (prefix)
      * @param prefix The prefix to see whether this string starts with or not
      */
    bool StartsWith(const String & prefix) const {return ((Length() >= prefix.Length())&&(strncmp(Cstr(), prefix(), prefix.Length()) == 0));}
@@ -538,7 +538,7 @@ public:
    /** Returns true iff this string starts with the first (offset) characters of (prefix) */
    bool StartsWith(const String & prefix, uint32 offset) const {return ((offset+prefix.Length()<=Length())&&(strncmp(Cstr()+offset, prefix.Cstr(), prefix.Length()) == 0));}
 
-   /** Returns true iff this string starts with the first (offset) characters of (prefix) 
+   /** Returns true iff this string starts with the first (offset) characters of (prefix)
      * @param prefix Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param offset An index into this string to begivn the comparison at.
      */
@@ -555,7 +555,7 @@ public:
      */
    String Prepend(const String & str, uint32 count = 1) const;
 
-   /** Returns a string that consists of (count) copies of (str), followed by this string. 
+   /** Returns a string that consists of (count) copies of (str), followed by this string.
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param count How many instances of (str) should be prepended to this string.  Defaults to 1.
      */
@@ -574,19 +574,19 @@ public:
      */
    String PrependWord(const String & str, const char * sep = " ") const {return str.AppendWord(*this, sep);}
 
-   /** Returns a string that consists of this string followed by (count) copies of (str). 
+   /** Returns a string that consists of this string followed by (count) copies of (str).
      * @param str A string to append to the end of this string.
      * @param count How many copies of (str) to append.  Defaults to 1.
      */
    String Append(const String & str, uint32 count = 1) const;
 
-   /** Returns a string that consists of this string followed by (count) copies of (str). 
+   /** Returns a string that consists of this string followed by (count) copies of (str).
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param count How many instances of (str) should be appended to this string.  Defaults to 1.
      */
    String Append(const char * str, uint32 count = 1) const;
 
-   /** Returns a string that consists of this string followed by (count) copies of (c). 
+   /** Returns a string that consists of this string followed by (count) copies of (c).
      * @param c The character to append
      * @param count How many instances of (c) to append.  Defaults to 1.
      */
@@ -628,10 +628,10 @@ public:
    /** Returns a string that consists of only the characters in this string from range (beginIndex) to (endIndex-1).  Does not modify the string it is called on. */
    String Substring(uint32 beginIndex, uint32 endIndex) const {return String(*this, beginIndex, endIndex);}
 
-   /** Returns a string that consists of only the last part of this string, starting with the first character after the last instance of (markerString).  
+   /** Returns a string that consists of only the last part of this string, starting with the first character after the last instance of (markerString).
     *  If (markerString) is not found in the string, then this entire String is returned.
     *  For example, String("this is a test").Substring("is a") returns " test".
-    *  Does not modify the string it is called on. 
+    *  Does not modify the string it is called on.
     */
    String Substring(const String & markerString) const
    {
@@ -649,7 +649,7 @@ public:
    /** Returns a string that consists of only the characters in the string from range (beginIndex) until the character just before
     *  the first character in (markerString).  If (markerString) is not found, then the entire substring starting at (beginIndex) is returned.
     *  For example, String("this is a test").Substring(1, "is a") returns "his ".
-    *  Does not modify the string it is called on. 
+    *  Does not modify the string it is called on.
     */
    String Substring(uint32 beginIndex, const String & markerString) const {return String(*this, beginIndex, (uint32) IndexOf(markerString, beginIndex));}
 
@@ -657,16 +657,16 @@ public:
    String Substring(uint32 beginIndex, const char * markerString) const {return String(*this, beginIndex, (uint32) IndexOf(markerString, beginIndex));}
 
    /** Returns an all lower-case version of this string.  Does not modify the string it is called on. */
-   String ToLowerCase() const; 
+   String ToLowerCase() const;
 
    /** Returns an all upper-case version of this string.  Does not modify the string it is called on. */
-   String ToUpperCase() const; 
+   String ToUpperCase() const;
 
    /** Returns a version of this string where All Words Are In Lower Case Except For The First Letter. */
-   String ToMixedCase() const; 
+   String ToMixedCase() const;
 
    /** Returns an version of this string that has all leading and trailing whitespace removed.  Does not modify the string it is called on. */
-   String Trim() const;  
+   String Trim() const;
 
    /** Swaps the state of this string with (swapWithMe).  Very efficient since little or no data copying is required. */
    inline void SwapContents(String & swapWithMe)
@@ -681,15 +681,15 @@ public:
    String(String && rhs) : _bufferLen(0), _length(0)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_MOVE_CTOR);
-      ClearSmallBuffer(); 
+      ClearSmallBuffer();
       SwapContents(rhs);
    }
 
    /** C++11 Move Assignment Operator */
-   String & operator =(String && rhs) 
+   String & operator =(String && rhs)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_MOVE_FROM_STRING);
-      SwapContents(rhs); 
+      SwapContents(rhs);
       return *this;
    }
 #endif
@@ -775,7 +775,7 @@ public:
      * @param maxReplaceCount The maximum number of characters that should be replaced.  Defaults to MUSCLE_NO_LIMIT.
      * @returns The number of characters that were successfully replaced.
      */
-   uint32 Replace(char replaceMe, char withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT); 
+   uint32 Replace(char replaceMe, char withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT);
 
    /** Same as Replace(), but instead of modifying this object, it returns a modified copy, and the called object remains unchanged.
      * @param replaceMe The character to search for.
@@ -783,7 +783,7 @@ public:
      * @param maxReplaceCount The maximum number of characters that should be replaced.  Defaults to MUSCLE_NO_LIMIT.
      * @returns The modified string.
      */
-   String WithReplacements(char replaceMe, char withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const; 
+   String WithReplacements(char replaceMe, char withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const;
 
    /** Replaces all instances of (replaceMe) in this string with (withMe).
      * @param replaceMe The substring to search for.
@@ -791,8 +791,8 @@ public:
      * @param maxReplaceCount The maximum number of substrings that should be replaced.  Defaults to MUSCLE_NO_LIMIT.
      * @returns The number of substrings that were successfully replaced, or -1 if the operation failed (out of memory)
      */
-   int32 Replace(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT); 
- 
+   int32 Replace(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT);
+
    /** Same as Replace(), but instead of modifying this object, it returns a modified copy, and the called object remains unchanged.
      * @param replaceMe The substring to search for.
      * @param withMe The substring to replace all occurrences of (replaceMe) with.
@@ -800,7 +800,7 @@ public:
      * @returns The modified string.
      */
    String WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const;
- 
+
    /** Reverses the order of all characters in the string, so that e.g. "string" becomes "gnirts" */
    void Reverse();
 
@@ -837,12 +837,12 @@ public:
     */
    status_t Unflatten(const uint8 *buf, uint32 size) {return SetCstr((const char *)buf, size);}
 
-   /** Makes sure that we have pre-allocated enough space for a NUL-terminated string 
+   /** Makes sure that we have pre-allocated enough space for a NUL-terminated string
     *  at least (numChars) bytes long (not including the NUL byte).
-    *  If not, this method will try to allocate the space.  
+    *  If not, this method will try to allocate the space.
     *  @param numChars How much space to pre-allocate, in ASCII characters.
     *  @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory).
-    */ 
+    */
    status_t Prealloc(uint32 numChars) {return EnsureBufferSize(numChars+1, true, false);}
 
    /** Removes (numCharsToTruncate) characters from the end of this string.
@@ -862,7 +862,7 @@ public:
      * For example, String("%1 is a %2").Arg(13).Arg("bakers dozen") would return
      * the string "13 is a bakers dozen".
      * @param value The value to replace in the string.
-     * @param fmt The format parameter to pass to sprintf().  Note that if you supply your
+     * @param fmt The format parameter to pass to muscleSprintf().  Note that if you supply your
      *            own format string, you'll need to be careful since a badly chosen format
      *            string could lead to a crash or out-of-bounds memory overwrite.  In particular,
      *            the format string should match the type specified, and should not lead to
@@ -1026,7 +1026,7 @@ private:
    uint32 _bufferLen;         // Number of bytes pointed to by (GetBuffer())
    uint32 _length;            // cached strlen(GetBuffer())
 
-   void VerifyIndex(uint32 index) const 
+   void VerifyIndex(uint32 index) const
    {
 #ifdef MUSCLE_AVOID_ASSERTIONS
       (void) index;  // avoid compiler warnings

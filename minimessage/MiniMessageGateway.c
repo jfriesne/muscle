@@ -8,7 +8,7 @@ extern "C" {
 struct _MMessageGateway {
    MByteBuffer * _curInput;   /* We receive data into this buffer           */
    MByteBuffer * _curOutput;  /* The head of our output-buffers linked list */
-   MByteBuffer * _outputTail; /* The tail of our output-buffers linked list */ 
+   MByteBuffer * _outputTail; /* The tail of our output-buffers linked list */
    uint32 _curInputPos;       /* Index of next byte to receive in _curInput */
    uint32 _maxInputPos;       /* Index of last byte to receive in _curInput */
    uint32 _curOutputPos;      /* Index of next byte to send in _curOutput   */
@@ -65,7 +65,7 @@ status_t MGAddOutgoingMessage(MMessageGateway * gw, const MMessage * msg)
 {
    uint32 flatSize = MMGetFlattenedSize(msg);
    MByteBuffer * buf = MBAllocByteBuffer(sizeof(MMessage *) + (2*sizeof(uint32)) + flatSize, false);
-   if (buf) 
+   if (buf)
    {
       uint32 * h = (uint32 *)(((MMessage **)(&buf->bytes))+1);
 
@@ -80,7 +80,7 @@ status_t MGAddOutgoingMessage(MMessageGateway * gw, const MMessage * msg)
          gw->_outputTail = buf;
       }
       else gw->_curOutput = gw->_outputTail = buf;
-       
+
       return B_NO_ERROR;
    }
    else return B_ERROR;
@@ -100,7 +100,7 @@ int32 MGDoOutput(MMessageGateway * gw, uint32 maxBytes, MGSendFunc sendFunc, voi
 
       uint32 bytesToSend = gw->_curOutput->numBytes - gw->_curOutputPos;
       if (bytesToSend > maxBytes) bytesToSend = maxBytes;
-      
+
       bytesSent = sendFunc((&gw->_curOutput->bytes)+(gw->_curOutputPos), bytesToSend, arg);
       if (bytesSent < 0) return -1;  /* error! */
       else
@@ -127,7 +127,7 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
    int32 totalRecvd = 0;
 
    if (optRetMsg) *optRetMsg = NULL;
-   while(true) 
+   while(true)
    {
       int32 bytesReceived;
       uint32 bytesToRecv = gw->_maxInputPos - gw->_curInputPos;
@@ -158,7 +158,7 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
                   if (gw->_curInput->numBytes > 64*1024)
                   {
                      MByteBuffer * smallBuf = MBAllocByteBuffer(64*1024, false);
-                     if (smallBuf == NULL) 
+                     if (smallBuf == NULL)
                      {
                         MMFreeMessage(msg);
                         return -1;

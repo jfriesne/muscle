@@ -19,13 +19,13 @@ namespace muscle {
   */
 void SetCPlusPlusGlobalMemoryAllocator(const MemoryAllocatorRef & maRef);
 
-/** Returns a reference to the current MemoryAllocator object that is being used by the 
+/** Returns a reference to the current MemoryAllocator object that is being used by the
   * C++ global new and delete operators.  Will return a NULL reference if no MemoryAllocator is in use.
   * @note this function is only available is -DMUSCLE_ENABLE_MEMORY_TRACKING is defined in the Makefile.
   */
 const MemoryAllocatorRef & GetCPlusPlusGlobalMemoryAllocator();
 
-/** Returns the number of bytes currently dynamically allocated by this process. 
+/** Returns the number of bytes currently dynamically allocated by this process.
   * @note this function is only available is -DMUSCLE_ENABLE_MEMORY_TRACKING is defined in the Makefile.
   */
 size_t GetNumAllocatedBytes();
@@ -43,7 +43,7 @@ size_t GetNumAllocatedBytes();
  *                        AllocationFailed() on the global memory allocator, in the hope
  *                        that AllocationFailed() was able to free enough memory
  *                        to allow the allocation to succeed.  If set false, AllocationFailed()
- *                        will still be called after an out-of-memory error, but muscleAlloc() 
+ *                        will still be called after an out-of-memory error, but muscleAlloc()
  *                        will return NULL.
  *  @return Pointer to an allocated memory buffer on success, or NULL on failure.
  */
@@ -51,7 +51,7 @@ void * muscleAlloc(size_t numBytes, bool retryOnFailure = true);
 
 /** Companion to muscleAlloc().  Any buffers allocated with muscleAlloc() should
  *  be freed with muscleFree() when you are done with them, to avoid memory leaks.
- *  @param buf Buffer that was previously allocated with muscleAlloc() or muscleRealloc().  
+ *  @param buf Buffer that was previously allocated with muscleAlloc() or muscleRealloc().
  *             If NULL, then this call will be a no-op.
  */
 void muscleFree(void * buf);
@@ -77,7 +77,7 @@ void * muscleRealloc(void * ptr, size_t s, bool retryOnFailure = true);
   * @param crashIfInvalid If true, this function will crash the app if corruption is detected.  Defaults to true.
   * @returns B_NO_ERROR if the buffer is valid, B_ERROR if it isn't (or won't return if it crashed the app!)
    *                    If MUSCLE_ENABLE_MEMORY_PARANOIA isn't defined, then this function always returns B_NO_ERROR.
-  */ 
+  */
 status_t MemoryParanoiaCheckBuffer(void * p, bool crashIfInvalid = true);
 
 #else

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -90,7 +90,7 @@ static void PrintSequence(uint32 i, const Queue<String> & seq, const char * desc
 {
    printf("\n%s SEQUENCE " UINT32_FORMAT_SPEC" (" UINT32_FORMAT_SPEC" threads ", desc, i, threads.GetNumItems());
    bool isFirst = true;
-   for (HashtableIterator<unsigned long, Void> iter(threads); iter.HasData(); iter++) 
+   for (HashtableIterator<unsigned long, Void> iter(threads); iter.HasData(); iter++)
    {
       if (isFirst == false) printf(", ");
       isFirst = false;
@@ -101,7 +101,7 @@ static void PrintSequence(uint32 i, const Queue<String> & seq, const char * desc
 }
 
 // This program reads debug output to look for potential deadlocks
-int main(void) 
+int main(void)
 {
    Queue<Queue<String> > maxLogs;
 
@@ -196,7 +196,7 @@ int main(void)
    // Now see if there are any inconsistencies.  First, go through the sequences and remove any redundant re-locks, as they don't count
    Queue<Queue<String> > simplifiedMaxLogs = maxLogs;
    for (uint32 i=0; i<simplifiedMaxLogs.GetNumItems(); i++)
-   { 
+   {
       Hashtable<String, uint32> useCounts;
       Queue<String> & seqA = simplifiedMaxLogs[i];
       for (uint32 j=0; j<seqA.GetNumItems(); j++) (*useCounts.GetOrPut(ExtractPointerString(seqA[j])))++;
@@ -232,7 +232,7 @@ int main(void)
                      Hashtable<unsigned long, Void> * ti = sequenceToThreads.Get(i);
                      Hashtable<unsigned long, Void> * tj = sequenceToThreads.Get(j);
                      bool isDefinite = ((ti)&&(tj)&&((ti->GetNumItems() > 1)||(tj->GetNumItems() > 1)||(*ti != *tj)));   // (ti) and (tj) are actually never going to be NULL, but this makes clang++ happy
-     
+
                      printf("\n\n------------------------------------------\n");
                      printf("ERROR, %s LOCK-ACQUISITION ORDERING INCONSISTENCY DETECTED:   SEQUENCE #" UINT32_FORMAT_SPEC" vs SEQUENCE #" UINT32_FORMAT_SPEC"  !!\n", isDefinite?"DEFINITE":"POTENTIAL", i, j);
                      PrintSequence(i, maxLogs[i], "PROBLEM", *sequenceToThreads.Get(i));

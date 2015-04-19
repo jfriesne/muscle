@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -8,9 +8,9 @@
 using namespace muscle;
 
 // This program exercises the ParseFile() function.
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
-   if (argc < 2) 
+   if (argc < 2)
    {
       printf("Usage:  parsefile <filename> [filename] [...]\n");
       return 5;
@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
       {
          printf("TESTING ParseFile() with a FILE pointer for file [%s]\n", argv[i]);
          {
-            FILE * fpIn = fopen(argv[i], "r");
+            FILE * fpIn = muscleFopen(argv[i], "r");
             if (fpIn)
             {
                Message msg;
@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
 
          printf("\n\nTESTING ParseFile() with a String for file [%s]\n", argv[i]);
          {
-            FILE * fpIn = fopen(argv[i], "r");
+            FILE * fpIn = muscleFopen(argv[i], "r");
             if (fpIn)
             {
                FileDataIO fdio(fpIn);

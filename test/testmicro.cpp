@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -92,8 +92,10 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
       for (i=0; i<ITEM_COUNT; i++)
       {
          char buf[128+ITEM_COUNT];
-         sprintf(buf, "This is test string #" UINT32_FORMAT_SPEC " ", i);
-         for (uint32 j=0; j<i; j++) strcat(buf, "A");
+         muscleSprintf(buf, "This is test string #" UINT32_FORMAT_SPEC " ", i);
+         char * b = strchr(buf, '\0');
+         for (uint32 j=0; j<i; j++) *b++ = 'A';
+         *b = '\0';
 
          if (UMAddString(um, "testStrings", buf) != B_NO_ERROR) printf("UMAddString(%s) failed!\n", buf);
          m.AddString("testStrings", buf);
@@ -101,7 +103,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
    }
    {
       // Test of out-of-line sub-Message importing
-      for (i=0; i<ITEM_COUNT; i++) 
+      for (i=0; i<ITEM_COUNT; i++)
       {
          if (recurseCount > 0)
          {
@@ -111,7 +113,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
             if (UMAddMessage(um, "testMessages", uSubMsg) != B_NO_ERROR) printf("UMAddMessage() failed!\n");
             m.AddMessage("testMessages", subMsg);
          }
-         else 
+         else
          {
             uint8 subBuf[12]; UMessage uSubMsg; UMInitializeToEmptyMessage(&uSubMsg, subBuf, sizeof(subBuf), i);
             if (UMAddMessage(um, "testMessages", uSubMsg) != B_NO_ERROR) printf("Trivial UMAddMessage() failed!\n");
@@ -121,7 +123,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
    }
    {
       // Test of in-line Message adddition
-      for (i=0; i<ITEM_COUNT; i++) 
+      for (i=0; i<ITEM_COUNT; i++)
       {
          if (recurseCount > 0)
          {
@@ -134,7 +136,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
                m.AddMessage("inline_Messages", subMsg);
             }
          }
-         else 
+         else
          {
             UMessage uSubMsg = UMInlineAddMessage(um, "inline_Messages", i+1000);
             if (UMIsMessageReadOnly(&uSubMsg)) printf("Error, trivial UMInlineAddMessage() failed!\n");
@@ -146,8 +148,10 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
       for (i=0; i<ITEM_COUNT; i++)
       {
          char buf[128+ITEM_COUNT];
-         sprintf(buf, "This is test data #" UINT32_FORMAT_SPEC " ", i);
-         for (uint32 j=0; j<i; j++) strcat(buf, "B");
+         muscleSprintf(buf, "This is test data #" UINT32_FORMAT_SPEC " ", i);
+         char * b = strchr(buf, '\0');
+         for (uint32 j=0; j<i; j++) *b++ = 'B';
+         *b = '\0';
 
          UMAddData(um, "testDatas", 0x666, buf, ((uint32)strlen(buf))+1);
          m.AddData(    "testDatas", 0x666, buf, ((uint32)strlen(buf))+1);
@@ -184,7 +188,7 @@ int main(int, char **)
         if (umFlatSize != mFlatSize) printf("Flattened buffer sizes didn't match!  UMessage=" UINT32_FORMAT_SPEC" Message=" UINT32_FORMAT_SPEC"\n", umFlatSize, mFlatSize);
    else if (memcmp(mPtr, umPtr, mFlatSize) != 0)
    {
-      for (uint32 i=0; i<mFlatSize; i++) 
+      for (uint32 i=0; i<mFlatSize; i++)
       {
          if (mPtr[i] != umPtr[i])
          {

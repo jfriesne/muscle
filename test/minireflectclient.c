@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <netdb.h>
 #include <unistd.h>
@@ -21,13 +21,13 @@
 
 static void Inet_NtoA(uint32 addr, char * ipbuf)
 {
-   sprintf(ipbuf, INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"", (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
+   muscleSprintf(ipbuf, INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"", (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
 }
 
 static int ConnectToIP(uint32 hostIP, uint16 port)
 {
    char ipbuf[16];
-   struct sockaddr_in saAddr; 
+   struct sockaddr_in saAddr;
    int s;
 
    Inet_NtoA(hostIP, ipbuf);
@@ -118,7 +118,7 @@ int main(int argc, char ** argv)
          if (STDIN_FILENO > maxfd) maxfd = STDIN_FILENO;
          FD_SET(STDIN_FILENO, &readSet);
 
-         while(keepGoing) 
+         while(keepGoing)
          {
             if (select(maxfd+1, &readSet, &writeSet, NULL, NULL) < 0) printf("minireflectclient: select() failed!\n");
 
@@ -126,7 +126,7 @@ int main(int argc, char ** argv)
             {
                char * ret;
                if (fgets(text, sizeof(text), stdin) == NULL) text[0] = '\0';
-               ret = strchr(text, '\n'); 
+               ret = strchr(text, '\n');
                if (ret) *ret = '\0';
             }
 
@@ -146,8 +146,8 @@ int main(int argc, char ** argv)
                {
                   case 'm':
                   {
-                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1); 
-                     MByteBuffer ** ib = MMPutStringField(msg, false, "info", 1); 
+                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1);
+                     MByteBuffer ** ib = MMPutStringField(msg, false, "info", 1);
                      if (sb) sb[0] = MBStrdupByteBuffer(&text[2]);
                      if (ib) ib[0] = MBStrdupByteBuffer("This is a user message");
                      MMSetWhat(msg, MAKETYPE("umsg"));
@@ -161,10 +161,10 @@ int main(int argc, char ** argv)
                      MMSetWhat(msg, PR_COMMAND_SETDATA);
                   }
                   break;
-      
+
                   case 'k':
                   {
-                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1); 
+                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1);
                      if (sb) sb[0] = MBStrdupByteBuffer(&text[2]);
                      MMSetWhat(msg, PR_COMMAND_KICK);
                   }
@@ -172,7 +172,7 @@ int main(int argc, char ** argv)
 
                   case 'b':
                   {
-                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1); 
+                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1);
                      if (sb) sb[0] = MBStrdupByteBuffer(&text[2]);
                      MMSetWhat(msg, PR_COMMAND_ADDBANS);
                   }
@@ -180,7 +180,7 @@ int main(int argc, char ** argv)
 
                   case 'B':
                   {
-                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1); 
+                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1);
                      if (sb) sb[0] = MBStrdupByteBuffer(&text[2]);
                      MMSetWhat(msg, PR_COMMAND_REMOVEBANS);
                   }
@@ -188,16 +188,16 @@ int main(int argc, char ** argv)
 
                   case 'g':
                   {
-                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1); 
+                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1);
                      if (sb) sb[0] = MBStrdupByteBuffer(&text[2]);
                      MMSetWhat(msg, PR_COMMAND_GETDATA);
                   }
                   break;
-      
+
                   case 'G':
                   {
-                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1); 
-                     MByteBuffer ** ib = MMPutStringField(msg, false, PR_NAME_TREE_REQUEST_ID, 1); 
+                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1);
+                     MByteBuffer ** ib = MMPutStringField(msg, false, PR_NAME_TREE_REQUEST_ID, 1);
                      if (sb) sb[0] = MBStrdupByteBuffer(&text[2]);
                      if (ib) ib[0] = MBStrdupByteBuffer("Tree ID!");
                      MMSetWhat(msg, PR_COMMAND_GETDATATREES);
@@ -207,35 +207,35 @@ int main(int argc, char ** argv)
                   case 'q':
                      keepGoing = send = MFalse;
                   break;
-      
+
                   case 'p':
                   {
-                     MByteBuffer ** sb = MMPutStringField(msg, false, &text[2], 1); 
+                     MByteBuffer ** sb = MMPutStringField(msg, false, &text[2], 1);
                      if (sb) sb[0] = MBStrdupByteBuffer("");
                      MMSetWhat(msg, PR_COMMAND_SETPARAMETERS);
                   }
                   break;
-      
+
                   case 'P':
                      MMSetWhat(msg, PR_COMMAND_GETPARAMETERS);
                   break;
-      
+
                   case 'd':
                   {
-                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1); 
+                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1);
                      if (sb) sb[0] = MBStrdupByteBuffer(&text[2]);
                      MMSetWhat(msg, PR_COMMAND_REMOVEDATA);
                   }
                   break;
-      
+
                   case 'D':
                   {
-                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1); 
+                     MByteBuffer ** sb = MMPutStringField(msg, false, PR_NAME_KEYS, 1);
                      if (sb) sb[0] = MBStrdupByteBuffer(&text[2]);
                      MMSetWhat(msg, PR_COMMAND_REMOVEPARAMETERS);
                   }
                   break;
-      
+
                   case 't':
                   {
                      MByteBuffer ** sb = MMPutStringField(msg, false, "String", 1);
@@ -269,8 +269,8 @@ int main(int argc, char ** argv)
                      send = MFalse;
                   break;
                }
-   
-               if (send) 
+
+               if (send)
                {
                   printf("Sending message...\n");
                   MMPrintToStream(msg, stdout);
@@ -280,7 +280,7 @@ int main(int argc, char ** argv)
 
                text[0] = '\0';
             }
-   
+
             {
                MMessage * incomingMsg = NULL;
                MBool reading    = FD_ISSET(s, &readSet);
@@ -312,7 +312,7 @@ int main(int argc, char ** argv)
                FD_SET(STDIN_FILENO, &readSet);
             }
          }
-      } 
+      }
       close(s);
    }
    else printf("Connection to [%s:%i] failed!\n", hostName, port);

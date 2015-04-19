@@ -13,7 +13,7 @@ enum {
    MUSCLE_THREAD_SIGNAL = 1299408750  // 'Msgn' -- sent to the main thread when messages are ready for pickup
 };
 
-/** 
+/**
   * This class is templated to use as a AtheOS-specific subclass of any
   * MUSCLE Thread subclass.  It modifies its base class to send os::Messages
   * instead of writing to a TCP socket when it wants to notify the main thread.
@@ -22,8 +22,8 @@ enum {
 template <class BaseThread> class AThread : public BaseThread
 {
 public:
-   /** Default Constructor.  If you use this constructor, you will want to call 
-     * SetTarget() and/or SetNotificationMessage() to set where the internal thread's 
+   /** Default Constructor.  If you use this constructor, you will want to call
+     * SetTarget() and/or SetNotificationMessage() to set where the internal thread's
      * reply os::Messages are to go.
      */
    AThread() {SetNotificationMessageAux(NULL);}
@@ -46,7 +46,7 @@ public:
      */
    virtual ~AThread() {/* empty */}
 
-   /** Sets our current target os::Messenger (where the internal thread will send its event 
+   /** Sets our current target os::Messenger (where the internal thread will send its event
      * notification messages.  Thread safe, so this may be called at any time.
      * @param newTarget new destination for the MUSCLE_THREAD_SIGNAL signal os::Messages.
      * @param optNewNotificationMessage If non-NULL, this pointer will be used to change the notification
@@ -68,7 +68,7 @@ public:
    /** Set a new message to send to when notifying the main thread that events are pending.
      * The default message is simply a message with the 'what' code set to MUSCLE_THREAD_SIGNAL.
      * An internal copy of (msg) is made, and the internal copy receives a "source" pointer
-     * field that points to this object.  Thread safe, so may be called at any time. 
+     * field that points to this object.  Thread safe, so may be called at any time.
      * @param newMsg new os::Message to send instead of MUSCLE_THREAD_SIGNAL.
      * @return B_NO_ERROR on success, or B_ERROR on failure (couldn't lock the lock???)
      */
@@ -86,7 +86,7 @@ public:
    /** Returns our current notification os::Message (send when incoming events are ready for pickup).  Thread safe. */
    const os::Messenger & GetTarget() const {return _target;}
 
-protected: 
+protected:
    /** Overridden to send a os::Message instead of doing silly TCP stuff */
    virtual void SignalOwner() {(void) _target.SendMessage(&_notificationMessage);}
 

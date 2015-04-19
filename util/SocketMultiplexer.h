@@ -33,19 +33,19 @@
 namespace muscle {
 
 /** This class allows a thread to wait until one or more of a set of
- *  file descriptors is ready for use, or until a specified time is 
- *  reached, whichever comes first.  
+ *  file descriptors is ready for use, or until a specified time is
+ *  reached, whichever comes first.
  *
  *  This class has underlying implementations available for various OS
  *  mechanisms.  The default implementation uses select(), since that
- *  mechanism is the most widely portable.  However, you can force this class 
+ *  mechanism is the most widely portable.  However, you can force this class
  *  to use poll(), epoll(), or kqueue() instead, by specifying the compiler
  *  flag -DMUSCLE_USE_POLL, -DMUSCLE_USE_EPOLL, or -DMUSCLE_USE_KQUEUE
  *  (respectively) on the compile line.
  */
 class SocketMultiplexer
 {
-public: 
+public:
    /** Constructor. */
    SocketMultiplexer();
 
@@ -91,13 +91,13 @@ public:
 
    /** Blocks until at least one of the events specified in previous RegisterSocketFor*()
      * calls becomes valid, or for (optMaxWaitTimeMicros) microseconds, whichever comes first.
-     * @note All socket-registrations will be cleared after this method call returns.  You will typically 
+     * @note All socket-registrations will be cleared after this method call returns.  You will typically
      *       want to re-register them (by calling RegisterSocketFor*() again) before calling WaitForEvents() again.
      * @param timeoutAtTime The time to return 0 at if no events occur before then, or MUSCLE_TIME_NEVER
      *                      if not timeout is desired.  Uses the sameDefaults to MUSCLE_TIME_NEVER.
      *                      Specifying 0 (or any other value not greater than the current value returned
      *                      by GetRunTime64()) will effect a poll, guaranteed to return immediately.
-     * @returns The number of socket-registrations that indicated that they are currently ready, 
+     * @returns The number of socket-registrations that indicated that they are currently ready,
      *          or 0 if the timeout period elapsed without any events happening, or -1 if an error occurred.
      */
    int WaitForEvents(uint64 timeoutAtTime = MUSCLE_TIME_NEVER);
@@ -144,7 +144,7 @@ public:
    };
 
 private:
-   class FDState 
+   class FDState
    {
    public:
       FDState();
@@ -174,7 +174,7 @@ private:
          return B_NO_ERROR;
       }
 
-      inline bool IsSocketReady(int fd, int whichSet) const 
+      inline bool IsSocketReady(int fd, int whichSet) const
       {
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
          return ((_bits.GetWithDefault(fd) & (1<<(whichSet+8))) != 0);
@@ -210,10 +210,10 @@ private:
       int _kernelFD;
       Hashtable<int, uint16> _bits;   // fd -> (nybble #0 for userland registrations, nybble #1 for kernel-state, nybble #2 for results)
 # if defined(MUSCLE_USE_KQUEUE)
-      Queue<struct kevent> _scratchChanges; 
-      Queue<struct kevent> _scratchEvents; 
+      Queue<struct kevent> _scratchChanges;
+      Queue<struct kevent> _scratchEvents;
 # else
-      Queue<struct epoll_event> _scratchEvents; 
+      Queue<struct epoll_event> _scratchEvents;
 # endif
 #elif defined(MUSCLE_USE_POLL)
       short GetPollBitsForFDSet(uint32 whichSet, bool isRegister) const

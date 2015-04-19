@@ -1,10 +1,10 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "besupport/ConvertMessages.h"
 
 namespace muscle {
 
-status_t ConvertToBMessage(const Message & from, BMessage & to) 
+status_t ConvertToBMessage(const Message & from, BMessage & to)
 {
    to.MakeEmpty();
    to.what = from.what;
@@ -42,10 +42,10 @@ status_t ConvertToBMessage(const Message & from, BMessage & to)
                if (to.AddRect(n(), brect) != B_NO_ERROR) return B_ERROR;
             }
             break;
- 
+
             case B_MESSAGE_TYPE:
             {
-               MessageRef * msgRef = static_cast<MessageRef *>(nextItem);
+               const MessageRef * msgRef = static_cast<const MessageRef *>(nextItem);
                BMessage bmsg;
                if (msgRef->GetItemPointer() == NULL) return B_ERROR;
                if (ConvertToBMessage(*msgRef->GetItemPointer(), bmsg) != B_NO_ERROR) return B_ERROR;
@@ -62,7 +62,7 @@ status_t ConvertToBMessage(const Message & from, BMessage & to)
    return B_NO_ERROR;
 }
 
-status_t ConvertFromBMessage(const BMessage & from, Message & to) 
+status_t ConvertFromBMessage(const BMessage & from, Message & to)
 {
    to.Clear();
    to.what = from.what;

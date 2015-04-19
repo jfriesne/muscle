@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "reflector/FilterSessionFactory.h"
 #include "reflector/StorageReflectConstants.h"
@@ -24,7 +24,7 @@ AbstractReflectSessionRef FilterSessionFactory :: CreateSession(const String & c
       LogTime(MUSCLE_LOG_DEBUG, "Connection from [%s] refused (all " UINT32_FORMAT_SPEC " sessions slots are in use).\n", clientHostIP(), _totalMaxSessions);
       return AbstractReflectSessionRef();
    }
-      
+
    if (_maxSessionsPerHost != MUSCLE_NO_LIMIT)
    {
       uint32 count = 0;
@@ -53,7 +53,7 @@ AbstractReflectSessionRef FilterSessionFactory :: CreateSession(const String & c
                break;
             }
          }
-         if (matched == false) 
+         if (matched == false)
          {
             LogTime(MUSCLE_LOG_DEBUG, "Connection from [%s] does not match any require pattern, access denied.\n", clientHostIP());
             return AbstractReflectSessionRef();
@@ -96,14 +96,14 @@ void FilterSessionFactory :: MessageReceivedFromSession(AbstractReflectSession &
          {
             case PR_COMMAND_ADDBANS:        PutBanPattern(*s);                 break;
             case PR_COMMAND_ADDREQUIRES:    PutRequirePattern(*s);             break;
-            case PR_COMMAND_REMOVEBANS:     RemoveMatchingBanPatterns(*s);     break;                    
-            case PR_COMMAND_REMOVEREQUIRES: RemoveMatchingRequirePatterns(*s); break;                    
+            case PR_COMMAND_REMOVEBANS:     RemoveMatchingBanPatterns(*s);     break;
+            case PR_COMMAND_REMOVEREQUIRES: RemoveMatchingRequirePatterns(*s); break;
          }
       }
       _tempLogFor = NULL;
    }
 }
-   
+
 status_t FilterSessionFactory :: PutBanPattern(const String & banPattern)
 {
    TCHECKPOINT;
@@ -112,7 +112,7 @@ status_t FilterSessionFactory :: PutBanPattern(const String & banPattern)
    StringMatcherRef newMatcherRef(newnothrow StringMatcher(banPattern));
    if (newMatcherRef())
    {
-      if (_bans.Put(banPattern, newMatcherRef) == B_NO_ERROR) 
+      if (_bans.Put(banPattern, newMatcherRef) == B_NO_ERROR)
       {
          if (_tempLogFor) LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is banning [%s] on port %u\n", _tempLogFor->GetHostName()(), _tempLogFor->GetSessionIDString()(), banPattern(), _tempLogFor->GetPort());
          return B_NO_ERROR;
@@ -131,7 +131,7 @@ status_t FilterSessionFactory :: PutRequirePattern(const String & requirePattern
    StringMatcherRef newMatcherRef(newnothrow StringMatcher(requirePattern));
    if (newMatcherRef())
    {
-      if (_requires.Put(requirePattern, newMatcherRef) == B_NO_ERROR) 
+      if (_requires.Put(requirePattern, newMatcherRef) == B_NO_ERROR)
       {
          if (_tempLogFor) LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is requiring [%s] on port %u\n", _tempLogFor->GetHostName()(), _tempLogFor->GetSessionIDString()(), requirePattern(), _tempLogFor->GetPort());
          return B_NO_ERROR;

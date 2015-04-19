@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "reflector/AbstractReflectSession.h"
 #include "reflector/AbstractSessionIOPolicy.h"
@@ -25,7 +25,7 @@ static uint32 GetNextGlobalID(uint32 & counter)
    Mutex * ml = GetGlobalMuscleLock();
    MASSERT(ml, "Please instantiate a CompleteSetupSystem object on the stack before creating any session or session-factory objects (at beginning of main() is preferred)\n");
 
-   if (ml->Lock() == B_NO_ERROR) 
+   if (ml->Lock() == B_NO_ERROR)
    {
       ret = counter++;
       ml->Unlock();
@@ -73,12 +73,12 @@ void ProxySessionFactory :: AboutToDetachFromServer()
 AbstractReflectSession ::
 AbstractReflectSession() : _sessionID(GetNextGlobalID(_sessionIDCounter)), _connectingAsync(false), _isConnected(false), _maxAsyncConnectPeriod(MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS), _asyncConnectTimeoutTime(MUSCLE_TIME_NEVER), _reconnectViaTCP(true), _lastByteOutputAt(0), _maxInputChunk(MUSCLE_NO_LIMIT), _maxOutputChunk(MUSCLE_NO_LIMIT), _outputStallLimit(MUSCLE_TIME_NEVER), _autoReconnectDelay(MUSCLE_TIME_NEVER), _reconnectTime(MUSCLE_TIME_NEVER), _wasConnected(false), _isExpendable(false)
 {
-   char buf[64]; sprintf(buf, UINT32_FORMAT_SPEC, _sessionID);
+   char buf[64]; muscleSprintf(buf, UINT32_FORMAT_SPEC, _sessionID);
    _idString = buf;
 }
 
 AbstractReflectSession ::
-~AbstractReflectSession() 
+~AbstractReflectSession()
 {
    TCHECKPOINT;
    SetInputPolicy(AbstractSessionIOPolicyRef());   // make sure the input policy knows we're going away
@@ -87,7 +87,7 @@ AbstractReflectSession ::
 
 const String &
 AbstractReflectSession ::
-GetHostName() const 
+GetHostName() const
 {
    MASSERT(IsAttachedToServer(), "Can not call GetHostName() while not attached to the server");
    return _hostName;
@@ -95,7 +95,7 @@ GetHostName() const
 
 uint16
 AbstractReflectSession ::
-GetPort() const 
+GetPort() const
 {
    MASSERT(IsAttachedToServer(), "Can not call GetPort() while not attached to the server");
    return _ipAddressAndPort.GetPort();
@@ -103,15 +103,15 @@ GetPort() const
 
 const ip_address &
 AbstractReflectSession ::
-GetLocalInterfaceAddress() const 
+GetLocalInterfaceAddress() const
 {
    MASSERT(IsAttachedToServer(), "Can not call LocalInterfaceAddress() while not attached to the server");
    return _ipAddressAndPort.GetIPAddress();
 }
 
-status_t 
+status_t
 AbstractReflectSession ::
-AddOutgoingMessage(const MessageRef & ref) 
+AddOutgoingMessage(const MessageRef & ref)
 {
    MASSERT(IsAttachedToServer(), "Can not call AddOutgoingMessage() while not attached to the server");
    return (_gateway()) ? _gateway()->AddOutgoingMessage(ref) : B_ERROR;
@@ -174,7 +174,7 @@ Reconnect()
             io.SetRef(ssio);
             if (ssio->SetPublicKeyCertificate(publicKey) != B_NO_ERROR) return B_ERROR;
 
-            if (dynamic_cast<SSLSocketAdapterGateway *>(_gateway()) == NULL) 
+            if (dynamic_cast<SSLSocketAdapterGateway *>(_gateway()) == NULL)
             {
                _gateway.SetRef(newnothrow SSLSocketAdapterGateway(_gateway));
                if (_gateway() == NULL) return B_ERROR;
@@ -183,12 +183,12 @@ Reconnect()
 #endif
 
          _gateway()->SetDataIO(io);
-         if (isReady) 
+         if (isReady)
          {
             _isConnected = _wasConnected = true;
             AsyncConnectCompleted();
          }
-         else 
+         else
          {
             _isConnected = false;
             SetConnectingAsync(doTCPConnect);
@@ -200,8 +200,8 @@ Reconnect()
    return B_ERROR;
 }
 
-ConstSocketRef 
-AbstractReflectSession :: 
+ConstSocketRef
+AbstractReflectSession ::
 CreateDefaultSocket()
 {
    return ConstSocketRef();  // NULL Ref means run clientless by default
@@ -323,7 +323,7 @@ GetSessionDescriptionString() const
    ret += GetSessionIDString();
    ret += (port>0)?" at [":" to [";
    ret += _hostName;
-   char buf[64]; sprintf(buf, ":%u]", (port>0)?port:_asyncConnectDest.GetPort()); ret += buf;
+   char buf[64]; muscleSprintf(buf, ":%u]", (port>0)?port:_asyncConnectDest.GetPort()); ret += buf;
    return ret;
 }
 
@@ -335,8 +335,8 @@ HasBytesToOutput() const
    return _gateway() ? _gateway()->HasBytesToOutput() : false;
 }
 
-bool 
-AbstractReflectSession :: 
+bool
+AbstractReflectSession ::
 IsReadyForInput() const
 {
    return _gateway() ? _gateway()->IsReadyForInput() : false;
@@ -349,7 +349,7 @@ DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
    return _gateway() ? _gateway()->DoInput(receiver, maxBytes) : 0;
 }
 
-int32 
+int32
 AbstractReflectSession ::
 DoOutput(uint32 maxBytes)
 {
@@ -384,7 +384,7 @@ BroadcastToAllFactories(const MessageRef & msgRef, void * userData, bool toSelf)
    }
 }
 
-void 
+void
 AbstractReflectSession ::
 PlanForReconnect()
 {
@@ -392,15 +392,15 @@ PlanForReconnect()
    InvalidatePulseTime();
 }
 
-uint64 
-AbstractReflectSession :: 
+uint64
+AbstractReflectSession ::
 GetPulseTime(const PulseArgs &)
 {
    return muscleMin(_reconnectTime, _asyncConnectTimeoutTime);
 }
 
 void
-AbstractReflectSession :: 
+AbstractReflectSession ::
 Pulse(const PulseArgs & args)
 {
    PulseNode::Pulse(args);
@@ -419,7 +419,7 @@ Pulse(const PulseArgs & args)
          }
       }
    }
-   else if ((IsConnectingAsync())&&(args.GetCallbackTime() >= _asyncConnectTimeoutTime)) (void) DisconnectSession();  // force us to terminate our async-connect now 
+   else if ((IsConnectingAsync())&&(args.GetCallbackTime() >= _asyncConnectTimeoutTime)) (void) DisconnectSession();  // force us to terminate our async-connect now
 }
 
 void AbstractReflectSession :: SetConnectingAsync(bool isConnectingAsync)
@@ -430,7 +430,7 @@ void AbstractReflectSession :: SetConnectingAsync(bool isConnectingAsync)
 }
 
 const DataIORef &
-AbstractReflectSession :: 
+AbstractReflectSession ::
 GetDataIO() const
 {
    return _gateway() ? _gateway()->GetDataIO() : GetDefaultObjectForType<DataIORef>();
@@ -452,8 +452,8 @@ GetSessionWriteSelectSocket() const
    return dio() ? dio()->GetWriteSelectSocket() : GetNullSocket();
 }
 
-String 
-AbstractReflectSession :: 
+String
+AbstractReflectSession ::
 GenerateHostName(const ip_address & /*ip*/, const String & defaultHostName) const
 {
    return defaultHostName;

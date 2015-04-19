@@ -7,7 +7,7 @@
 #include "util/Queue.h"
 
 namespace muscle {
- 
+
 /** This DataIO holds a list of one or more other DataIO objects, and passes any
   * calls made to all the sub-DataIOs.  If an error occurs on any of the sub-objects,
   * the call will error out.  This class can be useful when implementing RAID-like behavior.
@@ -32,7 +32,7 @@ public:
      */
    virtual int32 Read(void * buffer, uint32 size);
 
-   /** Calls Write() on all our held sub-DataIOs. 
+   /** Calls Write() on all our held sub-DataIOs.
      * @param buffer Pointer to a buffer of data to write
      * @param size Number of bytes pointed to by (buffer).
      * @returns The number of bytes written, or -1 on error.  If different sub-DataIOs write different
@@ -70,8 +70,8 @@ public:
      * or whether the error should be immediately propagated upwards.  Default value is false.
      * @param ape If true, any child DataIO object that reports an error will be silently removed
      *            from the list of child DataIOs.  No errors will be reported from this MultiDataIO
-     *            object unless/until the child DataIO list is reduced to a single child DataIO, and 
-     *            that child DataIO errors out.  If false (the default state), then any error from 
+     *            object unless/until the child DataIO list is reduced to a single child DataIO, and
+     *            that child DataIO errors out.  If false (the default state), then any error from
      *            any child DataIO will cause this MultiDataIO object to return an error immediately.
      */
    void SetAbsorbPartialErrors(bool ape) {_absorbPartialErrors = ape;}

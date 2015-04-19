@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -50,7 +50,7 @@ static void Test(uint32 dataFlags)
    Point p = b.ReadPoint(offset); printf("Point=%f,%f\n", p.x(), p.y());
    Rect r = b.ReadRect(offset); printf("Rect=%f,%f,%f,%f\n", r.left(), r.top(), r.Width(), r.Height());
    printf("string3=[%s]\n", b.ReadString(offset)());  // should be "----"
-   int8  i8s[4]  = {0}; nr = b.ReadInt8s(i8s, ARRAYITEMS(i8s), offset); 
+   int8  i8s[4]  = {0}; nr = b.ReadInt8s(i8s, ARRAYITEMS(i8s), offset);
    printf("i8s="); for (uint32 i=0; i<nr; i++) printf(" %i", i8s[i]); printf("\n");
    int16 i16s[4] = {0}; nr = b.ReadInt16s(i16s, ARRAYITEMS(i16s), offset);
    printf("i16s="); for (uint32 i=0; i<nr; i++) printf(" %i", i16s[i]); printf("\n");
@@ -71,12 +71,12 @@ static void Test(uint32 dataFlags)
 }
 
 // This program exercises the ByteBuffer class.
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    if (argc > 1)
    {
       const char * fileName = argv[1];
-      FILE * f = fopen(fileName, "rb");
+      FILE * f = muscleFopen(fileName, "rb");
       if (f)
       {
          FileDataIO fdio(f);

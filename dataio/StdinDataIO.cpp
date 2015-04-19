@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/StdinDataIO.h"
 #include "util/Hashtable.h"
@@ -77,7 +77,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
 
       // We'll close our own handle, thankyouverymuch
       if (_slaveThread != INVALID_HANDLE_VALUE)
-      { 
+      {
          CloseHandle(_slaveThread);
          _slaveThread = INVALID_HANDLE_VALUE;
       }
@@ -88,7 +88,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
          _stdinHandle = INVALID_HANDLE_VALUE;
       }
 
-      _slaveSocketsMutex.Unlock(); 
+      _slaveSocketsMutex.Unlock();
    }
    return 0;
 }
@@ -106,7 +106,7 @@ StdinDataIO :: StdinDataIO(bool blocking) : _stdinBlocking(blocking)
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
    if (_stdinBlocking == false)
    {
-      // For non-blocking I/O, we need to handle stdin in a separate thread. 
+      // For non-blocking I/O, we need to handle stdin in a separate thread.
       // note that I freopen stdin to "nul" so that other code (read: Python)
       // won't try to muck about with stdin and interfere with StdinDataIO's
       // operation.  I don't know of any good way to restore it again after,
@@ -119,10 +119,19 @@ StdinDataIO :: StdinDataIO(bool blocking) : _stdinBlocking(blocking)
       if ((CreateConnectedSocketPair(_masterSocket, slaveSocket, false) == B_NO_ERROR)&&(SetSocketBlockingEnabled(slaveSocket, true) == B_NO_ERROR)&&(_slaveSocketsMutex.Lock() == B_NO_ERROR))
       {
          bool threadCreated = false;
-         if (_stdinThreadStatus == STDIN_THREAD_STATUS_UNINITIALIZED) 
+         if (_stdinThreadStatus == STDIN_THREAD_STATUS_UNINITIALIZED)
          {
             DWORD junkThreadID;
-            _stdinThreadStatus = ((DuplicateHandle(GetCurrentProcess(), GetStdHandle(STD_INPUT_HANDLE), GetCurrentProcess(), &_stdinHandle, 0, false, DUPLICATE_SAME_ACCESS))&&(freopen("nul", "r", stdin) != NULL)&&((_slaveThread = (::HANDLE) _beginthreadex(NULL, 0, StdinThreadEntryFunc, NULL, CREATE_SUSPENDED, (unsigned *) &junkThreadID)) != 0)) ? STDIN_THREAD_STATUS_RUNNING : STDIN_THREAD_STATUS_EXITED;
+#if __STDC_WANT_SECURE_LIB__
+            FILE * junkFD;
+#endif
+            _stdinThreadStatus = ((DuplicateHandle(GetCurrentProcess(), GetStdHandle(STD_INPUT_HANDLE), GetCurrentProcess(), &_stdinHandle, 0, false, DUPLICATE_SAME_ACCESS))&&
+#if __STDC_WANT_SECURE_LIB__
+               (freopen_s(&junkFD, "nul", "r", stdin) == 0)
+#else
+               (freopen("nul", "r", stdin) != NULL)
+#endif
+               &&((_slaveThread = (::HANDLE) _beginthreadex(NULL, 0, StdinThreadEntryFunc, NULL, CREATE_SUSPENDED, (unsigned *) &junkThreadID)) != 0)) ? STDIN_THREAD_STATUS_RUNNING : STDIN_THREAD_STATUS_EXITED;
             threadCreated = (_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING);
          }
          if ((_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING)&&(_slaveSockets.Put(_slaveSocketTag = (++_slaveSocketTagCounter), slaveSocket) == B_NO_ERROR)) okay = true;
@@ -140,7 +149,7 @@ StdinDataIO :: StdinDataIO(bool blocking) : _stdinBlocking(blocking)
 }
 
 StdinDataIO ::
-~StdinDataIO() 
+~StdinDataIO()
 {
    Close();
 }

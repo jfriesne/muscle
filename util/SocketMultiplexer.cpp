@@ -20,7 +20,7 @@ void NotifySocketMultiplexersThatSocketIsClosed(int fd)
       {
          sm->NotifySocketClosed(fd);
          sm = sm->_nextMultiplexer;
-      }   
+      }
       _multiplexersListMutex.Unlock();
    }
 }
@@ -35,7 +35,7 @@ SocketMultiplexer :: SocketMultiplexer()
    // Prepend this object to the global linked list of SocketMultiplexers
    MutexGuard mg(_multiplexersListMutex);
    _prevMultiplexer = NULL;
-   _nextMultiplexer = _headMultiplexer; 
+   _nextMultiplexer = _headMultiplexer;
    if (_headMultiplexer) _headMultiplexer->_prevMultiplexer = this;
    _headMultiplexer = this;
 #endif
@@ -78,7 +78,7 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
    fd_set * sets[NUM_FDSTATE_SETS];
    for (uint32 i=0; i<NUM_FDSTATE_SETS; i++)
    {
-      if (_maxFD[i] >= 0) 
+      if (_maxFD[i] >= 0)
       {
          maxFD = muscleMax(maxFD, _maxFD[i]);
          sets[i] = &_fdSets[i];
@@ -121,7 +121,7 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
          }
 
          // Now go through our _scratchEvents list and set bits for any flagged events, for quick lookup by the user
-         for (int i=0; i<ret; i++) 
+         for (int i=0; i<ret; i++)
          {
             const struct kevent & event = _scratchEvents[i];
             uint16 * bits = _bits.Get(event.ident);
@@ -142,7 +142,7 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
       if (ret >= 0)
       {
          // Now go through our _scratchEvents list and set bits for any flagged events, for quick lookup by the user
-         for (int i=0; i<ret; i++) 
+         for (int i=0; i<ret; i++)
          {
             const struct epoll_event & event = _scratchEvents[i];
             uint16 * bits = _bits.Get(event.data.fd);
@@ -191,7 +191,7 @@ void SocketMultiplexer :: FDState :: Reset()
    _pollFDArray.FastClear();
    _pollFDToArrayIndex.Clear();
 # else
-   for (uint32 i=0; i<NUM_FDSTATE_SETS; i++) 
+   for (uint32 i=0; i<NUM_FDSTATE_SETS; i++)
    {
       _maxFD[i] = -1;
       FD_ZERO(&_fdSets[i]);
@@ -216,7 +216,7 @@ status_t SocketMultiplexer :: FDState :: PollRegisterNewSocket(int fd, uint32 wh
 }
 #endif
 
-SocketMultiplexer :: FDState :: FDState() 
+SocketMultiplexer :: FDState :: FDState()
 {
 #if defined(MUSCLE_USE_KQUEUE)
    _kernelFD = kqueue();
@@ -265,7 +265,7 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
 #endif
 
    // If any of our sockets were closed since the last call, we need to make sure to note that the kernel is no longer
-   // tracking them.  Otherwise we can run into this problem:  
+   // tracking them.  Otherwise we can run into this problem:
    //   http://stackoverflow.com/questions/8608931/is-there-any-way-to-tell-that-a-file-descriptor-value-has-been-reused
    {
       // This scope is present so that _closedSocketMutex won't be locked while we iterate
@@ -278,7 +278,7 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
          for (HashtableIterator<int, Void> iter(_scratchClosedSockets); iter.HasData(); iter++)
          {
             uint16 * bits = _bits.Get(iter.GetKey());
-            if (bits) 
+            if (bits)
             {
                uint16 & b = *bits;
                b &= 0x0F;  // Remove all bits except for the userland-registration-bits, to force a kernel re-registration below

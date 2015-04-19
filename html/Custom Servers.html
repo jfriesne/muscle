@@ -36,7 +36,7 @@ The AbstractReflectSession class is an abstract base class, each object of which
 <p>
 <li>
 <i>virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);</i>
- <p> 
+ <p>
    This method is called whenever your session's client computer has sent a Message to the MUSCLE server.  You would generally implement this method to parse the Message and respond appropriately to your client's request.  Be sure to call your superclass's implementation of this method for any messages that you can't parse yourself.
 </li>
 <p>
@@ -61,7 +61,7 @@ When implementing your own session logic, there are several different "pre-made"
 <ol>
 <li>DumbReflectSession (muscle/reflector/DumbReflectSession.h).  As the name implies, this subclass of AbstractReflectSession doesn't do much.  All it does is take each Message it receives from its client, and send it on to all the other connected clients, for a sort of "broadcast" effect.  I'm not sure how often this logic is useful (unless you have bandwidth to burn), but it is there, and it also serves as a simple example of subclassing AbstractReflectSession.
 </li>
-<li>StorageReflectSession (muscle/reflector/StorageReflectSession.h).  This is the class where practically all of muscled's standard features are implemented.  The database, the pattern matching, the getting and setting of parameters, the live queries, and all of the other PR_COMMAND_* operations are implemented in this class.  Given that, you may find it useful in many situations to subclass this class, handling any Messages you recognize in your class, and passing the rest down to StorageReflectSession for normal muscled-style handling. 
+<li>StorageReflectSession (muscle/reflector/StorageReflectSession.h).  This is the class where practically all of muscled's standard features are implemented.  The database, the pattern matching, the getting and setting of parameters, the live queries, and all of the other PR_COMMAND_* operations are implemented in this class.  Given that, you may find it useful in many situations to subclass this class, handling any Messages you recognize in your class, and passing the rest down to StorageReflectSession for normal muscled-style handling.
 </li>
 </ol>
 
@@ -160,7 +160,7 @@ This method is called when you have bytes to send (see above) and there is space
 This method is called whenever incoming bytes are available on your DataIO object's TCP stream.  You should read up to (maxBytes) of data, convert as many bytes as possible into Message objects, and call target.CallMessageReceivedFromGateway(msg, NULL) for any Message that you create.  Any bytes that represent a partial message (i.e. you don't have the entire Message's worth yet) should be held in a local buffer somehow, for next time.  This method should also return the number of bytes that were actually read, or -1 if there was an error reading.
 </li>
 </ol>
- 
+
 For certain formats, you may be able to override MessageIOGateway instead of AbstractMessageIOGateway, and thus avoid having to do all the byte-by-byte parsing work yourself.  MessageIOGateway can be used for any byte-stream format where each message consists of a fixed-size header followed by a variable number of bytes of message body.  It must be possible to tell the number of bytes of message body by looking at the message header.  If your protocol fits these criteria, you can simply override the FlattenedMessageBodySize(), FlattenMessage(), UnflattenMessage(), HeaderSize(), and GetBodySize() methods to fit your byte protocol, and MessageIOGateway can handle the rest of the parsing for you.
 
 To get your IO gateway subclass to actually be used in the server, you will need to be using your own AbstractReflectSession subclass, and override its CreateGateway() method to return an instance of your AbstractMessageIOGateway subclass.  Your CreateGateway() method override should look something like this:
@@ -182,28 +182,28 @@ The AbstractReflectSession class is somewhat misnamed--it isn't completely abstr
 
 <ol>
 <li><i>Message & GetCentralState() const;</i>
-<p> 
+<p>
    This method returns a reference to a Message that is shared by all sessions.  Any session may access or alter this message, and other sessions can call GetCentralState() to see the changes.  For example, StorageReflectSession uses this message to store the root of the node database.  Please be gentle while altering the central state message, however, as other sessions may be relying on their data being there.
 </li>
 <p>
 <li><i>const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const;</i>
 <p>
    Returns a read-only reference to the current set of sessions attached to
-   the server.  Handy if you need "down and dirty" direct access to the other sessions.  
-   (Note that this type of direct access usually leads to dynamic casting, and the same functionality 
+   the server.  Handy if you need "down and dirty" direct access to the other sessions.
+   (Note that this type of direct access usually leads to dynamic casting, and the same functionality
    can often be implemented more cleanly by message passing... BroadcastToAllSessions() is helpful here)
 </li>
 <p>
 <li><i>AbstractReflectSession GetSession(const String & idStr) const;</i>
 <li><i>AbstractReflectSession GetSession(uint32 id) const;</i>
-<p>     
+<p>
    Given a session ID (expressed either as a string or an integer), returns you a reference to that session... or a NULL reference if no such session exists.
 </li>
 <p>
 <li><i>status_t AddNewSession(const AbstractReflectSessionRef & session, const ConstSocketRef & socket);</i>
 <p>
    Adds the given new session to the session list.  (socket) should be the socket used by the new session
-   (the server will watch this socket to determine when incoming data is available), or a NULL ConstSocketRef if 
+   (the server will watch this socket to determine when incoming data is available), or a NULL ConstSocketRef if
    the new session has no TCP socket of its own (i.e. a 'fake' session)
 </li>
 <li><i>status_t AddNewConnectSession(const AbstractReflectSessionRef & session, uint32 targetIP, uint16 targetPort);</i>
@@ -215,15 +215,15 @@ The AbstractReflectSession class is somewhat misnamed--it isn't completely abstr
 </li>
 <p>
 <li><i>void EndSession();</i>
-<p> 
-   Sort of a session's hara-kiri method.  Call this on a session and that session will be marked for removal and deletion by the server at the next opportunity.  The session isn't deleted immediately (as it may be in the middle of an operation), but will be ASAP.  
+<p>
+   Sort of a session's hara-kiri method.  Call this on a session and that session will be marked for removal and deletion by the server at the next opportunity.  The session isn't deleted immediately (as it may be in the middle of an operation), but will be ASAP.
 </li>
 <p>
 <li><i>status_t ReplaceSession(const AbstractReflectSessionRef & newSession);</i>
-<p> 
+<p>
    Causes the session to be terminated, and (newSession) to be put in its place.  (newSession) will be
    given the same TCP socket and IOGateway as the old session had.  This method is a quick way to swap
-   out the server-side logic of a session while maintaining its connection to the client.  
+   out the server-side logic of a session while maintaining its connection to the client.
 </li>
 </ol>
 
@@ -231,7 +231,7 @@ The AbstractReflectSession class is somewhat misnamed--it isn't completely abstr
 
 If you have chosen to subclass the StorageReflectSession subclass, you may want to access some of the StorageReflectSession class's features directly.  The easiest way to do this in simple cases is to just create your own Message and pass it to StorageReflectSession::MessageReceivedFromGateway(), where it will be handled just as if the message had come from the client itself.  For example:
 
-<pre>void 
+<pre>void
 MyReflectSession ::
 SetupMyStuff(const Message & msg1, const Message & msg2, const Message & msg3)
 {
@@ -252,7 +252,7 @@ The above technique will work for any message type that is supported for clients
 <p>
 If you need more control than the client messaging API can provide, however, you can call the public and protected members of the StorageReflectSession class directly.  For example, you can create or set nodes in your subtree of the database by calling SetDataNode():
 
-<pre>void 
+<pre>void
 MyReflectSession ::
 SetupMyStuff2(const MessageRef & msg1, const MessageRef & msg2, const MessageRef & msg3)
 {
@@ -311,7 +311,7 @@ A single traversal will not trigger the callback function for any given node mor
 The third argument to DoTraversal() (*_globalRoot in the examples above) is the node to start the search at.  For searches of the entire database, *_globalRoot is the correct value to place here; however you may wish to limit your search to only a subtree of the database tree.  For example, if you wish to make your search relative to the current session's node only (and thus search only nodes that your own session created), you could put *_sessionDir.GetItemPointer() here instead.  Note that using a different starting point does change the semantics of the path strings... e.g. in that case "*" would mean all children underneath the session node, rather than all children beneath the root node.
 
 <p>
-Leading slashes in the path strings are NOT handled by the WildPathMatcher--all WildPathMatcher path strings are taken to be relative paths, and are relative to the node passed in as the third argument to DoTraversal().  If you want to be able to handle leading slashes and give a default prefix to relative path strings, you may find the method WildPathMatcher::AdjustStringPrefix() to be useful.  
+Leading slashes in the path strings are NOT handled by the WildPathMatcher--all WildPathMatcher path strings are taken to be relative paths, and are relative to the node passed in as the third argument to DoTraversal().  If you want to be able to handle leading slashes and give a default prefix to relative path strings, you may find the method WildPathMatcher::AdjustStringPrefix() to be useful.
 
 <p>
 
@@ -338,7 +338,7 @@ ReadyToRun()
       if (AddNewSession(AbstractReflectSessionRef(fakeSession), ConstSocketRef()) == B_NO_ERROR)
       {
          return B_NO_ERROR;  // success!
-      }            
+      }
    }
    else WARN_OUT_OF_MEMORY;
 
@@ -366,7 +366,7 @@ You may, in some cases, wish to do other things with the log message besides pri
 
 <h2>Handling Out-of-Memory Conditions</h2>
 
-Handling out-of-memory errors well is a very tricky problem, to the extent that many programs don't attempt to handle out-of-memory conditions at all; they just assume that problem won't happen, and crash if it does.  This methodology may be okay for games, or client programs where a crash isn't catastrophic, but if a central program like a muscled server crashes, it can inconvenience many people (or in LCS's case, stop a musical in mid-chorus!), so it is very important that the server not crash, no matter what.  Because of this, muscled is designed to handle out-of-memory conditions without crashing; if you want, your extension code can too.  
+Handling out-of-memory errors well is a very tricky problem, to the extent that many programs don't attempt to handle out-of-memory conditions at all; they just assume that problem won't happen, and crash if it does.  This methodology may be okay for games, or client programs where a crash isn't catastrophic, but if a central program like a muscled server crashes, it can inconvenience many people (or in LCS's case, stop a musical in mid-chorus!), so it is very important that the server not crash, no matter what.  Because of this, muscled is designed to handle out-of-memory conditions without crashing; if you want, your extension code can too.
 <p>
 MUSCLE code doesn't use C++ exceptions.  This is because I'm not comfortable with the way exceptions integrate into C++; it's far too easy to get a memory leak or other unexpected result when an exception is thrown.  Instead, MUSCLE uses the classic C-style method of handling errors--error codes are returned, and manually propogated up to the code that can handle them.  (yes, it's a bit tedious.  Yes, I still like it better than C++ exceptions.  No whining!  ;^))
 <p>
@@ -387,7 +387,7 @@ The WARN_OUT_OF_MEMORY macro simply logs a message like this:
 <pre>[C 11/27 15:03:33] ERROR--OUT OF MEMORY (MyCode.cpp:396)
 </pre><p>
 
-So later on, when you are trying to figure out why your code didn't get executed, you will know there was a problem allocating memory.  
+So later on, when you are trying to figure out why your code didn't get executed, you will know there was a problem allocating memory.
 <p>
 Another feature that MUSCLE offers (via the MemoryAllocator classes) is automatic memory-usage tracking and out-of-memory callbacks.  The memory-usage-tracking allows you to place an upper limit on dynamic memory allocation, either to guarantee that your server won't overtax the machine it is running on, or just to test your out-of-memory handling code.  See the code at the beginning of main() in muscled.cpp for an example of how to set up memory tracking/limiting.  (Note that malloc/free calls aren't tracked--but you should always use new/delete for all your allocations anyway).
 <p>

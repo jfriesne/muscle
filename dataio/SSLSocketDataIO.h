@@ -17,8 +17,8 @@ class SSLSocketAdapterGateway;
   *       and then call either SetSSLPublicKeyCertificate() or SetSSLPrivateKey() on your
   *       ReflectServer or MessageTransceiverThread object.  Then the MUSCLE event loop
   *       will transparently insert the SSL layer for you.  Alternatively, creating the
-  *       SSLSocketDataIO objects and SSLSocketAdapterGateway objects explicitly in your 
-  *       own code will also work and may be necessary in cases where only certain sessions 
+  *       SSLSocketDataIO objects and SSLSocketAdapterGateway objects explicitly in your
+  *       own code will also work and may be necessary in cases where only certain sessions
   *       should use SSL.
   */
 class SSLSocketDataIO : public TCPSocketDataIO, private CountedObject<SSLSocketDataIO>
@@ -37,7 +37,7 @@ public:
    /** Adds a certification to use for this session.
      * @param certFilePath File path of the certificate file to use.
      * @returns B_NO_ERROR on success, or B_ERROR on failure (couldn't find file?)
-     */ 
+     */
    status_t SetPublicKeyCertificate(const char * certFilePath);
 
    /** Same as above, except instead of reading the certificate from a
@@ -64,7 +64,7 @@ public:
      *       SetPublicKeyCertificate() on your SSLSocketDataIO object.  The same
      *       file data can be passed to both (assuming the file in question contains
      *       both a PRIVATE key section and a CERTIFICATE section)
-     */ 
+     */
    status_t SetPrivateKey(const char * privateKeyFilePath);
 
    /** Same as above, except instead of reading the private key from a
@@ -81,7 +81,7 @@ public:
 
    /** Overridden to return a dummy (always-ready-for-read) socket when necessary,
      * as there are times when we need gateway->DoInput() to be called when even when there
-     * aren't any actual bytes present to be read from our TCP socket. 
+     * aren't any actual bytes present to be read from our TCP socket.
      * See http://www.rtfm.com/openssl-examples/part2.pdf (Figure 8) for details.
      */
    virtual const ConstSocketRef & GetReadSelectSocket() const;
@@ -107,7 +107,7 @@ private:
 
    ConstByteBufferRef _publicKey;
 
-   void * _ctx; // actually (SSL_CTX*) but declared (void *) here so I don't have to #include openssl headers 
+   void * _ctx; // actually (SSL_CTX*) but declared (void *) here so I don't have to #include openssl headers
    void * _ssl; // actually (SSL*)     but declared (void *) here so I don't have to #include openssl headers
 };
 

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifndef MuscleGenericCallback_h
 #define MuscleGenericCallback_h
@@ -7,7 +7,7 @@
 
 namespace muscle {
 
-/** Interface class representing a functor object whose GenericCallback() method can be called.  
+/** Interface class representing a functor object whose GenericCallback() method can be called.
   * The exact semantics of what the call does are not defined here; it can be used for different
   * purposes in different contexts.
   */
@@ -50,7 +50,7 @@ public:
    FunctionCallback(FunctionCallbackTypeB f, void * arg) : _funcA(NULL), _funcB(f), _arg(arg) {/* empty */}
 
    /** Calls through to the function specified in the constructor. */
-   virtual status_t Callback(void *) 
+   virtual status_t Callback(void *)
    {
       if (_funcA) {_funcA(); return B_NO_ERROR;}
       return _funcB ? _funcB(_arg) : B_ERROR;

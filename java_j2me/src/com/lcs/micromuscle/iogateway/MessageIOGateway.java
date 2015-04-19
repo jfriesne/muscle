@@ -9,24 +9,24 @@ import com.meyer.micromuscle.message.Message;
 import com.meyer.micromuscle.support.UnflattenFormatException;
 
 /** A gateway that converts to and from the 'standard' MUSCLE flattened message byte stream. */
-public class MessageIOGateway implements AbstractMessageIOGateway 
+public class MessageIOGateway implements AbstractMessageIOGateway
 {
     protected int _outgoingEncoding;
-    
-    public MessageIOGateway() 
+
+    public MessageIOGateway()
     {
        _outgoingEncoding = MUSCLE_MESSAGE_DEFAULT_ENCODING;
     }
-    
-    public MessageIOGateway(int encoding) 
+
+    public MessageIOGateway(int encoding)
     {
-       if (encoding < MUSCLE_MESSAGE_DEFAULT_ENCODING || encoding > MUSCLE_MESSAGE_ENCODING_ZLIB_9) 
+       if (encoding < MUSCLE_MESSAGE_DEFAULT_ENCODING || encoding > MUSCLE_MESSAGE_ENCODING_ZLIB_9)
        {
           throw new RuntimeException("The encoding passed is not supported");
        }
        _outgoingEncoding = encoding;
     }
-    
+
     /** Reads from the input stream until a Message can be assembled and returned.
       * @param in The input stream to read from.
       * @throws IOException if there is an error reading from the stream.
@@ -37,12 +37,12 @@ public class MessageIOGateway implements AbstractMessageIOGateway
     {
        int numBytes = in.readInt();
        int encoding = in.readInt();
-       if (encoding != MUSCLE_MESSAGE_DEFAULT_ENCODING) throw new IOException(); 
+       if (encoding != MUSCLE_MESSAGE_DEFAULT_ENCODING) throw new IOException();
        Message pmsg = pmsg = new Message();
        pmsg.unflatten(in, numBytes);
        return pmsg;
     }
-    
+
     /** Converts the given Message into bytes and sends it out the stream.
       * @param out the data stream to send the converted bytes to.
       * @param message the Message to convert.
@@ -54,7 +54,7 @@ public class MessageIOGateway implements AbstractMessageIOGateway
        out.writeInt(MUSCLE_MESSAGE_DEFAULT_ENCODING);
        msg.flatten(out);
     }
-    
-    protected final static int ZLIB_CODEC_HEADER_INDEPENDENT    = 2053925219;               // 'zlic'    
+
+    protected final static int ZLIB_CODEC_HEADER_INDEPENDENT    = 2053925219;               // 'zlic'
     protected final static int ZLIB_CODEC_HEADER_DEPENDENT      = 2053925218;               // 'zlib'
 }

@@ -18,7 +18,7 @@ import com.meyer.muscle.message.Message;
 public class Preferences {
    File prefsFile;
    protected Message prefs;
-   
+
    /**
     * Creates a Preferences object with a blank message, that dosen't have a save file.
     */
@@ -26,7 +26,7 @@ public class Preferences {
       prefs = new Message();
       prefsFile = null;
    }
-   
+
    /**
     * Creates a Preferences object with a default message, that dosen't have a save file.
     */
@@ -34,7 +34,7 @@ public class Preferences {
       prefs = defaults;
       prefsFile = null;
    }
-   
+
    /**
     * Creates a new Preferences from the given file.
     * @param loadFile the File to load the preferences from.
@@ -49,7 +49,7 @@ public class Preferences {
          // You are screwed.
       }
    }
-   
+
    /**
     * Creates a new Preferences instance using defaults for the initial settings,
     * then over-writing any defaults with the values from loadFile.
@@ -66,7 +66,7 @@ public class Preferences {
          // You are screwed.
       }
    }
-   
+
    /**
     * Saves the preferences to the file they were opened from.
     * @throws IOException
@@ -76,7 +76,7 @@ public class Preferences {
          save(prefsFile.getAbsolutePath());
       }
    }
-   
+
    /**
     * Saves the preferences to the file specified.
     * @param saveAs the file to save the preferences to.
@@ -87,7 +87,7 @@ public class Preferences {
       prefs.flatten(fileStream);
       fileStream.close();
    }
-   
+
    /**
     * @return the Message this object is manipulating.
     */

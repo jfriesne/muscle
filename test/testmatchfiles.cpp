@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -7,7 +7,7 @@
 
 using namespace muscle;
 
-int main(void) 
+int main(void)
 {
    char buf[1024];
    while(fgets(buf, sizeof(buf), stdin))

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifndef MuscleThread_h
 #define MuscleThread_h
@@ -49,7 +49,7 @@ class Thread : private CountedObject<Thread>, private NotCopyable
 public:
    /** Constructor.  Does very little (in particular, the internal thread is not started here...
      * that happens when you call StartInternalThread())
-     * @param useMessagingSockets Whether or not this thread should allocate a connected pair of 
+     * @param useMessagingSockets Whether or not this thread should allocate a connected pair of
      *                            sockets to handle messaging between the internal thread and the
      *                            calling thread.  Defaults to true.  Don't set this to false unless
      *                            you really know what you are doing, as setting it to false will
@@ -83,8 +83,8 @@ public:
      */
    static Thread * GetCurrentThread();
 
-   /** Tells the internal thread to quit by sending it a NULL MessageRef, and then optionally 
-     * waits for it to go away by calling WaitForInternalThreadToExit().  
+   /** Tells the internal thread to quit by sending it a NULL MessageRef, and then optionally
+     * waits for it to go away by calling WaitForInternalThreadToExit().
      * If the internal thread isn't running, this method is a no-op.
      * You must call this before deleting the MessageTransceiverThread object!
      * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
@@ -95,7 +95,7 @@ public:
 
    /** Blocks and won't return until after the internal thread exits.  If you have called
      * StartInternalThread(), you'll need to call this method (or ShutdownInternalThread())
-     * before deleting this Thread object or calling StartInternalThread() again--even if 
+     * before deleting this Thread object or calling StartInternalThread() again--even if
      * your thread has already terminated itself!  That way consistency is guaranteed and
      * race conditions are avoided.
      * @returns B_NO_ERROR on success, or B_ERROR if the internal thread wasn't running.
@@ -104,10 +104,10 @@ public:
 
    /** Puts the given message into a message queue for the internal thread to pick up,
      * and then calls SignalInternalThread() (if necessary) to signal the internal thread that a
-     * new message is ready.  If the internal thread isn't currently running, then the 
+     * new message is ready.  If the internal thread isn't currently running, then the
      * MessageRef will be queued up and available to the internal thread to process when it is started.
      * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
-     * @param msg Reference to the message that is to be given to the internal thread. 
+     * @param msg Reference to the message that is to be given to the internal thread.
      * @return B_NO_ERROR on success, or B_ERROR on failure (out of memory)
      */
    virtual status_t SendMessageToInternalThread(const MessageRef & msg);
@@ -117,10 +117,10 @@ public:
      * @param ref On success, (ref) will be a reference to the new reply message.
      * @param wakeupTime Time at which this method should stop blocking and return,
      *                   even if there is no new reply message ready.  If this value is
-     *                   0 (the default) or otherwise less than the current time 
-     *                   (as returned by GetRunTime64()), then this method does a 
+     *                   0 (the default) or otherwise less than the current time
+     *                   (as returned by GetRunTime64()), then this method does a
      *                   non-blocking poll of the reply queue.
-     *                   If (wakeuptime) is set to MUSCLE_TIME_NEVER, then this method 
+     *                   If (wakeuptime) is set to MUSCLE_TIME_NEVER, then this method
      *                   will block indefinitely, until a new reply is ready.
      * @see GetOwnerSocketSet() for advanced control of this method's behaviour
      * @returns The number of Messages left in the reply queue on success, or -1 on failure
@@ -128,7 +128,7 @@ public:
      */
    virtual int32 GetNextReplyFromInternalThread(MessageRef & ref, uint64 wakeupTime = 0);
 
-   /** Locks the internal thread's message queue and returns a pointer to it.  
+   /** Locks the internal thread's message queue and returns a pointer to it.
      * Since the queue is locked, you may examine or modify the queue safely.
      * Once this method has returned successfully, you are responsible for unlocking the
      * message queue again by calling UnlockMessageQueue().  If you don't, the Thread will
@@ -162,7 +162,7 @@ public:
      */
    status_t UnlockReplyQueue();
 
-   /** Returns the socket that the main thread may select() for read on for wakeup-notification bytes. 
+   /** Returns the socket that the main thread may select() for read on for wakeup-notification bytes.
      * This Thread object's thread-signalling sockets will be allocated by this method if they aren't already allocated.
      * @note this method will return a NULL reference if this Thread was created with constructor argument useMessagingSockets=false.
      */
@@ -179,23 +179,23 @@ public:
    };
 
    /** This function returns a reference to one of the three socket-sets that
-    *  GetNextReplyFromInternalThread() will optionally use to determine whether 
-    *  to return early.  By default, all of the socket-sets are empty, and 
+    *  GetNextReplyFromInternalThread() will optionally use to determine whether
+    *  to return early.  By default, all of the socket-sets are empty, and
     *  GetNextReplyFromInternalThread() will return only when a new Message
     *  has arrived from the internal thread, or when the timeout period has elapsed.
     *
     *  However, in some cases it is useful to have GetNextReplyFromInternalThread()
-    *  return under other conditions as well, such as when a specified socket becomes 
-    *  ready-to-read-from or ready-to-write-to.  You can specify that a socket should be 
-    *  watched in this manner, by adding that socket to the appropriate socket set(s).  
-    *  For example, to tell GetNextReplyFromInternalThread() to always return when 
-    *  mySocket is ready to be written to, you would add mySocket to the SOCKET_SET_WRITE 
+    *  return under other conditions as well, such as when a specified socket becomes
+    *  ready-to-read-from or ready-to-write-to.  You can specify that a socket should be
+    *  watched in this manner, by adding that socket to the appropriate socket set(s).
+    *  For example, to tell GetNextReplyFromInternalThread() to always return when
+    *  mySocket is ready to be written to, you would add mySocket to the SOCKET_SET_WRITE
     *  set, like this:
-    *     
+    *
     *     _thread.GetOwnerSocketSet(SOCKET_SET_WRITE).Put(mySocket, false);
     *
-    *  (This only needs to be done once)  After GetNextReplyFromInternalThread() 
-    *  returns, you can determine whether your socket is ready-to-write-to by checking 
+    *  (This only needs to be done once)  After GetNextReplyFromInternalThread()
+    *  returns, you can determine whether your socket is ready-to-write-to by checking
     *  its associated value in the table, like this:
     *
     *     bool canWrite = false;
@@ -251,15 +251,15 @@ protected:
      */
    status_t SendMessageToOwner(const MessageRef & replyRef);
 
-   /** You may override this method to be your Thread's execution entry point.  
+   /** You may override this method to be your Thread's execution entry point.
      * Default implementation runs in a loop calling WaitForNextMessageFromOwner() and
      * then MessageReceivedFromOwner().  In many cases, that is all you need, so you may
      * not need to override this method.
      */
    virtual void InternalThreadEntry();
- 
+
    /** This method is meant to be called by the internally held thread.
-     * It will attempt retrieve the next message that has been sent to the 
+     * It will attempt retrieve the next message that has been sent to the
      * thread via SendMessageToThread().
      * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
      * @param ref On success, (ref) will be set to be a reference to the retrieved Message.
@@ -269,7 +269,7 @@ protected:
      *                   then this method does a non-blocking poll of the queue.
      *                   If (wakeuptime) is set to MUSCLE_TIME_NEVER (the default value),
      *                   then this method will block indefinitely, until a Message is ready.
-     * @returns The number of Messages still remaining in the message queue on success, or 
+     * @returns The number of Messages still remaining in the message queue on success, or
      *          -1 on failure (i.e. the call was aborted before any Messages ever showing up,
      *          and (ref) was not written to)
      * @see GetInternalSocketSet() for advanced control of this method's behaviour
@@ -305,7 +305,7 @@ protected:
      */
    status_t LockSignalling() {return _signalLock.Lock();}
 
-   /** Unlocks the lock we use to serialize calls to SignalInternalThread() and SignalOwner().  
+   /** Unlocks the lock we use to serialize calls to SignalInternalThread() and SignalOwner().
      * @returns B_NO_ERROR on success, or B_ERROR on failure (couldn't unlock)
      */
    status_t UnlockSignalling() {return _signalLock.Unlock();}
@@ -314,23 +314,23 @@ protected:
    void CloseSockets();
 
    /** This function returns a reference to one of the three socket-sets that
-    *  WaitForNextMessageFromOwner() will optionally use to determine whether 
-    *  to return early.  By default, all of the socket-sets are empty, and 
+    *  WaitForNextMessageFromOwner() will optionally use to determine whether
+    *  to return early.  By default, all of the socket-sets are empty, and
     *  WaitForNextMessageFromOwner() will return only when a new Message
     *  has arrived from the owner thread, or when the timeout period has elapsed.
     *
     *  However, in some cases it is useful to have WaitForNextMessageFromOwner()
-    *  return under other conditions as well, such as when a specified socket becomes 
-    *  ready-to-read-from or ready-to-write-to.  You can specify that a socket should be 
-    *  watched in this manner, by adding that socket to the appropriate socket set(s).  
-    *  For example, to tell WaitForNextMessageFromOwner() to always return when 
-    *  mySocket is ready to be written to, you would add mySocket to the SOCKET_SET_WRITE 
+    *  return under other conditions as well, such as when a specified socket becomes
+    *  ready-to-read-from or ready-to-write-to.  You can specify that a socket should be
+    *  watched in this manner, by adding that socket to the appropriate socket set(s).
+    *  For example, to tell WaitForNextMessageFromOwner() to always return when
+    *  mySocket is ready to be written to, you would add mySocket to the SOCKET_SET_WRITE
     *  set, like this:
-    *     
+    *
     *     _thread.GetInternalSocketSet(SOCKET_SET_WRITE).Put(mySocket, false);
     *
-    *  (This only needs to be done once)  After WaitForNextMessageFromOwner() 
-    *  returns, you can determine whether your socket is ready-to-write-to by checking 
+    *  (This only needs to be done once)  After WaitForNextMessageFromOwner()
+    *  returns, you can determine whether your socket is ready-to-write-to by checking
     *  its associated value in the table, like this:
     *
     *     bool canWrite = false;
@@ -352,7 +352,7 @@ private:
    /** This class encapsulates data that is used by one of our two threads (internal or owner).
     *  It's put in a class like this so that I can easily access two copies of everything.
     */
-   class ThreadSpecificData 
+   class ThreadSpecificData
    {
    public:
       ThreadSpecificData() {/* empty */}
@@ -409,7 +409,7 @@ private:
 protected:
 # ifdef QT_HAS_THREAD_PRIORITIES
    /** Returns the priority that the internal thread should be launched under.  Only available
-    *  when using Qt 3.2 or higher, so you may want to wrap your references to this method in an 
+    *  when using Qt 3.2 or higher, so you may want to wrap your references to this method in an
     *  #ifdef QT_HAS_THREAD_PRIORITIES test, to make sure your code remains portable.
     *  @returns the QThread::Priority value, as described in the QThread documentation.  Default
     *           implementation always returns QThread::InheritPriority.
@@ -447,7 +447,7 @@ private:
 #else
 /** Macro for checking the current Thread's stack usage, and aborting with an error message
   * if the Thread has overrun it's suggested stack-space.  Note that this macro only works
-  * if called from a Thread object's internal thread, and only for Thread objects that 
+  * if called from a Thread object's internal thread, and only for Thread objects that
   * had SetSuggestedStackSize() called on them before the internal thread was started.
   */
 # define CHECK_THREAD_STACK_USAGE CheckThreadStackUsage(__FILE__, __LINE__)

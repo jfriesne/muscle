@@ -1,7 +1,7 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */ 
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifndef MuscleCloneable_h 
-#define MuscleCloneable_h 
+#ifndef MuscleCloneable_h
+#define MuscleCloneable_h
 
 #include "support/MuscleSupport.h"
 

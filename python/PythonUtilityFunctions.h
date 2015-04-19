@@ -5,7 +5,7 @@
 // If you want to include PythonUtilityFunctions.h in your code, you'll need
 // to make sure that python/Include is in your includes-path.
 #include "support/MuscleSupport.h"
-#include "Python.h"  
+#include "Python.h"
 
 namespace muscle {
 
@@ -18,8 +18,8 @@ namespace muscle {
 class Message;
 class String;
 
-/** Given the arguments passed by a Python script back to a C callback method, populates the given Message 
- *  with corresponding argument data.  
+/** Given the arguments passed by a Python script back to a C callback method, populates the given Message
+ *  with corresponding argument data.
  *  @note This function is only useful if you are trying to interface Python scripts and MUSCLE C++ code in the same executable.
  *  @param args The args tuple parameter for the positional arguments in the call.  May be NULL.
  *  @param keywords The keywords dictionary parameter for the keyword arguments in the call.  May be NULL.

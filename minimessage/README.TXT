@@ -46,7 +46,7 @@ differences between the two implementations, however:
      field[2] = 3;
      [...]
      MMFreeMessage(msg);
-     
+
    It's a bit less flexible, but it makes the implementation much
    simpler and more efficient.  See the test file tests/testmini.cpp
    for example usage of the MMessage API.
@@ -54,7 +54,7 @@ differences between the two implementations, however:
 4) The MMessageGateway API doesn't use DataIO objects to interface
    with the I/O API -- instead, it uses function callbacks.  There
    is one function callback for reading data, and another for
-   writing data, and your pass in these function pointers as part 
+   writing data, and your pass in these function pointers as part
    of your calls to MGDoInput() and MGDoOutput().  See the test
    file tests/minireflectclient.c for an example of how this
    is used.

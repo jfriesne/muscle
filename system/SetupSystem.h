@@ -25,7 +25,7 @@ class AtomicCounter;
   * be wanting to do.  Typically System objects are placed
   * on the stack at the beginning of main().  They do
   * the setup in their constructor, and tear it down
-  * again in their destructor. 
+  * again in their destructor.
   */
 class SetupSystem
 {
@@ -36,7 +36,7 @@ protected:
     *  without any pure virtuals defined)
    */
    SetupSystem() {/* empty */}
-  
+
 public:
    /** Virtual destructor to keep C++ honest */
    virtual ~SetupSystem() {/* empty */}
@@ -49,11 +49,11 @@ public:
    /** Constructor.  Records the thread ID of the main
      * thread and does some other miscellaneous setup work.
      * @param muscleSingleThreadOnly If set to true, the MUSCLE code will assume that
-     *                      this process is going to be single-threaded, even if the 
+     *                      this process is going to be single-threaded, even if the
      *                      code was not compiled with the -DMUSCLE_SINGLE_THREAD_ONLY flag!
-     *                      This can be useful to gain a bit of extra efficiency, if you 
-     *                      need to compile your code to be multithread-capable but can 
-     *                      sometimes promise that this particular process will never 
+     *                      This can be useful to gain a bit of extra efficiency, if you
+     *                      need to compile your code to be multithread-capable but can
+     *                      sometimes promise that this particular process will never
      *                      spawn multiple threads.
      *                      If your code is NEVER multi-threaded, then it is even more efficient to define
      *                      -DMUSCLE_SINGLE_THREAD_ONLY in your Makefile, rather than setting this flag to false.
@@ -80,7 +80,7 @@ private:
 #if defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
 /** Used by AtomicCounter to get (rather inefficient)
   * atomic counting via a small number of static mutexes.
-  * @param count The value to adjust atomically 
+  * @param count The value to adjust atomically
   * @param delta The amount to add/subtract to/from (*count)
   * @returns the new state of (*count)
   */
@@ -97,7 +97,7 @@ public:
      * get signalled and killed if a remote client closes
      * his connection while we are sending to him.
      */
-   NetworkSetupSystem(); 
+   NetworkSetupSystem();
 
    /** Destructor.  Under Windows, this calls WSACleanup();
      * it's a no-op for everyone else.
@@ -105,7 +105,7 @@ public:
    virtual ~NetworkSetupSystem();
 };
 
-/** This SetupSystem handles initializing the system's 
+/** This SetupSystem handles initializing the system's
   * math routines as necessary.
   */
 class MathSetupSystem : public SetupSystem
@@ -159,7 +159,7 @@ class CompleteSetupSystem : public SetupSystem
 {
 public:
    /** Constructor.  No-op, all the other *SetupSystem objects are created at this point.
-     * @param muscleSingleThreadOnly Passed to the ThreadSetupSystem constructor.  
+     * @param muscleSingleThreadOnly Passed to the ThreadSetupSystem constructor.
      *                      See the ThreadSetupSystem documentation for details.
      *                      (If you don't know what this flag is, leave it set to false!)
      */
@@ -182,12 +182,12 @@ public:
    const Queue<GenericCallbackRef> & GetCleanupCallbacks() const {return _cleanupCallbacks;}
 
    /** If there are any CompleteSetupSystems anywhere on the stack, this method will
-     * return a pointer to the current (most recently created) CompleteSetupSystem object. 
+     * return a pointer to the current (most recently created) CompleteSetupSystem object.
      * Otherwise, returns NULL.
-     */ 
+     */
    static CompleteSetupSystem * GetCurrentCompleteSetupSystem();
 
-private: 
+private:
    NetworkSetupSystem _network;
    ThreadSetupSystem  _threads;
    MathSetupSystem    _math;
@@ -210,7 +210,7 @@ bool IsCurrentThreadMainThread();
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
 
-/** This class represents a unique ID for a thread.  It provides an 
+/** This class represents a unique ID for a thread.  It provides an
   * implementation-neutral and more user-friendly wrapper around pthread_self()
   * and its equivalents.
   */
@@ -218,14 +218,14 @@ class muscle_thread_id
 {
 public:
    /** Default constructor.  Returns an muscle_thread_id object that doesn't represent any thread. */
-   muscle_thread_id() 
+   muscle_thread_id()
 # ifndef MUSCLE_USE_PTHREADS
       : _id(0)
 # endif
    {
 # ifdef MUSCLE_USE_PTHREADS
       memset(&_id, 0, sizeof(_id));
-# endif  
+# endif
    }
 
    /** Returns true iff the two objects represent the same thread ID. */
@@ -269,7 +269,7 @@ public:
 # if defined(MUSCLE_USE_PTHREADS)
       // pthread_t might be a struct, so generate a good-enough ID from its bytes
       unsigned long count = 0;
-      unsigned long base  = 1; 
+      unsigned long base  = 1;
       unsigned char * s = (unsigned char*)(void*)(&_id);
       for (size_t i=0; i<sizeof(_id); i++)
       {
@@ -277,9 +277,9 @@ public:
          count += (c*base);
          base *= 10;
       }
-      sprintf(buf, "%lu", count);
+      muscleSnprintf(buf, 20, "%lu", count);
 # else
-      sprintf(buf, "%lu", (unsigned long) _id);
+      muscleSnprintf(buf, 20, "%lu", (unsigned long) _id);
 # endif
       return buf;
    }

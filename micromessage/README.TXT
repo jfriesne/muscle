@@ -1,10 +1,10 @@
 
-This folder contains an extremely bare-bones C implementation of the 
+This folder contains an extremely bare-bones C implementation of the
 MUSCLE Message and MessageGateway APIs.
 
 If you want to avoid C++ in your program (usually because you want
 to minimize executable size, or because a C++ compiler is not available)
-you can use the MiniMessages APIs in the minimessage folder to 
+you can use the MiniMessages APIs in the minimessage folder to
 implement simple MUSCLE Message functionality instead.
 
 However, if even MiniMessage is too heavyweight, and you want an
@@ -26,7 +26,7 @@ These files do not depend on any other files outside of this folder,
 except for support/MuscleSupport.h.
 
 The MicroMessage.{c,h} files contain the MicroMessage API -- the
-equivalent to the MiniMessage class in the minimessage folder, or 
+equivalent to the MiniMessage class in the minimessage folder, or
 the Message class in C++.  There are some significant
 differences between the two implementations, however:
 
@@ -49,13 +49,13 @@ differences between the two implementations, however:
 
    The same code using the MMessage API would look like this:
 
-     char buf[1024]
+     char buf[1024];
      MicroMessage msg;
      UMInitialize(&msg, buf, sizeof(buf));
      UMAddInt32("fieldname", 1);
      UMAddInt32("fieldname", 2);
      UMAddInt32("fieldname", 3);
-     
+
    It's a bit less flexible, but it makes the implementation much
    simpler and more efficient.  See the test file tests/testmini.cpp
    for example usage of the MMessage API.

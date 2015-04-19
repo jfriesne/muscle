@@ -18,7 +18,7 @@ to add the packet compression support to pure Java SSH systems.
 Documentation
 =============
 * README files all over the source tree have info related to the stuff
-  in the directories. 
+  in the directories.
 * ChangeLog: what changed from the previous version?
 * LICENSE.txt
 
@@ -36,7 +36,7 @@ Features
 ========
 * Needless to say, JZlib can inflate data, which is deflated by zlib and
   JZlib can generate deflated data, which is acceptable and inflated by zlib.
-* JZlib supports all compression level and all flushing mode in zlib. 
+* JZlib supports all compression level and all flushing mode in zlib.
 * JZlib does not support gzip file handling supports.
 * The performance has not been estimated yet,  but it will be not so bad
   in deflating/inflating data stream on the low bandwidth network.
@@ -48,7 +48,7 @@ Features
 Why JZlib?
 ==========
 Java Platform API provides packages 'java.util.zip.*' for
-accessing to zlib, but that support is very limited 
+accessing to zlib, but that support is very limited
 if you need to use the essence of zlib. For example,
 we needed to full access to zlib to add the packet compression
 support to pure Java SSH system, but they are useless for our requirements.
@@ -66,17 +66,17 @@ The Internet draft, SSH Transport Layer Protocol, says in the section '4.2 Compr
 
 To implement this functionality, the Z_PARTIAL_FLUSH mode of zlib must be
 used, however JDK does not permit us to do so. It seems that this problem has
-been well known and some people have already reported to 
-JavaSoft's BugParade(for example, BugId:4255743), 
-but any positive response has not been returned from JavaSoft, 
-so this problem will not be solved forever. 
+been well known and some people have already reported to
+JavaSoft's BugParade(for example, BugId:4255743),
+but any positive response has not been returned from JavaSoft,
+so this problem will not be solved forever.
 This is our motivation to hack JZlib.
 
 
 A unofficial patch for MindTerm v.1.2.1
 =======================================
 A unofficial patch file for MindTerm v.1.2.1 has included in 'misc' directory.
-It adds the packet compression support to MindTerm. 
+It adds the packet compression support to MindTerm.
 Please refer to 'misc/README' file.
 
 
@@ -116,7 +116,7 @@ and contributors of zlib.  Here is the copyright notice of zlib version 1.1.3,
   |jloup@gzip.org          madler@alumni.caltech.edu
 
 
-If you have any comments, suggestions and questions, write us 
+If you have any comments, suggestions and questions, write us
 at jzlib@jcraft.com
 
 

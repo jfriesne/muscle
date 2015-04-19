@@ -29,14 +29,14 @@ public:
 
    /** Called when data relevant to this node has been received from the MUSCLE thread
      * @param subPath relative path of the data item (underneath our session node)
-     * @param optData If non-NULL, the new value of the sub-item; if a NULL reference it means the sub-item was deleted. 
+     * @param optData If non-NULL, the new value of the sub-item; if a NULL reference it means the sub-item was deleted.
      */
    void DataReceived(const String & subPath, const MessageRef & optData)
    {
       if (optData() != NULL) _data.Put(subPath, optData);
                         else _data.Remove(subPath);
       Update();
-   } 
+   }
 
 private:
    void Update()
@@ -56,10 +56,10 @@ private:
          if (iter.GetValue()()->FindInt32("count", count) == B_NO_ERROR) s += String("=%1").Arg(count);
          s += ' ';
       }
-      
+
       setText(s());
    }
-  
+
    String _sessionID;
    Hashtable<String, MessageRef> _data;
 };
@@ -145,7 +145,7 @@ static status_t ParsePath(const String & path, String & retSessionString, String
 
    StringTokenizer tok(path(), "/");
    retSessionString  = "/";
-   retSessionString += tok();  
+   retSessionString += tok();
    retSessionString += '/';
    retSessionString += tok();
 
@@ -155,7 +155,7 @@ static status_t ParsePath(const String & path, String & retSessionString, String
 
 void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, const String & sessionID)
 {
-   printf("AdvancedExampleWindow::MessageReceivedFromServer called in GUI thread! msg->what="UINT32_FORMAT_SPEC" sessionID=[%s]\n", msg()->what, sessionID()); 
+   printf("AdvancedExampleWindow::MessageReceivedFromServer called in GUI thread! msg->what="UINT32_FORMAT_SPEC" sessionID=[%s]\n", msg()->what, sessionID());
 
    switch(msg()->what)
    {
@@ -172,7 +172,7 @@ void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, 
       break;
 
       case PR_RESULT_DATAITEMS:
-      { 
+      {
          // Look for strings that indicate that subscribed nodes were removed from the tree
          const String * removedNodePath;
          for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, &removedNodePath) == B_NO_ERROR); i++)
@@ -219,7 +219,7 @@ void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, 
                {
                   // Create a SessionListViewItem for this sessionStr, if we don't already have one
                   SessionListViewItem * item;
-                  if (_sessionLookup.Get(sessionStr, item) != B_NO_ERROR) 
+                  if (_sessionLookup.Get(sessionStr, item) != B_NO_ERROR)
                   {
                      item = new SessionListViewItem(_sessionsView, sessionStr);
                      _sessionLookup.Put(sessionStr, item);
@@ -253,7 +253,7 @@ void AdvancedExampleWindow :: RemoveSelectedSessionsButtonClicked()
    for (int i=0; i<selectedItems.count(); i++)
    {
       SessionListViewItem * slvi = static_cast<SessionListViewItem *>(selectedItems[i]);
-      
+
       MessageRef endSession = GetMessageFromPool(ADVANCED_COMMAND_ENDSESSION);
       endSession()->AddString(PR_NAME_KEYS, slvi->GetSessionID());  // make sure it only goes to the session we want to go away
       _serverThread.SendMessageToInternalThread(endSession);
@@ -269,7 +269,7 @@ void AdvancedExampleWindow :: SendMessageToSelectedSessionsButtonClicked()
    for (int i=0; i<selectedItems.count(); i++)
    {
       SessionListViewItem * slvi = static_cast<SessionListViewItem *>(selectedItems[i]);
-      
+
       MessageRef pokeSession = GetMessageFromPool(INTERNAL_THREAD_COMMAND_HURRYUP);
       pokeSession()->AddString(PR_NAME_KEYS, slvi->GetSessionID());  // make sure it only goes to the session we want it to go to
       pokeSession()->AddString("hurry up", "already!");

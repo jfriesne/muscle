@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -34,7 +34,7 @@ public:
 // This program is designed to sometimes deadlock!  Compile it with -DMUSCLE_ENABLE_DEADLOCK_FINDER
 // and feed its stdout output into the deadlockfinder program to see if deadlockfinder can detect
 // the potential deadlock!
-int main(int /*argc*/, char ** /*argv*/) 
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

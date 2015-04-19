@@ -169,7 +169,7 @@ begin
   _socket.OnRead := SocketRead;
   _socket.OnWrite := SocketWrite; //I question whether this works?!
   _socket.OnConnect := SocketConnect;
-  _socket.OnDisconnect := SocketDisconnect; 
+  _socket.OnDisconnect := SocketDisconnect;
   _socket.ClientType := ctNonBlocking;
 
   //defaults... streaming *may* override these.
@@ -220,7 +220,7 @@ procedure TMessageTransceiver.connect;
 begin
   if connected then
     raise Exception.Create('Socket is already connected!');
-    
+
   _socket.active := true;
 end;
 

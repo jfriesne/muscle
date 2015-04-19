@@ -15,7 +15,7 @@ namespace muscle {
 #endif
 
 /**
- *  Data I/O to and from a TCP socket! 
+ *  Data I/O to and from a TCP socket!
  */
 class TCPSocketDataIO : public DataIO, private CountedObject<TCPSocketDataIO>
 {
@@ -35,7 +35,7 @@ public:
    /** Destructor.
     *  Closes the socket descriptor, if necessary.
     */
-   virtual ~TCPSocketDataIO() 
+   virtual ~TCPSocketDataIO()
    {
       Shutdown();
    }
@@ -75,7 +75,7 @@ public:
          SetSocketNaglesAlgorithmEnabled(_sock, true);
       }
    }
-   
+
    /**
     * Closes our socket connection
     */

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "iogateway/MessageIOGateway.h"
@@ -14,18 +14,18 @@ using namespace muscle;
 DataIORef GetFileRef(FILE * file)
 {
    return DataIORef(new ZLibDataIO(DataIORef(new FileDataIO(file))));   // enable transparent file compression!
-//   return DataIORef(new FileDataIO(file)); 
+//   return DataIORef(new FileDataIO(file));
 }
 
 // This program tests the functionality of the MessageIOGateway by writing a Message
 // out to a file, then reading it back in.
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
    QueueGatewayMessageReceiver inQueue;
    if (argc == 1)
    {
-      FILE * f = fopen("test.dat", "wb");
+      FILE * f = muscleFopen("test.dat", "wb");
       if (f)
       {
          printf("Outputting test messages to test.dat...\n");
@@ -46,13 +46,13 @@ int main(int argc, char ** argv)
       else printf("Error, could not open test file!\n");
 
       // Now try to read it back in
-      FILE * in = fopen("test.dat", "rb");
+      FILE * in = muscleFopen("test.dat", "rb");
       if (in)
       {
          printf("Reading test messages from test.dat...\n");
          MessageIOGateway g;
          g.SetDataIO(GetFileRef(in));
-         while(g.DoInput(inQueue) >= 0) 
+         while(g.DoInput(inQueue) >= 0)
          {
             MessageRef msgRef;
             while(inQueue.RemoveHead(msgRef) == B_NO_ERROR) msgRef()->PrintToStream();
@@ -66,14 +66,14 @@ int main(int argc, char ** argv)
    {
       for (int i=1; i<argc; i++)
       {
-         FILE * in = fopen(argv[i], "rb");
+         FILE * in = muscleFopen(argv[i], "rb");
          if (in)
          {
             printf("Reading message file %s...\n", argv[i]);
             MessageIOGateway g;
             g.SetDataIO(GetFileRef(in));
             int32 readBytes;
-            while((readBytes = g.DoInput(inQueue)) >= 0) 
+            while((readBytes = g.DoInput(inQueue)) >= 0)
             {
                printf("Read " UINT32_FORMAT_SPEC" bytes...\n", readBytes);
                MessageRef msgRef;

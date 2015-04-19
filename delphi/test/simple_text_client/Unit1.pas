@@ -98,7 +98,7 @@ begin
 
     MTT_EVENT_DISCONNECTED:
       memo1.lines.add('Server has disconnected');
-      
+
   else
     memo1.lines.add(
       #13#10#13#10'----------'#13#10'<Unknown message>'#13#10#13#10+

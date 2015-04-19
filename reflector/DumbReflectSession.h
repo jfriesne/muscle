@@ -20,14 +20,14 @@ public:
 enum {
    MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF      = 0x01,  /** If this bit is set, Messages broadcast by this session will be received by this session */
    MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS = 0x02,  /** If this bit is set, unrecognized Messages received by this session's gateway will be broadcast to all neighbors. */
-   MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY = 0x04   /** If this bit is set, unrecognized Messages received by this session's neighbors will be forwarded to this session's gateway. */ 
+   MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY = 0x04   /** If this bit is set, unrecognized Messages received by this session's neighbors will be forwarded to this session's gateway. */
 };
 
 #ifndef DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD
 # define DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD (MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS | MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY)
 #endif
 
-/** This class represents a single TCP connection between a muscled server and a client program.  
+/** This class represents a single TCP connection between a muscled server and a client program.
  *  This class implements a simple "reflect-all-messages-to-all-clients"
  *  message forwarding strategy, but may be subclassed to perform more complex message routing logic.
  */
@@ -42,7 +42,7 @@ public:
 
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
-   /** Called when a message is sent to us by another session (possibly this one).  
+   /** Called when a message is sent to us by another session (possibly this one).
     *  @param from The session that is sending us the message.
     *  @param msg Reference to the message that we are receiving.
     *  @param userData This is a user value whose semantics are defined by the subclass.

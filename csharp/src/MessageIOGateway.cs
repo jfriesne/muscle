@@ -1,4 +1,3 @@
-
 namespace muscle.iogateway {
   using muscle.support;
   using muscle.message;
@@ -7,28 +6,28 @@ namespace muscle.iogateway {
   using System.IO;
 
   /// <summary>
-  /// A gateway that converts to and from the 'standard' MUSCLE 
+  /// A gateway that converts to and from the 'standard' MUSCLE
   /// flattened message byte stream.
   /// </summary>
 
   public class MessageIOGateway : AbstractMessageIOGateway {
-    public MessageIOGateway() : 
+    public MessageIOGateway() :
       this(MUSCLE_MESSAGE_ENCODING_DEFAULT)
     {
- 
+
     }
-    
+
     // <summary>
     // Constructs a MessageIOGateway whose outgoing encoding
     // is one of MUSCLE_MESSAGE_ENCODING_*.
-    private MessageIOGateway(int encoding) 
+    private MessageIOGateway(int encoding)
     {
       _encoding = encoding;
     }
 
 
     /// <summary>
-    /// Reads from the input stream until a Message can be assembled 
+    /// Reads from the input stream until a Message can be assembled
     /// and returned.
     /// </summary>
     ///
@@ -48,10 +47,10 @@ namespace muscle.iogateway {
 
       Message pmsg = new Message();
       pmsg.unflatten(reader, numBytes);
-      
+
       return pmsg;
     }
-    
+
     /// <summary>
     /// Converts the given Message into bytes and sends it out the stream.
     /// </summary>
@@ -84,13 +83,13 @@ namespace muscle.iogateway {
 	writer.Flush();
       }
     }
-    
+
     private int _encoding;
 
     public const int MESSAGE_HEADER_SIZE = 8;
 
-    // 'Enc0' -- just plain ol' flattened Message objects, with no 
-    // special encoding 
+    // 'Enc0' -- just plain ol' flattened Message objects, with no
+    // special encoding
     public const int MUSCLE_MESSAGE_ENCODING_DEFAULT = 1164862256;
 
     // zlib encoding levels

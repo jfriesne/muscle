@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "reflector/DataNode.h"
 #include "reflector/StorageReflectSession.h"
@@ -10,7 +10,7 @@ DataNode :: DataNode() : _children(NULL), _orderedIndex(NULL), _orderedCounter(0
    // empty
 }
 
-DataNode :: ~DataNode() 
+DataNode :: ~DataNode()
 {
    delete _children;
    delete _orderedIndex;
@@ -32,7 +32,7 @@ void DataNode :: Reset()
    TCHECKPOINT;
 
    // Note that I'm now deleting these auxiliary objects instead of
-   // just clearing them.  That will save memory, and also makes a 
+   // just clearing them.  That will save memory, and also makes a
    // newly-reset DataNode behavior more like a just-created one
    // (See FogBugz #9845 for details)
    delete _children;     _children     = NULL;
@@ -85,7 +85,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
       _orderedIndex = newnothrow Queue<DataNodeRef>;
       if (_orderedIndex == NULL)
       {
-         WARN_OUT_OF_MEMORY; 
+         WARN_OUT_OF_MEMORY;
          return B_ERROR;
       }
    }
@@ -97,7 +97,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
       while(true)
       {
          char buf[50];
-         sprintf(buf, "I" UINT32_FORMAT_SPEC, _orderedCounter++);
+         muscleSprintf(buf, "I" UINT32_FORMAT_SPEC, _orderedCounter++);
          if (HasChild(buf) == false) {temp = buf; break;}
       }
       optNodeName = &temp;
@@ -106,14 +106,14 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
    DataNodeRef dref = notifyWithOnSetParent->GetNewDataNode(*optNodeName, data);
    if (dref() == NULL)
    {
-      WARN_OUT_OF_MEMORY; 
+      WARN_OUT_OF_MEMORY;
       return B_ERROR;
    }
 
    uint32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
    if ((optInsertBefore)&&(optInsertBefore->Cstr()[0] == 'I'))  // only 'I''s could be in our index!
    {
-      for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--) 
+      for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--)
       {
          if ((*_orderedIndex)[i]()->GetNodeName() == *optInsertBefore)
          {
@@ -122,7 +122,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
          }
       }
    }
- 
+
    // Update the index
    if (PutChild(dref, notifyWithOnSetParent, optNotifyChangedData) == B_NO_ERROR)
    {
@@ -165,7 +165,7 @@ status_t DataNode :: InsertIndexEntryAt(uint32 insertIndex, StorageReflectSessio
          if (_orderedIndex == NULL)
          {
             _orderedIndex = newnothrow Queue<DataNodeRef>;
-            if (_orderedIndex == NULL) WARN_OUT_OF_MEMORY; 
+            if (_orderedIndex == NULL) WARN_OUT_OF_MEMORY;
          }
          if ((_orderedIndex)&&(_orderedIndex->InsertItemAt(insertIndex, childNode) == B_NO_ERROR))
          {
@@ -189,12 +189,12 @@ status_t DataNode :: ReorderChild(const DataNodeRef & child, const String * move
       uint32 targetIndex = _orderedIndex->GetNumItems();  // default to end of index
       if ((moveToBeforeThis)&&(HasChild(*moveToBeforeThis)))
       {
-         for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--) 
-         { 
+         for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--)
+         {
             if (*moveToBeforeThis == (*_orderedIndex)[i]()->GetNodeName())
             {
                targetIndex = i;
-               break; 
+               break;
             }
          }
       }
@@ -218,7 +218,7 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
    DataNode * child = node();
    if (child)
    {
-      if (_children == NULL) 
+      if (_children == NULL)
       {
          _children = newnothrow Hashtable<const String *, DataNodeRef>;
          if (_children == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
@@ -241,7 +241,7 @@ void DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNotifyW
 
    if ((_parent)&&(parent)) LogTime(MUSCLE_LOG_WARNING, "Warning, overwriting previous parent of node [%s]\n", GetNodeName()());
    _parent = parent;
-   if (_parent) 
+   if (_parent)
    {
       const char * nn = _nodeName();
       uint32 id = atol(&nn[(*nn=='I')?1:0]);
@@ -255,7 +255,7 @@ void DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNotifyW
    {
       // Calculate the total length that our node path string will be
       const DataNode * node = this;
-      while(node->_parent) 
+      while(node->_parent)
       {
          _depth++;
          node = node->_parent;
@@ -305,9 +305,9 @@ status_t DataNode :: GetNodePath(String & retPath, uint32 startDepth) const
       if (pathLen >= stackAllocSize)  // but do a dynamic allocation if we have to (should be rare)
       {
          dynBuf = newnothrow_array(char, pathLen+1);
-         if (dynBuf == NULL) 
-         { 
-            WARN_OUT_OF_MEMORY; 
+         if (dynBuf == NULL)
+         {
+            WARN_OUT_OF_MEMORY;
             return B_ERROR;
          }
       }
@@ -325,7 +325,7 @@ status_t DataNode :: GetNodePath(String & retPath, uint32 startDepth) const
          node = node->_parent;
          d--;
       }
- 
+
       retPath = (dynBuf ? dynBuf : stackBuf);
       delete [] dynBuf;
    }

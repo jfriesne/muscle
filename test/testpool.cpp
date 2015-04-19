@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -73,7 +73,7 @@ int main(int argc, char ** argv)
       break;
 
       default:
-         printf("Usage:  testpools <testnum>   (where testnum is between 1 and 6)\n");
+         printf("Usage:  testpools <testnum>   (where testnum is between 1 and 7)\n");
       break;
    }
 

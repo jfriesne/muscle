@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "iogateway/MessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"  // for PR_COMMAND_PING, PR_RESULT_PONG
@@ -8,7 +8,7 @@ namespace muscle {
 
 MessageIOGateway :: MessageIOGateway(int32 encoding) :
    _maxIncomingMessageSize(MUSCLE_NO_LIMIT),
-   _outgoingEncoding(encoding), 
+   _outgoingEncoding(encoding),
    _aboutToFlattenCallback(NULL), _aboutToFlattenCallbackData(NULL),
    _flattenedCallback(NULL), _flattenedCallbackData(NULL),
    _unflattenedCallback(NULL), _unflattenedCallbackData(NULL)
@@ -20,7 +20,7 @@ MessageIOGateway :: MessageIOGateway(int32 encoding) :
    _scratchRecvBuffer.AdoptBuffer(sizeof(_scratchRecvBufferBytes), _scratchRecvBufferBytes);
 }
 
-MessageIOGateway :: ~MessageIOGateway() 
+MessageIOGateway :: ~MessageIOGateway()
 {
    (void) _scratchRecvBuffer.ReleaseBuffer();  // otherwise it will try to delete[] _scratchRecvBufferBytes and that would be bad
 
@@ -39,7 +39,7 @@ PopNextOutgoingMessage(MessageRef & retMsg)
 
 // For this method, B_NO_ERROR means "keep sending", and B_ERROR means "stop sending for now", and isn't fatal to the stream
 // If there is a fatal error in the stream it will call SetHosed() to indicate that.
-status_t 
+status_t
 MessageIOGateway :: SendMoreData(int32 & sentBytes, uint32 & maxBytes)
 {
    TCHECKPOINT;
@@ -58,7 +58,7 @@ MessageIOGateway :: SendMoreData(int32 & sentBytes, uint32 & maxBytes)
    return (numSent < attemptSize) ? B_ERROR : B_NO_ERROR;
 }
 
-int32 
+int32
 MessageIOGateway ::
 DoOutputImplementation(uint32 maxBytes)
 {
@@ -73,7 +73,7 @@ DoOutputImplementation(uint32 maxBytes)
          while(true)
          {
             MessageRef nextRef;
-            if (PopNextOutgoingMessage(nextRef) != B_NO_ERROR) 
+            if (PopNextOutgoingMessage(nextRef) != B_NO_ERROR)
             {
                if ((GetFlushOnEmpty())&&(sentBytes > 0)) GetDataIO()()->FlushOutput();
                return sentBytes;  // nothing more to send, so we're done!
@@ -130,7 +130,7 @@ DoOutputImplementation(uint32 maxBytes)
    return IsHosed() ? -1 : sentBytes;
 }
 
-int32 
+int32
 MessageIOGateway ::
 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
@@ -187,7 +187,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
          ByteBuffer * bb = _recvBuffer._buffer();  // guaranteed not to be NULL, if we got here!
          if (_recvBuffer._offset < hs)
-         { 
+         {
             // We don't have the entire header yet, so try and read some more of it
             if (ReceiveMoreData(readBytes, maxBytes, hs) != B_NO_ERROR) break;
             if (_recvBuffer._offset >= hs)  // how about now?
@@ -208,10 +208,10 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                      bb = bigBuf();
                   }
                }
-               else 
+               else
                {
                   LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  bodySize " INT32_FORMAT_SPEC " is out of range, limit is " UINT32_FORMAT_SPEC "\n", this, bodySize, _maxIncomingMessageSize);
-                  SetHosed(); 
+                  SetHosed();
                   break;
                }
             }
@@ -237,7 +237,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
 // For this method, B_NO_ERROR means "We got all the data we had room for", and B_ERROR
 // means "short read".  A real network error will also cause SetHosed() to be called.
-status_t 
+status_t
 MessageIOGateway :: ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32 maxArraySize)
 {
    TCHECKPOINT;
@@ -256,7 +256,7 @@ MessageIOGateway :: ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32
 }
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-ZLibCodec * 
+ZLibCodec *
 MessageIOGateway ::
 GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const
 {
@@ -277,7 +277,7 @@ GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const
 }
 #endif
 
-ByteBufferRef 
+ByteBufferRef
 MessageIOGateway ::
 FlattenHeaderAndMessage(const MessageRef & msgRef) const
 {
@@ -322,7 +322,7 @@ FlattenHeaderAndMessage(const MessageRef & msgRef) const
    return ret;
 }
 
-MessageRef 
+MessageRef
 MessageIOGateway ::
 UnflattenHeaderAndMessage(const ByteBufferRef & bufRef) const
 {
@@ -350,10 +350,10 @@ UnflattenHeaderAndMessage(const ByteBufferRef & bufRef) const
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
          ByteBufferRef expRef;  // must be declared outside the brackets below!
          ZLibCodec * enc = GetCodec(encoding, _recvCodec);
-         if (enc) 
+         if (enc)
          {
             expRef = enc->Inflate(bb->GetBuffer()+offset, bb->GetNumBytes()-offset);
-            if (expRef()) 
+            if (expRef())
             {
                bb = expRef();
                offset = 0;
@@ -376,22 +376,22 @@ UnflattenHeaderAndMessage(const ByteBufferRef & bufRef) const
 
 // Returns the size of the pre-flattened-message header section, in bytes.
 // The default format has an 8-byte header (4 bytes for encoding ID, 4 bytes for message length)
-uint32 
+uint32
 MessageIOGateway ::
 GetHeaderSize() const
 {
-   return 2 * sizeof(uint32);  // one long for the encoding ID, and one long for the body length 
+   return 2 * sizeof(uint32);  // one long for the encoding ID, and one long for the body length
 }
 
-int32 
+int32
 MessageIOGateway ::
-GetBodySize(const uint8 * headerBuf) const 
+GetBodySize(const uint8 * headerBuf) const
 {
    const uint32 * h = (const uint32 *) headerBuf;
    return (muscleInRange((uint32)B_LENDIAN_TO_HOST_INT32(h[1]), (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)MUSCLE_MESSAGE_ENCODING_END_MARKER-1)) ? (int32)(B_LENDIAN_TO_HOST_INT32(h[0])) : -1;
 }
 
-bool 
+bool
 MessageIOGateway ::
 HasBytesToOutput() const
 {
@@ -436,7 +436,7 @@ status_t MessageIOGateway :: ExecuteSynchronousMessaging(AbstractGatewayMessageR
    else return B_ERROR;
 }
 
-void MessageIOGateway :: SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r) 
+void MessageIOGateway :: SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r)
 {
    if ((_pendingSyncPingCounter >= 0)&&(IsSynchronousPongMessage(msg, _pendingSyncPingCounter)))
    {
@@ -464,12 +464,12 @@ MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & 
          uint64 connectDuration = GetRunTime64()-timeBeforeConnect;
          timeoutPeriod = (timeoutPeriod > connectDuration) ? (timeoutPeriod-connectDuration) : 0;
       }
- 
+
       DataIORef oldIO = GetDataIO();
       TCPSocketDataIO tsdio(s, false);
       SetDataIO(DataIORef(&tsdio, false));
       QueueGatewayMessageReceiver receiver;
-      if ((AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)) == B_NO_ERROR)&&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod) == B_NO_ERROR)) ret = receiver.HasItems() ? receiver.Head() : GetMessageFromPool();
+      if ((AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)) == B_NO_ERROR)&&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod) == B_NO_ERROR)) ret = receiver.GetMessages().HasItems() ? receiver.GetMessages().Head() : GetMessageFromPool();
       SetDataIO(oldIO);  // restore any previous I/O
    }
    return ret;
@@ -487,12 +487,12 @@ status_t MessageIOGateway :: ExecuteSynchronousMessageSend(const Message & reque
          uint64 connectDuration = GetRunTime64()-timeBeforeConnect;
          timeoutPeriod = (timeoutPeriod > connectDuration) ? (timeoutPeriod-connectDuration) : 0;
       }
- 
+
       DataIORef oldIO = GetDataIO();
       TCPSocketDataIO tsdio(s, false);
       SetDataIO(DataIORef(&tsdio, false));
       QueueGatewayMessageReceiver receiver;
-      if (AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)) == B_NO_ERROR) 
+      if (AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)) == B_NO_ERROR)
       {
          NestCountGuard ncg(_noRPCReply);  // so that we'll return as soon as we've sent the request Message, and not wait for a reply Message.
          ret = ExecuteSynchronousMessaging(&receiver, timeoutPeriod);

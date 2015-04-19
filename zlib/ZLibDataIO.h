@@ -9,8 +9,8 @@
 # include "dataio/DataIO.h"
 
 namespace muscle {
- 
-/** This class wraps around another DataIO and transparently compresses all 
+
+/** This class wraps around another DataIO and transparently compresses all
   * data going to that DataIO, and decompresses all data coming from that
   * dataIO.
   */
@@ -23,7 +23,7 @@ public:
      */
    ZLibDataIO(int compressionLevel = 6);
 
-   /** Constructor 
+   /** Constructor
      * @param slaveIO Reference to the DataIO object to pass compressed data to/from.
      * @param compressionLevel how much to compress outgoing data.  0 is no
      *                         compression 9 is maximum compression.  Default is 6.

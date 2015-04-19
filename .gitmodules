@@ -1,0 +1,4 @@
+[submodule "zlib/zlib"]
+	path = zlib/zlib
+	url = https://github.com/mtl1979/zlib.git
+	branch = muscle

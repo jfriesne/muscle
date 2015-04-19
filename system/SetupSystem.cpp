@@ -105,7 +105,7 @@ uint32 GetAndClearFailedMemoryRequestSize()
 {
    uint32 ret = _failedMemoryRequestSize;       // yes, it's racy.  But I'll live with that for now.
    _failedMemoryRequestSize = MUSCLE_NO_LIMIT;
-   return ret; 
+   return ret;
 }
 void SetFailedMemoryRequestSize(uint32 numBytes) {_failedMemoryRequestSize = numBytes;}
 
@@ -340,7 +340,7 @@ public:
             if (_tailBlock) _tailBlock->_nextBlock = newBlock;
             _tailBlock = newBlock;
          }
-         else 
+         else
          {
             printf("MutexEventLog::AddEvent():  malloc() failed!\n");   // what else to do?  Even WARN_OUT_OF_MEMORY isn't safe here
             return;
@@ -383,7 +383,7 @@ private:
             const char * lastSlash = strrchr(fileName, '/');
             if (lastSlash) fileName = lastSlash+1;
 
-            strncpy(_fileName, fileName, sizeof(_fileName));
+            muscleStrncpy(_fileName, fileName, sizeof(_fileName));
             _fileName[sizeof(_fileName)-1] = '\0';
          }
 
@@ -393,8 +393,8 @@ private:
             printf("%s: tid=%s m=%p loc=%s:" UINT32_FORMAT_SPEC "\n", (_fileLine&(1L<<31))?"mx_lock":"mx_unlk", threadID.ToString(buf), _mutexPtr, _fileName, (uint32)(_fileLine&~(1L<<31)));
          }
 
-      private: 
-         uint32 _fileLine; 
+      private:
+         uint32 _fileLine;
          const void * _mutexPtr;
          char _fileName[48];
       };
@@ -637,9 +637,9 @@ uint64 GetRunTime64()
       {
          static uint32 _prevVal    = 0;
          static uint64 _wrapOffset = 0;
-         
+
          uint32 newVal = (uint32) timeGetTime();
-         if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32); 
+         if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
          ret = (_wrapOffset+newVal)*1000;  // convert to microseconds
          _prevVal = newVal;
       }
@@ -659,7 +659,7 @@ uint64 GetRunTime64()
       uint32 hi1 = get_tbu();
       uint32 low = get_tbl();
       uint32 hi2 = get_tbu();
-      if (hi1 == hi2) 
+      if (hi1 == hi2)
       {
          // FogBugz #3199
          uint64 cycles = ((((uint64)hi1)<<32)|((uint64)low));
@@ -668,14 +668,14 @@ uint64 GetRunTime64()
    }
 #  elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
    struct timespec ts;
-   return (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) ? (SecondsToMicros(ts.tv_sec)+NanosToMicros(ts.tv_nsec)) : 0; 
+   return (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) ? (SecondsToMicros(ts.tv_sec)+NanosToMicros(ts.tv_nsec)) : 0;
 #  else
    // default implementation:  use POSIX API
    static clock_t _ticksPerSecond = 0;
    if (_ticksPerSecond <= 0) _ticksPerSecond = sysconf(_SC_CLK_TCK);
    if (_ticksPerSecond > 0)
    {
-      if (sizeof(clock_t) > 4) 
+      if (sizeof(clock_t) > 4)
       {
          // Easy case:  with a wide clock_t, we don't need to worry about it wrapping
          struct tms junk; clock_t newTicks = (clock_t) times(&junk);
@@ -689,7 +689,7 @@ uint64 GetRunTime64()
          {
             static uint32 _prevVal;
             static uint64 _wrapOffset = 0;
-            
+
             struct tms junk; clock_t newTicks = (clock_t) times(&junk);
             uint32 newVal = (uint32) newTicks;
             if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
@@ -710,7 +710,7 @@ uint64 GetRunTime64()
 #if !(defined(__BEOS__) || defined(__HAIKU__))
 status_t Snooze64(uint64 micros)
 {
-   if (micros == MUSCLE_TIME_NEVER) 
+   if (micros == MUSCLE_TIME_NEVER)
    {
       while(Snooze64(DaysToMicros(1)) == B_NO_ERROR) {/* empty */}
       return B_ERROR;  // we should never exit the while loop above; so if we got here, it's an error
@@ -738,14 +738,14 @@ status_t Snooze64(uint64 micros)
 uint64 __Win32FileTimeToMuscleTime(const FILETIME & ft)
 {
    union {
-     uint64 ns100; /*time since 1 Jan 1601 in 100ns units */ 
-     FILETIME ft; 
-   } theTime; 
+     uint64 ns100; /*time since 1 Jan 1601 in 100ns units */
+     FILETIME ft;
+   } theTime;
    theTime.ft = ft;
 
    static const uint64 TIME_DIFF = ((uint64)116444736)*NANOS_PER_SECOND;
    struct timeval tv;
-   tv.tv_usec = (long)((theTime.ns100 / ((uint64)10)) % MICROS_PER_SECOND); 
+   tv.tv_usec = (long)((theTime.ns100 / ((uint64)10)) % MICROS_PER_SECOND);
    tv.tv_sec  = (long)((theTime.ns100 - TIME_DIFF)    / (10*MICROS_PER_SECOND));
    return ConvertTimeValTo64(tv);
 }
@@ -778,7 +778,7 @@ uint64 GetCurrentTime64(uint32 timeType)
       struct tm gmtm;
       struct tm * tm = gmtime_r(&now, &gmtm);
 # endif
-      if (tm) 
+      if (tm)
       {
          ret += SecondsToMicros(now-mktime(tm));
          if (tm->tm_isdst>0) ret += HoursToMicros(1);  // FogBugz #4498
@@ -796,7 +796,7 @@ uint32 _muscleNextTraceValueIndex = 0;
 void SetTraceValuesLocation(volatile uint32 * location)
 {
    _muscleTraceValues = location ? location : _defaultTraceLocation;
-   _muscleNextTraceValueIndex = 0; 
+   _muscleNextTraceValueIndex = 0;
    for (uint32 i=0; i<MUSCLE_TRACE_CHECKPOINTS; i++) _muscleTraceValues[i] = 0;
 }
 #endif
@@ -813,7 +813,7 @@ AbstractObjectRecycler :: AbstractObjectRecycler()
    _prev = NULL;
    _next = _firstRecycler;
    _firstRecycler = this;
-   
+
    if (m) m->Unlock();
 }
 
@@ -850,7 +850,7 @@ void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
    if ((m)&&(m->Lock() != B_NO_ERROR)) m = NULL;
 
    const AbstractObjectRecycler * r = _firstRecycler;
-   while(r) 
+   while(r)
    {
       r->PrintToStream();
       r = r->_next;
@@ -1043,14 +1043,14 @@ ConstSocketRef GetConstSocketRefFromPool(int fd, bool okayToClose, bool returnNU
       Socket * s = _socketPool.ObtainObject();
       ConstSocketRef ret(s);
 
-      if (s) 
+      if (s)
       {
          s->SetFileDescriptor(fd, okayToClose);
 #ifdef WIN32
          // FogBugz #9911:  Make the socket un-inheritable, since that
          // is the behavior you want 99% of the time.  (Anyone who wants
-         // to inherit the socket will have to either avoid calling this 
-         // for those sockets, or call SetHandleInformation() again 
+         // to inherit the socket will have to either avoid calling this
+         // for those sockets, or call SetHandleInformation() again
          // afterwards to reinstate the inherit-handle flag)
          (void) SetHandleInformation((HANDLE)fd, HANDLE_FLAG_INHERIT, 0);
 #endif
@@ -1071,7 +1071,7 @@ void Socket :: SetFileDescriptor(int newFD, bool okayToClose)
    if (newFD != _fd)
    {
       if (_okayToClose) CloseSocket(_fd);  // CloseSocket(-1) is a no-op, so no need to check fd twice
-      _fd = newFD; 
+      _fd = newFD;
    }
    _okayToClose = okayToClose;
 }
@@ -1080,7 +1080,7 @@ static void FlushStringAsciiChars(String & s, int idx, char * ascBuf, char * hex
 {
    while(count<numColumns) ascBuf[count++] = ' ';
    ascBuf[count] = '\0';
-   char tempBuf[32]; sprintf(tempBuf, "%04i: ", idx); s += tempBuf;
+   char tempBuf[32]; muscleSprintf(tempBuf, "%04i: ", idx); s += tempBuf;
    s += ascBuf;
    s += " [";
    s += hexBuf;
@@ -1122,8 +1122,8 @@ void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uin
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      char headBuf[256];
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       fprintf(optFile, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1143,8 +1143,8 @@ void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uin
             {
                uint8 c = buf[idx];
                ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-               char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-               strncat(hexBuf, temp, hexBufSize);
+               size_t hexBufLen = strlen(hexBuf);
+               muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
                idx++;
                if ((idx%numColumns) == 0) FlushAsciiChars(optFile, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
             }
@@ -1186,8 +1186,8 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      char headBuf[256];
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       fprintf(optFile, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1205,8 +1205,8 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
          {
             uint8 c = buf[idx];
             ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-            char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-            strncat(hexBuf, temp, hexBufSize);
+            size_t hexBufLen = strlen(hexBuf);
+            muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
             idx++;
             if ((idx%numColumns) == 0) FlushAsciiChars(optFile, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
          }
@@ -1236,8 +1236,8 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      char headBuf[256];
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       LogTime(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1257,8 +1257,8 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
             {
                uint8 c = buf[idx];
                ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-               char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-               strncat(hexBuf, temp, hexBufSize);
+               size_t hexBufLen = strlen(hexBuf);
+               muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
                idx++;
                if ((idx%numColumns) == 0) FlushLogAsciiChars(logLevel, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
             }
@@ -1288,8 +1288,8 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      char headBuf[256];
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       Log(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1307,8 +1307,8 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
          {
             uint8 c = buf[idx];
             ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-            char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-            strncat(hexBuf, temp, hexBufSize);
+            size_t hexBufLen = strlen(hexBuf);
+            muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
             idx++;
             if ((idx%numColumns) == 0) FlushLogAsciiChars(logLevel, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
          }
@@ -1342,15 +1342,15 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
       // A simple, single-line format
       if (optDesc) {ret += optDesc; ret += ": ";}
       ret += '[';
-      if (buf) for (uint32 i=0; i<numBytes; i++) {char buf[32]; sprintf(buf, "%s%02x", (i==0)?"":" ", buf[i]); ret += buf;}
+      if (buf) for (uint32 i=0; i<numBytes; i++) {char buf[32]; muscleSprintf(buf, "%s%02x", (i==0)?"":" ", buf[i]); ret += buf;}
           else ret += "NULL buffer";
       ret += ']';
    }
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      char headBuf[256];
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       ret += headBuf;
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1370,8 +1370,8 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
             {
                uint8 c = buf[idx];
                ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-               char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-               strncat(hexBuf, temp, hexBufSize);
+               size_t hexBufLen = strlen(hexBuf);
+               muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
                idx++;
                if ((idx%numColumns) == 0) FlushStringAsciiChars(ret, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
             }
@@ -1398,14 +1398,14 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
       // A simple, single-line format
       if (optDesc) {ret += optDesc; ret += ": ";}
       ret += '[';
-      for (uint32 i=0; i<numBytes; i++) {char xbuf[32]; sprintf(xbuf, "%s%02x", (i==0)?"":" ", (unsigned int) buf[i]); ret += xbuf;}
+      for (uint32 i=0; i<numBytes; i++) {char xbuf[32]; muscleSprintf(xbuf, "%s%02x", (i==0)?"":" ", (unsigned int) buf[i]); ret += xbuf;}
       ret += ']';
    }
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      char headBuf[256];
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       ret += headBuf;
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1423,8 +1423,8 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
          {
             uint8 c = buf[idx];
             ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-            char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-            strncat(hexBuf, temp, hexBufSize);
+            size_t hexBufLen = strlen(hexBuf);
+            muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
             idx++;
             if ((idx%numColumns) == 0) FlushStringAsciiChars(ret, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
          }
@@ -1455,7 +1455,7 @@ DebugTimer :: DebugTimer(const String & title, uint64 mlt, uint32 startMode, int
    _startTime = MUSCLE_DEBUG_TIMER_CLOCK;  // re-set it here so that we don't count the Hashtable initialization!
 }
 
-DebugTimer :: ~DebugTimer() 
+DebugTimer :: ~DebugTimer()
 {
    if (_enableLog)
    {
@@ -1474,7 +1474,7 @@ DebugTimer :: ~DebugTimer()
                if (nextTime >= 1000) LogTime(_debugLevel, "%s: mode " UINT32_FORMAT_SPEC ": " UINT64_FORMAT_SPEC " milliseconds elapsed\n", _title(), iter.GetKey(), nextTime/1000);
                                 else LogTime(_debugLevel, "%s: mode " UINT32_FORMAT_SPEC ": " UINT64_FORMAT_SPEC " microseconds elapsed\n", _title(), iter.GetKey(), nextTime);
             }
-            else 
+            else
             {
                // For cases where we don't want to call LogTime()
                if (nextTime >= 1000) printf("%s: mode " UINT32_FORMAT_SPEC ": " UINT64_FORMAT_SPEC " milliseconds elapsed\n", _title(), iter.GetKey(), nextTime/1000);
@@ -1485,7 +1485,7 @@ DebugTimer :: ~DebugTimer()
    }
 }
 
-/** Gotta define this myself, since atoll() isn't standard. :^( 
+/** Gotta define this myself, since atoll() isn't standard. :^(
   * Note that this implementation doesn't handle negative numbers!
   */
 uint64 Atoull(const char * str)
@@ -1502,7 +1502,7 @@ uint64 Atoull(const char * str)
    while(muscleInRange(*s, '0', '9')) s++;
 
    // Then iterate back to the beginning, tabulating as we go
-   while((--s >= str)&&(*s >= '0')&&(*s <= '9')) 
+   while((--s >= str)&&(*s >= '0')&&(*s <= '9'))
    {
       ret  += base * ((uint64)(*s-'0'));
       base *= (uint64)10;
@@ -1542,10 +1542,10 @@ void DebugTimer :: SetMode(uint32 newMode)
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
 bool IsCurrentThreadMainThread() {return true;}
 #else
-bool IsCurrentThreadMainThread() 
+bool IsCurrentThreadMainThread()
 {
    if (_threadSetupCount > 0) return (_mainThreadID == muscle_thread_id::GetCurrentThreadID());
-   else 
+   else
    {
       MCRASH("IsCurrentThreadMainThread() cannot be called unless there is a CompleteSetupSystem object on the stack!");
       return false;  // to shut the compiler up
@@ -1669,29 +1669,29 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
 }
 
 uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int seed)
-{        
-#ifdef MUSCLE_64_BIT_PLATFORM 
+{
+#ifdef MUSCLE_64_BIT_PLATFORM
    const uint64 m = 0xc6a4a7935bd1e995;
    const int r = 47;
 
    uint64 h = seed ^ (numBytes * m);
-      
+
    const uint64 * data = (const uint64 *)key;
    const uint64 * end = data + (numBytes/sizeof(uint64));
-      
+
    while(data != end)
    {
       uint64 k = *data++;
-      k *= m; 
+      k *= m;
       k ^= k >> r;
-      k *= m; 
+      k *= m;
       h ^= k;
       h *= m;
-   }     
-         
+   }
+
    const unsigned char * data2 = (const unsigned char*)data;
    switch(numBytes & 7)
-   {     
+   {
       case 7: h ^= uint64(data2[6]) << 48;
       case 6: h ^= uint64(data2[5]) << 40;
       case 5: h ^= uint64(data2[4]) << 32;
@@ -1700,42 +1700,42 @@ uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int
       case 2: h ^= uint64(data2[1]) << 8;
       case 1: h ^= uint64(data2[0]);
               h *= m;
-   }     
-            
+   }
+
    h ^= h >> r;
-   h *= m;  
+   h *= m;
    h ^= h >> r;
    return h;
-#else    
+#else
    const unsigned int m = 0x5bd1e995;
    const int r = 24;
-         
+
    unsigned int h1 = seed ^ numBytes;
    unsigned int h2 = 0;
-         
+
    const unsigned int * data = (const unsigned int *)key;
-         
+
    while(numBytes >= sizeof(uint64))
-   {        
-      unsigned int k1 = *data++; 
-      k1 *= m; k1 ^= k1 >> r; k1 *= m;
-      h1 *= m; h1 ^= k1; 
-      numBytes -= sizeof(uint32);
-      
-      unsigned int k2 = *data++;
-      k2 *= m; k2 ^= k2 >> r; k2 *= m;
-      h2 *= m; h2 ^= k2;
-      numBytes -= sizeof(uint32);
-   }        
-            
-   if (numBytes >= sizeof(uint32))
-   {        
+   {
       unsigned int k1 = *data++;
       k1 *= m; k1 ^= k1 >> r; k1 *= m;
       h1 *= m; h1 ^= k1;
       numBytes -= sizeof(uint32);
-   }  
-      
+
+      unsigned int k2 = *data++;
+      k2 *= m; k2 ^= k2 >> r; k2 *= m;
+      h2 *= m; h2 ^= k2;
+      numBytes -= sizeof(uint32);
+   }
+
+   if (numBytes >= sizeof(uint32))
+   {
+      unsigned int k1 = *data++;
+      k1 *= m; k1 ^= k1 >> r; k1 *= m;
+      h1 *= m; h1 ^= k1;
+      numBytes -= sizeof(uint32);
+   }
+
    switch(numBytes)
    {
       case 3: h2 ^= ((unsigned char*)data)[2] << 16;
@@ -1830,7 +1830,7 @@ void SetMainReflectServerCatchSignals(bool enable)
    _mainReflectServerCatchSignals = enable;
 }
 
-bool GetMainReflectServerCatchSignals() 
+bool GetMainReflectServerCatchSignals()
 {
    return _mainReflectServerCatchSignals;
 }

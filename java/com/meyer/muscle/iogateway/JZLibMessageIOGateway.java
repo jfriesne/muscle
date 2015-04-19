@@ -20,23 +20,23 @@ import com.meyer.muscle.support.LEDataOutputStream;
 import com.meyer.muscle.support.NotEnoughDataException;
 import com.meyer.muscle.support.UnflattenFormatException;
 
-public class JZLibMessageIOGateway extends MessageIOGateway 
+public class JZLibMessageIOGateway extends MessageIOGateway
 {
    protected ZStream _deflateStream;
    protected ZStream _inflateStream;
-   
+
    protected ByteArrayOutputStream _outputByteBuffer;
    protected LEDataOutputStream _leOutputStream;
    private ByteBuffer _msgBuf;
    private ByteBuffer _outgoing;
    private ByteBuffer _uncompressedDataBuffer;
 
-   public JZLibMessageIOGateway() 
+   public JZLibMessageIOGateway()
    {
       super();
    }
 
-   public JZLibMessageIOGateway(int encoding) 
+   public JZLibMessageIOGateway(int encoding)
    {
       super(encoding);
    }
@@ -46,14 +46,14 @@ public class JZLibMessageIOGateway extends MessageIOGateway
       super.setOutgoingEncoding(newEncoding);
       _deflateStream = null;
    }
-   
-   public Message unflattenMessage(DataInput in) throws IOException, UnflattenFormatException 
+
+   public Message unflattenMessage(DataInput in) throws IOException, UnflattenFormatException
    {
       int numBytes = in.readInt();
       if (numBytes > getMaximumIncomingMessageSize()) throw new UnflattenFormatException("Incoming message was too large! (" + numBytes + " bytes, " + getMaximumIncomingMessageSize() + " allowed!)");
 
       int encoding = in.readInt();
-      if (encoding == MUSCLE_MESSAGE_DEFAULT_ENCODING) 
+      if (encoding == MUSCLE_MESSAGE_DEFAULT_ENCODING)
       {
          Message pmsg = new Message();
          pmsg.unflatten(in, numBytes);
@@ -63,7 +63,7 @@ public class JZLibMessageIOGateway extends MessageIOGateway
       int flatSize = in.readInt();
       boolean needToInit = false;
       boolean independent = (independentValue == ZLIB_CODEC_HEADER_INDEPENDENT);
-      if (_inflateStream == null) 
+      if (_inflateStream == null)
       {
          _inflateStream = new ZStream();
          needToInit = true;
@@ -90,15 +90,15 @@ public class JZLibMessageIOGateway extends MessageIOGateway
       }
 
       if (err != JZlib.Z_OK) throw new IOException("Inflator failed");
-      
+
       // Reassemble the message
       Message pmsg = new Message();
       LEDataInputStream dis = new LEDataInputStream(new ByteArrayInputStream(uncompressedData));
       pmsg.unflatten(dis, flatSize);
       return pmsg;
    }
-   
-   public void flattenMessage(DataOutput out, Message msg) throws IOException 
+
+   public void flattenMessage(DataOutput out, Message msg) throws IOException
    {
       int flatSize = msg.flattenedSize();
       int oge = getOutgoingEncoding();
@@ -108,31 +108,31 @@ public class JZLibMessageIOGateway extends MessageIOGateway
          return;
       }
       // Else, we need to compress the message.
-   
+
       boolean independent = false;
-      if (_deflateStream == null) 
+      if (_deflateStream == null)
       {
          _deflateStream = new ZStream();
          _deflateStream.deflateInit(oge - MUSCLE_MESSAGE_DEFAULT_ENCODING, 15); // suppress the zlib headers
-         
+
          _outputByteBuffer = new ByteArrayOutputStream(flatSize);
          _leOutputStream = new LEDataOutputStream (_outputByteBuffer);
          independent = true;
       }
       msg.flatten(_leOutputStream);
       _leOutputStream.flush();
-      
+
       byte[] compressed = new byte[flatSize];
-      
+
       _deflateStream.next_in = _outputByteBuffer.toByteArray();
       _deflateStream.next_in_index = 0;
       _deflateStream.next_out = compressed;
       _deflateStream.next_out_index = 0;
       _deflateStream.avail_in = _deflateStream.next_in.length;
       _deflateStream.avail_out = compressed.length;
-      
+
       int err = JZlib.Z_DATA_ERROR;
-      while (_deflateStream.avail_in > 0) 
+      while (_deflateStream.avail_in > 0)
       {
          err = _deflateStream.deflate(JZlib.Z_SYNC_FLUSH);
          if ((err == JZlib.Z_STREAM_ERROR)||(err == JZlib.Z_DATA_ERROR)||(err == JZlib.Z_NEED_DICT)||(err == JZlib.Z_BUF_ERROR)) throw new IOException("Problem compressing the outgoing message.");
@@ -145,7 +145,7 @@ public class JZLibMessageIOGateway extends MessageIOGateway
       out.write(compressed, 0, _deflateStream.next_out_index);
       _outputByteBuffer.reset();
    }
-   
+
    public Message unflattenMessage(ByteBuffer in) throws IOException, UnflattenFormatException , NotEnoughDataException
    {
       if (in.remaining() < 8) {
@@ -157,13 +157,13 @@ public class JZLibMessageIOGateway extends MessageIOGateway
       if (numBytes > getMaximumIncomingMessageSize()) throw new UnflattenFormatException("Incoming message was too large! (" + numBytes + " bytes, " + getMaximumIncomingMessageSize() + " allowed!)");
 
       int encoding = in.getInt();
-      if (in.remaining() < numBytes) 
+      if (in.remaining() < numBytes)
       {
          in.position(in.limit());
          throw new NotEnoughDataException(numBytes-in.remaining());
       }
-       
-      if (encoding == MUSCLE_MESSAGE_DEFAULT_ENCODING) 
+
+      if (encoding == MUSCLE_MESSAGE_DEFAULT_ENCODING)
       {
          Message pmsg = new Message();
          pmsg.unflatten(in, numBytes);
@@ -173,16 +173,16 @@ public class JZLibMessageIOGateway extends MessageIOGateway
       int flatSize = in.getInt();
       boolean needToInit = false;
       boolean independent = (independentValue == ZLIB_CODEC_HEADER_INDEPENDENT);
-      if (_inflateStream == null) 
+      if (_inflateStream == null)
       {
          _inflateStream = new ZStream();
          needToInit = true;
       }
       if (independent) needToInit = true;
-      if (_uncompressedDataBuffer == null || _uncompressedDataBuffer.capacity() < flatSize) 
+      if (_uncompressedDataBuffer == null || _uncompressedDataBuffer.capacity() < flatSize)
       {
           _uncompressedDataBuffer = ByteBuffer.allocate(flatSize);
-          _uncompressedDataBuffer.order(ByteOrder.LITTLE_ENDIAN);          
+          _uncompressedDataBuffer.order(ByteOrder.LITTLE_ENDIAN);
       }
       _uncompressedDataBuffer.rewind();
       _uncompressedDataBuffer.limit(flatSize);
@@ -205,14 +205,14 @@ public class JZLibMessageIOGateway extends MessageIOGateway
 
       // Make sure that the incoming buffer is advanced to after the current message.
       in.position(in.position()+(numBytes-8));
-      
+
       // Reassemble the message
       Message pmsg = new Message();
       pmsg.unflatten(_uncompressedDataBuffer, flatSize);
       return pmsg;
    }
-   
-   public ByteBuffer flattenMessage(Message msg) throws IOException 
+
+   public ByteBuffer flattenMessage(Message msg) throws IOException
    {
       if (getOutgoingEncoding() <= MUSCLE_MESSAGE_DEFAULT_ENCODING) return super.flattenMessage(msg);
       int flatSize = msg.flattenedSize();
@@ -224,7 +224,7 @@ public class JZLibMessageIOGateway extends MessageIOGateway
       buffer.flip();
       return buffer;
    }
-   
+
    /** Converts the given Message into bytes and sends it out the ByteChannel.
      * This method will block if necessary, even if the ByteChannel is
      * non-blocking.  If you want to do 100% proper non-blocking I/O,
@@ -234,32 +234,32 @@ public class JZLibMessageIOGateway extends MessageIOGateway
      * @param msg the Message to convert.
      * @throws IOException if there is an error writing to the stream.
      */
-   public void flattenMessage(ByteChannel out, Message msg) throws IOException 
+   public void flattenMessage(ByteChannel out, Message msg) throws IOException
    {
-      if (getOutgoingEncoding() <= MUSCLE_MESSAGE_DEFAULT_ENCODING) 
+      if (getOutgoingEncoding() <= MUSCLE_MESSAGE_DEFAULT_ENCODING)
       {
          super.flattenMessage(out, msg);
          return;
       }
       int flatSize = msg.flattenedSize();
-      if (flatSize <= 32) 
+      if (flatSize <= 32)
       {
          super.flattenMessage(out, msg);
          return;
       }
       prepareBuffers(msg, flatSize);
-      if (out instanceof SelectableChannel) 
+      if (out instanceof SelectableChannel)
       {
          SelectableChannel sc = (SelectableChannel) out;
-         if (!sc.isBlocking()) 
+         if (!sc.isBlocking())
          {
             int numBytesWritten = 0;
-      
+
             Selector selector = Selector.open();
             sc.register(selector, SelectionKey.OP_WRITE);
-            while(_outgoing.remaining() > 0) 
+            while(_outgoing.remaining() > 0)
             {
-               if (numBytesWritten == 0) 
+               if (numBytesWritten == 0)
                {
                   selector.select();
 
@@ -274,20 +274,20 @@ public class JZLibMessageIOGateway extends MessageIOGateway
       } else out.write(_outgoing);
    }
 
-   private void prepareBuffers(Message msg, int flatSize) throws IOException 
+   private void prepareBuffers(Message msg, int flatSize) throws IOException
    {
       int oge = getOutgoingEncoding();
 
       // Else, we need to compress the message.
       boolean independent = false;
-      if (_deflateStream == null) 
+      if (_deflateStream == null)
       {
          _deflateStream = new ZStream();
          _deflateStream.deflateInit(oge - MUSCLE_MESSAGE_DEFAULT_ENCODING, 15); // suppress the zlibheaders
 
          independent = true;
       }
-      if ((_msgBuf == null)||(_msgBuf.capacity() < flatSize)) 
+      if ((_msgBuf == null)||(_msgBuf.capacity() < flatSize))
       {
          _msgBuf = ByteBuffer.allocate(flatSize);
          _msgBuf.order(ByteOrder.LITTLE_ENDIAN);
@@ -296,7 +296,7 @@ public class JZLibMessageIOGateway extends MessageIOGateway
       _msgBuf.limit(flatSize);
       msg.flatten(_msgBuf);
 
-      if ((_outgoing == null)||(_outgoing.capacity() < (flatSize + 16))) 
+      if ((_outgoing == null)||(_outgoing.capacity() < (flatSize + 16)))
       {
          _outgoing = ByteBuffer.allocate(flatSize + 16);
          _outgoing.order(ByteOrder.LITTLE_ENDIAN);
@@ -310,7 +310,7 @@ public class JZLibMessageIOGateway extends MessageIOGateway
       _deflateStream.avail_out = flatSize;
 
       int err = JZlib.Z_DATA_ERROR;
-      while(_deflateStream.avail_in > 0) 
+      while(_deflateStream.avail_in > 0)
       {
          err = _deflateStream.deflate(JZlib.Z_SYNC_FLUSH);
          if ((err == JZlib.Z_STREAM_ERROR)||(err == JZlib.Z_DATA_ERROR)||(err == JZlib.Z_NEED_DICT)||(err == JZlib.Z_BUF_ERROR)) throw new IOException( "Problem compressing the outgoing message.");

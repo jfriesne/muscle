@@ -27,7 +27,7 @@ public:
 
    /** Destructor */
    virtual ~RS232DataIO();
-   
+
    virtual int32 Read(void * buffer, uint32 size);
 
    virtual int32 Write(const void * buffer, uint32 size);
@@ -45,15 +45,15 @@ public:
    virtual void Shutdown();
 
    /** Returns a socket that can be select()'d on for notifications of read availability.
-    *  Even works under Windows (in non-blocking mode, anyway), despite Microsoft's best efforts 
-    *  to make such a thing impossible :^P Note that you should only use this socket with select(); 
+    *  Even works under Windows (in non-blocking mode, anyway), despite Microsoft's best efforts
+    *  to make such a thing impossible :^P Note that you should only use this socket with select();
     *  to read from the serial port, call Read() instead.
     */
    virtual const ConstSocketRef & GetReadSelectSocket() const {return GetSerialSelectSocket();}
 
    /** Returns a socket that can be select()'d on for notifications of write availability.
-    *  Even works under Windows (in non-blocking mode, anyway), despite Microsoft's best efforts 
-    *  to make such a thing impossible :^P Note that you should only use this socket with select(); 
+    *  Even works under Windows (in non-blocking mode, anyway), despite Microsoft's best efforts
+    *  to make such a thing impossible :^P Note that you should only use this socket with select();
     *  to write to the serial port, call Write() instead.
     */
    virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetSerialSelectSocket();}

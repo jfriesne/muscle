@@ -1,4 +1,4 @@
-This is a basic BeShare client. It demonstrates more complex comms between the muscle server and multiple MUSCLE clients. 
+This is a basic BeShare client. It demonstrates more complex comms between the muscle server and multiple MUSCLE clients.
 
 Use: Run the client. Change the user and server text if desired - at the moment it is set to the primary BeShare server. You can use a local server if desired, if so 127.0.0.1 or LAN IP address should be used. To compile a server for use - see other documentation.
 

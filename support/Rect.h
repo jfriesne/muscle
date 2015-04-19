@@ -17,13 +17,13 @@
 namespace muscle {
 
 /** A portable version of Be's BRect class. */
-class Rect : public Tuple<4,float>, public PseudoFlattenable
+class Rect MUSCLE_FINAL_CLASS : public Tuple<4,float>, public PseudoFlattenable
 {
 public:
-   /** Default Constructor.  
+   /** Default Constructor.
      * Creates a rectangle with upper left point (0,0), and lower right point (-1,-1).
      * Note that this rectangle has a negative area!  (that is to say, it's imaginary)
-     */ 
+     */
    Rect() {Set(0.0f,0.0f,-1.0f,-1.0f);}
 
    /** Constructor where you specify the left, top, right, and bottom coordinates */
@@ -123,14 +123,14 @@ public:
    inline void OffsetTo(float x, float y) {right() = x + Width(); bottom() = y + Height(); left() = x; top() = y;}
 
    /** If this Rect has negative width or height, modifies it to have positive width and height.   */
-   void Rationalize() 
+   void Rationalize()
    {
       if (left() > right()) {float t = left(); left() = right(); right() = t;}
       if (top() > bottom()) {float t = top(); top() = bottom(); bottom() = t;}
    }
 
    /** Returns a rectangle whose area is the intersecting subset of this rectangle's and (r)'s */
-   inline Rect operator&(const Rect & r) const 
+   inline Rect operator&(const Rect & r) const
    {
       Rect ret(*this);
       if (this != &r)
@@ -144,7 +144,7 @@ public:
    }
 
    /** Returns a rectangle whose area is a superset of the union of this rectangle's and (r)'s */
-   inline Rect operator|(const Rect & r) const 
+   inline Rect operator|(const Rect & r) const
    {
       Rect ret(*this);
       if (this != &r)
@@ -206,7 +206,7 @@ public:
    uint32 CalculateChecksum() const {return CalculateChecksumForFloat(left()) + (3*CalculateChecksumForFloat(top())) + (5*CalculateChecksumForFloat(right())) + (7*CalculateChecksumForFloat(bottom()));}
 
    /** Flattens this rectangle into an endian-neutral byte buffer.
-    *  @param buffer Points to the byte buffer to write into.  There must be at least FlattenedSize() bytes there. 
+    *  @param buffer Points to the byte buffer to write into.  There must be at least FlattenedSize() bytes there.
     */
    void Flatten(uint8 * buffer) const
    {
@@ -236,8 +236,8 @@ public:
       else return B_ERROR;
    }
 
-   /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be 
-     * selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately 
+   /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be
+     * selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately
      * AutoChooseHashFunctor doesn't check the superclasses when it looks for a HashCode method)
      */
    uint32 HashCode() const {return Tuple<4,float>::HashCode();}

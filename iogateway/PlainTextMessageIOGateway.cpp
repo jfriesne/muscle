@@ -135,7 +135,7 @@ FilterInputBuffer(char * /*buf*/, uint32 & /*bufLen*/, uint32 /*maxLen*/)
 }
 
 
-void 
+void
 PlainTextMessageIOGateway :: FlushInput(AbstractGatewayMessageReceiver & receiver)
 {
    if (_incomingText.HasChars())
@@ -189,7 +189,7 @@ FilterInputBuffer(char * buf, uint32 & bufLen, uint32 /*maxLen*/)
    static const unsigned char SE  = 240;
 
    char * output = buf;
-   for (uint32 i=0; i<bufLen; i++) 
+   for (uint32 i=0; i<bufLen; i++)
    {
       unsigned char c = buf[i];
       bool keepChar = ((c & 0x80) == 0);
@@ -200,7 +200,7 @@ FilterInputBuffer(char * buf, uint32 & bufLen, uint32 /*maxLen*/)
          case SE:  _inSubnegotiation = false; _commandBytesLeft = 0; break;
       }
       if (_commandBytesLeft > 0) {--_commandBytesLeft; keepChar = false;}
-      if (_inSubnegotiation) keepChar = false; 
+      if (_inSubnegotiation) keepChar = false;
       if (keepChar) *output++ = c;  // strip out any telnet control/escape codes
    }
    bufLen = (uint32) (output-buf);

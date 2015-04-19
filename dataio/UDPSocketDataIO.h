@@ -11,7 +11,7 @@
 namespace muscle {
 
 /**
- *  Data I/O to and from a UDP socket! 
+ *  Data I/O to and from a UDP socket!
  */
 class UDPSocketDataIO : public DataIO, private CountedObject<UDPSocketDataIO>
 {
@@ -32,12 +32,12 @@ public:
    /** Destructor.
     *  Closes the socket descriptor, if necessary.
     */
-   virtual ~UDPSocketDataIO() 
+   virtual ~UDPSocketDataIO()
    {
       // empty
    }
 
-   virtual int32 Read(void * buffer, uint32 size) 
+   virtual int32 Read(void * buffer, uint32 size)
    {
       ip_address tmpAddr = invalidIP;
       uint16 tmpPort = 0;
@@ -47,7 +47,7 @@ public:
       return ret;
    }
 
-   virtual int32 Write(const void * buffer, uint32 size) 
+   virtual int32 Write(const void * buffer, uint32 size)
    {
       int32 ret = 0;
       for (uint32 i=0; i<_sendTo.GetNumItems(); i++)
@@ -70,7 +70,7 @@ public:
 
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
    virtual void FlushOutput() {/* empty */}
-   
+
    /** Overridden to return the maximum packet size of a UDP packet.
      * Defaults to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes),
      * but the returned value can be changed via SetPacketMaximumSize().
@@ -130,7 +130,7 @@ public:
     */
    bool IsBlockingIOEnabled() const {return _blocking;}
 
-   /** Call this after a call to Read() returns to find out the IP address of the computer 
+   /** Call this after a call to Read() returns to find out the IP address of the computer
      * sent the data that we read.
      */
    const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _recvFrom;}

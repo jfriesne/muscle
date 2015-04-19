@@ -19,7 +19,7 @@ DECLARE_REFTYPES(DataNode);
 typedef HashtableIterator<const String *, DataNodeRef> DataNodeRefIterator;
 
 /** Each object of this class represents one node in the server-side data-storage tree.  */
-class DataNode : public RefCountable, private CountedObject<DataNode>, private NotCopyable
+class DataNode MUSCLE_FINAL_CLASS : public RefCountable, private CountedObject<DataNode>, private NotCopyable
 {
 public:
    /** Default Constructor.  Don't create DataNode objects yourself though, call StorageReflectSession::GetNewDataNode() instead!  */
@@ -48,11 +48,11 @@ public:
     * @return B_NO_ERROR on success, B_ERROR if out of memory
     */
    status_t InsertOrderedChild(const MessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyWithOnChangedData, Hashtable<String, DataNodeRef> * optAddNewChildren);
- 
-   /** 
+
+   /**
     * Moves the given node (which must be a child of ours) to be just before the node named
     * (moveToBeforeThis) in our index.  If (moveToBeforeThis) is not a node in our index,
-    * then (child) will be moved back to the end of the index. 
+    * then (child) will be moved back to the end of the index.
     * @param child Reference to a child node of ours, to be moved in the node ordering index.
     * @param moveToBeforeThis name of another child node of ours.  If this name is NULL or
     *                         not found in our index, we'll move (child) to the end of the index.
@@ -152,7 +152,7 @@ public:
    uint32 GetDepth() const {return _depth;}
 
    /** Returns us to our virgin, pre-Init() state, by clearing all our children, subscribers, parent, etc.  */
-   void Reset();  
+   void Reset();
 
    /**
     * Modifies the refcount for the given sessionID.
@@ -211,10 +211,10 @@ public:
      */
    bool IsAncestorOf(const DataNode & descendant) const {return descendant.IsDescendantOf(*this);}
 
-   /** Convenience method:  Parses (path) as a series of slash-separated 
-     * tokens (e.g. "some/node/names/here") which may contain regex chars 
-     * if you wish.  Returns the first DataNode whose path (relative to this 
-     * node) matches (path).  Returns NULL if no matching node is found.  
+   /** Convenience method:  Parses (path) as a series of slash-separated
+     * tokens (e.g. "some/node/names/here") which may contain regex chars
+     * if you wish.  Returns the first DataNode whose path (relative to this
+     * node) matches (path).  Returns NULL if no matching node is found.
      * If the path is empty (""), this function returns (this).
      * @param path The path to match against.  May contain regex chars.
      *             If the path starts with a slash ("/"), the search will
@@ -231,19 +231,19 @@ public:
      */
    DataNode * FindFirstMatchingNode(const char * path, uint32 maxDepth = MUSCLE_NO_LIMIT) const;
 
-   /** Convenience function:  returns the root node of the node tree (by 
-     * traversing parent links up to the top of the tree) 
+   /** Convenience function:  returns the root node of the node tree (by
+     * traversing parent links up to the top of the tree)
      */
    DataNode * GetRootNode() const {DataNode * r = const_cast<DataNode *>(this); while(r->GetParent()) r = r->GetParent(); return r;}
 
    /** Convenience function:  Given a depth value less than or equal to our depth, returns a pointer to our ancestor node at that depth.
-     * @param depth The depth of the node we want returned, relative to the root of the tree.  Zero would be the root node, one would be a child 
+     * @param depth The depth of the node we want returned, relative to the root of the tree.  Zero would be the root node, one would be a child
      *              of the root node, and so on.
      * @returns an ancestor DataNode, or NULL if such a node could not be found (most likely because (depth) is greater than this node's depth)
-     */ 
-   DataNode * GetAncestorNode(uint32 depth) const 
+     */
+   DataNode * GetAncestorNode(uint32 depth) const
    {
-      DataNode * r = const_cast<DataNode *>(this); 
+      DataNode * r = const_cast<DataNode *>(this);
       while((r)&&(depth <= r->GetDepth()))
       {
          if (depth == r->GetDepth()) return r;
@@ -257,11 +257,11 @@ public:
      * includes its nodename, its ordered-children-index (if any), and its payload Message.
      * @param maxRecursionCount The maximum number of times to recurse.  Zero would
      *                          result in a checksum for this node only; one for this
-     *                          node and its children only, etc.  Defaults to 
+     *                          node and its children only, etc.  Defaults to
      *                          MUSCLE_NO_LIMIT.
      * @note This method can be CPU-intensive; it is meant primarily for debugging.
      * @returns a 32-bit checksum value based on the contents of this node and
-     *          its descendants. 
+     *          its descendants.
      */
    uint32 CalculateChecksum(uint32 maxRecursionCount = MUSCLE_NO_LIMIT) const;
 
@@ -270,7 +270,7 @@ public:
      * @param optFile If non-NULL, the text will be printed to this file.  If left as NULL, stdout will be used as a default.
      * @param maxRecursionDepth The maximum number of times to recurse.  Zero would
      *                          result in a checksum for this node only; one for this
-     *                          node and its children only, etc.  Defaults to 
+     *                          node and its children only, etc.  Defaults to
      *                          MUSCLE_NO_LIMIT.
      * @param indentLevel how many spaces to indent the generated text
      */

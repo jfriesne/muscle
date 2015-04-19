@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <netdb.h>
 #include <unistd.h>
@@ -54,7 +54,7 @@ int main(int argc, char ** argv)
    StdinDataIO stdinIO(false);
    PlainTextMessageIOGateway stdinGateway;
    QueueGatewayMessageReceiver stdinInputQueue;
-   stdinGateway.SetDataIO(DataIORef(&stdinIO, false)); 
+   stdinGateway.SetDataIO(DataIORef(&stdinIO, false));
 
    SocketMultiplexer multiplexer;
 
@@ -99,7 +99,7 @@ int main(int argc, char ** argv)
             printf("Heard message from server:-----------------------------------\n");
             const char * inStr;
             for (int i=0; (incoming()->FindString(PR_NAME_TEXT_LINE, i, &inStr) == B_NO_ERROR); i++) printf("Line %i: [%s]\n", i, inStr);
-           
+
             printf("-------------------------------------------------------------\n");
          }
 

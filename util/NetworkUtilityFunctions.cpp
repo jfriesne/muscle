@@ -101,7 +101,7 @@ static inline void SET_SOCKADDR_IP(struct sockaddr_in6 & sockAddr, const ip_addr
 
    sockAddr.sin6_scope_id = tmp;
 }
-static inline uint16 GET_SOCKADDR_PORT(const struct sockaddr_in6 & addr) 
+static inline uint16 GET_SOCKADDR_PORT(const struct sockaddr_in6 & addr)
 {
    switch(addr.sin6_family)
    {
@@ -355,7 +355,7 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
             if ((getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0)||(GET_SOCKADDR_FAMILY(toAddr) != MUSCLE_SOCKET_FAMILY)) return -1;
          }
 
-         if (optToIP != invalidIP) 
+         if (optToIP != invalidIP)
          {
             SET_SOCKADDR_IP(toAddr, optToIP);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
@@ -463,7 +463,7 @@ ConstSocketRef Connect(const ip_address & hostIP, uint16 port, const char * optD
             // The harder case:  the user doesn't want the Connect() call to take more than (so many) microseconds.
             // For this, we'll need to go into non-blocking mode and run a SocketMultiplexer loop to get the desired behaviour!
             const uint64 deadline = GetRunTime64()+maxConnectTime;
-            SocketMultiplexer multiplexer; 
+            SocketMultiplexer multiplexer;
             uint64 now;
             while((now = GetRunTime64()) < deadline)
             {
@@ -1312,7 +1312,7 @@ status_t GetNetworkInterfaceAddresses(Queue<ip_address> & results, uint32 includ
 
 static void Inet4_NtoA(uint32 addr, char * buf)
 {
-   sprintf(buf, INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC, (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
+   muscleSnprintf(buf, 16, INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC, (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
 }
 
 void Inet_NtoA(const ip_address & addr, char * ipbuf, bool preferIPv4)
@@ -1324,15 +1324,16 @@ void Inet_NtoA(const ip_address & addr, char * ipbuf, bool preferIPv4)
    if ((preferIPv4)&&(IsIPv4Address(addr))) Inet4_NtoA(addr.GetLowBits()&0xFFFFFFFF, ipbuf);
    else
    {
+      const int MIN_IPBUF_LENGTH = 64;
       uint32 iIdx = 0;
       uint8 ip6[16]; addr.WriteToNetworkArray(ip6, &iIdx);
-      if (Inet_NtoP(AF_INET6, (const in6_addr *) ip6, ipbuf, 46) != NULL)
+      if (Inet_NtoP(AF_INET6, (const in6_addr *) ip6, ipbuf, MIN_IPBUF_LENGTH) != NULL)
       {
          if (iIdx > 0)
          {
             // Add the index suffix
-            char buf[32]; sprintf(buf, "@" UINT32_FORMAT_SPEC, iIdx);
-            strcat(ipbuf, buf);
+            size_t ipbuflen = strlen(ipbuf);
+            muscleSnprintf(ipbuf+ipbuflen, MIN_IPBUF_LENGTH-ipbuflen, "@" UINT32_FORMAT_SPEC, iIdx);
          }
       }
       else ipbuf[0] = '\0';
@@ -1342,7 +1343,7 @@ void Inet_NtoA(const ip_address & addr, char * ipbuf, bool preferIPv4)
 
 String Inet_NtoA(const ip_address & ipAddress, bool preferIPv4)
 {
-   char buf[64]; 
+   char buf[64];
    Inet_NtoA(ipAddress, buf, preferIPv4);
    return buf;
 }
@@ -1464,8 +1465,8 @@ String IPAddressAndPort :: ToString(bool includePort, bool preferIPv4Style) cons
 #else
       bool useIPv4Style = ((preferIPv4Style)&&(IsIPv4Address(_ip)));  // FogBugz #8985
 #endif
-      if (useIPv4Style) sprintf(buf, "%s:%u", s(), _port);
-                   else sprintf(buf, "[%s]:%u", s(), _port);
+      if (useIPv4Style) muscleSprintf(buf, "%s:%u", s(), _port);
+                   else muscleSprintf(buf, "[%s]:%u", s(), _port);
       return buf;
    }
    else return s;
@@ -1475,10 +1476,10 @@ String IPAddressAndPort :: ToString(bool includePort, bool preferIPv4Style) cons
 String GetConnectString(const String & host, uint16 port)
 {
 #ifdef MUSCLE_AVOID_IPV6
-   char buf[32]; sprintf(buf, ":%u", port);
+   char buf[32]; muscleSprintf(buf, ":%u", port);
    return host + buf;
 #else
-   char buf[32]; sprintf(buf, "]:%u", port);
+   char buf[32]; muscleSprintf(buf, "]:%u", port);
    return host.Prepend("[") + buf;
 #endif
 }
@@ -1537,7 +1538,7 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
       {
          valLen = sizeof(val); if (getsockopt(fd, SOL_TCP, TCP_KEEPCNT, (sockopt_arg *) &val, &valLen) != 0) return B_ERROR;
          *retMaxProbeCount = val;
-      } 
+      }
    }
 
    if (retIdleTime)

@@ -8,7 +8,7 @@
 namespace muscle {
 
 /**
- *  Data I/O to and from a stdio FILE. 
+ *  Data I/O to and from a stdio FILE.
  */
 class FileDataIO : public DataIO, private CountedObject<FileDataIO>
 {
@@ -27,10 +27,10 @@ public:
    /** Reads bytes from our file and places them into (buffer).
     *  @param buffer Buffer to write the bytes into
     *  @param size Number of bytes in the buffer.
-    *  @return Number of bytes read, or -1 on error.  
+    *  @return Number of bytes read, or -1 on error.
     *  @see DataIO::Read()
     */
-   virtual int32 Read(void * buffer, uint32 size)  
+   virtual int32 Read(void * buffer, uint32 size)
    {
       if (_file)
       {
@@ -59,9 +59,9 @@ public:
    /** Seeks to the specified point in the file.
     *  @note this subclass only supports 32-bit offsets.
     *  @param offset Where to seek to.
-    *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END. 
+    *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END.
     *  @return B_NO_ERROR on success, B_ERROR on failure.
-    */ 
+    */
    virtual status_t Seek(int64 offset, int whence)
    {
       if (_file)
@@ -77,7 +77,7 @@ public:
       }
       return B_ERROR;
    }
-   
+
    /** Returns our current position in the file.
     *  @note this subclass only supports 32-bit offsets.
     */
@@ -88,7 +88,7 @@ public:
 
    /** Flushes the file output by calling fflush() */
    virtual void FlushOutput() {if (_file) fflush(_file);}
-   
+
    /** Calls fclose() on the held file descriptor (if any) and forgets it */
    virtual void Shutdown()
    {
@@ -98,7 +98,7 @@ public:
          _file = NULL;
       }
    }
- 
+
    /**
     * Releases control of the contained FILE object to the calling code.
     * After this method returns, this object no longer owns or can

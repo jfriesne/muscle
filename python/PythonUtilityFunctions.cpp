@@ -42,10 +42,10 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
    else if (PyFloat_Check  (pyValue)) ret = msg.AddFloat( fname(optKey, "_argFloat"),  (float)PyFloat_AsDouble(pyValue));
    else if (PyString_Check (pyValue)) ret = msg.AddString(fname(optKey, "_argString"), PyString_AsString(pyValue));
    else if (PyComplex_Check(pyValue)) ret = msg.AddPoint( fname(optKey, "_argPoint"),  Point((float)PyComplex_RealAsDouble(pyValue), (float)PyComplex_ImagAsDouble(pyValue)));
-   else if (PyUnicode_Check(pyValue)) 
+   else if (PyUnicode_Check(pyValue))
    {
       PyObject * utf8 = PyUnicode_AsUTF8String(pyValue);
-      if (utf8) 
+      if (utf8)
       {
          ret = msg.AddString(fname(optKey, "_argString"), PyString_AsString(utf8));
          Py_DECREF(utf8);
@@ -126,70 +126,70 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
       bool setErr = false;
       switch(type)
       {
-         case B_BOOL_TYPE: 
+         case B_BOOL_TYPE:
          {
             bool temp;
             if (msg.FindBool(fieldName, index, temp) == B_NO_ERROR) return PyInt_FromLong(temp?1:0);
          }
          break;
 
-         case B_DOUBLE_TYPE: 
+         case B_DOUBLE_TYPE:
          {
             double temp;
             if (msg.FindDouble(fieldName, index, temp) == B_NO_ERROR) return PyFloat_FromDouble(temp);
          }
          break;
 
-         case B_FLOAT_TYPE: 
+         case B_FLOAT_TYPE:
          {
             float temp;
             if (msg.FindFloat(fieldName, index, temp) == B_NO_ERROR) return PyFloat_FromDouble(temp);
          }
          break;
 
-         case B_INT64_TYPE: 
+         case B_INT64_TYPE:
          {
             int64 temp;
             if (msg.FindInt64(fieldName, index, temp) == B_NO_ERROR) return PyLong_FromLongLong(temp);
          }
          break;
 
-         case B_INT32_TYPE: 
+         case B_INT32_TYPE:
          {
             int32 temp;
             if (msg.FindInt32(fieldName, index, temp) == B_NO_ERROR) return PyInt_FromLong(temp);
          }
          break;
 
-         case B_INT16_TYPE: 
+         case B_INT16_TYPE:
          {
             int16 temp;
             if (msg.FindInt16(fieldName, index, temp) == B_NO_ERROR) return PyInt_FromLong(temp);
          }
          break;
 
-         case B_INT8_TYPE: 
+         case B_INT8_TYPE:
          {
             int8 temp;
             if (msg.FindInt8(fieldName, index, temp) == B_NO_ERROR) return PyInt_FromLong(temp);
          }
          break;
 
-         case B_POINT_TYPE: 
+         case B_POINT_TYPE:
          {
             Point temp;
             if (msg.FindPoint(fieldName, index, temp) == B_NO_ERROR) return PyComplex_FromDoubles(temp[0], temp[1]);
          }
          break;
 
-         case B_STRING_TYPE: 
+         case B_STRING_TYPE:
          {
             const char * temp;
             if (msg.FindString(fieldName, index, temp) == B_NO_ERROR) return PyString_FromString(temp);
          }
          break;
 
-         case B_RAW_TYPE: 
+         case B_RAW_TYPE:
          {
             const void * temp;
             uint32 size;
@@ -213,10 +213,10 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
                         PyObject * sub = ConvertMessageItemToPyObject(*subMsg(), iter.GetFieldName(), j++);
                         if (sub)
                         {
-                           if (subMsg()->what == MESSAGE_PYTHON_LIST) 
+                           if (subMsg()->what == MESSAGE_PYTHON_LIST)
                            {
                               if (PyList_Append(ret, sub) != 0) {Py_DECREF(sub);}
-                           } 
+                           }
                            else
                            {
                               if (PyDict_SetItemString(ret, (char *) iter.GetFieldName()(), sub) != 0) {Py_DECREF(sub);}

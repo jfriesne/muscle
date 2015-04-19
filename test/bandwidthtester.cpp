@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
       if (OnceEvery(printInterval, lastPrintTime))
       {
          uint64 now = GetRunTime64();
-         if (tallyBytesSent > 0) 
+         if (tallyBytesSent > 0)
          {
             if (send) LogTime(MUSCLE_LOG_INFO, "Sending at " UINT32_FORMAT_SPEC" bytes/second\n", tallyBytesSent/((uint32)(((now-startTime))/MICROS_PER_SECOND)));
                  else LogTime(MUSCLE_LOG_INFO, "Sent " UINT32_FORMAT_SPEC" bytes\n", tallyBytesSent);

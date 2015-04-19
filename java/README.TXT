@@ -1,6 +1,6 @@
 As of v1.60, some Java classes have been included with MUSCLE to make it
 easier to create Java-based MUSCLE clients.  These classes require Java 1.4.0
-or higher to compile.  The MUSCLE server code is still C++ only, though.  
+or higher to compile.  The MUSCLE server code is still C++ only, though.
 
 The included Java classes are:
 
@@ -82,10 +82,10 @@ Writing a Java MUSCLE client is easy.  Here is what you need to do:
       long             int64
       float            float
       double           double
-      java.lang.String String 
-      
+      java.lang.String String
+
 4. When a Message is received from the server, your MessageListener's messageReceived() method is called
-   so you can process it.  Note that messageReceived() is called from a background Thread, so you probably want 
+   so you can process it.  Note that messageReceived() is called from a background Thread, so you probably want
    to declare it synchronized to avoid potential race conditions:
 
    class MyClass implements MessageListener {
@@ -109,7 +109,7 @@ Writing a Java MUSCLE client is easy.  Here is what you need to do:
 
       [...]
    }
-    
+
 
 5. When you wish to close the TCP connection, call disconnect() on your MessageTransceiver object.
    Note that you may still receive calls to your messageReceived() method even after the disconnect()

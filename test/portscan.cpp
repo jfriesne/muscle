@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "util/NetworkUtilityFunctions.h"
 #include "system/SetupSystem.h"
@@ -9,7 +9,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   if (argc <= 1) 
+   if (argc <= 1)
    {
       LogTime(MUSCLE_LOG_INFO, "Usage:  portscan <ipaddress> [baseport] [numports]\n");
       return 5;
@@ -49,7 +49,7 @@ int main(int argc, char ** argv)
    {
       LogTime(MUSCLE_LOG_INFO, "The following " UINT32_FORMAT_SPEC " TCP ports were found open:\n", foundPorts.GetNumItems());
       for (uint32 i=0; i<foundPorts.GetNumItems(); i++) LogTime(MUSCLE_LOG_INFO, "    %i\n", foundPorts[i]);
-   }  
+   }
    else LogTime(MUSCLE_LOG_INFO, "No TCP ports were found open.\n");
 
    return 0;

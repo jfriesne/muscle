@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "iogateway/AbstractMessageIOGateway.h"
 #include "util/NetworkUtilityFunctions.h"
@@ -11,7 +11,7 @@ AbstractMessageIOGateway :: AbstractMessageIOGateway() : _hosed(false), _flushOn
    // empty
 }
 
-AbstractMessageIOGateway :: ~AbstractMessageIOGateway() 
+AbstractMessageIOGateway :: ~AbstractMessageIOGateway()
 {
    // empty
 }
@@ -68,8 +68,8 @@ private:
    AbstractGatewayMessageReceiver * _r;
 };
 
-status_t 
-AbstractMessageIOGateway :: 
+status_t
+AbstractMessageIOGateway ::
 ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64 timeoutPeriod)
 {
    int readFD  = GetDataIO()() ? GetDataIO()()->GetReadSelectSocket().GetFileDescriptor()  : -1;

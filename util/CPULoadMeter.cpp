@@ -51,7 +51,7 @@ float CPULoadMeter :: GetCPULoad()
    float sysLoadPercentage = -1.0f;  // default (aka unset)
 
 #ifdef __linux__
-   FILE * fpIn = fopen("/proc/stat", "r");
+   FILE * fpIn = muscleFopen("/proc/stat", "r");
    if (fpIn)
    {
       char buf[1024];
@@ -59,7 +59,7 @@ float CPULoadMeter :: GetCPULoad()
       {
          if (strncmp(buf, "cpu ", 4) == 0)
          {
-            StringTokenizer tok(false, &buf[4]); 
+            StringTokenizer tok(false, &buf[4]);
             const char *                                  next = tok();
             uint64 userTicks   = next ? Atoull(next) : 0; next = tok();
             uint64 niceTicks   = next ? Atoull(next) : 0; next = tok();

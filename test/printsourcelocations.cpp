@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "dataio/FileDataIO.h"
@@ -13,7 +13,7 @@ using namespace muscle;
 
 static void CheckFile(const String & path, Queue<String> & codes)
 {
-   FileDataIO dio(fopen(path(), "r"));
+   FileDataIO dio(muscleFopen(path(), "r"));
    if (dio.GetFile())
    {
       String fileName = path.Substring(GetFilePathSeparator());
@@ -37,10 +37,10 @@ static void CheckFile(const String & path, Queue<String> & codes)
             if (ltIdx >= 0)
             {
                int32 commentIdx = line->IndexOf("//");   // don't include LogTime() calls that are commented out
-               if ((commentIdx < 0)||(commentIdx > ltIdx)) 
+               if ((commentIdx < 0)||(commentIdx > ltIdx))
                {
-                  char buf[128]; 
-                  sprintf(buf, "[%s] %s:" UINT32_FORMAT_SPEC": ", SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber))(), path(), lineNumber);
+                  char buf[128];
+                  muscleSprintf(buf, "[%s] %s:" UINT32_FORMAT_SPEC": ", SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber))(), path(), lineNumber);
                   codes.AddTail(line->Prepend(buf));
                }
             }
@@ -76,7 +76,7 @@ static void DoSearch(const String & path, Queue<String> & codes)
 
 // This program accepts a directory name as the argument, and will find and print all LogTime()
 // calls in and underneath that directory, along with their source-code-location keys. (e.g. "FB72")
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 

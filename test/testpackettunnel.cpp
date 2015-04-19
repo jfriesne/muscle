@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <netdb.h>
 #include <unistd.h>
@@ -83,8 +83,8 @@ int main(int argc, char ** argv)
    Message args;
    (void) ParseArgs(argc, argv, args);
    HandleStandardDaemonArgs(args);
- 
-   const char * temp; 
+
+   const char * temp;
 
    uint16 port = 0;
    if (args.FindString("port", &temp) == B_NO_ERROR) port = atol(temp);
@@ -104,7 +104,7 @@ int main(int argc, char ** argv)
       int spamHz = atol(temp);
       spamInterval = (spamHz > 0) ? MICROS_PER_SECOND/spamHz : 1;
    }
-   
+
    bool useTCP = false;
    DataIORef dio;
    if (args.FindString("tcp", &temp) == B_NO_ERROR)
@@ -112,7 +112,7 @@ int main(int argc, char ** argv)
       useTCP = true;
       ConstSocketRef s;
       ip_address connectTo = GetHostByName(temp);
-      if (connectTo != invalidIP) 
+      if (connectTo != invalidIP)
       {
          s = Connect(connectTo, port, NULL, "testpackettunnel", false);
          if (s() == NULL) return 10;
@@ -131,7 +131,7 @@ int main(int argc, char ** argv)
          {
             LogTime(MUSCLE_LOG_CRITICALERROR, "Accept() failed!\n");
             return 10;
-         } 
+         }
       }
       dio.SetRef(new PacketizedDataIO(DataIORef(new TCPSocketDataIO(s, false)), mtu));
    }

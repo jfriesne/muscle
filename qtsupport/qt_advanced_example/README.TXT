@@ -13,7 +13,7 @@ sessions on the muscled server, and so on.
 
 This example program demonstrates how to do that.  It also demonstrates another trick:
 how to create a session object that has its own internal thread inside it, which can be
-used (with care) to do asynchronous processing or a third-party event loop that doesn't 
+used (with care) to do asynchronous processing or a third-party event loop that doesn't
 block the rest of the muscled thread while it runs.
 
 To build and run this Qt example:
@@ -34,7 +34,7 @@ qt_advanced_example.{cpp,h}
 
 AdvancedQMessageTransceiverThread.{cpp,h}
    These files implement some slight customization of the QMessageTransceiverThread class and its
-   related session classes, so that you can use a AdvancedQMessageTransceiverThread object as a 
+   related session classes, so that you can use a AdvancedQMessageTransceiverThread object as a
    local (in-GUI-program) MUSCLE server itself, rather than just as a mechanism for connecting
    to a MUSCLE server that is running somewhere else.
 

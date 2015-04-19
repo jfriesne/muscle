@@ -12,13 +12,13 @@
 namespace muscle {
 
 /** This class encapsulates the information that is sent to the Log() and LogLine() callback methods of the LogCallback and LogLineCallback classes.  By putting all the information into a class object, we only have to push one parameter onto the stack with each call instead of many. */
-class LogCallbackArgs
+class LogCallbackArgs MUSCLE_FINAL_CLASS
 {
 public:
    /** Default Constructor */
    LogCallbackArgs() : _when(0), _logLevel(MUSCLE_LOG_INFO), _sourceFile(""), _sourceFunction(""), _sourceLine(0), _text(""), _argList(NULL) {/* empty */}
 
-   /** Constructor 
+   /** Constructor
      * @param when Timestamp for this log message, in (seconds past 1970) format.
      * @param logLevel The MUSCLE_LOG_* severity level of this log message
      * @param sourceFile The name of the source code file that contains the LogLine() call that generated this callback.
@@ -63,13 +63,13 @@ public:
      * In a LogLine() callback, this value will be NULL..
      */
    va_list * GetArgList() const {return _argList;}
- 
+
    /** Set the timestamp associated with the Log message
      * @param when A time value (seconds since 1970)
      */
    void SetWhen(const time_t & when) {_when = when;}
 
-   /** Set the MUSCLE_LOG_* severity level of this Log message 
+   /** Set the MUSCLE_LOG_* severity level of this Log message
      * param ll A MUSCLE_LOG_* value
      */
    void SetLogLevel(int ll) {_logLevel = ll;}
@@ -109,7 +109,7 @@ private:
    va_list * _argList;
 };
 
-/** Callback object that can be added with PutLogCallback() 
+/** Callback object that can be added with PutLogCallback()
  *  Whenever a log message is generated, all added LogCallback
  *  objects will have their Log() methods called.  All log callbacks
  *  are synchronized via a global lock, hence they will be thread safe.
@@ -155,27 +155,27 @@ public:
 
    /** Implemented to call LogLine() when appropriate */
    virtual void Flush();
-   
+
 protected:
    /** This will be called whenever a fully-formed line of log text is ready.
      * implement it to do whatever you like with the text.
      * @param a The log callback arguments.  The (format) string
      *          in this case will always be a literal string that can be printed verbatim.
-     */ 
+     */
    virtual void LogLine(const LogCallbackArgs & a) = 0;
 
 private:
    LogCallbackArgs _lastLog; // stored for use by Flush()
-   char * _writeTo;     // points to the next spot in (_buf) to sprintf() into
+   char * _writeTo;     // points to the next spot in (_buf) to muscleSprintf() into
    char _buf[2048];     // where we assemble our text
 };
 
 /** Add a custom LogCallback object to the global log callbacks set.
- *  @param cbRef Reference to a LogCallback object. 
+ *  @param cbRef Reference to a LogCallback object.
  */
 status_t PutLogCallback(const LogCallbackRef & cbRef);
 
-/** Removes the given callback from our list.  
+/** Removes the given callback from our list.
  *  @param cbRef Reference of the LogCallback to remove from the callback list.
  *  @returns B_NO_ERROR on success, or B_ERROR if the given callback wasn't found, or the lock couldn't be locked.
  */
@@ -183,10 +183,10 @@ status_t RemoveLogCallback(const LogCallbackRef & cbRef);
 
 /** Removes all log callbacks from the callback set
  *  @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
- */ 
+ */
 status_t ClearLogCallbacks();
 
-/** This class is used to send log information to stdout.  An object of this class is instantiated 
+/** This class is used to send log information to stdout.  An object of this class is instantiated
   * and used internally by MUSCLE, so typically you don't need to instantiate one yourself, but the class
   * is exposed here anyway in case it might come in useful for other reasons.
   */
@@ -203,7 +203,7 @@ public:
    int GetConsoleLogLevel() {return _consoleLogLevel;}
 
    /** Sets the maximum MUSCLE_LOG_* log level we will log to stdout for.
-     * @param logLevel a MUSCLE_LOG_* value. 
+     * @param logLevel a MUSCLE_LOG_* value.
      */
    void SetConsoleLogLevel(int logLevel) {_consoleLogLevel = logLevel;}
 
@@ -211,8 +211,8 @@ private:
    int _consoleLogLevel;
 };
 
-/** This class is used to send log information to a file, rotate log files, etc.  An object of this class 
-  * is instantiated and used internally by MUSCLE, so typically you don't need to instantiate one yourself, 
+/** This class is used to send log information to a file, rotate log files, etc.  An object of this class
+  * is instantiated and used internally by MUSCLE, so typically you don't need to instantiate one yourself,
   * but the class is exposed here anyway in case it comes in useful for other reasons (e.g. for creating and
   * rotating a separate set of log files in an additional directory)
   */

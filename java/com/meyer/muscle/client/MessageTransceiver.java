@@ -30,7 +30,7 @@ public class MessageTransceiver implements MessageListener
     *  @param compressionLevel the outgoing compression level to use
     *  @param maximumIncomingMessageSize Maximum size of incoming messages, in bytes.  Set to Integer.MAX_VALUE to enforce no limit.
     */
-   public MessageTransceiver(MessageQueue repliesTo, int compressionLevel, int maximumIncomingMessageSize) 
+   public MessageTransceiver(MessageQueue repliesTo, int compressionLevel, int maximumIncomingMessageSize)
    {
       _repliesTo = repliesTo;
       _gateway = MessageIOGatewayFactory.getMessageIOGateway(compressionLevel, maximumIncomingMessageSize);
@@ -155,17 +155,17 @@ public class MessageTransceiver implements MessageListener
    {
       _sendQueue.postMessage(msg);
    }
-   
+
    /**
     * Set a tag that will be sent whenever our queue of outgoing Messages
     * becomes empty.  (Default is NULL, meaning that no notifications will be sent)
     * @param tag The notification tag to send, or NULL to disable.
     */
-   public void setNotifyOutputQueueDrainedTag(Object tag) 
+   public void setNotifyOutputQueueDrainedTag(Object tag)
    {
       _outputQueueDrainedTag = tag;
    }
-   
+
    /** Any received Messages will be sent out to the TCP socket */
    public void messageReceived(Object msg, int numLeft)
    {
@@ -183,7 +183,7 @@ public class MessageTransceiver implements MessageListener
          _failTag    = failTag;
          _sock       = null;
       }
-     
+
      public ConnectMessage(ServerSocketChannel s, Object successTag, Object failTag)
      {
         _hostName   = null;
@@ -192,7 +192,7 @@ public class MessageTransceiver implements MessageListener
         _failTag    = failTag;
         _sock       = s;
       }
-     
+
       public String _hostName;
       public int    _port;
       public Object _successTag;
@@ -278,13 +278,13 @@ public class MessageTransceiver implements MessageListener
             }
          }
          else if (message instanceof MessageReceiver) disconnect(((MessageReceiver)message).connectionID());
-         
-         if (numLeft == 0) 
+
+         if (numLeft == 0)
          {
             if (_outputQueueDrainedTag != null) sendReply(_outputQueueDrainedTag);
          }
       }
-   
+
       /** Close the connection and notify the user (only if the connection ID is correct) */
       private void disconnect(int id)
       {
@@ -303,17 +303,17 @@ public class MessageTransceiver implements MessageListener
             _connectionID++;
          }
       }
-   
+
       /** Send a message back to the user */
       private void sendReply(Object replyObj)
       {
          if ((_repliesTo != null)&&(replyObj != null)) _repliesTo.postMessage(replyObj);
       }
-   
+
       /** Logic for our receive-incoming-data thread */
       private class MessageReceiver implements MessageListener
       {
-         public MessageReceiver(SocketChannel in, int cid) 
+         public MessageReceiver(SocketChannel in, int cid)
          {
             _in = in;
             _connectionID = cid;
@@ -338,7 +338,7 @@ public class MessageTransceiver implements MessageListener
             _buffer.mark();
             (new MessageQueue(this)).postMessage(null);  // start the background reader thread
          }
-         
+
          public synchronized void messageReceived(Object msg, int numLeft)
          {
             int maxIncomingMessageSize = _gateway.getMaximumIncomingMessageSize();
@@ -371,7 +371,7 @@ public class MessageTransceiver implements MessageListener
                         int desiredSize = _buffer.capacity() + ned.getNumMissingBytes();
                         int doubleSize = _buffer.capacity()*2;
                         if (desiredSize < doubleSize) desiredSize = (doubleSize < maxIncomingMessageSize) ? doubleSize : maxIncomingMessageSize;
-                        if (desiredSize <= maxIncomingMessageSize) 
+                        if (desiredSize <= maxIncomingMessageSize)
                         {
                            ByteBuffer tmp = ByteBuffer.allocateDirect(desiredSize);
                            tmp.order(ByteOrder.LITTLE_ENDIAN);
@@ -399,30 +399,30 @@ public class MessageTransceiver implements MessageListener
                _sendQueue.postMessage(this);
             }
          }
-         
+
          public int connectionID() {return _connectionID;}
-         
+
          private int _connectionID;
          private ByteChannel _in;
          private ByteBuffer _buffer;
       }
-      
+
       private Object _failTag      = null;
       private ByteChannel _channel = null;
    }
-   
+
    // A little class for doing TCP connects in a separate thread (so the MessageTransceiver won't block during the connect) */
    private class ConnectThread implements MessageListener
    {
       private MessageQueue myQueue = null;
-      
+
       public ConnectThread(ConnectMessage cmsg)
       {
          _cmsg = cmsg;
          myQueue = new MessageQueue(this);
          myQueue.postMessage(null);  // just to kick off the thread
       }
-      
+
       public void messageReceived(Object obj, int numLeft)
       {
          try {
@@ -436,19 +436,19 @@ public class MessageTransceiver implements MessageListener
          }
          _sendQueue.postMessage(this);
       }
-      
+
       public Runnable getThread(){
          return myQueue;
       }
-      
+
       public void interrupt(){
          myQueue.interrupt();
       }
-      
+
       public SocketChannel _socketChannel = null;
       public ConnectMessage _cmsg;
    }
-   
+
    // A little class for listening for TCP connections in a separate thread. -- Author: Bryan Varner
    // We override the listener method of ConnectThread and block for any incoming connections to said port.
    private class ListenThread extends ConnectThread
@@ -457,16 +457,16 @@ public class MessageTransceiver implements MessageListener
       {
          super(cmsg);
       }
-      
+
       public void messageReceived(Object obj, int numLeft)
       {
          ServerSocketChannel servSock = _cmsg._sock;
-       
+
          try {
             while(true) {
                // At this point we know we want at least one connection, we'll test for continuance at the end.
                _socketChannel = servSock.accept();
-               
+
                if (_continuallyListen == false)
                {
                   // If we aren't supposed to keep listening, post this object, killing this thread.

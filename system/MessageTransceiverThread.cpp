@@ -29,7 +29,7 @@ MessageTransceiverThread :: MessageTransceiverThread() : _forwardAllIncomingMess
 MessageTransceiverThread :: ~MessageTransceiverThread()
 {
    MASSERT(IsInternalThreadRunning() == false, "You must call ShutdownInternalThread() on a MessageTransceiverThread before deleting it!");
-   if (_server()) _server()->Cleanup(); 
+   if (_server()) _server()->Cleanup();
 }
 
 status_t MessageTransceiverThread :: EnsureServerAllocated()
@@ -272,7 +272,7 @@ status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(cons
           (SendMessageToInternalThread(commandRef)                                     == B_NO_ERROR)) return B_NO_ERROR;
 
       // User keeps ownership of his custom DrainTag on error, so we don't delete it.
-      if ((drainTagRef())&&(drainTagRef() == optDrainTag)) 
+      if ((drainTagRef())&&(drainTagRef() == optDrainTag))
       {
          drainTagRef()->SetReplyMessage(MessageRef());
          drainTagRef.Neutralize();
@@ -292,7 +292,7 @@ status_t MessageTransceiverThread :: SetNewOutputPolicy(const AbstractSessionIOP
    return SetNewPolicyAux(MTT_COMMAND_SET_OUTPUT_POLICY, pref, optDistPath);
 }
 
-status_t MessageTransceiverThread :: SetNewPolicyAux(uint32 what, const AbstractSessionIOPolicyRef & pref, const char * optDistPath)    
+status_t MessageTransceiverThread :: SetNewPolicyAux(uint32 what, const AbstractSessionIOPolicyRef & pref, const char * optDistPath)
 {
    MessageRef commandRef = GetMessageFromPool(what);
    return ((commandRef())&&
@@ -324,7 +324,7 @@ void MessageTransceiverThread :: Reset()
       _server()->Cleanup();
       _server.Reset();
    }
-   
+
    // Clear both message queues of any leftover messages.
    MessageRef junk;
    while(WaitForNextMessageFromOwner(junk, 0) >= 0) {/* empty */}
@@ -370,7 +370,7 @@ void ThreadWorkerSessionFactory :: AboutToDetachFromServer()
 
 status_t ThreadWorkerSessionFactory :: SendMessageToSupervisorSession(const MessageRef & msg, void * userData)
 {
-   // I'm not bothering to cache the supervisor pointer for this class, because this method is called 
+   // I'm not bothering to cache the supervisor pointer for this class, because this method is called
    // so rarely and I can't be bothered to add anti-dangling-pointer logic for so little gain --jaf
    ThreadSupervisorSession * supervisorSession = FindFirstSessionOfType<ThreadSupervisorSession>();
    if (supervisorSession)
@@ -407,7 +407,7 @@ AbstractReflectSessionRef ThreadWorkerSessionFactory :: CreateSession(const Stri
 
 void MessageTransceiverThread :: InternalThreadEntry()
 {
-   if (_server()) 
+   if (_server())
    {
       (void) _server()->ServerProcessLoop();
       _server()->Cleanup();
@@ -517,7 +517,7 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
                      if (rmsg) rmsg->AddString(MTT_NAME_FROMSESSION, GetSessionRootPath());
 
                      // If we have any messages pending, we'll save this message reference until our
-                     // outgoing message queue becomes empty.  That way the DrainTag item held by the 
+                     // outgoing message queue becomes empty.  That way the DrainTag item held by the
                      // referenced message won't be deleted until the appropriate time, and hence
                      // the supervisor won't be notified until all the specified queues have drained.
                      AbstractMessageIOGateway * gw = GetGateway()();
@@ -561,7 +561,7 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
             break;
          }
       }
-      else if ((msg->what >= MTT_EVENT_INCOMING_MESSAGE)&&(msg->what <= MTT_LAST_EVENT)) 
+      else if ((msg->what >= MTT_EVENT_INCOMING_MESSAGE)&&(msg->what <= MTT_LAST_EVENT))
       {
          // ignore these; we don't care about silly MTT_EVENTS, those are for the supervisor and the user
       }
@@ -588,13 +588,13 @@ void ThreadSupervisorSession :: AboutToDetachFromServer()
    Queue<AbstractReflectSessionRef> workers;
    if (FindSessionsOfType<ThreadWorkerSession>(workers) == B_NO_ERROR)
    {
-      for (uint32 i=0; i<workers.GetNumItems(); i++) 
+      for (uint32 i=0; i<workers.GetNumItems(); i++)
       {
          ThreadWorkerSession * ws = static_cast<ThreadWorkerSession *>(workers[i]());
          if (ws->_supervisorSession == this) ws->_supervisorSession = NULL;
       }
    }
- 
+
    StorageReflectSession :: AboutToDetachFromServer();
 }
 
@@ -663,7 +663,7 @@ status_t ThreadSupervisorSession :: AddNewWorkerConnectSession(const ThreadWorke
 void ThreadSupervisorSession :: SendMessageToWorkers(const MessageRef & distMsg)
 {
    String distPath;
-   SendMessageToMatchingSessions(distMsg, (distMsg()->FindString(MTT_NAME_PATH, distPath) == B_NO_ERROR) ? distPath : _defaultDistributionPath, ConstQueryFilterRef(), false); 
+   SendMessageToMatchingSessions(distMsg, (distMsg()->FindString(MTT_NAME_PATH, distPath) == B_NO_ERROR) ? distPath : _defaultDistributionPath, ConstQueryFilterRef(), false);
 }
 
 status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & msgRef, uint32)
@@ -778,7 +778,7 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
    else return B_ERROR;
 }
 
-DrainTag :: ~DrainTag() 
+DrainTag :: ~DrainTag()
 {
    if (_notify) _notify->DrainTagIsBeingDeleted(this);
 }

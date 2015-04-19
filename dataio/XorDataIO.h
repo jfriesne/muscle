@@ -7,7 +7,7 @@
 #include "util/ByteBuffer.h"
 
 namespace muscle {
- 
+
 /** This DataIO is a "wrapper" DataIO that adds an XOR operation to any data
   * that it reads or writes before passing the call on to the DataIO that it
   * holds internally.  This can be useful if you want to obfuscate your data
@@ -21,7 +21,7 @@ public:
      */
    XorDataIO() {/* empty */}
 
-   /** Constructor. 
+   /** Constructor.
      * @param childIO Reference to the DataIO to pass calls on through to
      *                after the data has been XOR'd.
      */
@@ -32,7 +32,7 @@ public:
 
    /** Implemented to XOR the child DataIO's read bytes before returning.  */
    virtual int32 Read(void * buffer, uint32 size)
-   {  
+   {
       int32 ret = _childIO() ? _childIO()->Read(buffer, size) : -1;
       if (ret > 0) XorCopy(buffer, buffer, size);
       return ret;

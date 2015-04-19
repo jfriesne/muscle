@@ -42,7 +42,7 @@ status_t AcceptSocketsThread :: StartInternalThread()
    {
       _notifySocket = GetInternalThreadWakeupSocket();
       return (_notifySocket.GetFileDescriptor() >= 0) ? Thread::StartInternalThread() : B_ERROR;
-   } 
+   }
    return B_ERROR;
 }
 
@@ -65,7 +65,7 @@ void AcceptSocketsThread :: InternalThreadEntry()
          while((numLeft = WaitForNextMessageFromOwner(msgRef, 0)) >= 0)
          {
             if (MessageReceivedFromOwner(msgRef, numLeft) != B_NO_ERROR)
-            { 
+            {
                keepGoing = false;
                break;
             }

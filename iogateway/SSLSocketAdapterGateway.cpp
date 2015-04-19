@@ -83,7 +83,7 @@ int32 SSLSocketAdapterGateway :: DoInputImplementation(AbstractGatewayMessageRec
 uint32 SSLSocketAdapterGateway :: GetSSLState() const
 {
    const SSLSocketDataIO * dio = dynamic_cast<SSLSocketDataIO *>(GetDataIO()());
-   return dio ? dio->_sslState : 0; 
+   return dio ? dio->_sslState : 0;
 }
 
 void SSLSocketAdapterGateway :: SetSSLForceReadReady(bool forceReadReady)

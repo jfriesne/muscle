@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "util/SharedFilterSessionFactory.h"
 #include "system/SharedMemory.h"
@@ -76,7 +76,7 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMem
                if (matchedLocal) break;
             }
          }
-         sm.UnlockArea(); 
+         sm.UnlockArea();
       }
    }
    return allowAccess;

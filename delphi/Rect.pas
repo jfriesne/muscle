@@ -95,7 +95,7 @@ type
     property bottom: single read Fbottom write Setbottom;
 
     //** Set a new position for the rectangle. */ was called 'set'
-    procedure setBounds(l, t, r, b: single);                                    
+    procedure setBounds(l, t, r, b: single);
 
     function toString: string; override;
 

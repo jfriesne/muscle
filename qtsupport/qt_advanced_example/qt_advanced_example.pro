@@ -10,7 +10,7 @@ MUSCLE_DIR      = ../..
 win32:DEFINES  += _WIN32_WINNT=0x0501
 INCLUDEPATH    += $$MUSCLE_DIR
 
-win32:INCLUDEPATH += $$MUSCLE_DIR/regex/regex 
+win32:INCLUDEPATH += $$MUSCLE_DIR/regex/regex
 
 MUSCLE_SOURCES = $$MUSCLE_DIR/iogateway/AbstractMessageIOGateway.cpp  \
                  $$MUSCLE_DIR/iogateway/MessageIOGateway.cpp          \

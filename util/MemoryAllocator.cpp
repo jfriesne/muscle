@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */ 
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "util/MemoryAllocator.h"
 
@@ -39,12 +39,12 @@ UsageLimitProxyMemoryAllocator :: UsageLimitProxyMemoryAllocator(const MemoryAll
 {
    // empty
 }
- 
+
 UsageLimitProxyMemoryAllocator :: ~UsageLimitProxyMemoryAllocator()
 {
    // empty
 }
- 
+
 status_t UsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t currentlyAllocatedBytes, size_t allocRequestBytes)
 {
    return ((allocRequestBytes <= _maxBytes)&&(currentlyAllocatedBytes + allocRequestBytes <= _maxBytes)) ? ProxyMemoryAllocator::AboutToAllocate(currentlyAllocatedBytes, allocRequestBytes) : B_ERROR;

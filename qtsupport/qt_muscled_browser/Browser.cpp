@@ -62,7 +62,7 @@ BrowserWindow :: BrowserWindow() : _isConnecting(false), _isConnected(false)
    QBoxLayout * vLayout = new QBoxLayout(QBoxLayout::TopToBottom, this);
    vLayout->setMargin(2);
    vLayout->setSpacing(2);
-   
+
    QWidget * topRow = new QWidget;
    {
       QBoxLayout * topRowLayout = new QBoxLayout(QBoxLayout::LeftToRight, topRow);
@@ -170,7 +170,7 @@ void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscrib
          _subscriptions.PutWithDefault(subscribePath);
          printf("Subscribed to path [%s]\n", subscribePath());
          _mtt.SendMessageToSessions(subMsg);
-         
+
       }
       else
       {
@@ -181,7 +181,7 @@ void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscrib
 
          // Also remove from our tree of locally-cached data any nodes that start with this path
          String removePath = nodePath + "/";
-         for (HashtableIterator<String, MessageRef> iter(_pathToMessage); iter.HasData(); iter++) if (iter.GetKey().StartsWith(removePath)) 
+         for (HashtableIterator<String, MessageRef> iter(_pathToMessage); iter.HasData(); iter++) if (iter.GetKey().StartsWith(removePath))
          {
             _pathToMessage.Remove(iter.GetKey());
             printf("   Dropped node for [%s]\n", iter.GetKey()());
@@ -215,7 +215,7 @@ void BrowserWindow :: ClearState()
    _messageContents->clear();
 }
 
-NodeTreeWidgetItem * BrowserWindow :: GetNodeFromPath(const String & nodePath) 
+NodeTreeWidgetItem * BrowserWindow :: GetNodeFromPath(const String & nodePath)
 {
    if (nodePath.StartsWith("/") == false) return NULL;  // all paths must start with "/"
    return (nodePath.Length()>1) ? GetNodeFromPathAux(_nodeRoot, nodePath()+1) : _nodeRoot;
@@ -282,7 +282,7 @@ void BrowserWindow :: MessageReceivedFromServer(const MessageRef & msg)
                   {
                      UpdateDataNodeInTreeView(nodePath);
                      printf("   Added/Updated node at [%s]\n", nodePath());
-                  } 
+                  }
                }
             }
          }
@@ -309,7 +309,7 @@ void BrowserWindow :: ConnectButtonClicked()
       String serverName;
       uint16 port = 2960;
       if ((ParseConnectArg(FromQ(_serverName->text()), serverName, port) == B_NO_ERROR)&&(_mtt.AddNewConnectSession(serverName, port) == B_NO_ERROR)&&(_mtt.StartInternalThread() == B_NO_ERROR)) _isConnecting = true;
-   }      
+   }
    UpdateState();
 }
 

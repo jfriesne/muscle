@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "reflector/ServerComponent.h"
 #include "reflector/ReflectServer.h"
@@ -12,12 +12,12 @@ ServerComponent() : _owner(NULL), _fullyAttached(false)
 }
 
 ServerComponent ::
-~ServerComponent() 
+~ServerComponent()
 {
    MASSERT(_owner == NULL, "ServerComponent deleted while still attached to its ReflectServer!  Maybe you did not call Cleanup() on the ReflectServer object, or did not forward an AboutToDetachFromServer() call to your superclass's implementation?");
 }
 
-status_t 
+status_t
 ServerComponent ::
 AttachedToServer()
 {
@@ -31,9 +31,9 @@ AboutToDetachFromServer()
    // empty
 }
 
-Message & 
+Message &
 ServerComponent ::
-GetCentralState() const 
+GetCentralState() const
 {
    MASSERT(_owner, "Can not call GetCentralState() while not attached to the server");
    return _owner->GetCentralState();
@@ -44,10 +44,10 @@ ServerComponent ::
 GetSessions() const
 {
    MASSERT(_owner, "Can not call GetSessions() while not attached to the server");
-   return _owner->GetSessions(); 
+   return _owner->GetSessions();
 }
 
-AbstractReflectSessionRef 
+AbstractReflectSessionRef
 ServerComponent ::
 GetSession(uint32 id) const
 {
@@ -55,7 +55,7 @@ GetSession(uint32 id) const
    return _owner->GetSession(id);
 }
 
-AbstractReflectSessionRef 
+AbstractReflectSessionRef
 ServerComponent ::
 GetSession(const String & id) const
 {
@@ -65,13 +65,13 @@ GetSession(const String & id) const
 
 const Hashtable<IPAddressAndPort, ReflectSessionFactoryRef> &
 ServerComponent ::
-GetFactories() const 
+GetFactories() const
 {
    MASSERT(_owner, "Can not call GetFactories() while not attached to the server");
-   return _owner->GetFactories(); 
+   return _owner->GetFactories();
 }
 
-ReflectSessionFactoryRef 
+ReflectSessionFactoryRef
 ServerComponent ::
 GetFactory(uint16 port) const
 {
@@ -127,23 +127,23 @@ GetServerSessionID() const
    return _owner->GetServerSessionID();
 }
 
-uint64 
+uint64
 ServerComponent ::
 GetNumAvailableBytes() const
 {
    MASSERT(_owner, "Can not call GetNumAvailableBytes() while not attached to the server");
    return _owner->GetNumAvailableBytes();
 }
- 
-uint64 
+
+uint64
 ServerComponent ::
 GetMaxNumBytes() const
 {
    MASSERT(_owner, "Can not call GetMaxNumBytes() while not attached to the server");
    return _owner->GetMaxNumBytes();
 }
- 
-uint64 
+
+uint64
 ServerComponent ::
 GetNumUsedBytes() const
 {
@@ -167,14 +167,14 @@ RemoveAcceptFactory(uint16 port, const ip_address & optInterfaceIP)
    return _owner->RemoveAcceptFactory(port, optInterfaceIP);
 }
 
-void 
+void
 ServerComponent ::
 MessageReceivedFromSession(AbstractReflectSession &, const MessageRef &, void *)
 {
    // empty
 }
 
-void 
+void
 ServerComponent ::
 MessageReceivedFromFactory(ReflectSessionFactory &, const MessageRef &, void * )
 {

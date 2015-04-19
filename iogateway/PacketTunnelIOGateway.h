@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/ByteBufferDataIO.h"
 #include "iogateway/AbstractMessageIOGateway.h"
@@ -9,12 +9,12 @@ namespace muscle {
 
 /** This I/O gateway class is a "wrapper" class that you can use in conjunction with any other
   * AbstractMessageIOGateway class.  It will take the output of that class and packetize it in
-  * such a way that the resulting data can be sent efficiently and correctly over an I/O channel that 
+  * such a way that the resulting data can be sent efficiently and correctly over an I/O channel that
   * would otherwise not accept datagrams larger than a certain size.  You can also use it by itself,
   * (without a slave I/O gateway), in which case it will use the standard Message::Flatten() encoding.
   *
   * In particular, this class will combine several small messages into a single packet, for efficiency,
-  * and also fragment overly-large data into multiple sub-packets, if necessary, in order to keep 
+  * and also fragment overly-large data into multiple sub-packets, if necessary, in order to keep
   * packet size smaller than the physical layer's MTU (Max Transfer Unit) size.  Note that this
   * class does not do any automated retransmission of lost data, so if you do use it over UDP
   * (or some other lossy I/O channel), you will need to handle lost Messages at a higher level.
@@ -114,7 +114,7 @@ private:
    ByteBufferDataIO _fakeReceiveIO;
    uint32 _maxIncomingMessageSize;
 
-   class ReceiveState 
+   class ReceiveState
    {
    public:
       ReceiveState() : _messageID(0), _offset(0) {/* empty */}

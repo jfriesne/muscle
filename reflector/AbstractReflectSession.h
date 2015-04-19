@@ -231,7 +231,7 @@ public:
     */
    const AbstractMessageIOGatewayRef & GetGateway() const {return _gateway;}
 
-   /** 
+   /**
      * Convenience method:  returns a reference DataIO object attached to this session's
      * current gateway object, or NULL if there isn't one.
      */
@@ -329,7 +329,7 @@ public:
 
    /** Sets the async-connect-destination (as returned by GetAsyncConnectIP() and GetAsyncConnectPort())
      * manually.  Typically you don't need to call this; so only call this method if you really know
-     * what you are doing and why you need to. 
+     * what you are doing and why you need to.
      * @param iap The IP address and port that this session connected to asynchronously.
      * @param reconnectViaTCP If true, then any calls to Reconnect() will try to reconnect to this address via a
      *                        standard TCP connection.  If false, this address will be ignored by Reconnect().
@@ -357,7 +357,7 @@ public:
      * forcibly aborting it.  Default behavior is determined by the MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS
      * compiler define, whose default value is MUSCLE_TIME_NEVER, aka let the asynchronous connect
      * go on for as long as the operating system cares to allow it to.
-     * Note that this setting is only relevant for sessions that were attached using AddNewConnectSession() 
+     * Note that this setting is only relevant for sessions that were attached using AddNewConnectSession()
      * or AddNewDormantConnectSession().
      * @param delay The new maximum connect time to allow, in microseconds, or MUSCLE_TIME_NEVER to not
      *              enforce any particular maximum connect time.
@@ -365,7 +365,7 @@ public:
    void SetMaxAsyncConnectPeriod(uint64 delay) {_maxAsyncConnectPeriod = delay; InvalidatePulseTime();}
 
    /** Returns the current maximum-asynchronous-connect setting, in microseconds.
-     * Note that this setting is only relevant for sessions that were attached using AddNewConnectSession() 
+     * Note that this setting is only relevant for sessions that were attached using AddNewConnectSession()
      * or AddNewDormantConnectSession().
      */
    uint64 GetMaxAsyncConnectPeriod() const {return _maxAsyncConnectPeriod;}
@@ -381,8 +381,8 @@ public:
      */
    bool WasConnected() const {return _wasConnected;}
 
-   /** This method may be called by ReflectServer when the server process runs low on memory.  
-     * If it returns true this session may be disposed of in order to free up memory.  If it 
+   /** This method may be called by ReflectServer when the server process runs low on memory.
+     * If it returns true this session may be disposed of in order to free up memory.  If it
      * returns false, this session will not be disposed of.
      *
      * Default return value is false, but the ReflectServer class will call SetExpendable(true)
@@ -392,7 +392,7 @@ public:
      */
    bool IsExpendable() const {return _isExpendable;}
 
-   /** Calls this to set or clear the isExpendable flag on a session (see IsExpendable() for details) 
+   /** Calls this to set or clear the isExpendable flag on a session (see IsExpendable() for details)
      * @param isExpendable If true, this session may be removed in a low-on-memory situation.  If false, it won't be.
      */
    void SetExpendable(bool isExpendable) {_isExpendable = isExpendable;}

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifndef WIN32  // Windows can't handle file descriptors!
 
@@ -29,7 +29,7 @@ FileDescriptorDataIO(const ConstSocketRef & fd, bool blocking) : _fd(fd), _dofSy
 }
 
 FileDescriptorDataIO ::
-~FileDescriptorDataIO() 
+~FileDescriptorDataIO()
 {
    if (_dofSyncOnClose)
    {
@@ -38,7 +38,7 @@ FileDescriptorDataIO ::
    }
 }
 
-int32 FileDescriptorDataIO :: Read(void * buffer, uint32 size)  
+int32 FileDescriptorDataIO :: Read(void * buffer, uint32 size)
 {
    int fd = _fd.GetFileDescriptor();
    if (fd >= 0)
@@ -103,9 +103,9 @@ status_t FileDescriptorDataIO :: Seek(int64 offset, int whence)
       }
 #ifdef MUSCLE_USE_LLSEEK
       loff_t spot;
-      return (_llseek(fd, (uint32)((offset >> 32) & 0xFFFFFFFF), (uint32)(offset & 0xFFFFFFFF), &spot, whence) >= 0) ? B_NO_ERROR : B_ERROR;   
+      return (_llseek(fd, (uint32)((offset >> 32) & 0xFFFFFFFF), (uint32)(offset & 0xFFFFFFFF), &spot, whence) >= 0) ? B_NO_ERROR : B_ERROR;
 #else
-      return (lseek(fd, (off_t) offset, whence) >= 0) ? B_NO_ERROR : B_ERROR; 
+      return (lseek(fd, (off_t) offset, whence) >= 0) ? B_NO_ERROR : B_ERROR;
 #endif
    }
    return B_ERROR;
@@ -118,7 +118,7 @@ int64 FileDescriptorDataIO :: GetPosition() const
    {
 #ifdef MUSCLE_USE_LLSEEK
       loff_t spot;
-      return (_llseek(fd, 0, 0, &spot, SEEK_CUR) == 0) ? spot : -1; 
+      return (_llseek(fd, 0, 0, &spot, SEEK_CUR) == 0) ? spot : -1;
 #else
       return lseek(fd, 0, SEEK_CUR);
 #endif

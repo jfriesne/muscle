@@ -10,7 +10,7 @@ CC	=	bcc32
 CXX	=	bcc32
 CFLAGS	=	-O2 -x- -w -w-hid -v -DMUSCLE_SINGLE_THREAD_ONLY -DMUSCLE_ENABLE_ZLIB_ENCODING
 CXXFLAGS=	-O2 -x- -w -w-hid -v -DMUSCLE_SINGLE_THREAD_ONLY -DMUSCLE_ENABLE_ZLIB_ENCODING
-INCPATH	=	 -I"." -I".." -I"../regex/regex" 
+INCPATH	=	 -I"." -I".." -I"../regex/regex"
 LINK	=	ilink32
 LFLAGS	=	-ap -Gn -Gi -x -Tpe
 LIBS	=	import32.lib cw32.lib
@@ -131,46 +131,46 @@ clean:
 
 ####### Compile
 
-AbstractMessageIOGateway.obj: ..\..\muscle\iogateway\AbstractMessageIOGateway.cpp 
+AbstractMessageIOGateway.obj: ..\..\muscle\iogateway\AbstractMessageIOGateway.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oAbstractMessageIOGateway.obj ..\..\muscle\iogateway\AbstractMessageIOGateway.cpp
 
-MessageIOGateway.obj: ..\..\muscle\iogateway\MessageIOGateway.cpp 
+MessageIOGateway.obj: ..\..\muscle\iogateway\MessageIOGateway.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oMessageIOGateway.obj ..\..\muscle\iogateway\MessageIOGateway.cpp
 
-Message.obj: ..\..\muscle\message\Message.cpp 
+Message.obj: ..\..\muscle\message\Message.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oMessage.obj ..\..\muscle\message\Message.cpp
 
-AbstractReflectSession.obj: ..\..\muscle\reflector\AbstractReflectSession.cpp 
+AbstractReflectSession.obj: ..\..\muscle\reflector\AbstractReflectSession.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oAbstractReflectSession.obj ..\..\muscle\reflector\AbstractReflectSession.cpp
 
-DumbReflectSession.obj: ..\..\muscle\reflector\DumbReflectSession.cpp 
+DumbReflectSession.obj: ..\..\muscle\reflector\DumbReflectSession.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oDumbReflectSession.obj ..\..\muscle\reflector\DumbReflectSession.cpp
 
-StorageReflectSession.obj: ..\..\muscle\reflector\StorageReflectSession.cpp 
+StorageReflectSession.obj: ..\..\muscle\reflector\StorageReflectSession.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oStorageReflectSession.obj ..\..\muscle\reflector\StorageReflectSession.cpp
 
-FilterSessionFactory.obj: ..\..\muscle\reflector\FilterSessionFactory.cpp 
+FilterSessionFactory.obj: ..\..\muscle\reflector\FilterSessionFactory.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oFilterSessionFactory.obj ..\..\muscle\reflector\FilterSessionFactory.cpp
 
-RateLimitSessionIOPolicy.obj: ..\..\muscle\reflector\RateLimitSessionIOPolicy.cpp 
+RateLimitSessionIOPolicy.obj: ..\..\muscle\reflector\RateLimitSessionIOPolicy.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oRateLimitSessionIOPolicy.obj ..\..\muscle\reflector\RateLimitSessionIOPolicy.cpp
 
-ReflectServer.obj: ..\..\muscle\reflector\ReflectServer.cpp 
+ReflectServer.obj: ..\..\muscle\reflector\ReflectServer.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oReflectServer.obj ..\..\muscle\reflector\ReflectServer.cpp
 
-DataNode.obj: ..\..\muscle\reflector\DataNode.cpp 
+DataNode.obj: ..\..\muscle\reflector\DataNode.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oDataNode.obj ..\..\muscle\reflector\DataNode.cpp
 
-ServerComponent.obj: ..\..\muscle\reflector\ServerComponent.cpp 
+ServerComponent.obj: ..\..\muscle\reflector\ServerComponent.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oServerComponent.obj ..\..\muscle\reflector\ServerComponent.cpp
 
-StringMatcher.obj: ..\..\muscle\regex\StringMatcher.cpp 
+StringMatcher.obj: ..\..\muscle\regex\StringMatcher.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oStringMatcher.obj ..\..\muscle\regex\StringMatcher.cpp
 
-PathMatcher.obj: ..\..\muscle\regex\PathMatcher.cpp 
+PathMatcher.obj: ..\..\muscle\regex\PathMatcher.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oPathMatcher.obj ..\..\muscle\regex\PathMatcher.cpp
 
-QueryFilter.obj: ..\..\muscle\regex\QueryFilter.cpp 
+QueryFilter.obj: ..\..\muscle\regex\QueryFilter.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oQueryFilter.obj ..\..\muscle\regex\QueryFilter.cpp
 
 regcomp.obj: ..\..\muscle\regex\regex\regcomp.c
@@ -185,22 +185,22 @@ regexec.obj: ..\..\muscle\regex\regex\regexec.c
 regfree.obj: ..\..\muscle\regex\regex\regfree.c
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oregfree.obj ..\..\muscle\regex\regex\regfree.c
 
-muscled.obj: ..\..\muscle\server\muscled.cpp 
+muscled.obj: ..\..\muscle\server\muscled.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -omuscled.obj ..\..\muscle\server\muscled.cpp
 
-SysLog.obj: ..\..\muscle\syslog\SysLog.cpp 
+SysLog.obj: ..\..\muscle\syslog\SysLog.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oSysLog.obj ..\..\muscle\syslog\SysLog.cpp
 
-GlobalMemoryAllocator.obj: ..\..\muscle\system\GlobalMemoryAllocator.cpp 
+GlobalMemoryAllocator.obj: ..\..\muscle\system\GlobalMemoryAllocator.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oGlobalMemoryAllocator.obj ..\..\muscle\system\GlobalMemoryAllocator.cpp
 
-SetupSystem.obj: ..\..\muscle\system\SetupSystem.cpp 
+SetupSystem.obj: ..\..\muscle\system\SetupSystem.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oSetupSystem.obj ..\..\muscle\system\SetupSystem.cpp
 
-ByteBuffer.obj: ..\..\muscle\util\ByteBuffer.cpp 
+ByteBuffer.obj: ..\..\muscle\util\ByteBuffer.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oByteBuffer.obj ..\..\muscle\util\ByteBuffer.cpp
 
-MemoryAllocator.obj: ..\..\muscle\util\MemoryAllocator.cpp 
+MemoryAllocator.obj: ..\..\muscle\util\MemoryAllocator.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oMemoryAllocator.obj ..\..\muscle\util\MemoryAllocator.cpp
 
 MiscUtilityFunctions.obj: ..\..\muscle\util\MiscUtilityFunctions.cpp ..\..\muscle\util\string.h
@@ -209,41 +209,41 @@ MiscUtilityFunctions.obj: ..\..\muscle\util\MiscUtilityFunctions.cpp ..\..\muscl
 NetworkUtilityFunctions.obj: ..\..\muscle\util\NetworkUtilityFunctions.cpp ..\..\muscle\util\string.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oNetworkUtilityFunctions.obj ..\..\muscle\util\NetworkUtilityFunctions.cpp
 
-SocketMultiplexer.obj: ..\..\muscle\util\SocketMultiplexer.cpp 
+SocketMultiplexer.obj: ..\..\muscle\util\SocketMultiplexer.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oSocketMultiplexer.obj ..\..\muscle\util\SocketMultiplexer.cpp
 
-String.obj: ..\..\muscle\util\String.cpp 
+String.obj: ..\..\muscle\util\String.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oString.obj ..\..\muscle\util\String.cpp
 
-PulseNode.obj: ..\..\muscle\util\PulseNode.cpp 
+PulseNode.obj: ..\..\muscle\util\PulseNode.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oPulseNode.obj ..\..\muscle\util\PulseNode.cpp
 
-ZLibCodec.obj: ..\..\muscle\zlib\ZLibCodec.cpp 
+ZLibCodec.obj: ..\..\muscle\zlib\ZLibCodec.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oZLibCodec.obj ..\..\muscle\zlib\ZLibCodec.cpp
 
-adler32.obj: ..\..\muscle\zlib\zlib\adler32.c 
+adler32.obj: ..\..\muscle\zlib\zlib\adler32.c
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oadler32.obj ..\..\muscle\zlib\zlib\adler32.c
 
-deflate.obj: ..\..\muscle\zlib\zlib\deflate.c 
+deflate.obj: ..\..\muscle\zlib\zlib\deflate.c
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -odeflate.obj ..\..\muscle\zlib\zlib\deflate.c
 
-trees.obj: ..\..\muscle\zlib\zlib\trees.c 
+trees.obj: ..\..\muscle\zlib\zlib\trees.c
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -otrees.obj ..\..\muscle\zlib\zlib\trees.c
 
-zutil.obj: ..\..\muscle\zlib\zlib\zutil.c 
+zutil.obj: ..\..\muscle\zlib\zlib\zutil.c
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -ozutil.obj ..\..\muscle\zlib\zlib\zutil.c
 
-inflate.obj: ..\..\muscle\zlib\zlib\inflate.c 
+inflate.obj: ..\..\muscle\zlib\zlib\inflate.c
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oinflate.obj ..\..\muscle\zlib\zlib\inflate.c
 
-inftrees.obj: ..\..\muscle\zlib\zlib\inftrees.c 
+inftrees.obj: ..\..\muscle\zlib\zlib\inftrees.c
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oinftrees.obj ..\..\muscle\zlib\zlib\inftrees.c
 
-inffast.obj: ..\..\muscle\zlib\zlib\inffast.c 
+inffast.obj: ..\..\muscle\zlib\zlib\inffast.c
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -oinffast.obj ..\..\muscle\zlib\zlib\inffast.c
 
-crc32.obj: ..\..\muscle\zlib\zlib\crc32.c 
+crc32.obj: ..\..\muscle\zlib\zlib\crc32.c
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -ocrc32.obj ..\..\muscle\zlib\zlib\crc32.c
 
-compress.obj: ..\..\muscle\zlib\zlib\compress.c 
+compress.obj: ..\..\muscle\zlib\zlib\compress.c
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -ocompress.obj ..\..\muscle\zlib\zlib\compress.c

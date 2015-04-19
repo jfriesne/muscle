@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include "util/ByteBuffer.h"
@@ -87,9 +87,9 @@ MessageRef GetLightweightCopyOfMessageFromPool(ObjectPool<Message> & pool, const
    return ref;
 }
 
-/* This class is for the private use of the Message class only! 
+/* This class is for the private use of the Message class only!
  * It represents one "name" of the message, which can in turn represent 1 or more
- * data items of a single type. 
+ * data items of a single type.
  */
 class AbstractDataArray : public FlatCountable, private CountedObject<AbstractDataArray>
 {
@@ -138,7 +138,7 @@ public:
    // returns a separate (deep) copy of this array
    virtual RefCountableRef Clone() const = 0;
 
-   // Returns true iff this array should be included when flattening. 
+   // Returns true iff this array should be included when flattening.
    virtual bool IsFlattenable() const = 0;
 
    // For debugging:  returns a description of our contents as a String
@@ -205,7 +205,7 @@ public:
 
    const DataType & ItemAt(int i) const {return _data[i];}
 
-   FixedSizeDataArray<DataType> & operator=(const FixedSizeDataArray<DataType> & rhs) 
+   FixedSizeDataArray<DataType> & operator=(const FixedSizeDataArray<DataType> & rhs)
    {
       if (this != &rhs) _data = rhs._data;
       return *this;
@@ -247,7 +247,7 @@ public:
 
    virtual uint32 TypeCode() const {return B_TAG_TYPE;}
 
-   virtual RefCountableRef Clone() const; 
+   virtual RefCountableRef Clone() const;
 
    virtual bool IsFlattenable() const {return false;}
 
@@ -261,11 +261,11 @@ protected:
    virtual void AddToString(String & s, uint32, int indent) const
    {
       uint32 numItems = GetNumItems();
-      for (uint32 i=0; i<numItems; i++) 
+      for (uint32 i=0; i<numItems; i++)
       {
-         DoIndents(indent,s); 
-         char buf[128]; 
-         sprintf(buf, "    " UINT32_FORMAT_SPEC ". %p\n", i, _data[i]());
+         DoIndents(indent,s);
+         char buf[128];
+         muscleSprintf(buf, "    " UINT32_FORMAT_SPEC ". %p\n", i, _data[i]());
          s += buf;
       }
    }
@@ -276,20 +276,20 @@ DECLAREFIELDTYPE(TagDataArray);
 template <class DataType, int FlatItemSize, uint32 ItemTypeCode> class FixedSizeFlatObjectArray : public FixedSizeDataArray<DataType>
 {
 public:
-   FixedSizeFlatObjectArray() 
+   FixedSizeFlatObjectArray()
    {
       // empty
    }
 
-   virtual ~FixedSizeFlatObjectArray() 
+   virtual ~FixedSizeFlatObjectArray()
    {
       // empty
    }
 
    virtual void Flatten(uint8 * buffer) const
    {
-      uint32 numItems = this->_data.GetNumItems(); 
-      for (uint32 i=0; i<numItems; i++) 
+      uint32 numItems = this->_data.GetNumItems();
+      for (uint32 i=0; i<numItems; i++)
       {
          this->_data[i].Flatten(buffer);
          buffer += FlatItemSize;
@@ -302,7 +302,7 @@ public:
    virtual status_t Unflatten(const uint8 * buffer, uint32 numBytes)
    {
       this->_data.Clear();
-      if (numBytes % FlatItemSize) 
+      if (numBytes % FlatItemSize)
       {
          LogTime(MUSCLE_LOG_DEBUG, "FixedSizeDataArray %p:  Unexpected numBytes " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", this, numBytes, FlatItemSize);
          return B_ERROR;  // length must be an even multiple of item size, or something's wrong!
@@ -314,7 +314,7 @@ public:
       {
          for (uint32 i=0; i<numItems; i++)
          {
-            if ((temp.Unflatten(buffer, FlatItemSize) != B_NO_ERROR)||(this->_data.AddTail(temp) != B_NO_ERROR)) 
+            if ((temp.Unflatten(buffer, FlatItemSize) != B_NO_ERROR)||(this->_data.AddTail(temp) != B_NO_ERROR))
             {
                LogTime(MUSCLE_LOG_DEBUG, "FixedSizeDataArray %p:  Error unflattened item " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", this, i, numItems);
                return B_ERROR;
@@ -332,11 +332,11 @@ protected:
    virtual void AddToString(String & s, uint32, int indent) const
    {
       uint32 numItems = this->GetNumItems();
-      for (uint32 i=0; i<numItems; i++) 
+      for (uint32 i=0; i<numItems; i++)
       {
-         DoIndents(indent,s); 
-         char buf[64]; 
-         sprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i);  
+         DoIndents(indent,s);
+         char buf[64];
+         muscleSprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i);
          s += buf;
          AddItemToString(s, this->_data[i]);
       }
@@ -346,7 +346,7 @@ protected:
 };
 
 /* This class handles storage of all the primitive numeric types for us. */
-template <class DataType> class PrimitiveTypeDataArray : public FixedSizeDataArray<DataType> 
+template <class DataType> class PrimitiveTypeDataArray : public FixedSizeDataArray<DataType>
 {
 public:
    PrimitiveTypeDataArray() {/* empty */}
@@ -373,7 +373,7 @@ public:
 
             uint32 len1;
             const DataType * array1 = this->_data.GetArrayPointer(1, len1);
-            if (array1) ConvertToNetworkByteOrder(&dBuf[len0], array1, len1); 
+            if (array1) ConvertToNetworkByteOrder(&dBuf[len0], array1, len1);
          }
          break;
       }
@@ -382,7 +382,7 @@ public:
    virtual status_t Unflatten(const uint8 * buffer, uint32 numBytes)
    {
       this->_data.Clear();
-      if (numBytes % sizeof(DataType)) 
+      if (numBytes % sizeof(DataType))
       {
          LogTime(MUSCLE_LOG_DEBUG, "PrimitiveTypeDataArray %p:  Unexpected numBytes " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", this, numBytes, (uint32) sizeof(DataType));
          return B_ERROR;  // length must be an even multiple of item size, or something's wrong!
@@ -390,7 +390,7 @@ public:
 
       uint32 numItems = numBytes / sizeof(DataType);
       if (this->_data.EnsureSize(numItems, true) == B_NO_ERROR)
-      {  
+      {
          // Note that typically you can't rely on the contents of a Queue object to
          // be stored in a single, contiguous array like this, but in this case we've
          // called Clear() and then EnsureSize(), so we know that the array's headPointer
@@ -413,11 +413,11 @@ protected:
    virtual void AddToString(String & s, uint32, int indent) const
    {
       uint32 numItems = this->GetNumItems();
-      for (uint32 i=0; i<numItems; i++) 
+      for (uint32 i=0; i<numItems; i++)
       {
-         DoIndents(indent,s); 
-         char temp1[100]; sprintf(temp1, GetFormatString(), this->ItemAt(i));
-         char temp2[150]; sprintf(temp2, "    " UINT32_FORMAT_SPEC ". [%s]\n", i, temp1);  s += temp2;
+         DoIndents(indent,s);
+         char temp1[100]; muscleSprintf(temp1, GetFormatString(), this->ItemAt(i));
+         char temp2[150]; muscleSprintf(temp2, "    " UINT32_FORMAT_SPEC ". [%s]\n", i, temp1);  s += temp2;
       }
    }
 };
@@ -428,10 +428,10 @@ public:
    PointDataArray() {/* empty */}
    virtual ~PointDataArray() {/* empty */}
    virtual RefCountableRef Clone() const;
-   virtual void AddItemToString(String & s, const Point & p) const 
+   virtual void AddItemToString(String & s, const Point & p) const
    {
-      char buf[128]; 
-      sprintf(buf, "Point: %f %f\n", p.x(), p.y());
+      char buf[128];
+      muscleSprintf(buf, "Point: %f %f\n", p.x(), p.y());
       s += buf;
    }
 
@@ -450,10 +450,10 @@ public:
    RectDataArray() {/* empty */}
    virtual ~RectDataArray() {/* empty */}
    virtual RefCountableRef Clone() const;
-   virtual void AddItemToString(String & s, const Rect & r) const 
+   virtual void AddItemToString(String & s, const Rect & r) const
    {
-      char buf[256]; 
-      sprintf(buf, "Rect: leftTop=(%f,%f) rightBottom=(%f,%f)\n", r.left(), r.top(), r.right(), r.bottom());
+      char buf[256];
+      muscleSprintf(buf, "Rect: leftTop=(%f,%f) rightBottom=(%f,%f)\n", r.left(), r.top(), r.right(), r.bottom());
       s += buf;
    }
 
@@ -466,7 +466,7 @@ public:
 };
 DECLAREFIELDTYPE(RectDataArray);
 
-class Int8DataArray : public PrimitiveTypeDataArray<int8> 
+class Int8DataArray : public PrimitiveTypeDataArray<int8>
 {
 public:
    Int8DataArray() {/* empty */}
@@ -475,7 +475,7 @@ public:
    virtual uint32 TypeCode() const {return B_INT8_TYPE;}
 
    virtual const char * GetFormatString() const {return "%i";}
- 
+
    virtual RefCountableRef Clone() const;
 
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
@@ -512,7 +512,7 @@ public:
 
    virtual void Flatten(uint8 * buffer) const
    {
-      uint32 numItems = _data.GetNumItems(); 
+      uint32 numItems = _data.GetNumItems();
       for (uint32 i=0; i<numItems; i++) buffer[i] = (uint8) (_data[i] ? 1 : 0);
    }
 
@@ -551,7 +551,7 @@ protected:
 };
 DECLAREFIELDTYPE(BoolDataArray);
 
-class Int16DataArray : public PrimitiveTypeDataArray<int16> 
+class Int16DataArray : public PrimitiveTypeDataArray<int16>
 {
 public:
    Int16DataArray() {/* empty */}
@@ -591,7 +591,7 @@ protected:
 };
 DECLAREFIELDTYPE(Int16DataArray);
 
-class Int32DataArray : public PrimitiveTypeDataArray<int32> 
+class Int32DataArray : public PrimitiveTypeDataArray<int32>
 {
 public:
    Int32DataArray() {/* empty */}
@@ -631,7 +631,7 @@ protected:
 };
 DECLAREFIELDTYPE(Int32DataArray);
 
-class Int64DataArray : public PrimitiveTypeDataArray<int64> 
+class Int64DataArray : public PrimitiveTypeDataArray<int64>
 {
 public:
    Int64DataArray() {/* empty */}
@@ -671,7 +671,7 @@ protected:
 };
 DECLAREFIELDTYPE(Int64DataArray);
 
-class FloatDataArray : public PrimitiveTypeDataArray<float> 
+class FloatDataArray : public PrimitiveTypeDataArray<float>
 {
 public:
    FloatDataArray() {/* empty */}
@@ -711,7 +711,7 @@ protected:
 };
 DECLAREFIELDTYPE(FloatDataArray);
 
-class DoubleDataArray : public PrimitiveTypeDataArray<double> 
+class DoubleDataArray : public PrimitiveTypeDataArray<double>
 {
 public:
    DoubleDataArray() {/* empty */}
@@ -751,7 +751,7 @@ protected:
 };
 DECLAREFIELDTYPE(DoubleDataArray);
 
-class PointerDataArray : public PrimitiveTypeDataArray<void *> 
+class PointerDataArray : public PrimitiveTypeDataArray<void *>
 {
 public:
    PointerDataArray() {/* empty */}
@@ -790,7 +790,7 @@ public:
    FlatCountableRefDataArray() {/* empty */}
    virtual ~FlatCountableRefDataArray() {/* empty */}
 
-   virtual uint32 GetItemSize(uint32 index) const 
+   virtual uint32 GetItemSize(uint32 index) const
    {
       const FlatCountable * msg = this->ItemAt(index)();
       return msg ? msg->FlattenedSize() : 0;
@@ -809,16 +809,16 @@ public:
    virtual void Flatten(uint8 * buffer) const
    {
       uint32 writeOffset = 0;
-      uint32 numItems = this->_data.GetNumItems(); 
+      uint32 numItems = this->_data.GetNumItems();
 
       // Conditional to allow maintaining backwards compatibility with old versions of muscle's MessageDataArrays (sigh)
-      if (ShouldWriteNumItems()) 
+      if (ShouldWriteNumItems())
       {
          uint32 writeNumElements = B_HOST_TO_LENDIAN_INT32(numItems);
          this->WriteData(buffer, &writeOffset, &writeNumElements, sizeof(writeNumElements));
       }
 
-      for (uint32 i=0; i<numItems; i++) 
+      for (uint32 i=0; i<numItems; i++)
       {
          const FlatCountable * next = this->ItemAt(i)();
          if (next)
@@ -833,7 +833,7 @@ public:
    }
 
    // Flattenable interface
-   virtual uint32 FlattenedSize() const 
+   virtual uint32 FlattenedSize() const
    {
       uint32 numItems = this->GetNumItems();
       uint32 count = (numItems+(ShouldWriteNumItems()?1:0))*sizeof(uint32);
@@ -860,24 +860,24 @@ public:
       uint32 readOffset = 0;
 
       uint32 numItems;
-      if (ReadData(buffer, numBytes, &readOffset, &numItems, sizeof(numItems)) != B_NO_ERROR) 
+      if (ReadData(buffer, numBytes, &readOffset, &numItems, sizeof(numItems)) != B_NO_ERROR)
       {
          LogTime(MUSCLE_LOG_DEBUG, "ByteBufferDataArray %p:  Error reading numItems (numBytes=" UINT32_FORMAT_SPEC ")\n", this, numBytes);
          return B_ERROR;
       }
       numItems = B_LENDIAN_TO_HOST_INT32(numItems);
-   
+
       for (uint32 i=0; i<numItems; i++)
       {
          uint32 readFs;
-         if (ReadData(buffer, numBytes, &readOffset, &readFs, sizeof(readFs)) != B_NO_ERROR) 
+         if (ReadData(buffer, numBytes, &readOffset, &readFs, sizeof(readFs)) != B_NO_ERROR)
          {
             LogTime(MUSCLE_LOG_DEBUG, "ByteBufferDataArray %p:  Error reading item size (i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ", readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ")\n", this, i, numItems, readOffset, numBytes);
             return B_ERROR;
          }
 
          readFs = B_LENDIAN_TO_HOST_INT32(readFs);
-         if (readOffset + readFs > numBytes) 
+         if (readOffset + readFs > numBytes)
          {
             LogTime(MUSCLE_LOG_DEBUG, "ByteBufferDataArray %p:  Item size too large (i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ", readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ", readFs=" UINT32_FORMAT_SPEC ")\n", this, i, numItems, readOffset, numBytes, readFs);
             return B_ERROR;  // message size too large for our buffer... corruption?
@@ -896,8 +896,8 @@ public:
       {
          DoIndents(indent,s);
 
-         char buf[100]; 
-         sprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i);
+         char buf[100];
+         muscleSprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i);
          s += buf;
 
          FlatCountable * fc = ItemAt(i)();
@@ -915,15 +915,15 @@ public:
 
          if (bb)
          {
-            sprintf(buf, "[flattenedSize=" UINT32_FORMAT_SPEC "] ", bb->GetNumBytes()); 
+            muscleSprintf(buf, "[flattenedSize=" UINT32_FORMAT_SPEC "] ", bb->GetNumBytes());
             s += buf;
             uint32 printBytes = muscleMin(bb->GetNumBytes(), (uint32)10);
             if (printBytes > 0)
             {
                s += '[';
-               for (uint32 j=0; j<printBytes; j++) 
+               for (uint32 j=0; j<printBytes; j++)
                {
-                  sprintf(buf, "%02x%s", (bb->GetBuffer())[j], (j<printBytes-1)?" ":"");
+                  muscleSprintf(buf, "%02x%s", (bb->GetBuffer())[j], (j<printBytes-1)?" ":"");
                   s += buf;
                }
                if (printBytes > 10) s += " ...";
@@ -956,7 +956,7 @@ protected:
       const ByteBufferDataArray * trhs = dynamic_cast<const ByteBufferDataArray *>(rhs);
       if (trhs == NULL) return false;
 
-      for (int32 i=GetNumItems()-1; i>=0; i--) 
+      for (int32 i=GetNumItems()-1; i>=0; i--)
       {
          const ByteBuffer * myBuf  = static_cast<const ByteBuffer *>(this->ItemAt(i)());
          const ByteBuffer * hisBuf = static_cast<const ByteBuffer *>(trhs->ItemAt(i)());
@@ -987,14 +987,14 @@ public:
       while(readOffset < numBytes)
       {
          uint32 readFs;
-         if (ReadData(buffer, numBytes, &readOffset, &readFs, sizeof(readFs)) != B_NO_ERROR) 
+         if (ReadData(buffer, numBytes, &readOffset, &readFs, sizeof(readFs)) != B_NO_ERROR)
          {
             LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Read of sub-message size failed (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ")\n", this, readOffset, numBytes);
             return B_ERROR;
          }
 
          readFs = B_LENDIAN_TO_HOST_INT32(readFs);
-         if (readOffset + readFs > numBytes) 
+         if (readOffset + readFs > numBytes)
          {
             LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Sub-message size too large (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ", readFs=" UINT32_FORMAT_SPEC ")\n", this, readOffset, numBytes, readFs);
             return B_ERROR;  // message size too large for our buffer... corruption?
@@ -1002,7 +1002,7 @@ public:
          MessageRef nextMsg = GetMessageFromPool();
          if (nextMsg())
          {
-            if (nextMsg()->Unflatten(&buffer[readOffset], readFs) != B_NO_ERROR) 
+            if (nextMsg()->Unflatten(&buffer[readOffset], readFs) != B_NO_ERROR)
             {
                LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Sub-message unflatten failed (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ", readFs=" UINT32_FORMAT_SPEC ")\n", this, readOffset, numBytes, readFs);
                return B_ERROR;
@@ -1020,10 +1020,10 @@ public:
       uint32 numItems = GetNumItems();
       for (uint32 i=0; i<numItems; i++)
       {
-         DoIndents(indent,s);  
+         DoIndents(indent,s);
 
-         char buf[100]; 
-         sprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i); 
+         char buf[100];
+         muscleSprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i);
          s += buf;
 
          const void * vp;
@@ -1035,7 +1035,7 @@ public:
             if (msg)
             {
                char tcbuf[5]; MakePrettyTypeCodeString(msg->what, tcbuf);
-               sprintf(buf, "[what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), flattenedSize=" UINT32_FORMAT_SPEC ", numFields=" UINT32_FORMAT_SPEC "]\n", tcbuf, msg->what, msg->what, itemSize, msg->GetNumNames());
+               muscleSprintf(buf, "[what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), flattenedSize=" UINT32_FORMAT_SPEC ", numFields=" UINT32_FORMAT_SPEC "]\n", tcbuf, msg->what, msg->what, itemSize, msg->GetNumNames());
                s += buf;
 
                if (maxRecurseLevel > 0) msg->AddToString(s, maxRecurseLevel-1, indent+3);
@@ -1066,7 +1066,7 @@ protected:
       const MessageDataArray * trhs = dynamic_cast<const MessageDataArray *>(rhs);
       if (trhs == NULL) return false;
 
-      for (int32 i=GetNumItems()-1; i>=0; i--) 
+      for (int32 i=GetNumItems()-1; i>=0; i--)
       {
          const Message * myMsg  = static_cast<const Message *>(this->ItemAt(i)());
          const Message * hisMsg = static_cast<const Message *>(trhs->ItemAt(i)());
@@ -1077,7 +1077,7 @@ protected:
 };
 DECLAREFIELDTYPE(MessageDataArray);
 
-// An array of Flattenable objects which are *not* guaranteed to all have the same flattened size. 
+// An array of Flattenable objects which are *not* guaranteed to all have the same flattened size.
 template <class DataType> class VariableSizeFlatObjectArray : public FixedSizeDataArray<DataType>
 {
 public:
@@ -1113,7 +1113,7 @@ public:
       }
    }
 
-   virtual uint32 FlattenedSize() const 
+   virtual uint32 FlattenedSize() const
    {
       uint32 num = this->GetNumItems();
       uint32 sum = (num+1)*sizeof(uint32);  // 1 uint32 for the count, plus 1 per entry for entry-size
@@ -1128,7 +1128,7 @@ public:
       uint32 networkByteOrder;
       uint32 readOffset = 0;
 
-      if (this->ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+      if (this->ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR)
       {
          LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Read of numElements failed (inputBufferBytes=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes);
          return B_ERROR;
@@ -1138,20 +1138,20 @@ public:
       if (this->_data.EnsureSize(numElements) != B_NO_ERROR) return B_ERROR;
       for (uint32 i=0; i<numElements; i++)
       {
-         if (this->ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+         if (this->ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR)
          {
             LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Read of element size failed (inputBufferBytes=" UINT32_FORMAT_SPEC ", i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, i, numElements);
             return B_ERROR;
          }
          uint32 elementSize = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
-         if (elementSize == 0) 
+         if (elementSize == 0)
          {
             LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Element size was zero! (inputBufferBytes=" UINT32_FORMAT_SPEC ", i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, i, numElements);
             return B_ERROR;  // it should always have at least the trailing NUL byte!
          }
 
          // read element data
-         if ((readOffset + elementSize > inputBufferBytes)||(this->_data.AddTail() != B_NO_ERROR)||(this->_data.TailPointer()->Unflatten(&buffer[readOffset], elementSize) != B_NO_ERROR)) 
+         if ((readOffset + elementSize > inputBufferBytes)||(this->_data.AddTail() != B_NO_ERROR)||(this->_data.TailPointer()->Unflatten(&buffer[readOffset], elementSize) != B_NO_ERROR))
          {
             LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Element size was too large! (inputBufferBytes=" UINT32_FORMAT_SPEC ", i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ", readOffset=" UINT32_FORMAT_SPEC ", elementSize=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, i, numElements, readOffset, elementSize);
             return B_ERROR;
@@ -1175,11 +1175,11 @@ public:
    virtual void AddToString(String & s, uint32, int indent) const
    {
       uint32 numItems = GetNumItems();
-      for (uint32 i=0; i<numItems; i++) 
+      for (uint32 i=0; i<numItems; i++)
       {
-         DoIndents(indent,s); 
-         char buf[50]; 
-         sprintf(buf,"    " UINT32_FORMAT_SPEC ". [", i); 
+         DoIndents(indent,s);
+         char buf[50];
+         muscleSprintf(buf,"    " UINT32_FORMAT_SPEC ". [", i);
          s += buf;
          s += ItemAt(i);
          s += "]\n";
@@ -1201,7 +1201,7 @@ void MessageFieldNameIterator :: SkipNonMatchingFieldNames()
    while((_iter.HasData())&&(static_cast<const AbstractDataArray *>(_iter.GetValue()())->TypeCode() != _typeCode)) _iter++;
 }
 
-Message & Message :: operator=(const Message & rhs) 
+Message & Message :: operator=(const Message & rhs)
 {
    TCHECKPOINT;
 
@@ -1228,7 +1228,7 @@ status_t Message :: GetInfo(const String & fieldName, uint32 * type, uint32 * c,
    return B_NO_ERROR;
 }
 
-uint32 Message :: GetNumNames(uint32 type) const 
+uint32 Message :: GetNumNames(uint32 type) const
 {
    if (type == B_ANY_TYPE) return _entries.GetNumItems();
 
@@ -1238,20 +1238,20 @@ uint32 Message :: GetNumNames(uint32 type) const
    return total;
 }
 
-void Message :: PrintToStream(FILE * optFile, uint32 maxRecurseLevel, int indent) const 
+void Message :: PrintToStream(FILE * optFile, uint32 maxRecurseLevel, int indent) const
 {
    String s; AddToString(s, maxRecurseLevel, indent);
    fprintf(optFile?optFile:stdout, "%s", s());
 }
 
-String Message :: ToString(uint32 maxRecurseLevel, int indent) const 
+String Message :: ToString(uint32 maxRecurseLevel, int indent) const
 {
-   String s;  
+   String s;
    AddToString(s, maxRecurseLevel, indent);
    return s;
 }
 
-void Message :: AddToString(String & s, uint32 maxRecurseLevel, int indent) const 
+void Message :: AddToString(String & s, uint32 maxRecurseLevel, int indent) const
 {
    TCHECKPOINT;
 
@@ -1261,8 +1261,8 @@ void Message :: AddToString(String & s, uint32 maxRecurseLevel, int indent) cons
    MakePrettyTypeCodeString(what, prettyTypeCodeBuf);
 
    char buf[128];
-   DoIndents(indent,s); 
-   sprintf(buf, "Message:  what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), entryCount=" INT32_FORMAT_SPEC ", flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", prettyTypeCodeBuf, what, what, GetNumNames(B_ANY_TYPE), FlattenedSize(), CalculateChecksum());
+   DoIndents(indent,s);
+   muscleSprintf(buf, "Message:  what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), entryCount=" INT32_FORMAT_SPEC ", flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", prettyTypeCodeBuf, what, what, GetNumNames(B_ANY_TYPE), FlattenedSize(), CalculateChecksum());
    s += buf;
 
    for (HashtableIterator<String, RefCountableRef> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
@@ -1270,10 +1270,10 @@ void Message :: AddToString(String & s, uint32 maxRecurseLevel, int indent) cons
       const AbstractDataArray * nextValue = static_cast<const AbstractDataArray *>(iter.GetValue()());
       uint32 tc = nextValue->TypeCode();
       MakePrettyTypeCodeString(tc, prettyTypeCodeBuf);
-      DoIndents(indent,s); 
+      DoIndents(indent,s);
       s += "  Entry: Name=[";
       s += iter.GetKey();
-      sprintf(buf, "], GetNumItems()=" INT32_FORMAT_SPEC ", TypeCode()='%s' (" INT32_FORMAT_SPEC ") flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", nextValue->GetNumItems(), prettyTypeCodeBuf, tc, nextValue->FlattenedSize(), nextValue->CalculateChecksum(false));
+      muscleSprintf(buf, "], GetNumItems()=" INT32_FORMAT_SPEC ", TypeCode()='%s' (" INT32_FORMAT_SPEC ") flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", nextValue->GetNumItems(), prettyTypeCodeBuf, tc, nextValue->FlattenedSize(), nextValue->CalculateChecksum(false));
       s += buf;
       nextValue->AddToString(s, maxRecurseLevel, indent);
    }
@@ -1356,10 +1356,10 @@ AbstractDataArray * Message :: GetOrCreateArray(const String & arrayName, uint32
    return ((newEntry())&&(_entries.Put(arrayName, newEntry) == B_NO_ERROR)) ? static_cast<AbstractDataArray*>(newEntry()) : NULL;
 }
 
-status_t Message :: Rename(const String & oldFieldName, const String & newFieldName) 
+status_t Message :: Rename(const String & oldFieldName, const String & newFieldName)
 {
    RefCountableRef oldArray = GetArrayRef(oldFieldName, B_ANY_TYPE);
-   if (oldArray()) 
+   if (oldArray())
    {
       (void) RemoveName(newFieldName);             // destructive rename... remove anybody in our way
       (void) _entries.Remove(oldFieldName);        // remove from under old name
@@ -1368,7 +1368,7 @@ status_t Message :: Rename(const String & oldFieldName, const String & newFieldN
    return B_ERROR;
 }
 
-uint32 Message :: FlattenedSize() const 
+uint32 Message :: FlattenedSize() const
 {
    uint32 sum = 3 * sizeof(uint32);  // For the message header:  4 bytes for the protocol revision #, 4 bytes for the number-of-entries field, 4 bytes for what code
 
@@ -1381,7 +1381,7 @@ uint32 Message :: FlattenedSize() const
    return sum;
 }
 
-uint32 Message :: CalculateChecksum(bool countNonFlattenableFields) const 
+uint32 Message :: CalculateChecksum(bool countNonFlattenableFields) const
 {
    uint32 ret = what;
 
@@ -1390,18 +1390,18 @@ uint32 Message :: CalculateChecksum(bool countNonFlattenableFields) const
    {
       // Note that I'm deliberately NOT considering the ordering of the fields when computing the checksum!
       const AbstractDataArray * a = static_cast<const AbstractDataArray *>(it.GetValue()());
-      if ((countNonFlattenableFields)||(a->IsFlattenable())) 
+      if ((countNonFlattenableFields)||(a->IsFlattenable()))
       {
          uint32 fnChk = it.GetKey().CalculateChecksum();
          ret += fnChk;
-         if (fnChk == 0) ret++;  // almost-paranoia 
+         if (fnChk == 0) ret++;  // almost-paranoia
          ret += (fnChk*a->CalculateChecksum(countNonFlattenableFields));  // multiplying by fnChck helps catch when two fields were swapped
       }
    }
    return ret;
 }
 
-void Message :: Flatten(uint8 * buffer) const 
+void Message :: Flatten(uint8 * buffer) const
 {
    TCHECKPOINT;
 
@@ -1454,7 +1454,7 @@ void Message :: Flatten(uint8 * buffer) const
          uint32 dataSize = nextValue->FlattenedSize();
          networkByteOrder = B_HOST_TO_LENDIAN_INT32(dataSize);
          WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
-         
+
          // Write entry data
          nextValue->Flatten(&buffer[writeOffset]);
          writeOffset += dataSize;
@@ -1466,29 +1466,29 @@ void Message :: Flatten(uint8 * buffer) const
    memcpy(entryCountPtr, &networkByteOrder, sizeof(uint32));
 }
 
-status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes) 
+status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
 {
    TCHECKPOINT;
 
    Clear();
 
    uint32 readOffset = 0;
-   
+
    // Read and check protocol version number
    uint32 networkByteOrder;
-   if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+   if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR)
    {
       LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Couldn't read message protocol version! (inputBufferBytes=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes);
       return B_ERROR;
    }
 
    uint32 messageProtocolVersion = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
-   if ((messageProtocolVersion < OLDEST_SUPPORTED_PROTOCOL_VERSION)||(messageProtocolVersion > CURRENT_PROTOCOL_VERSION)) 
+   if ((messageProtocolVersion < OLDEST_SUPPORTED_PROTOCOL_VERSION)||(messageProtocolVersion > CURRENT_PROTOCOL_VERSION))
    {
       LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unexpected message protocol version " UINT32_FORMAT_SPEC " (inputBufferBytes=" UINT32_FORMAT_SPEC ")\n", this, messageProtocolVersion, inputBufferBytes);
       return B_ERROR;
    }
-   
+
    // Read 'what' code
    if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR)
    {
@@ -1498,7 +1498,7 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
    what = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
 
    // Read number of entries
-   if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+   if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR)
    {
       LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Couldn't read number-of-entries! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what);
       return B_ERROR;
@@ -1509,13 +1509,13 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
    for (uint32 i=0; i<numEntries; i++)
    {
       // Read entry name length
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR)
       {
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Error reading entry name length! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what, i, numEntries);
          return B_ERROR;
       }
       uint32 nameLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
-      if (nameLength > inputBufferBytes-readOffset) 
+      if (nameLength > inputBufferBytes-readOffset)
       {
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Entry name length too long! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " nameLength=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what, i, numEntries, nameLength, (uint32)(inputBufferBytes-readOffset));
          return B_ERROR;
@@ -1523,7 +1523,7 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
 
       // Read entry name
       String entryName;
-      if (entryName.Unflatten(&buffer[readOffset], nameLength) != B_NO_ERROR) 
+      if (entryName.Unflatten(&buffer[readOffset], nameLength) != B_NO_ERROR)
       {
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to unflatten entry name! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " nameLength=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what, i, numEntries, nameLength);
          return B_ERROR;
@@ -1531,7 +1531,7 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
       readOffset += nameLength;
 
       // Read entry type code
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR)
       {
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to read entry type code! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, inputBufferBytes, what, i, numEntries, entryName());
          return B_ERROR;
@@ -1539,26 +1539,26 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
       uint32 tc = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
 
       // Read entry data length
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR)
       {
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to read data length! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, inputBufferBytes, what, i, numEntries, tc, entryName());
          return B_ERROR;
       }
       uint32 eLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
-      if (eLength > inputBufferBytes-readOffset) 
+      if (eLength > inputBufferBytes-readOffset)
       {
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Data length is too long! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " eLength=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, inputBufferBytes, what, i, numEntries, tc, eLength, (uint32)(inputBufferBytes-readOffset), entryName());
          return B_ERROR;
       }
-   
+
       AbstractDataArray * nextEntry = GetOrCreateArray(entryName, tc);
-      if (nextEntry == NULL) 
+      if (nextEntry == NULL)
       {
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to create data array object!  (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, inputBufferBytes, what, i, numEntries, tc, entryName());
          return B_ERROR;
       }
 
-      if (nextEntry->Unflatten(&buffer[readOffset], eLength) != B_NO_ERROR) 
+      if (nextEntry->Unflatten(&buffer[readOffset], eLength) != B_NO_ERROR)
       {
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to unflatten data array object!  (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, inputBufferBytes, what, i, numEntries, tc, entryName());
          Clear();  // fix for occasional crash bug; we were deleting nextEntry here, *and* in the destructor!
@@ -1575,69 +1575,69 @@ status_t Message :: AddFlatAux(const String & fieldName, const FlatCountableRef 
    return array ? (prepend ? array->PrependDataItem(&ref, sizeof(ref)) : array->AddDataItem(&ref, sizeof(ref))) : B_ERROR;
 }
 
-status_t Message :: AddString(const String & fieldName, const String & val) 
+status_t Message :: AddString(const String & fieldName, const String & val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_STRING_TYPE);
    status_t ret = array ? array->AddDataItem(&val, sizeof(val)) : B_ERROR;
    return ret;
 }
 
-status_t Message :: AddInt8(const String & fieldName, int8 val) 
+status_t Message :: AddInt8(const String & fieldName, int8 val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_INT8_TYPE);
    return array ? array->AddDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: AddInt16(const String & fieldName, int16 val) 
+status_t Message :: AddInt16(const String & fieldName, int16 val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_INT16_TYPE);
    return array ? array->AddDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: AddInt32(const String & fieldName, int32 val) 
+status_t Message :: AddInt32(const String & fieldName, int32 val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_INT32_TYPE);
    return array ? array->AddDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: AddInt64(const String & fieldName, int64 val) 
+status_t Message :: AddInt64(const String & fieldName, int64 val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_INT64_TYPE);
    return array ? array->AddDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: AddBool(const String & fieldName, bool val) 
+status_t Message :: AddBool(const String & fieldName, bool val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_BOOL_TYPE);
    status_t ret = array ? array->AddDataItem(&val, sizeof(val)) : B_ERROR;
    return ret;
 }
 
-status_t Message :: AddFloat(const String & fieldName, float val) 
+status_t Message :: AddFloat(const String & fieldName, float val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_FLOAT_TYPE);
    return array ? array->AddDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: AddDouble(const String & fieldName, double val) 
+status_t Message :: AddDouble(const String & fieldName, double val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_DOUBLE_TYPE);
    return array ? array->AddDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: AddPointer(const String & fieldName, const void * ptr) 
+status_t Message :: AddPointer(const String & fieldName, const void * ptr)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_POINTER_TYPE);
    return array ? array->AddDataItem(&ptr, sizeof(ptr)) : B_ERROR;
 }
 
-status_t Message :: AddPoint(const String & fieldName, const Point & point) 
+status_t Message :: AddPoint(const String & fieldName, const Point & point)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_POINT_TYPE);
    return array ? array->AddDataItem(&point, sizeof(point)) : B_ERROR;
 }
 
-status_t Message :: AddRect(const String & fieldName, const Rect & rect) 
+status_t Message :: AddRect(const String & fieldName, const Rect & rect)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_RECT_TYPE);
    return array ? array->AddDataItem(&rect, sizeof(rect)) : B_ERROR;
@@ -1657,7 +1657,7 @@ status_t Message :: AddMessage(const String & fieldName, const MessageRef & ref)
    return (array) ? array->AddDataItem(&ref, sizeof(ref)) : B_ERROR;
 }
 
-status_t Message :: AddFlat(const String & fieldName, const FlatCountableRef & ref) 
+status_t Message :: AddFlat(const String & fieldName, const FlatCountableRef & ref)
 {
    FlatCountable * fc = ref();
    if (fc)
@@ -1672,7 +1672,7 @@ status_t Message :: AddFlat(const String & fieldName, const FlatCountableRef & r
          default:             return AddFlatAux(fieldName, ref, tc, false);
       }
    }
-   return B_ERROR;   
+   return B_ERROR;
 }
 
 uint32 Message :: GetElementSize(uint32 type) const
@@ -1698,7 +1698,7 @@ uint32 Message :: GetElementSize(uint32 type) const
 status_t Message :: AddDataAux(const String & fieldName, const void * data, uint32 numBytes, uint32 tc, bool prepend)
 {
    if (numBytes == 0) return B_ERROR;   // can't add 0 bytes, that's silly
-   if (tc == B_STRING_TYPE) 
+   if (tc == B_STRING_TYPE)
    {
       String temp((const char *)data);  // kept separate to avoid BeOS gcc optimizer bug (otherwise -O3 crashes here)
       return prepend ? PrependString(fieldName, temp) : AddString(fieldName, temp);
@@ -1707,7 +1707,7 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
    // for primitive types, we do this:
    bool isVariableSize = false;
    uint32 elementSize = GetElementSize(tc);
-   if (elementSize == 0) 
+   if (elementSize == 0)
    {
        // zero indicates a variable-sized data item; we will use a ByteBuffer to hold it.
        isVariableSize = true;
@@ -1721,7 +1721,7 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
 
    uint32 numElements = numBytes/elementSize;
    const uint8 * dataBuf = (const uint8 *) data;
-   for (uint32 i=0; i<numElements; i++) 
+   for (uint32 i=0; i<numElements; i++)
    {
       FlatCountableRef fcRef;
       const void * dataToAdd = dataBuf ? &dataBuf[i*elementSize] : NULL;
@@ -1739,7 +1739,7 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
    return B_NO_ERROR;
 }
 
-void * Message :: GetPointerToNormalizedFieldData(const String & fieldName, uint32 * retNumItems, uint32 typeCode) 
+void * Message :: GetPointerToNormalizedFieldData(const String & fieldName, uint32 * retNumItems, uint32 typeCode)
 {
    RefCountableRef * e = _entries.Get(fieldName);
    if (e)
@@ -1760,21 +1760,21 @@ void * Message :: GetPointerToNormalizedFieldData(const String & fieldName, uint
    return NULL;
 }
 
-status_t Message :: EnsureFieldIsPrivate(const String & fieldName) 
+status_t Message :: EnsureFieldIsPrivate(const String & fieldName)
 {
    RefCountableRef * e = _entries.Get(fieldName);
    return e ? (e->IsRefPrivate() ? B_NO_ERROR : CopyName(fieldName, *this)) : B_ERROR;  // Copying the field to ourself replaces the field with an unshared clone
 }
 
-status_t Message :: RemoveName(const String & fieldName) 
+status_t Message :: RemoveName(const String & fieldName)
 {
    return _entries.Remove(fieldName);
 }
 
-status_t Message :: RemoveData(const String & fieldName, uint32 index) 
+status_t Message :: RemoveData(const String & fieldName, uint32 index)
 {
    AbstractDataArray * array = GetArray(fieldName, B_ANY_TYPE);
-   if (array) 
+   if (array)
    {
       status_t ret = array->RemoveDataItem(index);
       return (array->IsEmpty()) ? RemoveName(fieldName) : ret;
@@ -1793,7 +1793,7 @@ status_t Message :: FindString(const String & fieldName, uint32 index, const cha
    else return B_ERROR;
 }
 
-status_t Message :: FindString(const String & fieldName, uint32 index, const String ** setMe) const 
+status_t Message :: FindString(const String & fieldName, uint32 index, const String ** setMe) const
 {
    const StringDataArray * ada = static_cast<const StringDataArray *>(GetArray(fieldName, B_STRING_TYPE));
    if ((ada)&&(index < ada->GetNumItems()))
@@ -1804,7 +1804,7 @@ status_t Message :: FindString(const String & fieldName, uint32 index, const Str
    else return B_ERROR;
 }
 
-status_t Message :: FindString(const String & fieldName, uint32 index, String & str) const 
+status_t Message :: FindString(const String & fieldName, uint32 index, String & str) const
 {
    const StringDataArray * ada = static_cast<const StringDataArray *>(GetArray(fieldName, B_STRING_TYPE));
    if ((ada)&&(index < ada->GetNumItems()))
@@ -1823,22 +1823,22 @@ const uint8 * Message :: FindFlatAux(const AbstractDataArray * ada, uint32 index
       const ByteBuffer * buf = dynamic_cast<ByteBuffer *>(bbda->ItemAt(index)());
       if (buf)
       {
-         retNumBytes = buf->GetNumBytes(); 
-         return buf->GetBuffer(); 
-      }     
-      else  
+         retNumBytes = buf->GetNumBytes();
+         return buf->GetBuffer();
+      }
+      else
       {
          if (optRetFCPtr) *optRetFCPtr = bbda->ItemAt(index)();
          return NULL;
       }
    }
    else
-   {     
-      const void * data; 
+   {
+      const void * data;
       status_t ret = ada->FindDataItem(index, &data);
-      if (ret == B_NO_ERROR) 
-      { 
-         retNumBytes = ada->GetItemSize(index); 
+      if (ret == B_NO_ERROR)
+      {
+         retNumBytes = ada->GetItemSize(index);
          return (const uint8 *)data;
       }
    }
@@ -1874,10 +1874,10 @@ status_t Message :: FindData(const String & fieldName, uint32 tc, uint32 index, 
    {
       switch(tc)
       {
-         case B_STRING_TYPE:  
+         case B_STRING_TYPE:
          {
             const String * str = (const String *) (*data);
-            *data = str->Cstr();  
+            *data = str->Cstr();
             if (setSize) *setSize = str->FlattenedSize();
          }
          break;
@@ -1885,7 +1885,7 @@ status_t Message :: FindData(const String & fieldName, uint32 tc, uint32 index, 
          default:
          {
             uint32 es = GetElementSize(tc);
-            if (es > 0) 
+            if (es > 0)
             {
                if (setSize) *setSize = es;
             }
@@ -1925,7 +1925,7 @@ status_t Message :: FindDataItemAux(const String & fieldName, uint32 index, uint
    return B_NO_ERROR;
 }
 
-status_t Message :: FindPoint(const String & fieldName, uint32 index, Point & point) const 
+status_t Message :: FindPoint(const String & fieldName, uint32 index, Point & point) const
 {
    const PointDataArray * array = static_cast<const PointDataArray *>(GetArray(fieldName, B_POINT_TYPE));
    if ((array == NULL)||(index >= array->GetNumItems())) return B_ERROR;
@@ -1933,7 +1933,7 @@ status_t Message :: FindPoint(const String & fieldName, uint32 index, Point & po
    return B_NO_ERROR;
 }
 
-status_t Message :: FindRect(const String & fieldName, uint32 index, Rect & rect) const 
+status_t Message :: FindRect(const String & fieldName, uint32 index, Rect & rect) const
 {
    const RectDataArray * array = static_cast<const RectDataArray *>(GetArray(fieldName, B_RECT_TYPE));
    if ((array == NULL)||(index >= array->GetNumItems())) return B_ERROR;
@@ -1941,7 +1941,7 @@ status_t Message :: FindRect(const String & fieldName, uint32 index, Rect & rect
    return B_NO_ERROR;
 }
 
-status_t Message :: FindTag(const String & fieldName, uint32 index, RefCountableRef & tag) const 
+status_t Message :: FindTag(const String & fieldName, uint32 index, RefCountableRef & tag) const
 {
    const TagDataArray * array = static_cast<const TagDataArray*>(GetArray(fieldName, B_TAG_TYPE));
    if ((array == NULL)||(index >= array->GetNumItems())) return B_ERROR;
@@ -1949,13 +1949,13 @@ status_t Message :: FindTag(const String & fieldName, uint32 index, RefCountable
    return B_NO_ERROR;
 }
 
-status_t Message :: FindMessage(const String & fieldName, uint32 index, Message & msg) const 
+status_t Message :: FindMessage(const String & fieldName, uint32 index, Message & msg) const
 {
    MessageRef msgRef;
    if (FindMessage(fieldName, index, msgRef) == B_NO_ERROR)
    {
       const Message * m = msgRef();
-      if (m) 
+      if (m)
       {
          msg = *m;
          return B_NO_ERROR;
@@ -1972,7 +1972,7 @@ status_t Message :: FindMessage(const String & fieldName, uint32 index, MessageR
    return B_NO_ERROR;
 }
 
-status_t Message :: FindDataPointer(const String & fieldName, uint32 tc, uint32 index, void ** data, uint32 * setSize) const 
+status_t Message :: FindDataPointer(const String & fieldName, uint32 tc, uint32 index, void ** data, uint32 * setSize) const
 {
    const void * dataLoc;
    status_t ret = FindData(fieldName, tc, index, &dataLoc, setSize);
@@ -1984,14 +1984,14 @@ status_t Message :: FindDataPointer(const String & fieldName, uint32 tc, uint32 
    else return B_ERROR;
 }
 
-status_t Message :: ReplaceString(bool okayToAdd, const String & fieldName, uint32 index, const String & string) 
+status_t Message :: ReplaceString(bool okayToAdd, const String & fieldName, uint32 index, const String & string)
 {
    AbstractDataArray * array = GetArray(fieldName, B_STRING_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddString(fieldName, string);
    return array ? array->ReplaceDataItem(index, &string, sizeof(string)) : B_ERROR;
 }
 
-status_t Message :: ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & bufRef, uint32 tc) 
+status_t Message :: ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & bufRef, uint32 tc)
 {
    FlatCountableRef fcRef; fcRef.SetFromRefCountableRefUnchecked(bufRef.GetRefCountableRef());
    return ReplaceDataAux(okayToAdd, fieldName, index, &fcRef, sizeof(fcRef), tc);
@@ -2004,77 +2004,77 @@ status_t Message :: ReplaceDataAux(bool okayToAdd, const String & fieldName, uin
    return array ? array->ReplaceDataItem(index, dataBuf, bufSize) : B_ERROR;
 }
 
-status_t Message :: ReplaceInt8(bool okayToAdd, const String & fieldName, uint32 index, int8 val) 
+status_t Message :: ReplaceInt8(bool okayToAdd, const String & fieldName, uint32 index, int8 val)
 {
    AbstractDataArray * array = GetArray(fieldName, B_INT8_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddInt8(fieldName, val);
    return array ? array->ReplaceDataItem(index, &val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: ReplaceInt16(bool okayToAdd, const String & fieldName, uint32 index, int16 val) 
+status_t Message :: ReplaceInt16(bool okayToAdd, const String & fieldName, uint32 index, int16 val)
 {
    AbstractDataArray * array = GetArray(fieldName, B_INT16_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddInt16(fieldName, val);
    return array ? array->ReplaceDataItem(index, &val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: ReplaceInt32(bool okayToAdd, const String & fieldName, uint32 index, int32 val) 
+status_t Message :: ReplaceInt32(bool okayToAdd, const String & fieldName, uint32 index, int32 val)
 {
    AbstractDataArray * array = GetArray(fieldName, B_INT32_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddInt32(fieldName, val);
    return array ? array->ReplaceDataItem(index, &val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: ReplaceInt64(bool okayToAdd, const String & fieldName, uint32 index, int64 val) 
+status_t Message :: ReplaceInt64(bool okayToAdd, const String & fieldName, uint32 index, int64 val)
 {
    AbstractDataArray * array = GetArray(fieldName, B_INT64_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddInt64(fieldName, val);
    return array ? array->ReplaceDataItem(index, &val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: ReplaceBool(bool okayToAdd, const String & fieldName, uint32 index, bool val) 
+status_t Message :: ReplaceBool(bool okayToAdd, const String & fieldName, uint32 index, bool val)
 {
    AbstractDataArray * array = GetArray(fieldName, B_BOOL_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddBool(fieldName, val);
    return array ? array->ReplaceDataItem(index, &val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: ReplaceFloat(bool okayToAdd, const String & fieldName, uint32 index, float val) 
+status_t Message :: ReplaceFloat(bool okayToAdd, const String & fieldName, uint32 index, float val)
 {
    AbstractDataArray * array = GetArray(fieldName, B_FLOAT_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddFloat(fieldName, val);
    return array ? array->ReplaceDataItem(index, &val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: ReplaceDouble(bool okayToAdd, const String & fieldName, uint32 index, double val) 
+status_t Message :: ReplaceDouble(bool okayToAdd, const String & fieldName, uint32 index, double val)
 {
    AbstractDataArray * array = GetArray(fieldName, B_DOUBLE_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddDouble(fieldName, val);
    return array ? array->ReplaceDataItem(index, &val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: ReplacePointer(bool okayToAdd, const String & fieldName, uint32 index, const void * ptr) 
+status_t Message :: ReplacePointer(bool okayToAdd, const String & fieldName, uint32 index, const void * ptr)
 {
    AbstractDataArray * array = GetArray(fieldName, B_POINTER_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddPointer(fieldName, ptr);
    return array ? array->ReplaceDataItem(index, &ptr, sizeof(ptr)) : B_ERROR;
 }
 
-status_t Message :: ReplacePoint(bool okayToAdd, const String & fieldName, uint32 index, const Point &point) 
+status_t Message :: ReplacePoint(bool okayToAdd, const String & fieldName, uint32 index, const Point &point)
 {
    AbstractDataArray * array = GetArray(fieldName, B_POINT_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddPoint(fieldName, point);
    return array ? array->ReplaceDataItem(index, &point, sizeof(point)) : B_ERROR;
 }
 
-status_t Message :: ReplaceRect(bool okayToAdd, const String & fieldName, uint32 index, const Rect &rect) 
+status_t Message :: ReplaceRect(bool okayToAdd, const String & fieldName, uint32 index, const Rect &rect)
 {
    AbstractDataArray * array = GetArray(fieldName, B_RECT_TYPE);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddRect(fieldName, rect);
    return array ? array->ReplaceDataItem(index, &rect, sizeof(rect)) : B_ERROR;
 }
 
-status_t Message :: ReplaceTag(bool okayToAdd, const String & fieldName, uint32 index, const RefCountableRef & tag) 
+status_t Message :: ReplaceTag(bool okayToAdd, const String & fieldName, uint32 index, const RefCountableRef & tag)
 {
    if (tag() == NULL) return B_ERROR;
    AbstractDataArray * array = GetArray(fieldName, B_TAG_TYPE);
@@ -2091,7 +2091,7 @@ status_t Message :: ReplaceMessage(bool okayToAdd, const String & fieldName, uin
    return B_ERROR;
 }
 
-status_t Message :: ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & ref) 
+status_t Message :: ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & ref)
 {
    const FlatCountable * fc = ref();
    if (fc)
@@ -2100,13 +2100,13 @@ status_t Message :: ReplaceFlat(bool okayToAdd, const String & fieldName, uint32
       AbstractDataArray * array = GetArray(fieldName, tc);
       if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddFlat(fieldName, ref);
       if (array)
-      { 
+      {
          switch(tc)
          {
-            case B_MESSAGE_TYPE:  
+            case B_MESSAGE_TYPE:
                return (dynamic_cast<const Message *>(fc)) ? ReplaceMessage(okayToAdd, fieldName, index, MessageRef(ref.GetRefCountableRef(), true)) : B_ERROR;
 
-            default:              
+            default:
                if (GetElementSize(tc) == 0)
                {
                   ByteBufferDataArray * bbda = dynamic_cast<ByteBufferDataArray *>(array);
@@ -2119,23 +2119,23 @@ status_t Message :: ReplaceFlat(bool okayToAdd, const String & fieldName, uint32
    return B_ERROR;
 }
 
-status_t Message :: ReplaceData(bool okayToAdd, const String & fieldName, uint32 type, uint32 index, const void * data, uint32 numBytes) 
+status_t Message :: ReplaceData(bool okayToAdd, const String & fieldName, uint32 type, uint32 index, const void * data, uint32 numBytes)
 {
    TCHECKPOINT;
 
-   if (type == B_STRING_TYPE) 
-   {   
+   if (type == B_STRING_TYPE)
+   {
       String temp((const char *)data);  // temp to avoid gcc optimizer bug
       return ReplaceString(okayToAdd, fieldName, index, temp);
    }
    AbstractDataArray * array = GetArray(fieldName, type);
    if ((okayToAdd)&&((array == NULL)||(index >= array->GetNumItems()))) return AddDataAux(fieldName, data, numBytes, type, false);
    if (array == NULL) return B_ERROR;
-   
+
    // for primitive types, we do this:
    bool isVariableSize = false;
    uint32 elementSize = GetElementSize(type);
-   if (elementSize == 0) 
+   if (elementSize == 0)
    {
       // zero indicates a variable-sized data item
       isVariableSize = true;
@@ -2146,7 +2146,7 @@ status_t Message :: ReplaceData(bool okayToAdd, const String & fieldName, uint32
    if (numBytes % elementSize) return B_ERROR;  // Can't add half an element, silly!
    uint32 numElements = numBytes / elementSize;
    const uint8 * dataBuf = (const uint8 *) data;
-   for (uint32 i=index; i<index+numElements; i++) 
+   for (uint32 i=index; i<index+numElements; i++)
    {
       FlatCountableRef ref;
       const void * dataToAdd = &dataBuf[i*elementSize];
@@ -2196,73 +2196,73 @@ status_t Message :: MoveName(const String & oldFieldName, Message & moveTo, cons
    else return B_ERROR;
 }
 
-status_t Message :: PrependString(const String & fieldName, const String & val) 
+status_t Message :: PrependString(const String & fieldName, const String & val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_STRING_TYPE);
    return array ? array->PrependDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: PrependInt8(const String & fieldName, int8 val) 
+status_t Message :: PrependInt8(const String & fieldName, int8 val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_INT8_TYPE);
    return array ? array->PrependDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: PrependInt16(const String & fieldName, int16 val) 
+status_t Message :: PrependInt16(const String & fieldName, int16 val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_INT16_TYPE);
    return array ? array->PrependDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: PrependInt32(const String & fieldName, int32 val) 
+status_t Message :: PrependInt32(const String & fieldName, int32 val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_INT32_TYPE);
    return array ? array->PrependDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: PrependInt64(const String & fieldName, int64 val) 
+status_t Message :: PrependInt64(const String & fieldName, int64 val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_INT64_TYPE);
    return array ? array->PrependDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: PrependBool(const String & fieldName, bool val) 
+status_t Message :: PrependBool(const String & fieldName, bool val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_BOOL_TYPE);
    return array ? array->PrependDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: PrependFloat(const String & fieldName, float val) 
+status_t Message :: PrependFloat(const String & fieldName, float val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_FLOAT_TYPE);
    return array ? array->PrependDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: PrependDouble(const String & fieldName, double val) 
+status_t Message :: PrependDouble(const String & fieldName, double val)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_DOUBLE_TYPE);
    return array ? array->PrependDataItem(&val, sizeof(val)) : B_ERROR;
 }
 
-status_t Message :: PrependPointer(const String & fieldName, const void * ptr) 
+status_t Message :: PrependPointer(const String & fieldName, const void * ptr)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_POINTER_TYPE);
    return array ? array->PrependDataItem(&ptr, sizeof(ptr)) : B_ERROR;
 }
 
-status_t Message :: PrependPoint(const String & fieldName, const Point & point) 
+status_t Message :: PrependPoint(const String & fieldName, const Point & point)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_POINT_TYPE);
    return array ? array->PrependDataItem(&point, sizeof(point)) : B_ERROR;
 }
 
-status_t Message :: PrependRect(const String & fieldName, const Rect & rect) 
+status_t Message :: PrependRect(const String & fieldName, const Rect & rect)
 {
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_RECT_TYPE);
    return array ? array->PrependDataItem(&rect, sizeof(rect)) : B_ERROR;
 }
 
-status_t Message :: PrependTag(const String & fieldName, const RefCountableRef & tag) 
+status_t Message :: PrependTag(const String & fieldName, const RefCountableRef & tag)
 {
    if (tag() == NULL) return B_ERROR;
    AbstractDataArray * array = GetOrCreateArray(fieldName, B_TAG_TYPE);
@@ -2287,11 +2287,11 @@ status_t Message :: PrependFlat(const String & fieldName, const FlatCountableRef
          case B_STRING_TYPE:  return B_ERROR;  // sorry, can't do that (Strings aren't FlatCountables)
          case B_POINT_TYPE:   return B_ERROR;  // sorry, can't do that (Strings aren't FlatCountables)
          case B_RECT_TYPE:    return B_ERROR;  // sorry, can't do that (Strings aren't FlatCountables)
-         case B_MESSAGE_TYPE: return PrependMessage(fieldName, MessageRef(ref.GetRefCountableRef(), true)); 
+         case B_MESSAGE_TYPE: return PrependMessage(fieldName, MessageRef(ref.GetRefCountableRef(), true));
          default:             return AddFlatAux(fieldName, ref, tc, true);
       }
    }
-   return B_ERROR;   
+   return B_ERROR;
 }
 
 status_t Message :: CopyFromImplementation(const Flattenable & copyFrom)

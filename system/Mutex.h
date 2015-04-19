@@ -63,12 +63,12 @@ extern bool _enableDeadlockFinderPrints;
 // This variable should be set by the ThreadSetupSystem constructor ONLY!
 extern bool _muscleSingleThreadOnly;
 
-/** This class is a platform-independent API for a recursive mutual exclusion semaphore (a.k.a mutex). 
-  * Typically used to serialize the execution of critical sections in a multithreaded API 
+/** This class is a platform-independent API for a recursive mutual exclusion semaphore (a.k.a mutex).
+  * Typically used to serialize the execution of critical sections in a multithreaded API
   * (e.g. the MUSCLE ObjectPool or Thread classes)
   * When compiling with the MUSCLE_SINGLE_THREAD_ONLY preprocessor flag defined, this class becomes a no-op.
   */
-class Mutex
+class Mutex MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor */
@@ -86,7 +86,7 @@ public:
       , _locker(true)
 #  endif
 # elif defined(__ATHEOS__)
-      , _locker(NULL) 
+      , _locker(NULL)
 # endif
 #endif
    {
@@ -108,7 +108,7 @@ public:
       }
 #endif
    }
- 
+
    /** Destructor.  If a Mutex is destroyed while another thread is blocking in its Lock() method,
      * the results are undefined.
      */
@@ -117,7 +117,7 @@ public:
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    status_t DeadlockFinderLockWrapper(const char * fileName, int fileLine) const
 #else
-   /** Attempts to lock the lock. 
+   /** Attempts to lock the lock.
      * Any thread that tries to Lock() this object while it is already locked by another thread
      * will block until the other thread unlocks the lock.  The lock is recursive, however;
      * if a given thread calls Lock() twice in a row it won't deadlock itself (although it will
@@ -239,11 +239,11 @@ private:
 };
 
 /** This convenience class can be used to automatically lock/unlock a Mutex based on the MutexGuard's ctor/dtor */
-class MutexGuard
+class MutexGuard MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor.  Locks the specified Mutex.
-     * @param m The Mutex to lock. 
+     * @param m The Mutex to lock.
      */
    MutexGuard(const Mutex & m) : _mutex(m)
    {
@@ -273,7 +273,7 @@ private:
 
 /** A macro to quickly and safely put a MutexGuard on the stack for the given Mutex. */
 #define DECLARE_MUTEXGUARD(mutex) MutexGuard MUSCLE_UNIQUE_NAME(mutex)
- 
+
 }; // end namespace muscle
 
 #endif

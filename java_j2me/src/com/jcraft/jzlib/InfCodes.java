@@ -8,8 +8,8 @@ modification, are permitted provided that the following conditions are met:
   1. Redistributions of source code must retain the above copyright notice,
      this list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright 
-     notice, this list of conditions and the following disclaimer in 
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
      the documentation and/or other materials provided with the distribution.
 
   3. The names of the authors may not be used to endorse or promote products
@@ -104,7 +104,7 @@ final class InfCodes{
     tree=null;
   }
 
-  int proc(InfBlocks s, ZStream z, int r){ 
+  int proc(InfBlocks s, ZStream z, int r){
     int j;              // temporary storage
     int tindex;         // temporary pointer
     int e;              // extra bits or operation
@@ -130,8 +130,8 @@ final class InfCodes{
 	  s.bitb=b;s.bitk=k;
 	  z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	  s.write=q;
-	  r = inflate_fast(lbits, dbits, 
-			   ltree, ltree_index, 
+	  r = inflate_fast(lbits, dbits,
+			   ltree, ltree_index,
 			   dtree, dtree_index,
 			   s, z);
 
@@ -310,7 +310,7 @@ final class InfCodes{
 		z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 		s.write=q;
 		return s.inflate_flush(z,r);
-	      }  
+	      }
 	    }
 	  }
 
@@ -397,7 +397,7 @@ final class InfCodes{
   // at least ten.  The ten bytes are six bytes for the longest length/
   // distance pair plus four bytes for overloading the bit buffer.
 
-  int inflate_fast(int bl, int bd, 
+  int inflate_fast(int bl, int bd,
 		   int[] tl, int tl_index,
 		   int[] td, int td_index,
 		   InfBlocks s, ZStream z){
@@ -436,7 +436,7 @@ final class InfCodes{
       }
 
       t= b&ml;
-      tp=tl; 
+      tp=tl;
       tp_index=tl_index;
       tp_index_t_3=(tp_index+t)*3;
       if ((e = tp[tp_index_t_3]) == 0){
@@ -489,7 +489,7 @@ final class InfCodes{
 	      if (q >= d){                // offset before dest
 		//  just copy
 		r=q-d;
-		if(q-r>0 && 2>(q-r)){           
+		if(q-r>0 && 2>(q-r)){
 		  s.window[q++]=s.window[r++]; // minimum count is three,
 		  s.window[q++]=s.window[r++]; // so unroll loop a little
 		  c-=2;
@@ -507,7 +507,7 @@ final class InfCodes{
 		e=s.end-r;
 		if(c>e){             // if source crosses,
 		  c-=e;              // wrapped copy
-		  if(q-r>0 && e>(q-r)){           
+		  if(q-r>0 && e>(q-r)){
 		    do{s.window[q++] = s.window[r++];}
 		    while(--e!=0);
 		  }
@@ -521,7 +521,7 @@ final class InfCodes{
 	      }
 
 	      // copy all or what's left
-	      if(q-r>0 && c>(q-r)){           
+	      if(q-r>0 && c>(q-r)){
 		do{s.window[q++] = s.window[r++];}
 		while(--c!=0);
 	      }
@@ -569,7 +569,7 @@ final class InfCodes{
 	else if((e&32)!=0){
 
 	  c=z.avail_in-n;c=(k>>3)<c?k>>3:c;n+=c;p-=c;k-=c<<3;
- 
+
 	  s.bitb=b;s.bitk=k;
 	  z.avail_in=n;z.total_in+=p-z.next_in_index;z.next_in_index=p;
 	  s.write=q;
@@ -587,9 +587,9 @@ final class InfCodes{
 
 	  return Z_DATA_ERROR;
 	}
-      } 
+      }
       while(true);
-    } 
+    }
     while(m>=258 && n>= 10);
 
     // not enough input or output--restore pointers and return

@@ -44,9 +44,9 @@ if __name__ == "__main__":
    servername = sys.argv[1]
    port = 2960
    nick = "PythonBoy"
-   if len(sys.argv) >= 3: 
+   if len(sys.argv) >= 3:
       nick = sys.argv[2]
- 
+
    mtt = None
    try:
       print "Now attempting to connect to server", servername, "..."
@@ -72,7 +72,7 @@ if __name__ == "__main__":
                   uploadMsg = message.Message(storage_reflect_constants.PR_COMMAND_SETDATA)
                   uploadMsg.PutMessage("beshare/name", nameMsg)
                   mtt.SendOutgoingMessage(uploadMsg)
-                 
+
                   # and subscribe to get updates regarding who else is on the server
                   subscribeMsg = message.Message(storage_reflect_constants.PR_COMMAND_SETPARAMETERS)
                   subscribeMsg.PutBool("SUBSCRIBE:beshare/name", 1)
@@ -80,7 +80,7 @@ if __name__ == "__main__":
                elif nextEvent == message_transceiver_thread.MTT_EVENT_DISCONNECTED:
                   print "Connection to server broken, goodbye!"
                   sys.exit(10)
-               elif nextEvent == None:     
+               elif nextEvent == None:
                   break  # no more events to process, go back to sleep now
                else:
                   if nextEvent.what == NET_CLIENT_NEW_CHAT_TEXT:
@@ -97,7 +97,7 @@ if __name__ == "__main__":
                      else:
                         print "("+sessionID+") "+user+": "+chatText
                   elif nextEvent.what == NET_CLIENT_PING:
-                     fromSession = nextEvent.GetString("session") 
+                     fromSession = nextEvent.GetString("session")
                      if fromSession != None:
                         nextEvent.what = NET_CLIENT_PONG
                         nextEvent.PutString(storage_reflect_constants.PR_NAME_KEYS, "/*/"+fromSession+"/beshare");
@@ -129,7 +129,7 @@ if __name__ == "__main__":
                                  else:
                                     print "User ("+sessionID+") (a.k.a. "+username+") has connected to the server."
                                  users[sessionID] = username
-                        
+
          if sys.stdin in inReady:
             usertyped = sys.stdin.readline().strip()
             if usertyped == "/quit":

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -7,7 +7,7 @@
 using namespace muscle;
 
 #define TEST(x) if ((x) != B_NO_ERROR) printf("Operation failed, line %i\n", __LINE__);
-#define NEGATIVETEST(x) if ((x) == B_NO_ERROR) printf("Operation succeeded when it should not have, line %i\n", __LINE__); 
+#define NEGATIVETEST(x) if ((x) == B_NO_ERROR) printf("Operation succeeded when it should not have, line %i\n", __LINE__);
 
 void printSep(const char * title);
 void printSep(const char * title)
@@ -19,7 +19,7 @@ void printSep(const char * title)
 #define COMMAND_GOODBYE 0x4321
 
 // This program exercises the Message class.
-int main(void) 
+int main(void)
 {
    Message m1;
    m1.AddFloat("va", 1.0f);
@@ -79,7 +79,7 @@ int main(void)
    TEST(subMessage.AddMessage("subsubMessage", subsubMessage));
 
    TEST(msg.AddMessage("subMessage", subMessage));
-   
+
    {for (int i=0; i<10; i++) TEST(msg.AddInt8("TestInt8", i));    }
    {for (int i=0; i<10; i++) TEST(msg.AddInt16("TestInt16", i));  }
    {for (int i=0; i<10; i++) TEST(msg.AddInt32("TestInt32", i));  }
@@ -96,12 +96,12 @@ int main(void)
    TEST(msg.RemoveName("Buddha"));
    TEST(msg.RemoveData("Fred", 0));
    TEST(msg.RemoveData("Friesner", 1));
-   NEGATIVETEST(msg.RemoveData("Glorp", 0));  
-   NEGATIVETEST(msg.RemoveData("Chicken", 5)); 
+   NEGATIVETEST(msg.RemoveData("Glorp", 0));
+   NEGATIVETEST(msg.RemoveData("Chicken", 5));
    TEST(msg.ReplaceString(false, "Friesner", 0, "Jorge"));
    TEST(msg.ReplaceString(false, "Chicken", 1, "Feet"));
    TEST(msg.ReplaceString(false, "Chicken", 2, "Breast"));
-   NEGATIVETEST(msg.ReplaceString(false, "Chicken", 3, "Soul"));  
+   NEGATIVETEST(msg.ReplaceString(false, "Chicken", 3, "Soul"));
    TEST(msg.ReplaceDouble(true, "TestDouble", 2, 222.222));
    TEST(msg.ReplaceFloat(true, "TestFloat", 3, 333.333));
    NEGATIVETEST(msg.ReplaceFloat(false, "RootBeerFloat", 0, 444.444f));
@@ -122,7 +122,7 @@ int main(void)
    TEST(msg.FindString("Friesner", 1, &res));
    printf("Friesner(1) = %s\n", res);
    NEGATIVETEST(msg.FindString("Friesner", 2, strResult));
-   NEGATIVETEST(msg.FindString("Friesner", 3, strResult));  
+   NEGATIVETEST(msg.FindString("Friesner", 3, strResult));
 
    int8 int8Result;
    TEST(msg.FindInt8("TestInt8", 5, int8Result));
@@ -166,7 +166,7 @@ int main(void)
    TEST(msg.FindData("Data", B_RAW_TYPE, 1, (const void **) &gd, &getDataSize));
    dataStr.SetCstr((const char *) gd, getDataSize);
    printf("data(1)=[%s], size=" UINT32_FORMAT_SPEC"\n", dataStr(), getDataSize);
-  
+
    printSep("Testing misc");
 
    printf("There are " UINT32_FORMAT_SPEC" string entries\n", msg.GetNumNames(B_STRING_TYPE));
@@ -197,7 +197,7 @@ int main(void)
 
    {for (uint32 i=flatSize; i<flatSize*10; i++) if (buf[i] != 'J') printf("OVERWRITE ON BYTE " UINT32_FORMAT_SPEC"\n",i);}
    printf("\n====\n");
-   
+
    Message copy;
    if (copy.Unflatten(buf, flatSize) == B_NO_ERROR)
    {
@@ -211,22 +211,22 @@ int main(void)
 
    {
       printf("Testing field name iterator... B_ANY_TYPE\n");
-      for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_ANY_TYPE); it.HasData(); it++) printf("--> [%s] (%i)\n", it.GetFieldName()(), it.HasData()); 
+      for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_ANY_TYPE); it.HasData(); it++) printf("--> [%s] (%i)\n", it.GetFieldName()(), it.HasData());
    }
 
    {
       printf("Testing field name iterator... B_STRING_TYPE\n");
-      for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_STRING_TYPE); it.HasData(); it++) printf("--> [%s] (%i)\n", it.GetFieldName()(), it.HasData()); 
+      for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_STRING_TYPE); it.HasData(); it++) printf("--> [%s] (%i)\n", it.GetFieldName()(), it.HasData());
    }
 
    {
       printf("Testing field name iterator... B_INT8_TYPE\n");
-      for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_INT8_TYPE); it.HasData(); it++) printf("--> [%s] (%i)\n", it.GetFieldName()(), it.HasData()); 
+      for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_INT8_TYPE); it.HasData(); it++) printf("--> [%s] (%i)\n", it.GetFieldName()(), it.HasData());
    }
 
    {
       printf("Testing field name iterator... B_OBJECT_TYPE (should have no results)\n");
-      for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_OBJECT_TYPE); it.HasData(); it++) printf("--> [%s] (%i)\n", it.GetFieldName()(), it.HasData()); 
+      for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_OBJECT_TYPE); it.HasData(); it++) printf("--> [%s] (%i)\n", it.GetFieldName()(), it.HasData());
    }
    return 0;
 }

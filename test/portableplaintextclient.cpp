@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/TCPSocketDataIO.h"
 #include "iogateway/PlainTextMessageIOGateway.h"
@@ -39,7 +39,7 @@ int main(int argc, char ** argv)
       multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
 
       QueueGatewayMessageReceiver inQueue;
-      while(s()) 
+      while(s())
       {
          if (multiplexer.WaitForEvents() < 0) printf("portablereflectclient: WaitForEvents() failed!\n");
          if (multiplexer.IsSocketReadyForRead(STDIN_FILENO))
@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
             gw.AddOutgoingMessage(msg);
             text[0] = '\0';
          }
-   
+
          bool reading = multiplexer.IsSocketReadyForRead(fd);
          bool writing = multiplexer.IsSocketReadyForWrite(fd);
          bool writeError = ((writing)&&(gw.DoOutput() < 0));
@@ -73,7 +73,7 @@ int main(int argc, char ** argv)
             printf("Heard message from server:-----------------------------------\n");
             const char * inStr;
             for (int i=0; (incoming()->FindString(PR_NAME_TEXT_LINE, i, &inStr) == B_NO_ERROR); i++) printf("Line %i: [%s]\n", i, inStr);
-           
+
             printf("-------------------------------------------------------------\n");
          }
 

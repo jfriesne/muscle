@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifndef MuscleThreadPool_h
 #define MuscleThreadPool_h
@@ -18,20 +18,20 @@ class ThreadPool;
 class IThreadPoolClient
 {
 public:
-   /** Constructor.  
+   /** Constructor.
      * @param threadPool Pointer to the ThreadPool object this client should register with, or NULL if you wish this client
      *                   to start out unregistered.  (If the latter, be sure to call SetThreadPool() later on).
      */
    IThreadPoolClient(ThreadPool * threadPool) : _threadPool(NULL) {SetThreadPool(threadPool);}
 
    /** Destructor.  Note that if this object is still registered with a ThreadPool when this destructor is called,
-     * an assertion failure will be triggered -- registered IThreadPoolClient objects MUST call SetThreadPool(NULL) 
+     * an assertion failure will be triggered -- registered IThreadPoolClient objects MUST call SetThreadPool(NULL)
      * BEFORE any part of them is destroyed, in order to avoid race conditions between their constructors and
      * their MessageReceivedFromThreadPool() method callbacks.
      */
    virtual ~IThreadPoolClient();
 
-   /** Sends the specified MessageRef object to the ThreadPool for later handling.  
+   /** Sends the specified MessageRef object to the ThreadPool for later handling.
      * @param msg A Message for the ThreadPool to handle.  Our MessageReceivedFromThreadPoolClient() method
      *            will be called in the near future, from within a ThreadPool thread.
      * @returns B_NO_ERROR if the Message was scheduled for execution by a thread in the ThreadPool, or B_ERROR if it wasn't.
@@ -55,7 +55,7 @@ public:
      * callbacks have completed.
      */
    void SetThreadPool(ThreadPool * tp);
-   
+
    /** Returns a pointer to the ThreadPool this client is currently registered with, or NULL if it isn't registered anywhere. */
    ThreadPool * GetThreadPool() const {return _threadPool;}
 
@@ -86,7 +86,7 @@ private:
 class ThreadPool : private AbstractObjectRecycler, private CountedObject<ThreadPool>
 {
 public:
-   /** Constructor. 
+   /** Constructor.
      * @param maxThreadCount The maximum number of Threads this ThreadPool object will be allowed
      *                       to create at once.  Defaults to 16.
      */
@@ -99,14 +99,14 @@ public:
    uint32 GetMaxThreadCount() const {return _maxThreadCount;}
 
    /** Used for debugging only */
-   virtual void PrintToStream() const 
+   virtual void PrintToStream() const
    {
       printf("ThreadPool %p:  _maxThreadCount=" UINT32_FORMAT_SPEC ", _shuttingDown=%i, _threadIDCounter=" UINT32_FORMAT_SPEC ", _availableThreads=" UINT32_FORMAT_SPEC ", _activeThreads=" UINT32_FORMAT_SPEC ", _registeredClients=" UINT32_FORMAT_SPEC ", _pendingMessages=" UINT32_FORMAT_SPEC ", _deferredMessages=" UINT32_FORMAT_SPEC ", _waitingForCompletion=" UINT32_FORMAT_SPEC "\n", this, _maxThreadCount, _shuttingDown, _threadIDCounter, _availableThreads.GetNumItems(), _activeThreads.GetNumItems(), _registeredClients.GetNumItems(), _pendingMessages.GetNumItems(), _deferredMessages.GetNumItems(), _waitingForCompletion.GetNumItems());
    }
 
 protected:
    /** Starts the specified Thread object's internal thread running.
-     * Broken out into a virtual method so that the Thread's attributes (stack size, etc) can be customized if desired.   
+     * Broken out into a virtual method so that the Thread's attributes (stack size, etc) can be customized if desired.
      * Default implementation just calls StartInternalThread() on the thread object.
      * @param thread The Thread object to start.
      * @returns B_NO_ERROR if the Thread was successfully started, or B_ERROR otherwise.
@@ -146,7 +146,7 @@ private:
    void DispatchPendingMessagesUnsafe();  // _poolLock must be locked when this is called!
    void ThreadFinishedProcessingClientMessages(uint32 threadID, IThreadPoolClient * client);
    bool DoesClientHaveMessagesOutstandingUnsafe(IThreadPoolClient * client) const;
-   void MessageReceivedFromThreadPoolAux(IThreadPoolClient * client, const MessageRef & msg, uint32 numLeft) {client->MessageReceivedFromThreadPool(msg, numLeft);}  // just to skirt protected-member issues 
+   void MessageReceivedFromThreadPoolAux(IThreadPoolClient * client, const MessageRef & msg, uint32 numLeft) {client->MessageReceivedFromThreadPool(msg, numLeft);}  // just to skirt protected-member issues
 
    const uint32 _maxThreadCount;
 
