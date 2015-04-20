@@ -25,7 +25,7 @@
 namespace muscle {
 
 /** This class uses the regex library to implement "simple" string matching (similar to filename globbing in bash) as well as full regular expression pattern-matching. */
-class StringMatcher : public RefCountable
+class StringMatcher MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Default Constructor. */

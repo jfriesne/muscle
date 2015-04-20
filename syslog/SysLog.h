@@ -353,7 +353,7 @@ uint32 SourceCodeLocationKeyFromString(const String & s);
 #endif
 
 /** This class represents all the fields necessary to present a human with a human-readable time/date stamp.  Objects of this class are typically populated by the GetHumanReadableTimeValues() function, below. */
-class HumanReadableTimeValues
+class HumanReadableTimeValues MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor */

@@ -49,7 +49,7 @@ differences between the two implementations, however:
 
    The same code using the MMessage API would look like this:
 
-     char buf[1024]
+     char buf[1024];
      MicroMessage msg;
      UMInitialize(&msg, buf, sizeof(buf));
      UMAddInt32("fieldname", 1);

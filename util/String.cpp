@@ -134,14 +134,14 @@ String & String::operator-=(const char * other)
 String & String::operator<<(int rhs)
 {
    char buff[64];
-   sprintf(buff, "%d", rhs);
+   muscleSprintf(buff, "%d", rhs);
    return *this << buff;
 }
 
 String & String::operator<<(float rhs)
 {
    char buff[64];
-   sprintf(buff, "%.2f", rhs);
+   muscleSprintf(buff, "%.2f", rhs);
    return *this << buff;
 }
 
@@ -782,7 +782,7 @@ String String :: WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove)
 
 #define ARG_IMPLEMENTATION   \
    char buf[256];            \
-   sprintf(buf, fmt, value); \
+   muscleSprintf(buf, fmt, value); \
    return ArgAux(buf)
 
 String String :: Arg(bool   value, const char * fmt) const 
@@ -808,21 +808,21 @@ String String :: Arg(const char * value)                         const {return A
 String String :: Arg(const Point & value, const char * fmt) const
 {
    char buf[512];
-   sprintf(buf, fmt, value.x(), value.y());
+   muscleSprintf(buf, fmt, value.x(), value.y());
    return ArgAux(buf);
 }
 
 String String :: Arg(const Rect & value, const char * fmt) const
 {
    char buf[512];
-   sprintf(buf, fmt, value.left(), value.top(), value.right(), value.bottom());
+   muscleSprintf(buf, fmt, value.left(), value.top(), value.right(), value.bottom());
    return ArgAux(buf);
 }
 
 String String :: Arg(const void * value) const
 {
    char buf[128];
-   sprintf(buf, "%p", value);
+   muscleSprintf(buf, "%p", value);
    return ArgAux(buf);
 }
 
@@ -850,7 +850,7 @@ String String :: ArgAux(const char * buf) const
    if (lowestArg >= 0)
    {
       char token[64];
-      sprintf(token, "%%" INT32_FORMAT_SPEC, lowestArg);
+      muscleSprintf(token, "%%" INT32_FORMAT_SPEC, lowestArg);
       String ret(*this);
       (void) ret.Replace(token, buf);
       return ret;

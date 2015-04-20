@@ -141,7 +141,7 @@ enum
 
 static void Inet_NtoA(uint32 addr, char * ipbuf)
 {
-   sprintf(ipbuf, INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"", (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
+   muscleSprintf(ipbuf, INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"", (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
 }
 
 static int ConnectToIP(uint32 hostIP, uint16 port)
@@ -203,7 +203,7 @@ static void SendChatMessage(UMessageGateway * gw, const char * targetSessionID, 
    if (UMIsMessageValid(&chatMessage))
    {
       /* Specify which client(s) the Message should be forwarded to by muscled */
-      char buf[1024]; sprintf(buf, "/*/%s/beshare", targetSessionID);
+      char buf[1024]; muscleSprintf(buf, "/*/%s/beshare", targetSessionID);
       UMAddString(&chatMessage, PR_NAME_KEYS, buf);
 
       /* Add a "session" field so that the target clients will know who the             */
@@ -491,13 +491,13 @@ int main(int argc, char ** argv)
                            {
                               UMAddString(&pongMsg, "session", replyTo);
 
-                              char * keyBuf = malloc(strlen(replyTo)+3+8+1);
+                              int replyToLen = strlen(replyTo);
+                              char * keyBuf = malloc(3+replyToLen+8+1);
                               if (keyBuf)
                               {
-                                 keyBuf[0] = '\0';
-                                 strcat(keyBuf, "/*/");
-                                 strcat(keyBuf, replyTo);
-                                 strcat(keyBuf, "/beshare");
+                                 memcpy(keyBuf, "/*/", 3);
+                                 memcpy(keyBuf+3, replyTo, replyToLen);
+                                 memcpy(keyBuf+3+replyToLen, "/beshare\0", 8+1);
                                  UMAddString(&pongMsg, PR_NAME_KEYS, keyBuf);
                                  free(keyBuf);
                               }

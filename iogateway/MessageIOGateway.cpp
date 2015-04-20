@@ -469,7 +469,7 @@ MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & 
       TCPSocketDataIO tsdio(s, false);
       SetDataIO(DataIORef(&tsdio, false));
       QueueGatewayMessageReceiver receiver;
-      if ((AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)) == B_NO_ERROR)&&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod) == B_NO_ERROR)) ret = receiver.HasItems() ? receiver.Head() : GetMessageFromPool();
+      if ((AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)) == B_NO_ERROR)&&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod) == B_NO_ERROR)) ret = receiver.GetMessages().HasItems() ? receiver.GetMessages().Head() : GetMessageFromPool();
       SetDataIO(oldIO);  // restore any previous I/O
    }
    return ret;

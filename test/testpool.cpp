@@ -73,7 +73,7 @@ int main(int argc, char ** argv)
       break;
 
       default:
-         printf("Usage:  testpools <testnum>   (where testnum is between 1 and 6)\n");
+         printf("Usage:  testpools <testnum>   (where testnum is between 1 and 7)\n");
       break;
    }
 

@@ -141,7 +141,7 @@ enum
 
 static void Inet_NtoA(uint32 addr, char * ipbuf)
 {
-   sprintf(ipbuf, INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"", (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
+   muscleSprintf(ipbuf, INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"."INT32_FORMAT_SPEC"", (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
 }
 
 static int ConnectToIP(uint32 hostIP, uint16 port)
@@ -207,7 +207,7 @@ static MMessage * GenerateChatMessage(const char * targetSessionID, const char *
       if (sb)
       {
          char buf[1024];
-         sprintf(buf, "/*/%s/beshare", targetSessionID);
+         muscleSprintf(buf, "/*/%s/beshare", targetSessionID);
          sb[0] = MBStrdupByteBuffer(buf);
       }
 

@@ -119,10 +119,19 @@ StdinDataIO :: StdinDataIO(bool blocking) : _stdinBlocking(blocking)
       if ((CreateConnectedSocketPair(_masterSocket, slaveSocket, false) == B_NO_ERROR)&&(SetSocketBlockingEnabled(slaveSocket, true) == B_NO_ERROR)&&(_slaveSocketsMutex.Lock() == B_NO_ERROR))
       {
          bool threadCreated = false;
-         if (_stdinThreadStatus == STDIN_THREAD_STATUS_UNINITIALIZED) 
+         if (_stdinThreadStatus == STDIN_THREAD_STATUS_UNINITIALIZED)
          {
             DWORD junkThreadID;
-            _stdinThreadStatus = ((DuplicateHandle(GetCurrentProcess(), GetStdHandle(STD_INPUT_HANDLE), GetCurrentProcess(), &_stdinHandle, 0, false, DUPLICATE_SAME_ACCESS))&&(freopen("nul", "r", stdin) != NULL)&&((_slaveThread = (::HANDLE) _beginthreadex(NULL, 0, StdinThreadEntryFunc, NULL, CREATE_SUSPENDED, (unsigned *) &junkThreadID)) != 0)) ? STDIN_THREAD_STATUS_RUNNING : STDIN_THREAD_STATUS_EXITED;
+#if __STDC_WANT_SECURE_LIB__
+            FILE * junkFD;
+#endif
+            _stdinThreadStatus = ((DuplicateHandle(GetCurrentProcess(), GetStdHandle(STD_INPUT_HANDLE), GetCurrentProcess(), &_stdinHandle, 0, false, DUPLICATE_SAME_ACCESS))&&
+#if __STDC_WANT_SECURE_LIB__
+               (freopen_s(&junkFD, "nul", "r", stdin) == 0)
+#else
+               (freopen("nul", "r", stdin) != NULL)
+#endif
+               &&((_slaveThread = (::HANDLE) _beginthreadex(NULL, 0, StdinThreadEntryFunc, NULL, CREATE_SUSPENDED, (unsigned *) &junkThreadID)) != 0)) ? STDIN_THREAD_STATUS_RUNNING : STDIN_THREAD_STATUS_EXITED;
             threadCreated = (_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING);
          }
          if ((_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING)&&(_slaveSockets.Put(_slaveSocketTag = (++_slaveSocketTagCounter), slaveSocket) == B_NO_ERROR)) okay = true;

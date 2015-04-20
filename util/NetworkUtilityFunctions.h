@@ -94,7 +94,7 @@ bool GetAutomaticIPv4AddressMappingEnabled();
 /** This class represents an IPv6 network address, including the 128-bit IP
   * address and the interface index field (necessary for connecting to link-local addresses)
   */
-class ip_address
+class ip_address MUSCLE_FINAL_CLASS
 {
 public:
    ip_address(uint64 lowBits = 0, uint64 highBits = 0, uint32 interfaceIndex = 0) : _lowBits(lowBits), _highBits(highBits), _interfaceIndex(interfaceIndex) {/* empty */}
@@ -217,7 +217,7 @@ const ip_address localhostIP_IPv4 = ip_address((((uint32)127)<<24)|((uint32)1));
   * useful things on the two such as using them as key values in a hash table,
   * converting them to/from user-readable strings, etc.
   */
-class IPAddressAndPort
+class IPAddressAndPort MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.   Creates an IPAddressAndPort object with the address field
@@ -833,7 +833,7 @@ bool IsValidAddress(const ip_address & ip);
 bool IsIPv4Address(const ip_address & ip);
 
 /** This little container class is used to return data from the GetNetworkInterfaceInfos() function, below */
-class NetworkInterfaceInfo
+class NetworkInterfaceInfo MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Sets all member variables to default values. */

@@ -5,6 +5,53 @@ key:  - new feature
       * bug fixed
       o other
 
+6.20 Released 4/20/2015
+   - Added a new sub-folder besupport/admin_gui.  It contains 
+     Fredrik Modéen's GUI shell for more easily running muscled 
+     under BeOS or Haiku.
+   - Added new MUSCLE-specific versions of some potentially-insecure
+     (per Microsoft) C functions to MuscleSupport.h:  muscleFopen(),
+     muscleStrcpy(), muscleStrncpy(), muscleSprintf(), and 
+     muscleSnprintf().  These get expanded out to the appropriate 
+     system-specific equivalent, so that e.g. under Windows we can 
+     use the CRT-secure Windows-only equivalents, while not having 
+     to put #ifdefs all over the code to keep it compiling elsewhere.
+   - Added Visual C++ 2013 project files, courtesy of Mika Lindqvist
+     (in the new "vc++12" subfolder)
+   o Renamed the vc++ subfolder to vc++8 to make it more obvious
+     that the project files it contains are for Visual Studio 2008.
+   o MUSCLE classes that should not be subclasses are now tagged
+     with the MUSCLE_FINAL_CLASS keyword so that when compiled 
+     with -DMUSCLE_USE_CPLUSPLUS11 the compiler will produce a
+     compile-time error if they are subclassed.
+   o Modified the QueueGatewayMessageReceiver and StringMatcherQueue
+     classes to no longer subclass from the Queue class, since
+     subclassing from Queue is no longer allowed.  Instead, they
+     now include a Queue object as a member variable and provide
+     accessors to that object.
+   o Modified the ObjectPool class to no longer subclass the 
+     ObjectNode internal class from the templated-type, since 
+     the templated-type might now be marked as "final".
+   o Replaced various of the aforementioned calls with their
+     muscle*() equivalents in the codebase.
+   o Merged in some patches contributed by Mika Linqvist to avoid
+     CRT security warnings when compiling under MSVC 2013.
+   o Removed all calls to strcat() and strncat(), as their string
+     truncation semantics are too difficult for me to reason about
+     reliably.  The rewritten code is also generally more efficient.
+   o Modified DefaultFileLogger::CloseLogFile() to reduce its 
+     stack usage.
+   o Modified GetNetworkInterfaceInfos() to not specify an interface
+     index for IPv6 network device address ::1, as doing so causes 
+     UDP-packet-routing problems under MacOS/X.
+   * Fixed a const-correctness problem in ConvertMessages.cpp.
+   * Removed a compiler warning (from SysLog.cpp) about 
+     GetVersionA() not working usefully under Windows 8 and higher.
+   * Applied Mika Lindqvist's patch to fix some potential 
+     memory leaks in regcomp.c
+   * Applied Mika Lindqvist's patch to make the Windows 
+     "StackWalker" stack-trace-generation routine Unicode-compliant.
+
 6.12 Released 4/6/2015
    - The Python message_transceiver_thread class will now
      fall back to connecting via IPv4 if the supplied hostname
@@ -23,7 +70,7 @@ key:  - new feature
      problems and minor errors that were reported by cppcheck.
    * Added a patch to the captive regex library to fix a 
      potential int32-overrun in regcomp().  Thanks to Mika
-     Linkdqvist for supplying me with the patch.
+     Lindqvist for supplying me with the patch.
    * Merged in some patches from Mika Lindqvist to avoid 
      some warnings when compiling in a 64-bit environment.
 

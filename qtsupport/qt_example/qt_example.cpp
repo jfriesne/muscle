@@ -459,7 +459,7 @@ int main(int argc, char ** argv)
          a += 10;  // skip past the 'publickey=' part
 
 #ifdef MUSCLE_ENABLE_SSL
-         FileDataIO fdio(fopen(a, "rb"));
+         FileDataIO fdio(muscleFopen(a, "rb"));
          ByteBufferRef fileData = GetByteBufferFromPool((uint32)fdio.GetLength());
          if ((fdio.GetFile())&&(fileData())&&(fdio.ReadFully(fileData()->GetBuffer(), fileData()->GetNumBytes()) == fileData()->GetNumBytes()))
          {

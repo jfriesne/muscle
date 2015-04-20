@@ -12,7 +12,7 @@ namespace muscle {
   * differentiated from its neighbors by the presence of one or more of the specified separator-tokens 
   * between the two sub-strings.
   */
-class StringTokenizer
+class StringTokenizer MUSCLE_FINAL_CLASS
 {
 public:
    /** Initializes the StringTokenizer to parse (tokenizeMe), which 
@@ -27,13 +27,14 @@ public:
       int tlen = (int) strlen(tokenizeMe);
       int slen = (int) strlen(separators);
  
-      char * temp = newnothrow_array(char, slen+1+tlen+1);
+      int tempLen = slen+1+tlen+1;
+      char * temp = newnothrow_array(char, tempLen);
       if (temp)
       {
-         strcpy(temp, separators);
+         muscleStrncpy(temp, separators, tempLen);
          _seps = temp;
          _next = temp + slen + 1;
-         strcpy(_next, tokenizeMe);
+         muscleStrncpy(_next, tokenizeMe, tempLen-(slen+1));
       }
       else 
       {

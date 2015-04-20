@@ -18,7 +18,7 @@ namespace muscle {
   * The current implementation only works under Windows and POSIX, but other implementations may be
   * added in the future.
   */
-class SharedMemory : private CountedObject<SharedMemory>
+class SharedMemory MUSCLE_FINAL_CLASS : private CountedObject<SharedMemory>
 {
 public:
    /** Default constructor.  You'll need to call SetArea() before this object will be useful. */

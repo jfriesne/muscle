@@ -34,7 +34,7 @@ public:
 
    virtual void InternalThreadEntry()
    {
-      char buf[128]; sprintf(buf, "TestThread-%p", this);
+      char buf[128]; muscleSprintf(buf, "TestThread-%p", this);
       const String prefix = buf;
       Queue<TestItemRef> q;
       bool keepGoing = 1;
@@ -47,7 +47,7 @@ public:
             TestItemRef tRef(_pool.ObtainObject());
             if (tRef())
             {
-               char buf[128]; sprintf(buf, "-" UINT32_FORMAT_SPEC, ++counter);
+               char buf[128]; muscleSprintf(buf, "-" UINT32_FORMAT_SPEC, ++counter);
                tRef()->SetName(prefix+buf);
                q.AddTail(tRef);
             }
@@ -85,7 +85,7 @@ int main(void)
       printf("Adding refs...\n");
       for (int i=0; i<10; i++) 
       {
-         char temp[50]; sprintf(temp, "%i", i);
+         char temp[50]; muscleSprintf(temp, "%i", i);
          TestItemRef tr(new TestItem(temp));
          ConstTestItemRef ctr(tr);
          ConstTestItemRef t2(ctr);
@@ -102,13 +102,13 @@ int main(void)
       printf("Adding refs...\n");
       for (int i=0; i<10; i++) 
       {
-         char temp[50]; sprintf(temp, "%i", i);
+         char temp[50]; muscleSprintf(temp, "%i", i);
          ht.Put(String(temp), TestItemRef(new TestItem(temp)));
       }
       printf("Removing refs...\n");
       for (int i=0; i<10; i++) 
       {
-         char temp[50]; sprintf(temp, "%i", i);
+         char temp[50]; muscleSprintf(temp, "%i", i);
          ht.Remove(String(temp));
       }
       printf("Done with hash table test!\n");

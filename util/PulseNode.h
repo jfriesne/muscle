@@ -28,7 +28,7 @@ protected:
    /** This class is used to encapsulate the arguments to GetPulseTime() and Pulse(), so that
      * there is less data to place on the stack in each callback call.
      */
-   class PulseArgs
+   class PulseArgs MUSCLE_FINAL_CLASS
    {
    public:
       /** Returns the approximate time (in microseconds) at which our Pulse() method was called.  

@@ -47,9 +47,11 @@ static DIR * opendir(const char *name)
    {
       size_t base_length = strlen(name);
       const char *all = strchr("/\\", name[base_length - 1]) ? "*" : "/*";
-      if (((dir = (DIR *)malloc(sizeof *dir)) != NULL) && ((dir->name = (char *) malloc(base_length + strlen(all) + 1)) != NULL))
+      size_t nameLen = base_length + strlen(all) + 1;
+      if (((dir = (DIR *)malloc(sizeof *dir)) != NULL) && ((dir->name = (char *) malloc(nameLen)) != NULL))
       {
-         strcat(strcpy(dir->name, name), all);
+         muscleStrncpy(dir->name, name, nameLen);
+         muscleStrncpy(dir->name+base_length, all, nameLen-base_length);
          if((dir->handle = (long) _findfirst(dir->name, &dir->info)) != -1) dir->result.d_name = NULL;
          else 
          {
@@ -151,10 +153,11 @@ status_t Directory :: SetDir(const char * dirPath)
       const char * sep = GetFilePathSeparator();
       int sepLen = (int) strlen(sep);
       int extraBytes = ((pathLen<sepLen)||(strcmp(dirPath+pathLen-sepLen, sep) != 0)) ? sepLen : 0;
-      _path = newnothrow_array(char, pathLen+extraBytes+1);
+      int allocLen = pathLen+extraBytes+1;
+      _path = newnothrow_array(char, allocLen);
       if (_path == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
-      strcpy(_path, dirPath);
-      if (extraBytes != 0) strcat(_path, sep);
+      muscleStrncpy(_path, dirPath, allocLen);
+      if (extraBytes != 0) muscleStrncpy(_path+pathLen, sep, allocLen-pathLen);
 
       _dirPtr = opendir(dirPath);
       if (_dirPtr == NULL) 
@@ -173,7 +176,7 @@ status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParent
 {
    if (forceCreateParentDirsIfNecessary)
    {
-      char sep = *GetFilePathSeparator();  // technically cheating but I don't want to have to write strrstr()
+      const char sep = *GetFilePathSeparator();  // technically cheating but I don't want to have to write strrstr()
       const char * lastSlash = strrchr(dirPath+((dirPath[0]==sep)?1:0), sep);
       if (lastSlash)
       {
@@ -181,7 +184,7 @@ status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParent
          char * temp = newnothrow_array(char, subLen+1);
          if (temp == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
 
-         strncpy(temp, dirPath, subLen);
+         memcpy(temp, dirPath, subLen);
          temp[subLen] = '\0';
 
          Directory pd(temp);
@@ -205,10 +208,10 @@ status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParent
 status_t Directory :: MakeDirectoryForFile(const char * filePath)
 {
    int pathLen = (int) strlen(filePath);
-   char * p = newnothrow_array(char,pathLen+1);
+   char * p = newnothrow_array(char, pathLen+1);
    if (p == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
 
-   strcpy(p, filePath);
+   muscleStrncpy(p, filePath, pathLen+1);
    char * lastSep = strrchr(p, GetFilePathSeparator()[0]);
    if (lastSep) *lastSep = '\0';  // truncate the file name 
    status_t ret = lastSep ? MakeDirectory(p, true) : B_NO_ERROR;  // No directory clauses?  then there's nothing for us to do.
@@ -235,13 +238,14 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
          if ((strcmp(fn, ".") != 0)&&(strcmp(fn, "..") != 0))
          {
             int fnLen = (int) strlen(fn);
-            char * catStr = newnothrow_array(char, dirPathLen+sepLen+fnLen+1);
+            int catLen = dirPathLen+sepLen+fnLen+1;
+            char * catStr = newnothrow_array(char, catLen);
             if (catStr == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
 
             // Compose the sub-item's full path
-            strcpy(catStr,                   dirPath);
-            strcpy(catStr+dirPathLen,        sep);
-            strcpy(catStr+dirPathLen+sepLen, fn);
+            muscleStrncpy(catStr,                   dirPath, catLen);
+            muscleStrncpy(catStr+dirPathLen,        sep,     catLen-dirPathLen);
+            muscleStrncpy(catStr+dirPathLen+sepLen, fn,      catLen-(dirPathLen+sepLen));
 
             // First, try to delete the sub-item as a file; if not, as a directory
 #ifdef _MSC_VER

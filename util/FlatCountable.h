@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifndef	MuscleFlatCountable_h
-#define	MuscleFlatCountable_h
+#ifndef MuscleFlatCountable_h
+#define MuscleFlatCountable_h
 
 #include "support/Flattenable.h"
 #include "util/RefCount.h"

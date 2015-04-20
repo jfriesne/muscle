@@ -15,7 +15,7 @@ namespace muscle {
   * To use this class, just instantiate a CPULoadMeter object, and then call
   * GetCPULoad() every so often (e.g. whenever you want to update your CPU load display)
   */
-class CPULoadMeter : private CountedObject<CPULoadMeter>
+class CPULoadMeter MUSCLE_FINAL_CLASS : private CountedObject<CPULoadMeter>
 {
 public:
    /** Default constructor */

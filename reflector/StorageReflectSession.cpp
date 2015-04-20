@@ -143,7 +143,7 @@ AttachedToServer()
       for (int p=0; p<=PR_NUM_PRIVILEGES; p++)
       {
          char temp[32];
-         sprintf(temp, "priv%i", p);
+         muscleSprintf(temp, "priv%i", p);
          const String * privPattern;
          for (int q=0; (state.FindString(temp, q, &privPattern) == B_NO_ERROR); q++)
          {
@@ -369,7 +369,7 @@ NodeIndexChanged(DataNode & modifiedNode, char op, uint32 index, const String & 
       {
          _sharedData->_subsDirty = true;
          char temp[100];
-         sprintf(temp, "%c" UINT32_FORMAT_SPEC ":%s", op, index, key());
+         muscleSprintf(temp, "%c" UINT32_FORMAT_SPEC ":%s", op, index, key());
          _nextIndexSubscriptionMessage()->AddString(np, temp);
       }
       else WARN_OUT_OF_MEMORY;
@@ -1258,7 +1258,7 @@ GetDataCallback(DataNode & node, void * userData)
             (void) indexUpdateMsg()->AddString(np, clearStr);
             for (uint32 i=0; i<indexLen; i++) 
             {
-               char temp[100]; sprintf(temp, "%c" UINT32_FORMAT_SPEC ":", INDEX_OP_ENTRYINSERTED, i);
+               char temp[100]; muscleSprintf(temp, "%c" UINT32_FORMAT_SPEC ":", INDEX_OP_ENTRYINSERTED, i);
                (void) indexUpdateMsg()->AddString(np, (*index)[i]()->GetNodeName().Prepend(temp));
             }
             if (indexUpdateMsg()->GetNumNames() >= _maxSubscriptionMessageItems) SendGetDataResults(messageArray[1]);
@@ -1362,12 +1362,12 @@ PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry &
    TCHECKPOINT;
 
    const StringMatcherQueue * nextSubscription = entry.GetParser()();
-   if ((int32)nextSubscription->GetNumItems() != ((int32)node.GetDepth())-rootDepth) return false;  // only paths with the same number of clauses as the node's path (less rootDepth) can ever match
+   if ((int32)nextSubscription->GetStringMatchers().GetNumItems() != ((int32)node.GetDepth())-rootDepth) return false;  // only paths with the same number of clauses as the node's path (less rootDepth) can ever match
 
    DataNode * travNode = &node;
-   for (int j=nextSubscription->GetNumItems()-1; j>=rootDepth; j--,travNode=travNode->GetParent())
+   for (int j=nextSubscription->GetStringMatchers().GetNumItems()-1; j>=rootDepth; j--,travNode=travNode->GetParent())
    {
-      StringMatcher * nextMatcher = nextSubscription->GetItemAt(j)->GetItemPointer();
+      StringMatcher * nextMatcher = nextSubscription->GetStringMatchers().GetItemAt(j)->GetItemPointer();
       if ((nextMatcher)&&(nextMatcher->Match(travNode->GetNodeName()()) == false)) return false;
    }
    return entry.FilterMatches(optData, &node);
@@ -1395,9 +1395,9 @@ DoTraversalAux(TraversalContext & data, DataNode & node)
       for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++)
       {
          const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
-         if ((nextQueue)&&((int)nextQueue->GetNumItems() > depth-data.GetRootDepth()))
+         if ((nextQueue)&&((int)nextQueue->GetStringMatchers().GetNumItems() > depth-data.GetRootDepth()))
          {
-            StringMatcher * nextMatcher = nextQueue->GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
+            StringMatcher * nextMatcher = nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
             if ((nextMatcher == NULL)||(nextMatcher->IsPatternUnique() == false))
             {
                parsersHaveWildcards = true;  // Oops, there will be some pattern matching involved, gotta iterate
@@ -1420,9 +1420,9 @@ DoTraversalAux(TraversalContext & data, DataNode & node)
       for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++)
       {
          const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
-         if ((nextQueue)&&((int)nextQueue->GetNumItems() > depth-data.GetRootDepth()))
+         if ((nextQueue)&&((int)nextQueue->GetStringMatchers().GetNumItems() > depth-data.GetRootDepth()))
          {
-            const String & key = nextQueue->GetItemAt(depth-data.GetRootDepth())->GetItemPointer()->GetPattern();
+            const String & key = nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer()->GetPattern();
             DataNodeRef nextChildRef;
             if ((node.GetChild(RemoveEscapeChars(key), nextChildRef) == B_NO_ERROR)&&(alreadyDid.IndexOf(nextChildRef()) == -1))
             {
@@ -1454,10 +1454,10 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int & dept
          const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
          if (nextQueue)
          {
-            int numClausesInParser = nextQueue->GetNumItems();
+            int numClausesInParser = nextQueue->GetStringMatchers().GetNumItems();
             if (numClausesInParser > depth-data.GetRootDepth())
             {
-               const StringMatcher * nextMatcher = nextQueue->GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
+               const StringMatcher * nextMatcher = nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
                if ((nextMatcher == NULL)||(nextMatcher->Match(nextChildName())))
                {
                   // A match!  Now, depending on whether this match is the

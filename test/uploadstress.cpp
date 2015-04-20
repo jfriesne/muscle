@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
          if (gw.HasBytesToOutput() == false)
          {
             char buf[128];
-            sprintf(buf, UINT32_FORMAT_SPEC, bufCount++);
+            muscleSprintf(buf, UINT32_FORMAT_SPEC, bufCount++);
             printf("Adding message [%s]\n", buf);
 
             MessageRef smsg = GetMessageFromPool(PR_COMMAND_SETDATA);

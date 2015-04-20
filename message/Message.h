@@ -103,7 +103,7 @@ MessageRef GetLightweightCopyOfMessageFromPool(ObjectPool<Message> & pool, const
 class AbstractDataArray;
 
 /** This is an iterator that allows you to efficiently iterate over the field names in a Message. */
-class MessageFieldNameIterator
+class MessageFieldNameIterator MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.   
@@ -227,7 +227,7 @@ private:
  *  Note that for quick debugging purposes, it is possible to dump a Message's contents to stdout
  *  at any time by calling PrintToStream() on the Message.
  */
-class Message : public FlatCountable, public Cloneable, private CountedObject<Message>
+class Message MUSCLE_FINAL_CLASS : public FlatCountable, public Cloneable, private CountedObject<Message>
 {
 public:
    /** 32 bit what code, for quick identification of message types.  Set this however you like. */

@@ -73,7 +73,7 @@ void ProxySessionFactory :: AboutToDetachFromServer()
 AbstractReflectSession ::
 AbstractReflectSession() : _sessionID(GetNextGlobalID(_sessionIDCounter)), _connectingAsync(false), _isConnected(false), _maxAsyncConnectPeriod(MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS), _asyncConnectTimeoutTime(MUSCLE_TIME_NEVER), _reconnectViaTCP(true), _lastByteOutputAt(0), _maxInputChunk(MUSCLE_NO_LIMIT), _maxOutputChunk(MUSCLE_NO_LIMIT), _outputStallLimit(MUSCLE_TIME_NEVER), _autoReconnectDelay(MUSCLE_TIME_NEVER), _reconnectTime(MUSCLE_TIME_NEVER), _wasConnected(false), _isExpendable(false)
 {
-   char buf[64]; sprintf(buf, UINT32_FORMAT_SPEC, _sessionID);
+   char buf[64]; muscleSprintf(buf, UINT32_FORMAT_SPEC, _sessionID);
    _idString = buf;
 }
 
@@ -323,7 +323,7 @@ GetSessionDescriptionString() const
    ret += GetSessionIDString();
    ret += (port>0)?" at [":" to [";
    ret += _hostName;
-   char buf[64]; sprintf(buf, ":%u]", (port>0)?port:_asyncConnectDest.GetPort()); ret += buf;
+   char buf[64]; muscleSprintf(buf, ":%u]", (port>0)?port:_asyncConnectDest.GetPort()); ret += buf;
    return ret;
 }
 

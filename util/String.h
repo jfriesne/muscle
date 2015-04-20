@@ -79,7 +79,7 @@ inline int Strncasecmp(const char * s1, const char * s2, size_t n)
   * UTF8-aware, certain operations (such as Reverse() and ToLowerCase()) will not do the right thing when used in 
   * conjunction with non-ASCII UTF8 data.
   */
-class String : public PseudoFlattenable
+class String MUSCLE_FINAL_CLASS : public PseudoFlattenable
 {
 public:
    /** Constructor.
@@ -862,7 +862,7 @@ public:
      * For example, String("%1 is a %2").Arg(13).Arg("bakers dozen") would return
      * the string "13 is a bakers dozen".
      * @param value The value to replace in the string.
-     * @param fmt The format parameter to pass to sprintf().  Note that if you supply your
+     * @param fmt The format parameter to pass to muscleSprintf().  Note that if you supply your
      *            own format string, you'll need to be careful since a badly chosen format
      *            string could lead to a crash or out-of-bounds memory overwrite.  In particular,
      *            the format string should match the type specified, and should not lead to

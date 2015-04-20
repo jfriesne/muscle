@@ -11,6 +11,7 @@
 
 #if defined(WIN32) || defined(__CYGWIN__)
 # include <process.h>  // for _beginthreadex()
+# include <Shlwapi.h>  // for IsOS()
 # include "util/Queue.h"
 # define USE_WINDOWS_IMPLEMENTATION
 #else
@@ -45,7 +46,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking) : 
       dcb.DCBlength = sizeof(DCB);
       GetCommState((void *)_handle, &dcb);
       
-      char modebuf[128]; sprintf(modebuf, "%s baud="UINT32_FORMAT_SPEC" parity=N data=8 stop=1", port, baudRate);
+      char modebuf[128]; muscleSprintf(modebuf, "%s baud="UINT32_FORMAT_SPEC" parity=N data=8 stop=1", port, baudRate);
       if (BuildCommDCBA(modebuf, &dcb))
       {
          dcb.fBinary           = 1;
@@ -269,8 +270,12 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
    // at http://www.codeproject.com/system/enumports.asp
    //
    // Under NT-based versions of Windows, use the QueryDosDevice API, since it's more efficient
+#if _MSC_VER >= 1800
+   if (IsOS(OS_NT))
+#else
    OSVERSIONINFO osvi; osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
    if (GetVersionEx(&osvi)&&(osvi.dwPlatformId == VER_PLATFORM_WIN32_NT))
+#endif
    {
       char szDevices[65535];
       DWORD dwChars = QueryDosDeviceA(NULL, szDevices, 65535);
@@ -298,7 +303,7 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
       for (uint32 i=1; i<256; i++)
       {
          // Try to open the port
-         char buf[128]; sprintf(buf, "COM"UINT32_FORMAT_SPEC, i);
+         char buf[128]; muscleSprintf(buf, "COM"UINT32_FORMAT_SPEC, i);
          ::HANDLE hPort = CreateFileA(buf, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0);
          if (hPort == INVALID_HANDLE_VALUE)
          {
@@ -348,10 +353,10 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
    {
       char buf[64]; 
 #  if defined(__BEOS__) || defined(__HAIKU__)
-      sprintf(buf, "/dev/ports/serial%i", i+1);
+      muscleSprintf(buf, "/dev/ports/serial%i", i+1);
       int temp = open(buf, O_RDWR | O_NONBLOCK);
 #  else
-      sprintf(buf, "/dev/ttyS%i", i);
+      muscleSprintf(buf, "/dev/ttyS%i", i);
       int temp = open(buf, O_RDWR | O_NOCTTY);
 #  endif
       if (temp >= 0)

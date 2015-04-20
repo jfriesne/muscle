@@ -68,7 +68,7 @@ extern bool _muscleSingleThreadOnly;
   * (e.g. the MUSCLE ObjectPool or Thread classes)
   * When compiling with the MUSCLE_SINGLE_THREAD_ONLY preprocessor flag defined, this class becomes a no-op.
   */
-class Mutex
+class Mutex MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor */
@@ -239,7 +239,7 @@ private:
 };
 
 /** This convenience class can be used to automatically lock/unlock a Mutex based on the MutexGuard's ctor/dtor */
-class MutexGuard
+class MutexGuard MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor.  Locks the specified Mutex.

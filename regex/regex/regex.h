@@ -78,7 +78,7 @@ REXTERNF int regcomp(regex_t *, const char *, int);
 #define	REG_INVARG	16
 #define	REG_ATOI	255	/* convert name to number (!) */
 #define	REG_ITOA	0400	/* convert number to name (!) */
-extern size_t regerror(int, const regex_t *, char *, size_t);
+REXTERNF size_t regerror(int, const regex_t *, char *, size_t);
 
 
 /* === regexec.c === */

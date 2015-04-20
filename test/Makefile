@@ -292,7 +292,7 @@ findsourcelocations : $(STDOBJS) findsourcelocations.o SysLog.o SetupSystem.o St
 printsourcelocations : $(STDOBJS) printsourcelocations.o SysLog.o SetupSystem.o String.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o PulseNode.o Message.o ByteBuffer.o SocketMultiplexer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testsharedmem: $(STDOBJS) SysLog.o SharedMemory.o SocketMultiplexer.o NetworkUtilityFunctions.o testsharedmem.o String.o DataIO.o MiscUtilityFunctions.o SetupSystem.o
+testsharedmem: $(STDOBJS) SysLog.o SharedMemory.o SocketMultiplexer.o NetworkUtilityFunctions.o testsharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testobjectpool: $(STDOBJS) SysLog.o SharedMemory.o SocketMultiplexer.o NetworkUtilityFunctions.o testobjectpool.o String.o SetupSystem.o

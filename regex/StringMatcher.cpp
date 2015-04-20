@@ -97,7 +97,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
                   if (dash)
                   {
                      String beforeDash;
-                     if (dash>clause) {beforeDash.SetCstr(clause, dash-clause); beforeDash = beforeDash.Trim();}
+                     if (dash>clause) {beforeDash.SetCstr(clause, (int32)(dash-clause)); beforeDash = beforeDash.Trim();}
 
                      String afterDash(dash+1); afterDash = afterDash.Trim();
 
@@ -199,8 +199,8 @@ String StringMatcher :: ToString() const
          uint32 min = r.GetMin();
          uint32 max = r.GetMax();
          char buf[128];
-         if (max > min) sprintf(buf, UINT32_FORMAT_SPEC "-" UINT32_FORMAT_SPEC, min, max);
-                   else sprintf(buf, UINT32_FORMAT_SPEC, min);
+         if (max > min) muscleSprintf(buf, UINT32_FORMAT_SPEC "-" UINT32_FORMAT_SPEC, min, max);
+                   else muscleSprintf(buf, UINT32_FORMAT_SPEC, min);
          s += buf;
       }
       s += '>';
@@ -302,14 +302,14 @@ bool MakeRegexCaseInsensitive(String & str)
      if ((next >= 'A')&&(next <= 'Z'))
      {
         char buf[5];
-        sprintf(buf, "[%c%c]", next, next+('a'-'A'));
+        muscleSprintf(buf, "[%c%c]", next, next+('a'-'A'));
         ret += buf;
         changed = true;
      }
      else if ((next >= 'a')&&(next <= 'z'))
      {
         char buf[5];
-        sprintf(buf, "[%c%c]", next, next+('A'-'a'));
+        muscleSprintf(buf, "[%c%c]", next, next+('A'-'a'));
         ret += buf;
         changed = true;
      }

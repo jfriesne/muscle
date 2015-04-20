@@ -79,7 +79,7 @@ int main(int argc, char ** argv)
             }
             else 
             {
-               LogTime(MUSCLE_LOG_ERROR, "Exclusive Lock failed!  Maybe the area was deleted!\n");
+               LogTime(MUSCLE_LOG_ERROR, "Read-Only Lock failed!  Maybe the area was deleted!\n");
                break;
             }
 

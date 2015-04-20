@@ -57,7 +57,7 @@ static inline int32 DoMutexAtomicIncrement(volatile int32 * count, int32 delta)
   * it degenerates to a regular old counter variable, which is very lightweight and portable,
   * but of course will only work properly in single-threaded environments.
   */
-class AtomicCounter
+class AtomicCounter MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  The count value is initialized to zero. */

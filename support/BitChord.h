@@ -127,7 +127,7 @@ public:
          if (foundNonZero)
          {
             char buf[4]; 
-            sprintf(buf, "%s%02x", (ret.IsEmpty())?"":" ", c);
+            muscleSprintf(buf, "%s%02x", (ret.IsEmpty())?"":" ", c);
             ret += buf;
          }
       }

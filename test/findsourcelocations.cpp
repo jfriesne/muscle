@@ -13,7 +13,7 @@ using namespace muscle;
 
 static void CheckFile(const String & path, uint32 code)
 {
-   FileDataIO dio(fopen(path(), "r"));
+   FileDataIO dio(muscleFopen(path(), "r"));
    if (dio.GetFile())
    {
       String fileName = path.Substring(GetFilePathSeparator());

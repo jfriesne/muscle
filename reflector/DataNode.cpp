@@ -97,7 +97,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
       while(true)
       {
          char buf[50];
-         sprintf(buf, "I" UINT32_FORMAT_SPEC, _orderedCounter++);
+         muscleSprintf(buf, "I" UINT32_FORMAT_SPEC, _orderedCounter++);
          if (HasChild(buf) == false) {temp = buf; break;}
       }
       optNodeName = &temp;

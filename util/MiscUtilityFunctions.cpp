@@ -441,7 +441,11 @@ LONG Win32FaultHandler(struct _EXCEPTION_POINTERS * ExInfo)
     printf("*** A Program Fault occurred:\n");
     printf("*** Error code %08X: %s\n", faultCode, faultDesc);
     printf("****************************************************\n");
+#ifdef MUSCLE_64_BIT_PLATFORM
+    printf("***   Address: %08llX\n", (uintptr)CodeAddress);
+#else
     printf("***   Address: %08X\n", (uintptr)CodeAddress);
+#endif
     printf("***     Flags: %08X\n", ExInfo->ExceptionRecord->ExceptionFlags);
     _Win32PrintStackTraceForContext(stdout, ExInfo->ContextRecord, MUSCLE_NO_LIMIT);
     printf("Crashed MUSCLE process aborting now.... bye!\n");
@@ -748,19 +752,19 @@ void RemoveANSISequences(String & s)
          switch(data[0])
          {
             case 's': case 'u': case 'K':   // these are single-letter codes, so
-	       data++;                      // just skip over them and we are done
-	    break;
+               data++;                      // just skip over them and we are done
+            break;
 
             case '=':
-	       data++;
-	    // fall through!
-	    default:
-	       // For numeric codes, keep going until we find a non-digit that isn't a semicolon
-	       while((muscleInRange(*data, '0', '9'))||(*data == ';')) data++;
-	       if (*data) data++;  // and skip over the trailing letter too.
-	    break;
+               data++;
+            // fall through!
+            default:
+               // For numeric codes, keep going until we find a non-digit that isn't a semicolon
+               while((muscleInRange(*data, '0', '9'))||(*data == ';')) data++;
+               if (*data) data++;  // and skip over the trailing letter too.
+            break;
          }
-	 s = s.Substring(0, idx) + s.Substring((uint32)(data-s()));  // remove the escape substring
+         s = s.Substring(0, idx) + s.Substring((uint32)(data-s()));  // remove the escape substring
       }
       else break;
    }
@@ -896,7 +900,7 @@ String HexBytesToString(const uint8 * buf, uint32 numBytes)
       for (uint32 i=0; i<numBytes; i++)
       {
          if (i > 0) ret += ' ';
-         char b[32]; sprintf(b, "%02x", buf[i]);
+         char b[32]; muscleSprintf(b, "%02x", buf[i]);
          ret += b;
       }
    }
@@ -923,7 +927,7 @@ String HexBytesToString(const Queue<uint8> & bytes)
       for (uint32 i=0; i<numBytes; i++)
       {
          if (i > 0) ret += ' ';
-         char b[32]; sprintf(b, "%02x", bytes[i]);
+         char b[32]; muscleSprintf(b, "%02x", bytes[i]);
          ret += b;
       }
    }
@@ -974,7 +978,7 @@ status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg)
 
 bool FileExists(const char * filePath)
 {
-   FILE * fp = fopen(filePath, "rb");
+   FILE * fp = muscleFopen(filePath, "rb");
    bool ret = (fp != NULL);  // gotta take this value before calling fclose(), or cppcheck complains
    if (fp) fclose(fp);
    return ret;
@@ -989,11 +993,11 @@ status_t CopyFile(const char * oldPath, const char * newPath)
 {
    if (strcmp(oldPath, newPath) == 0) return B_NO_ERROR;  // Copying something onto itself is a no-op
 
-   FILE * fpIn = fopen(oldPath, "rb");
+   FILE * fpIn = muscleFopen(oldPath, "rb");
    if (fpIn == NULL) return B_ERROR;
 
    status_t ret = B_NO_ERROR;  // optimistic default
-   FILE * fpOut = fopen(newPath, "wb");
+   FILE * fpOut = muscleFopen(newPath, "wb");
    if (fpOut)
    {
       while(1)
@@ -1055,9 +1059,16 @@ void Win32AllocateStdioConsole()
 {
    // Open a console for debug output to appear in
    AllocConsole();
+#if __STDC_WANT_SECURE_LIB__
+   FILE * junk;
+   (void) freopen_s(&junk, "conin$",  "r", stdin);
+   (void) freopen_s(&junk, "conout$", "w", stdout);
+   (void) freopen_s(&junk, "conout$", "w", stderr);
+#else
    (void) freopen("conin$",  "r", stdin);
    (void) freopen("conout$", "w", stdout);
    (void) freopen("conout$", "w", stderr);
+#endif
 }
 #endif
 
@@ -1072,7 +1083,7 @@ static double ParseMemValue(const char * b)
 float GetSystemMemoryUsagePercentage()
 {
 #if defined(__linux__)
-   FILE * fpIn = fopen("/proc/meminfo", "r");
+   FILE * fpIn = muscleFopen("/proc/meminfo", "r");
    if (fpIn)
    {
       double memTotal = -1.0, memFree = -1.0, buffered = -1.0, cached = -1.0;

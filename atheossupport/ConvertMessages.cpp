@@ -47,7 +47,7 @@ status_t ConvertToAMessage(const Message & from, os::Message & to)
  
             case B_MESSAGE_TYPE:
             {
-               MessageRef * msgRef = stat_cast<MessageRef *>(nextItem);
+               const MessageRef * msgRef = static_cast<const MessageRef *>(nextItem);
                os::Message amsg;
                if (msgRef->GetItemPointer() == NULL) return B_ERROR;
                if (ConvertToAMessage(*msgRef->GetItemPointer(), amsg) != B_NO_ERROR) return B_ERROR;

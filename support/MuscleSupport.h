@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.12"
-#define MUSCLE_VERSION        61200  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.20"
+#define MUSCLE_VERSION        62000  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -77,9 +77,22 @@
 # ifdef MUSCLE_USE_CPLUSPLUS11
 #  include <type_traits>  // for static_assert()
 #  include <utility>      // for std::move()
+#  if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ < 7)
+#   define MUSCLE_FINAL_CLASS          /* work-around for g++ bug #50811 */
+#  else
+#   define MUSCLE_FINAL_CLASS final
+#  endif
+# else
+#  define MUSCLE_FINAL_CLASS
 # endif
 #else
 # define NEW_H_NOT_AVAILABLE
+#endif
+
+// For non-C++-11 environments, we don't have the ability to make a class final, so we just define 
+// MUSCLE_FINAL_CLASS to expand to nothing, and leave it up to the user to know not to subclass the class.
+#ifndef MUSCLE_FINAL_CLASS
+# define MUSCLE_FINAL_CLASS
 #endif
 
 /* Borland C++ builder also runs under Win32, but it doesn't set this flag So we'd better set it ourselves. */
@@ -244,6 +257,10 @@ typedef void * muscleVoidPointer;  /* it's a bit easier, syntax-wise, to use thi
 #  define  INT64_FORMAT_SPEC_NOPERCENT "lli"
 #  define UINT64_FORMAT_SPEC_NOPERCENT "llu"
 #  define XINT64_FORMAT_SPEC_NOPERCENT "llx"
+# elif defined(_MSC_VER)
+#  define  INT64_FORMAT_SPEC_NOPERCENT "I64i"
+#  define UINT64_FORMAT_SPEC_NOPERCENT "I64u"
+#  define XINT64_FORMAT_SPEC_NOPERCENT "I64x"
 # else
 #  define  INT64_FORMAT_SPEC_NOPERCENT "li"
 #  define UINT64_FORMAT_SPEC_NOPERCENT "lu"
@@ -540,6 +557,22 @@ inline int muscleRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-
 template<typename T> inline int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
 
 #endif  /* __cplusplus */
+
+#if defined(__cplusplus) && (_MSC_VER >= 1400)
+/** For MSVC, we provide CRT-friendly versions of these functions to avoid security warnings */
+# define muscleSprintf  sprintf_s  /* Ooh, template magic! */
+# define muscleSnprintf sprintf_s  /* Yes, sprintf_s is correct here! (this version is usable when template magic isn't possible) -jaf */
+# define muscleStrcpy   strcpy_s   /* Ooh, template magic! */
+static inline char * muscleStrncpy(char * to, const char * from, size_t maxLen) {(void) strcpy_s(to, maxLen, from); return to;}
+static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * fp; return (fopen_s(&fp, path, mode) == 0) ? fp : NULL;}
+#else
+/** Other OS's can use the usual functions instead. */
+# define muscleSprintf  sprintf
+# define muscleSnprintf snprintf
+# define muscleStrcpy   strcpy
+# define muscleStrncpy  strncpy
+# define muscleFopen    fopen
+#endif
 
 #if !defined(__BEOS__) && !defined(__HAIKU__)
 

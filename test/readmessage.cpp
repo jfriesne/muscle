@@ -16,7 +16,7 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    const char * fileName = (argc > 1) ? argv[1] : "test.msg";
-   FILE * fpIn = fopen(fileName, "rb");
+   FILE * fpIn = muscleFopen(fileName, "rb");
    if (fpIn)
    {
       uint32 bufSize = 100*1024; // if your message is >100KB flattened, then tough luck

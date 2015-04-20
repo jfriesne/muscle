@@ -59,7 +59,7 @@ status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilte
                smRef.SetRef(smPool->ObtainObject());
                if ((smRef() == NULL)||(smRef()->SetPattern(temp()) != B_NO_ERROR)) return B_ERROR;
             }
-            if (newQ->AddTail(smRef) != B_NO_ERROR) return B_ERROR;
+            if (newQ->GetStringMatchers().AddTail(smRef) != B_NO_ERROR) return B_ERROR;
             lastSlashPos = slashPos;
          }
          if (_entries.Put(path, PathMatcherEntry(qRef, filter)) == B_NO_ERROR)
@@ -132,7 +132,7 @@ bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, c
    for (HashtableIterator<String, PathMatcherEntry> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const StringMatcherQueue * nextSubscription = iter.GetValue().GetParser()();      
-      if ((nextSubscription)&&(nextSubscription->GetNumItems() == numClauses))
+      if ((nextSubscription)&&(nextSubscription->GetStringMatchers().GetNumItems() == numClauses))
       {
          bool matched = true;  // default
 
@@ -140,7 +140,7 @@ bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, c
          for (uint32 j=0; j<numClauses; j++)
          {
             const char * nextToken = tok();
-            const StringMatcher * nextMatcher = nextSubscription->GetItemAt(j)->GetItemPointer();
+            const StringMatcher * nextMatcher = nextSubscription->GetStringMatchers().GetItemAt(j)->GetItemPointer();
             if ((nextToken == NULL)||((nextMatcher)&&(nextMatcher->Match(nextToken) == false))) 
             {
                matched = false;
@@ -207,10 +207,10 @@ int GetPathDepth(const char * path)
 String StringMatcherQueue :: ToString() const
 {
    String ret;
-   for (uint32 i=0; i<GetNumItems(); i++)
+   for (uint32 i=0; i<_queue.GetNumItems(); i++)
    {
       if (ret.HasChars()) ret += ' ';
-      const StringMatcherRef & smr = (*this)[i];
+      const StringMatcherRef & smr = _queue[i];
       if (smr()) ret += smr()->ToString();
             else ret += "(null)";
    }
@@ -224,7 +224,7 @@ String PathMatcherEntry :: ToString() const
    if (_parser()) ret += _parser()->ToString().Prepend("Parser=[").Append("]");
    if (_filter())
    {
-      char buf[128]; sprintf(buf, "%sfilter=%p", ret.HasChars()?" ":"", _filter());
+      char buf[128]; muscleSprintf(buf, "%sfilter=%p", ret.HasChars()?" ":"", _filter());
       ret += buf;
    }
    return ret;

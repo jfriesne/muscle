@@ -25,7 +25,7 @@ int main(int argc, char ** argv)
    QueueGatewayMessageReceiver inQueue;
    if (argc == 1)
    {
-      FILE * f = fopen("test.dat", "wb");
+      FILE * f = muscleFopen("test.dat", "wb");
       if (f)
       {
          printf("Outputting test messages to test.dat...\n");
@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
       else printf("Error, could not open test file!\n");
 
       // Now try to read it back in
-      FILE * in = fopen("test.dat", "rb");
+      FILE * in = muscleFopen("test.dat", "rb");
       if (in)
       {
          printf("Reading test messages from test.dat...\n");
@@ -66,7 +66,7 @@ int main(int argc, char ** argv)
    {
       for (int i=1; i<argc; i++)
       {
-         FILE * in = fopen(argv[i], "rb");
+         FILE * in = muscleFopen(argv[i], "rb");
          if (in)
          {
             printf("Reading message file %s...\n", argv[i]);

@@ -21,7 +21,7 @@ namespace muscle {
 /*----- Point class --------------------------------------------*/
 
 /** A portable version of Be's BPoint class. */
-class Point : public Tuple<2,float>, public PseudoFlattenable
+class Point MUSCLE_FINAL_CLASS : public Tuple<2,float>, public PseudoFlattenable
 {
 public:
    /** Default constructor, sets the point to be (0.0f, 0.0f) */
