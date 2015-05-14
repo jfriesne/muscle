@@ -95,7 +95,7 @@
       <PrecompiledHeaderOutputFile>.\Junk/muscle.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Junk/</AssemblerListingLocation>
       <ObjectFileName>.\Junk/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Junk/</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>.\Junk\muscle.pdb/</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
@@ -122,7 +122,7 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>..\zlib\zlib\win32;..\;..\..\;.\;..\regex\regex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;UNICODE;NDEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WINAPI_FAMILY=100;UNICODE;NDEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -153,12 +153,12 @@
       <AdditionalIncludeDirectories>..\zlib\zlib\win32;..\;..\..\;.\;..\regex\regex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;WINAPI_FAMILY=100;UNICODE;DEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeaderOutputFile>.\Junk/muscle.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Junk/</AssemblerListingLocation>
       <ObjectFileName>.\Junk/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Junk/</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>.\Junk\muscle.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
@@ -188,12 +188,12 @@
       <AdditionalIncludeDirectories>..\zlib\zlib\win32;..\;..\..\;.\;..\regex\regex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;UNICODE;WINAPI_FAMILY=100;DEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeaderOutputFile>.\Junk/muscle.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Junk/</AssemblerListingLocation>
       <ObjectFileName>.\Junk/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Junk/muscle</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>.\Junk\muscle.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>

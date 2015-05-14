@@ -6,6 +6,10 @@
 
 #include "util/SocketMultiplexer.h"
 
+#ifdef __CYGWIN__
+# include <sys/select.h>
+#endif
+
 namespace muscle {
 
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)

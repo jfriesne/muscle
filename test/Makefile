@@ -21,7 +21,7 @@ GCCFLAGS = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS -W -Wall -Wno-multichar
 CXXFLAGS = $(CFLAGS) -O3 $(DEFINES)
 
 # Uncomment this to enable C++11 support
-#CXXFLAGS += -std=c++11 -stdlib=libc++ -DMUSCLE_USE_CPLUSPLUS11 -DMUSCLE_COUNT_STRING_COPY_OPERATIONS
+#CXXFLAGS += -std=c++11 -stdlib=libc++ -DMUSCLE_USE_CPLUSPLUS11 #-DMUSCLE_COUNT_STRING_COPY_OPERATIONS
 
 # Uncomment these to enable clang++'s static analyzer (for more thorough error checking)
 #CXXFLAGS += --analyze -Xanalyzer -analyzer-output=text

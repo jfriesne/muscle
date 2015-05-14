@@ -100,7 +100,7 @@
       <PrecompiledHeaderOutputFile>.\Junk/muscled.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Junk/</AssemblerListingLocation>
       <ObjectFileName>.\Junk/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Junk/</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>.\Junk\muscled.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>
@@ -178,12 +178,12 @@
       <AdditionalIncludeDirectories>.\;..\;..\..\;..\..\zlib\zlib\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;UNICODE;DEBUG;_CONSOLE;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeaderOutputFile>.\Junk/muscled.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Junk/</AssemblerListingLocation>
       <ObjectFileName>.\Junk/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Junk/</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>.\Junk\muscled.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
@@ -222,12 +222,12 @@
       <AdditionalIncludeDirectories>.\;..\;..\..\;..\..\zlib\zlib\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;UNICODE;DEBUG;_CONSOLE;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeaderOutputFile>.\Junk/muscled.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Junk/</AssemblerListingLocation>
       <ObjectFileName>.\Junk/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Junk/muscled</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>.\Junk/muscled\muscled.pdb</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </ClCompile>

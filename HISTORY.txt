@@ -5,6 +5,19 @@ key:  - new feature
       * bug fixed
       o other
 
+6.21 Released 5/14/2015
+   o Merged in Mika Lindqvist's patch to make the StackWalker code
+     use less stack space.
+   o Merged in Mika Linkdqvist's patches for better Cygwin compatibility.
+   * Made the StackWalker code a bit more robust.
+   * Merged in Mika Lindqvist's patch to the VC++12 projects
+     to link debug builds against the MultiThreadedDebug
+     run time library rather than the MultiThreaded library.
+   * Fixed a couple of const-correctness issues in the StackWalker code.
+   o Modified the Windows implementation of GetNetworkInterfaceInfos() 
+     to not specify an interface index for IPv6 network device address 
+     ::1, as doing so causes UDP-packet-routing problems under Windows 7.
+
 6.20 Released 4/20/2015
    - Added a new sub-folder besupport/admin_gui.  It contains 
      Fredrik Modéen's GUI shell for more easily running muscled 

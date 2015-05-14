@@ -233,7 +233,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
          // generate an abolute-filepath for argv[0] first, otherwise we're likely
          // to be unable to find the executable to run!
          if (realpath(argv[0], absArgv0) != NULL) argv[0] = absArgv0;
-         (void) chdir(optDirectory);  // FogBugz #10023
+         if (chdir(optDirectory) < 0) perror("ChildProcessDtaIO::chdir");  // FogBugz #10023
       }
 
       ChildProcessReadyToRun();

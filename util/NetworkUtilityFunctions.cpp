@@ -43,7 +43,7 @@ typedef void sockopt_arg;  // Whereas sane operating systems use void pointers
 
 #include <sys/stat.h>
 
-#if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__) || defined(__linux__)
+#if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__) || defined(__linux__) || defined(__CYGWIN__)
 # if defined(ANDROID) // JFM
 #  define USE_SOCKETPAIR 1
 # else
@@ -1267,7 +1267,8 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
                      }
 
 #ifndef MUSCLE_AVOID_IPV6
-                     unicastIP.SetInterfaceIndex(pCurrAddresses->Ipv6IfIndex);  // so the user can find out; it will be ignore by the TCP stack
+                     // FogBugz #10519:  I'm not setting the interface index for ::1 because trying to send UDP packets to ::1@1 causes ENOROUTE errors under MacOS/X
+                     if (unicastIP != localhostIP) unicastIP.SetInterfaceIndex(pCurrAddresses->Ipv6IfIndex);  // so the user can find out; it will be ignore by the TCP stack
 #endif
 
                      char outBuf[512];

@@ -30,6 +30,7 @@
 #  include <signal.h>
 # elif defined(__CYGWIN__)
 #  include <signal.h>
+#  include <sys/select.h>
 #  include <sys/signal.h>
 #  include <sys/times.h>
 # elif defined(__QNX__)
