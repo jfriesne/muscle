@@ -76,7 +76,7 @@ int main(int argc, char ** argv)
    if (argc > 1)
    {
       const char * fileName = argv[1];
-      FILE * f = fopen(fileName, "rb");
+      FILE * f = muscleFopen(fileName, "rb");
       if (f)
       {
          FileDataIO fdio(f);

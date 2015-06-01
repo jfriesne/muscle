@@ -13,7 +13,7 @@ using namespace muscle;
 
 static void CheckFile(const String & path, Queue<String> & codes)
 {
-   FileDataIO dio(fopen(path(), "r"));
+   FileDataIO dio(muscleFopen(path(), "r"));
    if (dio.GetFile())
    {
       String fileName = path.Substring(GetFilePathSeparator());
@@ -40,7 +40,7 @@ static void CheckFile(const String & path, Queue<String> & codes)
                if ((commentIdx < 0)||(commentIdx > ltIdx)) 
                {
                   char buf[128]; 
-                  sprintf(buf, "[%s] %s:" UINT32_FORMAT_SPEC": ", SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber))(), path(), lineNumber);
+                  muscleSprintf(buf, "[%s] %s:" UINT32_FORMAT_SPEC": ", SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber))(), path(), lineNumber);
                   codes.AddTail(line->Prepend(buf));
                }
             }

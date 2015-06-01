@@ -59,7 +59,7 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
          CloseHandle(hFile);
       }
 #else
-# if defined(MUSCLE_64_BIT_PLATFORM) && !defined(__APPLE__)
+# if defined(MUSCLE_64_BIT_PLATFORM) && !defined(__APPLE__) && !defined(__CYGWIN__)
       struct stat64 statInfo;
       if (stat64(optFilePath, &statInfo) == 0)
 # else
@@ -72,7 +72,7 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
          if (S_ISREG(statInfo.st_mode)) _flags |= (1L<<FPI_FLAG_ISREGULARFILE);
 
          _size = statInfo.st_size;
-# if defined(MUSCLE_64_BIT_PLATFORM) && !defined(_POSIX_SOURCE)
+# if defined(MUSCLE_64_BIT_PLATFORM) && !defined(_POSIX_SOURCE) && !defined(__CYGWIN__)
          _atime = InternalizeTimeSpec(statInfo.st_atimespec);
 #  if !defined(__APPLE__) || (__DARWIN_64_BIT_INO_T == 1)
          _ctime = InternalizeTimeSpec(statInfo.st_birthtimespec);

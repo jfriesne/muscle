@@ -65,7 +65,7 @@ public:
 #else      
       switch(msg->what)
 #endif
-	{
+      {
          case MUSCLE_THREAD_SIGNAL:
          {
             uint32 code;
@@ -107,8 +107,8 @@ public:
          default:
             printf("MyLooper:  Received unknown BMessage:\n");
 #ifndef __ATHEOS__
-	   msg->PrintToStream();
-#endif	   
+            msg->PrintToStream();
+#endif
          break;
       }
    }

@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
    <H1>MUSCLE Overview and Beginner's Guide</H1>
-   <H4>v6.12 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 4/6/2015</H4>
+   <H4>v6.21 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 5/14/2015</H4>
    <A HREF="http://www.lcscanada.com/muscle/html/index.html">Click here for DOxygen class API documentation</A>
 </HEAD>
 
@@ -163,7 +163,7 @@ if (connectionSocket())
 
       /* handle any Messages that were made available by the gw.DoInput() call */
       MessageRef msg;
-      while(inputQueue.RemoveHead(msg) == B_NO_ERROR)
+      while(inputQueue.GetMessages().RemoveHead(msg) == B_NO_ERROR)
       {
          printf("Received incoming TCP Message:\n");
          if (msg()) msg()->PrintToStream();  // handle message here

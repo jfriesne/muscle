@@ -45,7 +45,7 @@ status_t ConvertToBMessage(const Message & from, BMessage & to)
  
             case B_MESSAGE_TYPE:
             {
-               MessageRef * msgRef = static_cast<MessageRef *>(nextItem);
+               const MessageRef * msgRef = static_cast<const MessageRef *>(nextItem);
                BMessage bmsg;
                if (msgRef->GetItemPointer() == NULL) return B_ERROR;
                if (ConvertToBMessage(*msgRef->GetItemPointer(), bmsg) != B_NO_ERROR) return B_ERROR;

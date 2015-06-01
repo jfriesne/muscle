@@ -90,14 +90,29 @@ private:
  *  Messages to the tail of the Queue, which your code can then pick up later on at its leisure.
  *  (For high-bandwidth stuff, this isn't as memory efficient, but for simple programs it's good enough)
  */
-class QueueGatewayMessageReceiver : public AbstractGatewayMessageReceiver, public Queue<MessageRef>
+class QueueGatewayMessageReceiver : public AbstractGatewayMessageReceiver
 {
 public:
    /** Default constructor */
    QueueGatewayMessageReceiver() {/* empty */}
 
+   /** Returns a read-only reference to our held Queue of received Messages. */
+   const Queue<MessageRef> & GetMessages() const {return _messageQueue;}
+
+   /** Returns a read-only reference to our held Queue of received Messages. */
+   Queue<MessageRef> & GetMessages() {return _messageQueue;}
+
+   /** Convenience method, provided for backwards compatibility with older code. */
+   status_t RemoveHead(MessageRef & msg) {return _messageQueue.RemoveHead(msg);}
+
+   /** Convenience method, provided for backwards compatibility with older code. */
+   bool HasItems() const {return _messageQueue.HasItems();}
+
 protected:
-   virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData) {(void) userData; (void) AddTail(msg);}
+   virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData) {(void) userData; (void) _messageQueue.AddTail(msg);}
+
+private:
+   Queue<MessageRef> _messageQueue;
 };
 
 /**

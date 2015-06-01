@@ -51,7 +51,7 @@ float CPULoadMeter :: GetCPULoad()
    float sysLoadPercentage = -1.0f;  // default (aka unset)
 
 #ifdef __linux__
-   FILE * fpIn = fopen("/proc/stat", "r");
+   FILE * fpIn = muscleFopen("/proc/stat", "r");
    if (fpIn)
    {
       char buf[1024];

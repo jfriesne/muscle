@@ -161,7 +161,7 @@ static void DoSession(DataIO & io)
             // (Main benefit is that this makes for prettier pretty-printed output on the receiving, if the receiver is another hexterm)
             ByteBufferRef outBuf = GetByteBufferFromPool();
             MessageRef nextMsg;
-            while(receiver.RemoveHead(nextMsg) == B_NO_ERROR)
+            while(receiver.GetMessages().RemoveHead(nextMsg) == B_NO_ERROR)
             {
                const char * b;
                for (int32 i=0; (nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &b) == B_NO_ERROR); i++)

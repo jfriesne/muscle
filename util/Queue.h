@@ -34,7 +34,7 @@ namespace muscle {
  *  an O(1) operation.  A Queue can also serve as a reasonably efficient resizable-array 
  *  class (aka Vector) if that is all you need.
  */
-template <class ItemType> class Queue
+template <class ItemType> class Queue MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  */

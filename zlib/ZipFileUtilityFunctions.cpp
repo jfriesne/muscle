@@ -116,7 +116,7 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
 
 status_t WriteZipFile(const char * fileName, const Message & msg, int compressionLevel, uint64 fileCreationTime)
 {
-   FileDataIO fio(fopen(fileName, "wb"));
+   FileDataIO fio(muscleFopen(fileName, "wb"));
    return WriteZipFile(fio, msg, compressionLevel, fileCreationTime);
 }
 
@@ -208,7 +208,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
 
 MessageRef ReadZipFile(const char * fileName, bool loadData)
 {
-   FileDataIO fio(fopen(fileName, "rb"));
+   FileDataIO fio(muscleFopen(fileName, "rb"));
    return ReadZipFile(fio, loadData);
 }
 

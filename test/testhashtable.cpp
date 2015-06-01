@@ -98,7 +98,7 @@ static int DoInteractiveTest()
    for (int i=9; i>=0; i--)
    {
       char buf[32];
-      sprintf(buf, "%i", i);
+      muscleSprintf(buf, "%i", i);
       table.Put(i, buf);
    }
 
@@ -306,12 +306,12 @@ template<class T> void TestMuscleSwap(const char * desc)
    m2.Put("m2", "m2");
 
    char buf[256];
-   sprintf(buf, "Before muscleSwap[%s] test", desc);
+   muscleSprintf(buf, "Before muscleSwap[%s] test", desc);
    PrintAndClearStringCopyCounts(buf);
 
    muscleSwap(m1, m2);
 
-   sprintf(buf, "After muscleSwap[%s] test", desc);
+   muscleSprintf(buf, "After muscleSwap[%s] test", desc);
    PrintAndClearStringCopyCounts(buf);
 
    if ((m1.GetWithDefault("m2") != "m2")||(m2.GetWithDefault("m1") != "m1")||(m1.GetNumItems() != 1)||(m2.GetNumItems() != 1))
@@ -658,7 +658,7 @@ int main(int argc, char ** argv)
             for(uint32 i=0; i<numEntries; i++)
             {
                char temp[300];
-               sprintf(temp, UINT32_FORMAT_SPEC, i);
+               muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                if (t.Put(temp, i) != B_NO_ERROR)
                {
                   printf("Whoops, (hopefully simulated) memory failure!  (Put(" UINT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC") failed) ... recovering\n", i, numEntries);
@@ -680,7 +680,7 @@ int main(int argc, char ** argv)
                for (int32 i=((int32)numEntries)-1; i>=0; i--)
                {
                   char temp[300];
-                  sprintf(temp, UINT32_FORMAT_SPEC, i);
+                  muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                   uint32 tv = 0;
                   if (t.Get(temp, tv) != B_NO_ERROR) bomb("ERROR, MISSING KEY [%s]\n", temp);
                   if (tv != ((uint32)i)) bomb("ERROR, WRONG KEY %s != " UINT32_FORMAT_SPEC"!\n", temp, tv);
@@ -694,7 +694,7 @@ int main(int argc, char ** argv)
                for (HashtableIterator<String, uint32> iter(t); iter.HasData(); iter++)
                {
                   char buf[300];
-                  sprintf(buf, UINT32_FORMAT_SPEC, count);
+                  muscleSprintf(buf, UINT32_FORMAT_SPEC, count);
                   if (iter.GetKey() != buf) bomb("ERROR:  iteration was wrong, item " UINT32_FORMAT_SPEC" was [%s] not [%s]!\n", count, iter.GetKey()(), buf);
                   if (iter.GetValue() != count) bomb("ERROR:  iteration value was wrong, item " UINT32_FORMAT_SPEC" was " UINT32_FORMAT_SPEC" not " UINT32_FORMAT_SPEC"!i!\n", count, iter.GetValue(), count);
                   count++;
@@ -707,7 +707,7 @@ int main(int argc, char ** argv)
                for (uint32 i=half; i<numEntries; i++)
                {
                   char temp[64];
-                  sprintf(temp, UINT32_FORMAT_SPEC, i);
+                  muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                   uint32 tv = 0;  // just to shut the compiler up
                   if (t.Remove(temp, tv) != B_NO_ERROR) bomb("ERROR, MISSING REMOVE KEY [%s] A\n", temp);
                   if (tv != i) bomb("ERROR, REMOVE WAS WRONG VALUE " UINT32_FORMAT_SPEC"\n", tv);
@@ -739,7 +739,7 @@ int main(int argc, char ** argv)
             for (uint32 i=0; i<half; i++)
             {
                char temp[300];
-               sprintf(temp, UINT32_FORMAT_SPEC, i);
+               muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                uint32 tv = 0;  // just to shut the compiler up
                if (t.Remove(temp, tv) != B_NO_ERROR) bomb("ERROR, MISSING REMOVE KEY [%s] (" UINT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC") B\n", temp, i, half);
                if (tv != i) bomb("ERROR, REMOVE WAS WRONG VALUE " UINT32_FORMAT_SPEC"\n", tv);

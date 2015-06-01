@@ -277,9 +277,9 @@ public:
          count += (c*base);
          base *= 10;
       }
-      sprintf(buf, "%lu", count);
+      muscleSnprintf(buf, 20, "%lu", count);
 # else
-      sprintf(buf, "%lu", (unsigned long) _id);
+      muscleSnprintf(buf, 20, "%lu", (unsigned long) _id);
 # endif
       return buf;
    }

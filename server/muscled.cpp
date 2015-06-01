@@ -191,7 +191,7 @@ int muscledmainAux(int argc, char ** argv, void * cookie)
          {
             LogTime(MUSCLE_LOG_INFO, "Clients whose IP addresses match [%s] get %s privileges.\n", value, privNames[p]+4);
             char tt[32]; 
-            sprintf(tt, "priv%i", p);
+            muscleSprintf(tt, "priv%i", p);
             tempPrivs.AddString(tt, value);
          }
       }
@@ -260,7 +260,7 @@ int muscledmainAux(int argc, char ** argv, void * cookie)
    ByteBufferRef optCryptoBuf;
    if (privateKeyFilePath)
    {
-      FileDataIO fdio(fopen(privateKeyFilePath->Cstr(), "rb"));
+      FileDataIO fdio(muscleFopen(privateKeyFilePath->Cstr(), "rb"));
       ByteBufferRef fileData = GetByteBufferFromPool((uint32)fdio.GetLength());
       if ((fdio.GetFile())&&(fileData())&&(fdio.ReadFully(fileData()->GetBuffer(), fileData()->GetNumBytes()) == fileData()->GetNumBytes()))
       { 
@@ -276,7 +276,7 @@ int muscledmainAux(int argc, char ** argv, void * cookie)
 #else
    if (privateKeyFilePath)
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Can't loadp private key file [%s], SSL support is not compiled in!\n", privateKeyFilePath->Cstr());
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Can't load private key file [%s], SSL support is not compiled in!\n", privateKeyFilePath->Cstr());
       okay = false;
    }
 #endif

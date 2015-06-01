@@ -92,8 +92,10 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
       for (i=0; i<ITEM_COUNT; i++)
       {
          char buf[128+ITEM_COUNT];
-         sprintf(buf, "This is test string #" UINT32_FORMAT_SPEC " ", i);
-         for (uint32 j=0; j<i; j++) strcat(buf, "A");
+         muscleSprintf(buf, "This is test string #" UINT32_FORMAT_SPEC " ", i);
+         char * b = strchr(buf, '\0');
+         for (uint32 j=0; j<i; j++) *b++ = 'A';
+         *b = '\0';
 
          if (UMAddString(um, "testStrings", buf) != B_NO_ERROR) printf("UMAddString(%s) failed!\n", buf);
          m.AddString("testStrings", buf);
@@ -146,8 +148,10 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
       for (i=0; i<ITEM_COUNT; i++)
       {
          char buf[128+ITEM_COUNT];
-         sprintf(buf, "This is test data #" UINT32_FORMAT_SPEC " ", i);
-         for (uint32 j=0; j<i; j++) strcat(buf, "B");
+         muscleSprintf(buf, "This is test data #" UINT32_FORMAT_SPEC " ", i);
+         char * b = strchr(buf, '\0');
+         for (uint32 j=0; j<i; j++) *b++ = 'B';
+         *b = '\0';
 
          UMAddData(um, "testDatas", 0x666, buf, ((uint32)strlen(buf))+1);
          m.AddData(    "testDatas", 0x666, buf, ((uint32)strlen(buf))+1);

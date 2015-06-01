@@ -12,7 +12,7 @@
 namespace muscle {
 
 /** This class encapsulates the information that is sent to the Log() and LogLine() callback methods of the LogCallback and LogLineCallback classes.  By putting all the information into a class object, we only have to push one parameter onto the stack with each call instead of many. */
-class LogCallbackArgs
+class LogCallbackArgs MUSCLE_FINAL_CLASS
 {
 public:
    /** Default Constructor */
@@ -166,7 +166,7 @@ protected:
 
 private:
    LogCallbackArgs _lastLog; // stored for use by Flush()
-   char * _writeTo;     // points to the next spot in (_buf) to sprintf() into
+   char * _writeTo;     // points to the next spot in (_buf) to muscleSprintf() into
    char _buf[2048];     // where we assemble our text
 };
 

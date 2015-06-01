@@ -323,7 +323,7 @@ private:
 
    enum {INVALID_NODE_INDEX = ((uint16)-1)};  // the index-version of a NULL pointer
 
-   class ObjectNode : public Object
+   class ObjectNode
    {
    public:
       ObjectNode() : _arrayIndex(INVALID_NODE_INDEX), _nextIndex(INVALID_NODE_INDEX) {/* empty */}
@@ -336,7 +336,11 @@ private:
 
       const char * GetObjectClassName() const {return typeid(Object).name();}
  
+      const Object & GetObject() const {return _object;}
+      Object & GetObject() {return _object;}
+
    private:
+      Object _object;      // note:  MUST be the first object in the ObjectNode!
       uint16 _arrayIndex;
       uint16 _nextIndex;   // only valid when we are in the free list 
    };
@@ -470,7 +474,7 @@ private:
       uint32 GetTotalDataSize() const
       {
          uint32 ret = sizeof(_data);
-         for (uint32 i=0; i<ARRAYITEMS(_nodes); i++) ret += _nodes[i].GetTotalDataSize();
+         for (uint32 i=0; i<ARRAYITEMS(_nodes); i++) ret += _nodes[i].GetObject().GetTotalDataSize();
          return ret;
       }
 
@@ -494,7 +498,8 @@ private:
       Object * ret = NULL;
       if ((_firstSlab)&&(_firstSlab->HasAvailableNodes()))
       {
-         ret = _firstSlab->ObtainObjectNode();
+         ObjectNode * on = _firstSlab->ObtainObjectNode();
+         ret = on ? &on->GetObject() : NULL;
          if ((_firstSlab->HasAvailableNodes() == false)&&(_firstSlab != _lastSlab))
          {
             // Move _firstSlab out of the way (to the end of the slab list) for next time
@@ -509,7 +514,7 @@ private:
          ObjectSlab * slab = newnothrow ObjectSlab(this);
          if (slab)
          {
-            ret = slab->ObtainObjectNode();  // guaranteed not to fail, since slab is new
+            ret = &slab->ObtainObjectNode()->GetObject();  // guaranteed not to fail, since slab is new
             if (slab->HasAvailableNodes()) slab->PrependToSlabList();
                                       else slab->AppendToSlabList();  // could happen, if NUM_OBJECTS_PER_SLAB==1
             _curPoolSize += NUM_OBJECTS_PER_SLAB;
@@ -524,7 +529,7 @@ private:
    // an ObjectSlab that should be deleted outside of the critical section.
    ObjectSlab * ReleaseObjectAux(Object * obj)
    {
-      ObjectNode * objNode = static_cast<ObjectNode *>(obj);
+      ObjectNode * objNode = reinterpret_cast<ObjectNode *>(obj);
       ObjectSlab * objSlab = reinterpret_cast<ObjectSlab *>(objNode-objNode->GetArrayIndex());
 
       objSlab->ReleaseObjectNode(objNode);  // guaranteed to work, since we know (obj) is in use in (objSlab)

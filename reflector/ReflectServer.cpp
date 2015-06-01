@@ -864,7 +864,7 @@ AbstractReflectSessionRef
 ReflectServer ::
 GetSession(uint32 id) const
 {
-   char buf[64]; sprintf(buf, UINT32_FORMAT_SPEC, id);
+   char buf[64]; muscleSprintf(buf, UINT32_FORMAT_SPEC, id);
    return GetSession(buf);
 }
 

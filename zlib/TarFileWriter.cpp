@@ -48,7 +48,7 @@ status_t TarFileWriter :: SetFile(const char * outputFileName, bool append)
    {
       if (append == false) (void) DeleteFile(outputFileName);
 
-      FILE * fpOut = fopen(outputFileName, append?"ab":"wb");
+      FILE * fpOut = muscleFopen(outputFileName, append?"ab":"wb");
       if (fpOut) 
       {
          _writerIO.SetRef(newnothrow FileDataIO(fpOut));
@@ -63,13 +63,13 @@ status_t TarFileWriter :: SetFile(const char * outputFileName, bool append)
 static void WriteOctalASCII(uint8 * b, uint64 val, uint8 fieldSize)
 {
    // gotta pad out the file data to the nearest block boundary!
-   char formatStr[16]; strcpy(formatStr, UINT64_FORMAT_SPEC" ");
+   char formatStr[16]; muscleStrcpy(formatStr, UINT64_FORMAT_SPEC" ");
 
    char * pi = strchr(formatStr, 'u');
    if (pi) *pi = 'o';  // gotta use octal here!
 
    char tmp[256];
-   sprintf(tmp, formatStr, val);
+   muscleSprintf(tmp, formatStr, val);
    int numChars = muscleMin((int)fieldSize, ((int)(strlen(tmp)+1)));  // include the NUL byte if possible
    uint8 * dStart = (b+fieldSize)-numChars;
    memcpy(dStart, tmp, numChars);
@@ -120,7 +120,7 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
 
    _currentHeaderOffset = curSeekPos;
    memset(_currentHeaderBytes, 0, sizeof(_currentHeaderBytes));
-   strcpy((char *)(&_currentHeaderBytes[0]), fileName);
+   muscleStrncpy((char *)(&_currentHeaderBytes[0]), fileName, sizeof(_currentHeaderBytes));
 
    WriteOctalASCII(&_currentHeaderBytes[100], fileMode, 8);
    WriteOctalASCII(&_currentHeaderBytes[108], ownerID, 8);
@@ -131,7 +131,7 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
 
    memset(&_currentHeaderBytes[148], ' ', 8);  // these spaces are used later on, when calculating the header checksum
    _currentHeaderBytes[156] = linkIndicator+'0';
-   if (linkedFileName) strcpy((char *)(&_currentHeaderBytes[157]), linkedFileName);
+   if (linkedFileName) muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkedFileName, sizeof(_currentHeaderBytes)-157);
 
    // We write out the header as it is now, in order to keep the file offsets correct... but we'll rewrite it again later
    // when we know the actual file size.

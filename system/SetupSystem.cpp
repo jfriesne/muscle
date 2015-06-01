@@ -30,6 +30,7 @@
 #  include <signal.h>
 # elif defined(__CYGWIN__)
 #  include <signal.h>
+#  include <sys/select.h>
 #  include <sys/signal.h>
 #  include <sys/times.h>
 # elif defined(__QNX__)
@@ -383,7 +384,7 @@ private:
             const char * lastSlash = strrchr(fileName, '/');
             if (lastSlash) fileName = lastSlash+1;
 
-            strncpy(_fileName, fileName, sizeof(_fileName));
+            muscleStrncpy(_fileName, fileName, sizeof(_fileName));
             _fileName[sizeof(_fileName)-1] = '\0';
          }
 
@@ -1080,7 +1081,7 @@ static void FlushStringAsciiChars(String & s, int idx, char * ascBuf, char * hex
 {
    while(count<numColumns) ascBuf[count++] = ' ';
    ascBuf[count] = '\0';
-   char tempBuf[32]; sprintf(tempBuf, "%04i: ", idx); s += tempBuf;
+   char tempBuf[32]; muscleSprintf(tempBuf, "%04i: ", idx); s += tempBuf;
    s += ascBuf;
    s += " [";
    s += hexBuf;
@@ -1123,7 +1124,7 @@ void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uin
    {
       // A more useful columnar format with ASCII sidebar
       char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       fprintf(optFile, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1143,8 +1144,8 @@ void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uin
             {
                uint8 c = buf[idx];
                ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-               char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-               strncat(hexBuf, temp, hexBufSize);
+               size_t hexBufLen = strlen(hexBuf);
+               muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
                idx++;
                if ((idx%numColumns) == 0) FlushAsciiChars(optFile, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
             }
@@ -1187,7 +1188,7 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
    {
       // A more useful columnar format with ASCII sidebar
       char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       fprintf(optFile, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1205,8 +1206,8 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
          {
             uint8 c = buf[idx];
             ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-            char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-            strncat(hexBuf, temp, hexBufSize);
+            size_t hexBufLen = strlen(hexBuf);
+            muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
             idx++;
             if ((idx%numColumns) == 0) FlushAsciiChars(optFile, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
          }
@@ -1237,7 +1238,7 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
    {
       // A more useful columnar format with ASCII sidebar
       char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       LogTime(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1257,8 +1258,8 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
             {
                uint8 c = buf[idx];
                ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-               char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-               strncat(hexBuf, temp, hexBufSize);
+               size_t hexBufLen = strlen(hexBuf);
+               muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
                idx++;
                if ((idx%numColumns) == 0) FlushLogAsciiChars(logLevel, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
             }
@@ -1289,7 +1290,7 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
    {
       // A more useful columnar format with ASCII sidebar
       char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       Log(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1307,8 +1308,8 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
          {
             uint8 c = buf[idx];
             ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-            char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-            strncat(hexBuf, temp, hexBufSize);
+            size_t hexBufLen = strlen(hexBuf);
+            muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
             idx++;
             if ((idx%numColumns) == 0) FlushLogAsciiChars(logLevel, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
          }
@@ -1342,7 +1343,7 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
       // A simple, single-line format
       if (optDesc) {ret += optDesc; ret += ": ";}
       ret += '[';
-      if (buf) for (uint32 i=0; i<numBytes; i++) {char buf[32]; sprintf(buf, "%s%02x", (i==0)?"":" ", buf[i]); ret += buf;}
+      if (buf) for (uint32 i=0; i<numBytes; i++) {char buf[32]; muscleSprintf(buf, "%s%02x", (i==0)?"":" ", buf[i]); ret += buf;}
           else ret += "NULL buffer";
       ret += ']';
    }
@@ -1350,7 +1351,7 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
    {
       // A more useful columnar format with ASCII sidebar
       char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       ret += headBuf;
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1370,8 +1371,8 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
             {
                uint8 c = buf[idx];
                ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-               char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-               strncat(hexBuf, temp, hexBufSize);
+               size_t hexBufLen = strlen(hexBuf);
+               muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
                idx++;
                if ((idx%numColumns) == 0) FlushStringAsciiChars(ret, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
             }
@@ -1398,14 +1399,14 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
       // A simple, single-line format
       if (optDesc) {ret += optDesc; ret += ": ";}
       ret += '[';
-      for (uint32 i=0; i<numBytes; i++) {char xbuf[32]; sprintf(xbuf, "%s%02x", (i==0)?"":" ", (unsigned int) buf[i]); ret += xbuf;}
+      for (uint32 i=0; i<numBytes; i++) {char xbuf[32]; muscleSprintf(xbuf, "%s%02x", (i==0)?"":" ", (unsigned int) buf[i]); ret += xbuf;}
       ret += ']';
    }
    else
    {
       // A more useful columnar format with ASCII sidebar
       char headBuf[256]; 
-      sprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
+      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       ret += headBuf;
 
       const int hexBufSize = (numColumns*8)+1;
@@ -1423,8 +1424,8 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
          {
             uint8 c = buf[idx];
             ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-            char temp[8]; sprintf(temp, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-            strncat(hexBuf, temp, hexBufSize);
+            size_t hexBufLen = strlen(hexBuf);
+            muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
             idx++;
             if ((idx%numColumns) == 0) FlushStringAsciiChars(ret, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
          }

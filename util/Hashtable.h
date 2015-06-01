@@ -65,7 +65,7 @@ template <class KeyType, class ValueType, class HashFunctorType, class SubclassT
 /** This is a class that literally represents no data.  It is meant to be used as
   * a placeholder in Hashtables that need to contain only keys and no values.
   */
-class Void
+class Void MUSCLE_FINAL_CLASS
 {
 public:
    /** Default ctor */
@@ -117,7 +117,7 @@ enum {
  * will be automatically notified so that they do the right thing and won't continue to
  * reference at any now-invalid items.
  */
-template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class HashtableIterator
+template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class HashtableIterator MUSCLE_FINAL_CLASS
 {
 public:
    /**
@@ -1610,7 +1610,7 @@ private:
  *     12 bytes per key-value entry if the table's capacity is less than 65535, and 24 bytes per
  *     key-value entry for tables larger than that.
  */
-template <class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class Hashtable : public HashtableMid<KeyType, ValueType, HashFunctorType, Hashtable<KeyType, ValueType, HashFunctorType> >
+template <class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class Hashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, Hashtable<KeyType, ValueType, HashFunctorType> >
 {
 public:
    /** The iterator type that goes with this HashtableMid type */
@@ -1664,7 +1664,7 @@ private:
 };
 
 /** This is a Hashtable that keeps its iteration entries sorted by key at all times (unless you specifically call SetAutoSortEnabled(false)) */
-template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFunctor<KeyType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedKeysHashtable : public HashtableMid<KeyType, ValueType, HashFunctorType, OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> >
+template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFunctor<KeyType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedKeysHashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> >
 {
 public:
    /** The iterator type that goes with this HashtableMid type */
@@ -1722,7 +1722,7 @@ private:
 
 
 /** This is a Hashtable that keeps its iteration entries sorted by value at all times (unless you specifically call SetAutoSortEnabled(false)) */
-template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareFunctor<ValueType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedValuesHashtable : public HashtableMid<KeyType, ValueType, HashFunctorType, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >
+template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareFunctor<ValueType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedValuesHashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >
 {
 public:
    /** The iterator type that goes with this HashtableMid type */

@@ -41,7 +41,7 @@ public:
   * It is typically not used directly; instead you would typically instantiate a SignalHandlerSession and add it
   * to your ReflectServer.
   */
-class SignalMultiplexer
+class SignalMultiplexer MUSCLE_FINAL_CLASS
 {
 public:
    /** Adds the given ISignalHandler object to our list of objects that wish to be called when a signal is raised.

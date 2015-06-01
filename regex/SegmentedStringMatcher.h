@@ -14,7 +14,7 @@ namespace muscle {
   * to match "*foo/bar*" against "foot/ball".  This can be useful when you want to operate
   * on segmented paths with level-by-level matching semantics.
   */
-class SegmentedStringMatcher : public RefCountable
+class SegmentedStringMatcher MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Default Constructor. */

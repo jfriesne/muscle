@@ -19,7 +19,7 @@ DECLARE_REFTYPES(DataNode);
 typedef HashtableIterator<const String *, DataNodeRef> DataNodeRefIterator;
 
 /** Each object of this class represents one node in the server-side data-storage tree.  */
-class DataNode : public RefCountable, private CountedObject<DataNode>, private NotCopyable
+class DataNode MUSCLE_FINAL_CLASS : public RefCountable, private CountedObject<DataNode>, private NotCopyable
 {
 public:
    /** Default Constructor.  Don't create DataNode objects yourself though, call StorageReflectSession::GetNewDataNode() instead!  */

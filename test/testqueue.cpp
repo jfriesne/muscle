@@ -179,7 +179,7 @@ int main(void)
       {
          int next = rand()%255;
          char buf[64];
-         sprintf(buf, "%i", next);
+         muscleSprintf(buf, "%i", next);
          TEST(q2.AddTail(buf));
          printf("Added item %i = %s\n", i, q2[i].Cstr());
       }

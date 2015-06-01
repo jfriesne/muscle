@@ -50,7 +50,7 @@ public:
     * Enables or diables blocking I/O on this file descriptor.
     * If this object is to be used by an AbstractMessageIOGateway,
     * then non-blocking I/O is usually better to use.
-	* NOTE: Win32 File handles currently do not use this flag.
+    * NOTE: Win32 File handles currently do not use this flag.
     * @param blocking If true, file descriptor is set to blocking I/O mode.  Otherwise, non-blocking I/O.
     * @return B_NO_ERROR on success, B_ERROR on error.
     */

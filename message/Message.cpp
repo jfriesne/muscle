@@ -265,7 +265,7 @@ protected:
       {
          DoIndents(indent,s); 
          char buf[128]; 
-         sprintf(buf, "    " UINT32_FORMAT_SPEC ". %p\n", i, _data[i]());
+         muscleSprintf(buf, "    " UINT32_FORMAT_SPEC ". %p\n", i, _data[i]());
          s += buf;
       }
    }
@@ -336,7 +336,7 @@ protected:
       {
          DoIndents(indent,s); 
          char buf[64]; 
-         sprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i);  
+         muscleSprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i);  
          s += buf;
          AddItemToString(s, this->_data[i]);
       }
@@ -416,8 +416,8 @@ protected:
       for (uint32 i=0; i<numItems; i++) 
       {
          DoIndents(indent,s); 
-         char temp1[100]; sprintf(temp1, GetFormatString(), this->ItemAt(i));
-         char temp2[150]; sprintf(temp2, "    " UINT32_FORMAT_SPEC ". [%s]\n", i, temp1);  s += temp2;
+         char temp1[100]; muscleSprintf(temp1, GetFormatString(), this->ItemAt(i));
+         char temp2[150]; muscleSprintf(temp2, "    " UINT32_FORMAT_SPEC ". [%s]\n", i, temp1);  s += temp2;
       }
    }
 };
@@ -431,7 +431,7 @@ public:
    virtual void AddItemToString(String & s, const Point & p) const 
    {
       char buf[128]; 
-      sprintf(buf, "Point: %f %f\n", p.x(), p.y());
+      muscleSprintf(buf, "Point: %f %f\n", p.x(), p.y());
       s += buf;
    }
 
@@ -453,7 +453,7 @@ public:
    virtual void AddItemToString(String & s, const Rect & r) const 
    {
       char buf[256]; 
-      sprintf(buf, "Rect: leftTop=(%f,%f) rightBottom=(%f,%f)\n", r.left(), r.top(), r.right(), r.bottom());
+      muscleSprintf(buf, "Rect: leftTop=(%f,%f) rightBottom=(%f,%f)\n", r.left(), r.top(), r.right(), r.bottom());
       s += buf;
    }
 
@@ -897,7 +897,7 @@ public:
          DoIndents(indent,s);
 
          char buf[100]; 
-         sprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i);
+         muscleSprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i);
          s += buf;
 
          FlatCountable * fc = ItemAt(i)();
@@ -915,7 +915,7 @@ public:
 
          if (bb)
          {
-            sprintf(buf, "[flattenedSize=" UINT32_FORMAT_SPEC "] ", bb->GetNumBytes()); 
+            muscleSprintf(buf, "[flattenedSize=" UINT32_FORMAT_SPEC "] ", bb->GetNumBytes()); 
             s += buf;
             uint32 printBytes = muscleMin(bb->GetNumBytes(), (uint32)10);
             if (printBytes > 0)
@@ -923,7 +923,7 @@ public:
                s += '[';
                for (uint32 j=0; j<printBytes; j++) 
                {
-                  sprintf(buf, "%02x%s", (bb->GetBuffer())[j], (j<printBytes-1)?" ":"");
+                  muscleSprintf(buf, "%02x%s", (bb->GetBuffer())[j], (j<printBytes-1)?" ":"");
                   s += buf;
                }
                if (printBytes > 10) s += " ...";
@@ -1023,7 +1023,7 @@ public:
          DoIndents(indent,s);  
 
          char buf[100]; 
-         sprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i); 
+         muscleSprintf(buf, "    " UINT32_FORMAT_SPEC ". ", i); 
          s += buf;
 
          const void * vp;
@@ -1035,7 +1035,7 @@ public:
             if (msg)
             {
                char tcbuf[5]; MakePrettyTypeCodeString(msg->what, tcbuf);
-               sprintf(buf, "[what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), flattenedSize=" UINT32_FORMAT_SPEC ", numFields=" UINT32_FORMAT_SPEC "]\n", tcbuf, msg->what, msg->what, itemSize, msg->GetNumNames());
+               muscleSprintf(buf, "[what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), flattenedSize=" UINT32_FORMAT_SPEC ", numFields=" UINT32_FORMAT_SPEC "]\n", tcbuf, msg->what, msg->what, itemSize, msg->GetNumNames());
                s += buf;
 
                if (maxRecurseLevel > 0) msg->AddToString(s, maxRecurseLevel-1, indent+3);
@@ -1179,7 +1179,7 @@ public:
       {
          DoIndents(indent,s); 
          char buf[50]; 
-         sprintf(buf,"    " UINT32_FORMAT_SPEC ". [", i); 
+         muscleSprintf(buf,"    " UINT32_FORMAT_SPEC ". [", i); 
          s += buf;
          s += ItemAt(i);
          s += "]\n";
@@ -1262,7 +1262,7 @@ void Message :: AddToString(String & s, uint32 maxRecurseLevel, int indent) cons
 
    char buf[128];
    DoIndents(indent,s); 
-   sprintf(buf, "Message:  what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), entryCount=" INT32_FORMAT_SPEC ", flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", prettyTypeCodeBuf, what, what, GetNumNames(B_ANY_TYPE), FlattenedSize(), CalculateChecksum());
+   muscleSprintf(buf, "Message:  what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), entryCount=" INT32_FORMAT_SPEC ", flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", prettyTypeCodeBuf, what, what, GetNumNames(B_ANY_TYPE), FlattenedSize(), CalculateChecksum());
    s += buf;
 
    for (HashtableIterator<String, RefCountableRef> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
@@ -1273,7 +1273,7 @@ void Message :: AddToString(String & s, uint32 maxRecurseLevel, int indent) cons
       DoIndents(indent,s); 
       s += "  Entry: Name=[";
       s += iter.GetKey();
-      sprintf(buf, "], GetNumItems()=" INT32_FORMAT_SPEC ", TypeCode()='%s' (" INT32_FORMAT_SPEC ") flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", nextValue->GetNumItems(), prettyTypeCodeBuf, tc, nextValue->FlattenedSize(), nextValue->CalculateChecksum(false));
+      muscleSprintf(buf, "], GetNumItems()=" INT32_FORMAT_SPEC ", TypeCode()='%s' (" INT32_FORMAT_SPEC ") flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", nextValue->GetNumItems(), prettyTypeCodeBuf, tc, nextValue->FlattenedSize(), nextValue->CalculateChecksum(false));
       s += buf;
       nextValue->AddToString(s, maxRecurseLevel, indent);
    }

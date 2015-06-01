@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
       {
          printf("TESTING ParseFile() with a FILE pointer for file [%s]\n", argv[i]);
          {
-            FILE * fpIn = fopen(argv[i], "r");
+            FILE * fpIn = muscleFopen(argv[i], "r");
             if (fpIn)
             {
                Message msg;
@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
 
          printf("\n\nTESTING ParseFile() with a String for file [%s]\n", argv[i]);
          {
-            FILE * fpIn = fopen(argv[i], "r");
+            FILE * fpIn = muscleFopen(argv[i], "r");
             if (fpIn)
             {
                FileDataIO fdio(fpIn);

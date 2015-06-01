@@ -13,7 +13,7 @@ namespace muscle {
 DECLARE_REFTYPES(StringMatcher);
  
 /** A reference-countable list of references to StringMatcher objects */
-class StringMatcherQueue : public Queue<StringMatcherRef>, public RefCountable
+class StringMatcherQueue MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Constructor. */
@@ -21,6 +21,15 @@ public:
 
    /** Returns a human-readable string representing this StringMatcherQueue, for easier debugging */
    String ToString() const;
+
+   /** Returns a read/write reference to our list of StringMatcher references. */
+   const Queue<StringMatcherRef> & GetStringMatchers() const {return _queue;}
+
+   /** Returns a read-only reference to our list of StringMatcher references. */
+   Queue<StringMatcherRef> & GetStringMatchers() {return _queue;}
+
+private:
+   Queue<StringMatcherRef> _queue;
 };
 
 /** Type for a reference to a queue of StringMatcher objects. */
@@ -36,7 +45,7 @@ StringMatcherQueueRef::ItemPool * GetStringMatcherQueuePool();
  *  that test a wildcarded path, and optionally, the QueryFilter object that tests the content
  *  of matching Messages.
  */
-class PathMatcherEntry
+class PathMatcherEntry MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor */
