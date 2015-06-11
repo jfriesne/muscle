@@ -37,7 +37,7 @@ public:
 
 
 protected:
-							MuscleAdminView(BMessage* archive);
+							explicit MuscleAdminView(BMessage* archive);
 
 	virtual void			Update(bool force = false);
 
@@ -64,7 +64,7 @@ class MuscleAdminReplicant : public MuscleAdminView {
 public:
 							MuscleAdminReplicant(BRect frame,
 								int32 resizingMode, bool inDeskbar = false);
-							MuscleAdminReplicant(BMessage* archive);
+							explicit MuscleAdminReplicant(BMessage* archive);
 	virtual					~MuscleAdminReplicant();
 
 	static	MuscleAdminReplicant* Instantiate(BMessage* archive);

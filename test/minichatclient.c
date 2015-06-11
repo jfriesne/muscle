@@ -429,7 +429,6 @@ int main(int argc, char ** argv)
    const char * hostName   = "beshare.tycomsystems.com";
    const char * userName   = "miniclyde";
    const char * userStatus = "here";
-   const char * tempStr;
    int s;
    int port = 0;
    struct User * users = NULL;  /* doubly-linked-list! */
@@ -452,7 +451,6 @@ int main(int argc, char ** argv)
    s = Connect(hostName, (uint16)port);
    if (s >= 0)
    {
-      char text[1000] = "";
       MBool keepGoing = MTrue;
       fd_set readSet, writeSet;
 

@@ -5,6 +5,10 @@
 
 #include "support/MuscleSupport.h"
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+# include <new>
+#endif
+
 namespace muscle {
 
 /** This class wraps an object of the specified type, so that the wrapped object can be used as

@@ -786,7 +786,6 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
 {
    uint32 i, readOffset = 0;
    const uint8 * buffer = (const uint8 *) inBuf;
-   const uint8 * dataPtr;
 
    /* Read and check protocol version number */
    uint32 networkByteOrder, numEntries;
@@ -815,6 +814,7 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
       uint32 nameLength, tc, eLength;
       MMessageField * newField = NULL;
       MBool doAddField = MTrue;
+      const uint8 * dataPtr;
 
       /* Read entry name length */
       if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) return B_ERROR;

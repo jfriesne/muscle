@@ -230,7 +230,7 @@ public:
      * @param maxSessionsPerThread The maximum number of sessions to add to each 
      *                             thread in the pool. Defaults to 32.
      */
-   QMessageTransceiverThreadPool(uint32 maxSessionsPerThread = 32);
+   explicit QMessageTransceiverThreadPool(uint32 maxSessionsPerThread = 32);
 
    /** Destructor.  Deletes all QMessageTransceiverThread objects in the pool. 
      * Any QMessageTransceiverHandlers still attached to those threads will be detached.

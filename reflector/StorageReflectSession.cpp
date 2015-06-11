@@ -224,7 +224,8 @@ Cleanup()
       else 
       {
          // Remove all of our subscription-marks from neighbor's nodes
-         (void) _subscriptions.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, (void *)(-LONG_MAX));
+         long decrementAll = -LONG_MAX;
+         (void) _subscriptions.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &decrementAll);
       }
       _sharedData = NULL;
    }
@@ -448,6 +449,19 @@ AfterMessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
    PushSubscriptionMessages();
 }
 
+class GetSubtreesCallbackArgs
+{
+public:
+   GetSubtreesCallbackArgs(Message * replyMsg, int32 maxDepth) : _replyMsg(replyMsg), _maxDepth(maxDepth) {/* empty */}
+
+   Message * GetReplyMessage() const {return _replyMsg;}
+   int32 GetMaxDepth() const {return _maxDepth;}
+
+private:
+   Message * _replyMsg;
+   int32 _maxDepth;
+};
+
 void 
 StorageReflectSession :: 
 MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
@@ -490,8 +504,8 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                   NodePathMatcher matcher;
                   matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, msg, DEFAULT_PATH_PREFIX);
 
-                  void * args[] = {reply(), (void *)((long)maxDepth)};
-                  (void) matcher.DoTraversal((PathMatchCallback)GetSubtreesCallbackFunc, this, GetGlobalRoot(), true, args);
+                  GetSubtreesCallbackArgs args(reply(), maxDepth);
+                  (void) matcher.DoTraversal((PathMatchCallback)GetSubtreesCallbackFunc, this, GetGlobalRoot(), true, &args);
                }
                MessageReceivedFromSession(*this, reply, NULL);  // send the result back to our client
             }
@@ -585,7 +599,11 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                      // This marks any currently existing matching nodes so they know to notify us
                      // It must be done once per subscription path, as it uses per-sub ref-counting
                      NodePathMatcher temp;
-                     if ((temp.PutPathString(fixPath, ConstQueryFilterRef()) == B_NO_ERROR)&&(_subscriptions.PutPathString(fixPath, filter) == B_NO_ERROR)) (void) temp.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, (void *)1L);
+                     if ((temp.PutPathString(fixPath, ConstQueryFilterRef()) == B_NO_ERROR)&&(_subscriptions.PutPathString(fixPath, filter) == B_NO_ERROR)) 
+                     {
+                        long incrementOne = 1;
+                        (void) temp.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &incrementOne);
+                     }
                   }
                   if ((subscribeQuietly == false)&&(getMsg.AddString(PR_NAME_KEYS, path) == B_NO_ERROR))
                   {
@@ -1109,11 +1127,9 @@ PassMessageCallbackAux(DataNode & node, const MessageRef & msgRef, bool includeS
 {
    TCHECKPOINT;
 
-   DataNode * n = &node;
-   while(n->GetDepth() > 2) n = n->GetParent();  // go up to session level...
-   StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(GetSession(n->GetNodeName())());
+   StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(GetSession(node.GetAncestorNode(NODE_DEPTH_SESSIONNAME, &node)->GetNodeName())());
    if ((next)&&((next != this)||(includeSelfOkay))) next->MessageReceivedFromSession(*this, msgRef, &node);
-   return 2; // This causes the traversal to immediately skip to the next session
+   return NODE_DEPTH_SESSIONNAME; // This causes the traversal to immediately skip to the next session
 }
 
 int
@@ -1122,9 +1138,7 @@ FindSessionsCallback(DataNode & node, void * userData)
 {
    TCHECKPOINT;
 
-   DataNode * n = &node;
-   while(n->GetDepth() > 2) n = n->GetParent();  // go up to session level...
-   AbstractReflectSessionRef sref = GetSession(n->GetNodeName());
+   AbstractReflectSessionRef sref = GetSession(node.GetAncestorNode(NODE_DEPTH_SESSIONNAME, &node)->GetNodeName());
 
    StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(sref());
    FindMatchingSessionsData * data = static_cast<FindMatchingSessionsData *>(userData);
@@ -1133,7 +1147,7 @@ FindSessionsCallback(DataNode & node, void * userData)
       data->_ret = B_ERROR;  // Oops, out of memory!
       return -1;  // abort now
    }
-   else return (data->_results.GetNumItems() == data->_maxResults) ? -1 : 2; // This causes the traversal to immediately skip to the next session
+   else return (data->_results.GetNumItems() == data->_maxResults) ? -1 : NODE_DEPTH_SESSIONNAME; // This causes the traversal to immediately skip to the next session
 }
 
 int
@@ -1142,16 +1156,14 @@ KickClientCallback(DataNode & node, void * /*userData*/)
 {
    TCHECKPOINT;
 
-   DataNode * n = &node;
-   while(n->GetDepth() > 2) n = n->GetParent();  // go up to session level...
-   AbstractReflectSessionRef sref = GetSession(n->GetNodeName());
+   AbstractReflectSessionRef sref = GetSession(node.GetAncestorNode(NODE_DEPTH_SESSIONNAME, &node)->GetNodeName());
    StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(sref());
    if ((next)&&(next != this)) 
    {
       LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is kicking session [%s/%s] off the server.\n", GetHostName()(), GetSessionIDString()(), next->GetHostName()(), next->GetSessionIDString()());
       next->EndSession();  // die!!
    }
-   return 2; // This causes the traversal to immediately skip to the next session
+   return NODE_DEPTH_SESSIONNAME; // This causes the traversal to immediately skip to the next session
 }
 
 int
@@ -1160,27 +1172,14 @@ GetSubtreesCallback(DataNode & node, void * ud)
 {
    TCHECKPOINT;
 
-   void ** args    = (void **)ud;
-   Message * reply = static_cast<Message *>(args[0]);
-   int32 maxDepth  = (int32) ((long)args[1]);
+   GetSubtreesCallbackArgs & args = *(static_cast<GetSubtreesCallbackArgs *>(ud));
 
-   bool inMyOwnSubtree = false;  // default:  actual value will only be calculated if it makes a difference
-   bool reflectToSelf = GetReflectToSelf();
-   if (reflectToSelf == false)
-   {
-      // Make sure (node) isn't part of our own tree!  If it is, move immediately to the next session
-      const DataNode * n = &node;
-      while(n->GetDepth() > 2) n = n->GetParent();
-      if ((_indexingPresent == false)&&(GetSession(n->GetNodeName())() == this)) return 2;  // skip to next session node
-   }
-   // Don't send our own data to our own client; he already knows what we have, because he uploaded it!
-   if ((inMyOwnSubtree == false)||(reflectToSelf))
-   {
-      MessageRef subMsg = GetMessageFromPool();
-      String nodePath;
-      if ((subMsg() == NULL)||(node.GetNodePath(nodePath) != B_NO_ERROR)||(reply->AddMessage(nodePath, subMsg) != B_NO_ERROR)||(SaveNodeTreeToMessage(*subMsg(), &node, "", true, (maxDepth>=0)?(uint32)maxDepth:MUSCLE_NO_LIMIT, NULL) != B_NO_ERROR)) return 0;
-   }
-   return node.GetDepth();  // continue traversal as usual
+   // Make sure (node) isn't part of our own tree!  If it is, move immediately to the next session
+   if ((_indexingPresent == false)&&(GetReflectToSelf() == false)&&(GetSession(node.GetAncestorNode(NODE_DEPTH_SESSIONNAME, &node)->GetNodeName())() == this)) return NODE_DEPTH_SESSIONNAME;
+
+   MessageRef subMsg = GetMessageFromPool();
+   String nodePath;
+   return ((subMsg() == NULL)||(node.GetNodePath(nodePath) != B_NO_ERROR)||(args.GetReplyMessage()->AddMessage(nodePath, subMsg) != B_NO_ERROR)||(SaveNodeTreeToMessage(*subMsg(), &node, "", true, (args.GetMaxDepth()>=0)?(uint32)args.GetMaxDepth():MUSCLE_NO_LIMIT, NULL) != B_NO_ERROR)) ? 0 : node.GetDepth();
 }
 
 int
@@ -1202,7 +1201,7 @@ int
 StorageReflectSession ::
 DoSubscribeRefCallback(DataNode & node, void * userData)
 {
-   node.IncrementSubscriptionRefCount(GetSessionIDString(), (long) userData);
+   node.IncrementSubscriptionRefCount(GetSessionIDString(), *static_cast<const long *>(userData));
    return node.GetDepth();  // continue traversal as usual
 }
 
@@ -1214,32 +1213,22 @@ GetDataCallback(DataNode & node, void * userData)
 
    MessageRef * messageArray = (MessageRef *) userData;
 
-   bool inMyOwnSubtree = false;  // default:  actual value will only be calculated if it makes a difference
-   bool reflectToSelf = GetReflectToSelf();
-   if (reflectToSelf == false)
-   {
-      // Make sure (node) isn't part of our own tree!  If it is, move immediately to the next session
-      const DataNode * n = &node;
-      while(n->GetDepth() > 2) n = n->GetParent();
-      if ((_indexingPresent == false)&&(GetSession(n->GetNodeName())() == this)) return 2;  // skip to next session node
-   }
+   // Make sure (node) isn't part of our own tree!  If it is, move immediately to the next session
+   if ((_indexingPresent == false)&&(GetReflectToSelf() == false)&&(GetSession(node.GetAncestorNode(NODE_DEPTH_SESSIONNAME, &node)->GetNodeName())() == this)) return NODE_DEPTH_SESSIONNAME;
  
    // Don't send our own data to our own client; he already knows what we have, because he uploaded it!
-   if ((inMyOwnSubtree == false)||(reflectToSelf))
+   MessageRef & resultMsg = messageArray[0];
+   if (resultMsg() == NULL) resultMsg = GetMessageFromPool(PR_RESULT_DATAITEMS);
+   String np;
+   if ((resultMsg())&&(node.GetNodePath(np) == B_NO_ERROR))
    {
-      MessageRef & resultMsg = messageArray[0];
-      if (resultMsg() == NULL) resultMsg = GetMessageFromPool(PR_RESULT_DATAITEMS);
-      String np;
-      if ((resultMsg())&&(node.GetNodePath(np) == B_NO_ERROR))
-      {
-         (void) resultMsg()->AddMessage(np, node.GetData());
-         if (resultMsg()->GetNumNames() >= _maxSubscriptionMessageItems) SendGetDataResults(resultMsg);
-      }
-      else 
-      {      
-         WARN_OUT_OF_MEMORY;
-         return 0;  // abort!
-      }
+      (void) resultMsg()->AddMessage(np, node.GetData());
+      if (resultMsg()->GetNumNames() >= _maxSubscriptionMessageItems) SendGetDataResults(resultMsg);
+   }
+   else 
+   {      
+      WARN_OUT_OF_MEMORY;
+      return 0;  // abort!
    }
 
    // But indices we need to send to ourself no matter what, as they are generated on the server side.
@@ -1280,7 +1269,7 @@ RemoveDataCallback(DataNode & node, void * userData)
 {
    TCHECKPOINT;
 
-   if (node.GetDepth() > 2)  // ensure that we never remove host nodes or session nodes this way
+   if (node.GetDepth() > NODE_DEPTH_SESSIONNAME)  // ensure that we never remove host nodes or session nodes this way
    {
       DataNodeRef nodeRef;
       if (node.GetParent()->GetChild(node.GetNodeName(), nodeRef) == B_NO_ERROR) 
@@ -1782,7 +1771,8 @@ status_t StorageReflectSession :: RemoveParameter(const String & paramName, bool
          // Remove the references from this subscription from all nodes
          NodePathMatcher temp;
          (void) temp.PutPathString(str, ConstQueryFilterRef());
-         (void) temp.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, (void *)-1L);
+         long decrementOne = -1;
+         (void) temp.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &decrementOne);
       }
    }
    else if (paramName == PR_NAME_REFLECT_TO_SELF)            SetRoutingFlag(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF,      false);

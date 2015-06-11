@@ -15,7 +15,7 @@ class TestItem : public RefCountable
 {
 public:
    TestItem()  {/* empty */}
-   TestItem(const String & name) {SetName(name);}
+   explicit TestItem(const String & name) {SetName(name);}
    ~TestItem() {_name = "Dead";}  // Just to make dead-item-usage detection a bit easier
 
    const String & GetName() const {return _name;}

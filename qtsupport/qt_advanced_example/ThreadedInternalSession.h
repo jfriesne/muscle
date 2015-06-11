@@ -17,7 +17,7 @@ public:
    /** Constructor
      * @param args This can contain whatever information the thread will find useful when it starts up.
      */
-   ThreadedInternalSession(const MessageRef & args);
+   explicit ThreadedInternalSession(const MessageRef & args);
 
    /** Called during setup.  Overridden to start the internal thread running. */
    virtual status_t AttachedToServer();

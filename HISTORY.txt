@@ -5,10 +5,26 @@ key:  - new feature
       * bug fixed
       o other
 
+6.22 Released 6/11/2015
+   - Added an IsWaitingForEvents() method to ReflectServer class,
+     so that a (user-supplied) watchdog thread can observe when the 
+     ReflectServer is blocked waiting for I/O vs when it is doing 
+     something.
+   - Added Mika's vc++14 subdirectory, which contains Visual C++
+     project files for Visual Studio 2015.
+   - DataNode::GetAncestorNode() now takes an optional second argument
+     that tells it what to return if the ancestor node isn't found.
+   o Added some more Cygwin/MinGW compatibility changes contributed
+     by Mika Lindqvist.
+   o Rewrote some of the node-traversal callback methods so that they 
+     no longer pass an integer argument by casting it to (void *).
+   * Tweaked various files to fix warnings reported by cppcheck 1.69.
+   * The stdout-display in qt_muscled wasn't read-only.  Fixed.
+
 6.21 Released 5/14/2015
    o Merged in Mika Lindqvist's patch to make the StackWalker code
      use less stack space.
-   o Merged in Mika Linkdqvist's patches for better Cygwin compatibility.
+   o Merged in Mika Lindqvist's patches for better Cygwin compatibility.
    * Made the StackWalker code a bit more robust.
    * Merged in Mika Lindqvist's patch to the VC++12 projects
      to link debug builds against the MultiThreadedDebug

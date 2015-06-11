@@ -32,7 +32,7 @@ void bomb(const char * fmt, ...)
 class TestThread : public Thread
 {
 public:
-   TestThread(const MessageRef & msg) : _msg(msg) {/* empty */}
+   explicit TestThread(const MessageRef & msg) : _msg(msg) {/* empty */}
 
 protected:
    virtual void InternalThreadEntry()

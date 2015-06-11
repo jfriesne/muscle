@@ -368,7 +368,6 @@ int main(int argc, char ** argv)
    const char * hostName   = "beshare.tycomsystems.com";
    const char * userName   = "microclyde";
    const char * userStatus = "here";
-   const char * tempStr;
    int s;
    int port = 0;
    struct User * users = NULL;  /* doubly-linked-list! */
@@ -389,7 +388,6 @@ int main(int argc, char ** argv)
    s = Connect(hostName, (uint16)port);
    if (s >= 0)
    {
-      char text[1000] = "";
       UBool keepGoing = UTrue;
       fd_set readSet, writeSet;
 
@@ -525,7 +523,6 @@ int main(int argc, char ** argv)
                      case PR_RESULT_DATAITEMS:
                      {
                         /* Look for sub-messages that indicate that nodes were removed from the tree */
-                        uint32 removeCount = 0;
                         uint32 i;
                         const char * nodepath;
                         for (i=0; ((nodepath = UMGetString(&msg, PR_NAME_REMOVED_DATAITEMS, i)) != NULL); i++)
@@ -564,7 +561,6 @@ int main(int argc, char ** argv)
                               int pathDepth = GetPathDepth(fieldName);
                               if (pathDepth == USER_NAME_DEPTH)
                               {
-                                 uint32 msgCount = 0;
                                  uint32 i = 0;
                                  while(1)
                                  {

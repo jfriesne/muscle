@@ -584,6 +584,13 @@ private:
 
    /** Our node class needs access to our internals too */
    friend class StorageReflectSession :: NodePathMatcher;
+
+   enum {
+      NODE_DEPTH_ROOT = 0,
+      NODE_DEPTH_HOSTNAME,
+      NODE_DEPTH_SESSIONNAME,
+      NODE_DEPTH_USER
+   };
 };
 
 }; // end namespace muscle
