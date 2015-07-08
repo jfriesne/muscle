@@ -1386,8 +1386,8 @@ DoTraversalAux(TraversalContext & data, DataNode & node)
          const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
          if ((nextQueue)&&((int)nextQueue->GetStringMatchers().GetNumItems() > depth-data.GetRootDepth()))
          {
-            StringMatcher * nextMatcher = nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
-            if ((nextMatcher == NULL)||(nextMatcher->IsPatternUnique() == false))
+            const StringMatcher * nextMatcher = nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
+            if ((nextMatcher == NULL)||((nextMatcher->IsPatternUnique() == false)&&(nextMatcher->IsPatternListOfUniqueValues() == false)))
             {
                parsersHaveWildcards = true;  // Oops, there will be some pattern matching involved, gotta iterate
                break;
@@ -1399,35 +1399,74 @@ DoTraversalAux(TraversalContext & data, DataNode & node)
    if (parsersHaveWildcards)
    {
       // general case -- iterate over all children of our node and see if any match
-      for (DataNodeRefIterator it = node.GetChildIterator(); it.HasData(); it++) if (CheckChildForTraversal(data, it.GetValue()(), depth)) return depth;
+      for (DataNodeRefIterator it = node.GetChildIterator(); it.HasData(); it++) if (CheckChildForTraversal(data, it.GetValue()(), -1, depth)) return depth;
    }
    else
    {
       // optimized case -- since our parsers are all node-specific, we can do a single lookup for each,
       // and avoid having to iterate over all the children of this node.
-      Queue<DataNode *> alreadyDid;  // To make sure we don't do the same child twice (could happen if two matchers are the same)
+      String scratchStr;
+      Hashtable<DataNode *, Void> alreadyDid;  // To make sure we don't do the same child twice (could happen if two matchers are the same)
+      int32 entryIdx = 0;
       for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++)
       {
          const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
          if ((nextQueue)&&((int)nextQueue->GetStringMatchers().GetNumItems() > depth-data.GetRootDepth()))
          {
-            const String & key = nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer()->GetPattern();
-            DataNodeRef nextChildRef;
-            if ((node.GetChild(RemoveEscapeChars(key), nextChildRef) == B_NO_ERROR)&&(alreadyDid.IndexOf(nextChildRef()) == -1))
+            const StringMatcher * nextMatcher = nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
+            const String & key = nextMatcher->GetPattern();
+            if (nextMatcher->IsPatternListOfUniqueValues())
             {
-               if (CheckChildForTraversal(data, nextChildRef(), depth)) return depth;
-               (void) alreadyDid.AddTail(nextChildRef());
+               // comma-separated-list-of-unique-values case
+               bool prevCharWasEscape = false;
+               const char * k = key();
+               while(*k)
+               {
+                  char c = *k;
+                  bool curCharIsEscape = ((c == '\\')&&(prevCharWasEscape == false));
+                  if (curCharIsEscape == false)
+                  {
+                          if ((prevCharWasEscape)||(c != ',')) scratchStr += c;
+                     else if (scratchStr.HasChars())
+                     {
+                        if (DoDirectChildLookup(data, node, scratchStr, entryIdx, alreadyDid, depth)) return depth;
+                        scratchStr.Clear();
+                     }
+                  }
+                  prevCharWasEscape = curCharIsEscape; 
+                  k++;
+               }
+               if (scratchStr.HasChars())
+               {
+                  if (DoDirectChildLookup(data, node, scratchStr, entryIdx, alreadyDid, depth)) return depth;
+               }
             }
+            else if (DoDirectChildLookup(data, node, key, entryIdx, alreadyDid, depth)) return depth;  // single-value-lookup case (most efficient)
          }
+         entryIdx++;
       }
    }
 
    return node.GetDepth();
 }
 
+bool
+StorageReflectSession :: NodePathMatcher ::
+DoDirectChildLookup(TraversalContext & data, const DataNode & node, const String & key, int32 entryIdx, Hashtable<DataNode *, Void> & alreadyDid, int & depth)
+{
+   // single-unique-value case
+   DataNodeRef nextChildRef;
+   if ((node.GetChild(RemoveEscapeChars(key), nextChildRef) == B_NO_ERROR)&&(alreadyDid.ContainsKey(nextChildRef()) == false))
+   {
+      if (CheckChildForTraversal(data, nextChildRef(), entryIdx, depth)) return true;
+      (void) alreadyDid.PutWithDefault(nextChildRef());
+   }
+   return false;
+}
+
 bool 
 StorageReflectSession :: NodePathMatcher ::
-CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int & depth)
+CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optKnownMatchingEntryIdx, int & depth)
 {
    TCHECKPOINT;
 
@@ -1438,6 +1477,7 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int & dept
       bool recursed = false;  // set if we have recursed to this child already
 
       // Try all parsers and see if any of them match at this level
+      int32 entryIdx = 0;
       for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++)
       {
          const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
@@ -1446,7 +1486,7 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int & dept
             int numClausesInParser = nextQueue->GetStringMatchers().GetNumItems();
             if (numClausesInParser > depth-data.GetRootDepth())
             {
-               const StringMatcher * nextMatcher = nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
+               const StringMatcher * nextMatcher = (entryIdx==optKnownMatchingEntryIdx) ? NULL : nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
                if ((nextMatcher == NULL)||(nextMatcher->Match(nextChildName())))
                {
                   // A match!  Now, depending on whether this match is the
@@ -1507,9 +1547,10 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int & dept
                         if (matched) break;  // done both possible actions, so be lazy
                      }
                   }
-               } 
+               }
             }
          }
+         entryIdx++;
       }
    }
    return false;

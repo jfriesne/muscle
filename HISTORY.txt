@@ -5,6 +5,19 @@ key:  - new feature
       * bug fixed
       o other
 
+6.23 Release 7/7/2015
+   - The StringMatcher class now has a IsPatternListOfUniqueValues()
+     method that returns true iff the that pattern is a comma-separated
+     list of non-wildcarded values.
+   o NodePathMatcher::DoTraversalAux() was using a Queue as a cache,
+     which could be inefficient due to O(N^2) lookups in certain cases.
+     Replaced it with a Hashtable for better performance.
+   o Optimized the NodePathMatcher algorithm to be more efficient
+     when node-paths that include clauses that are long lists of
+     comma-separated node names.
+   * SharedFilterSessionFactory.cpp wouldn't compile if -DMUSCLE_AVOID_IPV6
+     was specified on the compile line.  Fixed.
+
 6.22 Released 6/11/2015
    - Added an IsWaitingForEvents() method to ReflectServer class,
      so that a (user-supplied) watchdog thread can observe when the 

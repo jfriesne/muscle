@@ -325,9 +325,9 @@ private:
 //
 // Note that this information is only helpful if you are trying to implement
 // your own MessageIOGateway-compatible serialization/deserialization code.
-// C++, Java, and Python programmers will have a much easier time if they use 
-// the MessageIOGateway class provided in the MUSCLE archive, rather than 
-// coding at the byte-stream level.
+// C, C#, C++, Java, and Python programmers will have a much easier time if 
+// they use the MessageIOGateway functionality provided in the MUSCLE archive, 
+// rather than coding at the byte-stream level.
 //
 // The Message used in this example has a 'what' code value of 2 and the 
 // following name/value pairs placed in it:

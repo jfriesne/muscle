@@ -274,8 +274,9 @@ protected:
       };
 
       int DoTraversalAux(TraversalContext & data, DataNode & node);
+      bool DoDirectChildLookup(TraversalContext & data, const DataNode & node, const String & key, int32 entryIdx, Hashtable<DataNode *, Void> & alreadyDid, int & depth);
       bool PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry & entry, int rootDepth) const;
-      bool CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int & depth);
+      bool CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optKnownMatchingEntryIndex, int & depth);
    };
 
    friend class DataNode;
