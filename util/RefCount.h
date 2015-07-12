@@ -29,7 +29,7 @@ public:
    RefCountable() : _manager(NULL) {/* empty */}
 
    /** Copy constructor -- ref count and manager settings are deliberately not copied over! */
-   RefCountable(const RefCountable &) : _manager(NULL) {/* empty */}
+   RefCountable(const RefCountable &) : _refCount(), _manager(NULL) {/* empty */}
 
    /** Virtual destructor, to keep C++ honest.  Don't remove this unless you like crashing */
    virtual ~RefCountable() {/* empty */}

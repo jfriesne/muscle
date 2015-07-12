@@ -237,19 +237,20 @@ public:
    DataNode * GetRootNode() const {DataNode * r = const_cast<DataNode *>(this); while(r->GetParent()) r = r->GetParent(); return r;}
 
    /** Convenience function:  Given a depth value less than or equal to our depth, returns a pointer to our ancestor node at that depth.
-     * @param depth The depth of the node we want returned, relative to the root of the tree.  Zero would be the root node, one would be a child 
-     *              of the root node, and so on.
-     * @returns an ancestor DataNode, or NULL if such a node could not be found (most likely because (depth) is greater than this node's depth)
+     * @param depth The depth of the node we want returned, relative to the root of the tree.  Zero would be the root node, 
+     *              one would be a child of the root node, and so on.
+     * @param defaultValue The value to return if an ancestor of the requested depth could not be found.  Defaults to NULL.
+     * @returns an ancestor DataNode, or (defaultValue) if such a node could not be found (most likely because (depth) is greater than this node's depth)
      */ 
-   DataNode * GetAncestorNode(uint32 depth) const 
+   DataNode * GetAncestorNode(uint32 depth, DataNode * defaultValue = NULL) const 
    {
       DataNode * r = const_cast<DataNode *>(this); 
-      while((r)&&(depth <= r->GetDepth()))
+      while((r)&&(r->GetDepth() >= depth))
       {
          if (depth == r->GetDepth()) return r;
          r = r->GetParent();
       }
-      return NULL;
+      return defaultValue;
    }
 
    /** Returns a checksum representing the state of this node and the nodes

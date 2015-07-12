@@ -274,8 +274,9 @@ protected:
       };
 
       int DoTraversalAux(TraversalContext & data, DataNode & node);
+      bool DoDirectChildLookup(TraversalContext & data, const DataNode & node, const String & key, int32 entryIdx, Hashtable<DataNode *, Void> & alreadyDid, int & depth);
       bool PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry & entry, int rootDepth) const;
-      bool CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int & depth);
+      bool CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optKnownMatchingEntryIndex, int & depth);
    };
 
    friend class DataNode;
@@ -584,6 +585,13 @@ private:
 
    /** Our node class needs access to our internals too */
    friend class StorageReflectSession :: NodePathMatcher;
+
+   enum {
+      NODE_DEPTH_ROOT = 0,
+      NODE_DEPTH_HOSTNAME,
+      NODE_DEPTH_SESSIONNAME,
+      NODE_DEPTH_USER
+   };
 };
 
 }; // end namespace muscle

@@ -21,7 +21,7 @@ using namespace muscle;
 class NodeTreeWidgetItem : public QTreeWidgetItem
 {
 public:
-   NodeTreeWidgetItem(QTreeWidget * parent) : QTreeWidgetItem(parent, QStringList("/")) {setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);}
+   explicit NodeTreeWidgetItem(QTreeWidget * parent) : QTreeWidgetItem(parent, QStringList("/")) {setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);}
    NodeTreeWidgetItem(NodeTreeWidgetItem * parent, const String & name) : QTreeWidgetItem(parent, QStringList(name())), _name(name) {setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);}
 
    NodeTreeWidgetItem * GetChildByName(const String & name)

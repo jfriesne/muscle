@@ -16,10 +16,12 @@
 # include <iphlpapi.h>
 # include <mswsock.h>  // for SIO_UDP_CONNRESET, etc
 # include <ws2tcpip.h>
+# if !(defined(__MINGW32__) || defined(__MINGW64__))
 # ifndef MUSCLE_AVOID_MULTICAST_API
 #  include <ws2ipdef.h>  // for IP_MULTICAST_LOOP, etc
 # endif
 # pragma warning(disable: 4800 4018)
+# endif
 typedef char sockopt_arg;  // Windows setsockopt()/getsockopt() use char pointers
 #else
 typedef void sockopt_arg;  // Whereas sane operating systems use void pointers
@@ -1255,7 +1257,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
                   {
                      ip_address broadcastIP, netmask;
                      uint32 numLocalAddrs = (bytesReturned/sizeof(INTERFACE_INFO));
-                     for (int i=0; i<numLocalAddrs; i++)
+                     for (uint32 i=0; i<numLocalAddrs; i++)
                      {
                         ip_address nextIP = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiAddress);
                         if (nextIP == unicastIP)

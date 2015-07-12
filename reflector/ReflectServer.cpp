@@ -541,11 +541,17 @@ ServerProcessLoop()
       TCHECKPOINT;
 
       // This block is the center of the MUSCLE server's universe -- where we sit and wait for the next event
-      if (_multiplexer.WaitForEvents(nextPulseAt) < 0)
       {
-         if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting!\n");
-         ClearLameDucks();
-         return B_ERROR;
+         _inWaitForEvents.AtomicIncrement();   // so a watchdog thread can know we're meant to be waiting at this point
+         int r = _multiplexer.WaitForEvents(nextPulseAt);
+         _inWaitForEvents.AtomicDecrement();   // so a watchdog thread can know we're done waiting at this point
+
+         if (r < 0)
+         {
+            if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting!\n");
+            ClearLameDucks();
+            return B_ERROR;
+         }
       }
 
       // Each event-loop cycle officially "starts" as soon as WaitForEvents() returns

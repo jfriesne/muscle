@@ -22,6 +22,7 @@ MuscledWindow :: MuscledWindow(const char * argv0) : _cpdio(false), _notifier(NU
    bl->setSpacing(0);
 
    _muscledStdoutText = new QPlainTextEdit;
+   _muscledStdoutText->setReadOnly(true);
    bl->addWidget(_muscledStdoutText); 
 
    Queue<String> argv;

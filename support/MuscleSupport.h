@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.21"
-#define MUSCLE_VERSION        62100  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.23"
+#define MUSCLE_VERSION        62300  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -257,7 +257,7 @@ typedef void * muscleVoidPointer;  /* it's a bit easier, syntax-wise, to use thi
 #  define  INT64_FORMAT_SPEC_NOPERCENT "lli"
 #  define UINT64_FORMAT_SPEC_NOPERCENT "llu"
 #  define XINT64_FORMAT_SPEC_NOPERCENT "llx"
-# elif defined(_MSC_VER)
+# elif defined(_MSC_VER) || defined(__MINGW64__)
 #  define  INT64_FORMAT_SPEC_NOPERCENT "I64i"
 #  define UINT64_FORMAT_SPEC_NOPERCENT "I64u"
 #  define XINT64_FORMAT_SPEC_NOPERCENT "I64x"
@@ -270,7 +270,7 @@ typedef void * muscleVoidPointer;  /* it's a bit easier, syntax-wise, to use thi
 # define  INT32_FORMAT_SPEC_NOPERCENT "li"
 # define UINT32_FORMAT_SPEC_NOPERCENT "lu"
 # define XINT32_FORMAT_SPEC_NOPERCENT "lx"
-# if defined(_MSC_VER)
+# if defined(_MSC_VER) || defined(__MINGW32__)
 #  define  INT64_FORMAT_SPEC_NOPERCENT "I64i"
 #  define UINT64_FORMAT_SPEC_NOPERCENT "I64u"
 #  define XINT64_FORMAT_SPEC_NOPERCENT "I64x"
@@ -630,6 +630,7 @@ static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * f
               defined(MIPSEL) || defined(_MIPSEL) || defined(BIT_ZERO_ON_RIGHT) || \
               defined(__alpha__) || defined(__alpha) || defined(__CYGWIN__) || \
               defined(_M_IX86) || defined(_M_AMD64) || defined(__GNUWIN32__) || defined(__LITTLEENDIAN__) || \
+              defined(__MINGW32__) || defined(__MINGW64__) || \
               (defined(__Lynx__) && defined(__x86__))
         #define BYTE_ORDER      LITTLE_ENDIAN
       #endif

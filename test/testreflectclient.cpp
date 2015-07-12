@@ -48,7 +48,7 @@ enum {
 class MyLooper : public BLooper
 {
 public:
-   MyLooper(MessageTransceiverThread & mtt) : 
+   explicit MyLooper(MessageTransceiverThread & mtt) : 
 #ifdef __ATHEOS__
      Looper(""),
 #endif     

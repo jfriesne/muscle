@@ -52,7 +52,6 @@ void DataNode :: IncrementSubscriptionRefCount(const String & sessionID, long de
 
    if (delta > 0)
    {
-      uint32 res = 0;
       if (_subscribers == NULL)
       {
          _subscribers = newnothrow Hashtable<const String *, uint32>;
@@ -60,18 +59,18 @@ void DataNode :: IncrementSubscriptionRefCount(const String & sessionID, long de
       }
       if (_subscribers)
       {
-         (void) _subscribers->Get(&sessionID, res);
-         (void) _subscribers->Put(&sessionID, res+delta);  // I'm not sure how to cleanly handle out-of-mem here??  --jaf
+         uint32 * pCount = _subscribers->GetOrPut(&sessionID);
+         if (pCount) (*pCount) += delta;
       }
    }
    else if (delta < 0)
    {
-      uint32 res = 0;
-      if ((_subscribers)&&(_subscribers->Get(&sessionID, res) == B_NO_ERROR))
+      uint32 * pCount = _subscribers ? _subscribers->Get(&sessionID) : NULL;
+      if (pCount)
       {
          uint32 decBy = (uint32) -delta;
-         if (decBy >= res) (void) _subscribers->Remove(&sessionID);
-                      else (void) _subscribers->Put(&sessionID, res-decBy);  // out-of-mem shouldn't be possible
+         if (decBy >= *pCount) (void) _subscribers->Remove(&sessionID);
+                          else (*pCount) -= decBy;
       }
    }
 }
@@ -301,7 +300,7 @@ status_t DataNode :: GetNodePath(String & retPath, uint32 startDepth) const
 
       char * dynBuf = NULL;
       const uint32 stackAllocSize = 256;
-      char stackBuf[stackAllocSize];      // try to do this without a dynamic allocation...
+      char stackBuf[stackAllocSize] = ""; // try to do this without a dynamic allocation...
       if (pathLen >= stackAllocSize)  // but do a dynamic allocation if we have to (should be rare)
       {
          dynBuf = newnothrow_array(char, pathLen+1);

@@ -31,11 +31,11 @@ LIBS        =
 EXECUTABLES = muscled admin 
 
 # object files to include in all executables 
-OBJFILES = Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o AbstractReflectSession.o SignalMultiplexer.o SignalHandlerSession.o DumbReflectSession.o StorageReflectSession.o DataNode.o ReflectServer.o SocketMultiplexer.o StringMatcher.o muscled.o MiscUtilityFunctions.o NetworkUtilityFunctions.o SysLog.o PulseNode.o PathMatcher.o FilterSessionFactory.o RateLimitSessionIOPolicy.o MemoryAllocator.o GlobalMemoryAllocator.o SetupSystem.o ServerComponent.o ZLibCodec.o ByteBuffer.o QueryFilter.o Directory.o FilePathInfo.o
+OBJFILES = Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o AbstractReflectSession.o SignalMultiplexer.o SignalHandlerSession.o DumbReflectSession.o StorageReflectSession.o DataNode.o ReflectServer.o SocketMultiplexer.o StringMatcher.o muscled.o MiscUtilityFunctions.o NetworkUtilityFunctions.o SysLog.o PulseNode.o PathMatcher.o FilterSessionFactory.o RateLimitSessionIOPolicy.o MemoryAllocator.o GlobalMemoryAllocator.o SetupSystem.o ServerComponent.o ZLibCodec.o ByteBuffer.o QueryFilter.o Directory.o FilePathInfo.o regcomp.o regerror.o regexec.o regfree.o 
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
 
 # Where to find .cpp files 
-VPATH = ../message ../besupport ../dataio ../iogateway ../reflector ../regex ../util ../syslog ../system ../zlib ../zlib/zlib 
+VPATH = ../message ../besupport ../dataio ../iogateway ../reflector ../regex ../util ../syslog ../system ../zlib ../zlib/zlib  ../regex/regex
 
 # if muscled is crashing, try setting this to no; some older compilers can't handle memory tracking! 
 MEMORY_TRACKING_SUPPORTED = yes 
@@ -58,7 +58,6 @@ endif
 ifeq ($(OSTYPE),beos) 
    ifeq ($(BE_HOST_CPU),ppc) 
       CXX = mwcc 
-      OBJFILES += regcomp.o regerror.o regexec.o regfree.o 
       VPATH += ../regex/regex 
       CFLAGS += -I../regex/regex -I../zlib/zlib 
       MEMORY_TRACKING_SUPPORTED = no  # mwcc can't handle it correctly :^( 

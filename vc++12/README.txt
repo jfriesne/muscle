@@ -4,7 +4,7 @@ Note that these project files require Visual C++ 2013.
 
 To compile muscle, do the following:
 
-1. Open the "muscle.sln" project file in VC++
+1. Open the "muscle.sln" solution file in VC++
 
 2. Click Build->Build Solution
 
@@ -15,4 +15,4 @@ To compile muscle, do the following:
    your server with muscled.exe, and maintain it with admin.exe.  You can 
    build your own apps and link them against muscle.lib.
 
--Mika Mikitchenko (aka "Monni")
+-Mika Lindqvist (aka "Monni")

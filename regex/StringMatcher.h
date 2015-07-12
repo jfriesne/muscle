@@ -90,6 +90,9 @@ public:
     */
    bool IsPatternUnique() const {return ((_ranges.IsEmpty())&&(IsBitSet(STRINGMATCHER_BIT_CANMATCHMULTIPLEVALUES|STRINGMATCHER_BIT_NEGATE) == false));}
 
+   /** Returns true iff this StringMatcher's pattern specifies a comma-separated list of one or more non-wildcarded substrings. */
+   bool IsPatternListOfUniqueValues() const {return IsBitSet(STRINGMATCHER_BIT_UVLIST);}
+
    /** Returns true iff (string) is matched by the current expression.
     * @param matchString a string to match against using our current expression.
     * @return true iff (matchString) matches, false otherwise.
@@ -132,6 +135,7 @@ private:
       STRINGMATCHER_BIT_NEGATE                 = (1<<1),
       STRINGMATCHER_BIT_CANMATCHMULTIPLEVALUES = (1<<2),
       STRINGMATCHER_BIT_SIMPLE                 = (1<<3),
+      STRINGMATCHER_BIT_UVLIST                 = (1<<4),
    };
 
    class IDRange
@@ -199,12 +203,15 @@ inline bool HasRegexTokens(const String & str) {return HasRegexTokens(str());}
 
 /** Returns true iff the specified wild card pattern string can match more than one possible value-string.
  *  @param str The pattern string to check
+ *  @param optRetIsCommasOnly If non-NULL, the boolean this points to will
+ *         be set to true if the only wildcard characters seen in this string
+ *         were commas, or false if there are other wildcard characters as well.
  *  @return True iff the string might match more than one value-string; false if not.
  */
-bool CanWildcardStringMatchMultipleValues(const char * str);
+bool CanWildcardStringMatchMultipleValues(const char * str, bool * optRetIsCommasOnly = NULL);
 
 /** As above, but takes a String object instead of a (const char *) */
-inline bool CanWildcardStringMatchMultipleValues(const String & str) {return CanWildcardStringMatchMultipleValues(str());}
+inline bool CanWildcardStringMatchMultipleValues(const String & str, bool * optRetIsCommasOnly = NULL) {return CanWildcardStringMatchMultipleValues(str(), optRetIsCommasOnly);}
 
 /** Returns true iff (c) is a regular expression "special" char as far as StringMatchers are concerned.
  *  @param c an ASCII char

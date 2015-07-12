@@ -17,6 +17,11 @@
 # include <sys/socket.h>
 #endif
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+# include <winsock2.h>
+# include <ws2tcpip.h>
+#endif
+
 #ifdef BONE
 # include <sys/select.h>  // sikosis at bebits.com says this is necessary... hmm.
 #endif

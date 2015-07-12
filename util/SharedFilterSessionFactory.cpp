@@ -63,7 +63,7 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMem
                for (uint32 j=0; j<ifs.GetNumItems(); j++)
                {
 #ifdef MUSCLE_AVOID_IPV6
-                  if (ifs[j] == ip)
+                  if (ifs[j].GetLocalAddress() == ip)
 #else
                   if (ifs[j].GetLocalAddress().EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
 #endif

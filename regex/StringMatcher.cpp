@@ -60,7 +60,8 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
    _pattern = s;
    SetBit(STRINGMATCHER_BIT_SIMPLE, isSimple);
 
-   SetBit(STRINGMATCHER_BIT_CANMATCHMULTIPLEVALUES, isSimple?CanWildcardStringMatchMultipleValues(_pattern):HasRegexTokens(_pattern));
+   bool onlyWildcardCharsAreCommas = false;
+   SetBit(STRINGMATCHER_BIT_CANMATCHMULTIPLEVALUES, isSimple?CanWildcardStringMatchMultipleValues(_pattern, &onlyWildcardCharsAreCommas):HasRegexTokens(_pattern));
 
    const char * str = _pattern();
    String regexPattern;
@@ -150,10 +151,14 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
       SetBit(STRINGMATCHER_BIT_REGEXVALID, false);
    }
 
+   SetBit(STRINGMATCHER_BIT_UVLIST, (onlyWildcardCharsAreCommas)&&(_ranges.IsEmpty())&&(IsBitSet(STRINGMATCHER_BIT_NEGATE) == false));
+
    // And compile the new one
    if (_ranges.IsEmpty())
    {
-      bool isValid = (regcomp(&_regExp, regexPattern.HasChars() ? regexPattern() : str, REG_EXTENDED) == 0);
+      int rc = regcomp(&_regExp, regexPattern.HasChars() ? regexPattern() : str, REG_EXTENDED);
+      if (rc == REG_ESPACE) WARN_OUT_OF_MEMORY;
+      bool isValid = (rc == 0);
       SetBit(STRINGMATCHER_BIT_REGEXVALID, isValid);
       return isValid ? B_NO_ERROR : B_ERROR;
    }
@@ -273,22 +278,29 @@ bool HasRegexTokens(const char * str)
    return false;
 }
 
-bool CanWildcardStringMatchMultipleValues(const char * str)
+bool CanWildcardStringMatchMultipleValues(const char * str, bool * optRetOnlySpecialCharIsCommas)
 {
+   if (optRetOnlySpecialCharIsCommas) *optRetOnlySpecialCharIsCommas = false;  // default
    if (str[0] == '`') return true;  // Backtick prefix means what follows is a regex, so we'll assume it can match multiple items
 
+   bool sawComma          = false;
    bool prevCharWasEscape = false;
-   const char * s = str;
+   const char * s         = str;
    while(*s)
    {
       bool isEscape = ((*s == '\\')&&(prevCharWasEscape == false));
-      if ((isEscape == false)&&(*s != '-')&&(prevCharWasEscape == false)&&(IsRegexToken(*s, (s==str)))) return true;
+      if ((isEscape == false)&&(*s != '-')&&(prevCharWasEscape == false)&&(IsRegexToken(*s, (s==str))))
+      {
+         if ((*s == ',')&&(optRetOnlySpecialCharIsCommas != NULL)) sawComma = true;
+                                                              else return true;
+      }
       prevCharWasEscape = isEscape;
       s++;
    }
-   return false;
-}
 
+   if (optRetOnlySpecialCharIsCommas) *optRetOnlySpecialCharIsCommas = sawComma;  // if we got here there were no other regexChars
+   return sawComma;
+}
 
 bool MakeRegexCaseInsensitive(String & str)
 {

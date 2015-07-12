@@ -397,9 +397,7 @@ status_t UMAddData(UMessage * msg, const char * fieldName, uint32 dataType, cons
    dataPtr += sizeof(uint32);
 
    memcpy(dataPtr, dataBytes, numBytes);
-#ifdef DISABLED_TO_SHUT_CLANGS_ANALYER_UP
-   dataPtr += numBytes;
-#endif
+   //dataPtr += numBytes; // commented out to shut Clang static analyzer and cppcheck up
 
    IncreaseCurrentFieldDataLength(msg, numDataBytes);
    return B_NO_ERROR;
@@ -528,7 +526,7 @@ void UMIteratorAdvance(UMessageFieldNameIterator * iter)
 {
    while(iter->_currentField)
    {
-      void * ftptr = GetFieldTypePointer(iter->_currentField);
+      uint8 * ftptr = GetFieldTypePointer(iter->_currentField);
       uint32 fieldDataLen = GetFieldDataLength(ftptr);
       iter->_currentField = ftptr+(sizeof(uint32)+sizeof(uint32)+fieldDataLen);
       if (iter->_currentField > (iter->_message->_buffer+iter->_message->_numValidBytes))

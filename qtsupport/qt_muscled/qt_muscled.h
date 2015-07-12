@@ -16,7 +16,7 @@ class MuscledWindow : public QWidget, public AbstractGatewayMessageReceiver
 Q_OBJECT
 
 public:
-   MuscledWindow(const char * argv0);
+   explicit MuscledWindow(const char * argv0);
    virtual ~MuscledWindow();
 
 private slots:

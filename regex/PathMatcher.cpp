@@ -79,15 +79,15 @@ status_t PathMatcher :: PutPathsFromMessage(const char * pathFieldName, const ch
    status_t ret = B_NO_ERROR;
 
    ConstQueryFilterRef filter;  // declared here so that queries can "bleed down" the list without being specified multiple times
-   String str;
-   for (uint32 i=0; msg.FindString(pathFieldName, i, str) == B_NO_ERROR; i++) 
+   const String * str;
+   for (uint32 i=0; msg.FindString(pathFieldName, i, &str) == B_NO_ERROR; i++) 
    {
       if (optFilterFieldName)
       {
          MessageRef filterMsgRef;
          if (msg.FindMessage(optFilterFieldName, i, filterMsgRef) == B_NO_ERROR) filter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*filterMsgRef());
       }
-      if (PutPathFromString(str, filter, prependIfNoLeadingSlash) != B_NO_ERROR) ret = B_ERROR;
+      if (PutPathFromString(*str, filter, prependIfNoLeadingSlash) != B_NO_ERROR) ret = B_ERROR;
    }
    return ret;
 }

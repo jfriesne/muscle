@@ -5,6 +5,7 @@
 
 #include "reflector/AbstractReflectSession.h"
 #include "support/NotCopyable.h"
+#include "system/AtomicCounter.h"
 #include "util/NestCount.h"
 #include "util/SocketMultiplexer.h"
 
@@ -248,6 +249,15 @@ public:
    const ConstByteBufferRef & GetSSLPublicKeyCertificate() const {return _publicKey;}
 #endif
 
+   /** Returns true iff our event loop is currently blocked inside the SocketMultiplexer::WaitForEvents() call.
+     * Note that calling this function from another thread is subject to race conditions, and that
+     * if you call it from the thread that is running the ReflectServer's event loop it will always
+     * return false, since if the thread was blocked inside WaitForEvents() you wouldn't have control
+     * of the thread to call it.  This method is here to enable a separate watchdog thread to observe
+     * the operations of the main thread; in general it is not necessary to call this method.
+     */
+   bool IsWaitingForEvents() const {return (_inWaitForEvents.GetCount() == 1);}
+
 protected:
    /**
     * This version of AddNewSession (which is called by the previous 
@@ -321,6 +331,8 @@ private:
 #endif
    NestCount _inDoAccept;
    NestCount _inDoConnect;
+
+   AtomicCounter _inWaitForEvents;
 };
 DECLARE_REFTYPES(ReflectServer);
 

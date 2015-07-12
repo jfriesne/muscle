@@ -19,10 +19,12 @@
 #endif
 
 #ifdef WIN32
+# if !(defined(__MINGW32__) || defined(__MINGW64__))
 # pragma comment(lib, "ws2_32.lib")
 # pragma comment(lib, "winmm.lib")
 # pragma comment(lib, "iphlpapi.lib")
 # pragma comment(lib, "version.lib")
+# endif
 # include <signal.h>
 # include <mmsystem.h>
 #else
@@ -333,7 +335,7 @@ public:
    {
       if ((_tailBlock == NULL)||(_tailBlock->IsFull()))
       {
-         MutexEventBlock * newBlock = (MutexEventBlock *) malloc(sizeof(MutexEventBlock));  // THIS LINE CAN ONLY CALL plain old malloc() and nothing else!!!
+         MutexEventBlock * newBlock = static_cast<MutexEventBlock *>(malloc(sizeof(MutexEventBlock)));  // THIS LINE CAN ONLY CALL plain old malloc() and nothing else!!!
          if (newBlock)
          {
             newBlock->Initialize();
@@ -419,7 +421,7 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
    MutexEventLog * mel = _mutexEventLogs.GetThreadLocalObject();
    if (mel == NULL)
    {
-      mel = (MutexEventLog *) malloc(sizeof(MutexEventLog));  // MUST CALL malloc() here to avoid inappropriate re-entrancy!
+      mel = static_cast<MutexEventLog *>(malloc(sizeof(MutexEventLog)));  // MUST CALL malloc() here to avoid inappropriate re-entrancy!
       if (mel)
       {
          mel->Initialize(muscle_thread_id::GetCurrentThreadID());
@@ -1053,7 +1055,7 @@ ConstSocketRef GetConstSocketRefFromPool(int fd, bool okayToClose, bool returnNU
          // to inherit the socket will have to either avoid calling this 
          // for those sockets, or call SetHandleInformation() again 
          // afterwards to reinstate the inherit-handle flag)
-         (void) SetHandleInformation((HANDLE)fd, HANDLE_FLAG_INHERIT, 0);
+         (void) SetHandleInformation((HANDLE)((ptrdiff)fd), HANDLE_FLAG_INHERIT, 0);
 #endif
       }
       else if (okayToClose) CloseSocket(fd);
