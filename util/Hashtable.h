@@ -2625,7 +2625,13 @@ template <class KeyType, class ValueType, class HashFunctorType, class SubclassT
 status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 requestedSize, bool allowShrink)
 {
-   if (allowShrink ? (requestedSize == this->_tableSize) : (requestedSize <= this->_tableSize)) return B_NO_ERROR;
+   uint32 biggerTableSize = muscleMax(this->_numItems, allowShrink?requestedSize:muscleMax(requestedSize,this->_tableSize));
+   if (biggerTableSize == this->_tableSize) return B_NO_ERROR;      // no point in continuing if the new table's size will equal what we have now
+   if (biggerTableSize == 0)  // in the case where the user wants to shrink an empty table's array to zero, we can handle that via Clear(true)
+   {
+      this->Clear(true);
+      return B_NO_ERROR;
+   }
 
    // 1. Initialize the scratch space for our active iterators.
    {
@@ -2640,7 +2646,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
     
    // 2. Create a new, bigger table, to hold a copy of our data.
    SubclassType biggerTable;
-   biggerTable._tableSize      = muscleMax(this->_numItems, requestedSize);
+   biggerTable._tableSize      = biggerTableSize;
    biggerTable._tableIndexType = this->ComputeTableIndexTypeForTableSize(biggerTable._tableSize);
    biggerTable.SetAutoSortEnabled(false);  // make sure he doesn't do any sorting during the initial population phase
 

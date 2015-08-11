@@ -107,11 +107,12 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                STARTUPINFOA siStartInfo;         
                {
                   memset(&siStartInfo, 0, sizeof(siStartInfo));
-                  siStartInfo.cb         = sizeof(siStartInfo);
-                  siStartInfo.hStdError  = childStdoutWrite;
-                  siStartInfo.hStdOutput = childStdoutWrite;
-                  siStartInfo.hStdInput  = childStdinRead;
-                  siStartInfo.dwFlags    = STARTF_USESTDHANDLES;
+                  siStartInfo.cb          = sizeof(siStartInfo);
+                  siStartInfo.hStdError   = childStdoutWrite;
+                  siStartInfo.hStdOutput  = childStdoutWrite;
+                  siStartInfo.hStdInput   = childStdinRead;
+                  siStartInfo.dwFlags     = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+                  siStartInfo.wShowWindow = SW_HIDE;  // avoid the introduction of an empty console window
                }
 
                String cmd;

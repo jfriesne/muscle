@@ -12,6 +12,10 @@
 # include <IOKit/IOMessage.h>
 # include <SystemConfiguration/SystemConfiguration.h>
 #elif WIN32
+# if defined(UNICODE) && !defined(_UNICODE)
+#  define _UNICODE 1
+# endif
+# include <tchar.h>
 # if defined(_WIN32_WINNT) && (_WIN32_WINNT < 0x0600) && !defined(MUSCLE_AVOID_NETIOAPI)
    // If we're compiling pre-Vista, the NetIOApi isn't available
 #  define MUSCLE_AVOID_NETIOAPI
@@ -621,8 +625,8 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
    }
 
 # elif WIN32
-#define WINDOW_CLASS_NAME   L"DetectNetworkConfigChangesSession_HiddenWndClass"
-#define WINDOW_MENU_NAME    L"DetectNetworkConfigChangesSession_MainMenu"
+#define WINDOW_CLASS_NAME   _T("DetectNetworkConfigChangesSession_HiddenWndClass")
+#define WINDOW_MENU_NAME    _T("DetectNetworkConfigChangesSession_MainMenu")
 
    // Gotta create a hidden window to receive WM_POWERBROADCAST events, lame-o!
    // Register the window class for the main window. 
@@ -640,7 +644,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
    (void) RegisterClass(&window_class); // Deliberately not checking result, per Chris Guzak at http://msdn.microsoft.com/en-us/library/windows/desktop/ms633586(v=vs.85).aspx
   
    // This window will never be shown; its only purpose is to allow us to receive WM_POWERBROADCAST events so we can alert the calling code to sleep and wake events
-   HWND hiddenWindow = CreateWindowW(WINDOW_CLASS_NAME, L"", WS_OVERLAPPEDWINDOW, -1, -1, 0, 0, (HWND)NULL, (HMENU) NULL, NULL, (LPVOID)NULL); 
+   HWND hiddenWindow = CreateWindow(WINDOW_CLASS_NAME, _T(""), WS_OVERLAPPEDWINDOW, -1, -1, 0, 0, (HWND)NULL, (HMENU) NULL, NULL, (LPVOID)NULL); 
    if (hiddenWindow) SetWindowLongPtr(hiddenWindow, GWL_USERDATA, (LONG) this);  // ok because we don't need access to (this) in WM_CREATE
                 else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession::InternalThreadEntry():  CreateWindow() failed!\n");
    

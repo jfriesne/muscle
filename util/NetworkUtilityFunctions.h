@@ -79,14 +79,14 @@ const ip_address broadcastIP = ((uint32)-1);
 /* IPv6 addressing support */
 
 /** This function sets a global flag that indicates whether or not automatic translation of
-  * IPv4-compatible IPv6 addresses (e.g. ::192.168.0.1) to IPv4-mapped IPv6 addresses (e.g. ::ffff:192.168.0.1)
+  * IPv4-compatible IPv6 addresses (e.g. "::192.168.0.1") to IPv4-mapped IPv6 addresses (e.g. "::ffff:192.168.0.1")
   * should be enabled.  This flag is set to true by default; if you want to set it to false you
   * would typically do so only at the top of main() and then not set it again.
   * This automatic remapping is useful if you want your software to handle both IPv4 and IPv6
   * traffic without having to open separate IPv4 and IPv6 sockets and without having to do any 
   * special modification of IPv4 addresses.   The only time you'd need to set this flag to false
   * is if you need to run IPv6 traffic over non-IPv6-aware routers, in which case you'd need
-  * to use the ::x.y.z.w address space for actual IPv6 traffic instead.
+  * to use the "::x.y.z.w" address space for actual IPv6 traffic instead.
   * @param enabled True if the transparent remapping should be enabled (the default state), or false to disable it.
   */
 void SetAutomaticIPv4AddressMappingEnabled(bool enabled);

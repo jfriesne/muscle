@@ -1762,28 +1762,39 @@ uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int
 #ifndef MUSCLE_AVOID_OBJECT_COUNTING
 
 static ObjectCounterBase * _firstObjectCounter = NULL;
-static Mutex _counterListMutex;
 
-ObjectCounterBase :: ObjectCounterBase() : _prevCounter(NULL)
+void ObjectCounterBase :: PrependObjectCounterBaseToGlobalCountersList()
 {
-   MutexGuard mg(_counterListMutex);
-
-   // Prepend this object to the head of the global counters-list
    _nextCounter = _firstObjectCounter;
    if (_firstObjectCounter) _firstObjectCounter->_prevCounter = this;
    _firstObjectCounter = this;
 }
 
+void ObjectCounterBase :: RemoveObjectCounterBaseFromGlobalCountersList()
+{
+   if (_firstObjectCounter == this) _firstObjectCounter = _nextCounter;
+   if (_prevCounter) _prevCounter->_nextCounter = _nextCounter;
+   if (_nextCounter) _nextCounter->_prevCounter = _prevCounter;
+}
+
+ObjectCounterBase :: ObjectCounterBase() : _prevCounter(NULL), _nextCounter(NULL)
+{
+   if (_muscleLock)
+   {
+      MutexGuard mg(*_muscleLock);
+      PrependObjectCounterBaseToGlobalCountersList();
+   }
+   else PrependObjectCounterBaseToGlobalCountersList();
+}
+
 ObjectCounterBase :: ~ObjectCounterBase()
 {
-   if ((_prevCounter)||(_nextCounter))  // paranoia
+   if (_muscleLock)
    {
-      // Remove this object from the global counters-list
-      MutexGuard mg(_counterListMutex);
-      if (_firstObjectCounter == this) _firstObjectCounter = _nextCounter;
-      if (_prevCounter) _prevCounter->_nextCounter = _nextCounter;
-      if (_nextCounter) _nextCounter->_prevCounter = _prevCounter;
+      MutexGuard mg(*_muscleLock);
+      RemoveObjectCounterBaseFromGlobalCountersList();
    }
+   else RemoveObjectCounterBaseFromGlobalCountersList();
 }
 
 #endif
@@ -1794,7 +1805,8 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results)
    (void) results;
    return B_ERROR;
 #else
-   if (_counterListMutex.Lock() == B_NO_ERROR)
+   Mutex * m = _muscleLock;
+   if ((m==NULL)||(m->Lock() == B_NO_ERROR))
    {
       status_t ret = B_NO_ERROR;
 
@@ -1805,7 +1817,7 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results)
          oc = oc->GetNextCounter();
       }
 
-      _counterListMutex.Unlock();
+      if (m) m->Unlock();
       return ret;
    }
    else return B_ERROR;

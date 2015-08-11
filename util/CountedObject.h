@@ -42,6 +42,8 @@ protected:
 
 private:
    ObjectCounterBase(const ObjectCounterBase &);  // private and unimplemented
+   void PrependObjectCounterBaseToGlobalCountersList();
+   void RemoveObjectCounterBaseFromGlobalCountersList();
 
    ObjectCounterBase * _prevCounter;
    ObjectCounterBase * _nextCounter;

@@ -198,7 +198,7 @@ private:
       NUM_LINKED_LISTS
    };
 
-   // Linked list of child nodes with finite pulse times, sorted by their pulse times
+   // Endpoints of our three linked lists of child nodes
    PulseNode * _firstChild[NUM_LINKED_LISTS];
    PulseNode * _lastChild[NUM_LINKED_LISTS];
 

@@ -5,15 +5,42 @@ key:  - new feature
       * bug fixed
       o other
 
-6.23 Release 7/7/2015
+6.30 Released 8/11/2015
+   - The Message class now uses special-case variant logic for fields
+     that contain only a single value, so that in the common case
+     the allocation of an AbstractDataArray object is avoided.
+   - Added a convenience overload of GetMessageFromPool() that 
+     takes a ByteBufferRef as its argument.
+   * Merged in Mika's patch to fix the _sntprintf_s() calls in
+     the Windows implementation of SysLog.cpp.
+   * DetectNetworkConfigChanges.cpp would fail to compile under Windows
+     under some circumstances, due to unicode-string handling issues. 
+     Fixed.
+   * Added spaces to *_FORMAT_SPEC tokens in dataio/RS232DataIO.cpp
+   * Added missing namespace qualifiers to MCRASH() macro, so that it
+     can be called from another namespace.
+   * Fixed a bug in the Hashtable class that could cause crashes
+     after a call to EnsureSize(0, true).
+   * Message::Unflatten() now resizes the Message's entries-Hashtable 
+     to be the exact size of the number of entries it will contain.
+   * Added some #includes to the gz*.c zlib files so "implicit
+     function declaration" warnings are no longer emitted when
+     compiling under MacOS/X.
+   * Fixed a static-initialization-ordering bug in the ObjectCounterBase
+     class that could cause it to try and lock an invalid Mutex during
+     process startup or shutdown.
+   * Under Windows, use of the ChildProcessDataIO class could cause
+     an empty Console window to appear.  That no longer happens.
+
+6.23 Released 7/7/2015
    - The StringMatcher class now has a IsPatternListOfUniqueValues()
-     method that returns true iff the that pattern is a comma-separated
+     method that returns true iff the held pattern is a comma-separated
      list of non-wildcarded values.
    o NodePathMatcher::DoTraversalAux() was using a Queue as a cache,
      which could be inefficient due to O(N^2) lookups in certain cases.
      Replaced it with a Hashtable for better performance.
    o Optimized the NodePathMatcher algorithm to be more efficient
-     when node-paths that include clauses that are long lists of
+     with node-paths that include clauses that are long lists of
      comma-separated node names.
    * SharedFilterSessionFactory.cpp wouldn't compile if -DMUSCLE_AVOID_IPV6
      was specified on the compile line.  Fixed.

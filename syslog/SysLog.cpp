@@ -1304,16 +1304,16 @@ void StackWalker::OnCallstackEntry(CallstackEntryType eType, CallstackEntry *ent
       if (entry->moduleName[0] == 0)
       {
         if (entry->loadedImageName[0] != 0)
-           _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s: %s+0x%x\n"), (LPVOID)entry->loadedImageName, entry->name, (int64) entry->offsetFromSymbol);
+           _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s: %s+0x%I64x\n"), entry->loadedImageName, entry->name, (int64) entry->offsetFromSymbol);
          else
-           _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%p: %s+0x%x\n"), (LPVOID)entry->offset, entry->name, (int64) entry->offsetFromSymbol);
+           _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%p: %s+0x%I64x\n"), (LPVOID)entry->offset, entry->name, (int64) entry->offsetFromSymbol);
       }
       else
       {
         if (entry->loadedImageName[0] != 0)
-           _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s (%s): %s+0x%x\n"), (LPVOID)entry->loadedImageName, entry->moduleName, entry->name, (int64) entry->offsetFromSymbol);
+           _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s (%s): %s+0x%I64x\n"), entry->loadedImageName, entry->moduleName, entry->name, (int64) entry->offsetFromSymbol);
          else
-           _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%p (%s): %s+0x%x\n"), (LPVOID)entry->offset, entry->moduleName, entry->name, (int64) entry->offsetFromSymbol);
+           _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%p (%s): %s+0x%I64x\n"), (LPVOID)entry->offset, entry->moduleName, entry->name, (int64) entry->offsetFromSymbol);
       }
     }
     else _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s (%d): %s\n"), entry->lineFileName, entry->lineNumber, entry->name);

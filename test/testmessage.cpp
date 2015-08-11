@@ -4,6 +4,7 @@
 
 #include "message/Message.h"
 #include "system/SetupSystem.h"
+#include "util/MiscUtilityFunctions.h"
 
 using namespace muscle;
 
@@ -57,6 +58,7 @@ DECLARE_REFTYPES(TestFlatCountable);
 int main(int, char **)
 {
    CompleteSetupSystem css;  // required!
+   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);  // so if unflatten() fails we can see why
 
    // Test muscleSwap()
    {
@@ -78,6 +80,7 @@ int main(int, char **)
    printf("m1=" UINT32_FORMAT_SPEC"\n", m1.FlattenedSize());
    m1.AddInt32("co", 32);
    printf("m2=" UINT32_FORMAT_SPEC"\n", m1.FlattenedSize());
+   m1.PrintToStream();
 
    printSep("Testing Replace*() with okayToAdd...");
    Message butter;
@@ -308,6 +311,8 @@ int main(int, char **)
    {for (uint32 i=flatSize; i<flatSize*10; i++) if (buf[i] != 'J') printf("OVERWRITE ON BYTE " UINT32_FORMAT_SPEC"\n",i);}
    printf("\n====\n");
    
+   PrintHexBytes(buf, flatSize);
+
    Message copy;
    if (copy.Unflatten(buf, flatSize) == B_NO_ERROR)
    {
@@ -335,7 +340,7 @@ int main(int, char **)
    printf("Testing field name iterator... B_OBJECT_TYPE (should have no results)\n");
    for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_OBJECT_TYPE); it.HasData(); it++) printf("--> [%s]\n", it.GetFieldName()());
 
-   // Test the adding and retrieval of FlatCountableRefs
+   printf("Testing adding and retrieval of FlatCountableRefs by reference\n");
    TestFlatCountableRef tfcRef(new TestFlatCountable("Hello", 5));
    if (msg.AddFlat("tfc", FlatCountableRef(tfcRef.GetRefCountableRef(), false)) == B_NO_ERROR)
    {
@@ -347,6 +352,30 @@ int main(int, char **)
       }
       else printf("Error, FindFlat() by value failed!\n");
    }
+
+   printf("Testing adding and retrieval of FlatCountableRefs by value\n");
+   {
+      ByteBufferRef flatBuf = msg.FlattenToByteBuffer();
+      if (flatBuf())
+      {
+         MessageRef newMsg = GetMessageFromPool(flatBuf);
+         if (newMsg())
+         {
+            TestFlatCountable tfc3;
+            if (newMsg()->FindFlat("tfc", tfc3) == B_NO_ERROR)
+            {
+               printf("FindFlat() found: [%s]\n", tfc3.ToString()());
+               if (tfc3 != *tfcRef()) printf("Error, found TFC [%s] doesn't match original [%s]\n", tfc3.ToString()(), tfcRef()->ToString()());
+            }
+            else printf("Error, FindFlat() by value (from restored Message) failed!\n");
+         }
+         else printf("Error, couldn't restore Message from flattened buffer!\n");
+      }
+      else printf("ERROR, Message flatten failed!\n");
+   }
+
+   printf("\n\nFinal contents of (msg) are:\n");
+   msg.PrintToStream();
 
    return 0;
 }
