@@ -11,10 +11,11 @@ namespace muscle {
 
 // Bits that can be passed as a bit-chord to LaunchChildProcess()
 enum {
-   CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY    = 0x01,  // if set, we'll use forkpty() instead of fork() (ignored under Windows)
-   CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDIN  = 0x02,  // if set, we won't redirect from the child process's stdin (supported by fork() implementation only, for now)
-   CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDOUT = 0x04,  // if set, we won't capture and return output from the child process's stdout (supported by fork() implementation only, for now)
-   CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDERR = 0x08,  // if set, we won't capture and return output from the child process's stderr (supported by fork() implementation only, for now)
+   CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY    = 0x01,  /**< if set, we'll use forkpty() instead of fork() (ignored under Windows) */
+   CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDIN  = 0x02,  /**< if set, we won't redirect from the child process's stdin (supported by fork() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDOUT = 0x04,  /**< if set, we won't capture and return output from the child process's stdout (supported by fork() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDERR = 0x08,  /**< if set, we won't capture and return output from the child process's stderr (supported by fork() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_BIT_WIN32_HIDE_GUI = 0x10,  /**< Windows only:  if set, the child process's GUI windows will be hidden */
 };
 
 #ifndef MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS
@@ -188,6 +189,20 @@ public:
      */
    bool WaitForChildProcessToExit(uint64 maxWaitTime = MUSCLE_TIME_NEVER);
 
+   /** Returns true iff our child-process-has-crashed flag was set to true.
+     * Note that this flag is set only when WaitForChildProcessToExit() is called
+     * (either directly by external code, or implicitly by a call to Close()).
+     * The flag is cleared whenever a new child process is launched.
+     *
+     * @note The windows implementation of this method is based on the child
+     *       process's exit code; any exit code that has the two highest bits
+     *       set will be interpreted as a crashed process.  That is the
+     *       convention for exit codes under Windows, but it is possible
+     *       for the child process to flout convention, leading to false
+     *       positives or false negatives in this method's return value.
+     */
+   bool DidChildProcessCrash() const {return _childProcessCrashed;}
+
    /** Convenience method:  acts similar to the POSIX system() call, but
      * implemented internally via a ChildProcessDataIO object.  In particular,
      * this static method will launch the specified process and not return
@@ -283,6 +298,7 @@ private:
    bool _killChildOkay;
    uint64 _maxChildWaitTime;
    int _signalNumber;
+   bool _childProcessCrashed;
 
    bool _childProcessInheritFileDescriptors;
    bool _childProcessIsIndependent;

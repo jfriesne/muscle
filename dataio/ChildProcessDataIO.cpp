@@ -25,7 +25,7 @@
 
 namespace muscle {
 
-ChildProcessDataIO :: ChildProcessDataIO(bool blocking) : _blocking(blocking), _killChildOkay(true), _maxChildWaitTime(0), _signalNumber(-1), _childProcessInheritFileDescriptors(false), _childProcessIsIndependent(false)
+ChildProcessDataIO :: ChildProcessDataIO(bool blocking) : _blocking(blocking), _killChildOkay(true), _maxChildWaitTime(0), _signalNumber(-1), _childProcessCrashed(false), _childProcessInheritFileDescriptors(false), _childProcessIsIndependent(false)
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    , _readFromStdout(INVALID_HANDLE_VALUE), _writeToStdin(INVALID_HANDLE_VALUE), _ioThread(INVALID_HANDLE_VALUE), _wakeupSignal(INVALID_HANDLE_VALUE), _childProcess(INVALID_HANDLE_VALUE), _childThread(INVALID_HANDLE_VALUE), _requestThreadExit(false)
 #else
@@ -72,14 +72,13 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    TCHECKPOINT;
 
    Close();  // paranoia
+   _childProcessCrashed = false;  // we don't care about the crashed-flag of a previous process anymore!
 
 #ifdef MUSCLE_AVOID_FORKPTY
    launchBits &= ~CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY;   // no sense trying to use pseudo-terminals if they were forbidden at compile time
 #endif
 
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
-   (void) launchBits;  // avoid compiler warning
-
    SECURITY_ATTRIBUTES saAttr;
    {
       memset(&saAttr, 0, sizeof(saAttr));
@@ -106,13 +105,15 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 
                STARTUPINFOA siStartInfo;         
                {
+                  bool hideChildGUI = ((launchBits & CHILD_PROCESS_LAUNCH_BIT_WIN32_HIDE_GUI) != 0);
+
                   memset(&siStartInfo, 0, sizeof(siStartInfo));
                   siStartInfo.cb          = sizeof(siStartInfo);
                   siStartInfo.hStdError   = childStdoutWrite;
                   siStartInfo.hStdOutput  = childStdoutWrite;
                   siStartInfo.hStdInput   = childStdinRead;
-                  siStartInfo.dwFlags     = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-                  siStartInfo.wShowWindow = SW_HIDE;  // avoid the introduction of an empty console window
+                  siStartInfo.dwFlags     = STARTF_USESTDHANDLES | (hideChildGUI ? STARTF_USESHOWWINDOW : 0);
+                  siStartInfo.wShowWindow = hideChildGUI ? SW_HIDE : 0;
                }
 
                String cmd;
@@ -336,11 +337,36 @@ void ChildProcessDataIO :: DoGracefulChildShutdown()
 
 bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
 {
+   _childProcessCrashed = false;
+
 #ifdef WIN32
-   return ((_childProcess == INVALID_HANDLE_VALUE)||(WaitForSingleObject(_childProcess, (maxWaitTimeMicros==MUSCLE_TIME_NEVER)?INFINITE:((DWORD)(maxWaitTimeMicros/1000))) == WAIT_OBJECT_0));
+   if (_childProcess == INVALID_HANDLE_VALUE) return true;
+   if (WaitForSingleObject(_childProcess, (maxWaitTimeMicros==MUSCLE_TIME_NEVER)?INFINITE:((DWORD)(maxWaitTimeMicros/1000))) == WAIT_OBJECT_0)
+   {
+      DWORD exitCode;
+      if (GetExitCodeProcess(_childProcess, &exitCode))
+      {
+         // Note that this is only a heuristic since a sufficiently
+         // demented child process could return a code that matches
+         // this criterion as part of its normal exit(), and a crashed
+         // program could (conceivably) have an exit code that doesn't
+         // meet this criterion.  But in general this will work.  --jaf
+         _childProcessCrashed = ((exitCode & (0xC0000000)) != 0);
+      }
+      return true;
+   }
 #else
    if (_childPID < 0) return true;   // a non-existent child process is an exited child process, if you ask me.
-   if (maxWaitTimeMicros == MUSCLE_TIME_NEVER) return (waitpid(_childPID, NULL, 0) == _childPID);
+   if (maxWaitTimeMicros == MUSCLE_TIME_NEVER) 
+   {
+      int status = 0;
+      int pid = waitpid(_childPID, &status, 0);
+      if (pid == _childPID)
+      {
+         _childProcessCrashed = WIFSIGNALED(status);
+         return true;
+      }
+   }
    else
    {
       // The tricky case... waiting for the child process to exit, with a timeout.
@@ -348,15 +374,20 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
       // it but the only alternative would involve mucking about with signal handlers,
       // and doing it that way would be unreliable in multithreaded environments.
       uint64 endTime = GetRunTime64()+maxWaitTimeMicros;
-      uint64 pollInterval = 0;  // we'll start quickly, and work our way up.
+      uint64 pollInterval = 0;  // we'll start quickly, and start polling more slowly only if the child process doesn't exit soon
       while(1)
       {
-         int r = waitpid(_childPID, NULL, WNOHANG);  // WNOHANG should guarantee that this call will not block
-              if (r  == _childPID) return true;  // yay, he exited!
-         else if (r == -1) return false;         // fail on error
+         int status = 0;
+         int r = waitpid(_childPID, &status, WNOHANG);  // WNOHANG should guarantee that this call will not block
+         if (r == _childPID) 
+         {
+            _childProcessCrashed = WIFSIGNALED(status);
+            return true;  // yay, he exited!
+         }
+         else if (r == -1) break;      // fail on error
 
          int64 microsLeft = endTime-GetRunTime64();
-         if (microsLeft <= 0) return false;  // we're out of time!
+         if (microsLeft <= 0) break;   // we're out of time!
 
          // At this point, r was probably zero because the child wasn't ready to exit
          if (pollInterval < (200*1000)) pollInterval += (10*1000);
@@ -364,6 +395,8 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
       }
    }
 #endif
+
+   return false;
 }
 
 int32 ChildProcessDataIO :: Read(void *buf, uint32 len)

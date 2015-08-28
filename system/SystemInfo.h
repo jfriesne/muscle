@@ -15,14 +15,14 @@ namespace muscle {
 const char * GetOSName(const char * defaultString = "Unknown");
 
 enum {
-   SYSTEM_PATH_CURRENT = 0, // our current working directory
-   SYSTEM_PATH_EXECUTABLE,  // directory where our process's executable binary is 
-   SYSTEM_PATH_TEMPFILES,   // scratch directory where temp files may be stored
-   SYSTEM_PATH_USERHOME,    // the current user's home folder
-   SYSTEM_PATH_DESKTOP,     // the current user's desktop folder
-   SYSTEM_PATH_DOCUMENTS,   // the current user's documents folder
-   SYSTEM_PATH_ROOT,        // the root directory
-   NUM_SYSTEM_PATHS
+   SYSTEM_PATH_CURRENT = 0, /**< our current working directory */
+   SYSTEM_PATH_EXECUTABLE,  /**< directory where our process's executable binary is  */
+   SYSTEM_PATH_TEMPFILES,   /**< scratch directory where temp files may be stored */
+   SYSTEM_PATH_USERHOME,    /**< the current user's home folder */
+   SYSTEM_PATH_DESKTOP,     /**< the current user's desktop folder */
+   SYSTEM_PATH_DOCUMENTS,   /**< the current user's documents folder */
+   SYSTEM_PATH_ROOT,        /**< the root directory */
+   NUM_SYSTEM_PATHS         /**< guard value */
 };
 
 /** Given a SYSTEM_PATH_* token, returns the system's directory path

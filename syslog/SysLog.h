@@ -17,14 +17,14 @@ class LogCallbackArgs;
 /** log level constants to use with SetLogLevel(), GetLogLevel() */
 enum
 {
-   MUSCLE_LOG_NONE = 0,         // nothing ever gets logged at this level (default)
-   MUSCLE_LOG_CRITICALERROR,    // only things that should never ever happen
-   MUSCLE_LOG_ERROR,            // things that shouldn't usually happen
-   MUSCLE_LOG_WARNING,          // things that are suspicious
-   MUSCLE_LOG_INFO,             // things that the user might like to know
-   MUSCLE_LOG_DEBUG,            // things the programmer is debugging with
-   MUSCLE_LOG_TRACE,            // exhaustively detailed output
-   NUM_MUSCLE_LOGLEVELS
+   MUSCLE_LOG_NONE = 0,         /**< nothing ever gets logged at this level (default) */
+   MUSCLE_LOG_CRITICALERROR,    /**< only things that should never ever happen */
+   MUSCLE_LOG_ERROR,            /**< things that shouldn't usually happen */
+   MUSCLE_LOG_WARNING,          /**< things that are suspicious */
+   MUSCLE_LOG_INFO,             /**< things that the user might like to know */
+   MUSCLE_LOG_DEBUG,            /**< things the programmer is debugging with */
+   MUSCLE_LOG_TRACE,            /**< exhaustively detailed output */
+   NUM_MUSCLE_LOGLEVELS         /**< guard value */
 }; 
 
 // Define this constant in your Makefile (i.e. -DMUSCLE_DISABLE_LOGGING) to turn all the
@@ -474,8 +474,8 @@ private:
 
 /** When passing a uint64 as a time value, these tags help indicate what sort of time value it is. */
 enum {
-   MUSCLE_TIMEZONE_UTC = 0, // Universal Co-ordinated Time (formerly Greenwhich Mean Time)
-   MUSCLE_TIMEZONE_LOCAL    // Host machine's local time (depends on local time zone settings)
+   MUSCLE_TIMEZONE_UTC = 0, /**< Universal Co-ordinated Time (formerly Greenwhich Mean Time) */
+   MUSCLE_TIMEZONE_LOCAL    /**< Host machine's local time (depends on local time zone settings) */
 };
 
 /** Given a uint64 representing a time in microseconds since 1970,

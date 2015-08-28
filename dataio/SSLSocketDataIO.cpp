@@ -15,7 +15,7 @@ namespace muscle {
 SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking, bool accept) : TCPSocketDataIO(sockfd, blocking), _sslState(0), _forceReadReady(false)
 {
    bool ok = false;
-   ConstSocketRef tempSocket;  // yes, it's intentional that this socket will be closed as soon as we live this scope
+   ConstSocketRef tempSocket;  // yes, it's intentional that this socket will be closed as soon as we exit this scope
    if (CreateConnectedSocketPair(tempSocket, _alwaysReadableSocket) == B_NO_ERROR)
    {
       _ctx = SSL_CTX_new(SSLv3_method());  // Using SSLv3_method() instead of SSLv23_method to avoid errors from SSL_pending()

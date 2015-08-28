@@ -18,9 +18,9 @@ public:
 
 /** These flags govern the default routing behavior of unrecognized Message types */
 enum {
-   MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF      = 0x01,  /** If this bit is set, Messages broadcast by this session will be received by this session */
-   MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS = 0x02,  /** If this bit is set, unrecognized Messages received by this session's gateway will be broadcast to all neighbors. */
-   MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY = 0x04   /** If this bit is set, unrecognized Messages received by this session's neighbors will be forwarded to this session's gateway. */ 
+   MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF      = 0x01,  /**< If this bit is set, Messages broadcast by this session will be received by this session */
+   MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS = 0x02,  /**< If this bit is set, unrecognized Messages received by this session's gateway will be broadcast to all neighbors. */
+   MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY = 0x04   /**< If this bit is set, unrecognized Messages received by this session's neighbors will be forwarded to this session's gateway. */ 
 };
 
 #ifndef DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD

@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.30"
-#define MUSCLE_VERSION        63000  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.31"
+#define MUSCLE_VERSION        63100  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -305,28 +305,28 @@ typedef void * muscleVoidPointer;  /* it's a bit easier, syntax-wise, to use thi
  * constants when compiling under Linux --jaf
  */
 enum {
-   B_ANY_TYPE     = 1095653716, /* 'ANYT' = wild card                                   */
-   B_BOOL_TYPE    = 1112493900, /* 'BOOL' = boolean (1 byte per bool)                   */
-   B_DOUBLE_TYPE  = 1145195589, /* 'DBLE' = double-precision float (8 bytes per double) */
-   B_FLOAT_TYPE   = 1179406164, /* 'FLOT' = single-precision float (4 bytes per float)  */
-   B_INT64_TYPE   = 1280069191, /* 'LLNG' = long long integer (8 bytes per int)         */
-   B_INT32_TYPE   = 1280265799, /* 'LONG' = long integer (4 bytes per int)              */
-   B_INT16_TYPE   = 1397248596, /* 'SHRT' = short integer (2 bytes per int)             */
-   B_INT8_TYPE    = 1113150533, /* 'BYTE' = byte integer (1 byte per int)               */
-   B_MESSAGE_TYPE = 1297303367, /* 'MSGG' = sub Message objects (reference counted)     */
-   B_POINTER_TYPE = 1347310674, /* 'PNTR' = pointers (will not be flattened)            */
-   B_POINT_TYPE   = 1112559188, /* 'BPNT' = Point objects (each Point has two floats)   */
-   B_RECT_TYPE    = 1380270932, /* 'RECT' = Rect objects (each Rect has four floats)    */
-   B_STRING_TYPE  = 1129534546, /* 'CSTR' = String objects (variable length)            */
-   B_OBJECT_TYPE  = 1330664530, /* 'OPTR' = Flattened user objects (obsolete)           */
-   B_RAW_TYPE     = 1380013908, /* 'RAWT' = Raw data (variable number of bytes)         */
-   B_MIME_TYPE    = 1296649541  /* 'MIME' = MIME strings (obsolete)                     */
+   B_ANY_TYPE     = 1095653716, /**< 'ANYT' = wild card                                   */
+   B_BOOL_TYPE    = 1112493900, /**< 'BOOL' = boolean (1 byte per bool)                   */
+   B_DOUBLE_TYPE  = 1145195589, /**< 'DBLE' = double-precision float (8 bytes per double) */
+   B_FLOAT_TYPE   = 1179406164, /**< 'FLOT' = single-precision float (4 bytes per float)  */
+   B_INT64_TYPE   = 1280069191, /**< 'LLNG' = long long integer (8 bytes per int)         */
+   B_INT32_TYPE   = 1280265799, /**< 'LONG' = long integer (4 bytes per int)              */
+   B_INT16_TYPE   = 1397248596, /**< 'SHRT' = short integer (2 bytes per int)             */
+   B_INT8_TYPE    = 1113150533, /**< 'BYTE' = byte integer (1 byte per int)               */
+   B_MESSAGE_TYPE = 1297303367, /**< 'MSGG' = sub Message objects (reference counted)     */
+   B_POINTER_TYPE = 1347310674, /**< 'PNTR' = pointers (will not be flattened)            */
+   B_POINT_TYPE   = 1112559188, /**< 'BPNT' = Point objects (each Point has two floats)   */
+   B_RECT_TYPE    = 1380270932, /**< 'RECT' = Rect objects (each Rect has four floats)    */
+   B_STRING_TYPE  = 1129534546, /**< 'CSTR' = String objects (variable length)            */
+   B_OBJECT_TYPE  = 1330664530, /**< 'OPTR' = Flattened user objects (obsolete)           */
+   B_RAW_TYPE     = 1380013908, /**< 'RAWT' = Raw data (variable number of bytes)         */
+   B_MIME_TYPE    = 1296649541  /**< 'MIME' = MIME strings (obsolete)                     */
 };
 #endif
 
-/* This one isn't defined by BeOS, so we have to enumerate it separately.               */
+/* This one isn't defined by BeOS, so we have to enumerate it separately.                 */
 enum {
-   B_TAG_TYPE     = 1297367367  /* 'MTAG' = new for v2.00; for in-mem-only tags         */
+   B_TAG_TYPE     = 1297367367  /**< 'MTAG' = new for v2.00; for in-mem-only tags         */
 };
 
 /* This constant is used in various places to mean 'as much as you want' */

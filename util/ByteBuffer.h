@@ -14,9 +14,9 @@ class DataIO;
 class IMemoryAllocationStrategy;
 
 enum {
-   DATA_FLAG_NATIVE_ENDIAN = 0x00,  // specifies that the data to be read (or written) is the same endian-ness as the host CPU
-   DATA_FLAG_LITTLE_ENDIAN = 0x01,  // specifies that the data to be read (or written) is little-endian
-   DATA_FLAG_BIG_ENDIAN    = 0x02,  // specifies that the data to be read (or written) is big-endian
+   DATA_FLAG_NATIVE_ENDIAN = 0x00,  /**< specifies that the data to be read (or written) is the same endian-ness as the host CPU */
+   DATA_FLAG_LITTLE_ENDIAN = 0x01,  /**< specifies that the data to be read (or written) is little-endian */
+   DATA_FLAG_BIG_ENDIAN    = 0x02,  /**< specifies that the data to be read (or written) is big-endian */
 };
 
 #ifndef DEFAULT_BYTEBUFFER_DATA_FLAGS

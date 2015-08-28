@@ -10,8 +10,8 @@ namespace muscle {
 
 /** Event message codes returned by this thread */
 enum {
-   AST_EVENT_NEW_SOCKET_ACCEPTED = 1634956336, // 'ast0' - sent when we accept and send back a new socket
-   AST_LAST_EVENT
+   AST_EVENT_NEW_SOCKET_ACCEPTED = 1634956336, /**< 'ast0' - sent when we accept and send back a new socket */
+   AST_LAST_EVENT                              /**< guard value */
 };
 
 #define AST_NAME_SOCKET "socket"  // field name where we store our ConstSocketRef in our reply Messages.

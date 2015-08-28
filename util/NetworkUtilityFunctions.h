@@ -680,11 +680,11 @@ public:
    virtual status_t SocketCallback(uint32 eventType, const ConstSocketRef & sock) = 0;
 
    enum {
-      SOCKET_CALLBACK_CREATE_UDP = 0,   // socket was just created by CreateUDPSocket()
-      SOCKET_CALLBACK_CREATE_ACCEPTING, // socket was just created by CreateAcceptingSocket()
-      SOCKET_CALLBACK_ACCEPT,           // socket was just created by Accept()
-      SOCKET_CALLBACK_CONNECT,          // socket was just created by Connect() or ConnectAsync()
-      NUM_SOCKET_CALLBACKS
+      SOCKET_CALLBACK_CREATE_UDP = 0,   /**< socket was just created by CreateUDPSocket() */
+      SOCKET_CALLBACK_CREATE_ACCEPTING, /**< socket was just created by CreateAcceptingSocket() */
+      SOCKET_CALLBACK_ACCEPT,           /**< socket was just created by Accept() */
+      SOCKET_CALLBACK_CONNECT,          /**< socket was just created by Connect() or ConnectAsync() */
+      NUM_SOCKET_CALLBACKS              /**< guard value */
    };
 };
 
@@ -901,24 +901,24 @@ private:
 
 /** Bits that can be passed to GetNetworkInterfaceInfos() or GetNetworkInterfaceAddresses(). */
 enum {
-   GNII_INCLUDE_IPV4_INTERFACES        = 0x01, // If set, IPv4-specific interfaces will be returned
-   GNII_INCLUDE_IPV6_INTERFACES        = 0x02, // If set, IPv6-specific interfaces will be returned
-   GNII_INCLUDE_LOOPBACK_INTERFACES    = 0x04, // If set, loopback interfaces (e.g. lo0/127.0.0.1) will be returned
-   GNII_INCLUDE_NONLOOPBACK_INTERFACES = 0x08, // If set, non-loopback interfaces (e.g. en0) will be returned
-   GNII_INCLUDE_ENABLED_INTERFACES     = 0x10, // If set, enabled (aka "up") interfaces will be returned
-   GNII_INCLUDE_DISABLED_INTERFACES    = 0x20, // If set, disabled (aka "down") interfaces will be returned
-   GNII_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT = 0x40, // If set, loopback interfaces will be returned only if no other interfaces are found
-   GNII_INCLUDE_UNADDRESSED_INTERFACES = 0x80, // If set, we'll include even interfaces that don't have a valid IP address
+   GNII_INCLUDE_IPV4_INTERFACES        = 0x01, /**< If set, IPv4-specific interfaces will be returned */
+   GNII_INCLUDE_IPV6_INTERFACES        = 0x02, /**< If set, IPv6-specific interfaces will be returned */
+   GNII_INCLUDE_LOOPBACK_INTERFACES    = 0x04, /**< If set, loopback interfaces (e.g. lo0/127.0.0.1) will be returned */
+   GNII_INCLUDE_NONLOOPBACK_INTERFACES = 0x08, /**< If set, non-loopback interfaces (e.g. en0) will be returned */
+   GNII_INCLUDE_ENABLED_INTERFACES     = 0x10, /**< If set, enabled (aka "up") interfaces will be returned */
+   GNII_INCLUDE_DISABLED_INTERFACES    = 0x20, /**< If set, disabled (aka "down") interfaces will be returned */
+   GNII_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT = 0x40, /**< If set, loopback interfaces will be returned only if no other interfaces are found */
+   GNII_INCLUDE_UNADDRESSED_INTERFACES = 0x80, /**< If set, we'll include even interfaces that don't have a valid IP address */
 
    // For convenience, GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES will specify interfaces of the family specified by MUSCLE_AVOID_IPV6's presence/abscence.
 #ifdef MUSCLE_AVOID_IPV6
-   GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_INCLUDE_IPV4_INTERFACES,
+   GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_INCLUDE_IPV4_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
 #else
-   GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_INCLUDE_IPV6_INTERFACES,
+   GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_INCLUDE_IPV6_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
 #endif
 
-   GNII_INCLUDE_ALL_INTERFACES           = 0xFFFFFFFF,  // If set, all interfaces will be returned
-   GNII_INCLUDE_ALL_ADDRESSED_INTERFACES = (GNII_INCLUDE_ALL_INTERFACES & ~(GNII_INCLUDE_UNADDRESSED_INTERFACES))  // default setting -- all interfaces with an IP address
+   GNII_INCLUDE_ALL_INTERFACES           = 0xFFFFFFFF,  /** If set, all interfaces will be returned */
+   GNII_INCLUDE_ALL_ADDRESSED_INTERFACES = (GNII_INCLUDE_ALL_INTERFACES & ~(GNII_INCLUDE_UNADDRESSED_INTERFACES))  /** default setting -- all interfaces with an IP address */
 };
 
 /** This function queries the local OS for information about all available network

@@ -2763,6 +2763,8 @@ bool MessageField :: IsEqualTo(const MessageField & rhs, bool compareContents) c
          MCRASH("MessageField::IsEqualTo():  Bad _state C!");
       break;
    }
+
+   return false;  // we should never get here anyway, but having this avoids a compiler warning
 }
 
 MessageField & MessageField :: operator = (const MessageField & rhs)

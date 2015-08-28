@@ -137,10 +137,10 @@ public:
    inline bool IsSocketEventOfTypeFlagged(int fd, uint32 whichSet) const {return GetAlternateFDState().IsSocketReady(fd, whichSet);}
 
    enum {
-      FDSTATE_SET_READ = 0,
-      FDSTATE_SET_WRITE,
-      FDSTATE_SET_EXCEPT,
-      NUM_FDSTATE_SETS
+      FDSTATE_SET_READ = 0, /**< read-ready attribute of the file descriptors */
+      FDSTATE_SET_WRITE,    /**< write-ready attribute of the file descriptors */
+      FDSTATE_SET_EXCEPT,   /**< exception-pending attribute of the file descriptors */
+      NUM_FDSTATE_SETS      /**< guard value */
    };
 
 private:

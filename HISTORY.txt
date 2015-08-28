@@ -5,6 +5,22 @@ key:  - new feature
       * bug fixed
       o other
 
+6.31 Released 8/27/2015
+   - The ChildProcessDataIO class now has a DidChildProcessCrash()
+     method that will return true iff WaitForChildProcessToExit()
+     detected that the child process exited due to an unhandled
+     signal rather than via a normal process termination.
+   * In v6.30, the windows implementation of ChildProcessDataIO  
+     would always hide the child process's windows, even in cases 
+     where it was desirable for the child process's windows to be
+     visible.  To avoid that misbehavior, the child process's windows
+     are now hidden only if the CHILD_PROCESS_LAUNCH_BIT_WIN32_HIDE_GUI
+     bit is set in the (launchBits) argument.
+   * Some of the the DOxygen comments for enumerations in the 
+     header files were not formed correctly, so the DOxygen 
+     HTML pages would leave them undocumented.  Fixed.
+   * Fixed a compiler warning in MessageField::IsEqualTo().
+
 6.30 Released 8/11/2015
    - The Message class now uses special-case variant logic for fields
      that contain only a single value, so that in the common case

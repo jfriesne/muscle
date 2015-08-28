@@ -1979,6 +1979,7 @@ INCLUDE_FILE_PATTERNS  =
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
 PREDEFINED             = MuscleMessage_impl_h \
+                         MUSCLE_ENABLE_ZLIB_ENCODING \
                          "HT_UniversalSinkKeyRef=" \
                          "HT_UniversalSinkValueRef=" \
                          "HT_UniversalSinkKeyValueRef=" \

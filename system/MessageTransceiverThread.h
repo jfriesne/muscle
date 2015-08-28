@@ -19,34 +19,34 @@ class MessageTransceiverThread;
   * @see MessageTransceiverThread::GetNextEventFromInternalThread()
   */
 enum {
-   MTT_EVENT_INCOMING_MESSAGE = 1835233840, // A new message from a remote computer is ready to process
-   MTT_EVENT_SESSION_ACCEPTED,              // A new session has been created by one of our factory objects
-   MTT_EVENT_SESSION_ATTACHED,              // A new session has been attached to the local server
-   MTT_EVENT_SESSION_CONNECTED,             // A session on the local server has completed its connection to the remote one
-   MTT_EVENT_SESSION_DISCONNECTED,          // A session on the local server got disconnected from its remote peer
-   MTT_EVENT_SESSION_DETACHED,              // A session on the local server has detached (and been destroyed)
-   MTT_EVENT_FACTORY_ATTACHED,              // A ReflectSessionFactory object has been attached to the server
-   MTT_EVENT_FACTORY_DETACHED,              // A ReflectSessionFactory object has been detached (and been destroyed)
-   MTT_EVENT_OUTPUT_QUEUES_DRAINED,         // Output queues of sessions previously specified in RequestOutputQueuesDrainedNotification() have drained
-   MTT_EVENT_SERVER_EXITED,                 // The ReflectServer event loop has terminated
-   MTT_LAST_EVENT
+   MTT_EVENT_INCOMING_MESSAGE = 1835233840, /**< A new message from a remote computer is ready to process */
+   MTT_EVENT_SESSION_ACCEPTED,              /**< A new session has been created by one of our factory objects */
+   MTT_EVENT_SESSION_ATTACHED,              /**< A new session has been attached to the local server */
+   MTT_EVENT_SESSION_CONNECTED,             /**< A session on the local server has completed its connection to the remote one */
+   MTT_EVENT_SESSION_DISCONNECTED,          /**< A session on the local server got disconnected from its remote peer */
+   MTT_EVENT_SESSION_DETACHED,              /**< A session on the local server has detached (and been destroyed) */
+   MTT_EVENT_FACTORY_ATTACHED,              /**< A ReflectSessionFactory object has been attached to the server */
+   MTT_EVENT_FACTORY_DETACHED,              /**< A ReflectSessionFactory object has been detached (and been destroyed) */
+   MTT_EVENT_OUTPUT_QUEUES_DRAINED,         /**< Output queues of sessions previously specified in RequestOutputQueuesDrainedNotification() have drained */
+   MTT_EVENT_SERVER_EXITED,                 /**< The ReflectServer event loop has terminated */
+   MTT_LAST_EVENT                           /**< guard value */
 };
    
 /** These are command codes used in the MessageTransceiverThread's internal protocol */
 enum {
-   MTT_COMMAND_SEND_USER_MESSAGE = 1835230000, // contains a user message to be sent out
-   MTT_COMMAND_ADD_NEW_SESSION,                // contains info on a new session to be created
-   MTT_COMMAND_PUT_ACCEPT_FACTORY,             // request to start accepting session(s) on a given port
-   MTT_COMMAND_REMOVE_ACCEPT_FACTORY,          // remove the acceptor factory on a given port(s)
-   MTT_COMMAND_SET_DEFAULT_PATH,               // change the default distribution path
-   MTT_COMMAND_NOTIFY_ON_OUTPUT_DRAIN,         // request a notification when all currently pending output has been sent
-   MTT_COMMAND_SET_INPUT_POLICY,               // set a new input IO Policy for worker sessions
-   MTT_COMMAND_SET_OUTPUT_POLICY,              // set a new output IO Policy for worker sessions
-   MTT_COMMAND_REMOVE_SESSIONS,                // remove the matching worker sessions
-   MTT_COMMAND_SET_OUTGOING_ENCODING,          // set the MUSCLE_MESSAGE_ENCODING_* setting on worker sessions
-   MTT_COMMAND_SET_SSL_PRIVATE_KEY,            // set the private key used to authenticate accepted incoming TCP connections
-   MTT_COMMAND_SET_SSL_PUBLIC_KEY,             // set the public key used to certify outgoing TCP connections
-   MTT_LAST_COMMAND
+   MTT_COMMAND_SEND_USER_MESSAGE = 1835230000, /**< contains a user message to be sent out */
+   MTT_COMMAND_ADD_NEW_SESSION,                /**< contains info on a new session to be created */
+   MTT_COMMAND_PUT_ACCEPT_FACTORY,             /**< request to start accepting session(s) on a given port */
+   MTT_COMMAND_REMOVE_ACCEPT_FACTORY,          /**< remove the acceptor factory on a given port(s) */
+   MTT_COMMAND_SET_DEFAULT_PATH,               /**< change the default distribution path */
+   MTT_COMMAND_NOTIFY_ON_OUTPUT_DRAIN,         /**< request a notification when all currently pending output has been sent */
+   MTT_COMMAND_SET_INPUT_POLICY,               /**< set a new input IO Policy for worker sessions */
+   MTT_COMMAND_SET_OUTPUT_POLICY,              /**< set a new output IO Policy for worker sessions */
+   MTT_COMMAND_REMOVE_SESSIONS,                /**< remove the matching worker sessions */
+   MTT_COMMAND_SET_OUTGOING_ENCODING,          /**< set the MUSCLE_MESSAGE_ENCODING_* setting on worker sessions */
+   MTT_COMMAND_SET_SSL_PRIVATE_KEY,            /**< set the private key used to authenticate accepted incoming TCP connections */
+   MTT_COMMAND_SET_SSL_PUBLIC_KEY,             /**< set the public key used to certify outgoing TCP connections */
+   MTT_LAST_COMMAND                            /**< guard value */
 };
 
 /** These are field names used in the MessageTransceiverThread's internal protocol */

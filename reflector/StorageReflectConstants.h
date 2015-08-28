@@ -12,92 +12,92 @@ namespace muscle {
 /** 'What' codes understood to have special meaning by the StorageReflectSession class */
 enum 
 {
-   BEGIN_PR_COMMANDS = 558916400, // '!Pc0'
-   PR_COMMAND_SETPARAMETERS,      // Adds/replaces the given fields in the parameters table
-   PR_COMMAND_GETPARAMETERS,      // Returns the current parameter set to the client
-   PR_COMMAND_REMOVEPARAMETERS,   // deletes the parameters specified in PR_NAME_KEYS
-   PR_COMMAND_SETDATA,            // Adds/replaces the given message in the data table
-   PR_COMMAND_GETDATA,            // Retrieves the given message(s) in the data table
-   PR_COMMAND_REMOVEDATA,         // Removes the gives message(s) from the data table
-   PR_COMMAND_JETTISONRESULTS,    // Removes data from outgoing result messages
-   PR_COMMAND_INSERTORDEREDDATA,  // Insert nodes underneath a node, as an ordered list
-   PR_COMMAND_PING,               // Echo this message back to the sending client
-   PR_COMMAND_KICK,               // Kick matching clients off the server (Requires privilege)
-   PR_COMMAND_ADDBANS,            // Add ban patterns to the server's ban list (Requires privilege)
-   PR_COMMAND_REMOVEBANS,         // Remove ban patterns from the server's ban list (Requires privilege)
-   PR_COMMAND_BATCH,              // Messages in PR_NAME_KEYS are executed in order, as if they came separately
-   PR_COMMAND_NOOP,               // Does nothing at all
-   PR_COMMAND_REORDERDATA,        // Moves one or more entries in a node index to a different spot in the index
-   PR_COMMAND_ADDREQUIRES,        // Add require patterns to the server's require list (Requires ban privilege)
-   PR_COMMAND_REMOVEREQUIRES,     // Remove require patterns from the server's require list (Requires ban privilege)
-   PR_COMMAND_SETDATATREES,       // Sets an entire subtree of data from a single Message (Not implemented!)
-   PR_COMMAND_GETDATATREES,       // Returns an entire subtree of data as a single Message
-   PR_COMMAND_JETTISONDATATREES,  // Removes matching RESULT_DATATREES Messages from the outgoing queue
-   PR_COMMAND_RESERVED14,         // reserved for future expansion
-   PR_COMMAND_RESERVED15,         // reserved for future expansion
-   PR_COMMAND_RESERVED16,         // reserved for future expansion
-   PR_COMMAND_RESERVED17,         // reserved for future expansion
-   PR_COMMAND_RESERVED18,         // reserved for future expansion
-   PR_COMMAND_RESERVED19,         // reserved for future expansion
-   PR_COMMAND_RESERVED20,         // reserved for future expansion
-   PR_COMMAND_RESERVED21,         // reserved for future expansion
-   PR_COMMAND_RESERVED22,         // reserved for future expansion
-   PR_COMMAND_RESERVED23,         // reserved for future expansion
-   PR_COMMAND_RESERVED24,         // reserved for future expansion
-   PR_COMMAND_RESERVED25,         // reserved for future expansion
-   END_PR_COMMANDS
+   BEGIN_PR_COMMANDS = 558916400, /**< '!Pc0' */
+   PR_COMMAND_SETPARAMETERS,      /**< Adds/replaces the given fields in the parameters table */
+   PR_COMMAND_GETPARAMETERS,      /**< Returns the current parameter set to the client */
+   PR_COMMAND_REMOVEPARAMETERS,   /**< deletes the parameters specified in PR_NAME_KEYS */
+   PR_COMMAND_SETDATA,            /**< Adds/replaces the given message in the data table */
+   PR_COMMAND_GETDATA,            /**< Retrieves the given message(s) in the data table */
+   PR_COMMAND_REMOVEDATA,         /**< Removes the gives message(s) from the data table */
+   PR_COMMAND_JETTISONRESULTS,    /**< Removes data from outgoing result messages */
+   PR_COMMAND_INSERTORDEREDDATA,  /**< Insert nodes underneath a node, as an ordered list */
+   PR_COMMAND_PING,               /**< Echo this message back to the sending client */
+   PR_COMMAND_KICK,               /**< Kick matching clients off the server (Requires privilege) */
+   PR_COMMAND_ADDBANS,            /**< Add ban patterns to the server's ban list (Requires privilege) */
+   PR_COMMAND_REMOVEBANS,         /**< Remove ban patterns from the server's ban list (Requires privilege) */
+   PR_COMMAND_BATCH,              /**< Messages in PR_NAME_KEYS are executed in order, as if they came separately */
+   PR_COMMAND_NOOP,               /**< Does nothing at all */
+   PR_COMMAND_REORDERDATA,        /**< Moves one or more entries in a node index to a different spot in the index */
+   PR_COMMAND_ADDREQUIRES,        /**< Add require patterns to the server's require list (Requires ban privilege) */
+   PR_COMMAND_REMOVEREQUIRES,     /**< Remove require patterns from the server's require list (Requires ban privilege) */
+   PR_COMMAND_SETDATATREES,       /**< Sets an entire subtree of data from a single Message (Not implemented!) */
+   PR_COMMAND_GETDATATREES,       /**< Returns an entire subtree of data as a single Message */
+   PR_COMMAND_JETTISONDATATREES,  /**< Removes matching RESULT_DATATREES Messages from the outgoing queue */
+   PR_COMMAND_RESERVED14,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED15,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED16,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED17,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED18,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED19,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED20,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED21,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED22,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED23,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED24,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED25,         /**< reserved for future expansion */
+   END_PR_COMMANDS                /**< guard value */
 };
 
 /** 'What' codes that may be generated by the StorageReflectSession and sent back to the client */
 enum 
 {
-   BEGIN_PR_RESULTS = 558920240, // '!Pr0'
-   PR_RESULT_PARAMETERS,   // Sent to client in response to PR_COMMAND_GETPARAMETERS
-   PR_RESULT_DATAITEMS,    // Sent to client in response to PR_COMMAND_GETDATA, or subscriptions
-   PR_RESULT_ERRORUNIMPLEMENTED,  // Sent to client to tell him that we don't know how to process his request message
-   PR_RESULT_INDEXUPDATED, // Notification that an entry has been inserted into an ordered index
-   PR_RESULT_PONG,         // Response from a PR_COMMAND_PING message
-   PR_RESULT_ERRORACCESSDENIED, // Your client isn't allowed to do something it tried to do
-   PR_RESULT_DATATREES,    // Reply to a PR_COMMAND_GETDATATREES message
-   PR_RESULT_RESERVED5,    // reserved for future expansion
-   PR_RESULT_RESERVED6,    // reserved for future expansion
-   PR_RESULT_RESERVED7,    // reserved for future expansion
-   PR_RESULT_RESERVED8,    // reserved for future expansion
-   PR_RESULT_RESERVED9,    // reserved for future expansion
-   PR_RESULT_RESERVED10,   // reserved for future expansion
-   PR_RESULT_RESERVED11,   // reserved for future expansion
-   PR_RESULT_RESERVED12,   // reserved for future expansion
-   PR_RESULT_RESERVED13,   // reserved for future expansion
-   PR_RESULT_RESERVED14,   // reserved for future expansion
-   PR_RESULT_RESERVED15,   // reserved for future expansion
-   PR_RESULT_RESERVED16,   // reserved for future expansion
-   PR_RESULT_RESERVED17,   // reserved for future expansion
-   PR_RESULT_RESERVED18,   // reserved for future expansion
-   PR_RESULT_RESERVED19,   // reserved for future expansion
-   PR_RESULT_RESERVED20,   // reserved for future expansion
-   PR_RESULT_RESERVED21,   // reserved for future expansion
-   PR_RESULT_RESERVED22,   // reserved for future expansion
-   PR_RESULT_RESERVED23,   // reserved for future expansion
-   PR_RESULT_RESERVED24,   // reserved for future expansion
-   PR_RESULT_RESERVED25,   // reserved for future expansion
-   END_PR_RESULTS
+   BEGIN_PR_RESULTS = 558920240, /**< '!Pr0' */
+   PR_RESULT_PARAMETERS,         /**< Sent to client in response to PR_COMMAND_GETPARAMETERS */
+   PR_RESULT_DATAITEMS,          /**< Sent to client in response to PR_COMMAND_GETDATA, or subscriptions */
+   PR_RESULT_ERRORUNIMPLEMENTED, /**< Sent to client to tell him that we don't know how to process his request message */
+   PR_RESULT_INDEXUPDATED,       /**< Notification that an entry has been inserted into an ordered index */
+   PR_RESULT_PONG,               /**< Response from a PR_COMMAND_PING message */
+   PR_RESULT_ERRORACCESSDENIED,  /**< Your client isn't allowed to do something it tried to do */
+   PR_RESULT_DATATREES,          /**< Reply to a PR_COMMAND_GETDATATREES message */
+   PR_RESULT_RESERVED5,          /**< reserved for future expansion */
+   PR_RESULT_RESERVED6,          /**< reserved for future expansion */
+   PR_RESULT_RESERVED7,          /**< reserved for future expansion */
+   PR_RESULT_RESERVED8,          /**< reserved for future expansion */
+   PR_RESULT_RESERVED9,          /**< reserved for future expansion */
+   PR_RESULT_RESERVED10,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED11,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED12,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED13,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED14,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED15,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED16,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED17,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED18,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED19,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED20,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED21,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED22,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED23,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED24,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED25,         /**< reserved for future expansion */
+   END_PR_RESULTS                /**< guard value */
 };
 
 /** Privilege codes (if a client has these bits, he can do the associated actions) */
 enum
 {
-   PR_PRIVILEGE_KICK = 0,
-   PR_PRIVILEGE_ADDBANS,
-   PR_PRIVILEGE_REMOVEBANS,
-   PR_NUM_PRIVILEGES
+   PR_PRIVILEGE_KICK = 0,   /**< indicates that the client can disconnect other clients from the server */
+   PR_PRIVILEGE_ADDBANS,    /**< indicates that the client can add ban-patterns to the server */
+   PR_PRIVILEGE_REMOVEBANS, /**< indicates that the client can remove ban-patterns from the server */
+   PR_NUM_PRIVILEGES        /**< guard value */
 };
 
 /** Op-codes found as part of the strings sent in a PR_RESULT_INDEXUPDATED message */
 enum
 {
-   INDEX_OP_ENTRYINSERTED = 'i',   // Entry was inserted at the given slot index, with the given ID
-   INDEX_OP_ENTRYREMOVED  = 'r',   // Entry was removed from the given slot index, had the given ID
-   INDEX_OP_CLEARED       = 'c'    // Index was cleared
+   INDEX_OP_ENTRYINSERTED = 'i', /**< Entry was inserted at the given slot index, with the given ID */
+   INDEX_OP_ENTRYREMOVED  = 'r', /**< Entry was removed from the given slot index, had the given ID */
+   INDEX_OP_CLEARED       = 'c'  /**< Index was cleared */
 };
 
 // Recognized message field names

@@ -85,9 +85,8 @@ public:
   * functions in the Hashtable class) to modify the iterator's behaviour.
   */
 enum {
-   HTIT_FLAG_BACKWARDS  = (1<<0), // iterate backwards.  Conveniently equal to ((bool)true), for backwards compatibility with old code
-   HTIT_FLAG_NOREGISTER = (1<<1), // don't register with Hashtable object
-   NUM_HTIT_FLAGS = 2             // number of HTIT_FLAG_* constants that have been defined
+   HTIT_FLAG_BACKWARDS  = (1<<0), /**< iterate backwards. */
+   HTIT_FLAG_NOREGISTER = (1<<1), /**< don't register the iterator object with Hashtable object */
 };
 
 /**

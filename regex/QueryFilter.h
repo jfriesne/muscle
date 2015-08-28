@@ -14,25 +14,25 @@ class StringMatcher;
 
 /** Enumeration of QueryFilter type codes for the included QueryFilter classes */
 enum {
-   QUERY_FILTER_TYPE_WHATCODE = 1902537776, // 'qfl0'
-   QUERY_FILTER_TYPE_VALUEEXISTS,
-   QUERY_FILTER_TYPE_BOOL,
-   QUERY_FILTER_TYPE_DOUBLE,
-   QUERY_FILTER_TYPE_FLOAT,
-   QUERY_FILTER_TYPE_INT64,
-   QUERY_FILTER_TYPE_INT32,
-   QUERY_FILTER_TYPE_INT16,
-   QUERY_FILTER_TYPE_INT8,
-   QUERY_FILTER_TYPE_POINT,
-   QUERY_FILTER_TYPE_RECT,
-   QUERY_FILTER_TYPE_STRING,
-   QUERY_FILTER_TYPE_MESSAGE,
-   QUERY_FILTER_TYPE_RAWDATA,
-   QUERY_FILTER_TYPE_NANDNOT,
-   QUERY_FILTER_TYPE_ANDOR,
-   QUERY_FILTER_TYPE_XOR,
+   QUERY_FILTER_TYPE_WHATCODE = 1902537776, /**< 'qfl0' -- filter on the value of the 'what' code of the Message object */
+   QUERY_FILTER_TYPE_VALUEEXISTS,           /**< filter on whether or not a field exists in the Message */
+   QUERY_FILTER_TYPE_BOOL,                  /**< filter on the contents of a bool in the Message */
+   QUERY_FILTER_TYPE_DOUBLE,                /**< filter on the contents of a double in the Message */
+   QUERY_FILTER_TYPE_FLOAT,                 /**< filter on the contents of a float in the Message */
+   QUERY_FILTER_TYPE_INT64,                 /**< filter on the contents of an int64 in the Message */
+   QUERY_FILTER_TYPE_INT32,                 /**< filter on the contents of an int32 in the Message */
+   QUERY_FILTER_TYPE_INT16,                 /**< filter on the contents of an int16 in the Message */
+   QUERY_FILTER_TYPE_INT8,                  /**< filter on the contents of an int8 in the Message */
+   QUERY_FILTER_TYPE_POINT,                 /**< filter on the contents of a Point in the Message */
+   QUERY_FILTER_TYPE_RECT,                  /**< filter on the contents of a Rect in the Message */
+   QUERY_FILTER_TYPE_STRING,                /**< filter on the contents of a String in the Message */
+   QUERY_FILTER_TYPE_MESSAGE,               /**< filter on the contents of a sub-Message in the Message */
+   QUERY_FILTER_TYPE_RAWDATA,               /**< filter on the raw bytes of a field in the Message */
+   QUERY_FILTER_TYPE_NANDNOT,               /**< combine the results of two or more child filters using a NAND or NOR operator  */
+   QUERY_FILTER_TYPE_ANDOR,                 /**< combine the results of two or more child filters using an AND or OR operator  */
+   QUERY_FILTER_TYPE_XOR,                   /**< combine the results of two or more child filters using an XOR operator  */
    // add more codes here...
-   LAST_QUERY_FILTER_TYPE
+   LAST_QUERY_FILTER_TYPE                   /**< guard value */
 };
 
 /** Interface for any object that can examine a Message and tell whether it
@@ -178,14 +178,14 @@ private:
 
 /** Enumeration of mask operations available to NumericQueryFilter classes */
 enum {
-   NQF_MASK_OP_NONE = 0,
-   NQF_MASK_OP_AND,
-   NQF_MASK_OP_OR,
-   NQF_MASK_OP_XOR,
-   NQF_MASK_OP_NAND,
-   NQF_MASK_OP_NOR,
-   NQF_MASK_OP_XNOR,
-   NUM_NQF_MASK_OPS
+   NQF_MASK_OP_NONE = 0, /**< No masking */
+   NQF_MASK_OP_AND,      /**< Mask using a bitwise-AND operator */
+   NQF_MASK_OP_OR,       /**< Mask using a bitwise-OR operator */
+   NQF_MASK_OP_XOR,      /**< Mask using a bitwise-XOR operator */
+   NQF_MASK_OP_NAND,     /**< Mask using a bitwise-NAND operator */
+   NQF_MASK_OP_NOR,      /**< Mask using a bitwise-NOR operator */
+   NQF_MASK_OP_XNOR,     /**< Mask using a bitwise-XNOR operator */
+   NUM_NQF_MASK_OPS      /**< guard value */
 };
 
 template <typename DataType> inline DataType NQFDoMaskOp(uint8 maskOp, const DataType & msgVal, const DataType & mask)

@@ -14,22 +14,22 @@
 namespace muscle {
 
 /**
- * Encoding IDs.  As of MUSCLE 2.40, we support vanilla MUSCLE_MESSAGE_ENCODING_DEFAULT and 9 levels of zlib compression!
+ * Encoding IDs identify how a Message object will be converted to and from a flattened byte-buffer.  We currently support the vanilla MUSCLE_MESSAGE_ENCODING_DEFAULT plus 9 levels of zlib compression.
  */
 enum {
-   MUSCLE_MESSAGE_ENCODING_DEFAULT = 1164862256, // 'Enc0',  /**< just plain ol' flattened Message objects, with no special encoding */
+   MUSCLE_MESSAGE_ENCODING_DEFAULT = 1164862256, /**< 'Enc0' -- just standard flattened-Message format, with no special encoding */
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-   MUSCLE_MESSAGE_ENCODING_ZLIB_1,                           /**< lowest level of zlib compression (most CPU-efficient) */
+   MUSCLE_MESSAGE_ENCODING_ZLIB_1,               /**< lowest level of zlib compression (most CPU-efficient) */
    MUSCLE_MESSAGE_ENCODING_ZLIB_2,
    MUSCLE_MESSAGE_ENCODING_ZLIB_3,
    MUSCLE_MESSAGE_ENCODING_ZLIB_4,
    MUSCLE_MESSAGE_ENCODING_ZLIB_5,
-   MUSCLE_MESSAGE_ENCODING_ZLIB_6,                           /**< This is the recommended CPU vs space-savings setting for zlib */
+   MUSCLE_MESSAGE_ENCODING_ZLIB_6,               /**< This is the recommended CPU-vs-space-savings-tradeoff for zlib */
    MUSCLE_MESSAGE_ENCODING_ZLIB_7,
    MUSCLE_MESSAGE_ENCODING_ZLIB_8,
-   MUSCLE_MESSAGE_ENCODING_ZLIB_9,                           /**< highest level of zlib compression (most space-efficient) */
+   MUSCLE_MESSAGE_ENCODING_ZLIB_9,               /**< highest level of zlib compression (uses the least number of bytes) */
 #endif
-   MUSCLE_MESSAGE_ENCODING_END_MARKER = MUSCLE_MESSAGE_ENCODING_DEFAULT+10  /**< Not a valid -- just here to mark the end of the range */
+   MUSCLE_MESSAGE_ENCODING_END_MARKER = MUSCLE_MESSAGE_ENCODING_DEFAULT+10  /**< guard value */
 };
 
 /** Callback function type for flatten/unflatten notification callbacks */

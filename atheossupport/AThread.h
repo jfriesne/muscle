@@ -10,7 +10,7 @@ namespace muscle {
 
 /** 'what' code sent to our owner when we need to signal him */
 enum {
-   MUSCLE_THREAD_SIGNAL = 1299408750  // 'Msgn' -- sent to the main thread when messages are ready for pickup
+   MUSCLE_THREAD_SIGNAL = 1299408750  /**< 'Msgn' -- sent to the main thread when messages are ready for pickup */
 };
 
 /** 
