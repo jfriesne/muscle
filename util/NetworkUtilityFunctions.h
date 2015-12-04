@@ -917,8 +917,8 @@ enum {
    GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_INCLUDE_IPV6_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
 #endif
 
-   GNII_INCLUDE_ALL_INTERFACES           = 0xFFFFFFFF,  /** If set, all interfaces will be returned */
-   GNII_INCLUDE_ALL_ADDRESSED_INTERFACES = (GNII_INCLUDE_ALL_INTERFACES & ~(GNII_INCLUDE_UNADDRESSED_INTERFACES))  /** default setting -- all interfaces with an IP address */
+   GNII_INCLUDE_ALL_INTERFACES           = 0xFFFFFFFF,  /**< If set, all interfaces will be returned */
+   GNII_INCLUDE_ALL_ADDRESSED_INTERFACES = (GNII_INCLUDE_ALL_INTERFACES & ~(GNII_INCLUDE_UNADDRESSED_INTERFACES))  /**< default setting -- all interfaces that currently have an IP address will be returned */
 };
 
 /** This function queries the local OS for information about all available network

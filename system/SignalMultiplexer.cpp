@@ -14,9 +14,11 @@ status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) cons
 #if defined(WIN32)
    switch(n)
    {
-      case 0:  signalNumber = CTRL_CLOSE_EVENT;    return B_NO_ERROR;
-      case 1:  signalNumber = CTRL_LOGOFF_EVENT;   return B_NO_ERROR;
-      case 2:  signalNumber = CTRL_SHUTDOWN_EVENT; return B_NO_ERROR;
+      case 0:  signalNumber = CTRL_C_EVENT;        return B_NO_ERROR;
+      case 1:  signalNumber = CTRL_BREAK_EVENT;    return B_NO_ERROR;
+      case 2:  signalNumber = CTRL_CLOSE_EVENT;    return B_NO_ERROR;
+      case 3:  signalNumber = CTRL_LOGOFF_EVENT;   return B_NO_ERROR;
+      case 4:  signalNumber = CTRL_SHUTDOWN_EVENT; return B_NO_ERROR;
    }
 #elif defined(MUSCLE_USE_POSIX_SIGNALS)
    switch(n)
@@ -30,7 +32,9 @@ status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) cons
 }
 
 #if defined(WIN32)
-static BOOL Win32SignalHandlerCallbackFunc(DWORD sigNum) {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(sigNum); return true;}
+static BOOL Win32SignalHandlerCallbackFunc(DWORD sigNum) {
+	printf("x3 sigNum=%u\n", sigNum);
+	SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(sigNum); return true;}
 #else
 static void POSIXSignalHandlerCallbackFunc(int sigNum)   {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(sigNum);}
 #endif

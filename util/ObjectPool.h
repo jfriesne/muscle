@@ -17,6 +17,11 @@ namespace muscle {
 # define DEFAULT_MUSCLE_POOL_SLAB_SIZE (4*1024)  // let's have each slab fit nicely into a 4KB page
 #endif
 
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+class String;
+extern void PrintAllocationStackTrace(const void * slabThis, const void * obj, uint32 slabIdx, uint32 numObjectsPerSlab, const String & optStackStr);
+#endif
+
 /** An interface that must be implemented by all ObjectPool classes.
   * Used to support polymorphism in pool management.
   */
@@ -459,7 +464,14 @@ private:
          for (uint32 i=0; i<NUM_OBJECTS_PER_SLAB; i++)
          {
             const ObjectNode * n = &_nodes[i];
-            if (n->GetNextIndex() == INVALID_NODE_INDEX) printf("      " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":   %s %p is possibly still in use?\n", i, (uint32)NUM_OBJECTS_PER_SLAB, GetObjectClassName(), n);
+            if (n->GetNextIndex() == INVALID_NODE_INDEX) 
+            {
+               printf("      " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":   %s %p is possibly still in use?\n", i, (uint32)NUM_OBJECTS_PER_SLAB, GetObjectClassName(), n);
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+               const Object * o = &n->GetObject();
+               if (o->GetAllocationLocation() != NULL) PrintAllocationStackTrace(this, o, i, NUM_OBJECTS_PER_SLAB, *o->GetAllocationLocation());
+#endif
+            }
          }
       }
 
@@ -478,10 +490,7 @@ private:
          return ret;
       }
 
-      void GetUsageStats(uint32 & min, uint32 & max, uint32 & total) const
-      {
-         _data.GetUsageStats(min, max, total);
-      }
+      void GetUsageStats(uint32 & min, uint32 & max, uint32 & total) const {_data.GetUsageStats(min, max, total);}
 
    private:
       friend class ObjectSlabData;

@@ -273,3 +273,14 @@ of your Makefile to alter muscle's behaviour:
     old-fashioned way.  This is less efficient, but avoiding the SFINAE
     mumbo-jumbo helps the code compile on older compilers (e.g. gcc 3.x)
     that don't handle SFINAE correctly.
+
+-DMUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+    If set, the RefCountable and ObjectPool code will be instrumented
+    such that every time a RefCountable object is obtained from an
+    ObjectPool, the thread's current stack trace will be recorded and 
+    associated with the RefCountable object.  What this does (apart from 
+    making your program really slow and memory-hungry) is allow the 
+    assertion failures in the ObjectPool class's destructor to tell you 
+    exactly where a "leaked" object had been allocated, rather than just 
+    telling you that an object is still in use.  That can make it much 
+    easier to track down where the leaked-references problem is and fix it.

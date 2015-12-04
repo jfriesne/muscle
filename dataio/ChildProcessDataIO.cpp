@@ -235,7 +235,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
          // generate an abolute-filepath for argv[0] first, otherwise we're likely
          // to be unable to find the executable to run!
          if (realpath(argv[0], absArgv0) != NULL) argv[0] = absArgv0;
-         if (chdir(optDirectory) < 0) perror("ChildProcessDtaIO::chdir");  // FogBugz #10023
+         if (chdir(optDirectory) < 0) perror("ChildProcessDataIO::chdir");  // FogBugz #10023
       }
 
       ChildProcessReadyToRun();
@@ -337,10 +337,10 @@ void ChildProcessDataIO :: DoGracefulChildShutdown()
 
 bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
 {
-   _childProcessCrashed = false;
+#ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
+   if (_childProcess == INVALID_HANDLE_VALUE) return true; // a non-existent child process is an exited child process, if you ask me.
+   _childProcessCrashed = false;                           // reset the flag only when there is an actual child process to wait for
 
-#ifdef WIN32
-   if (_childProcess == INVALID_HANDLE_VALUE) return true;
    if (WaitForSingleObject(_childProcess, (maxWaitTimeMicros==MUSCLE_TIME_NEVER)?INFINITE:((DWORD)(maxWaitTimeMicros/1000))) == WAIT_OBJECT_0)
    {
       DWORD exitCode;
@@ -357,6 +357,8 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
    }
 #else
    if (_childPID < 0) return true;   // a non-existent child process is an exited child process, if you ask me.
+   _childProcessCrashed = false;     // reset the flag only when there is an actual child process to wait for
+
    if (maxWaitTimeMicros == MUSCLE_TIME_NEVER) 
    {
       int status = 0;

@@ -2900,7 +2900,8 @@ uint32 MessageField :: GetNumItemsInFlattenedBuffer(const uint8 * bytes, uint32 
       // special case for the Message type since it doesn't have a number-of-items-count, annoyingly enough
       if (numBytes < sizeof(uint32)) return 0;  // huh?
       uint32 firstMsgSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(bytes));
-      bytes += sizeof(uint32); numBytes -= sizeof(uint32);  // this must be exactly here!
+
+      numBytes -= sizeof(uint32);                 // this must be done exactly here!
       if (firstMsgSize > numBytes) return 0;      // malformed buffer size?
       return (firstMsgSize == numBytes) ? 1 : 2;  // we don't need to count the actual number of Messages for now
    }

@@ -4,7 +4,7 @@
 #include "support/Flattenable.h"
 #include "dataio/DataIO.h"
 #include "util/ObjectPool.h"
-#include "util/MiscUtilityFunctions.h"  // for ExitWithoutCleanup()
+#include "util/ByteBuffer.h"
 #include "util/DebugTimer.h"
 #include "util/CountedObject.h"
 #include "util/String.h"
@@ -128,6 +128,13 @@ static int swap_memcmp(const void * vp1, const void * vp2, uint32 numBytes)
       if (diff) return diff;
    }
    return 0;
+}
+
+// Implemented here so that every program doesn't have to link
+// in MiscUtilityFunctions.cpp just for this function.
+void ExitWithoutCleanup(int exitCode)
+{
+   _exit(exitCode);
 }
 
 static void GoInsane(const char * why, const char * why2 = NULL)
@@ -883,13 +890,6 @@ CompleteSetupSystem :: ~CompleteSetupSystem()
    AbstractObjectRecycler::GlobalFlushAllCachedObjects();
 
    _activeCSS = _prevInstance;  // pop us off the stack
-}
-
-// Implemented here so that every program doesn't have to link
-// in MiscUtilityFunctions.cpp just for this function.
-void ExitWithoutCleanup(int exitCode)
-{
-   _exit(exitCode);
 }
 
 uint32 DataIO :: WriteFully(const void * buffer, uint32 size)

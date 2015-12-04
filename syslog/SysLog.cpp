@@ -1459,6 +1459,35 @@ status_t GetStackTrace(String & retStr, uint32 maxDepth)
    return B_ERROR;
 }
 
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+void UpdateAllocationStackTrace(bool isAllocation, String * & s)
+{
+   if (isAllocation)
+   {
+      if (s == NULL) 
+      {
+         s = newnothrow String;
+         if (s == NULL) WARN_OUT_OF_MEMORY;
+      }
+      if (s)
+      {
+         if (GetStackTrace(*s) != B_NO_ERROR) s->SetCstr("(no stack trace available)");
+      }
+   }
+   else
+   {
+      delete s;
+      s = NULL;
+   }
+}
+
+void PrintAllocationStackTrace(const void * slabThis, const void * obj, uint32 slabIdx, uint32 numObjectsPerSlab, const String & stackStr)
+{
+   printf("\nObjectSlab %p:  Object %p (#" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") was allocated at this location:\n", slabThis, obj, slabIdx, numObjectsPerSlab);
+   puts(stackStr());
+}
+#endif
+
 static NestCount _inLogPreamble;
 
 static const char * const _logLevelNames[] = {

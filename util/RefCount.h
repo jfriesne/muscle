@@ -12,6 +12,11 @@ namespace muscle {
 
 class RefCountable;
 
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+class String;
+extern void UpdateAllocationStackTrace(bool isAllocation, String * & s);  // implemented in SysLog.cpp
+#endif
+
 // This macro lets you easily declare Reference classes fora give RefCountable type in the standard way,
 // which is that for a RefCountable class Named XXX you would have XXXRef and ConstXXXRef as simpler ways
 // to express Ref<XXX> and ConstRef<XXX>, respectively.
@@ -26,13 +31,26 @@ class RefCountable
 {
 public:
    /** Default constructor.  Refcount begins at zero. */
-   RefCountable() : _manager(NULL) {/* empty */}
+   RefCountable() : _manager(NULL)
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+      , _allocatedAtStackTrace(NULL)
+#endif
+   {/* empty */}
 
    /** Copy constructor -- ref count and manager settings are deliberately not copied over! */
-   RefCountable(const RefCountable &) : _refCount(), _manager(NULL) {/* empty */}
+   RefCountable(const RefCountable &) : _refCount(), _manager(NULL) 
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+      , _allocatedAtStackTrace(NULL)
+#endif
+   {/* empty */}
 
    /** Virtual destructor, to keep C++ honest.  Don't remove this unless you like crashing */
-   virtual ~RefCountable() {/* empty */}
+   virtual ~RefCountable()
+   {
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+      UpdateAllocationStackTrace(false, _allocatedAtStackTrace);  // delete the allocation-location string, if any
+#endif
+   }
 
    /** Assigment operator.  deliberately implemented as a no-op! */
    inline RefCountable &operator=(const RefCountable &) {return *this;}
@@ -50,7 +68,13 @@ public:
      * Default value is NULL. 
      * @param manager Pointer to the new manager object to use, or NULL to use no manager.
      */
-   void SetManager(AbstractObjectManager * manager) {_manager = manager;}
+   void SetManager(AbstractObjectManager * manager) 
+   {
+      _manager = manager;
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+      UpdateAllocationStackTrace((_manager!=NULL), _allocatedAtStackTrace);
+#endif
+   }
 
    /** Returns this object's current recyler pointer. */
    AbstractObjectManager * GetManager() const {return _manager;}
@@ -62,9 +86,27 @@ public:
      */
    uint32 GetRefCount() const {return _refCount.GetCount();}
 
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+   /** If -DMUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS was specified on the compile line,
+     * and this RefCountable is currently being managed by an ObjectPool, this will return
+     * a string containing the stack trace of where the allocation occurred.  This is useful
+     * for tracking down the cause of on-exit assertion failures from the ObjectPool class
+     * destructors which are very picky about making sure all objects have been returned
+     * to the pool before they deallocate the ObjectSlabs.
+     *
+     * Note that enabling this feature uses up gobs of extra memory and CPU, so don't leave 
+     * it enabled after you are done debugging.
+     */
+   const String * GetAllocationLocation() const {return _allocatedAtStackTrace;}
+#endif
+
 private:
    mutable AtomicCounter _refCount;
    AbstractObjectManager * _manager;
+
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+   String * _allocatedAtStackTrace;
+#endif
 };
 template <class Item> class Ref;       // forward reference
 template <class Item> class ConstRef;  // forward reference
