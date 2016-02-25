@@ -320,6 +320,17 @@ public:
      */
    String ToString(bool includePort = true, bool preferIPv4Style = false) const;
 
+   /** Convenience method:  Returns an IPAddressAndPort object identical to this one,
+     * except that the include ip_address has its interface index field set to the specified value.
+     * @param interfaceIndex The new interface index value to use in the returned object.
+     */
+   IPAddressAndPort WithInterfaceIndex(uint32 interfaceIndex) const
+   {
+      ip_address addr = _ip;
+      addr.SetInterfaceIndex(interfaceIndex);
+      return IPAddressAndPort(addr, _port); 
+   }
+
 private:
    ip_address _ip;
    uint16 _port;

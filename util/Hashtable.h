@@ -858,7 +858,7 @@ private:
    uint32 PopFromFreeList(HashtableEntryBase * e, uint32 freeHeadIdx);
 
    /** This class is an implementation detail, please ignore it.  Do not access it directly. */
-   template <class IndexType> class HashtableEntry : public HashtableEntryBase
+   template <class IndexType> class HashtableEntry MUSCLE_FINAL_CLASS : public HashtableEntryBase
    {
    public:
       // Note:  All member variables are initialized by CreateEntriesArray(), not by the ctor!
@@ -875,9 +875,9 @@ private:
          if (getRetFreeHeadIdx != MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) static_cast<HashtableEntry *>(table->IndexToEntryUnchecked(getRetFreeHeadIdx))->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType) thisIdx;
          getRetFreeHeadIdx = thisIdx;
 
-         this->_hash  = MUSCLE_HASHTABLE_INVALID_HASH_CODE;
-         this->_key   = defaultKey;    // NOTE:  These lines could have side-effects due to code in the templatized
-         this->_value = defaultValue;  //        classes!  So it's important that the Hashtable be in a consistent state here
+         this->_hash = MUSCLE_HASHTABLE_INVALID_HASH_CODE;
+         if (this->IsPerKeyClearNecessary())   this->_key   = defaultKey;    // NOTE:  These lines could have side-effects due to code in the templatized
+         if (this->IsPerValueClearNecessary()) this->_value = defaultValue;  //        classes!  So it's important that the Hashtable be in a consistent state here
       }
 
       /** Removes this entry from the free list, so that we are ready for use.
@@ -916,6 +916,26 @@ private:
          }
          else WARN_OUT_OF_MEMORY;
          return ret;
+      }
+
+      /** Returns true iff we need to set our KeyType objects to their default-constructed state when we're done using them */
+      inline bool IsPerKeyClearNecessary() const
+      {
+#ifdef MUSCLE_USE_CPLUSPLUS11
+         return !std::is_trivial<KeyType>::value;
+#else
+         return true;
+#endif
+      }
+
+      /** Returns true iff we need to set our ValueType objects to their default-constructed state when we're done using them */
+      inline bool IsPerValueClearNecessary() const
+      {
+#ifdef MUSCLE_USE_CPLUSPLUS11
+         return !std::is_trivial<ValueType>::value;
+#else
+         return true;
+#endif
       }
   
       IndexType _indices[NUM_HTE_INDICES];

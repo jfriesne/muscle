@@ -27,6 +27,7 @@ static bool _printReceivedBytes = true;
 static bool _quietSend          = false;
 static uint32 _spamsPerSecond   = 0;
 static uint32 _spamSize         = 1024;
+static uint64 _prevReceiveTime  = 0;
 
 static uint32 Calculate32BitChecksum(const uint8 * bytes, uint32 numBytes)
 {
@@ -90,7 +91,7 @@ static void DoSession(DataIO & io)
    ByteBufferRef spamBuf;  if (_spamsPerSecond > 0) spamBuf = GetByteBufferFromPool(_spamSize);
 
    const UDPSocketDataIO * optUDPIO = dynamic_cast<UDPSocketDataIO *>(&io);
-   String scratchString;
+   String scratchString, sinceString;
 
    SocketMultiplexer multiplexer;
 
@@ -126,17 +127,21 @@ static void DoSession(DataIO & io)
             int32 ret = io.Read(buf, sizeof(buf));
             if (ret > 0) 
             {
+               uint64 now = GetCurrentTime64();  // I'm using GetCurrentTime64() rather than GetRunTime64() because I think it will give me better precision under Windows --jaf
+               if (_prevReceiveTime == 0) _prevReceiveTime = now;
+               int64 timeSince = (now-_prevReceiveTime);
+               if (timeSince < 1000) sinceString = "<1 millisecond";
+                                else sinceString = GetHumanReadableTimeIntervalString(now-_prevReceiveTime, 1);
+
                if (_printReceivedBytes)
                {
-                  const char * desc = "Received";
-                  if (optUDPIO)
-                  {
-                     scratchString = String("Received from %1").Arg(optUDPIO->GetSourceOfLastReadPacket().ToString()());
-                     desc = scratchString();
-                  }
-                  LogBytes(buf, ret, desc);
+                  if (optUDPIO) scratchString = String("Received from %1 (%2 since prev)").Arg(optUDPIO->GetSourceOfLastReadPacket().ToString()).Arg(sinceString);
+                           else scratchString = String("Received (%1 since prev)").Arg(sinceString);
+                  LogBytes(buf, ret, scratchString());
                }
-               else LogTime(MUSCLE_LOG_DEBUG, "Received " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of data.\n", ret, sizeof(buf));
+               else LogTime(MUSCLE_LOG_DEBUG, "Received " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of data (%s since prev).\n", ret, sizeof(buf), sinceString());
+
+               _prevReceiveTime = now;
             }
             else if (ret < 0) 
             {
@@ -203,7 +208,7 @@ static void DoSession(DataIO & io)
    }
 }
 
-static void DoUDPSession(const String & optHost, uint16 port)
+static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticastGroup)
 {
    ConstSocketRef ss = CreateUDPSocket();
    if (ss() == NULL)
@@ -223,9 +228,13 @@ static void DoUDPSession(const String & optHost, uint16 port)
          // in order to get packets from the group.
          if (IsMulticastIPAddress(ip))
          {
-            if (BindUDPSocket(ss, port, NULL, invalidIP, true) == B_NO_ERROR)
+            uint16 boundPort;
+            if (BindUDPSocket(ss, joinMulticastGroup?port:0, &boundPort, invalidIP, true) == B_NO_ERROR)
             {
-               if (AddSocketToMulticastGroup(ss, ip) == B_NO_ERROR)
+               LogTime(MUSCLE_LOG_INFO, "Bound UDP socket to port %u\n", boundPort);
+
+                    if (joinMulticastGroup == false) LogTime(MUSCLE_LOG_INFO, "Not joining to multicast group [%s] since nojoin was specified as a command line argument.\n", Inet_NtoA(ip)());
+               else if (AddSocketToMulticastGroup(ss, ip) == B_NO_ERROR)
                {
                   LogTime(MUSCLE_LOG_INFO, "Added UDP socket to multicast group %s!\n", Inet_NtoA(ip)());
 #ifdef DISALLOW_MULTICAST_TO_SELF
@@ -326,6 +335,8 @@ int hextermmain(const char * argv0, const Message & args)
    String host;
    uint16 port;
 
+   const bool joinMulticastGroup = (args.HasName("nojoin") == false);
+
    String arg;
    if (args.FindString("child", arg) == B_NO_ERROR)
    {
@@ -413,8 +424,8 @@ int hextermmain(const char * argv0, const Message & args)
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not bind to port %i\n", port);
    }
-   else if (ParseConnectArg(args, "udp", host, port, true) == B_NO_ERROR) DoUDPSession(host, port);
-   else if (ParsePortArg   (args, "udp", port)             == B_NO_ERROR) DoUDPSession("", port);
+   else if (ParseConnectArg(args, "udp", host, port, true) == B_NO_ERROR) DoUDPSession(host, port, joinMulticastGroup);
+   else if (ParsePortArg   (args, "udp", port)             == B_NO_ERROR) DoUDPSession("",   port, joinMulticastGroup);
    else LogUsage(argv0);
 
    return 0;

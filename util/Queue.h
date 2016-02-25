@@ -638,6 +638,16 @@ public:
    const ItemType * GetRawArrayPointer() const {return _queue;}
 
 private:
+   /** Returns true iff we need to set our ItemType objects to their default-constructed state when we're done using them */
+   inline bool IsPerItemClearNecessary() const
+   {
+#ifdef MUSCLE_USE_CPLUSPLUS11
+      return !std::is_trivial<ItemType>::value;
+#else
+      return true;
+#endif
+   }
+
    status_t EnsureSizeAux(uint32 numSlots, ItemType ** optRetOldArray) {return EnsureSizeAux(numSlots, false, 0, optRetOldArray, false);}
    status_t EnsureSizeAux(uint32 numSlots, bool setNumItems, uint32 extraReallocItems, ItemType ** optRetOldArray, bool allowShrink);
    const ItemType * GetArrayPointerAux(uint32 whichArray, uint32 & retLength) const;
@@ -893,7 +903,7 @@ RemoveHead()
    int oldHeadIndex = _headIndex;
    _headIndex = NextIndex(_headIndex);
    _itemCount--;
-   _queue[oldHeadIndex] = GetDefaultItem();  // this must be done last, as queue state must be coherent when we do this
+   if (IsPerItemClearNecessary()) _queue[oldHeadIndex] = GetDefaultItem();  // this must be done last, as queue state must be coherent when we do this
    return B_NO_ERROR;
 }
 
@@ -930,7 +940,7 @@ RemoveTail()
    int removedItemIndex = _tailIndex;
    _tailIndex = PrevIndex(_tailIndex);
    _itemCount--;
-   _queue[removedItemIndex] = GetDefaultItem();  // this must be done last, as queue state must be coherent when we do this
+   if (IsPerItemClearNecessary()) _queue[removedItemIndex] = GetDefaultItem();  // this must be done last, as queue state must be coherent when we do this
    return B_NO_ERROR;
 }
 
@@ -1008,7 +1018,7 @@ RemoveItemAt(uint32 index)
    }
 
    _itemCount--;
-   _queue[indexToClear] = GetDefaultItem();  // this must be done last, as queue state must be coherent when we do this
+   if (IsPerItemClearNecessary()) _queue[indexToClear] = GetDefaultItem();  // this must be done last, as queue state must be coherent when we do this
    return B_NO_ERROR; 
 }
 
@@ -1133,12 +1143,15 @@ Clear(bool releaseCachedBuffers)
    }
    else if (HasItems())
    {
-      for (uint32 i=0; i<2; i++)
+      if (IsPerItemClearNecessary())
       {
-         uint32 arrayLen = 0;  // set to zero just to shut the compiler up
          const ItemType & defaultItem = GetDefaultItem();
-         ItemType * p = GetArrayPointer(i, arrayLen);
-         if (p) {for (uint32 j=0; j<arrayLen; j++) p[j] = defaultItem;}
+         for (uint32 i=0; i<2; i++)
+         {
+            uint32 arrayLen = 0;  // set to zero just to shut the compiler up
+            ItemType * p = GetArrayPointer(i, arrayLen);
+            if (p) {for (uint32 j=0; j<arrayLen; j++) p[j] = defaultItem;}
+         }
       }
       FastClear();
    }
@@ -1169,7 +1182,14 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
       _headIndex = 0;
       _tailIndex = _itemCount-1;
 
-           if (_queue == _smallQueue) for (uint32 i=0; i<sqLen; i++) _smallQueue[i] = GetDefaultItem();
+      if (_queue == _smallQueue) 
+      {
+         if (IsPerItemClearNecessary()) 
+         {
+            const ItemType & defaultItem = GetDefaultItem();
+            for (uint32 i=0; i<sqLen; i++) _smallQueue[i] = defaultItem;
+         }
+      }
       else if (retOldArray) *retOldArray = _queue;
       else delete [] _queue;
 
@@ -1613,12 +1633,14 @@ Queue<ItemType>::Normalize()
          // array to just copy the items over, yay!  This
          // is more efficient when there are just a few
          // valid items in a large array.
+         const bool isPerItemClearNecessary = IsPerItemClearNecessary();
+         const ItemType & defaultItem       = GetDefaultItem();
          uint32 startAt = _tailIndex+1;
          for (uint32 i=0; i<_itemCount; i++) 
          {
             ItemType & from = (*this)[i];
             _queue[startAt+i] = from;
-            from = GetDefaultItem();  // clear the old slot to avoid leaving extra Refs, etc
+            if (isPerItemClearNecessary) from = defaultItem;  // clear the old slot to avoid leaving extra Refs, etc
          }
          _headIndex = startAt;
          _tailIndex = startAt+_itemCount-1; 

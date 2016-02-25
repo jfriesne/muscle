@@ -592,8 +592,12 @@ String GetHumanReadableProgramNameFromArgv0(const char * argv0);
   * standard AllocConsole() and freopen() trick to cause a
   * Console window to appear and be available for stdin/stdout/stderr
   * to operate on.
+  * @param optOutFilePath If non-NULL, then instead of opening a console
+  *                       window, the program's stdout and stderr output
+  *                       will be redirected into a file that will be created
+  *                       (or overwritten) at this path.  Defaults to NULL.
   */
-void Win32AllocateStdioConsole();
+void Win32AllocateStdioConsole(const char * optOutFilePath = NULL);
 #endif
 
 /** Returns a value between 0.0f and 1.0f, indicating what percentage of the

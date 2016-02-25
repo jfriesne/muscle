@@ -506,7 +506,8 @@ void HandleStandardDaemonArgs(const Message & args)
    }
 
 #ifdef WIN32
-   if (args.HasName("console")) Win32AllocateStdioConsole();
+   const String * consoleStr = args.GetStringPointer("console");
+   if (consoleStr) Win32AllocateStdioConsole(consoleStr->HasChars()?consoleStr->Cstr():NULL);
 #endif
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
@@ -1055,19 +1056,23 @@ String GetHumanReadableProgramNameFromArgv0(const char * argv0)
 }
 
 #ifdef WIN32
-void Win32AllocateStdioConsole()
+void Win32AllocateStdioConsole(const char * optOutFile)
 {
-   // Open a console for debug output to appear in
-   AllocConsole();
+   if ((optOutFile)&&(*optOutFile == '\0')) optOutFile = NULL;
+
+   const char * conInStr  = optOutFile ? NULL       : "conin$";
+   const char * conOutStr = optOutFile ? optOutFile : "conout$";
+   if (optOutFile == NULL) AllocConsole();  // no sense creating a DOS window if we're only outputting to a file anyway
+
 #if __STDC_WANT_SECURE_LIB__
    FILE * junk;
-   (void) freopen_s(&junk, "conin$",  "r", stdin);
-   (void) freopen_s(&junk, "conout$", "w", stdout);
-   (void) freopen_s(&junk, "conout$", "w", stderr);
+   if (conInStr)  (void) freopen_s(&junk, conInStr,  "r", stdin);
+   if (conOutStr) (void) freopen_s(&junk, conOutStr, "w", stdout);
+   if (conOutStr) (void) freopen_s(&junk, conOutStr, "w", stderr);
 #else
-   (void) freopen("conin$",  "r", stdin);
-   (void) freopen("conout$", "w", stdout);
-   (void) freopen("conout$", "w", stderr);
+   if (conInStr)  (void) freopen(conInStr,  "r", stdin);
+   if (conOutStr) (void) freopen(conOutStr, "w", stdout);
+   if (conOutStr) (void) freopen(conOutStr, "w", stderr);
 #endif
 }
 #endif

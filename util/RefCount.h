@@ -21,8 +21,8 @@ extern void UpdateAllocationStackTrace(bool isAllocation, String * & s);  // imp
 // which is that for a RefCountable class Named XXX you would have XXXRef and ConstXXXRef as simpler ways
 // to express Ref<XXX> and ConstRef<XXX>, respectively.
 #define DECLARE_REFTYPES(RefCountableClassName)                               \
-   typedef ConstRef<RefCountableClassName> Const##RefCountableClassName##Ref; \
-   typedef Ref<RefCountableClassName>      RefCountableClassName##Ref
+   typedef muscle::ConstRef<RefCountableClassName> Const##RefCountableClassName##Ref; \
+   typedef muscle::Ref<RefCountableClassName>      RefCountableClassName##Ref
 
 /** This class represents objects that can be reference-counted using the Ref class. 
   * Note that any object that can be reference-counted can also be cached and recycled via an ObjectPool.

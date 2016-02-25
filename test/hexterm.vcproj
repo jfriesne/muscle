@@ -73,7 +73,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib ws2_32.lib winmm.lib iphlpapi.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib ws2_32.lib winmm.lib iphlpapi.lib shlwapi.lib"
 				OutputFile="./hexterm.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

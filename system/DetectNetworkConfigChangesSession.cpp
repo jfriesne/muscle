@@ -95,6 +95,48 @@ void DetectNetworkConfigChangesSession :: ScheduleSendReport()
    InvalidatePulseTime();
 }
 
+void DetectNetworkConfigChangesSession :: CallNetworkInterfacesChangedOnAllTargets(const Hashtable<String, Void> & interfaceNames)
+{
+   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+   {
+      INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
+      if (t) t->NetworkInterfacesChanged(interfaceNames);
+   }
+   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
+   {
+      INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
+      if (t) t->NetworkInterfacesChanged(interfaceNames);
+   }
+}
+
+void DetectNetworkConfigChangesSession :: CallComputerIsAboutToSleepOnAllTargets()
+{
+   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+   {
+      INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
+      if (t) t->ComputerIsAboutToSleep();
+   }
+   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
+   {
+      INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
+      if (t) t->ComputerIsAboutToSleep();
+   }
+}
+
+void DetectNetworkConfigChangesSession :: CallComputerJustWokeUpOnAllTargets()
+{
+   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+   {
+      INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
+      if (t) t->ComputerJustWokeUp();
+   }
+   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
+   {
+      INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
+      if (t) t->ComputerJustWokeUp();
+   }
+}
+
 void DetectNetworkConfigChangesSession :: NetworkInterfacesChanged(const Hashtable<String, Void> &)
 {
    // default implementation is a no-op.
@@ -115,7 +157,7 @@ void DetectNetworkConfigChangesSession :: Pulse(const PulseArgs & pa)
    if (pa.GetCallbackTime() >= _callbackTime)
    {
       _callbackTime = MUSCLE_TIME_NEVER;
-      if (_enabled) NetworkInterfacesChanged(_changeAllPending ? Hashtable<String, Void>() : _pendingChangedInterfaceNames);
+      if (_enabled) CallNetworkInterfacesChangedOnAllTargets(_changeAllPending ? Hashtable<String, Void>() : _pendingChangedInterfaceNames);
       _pendingChangedInterfaceNames.Clear();
       _changeAllPending = false;
    }
@@ -165,11 +207,11 @@ void DetectNetworkConfigChangesSession :: MessageReceivedFromGateway(const Messa
          break;
 
          case DNCCS_MESSAGE_ABOUT_TO_SLEEP:
-            ComputerIsAboutToSleep();
+            if (_enabled) CallComputerIsAboutToSleepOnAllTargets();
          break;
 
          case DNCCS_MESSAGE_JUST_WOKE_UP:
-            ComputerJustWokeUp();
+            if (_enabled) CallComputerJustWokeUpOnAllTargets();
          break;
       }
    }

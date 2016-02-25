@@ -32,9 +32,7 @@ status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) cons
 }
 
 #if defined(WIN32)
-static BOOL Win32SignalHandlerCallbackFunc(DWORD sigNum) {
-	printf("x3 sigNum=%u\n", sigNum);
-	SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(sigNum); return true;}
+static BOOL Win32SignalHandlerCallbackFunc(DWORD sigNum) {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(sigNum); return true;}
 #else
 static void POSIXSignalHandlerCallbackFunc(int sigNum)   {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(sigNum);}
 #endif

@@ -154,6 +154,28 @@ static void CheckOp(uint32 numBytes, const void * orig, const void * swapOne, co
    if ((origTwo)&&(memcmp(orig, origTwo, numBytes)))      GoInsane(why, "(origTwo)");
 }
 
+#ifdef MUSCLE_USE_CPLUSPLUS11
+template<typename T> void VerifyTypeIsTrivial()
+{
+   if (std::is_trivial<T>::value == false)
+   {
+      char buf[512];
+      muscleSprintf(buf, "ERROR:  Type %s was expected to be trivial, but std::is_trivial() returned false!\n", typeid(T).name());
+      GoInsane(buf);
+   }
+}
+
+template<typename T> void VerifyTypeIsNonTrivial()
+{
+   if (std::is_trivial<T>::value == true)
+   {
+      char buf[512];
+      muscleSprintf(buf, "ERROR:  Type %s was expected to be non-trivial, but std::is_trivial() returned true!\n", typeid(T).name());
+      GoInsane(buf);
+   }
+}
+#endif
+
 SanitySetupSystem :: SanitySetupSystem()
 {
    // Make sure our data type lengths are as expected
@@ -277,6 +299,30 @@ SanitySetupSystem :: SanitySetupSystem()
       }
    }
    else GoInsane("MUSCLE is compiled for a little-endian CPU, but host CPU is big-endian!?");
+#endif
+
+#ifdef MUSCLE_USE_CPLUSPLUS11
+   // Just because I'm paranoid and want to make sure that std::is_trivial() works the way I think it does --jaf
+   VerifyTypeIsTrivial<int>();
+   VerifyTypeIsTrivial<float>();
+   VerifyTypeIsTrivial<double>();
+   VerifyTypeIsTrivial<int8>();
+   VerifyTypeIsTrivial<int16>();
+   VerifyTypeIsTrivial<int32>();
+   VerifyTypeIsTrivial<int64>();
+   VerifyTypeIsTrivial<const char *>();
+   VerifyTypeIsTrivial<const String *>();
+   VerifyTypeIsTrivial<String *>(); 
+
+   VerifyTypeIsNonTrivial<Point>();
+   VerifyTypeIsNonTrivial<Rect>();
+   VerifyTypeIsNonTrivial<String>();
+   VerifyTypeIsNonTrivial<ByteBuffer>();
+   VerifyTypeIsNonTrivial<ByteBufferRef>();
+   VerifyTypeIsNonTrivial<DataIO>();
+   VerifyTypeIsNonTrivial<DataIORef>();
+   VerifyTypeIsNonTrivial<Socket>();
+   VerifyTypeIsNonTrivial<ConstSocketRef>();
 #endif
 }
 
@@ -1130,8 +1176,8 @@ void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uin
       fprintf(optFile, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      size_t numDashes = 8+(4*numColumns)-strlen(headBuf);
-      for (size_t i=0; i<numDashes; i++) fputc('-', optFile);
+      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      for (int i=0; i<numDashes; i++) fputc('-', optFile);
       fputc('\n', optFile);
       if (buf)
       {
@@ -1194,8 +1240,8 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
       fprintf(optFile, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      size_t numDashes = 8+(4*numColumns)-strlen(headBuf);
-      for (size_t i=0; i<numDashes; i++) fputc('-', optFile);
+      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      for (int i=0; i<numDashes; i++) fputc('-', optFile);
       fputc('\n', optFile);
       char * ascBuf = newnothrow_array(char, numColumns+1);
       char * hexBuf = newnothrow_array(char, hexBufSize);
@@ -1244,8 +1290,8 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
       LogTime(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      size_t numDashes = 8+(4*numColumns)-strlen(headBuf);
-      for (size_t i=0; i<numDashes; i++) Log(logLevel, "-");
+      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      for (int i=0; i<numDashes; i++) Log(logLevel, "-");
       Log(logLevel, "\n");
       if (buf)
       {
@@ -1296,8 +1342,8 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
       Log(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      size_t numDashes = 8+(4*numColumns)-strlen(headBuf);
-      for (size_t i=0; i<numDashes; i++) Log(logLevel, "-");
+      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      for (int i=0; i<numDashes; i++) Log(logLevel, "-");
       Log(logLevel, "\n");
       char * ascBuf = newnothrow_array(char, numColumns+1);
       char * hexBuf = newnothrow_array(char, hexBufSize);
@@ -1357,8 +1403,8 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
       ret += headBuf;
 
       const int hexBufSize = (numColumns*8)+1;
-      size_t numDashes = 8+(4*numColumns)-strlen(headBuf);
-      for (size_t i=0; i<numDashes; i++) ret += '-';
+      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      for (int i=0; i<numDashes; i++) ret += '-';
       ret += '\n';
       if (buf)
       {
@@ -1412,8 +1458,8 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
       ret += headBuf;
 
       const int hexBufSize = (numColumns*8)+1;
-      size_t numDashes = 8+(4*numColumns)-strlen(headBuf);
-      for (size_t i=0; i<numDashes; i++) ret += '-';
+      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      for (int i=0; i<numDashes; i++) ret += '-';
       ret += '\n';
       char * ascBuf = newnothrow_array(char, numColumns+1);
       char * hexBuf = newnothrow_array(char, hexBufSize);
@@ -1848,6 +1894,252 @@ void SetMainReflectServerCatchSignals(bool enable)
 bool GetMainReflectServerCatchSignals() 
 {
    return _mainReflectServerCatchSignals;
+}
+
+Queue<String> GetBuildFlags()
+{
+   Queue<String> q;
+
+#ifdef MUSCLE_ENABLE_SSL
+   q.AddTail("MUSCLE_ENABLE_SSL");
+#endif
+
+#ifdef MUSCLE_USE_CPLUSPLUS11
+   q.AddTail("MUSCLE_USE_CPLUSPLUS11");
+#endif
+
+#ifdef MUSCLE_AVOID_IPV6
+   q.AddTail("MUSCLE_AVOID_IPV6");
+#endif
+
+#ifdef MUSCLE_SINGLE_THREAD_ONLY 
+   q.AddTail("MUSCLE_SINGLE_THREAD_ONLY");
+#endif
+
+#ifdef MUSCLE_USE_EPOLL
+   q.AddTail("MUSCLE_USE_EPOLL");
+#endif
+
+#ifdef MUSCLE_USE_POLL
+   q.AddTail("MUSCLE_USE_POLL");
+#endif
+
+#ifdef MUSCLE_USE_KQUEUE
+   q.AddTail("MUSCLE_USE_KQUEUE");
+#endif
+
+#ifdef MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS
+   q.AddTail(String("MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS=%1").Arg(MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS));
+#endif
+
+#ifdef MUSCLE_CATCH_SIGNALS_BY_DEFAULT
+   q.AddTail("MUSCLE_CATCH_SIGNALS_BY_DEFAULT");
+#endif
+
+#ifdef MUSCLE_USE_LIBRT
+   q.AddTail("MUSCLE_USE_LIBRT");
+#endif
+
+#ifdef MUSCLE_AVOID_MULTICAST_API
+   q.AddTail("MUSCLE_ENABLE_KEEPALIVE_API");
+#endif
+
+#ifdef MUSCLE_ENABLE_KEEPALIVE_API
+   q.AddTail("MUSCLE_ENABLE_KEEPALIVE_API");
+#endif
+
+#ifdef MUSCLE_64_BIT_PLATFORM
+   q.AddTail("MUSCLE_64_BIT_PLATFORM");
+#endif
+
+#ifdef MUSCLE_USE_LLSEEK
+   q.AddTail("MUSCLE_USE_LLSEEK");
+#endif
+
+#ifdef MUSCLE_PREFER_QT_OVER_WIN32
+   q.AddTail("MUSCLE_PREFER_QT_OVER_WIN32");
+#endif
+
+#ifdef MUSCLE_ENABLE_MEMORY_PARANOIA
+   q.AddTail(String("MUSCLE_ENABLE_MEMORY_PARANOIA=%1").Arg(MUSCLE_ENABLE_MEMORY_PARANOIA));
+#endif
+
+#ifdef MUSCLE_NO_EXCEPTIONS 
+   q.AddTail("MUSCLE_NO_EXCEPTIONS");
+#endif
+
+#ifdef MUSCLE_ENABLE_MEMORY_TRACKING 
+   q.AddTail("MUSCLE_ENABLE_MEMORY_TRACKING");
+#endif
+
+#ifdef MUSCLE_AVOID_ASSERTIONS 
+   q.AddTail("MUSCLE_AVOID_ASSERTIONS");
+#endif
+
+#ifdef MUSCLE_AVOID_SIGNAL_HANDLING
+   q.AddTail("MUSCLE_AVOID_SIGNAL_HANDLING");
+#endif
+
+#ifdef MUSCLE_AVOID_INLINE_ASSEMBLY
+   q.AddTail("MUSCLE_AVOID_INLINE_ASSEMBLY");
+#endif
+
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING 
+   q.AddTail("MUSCLE_ENABLE_ZLIB_ENCODING");
+#endif
+
+#ifdef MUSCLE_TRACE_CHECKPOINTS
+   q.AddTail(String("MUSCLE_TRACE_CHECKPOINTS=%1").Arg(MUSCLE_TRACE_CHECKPOINTS));
+#endif
+
+#ifdef MUSCLE_DISABLE_MESSAGE_FIELD_POOLS 
+   q.AddTail("MUSCLE_DISABLE_MESSAGE_FIELD_POOLS");
+#endif
+
+#ifdef MUSCLE_MAX_OUTPUT_CHUNK
+   q.AddTail(String("MUSCLE_MAX_OUTPUT_CHUNK=%1").Arg(MUSCLE_MAX_OUTPUT_CHUNK));
+#endif
+
+#ifdef MUSCLE_INLINE_LOGGING 
+   q.AddTail("MUSCLE_INLINE_LOGGING");
+#endif
+
+#ifdef MUSCLE_DISABLE_LOGGING 
+   q.AddTail("MUSCLE_DISABLE_LOGGING");
+#endif
+
+#ifdef MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS 
+   q.AddTail("MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS");
+#endif
+
+#ifdef MUSCLE_MUTEX_POOL_SIZE
+   q.AddTail(String("MUSCLE_MUTEX_POOL_SIZE").Arg(MUSCLE_MUTEX_POOL_SIZE));
+#endif
+
+#ifdef MUSCLE_POWERPC_TIMEBASE_HZ
+   q.AddTail(String("MUSCLE_POWERPC_TIMEBASE_HZ=%1").Arg(MUSCLE_POWERPC_TIMEBASE_HZ));
+#endif
+
+#ifdef MUSCLE_USE_PTHREADS 
+   q.AddTail("MUSCLE_USE_PTHREADS");
+#endif
+
+#ifdef MUSCLE_DEFAULT_TCP_STALL_TIMEOUT
+   q.AddTail("MUSCLE_DEFAULT_TCP_STALL_TIMEOUT=%1").Arg(MUSCLE_DEFAULT_TCP_STALL_TIMEOUT);
+#endif
+
+#ifdef MUSCLE_FD_SETSIZE
+   q.AddTail(String("MUSCLE_FD_SETSIZE=%1").Arg(MUSCLE_FD_SETSIZE));
+#endif
+
+#ifdef MUSCLE_AVOID_NEWNOTHROW 
+   q.AddTail("MUSCLE_AVOID_NEWNOTHROW");
+#endif
+
+#ifdef MUSCLE_AVOID_FORKPTY 
+   q.AddTail("MUSCLE_AVOID_FORKPTY");
+#endif
+
+#ifdef MUSCLE_HASHTABLE_DEFAULT_CAPACITY
+   q.AddTail(String("MUSCLE_HASHTABLE_DEFAULT_CAPACITY=%1").Arg(MUSCLE_HASHTABLE_DEFAULT_CAPACITY));
+#endif
+
+#ifdef SMALL_QUEUE_SIZE
+   q.AddTail(String("SMALL_QUEUE_SIZE=%1").Arg(SMALL_QUEUE_SIZE));
+#endif
+
+#ifdef SMALL_MUSCLE_STRING_LENGTH
+   q.AddTail(String("SMALL_MUSCLE_STRING_LENGTH=%1").Arg(SMALL_MUSCLE_STRING_LENGTH));
+#endif
+
+#ifdef MUSCLE_USE_QUERYPERFORMANCECOUNTER
+   q.AddTail("MUSCLE_USE_QUERYPERFORMANCECOUNTER");
+#endif
+
+#ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
+   q.AddTail("MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME");
+#endif
+
+#ifdef MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS
+   q.AddTail(String("MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS=%1").Arg(MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS));
+#endif
+
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+   q.AddTail("MUSCLE_ENABLE_DEADLOCK_FINDER");
+#endif
+
+#ifdef MUSCLE_DEFAULT_RUNTIME_DISABLE_DEADLOCK_FINDER
+   q.AddTail("MUSCLE_DEFAULT_RUNTIME_DISABLE_DEADLOCK_FINDER");
+#endif
+
+#ifdef MUSCLE_POOL_SLAB_SIZE
+   q.AddTail(String("MUSCLE_POOL_SLAB_SIZE=%1").Arg(MUSCLE_POOL_SLAB_SIZE));
+#endif
+
+#ifdef MUSCLE_AVOID_BITSTUFFING
+   q.AddTail("MUSCLE_AVOID_BITSTUFFING");
+#endif
+
+#ifdef MUSCLE_AVOID_CHECK_THREAD_STACK_USAGE
+   q.AddTail("MUSCLE_AVOID_CHECK_THREAD_STACK_USAGE");
+#endif
+
+#ifdef MUSCLE_AVOID_OBJECT_COUNTING
+   q.AddTail("MUSCLE_AVOID_OBJECT_COUNTING");
+#endif
+
+#ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
+   q.AddTail("MUSCLE_AVOID_THREAD_LOCAL_STORAGE");
+#endif
+
+#ifdef MUSCLE_AVOID_MINIMIZED_HASHTABLES
+   q.AddTail("MUSCLE_AVOID_MINIMIZED_HASHTABLES");
+#endif
+
+#ifdef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
+   q.AddTail("MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS");
+#endif
+
+#ifdef MUSCLE_FAKE_SHARED_MEMORY
+   q.AddTail("MUSCLE_FAKE_SHARED_MEMORY");
+#endif
+
+#ifdef MUSCLE_COUNT_STRING_COPY_OPERATIONS
+   q.AddTail("MUSCLE_COUNT_STRING_COPY_OPERATIONS");
+#endif
+
+#ifdef MUSCLE_AVOID_XENOMAI
+   q.AddTail("MUSCLE_AVOID_XENOMAI");
+#endif
+
+#ifdef DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
+   q.AddTail(String("DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD=%1").Arg(DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD));
+#endif
+
+#ifdef MUSCLE_AVOID_AUTOCHOOSE_SWAP
+   q.AddTail("MUSCLE_AVOID_AUTOCHOOSE_SWAP");
+#endif
+
+#ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
+   q.AddTail("MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS");
+#endif
+
+   return q;
+}
+
+void LogBuildFlags(int logLevel)
+{
+   if (GetMaxLogLevel() >= logLevel)
+   {
+      Queue<String> flagStrs = GetBuildFlags();
+      for (uint32 i=0; i<flagStrs.GetNumItems(); i++) LogTime(logLevel, "MUSCLE code was compiled with preprocessor flag -D%s\n", flagStrs[i]());
+   }
+}
+
+void PrintBuildFlags()
+{
+   Queue<String> flagStrs = GetBuildFlags();
+   for (uint32 i=0; i<flagStrs.GetNumItems(); i++) printf("MUSCLE code was compiled with preprocessor flag -D%s\n", flagStrs[i]());
 }
 
 }; // end namespace muscle

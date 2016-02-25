@@ -5,6 +5,51 @@ key:  - new feature
       * bug fixed
       o other
 
+6.33 Released 2/25/2016
+   - When MUSCLE_USE_CPLUSPLUS11 is defined, the Queue class 
+     no longer bothers resetting values in its internal array 
+     to their default state, if ItemType is a trivial type.
+   - When MUSCLE_USE_CPLUSPLUS11 is defined, the Hashtable class 
+     no longer bothers resetting values in its internal array 
+     to their default state, if their type (KeyType or ValueType)
+     is a trivial type.
+   - When MUSCLE_USE_CPLUSPLUS11 is defined, the SanitySetupSystem
+     class constructor now does some basic sanity checks on the
+     std::is_trivial() method to make sure it is working as expected.
+   - hexterm now prints time-since-previous-received-data whenever
+     it prints incoming data, for easier performance checking.
+   - Added GetBuildFlags(), PrintBuildFlags() and LogBuildFlags() 
+     functions to SystemInfo.h so that it's easy for a MUSCLE-based
+     executable to report the preprocessor flags it was built with.
+     This can be handy for debugging purposes.
+   - muscled now reports its build-flags at startup, if is launched
+     with log level "debug" or higher (e.g. "displaylevel=debug").
+   - Added a WithInterfaceIndex() convenience method to the
+     IPAddressAndPort class.
+   - Usage of the DetectNetworkConfigChangesSession class has
+     been simplified.  In particular, it is no longer necessary
+     to subclass this class in order to use it; instead you can 
+     now just have any of your existing session or factory subclasses
+     implement the new INetworkConfigChangesTarget interface, and
+     the DetectNetworkConfigChangesSession will call their
+     INetworkConfigChangesTarget methods when appropriate.
+   - The Windows-only "console" command line argument now can take 
+     an optional value; e.g. console=foo.txt will cause the program's 
+     stdout and stderr output to be redirected to file foo.txt.
+   - The Win32AllocateStdioConsole() function now takes an optional 
+     argument, as described above.
+   - hexterm now looks for a "nojoin" command line argument when a 
+     multicast group is specified; if found, it will deliberately
+     not join the multicast group (and become a send-only UDP session)
+   o DetectNetworkConfigChangesSession::SetEnabled(false) now also
+     suppresses calls to ComputerIsAboutSleep() and ComputerJustWokeUp().
+   o The DECLARE_REFTYPES macro now specifies the muscle namespace
+     explicitly, to make it easier to use from other namespaces.
+   * Fixed an underflow bug in LogHexBytes() and friends that would
+     cause 4 billion dashes to be printed if the title text was
+     too long.
+   * hexterm.vcproj now includes the necessary shlwapi.lib dependency
+
 6.32 Released 12/3/2015
    - Added support for a new compiler flag,
      -DMUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS,

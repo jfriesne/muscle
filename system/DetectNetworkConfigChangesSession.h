@@ -23,26 +23,58 @@ static void * GetRootPortPointerFromSession(const DetectNetworkConfigChangesSess
 # endif
 #endif
 
-/** This class watches the set of available network interfaces and calls its 
-  * NetworkInterfacesChanged() virtual method when a network-configuration change 
-  * has been detected.  The default implementation of NetworkInterfacesChanged() is a no-op,
-  * so you will want to subclass this class and implement your own version of 
-  * NetworkInterfacesChanged() that does something useful (like posting a log message,
-  * or tearing down and recreating any sockets that relied on the old networking config).
+/** This is an abstract base class (interface) that can be inherited by any Session or Factory
+  * object that wants the DetectNetworkConfigChangesSession to notify it when one or more
+  * network interfaces on the local computer have changed.
+  */
+class INetworkConfigChangesTarget
+{
+public:
+   /** Default constructor */
+   INetworkConfigChangesTarget() {/* empty */}
+
+   /** Destructor */
+   virtual ~INetworkConfigChangesTarget() {/* empty */}
+
+   /** Called by the DetectNetworkConfigChanges session's default NetworkInterfacesChanged()
+     * method after the set of local network interfaces has changed.
+     * @param optInterfaceNames optional table containing the names of the interfaces that
+     *                          have changed (e.g. "en0", "en1", etc).  If this table is empty,
+     *                          that indicates that any or all of the network interfaces may have
+     *                          changed.  Note that changed-interface enumeration is currently only
+     *                          implemented under MacOS/X, so under other operating systems this
+     *                          argument will currently always be an empty table.
+     */
+   virtual void NetworkInterfacesChanged(const Hashtable<String, Void> & optInterfaceNames) = 0;
+
+   /** Called by the DetectNetworkConfigChanges session, when the host computer is about to go to sleep.  
+     * Currently implemented for Windows and MacOS/X only.  
+     */
+   virtual void ComputerIsAboutToSleep() = 0;
+
+   /** Called by the DetectNetworkConfigChanges session, when the host computer has just woken up from sleep.  
+     * Currently implemented for Windows and MacOS/X only.
+     */
+   virtual void ComputerJustWokeUp() = 0;
+};
+
+/** This class watches the set of available network interfaces and when that set
+  * changes, this class calls the NetworkInterfacesChanged() virtual method on any
+  * session or factory object that is attached to the same ReflectServer (including itself).
   *  
   * Note that this functionality is currently implemented for Linux, Windows, and MacOS/X only.
   * Note also that the Windows and MacOS/X implementations currently make use of the MUSCLE
   * Thread class, and therefore won't compile if -DMUSCLE_SINGLE_THREAD_ONLY is set.
   * 
-  * As of MUSCLE v6.10, this class also provides notification callbacks when the host
-  * computer is about to go to sleep, and when it has just reawoken from sleep.  This can
-  * be useful e.g. if you want to make sure your program's TCP connections get cleanly 
-  * disconnected and are not left open while the host computer is sleeping.  This 
-  * functionality is currently implemented under MacOS/X and Windows only.
+  * This class also provides notification callbacks when the host computer is about to go 
+  * to sleep, and when it has just reawoken from sleep.  This can be useful e.g. if you 
+  * want to make sure your program's TCP connections get cleanly disconnected and are not 
+  * left open while the host computer is sleeping.  This functionality is currently 
+  * implemented under MacOS/X and Windows only.
   *
   * @see tests/testnetconfigdetect.cpp for an example usage of this class.
   */
-class DetectNetworkConfigChangesSession : public AbstractReflectSession, private CountedObject<DetectNetworkConfigChangesSession>
+class DetectNetworkConfigChangesSession : public AbstractReflectSession, public INetworkConfigChangesTarget, private CountedObject<DetectNetworkConfigChangesSession>
 #ifndef __linux__
    , private Thread
 #endif
@@ -70,13 +102,14 @@ public:
 #endif
 
    /** This method can be called to disable or enable this session.
-     * A disabled session will not call NetworkInterfacesChanged(), even if a network interface change is detected. 
+     * A disabled session will not call any of the callback methods in the INetworkConfigChangesTarget class.
      * The default state of this session is enabled.
-     * @param e True to enable calling of NetworkInterfacesChanged() when appropriate, or false to disable it.
+     * @param e False to disable the calling of callback methods on INetworkConfigChangesTarget objects, or
+     *          True to enable it again.
      */
    void SetEnabled(bool e) {_enabled = e;}
 
-   /** Returns true iff the calling of NetworkInterfaceChanged() is enabled.  Default value is true. */
+   /** Returns true iff the calling of callback methods is enabled.  Default value is true. */
    bool IsEnabled() const {return _enabled;}
 
    /** Specified the amount of time the session should delay after receiving an indication of
@@ -101,10 +134,8 @@ protected:
 #endif
 
    /** Called when a change in the local interfaces set is detected.
-     * Default implementation calls FindAppropriateNetworkInterfaceIndices()
-     * to update the process's interface list.  Subclass can augment
-     * that behavior to include update various other objects that
-     * need to be notified of the change.
+     * Default implementation is a no-op.  Note, however, that NetworkInterfacesChanged(optInterfaceNames)
+     * will be called on any session or factory that implements INetworkConfigChangesTarget (including this session).
      * @param optInterfaceNames optional table containing the names of the interfaces that
      *                          have changed (e.g. "en0", "en1", etc).  If this table is empty,
      *                          that indicates that any or all of the network interfaces may have
@@ -115,17 +146,22 @@ protected:
    virtual void NetworkInterfacesChanged(const Hashtable<String, Void> & optInterfaceNames);
 
    /** Called when the host computer is about to go to sleep.  Currently implemented for Windows and MacOS/X only.
-     * Default implementation is a no-op.
+     * Default implementation is a no-op.  Note, however, that ComputerIsAboutToSleep()
+     * will be called on any session or factory that implements INetworkConfigChangesTarget (including this session).
      */
    virtual void ComputerIsAboutToSleep();
 
    /** Called when the host computer has just woken up from sleep.  Currently implemented for Windows and MacOS/X only.
-     * Default implementation is a no-op.
+     * Default implementation is a no-op.  Note, however, that ComputerJustWokeUp()
+     * will be called on any session or factory that implements INetworkConfigChangesTarget (including this session).
      */
    virtual void ComputerJustWokeUp();
 
 private:
    void ScheduleSendReport();
+   void CallNetworkInterfacesChangedOnAllTargets(const Hashtable<String, Void> & optInterfaceNames);
+   void CallComputerIsAboutToSleepOnAllTargets();
+   void CallComputerJustWokeUpOnAllTargets();
 
    enum {
       DNCCS_MESSAGE_INTERFACES_CHANGED = 1684956003, // 'dncc' 

@@ -1,11 +1,12 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
 #include "reflector/ReflectServer.h"
-# include "reflector/StorageReflectConstants.h"
+#include "reflector/StorageReflectConstants.h"
 #ifndef MUSCLE_AVOID_SIGNAL_HANDLING
 #include "reflector/SignalHandlerSession.h"
 #include "system/SetupSystem.h"  // for IsCurrentThreadMainThread()
 #endif
+#include "system/SystemInfo.h"   // for LogBuildFlags()
 #include "util/NetworkUtilityFunctions.h"
 #include "util/MemoryAllocator.h"
 
@@ -363,6 +364,7 @@ ServerProcessLoop()
       const char * ipState = "enabled";
 #endif
       LogTime(MUSCLE_LOG_DEBUG, "The server was compiled with MUSCLE version %s.  IPv6 support is %s.\n", MUSCLE_VERSION_STRING, ipState);
+      LogBuildFlags(MUSCLE_LOG_DEBUG);
       LogTime(MUSCLE_LOG_DEBUG, "This server's session ID is " UINT64_FORMAT_SPEC ".\n", GetServerSessionID());
    }
 

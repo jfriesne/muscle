@@ -56,7 +56,11 @@ void Require(MessageIOGateway & gw, const char * arg, bool unRequire)
 //   admin server=muscleserver.mycompany.com kick=192.168.0.23 ban=16.25.29.2 kickban=1.2.3.4 unban=1.2.3.4 ban=2.3.4.5 ban=3.4.5.*
 // Note that you can only do this if your IP address has the requisite privileges on
 // the MUSCLE server!  (i.e. to ban, the server must have been run with an argument like privban=your.ip.address)
+#ifdef UNIFIED_DAEMON
+int admin_main(int argc, char ** argv)
+#else
 int main(int argc, char ** argv)
+#endif
 {
    CompleteSetupSystem css;
 
