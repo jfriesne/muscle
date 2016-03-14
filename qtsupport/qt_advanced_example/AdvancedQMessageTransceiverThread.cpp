@@ -1,5 +1,3 @@
-#include <pthread.h>
-
 #include "dataio/TCPSocketDataIO.h"
 #include "iogateway/SignalMessageIOGateway.h"
 

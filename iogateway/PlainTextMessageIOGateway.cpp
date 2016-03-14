@@ -20,7 +20,14 @@ int32
 PlainTextMessageIOGateway ::
 DoOutputImplementation(uint32 maxBytes)
 {
-   TCHECKPOINT;
+   return DoOutputImplementationAux(maxBytes, 0);
+}
+
+int32
+PlainTextMessageIOGateway ::
+DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth)
+{
+   if (recurseDepth >= 1024) return 0;  // We don't want to recurse so deeply that we overflow the stack!
 
    const Message * msg = _currentSendingMessage();
    if (msg == NULL)
@@ -44,7 +51,7 @@ DoOutputImplementation(uint32 maxBytes)
          else
          {
             _currentSendingMessage.Reset();  // no more text available?  Go to the next message then.
-            return DoOutputImplementation(maxBytes);
+            return DoOutputImplementationAux(maxBytes, recurseDepth+1);
          }
       }
       if ((msg)&&(_currentSendOffset >= 0)&&(_currentSendOffset < (int32)_currentSendText.Length()))
@@ -56,7 +63,7 @@ DoOutputImplementation(uint32 maxBytes)
          else if (bytesWritten > 0)
          {
             _currentSendOffset += bytesWritten;
-            int32 subRet = DoOutputImplementation(maxBytes-bytesWritten);
+            int32 subRet = DoOutputImplementationAux(maxBytes-bytesWritten, recurseDepth+1);
             return (subRet >= 0) ? subRet+bytesWritten : -1;
          }
       }

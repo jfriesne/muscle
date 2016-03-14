@@ -64,6 +64,7 @@ protected:
    virtual void FilterInputBuffer(char * buf, uint32 & bufLen, uint32 maxLen);
 
 private:
+   int32 DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth);
    MessageRef AddIncomingText(const MessageRef & msg, const char * s);
 
    MessageRef _currentSendingMessage;

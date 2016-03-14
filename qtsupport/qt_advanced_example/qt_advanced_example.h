@@ -46,4 +46,24 @@ private:
    Hashtable<String, SessionListViewItem *> _sessionLookup;
 };
 
+#if defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
+class ThreadedInternalSession;
+
+// Just a little QObject that calls a known function when its CallSendExampleMessageToMainThread() slot
+// is called.  This way I don't have to make ThreadedInternalSession derive from QObject
+class TimerSignalReceiverObject : public QObject
+{
+Q_OBJECT
+   
+public:
+   TimerSignalReceiverObject(ThreadedInternalSession * master) : _master(master) {/* empty */}
+
+public slots:
+   void CallSendExampleMessageToMainThread();
+
+private:
+   ThreadedInternalSession * _master;
+};
+#endif
+
 #endif

@@ -7,6 +7,7 @@
 
 #include <qobject.h>
 #include <qthread.h>
+#include <qsocketnotifier.h>
 #include "system/MessageTransceiverThread.h"
 
 namespace muscle {
@@ -544,6 +545,29 @@ private:
    QMessageTransceiverHandler * _prevSeen;  // used by _mtt for a quickie linked list
    QMessageTransceiverHandler * _nextSeen;  // used by _mtt for a quickie linked list
 };
+
+#if defined(MUSCLE_USE_QT_THREADS) && defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
+/** Helper class for the Qt implementation of the MUSCLE Thread class.  This class is exposed only
+  * because Qt's signal/slot system requires it to be; please ignore it as it is meant to be a 
+  * private implementation detail.
+  */
+class MuscleQThreadSocketNotifier : public QSocketNotifier
+{
+Q_OBJECT
+
+public:
+   MuscleQThreadSocketNotifier(Thread * thread, qintptr sock, Type t, QObject * parent) : QSocketNotifier(sock, t, parent), _thread(thread)
+   {
+      connect(this, SIGNAL(activated(int)), this, SLOT(SocketReady(int)));
+   }
+
+private slots:
+   void SocketReady(int sock) {if (type() == Read) _thread->QtSocketReadReady(sock); else _thread->QtSocketWriteReady(sock);}
+
+private:
+   Thread * _thread;
+};
+#endif
 
 };  // end namespace muscle;
 

@@ -5,6 +5,36 @@ key:  - new feature
       * bug fixed
       o other
 
+6.34 Released 3/14/2016
+   - Added GetQThread() accessor methods to the Thread class.  These
+     methods are only available when MUSCLE_USE_QT_THREADS is defined.
+   - Added support for a new preprocessor flag,
+     MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION.  When this flag
+     is defined, the Thread::InternalThreadEntry() will use 
+     QThread::exec() as its event loop rather than a simple 
+     while(WaitForNextMessageFromOwner()) loop.  This allows for
+     better integration with QObjects living inside the thread.
+   - Modified the ThreadedInternalSession class in the 
+     qt_advanced_example to use a QTimer for its periodic messages
+     when MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION is defined,
+     rather than calling WaitForNextMessageFromOwner(), just as an 
+     example of what can be done with better Qt integration.
+   o Replaced the Thread class's writable GetInternalSocketSet()
+     method with a more user-friendly API, including new methods
+     RegisterInternalThreadSocket(), UnregisterInternalThreadSocket(),
+     UnregisterAllInternalThreadSockets(), and IsInternalThreadSocketReady().
+   o Replaced the Thread class's writable GetOwnerSocketSet()
+     method with a more user-friendly API, including new methods
+     RegisterOwnerThreadSocket(), UnregisterOwnerThreadSocket(),
+     UnregisterAllOwnerThreadSockets(), and IsOwnerThreadSocketReady().
+   * Fixed a potential stack overflow in PlainTextMessageIOGateway::
+     DoOutputImplementation().
+   * Removed some unnecessary "#include <pthread.h>" directives from
+     the qt_advanced_example cpp files that were causing the example
+     program not to build under Windows.
+   * Added an #ifdef around IPAddressAndPort::WithInterfaceIndex()
+     so that code will again compile if MUSCLE_AVOID_IPV6 is defined.
+
 6.33 Released 2/25/2016
    - When MUSCLE_USE_CPLUSPLUS11 is defined, the Queue class 
      no longer bothers resetting values in its internal array 

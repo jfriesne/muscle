@@ -122,9 +122,9 @@ public:
      *                   non-blocking poll of the reply queue.
      *                   If (wakeuptime) is set to MUSCLE_TIME_NEVER, then this method 
      *                   will block indefinitely, until a new reply is ready.
-     * @see GetOwnerSocketSet() for advanced control of this method's behaviour
      * @returns The number of Messages left in the reply queue on success, or -1 on failure
      *          (The call timed out without any replies ever showing up)
+     * @see GetOwnerThreadSocketSet() for details about advanced control of this method's behaviour.
      */
    virtual int32 GetNextReplyFromInternalThread(MessageRef & ref, uint64 wakeupTime = 0);
 
@@ -168,47 +168,74 @@ public:
      */
    const ConstSocketRef & GetOwnerWakeupSocket();
 
-   /** Enumeration of the socket sets that are available for blocking on; used in GetOwnerSocketSet()
-    *  and GetInternalSocketSet() calls.
+   /** Enumeration of the three socket-sets that are available for blocking on; used in GetOwnerThreadSocketSet(),
+    *  GetInternalThreadSocketSet(), and related method calls.
     */
    enum {
       SOCKET_SET_READ = 0,  /**< set of sockets to watch for ready-to-read (i.e. incoming data available)          */
       SOCKET_SET_WRITE,     /**< set of sockets to watch for ready-to-write (i.e. outgoing buffer space available) */
-      SOCKET_SET_EXCEPTION, /**< set of sockets to watch for exceptional conditions (implementation defined)       */
+      SOCKET_SET_EXCEPTION, /**< set of sockets to watch for exceptional conditions (implementation-defined)       */
       NUM_SOCKET_SETS       /**< A guard value */
    };
 
-   /** This function returns a reference to one of the three socket-sets that
-    *  GetNextReplyFromInternalThread() will optionally use to determine whether 
-    *  to return early.  By default, all of the socket-sets are empty, and 
+   /** This function returns a read-only reference to one of the three socket-sets 
+    *  that GetNextReplyFromInternalThread() will optionally use to determine whether 
+    *  to return early.  By default, all three of the socket-sets are empty, and 
     *  GetNextReplyFromInternalThread() will return only when a new Message
     *  has arrived from the internal thread, or when the timeout period has elapsed.
     *
     *  However, in some cases it is useful to have GetNextReplyFromInternalThread()
     *  return under other conditions as well, such as when a specified socket becomes 
     *  ready-to-read-from or ready-to-write-to.  You can specify that a socket should be 
-    *  watched in this manner, by adding that socket to the appropriate socket set(s).  
+    *  watched in this manner, by registering that socket to the appropriate socket set(s).  
     *  For example, to tell GetNextReplyFromInternalThread() to always return when 
     *  mySocket is ready to be written to, you would add mySocket to the SOCKET_SET_WRITE 
     *  set, like this:
     *     
-    *     _thread.GetOwnerSocketSet(SOCKET_SET_WRITE).Put(mySocket, false);
+    *     _thread.RegisterOwnerThreadSocket(mySocket, SOCKET_SET_WRITE);
     *
-    *  (This only needs to be done once)  After GetNextReplyFromInternalThread() 
-    *  returns, you can determine whether your socket is ready-to-write-to by checking 
-    *  its associated value in the table, like this:
+    *  This only needs to be done once.  After GetNextReplyFromInternalThread() 
+    *  returns, you can determine whether your socket is ready-to-write-to like this:
     *
-    *     bool canWrite = false;
-    *     _thread.GetOwnerSocketSet(SOCKET_SET_WRITE).Get(mySocket, canWrite);
+    *     bool canWrite = _thread.IsOwnerThreadSocketReady(mySocket, SOCKET_SET_WRITE);
     *     if (canWrite) printf("Socket is ready to be written to!\n");
     *
     *  @param socketSet SOCKET_SET_* indicating which socket-set to return a reference to.
     *  @note This method should only be called from the main thread!
     */
-   Hashtable<ConstSocketRef, bool> & GetOwnerSocketSet(uint32 socketSet) {return _threadData[MESSAGE_THREAD_OWNER]._socketSets[socketSet];}
+   const Hashtable<ConstSocketRef, bool> & GetOwnerThreadSocketSet(uint32 socketSet) const {return _threadData[MESSAGE_THREAD_OWNER]._socketSets[socketSet];}
 
-   /** As above, but returns a read-only reference. */
-   const Hashtable<ConstSocketRef, bool> & GetOwnerSocketSet(uint32 socketSet) const;
+   /** Register the specified socket so that WaitForNextMessageFromOwner() will return
+     * whenever this socket indicates that it is (ready-for-read, ready-for-write, or has-exception)
+     * @param sock The socket to watch.
+     * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are interested in
+     * @returns B_NO_ERROR on success, or B_ERROR on failure (socket ref was NULL, or out of memory?).
+     * @note This method should only be called from the main thread!
+     */
+   virtual status_t RegisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return sock() ? GetOwnerThreadSocketSetRW(socketSet).Put(sock, false) : B_ERROR;}
+
+   /** Unregisters the specified socket so that WaitForNextMessageFromOwner() will no longer return
+     * because this socket indicated that it is (ready-for-read, ready-for-write, or has-exception)
+     * @param sock The socket to watch.
+     * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are no longer interested in
+     * @returns B_NO_ERROR on success, or B_ERROR on failure (sock wasn't registered?).
+     * @note This method should only be called from the main thread!
+     */
+   virtual status_t UnregisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return GetOwnerThreadSocketSetRW(socketSet).Remove(sock);}
+
+   /** Unregisters all sockets from the specified socket-set.
+     * @param socketSet a SOCKET_SET_* value specifying the socket-set you want to clear.
+     * @note This method should only be called from the main thread!
+     */
+   virtual void UnregisterAllOwnerThreadSocketsInSet(uint32 socketSet) {GetOwnerThreadSocketSetRW(socketSet).Clear();}
+
+   /** Returns true iff the specified registered socket is currently flagged as ready-for-x
+     * @param sock The socket whose state you are interested in.
+     * @param socketSet the SOCKET_SET_* value corresponding to the ready-for-x state you are interested in.
+     * @returns true iff the specified socket is ready-for-x (where x is specified by the SOCKET_SET_* value)
+     * @note This method should only be called from the main thread!
+     */
+   bool IsOwnerThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const {return GetOwnerThreadSocketSet(socketSet).GetWithDefault(sock, false);}
 
    /** Call this to set a suggested stack size for the new thread.  If set to non-zero, StartInternalThread()
     *  will try to set the stack size of the thread it creates to this value.  Note that calling this method
@@ -228,6 +255,20 @@ public:
      * (e.g. because this method was called from a different thread)
      */
    uint32 GetCurrentStackUsage() const;
+
+#if defined(MUSCLE_USE_QT_THREADS)
+   /** Returns a pointer to the QThread object being used to implement our internal thread.
+     * Note that this method is only available when the MUSCLE_USE_QT_THREADS preprocessor macro is defined,
+     * since otherwise there is no QThread object in use.
+     */
+   QThread * GetQThread() {return &_thread;}
+
+   /** Returns a read-only pointer to the QThread object being used to implement our internal thread.
+     * Note that this method is only available when the MUSCLE_USE_QT_THREADS preprocessor macro is defined,
+     * since otherwise there is no QThread object in use.
+     */
+   const QThread * GetQThread() const {return &_thread;}
+#endif
 
 protected:
    /** If you are using the default implementation of InternalThreadEntry(), then this
@@ -255,6 +296,14 @@ protected:
      * Default implementation runs in a loop calling WaitForNextMessageFromOwner() and
      * then MessageReceivedFromOwner().  In many cases, that is all you need, so you may
      * not need to override this method.
+     * @note if the -DMUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION compiler flag is being used,
+     *       and QThreads are being used as the threading implementation, then InternalThreadEntry()'s
+     *       event loop will be implemented by calling QThread::exec() instead.  In that case,
+     *       the owning thread's signalling of the internal thread (that a new MessageRef has been
+     *       delivered) will be implemented via a QSocketNotifier, but otherwise the Thread
+     *       class's behavior will remain the same.  This mode is useful for programs that
+     *       wish to use Qt objects inside the internal thread, since some Qt objects require
+     *       that the QThread::exec() event loop be running in order to function correctly.
      */
    virtual void InternalThreadEntry();
  
@@ -272,7 +321,7 @@ protected:
      * @returns The number of Messages still remaining in the message queue on success, or 
      *          -1 on failure (i.e. the call was aborted before any Messages ever showing up,
      *          and (ref) was not written to)
-     * @see GetInternalSocketSet() for advanced control of this method's behaviour
+     * @see GetInternalThreadSocketSet() for details about advanced control of this method's behaviour.
      */
    virtual int32 WaitForNextMessageFromOwner(MessageRef & ref, uint64 wakeupTime = MUSCLE_TIME_NEVER);
 
@@ -313,39 +362,72 @@ protected:
    /** Closes all of our threading sockets, if they are open. */
    void CloseSockets();
 
-   /** This function returns a reference to one of the three socket-sets that
-    *  WaitForNextMessageFromOwner() will optionally use to determine whether 
-    *  to return early.  By default, all of the socket-sets are empty, and 
+   /** This function returns a read-only reference to one of the three socket-sets 
+    *  that WaitForNextMessageFromOwner() will optionally use to determine whether 
+    *  to return early.  By default, all three of the socket-sets are empty, and 
     *  WaitForNextMessageFromOwner() will return only when a new Message
     *  has arrived from the owner thread, or when the timeout period has elapsed.
     *
     *  However, in some cases it is useful to have WaitForNextMessageFromOwner()
     *  return under other conditions as well, such as when a specified socket becomes 
     *  ready-to-read-from or ready-to-write-to.  You can specify that a socket should be 
-    *  watched in this manner, by adding that socket to the appropriate socket set(s).  
+    *  watched in this manner, by registering that socket to the appropriate socket set(s).  
     *  For example, to tell WaitForNextMessageFromOwner() to always return when 
-    *  mySocket is ready to be written to, you would add mySocket to the SOCKET_SET_WRITE 
-    *  set, like this:
+    *  (mySocket) is ready to be written to, you would register (mySocket) with the 
+    *  SOCKET_SET_WRITE set, like this:
     *     
-    *     _thread.GetInternalSocketSet(SOCKET_SET_WRITE).Put(mySocket, false);
+    *     _thread.RegisterInternalThreadSocket(mySocket, SOCKET_SET_WRITE);
     *
-    *  (This only needs to be done once)  After WaitForNextMessageFromOwner() 
+    *  This only needs to be done once.  After WaitForNextMessageFromOwner() 
     *  returns, you can determine whether your socket is ready-to-write-to by checking 
     *  its associated value in the table, like this:
     *
-    *     bool canWrite = false;
-    *     _thread.GetInternalSocketSet(SOCKET_SET_WRITE).Get(mySocket, canWrite);
+    *     bool canWrite = IsInternalThreadSocketReady(mySocket, SOCKET_SET_WRITE);
     *     if (canWrite) printf("Socket is ready to be written to!\n");
     *
     *  @param socketSet SOCKET_SET_* indicating which socket-set to return a reference to.
     *  @note This method should only be called from the internal thread!
     */
-   Hashtable<ConstSocketRef, bool> & GetInternalSocketSet(uint32 socketSet) {return _threadData[MESSAGE_THREAD_INTERNAL]._socketSets[socketSet];}
+   const Hashtable<ConstSocketRef, bool> & GetInternalThreadSocketSet(uint32 socketSet) const {return _threadData[MESSAGE_THREAD_INTERNAL]._socketSets[socketSet];}
 
-   /** As above, but returns a read-only reference. */
-   const Hashtable<ConstSocketRef, bool> & GetInternalSocketSet(uint32 socketSet) const;
+   /** Register the specified socket so that WaitForNextMessageFromOwner() will return
+     * whenever this socket indicates that it is (ready-for-read, ready-for-write, or has-exception)
+     * @param sock The socket to watch.
+     * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are interested in
+     * @returns B_NO_ERROR on success, or B_ERROR on failure (socket ref was NULL, or out of memory?).
+     * @note This method should only be called from the internal thread!
+     */
+   virtual status_t RegisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return sock() ? GetInternalThreadSocketSetRW(socketSet).Put(sock, false) : B_ERROR;}
+
+   /** Unregisters the specified socket so that WaitForNextMessageFromOwner() will no longer return
+     * because this socket indicated that it is (ready-for-read, ready-for-write, or has-exception)
+     * @param sock The socket to watch.
+     * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are no longer interested in
+     * @returns B_NO_ERROR on success, or B_ERROR on failure (sock wasn't registered).
+     * @note This method should only be called from the internal thread!
+     */
+   virtual status_t UnregisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return GetInternalThreadSocketSetRW(socketSet).Remove(sock);}
+
+   /** Unregisters all sockets from the specified socket-set.
+     * @param socketSet a SOCKET_SET_* value specifying the socket-set you want to clear.
+     * @note This method should only be called from the internal thread!
+     */
+   virtual void UnregisterAllInternalThreadSocketsInSet(uint32 socketSet) {GetInternalThreadSocketSetRW(socketSet).Clear();}
+
+   /** Returns true iff the specified registered socket is currently flagged as ready-for-x
+     * @param sock The socket whose state you are interested in.
+     * @param socketSet the SOCKET_SET_* value corresponding to the ready-for-x state you are interested in.
+     * @returns true iff the specified socket is ready-for-x (where x is specified by the SOCKET_SET_* value)
+     * @note This method should only be called from the internal thread!
+     */
+   bool IsInternalThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const {return GetInternalThreadSocketSet(socketSet).GetWithDefault(sock, false);}
 
 private:
+   // The read/write versions of these methods are intentionally private, since we want callers to use the Register()/Unregister() calls instead
+   // of modifying the Hashtables directly.  That way the registration mechanism can be customized by subclasses, if desired.
+   Hashtable<ConstSocketRef, bool> & GetInternalThreadSocketSetRW(uint32 socketSet) {return _threadData[MESSAGE_THREAD_INTERNAL]._socketSets[socketSet];}
+   Hashtable<ConstSocketRef, bool> & GetOwnerThreadSocketSetRW(   uint32 socketSet) {return _threadData[MESSAGE_THREAD_OWNER   ]._socketSets[socketSet];}
+
    Thread(const Thread & rhs);  // deliberately private and unimplemented
    Thread & operator = (const Thread & rhs);  // deliberately private and unimplemented
 
@@ -393,12 +475,19 @@ private:
    DWORD _threadID;
    static DWORD WINAPI InternalThreadEntryFunc(LPVOID This) {((Thread*)This)->InternalThreadEntryAux(); return 0;}
 #elif defined(MUSCLE_USE_QT_THREADS)
+# if defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
+   friend class MuscleQThreadSocketNotifier;
+   void QtSocketReadReady(int sock);
+   void QtSocketWriteReady(int /*sock*/) {/* unimplemented for now */}
+#endif
    class MuscleQThread : public QThread
    {
    public:
       MuscleQThread() : _owner(NULL) {/* empty */}  // _owner not set here, for VC++6 compatibility
       void SetOwner(Thread * owner) {_owner = owner;}
       virtual void run() {_owner->InternalThreadEntryAux();}
+
+      int CallExec() {return exec();}
 
    private:
       Thread * _owner;

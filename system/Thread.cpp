@@ -5,6 +5,10 @@
 #include "dataio/TCPSocketDataIO.h"  // to get the proper #includes for recv()'ing
 #include "system/SetupSystem.h"  // for GetCurrentThreadID()
 
+#if defined(MUSCLE_USE_QT_THREADS) && defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
+# include "qtsupport/QMessageTransceiverThread.h"   // for MuscleQThreadSocketNotifier
+#endif
+
 #if defined(MUSCLE_PREFER_WIN32_OVER_QT)
 # include <process.h>  // for _beginthreadex()
 #endif
@@ -240,13 +244,42 @@ int32 Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref
 
 void Thread :: InternalThreadEntry()
 {
+#if defined(MUSCLE_USE_QT_THREADS) && defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
+   // In this mode, our Thread will run Qt's event-loop instead of using our own while-loop.
+   // That way users who wish to subclass the Thread class and then use QObjects in
+   // the the internal thread can get the Qt-appropriate behaviors that they are looking for.
+   MuscleQThreadSocketNotifier internalSocketNotifier(this, GetInternalThreadWakeupSocket().GetFileDescriptor(), QSocketNotifier::Read, NULL);
+   (void) _thread.CallExec();
+#else
    while(true)
    {
       MessageRef msgRef;
       int32 numLeft = WaitForNextMessageFromOwner(msgRef);
       if ((numLeft >= 0)&&(MessageReceivedFromOwner(msgRef, numLeft) != B_NO_ERROR)) break;
-   } 
+   }
+#endif
 }
+
+#if defined(MUSCLE_USE_QT_THREADS) && defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
+void Thread :: QtSocketReadReady(int /*sock*/)
+{
+   MessageRef msgRef;
+   while(1)
+   {
+      int32 numLeft = WaitForNextMessageFromOwner(msgRef, 0);  // 0 because we don't want to block here, this is a poll only
+      if (numLeft >= 0)
+      {
+         if (MessageReceivedFromOwner(msgRef, numLeft) != B_NO_ERROR)
+         {
+            // Oops, MessageReceivedFromOwner() wants us to exit!
+            _thread.quit();
+            break;
+         }
+      }
+      else break;  // no more incoming Messages to process, for now
+   }
+}
+#endif
 
 status_t Thread :: MessageReceivedFromOwner(const MessageRef & ref, uint32)
 {

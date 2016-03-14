@@ -58,12 +58,19 @@ private:
    virtual void InternalThreadEntry();
 
    status_t SetupNotifierGateway();
+   void SendExampleMessageToMainThread();
+
+#if defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
+   friend class TimerSignalReceiverObject;
+#endif
 
    MessageRef _args;
    bool _gatewayOK;
 
    uint32 _count;
    uint64 _nextStatusPostTime;
+
+   char _threadIDString[20];
 };
 
 #endif

@@ -320,6 +320,7 @@ public:
      */
    String ToString(bool includePort = true, bool preferIPv4Style = false) const;
 
+#ifndef MUSCLE_AVOID_IPV6
    /** Convenience method:  Returns an IPAddressAndPort object identical to this one,
      * except that the include ip_address has its interface index field set to the specified value.
      * @param interfaceIndex The new interface index value to use in the returned object.
@@ -330,6 +331,7 @@ public:
       addr.SetInterfaceIndex(interfaceIndex);
       return IPAddressAndPort(addr, _port); 
    }
+#endif
 
 private:
    ip_address _ip;

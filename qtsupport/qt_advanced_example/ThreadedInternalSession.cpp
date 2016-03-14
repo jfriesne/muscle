@@ -1,4 +1,7 @@
-#include <pthread.h>
+#if defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
+# include <qtimer.h>
+# include "qt_advanced_example.h"  // for TimerSignalReceiverObject
+#endif
 
 #include "dataio/TCPSocketDataIO.h"
 #include "iogateway/SignalMessageIOGateway.h"
@@ -80,6 +83,14 @@ status_t ThreadedInternalSession :: MessageReceivedFromOwner(const MessageRef & 
    else return B_ERROR;  // indicate that it's time for this thread to terminate now
 }
 
+#if defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
+void TimerSignalReceiverObject :: CallSendExampleMessageToMainThread() 
+{
+   printf("TimerSignalReceiveObject %p:  my slot was called by QTimer, calling ThreadInternalSession::SendExampleMessageToMainThread() on object %p\n", this, _master);
+   _master->SendExampleMessageToMainThread();
+}
+#endif
+
 /** Entry point for the internal/slave thread -- overridden to customize the event loop with a poll timeout.
   * So in addition to handling any Messages received from the MUSCLE thread, this event loop will also
   * send a PR_COMMAND_SETDATA to the MUSCLE thread once every 5 seconds, so that the Qt GUI and other
@@ -87,15 +98,28 @@ status_t ThreadedInternalSession :: MessageReceivedFromOwner(const MessageRef & 
   */
 void ThreadedInternalSession :: InternalThreadEntry()
 {
-   char threadIDString[20];
-   printf("internal-slave-thread %s is now ALIVE!!!\n", muscle_thread_id::GetCurrentThreadID().ToString(threadIDString));
+   printf("internal-slave-thread %s is now ALIVE!!!\n", muscle_thread_id::GetCurrentThreadID().ToString(_threadIDString));
 
    if (_args()) 
    {
-      printf("Startup arguments for internal-slave-thread %s are:\n", threadIDString);
+      printf("Startup arguments for internal-slave-thread %s are:\n", _threadIDString);
       _args()->PrintToStream();  // a real program would probably use some data from here, not just print it out
    }
 
+#if defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
+   // If Qt-event-loop integration is what we want, we can get the same behavior as below
+   // using Qt's event loop and a QTimer object.
+   QTimer timer(NULL);
+   timer.setInterval(1000);  // the timer will fire once per second
+   TimerSignalReceiverObject tsro(this);  // a little proxy object just so I don't have to make ThreadedInternalSession be a QObject
+   QObject::connect(&timer, SIGNAL(timeout()), &tsro, SLOT(CallSendExampleMessageToMainThread()));
+   timer.start();
+
+   // since MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION is defined, this will call through to QThread::exec()
+   Thread::InternalThreadEntry();  // won't return until it's time for the thread to go away
+#else
+
+   // Without MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION we have to provide our own custom event loop instead.
    while(true)
    {
       // Wait until the next Message from the MUSCLE thread, or until (_nextStatusPostTime), whichever comes first.
@@ -114,23 +138,27 @@ void ThreadedInternalSession :: InternalThreadEntry()
       }         
 
       uint64 now = GetRunTime64();
-      if (now >= _nextStatusPostTime)
-      {
-         printf("Internal-slave-thread %s is sending a PR_COMMAND_SETDATA Message to the MUSCLE thread.\n", threadIDString);
-
-         // Send a message to the MUSCLE thread, telling him to update our session's database node with our new count value
-         MessageRef dataMsg = GetMessageFromPool();
-         dataMsg()->AddInt32("count", _count);
-
-         MessageRef sendMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
-         sendMsg()->AddMessage("thread_status", dataMsg);
-         SendMessageToOwner(sendMsg);
-
-         _nextStatusPostTime = now + SecondsToMicros(1);  // we'll update our status once every 1 second
-         _count++;  // in real life this would be something more interesting, e.g. temperature or something
-      }
+      if (now >= _nextStatusPostTime) SendExampleMessageToMainThread();
    }
-   printf("Internal-slave-thread %s is exiting!!!\n", threadIDString);
+#endif
+
+   printf("Internal-slave-thread %s is exiting!!!\n", _threadIDString);
+}
+
+void ThreadedInternalSession :: SendExampleMessageToMainThread()
+{
+   printf("Internal-slave-thread %s is sending a PR_COMMAND_SETDATA Message to the MUSCLE thread.\n", _threadIDString);
+
+   // Send a message to the MUSCLE thread, telling him to update our session's database node with our new count value
+   MessageRef dataMsg = GetMessageFromPool();
+   dataMsg()->AddInt32("count", _count);
+
+   MessageRef sendMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
+   sendMsg()->AddMessage("thread_status", dataMsg);
+   SendMessageToOwner(sendMsg);
+
+   _nextStatusPostTime = GetRunTime64() + SecondsToMicros(1);  // we'll update our status once every 1 second
+   _count++;  // in real life this would be something more interesting, e.g. temperature or something
 }
 
 status_t ThreadedInternalSession :: SetupNotifierGateway()
