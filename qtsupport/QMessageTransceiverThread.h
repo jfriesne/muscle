@@ -556,7 +556,12 @@ class MuscleQThreadSocketNotifier : public QSocketNotifier
 Q_OBJECT
 
 public:
-   MuscleQThreadSocketNotifier(Thread * thread, qintptr sock, Type t, QObject * parent) : QSocketNotifier(sock, t, parent), _thread(thread)
+#if QT_VERSION >= 0x050000
+   MuscleQThreadSocketNotifier(Thread * thread, qintptr sock, Type t, QObject * parent) 
+#else
+   MuscleQThreadSocketNotifier(Thread * thread, int     sock, Type t, QObject * parent) 
+#endif
+      : QSocketNotifier(sock, t, parent), _thread(thread)
    {
       connect(this, SIGNAL(activated(int)), this, SLOT(SocketReady(int)));
    }

@@ -45,7 +45,7 @@ public:
    {
       printf("{");
       for (uint32 i=0; i<GetNumItemsInTuple(); i++) printf("%.1f%s", (*this)[i], (i==GetNumItemsInTuple()-1)?"":",");
-      printf("}(c=" UINT32_FORMAT_SPEC")", _count);
+      printf("}(c=" UINT32_FORMAT_SPEC ")", _count);
    }
 
 private:
@@ -145,14 +145,14 @@ int main()
    for (int32 leftShift=-10; leftShift<=10; leftShift++)
    {
       PrintFiveTuple(shiftTuple);
-      printf(" shifted left " INT32_FORMAT_SPEC" slots, becomes ", leftShift);
+      printf(" shifted left " INT32_FORMAT_SPEC " slots, becomes ", leftShift);
       PrintFiveTuple(shiftTuple<<leftShift);
       printf("\n");
    }
    for (int32 rightShift=-10; rightShift<=10; rightShift++)
    {
       PrintFiveTuple(shiftTuple);
-      printf(" shifted right " INT32_FORMAT_SPEC" slots, becomes ", rightShift);
+      printf(" shifted right " INT32_FORMAT_SPEC " slots, becomes ", rightShift);
       PrintFiveTuple(shiftTuple>>rightShift);
       printf("\n");
    }

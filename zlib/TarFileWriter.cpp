@@ -63,7 +63,7 @@ status_t TarFileWriter :: SetFile(const char * outputFileName, bool append)
 static void WriteOctalASCII(uint8 * b, uint64 val, uint8 fieldSize)
 {
    // gotta pad out the file data to the nearest block boundary!
-   char formatStr[16]; muscleStrcpy(formatStr, UINT64_FORMAT_SPEC" ");
+   char formatStr[16]; muscleStrcpy(formatStr, UINT64_FORMAT_SPEC " ");
 
    char * pi = strchr(formatStr, 'u');
    if (pi) *pi = 'o';  // gotta use octal here!

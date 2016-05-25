@@ -23,9 +23,9 @@ int main(void)
 {
    Message m1;
    m1.AddFloat("va", 1.0f);
-   printf("m1=" UINT32_FORMAT_SPEC"\n", m1.FlattenedSize());
+   printf("m1=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
    m1.AddInt32("co", 32);
-   printf("m2=" UINT32_FORMAT_SPEC"\n", m1.FlattenedSize());
+   printf("m2=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
 
    printSep("Testing Replace*() with okayToAdd...");
    Message butter;
@@ -134,7 +134,7 @@ int main(void)
 
    int32 int32Result;
    TEST(msg.FindInt32("TestInt32", 4, int32Result));
-   printf("TestInt32(4) = " INT32_FORMAT_SPEC"\n",int32Result);
+   printf("TestInt32(4) = " INT32_FORMAT_SPEC "\n",int32Result);
 
    int64 int64Result;
    TEST(msg.FindInt64("TestInt64", 4, int64Result));
@@ -162,19 +162,19 @@ int main(void)
    uint32 getDataSize;
    TEST(msg.FindData("Data", B_RAW_TYPE, &gd, &getDataSize));
    String dataStr((const char *) gd, getDataSize);
-   printf("data=[%s], size=" UINT32_FORMAT_SPEC"\n", dataStr(), getDataSize);
+   printf("data=[%s], size=" UINT32_FORMAT_SPEC "\n", dataStr(), getDataSize);
    TEST(msg.FindData("Data", B_RAW_TYPE, 1, (const void **) &gd, &getDataSize));
    dataStr.SetCstr((const char *) gd, getDataSize);
-   printf("data(1)=[%s], size=" UINT32_FORMAT_SPEC"\n", dataStr(), getDataSize);
+   printf("data(1)=[%s], size=" UINT32_FORMAT_SPEC "\n", dataStr(), getDataSize);
   
    printSep("Testing misc");
 
-   printf("There are " UINT32_FORMAT_SPEC" string entries\n", msg.GetNumNames(B_STRING_TYPE));
+   printf("There are " UINT32_FORMAT_SPEC " string entries\n", msg.GetNumNames(B_STRING_TYPE));
    msg.PrintToStream();
    Message tryMe = msg;
-   printf("Msg is " UINT32_FORMAT_SPEC" bytes.\n",msg.FlattenedSize());
+   printf("Msg is " UINT32_FORMAT_SPEC " bytes.\n",msg.FlattenedSize());
    msg.AddTag("anothertag", RefCountableRef(GetMessageFromPool()()));
-   printf("After adding tag, msg is (hopefully still) " UINT32_FORMAT_SPEC" bytes.\n",msg.FlattenedSize());
+   printf("After adding tag, msg is (hopefully still) " UINT32_FORMAT_SPEC " bytes.\n",msg.FlattenedSize());
    tryMe.PrintToStream();
 
    printf("Extracting...\n");
@@ -189,13 +189,13 @@ int main(void)
    subExtract.PrintToStream();
 
    uint32 flatSize = msg.FlattenedSize();
-   printf("FlatSize=" UINT32_FORMAT_SPEC"\n",flatSize);
+   printf("FlatSize=" UINT32_FORMAT_SPEC "\n",flatSize);
    uint8 * buf = new uint8[flatSize*10];
    {for (uint32 i=flatSize; i<flatSize*10; i++) buf[i] = 'J';}
 
    msg.Flatten(buf);
 
-   {for (uint32 i=flatSize; i<flatSize*10; i++) if (buf[i] != 'J') printf("OVERWRITE ON BYTE " UINT32_FORMAT_SPEC"\n",i);}
+   {for (uint32 i=flatSize; i<flatSize*10; i++) if (buf[i] != 'J') printf("OVERWRITE ON BYTE " UINT32_FORMAT_SPEC "\n",i);}
    printf("\n====\n");
    
    Message copy;

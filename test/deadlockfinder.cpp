@@ -52,7 +52,7 @@ static void PrintState(const Hashtable<int, Queue<String> > & state)
    for (HashtableIterator<int, Queue<String> > iter(state); iter.HasData(); iter++)
    {
       printf("  Thread %i:\n", iter.GetKey());
-      for (uint32 i=0; i<iter.GetValue().GetNumItems(); i++) printf("    " UINT32_FORMAT_SPEC". %s\n", i, iter.GetValue()[i]());
+      for (uint32 i=0; i<iter.GetValue().GetNumItems(); i++) printf("    " UINT32_FORMAT_SPEC ". %s\n", i, iter.GetValue()[i]());
    }
    printf("--------- End Current state ------------\n");
 }
@@ -88,7 +88,7 @@ static status_t CheckOrderingConstraints(const String & key, const Queue<String>
 
 static void PrintSequence(uint32 i, const Queue<String> & seq, const char * desc, const Hashtable<unsigned long, Void> & threads)
 {
-   printf("\n%s SEQUENCE " UINT32_FORMAT_SPEC" (" UINT32_FORMAT_SPEC" threads ", desc, i, threads.GetNumItems());
+   printf("\n%s SEQUENCE " UINT32_FORMAT_SPEC " (" UINT32_FORMAT_SPEC " threads ", desc, i, threads.GetNumItems());
    bool isFirst = true;
    for (HashtableIterator<unsigned long, Void> iter(threads); iter.HasData(); iter++) 
    {
@@ -97,7 +97,7 @@ static void PrintSequence(uint32 i, const Queue<String> & seq, const char * desc
       printf("%lu", iter.GetKey());
    }
    printf("):\n");
-   for (uint32 j=0; j<seq.GetNumItems(); j++) printf("   " UINT32_FORMAT_SPEC".  %s\n", j, seq[j]());
+   for (uint32 j=0; j<seq.GetNumItems(); j++) printf("   " UINT32_FORMAT_SPEC ".  %s\n", j, seq[j]());
 }
 
 // This program reads debug output to look for potential deadlocks
@@ -186,7 +186,7 @@ int main(void)
    {
       printf("\n\nERROR, AT END OF PROCESSING, LOCKS WERE STILL HELD BY THREAD %lu:\n", iter.GetKey());
       const Queue<String> & q = iter.GetValue();
-      for (uint32 i=0; i<q.GetNumItems(); i++) printf("  " UINT32_FORMAT_SPEC". %s\n", i, q[i]());
+      for (uint32 i=0; i<q.GetNumItems(); i++) printf("  " UINT32_FORMAT_SPEC ". %s\n", i, q[i]());
    }
 
    printf("\n------------------- BEGIN UNIQUE LOCK SEQUENCES -----------------\n");
@@ -234,7 +234,7 @@ int main(void)
                      bool isDefinite = ((ti)&&(tj)&&((ti->GetNumItems() > 1)||(tj->GetNumItems() > 1)||(*ti != *tj)));   // (ti) and (tj) are actually never going to be NULL, but this makes clang++ happy
      
                      printf("\n\n------------------------------------------\n");
-                     printf("ERROR, %s LOCK-ACQUISITION ORDERING INCONSISTENCY DETECTED:   SEQUENCE #" UINT32_FORMAT_SPEC" vs SEQUENCE #" UINT32_FORMAT_SPEC"  !!\n", isDefinite?"DEFINITE":"POTENTIAL", i, j);
+                     printf("ERROR, %s LOCK-ACQUISITION ORDERING INCONSISTENCY DETECTED:   SEQUENCE #" UINT32_FORMAT_SPEC " vs SEQUENCE #" UINT32_FORMAT_SPEC "  !!\n", isDefinite?"DEFINITE":"POTENTIAL", i, j);
                      PrintSequence(i, maxLogs[i], "PROBLEM", *sequenceToThreads.Get(i));
                      PrintSequence(j, maxLogs[j], "PROBLEM", *sequenceToThreads.Get(j));
                      break;

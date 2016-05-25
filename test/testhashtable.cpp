@@ -279,21 +279,21 @@ static void TestIteratorSanityOnRemoval(bool backwards)
          int32 gotKey      = iter.GetKey();
          int32 gotValue    = iter.GetValue();
 
-         LogTime(MUSCLE_LOG_TRACE, "  Iter returned " INT32_FORMAT_SPEC" -> " INT32_FORMAT_SPEC"\n", iter.GetKey(), iter.GetValue());
+         LogTime(MUSCLE_LOG_TRACE, "  Iter returned " INT32_FORMAT_SPEC " -> " INT32_FORMAT_SPEC "\n", iter.GetKey(), iter.GetValue());
          if (gotKey != expectedKey)
          {
-            LogTime(MUSCLE_LOG_CRITICALERROR, "Expected key=" INT32_FORMAT_SPEC", got key=" INT32_FORMAT_SPEC" (value=" UINT32_FORMAT_SPEC")\n", expectedKey, gotKey, gotValue);
+            LogTime(MUSCLE_LOG_CRITICALERROR, "Expected key=" INT32_FORMAT_SPEC ", got key=" INT32_FORMAT_SPEC " (value=" UINT32_FORMAT_SPEC ")\n", expectedKey, gotKey, gotValue);
             ExitWithoutCleanup(10);
          }
 
-         if ((gotKey%(i+1))==0) {LogTime(MUSCLE_LOG_TRACE, "    -> Deleting key=" INT32_FORMAT_SPEC"\n", gotKey); table.Remove(gotKey);}
+         if ((gotKey%(i+1))==0) {LogTime(MUSCLE_LOG_TRACE, "    -> Deleting key=" INT32_FORMAT_SPEC "\n", gotKey); table.Remove(gotKey);}
 
          numPairsFound++;
          prevKey = gotKey;
       }
       if (numPairsFound != COUNT)
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Expected to iterate across " UINT32_FORMAT_SPEC" pairs, only saw " UINT32_FORMAT_SPEC"!\n", COUNT, numPairsFound);
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Expected to iterate across " UINT32_FORMAT_SPEC " pairs, only saw " UINT32_FORMAT_SPEC "!\n", COUNT, numPairsFound);
          ExitWithoutCleanup(10);
       }
    }
@@ -327,7 +327,7 @@ static void AddTally(Hashtable<String, double> & tallies, const char * verb, uin
 {
    uint64 elapsed = (GetRunTime64()-startTime);
    double itemsPerSecond = ((double)numItems*((double)MICROS_PER_SECOND))/elapsed;
-   printf("   It took " UINT64_FORMAT_SPEC" microseconds to %s " UINT32_FORMAT_SPEC" items, so we %s %.0f items per second\n", elapsed, verb, numItems, verb, itemsPerSecond);
+   printf("   It took " UINT64_FORMAT_SPEC " microseconds to %s " UINT32_FORMAT_SPEC " items, so we %s %.0f items per second\n", elapsed, verb, numItems, verb, itemsPerSecond);
    *(tallies.GetOrPut(verb)) += itemsPerSecond;
 }
 
@@ -461,7 +461,7 @@ int main(int argc, char ** argv)
       table.SortByKey();
       uint64 end = GetRunTime64();
 
-      LogTime(MUSCLE_LOG_INFO, "Time to sort " UINT32_FORMAT_SPEC" items: " UINT64_FORMAT_SPEC "ms\n", numItems, (end-start)/1000);
+      LogTime(MUSCLE_LOG_INFO, "Time to sort " UINT32_FORMAT_SPEC " items: " UINT64_FORMAT_SPEC "ms\n", numItems, (end-start)/1000);
 
       // Check the resulting sorted table for correctness in both directions
       CheckTable(table, actualNumItems, false);
@@ -482,7 +482,7 @@ int main(int argc, char ** argv)
       table.SortByKey();
       uint64 end = GetRunTime64();
 
-      LogTime(MUSCLE_LOG_INFO, "Time to sort " UINT32_FORMAT_SPEC" items: " UINT64_FORMAT_SPEC "ms\n", numItems, (end-start)/1000);
+      LogTime(MUSCLE_LOG_INFO, "Time to sort " UINT32_FORMAT_SPEC " items: " UINT64_FORMAT_SPEC "ms\n", numItems, (end-start)/1000);
 
       // Check the resulting sorted table for correctness in both directions
       CheckTable(table, actualNumItems, false);
@@ -533,7 +533,7 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Testing delete-as-you-go traveral\n");
       for (HashtableIterator<String, String> st(table); st.HasData(); st++)
       {
-         LogTime(MUSCLE_LOG_INFO, "t3 = %s -> %s (tableSize=" UINT32_FORMAT_SPEC")\n", st.GetKey()(), st.GetValue()(), table.GetNumItems());
+         LogTime(MUSCLE_LOG_INFO, "t3 = %s -> %s (tableSize=" UINT32_FORMAT_SPEC ")\n", st.GetKey()(), st.GetValue()(), table.GetNumItems());
          if (table.Remove(st.GetKey()) != B_NO_ERROR) bomb("Could not remove string!\n");
 #if 0
          for (HashtableIterator<String,String> st2(table); st2.HasData(); st2++) printf("  tx = %s -> %s\n", nextKeyString(), nextValueString());
@@ -558,7 +558,7 @@ int main(int argc, char ** argv)
       {
          const char * nextValue = NULL;
          status_t ret = sillyTable.Get(it.GetKey(), nextValue);
-         printf("%i %s: " UINT32_FORMAT_SPEC" -> %s\n", it.HasData(), (ret == B_NO_ERROR) ? "OK" : "ERROR", it.GetKey(), nextValue);
+         printf("%i %s: " UINT32_FORMAT_SPEC " -> %s\n", it.HasData(), (ret == B_NO_ERROR) ? "OK" : "ERROR", it.GetKey(), nextValue);
       }
    }
    table.Clear();   
@@ -571,7 +571,7 @@ int main(int argc, char ** argv)
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
          Hashtable<int, int> table; (void) table.EnsureSize(NUM_ITEMS);
-         printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC":\n", t+1, NUM_RUNS);
+         printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
          srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) table.Put(rand(), rand());  // we want this to be repeatable, hence srand(0)
@@ -597,7 +597,7 @@ int main(int argc, char ** argv)
          table.Clear();
          AddTally(tallies, "clear", startTime, NUM_ITEMS);
       }
-      printf("GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC" RUNS ARE:\n", NUM_RUNS); 
+      printf("GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS); 
       for (HashtableIterator<String, double> iter(tallies); iter.HasData(); iter++) printf("   %f items/second for %s\n", iter.GetValue()/NUM_RUNS, iter.GetKey()());
    }
 
@@ -611,7 +611,7 @@ int main(int argc, char ** argv)
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
          Hashtable<String, String> table; (void) table.EnsureSize(NUM_ITEMS);
-         printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC":\n", t+1, NUM_RUNS);
+         printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
          srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) table.Put(String("%1").Arg(rand()), String("%1").Arg(rand()));  // we want this to be repeatable, hence srand(0)
@@ -637,7 +637,7 @@ int main(int argc, char ** argv)
          table.Clear();
          AddTally(tallies, "clear", startTime, NUM_ITEMS);
       }
-      printf("STRING GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC" RUNS ARE:\n", NUM_RUNS); 
+      printf("STRING GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS); 
       for (HashtableIterator<String, double> iter(tallies); iter.HasData(); iter++) printf("   STRING %f items/second for %s\n", iter.GetValue()/NUM_RUNS, iter.GetKey()());
    }
    PrintAndClearStringCopyCounts("After String Sort test");
@@ -652,7 +652,7 @@ int main(int argc, char ** argv)
          uint32 half = numEntries/2;
          bool ok = true;
 
-         printf(UINT32_FORMAT_SPEC" ", numEntries); fflush(stdout);
+         printf(UINT32_FORMAT_SPEC " ", numEntries); fflush(stdout);
          _state = 5;
          {
             for(uint32 i=0; i<numEntries; i++)
@@ -661,7 +661,7 @@ int main(int argc, char ** argv)
                muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                if (t.Put(temp, i) != B_NO_ERROR)
                {
-                  printf("Whoops, (hopefully simulated) memory failure!  (Put(" UINT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC") failed) ... recovering\n", i, numEntries);
+                  printf("Whoops, (hopefully simulated) memory failure!  (Put(" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") failed) ... recovering\n", i, numEntries);
 
                   ok = false;
                   numEntries--;  // let's do this one over
@@ -683,7 +683,7 @@ int main(int argc, char ** argv)
                   muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                   uint32 tv = 0;
                   if (t.Get(temp, tv) != B_NO_ERROR) bomb("ERROR, MISSING KEY [%s]\n", temp);
-                  if (tv != ((uint32)i)) bomb("ERROR, WRONG KEY %s != " UINT32_FORMAT_SPEC"!\n", temp, tv);
+                  if (tv != ((uint32)i)) bomb("ERROR, WRONG KEY %s != " UINT32_FORMAT_SPEC "!\n", temp, tv);
                }
             }
       
@@ -695,8 +695,8 @@ int main(int argc, char ** argv)
                {
                   char buf[300];
                   muscleSprintf(buf, UINT32_FORMAT_SPEC, count);
-                  if (iter.GetKey() != buf) bomb("ERROR:  iteration was wrong, item " UINT32_FORMAT_SPEC" was [%s] not [%s]!\n", count, iter.GetKey()(), buf);
-                  if (iter.GetValue() != count) bomb("ERROR:  iteration value was wrong, item " UINT32_FORMAT_SPEC" was " UINT32_FORMAT_SPEC" not " UINT32_FORMAT_SPEC"!i!\n", count, iter.GetValue(), count);
+                  if (iter.GetKey() != buf) bomb("ERROR:  iteration was wrong, item " UINT32_FORMAT_SPEC " was [%s] not [%s]!\n", count, iter.GetKey()(), buf);
+                  if (iter.GetValue() != count) bomb("ERROR:  iteration value was wrong, item " UINT32_FORMAT_SPEC " was " UINT32_FORMAT_SPEC " not " UINT32_FORMAT_SPEC "!i!\n", count, iter.GetValue(), count);
                   count++;
                }
             }
@@ -710,7 +710,7 @@ int main(int argc, char ** argv)
                   muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                   uint32 tv = 0;  // just to shut the compiler up
                   if (t.Remove(temp, tv) != B_NO_ERROR) bomb("ERROR, MISSING REMOVE KEY [%s] A\n", temp);
-                  if (tv != i) bomb("ERROR, REMOVE WAS WRONG VALUE " UINT32_FORMAT_SPEC"\n", tv);
+                  if (tv != i) bomb("ERROR, REMOVE WAS WRONG VALUE " UINT32_FORMAT_SPEC "\n", tv);
                }
             }
 
@@ -726,8 +726,8 @@ int main(int argc, char ** argv)
                   count++;
                   checkSum += iter.GetValue();
                }
-               if (count != half) bomb("ERROR: Count mismatch " UINT32_FORMAT_SPEC" vs " UINT32_FORMAT_SPEC"!\n", count, numEntries);
-               if (checkSum != sum)     bomb("ERROR: Sum mismatch " UINT32_FORMAT_SPEC" vs " UINT32_FORMAT_SPEC"!\n", sum, checkSum);
+               if (count != half) bomb("ERROR: Count mismatch " UINT32_FORMAT_SPEC " vs " UINT32_FORMAT_SPEC "!\n", count, numEntries);
+               if (checkSum != sum)     bomb("ERROR: Sum mismatch " UINT32_FORMAT_SPEC " vs " UINT32_FORMAT_SPEC "!\n", sum, checkSum);
             }
          }
 
@@ -741,15 +741,15 @@ int main(int argc, char ** argv)
                char temp[300];
                muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                uint32 tv = 0;  // just to shut the compiler up
-               if (t.Remove(temp, tv) != B_NO_ERROR) bomb("ERROR, MISSING REMOVE KEY [%s] (" UINT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC") B\n", temp, i, half);
-               if (tv != i) bomb("ERROR, REMOVE WAS WRONG VALUE " UINT32_FORMAT_SPEC"\n", tv);
+               if (t.Remove(temp, tv) != B_NO_ERROR) bomb("ERROR, MISSING REMOVE KEY [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") B\n", temp, i, half);
+               if (tv != i) bomb("ERROR, REMOVE WAS WRONG VALUE " UINT32_FORMAT_SPEC "\n", tv);
             }
          }
 
          HashtableIterator<String, uint32> paranoia(t);
          if (paranoia.HasData()) bomb("ERROR, ITERATOR CONTAINED ITEMS AFTER CLEAR!\n");
 
-         if (t.HasItems()) bomb("ERROR, SIZE WAS NON-ZERO (" UINT32_FORMAT_SPEC") AFTER CLEAR!\n", t.GetNumItems());
+         if (t.HasItems()) bomb("ERROR, SIZE WAS NON-ZERO (" UINT32_FORMAT_SPEC ") AFTER CLEAR!\n", t.GetNumItems());
          fastClear = !fastClear;
       }
       printf("Finished torture test successfully!\n");

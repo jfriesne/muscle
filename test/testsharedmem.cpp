@@ -34,7 +34,7 @@ int main(int argc, char ** argv)
          }
          else LogTime(MUSCLE_LOG_INFO, "Found existing shared memory area %s\n", m.GetAreaName()());
 
-         LogTime(MUSCLE_LOG_INFO, "Area is " UINT32_FORMAT_SPEC" bytes long, starting at address %p\n", s, a);
+         LogTime(MUSCLE_LOG_INFO, "Area is " UINT32_FORMAT_SPEC " bytes long, starting at address %p\n", s, a);
 
          m.UnlockArea();
 
@@ -50,9 +50,9 @@ int main(int argc, char ** argv)
                if (s > 0)
                {
                   uint8 * a = m.GetAreaPointer();
-                  {for (uint32 i=1; i<s; i++) if (a[i-1] != a[i]) LogTime(MUSCLE_LOG_ERROR, "A. ERROR@" UINT32_FORMAT_SPEC"\n",i);}
+                  {for (uint32 i=1; i<s; i++) if (a[i-1] != a[i]) LogTime(MUSCLE_LOG_ERROR, "A. ERROR@" UINT32_FORMAT_SPEC "\n",i);}
                   {for (uint32 i=0; i<s; i++) a[i] = base;}
-                  {for (uint32 i=0; i<s; i++) if (a[i] != base) LogTime(MUSCLE_LOG_ERROR, "B. ERROR@" UINT32_FORMAT_SPEC"\n",i);}
+                  {for (uint32 i=0; i<s; i++) if (a[i] != base) LogTime(MUSCLE_LOG_ERROR, "B. ERROR@" UINT32_FORMAT_SPEC "\n",i);}
                }
                else LogTime(MUSCLE_LOG_ERROR, "Area size is zero!?\n");
 
@@ -71,7 +71,7 @@ int main(int argc, char ** argv)
                if (s > 0)
                {
                   const uint8 * a = m.GetAreaPointer();
-                  {for (uint32 i=1; i<s; i++) if (a[i-1] != a[i]) LogTime(MUSCLE_LOG_ERROR, "C. ERROR@" UINT32_FORMAT_SPEC"\n",i);}
+                  {for (uint32 i=1; i<s; i++) if (a[i-1] != a[i]) LogTime(MUSCLE_LOG_ERROR, "C. ERROR@" UINT32_FORMAT_SPEC "\n",i);}
                }
                else LogTime(MUSCLE_LOG_ERROR, "Area size is zero!?\n");
 

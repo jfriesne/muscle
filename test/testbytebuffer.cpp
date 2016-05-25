@@ -12,7 +12,7 @@ static void Test(uint32 dataFlags)
 {
    ByteBuffer b;
    b.SetDataFlags(dataFlags);
-   printf("Test dataFlags=" XINT32_FORMAT_SPEC" ----- sizeof(ByteBuffer)=%i, endian-swap is %s\n", dataFlags, (int) sizeof(b), b.IsEndianSwapEnabled()?"Enabled":"Disabled");
+   printf("Test dataFlags=" XINT32_FORMAT_SPEC " ----- sizeof(ByteBuffer)=%i, endian-swap is %s\n", dataFlags, (int) sizeof(b), b.IsEndianSwapEnabled()?"Enabled":"Disabled");
    {
       b.AppendInt8(0x01);
       b.AppendInt16(0x0405);
@@ -41,8 +41,8 @@ static void Test(uint32 dataFlags)
    uint32 offset = 0, nr;
    printf("int8=0x%x\n", b.ReadInt8(offset));
    printf("int16=0x%x\n", b.ReadInt16(offset));
-   printf("int32=0x" XINT32_FORMAT_SPEC"\n", b.ReadInt32(offset));
-   printf("int64=0x" XINT64_FORMAT_SPEC"\n", b.ReadInt64(offset));
+   printf("int32=0x" XINT32_FORMAT_SPEC "\n", b.ReadInt32(offset));
+   printf("int64=0x" XINT64_FORMAT_SPEC "\n", b.ReadInt64(offset));
    printf("float=%f\n", b.ReadFloat(offset));
    printf("double=%f\n", b.ReadDouble(offset));
    printf("string1=[%s]\n", b.ReadString(offset)());

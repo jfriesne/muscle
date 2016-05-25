@@ -98,7 +98,7 @@ int main(int argc, char ** argv)
                   break;
 
                   default:
-                     printf("EVENT: Unknown event code " UINT32_FORMAT_SPEC" from Win32MessageTransceiverThread!?\n", eventCode);
+                     printf("EVENT: Unknown event code " UINT32_FORMAT_SPEC " from Win32MessageTransceiverThread!?\n", eventCode);
                   break;
                }
             }

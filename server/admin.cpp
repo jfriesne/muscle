@@ -184,6 +184,6 @@ int main(int argc, char ** argv)
          }
       }     
    }
-   LogTime(MUSCLE_LOG_INFO, "Exiting. (" UINT32_FORMAT_SPEC" errors)\n", errorCount);
+   LogTime(MUSCLE_LOG_INFO, "Exiting. (" UINT32_FORMAT_SPEC " errors)\n", errorCount);
    return 0;
 }

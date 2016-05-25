@@ -8,7 +8,7 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Operation failed, line " INT32_FORMAT_SPEC"\n", __LINE__);
+#define TEST(x) if ((x) != B_NO_ERROR) printf("Operation failed, line " INT32_FORMAT_SPEC "\n", __LINE__);
 #define NEGATIVETEST(x) if ((x) == B_NO_ERROR) printf("Operation succeeded when it should not have, line " INT32_FORMAT_SPEC "\n", __LINE__);
 
 // This program tests the Message <-> Message conversion functions in the atheossupport directory.
@@ -76,7 +76,7 @@ int main(void)
       TEST(ConvertFromAMessage(aMsg, mmsg));
       TEST(ConvertToAMessage(mmsg, aMsg));
       uint32 flatSize = mmsg.FlattenedSize();
-      if (flatSize != origSize) printf("ERROR, FLATTENED SIZE CHANGED " UINT32_FORMAT_SPEC" -> " UINT32_FORMAT_SPEC"\n", origSize, flatSize);
+      if (flatSize != origSize) printf("ERROR, FLATTENED SIZE CHANGED " UINT32_FORMAT_SPEC " -> " UINT32_FORMAT_SPEC "\n", origSize, flatSize);
       uint8 * buf = new uint8[flatSize]; 
       mmsg.Flatten(buf);
       TEST(mmsg.Unflatten(buf, flatSize));

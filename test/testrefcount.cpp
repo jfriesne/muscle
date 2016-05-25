@@ -60,7 +60,7 @@ public:
          {
             if (q[i]()->GetName().StartsWith(prefix) == false)
             {
-               printf("ERROR, thread %p expected prefix [%s], saw [%s] at position " INT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC"\n", this, prefix(), q[i]()->GetName()(), i, q.GetNumItems());
+               printf("ERROR, thread %p expected prefix [%s], saw [%s] at position " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", this, prefix(), q[i]()->GetName()(), i, q.GetNumItems());
                ExitWithoutCleanup(10);
             }
          }

@@ -30,7 +30,7 @@ static void PrintBytes(const void * b, int num)
 
 static void Fail(const char * name, const void * orig, const void * xChange, const void * backAgain, int numBytes, int index)
 {
-   printf("Test [%s] failed at item %i/" UINT32_FORMAT_SPEC", code is buggy!!!\n", name, index, ARRAYLEN);
+   printf("Test [%s] failed at item %i/" UINT32_FORMAT_SPEC ", code is buggy!!!\n", name, index, ARRAYLEN);
    printf("   Orig: "); PrintBytes(orig, numBytes);
    printf("   Xchg: "); PrintBytes(xChange, numBytes);
    if (backAgain) {printf("   Back: "); PrintBytes(backAgain, numBytes);}
@@ -46,7 +46,7 @@ static void CheckSwap(const char * title, void * oldVal, void * newVal, int numB
 
 static void PrintSpeedResult(const char * desc, uint64 beginTime, uint64 endTime, uint64 numOps)
 {
-   printf("%s exercise took " UINT64_FORMAT_SPEC" ms to complete (" INT64_FORMAT_SPEC " swaps/millisecond).\n", desc, (endTime-beginTime)/1000, (numOps*1000)/(endTime-beginTime));
+   printf("%s exercise took " UINT64_FORMAT_SPEC " ms to complete (" INT64_FORMAT_SPEC " swaps/millisecond).\n", desc, (endTime-beginTime)/1000, (numOps*1000)/(endTime-beginTime));
 }
 
 // This program checks the accuracy and measures the speed of muscle's byte-swapping macros.

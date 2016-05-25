@@ -101,7 +101,7 @@ int main(void)
 
       String b(base);
       int32 ret = b.Replace(replaceMe, withMe);
-      printf(INT32_FORMAT_SPEC": Afterwards, [%s] (" UINT32_FORMAT_SPEC")\n", ret, b(), b.Length());
+      printf(INT32_FORMAT_SPEC ": Afterwards, [%s] (" UINT32_FORMAT_SPEC ")\n", ret, b(), b.Length());
    }
 #endif
 

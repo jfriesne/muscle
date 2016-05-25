@@ -33,7 +33,7 @@ static void CheckFile(const String & path, uint32 code)
          const String * line;
          for (uint32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &line) == B_NO_ERROR; i++)
          {
-            if (GenerateSourceCodeLocationKey(fileName(), lineNumber) == code) printf("%s:" UINT32_FORMAT_SPEC": %s\n", path(), lineNumber, line->Cstr());
+            if (GenerateSourceCodeLocationKey(fileName(), lineNumber) == code) printf("%s:" UINT32_FORMAT_SPEC ": %s\n", path(), lineNumber, line->Cstr());
             lineNumber++;
          }
       }

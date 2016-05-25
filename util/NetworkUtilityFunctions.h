@@ -1079,7 +1079,7 @@ status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const ip_ad
 
 // Different OS's use different types for pass-by-reference in accept(), etc.
 // So I define my own muscle_socklen_t to avoid having to #ifdef all my code
-#if defined(__amd64__) || defined(__FreeBSD__) || defined(BSD) || defined(__PPC64__) || defined(__HAIKU__) || defined(ANDROID) || defined(_SOCKLEN_T)
+#if defined(__amd64__) || defined(__aarch64__) || defined(__FreeBSD__) || defined(BSD) || defined(__PPC64__) || defined(__HAIKU__) || defined(ANDROID) || defined(_SOCKLEN_T)
 typedef socklen_t muscle_socklen_t;
 #elif defined(__BEOS__) || defined(__HAIKU__) || defined(__APPLE__) || defined(__CYGWIN__) || defined(WIN32) || defined(__QNX__) || defined(__osf__)
 typedef int muscle_socklen_t;

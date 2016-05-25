@@ -155,7 +155,7 @@ static status_t ParsePath(const String & path, String & retSessionString, String
 
 void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, const String & sessionID)
 {
-   printf("AdvancedExampleWindow::MessageReceivedFromServer called in GUI thread! msg->what="UINT32_FORMAT_SPEC" sessionID=[%s]\n", msg()->what, sessionID()); 
+   printf("AdvancedExampleWindow::MessageReceivedFromServer called in GUI thread! msg->what=" UINT32_FORMAT_SPEC " sessionID=[%s]\n", msg()->what, sessionID()); 
 
    switch(msg()->what)
    {

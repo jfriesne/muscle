@@ -320,23 +320,23 @@ App::ArgvReceived(int32 argc, char **argv)
 
 	if (args.FindString("maxnodespersession", &value) == B_NO_ERROR) {
 		maxNodesPerSession = atoi(value);
-		LogTime(MUSCLE_LOG_INFO, "Limiting nodes-per-session to "UINT32_FORMAT_SPEC".\n", maxNodesPerSession);
+		LogTime(MUSCLE_LOG_INFO, "Limiting nodes-per-session to " UINT32_FORMAT_SPEC ".\n", maxNodesPerSession);
 	}
 
 	if (args.FindString("maxsessions", &value) == B_NO_ERROR) {
 		maxSessions = atoi(value);
-		LogTime(MUSCLE_LOG_INFO, "Limiting total session count to "UINT32_FORMAT_SPEC".\n", maxSessions);
+		LogTime(MUSCLE_LOG_INFO, "Limiting total session count to " UINT32_FORMAT_SPEC ".\n", maxSessions);
 	}
 
 	if (args.FindString("maxsessionsperhost", &value) == B_NO_ERROR) {
 		maxSessionsPerHost = atoi(value);
-		LogTime(MUSCLE_LOG_INFO, "Limiting session count for any given host to "UINT32_FORMAT_SPEC".\n", maxSessionsPerHost);
+		LogTime(MUSCLE_LOG_INFO, "Limiting session count for any given host to " UINT32_FORMAT_SPEC ".\n", maxSessionsPerHost);
 	}
 	
 	if (args.FindString("privatekey", &value) == B_NO_ERROR) {
 		fprivateKeyFilePath = new String(value);	
 		//const String * fprivateKeyFilePath = args.GetStringPointer("privatekey");
-		//LogTime(MUSCLE_LOG_INFO, "Limiting session count for any given host to "UINT32_FORMAT_SPEC".\n", fprivateKeyFilePath);
+		//LogTime(MUSCLE_LOG_INFO, "Limiting session count for any given host to " UINT32_FORMAT_SPEC ".\n", fprivateKeyFilePath);
 	}
 
 	{

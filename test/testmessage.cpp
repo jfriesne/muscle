@@ -77,9 +77,9 @@ int main(int, char **)
 
    Message m1;
    m1.AddFloat("va", 1.0f);
-   printf("m1=" UINT32_FORMAT_SPEC"\n", m1.FlattenedSize());
+   printf("m1=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
    m1.AddInt32("co", 32);
-   printf("m2=" UINT32_FORMAT_SPEC"\n", m1.FlattenedSize());
+   printf("m2=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
    m1.PrintToStream();
 
    printSep("Testing Replace*() with okayToAdd...");
@@ -151,10 +151,10 @@ int main(int, char **)
    printf("GetString(\"Friesner(3)\")=%s\n", msg.GetString("Friesner", "<not found>", 3)());
    printf("GetInt8=%i\n", msg.GetInt8("int8")); 
    printf("GetInt16=%i\n", msg.GetInt16("int16")); 
-   printf("GetInt32=" INT32_FORMAT_SPEC"\n", msg.GetInt32("int32")); 
-   printf("GetInt64=" INT64_FORMAT_SPEC"\n", msg.GetInt64("int64")); 
-   printf("GetInt64_XXX=" INT64_FORMAT_SPEC"\n", msg.GetInt64("not_present")); 
-   printf("GetInt64_666=" INT64_FORMAT_SPEC"\n", msg.GetInt64("not_present", 666)); 
+   printf("GetInt32=" INT32_FORMAT_SPEC "\n", msg.GetInt32("int32")); 
+   printf("GetInt64=" INT64_FORMAT_SPEC "\n", msg.GetInt64("int64")); 
+   printf("GetInt64_XXX=" INT64_FORMAT_SPEC "\n", msg.GetInt64("not_present")); 
+   printf("GetInt64_666=" INT64_FORMAT_SPEC "\n", msg.GetInt64("not_present", 666)); 
    printf("GetDouble(0)=%f\n", msg.GetDouble("double", 0, 0));
    printf("GetDouble(1)=%f\n", msg.GetDouble("double", 0, 1));
    printf("GetDouble(2)=%f\n", msg.GetDouble("double", 0, 2));
@@ -234,11 +234,11 @@ int main(int, char **)
 
    int32 int32Result;
    TEST(msg.FindInt32("TestInt32", 4, int32Result));
-   printf("TestInt32(4) = " INT32_FORMAT_SPEC"\n",int32Result);
+   printf("TestInt32(4) = " INT32_FORMAT_SPEC "\n",int32Result);
 
    uint32 uint32Result;
    TEST(msg.FindInt32("TestInt32", 4, uint32Result));
-   printf("TestUInt32(4) = " INT32_FORMAT_SPEC"\n",uint32Result);
+   printf("TestUInt32(4) = " INT32_FORMAT_SPEC "\n",uint32Result);
 
    int64 int64Result;
    TEST(msg.FindInt64("TestInt64", 4, int64Result));
@@ -274,20 +274,20 @@ int main(int, char **)
    uint32 getDataSize;
    TEST(msg.FindData("Data", B_RAW_TYPE, &gd, &getDataSize));
    String dataStr((const char *) gd, getDataSize);
-   printf("data=[%s], size=" UINT32_FORMAT_SPEC"\n", dataStr(), getDataSize);
+   printf("data=[%s], size=" UINT32_FORMAT_SPEC "\n", dataStr(), getDataSize);
 
    TEST(msg.FindData("Data", B_RAW_TYPE, 1, &gd, &getDataSize));
    dataStr.SetCstr((const char *) gd, getDataSize);
-   printf("data(1)=[%s], size=" UINT32_FORMAT_SPEC"\n", dataStr(), getDataSize);
+   printf("data(1)=[%s], size=" UINT32_FORMAT_SPEC "\n", dataStr(), getDataSize);
   
    printSep("Testing misc");
 
-   printf("There are " UINT32_FORMAT_SPEC" string entries\n", msg.GetNumNames(B_STRING_TYPE));
+   printf("There are " UINT32_FORMAT_SPEC " string entries\n", msg.GetNumNames(B_STRING_TYPE));
    msg.PrintToStream();
    Message tryMe = msg;
-   printf("Msg is " UINT32_FORMAT_SPEC" bytes.\n",msg.FlattenedSize());
+   printf("Msg is " UINT32_FORMAT_SPEC " bytes.\n",msg.FlattenedSize());
    msg.AddTag("anothertag", RefCountableRef(GetMessageFromPool()()));
-   printf("After adding tag, msg is (hopefully still) " UINT32_FORMAT_SPEC" bytes.\n",msg.FlattenedSize());
+   printf("After adding tag, msg is (hopefully still) " UINT32_FORMAT_SPEC " bytes.\n",msg.FlattenedSize());
    tryMe.PrintToStream();
 
    printf("Extracting...\n");
@@ -302,13 +302,13 @@ int main(int, char **)
    subExtract.PrintToStream();
 
    uint32 flatSize = msg.FlattenedSize();
-   printf("FlatSize=" UINT32_FORMAT_SPEC"\n",flatSize);
+   printf("FlatSize=" UINT32_FORMAT_SPEC "\n",flatSize);
    uint8 * buf = new uint8[flatSize*10];
    {for (uint32 i=flatSize; i<flatSize*10; i++) buf[i] = 'J';}
 
    msg.Flatten(buf);
 
-   {for (uint32 i=flatSize; i<flatSize*10; i++) if (buf[i] != 'J') printf("OVERWRITE ON BYTE " UINT32_FORMAT_SPEC"\n",i);}
+   {for (uint32 i=flatSize; i<flatSize*10; i++) if (buf[i] != 'J') printf("OVERWRITE ON BYTE " UINT32_FORMAT_SPEC "\n",i);}
    printf("\n====\n");
    
    PrintHexBytes(buf, flatSize);

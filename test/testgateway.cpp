@@ -75,7 +75,7 @@ int main(int argc, char ** argv)
             int32 readBytes;
             while((readBytes = g.DoInput(inQueue)) >= 0) 
             {
-               printf("Read " UINT32_FORMAT_SPEC" bytes...\n", readBytes);
+               printf("Read " UINT32_FORMAT_SPEC " bytes...\n", readBytes);
                MessageRef msgRef;
                while(inQueue.RemoveHead(msgRef) == B_NO_ERROR) msgRef()->PrintToStream();
             }

@@ -110,7 +110,7 @@ public:
    virtual void Failover() 
    {
       (void) _childIOs.RemoveHead();
-      if (HasChild()) LogTime(_logErrorLevel, "FailoverDataIO:  Child IO errored out, failing over to next child ("UINT32_FORMAT_SPEC" children left)!\n", _childIOs.GetNumItems());
+      if (HasChild()) LogTime(_logErrorLevel, "FailoverDataIO:  Child IO errored out, failing over to next child (" UINT32_FORMAT_SPEC " children left)!\n", _childIOs.GetNumItems());
                  else LogTime(_logErrorLevel, "FailoverDataIO:  Child IO errored out, no backup children left!\n");
       if (_target) _target->DataIOFailover(*this);
    }

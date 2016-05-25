@@ -18,7 +18,7 @@ void * MMalloc(uint32 numBytes)
    {
       *ret = numBytes;
       _allocedBytes += numBytes;
-/*printf("++"UINT32_FORMAT_SPEC" -> "UINT32_FORMAT_SPEC"\n", *ret, _allocedBytes);*/
+/*printf("++" UINT32_FORMAT_SPEC " -> " UINT32_FORMAT_SPEC "\n", *ret, _allocedBytes);*/
       return ret+1;
    }
    return NULL;
@@ -30,7 +30,7 @@ void * MFree(void * ptr)
    {
       uint32 * ret = ((uint32 *)ptr)-1;
       _allocedBytes -= *ret;
-/*printf("--"UINT32_FORMAT_SPEC" -> "UINT32_FORMAT_SPEC"\n", *ret, _allocedBytes);*/
+/*printf("--" UINT32_FORMAT_SPEC " -> " UINT32_FORMAT_SPEC "\n", *ret, _allocedBytes);*/
       free(ret);
    }
 }
@@ -766,7 +766,7 @@ void MMFlattenMessage(const MMessage * msg, void * outBuf)
          }
       }
    }
-/*printf("%s "UINT32_FORMAT_SPEC"/"UINT32_FORMAT_SPEC"\n", (writeOffset != MMGetFlattenedSize(msg))?"ERROR":"ok", writeOffset, MMGetFlattenedSize(msg)); DEBUG */
+/*printf("%s " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", (writeOffset != MMGetFlattenedSize(msg))?"ERROR":"ok", writeOffset, MMGetFlattenedSize(msg)); DEBUG */
 }
 
 static MMessageField * ImportMMessageField(const char * fieldName, uint32 nameLength, uint32 tc, uint32 eLength, const void * dataPtr, uint32 itemSize, uint32 swapSize)
@@ -1200,7 +1200,7 @@ static void PrintMMessageFieldToStream(const MMessageField * field, FILE * file,
    if (ni > 10) ni = 10;  /* truncate to avoid too much spam */
 
    MakePrettyTypeCodeString(field->typeCode, pbuf);
-   DoIndent(indent); fprintf(file, "Entry: Name=[%s] GetNumItems()="UINT32_FORMAT_SPEC", TypeCode=%s ("INT32_FORMAT_SPEC") flatSize="UINT32_FORMAT_SPEC"\n", field->name, field->numItems, pbuf, field->typeCode, GetMMessageFieldFlattenedSize(field, MFalse));
+   DoIndent(indent); fprintf(file, "Entry: Name=[%s] GetNumItems()=" UINT32_FORMAT_SPEC ", TypeCode=%s (" INT32_FORMAT_SPEC ") flatSize=" UINT32_FORMAT_SPEC "\n", field->name, field->numItems, pbuf, field->typeCode, GetMMessageFieldFlattenedSize(field, MFalse));
    for (i=0; i<ni; i++)
    {
       DoIndent(indent); fprintf(file, "  %i. ", i);
@@ -1209,8 +1209,8 @@ static void PrintMMessageFieldToStream(const MMessageField * field, FILE * file,
          case B_BOOL_TYPE:    fprintf(file, "%i\n",                 (((const MBool *)data)[i])); break;
          case B_DOUBLE_TYPE:  fprintf(file, "%f\n",                 ((const double *)data)[i]); break;
          case B_FLOAT_TYPE:   fprintf(file, "%f\n",                 ((const float *)data)[i]);  break;
-         case B_INT64_TYPE:   fprintf(file, INT64_FORMAT_SPEC"\n", ((const int64 *)data)[i]);  break;
-         case B_INT32_TYPE:   fprintf(file, INT32_FORMAT_SPEC"\n",  ((const int32 *)data)[i]);  break;
+         case B_INT64_TYPE:   fprintf(file, INT64_FORMAT_SPEC "\n", ((const int64 *)data)[i]);  break;
+         case B_INT32_TYPE:   fprintf(file, INT32_FORMAT_SPEC "\n",  ((const int32 *)data)[i]);  break;
          case B_POINTER_TYPE: fprintf(file, "%p\n",                 ((const void **)data)[i]);  break;
          case B_INT16_TYPE:   fprintf(file, "%i\n",                 ((const int16 *)data)[i]);  break;
          case B_INT8_TYPE:    fprintf(file, "%i\n",                 ((const int8 *)data)[i]);   break;
@@ -1283,7 +1283,7 @@ static void PrintMMessageToStreamAux(const MMessage * msg, FILE * file, int inde
    char buf[5];
    MakePrettyTypeCodeString(msg->what, buf);
 
-   fprintf(file, "MMessage:  msg=%p, what='%s' ("INT32_FORMAT_SPEC"), entryCount="INT32_FORMAT_SPEC", flatSize="UINT32_FORMAT_SPEC"\n", msg, buf, msg->what, msg->numFields, MMGetFlattenedSize(msg));
+   fprintf(file, "MMessage:  msg=%p, what='%s' (" INT32_FORMAT_SPEC "), entryCount=" INT32_FORMAT_SPEC ", flatSize=" UINT32_FORMAT_SPEC "\n", msg, buf, msg->what, msg->numFields, MMGetFlattenedSize(msg));
 
    indent += 2;
    {

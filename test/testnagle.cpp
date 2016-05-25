@@ -59,7 +59,7 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
                   total += elapsedTime;
                   min = muscleMin(min, elapsedTime);
                   max = muscleMax(max, elapsedTime);
-                  if (OnceEvery(MICROS_PER_SECOND, lastPrintTime)) LogTime(MUSCLE_LOG_INFO, "count=" UINT64_FORMAT_SPEC" min=" UINT64_FORMAT_SPEC "us max=" UINT64_FORMAT_SPEC "us avg=" UINT64_FORMAT_SPEC "us\n", count, min, max, total/count);
+                  if (OnceEvery(MICROS_PER_SECOND, lastPrintTime)) LogTime(MUSCLE_LOG_INFO, "count=" UINT64_FORMAT_SPEC " min=" UINT64_FORMAT_SPEC "us max=" UINT64_FORMAT_SPEC "us avg=" UINT64_FORMAT_SPEC "us\n", count, min, max, total/count);
                }
                myTurnToThrow = true;  // we caught the ball, now throw it back!
             }

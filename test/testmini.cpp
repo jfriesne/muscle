@@ -291,9 +291,9 @@ int main(int, char **)
 
                      mmbuf2 = (uint8 *)malloc(mmBuf2Size);
                      if (mmbuf2) MMFlattenMessage(mmsg2, mmbuf2);
-                            else printf("ERROR:  Could not allocate " UINT32_FORMAT_SPEC" byte buffer for mmbuf2!\n", mmBuf2Size);
+                            else printf("ERROR:  Could not allocate " UINT32_FORMAT_SPEC " byte buffer for mmbuf2!\n", mmBuf2Size);
                   }
-                  else printf("ERROR:  mmBuf2Size != mmBufSize!  (" UINT32_FORMAT_SPEC" vs " UINT32_FORMAT_SPEC")\n", mmBuf2Size, mmBufSize);
+                  else printf("ERROR:  mmBuf2Size != mmBufSize!  (" UINT32_FORMAT_SPEC " vs " UINT32_FORMAT_SPEC ")\n", mmBuf2Size, mmBufSize);
                }
                else printf("ERROR: MMUnflattenMessage() returned an error!\n");
             }
@@ -321,14 +321,14 @@ int main(int, char **)
             {
                if ((buf[i] != mmbuf[i])||((mmbuf2)&&(buf[i] != mmbuf2[i]))) 
                {
-                  printf("BYTE MISMATCH AT POSITION " UINT32_FORMAT_SPEC":  %02x vs %02x or %02x\n", i, buf[i], mmbuf[i], mmbuf2?mmbuf2[i]:0);
+                  printf("BYTE MISMATCH AT POSITION " UINT32_FORMAT_SPEC ":  %02x vs %02x or %02x\n", i, buf[i], mmbuf[i], mmbuf2?mmbuf2[i]:0);
                   sawMismatch = true;
                   break;
                }
             }
-            if (sawMismatch == false) printf("Buffers matched (" UINT32_FORMAT_SPEC" bytes).\n", bufSize);
+            if (sawMismatch == false) printf("Buffers matched (" UINT32_FORMAT_SPEC " bytes).\n", bufSize);
          }
-         else printf("ERROR, BUFFER LENGTHS DON'T MATCH! (bufSize=" UINT32_FORMAT_SPEC" mmBufSize=" UINT32_FORMAT_SPEC" mmBuf2Size=" UINT32_FORMAT_SPEC")\n", bufSize, mmBufSize, mmBuf2Size);
+         else printf("ERROR, BUFFER LENGTHS DON'T MATCH! (bufSize=" UINT32_FORMAT_SPEC " mmBufSize=" UINT32_FORMAT_SPEC " mmBuf2Size=" UINT32_FORMAT_SPEC ")\n", bufSize, mmBufSize, mmBuf2Size);
       }
       else printf("ERROR, BUFFERS NOT ALLOCED?\n");
 

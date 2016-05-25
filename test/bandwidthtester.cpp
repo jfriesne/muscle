@@ -62,14 +62,14 @@ int main(int argc, char ** argv)
          uint64 now = GetRunTime64();
          if (tallyBytesSent > 0) 
          {
-            if (send) LogTime(MUSCLE_LOG_INFO, "Sending at " UINT32_FORMAT_SPEC" bytes/second\n", tallyBytesSent/((uint32)(((now-startTime))/MICROS_PER_SECOND)));
-                 else LogTime(MUSCLE_LOG_INFO, "Sent " UINT32_FORMAT_SPEC" bytes\n", tallyBytesSent);
+            if (send) LogTime(MUSCLE_LOG_INFO, "Sending at " UINT32_FORMAT_SPEC " bytes/second\n", tallyBytesSent/((uint32)(((now-startTime))/MICROS_PER_SECOND)));
+                 else LogTime(MUSCLE_LOG_INFO, "Sent " UINT32_FORMAT_SPEC " bytes\n", tallyBytesSent);
             tallyBytesSent = 0;
          }
          if (tallyBytesReceived > 0)
          {
-            if (send) LogTime(MUSCLE_LOG_INFO, "Received " UINT32_FORMAT_SPEC" bytes\n", tallyBytesReceived);
-                 else LogTime(MUSCLE_LOG_INFO, "Receiving at " UINT32_FORMAT_SPEC" bytes/second\n", tallyBytesReceived/((uint32)((now-startTime)/MICROS_PER_SECOND)));
+            if (send) LogTime(MUSCLE_LOG_INFO, "Received " UINT32_FORMAT_SPEC " bytes\n", tallyBytesReceived);
+                 else LogTime(MUSCLE_LOG_INFO, "Receiving at " UINT32_FORMAT_SPEC " bytes/second\n", tallyBytesReceived/((uint32)((now-startTime)/MICROS_PER_SECOND)));
             tallyBytesReceived = 0;
          }
          startTime = now;

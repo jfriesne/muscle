@@ -22,7 +22,7 @@ static status_t ReadIncomingData(const char * desc, DataIO & readIO, const Socke
       int32 ret = readIO.Read(buf, sizeof(buf));
       if (ret > 0) 
       {
-         LogTime(MUSCLE_LOG_TRACE, "Read " INT32_FORMAT_SPEC" bytes from %s:\n", ret, desc);
+         LogTime(MUSCLE_LOG_TRACE, "Read " INT32_FORMAT_SPEC " bytes from %s:\n", ret, desc);
          LogHexBytes(MUSCLE_LOG_TRACE, buf, ret);
      
          ByteBufferRef toNetworkBuf = GetByteBufferFromPool(ret, buf);
@@ -52,7 +52,7 @@ static status_t WriteOutgoingData(const char * desc, DataIO & writeIO, const Soc
             if (ret > 0)
             {
                writeIO.FlushOutput();
-               LogTime(MUSCLE_LOG_TRACE, "Wrote " INT32_FORMAT_SPEC" bytes to %s:\n", ret, desc);
+               LogTime(MUSCLE_LOG_TRACE, "Wrote " INT32_FORMAT_SPEC " bytes to %s:\n", ret, desc);
                LogHexBytes(MUSCLE_LOG_TRACE, firstBuf()->GetBuffer()+writeIdx, ret);
                writeIdx += ret;
             }
@@ -146,7 +146,7 @@ int main(int argc, char ** argv)
             RS232DataIO serialIO(devName(), baudRate, false);
             if (serialIO.IsPortAvailable())
             {
-               LogTime(MUSCLE_LOG_INFO, "Using serial port %s (baud rate " UINT32_FORMAT_SPEC")\n", serName(), baudRate);
+               LogTime(MUSCLE_LOG_INFO, "Using serial port %s (baud rate " UINT32_FORMAT_SPEC ")\n", serName(), baudRate);
 
                ConstSocketRef serverSock = CreateAcceptingSocket(port, 1);
                if (serverSock())
@@ -168,7 +168,7 @@ int main(int argc, char ** argv)
                }
                else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to listen on TCP port %u\n", port);
             }
-            else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open serial device %s (baud rate " UINT32_FORMAT_SPEC").\n", serName(), baudRate);
+            else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open serial device %s (baud rate " UINT32_FORMAT_SPEC ").\n", serName(), baudRate);
          }
          else 
          {

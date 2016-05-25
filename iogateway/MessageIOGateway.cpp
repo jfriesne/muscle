@@ -17,13 +17,11 @@ MessageIOGateway :: MessageIOGateway(int32 encoding) :
 #endif
    , _syncPingCounter(0), _pendingSyncPingCounter(-1)
 {
-   _scratchRecvBuffer.AdoptBuffer(sizeof(_scratchRecvBufferBytes), _scratchRecvBufferBytes);
+   // empty
 }
 
 MessageIOGateway :: ~MessageIOGateway() 
 {
-   (void) _scratchRecvBuffer.ReleaseBuffer();  // otherwise it will try to delete[] _scratchRecvBufferBytes and that would be bad
-
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    delete _sendCodec;
    delete _recvCodec;
@@ -130,6 +128,30 @@ DoOutputImplementation(uint32 maxBytes)
    return IsHosed() ? -1 : sentBytes;
 }
 
+ByteBufferRef
+MessageIOGateway ::
+GetScratchReceiveBuffer()
+{
+   static const uint32 _scratchRecvBufferSizeBytes = 2048;  // seems like a reasonable upper limit for "small" Messages, no?
+
+   if ((_scratchRecvBuffer())&&(_scratchRecvBuffer()->SetNumBytes(_scratchRecvBufferSizeBytes, false) == B_NO_ERROR)) return _scratchRecvBuffer;
+   else
+   {
+      _scratchRecvBuffer = GetByteBufferFromPool(_scratchRecvBufferSizeBytes);  // demand-allocation
+      return _scratchRecvBuffer;
+   }
+}
+
+void
+MessageIOGateway ::
+ForgetScratchReceiveBufferIfSubclassIsStillUsingIt()
+{
+   // If a subclass implementation of UnflattenHeaderAndMessage() retained a reference to _scratchRecvBuffer()
+   // Then we need to not modify it anymore, or we'll mess up the data they are going to use later.  So we'll
+   // forget about it here, and re-allocate a new one later when we next need it.
+   if ((_scratchRecvBuffer())&&(_scratchRecvBuffer.IsRefPrivate() == false)) _scratchRecvBuffer.Reset();
+}
+
 int32 
 MessageIOGateway ::
 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
@@ -149,9 +171,11 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          // For UDP-style I/O, we'll read all header data and body data at once from a single packet
          if (_recvBuffer._buffer() == NULL)
          {
-            (void) _scratchRecvBuffer.SetNumBytes(sizeof(_scratchRecvBufferBytes), false);   // return our scratch buffer to its "full size" in case it was sized smaller earlier
+            ByteBufferRef scratchBuf = GetScratchReceiveBuffer();
+            if (scratchBuf() == NULL) {SetHosed(); break;}  // out of memory?
+
             _recvBuffer._offset = 0;
-            _recvBuffer._buffer = (mtuSize<=_scratchRecvBuffer.GetNumBytes()) ? ByteBufferRef(&_scratchRecvBuffer,false) : GetByteBufferFromPool(mtuSize);
+            _recvBuffer._buffer = (mtuSize<=scratchBuf()->GetNumBytes()) ? scratchBuf : GetByteBufferFromPool(mtuSize);
             if (_recvBuffer._buffer() == NULL) {SetHosed(); break;}  // out of memory?
          }
 
@@ -166,6 +190,8 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             // Finished receiving message bytes... now reconstruct that bad boy!
             MessageRef msg = UnflattenHeaderAndMessage(_recvBuffer._buffer);
             _recvBuffer.Reset();  // reset our state for the next one!
+            ForgetScratchReceiveBufferIfSubclassIsStillUsingIt();
+
             if (msg())  // for UDP, unexpected data shouldn't be fatal
             {
                if (_unflattenedCallback) _unflattenedCallback(msg, _unflattenedCallbackData);
@@ -179,9 +205,11 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          // For TCP-style I/O, we need to read the header first, and then the body, in as many steps as it takes
          if (_recvBuffer._buffer() == NULL)
          {
-            (void) _scratchRecvBuffer.SetNumBytes(sizeof(_scratchRecvBufferBytes), false);   // return our scratch buffer to its "full size" in case it was sized smaller earlier
+            ByteBufferRef scratchBuf = GetScratchReceiveBuffer();
+            if (scratchBuf() == NULL) {SetHosed(); break;}  // out of memory?
+
             _recvBuffer._offset = 0;
-            _recvBuffer._buffer = (hs<=_scratchRecvBuffer.GetNumBytes()) ? ByteBufferRef(&_scratchRecvBuffer,false) : GetByteBufferFromPool(hs);
+            _recvBuffer._buffer = (hs<=scratchBuf()->GetNumBytes()) ? scratchBuf : GetByteBufferFromPool(hs);
             if (_recvBuffer._buffer() == NULL) {SetHosed(); break;}  // out of memory?
          }
 
@@ -225,6 +253,8 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                // Finished receiving message bytes... now reconstruct that bad boy!
                MessageRef msg = UnflattenHeaderAndMessage(_recvBuffer._buffer);
                _recvBuffer.Reset();  // reset our state for the next one!
+               ForgetScratchReceiveBufferIfSubclassIsStillUsingIt();
+
                if (msg() == NULL) {SetHosed(); break;}
                if (_unflattenedCallback) _unflattenedCallback(msg, _unflattenedCallbackData);
                receiver.CallMessageReceivedFromGateway(msg);

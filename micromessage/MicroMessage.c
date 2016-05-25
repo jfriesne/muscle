@@ -197,7 +197,7 @@ static uint8 * GetOrAddFieldDataPointer(UMessage * msg, const char * fieldName, 
          if (GetNumBufferBytesAt(msg, fieldData) >= numDataBytesNeeded) return fieldData; 
          else
          {
-            printf("MicroMessage Error:  Not enough space left in "UINT32_FORMAT_SPEC"-byte buffer to append "UINT32_FORMAT_SPEC" bytes of additional data to field [%s]\n", UMGetMaximumSize(msg), numDataBytesNeeded, fieldName);
+            printf("MicroMessage Error:  Not enough space left in " UINT32_FORMAT_SPEC "-byte buffer to append " UINT32_FORMAT_SPEC " bytes of additional data to field [%s]\n", UMGetMaximumSize(msg), numDataBytesNeeded, fieldName);
             return NULL;
          }
       }
@@ -216,7 +216,7 @@ static uint8 * GetOrAddFieldDataPointer(UMessage * msg, const char * fieldName, 
       uint32 numRequiredBytes = sizeof(uint32)+newFieldNameLength+sizeof(uint32)+sizeof(uint32)+fieldHeaderSizeBytes+numDataBytesNeeded;
       if (numRemainingBytes < numRequiredBytes)
       {
-         printf("MicroMessage Error:  Not enough space left in buffer to add new field [%s] ("UINT32_FORMAT_SPEC" additional bytes required, "UINT32_FORMAT_SPEC" bytes available)\n", fieldName, numRequiredBytes, numRemainingBytes);
+         printf("MicroMessage Error:  Not enough space left in buffer to add new field [%s] (" UINT32_FORMAT_SPEC " additional bytes required, " UINT32_FORMAT_SPEC " bytes available)\n", fieldName, numRequiredBytes, numRemainingBytes);
          return NULL;
       }
 
@@ -486,12 +486,12 @@ static uint32 GetNumItemsInField(const UMessage * msg, void * ftptr)
             uint32 msgMagic = UMReadInt32(fdata);
             if (msgMagic != CURRENT_PROTOCOL_VERSION)
             {
-               printf("MicroMessage:  GetNumItemsInField:  sub-Message magic value at offset %i is incorrect ("UINT32_FORMAT_SPEC", should be "UINT32_FORMAT_SPEC"!)\n", (int)(fdata-msg->_buffer), msgMagic, CURRENT_PROTOCOL_VERSION);
+               printf("MicroMessage:  GetNumItemsInField:  sub-Message magic value at offset %i is incorrect (" UINT32_FORMAT_SPEC ", should be " UINT32_FORMAT_SPEC "!)\n", (int)(fdata-msg->_buffer), msgMagic, CURRENT_PROTOCOL_VERSION);
                break;  /* paranoia -- avoid infinite loop */
             }
             if (msgSize < MESSAGE_HEADER_SIZE)
             {
-               printf("MicroMessage:  GetNumItemsInField:  sub-Message size "UINT32_FORMAT_SPEC" was too small!\n", msgSize);
+               printf("MicroMessage:  GetNumItemsInField:  sub-Message size " UINT32_FORMAT_SPEC " was too small!\n", msgSize);
                break;  /* paranoia -- avoid infinite loop */
             }
             fdata += msgSize;
@@ -531,7 +531,7 @@ void UMIteratorAdvance(UMessageFieldNameIterator * iter)
       iter->_currentField = ftptr+(sizeof(uint32)+sizeof(uint32)+fieldDataLen);
       if (iter->_currentField > (iter->_message->_buffer+iter->_message->_numValidBytes))
       {
-         printf("UMIteratorAdvance:  Iteration left the valid data range ("UINT32_FORMAT_SPEC" > "UINT32_FORMAT_SPEC"), aborting iteration!\n", (uint32)(iter->_currentField-iter->_message->_buffer), iter->_message->_numValidBytes);
+         printf("UMIteratorAdvance:  Iteration left the valid data range (" UINT32_FORMAT_SPEC " > " UINT32_FORMAT_SPEC "), aborting iteration!\n", (uint32)(iter->_currentField-iter->_message->_buffer), iter->_message->_numValidBytes);
          iter->_currentField = NULL;
       }
       else 
@@ -539,7 +539,7 @@ void UMIteratorAdvance(UMessageFieldNameIterator * iter)
          uint32 bytesLeft = GetNumValidBytesAt(iter->_message, iter->_currentField);
          if (bytesLeft < MINIMUM_FIELD_HEADERS_SIZE)
          {
-            if (bytesLeft > 0) printf("UMIteratorAdvance:  Iteration found too-short field-header ("UINT32_FORMAT_SPEC" < "UINT32_FORMAT_SPEC"), aborting iteration!\n", bytesLeft, MINIMUM_FIELD_HEADERS_SIZE);
+            if (bytesLeft > 0) printf("UMIteratorAdvance:  Iteration found too-short field-header (" UINT32_FORMAT_SPEC " < " UINT32_FORMAT_SPEC "), aborting iteration!\n", bytesLeft, MINIMUM_FIELD_HEADERS_SIZE);
             iter->_currentField = NULL;
          }
       }
@@ -598,7 +598,7 @@ static void PrintUMessageFieldToStream(const UMessage * msg, const char * fieldN
    if (ni > 10) ni = 10;  /* truncate to avoid too much spam */
 
    MakePrettyTypeCodeString(typeCode, pbuf);
-   DoIndent(indent); fprintf(file, "Field: Name=[%s] NumItemsInField="UINT32_FORMAT_SPEC", TypeCode=%s ("INT32_FORMAT_SPEC")\n", fieldName, numItems, pbuf, typeCode);
+   DoIndent(indent); fprintf(file, "Field: Name=[%s] NumItemsInField=" UINT32_FORMAT_SPEC ", TypeCode=%s (" INT32_FORMAT_SPEC ")\n", fieldName, numItems, pbuf, typeCode);
    for (i=0; i<ni; i++)
    {
       DoIndent(indent); fprintf(file, "  %i. ", i);
@@ -607,8 +607,8 @@ static void PrintUMessageFieldToStream(const UMessage * msg, const char * fieldN
          case B_BOOL_TYPE:    fprintf(file, "%i\n",                UMGetBool(  msg, fieldName, i)); break;
          case B_DOUBLE_TYPE:  fprintf(file, "%f\n",                UMGetDouble(msg, fieldName, i)); break;
          case B_FLOAT_TYPE:   fprintf(file, "%f\n",                UMGetFloat( msg, fieldName, i)); break;
-         case B_INT64_TYPE:   fprintf(file, INT64_FORMAT_SPEC"\n", UMGetInt64( msg, fieldName, i)); break;
-         case B_INT32_TYPE:   fprintf(file, INT32_FORMAT_SPEC"\n", UMGetInt32( msg, fieldName, i)); break;
+         case B_INT64_TYPE:   fprintf(file, INT64_FORMAT_SPEC "\n", UMGetInt64( msg, fieldName, i)); break;
+         case B_INT32_TYPE:   fprintf(file, INT32_FORMAT_SPEC "\n", UMGetInt32( msg, fieldName, i)); break;
          case B_INT16_TYPE:   fprintf(file, "%i\n",                UMGetInt16( msg, fieldName, i)); break;
          case B_INT8_TYPE:    fprintf(file, "%i\n",                UMGetInt8(  msg, fieldName, i)); break;
 
@@ -667,7 +667,7 @@ static void PrintUMessageFieldToStream(const UMessage * msg, const char * fieldN
                }
                else fprintf(file, "(zero-length buffer)\n");
             }
-            else fprintf(file, "(Error retrieving binary-data value of type "UINT32_FORMAT_SPEC")\n", typeCode);
+            else fprintf(file, "(Error retrieving binary-data value of type " UINT32_FORMAT_SPEC ")\n", typeCode);
          }
          break;
       }
@@ -680,7 +680,7 @@ static void PrintUMessageToStreamAux(const UMessage * msg, FILE * file, int inde
    char buf[5];
    MakePrettyTypeCodeString(UMGetWhatCode(msg), buf);
 
-   fprintf(file, "UMessage:  msg=%p, what='%s' ("INT32_FORMAT_SPEC"), fieldCount="INT32_FORMAT_SPEC", flatSize="UINT32_FORMAT_SPEC", readOnly=%i\n", msg, buf, UMGetWhatCode(msg), UMGetNumFields(msg), UMGetFlattenedSize(msg), UMIsMessageReadOnly(msg));
+   fprintf(file, "UMessage:  msg=%p, what='%s' (" INT32_FORMAT_SPEC "), fieldCount=" INT32_FORMAT_SPEC ", flatSize=" UINT32_FORMAT_SPEC ", readOnly=%i\n", msg, buf, UMGetWhatCode(msg), UMGetNumFields(msg), UMGetFlattenedSize(msg), UMIsMessageReadOnly(msg));
 
    indent += 2;
 
@@ -694,8 +694,8 @@ static void PrintUMessageToStreamAux(const UMessage * msg, FILE * file, int inde
          {
             uint32 checkNumItems = UMGetNumItemsInField(msg, fieldName, typeCode);
             uint32 checkTypeCode = UMGetFieldTypeCode(msg, fieldName);
-            if (checkNumItems != numItems) printf("ERROR, iterator said fieldName [%s] has "UINT32_FORMAT_SPEC" items, but the UMessage says it has "UINT32_FORMAT_SPEC" items!\n", fieldName, numItems, checkNumItems);
-            if (checkTypeCode != typeCode) printf("ERROR, iterator said fieldName [%s] has typecode "UINT32_FORMAT_SPEC" , but the UMessage says it has typecode "UINT32_FORMAT_SPEC"\n", fieldName, typeCode, checkTypeCode);
+            if (checkNumItems != numItems) printf("ERROR, iterator said fieldName [%s] has " UINT32_FORMAT_SPEC " items, but the UMessage says it has " UINT32_FORMAT_SPEC " items!\n", fieldName, numItems, checkNumItems);
+            if (checkTypeCode != typeCode) printf("ERROR, iterator said fieldName [%s] has typecode " UINT32_FORMAT_SPEC " , but the UMessage says it has typecode " UINT32_FORMAT_SPEC "\n", fieldName, typeCode, checkTypeCode);
 
             PrintUMessageFieldToStream(msg, fieldName, file, indent, numItems, typeCode);
             UMIteratorAdvance(&iter);

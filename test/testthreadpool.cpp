@@ -14,7 +14,7 @@ public:
    virtual void MessageReceivedFromThreadPool(const MessageRef & msgRef, uint32 numLeft)
    {
       char buf[20];
-      printf("MessageFromOwner called in thread %s, msgRef=%p (what=" UINT32_FORMAT_SPEC"), numLeft=" UINT32_FORMAT_SPEC"\n", muscle_thread_id::GetCurrentThreadID().ToString(buf), msgRef(), msgRef()?msgRef()->what:666, numLeft);
+      printf("MessageFromOwner called in thread %s, msgRef=%p (what=" UINT32_FORMAT_SPEC "), numLeft=" UINT32_FORMAT_SPEC "\n", muscle_thread_id::GetCurrentThreadID().ToString(buf), msgRef(), msgRef()?msgRef()->what:666, numLeft);
       Snooze64(200000);
    }
 };

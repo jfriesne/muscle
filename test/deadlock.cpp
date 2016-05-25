@@ -44,8 +44,8 @@ int main(int /*argc*/, char ** /*argv*/)
 
    printf("Deadlocking program begins!\n");
    TestThread threads[10];
-   for (uint32 i=0; i<ARRAYITEMS(threads); i++) if (threads[i].StartInternalThread() != B_NO_ERROR) printf("Error, couldn't start thread #" UINT32_FORMAT_SPEC"\n", i);
-   for (uint32 i=0; i<ARRAYITEMS(threads); i++) if (threads[i].WaitForInternalThreadToExit() != B_NO_ERROR) printf("Error, couldn't wait for thread #" UINT32_FORMAT_SPEC"\n", i);
+   for (uint32 i=0; i<ARRAYITEMS(threads); i++) if (threads[i].StartInternalThread() != B_NO_ERROR) printf("Error, couldn't start thread #" UINT32_FORMAT_SPEC "\n", i);
+   for (uint32 i=0; i<ARRAYITEMS(threads); i++) if (threads[i].WaitForInternalThreadToExit() != B_NO_ERROR) printf("Error, couldn't wait for thread #" UINT32_FORMAT_SPEC "\n", i);
    printf("Deadlocking program completed!  Lucky!\n");
    return 0;
 }

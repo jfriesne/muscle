@@ -38,7 +38,7 @@ int main(int argc, char ** argv)
    {
       if (CreateConnectedSocketPair(senders[i], receivers[i]) != B_NO_ERROR)
       {
-         printf("Error, failed to create socket pair #" UINT32_FORMAT_SPEC"!\n", i);
+         printf("Error, failed to create socket pair #" UINT32_FORMAT_SPEC "!\n", i);
          return 10;
       }
    }
@@ -64,7 +64,7 @@ int main(int argc, char ** argv)
       {
          if (multiplexer.RegisterSocketForReadReady(receivers[i].GetFileDescriptor()) != B_NO_ERROR)
          {
-            printf("Error, RegisterSocketForRead() failed for receiver #" UINT32_FORMAT_SPEC"!\n", i);
+            printf("Error, RegisterSocketForRead() failed for receiver #" UINT32_FORMAT_SPEC "!\n", i);
             error = true;
             break;
          }
@@ -82,7 +82,7 @@ int main(int argc, char ** argv)
       }
 
       uint64 elapsed = GetRunTime64()-then; 
-      if (quiet == false) printf("WaitForEvents returned %i after " UINT64_FORMAT_SPEC" microseconds.\n", ret, elapsed);
+      if (quiet == false) printf("WaitForEvents returned %i after " UINT64_FORMAT_SPEC " microseconds.\n", ret, elapsed);
 
       count++;
       tally += elapsed;
@@ -95,16 +95,16 @@ int main(int argc, char ** argv)
          {
             char buf[64];
             int32 numBytesReceived = ReceiveData(receivers[i], buf, sizeof(buf), false);
-            if (quiet == false) printf("Receiver #" UINT32_FORMAT_SPEC" signalled ready-for-read, read " INT32_FORMAT_SPEC" bytes.\n", i, numBytesReceived);
+            if (quiet == false) printf("Receiver #" UINT32_FORMAT_SPEC " signalled ready-for-read, read " INT32_FORMAT_SPEC " bytes.\n", i, numBytesReceived);
             if (numBytesReceived > 0)
             {
                uint32 nextIdx = (i+1)%numPairs;
                int32 sentBytes = SendData(senders[nextIdx], buf, numBytesReceived, false);
-               if (quiet == false) printf("Sent " INT32_FORMAT_SPEC" bytes on sender #" UINT32_FORMAT_SPEC"\n", sentBytes, nextIdx);
+               if (quiet == false) printf("Sent " INT32_FORMAT_SPEC " bytes on sender #" UINT32_FORMAT_SPEC "\n", sentBytes, nextIdx);
             }
          }
       }
    }
-   printf("Test complete:  WaitEvents() called " UINT64_FORMAT_SPEC" times, averageTime=" UINT64_FORMAT_SPEC"uS, minimumTime=" UINT64_FORMAT_SPEC"uS, maximumTime=" UINT64_FORMAT_SPEC"uS.\n", count, tally/(count?count:1), minRunTime, maxRunTime);
+   printf("Test complete:  WaitEvents() called " UINT64_FORMAT_SPEC " times, averageTime=" UINT64_FORMAT_SPEC "uS, minimumTime=" UINT64_FORMAT_SPEC "uS, maximumTime=" UINT64_FORMAT_SPEC "uS.\n", count, tally/(count?count:1), minRunTime, maxRunTime);
    return 0;
 }

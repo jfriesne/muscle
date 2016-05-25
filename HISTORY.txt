@@ -5,6 +5,19 @@ key:  - new feature
       * bug fixed
       o other
 
+6.35 Released 5/25/2016
+   o Revised MessageIOGateway::DoInputImplementation() so that if
+     a subclass's override of UnflattenHeaderAndMessage() has retained
+     a reference to its scratch-input-buffer, DoInputImplementation()
+     will recognize that and refrain from trying to reuse that buffer
+     as a place to store subsequent incoming Message data.
+   - Added Visual Studio 15 project files (Intel and ARM versions), 
+     as provided by Mika Lindqvist.
+   * Fixed the MuscleQThreadSocketNotifier constructor so that it 
+     will compile in conjunction with Qt 4.x.
+   * Merged in some ARM compatibility tweaks from Mika Lindqvist.
+   * Suppressed some MSVC type-conversion warnings in SetupSystem.cpp
+
 6.34 Released 3/14/2016
    - Added GetQThread() accessor methods to the Thread class.  These
      methods are only available when MUSCLE_USE_QT_THREADS is defined.

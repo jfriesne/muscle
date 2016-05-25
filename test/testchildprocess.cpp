@@ -41,12 +41,12 @@ int main(int argc, char ** argv)
    {
       ChildProcessDataIO * dio = new ChildProcessDataIO(false);
       refs.AddTail(DataIORef(dio));
-      printf("About To Launch child process #" UINT32_FORMAT_SPEC":  [%s]\n", i+1, cmd); fflush(stdout);
+      printf("About To Launch child process #" UINT32_FORMAT_SPEC ":  [%s]\n", i+1, cmd); fflush(stdout);
       ConstSocketRef s = (dio->LaunchChildProcess(argc-2, ((const char **) argv)+2) == B_NO_ERROR) ? dio->GetReadSelectSocket() : ConstSocketRef();
-      printf("Finished Launching child process #" UINT32_FORMAT_SPEC":  [%s]\n", i+1, cmd); fflush(stdout);
+      printf("Finished Launching child process #" UINT32_FORMAT_SPEC ":  [%s]\n", i+1, cmd); fflush(stdout);
       if (s() == NULL)
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Error launching child process #" UINT32_FORMAT_SPEC" [%s]!\n", i+1, cmd);
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error launching child process #" UINT32_FORMAT_SPEC " [%s]!\n", i+1, cmd);
          return 10;
       }
    }
@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
 
    for (uint32 i=0; i<refs.GetNumItems(); i++)
    {
-      printf("------------ CHILD PROCESS #" UINT32_FORMAT_SPEC" ------------------\n", i+1);
+      printf("------------ CHILD PROCESS #" UINT32_FORMAT_SPEC " ------------------\n", i+1);
       PlainTextMessageIOGateway ioGateway;
       ioGateway.SetDataIO(refs[i]);
       ConstSocketRef readSock = refs[i]()->GetReadSelectSocket();

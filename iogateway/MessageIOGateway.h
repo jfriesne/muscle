@@ -262,11 +262,13 @@ private:
    status_t SendMoreData(int32 & sentBytes, uint32 & maxBytes);
    status_t ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32 maxArraySize);
 
+   ByteBufferRef GetScratchReceiveBuffer();
+   void ForgetScratchReceiveBufferIfSubclassIsStillUsingIt();
+
    TransferBuffer _sendBuffer;
    TransferBuffer _recvBuffer;
 
-   uint8 _scratchRecvBufferBytes[2048];  // so we can receive smaller Messages without constantly allocating and freeing data
-   ByteBuffer _scratchRecvBuffer;
+   ByteBufferRef _scratchRecvBuffer;   // used to efficiently receive small Messages in the normal case
 
    uint32 _maxIncomingMessageSize;
    int32 _outgoingEncoding;

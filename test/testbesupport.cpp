@@ -5,8 +5,8 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Operation failed, line " INT32_FORMAT_SPEC"\n", __LINE__);
-#define NEGATIVETEST(x) if ((x) == B_NO_ERROR) printf("Operation succeeded when it should not have, line " INT32_FORMAT_SPEC"\n", __LINE__);
+#define TEST(x) if ((x) != B_NO_ERROR) printf("Operation failed, line " INT32_FORMAT_SPEC "\n", __LINE__);
+#define NEGATIVETEST(x) if ((x) == B_NO_ERROR) printf("Operation succeeded when it should not have, line " INT32_FORMAT_SPEC "\n", __LINE__);
 
 // This program tests the Message <-> BMessage conversion functions in the besupport directory.
 int main(void) 
@@ -72,7 +72,7 @@ int main(void)
       TEST(ConvertFromBMessage(bMsg, mmsg));
       TEST(ConvertToBMessage(mmsg, bMsg));
       uint32 flatSize = mmsg.FlattenedSize();
-      if (flatSize != origSize) printf("ERROR, FLATTENED SIZE CHANGED " UINT32_FORMAT_SPEC" -> " UINT32_FORMAT_SPEC"\n", origSize, flatSize);
+      if (flatSize != origSize) printf("ERROR, FLATTENED SIZE CHANGED " UINT32_FORMAT_SPEC " -> " UINT32_FORMAT_SPEC "\n", origSize, flatSize);
       uint8 * buf = new uint8[flatSize]; 
       mmsg.Flatten(buf);
       TEST(mmsg.Unflatten(buf, flatSize));

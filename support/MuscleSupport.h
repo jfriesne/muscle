@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.34"
-#define MUSCLE_VERSION        63400  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.35"
+#define MUSCLE_VERSION        63500  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -631,6 +631,7 @@ static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * f
               defined(__alpha__) || defined(__alpha) || defined(__CYGWIN__) || \
               defined(_M_IX86) || defined(_M_AMD64) || defined(__GNUWIN32__) || defined(__LITTLEENDIAN__) || \
               defined(__MINGW32__) || defined(__MINGW64__) || \
+              defined(_M_ARM) || \
               (defined(__Lynx__) && defined(__x86__))
         #define BYTE_ORDER      LITTLE_ENDIAN
       #endif

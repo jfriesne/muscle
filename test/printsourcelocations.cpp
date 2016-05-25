@@ -40,7 +40,7 @@ static void CheckFile(const String & path, Queue<String> & codes)
                if ((commentIdx < 0)||(commentIdx > ltIdx)) 
                {
                   char buf[128]; 
-                  muscleSprintf(buf, "[%s] %s:" UINT32_FORMAT_SPEC": ", SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber))(), path(), lineNumber);
+                  muscleSprintf(buf, "[%s] %s:" UINT32_FORMAT_SPEC ": ", SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber))(), path(), lineNumber);
                   codes.AddTail(line->Prepend(buf));
                }
             }

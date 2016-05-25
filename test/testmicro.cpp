@@ -25,28 +25,28 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
-         if (UMAddInt8(um, "testInt8s", i) != B_NO_ERROR) printf("UMAddInt8(" UINT32_FORMAT_SPEC") failed!\n", i);
+         if (UMAddInt8(um, "testInt8s", i) != B_NO_ERROR) printf("UMAddInt8(" UINT32_FORMAT_SPEC ") failed!\n", i);
          m.AddInt8("testInt8s", i);
       }
    }
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
-         if (UMAddInt16(um, "testInt16s", i) != B_NO_ERROR) printf("UMAddInt16(" UINT32_FORMAT_SPEC") failed!\n", i);
+         if (UMAddInt16(um, "testInt16s", i) != B_NO_ERROR) printf("UMAddInt16(" UINT32_FORMAT_SPEC ") failed!\n", i);
          m.AddInt16("testInt16s", i);
       }
    }
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
-         if (UMAddInt32(um, "testInt32s", i) != B_NO_ERROR) printf("UMAddInt32(" UINT32_FORMAT_SPEC") failed!\n", i);
+         if (UMAddInt32(um, "testInt32s", i) != B_NO_ERROR) printf("UMAddInt32(" UINT32_FORMAT_SPEC ") failed!\n", i);
          m.AddInt32("testInt32s", i);
       }
    }
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
-         if (UMAddInt64(um, "testInt64s", i) != B_NO_ERROR) printf("UMAddInt64(" UINT32_FORMAT_SPEC") failed!\n", i);
+         if (UMAddInt64(um, "testInt64s", i) != B_NO_ERROR) printf("UMAddInt64(" UINT32_FORMAT_SPEC ") failed!\n", i);
          m.AddInt64("testInt64s", i);
       }
    }
@@ -185,14 +185,14 @@ int main(int, char **)
    printf("\n---------------------------------Msg:\n");
    PrintHexBytes(mPtr, mFlatSize);
 
-        if (umFlatSize != mFlatSize) printf("Flattened buffer sizes didn't match!  UMessage=" UINT32_FORMAT_SPEC" Message=" UINT32_FORMAT_SPEC"\n", umFlatSize, mFlatSize);
+        if (umFlatSize != mFlatSize) printf("Flattened buffer sizes didn't match!  UMessage=" UINT32_FORMAT_SPEC " Message=" UINT32_FORMAT_SPEC "\n", umFlatSize, mFlatSize);
    else if (memcmp(mPtr, umPtr, mFlatSize) != 0)
    {
       for (uint32 i=0; i<mFlatSize; i++) 
       {
          if (mPtr[i] != umPtr[i])
          {
-            printf("BYTE MISMATCH AT POSITION " UINT32_FORMAT_SPEC":  Micro=%02x vs Normal=%02x\n", i, umPtr[i], mPtr[i]);
+            printf("BYTE MISMATCH AT POSITION " UINT32_FORMAT_SPEC ":  Micro=%02x vs Normal=%02x\n", i, umPtr[i], mPtr[i]);
             break;
          }
       }

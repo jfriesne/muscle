@@ -20,7 +20,7 @@ static status_t ReadIncomingData(const String & desc, DataIO & readIO, const Soc
       int32 ret = readIO.Read(buf, sizeof(buf));
       if (ret > 0) 
       {
-         LogTime(MUSCLE_LOG_TRACE, "Read " INT32_FORMAT_SPEC" bytes from %s:\n", ret, desc());
+         LogTime(MUSCLE_LOG_TRACE, "Read " INT32_FORMAT_SPEC " bytes from %s:\n", ret, desc());
          LogHexBytes(MUSCLE_LOG_TRACE, buf, ret);
      
          ByteBufferRef toNetworkBuf = GetByteBufferFromPool(ret, buf);
@@ -50,7 +50,7 @@ static status_t WriteOutgoingData(const String & desc, DataIO & writeIO, const S
             if (ret > 0)
             {
                writeIO.FlushOutput();
-               LogTime(MUSCLE_LOG_TRACE, "Wrote " INT32_FORMAT_SPEC" bytes to %s:\n", ret, desc());
+               LogTime(MUSCLE_LOG_TRACE, "Wrote " INT32_FORMAT_SPEC " bytes to %s:\n", ret, desc());
                LogHexBytes(MUSCLE_LOG_TRACE, firstBuf()->GetBuffer()+writeIdx, ret);
                writeIdx += ret;
             }

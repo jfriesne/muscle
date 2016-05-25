@@ -1176,7 +1176,7 @@ void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uin
       fprintf(optFile, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) fputc('-', optFile);
       fputc('\n', optFile);
       if (buf)
@@ -1240,7 +1240,7 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
       fprintf(optFile, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) fputc('-', optFile);
       fputc('\n', optFile);
       char * ascBuf = newnothrow_array(char, numColumns+1);
@@ -1290,7 +1290,7 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
       LogTime(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) Log(logLevel, "-");
       Log(logLevel, "\n");
       if (buf)
@@ -1342,7 +1342,7 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
       Log(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) Log(logLevel, "-");
       Log(logLevel, "\n");
       char * ascBuf = newnothrow_array(char, numColumns+1);
@@ -1403,7 +1403,7 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
       ret += headBuf;
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) ret += '-';
       ret += '\n';
       if (buf)
@@ -1458,7 +1458,7 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
       ret += headBuf;
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-strlen(headBuf);
+      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) ret += '-';
       ret += '\n';
       char * ascBuf = newnothrow_array(char, numColumns+1);

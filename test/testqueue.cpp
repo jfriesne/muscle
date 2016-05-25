@@ -20,9 +20,9 @@ void PrintToStream(const Queue<int> & q)
 /*
       int val;
       TEST(q.GetItemAt(i, val));    
-      printf(UINT32_FORMAT_SPEC" -> %i\n",i,val);
+      printf(UINT32_FORMAT_SPEC " -> %i\n",i,val);
 */
-      printf(UINT32_FORMAT_SPEC" -> %i\n",i,q[i]);
+      printf(UINT32_FORMAT_SPEC " -> %i\n",i,q[i]);
    }
 }
 
@@ -107,7 +107,7 @@ int main(void)
       for (int i=0; i<testSize; i++) 
       {
          TEST(q.AddTail(i));
-         printf("len=" UINT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC"\n", q.GetNumItems(), q.GetNumAllocatedItemSlots());
+         printf("len=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", q.GetNumItems(), q.GetNumAllocatedItemSlots());
       }
    } 
 
@@ -206,7 +206,7 @@ int main(void)
       double tally = 0.0;
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
-         printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC":\n", t+1, NUM_RUNS);
+         printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) q[i] = rand();  // we want this to be repeatable, hence srand(0)
          
@@ -215,7 +215,7 @@ int main(void)
          uint64 elapsed = (GetRunTime64()-startTime);
 
          double itemsPerSecond = ((double)NUM_ITEMS*((double)MICROS_PER_SECOND))/(elapsed);
-         printf("   It took " UINT64_FORMAT_SPEC" microseconds to sort " UINT32_FORMAT_SPEC" items, so we sorted %f items per second\n", elapsed, NUM_ITEMS, itemsPerSecond);
+         printf("   It took " UINT64_FORMAT_SPEC " microseconds to sort " UINT32_FORMAT_SPEC " items, so we sorted %f items per second\n", elapsed, NUM_ITEMS, itemsPerSecond);
          tally += itemsPerSecond;
       }
       printf("GRAND AVERAGE ITEMS PER SECOND WAS %f items per second\n", tally/NUM_RUNS);
@@ -229,7 +229,7 @@ int main(void)
       double tally = 0.0;
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
-         printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC":\n", t+1, NUM_RUNS);
+         printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) q[i] = String("FooBarBaz-%1").Arg(rand()).Pad(500);  // we want this to be repeatable, hence srand(0)
          
@@ -238,7 +238,7 @@ int main(void)
          uint64 elapsed = (GetRunTime64()-startTime);
 
          double itemsPerSecond = ((double)NUM_ITEMS*((double)MICROS_PER_SECOND))/(elapsed);
-         printf("   It took " UINT64_FORMAT_SPEC" microseconds to sort " UINT32_FORMAT_SPEC" items, so we sorted %f items per second\n", elapsed, NUM_ITEMS, itemsPerSecond);
+         printf("   It took " UINT64_FORMAT_SPEC " microseconds to sort " UINT32_FORMAT_SPEC " items, so we sorted %f items per second\n", elapsed, NUM_ITEMS, itemsPerSecond);
          tally += itemsPerSecond;
       }
       printf("STRING GRAND AVERAGE ITEMS PER SECOND WAS %f items per second\n", tally/NUM_RUNS);
@@ -263,7 +263,7 @@ int main(void)
          TEST(q2.AddTail(i+100));
       }
       q.AddTailMulti(q2);
-      for (uint32 j=0; j<q.GetNumItems(); j++) printf("After concat, " UINT32_FORMAT_SPEC"->%i\n", j, q[j]);
+      for (uint32 j=0; j<q.GetNumItems(); j++) printf("After concat, " UINT32_FORMAT_SPEC "->%i\n", j, q[j]);
    }
 
    printf("CONCAT TEST 2\n");
@@ -276,7 +276,7 @@ int main(void)
          TEST(q2.AddTail(i+100));
       }
       q.AddHeadMulti(q2);
-      for (uint32 j=0; j<q.GetNumItems(); j++) printf("After concat, " UINT32_FORMAT_SPEC"->%i\n", j, q[j]);
+      for (uint32 j=0; j<q.GetNumItems(); j++) printf("After concat, " UINT32_FORMAT_SPEC "->%i\n", j, q[j]);
    }
    {
       printf("GetArrayPointer() test\n");
@@ -284,7 +284,7 @@ int main(void)
       int * a;
       for (uint32 i=0; (a = q.GetArrayPointer(i, len)) != NULL; i++)
       {
-         printf("SubArray " UINT32_FORMAT_SPEC": " UINT32_FORMAT_SPEC" items: ", i, len);
+         printf("SubArray " UINT32_FORMAT_SPEC ": " UINT32_FORMAT_SPEC " items: ", i, len);
          for (uint32 j=0; j<len; j++) printf("%i, ", a[j]);
          printf("\n");
       }
@@ -314,7 +314,7 @@ int main(void)
       if (memcmp(compareArray, a, q.GetNumItems()*sizeof(int)))
       {
          printf("ERROR IN NORMALIZE!\n");
-         for (uint32 i=0; i<q.GetNumItems(); i++) printf("   Expected %i, got %i (qi=%i at " UINT32_FORMAT_SPEC"/" UINT32_FORMAT_SPEC")\n", compareArray[i], a[i], q[i], i, q.GetNumItems());
+         for (uint32 i=0; i<q.GetNumItems(); i++) printf("   Expected %i, got %i (qi=%i at " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", compareArray[i], a[i], q[i], i, q.GetNumItems());
          MCRASH("ERROR IN NORMALIZE!");
       }
 
