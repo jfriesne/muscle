@@ -52,6 +52,11 @@ typedef void sockopt_arg;  // Whereas sane operating systems use void pointers
 #  define USE_GETIFADDRS 1
 #  define USE_SOCKETPAIR 1
 #  include <ifaddrs.h>
+#  if defined(__linux__)
+#   include <linux/if_packet.h>  // for sockaddr_ll
+#else
+#   include <net/if_dl.h>  // for the LLADDR macro
+#  endif
 # endif
 #endif
 
@@ -1035,24 +1040,39 @@ static int32 GetSocketBufferSizeAux(const ConstSocketRef & sock, int optionName)
 int32 GetSocketSendBufferSize(   const ConstSocketRef & sock) {return GetSocketBufferSizeAux(sock, SO_SNDBUF);}
 int32 GetSocketReceiveBufferSize(const ConstSocketRef & sock) {return GetSocketBufferSizeAux(sock, SO_RCVBUF);}
 
-NetworkInterfaceInfo :: NetworkInterfaceInfo() : _ip(invalidIP), _netmask(invalidIP), _broadcastIP(invalidIP), _enabled(false), _copper(false)
+NetworkInterfaceInfo :: NetworkInterfaceInfo() : _ip(invalidIP), _netmask(invalidIP), _broadcastIP(invalidIP), _enabled(false), _copper(false), _macAddress(0)
 {
    // empty
 }
 
-NetworkInterfaceInfo :: NetworkInterfaceInfo(const String &name, const String & desc, const ip_address & ip, const ip_address & netmask, const ip_address & broadcastIP, bool enabled, bool copper) : _name(name), _desc(desc), _ip(ip), _netmask(netmask), _broadcastIP(broadcastIP), _enabled(enabled), _copper(copper)
+NetworkInterfaceInfo :: NetworkInterfaceInfo(const String &name, const String & desc, const ip_address & ip, const ip_address & netmask, const ip_address & broadcastIP, bool enabled, bool copper, uint64 macAddress) : _name(name), _desc(desc), _ip(ip), _netmask(netmask), _broadcastIP(broadcastIP), _enabled(enabled), _copper(copper), _macAddress(macAddress)
 {
    // empty
+}
+
+static String MACAddressToString(uint64 mac)
+{
+   if (mac == 0) return "None";
+
+   char buf[128];
+   muscleSprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x", 
+       (unsigned) ((mac>>(5*8))&0xFF),
+       (unsigned) ((mac>>(4*8))&0xFF),
+       (unsigned) ((mac>>(3*8))&0xFF),
+       (unsigned) ((mac>>(2*8))&0xFF),
+       (unsigned) ((mac>>(1*8))&0xFF),
+       (unsigned) ((mac>>(0*8))&0xFF));
+   return buf;
 }
 
 String NetworkInterfaceInfo :: ToString() const
 {
-   return String("Name=[%1] Description=[%2] IP=[%3] Netmask=[%4] Broadcast=[%5] Enabled=%6 Copper=%7").Arg(_name).Arg(_desc).Arg(Inet_NtoA(_ip)).Arg(Inet_NtoA(_netmask)).Arg(Inet_NtoA(_broadcastIP)).Arg(_enabled).Arg(_copper);
+   return String("Name=[%1] Description=[%2] IP=[%3] Netmask=[%4] Broadcast=[%5] MAC=[%6] Enabled=%7 Copper=%8").Arg(_name).Arg(_desc).Arg(Inet_NtoA(_ip)).Arg(Inet_NtoA(_netmask)).Arg(Inet_NtoA(_broadcastIP)).Arg(MACAddressToString(_macAddress)).Arg(_enabled).Arg(_copper);
 }
 
 uint32 NetworkInterfaceInfo :: HashCode() const
 {
-   return _name.HashCode() + _desc.HashCode() + GetHashCodeForIPAddress(_ip) + GetHashCodeForIPAddress(_netmask) + GetHashCodeForIPAddress(_broadcastIP) + _enabled + _copper;
+   return _name.HashCode() + _desc.HashCode() + GetHashCodeForIPAddress(_ip) + GetHashCodeForIPAddress(_netmask) + GetHashCodeForIPAddress(_broadcastIP) + CalculateHashCode(_macAddress) +_enabled + _copper;
 }
 
 #if defined(USE_GETIFADDRS) || defined(WIN32)
@@ -1175,11 +1195,31 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
 
    if (getifaddrs(&ifap) == 0)
    {
+      Hashtable<String, uint64> inameToMAC;
       ret = B_NO_ERROR;
       {
          struct ifaddrs * p = ifap;
          while(p)
          {
+            if (p->ifa_addr)
+            {
+#if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__)
+               if (p->ifa_addr->sa_family == AF_LINK)
+               {
+                  const unsigned char * ptr = (const unsigned char *)LLADDR((struct sockaddr_dl *)p->ifa_addr);
+                  uint64 mac = 0; for (uint32 i=0; i<6; i++) mac |= (((uint64)ptr[i])<<(8*(5-i)));
+                  inameToMAC.Put(p->ifa_name, mac);
+               }
+#elif defined(__linux__)
+               if (p->ifa_addr->sa_family == AF_PACKET)
+               {
+                  const struct sockaddr_ll * s = (const struct sockaddr_ll *) p->ifa_addr;
+                  uint64 mac = 0; for (uint32 i=0; i<6; i++) mac |= (((uint64)s->sll_addr[i])<<(8*(5-i)));
+                  inameToMAC.Put(p->ifa_name, mac);
+               }
+#endif
+            }
+
             ip_address unicastIP   = SockAddrToIPAddr(p->ifa_addr);
             ip_address netmask     = SockAddrToIPAddr(p->ifa_netmask);
             ip_address broadcastIP = SockAddrToIPAddr(p->ifa_broadaddr);
@@ -1191,7 +1231,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
                // FogBugz #10519:  I'm not setting the interface index for ::1 because trying to send UDP packets to ::1@1 causes ENOROUTE errors under MacOS/X
                if (unicastIP != localhostIP) unicastIP.SetInterfaceIndex(if_nametoindex(p->ifa_name));  // so the user can find out; it will be ignore by the TCP stack
 #endif
-               if (results.AddTail(NetworkInterfaceInfo(p->ifa_name, "", unicastIP, netmask, broadcastIP, isEnabled, hasCopper)) == B_NO_ERROR)
+               if (results.AddTail(NetworkInterfaceInfo(p->ifa_name, "", unicastIP, netmask, broadcastIP, isEnabled, hasCopper, 0)) == B_NO_ERROR)  // MAC address will be set later
                {
                   if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
                }
@@ -1205,6 +1245,8 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
          }
       }
       freeifaddrs(ifap);
+
+      if (inameToMAC.HasItems()) for (uint32 i=0; i<results.GetNumItems(); i++) results[i]._macAddress = inameToMAC.GetWithDefault(results[i].GetName());
    }
 #elif defined(WIN32)
    // IPv6 implementation, adapted from
@@ -1276,7 +1318,10 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
                      char outBuf[512];
                      if (WideCharToMultiByte(CP_UTF8, 0, pCurrAddresses->Description, -1, outBuf, sizeof(outBuf), NULL, NULL) <= 0) outBuf[0] = '\0';
 
-                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, outBuf, unicastIP, netmask, broadcastIP, isEnabled, false)) == B_NO_ERROR)
+                     uint64 mac = 0;
+                     if (pCurrAddresses->PhysicalAddressLength == 6) for (uint32 i=0; i<6; i++) mac |= (((uint64)(pCurrAddresses->PhysicalAddress[i]))<<(8*(5-i)));
+
+                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, outBuf, unicastIP, netmask, broadcastIP, isEnabled, false, mac)) == B_NO_ERROR)
                      {
                         if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
                      }

@@ -313,7 +313,7 @@ testnetutil:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.
 deadlockfinder : $(STDOBJS) deadlockfinder.o SysLog.o String.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-deadlock: $(STDOBJS) deadlock.o SysLog.o String.o SetupSystem.o Thread.o SocketMultiplexer.o NetworkUtilityFunctions.o
+deadlock: $(STDOBJS) deadlock.o SysLog.o String.o SetupSystem.o Thread.o SocketMultiplexer.o NetworkUtilityFunctions.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 svncopy : $(STDOBJS) svncopy.o String.o SetupSystem.o SysLog.o

@@ -22,10 +22,7 @@ int main(int, char **)
       for (uint32 i=0; i<ifs.GetNumItems(); i++)
       {
          const NetworkInterfaceInfo & nii = ifs[i];
-         char addrStr[64]; Inet_NtoA(nii.GetLocalAddress(), addrStr);
-         char maskStr[64]; Inet_NtoA(nii.GetNetmask(), maskStr);
-         char remtStr[64]; Inet_NtoA(nii.GetBroadcastAddress(), remtStr);
-         printf("  #" UINT32_FORMAT_SPEC ":  name=[%s] address=[%s] netmask=[%s] broadcastAddress=[%s]\n", i+1, nii.GetName()(), addrStr, maskStr, remtStr);
+         printf("  #" UINT32_FORMAT_SPEC ":  %s\n", i+1, nii.ToString()());
       }
    }
    else printf("GetNetworkInterfaceInfos() returned an error!\n");

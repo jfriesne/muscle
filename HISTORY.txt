@@ -5,6 +5,16 @@ key:  - new feature
       * bug fixed
       o other
 
+6.36 Released 6/24/2016
+   - The NetworkInterfaceInfo class now has a GetMACAddress()
+     method that will return the 48-bit MAC address associated
+     with the interface.
+   - udpproxy will now join a UDP socket to its multicast group
+     if the provided IP address is a multicast IP address.
+   - Added a new function Crash() which does just what it says.
+     The MCRASH macro now calls Crash() after it prints a
+     stack trace.
+
 6.35 Released 5/25/2016
    o Revised MessageIOGateway::DoInputImplementation() so that if
      a subclass's override of UnflattenHeaderAndMessage() has retained

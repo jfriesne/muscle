@@ -865,8 +865,9 @@ public:
      * @param broadcastIP The broadcast IP address associated with this interface.
      * @param enabled True iff the interface is currently enabled; false if it is not.
      * @param copper True iff the interface currently has an ethernet cable plugged into it.
+     * @param macAddress 48-bit MAC address value, or 0 if MAC address is unknown.
      */
-   NetworkInterfaceInfo(const String & name, const String & desc, const ip_address & ip, const ip_address & netmask, const ip_address & broadcastIP, bool enabled, bool copper);
+   NetworkInterfaceInfo(const String & name, const String & desc, const ip_address & ip, const ip_address & netmask, const ip_address & broadcastIP, bool enabled, bool copper, uint64 macAddress);
 
    /** Returns the name of this interface, or "" if the name is not known. */
    const String & GetName() const {return _name;}
@@ -886,6 +887,13 @@ public:
      */
    const ip_address & GetBroadcastAddress() const {return _broadcastIP;}
 
+   /** Returns the MAC address of this network interface, or 0 if the MAC address isn't known.
+     * Note that only the lower 48 bits of the returned 64-bit word are valid; the upper 16 bits will always be zero.
+     * @note This functionality is currently implemented under BSD/MacOSX, Linux, and Windows.  Under other OS's where
+     *       this information isn't implemented, this method will return 0.
+     */
+   uint64 GetMACAddress() const {return _macAddress;}
+
    /** Returns true iff this interface is currently enabled ("up"). */
    bool IsEnabled() const {return _enabled;}
 
@@ -903,6 +911,8 @@ public:
    uint32 HashCode() const;
 
 private:
+   friend status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 includeBits);  // so it can set the _macAddress field
+
    String _name;
    String _desc;
    ip_address _ip;
@@ -910,6 +920,7 @@ private:
    ip_address _broadcastIP;
    bool _enabled;
    bool _copper;
+   uint64 _macAddress;
 };
 
 /** Bits that can be passed to GetNetworkInterfaceInfos() or GetNetworkInterfaceAddresses(). */

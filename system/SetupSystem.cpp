@@ -137,6 +137,15 @@ void ExitWithoutCleanup(int exitCode)
    _exit(exitCode);
 }
 
+void Crash()
+{
+#ifdef WIN32
+   RaiseException(EXCEPTION_BREAKPOINT, 0, 0, NULL);
+#else
+   abort();
+#endif
+}
+
 static void GoInsane(const char * why, const char * why2 = NULL)
 {
    printf("SanitySetupSystem:  MUSCLE COMPILATION RUNTIME SANITY CHECK FAILED!\n");

@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.35"
-#define MUSCLE_VERSION        63500  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.36"
+#define MUSCLE_VERSION        63600  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -168,12 +168,7 @@ using std::set_new_handler;
 # define MASSERT(x,msg) {if(!(x)) MCRASH(msg)}
 #endif
 
-#ifdef WIN32
-# define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); RaiseException(EXCEPTION_BREAKPOINT, 0, 0, NULL);}
-#else
-# define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); abort();}
-#endif
-
+#define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); Crash();}
 #define MEXIT(retVal,msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
 #define WARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)
 #define MCHECKPOINT muscle::LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
@@ -974,6 +969,10 @@ static inline int32 ConvertReturnValueToMuscleSemantics(int origRet, uint32 maxS
 #ifdef __cplusplus
 namespace muscle {
 #endif
+
+// forward declarations
+extern void Crash();
+extern void ExitWithoutCleanup(int);
 
 #if MUSCLE_TRACE_CHECKPOINTS > 0
 

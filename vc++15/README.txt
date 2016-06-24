@@ -10,8 +10,8 @@ To compile muscle, do the following:
 
 3. Click Build->Build Solution
 
-3. Sit back and relax.  The muscle build should complete in a minute or two.
+4. Sit back and relax.  The muscle build should complete in a minute or two.
 
-4. Open the correct architecture directory and build type directory that are created inside vc++15. You should see three files there: admin.exe, muscled.exe, and muscle.lib. You can run your server with muscled.exe, and maintain it with admin.exe. You can build your own apps and link them against muscle.lib.
+5. Open the correct architecture directory and build type directory that are created inside vc++15. You should see three files there: admin.exe, muscled.exe, and muscle.lib. You can run your server with muscled.exe, and maintain it with admin.exe. You can build your own apps and link them against muscle.lib.
 
 -Mika Lindqvist (aka "Monni")

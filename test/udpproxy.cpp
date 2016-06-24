@@ -148,11 +148,30 @@ int main(int argc, char ** argv)
          LogTime(MUSCLE_LOG_ERROR, "Creating UDP socket failed!\n");
          return 10;
       }
-      if (BindUDPSocket(udpSock, listenPorts[i], &listenPorts[i]) != B_NO_ERROR)
+      if (BindUDPSocket(udpSock, listenPorts[i], &listenPorts[i], invalidIP, true) != B_NO_ERROR)
       {
          LogTime(MUSCLE_LOG_ERROR, "Failed to bind UDP socket to port %u!\n", listenPorts[i]);
          return 10;
       }
+
+#ifndef MUSCLE_AVOID_MULTICAST_API
+      const ip_address & ip = targets[i].GetIPAddress();
+
+      // If it's a multicast address, we need to add ourselves to the multicast group
+      // in order to get packets from the group.
+      if (IsMulticastIPAddress(ip))
+      {
+         if (AddSocketToMulticastGroup(udpSock, ip) == B_NO_ERROR)
+         {
+            LogTime(MUSCLE_LOG_INFO, "Added UDP socket to multicast group %s!\n", Inet_NtoA(ip)());
+#ifdef DISALLOW_MULTICAST_TO_SELF
+            if (SetSocketMulticastToSelf(udpSock, false) != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "Error disabling multicast-to-self on socket\n");
+#endif
+         }
+         else LogTime(MUSCLE_LOG_ERROR, "Error adding UDP socket to multicast group %s!\n", Inet_NtoA(ip)());
+      }
+#endif
+
       UDPSocketDataIO * dio = newnothrow UDPSocketDataIO(udpSock, false);
       if (dio == NULL)
       {

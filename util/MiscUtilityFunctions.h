@@ -252,6 +252,13 @@ void HandleStandardDaemonArgs(const Message & args);
   */
 void ExitWithoutCleanup(int exitCode);
 
+/** Causes this process to terminate abnormally (i.e. with a crash).
+  * Under Windows, this is implemented by calling RaiseException(EXCEPTION_BREAKPOINT).
+  * Under all other OS's, this is implemented by calling abort().
+  * @note this function will not return!
+  */
+void Crash();
+
 /** Calls fork(), setsid(), chdir(), umask(), etc, to fork an independent daemon process.
  *  Also closes all open file descriptors.
  *  Note that this function will call ExitWithoutCleanup() on the parent process if successful,
