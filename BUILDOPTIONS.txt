@@ -120,9 +120,6 @@ of your Makefile to alter muscle's behaviour:
 -DMUSCLE_DISABLE_MESSAGE_FIELD_POOLS 
    turn off Object pooling for Message field objects; helpful for debugging
 
--DMUSCLE_MAX_OUTPUT_CHUNK=N 
-   tell muscled not to send() more than N bytes of output per call
-
 -DMUSCLE_INLINE_LOGGING 
    turn Log(), LogTime(), etc into simple printf() passthroughs
 
@@ -263,32 +260,32 @@ of your Makefile to alter muscle's behaviour:
    TARGET_PLATFORM_XENOMAI is defined.
 
 -DDEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD=n
-    If defined, whenever muscleAlloc() is called with a request size
-    greater than (n), information about the allocation and a stack
-    trace will be printed to stdout.  Good for quickly figuring out who 
-    is allocating big contiguous chunks of memory.
+   If defined, whenever muscleAlloc() is called with a request size
+   greater than (n), information about the allocation and a stack
+   trace will be printed to stdout.  Good for quickly figuring out who 
+   is allocating big contiguous chunks of memory.
 
 -DMUSCLE_AVOID_AUTOCHOOSE_SWAP
-    If set, MuscleSupport.h will define muscleSwap() the simple, 
-    old-fashioned way.  This is less efficient, but avoiding the SFINAE
-    mumbo-jumbo helps the code compile on older compilers (e.g. gcc 3.x)
-    that don't handle SFINAE correctly.
+   If set, MuscleSupport.h will define muscleSwap() the simple, 
+   old-fashioned way.  This is less efficient, but avoiding the SFINAE
+   mumbo-jumbo helps the code compile on older compilers (e.g. gcc 3.x)
+   that don't handle SFINAE correctly.
 
 -DMUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
-    If set, the RefCountable and ObjectPool code will be instrumented
-    such that every time a RefCountable object is obtained from an
-    ObjectPool, the thread's current stack trace will be recorded and 
-    associated with the RefCountable object.  What this does (apart from 
-    making your program really slow and memory-hungry) is allow the 
-    assertion failures in the ObjectPool class's destructor to tell you 
-    exactly where a "leaked" object had been allocated, rather than just 
-    telling you that an object is still in use.  That can make it much 
-    easier to track down where the leaked-references problem is and fix it.
+   If set, the RefCountable and ObjectPool code will be instrumented
+   such that every time a RefCountable object is obtained from an
+   ObjectPool, the thread's current stack trace will be recorded and 
+   associated with the RefCountable object.  What this does (apart from 
+   making your program really slow and memory-hungry) is allow the 
+   assertion failures in the ObjectPool class's destructor to tell you 
+   exactly where a "leaked" object had been allocated, rather than just 
+   telling you that an object is still in use.  That can make it much 
+   easier to track down where the leaked-references problem is and fix it.
 
 -DMUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION
-    If set, and if MUSCLE is using Qt's QThread class to implement its
-    Thread functionality, then the Thread::InternalThreadEntry() method
-    will call QThread::exec() to implement its event loop instead of
-    using a while(WaitForNextMessage()) loop.  This can be useful if
-    you want to use Qt objects in the thread, and those Qt objects
-    depend on QThread::exec()'s functioning in order to work properly.
+   If set, and if MUSCLE is using Qt's QThread class to implement its
+   Thread functionality, then the Thread::InternalThreadEntry() method
+   will call QThread::exec() to implement its event loop instead of
+   using its own while(WaitForNextMessage()) loop.  This can be useful 
+   if you want to use Qt objects in the thread, and those Qt objects
+   depend on QThread::exec()'s functioning in order to work properly.

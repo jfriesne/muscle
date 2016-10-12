@@ -1416,16 +1416,10 @@ status_t PrintStackTrace(FILE * optFile, uint32 maxDepth)
 #if defined(MUSCLE_USE_BACKTRACE)
    void *array[MAX_STACK_TRACE_DEPTH];
    size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
-   char ** strings = backtrace_symbols(array, size);
-   if (strings)
-   {
-      fprintf(optFile, "--Stack trace follows (%zd frames):\n", size);
-      for (size_t i = 0; i < size; i++) fprintf(optFile, "  %s\n", strings[i]);
-      fprintf(optFile, "--End Stack trace\n");
-      free(strings);
-      return B_NO_ERROR;
-   }
-   else fprintf(optFile, "PrintStackTrace:  Error, could not generate stack trace!\n");
+   fprintf(optFile, "--Stack trace follows (%i frames):\n", (int) size);
+   backtrace_symbols_fd(array, size, fileno(optFile));
+   fprintf(optFile, "--End Stack trace\n");
+   return B_NO_ERROR;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
    _Win32PrintStackTraceForContext(optFile, NULL, maxDepth);
 #else

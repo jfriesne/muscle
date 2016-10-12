@@ -1294,6 +1294,8 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
                while(ua)
                {
                   ip_address unicastIP = SockAddrToIPAddr(ua->Address.lpSockaddr);
+                  const ip_address ipv4_limited_broadcast_address(0xFFFFFFFF);
+
                   bool isEnabled = true;  // for now.  TODO:  See if GetAdaptersAddresses() reports disabled interfaces
                   if (IsGNIIBitMatch(unicastIP, isEnabled, includeBits))
                   {
@@ -1306,6 +1308,15 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
                         {
                            broadcastIP = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiBroadcastAddress);
                            netmask     = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiNetmask);
+
+                           // Berkeley FogBugz #9902:  If GetAdaptersAddresses() wants to be dumb
+                           // and just return 255.255.255.255 as the broadcast address, then we'll
+                           // just have to compute the direct broadcast address ourselves!
+#ifdef MUSCLE_AVOID_IPV6
+                           if (broadcastIP == ipv4_limited_broadcast_address) broadcastIP = (unicastIP & netmask) | ~netmask;
+#else
+                           if ((IsIPv4Address(unicastIP))&&(broadcastIP.EqualsIgnoreInterfaceIndex(ipv4_limited_broadcast_address))) broadcastIP.SetLowBits((unicastIP.GetLowBits() & netmask.GetLowBits()) | (0xFFFFFFFF & ~(netmask.GetLowBits())));
+#endif
                            break;
                         }
                      }

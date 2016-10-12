@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.36"
-#define MUSCLE_VERSION        63600  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.37"
+#define MUSCLE_VERSION        63700  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -968,6 +968,7 @@ static inline int32 ConvertReturnValueToMuscleSemantics(int origRet, uint32 maxS
 
 #ifdef __cplusplus
 namespace muscle {
+class DataNode;  // FogBugz #9816 tweakage
 #endif
 
 // forward declarations
@@ -1256,6 +1257,7 @@ template <> class AutoChooseHashFunctorHelper<void *>       {typedef PODHashFunc
  AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(uint64);
  AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(const char *);
  AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(float);
+ AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(DataNode *);  // FogBugz #9816 tweakage --jaf
 #else
 # define AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK(x)
 # define AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK_WITH_NAMESPACE(ns,x)

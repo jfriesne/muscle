@@ -5,6 +5,22 @@ key:  - new feature
       * bug fixed
       o other
 
+6.37 Released 10/12/2016
+   o Added an AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK for
+     (DataNode *) so that the code will again compile on old
+     (3.x) versions of g++ that don't support SFINAE properly.
+   - HandleStandardDaemonArgs() now prints out a list of network
+     interface information if the command line argument
+     "printnetworkinterfaces" is supplied by the user.
+   - ParseHexBytes() (and therefore any programs that depend on it,
+     such as hexterm) now understands C-style escaped-control-char
+     conventions, e.g. \r means carriage-return, \n means newline.
+   * Added a work-around for Windows' GetAdaptersAddresses() info
+     returning 255.255.255.255 as the broadcast address for an
+     IPv4 interface.  GetNetworkInterfaceInfos() will now detect
+     when this happens and replace that address with the direct 
+     broadcast address for the subnet (e.g. 192.168.0.255) instead.
+
 6.36 Released 6/24/2016
    - The NetworkInterfaceInfo class now has a GetMACAddress()
      method that will return the 48-bit MAC address associated
@@ -14,6 +30,9 @@ key:  - new feature
    - Added a new function Crash() which does just what it says.
      The MCRASH macro now calls Crash() after it prints a
      stack trace.
+   o The POSIX implementation of PrintStackTrace() now calls
+     backtrace_symbols_fd() rather than backtrace_symbols(), to
+     avoid having to allocate memory when the heap might be corrupted.
 
 6.35 Released 5/25/2016
    o Revised MessageIOGateway::DoInputImplementation() so that if

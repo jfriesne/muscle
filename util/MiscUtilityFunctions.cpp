@@ -647,6 +647,17 @@ void HandleStandardDaemonArgs(const Message & args)
 # endif
    }
 #endif
+
+   if (args.HasName("printnetworkinterfaces"))
+   {
+      Queue<NetworkInterfaceInfo> infos;
+      if (GetNetworkInterfaceInfos(infos) == B_NO_ERROR)
+      {
+         printf("--- Network interfaces on this machine are as follows: ---\n");
+         for (uint32 i=0; i<infos.GetNumItems(); i++) printf("  %s\n", infos[i].ToString()());
+         printf("--- (end of list) ---\n");
+      }
+   }
 }
 
 static bool _isDaemonProcess = false;
@@ -948,8 +959,28 @@ ByteBufferRef ParseHexBytes(const char * buf)
       {
          if (strlen(next) > 0) 
          {
-            if (next[0] == '/') b[count++] = next[1];
-                           else b[count++] = (uint8) strtol(next, NULL, 16);
+                 if (next[0] == '/') b[count++] = next[1];
+            else if (next[0] == '\\')
+            {
+               // handle standard C escaped-control-chars conventions also (\r, \n, \t, etc)
+               char c = 0;
+               switch(next[1])
+               {
+                  case 'a':  c = 0x07; break;
+                  case 'b':  c = 0x08; break;
+                  case 'f':  c = 0x0C; break;
+                  case 'n':  c = 0x0A; break;
+                  case 'r':  c = 0x0D; break;
+                  case 't':  c = 0x09; break;
+                  case 'v':  c = 0x0B; break;
+                  case '\\': c = 0x5C; break;
+                  case '\'': c = 0x27; break;
+                  case '"':  c = 0x22; break;
+                  case '?':  c = 0x3F; break;
+               }
+               b[count++] = c;
+            }
+            else b[count++] = (uint8) strtol(next, NULL, 16);
          }
       }
       bb()->SetNumBytes(count, true);

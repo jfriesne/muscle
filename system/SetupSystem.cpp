@@ -2005,10 +2005,6 @@ Queue<String> GetBuildFlags()
    q.AddTail("MUSCLE_DISABLE_MESSAGE_FIELD_POOLS");
 #endif
 
-#ifdef MUSCLE_MAX_OUTPUT_CHUNK
-   q.AddTail(String("MUSCLE_MAX_OUTPUT_CHUNK=%1").Arg(MUSCLE_MAX_OUTPUT_CHUNK));
-#endif
-
 #ifdef MUSCLE_INLINE_LOGGING 
    q.AddTail("MUSCLE_INLINE_LOGGING");
 #endif
