@@ -1568,6 +1568,37 @@ uint64 Atoull(const char * str)
    return ret;
 }
 
+// Returns the integer value of the specified hex char, or -1 if c is not a valid hex char (i.e. not 0-9, a-f, or A-F)
+static int ParseHexDigit(char c)
+{
+        if (muscleInRange(c, '0', '9')) return (c-'0');
+   else if (muscleInRange(c, 'a', 'f')) return 10+(c-'a');
+   else if (muscleInRange(c, 'A', 'F')) return 10+(c-'A');
+   else                                 return -1;
+}
+
+uint64 Atoxll(const char * str)
+{
+   if ((str[0] == '0')&&((str[1] == 'x')||(str[1] == 'X'))) str += 2;  // skip any optional "0x" prefix in "0xDEADBEEF"
+
+   const char * s = str;
+   if (ParseHexDigit(*s) < 0) return 0;
+
+   uint64 base = 1;
+   uint64 ret  = 0;
+
+   // Move to the last digit in the number
+   while(ParseHexDigit(*s) >= 0) s++;
+
+   // Then iterate back to the beginning, tabulating as we go
+   while((--s >= str)&&(ParseHexDigit(*s) >= 0))
+   {
+      ret  += base * ((uint64)ParseHexDigit(*s));
+      base *= (uint64)16;
+   }
+   return ret;
+}
+
 int64 Atoll(const char * str)
 {
    TCHECKPOINT;

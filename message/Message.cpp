@@ -2677,7 +2677,7 @@ bool MessageField :: IsEqualTo(const MessageField & rhs, bool compareContents) c
    if (_typeCode != rhs._typeCode) return false;
 
    uint32 mySize  = GetNumItems();
-   uint32 hisSize = GetNumItems();
+   uint32 hisSize = rhs.GetNumItems();  // FogBugz #10980
    if (mySize != hisSize) return false;  // can't be equal if we don't have the same sizes
    if (mySize == 0)       return true;   // no more to compare, if we're both empty
    if (compareContents == false) return true;  // if we're not comparing contents, then that's all we need to check

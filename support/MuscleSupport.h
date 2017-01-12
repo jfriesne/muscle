@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.37"
-#define MUSCLE_VERSION        63700  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.38"
+#define MUSCLE_VERSION        63800  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -1275,11 +1275,14 @@ template <> class AutoChooseHashFunctorHelper<void *>       {typedef PODHashFunc
 # endif
 #endif
 
-/** Given an ASCII representation of a non-negative number, returns that number as a uint64. */
+/** Given an ASCII decimal representation of a non-negative number, returns that number as a uint64. */
 uint64 Atoull(const char * str);
 
 /** Similar to Atoll(), but handles negative numbers as well */
 int64 Atoll(const char * str);
+
+/** Given an ASCII hexadecimal representation of a non-negative number (with or without the optional "0x" prefix), returns that number as a uint64. */
+uint64 Atoxll(const char * str);
 
 #ifdef __cplusplus
 }; // end namespace muscle

@@ -554,7 +554,7 @@ public:
    void SwapContents(HashtableBase & swapMe) {SwapContentsAux(swapMe, true);}
 
    /** Moves the given entry to the head of the HashtableIterator traversal sequence.
-     * Note that calling this method is generally a bad idea of the table is in auto-sort mode,
+     * Note that calling this method is generally a bad idea if the table is in auto-sort mode,
      * as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
      * calling Sort() will restore the sort-order and make auto-sorting work again)
      * @param moveMe Key of the item to be moved to the front of the sequence.
@@ -563,7 +563,7 @@ public:
    status_t MoveToFront(const KeyType & moveMe);
 
    /** Moves the given entry to the tail of the HashtableIterator traversal sequence.
-     * Note that calling this method is generally a bad idea of the table is in auto-sort mode,
+     * Note that calling this method is generally a bad idea if the table is in auto-sort mode,
      * as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
      * calling Sort() will restore the sort-order and make auto-sorting work again)
      * @param moveMe Key of the item to be moved to the end of the sequence.
@@ -573,7 +573,7 @@ public:
 
    /** Moves the given entry to the spot just in front of the other specified entry in the 
      * HashtableIterator traversal sequence.
-     * Note that calling this method is generally a bad idea of the table is in auto-sort mode,
+     * Note that calling this method is generally a bad idea if the table is in auto-sort mode,
      * as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
      * calling Sort() will restore the sort-order and make auto-sorting work again)
      * @param moveMe Key of the item to be moved.
@@ -585,7 +585,7 @@ public:
 
    /** Moves the given entry to the spot just behind the other specified entry in the 
      * HashtableIterator traversal sequence.
-     * Note that calling this method is generally a bad idea of the table is in auto-sort mode,
+     * Note that calling this method is generally a bad idea if the table is in auto-sort mode,
      * as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
      * calling Sort() will restore the sort-order and make auto-sorting work again)
      * @param moveMe Key of the item to be moved.
@@ -597,7 +597,7 @@ public:
 
    /** Moves the given entry to the (nth) position in the HashtableIterator traversal sequence.
      * Note that this is an O(N) operation.
-     * Note that calling this method is generally a bad idea of the table is in auto-sort mode,
+     * Note that calling this method is generally a bad idea if the table is in auto-sort mode,
      * as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
      * calling Sort() will restore the sort-order and make auto-sorting work again)
      * @param moveMe Key of the item to be moved.
@@ -1621,8 +1621,8 @@ private:
  *     allow common usage patterns to be reduced to a single method call, making their intent explicit 
  *     and their implementation uniform.
  *   - Methods like GetFirstKey(), GetFirstValue(), RemoveFirst() and RemoveLast() allow the
- *     Hashtable to be used as an efficient, keyed double-ended FIFO queue, if desired.  This
- *     (along with MoveToFront()) makes it very easy to implement an LRU cache using a Hashtable.
+ *     Hashtable to be used as an efficient, keyed, double-ended FIFO queue, if desired.  This
+ *     (along with MoveToFront()) makes it very easy to implement an efficient LRU cache using a Hashtable.
  *   - The CountAverageLookupComparisons() method can be called during development to easily
  *     quantify the performance of the hash functions being used.
  *   - Memory overhead is 6 bytes per key-value entry if the table's capacity is less than 256;

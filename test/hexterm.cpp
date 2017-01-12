@@ -208,7 +208,7 @@ static void DoSession(DataIO & io)
    }
 }
 
-static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticastGroup)
+static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticastGroup, int optBindPort=-1)
 {
    ConstSocketRef ss = CreateUDPSocket();
    if (ss() == NULL)
@@ -256,6 +256,12 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
 #endif
          IPAddressAndPort iap(ip, port);
          udpIO.SetSendDestination(iap);
+         if (optBindPort >= 0)
+         {
+            uint16 retPort;
+            if (BindUDPSocket(ss, (uint16)optBindPort, &retPort) == B_NO_ERROR) LogTime(MUSCLE_LOG_INFO, "Bound UDP socket to port %u\n", retPort);
+                                                                           else LogTime(MUSCLE_LOG_ERROR, "Couldn't bind UDP socket to port %u!\n", optBindPort);
+         }
          LogTime(MUSCLE_LOG_INFO, "Ready to send UDP packets to %s\n", iap.ToString()());
          DoSession(udpIO);
       }
@@ -282,20 +288,20 @@ static void LogUsage(const char * argv0)
 #else
    Log(MUSCLE_LOG_INFO, "%s (compiled from MUSCLE v%s)\n\n", progName(), MUSCLE_VERSION_STRING);
 #endif
-   Log(MUSCLE_LOG_INFO, "Usage:  hexterm tcp=<port>              (listen for incoming TCP connections on the given port)\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm tcp=<host>:<port>       (make an outgoing TCP connection to the given host/port)\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm udp=<host>:<port>       (send outgoing UDP packets to the given host/port)\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm udp=<port>              (listen for incoming UDP packets on the given port)\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm serial=<devname>:<baud> (send/receive via a serial device, e.g. /dev/ttyS0)\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm child=<prog_and_args>   (send/receive via a child process, e.g. 'ls -l')\n");
+   Log(MUSCLE_LOG_INFO, "Usage:  hexterm tcp=<port>               (listen for incoming TCP connections on the given port)\n");
+   Log(MUSCLE_LOG_INFO, "   or:  hexterm tcp=<host>:<port>        (make an outgoing TCP connection to the given host/port)\n");
+   Log(MUSCLE_LOG_INFO, "   or:  hexterm udp=<host>:<port>[_port] (send outgoing UDP packets to the given host/port (optionally binding to _port))\n");
+   Log(MUSCLE_LOG_INFO, "   or:  hexterm udp=<port>               (listen for incoming UDP packets on the given port)\n");
+   Log(MUSCLE_LOG_INFO, "   or:  hexterm serial=<devname>:<baud>  (send/receive via a serial device, e.g. /dev/ttyS0)\n");
+   Log(MUSCLE_LOG_INFO, "   or:  hexterm child=<prog_and_args>    (send/receive via a child process, e.g. 'ls -l')\n");
    Log(MUSCLE_LOG_INFO, "  Additional optional args include:\n");
-   Log(MUSCLE_LOG_INFO, "                ascii                   (print and parse bytes as ASCII rather than hexadecimal)\n");
-   Log(MUSCLE_LOG_INFO, "                plain                   (Suppress decorative elements in hexterm's output)\n");
-   Log(MUSCLE_LOG_INFO, "                quietreceive            (Suppress the printing out of incoming data bytes)\n");
-   Log(MUSCLE_LOG_INFO, "                spamrate=<Hz>           (Specify number of automatic-spam-transmissions to send per second)\n");
-   Log(MUSCLE_LOG_INFO, "                spamsize=<bytes>        (Specify size of each automatic-spam-transmission; defaults to 1024)\n");
-   Log(MUSCLE_LOG_INFO, "                printchecksums          (print checksums for incoming and sent data)\n");
-   Log(MUSCLE_LOG_INFO, "                help                    (print this help text)\n");
+   Log(MUSCLE_LOG_INFO, "                ascii                    (print and parse bytes as ASCII rather than hexadecimal)\n");
+   Log(MUSCLE_LOG_INFO, "                plain                    (Suppress decorative elements in hexterm's output)\n");
+   Log(MUSCLE_LOG_INFO, "                quietreceive             (Suppress the printing out of incoming data bytes)\n");
+   Log(MUSCLE_LOG_INFO, "                spamrate=<Hz>            (Specify number of automatic-spam-transmissions to send per second)\n");
+   Log(MUSCLE_LOG_INFO, "                spamsize=<bytes>         (Specify size of each automatic-spam-transmission; defaults to 1024)\n");
+   Log(MUSCLE_LOG_INFO, "                printchecksums           (print checksums for incoming and sent data)\n");
+   Log(MUSCLE_LOG_INFO, "                help                     (print this help text)\n");
 }
 
 // Secondary entry point, used when embedding hexterm in a unified daemon
@@ -424,8 +430,15 @@ int hextermmain(const char * argv0, const Message & args)
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not bind to port %i\n", port);
    }
-   else if (ParseConnectArg(args, "udp", host, port, true) == B_NO_ERROR) DoUDPSession(host, port, joinMulticastGroup);
-   else if (ParsePortArg   (args, "udp", port)             == B_NO_ERROR) DoUDPSession("",   port, joinMulticastGroup);
+   else if (ParseConnectArg(args, "udp", host, port, true) == B_NO_ERROR) 
+   {
+      int optBindPort = -1;  // if we set it to non-negative, we'll also bind the UDP socket to this port (0 == system chooses a port!)
+      String argStr = args.GetString("udp");
+      int32 lastUnderbar = argStr.LastIndexOf('_');
+      if (lastUnderbar >= 0) optBindPort = atoi(argStr()+lastUnderbar+1);
+      DoUDPSession(host, port, joinMulticastGroup, optBindPort);
+   }
+   else if (ParsePortArg(args, "udp", port) == B_NO_ERROR) DoUDPSession("", port, joinMulticastGroup);
    else LogUsage(argv0);
 
    return 0;
