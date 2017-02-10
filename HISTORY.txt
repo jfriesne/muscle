@@ -5,6 +5,19 @@ key:  - new feature
       * bug fixed
       o other
 
+6.40 Released 2/10/2017
+   - Added templates constructors to the Ref<> and ConstRef<>
+     classes so that it is now possible to do implicit 
+     upcasting when creating or assigning a Ref or ConstRef
+     object (e.g. DataIORef x = TCPSocketDataIORef(y))
+   - Added DECLARE_REFTYPES macros to the declarations of all
+     classes that are subclasses of RefCountable, for convenience.
+   - Integrated Mika Lindqvist's patch to qt_muscled.pro so
+     that qt_muscled now includes the necessary zlib files
+     under Windows.
+   o Removed explicit Ref-type-casting code from a number of 
+     locations where it is no longer necessary.
+
 6.38 Released 1/11/2017
    - Added an Atoxll() function; it is the same as Atoull()
      except that it parses hexadecimal strings into uint64s

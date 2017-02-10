@@ -90,6 +90,7 @@ public:
 private:
    ::HANDLE _handle;
 };
+DECLARE_REFTYPES(Win32FileHandleDataIO);
 
 }; // end namespace muscle
 

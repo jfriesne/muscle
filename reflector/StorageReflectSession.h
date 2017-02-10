@@ -42,6 +42,7 @@ protected:
 private:
    uint32 _maxIncomingMessageSize;
 };
+DECLARE_REFTYPES(StorageReflectSessionFactory);
 
 /** This class is an interface to an object that can prune the traversals used
   * by RestoreNodeTreeFromMessage(), SaveNodeTreeToMessage(), and CloneDataNodeSubtree()
@@ -593,6 +594,7 @@ private:
       NODE_DEPTH_USER          /**< Depth of the first level of the tree where a client program can add its own nodes */
    };
 };
+DECLARE_REFTYPES(StorageReflectSession);
 
 }; // end namespace muscle
 

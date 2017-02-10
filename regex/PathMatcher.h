@@ -31,8 +31,6 @@ public:
 private:
    Queue<StringMatcherRef> _queue;
 };
-
-/** Type for a reference to a queue of StringMatcher objects. */
 DECLARE_REFTYPES(StringMatcherQueue);
 
 /** Returns a point to a singleton ObjectPool that can be used

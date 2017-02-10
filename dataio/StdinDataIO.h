@@ -84,6 +84,7 @@ private:
    FileDescriptorDataIO _fdIO;
 #endif
 };
+DECLARE_REFTYPES(StdinDataIO);
 
 }; // end namespace muscle
 

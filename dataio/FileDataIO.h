@@ -126,6 +126,7 @@ public:
 private:
    FILE * _file;
 };
+DECLARE_REFTYPES(FileDataIO);
 
 }; // end namespace muscle
 

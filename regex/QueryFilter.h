@@ -45,7 +45,7 @@ public:
    QueryFilter() {/* empty */}
 
    /** Destructor */
-   virtual ~QueryFilter();
+   virtual ~QueryFilter() {/* empty */}
 
    /** Dumps our state into the given (archive).   Default implementation
     *  just writes our TypeCode() into the 'what' of the Message
@@ -106,6 +106,7 @@ private:
    uint32 _minWhatCode;
    uint32 _maxWhatCode;
 };
+DECLARE_REFTYPES(WhatCodeQueryFilter);
 
 /** Semi-abstract base class for all query filters that test a single item in a Message */
 class ValueQueryFilter : public QueryFilter
@@ -139,6 +140,7 @@ private:
    String _fieldName;
    uint32 _index;
 };
+DECLARE_REFTYPES(ValueQueryFilter);
 
 /** This filter merely checks to see if the specified value exists in the target Message. */
 class ValueExistsQueryFilter : public ValueQueryFilter
@@ -174,7 +176,7 @@ public:
 private:
    uint32 _typeCode;
 };
-
+DECLARE_REFTYPES(ValueExistsQueryFilter);
 
 /** Enumeration of mask operations available to NumericQueryFilter classes */
 enum {
@@ -382,15 +384,15 @@ private:
    DataType _default;
 };
 
-typedef NumericQueryFilter<bool,   B_BOOL_TYPE,   QUERY_FILTER_TYPE_BOOL>   BoolQueryFilter;
-typedef NumericQueryFilter<double, B_DOUBLE_TYPE, QUERY_FILTER_TYPE_DOUBLE> DoubleQueryFilter;
-typedef NumericQueryFilter<float,  B_FLOAT_TYPE,  QUERY_FILTER_TYPE_FLOAT>  FloatQueryFilter;
-typedef NumericQueryFilter<int64,  B_INT64_TYPE,  QUERY_FILTER_TYPE_INT64>  Int64QueryFilter;
-typedef NumericQueryFilter<int32,  B_INT32_TYPE,  QUERY_FILTER_TYPE_INT32>  Int32QueryFilter;
-typedef NumericQueryFilter<int16,  B_INT16_TYPE,  QUERY_FILTER_TYPE_INT16>  Int16QueryFilter;
-typedef NumericQueryFilter<int8,   B_INT8_TYPE,   QUERY_FILTER_TYPE_INT8>   Int8QueryFilter;
-typedef NumericQueryFilter<Point,  B_POINT_TYPE,  QUERY_FILTER_TYPE_POINT>  PointQueryFilter;
-typedef NumericQueryFilter<Point,  B_RECT_TYPE,   QUERY_FILTER_TYPE_RECT>   RectQueryFilter;
+typedef NumericQueryFilter<bool,   B_BOOL_TYPE,   QUERY_FILTER_TYPE_BOOL>   BoolQueryFilter;   DECLARE_REFTYPES(BoolQueryFilter);
+typedef NumericQueryFilter<double, B_DOUBLE_TYPE, QUERY_FILTER_TYPE_DOUBLE> DoubleQueryFilter; DECLARE_REFTYPES(DoubleQueryFilter);
+typedef NumericQueryFilter<float,  B_FLOAT_TYPE,  QUERY_FILTER_TYPE_FLOAT>  FloatQueryFilter;  DECLARE_REFTYPES(FloatQueryFilter);
+typedef NumericQueryFilter<int64,  B_INT64_TYPE,  QUERY_FILTER_TYPE_INT64>  Int64QueryFilter;  DECLARE_REFTYPES(Int64QueryFilter);
+typedef NumericQueryFilter<int32,  B_INT32_TYPE,  QUERY_FILTER_TYPE_INT32>  Int32QueryFilter;  DECLARE_REFTYPES(Int32QueryFilter);
+typedef NumericQueryFilter<int16,  B_INT16_TYPE,  QUERY_FILTER_TYPE_INT16>  Int16QueryFilter;  DECLARE_REFTYPES(Int16QueryFilter);
+typedef NumericQueryFilter<int8,   B_INT8_TYPE,   QUERY_FILTER_TYPE_INT8>   Int8QueryFilter;   DECLARE_REFTYPES(Int8QueryFilter);
+typedef NumericQueryFilter<Point,  B_POINT_TYPE,  QUERY_FILTER_TYPE_POINT>  PointQueryFilter;  DECLARE_REFTYPES(PointQueryFilter);
+typedef NumericQueryFilter<Point,  B_RECT_TYPE,   QUERY_FILTER_TYPE_RECT>   RectQueryFilter;   DECLARE_REFTYPES(RectQueryFilter);
 
 /** A semi-abstract base class for any QueryFilter that holds a list of references to child filters. */
 class MultiQueryFilter : public QueryFilter
@@ -411,6 +413,7 @@ public:
 private:
    Queue<ConstQueryFilterRef> _children;
 };
+DECLARE_REFTYPES(MultiQueryFilter);
 
 /** This class matches iff at least (n) of its children match.  As such, it can be used as an OR operator,
   * an AND operator, or something in-between the two.
@@ -476,6 +479,7 @@ public:
 private:
    uint32 _minMatches;
 };
+DECLARE_REFTYPES(AndOrQueryFilter);
 
 /** This class matches iff at most (n) of its children match.  As such, it can be used as a NAND operator,
   * a NOT operator, or something in-between the two.
@@ -538,6 +542,7 @@ public:
 private:
    uint32 _maxMatches;
 };
+DECLARE_REFTYPES(NandNotQueryFilter);
 
 /** This class matches only if an odd number of its children match. */
 class XorQueryFilter : public MultiQueryFilter
@@ -559,6 +564,7 @@ public:
    virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_XOR;}
    virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 };
+DECLARE_REFTYPES(XorQueryFilter);
 
 /** This class matches iff the specified sub-Message exists in our target Message,
   * and (optionally) our child ConstQueryFilterRef can match that sub-Message.
@@ -592,6 +598,7 @@ public:
 private:
    ConstQueryFilterRef _childFilter;
 };
+DECLARE_REFTYPES(MessageQueryFilter);
 
 /** This class matches on string field values.  */
 class StringQueryFilter : public ValueQueryFilter
@@ -701,6 +708,7 @@ private:
 
    mutable StringMatcher * _matcher;
 };
+DECLARE_REFTYPES(StringQueryFilter);
 
 /** This class matches on raw data buffers.  */
 class RawDataQueryFilter : public ValueQueryFilter
@@ -795,6 +803,7 @@ private:
    uint32 _typeCode;
    ByteBufferRef _default;
 };
+DECLARE_REFTYPES(RawDataQueryFilter);
 
 /** Interface for any object that knows how to instantiate QueryFilter objects */
 class QueryFilterFactory : public RefCountable
@@ -836,6 +845,7 @@ public:
 
    virtual QueryFilterRef CreateQueryFilter(uint32 typeCode) const;
 };
+DECLARE_REFTYPES(MuscleQueryFilterFactory);
 
 /** Returns a reference to the globally installed QueryFilterFactory object
   * that is used to create QueryFilter objects.  This method is guaranteed

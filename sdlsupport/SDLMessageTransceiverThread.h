@@ -23,6 +23,7 @@ protected:
    /** Overridden to send a SDLEvent */
    virtual void SignalOwner();
 };
+DECLARE_REFTYPES(SDLMessageTransceiverThread);
 
 }; // end namespace muscle
 

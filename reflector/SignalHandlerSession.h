@@ -37,6 +37,7 @@ protected:
 private:
    ConstSocketRef _handlerSocket;
 };
+DECLARE_REFTYPES(SignalHandlerSession);
 
 /** Returns true iff any SignalHandlerSession ever caught a signal since this process was started. */
 bool WasSignalCaught();

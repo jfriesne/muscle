@@ -321,6 +321,7 @@ private:
    pid_t _childPID;
 #endif
 };
+DECLARE_REFTYPES(ChildProcessDataIO);
 
 }; // end namespace muscle
 

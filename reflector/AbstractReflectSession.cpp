@@ -211,7 +211,7 @@ DataIORef
 AbstractReflectSession ::
 CreateDataIO(const ConstSocketRef & socket)
 {
-   DataIORef dio(newnothrow TCPSocketDataIO(socket, false));
+   TCPSocketDataIORef dio(newnothrow TCPSocketDataIO(socket, false));
    if (dio() == NULL) WARN_OUT_OF_MEMORY;
    return dio;
 }
@@ -220,9 +220,9 @@ AbstractMessageIOGatewayRef
 AbstractReflectSession ::
 CreateGateway()
 {
-   AbstractMessageIOGateway * gw = newnothrow MessageIOGateway();
-   if (gw == NULL) WARN_OUT_OF_MEMORY;
-   return AbstractMessageIOGatewayRef(gw);
+   MessageIOGatewayRef ret(newnothrow MessageIOGateway());
+   if (ret() == NULL) WARN_OUT_OF_MEMORY;
+   return ret;
 }
 
 bool

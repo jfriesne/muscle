@@ -82,6 +82,7 @@ private:
    DataIORef _childIO;
    ByteBuffer _tempBuf;   // holds the XOR'd bytes temporarily for us
 };
+DECLARE_REFTYPES(XorDataIO);
 
 }; // end namespace muscle
 

@@ -109,6 +109,7 @@ private:
    void * _ctx; // actually (SSL_CTX*) but declared (void *) here so I don't have to #include openssl headers 
    void * _ssl; // actually (SSL*)     but declared (void *) here so I don't have to #include openssl headers
 };
+DECLARE_REFTYPES(SSLSocketDataIO);
 
 }; // end namespace muscle
 

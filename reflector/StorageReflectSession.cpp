@@ -22,10 +22,8 @@ AbstractReflectSessionRef StorageReflectSessionFactory :: CreateSession(const St
 {
    TCHECKPOINT;
 
-   AbstractReflectSession * srs = newnothrow StorageReflectSession;
-   AbstractReflectSessionRef ret(srs);
- 
-   if ((srs)&&(SetMaxIncomingMessageSizeFor(srs) == B_NO_ERROR)) return ret;
+   StorageReflectSessionRef srs(newnothrow StorageReflectSession);
+   if ((srs())&&(SetMaxIncomingMessageSizeFor(srs()) == B_NO_ERROR)) return srs;
    else
    {
       WARN_OUT_OF_MEMORY;

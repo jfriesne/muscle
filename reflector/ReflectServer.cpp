@@ -371,9 +371,9 @@ ServerProcessLoop()
 #ifndef MUSCLE_AVOID_SIGNAL_HANDLING
    if ((_mainReflectServerCatchSignals)&&(IsCurrentThreadMainThread()))
    {
-      SignalHandlerSession * shs = newnothrow SignalHandlerSession;
-      if (shs == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
-      if (AddNewSession(AbstractReflectSessionRef(shs)) != B_NO_ERROR)
+      SignalHandlerSessionRef shs(newnothrow SignalHandlerSession);
+      if (shs() == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+      if (AddNewSession(shs) != B_NO_ERROR)
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::ReadyToRun:  Could not install SignalHandlerSession!\n");
          return B_ERROR;

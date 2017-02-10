@@ -263,6 +263,7 @@ private:
    ReflectServer * _owner;
    bool _fullyAttached;
 };
+DECLARE_REFTYPES(ServerComponent);
 
 }; // end namespace muscle
 

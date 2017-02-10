@@ -89,6 +89,7 @@ private:
    ConstSocketRef _handle;
 #endif
 };
+DECLARE_REFTYPES(RS232DataIO);
 
 }; // end namespace muscle
 

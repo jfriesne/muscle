@@ -50,6 +50,7 @@ private:
    uint32 _transferTally;
    uint32 _numParticipants;
 };
+DECLARE_REFTYPES(RateLimitSessionIOPolicy);
 
 }; // end namespace muscle
 

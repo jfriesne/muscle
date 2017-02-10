@@ -87,6 +87,7 @@ private:
    Queue<DataIORef> _childIOs;
    bool _absorbPartialErrors;
 };
+DECLARE_REFTYPES(MultiDataIO);
 
 }; // end namespace muscle
 

@@ -58,6 +58,7 @@ private:
    AbstractMessageIOGatewayRef _slaveGateway;
    QueueGatewayMessageReceiver _sslMessages;   // messages that were generated during a DoOutput() call, oddly enough
 };
+DECLARE_REFTYPES(SSLSocketAdapterGateway);
 
 }; // end namespace muscle
 

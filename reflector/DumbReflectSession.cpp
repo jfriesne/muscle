@@ -8,9 +8,9 @@ namespace muscle {
 // It creates and returns a new DumbReflectSession object.
 AbstractReflectSessionRef DumbReflectSessionFactory :: CreateSession(const String &, const IPAddressAndPort &)
 {
-   AbstractReflectSession * ret = newnothrow DumbReflectSession;
-   if (ret == NULL) WARN_OUT_OF_MEMORY;
-   return AbstractReflectSessionRef(ret);
+   DumbReflectSessionRef ret(newnothrow DumbReflectSession);
+   if (ret() == NULL) WARN_OUT_OF_MEMORY;
+   return ret;
 }
 
 DumbReflectSession :: 

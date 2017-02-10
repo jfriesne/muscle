@@ -129,6 +129,7 @@ private:
    uint32 * _fromSlaveIOBufReadIdx;
    uint32 * _fromSlaveIOBufNumValid;
 };
+DECLARE_REFTYPES(AsyncDataIO);
 
 }; // end namespace muscle
 

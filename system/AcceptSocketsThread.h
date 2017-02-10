@@ -61,6 +61,7 @@ private:
    ConstSocketRef _notifySocket;
    ConstSocketRef _acceptSocket;
 };
+DECLARE_REFTYPES(AcceptSocketsThread);
 
 };
 

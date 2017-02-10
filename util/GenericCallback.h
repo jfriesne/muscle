@@ -61,6 +61,7 @@ private:
    FunctionCallbackTypeB _funcB;
    void * _arg;
 };
+DECLARE_REFTYPES(FunctionCallback);
 
 }; // end namespace muscle
 

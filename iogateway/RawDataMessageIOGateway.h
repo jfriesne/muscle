@@ -64,6 +64,7 @@ private:
    uint32 _minChunkSize;
    uint32 _maxChunkSize;
 };
+DECLARE_REFTYPES(RawDataMessageIOGateway);
 
 /** 
  * This class is the same as a RawDataMessageIOGateway, except that it is instrumented
@@ -89,6 +90,7 @@ private:
 
    uint32 _outgoingByteCount;
 };
+DECLARE_REFTYPES(CountedRawDataMessageIOGateway);
 
 }; // end namespace muscle
 

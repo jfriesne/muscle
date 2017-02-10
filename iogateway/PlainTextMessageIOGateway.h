@@ -76,6 +76,7 @@ private:
    String _incomingText;
    bool _flushPartialIncomingLines;
 };
+DECLARE_REFTYPES(PlainTextMessageIOGateway);
 
 /** This class is the same as a PlainTextMessageIOGateway, except that
   * some filtering logic has been added to strip out telnet control codes.
@@ -97,6 +98,7 @@ private:
    bool _inSubnegotiation;
    int _commandBytesLeft;
 };
+DECLARE_REFTYPES(TelnetPlainTextMessageIOGateway);
 
 }; // end namespace muscle
 

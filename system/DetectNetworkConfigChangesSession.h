@@ -200,6 +200,7 @@ private:
    bool _changeAllPending;
    bool _isComputerSleeping;
 };
+DECLARE_REFTYPES(DetectNetworkConfigChangesSession);
 
 };  // end namespace muscle
 

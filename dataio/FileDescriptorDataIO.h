@@ -98,6 +98,7 @@ private:
    bool _blocking;
    bool _dofSyncOnClose;
 };
+DECLARE_REFTYPES(FileDescriptorDataIO);
 
 }; // end namespace muscle
 

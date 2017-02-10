@@ -127,6 +127,7 @@ private:
    bool _naglesEnabled;
    uint64 _stallLimit;
 };
+DECLARE_REFTYPES(TCPSocketDataIO);
 
 }; // end namespace muscle
 

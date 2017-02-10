@@ -131,5 +131,6 @@ private:
    AbstractGatewayMessageReceiver * _scratchReceiver;
    void * _scratchReceiverArg;
 };
+DECLARE_REFTYPES(PacketTunnelIOGateway);
 
 }; // end namespace muscle

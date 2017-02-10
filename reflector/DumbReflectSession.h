@@ -15,6 +15,7 @@ class DumbReflectSessionFactory : public ReflectSessionFactory
 public:
    virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & factoryInfo);
 };
+DECLARE_REFTYPES(DumbReflectSessionFactory);
 
 /** These flags govern the default routing behavior of unrecognized Message types */
 enum {
@@ -78,6 +79,7 @@ public:
 private:
    uint32 _defaultRoutingFlags;
 };
+DECLARE_REFTYPES(DumbReflectSession);
 
 }; // end namespace muscle
 

@@ -68,6 +68,7 @@ private:
    ConstSocketRef _writeSelectSocket;
    bool _shutdown;
 };
+DECLARE_REFTYPES(NullDataIO);
 
 }; // end namespace muscle
 

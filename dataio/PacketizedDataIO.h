@@ -72,6 +72,7 @@ private:
    ByteBuffer _outputBuffer;
    uint32 _outputBufferBytesSent;
 };
+DECLARE_REFTYPES(PacketizedDataIO);
 
 }; // end namespace muscle
 

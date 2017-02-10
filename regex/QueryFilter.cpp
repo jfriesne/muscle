@@ -6,11 +6,6 @@
 
 namespace muscle {
 
-QueryFilter :: ~QueryFilter()
-{
-   // empty
-}
-
 status_t QueryFilter :: SaveToArchive(Message & archive) const
 {
    archive.what = TypeCode();

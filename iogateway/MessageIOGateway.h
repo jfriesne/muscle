@@ -291,6 +291,7 @@ private:
    int32 _syncPingCounter;
    int32 _pendingSyncPingCounter;
 };
+DECLARE_REFTYPES(MessageIOGateway);
 
 /** This class is similar to MessageIOGateway, but it also keep a running tally
   * of the total number of bytes of data currently in its outgoing-Messages queue.
@@ -316,6 +317,7 @@ protected:
 private:
    uint32 _outgoingByteCount;
 };
+DECLARE_REFTYPES(CountedMessageIOGateway);
 
 //////////////////////////////////////////////////////////////////////////////////
 //

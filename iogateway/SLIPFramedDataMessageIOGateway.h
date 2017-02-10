@@ -46,6 +46,7 @@ private:
    MessageRef _pendingMessage;
    bool _lastReceivedCharWasEscape;
 };
+DECLARE_REFTYPES(SLIPFramedDataMessageIOGateway);
 
 }; // end namespace muscle
 

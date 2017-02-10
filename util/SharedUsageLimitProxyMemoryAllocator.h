@@ -86,6 +86,7 @@ private:
    uint32 _groupSize;
    size_t _localCachedBytes;
 };
+DECLARE_REFTYPES(SharedUsageLimitProxyMemoryAllocator);
 
 }; // end namespace muscle
 

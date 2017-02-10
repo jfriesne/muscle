@@ -141,21 +141,22 @@ public:
      *                   But if you do that, it allows the possibility of the object going away while
      *                   other Refs are still using it, so be careful!
      */
-   explicit ConstRef(const Item * item, bool doRefCount = true) : _item(item, doRefCount)
-   {
-      RefItem();
-   } 
+   explicit ConstRef(const Item * item, bool doRefCount = true) : _item(item, doRefCount) {RefItem();} 
 
    /** Copy constructor.  Creates an additional reference to the object referenced by (copyMe).
     *  The referenced object won't be deleted until ALL Refs that reference it are gone.
     */
-   ConstRef(const ConstRef & copyMe) : _item(NULL, true)
-   {
-      *this = copyMe;
-   }
+   ConstRef(const ConstRef & copyMe) : _item(NULL, true) {*this = copyMe;}
+
+   /** This constructor is useful for automatic upcasting (e.g. creating an ConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
+     * @param refItem A Ref or ConstRef to copy our state from.
+     */
+   template<typename T> ConstRef(const ConstRef<T> & refItem) : _item(refItem(), refItem.IsRefCounting()) {RefItem();}
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** C++11 Move Constructor */
+   /** C++11 Move Constructor 
+     * @param rhs Item whose contents we can steal to acquire its state, as part of a move operation.
+     */
    ConstRef(ConstRef && rhs) {this->SwapContents(rhs);}
 #endif
 
@@ -219,11 +220,14 @@ public:
 
    /** Assigment operator.
     *  Unreferences the previous held data item, and adds a reference to the data item of (rhs).
+    *  @param rhs Item to become a copy of.
     */
    inline ConstRef &operator=(const ConstRef & rhs) {this->SetRef(rhs.GetItemPointer(), rhs.IsRefCounting()); return *this;}
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** C++11 Move Assignment operator */
+   /** C++11 Move Assignment operator
+     * @param rhs Item whose contents we can steal to acquire its state, as part of a move operation.
+     */
    inline ConstRef &operator=(ConstRef && rhs) {this->SwapContents(rhs); return *this;}
 #endif
 
@@ -451,8 +455,15 @@ public:
     */
    Ref(const Ref & copyMe) : ConstRef<Item>(copyMe) {/* empty */}
 
+   /** This constructor is useful for automatic upcasting (e.g. creating an AbstractReflectSessionRef from a StorageReflectSessionRef)
+     * @param refItem A Ref to copy our state from.
+     */
+   template<typename T> Ref(const Ref<T> & refItem) : ConstRef<Item>(refItem(), refItem.IsRefCounting()) {/* empty */}
+
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** C++11 Move Constructor */
+   /** C++11 Move Constructor 
+     * @param rhs Item whose contents we can steal to acquire its state, as part of a move operation.
+     */
    Ref(Ref && rhs) {this->SwapContents(rhs);}
 #endif
 
@@ -479,11 +490,14 @@ public:
 
    /** Assigment operator.
     *  Unreferences the previous held data item, and adds a reference to the data item of (rhs).
+    *  @param rhs Item to become a copy of.
     */
    inline Ref &operator=(const Ref & rhs) {this->SetRef(rhs.GetItemPointer(), rhs.IsRefCounting()); return *this;}
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** C++11 Move Assignment operator */
+   /** C++11 Move Assignment operator
+     * @param rhs Item whose contents we can steal to acquire its state, as part of a move operation.
+     */
    inline Ref &operator=(Ref && rhs) {this->SwapContents(rhs); return *this;}
 #endif
 };

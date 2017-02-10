@@ -109,6 +109,7 @@ private:
    uint32 _maxSessionsPerHost;
    uint32 _totalMaxSessions;
 };
+DECLARE_REFTYPES(FilterSessionFactory);
 
 }; // end namespace muscle
 

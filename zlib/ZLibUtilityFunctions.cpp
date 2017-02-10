@@ -130,7 +130,7 @@ MessageRef DeflateMessage(const MessageRef & msgRef, int compressionLevel, bool 
       if ((defMsg())&&(buf()))
       {
          buf = DeflateByteBuffer(*buf(), compressionLevel);
-         if ((buf())&&(defMsg()->AddFlat(MUSCLE_ZLIB_FIELD_NAME_STRING, FlatCountableRef(buf.GetRefCountableRef(), false)) == B_NO_ERROR)&&((force)||(defMsg()->FlattenedSize() < msgRef()->FlattenedSize()))) ret = defMsg;
+         if ((buf())&&(defMsg()->AddFlat(MUSCLE_ZLIB_FIELD_NAME_STRING, buf) == B_NO_ERROR)&&((force)||(defMsg()->FlattenedSize() < msgRef()->FlattenedSize()))) ret = defMsg;
       }
    }
    return ret;

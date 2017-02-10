@@ -129,6 +129,7 @@ private:
    int _logErrorLevel;
    IFailoverNotifyTarget * _target;
 };
+DECLARE_REFTYPES(FailoverDataIO);
 
 }; // end namespace muscle
 

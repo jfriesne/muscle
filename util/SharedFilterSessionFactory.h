@@ -68,6 +68,7 @@ private:
    bool _isGrantList;
    bool _defaultPass;
 };
+DECLARE_REFTYPES(SharedFilterSessionFactory);
 
 }; // end namespace muscle
 

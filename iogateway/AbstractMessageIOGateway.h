@@ -114,6 +114,7 @@ protected:
 private:
    Queue<MessageRef> _messageQueue;
 };
+DECLARE_REFTYPES(QueueGatewayMessageReceiver);
 
 /**
  *  Abstract base class representing an object that can send/receive 

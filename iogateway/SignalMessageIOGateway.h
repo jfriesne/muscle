@@ -58,6 +58,7 @@ protected:
 private:
    MessageRef _signalMessage;
 };
+DECLARE_REFTYPES(SignalMessageIOGateway);
 
 }; // end namespace muscle
 

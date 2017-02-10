@@ -103,6 +103,7 @@ public:
 private:
    MemoryAllocatorRef _slaveRef;
 };
+DECLARE_REFTYPES(ProxyMemoryAllocator);
 
 /** This MemoryAllocator decorates its slave MemoryAllocator to 
   * enforce a user-defined per-process limit on how much memory may be allocated at any given time. 
@@ -135,6 +136,7 @@ public:
 private:
    size_t _maxBytes;
 };
+DECLARE_REFTYPES(UsageLimitProxyMemoryAllocator);
 
 /** This MemoryAllocator decorates its slave MemoryAllocator to call a list of
   * GenericCallback objects when the slave's memory allocation fails.  These
@@ -165,6 +167,7 @@ public:
 private:
    Queue<GenericCallbackRef> _callbacks;
 };
+DECLARE_REFTYPES(AutoCleanupProxyMemoryAllocator);
 
 }; // end namespace muscle
 

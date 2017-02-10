@@ -87,6 +87,7 @@ protected:
 private:
    uint32 _id;
 };
+DECLARE_REFTYPES(ReflectSessionFactory);
 
 /** This is a partially specialized factory that knows how to act as a facade for a "slave" factory.
   * In particular, it contains implementations of AttachedToServer() and AboutToDetachFromServer()
@@ -112,6 +113,7 @@ public:
 private:
    ReflectSessionFactoryRef _slaveRef;
 };
+DECLARE_REFTYPES(ProxySessionFactory);
 
 /** This is the abstract base class that defines the server side logic for a single
  *  client-server connection.  This class contains no message routing logic of its own,

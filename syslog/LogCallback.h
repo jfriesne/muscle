@@ -169,6 +169,7 @@ private:
    char * _writeTo;     // points to the next spot in (_buf) to muscleSprintf() into
    char _buf[2048];     // where we assemble our text
 };
+DECLARE_REFTYPES(LogLineCallback);
 
 /** Add a custom LogCallback object to the global log callbacks set.
  *  @param cbRef Reference to a LogCallback object. 
@@ -210,6 +211,7 @@ public:
 private:
    int _consoleLogLevel;
 };
+DECLARE_REFTYPES(DefaultConsoleLogger);
 
 /** This class is used to send log information to a file, rotate log files, etc.  An object of this class 
   * is instantiated and used internally by MUSCLE, so typically you don't need to instantiate one yourself, 
@@ -299,6 +301,7 @@ private:
    bool _logFileOpenAttemptFailed;
    Queue<String> _oldLogFileNames;
 };
+DECLARE_REFTYPES(DefaultFileLogger);
 
 }; // end namespace muscle
 

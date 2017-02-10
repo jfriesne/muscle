@@ -143,6 +143,7 @@ private:
    Queue<IPAddressAndPort> _sendTo;
    uint32 _maxPacketSize;
 };
+DECLARE_REFTYPES(UDPSocketDataIO);
 
 }; // end namespace muscle
 

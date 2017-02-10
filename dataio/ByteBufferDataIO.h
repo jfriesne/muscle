@@ -120,6 +120,7 @@ private:
    ByteBufferRef _buf;
    int32 _seekPos;
 };
+DECLARE_REFTYPES(ByteBufferDataIO);
 
 }; // end namespace muscle
 

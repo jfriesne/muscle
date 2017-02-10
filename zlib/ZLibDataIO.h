@@ -78,6 +78,7 @@ private:
    bool _deflateAllocated;
    z_stream _writeDeflater;
 };
+DECLARE_REFTYPES(ZLibDataIO);
 
 }; // end namespace muscle
 
