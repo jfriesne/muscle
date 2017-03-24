@@ -23,14 +23,21 @@ namespace muscle {
 class NotCopyable 
 {
 public:
+   /** Default constructor, does nothing. */
    NotCopyable() {/* empty */}
 
 private:
 #ifdef MUSCLE_USE_CPLUSPLUS11
+   /** Copy constructor, deliberately made non-callable.  Trying to use it will cause a compile-time error. */
    NotCopyable(const NotCopyable &) = delete;
+
+   /** Assignment operator, deliberately made non-callable.  Trying to use it will cause a compile-time error. */
    NotCopyable & operator = (const NotCopyable &) = delete;
 #else
+   /** Copy constructor, deliberately made non-callable.  Trying to use it will cause a compile-time error. */
    NotCopyable(const NotCopyable &);                // deliberately private and unimplemented
+
+   /** Assignment operator, deliberately made non-callable.  Trying to use it will cause a compile-time error. */
    NotCopyable & operator = (const NotCopyable &);  // deliberately private and unimplemented
 #endif
 };

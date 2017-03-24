@@ -146,7 +146,11 @@ private:
 // Will be the first four bytes of each serialized Message buffer.
 // Only buffers beginning with version numbers between these two 
 // constants (inclusive) will be Unflattened as Messages.
+
+/** The oldest version of the MUSCLE serialization protocol that we still support.  Currently there is only a single protocol version, so this here primarily for future use. */
 #define OLDEST_SUPPORTED_PROTOCOL_VERSION 1347235888 // 'PM00'
+
+/** The current version of the MUSCLE serialization protocol that we generate.  Currently there is only a single protocol version, so this here primarily for future use. */
 #define CURRENT_PROTOCOL_VERSION          1347235888 // 'PM00'
 
 /** 
@@ -1443,7 +1447,8 @@ public:
      */
    inline const String * GetStringPointer(const String & fn, const String * defVal=NULL, uint32 idx = 0) const {const String * r; return (FindString(fn, idx, &r) == B_NO_ERROR) ? r : defVal;}
 
-#define DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(bw)                                                                                               \
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+# define DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(bw)                                                                                               \
    inline status_t FindInt##bw (const String & fieldName, uint32 index, uint##bw & val) const {return FindInt##bw (fieldName, index, (int##bw &)val);} \
    inline status_t FindInt##bw (const String & fieldName,               uint##bw & val) const {return FindInt##bw (fieldName,        (int##bw &)val);}
    DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(8);   //< This macro defined Find methods with unsigned value arguments, so the user doesn't have to do ugly C-style casts to retrieve unsigned values.
@@ -1451,7 +1456,7 @@ public:
    DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(32);  //< This macro defined Find methods with unsigned value arguments, so the user doesn't have to do ugly C-style casts to retrieve unsigned values.
    DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(64);  //< This macro defined Find methods with unsigned value arguments, so the user doesn't have to do ugly C-style casts to retrieve unsigned values.
 
-#define DECLARE_MUSCLE_POINTER_FIND_METHODS(name, type)                                                                                \
+# define DECLARE_MUSCLE_POINTER_FIND_METHODS(name, type)                                                                                \
    inline status_t Find##name (const String & fieldName, uint32 index, type * val) const {return Find##name (fieldName, index, *val);} \
    inline status_t Find##name (const String & fieldName,               type * val) const {return Find##name (fieldName,        *val);}
    DECLARE_MUSCLE_POINTER_FIND_METHODS(Bool,    bool);         //< This macro defines old-style Find methods with pointer value arguments, for backwards compatibility.
@@ -1469,7 +1474,7 @@ public:
    DECLARE_MUSCLE_POINTER_FIND_METHODS(Rect,    Rect);         //< This macro defines old-style Find methods with pointer value arguments, for backwards compatibility.
    DECLARE_MUSCLE_POINTER_FIND_METHODS(String,  const char *); //< This macro defines old-style Find methods with pointer value arguments, for backwards compatibility.
 
-#define DECLARE_MUSCLE_CONVENIENCE_METHODS(name, type) \
+# define DECLARE_MUSCLE_CONVENIENCE_METHODS(name, type) \
    inline type Get##name(const String & fieldName, const type & defVal = type(), uint32 idx = 0) const {type r; return (Find##name (fieldName, idx, r) == B_NO_ERROR) ? (const type &)r : defVal;} \
    inline status_t CAdd##name(    const String & fieldName, const type & value, const type & defVal = type())   {return (value == defVal) ? B_NO_ERROR : Add##name     (fieldName, value);}        \
    inline status_t CPrepend##name(const String & fieldName, const type & value, const type & defVal = type())   {return (value == defVal) ? B_NO_ERROR : Prepend##name (fieldName, value);}
@@ -1487,6 +1492,7 @@ public:
    DECLARE_MUSCLE_CONVENIENCE_METHODS(Flat,    ByteBufferRef);   //< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
    DECLARE_MUSCLE_CONVENIENCE_METHODS(Tag,     RefCountableRef); //< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
    DECLARE_STANDARD_CLONE_METHOD(Message);  //< implements the standard Clone() method to copy a Message object.
+#endif
 
 protected:
    /** Overridden to copy directly if (copyFrom) is a Message as well. */
@@ -1533,7 +1539,7 @@ private:
    Hashtable<String, muscle_message_imp::MessageField> _entries;   
 };
 
-// Template specializations so that the *Flat() methods do the right thing when called with a String or Message object as the argument
+/** A macro to declare the necessary Template specializations so that the *Flat() methods do the right thing when called with a String/Point/Rect/Message object as their argument */
 #define DECLARE_MUSCLE_FLAT_SPECIALIZERS(tp)                                                                                                                    \
 template <> inline status_t Message::FindFlat<tp>(   const String & fieldName, uint32 index, tp & obj)  const  {return Find##tp(   fieldName, index, obj);}     \
 template <> inline status_t Message::FindFlat<tp>(   const String & fieldName,               tp & obj)  const  {return Find##tp(   fieldName, obj);}            \

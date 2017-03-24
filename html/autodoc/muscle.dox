@@ -1825,7 +1825,7 @@ MAN_LINKS              = NO
 # captures the structure of the code including all documentation.
 # The default value is: NO.
 
-GENERATE_XML           = NO
+GENERATE_XML           = YES
 
 # The XML_OUTPUT tag is used to specify where the XML pages will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -1980,6 +1980,9 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = MuscleMessage_impl_h \
                          MUSCLE_ENABLE_ZLIB_ENCODING \
+                         MUSCLE_ENABLE_MEMORY_TRACKING \
+                         MUSCLE_FINAL_CLASS \
+                         DOXYGEN_SHOULD_IGNORE_THIS \
                          "HT_UniversalSinkKeyRef=" \
                          "HT_UniversalSinkValueRef=" \
                          "HT_UniversalSinkKeyValueRef=" \
@@ -1989,9 +1992,16 @@ PREDEFINED             = MuscleMessage_impl_h \
                          "HT_ValueParam=const ValueType &" \
                          "HT_UniversalSinkItemRef=" \
                          "HT_SinkItemParam=const ItemType &" \
+                         "HT_ForwardKey=" \
+                         "HT_ForwardValue=" \
+                         "HT_PlunderKey=" \
+                         "HT_PlunderValue=" \
                          "QQ_UniversalSinkItemRef=" \
                          "QQ_SinkItemParam=const ItemType &" \
-                         "MUSCLE_FINAL_CLASS=final" \
+                         "QQ_ForwardItem=\
+                         "QQ_PlunderItem=" \
+                         "QQ_SinkItemParam=" \
+                         "QQ_UniversalSinkItemRef="
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

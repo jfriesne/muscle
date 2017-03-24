@@ -253,33 +253,39 @@ template <int N,class T> inline const Tuple<N,T> operator /  (const T & lhs, con
 template <int N,class T> inline const Tuple<N,T> operator *  (const Tuple<N,T> & lhs, const Tuple<N,T> & rhs) {Tuple<N,T> ret(lhs); ret  *= rhs; return ret;}
 template <int N,class T> inline const Tuple<N,T> operator /  (const Tuple<N,T> & lhs, const Tuple<N,T> & rhs) {Tuple<N,T> ret(lhs); ret  /= rhs; return ret;}
 
+/** Declares the standard "+" operators for a Tuple class and its associated per-Item class. */
 #define DECLARE_ADDITION_TUPLE_OPERATORS(C,I) \
   inline const C operator + (const C & lhs, const I & rhs) {C ret(lhs);                   ret += rhs;     return ret;} \
   inline const C operator + (const I & lhs, const C & rhs) {C ret; ret.FillSubrange(lhs); ret += rhs;     return ret;} \
   inline const C operator + (const C & lhs, const C & rhs) {C ret(lhs);                   ret += rhs;     return ret;}
 
+/** Declares the standard "-" operators for a Tuple class and its associated per-Item class. */
 #define DECLARE_SUBTRACTION_TUPLE_OPERATORS(C,I) \
   inline const C operator - (const C & lhs)                {C ret(lhs);                   ret -= lhs+lhs; return ret;} \
   inline const C operator - (const C & lhs, const I & rhs) {C ret(lhs);                   ret -= rhs;     return ret;} \
   inline const C operator - (const I & lhs, const C & rhs) {C ret; ret.FillSubrange(lhs); ret -= rhs;     return ret;} \
   inline const C operator - (const C & lhs, const C & rhs) {C ret(lhs);                   ret -= rhs;     return ret;}
 
+/** Declares the standard "*" operators for a Tuple class and its associated per-Item class. */
 #define DECLARE_MULTIPLICATION_TUPLE_OPERATORS(C,I) \
   inline const C operator * (const C & lhs, const I & rhs) {C ret(lhs);                   ret *= rhs;     return ret;} \
   inline const C operator * (const I & lhs, const C & rhs) {C ret; ret.FillSubrange(lhs); ret *= rhs;     return ret;} \
   inline const C operator * (const C & lhs, const C & rhs) {C ret(lhs);                   ret *= rhs;     return ret;}
 
+/** Declares the standard "/" operators for a Tuple class and its associated per-Item class. */
 #define DECLARE_DIVISION_TUPLE_OPERATORS(C,I) \
   inline const C operator / (const C & lhs, const I & rhs) {C ret(lhs);                   ret /= rhs;     return ret;} \
   inline const C operator / (const I & lhs, const C & rhs) {C ret; ret.FillSubrange(lhs); ret /= rhs;     return ret;} \
   inline const C operator / (const C & lhs, const C & rhs) {C ret(lhs);                   ret /= rhs;     return ret;}
 
+/** Declares the standard ">>" and "<<" operators for a Tuple class and its associated per-Item class. */
 #define DECLARE_SHIFT_TUPLE_OPERATORS(C) \
   inline const C operator >> (const C & lhs, int rhs) {C ret(lhs);                        ret >>= rhs;    return ret;} \
   inline const C operator << (const C & lhs, int rhs) {C ret(lhs);                        ret <<= rhs;    return ret;}
 
-// Classes sublassing a Tuple class can use this macro to get the all the standard operators without having to rewrite them.
-// If anyone knows how to accomplish this without resorting to preprocessor macro hacks, I'd love to hear about it...
+/** Classes sublassing a Tuple class can use this macro to get the all the standard operators without having to rewrite them all by hand.
+  * If anyone knows how to accomplish this without resorting to preprocessor macro hacks, I'd love to hear about it.
+  */
 #define DECLARE_ALL_TUPLE_OPERATORS(C,I) \
         DECLARE_ADDITION_TUPLE_OPERATORS(C,I) \
         DECLARE_SUBTRACTION_TUPLE_OPERATORS(C,I) \

@@ -14,7 +14,7 @@ enum {
    AST_LAST_EVENT                              /**< guard value */
 };
 
-#define AST_NAME_SOCKET "socket"  // field name where we store our ConstSocketRef in our reply Messages.
+#define AST_NAME_SOCKET "socket"  /**< field name where we store our ConstSocketRef in our reply Messages. */
 
 /** A thread that waits for TCP connections on a given port, and when it gets one, 
   * it sends the socket to its owner via a ConstSocketRef.

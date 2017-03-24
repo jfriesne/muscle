@@ -5,6 +5,29 @@ key:  - new feature
       * bug fixed
       o other
 
+6.41 Released 3/23/2017
+   - Added ReadAndDeflateAndWrite() and ReadAndInflateAndWrite()
+     functions to the ZLibUtilityFunctions.{cpp,h} API, and
+     to the ZLibCodec class, to more easily support inflation/
+     deflation of large files without having to load all their
+     data into RAM at once.
+   - Added Visual Studio 2017 RTM project files, as provided by
+     Mika Lindqvist.
+   - FileDataIO::GetReadSelectSocket() and GetWriteSelectSocket()
+     now return valid ConstSocketRef objects on OS's that do
+     support select-ing on a file's file descriptor (read:
+     under POSIX-y OS's, but not under Windows)
+   - hexterm now supports a file=filename argument, in case
+     you want hexterm to read its input bytes from a file.
+   * Fixed a number of DOxygen-commenting oversights detected by 
+     Alvaro Lopez Ortega's "doxy-coverage" comment-checking tool.
+   * Tweaked some of the serialization/deserialization code to be
+     more careful about avoiding non-aligned word accesses.
+   o Changed the "OUT OF MEMORY" error message produced by
+     WARN_OUT_OF_MEMORY macro to read "MEMORY ALLOCATION FAILURE"
+     instead (since these errors can be caused by a corrupted
+     heap as well as by actual memory exhaustion)
+
 6.40 Released 2/10/2017
    - Added templates constructors to the Ref<> and ConstRef<>
      classes so that it is now possible to do implicit 

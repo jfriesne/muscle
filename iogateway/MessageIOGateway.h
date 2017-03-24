@@ -244,6 +244,7 @@ private:
    ZLibCodec * GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const;
 #endif
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complaing that I haven't documented this class -- but it's a private class so I don't need to
    class TransferBuffer
    {
    public:
@@ -258,6 +259,7 @@ private:
       ByteBufferRef _buffer;
       uint32 _offset;
    };
+#endif
 
    status_t SendMoreData(int32 & sentBytes, uint32 & maxBytes);
    status_t ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32 maxArraySize);

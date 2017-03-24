@@ -2,6 +2,7 @@
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 
+#include "dataio/DataIO.h"
 #include "message/Message.h"
 #include "system/SetupSystem.h"
 #include "zlib/ZLibCodec.h"
@@ -158,6 +159,28 @@ MessageRef InflateMessage(const MessageRef & msgRef)
    else ret = msgRef;
 
    return ret;
+}
+
+status_t ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & destDeflatedIO, bool independent, uint32 numBytesToRead, int compressionLevel)
+{
+#ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
+   ZLibCodec codec(compressionLevel);   // no sense dealing with global locks on shared codecs, since this operation is likely to be slow anyway
+   return codec.ReadAndDeflateAndWrite(sourceRawIO, destDeflatedIO, independent, numBytesToRead);
+#else
+   ZLibCodec * codec = GetZLibCodec(compressionLevel);
+   return codec ? codec->ReadAndDeflateAndWrite(sourceRawIO, destDeflatedIO, independent, numBytesToRead) : B_ERROR;
+#endif
+}
+
+status_t ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO & destInflatedIO)
+{
+#ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
+   ZLibCodec codec;   // no sense dealing with global locks on shared codecs, since this operation is likely to be slow anyway
+   return codec.ReadAndInflateAndWrite(sourceDeflatedIO, destInflatedIO);
+#else
+   ZLibCodec * codec = GetZLibCodec(6);  // doesn't matter which one we use, any of them can inflate anything
+   return codec ? codec->ReadAndInflateAndWrite(sourceDeflatedIO, destInflatedIO) : B_ERROR;
+#endif
 }
 
 }; // end namespace muscle

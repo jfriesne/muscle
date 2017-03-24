@@ -72,7 +72,7 @@ static inline status_t Log(int, const char * fmt, ...) {va_list va; va_start(va,
 static inline status_t LogTime(int logLevel, const char * fmt, ...) {printf("%i: ", logLevel); va_list va; va_start(va, fmt); vprintf(fmt, va); va_end(va); return B_NO_ERROR;}
 
 // Minimalist version of WarnOutOfMemory()
-static inline void WarnOutOfMemory(const char * file, int line) {printf("ERROR--OUT OF MEMORY!  (%s:%i)\n", file, line);}
+static inline void WarnOutOfMemory(const char * file, int line) {printf("ERROR--MEMORY ALLOCATION FAILURE!  (%s:%i)\n", file, line);}
 
 // Minimumist version of LogFlush(), just flushes stdout
 static inline status_t LogFlush() {fflush(stdout); return B_NO_ERROR;}
@@ -230,7 +230,7 @@ status_t SetConsoleLogLevel(int loglevel);
  */
 status_t Log(int logLevel, const char * fmt, ...);
 
-/** Calls LogTime() with a critical "OUT OF MEMORY" Message.
+/** Calls LogTime() with a critical "MEMORY ALLOCATION FAILURE" Message.
   * Note that you typically wouldn't call this function directly;
   * rather you should call the WARN_OUT_OF_MEMORY macro and it will
   * call WarnOutOfMemory() for you, with the correct arguments.

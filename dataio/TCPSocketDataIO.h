@@ -11,6 +11,7 @@
 namespace muscle {
 
 #ifndef MUSCLE_DEFAULT_TCP_STALL_TIMEOUT
+/** The default number of microseconds that MUSCLE should allow a TCP connection to remain in a "stalled" state for, before giving up and closing it.  Defaults to three minutes, but the default may be overridden at compile-time via e.g. -DMUSCLE_DEFAULT_TCP_STALL_TIMEOUT=MinutesToMicros(5) or similar. */
 # define MUSCLE_DEFAULT_TCP_STALL_TIMEOUT MinutesToMicros(3)  // 3 minutes is our default timeout period
 #endif
 

@@ -50,24 +50,24 @@ enum {
 };
 
 /** These are field names used in the MessageTransceiverThread's internal protocol */
-#define MTT_NAME_PATH        "path"  // field containing a session path (e.g. "/*/*")
-#define MTT_NAME_DATA        "data"  // field containing a raw bytes
-#define MTT_NAME_MESSAGE     "mssg"  // field containing a message object
-#define MTT_NAME_SOCKET      "sock"  // field containing a Socket reference
-#define MTT_NAME_IP_ADDRESS  "addr"  // field containing an int32 IP address
-#define MTT_NAME_HOSTNAME    "host"  // field containing an ASCII hostname or IP address
-#define MTT_NAME_PORT        "port"  // field containing an int16 port number
-#define MTT_NAME_FACTORY_ID  "fcid"  // field containing a uint32 factory ID number (new for v3.40)
-#define MTT_NAME_SESSION     "sess"  // field containing an AbstractReflectSession tag
-#define MTT_NAME_FROMSESSION "sfrm"  // field containing the root path of the session this message is from (e.g. "192.168.1.103/17")
-#define MTT_NAME_FACTORY     "fact"  // field containing a ReflectSessionFactory tag
-#define MTT_NAME_DRAIN_TAG   "dtag"  // field containing a DrainTag reference
-#define MTT_NAME_POLICY_TAG  "ptag"  // field containing an IOPolicy reference
-#define MTT_NAME_ENCODING    "enco"  // field containing the MUSCLE_MESSAGE_ENCODING_* value
-#define MTT_NAME_EXPANDLOCALHOST "expl" // boolean field indicating whether localhost IP should be expanded to primary IP
-#define MTT_NAME_AUTORECONNECTDELAY "arcd" // int64 indicating how long after disconnect before an auto-reconnect should occur
-#define MTT_NAME_MAXASYNCCONNPERIOD "maxa" // int64 indicating how long we should wait for an async TCP connect to be established
-#define MTT_NAME_LOCATION    "loc" // String field representing an IPAddressAndPort of where the session connected to (or was accepted from)
+#define MTT_NAME_PATH               "path"  /**< field containing a session-path */
+#define MTT_NAME_DATA               "data"  /**< field containing a raw bytes */
+#define MTT_NAME_MESSAGE            "mssg"  /**< field containing a message object */
+#define MTT_NAME_SOCKET             "sock"  /**< field containing a Socket reference */
+#define MTT_NAME_IP_ADDRESS         "addr"  /**< field containing an int32 IP address */
+#define MTT_NAME_HOSTNAME           "host"  /**< field containing an ASCII hostname or IP address */
+#define MTT_NAME_PORT               "port"  /**< field containing an int16 port number */
+#define MTT_NAME_FACTORY_ID         "fcid"  /**< field containing a uint32 factory ID number (new for v3.40) */
+#define MTT_NAME_SESSION            "sess"  /**< field containing an AbstractReflectSession tag */
+#define MTT_NAME_FROMSESSION        "sfrm"  /**< field containing the root path of the session this message is from (e.g. "192.168.1.103/17") */
+#define MTT_NAME_FACTORY            "fact"  /**< field containing a ReflectSessionFactory tag */
+#define MTT_NAME_DRAIN_TAG          "dtag"  /**< field containing a DrainTag reference */
+#define MTT_NAME_POLICY_TAG         "ptag"  /**< field containing an IOPolicy reference */
+#define MTT_NAME_ENCODING           "enco"  /**< field containing the MUSCLE_MESSAGE_ENCODING_* value */
+#define MTT_NAME_EXPANDLOCALHOST    "expl"  /**< boolean field indicating whether localhost IP should be expanded to primary IP */
+#define MTT_NAME_AUTORECONNECTDELAY "arcd"  /**< int64 indicating how long after disconnect before an auto-reconnect should occur */
+#define MTT_NAME_MAXASYNCCONNPERIOD "maxa"  /**< int64 indicating how long we should wait for an async TCP connect to be established */
+#define MTT_NAME_LOCATION           "loc"   /**< String field representing an IPAddressAndPort of where the session connected to (or was accepted from) */
 
 /** This little class is used to help us track when workers' output queues are empty.
   * When it gets deleted (inside the internal thread), it triggers the supervisor session

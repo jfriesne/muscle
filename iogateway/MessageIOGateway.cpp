@@ -344,8 +344,8 @@ FlattenHeaderAndMessage(const MessageRef & msgRef) const
          if (ret())
          {
             uint32 * lhb = (uint32 *) ret()->GetBuffer();
-            lhb[0] = B_HOST_TO_LENDIAN_INT32(ret()->GetNumBytes()-hs);
-            lhb[1] = B_HOST_TO_LENDIAN_INT32(encoding);
+            muscleCopyOut(&lhb[0], B_HOST_TO_LENDIAN_INT32(ret()->GetNumBytes()-hs));
+            muscleCopyOut(&lhb[1], B_HOST_TO_LENDIAN_INT32(encoding));
          }
       }
    }
@@ -367,13 +367,14 @@ UnflattenHeaderAndMessage(const ByteBufferRef & bufRef) const
          uint32 offset = GetHeaderSize();
 
          const uint32 * lhb = (const uint32 *) bufRef()->GetBuffer();
-         if ((offset+((uint32) B_LENDIAN_TO_HOST_INT32(lhb[0]))) != bufRef()->GetNumBytes())
+         const uint32 lhbSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&lhb[0]));
+         if ((offset+lhbSize) != bufRef()->GetNumBytes())
          {
-            LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " INT32_FORMAT_SPEC "\n", this, (uint32) B_LENDIAN_TO_HOST_INT32(lhb[0]), bufRef()->GetNumBytes()-offset);
+            LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " INT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
             return MessageRef();
          }
 
-         int32 encoding = B_LENDIAN_TO_HOST_INT32(lhb[1]);
+         int32 encoding = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(&lhb[1]));
 
          const ByteBuffer * bb = bufRef();  // default; may be changed below
 
@@ -418,7 +419,7 @@ MessageIOGateway ::
 GetBodySize(const uint8 * headerBuf) const 
 {
    const uint32 * h = (const uint32 *) headerBuf;
-   return (muscleInRange((uint32)B_LENDIAN_TO_HOST_INT32(h[1]), (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)MUSCLE_MESSAGE_ENCODING_END_MARKER-1)) ? (int32)(B_LENDIAN_TO_HOST_INT32(h[0])) : -1;
+   return (muscleInRange((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&h[1])), (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)MUSCLE_MESSAGE_ENCODING_END_MARKER-1)) ? (int32)(B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&h[0]))) : -1;
 }
 
 bool 

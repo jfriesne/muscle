@@ -95,10 +95,11 @@ public:
     * If this DataIO cannot provide a socket that will notify select() about
     * data-ready-to-be-read, then this method should return GetNullSocket().
     *
-    * Note that the only thing you are allowed to do with this returned file descriptor
-    * is pass it to select()'s readSet.  For all other operations, use the appropriate
-    * methods in the DataIO interface.  If you attempt to do any other I/O operations
-    * on this file descriptor directly, the results are undefined.
+    * Note that the only thing you are allowed to do with the returned ConstSocketRef
+    * is pass it to a SocketMultiplexer to block on (or pass the underlying file descriptor
+    * to select()/etc's readSet).  For all other operations, use the appropriate
+    * methods in the DataIO interface instead.  If you attempt to do any other I/O operations
+    * on Socket or its file descriptor directly, the results are undefined.
     */
    virtual const ConstSocketRef & GetReadSelectSocket() const = 0;
 
@@ -110,10 +111,11 @@ public:
     * If this DataIO cannot provide a socket that will notify select() about
     * space-ready-to-be-written-to, then this method should return GetNullSocket().
     *
-    * Note that the only thing you are allowed to do with this returned file descriptor
-    * is pass it to select()'s writeSet.  For all other operations, use the appropriate
-    * methods in the DataIO interface.  If you attempt to do any other I/O operations
-    * on this file descriptor directly, the results are undefined.
+    * Note that the only thing you are allowed to do with the returned ConstSocketRef
+    * is pass it to a SocketMultiplexer to block on (or pass the underlying file descriptor
+    * to select()/etc's writeSet).  For all other operations, use the appropriate
+    * methods in the DataIO interface instead.  If you attempt to do any other I/O operations
+    * on Socket or its file descriptor directly, the results are undefined.
     */
    virtual const ConstSocketRef & GetWriteSelectSocket() const = 0;
 

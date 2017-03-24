@@ -14,12 +14,13 @@ extern "C" {
  *  @{
  */
 
+struct _MMessageGateway;
+
 /** Definition of our opaque handle to a MMessageGateway object.  Your
   * code doesn't know what a (MMessageGateway *) points to, and it doesn't care,
   * because all operations on it should happen via calls to the functions
   * that are defined below.
   */
-struct _MMessageGateway;
 typedef struct _MMessageGateway MMessageGateway;
 
 /** Typedef for a callback function that knows how to read data from a buffer and send it

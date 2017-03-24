@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "dataio/ChildProcessDataIO.h"
+#include "dataio/FileDataIO.h"
 #include "dataio/StdinDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
 #include "dataio/RS232DataIO.h"
@@ -294,6 +295,9 @@ static void LogUsage(const char * argv0)
    Log(MUSCLE_LOG_INFO, "   or:  hexterm udp=<port>               (listen for incoming UDP packets on the given port)\n");
    Log(MUSCLE_LOG_INFO, "   or:  hexterm serial=<devname>:<baud>  (send/receive via a serial device, e.g. /dev/ttyS0)\n");
    Log(MUSCLE_LOG_INFO, "   or:  hexterm child=<prog_and_args>    (send/receive via a child process, e.g. 'ls -l')\n");
+#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
+   Log(MUSCLE_LOG_INFO, "   or:  hexterm file=<filename>          (read input bytes from a file)\n");
+#endif
    Log(MUSCLE_LOG_INFO, "  Additional optional args include:\n");
    Log(MUSCLE_LOG_INFO, "                ascii                    (print and parse bytes as ASCII rather than hexadecimal)\n");
    Log(MUSCLE_LOG_INFO, "                plain                    (Suppress decorative elements in hexterm's output)\n");
@@ -395,6 +399,19 @@ int hextermmain(const char * argv0, const Message & args)
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not get list of serial device names!\n");
    }
+#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
+   else if (args.FindString("file", arg) == B_NO_ERROR)
+   {
+      FileDataIO fdio(fopen(arg(), "rb"));
+      if (fdio.GetFile() != NULL)
+      {
+         LogTime(MUSCLE_LOG_INFO, "Reading input bytes from file [%s]\n", arg());
+         DoSession(fdio);
+         LogTime(MUSCLE_LOG_INFO, "Reading of input file complete.\n");
+      }
+      else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open input file [%s]\n", arg());
+   }
+#endif
    else if (ParseConnectArg(args, "tcp", host, port, true) == B_NO_ERROR)
    {
       ConstSocketRef ss = Connect(host(), port, "hexterm", false);

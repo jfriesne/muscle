@@ -8,9 +8,9 @@
 
 #ifndef MUSCLE_DEBUG_TIMER_CLOCK
 # if defined(__BEOS__) || defined(__HAIKU__) || defined(__ATHEOS__) || defined(WIN32) || (defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)) || (defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI))
-#  define MUSCLE_DEBUG_TIMER_CLOCK GetRunTime64()
+#  define MUSCLE_DEBUG_TIMER_CLOCK GetRunTime64()       /**< Function call that DebugTimer should use to get the current time.  Defaults to GetRunTime64() except under OS's where GetRunTime64() has large granularity; for these platforms GetCurrentTime64() is used instead.  May be overridden at compile-time via -DMUSCLE_DEBUG_TIMER_CLOCK=SomeOtherFunc() */
 # else
-#  define MUSCLE_DEBUG_TIMER_CLOCK GetCurrentTime64()   /* POSIX API's run-time clock has crappy resolution :^( */
+#  define MUSCLE_DEBUG_TIMER_CLOCK GetCurrentTime64()   /**< Function call that DebugTimer should use to get the current time.  Defaults to GetRunTime64() except under OS's where GetRunTime64() has large granularity; for these platforms GetCurrentTime64() is used instead.  May be overridden at compile-time via -DMUSCLE_DEBUG_TIMER_CLOCK=SomeOtherFunc() */
 # endif
 #endif
 

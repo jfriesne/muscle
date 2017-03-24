@@ -20,6 +20,7 @@ enum {
 };
 
 #ifndef DEFAULT_BYTEBUFFER_DATA_FLAGS
+/** Specified which DATA_FLAG_* values should be used by default by a ByteBuffer object, when doing in-buffer serialization/deserialization operations.  Default value is DATA_FLAG_LITTLE_ENDIAN (i.e. Intel-native data endian-ness), but this can be overridden on the compiler line via -DDEFAULT_BYTEBUFFER_DATA_FLAGS=DATA_FLAG_BIG_ENDIAN or -DDEFAULT_BYTEBUFFER_DATA_FLAGS=DATA_FLAG_NATIVE_ENDIAN. */
 # define DEFAULT_BYTEBUFFER_DATA_FLAGS DATA_FLAG_LITTLE_ENDIAN
 #endif
 

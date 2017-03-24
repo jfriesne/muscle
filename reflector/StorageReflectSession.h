@@ -69,6 +69,7 @@ public:
    virtual bool MatchPath(const String & path, MessageRef & nodeData) const = 0;
 };
 
+/** Macro for declaring a MUSCLE DataNode-tree traversal callback within a class.  Declares both the callback method, and a static callback-method that is used to convert the callback's This argument into a genuine C++-"this"-based method call. */
 #define DECLARE_MUSCLE_TRAVERSAL_CALLBACK(sessionClass, funcName) \
  int funcName(DataNode & node, void * userData); \
  static int funcName##Func(StorageReflectSession * This, DataNode & node, void * userData) {return (static_cast<sessionClass *>(This))->funcName(node, userData);}

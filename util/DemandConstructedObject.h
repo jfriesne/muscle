@@ -110,10 +110,13 @@ public:
 
 private:
    mutable T * _objPointer;
+
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complaing that I haven't documented this union -- but it's a private union so I don't need to
    mutable union {
       T * _junk;   // only here ensure object-friendly alignment
       uint8 _buf[sizeof(T)];
    } _objUnion;
+#endif
 };
 
 }; // end namespace muscle

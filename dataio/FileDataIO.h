@@ -17,7 +17,7 @@ public:
     *  @param file File to read from or write to.  Becomes property of this FileDataIO object,
     *         and will be fclose()'d when this object is deleted.  Defaults to NULL.
     */
-   FileDataIO(FILE * file = NULL) : _file(file) {/* empty */}
+   FileDataIO(FILE * file = NULL) : _file(file) {SetSocketsFromFile(_file);}
 
    /** Destructor.
     *  Calls fclose() on the held file.
@@ -95,7 +95,7 @@ public:
       if (_file)
       {
          fclose(_file);
-         _file = NULL;
+         ReleaseFile();
       }
    }
  
@@ -104,7 +104,11 @@ public:
     * After this method returns, this object no longer owns or can
     * use or close the file descriptor descriptor it once held.
     */
-   void ReleaseFile() {_file = NULL;}
+   void ReleaseFile() 
+   {
+      _file = NULL;
+      SetSocketsFromFile(NULL);
+   }
 
    /**
     * Returns the FILE object held by this object, or NULL if there is none.
@@ -115,16 +119,63 @@ public:
     * Sets our file pointer to the specified handle, closing any previously held file handle first.
     * @param fp The new file handle.  If non-NULL, this FileDataIO becomes the owner of (fp).
     */
-   void SetFile(FILE * fp) {Shutdown(); _file = fp;}
+   void SetFile(FILE * fp) {Shutdown(); _file = fp; SetSocketsFromFile(_file);}
 
-   /** Returns a NULL reference;  (can't select on this one, sorry) */
-   virtual const ConstSocketRef & GetReadSelectSocket() const {return GetNullSocket();}
+   /**
+    * This method should return a ConstSocketRef object containing a file descriptor
+    * that can be passed to the readSet argument of select(), so that select() can
+    * return when there is data available to be read from this DataIO (via Read()).
+    *
+    * Note that under Windows, this method will always return a NULL socket, because
+    * under Windows it is not possible to select() on the file descriptor associated
+    * with fileno(my_FILE_pointer).
+    *
+    * Note that the only thing you are allowed to do with the returned ConstSocketRef
+    * is pass it to a SocketMultiplexer to block on (or pass the underlying file descriptor
+    * to select()/etc's readSet).  For all other operations, use the appropriate
+    * methods in the DataIO interface instead.  If you attempt to do any other I/O operations
+    * on Socket or its file descriptor directly, the results are undefined.
+    */
+   virtual const ConstSocketRef & GetReadSelectSocket() const {return _selectSocketRef;}
 
-   /** Returns a NULL reference;  (can't select on this one, sorry) */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
+   /**
+    * This method should return a ConstSocketRef object containing a file descriptor
+    * that can be passed to the writeSet argument of select(), so that select() can
+    * return when there is buffer space available to Write() to this DataIO.
+    *
+    * Note that under Windows, this method will always return a NULL socket, because
+    * under Windows it is not possible to select() on the file descriptor associated
+    * with fileno(my_FILE_pointer).
+    *
+    * Note that the only thing you are allowed to do with the returned ConstSocketRef
+    * is pass it to a SocketMultiplexer to block on (or pass the underlying file descriptor
+    * to select()/etc's writeSet).  For all other operations, use the appropriate
+    * methods in the DataIO interface instead.  If you attempt to do any other I/O operations
+    * on Socket or its file descriptor directly, the results are undefined.
+    */
+   virtual const ConstSocketRef & GetWriteSelectSocket() const {return _selectSocketRef;}
 
 private:
+   void SetSocketsFromFile(FILE * optFile)
+   {
+      _selectSocketRef.Reset();
+#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE   // windows can't do the select-on-file-descriptor trick, sorry!
+      _selectSocket.Clear(); 
+
+      int fd = optFile ? fileno(optFile) : -1;
+      if (fd >= 0)
+      {
+         _selectSocket.SetFileDescriptor(fd, false);  // false because the fclose() will call close(fd), so we should not
+         _selectSocketRef.SetRef(&_selectSocket, false);
+      } 
+#endif
+   }
+
    FILE * _file;
+   ConstSocketRef _selectSocketRef;
+#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
+   Socket _selectSocket;
+#endif
 };
 DECLARE_REFTYPES(FileDataIO);
 

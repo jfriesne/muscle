@@ -99,9 +99,8 @@ public:
     */
    void Flatten(uint8 * buffer) const 
    {
-      float * buf = (float *) buffer;
-      uint32 ox = B_HOST_TO_LENDIAN_IFLOAT(x()); muscleCopyOut(&buf[0], ox);
-      uint32 oy = B_HOST_TO_LENDIAN_IFLOAT(y()); muscleCopyOut(&buf[1], oy);
+      muscleCopyOut(&buffer[0*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(x()));
+      muscleCopyOut(&buffer[1*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(y()));
    }
 
    /** Restores this point from an endian-neutral flattened buffer.
@@ -113,9 +112,8 @@ public:
    {
       if (size >= FlattenedSize())
       {
-         float * buf = (float *) buffer;
-         uint32 i0; muscleCopyIn(i0, &buf[0]); x() = B_LENDIAN_TO_HOST_IFLOAT(i0);
-         uint32 i1; muscleCopyIn(i1, &buf[1]); y() = B_LENDIAN_TO_HOST_IFLOAT(i1);
+         x() = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&buffer[0*sizeof(int32)]));
+         y() = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&buffer[1*sizeof(int32)]));
          return B_NO_ERROR;
       }
       else return B_ERROR;

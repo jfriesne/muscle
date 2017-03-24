@@ -2540,7 +2540,7 @@ void WarnOutOfMemory(const char * file, int line)
    // But it will work in the one-error-only case, which is good enough
    // for now.
    NestCountGuard ncg(_inWarnOutOfMemory);  // avoid potential infinite recursion if LogCallbacks called by LogTime() try to allocate more memory and also fail
-   LogTime(MUSCLE_LOG_CRITICALERROR, "ERROR--OUT OF MEMORY!  (" INT32_FORMAT_SPEC " bytes at %s:%i)\n", GetAndClearFailedMemoryRequestSize(), file, line);
+   LogTime(MUSCLE_LOG_CRITICALERROR, "ERROR--MEMORY ALLOCATION FAILURE!  (" INT32_FORMAT_SPEC " bytes at %s:%i)\n", GetAndClearFailedMemoryRequestSize(), file, line);
 }
 
 #endif

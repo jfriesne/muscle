@@ -14,6 +14,8 @@ class SignalHandlerSession : public AbstractReflectSession, public ISignalHandle
 public:
    /** Default constructor. */
    SignalHandlerSession() {/* empty */}
+
+   /** Destructor. */
    virtual ~SignalHandlerSession() {/* empty */}
 
    virtual ConstSocketRef CreateDefaultSocket();

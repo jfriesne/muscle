@@ -25,6 +25,7 @@ enum {
 };
 
 #ifndef DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD
+/** Default message-forwarding instructions for DumbReflectSession::MessageReceivedFromGateway() and DumbReflectSession::MessageReceivedFromSession() to follow. */
 # define DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD (MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS | MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY)
 #endif
 

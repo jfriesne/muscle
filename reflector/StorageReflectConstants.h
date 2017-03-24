@@ -101,40 +101,40 @@ enum
 };
 
 // Recognized message field names
-#define PR_NAME_KEYS              "!SnKy"     // STRING:  one or more key-strings
-#define PR_NAME_FILTERS           "!SnFl"     // Message:  One or more archived QueryFilter objects
-#define PR_NAME_REMOVED_DATAITEMS "!SnRd"     // STRING:  one or more key-strings of removed data items
-#define PR_NAME_SUBSCRIBE_QUIETLY "!SnQs"     // Any type:  if present in a PR_COMMAND_SETPARAMETERS message, disables inital-value-send from new subscriptions
-#define PR_NAME_SET_QUIETLY       "!SnQ2"     // Any type:  if present in a PR_COMMAND_SETDATA message, then the message won't cause subscribers to be notified.
-#define PR_NAME_REMOVE_QUIETLY    "!SnQ3"     // Any type:  if present in a PR_COMMAND_REMOVEDATA message, then the message won't cause subscribers to be notified.
-#define PR_NAME_REFLECT_TO_SELF   "!Self"     // If set as parameter, include ourself in wildcard matches
-#define PR_NAME_ROUTE_GATEWAY_TO_NEIGHBORS "!G2N" // If set as parameter, session broadcasts unrecognized Messages to neighbors (set by default)
-#define PR_NAME_ROUTE_NEIGHBORS_TO_GATEWAY "!N2G" // If set as parameter, session accepts unrecognized Messages from neighbors and sends them to gateway (set by default)
-#define PR_NAME_DISABLE_SUBSCRIPTIONS "!Dsub" // If set as a parameter, disable all subscription updates.
-#define PR_NAME_MAX_UPDATE_MESSAGE_ITEMS "!MxUp"  // Int32 parameter; sets max # of items per PR_RESULT_DATAITEMS message
-#define PR_NAME_SESSION_ROOT         "!Root"  // String returned in parameter set; contains this sessions /host/sessionID
-#define PR_NAME_REJECTED_MESSAGE     "!Rjct"  // Message: In PR_RESULT_ERROR_* messages, returns the client's message that failed to execute.
-#define PR_NAME_PRIVILEGE_BITS       "!Priv"  // int32 bit-chord of PR_PRIVILEGE_* bits.
-#define PR_NAME_SERVER_MEM_AVAILABLE "!Mav"   // int64 indicating how many more bytes are available for MUSCLE server to use
-#define PR_NAME_SERVER_MEM_USED      "!Mus"   // int64 indicating how many bytes the MUSCLE server currently has allocated
-#define PR_NAME_SERVER_MEM_MAX       "!Mmx"   // uint64 indicating how the maximum number of bytes the MUSCLE server may have allocated at once.
-#define PR_NAME_SERVER_VERSION       "!Msv"   // String indicating version of MUSCLE that the server was compiled from
-#define PR_NAME_SERVER_UPTIME        "!Mup"   // uint64 indicating how many microseconds the server has been running for
-#define PR_NAME_SERVER_CURRENTTIMEUTC   "!Mct"   // uint64 indicating the server's current wall-clock (microseconds since 1970), in UTC format
-#define PR_NAME_SERVER_CURRENTTIMELOCAL "!Mcl"   // uint64 indicating the server's current wall-clock (microseconds since 1970), in the server's local timezone format
-#define PR_NAME_SERVER_RUNTIME       "!Mrt"   // uint64 indicating the server's current run-time clock (microseconds)
-#define PR_NAME_SERVER_SESSION_ID    "!Ssi"   // uint64 that is unique to this particular instance of the server in this particular process
-#define PR_NAME_MAX_NODES_PER_SESSION "!Mns"  // uint32 indicating the maximum number of nodes uploadable by a session
-#define PR_NAME_SESSION               "session"  // this field will be replaced with the sender's session number for any client-to-client message (named "session" for BeShare backwards compatibility)
-#define PR_NAME_SUBSCRIBE_PREFIX      "SUBSCRIBE:" // Prefix for parameters that indicate a subscription request 
-#define PR_NAME_TREE_REQUEST_ID       "!TRid"   // Identifier field for associating PR_RESULT_DATATREES replies with PR_COMMAND_GETDATATREE commands
-#define PR_NAME_REPLY_ENCODING        "!Enc"    // Parameter name holding int32 of MUSCLE_MESSAGE_ENCODING_* used to send to client
-#define PR_NAME_MAXDEPTH              "!MDep"   // If present as an int32 in PR_COMMAND_GETDATATREES, returned trees will be clipped to this maximum depth. (0==roots only)
+#define PR_NAME_KEYS                       "!SnKy"      /**< String:  One or more key-strings */
+#define PR_NAME_FILTERS                    "!SnFl"      /**< Message: One or more archived QueryFilter objects */
+#define PR_NAME_REMOVED_DATAITEMS          "!SnRd"      /**< String:  one or more key-strings of removed data items */
+#define PR_NAME_SUBSCRIBE_QUIETLY          "!SnQs"      /**< Any type:  if present in a PR_COMMAND_SETPARAMETERS message, disables inital-value-send from new subscriptions */
+#define PR_NAME_SET_QUIETLY                "!SnQ2"      /**< Any type:  if present in a PR_COMMAND_SETDATA message, then the message won't cause subscribers to be notified. */
+#define PR_NAME_REMOVE_QUIETLY             "!SnQ3"      /**< Any type:  if present in a PR_COMMAND_REMOVEDATA message, then the message won't cause subscribers to be notified. */
+#define PR_NAME_REFLECT_TO_SELF            "!Self"      /**< If set as parameter, include ourself in wildcard matches */
+#define PR_NAME_ROUTE_GATEWAY_TO_NEIGHBORS "!G2N"       /**< If set as parameter, session broadcasts unrecognized Messages to neighbors (set by default) */
+#define PR_NAME_ROUTE_NEIGHBORS_TO_GATEWAY "!N2G"       /**< If set as parameter, session accepts unrecognized Messages from neighbors and sends them to gateway (set by default) */
+#define PR_NAME_DISABLE_SUBSCRIPTIONS      "!Dsub"      /**< If set as a parameter, disable all subscription updates. */
+#define PR_NAME_MAX_UPDATE_MESSAGE_ITEMS   "!MxUp"      /**< Int32 parameter; sets max # of items per PR_RESULT_DATAITEMS message */
+#define PR_NAME_SESSION_ROOT               "!Root"      /**< String returned in parameter set; contains this sessions /host/sessionID */
+#define PR_NAME_REJECTED_MESSAGE           "!Rjct"      /**< Message: In PR_RESULT_ERROR_* messages, returns the client's message that failed to execute. */
+#define PR_NAME_PRIVILEGE_BITS             "!Priv"      /**< int32 bit-chord of PR_PRIVILEGE_* bits. */
+#define PR_NAME_SERVER_MEM_AVAILABLE       "!Mav"       /**< int64 indicating how many more bytes are available for MUSCLE server to use */
+#define PR_NAME_SERVER_MEM_USED            "!Mus"       /**< int64 indicating how many bytes the MUSCLE server currently has allocated */
+#define PR_NAME_SERVER_MEM_MAX             "!Mmx"       /**< uint64 indicating how the maximum number of bytes the MUSCLE server may have allocated at once. */
+#define PR_NAME_SERVER_VERSION             "!Msv"       /**< String indicating version of MUSCLE that the server was compiled from */
+#define PR_NAME_SERVER_UPTIME              "!Mup"       /**< uint64 indicating how many microseconds the server has been running for */
+#define PR_NAME_SERVER_CURRENTTIMEUTC      "!Mct"       /**< uint64 indicating the server's current wall-clock (microseconds since 1970), in UTC format */
+#define PR_NAME_SERVER_CURRENTTIMELOCAL    "!Mcl"       /**< uint64 indicating the server's current wall-clock (microseconds since 1970), in the server's local timezone format */
+#define PR_NAME_SERVER_RUNTIME             "!Mrt"       /**< uint64 indicating the server's current run-time clock (microseconds) */
+#define PR_NAME_SERVER_SESSION_ID          "!Ssi"       /**< uint64 that is unique to this particular instance of the server in this particular process */
+#define PR_NAME_MAX_NODES_PER_SESSION      "!Mns"       /**< uint32 indicating the maximum number of nodes uploadable by a session */
+#define PR_NAME_SESSION                    "session"    /**< this field will be replaced with the sender's session number for any client-to-client message (named "session" for BeShare backwards compatibility) */
+#define PR_NAME_SUBSCRIBE_PREFIX           "SUBSCRIBE:" /**< Prefix for parameters that indicate a subscription request  */
+#define PR_NAME_TREE_REQUEST_ID            "!TRid"      /**< Identifier field for associating PR_RESULT_DATATREES replies with PR_COMMAND_GETDATATREE commands */
+#define PR_NAME_REPLY_ENCODING             "!Enc"       /**< Parameter name holding int32 of MUSCLE_MESSAGE_ENCODING_* used to send to client */
+#define PR_NAME_MAXDEPTH                   "!MDep"      /**< If present as an int32 in PR_COMMAND_GETDATATREES, returned trees will be clipped to this maximum depth. (0==roots only) */
 
-// Names in the output message generated by StorageReflectSession::SaveNodeTreeToMessage()
-#define PR_NAME_NODEDATA      "data"   // this submessage is the payload of the current node
-#define PR_NAME_NODECHILDREN  "kids"   // this submessage represents the children of the current node (recursive)
-#define PR_NAME_NODEINDEX     "index"  // this submessage represents index/ordering of the current node
+// Names in the output message generated by StorageReflectSession::SaveNodeTreeToMessage() */
+#define PR_NAME_NODEDATA      "data"   /**< this submessage is the payload of the current node */
+#define PR_NAME_NODECHILDREN  "kids"   /**< this submessage represents the children of the current node (recursive) */
+#define PR_NAME_NODEINDEX     "index"  /**< this submessage represents index/ordering of the current node */
 
 // This is a specialization of AbstractReflectSession that adds several
 // useful capabilities to the Reflect Server.  Abilities include:

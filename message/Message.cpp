@@ -521,11 +521,7 @@ protected:
    {
       int16 * writeToHere16 = (int16 *) writeToHere;
       const int16 * readFromHere16 = (const int16 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++)
-      {
-         int16 val; muscleCopyIn(val, &readFromHere16[i]);
-         writeToHere16[i] = B_LENDIAN_TO_HOST_INT16(val);
-      }
+      for (uint32 i=0; i<numItems; i++) writeToHere16[i] = B_LENDIAN_TO_HOST_INT16(muscleCopyIn<int16>(&readFromHere16[i]));
    }
 };
 DECLAREFIELDTYPE(Int16DataArray);
@@ -561,11 +557,7 @@ protected:
    {
       int32 * writeToHere32 = (int32 *) writeToHere;
       const int32 * readFromHere32 = (const int32 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++)
-      {
-         int32 val; muscleCopyIn(val, &readFromHere32[i]);
-         writeToHere32[i] = B_LENDIAN_TO_HOST_INT32(val);
-      }
+      for (uint32 i=0; i<numItems; i++) writeToHere32[i] = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(&readFromHere32[i]));
    }
 };
 DECLAREFIELDTYPE(Int32DataArray);
@@ -601,11 +593,7 @@ protected:
    {
       int64 * writeToHere64 = (int64 *) writeToHere;
       const int64 * readFromHere64 = (const int64 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++)
-      {
-         int64 val; muscleCopyIn(val, &readFromHere64[i]);
-         writeToHere64[i] = B_LENDIAN_TO_HOST_INT64(val);
-      }
+      for (uint32 i=0; i<numItems; i++) writeToHere64[i] = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<int64>(&readFromHere64[i]));
    }
 };
 DECLAREFIELDTYPE(Int64DataArray);
@@ -641,11 +629,7 @@ protected:
    {
       int32 * writeToHere32 = (int32 *) writeToHere;  // yeah, they're really floats, but no need to worry about that here
       const int32 * readFromHere32 = (const int32 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++)
-      {
-         int32 val; muscleCopyIn(val, &readFromHere32[i]);
-         writeToHere32[i] = B_LENDIAN_TO_HOST_INT32(val);
-      }
+      for (uint32 i=0; i<numItems; i++) writeToHere32[i] = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(&readFromHere32[i]));
    }
 };
 DECLAREFIELDTYPE(FloatDataArray);
@@ -681,11 +665,7 @@ protected:
    {
       int64 * writeToHere64 = (int64 *) writeToHere;  // yeah, they're really doubles, but no need to worry about that here
       const int64 * readFromHere64 = (const int64 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++)
-      {
-         int64 val; muscleCopyIn(val, &readFromHere64[i]);
-         writeToHere64[i] = B_LENDIAN_TO_HOST_INT64(val);
-      }
+      for (uint32 i=0; i<numItems; i++) writeToHere64[i] = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<int64>(&readFromHere64[i]));
    }
 };
 DECLAREFIELDTYPE(DoubleDataArray);

@@ -5,7 +5,7 @@
 
 namespace muscle {
 
-#define DEFAULT_TUNNEL_IOGATEWAY_MAGIC 1114989680 // 'Budp'
+#define DEFAULT_TUNNEL_IOGATEWAY_MAGIC 1114989680 /**< 'Budp' - default magic value used in PacketTunnelIOGateway packet headers.  See PacketTunnelIOGateway ctor for details. */
 
 /** This I/O gateway class is a "wrapper" class that you can use in conjunction with any other
   * AbstractMessageIOGateway class.  It will take the output of that class and packetize it in

@@ -12,21 +12,24 @@
 namespace muscle {
 
 #ifndef SMALL_QUEUE_SIZE
+/** Specifies the number of items that should be held "inline" inside a Queue object.  Any Queue will be able to hold up to this many items without having to do a separate heap allocation.  Defaults to 3 if not specified otherwise by the compiler (e.g. via -DSMALL_QUEUE_SIZE=5) */
 # define SMALL_QUEUE_SIZE 3
 #endif
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+# ifdef MUSCLE_USE_CPLUSPLUS11
 // Enable move semantics (when possible) for C++11
-# define QQ_UniversalSinkItemRef template<typename ItemParam>
-# define QQ_SinkItemParam  ItemParam &&
-# define QQ_PlunderItem(item) std::move(item)
-# define QQ_ForwardItem(item) std::forward<ItemParam>(item)
-#else
+#  define QQ_UniversalSinkItemRef template<typename ItemParam>
+#  define QQ_SinkItemParam  ItemParam &&
+#  define QQ_PlunderItem(item) std::move(item)
+#  define QQ_ForwardItem(item) std::forward<ItemParam>(item)
+# else
 // For earlier versions of C++, use the traditional copy/ref semantics
-# define QQ_UniversalSinkItemRef
-# define QQ_SinkItemParam const ItemType &
-# define QQ_PlunderItem(item) (item)
-# define QQ_ForwardItem(item) (item)
+#  define QQ_UniversalSinkItemRef
+#  define QQ_SinkItemParam const ItemType &
+#  define QQ_PlunderItem(item) (item)
+#  define QQ_ForwardItem(item) (item)
+# endif
 #endif
 
 /** This class implements a templated double-ended-queue data structure.

@@ -98,6 +98,7 @@ private:
       NUM_ASYNC_COMMANDS
    };
  
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complaing that I haven't documented this class -- but it's a private class so I don't need to
    class AsyncCommand 
    {
    public:
@@ -116,6 +117,7 @@ private:
       int _whence;
       uint8 _cmd;
    };
+#endif
   
    ConstSocketRef _mainThreadNotifySocket, _ioThreadNotifySocket;
    DataIORef _slaveIO;

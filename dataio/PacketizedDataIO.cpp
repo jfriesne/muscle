@@ -72,7 +72,7 @@ int32 PacketizedDataIO :: Write(const void * buffer, uint32 size)
       _outputBufferBytesSent = 0;
 
       if (_outputBuffer.SetNumBytes(sizeof(uint32)+size, false) != B_NO_ERROR) return 0;
-      *((uint32 *)_outputBuffer.GetBuffer()) = B_HOST_TO_LENDIAN_INT32(size);
+      muscleCopyOut(_outputBuffer.GetBuffer(), B_HOST_TO_LENDIAN_INT32(size));
       memcpy(_outputBuffer.GetBuffer()+sizeof(uint32), buffer, size);
       ret = size;
    }

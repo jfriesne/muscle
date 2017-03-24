@@ -19,6 +19,7 @@ enum {
 };
 
 #ifndef MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS
+/** The default value of (launchBits) that will be suppplied to LaunchChildProcess(), if no value is explicitly supplied.  Defaults to CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY unless overridden at compile time via e.g. -DMUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS=CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY|CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDERR or etc. */
 # define MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS (CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY)
 #endif
 

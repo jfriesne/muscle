@@ -22,6 +22,8 @@ public:
    /** Should be implemented by the inheriting concrete class to return a freshly allocated copy of itself. */
    virtual Cloneable * Clone() const = 0;
 };
+
+/** This macro declares a "virtual Cloneable * Clone() const" method that performs the standard/basic Clone() implementation:  Allocates a duplicate of this object on the heap, using the copy constructor, and returns it.  The macro allows us to avoid the tedious and error-prone re-entering of the same three lines of code for every Cloneable class.  (If there was a way to automate this using templates, I'd use that instead, but I haven't seen a reasonable way to do that yet) */
 #define DECLARE_STANDARD_CLONE_METHOD(class_name) virtual Cloneable * Clone() const {Cloneable * r = newnothrow class_name(*this); if (r == NULL) WARN_OUT_OF_MEMORY; return r;}
 
 /** A preferred version of CloneObject() that uses the argument's built-in Clone() method */

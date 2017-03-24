@@ -14,6 +14,7 @@ namespace muscle {
 //#define DISABLE_OBJECT_POOLING 1
 
 #ifndef DEFAULT_MUSCLE_POOL_SLAB_SIZE
+/** Default maximum size of each ObjectPool "slab", in bytes.  Defaults to 4096, since that corresponds nicely to a standard kernel-page size. */
 # define DEFAULT_MUSCLE_POOL_SLAB_SIZE (4*1024)  // let's have each slab fit nicely into a 4KB page
 #endif
 
@@ -98,7 +99,10 @@ class AbstractObjectManager : public AbstractObjectGenerator, public AbstractObj
  *  you call myObjectPool.ObtainObject(), and instead of calling 'delete Object', you call
  *  myObjectPool.ReleaseObject().  The advantage is that the ObjectPool will
  *  keep (up to a certain number of) "spare" Objects around, and recycle them back
- *  to you as needed. 
+ *  to you as needed.  Note that this class is generally not used directly, but rather is
+ *  used in conjuction with the Ref<> and RefCount classes to provide efficient, automatic,
+ *  and memory-leak-resistant reference-counting combined with object-pooling.  See 
+ *  GetMessageFromPool() for an example of this.
  */
 template <class Object, int MUSCLE_POOL_SLAB_SIZE=DEFAULT_MUSCLE_POOL_SLAB_SIZE> class ObjectPool : public AbstractObjectManager
 {

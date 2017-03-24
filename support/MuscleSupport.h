@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.40"
-#define MUSCLE_VERSION        64000  // Format is decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved
+#define MUSCLE_VERSION_STRING "6.41" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        64100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -78,15 +78,15 @@
 #  include <type_traits>  // for static_assert()
 #  include <utility>      // for std::move()
 #  if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ < 7)
-#   define MUSCLE_FINAL_CLASS          /* work-around for g++ bug #50811 */
+#   define MUSCLE_FINAL_CLASS          /**< If defined, this tag indicates that the class should not be subclassed.  (Expands to keyword "final" iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */ /* work-around for g++ bug #50811 */
 #  else
-#   define MUSCLE_FINAL_CLASS final
+#   define MUSCLE_FINAL_CLASS final   /**< This tag indicates that the class it decorates should not be subclassed.  (Expands to keyword "final" iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
 #  endif
 # else
-#  define MUSCLE_FINAL_CLASS
+#  define MUSCLE_FINAL_CLASS          /**< This tag indicates that the class it decorates should not be subclassed.  (Expands to keyword "final" iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
 # endif
 #else
-# define NEW_H_NOT_AVAILABLE
+# define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (e.g. because we're on an ancient platform) */
 #endif
 
 // For non-C++-11 environments, we don't have the ability to make a class final, so we just define 
@@ -104,10 +104,10 @@
 
 /* Win32 can't handle this stuff, it's too lame */
 #ifdef WIN32
-# define SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
-# define UNISTD_H_NOT_AVAILABLE
+# define SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE  /** Defined iff we're not allowed to select() on file descriptor (e.g. because we're on Windows) */
+# define UNISTD_H_NOT_AVAILABLE        /**< Defined iff <unistd.h> header isn't available (e.g. because we're on an ancient platform, or Windows) */
 # ifndef _MSC_VER  /* 7/3/2006: Mika's patch allows VC++ to use newnothrow */
-#  define NEW_H_NOT_AVAILABLE
+#  define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ <new> header isn't available (e.g. because we're on an ancient platform) */
 # endif
 #elif defined(__BEOS__) && !defined(__HAIKU__)
 # define SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
@@ -134,20 +134,22 @@ using std::set_new_handler;
 #  endif
 # endif
 #else
-# define MUSCLE_AVOID_NEWNOTHROW
+# define MUSCLE_AVOID_NEWNOTHROW /**< If defined, the newnothrow macro will expand to "new" rather than to "new (nothrow)" */
 #endif
 
 #ifndef newnothrow
 # ifdef MUSCLE_AVOID_NEWNOTHROW
-#  define newnothrow new
+#  define newnothrow new            /**< newnothrow is a shortcut for "new (nothrow)", unless MUSCLE_AVOID_NEWNOTHROW is defined, in which case it becomes a synonym for plain old "new" */
 # else
-#  define newnothrow new (nothrow)
+#  define newnothrow new (nothrow)  /**< newnothrow is a shortcut for "new (nothrow)", unless MUSCLE_AVOID_NEWNOTHROW is defined, in which case it becomes a synonym for plain old "new" */
 # endif
 #endif
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
 // These macros are implementation details, please ignore them
-#define ___MUSCLE_UNIQUE_NAME_AUX1(name, line) name##line
-#define ___MUSCLE_UNIQUE_NAME_AUX2(name, line) ___MUSCLE_UNIQUE_NAME_AUX1(name, line)
+# define ___MUSCLE_UNIQUE_NAME_AUX1(name, line) name##line
+# define ___MUSCLE_UNIQUE_NAME_AUX2(name, line) ___MUSCLE_UNIQUE_NAME_AUX1(name, line)
+#endif
 
 /** This macro expands to a variable name which is (per-file) unique and unreferenceable.
   * This can be useful to help make sure the temporary variables in your macros don't
@@ -155,30 +157,36 @@ using std::set_new_handler;
   */
 #define MUSCLE_UNIQUE_NAME ___MUSCLE_UNIQUE_NAME_AUX2(__uniqueName, __LINE__)
 
-/** This macro declares an object on the stack with the specified argument. */
 #ifdef _MSC_VER
-# define DECLARE_ANONYMOUS_STACK_OBJECT(objType, ...) objType MUSCLE_UNIQUE_NAME = objType(__VA_ARGS__)
+# define DECLARE_ANONYMOUS_STACK_OBJECT(objType, ...) objType MUSCLE_UNIQUE_NAME = objType(__VA_ARGS__) /**< This macro declares an object on the stack with the specified argument(s). */
 #else
-# define DECLARE_ANONYMOUS_STACK_OBJECT(objType, args...) objType MUSCLE_UNIQUE_NAME = objType(args)
+# define DECLARE_ANONYMOUS_STACK_OBJECT(objType, args...) objType MUSCLE_UNIQUE_NAME = objType(args) /**< This macro declares an object on the stack with the specified argument(s). */
 #endif
 
 #ifdef MUSCLE_AVOID_ASSERTIONS
-# define MASSERT(x,msg)
+# define MASSERT(x,msg) /**< assertion macro.  Unless -DMUSCLE_AVOID_ASSERTIONS is specified, this macro will crash the program (with the error message in its second argument) if its first argument evaluates to false. */
 #else
-# define MASSERT(x,msg) {if(!(x)) MCRASH(msg)}
+# define MASSERT(x,msg) {if(!(x)) MCRASH(msg)} /**< assertion macro.  Unless -DMUSCLE_AVOID_ASSERTIONS is specified, this macro will crash the program (with the error message in its second argument) if its first argument evaluates to false. */
 #endif
 
+/** This macro crashes the process with the specified error message. */
 #define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); Crash();}
+
+/** This macro immediately and rudely exits the process (by calling ExitWithoutCleanup(retVal)) after logging the specified critical error message. */
 #define MEXIT(retVal,msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
+
+/** This macro logs an out-of-memory warning that includes the current filename and source-code line number.  WARN_OUT_OF_MEMORY() should be called whenever newnothrow or malloc() return NULL. */
 #define WARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)
+
+/** This macro logs a warning message including the the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
 #define MCHECKPOINT muscle::LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
 
 #ifdef __cplusplus
-template<typename T, int size> unsigned int ARRAYITEMS(T(&)[size]) {return size;}  /* returns # of items in array, will error out at compile time if you try it on a pointer */
+template<typename T, int size> unsigned int ARRAYITEMS(T(&)[size]) {return size;}  /**< Returns # of items in the array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
 #else
-# define ARRAYITEMS(x) (sizeof(x)/sizeof(x[0]))  /* returns # of items in array */
+# define ARRAYITEMS(x) (sizeof(x)/sizeof(x[0]))  /**< Returns # of items in the array.  This primitive C-compatible implementation will return an incorrect value if called with a pointer as an argument. */
 #endif
-typedef void * muscleVoidPointer;  /* it's a bit easier, syntax-wise, to use this type than (void *) directly in some cases. */
+typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit easier, syntax-wise, to use this type than (void *) directly in some cases. */
 
 #if defined(__BEOS__) || defined(__HAIKU__)
 # include <support/Errors.h>
@@ -189,105 +197,106 @@ typedef void * muscleVoidPointer;  /* it's a bit easier, syntax-wise, to use thi
 #  define BEOS_OLD_NETSERVER
 # endif
 #else
-# define B_ERROR    -1
-# define B_NO_ERROR 0
-# define B_OK       B_NO_ERROR
+# define B_ERROR    -1         /**< A value typically returned by a function or method with return type status_t, to indicate that it failed.  (When checking the value, it's better to check against B_NO_ERROR though, in case other failure values are defined in the future) */
+# define B_NO_ERROR 0          /**< The value returned by a function or method with return type status_t, to indicate that it succeeded with no errors. */
+# define B_OK       B_NO_ERROR /**< Synonym for B_NO_ERROR */
 # ifdef __ATHEOS__
 #  include </ainc/atheos/types.h>
 # else
 #  ifndef MUSCLE_TYPES_PREDEFINED  /* certain (ahem) projects already set these themselves... */
 #   ifndef __cplusplus
-#    define true                     1
-#    define false                    0
+#    define true                     1        /**< In C++, true is defined as non-zero, here as 1 */
+#    define false                    0        /**< In C++, false is defined as zero */
 #   endif
-    typedef unsigned char           uchar;
-    typedef unsigned short          unichar;
-    typedef signed char             int8;
-    typedef unsigned char           uint8;
-    typedef short                   int16;
-    typedef unsigned short          uint16;
+    typedef unsigned char           uchar;    /**< uchar is a synonym for "unsigned char" */
+    typedef unsigned short          unichar;  /**< unichar is a synonym for "unsigned short" */
+    typedef signed char             int8;     /**< int8 is an 8-bit signed integer type */
+    typedef unsigned char           uint8;    /**< uint8 is an 8-bit unsigned integer type */
+    typedef short                   int16;    /**< int16 is an 16-bit signed integer type */
+    typedef unsigned short          uint16;   /**< uint16 is an 16-bit unsigned integer type */
 #   if defined(MUSCLE_64_BIT_PLATFORM) || defined(__osf__) || defined(__amd64__) || defined(__PPC64__) || defined(__x86_64__) || defined(_M_AMD64)   /* some 64bit systems will have long=64-bit, int=32-bit */
 #    ifndef MUSCLE_64_BIT_PLATFORM
 #     define MUSCLE_64_BIT_PLATFORM 1  // auto-define it if it wasn't defined in the Makefile
 #    endif
-     typedef int                    int32;
-#    ifndef _UINT32   // Avoid conflict with typedef in OS/X Leopard system header
-      typedef unsigned int           uint32;
-#     define _UINT32  // Avoid conflict with typedef in OS/X Leopard system header
+     typedef int                    int32;    /**< int32 is a 32-bit signed integer type */
+#    ifndef _UINT32
+      typedef unsigned int          uint32;   /**< uint32 is a 32-bit unsigned integer type */
+#     define _UINT32                          /**< Avoid conflict with typedef in OS/X Leopard system header */
 #    endif
 #   else
-     typedef long                   int32;
-#    ifndef _UINT32   // Avoid conflict with typedef in OS/X Leopard system header
-      typedef unsigned long          uint32;
-#     define _UINT32  // Avoid conflict with typedef in OS/X Leopard system header
+     typedef long                   int32;    /**< int32 is a 32-bit signed integer type */
+#    ifndef _UINT32
+      typedef unsigned long         uint32;   /**< uint32 is a 32-bit unsigned integer type */
+#     define _UINT32                          /**< Avoid conflict with typedef in OS/X Leopard system header */
 #    endif
 #   endif
 #   if defined(WIN32) && !defined(__GNUWIN32__)
-     typedef __int64                int64;
-     typedef unsigned __int64       uint64;
+     typedef __int64                int64;    /**< int64 is a 64-bit signed integer type */
+     typedef unsigned __int64       uint64;   /**< uint64 is a 64-bit unsigned integer type */
 #   elif __APPLE__
-#    ifndef _UINT64  // Avoid conflict with typedef in OS/X Leopard system header
-#     define _UINT64
-      typedef long long              int64;   // these are what's expected in MacOS/X land, in both
-      typedef unsigned long long     uint64;  // 32-bit and 64-bit flavors.  C'est la vie, non?
+#    ifndef _UINT64
+#     define _UINT64                          /**< Avoid conflict with typedef in OS/X Leopard system header */
+      typedef long long              int64;   /**< int64 is a 64-bit signed integer type */    // these are what's expected in MacOS/X land, in both
+      typedef unsigned long long     uint64;  /**< uint64 is a 64-bit unsigned integer type */ // 32-bit and 64-bit flavors.  C'est la vie, non?
 #    endif
 #   elif defined(MUSCLE_64_BIT_PLATFORM)
-     typedef long                   int64;
-     typedef unsigned long          uint64;
+     typedef long                   int64;    /**< int64 is a 64-bit signed integer type */
+     typedef unsigned long          uint64;   /**< uint64 is a 64-bit unsigned integer type */
 #   else
-     typedef long long              int64;
-     typedef unsigned long long     uint64;
+     typedef long long              int64;    /**< int64 is a 64-bit signed integer type */
+     typedef unsigned long long     uint64;   /**< uint64 is a 64-bit unsigned integer type */
 #   endif
-    typedef int32                     status_t;
+    typedef int32                   status_t; /**< This type indicates an expected value of either B_NO_ERROR/B_OK on success, or another value (often B_ERROR) on failure. */
 #  endif  /* !MUSCLE_TYPES_PREDEFINED */
 # endif  /* !__ATHEOS__*/
 #endif  /* __BEOS__ || __HAIKU__ */
 
 /** Ugly platform-neutral macros for problematic sprintf()-format-strings */
 #if defined(MUSCLE_64_BIT_PLATFORM)
-# define  INT32_FORMAT_SPEC_NOPERCENT "i"
-# define UINT32_FORMAT_SPEC_NOPERCENT "u"
-# define XINT32_FORMAT_SPEC_NOPERCENT "x"
+# define  INT32_FORMAT_SPEC_NOPERCENT "i"  /**< format-specifier string to pass in to printf() for an int32, without the percent sign */
+# define UINT32_FORMAT_SPEC_NOPERCENT "u"  /**< format-specifier string to pass in to printf() for a uint32, without the percent sign */
+# define XINT32_FORMAT_SPEC_NOPERCENT "x"  /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, without the percent sign */
 # ifdef __APPLE__
-#  define  INT64_FORMAT_SPEC_NOPERCENT "lli"
-#  define UINT64_FORMAT_SPEC_NOPERCENT "llu"
-#  define XINT64_FORMAT_SPEC_NOPERCENT "llx"
+#  define  INT64_FORMAT_SPEC_NOPERCENT "lli"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#  define UINT64_FORMAT_SPEC_NOPERCENT "llu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#  define XINT64_FORMAT_SPEC_NOPERCENT "llx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
 # elif defined(_MSC_VER) || defined(__MINGW64__)
-#  define  INT64_FORMAT_SPEC_NOPERCENT "I64i"
-#  define UINT64_FORMAT_SPEC_NOPERCENT "I64u"
-#  define XINT64_FORMAT_SPEC_NOPERCENT "I64x"
+#  define  INT64_FORMAT_SPEC_NOPERCENT "I64i"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#  define UINT64_FORMAT_SPEC_NOPERCENT "I64u"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#  define XINT64_FORMAT_SPEC_NOPERCENT "I64x"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
 # else
-#  define  INT64_FORMAT_SPEC_NOPERCENT "li"
-#  define UINT64_FORMAT_SPEC_NOPERCENT "lu"
-#  define XINT64_FORMAT_SPEC_NOPERCENT "lx"
+#  define  INT64_FORMAT_SPEC_NOPERCENT "li"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#  define UINT64_FORMAT_SPEC_NOPERCENT "lu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#  define XINT64_FORMAT_SPEC_NOPERCENT "lx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
 # endif
 #else
-# define  INT32_FORMAT_SPEC_NOPERCENT "li"
-# define UINT32_FORMAT_SPEC_NOPERCENT "lu"
-# define XINT32_FORMAT_SPEC_NOPERCENT "lx"
+# define  INT32_FORMAT_SPEC_NOPERCENT "li"  /**< format-specifier string to pass in to printf() for an int32, without the percent sign */
+# define UINT32_FORMAT_SPEC_NOPERCENT "lu"  /**< format-specifier string to pass in to printf() for a uint32, without the percent sign */
+# define XINT32_FORMAT_SPEC_NOPERCENT "lx"  /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, without the percent sign */
 # if defined(_MSC_VER) || defined(__MINGW32__)
-#  define  INT64_FORMAT_SPEC_NOPERCENT "I64i"
-#  define UINT64_FORMAT_SPEC_NOPERCENT "I64u"
-#  define XINT64_FORMAT_SPEC_NOPERCENT "I64x"
+#  define  INT64_FORMAT_SPEC_NOPERCENT "I64i"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#  define UINT64_FORMAT_SPEC_NOPERCENT "I64u"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#  define XINT64_FORMAT_SPEC_NOPERCENT "I64x"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
 # elif (defined(__BEOS__) && !defined(__HAIKU__)) || defined(__MWERKS__) || defined(__BORLANDC__)
-#  define  INT64_FORMAT_SPEC_NOPERCENT "Li"
-#  define UINT64_FORMAT_SPEC_NOPERCENT "Lu"
-#  define XINT64_FORMAT_SPEC_NOPERCENT "Lx"
+#  define  INT64_FORMAT_SPEC_NOPERCENT "Li"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#  define UINT64_FORMAT_SPEC_NOPERCENT "Lu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#  define XINT64_FORMAT_SPEC_NOPERCENT "Lx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
 # else
-#  define  INT64_FORMAT_SPEC_NOPERCENT "lli"
-#  define UINT64_FORMAT_SPEC_NOPERCENT "llu"
-#  define XINT64_FORMAT_SPEC_NOPERCENT "llx"
+#  define  INT64_FORMAT_SPEC_NOPERCENT "lli"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#  define UINT64_FORMAT_SPEC_NOPERCENT "llu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#  define XINT64_FORMAT_SPEC_NOPERCENT "llx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
 # endif
 #endif
 
-# define  INT32_FORMAT_SPEC "%"  INT32_FORMAT_SPEC_NOPERCENT
-# define UINT32_FORMAT_SPEC "%" UINT32_FORMAT_SPEC_NOPERCENT
-# define XINT32_FORMAT_SPEC "%" XINT32_FORMAT_SPEC_NOPERCENT
+# define  INT32_FORMAT_SPEC "%"  INT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int32, including the percent sign */
+# define UINT32_FORMAT_SPEC "%" UINT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint32, including the percent sign */
+# define XINT32_FORMAT_SPEC "%" XINT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, including the percent sign */
 
-# define  INT64_FORMAT_SPEC "%"  INT64_FORMAT_SPEC_NOPERCENT
-# define UINT64_FORMAT_SPEC "%" UINT64_FORMAT_SPEC_NOPERCENT
-# define XINT64_FORMAT_SPEC "%" XINT64_FORMAT_SPEC_NOPERCENT
+# define  INT64_FORMAT_SPEC "%"  INT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int64, including the percent sign */
+# define UINT64_FORMAT_SPEC "%" UINT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint64, including the percent sign */
+# define XINT64_FORMAT_SPEC "%" XINT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, including the percent sign */
 
+/** Macro that returns a uint32 word out of the four ASCII characters in the supplied char array.  Used primarily to create 'what'-codes for Message objects (e.g. MAKETYPE("!Pc0") returns 558916400) */
 #define MAKETYPE(x) ((((unsigned long)(x[0])) << 24) | \
                      (((unsigned long)(x[1])) << 16) | \
                      (((unsigned long)(x[2])) <<  8) | \
@@ -324,7 +333,7 @@ enum {
    B_TAG_TYPE     = 1297367367  /**< 'MTAG' = new for v2.00; for in-mem-only tags         */
 };
 
-/* This constant is used in various places to mean 'as much as you want' */
+/** This constant is used in various places to mean 'as much as you want'.  Its value is ((uint32)-1), aka ((2^32)-1) */
 #define MUSCLE_NO_LIMIT ((uint32)-1)
 
 #ifdef __cplusplus
@@ -361,9 +370,9 @@ template <typename T> inline T * broken_gcc_newnothrow_array(size_t count)
    T * ret = newnothrow T[count];
    return (ret <= (T *)(sizeof(void *))) ? NULL : ret;
 }
-# define newnothrow_array(T, count) broken_gcc_newnothrow_array<T>(count)
+# define newnothrow_array(T, count) broken_gcc_newnothrow_array<T>(count)  /**< workaround wrapper for broken newnothrow T[count] under gcc 3.x */
 #else
-# define newnothrow_array(T, count) newnothrow T[count]
+# define newnothrow_array(T, count) newnothrow T[count]                    /**< workaround wrapper for broken newnothrow T[count] under gcc 3.x */
 #endif
 
 /** This function returns a reference to a read-only, default-constructed
@@ -562,11 +571,11 @@ static inline char * muscleStrncpy(char * to, const char * from, size_t maxLen) 
 static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * fp; return (fopen_s(&fp, path, mode) == 0) ? fp : NULL;}
 #else
 /** Other OS's can use the usual functions instead. */
-# define muscleSprintf  sprintf
-# define muscleSnprintf snprintf
-# define muscleStrcpy   strcpy
-# define muscleStrncpy  strncpy
-# define muscleFopen    fopen
+# define muscleSprintf  sprintf   /**< On Windows, this expands to sprintf_s to avoid security warnings; on other OS's it expands to plain old sprintf */
+# define muscleSnprintf snprintf  /**< On Windows, this expands to snprintf_s to avoid security warnings; on other OS's it expands to plain old snprintf */
+# define muscleStrcpy   strcpy    /**< On Windows, this expands to strcpy_s to avoid security warnings; on other OS's it expands to plain old strcpy */
+# define muscleStrncpy  strncpy   /**< On Windows, this expands to strncpy_s to avoid security warnings; on other OS's it expands to plain old strncpy */
+# define muscleFopen    fopen     /**< On Windows, this expands to fopen_s to avoid security warnings; on other OS's it expands to plain old fopen */
 #endif
 
 #if !defined(__BEOS__) && !defined(__HAIKU__)
@@ -617,8 +626,8 @@ static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * f
     #elif defined( __APPLE__ )
       #include <machine/endian.h>
     #else
-      #define LITTLE_ENDIAN   1234    /* least-significant byte first (vax, pc) */
-      #define BIG_ENDIAN      4321    /* most-significant byte first (IBM, net) */
+      #define LITTLE_ENDIAN   1234    /**< least-significant byte first (vax, pc) */
+      #define BIG_ENDIAN      4321    /**< most-significant byte first (IBM, net) */
 
       #if defined(vax) || defined(ns32000) || defined(sun386) || defined(i386) || \
               defined(__i386) || defined(__ia64) || \
@@ -674,11 +683,13 @@ static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * f
  * a int32 (for floats) or a int64 (for doubles).  --Jeremy 1/8/2007
  **********************************************************************************************/
 
-#define B_HOST_TO_BENDIAN_FLOAT(arg) B_HOST_TO_BENDIAN_FLOAT_was_removed_use_B_HOST_TO_BENDIAN_IFLOAT_instead___See_the_FLOAT_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
-#define B_HOST_TO_LENDIAN_FLOAT(arg) B_HOST_TO_LENDIAN_FLOAT_was_removed_use_B_HOST_TO_LENDIAN_IFLOAT_instead___See_the_FLOAT_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
-#define B_BENDIAN_TO_HOST_FLOAT(arg) B_BENDIAN_TO_HOST_FLOAT_was_removed_use_B_BENDIAN_TO_HOST_IFLOAT_instead___See_the_FLOAT_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
-#define B_LENDIAN_TO_HOST_FLOAT(arg) B_LENDIAN_TO_HOST_FLOAT_was_removed_use_B_LENDIAN_TO_HOST_IFLOAT_instead___See_the_FLOAT_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
-#define B_SWAP_FLOAT(arg)            B_SWAP_FLOAT_was_removed___See_the_FLOAT_TROUBLE_comment_in_support_MuscleSupport_h_for_details.
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+# define B_HOST_TO_BENDIAN_FLOAT(arg) B_HOST_TO_BENDIAN_FLOAT_was_removed_use_B_HOST_TO_BENDIAN_IFLOAT_instead___See_the_FLOAT_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
+# define B_HOST_TO_LENDIAN_FLOAT(arg) B_HOST_TO_LENDIAN_FLOAT_was_removed_use_B_HOST_TO_LENDIAN_IFLOAT_instead___See_the_FLOAT_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
+# define B_BENDIAN_TO_HOST_FLOAT(arg) B_BENDIAN_TO_HOST_FLOAT_was_removed_use_B_BENDIAN_TO_HOST_IFLOAT_instead___See_the_FLOAT_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
+# define B_LENDIAN_TO_HOST_FLOAT(arg) B_LENDIAN_TO_HOST_FLOAT_was_removed_use_B_LENDIAN_TO_HOST_IFLOAT_instead___See_the_FLOAT_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
+# define B_SWAP_FLOAT(arg)            B_SWAP_FLOAT_was_removed___See_the_FLOAT_TROUBLE_comment_in_support_MuscleSupport_h_for_details.
+#endif
 
 /***********************************************************************************************
  * DOUBLE_TROUBLE COMMENT
@@ -694,11 +705,13 @@ static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * f
  * a int32 (for floats) or a int64 (for doubles).  --Jeremy 1/8/2007
  **********************************************************************************************/
 
-#define B_HOST_TO_BENDIAN_DOUBLE(arg) B_HOST_TO_BENDIAN_DOUBLE_was_removed_use_B_HOST_TO_BENDIAN_IDOUBLE_instead___See_the_DOUBLE_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
-#define B_HOST_TO_LENDIAN_DOUBLE(arg) B_HOST_TO_LENDIAN_DOUBLE_was_removed_use_B_HOST_TO_LENDIAN_IDOUBLE_instead___See_the_DOUBLE_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
-#define B_BENDIAN_TO_HOST_DOUBLE(arg) B_BENDIAN_TO_HOST_DOUBLE_was_removed_use_B_BENDIAN_TO_HOST_IDOUBLE_instead___See_the_DOUBLE_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
-#define B_LENDIAN_TO_HOST_DOUBLE(arg) B_LENDIAN_TO_HOST_DOUBLE_was_removed_use_B_LENDIAN_TO_HOST_IDOUBLE_instead___See_the_DOUBLE_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
-#define B_SWAP_DOUBLE(arg)            B_SWAP_DOUBLE_was_removed___See_the_DOUBLE_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+# define B_HOST_TO_BENDIAN_DOUBLE(arg) B_HOST_TO_BENDIAN_DOUBLE_was_removed_use_B_HOST_TO_BENDIAN_IDOUBLE_instead___See_the_DOUBLE_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
+# define B_HOST_TO_LENDIAN_DOUBLE(arg) B_HOST_TO_LENDIAN_DOUBLE_was_removed_use_B_HOST_TO_LENDIAN_IDOUBLE_instead___See_the_DOUBLE_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
+# define B_BENDIAN_TO_HOST_DOUBLE(arg) B_BENDIAN_TO_HOST_DOUBLE_was_removed_use_B_BENDIAN_TO_HOST_IDOUBLE_instead___See_the_DOUBLE_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
+# define B_LENDIAN_TO_HOST_DOUBLE(arg) B_LENDIAN_TO_HOST_DOUBLE_was_removed_use_B_LENDIAN_TO_HOST_IDOUBLE_instead___See_the_DOUBLE_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
+# define B_SWAP_DOUBLE(arg)            B_SWAP_DOUBLE_was_removed___See_the_DOUBLE_TROUBLE_comment_in_support_MuscleSupport_h_for_details_
+#endif
 
 # if defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY)
 static inline uint16 MusclePowerPCSwapInt16(uint16 val)
@@ -719,13 +732,13 @@ static inline uint64 MusclePowerPCSwapInt64(uint64 val)
 {
    return ((uint64)(MusclePowerPCSwapInt32((uint32)((val>>32)&0xFFFFFFFF))))|(((uint64)(MusclePowerPCSwapInt32((uint32)(val&0xFFFFFFFF))))<<32);
 }
-#  define B_SWAP_INT64(arg)    MusclePowerPCSwapInt64((uint64)(arg))
-#  define B_SWAP_INT32(arg)    MusclePowerPCSwapInt32((uint32)(arg))
-#  define B_SWAP_INT16(arg)    MusclePowerPCSwapInt16((uint16)(arg))
+#  define B_SWAP_INT64(arg)    MusclePowerPCSwapInt64((uint64)(arg))  /**< Given a uint64, returns its endian-swapped equivalent */
+#  define B_SWAP_INT32(arg)    MusclePowerPCSwapInt32((uint32)(arg))  /**< Given a uint32, returns its endian-swapped equivalent */
+#  define B_SWAP_INT16(arg)    MusclePowerPCSwapInt16((uint16)(arg))  /**< Given a uint16, returns its endian-swapped equivalent */
 # elif defined(MUSCLE_USE_MSVC_SWAP_FUNCTIONS)
-#  define B_SWAP_INT64(arg)    _byteswap_uint64((uint64)(arg))
-#  define B_SWAP_INT32(arg)    _byteswap_ulong((uint32)(arg))
-#  define B_SWAP_INT16(arg)    _byteswap_ushort((uint16)(arg))
+#  define B_SWAP_INT64(arg)    _byteswap_uint64((uint64)(arg))        /**< Given a uint64, returns its endian-swapped equivalent */
+#  define B_SWAP_INT32(arg)    _byteswap_ulong((uint32)(arg))         /**< Given a uint32, returns its endian-swapped equivalent */
+#  define B_SWAP_INT16(arg)    _byteswap_ushort((uint16)(arg))        /**< Given a uint16, returns its endian-swapped equivalent */
 # elif defined(MUSCLE_USE_X86_INLINE_ASSEMBLY)
 static inline uint16 MuscleX86SwapInt16(uint16 val)
 {
@@ -782,11 +795,12 @@ static inline uint64 MuscleX86SwapInt64(uint64 val)
 // No assembly language available... so we'll use inline C
 
 # if defined(__cplusplus)
-#  define MUSCLE_INLINE inline
+#  define MUSCLE_INLINE inline          /**< Expands to "inline" for C++ code, or to "static inline" for C code */
 # else
-#  define MUSCLE_INLINE static inline
+#  define MUSCLE_INLINE static inline   /**< Expands to "inline" for C++ code, or to "static inline" for C code */
 # endif
 
+/** Given a 64-bit integer, returns its endian-swapped counterpart */
 MUSCLE_INLINE int64 B_SWAP_INT64(int64 arg)
 {
    union {int64 _i64; uint8 _i8[8];} u1, u2;
@@ -801,6 +815,8 @@ MUSCLE_INLINE int64 B_SWAP_INT64(int64 arg)
    u2._i8[7] = u1._i8[0];
    return u2._i64;
 }
+
+/** Given a 32-bit integer, returns its endian-swapped counterpart */
 MUSCLE_INLINE int32 B_SWAP_INT32(int32 arg)
 {
    union {int32 _i32; uint8 _i8[4];} u1, u2;
@@ -810,7 +826,9 @@ MUSCLE_INLINE int32 B_SWAP_INT32(int32 arg)
    u2._i8[2] = u1._i8[1];
    u2._i8[3] = u1._i8[0];
    return u2._i32;
-}
+}  
+
+/** Given a 16-bit integer, returns its endian-swapped counterpart */
 MUSCLE_INLINE int16 B_SWAP_INT16(int16 arg)
 {
    union {int16 _i16; uint8 _i8[2];} u1, u2;
@@ -819,37 +837,38 @@ MUSCLE_INLINE int16 B_SWAP_INT16(int16 arg)
    u2._i8[1] = u1._i8[0];
    return u2._i16;
 }
+
 # endif
 # if BYTE_ORDER == LITTLE_ENDIAN
-#  define B_HOST_IS_LENDIAN 1
-#  define B_HOST_IS_BENDIAN 0
-#  define B_HOST_TO_LENDIAN_INT64(arg)  ((uint64)(arg))
-#  define B_HOST_TO_LENDIAN_INT32(arg)  ((uint32)(arg))
-#  define B_HOST_TO_LENDIAN_INT16(arg)  ((uint16)(arg))
-#  define B_HOST_TO_BENDIAN_INT64(arg)  B_SWAP_INT64(arg)
-#  define B_HOST_TO_BENDIAN_INT32(arg)  B_SWAP_INT32(arg)
-#  define B_HOST_TO_BENDIAN_INT16(arg)  B_SWAP_INT16(arg)
-#  define B_LENDIAN_TO_HOST_INT64(arg)  ((uint64)(arg))
-#  define B_LENDIAN_TO_HOST_INT32(arg)  ((uint32)(arg))
-#  define B_LENDIAN_TO_HOST_INT16(arg)  ((uint16)(arg))
-#  define B_BENDIAN_TO_HOST_INT64(arg)  B_SWAP_INT64(arg)
-#  define B_BENDIAN_TO_HOST_INT32(arg)  B_SWAP_INT32(arg)
-#  define B_BENDIAN_TO_HOST_INT16(arg)  B_SWAP_INT16(arg)
+#  define B_HOST_IS_LENDIAN 1                              /**< Set to 1 if native CPU is little-endian; set to 0 if native CPU is big-endian. */
+#  define B_HOST_IS_BENDIAN 0                              /**< Set to 1 if native CPU is big-endian; set to 0 if native CPU is little-endian. */
+#  define B_HOST_TO_LENDIAN_INT64(arg)  ((uint64)(arg))    /**< Given a uint64 or int64 in native-endian format, returns its equivalent little-endian value. */
+#  define B_HOST_TO_LENDIAN_INT32(arg)  ((uint32)(arg))    /**< Given a uint32 or int32 in native-endian format, returns its equivalent little-endian value. */
+#  define B_HOST_TO_LENDIAN_INT16(arg)  ((uint16)(arg))    /**< Given a uint16 or int16 in native-endian format, returns its equivalent little-endian value. */
+#  define B_HOST_TO_BENDIAN_INT64(arg)  B_SWAP_INT64(arg)  /**< Given a uint64 or int64 in native-endian format, returns its equivalent big-endian value. */
+#  define B_HOST_TO_BENDIAN_INT32(arg)  B_SWAP_INT32(arg)  /**< Given a uint32 or int32 in native-endian format, returns its equivalent big-endian value. */
+#  define B_HOST_TO_BENDIAN_INT16(arg)  B_SWAP_INT16(arg)  /**< Given a uint16 or int16 in native-endian format, returns its equivalent big-endian value. */
+#  define B_LENDIAN_TO_HOST_INT64(arg)  ((uint64)(arg))    /**< Given a uint64 or int64 in little-endian format, returns its equivalent native-endian value. */
+#  define B_LENDIAN_TO_HOST_INT32(arg)  ((uint32)(arg))    /**< Given a uint32 or int32 in little-endian format, returns its equivalent native-endian value. */
+#  define B_LENDIAN_TO_HOST_INT16(arg)  ((uint16)(arg))    /**< Given a uint16 or int16 in little-endian format, returns its equivalent native-endian value. */
+#  define B_BENDIAN_TO_HOST_INT64(arg)  B_SWAP_INT64(arg)  /**< Given a uint64 or int64 in big-endian format, returns its equivalent native-endian value. */
+#  define B_BENDIAN_TO_HOST_INT32(arg)  B_SWAP_INT32(arg)  /**< Given a uint32 or int32 in big-endian format, returns its equivalent native-endian value. */
+#  define B_BENDIAN_TO_HOST_INT16(arg)  B_SWAP_INT16(arg)  /**< Given a uint16 or int16 in big-endian format, returns its equivalent native-endian value. */
 # else
-#  define B_HOST_IS_LENDIAN 0
-#  define B_HOST_IS_BENDIAN 1
-#  define B_HOST_TO_LENDIAN_INT64(arg)  B_SWAP_INT64(arg)
-#  define B_HOST_TO_LENDIAN_INT32(arg)  B_SWAP_INT32(arg)
-#  define B_HOST_TO_LENDIAN_INT16(arg)  B_SWAP_INT16(arg)
-#  define B_HOST_TO_BENDIAN_INT64(arg)  ((uint64)(arg))
-#  define B_HOST_TO_BENDIAN_INT32(arg)  ((uint32)(arg))
-#  define B_HOST_TO_BENDIAN_INT16(arg)  ((uint16)(arg))
-#  define B_LENDIAN_TO_HOST_INT64(arg)  B_SWAP_INT64(arg)
-#  define B_LENDIAN_TO_HOST_INT32(arg)  B_SWAP_INT32(arg)
-#  define B_LENDIAN_TO_HOST_INT16(arg)  B_SWAP_INT16(arg)
-#  define B_BENDIAN_TO_HOST_INT64(arg)  ((uint64)(arg))
-#  define B_BENDIAN_TO_HOST_INT32(arg)  ((uint32)(arg))
-#  define B_BENDIAN_TO_HOST_INT16(arg)  ((uint16)(arg))
+#  define B_HOST_IS_LENDIAN 0                              /**< Set to 1 if native CPU is little-endian; set to 0 if native CPU is big-endian. */
+#  define B_HOST_IS_BENDIAN 1                              /**< Set to 1 if native CPU is big-endian; set to 0 if native CPU is little-endian. */
+#  define B_HOST_TO_LENDIAN_INT64(arg)  B_SWAP_INT64(arg)  /**< Given a uint64 or int64 in native-endian format, returns its equivalent little-endian value. */
+#  define B_HOST_TO_LENDIAN_INT32(arg)  B_SWAP_INT32(arg)  /**< Given a uint32 or int32 in native-endian format, returns its equivalent little-endian value. */
+#  define B_HOST_TO_LENDIAN_INT16(arg)  B_SWAP_INT16(arg)  /**< Given a uint16 or int16 in native-endian format, returns its equivalent little-endian value. */
+#  define B_HOST_TO_BENDIAN_INT64(arg)  ((uint64)(arg))    /**< Given a uint64 or int64 in native-endian format, returns its equivalent big-endian value. */
+#  define B_HOST_TO_BENDIAN_INT32(arg)  ((uint32)(arg))    /**< Given a uint32 or int32 in native-endian format, returns its equivalent big-endian value. */
+#  define B_HOST_TO_BENDIAN_INT16(arg)  ((uint16)(arg))    /**< Given a uint16 or int16 in native-endian format, returns its equivalent big-endian value. */
+#  define B_LENDIAN_TO_HOST_INT64(arg)  B_SWAP_INT64(arg)  /**< Given a uint64 or int64 in little-endian format, returns its equivalent native-endian value. */
+#  define B_LENDIAN_TO_HOST_INT32(arg)  B_SWAP_INT32(arg)  /**< Given a uint32 or int32 in little-endian format, returns its equivalent native-endian value. */
+#  define B_LENDIAN_TO_HOST_INT16(arg)  B_SWAP_INT16(arg)  /**< Given a uint16 or int16 in little-endian format, returns its equivalent native-endian value. */
+#  define B_BENDIAN_TO_HOST_INT64(arg)  ((uint64)(arg))    /**< Given a uint64 or int64 in big-endian format, returns its equivalent native-endian value. */
+#  define B_BENDIAN_TO_HOST_INT32(arg)  ((uint32)(arg))    /**< Given a uint32 or int32 in big-endian format, returns its equivalent native-endian value. */
+#  define B_BENDIAN_TO_HOST_INT16(arg)  ((uint16)(arg))    /**< Given a uint16 or int16 in big-endian format, returns its equivalent native-endian value. */
 # endif
 #endif /* !__BEOS__ && !__HAIKU__*/
 
@@ -859,20 +878,52 @@ MUSCLE_INLINE int16 B_SWAP_INT16(int16 arg)
   * in this header file for an explanation as to why.  --Jeremy 01/08/2007
   */
 
-/* Yes, the memcpy() is necessary... mere pointer-casting plus assignment operations don't cut it under x86 */
+/** Safely reinterprets a floating-point value to store its bit-pattern in a uint32.  (Note that mere casting isn't safe under x86!)
+  * @param arg The 32-bit floating point value to reinterpret
+  * @returns a uint32 whose 32-bit bit-pattern is the same as the bits in (arg)
+  */
 static inline uint32 B_REINTERPRET_FLOAT_AS_INT32(float arg)   {uint32 r; memcpy(&r, &arg, sizeof(r)); return r;}
+
+/** Reinterprets the bit-pattern of a uint32 as a floating-point value.  (Note that mere casting isn't safe under x86!)
+  * @param arg The uint32 value whose contents are known to represent the bits of a 32-bit floating-point value.
+  * @returns The original floating point value that (arg) is equivalent to.
+  */
 static inline float  B_REINTERPRET_INT32_AS_FLOAT(uint32 arg)  {float  r; memcpy(&r, &arg, sizeof(r)); return r;}
+
+/** Safely reinterprets a double-precision floating-point value to store its bit-pattern in a uint64.  (Note that mere casting isn't safe under x86!)
+  * @param arg The 64-bit floating point value to reinterpret
+  * @returns a uint64 whose 64-bit bit-pattern is the same as the bits in (arg)
+  */
 static inline uint64 B_REINTERPRET_DOUBLE_AS_INT64(double arg) {uint64 r; memcpy(&r, &arg, sizeof(r)); return r;}
+
+/** Reinterprets the bit-pattern of a uint64 as a double-precision floating-point value.  (Note that mere casting isn't safe under x86!)
+  * @param arg The uint64 value whose contents are known to represent the bits of a 64-bit floating-point value.
+  * @returns The original double-precision point value that (arg) is equivalent to.
+  */
 static inline double B_REINTERPRET_INT64_AS_DOUBLE(uint64 arg) {double r; memcpy(&r, &arg, sizeof(r)); return r;}
 
+/** Given a 32-bit floating point value in native-endian form, returns a 32-bit integer contains the floating-point value's bits in big-endian format. */
 #define B_HOST_TO_BENDIAN_IFLOAT(arg)  B_HOST_TO_BENDIAN_INT32(B_REINTERPRET_FLOAT_AS_INT32(arg))
+
+/** Given a 32-bit integer representing a floating point value in big-endian format, returns the floating point value in native-endian form. */ 
 #define B_BENDIAN_TO_HOST_IFLOAT(arg)  B_REINTERPRET_INT32_AS_FLOAT(B_BENDIAN_TO_HOST_INT32(arg))
+
+/** Given a 32-bit floating point value in native-endian form, returns a 32-bit integer contains the floating-point value's bits in little-endian format. */
 #define B_HOST_TO_LENDIAN_IFLOAT(arg)  B_HOST_TO_LENDIAN_INT32(B_REINTERPRET_FLOAT_AS_INT32(arg))
+
+/** Given a 32-bit integer representing a floating point value in little-endian format, returns the floating point value in native-endian form. */ 
 #define B_LENDIAN_TO_HOST_IFLOAT(arg)  B_REINTERPRET_INT32_AS_FLOAT(B_LENDIAN_TO_HOST_INT32(arg))
 
+/** Given a 64-bit floating point value in native-endian form, returns a 64-bit integer contains the floating-point value's bits in big-endian format. */
 #define B_HOST_TO_BENDIAN_IDOUBLE(arg) B_HOST_TO_BENDIAN_INT64(B_REINTERPRET_DOUBLE_AS_INT64(arg))
+
+/** Given a 64-bit integer representing a floating point value in big-endian format, returns the double-precision floating point value in native-endian form. */ 
 #define B_BENDIAN_TO_HOST_IDOUBLE(arg) B_REINTERPRET_INT64_AS_DOUBLE(B_BENDIAN_TO_HOST_INT64(arg))
+
+/** Given a 64-bit floating point value in native-endian format, returns a 64-bit integer contains the floating-point value's bits in little-endian format. */
 #define B_HOST_TO_LENDIAN_IDOUBLE(arg) B_HOST_TO_LENDIAN_INT64(B_REINTERPRET_DOUBLE_AS_INT64(arg))
+
+/** Given a 64-bit integer representing a floating point value in little-endian format, returns the double-precision floating point value in native-endian form. */ 
 #define B_LENDIAN_TO_HOST_IDOUBLE(arg) B_REINTERPRET_INT64_AS_DOUBLE(B_LENDIAN_TO_HOST_INT64(arg))
 
 /* Macro to turn a type code into a string representation.
@@ -898,11 +949,11 @@ typedef UINT_PTR uintptr;   // Use these under MSVC so that the compiler
 typedef INT_PTR  ptrdiff;   // doesn't give spurious warnings in /Wp64 mode
 #else
 # if defined(MUSCLE_64_BIT_PLATFORM)
-typedef uint64 uintptr;
-typedef int64 ptrdiff;
+typedef uint64 uintptr;  /**< uintptr is an unsigned integer type that is guaranteed to be able to hold a pointer value for the native CPU, without any data loss */
+typedef int64 ptrdiff;   /**< ptrdiff is a signed integer type that is guaranteed to be able to hold the difference between two pointer values for the native CPU, without any data loss */
 # else
-typedef uint32 uintptr;
-typedef int32 ptrdiff;
+typedef uint32 uintptr;  /**< uintptr is an unsigned integer type that is guaranteed to be able to hold a pointer value for the native CPU, without any data loss */
+typedef int32 ptrdiff;   /**< ptrdiff is a signed integer type that is guaranteed to be able to hold the difference between two pointer values for the native CPU, without any data loss */
 # endif
 #endif
 
@@ -971,9 +1022,11 @@ namespace muscle {
 class DataNode;  // FogBugz #9816 tweakage
 #endif
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
 // forward declarations
 extern void Crash();
 extern void ExitWithoutCleanup(int);
+#endif
 
 #if MUSCLE_TRACE_CHECKPOINTS > 0
 
@@ -1028,6 +1081,14 @@ static inline const volatile uint32 * GetTraceValues() {return _muscleTraceValue
 /* no-op implementations for when we aren't using the trace facility */
 static inline void SetTraceValuesLocation(volatile uint32 * location) {(void) location;}  /* named param is necessary for C compatibility */
 static inline void StoreTraceValue(uint32 v) {(void) v;}  /* named param is necessary for C compatibility */
+
+/** A macro for automatically setting a trace checkpoint value based on current code location.
+  * The value will be the two characters of the function or file name, left-shifted by 16 bits,
+  * and then OR'd together with the current line number.  This should give the debugging person a
+  * fairly good clue as to where the checkpoint was located, while still being very cheap to implement.
+  *
+  * @note This function will be a no-op unless MUSCLE_TRACE_CHECKPOINTS is defined to be greater than zero.
+  */
 #define TCHECKPOINT {/* empty */}
 #endif
 

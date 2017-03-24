@@ -17,7 +17,7 @@ extern "C" {
  *  @{
  */
 
-/* My own little boolean type, since C doesn't come with one built in. */
+/** My own little boolean type, since C doesn't come with one built in. */
 typedef char UBool;
 enum {UFalse = 0, UTrue};  /* and boolean values to go in it */
 
@@ -575,7 +575,7 @@ const char * UMGetString(const UMessage * msg, const char * fieldName, uint32 id
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
   * @param idx The index of the string item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
-  * @param retSTring on success, a pointer to the requested string is written to this location.
+  * @param retStringPointer on success, a pointer to the requested string is written to this location.
   * @returns B_NO_ERROR on success, or B_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
 static inline status_t UMFindString(const UMessage * msg, const char * fieldName, uint32 idx, const char ** retStringPointer) {*retStringPointer = UMGetString(msg, fieldName, idx); return (*retStringPointer) ? B_NO_ERROR : B_ERROR;}

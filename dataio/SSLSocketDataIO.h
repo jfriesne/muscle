@@ -32,6 +32,7 @@ public:
     */
    SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking, bool accept);
 
+   /** Destructor. */
    virtual ~SSLSocketDataIO();
 
    /** Adds a certification to use for this session.

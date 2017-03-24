@@ -16,7 +16,7 @@ extern "C" {
  *  @{
  */
 
-/* My own little boolean type, since C doesn't come with one built in. */
+/** My own little boolean type, since C doesn't come with one built in. */
 typedef char MBool;
 enum {MFalse = 0, MTrue};  /* and boolean values to go in it */
 
@@ -39,12 +39,13 @@ typedef struct _MRect {
    float bottom; /**< bottom edge of the rectangle */
 } MRect;
 
+struct _MMessage;
+
 /** Definition of our opaque handle to a MMessage object.  Your
   * code doesn't know what a (MMessage *) points to, and it doesn't care,
   * because all operations on it should happen via calls to the functions
   * that are defined below.
   */
-struct _MMessage;
 typedef struct _MMessage MMessage;
 
 /** This object is used in field name iterations */
@@ -551,17 +552,17 @@ const char * MMGetNextFieldName(MMessageIterator * iteratorPtr, uint32 * optRetT
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
 
 /** A wrapper for malloc() that allows us to track the number of bytes currently allocated.  
-  * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise #defined to malloc().
+  * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise defined to be equivalent to malloc().
   */
 void * MMalloc(uint32 numBytes);
 
 /** A wrapper for free() that allows us to track the number of bytes currently allocated.
-  * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise #defined to free().
+  * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise defined to be equivalent to free().
   */
 void * MFree(void * ptr);
 
 /** A wrapper for realloc() that allows us to track the number of bytes currently allocated.
-  * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise #defined to realloc().
+  * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise defined to be equivalent to realloc().
   */
 void * MRealloc(void * oldBuf, uint32 newSize);
 

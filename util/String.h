@@ -19,7 +19,8 @@
 
 namespace muscle {
 
-#ifdef MUSCLE_COUNT_STRING_COPY_OPERATIONS
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+# ifdef MUSCLE_COUNT_STRING_COPY_OPERATIONS
 enum {
    STRING_OP_DEFAULT_CTOR = 0,
    STRING_OP_CSTR_CTOR,
@@ -34,18 +35,19 @@ enum {
 };
 extern uint32 _stringOpCounts[NUM_STRING_OPS];
 extern void PrintAndClearStringCopyCounts(const char * optDesc = NULL);
-# define MUSCLE_INCREMENT_STRING_OP_COUNT(which) _stringOpCounts[which]++
-#else
-# define MUSCLE_INCREMENT_STRING_OP_COUNT(which)
+#  define MUSCLE_INCREMENT_STRING_OP_COUNT(which) _stringOpCounts[which]++
+# else
+#  define MUSCLE_INCREMENT_STRING_OP_COUNT(which)
 static inline void PrintAndClearStringCopyCounts(const char * optDesc = NULL) {(void) optDesc;}
+# endif
 #endif
 
 class Point;
 class Rect;
 
-// strings containing up to SMALL_MUSCLE_STRING_LENGTH characters can be stored inline, without requiring a dynamic memory allocation
 #ifndef SMALL_MUSCLE_STRING_LENGTH
-# define SMALL_MUSCLE_STRING_LENGTH 7   // Note:  values greater than 7 will cause sizeof(String) to grow to greater than 16 bytes!
+/** Defines the number of ASCII characters that may be held "inline" in a String object, without requiring a separate heap allocation.  If not specified explicitly via a compiler argument (e.g. -DSMALL_MUSCLE_STRING_LENGTH=15), it defaults to 7, and 7 ASCII-chars plus one NUL byte exactly match the space required for a 64-bit pointer, and thus can be used with no space-penalty.  Beware that setting this to a value greater than 7 will cause sizeof(String) to increase.  */
+# define SMALL_MUSCLE_STRING_LENGTH 7
 #endif
 
 /** Same as strcmp(), except that it will sort numbers within the string numerically rather than lexically. */

@@ -2,6 +2,7 @@
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 
+#include "dataio/DataIO.h"
 #include "zlib/ZLibCodec.h"
 #include "system/GlobalMemoryAllocator.h"
 
@@ -63,6 +64,13 @@ static const uint32 ZLIB_CODEC_HEADER_DEPENDENT   = 2053925218;               //
 static const uint32 ZLIB_CODEC_HEADER_INDEPENDENT = 2053925219;               // 'zlic'
 static const uint32 ZLIB_CODEC_HEADER_SIZE  = sizeof(uint32)+sizeof(uint32);  // 4 bytes of magic, 4 bytes of raw-size
 
+// (headerBuf) must point to at least ZLIB_CODEC_HEADER_SIZE bytes of writable memory!
+static void WriteZLibCodecHeader(uint8 * headerBuf, bool independent, uint32 totalBytesToRead)
+{
+   muscleCopyOut(&headerBuf[0*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(independent ? ZLIB_CODEC_HEADER_INDEPENDENT : ZLIB_CODEC_HEADER_DEPENDENT));
+   muscleCopyOut(&headerBuf[1*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(totalBytesToRead));
+}
+
 ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool independent, uint32 addHeaderBytes, uint32 addFooterBytes)
 {
    TCHECKPOINT;
@@ -91,15 +99,7 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
          if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(ret()->SetNumBytes(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes, true) == B_NO_ERROR))
          {
             (void) ret()->FreeExtraBytes();  // no sense keeping all that extra space around, is there?
-
-            uint8 * compBytes = ret()->GetBuffer()+addHeaderBytes;  // important -- it might have changed!
-
-            const uint32 magic = B_HOST_TO_LENDIAN_INT32(independent ? ZLIB_CODEC_HEADER_INDEPENDENT : ZLIB_CODEC_HEADER_DEPENDENT);
-            muscleCopyOut(compBytes, magic);
-
-            const uint32 rawLen = B_HOST_TO_LENDIAN_INT32(numRaw);
-            muscleCopyOut(&compBytes[sizeof(magic)], rawLen); 
-//printf("Deflated " UINT32_FORMAT_SPEC " bytes to " UINT32_FORMAT_SPEC " bytes\n", numRaw, ret()->GetNumBytes());
+            WriteZLibCodecHeader(ret()->GetBuffer()+addHeaderBytes, independent, numRaw);
          }
          else ret.Reset();  // oops, something went wrong!
       }
@@ -113,12 +113,11 @@ int32 ZLibCodec :: GetInflatedSize(const uint8 * compBytes, uint32 numComp, bool
 
    if ((compBytes)&&(numComp >= ZLIB_CODEC_HEADER_SIZE))
    {
-      uint32 magic; muscleCopyIn(magic, compBytes); magic = B_LENDIAN_TO_HOST_INT32(magic);
+      const uint32 magic = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(compBytes));
       if ((magic == ZLIB_CODEC_HEADER_INDEPENDENT)||(magic == ZLIB_CODEC_HEADER_DEPENDENT))
       {
          if (optRetIsIndependent) *optRetIsIndependent = (magic == ZLIB_CODEC_HEADER_INDEPENDENT);
-         uint32 rawLen; muscleCopyIn(rawLen, compBytes+sizeof(magic));
-         return B_LENDIAN_TO_HOST_INT32(rawLen);
+         return B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(compBytes+sizeof(magic)));
       }
    }
    return -1;
@@ -158,6 +157,124 @@ ByteBufferRef ZLibCodec :: Inflate(const uint8 * compBytes, uint32 numComp)
    }
    return ret;
 }
+
+status_t ZLibCodec :: ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & destDeflatedIO, bool independent, uint32 totalBytesToRead)
+{
+   if (_deflateOkay == false) return B_ERROR;
+
+   ByteBuffer scratchInBuf(32*1024);
+   if (scratchInBuf.GetNumBytes() == 0) return B_ERROR;
+
+   ByteBuffer scratchOutBuf(scratchInBuf.GetNumBytes()*2);  // yes, bigger than scratchInBuf!  Because I'm paranoid
+   if (scratchOutBuf.GetNumBytes() == 0) return B_ERROR;
+
+   if ((independent)&&(deflateReset(&_deflater) != Z_OK))
+   {
+      _deflateOkay = false;
+      return B_ERROR;
+   }
+
+   uint8 headerBuf[ZLIB_CODEC_HEADER_SIZE];
+   WriteZLibCodecHeader(headerBuf, independent, totalBytesToRead);
+   if (destDeflatedIO.WriteFully(headerBuf, sizeof(headerBuf)) != sizeof(headerBuf)) return B_ERROR;
+
+   _deflater.next_in   = scratchInBuf.GetBuffer();
+   _deflater.avail_in  = 0;
+   _deflater.total_in  = 0;
+   _deflater.total_out = 0;
+
+   uint32 numRawBytesLeftToRead = totalBytesToRead;
+   while((numRawBytesLeftToRead > 0)||(_deflater.avail_in > 0))
+   {
+      // We'll always deflate to the same destination, since we Write() all deflated bytes out immediately each time
+      _deflater.next_out  = scratchOutBuf.GetBuffer();
+      _deflater.avail_out = scratchOutBuf.GetNumBytes();
+
+      // Pull in some more input data, if we don't have any
+      if ((_deflater.avail_in == 0)&&(numRawBytesLeftToRead > 0))
+      {
+         int32 numBytesRead = sourceRawIO.Read(scratchInBuf.GetBuffer(), muscleMin(numRawBytesLeftToRead, scratchInBuf.GetNumBytes()));
+         if (numBytesRead <= 0) return B_ERROR;
+
+         numRawBytesLeftToRead -= numBytesRead;
+         _deflater.next_in  = scratchInBuf.GetBuffer();
+         _deflater.avail_in = numBytesRead;
+      }
+
+      int zRet = deflate(&_deflater, Z_SYNC_FLUSH);
+      if ((zRet != Z_OK)&&(zRet != Z_STREAM_END)) return B_ERROR;
+
+      // If deflate() generated some deflated bytes, write them out to the destDeflatedIO
+      const int32 numBytesProduced = _deflater.next_out-scratchOutBuf.GetBuffer();
+      if (numBytesProduced > 0)
+      {
+         int32 numBytesWritten = destDeflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced);
+         if (numBytesWritten != numBytesProduced) return B_ERROR;
+      }
+   }
+
+   return B_NO_ERROR;
+}
+
+status_t ZLibCodec :: ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO & destInflatedIO)
+{
+   if (_inflateOkay == false) return B_ERROR;
+
+   ByteBuffer scratchInBuf(32*1024);
+   if (scratchInBuf.GetNumBytes() == 0) return B_ERROR;
+
+   ByteBuffer scratchOutBuf(scratchInBuf.GetNumBytes()*8);
+   if (scratchOutBuf.GetNumBytes() == 0) return B_ERROR;
+
+   uint8 headerBuf[ZLIB_CODEC_HEADER_SIZE];
+   const uint32 headerBytesRead = sourceDeflatedIO.ReadFully(headerBuf, sizeof(headerBuf));
+   if (headerBytesRead != sizeof(headerBuf)) return B_ERROR;
+
+   bool independent;
+   const int32 numBytesToBeWritten = GetInflatedSize(headerBuf, sizeof(headerBuf), &independent);
+   if (numBytesToBeWritten < 0) return B_ERROR;
+
+   if ((independent)&&(inflateReset(&_inflater) != Z_OK))
+   {
+      _inflateOkay = false;
+      return B_ERROR;
+   }
+
+   _inflater.next_in   = scratchInBuf.GetBuffer();
+   _inflater.avail_in  = 0;
+   _inflater.total_in  = 0;
+   _inflater.total_out = 0;
+
+   while(_inflater.total_out < (uint32)numBytesToBeWritten)
+   {
+      // We'll always inflate to the same destination, since we Write() all inflated bytes out immediately each time
+      _inflater.next_out  = scratchOutBuf.GetBuffer();
+      _inflater.avail_out = scratchOutBuf.GetNumBytes();
+
+      // Pull in some more input data, if we don't have any
+      if (_inflater.avail_in == 0)
+      {
+         int32 numBytesRead = sourceDeflatedIO.Read(scratchInBuf.GetBuffer(), scratchInBuf.GetNumBytes());
+         if (numBytesRead <= 0) return B_ERROR;
+
+         _inflater.next_in  = scratchInBuf.GetBuffer();
+         _inflater.avail_in = numBytesRead;
+      }
+
+      int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
+      if ((zRet != Z_OK)&&(zRet != Z_STREAM_END)) return B_ERROR;
+
+      // If inflate() generated some inflated bytes, write them out to the destInflatedIO
+      const int32 numBytesProduced = _inflater.next_out-scratchOutBuf.GetBuffer();
+      if (numBytesProduced > 0)
+      {
+         int32 numBytesWritten = destInflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced);
+         if (numBytesWritten != numBytesProduced) return B_ERROR;
+      }
+   }
+   return B_NO_ERROR;
+}
+
 
 }; // end namespace muscle
 

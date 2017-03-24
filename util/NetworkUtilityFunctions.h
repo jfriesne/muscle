@@ -34,26 +34,30 @@ namespace muscle {
  *  @{
  */
 
-// The total maximum size of a packet (including all headers and user data) that can be sent
-// over a network without causing packet fragmentation
 #ifndef MUSCLE_EXPECTED_MTU_SIZE_BYTES
-# define MUSCLE_EXPECTED_MTU_SIZE_BYTES 1500  // Default to the MTU that good old Ethernet uses
+/** The total maximum size of a packet (including all headers and user data) that can be sent
+ *  over a network without causing packet fragmentation.  Default value is 1500 (appropriate for
+ *  standard Ethernet) but it can be overridden to another value at compile time via e.g. -DMUSCLE_EXPECTED_MTU_SIZE_BYTES=1200
+ */
+# define MUSCLE_EXPECTED_MTU_SIZE_BYTES 1500
 #endif
 
-// Some extra room, just in case some router or VLAN headers need to be added also
 #ifndef MUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES
-# define MUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES 64
+# define MUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES 64 /**< Some extra room, just in case some router or VLAN headers need to be added also */
 #endif
 
 #ifdef MUSCLE_AVOID_IPV6
-# define MUSCLE_IP_HEADER_SIZE_BYTES 24  // IPv4: assumes worst-case scenario (i.e. that the options field is included)
+# define MUSCLE_IP_HEADER_SIZE_BYTES 24  /**< Number of bytes in an IPv4 packet header: assumes worst-case scenario (i.e. that the options field is included) */
 #else
-# define MUSCLE_IP_HEADER_SIZE_BYTES 40  // IPv6: assuming no additional header chunks, of course
+# define MUSCLE_IP_HEADER_SIZE_BYTES 40  /**< Number of bytes in an IPv6 pakcet header: assuming no additional header chunks, of course */
 #endif
 
-#define MUSCLE_UDP_HEADER_SIZE_BYTES (4*sizeof(uint16))  // (sourceport, destport, length, checksum)
+#define MUSCLE_UDP_HEADER_SIZE_BYTES (4*sizeof(uint16))  /**< Number of additional bytes in a UDP sub-header (sourceport, destport, length, checksum) */
 
 #ifndef MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET
+/** Total number of application-payload bytes that we can fit into a UDP packet without causing packet fragmentation.  Calculated based on the value of MUSCLE_EXPECTED_MTU_SIZE_BYTES
+  * combined with the sizes of the various packet-headers.  Try not to put more than this-many bytes of application data into your UDP packets!
+  */
 # define MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (MUSCLE_EXPECTED_MTU_SIZE_BYTES-(MUSCLE_IP_HEADER_SIZE_BYTES+MUSCLE_UDP_HEADER_SIZE_BYTES+MUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES))
 #endif
 

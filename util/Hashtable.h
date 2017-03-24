@@ -22,10 +22,12 @@
 #endif
 
 #ifndef MUSCLE_HASHTABLE_DEFAULT_CAPACITY
-# define MUSCLE_HASHTABLE_DEFAULT_CAPACITY 7  // reduced from 8 because 256 is an awkward table size: just too large to use uint8-indices with
+/** The number of key/value-pairs in the array an empty Hashtable object allocates from the heap the first time data is inserted into it.  Note that 8 is an awkward size because it means that after a few doublings, the table will be of size 256, which is just slightly too large to use with uint-indices, since ((uint8)-1) is used as a guard value.  That's why this defaults to 7 rather than 8. */
+# define MUSCLE_HASHTABLE_DEFAULT_CAPACITY 7
 #endif
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+# ifdef MUSCLE_USE_CPLUSPLUS11
 // Enable move semantics (when possible) for C++11
 # define HT_UniversalSinkKeyRef template<typename HT_KeyParam>
 # define HT_UniversalSinkValueRef template<typename HT_ValueParam>
@@ -36,7 +38,7 @@
 # define HT_ForwardKey(key) std::forward<HT_KeyParam>(key)
 # define HT_PlunderValue(val) std::move(val)
 # define HT_ForwardValue(val) std::forward<HT_ValueParam>(val)
-#else
+# else
 // For earlier versions of C++, use the traditional copy/ref semantics
 # define HT_UniversalSinkKeyRef
 # define HT_UniversalSinkValueRef
@@ -49,6 +51,7 @@
 # define HT_ForwardKey(key) (key)
 # define HT_PlunderValue(val) (val)
 # define HT_ForwardValue(val) (val)
+# endif
 #endif
 
 namespace muscle {

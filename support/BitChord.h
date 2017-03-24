@@ -147,10 +147,12 @@ private:
    unsigned int _words[NUM_WORDS];
 };
 
-#define DECLARE_ADDITIONAL_BITCHORD_OPERATORS(N) \
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+# define DECLARE_ADDITIONAL_BITCHORD_OPERATORS(N) \
   inline const BitChord<N> operator | (const BitChord<N> & lhs, const BitChord<N> & rhs) {BitChord<N> ret(lhs); ret |= rhs; return ret;} \
   inline const BitChord<N> operator & (const BitChord<N> & lhs, const BitChord<N> & rhs) {BitChord<N> ret(lhs); ret &= rhs; return ret;} \
   inline const BitChord<N> operator ^ (const BitChord<N> & lhs, const BitChord<N> & rhs) {BitChord<N> ret(lhs); ret ^= rhs; return ret;}
+#endif
 
 }; // end namespace muscle
 

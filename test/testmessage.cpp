@@ -35,14 +35,14 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      *((int32 *)buffer) = B_HOST_TO_LENDIAN_INT32(_val); buffer += sizeof(_val);
+      muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(_val)); buffer += sizeof(_val);
       _string.Flatten(buffer);
    }
 
    virtual status_t Unflatten(const uint8 *buf, uint32 size)
    {
       if (size < sizeof(_val)) return B_ERROR;
-      _val = B_LENDIAN_TO_HOST_INT32(*((const int32 *)buf)); buf += sizeof(_val); size -= sizeof(_val);
+      _val = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(buf)); buf += sizeof(_val); size -= sizeof(_val);
       return _string.Unflatten(buf, size);
    }
 
