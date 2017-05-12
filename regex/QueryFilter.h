@@ -724,7 +724,7 @@ public:
      * @param typeCode Typecode to look for in the target Message.  Default is B_ANY_TYPE, indicating that any type code is acceptable.
      * @param index Optional index of the item within the field.  Defaults to zero.
      */
-   RawDataQueryFilter(const String & fieldName, uint8 op, const ByteBufferRef & value, uint32 typeCode = B_ANY_TYPE, uint32 index = 0) : ValueQueryFilter(fieldName, index), _value(value), _op(op), _typeCode(typeCode) {/* empty */}
+   RawDataQueryFilter(const String & fieldName, uint8 op, const ConstByteBufferRef & value, uint32 typeCode = B_ANY_TYPE, uint32 index = 0) : ValueQueryFilter(fieldName, index), _value(value), _op(op), _typeCode(typeCode) {/* empty */}
 
    /** Constructor.  This constructor is similar to the constructor shown above,
      * except that when this constructor is used, if the specified item does not exist in 
@@ -739,7 +739,7 @@ public:
      * @param index Optional index of the item within the field.  Defaults to zero.
      * @param assumedValue The value to use if no actual value is found at the specified location in the Message we are filtering.
      */
-   RawDataQueryFilter(const String & fieldName, uint8 op, const ByteBufferRef & value, uint32 typeCode, uint32 index, const ByteBufferRef & assumedValue) : ValueQueryFilter(fieldName, index), _value(value), _op(op), _typeCode(typeCode), _default(assumedValue) {/* empty */}
+   RawDataQueryFilter(const String & fieldName, uint8 op, const ConstByteBufferRef & value, uint32 typeCode, uint32 index, const ConstByteBufferRef & assumedValue) : ValueQueryFilter(fieldName, index), _value(value), _op(op), _typeCode(typeCode), _default(assumedValue) {/* empty */}
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
@@ -757,7 +757,7 @@ public:
    /** Set the value to compare against.
      * @param value The new value.
      */
-   void SetValue(const ByteBufferRef & value) {_value = value;}
+   void SetValue(const ConstByteBufferRef & value) {_value = value;}
 
    /** Sets the type code that we will look for in the target Message.
      * @param typeCode the type code to look for.  Use B_ANY_TYPE to indicate that you don't care what the type code is.
@@ -770,7 +770,7 @@ public:
    uint32 GetTypeCode() const {return _typeCode;}
 
    /** Returns the currently specified value, as specified in the constructor or in SetValue() */
-   ByteBufferRef GetValue() const {return _value;}
+   ConstByteBufferRef GetValue() const {return _value;}
  
    enum {
       OP_EQUAL_TO = 0,              /**< This token represents '==' */
@@ -792,16 +792,16 @@ public:
      * Message we are matching against doesn't have an actual value itself. 
      * Call this with a NULL reference if you don't want to use an assumed default value.
      */ 
-   void SetAssumedDefault(const ByteBufferRef & bufRef) {_default = bufRef;}
+   void SetAssumedDefault(const ConstByteBufferRef & bufRef) {_default = bufRef;}
 
    /** Returns the current assumed default value, or a NULL reference if there is none. */
-   const ByteBufferRef & GetAssumedDefault() const {return _default;}
+   const ConstByteBufferRef & GetAssumedDefault() const {return _default;}
 
 private:
-   ByteBufferRef _value;
+   ConstByteBufferRef _value;
    uint8 _op;
    uint32 _typeCode;
-   ByteBufferRef _default;
+   ConstByteBufferRef _default;
 };
 DECLARE_REFTYPES(RawDataQueryFilter);
 

@@ -645,20 +645,19 @@ static inline uint32 get_tbu() {uint32 tbu; asm volatile("mftbu %0" : "=r" (tbu)
 #endif
 
 // For BeOS, this is an in-line function, defined in util/TimeUtilityFunctions.h
-#if !(defined(__BEOS__) || defined(__HAIKU__) || (defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)))
 /** Defined here since every MUSCLE program will have to include this file anyway... */
-uint64 GetRunTime64()
+static uint64 GetRunTime64Aux()
 {
-# ifdef WIN32
-   TCHECKPOINT;
-
+#if defined(__BEOS__) || defined(__HAIKU__)
+   return return system_time();
+#elif defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
+   return rt_timer_tsc2ns(rt_timer_tsc())/1000;
+#elif defined(WIN32)
    uint64 ret = 0;
    static Mutex _rtMutex;
    if (_rtMutex.Lock() == B_NO_ERROR)
    {
-#  ifdef MUSCLE_USE_QUERYPERFORMANCECOUNTER
-      TCHECKPOINT;
-
+# ifdef MUSCLE_USE_QUERYPERFORMANCECOUNTER
       static int64 _brokenQPCOffset = 0;
       if (_brokenQPCOffset != 0) ret = (((uint64)timeGetTime())*1000) + _brokenQPCOffset;
       else
@@ -697,7 +696,7 @@ uint64 GetRunTime64()
             _lastCheckQPCTime = ret;
          }
       }
-#  endif
+# endif
       if (ret == 0)
       {
          static uint32 _prevVal    = 0;
@@ -711,14 +710,12 @@ uint64 GetRunTime64()
       _rtMutex.Unlock();
    }
    return ret;
-# elif defined(__APPLE__)
+#elif defined(__APPLE__)
    static bool _init = true;
    static mach_timebase_info_data_t _timebase;
    if (_init) {_init = false; (void) mach_timebase_info(&_timebase);}
    return (uint64)((mach_absolute_time() * _timebase.numer) / (1000 * _timebase.denom));
-# else
-#  if defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY) && defined(MUSCLE_POWERPC_TIMEBASE_HZ)
-   TCHECKPOINT;
+#elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY) && defined(MUSCLE_POWERPC_TIMEBASE_HZ)
    while(1)
    {
       uint32 hi1 = get_tbu();
@@ -731,10 +728,10 @@ uint64 GetRunTime64()
          return ((cycles/MUSCLE_POWERPC_TIMEBASE_HZ)*MICROS_PER_SECOND)+(((cycles%MUSCLE_POWERPC_TIMEBASE_HZ)*(MICROS_PER_SECOND))/MUSCLE_POWERPC_TIMEBASE_HZ);
       }
    }
-#  elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
+#elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
    struct timespec ts;
    return (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) ? (SecondsToMicros(ts.tv_sec)+NanosToMicros(ts.tv_nsec)) : 0; 
-#  else
+#else
    // default implementation:  use POSIX API
    static clock_t _ticksPerSecond = 0;
    if (_ticksPerSecond <= 0) _ticksPerSecond = sysconf(_SC_CLK_TCK);
@@ -767,10 +764,13 @@ uint64 GetRunTime64()
       }
    }
    return 0;  // Oops?
-#  endif
-# endif
-}
 #endif
+}
+
+static int64 _perProcessRunTimeOffset = 0;
+uint64 GetRunTime64() {return GetRunTime64Aux()+_perProcessRunTimeOffset;}
+void SetPerProcessRunTime64Offset(int64 offset) {_perProcessRunTimeOffset = offset;}
+int64 GetPerProcessRunTime64Offset() {return _perProcessRunTimeOffset;}
 
 #if !(defined(__BEOS__) || defined(__HAIKU__))
 status_t Snooze64(uint64 micros)

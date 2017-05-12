@@ -160,7 +160,7 @@ public:
      */
    virtual void ChildProcessReadyToRun();
 
-   /** Returns the process ID of the child process.  Not available under Windows. */
+   /** Returns the process ID of the child process. */
 #if defined(WIN32) || defined(CYGWIN)
    uint32 GetChildProcessID() const {return (uint32)GetProcessId(_childProcess);}
 #else

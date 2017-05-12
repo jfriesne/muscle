@@ -74,7 +74,7 @@ static inline ByteBufferRef DeflateByteBuffer(const ByteBuffer & buf, int compre
   *                    Leave this set to zero if you're not sure of what you are doing.
   * @returns a reference to a compressed ByteBuffer (not (buf())!) on success, or a NULL reference on failure.
   */
-static inline ByteBufferRef DeflateByteBuffer(const ByteBufferRef & buf, int compressionLevel = 6, uint32 addHeaderBytes = 0, uint32 addFooterBytes = 0) {return buf() ? DeflateByteBuffer(*buf(), compressionLevel, addHeaderBytes, addFooterBytes) : ByteBufferRef();}
+static inline ByteBufferRef DeflateByteBuffer(const ConstByteBufferRef & buf, int compressionLevel = 6, uint32 addHeaderBytes = 0, uint32 addFooterBytes = 0) {return buf() ? DeflateByteBuffer(*buf(), compressionLevel, addHeaderBytes, addFooterBytes) : ByteBufferRef();}
 
 /** Given come compressed data, returns a ByteBuffer containing the original/uncompressed data.
   * @param bytes Pointer to the data to uncompress
@@ -93,7 +93,7 @@ static inline ByteBufferRef InflateByteBuffer(const ByteBuffer & buf) {return In
   * @param buf a compressed ByteBuffer you want to get the decompressed version of.
   * @returns a reference to an uncompressed ByteBuffer (not (buf())!) on success, or a NULL reference on failure.
   */
-static inline ByteBufferRef InflateByteBuffer(const ByteBufferRef & buf) {return buf() ? InflateByteBuffer(*buf()) : ByteBufferRef();}
+static inline ByteBufferRef InflateByteBuffer(const ConstByteBufferRef & buf) {return buf() ? InflateByteBuffer(*buf()) : ByteBufferRef();}
 
 /** Reads raw/uncompressed data bytes from (sourceRawIO), deflates it, and writes the resulting zlib-compressed data to (destDeflatedIO).
   * This is equivalent to doing the I/O separately and calling InflateByteBuffer() and DeflateByteBuffer() in the middle,

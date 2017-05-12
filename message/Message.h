@@ -1565,7 +1565,7 @@ inline MessageRef GetMessageFromPool(const ByteBuffer & bb) {return GetMessageFr
  *  @param bbRef a ByteBufferRef referencing a ByteBuffer object to unflatten the Message from.
  *  @return Reference to a Message object, or a NULL ref on failure (out of memory or unflattening error)
  */
-inline MessageRef GetMessageFromPool(const ByteBufferRef & bbRef) {return bbRef() ? GetMessageFromPool(*bbRef()) : MessageRef();}
+inline MessageRef GetMessageFromPool(const ConstByteBufferRef & bbRef) {return bbRef() ? GetMessageFromPool(*bbRef()) : MessageRef();}
 
 /** Convenience method:  Gets a Message from the message pool, and populates it by calling
   * SaveToArchive(msg) on the passed in object.  Templates so that the passed-in object may be of any type.

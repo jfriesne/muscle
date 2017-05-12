@@ -388,6 +388,53 @@ public:
     */
    status_t GetKeyAt(uint32 index, KeyType & retKey) const;
 
+   /** Returns a reference to the (index)'th key in this Hashtable, or a default-constructed key if this table doesn't contain that many keys.
+    *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
+    *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @return A reference to a key value, either one from the table or the one specified.
+    */
+   const KeyType & GetKeyAtWithDefault(uint32 index) const;
+
+   /** Returns a reference to the (index)'th key in this Hashtable, or (defaultKey) if this table doesn't contain that many keys.
+    *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
+    *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param defaultKey If (index) is not less than the number of items in this table, then this will be returned.
+    *  @return A reference to a key value, either one from the table or the one specified.
+    */
+   const KeyType & GetKeyAtWithDefault(uint32 index, const KeyType & defaultKey) const;
+
+   /** Returns a pointer to the (index)'th value in this Hashtable.
+    *  (This Hashtable class keeps its entries in a well-defined order)
+    *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
+    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @returns Pointer to the value at position (index) on success, or NULL on failure (bad index?)
+    */
+   const ValueType * GetValueAt(uint32 index) const;
+
+   /** Returns the (index)'th value in this Hashtable.
+    *  (This Hashtable class keeps its entries in a well-defined order)
+    *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
+    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param retValue On success, the contents of the (index)'th value will be written into this object.
+    *  @return B_NO_ERROR on success, or B_ERROR on failure.
+    */
+   status_t GetValueAt(uint32 index, ValueType & retValue) const;
+
+   /** Returns a reference to the (index)'th value in this Hashtable, or a default-constructed value if this table doesn't contain that many value.
+    *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
+    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @return A reference to a value value, either one from the table or the one specified.
+    */
+   const ValueType & GetValueAtWithDefault(uint32 index) const;
+
+   /** Returns a reference to the (index)'th value in this Hashtable, or (defaultValue) if this table doesn't contain that many value.
+    *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
+    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param defaultValue If (index) is not less than the number of items in this table, then this will be returned.
+    *  @return A reference to a value value, either one from the table or the one specified.
+    */
+   const ValueType & GetValueAtWithDefault(uint32 index, const ValueType & defaultValue) const;
+
    /** Removes a mapping from the table.  (O(1) removal time)
     *  @param key The key of the key-value mapping to remove.
     *  @return B_NO_ERROR if a key was found and the mapping removed, or B_ERROR if the key wasn't found.
@@ -1931,6 +1978,59 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAt(uint32 index, KeyType
       return B_NO_ERROR;
    }
    return B_ERROR;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+const KeyType & 
+HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAtWithDefault(uint32 index) const
+{
+   HashtableEntryBase * e = GetEntryAt(index);
+   return e ? e->_key : GetDefaultKey();
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+const KeyType & 
+HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAtWithDefault(uint32 index, const KeyType & defaultKey) const
+{
+   HashtableEntryBase * e = GetEntryAt(index);
+   return e ? e->_key : defaultKey;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+const ValueType * 
+HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAt(uint32 index) const
+{
+   HashtableEntryBase * e = GetEntryAt(index);
+   return e ? &e->_value : NULL;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+status_t 
+HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAt(uint32 index, ValueType & retValue) const
+{
+   HashtableEntryBase * e = GetEntryAt(index);
+   if (e)
+   {
+      retValue = e->_value;
+      return B_NO_ERROR;
+   }
+   return B_ERROR;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+const ValueType & 
+HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAtWithDefault(uint32 index) const
+{
+   HashtableEntryBase * e = GetEntryAt(index);
+   return e ? e->_value : GetDefaultValue();
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+const ValueType & 
+HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAtWithDefault(uint32 index, const ValueType & defaultValue) const
+{
+   HashtableEntryBase * e = GetEntryAt(index);
+   return e ? e->_value : defaultValue;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>

@@ -354,7 +354,7 @@ FlattenHeaderAndMessage(const MessageRef & msgRef) const
 
 MessageRef 
 MessageIOGateway ::
-UnflattenHeaderAndMessage(const ByteBufferRef & bufRef) const
+UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const
 {
    TCHECKPOINT;
 

@@ -168,6 +168,8 @@ private:
          _selectSocket.SetFileDescriptor(fd, false);  // false because the fclose() will call close(fd), so we should not
          _selectSocketRef.SetRef(&_selectSocket, false);
       } 
+#else
+      (void) optFile; // avoid compiler warning
 #endif
    }
 

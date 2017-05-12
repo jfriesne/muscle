@@ -183,7 +183,7 @@ protected:
     * The default implementation uses (optional) ZLib decompression (depending on the header bytes)
     * and then msg.Unflatten() to produce the Message.
     */
-   virtual MessageRef UnflattenHeaderAndMessage(const ByteBufferRef & bufRef) const;
+   virtual MessageRef UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const;
  
    /**
     * Returns the size of the pre-flattened-message header section, in bytes.

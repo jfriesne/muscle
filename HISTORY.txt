@@ -5,6 +5,26 @@ key:  - new feature
       * bug fixed
       o other
 
+6.42 Released 5/12/2017
+   - Added SetPerProcessRunTime64Offset() and
+     GetPerProcessRunTime64Offset() calls, to support
+     adding an artificial constant to the values returned
+     by GetRunTime64(), for testing purposes
+   - Added ParseHumanReadableSignedTimeIntervalString()
+     and GetHumanReadableSignedTimeIntervalString() functions
+     to TimeUtilityFunctions.h for better parsing of
+     time-intervals that might be negative.
+   - Added some new convenience methods to the Hashtable
+     class:  GetKeyAtWithDefault(), GetValueAt(), and
+     GetValueAtWithDefault()
+   o Modified the signatures of a few API calls (including
+     MessageIOGateway::UnflattenHeaderAndMessage(), 
+     DeflateByteBuffer(), InflateByteBuffer, and the
+     RawDataQueryFilter class) to take a 
+     (const ConstByteBufferRef &) rather than a 
+     (const ByteBufferRef &), as they don't ever need to 
+     modify the referenced ByteBuffer object anyway.
+
 6.41 Released 3/23/2017
    - Added ReadAndDeflateAndWrite() and ReadAndInflateAndWrite()
      functions to the ZLibUtilityFunctions.{cpp,h} API, and

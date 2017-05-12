@@ -194,13 +194,16 @@ uint64 GetCurrentTime64(uint32 timeType=MUSCLE_TIMEZONE_UTC);
  *  (i.e. how much time has passed between two events).  For a "wall clock" type of result with
  *  a well-defined time-base, you can call GetCurrentTime64() instead.
  */
-#if defined(__BEOS__) || defined(__HAIKU__)
-inline uint64 GetRunTime64() {return system_time();}
-#elif defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
-inline uint64 GetRunTime64() {return rt_timer_tsc2ns(rt_timer_tsc())/1000;}
-#else
 uint64 GetRunTime64();
-#endif
+
+/** Set an offset-value that you want to be added to the values returned by GetRunTime64() for this process.
+  * Not usually necessary, but this can be useful if you want to simulate different clocks while testing on a single host.
+  * @param offset The offset (in microseconds) that GetRunTime64() should add to all values it returns in the future.
+  */
+void SetPerProcessRunTime64Offset(int64 offset);
+
+/** Returns the offset currently being added to all values returned by GetRunTime64().  Default value is zero. */
+int64 GetPerProcessRunTime64Offset();
 
 /** Given a run-time value, returns the equivalent current-time value.
   * @param runTime64 A run-time value, e.g. as returned by GetRunTime64().

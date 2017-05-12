@@ -566,6 +566,30 @@ uint64 ParseHumanReadableTimeIntervalString(const String & str);
   */
 String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL);
 
+/** Works the same as GetHumanReadableTimeIntervalString() except it interprets the passed-in microseconds value
+  * as a signed integer rather than unsigned, and thus will yield a useful result for negative values
+  * (e.g. "-3 seconds" rather than "54893 years").
+  * @param micros The number of microseconds to describe
+  * @param maxClauses The maximum number of clauses to allow in the returned string.  For example, passing this in
+  *                   as 1 might return "3 weeks", while passing this in as two might return "3 weeks, 2 days".
+  *                   Default value is MUSCLE_NO_LIMIT, indicating that no maximum should be enforced.
+  * @param minPrecisionMicros The maximum number of microseconds the routine is allowed to ignore
+  *                           when generating its string.  For example, if this value was passed in
+  *                           as 1000000, the returned string would describe the interval down to
+  *                           the nearest second.  Defaults to zero for complete accuracy.
+  * @param optRetIsAccurate If non-NULL, this value will be set to true if the returned string represents
+  *                         (micros) down to the nearest microsecond, or false if the string is an approximation.
+  * @returns a human-readable time interval description string.
+  */
+String GetHumanReadableSignedTimeIntervalString(int64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL);
+
+/** Works the same as ParseHumanReadableTimeIntervalString(), except that if the string
+  * starts with a - sign, a negative value will be returned. 
+  * @param str The string to parse 
+  * @returns a time interval value, in microseconds.
+  */
+int64 ParseHumanReadableSignedTimeIntervalString(const String & str);
+
 }; // end namespace muscle
 
 #endif

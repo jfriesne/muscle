@@ -2502,6 +2502,11 @@ uint64 ParseHumanReadableTimeIntervalString(const String & s)
    return ret;
 }
 
+int64 ParseHumanReadableSignedTimeIntervalString(const String & s)
+{
+   return (s.StartsWith('-')) ? -ParseHumanReadableTimeIntervalString(s.Substring(1)) : ParseHumanReadableTimeIntervalString(s);
+}
+
 String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate)
 {
    if (intervalUS == MUSCLE_TIME_NEVER) return "forever";
@@ -2528,6 +2533,13 @@ String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, 
    else if (optRetIsAccurate) *optRetIsAccurate = true;
 
    return ret;
+}
+
+String GetHumanReadableSignedTimeIntervalString(int64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate)
+{
+   String ret; 
+   if (intervalUS < 0) ret += '-';
+   return ret+GetHumanReadableTimeIntervalString(muscleAbs(intervalUS), maxClauses, minPrecision, optRetIsAccurate);
 }
 
 #ifndef MUSCLE_INLINE_LOGGING
