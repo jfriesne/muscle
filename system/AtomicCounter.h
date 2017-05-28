@@ -188,6 +188,8 @@ private:
 # else
    int32 _count;
 # endif
+#elif defined(__HAIKU__)
+   int32 _count;
 #elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY) || defined(MUSCLE_USE_X86_INLINE_ASSEMBLY)
    volatile int _count;
 #else
