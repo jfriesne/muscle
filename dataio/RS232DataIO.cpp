@@ -336,8 +336,8 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
                CFTypeRef bsdPathAsCFString = IORegistryEntryCreateCFProperty(modemService, CFSTR(kIOCalloutDeviceKey), kCFAllocatorDefault, 0);
                if (bsdPathAsCFString)
                {
-                  char bsdPath[256] = "";
-                  if (CFStringGetCString((CFStringRef)bsdPathAsCFString, bsdPath, sizeof(bsdPath), kCFStringEncodingASCII)) retList.AddTail(bsdPath);
+                  const String bsdPath((const CFStringRef)bsdPathAsCFString);
+                  if (bsdPath.HasChars()) retList.AddTail(bsdPath);
                   CFRelease(bsdPathAsCFString);
                }
                (void) IOObjectRelease(modemService);

@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.42" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        64200  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "6.50" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        65000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -488,6 +488,8 @@ namespace ugly_swapcontents_method_sfinae_implementation
    public:
       PODSwapper(T & t1, T & t2)
       {
+         if (&t1 == &t2) return;
+
 #ifdef MUSCLE_USE_CPLUSPLUS11
          T tmp(std::move(t1));
          t1 = std::move(t2); 
@@ -503,7 +505,7 @@ namespace ugly_swapcontents_method_sfinae_implementation
    template<typename T> class SwapContentsSwapper
    {
    public:
-      SwapContentsSwapper(T & t1, T & t2) {t1.SwapContents(t2);}
+      SwapContentsSwapper(T & t1, T & t2) {if (&t1 != &t2) t1.SwapContents(t2);}
    };
 
    template<typename ItemType> class AutoChooseSwapperHelper

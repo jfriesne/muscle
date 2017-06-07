@@ -5,6 +5,8 @@
 
 #include "support/MuscleSupport.h"
 #include "util/CountedObject.h"
+#include "util/IPAddress.h"
+#include "util/NetworkInterfaceInfo.h"  // just for backwards compatibility with old code
 #include "util/Queue.h"
 #include "util/Socket.h"
 #include "util/String.h"
@@ -61,24 +63,7 @@ namespace muscle {
 # define MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (MUSCLE_EXPECTED_MTU_SIZE_BYTES-(MUSCLE_IP_HEADER_SIZE_BYTES+MUSCLE_UDP_HEADER_SIZE_BYTES+MUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES))
 #endif
 
-#ifdef MUSCLE_AVOID_IPV6
-
-/** IPv4 addressing support */
-typedef uint32 ip_address;
-
-/** Given an IP address, returns a 32-bit hash code for it.  IPv4 implementation. */
-inline uint32 GetHashCodeForIPAddress(const ip_address & ip) {return CalculateHashCode(ip);}
-
-/** IPv4 Numeric representation of a all-zeroes invalid/guard address */
-const ip_address invalidIP = 0;
-
-/** IPv4 Numeric representation of localhost (127.0.0.1), for convenience */
-const ip_address localhostIP = ((((uint32)127)<<24)|((uint32)1));
-
-/** IPv4 Numeric representation of broadcast (255.255.255.255), for convenience */
-const ip_address broadcastIP = ((uint32)-1);
-
-#else
+#ifndef MUSCLE_AVOID_IPV6
 
 /* IPv6 addressing support */
 
@@ -100,250 +85,10 @@ void SetAutomaticIPv4AddressMappingEnabled(bool enabled);
   */
 bool GetAutomaticIPv4AddressMappingEnabled();
 
-/** This class represents an IPv6 network address, including the 128-bit IP
-  * address and the interface index field (necessary for connecting to link-local addresses)
-  */
-class ip_address MUSCLE_FINAL_CLASS
-{
-public:
-   ip_address(uint64 lowBits = 0, uint64 highBits = 0, uint32 interfaceIndex = 0) : _lowBits(lowBits), _highBits(highBits), _interfaceIndex(interfaceIndex) {/* empty */}
-   ip_address(const ip_address & rhs) : _lowBits(rhs._lowBits), _highBits(rhs._highBits), _interfaceIndex(rhs._interfaceIndex) {/* empty */}
-
-   ip_address & operator = (const ip_address & rhs) {_lowBits = rhs._lowBits; _highBits = rhs._highBits; _interfaceIndex = rhs._interfaceIndex; return *this;}
-
-   bool EqualsIgnoreInterfaceIndex(const ip_address & rhs) const {return ((_lowBits == rhs._lowBits)&&(_highBits == rhs._highBits));}
-   bool operator ==               (const ip_address & rhs) const {return ((EqualsIgnoreInterfaceIndex(rhs))&&(_interfaceIndex == rhs._interfaceIndex));}
-   bool operator !=               (const ip_address & rhs) const {return !(*this == rhs);}
-
-   bool operator < (const ip_address & rhs) const 
-   {
-      if (_highBits < rhs._highBits) return true;
-      if (_highBits > rhs._highBits) return false;
-      if (_lowBits  < rhs._lowBits)  return true;
-      if (_lowBits  > rhs._lowBits)  return false;
-      return (_interfaceIndex < rhs._interfaceIndex);
-   }
-
-   bool operator > (const ip_address & rhs) const 
-   {
-      if (_highBits < rhs._highBits) return false;
-      if (_highBits > rhs._highBits) return true;
-      if (_lowBits  < rhs._lowBits)  return false;
-      if (_lowBits  > rhs._lowBits)  return true;
-      return (_interfaceIndex > rhs._interfaceIndex);
-   }
-
-   bool operator <= (const ip_address & rhs) const {return (*this == rhs)||(*this < rhs);}
-   bool operator >= (const ip_address & rhs) const {return (*this == rhs)||(*this > rhs);}
-
-   ip_address operator & (const ip_address & rhs) {return ip_address(_lowBits & rhs._lowBits, _highBits & rhs._highBits, _interfaceIndex);}
-   ip_address operator | (const ip_address & rhs) {return ip_address(_lowBits | rhs._lowBits, _highBits | rhs._highBits, _interfaceIndex);}
-   ip_address operator ~ () {return ip_address(~_lowBits, ~_highBits, _interfaceIndex);}
-
-   ip_address operator &= (const ip_address & rhs) {*this = *this & rhs; return *this;}
-   ip_address operator |= (const ip_address & rhs) {*this = *this | rhs; return *this;}
-
-   void SetBits(uint64 lowBits, uint64 highBits) {_lowBits = lowBits; _highBits = highBits;}
-
-   uint64 GetLowBits()  const {return _lowBits;}
-   uint64 GetHighBits() const {return _highBits;}
-
-   void SetLowBits( uint64 lb) {_lowBits  = lb;}
-   void SetHighBits(uint64 hb) {_highBits = hb;}
-
-   void SetInterfaceIndex(uint32 iidx) {_interfaceIndex = iidx;}
-   uint32 GetInterfaceIndex() const    {return _interfaceIndex;}
-
-   uint32 HashCode() const {return CalculateHashCode(_interfaceIndex)+CalculateHashCode(_lowBits)+CalculateHashCode(_highBits);}
-
-   /** Writes our address into the specified uint8 array, in the required network-friendly order.
-     * @param networkBuf If non-NULL, the 16-byte network-array to write to.  Typically you would pass in 
-     *                   mySockAddr_in6.sin6_addr.s6_addr as the argument to this function.
-     * @param optInterfaceIndex If non-NULL, this value will receive a copy of our interface index.  Typically
-     *                          you would pass a pointer to mySockAddr_in6.sin6_addr.sin6_scope_id here.
-     */
-   void WriteToNetworkArray(uint8 * networkBuf, uint32 * optInterfaceIndex) const
-   {
-      if (networkBuf)
-      {
-         WriteToNetworkArrayAux(&networkBuf[0], _highBits);
-         WriteToNetworkArrayAux(&networkBuf[8], _lowBits);
-      }
-      if (optInterfaceIndex) *optInterfaceIndex = _interfaceIndex;
-   }
-
-   /** Reads our address in from the specified uint8 array, in the required network-friendly order.
-     * @param networkBuf If non-NULL, a 16-byte network-endian-array to read from.  Typically you would pass in 
-     *                    mySockAddr_in6.sin6_addr.s6_addr as the argument to this function.
-     * @param optInterfaceIndex If non-NULL, this value will be used to set this object's _interfaceIndex value.
-     */
-   void ReadFromNetworkArray(const uint8 * networkBuf, const uint32 * optInterfaceIndex)
-   {
-      if (networkBuf)
-      {
-         ReadFromNetworkArrayAux(&networkBuf[0], _highBits);
-         ReadFromNetworkArrayAux(&networkBuf[8], _lowBits);
-      }
-      if (optInterfaceIndex) _interfaceIndex = *optInterfaceIndex;
-   }
-
-private:
-   void WriteToNetworkArrayAux( uint8 * out, const uint64 & in ) const {uint64 tmp = B_HOST_TO_BENDIAN_INT64(in); muscleCopyOut(out, tmp);}
-   void ReadFromNetworkArrayAux(const uint8 * in, uint64 & out) const {uint64 tmp; muscleCopyIn(tmp, in); out = B_BENDIAN_TO_HOST_INT64(tmp);}
-
-   uint64 _lowBits;
-   uint64 _highBits;
-   uint32 _interfaceIndex;
-};
-
-/** Given an IP address, returns a 32-bit hash code for it.  For IPv6, this is done by calling the HashCode() method on the ip_address object. */
-inline uint32 GetHashCodeForIPAddress(const ip_address & ip) {return ip.HashCode();}
-
-/** IPv6 Numeric representation of a all-zeroes invalid/guard address */
-const ip_address invalidIP(0x00);
-
-/** IPv6 Numeric representation of localhost (::1) for convenience */
-const ip_address localhostIP(0x01);
-
-/** IPv6 Numeric representation of link-local broadcast (ff02::1), for convenience */
-const ip_address broadcastIP(0x01, ((uint64)0xFF02)<<48);
-
 #endif
-
-/** IPv4 Numeric representation of broadcast (255.255.255.255), for convenience 
-  * This constant is defined in both IPv6 and IPv4 modes, since sometimes you
-  * need to do an IPv4 broadcast even in an IPv6 program
-  */
-const ip_address broadcastIP_IPv4 = ip_address((uint32)-1);
-
-/** IPv4 Numeric representation of broadcast (255.255.255.255), for convenience 
-  * This constant is defined in both IPv6 and IPv4 modes, since sometimes you
-  * need to do an IPv4 broadcast even in an IPv6 program
-  */
-const ip_address localhostIP_IPv4 = ip_address((((uint32)127)<<24)|((uint32)1));
-
-/** This simple class holds an IP address and a port number, and lets you do
-  * useful things on the two such as using them as key values in a hash table,
-  * converting them to/from user-readable strings, etc.
-  */
-class IPAddressAndPort MUSCLE_FINAL_CLASS
-{
-public:
-   /** Default constructor.   Creates an IPAddressAndPort object with the address field
-     * set to (invalidIP) and the port field set to zero.
-     */
-   IPAddressAndPort() : _ip(invalidIP), _port(0) {/* empty */}
-
-   /** Explicit constructor
-     * @param ip The IP address to represent
-     * @param port The port number to represent
-     */
-   IPAddressAndPort(const ip_address & ip, uint16 port) : _ip(ip), _port(port) {/* empty */}
-
-   /** Convenience constructor.  Calling this is equivalent to creating an IPAddressAndPort
-     * object and then calling SetFromString() on it with the given arguments.
-     */
-   IPAddressAndPort(const String & s, uint16 defaultPort, bool allowDNSLookups) {SetFromString(s(), defaultPort, allowDNSLookups);}
-
-   /** Copy constructor */
-   IPAddressAndPort(const IPAddressAndPort & rhs) : _ip(rhs._ip), _port(rhs._port) {/* empty */}
-
-   /** Comparison operator.  Returns true iff (rhs) is equal to this object. 
-     * @param rhs The IPAddressAndPort object to compare this object to. 
-     */
-   bool operator == (const IPAddressAndPort & rhs) const {return (_ip == rhs._ip)&&(_port == rhs._port);}
-
-   /** Comparison operator.  Returns true iff (rhs) is not equal to this object. 
-     * @param rhs The IPAddressAndPort object to compare this object to. 
-     */
-   bool operator != (const IPAddressAndPort & rhs) const {return !(*this==rhs);}
-
-   /** Comparison operator.  Returns true iff this object is "less than" (rhs).
-     * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
-     */
-   bool operator < (const IPAddressAndPort & rhs) const {return ((_ip < rhs._ip)||((_ip == rhs._ip)&&(_port < rhs._port)));}
-
-   /** Comparison operator.  Returns true iff this object is "greater than" (rhs).
-     * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
-     */
-   bool operator > (const IPAddressAndPort & rhs) const {return ((_ip > rhs._ip)||((_ip == rhs._ip)&&(_port > rhs._port)));}
-
-   /** Comparison operator.  Returns true iff this object is "less than or equal to" (rhs).
-     * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
-     */
-   bool operator <= (const IPAddressAndPort & rhs) const {return !(*this>rhs);}
-
-   /** Comparison operator.  Returns true iff this object is "greater than or equal to" (rhs).
-     * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
-     */
-   bool operator >= (const IPAddressAndPort & rhs) const {return !(*this<rhs);}
-
-   /** HashCode returns a usable 32-bit hash code value for this object, based on its contents. */
-   uint32 HashCode() const {return GetHashCodeForIPAddress(_ip)+_port;}
-
-   /** Returns this object's current IP address */
-   const ip_address & GetIPAddress() const {return _ip;}
-
-   /** Returns this object's current port number */
-   uint16 GetPort() const {return _port;}
-
-   /** Sets this object's IP address to (ip) */
-   void SetIPAddress(const ip_address & ip) {_ip = ip;}
-
-   /** Sets this object's port number to (port) */
-   void SetPort(uint16 port) {_port = port;}
-
-   /** Resets this object to its default state; as if it had just been created by the default constructor. */
-   void Reset() {_ip = invalidIP; _port = 0;}
-
-   /** Returns true iff both our IP address and port number are valid (i.e. non-zero) */
-   bool IsValid() const {return ((_ip != invalidIP)&&(_port != 0));}
-
-   /** Sets this object's state from the passed-in character string.
-     * IPv4 address may be of the form "192.168.1.102", or of the form "192.168.1.102:2960".
-     * As long as -DMUSCLE_AVOID_IPV6 is not defined, IPv6 address (e.g. "::1") are also supported.
-     * Note that if you want to specify an IPv6 address and a port number at the same
-     * time, you will need to enclose the IPv6 address in brackets, like this:  "[::1]:2960"
-     * @param s The user-readable IP-address string, with optional port specification
-     * @param defaultPort What port number to assign if the string does not specify a port number.
-     * @param allowDNSLookups If true, this function will try to interpret non-numeric host names
-     *                        e.g. "www.google.com" by doing a DNS lookup.  If false, then no
-     *                        name resolution will be attempted, and only numeric IP addesses will be parsed.
-     */
-   void SetFromString(const String & s, uint16 defaultPort, bool allowDNSLookups);
-
-   /** Returns a string representation of this object, similar to the forms
-     * described in the SetFromString() documentation, above.
-     * @param includePort If true, the port will be included in the string.  Defaults to true.
-     * @param preferIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
-     *                        Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
-     */
-   String ToString(bool includePort = true, bool preferIPv4Style = false) const;
-
-#ifndef MUSCLE_AVOID_IPV6
-   /** Convenience method:  Returns an IPAddressAndPort object identical to this one,
-     * except that the include ip_address has its interface index field set to the specified value.
-     * @param interfaceIndex The new interface index value to use in the returned object.
-     */
-   IPAddressAndPort WithInterfaceIndex(uint32 interfaceIndex) const
-   {
-      ip_address addr = _ip;
-      addr.SetInterfaceIndex(interfaceIndex);
-      return IPAddressAndPort(addr, _port); 
-   }
-#endif
-
-private:
-   ip_address _ip;
-   uint16 _port;
-};
 
 /** Given a hostname or IP address string (e.g. "www.google.com" or "192.168.0.1" or "fe80::1"),
-  * returns the numeric ip_address value that corresponds to that name.
+  * returns the numeric IPAddress value that corresponds to that name.
   * @param name ASCII IP address or hostname to look up.
   * @param expandLocalhost If true, then if (name) corresponds to 127.0.0.1, this function
   *                        will attempt to determine the host machine's actual primary IP
@@ -356,7 +101,7 @@ private:
   * @note This function may invoke a synchronous DNS lookup, which means that it may take
   *       a long time to return (e.g. if the DNS server is not responding)
   */
-ip_address GetHostByName(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
+IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
 
 /** Sets the parameters for GetHostByName()'s internal DNS-results LRU cache.
   * Note that this cache is disabled by default, so by default every call to GetHostByName()
@@ -398,9 +143,9 @@ ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTit
  *                         to decide when the attempt should time out.
  * @return A non-NULL ConstSocketRef if the connection is successful, or a NULL ConstSocketRef if the connection failed.
  */
-ConstSocketRef Connect(const ip_address & hostIP, uint16 port, const char * debugHostName = NULL, const char * debugTitle = NULL, bool debugOutputOnErrorsOnly = true, uint64 maxConnectPeriod = MUSCLE_TIME_NEVER);
+ConstSocketRef Connect(const IPAddress & hostIP, uint16 port, const char * debugHostName = NULL, const char * debugTitle = NULL, bool debugOutputOnErrorsOnly = true, uint64 maxConnectPeriod = MUSCLE_TIME_NEVER);
 
-/** As above, only this version of Connect() takes an IPAddressAndPort object instead of separate ip_address and port arguments.
+/** As above, only this version of Connect() takes an IPAddressAndPort object instead of separate IPAddress and port arguments.
  * @param iap IP address and port to connect to.
  * @param debugHostName If non-NULL, we'll print this host name out when reporting errors.  It isn't used for networking purposes, though.
  * @param debugTitle If non-NULL, debug output to stdout will be enabled and debug output will be prefaced by this string.
@@ -422,7 +167,7 @@ inline ConstSocketRef Connect(const IPAddressAndPort & iap, const char * debugHo
  *                        the connection was received on.  Defaults to NULL.
  * @return A non-NULL ConstSocketRef if the accept was successful, or a NULL ConstSocketRef if the accept failed.
  */
-ConstSocketRef Accept(const ConstSocketRef & sock, ip_address * optRetLocalInfo = NULL);
+ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetLocalInfo = NULL);
 
 /** Reads as many bytes as possible from the given socket and places them into (buffer).
  *  @param sock The socket to read from.
@@ -439,14 +184,14 @@ int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeB
  *  @param buffer Location to place the received bytes into.
  *  @param bufferSizeBytes Number of bytes available at the location indicated by (buffer).
  *  @param socketIsBlockingIO Pass in true if the given socket is set to use blocking I/O, or false otherwise.
- *  @param optRetFromIP If set to non-NULL, then on success the ip_address this parameter points to will be filled in
+ *  @param optRetFromIP If set to non-NULL, then on success the IPAddress this parameter points to will be filled in
  *                      with the IP address that the received data came from.  Defaults to NULL.
  *  @param optRetFromPort If set to non-NULL, then on success the uint16 this parameter points to will be filled in
  *                      with the source port that the received data came from.  Defaults to NULL.
  *  @return The number of bytes read into (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsBlockingIO, ip_address * optRetFromIP = NULL, uint16 * optRetFromPort = NULL);
+int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsBlockingIO, IPAddress * optRetFromIP = NULL, uint16 * optRetFromPort = NULL);
 
 /** Similar to ReceiveData(), except that it will call read() instead of recv().
  *  This is the function to use if (fd) is referencing a file descriptor instead of a socket.
@@ -481,7 +226,7 @@ int32 SendData(const ConstSocketRef & sock, const void * buffer, uint32 bufferSi
  *  @return The number of bytes sent from (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsBlockingIO, const ip_address & optDestIP = invalidIP, uint16 destPort = 0);
+int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsBlockingIO, const IPAddress & optDestIP = invalidIP, uint16 destPort = 0);
 
 /** Similar to SendData(), except that the implementation calls write() instead of send().  This
  *  is the function to use when (fd) refers to a file descriptor instead of a socket.
@@ -508,7 +253,7 @@ int32 WriteData(const ConstSocketRef & fd, const void * buffer, uint32 bufferSiz
   *                   false to indicate that an asynchronous connection is now in progress.
   * @return A non-NULL ConstSocketRef (which is likely still in the process of connecting) on success, or a NULL ConstSocketRef if the accept failed.
   */
-ConstSocketRef ConnectAsync(const ip_address & hostIP, uint16 port, bool & retIsReady);
+ConstSocketRef ConnectAsync(const IPAddress & hostIP, uint16 port, bool & retIsReady);
 
 /** As above, only this version of ConnectAsync() takes an IPAddressAndPort object instead of separate IP address and port arguments.
   * @param iap IP address and port to connect to.
@@ -551,7 +296,7 @@ status_t ShutdownSocket(const ConstSocketRef & sock, bool disableReception = tru
  *                        if passed in as (invalidIP), then this socket will listen on all available network interfaces.
  * @return A non-NULL ConstSocketRef if the port was bound successfully, or a NULL ConstSocketRef if the accept failed.
  */
-ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * optRetPort = NULL, const ip_address & optInterfaceIP = invalidIP);
+ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * optRetPort = NULL, const IPAddress & optInterfaceIP = invalidIP);
 
 /** Translates the given 4-byte IP address into a string representation.
  *  @param address The 4-byte IP address to translate into text.
@@ -560,14 +305,14 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * 
  *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
  *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
  */
-void Inet_NtoA(const ip_address & address, char * outBuf, bool preferIPv4Style = false);
+void Inet_NtoA(const IPAddress & address, char * outBuf, bool preferIPv4Style = false);
 
 /** A more convenient version of INet_NtoA().  Given an IP address, returns a human-readable String representation of that address.
   *  @param ipAddress the IP address to return in String form.
   *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
   *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
   */
-String Inet_NtoA(const ip_address & ipAddress, bool preferIPv4Style = false);
+String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false);
 
 /** Returns true iff (s) is a well-formed IP address (e.g. "192.168.0.1")
   * @param (s) An ASCII string to check the formatting of
@@ -577,11 +322,11 @@ String Inet_NtoA(const ip_address & ipAddress, bool preferIPv4Style = false);
 bool IsIPAddress(const char * s);
 
 /** Given a dotted-quad IP address in ASCII format (e.g. "192.168.0.1"), returns
-  * the equivalent IP address in ip_address (packed binary) form. 
+  * the equivalent IP address in IPAddress (packed binary) form. 
   * @param buf numeric IP address in ASCII.
-  * @returns IP address as a ip_address, or invalidIP on failure.
+  * @returns IP address as a IPAddress, or invalidIP on failure.
   */
-ip_address Inet_AtoN(const char * buf);
+IPAddress Inet_AtoN(const char * buf);
 
 /** Returns a string that is the local host's primary host name. */
 String GetLocalHostName();
@@ -595,7 +340,7 @@ String GetLocalHostName();
  *  @param optRetPort if non-NULL, the port we are connected to on the remote peer will be written here.  Defaults to NULL.
  *  @return The IP address on success, or invalidIP on failure (such as if the socket isn't valid and connected).
  */
-ip_address GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort = NULL);
+IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort = NULL);
 
 /** Creates a pair of sockets that are connected to each other,
  *  so that any bytes you pass into one socket come out the other socket.
@@ -755,13 +500,13 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
   * the aforementioned functions will report.
   * @param ip New IP address to return instead of 127.0.0.1, or 0 to disable this override.
   */
-void SetLocalHostIPOverride(const ip_address & ip);
+void SetLocalHostIPOverride(const IPAddress & ip);
 
 /** Returns the user-specified IP address that was previously set by SetLocalHostIPOverride(), or 0
   * if none was set.  Note that this function <b>does not</b> report the local computer's IP address,
   * unless you previously called SetLocalHostIPOverride() with that address.
   */
-ip_address GetLocalHostIPOverride();
+IPAddress GetLocalHostIPOverride();
 
 /** Creates and returns a socket that can be used for UDP communications.
  *  Returns a negative value on error, or a non-negative socket handle on
@@ -786,7 +531,7 @@ ConstSocketRef CreateUDPSocket();
  *                     UDP broadcast receivers on a single computer. 
  *  @returns B_NO_ERROR on success, or B_ERROR on failure.
  */
-status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRetPort = NULL, const ip_address & optFrom = invalidIP, bool allowShared = false);
+status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRetPort = NULL, const IPAddress & optFrom = invalidIP, bool allowShared = false);
 
 /** Set the target/destination address for a UDP socket.  After successful return
  *  of this function, any data that is written to the UDP socket will be sent to this
@@ -796,7 +541,7 @@ status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRet
  *  @param remotePort Remote UDP port ID that data should be sent to.
  *  @returns B_NO_ERROR on success, or B_ERROR on failure.
  */
-status_t SetUDPSocketTarget(const ConstSocketRef & sock, const ip_address & remoteIP, uint16 remotePort);
+status_t SetUDPSocketTarget(const ConstSocketRef & sock, const IPAddress & remoteIP, uint16 remotePort);
 
 /** As above, except that the remote host is specified by hostname instead of IP address.
  *  Note that this function may take involve a DNS lookup, and so may take a significant
@@ -825,155 +570,6 @@ status_t SetUDPSocketBroadcastEnabled(const ConstSocketRef & sock, bool broadcas
   * @returns true iff the socket is enabled for UDP broadcast; false otherwise.
   */
 bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock);
-
-/** This function returns true iff (ip) is one of the standard, well-known addresses for the
-  * localhost loopback device.  (e.g. 127.0.0.1 or ::1 or fe80::1)
-  * @param ip an IP address.
-  * @returns true iff (ip) is a well-known loopback device address.  Note that this function
-  *          does NOT check to see if an arbitrary IP address actually maps to the local host;  
-  *          it merely sees if (ip) is one of a few hard-coded values as described above.
-  */
-bool IsStandardLoopbackDeviceAddress(const ip_address & ip);
-
-/** This function returns true iff (ip) is a multicast IP address.
-  * @param ip an IP address.
-  * @returns true iff (ip) is a multicast address.
-  */
-bool IsMulticastIPAddress(const ip_address & ip);
-
-/** Returns true iff (ip) is a non-zero IP address.
-  * @param ip an IP adress.
-  * @returns true iff (ip) is not all zeroes.  (Note: In IPv6 mode, the interface index is not considered here)
-  */
-bool IsValidAddress(const ip_address & ip);
-
-/** Returns true iff (ip) is an IPv4-style (32-bits-only) or IPv4-mapped
-  * (32-bits-only plus ffff prefix) address.
-  * @param ip The IP address to examine.
-  * @returns treu if (ip) is an IPv4 or IPv4-mapped address, else false.
-  */
-bool IsIPv4Address(const ip_address & ip);
-
-/** This little container class is used to return data from the GetNetworkInterfaceInfos() function, below */
-class NetworkInterfaceInfo MUSCLE_FINAL_CLASS
-{
-public:
-   /** Default constructor.  Sets all member variables to default values. */
-   NetworkInterfaceInfo();
-
-   /** Constructor.  Sets all member variables to the values specified in the argument list.
-     * @param name The name of the interface, as it is known to the computer (e.g. "/dev/eth0").
-     * @param desc A human-readable description string describing the interface (e.g. "Ethernet Jack 0", or somesuch).
-     * @param ip The local IP address associated with the interface.
-     * @param netmask The netmask being used by this interface.
-     * @param broadcastIP The broadcast IP address associated with this interface.
-     * @param enabled True iff the interface is currently enabled; false if it is not.
-     * @param copper True iff the interface currently has an ethernet cable plugged into it.
-     * @param macAddress 48-bit MAC address value, or 0 if MAC address is unknown.
-     */
-   NetworkInterfaceInfo(const String & name, const String & desc, const ip_address & ip, const ip_address & netmask, const ip_address & broadcastIP, bool enabled, bool copper, uint64 macAddress);
-
-   /** Returns the name of this interface, or "" if the name is not known. */
-   const String & GetName() const {return _name;}
-
-   /** Returns a (human-readable) description of this interface, or "" if a description is unavailable. */
-   const String & GetDescription() const {return _desc;}
-
-   /** Returns the IP address of this interface */
-   const ip_address & GetLocalAddress() const {return _ip;}
-
-   /** Returns the netmask of this interface */
-   const ip_address & GetNetmask() const {return _netmask;}
-
-   /** If this interface is a point-to-point interface, this method returns the IP
-     * address of the machine at the remote end of the interface.  Otherwise, this
-     * method returns the broadcast address for this interface.
-     */
-   const ip_address & GetBroadcastAddress() const {return _broadcastIP;}
-
-   /** Returns the MAC address of this network interface, or 0 if the MAC address isn't known.
-     * Note that only the lower 48 bits of the returned 64-bit word are valid; the upper 16 bits will always be zero.
-     * @note This functionality is currently implemented under BSD/MacOSX, Linux, and Windows.  Under other OS's where
-     *       this information isn't implemented, this method will return 0.
-     */
-   uint64 GetMACAddress() const {return _macAddress;}
-
-   /** Returns true iff this interface is currently enabled ("up"). */
-   bool IsEnabled() const {return _enabled;}
-
-   /** Returns true iff this network interface is currently plugged in to anything 
-     * (i.e. iff the Ethernet cable is connected to the jack).
-     * Note that copper detection is not currently supported under Windows, so
-     * under Windows this will always return false.
-     */
-   bool IsCopperDetected() const {return _copper;}
-
-   /** For debugging.  Returns a human-readable string describing this interface. */
-   String ToString() const;
-
-   /** Returns a hash code for this NetworkInterfaceInfo object. */
-   uint32 HashCode() const;
-
-private:
-   friend status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 includeBits);  // so it can set the _macAddress field
-
-   String _name;
-   String _desc;
-   ip_address _ip;
-   ip_address _netmask;
-   ip_address _broadcastIP;
-   bool _enabled;
-   bool _copper;
-   uint64 _macAddress;
-};
-
-/** Bits that can be passed to GetNetworkInterfaceInfos() or GetNetworkInterfaceAddresses(). */
-enum {
-   GNII_INCLUDE_IPV4_INTERFACES        = 0x01, /**< If set, IPv4-specific interfaces will be returned */
-   GNII_INCLUDE_IPV6_INTERFACES        = 0x02, /**< If set, IPv6-specific interfaces will be returned */
-   GNII_INCLUDE_LOOPBACK_INTERFACES    = 0x04, /**< If set, loopback interfaces (e.g. lo0/127.0.0.1) will be returned */
-   GNII_INCLUDE_NONLOOPBACK_INTERFACES = 0x08, /**< If set, non-loopback interfaces (e.g. en0) will be returned */
-   GNII_INCLUDE_ENABLED_INTERFACES     = 0x10, /**< If set, enabled (aka "up") interfaces will be returned */
-   GNII_INCLUDE_DISABLED_INTERFACES    = 0x20, /**< If set, disabled (aka "down") interfaces will be returned */
-   GNII_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT = 0x40, /**< If set, loopback interfaces will be returned only if no other interfaces are found */
-   GNII_INCLUDE_UNADDRESSED_INTERFACES = 0x80, /**< If set, we'll include even interfaces that don't have a valid IP address */
-
-   // For convenience, GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES will specify interfaces of the family specified by MUSCLE_AVOID_IPV6's presence/abscence.
-#ifdef MUSCLE_AVOID_IPV6
-   GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_INCLUDE_IPV4_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
-#else
-   GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_INCLUDE_IPV6_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
-#endif
-
-   GNII_INCLUDE_ALL_INTERFACES           = 0xFFFFFFFF,  /**< If set, all interfaces will be returned */
-   GNII_INCLUDE_ALL_ADDRESSED_INTERFACES = (GNII_INCLUDE_ALL_INTERFACES & ~(GNII_INCLUDE_UNADDRESSED_INTERFACES))  /**< default setting -- all interfaces that currently have an IP address will be returned */
-};
-
-/** This function queries the local OS for information about all available network
-  * interfaces.  Note that this method is only implemented for some OS's (Linux,
-  * MacOS/X, Windows), and that on other OS's it may just always return B_ERROR.
-  * @param results On success, zero or more NetworkInterfaceInfo objects will
-  *                be added to this Queue for you to look at.
-  * @param includeBits A chord of GNII_INCLUDE_* bits indicating which types of network interface you want to be
-  *                    included in the returned list.  Defaults to GNII_INCLUDE_ALL_ADDRESSED_INTERFACES, which
-  *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory, call not implemented for the current OS, etc)
-  */
-status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 includeBits = GNII_INCLUDE_ALL_ADDRESSED_INTERFACES);
-
-/** This is a more limited version of GetNetworkInterfaceInfos(), included for convenience.
-  * Instead of returning all information about the local host's network interfaces, this
-  * one returns only their IP addresses.  It is the same as calling GetNetworkInterfaceInfos()
-  * and then iterating the returned list to assemble a list only of the IP addresses returned
-  * by GetBroadcastAddress().
-  * @param retAddresses On success, zero or more ip_addresses will be added to this Queue for you to look at.
-  * @param includeBits A chord of GNII_INCLUDE_* bits indicating which types of network interface you want to be
-  *                    included in the returned list.  Defaults to GNII_INCLUDE_ALL_ADDRESSED_INTERFACES, which 
-  *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory,
-  *          call not implemented for the current OS, etc)
-  */
-status_t GetNetworkInterfaceAddresses(Queue<ip_address> & retAddresses, uint32 includeBits = GNII_INCLUDE_ALL_ADDRESSED_INTERFACES);
 
 #ifndef MUSCLE_AVOID_MULTICAST_API
 
@@ -1019,14 +615,14 @@ uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock);
   * @param address The address of the local interface to send multicast packets on.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   */
-status_t SetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, const ip_address & address);
+status_t SetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, const IPAddress & address);
 
 /** Returns the address of the local interface that the given socket will
   * try to send multicast packets on, or invalidIP on failure.
   * @param sock The socket to query the sending interface of.
   * @returns the interface's IP address, or invalidIP on error.
   */
-ip_address GetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
+IPAddress GetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
 
 /** Attempts to add the specified socket to the specified multicast group.
   * @param sock The socket to add to the multicast group
@@ -1036,7 +632,7 @@ ip_address GetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
   *                              interface will be chosen automatically.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   */
-status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const ip_address & groupAddress, const ip_address & localInterfaceAddress = invalidIP);
+status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress = invalidIP);
 
 /** Attempts to remove the specified socket from the specified multicast group
   * that it was previously added to.
@@ -1047,7 +643,7 @@ status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const ip_address
   *                              group will be removed.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   */
-status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const ip_address & groupAddress, const ip_address & localInterfaceAddress = invalidIP);
+status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress = invalidIP);
 
 #else  // end IPv4 multicast, begin IPv6 multicast
 
@@ -1077,14 +673,14 @@ int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock);
   *       seem to have that requirement.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   */
-status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const ip_address & groupAddress);
+status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress);
 
 /** Attempts to remove the specified socket from the specified multicast group that it was previously added to.
   * @param sock The socket to add to the multicast group
   * @param groupAddress The IP address of the multicast group.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   */
-status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const ip_address & groupAddress);
+status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress);
 
 #endif  // end IPv6 multicast
 

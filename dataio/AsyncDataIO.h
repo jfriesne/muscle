@@ -25,6 +25,7 @@ public:
     *                 to avoid race conditions.
     */
    AsyncDataIO(const DataIORef & slaveIO) : _slaveIO(slaveIO), _mainThreadBytesWritten(0) {/* empty */}
+
    virtual ~AsyncDataIO();
 
    /** This must be called before using the AsyncDataIO object! */

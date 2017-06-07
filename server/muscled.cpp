@@ -41,7 +41,7 @@ int muscledmainAux(int argc, char ** argv, void * cookie)
    Queue<String> bans;
    Queue<String> requires;
    Message tempPrivs;
-   Hashtable<ip_address, String> tempRemaps;
+   Hashtable<IPAddress, String> tempRemaps;
 
    Message args; (void) ParseArgs(argc, argv, args);
    HandleStandardDaemonArgs(args);
@@ -104,7 +104,7 @@ int muscledmainAux(int argc, char ** argv, void * cookie)
          StringTokenizer tok(value, ",=");
          const char * from = tok();
          const char * to = tok();
-         ip_address fromIP = from ? Inet_AtoN(from) : 0;
+         IPAddress fromIP = from ? Inet_AtoN(from) : 0;
          if ((fromIP != invalidIP)&&(to))
          {
             char ipbuf[64]; Inet_NtoA(fromIP, ipbuf);

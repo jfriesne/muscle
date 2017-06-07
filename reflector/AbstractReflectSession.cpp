@@ -101,7 +101,7 @@ GetPort() const
    return _ipAddressAndPort.GetPort();
 }
 
-const ip_address &
+const IPAddress &
 AbstractReflectSession ::
 GetLocalInterfaceAddress() const 
 {
@@ -454,7 +454,7 @@ GetSessionWriteSelectSocket() const
 
 String 
 AbstractReflectSession :: 
-GenerateHostName(const ip_address & /*ip*/, const String & defaultHostName) const
+GenerateHostName(const IPAddress & /*ip*/, const String & defaultHostName) const
 {
    return defaultHostName;
 }

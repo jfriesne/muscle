@@ -10,6 +10,8 @@
 
 namespace muscle {
  
+class IPAddressAndPort;
+
 /** Abstract base class for a byte-stream Data I/O interface, similar to Be's BDataIO.  */
 class DataIO : public RefCountable, private CountedObject<DataIO>, private NotCopyable
 {
@@ -73,6 +75,13 @@ public:
     * Default implementation returns MUSCLE_TIME_NEVER, aka no limit.
     */
    virtual uint64 GetOutputStallLimit() const {return MUSCLE_TIME_NEVER;}
+
+   /** For packet-oriented subclasses, this method may be overridden
+     * to return the IPAddressAndPort that the most recently Read()
+     * packet came from.
+     * The default implementation returns a default/invalid IPAddressAndPort.
+     */
+   virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const;
 
    /**
     * Flushes the output buffer, if possible.  For some implementations,

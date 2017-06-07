@@ -274,7 +274,7 @@ status_t QMessageTransceiverHandler :: SetupAsNewSession(IMessageTransceiverMast
    return B_ERROR;
 }
 
-status_t QMessageTransceiverHandler :: SetupAsNewConnectSession(IMessageTransceiverMaster & master, const ip_address & targetIPAddress, uint16 port, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+status_t QMessageTransceiverHandler :: SetupAsNewConnectSession(IMessageTransceiverMaster & master, const IPAddress & targetIPAddress, uint16 port, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    Reset();
    QMessageTransceiverThread * thread = master.ObtainThread();

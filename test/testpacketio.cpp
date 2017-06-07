@@ -19,7 +19,7 @@ int main(int argc, char ** argv)
    (void) ParseArgs(argc, argv, args);
  
    const char * temp; 
-   ip_address connectTo = invalidIP;
+   IPAddress connectTo = invalidIP;
    if (args.FindString("host", &temp) == B_NO_ERROR) connectTo = GetHostByName(temp);
    
    uint16 port = 0;

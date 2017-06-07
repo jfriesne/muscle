@@ -289,3 +289,8 @@ of your Makefile to alter muscle's behaviour:
    using its own while(WaitForNextMessage()) loop.  This can be useful 
    if you want to use Qt objects in the thread, and those Qt objects
    depend on QThread::exec()'s functioning in order to work properly.
+
+-DMUSCLE_AVOID_LINUX_DETECT_NETWORK_HARDWARE_TYPES
+   If set, then NetworkUtilityFunctions.cpp will not attempt to
+   determine network hardware type using SIOCGIFHWADDR when compiled
+   under Linux.

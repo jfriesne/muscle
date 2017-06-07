@@ -131,8 +131,8 @@ AttachedToServer()
       String matchHostname = hostname;
       {
          // match against IPv4-style address-strings for IPv4 addresses, per Lior
-         ip_address ip = Inet_AtoN(hostname());
-         if ((IsValidAddress(ip))&&(IsIPv4Address(ip))) matchHostname = Inet_NtoA(ip, true);
+         IPAddress ip = Inet_AtoN(hostname());
+         if ((ip.IsValid())&&(ip.IsIPv4())) matchHostname = Inet_NtoA(ip, true);
       }
 #endif
 

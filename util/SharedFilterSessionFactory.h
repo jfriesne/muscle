@@ -14,7 +14,7 @@ namespace muscle {
   * SharedMemory class) and look in that area for a list of IP addresses.  The decision about
   * whether to pass the CreateSession() call on to the slave ReflectSessionFactory
   * or just fail (i.e. return NULL) will be made based on whether the requesting client's IP
-  * address is present in that shared memory area (as an ip_address).
+  * address is present in that shared memory area (as an IPAddress).
   */
 class SharedFilterSessionFactory : public ProxySessionFactory
 {
@@ -61,7 +61,7 @@ public:
    void SetDefaultPass(bool dp) {_defaultPass = dp;}
 
    /** Convenience method:  Returns true iff access should be allowed for the given settings and IP address. */
-   static bool IsAccessAllowedForIP(const String & sharedMemName, const ip_address & ip, bool isGrantList, bool defaultPass);
+   static bool IsAccessAllowedForIP(const String & sharedMemName, const IPAddress & ip, bool isGrantList, bool defaultPass);
 
 private:
    String _sharedMemName;

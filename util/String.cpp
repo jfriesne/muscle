@@ -5,6 +5,10 @@
 #include "support/Rect.h"
 #include <stdarg.h>
 
+#ifdef __APPLE__
+# include <CoreFoundation/CFString.h>
+#endif
+
 namespace muscle {
 
 void String::ClearAndFlush()
@@ -857,6 +861,36 @@ String String :: ArgAux(const char * buf) const
    }
    else return *this;
 }
+
+#ifdef __APPLE__
+// Congratulations to Apple for making a seemingly trivial operation as painful as it could possibly be
+status_t String :: SetFromCFStringRef(const CFStringRef & cfStringRef)
+{
+   status_t ret = B_NO_ERROR;
+   if (cfStringRef != NULL)
+   {
+      char tempBuf[256]; // try to avoid a call to muscleAlloc() in most cases
+      const uint32 allocLen = ((uint32)CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfStringRef), kCFStringEncodingUTF8))+1;
+      const bool doAlloc    = (allocLen > sizeof(tempBuf));
+
+      char * str = doAlloc ? (char *)muscleAlloc(allocLen) : tempBuf;
+      if (str)
+      {
+         ret = CFStringGetCString(cfStringRef, str, allocLen, kCFStringEncodingUTF8) ? SetCstr(str) : B_ERROR;
+         if (doAlloc) muscleFree(str);
+      }
+      else {WARN_OUT_OF_MEMORY; return B_ERROR;}
+   }
+   else Clear();
+
+   return ret;
+}
+
+CFStringRef String :: ToCFStringRef() const
+{
+   return CFStringCreateWithCString(NULL, Cstr(), kCFStringEncodingUTF8);
+}
+#endif
 
 /* strnatcmp.c -- Perform 'natural order' comparisons of strings in C.
    Copyright (C) 2000, 2004 by Martin Pool <mbp sourcefrog net>

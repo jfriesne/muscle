@@ -130,7 +130,7 @@ int main(int argc, char ** argv)
          (void) ParsePortArg(args, "listen", listenPorts[i], i);
 
          targets[i] = IPAddressAndPort(GetHostByName(hostNames[i]()), targetPorts[i]);
-         if (IsValidAddress(targets[i].GetIPAddress())) LogTime(MUSCLE_LOG_INFO, "Sending to target %s, listening on port %u\n", targets[i].ToString()(), listenPorts[i]);
+         if (targets[i].GetIPAddress().IsValid()) LogTime(MUSCLE_LOG_INFO, "Sending to target %s, listening on port %u\n", targets[i].ToString()(), listenPorts[i]);
          else
          {
             LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't resolve hostname [%s]\n", hostNames[i]());
@@ -155,11 +155,11 @@ int main(int argc, char ** argv)
       }
 
 #ifndef MUSCLE_AVOID_MULTICAST_API
-      const ip_address & ip = targets[i].GetIPAddress();
+      const IPAddress & ip = targets[i].GetIPAddress();
 
       // If it's a multicast address, we need to add ourselves to the multicast group
       // in order to get packets from the group.
-      if (IsMulticastIPAddress(ip))
+      if (ip.IsMulticast())
       {
          if (AddSocketToMulticastGroup(udpSock, ip) == B_NO_ERROR)
          {

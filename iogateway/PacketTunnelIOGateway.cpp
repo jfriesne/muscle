@@ -40,7 +40,7 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
          totalBytesRead += bytesRead;
 
          IPAddressAndPort fromIAP;
-         UDPSocketDataIO * udpIO = dynamic_cast<UDPSocketDataIO *>(GetDataIO()());
+         const DataIO * udpIO = GetDataIO()();
          if (udpIO) fromIAP = udpIO->GetSourceOfLastReadPacket();
 
          const uint8 * p = (const uint8 *) _inputPacketBuffer.GetBuffer();

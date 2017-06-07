@@ -7,6 +7,7 @@
 #include "util/ByteBuffer.h"
 #include "util/DebugTimer.h"
 #include "util/CountedObject.h"
+#include "util/NetworkUtilityFunctions.h"  // for IPAddressAndPort
 #include "util/String.h"
 #include "system/GlobalMemoryAllocator.h"
 
@@ -982,6 +983,11 @@ int64 DataIO :: GetLength()
       if (Seek(origPos, IO_SEEK_SET) == B_NO_ERROR) return ret;
    }
    return -1;  // error!
+}
+
+const IPAddressAndPort & DataIO :: GetSourceOfLastReadPacket() const 
+{
+   return GetDefaultObjectForType<IPAddressAndPort>();
 }
 
 status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeader) const

@@ -134,13 +134,11 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
          }
 #else
 # ifdef __APPLE__
-         CFURLRef bundleURL = CFBundleCopyExecutableURL(CFBundleGetMainBundle());
-         CFStringRef cfPath = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
-         char bsdPath[2048];
-         if (CFStringGetCString((CFStringRef)cfPath, bsdPath, sizeof(bsdPath), kCFStringEncodingUTF8))
+         const CFURLRef bundleURL = CFBundleCopyExecutableURL(CFBundleGetMainBundle());
+         const CFStringRef cfPath = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
+         if ((cfPath)&&(outStr.SetFromCFStringRef(cfPath) == B_NO_ERROR))
          {
             found = true;
-            outStr = bsdPath;
 
             int32 lastSlash = outStr.LastIndexOf(GetFilePathSeparator());
             if (lastSlash >= 0) outStr = outStr.Substring(0, lastSlash+1);

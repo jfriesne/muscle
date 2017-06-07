@@ -26,7 +26,7 @@ int main(int argc, char ** argv)
 
    Queue<int> foundPorts;
 
-   ip_address ip = GetHostByName(hostName);
+   IPAddress ip = GetHostByName(hostName);
    if (ip == invalidIP)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to resolve hostname [%s]\n", hostName);

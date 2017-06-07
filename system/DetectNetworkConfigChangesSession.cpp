@@ -337,24 +337,20 @@ static void CFQRelease(CFTypeRef cf) {if (cf != NULL) CFRelease(cf);}
 
 static void StoreRecordFunc(const void * key, const void * value, void * context)
 {
-   const CFStringRef keyStr = (const CFStringRef) key;
+   const CFStringRef     keyStr   = (const CFStringRef)     key;
    const CFDictionaryRef propList = (const CFDictionaryRef) value;
    if ((keyStr)&&(propList))
    {
-      String k = CFStringGetCStringPtr(keyStr, kCFStringEncodingMacRoman);
+      const String k(keyStr);
       if (k.StartsWith("State:/Network/Interface/")) 
       {
-         String interfaceName = k.Substring(25).Substring(0, "/");
+         const String interfaceName = k.Substring(25).Substring(0, "/");
          (void) ((Hashtable<String, String> *)(context))->Put(k, interfaceName);
       }
       else
       {
-         const CFStringRef interfaceNameRef = (const CFStringRef) CFDictionaryGetValue((CFDictionaryRef) propList, CFSTR("InterfaceName"));
-         if (interfaceNameRef)
-         {
-            String v = CFStringGetCStringPtr(interfaceNameRef, kCFStringEncodingMacRoman);
-            (void) ((Hashtable<String, String> *)(context))->Put(k, v);
-         }
+         const String interfaceName((const CFStringRef) CFDictionaryGetValue((CFDictionaryRef) propList, CFSTR("InterfaceName")));
+         if (interfaceName.HasChars()) ((Hashtable<String, String> *)(context))->Put(k, interfaceName);
       }
    }
 }
@@ -453,11 +449,10 @@ static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedK
    int c = CFArrayGetCount(changedKeys);
    for (int i=0; i<c; i++)
    {
-      CFStringRef p = (CFStringRef) CFArrayGetValueAtIndex(changedKeys, i);
-      if (p)  // paranoia
+      const CFStringRef p = (CFStringRef) CFArrayGetValueAtIndex(changedKeys, i);
+      const String keyStr(p);
+      if (keyStr.HasChars())
       {
-         String keyStr = CFStringGetCStringPtr( p, kCFStringEncodingMacRoman);
-
          String interfaceName;
          if (keyStr.StartsWith("State:/Network/Interface/")) interfaceName = keyStr.Substring(25).Substring(0, "/");
          else
@@ -465,8 +460,7 @@ static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedK
             CFPropertyListRef propList = SCDynamicStoreCopyValue(store, p);
             if (propList)
             {
-               CFStringRef inStr = (CFStringRef) CFDictionaryGetValue((CFDictionaryRef) propList, CFSTR("InterfaceName"));
-               if (inStr) interfaceName = CFStringGetCStringPtr(inStr, kCFStringEncodingMacRoman);
+               interfaceName = String((const CFStringRef) CFDictionaryGetValue((CFDictionaryRef) propList, CFSTR("InterfaceName")));
                CFRelease(propList);
             }
          }

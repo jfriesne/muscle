@@ -5,6 +5,59 @@ key:  - new feature
       * bug fixed
       o other
 
+6.50 Released 6/6/2017
+   - Added SimulatedMulticastDataIO, which simulates multicast
+     communication via directed unicast.  Useful for communicating
+     multicast-style across a WiFi network, where real multicast
+     communication doesn't work very well.
+   - hexterm now supports a "wifi" keyword, which if specified along
+     with the "udp=address:port" argument will replace the basic
+   - Added some additional Inflate() and Deflate() methods
+     to the ZLibCodec class so that it can now write its
+     output into an existing ByteBuffer object rather than
+     allocating a new one from the byte-buffer-pool, if desired.
+   - hexterm now accepts a "verifyspam" argument; if specified,
+     hexterm will check incoming packets to see if they match
+     the dummy-data format sent out by hexterm's "spamspersecond"
+     feature, and if they do not, it will log an error message.
+   - Added a GetHardwareType() method to the 
+     NetworkInterfaceInfo class.  This method returns a
+     NETWORK_INTERFACE_HARDWARE_TYPE_* value indicating what
+     kind of network interface it is (e.g. Ethernet, WiFi, etc)
+   - Added a GetNetworkHardwareTypeString() static method to
+     the NetworkInterfaceInfo class.  This returns a human-readable
+     string describing the given NETWORK_INTERFACE_HARDWARE_TYPE_*
+   - Added some MacOS/X-specific utility methods to the String class:
+     SetFromCFStringRef(), ToCFStringRef(), and a String constructor
+     method that takes a (const CFStringRef &)
+   - The ip_address and IPAddressAndPort classes now implement
+     the PseudoFlattenable interface to allow for easier handling.
+     UDPSocketDataIO functionality with SimulatedMulticastDataIO,
+     for testing purposes.
+   o Renamed the ip_address type to IPAddress, and made it a real
+     class (and not a typedef'd alias for uint32) even when
+     MUSCLE_AVOID_IPV6 is defined.  ip_address is now a typedef'd
+     alias to IPAddress, for backwards compatibility with old code.
+   o The various convenience methods that could be called on an
+     ip_address object (e.g. IsAddressIPv4(), IsAddressValid(),
+     IsAddressMulticast(), etc) are now methods in IPAddress instead.
+   o AtomicCounter now uses std::atomic<int32> internally,
+     if MUSCLE_USE_CPLUSPLUS11 is defined.
+   o PODSwapper and SwapContentsSwapper now check for the
+     corner-case where the two objects passed in are actually
+     the same object (and if so, they don't attempt a swap)
+   o Added a GetSourceOfLastReadPacket() method to the DataIO interface.
+   o UDPSocketDataIO::GetSourceOfLastReadPacket() is now virtual.
+   o Moved the ip_address/IPAddress and IPAddressAndPort classes'
+     declarations out of NetworkUtilityFunctions.h and into IPAddress.h
+   o Moved the NetworkInterfaceInfo class (and its associated
+     functions) out of NetworkUtilityFunctions.h and into
+     NetworkInterfaceInfo.h
+   * Fixed several places in the codebase that were inappropriately
+     relying on CFStringGetCStringPtr() to return a non-NULL value, 
+     when in fact it is documented to return NULL sometimes.
+   * hexterm now exits gracefully when stdin is closed.
+
 6.42 Released 5/12/2017
    - Added SetPerProcessRunTime64Offset() and
      GetPerProcessRunTime64Offset() calls, to support

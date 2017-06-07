@@ -27,8 +27,14 @@ public:
    /** Destructor */
    ~ZLibCodec();
 
-   /** Given a buffer of raw data, returns a reference to a Buffer containing
-     * the matching compressed data.
+   /** Returns this codec's compression level, as was specified in the constructor.
+     * Note that this value only affects the behavior of Deflate() -- we can Inflate() data of any compression
+     * level, although the compression level cannot change from one Inflate() call to another, unless the data
+     * was compressed with the (independent) argument set to true.
+     */
+   int GetCompressionLevel() const {return _compressionLevel;}
+
+   /** Given a buffer of raw data, returns a reference to a Buffer containing the corresponding compressed data.
      * @param rawData The raw data to compress
      * @param numBytes The number of bytes (rawData) points to
      * @param independent If true, the generated buffer will be decompressible on its
@@ -51,33 +57,32 @@ public:
      */
    ByteBufferRef Deflate(const uint8 * rawData, uint32 numBytes, bool independent, uint32 addHeaderBytes=0, uint32 addFooterBytes=0);
 
-   /** Given a buffer of compressed data, returns a reference to a Buffer containing
-     * the matching raw data, or NULL on failure.
-     * @param compressedData The compressed data to expand.  This should be data that was previously produced by the Deflate() method.
-     * @param numBytes The number of bytes (compressedData) points to
-     * @returns Reference to a buffer of decompressed data on success, or a NULL reference on failure.
+   /** As above, except the deflated data is written into an existing ByteBuffer object rather than
+     * allocating a new ByteBuffer from the byte-buffer pool.
+     * @param rawData The raw data to compress
+     * @param numBytes The number of bytes (rawData) points to
+     * @param independent If true, the generated buffer will be decompressible on its
+     *                    own, not depending on any previously decompressed data.
+     *                    If false, the generated buffer will only be uncompressable
+     *                    if the previously Deflate()'d buffers have been reinflated
+     *                    before it.  Setting this value to true will reduce the
+     *                    compression efficiency, but allows for more flexibility.
+     * @param targetBuf On success, this ByteBuffer object will contain the deflated data.
+     * @param addHeaderBytes If set to non-zero, the returned ByteBuffer will contain
+     *                    this many additional bytes at the beginning of the byte array,
+     *                    before the first compressed-data byte.  The values in these bytes
+     *                    are undefined; the caller can write header data to them if desired.
+     *                    Leave this set to zero if you're not sure of what you are doing.
+     * @param addFooterBytes If set to non-zero, the returned ByteBuffer will contain
+     *                    this many additional bytes at the end of the byte array,
+     *                    after the last compressed-data byte.  The values in these bytes
+     *                    are undefined; the caller can write footer data to them if desired.
+     *                    Leave this set to zero if you're not sure of what you are doing.
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
      */
-   ByteBufferRef Inflate(const uint8 * compressedData, uint32 numBytes);
+   status_t Deflate(const uint8 * rawData, uint32 numBytes, bool independent, ByteBuffer & targetBuf, uint32 addHeaderBytes=0, uint32 addFooterBytes=0);
 
-   /** Given a ByteBuffer that was previously produced by Deflate(), returns the number of bytes
-     * of raw data that the buffer represents, or -1 if the buffer isn't recognized as valid.
-     * @param compressedData Pointer to data that was previously created by ZLibCodec::Deflate().
-     * @param numBytes The number of bytes (compressedData) points to
-     * @param optRetIsIndependent If non-NULL, the bool that this argument points to will have
-     *                            the independent/non-independent state of this buffer written into it.
-     *                            See Deflate()'s documentation for details.
-     * @returns the number of bytes of raw data that would be produced by Inflating (compressedData).
-     */
-   int32 GetInflatedSize(const uint8 * compressedData, uint32 numBytes, bool * optRetIsIndependent = NULL) const;
-
-   /** Returns this codec's compression level, as was specified in the constructor.
-     * Note that this value only affects what we compress to -- we can compress any compression
-     * level, although the compression level cannot change from one Inflate() call to another.
-     */
-   int GetCompressionLevel() const {return _compressionLevel;}
-
-   /** Given a buffer of raw data, returns a reference to a Buffer containing
-     * the matching compressed data.
+   /** Given a buffer of raw data, returns a reference to a Buffer containing the corresponding compressed data.
      * @param rawData The raw data to compress
      * @param independent If true, the generated buffer will be decompressible on its
      *                    own, not depending on any previously decompressed data.
@@ -99,12 +104,70 @@ public:
      */
    ByteBufferRef Deflate(const ByteBuffer & rawData, bool independent, uint32 addHeaderBytes=0, uint32 addFooterBytes=0) {return Deflate(rawData.GetBuffer(), rawData.GetNumBytes(), independent, addHeaderBytes, addFooterBytes);}
 
-   /** Given a buffer of compressed data, returns a reference to a Buffer containing
-     * the matching raw data, or NULL on failure.
+   /** As above, except the deflated data is written into an existing ByteBuffer object rather than
+     * allocating a new ByteBuffer from the byte-buffer pool.
+     * @param rawData The raw data to compress
+     * @param independent If true, the generated buffer will be decompressible on its
+     *                    own, not depending on any previously decompressed data.
+     *                    If false, the generated buffer will only be uncompressable
+     *                    if the previously Deflate()'d buffers have been reinflated
+     *                    before it.  Setting this value to true will reduce the
+     *                    compression efficiency, but allows for more flexibility.
+     * @param targetBuf On success, this ByteBuffer object will contain the deflated data.
+     * @param addHeaderBytes If set to non-zero, the returned ByteBuffer will contain
+     *                    this many additional bytes at the beginning of the byte array,
+     *                    before the first compressed-data byte.  The values in these bytes
+     *                    are undefined; the caller can write header data to them if desired.
+     *                    Leave this set to zero if you're not sure of what you are doing.
+     * @param addFooterBytes If set to non-zero, the returned ByteBuffer will contain
+     *                    this many additional bytes at the end of the byte array,
+     *                    after the last compressed-data byte.  The values in these bytes
+     *                    are undefined; the caller can write footer data to them if desired.
+     *                    Leave this set to zero if you're not sure of what you are doing.
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   status_t Deflate(const ByteBuffer & rawData, bool independent, ByteBuffer & targetBuf, uint32 addHeaderBytes=0, uint32 addFooterBytes=0) {return Deflate(rawData.GetBuffer(), rawData.GetNumBytes(), independent, targetBuf, addHeaderBytes, addFooterBytes);}
+
+   /** Given a buffer of compressed data, returns a reference to a Buffer containing the corresponding raw data, or NULL on failure.
+     * @param compressedData The compressed data to expand.  This should be data that was previously produced by the Deflate() method.
+     * @param numBytes The number of bytes (compressedData) points to
+     * @returns Reference to a buffer of decompressed data on success, or a NULL reference on failure.
+     */
+   ByteBufferRef Inflate(const uint8 * compressedData, uint32 numBytes);
+
+   /** As above, except that the inflated data is written into an existing ByteBuffer object rather
+     * than allocating a new ByteBuffer from the byte-buffer pool.
+     * @param compressedData The compressed data to expand.  This should be data that was previously produced by the Deflate() method.
+     * @param numBytes The number of bytes (compressedData) points to
+     * @param targetBuf On success, this ByteBuffer object will contain the inflated data.
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   status_t Inflate(const uint8 * compressedData, uint32 numBytes, ByteBuffer & targetBuf);
+
+   /** Given a buffer of compressed data, returns a reference to a Buffer containing the corresponding raw data, or NULL on failure.
      * @param compressedData The compressed data to expand.  This should be data that was previously produced by the Deflate() method.
      * @returns Reference to a buffer of decompressed data on success, or a NULL reference on failure.
      */
    ByteBufferRef Inflate(const ByteBuffer & compressedData) {return Inflate(compressedData.GetBuffer(), compressedData.GetNumBytes());}
+
+   /** As above, except that the inflated data is written into an existing ByteBuffer object rather
+     * than allocating a new ByteBuffer from the byte-buffer pool.
+     * @param compressedData The compressed data to expand.  This should be data that was previously produced by the Deflate() method.
+     * @param targetBuf On success, this ByteBuffer object will contain the deflated data.
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   status_t Inflate(const ByteBuffer & compressedData, ByteBuffer & targetBuf) {return Inflate(compressedData.GetBuffer(), compressedData.GetNumBytes(), targetBuf);}
+
+   /** Given a ByteBuffer that was previously produced by Deflate(), returns the number of bytes
+     * of raw data that the buffer represents, or -1 if the buffer isn't recognized as valid.
+     * @param compressedData Pointer to data that was previously created by ZLibCodec::Deflate().
+     * @param numBytes The number of bytes (compressedData) points to
+     * @param optRetIsIndependent If non-NULL, the bool that this argument points to will have
+     *                            the independent/non-independent state of this buffer written into it.
+     *                            See Deflate()'s documentation for details.
+     * @returns the number of bytes of raw data that would be produced by Inflating (compressedData).
+     */
+   int32 GetInflatedSize(const uint8 * compressedData, uint32 numBytes, bool * optRetIsIndependent = NULL) const;
 
    /** Given a ByteBuffer that was previously produced by Deflate(), returns the number of bytes
      * of raw data that the buffer represents, or -1 if the buffer isn't recognized as valid.

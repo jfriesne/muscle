@@ -20,8 +20,6 @@ static void muscleZLibFree(void *, void * address) {using namespace muscle; musc
 
 ZLibCodec :: ZLibCodec(int compressionLevel) : _compressionLevel(muscleClamp(compressionLevel, 0, 9))
 {
-   TCHECKPOINT;
-
    InitStream(_inflater);
    _inflateOkay = (inflateInit(&_inflater) == Z_OK);
 
@@ -31,8 +29,6 @@ ZLibCodec :: ZLibCodec(int compressionLevel) : _compressionLevel(muscleClamp(com
 
 ZLibCodec :: ~ZLibCodec()
 {
-   TCHECKPOINT;
-
    if (_inflateOkay)
    {
       inflateEnd(&_inflater);
@@ -73,8 +69,6 @@ static void WriteZLibCodecHeader(uint8 * headerBuf, bool independent, uint32 tot
 
 ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool independent, uint32 addHeaderBytes, uint32 addFooterBytes)
 {
-   TCHECKPOINT;
-
    ByteBufferRef ret; 
    if ((rawBytes)&&(_deflateOkay))
    {
@@ -84,7 +78,7 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
          return ByteBufferRef();
       }
 
-      uint32 compAvailSize = ZLIB_CODEC_HEADER_SIZE+deflateBound(&_deflater, numRaw)+13;
+      const uint32 compAvailSize = ZLIB_CODEC_HEADER_SIZE+deflateBound(&_deflater, numRaw)+13;
       ret = GetByteBufferFromPool(addHeaderBytes+compAvailSize+addFooterBytes);
       if (ret())
       {
@@ -92,7 +86,7 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
          _deflater.total_in  = 0;
          _deflater.avail_in  = numRaw;
 
-         _deflater.next_out  = ret()->GetBuffer()+ZLIB_CODEC_HEADER_SIZE+addHeaderBytes;
+         _deflater.next_out  = ret()->GetBuffer()+addHeaderBytes+ZLIB_CODEC_HEADER_SIZE;
          _deflater.total_out = 0;
          _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
          
@@ -107,10 +101,40 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
    return ret;
 }
 
+status_t ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool independent, ByteBuffer & outBuf, uint32 addHeaderBytes, uint32 addFooterBytes)
+{
+   if ((rawBytes)&&(_deflateOkay))
+   {
+      if ((independent)&&(deflateReset(&_deflater) != Z_OK))
+      {
+         _deflateOkay = false;
+         return B_ERROR;
+      }
+
+      const uint32 compAvailSize = ZLIB_CODEC_HEADER_SIZE+deflateBound(&_deflater, numRaw)+13;
+      if (outBuf.SetNumBytes(addHeaderBytes+compAvailSize+addFooterBytes, false) == B_NO_ERROR)
+      {
+         _deflater.next_in   = (Bytef *)rawBytes;
+         _deflater.total_in  = 0;
+         _deflater.avail_in  = numRaw;
+
+         _deflater.next_out  = outBuf.GetBuffer()+addHeaderBytes+ZLIB_CODEC_HEADER_SIZE;
+         _deflater.total_out = 0;
+         _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
+         
+         if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(outBuf.SetNumBytes(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes, true) == B_NO_ERROR))
+         {
+if (_deflater.avail_in != 0) printf("WTF %u/%u\n", _deflater.avail_in, _deflater.avail_out);
+            WriteZLibCodecHeader(outBuf.GetBuffer()+addHeaderBytes, independent, numRaw);
+            return B_NO_ERROR;
+         }
+      }
+   }
+   return B_ERROR;
+}
+
 int32 ZLibCodec :: GetInflatedSize(const uint8 * compBytes, uint32 numComp, bool * optRetIsIndependent) const
 {
-   TCHECKPOINT;
-
    if ((compBytes)&&(numComp >= ZLIB_CODEC_HEADER_SIZE))
    {
       const uint32 magic = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(compBytes));
@@ -125,12 +149,10 @@ int32 ZLibCodec :: GetInflatedSize(const uint8 * compBytes, uint32 numComp, bool
 
 ByteBufferRef ZLibCodec :: Inflate(const uint8 * compBytes, uint32 numComp)
 {
-   TCHECKPOINT;
-
    ByteBufferRef ret;
 
    bool independent;
-   int32 rawLen = GetInflatedSize(compBytes, numComp, &independent);
+   const int32 rawLen = GetInflatedSize(compBytes, numComp, &independent);
    if ((rawLen >= 0)&&(_inflateOkay))
    {
       if ((independent)&&(inflateReset(&_inflater) != Z_OK))
@@ -152,10 +174,39 @@ ByteBufferRef ZLibCodec :: Inflate(const uint8 * compBytes, uint32 numComp)
 
          int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
          if (((zRet != Z_OK)&&(zRet != Z_STREAM_END))||((int32)_inflater.total_out != rawLen)) ret.Reset();  // oopsie!
-//printf("Inflated " UINT32_FORMAT_SPEC " bytes to " UINT32_FORMAT_SPEC " bytes\n", numComp, rawLen);
       }
    }
    return ret;
+}
+
+status_t ZLibCodec :: Inflate(const uint8 * compBytes, uint32 numComp, ByteBuffer & outBuf)
+{
+   bool independent;
+   const int32 rawLen = GetInflatedSize(compBytes, numComp, &independent);
+   if ((rawLen >= 0)&&(_inflateOkay))
+   {
+      if ((independent)&&(inflateReset(&_inflater) != Z_OK))
+      {
+         _inflateOkay = false;
+         return B_ERROR;
+      }
+
+      if (outBuf.SetNumBytes(rawLen, false) == B_NO_ERROR)
+      {
+         _inflater.next_in   = (Bytef *) (compBytes+ZLIB_CODEC_HEADER_SIZE);
+         _inflater.total_in  = 0;
+         _inflater.avail_in  = numComp-ZLIB_CODEC_HEADER_SIZE;
+
+         _inflater.next_out  = outBuf.GetBuffer();
+         _inflater.total_out = 0;
+         _inflater.avail_out = outBuf.GetNumBytes();
+
+         int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
+if (_inflater.total_out != (unsigned long)rawLen) printf("zRet=%i total_out=%lu/%i total_in=%lu avail_in=%u\n", zRet, _inflater.total_out, rawLen, _inflater.total_in, _inflater.avail_in);
+         return (((zRet != Z_OK)&&(zRet != Z_STREAM_END))||((int32)_inflater.total_out != rawLen)) ? B_ERROR : B_NO_ERROR;
+      }
+   }
+   return B_ERROR;
 }
 
 status_t ZLibCodec :: ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & destDeflatedIO, bool independent, uint32 totalBytesToRead)

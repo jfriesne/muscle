@@ -16,6 +16,7 @@ DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 #DEFINES += -DMUSCLE_USE_EPOLL
 #DEFINES += -DMUSCLE_AVOID_MINIMIZED_HASHTABLES
 #DEFINES += -DMUSCLE_ENABLE_SSL
+#DEFINES += -DMUSCLE_AVOID_LINUX_DETECT_NETWORK_HARDWARE_TYPES
 
 CFLAGS = -I.. -I../zlib/zlib -g
 GCCFLAGS = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS -W -Wall -Wno-multichar
@@ -129,7 +130,7 @@ ifneq (,$(findstring MUSCLE_ENABLE_SSL,$(CXXFLAGS))) # Add OpenSSL-specific file
        LIBS += -lssl -lcrypto
 endif
 
-HEXTERMOBJS = hexterm.o NetworkUtilityFunctions.o SocketMultiplexer.o SysLog.o SetupSystem.o String.o RS232DataIO.o ChildProcessDataIO.o ByteBuffer.o MiscUtilityFunctions.o Message.o StdinDataIO.o PlainTextMessageIOGateway.o AbstractMessageIOGateway.o FileDescriptorDataIO.o PulseNode.o
+HEXTERMOBJS = hexterm.o NetworkUtilityFunctions.o SocketMultiplexer.o SysLog.o SetupSystem.o String.o RS232DataIO.o ChildProcessDataIO.o ByteBuffer.o MiscUtilityFunctions.o Message.o StdinDataIO.o PlainTextMessageIOGateway.o AbstractMessageIOGateway.o FileDescriptorDataIO.o PulseNode.o SimulatedMulticastDataIO.o Thread.o
 
 ifeq ($(MUSCLE_BUILD_CONTEXT),meyer)
    CXXFLAGS    += -DBUILD_MUSCLE_IN_MEYER_CONTEXT -I../../..

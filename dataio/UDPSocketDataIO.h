@@ -39,7 +39,7 @@ public:
 
    virtual int32 Read(void * buffer, uint32 size) 
    {
-      ip_address tmpAddr = invalidIP;
+      IPAddress tmpAddr = invalidIP;
       uint16 tmpPort = 0;
       int32 ret = ReceiveDataUDP(_sock, buffer, size, _blocking, &tmpAddr, &tmpPort);
       _recvFrom.SetIPAddress(tmpAddr);
@@ -90,6 +90,7 @@ public:
 
    virtual const ConstSocketRef & GetReadSelectSocket()  const {return _sock;}
    virtual const ConstSocketRef & GetWriteSelectSocket() const {return _sock;}
+   virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _recvFrom;}
 
    /** Call this to make our Write() method use sendto() with the specified
      * destination address and port.  Calling this with (invalidIP, 0) will
@@ -129,11 +130,6 @@ public:
     *  the constructor or in our SetBlockingIOEnabled() method)
     */
    bool IsBlockingIOEnabled() const {return _blocking;}
-
-   /** Call this after a call to Read() returns to find out the IP address of the computer 
-     * sent the data that we read.
-     */
-   const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _recvFrom;}
 
 private:
    ConstSocketRef _sock;

@@ -45,6 +45,10 @@ ifeq ($(OSTYPE),)
   OSTYPE = $(strip $(shell uname))
 endif 
 
+ifeq ($(OSTYPE),Darwin)
+   LIBS += -framework SystemConfiguration -framework CoreFoundation
+endif
+
 # IRIX may report itself as IRIX or as IRIX64.  They are both the same to us. 
 ifeq ($(OSTYPE),IRIX64) 
   OSTYPE = IRIX 

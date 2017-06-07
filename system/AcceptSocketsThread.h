@@ -31,7 +31,7 @@ public:
      * @param optFrom If specified, the IP address to accept connections from.  If left as zero,
      *                then connections will be accepted from any IP address.
      */
-   AcceptSocketsThread(uint16 port, const ip_address & optFrom = invalidIP);
+   AcceptSocketsThread(uint16 port, const IPAddress & optFrom = invalidIP);
 
    /** Destructor.  Closes the accept socket and frees the port */
    virtual ~AcceptSocketsThread();
@@ -51,7 +51,7 @@ public:
      * @returns B_NO_ERROR on success, or B_ERROR on failure (port couldn't be allocated, or internal
      *          thread was already running)
      */
-   status_t SetPort(uint16 port, const ip_address & optInterfaceIP = invalidIP);
+   status_t SetPort(uint16 port, const IPAddress & optInterfaceIP = invalidIP);
 
 protected:
    virtual void InternalThreadEntry();

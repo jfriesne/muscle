@@ -111,7 +111,7 @@ int main(int argc, char ** argv)
    {
       useTCP = true;
       ConstSocketRef s;
-      ip_address connectTo = GetHostByName(temp);
+      IPAddress connectTo = GetHostByName(temp);
       if (connectTo != invalidIP) 
       {
          s = Connect(connectTo, port, NULL, "testpackettunnel", false);

@@ -89,7 +89,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & sock
 
 status_t
 ServerComponent ::
-AddNewConnectSession(const AbstractReflectSessionRef & ref, const ip_address & ip, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & ip, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    MASSERT(_owner, "Can not call AddNewConnectSession() while not attached to the server");
    return _owner->AddNewConnectSession(ref, ip, port, autoReconnectDelay, maxAsyncConnectPeriod);
@@ -97,7 +97,7 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const ip_address & i
 
 status_t
 ServerComponent ::
-AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const ip_address & ip, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & ip, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    MASSERT(_owner, "Can not call AddNewDormantConnectSession() while not attached to the server");
    return _owner->AddNewDormantConnectSession(ref, ip, port, autoReconnectDelay, maxAsyncConnectPeriod);
@@ -153,7 +153,7 @@ GetNumUsedBytes() const
 
 status_t
 ServerComponent ::
-PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const ip_address & optInterfaceIP, uint16 * optRetPort)
+PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const IPAddress & optInterfaceIP, uint16 * optRetPort)
 {
    MASSERT(_owner, "Can not call PutAcceptFactory() while not attached to the server");
    return _owner->PutAcceptFactory(port, factoryRef, optInterfaceIP, optRetPort);
@@ -161,7 +161,7 @@ PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const
 
 status_t
 ServerComponent ::
-RemoveAcceptFactory(uint16 port, const ip_address & optInterfaceIP)
+RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP)
 {
    MASSERT(_owner, "Can not call RemoveAcceptFactory() while not attached to the server");
    return _owner->RemoveAcceptFactory(port, optInterfaceIP);

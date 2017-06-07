@@ -61,12 +61,14 @@ int main(int argc, char ** argv)
 
       printf("(max=" UINT32_FORMAT_SPEC ") Continue? y/n\n", max);
       char buf[64] = "";
-      if (interactive) fgets(buf, sizeof(buf), stdin);
-           if (buf[0] == 'n') break;
-      else if (buf[0] == 'c') 
+      if ((interactive)&&(fgets(buf, sizeof(buf), stdin)))
       {
-         for (uint32 i=0; i<MAX_NUM_REFS; i++) refs[i].Reset();
-         AbstractObjectManager::GlobalPrintRecyclersToStream();
+              if (buf[0] == 'n') break;
+         else if (buf[0] == 'c') 
+         {
+            for (uint32 i=0; i<MAX_NUM_REFS; i++) refs[i].Reset();
+            AbstractObjectManager::GlobalPrintRecyclersToStream();
+         }
       }
    }
 

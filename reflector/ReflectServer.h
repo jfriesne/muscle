@@ -47,7 +47,7 @@ public:
     *                    be placed into this parameter.
     *  @return B_NO_ERROR on success, B_ERROR on failure (couldn't bind to socket?)
     */
-   virtual status_t PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & sessionFactoryRef, const ip_address & optInterfaceIP = invalidIP, uint16 * optRetPort = NULL);
+   virtual status_t PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & sessionFactoryRef, const IPAddress & optInterfaceIP = invalidIP, uint16 * optRetPort = NULL);
     
    /** Remove a listening port callback that was previously added by PutAcceptFactory().
     *  @param port whose callback should be removed.  If (port) is set to zero, all callbacks will be removed.
@@ -55,7 +55,7 @@ public:
     *                        This parameter is ignored when (port) is zero. 
     *  @returns B_NO_ERROR on success, or B_ERROR if a factory for the specified port was not found.
     */
-   virtual status_t RemoveAcceptFactory(uint16 port, const ip_address & optInterfaceIP = invalidIP);
+   virtual status_t RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP);
 
    /**
     * Called after the server is set up, but just before accepting any connections.
@@ -101,7 +101,7 @@ public:
     *                              before timing out the connection attempt.
     * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error (out-of-memory?)
     */
-   status_t AddNewConnectSession(const AbstractReflectSessionRef & ref, const ip_address & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS); 
+   status_t AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS); 
 
    /**
     * Like AddNewConnectSession(), except that the added session will not initiate
@@ -125,7 +125,7 @@ public:
     *                              before timing out the connection attempt.
     * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error (out-of-memory?)
     */
-   status_t AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const ip_address & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
+   status_t AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
    /**
     * Should be called just before the ReflectServer is to be destroyed.
@@ -173,7 +173,7 @@ public:
      *                       (when it was passed in to PutAcceptFactory()), then specify that address again here.
      *                       Defaults to (invalidIP), indicating a factory that listens on all local network interfaces.
      */
-   ReflectSessionFactoryRef GetFactory(uint16 port, const ip_address & optInterfaceIP = invalidIP) const;
+   ReflectSessionFactoryRef GetFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP) const;
 
    /** Call this and the server will quit ASAP */
    void EndServer();
@@ -202,10 +202,10 @@ public:
      * name.  If an entry is found, it will be used verbatim; otherwise, a name will
      * be created based on the peer's IP address.  Useful for e.g. NAT remapping...
      */
-   Hashtable<ip_address, String> & GetAddressRemappingTable() {return _remapIPs;}
+   Hashtable<IPAddress, String> & GetAddressRemappingTable() {return _remapIPs;}
 
    /** Read-only implementation of the above */
-   const Hashtable<ip_address, String> & GetAddressRemappingTable() const {return _remapIPs;}
+   const Hashtable<IPAddress, String> & GetAddressRemappingTable() const {return _remapIPs;}
 
    /** Returns a number that is (hopefully) unique to each ReflectSession instance. 
      * This number will be different each time the server is run, but will remain the same for the duration of the server's life.
@@ -322,7 +322,7 @@ private:
    bool _doLogging;
    uint64 _serverSessionID;
 
-   Hashtable<ip_address, String> _remapIPs;  // for v2.20; custom strings for "special" IP addresses
+   Hashtable<IPAddress, String> _remapIPs;  // for v2.20; custom strings for "special" IP addresses
    SocketMultiplexer _multiplexer;
 
 #ifdef MUSCLE_ENABLE_SSL

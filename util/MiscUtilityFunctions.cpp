@@ -559,7 +559,7 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if (args.FindString("localhost", &value) == B_NO_ERROR)
    {
-      ip_address ip = Inet_AtoN(value);
+      IPAddress ip = Inet_AtoN(value);
       if (ip != invalidIP)
       {
          char ipbuf[64]; Inet_NtoA(ip, ipbuf);

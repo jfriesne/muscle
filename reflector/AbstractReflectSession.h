@@ -143,7 +143,7 @@ public:
      * or 0 if we weren't created via accepting a network connection  (e.g. we were created locally)
      * May only be called if this session is currently attached to a ReflectServer.
      */
-   const ip_address & GetLocalInterfaceAddress() const;
+   const IPAddress & GetLocalInterfaceAddress() const;
 
    /** Returns a globally unique ID for this session. */
    uint32 GetSessionID() const {return _sessionID;}
@@ -318,7 +318,7 @@ public:
     *  The returned value is meaningful only if we were added
     *  with AddNewConnectSession() or AddNewDormantConnectSession().
     */
-   const ip_address & GetAsyncConnectIP() const {return _asyncConnectDest.GetIPAddress();}
+   const IPAddress & GetAsyncConnectIP() const {return _asyncConnectDest.GetIPAddress();}
 
    /** Returns the remote port we connected asynchronously to.
     *  The returned value is meaningful only if we were added
@@ -481,7 +481,7 @@ protected:
     *  @param defaultHostName The hostname that the system suggests be used for this session.
     *  Default implementation just returns (defaultHostName), i.e. it goes with the suggested name.
     */
-   virtual String GenerateHostName(const ip_address & ip, const String & defaultHostName) const;
+   virtual String GenerateHostName(const IPAddress & ip, const String & defaultHostName) const;
 
 private:
    void SetPolicyAux(AbstractSessionIOPolicyRef & setRef, uint32 & setChunk, const AbstractSessionIOPolicyRef & newRef, bool isInput);

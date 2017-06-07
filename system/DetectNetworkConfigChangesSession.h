@@ -8,7 +8,7 @@
 #endif
 
 #ifdef __APPLE__
-# include <CoreFoundation/CoreFoundation.h>
+# include <CoreFoundation/CFRunLoop.h>
 #endif
 
 namespace muscle {

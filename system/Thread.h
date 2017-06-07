@@ -309,7 +309,7 @@ protected:
  
    /** This method is meant to be called by the internally held thread.
      * It will attempt retrieve the next message that has been sent to the 
-     * thread via SendMessageToThread().
+     * thread via SendMessageToInternalThread().
      * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
      * @param ref On success, (ref) will be set to be a reference to the retrieved Message.
      * @param wakeupTime Time at which this method should stop blocking and return,
@@ -325,7 +325,7 @@ protected:
      */
    virtual int32 WaitForNextMessageFromOwner(MessageRef & ref, uint64 wakeupTime = MUSCLE_TIME_NEVER);
 
-   /** Called by SendMessageToThread() whenever there is a need to wake up the internal
+   /** Called by SendMessageToInternalThread() whenever there is a need to wake up the internal
      * thread so that it will look at its reply queue.
      * Default implementation sends a byte on a socket to implement this,
      * but you can override this method to do it a different way if you need to.

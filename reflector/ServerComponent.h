@@ -5,9 +5,9 @@
 
 #include "message/Message.h"
 #include "support/NotCopyable.h"
-#include "util/RefCount.h"
+#include "util/IPAddress.h"
 #include "util/PulseNode.h"
-#include "util/NetworkUtilityFunctions.h"  // for ip_address
+#include "util/RefCount.h"
 
 namespace muscle {
 
@@ -122,10 +122,10 @@ protected:
    uint64 GetNumUsedBytes() const;
 
    /** Passes through to ReflectServer::PutAcceptFactory() */
-   status_t PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const ip_address & interfaceIP = invalidIP, uint16 * optRetPort = NULL);
+   status_t PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const IPAddress & interfaceIP = invalidIP, uint16 * optRetPort = NULL);
 
    /** Passes through to ReflectServer::RemoveAcceptFactory() */
-   status_t RemoveAcceptFactory(uint16 port, const ip_address & interfaceIP = invalidIP);
+   status_t RemoveAcceptFactory(uint16 port, const IPAddress & interfaceIP = invalidIP);
 
    /** Tells the whole server process to quit ASAP.  */
    void EndServer();
@@ -179,7 +179,7 @@ protected:
     * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error 
     *                    (out-of-memory or the connect attempt failed immediately).
     */
-   status_t AddNewConnectSession(const AbstractReflectSessionRef & session, const ip_address & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
+   status_t AddNewConnectSession(const AbstractReflectSessionRef & session, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
    /**
     * Like AddNewConnectSession(), except that the added session will not initiate
@@ -204,7 +204,7 @@ protected:
     * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error
     *                    (out-of-memory, or the connect attempt failed immediately)
     */
-   status_t AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const ip_address & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
+   status_t AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
    /** Returns our server's table of attached sessions. */
    const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const;

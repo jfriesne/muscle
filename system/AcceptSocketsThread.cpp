@@ -11,7 +11,7 @@ AcceptSocketsThread :: AcceptSocketsThread()
    // empty
 }
 
-AcceptSocketsThread :: AcceptSocketsThread(uint16 port, const ip_address & optInterfaceIP)
+AcceptSocketsThread :: AcceptSocketsThread(uint16 port, const IPAddress & optInterfaceIP)
 {
    (void) SetPort(port, optInterfaceIP);
 }
@@ -21,7 +21,7 @@ AcceptSocketsThread :: ~AcceptSocketsThread()
    // empty
 }
 
-status_t AcceptSocketsThread :: SetPort(uint16 port, const ip_address & optInterfaceIP)
+status_t AcceptSocketsThread :: SetPort(uint16 port, const IPAddress & optInterfaceIP)
 {
    if (IsInternalThreadRunning() == false)
    {

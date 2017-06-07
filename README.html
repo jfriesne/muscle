@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-5/12/2017 v6.42 jaf@meyersound.com<p>
+6/5/2017 v6.50 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -496,6 +496,15 @@ Directory contents descriptions follow:
    <p>
    </li>
    <li>
+   <b>IPAddress</b>
+   <p>
+      IPAddress is a class that represents an IPv4 or IPv6
+      address in a standardized manner.  There is also an
+      IPAddressAndPort class which represents the combination
+      of an IP address and a port number.
+   <p>
+   </li>
+   <li>
    <b>NestCount</b>
    <p>
       NestCount is a simple class for recording when the execution
@@ -507,11 +516,10 @@ Directory contents descriptions follow:
    <li>
    <b>NetworkUtilityFunctions</b>
    <p>
-      NetworkUtilityFunctions.cpp is a repository for common BSD socket 
-      operations (like setting up sockets to connect or accept connections) 
-      that I'm tired of writing over and over again.  I think my API
-      is much easier to use than the plain sockets API, although my 
-      API handles TCP connections only.
+      NetworkUtilityFunctions.cpp is a repository of user-friendly 
+      wrapper functions around common BSD socket operations, such as setting 
+      up sockets to connect or accept TCP connections, or binding a UDP socket 
+      to a port.
    <p>
    </li>
    <li>
@@ -568,8 +576,10 @@ Directory contents descriptions follow:
    <li>
    <b>SocketMultiplexer</b>
    <p>
-      An easy-to-use wrapper around the socket() (or poll()) socket-multiplexing API.  
-      To use the poll()-based implementation, compile your code with -DMUSCLE_USE_POLL
+      An easy-to-use wrapper around the select() socket-multiplexing API.
+      It's also possible to use this as a wrapper around various select()
+      alternatives, such as poll(), epoll(), or kqueue(), by recompiling
+      the code with the appropriate compiler flags (e.g. -DMUSCLE_USE_POLL)
    <p>
    </li>
    <li>

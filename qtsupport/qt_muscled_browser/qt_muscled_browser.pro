@@ -3,7 +3,7 @@ greaterThan(QT_MAJOR_VERSION, 4) {
 }
 win32:LIBS	+= shlwapi.lib ws2_32.lib winmm.lib User32.lib Advapi32.lib shell32.lib iphlpapi.lib version.lib
 unix:!mac:LIBS	+= -lutil -lrt -lz
-mac:LIBS        += -lz -framework Carbon
+mac:LIBS        += -lz -framework Carbon -framework SystemConfiguration
 
 win32:DEFINES += _WIN32_WINNT=0x0501 WINAPI_FAMILY=100
 

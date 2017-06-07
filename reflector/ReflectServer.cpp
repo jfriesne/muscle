@@ -119,7 +119,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
       const ConstSocketRef & sock = newSession->GetSessionReadSelectSocket();
       if (sock.GetFileDescriptor() >= 0)
       {
-         ip_address ip = GetPeerIPAddress(sock, true);
+         IPAddress ip = GetPeerIPAddress(sock, true);
          const String * remapString = _remapIPs.Get(ip);
          char ipbuf[64]; Inet_NtoA(ip, ipbuf);
 
@@ -138,7 +138,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
 
 status_t
 ReflectServer ::
-AddNewConnectSession(const AbstractReflectSessionRef & ref, const ip_address & destIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & destIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    AbstractReflectSession * session = ref();
    if (session)
@@ -195,7 +195,7 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const ip_address & d
 
 status_t
 ReflectServer ::
-AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const ip_address & destIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & destIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    AbstractReflectSession * session = ref();
    if (session)
@@ -782,13 +782,13 @@ void ReflectServer :: LogAcceptFailed(int lvl, const char * desc, const char * i
 status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSocketRef & acceptSocket, ReflectSessionFactory * optFactory)
 {
    // Accept a new connection and try to start up a session for it
-   ip_address acceptedFromIP;
+   IPAddress acceptedFromIP;
    ConstSocketRef newSocket = Accept(acceptSocket, &acceptedFromIP);
    if (newSocket())
    {
       NestCountGuard ncg(_inDoAccept);
       IPAddressAndPort nip(acceptedFromIP, iap.GetPort());
-      ip_address remoteIP = GetPeerIPAddress(newSocket, true);
+      IPAddress remoteIP = GetPeerIPAddress(newSocket, true);
       if (remoteIP == invalidIP) LogAcceptFailed(MUSCLE_LOG_DEBUG, "GetPeerIPAddress() failed", NULL, nip);
       else
       {
@@ -878,7 +878,7 @@ GetSession(uint32 id) const
 
 ReflectSessionFactoryRef
 ReflectServer ::
-GetFactory(uint16 port, const ip_address & optInterfaceIP) const
+GetFactory(uint16 port, const IPAddress & optInterfaceIP) const
 {
    ReflectSessionFactoryRef ref;
    (void) _factories.Get(IPAddressAndPort(optInterfaceIP, port), ref); 
@@ -955,7 +955,7 @@ EndServer()
 
 status_t
 ReflectServer ::
-PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const ip_address & optInterfaceIP, uint16 * optRetPort)
+PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const IPAddress & optInterfaceIP, uint16 * optRetPort)
 {
    if (port > 0) (void) RemoveAcceptFactory(port, optInterfaceIP); // Get rid of any previous acceptor on this port...
 
@@ -1016,7 +1016,7 @@ RemoveAcceptFactoryAux(const IPAddressAndPort & iap)
 
 status_t
 ReflectServer ::
-RemoveAcceptFactory(uint16 port, const ip_address & optInterfaceIP)
+RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP)
 {
    if (port > 0) return RemoveAcceptFactoryAux(IPAddressAndPort(optInterfaceIP, port));
    else

@@ -16,6 +16,12 @@
 #include "syslog/SysLog.h"
 #include "system/GlobalMemoryAllocator.h"  // for muscleFree()
 
+#ifdef __APPLE__
+// Using a forward declaration rather than an #include here to avoid pulling in other things like Mac's
+// Point and Rect typedefs, that can cause ambiguities with Muscle's Point and Rect classes.
+struct __CFString;
+typedef const struct __CFString * CFStringRef;
+#endif
 
 namespace muscle {
 
@@ -117,6 +123,13 @@ public:
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_PARTIAL_COPY_CTOR);
       ClearSmallBuffer(); (void) SetFromString(str, beginIndex, endIndex);
    }
+
+#ifdef __APPLE__
+   /** Special MACOS/X-only convenience constructor that sets our state from a UTF8 Core Foundation String
+     * @param cfStringRef A CFStringRef that we will get our string value from
+     */
+   String(const CFStringRef & cfStringRef) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0) {(void) SetFromCFStringRef(cfStringRef);}
+#endif
 
    /** Destructor. */
    ~String() 
@@ -356,6 +369,20 @@ public:
      * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
      */
    status_t SetFromString(const String & str, uint32 beginIndex = 0, uint32 endIndex = MUSCLE_NO_LIMIT);
+
+#ifdef __APPLE__
+   /** MACOS/X-only convenience method:  Sets our string equal to the string pointed to by (cfStringRef).
+     * @param cfStringRef A CFStringRef that we will get our string value from.  May be NULL (in which case we'll be set to an empty string)
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   status_t SetFromCFStringRef(const CFStringRef & cfStringRef);
+
+   /** MACOS/X-only convenience method:  Returns a CFStringRef containing the same string that we have. 
+     * It becomes the caller's responsibility to CFRelease() the CFStringRef when he is done with it.
+     * May return a NULL CFStringRef on failure (e.g. out of memory)
+     */
+   CFStringRef ToCFStringRef() const;
+#endif
 
    /** Returns true iff this string is a zero-length string. */
    bool IsEmpty() const {return (_length == 0);}

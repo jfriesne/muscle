@@ -20,10 +20,10 @@ SharedFilterSessionFactory :: ~SharedFilterSessionFactory()
 AbstractReflectSessionRef SharedFilterSessionFactory :: CreateSession(const String & clientIP, const IPAddressAndPort & iap)
 {
    TCHECKPOINT;
-   return ((GetSlave()())&&(IsAccessAllowedForIP(_sharedMemName, IsStandardLoopbackDeviceAddress(iap.GetIPAddress())?localhostIP:Inet_AtoN(clientIP()), _isGrantList, _defaultPass))) ? GetSlave()()->CreateSession(clientIP, iap) : AbstractReflectSessionRef();
+   return ((GetSlave()())&&(IsAccessAllowedForIP(_sharedMemName, iap.GetIPAddress().IsStandardLoopbackDeviceAddress()?localhostIP:Inet_AtoN(clientIP()), _isGrantList, _defaultPass))) ? GetSlave()()->CreateSession(clientIP, iap) : AbstractReflectSessionRef();
 }
 
-bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMemName, const ip_address & ip, bool isGrantList, bool defaultPass)
+bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMemName, const IPAddress & ip, bool isGrantList, bool defaultPass)
 {
    bool allowAccess = defaultPass;
    if (ip != invalidIP)
@@ -36,11 +36,11 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMem
 
          allowAccess = !isGrantList;  // if there is a list, you're off it unless you're on it!
 
-         const ip_address * ips = reinterpret_cast<const ip_address *>(sm());
-         uint32 numIPs = sm.GetAreaSize()/sizeof(ip_address);
+         const IPAddress * ips = reinterpret_cast<const IPAddress *>(sm());
+         uint32 numIPs = sm.GetAreaSize()/sizeof(IPAddress);
          for (uint32 i=0; i<numIPs; i++)
          {
-            ip_address nextIP = ips[i];
+            IPAddress nextIP = ips[i];
 #ifdef MUSCLE_AVOID_IPV6
             if (nextIP == ip)
 #else
@@ -50,7 +50,7 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMem
                allowAccess = isGrantList;
                break;
             }
-            else if (IsStandardLoopbackDeviceAddress(nextIP))
+            else if (nextIP.IsStandardLoopbackDeviceAddress())
             {
                if (gotIFs == false)
                {

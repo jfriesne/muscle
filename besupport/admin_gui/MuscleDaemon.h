@@ -48,7 +48,7 @@ private:
    Hashtable<IPAddressAndPort, Void> listenPorts;
    Queue<String> bans;
    Queue<String> requires;
-   Hashtable<ip_address, String> tempRemaps;
+   Hashtable<IPAddress, String> tempRemaps;
    Message tempPrivs;
 };
 };
