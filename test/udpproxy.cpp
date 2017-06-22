@@ -178,7 +178,7 @@ int main(int argc, char ** argv)
          WARN_OUT_OF_MEMORY;
          return 10;
       }
-      dio->SetSendDestination(targets[i]);
+      (void) dio->SetPacketSendDestination(targets[i]);
       udpIOs[i].SetRef(dio);
    }
 

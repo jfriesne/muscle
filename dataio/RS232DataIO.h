@@ -32,12 +32,6 @@ public:
 
    virtual int32 Write(const void * buffer, uint32 size);
 
-   /** Always returns B_ERROR, since you can't seek on a serial port! */
-   virtual status_t Seek(int64, int) {return B_ERROR;}
-
-   /** Always returns -1, since a serial port has no position to speak of */
-   virtual int64 GetPosition() const {return -1;}
-
    /** Doesn't return until all outgoing serial bytes have been sent */
    virtual void FlushOutput();
 

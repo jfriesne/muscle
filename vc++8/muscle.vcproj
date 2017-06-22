@@ -397,7 +397,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\dataio\PacketizedDataIO.cpp"
+				RelativePath="..\dataio\PacketizedProxyDataIO.cpp"
 				>
 			</File>
 			<File

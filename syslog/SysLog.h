@@ -562,9 +562,12 @@ uint64 ParseHumanReadableTimeIntervalString(const String & str);
   *                           the nearest second.  Defaults to zero for complete accuracy.
   * @param optRetIsAccurate If non-NULL, this value will be set to true if the returned string represents
   *                         (micros) down to the nearest microsecond, or false if the string is an approximation.
+  * @param roundUp If specified true, and we have to round off to the nearest unit in order to return a more
+  *                succinct human-readable string, then setting this to true will allow the figure in the final
+  *                position to be rounded up to the nearest unit, rather than always being rounded down.
   * @returns a human-readable time interval description string.
   */
-String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL);
+String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
 
 /** Works the same as GetHumanReadableTimeIntervalString() except it interprets the passed-in microseconds value
   * as a signed integer rather than unsigned, and thus will yield a useful result for negative values
@@ -579,9 +582,12 @@ String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUS
   *                           the nearest second.  Defaults to zero for complete accuracy.
   * @param optRetIsAccurate If non-NULL, this value will be set to true if the returned string represents
   *                         (micros) down to the nearest microsecond, or false if the string is an approximation.
+  * @param roundUp If specified true, and we have to round off to the nearest unit in order to return a more
+  *                succinct human-readable string, then setting this to true will allow the figure in the final
+  *                position to be rounded up to the nearest unit, rather than always being rounded down.
   * @returns a human-readable time interval description string.
   */
-String GetHumanReadableSignedTimeIntervalString(int64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL);
+String GetHumanReadableSignedTimeIntervalString(int64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
 
 /** Works the same as ParseHumanReadableTimeIntervalString(), except that if the string
   * starts with a - sign, a negative value will be returned. 

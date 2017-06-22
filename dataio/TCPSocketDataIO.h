@@ -45,14 +45,6 @@ public:
    virtual int32 Write(const void * buffer, uint32 size) {return SendData(_sock, buffer, size, _blocking);}
 
    /**
-    *  This method implementation always returns B_ERROR, because you can't seek on a socket!
-    */
-   virtual status_t Seek(int64 /*seekOffset*/, int /*whence*/) {return B_ERROR;}
-
-   /** Always returns -1, since a socket has no position to speak of */
-   virtual int64 GetPosition() const {return -1;}
-
-   /**
     * Stall limit for TCP streams is 180000000 microseconds (aka 3 minutes) by default.
     * Or change it by calling SetOutputStallLimit().
     */

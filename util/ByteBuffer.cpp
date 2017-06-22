@@ -183,9 +183,9 @@ ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, uint32 numByt
    return ref;
 }
 
-ByteBufferRef GetByteBufferFromPool(DataIO & dio) {return GetByteBufferFromPool(_bufferPool, dio);}
+ByteBufferRef GetByteBufferFromPool(SeekableDataIO & dio) {return GetByteBufferFromPool(_bufferPool, dio);}
 
-ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, DataIO & dio)
+ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, SeekableDataIO & dio)
 {
    int64 dioLen = dio.GetLength();
    if (dioLen < 0) return ByteBufferRef();  // we don't support reading in unknown lengths of data (for now)

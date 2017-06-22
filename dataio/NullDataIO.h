@@ -38,16 +38,6 @@ public:
     */
    virtual int32 Write(const void * buffer, uint32 size) {(void) buffer; return _shutdown ? -1 : (int32)size;}
 
-   /**
-    *  This method always returns B_ERROR.
-    */
-   virtual status_t Seek(int64 /*seekOffset*/, int /*whence*/) {return B_ERROR;}
-
-   /** 
-    *  This method always return -1.
-    */
-   virtual int64 GetPosition() const {return -1;}
-
    /** 
     *  No-op method.
     *  This method doesn't do anything at all.

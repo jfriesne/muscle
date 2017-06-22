@@ -39,7 +39,9 @@ int32 MultiDataIO :: Write(const void * buffer, uint32 size)
          if ((uint32)childRet < minWrittenBytes) 
          {
             minWrittenBytes = childRet;
-            newSeekPos      = _childIOs[i]()->GetPosition();
+
+            SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(_childIOs[i]());
+            newSeekPos = sdio ? sdio->GetPosition() : -1;
          }
          maxWrittenBytes = muscleMax(maxWrittenBytes, (uint32)childRet);
       }
@@ -65,11 +67,6 @@ void MultiDataIO :: WriteBufferedOutput()
    for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--) _childIOs[i]()->WriteBufferedOutput();
 }
 
-uint32 MultiDataIO :: GetPacketMaximumSize() const
-{
-   return (HasChildren()) ? GetFirstChild()->GetPacketMaximumSize() : 0;
-}
-
 bool MultiDataIO :: HasBufferedOutput() const 
 {
    for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--) if (_childIOs[i]()->HasBufferedOutput()) return true;
@@ -80,7 +77,8 @@ status_t MultiDataIO :: SeekAll(uint32 first, int64 offset, int whence)
 {
    for (int32 i=_childIOs.GetNumItems()-1; i>=(int32)first; i--)
    {
-      if (_childIOs[i]()->Seek(offset, whence) != B_NO_ERROR) 
+      SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(_childIOs[i]());
+      if ((sdio == NULL)||(sdio->Seek(offset, whence) != B_NO_ERROR))
       {
          if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1)) (void) _childIOs.RemoveItemAt(i);
                                                                else return B_ERROR;

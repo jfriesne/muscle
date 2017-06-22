@@ -1618,34 +1618,36 @@ private:
 };
 
 /**
- *  This is a handy templated Hashtable class, rather similar to Java's java.util.Hashtable,
- *  or the STL's hash_map<>, but with some added features not typically found in hash table
+ *  This is a handy templated Hashtable class, somewhat similar to Java's java.util.Hashtable,
+ *  or the STL's unordered_map<>, but with some useful features not typically found in hash table
  *  implementations.  These extra features include:
  *   - Any POD type or user type with a default constructor may be used as a Hashtable Key type.  
- *     By default, MUSCLE's CalculateHashCode() function (which is a wrapper around the MurmurHash2 
- *     algorithm) will be used to scan the bytes of the Key object, in order to calculate a
- *     hash code for a given Key.  However, if the Key class has a method with the signature 
- *     "uint32 HashCode() const", then the HashCode() method will be automatically called instead.
+ *     If the type is a POD type, MUSCLE's CalculateHashCode() function (which is a wrapper 
+ *     around the MurmurHash2 algorithm) will be used to scan the bytes of the Key object, in 
+ *     order to calculate a hash code for a given Key.  However, if the Key class has a method 
+ *     with the signature "uint32 HashCode() const", then the HashCode() method will be automatically 
+ *     called instead.  If -DMUSCLE_ENABLE_CPLUSPLUS11 is defined, then attempting to use
+ *     a non-POD type as a key will cause a compile error, unless the HashCode() method is defined for the Key type.
  *   - Pointers can be used as Key types if desired; if the pointers point to a class with
  *     a "uint32 HashCode() const" method; that method will be called to generate the entry's
  *     hash code.  Note that it is up to the calling code to ensure the pointers point to valid
- *     objects (and that the pointed-to objects remain valid for as long as they are pointed
- *     to by the keys in this Hashtable)
- *   - When iterating over a Hashtable, the iteration will traverse the Key/Value pairs in the
- *     same order that they were added to the Hashtable.  Also, the ordering of Key/Value pairs
- *     will be preserved as additional entries are added to (or removed from) the Hashtable.
- *   - Adding or removing items from a Hashtable will not break HashtableIterator iterations 
+ *     objects, and that the pointed-to objects remain valid for as long as they are pointed
+ *     to by the keys in this Hashtable.
+ *   - Ordering is preserved:  When iterating over a Hashtable, the iteration will traverse the 
+ *     Key/Value pairs in the same order that they were added to the Hashtable.  Also, the ordering 
+ *     of Key/Value pairs will be preserved as additional entries are added to (or removed from) 
+ *     the Hashtable.
+ *   - It is possible to manually modify the iteration-traversal ordering of a table's items via the
+ *     MoveToFront(), MoveToBack(), MoveToBefore(), MoveToBehind(), or MoveToPosition() methods.
+ *   - Adding or removing items from a Hashtable will not break or invalidate HashtableIterator iterations
  *     that are in progress on that same Hashtable.  This makes it possible, for example, to
- *     iterate over a Hashtable, removing undesired items as you go.  (Note that the concurrent 
- *     iterations must be within the same thread, however -- the Hashtable class is NOT thread-safe, 
- *     unless you use Mutexes to explicitly serialize access to it.)
- *   - It is possible to iterate backwards over the contents of a Hashtable, or iterate starting
- *     at a specified entry.
+ *     iterate over a Hashtable, removing undesired items as you go.  (Note that all concurrent 
+ *     iterations must be within the same thread, however -- modifying a Hashtable is NOT thread-safe)
+ *   - It is possible to iterate backwards over the contents of a Hashtable, or iterate in either
+ *     direction, starting at a specified entry.
  *   - It is possible for a HashtableIterator iteration to skip backwards as well as forwards
  *     in its iteration sequence, by calling iter-- instead of iter++.
  *   - In-place modification of Value objects contained in the Hashtable is allowed.
- *   - It is possible to manually modify the iteration-traversal ordering of a table via the
- *     MoveToFront(), MoveToBack(), MoveToBefore(), MoveToBehind(), or MoveToPosition() methods.
  *   - Keys and Values in the Hashtable are guaranteed never to change their locations in memory,
  *     except when the Hashtable has to resize its internal array to fit more entries.  That means
  *     that if you know in advance the maximum number of items the Hashtable will ever need to
@@ -1655,10 +1657,12 @@ private:
  *   - The Hashtable class never does any dynamic memory allocations, except for when it resizes
  *     its internal array larger.  That means that if you know in advance the maximum number of items
  *     a Hashtable will ever need to contain, you can call myHashtable.EnsureSize(maxNumItems) at
- *     program start, and be guaranteed thereafter that your Hashtable will never suffer from an
- *     out-of-memory error.
+ *     program start, and be guaranteed thereafter that your Hashtable will never access the heap or
+ *     suffer from an out-of-memory error.
  *   - The Hashtable's contents may be sorted by Key or by Value at any time, by calling SortByKey()
- *     or SortByValue().
+ *     or SortByValue().  Sorting will use the Key or Value class's less-than operator by default, 
+ *     or a custom compare-functor can be provided for more sophisticated sorts.  Sorting is done
+ *     using MergeSort with, O(log(N)) complexity.
  *   - OrderedKeysHashtable and OrderedValuesHashtable subclasses are available; these work similarly
  *     to the regular Hashtable class, except that they automatically keep the table's contents sorted
  *     by Key (or by Value) at all times.  Note that these classes are necessarily less efficient than

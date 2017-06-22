@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.50" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        65000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "6.60" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        66000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -75,6 +75,12 @@
 
 #ifdef __cplusplus
 # ifdef MUSCLE_USE_CPLUSPLUS11
+#  if defined(_MSC_VER) && (_MSC_VER < 1900)  // MSVC2013 and older don't implement constexpr, sigh
+#   define MUSCLE_CONSTEXPR            /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
+#  else
+#   define MUSCLE_CONSTEXPR constexpr  /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
+#   define MUSCLE_CONSTEXPR_IS_SUPPORTED /**< defined iff we are being compiled on a compiler (and in a compiler-mode) that supports the constexpr keyword */
+#  endif
 #  include <type_traits>  // for static_assert()
 #  include <utility>      // for std::move()
 #  if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ < 7)
@@ -84,6 +90,7 @@
 #  endif
 # else
 #  define MUSCLE_FINAL_CLASS          /**< This tag indicates that the class it decorates should not be subclassed.  (Expands to keyword "final" iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
+#  define MUSCLE_CONSTEXPR            /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
 # endif
 #else
 # define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (e.g. because we're on an ancient platform) */
@@ -93,6 +100,10 @@
 // MUSCLE_FINAL_CLASS to expand to nothing, and leave it up to the user to know not to subclass the class.
 #ifndef MUSCLE_FINAL_CLASS
 # define MUSCLE_FINAL_CLASS
+#endif
+
+#ifndef MUSCLE_CONSTEXPR
+# define MUSCLE_CONSTEXPR  /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
 #endif
 
 /* Borland C++ builder also runs under Win32, but it doesn't set this flag So we'd better set it ourselves. */

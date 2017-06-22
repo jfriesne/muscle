@@ -101,16 +101,16 @@ public:
    }
 
    /** Part of the Flattenable pseudo-interface:  Returns true */
-   static bool IsFixedSize() {return true;}
+   static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
 
    /** Part of the Flattenable pseudo-interface:  Returns IP_ADDRESS_TYPE */
-   static uint32 TypeCode() {return IP_ADDRESS_TYPE;}
+   static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_TYPE;}
 
    /** Returns true iff (tc) equals IP_ADDRESS_TYPE. */
-   static bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
+   static MUSCLE_CONSTEXPR bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
 
    /** Part of the Flattenable pseudo-interface */
-   static uint32 FlattenedSize() {return sizeof(uint64) + sizeof(uint64) + sizeof(uint32);}
+   static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return sizeof(uint64) + sizeof(uint64) + sizeof(uint32);}
 
    /** Returns a 32-bit checksum for this object. */
    uint32 CalculateChecksum() const;
@@ -316,16 +316,16 @@ public:
    String ToString(bool includePort = true, bool preferIPv4Style = false) const;
 
    /** Part of the Flattenable pseudo-interface:  Returns true */
-   static bool IsFixedSize() {return true;}
+   static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
 
    /** Part of the Flattenable pseudo-interface:  Returns IP_ADDRESS_AND_PORT_TYPE */
-   static uint32 TypeCode() {return IP_ADDRESS_AND_PORT_TYPE;}
+   static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_AND_PORT_TYPE;}
 
    /** Returns true iff (tc) equals IP_ADDRESS_AND_PORT_TYPE. */
-   static bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
+   static MUSCLE_CONSTEXPR bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
 
    /** Part of the Flattenable pseudo-interface */
-   static uint32 FlattenedSize() {return IPAddress::FlattenedSize() + sizeof(uint16);}
+   static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return IPAddress::FlattenedSize() + sizeof(uint16);}
 
    /** Returns a 32-bit checksum for this object. */
    uint32 CalculateChecksum() const {return _ip.CalculateChecksum() + _port;}

@@ -1,4 +1,6 @@
 #include "dataio/SimulatedMulticastDataIO.h"
+#include "util/MiscUtilityFunctions.h" // TEMP REMOVE THIS
+#include "util/NetworkInterfaceInfo.h"
 
 namespace muscle {
 
@@ -13,21 +15,11 @@ namespace muscle {
  * 5. A member that is shutting down gracefully may send a "bye" packet, to let the others know he is going away.
  */
 
-// Given the "actual" multicast address that we're going to simulate, return an associated address that we can use for 
-// management-traffic without having that traffic show up on a multicast group that the user knows about.
-static IPAddressAndPort GetManagementMulticastAddressFor(const IPAddressAndPort & userMulticastAddress)
-{
-   IPAddress ip = userMulticastAddress.GetIPAddress();
-   ip.SetLowBits(ip.GetLowBits()^0x6666);
+static const uint64 SIMULATED_MULTICAST_CONTROL_MAGIC = ((uint64) 0x72F967C8345A065BLL);  // arbitrary magic header number
 
-   uint16 newPort = userMulticastAddress.GetPort()+4444;
-   if (newPort < 1024) newPort += 1024;  // let's try to stay out of the privileged range at least
-   return IPAddressAndPort(ip, newPort);
-}
-
-SimulatedMulticastDataIO :: SimulatedMulticastDataIO(const IPAddressAndPort & userMulticastAddress) : _userMulticastAddress(userMulticastAddress), _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET)
+SimulatedMulticastDataIO :: SimulatedMulticastDataIO(const IPAddressAndPort & multicastAddress) : _multicastAddress(multicastAddress), _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET), _isUnicastSocketRegisteredForWrite(false)
 {
-   if (StartInternalThread() != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  Unable to start internal thread for [%s]\n", userMulticastAddress.ToString()());
+   if (StartInternalThread() != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  Unable to start internal thread for group [%s]\n", multicastAddress.ToString()());
 }
 
 enum {
@@ -97,7 +89,7 @@ static UDPSocketDataIORef CreateMulticastUDPDataIO(const IPAddressAndPort & iap)
 
    UDPSocketDataIORef ret(newnothrow UDPSocketDataIO(udpSock, false));
    if (ret() == NULL) {WARN_OUT_OF_MEMORY; return UDPSocketDataIORef();}
-   ret()->SetSendDestination(iap);
+   (void) ret()->SetPacketSendDestination(iap);
    return ret;
 }
 
@@ -106,11 +98,7 @@ static UDPSocketDataIORef CreateUnicastUDPDataIO(uint16 & retPort)
    ConstSocketRef udpSock = CreateUDPSocket();
    if (udpSock() == NULL) return UDPSocketDataIORef();
 
-   if (BindUDPSocket(udpSock, 0, &retPort) != B_NO_ERROR)
-   {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to bind unicast socket\n");
-      return UDPSocketDataIORef();
-   }
+   if (BindUDPSocket(udpSock, 0, &retPort) != B_NO_ERROR) return UDPSocketDataIORef();
 
    UDPSocketDataIORef ret(newnothrow UDPSocketDataIO(udpSock, false));
    if (ret() == NULL) {WARN_OUT_OF_MEMORY; return UDPSocketDataIORef();}
@@ -139,91 +127,193 @@ status_t SimulatedMulticastDataIO :: SendIncomingDataPacketToMainThread(const By
    return ((toMainThreadMsg())&&(toMainThreadMsg()->AddFlat(SMDIO_NAME_DATA, data) == B_NO_ERROR)&&(toMainThreadMsg()->AddFlat(SMDIO_NAME_SOURCE, source) == B_NO_ERROR)) ? SendMessageToOwner(toMainThreadMsg) : B_ERROR;
 }
 
-void SimulatedMulticastDataIO :: NoteHeardFromMember(const IPAddressAndPort & heardFrom, uint64 timeStampMicros, uint16 optUserUnicastPort)
+void SimulatedMulticastDataIO :: NoteHeardFromMember(const IPAddressAndPort & heardFromPingSource, uint64 timeStampMicros)
 {
-   KnownMemberInfo * kmi = _knownMembers.Get(heardFrom);
-   if (kmi == NULL)
+   uint64 * lastHeardFromTime = _knownMembers.Get(heardFromPingSource);
+        if (lastHeardFromTime) *lastHeardFromTime = muscleMax(*lastHeardFromTime, timeStampMicros);
+   else if (_knownMembers.Put(heardFromPingSource, timeStampMicros) == B_NO_ERROR) 
    {
-      kmi = _knownMembers.PutAndGet(heardFrom);
-      if (kmi) LogTime(MUSCLE_LOG_DEBUG, "New member [%s] added to the simulated-multicast group, userUnicastPort=%u, now there are " UINT32_FORMAT_SPEC " members.\n", heardFrom.ToString()(), optUserUnicastPort, _knownMembers.GetNumItems());
-   }
-   if (kmi) 
-   {
-      kmi->_lastHeardFromTime = timeStampMicros;
-      if (optUserUnicastPort) kmi->_userUnicastPort = optUserUnicastPort;
+      LogTime(MUSCLE_LOG_DEBUG, "New member [%s] added to the simulated-multicast group [%s], now there are " UINT32_FORMAT_SPEC " members.\n", heardFromPingSource.ToString()(), _multicastAddress.ToString()(), _knownMembers.GetNumItems());
    }
 }
 
-void SimulatedMulticastDataIO :: UpdateIsInternalSocketRegisteredForWrite(uint32 purpose, uint32 type, bool wantsWriteReadyNotification)
+void SimulatedMulticastDataIO :: UpdateUnicastSocketRegisteredForWrite(bool shouldBeRegisteredForWrite)
 {
-   const ConstSocketRef & udpSock = _udpDataIOs[purpose][type]()->GetWriteSelectSocket();
-   bool & isRegistered = _isInternalSocketRegisteredForWrite[purpose][type];
-
-   if (wantsWriteReadyNotification != isRegistered)
+   if (shouldBeRegisteredForWrite != _isUnicastSocketRegisteredForWrite)
    {
-      if (wantsWriteReadyNotification)
+      const ConstSocketRef & udpSock = _udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST]()->GetWriteSelectSocket();
+      if (shouldBeRegisteredForWrite)
       {
-         if (RegisterInternalThreadSocket(udpSock, SOCKET_SET_WRITE) == B_NO_ERROR) isRegistered = true;
+         if (RegisterInternalThreadSocket(udpSock, SOCKET_SET_WRITE) == B_NO_ERROR) _isUnicastSocketRegisteredForWrite = true;
       }
       else
       {
          (void) UnregisterInternalThreadSocket(udpSock, SOCKET_SET_WRITE);
-         isRegistered = false;
+         _isUnicastSocketRegisteredForWrite = false;
       }
    }
 }
 
-void SimulatedMulticastDataIO :: SendPingOrPong(uint32 whatCode, const IPAddressAndPort & destIAP)
+static const uint32 NUM_EXTRA_ADDRESSES = 10;  // adds up to 220 bytes to the PONGs, but I think that's an okay amount of overhead for unicast
+
+status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint32 whatCode, uint64 now, const IPAddressAndPort & destIAP)
 {
-   // When we get a ping, we always send back a pong so he can know our IPAddressAndPort also
-   UDPSocketDataIO & pingUnicastIO = *_udpDataIOs[SMDIO_SOCKET_PURPOSE_PING][SMDIO_SOCKET_TYPE_UNICAST]();
-   
-   // Calling SendDataUDP() directly so that I don't have to call pingUnicastIO.SetSendDestination()
-   uint8 pingBuf[sizeof(uint32)+sizeof(uint16)];
-   muscleCopyOut(pingBuf,                B_HOST_TO_LENDIAN_INT32(whatCode));
-   muscleCopyOut(pingBuf+sizeof(uint32), B_HOST_TO_LENDIAN_INT16(_localUnicastPorts[SMDIO_SOCKET_PURPOSE_USER]));
-   if (SendDataUDP(pingUnicastIO.GetWriteSelectSocket(), pingBuf, sizeof(pingBuf), false, destIAP.GetIPAddress(), destIAP.GetPort()) != sizeof(pingBuf)) LogTime(MUSCLE_LOG_ERROR, "Unable to send ping/pong to %s\n", destIAP.ToString()());
+#ifdef MUSCLE_CONSTEXPR_IS_SUPPORTED
+   uint8 pingBuf[sizeof(uint64)+sizeof(uint32)+(NUM_EXTRA_ADDRESSES*IPAddressAndPort::FlattenedSize())]; // ok because FlattenedSize() is declared constexpr
+#else
+   // Ugly hack work-around, for e.g. MSVC2013 or pre-C++11 compilers that don't support constexpr
+   enum {ipAddressAndPortFlattenedSize = (sizeof(uint64)+sizeof(uint64)+sizeof(32)+sizeof(uint16))};  // low-bits, high-bits, interface-index, port
+   uint8 pingBuf[sizeof(uint64)+sizeof(uint32)+(NUM_EXTRA_ADDRESSES*ipAddressAndPortFlattenedSize)];
+#endif
+
+   uint8 * b = pingBuf;
+   muscleCopyOut(b, B_HOST_TO_LENDIAN_INT64(SIMULATED_MULTICAST_CONTROL_MAGIC)); b += sizeof(uint64);
+   muscleCopyOut(b, B_HOST_TO_LENDIAN_INT32(whatCode));                          b += sizeof(uint32);
+   if ((whatCode == SMDIO_COMMAND_PONG)&&(destIAP != _localAddressAndPort))  // no point telling myself about what I know
+   {
+      // Include the next (n) member-IAPs (not including our own) to the PONG's data so that the 
+      // receiver can add them all, even if he doesn't get all of the PONGs directly from everyone
+      const bool tableContainsSelf = ((_localAddressAndPort.IsValid())&&(_knownMembers.ContainsKey(_localAddressAndPort)));
+      HashtableIterator<IPAddressAndPort, uint64> iter;
+      if (tableContainsSelf) iter = _knownMembers.GetIteratorAt(_localAddressAndPort);
+                        else iter = _knownMembers.GetIterator();
+      const uint32 maxToAdd = muscleMin(NUM_EXTRA_ADDRESSES, _knownMembers.GetNumItems());
+      for (uint32 count = 0; count < maxToAdd; count++)
+      {
+         // Go to next entry, wrapping around if necessary;
+         iter++; if (iter.HasData() == false) iter = _knownMembers.GetIterator();
+
+         // We don't want to send out our own IPAddressAndPort, that will be seen via recvfrom()'s args 
+         IPAddressAndPort nextIAP = iter.GetKey();
+         if ((tableContainsSelf)&&(nextIAP == _localAddressAndPort)) break;
+
+         // We'll assume it doesn't need to know about itself
+         if (nextIAP != destIAP)
+         {
+            const uint64 millisSinceHeardFrom = muscleMin((uint64) MicrosToMillis(now-iter.GetValue()), (uint64) (MUSCLE_NO_LIMIT-1));  // paranoia: cap at 2^32-1
+            nextIAP = nextIAP.WithInterfaceIndex((uint32) millisSinceHeardFrom);  // yes, I'm abusing this (otherwise-unused-in-this-context) field
+            nextIAP.Flatten(b); b += IPAddressAndPort::FlattenedSize();
+         }
+      }
+   }
+
+   ConstByteBufferRef buf = GetByteBufferFromPool(b-pingBuf, pingBuf);
+   if (buf() == NULL) return B_ERROR;
+
+   Queue<ConstByteBufferRef> * pq = _outgoingPacketsTable.GetOrPut(destIAP);
+   return pq ? pq->AddTail(buf) : B_ERROR;
+}
+
+void SimulatedMulticastDataIO :: DrainOutgoingPacketsTable()
+{
+   const ConstSocketRef & udpSock = _udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST]()->GetWriteSelectSocket();
+   while(_outgoingPacketsTable.HasItems())
+   {
+      Queue<ConstByteBufferRef> & pq = *_outgoingPacketsTable.GetFirstValue();
+      if (pq.HasItems())
+      { 
+         const IPAddressAndPort & dest = *_outgoingPacketsTable.GetFirstKey();
+         const ConstByteBufferRef & b  = pq.Head();
+         if (SendDataUDP(udpSock, b()->GetBuffer(), b()->GetNumBytes(), false, dest.GetIPAddress(), dest.GetPort()) == 0) return;
+         (void) pq.RemoveHead();
+      }
+      if (pq.IsEmpty()) (void) _outgoingPacketsTable.RemoveFirst();
+   }
 }
 
 static const uint64 _multicastPingIntervalMicros       = SecondsToMicros(10);
 static const uint64 _multicastTimeoutPingIntervalCount = 5;    // if we haven't heard from someone in (this many) multicast-ping intervals, then they're off our list
+static const uint64 _timeoutPeriodMicros               = (_multicastTimeoutPingIntervalCount*_multicastPingIntervalMicros);
+static const uint64 _halfTimeoutPeriodMicros           = _timeoutPeriodMicros/2;
 
-// userMulticastIO -> third-party-originated multicast data packets can be received on this
-// userUnicastIO   -> our own unicast-data packets are received on this
-// pingMulticastIO -> used for initial discovery
-// pingUnicastIO   -> our unicast pings are sent on this
+status_t SimulatedMulticastDataIO :: ParseMulticastControlPacket(const ByteBuffer & buf, uint64 now, uint32 & retWhatCode)
+{
+   if (buf.GetNumBytes() < sizeof(uint64)+sizeof(uint32)) return B_ERROR;
+
+   const uint8 * b      = buf.GetBuffer();
+   const uint64 magic   = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(b)); b += sizeof(uint64);
+   if (magic != SIMULATED_MULTICAST_CONTROL_MAGIC) return B_ERROR;
+   retWhatCode          = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(b)); b += sizeof(uint32);
+
+   if (retWhatCode == SMDIO_COMMAND_PONG)
+   {
+      const uint32 numExtras = ((buf.GetBuffer()+buf.GetNumBytes())-b)/IPAddressAndPort::FlattenedSize();
+      for (uint32 i=0; i<numExtras; i++)
+      {
+         IPAddressAndPort next; 
+         if (next.Unflatten(b, IPAddressAndPort::FlattenedSize()) == B_NO_ERROR)
+         {
+            const uint64 microsSinceHeardFrom = MillisToMicros(next.GetIPAddress().GetInterfaceIndex()); // yes, I'm abusing this field
+            if (microsSinceHeardFrom < _timeoutPeriodMicros) 
+            {
+               next = next.WithInterfaceIndex(_localAddressAndPort.GetIPAddress().GetInterfaceIndex());  // since we don't actually it anyway
+               NoteHeardFromMember(next, (now>microsSinceHeardFrom)?(now-microsSinceHeardFrom):0);       // semi-paranoia
+            }
+            b += IPAddressAndPort::FlattenedSize();
+         }
+         else break;  // wtf?
+      }
+   }
+
+   return B_NO_ERROR; 
+}
+
+const char * SimulatedMulticastDataIO :: GetUDPSocketTypeName(uint32 which) const
+{
+   switch(which)
+   {
+      case SMDIO_SOCKET_TYPE_MULTICAST: return "Multicast";
+      case SMDIO_SOCKET_TYPE_UNICAST:   return "Unicast";
+      default:                          return "???";
+   }
+}
+
 void SimulatedMulticastDataIO :: InternalThreadEntry()
 {
-   const IPAddressAndPort multicastAddresses[NUM_SMDIO_SOCKET_PURPOSES] = {_userMulticastAddress, GetManagementMulticastAddressFor(_userMulticastAddress)};
-   for (uint32 i=0; i<NUM_SMDIO_SOCKET_PURPOSES; i++)
-   {
-      for (uint32 j=0; j<NUM_SMDIO_SOCKET_TYPES; j++)
-      {
-         _isInternalSocketRegisteredForWrite[i][j] = false;
+   _udpDataIOs[SMDIO_SOCKET_TYPE_MULTICAST] = CreateMulticastUDPDataIO(_multicastAddress);
+   if (_udpDataIOs[SMDIO_SOCKET_TYPE_MULTICAST]() == NULL) LogTime(MUSCLE_LOG_ERROR, "Unable to create multicast socket for [%s]\n", _multicastAddress.ToString()());
 
-         UDPSocketDataIORef & udpDataIO = _udpDataIOs[i][j];
-         switch(j)
+   uint16 localUnicastPort = 0;
+   _udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST] = CreateUnicastUDPDataIO(localUnicastPort);
+   if (_udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST]() == NULL) LogTime(MUSCLE_LOG_ERROR, "Unable to create unicast socket!\n");
+
+   // Figure out what our local IPAddressAndPort will be
+   {
+      Queue<NetworkInterfaceInfo> niis;
+      if (GetNetworkInterfaceInfos(niis) == B_NO_ERROR)
+      {
+         for (uint32 i=0; i<niis.GetNumItems(); i++)
          {
-            case SMDIO_SOCKET_TYPE_MULTICAST: udpDataIO = CreateMulticastUDPDataIO(multicastAddresses[i]); break;
-            case SMDIO_SOCKET_TYPE_UNICAST:   udpDataIO = CreateUnicastUDPDataIO(_localUnicastPorts[i]);   break;
+            const NetworkInterfaceInfo & nii = niis[i];
+            const IPAddress & ipAddr = nii.GetLocalAddress();
+            if ((ipAddr.IsIPv4() == false)&&(ipAddr.GetInterfaceIndex() == _multicastAddress.GetIPAddress().GetInterfaceIndex()))
+            {
+               _localAddressAndPort = IPAddressAndPort(ipAddr, localUnicastPort);
+               break;
+            }
          }
-         if ((udpDataIO() == NULL)||(RegisterInternalThreadSocket(udpDataIO()->GetReadSelectSocket(), SOCKET_SET_READ) != B_NO_ERROR))
-         {
-            LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO: Unable to create udpSock " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", i, j);
-            Thread::InternalThreadEntry();  // just wait for death, then
-            return;
-         }
+      }
+      if (_localAddressAndPort.IsValid()) LogTime(MUSCLE_LOG_DEBUG, "SimulatedMulticastDataIO %p:  For multicastAddress [%s], localAddressAndPort is [%s]\n", this, _multicastAddress.ToString()(), _localAddressAndPort.ToString()());
+                                     else LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  Unable to find localAddressAndPort for multicastAddress [%s]!\n", this, _multicastAddress.ToString()());
+   }
+
+   for (uint32 i=0; i<NUM_SMDIO_SOCKET_TYPES; i++)
+   {
+      UDPSocketDataIORef & io = _udpDataIOs[i];
+      if ((io() == NULL)||(RegisterInternalThreadSocket(io()->GetReadSelectSocket(), SOCKET_SET_READ) != B_NO_ERROR))
+      {
+         LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  Unable to set up %s UDP socket\n", GetUDPSocketTypeName(i));
+         Thread::InternalThreadEntry();  // just wait for death, then
+         return;
       }
    }
 
    Queue<ConstByteBufferRef> outgoingUserPacketsQueue;
-   Hashtable<IPAddressAndPort, ConstByteBufferRef> outgoingUserPacketsTable;  // list of destinations to send the current outgoing-packet
    Hashtable<IPAddress, Void> userUnicastDests;
-   uint64 nextMulticastPingTime = GetRunTime64();
+   uint64 nextMulticastPingTime = 0;  // ASAP please!
    while(true)
    {
-      // Yes, SMDIO_SOCKET_PURPOSE_PING is correct!  I'm sending all packets from that socket so that all packets have the same source IAP
-      UpdateIsInternalSocketRegisteredForWrite(SMDIO_SOCKET_PURPOSE_PING, SMDIO_SOCKET_TYPE_UNICAST, (outgoingUserPacketsTable.HasItems())||(outgoingUserPacketsQueue.HasItems()));
+      UpdateUnicastSocketRegisteredForWrite((_outgoingPacketsTable.HasItems())||(outgoingUserPacketsQueue.HasItems()));
 
       // Block until it is time to do something
       MessageRef msgRef;
@@ -255,109 +345,92 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
       for (uint32 i=0; i<NUM_SMDIO_SOCKET_TYPES; i++)
       {
          // Incoming User-data packets are received on the user-sockets
-         UDPSocketDataIO & userIO = *_udpDataIOs[SMDIO_SOCKET_PURPOSE_USER][i]();
-         if (IsInternalThreadSocketReady(userIO.GetReadSelectSocket(), SOCKET_SET_READ))
+         UDPSocketDataIO & udpIO = *_udpDataIOs[i]();
+         if (IsInternalThreadSocketReady(udpIO.GetReadSelectSocket(), SOCKET_SET_READ))
          {
             ByteBufferRef packetData;
-            while(ReadPacket(userIO, packetData) == B_NO_ERROR) 
+            while(ReadPacket(udpIO, packetData) == B_NO_ERROR) 
             {
-               const IPAddressAndPort & fromIAP = userIO.GetSourceOfLastReadPacket();
-               NoteHeardFromMember(fromIAP, now, 0);
-               (void) SendIncomingDataPacketToMainThread(packetData, fromIAP);
-            }
-         }
+               const IPAddressAndPort & fromIAP = udpIO.GetSourceOfLastReadPacket();
+               NoteHeardFromMember(fromIAP, now);
 
-         // Incoming ping-packets carry only a 32-bit what-code, to minimize their size.
-         UDPSocketDataIO & pingIO = *_udpDataIOs[SMDIO_SOCKET_PURPOSE_PING][i]();
-         if (IsInternalThreadSocketReady(pingIO.GetReadSelectSocket(), SOCKET_SET_READ))
-         {
-            uint8 pingBuf[sizeof(uint32)+sizeof(uint16)];
-            while(pingIO.Read(pingBuf, sizeof(pingBuf)) == sizeof(pingBuf))
-            {
-               const IPAddressAndPort & fromIAP = pingIO.GetSourceOfLastReadPacket();
-               const uint32 whatCode            = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(pingBuf));
-               const uint32 userUnicastPort     = B_LENDIAN_TO_HOST_INT16(muscleCopyIn<uint16>(pingBuf+sizeof(uint32)));
-               switch(whatCode)
+               uint32 whatCode;
+               if (ParseMulticastControlPacket(*packetData(), now, whatCode) == B_NO_ERROR)
                {
-                  case SMDIO_COMMAND_PING:
-                     SendPingOrPong(SMDIO_COMMAND_PONG, fromIAP);
-                  // deliberate fall-through!
-                  case SMDIO_COMMAND_PONG:
-                     NoteHeardFromMember(fromIAP, now, userUnicastPort);
-                  break;
+                  switch(whatCode)
+                  {
+                     case SMDIO_COMMAND_PING:
+                        (void) EnqueueOutgoingMulticastControlCommand(SMDIO_COMMAND_PONG, now, fromIAP);
+                     // deliberate fall-through!
+                     case SMDIO_COMMAND_PONG:
+                        // empty -- NoteHeardFromMember() was already called, above
+                     break;
 
-                  case SMDIO_COMMAND_BYE:
-                     if (_knownMembers.ContainsKey(fromIAP))
-                     {
-                        LogTime(MUSCLE_LOG_DEBUG, "Simulated-multicast  member [%s] has left the group (" UINT32_FORMAT_SPEC " members remain)\n", fromIAP.ToString()(), _knownMembers.GetNumItems()-1);
-                        (void) _knownMembers.Remove(fromIAP);  // do this last!
-                     }
-                  break;
+                     case SMDIO_COMMAND_BYE:
+                        if (_knownMembers.ContainsKey(fromIAP))
+                        {
+                           LogTime(MUSCLE_LOG_DEBUG, "Simulated-multicast member [%s] has left group [%s] (" UINT32_FORMAT_SPEC " members remain)\n", fromIAP.ToString()(), _multicastAddress.ToString()(), _knownMembers.GetNumItems()-1);
+                           (void) _knownMembers.Remove(fromIAP);  // do this last!
+                        }
+                     break;
 
-                  default:
-                     LogTime(MUSCLE_LOG_WARNING, "SimulatedMulticastDataIO:  Got unexpected what-code " UINT32_FORMAT_SPEC " from %s\n", whatCode, fromIAP.ToString()());
-                  break;
+                     default:
+                        LogTime(MUSCLE_LOG_WARNING, "SimulatedMulticastDataIO:  Got unexpected what-code " UINT32_FORMAT_SPEC " from %s\n", whatCode, fromIAP.ToString()());
+                     break;
+                  }
                }
+               else (void) SendIncomingDataPacketToMainThread(packetData, fromIAP);
             }
          }
       }
 
-      // If we have outgoing user-data to send, and the user-socket is ready-for-write, then send some unicast-packets
+      // If we have outgoing user-data to send, and the unicast-socket is ready-for-write, then enqueue some unicast-packets
       {
-         UDPSocketDataIO & udpSock = *_udpDataIOs[SMDIO_SOCKET_PURPOSE_PING][SMDIO_SOCKET_TYPE_UNICAST]();  // sending from the ping socket so that packets always have the same source IAP
+         UDPSocketDataIO & udpSock = *_udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST]();
          if (IsInternalThreadSocketReady(udpSock.GetWriteSelectSocket(), SOCKET_SET_WRITE))
          {
-            if ((outgoingUserPacketsTable.IsEmpty())&&(outgoingUserPacketsQueue.HasItems()))
+            if ((_outgoingPacketsTable.IsEmpty())&&(outgoingUserPacketsQueue.HasItems()))
             {
-               // Now populate the outgoingUserPacketsTable with the next outgoing user packet for each destination
+               // Now populate the _outgoingPacketsTable with the next outgoing user packet for each destination
                ConstByteBufferRef nextPacket;
                if (outgoingUserPacketsQueue.RemoveHead(nextPacket) == B_NO_ERROR)
                {
-                  (void) outgoingUserPacketsTable.EnsureSize(_knownMembers.GetNumItems());
-                  for (HashtableIterator<IPAddressAndPort, KnownMemberInfo> iter(_knownMembers); iter.HasData(); iter++) (void) outgoingUserPacketsTable.Put(IPAddressAndPort(iter.GetKey().GetIPAddress(), iter.GetValue()._userUnicastPort), nextPacket);
+                  Queue<ConstByteBufferRef> pq; (void) pq.AddTail(nextPacket);
+
+                  (void) _outgoingPacketsTable.EnsureSize(_knownMembers.GetNumItems());
+                  for (HashtableIterator<IPAddressAndPort, uint64> iter(_knownMembers); iter.HasData(); iter++) (void) _outgoingPacketsTable.Put(iter.GetKey(), pq);
                }
             }
 
-            while(outgoingUserPacketsTable.HasItems())
-            {
-               const IPAddressAndPort & destIAP = *outgoingUserPacketsTable.GetFirstKey();
-               const ConstByteBufferRef & buf   = *outgoingUserPacketsTable.GetFirstValue();
-
-               const int32 numBytesToSend = buf()->GetNumBytes();  // copy this out first!
-               const int32 numBytesSent   = SendDataUDP(udpSock.GetWriteSelectSocket(), buf()->GetBuffer(), numBytesToSend, false, destIAP.GetIPAddress(), destIAP.GetPort());
-               if (numBytesSent != 0) outgoingUserPacketsTable.RemoveFirst();  // only time to keep it is in the temporarily-out-of-buffer-space case, not on success and not on real-error
-               if (numBytesSent != numBytesToSend) break;
-            }
+            DrainOutgoingPacketsTable();
          }
       }
 
       if (now >= nextMulticastPingTime)
       {
          // We'll send a ping to multicast-land, in case there is someone out there we don't know about
-         SendPingOrPong(SMDIO_COMMAND_PING, multicastAddresses[SMDIO_SOCKET_PURPOSE_PING]);
+         (void) EnqueueOutgoingMulticastControlCommand(SMDIO_COMMAND_PING, now, _multicastAddress);
          nextMulticastPingTime = now + _multicastPingIntervalMicros;
 
          // And we'll also send unicast pings to anyone who we haven't heard from in a while, just to double-check
-         const uint64 timeoutPeriodMicros = (_multicastTimeoutPingIntervalCount*_multicastPingIntervalMicros);
-         const uint64 halfTimeoutPeriodMicros = timeoutPeriodMicros/2;
-
          // If we haven't heard from someone for a very long time, we'll drop them
-         for (HashtableIterator<IPAddressAndPort, KnownMemberInfo> iter(_knownMembers); iter.HasData(); iter++)
+         for (HashtableIterator<IPAddressAndPort, uint64> iter(_knownMembers); iter.HasData(); iter++)
          {
             const IPAddressAndPort & destIAP = iter.GetKey();
-            const uint64 timeSinceMicros = (now-iter.GetValue()._lastHeardFromTime);
-            if (timeSinceMicros >= timeoutPeriodMicros)
+            const uint64 timeSinceMicros = (now-iter.GetValue());
+            if (timeSinceMicros >= _timeoutPeriodMicros)
             {
-               LogTime(MUSCLE_LOG_DEBUG, "Dropping moribund SimulatedMulticast member at [%s], " UINT32_FORMAT_SPEC " members remain\n", destIAP.ToString()(), _knownMembers.GetNumItems()-1);
+               LogTime(MUSCLE_LOG_DEBUG, "Dropping moribund SimulatedMulticast member at [%s], " UINT32_FORMAT_SPEC " members remain in group [%s]\n", destIAP.ToString()(), _knownMembers.GetNumItems()-1, _multicastAddress.ToString()());
                (void) _knownMembers.Remove(destIAP);
             }
-            else if (timeSinceMicros >= halfTimeoutPeriodMicros) SendPingOrPong(SMDIO_COMMAND_PING, destIAP);
+            else if (timeSinceMicros >= _halfTimeoutPeriodMicros) (void) EnqueueOutgoingMulticastControlCommand(SMDIO_COMMAND_PING, now, destIAP);
          }
       }
    }
 
    // Finally, send out a BYE so that other members can delete us from their list if they get it, rather than having to wait to time out
-   SendPingOrPong(SMDIO_COMMAND_BYE, multicastAddresses[SMDIO_SOCKET_PURPOSE_PING]);
+   _outgoingPacketsTable.Clear();  // no point waiting around to send user data now
+   if (EnqueueOutgoingMulticastControlCommand(SMDIO_COMMAND_BYE, GetRunTime64(), _multicastAddress) == B_NO_ERROR) DrainOutgoingPacketsTable();
 }
 
 void SimulatedMulticastDataIO :: ShutdownAux()

@@ -18,14 +18,14 @@ namespace muscle {
  *  On wired networks you are probably better off using actual multicast packets instead,
  *  since wired networks handle multicast traffic much more elegantly.
  */
-class SimulatedMulticastDataIO : public DataIO, private Thread, private CountedObject<SimulatedMulticastDataIO>
+class SimulatedMulticastDataIO : public PacketDataIO, private Thread, private CountedObject<SimulatedMulticastDataIO>
 {
 public:
    /**
     *  Constructor.
-    *  @param userMulticastAddress The multicast address we want to listen to and simulate (without actually transmitting on)
+    *  @param multicastAddress The multicast address we want to listen to and simulate (without actually transmitting any user-data on)
     */
-   SimulatedMulticastDataIO(const IPAddressAndPort & userMulticastAddress);
+   SimulatedMulticastDataIO(const IPAddressAndPort & multicastAddress);
 
    /** Destructor.  Shuts down the internal thread and cleans up. */
    virtual ~SimulatedMulticastDataIO() {ShutdownAux();}
@@ -37,12 +37,6 @@ public:
    virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _lastPacketReceivedFrom;}
    virtual void Shutdown() {ShutdownAux();}
 
-   /** This method implementation always returns B_ERROR, because you can't seek on a socket!  */
-   virtual status_t Seek(int64 /*seekOffset*/, int /*whence*/) {return B_ERROR;}
-
-   /** Always returns -1, since a socket has no position to speak of */
-   virtual int64 GetPosition() const {return -1;}
-
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
    virtual void FlushOutput() {/* empty */}
    
@@ -50,40 +44,41 @@ public:
      * Defaults to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes),
      * but the returned value can be changed via SetPacketMaximumSize().
      */
-   virtual uint32 GetPacketMaximumSize() const {return _maxPacketSize;}
+   virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
 
    /** This can be called to change the maximum packet size value returned
-     * by GetPacketMaximumSize().  You might call this e.g. if you are on a network
+     * by GetMaximumPacketSize().  You might call this e.g. if you are on a network
      * that supports Jumbo UDP packets and want to take advantage of that.
      */
    void SetPacketMaximumSize(uint32 maxPacketSize) {_maxPacketSize = maxPacketSize;}
 
    /** Returns the multicast address that was passed in to our constructor. */
-   const IPAddressAndPort & GetSendDestination() const {return _userMulticastAddress;}
+   virtual const IPAddressAndPort & GetPacketSendDestination() const {return _multicastAddress;}
 
 protected:
    virtual void InternalThreadEntry();
 
 private:
+   // Deliberately made private because we don't want this method to be called while our internal thread is running
+   // For this class, you have to choose your destination address in the constructor, and stick with it
+   virtual status_t SetPacketSendDestination(const IPAddressAndPort & /*iap*/) {return B_ERROR;}
+
    void ShutdownAux();
    status_t ReadPacket(DataIO & dio, ByteBufferRef & retBuf);
    status_t SendIncomingDataPacketToMainThread(const ByteBufferRef & data, const IPAddressAndPort & source);
-   void UpdateIsInternalSocketRegisteredForWrite(uint32 purpose, uint32 type, bool wantsWriteReadyNotification);
-   void SendPingOrPong(uint32 whatCode, const IPAddressAndPort & destIAP);
-   void NoteHeardFromMember(const IPAddressAndPort & heardFrom, uint64 timestampMicros, uint16 optUserUnicastPort);
+   void UpdateUnicastSocketRegisteredForWrite(bool shouldBeRegisteredForWrite);
+   void DrainOutgoingPacketsTable();
+   void NoteHeardFromMember(const IPAddressAndPort & heardFromPingSource, uint64 timestampMicros);
    void EnsureUserUnicastMembershipSetUpToDate();
+   status_t EnqueueOutgoingMulticastControlCommand(uint32 whatCode, uint64 now, const IPAddressAndPort & destIAP);
+   status_t ParseMulticastControlPacket(const ByteBuffer & buf, uint64 now, uint32 & retWhatCode);
+   const char * GetUDPSocketTypeName(uint32 which) const;
 
-   const IPAddressAndPort _userMulticastAddress;
+   IPAddressAndPort _multicastAddress;
    IPAddressAndPort _lastPacketReceivedFrom;
    uint32 _maxPacketSize;
 
    // Values below this line may be accessed by the internal thread ONLY
-
-   enum {
-      SMDIO_SOCKET_PURPOSE_USER,  // i.e. this socket will be used to transmit user-data packets only
-      SMDIO_SOCKET_PURPOSE_PING,  // i.e. this socket will be used to transmit keepalive pings only
-      NUM_SMDIO_SOCKET_PURPOSES
-   };
 
    enum {
       SMDIO_SOCKET_TYPE_MULTICAST = 0, // i.e. this socket will send and receive multicast packets
@@ -91,22 +86,12 @@ private:
       NUM_SMDIO_SOCKET_TYPES
    };
 
-   class KnownMemberInfo
-   {
-   public:
-      KnownMemberInfo() : _userUnicastPort(0), _lastHeardFromTime(0) {/* empty */}
-
-      String ToString() const {return String("UserUnicastPort=%1 LastHeardFromTime=%2").Arg(_userUnicastPort).Arg(_lastHeardFromTime);}
-
-      uint16 _userUnicastPort;
-      uint64 _lastHeardFromTime;
-   };
-
-   Hashtable<IPAddressAndPort, KnownMemberInfo> _knownMembers;  // member-unicast-location -> last-heard-from-time
+   IPAddressAndPort _localAddressAndPort;                         // address we are sending packets from
+   OrderedKeysHashtable<IPAddressAndPort, uint64> _knownMembers;  // member-ping-socket-location -> last-heard-from-time
    ByteBufferRef _scratchBuf;
-   UDPSocketDataIORef _udpDataIOs[NUM_SMDIO_SOCKET_PURPOSES][NUM_SMDIO_SOCKET_TYPES];
-   bool _isInternalSocketRegisteredForWrite[NUM_SMDIO_SOCKET_PURPOSES][NUM_SMDIO_SOCKET_PURPOSES];
-   uint16 _localUnicastPorts[NUM_SMDIO_SOCKET_PURPOSES];
+   UDPSocketDataIORef _udpDataIOs[NUM_SMDIO_SOCKET_TYPES];
+   bool _isUnicastSocketRegisteredForWrite;
+   Hashtable<IPAddressAndPort, Queue<ConstByteBufferRef> > _outgoingPacketsTable;
 };
 DECLARE_REFTYPES(SimulatedMulticastDataIO);
 

@@ -56,14 +56,6 @@ public:
    virtual int32 Write(const void * buffer, uint32 size) {return _socket ? _socket->writeBlock((char *) buffer, size) : -1;}
 
    /**
-    * Always returns B_ERROR (you can't seek a QSocket!)
-    */
-   virtual status_t Seek(int64 /*offset*/, int /*whence*/) {return B_ERROR;}
-
-   /** Always returns -1, since a socket has no position to speak of */
-   virtual int64 GetPosition() const {return -1;}
-
-   /**
     * Flushes the output buffer, if possible.
     */
    virtual void FlushOutput() {if (_socket) _socket->flush();}

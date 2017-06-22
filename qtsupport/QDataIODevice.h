@@ -17,7 +17,7 @@ public:
     *  @param dataIO a QSocket object that was allocated off the heap.  This object becomes owner of newSocket.
     *  @param parent Passed to the QIODevice constructor
     */
-   QDataIODevice(const DataIORef & dataIO, QObject * parent) : QIODevice(parent), _dataIO(dataIO), _dataSize(dataIO()->GetLength()), _readReady(dataIO()->GetReadSelectSocket().GetFileDescriptor(), QSocketNotifier::Read), _isHosed(false)
+   QDataIODevice(const DataIORef & dataIO, QObject * parent) : QIODevice(parent), _dataIO(dataIO), _dataSize(dynamic_cast<SeekableDataIO*>(dataIO())?(dynamic_cast<SeekableDataIO*>(dataIO())->GetLength()):-1), _readReady(dataIO()->GetReadSelectSocket().GetFileDescriptor(), QSocketNotifier::Read), _isHosed(false)
    {
       connect(&_readReady, SIGNAL(activated(int)), this, SIGNAL(readyRead()));
    }   
@@ -29,7 +29,7 @@ public:
    virtual bool isSequential() const {return (_dataSize < 0);}
 
    /** Returns the current read-position of this device. */
-   virtual qint64 pos()        const {return muscleMax((qint64)_dataIO()->GetPosition(), (qint64)0);}
+   virtual qint64 pos()        const {const SeekableDataIO * sdio = dynamic_cast<const SeekableDataIO *>(_dataIO()); return sdio ? muscleMax((qint64)sdio->GetPosition(), (qint64)0) : 0;}
 
    /** Returns the total number of bytes available in this device. */
    virtual qint64 size()       const {return isSequential() ? bytesAvailable() : _dataSize;}

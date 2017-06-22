@@ -23,7 +23,7 @@ namespace muscle {
 extern void DeadlockFinder_PrintAndClearLogEventsForCurrentThread();
 #endif
 
-Thread :: Thread(bool useMessagingSockets) : _useMessagingSockets(useMessagingSockets), _messageSocketsAllocated(!useMessagingSockets), _threadRunning(false), _suggestedStackSize(0), _threadStackBase(NULL)
+Thread :: Thread(bool useMessagingSockets) : _useMessagingSockets(useMessagingSockets), _messageSocketsAllocated(!useMessagingSockets), _threadRunning(false), _suggestedStackSize(0), _threadStackBase(NULL), _threadPriority(PRIORITY_UNSPECIFIED)
 {
 #if defined(MUSCLE_USE_QT_THREADS)
    _thread.SetOwner(this);
@@ -96,11 +96,7 @@ status_t Thread :: StartInternalThreadAux()
       typedef unsigned (__stdcall *PTHREAD_START) (void *);
       if ((_thread = (::HANDLE)_beginthreadex(NULL, _suggestedStackSize, (PTHREAD_START)InternalThreadEntryFunc, this, 0, (unsigned *)&_threadID)) != NULL) return B_NO_ERROR;
 #elif defined(MUSCLE_USE_QT_THREADS)
-# ifdef QT_HAS_THREAD_PRIORITIES
-      _thread.start(GetInternalQThreadPriority());
-# else
       _thread.start();
-# endif
       return B_NO_ERROR;
 #elif defined(__BEOS__) || defined(__HAIKU__)
       if ((_thread = spawn_thread(InternalThreadEntryFunc, "MUSCLE Thread", B_NORMAL_PRIORITY, this)) >= 0)
@@ -361,6 +357,11 @@ void Thread::InternalThreadEntryAux()
       _curThreadsMutex.Unlock();
    }
 
+   if ((_threadPriority != PRIORITY_UNSPECIFIED)&&(SetThreadPriorityAux(_threadPriority) != B_NO_ERROR))
+   {
+      LogTime(MUSCLE_LOG_ERROR, "Thread %p:  Unable to set thread priority to %i\n", this, _threadPriority);
+   }
+
    if (_threadData[MESSAGE_THREAD_OWNER]._messages.HasItems()) SignalOwner();
    InternalThreadEntry();
    _threadData[MESSAGE_THREAD_INTERNAL]._messageSocket.Reset();  // this will wake up the owner thread with EOF on socket
@@ -417,6 +418,85 @@ uint32 Thread :: GetCurrentStackUsage() const
    return (uint32) muscleAbs(curStackPtr-_threadStackBase);
 }
 
+status_t Thread :: SetThreadPriority(int newPriority)
+{
+   if (IsInternalThreadRunning())
+   {
+      if (SetThreadPriorityAux(newPriority) == B_NO_ERROR)
+      {
+         _threadPriority = newPriority;
+         return B_NO_ERROR;
+      }
+      else return B_ERROR;
+   }
+   else
+   {
+      _threadPriority = newPriority;  // we'll actually try to change to that thread priority in the thread's own startup-sequence
+      return B_NO_ERROR;
+   }
+}
+
+#if defined(MUSCLE_USE_QT_THREADS)
+static QThread::Priority MuscleThreadPriorityToQtThreadPriority(int muscleThreadPriority)
+{
+   switch(muscleThreadPriority)
+   {
+      case Thread::PRIORITY_IDLE:         return QThread::IdlePriority;
+      case Thread::PRIORITY_LOWEST:       return QThread::LowestPriority;
+      case Thread::PRIORITY_LOWER:        return QThread::LowPriority;
+      case Thread::PRIORITY_LOW:          return QThread::LowPriority;
+      case Thread::PRIORITY_NORMAL:       return QThread::NormalPriority;
+      case Thread::PRIORITY_HIGH:         return QThread::HighPriority;
+      case Thread::PRIORITY_HIGHER:       return QThread::HighPriority;
+      case Thread::PRIORITY_HIGHEST:      return QThread::HighestPriority;
+      case Thread::PRIORITY_TIMECRITICAL: return QThread::TimeCriticalPriority;
+      default:                            return QThread::InheritPriority;
+   }
+}
+#elif defined(WIN32)
+static int MuscleThreadPriorityToWindowsThreadPriority(int muscleThreadPriority)
+{
+   switch(muscleThreadPriority)
+   {
+      case Thread::PRIORITY_IDLE:         return THREAD_PRIORITY_IDLE;
+      case Thread::PRIORITY_LOWEST:       return THREAD_PRIORITY_LOWEST;
+      case Thread::PRIORITY_LOWER:        return THREAD_PRIORITY_BELOW_NORMAL;
+      case Thread::PRIORITY_LOW:          return THREAD_PRIORITY_BELOW_NORMAL;
+      case Thread::PRIORITY_NORMAL:       return THREAD_PRIORITY_NORMAL;
+      case Thread::PRIORITY_HIGH:         return THREAD_PRIORITY_ABOVE_NORMAL;
+      case Thread::PRIORITY_HIGHER:       return THREAD_PRIORITY_ABOVE_NORMAL;
+      case Thread::PRIORITY_HIGHEST:      return THREAD_PRIORITY_HIGHEST;
+      case Thread::PRIORITY_TIMECRITICAL: return THREAD_PRIORITY_TIME_CRITICAL;
+      default:                            return THREAD_PRIORITY_NORMAL;
+   }
+}
+#endif
+
+status_t Thread :: SetThreadPriorityAux(int newPriority)
+{
+   if (newPriority == PRIORITY_UNSPECIFIED) return B_NO_ERROR;  // sure, unspecified is easy, anything goes
+
+#if defined(MUSCLE_USE_PTHREADS)
+   int schedPolicy;
+   sched_param param;
+   if (pthread_getschedparam(_thread, &schedPolicy, &param) != 0) return B_ERROR;
+
+   const int minPrio = sched_get_priority_min(schedPolicy);
+   const int maxPrio = sched_get_priority_max(schedPolicy);
+   if ((minPrio == -1)||(maxPrio == -1)) return B_ERROR;
+
+   param.sched_priority = muscleClamp(((newPriority*(maxPrio-minPrio))/(NUM_PRIORITIES-1))+minPrio, minPrio, maxPrio);
+   return (pthread_setschedparam(_thread, schedPolicy, &param) == 0) ? B_NO_ERROR : B_ERROR;
+#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+   return ::SetThreadPriority(_thread, MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERROR;
+#elif defined(MUSCLE_USE_QT_THREADS)
+   _thread.setPriority(MuscleThreadPriorityToQtThreadPriority(newPriority));
+   return B_NO_ERROR;
+#else
+   return B_ERROR;  // dunno how to set thread priorities on this platform
+#endif
+}
+
 void CheckThreadStackUsage(const char * fileName, uint32 line)
 {
    Thread * curThread = Thread::GetCurrentThread();
@@ -440,6 +520,5 @@ void CheckThreadStackUsage(const char * fileName, uint32 line)
       printf("Warning, CheckThreadStackUsage() called from non-MUSCLE thread %s at (%s:" UINT32_FORMAT_SPEC ")\n", muscle_thread_id::GetCurrentThreadID().ToString(buf), fileName, line);
    }
 }
-
 
 }; // end namespace muscle

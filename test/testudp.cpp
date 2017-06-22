@@ -50,8 +50,8 @@ int main(int argc, char ** argv)
    MessageIOGateway gw;
    RawDataMessageIOGateway rgw;
    UDPSocketDataIO * udpIO = new UDPSocketDataIO(s, false);
-   udpIO->SetSendDestination(IPAddressAndPort(target, 3960, true));
-   printf("Set UDP send destination to [%s]\n", udpIO->GetSendDestination().ToString()());
+   (void) udpIO->SetPacketSendDestination(IPAddressAndPort(target, 3960, true));
+   printf("Set UDP send destination to [%s]\n", udpIO->GetPacketSendDestination().ToString()());
 
    // Only one of these will actually be used
    gw.SetDataIO(DataIORef(udpIO));

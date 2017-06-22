@@ -105,8 +105,7 @@ DoOutputImplementation(uint32 maxBytes)
       }
 
       // At this point, _sendBuffer._buffer() is guaranteed not to be NULL!
-      const uint32 mtuSize = GetDataIO()()->GetPacketMaximumSize();
-      if (mtuSize > 0)
+      if (GetMaximumPacketSize() > 0)
       {
          const ByteBuffer * bb = _sendBuffer._buffer();
          int32 numSent         = GetDataIO()()->Write(bb->GetBuffer(), bb->GetNumBytes());
@@ -165,7 +164,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    {
       firstTime = false;
 
-      const uint32 mtuSize = GetDataIO()()->GetPacketMaximumSize();
+      const uint32 mtuSize = GetMaximumPacketSize();
       if (mtuSize > 0)
       {
          // For UDP-style I/O, we'll read all header data and body data at once from a single packet

@@ -18,7 +18,7 @@ namespace muscle {
 /**
  *  Data I/O to and from a file descriptor (useful for talking to Linux device drivers and the like)
  */
-class FileDescriptorDataIO : public DataIO, private CountedObject<FileDescriptorDataIO>
+class FileDescriptorDataIO : public SeekableDataIO, private CountedObject<FileDescriptorDataIO>
 {
 public:
    /**

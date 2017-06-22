@@ -1,14 +1,14 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
 #include "dataio/TCPSocketDataIO.h"
-#include "dataio/PacketizedDataIO.h"
+#include "dataio/PacketizedProxyDataIO.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/NetworkUtilityFunctions.h"
 #include "system/SetupSystem.h"
 
 using namespace muscle;
 
-// This is a simple test of the PacketizedDataIO class.  Once instance connects and sends
+// This is a simple test of the PacketizedProxyDataIO class.  Once instance connects and sends
 // data over a TCP stream in varying packet sizes, the other instance accepts the connection
 // and makes sure that the data is being (de)packetized correctly.
 int main(int argc, char ** argv)
@@ -62,7 +62,7 @@ int main(int argc, char ** argv)
    }
 
    TCPSocketDataIO tcp(s, true);
-   PacketizedDataIO pack(DataIORef(&tcp, false), mtu); 
+   PacketizedProxyDataIO pack(DataIORef(&tcp, false), mtu); 
 
    if (connectTo == invalidIP)
    {

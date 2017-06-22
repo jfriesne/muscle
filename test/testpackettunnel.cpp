@@ -7,7 +7,7 @@
 
 #include "dataio/UDPSocketDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
-#include "dataio/PacketizedDataIO.h"
+#include "dataio/PacketizedProxyDataIO.h"
 #include "iogateway/MessageIOGateway.h"
 #include "iogateway/PacketTunnelIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
@@ -133,7 +133,7 @@ int main(int argc, char ** argv)
             return 10;
          } 
       }
-      dio.SetRef(new PacketizedDataIO(DataIORef(new TCPSocketDataIO(s, false)), mtu));
+      dio.SetRef(new PacketizedProxyDataIO(DataIORef(new TCPSocketDataIO(s, false)), mtu));
    }
    else
    {
@@ -145,7 +145,7 @@ int main(int argc, char ** argv)
       }
 
       UDPSocketDataIO * udpDio = new UDPSocketDataIO(s, false);
-      udpDio->SetSendDestination(IPAddressAndPort(broadcastIP, port));  // gotta do it this way because SetUDPSocketTarget() would break our incoming messages!
+      (void) udpDio->SetPacketSendDestination(IPAddressAndPort(broadcastIP, port));  // gotta do it this way because SetUDPSocketTarget() would break our incoming messages!
       dio.SetRef(udpDio);
    }
 

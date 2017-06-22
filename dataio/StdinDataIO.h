@@ -45,12 +45,6 @@ public:
    /** Overridden to always return -1, because you can't write to stdin! */
    virtual int32 Write(const void *, uint32) {return -1;}
 
-   /** Overridden to always return B_ERROR, because you can't seek() stdin! */
-   virtual status_t Seek(int64, int) {return B_ERROR;}
-
-   /** Always returns -1, since stdin doesn't have a notion of current position. */
-   virtual int64 GetPosition() const {return -1;}
-
    /** Implemented as a no-op because we don't ever do output on stdin */
    virtual void FlushOutput() {/* empty */}
 

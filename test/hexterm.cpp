@@ -9,6 +9,7 @@
 #include "dataio/RS232DataIO.h"
 #include "dataio/SimulatedMulticastDataIO.h"
 #include "dataio/UDPSocketDataIO.h"
+#include "dataio/XorProxyDataIO.h"  // this is here solely so that if any errors creep into it, it will break the build
 #include "iogateway/PlainTextMessageIOGateway.h"
 #include "system/SetupSystem.h"
 #include "system/SystemInfo.h"  // for GetFilePathSeparator()
@@ -173,7 +174,8 @@ static void DoSession(DataIO & io)
                if (_verifySpam) SanityCheckSpamPacket(buf, ret);
                if (_printReceivedBytes)
                {
-                  const IPAddressAndPort & fromIAP = io.GetSourceOfLastReadPacket();
+                  const PacketDataIO * packetDataIO = dynamic_cast<const PacketDataIO *>(&io);
+                  const IPAddressAndPort & fromIAP = packetDataIO ? packetDataIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();
                   if (fromIAP.IsValid()) scratchString = String("Received from %1 (%2 since prev)").Arg(fromIAP.ToString()).Arg(sinceString);
                                     else scratchString = String("Received (%1 since prev)").Arg(sinceString);
                   LogBytes(buf, ret, scratchString());
@@ -315,7 +317,7 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
          }
 #endif
          IPAddressAndPort iap(ip, port);
-         udpIO.SetSendDestination(iap);
+         if (udpIO.SetPacketSendDestination(iap) != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "SetPacketSendDestination(%s) failed!\n", iap.ToString()());
          if (optBindPort >= 0)
          {
             uint16 retPort;

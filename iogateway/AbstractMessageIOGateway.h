@@ -224,12 +224,20 @@ public:
    const Queue<MessageRef> & GetOutgoingMessageQueue() const {return _outgoingMessages;}
 
    /** Installs (ref) as the DataIO object we will use for our I/O.
+     * This method also calls GetMaximumPacketSize() on (ref()), if possible,
+     * and stores the result (or 0) to be returned by our GetMaximumPacketSize() method.
      * Typically called by the ReflectServer object.
+     * @param ref The new DataIORef that this gateway should use.
      */
-   virtual void SetDataIO(const DataIORef & ref) {_ioRef = ref;}
+   virtual void SetDataIO(const DataIORef & ref);
 
    /** As above, but returns a reference instead of the raw pointer. */
    const DataIORef & GetDataIO() const {return _ioRef;}
+
+   /** Returns our DataIORef's maximum packet size in bytes, or zero
+     * if we have no DataIORef or our DataIORef isn't a PacketDataIO
+     */
+   uint32 GetMaximumPacketSize() const {return _mtuSize;}
 
    /** Returns true iff we are hosed--that is, we've experienced an unrecoverable error. */
    bool IsHosed() const {return _hosed;}
@@ -315,6 +323,7 @@ private:
    Queue<MessageRef> _outgoingMessages;
 
    DataIORef _ioRef;
+   uint32 _mtuSize;  // set whenever _ioRef changes
 
    bool _hosed;  // set true on error
    bool _flushOnEmpty;

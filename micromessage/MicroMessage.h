@@ -19,7 +19,10 @@ extern "C" {
 
 /** My own little boolean type, since C doesn't come with one built in. */
 typedef char UBool;
-enum {UFalse = 0, UTrue};  /* and boolean values to go in it */
+enum {
+   UFalse = 0,  /**< Constant value for boolean-false (zero) */
+   UTrue        /**< Constant value for boolean-true (one)   */
+};
 
 /* This file contains a C API for a "super-minimalist" implementation of the MUSCLE  */
 /* Message dictionary object.  This implementation sacrifices of flexibility         */

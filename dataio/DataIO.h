@@ -12,18 +12,10 @@ namespace muscle {
  
 class IPAddressAndPort;
 
-/** Abstract base class for a byte-stream Data I/O interface, similar to Be's BDataIO.  */
+/** Abstract base class for any object that can perform basic data I/O operations.  */
 class DataIO : public RefCountable, private CountedObject<DataIO>, private NotCopyable
 {
 public:
-   /** Values to pass in to DataIO::Seek()'s second parameter */
-   enum {
-      IO_SEEK_SET = 0,  /**< Tells Seek that its value specifies bytes-after-beginning-of-stream */
-      IO_SEEK_CUR,      /**< Tells Seek that its value specifies bytes-after-current-stream-position */
-      IO_SEEK_END,      /**< Tells Seek that its value specifies bytes-after-end-of-stream (you'll usually specify a non-positive seek value with this) */
-      NUM_IO_SEEKS      /**< A guard value */
-   };
-
    /** Default Constructor */
    DataIO() {/* empty */}
 
@@ -49,39 +41,12 @@ public:
     */
    virtual int32 Write(const void * buffer, uint32 size) = 0;
 
-   /**
-    * Seek to a given position in the I/O stream.  
-    * May not be supported by a DataIO subclass, in 
-    * which case B_ERROR will always be returned.
-    * @param offset Byte offset to seek to or by (depending on the next arg)
-    * @param whence Set this to IO_SEEK_SET if you want the offset to
-    *               be relative to the start of the stream; or to 
-    *               IO_SEEK_CUR if it should be relative to the current
-    *               stream position, or IO_SEEK_END if it should be
-    *               relative to the end of the stream.
-    * @return B_NO_ERROR on success, or B_ERROR on failure or if unsupported.
-    */
-   virtual status_t Seek(int64 offset, int whence) = 0;
-
-   /**
-    * Should return the current position, in bytes, of the stream from 
-    * its start position, or -1 if the current position is not known.
-    */
-   virtual int64 GetPosition() const = 0;
-
    /** 
     * Returns the max number of microseconds to allow
     * for an output stall, before presuming that the I/O is hosed.
     * Default implementation returns MUSCLE_TIME_NEVER, aka no limit.
     */
    virtual uint64 GetOutputStallLimit() const {return MUSCLE_TIME_NEVER;}
-
-   /** For packet-oriented subclasses, this method may be overridden
-     * to return the IPAddressAndPort that the most recently Read()
-     * packet came from.
-     * The default implementation returns a default/invalid IPAddressAndPort.
-     */
-   virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const;
 
    /**
     * Flushes the output buffer, if possible.  For some implementations,
@@ -159,17 +124,6 @@ public:
     */
    virtual void WriteBufferedOutput() {/* empty */}
 
-   /**
-    * Optional:  If this DataIO represents a device doing packet-style communication (e.g UDP)
-    *            where a short read results in the "extra" bytes being irretrievably lost, 
-    *            then this method should be overridden to return the maximum
-    *            number of bytes that can fit into a single packet (e.g. the MTU size).
-    *            For the more common "stream" style of I/O (where a short read leaves the
-    *            remaining bytes in a buffer to be read later), this method should return 0.
-    *            The default implementation of this method always returns 0.
-    */
-   virtual uint32 GetPacketMaximumSize() const {return 0;}
-
    /** Convenience method:  Calls Write() in a loop until the entire buffer is written, or
      * until an error occurs.  This method should only be used in conjunction with 
      * blocking I/O; it will not work reliably with non-blocking I/O.
@@ -189,16 +143,98 @@ public:
      *         This will be equal to (size).  On failure, it will be a smaller value.
      */
    uint32 ReadFully(void * buffer, uint32 size);
+};
+DECLARE_REFTYPES(DataIO);
 
-   /** Convenience method:  Determines the length of this DataIO stream by Seek()'ing
+/** Abstract base class for DataIO objects that represent seekable data streams (e.g
+  * for files, or objects that can act like files)
+  */
+class SeekableDataIO : public virtual DataIO
+{
+public:
+   /** Default Constructor. */
+   SeekableDataIO() {/* empty */}
+
+   /** Destructor. */
+   virtual ~SeekableDataIO() {/* empty */}
+
+   /** Values to pass in to SeekableDataIO::Seek()'s second parameter */
+   enum {
+      IO_SEEK_SET = 0,  /**< Tells Seek that its value specifies bytes-after-beginning-of-stream */
+      IO_SEEK_CUR,      /**< Tells Seek that its value specifies bytes-after-current-stream-position */
+      IO_SEEK_END,      /**< Tells Seek that its value specifies bytes-after-end-of-stream (you'll usually specify a non-positive seek value with this) */
+      NUM_IO_SEEKS      /**< A guard value */
+   };
+
+   /**
+    * Seek to a given position in the I/O stream.  
+    * @param offset Byte offset to seek to or by (depending on the next arg)
+    * @param whence Set this to IO_SEEK_SET if you want the offset to
+    *               be relative to the start of the stream; or to 
+    *               IO_SEEK_CUR if it should be relative to the current
+    *               stream position, or IO_SEEK_END if it should be
+    *               relative to the end of the stream.
+    * @return B_NO_ERROR on success, or B_ERROR on failure.
+    */
+   virtual status_t Seek(int64 offset, int whence) = 0;
+
+   /**
+    * Should return the current position, in bytes, of the stream from 
+    * its start position, or -1 if the current position is not known.
+    */
+   virtual int64 GetPosition() const = 0;
+
+   /** Returns the total length of this DataIO's stream, in bytes.
+     * The default implementation computes this value by Seek()'ing
      * to the end of the stream, recording the current seek position, and then
-     * Seek()'ing back to the previous position in the stream.  Of course this only
-     * works with DataIOs that support seeking and have a fixed length.
-     * @returns The total length of this DataIO in bytes, or -1 on error.
+     * Seek()'ing back to the previous position in the stream.  Subclasses may
+     * override this method to provide a more efficient mechanism, if there is one.
+     * @returns The total length of this DataIO's stream, in bytes, or -1 on error.
      */
    virtual int64 GetLength();
 };
-DECLARE_REFTYPES(DataIO);
+DECLARE_REFTYPES(SeekableDataIO);
+
+/** Abstract base class for DataIO objects that represent packet-based I/O objects
+  * (i.e. for UDP sockets, or objects that can act like UDP sockets)
+  */
+class PacketDataIO : public virtual DataIO
+{
+public:
+   PacketDataIO() {/* empty */}
+   virtual ~PacketDataIO() {/* empty */}
+
+   /**
+    * Should be implemented to return the maximum number of bytes that
+    * can fit into a single packet.  Used by the I/O gateways e.g. to
+    * determine how much memory to allocate before Read()-ing a packet of data in.
+    */
+   virtual uint32 GetMaximumPacketSize() const = 0;
+
+   /** For packet-oriented subclasses, this method may be overridden
+     * to return the IPAddressAndPort that the most recently Read()
+     * packet came from.
+     * The default implementation returns a default/invalid IPAddressAndPort.
+     */
+   virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const = 0;
+
+   /** For packet-oriented subclasses, this method may be overridden
+     * to return the IPAddressAndPort that outgoing packets will be
+     * sent to (by default).
+     * The default implementation returns a default/invalid IPAddressAndPort.
+     */
+   virtual const IPAddressAndPort & GetPacketSendDestination() const = 0;
+
+   /** For packet-oriented subclasses, this method may be overridden
+     * to set/change the IPAddressAndPort that outgoing packets will
+     * be sent to (by default).
+     * @param iap The new default address-and-port to send outgoing packets to.
+     * @returns B_NO_ERROR if the operation was successful, or B_ERROR if it failed.
+     * The default implementation just returns B_ERROR.
+     */
+   virtual status_t SetPacketSendDestination(const IPAddressAndPort & iap) = 0;
+};
+DECLARE_REFTYPES(PacketDataIO);
 
 }; // end namespace muscle
 

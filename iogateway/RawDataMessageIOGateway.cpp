@@ -46,7 +46,7 @@ DoOutputImplementation(uint32 maxBytes)
 
       if ((_sendBufByteOffset >= 0)&&(_sendBufByteOffset < _sendBufLength))
       {
-         uint32 mtuSize = GetDataIO()()->GetPacketMaximumSize();
+         const uint32 mtuSize = GetMaximumPacketSize();
          if (mtuSize > 0)
          {
             // UDP mode -- send each data chunk as its own UDP packet
@@ -83,7 +83,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 {
    TCHECKPOINT;
 
-   uint32 mtuSize = GetDataIO()()->GetPacketMaximumSize();
+   const uint32 mtuSize = GetMaximumPacketSize();
    int32 ret = 0;
    if (mtuSize > 0)
    {

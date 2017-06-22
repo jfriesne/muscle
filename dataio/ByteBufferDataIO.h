@@ -13,7 +13,7 @@ namespace muscle {
  *  The ByteBuffer will behave much like a file would (automatically being resized larger when you
  *  Write() past the end of it, etc), except of course it's all in memory, not on disk.
  */
-class ByteBufferDataIO : public DataIO, private CountedObject<ByteBufferDataIO>
+class ByteBufferDataIO : public SeekableDataIO, private CountedObject<ByteBufferDataIO>
 {
 public:
    /** Constructor.

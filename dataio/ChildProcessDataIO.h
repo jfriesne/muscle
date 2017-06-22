@@ -27,7 +27,7 @@ enum {
  *  and talk to a child process.  Any data that the child process
  *  prints to stdout can be read from this object, and any data
  *  that is written to this object will be send to the child process's
- *  stdin.  Note that this class is currently only guaranteed to work 
+ *  stdin.  Note that this class is currently only implemented to work 
  *  under Windows, MacOS/X, BeOS, and Linux.
  */
 class ChildProcessDataIO : public DataIO, private CountedObject<ChildProcessDataIO>
@@ -84,12 +84,6 @@ public:
      * @returns The number of bytes written, or a negative value if there was an error.
      */
    virtual int32 Write(const void * buffer, uint32 size);
-
-   /** Always returns B_ERROR, since you can't seek on a child process! */
-   virtual status_t Seek(int64, int) {return B_ERROR;}
-
-   /** Always returns -1, since a child process has no position to speak of */
-   virtual int64 GetPosition() const {return -1;}
 
    /** Doesn't return until all outgoing have been sent */
    virtual void FlushOutput();

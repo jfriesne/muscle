@@ -18,7 +18,10 @@ extern "C" {
 
 /** My own little boolean type, since C doesn't come with one built in. */
 typedef char MBool;
-enum {MFalse = 0, MTrue};  /* and boolean values to go in it */
+enum {
+   MFalse = 0, /**< Constant value for boolean-false (zero) */
+   MTrue       /**< Constant value for boolean-true (one)   */
+};
 
 /* This file contains a C API for a "minimalist" implementation of the MUSCLE  */
 /* Message dictionary object.  This implementation sacrifices a certain amount */
@@ -567,9 +570,9 @@ void * MFree(void * ptr);
 void * MRealloc(void * oldBuf, uint32 newSize);
 
 #else
-# define MMalloc  malloc
-# define MRealloc realloc
-# define MFree    free
+# define MMalloc  malloc   /**< if MUSCLE_ENABLE_MEMORY_TRACKING is not defined, then MMalloc() just becomes a synonym for malloc()   */
+# define MRealloc realloc  /**< if MUSCLE_ENABLE_MEMORY_TRACKING is not defined, then MRealloc() just becomes a synonym for realloc() */
+# define MFree    free     /**< if MUSCLE_ENABLE_MEMORY_TRACKING is not defined, then MFree() just becomes a synonym for free()       */
 #endif
 
 /** Returns the current number of allocated bytes. 

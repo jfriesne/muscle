@@ -64,11 +64,7 @@ void AsyncDataIO :: Shutdown()
          if (ret == B_NO_ERROR) NotifyInternalThread();
       }
    }
-   else if (_slaveIO()) 
-   {
-      _slaveIO()->Shutdown();
-      _slaveIO.Reset();
-   }
+   else ProxyDataIO::Shutdown();
 }
 
 void AsyncDataIO :: ShutdownInternalThread(bool waitForThread)
@@ -100,32 +96,34 @@ void AsyncDataIO :: InternalThreadEntry()
    uint32 fromMainThreadBufReadIdx  = 0;  // which byte to read out of (fromMainThreadBuf) next
    uint32 fromMainThreadBufNumValid = 0;  // how many bytes are currently in (fromMainThreadBuf) (including already-read ones)
 
-   char fromSlaveIOBuf[4096];
-   uint32 fromSlaveIOBufReadIdx  = 0;  // which byte to read out of (fromSlaveIOBuf) next
-   uint32 fromSlaveIOBufNumValid = 0;  // how many bytes are currently in (fromSlaveIOBuf) (including already-read ones)
+   char fromChildIOBuf[4096];
+   uint32 fromChildIOBufReadIdx  = 0;  // which byte to read out of (fromChildIOBuf) next
+   uint32 fromChildIOBufNumValid = 0;  // how many bytes are currently in (fromChildIOBuf) (including already-read ones)
 
    // Copy these out to member variables so that WriteToMainThread() can access them
-   _fromSlaveIOBuf         = fromSlaveIOBuf;
-   _fromSlaveIOBufSize     = sizeof(fromSlaveIOBuf);
-   _fromSlaveIOBufReadIdx  = &fromSlaveIOBufReadIdx;
-   _fromSlaveIOBufNumValid = &fromSlaveIOBufNumValid;
+   _fromChildIOBuf         = fromChildIOBuf;
+   _fromChildIOBufSize     = sizeof(fromChildIOBuf);
+   _fromChildIOBufReadIdx  = &fromChildIOBufReadIdx;
+   _fromChildIOBufNumValid = &fromChildIOBufNumValid;
 
    uint64 pulseTime = MUSCLE_TIME_NEVER;
    SocketMultiplexer multiplexer;
+   DataIORef childIORef = GetChildDataIO(); // keep a ref just to make sure it won't get deallocated out from under our feet
+   DataIO  * childIO    = childIORef();     // just for convenience
    while(keepGoing)
    {
-      int slaveReadFD  = _slaveIO()?_slaveIO()->GetReadSelectSocket().GetFileDescriptor():-1;
-      int slaveWriteFD = _slaveIO()?_slaveIO()->GetWriteSelectSocket().GetFileDescriptor():-1;
+      int childReadFD  = childIO?childIO->GetReadSelectSocket().GetFileDescriptor():-1;
+      int childWriteFD = childIO?childIO->GetWriteSelectSocket().GetFileDescriptor():-1;
       int fromMainFD   = GetInternalThreadWakeupSocket().GetFileDescriptor();
       int notifyFD     = _ioThreadNotifySocket.GetFileDescriptor();
 
-      if ((slaveReadFD  >= 0)&&(fromSlaveIOBufNumValid    < sizeof(fromSlaveIOBuf)))   multiplexer.RegisterSocketForReadReady(slaveReadFD);
-      if ((slaveWriteFD >= 0)&&(fromMainThreadBufNumValid > fromMainThreadBufReadIdx)) multiplexer.RegisterSocketForWriteReady(slaveWriteFD);
+      if ((childReadFD  >= 0)&&(fromChildIOBufNumValid    < sizeof(fromChildIOBuf)))   multiplexer.RegisterSocketForReadReady(childReadFD);
+      if ((childWriteFD >= 0)&&(fromMainThreadBufNumValid > fromMainThreadBufReadIdx)) multiplexer.RegisterSocketForWriteReady(childWriteFD);
 
       if (fromMainFD >= 0)
       {
          if (fromMainThreadBufNumValid < sizeof(fromMainThreadBuf)) multiplexer.RegisterSocketForReadReady(fromMainFD);
-         if (fromSlaveIOBufNumValid > fromSlaveIOBufReadIdx)        multiplexer.RegisterSocketForWriteReady(fromMainFD);
+         if (fromChildIOBufNumValid > fromChildIOBufReadIdx)        multiplexer.RegisterSocketForWriteReady(fromMainFD);
       }
       if (notifyFD >= 0) multiplexer.RegisterSocketForReadReady(notifyFD);  // always be on the lookout for notifications...
 
@@ -165,21 +163,21 @@ void AsyncDataIO :: InternalThreadEntry()
 
       if (bytesUntilNextCommand > 0)
       {
-         // Read the data from the slave FD, into our from-slave buffer
-         if ((slaveReadFD >= 0)&&(fromSlaveIOBufNumValid < sizeof(fromSlaveIOBuf))&&(multiplexer.IsSocketReadyForRead(slaveReadFD)))
+         // Read the data from the child FD, into our from-child buffer
+         if ((childReadFD >= 0)&&(fromChildIOBufNumValid < sizeof(fromChildIOBuf))&&(multiplexer.IsSocketReadyForRead(childReadFD)))
          {
-            int32 bytesRead = SlaveRead(&fromSlaveIOBuf[fromSlaveIOBufNumValid], sizeof(fromSlaveIOBuf)-fromSlaveIOBufNumValid);
-            if (bytesRead >= 0) fromSlaveIOBufNumValid += bytesRead;
+            int32 bytesRead = ProxyDataIO::Read(&fromChildIOBuf[fromChildIOBufNumValid], sizeof(fromChildIOBuf)-fromChildIOBufNumValid);
+            if (bytesRead >= 0) fromChildIOBufNumValid += bytesRead;
                            else break;
          }
 
-         if (slaveWriteFD >= 0)
+         if (childWriteFD >= 0)
          {
-            // Write the data from our from-main-thread buffer, to our slave I/O
-            uint32 bytesToWriteToSlave = muscleMin(bytesUntilNextCommand, fromMainThreadBufNumValid-fromMainThreadBufReadIdx);
-            if ((bytesToWriteToSlave > 0)&&(multiplexer.IsSocketReadyForWrite(slaveWriteFD)))
+            // Write the data from our from-main-thread buffer, to our child I/O
+            uint32 bytesToWriteToChild = muscleMin(bytesUntilNextCommand, fromMainThreadBufNumValid-fromMainThreadBufReadIdx);
+            if ((bytesToWriteToChild > 0)&&(multiplexer.IsSocketReadyForWrite(childWriteFD)))
             {
-               int32 bytesWritten = SlaveWrite(&fromMainThreadBuf[fromMainThreadBufReadIdx], bytesToWriteToSlave);
+               int32 bytesWritten = ProxyDataIO::Write(&fromMainThreadBuf[fromMainThreadBufReadIdx], bytesToWriteToChild);
                if (bytesWritten >= 0)
                {
                   ioThreadBytesWritten         += bytesWritten;
@@ -201,14 +199,14 @@ void AsyncDataIO :: InternalThreadEntry()
                               else exitWhenDoneWriting = true;
             }
 
-            // Write the data from our from-slave-IO buffer, to the main thread's socket
-            if ((fromSlaveIOBufReadIdx < fromSlaveIOBufNumValid)&&(multiplexer.IsSocketReadyForWrite(fromMainFD)))
+            // Write the data from our from-child-IO buffer, to the main thread's socket
+            if ((fromChildIOBufReadIdx < fromChildIOBufNumValid)&&(multiplexer.IsSocketReadyForWrite(fromMainFD)))
             {
-               int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromSlaveIOBuf[fromSlaveIOBufReadIdx], fromSlaveIOBufNumValid-fromSlaveIOBufReadIdx, false);
+               int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromChildIOBuf[fromChildIOBufReadIdx], fromChildIOBufNumValid-fromChildIOBufReadIdx, false);
                if (bytesWritten >= 0) 
                {
-                  fromSlaveIOBufReadIdx += bytesWritten;
-                  if (fromSlaveIOBufReadIdx == fromSlaveIOBufNumValid) fromSlaveIOBufReadIdx = fromSlaveIOBufNumValid = 0;
+                  fromChildIOBufReadIdx += bytesWritten;
+                  if (fromChildIOBufReadIdx == fromChildIOBufNumValid) fromChildIOBufReadIdx = fromChildIOBufNumValid = 0;
                }
                else break;
             }
@@ -219,15 +217,15 @@ void AsyncDataIO :: InternalThreadEntry()
          switch(curCmd.GetCommand())
          {
             case ASYNC_COMMAND_SEEK:
-               if (_slaveIO()) _slaveIO()->Seek(curCmd.GetOffset(), curCmd.GetWhence());
+               if (childIO) (void) ProxyDataIO::Seek(curCmd.GetOffset(), curCmd.GetWhence());
             break;
 
             case ASYNC_COMMAND_FLUSH:
-               if (_slaveIO()) _slaveIO()->FlushOutput();
+               if (childIO) childIO->FlushOutput();
             break;
 
             case ASYNC_COMMAND_SHUTDOWN:
-               if (_slaveIO()) _slaveIO()->Shutdown();
+               if (childIO) childIO->Shutdown();
             break;
 
             default: 
@@ -241,12 +239,12 @@ void AsyncDataIO :: InternalThreadEntry()
 // Should only be called from inside InternalThreadEntry() (e.g. by InternalThreadPulse())
 uint32 AsyncDataIO :: WriteToMainThread(const uint8 * bytes, uint32 numBytes, bool allowPartial)
 {
-   uint32 freeSpaceAvailable = _fromSlaveIOBufSize-(*_fromSlaveIOBufNumValid);
+   uint32 freeSpaceAvailable = _fromChildIOBufSize-(*_fromChildIOBufNumValid);
    if ((allowPartial == false)&&(freeSpaceAvailable < numBytes)) return 0;
 
    uint32 numToWrite = muscleMin(numBytes, freeSpaceAvailable);
-   memcpy(_fromSlaveIOBuf+(*_fromSlaveIOBufNumValid), bytes, numToWrite);
-   (*_fromSlaveIOBufNumValid) += numToWrite;
+   memcpy(_fromChildIOBuf+(*_fromChildIOBufNumValid), bytes, numToWrite);
+   (*_fromChildIOBufNumValid) += numToWrite;
    return numToWrite;
 }
 

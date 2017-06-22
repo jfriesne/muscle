@@ -32,7 +32,8 @@ static uLong ZCALLBACK fwrite_dataio_func (voidpf /*opaque*/, voidpf stream, con
 static long ZCALLBACK ftell_dataio_func (voidpf /*opaque*/, voidpf stream)
 {
    DataIO * dio = (DataIO *)stream;
-   return (long) (dio ? dio->GetPosition() : -1);
+   SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(dio);
+   return (long) (sdio ? sdio->GetPosition() : -1);
 }
 
 static long ZCALLBACK fseek_dataio_func (voidpf /*opaque*/, voidpf stream, uLong offset, int origin)
@@ -40,13 +41,14 @@ static long ZCALLBACK fseek_dataio_func (voidpf /*opaque*/, voidpf stream, uLong
    int muscleSeekOrigin;
    switch(origin)
    {
-      case ZLIB_FILEFUNC_SEEK_CUR: muscleSeekOrigin = DataIO::IO_SEEK_CUR; break;
-      case ZLIB_FILEFUNC_SEEK_END: muscleSeekOrigin = DataIO::IO_SEEK_END; break;
-      case ZLIB_FILEFUNC_SEEK_SET: muscleSeekOrigin = DataIO::IO_SEEK_SET; break;
+      case ZLIB_FILEFUNC_SEEK_CUR: muscleSeekOrigin = SeekableDataIO::IO_SEEK_CUR; break;
+      case ZLIB_FILEFUNC_SEEK_END: muscleSeekOrigin = SeekableDataIO::IO_SEEK_END; break;
+      case ZLIB_FILEFUNC_SEEK_SET: muscleSeekOrigin = SeekableDataIO::IO_SEEK_SET; break;
       default:                     return -1;
    }
    DataIO * dio = (DataIO *)stream;
-   return (long) ((dio)&&(dio->Seek(offset, muscleSeekOrigin) == B_NO_ERROR)) ? 0 : -1;
+   SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(dio);
+   return (long) ((sdio)&&(sdio->Seek(offset, muscleSeekOrigin) == B_NO_ERROR)) ? 0 : -1;
 }
 
 static int ZCALLBACK fclose_dataio_func (voidpf /*opaque*/, voidpf /*stream*/)

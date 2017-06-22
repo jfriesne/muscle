@@ -645,7 +645,6 @@ static inline uint32 get_tbl() {uint32 tbl; asm volatile("mftb %0"  : "=r" (tbl)
 static inline uint32 get_tbu() {uint32 tbu; asm volatile("mftbu %0" : "=r" (tbu) :); return tbu;}
 #endif
 
-// For BeOS, this is an in-line function, defined in util/TimeUtilityFunctions.h
 /** Defined here since every MUSCLE program will have to include this file anyway... */
 static uint64 GetRunTime64Aux()
 {
@@ -974,7 +973,7 @@ uint32 DataIO :: ReadFully(void * buffer, uint32 size)
    return (uint32) (b-((const uint8 *)buffer));
 }
 
-int64 DataIO :: GetLength()
+int64 SeekableDataIO :: GetLength()
 {
    int64 origPos = GetPosition();
    if ((origPos >= 0)&&(Seek(0, IO_SEEK_END) == B_NO_ERROR))
@@ -983,11 +982,6 @@ int64 DataIO :: GetLength()
       if (Seek(origPos, IO_SEEK_SET) == B_NO_ERROR) return ret;
    }
    return -1;  // error!
-}
-
-const IPAddressAndPort & DataIO :: GetSourceOfLastReadPacket() const 
-{
-   return GetDefaultObjectForType<IPAddressAndPort>();
 }
 
 status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeader) const

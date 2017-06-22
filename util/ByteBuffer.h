@@ -10,7 +10,7 @@
 
 namespace muscle {
 
-class DataIO;
+class SeekableDataIO;
 class IMemoryAllocationStrategy;
 
 enum {
@@ -380,21 +380,17 @@ template <class T> inline ByteBufferRef GetFlattenedByteBufferFromPool(ObjectPoo
 }
 
 /** Convenience method:   Returns a ByteBufferRef containing all the remaining data read in from (dio).
- *  @param dio The DataIO object to read the remaining data out of.  Note that only DataIOs with known
- *             positions and lengths will work here; streaming DataIOs (like TCPSocketDataIOs) will cause a NULL
- *             ref to be returned (since we wouldn't know how large a buffer to allocate).
+ *  @param dio The SeekableDataIO object to read the remaining data out of.
  *  @return Reference to a ByteBuffer object that has been initialized as specified, or a NULL ref on failure (out of memory).
   */
-ByteBufferRef GetByteBufferFromPool(DataIO & dio);
+ByteBufferRef GetByteBufferFromPool(SeekableDataIO & dio);
 
 /** As above, except that the byte buffer is obtained from the specified pool instead of from the default ByteBuffer pool.
  *  @param pool the ObjectPool to allocate the ByteBuffer from.
- *  @param dio The DataIO object to read the remaining data out of.  Note that only DataIOs with known
- *             positions and lengths will work here; streaming DataIOs (like TCPSocketDataIOs) will cause a NULL
- *             ref to be returned (since we wouldn't know how large a buffer to allocate).
+ *  @param dio The DataIO object to read the remaining data out of.
  *  @return Reference to a ByteBuffer object that has been initialized as specified, or a NULL ref on failure (out of memory).
  */
-ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, DataIO & dio);
+ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, SeekableDataIO & dio);
 
 /** Convenience method:  returns a read-only reference to an empty ByteBuffer */
 const ByteBuffer & GetEmptyByteBuffer();

@@ -2507,7 +2507,7 @@ int64 ParseHumanReadableSignedTimeIntervalString(const String & s)
    return (s.StartsWith('-')) ? -ParseHumanReadableTimeIntervalString(s.Substring(1)) : ParseHumanReadableTimeIntervalString(s);
 }
 
-String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate)
+String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate, bool roundUp)
 {
    if (intervalUS == MUSCLE_TIME_NEVER) return "forever";
 
@@ -2520,26 +2520,28 @@ String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, 
    }
    if ((whichUnit >= NUM_TIME_UNITS)||((whichUnit > 0)&&(_timeUnits[whichUnit] > intervalUS))) whichUnit--;
 
-   uint64 numUnits = intervalUS/_timeUnits[whichUnit];
+   const uint64 unitSizeUS       = _timeUnits[whichUnit]; 
+   const uint64 leftover         = intervalUS%unitSizeUS;
+   const bool willAddMoreClauses = ((leftover>minPrecision)&&(maxClauses>1));
+   const uint64 numUnits         = (intervalUS/unitSizeUS)+(((roundUp)&&(willAddMoreClauses==false)&&(leftover>=(unitSizeUS/2)))?1:0);
    char buf[256]; muscleSprintf(buf, UINT64_FORMAT_SPEC " %s%s", numUnits, _timeUnitNames[whichUnit], (numUnits==1)?"":"s");
    String ret = buf;
 
-   uint64 leftover = intervalUS%_timeUnits[whichUnit];
    if (leftover > 0)
    {
-      if ((leftover > minPrecision)&&(maxClauses > 1)) ret += GetHumanReadableTimeIntervalString(leftover, maxClauses-1, minPrecision, optRetIsAccurate).Prepend(", ");
-                                                  else if (optRetIsAccurate) *optRetIsAccurate = false;
+      if (willAddMoreClauses) ret += GetHumanReadableTimeIntervalString(leftover, maxClauses-1, minPrecision, optRetIsAccurate).Prepend(", ");
+                         else if (optRetIsAccurate) *optRetIsAccurate = false;
    }
    else if (optRetIsAccurate) *optRetIsAccurate = true;
 
    return ret;
 }
 
-String GetHumanReadableSignedTimeIntervalString(int64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate)
+String GetHumanReadableSignedTimeIntervalString(int64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate, bool roundUp)
 {
    String ret; 
    if (intervalUS < 0) ret += '-';
-   return ret+GetHumanReadableTimeIntervalString(muscleAbs(intervalUS), maxClauses, minPrecision, optRetIsAccurate);
+   return ret+GetHumanReadableTimeIntervalString(muscleAbs(intervalUS), maxClauses, minPrecision, optRetIsAccurate, roundUp);
 }
 
 #ifndef MUSCLE_INLINE_LOGGING

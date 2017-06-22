@@ -12,7 +12,7 @@ namespace muscle {
   * calls made to all the sub-DataIOs.  If an error occurs on any of the sub-objects,
   * the call will error out.  This class can be useful when implementing RAID-like behavior.
   */
-class MultiDataIO : public DataIO, private CountedObject<MultiDataIO>
+class MultiDataIO : public SeekableDataIO, private CountedObject<MultiDataIO>
 {
 public:
    /** Default Constructor.  Be sure to add some child DataIOs to our Queue of
@@ -44,7 +44,13 @@ public:
    /** Calls Seek() on all our held sub-DataIOs. */
    virtual status_t Seek(int64 offset, int whence) {return SeekAll(0, offset, whence);}
 
-   virtual int64 GetPosition() const {return HasChildren() ? GetFirstChild()->GetPosition() : -1;}
+   virtual int64 GetPosition() const 
+   {
+      if (HasChildren() == false) return -1;
+      const SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(GetFirstChild());
+      return sdio ? sdio->GetPosition() : -1;
+   }
+
    virtual uint64 GetOutputStallLimit() const {return HasChildren() ? GetFirstChild()->GetOutputStallLimit() : MUSCLE_TIME_NEVER;}
 
    virtual void FlushOutput() ;
@@ -58,7 +64,6 @@ public:
 
    virtual bool HasBufferedOutput() const;
    virtual void WriteBufferedOutput();
-   virtual uint32 GetPacketMaximumSize() const;
 
    /** Returns a read-only reference to our list of child DataIO objects. */
    const Queue<DataIORef> & GetChildDataIOs() const {return _childIOs;}

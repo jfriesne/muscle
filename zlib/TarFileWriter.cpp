@@ -16,7 +16,7 @@ TarFileWriter :: TarFileWriter(const char * outputFileName, bool append) : _curr
    (void) SetFile(outputFileName, append);
 }
 
-TarFileWriter :: TarFileWriter(const DataIORef & dio) : _writerIO(dio), _currentHeaderOffset(-1)
+TarFileWriter :: TarFileWriter(const SeekableDataIORef & dio) : _writerIO(dio), _currentHeaderOffset(-1)
 {
    // empty
 }
@@ -33,7 +33,7 @@ status_t TarFileWriter :: Close()
    return ret;
 }
 
-void TarFileWriter :: SetFile(const DataIORef & dio)
+void TarFileWriter :: SetFile(const SeekableDataIORef & dio)
 {
    (void) Close();
    _writerIO = dio;
@@ -98,7 +98,7 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
       for (uint32 i=0; i<TAR_BLOCK_SIZE; i++) checksum += _currentHeaderBytes[i];
       WriteOctalASCII(&_currentHeaderBytes[148], checksum, 8);
 
-      if ((_writerIO()->Seek(_currentHeaderOffset, DataIO::IO_SEEK_SET) != B_NO_ERROR)||(_writerIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes)) != sizeof(_currentHeaderBytes))||(_writerIO()->Seek(0, DataIO::IO_SEEK_END) != B_NO_ERROR)) return B_ERROR;
+      if ((_writerIO()->Seek(_currentHeaderOffset, SeekableDataIO::IO_SEEK_SET) != B_NO_ERROR)||(_writerIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes)) != sizeof(_currentHeaderBytes))||(_writerIO()->Seek(0, SeekableDataIO::IO_SEEK_END) != B_NO_ERROR)) return B_ERROR;
 
       _currentHeaderOffset = -1;
    }

@@ -124,7 +124,6 @@ status_t ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool indepe
          
          if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(outBuf.SetNumBytes(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes, true) == B_NO_ERROR))
          {
-if (_deflater.avail_in != 0) printf("WTF %u/%u\n", _deflater.avail_in, _deflater.avail_out);
             WriteZLibCodecHeader(outBuf.GetBuffer()+addHeaderBytes, independent, numRaw);
             return B_NO_ERROR;
          }
@@ -172,7 +171,7 @@ ByteBufferRef ZLibCodec :: Inflate(const uint8 * compBytes, uint32 numComp)
          _inflater.total_out = 0;
          _inflater.avail_out = ret()->GetNumBytes();
 
-         int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
+         const int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
          if (((zRet != Z_OK)&&(zRet != Z_STREAM_END))||((int32)_inflater.total_out != rawLen)) ret.Reset();  // oopsie!
       }
    }
@@ -201,8 +200,7 @@ status_t ZLibCodec :: Inflate(const uint8 * compBytes, uint32 numComp, ByteBuffe
          _inflater.total_out = 0;
          _inflater.avail_out = outBuf.GetNumBytes();
 
-         int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
-if (_inflater.total_out != (unsigned long)rawLen) printf("zRet=%i total_out=%lu/%i total_in=%lu avail_in=%u\n", zRet, _inflater.total_out, rawLen, _inflater.total_in, _inflater.avail_in);
+         const int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
          return (((zRet != Z_OK)&&(zRet != Z_STREAM_END))||((int32)_inflater.total_out != rawLen)) ? B_ERROR : B_NO_ERROR;
       }
    }
@@ -252,7 +250,7 @@ status_t ZLibCodec :: ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & dest
          _deflater.avail_in = numBytesRead;
       }
 
-      int zRet = deflate(&_deflater, Z_SYNC_FLUSH);
+      const int zRet = deflate(&_deflater, Z_SYNC_FLUSH);
       if ((zRet != Z_OK)&&(zRet != Z_STREAM_END)) return B_ERROR;
 
       // If deflate() generated some deflated bytes, write them out to the destDeflatedIO
@@ -312,7 +310,7 @@ status_t ZLibCodec :: ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO &
          _inflater.avail_in = numBytesRead;
       }
 
-      int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
+      const int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
       if ((zRet != Z_OK)&&(zRet != Z_STREAM_END)) return B_ERROR;
 
       // If inflate() generated some inflated bytes, write them out to the destInflatedIO

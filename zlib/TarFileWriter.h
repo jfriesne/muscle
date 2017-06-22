@@ -31,10 +31,10 @@ public:
    TarFileWriter(const char * outputFileName, bool append);
 
    /** Constructor.
-     * @param dio Reference to a DataIO to use to write data out.
+     * @param dio Reference to a SeekableDataIO to use to write data out.
      * This constructor is equivalent to the default constructor, plus calling SetFile().
      */ 
-   TarFileWriter(const DataIORef & dio);
+   TarFileWriter(const SeekableDataIORef & dio);
 
    /** Destructor. */
    ~TarFileWriter();
@@ -55,7 +55,7 @@ public:
    /** Closes the currently open file (if any) and uses the specified DataIO instead.
      * @param dioRef Reference to The DataIORef to use to output .tar data to, or a NULL Ref to close only.
      */ 
-   void SetFile(const DataIORef & dioRef);
+   void SetFile(const SeekableDataIORef & dioRef);
 
    /** Writes a .tar header fle-block with the given information.
      * @param fileName The name of the member file as it should be recorded inside the .tar file.
@@ -83,16 +83,17 @@ public:
      */
    status_t FinishCurrentFileDataBlock();
 
+   /** These values may be passed to the (linkIndicator) argument of WriteFileHeader() to indicate what kind of filesystem-object the header is describing. */
    enum {
-      TAR_LINK_INDICATOR_NORMAL_FILE = 0,
-      TAR_LINK_INDICATOR_HARD_FILE,
-      TAR_LINK_INDICATOR_SYMBOLIC_LINK,
-      TAR_LINK_INDICATOR_CHARACTER_SPECIAL,
-      TAR_LINK_INDICATOR_BLOCK_SPECIAL,
-      TAR_LINK_INDICATOR_DIRECTORY,
-      TAR_LINK_INDICATOR_FIFO,
-      TAR_LINK_INDICATOR_CONTIGUOUS_FILE,
-      NUM_TAR_LINK_INDICATORS
+      TAR_LINK_INDICATOR_NORMAL_FILE = 0,    /**< A normal data-file */
+      TAR_LINK_INDICATOR_HARD_LINK,          /**< A hard-link */
+      TAR_LINK_INDICATOR_SYMBOLIC_LINK,      /**< A symbolic link */
+      TAR_LINK_INDICATOR_CHARACTER_SPECIAL,  /**< A file representing a character-based device */
+      TAR_LINK_INDICATOR_BLOCK_SPECIAL,      /**< A file representing a block-based device */
+      TAR_LINK_INDICATOR_DIRECTORY,          /**< A directory */
+      TAR_LINK_INDICATOR_FIFO,               /**< A FIFO (named pipe) file*/
+      TAR_LINK_INDICATOR_CONTIGUOUS_FILE,    /**< A contiguous file */
+      NUM_TAR_LINK_INDICATORS                /**< Guard value */
    };
 
    /** Returns true iff we successfully opened the .tar output file. */
@@ -106,7 +107,7 @@ private:
 
    int64 GetCurrentSeekPosition() const;
 
-   DataIORef _writerIO;
+   SeekableDataIORef _writerIO;
    int64 _currentHeaderOffset;
    uint8 _currentHeaderBytes[TAR_BLOCK_SIZE];
 };

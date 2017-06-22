@@ -6,7 +6,7 @@
 
 namespace muscle {
 
-AbstractMessageIOGateway :: AbstractMessageIOGateway() : _hosed(false), _flushOnEmpty(true)
+AbstractMessageIOGateway :: AbstractMessageIOGateway() : _mtuSize(0), _hosed(false), _flushOnEmpty(true)
 {
    // empty
 }
@@ -89,6 +89,14 @@ ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64
          ((multiplexer.IsSocketReadyForRead(readFD))&&(DoInput(scratchReceiver) < 0))) return IsStillAwaitingSynchronousMessagingReply() ? B_ERROR : B_NO_ERROR;
    }
    return B_NO_ERROR;
+}
+
+void AbstractMessageIOGateway :: SetDataIO(const DataIORef & ref) 
+{
+   _ioRef = ref;
+
+   const PacketDataIO * pdio = dynamic_cast<PacketDataIO *>(_ioRef());
+   _mtuSize = pdio ? pdio->GetMaximumPacketSize() : 0;
 }
 
 }; // end namespace muscle

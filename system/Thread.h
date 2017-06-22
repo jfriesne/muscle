@@ -18,7 +18,9 @@
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
 # // empty
 #elif defined(MUSCLE_QT_HAS_THREADS)
-# define MUSCLE_USE_QT_THREADS
+# ifndef MUSCLE_USE_QT_THREADS
+#  define MUSCLE_USE_QT_THREADS
+# endif
 # if QT_VERSION >= 0x040000
 #  include <QThread>
 #  define QT_HAS_THREAD_PRIORITIES
@@ -256,6 +258,35 @@ public:
      */
    uint32 GetCurrentStackUsage() const;
 
+   /** Sets this thread's priority to the specified priority value.
+     * If the thread is currently running, the change will take place immediately; otherwise
+     * the priority will be set when the thread is started.
+     * @param newPriority a PRIORITY_* value indicating how much CPU-priority this thread should have over other threads.
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   status_t SetThreadPriority(int newPriority);
+
+   /** Returns a PRIORITY_* value indicating this thread's current priority (as specified
+     * by a previous call to SetThreadPriority()), or PRIORITY_UNSPECIFIED if no thread priority
+     * has been specified.
+     */
+   int GetThreadPriority() const {return _threadPriority;}
+
+   /** Values to pass in to Thread::SetThreadPriority() to specify a thread's execution-priority relative to other threads */
+   enum {
+      PRIORITY_UNSPECIFIED = -1,  /**< we'll just use whatever priority the OS gives us by default */
+      PRIORITY_IDLE,              /**< super-low priority; we only want to run if there's nothing else to do */
+      PRIORITY_LOWEST,            /**< lowest non-idle priority */
+      PRIORITY_LOWER,             /**< lower priority      */
+      PRIORITY_LOW,               /**< low priority        */
+      PRIORITY_NORMAL,            /**< normal priority (neither low nor high) */
+      PRIORITY_HIGH,              /**< high priority       */
+      PRIORITY_HIGHER,            /**< higher priority     */
+      PRIORITY_HIGHEST,           /**< highest priority    */
+      PRIORITY_TIMECRITICAL,      /**< super-high priority */
+      NUM_PRIORITIES              /**< guard value         */
+   };
+
 #if defined(MUSCLE_USE_QT_THREADS)
    /** Returns a pointer to the QThread object being used to implement our internal thread.
      * Note that this method is only available when the MUSCLE_USE_QT_THREADS preprocessor macro is defined,
@@ -452,6 +483,7 @@ private:
    status_t SendMessageAux(int whichQueue, const MessageRef & ref);
    void SignalAux(int whichSocket);
    void InternalThreadEntryAux();
+   status_t SetThreadPriorityAux(int newPriority);
 
    enum {
       MESSAGE_THREAD_INTERNAL = 0,  // internal thread's (input queue, socket to block on)
@@ -479,7 +511,7 @@ private:
    friend class MuscleQThreadSocketNotifier;
    void QtSocketReadReady(int sock);
    void QtSocketWriteReady(int /*sock*/) {/* unimplemented for now */}
-#endif
+# endif
    class MuscleQThread : public QThread
    {
    public:
@@ -494,17 +526,6 @@ private:
    };
    MuscleQThread _thread;
    friend class MuscleQThread;
-
-protected:
-# ifdef QT_HAS_THREAD_PRIORITIES
-   /** Returns the priority that the internal thread should be launched under.  Only available
-    *  when using Qt 3.2 or higher, so you may want to wrap your references to this method in an 
-    *  #ifdef QT_HAS_THREAD_PRIORITIES test, to make sure your code remains portable.
-    *  @returns the QThread::Priority value, as described in the QThread documentation.  Default
-    *           implementation always returns QThread::InheritPriority.
-    */
-   virtual QThread::Priority GetInternalQThreadPriority() const {return QThread::InheritPriority;}
-# endif
 #endif
 
 private:
@@ -529,6 +550,7 @@ private:
    static Hashtable<muscle_thread_key, Thread *> _curThreads;
    uint32 _suggestedStackSize;
    const uint32 * _threadStackBase;
+   int _threadPriority;
 };
 
 #ifdef MUSCLE_AVOID_CHECK_THREAD_STACK_USAGE

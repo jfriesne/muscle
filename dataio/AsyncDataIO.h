@@ -3,7 +3,7 @@
 #ifndef MuscleAsyncDataIO_h
 #define MuscleAsyncDataIO_h
 
-#include "dataio/DataIO.h"
+#include "dataio/ProxyDataIO.h"
 #include "system/Thread.h"
 
 namespace muscle {
@@ -14,17 +14,17 @@ namespace muscle {
  * It does this by handing the file I/O operations off to a separate internal thread, so that the main
  * thread will never block.
  */
-class AsyncDataIO : public DataIO, private Thread, private CountedObject<AsyncDataIO>
+class AsyncDataIO : public ProxyDataIO, private Thread, private CountedObject<AsyncDataIO>
 {
 public:
    /**
     *  Constructor.
-    *  @param slaveIO The underlying streaming DataIO object to pass calls on through to.
+    *  @param childIO The underlying streaming DataIO object to pass calls on through to.
     *                 Note that this I/O object will be operated on from a separate thread,
     *                 and therefore should generally not be accessed further from the main thread,
     *                 to avoid race conditions.
     */
-   AsyncDataIO(const DataIORef & slaveIO) : _slaveIO(slaveIO), _mainThreadBytesWritten(0) {/* empty */}
+   AsyncDataIO(const DataIORef & childIO) : ProxyDataIO(childIO), _mainThreadBytesWritten(0) {/* empty */}
 
    virtual ~AsyncDataIO();
 
@@ -57,9 +57,6 @@ public:
    /** AsyncDataIO::GetLength() always returns -1, since the current length of the I/O is not well-defined outside of the internal I/O thread. */
    virtual int64 GetLength() {return -1;}
 
-   /** Returns a reference to our held slave I/O object.  Use with caution, since this object may currently be in use by the internal thread! */
-   const DataIORef & GetSlaveIO() const {return _slaveIO;}
-
 protected:
    virtual void InternalThreadEntry();
 
@@ -88,8 +85,6 @@ protected:
    uint32 WriteToMainThread(const uint8 * bytes, uint32 numBytes, bool allowPartialWrite);
 
 private:
-   int32 SlaveRead(void * buffer, uint32 size)        {return _slaveIO() ? _slaveIO()->Read(buffer, size)  : -1;}
-   int32 SlaveWrite(const void * buffer, uint32 size) {return _slaveIO() ? _slaveIO()->Write(buffer, size) : -1;}
    void NotifyInternalThread();
 
    enum {
@@ -99,7 +94,7 @@ private:
       NUM_ASYNC_COMMANDS
    };
  
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complaing that I haven't documented this class -- but it's a private class so I don't need to
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complain that I haven't documented this class -- it's a private class so I don't need to
    class AsyncCommand 
    {
    public:
@@ -121,16 +116,15 @@ private:
 #endif
   
    ConstSocketRef _mainThreadNotifySocket, _ioThreadNotifySocket;
-   DataIORef _slaveIO;
    uint64 _mainThreadBytesWritten;
    Mutex _asyncCommandsMutex;
    Queue<AsyncCommand> _asyncCommands;
 
    // values below should be accessed from within the internal thread only!
-   char * _fromSlaveIOBuf;
-   uint32 _fromSlaveIOBufSize;
-   uint32 * _fromSlaveIOBufReadIdx;
-   uint32 * _fromSlaveIOBufNumValid;
+   char * _fromChildIOBuf;
+   uint32 _fromChildIOBufSize;
+   uint32 * _fromChildIOBufReadIdx;
+   uint32 * _fromChildIOBufNumValid;
 };
 DECLARE_REFTYPES(AsyncDataIO);
 

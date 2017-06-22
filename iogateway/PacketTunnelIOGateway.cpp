@@ -40,8 +40,8 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
          totalBytesRead += bytesRead;
 
          IPAddressAndPort fromIAP;
-         const DataIO * udpIO = GetDataIO()();
-         if (udpIO) fromIAP = udpIO->GetSourceOfLastReadPacket();
+         const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
+         if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
 
          const uint8 * p = (const uint8 *) _inputPacketBuffer.GetBuffer();
          if ((_allowMiscData)&&((bytesRead < (int32)FRAGMENT_HEADER_SIZE)||(((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(p))) != _magic)))
@@ -131,7 +131,7 @@ void PacketTunnelIOGateway :: HandleIncomingMessage(AbstractGatewayMessageReceiv
    {
       DataIORef oldIO = _slaveGateway()->GetDataIO(); // save slave gateway's old state
 
-      _fakeReceiveIO.SetBuffer(buf); (void) _fakeReceiveIO.Seek(0, DataIO::IO_SEEK_SET);
+      _fakeReceiveIO.SetBuffer(buf); (void) _fakeReceiveIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
       _slaveGateway()->SetDataIO(DataIORef(&_fakeReceiveIO, false));
 
       uint32 slaveBytesRead = 0;
@@ -182,7 +182,7 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 
                   // Get the slave gateway to generate its output into our ByteBuffer
                   _fakeSendBuffer.SetNumBytes(0, false);
-                  _fakeSendIO.Seek(0, DataIO::IO_SEEK_SET);
+                  _fakeSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
                   _slaveGateway()->SetDataIO(DataIORef(&_fakeSendIO, false));
                   _slaveGateway()->AddOutgoingMessage(msg);
                   while(_slaveGateway()->DoOutput() > 0) {/* empty */}

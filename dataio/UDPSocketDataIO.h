@@ -13,7 +13,7 @@ namespace muscle {
 /**
  *  Data I/O to and from a UDP socket! 
  */
-class UDPSocketDataIO : public DataIO, private CountedObject<UDPSocketDataIO>
+class UDPSocketDataIO : public PacketDataIO, private CountedObject<UDPSocketDataIO>
 {
 public:
    /**
@@ -60,14 +60,6 @@ public:
       return ret;
    }
 
-   /**
-    *  This method implementation always returns B_ERROR, because you can't seek on a socket!
-    */
-   virtual status_t Seek(int64 /*seekOffset*/, int /*whence*/) {return B_ERROR;}
-
-   /** Always returns -1, since a socket has no position to speak of */
-   virtual int64 GetPosition() const {return -1;}
-
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
    virtual void FlushOutput() {/* empty */}
    
@@ -75,10 +67,10 @@ public:
      * Defaults to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes),
      * but the returned value can be changed via SetPacketMaximumSize().
      */
-   virtual uint32 GetPacketMaximumSize() const {return _maxPacketSize;}
+   virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
 
    /** This can be called to change the maximum packet size value returned
-     * by GetPacketMaximumSize().  You might call this e.g. if you are on a network
+     * by GetMaximumPacketSize().  You might call this e.g. if you are on a network
      * that supports Jumbo UDP packets and want to take advantage of that.
      */
    void SetPacketMaximumSize(uint32 maxPacketSize) {_maxPacketSize = maxPacketSize;}
@@ -96,21 +88,21 @@ public:
      * destination address and port.  Calling this with (invalidIP, 0) will
      * revert us to our default behavior of just calling() send on our UDP socket.
      */
-   void SetSendDestination(const IPAddressAndPort & dest) {(void) _sendTo.EnsureSize(1, true); _sendTo.Head() = dest;}
+   virtual status_t SetPacketSendDestination(const IPAddressAndPort & dest) {(void) _sendTo.EnsureSize(1, true); _sendTo.Head() = dest; return B_NO_ERROR;}
 
-   /** Returns the IP address and port that Write() will send to, as was
-     * previously specified in SetSendDestination().
+   /** Returns the IP address and port that Write() will send to, e.g. as was
+     * previously specified in SetPacketSendDestination().
      */
-   const IPAddressAndPort & GetSendDestination() const {return _sendTo.HasItems() ? _sendTo.Head() : _sendTo.GetDefaultItem();}
+   virtual const IPAddressAndPort & GetPacketSendDestination() const {return _sendTo.HasItems() ? _sendTo.Head() : _sendTo.GetDefaultItem();}
 
    /** Call this to make our Write() method use sendto() with the specified destination addresss and ports. */
-   void SetSendDestinations(const Queue<IPAddressAndPort> & dests) {_sendTo = dests;}
+   void SetPacketSendDestinations(const Queue<IPAddressAndPort> & dests) {_sendTo = dests;}
 
    /** Returns read/write access to our list of send-destinations. */
-   Queue<IPAddressAndPort> & GetSendDestinations() {return _sendTo;}
+   Queue<IPAddressAndPort> & GetPacketSendDestinations() {return _sendTo;}
 
    /** Returns read-only access to our list of send-destinations. */
-   const Queue<IPAddressAndPort> & GetSendDestinations() const {return _sendTo;}
+   const Queue<IPAddressAndPort> & GetPacketSendDestinations() const {return _sendTo;}
 
    /**
     * Enables or diables blocking I/O on this socket.

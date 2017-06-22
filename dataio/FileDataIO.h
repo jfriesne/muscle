@@ -10,7 +10,7 @@ namespace muscle {
 /**
  *  Data I/O to and from a stdio FILE. 
  */
-class FileDataIO : public DataIO, private CountedObject<FileDataIO>
+class FileDataIO : public SeekableDataIO, private CountedObject<FileDataIO>
 {
 public:
    /** Constructor.
