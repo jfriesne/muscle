@@ -168,6 +168,19 @@ public:
      */
    uint32 GetIPv4AddressAsUint32() const {return ((uint32)(_lowBits & 0xFFFFFFFF));}
 
+#ifndef MUSCLE_AVOID_IPV6
+   /** Convenience method:  Returns an IPAddress object identical to this one,
+     * except that the returned IPAddress has its interface index field set to the specified value.
+     * @param interfaceIndex The new interface index value to use in the returned object.
+     */
+   IPAddress WithInterfaceIndex(uint32 interfaceIndex) const
+   {
+      IPAddress addr = *this;
+      addr.SetInterfaceIndex(interfaceIndex);
+      return addr;
+   }
+#endif
+
 private:
    void WriteToNetworkArrayAux( uint8 * out, const uint64 & in ) const {uint64 tmp = B_HOST_TO_BENDIAN_INT64(in); muscleCopyOut(out, tmp);}
    void ReadFromNetworkArrayAux(const uint8 * in, uint64 & out) const {uint64 tmp; muscleCopyIn(tmp, in); out = B_BENDIAN_TO_HOST_INT64(tmp);}
@@ -344,7 +357,7 @@ public:
 
 #ifndef MUSCLE_AVOID_IPV6
    /** Convenience method:  Returns an IPAddressAndPort object identical to this one,
-     * except that the include IPAddress has its interface index field set to the specified value.
+     * except that the included IPAddress has its interface index field set to the specified value.
      * @param interfaceIndex The new interface index value to use in the returned object.
      */
    IPAddressAndPort WithInterfaceIndex(uint32 interfaceIndex) const

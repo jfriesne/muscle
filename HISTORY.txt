@@ -5,6 +5,16 @@ key:  - new feature
       * bug fixed
       o other
 
+6.61 Released 7/21/2017
+   - Added a WithInterfaceIndex() convenience method to the IPAddress
+     class (for consistency with the IPAddressAndPort class's API)
+   * Fixed a sign-casting error in ParseHumanReadableSignedTimeIntervalString()
+     under Windows.  Thanks to Mika Lindqvist for reporting this error.
+   * Fixed potential crash in GetSystemPath() under MacOS/X.
+   * Fixed the MCRASH macro to explicitly specify muscle::Crash()
+     rather than just Crash(), so that it will work when called from
+     other namespaces. 
+
 6.60 Released 6/22/2017
    - Added SetPriority() and GetPriority() methods to the Thread
      class, to allow specification of the CPU-priority a Thread

@@ -135,16 +135,22 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
 #else
 # ifdef __APPLE__
          const CFURLRef bundleURL = CFBundleCopyExecutableURL(CFBundleGetMainBundle());
-         const CFStringRef cfPath = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
-         if ((cfPath)&&(outStr.SetFromCFStringRef(cfPath) == B_NO_ERROR))
+         if (bundleURL)
          {
-            found = true;
+            const CFStringRef cfPath = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
+            if (cfPath)
+            {
+               if (outStr.SetFromCFStringRef(cfPath) == B_NO_ERROR)
+               {
+                  found = true;
 
-            int32 lastSlash = outStr.LastIndexOf(GetFilePathSeparator());
-            if (lastSlash >= 0) outStr = outStr.Substring(0, lastSlash+1);
+                  int32 lastSlash = outStr.LastIndexOf(GetFilePathSeparator());
+                  if (lastSlash >= 0) outStr = outStr.Substring(0, lastSlash+1);
+               }
+               CFRelease(cfPath);
+            }
+            CFRelease(bundleURL);
          }
-         CFRelease(cfPath);
-         CFRelease(bundleURL);
 # else
          // For Linux, anyway, we can try to find out our pid's executable via the /proc filesystem
          // And it can't hurt to at least try it under other OS's, anyway...

@@ -2502,9 +2502,13 @@ uint64 ParseHumanReadableTimeIntervalString(const String & s)
    return ret;
 }
 
+static const int64 _largestSigned64BitValue = 0x7FFFFFFFFFFFFFFFLL;  // closest we can get to MUSCLE_TIME_NEVER
+
 int64 ParseHumanReadableSignedTimeIntervalString(const String & s)
 {
-   return (s.StartsWith('-')) ? -ParseHumanReadableTimeIntervalString(s.Substring(1)) : ParseHumanReadableTimeIntervalString(s);
+   const bool isNegative = s.StartsWith('-');
+   uint64 unsignedVal = ParseHumanReadableTimeIntervalString(isNegative ? s.Substring(1) : s);
+   return (unsignedVal == MUSCLE_TIME_NEVER) ? _largestSigned64BitValue : (isNegative ? -((int64)unsignedVal) : ((int64)unsignedVal));
 }
 
 String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate, bool roundUp)
@@ -2539,6 +2543,8 @@ String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, 
 
 String GetHumanReadableSignedTimeIntervalString(int64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate, bool roundUp)
 {
+   if (intervalUS == _largestSigned64BitValue) return "forever";  // since we can't use MUSCLE_TIME_NEVER with a signed value, as it comes out as -1
+
    String ret; 
    if (intervalUS < 0) ret += '-';
    return ret+GetHumanReadableTimeIntervalString(muscleAbs(intervalUS), maxClauses, minPrecision, optRetIsAccurate, roundUp);

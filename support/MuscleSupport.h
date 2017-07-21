@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.60" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        66000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "6.61" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        66100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -181,7 +181,7 @@ using std::set_new_handler;
 #endif
 
 /** This macro crashes the process with the specified error message. */
-#define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); Crash();}
+#define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); muscle::Crash();}
 
 /** This macro immediately and rudely exits the process (by calling ExitWithoutCleanup(retVal)) after logging the specified critical error message. */
 #define MEXIT(retVal,msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
