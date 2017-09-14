@@ -31,10 +31,13 @@ public:
 #endif
    }
 
-   /** Returns true iff the two QStrings are equal. */
+   /** Returns true iff the two QStrings are equal.
+     * @param k1 first key to compare
+     * @param k2 second key to compare
+     */
    bool AreKeysEqual(const QString & k1, const QString & k2) const {return (k1==k2);}
 };
 
-};  // end namespace muscle
+}  // end namespace muscle
 
 #endif

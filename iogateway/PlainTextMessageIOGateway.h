@@ -40,6 +40,7 @@ public:
     *  will be added to the incoming Message.  If false (the default), then incoming
     *  text without a carriage return will be buffered internally until the next
     *  carriage return is received.
+    *  @param f true to flush partial incoming lines; false to wait until they are fully received
     */
    void SetFlushPartialIncomingLines(bool f) {_flushPartialIncomingLines = f;}
 
@@ -100,6 +101,6 @@ private:
 };
 DECLARE_REFTYPES(TelnetPlainTextMessageIOGateway);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

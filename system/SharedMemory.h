@@ -135,6 +135,6 @@ private:
    bool _isCreatedLocally;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

@@ -41,4 +41,4 @@ MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg
    if ((&from == this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY))) (void) AddOutgoingMessage(msg);
 }
 
-}; // end namespace muscle
+} // end namespace muscle

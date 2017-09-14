@@ -266,4 +266,4 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
 #endif
 }
 
-}; // end namespace muscle
+} // end namespace muscle

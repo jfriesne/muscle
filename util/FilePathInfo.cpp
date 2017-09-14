@@ -113,4 +113,4 @@ uint64 FilePathInfo :: InternalizeFileTime(const FILETIME & ft) const
 }
 #endif
 
-}; // end namespace muscle
+} // end namespace muscle

@@ -123,16 +123,22 @@ public:
    /** Overridden to send a message back to the user to let him know the connection is ready */
    virtual void AsyncConnectCompleted();
 
-   /** Overridden to wrap incoming messages and pass them along to our supervisor session */
+   /** Overridden to wrap incoming messages and pass them along to our supervisor session 
+     * @copydoc StorageReflectSession::MessageReceivedFromGateway(const MessageRef &, void *)
+     */
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
-   /** Overriden to handle messages from our supervisor session */
+   /** Overriden to handle messages from our supervisor session
+     * @copydoc StorageReflectSession::MessageReceivedFromSession(AbstractReflectSession &, const MessageRef &, void *)
+     */
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData);
 
    /** Returns a human-readable label for this session type:  "ThreadWorker" */
    virtual const char * GetTypeName() const {return "ThreadWorker";}
 
-   /** Overridden to clear our _drainNotifiers Queue when appropriate */
+   /** Overridden to clear our _drainNotifiers Queue when appropriate 
+     * @copydoc StorageReflectSession::DoOutput(uint32)
+     */
    virtual int32 DoOutput(uint32 maxBytes);
 
    /** Returns true iff our MessageReceivedFromGateway() method should automatically forward all Messages
@@ -191,12 +197,19 @@ public:
      * to have this factory class return a different type of
      * session object should override CreateThreadWorkerSession(const String &, const IPAddressAndPort &);
      * instead of this method.
+     *
+     * @param clientAddress A string representing the connecting client's host (typically an IP address, e.g. "192.168.1.102")
+     * @param factoryInfo The IP address and port number of the local network interface on which this connection was received.
+     * @returns a reference to a freshly allocated AbstractReflectSession object on success, or a NULL reference on failure.
      */
    virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & factoryInfo);
 
    /** Default implementation returns a new ThreadWorkerSession object.
      * Subclasses may override this method to return a different type of
      * object, as long as the returned object is a subclass of ThreadWorkerSession.
+     * @param clientAddress A string representing the connecting client's host (typically an IP address, e.g. "192.168.1.102")
+     * @param factoryInfo The IP address and port number of the local network interface on which this connection was received.
+     * @returns a reference to a freshly allocated ThreadWorkerSession object on success, or a NULL reference on failure.
      */
    virtual ThreadWorkerSessionRef CreateThreadWorkerSession(const String & clientAddress, const IPAddressAndPort & factoryInfo);
 
@@ -252,13 +265,12 @@ public:
 
    /** Overridden to deal with the MessageTransceiverThread.  If you are subclassing
      * ThreadSupervisorSession, don't override this method; override MessageReceivedFromOwner() instead.
+     * @param msg the Message coming from the gateway object
+     * @param userData a user-defined context value
      */
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
-   /** Overridden to handle messages coming from the ThreadWorkerSessions. */
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData);
-
-   /** Overriden to handle messages from factories */
    virtual void MessageReceivedFromFactory(ReflectSessionFactory & from, const MessageRef & msg, void * userData);
 
    /** Overridden to end the server (and hence, the thread) if our connection to the thread is broken. 
@@ -359,10 +371,14 @@ public:
      */  
    virtual status_t AddNewSession(const ConstSocketRef & socket, const ThreadWorkerSessionRef & optSessionRef);
 
-   /** Convenience method -- calls the above method with a NULL session reference. */
+   /** Convenience method -- calls the above method with a NULL session reference.
+     * @param socket the socket that the new session should use
+     */
    status_t AddNewSession(const ConstSocketRef & socket) {return AddNewSession(socket, ThreadWorkerSessionRef());}
 
-   /** Convenience method -- calls the above method with a NULL socket reference. */
+   /** Convenience method -- calls the above method with a NULL socket reference.
+     * @param optSessionRef the worker session that should be added 
+     */
    status_t AddNewSession(const ThreadWorkerSessionRef & optSessionRef) {return AddNewSession(ConstSocketRef(), optSessionRef);}
 
    /** Convenience method -- calls the above method with a NULL socket and NULL session reference. */
@@ -397,7 +413,28 @@ public:
      */
    virtual status_t AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
-   /** Convenience method -- calls the above method with a NULL session reference. */
+   /**
+     * Convenience method:  Adds a new default ThreadWorkerSession that will connect out to the given IP address and port.
+     * May be called at any time, but behaves slightly differently depending on whether the internal
+     * thread is running or not.  If the internal thread is running, the session will be added asynchronously
+     * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewConnectSession(). 
+     * @param targetIPAddress IP address to connect to
+     * @param port Port to connect to at that IP address.
+     * @param autoReconnectDelay If specified, this is the number of microseconds after the
+     *                           connection is broken that an automatic reconnect should be
+     *                           attempted.  If not specified, an automatic reconnect will not
+     *                           be attempted, and the session will be removed when the
+     *                           connection breaks.  Specifying this is equivalent to calling
+     *                           SetAutoReconnectDelay() on (optSessionRef).
+     * @param maxAsyncConnectPeriod If specified, this is the maximum time (in microseconds) that we will
+     *                              wait for the asynchronous TCP connection to complete.  If this amount of time passes
+     *                              and the TCP connection still has not been established, we will force the connection attempt to
+     *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
+     *                              is used; typically this means that it will be left up to the operating system how long to wait
+     *                              before timing out the connection attempt.
+     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
+     */
    status_t AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return AddNewConnectSession(targetIPAddress, port, ThreadWorkerSessionRef(), autoReconnectDelay, maxAsyncConnectPeriod);}
 
    /**
@@ -430,7 +467,29 @@ public:
      */
    virtual status_t AddNewConnectSession(const String & targetHostName, uint16 port, const ThreadWorkerSessionRef & optSessionRef, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
-   /** Convenience method -- calls the above method with a NULL session reference. */
+   /**
+     * Convenience method: Adds a new default ThreadWorkerSession that will connect out to the given hostname and port.
+     * May be called at any time, but behaves slightly differently depending on whether the internal
+     * thread is running or not.  If the internal thread is running, the session will be added asynchronously
+     * to the server.  If not, the call is passed immediately on through to ReflectServer::AddNewConnectSession(). 
+     * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (e.g. "blah.com" or "132.239.50.8")
+     * @param port Port to connect to at that IP address.
+     * @param expandLocalhost Passed to GetHostByName().  See GetHostByName() documentation for details.  Defaults to false.
+     * @param autoReconnectDelay If specified, this is the number of microseconds after the
+     *                           connection is broken that an automatic reconnect should be
+     *                           attempted.  If not specified, an automatic reconnect will not
+     *                           be attempted, and the session will be removed when the
+     *                           connection breaks.  Specifying this is equivalent to calling
+     *                           SetAutoReconnectDelay() on (optSessionRef).
+     * @param maxAsyncConnectPeriod If specified, this is the maximum time (in microseconds) that we will
+     *                              wait for the asynchronous TCP connection to complete.  If this amount of time passes
+     *                              and the TCP connection still has not been established, we will force the connection attempt to
+     *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
+     *                              is used; typically this means that it will be left up to the operating system how long to wait
+     *                              before timing out the connection attempt.
+     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
+     */
    status_t AddNewConnectSession(const String & targetHostName, uint16 port, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return AddNewConnectSession(targetHostName, port, ThreadWorkerSessionRef(), expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);}
 
    /** Installs a new ReflectSessionFactory onto the ReflectServer (or replaces an existing one) on the given port.
@@ -456,7 +515,9 @@ public:
      */
    virtual status_t PutAcceptFactory(uint16 port, const ThreadWorkerSessionFactoryRef & optFactoryRef, const IPAddress & optInterfaceIP = invalidIP, uint16 * optRetPort = NULL);
 
-   /** Convenience method -- calls the above method with a NULL factory reference. */
+   /** Convenience method -- calls the above method with a NULL factory reference.
+     * @param port the TCP port to install the new factory at
+     */
    status_t PutAcceptFactory(uint16 port) {return PutAcceptFactory(port, ThreadWorkerSessionFactoryRef());}
 
    /** Removes an existing ReflectSessionFactory from the held ReflectServer.
@@ -678,7 +739,7 @@ private:
    bool _forwardAllIncomingMessagesToSupervisor;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif
 

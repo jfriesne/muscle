@@ -63,4 +63,4 @@ status_t ExpandFilePathWildCards(const String & path, Queue<String> & outputPath
                        else return ExpandFilePathWildCardsAux(".", path,     outputPaths, isSimpleFormat);  // start at current folder
 }
 
-}; // end namespace muscle
+} // end namespace muscle

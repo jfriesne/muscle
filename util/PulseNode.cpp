@@ -4,7 +4,17 @@
 
 namespace muscle {
 
-PulseNode :: PulseNode() : _parent(NULL), _aggregatePulseTime(MUSCLE_TIME_NEVER), _myScheduledTime(MUSCLE_TIME_NEVER), _cycleStartedAt(0), _myScheduledTimeValid(false), _curList(-1), _prevSibling(NULL), _nextSibling(NULL), _maxTimeSlice(MUSCLE_TIME_NEVER), _timeSlicingSuggested(false)
+PulseNode :: PulseNode()
+   : _parent(NULL)
+   , _aggregatePulseTime(MUSCLE_TIME_NEVER)
+   , _myScheduledTime(MUSCLE_TIME_NEVER)
+   , _cycleStartedAt(0)
+   , _myScheduledTimeValid(false)
+   , _curList(-1)
+   , _prevSibling(NULL)
+   , _nextSibling(NULL)
+   , _maxTimeSlice(MUSCLE_TIME_NEVER)
+   , _timeSlicingSuggested(false)
 {
    for (uint32 i=0; i<NUM_LINKED_LISTS; i++) _firstChild[i] = _lastChild[i] = NULL;
 }
@@ -173,4 +183,4 @@ void PulseNode :: ReschedulePulseChild(PulseNode * child, int whichList)
    }
 }
 
-}; // end namespace muscle
+} // end namespace muscle

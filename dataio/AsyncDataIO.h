@@ -128,6 +128,6 @@ private:
 };
 DECLARE_REFTYPES(AsyncDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

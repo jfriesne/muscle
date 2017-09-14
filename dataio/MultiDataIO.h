@@ -41,7 +41,15 @@ public:
      */
    virtual int32 Write(const void * buffer, uint32 size);
 
-   /** Calls Seek() on all our held sub-DataIOs. */
+   /** Calls Seek() on all our held sub-DataIOs.
+     * @param offset Byte offset to seek to or by (depending on the next arg)
+     * @param whence Set this to IO_SEEK_SET if you want the offset to
+     *               be relative to the start of the stream; or to
+     *               IO_SEEK_CUR if it should be relative to the current
+     *               stream position, or IO_SEEK_END if it should be
+     *               relative to the end of the stream.
+     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     */
    virtual status_t Seek(int64 offset, int whence) {return SeekAll(0, offset, whence);}
 
    virtual int64 GetPosition() const 
@@ -94,6 +102,6 @@ private:
 };
 DECLARE_REFTYPES(MultiDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

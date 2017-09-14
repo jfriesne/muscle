@@ -86,6 +86,6 @@ int64 Win32FileHandleDataIO :: GetPosition() const
    return -1;
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

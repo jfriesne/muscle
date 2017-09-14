@@ -243,5 +243,5 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
    return NULL;
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 

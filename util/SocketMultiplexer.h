@@ -137,6 +137,7 @@ public:
      */
    inline bool IsSocketEventOfTypeFlagged(int fd, uint32 whichSet) const {return GetAlternateFDState().IsSocketReady(fd, whichSet);}
 
+   /** Enumeration of different types of socket-sets we support (same as those supported by select()) */
    enum {
       FDSTATE_SET_READ = 0, /**< read-ready attribute of the file descriptors */
       FDSTATE_SET_WRITE,    /**< write-ready attribute of the file descriptors */
@@ -262,6 +263,6 @@ private:
 #endif
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

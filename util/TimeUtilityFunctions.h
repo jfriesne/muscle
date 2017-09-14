@@ -292,6 +292,6 @@ inline bool OnceEvery(uint64 interval, uint64 & lastTime)
 
 /** @} */ // end of timeutilityfunctions doxygen group
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

@@ -74,4 +74,4 @@ void SignalHandlerSession :: SignalHandlerFunc(int sigNum)
    }
 }
 
-}; // end namespace muscle
+} // end namespace muscle

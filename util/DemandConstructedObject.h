@@ -26,33 +26,38 @@ public:
    /** Constructor.  */
    DemandConstructedObject() : _objPointer(NULL) {/* empty*/}
 
-   /** Copy constructor.  */
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    DemandConstructedObject(const DemandConstructedObject<T> & rhs) : _objPointer(NULL) {if (rhs.IsObjectConstructed()) (void) EnsureObjectConstructed(rhs.GetObjectUnchecked());}
 
-   /** Pseudo-Copy constructor.  */
+   /** Pseudo-Copy constructor. 
+     * @param rhs the object to make this object a logical copy of
+     */
    DemandConstructedObject(const T & rhs) : _objPointer(NULL) {(void) EnsureObjectConstructed(rhs);}
 
    /** Destructor.  Calls the destructor on our held object as well, if necessary. */
    ~DemandConstructedObject() {if (_objPointer) _objPointer->~T();}
 
-   /** Assignment operator. */
-   DemandConstructedObject & operator=(const DemandConstructedObject & from) 
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
+   DemandConstructedObject & operator=(const DemandConstructedObject & rhs) 
    {
-      if (from.IsObjectConstructed()) GetObject() = from.GetObjectUnchecked();
+      if (rhs.IsObjectConstructed()) GetObject() = rhs.GetObjectUnchecked();
                                  else (void) EnsureObjectDestructed();
       return *this;
    }
 
-   /** Assignment operator */
-   DemandConstructedObject & operator=(const T & from) 
+   /** Templated Assignment operator, for convenience
+     * @param rhs the data object to set our own held object equal to
+     */
+   DemandConstructedObject & operator=(const T & rhs) 
    {
-      (void) GetObject() = from;
+      (void) GetObject() = rhs;
       return *this;
    }
 
    /** Equality operator.  Destructed objects are always considered equal.
      * Constructed objects are never considered equal to destructed objects.
      * Two constructed objects will be considered equal according to their == operator.
+     * @param rhs the object to compare against
      */
    bool operator == (const DemandConstructedObject & rhs) const
    {
@@ -61,13 +66,17 @@ public:
       return ((amConstructed == false)||(GetObjectUnchecked() == rhs.GetObjectUnchecked()));
    }
 
-   /** Returns the opposite of our equality operator. */
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator != (const DemandConstructedObject & rhs) const {return !(*this==rhs);}
 
-   /** Equality operator.  Returns true iff our held object is constructed and equal to (rhs) */
+   /** Equality operator.  Returns true iff our held object is constructed and equal to (rhs)
+     * @param rhs the object to compare against
+     */
    bool operator == (const T & rhs) const {return ((IsObjectConstructed())&&(GetObjectUnchecked() == rhs));}
 
-   /** Equality operator.  Returns true iff our held object is constructed and equal to (rhs) */
+   /** Inequality operator.  Returns true iff our held object is not constructed or not equal to (rhs)
+     * @param rhs the object to compare against
+     */
    bool operator != (const T & rhs) const {return !(*this==rhs);}
 
    /** Returns a valid reference to our wrapped object.  EnsureObjectConstructed() will be called if necessary. */
@@ -111,7 +120,7 @@ public:
 private:
    mutable T * _objPointer;
 
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complaing that I haven't documented this union -- but it's a private union so I don't need to
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complain that I haven't documented this union -- but it's a private union so I don't need to
    mutable union {
       T * _junk;   // only here ensure object-friendly alignment
       uint8 _buf[sizeof(T)];
@@ -119,6 +128,6 @@ private:
 #endif
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

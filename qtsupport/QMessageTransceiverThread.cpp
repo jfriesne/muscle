@@ -8,12 +8,18 @@ namespace muscle {
 static const uint32 QMTT_SIGNAL_EVENT = QEvent::User+14837;  // why yes, this is a completely arbitrary number
 
 #if QT_VERSION >= 0x040000
-QMessageTransceiverThread :: QMessageTransceiverThread(QObject * parent, const char * name) : QObject(parent), _firstSeenHandler(NULL), _lastSeenHandler(NULL)
+QMessageTransceiverThread :: QMessageTransceiverThread(QObject * parent, const char * name)
+   : QObject(parent)
+   , _firstSeenHandler(NULL)
+   , _lastSeenHandler(NULL)
 {
    if (name) setObjectName(name);
 }
 #else
-QMessageTransceiverThread :: QMessageTransceiverThread(QObject * parent, const char * name) : QObject(parent, name), _firstSeenHandler(NULL), _lastSeenHandler(NULL)
+QMessageTransceiverThread :: QMessageTransceiverThread(QObject * parent, const char * name)
+   : QObject(parent, name)
+   , _firstSeenHandler(NULL)
+   , _lastSeenHandler(NULL)
 {
    // empty
 }
@@ -177,7 +183,8 @@ void QMessageTransceiverThread :: UnregisterHandler(QMessageTransceiverThread & 
    }
 }
 
-QMessageTransceiverThreadPool :: QMessageTransceiverThreadPool(uint32 maxSessionsPerThread) : _maxSessionsPerThread(maxSessionsPerThread)
+QMessageTransceiverThreadPool :: QMessageTransceiverThreadPool(uint32 maxSessionsPerThread)
+   : _maxSessionsPerThread(maxSessionsPerThread)
 {
    // empty
 }
@@ -241,12 +248,22 @@ void QMessageTransceiverThreadPool :: UnregisterHandler(QMessageTransceiverThrea
 }
 
 #if QT_VERSION >= 0x040000
-QMessageTransceiverHandler :: QMessageTransceiverHandler(QObject * parent, const char * name) : QObject(parent), _master(NULL), _mtt(NULL), _prevSeen(NULL), _nextSeen(NULL)
+QMessageTransceiverHandler :: QMessageTransceiverHandler(QObject * parent, const char * name)
+   : QObject(parent)
+   , _master(NULL)
+   , _mtt(NULL)
+   , _prevSeen(NULL)
+   , _nextSeen(NULL)
 {
    if (name) setObjectName(name);
 }
 #else
-QMessageTransceiverHandler :: QMessageTransceiverHandler(QObject * parent, const char * name) : QObject(parent, name), _master(NULL), _mtt(NULL), _prevSeen(NULL), _nextSeen(NULL)
+QMessageTransceiverHandler :: QMessageTransceiverHandler(QObject * parent, const char * name)
+   : QObject(parent, name)
+   , _master(NULL)
+   , _mtt(NULL)
+   , _prevSeen(NULL)
+   , _nextSeen(NULL)
 {
    // empty
 }
@@ -370,4 +387,4 @@ ThreadWorkerSessionRef QMessageTransceiverHandler :: CreateDefaultWorkerSession(
    return thread.CreateDefaultWorkerSession();
 }
 
-};  // end namespace muscle;
+}  // end namespace muscle;

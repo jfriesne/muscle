@@ -100,6 +100,6 @@ private:
 };
 DECLARE_REFTYPES(FileDescriptorDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

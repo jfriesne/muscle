@@ -70,8 +70,9 @@ public:
    /** Returns the signal value that was passed in to our constructor, or 0 if there wasn't one. */
    UINT GetSignalValue() const {return _signalValue;}
 
-   /** Used to set the signal value when the constructor call isn't appropriate.  This value is only used
-     * if the signal handle is set to a valid value (i.e. not INVALID_HANDLE_VALUE)
+   /** Used to set the signal value when value that was set in the constructor call isn't appropriate.  
+     * This value is only used if the signal handle is set to a valid value (i.e. not INVALID_HANDLE_VALUE)
+     * @param signalValue Signal value to deliver to the reply thread when notifying it of an event.
      */
    void SetSignalValue(UINT signalValue) {_signalValue = signalValue;}
 
@@ -185,6 +186,6 @@ private:
   *
 ***/
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

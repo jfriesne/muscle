@@ -30,7 +30,12 @@ protected:
 class TestArgsA
 {
 public:
-   TestArgsA() : _s(NULL), _i(0) {/* empty */}
+   TestArgsA()
+      : _s(NULL)
+      , _i(0) 
+   {
+      // empty
+   }
    TestArgsA(const char * s, int i) : _s(s), _i(i) {/* empty */}
 
    void PrintToStream() const {printf("TestArgsA:  [%s] %i\n", _s, _i);}
@@ -54,7 +59,12 @@ protected:
 class TestArgsB
 {
 public:
-   TestArgsB() : _s(NULL), _i(0) {/* empty */}
+   TestArgsB()
+      : _s(NULL)
+      , _i(0) 
+   {
+      // empty
+   }
    TestArgsB(const char * s, int i) : _s(s), _i(i) {/* empty */}
 
    void PrintToStream() const {printf("TestArgsB:  [%s] %i\n", _s, _i);}

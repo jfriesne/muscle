@@ -74,10 +74,15 @@ DECLARE_REFTYPES(RawDataMessageIOGateway);
 class CountedRawDataMessageIOGateway : public RawDataMessageIOGateway
 {
 public:
+   /** Constructor.
+     * @param minChunkSize Don't return any data in chunks smaller than this.  Defaults to zero.
+     * @param maxChunkSize Don't return any data in chunks larger than this.  Defaults to the largest possible uint32 value.
+     */
    CountedRawDataMessageIOGateway(uint32 minChunkSize=0, uint32 maxChunkSize=MUSCLE_NO_LIMIT);
 
    virtual status_t AddOutgoingMessage(const MessageRef & messageRef);
 
+   /** Returns the number of bytes of data currently present in our outgoing-data-queue */
    uint32 GetNumOutgoingDataBytes() const {return _outgoingByteCount;}
 
    virtual void Reset();
@@ -92,6 +97,6 @@ private:
 };
 DECLARE_REFTYPES(CountedRawDataMessageIOGateway);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

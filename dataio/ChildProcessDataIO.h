@@ -140,6 +140,7 @@ public:
 
    /** Set whether or not the child process we spawn should inherit our
      * open file descriptors.  Default value is false.
+     * @param cpifds true iff the child process should inherit our file descriptors
      */
    void SetChildProcessInheritFileDescriptors(bool cpifds) {_childProcessInheritFileDescriptors = cpifds;}
 
@@ -318,6 +319,6 @@ private:
 };
 DECLARE_REFTYPES(ChildProcessDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

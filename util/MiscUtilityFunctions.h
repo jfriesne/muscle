@@ -290,6 +290,7 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir = N
 
 /** Convenience function:  Removes any ANSI formatting escape-sequences from (s), so 
   * that (s) can be displayed as plain text without a bunch of garbage showing up in it.
+  * @param s a String to remove ANSI sequences from, in-place.
   */
 void RemoveANSISequences(String & s);
 
@@ -619,6 +620,6 @@ float GetSystemMemoryUsagePercentage();
 
 /** @} */ // end of miscutilityfunctions doxygen group
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

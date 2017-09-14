@@ -172,17 +172,20 @@ public:
      * Be careful when using this function in multithreaded
      * environments, it can easily lead to race conditions
      * if you don't know what you are doing!
+     * @param c the new count-value to set
      */
    void SetCount(int32 c) {_count = c;}
 
 #if defined(MUSCLE_USE_CPLUSPLUS11) && !defined(MUSCLE_SINGLE_THREAD_ONLY) && !defined(__HAIKU__)
    /** Copy constructor, defined explicitly for the MUSCLE_USE_CPLUSPLUS11 case
      * since std::atomic<int32> won't compile using the implicit copy constructor.
+     * @param rhs the AtomicCounter to make this one equivalent to
      */
    AtomicCounter(const AtomicCounter & rhs) {_count.store(rhs._count.load());}
 
    /** Assignment operator, defined explicitly for the MUSCLE_USE_CPLUSPLUS11 case
      * since std::atomic<int32> won't compile using the implicit copy constructor.
+     * @param rhs the AtomicCounter to make this one equivalent to
      */
    AtomicCounter & operator=(const AtomicCounter & rhs) {_count.store(rhs._count.load()); return *this;}
 #endif
@@ -211,6 +214,6 @@ private:
 #endif
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

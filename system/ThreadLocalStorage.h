@@ -182,6 +182,6 @@ private:
    }
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

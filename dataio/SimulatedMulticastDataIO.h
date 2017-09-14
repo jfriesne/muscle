@@ -49,6 +49,7 @@ public:
    /** This can be called to change the maximum packet size value returned
      * by GetMaximumPacketSize().  You might call this e.g. if you are on a network
      * that supports Jumbo UDP packets and want to take advantage of that.
+     * @param maxPacketSize the new maximum packet size, in bytes
      */
    void SetPacketMaximumSize(uint32 maxPacketSize) {_maxPacketSize = maxPacketSize;}
 
@@ -95,6 +96,6 @@ private:
 };
 DECLARE_REFTYPES(SimulatedMulticastDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

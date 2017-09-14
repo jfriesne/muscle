@@ -131,11 +131,12 @@ int main(int argc, char ** argv)
             bool send = true;
             MessageRef ref = GetMessageFromPool();
 
+            const char * arg1 = (st->Length()>2) ? &text[2] : NULL;
             switch(text[0])
             {
                case 'm':
                   ref()->what = MAKETYPE("umsg");
-                  ref()->AddString(PR_NAME_KEYS, &text[2]);
+                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
                   ref()->AddString("info", "This is a user message");
                break;
 
@@ -149,33 +150,33 @@ int main(int argc, char ** argv)
                   ref()->what = PR_COMMAND_SETDATA;
                   MessageRef uploadMsg = GetMessageFromPool(MAKETYPE("HELO"));
                   uploadMsg()->AddString("This node was posted at: ", GetHumanReadableTimeString(GetRunTime64()));
-                  ref()->AddMessage(&text[2], uploadMsg);
+                  if (arg1) ref()->AddMessage(arg1, uploadMsg);
                }
                break;
 
                case 'k':
                   ref()->what = PR_COMMAND_KICK;
-                  ref()->AddString(PR_NAME_KEYS, &text[2]);
+                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 'b':
                   ref()->what = PR_COMMAND_ADDBANS;
-                  ref()->AddString(PR_NAME_KEYS, &text[2]);
+                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 'B':
                   ref()->what = PR_COMMAND_REMOVEBANS;
-                  ref()->AddString(PR_NAME_KEYS, &text[2]);
+                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 'g':
                   ref()->what = PR_COMMAND_GETDATA;
-                  ref()->AddString(PR_NAME_KEYS, &text[2]);
+                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 'G':
                   ref()->what = PR_COMMAND_GETDATATREES;
-                  ref()->AddString(PR_NAME_KEYS, &text[2]);
+                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
                   ref()->AddString(PR_NAME_TREE_REQUEST_ID, "Tree ID!");
                break;
 
@@ -185,7 +186,7 @@ int main(int argc, char ** argv)
 
                case 'p':
                   ref()->what = PR_COMMAND_SETPARAMETERS;
-                  ref()->AddString(&text[2], "");
+                  if (arg1) ref()->AddString(arg1, "");
                break;
 
                case 'P':
@@ -212,12 +213,12 @@ int main(int argc, char ** argv)
 
                case 'd':
                   ref()->what = PR_COMMAND_REMOVEDATA;
-                  ref()->AddString(PR_NAME_KEYS, &text[2]);
+                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 'D':
                   ref()->what = PR_COMMAND_REMOVEPARAMETERS;
-                  ref()->AddString(PR_NAME_KEYS, &text[2]);
+                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 't':

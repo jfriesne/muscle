@@ -119,6 +119,6 @@ private:
    char * _next;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

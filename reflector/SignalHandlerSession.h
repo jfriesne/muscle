@@ -54,4 +54,4 @@ void SetMainReflectServerCatchSignals(bool enable);
 /** Returns true iff the main-ReflectServer-handle-signals flags is set to true. */
 bool GetMainReflectServerCatchSignals();
 
-}; // end namespace muscle
+} // end namespace muscle

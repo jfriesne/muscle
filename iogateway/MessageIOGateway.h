@@ -204,7 +204,11 @@ protected:
    /** Overridden to return true until our PONG Message is received back */
    virtual bool IsStillAwaitingSynchronousMessagingReply() const {return _noRPCReply.IsInBatch() ? HasBytesToOutput() : (_pendingSyncPingCounter >= 0);}
 
-   /** Overridden to filter out our PONG Message and pass everything else on to (r). */
+   /** Overridden to filter out our PONG Message and pass everything else on to (r).
+     * @param msg the Message that was received
+     * @param userData the user-data pointer, as was passed to ExecuteSynchronousMessaging()
+     * @param r the receiver object that we will call MessageReceivedFromGateway() on
+     */
    virtual void SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r);
 
    /** Allocates and returns a Message to send as a Ping Message for its synchronization. 
@@ -244,7 +248,7 @@ private:
    ZLibCodec * GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const;
 #endif
 
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complaing that I haven't documented this class -- but it's a private class so I don't need to
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complain that I haven't documented this class -- but it's a private class so I don't need to
    class TransferBuffer
    {
    public:
@@ -310,8 +314,14 @@ public:
    CountedMessageIOGateway(int32 outgoingEncoding = MUSCLE_MESSAGE_ENCODING_DEFAULT);
 
    virtual status_t AddOutgoingMessage(const MessageRef & messageRef);
-   uint32 GetNumOutgoingDataBytes() const {return _outgoingByteCount;}
+
    virtual void Reset();
+
+   /** Returns the number of bytes of data currently in our outgoing-messages-queue
+     * Calculated by calling FlattenedSize() on the Messages as they are added to
+     * or removed from the queue)
+     */
+   uint32 GetNumOutgoingDataBytes() const {return _outgoingByteCount;}
 
 protected:
    virtual status_t PopNextOutgoingMessage(MessageRef & ret);
@@ -386,6 +396,6 @@ DECLARE_REFTYPES(CountedMessageIOGateway);
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

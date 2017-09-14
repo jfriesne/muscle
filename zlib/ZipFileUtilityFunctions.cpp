@@ -251,6 +251,6 @@ MessageRef ReadZipFile(DataIO & readFrom, bool loadData)
    return MessageRef();
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

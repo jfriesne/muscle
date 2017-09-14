@@ -5,7 +5,9 @@
 
 namespace muscle {
 
-QSignalHandler :: QSignalHandler(QObject * parent, const char * name) : QObject(parent), _socketNotifier(NULL)
+QSignalHandler :: QSignalHandler(QObject * parent, const char * name)
+   : QObject(parent)
+   , _socketNotifier(NULL)
 {
    if (name) setObjectName(name);
    if ((CreateConnectedSocketPair(_mainThreadSocket, _handlerFuncSocket) == B_NO_ERROR)&&(SignalMultiplexer::GetSignalMultiplexer().AddHandler(this) == B_NO_ERROR))
@@ -51,4 +53,4 @@ void QSignalHandler :: SignalHandlerFunc(int sigNum)
    }
 }
 
-}; // end namespace muscle
+} // end namespace muscle

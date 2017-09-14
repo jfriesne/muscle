@@ -108,13 +108,13 @@ public:
    /** Default ctor:  Creates a MessageField with no type */
    MessageField(uint32 typeCode = 0) : _typeCode(typeCode), _state(FIELD_STATE_EMPTY), _dataType(DATA_TYPE_NULL) {/* empty */}
 
-   /** Copy ctor */
-   MessageField(const MessageField & v) : _typeCode(0), _state(FIELD_STATE_EMPTY), _dataType(DATA_TYPE_NULL) {*this = v;}
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   MessageField(const MessageField & rhs) : _typeCode(0), _state(FIELD_STATE_EMPTY), _dataType(DATA_TYPE_NULL) {*this = rhs;}
    
    /** Dtor */
    ~MessageField() {Clear();}
 
-   /** Assignment operator. */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    MessageField & operator = (const MessageField & rhs);
 
    /** Prints our state to stdout (for debugging) */
@@ -386,8 +386,8 @@ private:
    } _union;
 };
 
-}; // end namespace muscle_message_imp
+} // end namespace muscle_message_imp
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif /* MuscleMessage_impl_h */

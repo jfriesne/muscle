@@ -21,7 +21,12 @@
 
 #include "qt_example.h"
 
-ExampleWidget :: ExampleWidget(ExampleWindow * master, bool animate) : _master(master), _isMousePressed(false), _updatePos(rand()%10000), _xRatio(0.7f), _yRatio(0.7f)
+ExampleWidget :: ExampleWidget(ExampleWindow * master, bool animate)
+   : _master(master)
+   , _isMousePressed(false)
+   , _updatePos(rand()%10000)
+   , _xRatio(0.7f)
+   , _yRatio(0.7f)
 {
    setMinimumSize(200, 20);
    connect(&_autoUpdateTimer, SIGNAL(timeout()), this, SLOT(AutoUpdate()));
@@ -156,7 +161,11 @@ static QColor GetRandomBrightColor()
    return QColor((rand()%colorRange)+colorFloor, (rand()%colorRange)+colorFloor, (rand()%colorRange)+colorFloor);
 }
 
-ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userName, const ConstByteBufferRef & publicKey, bool animate) : _isConnected(false), _curUserName(userName), _localColor(GetRandomBrightColor()), _publicKey(publicKey)
+ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userName, const ConstByteBufferRef & publicKey, bool animate)
+   : _isConnected(false)
+   , _curUserName(userName)
+   , _localColor(GetRandomBrightColor())
+   , _publicKey(publicKey)
 {
 #ifdef MUSCLE_ENABLE_SSL
    if (_publicKey()) _mtt.SetSSLPublicKeyCertificate(_publicKey);

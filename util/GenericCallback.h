@@ -63,6 +63,6 @@ private:
 };
 DECLARE_REFTYPES(FunctionCallback);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

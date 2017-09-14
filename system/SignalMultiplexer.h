@@ -33,6 +33,7 @@ public:
      * and therefore most function calls are unsafe to call from here.
      * Typically you would want to have this function simply set a flag
      * or write a byte onto a socket, and do all the actual work somewhere else.
+     * @param whichSignal ID of the signal we just received (meaning is OS-specific)
      */
    virtual void SignalHandlerFunc(int whichSignal) = 0;
 };
@@ -91,7 +92,7 @@ private:
    static SignalMultiplexer _signalMultiplexer;  // the singleton object
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif
 

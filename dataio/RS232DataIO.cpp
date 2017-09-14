@@ -23,7 +23,8 @@
 
 namespace muscle {
 
-RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking) : _blocking(blocking)
+RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
+   : _blocking(blocking)
 #ifdef USE_WINDOWS_IMPLEMENTATION
    , _handle(INVALID_HANDLE_VALUE)
    , _ioThread(INVALID_HANDLE_VALUE)
@@ -381,7 +382,12 @@ const uint32 SERIAL_BUFFER_SIZE = 1024;
 class SerialBuffer
 {
 public:
-   SerialBuffer() : _length(0), _index(0) {/* empty */}
+   SerialBuffer()
+      : _length(0)
+      , _index(0) 
+   {
+      // empty
+   }
 
    char _buf[SERIAL_BUFFER_SIZE];
    uint32 _length;  // how many bytes in _buf are actually valid
@@ -577,4 +583,4 @@ void RS232DataIO :: IOThreadEntry()
 }
 #endif
 
-}; // end namespace muscle
+} // end namespace muscle

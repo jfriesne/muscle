@@ -130,7 +130,7 @@ public:
     */
    HashtableIterator();
 
-   /** Copy Constructor. */
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    HashtableIterator(const HashtableIterator<KeyType, ValueType, HashFunctorType> & rhs);
 
    /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIterator().  
@@ -150,7 +150,7 @@ public:
    /** Destructor */
    ~HashtableIterator();
 
-   /** Assignment operator. */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    HashtableIterator<KeyType, ValueType, HashFunctorType> & operator=(const HashtableIterator<KeyType, ValueType, HashFunctorType> & rhs);
 
    /** Advances this iterator by one entry in the table.  */
@@ -276,10 +276,14 @@ public:
    /** Convenience method;  Returns true iff the table is non-empty (i.e. if GetNumItems() is non-zero). */
    bool HasItems() const {return (_numItems > 0);}
 
-   /** Returns true iff the table contains a mapping with the given key.  (O(1) search time) */
+   /** Returns true iff the table contains a mapping with the given key.  (O(1) search time)
+     * @param key the key to inquire about
+     */
    bool ContainsKey(const KeyType & key) const {return (this->GetEntry(this->ComputeHash(key), key) != NULL);}
 
-   /** Returns true iff the table contains a mapping with the given value.  (O(n) search time) */
+   /** Returns true iff the table contains a mapping with the given value.  (O(n) search time) 
+     * @param value the value to inquire about
+     */
    bool ContainsValue(const ValueType & value) const;
 
    /** Returns true iff this Hashtable has the same contents as (rhs).
@@ -296,7 +300,10 @@ public:
      */
    template<class HisValueType, class HisHashFunctorType> bool AreKeySetsEqual(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const;
 
-   /** Returns the given key's position in the hashtable's linked list, or -1 if the key wasn't found.  O(n) count time (if the key exists, O(1) if it doesn't) */
+   /** Returns the given key's position in the hashtable's linked list, or -1 if the key wasn't found.  O(n) count time (if the key exists, O(1) if it doesn't)
+     * @param key a key value to find the index of
+     * @returns the position of the key in the iteration list, or -1 if the key is not in the table.
+     */
    int32 IndexOfKey(const KeyType & key) const;
 
    /** Returns the index of the first (or last) occurrance of (value), or -1 if (value) does
@@ -470,6 +477,7 @@ public:
    HT_UniversalSinkValueRef ValueType RemoveWithDefault(const KeyType & key, HT_SinkValueParam defaultValue) {ValueType ret; return (RemoveAux(key, &ret) == B_NO_ERROR) ? ret : HT_ForwardValue(defaultValue);}
 
    /** Convenience method:  Removes from this Hashtable all key/value pairs for which the same key is not present in (pairs)
+     * @param pairs the other table to intersect our table against
      * @returns the number of items actually removed from this table.
      */
    uint32 Intersect(const HashtableBase & pairs);
@@ -589,6 +597,7 @@ public:
      * objects that this class is templated on.  The functor objects can then use this value to access
      * any context information that might be necessary to do their comparison.
      * This value will be passed along during whenever a user-defined compare functor is called implicitly.
+     * @param cookie the new cookie value (meaning is application-specific)
      */
    void SetCompareCookie(void * cookie) {_compareCookie = cookie;}
 
@@ -659,17 +668,26 @@ public:
      */
    status_t MoveToPosition(const KeyType & moveMe, uint32 toPosition);
 
-   /** Convenience synonym for GetValue() */
-   status_t Get(const KeyType & key, ValueType & setValue) const {return GetValue(key, setValue);}
+   /** Convenience synonym for GetValue() 
+     * @param key the key to inquire about
+     * @param retValue on success, the value associated with (key) is written here
+     * @returns B_NO_ERROR on success, or B_ERROR on failure (key-not-found)
+     */
+   status_t Get(const KeyType & key, ValueType & retValue) const {return GetValue(key, retValue);}
 
-   /** Convenience synonym for GetValue() */
+   /** Convenience synonym for GetValue() 
+     * @param key the key to lookup a value for
+     * @returns A pointer to the value associated with key on success, or NULL on failure (key-not-found)
+     */
    ValueType * Get(const KeyType & key) {return GetValue(key);}
 
-   /** As above, but read-only. */
+   /** As above, but read-only.
+     * @param key the key to lookup a value for
+     * @returns A pointer to the value associated with key on success, or NULL on failure (key-not-found)
+     */
    const ValueType * Get(const KeyType & key) const {return GetValue(key);}
 
-   /** Similar to Get(), except that if the specified key is not found,
-     * the ValueType's default value is returned.
+   /** Similar to Get(), except that if the specified key is not found, the ValueType's default value is returned.
      * @param key The key whose value should be returned.
      * @returns (key)'s associated value, or the default ValueType value.
      */
@@ -847,6 +865,10 @@ public:
    }
 
 protected:
+   /** If we don't already have the storage array allocated for this Hashtable, 
+     * allocates one.  If the table was already allocated, does nothing and returns B_NO_ERROR.
+     * @returns B_NO_ERROR if the table is present, B_ERROR on failure (out of memory?)
+     */
    status_t EnsureTableAllocated();
 
 private:
@@ -1323,21 +1345,25 @@ public:
 
    /** Equality operator.  Returns true iff both hash tables contains the same set of keys and values.
      * Note that the ordering of the keys is NOT taken into account!
+     * @param rhs the Hashtable to compare against
      */
    bool operator== (const HashtableMid & rhs) const {return this->IsEqualTo(rhs, false);}
 
    /** Templated psuedo-equality operator.  Returns true iff both hash tables contains the same set of keys and values.
      * Note that the ordering of the keys is NOT taken into account!
+     * @param rhs the Hashtable to compare against
      */
    template<class RHSHashFunctorType,class RHSSubclassType> bool operator== (const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) const {return this->IsEqualTo(rhs, false);}
 
    /** Returns true iff the contents of this table differ from the contents of (rhs).
      * Note that the ordering of the keys is NOT taken into account!
+     * @param rhs the Hashtable to compare against
      */
    bool operator!= (const HashtableMid & rhs) const {return !this->IsEqualTo(rhs, false);}
 
    /** Templated psuedo-inequality operator.  Returns false iff both hash tables contains the same set of keys and values.
      * Note that the ordering of the keys is NOT taken into account!
+     * @param rhs the Hashtable to compare against
      */
    template<class RHSHashFunctorType,class RHSSubclassType> bool operator!= (const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) const {return !this->IsEqualTo(rhs, false);}
 
@@ -1692,16 +1718,20 @@ public:
    /** Default constructor. */
    Hashtable() : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(MUSCLE_HASHTABLE_DEFAULT_CAPACITY, false, NULL) {/* empty */}
 
-   /** Copy Constructor.  */
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    Hashtable(const Hashtable & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), false, NULL) {(void) this->CopyFrom(rhs);}
 
-   /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. */
+   /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
+     * @param rhs the Hashtable to make this Hashtable a duplicate of
+     */
    template<class RHSHashFunctorType, class RHSSubclassType> Hashtable(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), false, NULL) {(void) this->CopyFrom(rhs);}
 
-   /** Assignment operator */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    Hashtable & operator=(const Hashtable & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
-   /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types. */
+   /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types.
+     * @param rhs the Hashtable to make this Hashtable a duplicate of
+     */
    template<class RHSHashFunctorType, class RHSSubclassType> Hashtable & operator=(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
    /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).  
@@ -1714,16 +1744,20 @@ public:
    void SwapContents(Hashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >::SwapContents(swapMe);}
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** Move Constructor.  */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    Hashtable(Hashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0, false, NULL) {this->SwapContents(rhs);}
 
-   /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. */
+   /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
+     * @param rhs the table to steal the contents of, to make them our own
+     */
    template<class RHSHashFunctorType, class RHSSubclassType> Hashtable(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0, false, NULL) {this->SwapContents(rhs);}
 
-   /** Assignment-move operator */
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
    Hashtable & operator=(Hashtable && rhs) {this->SwapContents(rhs); return *this;}
 
-   /** Templated pseudo-assignment-move-operator:  Allows us to be set from similar table with different functor types. */
+   /** Templated pseudo-assignment-move-operator:  Allows us to be set from similar table with different functor types.
+     * @param rhs the table to steal the contents of, to make them our own
+     */
    template<class RHSHashFunctorType, class RHSSubclassType> Hashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) {this->SwapContents(rhs); return *this;}
 #endif
 
@@ -1748,16 +1782,20 @@ public:
      */
    OrderedKeysHashtable(void * optCompareCookie = NULL) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(MUSCLE_HASHTABLE_DEFAULT_CAPACITY, true, optCompareCookie) {/* empty */}
 
-   /** Copy Constructor.  */
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    OrderedKeysHashtable(const OrderedKeysHashtable & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), true, NULL) {(void) this->CopyFrom(rhs);}
 
-   /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. */
+   /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. 
+     * @param rhs the hash table to make this hash table a duplicate of
+     */
    template<class RHSKeyCompareFunctorType, class RHSHashFunctorType> OrderedKeysHashtable(const HashtableMid<KeyType,ValueType,RHSKeyCompareFunctorType,RHSHashFunctorType> & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), NULL) {(void) this->CopyFrom(rhs);}
 
-   /** Assignment operator */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    OrderedKeysHashtable & operator=(const OrderedKeysHashtable & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
-   /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types. */
+   /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types. 
+     * @param rhs the hash table to make this hash table a duplicate of
+     */
    template<class RHSHashFunctorType, class RHSSubclassType> OrderedKeysHashtable & operator=(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
    /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).  
@@ -1770,16 +1808,20 @@ public:
    void SwapContents(OrderedKeysHashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** Move Constructor.  */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    OrderedKeysHashtable(OrderedKeysHashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(0, true, NULL) {this->SwapContents(rhs);}
 
-   /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. */
+   /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
+     * @param rhs the hash table that we are to steal the contents of, to make them our own
+     */
    template<class RHSKeyCompareFunctorType, class RHSHashFunctorType> OrderedKeysHashtable(HashtableMid<KeyType,ValueType,RHSKeyCompareFunctorType,RHSHashFunctorType> && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(0, NULL) {this->SwapContents(rhs);}
 
-   /** Move-Assignment operator */
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
    OrderedKeysHashtable & operator=(OrderedKeysHashtable && rhs) {this->SwapContents(rhs); return *this;}
 
-   /** Templated pseudo-move-assignment-operator:  Allows us to be set from similar table with different functor types. */
+   /** Templated pseudo-move-assignment-operator:  Allows us to be set from similar table with different functor types.
+     * @param rhs the hash table that we are to steal the contents of, to make them our own
+     */
    template<class RHSHashFunctorType, class RHSSubclassType> OrderedKeysHashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) {(void) this->SwapContents(rhs); return *this;}
 #endif
 
@@ -1806,16 +1848,20 @@ public:
      */
    OrderedValuesHashtable(void * optCompareCookie = NULL) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(MUSCLE_HASHTABLE_DEFAULT_CAPACITY, true, optCompareCookie) {/* empty */}
 
-   /** Copy Constructor. */
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    OrderedValuesHashtable(const OrderedValuesHashtable & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), true, NULL) {(void) this->CopyFrom(rhs);}
 
-   /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. */
+   /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. 
+     * @param rhs the Hashtable to make this Hashtable a duplicate of
+     */
    template<class RHSValueCompareFunctorType, class RHSHashFunctorType> OrderedValuesHashtable(const HashtableMid<KeyType,ValueType,RHSValueCompareFunctorType,RHSHashFunctorType> & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), true, NULL) {(void) this->CopyFrom(rhs);}
 
-   /** Assignment operator */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    OrderedValuesHashtable & operator=(const OrderedValuesHashtable & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
-   /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types. */
+   /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types. 
+     * @param rhs the Hashtable to make this Hashtable a duplicate of
+     */
    template<class RHSHashFunctorType, class RHSSubclassType> OrderedValuesHashtable & operator=(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
    /** Moves the specified key/value pair so that it is in the correct position based on the
@@ -1840,16 +1886,20 @@ public:
    void SwapContents(OrderedValuesHashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** Move Constructor. */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    OrderedValuesHashtable(OrderedValuesHashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(0, true, NULL) {this->SwapContents(rhs);}
 
-   /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. */
+   /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. 
+     * @param rhs the Hashtable to cannibalize and make this Hashtable a duplicate of
+     */
    template<class RHSValueCompareFunctorType, class RHSHashFunctorType> OrderedValuesHashtable(HashtableMid<KeyType,ValueType,RHSValueCompareFunctorType,RHSHashFunctorType> && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(0, true, NULL) {this->SwapContents(rhs);}
 
-   /** Move Assignment operator */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    OrderedValuesHashtable & operator=(OrderedValuesHashtable && rhs) {this->SwapContents(rhs); return *this;}
 
-   /** Templated pseudo-move-assignment-operator:  Allows us to be set from similar table with different functor types. */
+   /** Templated pseudo-move-assignment-operator:  Allows us to be set from similar table with different functor types. 
+     * @param rhs the Hashtable to cannibalize and make this Hashtable a duplicate of
+     */
    template<class RHSHashFunctorType, class RHSSubclassType> OrderedValuesHashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) {this->SwapContents(rhs); return *this;}
 #endif
 
@@ -3060,6 +3110,6 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>:: operator=(const Hashtable
    return *this;
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

@@ -27,6 +27,6 @@ status_t ConvertToBMessage(const Message & from, BMessage & to);
  */
 status_t ConvertFromBMessage(const BMessage & from, Message & to);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

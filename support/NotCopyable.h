@@ -42,7 +42,7 @@ private:
 #endif
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif /* MuscleNotCopyable_h */
 

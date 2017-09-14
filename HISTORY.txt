@@ -5,6 +5,21 @@ key:  - new feature
       * bug fixed
       o other
 
+6.62 Released 9/14/2017
+   o Moved constructor-arguments in the .cpp files to separate lines,
+     for better diff-ability when they are modified.
+   o Removed the overrides of String::StartsWith() that took an
+     offset parameter, since it doesn't really make sense to check
+     for a prefix with an offset.
+   o Fixed some warnings flagged by clang++'s -Weverything option
+   o Lots of miscellaneous Doxygen header-comment fixes and cleanup
+   o Added a DoxyTemplates.h header file to serve as a repository
+     of common class-member definitions, to avoid repetitive boilerplate.
+   o Modified String::operator==() to call memcmp() rather than strcmp()
+   * Improved portablereflectclient's string parsing a little.
+   * Added "const" tag to several operators in the IPAddress class 
+     that were supposed to have it, but didn't.
+
 6.61 Released 7/21/2017
    - Added a WithInterfaceIndex() convenience method to the IPAddress
      class (for consistency with the IPAddressAndPort class's API)
@@ -148,7 +163,7 @@ key:  - new feature
      under POSIX-y OS's, but not under Windows)
    - hexterm now supports a file=filename argument, in case
      you want hexterm to read its input bytes from a file.
-   * Fixed a number of DOxygen-commenting oversights detected by 
+   * Fixed a number of Doxygen-commenting oversights detected by 
      Alvaro Lopez Ortega's "doxy-coverage" comment-checking tool.
    * Tweaked some of the serialization/deserialization code to be
      more careful about avoiding non-aligned word accesses.
@@ -329,8 +344,8 @@ key:  - new feature
      visible.  To avoid that misbehavior, the child process's windows
      are now hidden only if the CHILD_PROCESS_LAUNCH_BIT_WIN32_HIDE_GUI
      bit is set in the (launchBits) argument.
-   * Some of the the DOxygen comments for enumerations in the 
-     header files were not formed correctly, so the DOxygen 
+   * Some of the the Doxygen comments for enumerations in the 
+     header files were not formed correctly, so the Doxygen 
      HTML pages would leave them undocumented.  Fixed.
    * Fixed a compiler warning in MessageField::IsEqualTo().
 
@@ -504,7 +519,7 @@ key:  - new feature
    o Added work-arounds for gcc-3.x SFINAE incompatibilities
      to MuscleSupport.h
    o Updated the muscle.dox file using doxygen -u so that
-     it is now up-to-date (as of DOxygen 1.8.8)
+     it is now up-to-date (as of Doxygen 1.8.8)
    * If a string like "for 10 seconds" was passed to 
      ParseHumanReadableTimeIntervalString(), the "for"
      prefix would cause the returned value to be twice
@@ -1296,7 +1311,7 @@ key:  - new feature
      that subclasses can easily re-enable logging if they want to.
    * Gave the README.TXT file a badly needed rewrite/update.
    * Tweaked the doxygen.dox file to yield better-looking
-     DOxygen HTML documentation.
+     Doxygen HTML documentation.
    * genDocs.sh now automatically extracts the current
      MUSCLE version number from MuscleSupport.h, so it's
      no longer necessary to manually update the muscle.dox
@@ -1399,10 +1414,10 @@ key:  - new feature
      MuscleSupport.h.  This function returns a reference to
      a default-constructed static object of the specified type.
    - Added a description of the Hashtable class's feature set
-     to the Hashtable DOxygen documentation.
+     to the Hashtable Doxygen documentation.
    - Added a const [] operator to the Hashtable class.  The 
      [] operator behaves the same as the GetWithDefault() method.
-   - Expanded and enhanced the DOxygen per-class documentation
+   - Expanded and enhanced the Doxygen per-class documentation
      of various classes.
    o Reduced sizeof(Queue), sizeof(Hashtable), and 
      sizeof(ObjectPool) by removing their default-object member
@@ -2909,15 +2924,15 @@ v4.22 Released 3/4/2008
 v4.21 Released 1/22/2008
   - Optimized Hashtable::GetOrPut(), CopyToTable(), MoveToTable(),
     Put(), and Remove() to be more efficient.
-  o Updated the muscle.dox DOxygen file to reflect changes to
-    newer versions of DOxygen
+  o Updated the muscle.dox Doxygen file to reflect changes to
+    newer versions of Doxygen
   * Hashtable::Put() and Hashtable::Remove() now do the right
     thing if they are passed (*this) as an argument.
   * Fixed a nasty bug in the ObjectPool destructor that would
     cause it to go into an infinite loop, calling delete on
     the same array over and over again.
-  * Filled in and fixed up the DOxygen comments to the point where 
-    DOxygen no longer gives any warnings when generating the autodocs.
+  * Filled in and fixed up the Doxygen comments to the point where 
+    Doxygen no longer gives any warnings when generating the autodocs.
   o Updated all copyright notice headers to read 2000-2008 Meyer Sound.
 
 v4.20 Released 12/31/2007

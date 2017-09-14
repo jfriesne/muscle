@@ -19,22 +19,33 @@ public:
    /** Default constructor */
    TamperEvidentValue() : _value(), _wasExplicitlySet(false) {/* empty */}
 
-   /** Explicit constructor.  */
+   /** Explicit constructor -- sets our value to the specified value, but doesn't set the value-was-explicitly-set flag.
+     * @param val the value to initially set this object to.
+     */
    TamperEvidentValue(const T & val) : _value(val), _wasExplicitlySet(false) {/* empty */}
 
-   /** Copy constructor.  Copies both the value and the flag-state from the passed-in TamperEvidentValue object. */
-   TamperEvidentValue(const TamperEvidentValue & copyMe) : _value(copyMe._value), _wasExplicitlySet(copyMe._wasExplicitlySet) {/* empty */}
+   /** Copy constructor.  Copies both the value and the flag-state from the passed-in TamperEvidentValue object. 
+     * @param rhs the object to make this object a duplicate of
+     */
+   TamperEvidentValue(const TamperEvidentValue & rhs) : _value(rhs._value), _wasExplicitlySet(rhs._wasExplicitlySet) {/* empty */}
 
    /** Destructor */
    ~TamperEvidentValue() {/* empty */}
 
-   /** Assignment operator. */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &)
+     * @note our HasValueBeenSet() flag will be set to true by this operation
+     */
    TamperEvidentValue & operator =(const TamperEvidentValue & rhs) {SetValue(rhs.GetValue()); return *this;}
 
-   /** Assignment operator. */
+   /** Assignment operator.
+     * @param rhs the value to set this object to hold.
+     * @note our HasValueBeenSet() flag will be set to true by this operation
+     */
    TamperEvidentValue & operator =(const T & rhs) {SetValue(rhs); return *this;}
 
-   /** Sets a new value, and also sets our HasValueBeenSet() flag to true. */
+   /** Sets a new value, and also sets our HasValueBeenSet() flag to true.
+     * @param newVal the value to explicitely-set this object to
+     */
    void SetValue(const T & newVal) {_value = newVal; _wasExplicitlySet = true;}
 
    /** Returns our current value */
@@ -54,6 +65,6 @@ private:
    bool _wasExplicitlySet;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

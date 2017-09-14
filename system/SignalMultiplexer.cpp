@@ -130,11 +130,12 @@ void SignalMultiplexer :: UnregisterSignals()
 #endif
 }
 
-SignalMultiplexer :: SignalMultiplexer() : _totalSignalCounts(0)
+SignalMultiplexer :: SignalMultiplexer()
+   : _totalSignalCounts(0)
 {
    for (uint32 i=0; i<ARRAYITEMS(_signalCounts); i++) _signalCounts[i] = 0;
 }
 
 SignalMultiplexer SignalMultiplexer::_signalMultiplexer;
 
-}; // end namespace muscle
+} // end namespace muscle

@@ -106,7 +106,7 @@ private:
    BMessage _notificationMessage;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #include "system/MessageTransceiverThread.h"
 #include "system/AcceptSocketsThread.h"
@@ -117,6 +117,6 @@ namespace muscle {
 typedef BThread<MessageTransceiverThread> BMessageTransceiverThread;
 typedef BThread<AcceptSocketsThread> BAcceptSocketsThread;
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

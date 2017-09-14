@@ -42,7 +42,7 @@ public:
      *                          have changed (e.g. "en0", "en1", etc).  If this table is empty,
      *                          that indicates that any or all of the network interfaces may have
      *                          changed.  Note that changed-interface enumeration is currently only
-     *                          implemented under MacOS/X, so under other operating systems this
+     *                          implemented under MacOS/X and Windows, so under other operating systems this
      *                          argument will currently always be an empty table.
      */
    virtual void NetworkInterfacesChanged(const Hashtable<String, Void> & optInterfaceNames) = 0;
@@ -140,7 +140,7 @@ protected:
      *                          have changed (e.g. "en0", "en1", etc).  If this table is empty,
      *                          that indicates that any or all of the network interfaces may have
      *                          changed.  Note that changed-interface enumeration is currently only
-     *                          implemented under MacOS/X, so under other operating systems this
+     *                          implemented under MacOS/X and Windows, so under other operating systems this
      *                          argument will currently always be an empty table.
      */
    virtual void NetworkInterfacesChanged(const Hashtable<String, Void> & optInterfaceNames);
@@ -202,6 +202,6 @@ private:
 };
 DECLARE_REFTYPES(DetectNetworkConfigChangesSession);
 
-};  // end namespace muscle
+}  // end namespace muscle
 
 #endif

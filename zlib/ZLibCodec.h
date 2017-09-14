@@ -215,7 +215,7 @@ private:
    z_stream _deflater;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif
 

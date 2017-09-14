@@ -230,4 +230,4 @@ String PathMatcherEntry :: ToString() const
    return ret;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

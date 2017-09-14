@@ -27,7 +27,7 @@ public:
 
    /** Should be overriden to return a new ReflectSession object, or NULL on failure.
     *  @param clientAddress A string representing the connecting client's host (typically an IP address, e.g. "192.168.1.102")
-     * @param factoryInfo The IP address and port number of the local network interface on which this connection was received.
+    *  @param factoryInfo The IP address and port number of the local network interface on which this connection was received.
     *  @returns a reference to a freshly allocated AbstractReflectSession object on success, or a NULL reference on failure.
     */
    virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & factoryInfo) = 0;
@@ -471,7 +471,9 @@ public:
    const ConstSocketRef & GetSessionWriteSelectSocket() const;
 
 protected:
-   /** Set by StorageReflectSession::AttachedToServer() */
+   /** Set by StorageReflectSession::AttachedToServer()
+     * @param p the new session-root-path for us to use (e.g. "/127.0.0.1/12345")
+     */
    void SetSessionRootPath(const String & p) {_sessionRootPath = p;}
 
    /** When a hostname is being chosen to represent this session (i.e. at the first
@@ -519,6 +521,6 @@ private:
    TamperEvidentValue<bool> _isExpendable;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

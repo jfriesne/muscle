@@ -96,13 +96,17 @@ public:
      */
    bool IsFullyAttachedToServer() const {return _fullyAttached;}
 
-   /** Sets the fully-attached-to-server flag for this session.  Typically only the ReflectServer class should call this. */
+   /** Sets the fully-attached-to-server flag for this session.  Typically only the ReflectServer class should call this.
+     * @param fullyAttached true iff we are not fully attached; false if we are no longer fully attacked
+     */
    void SetFullyAttachedToServer(bool fullyAttached) {_fullyAttached = fullyAttached;}
 
    /** Returns the ReflectServer we are currently attached to, or NULL if we aren't currently attached to a ReflectServer. */
    ReflectServer * GetOwner() const {return _owner;}
 
-   /** Sets the ReflectServer we are currently attached to.  Don't call this if you don't know what you are doing. */
+   /** Sets the ReflectServer we are currently attached to.  Don't call this if you don't know what you are doing.
+     * @param s the ReflectServer object that we should use for method-call forwarding to ReflectServer functionality
+     */
    void SetOwner(ReflectServer * s) {_owner = s;}
 
 protected:
@@ -121,11 +125,27 @@ protected:
    /** Returns the number of bytes that are currently allocated */
    uint64 GetNumUsedBytes() const;
 
-   /** Passes through to ReflectServer::PutAcceptFactory() */
-   status_t PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const IPAddress & interfaceIP = invalidIP, uint16 * optRetPort = NULL);
+   /** Passes through to ReflectServer::PutAcceptFactory()
+    *  @param port The TCP port the server will listen on.  (muscled's traditional port is 2960)
+    *              If this port is zero, then the server will choose an available port number to use.
+    *              If this port is the same as one specified in a previous call to PutAcceptFactory(),
+    *              the old factory associated with that port will be replaced with this one.
+    *  @param factoryRef Reference to a factory object that can generate new sessions when needed.
+    *  @param optInterfaceIP Optional local interface address to listen on.  If not specified, or if specified
+    *                        as (invalidIP), then connections will be accepted from all local network interfaces.
+    *  @param optRetPort If specified non-NULL, then on success the port that the factory was bound to will
+    *                    be placed into this parameter.
+    *  @return B_NO_ERROR on success, B_ERROR on failure (couldn't bind to socket?)
+    */
+   status_t PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const IPAddress & optInterfaceIP = invalidIP, uint16 * optRetPort = NULL);
 
-   /** Passes through to ReflectServer::RemoveAcceptFactory() */
-   status_t RemoveAcceptFactory(uint16 port, const IPAddress & interfaceIP = invalidIP);
+   /** Passes through to ReflectServer::RemoveAcceptFactory()
+    *  @param port whose callback should be removed.  If (port) is set to zero, all callbacks will be removed.
+    *  @param optInterfaceIP Interface(s) that the specified callbacks were assigned to in their PutAcceptFactory() call.
+    *                        This parameter is ignored when (port) is zero.
+    *  @returns B_NO_ERROR on success, or B_ERROR if a factory for the specified port was not found.
+    */
+   status_t RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP);
 
    /** Tells the whole server process to quit ASAP.  */
    void EndServer();
@@ -271,6 +291,6 @@ private:
 };
 DECLARE_REFTYPES(ServerComponent);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

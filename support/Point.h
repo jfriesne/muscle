@@ -33,7 +33,7 @@ public:
     */
    Point(float ax, float ay) {Set(ax, ay);}
 
-   /** Copy Constructor. */
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    Point(const Point & rhs) : Tuple<2,float>(rhs) {/* empty */}
 
    /** Destructor */
@@ -79,35 +79,31 @@ public:
       fprintf(optFile, "Point: %f %f\n", x(), y());
    }
       
-   /** Part of the Flattenable pseudo-interface:  Returns true */
+   /** Part of the PseudoFlattenable pseudo-interface:  Returns true */
    bool IsFixedSize() const {return true;} 
 
-   /** Part of the Flattenable pseudo-interface:  Returns B_POINT_TYPE */
+   /** Part of the PseudoFlattenable pseudo-interface:  Returns B_POINT_TYPE */
    uint32 TypeCode() const {return B_POINT_TYPE;}
 
-   /** Returns true iff (tc) equals B_POINT_TYPE. */
+   /** Returns true iff (tc) equals B_POINT_TYPE.
+     * @param tc the type-code to check
+     */
    bool AllowsTypeCode(uint32 tc) const {return (TypeCode()==tc);}
 
-   /** Part of the Flattenable pseudo-interface:  2*sizeof(float) */
+   /** Part of the PseudoFlattenable pseudo-interface:  Returns 2*sizeof(float) */
    uint32 FlattenedSize() const {return 2*sizeof(float);}
 
-   /** Returns a 32-bit checksum for this object. */
+   /** @copydoc DoxyTemplate::CalculateChecksum() const */
    uint32 CalculateChecksum() const {return CalculateChecksumForFloat(x()) + (3*CalculateChecksumForFloat(y()));}
 
-   /** Copies this point into an endian-neutral flattened buffer.
-    *  @param buffer Points to an array of at least FlattenedSize() bytes.
-    */
+   /** @copydoc DoxyTemplate::Flatten(uint8 *) const */
    void Flatten(uint8 * buffer) const 
    {
       muscleCopyOut(&buffer[0*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(x()));
       muscleCopyOut(&buffer[1*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(y()));
    }
 
-   /** Restores this point from an endian-neutral flattened buffer.
-    *  @param buffer Points to an array of (size) bytes
-    *  @param size The number of bytes (buffer) points to (should be at least FlattenedSize())
-    *  @return B_NO_ERROR on success, B_ERROR on failure (size was too small)
-    */
+   /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
    status_t Unflatten(const uint8 * buffer, uint32 size) 
    {
       if (size >= FlattenedSize())
@@ -143,9 +139,8 @@ public:
       return ((dx*dx)+(dy*dy));
    }
 };
-
 DECLARE_ALL_TUPLE_OPERATORS(Point,float);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif 

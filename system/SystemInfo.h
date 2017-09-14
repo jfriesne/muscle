@@ -76,6 +76,6 @@ void LogBuildFlags(int logLevel = MUSCLE_LOG_INFO);
   */
 void PrintBuildFlags();
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

@@ -34,6 +34,7 @@ public:
 
    /** Sets the count to the specified value.  In general it should not be necessary to call
      * this method, so don't call it unless you know what you are doing!
+     * @param c the new nest count value to use
      */
    void SetCount(uint32 c) {_count = c;}
 
@@ -70,6 +71,6 @@ private:
    NestCount & _count;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

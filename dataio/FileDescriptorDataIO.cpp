@@ -126,6 +126,6 @@ int64 FileDescriptorDataIO :: GetPosition() const
    return -1;
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

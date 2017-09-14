@@ -47,18 +47,14 @@ public:
    /** Destructor */
    virtual ~QueryFilter() {/* empty */}
 
-   /** Dumps our state into the given (archive).   Default implementation
-    *  just writes our TypeCode() into the 'what' of the Message
-    *  and returns B_NO_ERROR.
-    *  @param archive the Message to write our state into.
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure.
+   /** @copydoc DoxyTemplate::SaveToArchive(Message &) const
+    *  @note the base-class implementation just copies the value returned by our TypeCode() method into the 'what' of the Message, and returns B_NO_ERROR.
     */
    virtual status_t SaveToArchive(Message & archive) const;
 
-   /** Restores our state from the given (archive).  Default implementation
-    *  returns B_NO_ERROR iff the archive's what code matches our TypeCode().
-    *  @param archive The archive to restore our state from.
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure.
+   /** @copydoc DoxyTemplate::SetFromArchive(const Message &)
+    *  @note the base-class implementation returns B_NO_ERROR if the archive's 'what'-code causes our AcceptTypeCode() method 
+    *        to return true, or B_ERROR otherwise.  Other than that it does nothing.
     */     
    virtual status_t SetFromArchive(const Message & archive);
 
@@ -77,6 +73,7 @@ public:
    /** Returns true iff we can be instantiated using a Message with the given
      * 'what' code.  Default implementation returns true iff (what) equals the
      * value returned by our own TypeCode() method.
+     * @param what the type-code to check for acceptability
      */
    virtual bool AcceptsTypeCode(uint32 what) const {return TypeCode() == what;}
 };
@@ -124,13 +121,17 @@ public:
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
 
-   /** Sets our index-in-field setting. */
+   /** Sets our index-in-field setting.
+     * @param index the new index of the value we want to look up inside our target field-name.  (0==first value, 1==second value, etc)
+     */
    void SetIndex(uint32 index) {_index = index;}
 
    /** Returns our current index-in-field setting, as set by SetIndex() or in our constructor */
    uint32 GetIndex() const {return _index;}
 
-   /** Sets the field name to use. */
+   /** Sets the field name to use.
+     * @param fieldName the new field name to use in our query
+     */
    void SetFieldName(const String & fieldName) {_fieldName = fieldName;}
 
    /** Returns the current field name, as set by SetFieldName() or in our constructor. */
@@ -653,6 +654,7 @@ public:
    /** Returns the currently specified value, as specified in the constructor or in SetValue() */
    const String & GetValue() const {return _value;}
  
+   /** Enumeration of operators that may be used by the StringQueryFilter */
    enum {
       OP_EQUAL_TO = 0,                         /**< This token represents '==', e.g. nextValue==myValue (case sensitive) */
       OP_LESS_THAN,                            /**< This token represents '<',  e.g. nextValue<myValue  (case sensitive) */
@@ -772,6 +774,7 @@ public:
    /** Returns the currently specified value, as specified in the constructor or in SetValue() */
    ConstByteBufferRef GetValue() const {return _value;}
  
+   /** Enumeration of operators that may be used by the RawDataQueryFilter */
    enum {
       OP_EQUAL_TO = 0,              /**< This token represents '==' */
       OP_LESS_THAN,                 /**< This token represents '<'  */
@@ -791,6 +794,7 @@ public:
    /** Call this to specify an assumed default value that should be used when the
      * Message we are matching against doesn't have an actual value itself. 
      * Call this with a NULL reference if you don't want to use an assumed default value.
+     * @param bufRef the buffer to use as an assumed-default value
      */ 
    void SetAssumedDefault(const ConstByteBufferRef & bufRef) {_default = bufRef;}
 
@@ -863,6 +867,6 @@ QueryFilterFactoryRef GetGlobalQueryFilterFactory();
   */
 void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

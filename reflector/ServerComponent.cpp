@@ -181,4 +181,4 @@ MessageReceivedFromFactory(ReflectSessionFactory &, const MessageRef &, void * )
    // empty
 }
 
-}; // end namespace muscle
+} // end namespace muscle

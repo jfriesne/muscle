@@ -111,6 +111,6 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results);
 /** Convenience function.  Calls GetCountedObjectInfo() and pretty-prints the results to stdout. */
 void PrintCountedObjectInfo();
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

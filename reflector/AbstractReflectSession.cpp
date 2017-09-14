@@ -459,4 +459,4 @@ GenerateHostName(const IPAddress & /*ip*/, const String & defaultHostName) const
    return defaultHostName;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

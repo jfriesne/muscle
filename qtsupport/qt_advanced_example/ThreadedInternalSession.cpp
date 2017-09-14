@@ -10,7 +10,10 @@
 
 using namespace muscle;
 
-ThreadedInternalSession :: ThreadedInternalSession(const MessageRef & args) : _args(args), _count(0), _nextStatusPostTime(0)
+ThreadedInternalSession :: ThreadedInternalSession(const MessageRef & args)
+   : _args(args)
+   , _count(0)
+   , _nextStatusPostTime(0)
 {
    // Set up our communication mechanism with our internally held I/O thread
    // Must be done in the constructor so that the ReflectServer's event loop

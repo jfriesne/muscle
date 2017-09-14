@@ -290,4 +290,4 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
    return B_ERROR;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

@@ -26,7 +26,10 @@ void IThreadPoolClient :: SetThreadPool(ThreadPool * tp)
    }
 }
    
-ThreadPool :: ThreadPool(uint32 maxThreadCount) : _maxThreadCount(maxThreadCount), _shuttingDown(false), _threadIDCounter(0)
+ThreadPool :: ThreadPool(uint32 maxThreadCount)
+   : _maxThreadCount(maxThreadCount)
+   , _shuttingDown(false)
+   , _threadIDCounter(0)
 {
    (void) _availableThreads.EnsureSize(maxThreadCount);
    (void) _activeThreads.EnsureSize(maxThreadCount);
@@ -225,4 +228,4 @@ status_t ThreadPool :: StartInternalThread(Thread & thread)
    return thread.StartInternalThread();
 }
 
-}; // end namespace muscle
+} // end namespace muscle

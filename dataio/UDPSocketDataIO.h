@@ -72,6 +72,7 @@ public:
    /** This can be called to change the maximum packet size value returned
      * by GetMaximumPacketSize().  You might call this e.g. if you are on a network
      * that supports Jumbo UDP packets and want to take advantage of that.
+     * @param maxPacketSize the new maximum packet size, in bytes
      */
    void SetPacketMaximumSize(uint32 maxPacketSize) {_maxPacketSize = maxPacketSize;}
 
@@ -87,6 +88,7 @@ public:
    /** Call this to make our Write() method use sendto() with the specified
      * destination address and port.  Calling this with (invalidIP, 0) will
      * revert us to our default behavior of just calling() send on our UDP socket.
+     * @param dest the new destination address (and port) that Write() should send UDP packets to
      */
    virtual status_t SetPacketSendDestination(const IPAddressAndPort & dest) {(void) _sendTo.EnsureSize(1, true); _sendTo.Head() = dest; return B_NO_ERROR;}
 
@@ -95,7 +97,9 @@ public:
      */
    virtual const IPAddressAndPort & GetPacketSendDestination() const {return _sendTo.HasItems() ? _sendTo.Head() : _sendTo.GetDefaultItem();}
 
-   /** Call this to make our Write() method use sendto() with the specified destination addresss and ports. */
+   /** Call this to make our Write() method use sendto() with the specified destination addresss and ports.
+     * @param dests a list of IPAddressAndPort destinations; each Write() call will send a UDP packet to each destination in the list.
+     */
    void SetPacketSendDestinations(const Queue<IPAddressAndPort> & dests) {_sendTo = dests;}
 
    /** Returns read/write access to our list of send-destinations. */
@@ -133,6 +137,6 @@ private:
 };
 DECLARE_REFTYPES(UDPSocketDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

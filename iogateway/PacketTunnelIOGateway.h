@@ -41,13 +41,17 @@ public:
 
    virtual bool HasBytesToOutput() const {return ((_currentOutputBuffer())||(GetOutgoingMessageQueue().HasItems()));}
 
-   /** Sets our slave gateway.  Only necessary if you didn't specify a slave gateway in the constructor. */
+   /** Sets our slave gateway.  Only necessary if you didn't specify a slave gateway in the constructor.
+     * @param slaveGateway reference to the new slave gateway
+     */
    void SetSlaveGateway(const AbstractMessageIOGatewayRef & slaveGateway) {_slaveGateway = slaveGateway;}
 
    /** Returns our current slave gateway, or a NULL reference if we don't have one. */
    const AbstractMessageIOGatewayRef & GetSlaveGateway() const {return _slaveGateway;}
 
-   /** Sets the maximum size message we will allow ourself to receive.  Defaults to MUSCLE_NO_LIMIT. */
+   /** Sets the maximum size message we will allow ourself to receive.  Defaults to MUSCLE_NO_LIMIT.
+     * @param messageSize new maximum incoming message size, in bytes, or MUSCLE_NO_LIMIT to not enforce any maximum
+     */
    void SetMaxIncomingMessageSize(uint32 messageSize) {_maxIncomingMessageSize = messageSize;}
 
    /** Returns the current setting of the maximum-message-size value.  Default to MUSCLE_NO_LIMIT. */
@@ -56,6 +60,7 @@ public:
    /** If set to true, any incoming UDP packets that aren't in our packetizer-format will be
      * be interpreted as separate, independent incoming messages.  If false (the default state),
      * then any incoming UDP packets that aren't in the packetizer-format will simply be discarded.
+     * @param allowMisc true to allow miscellaneous incoming UDP packets, false to ignore them.
      */
    void SetAllowMiscIncomingData(bool allowMisc) {_allowMiscData = allowMisc;}
 
@@ -81,11 +86,13 @@ protected:
      * AbstractGatewayMessageReceiver object, the void-pointer argument will point to an
      * IPAddressAndPort object that the callee can use to find out where the incoming Message
      * came from.
+     * @copydoc AbstractMessageIOGateway::DoInputImplementation(AbstractGatewayMessageReceiver &, uint32)
      */
    virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes);
 
    /** Implemented to send outgoing Messages in a packet-friendly way... i.e. by chopping up
      * too-large Messages, and batching together too-small Messages.
+     * @copydoc AbstractMessageIOGateway::DoOutputImplementation(uint32)
      */
    virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
 
@@ -133,4 +140,4 @@ private:
 };
 DECLARE_REFTYPES(PacketTunnelIOGateway);
 
-}; // end namespace muscle
+} // end namespace muscle

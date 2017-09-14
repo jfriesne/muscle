@@ -1512,7 +1512,8 @@ static const char * const _logLevelKeywords[] = {
    "trace"
 };
 
-DefaultConsoleLogger :: DefaultConsoleLogger() : _consoleLogLevel(MUSCLE_LOG_INFO)
+DefaultConsoleLogger :: DefaultConsoleLogger()
+   : _consoleLogLevel(MUSCLE_LOG_INFO)
 {
     // empty
 }
@@ -1531,7 +1532,12 @@ void DefaultConsoleLogger :: Flush()
    fflush(stdout);
 }
 
-DefaultFileLogger :: DefaultFileLogger() : _fileLogLevel(MUSCLE_LOG_NONE), _maxLogFileSize(MUSCLE_NO_LIMIT), _maxNumLogFiles(MUSCLE_NO_LIMIT), _compressionEnabled(false), _logFileOpenAttemptFailed(false)
+DefaultFileLogger :: DefaultFileLogger()
+   : _fileLogLevel(MUSCLE_LOG_NONE)
+   , _maxLogFileSize(MUSCLE_NO_LIMIT)
+   , _maxNumLogFiles(MUSCLE_NO_LIMIT)
+   , _compressionEnabled(false)
+   , _logFileOpenAttemptFailed(false)
 {
    // empty
 }
@@ -1713,7 +1719,8 @@ void DefaultFileLogger :: CloseLogFile()
    }
 }
 
-LogLineCallback :: LogLineCallback() : _writeTo(_buf)
+LogLineCallback :: LogLineCallback()
+   : _writeTo(_buf)
 {
    _buf[0] = '\0';
    _buf[sizeof(_buf)-1] = '\0';  // just in case vsnsprintf() has to truncate
@@ -2565,4 +2572,4 @@ void WarnOutOfMemory(const char * file, int line)
 
 #endif
 
-}; // end namespace muscle
+} // end namespace muscle

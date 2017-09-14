@@ -56,11 +56,12 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
 
 /** Given a standard data type code (e.g. B_STRING_TYPE) returns the default field name that will
  *  be used in a Message for an arg of that type, if a fieldname wasn't explicitly specified.
+ *  @param type a B_*_TYPE value indicating the type to inquire about
  */
 const char * GetDefaultPythonArgFieldName(uint32 type);
 
 /** @} */ // end of pythonutilityfunctions doxygen group
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

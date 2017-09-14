@@ -572,6 +572,6 @@ private:
   */
 void CheckThreadStackUsage(const char * fileName, uint32 line);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

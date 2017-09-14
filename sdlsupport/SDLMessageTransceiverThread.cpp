@@ -4,7 +4,8 @@
 
 namespace muscle {
 
-SDLMessageTransceiverThread :: SDLMessageTransceiverThread() : MessageTransceiverThread()
+SDLMessageTransceiverThread :: SDLMessageTransceiverThread()
+   : MessageTransceiverThread()
 {
    // empty
 }
@@ -19,4 +20,4 @@ void SDLMessageTransceiverThread :: SignalOwner()
    SDL_PeepEvents(&event, 1, SDL_ADDEVENT, 0);
 }
 
-}; // end namespace muscle
+} // end namespace muscle

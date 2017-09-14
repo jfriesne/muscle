@@ -106,7 +106,7 @@ private:
    os::Message _notificationMessage;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #include "system/MessageTransceiverThread.h"
 #include "system/AcceptSocketsThread.h"
@@ -117,6 +117,6 @@ namespace muscle {
 typedef AThread<MessageTransceiverThread> AMessageTransceiverThread;
 typedef AThread<AcceptSocketsThread> AAcceptSocketsThread;
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

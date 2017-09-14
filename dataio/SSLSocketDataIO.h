@@ -112,6 +112,6 @@ private:
 };
 DECLARE_REFTYPES(SSLSocketDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

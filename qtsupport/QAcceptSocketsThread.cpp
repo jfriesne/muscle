@@ -8,12 +8,14 @@ namespace muscle {
 static const uint32 QMTT_SIGNAL_EVENT = QEvent::User+14836;  // why yes, this is a completely arbitrary number
 
 #if QT_VERSION >= 0x040000
-QAcceptSocketsThread :: QAcceptSocketsThread(QObject * parent, const char * name) : QObject(parent)
+QAcceptSocketsThread :: QAcceptSocketsThread(QObject * parent, const char * name)
+   : QObject(parent)
 {
    if (name) setObjectName(name);
 }
 #else
-QAcceptSocketsThread :: QAcceptSocketsThread(QObject * parent, const char * name) : QObject(parent, name)
+QAcceptSocketsThread :: QAcceptSocketsThread(QObject * parent, const char * name)
+   : QObject(parent, name)
 {
    // empty
 }
@@ -63,4 +65,4 @@ bool QAcceptSocketsThread :: event(QEvent * event)
    else return QObject::event(event);
 }
 
-}; // end namespace muscle
+} // end namespace muscle

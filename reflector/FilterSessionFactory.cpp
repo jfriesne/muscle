@@ -5,7 +5,11 @@
 
 namespace muscle {
 
-FilterSessionFactory :: FilterSessionFactory(const ReflectSessionFactoryRef & slaveRef, uint32 msph, uint32 tms) : ProxySessionFactory(slaveRef), _tempLogFor(NULL), _maxSessionsPerHost(msph), _totalMaxSessions(tms)
+FilterSessionFactory :: FilterSessionFactory(const ReflectSessionFactoryRef & slaveRef, uint32 msph, uint32 tms)
+   : ProxySessionFactory(slaveRef)
+   , _tempLogFor(NULL)
+   , _maxSessionsPerHost(msph)
+   , _totalMaxSessions(tms)
 {
    // empty
 }
@@ -177,4 +181,4 @@ void FilterSessionFactory :: RemoveMatchingRequirePatterns(const String & exp)
    for (HashtableIterator<String, StringMatcherRef> iter(_requires); iter.HasData(); iter++) if (sm.Match(iter.GetKey()())) RemoveRequirePattern(iter.GetKey());
 }
 
-}; // end namespace muscle
+} // end namespace muscle

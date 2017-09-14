@@ -7,7 +7,11 @@
 
 namespace muscle {
 
-SharedFilterSessionFactory :: SharedFilterSessionFactory(const ReflectSessionFactoryRef & slaveRef, const String & sharedMemName, bool isGrantList, bool defaultPass) : ProxySessionFactory(slaveRef), _sharedMemName(sharedMemName), _isGrantList(isGrantList), _defaultPass(defaultPass)
+SharedFilterSessionFactory :: SharedFilterSessionFactory(const ReflectSessionFactoryRef & slaveRef, const String & sharedMemName, bool isGrantList, bool defaultPass)
+   : ProxySessionFactory(slaveRef)
+   , _sharedMemName(sharedMemName)
+   , _isGrantList(isGrantList)
+   , _defaultPass(defaultPass)
 {
    // empty
 }
@@ -82,4 +86,4 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMem
    return allowAccess;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

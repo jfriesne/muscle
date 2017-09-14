@@ -40,6 +40,6 @@ template<typename Item> inline Item * CloneObject(const Item & item)
 }
 #endif
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

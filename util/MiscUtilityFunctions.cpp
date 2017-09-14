@@ -1182,4 +1182,4 @@ bool ParseBool(const String & word, bool defaultValue)
    return defaultValue; 
 }
 
-}; // end namespace muscle
+} // end namespace muscle

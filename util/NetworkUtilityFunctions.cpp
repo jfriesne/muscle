@@ -663,7 +663,11 @@ static void ExpandLocalhostAddress(IPAddress & ipAddress)
 class DNSRecord
 {
 public:
-   DNSRecord() : _expirationTime(0) {/* empty */}
+   DNSRecord()
+      : _expirationTime(0) 
+   {
+      // empty
+   }
    DNSRecord(const IPAddress & ip, uint64 expTime) : _ipAddress(ip), _expirationTime(expTime) {/* empty */}
 
    const IPAddress & GetIPAddress() const {return _ipAddress;}
@@ -1045,12 +1049,28 @@ static int32 GetSocketBufferSizeAux(const ConstSocketRef & sock, int optionName)
 int32 GetSocketSendBufferSize(   const ConstSocketRef & sock) {return GetSocketBufferSizeAux(sock, SO_SNDBUF);}
 int32 GetSocketReceiveBufferSize(const ConstSocketRef & sock) {return GetSocketBufferSizeAux(sock, SO_RCVBUF);}
 
-NetworkInterfaceInfo :: NetworkInterfaceInfo() : _ip(invalidIP), _netmask(invalidIP), _broadcastIP(invalidIP), _enabled(false), _copper(false), _macAddress(0), _hardwareType(NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)
+NetworkInterfaceInfo :: NetworkInterfaceInfo()
+   : _ip(invalidIP)
+   , _netmask(invalidIP)
+   , _broadcastIP(invalidIP)
+   , _enabled(false)
+   , _copper(false)
+   , _macAddress(0)
+   , _hardwareType(NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)
 {
    // empty
 }
 
-NetworkInterfaceInfo :: NetworkInterfaceInfo(const String &name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType) : _name(name), _desc(desc), _ip(ip), _netmask(netmask), _broadcastIP(broadcastIP), _enabled(enabled), _copper(copper), _macAddress(macAddress), _hardwareType(hardwareType)
+NetworkInterfaceInfo :: NetworkInterfaceInfo(const String &name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType)
+   : _name(name)
+   , _desc(desc)
+   , _ip(ip)
+   , _netmask(netmask)
+   , _broadcastIP(broadcastIP)
+   , _enabled(enabled)
+   , _copper(copper)
+   , _macAddress(macAddress)
+   , _hardwareType(hardwareType)
 {
    // empty
 }
@@ -2005,4 +2025,4 @@ status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAdd
 
 #endif  // !MUSCLE_AVOID_MULTICAST_API
 
-}; // end namespace muscle
+} // end namespace muscle

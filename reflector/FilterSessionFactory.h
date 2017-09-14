@@ -38,8 +38,13 @@ public:
      */
    virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & factoryInfo);
 
-   /** Implemented to handle PR_COMMAND_(ADD/REMOVE)(BANS/REQUIRES) messages from our sessions */
+   /** Implemented to handle PR_COMMAND_(ADD/REMOVE)(BANS/REQUIRES) messages from our sessions
+     * @param from the session that sent us the Message
+     * @param msgRef the Message the session sent to us
+     * @param userData an arbitrary userData pointer for purpose-specific use
+     */
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void * userData);       
+
    /** Add a new ban pattern to our set of ban patterns 
      * @param banPattern Pattern to match against (e.g. "192.168.0.*")
      * @return B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
@@ -78,18 +83,25 @@ public:
      */
    void RemoveMatchingRequirePatterns(const String & exp);
 
-   /** Sets the input-bandwidth-allocation policy to apply to sessions that we create */
+   /** Sets the input-bandwidth-allocation policy to apply to sessions that we create 
+     * @param ref reference to the input policy to use, or a NULL reference to use no input policy
+     */
    void SetInputPolicy(const AbstractSessionIOPolicyRef & ref) {_inputPolicyRef = ref;}
 
-   /** Sets the output-bandwidth-allocation policy to apply to sessions that we create */
+   /** Sets the output-bandwidth-allocation policy to apply to sessions that we create
+     * @param ref reference to the output policy to use, or a NULL reference to use no output policy
+     */
    void SetOutputPolicy(const AbstractSessionIOPolicyRef & ref) {_outputPolicyRef = ref;}
 
    /** Sets the new max-sessions-per-host limit -- i.e. how many sessions from any given IP address
      * may be connected to our server concurrently.
+     * @param maxSessionsPerHost the new maximum sessions-per-host limit
      */
    void SetMaxSessionsPerHost(uint32 maxSessionsPerHost) {_maxSessionsPerHost = maxSessionsPerHost;}
 
-   /** Sets the new total-max-sessions limit -- i.e. how many sessions may be connected to our server concurrently.  */
+   /** Sets the new total-max-sessions limit -- i.e. how many sessions may be connected to our server concurrently. 
+     * @param maxSessions the new max-simultaneous-sessions limit
+     */
    void SetTotalMaxSessions(uint32 maxSessions) {_totalMaxSessions = maxSessions;}
 
    /** Returns the current max-sessions-per-host limit  */
@@ -111,6 +123,6 @@ private:
 };
 DECLARE_REFTYPES(FilterSessionFactory);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

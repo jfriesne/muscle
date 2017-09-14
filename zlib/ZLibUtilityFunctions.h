@@ -167,7 +167,7 @@ MessageRef InflateMessage(const MessageRef & msgRef);
 
 /** @} */ // end of zlibutilityfunctions doxygen group
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif
 

@@ -274,6 +274,6 @@ private:
 /** A macro to quickly and safely put a MutexGuard on the stack for the given Mutex. */
 #define DECLARE_MUTEXGUARD(mutex) MutexGuard MUSCLE_UNIQUE_NAME(mutex)
  
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

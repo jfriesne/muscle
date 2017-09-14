@@ -38,19 +38,19 @@ public:
      */
    StringMatcher(const String & expression, bool isSimpleFormat = true);
     
-   /** Copy constructor */
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    StringMatcher(const StringMatcher & rhs);
 
    /** Destructor */
    ~StringMatcher();
 
-   /** Equality constructor.  */
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator == (const StringMatcher & rhs) const {return ((_bits == rhs._bits)&&(_pattern == rhs._pattern));}
 
-   /** Inequality constructor */
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator != (const StringMatcher & rhs) const {return !(*this == rhs);}
 
-   /** Assignment operator */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    StringMatcher & operator = (const StringMatcher & rhs);
 
    /** 
@@ -99,7 +99,10 @@ public:
     */
    bool Match(const char * const matchString) const;
     
-   /** Convenience method:  Same as above, but takes a String object instead of a (const char *). */
+   /** Convenience method:  Same as above, but takes a String object instead of a (const char *).
+     * @param matchString a string to match against using our current expression.
+     * @return true iff (matchString) matches, false otherwise.
+     */
    inline bool Match(const String & matchString) const {return Match(matchString());}
 
    /** If set true, Match() will return the logical opposite of what
@@ -108,6 +111,7 @@ public:
      * Default state is false.  Note that this flag is also set by
      * SetPattern(..., true), based on whether or not the pattern
      * string starts with a tilde.
+     * @param negate true if we should negate our Match()-output; false for the regular logic
      */
    void SetNegate(bool negate) {SetBit(STRINGMATCHER_BIT_NEGATE, negate);}
 
@@ -123,7 +127,7 @@ public:
    /** Returns a human-readable string representing this StringMatcher, for debugging purposes. */
    String ToString() const;
 
-   /** Returns a hash code for this StringMatcher */
+   /** @copydoc DoxyTemplate::HashCode() const */
    inline uint32 HashCode() const {return _pattern.HashCode() + _bits;}
 
 private:
@@ -236,7 +240,6 @@ bool MakeRegexCaseInsensitive(String & str);
  */
 inline String ToCaseInsensitive(const String & str) {String r = str; MakeRegexCaseInsensitive(r); return r;}
 
-}; // end namespace muscle
-
+} // end namespace muscle
 
 #endif

@@ -359,7 +359,7 @@ void muscleFree(void * userPtr)
    }
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 
 void * operator new(size_t s) THROW LPAREN BAD_ALLOC RPAREN
 {

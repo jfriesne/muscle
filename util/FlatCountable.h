@@ -22,6 +22,6 @@ public:
 };
 DECLARE_REFTYPES(FlatCountable);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif 

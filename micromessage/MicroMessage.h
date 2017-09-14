@@ -13,12 +13,14 @@ extern "C" {
  *  This is a very bare-bones implentation that does not do any dynamic memory
  *  allocation, and supports only linear addition of data to a Message.
  *  It is appropriate for severely constrained environments where
- *  even the MiniMessage API is too heavyweight.
+ *  even the \ref minimessage is too heavyweight.
  *  @{
  */
 
 /** My own little boolean type, since C doesn't come with one built in. */
 typedef char UBool;
+
+/** Supported values for the UBool type */
 enum {
    UFalse = 0,  /**< Constant value for boolean-false (zero) */
    UTrue        /**< Constant value for boolean-true (one)   */
@@ -43,6 +45,7 @@ typedef struct _URect {
    float bottom; /**< bottom edge of the rectangle */
 } URect;
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
 /** Definition of our opaque handle to a UMessage object.  
   * Note that all fields in this struct are private and subject to change --
   * do not access them directly, call the functions declared below instead!
@@ -58,11 +61,13 @@ typedef struct _UMessage {
    uint8 * _readFieldCache;  /* a one-item LRU cache so we don't have to scan through all the fields all the time */
 } UMessage;
 
+/** This struct implements the state of an iterator for iterating over the field names in a UMessage */
 typedef struct _UMessageFieldNameIterator {
    UMessage * _message;
    uint8 * _currentField;
    uint32 _typeCode;
 } UMessageFieldNameIterator;
+#endif
 
 /** Initializes the state of the specified UMessageFieldNameIterato to point at the specified UMessage.
   * When this function returns, the iterator will be pointing to the first matching field in the UMessage (if there are any).
@@ -82,7 +87,9 @@ void UMIteratorInitialize(UMessageFieldNameIterator * iter, const UMessage * msg
   */
 const char * UMIteratorGetCurrentFieldName(UMessageFieldNameIterator * iter, uint32 * optRetNumItemsInField, uint32 * optRetFieldType);
 
-/** Advances the iterator to the next field in its Message, if there are any more. */
+/** Advances the iterator to the next field in its Message, if there are any more.
+  * @param iter the iterator to advance
+  */
 void UMIteratorAdvance(UMessageFieldNameIterator * iter);
 
 /**
@@ -116,6 +123,7 @@ status_t UMInitializeWithExistingData(UMessage * msg, const uint8 * buf, uint32 
 /**
   * Initializes the UMessage to a well-defined but invalid state.  The UMessage will be read-only
   * and contain no data.
+  * @param msg the UMessage object to initialize
   */
 void UMInitializeToInvalid(UMessage * msg);
 

@@ -62,7 +62,9 @@ public:
     */
    status_t ReorderChild(const DataNodeRef & child, const String * moveToBeforeThis, StorageReflectSession * optNotifyWith);
 
-   /** Returns true iff we have a child with the given name */
+   /** Returns true iff we have a child with the given name
+     * @param key node-name that we should check our child-nodes-table for (it's an O(1) lookup)
+     */
    bool HasChild(const String & key) const {return ((_children)&&(_children->ContainsKey(&key)));}
 
    /** Retrieves the child with the given name.
@@ -194,7 +196,9 @@ public:
      */
    uint32 GetMaxKnownChildIDHint() const {return _maxChildIDHint;}
 
-   /** You can manually set the max-known-child-ID hint here if you want to. */
+   /** You can manually set the max-known-child-ID hint here if you want to.
+     * @param maxID maximum-current-used-child-ID hint, gives us some clue about where to start searching for an unused ID
+     */
    void SetMaxKnownChildIDHint(uint32 maxID) {_maxChildIDHint = maxID;}
 
    /** Convenience method:  Returns true iff (ancestor) exists
@@ -282,10 +286,12 @@ private:
    friend class ObjectPool<DataNode>;
    DataNodeRef GetDescendantAux(const char * subPath) const;
 
-   /** Assignment operator.  Note that this operator is only here to assist with ObjectPool recycling operations, and doesn't actually
-     * make this DataNode into a copy of (rhs)... that's why we have it marked private, so that it won't be accidentally used in the traditional manner.
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &)
+     * @note this operator is only here to assist with ObjectPool recycling operations, and doesn't actually
+     * make this DataNode into a copy of (rhs)... that's why we have it marked private, so that it won't be 
+     * accidentally used in the traditional manner.
      */
-   DataNode & operator = (const DataNode & /*rhs*/) {Reset(); return *this;}
+   DataNode & operator = (const DataNode & rhs) {(void) rhs; Reset(); return *this;}
 
    void Init(const String & nodeName, const MessageRef & initialValue);
    void SetParent(DataNode * _parent, StorageReflectSession * optNotifyWith);
@@ -304,6 +310,6 @@ private:
    Hashtable<const String *, uint32> * _subscribers;  // lazy-allocated
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

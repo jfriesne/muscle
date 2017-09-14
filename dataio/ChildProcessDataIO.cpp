@@ -25,7 +25,14 @@
 
 namespace muscle {
 
-ChildProcessDataIO :: ChildProcessDataIO(bool blocking) : _blocking(blocking), _killChildOkay(true), _maxChildWaitTime(0), _signalNumber(-1), _childProcessCrashed(false), _childProcessInheritFileDescriptors(false), _childProcessIsIndependent(false)
+ChildProcessDataIO :: ChildProcessDataIO(bool blocking)
+   : _blocking(blocking)
+   , _killChildOkay(true)
+   , _maxChildWaitTime(0)
+   , _signalNumber(-1)
+   , _childProcessCrashed(false)
+   , _childProcessInheritFileDescriptors(false)
+   , _childProcessIsIndependent(false)
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    , _readFromStdout(INVALID_HANDLE_VALUE), _writeToStdin(INVALID_HANDLE_VALUE), _ioThread(INVALID_HANDLE_VALUE), _wakeupSignal(INVALID_HANDLE_VALUE), _childProcess(INVALID_HANDLE_VALUE), _childThread(INVALID_HANDLE_VALUE), _requestThreadExit(false)
 #else
@@ -484,7 +491,12 @@ const uint32 CHILD_BUFFER_SIZE = 1024;
 class ChildProcessBuffer
 {
 public:
-   ChildProcessBuffer() : _length(0), _index(0) {/* empty */}
+   ChildProcessBuffer()
+      : _length(0)
+      , _index(0) 
+   {
+      // empty
+   }
 
    char _buf[CHILD_BUFFER_SIZE];
    uint32 _length;  // how many bytes in _buf are actually valid
@@ -669,4 +681,4 @@ status_t ChildProcessDataIO :: LaunchIndependentChildProcess(const Queue<String>
    return cpdio.LaunchChildProcess(argv, false, optDirectory);
 }
 
-}; // end namespace muscle
+} // end namespace muscle

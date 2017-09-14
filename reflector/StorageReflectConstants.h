@@ -364,7 +364,7 @@ enum
 //    on verbatim.
 
 #ifdef __cplusplus
-}; // end namespace muscle
+} // end namespace muscle
 #endif
 
 #endif

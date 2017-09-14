@@ -18,7 +18,7 @@ namespace muscle {
   */
 status_t ExpandFilePathWildCards(const String & path, Queue<String> & outputPaths, bool isSimpleFormat = true);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 
 #endif

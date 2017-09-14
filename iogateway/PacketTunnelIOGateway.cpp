@@ -17,7 +17,15 @@ static const uint32 FRAGMENT_HEADER_SIZE = 6*(sizeof(uint32));
 // The maximum number of bytes of memory to keep in a ByteBuffer to avoid reallocations
 static const uint32 MAX_CACHE_SIZE = 20*1024;
 
-PacketTunnelIOGateway :: PacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway, uint32 maxTransferUnit, uint32 magic) : _magic(magic), _maxTransferUnit(muscleMax(maxTransferUnit, FRAGMENT_HEADER_SIZE+1)), _allowMiscData(false), _sexID(0), _slaveGateway(slaveGateway), _outputPacketSize(0), _sendMessageIDCounter(0), _maxIncomingMessageSize(MUSCLE_NO_LIMIT)
+PacketTunnelIOGateway :: PacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway, uint32 maxTransferUnit, uint32 magic)
+   : _magic(magic)
+   , _maxTransferUnit(muscleMax(maxTransferUnit, FRAGMENT_HEADER_SIZE+1))
+   , _allowMiscData(false)
+   , _sexID(0)
+   , _slaveGateway(slaveGateway)
+   , _outputPacketSize(0)
+   , _sendMessageIDCounter(0)
+   , _maxIncomingMessageSize(MUSCLE_NO_LIMIT)
 {
    _fakeSendIO.SetBuffer(ByteBufferRef(&_fakeSendBuffer, false));
    // _fakeReceiveIO's buffer will be set just before it is used
@@ -245,4 +253,4 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
    return totalBytesWritten;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

@@ -50,6 +50,6 @@ private slots:
    virtual bool event(QEvent * event);
 };
 
-};  // end namespace muscle
+} // end namespace muscle
 
 #endif

@@ -118,7 +118,7 @@ private:
    virtual uint32 FlushCachedObjects() {return Shutdown();}  // called by SetupSystem destructor, to avoid crashes on exit
    uint32 Shutdown();
 
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complaing that I haven't documented this class -- but it's a private class so I don't need to
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complain that I haven't documented this class -- but it's a private class so I don't need to
    class ThreadPoolThread : public Thread, public RefCountable
    {
    public:
@@ -164,6 +164,6 @@ private:
    Hashtable<IThreadPoolClient *, ConstSocketRef> _waitingForCompletion; // Clients who are blocked in UnregisterClient() waiting for Messages to complete processing
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

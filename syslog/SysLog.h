@@ -395,31 +395,47 @@ public:
    /** Returns the microsecond value (which ranges between 0 and 999999, inclusive). */
    int GetMicrosecond() const {return _microsecond;}
 
-   /** Sets the year value (e.g. 2005) */
+   /** Sets the year value (e.g. 2005)
+     * @param year new year value A.D. (in full four-digit form)
+     */
    void SetYear(int year) {_year = year;}
 
-   /** Sets the month value (January=0, February=1, March=2, ..., December=11). */
+   /** Sets the month value (January=0, February=1, March=2, ..., December=11).
+     * @param month new month-in-year value [0-11]
+     */
    void SetMonth(int month) {_month = month;}
 
-   /** Sets the day-of-month value (which ranges between 0 and 30, inclusive). */
+   /** Sets the day-of-month value (which ranges between 0 and 30, inclusive).
+     * @param dayOfMonth index of the new day-of-the-month field [0-30]
+     */
    void SetDayOfMonth(int dayOfMonth) {_dayOfMonth = dayOfMonth;}
 
-   /** Sets the day-of-week value (Sunday=0, Monday=1, Tuesday=2, Wednesday=3, Thursday=4, Friday=5, Saturday=6). */
+   /** Sets the day-of-week value (Sunday=0, Monday=1, Tuesday=2, Wednesday=3, Thursday=4, Friday=5, Saturday=6).
+     * @param dayOfWeek index of the new day-of-the-week field [0-6]
+     */
    void SetDayOfWeek(int dayOfWeek) {_dayOfWeek = dayOfWeek;}
 
-   /** Sets the hour value (which ranges between 0 and 23, inclusive). */
+   /** Sets the hour value (which ranges between 0 and 23, inclusive).
+     * @param hour the new hour-of-the-day index [0-23]
+     */
    void SetHour(int hour) {_hour = hour;}
 
-   /** Sets the minute value (which ranges between 0 and 59, inclusive). */
+   /** Sets the minute value (which ranges between 0 and 59, inclusive).
+     * @param minute the new minute-of-the-hour index [0-59]
+     */
    void SetMinute(int minute) {_minute = minute;}
 
-   /** Sets the second value (which ranges between 0 and 59, inclusive). */
+   /** Sets the second value (which ranges between 0 and 59, inclusive).
+     * @param second the new second-of-the-minute index [0-59]
+     */
    void SetSecond(int second) {_second = second;}
 
-   /** Sets the microsecond value (which ranges between 0 and 999999, inclusive). */
+   /** Sets the microsecond value (which ranges between 0 and 999999, inclusive).
+     * @param microsecond the new microsecond-of-the-second index [0-999999]
+     */
    void SetMicrosecond(int microsecond) {_microsecond = microsecond;}
 
-   /** Equality operator. */
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator == (const HumanReadableTimeValues & rhs) const
    {
       return ((_year       == rhs._year)&&
@@ -432,7 +448,7 @@ public:
               (_microsecond == rhs._microsecond));
    }
 
-   /** Inequality operator */
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator != (const HumanReadableTimeValues & rhs) const {return !(*this==rhs);}
 
    /** This method will expand the following tokens in the specified String out to the following values:
@@ -596,6 +612,6 @@ String GetHumanReadableSignedTimeIntervalString(int64 micros, uint32 maxClauses 
   */
 int64 ParseHumanReadableSignedTimeIntervalString(const String & str);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

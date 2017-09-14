@@ -74,6 +74,6 @@ private:
 };
 DECLARE_REFTYPES(ProxyDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

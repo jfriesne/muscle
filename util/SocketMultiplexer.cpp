@@ -330,4 +330,4 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
 
 #endif
 
-}; // end namespace muscle
+} // end namespace muscle

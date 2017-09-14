@@ -24,7 +24,11 @@ void printSep(const char * title)
 class TestFlatCountable : public FlatCountable
 {
 public:
-   TestFlatCountable() : _val(-1) {/* empty */}
+   TestFlatCountable()
+      : _val(-1) 
+   {
+      // empty
+   }
    TestFlatCountable(const String & s, int32 val) : _string(s), _val(val) {/* empty */}
 
    bool operator != (const TestFlatCountable & rhs) const {return ((_val != rhs._val)||(_string != rhs._string));}

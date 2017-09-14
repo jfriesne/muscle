@@ -236,6 +236,6 @@ public:
 };
 DECLARE_REFTYPES(PacketDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

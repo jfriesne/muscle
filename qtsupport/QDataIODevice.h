@@ -59,6 +59,6 @@ private:
    bool _isHosed;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

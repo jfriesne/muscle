@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.61" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        66100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "6.62" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        66200  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -314,11 +314,11 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
                      (((unsigned long)(x[3])) <<  0))
 
 #if !defined(__BEOS__) && !defined(__HAIKU__)
-/* Be-style message-field type codes.
- * I've calculated the integer equivalents for these codes
- * because gcc whines like a little girl about the four-byte
- * constants when compiling under Linux --jaf
- */
+/** Be-style message-field type codes.
+  * I've calculated the integer equivalents for these codes
+  * because gcc whines like a little girl about the four-byte
+  * constants when compiling under Linux --jaf
+  */
 enum {
    B_ANY_TYPE     = 1095653716, /**< 'ANYT' = wild card                                   */
    B_BOOL_TYPE    = 1112493900, /**< 'BOOL' = boolean (1 byte per bool)                   */
@@ -339,7 +339,7 @@ enum {
 };
 #endif
 
-/* This one isn't defined by BeOS, so we have to enumerate it separately.                 */
+/** This one isn't defined by BeOS, so we have to enumerate it separately.                */
 enum {
    B_TAG_TYPE     = 1297367367  /**< 'MTAG' = new for v2.00; for in-mem-only tags         */
 };
@@ -1359,7 +1359,7 @@ int64 Atoll(const char * str);
 uint64 Atoxll(const char * str);
 
 #ifdef __cplusplus
-}; // end namespace muscle
+} // end namespace muscle
 #endif
 
 #endif /* _MUSCLE_SUPPORT_H */

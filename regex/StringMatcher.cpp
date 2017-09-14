@@ -24,12 +24,15 @@ StringMatcher::StringMatcher() : _bits(0)
    // empty
 } 
 
-StringMatcher :: StringMatcher(const String & str, bool simple) : _bits(0)
+StringMatcher :: StringMatcher(const String & str, bool simple)
+   : _bits(0)
 {
    (void) SetPattern(str, simple);
 }
 
-StringMatcher :: StringMatcher(const StringMatcher & rhs) : RefCountable(rhs), _bits(0)
+StringMatcher :: StringMatcher(const StringMatcher & rhs)
+   : RefCountable(rhs)
+   , _bits(0)
 {
    *this = rhs;
 }
@@ -331,4 +334,4 @@ bool MakeRegexCaseInsensitive(String & str)
    return changed;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

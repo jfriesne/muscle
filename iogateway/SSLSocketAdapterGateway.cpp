@@ -92,4 +92,4 @@ void SSLSocketAdapterGateway :: SetSSLForceReadReady(bool forceReadReady)
    if (dio) dio->_forceReadReady = forceReadReady;
 }
 
-};  // end namespace muscle
+}  // end namespace muscle

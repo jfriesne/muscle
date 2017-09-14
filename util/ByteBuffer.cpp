@@ -595,5 +595,5 @@ status_t ByteBuffer :: WriteStrings(const String * vals, uint32 numVals, uint32 
    return B_NO_ERROR;
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 

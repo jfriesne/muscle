@@ -228,7 +228,7 @@ public:
 # endif  
    }
 
-   /** Returns true iff the two objects represent the same thread ID. */
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator == (const muscle_thread_id & rhs) const
    {
 # if defined(MUSCLE_USE_PTHREADS)
@@ -238,7 +238,7 @@ public:
 # endif
    }
 
-   /** Returns true iff the two thread objects do not represent that same thread ID. */
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator != (const muscle_thread_id & rhs) const {return !(*this == rhs);}
 
    /** Returns a muscle_thread_id object representing the calling thread. */
@@ -302,6 +302,6 @@ private:
 
 #endif
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

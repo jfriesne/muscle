@@ -80,6 +80,6 @@ private:
 };
 DECLARE_REFTYPES(StdinDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

@@ -6,17 +6,21 @@
 
 namespace muscle {
 
-TarFileWriter :: TarFileWriter() : _currentHeaderOffset(-1)
+TarFileWriter :: TarFileWriter()
+   : _currentHeaderOffset(-1)
 {
    // empty
 }
 
-TarFileWriter :: TarFileWriter(const char * outputFileName, bool append) : _currentHeaderOffset(-1)
+TarFileWriter :: TarFileWriter(const char * outputFileName, bool append)
+   : _currentHeaderOffset(-1)
 {
    (void) SetFile(outputFileName, append);
 }
 
-TarFileWriter :: TarFileWriter(const SeekableDataIORef & dio) : _writerIO(dio), _currentHeaderOffset(-1)
+TarFileWriter :: TarFileWriter(const SeekableDataIORef & dio)
+   : _writerIO(dio)
+   , _currentHeaderOffset(-1)
 {
    // empty
 }
@@ -144,4 +148,4 @@ status_t TarFileWriter :: WriteFileData(const uint8 * fileData, uint32 numBytes)
    return (_writerIO()->WriteFully(fileData, numBytes) == numBytes) ? B_NO_ERROR : B_ERROR;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

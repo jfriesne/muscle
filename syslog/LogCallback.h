@@ -70,7 +70,7 @@ public:
    void SetWhen(const time_t & when) {_when = when;}
 
    /** Set the MUSCLE_LOG_* severity level of this Log message 
-     * param ll A MUSCLE_LOG_* value
+     * @param ll A MUSCLE_LOG_* value
      */
    void SetLogLevel(int ll) {_logLevel = ll;}
 
@@ -150,7 +150,9 @@ public:
    /** Destructor */
    virtual ~LogLineCallback();
 
-   /** Implemented to call LogLine() when appropriate */
+   /** Implemented to call LogLine() when appropriate
+     * @param a all of the information about this log call (severity, text, etc)
+     */
    virtual void Log(const LogCallbackArgs & a);
 
    /** Implemented to call LogLine() when appropriate */
@@ -303,6 +305,6 @@ private:
 };
 DECLARE_REFTYPES(DefaultFileLogger);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

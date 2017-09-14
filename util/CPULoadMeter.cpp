@@ -18,7 +18,9 @@ namespace muscle {
 static uint64 FileTimeToInt64(const FILETIME & ft) {return (((uint64)(ft.dwHighDateTime))<<32)|((uint64)ft.dwLowDateTime);}
 #endif
 
-CPULoadMeter :: CPULoadMeter() : _previousTotalTicks(0), _previousIdleTicks(0)
+CPULoadMeter :: CPULoadMeter()
+   : _previousTotalTicks(0)
+   , _previousIdleTicks(0)
 {
 #ifdef USE_KERNEL32_DLL_FOR_GETSYSTEMTIMES
    // Gotta dynamically load this system call, because the Borland headers doesn't know about it.  :^P
@@ -98,4 +100,4 @@ float CPULoadMeter :: GetCPULoad()
    return sysLoadPercentage;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

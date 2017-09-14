@@ -18,7 +18,9 @@
 class SessionListViewItem : public QListWidgetItem
 {
 public:
-   SessionListViewItem(QListWidget * parent, const String & sessionID) : QListWidgetItem(parent), _sessionID(sessionID)
+   SessionListViewItem(QListWidget * parent, const String & sessionID)
+      : QListWidgetItem(parent)
+      , _sessionID(sessionID)
    {
       Update();
       setText(_sessionID());

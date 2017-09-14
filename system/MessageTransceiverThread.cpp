@@ -21,7 +21,8 @@ static status_t AddIPAddressToMessage(Message & msg, const String & fieldName, c
    return msg.AddString(fieldName, Inet_NtoA(ip));
 }
 
-MessageTransceiverThread :: MessageTransceiverThread() : _forwardAllIncomingMessagesToSupervisor(true)
+MessageTransceiverThread :: MessageTransceiverThread()
+   : _forwardAllIncomingMessagesToSupervisor(true)
 {
    // empty
 }
@@ -350,7 +351,8 @@ ThreadWorkerSessionFactoryRef MessageTransceiverThread :: CreateDefaultSessionFa
    return ThreadWorkerSessionFactoryRef(ret);
 }
 
-ThreadWorkerSessionFactory :: ThreadWorkerSessionFactory() : _forwardAllIncomingMessagesToSupervisor(true)
+ThreadWorkerSessionFactory :: ThreadWorkerSessionFactory()
+   : _forwardAllIncomingMessagesToSupervisor(true)
 {
    // empty
 }
@@ -413,7 +415,9 @@ void MessageTransceiverThread :: InternalThreadEntry()
    SendMessageToOwner(GetMessageFromPool(MTT_EVENT_SERVER_EXITED));
 }
 
-ThreadWorkerSession :: ThreadWorkerSession() : _forwardAllIncomingMessagesToSupervisor(true), _supervisorSession(NULL)
+ThreadWorkerSession :: ThreadWorkerSession()
+   : _forwardAllIncomingMessagesToSupervisor(true)
+   , _supervisorSession(NULL)
 {
    // empty
 }
@@ -567,7 +571,8 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
    }
 }
 
-ThreadSupervisorSession :: ThreadSupervisorSession() : _mtt(NULL)
+ThreadSupervisorSession :: ThreadSupervisorSession()
+   : _mtt(NULL)
 {
    // empty
 }
@@ -781,4 +786,4 @@ DrainTag :: ~DrainTag()
    if (_notify) _notify->DrainTagIsBeingDeleted(this);
 }
 
-}; // end namespace muscle
+} // end namespace muscle

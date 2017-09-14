@@ -6,7 +6,10 @@
 
 namespace muscle {
 
-AbstractMessageIOGateway :: AbstractMessageIOGateway() : _mtuSize(0), _hosed(false), _flushOnEmpty(true)
+AbstractMessageIOGateway :: AbstractMessageIOGateway()
+   : _mtuSize(0)
+   , _hosed(false)
+   , _flushOnEmpty(true)
 {
    // empty
 }
@@ -56,7 +59,12 @@ Reset()
 class ScratchProxyReceiver : public AbstractGatewayMessageReceiver
 {
 public:
-   ScratchProxyReceiver(AbstractMessageIOGateway * gw, AbstractGatewayMessageReceiver * r) : _gw(gw), _r(r) {/* empty */}
+   ScratchProxyReceiver(AbstractMessageIOGateway * gw, AbstractGatewayMessageReceiver * r)
+      : _gw(gw)
+      , _r(r) 
+   {
+      // empty
+   }
 
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData) {_gw->SynchronousMessageReceivedFromGateway(msg, userData, *_r);}
    virtual void AfterMessageReceivedFromGateway(const MessageRef & msg, void * userData) {_gw->SynchronousAfterMessageReceivedFromGateway(msg, userData, *_r);}
@@ -99,4 +107,4 @@ void AbstractMessageIOGateway :: SetDataIO(const DataIORef & ref)
    _mtuSize = pdio ? pdio->GetMaximumPacketSize() : 0;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

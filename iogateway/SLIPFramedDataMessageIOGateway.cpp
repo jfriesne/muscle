@@ -4,7 +4,8 @@
 
 namespace muscle {
 
-SLIPFramedDataMessageIOGateway :: SLIPFramedDataMessageIOGateway() : _lastReceivedCharWasEscape(false)
+SLIPFramedDataMessageIOGateway :: SLIPFramedDataMessageIOGateway()
+   : _lastReceivedCharWasEscape(false)
 {
    // empty
 }
@@ -161,4 +162,4 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
    }
 }
 
-}; // end namespace muscle
+} // end namespace muscle

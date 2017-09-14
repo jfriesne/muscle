@@ -27,6 +27,7 @@ public:
 
    /** Sets our held buffer to a different value.  Note that this call will not change the seek
      * position of this ByteBufferDataIO, so you may want to call Seek() also.
+     * @param buf the new ByteBufferRef to use as our data source and/or destination
      */
    void SetBuffer(const ByteBufferRef & buf) {_buf = buf;}
 
@@ -122,6 +123,6 @@ private:
 };
 DECLARE_REFTYPES(ByteBufferDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

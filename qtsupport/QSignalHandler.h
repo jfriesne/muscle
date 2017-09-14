@@ -53,6 +53,6 @@ private:
    QSocketNotifier * _socketNotifier;   
 };
 
-};  // end namespace muscle
+}  // end namespace muscle
 
 #endif

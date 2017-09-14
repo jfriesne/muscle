@@ -22,7 +22,8 @@ SegmentedStringMatcher::SegmentedStringMatcher() : _negate(false)
    // empty
 } 
 
-SegmentedStringMatcher :: SegmentedStringMatcher(const String & str, bool simple, const char * sc) : _negate(false)
+SegmentedStringMatcher :: SegmentedStringMatcher(const String & str, bool simple, const char * sc)
+   : _negate(false)
 {
    (void) SetPattern(str, simple, sc);
 }
@@ -89,4 +90,4 @@ String SegmentedStringMatcher :: ToString() const
    return ret; 
 }
 
-}; // end namespace muscle
+} // end namespace muscle

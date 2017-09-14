@@ -74,6 +74,8 @@ public:
 
    /** Convenience method:  Calls AddNewSession() with a NULL Socket reference, so the session's default socket
      * (obtained by calling ref()->CreateDefaultSocket()) will be used.
+     * @param ref New session to add to the server
+     * @return B_NO_ERROR if the new session was added successfully, or B_ERROR if there was an error setting it up.
      */
    status_t AddNewSession(const AbstractReflectSessionRef & ref) {return AddNewSession(ref, ConstSocketRef());}
 
@@ -142,6 +144,7 @@ public:
 
    /** Set whether or not we should log informational messages when sessions are added and removed, etc.
      * Default state is true.
+     * @param log true iff we want log messages, false to suppresse them
      */
    void SetDoLogging(bool log) {_doLogging = log;}
 
@@ -157,10 +160,14 @@ public:
    /** Returns a read-only reference to our table of sessions currently attached to this server. */
    const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const {return _sessions;}
 
-   /** Convenience method:  Given a session ID string, returns a reference to the session, or a NULL reference if no such session exists. */
+   /** Convenience method:  Given a session ID string, returns a reference to the session, or a NULL reference if no such session exists.
+     * @param sessionName the session ID string of the session we are trying to look up (same as its numeric session ID, but in string form)
+     */
    AbstractReflectSessionRef GetSession(const String & sessionName) const;
 
-   /** Convenience method:  Given a session ID number, returns a reference to the session, or a NULL reference if no such session exists. */
+   /** Convenience method:  Given a session ID number, returns a reference to the session, or a NULL reference if no such session exists. 
+     * @param sessionID the numeric session ID of the session we are trying to look up
+     */
    AbstractReflectSessionRef GetSession(uint32 sessionID) const;
 
    /** Returns an iterator that allows one to iterate over all the session factories currently attached to this server. */
@@ -269,6 +276,9 @@ protected:
    virtual status_t AttachNewSession(const AbstractReflectSessionRef & ref);
 
    /** Called by a session to send a message to its factory.  
+     * @param session the session that is sending the Message
+     * @param msgRef the Message that is being sent
+     * @param userData an application-specific user-data value
      * @see AbstractReflectSession::SendMessageToFactory() for details.
      */
    status_t SendMessageToFactory(AbstractReflectSession * session, const MessageRef & msgRef, void * userData);
@@ -277,14 +287,20 @@ protected:
     * Called by a session to get itself replaced (the
     * new session will continue using the same message io streams
     * as the old one)
-    * @return B_NO_ERROR on success, B_ERROR if the new session
-    * returns an error in its AttachedToServer() method.  If 
-    * B_ERROR is returned, then this call is guaranteed not to
-    * have had any effect on the old session.
+    * @param newSession the new session we want to have replace the old one
+    * @param replaceThisOne the old session that we want to go away
+    * @returns B_NO_ERROR on success, B_ERROR if the new session
+    *          returns an error in its AttachedToServer() method.  If 
+    *          B_ERROR is returned, then this call is guaranteed not to
+    *          have had any effect on the old session.
     */
    status_t ReplaceSession(const AbstractReflectSessionRef & newSession, AbstractReflectSession * replaceThisOne);
 
-   /** Called by a session to get itself removed & destroyed */
+   /** Called by a session to get itself removed & destroyed
+     * Causes the ReflectServer to place the session in the "lame duck sessions list", which will result in it being
+     * safely detached and removed from the ReflectServer at the next iteration of the event loop.
+     * @param which the session that wants to go away ASAP
+     */
    void EndSession(AbstractReflectSession * which);
 
    /** Called by a session to force its TCP connection to be closed
@@ -336,6 +352,6 @@ private:
 };
 DECLARE_REFTYPES(ReflectServer);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

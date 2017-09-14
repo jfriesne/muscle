@@ -103,13 +103,11 @@ public:
       if (str) (void) SetCstr(str, maxLen);
    }
 
-   /** Copy Constructor. 
-     * @param str String to become a copy of.
-     */
-   String(const String & str) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0) 
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   String(const String & rhs) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0) 
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_COPY_CTOR);
-      ClearSmallBuffer(); (void) SetFromString(str);
+      ClearSmallBuffer(); (void) SetFromString(rhs);
    }
 
    /** This constructor sets this String to be a substring of the specified String.
@@ -139,7 +137,7 @@ public:
    }
 
    /** Assignment Operator. 
-     * @param val Pointer to the C-style string to copy from.  If NULL, this string will become "".
+     * @param val Pointer to the C-style string to copy from.  If NULL, this string will become an empty string.
      */
    String & operator = (const char * val) 
    {
@@ -147,9 +145,7 @@ public:
       (void) SetCstr(val); return *this;
    }
 
-   /** Assignment Operator. 
-     * @param rhs String to become a copy of.
-     */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    String & operator = (const String & rhs) 
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_SET_FROM_STRING);
@@ -230,17 +226,17 @@ public:
     */
    String & operator << (bool rhs);
 
-   /** Comparison Operator.  Returns true if the two strings are equal (as determined by strcmp())
+   /** Comparison Operator.  Returns true iff the two strings contain the same sequence of characters (as determined by memcmp()).
      * @param rhs A string to compare ourself with
      */
-   bool operator == (const String & rhs) const {return ((this == &rhs)||((Length() == rhs.Length())&&(strcmp(Cstr(), rhs.Cstr()) == 0)));}
+   bool operator == (const String & rhs) const {return ((this == &rhs)||((Length() == rhs.Length())&&(memcmp(Cstr(), rhs.Cstr(), Length()) == 0)));}
 
    /** Comparison Operator.  Returns true if the two strings are equal (as determined by strcmp())
      * @param rhs Pointer to a C string to compare with.  NULL pointers are considered a synonym for "".
      */
    bool operator == (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") == 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are not equal (as determined by strcmp())
+   /** Comparison Operator.  Returns true if the two strings are not equal (as determined by memcmp())
      * @param rhs A string to compare ourself with
      */
    bool operator != (const String & rhs) const {return !(*this == rhs);}
@@ -250,17 +246,17 @@ public:
      */
    bool operator != (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") != 0);}
 
-   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically. 
+   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically (as determined by strcmp()). 
      * @param rhs A string to compare ourself with
      */
    bool operator < (const String & rhs) const {return (this == &rhs) ? false : (strcmp(Cstr(), rhs.Cstr()) < 0);}
 
-   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically. 
+   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically (as determined by strcmp()). 
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator < (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") < 0);}
 
-   /** Comparison Operator.  Returns true if this string comes after (rhs) lexically. 
+   /** Comparison Operator.  Returns true if this string comes after (rhs) lexically (as determined by strcmp()). 
      * @param rhs A string to compare ourself with
      */
    bool operator > (const String & rhs) const {return (this == &rhs) ? false : (strcmp(Cstr(), rhs.Cstr()) > 0);}
@@ -270,22 +266,22 @@ public:
      */
    bool operator > (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") > 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically. 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically (as determined by strcmp()). 
      * @param rhs A string to compare ourself with
      */
    bool operator <= (const String & rhs) const {return (this == &rhs) ? true : (strcmp(Cstr(), rhs.Cstr()) <= 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically. 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically (as determined by strcmp()). 
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator <= (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") <= 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically. 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically (as determined by strcmp()). 
      * @param rhs A string to compare ourself with
      */
    bool operator >= (const String & rhs) const {return (this == &rhs) ? true : (strcmp(Cstr(), rhs.Cstr()) >= 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically. 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically (as determined by strcmp()). 
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator >= (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") >= 0);}
@@ -314,21 +310,25 @@ public:
  
    /** Compares this string to another string using strcmp() 
      * @param rhs A string to compare ourself with
+     * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
    int CompareTo(const String & rhs) const {return strcmp(Cstr(), rhs.Cstr());}
 
    /** Compares this string to a C string using strcmp()
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
+     * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
    int CompareTo(const char * rhs) const {return strcmp(Cstr(), rhs?rhs:"");}
 
    /** Compares this string to another string using NumericAwareStrcmp() 
      * @param rhs A string to compare ourself with
+     * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
    int NumericAwareCompareTo(const String & rhs) const {return NumericAwareStrcmp(Cstr(), rhs.Cstr());}
 
    /** Compares this string to a C string using NumericAwareStrcmp()
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
+     * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
    int NumericAwareCompareTo(const char * rhs) const {return NumericAwareStrcmp(Cstr(), rhs?rhs:"");}
 
@@ -564,20 +564,6 @@ public:
       return (Length() < prefixLen) ? false : (strncmp(Cstr(), prefix, prefixLen) == 0);
    }
 
-   /** Returns true iff this string starts with the first (offset) characters of (prefix) */
-   bool StartsWith(const String & prefix, uint32 offset) const {return ((offset+prefix.Length()<=Length())&&(strncmp(Cstr()+offset, prefix.Cstr(), prefix.Length()) == 0));}
-
-   /** Returns true iff this string starts with the first (offset) characters of (prefix) 
-     * @param prefix Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
-     * @param offset An index into this string to begivn the comparison at.
-     */
-   bool StartsWith(const char * prefix, uint32 offset) const
-   {
-      if (prefix == NULL) prefix = "";
-      uint32 prefixLen = (uint32) strlen(prefix);
-      return ((offset+prefixLen<=Length())&&(strncmp(Cstr()+offset, prefix, prefixLen) == 0));
-   }
-
    /** Returns a string that consists of (count) copies of (str), followed by this string.
      * @param str The string to prepend
      * @param count How many instances of (str) to prepend.  Defaults to 1.
@@ -651,16 +637,23 @@ public:
      */
    String Indent(uint32 numIndentChars, char indentChar = ' ') const;
 
-   /** Returns a string that consists of only the last part of this string, starting with index (beginIndex).  Does not modify the string it is called on. */
+   /** Returns a string that consists of only the last part of this string, starting with index (beginIndex).  Does not modify the string it is called on.
+     * @param beginIndex the index of the first character to include in the returned substring
+     */
    String Substring(uint32 beginIndex) const {return String(*this, beginIndex);}
 
-   /** Returns a string that consists of only the characters in this string from range (beginIndex) to (endIndex-1).  Does not modify the string it is called on. */
+   /** Returns a string that consists of only the characters in this string from range (beginIndex) to (endIndex-1).  Does not modify the string it is called on. 
+     * @param beginIndex the index of the first character to include in the returned substring
+     * @param endIndex the index after the final character to include in the returned substring (if set to MUSCLE_NO_LIMIT, or any other too-large-value,
+     *                 returned substring will include thi entire string starting with (beginIndex)
+     */
    String Substring(uint32 beginIndex, uint32 endIndex) const {return String(*this, beginIndex, endIndex);}
 
    /** Returns a string that consists of only the last part of this string, starting with the first character after the last instance of (markerString).  
     *  If (markerString) is not found in the string, then this entire String is returned.
     *  For example, String("this is a test").Substring("is a") returns " test".
     *  Does not modify the string it is called on. 
+    *  @param markerString the substring to return the suffix string that follows
     */
    String Substring(const String & markerString) const
    {
@@ -668,7 +661,7 @@ public:
       return (idx >= 0) ? String(*this, idx+markerString.Length()) : *this;
    }
 
-   /** See the Substring(const String &) documentation for details. */
+   /** @copydoc String::Substring(const String &) const */
    String Substring(const char * markerString) const
    {
       int idx = LastIndexOf(markerString);
@@ -679,10 +672,12 @@ public:
     *  the first character in (markerString).  If (markerString) is not found, then the entire substring starting at (beginIndex) is returned.
     *  For example, String("this is a test").Substring(1, "is a") returns "his ".
     *  Does not modify the string it is called on. 
+    *  @param beginIndex the first character in our string to search at
+    *  @param markerString the substring to return the suffix string that follows
     */
    String Substring(uint32 beginIndex, const String & markerString) const {return String(*this, beginIndex, (uint32) IndexOf(markerString, beginIndex));}
 
-   /** See the Substring(uint32, const String &) documentation for details. */
+   /** @copydoc String::Substring(uint32, const String &) const */
    String Substring(uint32 beginIndex, const char * markerString) const {return String(*this, beginIndex, (uint32) IndexOf(markerString, beginIndex));}
 
    /** Returns an all lower-case version of this string.  Does not modify the string it is called on. */
@@ -697,7 +692,9 @@ public:
    /** Returns an version of this string that has all leading and trailing whitespace removed.  Does not modify the string it is called on. */
    String Trim() const;  
 
-   /** Swaps the state of this string with (swapWithMe).  Very efficient since little or no data copying is required. */
+   /** Swaps the state of this string with (swapWithMe).  Very efficient since little or no data copying is required.
+     * @param swapWithMe the String to swap contents with
+     */
    inline void SwapContents(String & swapWithMe)
    {
       muscleSwap(_strData,   swapWithMe._strData);
@@ -706,7 +703,7 @@ public:
    }
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** C++11 Move Constructor */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    String(String && rhs) : _bufferLen(0), _length(0)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_MOVE_CTOR);
@@ -714,7 +711,7 @@ public:
       SwapContents(rhs);
    }
 
-   /** C++11 Move Assignment Operator */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    String & operator =(String && rhs) 
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_MOVE_FROM_STRING);
@@ -723,79 +720,130 @@ public:
    }
 #endif
 
-   /** Like CompareTo(), but case insensitive. */
+   /** Like CompareTo(), but case insensitive. 
+     * @param s the String to compare this string to
+     * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
+     */
    int CompareToIgnoreCase(const String & s) const {return Strcasecmp(Cstr(), s());}
 
-   /** Like CompareTo(), but case insensitive. */
+   /** Like CompareTo(), but case insensitive.
+     * @param s the String to compare this string to
+     * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
+     */
    int CompareToIgnoreCase(const char * s) const {return Strcasecmp(Cstr(), s?s:"");}
 
-   /** Like NumericAwareCompareTo(), but case insensitive. */
+   /** Like NumericAwareCompareTo(), but case insensitive.
+     * @param s the String to compare this string to
+     * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
+     */
    int NumericAwareCompareToIgnoreCase(const String & s) const {return NumericAwareStrcasecmp(Cstr(), s());}
 
-   /** Like NumericAwareCompareTo(), but case insensitive. */
+   /** Like NumericAwareCompareTo(), but case insensitive.
+     * @param s the String to compare this string to
+     * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
+     */
    int NumericAwareCompareToIgnoreCase(const char * s) const   {return NumericAwareStrcasecmp(Cstr(), s?s:"");}
 
-   /** Like EndsWith(), but case insensitive. */
+   /** Like EndsWith(), but case insensitive.
+     * @param c a character to check for at the end of this String.
+     */
    bool EndsWithIgnoreCase(char c) const                       {return (_length > 0)&&(tolower(Cstr()[_length-1]) == tolower(c));}
 
-   /** Like EndsWith(), but case insensitive. */
+   /** Like EndsWith(), but case insensitive.
+     * @param s a suffix to check for at the end of this String.
+     */
    bool EndsWithIgnoreCase(const String & s) const             {return ToLowerCase().EndsWith(s.ToLowerCase());}
 
-   /** Like Equals(), but case insensitive. */
+   /** Like Equals(), but case insensitive.
+     * @param s a string to check for (case-insensitive) equality with this String
+     */
    bool EqualsIgnoreCase(const String & s) const               {return (Strcasecmp(Cstr(), s()) == 0);}
 
-   /** Like Equals(), but case insensitive. */
+   /** Like Equals(), but case insensitive.
+     * @param c a character to check for (case-insensitive) equality with this String.
+     */
    bool EqualsIgnoreCase(char c) const                         {return (_length==1)&&(tolower(Cstr()[0])==tolower(c));}
 
-   /** Like Contains(), but case insensitive. */
+   /** Like Contains(), but case insensitive.
+     * @param s A String to look for in this string.
+     */
    bool ContainsIgnoreCase(const String & s) const             {return ToLowerCase().Contains(s.ToLowerCase());}
 
-   /** Like Contains(), but case insensitive. */
+   /** Like Contains(), but case insensitive. 
+     * @param s A String to look for in this string.
+     * @param f Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     */
    bool ContainsIgnoreCase(const String & s, uint32 f) const   {return ToLowerCase().Contains(s.ToLowerCase(),f);}
 
-   /** Like Contains(), but case insensitive. */
+   /** Like Contains(), but case insensitive.
+     * @param ch A character to look for in this string.
+     */
    bool ContainsIgnoreCase(char ch) const                      {return ToLowerCase().Contains((char)tolower(ch));}
 
-   /** Like Contains(), but case insensitive. */
+   /** Like Contains(), but case insensitive.
+     * @param ch A character to look for in this string.
+     * @param f Index of the first character to start searching at in this String.
+     */
    bool ContainsIgnoreCase(char ch, uint32 f) const            {return ToLowerCase().Contains((char)tolower(ch),f);}
 
-   /** Like IndexOf(), but case insensitive. */
+   /** Like IndexOf(), but case insensitive.
+     * @param s A String to look for in this string.
+     */
    int IndexOfIgnoreCase(const String & s) const               {return ToLowerCase().IndexOf(s.ToLowerCase());}
 
-   /** Like IndexOf(), but case insensitive. */
+   /** Like IndexOf(), but case insensitive.
+     * @param s A String to look for in this string.
+     * @param f Index of the first character to start searching at in this String.
+     */
    int IndexOfIgnoreCase(const String & s, uint32 f) const     {return ToLowerCase().IndexOf(s.ToLowerCase(),f);}
 
-   /** Like IndexOf(), but case insensitive. */
+   /** Like IndexOf(), but case insensitive. 
+     * @param ch A character to look for in this string.
+     */
    int IndexOfIgnoreCase(char ch) const                        {return ToLowerCase().IndexOf((char)tolower(ch));}
 
-   /** Like IndexOf(), but case insensitive. */
+   /** Like IndexOf(), but case insensitive. 
+     * @param ch A character to look for in this string.
+     * @param f Index of the first character to start searching at in this String.
+     */
    int IndexOfIgnoreCase(char ch, uint32 f) const              {return ToLowerCase().IndexOf((char)tolower(ch),f);}
 
-   /** Like LastIndexOf(), but case insensitive. */
+   /** Like LastIndexOf(), but case insensitive. 
+     * @param s A string to look for in this string.
+     */
    int LastIndexOfIgnoreCase(const String & s) const           {return ToLowerCase().LastIndexOf(s.ToLowerCase());}
 
-   /** Like LastIndexOf(), but case insensitive. */
+   /** Like LastIndexOf(), but case insensitive. 
+     * @param s A String to look for in this string.
+     * @param f Index of the first character to start searching at in this String.
+     */
    int LastIndexOfIgnoreCase(const String & s, uint32 f) const {return ToLowerCase().LastIndexOf(s.ToLowerCase(),f);}
 
-   /** Like LastIndexOf(), but case insensitive. */
+   /** Like LastIndexOf(), but case insensitive. 
+     * @param ch A character to look for in this string.
+     */
    int LastIndexOfIgnoreCase(char ch) const                    {return ToLowerCase().LastIndexOf((char)tolower(ch));}
 
-   /** Like LastIndexOf(), but case insensitive. */
+   /** Like LastIndexOf(), but case insensitive. 
+     * @param ch A character to look for in this string.
+     * @param f Index of the first character to start searching at in this String.
+     */
    int LastIndexOfIgnoreCase(char ch, uint32 f) const          {return ToLowerCase().LastIndexOf((char)tolower(ch),f);}
 
-   /** Like EndsWith(), but case insensitive. */
+   /** Like StartsWith(), but case insensitive. 
+     * @param c The character to see if this string starts with or not
+     */
    bool StartsWithIgnoreCase(char c) const                     {return (_length > 0)&&(tolower(Cstr()[0]) == tolower(c));}
 
-   /** Like StartsWith(), but case insensitive. */
+   /** Like StartsWith(), but case insensitive. 
+     * @param s The prefix to see whether this string starts with or not
+     */
    bool StartsWithIgnoreCase(const String & s) const           {return ToLowerCase().StartsWith(s.ToLowerCase());}
 
-   /** Like StartsWith(), but case insensitive. */
-   bool StartsWithIgnoreCase(const String & s, uint32 o) const {return ToLowerCase().StartsWith(s.ToLowerCase(),o);}
-
-   /** Returns a hash code for this string */
+   /** @copydoc DoxyTemplate::HashCode() const */
    inline uint32 HashCode() const {return CalculateHashCode(Cstr(), Length());}
 
-   /** Calculates a 64-bit hash code for this string. */
+   /** @copydoc DoxyTemplate::HashCode64() const */
    inline uint64 HashCode64() const {return CalculateHashCode64(Cstr(), Length());}
 
    /** Replaces all instances of (oldChar) in this string with (newChar).
@@ -843,7 +891,9 @@ public:
     */
    uint32 TypeCode() const {return B_STRING_TYPE;}
 
-   /** Returns true iff (tc) equals B_STRING_TYPE. */
+   /** Returns true iff (tc) equals B_STRING_TYPE.
+     * @param tc the type code to check
+     */
    bool AllowsTypeCode(uint32 tc) const {return (TypeCode()==tc);}
 
    /** Part of the Flattenable pseudo-interface.
@@ -854,14 +904,16 @@ public:
    /** Part of the Flattenable pseudo-interface.  Flattens our string into (buffer).
     *  @param buffer A byte array to receive the flattened version of this string.
     *                There must be at least FlattenedSize() bytes available in this array.
-    *  The clever secret here is that a flattened String is just a C-style
-    *  null-terminated character array, and can be used interchangably as such.
+    *  @note The clever secret here is that a flattened String is just a C-style
+    *        zero-terminated char array, and can be used interchangably as such.
     */
    void Flatten(uint8 *buffer) const {memcpy((char *)buffer, Cstr(), Length()+1);}
 
    /** Unflattens a String from (buf).
     *  @param buf an array of (size) bytes.
     *  @param size the number of bytes in (buf).
+    *  @note The clever secret here is that (buf) is treated as just a C-style
+    *        zero-terminated char array, and can be used interchangably as such.
     *  @return B_NO_ERROR (never fails!)
     */
    status_t Unflatten(const uint8 *buf, uint32 size) {return SetCstr((const char *)buf, size);}
@@ -900,52 +952,84 @@ public:
      */
    String Arg(bool value, const char * fmt = "%s") const;
 
-   /** As above, but for char values. */
+   /** As above, but for char values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(char value, const char * fmt = "%i") const;
 
-   /** As above, but for unsigned char values. */
+   /** As above, but for unsigned char values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(unsigned char value, const char * fmt = "%u") const;
 
-   /** As above, but for short values. */
+   /** As above, but for short values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(short value, const char * fmt = "%i") const;
 
-   /** As above, but for unsigned shot values. */
+   /** As above, but for unsigned shot values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(unsigned short value, const char * fmt = "%u") const;
 
-   /** As above, but for int values. */
+   /** As above, but for int values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(int value, const char * fmt = "%i")  const;
 
-   /** As above, but for unsigned int values. */
+   /** As above, but for unsigned int values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(unsigned int value, const char * fmt = "%u") const;
 
-   /** As above, but for long values. */
+   /** As above, but for long values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(long value, const char * fmt = "%li")  const;
 
-   /** As above, but for unsigned long values. */
+   /** As above, but for unsigned long values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(unsigned long value, const char * fmt = "%lu") const;
 
-   /** As above, but for long long values. */
+   /** As above, but for long long values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(long long value, const char * fmt = INT64_FORMAT_SPEC)  const;
 
-   /** As above, but for unsigned long long values. */
+   /** As above, but for unsigned long long values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(unsigned long long value, const char * fmt = UINT64_FORMAT_SPEC) const;
 
-   /** As above, but for double values. */
-   String Arg(double value, const char * fmt = "%f")   const;
+   /** As above, but for double values.
+     * @copydoc Arg(bool, const char *) const
+     */
+   String Arg(double value, const char * fmt = "%f") const;
 
-   /** As above, but for string values. */
+   /** As above, but for string values.
+     * @param value the string to replace any instances of %1 with (or %2 if %1 isn't present, or etc)
+     */
    String Arg(const String & value) const;
 
-   /** As above, but for Point values. */
+   /** As above, but for Point values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(const Point & value, const char * fmt = "%f,%f") const;
 
-   /** As above, but for Rect values. */
+   /** As above, but for Rect values.
+     * @copydoc Arg(bool, const char *) const
+     */
    String Arg(const Rect & value, const char * fmt = "%f,%f,%f,%f") const;
 
-   /** As above, but for C string values. */
+   /** As above, but for C string values.
+     * @param value the string to replace any instances of "%1" with (or "%2" if "%1" isn't present, or etc)
+     */
    String Arg(const char * value) const;
 
-   /** As above, but for printing pointer values. */
+   /** As above, but for printing pointer values.
+     * @param value the pointer-value whose string representation we should replace any instances of %1 with (or %2 if %1 isn't present, or etc)
+     */
    String Arg(const void * value) const;
 
    /** If this string already ends with the specified character, returns this string verbatim.
@@ -1069,7 +1153,10 @@ private:
 class CaseInsensitiveStringCompareFunctor
 {
 public:
-   /** Compares the two String's strcmp() style, returning zero if they are equal, a negative value if (item1) comes first, or a positive value if (item2) comes first. */
+   /** Compares the two String's strcmp() style, returning zero if they are equal, a negative value if (item1) comes first, or a positive value if (item2) comes first.
+     * @param s1 the first String to compare
+     * @param s2 the second String to compare
+     */
    int Compare(const String & s1, const String & s2, void *) const {return s1.CompareToIgnoreCase(s2);}
 };
 
@@ -1077,7 +1164,10 @@ public:
 class NumericAwareStringCompareFunctor
 {
 public:
-   /** Compares the two String's strcmp() style, returning zero if they are equal, a negative value if (item1) comes first, or a positive value if (item2) comes first. */
+   /** Compares the two String's strcmp() style, returning zero if they are equal, a negative value if (item1) comes first, or a positive value if (item2) comes first.
+     * @param s1 the first String to compare
+     * @param s2 the second String to compare
+     */
    int Compare(const String & s1, const String & s2, void *) const {return s1.NumericAwareCompareTo(s2);}
 };
 
@@ -1085,7 +1175,10 @@ public:
 class CaseInsensitiveNumericAwareStringCompareFunctor
 {
 public:
-   /** Compares the two String's strcmp() style, returning zero if they are equal, a negative value if (item1) comes first, or a positive value if (item2) comes first. */
+   /** Compares the two String's strcmp() style, returning zero if they are equal, a negative value if (item1) comes first, or a positive value if (item2) comes first.
+     * @param s1 the first String to compare
+     * @param s2 the second String to compare
+     */
    int Compare(const String & s1, const String & s2, void *) const {return s1.NumericAwareCompareToIgnoreCase(s2);}
 };
 
@@ -1103,6 +1196,6 @@ inline String operator-(const char *lhs,    const String & rhs)  {String ret = l
 inline String operator-(const String & lhs, char rhs)            {String ret = lhs; ret -= rhs; return ret;}
 inline String operator-(char lhs,           const String & rhs)  {String ret; ret.SetCstr(&lhs, 1); ret -= rhs; return ret;}
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

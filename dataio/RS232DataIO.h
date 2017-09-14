@@ -85,6 +85,6 @@ private:
 };
 DECLARE_REFTYPES(RS232DataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

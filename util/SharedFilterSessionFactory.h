@@ -45,22 +45,37 @@ public:
    /** Returns the name of the shared memory area to consult for a list of IP addresses. */
    const String & GetSharedMemoryAreaName() const {return _sharedMemName;}
 
-   /** Sets the name of the shared memory area to consult for a list of IP addresses. */
+   /** Sets the name of the shared memory area to consult for a list of IP addresses. 
+     * @param name the new Shared Memory area name to use
+     */
    void SetSharedMemoryAreaName(const String & name) {_sharedMemName = name;}
 
    /** Returns true iff IP addresses in the shared memory area are to be granted access. */
    bool IsGrantList() const {return _isGrantList;}
 
-   /** Sets whether IP addresses in the shared memory area are to be granted access. */
+   /** Sets whether IP addresses in the shared memory area are to be granted access. 
+     * @param igl true iff the list of IP addresses is a whitelist; false if it's a blacklist
+     */
    void SetIsGrantList(bool igl) {_isGrantList = igl;}
 
    /** Returns true iff a missing shared memory area means all IP addresses should be granted access. */
    bool IsDefaultPass() const {return _defaultPass;}
 
-   /** Sets whether missing shared memory area means all IP addresses should be granted access. */
+   /** Sets whether missing shared memory area means all IP addresses should be granted access.
+     * @param dp true iff we default-grant access when the memory area is missing, false if we default-deny access in that case
+     */
    void SetDefaultPass(bool dp) {_defaultPass = dp;}
 
-   /** Convenience method:  Returns true iff access should be allowed for the given settings and IP address. */
+   /** Convenience method:  Returns true iff access should be allowed for the given settings and IP address. 
+     * @param sharedMemName Name of the SharedMemory area to consult
+     * @param ip the IP address to inquire about
+     * @param isGrantList If true, then the requesting IP address will be accepted only if
+     *                    it is present in the SharedMemory area.  If false, then requesting IP
+     *                    addresses in the SharedMemory area will be denied.
+     * @param defaultPass Specifies what to do if the SharedMemory area doesn't exist.  If true,
+     *                    then when the SharedMemory area doesn't exist, the call will be passed
+     *                    on through to the slave factory.  If false, it won't be.
+     */
    static bool IsAccessAllowedForIP(const String & sharedMemName, const IPAddress & ip, bool isGrantList, bool defaultPass);
 
 private:
@@ -70,6 +85,6 @@ private:
 };
 DECLARE_REFTYPES(SharedFilterSessionFactory);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

@@ -12,7 +12,10 @@ namespace muscle {
 #define CAST_SSL ((SSL*)_ssl)
 #define CAST_CTX ((SSL_CTX*)_ctx)
 
-SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking, bool accept) : TCPSocketDataIO(sockfd, blocking), _sslState(0), _forceReadReady(false)
+SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking, bool accept)
+   : TCPSocketDataIO(sockfd, blocking)
+   , _sslState(0)
+   , _forceReadReady(false)
 {
    bool ok = false;
    ConstSocketRef tempSocket;  // yes, it's intentional that this socket will be closed as soon as we exit this scope
@@ -198,4 +201,4 @@ const ConstSocketRef & SSLSocketDataIO :: GetReadSelectSocket() const
    return ((_forceReadReady)||((_ssl)&&(SSL_pending(CAST_SSL)>0))) ? _alwaysReadableSocket : TCPSocketDataIO::GetReadSelectSocket();
 }
 
-}; // end namespace muscle
+} // end namespace muscle

@@ -35,7 +35,9 @@ size_t ProxyMemoryAllocator :: GetNumAvailableBytes(size_t currentlyAllocated) c
    return (_slaveRef()) ? _slaveRef()->GetNumAvailableBytes(currentlyAllocated) : ((size_t)-1);
 }
 
-UsageLimitProxyMemoryAllocator :: UsageLimitProxyMemoryAllocator(const MemoryAllocatorRef & slaveRef, size_t maxBytes) : ProxyMemoryAllocator(slaveRef), _maxBytes(maxBytes)
+UsageLimitProxyMemoryAllocator :: UsageLimitProxyMemoryAllocator(const MemoryAllocatorRef & slaveRef, size_t maxBytes)
+   : ProxyMemoryAllocator(slaveRef)
+   , _maxBytes(maxBytes)
 {
    // empty
 }
@@ -57,4 +59,4 @@ void AutoCleanupProxyMemoryAllocator :: AllocationFailed(size_t currentlyAllocat
    for (uint32 i=0; i<nc; i++) if (_callbacks[i]()) (void) (_callbacks[i]())->Callback(NULL);
 }
 
-}; // end namespace muscle
+} // end namespace muscle

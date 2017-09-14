@@ -4,7 +4,13 @@ namespace muscle {
 
 static const int32 CACHE_BYTES = 100*1024;  // 100KB local cache size seems reasonable, no?
 
-SharedUsageLimitProxyMemoryAllocator :: SharedUsageLimitProxyMemoryAllocator(const char * sharedAreaKey, int32 memberID, uint32 groupSize, const MemoryAllocatorRef & slaveRef, size_t maxBytes) : ProxyMemoryAllocator(slaveRef), _localAllocated(0), _maxBytes(maxBytes), _memberID(memberID), _groupSize(groupSize), _localCachedBytes(0)
+SharedUsageLimitProxyMemoryAllocator :: SharedUsageLimitProxyMemoryAllocator(const char * sharedAreaKey, int32 memberID, uint32 groupSize, const MemoryAllocatorRef & slaveRef, size_t maxBytes)
+   : ProxyMemoryAllocator(slaveRef)
+   , _localAllocated(0)
+   , _maxBytes(maxBytes)
+   , _memberID(memberID)
+   , _groupSize(groupSize)
+   , _localCachedBytes(0)
 {
    if (_shared.SetArea(sharedAreaKey, groupSize*sizeof(size_t), true) == B_NO_ERROR)
    {
@@ -155,4 +161,4 @@ status_t SharedUsageLimitProxyMemoryAllocator :: GetCurrentMemoryUsage(size_t * 
    else return B_ERROR;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

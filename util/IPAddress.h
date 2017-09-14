@@ -9,8 +9,8 @@
 namespace muscle {
 
 enum {
-   IP_ADDRESS_TYPE          = 1230004063, // 'IP__' 
-   IP_ADDRESS_AND_PORT_TYPE = 1230004560  // 'IPaP' 
+   IP_ADDRESS_TYPE          = 1230004063, /**< Typecode for the IPAddress class: 'IP__' */
+   IP_ADDRESS_AND_PORT_TYPE = 1230004560  /**< Typecode for the IPAddressAndPort class: 'IPaP' */
 };
 
 /** This class represents an IPv6 network address, including the 128-bit IP
@@ -19,15 +19,31 @@ enum {
 class IPAddress MUSCLE_FINAL_CLASS : public PseudoFlattenable
 {
 public:
+   /** Constructor
+     * @param lowBits the lower 64 bits of the IP address (defaults to 0).  For an IPv4 address, only the lower 32 bits of this value are used.
+     * @param highBits the upper 64 bits of the IP address (defaults to 0).  Not used for IPv4 addresses.
+     * @param interfaceIndex the interface index (defaults to zero).  Useful primarily for fe80::blah type IPv6 addresses.  Not used for IPv4.
+     */
    IPAddress(uint64 lowBits = 0, uint64 highBits = 0, uint32 interfaceIndex = 0) : _lowBits(lowBits), _highBits(highBits), _interfaceIndex(interfaceIndex) {/* empty */}
+
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    IPAddress(const IPAddress & rhs) : _lowBits(rhs._lowBits), _highBits(rhs._highBits), _interfaceIndex(rhs._interfaceIndex) {/* empty */}
 
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    IPAddress & operator = (const IPAddress & rhs) {_lowBits = rhs._lowBits; _highBits = rhs._highBits; _interfaceIndex = rhs._interfaceIndex; return *this;}
 
+   /** Returns true if this IPAddress is equal to (rhs), disregarding the interfaceIndex field.
+     * @param rhs the IPAddress to compare this IPAddress against
+     */
    bool EqualsIgnoreInterfaceIndex(const IPAddress & rhs) const {return ((_lowBits == rhs._lowBits)&&(_highBits == rhs._highBits));}
+
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator ==               (const IPAddress & rhs) const {return ((EqualsIgnoreInterfaceIndex(rhs))&&(_interfaceIndex == rhs._interfaceIndex));}
+
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator !=               (const IPAddress & rhs) const {return !(*this == rhs);}
 
+   /** @copydoc DoxyTemplate::operator<(const DoxyTemplate &) const */
    bool operator < (const IPAddress & rhs) const 
    {
       if (_highBits < rhs._highBits) return true;
@@ -37,6 +53,7 @@ public:
       return (_interfaceIndex < rhs._interfaceIndex);
    }
 
+   /** @copydoc DoxyTemplate::operator>(const DoxyTemplate &) const */
    bool operator > (const IPAddress & rhs) const 
    {
       if (_highBits < rhs._highBits) return false;
@@ -46,27 +63,59 @@ public:
       return (_interfaceIndex > rhs._interfaceIndex);
    }
 
+   /** @copydoc DoxyTemplate::operator<=(const DoxyTemplate &) const */
    bool operator <= (const IPAddress & rhs) const {return (*this == rhs)||(*this < rhs);}
+
+   /** @copydoc DoxyTemplate::operator>=(const DoxyTemplate &) const */
    bool operator >= (const IPAddress & rhs) const {return (*this == rhs)||(*this > rhs);}
 
-   IPAddress operator & (const IPAddress & rhs) {return IPAddress(_lowBits & rhs._lowBits, _highBits & rhs._highBits, _interfaceIndex);}
-   IPAddress operator | (const IPAddress & rhs) {return IPAddress(_lowBits | rhs._lowBits, _highBits | rhs._highBits, _interfaceIndex);}
-   IPAddress operator ~ () {return IPAddress(~_lowBits, ~_highBits, _interfaceIndex);}
+   /** @copydoc DoxyTemplate::operator&(const DoxyTemplate &) const */
+   IPAddress operator & (const IPAddress & rhs) const {return IPAddress(_lowBits & rhs._lowBits, _highBits & rhs._highBits, _interfaceIndex);}
 
+   /** @copydoc DoxyTemplate::operator|(const DoxyTemplate &) const */
+   IPAddress operator | (const IPAddress & rhs) const {return IPAddress(_lowBits | rhs._lowBits, _highBits | rhs._highBits, _interfaceIndex);}
+
+   /** @copydoc DoxyTemplate::operator~() const */
+   IPAddress operator ~ () const {return IPAddress(~_lowBits, ~_highBits, _interfaceIndex);}
+
+   /** @copydoc DoxyTemplate::operator&=(const DoxyTemplate &) */
    IPAddress operator &= (const IPAddress & rhs) {*this = *this & rhs; return *this;}
+
+   /** @copydoc DoxyTemplate::operator|=(const DoxyTemplate &) */
    IPAddress operator |= (const IPAddress & rhs) {*this = *this | rhs; return *this;}
 
+   /** Sets all 128 bits of this IP address
+     * @param lowBits the lower 64 bits of the IP address
+     * @param highBits the upper 64 bits of the IP address
+     */
    void SetBits(uint64 lowBits, uint64 highBits) {_lowBits = lowBits; _highBits = highBits;}
 
+   /** Returns the lower 64 bits of the IP address (for IPv4 the lower 32 bits of this value represent the IPv4 address) */
    uint64 GetLowBits()  const {return _lowBits;}
+
+   /** Returns the upper 64 bits of the IP address (for IPv4 this value should always be zero) */
    uint64 GetHighBits() const {return _highBits;}
 
+   /** Sets the lower 64 bits of the IP address
+     * @param lb the new lower-64-bits value
+     */
    void SetLowBits( uint64 lb) {_lowBits  = lb;}
+
+   /** Sets the upper 64 bits of the IP address
+     * @param hb the new upper-64-bits value
+     */
    void SetHighBits(uint64 hb) {_highBits = hb;}
 
+   /** Set the interface-index value for this IP address
+     * @param iidx the new interface index
+     * @note this value is meaningful only for IPv6 addresses, and usually only for fe80::blah IPv6 addresses.
+     */
    void SetInterfaceIndex(uint32 iidx) {_interfaceIndex = iidx;}
+
+   /** Returns the interface-index value for this IP address */
    uint32 GetInterfaceIndex() const    {return _interfaceIndex;}
 
+   /** @copydoc DoxyTemplate::HashCode() const */
    uint32 HashCode() const {return CalculateHashCode(_interfaceIndex)+CalculateHashCode(_lowBits)+CalculateHashCode(_highBits);}
 
    /** Writes our address into the specified uint8 array, in the required network-friendly order.
@@ -100,31 +149,27 @@ public:
       if (optInterfaceIndex) _interfaceIndex = *optInterfaceIndex;
    }
 
-   /** Part of the Flattenable pseudo-interface:  Returns true */
+   /** Part of the PseudoFlattenable pseudo-interface:  Returns true */
    static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
 
-   /** Part of the Flattenable pseudo-interface:  Returns IP_ADDRESS_TYPE */
+   /** Part of the PseudoFlattenable pseudo-interface:  Returns IP_ADDRESS_TYPE */
    static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_TYPE;}
 
-   /** Returns true iff (tc) equals IP_ADDRESS_TYPE. */
+   /** Returns true iff (tc) equals IP_ADDRESS_TYPE.
+     * @param tc a type-code to evaluate for appropriateness
+     */
    static MUSCLE_CONSTEXPR bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
 
-   /** Part of the Flattenable pseudo-interface */
+   /** Part of the PseudoFlattenable pseudo-interface */
    static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return sizeof(uint64) + sizeof(uint64) + sizeof(uint32);}
 
-   /** Returns a 32-bit checksum for this object. */
+   /** @copydoc DoxyTemplate::CalculateChecksum() const */
    uint32 CalculateChecksum() const;
 
-   /** Copies this point into an endian-neutral flattened buffer.
-    *  @param buffer Points to an array of at least FlattenedSize() bytes.
-    */
+   /** @copydoc DoxyTemplate::Flatten(uint8 *) const */
    void Flatten(uint8 * buffer) const;
 
-   /** Restores this point from an endian-neutral flattened buffer.
-    *  @param buffer Points to an array of (size) bytes
-    *  @param size The number of bytes (buffer) points to (should be at least FlattenedSize())
-    *  @return B_NO_ERROR on success, B_ERROR on failure (size was too small)
-    */
+   /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
    status_t Unflatten(const uint8 * buffer, uint32 size);
 
    /** Convenience method:  Returns true iff this is a valid IP address
@@ -246,20 +291,19 @@ public:
 
    /** Convenience constructor.  Calling this is equivalent to creating an IPAddressAndPort
      * object and then calling SetFromString() on it with the given arguments.
+     * @param s an IPAddressAndPortString to parse (e.g. "127.0.0.1:9999" or "www.google.com:80")
+     * @param defaultPort what value we should use as a default port, if (s) doesn't specify one
+     * @param allowDNSLookups true iff we want to parse hostnames (could be slow!); false if we only care about parsing explicit IP addresses
      */
    IPAddressAndPort(const String & s, uint16 defaultPort, bool allowDNSLookups) {SetFromString(s(), defaultPort, allowDNSLookups);}
 
-   /** Copy constructor */
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    IPAddressAndPort(const IPAddressAndPort & rhs) : _ip(rhs._ip), _port(rhs._port) {/* empty */}
 
-   /** Comparison operator.  Returns true iff (rhs) is equal to this object. 
-     * @param rhs The IPAddressAndPort object to compare this object to. 
-     */
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator == (const IPAddressAndPort & rhs) const {return (_ip == rhs._ip)&&(_port == rhs._port);}
 
-   /** Comparison operator.  Returns true iff (rhs) is not equal to this object. 
-     * @param rhs The IPAddressAndPort object to compare this object to. 
-     */
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator != (const IPAddressAndPort & rhs) const {return !(*this==rhs);}
 
    /** Comparison operator.  Returns true iff this object is "less than" (rhs).
@@ -286,7 +330,7 @@ public:
      */
    bool operator >= (const IPAddressAndPort & rhs) const {return !(*this<rhs);}
 
-   /** HashCode returns a usable 32-bit hash code value for this object, based on its contents. */
+   /** @copydoc DoxyTemplate::HashCode() const */
    uint32 HashCode() const {return _ip.HashCode()+_port;}
 
    /** Returns this object's current IP address */
@@ -295,10 +339,14 @@ public:
    /** Returns this object's current port number */
    uint16 GetPort() const {return _port;}
 
-   /** Sets this object's IP address to (ip) */
+   /** Sets this object's IP address to (ip)
+     * @param ip the new IP address to use
+     */
    void SetIPAddress(const IPAddress & ip) {_ip = ip;}
 
-   /** Sets this object's port number to (port) */
+   /** Sets this object's port number to (port) 
+     * @param port the new port to use
+     */
    void SetPort(uint16 port) {_port = port;}
 
    /** Resets this object to its default state; as if it had just been created by the default constructor. */
@@ -334,13 +382,15 @@ public:
    /** Part of the Flattenable pseudo-interface:  Returns IP_ADDRESS_AND_PORT_TYPE */
    static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_AND_PORT_TYPE;}
 
-   /** Returns true iff (tc) equals IP_ADDRESS_AND_PORT_TYPE. */
+   /** Returns true iff (tc) equals IP_ADDRESS_AND_PORT_TYPE. 
+     * @param tc the type code to evalutate for appropriateness
+     */
    static MUSCLE_CONSTEXPR bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
 
    /** Part of the Flattenable pseudo-interface */
    static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return IPAddress::FlattenedSize() + sizeof(uint16);}
 
-   /** Returns a 32-bit checksum for this object. */
+   /** @copydoc DoxyTemplate::CalculateChecksum() const */
    uint32 CalculateChecksum() const {return _ip.CalculateChecksum() + _port;}
 
    /** Copies this point into an endian-neutral flattened buffer.
@@ -373,7 +423,7 @@ private:
    uint16 _port;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif
 

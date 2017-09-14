@@ -2,7 +2,13 @@
 
 namespace muscle {
 
-PacketizedProxyDataIO :: PacketizedProxyDataIO(const DataIORef & childIO, uint32 maxTransferUnit) : ProxyDataIO(childIO), _maxTransferUnit(maxTransferUnit), _inputBufferSize(0), _inputBufferSizeBytesRead(0), _inputBufferBytesRead(0), _outputBufferBytesSent(0)
+PacketizedProxyDataIO :: PacketizedProxyDataIO(const DataIORef & childIO, uint32 maxTransferUnit)
+   : ProxyDataIO(childIO)
+   , _maxTransferUnit(maxTransferUnit)
+   , _inputBufferSize(0)
+   , _inputBufferSizeBytesRead(0)
+   , _inputBufferBytesRead(0)
+   , _outputBufferBytesSent(0)
 {
    // empty
 }
@@ -105,4 +111,4 @@ status_t PacketizedProxyDataIO :: WriteBufferedOutputAux()
    return B_NO_ERROR;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

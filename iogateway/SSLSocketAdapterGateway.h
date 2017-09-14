@@ -60,6 +60,6 @@ private:
 };
 DECLARE_REFTYPES(SSLSocketAdapterGateway);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

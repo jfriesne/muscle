@@ -30,7 +30,9 @@ public:
    /** Virtual destructor, to keep C++ honest.  */
    virtual ~XorProxyDataIO() {/* empty */}
 
-   /** Implemented to XOR the child DataIO's read bytes before returning.  */
+   /** Implemented to XOR the child DataIO's read bytes before returning.
+     * @copydoc ProxyDataIO::Read(void *, uint32)
+     */
    virtual int32 Read(void * buffer, uint32 size)
    {
       int32 ret = ProxyDataIO::Read(buffer, size);
@@ -38,7 +40,9 @@ public:
       return ret;
    }
 
-   /** Implemented to pass XOR's bytes to the child DataIO's Write() method. */
+   /** Implemented to pass XOR's bytes to the child DataIO's Write() method.
+     * @copydoc ProxyDataIO::Write(const void *, uint32)
+     */
    virtual int32 Write(const void * buffer, uint32 size)
    {
       if ((GetChildDataIO()() == NULL)||(_tempBuf.SetNumBytes(size, buffer) != B_NO_ERROR)) return B_ERROR;
@@ -64,6 +68,6 @@ private:
 };
 DECLARE_REFTYPES(XorProxyDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

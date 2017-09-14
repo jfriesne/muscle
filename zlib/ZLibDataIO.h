@@ -67,7 +67,7 @@ private:
 };
 DECLARE_REFTYPES(ZLibDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif
 

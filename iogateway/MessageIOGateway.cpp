@@ -532,7 +532,9 @@ status_t MessageIOGateway :: ExecuteSynchronousMessageSend(const Message & reque
    return ret;
 }
 
-CountedMessageIOGateway :: CountedMessageIOGateway(int32 outgoingEncoding) : MessageIOGateway(outgoingEncoding), _outgoingByteCount(0)
+CountedMessageIOGateway :: CountedMessageIOGateway(int32 outgoingEncoding)
+   : MessageIOGateway(outgoingEncoding)
+   , _outgoingByteCount(0)
 {
    // empty
 }
@@ -567,4 +569,4 @@ status_t CountedMessageIOGateway :: PopNextOutgoingMessage(MessageRef & ret)
    return B_NO_ERROR;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

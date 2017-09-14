@@ -17,7 +17,10 @@ namespace muscle {
 
 static const uint64 SIMULATED_MULTICAST_CONTROL_MAGIC = ((uint64) 0x72F967C8345A065BLL);  // arbitrary magic header number
 
-SimulatedMulticastDataIO :: SimulatedMulticastDataIO(const IPAddressAndPort & multicastAddress) : _multicastAddress(multicastAddress), _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET), _isUnicastSocketRegisteredForWrite(false)
+SimulatedMulticastDataIO :: SimulatedMulticastDataIO(const IPAddressAndPort & multicastAddress)
+   : _multicastAddress(multicastAddress)
+   , _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET)
+   , _isUnicastSocketRegisteredForWrite(false)
 {
    if (StartInternalThread() != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  Unable to start internal thread for group [%s]\n", multicastAddress.ToString()());
 }
@@ -438,4 +441,4 @@ void SimulatedMulticastDataIO :: ShutdownAux()
    ShutdownInternalThread();
 }
 
-}; // end namespace muscle
+} // end namespace muscle

@@ -52,6 +52,6 @@ private:
 };
 DECLARE_REFTYPES(RateLimitSessionIOPolicy);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

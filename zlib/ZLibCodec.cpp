@@ -18,7 +18,8 @@ static void muscleZLibFree(void *, void * address) {using namespace muscle; musc
 # define MUSCLE_ZLIB_FREE  Z_NULL
 #endif
 
-ZLibCodec :: ZLibCodec(int compressionLevel) : _compressionLevel(muscleClamp(compressionLevel, 0, 9))
+ZLibCodec :: ZLibCodec(int compressionLevel)
+   : _compressionLevel(muscleClamp(compressionLevel, 0, 9))
 {
    InitStream(_inflater);
    _inflateOkay = (inflateInit(&_inflater) == Z_OK);
@@ -324,7 +325,6 @@ status_t ZLibCodec :: ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO &
    return B_NO_ERROR;
 }
 
-
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

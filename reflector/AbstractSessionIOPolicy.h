@@ -21,19 +21,22 @@ public:
    /** Default Constructor.  Sets session to NULL and asInput to false */
    PolicyHolder() : _session(NULL), _asInput(false) {/* empty */}
 
-   /** Constructor.  Sets our held values as specified by the arguments. */
+   /** Constructor.  Sets our held values as specified by the arguments. 
+     * @param session the AbstractReflectSession object that we will be in use by
+     * @param asInput true iff we're being used to regulate input data, false if we're being used to regulate output data
+     */
    PolicyHolder(AbstractReflectSession * session, bool asInput) : _session(session), _asInput(asInput) {/* empty */}
 
-   /** Accessor */
+   /** Returns the session object this PolicyHolder is being used by (as passed in to the constructor) */
    AbstractReflectSession * GetSession() const {return _session;}
 
-   /** Accessor */
+   /** Returns true iff this PolicyHolder is being used to regulate input data (as passed in to the constructor) */
    bool IsAsInput() const {return _asInput;}
 
-   /** Returns a decent hash code for this object */
+   /** @copydoc DoxyTemplate::HashCode() const */
    uint32 HashCode() const {return ((uint32)((uintptr)_session))+(_asInput?1:0);}  // double-cast for AMD64
 
-   /** Equality operator;  returns true iff (rhs) has the same two settings as we do */
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator == (const PolicyHolder & rhs) {return ((rhs._session == _session)&&(rhs._asInput == _asInput));}
 
 private:
@@ -146,7 +149,7 @@ private:
 };
 DECLARE_REFTYPES(AbstractSessionIOPolicy);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 // At the bottom to avoid circular-forward-reference problems, while
 // still allowing subclasses to automatically get this header

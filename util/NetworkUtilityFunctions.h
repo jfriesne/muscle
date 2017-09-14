@@ -441,6 +441,7 @@ public:
      */
    virtual status_t SocketCallback(uint32 eventType, const ConstSocketRef & sock) = 0;
 
+   /** Enumeration of the types of SocketCallback event we support */
    enum {
       SOCKET_CALLBACK_CREATE_UDP = 0,   /**< socket was just created by CreateUDPSocket() */
       SOCKET_CALLBACK_CREATE_ACCEPTING, /**< socket was just created by CreateAcceptingSocket() */
@@ -711,7 +712,7 @@ static inline long write_ignore_eintr(   int f, const void *b, unsigned long nby
 
 /** @} */ // end of networkutilityfunctions doxygen group
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif
 

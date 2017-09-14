@@ -23,7 +23,13 @@ namespace muscle {
 extern void DeadlockFinder_PrintAndClearLogEventsForCurrentThread();
 #endif
 
-Thread :: Thread(bool useMessagingSockets) : _useMessagingSockets(useMessagingSockets), _messageSocketsAllocated(!useMessagingSockets), _threadRunning(false), _suggestedStackSize(0), _threadStackBase(NULL), _threadPriority(PRIORITY_UNSPECIFIED)
+Thread :: Thread(bool useMessagingSockets)
+   : _useMessagingSockets(useMessagingSockets)
+   , _messageSocketsAllocated(!useMessagingSockets)
+   , _threadRunning(false)
+   , _suggestedStackSize(0)
+   , _threadStackBase(NULL)
+   , _threadPriority(PRIORITY_UNSPECIFIED)
 {
 #if defined(MUSCLE_USE_QT_THREADS)
    _thread.SetOwner(this);
@@ -521,4 +527,4 @@ void CheckThreadStackUsage(const char * fileName, uint32 line)
    }
 }
 
-}; // end namespace muscle
+} // end namespace muscle

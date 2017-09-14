@@ -17,13 +17,13 @@ public:
    /** Default ctor;  All bits are set to false. */
    BitChord() {ClearAllBits();}
 
-   /** Copy constructor */
-   BitChord(const BitChord & copyMe) {*this = copyMe;}
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   BitChord(const BitChord & rhs) {*this = rhs;}
 
    /** Destructor */
    ~BitChord() {/* empty */}
 
-   /** Assignment operator. */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    BitChord & operator =(const BitChord & rhs) {if (this != &rhs) {for (int i=0; i<NUM_WORDS; i++) _words[i] = rhs._words[i];} return *this;}
 
    /** Returns a BitChord that is the bitwise inverse of this BitChord. */
@@ -57,41 +57,47 @@ public:
       }
    }
 
-   /** OR's all bits in (rhs) into their counterparts in this object. */
+   /** @copydoc DoxyTemplate::operator|=(const DoxyTemplate &) */
    BitChord & operator |=(const BitChord & rhs) {for (int i=0; i<NUM_WORDS; i++) _words[i] |= rhs._words[i]; return *this;}
 
-   /** AND's all bits in (rhs) into their counterparts in this object. */
+   /** @copydoc DoxyTemplate::operator&=(const DoxyTemplate &) */
    BitChord & operator &=(const BitChord & rhs) {for (int i=0; i<NUM_WORDS; i++) _words[i] &= rhs._words[i]; return *this;}
 
-   /** XOR's all bits in (rhs) into their counterparts in this object. */
+   /** @copydoc DoxyTemplate::operator^=(const DoxyTemplate &) */
    BitChord & operator ^=(const BitChord & rhs) {for (int i=0; i<NUM_WORDS; i++) _words[i] ^= rhs._words[i]; return *this;}
 
-   /** Returns true iff all indices in this object are equal to their counterparts in (rhs). */
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator ==(const BitChord & rhs) const {if (this != &rhs) {for (int i=0; i<NUM_WORDS; i++) if (_words[i] != rhs._words[i]) return false;} return true;}
 
-   /** Returns true iff any indices in this object are not equal to their counterparts in (rhs). */
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator !=(const BitChord & rhs) const {return !(*this == rhs);}
 
-   /** Comparison Operator.  Returns true if this bit-chord comes before (rhs) lexically. */
+   /** @copydoc DoxyTemplate::operator<(const DoxyTemplate &) const */
    bool operator < (const BitChord &rhs) const {if (this != &rhs) {for (int i=0; i<NUM_WORDS; i++) {if (_words[i] < rhs._words[i]) return true; if (_words[i] > rhs._words[i]) return false;}} return false;}
 
-   /** Comparison Operator.  Returns true if this bit-chord comes after (rhs) lexically. */
+   /** @copydoc DoxyTemplate::operator>(const DoxyTemplate &) const */
    bool operator > (const BitChord &rhs) const {if (this != &rhs) {for (int i=0; i<NUM_WORDS; i++) {if (_words[i] > rhs._words[i]) return true; if (_words[i] < rhs._words[i]) return false;}} return false;}
 
-   /** Comparison Operator.  Returns true if the two bit-chord are equal, or this bit-chord comes before (rhs) lexically. */
+   /** @copydoc DoxyTemplate::operator<=(const DoxyTemplate &) const */
    bool operator <=(const BitChord &rhs) const {return !(*this > rhs);}
 
-   /** Comparison Operator.  Returns true if the two bit-chord are equal, or this bit-chord comes after (rhs) lexically. */
+   /** @copydoc DoxyTemplate::operator>=(const DoxyTemplate &) const */
    bool operator >=(const BitChord &rhs) const {return !(*this < rhs);}
 
-   /** Returns the state of the specified bit */
+   /** Returns the state of the specified bit
+     * @param whichBit the index of the bit to query (e.g. 0 is the first bit, 1 is the second, and so on)
+     * @returns true iff the bit was set
+     */
    bool GetBit(unsigned int whichBit) const
    {
       MASSERT(whichBit < NumBits, "BitChord::GetBit:  whichBit was out of range!\n");
       return ((_words[whichBit/NUM_BITS_PER_WORD] & (1L<<(whichBit%NUM_BITS_PER_WORD))) != 0);
    }
 
-   /** Sets the state of the specified bit */
+   /** Sets the state of the specified bit
+     * @param whichBit the index of the bit to set (e.g. 0 is the first bit, 1 is the second, and so on)
+     * @param value true to set the bit, or false to clear it
+     */
    void SetBit(unsigned int whichBit, bool value) 
    {
       MASSERT(whichBit < NumBits, "BitChord::SetBit:  whichBit was out of range!\n");
@@ -154,6 +160,6 @@ private:
   inline const BitChord<N> operator ^ (const BitChord<N> & lhs, const BitChord<N> & rhs) {BitChord<N> ret(lhs); ret ^= rhs; return ret;}
 #endif
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

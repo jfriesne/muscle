@@ -19,7 +19,6 @@ public:
    /** Default constructor.  The maximum incoming message size is set to "unlimited" by default.  */
    StorageReflectSessionFactory();
 
-   /** Returns a new StorageReflectSession */
    virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & factoryInfo);
 
    /** Sets the maximum-bytes-per-incoming-message limit that we will set on the StorageReflectSession
@@ -33,7 +32,8 @@ public:
 
 protected:
    /** If we have a limited maximum size for incoming messages, then this method 
-     * demand-allocate the session's gateway, and set its max incoming message size if possible.
+     * demand-allocates the session's gateway, and set its max incoming message size if possible.
+     * @param session the session whose gateway we should call SetMaxIncomingMessageSize() on
      * @return B_NO_ERROR on success, or B_ERROR on failure (out of memory or the created gateway
      *         wasn't a MessageIOGateway)
      */
@@ -98,10 +98,10 @@ public:
    /** Implemented to remove our nodes from the server-side database and do misc cleanup. */
    virtual void AboutToDetachFromServer();
 
-   /** Called when a new message is received from our IO gateway. */
+   // Called when a new message is received from our IO gateway.
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
-   /** Overridden to call PushSubscriptionMessages() */
+   // Overridden to call PushSubscriptionMessages()
    virtual void AfterMessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
    /** Returns a human-readable label for this session type:  "Session" */
@@ -285,13 +285,15 @@ protected:
 
    /**
     * Returns true iff we have the given PR_PRIVILEGE_* privilege.
-    * @return Default implementation looks at the PR_NAME_PRIVILEGE_BITS parameter.
+    * Default implementation looks at the PR_NAME_PRIVILEGE_BITS parameter to determine whether to return true or false.
+    * @param whichPriv a PR_PRIVILEGE_* value
     */
    virtual bool HasPrivilege(int whichPriv) const;
 
    /**
-    * Returns the given Message to our client, inside an error message
-    * with the given error code.
+    * Returns the given Message to our client, inside an error message with the given error code.
+    * @param errorCode a PR_RESULT_ERROR* type-code indicating the nature of the error.
+    * @param msgRef the original command-Message (as received from the client) that the server is objecting to
     */
    void BounceMessage(uint32 errorCode, const MessageRef & msgRef);
 
@@ -312,7 +314,12 @@ protected:
    status_t FindMatchingSessions(const String & nodePath, const ConstQueryFilterRef & filter, Hashtable<const String *, AbstractReflectSessionRef> & retSessions, bool matchSelf, uint32 maxResults = MUSCLE_NO_LIMIT) const;
 
    /** Convenience method:  Same as FindMatchingSessions(), but finds only the first matching session.  
-     * Returns a reference to the first matching session on success, or a NULL reference on failue.
+     *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah")
+     *                  If the nodePath is a zero-length String, all sessions will match.
+     *  @param filter If non-NULL, only nodes whose data Messages match this filter will have their sessions added 
+     *                to the (retSessions) table.
+     *  @param matchSelf If true, we will include as a candidate for pattern matching.  Otherwise we won't.
+     *  @returns a reference to the first matching session on success, or a NULL reference on failure.
      */
    AbstractReflectSessionRef FindMatchingSession(const String & nodePath, const ConstQueryFilterRef & filter, bool matchSelf) const;
 
@@ -330,7 +337,7 @@ protected:
 
    /** Convenience method:  Adds nodes that match the specified path to the passed-in Queue.
     *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah").  
-                       If it's a relative path, only nodes in the current session's subtree will be searched.
+    *                  If it's a relative path, only nodes in the current session's subtree will be searched.
     *  @param filter If non-NULL, only nodes whose data Messages match this filter will be added to the (retMatchingNodes) table.
     *  @param retMatchingNodes A Queue that will on return contain the list of matching nodes.
     *  @param maxResults Maximum number of matching nodes to return.  Defaults to MUSCLE_NO_LIMIT.
@@ -339,7 +346,10 @@ protected:
    status_t FindMatchingNodes(const String & nodePath, const ConstQueryFilterRef & filter, Queue<DataNodeRef> & retMatchingNodes, uint32 maxResults = MUSCLE_NO_LIMIT) const;
 
    /** Convenience method:  Same as FindMatchingNodes(), but finds only the first matching node.  
-     * Returns a reference to the first matching node on success, or a NULL reference on failue.
+     *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah").  
+     *                  If it's a relative path, only nodes in the current session's subtree will be searched.
+     *  @param filter If non-NULL, only nodes whose data Messages match this filter will be added to the (retMatchingNodes) table.
+     *  @returns a reference to the first matching node on success, or a NULL reference on failure.
      */
    DataNodeRef FindMatchingNode(const String & nodePath, const ConstQueryFilterRef & filter) const;
 
@@ -404,9 +414,6 @@ protected:
     */
    void PushSubscriptionMessages();
 
-   /** Auxilliary helper method for PushSubscriptionMessages() */
-   void PushSubscriptionMessage(MessageRef & msgRef); 
-
    /**
     * Executes a data-gathering tree traversal based on the PR_NAME_KEYS specified in the given message.
     * @param getMsg a Message whose PR_NAME_KEYS field specifies which nodes we are interested in.
@@ -420,9 +427,6 @@ protected:
     * @param quiet If set to true, subscribers won't be updated regarding this change to the database
     */
    void DoRemoveData(NodePathMatcher & matcher, bool quiet = false);
-
-   /** Auxilliary helper function. */
-   void SendGetDataResults(MessageRef & msg);
 
    /**
     * If set false, we won't receive subscription updates.
@@ -500,6 +504,8 @@ protected:
    DECLARE_MUSCLE_TRAVERSAL_CALLBACK(StorageReflectSession, PassMessageCallback);    /** Matching nodes are sent the given message.  */
 
 private:
+   void PushSubscriptionMessage(MessageRef & msgRef); 
+   void SendGetDataResults(MessageRef & msg);
    void NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, bool isBeingRemoved);
    void UpdateDefaultMessageRoute();
    status_t RemoveParameter(const String & paramName, bool & retUpdateDefaultMessageRoute);
@@ -597,7 +603,7 @@ private:
 };
 DECLARE_REFTYPES(StorageReflectSession);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif
 

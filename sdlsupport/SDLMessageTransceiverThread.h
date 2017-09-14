@@ -25,6 +25,6 @@ protected:
 };
 DECLARE_REFTYPES(SDLMessageTransceiverThread);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

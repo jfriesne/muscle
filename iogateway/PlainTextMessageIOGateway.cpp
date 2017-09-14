@@ -176,7 +176,9 @@ Reset()
    _incomingText.Clear();
 }
 
-TelnetPlainTextMessageIOGateway :: TelnetPlainTextMessageIOGateway() : _inSubnegotiation(false), _commandBytesLeft(0)
+TelnetPlainTextMessageIOGateway :: TelnetPlainTextMessageIOGateway()
+   : _inSubnegotiation(false)
+   , _commandBytesLeft(0)
 {
    // empty
 }
@@ -213,4 +215,4 @@ FilterInputBuffer(char * buf, uint32 & bufLen, uint32 /*maxLen*/)
    bufLen = (uint32) (output-buf);
 }
 
-}; // end namespace muscle
+} // end namespace muscle

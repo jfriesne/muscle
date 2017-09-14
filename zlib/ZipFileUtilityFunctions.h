@@ -71,6 +71,6 @@ MessageRef ReadZipFile(const char * fileName, bool loadData = true);
 
 /** @} */ // end of zipfileutilityfunctions doxygen group
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

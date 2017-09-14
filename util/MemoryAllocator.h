@@ -56,6 +56,7 @@ public:
    /** Sets the state of the "allocation has failed" flag.  Typically this is set true just
     *  before a call to AllocationFailed(), and set false again later on, after the flag has
     *  been noticed and dealt with.
+    *  @param hasFailed true to set the allocation-has-failed flag; false to clear it
     */
    virtual void SetAllocationHasFailed(bool hasFailed) {_hasAllocationFailed = hasFailed;}
 
@@ -67,6 +68,7 @@ public:
    /** Should be overridden to return the number of bytes still available for allocation,
     *  given that (currentlyAllocated) bytes have already been allocated.
     *  If there is no set limit, this method should return MUSCLE_NO_LIMIT.
+    *  @param currentlyAllocated how many bytes are already allocated
     */
    virtual size_t GetNumAvailableBytes(size_t currentlyAllocated) const = 0;
 
@@ -121,17 +123,24 @@ public:
    /** Destructor.  */
    virtual ~UsageLimitProxyMemoryAllocator();
 
-   /** Overridden to return false if memory usage would go over maximum due to this allocation. */
+   /** Overridden to return false if memory usage would go over maximum due to this allocation. 
+    *  @param currentlyAllocatedBytes How many bytes the system has allocated currently
+    *  @param allocRequestBytes How many bytes the system would like to allocate.
+    */
    virtual status_t AboutToAllocate(size_t currentlyAllocatedBytes, size_t allocRequestBytes);
 
-   /** Set a new maximum number of allocatable bytes */
-   void SetMaxNumBytes(size_t mb) {_maxBytes = mb;}
+   /** Set a new maximum number of allocatable bytes
+     * @param maxBytes the new allocation limit, in bytes
+     */
+   void SetMaxNumBytes(size_t maxBytes) {_maxBytes = maxBytes;}
 
    /** Implemented to return our hard-coded size limit, same as GetMaxNumBytes() */
    virtual size_t GetMaxNumBytes() const {return muscleMin(_maxBytes, ProxyMemoryAllocator::GetMaxNumBytes());}
 
-   /** Implemented to return the difference between the maximum allocation and the current number allocated. */
-   virtual size_t GetNumAvailableBytes(size_t ca) const {return muscleMin((_maxBytes>ca)?_maxBytes-ca:0, ProxyMemoryAllocator::GetNumAvailableBytes(ca));}
+   /** Implemented to return the difference between the maximum allocation and the current number allocated.
+     * @param currentlyAllocated how many bytes are already allocated
+     */
+   virtual size_t GetNumAvailableBytes(size_t currentlyAllocated) const {return muscleMin((_maxBytes>currentlyAllocated)?_maxBytes-currentlyAllocated:0, ProxyMemoryAllocator::GetNumAvailableBytes(currentlyAllocated));}
 
 private:
    size_t _maxBytes;
@@ -155,7 +164,10 @@ public:
    /** Destructor.  Calls ClearCallbacks(). */
    virtual ~AutoCleanupProxyMemoryAllocator() {/* empty */}
 
-   /** Overridden to call our callbacks in event of a failure. */
+   /** Overridden to call our callbacks in event of a failure.
+    *  @param currentlyAllocatedBytes How many bytes the system has allocated currently
+    *  @param allocRequestBytes How many bytes the system would like to allocate.
+    */
    virtual void AllocationFailed(size_t currentlyAllocatedBytes, size_t allocRequestBytes);
 
    /** Read-write access to our list of out-of-memory callbacks. */
@@ -169,6 +181,6 @@ private:
 };
 DECLARE_REFTYPES(AutoCleanupProxyMemoryAllocator);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

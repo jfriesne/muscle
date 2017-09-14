@@ -185,6 +185,6 @@ public:
    BatchGuardImp GetBatchGuard() {return BatchGuardImp(*this);}
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

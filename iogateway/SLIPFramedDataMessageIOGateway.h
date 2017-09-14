@@ -48,6 +48,6 @@ private:
 };
 DECLARE_REFTYPES(SLIPFramedDataMessageIOGateway);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

@@ -87,4 +87,4 @@ status_t MultiDataIO :: SeekAll(uint32 first, int64 offset, int whence)
    return B_NO_ERROR;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

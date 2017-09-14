@@ -248,4 +248,4 @@ uint32 AsyncDataIO :: WriteToMainThread(const uint8 * bytes, uint32 numBytes, bo
    return numToWrite;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

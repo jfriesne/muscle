@@ -1982,6 +1982,7 @@ PREDEFINED             = MuscleMessage_impl_h \
                          MUSCLE_ENABLE_ZLIB_ENCODING \
                          MUSCLE_ENABLE_MEMORY_TRACKING \
                          MUSCLE_FINAL_CLASS \
+                         MUSCLE_USE_CPLUSPLUS11=1 \
                          DOXYGEN_SHOULD_IGNORE_THIS \
                          "HT_UniversalSinkKeyRef=" \
                          "HT_UniversalSinkValueRef=" \

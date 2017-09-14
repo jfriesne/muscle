@@ -84,4 +84,4 @@ void AcceptSocketsThread :: InternalThreadEntry()
    }
 }
 
-}; // end namespace muscle
+} // end namespace muscle

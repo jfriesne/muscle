@@ -1011,4 +1011,4 @@ int strnatcasecmp(char const *a, char const *b) {return strnatcmp0(a, b, 1);}
 int NumericAwareStrcmp(const char * s1, const char * s2)     {return strnatcmp(    s1, s2);}
 int NumericAwareStrcasecmp(const char * s1, const char * s2) {return strnatcasecmp(s1, s2);}
 
-}; // end namespace muscle
+} // end namespace muscle

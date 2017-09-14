@@ -96,7 +96,8 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
 static Socket _stdinSocket(STDIN_FILENO, false);  // we generally don't want to close stdin
 #endif
 
-StdinDataIO :: StdinDataIO(bool blocking) : _stdinBlocking(blocking)
+StdinDataIO :: StdinDataIO(bool blocking)
+   : _stdinBlocking(blocking)
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
  , _slaveSocketTag(0)
 #else
@@ -200,4 +201,4 @@ const ConstSocketRef & StdinDataIO :: GetReadSelectSocket() const
 #endif
 }
 
-}; // end namespace muscle
+} // end namespace muscle

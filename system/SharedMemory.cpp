@@ -23,7 +23,8 @@ static const short LARGEST_SEMAPHORE_DELTA = 10000;  // I'm assuming there will 
 
 #endif
 
-SharedMemory :: SharedMemory() : 
+SharedMemory :: SharedMemory()
+   : 
 #ifdef WIN32
    _mutex(NULL), _file(INVALID_HANDLE_VALUE), _map(NULL),
 #else
@@ -325,4 +326,4 @@ status_t SharedMemory :: AdjustSemaphore(short delta)
 }
 #endif
 
-}; // end namespace muscle
+} // end namespace muscle

@@ -62,7 +62,8 @@ status_t DetectNetworkConfigChangesSession :: ThreadSafeSendMessageToOwner(const
 }
 #endif
 
-DetectNetworkConfigChangesSession :: DetectNetworkConfigChangesSession() : 
+DetectNetworkConfigChangesSession :: DetectNetworkConfigChangesSession()
+   : 
 #ifndef __linux__
    _threadKeepGoing(false), 
 #endif
@@ -749,6 +750,4 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
 
 #endif  // !__linux__
 
-};  // end namespace muscle
-
-
+}  // end namespace muscle

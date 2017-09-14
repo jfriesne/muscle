@@ -206,7 +206,9 @@ PopNextOutgoingMessage()
    return GetOutgoingMessageQueue().RemoveHeadWithDefault();
 }
 
-CountedRawDataMessageIOGateway :: CountedRawDataMessageIOGateway(uint32 minChunkSize, uint32 maxChunkSize) : RawDataMessageIOGateway(minChunkSize, maxChunkSize), _outgoingByteCount(0)
+CountedRawDataMessageIOGateway :: CountedRawDataMessageIOGateway(uint32 minChunkSize, uint32 maxChunkSize)
+   : RawDataMessageIOGateway(minChunkSize, maxChunkSize)
+   , _outgoingByteCount(0)
 {
    // empty
 }
@@ -253,4 +255,4 @@ uint32 CountedRawDataMessageIOGateway :: GetNumRawBytesInMessage(const MessageRe
    else return 0;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

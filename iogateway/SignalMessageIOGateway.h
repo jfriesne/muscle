@@ -34,11 +34,15 @@ public:
    /** Returns a reference to our current signal message */
    MessageRef GetSignalMessage() const {return _signalMessage;}
 
-   /** Sets our current signal message reference. */
+   /** Sets our current signal message reference. 
+     * @param r the new Message to send to the AbstractGatewayMessageReceiver whenever we receive some bytes from the socket
+     */
    void SetSignalMessage(const MessageRef & r) {_signalMessage = r;}
 
 protected:
-   /** DoOutput is a no-op for this gateway... all messages are simply eaten and dropped. */
+   /** DoOutput is a no-op for this gateway... all messages are simply eaten and dropped.
+     * @copydoc AbstractMessageIOGateway::DoOutputImplementation(uint32)
+     */
    virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT)
    {
       // Just eat and drop ... we don't really support outgoing messages
@@ -46,7 +50,9 @@ protected:
       return maxBytes;
    }
 
-   /** Overridden to enqeue a (signalMessage) whenever data is read. */
+   /** Overridden to enqeue a (signalMessage) whenever data is read.
+     * @copydoc AbstractMessageIOGateway::DoInputImplementation(AbstractGatewayMessageReceiver &, uint32)
+     */
    virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT)
    {
       char buf[256];
@@ -60,6 +66,6 @@ private:
 };
 DECLARE_REFTYPES(SignalMessageIOGateway);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

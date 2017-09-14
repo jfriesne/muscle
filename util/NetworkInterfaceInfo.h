@@ -74,10 +74,12 @@ public:
    /** For debugging.  Returns a human-readable string describing this interface. */
    String ToString() const;
 
-   /** Returns a hash code for this NetworkInterfaceInfo object. */
+   /** @copydoc DoxyTemplate::HashCode() const */
    uint32 HashCode() const;
 
-   /** Given a NETWORK_INTERFACE_HARDWARE_TYPE_* value, returns a human-readable string describing the type (e.g. "Ethernet" or "WiFi") */
+   /** Given a NETWORK_INTERFACE_HARDWARE_TYPE_* value, returns a human-readable string describing the type (e.g. "Ethernet" or "WiFi")
+     * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value
+     */
    static const char * GetNetworkHardwareTypeString(uint32 hardwareType);
 
 private:
@@ -167,7 +169,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
   */
 status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & retAddresses, uint32 includeBits = GNII_INCLUDE_ALL_ADDRESSED_INTERFACES);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif
 

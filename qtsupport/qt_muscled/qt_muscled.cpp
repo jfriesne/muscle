@@ -12,7 +12,9 @@ using namespace muscle;
 
 extern int muscledmain(int, char **);  // from muscled.cpp
 
-MuscledWindow :: MuscledWindow(const char * argv0) : _cpdio(false), _notifier(NULL)
+MuscledWindow :: MuscledWindow(const char * argv0)
+   : _cpdio(false)
+   , _notifier(NULL)
 {
    resize(800, 400);
    setWindowTitle("MUSCLEd Server Process");

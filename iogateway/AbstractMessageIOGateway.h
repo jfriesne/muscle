@@ -102,7 +102,10 @@ public:
    /** Returns a read-only reference to our held Queue of received Messages. */
    Queue<MessageRef> & GetMessages() {return _messageQueue;}
 
-   /** Convenience method, provided for backwards compatibility with older code. */
+   /** Convenience method; Removes the next item from the head of the queue and returns it.
+     * @param msg On success, the removed Message will be written into this MessageRef
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
    status_t RemoveHead(MessageRef & msg) {return _messageQueue.RemoveHead(msg);}
 
    /** Convenience method, provided for backwards compatibility with older code. */
@@ -301,20 +304,33 @@ protected:
    /** Called by ExecuteSynchronousMessaging() to see if we are still awaiting our reply Messages.  Default implementation calls HasBytesToOutput() and returns that value. */
    virtual bool IsStillAwaitingSynchronousMessagingReply() const {return HasBytesToOutput();}
 
-   /** Called by ExecuteSynchronousMessaging() when a Message is received.  Default implementation just passes the call on to the like-named method in (r) */ 
+   /** Called by ExecuteSynchronousMessaging() when a Message is received.  Default implementation just passes the call on to the like-named method in (r) 
+     * @param msg the Message that was received
+     * @param userData the user-data pointer, as was passed to ExecuteSynchronousMessaging()
+     * @param r the receiver object that we will call MessageReceivedFromGateway() on
+     */ 
    virtual void SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r) {r.MessageReceivedFromGateway(msg, userData);}
 
-   /** Called by ExecuteSynchronousMessaging() after a Message is received.  Default implementation just passes the call on to the like-named method in (r) */ 
+   /** Called by ExecuteSynchronousMessaging() after a Message is received.  Default implementation just passes the call on to the like-named method in (r)
+     * @param msg the Message that was received
+     * @param userData the user-data pointer, as was passed to ExecuteSynchronousMessaging()
+     * @param r the receiver object that we will call AfterMessageReceivedFromGateway() on
+     */ 
    virtual void SynchronousAfterMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r) {r.AfterMessageReceivedFromGateway(msg, userData);}
 
-   /** Called by ExecuteSynchronousMessaging() when a batch of Messages is about to be received.  Default implementation just passes the call on to the like-named method in (r) */ 
+   /** Called by ExecuteSynchronousMessaging() when a batch of Messages is about to be received.  Default implementation just passes the call on to the like-named method in (r)
+     * @param r the receiver object that we will call BeginMessageReceivedFromGatewayBatch() on
+     */ 
    virtual void SynchronousBeginMessageReceivedFromGatewayBatch(AbstractGatewayMessageReceiver & r) {r.BeginMessageReceivedFromGatewayBatch();}
 
-   /** Called by ExecuteSynchronousMessaging() when all Messages in a batch have been received.  Default implementation just passes the call on to the like-named method in (r) */ 
+   /** Called by ExecuteSynchronousMessaging() when all Messages in a batch have been received.  Default implementation just passes the call on to the like-named method in (r) 
+     * @param r the receiver object that we will call EndMessageReceivedFromGatewayBatch() on
+     */ 
    virtual void SynchronousEndMessageReceivedFromGatewayBatch(AbstractGatewayMessageReceiver & r) {r.EndMessageReceivedFromGatewayBatch();}
 
    /** Implementation of the AbstracteMessageIOGatewayReceiver interface:  calls AddOutgoingMessage(msg).
      * This way you can have the input of one gateway go directly to the output of another, without any intermediate step.
+     * @param msg the Message that was received from the gateway
      */
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * /*userData*/) {(void) AddOutgoingMessage(msg);}
 
@@ -332,6 +348,6 @@ private:
 };
 DECLARE_REFTYPES(AbstractMessageIOGateway);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

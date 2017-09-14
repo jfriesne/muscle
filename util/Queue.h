@@ -43,31 +43,32 @@ public:
    /** Default constructor.  */
    Queue();
 
-   /** Copy constructor. */
-   Queue(const Queue& copyMe);
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   Queue(const Queue& rhs);
 
    /** Destructor. */
    virtual ~Queue();
 
-   /** Assigment operator. */
-   Queue & operator=(const Queue & from);
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
+   Queue & operator=(const Queue & rhs);
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** Initialize list Constructor */
+   /** Initialize list Constructor (C++11 only)
+     * @param list the initializer-list of items to add to this Queue
+     */
    Queue(const std::initializer_list<ItemType> & list) : _queue(NULL), _queueSize(0), _itemCount(0) {(void) AddTailMulti(list);}
 
-   /** C++11 Move Constructor */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    Queue(Queue && rhs) : _queue(NULL), _queueSize(0), _itemCount(0) {if (rhs._queue == rhs._smallQueue) *this = rhs; else SwapContents(rhs);}
 
-   /** C++11 Move Assignment Operator */
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
    Queue & operator =(Queue && rhs) {if (rhs._queue == rhs._smallQueue) *this = rhs; else SwapContents(rhs); return *this;}
 #endif
 
-   /** Equality operator.  Queues are equal if they are the same length, and
-     * every nth item in this queue is == to the corresponding item in (rhs). */
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator==(const Queue & rhs) const;
 
-   /** Returns the negation of the equality operator */
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator!=(const Queue & rhs) const {return !(*this == rhs);}
 
    /** Similar to the assignment operator, except this method returns a status code.
@@ -413,11 +414,15 @@ public:
    /** Returns a pointer to the last item in the queue, or NULL if the queue is empty */
    ItemType * TailPointer() const {return GetItemAt(_itemCount-1);}
 
-   /** Convenient read-only array-style operator (be sure to only use valid indices!) */
-   const ItemType & operator [](uint32 Index) const; 
+   /** Convenient read-only array-style operator (be sure to only use valid indices!)
+     * @param index the index of the item to get (between 0 and (GetNumItems()-1), inclusive)
+     */
+   const ItemType & operator [](uint32 index) const; 
 
-   /** Convenient read-write array-style operator (be sure to only use valid indices!) */
-   ItemType & operator [](uint32 Index);
+   /** Convenient read-write array-style operator (be sure to only use valid indices!)
+     * @param index the index of the item to get (between 0 and (GetNumItems()-1), inclusive)
+     */
+   ItemType & operator [](uint32 index);
 
    /** Makes sure there is enough space allocated for at least (numSlots) items.  
     *  You only need to call this if you wish to minimize the number of data re-allocations done,
@@ -581,16 +586,24 @@ public:
     */
    status_t RemoveLastInstanceOf(const ItemType & val);
 
-   /** Returns true iff the first item in our queue is equal to (prefix). */
+   /** Returns true iff the first item in our queue is equal to (prefix). 
+     * @param prefix the item to check for at the head of this Queue
+     */
    bool StartsWith(const ItemType & prefix) const {return ((HasItems())&&(Head() == prefix));}
 
-   /** Returns true iff the (prefixQueue) is a prefix of this queue. */
+   /** Returns true iff the (prefixQueue) is a prefix of this queue. 
+     * @param prefixQueue the items to check for at the head of this Queue
+     */
    bool StartsWith(const Queue<ItemType> & prefixQueue) const;
 
-   /** Returns true iff the last item in our queue is equal to (suffix). */
+   /** Returns true iff the last item in our queue is equal to (suffix).
+     * @param suffix the item to check for at the tail of this Queue
+     */
    bool EndsWith(const ItemType & suffix) const {return ((HasItems())&&(Tail() == suffix));}
 
-   /** Returns true iff the (suffixQueue) is a suffix of this queue. */
+   /** Returns true iff the (suffixQueue) is a suffix of this queue. 
+     * @param suffixQueue the list of items to check for at the tail of this Queue
+     */
    bool EndsWith(const Queue<ItemType> & suffixQueue) const;
 
    /**
@@ -605,7 +618,13 @@ public:
     */ 
    ItemType * GetArrayPointer(uint32 whichArray, uint32 & retLength) {return const_cast<ItemType *>(GetArrayPointerAux(whichArray, retLength));} 
 
-   /** Read-only version of the above */
+   /** Read-only version of the above
+    *  @param whichArray Index of the internal array to return a pointer to.  Typically zero or one.
+    *  @param retLength The number of items in the returned sub-array will be written here.
+    *  @return Pointer to the first item in the sub-array on success, or NULL on failure.
+    *          Note that this array is only guaranteed valid as long as no items are
+    *          added or removed from the Queue.
+    */
    const ItemType * GetArrayPointer(uint32 whichArray, uint32 & retLength) const {return GetArrayPointerAux(whichArray, retLength);}
 
    /** Normalizes the layout of the items held in this Queue so that they are guaranteed to be contiguous 
@@ -1677,6 +1696,6 @@ Queue<ItemType>::Normalize()
    }
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

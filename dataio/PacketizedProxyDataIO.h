@@ -58,6 +58,6 @@ private:
 };
 DECLARE_REFTYPES(PacketizedProxyDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

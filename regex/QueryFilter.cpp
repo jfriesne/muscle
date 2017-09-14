@@ -432,4 +432,4 @@ void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory)
    _customQueryFilterFactoryRef = newFactory;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

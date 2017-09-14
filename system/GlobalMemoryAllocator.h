@@ -86,6 +86,6 @@ status_t MemoryParanoiaCheckBuffer(void * p, bool crashIfInvalid = true);
 # define muscleRealloc realloc
 #endif
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

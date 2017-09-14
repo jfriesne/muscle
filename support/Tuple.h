@@ -15,11 +15,13 @@ public:
    /** Default ctor;  All values are set to their default value. */
    Tuple() {Reset();}
 
-   /** Value constructor.  All items are set to (value) */
+   /** Value constructor.  All items are set to (value)
+     * @param value an item-value to set all of our item-value-slots to
+     */
    Tuple(const ItemType & value) {*this = value;}
 
-   /** Copy constructor */
-   Tuple(const Tuple & copyMe) {*this = copyMe;}
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   Tuple(const Tuple & rhs) {*this = rhs;}
 
    /** Silly constructor -- This constructor does no initialization at all.  The arguments are here merely to differentiate it
     *  from the other constructors, and are ignored.  When this constructor is used, the items in this Tuple will be in an
@@ -31,82 +33,120 @@ public:
    /** Destructor */
    ~Tuple() {/* empty */}
 
-   /** Assignment operator. */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    Tuple & operator =(const Tuple & rhs) {if (this != &rhs) {for (int i=0; i<NumItems; i++) _items[i] = rhs._items[i];} return *this;}
 
-   /** Assignment operator for copying data in from an appropriately-sized array. */
+   /** Assignment operator for copying data in from an appropriately-sized array.
+     * @param values an array of (NumItems) values tha we should set our own values to equal
+     */
    Tuple & operator =(const ItemType values[NumItems]) {for (int i=0; i<NumItems; i++) (*this)[i] = values[i]; return *this;}
 
-   /** Assignment operator for setting all values to the same value. */
+   /** Assignment operator for setting all values to the same value.
+     * @param value a value that we should set all of our own values to equal
+     */
    Tuple & operator =(const ItemType & value) {for (int i=0; i<NumItems; i++) (*this)[i] = value; return *this;}
 
-   /** Adds all indices in (rhs) to their counterparts in this object. */
+   /** Adds all indices in (rhs) to their counterparts in this object.
+     * @param rhs the Tuple whose values we should add to our own corresponding values
+     */
    Tuple & operator +=(const Tuple & rhs) {for (int i=0; i<NumItems; i++) _items[i] += rhs._items[i]; return *this;}
 
-   /** Subtracts all indices in (rhs) from their counterparts in this object. */
+   /** Subtracts all indices in (rhs) from their counterparts in this object.
+     * @param rhs the Tuple whose values we should subtract from our own corresponding values
+     */
    Tuple & operator -=(const Tuple & rhs) {for (int i=0; i<NumItems; i++) _items[i] -= rhs._items[i]; return *this;}
 
-   /** Multiplies all indices in this object by their counterparts in this (rhs). */
+   /** Multiplies all indices in this object by their counterparts in this (rhs).
+     * @param rhs the Tuple whose values we should multiply our own corresponding values by
+     */
    Tuple & operator *=(const Tuple & rhs) {for (int i=0; i<NumItems; i++) _items[i] *= rhs._items[i]; return *this;}
 
-   /** Divides all indices in this object by their counterparts in this object (rhs). */
+   /** Divides all indices in this object by their counterparts in this object (rhs).
+     * @param rhs the Tuple whose values we should divide our own corresponding values by
+     */
    Tuple & operator /=(const Tuple & rhs) {for (int i=0; i<NumItems; i++) _items[i] /= rhs._items[i]; return *this;}
 
-   /** Adds (value) to all indices in this object */
+   /** Adds (value) to all indices in this object
+     * @param value the value to add to each of our own values
+     */
    Tuple & operator +=(const ItemType & value) {for (int i=0; i<NumItems; i++) _items[i] += value; return *this;}
 
-   /** Subtracts (value) from all indices in this object. */
+   /** Subtracts (value) from all indices in this object.
+     * @param value the value to subtract from each of our own values
+     */
    Tuple & operator -=(const ItemType & value) {for (int i=0; i<NumItems; i++) _items[i] -= value; return *this;}
 
-   /** Multiplies all indices in this object by (value) */
+   /** Multiplies all indices in this object by (value)
+     * @param value the value to multiple each of our own values by
+     */
    Tuple & operator *=(const ItemType & value) {for (int i=0; i<NumItems; i++) _items[i] *= value; return *this;}
 
-   /** Divides all indices in this object by (value) */
+   /** Divides all indices in this object by (value)
+     * @param value the value to divide each of our own values by
+     */
    Tuple & operator /=(const ItemType & value) {for (int i=0; i<NumItems; i++) _items[i] /= value; return *this;}
 
-   /** Shifts the values of the indices left (numPlaces) spaces.  Default values (typically zero) are filled in on the right. */
+   /** Shifts the values of the indices left (numPlaces) spaces.  Default values (typically zero) are filled in on the right.
+     * @param numPlaces How many places to shift our values left by
+     */
    Tuple & operator <<=(int numPlaces) {ShiftValuesLeft(numPlaces); return *this;}
 
-   /** Shifts the values of the indices right (numPlaces) spaces.  Default values (typically zero) are filled in on the left. */
+   /** Shifts the values of the indices right (numPlaces) spaces.  Default values (typically zero) are filled in on the left.
+     * @param numPlaces How many places to shift our values right by
+     */
    Tuple & operator >>=(int numPlaces) {ShiftValuesRight(numPlaces); return *this;}
 
-   /** Returns true iff all indices in this object are equal to their counterparts in (rhs). */
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator ==(const Tuple & rhs) const {if (this != &rhs) {for (int i=0; i<NumItems; i++) if (_items[i] != rhs._items[i]) return false;} return true;}
 
-   /** Returns true iff any indices in this object are not equal to their counterparts in (rhs). */
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator !=(const Tuple & rhs) const {return !(*this == rhs);}
 
-   /** Comparison Operator.  Returns true if this tuple comes before (rhs) lexically. */
+   /** @copydoc DoxyTemplate::operator<(const DoxyTemplate &) const */
    bool operator < (const Tuple &rhs) const {if (this != &rhs) {for (int i=0; i<NumItems; i++) {if (_items[i] < rhs._items[i]) return true; if (_items[i] > rhs._items[i]) return false;}} return false;}
 
-   /** Comparison Operator.  Returns true if this tuple comes after (rhs) lexically. */
+   /** @copydoc DoxyTemplate::operator>(const DoxyTemplate &) const */
    bool operator > (const Tuple &rhs) const {if (this != &rhs) {for (int i=0; i<NumItems; i++) {if (_items[i] > rhs._items[i]) return true; if (_items[i] < rhs._items[i]) return false;}} return false;}
 
-   /** Comparison Operator.  Returns true if the two tuple are equal, or this tuple comes before (rhs) lexically. */
+   /** @copydoc DoxyTemplate::operator<=(const DoxyTemplate &) const */
    bool operator <=(const Tuple &rhs) const {return !(*this > rhs);}
 
-   /** Comparison Operator.  Returns true if the two tuple are equal, or this tuple comes after (rhs) lexically. */
+   /** @copydoc DoxyTemplate::operator>=(const DoxyTemplate &) const */
    bool operator >=(const Tuple &rhs) const {return !(*this < rhs);}
 
-   /** Read-write array operator (not bounds-checked) */
+   /** Read-write array operator (not bounds-checked)
+     * @param i the index of the value to return.  Should be in the range [0, NumItems-1], inclusive.
+     */
    ItemType & operator [](uint32 i) {return _items[i];}
 
-   /** Read-only array operator (not bounds-checked) */
+   /** Read-only array operator (not bounds-checked)
+     * @param i the index of the value to return.  Should be in the range [0, NumItems-1], inclusive.
+     */
    const ItemType & operator [](uint32 i) const {return _items[i];}
 
-   /** Returns the dot-product of (this) and (rhs) */
+   /** Returns the dot-product of (this) and (rhs)
+     * @param rhs the other Tuple to calculate the dot-product of
+     */
    ItemType DotProduct(const Tuple & rhs) const {ItemType dp = ItemType(); for (int i=0; i<NumItems; i++) dp += (_items[i]*rhs._items[i]); return dp;}
 
-   /** Returns true iff one of our member items is equal to (value). */
+   /** Returns true iff one of our member items is equal to (value).
+     * @param value the item-value to check to see if we contain
+     */
    bool Contains(const ItemType & value) const {return (IndexOf(value) >= 0);}
 
-   /** Returns the index of the first value equal to (value), or -1 if not found. */
+   /** Returns the index of the first value equal to (value), or -1 if not found. 
+     * @param value the item-value to look for the first instance of
+     */
    int IndexOf(const ItemType & value) const {for (int i=0; i<NumItems; i++) if (_items[i] == value) return i; return -1;}
 
-   /** Returns the index of the last value equal to (value), or -1 if not found. */
+   /** Returns the index of the last value equal to (value), or -1 if not found. 
+     * @param value the item-value to look for the final instance of
+     */
    int LastIndexOf(const ItemType & value) const {for (int i=NumItems-1; i>=0; i--) if (_items[i] == value) return i; return -1;}
 
-   /** Works like strcmp(), only for a tuple. */
+   /** Works like strcmp(), only for a tuple.
+     * @param rhs the Tuple to compare against
+     */
    int Compare(const Tuple & rhs) const {for (int i=0; i<NumItems; i++) {if (_items[i] < rhs[i]) return -1; if (_items[i] > rhs[i]) return 1;} return 0;}
 
    /** Returns the minimum value from amongst all the items in the tuple */
@@ -118,7 +158,9 @@ public:
    /** Multiplies each value by itself, and returns the sum */
    ItemType GetLengthSquared() const {ItemType sum = ItemType(); for (int i=0; i<NumItems; i++) sum += (_items[i]*_items[i]); return sum;}
 
-   /** Returns the number of times (value) appears in this tuple */
+   /** Returns the number of times (value) appears in this tuple 
+     * @param value the item-value to count the appearances of
+     */
    uint32 GetNumInstancesOf(const ItemType & value) const {uint32 count = 0; for (int i=0; i<NumItems; i++) if (_items[i] == value) count++; return count;}
 
    /** Returns true iff the all index values in the given range match those of the given Tuple
@@ -193,10 +235,14 @@ public:
    /** typedef for our item type; used by the binary operators below */
    typedef ItemType TupleItemType;
 
-   /** Convenience method -- returns a pointer to the nth item in our tuple. */
+   /** Convenience method -- returns a pointer to the nth item in our tuple.
+     * @param which the index of the item-value to return a pointer to
+     */
    ItemType * GetItemPointer(uint32 which) {return &_items[which];}
 
-   /** Convenience method -- returns a read-only pointer to the nth item in our tuple. */
+   /** Convenience method -- returns a read-only pointer to the nth item in our tuple. 
+     * @param which the index of the item-value to return a pointer to
+     */
    const ItemType * GetItemPointer(uint32 which) const {return &_items[which];}
 
    /** Returns a hash code for this Tuple.  Implementing this allows Tuples to be used as keys in Hashtables. */
@@ -293,6 +339,6 @@ template <int N,class T> inline const Tuple<N,T> operator /  (const Tuple<N,T> &
         DECLARE_DIVISION_TUPLE_OPERATORS(C,I)  \
         DECLARE_SHIFT_TUPLE_OPERATORS(C)
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

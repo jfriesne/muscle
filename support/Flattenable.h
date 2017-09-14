@@ -32,36 +32,25 @@ public:
    /** Destructor */
    virtual ~Flattenable() {/* empty */}
 
-   /** Should return true iff every object of this type has a size that is known at compile time. */
+   /** @copydoc DoxyTemplate::IsFixedSize() const */ 
    virtual bool IsFixedSize() const = 0;
 
-   /** Should return the type code identifying this type of object.  */
+   /** @copydoc DoxyTemplate::TypeCode() const */ 
    virtual uint32 TypeCode() const = 0;
 
-   /** Should return the number of bytes needed to store this object in its current state.  */
+   /** @copydoc DoxyTemplate::FlattenedSize() const */ 
    virtual uint32 FlattenedSize() const = 0;
 
-   /** 
-    *  Should store this object's state into (buffer). 
-    *  @param buffer The bytes to write this object's stat into.  Buffer must be at least FlattenedSize() bytes long.
-    */
+   /** @copydoc DoxyTemplate::Flatten(uint8 *) const */ 
    virtual void Flatten(uint8 *buffer) const = 0;
 
-   /** 
-    *  Should return true iff a buffer with uint32 (code) can be used to reconstruct
-    *  this object's state.  Defaults implementation returns true iff (code) equals TypeCode() or B_RAW_DATA.
-    *  @param code A type code constant, e.g. B_RAW_TYPE or B_STRING_TYPE, or something custom.
-    *  @return True iff this object can Unflatten from a buffer of the given type, false otherwise.
-    */
-   virtual bool AllowsTypeCode(uint32 code) const {return ((code == B_RAW_TYPE)||(code == TypeCode()));}
+   /** @copydoc DoxyTemplate::AllowsTypeCode(uint32) const 
+     * @note base class's default implementation returns true iff (tc) equals either B_RAW_DATA, or the value returned by TypeCode().
+     */ 
+   virtual bool AllowsTypeCode(uint32 tc) const {return ((tc == B_RAW_TYPE)||(tc == TypeCode()));}
 
-   /** 
-    *  Should attempt to restore this object's state from the given buffer.
-    *  @param buf The buffer of bytes to unflatten from.
-    *  @param size Number of bytes in the buffer.
-    *  @return B_NO_ERROR if the Unflattening was successful, else B_ERROR.
-    */
-   virtual status_t Unflatten(const uint8 *buf, uint32 size) = 0;
+   /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
+   virtual status_t Unflatten(const uint8 *buffer, uint32 size) = 0;
 
    /** 
     *  Causes (copyTo)'s state to set from this Flattenable, if possible. 
@@ -106,7 +95,7 @@ public:
    {
       memcpy(&outBuf[*writeOffset], copyFrom, blockSize);
       *writeOffset += blockSize;
-   };
+   }
     
    /** 
     * Convenience method for safely reading bytes from a byte buffer.  (Checks to avoid buffer overrun problems)
@@ -123,7 +112,7 @@ public:
       memcpy(copyTo, &inBuf[*readOffset], blockSize);
       *readOffset += blockSize;
       return B_NO_ERROR;
-   };
+   }
 
    /** Convenience method.  Flattens this object into the supplied ByteBuffer object. 
      * @param outBuf the ByteBuffer to dump our flattened bytes into.  
@@ -216,7 +205,7 @@ public:
 /*-------------------------------------------------------------*/
 /*-------------------------------------------------------------*/
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif /* _MUSCLEFLATTENABLE_H */
 

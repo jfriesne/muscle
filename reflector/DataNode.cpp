@@ -5,7 +5,11 @@
 
 namespace muscle {
 
-DataNode :: DataNode() : _children(NULL), _orderedIndex(NULL), _orderedCounter(0L), _subscribers(NULL)  // _parent and _cachedDataChecksum will be set in Init()/Reset(), not here
+DataNode :: DataNode()
+   : _children(NULL)
+   , _orderedIndex(NULL)
+   , _orderedCounter(0L)
+   , _subscribers(NULL)  // _parent and _cachedDataChecksum will be set in Init()/Reset(), not here
 {
    // empty
 }
@@ -481,4 +485,4 @@ DataNodeRef DataNode :: GetDescendantAux(const char * subPath) const
    else return GetChild(subPath);
 }
 
-}; // end namespace muscle
+} // end namespace muscle

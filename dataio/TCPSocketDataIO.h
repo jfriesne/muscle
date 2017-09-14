@@ -50,7 +50,9 @@ public:
     */
    virtual uint64 GetOutputStallLimit() const {return _stallLimit;}
 
-   /** Set a new output stall time limit.  Set to MUSCLE_TIME_NEVER to disable stall limiting.  */
+   /** Set a new output stall time limit.  Set to MUSCLE_TIME_NEVER to disable stall limiting.
+     * @param limit the new time-limit, in microseconds, or MUSCLE_TIME_NEVER
+     */
    void SetOutputStallLimit(uint64 limit) {_stallLimit = limit;}
 
    /**
@@ -122,6 +124,6 @@ private:
 };
 DECLARE_REFTYPES(TCPSocketDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

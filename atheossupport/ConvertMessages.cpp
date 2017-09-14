@@ -128,4 +128,4 @@ status_t ConvertFromAMessage(const os::Message & from, Message & to)
    return B_NO_ERROR;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

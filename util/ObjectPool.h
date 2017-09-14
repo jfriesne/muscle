@@ -191,7 +191,9 @@ public:
    /** AbstractObjectGenerator API:  Useful for polymorphism */
    virtual void * ObtainObjectGeneric() {return ObtainObject();}
 
-   /** AbstractObjectRecycler API:  Useful for polymorphism */
+   /** AbstractObjectRecycler API:  Useful for polymorphism
+     * @param obj the object to recycle
+     */
    virtual void RecycleObject(void * obj) {ReleaseObject((Object *)obj);}
     
    /** Implemented to call Drain() and return the number of objects drained. */
@@ -279,8 +281,9 @@ public:
      * value will not cause any object to be added or removed to the
      * pool immediately;  rather the new size will be enforced only
      * on future operations.
+     * @param maxPoolSize the new approximate maximum number of recycled objects that may be kept around for future reuse at any one time.
      */
-   void SetMaxPoolSize(uint32 mps) {_maxPoolSize = mps;}
+   void SetMaxPoolSize(uint32 maxPoolSize) {_maxPoolSize = maxPoolSize;}
 
    /** Returns a read-only reference to a persistent Object that is default-constructed. */
    const Object & GetDefaultObject() const {return GetDefaultObjectForType<Object>();}
@@ -332,6 +335,7 @@ private:
 
    enum {INVALID_NODE_INDEX = ((uint16)-1)};  // the index-version of a NULL pointer
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
    class ObjectNode
    {
    public:
@@ -503,6 +507,7 @@ private:
       ObjectSlabData _data;                     // must be declared after _nodes!  That's why ObjectSlab can't just inherit from this class
       // Any other member variables should be added to the ObjectSlabData class rather than here, so that we can calculate NUM_OBJECTS_PER_SLAB correctly
    };
+#endif
 
    // Must be called with _mutex locked!   Returns either NULL, or a pointer to a
    // newly allocated Object.
@@ -567,6 +572,6 @@ private:
    ObjectSlab * _lastSlab;
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

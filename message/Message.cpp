@@ -772,7 +772,11 @@ static bool AreByteBufferPointersEqual(const ByteBuffer * myBuf, const ByteBuffe
 class ByteBufferDataArray : public FlatCountableRefDataArray<FlatCountableRef, B_RAW_TYPE>
 {
 public:
-   ByteBufferDataArray() : _typeCode(B_RAW_TYPE) {/* empty */}
+   ByteBufferDataArray()
+      : _typeCode(B_RAW_TYPE) 
+   {
+      // empty
+   }
    virtual ~ByteBufferDataArray() {/* empty */}
 
    /** Sets our type code.  Typically called after using the default ctor. */
@@ -2982,4 +2986,4 @@ void MessageField :: Clear()
    _state = FIELD_STATE_EMPTY;
 }
 
-}; // end namespace muscle
+} // end namespace muscle

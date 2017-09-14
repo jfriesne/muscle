@@ -144,10 +144,11 @@ public:
      */
    explicit ConstRef(const Item * item, bool doRefCount = true) : _item(item, doRefCount) {RefItem();} 
 
-   /** Copy constructor.  Creates an additional reference to the object referenced by (copyMe).
+   /** Copy constructor.  Creates an additional reference to the object referenced by (rhs).
     *  The referenced object won't be deleted until ALL Refs that reference it are gone.
+    *  @param rhs the object to make this a copy of.  Note that the data pointed to by (rhs) is not duplicated, only double-referenced.
     */
-   ConstRef(const ConstRef & copyMe) : _item(NULL, true) {*this = copyMe;}
+   ConstRef(const ConstRef & rhs) : _item(NULL, true) {*this = rhs;}
 
    /** This constructor is useful for automatic upcasting (e.g. creating an ConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
      * @param refItem A Ref or ConstRef to copy our state from.
@@ -155,9 +156,7 @@ public:
    template<typename T> ConstRef(const ConstRef<T> & refItem) : _item(refItem(), refItem.IsRefCounting()) {RefItem();}
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** C++11 Move Constructor 
-     * @param rhs Item whose contents we can steal to acquire its state, as part of a move operation.
-     */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    ConstRef(ConstRef && rhs) {this->SwapContents(rhs);}
 #endif
 
@@ -226,15 +225,14 @@ public:
    inline ConstRef &operator=(const ConstRef & rhs) {this->SetRef(rhs.GetItemPointer(), rhs.IsRefCounting()); return *this;}
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** C++11 Move Assignment operator
-     * @param rhs Item whose contents we can steal to acquire its state, as part of a move operation.
-     */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    inline ConstRef &operator=(ConstRef && rhs) {this->SwapContents(rhs); return *this;}
 #endif
 
    /** Similar to the == operator, except that this version will also call the comparison operator
      * on the objects themselves if necessary, to determine exact equality.  (This is different than
      * the behavior of the == operator, which only compares the pointers, not the objects themselves) 
+     * @param rhs the ConstRef whose referenced object we will compare to our own referenced object.
      */
    bool IsDeeplyEqualTo(const ConstRef & rhs) const
    {
@@ -245,16 +243,24 @@ public:
       return ((myItem == NULL)||(*myItem == *hisItem));
    }
 
-   /** Returns true iff both Refs are referencing the same data. */
+   /** Returns true iff both ConstRefs are referencing the same data.
+     * @param rhs the ConstRef to compare pointers with
+     */
    bool operator ==(const ConstRef &rhs) const {return this->GetItemPointer() == rhs.GetItemPointer();}
  
-   /** Returns true iff both Refs are not referencing the same data. */
+   /** Returns true iff both Refs are not referencing the same data. 
+     * @param rhs the ConstRef to compare pointers with
+     */
    bool operator !=(const ConstRef &rhs) const {return this->GetItemPointer() != rhs.GetItemPointer();}
  
-   /** Compares the pointers the two Refs are referencing. */
+   /** Compares the pointers the two Refs are referencing.
+     * @param rhs the ConstRef to compare pointers with
+     */
    bool operator < (const ConstRef &rhs) const {return this->GetItemPointer() < rhs.GetItemPointer();}
 
-   /** Compares the pointers the two Refs are referencing. */
+   /** Compares the pointers the two Refs are referencing.
+     * @param rhs the ConstRef to compare pointers with
+     */
    bool operator > (const ConstRef &rhs) const {return this->GetItemPointer() > rhs.GetItemPointer();}
 
    /** Returns the ref-counted data item.  The returned data item
@@ -319,6 +325,7 @@ public:
      * the user's code to guarantee that the conversion is valid.  If (refCountableRef)
      * references an object of the wrong type, undefined behaviour (read: crashing)
      * will likely occur.
+     * @param refCountableRef the ConstRefCountableRef object we should become equal to
      */
    inline void SetFromRefCountableRefUnchecked(const ConstRefCountableRef & refCountableRef)
    {
@@ -418,7 +425,11 @@ private:
 template <typename ItemType> class CompareFunctor<ConstRef<ItemType> >
 {
 public:
-   /** Compares the two ConstRef's strcmp() style, returning zero if they are equal, a negative value if (item1) comes first, or a positive value if (item2) comes first. */
+   /** Compares the two ConstRef's strcmp() style, returning zero if they are equal, a negative value if (item1) comes first, or a positive value if (item2) comes first.
+     * @param item1 the first item to compare
+     * @param item2 the first item to compare
+     * @param cookie arbitrary user-specific value
+     */
    int Compare(const ConstRef<ItemType> & item1, const ConstRef<ItemType> & item2, void * cookie) const {return CompareFunctor<const ItemType *>().Compare(item1(), item2(), cookie);}
 };
 
@@ -451,10 +462,11 @@ public:
      */
    explicit Ref(Item * item, bool doRefCount = true) : ConstRef<Item>(item, doRefCount) {/* empty */}
 
-   /** Copy constructor.  Creates an additional reference to the object referenced by (copyMe).
+   /** Copy constructor.  Creates an additional reference to the object referenced by (rhs).
     *  The referenced object won't be deleted until ALL Refs that reference it are gone.
+    *  @param rhs the object to make this object a duplicate of
     */
-   Ref(const Ref & copyMe) : ConstRef<Item>(copyMe) {/* empty */}
+   Ref(const Ref & rhs) : ConstRef<Item>(rhs) {/* empty */}
 
    /** This constructor is useful for automatic upcasting (e.g. creating an AbstractReflectSessionRef from a StorageReflectSessionRef)
      * @param refItem A Ref to copy our state from.
@@ -462,9 +474,7 @@ public:
    template<typename T> Ref(const Ref<T> & refItem) : ConstRef<Item>(refItem(), refItem.IsRefCounting()) {/* empty */}
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** C++11 Move Constructor 
-     * @param rhs Item whose contents we can steal to acquire its state, as part of a move operation.
-     */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    Ref(Ref && rhs) {this->SwapContents(rhs);}
 #endif
 
@@ -496,9 +506,7 @@ public:
    inline Ref &operator=(const Ref & rhs) {this->SetRef(rhs.GetItemPointer(), rhs.IsRefCounting()); return *this;}
 
 #ifdef MUSCLE_USE_CPLUSPLUS11
-   /** C++11 Move Assignment operator
-     * @param rhs Item whose contents we can steal to acquire its state, as part of a move operation.
-     */
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    inline Ref &operator=(Ref && rhs) {this->SwapContents(rhs); return *this;}
 #endif
 };
@@ -522,6 +530,6 @@ template <class Item> inline Item * CheckedGetItemPointer(const Ref<Item> * rt) 
   */
 template <class Item> inline Ref<Item> CastAwayConstFromRef(const ConstRef<Item> & constItem) {return Ref<Item>(const_cast<Item *>(constItem()), constItem.IsRefCounting());}
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

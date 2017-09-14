@@ -248,7 +248,11 @@ AttachNewSession(const AbstractReflectSessionRef & ref)
 }
 
 
-ReflectServer :: ReflectServer() : _keepServerGoing(true), _serverStartedAt(0), _doLogging(true), _serverSessionID(GetCurrentTime64()+GetRunTime64()+rand())
+ReflectServer :: ReflectServer()
+   : _keepServerGoing(true)
+   , _serverStartedAt(0)
+   , _doLogging(true)
+   , _serverSessionID(GetCurrentTime64()+GetRunTime64()+rand())
 {
    if (_serverSessionID == 0) _serverSessionID++;  // paranoia:  make sure 0 can be used as a guard value
 
@@ -1098,4 +1102,4 @@ AddLameDuckSession(AbstractReflectSession * who)
    }
 }
 
-}; // end namespace muscle
+} // end namespace muscle

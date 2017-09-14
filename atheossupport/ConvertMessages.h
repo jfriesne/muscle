@@ -27,6 +27,6 @@ status_t ConvertToAMessage(const muscle::Message & from, os::Message & to);
  */
 status_t ConvertFromAMessage(const os::Message & from, muscle::Message & to);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

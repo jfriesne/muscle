@@ -110,4 +110,4 @@ EndIO(uint64)
    // empty
 }
 
-}; // end namespace muscle
+} // end namespace muscle

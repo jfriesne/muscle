@@ -92,7 +92,7 @@ private:
 };
 DECLARE_REFTYPES(Win32FileHandleDataIO);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif
 

@@ -34,7 +34,9 @@ public:
    /** Destructor.  Prints out a log message with the elapsed time, in milliseconds, spent in each mode. */
    ~DebugTimer();
 
-   /** Set the timer to record elapsed time to a different mode. */
+   /** Set the timer to record elapsed time to a different mode.
+    *  @param newMode the mode we switching our timing mechanism to record elapsed time into.  (mode-numbering is arbitrary and up to the caller)
+     */
    void SetMode(uint32 newMode);
 
    /** Returns the currently active mode number */
@@ -45,6 +47,7 @@ public:
 
    /** Returns the amount of elapsed time, in microseconds, that has been spent in the given mode.
     *  Note that if (whichMode) is the currently active mode, the returned value will be growing from moment to moment. 
+    *  @param whichMode the mode we are querying the elapsed-time for (mode-numbering is arbitrary and up to the caller)
     */
    uint64 GetElapsedTime(uint32 whichMode) const 
    {
@@ -52,13 +55,17 @@ public:
       return (et ? *et : 0) + ((whichMode == _currentMode) ? (MUSCLE_DEBUG_TIMER_CLOCK-_startTime) : 0);
    }
 
-   /** Set whether or not the destructor should print results to the system log.  Default is true. */
+   /** Set whether or not the destructor should print results to the system log.  Default is true. 
+     * @param e true to enable logging, false to disable it 
+     */
    void SetLogEnabled(bool e) {_enableLog = e;}
 
    /** Returns the state of the print-to-log-enabled, as set by SetLogEnabled() */
    bool IsLogEnabled() const {return _enableLog;}
 
-   /** Set the minimum-log-time value, in microseconds.  Time intervals shorter than this will not be logged.  Defaults to zero. */
+   /** Set the minimum-log-time value, in microseconds.  Time intervals shorter than this will not be logged.  Defaults to zero.
+     * @param lt time threshold, in microseconds
+     */
    void SetMinLogTime(uint64 lt) {_minLogTime = lt;}
 
    /** Returns the current minimum-log-time value, in microseconds. */
@@ -82,6 +89,6 @@ private:
 # define DECLARE_DEBUGTIMER(args...) DECLARE_ANONYMOUS_STACK_OBJECT(DebugTimer, args)
 #endif
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

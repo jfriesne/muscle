@@ -183,6 +183,6 @@ status_t ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO & destInflated
 #endif
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

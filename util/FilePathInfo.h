@@ -91,6 +91,6 @@ private:
    uint64 _mtime;  // modification time
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

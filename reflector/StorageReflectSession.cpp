@@ -13,7 +13,8 @@ namespace muscle {
 // field under which we file our shared data in the central-state message
 static const String SRS_SHARED_DATA = "srs_shared";
 
-StorageReflectSessionFactory :: StorageReflectSessionFactory() : _maxIncomingMessageSize(MUSCLE_NO_LIMIT)
+StorageReflectSessionFactory :: StorageReflectSessionFactory()
+   : _maxIncomingMessageSize(MUSCLE_NO_LIMIT)
 {
    // empty
 }
@@ -450,7 +451,12 @@ AfterMessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
 class GetSubtreesCallbackArgs
 {
 public:
-   GetSubtreesCallbackArgs(Message * replyMsg, int32 maxDepth) : _replyMsg(replyMsg), _maxDepth(maxDepth) {/* empty */}
+   GetSubtreesCallbackArgs(Message * replyMsg, int32 maxDepth)
+      : _replyMsg(replyMsg)
+      , _maxDepth(maxDepth) 
+   {
+      // empty
+   }
 
    Message * GetReplyMessage() const {return _replyMsg;}
    int32 GetMaxDepth() const {return _maxDepth;}
@@ -850,7 +856,10 @@ void StorageReflectSession :: UpdateDefaultMessageRoute()
 class FindMatchingSessionsData
 {
 public:
-   FindMatchingSessionsData(Hashtable<const String *, AbstractReflectSessionRef> & results, uint32 maxResults) : _results(results), _ret(B_NO_ERROR), _maxResults(maxResults) 
+   FindMatchingSessionsData(Hashtable<const String *, AbstractReflectSessionRef> & results, uint32 maxResults)
+      : _results(results)
+      , _ret(B_NO_ERROR)
+      , _maxResults(maxResults)
    {
       // empty
    }
@@ -935,7 +944,10 @@ status_t StorageReflectSession :: SendMessageToMatchingSessions(const MessageRef
 class FindMatchingNodesData
 {
 public:
-   FindMatchingNodesData(Queue<DataNodeRef> & results, uint32 maxResults) : _results(results), _ret(B_NO_ERROR), _maxResults(maxResults) 
+   FindMatchingNodesData(Queue<DataNodeRef> & results, uint32 maxResults)
+      : _results(results)
+      , _ret(B_NO_ERROR)
+      , _maxResults(maxResults)
    {
       // empty
    }
@@ -1894,5 +1906,5 @@ void StorageReflectSession :: PrintSessionsInfo() const
    printf("Totals: " UINT32_FORMAT_SPEC " messages, " UINT32_FORMAT_SPEC " message-bytes, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes.\n", totalNumOutMessages, totalNumOutBytes, totalNumNodes, totalNumNodeBytes);
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 

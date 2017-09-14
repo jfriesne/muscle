@@ -13,11 +13,19 @@ extern "C" {
  *  This is a minimalist implentation and not so easy to use as the C++ Message
  *  class, but on the plus side it is much more space-efficient, compiling
  *  to just over 80KB of code.
+ *
+ *  @note This implementation employs dynamic memory-allocation internally,
+ *        and as such is potentially subject to memory leaks or heap fragmentation.
+ *        If you're looking for a super-lightweight implementation that never
+ *        uses the heap at all, check out the \ref micromessage, in
+ *        the muscle/micromessage folder.
  *  @{
  */
 
 /** My own little boolean type, since C doesn't come with one built in. */
 typedef char MBool;
+
+/** Supported values for the MBool type */
 enum {
    MFalse = 0, /**< Constant value for boolean-false (zero) */
    MTrue       /**< Constant value for boolean-true (one)   */
@@ -556,16 +564,21 @@ const char * MMGetNextFieldName(MMessageIterator * iteratorPtr, uint32 * optRetT
 
 /** A wrapper for malloc() that allows us to track the number of bytes currently allocated.  
   * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise defined to be equivalent to malloc().
+  * @param numBytes the number of bytes to allocate
   */
 void * MMalloc(uint32 numBytes);
 
 /** A wrapper for free() that allows us to track the number of bytes currently allocated.
   * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise defined to be equivalent to free().
+  * @param ptr the buffer to free (as previously allocated using MMalloc())
   */
 void * MFree(void * ptr);
 
 /** A wrapper for realloc() that allows us to track the number of bytes currently allocated.
   * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise defined to be equivalent to realloc().
+  * @param oldBuf a pointer to reallocate, realloc() style
+  * @param newSize the desired size of the post-reallocation buffer
+  * @returns a pointer to the post-reallocation buffer
   */
 void * MRealloc(void * oldBuf, uint32 newSize);
 

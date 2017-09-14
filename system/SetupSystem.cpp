@@ -927,7 +927,9 @@ void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
 static CompleteSetupSystem * _activeCSS = NULL;
 CompleteSetupSystem * CompleteSetupSystem :: GetCurrentCompleteSetupSystem() {return _activeCSS;}
 
-CompleteSetupSystem :: CompleteSetupSystem(bool muscleSingleThreadOnly) : _threads(muscleSingleThreadOnly), _prevInstance(_activeCSS)
+CompleteSetupSystem :: CompleteSetupSystem(bool muscleSingleThreadOnly)
+   : _threads(muscleSingleThreadOnly)
+   , _prevInstance(_activeCSS)
 {
    _activeCSS = this;  // push us onto the stack
 }
@@ -1507,7 +1509,12 @@ String HexBytesToAnnotatedString(const ConstByteBufferRef & bbRef, const char * 
    return HexBytesToAnnotatedString(bbRef()?bbRef()->GetBuffer():NULL, bbRef()?bbRef()->GetNumBytes():0, optDesc, numColumns);
 }
 
-DebugTimer :: DebugTimer(const String & title, uint64 mlt, uint32 startMode, int debugLevel) : _currentMode(startMode+1), _title(title), _minLogTime(mlt), _debugLevel(debugLevel), _enableLog(true)
+DebugTimer :: DebugTimer(const String & title, uint64 mlt, uint32 startMode, int debugLevel)
+   : _currentMode(startMode+1)
+   , _title(title)
+   , _minLogTime(mlt)
+   , _debugLevel(debugLevel)
+   , _enableLog(true)
 {
    SetMode(startMode);
    _startTime = MUSCLE_DEBUG_TIMER_CLOCK;  // re-set it here so that we don't count the Hashtable initialization!
@@ -1863,7 +1870,9 @@ void ObjectCounterBase :: RemoveObjectCounterBaseFromGlobalCountersList()
    if (_nextCounter) _nextCounter->_prevCounter = _prevCounter;
 }
 
-ObjectCounterBase :: ObjectCounterBase() : _prevCounter(NULL), _nextCounter(NULL)
+ObjectCounterBase :: ObjectCounterBase()
+   : _prevCounter(NULL)
+   , _nextCounter(NULL)
 {
    if (_muscleLock)
    {
@@ -2182,4 +2191,4 @@ void PrintBuildFlags()
    for (uint32 i=0; i<flagStrs.GetNumItems(); i++) printf("MUSCLE code was compiled with preprocessor flag -D%s\n", flagStrs[i]());
 }
 
-}; // end namespace muscle
+} // end namespace muscle

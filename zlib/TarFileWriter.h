@@ -7,15 +7,12 @@
 
 namespace muscle {
 
-/** @defgroup tarfileutilityfunctions The TarFileUtilityFunctions function API
- *  These functions deal with .tar files in a cross-platform-compatible manner.
- *  (I use these instead of libtar, because libtar doesn't work under Windows,
+/** These TarFileWriter class writes .tar files in a cross-platform-compatible manner.
+ *  (I use this code instead of libtar because libtar doesn't work under Windows,
  *  and it doesn't support streaming data into a tar file easily).  Currently
  *  only the writing of a .tar file is supported; at some point I may add
  *  support for reading .tar files as well.
- *  @{
  */
-
 class TarFileWriter
 {
 public:
@@ -112,8 +109,6 @@ private:
    uint8 _currentHeaderBytes[TAR_BLOCK_SIZE];
 };
 
-/** @} */ // end of tarfileutilityfunctions doxygen group
-
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

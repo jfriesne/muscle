@@ -17,13 +17,15 @@ static void muscleZLibFree(void *, void * address) {muscleFree(address);}
 # define MUSCLE_ZLIB_FREE  Z_NULL
 #endif
 
-ZLibDataIO :: ZLibDataIO(int compressionLevel) : _compressionLevel(compressionLevel)
+ZLibDataIO :: ZLibDataIO(int compressionLevel)
+   : _compressionLevel(compressionLevel)
 {
    Init();
    SetChildDataIO(DataIORef());  // necessary to get the ZLib stuff initialized
 }
 
-ZLibDataIO :: ZLibDataIO(const DataIORef & childIO, int compressionLevel) : _compressionLevel(compressionLevel)  // deliberately NOT calling ProxyDataIO(childIO) ctor here!
+ZLibDataIO :: ZLibDataIO(const DataIORef & childIO, int compressionLevel)
+   : _compressionLevel(compressionLevel)  // deliberately NOT calling ProxyDataIO(childIO) ctor here!
 {
    Init();
    SetChildDataIO(childIO);  // necessary to get the ZLib stuff initialized
@@ -212,6 +214,6 @@ void ZLibDataIO :: WriteBufferedOutput()
    (void) WriteAux(NULL, 0, false);
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

@@ -9,7 +9,11 @@ using namespace muscle;
 class TestClient : public IThreadPoolClient
 {
 public:
-   TestClient() : IThreadPoolClient(NULL) {/* empty */}
+   TestClient()
+      : IThreadPoolClient(NULL) 
+   {
+      // empty
+   }
 
    virtual void MessageReceivedFromThreadPool(const MessageRef & msgRef, uint32 numLeft)
    {

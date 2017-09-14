@@ -14,6 +14,12 @@ extern "C" {
  *  @{
  */
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+
+/** This struct represents the state of the gateway we use to flatten/send and receive/unflatten messages.
+  * Fields in this struct should be considered private; use the UG* functions in MicroMessageGateway.h
+  * rather than accessing these fields directly.
+  */
 typedef struct _UMessageGateway {
    uint8 * _inputBuffer;
    uint32 _inputBufferSize;
@@ -25,6 +31,8 @@ typedef struct _UMessageGateway {
    uint32 _numValidOutputBytes;
    UBool _preparingOutgoingMessage;
 } UMessageGateway;
+
+#endif
 
 /** Initializes the specified UMessageGateway struct to point to the specified memory buffers.
   * @param gateway the UMessageGateway to initialize.

@@ -98,6 +98,6 @@ private:
 };
 DECLARE_REFTYPES(Directory);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

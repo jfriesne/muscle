@@ -222,16 +222,26 @@ public:
    ~PulseNodeManager() {/* empty */}
 
 protected:
-   /** Passes the call on through to the given PulseNode */
+   /** Passes the call on through to the given PulseNode
+     * @param p the PulseNode to call GetPulseTimeAux() on
+     * @param now the approximate current time in microseconds, as returned by GetRunTime64()
+     * @param min the current minimum time across all our nodes; GetPulseTimeAux() may make this time smaller if necessary.
+     */
    inline void CallGetPulseTimeAux(PulseNode & p, uint64 now, uint64 & min) const {p.GetPulseTimeAux(now, min);}
 
-   /** Passes the call on through to the given PulseNode */
+   /** Passes the call on through to the given PulseNode
+     * @param p the PulseNode to call PulseAux() on
+     * @param now the approximate current time in microseconds, as returned by GetRunTime64()
+     */
    inline void CallPulseAux(PulseNode & p, uint64 now) const {if (now >= p._aggregatePulseTime) p.PulseAux(now);}
 
-   /** Passes the call on through to the given PulseNode */
+   /** Passes the call on through to the given PulseNode
+     * @param p the PulseNode to call SetCycleStartTime() on
+     * @param now the approximate current time in microseconds, as returned by GetRunTime64()
+     */
    inline void CallSetCycleStartTime(PulseNode & p, uint64 now) const {p.SetCycleStartTime(now);}
 };
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

@@ -61,10 +61,15 @@ public:
    /** Returns a reference to our QueryFilter object.  May be a NULL reference. */
    ConstQueryFilterRef GetFilter() const {return _filter;}
 
-   /** Sets our QueryFilter object to the specified reference.  Pass in a NULL reference to remove any existing QueryFilter. */
+   /** Sets our QueryFilter object to the specified reference.  Pass in a NULL reference to remove any existing QueryFilter.
+     * @param filter read-only reference to the QueryFilter to use, or a NULL reference.
+     */
    void SetFilter(const ConstQueryFilterRef & filter) {_filter = filter;}
 
-   /** Returns true iff we our filter matches the given Message, or if either (optMsg) or our filter is NULL. */
+   /** Returns true iff we our filter matches the given Message, or if either (optMsg) or our filter is NULL. 
+     * @param optMsg if non-NULL, the Message to match against.  (If NULL, then we'll just return true)
+     * @param optNode if non-NULL, the DataNode associated with the Message (may not be available in all contexts)
+     */
    bool FilterMatches(ConstMessageRef & optMsg, const DataNode * optNode) const
    {
       const QueryFilter * filter = GetFilter()();
@@ -112,7 +117,10 @@ public:
     */
    status_t PutPathString(const String & path, const ConstQueryFilterRef & filter);
 
-   /** Adds all of (matcher)'s StringMatchers to this matcher */
+   /** Adds all of (matcher)'s StringMatchers to this matcher 
+     * @param matcher the matcher whose list of StringMatchers we should append to our own
+     * @return B_NO_ERROR on success, B_ERROR if out of memory.
+     */
    status_t PutPathsFromMatcher(const PathMatcher & matcher);
 
    /** Adds zero or more wild paths to this matcher based on the contents of a string field in a Message.
@@ -206,6 +214,6 @@ String GetPathClauseString(int depth, const char * path);
  */
 int GetPathDepth(const char * path);
 
-}; // end namespace muscle
+} // end namespace muscle
 
 #endif

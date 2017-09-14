@@ -19,7 +19,9 @@ static const uint64 PULSE_INTERVAL  = 100000;   // have one child fire every 100
 class TestPulseChild : public PulseNode
 {
 public:
-   TestPulseChild(uint64 baseTime, int idx) : _fireTime(baseTime+(idx*PULSE_INTERVAL)), _idx(idx) 
+   TestPulseChild(uint64 baseTime, int idx)
+      : _fireTime(baseTime+(idx*PULSE_INTERVAL))
+      , _idx(idx)
    {
       LogTime(MUSCLE_LOG_INFO, "TestPulseChild %i (%p) Initially scheduled for " UINT64_FORMAT_SPEC " (time until = " INT64_FORMAT_SPEC ")\n", idx, this, _fireTime, _fireTime-GetRunTime64());
    } 
