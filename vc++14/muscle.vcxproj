@@ -88,7 +88,7 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>..\zlib\zlib\win32;..\;..\..\;.\;..\regex\regex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;WINAPI_FAMILY=100;UNICODE;NDEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WINAPI_FAMILY=100;UNICODE;NDEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -126,7 +126,7 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>..\zlib\zlib\win32;..\;..\..\;.\;..\regex\regex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;WINAPI_FAMILY=100;UNICODE;NDEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WINAPI_FAMILY=100;UNICODE;NDEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -160,7 +160,7 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>..\zlib\zlib\win32;..\;..\..\;.\;..\regex\regex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;WINAPI_FAMILY=100;UNICODE;DEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;WINAPI_FAMILY=100;UNICODE;DEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -199,7 +199,7 @@
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>..\zlib\zlib\win32;..\;..\..\;.\;..\regex\regex;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;UNICODE;WINAPI_FAMILY=100;DEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;MUSCLE_USE_CPLUSPLUS11;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;UNICODE;WINAPI_FAMILY=100;DEBUG;_LIB;MUSCLE_ENABLE_ZLIB_ENCODING;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>

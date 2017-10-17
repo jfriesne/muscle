@@ -11,14 +11,17 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.62" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        66200  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "6.70" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        67000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
- * The MUSCLE API provides a robust, somewhat scalable, cross-platform client-server solution for 
- * network-distributed applications for Linux, MacOS/X, BSD, Windows, BeOS, AtheOS, and other operating 
- * systems.  It allows (n) client programs (each of which may be running on a separate computer and/or 
+ * The MUSCLE API provides a robust, efficient, scalable, cross-platform, client-server messaging system 
+ * for network-distributed applications for Linux, MacOS/X, BSD, Windows, BeOS, and other operating 
+ * systems.  It can be compiled using any C++ compiler that supports C++03 or higher (although C++11 or
+ * higher is preferred) and can run under any OS with a TCP/IP stack and BSD-style sockets API.
+ *
+ * MUSCLE allows (n) client programs (each of which may be running on a separate computer and/or 
  * under a different OS) to communicate with each other in a many-to-many message-passing style.  It 
  * employs a central server to which client programs may connect or disconnect at any time  (This design 
  * is similar to other client-server systems such as Quake servers, IRC servers, and Napster servers, 
@@ -28,8 +31,8 @@
  *
  * All classes documented here should compile under most modern OS's with a modern C++ compiler.
  * Where platform-specific code is necessary, it has been provided (inside \#ifdef's) for various OS's.
- * Templates are used throughout; exceptions are not.  The code is usable in multithreaded environments,
- * as long as you are careful.
+ * Templates are used throughout; exceptions are avoided in favor of error codes.  The code is usable 
+ * in multithreaded environments, as long as you are careful.
  *
  * As distributed, the server side of the software is ready to compile and run, but to do much with it 
  * you'll want to write your own client software.  Example client software can be found in the "test" 
@@ -74,23 +77,26 @@
 
 
 #ifdef __cplusplus
-# ifdef MUSCLE_USE_CPLUSPLUS11
+# ifndef MUSCLE_AVOID_CPLUSPLUS11
+#  if !defined(MUSCLE_USE_PTHREADS) && !defined(MUSCLE_SINGLE_THREAD_ONLY) && !defined(MUSCLE_AVOID_CPLUSPLUS11_THREADS)
+#   define MUSCLE_USE_CPLUSPLUS11_THREADS
+#  endif
 #  if defined(_MSC_VER) && (_MSC_VER < 1900)  // MSVC2013 and older don't implement constexpr, sigh
-#   define MUSCLE_CONSTEXPR            /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
+#   define MUSCLE_CONSTEXPR            /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_AVOID_CPLUSPLUS11 is not defined) */
 #  else
-#   define MUSCLE_CONSTEXPR constexpr  /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
+#   define MUSCLE_CONSTEXPR constexpr  /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_AVOID_CPLUSPLUS11 is not defined) */
 #   define MUSCLE_CONSTEXPR_IS_SUPPORTED /**< defined iff we are being compiled on a compiler (and in a compiler-mode) that supports the constexpr keyword */
 #  endif
 #  include <type_traits>  // for static_assert()
 #  include <utility>      // for std::move()
 #  if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ < 7)
-#   define MUSCLE_FINAL_CLASS          /**< If defined, this tag indicates that the class should not be subclassed.  (Expands to keyword "final" iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */ /* work-around for g++ bug #50811 */
+#   define MUSCLE_FINAL_CLASS          /**< If defined, this tag indicates that the class should not be subclassed.  (Expands to keyword "final" iff MUSCLE_AVOID_CPLUSPLUS11 is not defined) */ /* work-around for g++ bug #50811 */
 #  else
-#   define MUSCLE_FINAL_CLASS final   /**< This tag indicates that the class it decorates should not be subclassed.  (Expands to keyword "final" iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
+#   define MUSCLE_FINAL_CLASS final   /**< This tag indicates that the class it decorates should not be subclassed.  (Expands to keyword "final" iff MUSCLE_AVOID_CPLUSPLUS11 is not defined) */
 #  endif
 # else
-#  define MUSCLE_FINAL_CLASS          /**< This tag indicates that the class it decorates should not be subclassed.  (Expands to keyword "final" iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
-#  define MUSCLE_CONSTEXPR            /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
+#  define MUSCLE_FINAL_CLASS          /**< This tag indicates that the class it decorates should not be subclassed.  (Expands to keyword "final" iff MUSCLE_AVOID_CPLUSPLUS11 is not defined) */
+#  define MUSCLE_CONSTEXPR            /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_AVOID_CPLUSPLUS11 is not defined) */
 # endif
 #else
 # define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (e.g. because we're on an ancient platform) */
@@ -103,7 +109,7 @@
 #endif
 
 #ifndef MUSCLE_CONSTEXPR
-# define MUSCLE_CONSTEXPR  /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_ENABLE_CPLUSPLUS11 is defined as well) */
+# define MUSCLE_CONSTEXPR  /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_AVOID_CPLUSPLUS11 is not defined) */
 #endif
 
 /* Borland C++ builder also runs under Win32, but it doesn't set this flag So we'd better set it ourselves. */
@@ -417,7 +423,7 @@ template <typename T> T & GetGlobalObjectForType()
 # define MUSCLE_MAY_ALIAS
 #endif
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
 
 /** Returns the smaller of the two arguments */
 template<typename T> T muscleMin(T arg1, T arg2) {return (arg1<arg2) ? arg1 : arg2;}
@@ -501,7 +507,7 @@ namespace ugly_swapcontents_method_sfinae_implementation
       {
          if (&t1 == &t2) return;
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
          T tmp(std::move(t1));
          t1 = std::move(t2); 
          t2 = std::move(tmp);
@@ -1234,7 +1240,7 @@ template <class KeyType> class PODHashFunctor
 public:
    uint32 operator()(const KeyType & x) const 
    {
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
       static_assert(!std::is_class<KeyType>::value, "PODHashFunctor cannot be used on class or struct objects, because the object's compiler-inserted padding bytes would be unitialized and therefore they would cause inconsistent hash-code generation.  Try adding a 'uint32 HashCode() const' method to the class/struct instead.");
       static_assert(!std::is_union<KeyType>::value, "PODHashFunctor cannot be used on union objects.");
 #endif

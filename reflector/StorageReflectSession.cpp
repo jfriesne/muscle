@@ -243,7 +243,7 @@ NotifySubscribersThatNodeChanged(DataNode & modifiedNode, const MessageRef & old
    for (HashtableIterator<const String *, uint32> subIter = modifiedNode.GetSubscribers(); subIter.HasData(); subIter++)
    {
       StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(GetSession(*subIter.GetKey())());
-      if ((next)&&((next != this)||(GetReflectToSelf()))) next->NodeChanged(modifiedNode, oldData, isBeingRemoved);
+      if ((next)&&((next != this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF)))) next->NodeChanged(modifiedNode, oldData, isBeingRemoved);
    }
 
    TCHECKPOINT;
@@ -1128,7 +1128,7 @@ int
 StorageReflectSession ::
 PassMessageCallback(DataNode & node, void * userData)
 {
-   return PassMessageCallbackAux(node, *((MessageRef *)userData), GetReflectToSelf());
+   return PassMessageCallbackAux(node, *((MessageRef *)userData), IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF));
 }
 
 int
@@ -1185,7 +1185,7 @@ GetSubtreesCallback(DataNode & node, void * ud)
    GetSubtreesCallbackArgs & args = *(static_cast<GetSubtreesCallbackArgs *>(ud));
 
    // Make sure (node) isn't part of our own tree!  If it is, move immediately to the next session
-   if ((_indexingPresent == false)&&(GetReflectToSelf() == false)&&(GetSession(node.GetAncestorNode(NODE_DEPTH_SESSIONNAME, &node)->GetNodeName())() == this)) return NODE_DEPTH_SESSIONNAME;
+   if ((_indexingPresent == false)&&(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF) == false)&&(GetSession(node.GetAncestorNode(NODE_DEPTH_SESSIONNAME, &node)->GetNodeName())() == this)) return NODE_DEPTH_SESSIONNAME;
 
    MessageRef subMsg = GetMessageFromPool();
    String nodePath;
@@ -1224,7 +1224,7 @@ GetDataCallback(DataNode & node, void * userData)
    MessageRef * messageArray = (MessageRef *) userData;
 
    // Make sure (node) isn't part of our own tree!  If it is, move immediately to the next session
-   if ((_indexingPresent == false)&&(GetReflectToSelf() == false)&&(GetSession(node.GetAncestorNode(NODE_DEPTH_SESSIONNAME, &node)->GetNodeName())() == this)) return NODE_DEPTH_SESSIONNAME;
+   if ((_indexingPresent == false)&&(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF) == false)&&(GetSession(node.GetAncestorNode(NODE_DEPTH_SESSIONNAME, &node)->GetNodeName())() == this)) return NODE_DEPTH_SESSIONNAME;
  
    // Don't send our own data to our own client; he already knows what we have, because he uploaded it!
    MessageRef & resultMsg = messageArray[0];

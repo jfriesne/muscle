@@ -1,5 +1,9 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#if defined(MUSCLE_USE_PTHREADS)
+# include <pthread.h>  // in case both MUSCLE_USE_CPLUSPLUS11_THREADS and MUSCLE_USE_PTHREADS are defined at once, e.g. for better SetThreadPriority() support
+#endif
+
 #include "system/Thread.h"
 #include "util/NetworkUtilityFunctions.h"
 #include "dataio/TCPSocketDataIO.h"  // to get the proper #includes for recv()'ing
@@ -90,7 +94,17 @@ status_t Thread :: StartInternalThreadAux()
    {
       _threadRunning = true;  // set this first, to avoid a race condition with the thread's startup...
 
-#if defined(MUSCLE_USE_PTHREADS)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_NO_EXCEPTIONS)
+      try {
+# endif
+         _thread = std::thread(InternalThreadEntryFunc, this);
+         return B_NO_ERROR;
+# if !defined(MUSCLE_NO_EXCEPTIONS)
+      }
+      catch(...) {/* empty */} 
+# endif
+#elif defined(MUSCLE_USE_PTHREADS)
       pthread_attr_t attr;
       if (_suggestedStackSize != 0)
       {
@@ -292,7 +306,16 @@ status_t Thread :: WaitForInternalThreadToExit()
 {
    if (_threadRunning)
    {
-#if defined(MUSCLE_USE_PTHREADS)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_NO_EXCEPTIONS)
+      try {
+# endif
+         _thread.join();
+# if !defined(MUSCLE_NO_EXCEPTIONS)
+      }
+      catch(...) {return B_ERROR;}
+# endif
+#elif defined(MUSCLE_USE_PTHREADS)
       (void) pthread_join(_thread, NULL);
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       (void) WaitForSingleObject(_thread, INFINITE);
@@ -383,7 +406,9 @@ void Thread::InternalThreadEntryAux()
 
 Thread::muscle_thread_key Thread :: GetCurrentThreadKey()
 {
-#if defined(MUSCLE_USE_PTHREADS)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   return std::this_thread::get_id();
+#elif defined(MUSCLE_USE_PTHREADS)
    return pthread_self();
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
    return GetCurrentThreadId();
@@ -400,7 +425,9 @@ bool Thread :: IsCallerInternalThread() const
 {
    if (IsInternalThreadRunning() == false) return false;  // we can't be him if he doesn't exist!
 
-#if defined(MUSCLE_USE_PTHREADS)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   return (std::this_thread::get_id() == _thread.get_id());
+#elif defined(MUSCLE_USE_PTHREADS)
    return pthread_equal(pthread_self(), _thread);
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
    return (_threadID == GetCurrentThreadId());
@@ -485,16 +512,28 @@ status_t Thread :: SetThreadPriorityAux(int newPriority)
 #if defined(MUSCLE_USE_PTHREADS)
    int schedPolicy;
    sched_param param;
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   if (pthread_getschedparam(_thread.native_handle(), &schedPolicy, &param) != 0) return B_ERROR;
+# else
    if (pthread_getschedparam(_thread, &schedPolicy, &param) != 0) return B_ERROR;
+# endif
 
    const int minPrio = sched_get_priority_min(schedPolicy);
    const int maxPrio = sched_get_priority_max(schedPolicy);
    if ((minPrio == -1)||(maxPrio == -1)) return B_ERROR;
 
    param.sched_priority = muscleClamp(((newPriority*(maxPrio-minPrio))/(NUM_PRIORITIES-1))+minPrio, minPrio, maxPrio);
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   return (pthread_setschedparam(_thread.native_handle(), schedPolicy, &param) == 0) ? B_NO_ERROR : B_ERROR;
+# else
    return (pthread_setschedparam(_thread, schedPolicy, &param) == 0) ? B_NO_ERROR : B_ERROR;
+# endif
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   return ::SetThreadPriority(_thread.native_handle(), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERROR;
+# else
    return ::SetThreadPriority(_thread, MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERROR;
+# endif
 #elif defined(MUSCLE_USE_QT_THREADS)
    _thread.setPriority(MuscleThreadPriorityToQtThreadPriority(newPriority));
    return B_NO_ERROR;

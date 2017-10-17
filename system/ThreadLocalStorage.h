@@ -5,7 +5,11 @@
 
 #include "system/Thread.h"  // to get the #defines that are calculated in Thread.h
 
-#if defined(MUSCLE_USE_PTHREADS)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(_MSC_VER) && (_MSC_VER < 1900)
+#  define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD  // MSVC2013 and earlier don't support thread_local, sigh
+# endif
+#elif defined(MUSCLE_USE_PTHREADS)
   // deliberately empty
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
   // deliberately empty
@@ -45,7 +49,7 @@ public:
 
 #if defined(MUSCLE_USE_PTHREADS)
       _isKeyValid = (pthread_key_create(&_key, _freeHeldObjects?((PthreadDestructorFunction)DeleteObjFunc):NULL) == 0);
-#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+#elif !defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && defined(MUSCLE_PREFER_WIN32_OVER_QT)
       _tlsIndex = TlsAlloc();
 #endif
    }
@@ -57,7 +61,7 @@ public:
       {
 #if defined(MUSCLE_USE_PTHREADS)
          pthread_key_delete(_key);
-#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+#elif !defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && defined(MUSCLE_PREFER_WIN32_OVER_QT)
          TlsFree(_tlsIndex);
 #endif
       }
@@ -134,7 +138,17 @@ private:
 #if defined(MUSCLE_USE_QT_THREADLOCALSTORAGE)
    QThreadStorage<ObjType *> _storage;
 #else
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+#  if defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD)
+#   if defined(_MSC_VER)
+   static __declspec(thread) ObjType * _threadLocalObject;
+#   elif defined(__GNUC__)
+   static __thread ObjType * _threadLocalObject;
+#   endif
+#  else
+   static thread_local ObjType * _threadLocalObject;
+#  endif
+# elif defined(MUSCLE_USE_PTHREADS)
    typedef void (*PthreadDestructorFunction )(void *);
    static void DeleteObjFunc(void * o) {delete ((ObjType *)o);}
    bool _isKeyValid;
@@ -152,6 +166,8 @@ private:
    {
 #if defined(MUSCLE_USE_QT_THREADLOCALSTORAGE)
       return _storage.localData();
+#elif defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+      return _threadLocalObject;
 #elif defined(MUSCLE_USE_PTHREADS)
       return (ObjType *) pthread_getspecific(_key);
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
@@ -163,6 +179,8 @@ private:
    {
 #if defined(MUSCLE_USE_QT_THREADLOCALSTORAGE)
       _storage.setLocalData(o); return B_NO_ERROR;
+#elif defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+      _threadLocalObject = o;   return B_NO_ERROR;
 #elif defined(MUSCLE_USE_PTHREADS)
       return (pthread_setspecific(_key, o) == 0) ? B_NO_ERROR : B_ERROR;
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
@@ -172,7 +190,7 @@ private:
 
    inline bool IsSetupOkay() const
    {
-#if defined(MUSCLE_USE_QT_THREADLOCALSTORAGE)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS) || defined(MUSCLE_USE_QT_THREADLOCALSTORAGE)
       return true;
 #elif defined(MUSCLE_USE_PTHREADS)
       return _isKeyValid;
@@ -181,6 +199,21 @@ private:
 #endif
    }
 };
+
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+// declare storage space for our thread-local object
+# if defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD)
+#  if defined(_MSC_VER)
+template <typename T> __declspec(thread) T * ThreadLocalStorage<T>::_threadLocalObject;
+#  elif defined(__GNUC__)
+template <typename T> __thread           T * ThreadLocalStorage<T>::_threadLocalObject;
+#  else
+template <typename T> T * ThreadLocalStorage<T>::_threadLocalObject;
+#  endif
+# else
+template <typename T> thread_local T * ThreadLocalStorage<T>::_threadLocalObject;
+# endif
+#endif
 
 } // end namespace muscle
 

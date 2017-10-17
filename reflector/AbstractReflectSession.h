@@ -489,6 +489,7 @@ private:
    void SetPolicyAux(AbstractSessionIOPolicyRef & setRef, uint32 & setChunk, const AbstractSessionIOPolicyRef & newRef, bool isInput);
    void PlanForReconnect();
    void SetConnectingAsync(bool isConnectingAsync);
+   bool IsThisSessionScheduledForPostSleepReconnect() const;
 
    friend class ReflectServer;
    uint32 _sessionID;

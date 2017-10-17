@@ -190,6 +190,9 @@ public:
    /** Returns true iff this address qualifies as a standard loopback-device address (e.g. 127.0.0.1 or ::1 or fe80::1) */
    bool IsStandardLoopbackDeviceAddress() const;
 
+   /** Returns true iff this address is a stateless/self-assigned IP address (i.e. 169.254.*.* for IPv4, or fe80::* for IPv6) */
+   bool IsSelfAssigned() const;
+
    /** Returns a human-readable string equivalent to this IPAddress object.  Behaves the same as Inet_NtoA(*this, preferIPv4Style).
      *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
      *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.

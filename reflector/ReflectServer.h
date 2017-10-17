@@ -170,6 +170,41 @@ public:
      */
    AbstractReflectSessionRef GetSession(uint32 sessionID) const;
 
+   /** Convenience method:  Returns a pointer to the first session of the specified type.  Returns NULL if no session of the specified type is found.
+     * @note this method iterates over the session list, so it's not as efficient as one might hope.
+     */
+   template <class SessionType> SessionType * FindFirstSessionOfType() const
+   {
+      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      {
+         SessionType * ret = dynamic_cast<SessionType *>(iter.GetValue()());
+         if (ret) return ret;
+      }
+      return NULL;
+   };
+
+   /** Convenience method:  Populates the specified table with sessions of the specified session type.
+     * @param results The list of matching sessions is returned here.
+     * @param maxSessionsToReturn No more than this many sessions will be placed into the table.  Defaults to MUSCLE_NO_LIMIT.
+     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory)
+     */
+   template <class SessionType> status_t FindSessionsOfType(Queue<AbstractReflectSessionRef> & results, uint32 maxSessionsToReturn = MUSCLE_NO_LIMIT) const
+   {
+      if (maxSessionsToReturn > 0)
+      {
+         for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+         {
+            SessionType * ret = dynamic_cast<SessionType *>(iter.GetValue()());
+            if (ret)
+            {
+               if (results.AddTail(iter.GetValue()) != B_NO_ERROR) return B_ERROR;
+               if (--maxSessionsToReturn == 0) break;
+            }
+         }
+      }
+      return B_NO_ERROR;
+   }
+
    /** Returns an iterator that allows one to iterate over all the session factories currently attached to this server. */
    const Hashtable<IPAddressAndPort, ReflectSessionFactoryRef> & GetFactories() const {return _factories;}
 
@@ -265,6 +300,31 @@ public:
      */
    bool IsWaitingForEvents() const {return (_inWaitForEvents.GetCount() == 1);}
 
+   /** Implemented to call DisconnectSession() on any attached TCP-based sessions, just before 
+     * the computer goes to sleep, so that other computers won't have to deal with moribund 
+     * TCP connections that this computer won't handle while it's asleep.
+     *
+     * @note this method will only be called if you have attached a
+     *       DetectNetworkConfigChangesSession to this ReflectServer.
+     *
+     * This method also sets a computer-is-about-to-sleep flag so that any new TCP connections added
+     * in the time period between now and (when the computer actually goes to sleep) will be added
+     * only in dormant-mode, so that no TCP connection will actually happen until after the computer is
+     * re-awoken.
+     */
+   virtual void ComputerIsAboutToSleep() {SetComputerIsAboutToSleep(true);}
+
+   /** Implemented to call Reconnect() on any sessions that were previously disconnected
+     * by our ComputerIsAboutToSleep() call.
+     *
+     * @note this method will only be called if you have attached a 
+     *       DetectNetworkConfigChangesSession to this ReflectServer.
+     *
+     * This method also clears the computer-is-about-to-sleep flag that was set by
+     * the previous call to ComputerIsAboutToSleep()
+     */
+   virtual void ComputerJustWokeUp() {SetComputerIsAboutToSleep(false);}
+
 protected:
    /**
     * This version of AddNewSession (which is called by the previous 
@@ -324,6 +384,8 @@ private:
    void LogAcceptFailed(int lvl, const char * desc, const char * ipbuf, const IPAddressAndPort & iap);
    uint32 CheckPolicy(Hashtable<AbstractSessionIOPolicyRef, Void> & policies, const AbstractSessionIOPolicyRef & policyRef, const PolicyHolder & ph, uint64 now) const;
    void CheckForOutOfMemory(const AbstractReflectSessionRef & optSessionRef);
+   void SetComputerIsAboutToSleep(bool isAboutToSleep);
+   bool IsSessionScheduledForPostSleepReconnect(const String & sessionID) const {return _sessionsToReconnectOnWakeup.ContainsKey(sessionID);}
 
    Hashtable<IPAddressAndPort, ReflectSessionFactoryRef> _factories;
    Hashtable<IPAddressAndPort, ConstSocketRef> _factorySockets;
@@ -349,6 +411,8 @@ private:
    NestCount _inDoConnect;
 
    AtomicCounter _inWaitForEvents;
+   bool _computerIsAboutToSleep;
+   Hashtable<String, bool> _sessionsToReconnectOnWakeup;
 };
 DECLARE_REFTYPES(ReflectServer);
 

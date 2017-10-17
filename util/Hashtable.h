@@ -27,7 +27,7 @@
 #endif
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
-# ifdef MUSCLE_USE_CPLUSPLUS11
+# ifndef MUSCLE_AVOID_CPLUSPLUS11
 // Enable move semantics (when possible) for C++11
 # define HT_UniversalSinkKeyRef template<typename HT_KeyParam>
 # define HT_UniversalSinkValueRef template<typename HT_ValueParam>
@@ -993,7 +993,7 @@ private:
       /** Returns true iff we need to set our KeyType objects to their default-constructed state when we're done using them */
       inline bool IsPerKeyClearNecessary() const
       {
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
          return !std::is_trivial<KeyType>::value;
 #else
          return true;
@@ -1003,7 +1003,7 @@ private:
       /** Returns true iff we need to set our ValueType objects to their default-constructed state when we're done using them */
       inline bool IsPerValueClearNecessary() const
       {
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
          return !std::is_trivial<ValueType>::value;
 #else
          return true;
@@ -1652,7 +1652,7 @@ private:
  *     around the MurmurHash2 algorithm) will be used to scan the bytes of the Key object, in 
  *     order to calculate a hash code for a given Key.  However, if the Key class has a method 
  *     with the signature "uint32 HashCode() const", then the HashCode() method will be automatically 
- *     called instead.  If -DMUSCLE_ENABLE_CPLUSPLUS11 is defined, then attempting to use
+ *     called instead.  Unless -DMUSCLE_AVOID_CPLUSPLUS11 is defined, attempting to use
  *     a non-POD type as a key will cause a compile error, unless the HashCode() method is defined for the Key type.
  *   - Pointers can be used as Key types if desired; if the pointers point to a class with
  *     a "uint32 HashCode() const" method; that method will be called to generate the entry's
@@ -1743,7 +1743,7 @@ public:
     */
    void SwapContents(Hashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >::SwapContents(swapMe);}
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    Hashtable(Hashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0, false, NULL) {this->SwapContents(rhs);}
 
@@ -1807,7 +1807,7 @@ public:
     */
    void SwapContents(OrderedKeysHashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    OrderedKeysHashtable(OrderedKeysHashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(0, true, NULL) {this->SwapContents(rhs);}
 
@@ -1885,7 +1885,7 @@ public:
     */
    void SwapContents(OrderedValuesHashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    OrderedValuesHashtable(OrderedValuesHashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(0, true, NULL) {this->SwapContents(rhs);}
 

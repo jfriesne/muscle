@@ -702,7 +702,7 @@ public:
       muscleSwap(_length,    swapWithMe._length);   // always do this
    }
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    String(String && rhs) : _bufferLen(0), _length(0)
    {

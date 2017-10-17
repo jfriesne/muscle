@@ -7,7 +7,7 @@
 
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
   // empty
-#elif defined(MUSCLE_USE_CPLUSPLUS11)
+#elif defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
 # include <atomic>
 #elif defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
   // empty
@@ -80,7 +80,7 @@ public:
      */
    inline bool AtomicIncrement() 
    {
-#if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(MUSCLE_USE_CPLUSPLUS11)
+#if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
       return (++_count == 1);
 #elif defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
       return (DoMutexAtomicIncrement(&_count, 1) == 1);
@@ -111,7 +111,7 @@ public:
          :"memory");
       return (value==0);  // at this point value contains the counter's pre-increment value
 #else
-# error "No atomic increment supplied for this OS!  Add it here in AtomicCount.h, or put -DMUSCLE_USE_CPLUSPLUS11 in your compiler-defines to use std::atomic, or put -DMUSCLE_SINGLE_THREAD_ONLY in your compiler-defines if you will not be using multithreading." 
+# error "No atomic increment supplied for this OS!  Add it here in AtomicCount.h, remove -DMUSCLE_AVOID_CPLUSPLUS11 from your compiler-defines to use std::atomic, or put -DMUSCLE_SINGLE_THREAD_ONLY in your compiler-defines if you will not be using multithreading." 
 #endif 
    }
 
@@ -121,7 +121,7 @@ public:
      */
    inline bool AtomicDecrement() 
    {
-#if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(MUSCLE_USE_CPLUSPLUS11)
+#if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
       return (--_count == 0);
 #elif defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
       return (DoMutexAtomicIncrement(&_count, -1) == 0);
@@ -157,7 +157,7 @@ public:
          );
       return isZero;
 #else
-# error "No atomic decrement supplied for this OS!  Add it here in AtomicCount.h, or put -DMUSCLE_USE_CPLUSPLUS11 in your compiler-defines to use std::atomic, or put -DMUSCLE_SINGLE_THREAD_ONLY in your compiler-defines if you will not be using multithreading." 
+# error "No atomic decrement supplied for this OS!  Add it here in AtomicCount.h, or remove -DMUSCLE_AVOID_CPLUSPLUS11 in your compiler-defines to use std::atomic, or put -DMUSCLE_SINGLE_THREAD_ONLY in your compiler-defines if you will not be using multithreading." 
 #endif 
    }
 
@@ -176,14 +176,14 @@ public:
      */
    void SetCount(int32 c) {_count = c;}
 
-#if defined(MUSCLE_USE_CPLUSPLUS11) && !defined(MUSCLE_SINGLE_THREAD_ONLY) && !defined(__HAIKU__)
-   /** Copy constructor, defined explicitly for the MUSCLE_USE_CPLUSPLUS11 case
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   /** Copy constructor, defined explicitly for the C++11-based implementation,
      * since std::atomic<int32> won't compile using the implicit copy constructor.
      * @param rhs the AtomicCounter to make this one equivalent to
      */
    AtomicCounter(const AtomicCounter & rhs) {_count.store(rhs._count.load());}
 
-   /** Assignment operator, defined explicitly for the MUSCLE_USE_CPLUSPLUS11 case
+   /** Assignment operator, defined explicitly for C++11-based implementation
      * since std::atomic<int32> won't compile using the implicit copy constructor.
      * @param rhs the AtomicCounter to make this one equivalent to
      */
@@ -193,7 +193,7 @@ public:
 private:
 #if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(__HAIKU__)
    int32 _count;
-#elif defined(MUSCLE_USE_CPLUSPLUS11)
+#elif defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
    std::atomic<int32> _count;
 #elif defined(__ATHEOS__)
    atomic_t _count;

@@ -3,6 +3,7 @@
 #ifndef QMuscleSupport_h
 #define QMuscleSupport_h
 
+#include <QString>
 #include "support/MuscleSupport.h"  // for PODHashFunctor, etc
 
 #if QT_VERSION >= 0x040000

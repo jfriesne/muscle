@@ -350,7 +350,7 @@ int main(int argc, char ** argv)
       Hashtable<String,String> table;
       for (int32 i=0; i<1000; i++) table.Put(String("xxx%1").Arg(i), "foo");
       printf("After population of " UINT32_FORMAT_SPEC " items, table size is " UINT32_FORMAT_SPEC "\n", table.GetNumItems(), table.GetNumAllocatedItemSlots());
-  
+
       if (table.ShrinkToFit() == B_NO_ERROR) printf("After shrink-to-fit, table allocation is " UINT32_FORMAT_SPEC " for " UINT32_FORMAT_SPEC " items\n", table.GetNumAllocatedItemSlots(), table.GetNumItems());
                                         else printf("Shrink-to-fit failed!?\n");
 

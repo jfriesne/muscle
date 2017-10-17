@@ -1365,7 +1365,7 @@ public:
     */
    void SwapContents(Message & swapWith);
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    Message(Message && rhs) : what(0) {SwapContents(rhs);}
 

@@ -164,7 +164,7 @@ static void CheckOp(uint32 numBytes, const void * orig, const void * swapOne, co
    if ((origTwo)&&(memcmp(orig, origTwo, numBytes)))      GoInsane(why, "(origTwo)");
 }
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
 template<typename T> void VerifyTypeIsTrivial()
 {
    if (std::is_trivial<T>::value == false)
@@ -311,7 +311,7 @@ SanitySetupSystem :: SanitySetupSystem()
    else GoInsane("MUSCLE is compiled for a little-endian CPU, but host CPU is big-endian!?");
 #endif
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    // Just because I'm paranoid and want to make sure that std::is_trivial() works the way I think it does --jaf
    VerifyTypeIsTrivial<int>();
    VerifyTypeIsTrivial<float>();
@@ -1953,8 +1953,16 @@ Queue<String> GetBuildFlags()
    q.AddTail("MUSCLE_ENABLE_SSL");
 #endif
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
-   q.AddTail("MUSCLE_USE_CPLUSPLUS11");
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   q.AddTail("MUSCLE_AVOID_CPLUSPLUS11");
+#endif
+
+#ifdef MUSCLE_AVOID_CPLUSPLUS11_THREADS
+   q.AddTail("MUSCLE_AVOID_CPLUSPLUS11_THREADS");
+#endif
+
+#ifdef MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
+   q.AddTail("MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD");
 #endif
 
 #ifdef MUSCLE_AVOID_IPV6
@@ -2067,6 +2075,10 @@ Queue<String> GetBuildFlags()
 
 #ifdef MUSCLE_USE_PTHREADS 
    q.AddTail("MUSCLE_USE_PTHREADS");
+#endif
+
+#ifdef MUSCLE_USE_PTHREADS 
+   q.AddTail("MUSCLE_USE_CPLUSPLUS11_THREADS");
 #endif
 
 #ifdef MUSCLE_DEFAULT_TCP_STALL_TIMEOUT

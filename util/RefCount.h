@@ -155,7 +155,7 @@ public:
      */
    template<typename T> ConstRef(const ConstRef<T> & refItem) : _item(refItem(), refItem.IsRefCounting()) {RefItem();}
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    ConstRef(ConstRef && rhs) {this->SwapContents(rhs);}
 #endif
@@ -224,7 +224,7 @@ public:
     */
    inline ConstRef &operator=(const ConstRef & rhs) {this->SetRef(rhs.GetItemPointer(), rhs.IsRefCounting()); return *this;}
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    inline ConstRef &operator=(ConstRef && rhs) {this->SwapContents(rhs); return *this;}
 #endif
@@ -473,7 +473,7 @@ public:
      */
    template<typename T> Ref(const Ref<T> & refItem) : ConstRef<Item>(refItem(), refItem.IsRefCounting()) {/* empty */}
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    Ref(Ref && rhs) {this->SwapContents(rhs);}
 #endif
@@ -505,7 +505,7 @@ public:
     */
    inline Ref &operator=(const Ref & rhs) {this->SetRef(rhs.GetItemPointer(), rhs.IsRefCounting()); return *this;}
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    inline Ref &operator=(Ref && rhs) {this->SwapContents(rhs); return *this;}
 #endif

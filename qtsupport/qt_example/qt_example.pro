@@ -20,8 +20,7 @@ win32:DEFINES += _WIN32_WINNT=0x0501
 
 INCLUDEPATH += $$MUSCLE_DIR
 
-#DEFINES += MUSCLE_USE_CPLUSPLUS11
-#unix:mac:QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
+unix:mac:QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
 
 win32:INCLUDEPATH += $$MUSCLE_DIR/regex/regex 
 

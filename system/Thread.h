@@ -13,7 +13,9 @@
 # error "You're not allowed use the Thread class if you have the MUSCLE_SINGLE_THREAD_ONLY compiler constant defined!"
 #endif
 
-#if defined(MUSCLE_USE_PTHREADS)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# include <thread>
+#elif defined(MUSCLE_USE_PTHREADS)
 # include <pthread.h>
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
 # // empty
@@ -39,6 +41,20 @@
 #endif
 
 namespace muscle {
+
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+// Note that this class has to be declared before the Thread class, otherwise MSVC compiles fail with error C2908
+/** This functor is specialized here so we can use std::thread::id objects as keys in a Hashtable. */
+template <> class PODHashFunctor<std::thread::id>
+{
+public:
+   uint32 operator () (const std::thread::id & id) const {return _hasher(id);}
+   bool AreKeysEqual(const std::thread::id & k1, const std::thread::id & k2) const {return (k1==k2);}
+
+private:
+   std::hash<std::thread::id> _hasher;
+};
+#endif
 
 /** This class is an platform-independent class that creates an internally held thread and executes it.
   * You will want to subclass Thread in order to specify the behaviour of the internally held thread...
@@ -499,7 +515,10 @@ private:
    bool _threadRunning;
    Mutex _signalLock;
 
-#if defined(MUSCLE_USE_PTHREADS)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   std::thread _thread;
+   static void InternalThreadEntryFunc(void * This) {((Thread *)This)->InternalThreadEntryAux();}
+#elif defined(MUSCLE_USE_PTHREADS)
    pthread_t _thread;
    static void * InternalThreadEntryFunc(void * This) {((Thread *)This)->InternalThreadEntryAux(); return NULL;}
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
@@ -529,7 +548,9 @@ private:
 #endif
 
 private:
-#if defined(MUSCLE_USE_PTHREADS)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   typedef std::thread::id muscle_thread_key;
+#elif defined(MUSCLE_USE_PTHREADS)
    typedef pthread_t muscle_thread_key;
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
    typedef DWORD muscle_thread_key;

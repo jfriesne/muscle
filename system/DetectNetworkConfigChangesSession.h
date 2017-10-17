@@ -1,6 +1,7 @@
 #ifndef DetectNetworkConfigChangesSession_h
 #define DetectNetworkConfigChangesSession_h
 
+#include "system/INetworkConfigChangesTarget.h"
 #include "reflector/AbstractReflectSession.h"
 
 #ifndef __linux__
@@ -22,41 +23,6 @@ static void MySleepCallbackAux(DetectNetworkConfigChangesSession * s, bool isGoi
 static void * GetRootPortPointerFromSession(const DetectNetworkConfigChangesSession * s);
 # endif
 #endif
-
-/** This is an abstract base class (interface) that can be inherited by any Session or Factory
-  * object that wants the DetectNetworkConfigChangesSession to notify it when one or more
-  * network interfaces on the local computer have changed.
-  */
-class INetworkConfigChangesTarget
-{
-public:
-   /** Default constructor */
-   INetworkConfigChangesTarget() {/* empty */}
-
-   /** Destructor */
-   virtual ~INetworkConfigChangesTarget() {/* empty */}
-
-   /** Called by the DetectNetworkConfigChanges session's default NetworkInterfacesChanged()
-     * method after the set of local network interfaces has changed.
-     * @param optInterfaceNames optional table containing the names of the interfaces that
-     *                          have changed (e.g. "en0", "en1", etc).  If this table is empty,
-     *                          that indicates that any or all of the network interfaces may have
-     *                          changed.  Note that changed-interface enumeration is currently only
-     *                          implemented under MacOS/X and Windows, so under other operating systems this
-     *                          argument will currently always be an empty table.
-     */
-   virtual void NetworkInterfacesChanged(const Hashtable<String, Void> & optInterfaceNames) = 0;
-
-   /** Called by the DetectNetworkConfigChanges session, when the host computer is about to go to sleep.  
-     * Currently implemented for Windows and MacOS/X only.  
-     */
-   virtual void ComputerIsAboutToSleep() = 0;
-
-   /** Called by the DetectNetworkConfigChanges session, when the host computer has just woken up from sleep.  
-     * Currently implemented for Windows and MacOS/X only.
-     */
-   virtual void ComputerJustWokeUp() = 0;
-};
 
 /** This class watches the set of available network interfaces and when that set
   * changes, this class calls the NetworkInterfacesChanged() virtual method on any
@@ -80,7 +46,13 @@ class DetectNetworkConfigChangesSession : public AbstractReflectSession, public 
 #endif
 {
 public:
-   DetectNetworkConfigChangesSession();
+   /** Constructor
+     * @param notifyReflectServer if set to true, this class will also call ComputerIsAboutToSleep()
+     *                            and ComputerJustWokeUp() on the ReflectServer it is attached to, so that
+     *                            TCP connections to other computers get disconnected just before the local
+     *                            computer goes to sleep.  Defaults to true; pass in false if you don't want that behavior.
+     */
+   DetectNetworkConfigChangesSession(bool notifyReflectServer=true);
 
 #ifndef __linux__
    virtual status_t AttachedToServer();
@@ -199,6 +171,7 @@ private:
    Hashtable<String, Void> _pendingChangedInterfaceNames;  // currently used under MacOS/X only
    bool _changeAllPending;
    bool _isComputerSleeping;
+   const bool _notifyReflectServer;
 };
 DECLARE_REFTYPES(DetectNetworkConfigChangesSession);
 

@@ -14,8 +14,7 @@ DEFINES  += UNIFIED_DAEMON   # so we can have our own main() function, without c
 DEFINES  += MUSCLE_ENABLE_ZLIB_ENCODING
 DEFINES  += MUSCLE_SINGLE_THREAD_ONLY
 #DEFINES += MUSCLE_AVOID_IPV6
-#DEFINES += MUSCLE_USE_CPLUSPLUS11
-#unix:mac:QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
+unix:mac:QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
 
 INCLUDEPATH	+= $$MUSCLE_DIR
 win32:INCLUDEPATH	+= $$MUSCLE_DIR/regex/regex $$MUSCLE_DIR/zlib/zlib/win32

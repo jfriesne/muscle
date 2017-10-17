@@ -6,40 +6,41 @@
 #include "support/MuscleSupport.h"  // needed for WIN32 defines, etc
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
-
-#if defined(QT_CORE_LIB)  // is Qt4 available?
-# include <Qt>  // to bring in the proper value of QT_VERSION
-#endif
-
-#if defined(QT_THREAD_SUPPORT) || (QT_VERSION >= 0x040000)
-# define MUSCLE_QT_HAS_THREADS 1
-#endif
-
-# if defined(WIN32)
-#  if defined(MUSCLE_QT_HAS_THREADS) && defined(MUSCLE_PREFER_QT_OVER_WIN32)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+#  include <mutex>
+# else
+#  if defined(QT_CORE_LIB)  // is Qt4 available?
+#   include <Qt>  // to bring in the proper value of QT_VERSION
+#  endif
+#  if defined(QT_THREAD_SUPPORT) || (QT_VERSION >= 0x040000)
+#   define MUSCLE_QT_HAS_THREADS 1
+#  endif
+#  if defined(WIN32)
+#   if defined(MUSCLE_QT_HAS_THREADS) && defined(MUSCLE_PREFER_QT_OVER_WIN32)
     /* empty - we don't have to do anything for this case. */
-#  else
-#   ifndef MUSCLE_PREFER_WIN32_OVER_QT
-#    define MUSCLE_PREFER_WIN32_OVER_QT
+#   else
+#    ifndef MUSCLE_PREFER_WIN32_OVER_QT
+#     define MUSCLE_PREFER_WIN32_OVER_QT
+#    endif
 #   endif
 #  endif
-# endif
-# if defined(MUSCLE_USE_PTHREADS)
-#  include <pthread.h>
-# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-#  // empty
-# elif defined(MUSCLE_QT_HAS_THREADS)
-#  if (QT_VERSION >= 0x040000)
-#   include <QMutex>
+#  if defined(MUSCLE_USE_PTHREADS)
+#   include <pthread.h>
+#  elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+#   // empty
+#  elif defined(MUSCLE_QT_HAS_THREADS)
+#   if (QT_VERSION >= 0x040000)
+#    include <QMutex>
+#   else
+#    include <qthread.h>
+#   endif
+#  elif defined(__BEOS__) || defined(__HAIKU__)
+#   include <support/Locker.h>
+#  elif defined(__ATHEOS__)
+#   include <util/locker.h>
 #  else
-#   include <qthread.h>
+#   error "Mutex:  threading support not implemented for this platform.  You'll need to add code to the MUSCLE Mutex class for your platform, or add -DMUSCLE_SINGLE_THREAD_ONLY to your build line if your program is single-threaded or for some other reason does not need to worry about locking"
 #  endif
-# elif defined(__BEOS__) || defined(__HAIKU__)
-#  include <support/Locker.h>
-# elif defined(__ATHEOS__)
-#  include <util/locker.h>
-# else
-#  error "Mutex:  threading support not implemented for this platform.  You'll need to add code to the MUSCLE Mutex class for your platform, or add -DMUSCLE_SINGLE_THREAD_ONLY to your build line if your program is single-threaded or for some other reason does not need to worry about locking"
 # endif
 #endif
 
@@ -75,7 +76,9 @@ public:
    Mutex()
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
       : _isEnabled(_muscleSingleThreadOnly == false)
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+      // empty
+# elif defined(MUSCLE_USE_PTHREADS)
       // empty
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       // empty
@@ -97,7 +100,9 @@ public:
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
       if (_isEnabled)
       {
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+	 // empty
+# elif defined(MUSCLE_USE_PTHREADS)
          pthread_mutexattr_t mutexattr;
          pthread_mutexattr_init(&mutexattr);                              // Note:  If this code doesn't compile, then
          pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE);  // you may need to add -D_GNU_SOURCE to your
@@ -132,7 +137,16 @@ public:
 #else
       if (_isEnabled == false) return B_NO_ERROR;
 
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+      status_t ret = B_NO_ERROR;
+#  if !defined(MUSCLE_NO_EXCEPTIONS)
+      try {
+#  endif
+         _locker.lock();
+#  if !defined(MUSCLE_NO_EXCEPTIONS)
+      } catch(...) {ret = B_ERROR;}
+#  endif
+# elif defined(MUSCLE_USE_PTHREADS)
       status_t ret = (pthread_mutex_lock(&_locker) == 0) ? B_NO_ERROR : B_ERROR;
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       EnterCriticalSection(&_locker);
@@ -176,7 +190,10 @@ public:
       LOG_DEADLOCK_FINDER_EVENT(false);
 # endif
 
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+      _locker.unlock();
+      return B_NO_ERROR;
+# elif defined(MUSCLE_USE_PTHREADS)
       return (pthread_mutex_unlock(&_locker) == 0) ? B_NO_ERROR : B_ERROR;
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       LeaveCriticalSection(&_locker);
@@ -206,7 +223,9 @@ private:
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
       if (_isEnabled)
       {
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+         // dunno of a way to do this with a std::mutex
+# elif defined(MUSCLE_USE_PTHREADS)
          pthread_mutex_destroy(&_locker);
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
          DeleteCriticalSection(&_locker);
@@ -220,7 +239,9 @@ private:
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
    bool _isEnabled;  // if false, this Mutex is a no-op
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   mutable std::recursive_mutex _locker;
+# elif defined(MUSCLE_USE_PTHREADS)
    mutable pthread_mutex_t _locker;
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
    mutable CRITICAL_SECTION _locker;

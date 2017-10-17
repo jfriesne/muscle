@@ -50,7 +50,7 @@ int main(void)
    }
 #endif
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    {
       Queue<int> q {1,2,3,4,5};
       if (q.GetNumItems() != 5) {printf("Oh no, initialize list constructor didn't work!\n"); exit(10);}

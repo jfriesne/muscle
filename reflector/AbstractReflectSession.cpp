@@ -396,7 +396,14 @@ uint64
 AbstractReflectSession :: 
 GetPulseTime(const PulseArgs &)
 {
-   return muscleMin(_reconnectTime, _asyncConnectTimeoutTime);
+   return muscleMin(IsThisSessionScheduledForPostSleepReconnect()?MUSCLE_TIME_NEVER:_reconnectTime, _asyncConnectTimeoutTime);
+}
+
+bool
+AbstractReflectSession ::
+IsThisSessionScheduledForPostSleepReconnect() const
+{
+   return ((GetOwner())&&(GetOwner()->IsSessionScheduledForPostSleepReconnect(GetSessionIDString())));
 }
 
 void
@@ -404,7 +411,7 @@ AbstractReflectSession ::
 Pulse(const PulseArgs & args)
 {
    PulseNode::Pulse(args);
-   if (args.GetCallbackTime() >= _reconnectTime)
+   if ((args.GetCallbackTime() >= _reconnectTime)&&(IsThisSessionScheduledForPostSleepReconnect() == false))
    {
       if (_autoReconnectDelay == MUSCLE_TIME_NEVER) _reconnectTime = MUSCLE_TIME_NEVER;
       else

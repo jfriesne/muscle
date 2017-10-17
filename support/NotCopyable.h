@@ -27,7 +27,7 @@ public:
    NotCopyable() {/* empty */}
 
 private:
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** Copy constructor, deliberately made non-callable.  Trying to use it will cause a compile-time error. */
    NotCopyable(const NotCopyable &) = delete;
 

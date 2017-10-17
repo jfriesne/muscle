@@ -7,9 +7,23 @@ of your Makefile to alter muscle's behaviour:
    Set this to enable built-in support for SSL connections via OpenSSL.
    (e.g. ReflectServer::SetSSLPrivateKey())
 
--DMUSCLE_USE_CPLUSPLUS11
-   Set this to enable C++11-specific features such as move-constructors.
+-DMUSCLE_AVOID_CPLUSPLUS11
+   Set this to avoid C++11-specific features such as move-constructors
+   (i.e. so that you can build MUSCLE under older, pre-C++11 compilers)
 
+-DMUSCLE_AVOID_CPLUSPLUS11_THREADS
+   Set this to avoid using the C++11-specific APIs (thread, mutex,
+   etc) as back-ends for the MUSCLE Thread/Mutex/AtomicCounter etc 
+   classes if you are compiling using C++11 but nevertheless you still 
+   want those classes to use OS-specific back-end APIs instead.
+
+-DMUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
+   Tells the ThreadLocalStorage class to avoid using the C++11 thread_local
+   keyword even through C++11 support is enabled.  Defined automatically for
+   older (pre-MSVC2015) Microsoft compilers that are known not to support
+   this keyword; but it can also be defined manually if necessary (e.g.  
+   because your compiler doesn't support the thread_local keyword either)
+   
 -DMUSCLE_AVOID_IPV6
    Set this to indicate that Muscle should be compiled without IPv6
    support.  The main difference with this flag is that muscle_ip_address
@@ -294,3 +308,10 @@ of your Makefile to alter muscle's behaviour:
    If set, then NetworkUtilityFunctions.cpp will not attempt to
    determine network hardware type using SIOCGIFHWADDR when compiled
    under Linux.
+
+-DMUSCLE_USE_CPLUSPLUS11_THREADS
+   This define is typically defined for you when appropriate, inside
+   MuscleSupport.h  You shouldn't have to define it manually.  It tells
+   the MUSCLE headers to use C++11 APIs as back-ends for the MUSCLE
+   Thread/Mutex/AtomicCounter/etc classes.
+

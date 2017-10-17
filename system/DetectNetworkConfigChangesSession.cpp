@@ -35,6 +35,8 @@
 # include <linux/rtnetlink.h>
 #endif
 
+#include "reflector/ReflectServer.h"
+
 namespace muscle {
 
 #if defined(__APPLE__) || defined(WIN32)
@@ -62,7 +64,7 @@ status_t DetectNetworkConfigChangesSession :: ThreadSafeSendMessageToOwner(const
 }
 #endif
 
-DetectNetworkConfigChangesSession :: DetectNetworkConfigChangesSession()
+DetectNetworkConfigChangesSession :: DetectNetworkConfigChangesSession(bool notifyReflectServer)
    : 
 #ifndef __linux__
    _threadKeepGoing(false), 
@@ -76,7 +78,8 @@ DetectNetworkConfigChangesSession :: DetectNetworkConfigChangesSession()
    _callbackTime(MUSCLE_TIME_NEVER),
    _enabled(true),
    _changeAllPending(false),
-   _isComputerSleeping(false)
+   _isComputerSleeping(false),
+   _notifyReflectServer(notifyReflectServer)
 {
    // empty
 }
@@ -103,6 +106,7 @@ void DetectNetworkConfigChangesSession :: CallNetworkInterfacesChangedOnAllTarge
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->NetworkInterfacesChanged(interfaceNames);
    }
+
    for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
@@ -112,12 +116,19 @@ void DetectNetworkConfigChangesSession :: CallNetworkInterfacesChangedOnAllTarge
 
 void DetectNetworkConfigChangesSession :: CallComputerIsAboutToSleepOnAllTargets()
 {
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+   if (_notifyReflectServer)
+   {
+      ReflectServer * rs = GetOwner();
+      if (rs) rs->ComputerIsAboutToSleep();
+   }
+
+   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->ComputerIsAboutToSleep();
    }
-   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
+
+   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
    {
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->ComputerIsAboutToSleep();
@@ -131,10 +142,17 @@ void DetectNetworkConfigChangesSession :: CallComputerJustWokeUpOnAllTargets()
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->ComputerJustWokeUp();
    }
+
    for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->ComputerJustWokeUp();
+   }
+
+   if (_notifyReflectServer)
+   {
+      ReflectServer * rs = GetOwner();
+      if (rs) rs->ComputerJustWokeUp();
    }
 }
 

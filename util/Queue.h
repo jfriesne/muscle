@@ -5,7 +5,7 @@
 
 #include "support/MuscleSupport.h"
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
 # include<initializer_list>
 #endif
 
@@ -17,7 +17,7 @@ namespace muscle {
 #endif
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
-# ifdef MUSCLE_USE_CPLUSPLUS11
+# ifndef MUSCLE_AVOID_CPLUSPLUS11
 // Enable move semantics (when possible) for C++11
 #  define QQ_UniversalSinkItemRef template<typename ItemParam>
 #  define QQ_SinkItemParam  ItemParam &&
@@ -52,7 +52,7 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    Queue & operator=(const Queue & rhs);
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** Initialize list Constructor (C++11 only)
      * @param list the initializer-list of items to add to this Queue
      */
@@ -110,7 +110,7 @@ public:
     */
    status_t AddTailMulti(const ItemType * items, uint32 numItems);
 
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** Available in C++11 only:  Appends the items specified in the initializer
     *  list to this Queue.
     *  @param list The C++11 initializer list of items (e.g. {1,2,3,4,5} to add.
@@ -663,7 +663,7 @@ private:
    /** Returns true iff we need to set our ItemType objects to their default-constructed state when we're done using them */
    inline bool IsPerItemClearNecessary() const
    {
-#ifdef MUSCLE_USE_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
       return !std::is_trivial<ItemType>::value;
 #else
       return true;

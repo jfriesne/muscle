@@ -5,6 +5,43 @@ key:  - new feature
       * bug fixed
       o other
 
+6.70 Released 10/17/2017
+   - The ReflectServer class, if a DetectNetworkConfigChanges session
+     is attached to it, will now automatically disconnect any non-local
+     TCP connections just before the local computer goes to sleep, in
+     order to avoid saddling any communicating peers with a moribund
+     TCP connection.  It will reconnect them, if possible, after the
+     computer re-awakes.
+   - The DetectNetworkConfigChangesSession constructor now takes
+     an optional argument indicating whether or not its presence
+     should enable the behavior described in the previous bullet-point.
+     Defaults to true, but can be explicitly set false if you don't want
+     the new behavior for some reason.
+   - Added a back-end for the Thread class that uses C++11's std::thread
+   - Added a back-end for the Mutex class that uses C++11's std::recursive_mutex
+   - Added a back-end for the ThreadLocalStorage class that uses
+     C++11's thread_local keyword.
+   - Added a CMakeLists.txt file to the root directory, for those who
+     prefer to compile a basic MUSCLE library and muscled using cmake
+     (e.g. "cd muscle; mkdir _build; cd _build; cmake ..; make")
+   - Added a IsSelfAssigned() convenience method to the IPAddress class.
+   - Added FindFirstSessionOfType() and FindSessionsOfType() convenience
+     methods to the ReflectServer class.
+   o Moved the INetworkConfigChangesTarget interface out of
+     DetectNetworkConfigChanges.h and into its own separate header file.
+   o MUSCLE now requires a C++11 compiler by default.  If you want to 
+     compile MUSCLE using an older (pre-C++11) compiler, you'll need to
+     explicitly add -DMUSCLE_AVOID_CPLUSPLUS11 to your compile-flags.
+   o MuscleSupport.h now automatically defines -DMUSCLE_USE_CPLUSPLUS11_THREADS
+     if neither MUSCLE_AVOID_CPLUSPLUS11 nor MUSCLE_AVOID_CPLUSPLUS11_THREADS
+     has been defined.
+   o Checks for -DMUSCLE_USE_CPLUSPLUS11 have been removed, because
+     C++11 is now the default compiler level.  C++11-specific code is
+     now guarded by #ifndef MUSCLE_AVOID_CPLUSPLUS11 instead.
+   o Removed the "borland" subdirectory since it's obsolete.
+   o Removed the deprecated SetReflectToSelf() and GetReflectToSelf()
+     methods from the DumbReflectSession class.
+
 6.62 Released 9/14/2017
    o Moved constructor-arguments in the .cpp files to separate lines,
      for better diff-ability when they are modified.

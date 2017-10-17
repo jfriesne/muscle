@@ -1,5 +1,16 @@
 How to build a muscle server ("muscled")
 
+- If you wish to compile muscle.lib and muscled using cmake, do these commands (on any platform):
+     cd muscle
+     mkdir _build
+     cd _build
+     cmake ..
+     make
+
+  (Under Windows, replace the "make" command above with "devenv /Build Release muscled.vcxproj")
+
+Alternatively, you can build muscle the old-fashioned way:
+
 - If you wish to compile muscled under Win32 using Visual C++,
   go to the 'vc++' subfolder and follow the directions in the
   README.txt file there.

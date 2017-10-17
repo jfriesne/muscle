@@ -8,7 +8,9 @@
 #include "util/GenericCallback.h"
 #include "util/Queue.h"
 
-#if !defined(MUSCLE_SINGLE_THREAD_ONLY) && defined(MUSCLE_QT_HAS_THREADS)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# include <thread>
+#elif !defined(MUSCLE_SINGLE_THREAD_ONLY) && defined(MUSCLE_QT_HAS_THREADS)
 # if QT_VERSION >= 0x040000
 #  include <QThread>
 # else
@@ -219,11 +221,11 @@ class muscle_thread_id
 public:
    /** Default constructor.  Returns an muscle_thread_id object that doesn't represent any thread. */
    muscle_thread_id() 
-# ifndef MUSCLE_USE_PTHREADS
+#if !defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && !defined(MUSCLE_USE_PTHREADS)
       : _id(0)
 # endif
    {
-# ifdef MUSCLE_USE_PTHREADS
+# if defined(MUSCLE_USE_PTHREADS)
       memset(&_id, 0, sizeof(_id));
 # endif  
    }
@@ -245,7 +247,9 @@ public:
    static muscle_thread_id GetCurrentThreadID()
    {
       muscle_thread_id ret(false);
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+      ret._id = std::this_thread::get_id();
+# elif defined(MUSCLE_USE_PTHREADS)
       ret._id = pthread_self();
 # elif defined(WIN32)
       ret._id = GetCurrentThreadId();
@@ -266,8 +270,8 @@ public:
      */
    const char * ToString(char * buf) const
    {
-# if defined(MUSCLE_USE_PTHREADS)
-      // pthread_t might be a struct, so generate a good-enough ID from its bytes
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS) || defined(MUSCLE_USE_PTHREADS)
+      // _id is a POD value, so generate a good-enough ID from its bytes
       unsigned long count = 0;
       unsigned long base  = 1; 
       unsigned char * s = (unsigned char*)(void*)(&_id);
@@ -287,7 +291,9 @@ public:
 private:
    muscle_thread_id(bool /*junk*/) {/* empty */}
 
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   std::thread::id _id;
+# elif defined(MUSCLE_USE_PTHREADS)
    pthread_t _id;
 # elif defined(WIN32)
    DWORD _id;

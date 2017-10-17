@@ -7,9 +7,8 @@ CXXFLAGS   += -DMUSCLE_ENABLE_ZLIB_ENCODING
 #CXXFLAGS  += -DMUSCLE_USE_KQUEUE
 #CXXFLAGS  += -DMUSCLE_USE_EPOLL
 #CXXFLAGS  += -DMUSCLE_ENABLE_SSL
-
-# Uncomment this if you want to compile with C++11 support enabled
-#CXXFLAGS +=  -std=c++11 -stdlib=libc++ $(CFLAGS) $(DEFINES) -DMUSCLE_USE_CPLUSPLUS11
+#CXXFLAGS  += -DMUSCLE_AVOID_CPLUSPLUS11
+CXXFLAGS   += -std=c++11 $(CFLAGS) $(DEFINES)
 
 # Uncomment these to enable clang++'s static analyzer (for more thorough error checking)
 #CXXFLAGS += --analyze -Xanalyzer -analyzer-output=text
@@ -46,6 +45,7 @@ ifeq ($(OSTYPE),)
 endif 
 
 ifeq ($(OSTYPE),Darwin)
+   CXXFLAGS += -stdlib=libc++
    LIBS += -framework SystemConfiguration -framework CoreFoundation
 endif
 

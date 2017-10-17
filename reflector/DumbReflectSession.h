@@ -71,14 +71,6 @@ public:
    /** Returns a human-readable label for our session type:  "Dumb Session" */
    virtual const char * GetTypeName() const {return "Dumb Session";}
 
-   /** @deprecated synonym for SetRoutingFlag(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF).
-     * @param reflectToSelf true iff we want our messages forwarded to peers to also be re-routed back to ourself
-     */
-   void SetReflectToSelf(bool reflectToSelf) {SetRoutingFlag(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF, reflectToSelf);}
-
-   /** @deprecated synonym for IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF). */
-   bool GetReflectToSelf() const {return IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF);}
-
 private:
    uint32 _defaultRoutingFlags;
 };

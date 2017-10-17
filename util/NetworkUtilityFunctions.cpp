@@ -1203,6 +1203,22 @@ bool IPAddress :: IsStandardLoopbackDeviceAddress() const
 #endif
 }
 
+bool IPAddress :: IsSelfAssigned() const
+{
+   if (IsIPv4())
+   {
+      // In IPv4-land, any IP address of the form 169.254.*.* is a self-assigned IP address
+      return ((((_lowBits >> 24) & 0xFF) == 169) && (((_lowBits >> 16) & 0xFF) == 254));
+   }
+
+#ifndef MUSCLE_AVOID_IPV6
+   // In IPv6-land, andy IP address of the form fe80::* is a self-assigned IP address
+   return (((_highBits >> 48) & 0xFFFF) == 0xFE80);
+#else
+   return false;
+#endif
+}
+
 static bool IsGNIIBitMatch(const IPAddress & ip, bool isInterfaceEnabled, uint32 includeBits)
 {
    if (((includeBits & GNII_INCLUDE_ENABLED_INTERFACES)  == 0)&&( isInterfaceEnabled)) return false;

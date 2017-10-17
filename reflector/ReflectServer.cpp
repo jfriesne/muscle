@@ -1,5 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#include "dataio/TCPSocketDataIO.h"
 #include "reflector/ReflectServer.h"
 #include "reflector/StorageReflectConstants.h"
 #ifndef MUSCLE_AVOID_SIGNAL_HANDLING
@@ -16,7 +17,6 @@
 
 #ifdef MUSCLE_ENABLE_SSL
 # include "dataio/SSLSocketDataIO.h"
-# include "dataio/TCPSocketDataIO.h"
 # include "iogateway/SSLSocketAdapterGateway.h"
 #endif
 
@@ -143,6 +143,17 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & de
    AbstractReflectSession * session = ref();
    if (session)
    {
+      if (_computerIsAboutToSleep)
+      {
+         // Oh dear, we're in the time just before the computer is about to go to sleep; it's no good
+         // starting a TCP connection now!  Instead we'll make it dormant and call Reconnect() on it when we re-awake.
+         status_t ret = AddNewDormantConnectSession(ref, destIP, port, autoReconnectDelay, maxAsyncConnectPeriod);
+         if (ret != B_NO_ERROR) return B_ERROR;
+
+         (void) _sessionsToReconnectOnWakeup.Put(ref()->GetSessionIDString(), true);  // true indicates "Gotta call Reconnect() when we wake up"
+         return B_NO_ERROR;
+      }
+
       ConstSocketRef sock = ConnectAsync(destIP, port, session->_isConnected);
 
       // FogBugz #5256:  If ConnectAsync() fails, we want to act as if it succeeded, so that the calling
@@ -253,6 +264,7 @@ ReflectServer :: ReflectServer()
    , _serverStartedAt(0)
    , _doLogging(true)
    , _serverSessionID(GetCurrentTime64()+GetRunTime64()+rand())
+   , _computerIsAboutToSleep(false)
 {
    if (_serverSessionID == 0) _serverSessionID++;  // paranoia:  make sure 0 can be used as a guard value
 
@@ -1099,6 +1111,63 @@ AddLameDuckSession(AbstractReflectSession * who)
          AddLameDuckSession(xiter.GetValue());
          break;
       }
+   }
+}
+
+void 
+ReflectServer ::
+SetComputerIsAboutToSleep(bool isAboutToSleep)
+{
+   if (_computerIsAboutToSleep == isAboutToSleep) return;  // Avoid side effects if we're not actually changing our state
+   _computerIsAboutToSleep = isAboutToSleep;
+
+   if (_computerIsAboutToSleep)
+   {
+      uint32 disconnectCount = 0, scheduleCount = 0;
+      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(_sessions); iter.HasData(); iter++)
+      {
+         const String & sessionID = *iter.GetKey();
+         const AbstractReflectSessionRef & s = iter.GetValue();
+         const TCPSocketDataIO * tcpIO = dynamic_cast<TCPSocketDataIO *>(s()->GetDataIO()());
+         if (tcpIO)
+         {
+            const IPAddress peerIP = GetPeerIPAddress(tcpIO->GetReadSelectSocket(), false);
+            if ((peerIP.IsValid())&&(peerIP.IsStandardLoopbackDeviceAddress() == false))
+            {
+               disconnectCount++;
+
+               // Only schedule reconnects for those sessions that could benefit from them
+               const bool scheduleReconnect = ((s()->GetAsyncConnectDestination().IsValid())&&(s()->GetAutoReconnectDelay() != MUSCLE_TIME_NEVER));
+               (void) s()->DisconnectSession();
+               if ((scheduleReconnect)&&(_lameDuckSessions.Contains(s) == false)&&(_sessionsToReconnectOnWakeup.Put(sessionID, false) == B_NO_ERROR))
+               {
+                  s()->InvalidatePulseTime();  // Avoid extra call to Pulse() if session's _autoReconnectTime was set
+                  scheduleCount++;
+               }
+            }
+         }
+      }
+      LogTime(MUSCLE_LOG_INFO, "ReflectServer %p:  This computer is about to go to sleep.\n", this);
+      if (disconnectCount > 0) LogTime(MUSCLE_LOG_INFO, "ReflectServer %p:  Disconnected " UINT32_FORMAT_SPEC " sessions to avoid moribund TCP streams while sleeping (" UINT32_FORMAT_SPEC " sessions scheduled for auto-reconnect-on-wake).\n", this, disconnectCount, scheduleCount);
+   }
+   else
+   {
+      // Just woke up!  Now is the time to try to reconnect anyone who we put to sleep previously
+      uint32 reconnectCount = 0;
+      for (HashtableIterator<String, bool> iter(_sessionsToReconnectOnWakeup); iter.HasData(); iter++)
+      {
+         AbstractReflectSessionRef s = GetSession(iter.GetKey());
+         if (s())
+         {
+            (void) _sessionsToReconnectOnWakeup.Remove(iter.GetKey());  // gotta do this first, otherwise AbstractReflectSession::GetPulseTime() won't do the right thing
+            if (iter.GetValue()) s()->Reconnect();            // dormant sessions need Reconnect() called
+                            else s()->InvalidatePulseTime();  // auto-reconnect sessions just need to update their pulse time
+            reconnectCount++;
+         }
+      }
+      LogTime(MUSCLE_LOG_INFO, "ReflectServer %p:  This computer just woke up.\n", this);
+      if (reconnectCount > 0) LogTime(MUSCLE_LOG_INFO, "ReflectServer %p:  Auto-reconnected " UINT32_FORMAT_SPEC " sessions.\n", this, reconnectCount);
+      _sessionsToReconnectOnWakeup.Clear();  // semi-paranoia
    }
 }
 

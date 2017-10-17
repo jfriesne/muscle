@@ -1,5 +1,4 @@
 #include "dataio/SimulatedMulticastDataIO.h"
-#include "util/MiscUtilityFunctions.h" // TEMP REMOVE THIS
 #include "util/NetworkInterfaceInfo.h"
 
 namespace muscle {
