@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.70" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        67000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "6.71" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        67100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -1175,9 +1175,6 @@ public:
 /** Hash function for arbitrary data.  Note that the current implementation of this function
   * is MurmurHash2/Aligned, taken from http://murmurhash.googlepages.com/ and used as public domain code.
   * Thanks to Austin Appleby for the cool algorithm!
-  * Note that these hash codes should not be passed outside of the
-  * host that generated them, as different host architectures may give
-  * different hash results for the same key data.
   * @param key Pointer to the data to hash
   * @param numBytes Number of bytes to hash start at (key)
   * @param seed An arbitrary number that affects the output values.  Defaults to zero.
@@ -1187,9 +1184,6 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed = 0);
 
 /** Same as HashCode(), but this version produces a 64-bit result.
   * This code is also part of MurmurHash2, written by Austin Appleby
-  * Note that these hash codes should not be passed outside of the
-  * host that generated them, as different host architectures may give
-  * different hash results for the same key data.
   * @param key Pointer to the data to hash
   * @param numBytes Number of bytes to hash start at (key)
   * @param seed An arbitrary number that affects the output values.  Defaults to zero.

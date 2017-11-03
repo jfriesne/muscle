@@ -164,7 +164,7 @@ protected:
    /**
     * Should flatten the specified Message object into a newly allocated ByteBuffer
     * object and return the ByteBufferRef.  The returned ByteBufferRef's contents
-    * should consiste of (GetHeaderSize()) bytes of header, followed by the flattened
+    * should consist of (GetHeaderSize()) bytes of header, followed by the flattened
     * Message data.
     * @param msgRef Reference to a Message to flatten into a byte array.
     * @return A reference to a ByteBuffer object (containing the appropriate header

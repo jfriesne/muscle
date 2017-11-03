@@ -26,10 +26,13 @@ public:
    /**
     *  Constructor.
     *  @param blocking determines whether to use blocking or non-blocking I/O.
-    *  If you will be using this object with a AbstractMessageIOGateway,
-    *  and/or select(), then it's usually better to set blocking to false.
+    *                  If you will be using this object with a AbstractMessageIOGateway,
+    *                  and/or select(), then it's usually better to set blocking to false.
+    *  @param writeToStdout If set true, then any data passed to our Write() method
+    *                       will be written to stdout.  If set false, data passed to our
+    *                       Write() method will be silently dropped.  Defaults to false.
     */
-   StdinDataIO(bool blocking);
+   StdinDataIO(bool blocking, bool writeToStdout=false);
 
    /** Destructor */
    virtual ~StdinDataIO();
@@ -42,11 +45,18 @@ public:
     */
    virtual int32 Read(void * buffer, uint32 size);
 
-   /** Overridden to always return -1, because you can't write to stdin! */
-   virtual int32 Write(const void *, uint32) {return -1;}
+   /** If (writeToStdout) was passed as true to the constructor,
+     * then we will try to fwrite() the passed-in bytes to stdout.
+     * Otherwise we will just return (size) verbatim, without writing the bytes anywhere.
+     * @param buffer Pointer to a buffer of data to output
+     * @param size The number of bytes pointed to by (buffer)
+     * @returns the number of bytes actually written (or size, if writeToStdout is false)
+     * @note writes to stdout are expected to be blocking, even if this StdinDataIO is in non-blocking mode.
+     */
+   virtual int32 Write(const void * buffer, uint32 size);
 
-   /** Implemented as a no-op because we don't ever do output on stdin */
-   virtual void FlushOutput() {/* empty */}
+   /** Flushes stdout if (writeToStdout) was specified as true; otherwise this is a no-op. */
+   virtual void FlushOutput();
 
    virtual void Shutdown();
 
@@ -58,16 +68,22 @@ public:
      */
    virtual const ConstSocketRef & GetReadSelectSocket() const;
 
-   /** Returns a NULL socket -- since you can't write to stdin, there is no point
-     * in waiting for space to be available for writing on stdin!
+   /** If (writeToStdout) was specified true in the constructor, then this
+     * method will return a socket that can be select()'d on to find out when
+     * stdout has space to receive data.  Otherwise, this returns a NULL socket reference.
+     * @note under Windows this method currently always returns a NULL socket reference in all cases.
      */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
+   virtual const ConstSocketRef & GetWriteSelectSocket() const;
 
    /** Returns the blocking flag that was passed into our constructor */
    bool IsBlockingIOEnabled() const {return _stdinBlocking;}
 
+   /** Returns the writeToStdout flag that was passed into our constructor */
+   bool IsWriteToStdoutEnabled() const {return _writeToStdout;}
+
 private:
-   bool _stdinBlocking;
+   const bool _stdinBlocking;
+   const bool _writeToStdout;
 
    void Close();
 

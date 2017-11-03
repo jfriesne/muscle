@@ -3,11 +3,11 @@
 #ifndef MuscleQueue_h
 #define MuscleQueue_h
 
-#include "support/MuscleSupport.h"
-
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
-# include<initializer_list>
+# include <initializer_list>
 #endif
+
+#include "support/MuscleSupport.h"
 
 namespace muscle {
 
@@ -53,7 +53,7 @@ public:
    Queue & operator=(const Queue & rhs);
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
-   /** Initialize list Constructor (C++11 only)
+   /** Initializer-list Constructor (C++11 only)
      * @param list the initializer-list of items to add to this Queue
      */
    Queue(const std::initializer_list<ItemType> & list) : _queue(NULL), _queueSize(0), _itemCount(0) {(void) AddTailMulti(list);}
@@ -119,7 +119,7 @@ public:
    status_t AddTailMulti(const std::initializer_list<ItemType> & list)
    {
       if (EnsureCanAdd(list.size()) != B_NO_ERROR) return B_ERROR;
-      for (auto i : list) (void) AddTail(i);
+      for (auto i : list) (void) AddTail(i);  // can't fail, because we allocated the necessary space on the previous line
       return B_NO_ERROR;
    }
 #endif

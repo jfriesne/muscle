@@ -3,6 +3,7 @@ project (muscle)
 set (CMAKE_CXX_STANDARD 11)
 
 file(GLOB MUSCLE_SRCS 
+   "./dataio/*.cpp"
    "./iogateway/*.cpp"
    "./message/*.cpp"
    "./reflector/*.cpp"
@@ -12,6 +13,11 @@ file(GLOB MUSCLE_SRCS
    "./util/*.cpp"
    "./zlib/*.cpp"
 )
+
+file(GLOB EXCLUDE_THESE_SOURCES
+  "./dataio/*SSL*"
+)
+list(REMOVE_ITEM MUSCLE_SRCS ${EXCLUDE_THESE_SOURCES} )
 
 if (WIN32)
    file(GLOB ZLIB_SRCS "./zlib/zlib/*.c")

@@ -96,12 +96,13 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
 static Socket _stdinSocket(STDIN_FILENO, false);  // we generally don't want to close stdin
 #endif
 
-StdinDataIO :: StdinDataIO(bool blocking)
+StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
    : _stdinBlocking(blocking)
+   , _writeToStdout(writeToStdout)
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
- , _slaveSocketTag(0)
+   , _slaveSocketTag(0)
 #else
- , _fdIO(ConstSocketRef(&_stdinSocket, false), true)
+   , _fdIO(ConstSocketRef(&_stdinSocket, false), true)
 #endif
 {
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
@@ -192,12 +193,35 @@ int32 StdinDataIO :: Read(void * buffer, uint32 size)
 #endif
 }
 
+int32 StdinDataIO :: Write(const void * buffer, uint32 size)
+{
+   return _writeToStdout ? fwrite(buffer, 1, size, stdout) : size;
+}
+
+void StdinDataIO :: FlushOutput()
+{
+   if (_writeToStdout) fflush(stdout);
+}
+
 const ConstSocketRef & StdinDataIO :: GetReadSelectSocket() const
 {
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
    return _stdinBlocking ? GetNullSocket() : _masterSocket;
 #else
    return _fdIO.GetReadSelectSocket();
+#endif
+}
+
+const ConstSocketRef & StdinDataIO :: GetWriteSelectSocket() const
+{
+   if (_writeToStdout == false) return GetNullSocket();
+
+#ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
+   // I'm not sure how I want to handle this under Windows yet
+   // so for now I'll just return a NULL socket under windows.
+   return GetNullSocket();
+#else
+   return _fdIO.GetWriteSelectSocket();
 #endif
 }
 

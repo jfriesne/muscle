@@ -3,6 +3,10 @@
 #ifndef MuscleQueryFilter_h
 #define MuscleQueryFilter_h
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+# include <initializer_list>
+#endif
+
 #include "util/Queue.h"
 #include "util/ByteBuffer.h"
 #include "message/Message.h"
@@ -402,6 +406,13 @@ public:
    /** Default constructor. */
    MultiQueryFilter() {/* empty */}
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Initializer-list Constructor (C++11 only)
+     * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
+     */
+   MultiQueryFilter(const std::initializer_list<ConstQueryFilterRef> & childrenList) {_children.AddTailMulti(childrenList);}
+#endif
+
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
 
@@ -460,6 +471,32 @@ public:
       GetChildren().AddTail(child2);
       GetChildren().AddTail(child3);
    }
+
+   /** Convenience constructor for simple ternary 'or' or 'and' operations.
+     * @param isAnd If true, the operation will be an 'and' operation.  Otherwise it will be an 'or' operation.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     * @param child4 Fourth argument to the operation
+     */
+   AndOrQueryFilter(bool isAnd, const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3, const ConstQueryFilterRef & child4) : _minMatches(isAnd ? MUSCLE_NO_LIMIT : 1)
+   {
+      GetChildren().AddTail(child1);
+      GetChildren().AddTail(child2);
+      GetChildren().AddTail(child3);
+      GetChildren().AddTail(child4);
+   }
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Initializer-list Constructor (C++11 only)
+     * @param isAnd If true, the operation will be an 'and' operation.  Otherwise it will be an 'or' operation.
+     * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
+     */
+   AndOrQueryFilter(bool isAnd, const std::initializer_list<ConstQueryFilterRef> & childrenList) : MultiQueryFilter(childrenList), _minMatches(isAnd ? MUSCLE_NO_LIMIT : 1)
+   {
+      // empty
+   }
+#endif
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
@@ -524,6 +561,16 @@ public:
       GetChildren().AddTail(child3);
    }
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Initializer-list Constructor (C++11 only)
+     * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
+     */
+   NandNotQueryFilter(const std::initializer_list<ConstQueryFilterRef> & childrenList) : MultiQueryFilter(childrenList), _maxMatches(1)
+   {
+      // empty
+   }
+#endif
+
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
    virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_NANDNOT;}
@@ -561,6 +608,16 @@ public:
       GetChildren().AddTail(child1);
       GetChildren().AddTail(child2);
    }
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Initializer-list Constructor (C++11 only)
+     * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
+     */
+   XorQueryFilter(const std::initializer_list<ConstQueryFilterRef> & childrenList) : MultiQueryFilter(childrenList)
+   {
+      // empty
+   }
+#endif
 
    virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_XOR;}
    virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;

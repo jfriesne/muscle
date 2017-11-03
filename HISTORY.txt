@@ -5,6 +5,25 @@ key:  - new feature
       * bug fixed
       o other
 
+6.71 Release 11/3/2017
+   - Added a GetFieldType() method to the MessageFieldNameIterator
+     class, for convenience.
+   - Added a 'writeToStdout' argument to StdinDataIO's constructor so
+     that StdinDataIO can optionally Write() data to stdout as well.
+     (The argument defaults to false, for backwards compatibility)
+   - SanitySetupSystem now verifies that sizeof(void*)'s value 
+     corresponds correctly to the presence/absence of the 
+     MUSCLE_64_BIT_PLATFORM macro, and panics if it doesn't.
+   - Added constructors to MultiQueryFilter (and its subclasses)
+     that take a std::initializer_list of child ConstQueryFilterRef's,
+     for convenience.  (requires C++11 or later to use)
+   o CMakeLists.txt now includes the files in the dataio subdirectory
+     as part of muscle.lib (except for SSLSocketDataIO.cpp, to avoid
+     creating a hard-coded OpenSSL dependency)
+   o Removed the 32-bit-specific implementation of CalculateHashCode64();
+     now the 64-bit is used on both 32-bit and 64-bit CPUs so that 
+     the function will give the same results regardless of platform.
+
 6.70 Released 10/17/2017
    - The ReflectServer class, if a DetectNetworkConfigChanges session
      is attached to it, will now automatically disconnect any non-local

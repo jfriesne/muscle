@@ -133,6 +133,11 @@ public:
      */
    const String & GetFieldName() const {return _iter.GetKey();}
 
+   /** Returns the type code (B_STRING_TYPE, B_INT32_TYPE, etc) of iterator's
+     * current Message-field (as specified by the return value of GetFieldName()).
+     */
+   uint32 GetFieldType() const {return _iter.GetValue().TypeCode();}
+
 private:
    friend class Message;
    MessageFieldNameIterator(const HashtableIterator<String, muscle_message_imp::MessageField> & iter, uint32 tc) : _typeCode(tc), _iter(iter) {if (_typeCode != B_ANY_TYPE) SkipNonMatchingFieldNames();}
