@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.71" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        67100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "6.72" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        67200  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -75,8 +75,10 @@
 # define MUSCLE_USE_MSVC_STACKWALKER 1
 #endif
 
-
 #ifdef __cplusplus
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11) && (__cplusplus < 201100)
+#  define MUSCLE_AVOID_CPLUSPLUS11
+# endif
 # ifndef MUSCLE_AVOID_CPLUSPLUS11
 #  if !defined(MUSCLE_USE_PTHREADS) && !defined(MUSCLE_SINGLE_THREAD_ONLY) && !defined(MUSCLE_AVOID_CPLUSPLUS11_THREADS)
 #   define MUSCLE_USE_CPLUSPLUS11_THREADS
@@ -542,10 +544,28 @@ template<typename T> inline void muscleSwap(T & t1, T & t2) {typename ugly_swapc
 
 /** Returns true iff (i) is a valid index into array (a)
   * @param i An index value
-  * @param array an array of any type
-  * @returns True iff i is non-negative AND less than ARRAYITEMS(array))
+  * @param theArray an array of any type
+  * @returns True iff i is non-negative AND less than ARRAYITEMS(theArray))
   */
-template<typename T, int size> inline bool muscleArrayIndexIsValid(int i, T(&)[size] /*array*/) {return (((unsigned int)i) < size);}
+template<typename T, int size> inline bool muscleArrayIndexIsValid(int i, T (&/*array*/)[size]) {return (((unsigned int)i) < size);}
+
+/** Convenience method for setting all items in the specified one-dimensional array to their default-constructed state (i.e. zero)
+  * @param theArray an array of any type
+  * @param t The object to set every item in the array equal to.  Defaults to a default-constructed object of the appropriate type.
+  */
+template<typename T, int size1> inline void muscleClearArray(T (&theArray)[size1], const T & t = GetDefaultObjectForType<T>()) {for (int i=0; i<size1; i++) theArray[i] = t;}
+
+/** Convenience method for setting all items in the specified two-dimensional array to their default-constructed state (i.e. zero)
+  * @param theArray an array of any type
+  * @param t The object to set every item in the array equal to.  Defaults to a default-constructed object of the appropriate type.
+  */
+template<typename T, int size1, int size2> inline void muscleClearArray(T (&theArray)[size1][size2], const T & t = GetDefaultObjectForType<T>()) {for (int i=0; i<size1; i++) for (int j=0; j<size2; j++) theArray[i][j] = t;}
+
+/** Convenience method for setting all items in the specified three-dimensional array to their default-constructed state (i.e. zero)
+  * @param theArray an array of any type
+  * @param t The object to set every item in the array equal to.  Defaults to a default-constructed object of the appropriate type.
+  */
+template<typename T, int size1, int size2, int size3> inline void muscleClearArray(T (&theArray)[size1][size2][size3], const T & t = GetDefaultObjectForType<T>()) {for (int i=0; i<size1; i++) for (int j=0; j<size2; j++) for (int k=0; k<size3; k++) theArray[i][j][k] = t;}
 
 /** Returns the value nearest to (v) that is still in the range [lo, hi].
   * @param v A value

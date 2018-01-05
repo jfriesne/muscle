@@ -1258,7 +1258,7 @@ static uint32 ParseAppleInterfaceTypeString(CFStringRef appleTypeString)
       kSCNetworkInterfaceTypeL2TP,
       kSCNetworkInterfaceTypeModem,
       kSCNetworkInterfaceTypePPP,
-      kSCNetworkInterfaceTypePPTP,
+      String("PPTP").ToCFStringRef(),   // was kSCNetworkInterfaceTypePPTP but I grew tired of the MacOS header complaining that it was deprecated --jaf
       kSCNetworkInterfaceTypeSerial,
       kSCNetworkInterfaceTypeVLAN,
       kSCNetworkInterfaceTypeWWAN,

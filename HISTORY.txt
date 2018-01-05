@@ -5,7 +5,26 @@ key:  - new feature
       * bug fixed
       o other
 
-6.71 Release 11/3/2017
+6.72 Released 1/5/2018
+   - MUSCLE_AVOID_CPLUSPLUS11 will now be #defined automatically
+     inside MuscleSupport.h if it wasn't explicitly specified AND
+     the __cplusplus preprocessor token is defined to a value
+     smaller than 201100.
+   - Added a muscleClearArray() templated convenience functions to 
+     MuscleSupport.h
+   o Fixed a deprecation warning for kSCNetworkInterfaceTypePPTP in
+     NetworkUtilityFunctions.cpp (MacOS/X only)
+   o AtomicCounter.h and Mutex.h will now use the corresponding 
+     C++11 APIs in their internal implementation unless 
+     MUSCLE_AVOID_CPLUSPLUS11 is defined.
+   o Added logic to detect XCode versions before 8.0 and auto-enable
+     MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD when they are 
+     detected, since XCode's clang++ didn't support the thread_local
+     keyword before XCode 8.0.
+   * Fixed compile error in AtomicCounter.h if C++11 was enabled
+     and also MUSCLE_SINGLE_THREAD_ONLY was defined.
+
+6.71 Released 11/3/2017
    - Added a GetFieldType() method to the MessageFieldNameIterator
      class, for convenience.
    - Added a 'writeToStdout' argument to StdinDataIO's constructor so

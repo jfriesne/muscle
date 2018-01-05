@@ -6,7 +6,7 @@
 #include "support/MuscleSupport.h"  // needed for WIN32 defines, etc
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
-# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
 #  include <mutex>
 # else
 #  if defined(QT_CORE_LIB)  // is Qt4 available?
@@ -76,7 +76,7 @@ public:
    Mutex()
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
       : _isEnabled(_muscleSingleThreadOnly == false)
-# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       // empty
 # elif defined(MUSCLE_USE_PTHREADS)
       // empty
@@ -100,7 +100,7 @@ public:
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
       if (_isEnabled)
       {
-# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
 	 // empty
 # elif defined(MUSCLE_USE_PTHREADS)
          pthread_mutexattr_t mutexattr;
@@ -137,7 +137,7 @@ public:
 #else
       if (_isEnabled == false) return B_NO_ERROR;
 
-# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       status_t ret = B_NO_ERROR;
 #  if !defined(MUSCLE_NO_EXCEPTIONS)
       try {
@@ -190,7 +190,7 @@ public:
       LOG_DEADLOCK_FINDER_EVENT(false);
 # endif
 
-# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       _locker.unlock();
       return B_NO_ERROR;
 # elif defined(MUSCLE_USE_PTHREADS)
@@ -223,7 +223,7 @@ private:
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
       if (_isEnabled)
       {
-# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
          // dunno of a way to do this with a std::mutex
 # elif defined(MUSCLE_USE_PTHREADS)
          pthread_mutex_destroy(&_locker);
@@ -239,7 +239,7 @@ private:
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
    bool _isEnabled;  // if false, this Mutex is a no-op
-# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    mutable std::recursive_mutex _locker;
 # elif defined(MUSCLE_USE_PTHREADS)
    mutable pthread_mutex_t _locker;

@@ -7,7 +7,7 @@
 
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
   // empty
-#elif defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
 # include <atomic>
 #elif defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
   // empty
@@ -80,7 +80,7 @@ public:
      */
    inline bool AtomicIncrement() 
    {
-#if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+#if defined(MUSCLE_SINGLE_THREAD_ONLY) || !defined(MUSCLE_AVOID_CPLUSPLUS11)
       return (++_count == 1);
 #elif defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
       return (DoMutexAtomicIncrement(&_count, 1) == 1);
@@ -121,7 +121,7 @@ public:
      */
    inline bool AtomicDecrement() 
    {
-#if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+#if defined(MUSCLE_SINGLE_THREAD_ONLY) || !defined(MUSCLE_AVOID_CPLUSPLUS11)
       return (--_count == 0);
 #elif defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
       return (DoMutexAtomicIncrement(&_count, -1) == 0);
@@ -176,7 +176,7 @@ public:
      */
    void SetCount(int32 c) {_count = c;}
 
-#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined(MUSCLE_SINGLE_THREAD_ONLY)
    /** Copy constructor, defined explicitly for the C++11-based implementation,
      * since std::atomic<int32> won't compile using the implicit copy constructor.
      * @param rhs the AtomicCounter to make this one equivalent to
@@ -193,7 +193,7 @@ public:
 private:
 #if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(__HAIKU__)
    int32 _count;
-#elif defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
    std::atomic<int32> _count;
 #elif defined(__ATHEOS__)
    atomic_t _count;
