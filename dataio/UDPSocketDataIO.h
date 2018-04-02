@@ -3,9 +3,7 @@
 #ifndef MuscleUDPSocketDataIO_h
 #define MuscleUDPSocketDataIO_h
 
-#include "support/MuscleSupport.h"
-
-#include "dataio/DataIO.h"
+#include "dataio/PacketDataIO.h"
 #include "util/NetworkUtilityFunctions.h"
 
 namespace muscle {
@@ -37,27 +35,35 @@ public:
       // empty
    }
 
-   virtual int32 Read(void * buffer, uint32 size) 
+   virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSource) 
    {
       IPAddress tmpAddr = invalidIP;
       uint16 tmpPort = 0;
-      int32 ret = ReceiveDataUDP(_sock, buffer, size, _blocking, &tmpAddr, &tmpPort);
-      _recvFrom.SetIPAddress(tmpAddr);
-      _recvFrom.SetPort(tmpPort);
+      const int32 ret = ReceiveDataUDP(_sock, buffer, size, _blocking, &tmpAddr, &tmpPort);
+      retSource.Set(tmpAddr, tmpPort);
+      SetSourceOfLastReadPacket(retSource);  // in case this is a direct call e.g. from the gateway code
       return ret;
    }
 
    virtual int32 Write(const void * buffer, uint32 size) 
    {
+      // This method is overridden to support multiple destinations too
+      bool sawErrors  = false;
+      bool sawSuccess = false;
       int32 ret = 0;
-      for (uint32 i=0; i<_sendTo.GetNumItems(); i++)
+      for (uint32 i=0; i<_sendTo.GetNumItems(); i++) 
       {
-         const IPAddressAndPort & iap = _sendTo[i];
-         int32 r = SendDataUDP(_sock, buffer, size, _blocking, iap.GetIPAddress(), iap.GetPort());
-         if (r < (int32)size) return r;
-                         else ret = r;
+         const int32 numBytesSent = WriteTo(buffer, size, _sendTo[i]);
+         if (numBytesSent >= 0) sawSuccess = true;
+                           else sawErrors  = true;
+         ret = muscleMax(numBytesSent, ret);
       }
-      return ret;
+      return ((sawErrors)&&(sawSuccess == false)) ? -1 : ret;
+   }
+
+   virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) 
+   {
+      return SendDataUDP(_sock, buffer, size, _blocking, packetDest.GetIPAddress(), packetDest.GetPort());
    }
 
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
@@ -83,7 +89,6 @@ public:
 
    virtual const ConstSocketRef & GetReadSelectSocket()  const {return _sock;}
    virtual const ConstSocketRef & GetWriteSelectSocket() const {return _sock;}
-   virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _recvFrom;}
 
    /** Call this to make our Write() method use sendto() with the specified
      * destination address and port.  Calling this with (invalidIP, 0) will
@@ -131,7 +136,6 @@ private:
    ConstSocketRef _sock;
    bool _blocking;
 
-   IPAddressAndPort _recvFrom;
    Queue<IPAddressAndPort> _sendTo;
    uint32 _maxPacketSize;
 };

@@ -7,7 +7,8 @@
 namespace muscle {
 
 AbstractMessageIOGateway :: AbstractMessageIOGateway()
-   : _mtuSize(0)
+   : _packetDataIO(NULL)
+   , _mtuSize(0)
    , _hosed(false)
    , _flushOnEmpty(true)
 {
@@ -103,8 +104,8 @@ void AbstractMessageIOGateway :: SetDataIO(const DataIORef & ref)
 {
    _ioRef = ref;
 
-   const PacketDataIO * pdio = dynamic_cast<PacketDataIO *>(_ioRef());
-   _mtuSize = pdio ? pdio->GetMaximumPacketSize() : 0;
+   _packetDataIO = dynamic_cast<PacketDataIO *>(_ioRef());
+   _mtuSize = _packetDataIO ? _packetDataIO->GetMaximumPacketSize() : 0;
 }
 
 } // end namespace muscle

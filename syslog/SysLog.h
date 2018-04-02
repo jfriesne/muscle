@@ -11,6 +11,12 @@
 
 namespace muscle {
 
+/** @defgroup systemlog The SystemLog function API
+ *  These functions are all defined in SystemLog(.cpp,.h), and are stand-alone
+ *  functions that provide console-logging and log-file generation functionality to MUSCLE programs.
+ *  @{
+ */
+
 class String;
 class LogCallbackArgs;
 
@@ -181,7 +187,7 @@ void CloseCurrentLogFile();
  */
 status_t SetFileLogName(const String & logName);
 
-/** Sets a user-specified maximum size for the log file.  Once a log file has reached this size,
+/** Sets a user-specified maximum size (in bytes) for the log file.  Once a log file has reached this size,
   * it will be closed and a new log file opened (note that the new log file's name will be the same
   * as the old log file, overwriting it, unless you specify a date/time token via SetFileLogName()
   * that will expand out differently).
@@ -611,6 +617,8 @@ String GetHumanReadableSignedTimeIntervalString(int64 micros, uint32 maxClauses 
   * @returns a time interval value, in microseconds.
   */
 int64 ParseHumanReadableSignedTimeIntervalString(const String & str);
+
+/** @} */ // end of systemlog doxygen group
 
 } // end namespace muscle
 

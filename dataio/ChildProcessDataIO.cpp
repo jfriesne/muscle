@@ -399,7 +399,7 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
          if (microsLeft <= 0) break;   // we're out of time!
 
          // At this point, r was probably zero because the child wasn't ready to exit
-         if (pollInterval < (200*1000)) pollInterval += (10*1000);
+         if ((int64)pollInterval < MillisToMicros(200)) pollInterval += MillisToMicros(10);
          Snooze64(muscleMin(pollInterval, (uint64)microsLeft));
       }
    }

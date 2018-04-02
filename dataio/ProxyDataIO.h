@@ -3,9 +3,8 @@
 #ifndef MuscleProxyDataIO_h
 #define MuscleProxyDataIO_h
 
-#include "dataio/DataIO.h"
-#include "util/ByteBuffer.h"
-#include "util/IPAddress.h"
+#include "dataio/PacketDataIO.h"
+#include "dataio/SeekableDataIO.h"
 
 namespace muscle {
  
@@ -53,6 +52,8 @@ public:
    virtual const IPAddressAndPort & GetPacketSendDestination() const  {return _packetChildIO ? _packetChildIO->GetPacketSendDestination()  : GetDefaultObjectForType<IPAddressAndPort>();}
    virtual status_t SetPacketSendDestination(const IPAddressAndPort & iap) {return _packetChildIO ? _packetChildIO->SetPacketSendDestination(iap) : B_ERROR;}
    virtual uint32 GetMaximumPacketSize() const {return _packetChildIO ? _packetChildIO->GetMaximumPacketSize() : 0;}
+   virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource) {return _packetChildIO ? _packetChildIO->ReadFrom(buffer, size, retPacketSource) : -1;}
+   virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) {return _packetChildIO ? _packetChildIO->WriteTo(buffer, size, packetDest) : -1;}
 
    /** Returns a reference to our held child DataIO (if any) */
    const DataIORef & GetChildDataIO() const {return _childIO;}

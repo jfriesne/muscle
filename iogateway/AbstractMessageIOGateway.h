@@ -3,7 +3,7 @@
 #ifndef MuscleAbstractMessageIOGateway_h
 #define MuscleAbstractMessageIOGateway_h
 
-#include "dataio/DataIO.h"
+#include "dataio/PacketDataIO.h"
 #include "message/Message.h"
 #include "support/NotCopyable.h"
 #include "util/Queue.h"
@@ -14,6 +14,12 @@
 namespace muscle {
 
 class AbstractMessageIOGateway;
+
+/** This is the name of the flattened-IPAddressAndPort indicating the
+  * source (or destination) of a UDP packet transmitted via this gateway.
+  * Used only when sending via a packet-based protocol.
+  */
+#define PR_NAME_PACKET_REMOTE_LOCATION "_rl"  
 
 /** Interface for any object that wishes to be notified by AbstractMessageIOGateway::DoInput() about received Messages. */
 class AbstractGatewayMessageReceiver 
@@ -120,8 +126,10 @@ private:
 DECLARE_REFTYPES(QueueGatewayMessageReceiver);
 
 /**
- *  Abstract base class representing an object that can send/receive 
- *  Messages via a DataIO byte-stream.
+ *  Abstract base class representing an object that can convert Messages
+ *  to bytes and send them to a DataIO byte-stream for transmission, and 
+ *  can convert bytes from the DataIO back into Messages and pass them up to an 
+ *  AbstractGatewayMessageReceiver object for processing by the high-level code.
  */
 class AbstractMessageIOGateway : public RefCountable, public AbstractGatewayMessageReceiver, public PulseNode, private CountedObject<AbstractMessageIOGateway>, private NotCopyable
 {
@@ -334,11 +342,18 @@ protected:
      */
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * /*userData*/) {(void) AddOutgoingMessage(msg);}
 
+protected:
+   /** Convenience method -- if our held DataIO object is a subclass of PacketDataIO,
+     * returns a pointer to it.  Otherwise, returns NULL.
+     */
+   PacketDataIO * GetPacketDataIO() const {return _packetDataIO;}
+
 private:
    friend class ScratchProxyReceiver;
    Queue<MessageRef> _outgoingMessages;
 
    DataIORef _ioRef;
+   PacketDataIO * _packetDataIO;  // non-NULL only if (_ioRef()) actually is a PacketDataIO
    uint32 _mtuSize;  // set whenever _ioRef changes
 
    bool _hosed;  // set true on error

@@ -161,7 +161,7 @@ signals:
      */
    void OutputQueuesDrained(const MessageRef & ref);
 
-   /** This signal is called for all events send by the internal thread.  You can use this
+   /** This signal is called for all events sent by the internal thread.  You can use this
      * to catch custom events that don't have their own signal defined above, or if you want to
      * receive all thread events via a single slot.
      * @param code the MTT_EVENT_* code of the new event.

@@ -167,7 +167,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\system\Thread.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\dataio\StdinDataIO.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\dataio\SimulatedMulticastDataIO.cpp"
 				>
 			</File>
 			<File

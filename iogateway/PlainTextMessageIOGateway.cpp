@@ -20,7 +20,49 @@ int32
 PlainTextMessageIOGateway ::
 DoOutputImplementation(uint32 maxBytes)
 {
-   return DoOutputImplementationAux(maxBytes, 0);
+   if (GetMaximumPacketSize() > 0)
+   {
+      // For the packet-based implementation, we will send one packet per outgoing Message
+      // It'll be up to the user to make sure not to put too much text in one Message
+      uint32 totalNumBytesSent = 0;
+      MessageRef nextMsg;
+      while((totalNumBytesSent < maxBytes)&&(GetOutgoingMessageQueue().RemoveHead(nextMsg) == B_NO_ERROR))
+      {
+         uint32 outBufLen = 1; // 1 for the one extra NUL byte at the end of all the strings (per String::Flatten(), below)
+         const String * nextStr;
+         for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr) == B_NO_ERROR; i++) outBufLen += (nextStr->Length() + _eolString.Length());
+
+         ByteBufferRef outBuf = GetByteBufferFromPool(outBufLen);
+         if (outBuf())
+         {
+            uint8 * b = outBuf()->GetBuffer();
+            for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr) == B_NO_ERROR; i++) 
+            {
+               nextStr->Flatten(b);   b += nextStr->Length();   // Advance by Length() instead of FlattenedSize()
+               _eolString.Flatten(b); b += _eolString.Length(); // to avoid NUL bytes inside our outBuf
+            }
+
+            const uint8 * outBytes      = outBuf()->GetBuffer();
+            const uint32 numBytesToSend = outBuf()->GetNumBytes()-1;  // don't sent the NUL terminator byte; receivers shouldn't rely on it anyway
+
+            PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL
+            IPAddressAndPort packetDest;
+            const int32 numBytesSent = (nextMsg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDest) == B_NO_ERROR)
+                                     ? pdio->WriteTo(outBytes, numBytesToSend, packetDest)
+                                     : pdio->Write(  outBytes, numBytesToSend);
+                 if (numBytesSent > 0) totalNumBytesSent += numBytesSent;
+            else if (numBytesSent < 0) return (totalNumBytesSent > 0) ? totalNumBytesSent : -1;
+            else
+            {
+               (void) GetOutgoingMessageQueue().AddHead(nextMsg);  // roll back -- we'll try again later to send it, maybe
+               break;
+            }
+         }
+         else break;
+      }
+      return totalNumBytesSent;
+   }
+   else return DoOutputImplementationAux(maxBytes, 0);  // stream-based implementation is here
 }
 
 int32
@@ -98,38 +140,100 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    int32 ret = 0;
    const int tempBufSize = 2048;
    char buf[tempBufSize];
-   int32 bytesRead = GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)(sizeof(buf)-1)));
-   if (bytesRead < 0)
-   {
-      FlushInput(receiver);
-      return -1;
-   }
-   if (bytesRead > 0)
-   {
-      uint32 filteredBytesRead = bytesRead;
-      FilterInputBuffer(buf, filteredBytesRead, sizeof(buf)-1);
-      ret += filteredBytesRead;
-      buf[filteredBytesRead] = '\0';
 
-      MessageRef inMsg;  // demand-allocated
-      int32 beginAt = 0;
-      for (uint32 i=0; i<filteredBytesRead; i++)
+   const uint32 mtuSize = GetMaximumPacketSize();
+   if (mtuSize > 0)
+   {
+      // Packet-IO implementation
+      char * pbuf  = buf;
+      int pbufSize = tempBufSize;
+
+      ByteBufferRef bigBuf;
+      if (mtuSize > tempBufSize)
       {
-         char nextChar = buf[i];
-         if ((nextChar == '\r')||(nextChar == '\n'))
+         // Just in case our MTU size is too big for our on-stack buffer
+         bigBuf = GetByteBufferFromPool(mtuSize);
+         if (bigBuf())
          {
-            buf[i] = '\0';  // terminate the string here
-            if ((nextChar == '\r')||(_prevCharWasCarriageReturn == false)) inMsg = AddIncomingText(inMsg, &buf[beginAt]);
-            beginAt = i+1;
+            pbuf     = (char *) bigBuf()->GetBuffer();
+            pbufSize = bigBuf()->GetNumBytes();
          }
-         _prevCharWasCarriageReturn = (nextChar == '\r');
       }
-      if (beginAt < (int32)filteredBytesRead)
+
+      while(true)
       {
-         if (_flushPartialIncomingLines) inMsg = AddIncomingText(inMsg, &buf[beginAt]);
-                                    else _incomingText += &buf[beginAt];
+         IPAddressAndPort sourceIAP;
+         const int32 bytesRead = GetPacketDataIO()->ReadFrom(pbuf, muscleMin(maxBytes, (uint32)(pbufSize-1)), sourceIAP);
+              if (bytesRead < 0) return (ret > 0) ? ret : -1;
+         else if (bytesRead > 0)
+         {
+            uint32 filteredBytesRead = bytesRead;
+            FilterInputBuffer(pbuf, filteredBytesRead, pbufSize-1);
+            ret += filteredBytesRead;
+            pbuf[filteredBytesRead] = '\0';
+
+            bool prevCharWasCarriageReturn = false;  // deliberately a local var, since UDP packets should be independent of each other
+            MessageRef inMsg;  // demand-allocated
+            int32 beginAt = 0;
+            for (uint32 i=0; i<filteredBytesRead; i++)
+            {
+               char nextChar = pbuf[i];
+               if ((nextChar == '\r')||(nextChar == '\n'))
+               {
+                  pbuf[i] = '\0';  // terminate the string here
+                  if ((nextChar == '\r')||(prevCharWasCarriageReturn == false)) inMsg = AddIncomingText(inMsg, &pbuf[beginAt]);
+                  beginAt = i+1;
+               }
+               prevCharWasCarriageReturn = (nextChar == '\r');
+            }
+            if (beginAt < (int32)filteredBytesRead) inMsg = AddIncomingText(inMsg, &pbuf[beginAt]);
+            if (inMsg()) 
+            {
+               (void) inMsg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP);
+               receiver.CallMessageReceivedFromGateway(inMsg);
+               inMsg.Reset();
+            }
+            ret += bytesRead;
+         }
+         else return ret;
       }
-      if (inMsg()) receiver.CallMessageReceivedFromGateway(inMsg);
+   }
+   else
+   {
+      // Stream-IO implementation
+      const int32 bytesRead = GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)(sizeof(buf)-1)));
+      if (bytesRead < 0)
+      {
+         FlushInput(receiver);
+         return -1;
+      }
+      if (bytesRead > 0)
+      {
+         uint32 filteredBytesRead = bytesRead;
+         FilterInputBuffer(buf, filteredBytesRead, sizeof(buf)-1);
+         ret += filteredBytesRead;
+         buf[filteredBytesRead] = '\0';
+
+         MessageRef inMsg;  // demand-allocated
+         int32 beginAt = 0;
+         for (uint32 i=0; i<filteredBytesRead; i++)
+         {
+            char nextChar = buf[i];
+            if ((nextChar == '\r')||(nextChar == '\n'))
+            {
+               buf[i] = '\0';  // terminate the string here
+               if ((nextChar == '\r')||(_prevCharWasCarriageReturn == false)) inMsg = AddIncomingText(inMsg, &buf[beginAt]);
+               beginAt = i+1;
+            }
+            _prevCharWasCarriageReturn = (nextChar == '\r');
+         }
+         if (beginAt < (int32)filteredBytesRead)
+         {
+            if (_flushPartialIncomingLines) inMsg = AddIncomingText(inMsg, &buf[beginAt]);
+                                       else _incomingText += &buf[beginAt];
+         }
+         if (inMsg()) receiver.CallMessageReceivedFromGateway(inMsg);
+      }
    }
    return ret;
 }

@@ -372,7 +372,7 @@ private:
    uint8 * _buffer;            // pointer to our byte array (or NULL if we haven't got one)
    uint32 _numValidBytes;      // number of bytes the user thinks we have
    uint32 _numAllocatedBytes;  // number of bytes we actually have
-   PointerAndBool<IMemoryAllocationStrategy> _allocStrategy;  // note that unless MUSCLE_AVOID_BITSTUFFING is defined, we are abusing the low bit here as a data-needs-swap bit
+   PointerAndBool<IMemoryAllocationStrategy> _allocStrategy;
 };
 DECLARE_REFTYPES(ByteBuffer);
 

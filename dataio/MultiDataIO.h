@@ -3,7 +3,7 @@
 #ifndef MuscleMultiDataIO_h
 #define MuscleMultiDataIO_h
 
-#include "dataio/DataIO.h"
+#include "dataio/SeekableDataIO.h"
 #include "util/Queue.h"
 
 namespace muscle {

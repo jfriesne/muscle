@@ -1751,9 +1751,13 @@ status_t Message :: FindData(const String & fieldName, uint32 tc, uint32 index, 
          }
          break;
 
+         case B_ANY_TYPE:
+            return (field->TypeCode() == B_ANY_TYPE) ? B_ERROR : FindData(fieldName, field->TypeCode(), 0, data, setSize);
+         break;
+
          default:
          {
-            uint32 es = GetElementSize(tc);
+            const uint32 es = GetElementSize(tc);
             if (es > 0) 
             {
                if (setSize) *setSize = es;
@@ -2038,6 +2042,12 @@ uint32 Message :: GetNumValuesInName(const String & fieldName, uint32 type) cons
 {
    const MessageField * field = GetMessageField(fieldName, type);
    return field ? field->GetNumItems() : 0;
+}
+
+uint32 Message :: GetFieldTypeForName(const String & fieldName, uint32 defaultTypeCode) const
+{
+   const MessageField * field = GetMessageField(fieldName, B_ANY_TYPE);
+   return field ? field->TypeCode() : defaultTypeCode;
 }
 
 status_t Message :: CopyName(const String & oldFieldName, Message & copyTo, const String & newFieldName) const

@@ -3,7 +3,7 @@
 #ifndef IPAddress_h
 #define IPAddress_h
 
-#include "support/Flattenable.h"
+#include "support/PseudoFlattenable.h"
 #include "util/String.h"
 
 namespace muscle {
@@ -25,6 +25,12 @@ public:
      * @param interfaceIndex the interface index (defaults to zero).  Useful primarily for fe80::blah type IPv6 addresses.  Not used for IPv4.
      */
    IPAddress(uint64 lowBits = 0, uint64 highBits = 0, uint32 interfaceIndex = 0) : _lowBits(lowBits), _highBits(highBits), _interfaceIndex(interfaceIndex) {/* empty */}
+
+   /** Convenience constructor.  Calling this is equivalent to creating an IPAddress
+     * object and then calling SetFromString() on it with the given arguments.
+     * @param s an IPAddress to parse (e.g. "127.0.0.1" or "ff12::02@3")
+     */
+   IPAddress(const String & s) {(void) SetFromString(s);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    IPAddress(const IPAddress & rhs) : _lowBits(rhs._lowBits), _highBits(rhs._highBits), _interfaceIndex(rhs._interfaceIndex) {/* empty */}
@@ -298,7 +304,7 @@ public:
      * @param defaultPort what value we should use as a default port, if (s) doesn't specify one
      * @param allowDNSLookups true iff we want to parse hostnames (could be slow!); false if we only care about parsing explicit IP addresses
      */
-   IPAddressAndPort(const String & s, uint16 defaultPort, bool allowDNSLookups) {SetFromString(s(), defaultPort, allowDNSLookups);}
+   IPAddressAndPort(const String & s, uint16 defaultPort, bool allowDNSLookups) {SetFromString(s, defaultPort, allowDNSLookups);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    IPAddressAndPort(const IPAddressAndPort & rhs) : _ip(rhs._ip), _port(rhs._port) {/* empty */}
@@ -341,6 +347,12 @@ public:
 
    /** Returns this object's current port number */
    uint16 GetPort() const {return _port;}
+
+   /** Sets both the IP address and port fields of this object.
+     * @param ip the new IP address to use
+     * @param port the new port to use
+     */
+   void Set(const IPAddress & ip, uint16 port) {_ip = ip; _port = port;}
 
    /** Sets this object's IP address to (ip)
      * @param ip the new IP address to use

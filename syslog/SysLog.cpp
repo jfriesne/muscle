@@ -1715,7 +1715,7 @@ void DefaultFileLogger :: CloseLogFile()
          else LogTime(MUSCLE_LOG_ERROR, "Could not reopen Log file [%s] to compress it!\n", oldFileName());
       }
 #endif
-      if (_maxNumLogFiles != MUSCLE_NO_LIMIT) (void) _oldLogFileNames.AddTail(oldFileName);  // so we can delete it later
+      if ((_maxNumLogFiles != MUSCLE_NO_LIMIT)&&(_oldLogFileNames.Contains(oldFileName) == false)) (void) _oldLogFileNames.AddTail(oldFileName);  // so we can delete it later
    }
 }
 

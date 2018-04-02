@@ -5,6 +5,7 @@
 #include "util/MiscUtilityFunctions.h"  // for GetConnectString() (which is deliberately defined here)
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketMultiplexer.h"
+#include "util/Hashtable.h"
 
 #if defined(__BEOS__) || defined(__HAIKU__)
 # include <kernel/OS.h>     // for snooze()
@@ -700,7 +701,7 @@ static String GetHostByNameKey(const char * name, bool expandLocalhost, bool pre
    return ret;
 }
 
-IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6)
+IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool preferIPv6)
 {
    if (IsIPAddress(name))
    {
@@ -786,6 +787,42 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
    }
 
    return ret;
+}
+
+static OrderedValuesHashtable<IHostNameResolverRef, int> _hostNameResolvers;
+status_t PutHostNameResolver(const IHostNameResolverRef & resolver, int priority) {return _hostNameResolvers.Put(resolver, priority);}
+status_t RemoveHostNameResolver(const IHostNameResolverRef & resolver) {return _hostNameResolvers.Remove(resolver);}
+void ClearHostNameResolvers() {_hostNameResolvers.Clear();}
+
+IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6)
+{
+   if (_hostNameResolvers.HasItems())
+   {
+      for (HashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+      {
+         if (iter.GetValue() < 0) break;  // we'll do any negative-priority callbacks only after our built-in functionality has failed
+
+         IPAddress ret;
+         if (iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret) == B_NO_ERROR) return ret;
+      }
+   }
+
+   IPAddress ret = GetHostByNameNative(name, expandLocalhost, preferIPv6);
+   if (ret.IsValid()) return ret;
+
+   if (_hostNameResolvers.HasItems())
+   {
+      for (HashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+      {
+         if (iter.GetValue() < 0)
+         {
+            IPAddress ret;
+            if (iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret) == B_NO_ERROR) return ret;
+         }
+      }
+   }
+
+   return IPAddress();
 }
 
 ConstSocketRef ConnectAsync(const IPAddress & hostIP, uint16 port, bool & retIsReady)

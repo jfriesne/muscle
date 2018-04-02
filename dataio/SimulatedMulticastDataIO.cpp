@@ -31,10 +31,10 @@ enum {
    SMDIO_COMMAND_BYE,
 };
 
-static const String SMDIO_NAME_DATA   = "dat";
-static const String SMDIO_NAME_SOURCE = "src";
+static const String SMDIO_NAME_DATA = "dat";  // B_RAW_TYPE: packet's data buffer
+static const String SMDIO_NAME_RLOC = "rlc";  // IPAddressAndPort: packet's remote location (source or dest)
 
-int32 SimulatedMulticastDataIO :: Read(void * buffer, uint32 size)
+int32 SimulatedMulticastDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource)
 {
    if (IsInternalThreadRunning() == false) return -1;
 
@@ -44,7 +44,8 @@ int32 SimulatedMulticastDataIO :: Read(void * buffer, uint32 size)
    ConstByteBufferRef incomingData = msg()->GetFlat(SMDIO_NAME_DATA);
    if (incomingData() == NULL) return 0;  // nothing for now!
 
-   if (msg()->FindFlat(SMDIO_NAME_SOURCE, _lastPacketReceivedFrom) != B_NO_ERROR) _lastPacketReceivedFrom.Reset();
+   if (msg()->FindFlat(SMDIO_NAME_RLOC, retPacketSource) != B_NO_ERROR) retPacketSource.Reset();
+   SetSourceOfLastReadPacket(retPacketSource); // in case this was a direct ReadFrom() call and anyone calls GetSourceOfLastReadPacket() later
 
    switch(msg()->what)
    {
@@ -57,7 +58,7 @@ int32 SimulatedMulticastDataIO :: Read(void * buffer, uint32 size)
       break;
 
       default:
-         LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO::Read():  Unexpected whatCode " UINT32_FORMAT_SPEC "\n", msg()->what);
+         LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO::ReadFrom():  Unexpected whatCode " UINT32_FORMAT_SPEC "\n", msg()->what);
       break;
    }
    return 0;
@@ -65,10 +66,18 @@ int32 SimulatedMulticastDataIO :: Read(void * buffer, uint32 size)
 
 int32 SimulatedMulticastDataIO :: Write(const void * buffer, uint32 size)
 {
+   return WriteTo(buffer, size, GetDefaultObjectForType<IPAddressAndPort>());
+}
+
+int32 SimulatedMulticastDataIO :: WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest)
+{
    if (IsInternalThreadRunning() == false) return -1;
 
    MessageRef toInternalThreadMsg = GetMessageFromPool(SMDIO_COMMAND_DATA);
-   return ((toInternalThreadMsg())&&(toInternalThreadMsg()->AddData(SMDIO_NAME_DATA, B_RAW_TYPE, buffer, size) == B_NO_ERROR)&&(SendMessageToInternalThread(toInternalThreadMsg) == B_NO_ERROR)) ? size : -1;
+   return ((toInternalThreadMsg())&&
+           (toInternalThreadMsg()->AddData(SMDIO_NAME_DATA, B_RAW_TYPE, buffer, size) == B_NO_ERROR)&&
+           ((packetDest.IsValid() == false)||(toInternalThreadMsg()->AddFlat(SMDIO_NAME_RLOC, packetDest) == B_NO_ERROR))&&
+           (SendMessageToInternalThread(toInternalThreadMsg) == B_NO_ERROR)) ? size : -1;
 }
 
 static UDPSocketDataIORef CreateMulticastUDPDataIO(const IPAddressAndPort & iap)
@@ -126,7 +135,7 @@ status_t SimulatedMulticastDataIO :: ReadPacket(DataIO & dio, ByteBufferRef & re
 status_t SimulatedMulticastDataIO :: SendIncomingDataPacketToMainThread(const ByteBufferRef & data, const IPAddressAndPort & source)
 {
    MessageRef toMainThreadMsg = GetMessageFromPool(SMDIO_COMMAND_DATA);
-   return ((toMainThreadMsg())&&(toMainThreadMsg()->AddFlat(SMDIO_NAME_DATA, data) == B_NO_ERROR)&&(toMainThreadMsg()->AddFlat(SMDIO_NAME_SOURCE, source) == B_NO_ERROR)) ? SendMessageToOwner(toMainThreadMsg) : B_ERROR;
+   return ((toMainThreadMsg())&&(toMainThreadMsg()->AddFlat(SMDIO_NAME_DATA, data) == B_NO_ERROR)&&(toMainThreadMsg()->AddFlat(SMDIO_NAME_RLOC, source) == B_NO_ERROR)) ? SendMessageToOwner(toMainThreadMsg) : B_ERROR;
 }
 
 void SimulatedMulticastDataIO :: NoteHeardFromMember(const IPAddressAndPort & heardFromPingSource, uint64 timeStampMicros)
@@ -329,8 +338,17 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
                case SMDIO_COMMAND_DATA:
                {
                   ConstByteBufferRef data = msgRef()->GetFlat(SMDIO_NAME_DATA);
-                  if (data()) (void) outgoingUserPacketsQueue.AddTail(data);
-                         else LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  No data in SMDIO_COMMAND_DATA Message!\n");
+                  if (data()) 
+                  {
+                     IPAddressAndPort destIAP;
+                     if ((msgRef()->FindFlat(SMDIO_NAME_RLOC, destIAP) == B_NO_ERROR)&&(destIAP != _multicastAddress))
+                     {
+                        // Special case for WriteTo():  This packet can go out as a normal UDP packet
+                        (void) _udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST]()->WriteTo(data()->GetBuffer(), data()->GetNumBytes(), destIAP);
+                     }
+                     else (void) outgoingUserPacketsQueue.AddTail(data);  // Normal case:  the packet will go out via simulated-multicast
+                  }
+                  else LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  No data in SMDIO_COMMAND_DATA Message!\n");
                }
                break;
 

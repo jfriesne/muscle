@@ -50,11 +50,16 @@ DoOutputImplementation(uint32 maxBytes)
          if (mtuSize > 0)
          {
             // UDP mode -- send each data chunk as its own UDP packet
-            int32 bytesWritten = GetDataIO()()->Write(_sendBuf, muscleMin((uint32)_sendBufLength, mtuSize));
+            PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL because (mtuSize > 0)
+            const uint32 sendSize = muscleMin((uint32)_sendBufLength, mtuSize);
+            IPAddressAndPort packetDestIAP;
+            const int32 bytesWritten = (msg->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDestIAP) == B_NO_ERROR)
+                                     ? pdio->WriteTo(_sendBuf, sendSize, packetDestIAP)
+                                     : pdio->Write(  _sendBuf, sendSize);
             if (bytesWritten > 0)
             {
                _sendBufByteOffset = _sendBufLength;  // We don't support partial sends for UDP style, so pretend the whole thing was sent
-               int32 subRet = DoOutputImplementation((maxBytes>(uint32)bytesWritten)?(maxBytes-bytesWritten):0);
+               const int32 subRet = DoOutputImplementation((maxBytes>(uint32)bytesWritten)?(maxBytes-bytesWritten):0);
                return (subRet >= 0) ? subRet+bytesWritten : -1;
             }
             else if (bytesWritten < 0) return -1;
@@ -62,12 +67,12 @@ DoOutputImplementation(uint32 maxBytes)
          else
          {
             // TCP mode -- send as much as we can of the current data block
-            int32 bytesWritten = GetDataIO()()->Write(&((char *)_sendBuf)[_sendBufByteOffset], muscleMin(maxBytes, (uint32) (_sendBufLength-_sendBufByteOffset)));
+            const int32 bytesWritten = GetDataIO()()->Write(&((char *)_sendBuf)[_sendBufByteOffset], muscleMin(maxBytes, (uint32) (_sendBufLength-_sendBufByteOffset)));
                  if (bytesWritten < 0) return -1;
             else if (bytesWritten > 0)
             {
                _sendBufByteOffset += bytesWritten;
-               int32 subRet = DoOutputImplementation(maxBytes-bytesWritten);
+               const int32 subRet = DoOutputImplementation(maxBytes-bytesWritten);
                return (subRet >= 0) ? subRet+bytesWritten : -1;
             }
          }
@@ -83,8 +88,9 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 {
    TCHECKPOINT;
 
-   const uint32 mtuSize = GetMaximumPacketSize();
    int32 ret = 0;
+
+   const uint32 mtuSize = GetMaximumPacketSize();
    if (mtuSize > 0)
    {
       // UDP mode:  Each UDP packet is represented as a Message containing one data chunk
@@ -93,16 +99,17 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          ByteBufferRef bufRef = GetByteBufferFromPool(mtuSize);
          if (bufRef() == NULL) return -1;  // out of memory?
 
-         int32 bytesRead = GetDataIO()()->Read(bufRef()->GetBuffer(), mtuSize);
+         IPAddressAndPort packetSource;
+         const int32 bytesRead = GetPacketDataIO()->ReadFrom(bufRef()->GetBuffer(), mtuSize, packetSource);
          if (bytesRead > 0)
          {
             (void) bufRef()->SetNumBytes(bytesRead, true);
             MessageRef msg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
-            if ((msg())&&(msg()->AddFlat(PR_NAME_DATA_CHUNKS, bufRef) == B_NO_ERROR))
+            if ((msg())&&(msg()->AddFlat(PR_NAME_DATA_CHUNKS, bufRef) == B_NO_ERROR)&&(msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetSource) == B_NO_ERROR))
             {
                ret += bytesRead;
                maxBytes = (maxBytes>(uint32)bytesRead) ? (maxBytes-bytesRead) : 0;         
-               receiver.CallMessageReceivedFromGateway(msg);  // Call receive immediately; that way he can found out the source via GetDataIO()()->GetSourceOfLastReadPacket() if necessary
+               receiver.CallMessageReceivedFromGateway(msg);
             }
          }
          else if (bytesRead < 0) return -1;

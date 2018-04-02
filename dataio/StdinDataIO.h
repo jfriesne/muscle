@@ -18,7 +18,9 @@ namespace muscle {
  *  In order to support non-blocking input on stdin without causing loss of
  *  data sent to stdout, this DataIO object will keep its file descriptor in
  *  blocking mode at all times except when it is actually about to read from
- *  it.  Writing to stdin is not supported, of course.
+ *  it.  Writing to stdin is not supported, of course, but if you pass in
+ *  'true' as the second argument to the constructor, than any data passed
+ *  to this class's Write() method will be forwarded along to stdout.
  */
 class StdinDataIO : public DataIO, private CountedObject<StdinDataIO>
 {

@@ -5,6 +5,52 @@ key:  - new feature
       * bug fixed
       o other
 
+6.80 Released 4/2/2018
+   - Added the html/muscle-by-example tour MkDocs-source sub-directory.
+   - Added ReadFrom() and WriteTo() methods to the PacketDataIO API
+     (as convenient alternatives to calling SetPacketDestination()
+     and/or GetSourceOfLastReadPacket())
+   - PlainTextMessageIOGateway now properly supports packet-based I/O.
+   - MessageIOGateway, PlainTextMessageIOGateway, and 
+     RawDataMessageIOGateway all now support a
+     PR_NAME_PACKET_REMOTE_LOCATION field which can be used to 
+     determine a UDP packet's source and/or destination when the
+     gateway is being used in conjunction with a PacketDataIO.
+   - Added a GetFieldTypeForName(const String &) convenience method to 
+     the Message class.
+   - Added an IPAddress(const String &) constructor.
+   - Added a GetPrettyTypeCodeString() function to Message.h, that returns
+     a String object (instead of writing into a char[] buf), because really.
+   - Added the IHostNameResolver interface, and the PutHostNameResolver(),
+     RemoveHostNameResolver(), and ClearHostNameResolvers() functions,
+     so that programs can add their own custom back-end functionality 
+     to the GetHostByName() function if they want to.
+   - Added a GetHostByNameNative() function that does hostname lookup
+     without any IHostNameResolver callbacks.
+   - Added a Set() method to the IPAddressAndPort class.
+   o Changed UDPSocketDataIO::Write()'s multi-target behavior to
+     try to send to all targets even if some of the sends fail.
+   o Moved SeekableDataIO and PacketDataIO subclasses into their
+     own separate header files.
+   o Updated test/testudp.cpp to support PlainTextMessageIOGateway also.
+   * Fixed hexterm.vcproj to include some .cpp files that were missing.
+   * muscled and libmuscle.a are now compiled without the 
+     -DMUSCLE_SINGLE_THREAD_ONLY and -DMUSCLE_ENABLE_MEMORY_TRACKING
+     flags, so that libmuscle.a can be used as-is in more projects.
+   * The PRINT_CALLS_PER_SECOND macro in TimeUtilityFunctions.h was 
+     broken, and printed more often than it was supposed to.  Fixed.
+   * Fixed a bug in SysLog.cpp's log-rotator code that could cause
+     it to delete log-files prematurely under certain circumstances.
+   * Fixed a bug that could cause Message::FindData(fn, B_ANY_TYPE, ...)
+     to crash.
+   * Added a number of additional .cpp files to the libmuscle.a 
+     file generated in the server folder.
+   * Fixed an out-of-date comment in StdinDataIO.h
+   * Half-specified numeric-range clauses in StringMatcher strings
+     weren't being matched correctly.  Fixed.
+   * The default value of the (launchBits) argument in some of the
+     ChildProcessDataIO::System() methods was set incorrectly.  Fixed.
+
 6.72 Released 1/5/2018
    - MUSCLE_AVOID_CPLUSPLUS11 will now be #defined automatically
      inside MuscleSupport.h if it wasn't explicitly specified AND

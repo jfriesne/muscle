@@ -7,6 +7,27 @@
 
 using namespace muscle;
 
+class TestHostNameResolver : public IHostNameResolver
+{
+public:
+   TestHostNameResolver(int pri) : _pri(pri) {/* empty */}
+
+   virtual status_t GetIPAddressForHostName(const char * name, bool expandLocalhost, bool preferIPv6, IPAddress & retIPAddress)
+   {
+      printf("TestHostNameResolver (priority %i):  name=[%s] expandLocalhost=%i preferIPv6=%i\n", _pri, name, expandLocalhost, preferIPv6);
+      return B_ERROR;
+   }
+
+private:
+   const int _pri;
+};
+
+static void TestGetHostByName(const char * hostname)
+{
+   IPAddress addr = GetHostByName(hostname);
+   printf("GetHostByName(%s) returned %s\n", hostname, addr.ToString()());
+}
+
 int main(int, char **)
 {
    CompleteSetupSystem css;
@@ -26,6 +47,20 @@ int main(int, char **)
       }
    }
    else printf("GetNetworkInterfaceInfos() returned an error!\n");
+
+   // This is mainly to make sure the callbacks get executed in descending-priority-order
+   (void) PutHostNameResolver(IHostNameResolverRef(new TestHostNameResolver( 0)),  0);
+   (void) PutHostNameResolver(IHostNameResolverRef(new TestHostNameResolver( 1)),  1);
+   (void) PutHostNameResolver(IHostNameResolverRef(new TestHostNameResolver(-2)), -2);
+   (void) PutHostNameResolver(IHostNameResolverRef(new TestHostNameResolver(-1)), -1);
+   (void) PutHostNameResolver(IHostNameResolverRef(new TestHostNameResolver( 2)),  2);
+
+   printf("\n\nTesting resolver callbacks...\n");
+   TestGetHostByName("www.google.com");
+   TestGetHostByName("127.0.0.1");
+   TestGetHostByName("localhost");
+   TestGetHostByName("foobar.local.");
+   TestGetHostByName("obviously_broken.wtf.blah");
 
    printf("\n\nTesting IPAddressAndPort parsing... (defaulting to port 666 when port is unspecified)\n");
    char buf[256];

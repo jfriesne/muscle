@@ -3,7 +3,7 @@
 #ifndef MuscleFileDescriptorDataIO_h
 #define MuscleFileDescriptorDataIO_h
 
-// Might as well include there here, since any code using FileDescriptorDataIO is probably going to need them
+// Might as well include these here, since any code using FileDescriptorDataIO is probably going to need them
 #ifndef WIN32
 # include <fcntl.h>
 # include <stdio.h>
@@ -11,7 +11,7 @@
 # include <errno.h>
 #endif
 
-#include "dataio/DataIO.h"
+#include "dataio/SeekableDataIO.h"
 
 namespace muscle {
 

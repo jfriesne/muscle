@@ -12,7 +12,7 @@
 #define MuscleString_h
 
 #include <ctype.h> 
-#include "support/Flattenable.h"
+#include "support/PseudoFlattenable.h"
 #include "syslog/SysLog.h"
 #include "system/GlobalMemoryAllocator.h"  // for muscleFree()
 

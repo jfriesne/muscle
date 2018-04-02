@@ -3,7 +3,7 @@
 #ifndef MuscleByteBufferDataIO_h
 #define MuscleByteBufferDataIO_h
 
-#include "dataio/DataIO.h"
+#include "dataio/SeekableDataIO.h"
 #include "util/ByteBuffer.h"
 
 namespace muscle {

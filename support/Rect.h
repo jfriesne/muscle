@@ -11,7 +11,7 @@
 #ifndef MuscleRect_h
 #define MuscleRect_h
 
-#include "support/Flattenable.h"
+#include "support/PseudoFlattenable.h"
 #include "support/Point.h"
 
 namespace muscle {

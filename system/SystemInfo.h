@@ -8,6 +8,12 @@
 
 namespace muscle {
 
+/** @defgroup systeminfo The SystemInfo function API
+ *  These functions are all defined in SystemInfo(.cpp,.h), and are stand-alone
+ *  functions that provide information about the computer and OS that the program is executing on.
+ *  @{
+ */
+
 /** Returns a human-readable name for the operating system that the code has 
   * been compiled on.  For example, "Windows", "MacOS/X", or "Linux".  If the 
   * operating system's name is unknown, returns "Unknown".
@@ -75,6 +81,8 @@ void LogBuildFlags(int logLevel = MUSCLE_LOG_INFO);
   * rather than going through the LogTime() logging function.
   */
 void PrintBuildFlags();
+
+/** @} */ // end of systeminfo doxygen group
 
 } // end namespace muscle
 

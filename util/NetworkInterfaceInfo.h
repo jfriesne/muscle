@@ -25,7 +25,7 @@ public:
      * @param enabled True iff the interface is currently enabled; false if it is not.
      * @param copper True iff the interface currently has an ethernet cable plugged into it.
      * @param macAddress 48-bit MAC address value, or 0 if MAC address is unknown.
-     * @param hardwareType a NETWORK_INTERFACE_HARDWAER_TYPE_* value (NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN if the hardware type isn't known)
+     * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value (NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN if the hardware type isn't known)
      */
    NetworkInterfaceInfo(const String & name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType);
 

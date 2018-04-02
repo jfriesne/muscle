@@ -56,6 +56,14 @@ StringMatcher & StringMatcher :: operator = (const StringMatcher & rhs)
    return *this;
 }
 
+// Returns a String containing only the numeric digits in (s)
+static String DigitsOnly(const String & s)
+{
+   String ret;
+   for (uint32 i=0; i<s.Length(); i++) if (muscleInRange(s[i], '0', '9')) ret += s[i];
+   return ret;
+}
+
 status_t StringMatcher :: SetPattern(const String & s, bool isSimple) 
 {
    TCHECKPOINT;
@@ -101,9 +109,9 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
                   if (dash)
                   {
                      String beforeDash;
-                     if (dash>clause) {beforeDash.SetCstr(clause, (int32)(dash-clause)); beforeDash = beforeDash.Trim();}
+                     if (dash>clause) {beforeDash.SetCstr(clause, (int32)(dash-clause)); beforeDash = DigitsOnly(beforeDash);}
 
-                     String afterDash(dash+1); afterDash = afterDash.Trim();
+                     String afterDash(dash+1); afterDash = DigitsOnly(afterDash);
 
                      if (beforeDash.HasChars()) min = atoi(beforeDash());
                      if (afterDash.HasChars())  max = atoi(afterDash());

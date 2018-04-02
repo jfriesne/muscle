@@ -3,7 +3,7 @@
 #ifndef TarFileUtilityFunctions_h
 #define TarFileUtilityFunctions_h
 
-#include "dataio/DataIO.h"
+#include "dataio/SeekableDataIO.h"
 
 namespace muscle {
 

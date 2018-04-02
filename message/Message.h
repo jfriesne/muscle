@@ -286,6 +286,13 @@ public:
    /** @return true iff there are no fields in this Message. */
    bool IsEmpty() const {return (_entries.IsEmpty());}
 
+   /** Returns the type code of the field with the given name, or (defaultTypeCode) if the field doesn't exist.
+     * @param fieldName the name of the field to query
+     * @param defaultTypeCode the value to return if the field doesn't exist.  Default to B_ANY_TYPE.
+     * @returns the typecode of the specified field, or (defaultTypeCode)
+     */
+   uint32 GetFieldTypeForName(const String & fieldName, uint32 defaultTypeCode = B_ANY_TYPE) const;
+
    /** Prints debug info describing the contents of this Message to stdout. 
      * @param optFile If non-NULL, the text will be printed to this file.  If left as NULL, stdout will be used as a default.
      * @param maxRecurseLevel The maximum level of nested sub-Messages that we will print.  Defaults to MUSCLE_NO_LIMIT.
@@ -1643,6 +1650,17 @@ template<class T> status_t Message :: AddArchiveMessage(const String & fieldName
 template<class T> status_t Message :: PrependArchiveMessage(const String & fieldName, const T & obj)
 {
    return PrependMessage(fieldName, GetArchiveMessageFromPool(obj));
+}
+
+/** Convenience method for printing out 'what'-codes
+  * @param what a 32-bit what-code
+  * @returns a human-readable String representation of that 'what'-code
+  */
+static inline String GetTypeCodeString(uint32 what)
+{
+   char buf[sizeof(uint32)+1];  // +1 for the NUL byte
+   ::MakePrettyTypeCodeString(what, buf);
+   return String(buf);
 }
 
 } // end namespace muscle

@@ -5,7 +5,7 @@
 
 #include <qiodevice.h>
 #include <qsocketnotifier.h>
-#include "dataio/DataIO.h"
+#include "dataio/SeekableDataIO.h"
 
 namespace muscle {
 

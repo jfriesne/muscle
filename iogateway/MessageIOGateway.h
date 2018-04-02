@@ -36,7 +36,7 @@ enum {
 typedef void (*MessageFlattenedCallback)(const MessageRef & msgRef, void * userData);
 
 /**
- * A "gateway" object that knows how to send/receive Messages over a wire, via a provided DataIO object. 
+ * A MessageIOGateway object knows how to send/receive Messages over a wire, via a provided DataIO object. 
  * May be subclassed to change the byte-level protocol, or used as-is if the default protocol is desired.
  * If ZLib compression is desired, be sure to compile with -DMUSCLE_ENABLE_ZLIB_ENCODING
  *
@@ -274,6 +274,7 @@ private:
    TransferBuffer _sendBuffer;
    TransferBuffer _recvBuffer;
 
+   IPAddressAndPort _nextPacketDest;
    ByteBufferRef _scratchRecvBuffer;   // used to efficiently receive small Messages in the normal case
 
    uint32 _maxIncomingMessageSize;
@@ -287,6 +288,8 @@ private:
 
    MessageFlattenedCallback _unflattenedCallback;
    void * _unflattenedCallbackData;
+
+   Message _scratchPacketMessage;
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    mutable ZLibCodec * _sendCodec;

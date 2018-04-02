@@ -12,7 +12,7 @@
 #define MusclePoint_h
 
 #include <math.h>  // for sqrt()
-#include "support/Flattenable.h"
+#include "support/PseudoFlattenable.h"
 #include "support/Tuple.h"
 
 namespace muscle {

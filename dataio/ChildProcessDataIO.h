@@ -215,7 +215,7 @@ public:
      * @returns B_NO_ERROR if the child process was launched, or B_ERROR
      *          if the child process could not be launched.
      */
-   static status_t System(int argc, const char * argv[], uint32 launchBits=true, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
+   static status_t System(int argc, const char * argv[], uint32 launchBits = MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
 
    /** Convenience method:  acts similar to the POSIX system() call, but
      * implemented internally via a ChildProcessDataIO object.  In particular,
@@ -249,7 +249,7 @@ public:
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      */
-   static status_t System(const char * cmdLine, uint32 launchBits=true, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
+   static status_t System(const char * cmdLine, uint32 launchBits = MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
 
    /** Convenience method:  launches a child process that will be completely independent of the current process.
      * @param argc Number of items in the (argv) array

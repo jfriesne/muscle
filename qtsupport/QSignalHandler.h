@@ -18,9 +18,7 @@ namespace muscle {
  *  a signalReceived(int) Qt signal in response.  It uses the
  *  SignalReflectSession MUSCLE class in its implementation so it
  *  will have the same signal-handling semantics as that class.
- *  It will listen on a port, and emit a ConnectionAccepted signal 
- *  whenever a new TCP connection is received on that port.  In all 
- *  other respects it works like an SignalHandler object.
+ *  In all other respects it works like a SignalHandler object.
  */
 class QSignalHandler : public QObject, public ISignalHandler, private CountedObject<QSignalHandler>
 {

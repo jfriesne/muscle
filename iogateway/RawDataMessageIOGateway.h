@@ -7,11 +7,11 @@
 
 namespace muscle {
 
-/** This is the name of the field used to hold data chunks */
-#define PR_NAME_DATA_CHUNKS "rd"
-
 /** The 'what' code that will be found in incoming Messages. */
 #define PR_COMMAND_RAW_DATA 1919181923 // 'rddc'
+
+/** This is the name of the field used to hold data chunks */
+#define PR_NAME_DATA_CHUNKS "rd"
 
 /** 
  * This gateway is very crude; it can be used to write raw data to a TCP socket, and

@@ -2,7 +2,7 @@
 
 #include "system/SetupSystem.h"
 #include "support/Flattenable.h"
-#include "dataio/DataIO.h"
+#include "dataio/SeekableDataIO.h"
 #include "util/ObjectPool.h"
 #include "util/ByteBuffer.h"
 #include "util/DebugTimer.h"

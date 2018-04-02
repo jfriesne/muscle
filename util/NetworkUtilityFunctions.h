@@ -5,6 +5,7 @@
 
 #include "support/MuscleSupport.h"
 #include "util/CountedObject.h"
+#include "util/IHostNameResolver.h"
 #include "util/IPAddress.h"
 #include "util/NetworkInterfaceInfo.h"  // just for backwards compatibility with old code
 #include "util/Queue.h"
@@ -88,7 +89,10 @@ bool GetAutomaticIPv4AddressMappingEnabled();
 #endif
 
 /** Given a hostname or IP address string (e.g. "www.google.com" or "192.168.0.1" or "fe80::1"),
-  * returns the numeric IPAddress value that corresponds to that name.
+  * returns the numeric IPAddress value that corresponds to that name.  This version of the 
+  * function will call through to IHostNameResolver objects that were previously registered
+  * (via PutHostNameResolver()), and call GetHostByNameNative() if they don't succeed.
+  *
   * @param name ASCII IP address or hostname to look up.
   * @param expandLocalhost If true, then if (name) corresponds to 127.0.0.1, this function
   *                        will attempt to determine the host machine's actual primary IP
@@ -103,6 +107,24 @@ bool GetAutomaticIPv4AddressMappingEnabled();
   */
 IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
 
+/** This function is the same as GetHostByName(), except that only the built-in name-resolution
+  * functionality will be used.  In particular, none of the registered IHostNameResolver callbacks
+  * will be called by this version of the function.
+  *
+  * @param name ASCII IP address or hostname to look up.
+  * @param expandLocalhost If true, then if (name) corresponds to 127.0.0.1, this function
+  *                        will attempt to determine the host machine's actual primary IP
+  *                        address and return that instead.  Otherwise, 127.0.0.1 will be
+  *                        returned in this case.  Defaults to false.
+  * @param preferIPv6 If set to true, and both IPv4 and IPv6 addresses are returned for the specified
+  *                   hostname, then the IPv6 address will be returned.  If false, the IPv4 address
+  *                   will be returned.  Defaults to true.
+  * @return The associated IP address (local endianness), or 0 on failure.
+  * @note This function may invoke a synchronous DNS lookup, which means that it may take
+  *       a long time to return (e.g. if the DNS server is not responding)
+  */
+IPAddress GetHostByNameNative(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
+
 /** Sets the parameters for GetHostByName()'s internal DNS-results LRU cache.
   * Note that this cache is disabled by default, so by default every call to GetHostByName()
   * incurs a call to gethostbyname() or getaddrinfo().  Calling this function with non-zero
@@ -114,6 +136,29 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool pr
   *                     valid indefinitely.
   */
 void SetHostNameCacheSettings(uint32 maxCacheSize, uint64 expirationTimeMicros);
+
+/** If you'd like to have GetHostByName() call your own hostname-resolution algorithm
+  * before (or after) the built-in gethostbyname()-based functionality provided by
+  * GetHostByNameNative(), you can install a callback routine using this function.
+  * @param resolver reference to a IHostNameResolver object whose GetIPAddressForHostName()
+  *                 method will be called to try to obtain an IP address for the given hostname.
+  * @param priority Priority number, determines the order in which resolvers will be
+  *                 called.  Resolvers with priority of 0 or greater will be called
+  *                 before calling GetHostByNameNative(); resolvers with priority
+  *                 less than zero will be called only if the GetHostByNameNative() doesn't
+  *                 return a valid IP address.  Defaults to zero.
+  * @returns B_NO_ERROR on success, or B_ERROR on failure. 
+  */
+status_t PutHostNameResolver(const IHostNameResolverRef & resolver, int priority = 0);
+
+/** Removes a IHostNameResolver that had previously been installed via PutHostNameResolver().
+  * @param resolver Reference the IHostNameResolver to remove.
+  * @returns B_NO_ERROR on success, or B_ERROR if the given resolver wasn't installed.
+  */
+status_t RemoveHostNameResolver(const IHostNameResolverRef & resolver);
+
+/** Removes all IHostNameResolvers that were ever installed via PutHostNameResolver() */
+void ClearHostNameResolvers();
 
 /** Convenience function for connecting with TCP to a given hostName/port.
  * @param hostName The ASCII host name or ASCII IP address of the computer to connect to.

@@ -7,11 +7,11 @@
 
 namespace muscle {
 
-/** This is the name of the string field used to hold text lines. */
-#define PR_NAME_TEXT_LINE "tl"
-
 /** The 'what' code that will be found in incoming Messages. */
 #define PR_COMMAND_TEXT_STRINGS 1886681204  // 'ptxt'
+
+/** This is the name of the string field used to hold text lines. */
+#define PR_NAME_TEXT_LINE "tl"
 
 /**
  * This gateway translates lines of text (separated by "\r", "\n", or "\r\n") into

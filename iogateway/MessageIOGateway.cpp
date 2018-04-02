@@ -43,17 +43,17 @@ MessageIOGateway :: SendMoreData(int32 & sentBytes, uint32 & maxBytes)
    TCHECKPOINT;
 
    const ByteBuffer * bb = _sendBuffer._buffer();
-   int32 attemptSize     = muscleMin(maxBytes, bb->GetNumBytes()-_sendBuffer._offset);
-   int32 numSent         = GetDataIO()()->Write(bb->GetBuffer()+_sendBuffer._offset, attemptSize);
-   if (numSent >= 0)
+   int32 attemptSize  = muscleMin(maxBytes, bb->GetNumBytes()-_sendBuffer._offset);
+   int32 numBytesSent = GetDataIO()()->Write(bb->GetBuffer()+_sendBuffer._offset, attemptSize);
+   if (numBytesSent >= 0)
    {
-      maxBytes            -= numSent;
-      sentBytes           += numSent;
-      _sendBuffer._offset += numSent;
+      maxBytes            -= numBytesSent;
+      sentBytes           += numBytesSent;
+      _sendBuffer._offset += numBytesSent;
    }
    else SetHosed();
 
-   return (numSent < attemptSize) ? B_ERROR : B_NO_ERROR;
+   return (numBytesSent < attemptSize) ? B_ERROR : B_NO_ERROR;
 }
 
 int32 
@@ -61,6 +61,8 @@ MessageIOGateway ::
 DoOutputImplementation(uint32 maxBytes)
 {
    TCHECKPOINT;
+
+   const uint32 mtuSize = GetMaximumPacketSize();
 
    int32 sentBytes = 0;
    while((maxBytes > 0)&&(IsHosed() == false))
@@ -77,13 +79,27 @@ DoOutputImplementation(uint32 maxBytes)
                return sentBytes;  // nothing more to send, so we're done!
             }
 
-            const Message * nextSendMsg = nextRef();
-            if (nextSendMsg)
+            if (nextRef())
             {
                if (_aboutToFlattenCallback) _aboutToFlattenCallback(nextRef, _aboutToFlattenCallbackData);
 
+               if (mtuSize > 0)
+               {
+                  if (nextRef()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, _nextPacketDest) == B_NO_ERROR) 
+                  {
+                     // Temporarily move this field out before flattening the Message, 
+                     // since we don't want to send the destination IAP as part of the packet
+                     (void) nextRef()->MoveName(PR_NAME_PACKET_REMOTE_LOCATION, _scratchPacketMessage);
+                  }
+                  else _nextPacketDest.Reset();
+               }
+
                _sendBuffer._offset = 0;
                _sendBuffer._buffer = FlattenHeaderAndMessage(nextRef);
+
+               // Restore the PR_NAME_PACKET_REMOTE_LOCATION field, since we're not supposed to be modifying any Messages
+               if (mtuSize > 0) (void) _scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef());
+
                if (_sendBuffer._buffer() == NULL) {SetHosed(); return -1;}
 
                if (_flattenedCallback) _flattenedCallback(nextRef, _flattenedCallbackData);
@@ -105,17 +121,21 @@ DoOutputImplementation(uint32 maxBytes)
       }
 
       // At this point, _sendBuffer._buffer() is guaranteed not to be NULL!
-      if (GetMaximumPacketSize() > 0)
+      if (mtuSize > 0)
       {
+         PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL because (mtuSize > 0)
+         IPAddressAndPort packetDest;
          const ByteBuffer * bb = _sendBuffer._buffer();
-         int32 numSent         = GetDataIO()()->Write(bb->GetBuffer(), bb->GetNumBytes());
-         if (numSent > 0)
+         const int32 numBytesSent = _nextPacketDest.IsValid()
+                                  ? pdio->WriteTo(bb->GetBuffer(), bb->GetNumBytes(), _nextPacketDest)
+                                  : pdio->Write(  bb->GetBuffer(), bb->GetNumBytes());
+         if (numBytesSent > 0)
          {
-            maxBytes   = (maxBytes>(uint32)numSent)?(maxBytes-numSent):0;
-            sentBytes += numSent;
+            maxBytes   = (maxBytes>(uint32)numBytesSent)?(maxBytes-numBytesSent):0;
+            sentBytes += numBytesSent;
             _sendBuffer.Reset();
          }
-         else if (numSent < 0) SetHosed();
+         else if (numBytesSent < 0) SetHosed();
          else break;
       }
       else
@@ -157,6 +177,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 {
    TCHECKPOINT;
 
+   const uint32 mtuSize = GetMaximumPacketSize();
    const uint32 hs = GetHeaderSize();
    bool firstTime = true;  // always go at least once, to avoid live-lock
    int32 readBytes = 0;
@@ -164,7 +185,6 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    {
       firstTime = false;
 
-      const uint32 mtuSize = GetMaximumPacketSize();
       if (mtuSize > 0)
       {
          // For UDP-style I/O, we'll read all header data and body data at once from a single packet
@@ -178,21 +198,24 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if (_recvBuffer._buffer() == NULL) {SetHosed(); break;}  // out of memory?
          }
 
-         int32 numRead = GetDataIO()()->Read(_recvBuffer._buffer()->GetBuffer(), mtuSize);
-              if (numRead < 0) {SetHosed(); break;}
-         else if (numRead > 0)
+         IPAddressAndPort sourceIAP;
+         const int32 numBytesRead = GetPacketDataIO()->ReadFrom(_recvBuffer._buffer()->GetBuffer(), mtuSize, sourceIAP);
+              if (numBytesRead < 0) {SetHosed(); break;}
+         else if (numBytesRead > 0)
          {
-            readBytes += numRead;
-            maxBytes   = (maxBytes>(uint32)numRead)?(maxBytes-numRead):0;
-            (void) _recvBuffer._buffer()->SetNumBytes(numRead, true);  // trim off any unused bytes
+            readBytes += numBytesRead;
+            maxBytes   = (maxBytes>(uint32)numBytesRead)?(maxBytes-numBytesRead):0;
+            (void) _recvBuffer._buffer()->SetNumBytes(numBytesRead, true);  // trim off any unused bytes
 
-            // Finished receiving message bytes... now reconstruct that bad boy!
             MessageRef msg = UnflattenHeaderAndMessage(_recvBuffer._buffer);
             _recvBuffer.Reset();  // reset our state for the next one!
             ForgetScratchReceiveBufferIfSubclassIsStillUsingIt();
 
             if (msg())  // for UDP, unexpected data shouldn't be fatal
             {
+               (void) msg()->RemoveName(PR_NAME_PACKET_REMOTE_LOCATION);  // paranoia
+               if (sourceIAP.IsValid()) (void) msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP);
+
                if (_unflattenedCallback) _unflattenedCallback(msg, _unflattenedCallbackData);
                receiver.CallMessageReceivedFromGateway(msg);
             }
@@ -271,17 +294,17 @@ MessageIOGateway :: ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32
 {
    TCHECKPOINT;
 
-   int32 attemptSize = muscleMin(maxBytes, (uint32)((maxArraySize>_recvBuffer._offset)?(maxArraySize-_recvBuffer._offset):0));
-   int32 numRead     = GetDataIO()()->Read(_recvBuffer._buffer()->GetBuffer()+_recvBuffer._offset, attemptSize);
-   if (numRead >= 0)
+   int32 attemptSize  = muscleMin(maxBytes, (uint32)((maxArraySize>_recvBuffer._offset)?(maxArraySize-_recvBuffer._offset):0));
+   int32 numBytesRead = GetDataIO()()->Read(_recvBuffer._buffer()->GetBuffer()+_recvBuffer._offset, attemptSize);
+   if (numBytesRead >= 0)
    {
-      maxBytes            -= numRead;
-      readBytes           += numRead;
-      _recvBuffer._offset += numRead;
+      maxBytes            -= numBytesRead;
+      readBytes           += numBytesRead;
+      _recvBuffer._offset += numBytesRead;
    }
    else SetHosed();
 
-   return (numRead < attemptSize) ? B_ERROR : B_NO_ERROR;
+   return (numBytesRead < attemptSize) ? B_ERROR : B_NO_ERROR;
 }
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING

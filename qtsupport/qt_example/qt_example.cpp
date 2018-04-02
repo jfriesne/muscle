@@ -60,7 +60,7 @@ void ExampleWidget :: paintEvent(QPaintEvent *)
       p.setPen(Qt::black);
       for (HashtableIterator<String, MessageRef> iter(_master->_states); iter.HasData(); iter++) p.drawLine(myPt, NormalizedToQtCoords(iter.GetValue()()->GetPoint("position")));
 
-      // And finally draw everyone's positio-indicator
+      // And finally draw everyone's position-indicator bubble
       for (HashtableIterator<String, MessageRef> iter(_master->_states); iter.HasData(); iter++) DrawUser(p, iter.GetValue());
       DrawUser(p, _master->_localState);
    }

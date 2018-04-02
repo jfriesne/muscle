@@ -30,11 +30,12 @@ public:
    /** Destructor.  Shuts down the internal thread and cleans up. */
    virtual ~SimulatedMulticastDataIO() {ShutdownAux();}
 
-   virtual int32 Read(void * buffer, uint32 size);
+   virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSourcePacket);
    virtual int32 Write(const void * buffer, uint32 size);
+   virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
+
    virtual const ConstSocketRef & GetReadSelectSocket()  const {return const_cast<SimulatedMulticastDataIO &>(*this).GetOwnerWakeupSocket();}
    virtual const ConstSocketRef & GetWriteSelectSocket() const {return const_cast<SimulatedMulticastDataIO &>(*this).GetOwnerWakeupSocket();}
-   virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _lastPacketReceivedFrom;}
    virtual void Shutdown() {ShutdownAux();}
 
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
@@ -76,7 +77,6 @@ private:
    const char * GetUDPSocketTypeName(uint32 which) const;
 
    IPAddressAndPort _multicastAddress;
-   IPAddressAndPort _lastPacketReceivedFrom;
    uint32 _maxPacketSize;
 
    // Values below this line may be accessed by the internal thread ONLY

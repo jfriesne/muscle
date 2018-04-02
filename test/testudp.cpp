@@ -7,6 +7,7 @@
 
 #include "dataio/UDPSocketDataIO.h"
 #include "iogateway/MessageIOGateway.h"
+#include "iogateway/PlainTextMessageIOGateway.h"
 #include "iogateway/RawDataMessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
 #include "system/SetupSystem.h"
@@ -17,6 +18,18 @@
 using namespace muscle;
 
 #define TEST(x) if ((x) != B_NO_ERROR) printf("Test failed, line %i\n",__LINE__)
+
+static AbstractMessageIOGatewayRef CreateUDPGateway(bool useTextGateway, bool useRawGateway, const DataIORef & dataIO)
+{
+   AbstractMessageIOGatewayRef ret;
+
+        if (useTextGateway) ret.SetRef(new PlainTextMessageIOGateway);
+   else if (useRawGateway)  ret.SetRef(new RawDataMessageIOGateway);
+   else                     ret.SetRef(new MessageIOGateway);
+
+   ret()->SetDataIO(dataIO);
+   return ret;
+}
 
 // This is a text based UDP test client.
 int main(int argc, char ** argv)
@@ -32,7 +45,13 @@ int main(int argc, char ** argv)
    Message args; (void) ParseArgs(argc, argv, args);
    const char * target = args.GetCstr("sendto", "localhost");
    const char * bindto = args.GetCstr("listen", "3960");
+   bool useTextGateway = args.HasName("text");
    bool useRawGateway  = args.HasName("raw"); 
+   if (useTextGateway) 
+   {
+      printf("Using PlainTextMessageIOGateway...\n");
+      useRawGateway = false;
+   }
    if (useRawGateway) printf("Using RawDataMessageIOGateway...\n");
 
    ConstSocketRef s = CreateUDPSocket();
@@ -47,16 +66,11 @@ int main(int argc, char ** argv)
    if (BindUDPSocket(s, bindPort, &actualPort) == B_NO_ERROR) printf("Bound socket to port %u\n", actualPort);
                                                          else printf("Error, couldn't bind to port %u\n", bindPort);
    
-   MessageIOGateway gw;
-   RawDataMessageIOGateway rgw;
-   UDPSocketDataIO * udpIO = new UDPSocketDataIO(s, false);
-   (void) udpIO->SetPacketSendDestination(IPAddressAndPort(target, 3960, true));
-   printf("Set UDP send destination to [%s]\n", udpIO->GetPacketSendDestination().ToString()());
+   UDPSocketDataIORef udpIORef(new UDPSocketDataIO(s, false));
+   (void) udpIORef()->SetPacketSendDestination(IPAddressAndPort(target, 3960, true));
+   printf("Set UDP send destination to [%s]\n", udpIORef()->GetPacketSendDestination().ToString()());
 
-   // Only one of these will actually be used
-   gw.SetDataIO(DataIORef(udpIO));
-   rgw.SetDataIO(DataIORef(udpIO));
-   AbstractMessageIOGateway * agw = useRawGateway ? (AbstractMessageIOGateway *)&rgw : (AbstractMessageIOGateway *)&gw;
+   AbstractMessageIOGatewayRef agw = CreateUDPGateway(useTextGateway, useRawGateway, udpIORef);
 
    char text[1000] = "";
    QueueGatewayMessageReceiver inQueue;
@@ -67,7 +81,7 @@ int main(int argc, char ** argv)
       int fd = s.GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(fd);
 
-      if (agw->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+      if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
       multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
 
       while(s()) 
@@ -83,9 +97,10 @@ int main(int argc, char ** argv)
          {
             printf("You typed: [%s]\n",text);
             bool send = true;
-            MessageRef ref = GetMessageFromPool(useRawGateway?PR_COMMAND_RAW_DATA:0);
+            MessageRef ref = GetMessageFromPool(useTextGateway?PR_COMMAND_TEXT_STRINGS:(useRawGateway?PR_COMMAND_RAW_DATA:0));
 
-            if (useRawGateway) ref()->AddFlat(PR_NAME_DATA_CHUNKS, ParseHexBytes(text));
+                 if (useTextGateway) ref()->AddString(PR_NAME_TEXT_LINE, String(text).Trim());
+            else if (useRawGateway)  ref()->AddFlat(PR_NAME_DATA_CHUNKS, ParseHexBytes(text));
             else
             {
                switch(text[0])
@@ -188,15 +203,15 @@ int main(int argc, char ** argv)
             {
                printf("Sending message...\n");
 //             ref()->PrintToStream();
-               agw->AddOutgoingMessage(ref);
+               agw()->AddOutgoingMessage(ref);
             }
             text[0] = '\0';
          }
    
          bool reading = multiplexer.IsSocketReadyForRead(fd);
          bool writing = multiplexer.IsSocketReadyForWrite(fd);
-         bool writeError = ((writing)&&(agw->DoOutput() < 0));
-         bool readError  = ((reading)&&(agw->DoInput(inQueue) < 0));
+         bool writeError = ((writing)&&(agw()->DoOutput() < 0));
+         bool readError  = ((reading)&&(agw()->DoInput(inQueue) < 0));
          if ((readError)||(writeError))
          {
             printf("%s:  Connection closed, exiting.\n", readError?"Read Error":"Write Error");
@@ -206,7 +221,10 @@ int main(int argc, char ** argv)
          MessageRef incoming;
          while(inQueue.RemoveHead(incoming) == B_NO_ERROR)
          {
-            printf("Heard message from server:-----------------------------------\n");
+            IPAddressAndPort iap;
+            (void) incoming()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, iap);
+
+            printf("Incoming message from %s:-----------------------------------\n", iap.ToString()());
             incoming()->PrintToStream();
             printf("-------------------------------------------------------------\n");
          }
@@ -214,15 +232,15 @@ int main(int argc, char ** argv)
          if ((reading == false)&&(writing == false)) break;
 
          multiplexer.RegisterSocketForReadReady(fd);
-         if (agw->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+         if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
          multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
       }
    }
 
-   if (agw->HasBytesToOutput())
+   if (agw()->HasBytesToOutput())
    {
       printf("Waiting for all pending messages to be sent...\n");
-      while((agw->HasBytesToOutput())&&(agw->DoOutput() >= 0)) {printf ("."); fflush(stdout);}
+      while((agw()->HasBytesToOutput())&&(agw()->DoOutput() >= 0)) {printf ("."); fflush(stdout);}
    }
    printf("\n\nBye!\n");
 

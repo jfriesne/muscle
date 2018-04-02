@@ -1,14 +1,16 @@
 # compilation flags used under any OS or compiler (may be appended to, below) 
-CXXFLAGS   += -I.. -DMUSCLE_SINGLE_THREAD_ONLY
-CXXFLAGS   += -DMUSCLE_ENABLE_ZLIB_ENCODING
-#CXXFLAGS  += -DMUSCLE_AVOID_IPV6
-#CXXFLAGS  += -DMUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
-#CXXFLAGS  += -DMUSCLE_USE_POLL
-#CXXFLAGS  += -DMUSCLE_USE_KQUEUE
-#CXXFLAGS  += -DMUSCLE_USE_EPOLL
-#CXXFLAGS  += -DMUSCLE_ENABLE_SSL
-#CXXFLAGS  += -DMUSCLE_AVOID_CPLUSPLUS11
-CXXFLAGS   += -std=c++11 $(CFLAGS) $(DEFINES)
+CXXFLAGS  += -I.. 
+CXXFLAGS  += -DMUSCLE_ENABLE_ZLIB_ENCODING
+CXXFLAGS  += -std=c++11 $(CFLAGS) $(DEFINES)
+#CXXFLAGS += -DMUSCLE_SINGLE_THREAD_ONLY
+#CXXFLAGS += -DMUSCLE_AVOID_IPV6
+#CXXFLAGS += -DMUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
+#CXXFLAGS += -DMUSCLE_USE_POLL
+#CXXFLAGS += -DMUSCLE_USE_KQUEUE
+#CXXFLAGS += -DMUSCLE_USE_EPOLL
+#CXXFLAGS += -DMUSCLE_ENABLE_SSL
+#CXXFLAGS += -DMUSCLE_AVOID_CPLUSPLUS11
+#CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING 
 
 # Uncomment these to enable clang++'s static analyzer (for more thorough error checking)
 #CXXFLAGS += --analyze -Xanalyzer -analyzer-output=text
@@ -30,14 +32,11 @@ LIBS        =
 EXECUTABLES = muscled admin 
 
 # object files to include in all executables 
-OBJFILES = Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o AbstractReflectSession.o SignalMultiplexer.o SignalHandlerSession.o DumbReflectSession.o StorageReflectSession.o DataNode.o ReflectServer.o SocketMultiplexer.o StringMatcher.o muscled.o MiscUtilityFunctions.o NetworkUtilityFunctions.o SysLog.o PulseNode.o PathMatcher.o FilterSessionFactory.o RateLimitSessionIOPolicy.o MemoryAllocator.o GlobalMemoryAllocator.o SetupSystem.o ServerComponent.o ZLibCodec.o ByteBuffer.o QueryFilter.o Directory.o FilePathInfo.o regcomp.o regerror.o regexec.o regfree.o 
-ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
+OBJFILES = Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o AbstractReflectSession.o SignalMultiplexer.o SignalHandlerSession.o DumbReflectSession.o StorageReflectSession.o DataNode.o ReflectServer.o SocketMultiplexer.o StringMatcher.o muscled.o MiscUtilityFunctions.o NetworkUtilityFunctions.o SysLog.o PulseNode.o PathMatcher.o FilterSessionFactory.o RateLimitSessionIOPolicy.o MemoryAllocator.o GlobalMemoryAllocator.o SetupSystem.o ServerComponent.o ZLibCodec.o ByteBuffer.o QueryFilter.o Directory.o FilePathInfo.o ChildProcessDataIO.o StdinDataIO.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o FileDescriptorDataIO.o SystemInfo.o Thread.o MessageTransceiverThread.o regcomp.o regerror.o regexec.o regfree.o DetectNetworkConfigChangesSession.o SharedMemory.o ZipFileUtilityFunctions.o ZLibUtilityFunctions.o CPULoadMeter.o TarFileWriter.o
+ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o zip.o unzip.o ioapi.o
 
 # Where to find .cpp files 
-VPATH = ../message ../besupport ../dataio ../iogateway ../reflector ../regex ../util ../syslog ../system ../zlib ../zlib/zlib  ../regex/regex
-
-# if muscled is crashing, try setting this to no; some older compilers can't handle memory tracking! 
-MEMORY_TRACKING_SUPPORTED = yes 
+VPATH = ../message ../besupport ../dataio ../iogateway ../reflector ../regex ../util ../syslog ../system ../zlib ../zlib/zlib ../zlib/zlib/contrib/minizip ../regex/regex
 
 # if the OS type variable is unset, try to set it using the uname shell command 
 ifeq ($(OSTYPE),) 
@@ -46,7 +45,7 @@ endif
 
 ifeq ($(OSTYPE),Darwin)
    CXXFLAGS += -stdlib=libc++
-   LIBS += -framework SystemConfiguration -framework CoreFoundation
+   LIBS += -framework SystemConfiguration -framework CoreFoundation -framework IOKit
 endif
 
 # IRIX may report itself as IRIX or as IRIX64.  They are both the same to us. 
@@ -59,12 +58,22 @@ ifeq ($(OSTYPE),Haiku)
    CXXFLAGS  += -DMUSCLE_AVOID_IPV6
 endif
 
+ifeq ($(OSTYPE),Linux)
+   CFLAGS   += -I../zlib/zlib -pthread
+   CXXFLAGS += -I../zlib/zlib -pthread
+   LIBS     += -lutil -pthread
+endif
+ifeq ($(OSTYPE),linux)
+   CFLAGS   += -I../zlib/zlib -pthread
+   CXXFLAGS += -I../zlib/zlib -pthread
+   LIBS     += -lutil -pthread
+endif
+
 ifeq ($(OSTYPE),beos) 
    ifeq ($(BE_HOST_CPU),ppc) 
       CXX = mwcc 
       VPATH += ../regex/regex 
       CFLAGS += -I../regex/regex -I../zlib/zlib 
-      MEMORY_TRACKING_SUPPORTED = no  # mwcc can't handle it correctly :^( 
    else # not ppc 
       CXXFLAGS += $(GCCFLAGS) $(CCOPTFLAGS) 
       LIBS = -lbe -lnet -lroot 
@@ -96,7 +105,6 @@ ifeq ($(OSTYPE),IRIX)
       CCFLAGS = -g2 -n32 -LANG:std -woff 1110,1174,1552,1460,3303 
       LFLAGS  = -g2 -n32 
       CXXFLAGS += -DNEW_H_NOT_AVAILABLE 
-      MEMORY_TRACKING_SUPPORTED = no # SGI CC can't handle it correctly :^( 
    endif 
 endif 
 
@@ -108,27 +116,23 @@ ifeq ($(OSTYPE), SunOS)
     LIBS = -lsocket -lnsl
 endif
 
-ifeq ($(strip $(MEMORY_TRACKING_SUPPORTED)),yes)
-   CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING 
-endif
-
 ifneq (,$(findstring MUSCLE_ENABLE_SSL,$(CXXFLAGS))) # Add OpenSSL-specific files only if OpenSSL is enabled
 	OBJFILES += SSLSocketDataIO.o SSLSocketAdapterGateway.o
 	LIBS += -lssl -lcrypto
 endif
 
-all : $(EXECUTABLES) 
+all : $(EXECUTABLES) libmuscle.a
 
 debug : CCOPTFLAGS = -g 
 debug : all 
 
 muscled : $(OBJFILES) $(ZLIBOBJS) 
-	$(CXX) $(LIBS) $(LFLAGS) -o $@ $^ 
+	$(CXX) -o $@ $^ $(LIBS) $(LFLAGS)
 
 admin : Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o NetworkUtilityFunctions.o SysLog.o admin.o PulseNode.o SetupSystem.o ZLibCodec.o ByteBuffer.o GlobalMemoryAllocator.o MiscUtilityFunctions.o Directory.o FilePathInfo.o StringMatcher.o SocketMultiplexer.o $(ZLIBOBJS) 
-	$(CXX) $(LIBS) $(LFLAGS) -o $@ $^ 
+	$(CXX) -o $@ $^ $(LIBS) $(LFLAGS)
 
-libmuscle.a : $(OBJFILES)
+libmuscle.a : $(OBJFILES) $(ZLIBOBJS)
 	$(AR) rcs $@ $^
 
 clean : 
