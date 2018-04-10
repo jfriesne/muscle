@@ -250,7 +250,7 @@ int32 Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref
             if (tsd._multiplexer.IsSocketReadyForRead(msgfd))  // any signals from the other thread?
             {
                uint8 bytes[256];
-               if (ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(msgfd, (char *)bytes, sizeof(bytes), 0), sizeof(bytes), false) > 0) ret = WaitForNextMessageAux(tsd, ref, wakeupTime);
+               if (ConvertReturnValueToMuscleSemantics((int)recv_ignore_eintr(msgfd, (char *)bytes, sizeof(bytes), 0), sizeof(bytes), false) > 0) ret = WaitForNextMessageAux(tsd, ref, wakeupTime);
             }
          }
       }

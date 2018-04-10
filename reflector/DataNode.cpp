@@ -247,7 +247,7 @@ void DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNotifyW
    if (_parent) 
    {
       const char * nn = _nodeName();
-      uint32 id = atol(&nn[(*nn=='I')?1:0]);
+      uint32 id = (uint32)atol(&nn[(*nn=='I')?1:0]);
       _parent->_maxChildIDHint = muscleMax(_parent->_maxChildIDHint, id);
    }
    else if (_subscribers) _subscribers->Clear();

@@ -282,7 +282,7 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRe
 int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
 {
    int fd = sock.GetFileDescriptor();
-   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(fd, (char *)buffer, size, 0L), size, bm) : -1;
+   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics((int)recv_ignore_eintr(fd, (char *)buffer, size, 0L), size, bm) : -1;
 }
 
 int32 ReadData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
@@ -291,7 +291,7 @@ int32 ReadData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
    return ReceiveData(sock, buffer, size, bm);  // Windows doesn't support read(), only recv()
 #else
    int fd = sock.GetFileDescriptor();
-   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(read_ignore_eintr(fd, (char *)buffer, size), size, bm) : -1;
+   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics((int)read_ignore_eintr(fd, (char *)buffer, size), size, bm) : -1;
 #endif
 }
 
@@ -305,14 +305,14 @@ int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 size, bo
       {
          DECLARE_SOCKADDR(fromAddr, NULL, 0);
          muscle_socklen_t fromAddrLen = sizeof(fromAddr);
-         r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
+         r = (int)recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
          if (r >= 0)
          {
             if (optFromIP) GET_SOCKADDR_IP(fromAddr, *optFromIP);
             if (optFromPort) *optFromPort = GET_SOCKADDR_PORT(fromAddr);
          }
       }
-      else r = recv_ignore_eintr(fd, (char *)buffer, size, 0L);
+      else r = (int)recv_ignore_eintr(fd, (char *)buffer, size, 0L);
 
       if (r == 0) return 0;  // for UDP, zero is a valid recv() size, since there is no EOS
       return ConvertReturnValueToMuscleSemantics(r, size, bm);
@@ -323,7 +323,7 @@ int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 size, bo
 int32 SendData(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm)
 {
    int fd = sock.GetFileDescriptor();
-   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(send_ignore_eintr(fd, (const char *)buffer, size, 0L), size, bm) : -1;
+   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics((int)send_ignore_eintr(fd, (const char *)buffer, size, 0L), size, bm) : -1;
 }
 
 int32 WriteData(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm)
@@ -332,7 +332,7 @@ int32 WriteData(const ConstSocketRef & sock, const void * buffer, uint32 size, b
    return SendData(sock, buffer, size, bm);  // Windows doesn't support write(), only send()
 #else
    int fd = sock.GetFileDescriptor();
-   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(write_ignore_eintr(fd, (const char *)buffer, size), size, bm) : -1;
+   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics((int)write_ignore_eintr(fd, (const char *)buffer, size), size, bm) : -1;
 #endif
 }
 
@@ -386,9 +386,9 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
 #endif
          }
          if (optToPort) SET_SOCKADDR_PORT(toAddr, optToPort);
-         s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
+         s = (int)sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
       }
-      else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
+      else s = (int)send_ignore_eintr(fd, (const char *)buffer, size, 0L);
 
       if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
       int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
@@ -1392,8 +1392,8 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
          CFArrayRef interfaces = SCNetworkInterfaceCopyAll();  // we can use this to get network interface hardware types later
          if (interfaces)
          {
-            const int numInterfaces = CFArrayGetCount(interfaces);
-            for (int i=0; i<numInterfaces; i++)
+            const CFIndex numInterfaces = CFArrayGetCount(interfaces);
+            for (CFIndex i=0; i<numInterfaces; i++)
             {
                SCNetworkInterfaceRef ifRef = (SCNetworkInterfaceRef)CFArrayGetValueAtIndex(interfaces, i);
                if (ifRef)

@@ -118,7 +118,7 @@ public:
     */
    status_t AddTailMulti(const std::initializer_list<ItemType> & list)
    {
-      if (EnsureCanAdd(list.size()) != B_NO_ERROR) return B_ERROR;
+      if (EnsureCanAdd((uint32)list.size()) != B_NO_ERROR) return B_ERROR;
       for (auto i : list) (void) AddTail(i);  // can't fail, because we allocated the necessary space on the previous line
       return B_NO_ERROR;
    }
