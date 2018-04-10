@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7B16C549207D0D780013D9B6 /* admin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BB61AE8207D0B0B009F8936 /* admin.cpp */; };
+		7B16C54C207D0DA20013D9B6 /* libmuscle.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B34A095207D066100A1B050 /* libmuscle.a */; };
+		7B16C54D207D0DAF0013D9B6 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB61AF2207D0C4F009F8936 /* CoreFoundation.framework */; };
+		7B16C54E207D0DB50013D9B6 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB61AF4207D0C98009F8936 /* SystemConfiguration.framework */; };
 		7BB2CFA2207D06EB0092DBBD /* XorProxyDataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF86207D06E90092DBBD /* XorProxyDataIO.h */; };
 		7BB2CFA3207D06EB0092DBBD /* StdinDataIO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BB2CF87207D06E90092DBBD /* StdinDataIO.cpp */; };
 		7BB2CFA4207D06EB0092DBBD /* FileDataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF88207D06E90092DBBD /* FileDataIO.h */; };
@@ -170,6 +174,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7B16C54A207D0D9E0013D9B6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B34A08D207D066100A1B050 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7B34A094207D066100A1B050;
+			remoteInfo = muscle;
+		};
 		7BB61AEE207D0C32009F8936 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7B34A08D207D066100A1B050 /* Project object */;
@@ -180,6 +191,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		7B16C540207D0D630013D9B6 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		7BB61ADC207D0AF2009F8936 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -192,6 +212,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7B16C542207D0D630013D9B6 /* admin */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = admin; sourceTree = BUILT_PRODUCTS_DIR; };
 		7B34A095207D066100A1B050 /* libmuscle.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libmuscle.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BB2CF86207D06E90092DBBD /* XorProxyDataIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XorProxyDataIO.h; path = ../dataio/XorProxyDataIO.h; sourceTree = "<group>"; };
 		7BB2CF87207D06E90092DBBD /* StdinDataIO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StdinDataIO.cpp; path = ../dataio/StdinDataIO.cpp; sourceTree = "<group>"; };
@@ -351,13 +372,22 @@
 		7BB2D0BB207D08E60092DBBD /* DoxyTemplate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DoxyTemplate.h; path = ../support/DoxyTemplate.h; sourceTree = "<group>"; };
 		7BB61ADE207D0AF2009F8936 /* muscled */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = muscled; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BB61AE6207D0B0B009F8936 /* muscled.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = muscled.cpp; path = ../server/muscled.cpp; sourceTree = "<group>"; };
-		7BB61AE7207D0B0B009F8936 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../server/Makefile; sourceTree = "<group>"; };
 		7BB61AE8207D0B0B009F8936 /* admin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = admin.cpp; path = ../server/admin.cpp; sourceTree = "<group>"; };
 		7BB61AF2207D0C4F009F8936 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		7BB61AF4207D0C98009F8936 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		7B16C53F207D0D630013D9B6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B16C54E207D0DB50013D9B6 /* SystemConfiguration.framework in Frameworks */,
+				7B16C54D207D0DAF0013D9B6 /* CoreFoundation.framework in Frameworks */,
+				7B16C54C207D0DA20013D9B6 /* libmuscle.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7B34A092207D066100A1B050 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -401,6 +431,7 @@
 			children = (
 				7B34A095207D066100A1B050 /* libmuscle.a */,
 				7BB61ADE207D0AF2009F8936 /* muscled */,
+				7B16C542207D0D630013D9B6 /* admin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -628,7 +659,6 @@
 			isa = PBXGroup;
 			children = (
 				7BB61AE8207D0B0B009F8936 /* admin.cpp */,
-				7BB61AE7207D0B0B009F8936 /* Makefile */,
 				7BB61AE6207D0B0B009F8936 /* muscled.cpp */,
 			);
 			name = server;
@@ -758,6 +788,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		7B16C541207D0D630013D9B6 /* admin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7B16C548207D0D630013D9B6 /* Build configuration list for PBXNativeTarget "admin" */;
+			buildPhases = (
+				7B16C53E207D0D630013D9B6 /* Sources */,
+				7B16C53F207D0D630013D9B6 /* Frameworks */,
+				7B16C540207D0D630013D9B6 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7B16C54B207D0D9E0013D9B6 /* PBXTargetDependency */,
+			);
+			name = admin;
+			productName = admin;
+			productReference = 7B16C542207D0D630013D9B6 /* admin */;
+			productType = "com.apple.product-type.tool";
+		};
 		7B34A094207D066100A1B050 /* muscle */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7B34A099207D066100A1B050 /* Build configuration list for PBXNativeTarget "muscle" */;
@@ -802,6 +850,10 @@
 				LastUpgradeCheck = 0920;
 				ORGANIZATIONNAME = "Ruurd Adema";
 				TargetAttributes = {
+					7B16C541207D0D630013D9B6 = {
+						CreatedOnToolsVersion = 9.2;
+						ProvisioningStyle = Automatic;
+					};
 					7B34A094207D066100A1B050 = {
 						CreatedOnToolsVersion = 9.2;
 						ProvisioningStyle = Automatic;
@@ -826,11 +878,20 @@
 			targets = (
 				7B34A094207D066100A1B050 /* muscle */,
 				7BB61ADD207D0AF2009F8936 /* muscled */,
+				7B16C541207D0D630013D9B6 /* admin */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		7B16C53E207D0D630013D9B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B16C549207D0D780013D9B6 /* admin.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7B34A091207D066100A1B050 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -903,6 +964,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		7B16C54B207D0D9E0013D9B6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7B34A094207D066100A1B050 /* muscle */;
+			targetProxy = 7B16C54A207D0D9E0013D9B6 /* PBXContainerItemProxy */;
+		};
 		7BB61AEF207D0C32009F8936 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 7B34A094207D066100A1B050 /* muscle */;
@@ -911,6 +977,24 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		7B16C546207D0D630013D9B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = ../;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		7B16C547207D0D630013D9B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = ../;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		7B34A097207D066100A1B050 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1071,6 +1155,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		7B16C548207D0D630013D9B6 /* Build configuration list for PBXNativeTarget "admin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B16C546207D0D630013D9B6 /* Debug */,
+				7B16C547207D0D630013D9B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		7B34A090207D066100A1B050 /* Build configuration list for PBXProject "muscle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
