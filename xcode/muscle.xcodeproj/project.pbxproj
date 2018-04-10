@@ -163,7 +163,33 @@
 		7BB2D0C3207D08E60092DBBD /* Rect.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2D0B9207D08E60092DBBD /* Rect.h */; };
 		7BB2D0C4207D08E60092DBBD /* MuscleSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2D0BA207D08E60092DBBD /* MuscleSupport.h */; };
 		7BB2D0C5207D08E60092DBBD /* DoxyTemplate.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2D0BB207D08E60092DBBD /* DoxyTemplate.h */; };
+		7BB61AEC207D0B19009F8936 /* muscled.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BB61AE6207D0B0B009F8936 /* muscled.cpp */; };
+		7BB61AF1207D0C3E009F8936 /* libmuscle.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B34A095207D066100A1B050 /* libmuscle.a */; };
+		7BB61AF3207D0C4F009F8936 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB61AF2207D0C4F009F8936 /* CoreFoundation.framework */; };
+		7BB61AF5207D0C98009F8936 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB61AF4207D0C98009F8936 /* SystemConfiguration.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7BB61AEE207D0C32009F8936 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B34A08D207D066100A1B050 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7B34A094207D066100A1B050;
+			remoteInfo = muscle;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7BB61ADC207D0AF2009F8936 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		7B34A095207D066100A1B050 /* libmuscle.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libmuscle.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -323,6 +349,12 @@
 		7BB2D0B9207D08E60092DBBD /* Rect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Rect.h; path = ../support/Rect.h; sourceTree = "<group>"; };
 		7BB2D0BA207D08E60092DBBD /* MuscleSupport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MuscleSupport.h; path = ../support/MuscleSupport.h; sourceTree = "<group>"; };
 		7BB2D0BB207D08E60092DBBD /* DoxyTemplate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DoxyTemplate.h; path = ../support/DoxyTemplate.h; sourceTree = "<group>"; };
+		7BB61ADE207D0AF2009F8936 /* muscled */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = muscled; sourceTree = BUILT_PRODUCTS_DIR; };
+		7BB61AE6207D0B0B009F8936 /* muscled.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = muscled.cpp; path = ../server/muscled.cpp; sourceTree = "<group>"; };
+		7BB61AE7207D0B0B009F8936 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../server/Makefile; sourceTree = "<group>"; };
+		7BB61AE8207D0B0B009F8936 /* admin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = admin.cpp; path = ../server/admin.cpp; sourceTree = "<group>"; };
+		7BB61AF2207D0C4F009F8936 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		7BB61AF4207D0C98009F8936 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -333,12 +365,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7BB61ADB207D0AF2009F8936 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7BB61AF5207D0C98009F8936 /* SystemConfiguration.framework in Frameworks */,
+				7BB61AF3207D0C4F009F8936 /* CoreFoundation.framework in Frameworks */,
+				7BB61AF1207D0C3E009F8936 /* libmuscle.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		7B34A08C207D066100A1B050 = {
 			isa = PBXGroup;
 			children = (
+				7BB61AE5207D0AFE009F8936 /* server */,
 				7BB2D0B1207D08D80092DBBD /* support */,
 				7BB2D05A207D07FD0092DBBD /* util */,
 				7BB2D029207D07CF0092DBBD /* system */,
@@ -349,6 +392,7 @@
 				7BB2CF85207D06C80092DBBD /* dataio */,
 				7BB2CFBE207D072D0092DBBD /* iogateway */,
 				7B34A096207D066100A1B050 /* Products */,
+				7BB61AF0207D0C3E009F8936 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -356,6 +400,7 @@
 			isa = PBXGroup;
 			children = (
 				7B34A095207D066100A1B050 /* libmuscle.a */,
+				7BB61ADE207D0AF2009F8936 /* muscled */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -579,6 +624,25 @@
 			name = support;
 			sourceTree = "<group>";
 		};
+		7BB61AE5207D0AFE009F8936 /* server */ = {
+			isa = PBXGroup;
+			children = (
+				7BB61AE8207D0B0B009F8936 /* admin.cpp */,
+				7BB61AE7207D0B0B009F8936 /* Makefile */,
+				7BB61AE6207D0B0B009F8936 /* muscled.cpp */,
+			);
+			name = server;
+			sourceTree = "<group>";
+		};
+		7BB61AF0207D0C3E009F8936 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				7BB61AF4207D0C98009F8936 /* SystemConfiguration.framework */,
+				7BB61AF2207D0C4F009F8936 /* CoreFoundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -711,6 +775,24 @@
 			productReference = 7B34A095207D066100A1B050 /* libmuscle.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		7BB61ADD207D0AF2009F8936 /* muscled */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7BB61AE4207D0AF2009F8936 /* Build configuration list for PBXNativeTarget "muscled" */;
+			buildPhases = (
+				7BB61ADA207D0AF2009F8936 /* Sources */,
+				7BB61ADB207D0AF2009F8936 /* Frameworks */,
+				7BB61ADC207D0AF2009F8936 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7BB61AEF207D0C32009F8936 /* PBXTargetDependency */,
+			);
+			name = muscled;
+			productName = server;
+			productReference = 7BB61ADE207D0AF2009F8936 /* muscled */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -721,6 +803,10 @@
 				ORGANIZATIONNAME = "Ruurd Adema";
 				TargetAttributes = {
 					7B34A094207D066100A1B050 = {
+						CreatedOnToolsVersion = 9.2;
+						ProvisioningStyle = Automatic;
+					};
+					7BB61ADD207D0AF2009F8936 = {
 						CreatedOnToolsVersion = 9.2;
 						ProvisioningStyle = Automatic;
 					};
@@ -739,6 +825,7 @@
 			projectRoot = "";
 			targets = (
 				7B34A094207D066100A1B050 /* muscle */,
+				7BB61ADD207D0AF2009F8936 /* muscled */,
 			);
 		};
 /* End PBXProject section */
@@ -805,7 +892,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7BB61ADA207D0AF2009F8936 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7BB61AEC207D0B19009F8936 /* muscled.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7BB61AEF207D0C32009F8936 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7B34A094207D066100A1B050 /* muscle */;
+			targetProxy = 7BB61AEE207D0C32009F8936 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		7B34A097207D066100A1B050 /* Debug */ = {
@@ -856,6 +959,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -905,6 +1010,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
@@ -941,6 +1048,26 @@
 			};
 			name = Release;
 		};
+		7BB61AE2207D0AF2009F8936 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = ../;
+				LIBRARY_SEARCH_PATHS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		7BB61AE3207D0AF2009F8936 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = ../;
+				LIBRARY_SEARCH_PATHS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -958,6 +1085,15 @@
 			buildConfigurations = (
 				7B34A09A207D066100A1B050 /* Debug */,
 				7B34A09B207D066100A1B050 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7BB61AE4207D0AF2009F8936 /* Build configuration list for PBXNativeTarget "muscled" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7BB61AE2207D0AF2009F8936 /* Debug */,
+				7BB61AE3207D0AF2009F8936 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
