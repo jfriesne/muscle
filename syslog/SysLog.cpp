@@ -1417,7 +1417,7 @@ status_t PrintStackTrace(FILE * optFile, uint32 maxDepth)
    void *array[MAX_STACK_TRACE_DEPTH];
    size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
    fprintf(optFile, "--Stack trace follows (%i frames):\n", (int) size);
-   backtrace_symbols_fd(array, size, fileno(optFile));
+   backtrace_symbols_fd(array, (int)size, fileno(optFile));
    fprintf(optFile, "--End Stack trace\n");
    return B_NO_ERROR;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
@@ -1437,7 +1437,7 @@ status_t GetStackTrace(String & retStr, uint32 maxDepth)
 #if defined(MUSCLE_USE_BACKTRACE)
    void *array[MAX_STACK_TRACE_DEPTH];
    size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
-   char ** strings = backtrace_symbols(array, size);
+   char ** strings = backtrace_symbols(array, (int)size);
    if (strings)
    {
       char buf[128];
@@ -2120,7 +2120,7 @@ status_t LogStackTrace(int ll, uint32 maxDepth)
 #if defined(MUSCLE_USE_BACKTRACE)
    void *array[MAX_STACK_TRACE_DEPTH];
    size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
-   char ** strings = backtrace_symbols(array, size);
+   char ** strings = backtrace_symbols(array, (int)size);
    if (strings)
    {
       LogTime(ll, "--Stack trace follows (%zd frames):\n", size);

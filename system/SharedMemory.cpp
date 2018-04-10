@@ -116,7 +116,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    key_t requestedKey = IPC_PRIVATE;
    if (keyString)
    {
-      requestedKey = (key_t) CalculateHashCode(keyString,strlen(keyString));
+      requestedKey = (key_t) CalculateHashCode(keyString, (uint32)strlen(keyString));
       if (requestedKey == IPC_PRIVATE) requestedKey++;
       _areaName = keyString;
    }

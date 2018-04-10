@@ -465,8 +465,8 @@ static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedK
    DetectNetworkConfigChangesSession * s = (DetectNetworkConfigChangesSession *) info;
    Hashtable<String, Void> changedInterfaceNames;
 
-   int c = CFArrayGetCount(changedKeys);
-   for (int i=0; i<c; i++)
+   CFIndex c = CFArrayGetCount(changedKeys);
+   for (CFIndex i=0; i<c; i++)
    {
       const CFStringRef p = (CFStringRef) CFArrayGetValueAtIndex(changedKeys, i);
       const String keyStr(p);

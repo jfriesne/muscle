@@ -208,7 +208,7 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
       }
    }
 
-   ConstByteBufferRef buf = GetByteBufferFromPool(b-pingBuf, pingBuf);
+   ConstByteBufferRef buf = GetByteBufferFromPool((uint32)(b-pingBuf), pingBuf);
    if (buf() == NULL) return B_ERROR;
 
    Queue<ConstByteBufferRef> * pq = _outgoingPacketsTable.GetOrPut(destIAP);
@@ -248,7 +248,7 @@ status_t SimulatedMulticastDataIO :: ParseMulticastControlPacket(const ByteBuffe
 
    if (retWhatCode == SMDIO_COMMAND_PONG)
    {
-      const uint32 numExtras = ((buf.GetBuffer()+buf.GetNumBytes())-b)/IPAddressAndPort::FlattenedSize();
+      const uint32 numExtras = (const uint32)(((buf.GetBuffer()+buf.GetNumBytes())-b)/IPAddressAndPort::FlattenedSize());
       for (uint32 i=0; i<numExtras; i++)
       {
          IPAddressAndPort next; 

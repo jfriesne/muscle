@@ -843,7 +843,7 @@ String String :: ArgAux(const char * buf) const
          s++;
          if (muscleInRange(*s, '0', '9'))
          {
-            int32 val = atol(s);
+            int32 val = (int32)atol(s);
             lowestArg = (lowestArg < 0) ? val : muscleMin(val, lowestArg);
             while(muscleInRange(*s, '0', '9')) s++; 
          }
