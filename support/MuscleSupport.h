@@ -547,7 +547,7 @@ template<typename T> inline void muscleSwap(T & t1, T & t2) {typename ugly_swapc
   * @param theArray an array of any type
   * @returns True iff i is non-negative AND less than ARRAYITEMS(theArray))
   */
-template<typename T, int size> inline bool muscleArrayIndexIsValid(int i, T (&theArray)[size]) {return (((unsigned int)i) < size);}
+template<typename T, int size> inline bool muscleArrayIndexIsValid(int i, T (&theArray)[size]) {(void)theArray; return (((unsigned int)i) < size);}
 
 /** Convenience method for setting all items in the specified one-dimensional array to their default-constructed state (i.e. zero)
   * @param theArray an array of any type
@@ -1152,7 +1152,7 @@ public:
     *  @param cookie A user-defined value that was passed in to the Sort() method.
     *  @return A value indicating which item is "larger", as defined above.
     */
-   int Compare(const ItemType & item1, const ItemType & item2, void * cookie) const {return muscleCompare(item1, item2);}
+    int Compare(const ItemType & item1, const ItemType & item2, void * cookie) const {(void)cookie; return muscleCompare(item1, item2);}
 };
 
 /** Same as above, but used for pointers instead of direct items */
