@@ -277,7 +277,7 @@ public:
    {
       _assumeDefault = false;
 
-      const void * dt;
+      const void * dt = NULL;
       uint32 numBytes;
       if ((ValueQueryFilter::SetFromArchive(archive) == B_NO_ERROR)&&(archive.FindData("val", DataTypeCode, &dt, &numBytes) == B_NO_ERROR)&&(numBytes == sizeof(_value)))
       {
