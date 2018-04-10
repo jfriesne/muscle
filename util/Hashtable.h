@@ -953,7 +953,7 @@ private:
       }
 
       /** Removes this entry from the free list, so that we are ready for use.
-        * @param freeHead Index of the current head of the free list
+        * @param freeHeadIdx Index of the current head of the free list
         * @param table Pointer to the first entry in the HashtableEntry array
         * @returns the index of the new head of the free list
         */

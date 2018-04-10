@@ -360,7 +360,7 @@ void Inet_NtoA(const IPAddress & address, char * outBuf, bool preferIPv4Style = 
 String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false);
 
 /** Returns true iff (s) is a well-formed IP address (e.g. "192.168.0.1")
-  * @param (s) An ASCII string to check the formatting of
+  * @param s An ASCII string to check the formatting of
   * @returns true iff there are exactly four dot-separated integers between 0 and 255
   *               and no extraneous characters in the string.
   */

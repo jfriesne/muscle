@@ -182,7 +182,6 @@ public:
      * @param startIndex The first index to set.  Defaults to zero.
      * @param endIndex The last index to set, plus one.  Values that are greater than the number of items in the tuple will
      *                 be capped to (the number of items in the tuple).  Defaults to MUSCLE_NO_LIMIT.
-     * @return true iff all indices in the range are equal, else false.
      */
    void FillSubrange(ItemType value, uint32 startIndex = 0, uint32 endIndex = MUSCLE_NO_LIMIT)
    {
@@ -218,7 +217,6 @@ public:
      * @param startIndex The first index to set.  Defaults to zero.
      * @param endIndex The last index to set, plus one.  Values that are greater than the number of items in the tuple will
      *                 be capped to (the number of items in the tuple).  Defaults to MUSCLE_NO_LIMIT.
-     * @return true iff all indices in the range are equal, else false.
      */
    void CopySubrange(const Tuple & rhs, uint32 startIndex = 0, uint32 endIndex = MUSCLE_NO_LIMIT)
    {
