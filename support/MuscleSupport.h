@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.80" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        68000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "6.81" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        68100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -547,7 +547,7 @@ template<typename T> inline void muscleSwap(T & t1, T & t2) {typename ugly_swapc
   * @param theArray an array of any type
   * @returns True iff i is non-negative AND less than ARRAYITEMS(theArray))
   */
-template<typename T, int size> inline bool muscleArrayIndexIsValid(int i, T (&/*array*/)[size]) {return (((unsigned int)i) < size);}
+template<typename T, int size> inline bool muscleArrayIndexIsValid(int i, T (&theArray)[size]) {(void) theArray; return (((unsigned int)i) < size);}
 
 /** Convenience method for setting all items in the specified one-dimensional array to their default-constructed state (i.e. zero)
   * @param theArray an array of any type
@@ -1050,9 +1050,9 @@ static inline int PreviousOperationHadTransientFailure()
   * @param blocking True iff the socket/file descriptor is in blocking I/O mode.  (Type is int for C compatibility -- it's really a boolean parameter)
   * @returns The system call's return value equivalent in MUSCLE return value semantics.
   */
-static inline int32 ConvertReturnValueToMuscleSemantics(int origRet, uint32 maxSize, int blocking)
+static inline int32 ConvertReturnValueToMuscleSemantics(long origRet, uint32 maxSize, int blocking)
 {
-   int32 retForBlocking = ((origRet > 0)||(maxSize == 0)) ? origRet : -1;
+   int32 retForBlocking = ((origRet > 0)||(maxSize == 0)) ? (int32)origRet : -1;
    return blocking ? retForBlocking : ((origRet<0)&&((PreviousOperationWouldBlock())||(PreviousOperationHadTransientFailure()))) ? 0 : retForBlocking;
 }
 
@@ -1152,7 +1152,7 @@ public:
     *  @param cookie A user-defined value that was passed in to the Sort() method.
     *  @return A value indicating which item is "larger", as defined above.
     */
-   int Compare(const ItemType & item1, const ItemType & item2, void * /*cookie*/) const {return muscleCompare(item1, item2);}
+   int Compare(const ItemType & item1, const ItemType & item2, void * cookie) const {(void) cookie; return muscleCompare(item1, item2);}
 };
 
 /** Same as above, but used for pointers instead of direct items */

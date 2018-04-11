@@ -12,7 +12,7 @@ e.g. this code:
 ```
     const char * parseMe = "one,two, three, four five";
 
-    StringTokenizer tok(someCString, ", ");
+    StringTokenizer tok(parseMe, ", ");
 
     const char * nextTok;
     while((nextTok = tok()) != NULL)

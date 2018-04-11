@@ -68,6 +68,10 @@ pages:
    - AbstractSessionIOPolicy: 'abstractsessioniopolicy.md'
    - RateLimitSessionIOPolicy: 'ratelimitsessioniopolicy.md'
 
+- StorageReflectSession Messages:
+   - Command Messages: 'srscommandmessages.md'
+   - Reply Messages: 'srsreplymessages.md'
+
 - Multithreading API:
    - Thread: 'thread.md'
    - Mutex/MutexGuard: 'mutex.md'

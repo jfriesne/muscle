@@ -13,7 +13,6 @@ CXXFLAGS  += -std=c++11 $(CFLAGS) $(DEFINES)
 #CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING 
 
 # Uncomment these to enable clang++'s static analyzer (for more thorough error checking)
-#CXXFLAGS += --analyze -Xanalyzer -analyzer-output=text
 #CFLAGS   += --analyze -Xanalyzer -analyzer-output=text
 
 # compilation flags that are specific to the gcc compiler (hard-coded) 
@@ -32,7 +31,7 @@ LIBS        =
 EXECUTABLES = muscled admin 
 
 # object files to include in all executables 
-OBJFILES = Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o AbstractReflectSession.o SignalMultiplexer.o SignalHandlerSession.o DumbReflectSession.o StorageReflectSession.o DataNode.o ReflectServer.o SocketMultiplexer.o StringMatcher.o muscled.o MiscUtilityFunctions.o NetworkUtilityFunctions.o SysLog.o PulseNode.o PathMatcher.o FilterSessionFactory.o RateLimitSessionIOPolicy.o MemoryAllocator.o GlobalMemoryAllocator.o SetupSystem.o ServerComponent.o ZLibCodec.o ByteBuffer.o QueryFilter.o Directory.o FilePathInfo.o ChildProcessDataIO.o StdinDataIO.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o FileDescriptorDataIO.o SystemInfo.o Thread.o MessageTransceiverThread.o regcomp.o regerror.o regexec.o regfree.o DetectNetworkConfigChangesSession.o SharedMemory.o ZipFileUtilityFunctions.o ZLibUtilityFunctions.o CPULoadMeter.o TarFileWriter.o
+OBJFILES = Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o AbstractReflectSession.o SignalMultiplexer.o SignalHandlerSession.o DumbReflectSession.o StorageReflectSession.o DataNode.o ReflectServer.o SocketMultiplexer.o StringMatcher.o MiscUtilityFunctions.o NetworkUtilityFunctions.o SysLog.o PulseNode.o PathMatcher.o FilterSessionFactory.o RateLimitSessionIOPolicy.o MemoryAllocator.o GlobalMemoryAllocator.o SetupSystem.o ServerComponent.o ZLibCodec.o ByteBuffer.o QueryFilter.o Directory.o FilePathInfo.o ChildProcessDataIO.o StdinDataIO.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o FileDescriptorDataIO.o SystemInfo.o Thread.o MessageTransceiverThread.o regcomp.o regerror.o regexec.o regfree.o DetectNetworkConfigChangesSession.o SharedMemory.o ZipFileUtilityFunctions.o ZLibUtilityFunctions.o CPULoadMeter.o TarFileWriter.o
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o zip.o unzip.o ioapi.o
 
 # Where to find .cpp files 
@@ -60,12 +59,10 @@ endif
 
 ifeq ($(OSTYPE),Linux)
    CFLAGS   += -I../zlib/zlib -pthread
-   CXXFLAGS += -I../zlib/zlib -pthread
    LIBS     += -lutil -pthread
 endif
 ifeq ($(OSTYPE),linux)
    CFLAGS   += -I../zlib/zlib -pthread
-   CXXFLAGS += -I../zlib/zlib -pthread
    LIBS     += -lutil -pthread
 endif
 
@@ -126,10 +123,10 @@ all : $(EXECUTABLES) libmuscle.a
 debug : CCOPTFLAGS = -g 
 debug : all 
 
-muscled : $(OBJFILES) $(ZLIBOBJS) 
+muscled : libmuscle.a muscled.o
 	$(CXX) -o $@ $^ $(LIBS) $(LFLAGS)
 
-admin : Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o NetworkUtilityFunctions.o SysLog.o admin.o PulseNode.o SetupSystem.o ZLibCodec.o ByteBuffer.o GlobalMemoryAllocator.o MiscUtilityFunctions.o Directory.o FilePathInfo.o StringMatcher.o SocketMultiplexer.o $(ZLIBOBJS) 
+admin : libmuscle.a admin.o
 	$(CXX) -o $@ $^ $(LIBS) $(LFLAGS)
 
 libmuscle.a : $(OBJFILES) $(ZLIBOBJS)

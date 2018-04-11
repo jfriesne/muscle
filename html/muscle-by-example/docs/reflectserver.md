@@ -2,6 +2,8 @@
 
 ```#include "reflector/ReflectServer.h"```
 
+[!["ReflectServer sessions diagram"](muscled_sessions.png)](muscled_sessions.png)
+
 * `ReflectServer` implements a general-purpose event loop for MUSCLE components to run in.
 * A typical MUSCLE server program would put a `ReflectServer` object on the stack in main(), add one or more `ServerComponent` objects to it, then call `ServerProcessLoop()` on the `ReflectServer`.
 * `ServerProcessLoop()` will typically not return until it is time for the program to exit.

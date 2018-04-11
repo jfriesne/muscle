@@ -228,7 +228,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       // Close any file descriptors leftover from the parent process
       if (_childProcessInheritFileDescriptors == false)
       {
-         int fdlimit = sysconf(_SC_OPEN_MAX);
+         const int fdlimit = (int)sysconf(_SC_OPEN_MAX);
          for (int i=STDERR_FILENO+1; i<fdlimit; i++) close(i);
       }
 
@@ -427,8 +427,8 @@ int32 ChildProcessDataIO :: Read(void *buf, uint32 len)
          return ret;
       }
 #else
-      int r = read_ignore_eintr(_handle.GetFileDescriptor(), buf, len);
-      return _blocking ? r : ConvertReturnValueToMuscleSemantics(r, len, _blocking);
+      const long r = read_ignore_eintr(_handle.GetFileDescriptor(), buf, len);
+      return _blocking ? (int32)r : ConvertReturnValueToMuscleSemantics(r, len, _blocking);
 #endif
    }
    return -1;

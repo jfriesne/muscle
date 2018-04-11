@@ -43,9 +43,7 @@ public:
     */
    status_t SetArea(const char * areaName, uint32 createSize = 0, bool returnLocked = false);
 
-   /** Unlocks any current locks, and terminates our relationship with the current shared memory area.
-    *  @returns B_NO_ERROR on success, or B_ERROR if we had no current area. 
-    */
+   /** Unlocks any current locks, and terminates our relationship with the current shared memory area. */
    void UnsetArea();
 
    /** Locks the current area, using a shared locking mode.

@@ -195,7 +195,7 @@ int32 StdinDataIO :: Read(void * buffer, uint32 size)
 
 int32 StdinDataIO :: Write(const void * buffer, uint32 size)
 {
-   return _writeToStdout ? fwrite(buffer, 1, size, stdout) : size;
+   return _writeToStdout ? (int32)fwrite(buffer, 1, size, stdout) : (int32)size;
 }
 
 void StdinDataIO :: FlushOutput()

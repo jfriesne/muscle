@@ -83,10 +83,10 @@ public:
     */
    QQ_UniversalSinkItemRef status_t AddTail(QQ_SinkItemParam item) {return (AddTailAndGet(QQ_ForwardItem(item)) != NULL) ? B_NO_ERROR : B_ERROR;}
 
-   /** As above, except that a default item is appended.
+   /** As above, except that a default-initialized item is appended.
     *  @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
     */
-   status_t AddTail() {return (AddTailAndGet() != NULL) ? B_NO_ERROR : B_ERROR;}
+   status_t AddTail() {return AddTail(GetDefaultItem());}
 
    /** Appends some or all items in (queue) to the end of our queue.  Queue size
     *  grows by at most (queue.GetNumItems()).
@@ -118,7 +118,7 @@ public:
     */
    status_t AddTailMulti(const std::initializer_list<ItemType> & list)
    {
-      if (EnsureCanAdd(list.size()) != B_NO_ERROR) return B_ERROR;
+      if (EnsureCanAdd((uint32) list.size()) != B_NO_ERROR) return B_ERROR;
       for (auto i : list) (void) AddTail(i);  // can't fail, because we allocated the necessary space on the previous line
       return B_NO_ERROR;
    }
@@ -130,8 +130,9 @@ public:
     */
    QQ_UniversalSinkItemRef ItemType * AddTailAndGet(QQ_SinkItemParam item);
 
-   /** As above, except that a default item is appended.
+   /** As above, except that an item is appended.
     *  @return A pointer to the appended item on success, or a NULL pointer on failure.
+    *  @note that for POD ItemTypes, the appended item will be in an unitialized state.
     */
    ItemType * AddTailAndGet();
 
@@ -141,10 +142,10 @@ public:
     */
    QQ_UniversalSinkItemRef status_t AddHead(QQ_SinkItemParam item) {return (AddHeadAndGet(QQ_ForwardItem(item)) != NULL) ? B_NO_ERROR : B_ERROR;}
 
-   /** As above, except a default item is prepended.
+   /** As above, except that a default-initialized item is prepended.
     *  @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
     */
-   status_t AddHead() {return (AddHeadAndGet() != NULL) ? B_NO_ERROR : B_ERROR;}
+   status_t AddHead() {return AddHead(GetDefaultItem());}
 
    /** Concatenates (queue) to the head of our queue.
     *  Our queue size grows by at most (queue.GetNumItems()).
@@ -173,8 +174,9 @@ public:
     */
    QQ_UniversalSinkItemRef ItemType * AddHeadAndGet(QQ_SinkItemParam item);
 
-   /** As above, except that a default item is prepended.
-    *  @return A pointer to the prepend item on success, or a NULL pointer on failure.
+   /** As above, except that an item is prepended.
+    *  @return A pointer to the prepended item on success, or a NULL pointer on failure.
+    *  @note that for POD ItemTypes, the prepended item will be in an unitialized state.
     */
    ItemType * AddHeadAndGet();
 
@@ -292,7 +294,7 @@ public:
     */
    QQ_UniversalSinkItemRef status_t ReplaceItemAt(uint32 index, QQ_SinkItemParam newItem);
  
-   /** As above, except the specified item is replaced with a default item.
+   /** As above, except the specified item is replaced with a default-initialized item.
     *  @param index Which item to replace--can range from zero 
     *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
     *  @return B_NO_ERROR on success, B_ERROR on failure (e.g. bad index)
@@ -308,7 +310,7 @@ public:
     */
    QQ_UniversalSinkItemRef status_t InsertItemAt(uint32 index, QQ_SinkItemParam newItem);
    
-   /** As above, except that a default item is inserted.
+   /** As above, except that a default-initialized item is inserted.
     *  @param index The position at which to insert the new item.
     *  @return B_NO_ERROR on success, B_ERROR on failure (i.e. bad index).
     */

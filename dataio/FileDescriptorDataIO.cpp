@@ -43,8 +43,8 @@ int32 FileDescriptorDataIO :: Read(void * buffer, uint32 size)
    int fd = _fd.GetFileDescriptor();
    if (fd >= 0)
    {
-      int r = read_ignore_eintr(fd, buffer, size);
-      return _blocking ? r : ConvertReturnValueToMuscleSemantics(r, size, _blocking);
+      const long r = read_ignore_eintr(fd, buffer, size);
+      return _blocking ? (int32)r : ConvertReturnValueToMuscleSemantics(r, size, _blocking);
    }
    else return -1;
 }
@@ -54,8 +54,8 @@ int32 FileDescriptorDataIO :: Write(const void * buffer, uint32 size)
    int fd = _fd.GetFileDescriptor();
    if (fd >= 0)
    {
-      int w = write_ignore_eintr(fd, buffer, size);
-      return _blocking ? w : ConvertReturnValueToMuscleSemantics(w, size, _blocking);
+      const long w = write_ignore_eintr(fd, buffer, size);
+      return _blocking ? (int32)w : ConvertReturnValueToMuscleSemantics(w, size, _blocking);
    }
    else return -1;
 }

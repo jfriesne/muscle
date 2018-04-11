@@ -529,7 +529,7 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if ((args.FindString("maxlogfiles", &value) == B_NO_ERROR)||(args.FindString("maxnumlogfiles", &value) == B_NO_ERROR))
    {
-      uint32 maxNumFiles = atol(value);
+      uint32 maxNumFiles = (uint32) atol(value);
       if (maxNumFiles > 0) SetMaxNumLogFiles(maxNumFiles);
                       else LogTime(MUSCLE_LOG_ERROR, "Please specify a maxnumlogfiles value that is greater than zero.\n");
    }
@@ -550,7 +550,7 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if (args.FindString("maxlogfilesize", &value) == B_NO_ERROR)
    {
-      uint32 maxSizeKB = atol(value);
+      uint32 maxSizeKB = (uint32) atol(value);
       if (maxSizeKB > 0) SetFileLogMaximumSize(maxSizeKB*1024);
                     else LogTime(MUSCLE_LOG_ERROR, "Please specify a maxlogfilesize in kilobytes, that is greater than zero.\n");
    }
@@ -575,7 +575,7 @@ void HandleStandardDaemonArgs(const Message & args)
       if (micros > 0)
       {
          uint32 maxCacheSize = 1024;
-         if (args.FindString("dnscachesize", &value) == B_NO_ERROR) maxCacheSize = atol(value);
+         if (args.FindString("dnscachesize", &value) == B_NO_ERROR) maxCacheSize = (uint32) atol(value);
          LogTime(MUSCLE_LOG_INFO, "Setting DNS cache parameters to " UINT32_FORMAT_SPEC " entries, expiration period is %s\n", maxCacheSize, GetHumanReadableTimeIntervalString(micros)());
          SetHostNameCacheSettings(maxCacheSize, micros);
       }

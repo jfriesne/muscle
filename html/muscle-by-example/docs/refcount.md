@@ -1,9 +1,9 @@
 # muscle::RefCountable class [(API)](https://public.msli.com/lcs/muscle/html/classmuscle_1_1RefCountable.html)
 
-```#include "util/RefCountable.h"```
+```#include "util/RefCount.h"```
 
 * Reference counting for heap-allocated objects (makes memory leaks and use-after-free errors impossible)
-* Similar to: `std::shared_ptr<T>`, `std::intrusive_ptr<T>`, `QSharedPointer`
+* Similar to: `std::shared_ptr<T>`, `boost::intrusive_ptr<T>`, `QSharedPointer`
 * Object to be reference-counted must be a subclass of `RefCountable`
 * The ref-counted object will always be deleted by the destructor of the last `Ref` that points to it -- explicitly calling `delete` should NEVER be necessary!
 * Often used in conjunction with the `ObjectPool` class to recycle used objects (to minimize heap allocations/deallocations)
@@ -17,8 +17,7 @@
     FooBarRef oneRef(new FooBar);  // same as Ref<FooBar> oneRef(new FooBar);
     ConstFooBarRef twoRef(new FooBar);  // same as ConstRef<FooBar> twoRef(new FooBar);
 
-    printf("twoRef()->Hello()\n");  // () operator gives pointer to RefCountable object
-
+    twoRef()->Hello();  // () operator gives pointer to RefCountable object
 ```
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/refcount` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)

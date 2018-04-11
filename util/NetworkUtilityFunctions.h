@@ -359,14 +359,13 @@ void Inet_NtoA(const IPAddress & address, char * outBuf, bool preferIPv4Style = 
   */
 String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false);
 
-/** Returns true iff (s) is a well-formed IP address (e.g. "192.168.0.1")
-  * @param (s) An ASCII string to check the formatting of
-  * @returns true iff there are exactly four dot-separated integers between 0 and 255
-  *               and no extraneous characters in the string.
+/** Returns true iff (s) is a well-formed IP address (e.g. "192.168.0.1" or "ff12::888" or etc)
+  * @param s An ASCII string to check the formatting of
+  * @returns true iff the given string represents an IP address; false if it doesn't.
   */
 bool IsIPAddress(const char * s);
 
-/** Given a dotted-quad IP address in ASCII format (e.g. "192.168.0.1"), returns
+/** Given an IP address in ASCII format (e.g. "192.168.0.1" or "ff12::888" or etc), returns
   * the equivalent IP address in IPAddress (packed binary) form. 
   * @param buf numeric IP address in ASCII.
   * @returns IP address as a IPAddress, or invalidIP on failure.
@@ -744,13 +743,13 @@ typedef int muscle_socklen_t;
 typedef size_t muscle_socklen_t;
 #endif
 
-static inline long recv_ignore_eintr(    int s, void *b, unsigned long numBytes, int flags) {int ret; do {ret = recv(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline long recvfrom_ignore_eintr(int s, void *b, unsigned long numBytes, int flags, struct sockaddr *a, muscle_socklen_t * alen) {int ret; do {ret = recvfrom(s, (char *)b, numBytes, flags, a,  alen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline long send_ignore_eintr(    int s, const void *b, unsigned long numBytes, int flags) {int ret; do {ret = send(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline long sendto_ignore_eintr(  int s, const void *b, unsigned long numBytes, int flags, const struct sockaddr * d, int dlen) {int ret; do {ret = sendto(s, (char *)b, numBytes, flags,  d, dlen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline long recv_ignore_eintr(    int s, void *b, unsigned long numBytes, int flags) {long ret; do {ret = recv(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline long recvfrom_ignore_eintr(int s, void *b, unsigned long numBytes, int flags, struct sockaddr *a, muscle_socklen_t * alen) {long ret; do {ret = recvfrom(s, (char *)b, numBytes, flags, a,  alen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline long send_ignore_eintr(    int s, const void *b, unsigned long numBytes, int flags) {long ret; do {ret = send(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline long sendto_ignore_eintr(  int s, const void *b, unsigned long numBytes, int flags, const struct sockaddr * d, int dlen) {long ret; do {ret = sendto(s, (char *)b, numBytes, flags,  d, dlen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
 #ifndef WIN32
-static inline long read_ignore_eintr(    int f, void *b, unsigned long nbyte) {int ret; do {ret = read(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline long write_ignore_eintr(   int f, const void *b, unsigned long nbyte) {int ret; do {ret = write(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline long read_ignore_eintr(    int f, void *b, unsigned long nbyte) {long ret; do {ret = read(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline long write_ignore_eintr(   int f, const void *b, unsigned long nbyte) {long ret; do {ret = write(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
 #endif
 
 /// @endcond

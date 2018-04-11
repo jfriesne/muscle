@@ -48,7 +48,7 @@ namespace muscle {
 template <> class PODHashFunctor<std::thread::id>
 {
 public:
-   uint32 operator () (const std::thread::id & id) const {return _hasher(id);}
+   uint32 operator () (const std::thread::id & id) const {return (uint32) _hasher(id);}
    bool AreKeysEqual(const std::thread::id & k1, const std::thread::id & k2) const {return (k1==k2);}
 
 private:

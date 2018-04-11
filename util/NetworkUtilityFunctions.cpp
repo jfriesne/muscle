@@ -300,7 +300,7 @@ int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 size, bo
    int fd = sock.GetFileDescriptor();
    if (fd >= 0)
    {
-      int r;
+      long r;
       if ((optFromIP)||(optFromPort))
       {
          DECLARE_SOCKADDR(fromAddr, NULL, 0);
@@ -357,7 +357,7 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
       int oldInterfaceIndex = -1;  // and remember to set it back afterwards
 #endif
 
-      int s;
+      long s;
       if ((optToPort)||(optToIP != invalidIP))
       {
          DECLARE_SOCKADDR(toAddr, NULL, 0);
@@ -391,7 +391,7 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
       else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
 
       if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
-      int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
+      const int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
       if (oldInterfaceIndex >= 0) (void) SetSocketMulticastSendInterfaceIndex(sock, oldInterfaceIndex);  // gotta do this AFTER computing the return value, as it clears errno!
 #endif
@@ -1392,8 +1392,8 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
          CFArrayRef interfaces = SCNetworkInterfaceCopyAll();  // we can use this to get network interface hardware types later
          if (interfaces)
          {
-            const int numInterfaces = CFArrayGetCount(interfaces);
-            for (int i=0; i<numInterfaces; i++)
+            const CFIndex numInterfaces = CFArrayGetCount(interfaces);
+            for (CFIndex i=0; i<numInterfaces; i++)
             {
                SCNetworkInterfaceRef ifRef = (SCNetworkInterfaceRef)CFArrayGetValueAtIndex(interfaces, i);
                if (ifRef)

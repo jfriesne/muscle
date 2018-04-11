@@ -5,6 +5,31 @@ key:  - new feature
       * bug fixed
       o other
 
+6.81 Released 4/11/2018
+   - Added a "StorageReflectSession Message Types" section
+     to the "MUSCLE by Example" mkdocs pages
+   - Added a graphviz diagram to reflectserver.md
+   - Added an "xcode" sub-directory that contains a muscle.xcodeproj
+     project that compiles MUSCLE (contributed by Ruurd Adema)
+   o Added an if-test to TarFileWriter::WriteOctalASCII() to
+     avoid a spurious warning from gcc under Windows (reported by Mika)
+   o muscled and admin now link to libmuscle.a instead of directly
+     to the .o files.
+   o Changed the first parameter of ConvertReturnValueToMuscleSemantics()
+     from (int) to (long) in order to avoid compiler warnings.
+   * Merged in a number of patches from Ruurd Adema that fix compiler
+     warnings and errors in DOxygen comments.  (Thanks Ruurd!)
+   * muscle/server/Makefile was inappropriately including muscled.o 
+     in the libmuscle.a library.  Fixed.
+   * muscle/server/Makefile was specifying certain build-flags twice.  Fixed.
+   * Fixed a bug where the new item added by the zero-arguments
+     versions of Queue::AddTail() and Queue::AddHead() 
+     was not being reliably default-initialized.
+   o Added a note to the zero-argument Queue::AddTailAndGet() 
+     and Queue::AddHeadAndGet() methods' documentation that for
+     POD ItemTypes, the value they return a pointer to may not 
+     be in an initialized state.
+
 6.80 Released 4/2/2018
    - Added the html/muscle-by-example tour MkDocs-source sub-directory.
    - Added ReadFrom() and WriteTo() methods to the PacketDataIO API

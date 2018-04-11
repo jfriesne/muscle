@@ -277,7 +277,7 @@ public:
    {
       _assumeDefault = false;
 
-      const void * dt;
+      const void * dt = NULL;  // dt doesn't really need to be set to NULL here, but doing so avoids a compiler-warning --jaf
       uint32 numBytes;
       if ((ValueQueryFilter::SetFromArchive(archive) == B_NO_ERROR)&&(archive.FindData("val", DataTypeCode, &dt, &numBytes) == B_NO_ERROR)&&(numBytes == sizeof(_value)))
       {
