@@ -2,7 +2,7 @@ CFLAGS = -I.. -g
 CXXFLAGS = $(CFLAGS) -DMUSCLE_ENABLE_ZLIB_ENCODING -DMUSCLE_AVOID_NEWNOTHROW -DMUSCLE_SINGLE_THREAD_ONLY
 LFLAGS =  
 LIBS =
-EXECUTABLES = testreflectclient
+EXECUTABLES =
 REGEXOBJS = 
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o crc32.o inftrees.o compress.o inffast.o
 
@@ -24,19 +24,10 @@ ifeq ($(OSTYPE),beos)
     endif   
   endif
 else
-  ifeq ($(OSTYPE),freebsd4.0)
-     CXXFLAGS += -I/usr/include/machine
-  else
-     ifeq ($(OSTYPE),darwin)
-        CXX = c++
-        CXXFLAGS += -I/usr/include/machine
-     else
-        ifeq ($(SYSTEM),AtheOS)
-           VPATH += ../atheossupport
-           EXECUTABLES += testreflectclient
-           LIBS = -latheos
-        endif
-     endif
+  ifeq ($(SYSTEM),AtheOS)
+    VPATH += ../atheossupport
+    EXECUTABLES += testreflectclient
+    LIBS = -latheos
   endif
 endif
 

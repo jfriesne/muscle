@@ -23,7 +23,8 @@ int main(int /*argc*/, char ** /*argv*/)
          for (int32 i=0; i<ret; i++) printf("%02x ", buf[i]);
          printf("]\n");
          printf("aka [");
-         for (int32 j=0; j<ret; j++) printf("%c", buf[j]); printf("\n");
+         for (int32 j=0; j<ret; j++) printf("%c", buf[j]);
+         printf("\n");
 
          if (++c == 20)
          {
