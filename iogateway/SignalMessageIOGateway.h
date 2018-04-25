@@ -13,7 +13,7 @@ namespace muscle {
  * will add a user-specified MessageRef to its incoming Message queue.
  * It's useful primarily for thread synchronization purposes.
  */
-class SignalMessageIOGateway : public AbstractMessageIOGateway, private CountedObject<SignalMessageIOGateway>
+class SignalMessageIOGateway : public AbstractMessageIOGateway
 {
 public:
    /** Constructor.  Creates a SignalMessageIOGateway with a NULL signal message reference.  
@@ -63,6 +63,8 @@ protected:
 
 private:
    MessageRef _signalMessage;
+
+   DECLARE_COUNTED_OBJECT(SignalMessageIOGateway);
 };
 DECLARE_REFTYPES(SignalMessageIOGateway);
 

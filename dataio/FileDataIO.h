@@ -10,7 +10,7 @@ namespace muscle {
 /**
  *  Data I/O to and from a stdio FILE. 
  */
-class FileDataIO : public SeekableDataIO, private CountedObject<FileDataIO>
+class FileDataIO : public SeekableDataIO
 {
 public:
    /** Constructor.
@@ -178,6 +178,8 @@ private:
 #ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
    Socket _selectSocket;
 #endif
+
+   DECLARE_COUNTED_OBJECT(FileDataIO);
 };
 DECLARE_REFTYPES(FileDataIO);
 

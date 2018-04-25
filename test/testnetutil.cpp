@@ -14,6 +14,7 @@ public:
 
    virtual status_t GetIPAddressForHostName(const char * name, bool expandLocalhost, bool preferIPv6, IPAddress & retIPAddress)
    {
+      (void) retIPAddress;  // avoid compiler warning
       printf("TestHostNameResolver (priority %i):  name=[%s] expandLocalhost=%i preferIPv6=%i\n", _pri, name, expandLocalhost, preferIPv6);
       return B_ERROR;
    }

@@ -229,7 +229,7 @@ private:
  *  Note that for quick debugging purposes, it is possible to dump a Message's contents to stdout
  *  at any time by calling PrintToStream() on the Message.
  */
-class Message MUSCLE_FINAL_CLASS : public FlatCountable, public Cloneable, private CountedObject<Message>
+class Message MUSCLE_FINAL_CLASS : public FlatCountable, public Cloneable
 {
 public:
    /** 32 bit what code, for quick identification of message types.  Set this however you like. */
@@ -244,7 +244,7 @@ public:
    explicit Message(uint32 what) : what(what) {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   Message(const Message & rhs) : FlatCountable(), Cloneable(), CountedObject<Message>() {*this = rhs;}
+   Message(const Message & rhs) : FlatCountable(), Cloneable() {*this = rhs;}
 
    /** Destructor. */
    virtual ~Message() {/* empty */}
@@ -1557,6 +1557,8 @@ private:
    friend class muscle_message_imp::MessageField;
    friend class MessageFieldNameIterator;
    Hashtable<String, muscle_message_imp::MessageField> _entries;   
+
+   DECLARE_COUNTED_OBJECT(Message);
 };
 
 /** A macro to declare the necessary Template specializations so that the *Flat() methods do the right thing when called with a String/Point/Rect/Message object as their argument */

@@ -21,7 +21,7 @@ namespace muscle {
   * If a message fragment is lost over the I/O channel, this class will simply drop the entire message
   * and continue.
   */
-class PacketTunnelIOGateway : public AbstractMessageIOGateway, private CountedObject<PacketTunnelIOGateway>
+class PacketTunnelIOGateway : public AbstractMessageIOGateway
 {
 public:
    /** @param slaveGateway This is the gateway we will call to generate data to send, etc.
@@ -137,6 +137,8 @@ private:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {_scratchReceiver->CallMessageReceivedFromGateway(msg, _scratchReceiverArg);}
    AbstractGatewayMessageReceiver * _scratchReceiver;
    void * _scratchReceiverArg;
+
+   DECLARE_COUNTED_OBJECT(PacketTunnelIOGateway);
 };
 DECLARE_REFTYPES(PacketTunnelIOGateway);
 

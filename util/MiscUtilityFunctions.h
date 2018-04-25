@@ -44,8 +44,8 @@ status_t ParseArgs(int argc, char ** argv, Message & addTo, bool caseSensitive =
  *
  *  @param file File pointer to read from.  This file must be
  *              opened for reading, and will not be fclosed() by this function.
-  * @param addTo The message to add the arguments to
-  * @param caseSensitive Defaults to false.  If true, the case of the arguments will be retained; if false, they will be forced to lower case.
+ *  @param addTo The message to add the arguments to
+ *  @param caseSensitive Defaults to false.  If true, the case of the arguments will be retained; if false, they will be forced to lower case.
  *  @return B_NO_ERROR on success, or B_ERROR on failure.
  */
 status_t ParseFile(FILE * file, Message & addTo, bool caseSensitive = false);
@@ -567,7 +567,7 @@ status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg);
   */
 bool FileExists(const char * filePath);
 
-/** Attempts to rename from (oldPath) to (newPath).
+/** Attempts to rename a file or directory from (oldPath) to (newPath).
   * @param oldPath the path of an existing file or directory.
   * @param newPath the new name that the file should have.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.

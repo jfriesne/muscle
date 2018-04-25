@@ -16,7 +16,7 @@ namespace muscle {
  *  AbstractReflectSession objects when needed.  It is used by the
  *  ReflectServer classes to generate sessions when connections are received.
  */
-class ReflectSessionFactory : public ServerComponent, private CountedObject<ReflectSessionFactory>
+class ReflectSessionFactory : public ServerComponent
 {
 public:
    /** Constructor.  Our globally unique factory ID is assigned here. */
@@ -86,6 +86,8 @@ protected:
 
 private:
    uint32 _id;
+
+   DECLARE_COUNTED_OBJECT(ReflectSessionFactory);
 };
 DECLARE_REFTYPES(ReflectSessionFactory);
 
@@ -119,7 +121,7 @@ DECLARE_REFTYPES(ProxySessionFactory);
  *  client-server connection.  This class contains no message routing logic of its own,
  *  but defines the interface so that subclasses can do so.
  */
-class AbstractReflectSession : public ServerComponent, public AbstractGatewayMessageReceiver, private CountedObject<AbstractReflectSession>
+class AbstractReflectSession : public ServerComponent, public AbstractGatewayMessageReceiver
 {
 public:
    /** Default Constructor. */
@@ -520,6 +522,8 @@ private:
    bool _wasConnected;
 
    TamperEvidentValue<bool> _isExpendable;
+
+   DECLARE_COUNTED_OBJECT(AbstractReflectSession);
 };
 
 } // end namespace muscle

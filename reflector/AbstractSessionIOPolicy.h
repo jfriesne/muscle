@@ -62,7 +62,7 @@ private:
  *  <li>Lather, rinse, repeat</li>
  * </ol>
  */
-class AbstractSessionIOPolicy : public PulseNode, public RefCountable, private CountedObject<AbstractSessionIOPolicy>
+class AbstractSessionIOPolicy : public PulseNode, public RefCountable
 {
 public:
    /** Default constructor. */
@@ -146,6 +146,8 @@ public:
 private:
    friend class ReflectServer;
    bool _hasBegun;  // used by the ReflectServer
+
+   DECLARE_COUNTED_OBJECT(AbstractSessionIOPolicy);
 };
 DECLARE_REFTYPES(AbstractSessionIOPolicy);
 

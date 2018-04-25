@@ -13,7 +13,7 @@ static const UINT WIN32MTT_SIGNAL_EVENT = WM_USER;  // default signal value
  *  This is a Win32-API-specific subclass of MessageTransceiverThread.
  *  It can be useful when you are using MUSCLE in a Win32-only application.
  */
-class Win32MessageTransceiverThread : public MessageTransceiverThread, private CountedObject<Win32MessageTransceiverThread>
+class Win32MessageTransceiverThread : public MessageTransceiverThread
 {
 public:
    /** This constructor creates an object that will signal your thread by calling
@@ -92,6 +92,8 @@ private:
    // method 2 -- via SetEvent()
    ::HANDLE _signalHandle;
    bool _closeHandleWhenDone;
+
+   DECLARE_COUNTED_OBJECT(Win32MessageTransceiverThread);
 };
 
 /** Here is some example code showing how to process events from a Win32MessageTransceiverThread object

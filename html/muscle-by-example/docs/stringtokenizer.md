@@ -2,6 +2,8 @@
 
 ```#include "util/StringTokenizer.h"```
 
+MUSCLE's class for iterating over substrings in a string.
+
 * Given a C-string, parses out the contained words or clauses in order
 * Similar to: `strtok()`, `java.util.StringTokenizer`, `boost::tokenizer`, `istringstream`
 * More than one token-separator char can be specified (e.g. spaces AND commas)
@@ -33,6 +35,6 @@ will print:
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/stringtokenizer` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 
-Quick links to source code of relevant test programs:
+Quick links to source code of relevant MUSCLE-by-example programs:
 
 * [stringtokenizer/example_1_basic_usage.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/stringtokenizer/example_1_basic_usage.cpp)

@@ -14,7 +14,7 @@ namespace muscle {
  * It does this by handing the file I/O operations off to a separate internal thread, so that the main
  * thread will never block.
  */
-class AsyncDataIO : public ProxyDataIO, private Thread, private CountedObject<AsyncDataIO>
+class AsyncDataIO : public ProxyDataIO, private Thread
 {
 public:
    /**
@@ -125,6 +125,8 @@ private:
    uint32 _fromChildIOBufSize;
    uint32 * _fromChildIOBufReadIdx;
    uint32 * _fromChildIOBufNumValid;
+
+   DECLARE_COUNTED_OBJECT(AsyncDataIO);
 };
 DECLARE_REFTYPES(AsyncDataIO);
 

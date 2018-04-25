@@ -1,8 +1,8 @@
 ## MUSCLE Naming Conventions
 
 ```cpp
-    #ifndef THE_HEADER_FILE_NAME_IN_ALL_CAPS_H
-    #define THE_HEADER_FILE_NAME_IN_ALL_CAPS_H
+    #ifndef TheHeaderFileName_h
+    #define TheHeaderFileName_h
 
     #include "support/MuscleSupport.h"
 
@@ -13,17 +13,19 @@
     public:
        status_t MethodNamesAreInCamelCase(int parameterNamesAreLowerCamelCase)
        {
-          int localVariablesAreLowerCamelCase = 0;
+          int localVarsAreLowerCamelCase = 0;
 
-          // Failed?  Prefer returning an error-code (typically B_ERROR) over throwing an exception
+          // On failure, prefer returning an error-code 
+          // (usually B_ERROR) over throwing an exception
           if (SomethingWentWrong()) return B_ERROR;  
 
           [...]
-          return B_NO_ERROR;   // indicates success!
+
+          return B_NO_ERROR; // returning B_NO_ERROR indicates success!
        }
 
        enum {
-          COMPILE_TIME_CONSTANTS_ARE_UPPER_CASE_LIKE_THIS
+          COMPILE_TIME_CONSTANTS_ARE_ALL_UPPER_CASE
        };           
 
     private:

@@ -10,7 +10,7 @@ namespace muscle {
 /**
  *  Data I/O equivalent to /dev/null.  
  */
-class NullDataIO : public DataIO, private CountedObject<NullDataIO>
+class NullDataIO : public DataIO
 {
 public:
    /** Constructor. 
@@ -57,6 +57,8 @@ private:
    ConstSocketRef _readSelectSocket;
    ConstSocketRef _writeSelectSocket;
    bool _shutdown;
+
+   DECLARE_COUNTED_OBJECT(NullDataIO);
 };
 DECLARE_REFTYPES(NullDataIO);
 

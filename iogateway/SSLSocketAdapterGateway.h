@@ -19,7 +19,7 @@ namespace muscle {
  * you should wrap your gateway in one of these so that it can govern
  * data flow appropriately.
  */
-class SSLSocketAdapterGateway : public AbstractMessageIOGateway, private CountedObject<SSLSocketAdapterGateway>
+class SSLSocketAdapterGateway : public AbstractMessageIOGateway
 {
 public:
    /** Constructor
@@ -57,6 +57,8 @@ private:
 
    AbstractMessageIOGatewayRef _slaveGateway;
    QueueGatewayMessageReceiver _sslMessages;   // messages that were generated during a DoOutput() call, oddly enough
+
+   DECLARE_COUNTED_OBJECT(SSLSocketAdapterGateway);
 };
 DECLARE_REFTYPES(SSLSocketAdapterGateway);
 

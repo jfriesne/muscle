@@ -3,7 +3,7 @@
 ```#include "util/NetworkUtilityFunctions.h"```
 
 MUSCLE's Low-Level Sockets API is very similar to the
-Berkeley BSD Sockets API, except it uses `ConstSocketRef`
+Berkeley BSD Sockets API, except it uses [ConstSocketRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ConstSocketRef.html)
 objects instead of `int` objects for file descriptors,
 so there is almost no possibility of 'leaking' file
 descriptors.

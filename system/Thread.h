@@ -62,7 +62,7 @@ private:
   * It also includes support for sending Messages to the thread, receiving reply Messages from the thread,
   * and for waiting for the thread to exit.
   */
-class Thread : private CountedObject<Thread>, private NotCopyable
+class Thread : private NotCopyable
 {
 public:
    /** Constructor.  Does very little (in particular, the internal thread is not started here...
@@ -572,6 +572,8 @@ private:
    uint32 _suggestedStackSize;
    const uint32 * _threadStackBase;
    int _threadPriority;
+
+   DECLARE_COUNTED_OBJECT(Thread);
 };
 
 #ifdef MUSCLE_AVOID_CHECK_THREAD_STACK_USAGE

@@ -12,7 +12,7 @@ namespace muscle {
  * of AbstractReflectSessionSessions that use it.  Each policy object may referenced by
  * zero or more PolicyHolders at once.
  */
-class RateLimitSessionIOPolicy : public AbstractSessionIOPolicy, private CountedObject<RateLimitSessionIOPolicy>
+class RateLimitSessionIOPolicy : public AbstractSessionIOPolicy
 {
 public:
    /** Constructor.  
@@ -49,6 +49,8 @@ private:
    uint64 _lastTransferAt;
    uint32 _transferTally;
    uint32 _numParticipants;
+
+   DECLARE_COUNTED_OBJECT(RateLimitSessionIOPolicy);
 };
 DECLARE_REFTYPES(RateLimitSessionIOPolicy);
 

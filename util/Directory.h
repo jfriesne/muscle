@@ -11,7 +11,7 @@
 namespace muscle {
 
 /** A cross-platform API for iterating over the contents of a specified filesystem directory. */
-class Directory MUSCLE_FINAL_CLASS : public RefCountable, private CountedObject<Directory>, private NotCopyable
+class Directory MUSCLE_FINAL_CLASS : public RefCountable, private NotCopyable
 {
 public:
    /** Default constructor:  creates an invalid Directory object.  */
@@ -95,6 +95,8 @@ private:
    char * _path;
    void * _dirPtr;
    const char * _currentFileName;
+
+   DECLARE_COUNTED_OBJECT(Directory);
 };
 DECLARE_REFTYPES(Directory);
 

@@ -2,25 +2,27 @@
 
 ```#include "system/Thread.h"```
 
-* A `Thread` object holds a captive internal thread, plus two low-latency/zero-copy MessageRef queues (one for the main/owning thread to send command `Message` objects to the internal thread, and a second one for the internal thread to send reply `Message` objects back to the main/owning thread)
+MUSCLE's Thread class
+
+* A [Thread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html) object holds a captive internal thread, plus two low-latency/zero-copy MessageRef queues (one for the main/owning thread to send command [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) objects to the internal thread, and a second one for the internal thread to send reply [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) objects back to the main/owning thread)
 * Similar to:  `std::thread`, `pthread_t`, `QThread`, `_beginthreadex`
-* When compiled with C++11, `Thread` is implemented via `std::thread`.  Otherwise, it will be implemented using an appropriate threading API (i.e. `pthreads` or an OS-specific API).
-* Call `StartInternalThread()` to start the internal thread running
-* Call `ShutdownInternalThread()` to tell the internal thread to go away (`ShutdownInternalThread()` will, by default, wait until the thread exits before returning)
-* Call `WaitForInternalThreadToExit()` to block until the internal thread has exited (similar to `pthread_join`) (only necessary if you passed `false` as an argument to `ShutdownInternalThread()`, of course)
-* Call `SendMessageToInternalThread()` to send a command Message to the internal thread, i.e. to tell it to wake up and to do something
-* Call `GetNextReplyFromInternalThread()` to receive a reply Message back from the internal thread (second argument can be used to block waiting for the `Message`, if desired)
-* The `ConstSocketRef` returned by `GetOwnerWakeupSocket()` can be used (in conjunction with `select()/SignalMultiplexer` (etc) as a way to wake up when the next reply `Message` is available from the internal thread.
-* The default implementation of `Thread::InternalThreadEntry()` runs a while-loop around calls to `WaitForNextMessageFromOwner()` and `MessageReceivedFromOwner()`, so if you just need the internal thread to react to `Message` commands you send it, you need only override the `Thread::MessageReceivedFromOwner()` callback method.
-* If you need more, you are free to override `Thread::InternalThreadEntry()` to whatever you need the internal thread to do.
-* Note that `ShutdownInternalThread()` will signal the internal thread that it is time to exit by sending it a NULL `MessageRef` as a command.
-* Thread priority can be set via `SetThreadPriority()`
-* Thread stack size can be set via `SetThreadStackSize()` (must be done before calling `StartInternalThread()`)
+* When compiled with C++11, [Thread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html) is implemented via `std::thread`.  Otherwise, it will be implemented using an appropriate threading API (i.e. `pthreads` or an OS-specific API).
+* Call [StartInternalThread()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#a2034e7c4c6e91ecbbf1d43a2c2c2afb1) to start the internal thread running
+* Call [ShutdownInternalThread()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#acf36378b1d8024e00be15be50036f32a) to tell the internal thread to go away ([ShutdownInternalThread()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#acf36378b1d8024e00be15be50036f32a) will, by default, wait until the thread exits before returning)
+* Call [WaitForInternalThreadToExit()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#a9d775da500b05b6884eceb520d05359c) to block until the internal thread has exited (similar to `pthread_join`) (only necessary if you passed `false` as an argument to [ShutdownInternalThread()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#acf36378b1d8024e00be15be50036f32a), of course)
+* Call [SendMessageToInternalThread()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#aa75adae3979a16d20ace55ab6b801ff2) to send a command Message to the internal thread, i.e. to tell it to wake up and to do something
+* Call [GetNextReplyFromInternalThread()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#a44f2b8d04d2c7fb0e6a7995440cfaab8) to receive a reply Message back from the internal thread (second argument can be used to block waiting for the [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html), if desired)
+* The [ConstSocketRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ConstSocketRef.html) returned by [GetOwnerWakeupSocket()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#a0e1c17613b12c8dd3105bf17ef30595e) can be used (in conjunction with `select()`/[SignalMultiplexer](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SignalMultiplexer.html) (etc) as a way to wake up when the next reply [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) is available from the internal thread.
+* The default implementation of [Thread::InternalThreadEntry()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#a570ca57b018b0ba3528aaa0686d71620) runs a while-loop around calls to [WaitForNextMessageFromOwner()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#ab165fef7c04d2d15bdce9069eff32bc5) and [MessageReceivedFromOwner()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#ae6769ac118df33a1cbdd71cb77a1d795), so if you just need the internal thread to react to [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) commands you send it, you need only override the [Thread::MessageReceivedFromOwner()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#ae6769ac118df33a1cbdd71cb77a1d795) callback method.
+* If you need more, you are free to override [Thread::InternalThreadEntry()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#a570ca57b018b0ba3528aaa0686d71620) to do whatever you need the internal thread to do.
+* Note that [ShutdownInternalThread()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#acf36378b1d8024e00be15be50036f32a) will signal the internal thread that it is time to exit by sending it a NULL [MessageRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) as a command.
+* Thread priority can be set via [SetThreadPriority()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#a991dc262c131bce08a4b1fa82b93f049)
+* Thread stack size can be set via [SetSuggestedStackSize()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#a7e07944719472c44a0c20f275e06761e) (must be done before calling [StartInternalThread()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html#a2034e7c4c6e91ecbbf1d43a2c2c2afb1))
 * Another example can be seen in [this demonstration of how to add multithreading to a MUSCLE server](https://public.msli.com/lcs/muscle/MUSCLE-thread-demo1.04.zip)
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/thread` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 
-Quick links to source code of relevant test programs:
+Quick links to source code of relevant MUSCLE-by-example programs:
 
 * [thread/example_1_basic_usage.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/thread/example_1_basic_usage.cpp)
 * [thread/example_2_dumb_server_with_thread.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/thread/example_2_dumb_server_with_thread.cpp)

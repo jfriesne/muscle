@@ -53,7 +53,7 @@ public:
    /** Destructor. */
    ~SocketMultiplexer();
 
-   /** Call this to indicate that you want the next call to Wait() to return if the specified
+   /** Call this to indicate that you want the next call to WaitForEvents() to return if/when the specified
      * socket has data ready to read.
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.
@@ -62,7 +62,7 @@ public:
      */
    inline status_t RegisterSocketForReadReady(int fd) {return GetCurrentFDState().RegisterSocket(fd, FDSTATE_SET_READ);}
 
-   /** Call this to indicate that you want the next call to WaitForEvents() to return if the specified
+   /** Call this to indicate that you want the next call to WaitForEvents() to return if/when the specified
      * socket has buffer space available to write to.
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.
@@ -71,7 +71,7 @@ public:
      */
    inline status_t RegisterSocketForWriteReady(int fd) {return GetCurrentFDState().RegisterSocket(fd, FDSTATE_SET_WRITE);}
 
-   /** Call this to indicate that you want the next call to WaitForEvents() to return if the specified
+   /** Call this to indicate that you want the next call to WaitForEvents() to return if/when the specified
      * socket has buffer space available to write to.
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.

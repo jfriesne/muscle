@@ -19,7 +19,7 @@ enum {
 /** A thread that waits for TCP connections on a given port, and when it gets one, 
   * it sends the socket to its owner via a ConstSocketRef.
   */
-class AcceptSocketsThread : public Thread, private CountedObject<AcceptSocketsThread>
+class AcceptSocketsThread : public Thread
 {
 public:
    /** Default constructor.  You'll need to call SetPort() before calling StartInternalThread(). */
@@ -60,6 +60,8 @@ private:
    uint16 _port;
    ConstSocketRef _notifySocket;
    ConstSocketRef _acceptSocket;
+
+   DECLARE_COUNTED_OBJECT(AcceptSocketsThread);
 };
 DECLARE_REFTYPES(AcceptSocketsThread);
 

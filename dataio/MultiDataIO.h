@@ -12,7 +12,7 @@ namespace muscle {
   * calls made to all the sub-DataIOs.  If an error occurs on any of the sub-objects,
   * the call will error out.  This class can be useful when implementing RAID-like behavior.
   */
-class MultiDataIO : public SeekableDataIO, private CountedObject<MultiDataIO>
+class MultiDataIO : public SeekableDataIO
 {
 public:
    /** Default Constructor.  Be sure to add some child DataIOs to our Queue of
@@ -99,6 +99,8 @@ private:
 
    Queue<DataIORef> _childIOs;
    bool _absorbPartialErrors;
+
+   DECLARE_COUNTED_OBJECT(MultiDataIO);
 };
 DECLARE_REFTYPES(MultiDataIO);
 

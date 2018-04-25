@@ -69,7 +69,7 @@ private:
  *  about event loops and such.  In all other ways it works the
  *  same as any MessageTransceiverThread object.
  */
-class QMessageTransceiverThread : public QObject, public MessageTransceiverThread, public IMessageTransceiverMaster, private CountedObject<QMessageTransceiverThread>
+class QMessageTransceiverThread : public QObject, public MessageTransceiverThread, public IMessageTransceiverMaster
 {
    Q_OBJECT
 
@@ -215,6 +215,8 @@ private:
 
    QMessageTransceiverHandler * _firstSeenHandler;
    QMessageTransceiverHandler * _lastSeenHandler;
+
+   DECLARE_COUNTED_OBJECT(QMessageTransceiverThread);
 };
 
 /** This class represents a demand-allocated pool of QMessageTransceiverThread objects.
@@ -224,7 +226,7 @@ private:
   * You can specify how many QMessageTransceiverHandler objects may share a single
   * QMessageTransceiverThread at once.
   */
-class QMessageTransceiverThreadPool : public IMessageTransceiverMaster, private CountedObject<QMessageTransceiverThreadPool>
+class QMessageTransceiverThreadPool : public IMessageTransceiverMaster
 {
 public:
    /**
@@ -261,6 +263,8 @@ protected:
 private:
    uint32 _maxSessionsPerThread;
    Hashtable<QMessageTransceiverThread *, Void> _threads;
+
+   DECLARE_COUNTED_OBJECT(QMessageTransceiverThreadPool);
 };
 
 /**
@@ -276,7 +280,7 @@ private:
  * class directly for everything and ignore this class, if you prefer -- this class is here just as
  * an optimization.
  */
-class QMessageTransceiverHandler : public QObject, private CountedObject<QMessageTransceiverHandler>
+class QMessageTransceiverHandler : public QObject
 {
    Q_OBJECT
 
@@ -599,6 +603,8 @@ private:
 
    QMessageTransceiverHandler * _prevSeen;  // used by _mtt for a quickie linked list
    QMessageTransceiverHandler * _nextSeen;  // used by _mtt for a quickie linked list
+
+   DECLARE_COUNTED_OBJECT(QMessageTransceiverHandler);
 };
 
 #if defined(MUSCLE_USE_QT_THREADS) && defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)

@@ -21,7 +21,7 @@ class SSLSocketAdapterGateway;
   *       own code will also work and may be necessary in cases where only certain sessions 
   *       should use SSL.
   */
-class SSLSocketDataIO : public TCPSocketDataIO, private CountedObject<SSLSocketDataIO>
+class SSLSocketDataIO : public TCPSocketDataIO
 {
 public:
    /**
@@ -109,6 +109,8 @@ private:
 
    void * _ctx; // actually (SSL_CTX*) but declared (void *) here so I don't have to #include openssl headers 
    void * _ssl; // actually (SSL*)     but declared (void *) here so I don't have to #include openssl headers
+
+   DECLARE_COUNTED_OBJECT(SSLSocketDataIO);
 };
 DECLARE_REFTYPES(SSLSocketDataIO);
 

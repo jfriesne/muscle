@@ -33,7 +33,7 @@ DECLARE_REFTYPES(ReflectSessionFactory);
  *  in one way or another, to help define the ReflectServer's behaviour.  This
  *  class provides callback wrappers that let you operate on the server's state.
  */
-class ServerComponent : public RefCountable, public PulseNode, private CountedObject<ServerComponent>, private NotCopyable
+class ServerComponent : public RefCountable, public PulseNode, private NotCopyable
 {
 public:
    /** Default Constructor. */
@@ -288,6 +288,8 @@ such factory exists. */
 private:
    ReflectServer * _owner;
    bool _fullyAttached;
+
+   DECLARE_COUNTED_OBJECT(ServerComponent);
 };
 DECLARE_REFTYPES(ServerComponent);
 

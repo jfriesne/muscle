@@ -9,7 +9,7 @@ namespace muscle {
   * catch signals (e.g. SIGINT on Unix/MacOS, Console signals on Windows)
   * and react by initiating a controlled shutdown of the server.
   */
-class SignalHandlerSession : public AbstractReflectSession, public ISignalHandler, private CountedObject<SignalHandlerSession>
+class SignalHandlerSession : public AbstractReflectSession, public ISignalHandler
 {
 public:
    /** Default constructor. */
@@ -38,6 +38,8 @@ protected:
 
 private:
    ConstSocketRef _handlerSocket;
+
+   DECLARE_COUNTED_OBJECT(SignalHandlerSession);
 };
 DECLARE_REFTYPES(SignalHandlerSession);
 

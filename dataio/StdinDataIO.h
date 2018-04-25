@@ -22,7 +22,7 @@ namespace muscle {
  *  'true' as the second argument to the constructor, than any data passed
  *  to this class's Write() method will be forwarded along to stdout.
  */
-class StdinDataIO : public DataIO, private CountedObject<StdinDataIO>
+class StdinDataIO : public DataIO
 {
 public:
    /**
@@ -95,6 +95,8 @@ private:
 #else
    FileDescriptorDataIO _fdIO;
 #endif
+
+   DECLARE_COUNTED_OBJECT(StdinDataIO);
 };
 DECLARE_REFTYPES(StdinDataIO);
 

@@ -19,7 +19,7 @@ namespace muscle {
  * Incoming and outgoing messages may have one or more strings in their PR_NAME_TEXT_LINE field.
  * Each of these strings represents a line of text (separator chars not included)
  */
-class PlainTextMessageIOGateway : public AbstractMessageIOGateway, private CountedObject<PlainTextMessageIOGateway>
+class PlainTextMessageIOGateway : public AbstractMessageIOGateway
 {
 public:
    /** Default constructor */
@@ -76,6 +76,8 @@ private:
    bool _prevCharWasCarriageReturn;
    String _incomingText;
    bool _flushPartialIncomingLines;
+
+   DECLARE_COUNTED_OBJECT(PlainTextMessageIOGateway);
 };
 DECLARE_REFTYPES(PlainTextMessageIOGateway);
 

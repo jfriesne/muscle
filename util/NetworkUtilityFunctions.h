@@ -52,7 +52,7 @@ namespace muscle {
 #ifdef MUSCLE_AVOID_IPV6
 # define MUSCLE_IP_HEADER_SIZE_BYTES 24  /**< Number of bytes in an IPv4 packet header: assumes worst-case scenario (i.e. that the options field is included) */
 #else
-# define MUSCLE_IP_HEADER_SIZE_BYTES 40  /**< Number of bytes in an IPv6 pakcet header: assuming no additional header chunks, of course */
+# define MUSCLE_IP_HEADER_SIZE_BYTES 40  /**< Number of bytes in an IPv6 packet header: assuming no additional header chunks, of course */
 #endif
 
 #define MUSCLE_UDP_HEADER_SIZE_BYTES (4*sizeof(uint16))  /**< Number of additional bytes in a UDP sub-header (sourceport, destport, length, checksum) */
@@ -468,7 +468,7 @@ int32 GetSocketReceiveBufferSize(const ConstSocketRef & sock);
   * sockets in the process, which can be simpler than changing every individual code path
   * to install those behaviors on a per-socket basis.
   */ 
-class GlobalSocketCallback : private CountedObject<GlobalSocketCallback>
+class GlobalSocketCallback
 {
 public:
    /** Default constructor */
@@ -493,6 +493,9 @@ public:
       SOCKET_CALLBACK_CONNECT,          /**< socket was just created by Connect() or ConnectAsync() */
       NUM_SOCKET_CALLBACKS              /**< guard value */
    };
+
+private:
+   DECLARE_COUNTED_OBJECT(GlobalSocketCallback);
 };
 
 /** Set the global socket-callback object for this process.

@@ -195,7 +195,8 @@ int main(void)
       if (q.AddTailMulti(vars, ARRAYITEMS(vars)) == B_NO_ERROR)
       {
          q.RemoveDuplicateItems(); 
-         for (uint32 i=0; i<q.GetNumItems(); i++) printf("%u ", q[i]); printf("\n");
+         for (uint32 i=0; i<q.GetNumItems(); i++) printf("%u ", q[i]);
+         printf("\n");
       }
    }
 

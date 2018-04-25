@@ -47,27 +47,55 @@ static void Test(uint32 dataFlags)
    printf("double=%f\n", b.ReadDouble(offset));
    printf("string1=[%s]\n", b.ReadString(offset)());
    printf("string2=[%s]\n", b.ReadString(offset)());
+
    Point p = b.ReadPoint(offset); printf("Point=%f,%f\n", p.x(), p.y());
    Rect r = b.ReadRect(offset); printf("Rect=%f,%f,%f,%f\n", r.left(), r.top(), r.Width(), r.Height());
    printf("string3=[%s]\n", b.ReadString(offset)());  // should be "----"
-   int8  i8s[4]  = {0}; nr = b.ReadInt8s(i8s, ARRAYITEMS(i8s), offset); 
-   printf("i8s="); for (uint32 i=0; i<nr; i++) printf(" %i", i8s[i]); printf("\n");
+
+   int8 i8s[4] = {0}; nr = b.ReadInt8s(i8s, ARRAYITEMS(i8s), offset); 
+   printf("i8s=");
+   for (uint32 i=0; i<nr; i++) printf(" %i", i8s[i]);
+   printf("\n");
+
    int16 i16s[4] = {0}; nr = b.ReadInt16s(i16s, ARRAYITEMS(i16s), offset);
-   printf("i16s="); for (uint32 i=0; i<nr; i++) printf(" %i", i16s[i]); printf("\n");
+   printf("i16s=");
+   for (uint32 i=0; i<nr; i++) printf(" %i", i16s[i]);
+   printf("\n");
+
    int32 i32s[4] = {0}; nr = b.ReadInt32s(i32s, ARRAYITEMS(i32s), offset);
-   printf("i32s="); for (uint32 i=0; i<nr; i++) printf(" " INT32_FORMAT_SPEC, i32s[i]); printf("\n");
+   printf("i32s=");
+   for (uint32 i=0; i<nr; i++) printf(" " INT32_FORMAT_SPEC, i32s[i]);
+   printf("\n");
+
    int64 i64s[4] = {0}; nr = b.ReadInt64s(i64s, ARRAYITEMS(i64s), offset);
-   printf("i64s="); for (uint32 i=0; i<nr; i++) printf(" " INT64_FORMAT_SPEC, i64s[i]); printf("\n");
+   printf("i64s=");
+   for (uint32 i=0; i<nr; i++) printf(" " INT64_FORMAT_SPEC, i64s[i]);
+   printf("\n");
+
    float ifls[4] = {0}; nr = b.ReadFloats(ifls, ARRAYITEMS(ifls), offset);
-   printf("ifls="); for (uint32 i=0; i<nr; i++) printf(" %f", ifls[i]); printf("\n");
+   printf("ifls=");
+   for (uint32 i=0; i<nr; i++) printf(" %f", ifls[i]);
+   printf("\n");
+
    double idbs[4] = {0}; nr = b.ReadDoubles(idbs, ARRAYITEMS(idbs), offset);
-   printf("idbs="); for (uint32 i=0; i<nr; i++) printf(" %f", idbs[i]); printf("\n");
-   String strs[4];      nr = b.ReadStrings(strs, ARRAYITEMS(strs), offset);
-   printf("strs="); for (uint32 i=0; i<nr; i++) printf(" [%s]", strs[i]()); printf("\n");
-   Point pts[4];        nr = b.ReadPoints(pts, ARRAYITEMS(pts), offset);
-   printf("pts="); for (uint32 i=0; i<nr; i++) printf(" [%f,%f]", pts[i][0], pts[i][1]); printf("\n");
-   Rect rcs[4];         nr = b.ReadRects(rcs, ARRAYITEMS(rcs), offset);
-   printf("rcs="); for (uint32 i=0; i<nr; i++) printf(" [%f,%f,%f,%f]", rcs[i][0], rcs[i][1], rcs[i][2], rcs[i][3]); printf("\n");
+   printf("idbs=");
+   for (uint32 i=0; i<nr; i++) printf(" %f", idbs[i]);
+   printf("\n");
+
+   String strs[4]; nr = b.ReadStrings(strs, ARRAYITEMS(strs), offset);
+   printf("strs=");
+   for (uint32 i=0; i<nr; i++) printf(" [%s]", strs[i]());
+   printf("\n");
+
+   Point pts[4]; nr = b.ReadPoints(pts, ARRAYITEMS(pts), offset);
+   printf("pts=");
+   for (uint32 i=0; i<nr; i++) printf(" [%f,%f]", pts[i][0], pts[i][1]);
+   printf("\n");
+
+   Rect rcs[4]; nr = b.ReadRects(rcs, ARRAYITEMS(rcs), offset);
+   printf("rcs=");
+   for (uint32 i=0; i<nr; i++) printf(" [%f,%f,%f,%f]", rcs[i][0], rcs[i][1], rcs[i][2], rcs[i][3]);
+   printf("\n");
 }
 
 // This program exercises the ByteBuffer class.

@@ -17,7 +17,7 @@ namespace muscle {
  *  This class can be used as-is, or subclassed if necessary.
  *  There is typically only one ReflectServer object present in a given MUSCLE server program.
  */
-class ReflectServer : public RefCountable, public PulseNode, private PulseNodeManager, private CountedObject<ReflectServer>, private NotCopyable
+class ReflectServer : public RefCountable, public PulseNode, private PulseNodeManager, private NotCopyable
 {
 public: 
    /** Constructor. */
@@ -144,7 +144,7 @@ public:
 
    /** Set whether or not we should log informational messages when sessions are added and removed, etc.
      * Default state is true.
-     * @param log true iff we want log messages, false to suppresse them
+     * @param log true iff we want log messages, false to suppress them
      */
    void SetDoLogging(bool log) {_doLogging = log;}
 
@@ -413,6 +413,8 @@ private:
    AtomicCounter _inWaitForEvents;
    bool _computerIsAboutToSleep;
    Hashtable<String, bool> _sessionsToReconnectOnWakeup;
+
+   DECLARE_COUNTED_OBJECT(ReflectServer);
 };
 DECLARE_REFTYPES(ReflectServer);
 

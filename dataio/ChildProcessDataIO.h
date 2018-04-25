@@ -30,7 +30,7 @@ enum {
  *  stdin.  Note that this class is currently only implemented to work 
  *  under Windows, MacOS/X, BeOS, and Linux.
  */
-class ChildProcessDataIO : public DataIO, private CountedObject<ChildProcessDataIO>
+class ChildProcessDataIO : public DataIO
 {
 public:
    /** Constructor.
@@ -316,6 +316,8 @@ private:
    ConstSocketRef _handle;
    pid_t _childPID;
 #endif
+
+   DECLARE_COUNTED_OBJECT(ChildProcessDataIO);
 };
 DECLARE_REFTYPES(ChildProcessDataIO);
 

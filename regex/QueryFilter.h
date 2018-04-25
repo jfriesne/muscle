@@ -300,7 +300,7 @@ public:
 
    virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const
    {
-      (void) optNode;  // shut compiler and DOxygen up
+      (void) optNode;  // shut compiler and Doxygen up
 
       const DataType * valueInMsg;
      
@@ -519,7 +519,7 @@ private:
 };
 DECLARE_REFTYPES(AndOrQueryFilter);
 
-/** This class matches iff at most (n) of its children match.  As such, it can be used as a NAND operator,
+/** This class matches iff no more than (n) of its children match.  As such, it can be used as a NAND operator,
   * a NOT operator, or something in-between the two.
   */
 class NandNotQueryFilter : public MultiQueryFilter

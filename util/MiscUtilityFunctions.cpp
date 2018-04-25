@@ -66,6 +66,13 @@ static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<Strin
 status_t ParseArg(const String & a, Message & addTo, bool cs)       {return ParseArgAux(a, &addTo, NULL, cs);}
 status_t ParseArg(const String & a, Queue<String> & addTo, bool cs) {return ParseArgAux(a, NULL, &addTo, cs);}
 
+static String QuoteAndEscapeStringIfNecessary(const String & s)
+{
+   String tmp = s;
+   tmp.Replace("\"", "\\\"");
+   return ((tmp.IndexOf(' ') >= 0)||(tmp.IndexOf('\t') >= 0)||(tmp.IndexOf('\r') >= 0)||(tmp.IndexOf('\n') >= 0)) ? tmp.Prepend('\"').Append('\"') : tmp;
+}
+
 String UnparseArgs(const Message & argsMsg)
 {
    String ret, next, tmp;
@@ -75,22 +82,14 @@ String UnparseArgs(const Message & argsMsg)
       const String * ps;
       for (int32 i=0; argsMsg.FindString(fn, i, &ps) == B_NO_ERROR; i++)
       {
+         String tmp = QuoteAndEscapeStringIfNecessary(fn);
          if (ps->HasChars())
          {
-            next = fn;
+            next  = tmp;
             next += '=';
-
-            tmp = *ps;
-            tmp.Replace("\"", "\\\"");
-            if ((tmp.IndexOf(' ') >= 0)||(tmp.IndexOf('\t') >= 0)||(tmp.IndexOf('\r') >= 0)||(tmp.IndexOf('\n') >= 0))
-            {
-               next += '\"';
-               next += tmp;
-               next += '\"';
-            }
-            else next += tmp;
+            next += QuoteAndEscapeStringIfNecessary(*ps);
          }
-         else next = fn;
+         else next = tmp;
 
          if (next.HasChars())
          {

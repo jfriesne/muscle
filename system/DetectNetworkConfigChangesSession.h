@@ -40,7 +40,7 @@ static void * GetRootPortPointerFromSession(const DetectNetworkConfigChangesSess
   *
   * @see tests/testnetconfigdetect.cpp for an example usage of this class.
   */
-class DetectNetworkConfigChangesSession : public AbstractReflectSession, public INetworkConfigChangesTarget, private CountedObject<DetectNetworkConfigChangesSession>
+class DetectNetworkConfigChangesSession : public AbstractReflectSession, public INetworkConfigChangesTarget
 #ifndef __linux__
    , private Thread
 #endif
@@ -172,6 +172,8 @@ private:
    bool _changeAllPending;
    bool _isComputerSleeping;
    const bool _notifyReflectServer;
+
+   DECLARE_COUNTED_OBJECT(DetectNetworkConfigChangesSession);
 };
 DECLARE_REFTYPES(DetectNetworkConfigChangesSession);
 

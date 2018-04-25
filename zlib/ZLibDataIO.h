@@ -14,7 +14,7 @@ namespace muscle {
   * data going to that DataIO, and decompresses all data coming from that
   * dataIO.
   */
-class ZLibDataIO : public ProxyDataIO, private CountedObject<ZLibDataIO>
+class ZLibDataIO : public ProxyDataIO
 {
 public:
    /** Default Constructor -- Be sure to call SetDataIO() before use.
@@ -64,6 +64,8 @@ private:
    const uint8 * _sendToChild;
    bool _deflateAllocated;
    z_stream _writeDeflater;
+
+   DECLARE_COUNTED_OBJECT(ZLibDataIO);
 };
 DECLARE_REFTYPES(ZLibDataIO);
 

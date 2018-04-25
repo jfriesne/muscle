@@ -2,12 +2,13 @@
 
 ```#include "system/AtomicCounter.h"```
 
-* Thread-safe (lockless) counter type
+A Thread-safe, lockless int32-counter
+
 * Similar to:  `std::atomic<int32>`, `InterlockedIncrement()/InterlockedDecrement()`, `OSAtomicIncrement32Barrier()/OSAtomicDecrement32Barrier()`
-* Used primarily by the `Ref/RefCountable` classes for implementing thread-safe shared pointers
+* Used primarily by the [Ref](https://public.msli.com/lcs/muscle/html/singletonmuscle_1_1Ref.html)/[RefCountable](https://public.msli.com/lcs/muscle/html/classmuscle_1_1RefCountable.html) classes for implementing thread-safe shared pointers
 * Constructor initializes the counter to zero
-* `AtomicIncrement()` does an atomic-increment of the counter value, and returns true iff the counter's post-increment value is 1.
-* `AtomicDecrement()` does an atomic-decrement of the counter value, and returns true iff the counter's post-decrement value is 0.
+* [AtomicIncrement()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1AtomicCounter.html#abfaf1ffb8afea7f355c71680fb35a693) does an atomic-increment of the counter value, and returns true iff the counter's post-increment value is 1.
+* [AtomicDecrement()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1AtomicCounter.html#a912a1e8990ab05b13ad4934b91ecc00b) does an atomic-decrement of the counter value, and returns true iff the counter's post-decrement value is 0.
 * Compiles down to a non-atomic/plain-int32 counter if `-DMUSCLE_SINGLE_THREAD_ONLY` is defined (i.e. if multithreading support is disabled)
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/atomiccounter` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)

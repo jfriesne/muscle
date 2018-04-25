@@ -6,7 +6,7 @@
 ```
 
 The `MicroMessage` API is an extremely bare-bones, low-level C 
-implementation of the MUSCLE `Message` and `MessageGateway` APIs.
+implementation of the MUSCLE [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) and [MessageIOGateway](https://public.msli.com/lcs/muscle/html/classmuscle_1_1MessageIOGateway.html) APIs.
 
 This implementation never bothers to flatten or unflatten message
 objects at all; instead it reads and writes flattened-message-data

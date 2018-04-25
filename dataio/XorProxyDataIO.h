@@ -13,7 +13,7 @@ namespace muscle {
   * holds internally.  This can be useful if you want to obfuscate your data
   * a little bit before sending it out to disk or over the network.
   */
-class XorProxyDataIO : public ProxyDataIO, public CountedObject<XorProxyDataIO>
+class XorProxyDataIO : public ProxyDataIO
 {
 public:
    /** Default Constructor.  Be sure to set a child dataIO with SetChildDataIO()
@@ -65,6 +65,8 @@ private:
    }
 
    ByteBuffer _tempBuf;   // holds the XOR'd bytes temporarily for us
+
+   DECLARE_COUNTED_OBJECT(XorProxyDataIO);
 };
 DECLARE_REFTYPES(XorProxyDataIO);
 

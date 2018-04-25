@@ -2,7 +2,8 @@
 
 ```#include "util/Directory.h"```
 
-* OS-neutral API for enumerating the contents of a filesystem directory
+[Directory](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Directory.html) is an OS-neutral API for iterating over the contents of a filesystem directory.
+
 * Similar to: `QDir`
 * Can also create and delete sub-directories (recursively if necessary)
 

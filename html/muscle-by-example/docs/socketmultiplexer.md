@@ -2,17 +2,18 @@
 
 ```#include "util/SocketMultiplexer.h"```
 
-* Thin abstraction layer around `select()`/`poll()`/`epoll()`/`kqueue()` etc.
+A lightweight abstraction-layer around I/O multiplexing APIs (`select()`/`poll()`/`epoll()`/`kqueue()` etc).
+
 * Similar to:  `select()`, `poll()`, `epoll()`, `WaitForMultipleObjects()`
-* Default implementation calls through to `select()`, but alternate back-end implementations can be specified on the compile line via e.g. `-DMUSCLE_USE_POLL`, etc.
-* On each iteration of your (low-level) event loop, you call `RegisterSocketFor*()` on the `SocketMultiplexer` to tell it which sockets to monitor, then `WaitForEvents()` to block until some I/O is ready to handle.
-* After `WaitForEvents()` returns, call `IsSocketReadyFor*()` to find out which sockets are ready to do what.
+* Default implementation calls through to `select()`, but an alternate back-end implementation can be specified on the compile line via e.g. `-DMUSCLE_USE_POLL`, etc.
+* On each iteration of your (low-level) event loop, call [RegisterSocketForReadReady()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html#a3c9c318a3b6c095fc64707bdf581bf71) and/or [RegisterSocketForWriteReady()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html#a2f8cf73a6b21e47f4ea9176326ce2b93) on the [SocketMultiplexer](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html) to tell it which sockets to monitor, then call [WaitForEvents()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html#abda53005ba0f856395838607fa971ccc) to block until some I/O is ready to handle.
+* After [WaitForEvents()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html#abda53005ba0f856395838607fa971ccc) returns, call [IsSocketReadyForRead()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html#a61e434ef659eb84ef83cac4fba7415c1) and/or [IsSocketReadyForWrite()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html#ab9b757c4526c2ead0dce9efd52d485e1) to find out which sockets are ready to do what category of I/O.
 * This allows you to have a 100%-event-driven program with no wasteful polling.
-* `WaitForEvents()` also takes an optional wakeup-time.  If specified, `WaitForEvents()` will return at that time even if no I/O events have been recorded.
+* [WaitForEvents()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html#abda53005ba0f856395838607fa971ccc) also takes an optional wakeup-time.  If specified, [WaitForEvents()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html#abda53005ba0f856395838607fa971ccc) will return at that time even if no I/O events have been recorded.
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/socketmultiplexer` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 
-Quick links to source code of relevant test programs:
+Quick links to source code of relevant MUSCLE-by-example programs:
 
 * [socketmultiplexer/example_1_tcp_echo_server.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/socketmultiplexer/example_1_tcp_echo_server.cpp)
 * [socketmultiplexer/example_2_tcp_echo_server_with_timed_counter.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/socketmultiplexer/example_2_tcp_echo_server_with_timed_counter.cpp)

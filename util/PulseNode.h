@@ -15,7 +15,7 @@ class PulseNodeManager;
  *  its PulseNodeManager.   (Typically the PulseNodeManager role is played by
  *  the ReflectServer class)
  */
-class PulseNode : private CountedObject<PulseNode>
+class PulseNode
 {
 public:
    /** Default constructor */
@@ -206,6 +206,8 @@ private:
    bool _timeSlicingSuggested;
 
    friend class PulseNodeManager;
+
+   DECLARE_COUNTED_OBJECT(PulseNode);
 };
 
 /** Subclasses of this class are allowed to manage PulseNode objects by 

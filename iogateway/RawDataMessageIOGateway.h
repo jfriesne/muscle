@@ -17,7 +17,7 @@ namespace muscle {
  * This gateway is very crude; it can be used to write raw data to a TCP socket, and
  * to retrieve data from the socket in chunks of a specified size range.
  */
-class RawDataMessageIOGateway : public AbstractMessageIOGateway, private CountedObject<RawDataMessageIOGateway>
+class RawDataMessageIOGateway : public AbstractMessageIOGateway
 {
 public:
    /** Constructor.
@@ -63,6 +63,8 @@ private:
 
    uint32 _minChunkSize;
    uint32 _maxChunkSize;
+
+   DECLARE_COUNTED_OBJECT(RawDataMessageIOGateway);
 };
 DECLARE_REFTYPES(RawDataMessageIOGateway);
 

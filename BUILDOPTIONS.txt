@@ -228,8 +228,12 @@ of your Makefile to alter muscle's behaviour:
    If set, calls to the CHECK_THREAD_STACK_USAGE macro will be
    converted into no-ops.
 
--DMUSCLE_AVOID_OBJECT_COUNTING
-   If defined, the CountedObject<> class will compile down to a no-op.
+-DMUSCLE_ENABLE_OBJECT_COUNTING
+   If defined, the CountedObject<> class will be enabled, so that
+   PrintCountedObjectInfo() will print out tallies of the numbers
+   of various kinds of objects currently in memory.
+   Otherwise it is compiled down to a no-op, and the 
+   DECLARE_COUNTED_OBJECT macro likewise becomes a no-op.
 
 -DMUSCLE_AVOID_THREAD_LOCAL_STORAGE
    If defined, the MUSCLE code will try to avoid using the ThreadLocalStorage

@@ -25,7 +25,8 @@ static double * bigArrayDouble;
 static void PrintBytes(const void * b, int num)
 {
    const uint8 * b8 = (const uint8 *) b;
-   for (int i=0; i<num; i++) printf("%02x ", b8[i]); printf("\n");
+   for (int i=0; i<num; i++) printf("%02x ", b8[i]);
+   printf("\n");
 }
 
 static void Fail(const char * name, const void * orig, const void * xChange, const void * backAgain, int numBytes, int index)

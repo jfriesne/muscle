@@ -114,7 +114,7 @@ private:
  *  objects will have their Log() methods called.  All log callbacks
  *  are synchronized via a global lock, hence they will be thread safe.
  */
-class LogCallback : public RefCountable, private CountedObject<LogCallback>
+class LogCallback : public RefCountable
 {
 public:
    /** Default constructor */
@@ -132,6 +132,9 @@ public:
      * held buffers out.  (i.e. call fflush() or whatever)
      */
    virtual void Flush() = 0;
+
+private:
+   DECLARE_COUNTED_OBJECT(LogCallback);
 };
 DECLARE_REFTYPES(LogCallback);
 
@@ -141,7 +144,7 @@ DECLARE_REFTYPES(LogCallback);
  *  that all have to do this themselves.  Assumes that all log
  *  lines will be less than 2048 characters long.
  */
-class LogLineCallback : public LogCallback, private CountedObject<LogLineCallback>
+class LogLineCallback : public LogCallback
 {
 public:
    /** Constructor */
@@ -170,6 +173,8 @@ private:
    LogCallbackArgs _lastLog; // stored for use by Flush()
    char * _writeTo;     // points to the next spot in (_buf) to muscleSprintf() into
    char _buf[2048];     // where we assemble our text
+
+   DECLARE_COUNTED_OBJECT(LogLineCallback);
 };
 DECLARE_REFTYPES(LogLineCallback);
 

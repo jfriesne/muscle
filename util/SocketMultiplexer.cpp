@@ -174,7 +174,7 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
          Convert64ToTimeVal(waitTimeMicros, waitTime);
          pWaitTime = &waitTime;
       }
-      int ret = select(maxFD+1, sets[0], sets[1], sets[2], pWaitTime);
+      int ret = select(maxFD+1, sets[FDSTATE_SET_READ], sets[FDSTATE_SET_WRITE], sets[FDSTATE_SET_EXCEPT], pWaitTime);
 #endif
       if ((ret < 0)&&(PreviousOperationWasInterrupted())) ret = 0;  // on interruption we'll just go round gain
       return ret;

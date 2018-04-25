@@ -18,7 +18,7 @@ namespace muscle {
 /**
  *  Data I/O to and from a file descriptor (useful for talking to Linux device drivers and the like)
  */
-class FileDescriptorDataIO : public SeekableDataIO, private CountedObject<FileDescriptorDataIO>
+class FileDescriptorDataIO : public SeekableDataIO
 {
 public:
    /**
@@ -97,6 +97,8 @@ private:
    ConstSocketRef _fd;
    bool _blocking;
    bool _dofSyncOnClose;
+
+   DECLARE_COUNTED_OBJECT(FileDescriptorDataIO);
 };
 DECLARE_REFTYPES(FileDescriptorDataIO);
 

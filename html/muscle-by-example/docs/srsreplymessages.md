@@ -1,16 +1,18 @@
-## Page Overview
+## Result Messages Page Overview
 
-* This page describes the semantics of some selected `Message` what-codes that a `StorageReflectSession` may send (via TCP) to its client.
-* These what-codes (and their associated PR_NAME_* field-name strings) are defined in `reflector/StorageReflectConstants.h`
+* This page describes the semantics of some selected [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) what-codes that a [StorageReflectSession](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html) may send (via TCP) to its client.
+* These what-codes (and their associated PR_NAME_* field-name strings) are defined in [reflector/StorageReflectConstants.h](https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h.html)
 * See also the description in the header comments, beginning at line 139 of [StorageReflectConstants.h](https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h_source.html)
-* Note that the parsing examples shown below would typically be seen in client-side code (because on the server-side, there are virtual methods of the `StorageReflectsSession` class that you would override, which would be easier and more efficient than hand-parsing a reply-`Message` object that had just been created locally, just to get the data back out of it)
+* Note that the parsing examples shown below would typically be seen in client-side code (because on the server-side, there are virtual methods of the [StorageReflectSession](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html) class that you would override, which would be easier and more efficient than hand-parsing a reply-[Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) object that had just been created locally, just to get the data back out of it)
 
-## Reply codes
+## Result codes
+
+This is a partial list -- the full list of result codes can be seen [here](https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h.html#a385c44f6fb256e5716a2302a5b940388ac85a30ca3ed035e4f43ed315597553fc).
 
 - `PR_RESULT_DATAITEMS` - *Sent to client in response to a `PR_COMMAND_GETDATA` or as a subscription update*
-    - This is the primary Message-type that `StorageReflectSession` uses to update a client about changes to subscribed nodes in the server-side database
-    - This `Message` will contain either or both of two types of update:  A list of node-paths of nodes that have been deleted, and a list of node-paths whose Message payloads have been created/updated.
-    - An example of how a client might parse a `Message` of this type follows:
+    - This is the primary Message-type that [StorageReflectSession](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html) uses to update a client about changes to subscribed nodes in the server-side database
+    - This [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) will contain either or both of two types of update:  A list of node-paths of nodes that have been deleted, and a list of node-paths whose Message payloads have been created/updated.
+    - An example of how a client might parse a [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) of this type follows:
 
 <pre>
    void ParseIncomingDataItemsMessage(const MessageRef & msg)
@@ -38,14 +40,14 @@
 </pre>
 
 - `PR_RESULT_INDEXUPDATED` - *Notification that a node's ordered-children-index has been changed*
-    - All of the fields of this `Message` will be strings
-    - The name of each field is the path of a `DataNode` whose ordered-children-index has changed
+    - All of the fields of this [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) will be strings
+    - The name of each field is the path of a [DataNode](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html) whose ordered-children-index has changed
     - The string-values in the field are descriptions of how it has changed
     - A string-value equal to "c" (aka `INDEX_OP_CLEARED`) indicates that the index has been cleared/erased
     - A string-value starting with "i" (aka `INDEX_OP_ENTRYINSERTED`) indicates that a node has been inserted into the index at a specified location.  For example, "i43:blah" inserts that the child node named "blah" has been inserted at offset 43 of the index (note that 0 is the first valid offset).
     - A string-value starting with "r" (aka `INDEX_OP_ENTRYREMOVED`) indicates that a node has been inserted into the index at a specified location.  For example, "r2:blah" means that the child node named "blah" has been removed from its location at offset 2 of the index (i.e. from the third position in the list)
     - A client would typically update a local data structure according to these strings' instructions, in order to keep it in sync with the index's data structure on the server.
-    - An example of how a client might parse a `Message` of this type follows:
+    - An example of how a client might parse a [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) of this type follows:
 
 <pre>  
    // This table holds the child-node-names-in-index-order list for each ordered-index-node
@@ -85,6 +87,8 @@
       }
    }
 </pre>
+
+Quick links to source code of relevant MUSCLE-by-example programs:
 
 * [reflector/example_4_smart_server.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/reflector/example_4_smart_server.cpp)
 * [reflector/example_5_smart_client.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/reflector/example_5_smart_client.cpp)

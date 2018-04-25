@@ -123,10 +123,10 @@ all : $(EXECUTABLES) libmuscle.a
 debug : CCOPTFLAGS = -g 
 debug : all 
 
-muscled : libmuscle.a muscled.o
+muscled : muscled.o libmuscle.a
 	$(CXX) -o $@ $^ $(LIBS) $(LFLAGS)
 
-admin : libmuscle.a admin.o
+admin : admin.o libmuscle.a
 	$(CXX) -o $@ $^ $(LIBS) $(LFLAGS)
 
 libmuscle.a : $(OBJFILES) $(ZLIBOBJS)

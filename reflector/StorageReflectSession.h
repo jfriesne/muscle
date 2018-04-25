@@ -13,7 +13,7 @@ namespace muscle {
 /**
  *  This is a factory class that returns new StorageReflectSession objects.
  */
-class StorageReflectSessionFactory : public ReflectSessionFactory, private CountedObject<StorageReflectSessionFactory>
+class StorageReflectSessionFactory : public ReflectSessionFactory
 {
 public:
    /** Default constructor.  The maximum incoming message size is set to "unlimited" by default.  */
@@ -41,6 +41,8 @@ protected:
 
 private:
    uint32 _maxIncomingMessageSize;
+
+   DECLARE_COUNTED_OBJECT(StorageReflectSessionFactory);
 };
 DECLARE_REFTYPES(StorageReflectSessionFactory);
 
@@ -80,7 +82,7 @@ public:
  *  See StorageReflectConstants.h and/or "The Beginner's Guide.html"
  *  for details.
  */
-class StorageReflectSession : public DumbReflectSession, private CountedObject<StorageReflectSession>
+class StorageReflectSession : public DumbReflectSession
 {
 public:
    /** Default constructor. */

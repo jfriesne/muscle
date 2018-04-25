@@ -18,7 +18,7 @@ namespace muscle {
 /**
  *  Data I/O to and from a TCP socket! 
  */
-class TCPSocketDataIO : public DataIO, private CountedObject<TCPSocketDataIO>
+class TCPSocketDataIO : public DataIO
 {
 public:
    /**
@@ -121,6 +121,8 @@ private:
    bool _blocking;
    bool _naglesEnabled;
    uint64 _stallLimit;
+
+   DECLARE_COUNTED_OBJECT(TCPSocketDataIO);
 };
 DECLARE_REFTYPES(TCPSocketDataIO);
 

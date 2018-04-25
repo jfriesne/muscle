@@ -5,6 +5,30 @@ key:  - new feature
       * bug fixed
       o other
 
+6.82 Released 4/25/2018
+   o tests/Makefile-mt no longer tries to compile testreflectsession
+     except when executing on an OS that testreflectsession supports.
+   o Did some minor editing and re-arranging of the "MUSCLE by Example" pages.
+   o Replaced a number of `tags` in the MkDocs with [URLs](...)
+   o Removed private-inheritance of CountedObject from all the classes
+     that had it -- now they include a CountedObject private member 
+     variable instead.  This was done only because all that private 
+     inheritance was cluttering up the DOxygen inheritance graphs.
+   o Added a DECLARE_COUNTED_OBJECT macro to CountedObject.h so that
+     any potential memory-overhead of CountedObjects can be eliminated 
+     in cases where object-counting is not desired.
+   o Removed support for the -DMUSCLE_AVOID_OBJECT_COUNTING and added
+     a -DMUSCLE_ENABLE_OBJECT_COUNTING macro in its place.  (That is,
+     the CountedObject class is now disabled-by-default and must be
+     explicitly enabled in order to use it)
+   o Added "MUSCLE by Example" documentation for MiscUtilityFunctions.{cpp,h}
+   * Changed a number of `tags` in the MUSCLE-by-Example MkDocs source
+     into [urls] so that the methods they mention can be quickly reviewed.
+   * server/Makefile now specifies libmuscle.a after the main() .o file.
+   * Fixed some gcc warnings in the tests folder (per Mika's suggestions)
+   * UnparseFile() wasn't quoting keywords with spaces properly.  Fixed.
+   * Fixed the dependencies in the "MUSCLE by Example" examples' Makefiles.
+
 6.81 Released 4/11/2018
    - Added a "StorageReflectSession Message Types" section
      to the "MUSCLE by Example" mkdocs pages

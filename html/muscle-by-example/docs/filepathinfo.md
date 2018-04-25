@@ -2,9 +2,10 @@
 
 ```#include "util/FilePathInfo.h"```
 
-* Given a file path, gathers and reports info about that file/directory
+[FilePathInfo](https://public.msli.com/lcs/muscle/html/classmuscle_1_1FilePathInfo.html) gathers and reports information about a given file/directory path.
+
 * Similar to: `QFileInfo`, `struct stat`
-* Info includes whether or not the file exists, the file's size, its creation timestamp, etc.
+* Info includes whether or not any entry exists at the given path, whether it's a file, directory, or symlink, the file's size, its creation-timestamp, etc.
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/filepathinfo` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 

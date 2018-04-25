@@ -93,13 +93,17 @@ public:
    virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) = 0;
 
 protected:
-    void SetSourceOfLastReadPacket(const IPAddressAndPort & packetSource) {_lastPacketReceivedFrom = packetSource;}
+   /** Set the value that should be returned by our GetSourceOfLastReadPacket() method.
+     * This method should typically be called from the subclasses Read() or ReadFrom() methods.
+     * @param packetSource the IPAddressAndPort value indicating where the most recently received packet came from.
+     */
+   void SetSourceOfLastReadPacket(const IPAddressAndPort & packetSource) {_lastPacketReceivedFrom = packetSource;}
 
-    /** Returns a read/write reference to our source-of-last-read-packet field. */
-    IPAddressAndPort & GetWritableSourceOfLastReadPacket() {return _lastPacketReceivedFrom;}
+   /** Returns a read/write reference to our source-of-last-read-packet field. */
+   IPAddressAndPort & GetWritableSourceOfLastReadPacket() {return _lastPacketReceivedFrom;}
 
 private:
-    IPAddressAndPort _lastPacketReceivedFrom;
+   IPAddressAndPort _lastPacketReceivedFrom;
 };
 DECLARE_REFTYPES(PacketDataIO);
 

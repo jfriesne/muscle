@@ -262,7 +262,8 @@ int main(int, char **)
          if (mmbuf)
          {
             MMFlattenMessage(mmsg, mmbuf);
-            for (uint32 i=0; i<mmBufSize; i++) printf("%02x ", mmbuf[i]); printf("\n");
+            for (uint32 i=0; i<mmBufSize; i++) printf("%02x ", mmbuf[i]);
+            printf("\n");
 
             mmsg2 = MMAllocMessage(0);
             if (mmsg2)
@@ -308,7 +309,8 @@ int main(int, char **)
          if (buf)
          {
             m.Flatten(buf);
-            for (uint32 i=0; i<bufSize; i++) printf("%02x ", buf[i]); printf("\n");
+            for (uint32 i=0; i<bufSize; i++) printf("%02x ", buf[i]);
+            printf("\n");
          }
       }
  

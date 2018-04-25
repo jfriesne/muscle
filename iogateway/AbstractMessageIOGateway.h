@@ -131,7 +131,7 @@ DECLARE_REFTYPES(QueueGatewayMessageReceiver);
  *  can convert bytes from the DataIO back into Messages and pass them up to an 
  *  AbstractGatewayMessageReceiver object for processing by the high-level code.
  */
-class AbstractMessageIOGateway : public RefCountable, public AbstractGatewayMessageReceiver, public PulseNode, private CountedObject<AbstractMessageIOGateway>, private NotCopyable
+class AbstractMessageIOGateway : public RefCountable, public AbstractGatewayMessageReceiver, public PulseNode, private NotCopyable
 {
 public:
    /** Default Constructor. */
@@ -360,6 +360,8 @@ private:
    bool _flushOnEmpty;
 
    friend class ReflectServer;
+
+   DECLARE_COUNTED_OBJECT(AbstractMessageIOGateway);
 };
 DECLARE_REFTYPES(AbstractMessageIOGateway);
 

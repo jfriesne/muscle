@@ -8,17 +8,13 @@ pages:
 
 - Core MUSCLE Classes:
    - String: 'string.md'
-   - StringTokenizer: 'stringtokenizer.md'
    - StringMatcher: 'stringmatcher.md'
+   - Queue: 'queue.md'
+   - Hashtable: 'hashtable.md'
    - Ref/RefCountable: 'refcount.md'
    - Flattenable/PseudoFlattenable: 'flattenable.md'
    - FlatCountable: 'flatcountable.md'
    - ByteBuffer: 'bytebuffer.md'
-   - Queue: 'queue.md'
-   - Hashtable: 'hashtable.md'
-   - FilePathInfo: 'filepathinfo.md'
-   - Directory: 'directory.md'
-   - SystemInfo: 'systeminfo.md'
    - NestCount/NestCountGuard: 'nestcount.md'
    - Message: 'message.md'
    - TimeUtilityFunctions: 'timeutilityfunctions.md'
@@ -48,6 +44,7 @@ pages:
    - RS232DataIO.h: 'rs232dataio.md'
    - SSLSocketDataIO.h: 'sslsocketdataio.md'
    - SimulatedMulticastDataIO.h: 'simulatedmulticastdataio.md'
+   - Win32FileHandleDataIO.h: 'win32filehandledataio.md'
 
 - Mid-Level AbstractMessageIOGateway API:
    - AbstractMessageIOGateway: 'abstractmessageiogateway.md'
@@ -87,7 +84,12 @@ pages:
    - MicroMessage: 'micromessage.md'
    - MicroMessageGateway: 'micromessagegateway.md'
 
-- Optional Support Classes:
+- Additional Support Classes:
+   - MiscUtilityFunctions: 'miscutilityfunctions.md'
+   - StringTokenizer: 'stringtokenizer.md'
+   - FilePathInfo: 'filepathinfo.md'
+   - Directory: 'directory.md'
+   - SystemInfo: 'systeminfo.md'
    - QueryFilter: 'queryfilter.md'
    - SignalHandlerSession: 'signalhandlersession.md'
    - DetectNetworkConfigChangesSession: 'detectnetworkconfigchangessession.md'

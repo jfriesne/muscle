@@ -11,7 +11,7 @@ namespace muscle {
 /**
  *  Data I/O to and from a UDP socket! 
  */
-class UDPSocketDataIO : public PacketDataIO, private CountedObject<UDPSocketDataIO>
+class UDPSocketDataIO : public PacketDataIO
 {
 public:
    /**
@@ -138,6 +138,8 @@ private:
 
    Queue<IPAddressAndPort> _sendTo;
    uint32 _maxPacketSize;
+
+   DECLARE_COUNTED_OBJECT(UDPSocketDataIO);
 };
 DECLARE_REFTYPES(UDPSocketDataIO);
 

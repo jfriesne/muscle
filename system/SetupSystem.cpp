@@ -1810,7 +1810,7 @@ uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int
    return h;
 }
 
-#ifndef MUSCLE_AVOID_OBJECT_COUNTING
+#ifdef MUSCLE_ENABLE_OBJECT_COUNTING
 
 static ObjectCounterBase * _firstObjectCounter = NULL;
 
@@ -1854,10 +1854,7 @@ ObjectCounterBase :: ~ObjectCounterBase()
 
 status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results)
 {
-#ifdef MUSCLE_AVOID_OBJECT_COUNTING
-   (void) results;
-   return B_ERROR;
-#else
+#ifdef MUSCLE_ENABLE_OBJECT_COUNTING
    Mutex * m = _muscleLock;
    if ((m==NULL)||(m->Lock() == B_NO_ERROR))
    {
@@ -1874,14 +1871,15 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results)
       return ret;
    }
    else return B_ERROR;
+#else
+   (void) results;
+   return B_ERROR;
 #endif
 }
 
 void PrintCountedObjectInfo()
 {
-#ifdef MUSCLE_AVOID_OBJECT_COUNTING
-   printf("Counted Object Info report not available, because MUSCLE was compiled with -DMUSCLE_AVOID_OBJECT_COUNTING\n");
-#else
+#ifdef MUSCLE_ENABLE_OBJECT_COUNTING
    Hashtable<const char *, uint32> table;
    if (GetCountedObjectInfo(table) == B_NO_ERROR)
    {
@@ -1890,6 +1888,8 @@ void PrintCountedObjectInfo()
       for (HashtableIterator<const char *, uint32> iter(table); iter.HasData(); iter++) printf("   %6" UINT32_FORMAT_SPEC_NOPERCENT " %s\n", iter.GetValue(), iter.GetKey());
    }
    else printf("PrintCountedObjectInfo:  GetCountedObjectInfo() failed!\n");
+#else
+   printf("Counted Object Info report not available, because MUSCLE was compiled without -DMUSCLE_ENABLE_OBJECT_COUNTING\n");
 #endif
 }
 
@@ -2099,8 +2099,8 @@ Queue<String> GetBuildFlags()
    q.AddTail("MUSCLE_AVOID_CHECK_THREAD_STACK_USAGE");
 #endif
 
-#ifdef MUSCLE_AVOID_OBJECT_COUNTING
-   q.AddTail("MUSCLE_AVOID_OBJECT_COUNTING");
+#ifdef MUSCLE_ENABLE_OBJECT_COUNTING
+   q.AddTail("MUSCLE_ENABLE_OBJECT_COUNTING");
 #endif
 
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE

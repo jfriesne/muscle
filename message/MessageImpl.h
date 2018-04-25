@@ -24,7 +24,7 @@ namespace muscle_message_imp {
 /** This class is a private part of the Message class's implementation.  User code should not access this class directly.
   * It is used to hold the values of a Message field that contains multiple values.
   */
-class AbstractDataArray : public FlatCountable, private CountedObject<AbstractDataArray>
+class AbstractDataArray : public FlatCountable
 {
 public:
    // Should add the given item to our internal field.
@@ -96,6 +96,9 @@ protected:
     *  guaranteed to equal those of this AbstractDataArray.  Called by IsEqualTo().
     */
    virtual bool AreContentsEqual(const AbstractDataArray * rhs) const = 0;
+
+private:
+   DECLARE_COUNTED_OBJECT(AbstractDataArray);
 };
 DECLARE_REFTYPES(AbstractDataArray);
 

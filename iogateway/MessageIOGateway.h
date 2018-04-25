@@ -49,7 +49,7 @@ typedef void (*MessageFlattenedCallback)(const MessageRef & msgRef, void * userD
  * An example flattened Message byte structure is provided at the bottom of the
  * MessageIOGateway.h header file.
  */
-class MessageIOGateway : public AbstractMessageIOGateway, private CountedObject<MessageIOGateway>
+class MessageIOGateway : public AbstractMessageIOGateway
 {
 public:
    /** 
@@ -299,6 +299,8 @@ private:
    NestCount _noRPCReply;
    int32 _syncPingCounter;
    int32 _pendingSyncPingCounter;
+
+   DECLARE_COUNTED_OBJECT(MessageIOGateway);
 };
 DECLARE_REFTYPES(MessageIOGateway);
 

@@ -75,7 +75,7 @@ enum {
   * It's exposed publically here only because certain (ahem) poorly written programs 
   * need to subclass it in order to be able to safely block until it has gone away.
   */
-class DrainTag : public RefCountable, private CountedObject<DrainTag>
+class DrainTag : public RefCountable
 {
 public:
    /** Constructor */
@@ -95,6 +95,8 @@ private:
 
    ThreadSupervisorSession * _notify;
    MessageRef _replyRef;
+
+   DECLARE_COUNTED_OBJECT(DrainTag);
 };
 DECLARE_REFTYPES(DrainTag);
 
@@ -102,7 +104,7 @@ DECLARE_REFTYPES(DrainTag);
   * ThreadWorkerSessions are added to a MessageTransceiverThread's held ReflectServer
   * object by the ThreadSupervisorSession on demand.
   */
-class ThreadWorkerSession : public StorageReflectSession, private CountedObject<ThreadWorkerSession>
+class ThreadWorkerSession : public StorageReflectSession
 {
 public:
    /** Constructor */
@@ -175,11 +177,13 @@ private:
 
    TamperEvidentValue<bool> _forwardAllIncomingMessagesToSupervisor;
    ThreadSupervisorSession * _supervisorSession;  // cached for efficiency
+
+   DECLARE_COUNTED_OBJECT(ThreadWorkerSession);
 };
 DECLARE_REFTYPES(ThreadWorkerSession);
 
 /** A factory class that returns new ThreadWorkerSession objects. */
-class ThreadWorkerSessionFactory : public StorageReflectSessionFactory, private CountedObject<ThreadWorkerSessionFactory>
+class ThreadWorkerSessionFactory : public StorageReflectSessionFactory
 {
 public:
    /** Default Constructor.  */
@@ -241,6 +245,8 @@ private:
    void SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(bool defaultValue);
 
    TamperEvidentValue<bool> _forwardAllIncomingMessagesToSupervisor;
+
+   DECLARE_COUNTED_OBJECT(ThreadWorkerSessionFactory);
 };
 DECLARE_REFTYPES(ThreadWorkerSessionFactory);
 
@@ -248,7 +254,7 @@ DECLARE_REFTYPES(ThreadWorkerSessionFactory);
   * held ReflectServer object.  It accepts commands from the MessageTransceiverThread object, and
   * routes messages to and from the ThreadWorkerSessions.
   */
-class ThreadSupervisorSession : public StorageReflectSession, private CountedObject<ThreadSupervisorSession>
+class ThreadSupervisorSession : public StorageReflectSession
 {
 public:
    /** Default Constructor */
@@ -317,6 +323,8 @@ private:
    Hashtable<DrainTag *, Void> _drainTags;
    String _defaultDistributionPath;
    MessageTransceiverThread * _mtt;
+
+   DECLARE_COUNTED_OBJECT(ThreadSupervisorSession);
 };
 DECLARE_REFTYPES(ThreadSupervisorSession);
 
@@ -328,7 +336,7 @@ DECLARE_REFTYPES(ThreadSupervisorSession);
   * @see BMessageTransceiverThread for use with BeOS APIs
   * @see QMessageTransceiverThread for use with Qt's APIs
   */
-class MessageTransceiverThread : public Thread, private CountedObject<MessageTransceiverThread>
+class MessageTransceiverThread : public Thread
 {
 public:
    /** Constructor */
@@ -736,6 +744,8 @@ private:
    ConstByteBufferRef _publicKey;
 #endif
    bool _forwardAllIncomingMessagesToSupervisor;
+
+   DECLARE_COUNTED_OBJECT(MessageTransceiverThread);
 };
 
 } // end namespace muscle

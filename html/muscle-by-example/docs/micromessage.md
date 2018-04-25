@@ -2,7 +2,7 @@
 
 ```#include "micromessage/MicroMessage.h"```
 
-* C-only implementation of the MUSCLE `Message` class
+* C-only implementation of the MUSCLE [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) class
 * Flattened-data format is 100% compatible with the C++ implementation (i.e. can be used to communicate with C++ based MUSCLE programs)
 * Never uses the heap
 * Never converts data from 'raw flattened bytes' to a `MicroMessage` object or back
@@ -14,7 +14,7 @@
 
 Try compiling and running the \*micro\*.c programs in `muscle/test` (enter `make` to compile everything in the test folder, then run ./microchatclient and/or ./microreflectclient from the command line)
 
-Quick links to source code of relevant test programs:
+Quick links to source code of relevant MUSCLE-by-example programs:
 
 * [muscle/test/microchatclient.c](https://public.msli.com/lcs/muscle/muscle/test/microchatclient.c)
 * [muscle/test/microreflectclient.c](https://public.msli.com/lcs/muscle/muscle/test/microreflectclient.c)

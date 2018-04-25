@@ -2,10 +2,12 @@
 
 ```#include "iogateway/SignalMessageIOGateway.h"```
 
+[SignalMessageIOGateway](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SignalHandlerSession.html) is a "dummy gateway" used solely for thread-to-thread signalling purposes.
+
 * This gateway isn't really used to transmit data; instead it is only used to send "nudges"
-* If one or more `Message` objects are sent to this gateway by its owner, this gateway will push a single 'notification byte' to its `DataIO` object.
-* If one or more bytes are received from the `DataIO` object, this gateway will pass a single 'notification Message' up to its owning session.
-* This gateway is used primarily for inter-thread communication (specifically, the internal thread of a `Thread` object sends a notification-message to the master thread telling it to go ahead and check its reply-Queue for new Messages, and vice-versa).  The actual inter-thread Message data itself is never sent through the gateway, since data serialization/deserialization is an avoidable and unnecessary expense when communicating between threads in the same process.
+* Whenever one or more [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) objects are sent to this gateway by its owner, this gateway will push a single 'notification byte' to its [DataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataIO.html) object.
+* Whenever one or more bytes are received from the [DataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataIO.html) object, this gateway will pass a single 'notification [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html)' up to its owning session.
+* This gateway is used primarily for inter-thread communication (specifically, the internal thread of a [Thread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Thread.html) object sends a notification-message to the master thread telling it to go ahead and check its reply-Queue for new [Messages](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html), and vice-versa).  The actual inter-thread [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) data itself is never sent through the gateway, since [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) serialization/deserialization is an unnecessary and avoidable expense when communicating between two threads in the same process.
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/iogateway` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 

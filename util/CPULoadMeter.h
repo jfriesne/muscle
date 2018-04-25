@@ -15,7 +15,7 @@ namespace muscle {
   * To use this class, just instantiate a CPULoadMeter object, and then call
   * GetCPULoad() every so often (e.g. whenever you want to update your CPU load display)
   */
-class CPULoadMeter MUSCLE_FINAL_CLASS : private CountedObject<CPULoadMeter>
+class CPULoadMeter MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor */
@@ -51,6 +51,8 @@ private:
    GetSystemTimesProc _getSystemTimesProc;
    HMODULE _winKernelLib;
 #endif
+
+   DECLARE_COUNTED_OBJECT(CPULoadMeter);
 };
 
 } // end namespace muscle

@@ -10,7 +10,7 @@ namespace muscle {
 /**
  *  Data I/O to and from a Win32 style file descriptor 
  */
-class Win32FileHandleDataIO : public SeekableDataIO, private CountedObject<Win32FileHandleDataIO>
+class Win32FileHandleDataIO : public SeekableDataIO
 {
 public:
    /**
@@ -89,6 +89,8 @@ public:
 
 private:
    ::HANDLE _handle;
+
+   DECLARE_COUNTED_OBJECT(Win32FileHandleDataIO);
 };
 DECLARE_REFTYPES(Win32FileHandleDataIO);
 

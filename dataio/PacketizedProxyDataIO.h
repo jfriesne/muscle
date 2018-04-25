@@ -21,7 +21,7 @@ namespace muscle {
  *
  * You might use this class to simulate a lossless UDP connection by "tunneling" UDP over TCP.
  */
-class PacketizedProxyDataIO : public ProxyDataIO, private CountedObject<PacketizedProxyDataIO>
+class PacketizedProxyDataIO : public ProxyDataIO
 {
 public:
    /**
@@ -55,6 +55,8 @@ private:
   
    ByteBuffer _outputBuffer;
    uint32 _outputBufferBytesSent;
+
+   DECLARE_COUNTED_OBJECT(PacketizedProxyDataIO);
 };
 DECLARE_REFTYPES(PacketizedProxyDataIO);
 

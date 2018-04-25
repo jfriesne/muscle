@@ -20,7 +20,7 @@ namespace muscle {
  *  will have the same signal-handling semantics as that class.
  *  In all other respects it works like a SignalHandler object.
  */
-class QSignalHandler : public QObject, public ISignalHandler, private CountedObject<QSignalHandler>
+class QSignalHandler : public QObject, public ISignalHandler
 {
    Q_OBJECT
 
@@ -49,6 +49,8 @@ private:
    ConstSocketRef _mainThreadSocket;
    ConstSocketRef _handlerFuncSocket;
    QSocketNotifier * _socketNotifier;   
+
+   DECLARE_COUNTED_OBJECT(QSignalHandler);
 };
 
 }  // end namespace muscle

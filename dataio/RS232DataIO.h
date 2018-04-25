@@ -15,7 +15,7 @@ namespace muscle {
  *  only minimal control of the serial parameters (baud rate only at the moment).
  *  On the plus side, it provides a serial-port-socket for use with select(), even under Windows.
  */
-class RS232DataIO : public DataIO, private CountedObject<RS232DataIO>
+class RS232DataIO : public DataIO
 {
 public:
    /** Constructor.
@@ -82,6 +82,8 @@ private:
 #else
    ConstSocketRef _handle;
 #endif
+
+   DECLARE_COUNTED_OBJECT(RS232DataIO);
 };
 DECLARE_REFTYPES(RS232DataIO);
 

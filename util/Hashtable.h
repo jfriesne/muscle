@@ -22,7 +22,7 @@
 #endif
 
 #ifndef MUSCLE_HASHTABLE_DEFAULT_CAPACITY
-/** The number of key/value-pairs in the array an empty Hashtable object allocates from the heap the first time data is inserted into it.  Note that 8 is an awkward size because it means that after a few doublings, the table will be of size 256, which is just slightly too large to use with uint-indices, since ((uint8)-1) is used as a guard value.  That's why this defaults to 7 rather than 8. */
+/** The number of key/value-pairs in the array an empty Hashtable object allocates from the heap the first time data is inserted into it.  Note that 8 is an awkward size because it means that after 5 doublings, the table will be of size 256, which is just slightly too large to use with uint8-indices, since ((uint8)-1) is used as a guard value.  That's why this defaults to 7 rather than 8. */
 # define MUSCLE_HASHTABLE_DEFAULT_CAPACITY 7
 #endif
 
@@ -558,7 +558,7 @@ public:
    /** Computes the average number of key-comparisons that will be required for
      * looking up the current contents of this table.  
      * Note that this method iterates over the entire table, so it should only
-     * be called when performance is not important (e.g. when debugging hash functions)
+     * be called when performance is not important (e.g. when trying to debug/optimize a hash function)
      * @param printStatistics If true, text describing the table's layout will be printed to stdout also.
      * @returns The average number of key-comparisons needed to find an item in this table, given its current contents.
      */
@@ -588,8 +588,8 @@ public:
      */
    void SortByValue(void * optCompareCookie = NULL) {SortByValue(CompareFunctor<ValueType>(), optCompareCookie);}
 
-   /** Returns true iff auto-sort is currently enabled on this Hashtable.  Note that auto-sort only has an effect on
-     * OrderedKeysHashtable and OrderedValuesHashtable objects;  for plain Hashtable objects it has no effect.
+   /** Returns true iff auto-sort is currently enabled on this Hashtable.  Note that the auto-sort flag only has any
+     * effect on OrderedKeysHashtable and OrderedValuesHashtable objects;  for plain Hashtable objects it has no effect.
      */
    bool GetAutoSortEnabled() const {return _autoSortEnabled;}
 
@@ -701,7 +701,7 @@ public:
      * default-constructed Value object if the specified key is not present in this Hashtable.  
      * That is to say, calling myTable[5] is equivalent to calling myTable.GetWithDefault(5).
      * @param key A key whose associated value we wish to look up.
-     * @returns the associated value, or a default value if (key) wasn't present in this Hashtable.
+     * @returns a reference to the associated value, or to a default-constructed value if (key) wasn't present in this Hashtable.
      */
    const ValueType & operator[](const KeyType & key) const {return GetWithDefault(key);}
 
@@ -839,7 +839,7 @@ public:
    /** Returns a reference to a default-constructed Value item.  The reference will remain valid for as long as this Hashtable is valid. */
    const ValueType & GetDefaultValue() const {return GetDefaultObjectForType<ValueType>();}
 
-   /** Returns the number of bytes of memory taken up by this Hashtable's data */
+   /** Returns the number of bytes of memory taken up by this Hashtable and its data and metadata */
    uint32 GetTotalDataSize() const 
    {
       uint32 sizePerItem = 0;

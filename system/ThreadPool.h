@@ -83,7 +83,7 @@ private:
   * This class is Thread-safe, in that you can have IThreadPoolClients using it from different
   * threads simultaneously, and it will still work as expected.
   */
-class ThreadPool : private AbstractObjectRecycler, private CountedObject<ThreadPool>
+class ThreadPool : private AbstractObjectRecycler
 {
 public:
    /** Constructor. 
@@ -162,6 +162,8 @@ private:
    Hashtable<IThreadPoolClient *, Queue<MessageRef> > _pendingMessages;  // Messages ready to be sent to a pool Thread
    Hashtable<IThreadPoolClient *, Queue<MessageRef> > _deferredMessages; // Messages to be be sent to a pool Thread when the current Thread's Messages are done
    Hashtable<IThreadPoolClient *, ConstSocketRef> _waitingForCompletion; // Clients who are blocked in UnregisterClient() waiting for Messages to complete processing
+
+   DECLARE_COUNTED_OBJECT(ThreadPool);
 };
 
 } // end namespace muscle

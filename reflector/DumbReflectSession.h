@@ -33,7 +33,7 @@ enum {
  *  This class implements a simple "reflect-all-messages-to-all-clients"
  *  message forwarding strategy, but may be subclassed to perform more complex message routing logic.
  */
-class DumbReflectSession : public AbstractReflectSession, private CountedObject<DumbReflectSession>
+class DumbReflectSession : public AbstractReflectSession
 {
 public:
    /** Default constructor. */
@@ -73,6 +73,8 @@ public:
 
 private:
    uint32 _defaultRoutingFlags;
+
+   DECLARE_COUNTED_OBJECT(DumbReflectSession);
 };
 DECLARE_REFTYPES(DumbReflectSession);
 

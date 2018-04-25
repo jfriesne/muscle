@@ -14,7 +14,7 @@ namespace muscle {
 class MemoryAllocator;
 
 /** Interface class representing an object that can allocate and free blocks of memory. */
-class MemoryAllocator : public RefCountable, private CountedObject<MemoryAllocator>
+class MemoryAllocator : public RefCountable
 {
 public:
    /** Default constructor; no-op */
@@ -77,6 +77,8 @@ public:
 
 private:
    bool _hasAllocationFailed;
+
+   DECLARE_COUNTED_OBJECT(MemoryAllocator);
 };
 DECLARE_REFTYPES(MemoryAllocator);
 

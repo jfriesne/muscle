@@ -11,7 +11,7 @@
 namespace muscle {
  
 /** Abstract base class for any object that can perform basic data I/O operations.  */
-class DataIO : public RefCountable, private CountedObject<DataIO>, private NotCopyable
+class DataIO : public RefCountable, private NotCopyable
 {
 public:
    /** Default Constructor */
@@ -141,6 +141,9 @@ public:
      *         This will be equal to (size).  On failure, it will be a smaller value.
      */
    uint32 ReadFully(void * buffer, uint32 size);
+
+private:
+   DECLARE_COUNTED_OBJECT(DataIO);
 };
 DECLARE_REFTYPES(DataIO);
 

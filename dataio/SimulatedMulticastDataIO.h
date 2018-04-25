@@ -18,7 +18,7 @@ namespace muscle {
  *  On wired networks you are probably better off using actual multicast packets instead,
  *  since wired networks handle multicast traffic much more elegantly.
  */
-class SimulatedMulticastDataIO : public PacketDataIO, private Thread, private CountedObject<SimulatedMulticastDataIO>
+class SimulatedMulticastDataIO : public PacketDataIO, private Thread
 {
 public:
    /**
@@ -93,6 +93,8 @@ private:
    UDPSocketDataIORef _udpDataIOs[NUM_SMDIO_SOCKET_TYPES];
    bool _isUnicastSocketRegisteredForWrite;
    Hashtable<IPAddressAndPort, Queue<ConstByteBufferRef> > _outgoingPacketsTable;
+
+   DECLARE_COUNTED_OBJECT(SimulatedMulticastDataIO);
 };
 DECLARE_REFTYPES(SimulatedMulticastDataIO);
 

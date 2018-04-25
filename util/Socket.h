@@ -16,7 +16,7 @@ namespace muscle {
   * object (and thereby automatically close its held file descriptor) when the file 
   * descriptor is no longer needed for anything.
   */
-class Socket : public RefCountable, public CountedObject<Socket>, private NotCopyable
+class Socket : public RefCountable, private NotCopyable
 {
 public:
    /** Default constructor. */
@@ -62,6 +62,8 @@ private:
 
    int _fd;
    bool _okayToClose;
+
+   DECLARE_COUNTED_OBJECT(Socket);
 };
 
 /** ConstSocketRef is subclassed rather than typedef'd so that I can override the == and != operators
