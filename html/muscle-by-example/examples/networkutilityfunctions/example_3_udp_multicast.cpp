@@ -1,4 +1,6 @@
-#include <unistd.h>  // for getpid()
+#ifndef WIN32
+# include <unistd.h>  // for getpid()
+#endif
 
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "util/NetworkInterfaceInfo.h"
@@ -71,8 +73,11 @@ int main(int argc, char ** argv)
       else LogTime(MUSCLE_LOG_ERROR, "Unable to bind the UDP socket for scope %i!\n", scopeID);
    }
 
-
+#ifdef WIN32
+   const int pid = (int)GetCurrentProcessId();
+#else
    const int pid = (int) getpid();
+#endif
    LogTime(MUSCLE_LOG_INFO, "Multicast event loop begins -- this is process #%i.\n", pid);
 
    uint64 nextPingTime = GetRunTime64();

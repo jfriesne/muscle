@@ -389,6 +389,56 @@ MathSetupSystem :: ~MathSetupSystem()
    // empty
 }
 
+#if defined(__BEOS__) || defined(__HAIKU__)
+   // empty
+#elif defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
+   // empty
+#elif defined(WIN32)
+static Mutex _rtMutex;  // used for serializing access inside GetRunTime64Aux(), if necessary
+# if defined(MUSCLE_USE_QUERYPERFORMANCECOUNTER)
+static uint64 _qpcTicksPerSecond = 0;
+# endif
+#elif defined(__APPLE__)
+static mach_timebase_info_data_t _machTimebase = {0,0};
+#elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
+   // empty
+#else
+static Mutex _rtMutex;  // used for serializing access inside GetRunTime64Aux(), if necessary
+static clock_t _posixTicksPerSecond = 0;
+#endif
+
+static void InitClockFrequency()
+{
+#if defined(__BEOS__) || defined(__HAIKU__)
+   // empty
+#elif defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
+   // empty
+#elif defined(WIN32)
+# if defined(MUSCLE_USE_QUERYPERFORMANCECOUNTER)
+   LARGE_INTEGER tps;
+   if (QueryPerformanceFrequency(&tps)) _qpcTicksPerSecond = tps.QuadPart;
+                                   else MCRASH("QueryPerformanceFrequency() failed!");
+# endif
+#elif defined(__APPLE__)
+   if ((mach_timebase_info(&_machTimebase) != KERN_SUCCESS)||(_machTimebase.denom <= 0)) MCRASH("mach_timebase_info() failed!");
+#elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
+   // empty
+#else
+   _posixTicksPerSecond = sysconf(_SC_CLK_TCK);
+   if (_posixTicksPerSecond < 0) MCRASH("sysconf(_SC_CLK_TCK) failed!");
+#endif
+}
+
+TimeSetupSystem :: TimeSetupSystem()
+{
+   InitClockFrequency();
+}
+
+TimeSetupSystem :: ~TimeSetupSystem()
+{
+   // empty
+}
+
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
 /** Gotta do a custom data structure because we can't use the standard new/delete/muscleAlloc()/muscleFree() memory operators,
   * because to do so would cause an infinite regress if they call Mutex::Lock() or Mutex::Unlock() (which they do)
@@ -661,28 +711,20 @@ static uint64 GetRunTime64Aux()
    return rt_timer_tsc2ns(rt_timer_tsc())/1000;
 #elif defined(WIN32)
    uint64 ret = 0;
-   static Mutex _rtMutex;
    if (_rtMutex.Lock() == B_NO_ERROR)
    {
 # ifdef MUSCLE_USE_QUERYPERFORMANCECOUNTER
+      if (_qpcTicksPerSecond == 0) InitClockFrequency();  // in case we got called before main()
+
       static int64 _brokenQPCOffset = 0;
       if (_brokenQPCOffset != 0) ret = (((uint64)timeGetTime())*1000) + _brokenQPCOffset;
       else
       {
-         static bool _gotFrequency = false;
-         static uint64 _ticksPerSecond;
-         if (_gotFrequency == false)
-         {
-            LARGE_INTEGER tps;
-            _ticksPerSecond = (QueryPerformanceFrequency(&tps)) ? tps.QuadPart : 0;
-            _gotFrequency = true;
-         }
-
          LARGE_INTEGER curTicks;
-         if ((_ticksPerSecond > 0)&&(QueryPerformanceCounter(&curTicks)))
+         if ((_qpcTicksPerSecond > 0)&&(QueryPerformanceCounter(&curTicks)))
          {
             uint64 checkGetTime = ((uint64)timeGetTime())*1000;
-            ret = (curTicks.QuadPart*MICROS_PER_SECOND)/_ticksPerSecond;
+            ret = (curTicks.QuadPart*MICROS_PER_SECOND)/_qpcTicksPerSecond;
 
             // Hack-around for evil Windows/hardware bug in QueryPerformanceCounter().
             // see http://support.microsoft.com/default.aspx?scid=kb;en-us;274323
@@ -718,10 +760,8 @@ static uint64 GetRunTime64Aux()
    }
    return ret;
 #elif defined(__APPLE__)
-   static bool _init = true;
-   static mach_timebase_info_data_t _timebase;
-   if (_init) {_init = false; (void) mach_timebase_info(&_timebase);}
-   return (uint64)((mach_absolute_time() * _timebase.numer) / (1000 * _timebase.denom));
+   if (_machTimebase.denom == 0) InitClockFrequency();  // in case we got called before main()
+   return (uint64)((mach_absolute_time() * _machTimebase.numer) / (1000 * _machTimebase.denom));
 #elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY) && defined(MUSCLE_POWERPC_TIMEBASE_HZ)
    while(1)
    {
@@ -740,37 +780,32 @@ static uint64 GetRunTime64Aux()
    return (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) ? (SecondsToMicros(ts.tv_sec)+NanosToMicros(ts.tv_nsec)) : 0; 
 #else
    // default implementation:  use POSIX API
-   static clock_t _ticksPerSecond = 0;
-   if (_ticksPerSecond <= 0) _ticksPerSecond = sysconf(_SC_CLK_TCK);
-   if (_ticksPerSecond > 0)
+   if (_posixTicksPerSecond <= 0) InitClockFrequency();  // in case we got called before main()
+   if (sizeof(clock_t) > sizeof(uint32)) 
    {
-      if (sizeof(clock_t) > 4) 
-      {
-         // Easy case:  with a wide clock_t, we don't need to worry about it wrapping
-         struct tms junk; clock_t newTicks = (clock_t) times(&junk);
-         return ((((uint64)newTicks)*MICROS_PER_SECOND)/_ticksPerSecond);
-      }
-      else
-      {
-         // Oops, clock_t is skinny enough that it might wrap.  So we need to watch for that.
-         static Mutex _rtMutex;
-         if (_rtMutex.Lock() == B_NO_ERROR)
-         {
-            static uint32 _prevVal;
-            static uint64 _wrapOffset = 0;
-            
-            struct tms junk; clock_t newTicks = (clock_t) times(&junk);
-            uint32 newVal = (uint32) newTicks;
-            if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
-            uint64 ret = ((_wrapOffset+newVal)*MICROS_PER_SECOND)/_ticksPerSecond;  // convert to microseconds
-            _prevVal = newTicks;
-
-            _rtMutex.Unlock();
-            return ret;
-         }
-      }
+      // Easy case:  with a wide clock_t, we don't need to worry about it wrapping
+      struct tms junk; clock_t newTicks = (clock_t) times(&junk);
+      return ((((uint64)newTicks)*MICROS_PER_SECOND)/_posixTicksPerSecond);
    }
-   return 0;  // Oops?
+   else
+   {
+      // Oops, clock_t is skinny enough that it might wrap.  So we need to watch for that.
+      if (_rtMutex.Lock() == B_NO_ERROR)
+      {
+         static uint32 _prevVal;
+         static uint64 _wrapOffset = 0;
+         
+         struct tms junk; clock_t newTicks = (clock_t) times(&junk);
+         uint32 newVal = (uint32) newTicks;
+         if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
+         uint64 ret = ((_wrapOffset+newVal)*MICROS_PER_SECOND)/_posixTicksPerSecond;  // convert to microseconds
+         _prevVal = newTicks;
+
+         _rtMutex.Unlock();
+         return ret;
+      }
+      else return 0;  // Oops?
+   }
 #endif
 }
 

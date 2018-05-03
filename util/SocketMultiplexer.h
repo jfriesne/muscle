@@ -91,11 +91,11 @@ public:
    inline status_t RegisterSocketForEventsByTypeIndex(int fd, uint32 whichSet) {return GetCurrentFDState().RegisterSocket(fd, whichSet);}
 
    /** Blocks until at least one of the events specified in previous RegisterSocketFor*()
-     * calls becomes valid, or for (optMaxWaitTimeMicros) microseconds, whichever comes first.
+     * calls becomes valid, or until (timeoutAtTime), whichever comes first.
      * @note All socket-registrations will be cleared after this method call returns.  You will typically 
      *       want to re-register them (by calling RegisterSocketFor*() again) before calling WaitForEvents() again.
-     * @param timeoutAtTime The time to return 0 at if no events occur before then, or MUSCLE_TIME_NEVER
-     *                      if not timeout is desired.  Uses the sameDefaults to MUSCLE_TIME_NEVER.
+     * @param timeoutAtTime The time to return 0 at, if no events occur before then, or MUSCLE_TIME_NEVER
+     *                      if no timeout is desired.  Defaults to MUSCLE_TIME_NEVER.
      *                      Specifying 0 (or any other value not greater than the current value returned
      *                      by GetRunTime64()) will effect a poll, guaranteed to return immediately.
      * @returns The number of socket-registrations that indicated that they are currently ready, 

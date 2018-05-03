@@ -31,8 +31,7 @@ protected:
          return;
       }
 
-      const int myVal = rand()%1000;
-
+      const int myVal = muscleAbs(((int)((uintptr)this))%10000);  // pick a value that is per-thread unique
       printf("Thread %p setting my _perThreadVariable value to %i\n", this, myVal);
       *myInt = myVal;
 

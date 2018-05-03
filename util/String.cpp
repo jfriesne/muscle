@@ -11,7 +11,98 @@
 
 namespace muscle {
 
-void String::ClearAndFlush()
+const char * StrcasestrEx(const char * haystack, uint32 haystackLen, const char * needle, uint32 needleLen, bool searchBackwards)
+{
+   if ((haystack==NULL)||(needle==NULL)) return NULL;
+
+   if (haystackLen >= needleLen)
+   {
+      const uint32 searchLen = haystackLen-(needleLen-1);
+      if (searchBackwards)
+      {
+         for (int32 i=(searchLen-1); i>=0; i--) if (Strncasecmp(haystack+i, needle, needleLen) == 0) return haystack+i;
+      }
+      else
+      {
+         for (uint32 i=0; i<searchLen; i++) if (Strncasecmp(haystack+i, needle, needleLen) == 0) return haystack+i;
+      }
+   }
+   return NULL;
+}
+
+const char * Strcasestr(const char * haystack, const char * needle)
+{
+#ifdef WIN32
+   return StrcasestrEx(haystack, (uint32)strlen(haystack), needle, (uint32)strlen(needle), false);
+#else
+   return strcasestr(haystack, needle);
+#endif
+}
+
+int String :: IndexOfIgnoreCase(char ch, uint32 f) const
+{
+   const char lowerChar = (char) tolower(ch);
+   const char upperChar = (char) toupper(ch);
+   if (lowerChar == upperChar) return IndexOf(ch, f);
+   else
+   {
+      const char * p = Cstr();
+      for (uint32 i=f; i<Length(); i++) if ((p[i] == lowerChar)||(p[i] == upperChar)) return i;
+      return -1;
+   }
+}
+
+int String :: IndexOfIgnoreCase(const String & s, uint32 f) const 
+{
+   const char * p = (f<Length())?StrcasestrEx(Cstr()+f, Length()-f, s(), s.Length(), false):NULL; 
+   return p?(int)(p-Cstr()):-1;
+}
+
+int String :: IndexOfIgnoreCase(const char * s, uint32 f) const 
+{
+   if (s==NULL) s=""; 
+
+   const char * p = (f<Length()) ? StrcasestrEx(Cstr()+f, Length()-f, s, (uint32)strlen(s), false) : NULL; 
+   return p ? ((int)(p-Cstr())): -1;
+}
+
+int String :: LastIndexOfIgnoreCase(const String & s, uint32 f) const 
+{ 
+   const char * p = (f<Length()) ? StrcasestrEx(Cstr()+f, Length()-f, s(), s.Length(), true) : NULL;
+   return p ? ((int)(p-Cstr())) : -1;
+}
+
+int String :: LastIndexOfIgnoreCase(const char * s, uint32 f) const 
+{
+   if (s==NULL) s="";
+
+   const char * p = (f<Length()) ? StrcasestrEx(Cstr()+f, Length()-f, s, (uint32)strlen(s), true) : NULL;
+   return p ? ((int)(p-Cstr())) : -1;
+}
+
+int String :: LastIndexOfIgnoreCase(char ch, uint32 f) const
+{
+   const char lowerChar = (char) tolower(ch);
+   const char upperChar = (char) toupper(ch);
+   if (lowerChar == upperChar) return LastIndexOf(ch, f);
+   else
+   {
+      const char * p = Cstr();
+      for (int32 i=((int32)Length())-1; i>=(int32)f; i--) if ((p[i] == lowerChar)||(p[i] == upperChar)) return i;
+      return -1;
+   }
+}
+
+bool String :: EndsWithIgnoreCase(const char * s) const 
+{
+   if (s==NULL) s=""; 
+
+   const uint32 slen = (uint32) strlen(s); 
+   return ((Length() >= slen)&&(Strcasecmp(Cstr()+(Length()-slen), s) == 0));
+}
+
+
+void String :: ClearAndFlush()
 {
    if (IsArrayDynamicallyAllocated()) muscleFree(_strData._bigBuffer);
    ClearSmallBuffer();
@@ -19,7 +110,7 @@ void String::ClearAndFlush()
    _length = 0; 
 }
 
-status_t String::SetFromString(const String & s, uint32 firstChar, uint32 afterLastChar)
+status_t String :: SetFromString(const String & s, uint32 firstChar, uint32 afterLastChar)
 {
    afterLastChar = muscleMin(afterLastChar, s.Length());
    uint32 len = (afterLastChar > firstChar) ? (afterLastChar-firstChar) : 0;
@@ -37,7 +128,7 @@ status_t String::SetFromString(const String & s, uint32 firstChar, uint32 afterL
    return B_NO_ERROR;
 }
 
-status_t String::SetCstr(const char * str, uint32 maxLen)
+status_t String :: SetCstr(const char * str, uint32 maxLen)
 {
    // If (str)'s got a NUL byte before maxLen, make (maxLen) smaller.
    // We can't call strlen(str) because we don't have any guarantee that the NUL 
@@ -61,7 +152,7 @@ status_t String::SetCstr(const char * str, uint32 maxLen)
 }
 
 String &
-String::operator+=(const String &other)
+String :: operator+=(const String &other)
 {
    uint32 otherLen = other.Length();  // save this value first, in case (&other==this)
    if ((otherLen > 0)&&(EnsureBufferSize(Length()+otherLen+1, true, false) == B_NO_ERROR))
@@ -73,7 +164,7 @@ String::operator+=(const String &other)
 }
 
 String &
-String::operator+=(const char * other)
+String :: operator+=(const char * other)
 {
    if (other == NULL) other = "";
    uint32 otherLen = (uint32) strlen(other);
@@ -89,7 +180,7 @@ String::operator+=(const char * other)
    return *this;
 }
 
-String & String::operator-=(const char aChar)
+String & String :: operator-=(const char aChar)
 {
    int idx = LastIndexOf(aChar);
    if (idx >= 0)
@@ -101,7 +192,7 @@ String & String::operator-=(const char aChar)
    return *this;
 }
 
-String & String::operator-=(const String &other)
+String & String :: operator-=(const String &other)
 {
         if (*this == other) Clear();
    else if (other.HasChars())
@@ -118,7 +209,7 @@ String & String::operator-=(const String &other)
    return *this;
 }
 
-String & String::operator-=(const char * other)
+String & String :: operator-=(const char * other)
 {
    int otherLen = ((other)&&(*other)) ? (int)strlen(other) : 0;
    if (otherLen > 0)
@@ -135,27 +226,27 @@ String & String::operator-=(const char * other)
    return *this;
 }
 
-String & String::operator<<(int rhs)
+String & String :: operator<<(int rhs)
 {
    char buff[64];
    muscleSprintf(buff, "%d", rhs);
    return *this << buff;
 }
 
-String & String::operator<<(float rhs)
+String & String :: operator<<(float rhs)
 {
    char buff[64];
    muscleSprintf(buff, "%.2f", rhs);
    return *this << buff;
 }
 
-String & String::operator<<(bool rhs)
+String & String :: operator<<(bool rhs)
 {
    const char * val = rhs ? "true" : "false"; 
    return *this << val;
 }
  
-void String::Reverse()
+void String :: Reverse()
 {
    if (HasChars())
    {
@@ -166,7 +257,7 @@ void String::Reverse()
    }
 }
 
-uint32 String::Replace(char findChar, char replaceChar, uint32 maxReplaceCount)
+uint32 String :: Replace(char findChar, char replaceChar, uint32 maxReplaceCount)
 {
    uint32 ret = 0; 
    if (findChar != replaceChar)
@@ -193,7 +284,7 @@ String String :: WithReplacements(char replaceMe, char withMe, uint32 maxReplace
    return ret;
 }
 
-int32 String::Replace(const String & replaceMe, const String & withMe, uint32 maxReplaceCount)
+int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 maxReplaceCount)
 {
    TCHECKPOINT;
 
@@ -265,7 +356,7 @@ String String :: WithReplacements(const String & replaceMe, const String & withM
    return ret;
 }
 
-int String::LastIndexOf(const String &s2, uint32 fromIndex) const
+int String :: LastIndexOf(const String &s2, uint32 fromIndex) const
 {
    TCHECKPOINT;
 
@@ -275,7 +366,7 @@ int String::LastIndexOf(const String &s2, uint32 fromIndex) const
    return -1;
 }
 
-int String::LastIndexOf(const char * s2, uint32 fromIndex) const
+int String :: LastIndexOf(const char * s2, uint32 fromIndex) const
 {
    TCHECKPOINT;
 
@@ -287,7 +378,7 @@ int String::LastIndexOf(const char * s2, uint32 fromIndex) const
    return -1;
 }
 
-String String::ToLowerCase() const
+String String :: ToLowerCase() const
 {
    String ret(*this);
    char * b = ret.GetBuffer();
@@ -295,7 +386,7 @@ String String::ToLowerCase() const
    return ret;
 }
 
-String String::ToMixedCase() const
+String String :: ToMixedCase() const
 {
    bool prevCharWasLetter = false;
    String ret(*this);
@@ -310,7 +401,7 @@ String String::ToMixedCase() const
    return ret;
 }
 
-String String::ToUpperCase() const
+String String :: ToUpperCase() const
 {
    String ret(*this);
    char * b = ret.GetBuffer();
@@ -318,7 +409,7 @@ String String::ToUpperCase() const
    return ret;
 }
  
-String String::Trim() const 
+String String :: Trim() const 
 {
    TCHECKPOINT;
 
@@ -565,7 +656,7 @@ static uint32 GetNextBufferSize(uint32 bufLen)
 // are available for storing data in.  (requestedBufLen) should include
 // the terminating NUL.  If (retainValue) is true, the current string value
 // will be retained; otherwise it should be set right after this call returns...
-status_t String::EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bool allowShrink)
+status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bool allowShrink)
 {
    if (allowShrink ? (requestedBufLen == _bufferLen) : (requestedBufLen <= _bufferLen)) return B_NO_ERROR;
 

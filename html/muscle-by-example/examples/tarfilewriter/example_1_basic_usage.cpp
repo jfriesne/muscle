@@ -13,7 +13,13 @@ static void PrintExampleDescription()
 
 static status_t WriteFakeFileDataToTarFile(TarFileWriter & writer, const char * fakeFileName)
 {
-   if (writer.WriteFileHeader(fakeFileName, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH, 0, 0, GetCurrentTime64(), TarFileWriter::TAR_LINK_INDICATOR_NORMAL_FILE, NULL) != B_NO_ERROR) return B_ERROR;
+#ifdef WIN32
+   const uint32 fileMode = 0777;  // Windows doesn't have the S_* macros defined :(
+#else
+   const uint32 fileMode = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
+#endif
+
+   if (writer.WriteFileHeader(fakeFileName, fileMode, 0, 0, GetCurrentTime64(), TarFileWriter::TAR_LINK_INDICATOR_NORMAL_FILE, NULL) != B_NO_ERROR) return B_ERROR;
 
    // Generate some fake data for our fake file to contain
    uint8 fakeDataBuf[1024];

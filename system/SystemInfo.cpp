@@ -129,7 +129,8 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
          if ((len > 0)&&(len < sizeof(buf)))
          {
             found = true;
-            PathRemoveFileSpecA(buf);
+            char * lastSlash = strrchr(buf, '\\');
+            if (lastSlash) *lastSlash = '\0';   // was: PathRemoveFileSpecA(buf), but it's not worth the linker-hassles for something this trivial
             outStr = buf;
          }
 #else

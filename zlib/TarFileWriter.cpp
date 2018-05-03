@@ -95,8 +95,8 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
       if (extraBytes != 0)
       {
          int64 numPadBytes = (TAR_BLOCK_SIZE-extraBytes);
-         uint8 zeros[TAR_BLOCK_SIZE]; memset(zeros, 0, numPadBytes);
-         if (_writerIO()->WriteFully(zeros, numPadBytes) != numPadBytes) return B_ERROR;
+         uint8 zeros[TAR_BLOCK_SIZE]; memset(zeros, 0, (size_t) numPadBytes);
+         if (_writerIO()->WriteFully(zeros, (uint32) numPadBytes) != (uint32) numPadBytes) return B_ERROR;
       }
 
       WriteOctalASCII(&_currentHeaderBytes[124], currentFileLength, 12);

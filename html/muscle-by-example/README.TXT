@@ -18,9 +18,11 @@ cd into the muscle/html/muscle-by-example/examples/* folders and enter "make" to
 compile the programs, then run them from the command line (e.g. "./example_1_basic_usage",
 etc).
 
-Note that while the MUSCLE toy programs can be compiled under any OS, the Makefiles that
-are included to compile them will work only under Linux and MacOS/X, for now -- Windows
-users are on their own for the time being.
+The MUSCLE toy programs can be compiled under any popular OS.  The Makefiles that
+are included to compile them will work under Linux and MacOS/X (and possibly
+other POSIX-y OS's too) -- if you want to compile under Windows, use Visual
+Studio 2015 (or later) and the project files in the examples\vc++14
+sub-directory, instead.
 
 If you'd like to generate your own HTML from the Markdown files in the "docs" folder,
 you can do so by installing the MkDocs python package (per the instructions at

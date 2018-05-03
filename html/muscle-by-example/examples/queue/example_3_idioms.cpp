@@ -19,7 +19,19 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   Queue<String> sq;  // sigh
+   sq.AddTail("Pear");
+   sq.AddTail("banana");
+   sq.AddTail("Apple");
+   sq.AddTail("orange");
+   sq.AddTail("grape");
+   sq.AddTail("Berry 31");
+   sq.AddTail("Berry 5");
+   sq.AddTail("Berry 12");
+#else
    Queue<String> sq = {"Pear", "banana", "Apple", "orange", "grape", "Berry 31", "Berry 5", "Berry 12"};
+#endif
 
    PrintQueue("Initial Queue state", sq);
 

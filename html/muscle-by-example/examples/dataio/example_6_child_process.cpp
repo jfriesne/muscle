@@ -24,7 +24,11 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   Queue<String> childArgv; (void) childArgv.AddTail("./example_2_tcp_server");  // support for pre-C++11 compilers
+#else
    Queue<String> childArgv = {"./example_2_tcp_server"};
+#endif
    ChildProcessDataIO cpIO(false);  // false == non-blocking
    if (cpIO.LaunchChildProcess(childArgv) != B_NO_ERROR)
    {

@@ -342,17 +342,21 @@ void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & lca);
   * returns a corresponding uint32 that represents a hash of that location.
   * The source code location can be later looked up by feeding this hash value
   * as a command line argument into the muscle/tests/findsourcecodelocations program.
+  * @param fileName the filename associated with the location (e.g. as returned by the __FILE__ macro)
+  * @param lineNumber the line number within the file.
   */
 uint32 GenerateSourceCodeLocationKey(const char * fileName, uint32 lineNumber);
 
 /** Given a source-code location key (as returned by GenerateSourceCodeLocationKey()),
   * returns the standard human-readable representation of that value.  (e.g. "7QF2")
+  * @param key the source-code-location-key, represented as a uint32.
   */
 String SourceCodeLocationKeyToString(uint32 key);
 
 /** Given a standard human-readable representation of a source-code-location
   * key (e.g. "7EF2"), returns the uint16 key value.  This is the inverse
   * function of SourceCodeLocationKeyToString().
+  * @param s the source-code-location-key, represented as a human-readable string.
   */
 uint32 SourceCodeLocationKeyFromString(const String & s);
 

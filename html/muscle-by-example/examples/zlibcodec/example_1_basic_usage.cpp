@@ -1,4 +1,5 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
+#include "util/ByteBuffer.h"
 #include "zlib/ZLibCodec.h"
 
 using namespace muscle;

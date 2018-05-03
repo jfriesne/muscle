@@ -50,8 +50,9 @@ This is a partial list -- the full list of result codes can be seen [here](https
     - An example of how a client might parse a [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) of this type follows:
 
 <pre>  
-   // This table holds the child-node-names-in-index-order list for each ordered-index-node
-   Hashtable<String, Queue<String> > indices;  // nodepath -> index
+   // This table holds the child-node-names-in-index-order list for each 
+   // ordered-index-node that the client is subscribed to
+   Hashtable&lt;String, Queue&lt;String&gt; &gt; indices;  // nodepath -> index
 
    void ParseIncomingIndexUpdatedMessage(const MessageRef & msg)
    {
@@ -72,15 +73,24 @@ This is a partial list -- the full list of result codes can be seen [here](https
             switch(nextInstruction()->Cstr()[0])
             {
                case INDEX_OP_CLEARED:  // a.k.a 'c'
-                  indices.Remove(parentNodePath);
+                  (void) indices.Remove(parentNodePath);
                break;
 
                case INDEX_OP_ENTRYINSERTED:   // a.k.a 'i'
-                  indices.GetOrPut(parentNodePath)->InsertItemAt(pos, childName);
+               {
+                  Queue&lt;String&gt; * idx = indices.GetOrPut(parentNodePath);
+                  if (idx) (void) idx->InsertItemAt(pos, childName);
+               }
                break;
  
                case INDEX_OP_ENTRYREMOVED:   // a.k.a 'r'
-                  indices.GetOrPut(parentNodePath)->RemoveItemAt(pos);
+               {
+                  Queue&lt;String&gt; * idx = indices.GetOrPut(parentNodePath);
+                  if ((idx)&&(idx->RemoveItemAt(pos) == B_NO_ERROR)&&(idx->IsEmpty()))
+                  {
+                     (void) indices.Remove(parentNodePath);
+                  }
+               }
                break;
             } 
          }

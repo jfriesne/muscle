@@ -21,6 +21,7 @@ namespace muscle {
   */
 const char * GetOSName(const char * defaultString = "Unknown");
 
+/** An enumeration of filesystem locations that can be passed to GetSystemPath() */
 enum {
    SYSTEM_PATH_CURRENT = 0, /**< our current working directory */
    SYSTEM_PATH_EXECUTABLE,  /**< directory where our process's executable binary is  */

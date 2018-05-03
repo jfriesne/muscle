@@ -85,7 +85,7 @@ myMessageTransceiverThread.SendMessageToSessions(getPMsg);
     - Read-only parameters (that were set by the server) cannot be deleted.
     - Here is an example invocation:
 <pre>
-MessageRef delPMsg = GetMessageFromPool(PR_COMMAND_GETPARAMETERS);
+MessageRef delPMsg = GetMessageFromPool(PR_COMMAND_REMOVEPARAMETERS);
 delPMsg()->AddString(PR_NAME_KEYS, "SUBSCRIBE:/\\\*/\\\*/node\\\*");  // cancel one specific subscription
 delPMsg()->AddString(PR_NAME_KEYS, "SUBSCRIBE:\*");  // cancel all my subscriptions!
 myMessageTransceiverThread.SendMessageToSessions(delPMsg);

@@ -124,6 +124,19 @@ public:
    virtual ~MathSetupSystem();
 };
 
+/** This SetupSystem handles initializing the system's 
+  * time-handling routines as necessary.
+  */
+class TimeSetupSystem : public SetupSystem
+{
+public:
+   /** Constructor. */
+   TimeSetupSystem();
+
+   /** Destructor. */
+   virtual ~TimeSetupSystem();
+};
+
 /** This SetupSystem just does some basic sanity checks
   * to ensure that the code was compiled in a way that
   * has some chance of working (e.g. it makes sure that
@@ -190,6 +203,7 @@ public:
    static CompleteSetupSystem * GetCurrentCompleteSetupSystem();
 
 private: 
+   TimeSetupSystem    _time;
    NetworkSetupSystem _network;
    ThreadSetupSystem  _threads;
    MathSetupSystem    _math;

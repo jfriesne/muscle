@@ -1,5 +1,4 @@
 #include <math.h>    // for sin()
-#include <unistd.h>  // for getpid()
 
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "util/TimeUtilityFunctions.h"

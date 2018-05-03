@@ -5,7 +5,7 @@
 A Thread-safe, lockless int32-counter
 
 * Similar to:  `std::atomic<int32>`, `InterlockedIncrement()/InterlockedDecrement()`, `OSAtomicIncrement32Barrier()/OSAtomicDecrement32Barrier()`
-* Used primarily by the [Ref](https://public.msli.com/lcs/muscle/html/singletonmuscle_1_1Ref.html)/[RefCountable](https://public.msli.com/lcs/muscle/html/classmuscle_1_1RefCountable.html) classes for implementing thread-safe shared pointers
+* Used primarily by the [Ref](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Ref.html)/[RefCountable](https://public.msli.com/lcs/muscle/html/classmuscle_1_1RefCountable.html) classes for implementing thread-safe shared pointers
 * Constructor initializes the counter to zero
 * [AtomicIncrement()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1AtomicCounter.html#abfaf1ffb8afea7f355c71680fb35a693) does an atomic-increment of the counter value, and returns true iff the counter's post-increment value is 1.
 * [AtomicDecrement()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1AtomicCounter.html#a912a1e8990ab05b13ad4934b91ecc00b) does an atomic-decrement of the counter value, and returns true iff the counter's post-decrement value is 0.

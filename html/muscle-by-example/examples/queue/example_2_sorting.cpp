@@ -34,13 +34,39 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   Queue<int> iq;  // sigh
+   iq.AddTail(3);
+   iq.AddTail(1);
+   iq.AddTail(4);
+   iq.AddTail(1);
+   iq.AddTail(5);
+   iq.AddTail(9);
+   iq.AddTail(2);
+   iq.AddTail(6);
+   iq.AddTail(2);
+#else
    Queue<int> iq = {3, 1, 4, 1, 5, 9, 2, 6, 2};
+#endif
+
    PrintQueue("int-Queue before sort", iq);
 
    iq.Sort();
    PrintQueue("int-Queue after sort", iq);
 
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   Queue<String> sq;  // sigh
+   sq.AddTail("Pear");
+   sq.AddTail("banana");
+   sq.AddTail("Apple");
+   sq.AddTail("orange");
+   sq.AddTail("grape");
+   sq.AddTail("Berry 31");
+   sq.AddTail("Berry 5");
+   sq.AddTail("Berry 12");
+#else
    Queue<String> sq = {"Pear", "banana", "Apple", "orange", "grape", "Berry 31", "Berry 5", "Berry 12"};
+#endif
 
    PrintQueue("String-Queue initial state", sq);
 

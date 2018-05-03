@@ -5,6 +5,30 @@ key:  - new feature
       * bug fixed
       o other
 
+6.83 Released 5/3/2018
+   - Rewrote the String::*IgnoreCase() methods to be more efficient
+     (they no longer call ToLowerCase()).
+   - Added Strcasestr() and StrcasestrEx() helper-functions to 
+     String.{cpp,h}.
+   - Added a vc++14 sub-directory to the muscle-by-example\examples
+     folder.  It contains a .sln, .vcxproj files, and a BUILD_ALL.bat
+     file, so that the "MUSCLE by Example" programs can be built 
+     using Visual Studio 2015 (or higher).
+   * Added some missing .c and .cpp files to the the Visual
+     Studio projects in the vc++14 folder so that the 
+     muscle-by-example example programs can all link.
+   o Improved the DOxygen-documentation and code-formatting in
+     String.{cpp,h} a bit.
+   o Modified several of the muscle-by-example example programs so 
+     that they will compile and run even when C++11 support isn't 
+     enabled.
+   o The Windows implementation of GetSystemPath() no longer calls
+     PathRemoveFileSpecA(), which means programs including 
+     GetSystemPath() will no longer need to link to Shlwapi.lib.
+   o Added a TimeSetupSystem class (part of CompleteSetupSystem)
+     so that GetRunTime64() doesn't have to demand-calculate
+     clock-frequencies on its first call.
+     
 6.82 Released 4/25/2018
    o tests/Makefile-mt no longer tries to compile testreflectsession
      except when executing on an OS that testreflectsession supports.

@@ -1,6 +1,6 @@
 TOPTARGETS := all clean
 
-SUBDIRS := $(wildcard */.)
+SUBDIRS := $(dir $(wildcard */Makefile))
 
 $(TOPTARGETS): $(SUBDIRS)
 $(SUBDIRS): libmuscle.a

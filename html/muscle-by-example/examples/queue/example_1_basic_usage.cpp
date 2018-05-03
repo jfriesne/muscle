@@ -18,7 +18,11 @@ int main(int argc, char ** argv)
 
    printf("Basic Queue declaration and appending:\n");
    {
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+      Queue<int> q; q.AddTail(1); q.AddTail(2); q.AddTail(3);  // support for pre-C++11 compilers
+#else
       Queue<int> q = {1, 2, 3};   // initial Queue contents
+#endif
       (void) q.AddTail(5);    // The (void) is just to indicate
       (void) q.AddTail(10);   // that I am deliberately ignoring
       (void) q.AddTail(15);   // the B_NO_ERROR/B_ERROR return
@@ -33,7 +37,11 @@ int main(int argc, char ** argv)
    printf("\n");
    printf("Basic Queue declaration and prepending:\n");
    {
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+      Queue<int> q; q.AddTail(1); q.AddTail(2); q.AddTail(3);  // support for pre-C++11 compilers
+#else
       Queue<int> q = {1, 2, 3};   // initial Queue contents
+#endif
       (void) q.AddHead(5);   // note we are adding each item 
       (void) q.AddHead(10);  // *before* the first item in the Queue!
       (void) q.AddHead(15);
@@ -48,7 +56,16 @@ int main(int argc, char ** argv)
    printf("\n");
    printf("FIFO demonstration:\n");
    {
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+      Queue<int> q; // support for pre-C++11 compilers
+      q.AddTail(101);
+      q.AddTail(102);
+      q.AddTail(103);
+      q.AddTail(104);
+      q.AddTail(105);
+#else
       Queue<int> q = {101, 102, 103, 104, 105};
+#endif
 
       printf("   Initial Queue contents:");
       for (uint32 j=0; j<q.GetNumItems(); j++)

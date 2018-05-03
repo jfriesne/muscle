@@ -56,13 +56,25 @@ class Rect;
 # define SMALL_MUSCLE_STRING_LENGTH 7
 #endif
 
-/** Same as strcmp(), except that it will sort numbers within the string numerically rather than lexically. */
+/** Same as strcmp(), except that it will sort numbers within the string numerically rather than lexically.
+  * @param s1 The first of the two strings to compare using the number-aware comparison algorithm.
+  * @param s2 The second of the two strings to compare using the number-aware comparison algorithm.
+  * @returns 0 if the two strings are equal, >0 if (s2) is the "later" string, or <0 if (s1) is the "later" string.
+  */
 int NumericAwareStrcmp(const char * s1, const char * s2);
 
-/** Same as NumericAwareStrcmp(), but case-insensitive. */
+/** Same as NumericAwareStrcmp(), but case-insensitive.
+  * @param s1 The first of the two strings to compare using the case-insensitive number-aware comparison algorithm.
+  * @param s2 The second of the two strings to compare using the case-insensitive number-aware comparison algorithm.
+  * @returns 0 if the two strings are equal, >0 if (s2) is the "later" string, or <0 if (s1) is the "later" string.
+  */
 int NumericAwareStrcasecmp(const char * s1, const char * s2);
 
-/** Wrapper for strcasecmp(), which isn't always named the same on all OS's */
+/** Wrapper for strcasecmp(), which isn't always named the same on all OS's
+  * @param s1 The first of the two strings to compare using the case-insensitive comparison algorithm.
+  * @param s2 The second of the two strings to compare using the case-insensitive comparison algorithm.
+  * @returns 0 if the two strings are equal, >0 if (s2) is the "later" string, or <0 if (s1) is the "later" string.
+  */
 inline int Strcasecmp(const char * s1, const char * s2)
 {
 #ifdef WIN32
@@ -72,7 +84,12 @@ inline int Strcasecmp(const char * s1, const char * s2)
 #endif
 }
 
-/** Wrapper for strncasecmp(), which isn't always named the same on all OS's */
+/** Wrapper for strncasecmp(), which isn't always named the same on all OS's
+  * @param s1 The first of the two strings to compare using the case-insensitive comparison algorithm.
+  * @param s2 The second of the two strings to compare using the case-insensitive comparison algorithm.
+  * @param n The maximum number of bytes to compare (any bytes after the (nth) byte in the strings will be ignored)
+  * @returns 0 if the two strings are equal, >0 if (s2) is the "later" string, or <0 if (s1) is the "later" string.
+  */
 inline int Strncasecmp(const char * s1, const char * s2, size_t n)
 {
 #ifdef WIN32
@@ -82,9 +99,28 @@ inline int Strncasecmp(const char * s1, const char * s2, size_t n)
 #endif
 }
 
+/** Wrapper for strcasestr(), which isn't always present on all OS's.
+  * @param haystack The string to search in
+  * @param needle The string to search for
+  * @returns a pointer to (needle), if it exists inside (haystack), or NULL if it doesn't.
+  * @note that the search is case-insensitive.
+  */
+const char * Strcasestr(const char * haystack, const char * needle);
+
+/** Extended wrapper for strcasestr(), which isn't always named the same on all OS's
+  * @param haystack The string to search in
+  * @param haystackLen The number of text-bytes that (haystack) is pointing to (i.e. strlen(haystack))
+  * @param needle The string to search for
+  * @param needleLen The number of text-bytes that (needle) is pointing to (i.e. strlen(needle))
+  * @param searchBackwards If set true, the last instance of (needle) in the (haystack) will be returned rather than the first.
+  * @returns a pointer to a (needle), if one exists inside (haystack), or NULL if it doesn't.
+  * @note that the search is case-insensitive.
+  */
+const char * StrcasestrEx(const char * haystack, uint32 haystackLen, const char * needle, uint32 needleLen, bool searchBackwards);
+
 /** An arbitrary-length character-string class.  Represents a dynamically resizable, NUL-terminated ASCII string.
   * This class can be used to hold UTF8-encoded strings as well, but because the code in this class is not 
-  * UTF8-aware, certain operations (such as Reverse() and ToLowerCase()) will not do the right thing when used in 
+  * UTF8-aware, certain operations (such as Reverse() and ToLowerCase()) may not do the right thing when used in 
   * conjunction with non-ASCII UTF8 data.
   */
 class String MUSCLE_FINAL_CLASS : public PseudoFlattenable
@@ -403,7 +439,7 @@ public:
    /** Returns true iff this string ends with (suffix) 
      * @param suffix a String to check for at the end of this String.
      */
-   bool EndsWith(const String & suffix) const {return (Length() < suffix.Length()) ? false : (strcmp(Cstr()+(Length()-suffix.Length()), suffix.Cstr()) == 0);}
+   bool EndsWith(const String & suffix) const {return ((Length() >= suffix.Length())&&(strcmp(Cstr()+(Length()-suffix.Length()), suffix.Cstr()) == 0));}
 
    /** Returns true iff this string ends with (suffix) 
      * @param suffix a String to check for at the end of this String.  NULL pointers are treated as a synonym for "".
@@ -411,7 +447,7 @@ public:
    bool EndsWith(const char * suffix) const
    { 
       if (suffix == NULL) suffix = "";
-      uint32 suffixLen = (uint32) strlen(suffix);
+      const uint32 suffixLen = (uint32) strlen(suffix);
       return (Length() < suffixLen) ? false : (strcmp(Cstr()+(Length()-suffixLen), suffix) == 0); 
    }
 
@@ -742,103 +778,106 @@ public:
      * @param s the String to compare this string to
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
-   int NumericAwareCompareToIgnoreCase(const char * s) const   {return NumericAwareStrcasecmp(Cstr(), s?s:"");}
+   int NumericAwareCompareToIgnoreCase(const char * s) const {return NumericAwareStrcasecmp(Cstr(), s?s:"");}
 
    /** Like EndsWith(), but case insensitive.
      * @param c a character to check for at the end of this String.
      */
-   bool EndsWithIgnoreCase(char c) const                       {return (_length > 0)&&(tolower(Cstr()[_length-1]) == tolower(c));}
+   bool EndsWithIgnoreCase(char c) const {return (HasChars())&&(tolower(Cstr()[_length-1]) == tolower(c));}
 
    /** Like EndsWith(), but case insensitive.
      * @param s a suffix to check for at the end of this String.
      */
-   bool EndsWithIgnoreCase(const String & s) const             {return ToLowerCase().EndsWith(s.ToLowerCase());}
+   bool EndsWithIgnoreCase(const String & s) const {return ((Length() >= s.Length())&&(Strcasecmp(Cstr()+(Length()-s.Length()), s()) == 0));}
+
+   /** Like EndsWith(), but case insensitive.
+     * @param s a suffix to check for at the end of this String.
+     */
+   bool EndsWithIgnoreCase(const char * s) const;
 
    /** Like Equals(), but case insensitive.
      * @param s a string to check for (case-insensitive) equality with this String
      */
-   bool EqualsIgnoreCase(const String & s) const               {return (Strcasecmp(Cstr(), s()) == 0);}
+   bool EqualsIgnoreCase(const String & s) const {return ((this==&s)||((Length()==s.Length())&&(Strcasecmp(Cstr(), s()) == 0)));}
+
+   /** Like Equals(), but case insensitive.
+     * @param s a string to check for (case-insensitive) equality with this String
+     */
+   bool EqualsIgnoreCase(const char * s) const {if (s==NULL) s=""; return ((Cstr()==s)||(Strcasecmp(Cstr(), s) == 0));}
 
    /** Like Equals(), but case insensitive.
      * @param c a character to check for (case-insensitive) equality with this String.
      */
-   bool EqualsIgnoreCase(char c) const                         {return (_length==1)&&(tolower(Cstr()[0])==tolower(c));}
-
-   /** Like Contains(), but case insensitive.
-     * @param s A String to look for in this string.
-     */
-   bool ContainsIgnoreCase(const String & s) const             {return ToLowerCase().Contains(s.ToLowerCase());}
+   bool EqualsIgnoreCase(char c) const {return (_length==1)&&(tolower(Cstr()[0])==tolower(c));}
 
    /** Like Contains(), but case insensitive. 
      * @param s A String to look for in this string.
-     * @param f Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   bool ContainsIgnoreCase(const String & s, uint32 f) const   {return ToLowerCase().Contains(s.ToLowerCase(),f);}
+   bool ContainsIgnoreCase(const String & s, uint32 f = 0) const {return (IndexOfIgnoreCase(s, f) >= 0);}
 
-   /** Like Contains(), but case insensitive.
-     * @param ch A character to look for in this string.
-     */
-   bool ContainsIgnoreCase(char ch) const                      {return ToLowerCase().Contains((char)tolower(ch));}
-
-   /** Like Contains(), but case insensitive.
-     * @param ch A character to look for in this string.
-     * @param f Index of the first character to start searching at in this String.
-     */
-   bool ContainsIgnoreCase(char ch, uint32 f) const            {return ToLowerCase().Contains((char)tolower(ch),f);}
-
-   /** Like IndexOf(), but case insensitive.
+   /** Like Contains(), but case insensitive. 
      * @param s A String to look for in this string.
+     * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   int IndexOfIgnoreCase(const String & s) const               {return ToLowerCase().IndexOf(s.ToLowerCase());}
+   bool ContainsIgnoreCase(const char * s, uint32 f = 0) const {return (IndexOfIgnoreCase(s, f) >= 0);}
+
+   /** Like Contains(), but case insensitive.
+     * @param ch A character to look for in this string.
+     * @param f Index of the first character to start searching at in this String.  Defaults to zero.
+     */
+   bool ContainsIgnoreCase(char ch, uint32 f = 0) const {return (IndexOfIgnoreCase(ch, f) >= 0);}
 
    /** Like IndexOf(), but case insensitive.
      * @param s A String to look for in this string.
      * @param f Index of the first character to start searching at in this String.
      */
-   int IndexOfIgnoreCase(const String & s, uint32 f) const     {return ToLowerCase().IndexOf(s.ToLowerCase(),f);}
+   int IndexOfIgnoreCase(const String & s, uint32 f = 0) const;
 
-   /** Like IndexOf(), but case insensitive. 
-     * @param ch A character to look for in this string.
-     */
-   int IndexOfIgnoreCase(char ch) const                        {return ToLowerCase().IndexOf((char)tolower(ch));}
-
-   /** Like IndexOf(), but case insensitive. 
-     * @param ch A character to look for in this string.
+   /** Like IndexOf(), but case insensitive.
+     * @param s A string to look for in this string.
      * @param f Index of the first character to start searching at in this String.
      */
-   int IndexOfIgnoreCase(char ch, uint32 f) const              {return ToLowerCase().IndexOf((char)tolower(ch),f);}
+   int IndexOfIgnoreCase(const char * s, uint32 f = 0) const;
+
+   /** Like IndexOf(), but case insensitive. 
+     * @param ch A character to look for in this string.
+     * @param f Index of the first character to start searching at in this String.  Defaults to zero.
+     */
+   int IndexOfIgnoreCase(char ch, uint32 f = 0) const;
+
+   /** Like LastIndexOf(), but case insensitive. 
+     * @param s A String to look for in this string.
+     * @param f Index of the first character to start searching at in this String.  Defaults to zero.
+     */
+   int LastIndexOfIgnoreCase(const String & s, uint32 f = 0) const;
 
    /** Like LastIndexOf(), but case insensitive. 
      * @param s A string to look for in this string.
+     * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   int LastIndexOfIgnoreCase(const String & s) const           {return ToLowerCase().LastIndexOf(s.ToLowerCase());}
-
-   /** Like LastIndexOf(), but case insensitive. 
-     * @param s A String to look for in this string.
-     * @param f Index of the first character to start searching at in this String.
-     */
-   int LastIndexOfIgnoreCase(const String & s, uint32 f) const {return ToLowerCase().LastIndexOf(s.ToLowerCase(),f);}
+   int LastIndexOfIgnoreCase(const char * s, uint32 f = 0) const;
 
    /** Like LastIndexOf(), but case insensitive. 
      * @param ch A character to look for in this string.
+     * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   int LastIndexOfIgnoreCase(char ch) const                    {return ToLowerCase().LastIndexOf((char)tolower(ch));}
-
-   /** Like LastIndexOf(), but case insensitive. 
-     * @param ch A character to look for in this string.
-     * @param f Index of the first character to start searching at in this String.
-     */
-   int LastIndexOfIgnoreCase(char ch, uint32 f) const          {return ToLowerCase().LastIndexOf((char)tolower(ch),f);}
+   int LastIndexOfIgnoreCase(char ch, uint32 f = 0) const;
 
    /** Like StartsWith(), but case insensitive. 
      * @param c The character to see if this string starts with or not
      */
-   bool StartsWithIgnoreCase(char c) const                     {return (_length > 0)&&(tolower(Cstr()[0]) == tolower(c));}
+   bool StartsWithIgnoreCase(char c) const {return (_length > 0)&&(tolower(Cstr()[0]) == tolower(c));}
 
    /** Like StartsWith(), but case insensitive. 
      * @param s The prefix to see whether this string starts with or not
      */
-   bool StartsWithIgnoreCase(const String & s) const           {return ToLowerCase().StartsWith(s.ToLowerCase());}
+   bool StartsWithIgnoreCase(const String & s) const {return ((Length() >= s.Length())&&(Strncasecmp(Cstr(), s(), s.Length()) == 0));}
+
+   /** Like StartsWith(), but case insensitive. 
+     * @param s The prefix to see whether this string starts with or not
+     */
+   bool StartsWithIgnoreCase(const char * s) const {if (s==NULL) s=""; return (Strncasecmp(Cstr(), s, strlen(s)) == 0);}
 
    /** @copydoc DoxyTemplate::HashCode() const */
    inline uint32 HashCode() const {return CalculateHashCode(Cstr(), Length());}

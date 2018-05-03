@@ -99,6 +99,7 @@ pages:
    - ZLibCodec: 'zlibcodec.md'
    - CPULoadMeter: 'cpuloadmeter.md'
    - TarFileWriter: 'tarfilewriter.md'
+   - Void: 'void.md'
 
 - Other Client-side Languages:
    - Overview: otherlanguages.md
