@@ -6,12 +6,12 @@ echo or later installed.
 echo ""
 
 cd ..\..\..\..\vc++14
-devenv muscle.sln /Upgrade
-devenv muscle.sln /build Debug /project muscle
+devenv muscle.sln /upgrade
+devenv muscle.sln /Build "Debug|Win32" /Project muscle
 
-cd ..\html\muscle-by-example\examples\vc++14\MuscleByExample 
+cd ..\html\muscle-by-example\examples\vc++14
 devenv MuscleByExample.sln /Upgrade 
-devenv MuscleByExample.sln /build 
+devenv MuscleByExample.sln /Build "Debug|x86"
 
 echo ""
 echo If all went well, all the example .exe files should now

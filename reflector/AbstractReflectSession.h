@@ -508,6 +508,7 @@ private:
    bool _reconnectViaTCP;  // only valid when _asyncConnectDest is set
    AbstractMessageIOGatewayRef _gateway;
    uint64 _lastByteOutputAt;
+   uint32 _lastReportedQueueSize;  // used by ReflectServer.cpp to warn about growing/socket-free queues
    AbstractSessionIOPolicyRef _inputPolicyRef;
    AbstractSessionIOPolicyRef _outputPolicyRef;
    uint32 _maxInputChunk;   // as determined by our Policy object

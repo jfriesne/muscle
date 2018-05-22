@@ -6,7 +6,9 @@
 namespace muscle {
 
 ServerComponent ::
-ServerComponent() : _owner(NULL), _fullyAttached(false)
+ServerComponent()
+   : _owner(NULL)
+   , _fullyAttached(false)
 {
    // empty
 }

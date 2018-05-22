@@ -7,7 +7,11 @@ namespace muscle {
 #define CUTOFF (_byteLimit/2)
 
 RateLimitSessionIOPolicy :: 
-RateLimitSessionIOPolicy(uint32 maxRate, uint32 primeBytes) : _maxRate(maxRate), _byteLimit(primeBytes), _lastTransferAt(0), _transferTally(0)
+RateLimitSessionIOPolicy(uint32 maxRate, uint32 primeBytes) 
+   : _maxRate(maxRate)
+   , _byteLimit(primeBytes)
+   , _lastTransferAt(0)
+   , _transferTally(0)
 {
    // empty
 }

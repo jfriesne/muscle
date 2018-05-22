@@ -1187,7 +1187,7 @@ private:
    status_t RemoveEntry(HashtableEntryBase * e, ValueType * optSetValue);
    status_t RemoveEntryByIndex(uint32 idx, ValueType * optSetValue);
 
-   void SwapEntryMaps(uint32 idx1, int32 idx2);
+   void SwapEntryMaps(uint32 idx1, uint32 idx2);
 
    inline uint32 ComputeHash(const KeyType & key) const
    {
@@ -2418,15 +2418,15 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::PutAuxAux(uint32 hash, HT_Sink
 
 template <class KeyType, class ValueType, class HashFunctorType>
 void
-HashtableBase<KeyType,ValueType,HashFunctorType>::SwapEntryMaps(uint32 idx1, int32 idx2)
+HashtableBase<KeyType,ValueType,HashFunctorType>::SwapEntryMaps(uint32 idx1, uint32 idx2)
 {
    HashtableEntryBase * e1 = this->IndexToEntryUnchecked(idx1);
    HashtableEntryBase * e2 = this->IndexToEntryUnchecked(idx2);
 
    // was: muscleSwap(e1->_mapTo, e2->_mapTo);
    {
-      uint32 e1MapTo = this->GetEntryMapTo(e1);
-      uint32 e2MapTo = this->GetEntryMapTo(e2);
+      const uint32 e1MapTo = this->GetEntryMapTo(e1);
+      const uint32 e2MapTo = this->GetEntryMapTo(e2);
       this->SetEntryMapTo(e1, e2MapTo);
       this->SetEntryMapTo(e2, e1MapTo);
    }

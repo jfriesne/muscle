@@ -5,6 +5,22 @@ key:  - new feature
       * bug fixed
       o other
 
+6.84 Released 5/22/2018
+   - Added support for a -DMUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS
+     command-line switch so that the log output can contain
+     full filename/line-number info, if desired.
+   - ReflectServer::ServerProcessLoop() will now print warnings
+     if it sees a session with no writeable socket and an
+     outgoing Message queue that keeps getting longer and longer.
+   o Added proper settings to the other build permutations in
+     the .vcxproj files in the muscle-by-example/examples/vc++14
+     folder.
+   * Win32AllocateStdioConsole() no longer attempts to redirect
+     both stdout and stderr to the same file when a filename is
+     supplied as its argument (because Windows apparently doesn't
+     support that).  Instead, a separate xxx_stderr.txt file is
+     created to hold the stderr output.
+
 6.83 Released 5/3/2018
    - Rewrote the String::*IgnoreCase() methods to be more efficient
      (they no longer call ToLowerCase()).

@@ -615,7 +615,7 @@ ServerProcessLoop()
 
                TCHECKPOINT;
 
-               int readSock = session->GetSessionReadSelectSocket().GetFileDescriptor();
+               const int readSock = session->GetSessionReadSelectSocket().GetFileDescriptor();
                if (readSock >= 0)
                {
                   int32 readBytes = 0;
@@ -636,7 +636,7 @@ ServerProcessLoop()
                   }
                }
 
-               int writeSock = session->GetSessionWriteSelectSocket().GetFileDescriptor();
+               const int writeSock = session->GetSessionWriteSelectSocket().GetFileDescriptor();
                if (writeSock >= 0)
                {
                   int32 wroteBytes = 0;
@@ -682,6 +682,20 @@ ServerProcessLoop()
                      {
                         if (_doLogging) LogTime(MUSCLE_LOG_WARNING, "Connection for %s timed out (output stall, no data movement for " UINT64_FORMAT_SPEC " seconds).\n", session->GetSessionDescriptionString()(), MicrosToSeconds(session->_outputStallLimit));
                         (void) DisconnectSession(session);
+                     }
+                  }
+               }
+               else
+               {
+                  // Watch for a continually-growing/never-drained output queue, and warn if we see it happening.
+                  const AbstractMessageIOGateway * g = session->GetGateway()();
+                  if (g)
+                  {
+                     const uint32 outQSize = g->GetOutgoingMessageQueue().GetNumItems();
+                     if (outQSize > session->_lastReportedQueueSize+100)
+                     {
+                        LogTime(MUSCLE_LOG_WARNING, "Session [%s] has " UINT32_FORMAT_SPEC " Messages in its outgoing-Message-Queue, but no writeable socket.  Possible resource leak?\n", session->GetSessionDescriptionString()(), outQSize);
+                        session->_lastReportedQueueSize = outQSize;
                      }
                   }
                }
@@ -1093,7 +1107,8 @@ GetNumUsedBytes() const
 }
 
 void
-ReflectServer :: AddLameDuckSession(const AbstractReflectSessionRef & ref)
+ReflectServer ::
+AddLameDuckSession(const AbstractReflectSessionRef & ref)
 {
    if ((_lameDuckSessions.IndexOf(ref) < 0)&&(_lameDuckSessions.AddTail(ref) != B_NO_ERROR)&&(_doLogging)) LogTime(MUSCLE_LOG_CRITICALERROR, "Server:  AddLameDuckSession() failed, I'm REALLY in trouble!  Aggh!\n");
 }

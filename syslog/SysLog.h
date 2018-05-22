@@ -245,6 +245,12 @@ status_t Log(int logLevel, const char * fmt, ...);
   */
 void WarnOutOfMemory(const char * file, int line);
 
+#ifdef MUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS
+# ifndef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
+#  define MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME 1
+# endif
+#endif
+
 #ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
 # if defined(_MSC_VER)
 #  define LogTime(logLevel, ...)     _LogTime(__FILE__, __FUNCTION__, __LINE__, logLevel, __VA_ARGS__)

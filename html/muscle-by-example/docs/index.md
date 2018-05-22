@@ -15,6 +15,10 @@ cd into the muscle/html/muscle-by-example/examples folder and enter "make" to
 compile the programs, then you can run any of them from the command line 
 (e.g. "cd string ; ./example_1_basic_usage").
 
-Note that while the MUSCLE toy programs can be compiled and run under any OS, the GNU Makefiles 
-that are included to compile them are only usable under Linux and MacOS/X, for now -- Windows
-users will have to roll on their own project files, for the time being.
+The MUSCLE toy programs can be compiled and run under any common OS.
+
+For Linux and MacOS/X, they can be compiled by typing "make" in the examples
+sub-directory (or in any sub-directory underneath it).
+
+For Windows, use Visual Studio 2015 or higher and run the BUILD_ALL.bat
+file in the examples/vc++14 sub-directory.

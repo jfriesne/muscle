@@ -2032,7 +2032,23 @@ void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
    time_t when = a.GetWhen();
    struct tm * temp = muscle_localtime_r(&when, &ltm);
 #ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
+# ifdef MUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS
+   const char * fn = a.GetSourceFile();
+   const char * lastSlash = fn ? strrchr(fn, '/') : NULL;
+#  ifdef WIN32
+   const char * lastBackSlash = fn ? strrchr(fn, '\\') : NULL;
+   if ((lastBackSlash)&&((lastSlash == NULL)||(lastBackSlash > lastSlash))) lastSlash = lastBackSlash;
+#  endif
+   if (lastSlash) fn = lastSlash+1;
+
+   static const size_t suffixSize = 16;
+   muscleSnprintf(buf, MINIMUM_PREMABLE_BUF_SIZE_PER_DOCUMENTATION-suffixSize, "[%c %02i/%02i %02i:%02i:%02i] [%s", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, fn);
+   char buf2[suffixSize];
+   muscleSnprintf(buf2, sizeof(buf2), ":%i] ", a.GetSourceLineNumber());
+   strncat(buf, buf2, MINIMUM_PREMABLE_BUF_SIZE_PER_DOCUMENTATION);
+# else
    muscleSnprintf(buf, MINIMUM_PREMABLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] [%s] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(a.GetSourceFile(), a.GetSourceLineNumber()))());
+#endif
 #else
    muscleSnprintf(buf, MINIMUM_PREMABLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec);
 #endif
