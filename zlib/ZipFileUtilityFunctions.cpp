@@ -20,13 +20,13 @@ static voidpf ZCALLBACK fopen_dataio_func (voidpf opaque, const char * /*filenam
 static uLong ZCALLBACK fread_dataio_func (voidpf /*opaque*/, voidpf stream, void *buf, uLong size)
 {
    DataIO * dio = (DataIO *)stream;
-   return (uLong) (dio ? dio->ReadFully(buf, size) : 0);
+   return (uLong) (dio ? dio->ReadFully(buf, (uint32)size) : 0);
 }
 
 static uLong ZCALLBACK fwrite_dataio_func (voidpf /*opaque*/, voidpf stream, const void * buf, uLong size)
 {
    DataIO * dio = (DataIO *)stream;
-   return (uLong) (dio ? dio->WriteFully(buf, size) : 0);
+   return (uLong) (dio ? dio->WriteFully(buf, (uint32)size) : 0);
 }
 
 static long ZCALLBACK ftell_dataio_func (voidpf /*opaque*/, voidpf stream)
@@ -195,7 +195,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
             {
                if (loadData)
                {
-                  ByteBufferRef bufRef = GetByteBufferFromPool(fileInfo.uncompressed_size);
+                  ByteBufferRef bufRef = GetByteBufferFromPool((uint32) fileInfo.uncompressed_size);
                   if ((bufRef() == NULL)||(unzReadCurrentFile(zf, bufRef()->GetBuffer(), bufRef()->GetNumBytes()) != (int32)bufRef()->GetNumBytes())||(m->AddFlat(fn, bufRef) != B_NO_ERROR)) return B_ERROR;
                }
                else if (m->AddInt64(fn, fileInfo.uncompressed_size) != B_NO_ERROR) return B_ERROR;

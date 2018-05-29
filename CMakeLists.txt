@@ -29,6 +29,17 @@ if (WIN32)
       "./regex/regex/regexec.c"
       "./regex/regex/regfree.c"
    )
+else (!WIN32)
+   find_package(ZLIB 1.2.8)
+   if (ZLIB_FOUND)
+      # Cool, we'll use the system-provided zlib
+   else (!ZLIB_FOUND)
+      message("No Zlib library installed on system: falling back to using MUSCLE's captive zlib implementation instead")
+      file(GLOB ZLIB_SRCS "./zlib/zlib/*.c")
+      set(MUSCLE_SRCS
+         ${MUSCLE_SRCS}
+         ${ZLIB_SRCS})
+   endif (ZLIB_FOUND)
 endif (WIN32)
 
 add_library(muscle ${MUSCLE_SRCS})
@@ -42,7 +53,12 @@ endif (APPLE)
 if (WIN32)
    target_include_directories(muscle PRIVATE "./regex/regex" "./zlib/zlib")
 else (!WIN32)
-   target_link_libraries(muscle z)
+   if (ZLIB_FOUND)
+      target_link_libraries(muscle z)
+   else (!ZLIB_FOUND)
+      target_include_directories(muscle PRIVATE "./zlib/zlib")
+      target_link_libraries(muscle)
+   endif (ZLIB_FOUND)
 endif (WIN32)
 
 add_executable(muscled server/muscled.cpp)

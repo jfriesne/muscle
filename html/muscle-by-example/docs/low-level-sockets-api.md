@@ -11,4 +11,4 @@ descriptors.
 Also it is much easier to use correctly than the BSD sockets API
 (at the cost of being applicable to IPv4 and IPv6 only
 -- if you need to use some other obscure type of networking
-layer like DECnet, you're out of luck)
+layer like DECnet, then most of the functions in `NetworkUtilityFunctions.h` won't help you much)

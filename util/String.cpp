@@ -846,8 +846,8 @@ String String :: WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove)
 
 String String :: WithoutPrefixIgnoreCase(char c, uint32 maxToRemove) const
 {
-   char cU = toupper(c);
-   char cL = tolower(c);
+   char cU = (char) toupper(c);
+   char cL = (char) tolower(c);
 
    String ret = *this;
    uint32 numInitialChars = 0;
@@ -1006,9 +1006,9 @@ CFStringRef String :: ToCFStringRef() const
 
 /* These are defined as macros to make it easier to adapt this code to
  * different characters types or comparison functions. */
-static inline int nat_isdigit(char a) {return isdigit((unsigned char) a);}
-static inline int nat_isspace(char a) {return isspace((unsigned char) a);}
-static inline char nat_toupper(char a) {return toupper((unsigned char) a);}
+static inline int  nat_isdigit(char a) {return isdigit((unsigned char) a);}
+static inline int  nat_isspace(char a) {return isspace((unsigned char) a);}
+static inline char nat_toupper(char a) {return (char) toupper((unsigned char) a);}
 
 static int nat_compare_right(char const *a, char const *b)
 {
@@ -1096,8 +1096,8 @@ static int strnatcmp0(char const *a, char const *b, int fold_case)
    }
 }
 
-int strnatcmp(char const *a, char const *b)     {return strnatcmp0(a, b, 0);}
-int strnatcasecmp(char const *a, char const *b) {return strnatcmp0(a, b, 1);}
+static int strnatcmp(char const *a, char const *b)     {return strnatcmp0(a, b, 0);}
+static int strnatcasecmp(char const *a, char const *b) {return strnatcmp0(a, b, 1);}
 
 int NumericAwareStrcmp(const char * s1, const char * s2)     {return strnatcmp(    s1, s2);}
 int NumericAwareStrcasecmp(const char * s1, const char * s2) {return strnatcasecmp(s1, s2);}

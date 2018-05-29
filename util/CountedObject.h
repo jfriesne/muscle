@@ -111,10 +111,11 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results);
 /** Convenience function.  Calls GetCountedObjectInfo() and pretty-prints the results to stdout. */
 void PrintCountedObjectInfo();
 
-#ifdef MUSCLE_ENABLE_OBJECT_COUNTING
-# define DECLARE_COUNTED_OBJECT(className) CountedObject<className> _declaredCountedObject; /**< Macro to declare CountedObject<className> as a member variable, iff MUSCLE_ENABLE_OBJECT_COUNTING is defined */
+#if defined(MUSCLE_ENABLE_OBJECT_COUNTING)
+# define DECLARE_COUNTED_OBJECT(className) CountedObject<className> _declaredCountedObject /**< Macro to declare CountedObject<className> as a member variable, iff MUSCLE_ENABLE_OBJECT_COUNTING is defined */
 #else
-# define DECLARE_COUNTED_OBJECT(className) /**< Macro to declare CountedObject<className> as a member variable, iff MUSCLE_ENABLE_OBJECT_COUNTING is defined */
+  // Note:  the only reason for this typedef is to serve as filler, to avoid "extra semicolon" warnings when compiling in clang++ with -Wpedantic
+# define DECLARE_COUNTED_OBJECT(className) typedef int unused_type /**< Macro to declare CountedObject<className> as a member variable, iff MUSCLE_ENABLE_OBJECT_COUNTING is defined */
 #endif
 
 } // end namespace muscle

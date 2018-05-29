@@ -16,7 +16,7 @@ SharedUsageLimitProxyMemoryAllocator :: SharedUsageLimitProxyMemoryAllocator(con
    {
       if (_shared.IsCreatedLocally()) 
       {
-         size_t * sa = (size_t *) _shared();
+         size_t * sa = GetArrayPointer();
          if (sa)
          {
             uint32 numSlots = GetNumSlots();
@@ -42,7 +42,7 @@ SharedUsageLimitProxyMemoryAllocator :: ~SharedUsageLimitProxyMemoryAllocator()
 void SharedUsageLimitProxyMemoryAllocator :: ResetDaemonCounter()
 {
    int32 numSlots = _shared.GetAreaSize() / sizeof(size_t);
-   size_t * sa = (size_t *) _shared();
+   size_t * sa = GetArrayPointer();
    if ((sa)&&(_memberID >= 0)&&(_memberID < numSlots)) sa[_memberID] = 0;
    _localCachedBytes = _localAllocated = 0;
 }
@@ -79,7 +79,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounterAux(int32 by
    if ((_memberID >= 0)&&(_shared.LockAreaReadWrite() == B_NO_ERROR))
    {
       int32 numSlots = _shared.GetAreaSize() / sizeof(size_t);
-      size_t * sa = (size_t *) _shared();
+      size_t * sa = GetArrayPointer();
       if ((sa)&&(_memberID < numSlots))
       {
          if (byteDelta <= 0)
@@ -111,7 +111,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounterAux(int32 by
 size_t SharedUsageLimitProxyMemoryAllocator :: CalculateTotalAllocationSum() const
 {
    size_t total = 0;
-   const size_t * sa = (const size_t *) _shared();
+   const size_t * sa = GetArrayPointer();
    if (sa)
    {
       uint32 numSlots = GetNumSlots();
@@ -152,7 +152,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: GetCurrentMemoryUsage(size_t * 
 {
    if (_shared.LockAreaReadOnly() == B_NO_ERROR)
    {
-      const size_t * sa = (const size_t *) _shared();
+      const size_t * sa = GetArrayPointer();
       if ((sa)&&(retCounts)) for (int32 i=GetNumSlots()-1; i>=0; i--) retCounts[i] = sa[i];
       if (optRetTotal) *optRetTotal = CalculateTotalAllocationSum();
       _shared.UnlockArea();

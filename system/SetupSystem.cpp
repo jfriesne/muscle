@@ -3,13 +3,15 @@
 #include "system/SetupSystem.h"
 #include "support/Flattenable.h"
 #include "dataio/SeekableDataIO.h"
+#include "reflector/SignalHandlerSession.h"  // for SetMainReflectServerCatchSignals()
+#include "system/SystemInfo.h"             // for GetBuildFlags()
 #include "util/ObjectPool.h"
 #include "util/ByteBuffer.h"
 #include "util/DebugTimer.h"
 #include "util/CountedObject.h"
+#include "util/MiscUtilityFunctions.h"     // for PrintHexBytes()
 #include "util/NetworkUtilityFunctions.h"  // for IPAddressAndPort
 #include "util/String.h"
-#include "system/GlobalMemoryAllocator.h"
 
 #ifdef MUSCLE_ENABLE_SSL
 # include <openssl/err.h>
@@ -105,19 +107,15 @@ bool _enableDeadlockFinderPrints = true;
 #endif
 
 static uint32 _failedMemoryRequestSize = MUSCLE_NO_LIMIT;  // start with an obviously-invalid guard value
+uint32 GetAndClearFailedMemoryRequestSize();  // just to avoid a compiler warning
 uint32 GetAndClearFailedMemoryRequestSize()
 {
    uint32 ret = _failedMemoryRequestSize;       // yes, it's racy.  But I'll live with that for now.
    _failedMemoryRequestSize = MUSCLE_NO_LIMIT;
    return ret; 
 }
+void SetFailedMemoryRequestSize(uint32 numBytes);  // just to avoid a compiler warning
 void SetFailedMemoryRequestSize(uint32 numBytes) {_failedMemoryRequestSize = numBytes;}
-
-// This was moved here so that it will be present even when
-// GlobalMemoryAllocator.cpp isn't linked in.
-static MemoryAllocatorRef _globalAllocatorRef;
-void SetCPlusPlusGlobalMemoryAllocator(const MemoryAllocatorRef & maRef) {_globalAllocatorRef = maRef;}
-const MemoryAllocatorRef & GetCPlusPlusGlobalMemoryAllocator() {return _globalAllocatorRef;}
 
 static int swap_memcmp(const void * vp1, const void * vp2, uint32 numBytes)
 {

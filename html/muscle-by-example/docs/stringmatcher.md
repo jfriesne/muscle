@@ -5,7 +5,7 @@
 Holds a pattern-string (ASCII or UTF-8) that represents a bash-shell-style wildcard/globbing-pattern, and uses it to do pattern-matching.
 
 * [StringMatcher::Match(const char *)](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StringMatcher.html#ad0c0827dee710b8f323defdb4de7d315) returns true iff the pattern-string matches the passed-in string.
-* Similar to: `QRegExp`, `std::regex_match`
+* Similar to: [QRegularExpression](http://doc.qt.io/qt-5/qregularexpression.html), [std::regex_match](http://en.cppreference.com/w/cpp/regex/regex_match)
 * For example, glob-pattern `str*` will match "string" and "strap" but not "ring" or "trap".
 * Supported "traditional" wildcard-characters include `*`, `?`, `[`, `]`, `\`, `,`, `(`, `)`
 * Syntax extension:  a glob-pattern starting with `~` will match only strings that *don't* match the rest of the pattern (e.g. `~j*` will match all strings that *don't* start with "j")

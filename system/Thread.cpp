@@ -140,7 +140,7 @@ void Thread :: ShutdownInternalThread(bool waitForThread)
 {
    if (IsInternalThreadRunning())
    {
-      SendMessageToInternalThread(MessageRef());  // a NULL message ref tells him to quit
+      (void) SendMessageToInternalThread(MessageRef());  // a NULL message ref tells him to quit
       if (waitForThread) WaitForInternalThreadToExit();
    }
 }

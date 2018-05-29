@@ -22,7 +22,7 @@ using namespace muscle;
 // Aux method; main() without the global stuff.  This is a good method to
 // call if you already have the global stuff set up the way you like it.
 // The third argument can be passed in as NULL, or point to a UsageLimitProxyMemoryAllocator object 
-int muscledmainAux(int argc, char ** argv, void * cookie)
+static int muscledmainAux(int argc, char ** argv, void * cookie)
 {
    TCHECKPOINT;
 
@@ -86,7 +86,7 @@ int muscledmainAux(int argc, char ** argv, void * cookie)
    {
       for (int32 i=0; (args.FindString("port", i, &value) == B_NO_ERROR); i++)
       {
-         int16 port = atoi(value);
+         int16 port = (int16) atoi(value);
          if (port >= 0) listenPorts.PutWithDefault(IPAddressAndPort(invalidIP, port));
       }
 

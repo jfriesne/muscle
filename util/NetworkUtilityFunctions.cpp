@@ -1752,7 +1752,7 @@ void IPAddressAndPort :: SetFromString(const String & s, uint16 defaultPort, boo
       _ip = ResolveIP(s.Substring(1,rBracket), allowDNSLookups);
 
       int32 colIdx = s.IndexOf(':', rBracket+1);
-      _port = ((colIdx >= 0)&&(muscleInRange(s()[colIdx+1], '0', '9'))) ? atoi(s()+colIdx+1) : defaultPort;
+      _port = ((colIdx >= 0)&&(muscleInRange(s()[colIdx+1], '0', '9'))) ? (uint16)atoi(s()+colIdx+1) : defaultPort;
       return;
    }
    else if (s.GetNumInstancesOf(':') != 1)  // I assume IPv6-style address strings never have exactly one colon in them
@@ -1768,7 +1768,7 @@ void IPAddressAndPort :: SetFromString(const String & s, uint16 defaultPort, boo
    if ((colIdx >= 0)&&(muscleInRange(s()[colIdx+1], '0', '9')))
    {
       _ip   = ResolveIP(s.Substring(0, colIdx), allowDNSLookups);
-      _port = atoi(s()+colIdx+1);
+      _port = (uint16) atoi(s()+colIdx+1);
    }
    else
    {
@@ -1969,9 +1969,9 @@ uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock)
    muscle_socklen_t size = sizeof(ttl);
    int fd = sock.GetFileDescriptor();
 #ifdef MUSCLE_AVOID_IPV6
-   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IP,   IP_MULTICAST_TTL,    (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? ttl : 0;
+   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IP,   IP_MULTICAST_TTL,    (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? (uint8)ttl : 0;
 #else
-   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? ttl : 0;
+   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? (uint8)ttl : 0;
 #endif
 }
 

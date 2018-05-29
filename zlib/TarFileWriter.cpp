@@ -137,7 +137,7 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
    if (secondsSince1970 != 0) WriteOctalASCII(&_currentHeaderBytes[136], secondsSince1970, 12);
 
    memset(&_currentHeaderBytes[148], ' ', 8);  // these spaces are used later on, when calculating the header checksum
-   _currentHeaderBytes[156] = linkIndicator+'0';
+   _currentHeaderBytes[156] = (uint8) (linkIndicator+'0');
    if (linkedFileName) muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkedFileName, sizeof(_currentHeaderBytes)-157);
 
    // We write out the header as it is now, in order to keep the file offsets correct... but we'll rewrite it again later

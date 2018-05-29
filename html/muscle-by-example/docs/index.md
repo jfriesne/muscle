@@ -1,24 +1,25 @@
 # MUSCLE by Example
 
-For full Doxygen AutoDocs and other documentation visit [the MUSCLE web page](https://public.msli.com/lcs/muscle/)
+For the latest MUSCLE source code, full Doxygen AutoDocs, and other MUSCLE documentation, visit [the MUSCLE web page](https://public.msli.com/lcs/muscle/).
 
 This tour is meant to introduce the reader to the various MUSCLE APIs through simple
 "toy" example programs that demonstrate each class's purpose and common usage-patterns.
 
 The examples are ordered in "bottom-up" fashion, with the simplest and lowest-level
-APIs demonstrated first, followed by higher-level APIs that use those first APIs,
+APIs demonstrated first, followed by some higher-level APIs that make use of those first APIs,
 and so on until we reach the highest-level APIs near the end of the tour.
 
-While reading the the HTML topics (starting at the top), you can also have a Terminal
-window open to compile and run the corresponding toy example programs.  To do that,
-cd into the muscle/html/muscle-by-example/examples folder and enter "make" to
-compile the programs, then you can run any of them from the command line 
-(e.g. "cd string ; ./example_1_basic_usage").
+While reading the HTML topics pages (starting at the top), you can also have a Terminal
+window open, so you can view, compile, and execute the corresponding toy example programs.
 
-The MUSCLE toy programs can be compiled and run under any common OS.
+The MUSCLE toy example programs may be compiled and run under any common desktop OS.
 
-For Linux and MacOS/X, they can be compiled by typing "make" in the examples
-sub-directory (or in any sub-directory underneath it).
+Under Linux and MacOS/X, you can compile them by `cd`'ing to the 
+`muscle/html/muscle-by-example/examples` sub-directory (or to any one
+of the sub-directories underneath it) and typing `make`.
 
-For Windows, use Visual Studio 2015 or higher and run the BUILD_ALL.bat
-file in the examples/vc++14 sub-directory.
+Under Windows, make sure Visual Studio 2015 or higher, is installed, 
+and run the `BUILD_ALL.bat` file that is located in the 
+`muscle\html\muscle-by-example\examples\vc++14` sub-directory (or, 
+if you prefer to use an IDE, you can double-click on any of the 
+`.vcxproj` or `.sln` files in that same folder to launch Visual Studio)

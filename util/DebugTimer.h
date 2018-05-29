@@ -83,11 +83,7 @@ private:
 };
 
 /** A macro for quickly declaring a DebugTimer object on the stack.  Usage example:  DECLARE_DEBUGTIMER("hi") */
-#ifdef _MSC_VER
-# define DECLARE_DEBUGTIMER(...) DECLARE_ANONYMOUS_STACK_OBJECT(DebugTimer, __VA_ARGS__)
-#else
-# define DECLARE_DEBUGTIMER(args...) DECLARE_ANONYMOUS_STACK_OBJECT(DebugTimer, args)
-#endif
+#define DECLARE_DEBUGTIMER(...) DECLARE_ANONYMOUS_STACK_OBJECT(DebugTimer, __VA_ARGS__)
 
 } // end namespace muscle
 

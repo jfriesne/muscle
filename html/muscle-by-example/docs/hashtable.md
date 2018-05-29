@@ -4,7 +4,7 @@
 
 Templated container class `Hashtable<Key,Value>` is a hash-based dictionary class that also maintains a consistent, user-specifiable iteration order.
 
-* Similar to: `std::map<K,V>`, and `std::unordered_map<K,V>` (combined!), `java.util.Hashtable`, `QHash`, etc.
+* Similar to: [std::map&lt;K,V&gt;](http://en.cppreference.com/w/cpp/container/map), and [std::unordered_map&lt;K,V&gt;](http://en.cppreference.com/w/cpp/container/unordered_map) (combined!), [java.util.Hashtable](https://docs.oracle.com/javase/8/docs/api/java/util/Hashtable.html), [QHash](http://doc.qt.io/qt-5/qhash.html), etc.
 * O(1) [Get()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#a19543125698485a668ce2cc53c8c057d)/[ContainsKey()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#a790ed182d252511a38574a741953ccbd)/[Put()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableMid.html#a59691a7665446505535cf02aadfdebf3)/[Remove()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#aacb659ec030127644ef076f0f70d6f92)
 * O(1) [RemoveFirst()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#a2f3bac865a3ffbeaeb6f63117d9a76b4)/[RemoveLast()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#a9236392a40ab749ece15edb5bf1f6d3d)
 * O(N*log(N)) [SortByKey()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#aed9bd2abb05b26914a83735bed57c3e3)

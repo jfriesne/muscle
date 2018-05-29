@@ -65,13 +65,12 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
             const uint8 * invalidByte = p+bytesRead;
             while(invalidByte-p >= (int32)FRAGMENT_HEADER_SIZE)
             {
-               const uint32 * h32 = (const uint32 *) p;
-               uint32 magic       = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&h32[0]));
-               uint32 sexID       = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&h32[1]));
-               uint32 messageID   = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&h32[2]));
-               uint32 offset      = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&h32[3]));
-               uint32 chunkSize   = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&h32[4]));
-               uint32 totalSize   = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&h32[5]));
+               const uint32 magic     = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[0*sizeof(uint32)]));
+               const uint32 sexID     = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[1*sizeof(uint32)]));
+               const uint32 messageID = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[2*sizeof(uint32)]));
+               const uint32 offset    = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[3*sizeof(uint32)]));
+               const uint32 chunkSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[4*sizeof(uint32)]));
+               const uint32 totalSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[5*sizeof(uint32)]));
 //printf("   PARSE magic=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " sex=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " messageID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", magic, _magic, sexID, _sexID, messageID, offset, chunkSize, totalSize);
 
                p += FRAGMENT_HEADER_SIZE;
@@ -211,14 +210,13 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          uint32 sbSize          = _currentOutputBuffer()->GetNumBytes();
          uint32 dataBytesToSend = muscleMin(_maxTransferUnit-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
 
-         uint8  * p   = ((uint8 *)_outputPacketBuffer.GetBuffer()) + _outputPacketSize;
-         uint32 * h32 = (uint32 *) p;
-         muscleCopyOut(&h32[0], B_HOST_TO_LENDIAN_INT32(_magic));                      // a well-known magic number, for sanity checking
-         muscleCopyOut(&h32[1], B_HOST_TO_LENDIAN_INT32(_sexID));                      // source exclusion ID
-         muscleCopyOut(&h32[2], B_HOST_TO_LENDIAN_INT32(_sendMessageIDCounter));       // message ID tag so the receiver can track what belongs where
-         muscleCopyOut(&h32[3], B_HOST_TO_LENDIAN_INT32(_currentOutputBufferOffset));  // start offset (within its message) for this sub-chunk
-         muscleCopyOut(&h32[4], B_HOST_TO_LENDIAN_INT32(dataBytesToSend)); // size of this sub-chunk
-         muscleCopyOut(&h32[5], B_HOST_TO_LENDIAN_INT32(sbSize));          // total size of this message
+         uint8 * p = _outputPacketBuffer.GetBuffer()+_outputPacketSize;
+         muscleCopyOut(&p[0*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_magic));                      // a well-known magic number, for sanity checking
+         muscleCopyOut(&p[1*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_sexID));                      // source exclusion ID
+         muscleCopyOut(&p[2*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_sendMessageIDCounter));       // message ID tag so the receiver can track what belongs where
+         muscleCopyOut(&p[3*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_currentOutputBufferOffset));  // start offset (within its message) for this sub-chunk
+         muscleCopyOut(&p[4*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(dataBytesToSend)); // size of this sub-chunk
+         muscleCopyOut(&p[5*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(sbSize));          // total size of this message
 //printf("CREATING PACKET magic=" UINT32_FORMAT_SPEC " msgID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", _magic, _sendMessageIDCounter, _currentOutputBufferOffset, dataBytesToSend, sbSize);
          memcpy(p+FRAGMENT_HEADER_SIZE, _currentOutputBuffer()->GetBuffer()+_currentOutputBufferOffset, dataBytesToSend);
 

@@ -190,7 +190,7 @@ public:
 
    /** Returns the largest ID value that this node has seen in one of its children, since the
      * time it was created or last cleared.  Note that child nodes' names are assumed to include
-     * their ID value in ASCII format, possible with a preceding letter "I" (for indexed nodes).
+     * their ID value in ASCII format, possibly with a preceding letter "I" (for indexed nodes).
      * Child nodes whose names aren't in this format will be counted having ID zero.
      * This value can be useful as a hint for generating new IDs.
      */

@@ -5,7 +5,7 @@
 An RAII-friendly socket/file-descriptor wrapper.
 
 * Holds/owns an `int` socket/file descriptor.
-* Similar to:  `QTcpSocket`, `QUdpSocket`
+* Similar to:  [QTcpSocket](http://doc.qt.io/qt-5/qtcpsocket.html), [QUdpSocket](http://doc.qt.io/qt-5/qudpsocket.html)
 * [Socket](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Socket.html)'s destructor calls `close()` on the file descriptor (`closesocket()` on Windows)
 * Not typically used directly; usually passed around via [ConstSocketRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ConstSocketRef.html) instead
 * [NetworkUtilityFunctions.h](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html) functions often return a [ConstSocketRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ConstSocketRef.html) object and/or take one as an argument.

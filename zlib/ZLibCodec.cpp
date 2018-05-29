@@ -79,7 +79,7 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
          return ByteBufferRef();
       }
 
-      const uint32 compAvailSize = ZLIB_CODEC_HEADER_SIZE+deflateBound(&_deflater, numRaw)+13;
+      const uint32 compAvailSize = (uint32) (ZLIB_CODEC_HEADER_SIZE+deflateBound(&_deflater, numRaw)+13);
       ret = GetByteBufferFromPool(addHeaderBytes+compAvailSize+addFooterBytes);
       if (ret())
       {
@@ -91,7 +91,7 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
          _deflater.total_out = 0;
          _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
          
-         if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(ret()->SetNumBytes(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes, true) == B_NO_ERROR))
+         if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(ret()->SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true) == B_NO_ERROR))
          {
             (void) ret()->FreeExtraBytes();  // no sense keeping all that extra space around, is there?
             WriteZLibCodecHeader(ret()->GetBuffer()+addHeaderBytes, independent, numRaw);
@@ -112,7 +112,7 @@ status_t ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool indepe
          return B_ERROR;
       }
 
-      const uint32 compAvailSize = ZLIB_CODEC_HEADER_SIZE+deflateBound(&_deflater, numRaw)+13;
+      const uint32 compAvailSize = (uint32)(ZLIB_CODEC_HEADER_SIZE+deflateBound(&_deflater, numRaw)+13);
       if (outBuf.SetNumBytes(addHeaderBytes+compAvailSize+addFooterBytes, false) == B_NO_ERROR)
       {
          _deflater.next_in   = (Bytef *)rawBytes;
@@ -123,7 +123,7 @@ status_t ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool indepe
          _deflater.total_out = 0;
          _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
          
-         if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(outBuf.SetNumBytes(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes, true) == B_NO_ERROR))
+         if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(outBuf.SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true) == B_NO_ERROR))
          {
             WriteZLibCodecHeader(outBuf.GetBuffer()+addHeaderBytes, independent, numRaw);
             return B_NO_ERROR;
@@ -255,7 +255,7 @@ status_t ZLibCodec :: ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & dest
       if ((zRet != Z_OK)&&(zRet != Z_STREAM_END)) return B_ERROR;
 
       // If deflate() generated some deflated bytes, write them out to the destDeflatedIO
-      const int32 numBytesProduced = _deflater.next_out-scratchOutBuf.GetBuffer();
+      const int32 numBytesProduced = (int32)(_deflater.next_out-scratchOutBuf.GetBuffer());
       if (numBytesProduced > 0)
       {
          int32 numBytesWritten = destDeflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced);
@@ -315,7 +315,7 @@ status_t ZLibCodec :: ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO &
       if ((zRet != Z_OK)&&(zRet != Z_STREAM_END)) return B_ERROR;
 
       // If inflate() generated some inflated bytes, write them out to the destInflatedIO
-      const int32 numBytesProduced = _inflater.next_out-scratchOutBuf.GetBuffer();
+      const int32 numBytesProduced = (int32)(_inflater.next_out-scratchOutBuf.GetBuffer());
       if (numBytesProduced > 0)
       {
          int32 numBytesWritten = destInflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced);

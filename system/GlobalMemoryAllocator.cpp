@@ -51,6 +51,10 @@ namespace muscle {
 
 extern void SetFailedMemoryRequestSize(uint32 numBytes);  // FogBugz #7547
 
+static MemoryAllocatorRef _globalAllocatorRef;
+void SetCPlusPlusGlobalMemoryAllocator(const MemoryAllocatorRef & maRef) {_globalAllocatorRef = maRef;}
+const MemoryAllocatorRef & GetCPlusPlusGlobalMemoryAllocator() {return _globalAllocatorRef;}
+
 # if MUSCLE_ENABLE_MEMORY_PARANOIA > 0
 
 // Functions for converting user-visible pointers (etc) to our internal implementation and back
@@ -392,5 +396,4 @@ void operator delete[](void * p) THROW LPAREN RPAREN {using namespace muscle; mu
 # if MUSCLE_ENABLE_MEMORY_PARANOIA > 0
 #  error "If you want to enable MUSCLE_ENABLE_MEMORY_PARANOIA, you must define MUSCLE_ENABLE_MEMORY_TRACKING also!"
 # endif
-status_t MemoryParanoiaCheckBuffer(void *, bool) {return B_NO_ERROR;}
 #endif

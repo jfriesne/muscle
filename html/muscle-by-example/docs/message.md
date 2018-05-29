@@ -4,7 +4,7 @@
 
 [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) is the main unit of network and inter-thread communication in MUSCLE.
 
-* Similar to: `BMessage`, `JSON Message (?)`, `XML (?)`
+* Similar to: [BMessage](http://download.unirc.eu/BeOS/Docs/BeBook/The%20Application%20Kit/Message.html), `JSON Message (?)`, `XML (?)`
 * Can hold any number of uniquely-named data-fields (up to 2^32)
 * Each data field has a UTF-8 name, a fixed type, and 1 or more data-values of that type.
 * Supported field-data-types include:  `int8`, `int16`, `int32`, `int64`, `float`, `double`, [String](https://public.msli.com/lcs/muscle/html/classmuscle_1_1String.html), [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html), [Point](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Point.html), [Rect](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Rect.html), plus any arbitrary additional types the user cares to define.

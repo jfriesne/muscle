@@ -19,7 +19,7 @@ class Flattenable;
 
 /** This class is here to support lightweight subclasses that want to have a Flattenable-like 
   * API (Flatten(), Unflatten(), etc) without incurring the one-word-per-object memory 
-  * required by the presence of virtual methods.  To use this class, subclass your
+  * overhead caused by the presence of virtual methods.  To use this class, subclass your
   * class from this one and declare Flatten(), Unflatten(), FlattenedSize(), etc methods
   * in your class, but don't make them virtual.  That will be enough to allow you to
   * use Message::AddFlat(), Message::FindFlat(), etc on your objects, with no extra

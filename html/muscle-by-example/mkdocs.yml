@@ -8,17 +8,13 @@ pages:
 
 - Core MUSCLE Classes:
    - String: 'string.md'
-   - StringMatcher: 'stringmatcher.md'
    - Queue: 'queue.md'
    - Hashtable: 'hashtable.md'
    - Ref/RefCountable: 'refcount.md'
    - Flattenable/PseudoFlattenable: 'flattenable.md'
    - FlatCountable: 'flatcountable.md'
    - ByteBuffer: 'bytebuffer.md'
-   - NestCount/NestCountGuard: 'nestcount.md'
    - Message: 'message.md'
-   - TimeUtilityFunctions: 'timeutilityfunctions.md'
-   - LogTime/LogCallback: 'logtime.md'
 
 - Low-Level Sockets API:
    - Overview: 'low-level-sockets-api.md'
@@ -40,10 +36,10 @@ pages:
    - ChildProcessDataIO: 'childprocessdataio.md'
    - ByteBufferDataIO: 'bytebufferdataio.md'
    - NullDataIO: 'nulldataio.md'
-   - ProxyDataIO: 'proxydataio.md'
    - RS232DataIO: 'rs232dataio.md'
    - SSLSocketDataIO: 'sslsocketdataio.md'
    - SimulatedMulticastDataIO: 'simulatedmulticastdataio.md'
+   - ProxyDataIO: 'proxydataio.md'
    - Win32FileHandleDataIO: 'win32filehandledataio.md'
 
 - Mid-Level AbstractMessageIOGateway API:
@@ -85,8 +81,12 @@ pages:
    - MicroMessageGateway: 'micromessagegateway.md'
 
 - Additional Support Classes:
-   - MiscUtilityFunctions: 'miscutilityfunctions.md'
    - StringTokenizer: 'stringtokenizer.md'
+   - StringMatcher: 'stringmatcher.md'
+   - LogTime/LogCallback: 'logtime.md'
+   - NestCount/NestCountGuard: 'nestcount.md'
+   - MiscUtilityFunctions: 'miscutilityfunctions.md'
+   - TimeUtilityFunctions: 'timeutilityfunctions.md'
    - FilePathInfo: 'filepathinfo.md'
    - Directory: 'directory.md'
    - SystemInfo: 'systeminfo.md'

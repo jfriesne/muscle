@@ -6,7 +6,7 @@
 * MUSCLE-speaking programs in any language should be able to communicate seamlessly with each other (since they all use the same flattened-Message binary-communication-protocol)
 * Currently, MUSCLE has explicit client-side support for the following languages:
     - C++03 and higher (with full features enabled under C++11 and higher)
-    - C (via the `MicroMessage` and `MiniMessage` APIs)
+    - C (via the [MicroMessage](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/site/micromessage/) and [MiniMessage](https://public.msli.com/lcs/muscle/html/group__minimessage.html) APIs)
     - C# (see the `muscle/csharp` folder)
     - Delphi (see the `muscle/delphi` folder)
     - Python (via the .py files in the `muscle/python` folder)

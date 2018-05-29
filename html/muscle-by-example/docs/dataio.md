@@ -4,7 +4,7 @@
 
 [DataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataIO.html) is an interface to any object that can read or write raw I/O data.
 
-* Similar to:  `QDataIO`, `BDataIO`
+* Similar to:  [QIODevice](http://doc.qt.io/qt-5/qiodevice.html), [BDataIO](https://www.haiku-os.org/docs/api/classBDataIO.html)
 * Used to unify networking, file, child-process, RS-232, and various other I/O APIs behind a single generic interface
 * A program written to use a [DataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataIO.html) can be easily modified to talk to any kind of I/O hardware (see `muscle/test/hexterm.cpp` for a good example)
 * Both blocking and non-blocking I/O are supported.

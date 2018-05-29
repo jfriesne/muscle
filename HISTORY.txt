@@ -5,6 +5,18 @@ key:  - new feature
       * bug fixed
       o other
 
+6.85 Released 5/29/2018
+   - Added logic to CMakeLists.txt so that if libz isn't
+     installed on the build-system, it will automatically
+     fall back to using the captive implementation in zlib/zlib.
+   * Fixed a number of minor warnings that appeared when 
+     compiling with clang++ and all warnings enabled.
+   * Fixed various typos and grammar problems in the MkDocs files.
+   * Added a sanity-check to Message::Unflatten() so that a
+     serialized Message with an impossibly-large entries-count
+     field will error out cleanly, rather than attempt to allocate 
+     an impossibly-large Hashtable and exhaust the host's RAM.
+
 6.84 Released 5/22/2018
    - Added support for a -DMUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS
      command-line switch so that the log output can contain

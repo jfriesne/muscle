@@ -4,8 +4,9 @@
 
 [!["ReflectServer sessions diagram"](muscled_sessions.png)](muscled_sessions.png)
 
-[ReflectServer](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ReflectServer.html) implements a general-purpose event loop for all the other MUSCLE components to live in.
+[ReflectServer](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ReflectServer.html) implements a general-purpose event-loop for all the other MUSCLE components to live in.
 
+* Similar to: [QApplication](http://doc.qt.io/qt-5/qapplication.html), [QEventLoop](http://doc.qt.io/qt-5/qeventloop.html), [ACE::Reactor](http://www.dre.vanderbilt.edu/Doxygen/5.6/html/ace/classACE__Reactor.html)
 * A typical MUSCLE server program would put a [ReflectServer](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ReflectServer.html) object on the stack in main(), add one or more [ServerComponent](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ServerComponent.html) objects to it, then call [ServerProcessLoop()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ReflectServer.html#a76a1b18af0dacbb6b0a03d5c6433e15e) on the [ReflectServer](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ReflectServer.html).
 * [ServerProcessLoop()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ReflectServer.html#a76a1b18af0dacbb6b0a03d5c6433e15e) will typically not return until it is time for the program to exit.
 * [ServerProcessLoop()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ReflectServer.html#a76a1b18af0dacbb6b0a03d5c6433e15e) uses a [SocketMultiplexer](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html) internally to handle I/O operations and calls callback methods on the attached [ServerComponent](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ServerComponent.html) objects at the appropriate times.

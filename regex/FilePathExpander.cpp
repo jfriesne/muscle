@@ -1,6 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
 #include "regex/StringMatcher.h"
+#include "regex/FilePathExpander.h"
 #include "system/SystemInfo.h"  // for GetFilePathSeparator()
 #include "util/Directory.h"
 #include "util/FilePathInfo.h"
@@ -8,7 +9,7 @@
 
 namespace muscle {
 
-status_t ExpandFilePathWildCardsAux(const String & curDir, const String & path, Queue<String> & outputPaths, bool isSimpleFormat)
+static status_t ExpandFilePathWildCardsAux(const String & curDir, const String & path, Queue<String> & outputPaths, bool isSimpleFormat)
 {
    const char * fs = GetFilePathSeparator();
    int32 sepIdx = path.IndexOf(fs);

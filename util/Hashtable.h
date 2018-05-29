@@ -1038,13 +1038,13 @@ private:
       {
          case TABLE_INDEX_TYPE_UINT8:  
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            static_cast<HashtableEntry<uint8>  *>(entry)->_indices[whichIndex] = (value == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) ? 255   : ((uint8)  value); 
+            static_cast<HashtableEntry<uint8>  *>(entry)->_indices[whichIndex] = (value == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) ? (uint8)255    : ((uint8)  value); 
          break;
 #endif
 
          case TABLE_INDEX_TYPE_UINT16: 
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            static_cast<HashtableEntry<uint16> *>(entry)->_indices[whichIndex] = (value == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) ? 65535 : ((uint16) value); 
+            static_cast<HashtableEntry<uint16> *>(entry)->_indices[whichIndex] = (value == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) ? (uint16)65535 : ((uint16) value); 
          break;
 #endif
 

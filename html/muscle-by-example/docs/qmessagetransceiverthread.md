@@ -2,9 +2,9 @@
 
 ```#include "qtsupport/QMessageTransceiverThread.h"```
 
-[QMessageTransceiverThread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1QMessageTransceiverThread.html) is a Qt-specific subclass of [MessageTransceiverThread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1MessageTransceiverThread.html)
+[QMessageTransceiverThread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1QMessageTransceiverThread.html) is a Qt-specific subclass of [MessageTransceiverThread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1MessageTransceiverThread.html).
 
-* It adds some glue code, so that incoming events emit Qt signals (so no need to call [MessageTransceiverThread::GetNextEventFromInternalThread()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1MessageTransceiverThread.html#a8aaee10a3afbb93be853d780814e857f) manually, instead just `connect()` the appropriate signals from the [QMessageTransceiverThread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1QMessageTransceiverThread.html) object to the appropriate slots in your GUI object(s))
+It adds some glue code, so that incoming events emit Qt signals (so no need to call [MessageTransceiverThread::GetNextEventFromInternalThread()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1MessageTransceiverThread.html#a8aaee10a3afbb93be853d780814e857f) manually, instead just `connect()` the appropriate signals from the [QMessageTransceiverThread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1QMessageTransceiverThread.html) object to the appropriate slots in your Qt/GUI object(s))
 
 Try compiling and running the mini-example-program in `muscle/qtsupport/qt_example` (enter `qmake; make` to compile qt_example.app, and then run qt_example.app from Terminal or via its icon.  See the README.txt in that folder for more details)
 

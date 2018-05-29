@@ -4,10 +4,10 @@
 
 Holds a resizable array of `chars` that contains a 0-terminated C-string (ASCII or UTF-8).
 
-* Similar to: `QString`, `std::string`, `java.util.String`
+* Similar to: [QString](http://doc.qt.io/qt-5/qstring.html), [std::string](http://en.cppreference.com/w/cpp/string/basic_string), [java.util.String](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html)
 * Supports string lengths up to (2^32)-1 bytes
 * Short-string optimization:  Strings less than 8 bytes long require no heap allocations
-* Idiom:  () operator as a shorthand for calling [CStr()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1String.html#ab716a97a695759248dfc7692bf99016a) method to get a `(const char *)`:
+* Idiom:  [() operator](https://public.msli.com/lcs/muscle/html/classmuscle_1_1String.html#acd0c0b357f08ee3e8ba81d101eb05845) is a shorthand for calling [CStr()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1String.html#ab716a97a695759248dfc7692bf99016a) method to get a `(const char *)`:
 
 ```
     const String s = "foobar"; 

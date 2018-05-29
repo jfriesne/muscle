@@ -349,7 +349,7 @@ static status_t ParseConnectArgAux(const String & s, uint32 startIdx, uint16 & r
    const char * pStr = (colIdx>=0)?(s()+colIdx+1):NULL;
    if ((pStr)&&(muscleInRange(*pStr, '0', '9')))
    {
-      uint16 p = atoi(pStr);
+      uint16 p = (uint16) atoi(pStr);
       if (p > 0) retPort = p;
       return B_NO_ERROR; 
    }
@@ -864,7 +864,7 @@ status_t DenybbleizeData(const String & nybbleizedText, ByteBuffer & retBuf)
          LogTime(MUSCLE_LOG_ERROR, "DenybblizeData:  Nybblized text [%s] contains characters other than A through P!\n", nybbleizedText());
          return B_ERROR;
       }
-      *b++ = ((c1-'A')<<0)|((c2-'A')<<4);
+      *b++ = (uint8) (((c1-'A')<<0)|((c2-'A')<<4));
    }
    return B_NO_ERROR;
 }

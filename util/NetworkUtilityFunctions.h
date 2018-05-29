@@ -101,7 +101,7 @@ bool GetAutomaticIPv4AddressMappingEnabled();
   * @param preferIPv6 If set to true, and both IPv4 and IPv6 addresses are returned for the specified
   *                   hostname, then the IPv6 address will be returned.  If false, the IPv4 address
   *                   will be returned.  Defaults to true.
-  * @return The associated IP address (local endianness), or 0 on failure.
+  * @return The associated IP address (local endianness), or invalidIP on failure.
   * @note This function may invoke a synchronous DNS lookup, which means that it may take
   *       a long time to return (e.g. if the DNS server is not responding)
   */
@@ -119,7 +119,7 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool pr
   * @param preferIPv6 If set to true, and both IPv4 and IPv6 addresses are returned for the specified
   *                   hostname, then the IPv6 address will be returned.  If false, the IPv4 address
   *                   will be returned.  Defaults to true.
-  * @return The associated IP address (local endianness), or 0 on failure.
+  * @return The associated IP address (local endianness), or invalidIP on failure.
   * @note This function may invoke a synchronous DNS lookup, which means that it may take
   *       a long time to return (e.g. if the DNS server is not responding)
   */
@@ -138,7 +138,7 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost = false, b
 void SetHostNameCacheSettings(uint32 maxCacheSize, uint64 expirationTimeMicros);
 
 /** If you'd like to have GetHostByName() call your own hostname-resolution algorithm
-  * before (or after) the built-in gethostbyname()-based functionality provided by
+  * before (or after) the built-in gethostbyname()/getaddrinfo()-based functionality provided by
   * GetHostByNameNative(), you can install a callback routine using this function.
   * @param resolver reference to a IHostNameResolver object whose GetIPAddressForHostName()
   *                 method will be called to try to obtain an IP address for the given hostname.
@@ -202,15 +202,11 @@ ConstSocketRef Connect(const IPAddress & hostIP, uint16 port, const char * debug
  */
 inline ConstSocketRef Connect(const IPAddressAndPort & iap, const char * debugHostName = NULL, const char * debugTitle = NULL, bool debugOutputOnErrorsOnly = true, uint64 maxConnectPeriod = MUSCLE_TIME_NEVER) {return Connect(iap.GetIPAddress(), iap.GetPort(), debugHostName, debugTitle, debugOutputOnErrorsOnly, maxConnectPeriod);}
 
-/** Convenience function for accepting a TCP connection on a given socket.  Has the same semantics as accept().
- *  (This is somewhat better than calling accept() directly, as certain cross-platform issues get transparently taken care of)
- * @param sock socket FD to accept from (e.g. a socket that was previously returned by CreateAcceptingSocket())
- * @param optRetLocalInfo if non-NULL, then on success, some information about the local side of the new
- *                        connection will be written here.  In particular, optRetLocalInfo()->GetIPAddress()
- *                        will return the IP address of the local network interface that the connection was
- *                        received on, and optRetLocalInfo()->GetPort() will return the port number that
- *                        the connection was received on.  Defaults to NULL.
- * @return A non-NULL ConstSocketRef if the accept was successful, or a NULL ConstSocketRef if the accept failed.
+/** Accepts an incoming TCP connection on the given listening-socket.
+ *  @param sock the listening-socket to accept the incoming TCP from.  This will typically be a ConstSocketRef that was previously returned by CreateAcceptingSocket().
+ *  @param optRetLocalInfo if non-NULL, then on success the connecting peer's IP address will be written into
+ *                         the IPAddress object that this pointer points to.  Defaults to NULL.
+ *  @return A non-NULL ConstSocketRef if the accept was successful, or a NULL ConstSocketRef if the accept failed.
  */
 ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetLocalInfo = NULL);
 
@@ -218,17 +214,17 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetLocalInfo =
  *  @param sock The socket to read from.
  *  @param buffer Location to write the received bytes into.
  *  @param bufferSizeBytes Number of bytes available at the location indicated by (buffer).
- *  @param socketIsBlockingIO Pass in true if the given socket is set to use blocking I/O, or false otherwise.
+ *  @param socketIsInBlockingIOMode Pass in true if the given socket is set to use blocking I/O, or false otherwise.
  *  @return The number of bytes read into (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsBlockingIO);
+int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode);
 
 /** Identical to ReceiveData(), except that this function's logic is adjusted to handle UDP semantics properly. 
  *  @param sock The socket to read from.
  *  @param buffer Location to place the received bytes into.
  *  @param bufferSizeBytes Number of bytes available at the location indicated by (buffer).
- *  @param socketIsBlockingIO Pass in true if the given socket is set to use blocking I/O, or false otherwise.
+ *  @param socketIsInBlockingIOMode Pass in true if the given socket is set to use blocking I/O, or false otherwise.
  *  @param optRetFromIP If set to non-NULL, then on success the IPAddress this parameter points to will be filled in
  *                      with the IP address that the received data came from.  Defaults to NULL.
  *  @param optRetFromPort If set to non-NULL, then on success the uint16 this parameter points to will be filled in
@@ -236,53 +232,53 @@ int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeB
  *  @return The number of bytes read into (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsBlockingIO, IPAddress * optRetFromIP = NULL, uint16 * optRetFromPort = NULL);
+int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, IPAddress * optRetFromIP = NULL, uint16 * optRetFromPort = NULL);
 
 /** Similar to ReceiveData(), except that it will call read() instead of recv().
  *  This is the function to use if (fd) is referencing a file descriptor instead of a socket.
  *  @param fd The file descriptor to read from.
  *  @param buffer Location to place the read bytes into.
  *  @param bufferSizeBytes Number of bytes available at the location indicated by (buffer).
- *  @param fdIsBlockingIO Pass in true if the given fd is set to use blocking I/O, or false otherwise.
+ *  @param fdIsInBlockingIOMode Pass in true if the given fd is set to use blocking I/O, or false otherwise.
  *  @return The number of bytes read into (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 ReadData(const ConstSocketRef & fd, void * buffer, uint32 bufferSizeBytes, bool fdIsBlockingIO);
+int32 ReadData(const ConstSocketRef & fd, void * buffer, uint32 bufferSizeBytes, bool fdIsInBlockingIOMode);
 
 /** Transmits as many bytes as possible from the given buffer over the given socket.
  *  @param sock The socket to transmit over.
  *  @param buffer Buffer to read the outgoing bytes from.
  *  @param bufferSizeBytes Number of bytes to send.
- *  @param socketIsBlockingIO Pass in true if the given socket is set to use blocking I/O, or false otherwise.
+ *  @param socketIsInBlockingIOMode Pass in true if the given socket is set to use blocking I/O, or false otherwise.
  *  @return The number of bytes sent from (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 SendData(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsBlockingIO);
+int32 SendData(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode);
 
 /** Similar to SendData(), except that this function's logic is adjusted to handle UDP semantics properly.
  *  @param sock The socket to transmit over.
  *  @param buffer Buffer to read the outgoing bytes from.
  *  @param bufferSizeBytes Number of bytes to send.
- *  @param socketIsBlockingIO Pass in true if the given socket is set to use blocking I/O, or false otherwise.
- *  @param optDestIP If set to non-zero, the data will be sent to the given IP address.  Otherwise it will
- *                   be sent to the socket's current IP address (see SetUDPSocketTarget()).  Defaults to zero.
+ *  @param socketIsInBlockingIOMode Pass in true if the given socket is set to use blocking I/O, or false otherwise.
+ *  @param optDestIP If set to a valid IP address, the data will be sent to that IP address.  Otherwise it will
+ *                   be sent to the socket's current IP address (see SetUDPSocketTarget()).  Defaults to invalidIP.
  *  @param destPort If set to non-zero, the data will be sent to the specified port.  Otherwise it will
  *                  be sent to the socket's current destination port (see SetUDPSocketTarget()).  Defaults to zero.
  *  @return The number of bytes sent from (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsBlockingIO, const IPAddress & optDestIP = invalidIP, uint16 destPort = 0);
+int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, const IPAddress & optDestIP = invalidIP, uint16 destPort = 0);
 
 /** Similar to SendData(), except that the implementation calls write() instead of send().  This
  *  is the function to use when (fd) refers to a file descriptor instead of a socket.
  *  @param fd The file descriptor to write the data to.
  *  @param buffer Buffer to read the outgoing bytes from.
  *  @param bufferSizeBytes Number of bytes to write.
- *  @param fdIsBlockingIO Pass in true if the given file descriptor is set to use blocking I/O, or false otherwise.
+ *  @param fdIsInBlockingIOMode Pass in true if the given file descriptor is set to use blocking I/O, or false otherwise.
  *  @return The number of bytes sent from (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 WriteData(const ConstSocketRef & fd, const void * buffer, uint32 bufferSizeBytes, bool fdIsBlockingIO);
+int32 WriteData(const ConstSocketRef & fd, const void * buffer, uint32 bufferSizeBytes, bool fdIsInBlockingIOMode);
 
 /** This function initiates a non-blocking connection to the given host IP address and port.
   * It will return the created socket, which may or may not be fully connected yet.
@@ -308,38 +304,38 @@ ConstSocketRef ConnectAsync(const IPAddress & hostIP, uint16 port, bool & retIsR
   */
 inline ConstSocketRef ConnectAsync(const IPAddressAndPort & iap, bool & retIsReady) {return ConnectAsync(iap.GetIPAddress(), iap.GetPort(), retIsReady);}
 
-/** When a socket that was connecting asynchronously finally
-  * selects ready-for-write to indicate that the asynchronous connect 
-  * attempt has reached a conclusion, call this method.  It will finalize
-  * the connection and make it ready for use.
+/** When a TCP socket that was connecting asynchronously finally selects as ready-for-write 
+  * to indicate that the asynchronous connect attempt has reached a conclusion, call this function.
+  * This function will finalize the asynchronous-TCP-connection-process, and make the TCP socket 
+  * usable for data-transfer.
   * @param sock The socket that was connecting asynchronously
   * @returns B_NO_ERROR if the connection is ready to use, or B_ERROR if the connect failed.
-  * @note Under Windows, select() won't return ready-for-write if the connection fails... instead
-  *       it will select-notify for your socket on the exceptions fd_set (if you provided one).
+  * @note Under Windows, select() won't return ready-for-write if the asynchronous TCP connection fails... 
+  *       instead it will select-as-ready for your socket on the exceptions-fd_set (if you provided one).
   *       Once this happens, there is no need to call FinalizeAsyncConnect() -- the fact that the
   *       socket notified on the exceptions fd_set is enough for you to know the asynchronous connection
-  *       failed.  Successful asynchronous connect()s do exhibit the standard (select ready-for-write)
-  *       behaviour, though.
+  *       failed.  Successful asynchronous-TCP-connects do exhibit the standard/select-as-ready-for-write
+  *       behaviour under Windows, though.
   */
 status_t FinalizeAsyncConnect(const ConstSocketRef & sock);
 
 /** Shuts the given socket down.  (Note that you don't generally need to call this function; it's generally
  *  only useful if you need to half-shutdown the socket, e.g. stop the output direction but not the input
  *  direction)
- *  @param sock The socket to shutdown communication on. 
- *  @param disableReception If true, further reception of data will be disabled on this socket.
- *  @param disableTransmission If true, further transmission of data will be disabled on this socket.
+ *  @param sock The socket to permanently shut down communication on. 
+ *  @param disableReception If true, further reception of data will be disabled on this socket.  Defaults to true.
+ *  @param disableTransmission If true, further transmission of data will be disabled on this socket.  Defaults to true.
  *  @return B_NO_ERROR on success, or B_ERROR on failure.
  */
 status_t ShutdownSocket(const ConstSocketRef & sock, bool disableReception = true, bool disableTransmission = true);
 
-/** Convenience function for creating a TCP socket that is listening on a given local port for incoming TCP connections.
- *  @param port Which port to listen on, or 0 to have the system should choose a port for you
- *  @param maxbacklog Maximum connection backlog to allow for (defaults to 20)
- *  @param optRetPort If non-NULL, the uint16 this value points to will be set to the actual port bound to (useful when you want the system to choose a port for you)
+/** Creates a TCP listening-socket, that listens for incoming TCP connections on a specified TCP port.
+ *  @param port Which TCP port to listen on, or 0 to have the system should choose an available TCP port for you.
+ *  @param maxbacklog Maximum TCP-connection-backlog to allow (defaults to 20)
+ *  @param optRetPort If non-NULL, the uint16 this value points to will be set to the actual port bound to (useful when you allowed the system to choose a port for you)
  *  @param optInterfaceIP Optional IP address of the local network interface to listen on.  If left unspecified, or
  *                        if passed in as (invalidIP), then this socket will listen on all available network interfaces.
- * @return A non-NULL ConstSocketRef if the port was bound successfully, or a NULL ConstSocketRef if the accept failed.
+ *  @return A non-NULL ConstSocketRef if the port was bound successfully, or a NULL ConstSocketRef if the accept failed.
  */
 ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * optRetPort = NULL, const IPAddress & optInterfaceIP = invalidIP);
 
@@ -376,7 +372,7 @@ IPAddress Inet_AtoN(const char * buf);
 String GetLocalHostName();
 
 /** Reurns the IP address that the given socket is connected to.
- *  @param sock The socket descriptor to find out info about.
+ *  @param sock The socket to find out info about.
  *  @param expandLocalhost If true, then if the peer's ip address is reported as 127.0.0.1, this 
  *                         function will attempt to determine the host machine's actual primary IP
  *                         address and return that instead.  Otherwise, 127.0.0.1 will be
@@ -386,79 +382,80 @@ String GetLocalHostName();
  */
 IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort = NULL);
 
-/** Creates a pair of sockets that are connected to each other,
- *  so that any bytes you pass into one socket come out the other socket.
- *  This is useful when you want to wake up a thread that is blocked in select()...
- *  you have it select() on one socket, and you send a byte on the other.
+/** Creates a pair of stream-oriented sockets that are connected to each other, so that any bytes 
+ *  you write into one socket come out as bytes to read from the other socket.
+ *  This is particularly useful for inter-thread communication and/or signalling.
  *  @param retSocket1 On success, this value will be set to the socket ID of the first socket.
  *  @param retSocket2 On success, this value will be set to the socket ID of the second socket.
  *  @param blocking Whether the two sockets should use blocking I/O or not.  Defaults to false.
  *  @return B_NO_ERROR on success, or B_ERROR on failure.
+ *  @note the Windows implementation of this function will return a pair of connected TCP sockets.
+ *        On other OS's, an AF_UNIX socketpair() is returned.  The resulting behavior is the same in either case.
  */
 status_t CreateConnectedSocketPair(ConstSocketRef & retSocket1, ConstSocketRef & retSocket2, bool blocking = false);
 
-/** Enables or disables blocking I/O on the given socket. 
- *  (Default for a socket is blocking mode enabled)
- *  @param sock the socket descriptor to act on.
- *  @param enabled Whether I/O on this socket should be enabled or not.
+/** Enables or disables blocking I/O on the given socket.
+ *  @note The default state for a newly created socket is: true/blocking-mode-enabled.
+ *  @param sock the socket to act on.
+ *  @param enabled True to set this socket to blocking I/O mode, or false to set it to non-blocking I/O mode.
  *  @return B_NO_ERROR on success, or B_ERROR on failure.
  */
 status_t SetSocketBlockingEnabled(const ConstSocketRef & sock, bool enabled);
 
 /** Returns true iff the given socket has blocking I/O enabled.
- *  @param sock the socket descriptor to query.
+ *  @param sock the socket to query.
  *  @returns true iff the socket is in blocking I/O mode, or false if it is not (or if it is an invalid socket)
  *  @note this function is not implemented under Windows (as Windows doesn't appear to provide any method to
- *        obtain this information from a socket).  Under Windows, this method will simply log an erorr message
+ *        obtain this information from a socket).  Under Windows, this method will simply log an error message
  *        and return false.
  */ 
 bool GetSocketBlockingEnabled(const ConstSocketRef & sock);
 
 /**
-  * Turns Nagle's algorithm (output packet buffering/coalescing) on or off.
-  * @param sock the socket descriptor to act on.
-  * @param enabled If true, data will be held momentarily before sending, 
-  *                to allow for bigger packets.  If false, each Write() 
-  *                call will cause a new packet to be sent immediately.
+  * Turns Nagle's algorithm (i.e. output-packet-buffering/coalescing, with a 200mS timeout) on or off.
+  * @param sock the socket to act on.
+  * @param enabled If true, outgoing TCP data will be held briefly (per Nagle's algorithm) before sending, 
+  *                to allow for fewer, bigger packets.  If false, then each SendData() call will cause a 
+  *                new TCP packet to be sent immediately.
   * @return B_NO_ERROR on success, B_ERROR on error.
   */
 status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabled);
 
 /** Returns true iff the given socket has Nagle's algorithm enabled.
- *  @param sock the socket descriptor to query.
+ *  @param sock the socket to query.
  *  @returns true iff the socket is has Nagle's algorithm enabled, or false if it does not (or if it is an invalid socket)
  */ 
 bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock);
 
 /**
-  * Sets the size of the given socket's TCP send buffer to the specified
+  * Sets the size of the given socket's outgoing-data-buffer to the specified
   * size (or as close to that size as is possible).
-  * @param sock the socket descriptor to act on.
-  * @param sendBufferSizeBytes New size of the TCP send buffer, in bytes.
+  * @param sock the socket to act on.
+  * @param sendBufferSizeBytes New requested size for the outgoing-data-buffer, in bytes.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   */
 status_t SetSocketSendBufferSize(const ConstSocketRef & sock, uint32 sendBufferSizeBytes);
 
 /** 
-  * Returns the current size of the socket's TCP send buffer.
+  * Returns the current size of the socket's outgoing-data-buffer.
   * @param sock The socket to query.
-  * @return The size of the socket's TCP send buffer, in bytes, or -1 on error (e.g. invalid socket)
+  * @return The current size of the socket's outgoing-data-buffer, in bytes, or a negative value on error (e.g. invalid socket)
   */
 int32 GetSocketSendBufferSize(const ConstSocketRef & sock);
 
 /**
-  * Sets the size of the given socket's TCP receive buffer to the specified
+  * Sets the size of the given socket's incoming-data-buffer to the specified
   * size (or as close to that size as is possible).
-  * @param sock the socket descriptor to act on.
-  * @param receiveBufferSizeBytes New size of the TCP receive buffer, in bytes.
+  * @param sock the socket to act on.
+  * @param receiveBufferSizeBytes New size of the incoming-data-buffer, in bytes.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   */
 status_t SetSocketReceiveBufferSize(const ConstSocketRef & sock, uint32 receiveBufferSizeBytes);
 
 /** 
-  * Returns the current size of the socket's TCP receive buffer.
+  * Returns the current size of the socket's incoming-data-buffer.
   * @param sock The socket to query.
-  * @return The size of the socket's TCP receive buffer, in bytes, or -1 on error (e.g. invalid socket)
+  * @return The size of the socket's incoming-data-buffer, in bytes, or a negative value on error (e.g. invalid socket)
   */
 int32 GetSocketReceiveBufferSize(const ConstSocketRef & sock);
 
@@ -546,7 +543,7 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
 /** Set a user-specified IP address to return from GetHostByName() and GetPeerIPAddress() instead of 127.0.0.1.
   * Note that this function <b>does not</b> change the computer's IP address -- it merely changes what
   * the aforementioned functions will report.
-  * @param ip New IP address to return instead of 127.0.0.1, or 0 to disable this override.
+  * @param ip New IP address to return instead of 127.0.0.1, or invalidIP to disable this override.
   */
 void SetLocalHostIPOverride(const IPAddress & ip);
 
@@ -564,26 +561,26 @@ IPAddress GetLocalHostIPOverride();
 ConstSocketRef CreateUDPSocket();
 
 /** Attempts to given UDP socket to the given port.  
- *  @param sock The UDP socket (previously created by CreateUDPSocket())
- *  @param port UDP port ID to bind the socket to.  If zero, the system will choose a port ID.
- *  @param optRetPort if non-NULL, then on successful return the value this pointer points to will contain
+ *  @param sock The UDP socket (as previously returned by CreateUDPSocket())
+ *  @param port UDP port to bind the socket to.  If zero, the system will choose an available UDP port for you.
+ *  @param optRetPort if non-NULL, then on successful return the uint16 that this pointer points to will contain
  *                    the port ID that the socket was bound to.  Defaults to NULL.
- *  @param optFrom If non-zero, then the socket will be bound in such a way that only data
- *                 packets addressed to this IP address will be accepted.  Defaults to zero,
- *                 meaning that packets addressed to any of this machine's IP addresses will
- *                 be accepted.  (This parameter is typically only useful on machines with
- *                 multiple IP addresses) 
+ *  @param optFrom If a valid IPAddress, then the socket will be bound in such a way that only data
+ *                 packets addressed to the specified IP address will be accepted.  Defaults to 
+ *                 invalidIP, meaning that packets addressed to any of this machine's IP addresses 
+ *                 will be accepted.
  *  @param allowShared If set to true, the port will be set up so that multiple processes
  *                     can bind to it simultaneously.  This is useful for sockets that are 
- *                     to be receiving broadcast UDP packets, since then you can run multiple
- *                     UDP broadcast receivers on a single computer. 
+ *                     to be receiving multicast or broadcast UDP packets, since then you can 
+ *                     run multiple UDP multicast or broadcast-receiving processes on a single computer. 
  *  @returns B_NO_ERROR on success, or B_ERROR on failure.
  */
 status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRetPort = NULL, const IPAddress & optFrom = invalidIP, bool allowShared = false);
 
 /** Set the target/destination address for a UDP socket.  After successful return
- *  of this function, any data that is written to the UDP socket will be sent to this
- *  IP address and port.  This function is guaranteed to return quickly.
+ *  of this function, any data that is written to the UDP socket (with no explicit
+ *  destination address specified) will be sent to this IP address and port.  
+ *  Also, the UDP socket will only receive UDP packets from the specified address/port.
  *  @param sock The UDP socket to send to (previously created by CreateUDPSocket()).
  *  @param remoteIP Remote IP address that data should be sent to.
  *  @param remotePort Remote UDP port ID that data should be sent to.
@@ -610,12 +607,14 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const char * remoteHost
  *              (Note that the default state of newly created UDP sockets is broadcast-disabled)
  *  @param broadcast True if broadcasting should be enabled, false if broadcasting should be disabled.
  *  @returns B_NO_ERROR on success, or B_ERROR on failure.
+ *  @note this function is only useful in conjunction with IPv4 sockets.  IPv6 doesn't use broadcast anyway.
  */
 status_t SetUDPSocketBroadcastEnabled(const ConstSocketRef & sock, bool broadcast);
 
 /** Returns true iff the specified UDP socket has broadcast enabled; or false if it does not.
   * @param sock The UDP socket to query.
   * @returns true iff the socket is enabled for UDP broadcast; false otherwise.
+  * @note this function is only useful in conjunction with IPv4 sockets.  IPv6 doesn't use broadcast anyway.
   */
 bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock);
 
@@ -646,8 +645,7 @@ bool GetSocketMulticastToSelf(const ConstSocketRef & sock);
   */
 status_t SetSocketMulticastTimeToLive(const ConstSocketRef & sock, uint8 ttl);
 
-/** Returns the "time to live" associated with multicast packets sent on
-  * this socket, or 0 on failure.
+/** Returns the "time to live" associated with multicast packets sent on this socket, or 0 on failure.
   * @param sock The socket to query the TTL value of.
   */
 uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock);

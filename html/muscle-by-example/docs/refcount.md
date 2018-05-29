@@ -4,7 +4,7 @@
 
 Reference-counting for heap-allocated objects, to makes memory-leaks and use-after-free errors nearly impossible.
 
-* Similar to: `std::shared_ptr<T>`, `boost::intrusive_ptr<T>`, `QSharedPointer`
+* Similar to: [std::shared_ptr&lt;T&gt;](http://en.cppreference.com/w/cpp/memory/shared_ptr), [boost::intrusive_ptr&lt;T&gt;](https://www.boost.org/doc/libs/1_60_0/libs/smart_ptr/intrusive_ptr.html), [QSharedPointer](http://doc.qt.io/qt-5/qsharedpointer.html)
 * Object to be reference-counted must be a subclass of [RefCountable](https://public.msli.com/lcs/muscle/html/classmuscle_1_1RefCountable.html).
 * The ref-counted object will always be deleted by the destructor of the last [Ref](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Ref.html) that points to it -- explicitly calling `delete` is NEVER necessary!
 * Often used in conjunction with the [ObjectPool](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ObjectPool.html) class to recycle used objects (to minimize heap allocations/deallocations)

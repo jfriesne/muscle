@@ -12,12 +12,13 @@ This implementation never bothers to flatten or unflatten message
 objects at all; instead it reads and writes flattened-message-data
 directly from/to a raw buffer of bytes.
 
-That makes this implementation very efficient (it never allocates 
-or frees heap memory), but it does restrict its functionality.  
+That makes this implementation very efficient (it never copies any
+Message data, and it never performs any heap-allocations), but it does 
+restrict its functionality somewhat (compared to the C++ implementation).
 
-In particular when constructing a `MicroMessage` data-buffer, 
-data can only be appended.  Data already existing in the
-`MicroMessage` buffer is considered read-only.  Also, you can only
+In particular, when constructing a `MicroMessage` data-buffer, 
+fields can only be appended.  Fields already present in the
+`MicroMessage` buffer are considered read-only.  Also, you can only
 add as much data as will fit into the byte-buffer you provided.
 Attempts to add more data than that will fail.
 

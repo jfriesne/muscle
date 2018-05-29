@@ -171,13 +171,13 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       argc = scratchChildArgQ.GetNumItems();
    }
 
-   ByteBuffer scratchChildArgv;  // the child process's argv array, NULL terminated
-   if (scratchChildArgv.SetNumBytes((argc+1)*sizeof(char *), false) != B_NO_ERROR) return B_ERROR;
+   Queue<const char *> scratchChildArgv;  // the child process's argv array, NULL terminated
+   if (scratchChildArgv.EnsureSize(argc+1, true) != B_NO_ERROR) return B_ERROR;
 
    // Populate the argv array for our child process to use
-   const char ** argv = (const char **) scratchChildArgv.GetBuffer();
+   const char ** argv = scratchChildArgv.HeadPointer();
    if (isParsed) for (int i=0; i<argc; i++) argv[i] = scratchChildArgQ[i]();
-            else memcpy(argv, (char **) args, argc*sizeof(char *));
+            else memcpy(argv, args, argc*sizeof(char *));
    argv[argc] = NULL; // argv array must be NULL terminated!
 
    pid_t pid = (pid_t) -1;
@@ -235,19 +235,20 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       if (_childProcessIsIndependent) (void) BecomeDaemonProcess();  // used by the LaunchIndependentChildProcess() static methods only
 
       char absArgv0[PATH_MAX];
-      char ** argv = (char **) scratchChildArgv.GetBuffer();
+      const char ** argv = &scratchChildArgv[0];
+      const char * argv0 = scratchChildArgv[0];
       if (optDirectory)
       {
          // If we are going to change to a different directory, then we need to
-         // generate an abolute-filepath for argv[0] first, otherwise we're likely
-         // to be unable to find the executable to run!
-         if (realpath(argv[0], absArgv0) != NULL) argv[0] = absArgv0;
+         // generate an absolute-filepath for argv[0] first, otherwise we won't
+         // be able to find the executable to run!
+         if (realpath(argv[0], absArgv0) != NULL) argv[0] = argv0 = absArgv0;
          if (chdir(optDirectory) < 0) perror("ChildProcessDataIO::chdir");  // FogBugz #10023
       }
 
       ChildProcessReadyToRun();
 
-      if (execvp(argv[0], argv) < 0) perror("ChildProcessDataIO::execvp");  // execvp() should never return
+      if (execvp(argv0, const_cast<char **>(argv)) < 0) perror("ChildProcessDataIO::execvp");  // execvp() should never return
 
       ExitWithoutCleanup(20);
    }

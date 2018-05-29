@@ -73,6 +73,8 @@ private:
    status_t ChangeDaemonCounterAux(int32 byteDelta);  // Note: this assumes the SharedMemory is not locked yet
    size_t CalculateTotalAllocationSum() const;
    uint32 GetNumSlots() const {return _shared.GetAreaSize()/sizeof(size_t);}
+   size_t * GetArrayPointer() {return (size_t *) _shared();}
+   const size_t * GetArrayPointer() const {return (const size_t *) _shared();}
 
    size_t _localAllocated;
    size_t _maxBytes;

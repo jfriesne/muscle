@@ -5,7 +5,7 @@
 MUSCLE's class for iterating over substrings in a string.
 
 * Given a C-string, parses out the contained words or clauses in order
-* Similar to: `strtok()`, `java.util.StringTokenizer`, `boost::tokenizer`, `istringstream`
+* Similar to: [strtok()](http://man7.org/linux/man-pages/man3/strtok.3.html), [java.util.StringTokenizer](https://docs.oracle.com/javase/8/docs/api/index.html?java/util/StringTokenizer.html), [boost::tokenizer](https://www.boost.org/doc/libs/1_66_0/libs/tokenizer/tokenizer.htm)
 * More than one token-separator char can be specified (e.g. spaces AND commas)
 * Multiple separator-chars in a row will be treated as a single separator
 

@@ -252,13 +252,7 @@ void WarnOutOfMemory(const char * file, int line);
 #endif
 
 #ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
-# if defined(_MSC_VER)
-#  define LogTime(logLevel, ...)     _LogTime(__FILE__, __FUNCTION__, __LINE__, logLevel, __VA_ARGS__)
-# elif defined(__GNUC__)
-#  define LogTime(logLevel, args...) _LogTime(__FILE__, __FUNCTION__, __LINE__, logLevel, args)
-# else
-#  define LogTime(logLevel, args...) _LogTime(__FILE__, "",           __LINE__, logLevel, args)
-# endif
+# define LogTime(logLevel, ...) _LogTime(__FILE__, __FUNCTION__, __LINE__, logLevel, __VA_ARGS__)
 status_t _LogTime(const char * sourceFile, const char * optSourceFunction, int line, int logLevel, const char * fmt, ...);
 #else
 

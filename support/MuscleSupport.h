@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.84" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        68400  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "6.85" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        68500  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -176,11 +176,8 @@ using std::set_new_handler;
   */
 #define MUSCLE_UNIQUE_NAME ___MUSCLE_UNIQUE_NAME_AUX2(__uniqueName, __LINE__)
 
-#ifdef _MSC_VER
-# define DECLARE_ANONYMOUS_STACK_OBJECT(objType, ...) objType MUSCLE_UNIQUE_NAME = objType(__VA_ARGS__) /**< This macro declares an object on the stack with the specified argument(s). */
-#else
-# define DECLARE_ANONYMOUS_STACK_OBJECT(objType, args...) objType MUSCLE_UNIQUE_NAME = objType(args) /**< This macro declares an object on the stack with the specified argument(s). */
-#endif
+/** This macro declares an object on the stack with the specified argument(s). */
+#define DECLARE_ANONYMOUS_STACK_OBJECT(objType, ...) objType MUSCLE_UNIQUE_NAME = objType(__VA_ARGS__)
 
 #ifdef MUSCLE_AVOID_ASSERTIONS
 # define MASSERT(x,msg) /**< assertion macro.  Unless -DMUSCLE_AVOID_ASSERTIONS is specified, this macro will crash the program (with the error message in its second argument) if its first argument evaluates to false. */

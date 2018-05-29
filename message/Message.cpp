@@ -246,7 +246,7 @@ public:
       }
 
       DataType temp;
-      uint32 numItems = numBytes / FlatItemSize;
+      const uint32 numItems = numBytes / FlatItemSize;
       if (this->_data.EnsureSize(numItems) == B_NO_ERROR)
       {
          for (uint32 i=0; i<numItems; i++)
@@ -323,7 +323,7 @@ public:
          return B_ERROR;  // length must be an even multiple of item size, or something's wrong!
       }
 
-      uint32 numItems = numBytes / sizeof(DataType);
+      const uint32 numItems = numBytes / sizeof(DataType);
       if (this->_data.EnsureSize(numItems, true) == B_NO_ERROR)
       {  
          // Note that typically you can't rely on the contents of a Queue object to
@@ -1061,7 +1061,7 @@ public:
          return B_ERROR;
       }
 
-      uint32 numElements = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
+      const uint32 numElements = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
       if (this->_data.EnsureSize(numElements) != B_NO_ERROR) return B_ERROR;
       for (uint32 i=0; i<numElements; i++)
       {
@@ -1070,7 +1070,8 @@ public:
             LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Read of element size failed (inputBufferBytes=" UINT32_FORMAT_SPEC ", i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, i, numElements);
             return B_ERROR;
          }
-         uint32 elementSize = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
+
+         const uint32 elementSize = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
          if (elementSize == 0) 
          {
             LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Element size was zero! (inputBufferBytes=" UINT32_FORMAT_SPEC ", i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, i, numElements);
@@ -1362,7 +1363,7 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
       return B_ERROR;
    }
 
-   uint32 messageProtocolVersion = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
+   const uint32 messageProtocolVersion = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
    if ((messageProtocolVersion < OLDEST_SUPPORTED_PROTOCOL_VERSION)||(messageProtocolVersion > CURRENT_PROTOCOL_VERSION)) 
    {
       LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unexpected message protocol version " UINT32_FORMAT_SPEC " (inputBufferBytes=" UINT32_FORMAT_SPEC ")\n", this, messageProtocolVersion, inputBufferBytes);
@@ -1384,7 +1385,14 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
       return B_ERROR;
    }
 
-   uint32 numEntries = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
+   const uint32 numEntries         = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
+   const uint32 minBytesPerEntry   = (sizeof(uint32)*3);  // name-length + typecode-length + payload-length
+   const uint32 maxPossibleEntries = inputBufferBytes / minBytesPerEntry;  // how many fields might possibly fit in (inputBufferBytes)
+   if (numEntries > maxPossibleEntries) 
+   {
+      LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Entries-count is larger than the input buffer could possibly represent! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " numEntries=" UINT32_FORMAT_SPEC ", maxPossibleEntries=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what, numEntries, maxPossibleEntries);
+      return B_ERROR;
+   }
    if (_entries.EnsureSize(numEntries, true) != B_NO_ERROR) return B_ERROR;
 
    // Read entries
@@ -1396,7 +1404,8 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Error reading entry name length! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what, i, numEntries);
          return B_ERROR;
       }
-      uint32 nameLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
+
+      const uint32 nameLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
       if (nameLength > inputBufferBytes-readOffset) 
       {
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Entry name length too long! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " nameLength=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what, i, numEntries, nameLength, (uint32)(inputBufferBytes-readOffset));
@@ -1418,7 +1427,7 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to read entry type code! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, inputBufferBytes, what, i, numEntries, entryName());
          return B_ERROR;
       }
-      uint32 tc = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
+      const uint32 tc = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
 
       // Read entry data length
       if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
@@ -1426,7 +1435,8 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to read data length! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, inputBufferBytes, what, i, numEntries, tc, entryName());
          return B_ERROR;
       }
-      uint32 eLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
+
+      const uint32 eLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
       if (eLength > inputBufferBytes-readOffset) 
       {
          LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Data length is too long! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " eLength=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, inputBufferBytes, what, i, numEntries, tc, eLength, (uint32)(inputBufferBytes-readOffset), entryName());
@@ -2343,7 +2353,7 @@ status_t MessageField :: SingleUnflatten(const uint8 * buffer, uint32 numBytes)
          if (numBytes < sizeof(uint32)) return B_ERROR;  // huh?
 
          // Note:  Message fields have no number-of-items field, for historical reasons
-         uint32 msgSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
+         const uint32 msgSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
          buffer += sizeof(uint32); numBytes -= sizeof(uint32);  // this line must be exactly here!
          if (msgSize != numBytes) return B_ERROR;
 
@@ -2362,11 +2372,11 @@ status_t MessageField :: SingleUnflatten(const uint8 * buffer, uint32 numBytes)
          if (numBytes < sizeof(uint32)) return B_ERROR;  // paranoia
 
          // string type follows the variable-sized-objects-field convention
-         uint32 itemCount = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
+         const uint32 itemCount = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
          if (itemCount != 1) return B_ERROR;  // wtf, if we're in this function there should only be one item!
          buffer += sizeof(uint32); numBytes -= sizeof(uint32);
 
-         uint32 itemSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
+         const uint32 itemSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
          buffer += sizeof(uint32); numBytes -= sizeof(uint32);  // yes, this line MUST be exactly here!
          if (itemSize != numBytes) return B_ERROR;  // our one item should take up the entire buffer, or something is wrong
 
@@ -2383,11 +2393,11 @@ status_t MessageField :: SingleUnflatten(const uint8 * buffer, uint32 numBytes)
          if (numBytes < sizeof(uint32)) return B_ERROR;  // paranoia
 
          // all other types will follow the variable-sized-objects-field convention
-         uint32 itemCount = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
+         const uint32 itemCount = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
          if (itemCount != 1) return B_ERROR;  // wtf, if we're in this function there should only be one item!
          buffer += sizeof(uint32); numBytes -= sizeof(uint32);
 
-         uint32 itemSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
+         const uint32 itemSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
          buffer += sizeof(uint32); numBytes -= sizeof(uint32);  // yes, this line MUST be exactly here!
          if (itemSize != numBytes) return B_ERROR;  // our one item should take up the entire buffer, or something is wrong
 
@@ -2912,7 +2922,7 @@ status_t MessageField :: Unflatten(const uint8 * bytes, uint32 numBytes)
    _state = FIELD_STATE_EMPTY;  // semi-paranoia
    SetInlineItemToNull();       // ditto
 
-   uint32 numItemsInBuffer = GetNumItemsInFlattenedBuffer(bytes, numBytes);
+   const uint32 numItemsInBuffer = GetNumItemsInFlattenedBuffer(bytes, numBytes);
    if (numItemsInBuffer == 1) return SingleUnflatten(bytes, numBytes);
    else
    {
