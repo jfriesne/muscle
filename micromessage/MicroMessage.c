@@ -28,8 +28,65 @@ static uint32 GetNumBufferBytesAt(const UMessage * msg, const uint8 * ptr)
 
 static inline uint32 GetNumRemainingSpareBufferBytes(const UMessage * msg) {return GetNumBufferBytesAt(msg, msg->_buffer+msg->_numValidBytes);}
 
-static inline void UMWriteInt32(uint8 * ptr, uint32 val) {*((uint32 *)ptr) = B_HOST_TO_LENDIAN_INT32(val);}
-static inline uint32 UMReadInt32(const uint8 * ptr)      {return B_LENDIAN_TO_HOST_INT32(*((uint32 *)ptr));}
+static inline void UMWriteInt16(void * ptr, uint16 val) 
+{
+   const uint16 le16 = B_HOST_TO_LENDIAN_INT16(val);
+   memcpy(ptr, &le16, sizeof(le16));
+}
+
+static inline uint16 UMReadInt16(const void * ptr)
+{
+   uint16 le16; memcpy(&le16, ptr, sizeof(le16));
+   return B_LENDIAN_TO_HOST_INT16(le16);
+}
+
+static inline void UMWriteInt32(void * ptr, uint32 val) 
+{
+   const uint32 le32 = B_HOST_TO_LENDIAN_INT32(val);
+   memcpy(ptr, &le32, sizeof(le32));
+}
+
+static inline uint32 UMReadInt32(const void * ptr)
+{
+   uint32 le32; memcpy(&le32, ptr, sizeof(le32));
+   return B_LENDIAN_TO_HOST_INT32(le32);
+}
+
+static inline void UMWriteInt64(void * ptr, uint64 val) 
+{
+   const uint64 le64 = B_HOST_TO_LENDIAN_INT64(val);
+   memcpy(ptr, &le64, sizeof(le64));
+}
+
+static inline uint64 UMReadInt64(const void * ptr)
+{
+   uint64 le64; memcpy(&le64, ptr, sizeof(le64));
+   return B_LENDIAN_TO_HOST_INT64(le64);
+}
+
+static inline void UMWriteFloat(void * ptr, float val) 
+{
+   const uint32 leF = B_HOST_TO_LENDIAN_IFLOAT(val);
+   memcpy(ptr, &leF, sizeof(leF));
+}
+
+static inline float UMReadFloat(const void * ptr)
+{
+   uint32 leF; memcpy(&leF, ptr, sizeof(leF));
+   return B_LENDIAN_TO_HOST_IFLOAT(leF);
+}
+
+static inline void UMWriteDouble(void * ptr, double val) 
+{
+   const uint64 leD = B_HOST_TO_LENDIAN_IDOUBLE(val);
+   memcpy(ptr, &leD, sizeof(leD));
+}
+
+static inline double UMReadDouble(const void * ptr)
+{
+   uint64 leD; memcpy(&leD, ptr, sizeof(leD));
+   return B_LENDIAN_TO_HOST_IDOUBLE(leD);
+}
 
 static status_t UMWriteInt32AtOffset(UMessage * msg, uint32 offset, uint32 value)
 {
@@ -41,7 +98,7 @@ static status_t UMWriteInt32AtOffset(UMessage * msg, uint32 offset, uint32 value
 
 static uint32 UMReadInt32AtOffset(const UMessage * msg, uint32 offset)
 {
-   uint8 * ptr = msg->_buffer+offset;
+   const uint8 * ptr = msg->_buffer+offset;
    return (GetNumValidBytesAt(msg,ptr) >= sizeof(uint32)) ? UMReadInt32(ptr) : 0;
 }
 
@@ -184,7 +241,7 @@ static uint8 * GetOrAddFieldDataPointer(UMessage * msg, const char * fieldName, 
    }
 
    /** First see if this is more data for the field currently being added. */
-   uint32 newFieldNameLength = ((uint32) strlen(fieldName))+1;
+   const uint32 newFieldNameLength = ((uint32) strlen(fieldName))+1;
    if (msg->_currentAddField)
    {
       void * curFieldTypePtr = GetFieldTypePointer(msg->_currentAddField);
@@ -212,8 +269,8 @@ static uint8 * GetOrAddFieldDataPointer(UMessage * msg, const char * fieldName, 
 
    /** If we got here, we can add the new field if there is space for it. */
    {
-      uint32 numRemainingBytes = GetNumRemainingSpareBufferBytes(msg);
-      uint32 numRequiredBytes = sizeof(uint32)+newFieldNameLength+sizeof(uint32)+sizeof(uint32)+fieldHeaderSizeBytes+numDataBytesNeeded;
+      const uint32 numRemainingBytes = GetNumRemainingSpareBufferBytes(msg);
+      const uint32 numRequiredBytes = sizeof(uint32)+newFieldNameLength+sizeof(uint32)+sizeof(uint32)+fieldHeaderSizeBytes+numDataBytesNeeded;
       if (numRemainingBytes < numRequiredBytes)
       {
          printf("MicroMessage Error:  Not enough space left in buffer to add new field [%s] (" UINT32_FORMAT_SPEC " additional bytes required, " UINT32_FORMAT_SPEC " bytes available)\n", fieldName, numRequiredBytes, numRemainingBytes);
@@ -221,7 +278,7 @@ static uint8 * GetOrAddFieldDataPointer(UMessage * msg, const char * fieldName, 
       }
 
       {
-         uint32 oldValidBytes = msg->_numValidBytes;
+         const uint32 oldValidBytes = msg->_numValidBytes;
          uint8 * ptr = msg->_currentAddField = msg->_buffer+msg->_numValidBytes;
          UMWriteInt32(ptr, newFieldNameLength);      ptr += sizeof(uint32);
          memcpy(ptr, fieldName, newFieldNameLength); ptr += newFieldNameLength;
@@ -243,8 +300,7 @@ status_t UMAddBools(UMessage * msg, const char * fieldName, const UBool * vals, 
    if (dataPtr == NULL) return B_ERROR;
 
    {
-      uint32 i;
-      for (i=0; i<numVals; i++) dataPtr[i] = vals[i] ? 1 : 0;
+      uint32 i; for (i=0; i<numVals; i++) dataPtr[i] = vals[i] ? 1 : 0;
       IncreaseCurrentFieldDataLength(msg, numVals);
       return B_NO_ERROR;
    }
@@ -262,83 +318,70 @@ status_t UMAddInt8s(UMessage * msg, const char * fieldName, const int8 * vals, u
 
 status_t UMAddInt16s(UMessage * msg, const char * fieldName, const int16 * vals, uint32 numVals)
 {
-   uint32 numDataBytes = numVals*sizeof(int16);
+   const uint32 numDataBytes = numVals*sizeof(int16);
    uint8 * dataPtr = GetOrAddFieldDataPointer(msg, fieldName, B_INT16_TYPE, numDataBytes, NULL, 0);
    if (dataPtr == NULL) return B_ERROR;
 
-   {
-      int16 * d16 = (int16 *) dataPtr;
-      uint32 i;
-      for (i=0; i<numVals; i++) d16[i] = B_HOST_TO_LENDIAN_INT16(vals[i]);
-   }
+   {uint32 i; for (i=0; i<numVals; i++) {UMWriteInt16(dataPtr, vals[i]); dataPtr += sizeof(int16);}}
    IncreaseCurrentFieldDataLength(msg, numDataBytes);
    return B_NO_ERROR;
 }
 
 status_t UMAddInt32s(UMessage * msg, const char * fieldName, const int32 * vals, uint32 numVals)
 {
-   uint32 numDataBytes = numVals*sizeof(int32);
+   const uint32 numDataBytes = numVals*sizeof(int32);
    uint8 * dataPtr = GetOrAddFieldDataPointer(msg, fieldName, B_INT32_TYPE, numDataBytes, NULL, 0);
    if (dataPtr == NULL) return B_ERROR;
 
-   int32 * d32 = (int32 *) dataPtr;
-   uint32 i;
-   for (i=0; i<numVals; i++) d32[i] = B_HOST_TO_LENDIAN_INT32(vals[i]);
+   {uint32 i; for (i=0; i<numVals; i++) {UMWriteInt32(dataPtr, vals[i]); dataPtr += sizeof(int32);}}
    IncreaseCurrentFieldDataLength(msg, numDataBytes);
    return B_NO_ERROR;
 }
 
 status_t UMAddInt64s(UMessage * msg, const char * fieldName, const int64 * vals, uint32 numVals)
 {
-   uint32 numDataBytes = numVals*sizeof(int64);
+   const uint32 numDataBytes = numVals*sizeof(int64);
    uint8 * dataPtr = GetOrAddFieldDataPointer(msg, fieldName, B_INT64_TYPE, numDataBytes, NULL, 0);
    if (dataPtr == NULL) return B_ERROR;
 
-   int64 * d64 = (int64 *) dataPtr;
-   uint32 i;
-   for (i=0; i<numVals; i++) d64[i] = B_HOST_TO_LENDIAN_INT64(vals[i]);
+   {uint32 i; for (i=0; i<numVals; i++) {UMWriteInt64(dataPtr, vals[i]); dataPtr += sizeof(int64);}}
    IncreaseCurrentFieldDataLength(msg, numDataBytes);
    return B_NO_ERROR;
 }
 
 status_t UMAddFloats(UMessage * msg, const char * fieldName, const float * vals, uint32 numVals)
 {
-   uint32 numDataBytes = numVals*sizeof(float);
+   const uint32 numDataBytes = numVals*sizeof(float);
    uint8 * dataPtr = GetOrAddFieldDataPointer(msg, fieldName, B_FLOAT_TYPE, numDataBytes, NULL, 0);
    if (dataPtr == NULL) return B_ERROR;
 
-   uint32 * dfl = (uint32 *) dataPtr;
-   uint32 i;
-   for (i=0; i<numVals; i++) dfl[i] = B_HOST_TO_LENDIAN_IFLOAT(vals[i]);
+   {uint32 i; for (i=0; i<numVals; i++) {UMWriteFloat(dataPtr, vals[i]); dataPtr += sizeof(uint32);}}
    IncreaseCurrentFieldDataLength(msg, numDataBytes);
    return B_NO_ERROR;
 }
 
 status_t UMAddDoubles(UMessage * msg, const char * fieldName, const double * vals, uint32 numVals)
 {
-   uint32 numDataBytes = numVals*sizeof(double);
+   const uint32 numDataBytes = numVals*sizeof(double);
    uint8 * dataPtr = GetOrAddFieldDataPointer(msg, fieldName, B_DOUBLE_TYPE, numDataBytes, NULL, 0);
    if (dataPtr == NULL) return B_ERROR;
 
-   uint64 * ddb = (uint64 *) dataPtr;
-   uint32 i;
-   for (i=0; i<numVals; i++) ddb[i] = B_HOST_TO_LENDIAN_IDOUBLE(vals[i]);
+   {uint32 i; for (i=0; i<numVals; i++) {UMWriteDouble(dataPtr, vals[i]); dataPtr += sizeof(uint64);}}
    IncreaseCurrentFieldDataLength(msg, numDataBytes);
    return B_NO_ERROR;
 }
 
 status_t UMAddPoints(UMessage * msg, const char * fieldName, const UPoint * vals, uint32 numVals)
 {
-   uint32 numDataBytes = numVals*(sizeof(float)*2);
+   const uint32 numDataBytes = numVals*(sizeof(uint32)*2);
    uint8 * dataPtr = GetOrAddFieldDataPointer(msg, fieldName, B_POINT_TYPE, numDataBytes, NULL, 0);
    if (dataPtr == NULL) return B_ERROR;
 
-   uint32 * dpt = (uint32 *) dataPtr;
    uint32 i;
    for (i=0; i<numVals; i++) 
    {
-      dpt[i*2+0] = B_HOST_TO_LENDIAN_IFLOAT(vals[i].x);
-      dpt[i*2+1] = B_HOST_TO_LENDIAN_IFLOAT(vals[i].y);
+      UMWriteFloat(dataPtr, vals[i].x); dataPtr += sizeof(uint32);
+      UMWriteFloat(dataPtr, vals[i].y); dataPtr += sizeof(uint32);
    }
    IncreaseCurrentFieldDataLength(msg, numDataBytes);
    return B_NO_ERROR;
@@ -346,18 +389,17 @@ status_t UMAddPoints(UMessage * msg, const char * fieldName, const UPoint * vals
 
 status_t UMAddRects(UMessage * msg, const char * fieldName, const URect * vals, uint32 numVals)
 {
-   uint32 numDataBytes = numVals*(sizeof(float)*4);
+   const uint32 numDataBytes = numVals*(sizeof(float)*4);
    uint8 * dataPtr = GetOrAddFieldDataPointer(msg, fieldName, B_RECT_TYPE, numDataBytes, NULL, 0);
    if (dataPtr == NULL) return B_ERROR;
 
-   uint32 * drc = (uint32 *) dataPtr;
    uint32 i;
    for (i=0; i<numVals; i++) 
    {
-      drc[i*4+0] = B_HOST_TO_LENDIAN_IFLOAT(vals[i].left);
-      drc[i*4+1] = B_HOST_TO_LENDIAN_IFLOAT(vals[i].top);
-      drc[i*4+2] = B_HOST_TO_LENDIAN_IFLOAT(vals[i].right);
-      drc[i*4+3] = B_HOST_TO_LENDIAN_IFLOAT(vals[i].bottom);
+      UMWriteFloat(dataPtr, vals[i].left);   dataPtr += sizeof(uint32);
+      UMWriteFloat(dataPtr, vals[i].top);    dataPtr += sizeof(uint32);
+      UMWriteFloat(dataPtr, vals[i].right);  dataPtr += sizeof(uint32);
+      UMWriteFloat(dataPtr, vals[i].bottom); dataPtr += sizeof(uint32);
    }
    IncreaseCurrentFieldDataLength(msg, numDataBytes);
    return B_NO_ERROR;
@@ -366,8 +408,7 @@ status_t UMAddRects(UMessage * msg, const char * fieldName, const URect * vals, 
 status_t UMAddStrings(UMessage * msg, const char * fieldName, const char ** strings, uint32 numStrings)
 {
    uint32 numDataBytes = numStrings*(sizeof(uint32)+1);  /* +1 is for the NUL byte that each string will have at the end */
-   uint32 i;
-   for (i=0; i<numStrings; i++) numDataBytes += strings[i] ? ((uint32)strlen(strings[i])) : 0;
+   uint32 i; for (i=0; i<numStrings; i++) numDataBytes += strings[i] ? ((uint32)strlen(strings[i])) : 0;
 
    uint8 * numStringsHeaderPointer;
    uint8 * dataPtr = GetOrAddFieldDataPointer(msg, fieldName, B_STRING_TYPE, numDataBytes, &numStringsHeaderPointer, sizeof(uint32));
@@ -376,9 +417,9 @@ status_t UMAddStrings(UMessage * msg, const char * fieldName, const char ** stri
    UMWriteInt32(numStringsHeaderPointer, UMReadInt32(numStringsHeaderPointer)+numStrings);  /* update the number-of-strings-in-field header */
    for (i=0; i<numStrings; i++) 
    {
-      uint32 stringFieldLength = (strings[i]?((uint32)strlen(strings[i])):0) + 1;
-      *((uint32 *)dataPtr) = B_HOST_TO_LENDIAN_INT32(stringFieldLength); dataPtr += sizeof(uint32);
-      memcpy(dataPtr, strings[i]?strings[i]:"", stringFieldLength);      dataPtr += stringFieldLength;
+      const uint32 stringFieldLength = (strings[i]?((uint32)strlen(strings[i])):0) + 1;
+      UMWriteInt32(dataPtr, stringFieldLength);                     dataPtr += sizeof(uint32);
+      memcpy(dataPtr, strings[i]?strings[i]:"", stringFieldLength); dataPtr += stringFieldLength;
    }
    IncreaseCurrentFieldDataLength(msg, numDataBytes);
    return B_NO_ERROR;
@@ -386,15 +427,13 @@ status_t UMAddStrings(UMessage * msg, const char * fieldName, const char ** stri
 
 status_t UMAddData(UMessage * msg, const char * fieldName, uint32 dataType, const void * dataBytes, uint32 numBytes)
 {
-   uint32 numDataBytes = sizeof(uint32)+numBytes;
+   const uint32 numDataBytes = sizeof(uint32)+numBytes;
    uint8 * numBlobsHeaderPointer;
    uint8 * dataPtr = GetOrAddFieldDataPointer(msg, fieldName, dataType, numDataBytes, &numBlobsHeaderPointer, sizeof(uint32));
    if (dataPtr == NULL) return B_ERROR;
 
    UMWriteInt32(numBlobsHeaderPointer, UMReadInt32(numBlobsHeaderPointer)+1);  /* increment the number-of-blobs-in-field header */
-
-   *((uint32 *)dataPtr) = B_HOST_TO_LENDIAN_INT32(numBytes); 
-   dataPtr += sizeof(uint32);
+   UMWriteInt32(dataPtr, numBytes); dataPtr += sizeof(uint32);
 
    memcpy(dataPtr, dataBytes, numBytes);
    //dataPtr += numBytes; // commented out to shut Clang static analyzer and cppcheck up
@@ -406,8 +445,7 @@ status_t UMAddData(UMessage * msg, const char * fieldName, uint32 dataType, cons
 status_t UMAddMessages(UMessage * msg, const char * fieldName, const UMessage * messageArray, uint32 numVals)
 {
    uint32 numDataBytes = numVals*sizeof(uint32); /* for the size-header of each message */
-   uint32 i;
-   for (i=0; i<numVals; i++) numDataBytes += UMGetFlattenedSize(&messageArray[i]);  /* for the contents of each message */
+   uint32 i; for (i=0; i<numVals; i++) numDataBytes += UMGetFlattenedSize(&messageArray[i]);  /* for the contents of each message */
 
    /* There's no number-of-messages field for this field type, for historical/compatibility reasons.  :^( */
    uint8 * dataPtr = GetOrAddFieldDataPointer(msg, fieldName, B_MESSAGE_TYPE, numDataBytes, NULL, 0);
@@ -415,8 +453,8 @@ status_t UMAddMessages(UMessage * msg, const char * fieldName, const UMessage * 
 
    for (i=0; i<numVals; i++) 
    {
-      uint32 messageFieldLength = UMGetFlattenedSize(&messageArray[i]);
-      *((uint32 *)dataPtr) = B_HOST_TO_LENDIAN_INT32(messageFieldLength);          dataPtr += sizeof(uint32);
+      const uint32 messageFieldLength = UMGetFlattenedSize(&messageArray[i]);
+      UMWriteInt32(dataPtr, messageFieldLength);                                   dataPtr += sizeof(uint32);
       memcpy(dataPtr, UMGetFlattenedBuffer(&messageArray[i]), messageFieldLength); dataPtr += messageFieldLength;
    }
    IncreaseCurrentFieldDataLength(msg, numDataBytes);
@@ -427,7 +465,7 @@ UMessage UMInlineAddMessage(UMessage * parentMsg, const char * fieldName, uint32
 {
    UMessage ret = {0};
 
-   uint32 numDataBytes = sizeof(uint32)+MESSAGE_HEADER_SIZE; /* sub-Message-size field, plus the initial (empty) sub-Message */
+   const uint32 numDataBytes = sizeof(uint32)+MESSAGE_HEADER_SIZE; /* sub-Message-size field, plus the initial (empty) sub-Message */
 
    uint8 * dataPtr = GetOrAddFieldDataPointer(parentMsg, fieldName, B_MESSAGE_TYPE, numDataBytes, NULL, 0);
    if (dataPtr == NULL) 
@@ -469,8 +507,8 @@ static uint32 GetNumItemsInField(const UMessage * msg, void * ftptr)
    switch(GetFieldType(ftptr)) 
    {
       case B_BOOL_TYPE:    return numBytes;
-      case B_DOUBLE_TYPE:  return numBytes/sizeof(double);
-      case B_FLOAT_TYPE:   return numBytes/sizeof(float);
+      case B_DOUBLE_TYPE:  return numBytes/sizeof(uint64);  // uint64 because we're holding it in externalized format
+      case B_FLOAT_TYPE:   return numBytes/sizeof(uint32);  // uint64 because we're holding it in externalized format
       case B_INT64_TYPE:   return numBytes/sizeof(int64);
       case B_INT32_TYPE:   return numBytes/sizeof(int32);
       case B_INT16_TYPE:   return numBytes/sizeof(int16);
@@ -482,8 +520,8 @@ static uint32 GetNumItemsInField(const UMessage * msg, void * ftptr)
          uint32 ret = 0;
          while(numBytes >= (sizeof(uint32)*2))
          {
-            uint32 msgSize  = UMReadInt32(fdata); fdata += sizeof(uint32);
-            uint32 msgMagic = UMReadInt32(fdata);
+            const uint32 msgSize  = UMReadInt32(fdata); fdata += sizeof(uint32);
+            const uint32 msgMagic = UMReadInt32(fdata);
             if (msgMagic != CURRENT_PROTOCOL_VERSION)
             {
                printf("MicroMessage:  GetNumItemsInField:  sub-Message magic value at offset %i is incorrect (" UINT32_FORMAT_SPEC ", should be " UINT32_FORMAT_SPEC "!)\n", (int)(fdata-msg->_buffer), msgMagic, CURRENT_PROTOCOL_VERSION);
@@ -495,7 +533,8 @@ static uint32 GetNumItemsInField(const UMessage * msg, void * ftptr)
                break;  /* paranoia -- avoid infinite loop */
             }
             fdata += msgSize;
-            uint32 moveBy = sizeof(uint32)+msgSize;
+
+            const uint32 moveBy = sizeof(uint32)+msgSize;
             numBytes = (numBytes>moveBy)?(numBytes-moveBy):0;
             if (fdata > (msg->_buffer+msg->_numValidBytes)) numBytes = 0;  /* paranoia */ 
             ret++;
@@ -527,7 +566,7 @@ void UMIteratorAdvance(UMessageFieldNameIterator * iter)
    while(iter->_currentField)
    {
       uint8 * ftptr = GetFieldTypePointer(iter->_currentField);
-      uint32 fieldDataLen = GetFieldDataLength(ftptr);
+      const uint32 fieldDataLen = GetFieldDataLength(ftptr);
       iter->_currentField = ftptr+(sizeof(uint32)+sizeof(uint32)+fieldDataLen);
       if (iter->_currentField > (iter->_message->_buffer+iter->_message->_numValidBytes))
       {
@@ -536,7 +575,7 @@ void UMIteratorAdvance(UMessageFieldNameIterator * iter)
       }
       else 
       {
-         uint32 bytesLeft = GetNumValidBytesAt(iter->_message, iter->_currentField);
+         const uint32 bytesLeft = GetNumValidBytesAt(iter->_message, iter->_currentField);
          if (bytesLeft < MINIMUM_FIELD_HEADERS_SIZE)
          {
             if (bytesLeft > 0) printf("UMIteratorAdvance:  Iteration found too-short field-header (" UINT32_FORMAT_SPEC " < " UINT32_FORMAT_SPEC "), aborting iteration!\n", bytesLeft, MINIMUM_FIELD_HEADERS_SIZE);
@@ -583,8 +622,7 @@ uint32 UMGetFieldTypeCode(const UMessage * msg, const char * fieldName)
 
 static void DoIndent(int numSpaces)
 {
-   int i=0;
-   for (i=0; i<numSpaces; i++) putchar(' ');
+   int i=0; for (i=0; i<numSpaces; i++) putchar(' ');
 }
 
 static void PrintUMessageToStreamAux(const UMessage * msg, FILE * file, int indent);  /* forward declaration */
@@ -692,8 +730,8 @@ static void PrintUMessageToStreamAux(const UMessage * msg, FILE * file, int inde
          const char * fieldName = UMIteratorGetCurrentFieldName(&iter, &numItems, &typeCode);
          if (fieldName)
          {
-            uint32 checkNumItems = UMGetNumItemsInField(msg, fieldName, typeCode);
-            uint32 checkTypeCode = UMGetFieldTypeCode(msg, fieldName);
+            const uint32 checkNumItems = UMGetNumItemsInField(msg, fieldName, typeCode);
+            const uint32 checkTypeCode = UMGetFieldTypeCode(msg, fieldName);
             if (checkNumItems != numItems) printf("ERROR, iterator said fieldName [%s] has " UINT32_FORMAT_SPEC " items, but the UMessage says it has " UINT32_FORMAT_SPEC " items!\n", fieldName, numItems, checkNumItems);
             if (checkTypeCode != typeCode) printf("ERROR, iterator said fieldName [%s] has typecode " UINT32_FORMAT_SPEC " , but the UMessage says it has typecode " UINT32_FORMAT_SPEC "\n", fieldName, typeCode, checkTypeCode);
 
@@ -710,175 +748,133 @@ void UMPrintToStream(const UMessage * msg, FILE * optFile)
    PrintUMessageToStreamAux(msg, optFile?optFile:stdout, 0);
 }
 
-const UBool * UMGetBools(const UMessage * msg, const char * fieldName, uint32 * optRetNumBools)
-{
-   uint8 * field = GetFieldByName(msg, fieldName, B_BOOL_TYPE);
-   if (field == NULL) return NULL;
-   
-   void * ftptr = GetFieldTypePointer(field);
-   if (optRetNumBools) *optRetNumBools = GetNumItemsInField(msg, ftptr);
-   return (const UBool *) GetFieldData(ftptr);
-}
-
 status_t UMFindBool(const UMessage * msg, const char * fieldName, uint32 idx, UBool * retBool)
 {
-   uint32 numBools;
-   const UBool * b = UMGetBools(msg, fieldName, &numBools);
-   if ((b==NULL)||(idx >= numBools)) return B_ERROR;
-   *retBool = b[idx];
-   return B_NO_ERROR;
-}
-
-const int8 * UMGetInt8s(const UMessage * msg, const char * fieldName, uint32 * optRetNumInt8s)
-{
-   uint8 * field = GetFieldByName(msg, fieldName, B_INT8_TYPE);
-   if (field == NULL) return NULL;
-   
-   void * ftptr = GetFieldTypePointer(field);
-   if (optRetNumInt8s) *optRetNumInt8s = GetNumItemsInField(msg, ftptr);
-   return (const int8 *) GetFieldData(ftptr);
+   UBoolArrayHandle b = UMGetBools(msg, fieldName);
+   if (idx >= UMGetNumItemsInArray(b)) return B_ERROR;
+   else
+   {
+      *retBool = UMGetBoolFromArray(b, idx);
+      return B_NO_ERROR;
+   }
 }
 
 status_t UMFindInt8(const UMessage * msg, const char * fieldName, uint32 idx, int8 * retInt8)
 {
-   uint32 numInt8s;
-   const int8 * b = UMGetInt8s(msg, fieldName, &numInt8s);
-   if ((b==NULL)||(idx >= numInt8s)) return B_ERROR;
-   *retInt8 = b[idx];
-   return B_NO_ERROR;
-}
-
-const int16 * UMGetInt16s(const UMessage * msg, const char * fieldName, uint32 * optRetNumInt16s)
-{
-   uint8 * field = GetFieldByName(msg, fieldName, B_INT16_TYPE);
-   if (field == NULL) return NULL;
-   
-   void * ftptr = GetFieldTypePointer(field);
-   if (optRetNumInt16s) *optRetNumInt16s = GetNumItemsInField(msg, ftptr);
-   return (const int16 *) GetFieldData(ftptr);
+   Int8ArrayHandle b = UMGetInt8s(msg, fieldName);
+   if (idx >= UMGetNumItemsInArray(b)) return B_ERROR;
+   else
+   {
+      *retInt8 = UMGetInt8FromArray(b, idx);
+      return B_NO_ERROR;
+   }
 }
 
 status_t UMFindInt16(const UMessage * msg, const char * fieldName, uint32 idx, int16 * retInt16)
 {
-   uint32 numInt16s;
-   const int16 * b = UMGetInt16s(msg, fieldName, &numInt16s);
-   if ((b==NULL)||(idx >= numInt16s)) return B_ERROR;
-   *retInt16 = b[idx];
-   return B_NO_ERROR;
-}
-
-const int32 * UMGetInt32s(const UMessage * msg, const char * fieldName, uint32 * optRetNumInt32s)
-{
-   uint8 * field = GetFieldByName(msg, fieldName, B_INT32_TYPE);
-   if (field == NULL) return NULL;
-   
-   void * ftptr = GetFieldTypePointer(field);
-   if (optRetNumInt32s) *optRetNumInt32s = GetNumItemsInField(msg, ftptr);
-   return (const int32 *) GetFieldData(ftptr);
+   Int16ArrayHandle b = UMGetInt16s(msg, fieldName);
+   if (idx >= UMGetNumItemsInArray(b)) return B_ERROR;
+   else
+   {
+      *retInt16 = UMGetInt16FromArray(b, idx);
+      return B_NO_ERROR;
+   }
 }
 
 status_t UMFindInt32(const UMessage * msg, const char * fieldName, uint32 idx, int32 * retInt32)
 {
-   uint32 numInt32s;
-   const int32 * b = UMGetInt32s(msg, fieldName, &numInt32s);
-   if ((b==NULL)||(idx >= numInt32s)) return B_ERROR;
-   *retInt32 = b[idx];
-   return B_NO_ERROR;
-}
-
-const int64 * UMGetInt64s(const UMessage * msg, const char * fieldName, uint32 * optRetNumInt64s)
-{
-   uint8 * field = GetFieldByName(msg, fieldName, B_INT64_TYPE);
-   if (field == NULL) return NULL;
-   
-   void * ftptr = GetFieldTypePointer(field);
-   if (optRetNumInt64s) *optRetNumInt64s = GetNumItemsInField(msg, ftptr);
-   return (const int64 *) GetFieldData(ftptr);
+   Int32ArrayHandle b = UMGetInt32s(msg, fieldName);
+   if (idx >= UMGetNumItemsInArray(b)) return B_ERROR;
+   else
+   {
+      *retInt32 = UMGetInt32FromArray(b, idx);
+      return B_NO_ERROR;
+   }
 }
 
 status_t UMFindInt64(const UMessage * msg, const char * fieldName, uint32 idx, int64 * retInt64)
 {
-   uint32 numInt64s;
-   const int64 * b = UMGetInt64s(msg, fieldName, &numInt64s);
-   if ((b==NULL)||(idx >= numInt64s)) return B_ERROR;
-   *retInt64 = b[idx];
-   return B_NO_ERROR;
-}
-
-const float * UMGetFloats(const UMessage * msg, const char * fieldName, uint32 * optRetNumFloats)
-{
-   uint8 * field = GetFieldByName(msg, fieldName, B_FLOAT_TYPE);
-   if (field == NULL) return NULL;
-   
-   void * ftptr = GetFieldTypePointer(field);
-   if (optRetNumFloats) *optRetNumFloats = GetNumItemsInField(msg, ftptr);
-   return (const float *) GetFieldData(ftptr);
+   Int64ArrayHandle b = UMGetInt64s(msg, fieldName);
+   if (idx >= UMGetNumItemsInArray(b)) return B_ERROR;
+   else
+   {
+      *retInt64 = UMGetInt64FromArray(b, idx);
+      return B_NO_ERROR;
+   }
 }
 
 status_t UMFindFloat(const UMessage * msg, const char * fieldName, uint32 idx, float * retFloat)
 {
-   uint32 numFloats;
-   const float * b = UMGetFloats(msg, fieldName, &numFloats);
-   if ((b==NULL)||(idx >= numFloats)) return B_ERROR;
-   *retFloat = b[idx];
-   return B_NO_ERROR;
-}
-
-const double * UMGetDoubles(const UMessage * msg, const char * fieldName, uint32 * optRetNumDoubles)
-{
-   uint8 * field = GetFieldByName(msg, fieldName, B_DOUBLE_TYPE);
-   if (field == NULL) return NULL;
-   
-   void * ftptr = GetFieldTypePointer(field);
-   if (optRetNumDoubles) *optRetNumDoubles = GetNumItemsInField(msg, ftptr);
-   return (const double *) GetFieldData(ftptr);
+   FloatArrayHandle b = UMGetFloats(msg, fieldName);
+   if (idx >= UMGetNumItemsInArray(b)) return B_ERROR;
+   else
+   {
+      *retFloat = UMGetFloatFromArray(b, idx);
+      return B_NO_ERROR;
+   }
 }
 
 status_t UMFindDouble(const UMessage * msg, const char * fieldName, uint32 idx, double * retDouble)
 {
-   uint32 numDoubles;
-   const double * b = UMGetDoubles(msg, fieldName, &numDoubles);
-   if ((b==NULL)||(idx >= numDoubles)) return B_ERROR;
-   *retDouble = b[idx];
-   return B_NO_ERROR;
+   DoubleArrayHandle b = UMGetDoubles(msg, fieldName);
+   if (idx >= UMGetNumItemsInArray(b)) return B_ERROR;
+   else
+   {
+      *retDouble = UMGetDoubleFromArray(b, idx);
+      return B_NO_ERROR;
+   }
 }
 
-const UPoint * UMGetPoints(const UMessage * msg, const char * fieldName, uint32 * optRetNumPoints)
+#define RETURN_ARRAY_HANDLE(arrayType, msg, fieldName, typeCode)                     \
+{                                                                                    \
+   uint8 * field = GetFieldByName(msg, fieldName, typeCode);                         \
+   if (field)                                                                        \
+   {                                                                                 \
+      void * f = GetFieldTypePointer(field);                                         \
+      const GenericArrayHandle base = {GetNumItemsInField(msg, f), GetFieldData(f)}; \
+      const arrayType ret = {base};                                                  \
+      return ret;                                                                    \
+   }                                                                                 \
+   else                                                                              \
+   {                                                                                 \
+      const GenericArrayHandle base = {0, NULL};                                     \
+      const arrayType ret = {base};                                                  \
+      return ret;                                                                    \
+   }                                                                                 \
+}
+
+#define GET_POINTER_TO_ARRAY_ITEM(itemType, arrayHandle, idx) ((idx<UMGetNumItemsInArray(arrayHandle))?(((arrayHandle)._baseHandle._itemData)+(idx*sizeof(itemType))):NULL)
+
+URectArrayHandle  UMGetRects(  const UMessage * msg, const char * fieldName) {RETURN_ARRAY_HANDLE(URectArrayHandle,  msg, fieldName, B_RECT_TYPE);}
+UPointArrayHandle UMGetPoints( const UMessage * msg, const char * fieldName) {RETURN_ARRAY_HANDLE(UPointArrayHandle, msg, fieldName, B_POINT_TYPE);}
+DoubleArrayHandle UMGetDoubles(const UMessage * msg, const char * fieldName) {RETURN_ARRAY_HANDLE(DoubleArrayHandle, msg, fieldName, B_DOUBLE_TYPE);}
+FloatArrayHandle  UMGetFloats( const UMessage * msg, const char * fieldName) {RETURN_ARRAY_HANDLE(FloatArrayHandle,  msg, fieldName, B_FLOAT_TYPE);}
+Int64ArrayHandle  UMGetInt64s( const UMessage * msg, const char * fieldName) {RETURN_ARRAY_HANDLE(Int64ArrayHandle,  msg, fieldName, B_INT64_TYPE);}
+Int32ArrayHandle  UMGetInt32s( const UMessage * msg, const char * fieldName) {RETURN_ARRAY_HANDLE(Int32ArrayHandle,  msg, fieldName, B_INT32_TYPE);}
+Int16ArrayHandle  UMGetInt16s( const UMessage * msg, const char * fieldName) {RETURN_ARRAY_HANDLE(Int16ArrayHandle,  msg, fieldName, B_INT16_TYPE);}
+Int8ArrayHandle   UMGetInt8s(  const UMessage * msg, const char * fieldName) {RETURN_ARRAY_HANDLE(Int8ArrayHandle,   msg, fieldName, B_INT8_TYPE);}
+UBoolArrayHandle  UMGetBools(  const UMessage * msg, const char * fieldName) {RETURN_ARRAY_HANDLE(UBoolArrayHandle,  msg, fieldName, B_BOOL_TYPE);}
+
+status_t UMFindRect(const UMessage * msg, const char * fieldName, uint32 idx, URect * retRect)
 {
-   uint8 * field = GetFieldByName(msg, fieldName, B_POINT_TYPE);
-   if (field == NULL) return NULL;
-   
-   void * ftptr = GetFieldTypePointer(field);
-   if (optRetNumPoints) *optRetNumPoints = GetNumItemsInField(msg, ftptr);
-   return (const UPoint *) GetFieldData(ftptr);
+   const URectArrayHandle b = UMGetRects(msg, fieldName);
+   if (idx >= UMGetNumItemsInArray(b)) return B_ERROR;
+   else
+   {
+      *retRect = UMGetRectFromArray(b, idx);
+      return B_NO_ERROR;
+   }
 }
 
 status_t UMFindPoint(const UMessage * msg, const char * fieldName, uint32 idx, UPoint * retPoint)
 {
-   uint32 numPoints;
-   const UPoint * b = UMGetPoints(msg, fieldName, &numPoints);
-   if ((b==NULL)||(idx >= numPoints)) return B_ERROR;
-   *retPoint = b[idx];
-   return B_NO_ERROR;
-}
-
-const URect * UMGetRects(const UMessage * msg, const char * fieldName, uint32 * optRetNumRects)
-{
-   uint8 * field = GetFieldByName(msg, fieldName, B_RECT_TYPE);
-   if (field == NULL) return NULL;
-   
-   void * ftptr = GetFieldTypePointer(field);
-   if (optRetNumRects) *optRetNumRects = GetNumItemsInField(msg, ftptr);
-   return (const URect *) GetFieldData(ftptr);
-}
-
-status_t UMFindRect(const UMessage * msg, const char * fieldName, uint32 idx, URect * retRect)
-{
-   uint32 numRects;
-   const URect * b = UMGetRects(msg, fieldName, &numRects);
-   if ((b==NULL)||(idx >= numRects)) return B_ERROR;
-   *retRect = b[idx];
-   return B_NO_ERROR;
+   const UPointArrayHandle b = UMGetPoints(msg, fieldName);
+   if (idx >= UMGetNumItemsInArray(b)) return B_ERROR;
+   else
+   {
+      *retPoint = UMGetPointFromArray(b, idx);
+      return B_NO_ERROR;
+   }
 }
 
 const char * UMGetString(const UMessage * msg, const char * fieldName, uint32 idx)
@@ -893,7 +889,7 @@ const char * UMGetString(const UMessage * msg, const char * fieldName, uint32 id
    const uint8 * pointerToString = ((uint8 *)ftptr)+(4*sizeof(uint32));  /* skip past the field-type, field-size, number-of-items, and first-string-length fields */
    while(idx > 0)
    {
-      uint32 stringSize = UMReadInt32(pointerToString-sizeof(uint32));
+      const uint32 stringSize = UMReadInt32(pointerToString-sizeof(uint32));
       if ((stringSize+sizeof(uint32)) > (afterEndOfField-pointerToString)) return NULL;  /* paranoia */
       pointerToString += UMReadInt32(pointerToString-sizeof(uint32))+sizeof(uint32);  /* move past the string and the next string's string-length-field */
       idx--;
@@ -933,12 +929,90 @@ status_t UMFindMessage(const UMessage * msg, const char * fieldName, uint32 idx,
    const uint8 * pointerToMsg = ((uint8 *)ftptr)+(3*sizeof(uint32));  /* skip past the field-type, field-size, and first-msg-length fields (there is no field-size field) */
    while(idx > 0)
    {
-      uint32 msgSize = UMReadInt32(pointerToMsg-sizeof(uint32));
+      const uint32 msgSize = UMReadInt32(pointerToMsg-sizeof(uint32));
       if ((msgSize < MESSAGE_HEADER_SIZE)||((msgSize+sizeof(uint32)) > (afterEndOfField-pointerToMsg))) return B_ERROR;  /* paranoia */
       pointerToMsg += msgSize+sizeof(uint32);  /* move past the msg and the next msg's msg-length-field */
       idx--;
    }
    return UMInitializeWithExistingData(retMessage, pointerToMsg, UMReadInt32(pointerToMsg-sizeof(uint32)));
+}
+
+UBool UMGetBoolFromArray(UBoolArrayHandle handle, uint32 idx)
+{
+   const uint8 * itemData = GET_POINTER_TO_ARRAY_ITEM(UBool, handle, idx);
+   return ((itemData)&&(*itemData)) ? UTrue : UFalse;
+}
+
+int8 UMGetInt8FromArray(Int8ArrayHandle handle, uint32 idx)
+{
+   const uint8 * itemData = GET_POINTER_TO_ARRAY_ITEM(int8, handle, idx);
+   return itemData ? *itemData : 0;
+}
+
+int16 UMGetInt16FromArray(Int16ArrayHandle handle, uint32 idx)
+{
+   const uint8 * itemData = GET_POINTER_TO_ARRAY_ITEM(int16, handle, idx);
+   return itemData ? UMReadInt16(itemData) : 0;
+}
+
+int32 UMGetInt32FromArray(Int32ArrayHandle handle, uint32 idx)
+{
+   const uint8 * itemData = GET_POINTER_TO_ARRAY_ITEM(int32, handle, idx);
+   return itemData ? UMReadInt32(itemData) : 0;
+}
+
+int64 UMGetInt64FromArray(Int64ArrayHandle handle, uint32 idx)
+{
+   const uint8 * itemData = GET_POINTER_TO_ARRAY_ITEM(int64, handle, idx);
+   return itemData ? UMReadInt64(itemData) : 0;
+}
+
+float UMGetFloatFromArray(FloatArrayHandle handle, uint32 idx)
+{
+   const uint8 * itemData = GET_POINTER_TO_ARRAY_ITEM(float, handle, idx);
+   return itemData ? UMReadFloat(itemData) : 0.0f;
+}
+
+double UMGetDoubleFromArray(DoubleArrayHandle handle, uint32 idx)
+{
+   const uint8 * itemData = GET_POINTER_TO_ARRAY_ITEM(double, handle, idx);
+   return itemData ? UMReadDouble(itemData) : 0.0;
+}
+
+UPoint UMGetPointFromArray(UPointArrayHandle handle, uint32 idx)
+{
+   UPoint ret;
+   const uint8 * itemData = GET_POINTER_TO_ARRAY_ITEM(UPoint, handle, idx);
+   if (itemData)
+   {
+      ret.x = UMReadFloat(itemData); itemData += sizeof(uint32);
+      ret.y = UMReadFloat(itemData); itemData += sizeof(uint32);
+      return ret;
+   }
+   else
+   {
+      ret.x = ret.y = 0.0f;
+      return ret;
+   }
+}
+
+URect UMGetRectFromArray(URectArrayHandle handle, uint32 idx)
+{
+   URect ret;
+   const uint8 * itemData = GET_POINTER_TO_ARRAY_ITEM(URect, handle, idx);
+   if (itemData)
+   {
+      ret.left   = UMReadFloat(itemData); itemData += sizeof(uint32);
+      ret.top    = UMReadFloat(itemData); itemData += sizeof(uint32);
+      ret.right  = UMReadFloat(itemData); itemData += sizeof(uint32);
+      ret.bottom = UMReadFloat(itemData); itemData += sizeof(uint32);
+      return ret;
+   }
+   else
+   {
+      ret.left = ret.top = ret.right = ret.bottom = 0.0f;
+      return ret;
+   }
 }
 
 #ifdef cplusplus

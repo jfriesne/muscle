@@ -11,7 +11,7 @@ FLAGSDIR   = .
 exists($$FLAGSDIR/muscle_enable_ssl) {
    DEFINES           += MUSCLE_ENABLE_SSL
    unix:LIBS         += -lssl -lcrypto
-   win32:LIBS        += libeay32.lib ssleay32.lib
+   win32:LIBS        += libcrypto.lib libssl.lib
    win32:QMAKE_FLAGS += /LIBPATH:../../../openssl/out32dll
    win32:INCLUDEPATH += ../../../openssl/include
 }

@@ -442,6 +442,20 @@ public:
     */
    const ValueType & GetValueAtWithDefault(uint32 index, const ValueType & defaultValue) const;
 
+   /** Given a value, returns a pointer to the first key in the table that
+     * is paired with that value.  Note that this method is an O(N) operation.
+     * @param value a value to look for in the table.
+     * @returns A pointer to an associated key on success, or NULL if no matching value is found.
+     */
+   const KeyType * GetFirstKeyWithValue(const ValueType & value) const {return GetKeyWithValueAux(value, false);}
+
+   /** Given a value, returns a pointer to the last key in the table that
+     * is paired with that value.  Note that this method is an O(N) operation.
+     * @param value a value to look for in the table.
+     * @returns A pointer to an associated key on success, or NULL if no matching value is found.
+     */
+   const KeyType * GetLastKeyWithValue(const ValueType & value) const {return GetKeyWithValueAux(value, true);}
+
    /** Removes a mapping from the table.  (O(1) removal time)
     *  @param key The key of the key-value mapping to remove.
     *  @return B_NO_ERROR if a key was found and the mapping removed, or B_ERROR if the key wasn't found.
@@ -1311,6 +1325,13 @@ private:
          RemoveIterationEntry(moveMe);
          InsertIterationEntry(moveMe, toBehindMe);
       }
+   }
+
+   const KeyType * GetKeyWithValueAux(const ValueType & value, bool backwards) const
+   {
+      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER|(backwards?HTIT_FLAG_NOREGISTER:0)); iter.HasData(); iter++)
+         if (iter.GetValue() == value) return &iter.GetKey();
+      return NULL;
    }
 
    HashFunctorType _hashFunctor;  // used to compute hash codes for key objects

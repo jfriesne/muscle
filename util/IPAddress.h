@@ -179,9 +179,9 @@ public:
    status_t Unflatten(const uint8 * buffer, uint32 size);
 
    /** Convenience method:  Returns true iff this is a valid IP address
-     * (where "valid" in this case means non-zero, or if MUSCLE_AVOID_IPV6 is defined,
-     * it means that the high-bits are all zero, the upper 32-bits of the low-bits is zero,
-     * and the lower 32-bits of the low-bits are non-zero.
+     * (where "valid" in this case means non-zero: or if MUSCLE_AVOID_IPV6 is defined,
+     * it means that the 64 high-bits are all zero, and the upper 32-bits of the 
+     * 64 low-bits are zero, and the lower 32-bits of the 64 low-bits are non-zero.
      */
    bool IsValid() const;
 
@@ -222,7 +222,6 @@ public:
      */
    uint32 GetIPv4AddressAsUint32() const {return ((uint32)(_lowBits & 0xFFFFFFFF));}
 
-#ifndef MUSCLE_AVOID_IPV6
    /** Convenience method:  Returns an IPAddress object identical to this one,
      * except that the returned IPAddress has its interface index field set to the specified value.
      * @param interfaceIndex The new interface index value to use in the returned object.
@@ -233,7 +232,6 @@ public:
       addr.SetInterfaceIndex(interfaceIndex);
       return addr;
    }
-#endif
 
 private:
    void WriteToNetworkArrayAux( uint8 * out, const uint64 & in ) const {uint64 tmp = B_HOST_TO_BENDIAN_INT64(in); muscleCopyOut(out, tmp);}
@@ -420,7 +418,6 @@ public:
     */
    status_t Unflatten(const uint8 * buffer, uint32 size);
 
-#ifndef MUSCLE_AVOID_IPV6
    /** Convenience method:  Returns an IPAddressAndPort object identical to this one,
      * except that the included IPAddress has its interface index field set to the specified value.
      * @param interfaceIndex The new interface index value to use in the returned object.
@@ -431,7 +428,6 @@ public:
       addr.SetInterfaceIndex(interfaceIndex);
       return IPAddressAndPort(addr, _port); 
    }
-#endif
 
 private:
    IPAddress _ip;

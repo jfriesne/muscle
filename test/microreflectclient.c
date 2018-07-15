@@ -73,6 +73,7 @@ static int32 SocketSendFunc(const uint8 * buf, uint32 numBytes, void * arg)
 static int32 SocketRecvFunc(uint8 * buf, uint32 numBytes, void * arg)
 {
    int ret = recv(*((int *)arg), (char *)buf, numBytes, 0L);
+   if (ret == 0) return -1;  // 0 means TCP connection has closed, we'll treat that as an error
    return (ret == -1) ? ((errno == EWOULDBLOCK)?0:-1) : ret;
 }
 
@@ -206,6 +207,17 @@ int main(int argc, char ** argv)
                   case 't':
                   {
                      const uint8 data[] = {0x01, 0x02, 0x03, 0x04, 0x05};
+
+                     uint8 subBuf[1024];
+                     UMessage uSubMsg;
+                     {
+                        UMInitializeToEmptyMessage(&uSubMsg, subBuf, sizeof(subBuf), 2345);
+                        UMAddString(&uSubMsg, "SubStringField", "string in the sub-UMessage");
+                        UMAddInt16( &uSubMsg, "SubInt16Field", 45);
+                        UMAddInt32( &uSubMsg, "SubInt32Field", 46);
+                        UMAddInt64( &uSubMsg, "SubInt64Field", -12345678);
+                     }
+
                      UMAddString( &msg, "String", "this is a string");
                      UMAddInt8(   &msg, "Int8",   8);
                      UMAddInt8(   &msg, "Int8",   9);
@@ -218,7 +230,9 @@ int main(int argc, char ** argv)
                      UMAddBool(   &msg, "Bool",   UTrue);
                      UMAddFloat(  &msg, "Float",  3.14159f);
                      UMAddDouble( &msg, "Double", 6.28318f);
+                     UMAddMessage(&msg, "Message", uSubMsg);
                      UMAddData(   &msg, "Flat", B_RAW_TYPE, data, sizeof(data));
+
                      UMSetWhatCode(&msg, 1234);
                   }
                   break;

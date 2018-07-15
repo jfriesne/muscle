@@ -39,9 +39,8 @@ static void CheckFile(const String & path, Queue<String> & codes)
                int32 commentIdx = line->IndexOf("//");   // don't include LogTime() calls that are commented out
                if ((commentIdx < 0)||(commentIdx > ltIdx)) 
                {
-                  char buf[128]; 
-                  muscleSprintf(buf, "[%s] %s:" UINT32_FORMAT_SPEC ": ", SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber))(), path(), lineNumber);
-                  codes.AddTail(line->Prepend(buf));
+                  const String loc = SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber));
+                  codes.AddTail(line->Prepend(String("[%1] %2:%3: ").Arg(loc).Arg(path).Arg(lineNumber)));
                }
             }
             lineNumber++;

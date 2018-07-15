@@ -13,31 +13,34 @@ uint32 MGetNumBytesAllocated() {return _allocedBytes;}
 
 void * MMalloc(uint32 numBytes)
 {
-   uint32 * ret = (uint32 *) malloc(numBytes+sizeof(uint32));
+   char * ret = (char *) malloc(numBytes+sizeof(uint32));
    if (ret)
    {
-      *ret = numBytes;
+      memcpy(ret, &numBytes, sizeof(numBytes));
       _allocedBytes += numBytes;
-/*printf("++" UINT32_FORMAT_SPEC " -> " UINT32_FORMAT_SPEC "\n", *ret, _allocedBytes);*/
-      return ret+1;
+/*printf("++" UINT32_FORMAT_SPEC " -> " UINT32_FORMAT_SPEC "\n", numBytes, _allocedBytes);*/
+      return ret+sizeof(uint32);
    }
    return NULL;
 }
 
-void * MFree(void * ptr)
+void MFree(void * ptr)
 {
    if (ptr)
    {
-      uint32 * ret = ((uint32 *)ptr)-1;
-      _allocedBytes -= *ret;
-/*printf("--" UINT32_FORMAT_SPEC " -> " UINT32_FORMAT_SPEC "\n", *ret, _allocedBytes);*/
-      free(ret);
+      char * rawPtr = ptr-sizeof(uint32);
+      uint32 allocSize; memcpy(&allocSize, rawPtr, sizeof(allocSize));
+      _allocedBytes -= allocSize;
+/*printf("--" UINT32_FORMAT_SPEC " -> " UINT32_FORMAT_SPEC "\n", allocSize, _allocedBytes);*/
+      free(rawPtr);
    }
 }
 
 void * MRealloc(void * oldBuf, uint32 newSize)
 {
-   uint32 oldSize = oldBuf ? (*(((uint32*)oldBuf)-1)) : 0;
+   uint32 oldSize;
+   if (oldBuf) memcpy(&oldSize, oldBuf-sizeof(uint32), sizeof(oldSize));
+          else oldSize = 0;
 
    if (newSize == oldSize) return oldBuf;
    else
@@ -81,8 +84,8 @@ struct _MMessageField {
    void * data;       /* Pointer to our data bytes, for convenience    */
    uint32 itemSize;   /* item size, for convenience                    */
    uint32 numItems;   /* number of item-slots in this field            */
-   MBool isFixedSize;  /* If MFalse, data is an array of MByteBuffers    */
-   MBool isFlattenable; /* If MFalse, data shouldn't be Flattened        */
+   MBool isFixedSize;  /* If MFalse, data is an array of MByteBuffers  */
+   MBool isFlattenable; /* If MFalse, data shouldn't be Flattened      */
    /* ... data bytes here ...                                          */
    /* name bytes start here, after the last data byte                  */
    /* Note that name bytes must be last, or MMRenameField() breaks     */
@@ -138,13 +141,20 @@ void MBFreeByteBuffer(MByteBuffer * msg)
    if (msg) MFree(msg);
 }
 
+/* Paranoia:  when allocating a MMessageField struct, we often allocate storage for
+ * its corresponding data as part of the same allocation, and we need to make sure
+ * that the data is longword-aligned to avoid data-alignment issues (particularly 
+ * under ARM), so this macro rounds-up the passed-in-value to the nearest multiple of 8.
+ */
+#define WITH_ALIGNMENT_PADDING(rawSize) (sizeof(uint64)*(((((rawSize)+sizeof(uint64))-1)/sizeof(uint64))))
+
 /* Note that numNameBytes includes the NUL byte! */
 static MMessageField * AllocMMessageField(const char * fieldName, uint32 numNameBytes, uint32 typeCode, uint32 numItems, uint32 itemSize)
 {
    if (numItems > 0)
    {
       const uint32 dataSize  = numItems*itemSize;
-      const uint32 allocSize = sizeof(MMessageField)+dataSize+numNameBytes;
+      const uint32 allocSize = WITH_ALIGNMENT_PADDING(sizeof(MMessageField))+dataSize+numNameBytes;
       MMessageField * ret = (MMessageField *) MMalloc(allocSize);
       if (ret)
       {
@@ -154,7 +164,7 @@ static MMessageField * AllocMMessageField(const char * fieldName, uint32 numName
          ret->typeCode    = typeCode;
          ret->itemSize    = itemSize;
          ret->numItems    = numItems;
-         ret->data        = ((char *)ret) + sizeof(MMessageField);  /* data bytes start immediately after the struct */
+         ret->data        = ((char *)ret) + WITH_ALIGNMENT_PADDING(sizeof(MMessageField));  /* data bytes start immediately after the struct */
          ret->name        = ((char *)ret->data)+dataSize;  /* name starts right after the data */
          ret->isFixedSize = ret->isFlattenable = MTrue;
          memset(ret->data, 0, dataSize);
@@ -838,13 +848,13 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
       dataPtr = &buffer[readOffset];
       switch(tc)
       {
-         case B_BOOL_TYPE:   newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(MBool), sizeof(MBool)); break;
-         case B_DOUBLE_TYPE: newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(double),   sizeof(double));   break;
-         case B_FLOAT_TYPE:  newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(float),    sizeof(float));    break;
-         case B_INT64_TYPE:  newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(int64),    sizeof(int64));    break;
-         case B_INT32_TYPE:  newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(int32),    sizeof(int32));    break;
-         case B_INT16_TYPE:  newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(int16),    sizeof(int16));    break;
-         case B_INT8_TYPE:   newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(int8),     sizeof(int8));     break;
+         case B_BOOL_TYPE:   newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(MBool),  sizeof(MBool));  break;
+         case B_DOUBLE_TYPE: newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(double), sizeof(double)); break;
+         case B_FLOAT_TYPE:  newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(float),  sizeof(float));  break;
+         case B_INT64_TYPE:  newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(int64),  sizeof(int64));  break;
+         case B_INT32_TYPE:  newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(int32),  sizeof(int32));  break;
+         case B_INT16_TYPE:  newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(int16),  sizeof(int16));  break;
+         case B_INT8_TYPE:   newField = ImportMMessageField(fieldName, nameLength, tc, eLength, dataPtr, sizeof(int8),   sizeof(int8));   break;
 
          case B_MESSAGE_TYPE:
          {
@@ -1055,7 +1065,7 @@ status_t MMRenameField(MMessage * msg, const char * oldFieldName, const char * n
             if (g != f)
             {
                /* Oops, gotta update all the pointers to point to the new field */
-               g->data = ((char *)g) + sizeof(MMessageField);  /* data bytes start immediately after the struct */
+               g->data = ((char *)g) + WITH_ALIGNMENT_PADDING(sizeof(MMessageField));  /* data bytes start immediately after the struct */
                g->name = ((const char *)g->data)+(g->numItems*g->itemSize);    /* name starts right after the data */
                if (g->prevField) g->prevField->nextField = g;
                if (g->nextField) g->nextField->prevField = g;
@@ -1207,13 +1217,13 @@ static void PrintMMessageFieldToStream(const MMessageField * field, FILE * file,
       switch(field->typeCode)
       {
          case B_BOOL_TYPE:    fprintf(file, "%i\n",                 (((const MBool *)data)[i])); break;
-         case B_DOUBLE_TYPE:  fprintf(file, "%f\n",                 ((const double *)data)[i]); break;
-         case B_FLOAT_TYPE:   fprintf(file, "%f\n",                 ((const float *)data)[i]);  break;
-         case B_INT64_TYPE:   fprintf(file, INT64_FORMAT_SPEC "\n", ((const int64 *)data)[i]);  break;
-         case B_INT32_TYPE:   fprintf(file, INT32_FORMAT_SPEC "\n",  ((const int32 *)data)[i]);  break;
-         case B_POINTER_TYPE: fprintf(file, "%p\n",                 ((const void **)data)[i]);  break;
-         case B_INT16_TYPE:   fprintf(file, "%i\n",                 ((const int16 *)data)[i]);  break;
-         case B_INT8_TYPE:    fprintf(file, "%i\n",                 ((const int8 *)data)[i]);   break;
+         case B_DOUBLE_TYPE:  fprintf(file, "%f\n",                 ((const double *)data)[i]);  break;
+         case B_FLOAT_TYPE:   fprintf(file, "%f\n",                 ((const float *)data)[i]);   break;
+         case B_INT64_TYPE:   fprintf(file, INT64_FORMAT_SPEC "\n", ((const int64 *)data)[i]);   break;
+         case B_INT32_TYPE:   fprintf(file, INT32_FORMAT_SPEC "\n", ((const int32 *)data)[i]);   break;
+         case B_POINTER_TYPE: fprintf(file, "%p\n",                 ((const void **)data)[i]);   break;
+         case B_INT16_TYPE:   fprintf(file, "%i\n",                 ((const int16 *)data)[i]);   break;
+         case B_INT8_TYPE:    fprintf(file, "%i\n",                 ((const int8 *)data)[i]);    break;
 
          case B_POINT_TYPE:
          {

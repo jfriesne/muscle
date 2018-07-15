@@ -58,8 +58,17 @@ UMessage UGGetOutgoingMessage(UMessageGateway * gw, uint32 whatCode)
    return ret;
 }
 
-static inline void UMWriteInt32(uint8 * ptr, uint32 val) {*((uint32 *)ptr) = B_HOST_TO_LENDIAN_INT32(val);}
-static inline uint32 UMReadInt32(const uint8 * ptr)      {return B_LENDIAN_TO_HOST_INT32(*((uint32 *)ptr));}
+static inline void UMWriteInt32(void * ptr, uint32 val)
+{
+   const uint32 le32 = B_HOST_TO_LENDIAN_INT32(val);
+   memcpy(ptr, &le32, sizeof(le32));
+}
+
+static inline uint32 UMReadInt32(const void * ptr)
+{
+   uint32 le32; memcpy(&le32, ptr, sizeof(le32));
+   return B_LENDIAN_TO_HOST_INT32(le32);
+}
 
 void UGOutgoingMessagePrepared(UMessageGateway * gw, const UMessage * msg)
 {
@@ -69,7 +78,7 @@ void UGOutgoingMessagePrepared(UMessageGateway * gw, const UMessage * msg)
       uint8 * expected      = msg->_buffer-(2*sizeof(uint32));
       if (nextAvailByte == expected)
       {
-         uint32 msgSize = UMGetFlattenedSize(msg);
+         const uint32 msgSize = UMGetFlattenedSize(msg);
 
          UMWriteInt32(nextAvailByte, msgSize);                          
          nextAvailByte += sizeof(uint32);
@@ -107,7 +116,7 @@ int32 UGDoOutput(UMessageGateway * gw, uint32 maxBytes, UGSendFunc sendFunc, voi
       int32 bytesToSend = gw->_numValidOutputBytes;
       if (bytesToSend > maxBytes) bytesToSend = maxBytes;
       
-      int32 bytesSent = sendFunc(gw->_firstValidOutputByte, bytesToSend, arg);
+      const int32 bytesSent = sendFunc(gw->_firstValidOutputByte, bytesToSend, arg);
       if (bytesSent < 0) return -1;  /* error! */
       else
       {
@@ -142,8 +151,8 @@ int32 UGDoInput(UMessageGateway * gw, uint32 maxBytes, UGReceiveFunc recvFunc, v
             if (gw->_numValidInputBytes == GATEWAY_HEADER_SIZE)  /* guaranteed never to be a real UMessage, since the gateway header size is less than the legal minimum UMessage size */
             {
                /* We have our fixed-size headers, now prepare to receive the actual Message body! */
-               uint32 bodySize = UMReadInt32(gw->_inputBuffer);
-               uint32 magic    = UMReadInt32(gw->_inputBuffer+sizeof(uint32));
+               const uint32 bodySize = UMReadInt32(gw->_inputBuffer);
+               const uint32 magic    = UMReadInt32(gw->_inputBuffer+sizeof(uint32));
                if ((bodySize < MESSAGE_HEADER_SIZE)||(bodySize > gw->_inputBufferSize)||(magic != _MUSCLE_MESSAGE_ENCODING_DEFAULT)) return -1;
                gw->_numValidInputBytes  = 0;
                gw->_numInputBytesToRead = bodySize;

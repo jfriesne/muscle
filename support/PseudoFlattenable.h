@@ -37,10 +37,10 @@ public:
     *          (but if that's not the case for your class, your subclass can implement its
     *           own CopyFrom() method to taste)
     */
-   status_t CopyFrom(const Flattenable & copyFrom) 
+   status_t CopyFrom(const Flattenable & copyFrom)
    {
-#ifndef WIN32  // avoids error C2027: use of undefined type 'muscle::Flattenable'
-      (void) copyFrom; 
+#if !defined(MSC_VER) || (MSC_VER >= 1910)  // avoids error C2027: use of undefined type 'muscle::Flattenable'
+      (void) copyFrom;
 #endif
       return B_ERROR;
    }

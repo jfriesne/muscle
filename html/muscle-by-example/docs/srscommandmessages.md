@@ -42,7 +42,7 @@ myMessageTransceiverThread.SendMessageToSessions(setDataMsg);
     - Here is an example invocation:
 <pre>
 MessageRef getDataMsg = GetMessageFromPool(PR_COMMAND_GETDATA);
-getDataMsg()->AddString(PR_NAME_KEYS, "/*/*/blah");  // absolute path
+getDataMsg()->AddString(PR_NAME_KEYS, "/\*/\*/blah");  // absolute path
 getDataMsg()->AddString(PR_NAME_KEYS, "node*");      // relative path
 getDataMsg()->AddString(PR_NAME_KEYS, "sub*/node*");
 myMessageTransceiverThread.SendMessageToSessions(getDataMsg);
@@ -61,11 +61,11 @@ myMessageTransceiverThread.SendMessageToSessions(rmvDataMsg);
 </pre>
 * `PR_COMMAND_SETPARAMETERS` - *Sets parameters on the session based on the fields in the Message*
     - A session's parameters govern its behavior.
-    - In particular, parameters whose names start with the prefix "SUBSCRIBE:" tell the session to subscribe to whichever [DataNodes](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html) have paths that match the path in the remainder of the parameters name (e.g. setting a parameter named "SUBSCRIBE:/*/*" would tell the session to subscribe to all [DataNodes](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html) whose paths match "/*/*", which is a good way for the client to be informed whenever another client connects or disconnects)
+    - In particular, parameters whose names start with the prefix "SUBSCRIBE:" tell the session to subscribe to whichever [DataNodes](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html) have paths that match the path in the remainder of the parameters name (e.g. setting a parameter named "SUBSCRIBE:/\*/\*" would tell the session to subscribe to all [DataNodes](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html) whose paths match "/\*/\*", which is a good way for the client to be informed whenever another client connects or disconnects)
     - Here is an example invocation:
 <pre>
 MessageRef setPMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-setPMsg()->AddBool("SUBSCRIBE:/*/*", true);  // type and value of this field don't matter
+setPMsg()->AddBool("SUBSCRIBE:/\*/\*", true);  // type and value of this field don't matter
 setPMsg()->AddBool("SUBSCRIBE:nodename3", true); // relative path, equivalent to "/*/*/nodename3"
 setPMsg()->AddInt32(PR_NAME_REPLY_ENCODING, MUSCLE_MESSAGE_ENCODING_ZLIB_9);
 myMessageTransceiverThread.SendMessageToSessions(setPMsg);

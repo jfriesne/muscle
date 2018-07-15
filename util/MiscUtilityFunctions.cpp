@@ -22,6 +22,8 @@
 #include "util/MiscUtilityFunctions.h"
 #include "util/NetworkUtilityFunctions.h"
 #include "util/StringTokenizer.h"
+#include "util/Directory.h"
+#include "util/FilePathInfo.h"
 
 namespace muscle {
 
@@ -1020,9 +1022,47 @@ status_t RenameFile(const char * oldPath, const char * newPath)
    return (rename(oldPath, newPath) == 0) ? B_NO_ERROR : B_ERROR;
 }
 
-status_t CopyFile(const char * oldPath, const char * newPath)
+static status_t CopyDirectoryRecursive(const char * oldDirPath, const char * newDirPath)
+{
+   if (strcmp(oldDirPath, newDirPath) == 0) return B_NO_ERROR;  // paranoia: Copying a directory onto itself is a no-op
+
+   Directory srcDir(oldDirPath);
+   if (srcDir.IsValid() == false) return B_ERROR;
+
+   if (Directory::MakeDirectory(newDirPath, true, true) != B_NO_ERROR) return B_ERROR;
+
+   const String srcDirPath = srcDir.GetPath();
+
+   String dstDirPath;
+   {
+      // In an inner scope simply to keep (dstDir) off the stack during any recursion
+      Directory dstDir(newDirPath);
+      if (dstDir.IsValid() == false) return B_ERROR;
+      dstDirPath = dstDir.GetPath();
+   }
+
+   const char * curSourceName;
+   while((curSourceName = srcDir.GetCurrentFileName()) != NULL)
+   {
+      if ((strcmp(curSourceName, ".") != 0)&&(strcmp(curSourceName, "..") != 0))
+      { 
+         if (CopyFile((srcDirPath+curSourceName)(), (dstDirPath+curSourceName)(), true) != B_NO_ERROR) return B_ERROR;
+      }
+      srcDir++;
+   }
+
+   return B_NO_ERROR;
+}
+
+status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFolder)
 {
    if (strcmp(oldPath, newPath) == 0) return B_NO_ERROR;  // Copying something onto itself is a no-op
+
+   if (allowCopyFolder)
+   {
+      const FilePathInfo oldFPI(oldPath);
+      if (oldFPI.IsDirectory()) return CopyDirectoryRecursive(oldPath, newPath);
+   }
 
    FILE * fpIn = muscleFopen(oldPath, "rb");
    if (fpIn == NULL) return B_ERROR;

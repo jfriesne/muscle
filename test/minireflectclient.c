@@ -73,6 +73,7 @@ static int32 SocketSendFunc(const uint8 * buf, uint32 numBytes, void * arg)
 static int32 SocketRecvFunc(uint8 * buf, uint32 numBytes, void * arg)
 {
    int ret = recv(*((int *)arg), (char *)buf, numBytes, 0L);
+   if (ret == 0) return -1;  // 0 means TCP connection has closed, we'll treat that as an error
    return (ret == -1) ? ((errno == EWOULDBLOCK)?0:-1) : ret;
 }
 

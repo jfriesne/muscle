@@ -577,9 +577,13 @@ status_t RenameFile(const char * oldPath, const char * newPath);
 /** Attempts to copy from (oldPath) to (newPath).
   * @param oldPath the path of an existing file or directory.
   * @param newPath the name that the new file should have.
+  * @param allowCopyFolderRecursive If set true, and (oldPath) points to a folder, then this
+  *                                 function will recursively copy the folder to the specified destination path.
+  *                                 If left false (the default), then this method will return B_ERROR if 
+  *                                 (oldPath) points to a folder instead of to a file.
   * @returns B_NO_ERROR on success, or B_ERROR on failure.
   */
-status_t CopyFile(const char * oldPath, const char * newPath);
+status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFolderRecursive = false);
 
 /** Attempts to delete the file with the specified file path.
   * @param filePath Path of the file to delete.

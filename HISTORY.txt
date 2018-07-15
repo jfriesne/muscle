@@ -5,6 +5,36 @@ key:  - new feature
       * bug fixed
       o other
 
+6.90 Released 7/14/2018
+   - Updated SSLSocketDataIO.cpp to compile against newer
+     versions of OpenSSL.
+   - Added GetFirstKeyWithValue() and GetLastKeyWithValue()
+     convenience methods to the Hashtable class.
+   - CopyFile() now takes an optional third argument.  The
+     third argument, if set to true, allows CopyFile() to also 
+     recursively copy a directory, if the first argument is
+     the path of a directory.
+   o The MicroMessage API was designed in such a way that it was
+     easy to accidentally dereference a misaligned pointer and
+     invoke undefined behavior.  I redesigned the API so that
+     misaligned pointers are no longer used or exposed to the
+     calling code, so that the MicroMessage API can now be used
+     e.g. on ARM CPUs.
+   * Fixed MSVC2017 compiler warning in PseudoFlattenable.h.
+   * Fixed a buffer overflow in test/printsourcelocations.cpp
+   * The C-based test programs in the test folder (microchatclient,
+     minichatclient, microreflectclient, and minireflectclient)
+     weren't handling socket-closed/EOF events correctly.  Fixed.
+   * Added some code to MiniMessage.c so that data fields will
+     be longword-aligned even if ((sizeof(MMessageField)%8)!=0)
+   * MFree() in the MiniMessage API was defined to return (void *)
+     rather than (void), due to a copy/paste error.  Fixed.
+   * Updated the MUSCLE_ENABLE_MEMORY_TRACKING implementations of 
+     MAlloc(), MRealloc(), and MFree() to follow strict-aliasing rules.
+   * IPAddressAndPort::WithInterfaceIndex() and 
+     IPAddress::WithInterfaceIndex() can now be called even
+     when MUSCLE_AVOID_IPV6 is defined.
+
 6.85 Released 5/29/2018
    - Added logic to CMakeLists.txt so that if libz isn't
      installed on the build-system, it will automatically
@@ -58,7 +88,7 @@ key:  - new feature
      clock-frequencies on its first call.
      
 6.82 Released 4/25/2018
-   o tests/Makefile-mt no longer tries to compile testreflectsession
+   o test/Makefile-mt no longer tries to compile testreflectsession
      except when executing on an OS that testreflectsession supports.
    o Did some minor editing and re-arranging of the "MUSCLE by Example" pages.
    o Replaced a number of `tags` in the MkDocs with [URLs](...)
@@ -3626,7 +3656,7 @@ v3.34 Released 7/12/2007
     really needed it for some reason, you could still 
     call SetSocketNaglesAlgorithmEnabled() manually on 
     the resulting sockets afterwards)
-  o tests/cvscopy.cpp is now tests/svncopy.cpp, since I
+  o test/cvscopy.cpp is now test/svncopy.cpp, since I
     don't use CVS anymore.
   * Thread::WaitForNextMessageAux() wasn't handling file
     descriptors properly when called with a wakeupTime
@@ -3681,7 +3711,7 @@ v3.32 Released 5/2/2007
     a list of NetworkInterfaceInfo objects describing the
     various network interfaces currently available on the
     host machine.
-  - tests/testnetutil.cpp Now tests GetNetworkInterfaceInfos()
+  - test/testnetutil.cpp Now tests GetNetworkInterfaceInfos()
     by calling it and printing out the results. 
   - Added a new argument (emitEndMessageBatchIfNecessary)
     to the QMessageTransceiverHandler::Reset() and 
@@ -3754,7 +3784,7 @@ v3.31 Released 3/14/2007
     platform that isn't autodetected inside of MuscleSupport.
   - Added INT32_FORMAT_SPEC and UINT32_FORMAT_SPEC macros so
     that printf() statements can be made less architecture-specific.
-  - Added a section  to the tests/testtypdefs.cpp test that checks
+  - Added a section  to the test/testtypdefs.cpp test that checks
     to make sure the *_FORMAT_SPEC macros are working correctly on
     the current platform.
   - DataNode::GetChildIterator() now takes an optional flags parameter 
@@ -3935,7 +3965,7 @@ v3.24 Released 11/28/2006
     a new child node.
   - Also added a SetMaxKnownChildIDHint() method to the DataNode
     class.  This lets you manually reset the hint if you need to.
-  - Updated tests/testhashtable.cpp so that it now tests for the 
+  - Updated test/testhashtable.cpp so that it now tests for the 
     HashtableIterator bug described below.
   - The MessageReplaceFunc callback used by CloneDataNodeSubtree()
     now takes a node-path as its first argument, in addition to the
@@ -4460,7 +4490,7 @@ v2.61 Released 11/04/2004
   - Added PLOCK() and PUNLOCK() macros to Mutex.h, and a new utility
     called deadlockfinder.cpp to the test subfolder.  Together, these 
     are useful for tracking down potential synchronization deadlocks in
-    multithreaded programs.  See tests/deadlockfinder.cpp for details.
+    multithreaded programs.  See test/deadlockfinder.cpp for details.
   * Added Peter Vorwerk's Tru64-compatibility patches.
   * Added Julien Torres' AMD64-compatibility patches.
   * Added an #ifdef to Thread.{cpp,h} so that the Thread class will

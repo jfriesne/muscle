@@ -572,7 +572,7 @@ void * MMalloc(uint32 numBytes);
   * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise defined to be equivalent to free().
   * @param ptr the buffer to free (as previously allocated using MMalloc())
   */
-void * MFree(void * ptr);
+void MFree(void * ptr);
 
 /** A wrapper for realloc() that allows us to track the number of bytes currently allocated.
   * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise defined to be equivalent to realloc().

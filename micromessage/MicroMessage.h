@@ -37,7 +37,7 @@ typedef struct _UPoint {
    float y;  /**< vertical axis co-ordinate   */
 } UPoint;
 
-/** Definition of our Rect class -- four floats */
+/** Definition of our Rectangle class -- four floats */
 typedef struct _URect {
    float left;   /**< left edge of the rectangle */
    float top;    /**< top edge of the rectangle */
@@ -359,14 +359,6 @@ status_t UMAddData(UMessage * msg, const char * fieldName, uint32 dataType, cons
   */
 UMessage UMInlineAddMessage(UMessage * parentMsg, const char * fieldName, uint32 whatCode);
 
-/** Returns a pointer to the array of boolean values stored under the given field name, or NULL.
-  * @param msg The UMessage to retrieve the array from.
-  * @param fieldName The field name of the desired data.
-  * @param optRetNumBools If non-NULL, the length of the returned array will be written here on success.
-  * @returns a Pointer to the requested array, or NULL on failure (i.e. field not present, or is of a different type)
-  */
-const UBool * UMGetBools(const UMessage * msg, const char * fieldName, uint32 * optRetNumBools);
-
 /** Queries the UMessage for a particular boolean value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
@@ -382,14 +374,6 @@ status_t UMFindBool(const UMessage * msg, const char * fieldName, uint32 idx, UB
   * @param idx The index of the boolean to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline UBool UMGetBool(const UMessage * msg, const char * fieldName, uint32 idx) {UBool r; return (UMFindBool(msg, fieldName, idx, &r)==B_NO_ERROR)?r:((UBool)UFalse);}
-
-/** Returns a pointer to the array of int8 values stored under the given field name, or NULL.
-  * @param msg The UMessage to retrieve the array from.
-  * @param fieldName The field name of the desired data.
-  * @param optRetNumInt8s If non-NULL, the length of the returned array will be written here on success.
-  * @returns a Pointer to the requested array, or NULL on failure (i.e. field not present, or is of a different type)
-  */
-const int8 * UMGetInt8s(const UMessage * msg, const char * fieldName, uint32 * optRetNumInt8s);
 
 /** Queries the UMessage for a particular int8 value.
   * @param msg The UMessage to query.
@@ -407,14 +391,6 @@ status_t UMFindInt8(const UMessage * msg, const char * fieldName, uint32 idx, in
   */
 static inline int8 UMGetInt8(const UMessage * msg, const char * fieldName, uint32 idx) {int8 r; return (UMFindInt8(msg, fieldName, idx, &r)==B_NO_ERROR)?r:0;}
 
-/** Returns a pointer to the array of int16 values stored under the given field name, or NULL.
-  * @param msg The UMessage to retrieve the array from.
-  * @param fieldName The field name of the desired data.
-  * @param optRetNumInt16s If non-NULL, the length of the returned array will be written here on success.
-  * @returns a Pointer to the requested array, or NULL on failure (i.e. field not present, or is of a different type)
-  */
-const int16 * UMGetInt16s(const UMessage * msg, const char * fieldName, uint32 * optRetNumInt16s);
-
 /** Queries the UMessage for a particular int16 value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
@@ -430,14 +406,6 @@ status_t UMFindInt16(const UMessage * msg, const char * fieldName, uint32 idx, i
   * @param idx The index of the int16 to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline int16 UMGetInt16(const UMessage * msg, const char * fieldName, uint32 idx) {int16 r; return (UMFindInt16(msg, fieldName, idx, &r)==B_NO_ERROR)?r:0;}
-
-/** Returns a pointer to the array of int32 values stored under the given field name, or NULL.
-  * @param msg The UMessage to retrieve the array from.
-  * @param fieldName The field name of the desired data.
-  * @param optRetNumInt32s If non-NULL, the length of the returned array will be written here on success.
-  * @returns a Pointer to the requested array, or NULL on failure (i.e. field not present, or is of a different type)
-  */
-const int32 * UMGetInt32s(const UMessage * msg, const char * fieldName, uint32 * optRetNumInt32s);
 
 /** Queries the UMessage for a particular int32 value.
   * @param msg The UMessage to query.
@@ -455,14 +423,6 @@ status_t UMFindInt32(const UMessage * msg, const char * fieldName, uint32 idx, i
   */
 static inline int32 UMGetInt32(const UMessage * msg, const char * fieldName, uint32 idx) {int32 r; return (UMFindInt32(msg, fieldName, idx, &r)==B_NO_ERROR)?r:0;}
 
-/** Returns a pointer to the array of int64 values stored under the given field name, or NULL.
-  * @param msg The UMessage to retrieve the array from.
-  * @param fieldName The field name of the desired data.
-  * @param optRetNumInt64s If non-NULL, the length of the returned array will be written here on success.
-  * @returns a Pointer to the requested array, or NULL on failure (i.e. field not present, or is of a different type)
-  */
-const int64 * UMGetInt64s(const UMessage * msg, const char * fieldName, uint32 * optRetNumInt64s);
-
 /** Queries the UMessage for a particular int64 value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
@@ -478,14 +438,6 @@ status_t UMFindInt64(const UMessage * msg, const char * fieldName, uint32 idx, i
   * @param idx The index of the int64 to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline int64 UMGetInt64(const UMessage * msg, const char * fieldName, uint32 idx) {int64 r; return (UMFindInt64(msg, fieldName, idx, &r)==B_NO_ERROR)?r:0;}
-
-/** Returns a pointer to the array of floating point values stored under the given field name, or NULL.
-  * @param msg The UMessage to retrieve the array from.
-  * @param fieldName The field name of the desired data.
-  * @param optRetNumFloats If non-NULL, the length of the returned array will be written here on success.
-  * @returns a Pointer to the requested array, or NULL on failure (i.e. field not present, or is of a different type)
-  */
-const float * UMGetFloats(const UMessage * msg, const char * fieldName, uint32 * optRetNumFloats);
 
 /** Queries the UMessage for a particular floating point value.
   * @param msg The UMessage to query.
@@ -503,14 +455,6 @@ status_t UMFindFloat(const UMessage * msg, const char * fieldName, uint32 idx, f
   */
 static inline float UMGetFloat(const UMessage * msg, const char * fieldName, uint32 idx) {float r; return (UMFindFloat(msg, fieldName, idx, &r)==B_NO_ERROR)?r:0.0f;}
 
-/** Returns a pointer to the array of double-precision floating point values stored under the given field name, or NULL.
-  * @param msg The UMessage to retrieve the array from.
-  * @param fieldName The field name of the desired data.
-  * @param optRetNumDoubles If non-NULL, the length of the returned array will be written here on success.
-  * @returns a Pointer to the requested array, or NULL on failure (i.e. field not present, or is of a different type)
-  */
-const double * UMGetDoubles(const UMessage * msg, const char * fieldName, uint32 * optRetNumDoubles);
-
 /** Queries the UMessage for a particular double-precision floating point value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
@@ -527,14 +471,6 @@ status_t UMFindDouble(const UMessage * msg, const char * fieldName, uint32 idx, 
   */
 static inline double UMGetDouble(const UMessage * msg, const char * fieldName, uint32 idx) {double r; return (UMFindDouble(msg, fieldName, idx, &r)==B_NO_ERROR)?r:0.0f;}
 
-/** Returns a pointer to the array of UPoint values stored under the given field name, or NULL.
-  * @param msg The UMessage to retrieve the array from.
-  * @param fieldName The field name of the desired data.
-  * @param optRetNumPoints If non-NULL, the length of the returned array will be written here on success.
-  * @returns a Pointer to the requested array, or NULL on failure (i.e. field not present, or is of a different type)
-  */
-const UPoint * UMGetPoints(const UMessage * msg, const char * fieldName, uint32 * optRetNumPoints);
-
 /** Queries the UMessage for a particular UPoint value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
@@ -550,14 +486,6 @@ status_t UMFindPoint(const UMessage * msg, const char * fieldName, uint32 idx, U
   * @param idx The index of the UPoint to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline UPoint UMGetPoint(const UMessage * msg, const char * fieldName, uint32 idx) {UPoint r; if (UMFindPoint(msg, fieldName, idx, &r)==B_NO_ERROR) return r; else {UPoint x = {0.0f,0.0f}; return x;}}
-
-/** Returns a pointer to the array of URect values stored under the given field name, or NULL.
-  * @param msg The UMessage to retrieve the array from.
-  * @param fieldName The field name of the desired data.
-  * @param optRetNumRects If non-NULL, the length of the returned array will be written here on success.
-  * @returns a Pointer to the requested array, or NULL on failure (i.e. field not present, or is of a different type)
-  */
-const URect * UMGetRects(const UMessage * msg, const char * fieldName, uint32 * optRetNumRects);
 
 /** Queries the UMessage for a particular URect value.
   * @param msg The UMessage to query.
@@ -634,6 +562,171 @@ void SetFieldNameUniquenessEnforced(UBool enforce);
 /** Returns true iff field-name-uniqueness is being enforced.  Default value of this flag is true. */
 UBool IsFieldNameUniquenessEnforced();
 
+typedef struct imp_GenericArrayHandle {
+   const uint32 _numItems;
+   const uint8 * _itemData;
+} GenericArrayHandle;
+
+#define DECLARE_MESSAGE_DATA_ARRAY_HANDLE(typeName) typedef struct _imp_##typeName##ArrayHandle {GenericArrayHandle _baseHandle;} typeName##ArrayHandle
+DECLARE_MESSAGE_DATA_ARRAY_HANDLE(URect);
+DECLARE_MESSAGE_DATA_ARRAY_HANDLE(UPoint);
+DECLARE_MESSAGE_DATA_ARRAY_HANDLE(Double);
+DECLARE_MESSAGE_DATA_ARRAY_HANDLE(Float);
+DECLARE_MESSAGE_DATA_ARRAY_HANDLE(Int64);
+DECLARE_MESSAGE_DATA_ARRAY_HANDLE(Int32);
+DECLARE_MESSAGE_DATA_ARRAY_HANDLE(Int16);
+DECLARE_MESSAGE_DATA_ARRAY_HANDLE(Int8);
+DECLARE_MESSAGE_DATA_ARRAY_HANDLE(UBool);
+
+/** Given a (Blah)ArrayHandle object, returns the number of data-items that handle points to.
+  * @param arrayHandle an (Blah)ArrayHandle object of any type (as previously returned by a UMGet*s() function call)
+  */
+#define UMGetNumItemsInArray(arrayHandle) ((arrayHandle)._baseHandle._numItems)
+
+/** Returns a handle to the array of UBool values stored under the given field name.
+  * @param msg The UMessage to retrieve the array from.
+  * @param fieldName The field name of the desired data.
+  * @returns a handle to the requested array.  On failure, UMGetNumItemsInArray()
+  *          will return zero when this handle is passed to it as an argument.
+  *          Items in the array can be retrieved by calling UMGetBoolFromArray().
+  */
+UBoolArrayHandle UMGetBools(const UMessage * msg, const char * fieldName);
+
+/** Returns a handle to the array of int8 values stored under the given field name.
+  * @param msg The UMessage to retrieve the array from.
+  * @param fieldName The field name of the desired data.
+  * @returns a handle to the requested array.  On failure, UMGetNumItemsInArray()
+  *          will return zero when this handle is passed to it as an argument.
+  *          Items in the array can be retrieved by calling UMGetInt8FromArray().
+  */
+Int8ArrayHandle UMGetInt8s(const UMessage * msg, const char * fieldName);
+
+/** Returns a handle to the array of int16 values stored under the given field name.
+  * @param msg The UMessage to retrieve the array from.
+  * @param fieldName The field name of the desired data.
+  * @returns a handle to the requested array.  On failure, UMGetNumItemsInArray()
+  *          will return zero when this handle is passed to it as an argument.
+  *          Items in the array can be retrieved by calling UMGetInt16FromArray().
+  */
+Int16ArrayHandle UMGetInt16s(const UMessage * msg, const char * fieldName);
+
+/** Returns a handle to the array of int32 values stored under the given field name.
+  * @param msg The UMessage to retrieve the array from.
+  * @param fieldName The field name of the desired data.
+  * @returns a handle to the requested array.  On failure, UMGetNumItemsInArray()
+  *          will return zero when this handle is passed to it as an argument.
+  *          Items in the array can be retrieved by calling UMGetInt32FromArray().
+  */
+Int32ArrayHandle UMGetInt32s(const UMessage * msg, const char * fieldName);
+
+/** Returns a handle to the array of int64 values stored under the given field name.
+  * @param msg The UMessage to retrieve the array from.
+  * @param fieldName The field name of the desired data.
+  * @returns a handle to the requested array.  On failure, UMGetNumItemsInArray()
+  *          will return zero when this handle is passed to it as an argument.
+  *          Items in the array can be retrieved by calling UMGetInt64FromArray().
+  */
+Int64ArrayHandle UMGetInt64s(const UMessage * msg, const char * fieldName);
+
+/** Returns a handle to the array of float values stored under the given field name.
+  * @param msg The UMessage to retrieve the array from.
+  * @param fieldName The field name of the desired data.
+  * @returns a handle to the requested array.  On failure, UMGetNumItemsInArray()
+  *          will return zero when this handle is passed to it as an argument.
+  *          Items in the array can be retrieved by calling UMGetFloatFromArray().
+  */
+FloatArrayHandle UMGetFloats(const UMessage * msg, const char * fieldName);
+
+/** Returns a handle to the array of double values stored under the given field name.
+  * @param msg The UMessage to retrieve the array from.
+  * @param fieldName The field name of the desired data.
+  * @returns a handle to the requested array.  On failure, UMGetNumItemsInArray()
+  *          will return zero when this handle is passed to it as an argument.
+  *          Items in the array can be retrieved by calling UMGetDoubleFromArray().
+  */
+DoubleArrayHandle UMGetDoubles(const UMessage * msg, const char * fieldName);
+
+/** Returns a handle to the array of UPoint values stored under the given field name.
+  * @param msg The UMessage to retrieve the array from.
+  * @param fieldName The field name of the desired data.
+  * @returns a handle to the requested array.  On failure, UMGetNumItemsInArray()
+  *          will return zero when this handle is passed to it as an argument.
+  *          Items in the array can be retrieved by calling UMGetPointFromArray().
+  */
+UPointArrayHandle UMGetPoints(const UMessage * msg, const char * fieldName);
+
+/** Returns a handle to the array of URect values stored under the given field name.
+  * @param msg The UMessage to retrieve the array from.
+  * @param fieldName The field name of the desired data.
+  * @returns a handle to the requested array.  On failure, UMGetNumItemsInArray()
+  *          will return zero when this handle is passed to it as an argument.
+  *          Items in the array can be retrieved by calling UMGetRectFromArray().
+  */
+URectArrayHandle UMGetRects(const UMessage * msg, const char * fieldName);
+
+/** Given a UBoolArrayHandle, returns the nth UBool in the array.
+  * @param handle a handle to the array, as previously returned by UMGetPoints()
+  * @param idx Index of the item to be returned.
+  * @returns the nth UBool in the array, or false if (idx) isn't valid.
+  */
+UBool UMGetBoolFromArray(UBoolArrayHandle handle, uint32 idx);
+
+/** Given a Int8ArrayHandle, returns the nth int8 in the array.
+  * @param handle a handle to the array, as previously returned by UMGetPoints()
+  * @param idx Index of the item to be returned.
+  * @returns the nth int8 in the array, or 0 if (idx) isn't valid.
+  */
+int8 UMGetInt8FromArray(Int8ArrayHandle handle, uint32 idx);
+
+/** Given a Int16ArrayHandle, returns the nth int16 in the array.
+  * @param handle a handle to the array, as previously returned by UMGetPoints()
+  * @param idx Index of the item to be returned.
+  * @returns the nth int16 in the array, or an all-zero Point if (idx) isn't valid.
+  */
+int16 UMGetInt16FromArray(Int16ArrayHandle handle, uint32 idx);
+
+/** Given a Int32ArrayHandle, returns the nth int32 in the array.
+  * @param handle a handle to the array, as previously returned by UMGetPoints()
+  * @param idx Index of the item to be returned.
+  * @returns the nth int32 in the array, or an all-zero Point if (idx) isn't valid.
+  */
+int32 UMGetInt32FromArray(Int32ArrayHandle handle, uint32 idx);
+
+/** Given a Int64ArrayHandle, returns the nth int64 in the array.
+  * @param handle a handle to the array, as previously returned by UMGetPoints()
+  * @param idx Index of the item to be returned.
+  * @returns the nth int64 in the array, or an all-zero Point if (idx) isn't valid.
+  */
+int64 UMGetInt64FromArray(Int64ArrayHandle handle, uint32 idx);
+
+/** Given a FloatArrayHandle, returns the nth float in the array.
+  * @param handle a handle to the array, as previously returned by UMGetPoints()
+  * @param idx Index of the item to be returned.
+  * @returns the nth float in the array, or an all-zero Point if (idx) isn't valid.
+  */
+float UMGetFloatFromArray(FloatArrayHandle handle, uint32 idx);
+
+/** Given a DoubleArrayHandle, returns the nth double in the array.
+  * @param handle a handle to the array, as previously returned by UMGetPoints()
+  * @param idx Index of the item to be returned.
+  * @returns the nth double in the array, or an all-zero Point if (idx) isn't valid.
+  */
+double UMGetDoubleFromArray(DoubleArrayHandle handle, uint32 idx);
+
+/** Given a UPointArrayHandle, returns the nth UPoint in the array.
+  * @param handle a handle to the array, as previously returned by UMGetPoints()
+  * @param idx Index of the item to be returned.
+  * @returns the nth UPoint in the array, or an all-zero Point if (idx) isn't valid.
+  */
+UPoint UMGetPointFromArray(UPointArrayHandle handle, uint32 idx);
+
+/** Given a URectArrayHandle, returns the nth URect in the array.
+  * @param handle a handle to the array, as previously returned by UMGetRects()
+  * @param idx Index of the URect to be returned.
+  * @returns the nth URect in the array, or an all-zero URect if (idx) isn't valid.
+  */
+URect UMGetRectFromArray(URectArrayHandle handle, uint32 idx);
+
 /** @} */ // end of micromessage doxygen group
 
 #ifdef __cplusplus
@@ -641,3 +734,4 @@ UBool IsFieldNameUniquenessEnforced();
 #endif
 
 #endif
+
