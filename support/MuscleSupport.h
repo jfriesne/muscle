@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.90" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        69000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "6.91" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        69100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -76,7 +76,7 @@
 #endif
 
 #ifdef __cplusplus
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11) && (__cplusplus < 201100)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11) && (__cplusplus < 201100) && !defined(_MSVC_LANG)
 #  define MUSCLE_AVOID_CPLUSPLUS11
 # endif
 # ifndef MUSCLE_AVOID_CPLUSPLUS11
@@ -102,6 +102,20 @@
 # endif
 #else
 # define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (e.g. because we're on an ancient platform) */
+#endif
+
+#if !defined(MUSCLE_AVOID_STDINT) && (defined(MUSCLE_AVOID_CPLUSPLUS11) || (defined(_MSC_VER) && (_MSC_VER < 1800)))
+# define MUSCLE_AVOID_STDINT  // No sense trying to use cstdint on older compilers that we know do not provide it
+#endif
+
+#ifndef MUSCLE_AVOID_STDINT
+# include <stdint.h>
+# include <stddef.h>  // for ptrdiff_t when compiling as C code
+# ifdef __cplusplus
+#  include <cinttypes>
+# else
+#  include <inttypes.h>
+# endif
 #endif
 
 // For non-C++-11 environments, we don't have the ability to make a class final, so we just define 
@@ -197,6 +211,16 @@ using std::set_new_handler;
 /** This macro logs a warning message including the the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
 #define MCHECKPOINT muscle::LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
 
+#if !defined(MUSCLE_64_BIT_PLATFORM)
+# if defined(PTRDIFF_MAX)
+#  if (PTRDIFF_MAX > 4294967296)
+#   define MUSCLE_64_BIT_PLATFORM 1
+#  endif
+# elif defined(__osf__) || defined(__amd64__) || defined(__PPC64__) || defined(__x86_64__) || defined(_M_AMD64)
+#  define MUSCLE_64_BIT_PLATFORM 1  // auto-define it if it wasn't defined in the Makefile
+# endif
+#endif
+
 #ifdef __cplusplus
 template<typename T, int size> unsigned int ARRAYITEMS(T(&)[size]) {return size;}  /**< Returns # of items in the array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
 #else
@@ -226,91 +250,126 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
 #   endif
     typedef unsigned char           uchar;    /**< uchar is a synonym for "unsigned char" */
     typedef unsigned short          unichar;  /**< unichar is a synonym for "unsigned short" */
-    typedef signed char             int8;     /**< int8 is an 8-bit signed integer type */
-    typedef unsigned char           uint8;    /**< uint8 is an 8-bit unsigned integer type */
-    typedef short                   int16;    /**< int16 is an 16-bit signed integer type */
-    typedef unsigned short          uint16;   /**< uint16 is an 16-bit unsigned integer type */
-#   if defined(MUSCLE_64_BIT_PLATFORM) || defined(__osf__) || defined(__amd64__) || defined(__PPC64__) || defined(__x86_64__) || defined(_M_AMD64)   /* some 64bit systems will have long=64-bit, int=32-bit */
-#    ifndef MUSCLE_64_BIT_PLATFORM
-#     define MUSCLE_64_BIT_PLATFORM 1  // auto-define it if it wasn't defined in the Makefile
+#   ifdef MUSCLE_AVOID_STDINT
+     typedef signed char             int8;     /**< int8 is an 8-bit signed integer type */
+     typedef unsigned char           uint8;    /**< uint8 is an 8-bit unsigned integer type */
+     typedef short                   int16;    /**< int16 is a 16-bit signed integer type */
+     typedef unsigned short          uint16;   /**< uint16 is a 16-bit unsigned integer type */
+#    if defined(MUSCLE_64_BIT_PLATFORM)        /* some 64bit systems will have long=64-bit, int=32-bit */
+      typedef int                    int32;    /**< int32 is a 32-bit signed integer type */
+#     ifndef _UINT32
+       typedef unsigned int          uint32;   /**< uint32 is a 32-bit unsigned integer type */
+#      define _UINT32                          /**< Avoid conflict with typedef in OS/X Leopard system header */
+#     endif
+#    else
+      typedef int                    int32;    /**< int32 is a 32-bit signed integer type */
+#     ifndef _UINT32
+       typedef unsigned int          uint32;   /**< uint32 is a 32-bit unsigned integer type */
+#      define _UINT32                          /**< Avoid conflict with typedef in OS/X Leopard system header */
+#     endif
 #    endif
-     typedef int                    int32;    /**< int32 is a 32-bit signed integer type */
-#    ifndef _UINT32
-      typedef unsigned int          uint32;   /**< uint32 is a 32-bit unsigned integer type */
-#     define _UINT32                          /**< Avoid conflict with typedef in OS/X Leopard system header */
+#    if defined(WIN32) && !defined(__GNUWIN32__)
+      typedef __int64                int64;    /**< int64 is a 64-bit signed integer type */
+      typedef unsigned __int64       uint64;   /**< uint64 is a 64-bit unsigned integer type */
+#    elif __APPLE__
+#     ifndef _UINT64
+#      define _UINT64                          /**< Avoid conflict with typedef in OS/X Leopard system header */
+       typedef long long              int64;   /**< int64 is a 64-bit signed integer type */    // these are what's expected in MacOS/X land, in both
+       typedef unsigned long long     uint64;  /**< uint64 is a 64-bit unsigned integer type */ // 32-bit and 64-bit flavors.  C'est la vie, non?
+#     endif
+#    elif defined(MUSCLE_64_BIT_PLATFORM)
+      typedef long                   int64;    /**< int64 is a 64-bit signed integer type */
+      typedef unsigned long          uint64;   /**< uint64 is a 64-bit unsigned integer type */
+#    else
+      typedef long long              int64;    /**< int64 is a 64-bit signed integer type */
+      typedef unsigned long long     uint64;   /**< uint64 is a 64-bit unsigned integer type */
 #    endif
 #   else
-     typedef long                   int32;    /**< int32 is a 32-bit signed integer type */
-#    ifndef _UINT32
-      typedef unsigned long         uint32;   /**< uint32 is a 32-bit unsigned integer type */
-#     define _UINT32                          /**< Avoid conflict with typedef in OS/X Leopard system header */
-#    endif
-#   endif
-#   if defined(WIN32) && !defined(__GNUWIN32__)
-     typedef __int64                int64;    /**< int64 is a 64-bit signed integer type */
-     typedef unsigned __int64       uint64;   /**< uint64 is a 64-bit unsigned integer type */
-#   elif __APPLE__
-#    ifndef _UINT64
-#     define _UINT64                          /**< Avoid conflict with typedef in OS/X Leopard system header */
-      typedef long long              int64;   /**< int64 is a 64-bit signed integer type */    // these are what's expected in MacOS/X land, in both
-      typedef unsigned long long     uint64;  /**< uint64 is a 64-bit unsigned integer type */ // 32-bit and 64-bit flavors.  C'est la vie, non?
-#    endif
-#   elif defined(MUSCLE_64_BIT_PLATFORM)
-     typedef long                   int64;    /**< int64 is a 64-bit signed integer type */
-     typedef unsigned long          uint64;   /**< uint64 is a 64-bit unsigned integer type */
-#   else
-     typedef long long              int64;    /**< int64 is a 64-bit signed integer type */
-     typedef unsigned long long     uint64;   /**< uint64 is a 64-bit unsigned integer type */
-#   endif
-    typedef int32                   status_t; /**< This type indicates an expected value of either B_NO_ERROR/B_OK on success, or another value (often B_ERROR) on failure. */
+     // If stdint.h is available, we might as well use it
+     typedef  int8_t    int8; /**< int8 is an 8-bit signed integer type */
+     typedef uint8_t   uint8; /**< uint8 is an 8-bit unsigned integer type */
+     typedef  int16_t  int16; /**< int16 is a 16-bit signed integer type */
+     typedef uint16_t uint16; /**< uint16 is a 16-bit unsigned integer type */
+     typedef  int32_t  int32; /**< int32 is a 32-bit signed integer type */
+     typedef uint32_t uint32; /**< uint32 is a 32-bit unsigned integer type */
+     typedef  int64_t  int64; /**< int64 is a 64-bit signed integer type */
+     typedef uint64_t uint64; /**< uint64 is a 64-bit unsigned integer type */
+#endif
+    typedef int32 status_t; /**< This type indicates an expected value of either B_NO_ERROR/B_OK on success, or another value (often B_ERROR) on failure. */
 #  endif  /* !MUSCLE_TYPES_PREDEFINED */
 # endif  /* !__ATHEOS__*/
 #endif  /* __BEOS__ || __HAIKU__ */
 
-/** Ugly platform-neutral macros for problematic sprintf()-format-strings */
-#if defined(MUSCLE_64_BIT_PLATFORM)
-# define  INT32_FORMAT_SPEC_NOPERCENT "i"  /**< format-specifier string to pass in to printf() for an int32, without the percent sign */
-# define UINT32_FORMAT_SPEC_NOPERCENT "u"  /**< format-specifier string to pass in to printf() for a uint32, without the percent sign */
-# define XINT32_FORMAT_SPEC_NOPERCENT "x"  /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, without the percent sign */
-# ifdef __APPLE__
-#  define  INT64_FORMAT_SPEC_NOPERCENT "lli"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
-#  define UINT64_FORMAT_SPEC_NOPERCENT "llu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
-#  define XINT64_FORMAT_SPEC_NOPERCENT "llx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
-# elif defined(_MSC_VER) || defined(__MINGW64__)
-#  define  INT64_FORMAT_SPEC_NOPERCENT "I64i"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
-#  define UINT64_FORMAT_SPEC_NOPERCENT "I64u"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
-#  define XINT64_FORMAT_SPEC_NOPERCENT "I64x"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
-# else
-#  define  INT64_FORMAT_SPEC_NOPERCENT "li"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
-#  define UINT64_FORMAT_SPEC_NOPERCENT "lu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
-#  define XINT64_FORMAT_SPEC_NOPERCENT "lx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
-# endif
-#else
-# define  INT32_FORMAT_SPEC_NOPERCENT "li"  /**< format-specifier string to pass in to printf() for an int32, without the percent sign */
-# define UINT32_FORMAT_SPEC_NOPERCENT "lu"  /**< format-specifier string to pass in to printf() for a uint32, without the percent sign */
-# define XINT32_FORMAT_SPEC_NOPERCENT "lx"  /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, without the percent sign */
-# if defined(_MSC_VER) || defined(__MINGW32__)
-#  define  INT64_FORMAT_SPEC_NOPERCENT "I64i"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
-#  define UINT64_FORMAT_SPEC_NOPERCENT "I64u"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
-#  define XINT64_FORMAT_SPEC_NOPERCENT "I64x"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
-# elif (defined(__BEOS__) && !defined(__HAIKU__)) || defined(__MWERKS__) || defined(__BORLANDC__)
-#  define  INT64_FORMAT_SPEC_NOPERCENT "Li"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
-#  define UINT64_FORMAT_SPEC_NOPERCENT "Lu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
-#  define XINT64_FORMAT_SPEC_NOPERCENT "Lx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
-# else
-#  define  INT64_FORMAT_SPEC_NOPERCENT "lli"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
-#  define UINT64_FORMAT_SPEC_NOPERCENT "llu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
-#  define XINT64_FORMAT_SPEC_NOPERCENT "llx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
-# endif
+#if defined(__cplusplus) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
+// Let's try to catch any type-size errors at compile-time if we can
+static_assert(sizeof(int8)   == 1, "sizeof(int8) != 1");
+static_assert(sizeof(uint8)  == 1, "sizeof(uint8) != 1");
+static_assert(sizeof(int16)  == 2, "sizeof(int16) != 2");
+static_assert(sizeof(uint16) == 2, "sizeof(uint16) != 2");
+static_assert(sizeof(int32)  == 4, "sizeof(int32) != 4");
+static_assert(sizeof(uint32) == 4, "sizeof(uint32) != 4");
+static_assert(sizeof(int64)  == 8, "sizeof(int64) != 8");
+static_assert(sizeof(uint64) == 8, "sizeof(uint64) != 8");
+static_assert(sizeof(float)  == 4, "sizeof(float) != 4");
+static_assert(sizeof(float)  == 4, "sizeof(float) != 4");
+static_assert(sizeof(double) == 8, "sizeof(double) != 8");
+static_assert(sizeof(double) == 8, "sizeof(double) != 8");
 #endif
 
-# define  INT32_FORMAT_SPEC "%"  INT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int32, including the percent sign */
-# define UINT32_FORMAT_SPEC "%" UINT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint32, including the percent sign */
-# define XINT32_FORMAT_SPEC "%" XINT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, including the percent sign */
+#ifdef MUSCLE_AVOID_STDINT
+/** Ugly platform-neutral macros for problematic sprintf()-format-strings */
+# if defined(MUSCLE_64_BIT_PLATFORM)
+#  define  INT32_FORMAT_SPEC_NOPERCENT "i"  /**< format-specifier string to pass in to printf() for an int32, without the percent sign */
+#  define UINT32_FORMAT_SPEC_NOPERCENT "u"  /**< format-specifier string to pass in to printf() for a uint32, without the percent sign */
+#  define XINT32_FORMAT_SPEC_NOPERCENT "x"  /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, without the percent sign */
+#  ifdef __APPLE__
+#   define  INT64_FORMAT_SPEC_NOPERCENT "lli"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#   define UINT64_FORMAT_SPEC_NOPERCENT "llu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#   define XINT64_FORMAT_SPEC_NOPERCENT "llx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
+#  elif defined(_MSC_VER) || defined(__MINGW64__)
+#   define  INT64_FORMAT_SPEC_NOPERCENT "I64i"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#   define UINT64_FORMAT_SPEC_NOPERCENT "I64u"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#   define XINT64_FORMAT_SPEC_NOPERCENT "I64x"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
+#  else
+#   define  INT64_FORMAT_SPEC_NOPERCENT "li"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#   define UINT64_FORMAT_SPEC_NOPERCENT "lu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#   define XINT64_FORMAT_SPEC_NOPERCENT "lx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
+#  endif
+# else
+#  define  INT32_FORMAT_SPEC_NOPERCENT "li"  /**< format-specifier string to pass in to printf() for an int32, without the percent sign */
+#  define UINT32_FORMAT_SPEC_NOPERCENT "lu"  /**< format-specifier string to pass in to printf() for a uint32, without the percent sign */
+#  define XINT32_FORMAT_SPEC_NOPERCENT "lx"  /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, without the percent sign */
+#  if defined(_MSC_VER) || defined(__MINGW32__)
+#   define  INT64_FORMAT_SPEC_NOPERCENT "I64i"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#   define UINT64_FORMAT_SPEC_NOPERCENT "I64u"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#   define XINT64_FORMAT_SPEC_NOPERCENT "I64x"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
+#  elif (defined(__BEOS__) && !defined(__HAIKU__)) || defined(__MWERKS__) || defined(__BORLANDC__)
+#   define  INT64_FORMAT_SPEC_NOPERCENT "Li"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#   define UINT64_FORMAT_SPEC_NOPERCENT "Lu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#   define XINT64_FORMAT_SPEC_NOPERCENT "Lx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
+#  else
+#   define  INT64_FORMAT_SPEC_NOPERCENT "lli"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
+#   define UINT64_FORMAT_SPEC_NOPERCENT "llu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#   define XINT64_FORMAT_SPEC_NOPERCENT "llx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
+#  endif
+# endif
+#else
+// This version just uses the macros provided in inttypes.h
+#  define  INT32_FORMAT_SPEC_NOPERCENT PRIi32 /**< format-specifier string to pass in to printf() for an int32, without the percent sign */
+#  define UINT32_FORMAT_SPEC_NOPERCENT PRIu32 /**< format-specifier string to pass in to printf() for a uint32, without the percent sign */
+#  define XINT32_FORMAT_SPEC_NOPERCENT PRIx32 /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, without the percent sign */
+#  define  INT64_FORMAT_SPEC_NOPERCENT PRIi64 /**< format-specifier string to pass in to printf() for a  int64, without the percent sign */
+#  define UINT64_FORMAT_SPEC_NOPERCENT PRIu64 /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
+#  define XINT64_FORMAT_SPEC_NOPERCENT PRIx64 /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
+#endif
 
-# define  INT64_FORMAT_SPEC "%"  INT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int64, including the percent sign */
-# define UINT64_FORMAT_SPEC "%" UINT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint64, including the percent sign */
-# define XINT64_FORMAT_SPEC "%" XINT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, including the percent sign */
+#define  INT32_FORMAT_SPEC "%"  INT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int32, including the percent sign */
+#define UINT32_FORMAT_SPEC "%" UINT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint32, including the percent sign */
+#define XINT32_FORMAT_SPEC "%" XINT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, including the percent sign */
+
+#define  INT64_FORMAT_SPEC "%"  INT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int64, including the percent sign */
+#define UINT64_FORMAT_SPEC "%" UINT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint64, including the percent sign */
+#define XINT64_FORMAT_SPEC "%" XINT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, including the percent sign */
 
 /** Macro that returns a uint32 word out of the four ASCII characters in the supplied char array.  Used primarily to create 'what'-codes for Message objects (e.g. MAKETYPE("!Pc0") returns 558916400) */
 #define MAKETYPE(x) ((((unsigned long)(x[0])) << 24) | \
@@ -480,7 +539,7 @@ template<typename T> inline void muscleSwap(T & t1, T & t2) {T t=t1; t1 = t2; t2
 
 namespace ugly_swapcontents_method_sfinae_implementation
 {
-   // This code was from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
+   // This code was adapted from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
    // It is used by the muscleSwap() function (below) to automatically call SwapContents() if such a method
    // is available, otherwise muscleSwap() will use a naive copy-to-temporary-object technique.
 
@@ -980,17 +1039,22 @@ static inline void MakePrettyTypeCodeString(uint32 typecode, char *buf)
 # include <winsock2.h>  // this will bring in windows.h for us
 #endif
 
-#ifdef _MSC_VER
+#ifdef MUSCLE_AVOID_STDINT
+# ifdef _MSC_VER
 typedef UINT_PTR uintptr;   // Use these under MSVC so that the compiler
 typedef INT_PTR  ptrdiff;   // doesn't give spurious warnings in /Wp64 mode
-#else
-# if defined(MUSCLE_64_BIT_PLATFORM)
+# else
+#  if defined(MUSCLE_64_BIT_PLATFORM)
 typedef uint64 uintptr;  /**< uintptr is an unsigned integer type that is guaranteed to be able to hold a pointer value for the native CPU, without any data loss */
 typedef int64 ptrdiff;   /**< ptrdiff is a signed integer type that is guaranteed to be able to hold the difference between two pointer values for the native CPU, without any data loss */
-# else
+#  else
 typedef uint32 uintptr;  /**< uintptr is an unsigned integer type that is guaranteed to be able to hold a pointer value for the native CPU, without any data loss */
 typedef int32 ptrdiff;   /**< ptrdiff is a signed integer type that is guaranteed to be able to hold the difference between two pointer values for the native CPU, without any data loss */
+#  endif
 # endif
+#else
+typedef uintptr_t uintptr; /**< uintptr is an unsigned integer type that is guaranteed to be able to hold a pointer value for the native CPU, without any data loss */
+typedef ptrdiff_t ptrdiff; /**< ptrdiff is a signed integer type that is guaranteed to be able to hold the difference between two pointer values for the native CPU, without any data loss */
 #endif
 
 #ifdef __cplusplus
@@ -1285,7 +1349,7 @@ public:
 
 namespace ugly_hashcode_method_sfinae_implementation
 {
-   // This code was from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
+   // This code was adapted from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
    // It is used by the AutoChooseHashFunctorHelper (below) to automatically choose the appropriate HashFunctor
    // type based on whether or not class given in the template argument has a "uint32 HashCode() const" method defined.
 

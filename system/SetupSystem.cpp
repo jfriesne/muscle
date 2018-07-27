@@ -1960,6 +1960,10 @@ Queue<String> GetBuildFlags()
    q.AddTail("MUSCLE_AVOID_IPV6");
 #endif
 
+#ifdef MUSCLE_AVOID_STDINT
+   q.AddTail("MUSCLE_AVOID_STDINT");
+#endif
+
 #ifdef MUSCLE_SINGLE_THREAD_ONLY 
    q.AddTail("MUSCLE_SINGLE_THREAD_ONLY");
 #endif

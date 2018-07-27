@@ -33,6 +33,7 @@ static bool _verifySpam         = false;
 static uint32 _spamsPerSecond   = 0;
 static uint32 _spamSize         = 1024;
 static uint64 _prevReceiveTime  = 0;
+static uint64 _postSendDelay    = 0;
 
 static uint32 Calculate32BitChecksum(const uint8 * bytes, uint32 numBytes)
 {
@@ -118,6 +119,25 @@ static void SanityCheckSpamPacket(const uint8 * buf, uint32 bufLen)
    }
 
    LogTime(MUSCLE_LOG_INFO, "Received " UINT32_FORMAT_SPEC "-byte packet passed the spam verification check.\n", bufLen);
+}
+
+static status_t FlushOutBuffer(const ByteBufferRef & outBuf, DataIO & io)
+{
+   if (outBuf())
+   {
+      const uint32 wrote = io.WriteFully(outBuf()->GetBuffer(), outBuf()->GetNumBytes());
+      if (wrote == outBuf()->GetNumBytes()) 
+      {
+         if (_decorateOutput) LogBytes(outBuf()->GetBuffer(), outBuf()->GetNumBytes(), "Sent");
+      }
+      else 
+      {
+         LogTime(MUSCLE_LOG_ERROR, "Error, Write() only wrote " INT32_FORMAT_SPEC " of " UINT32_FORMAT_SPEC " bytes... aborting!\n", wrote, outBuf()->GetNumBytes());
+         return B_ERROR;
+      }
+      if (_postSendDelay > 0) Snooze64(_postSendDelay);
+   }
+   return B_NO_ERROR;
 }
 
 static void DoSession(DataIO & io)
@@ -210,43 +230,46 @@ static void DoSession(DataIO & io)
 
             // Gather stdin bytes together into a single large buffer, so we can send them in as few groups as possible
             // (Main benefit is that this makes for prettier pretty-printed output on the receiving, if the receiver is another hexterm)
-            ByteBufferRef outBuf = GetByteBufferFromPool();
+            ByteBufferRef outBuf; // demand-allocated
             MessageRef nextMsg;
             while(receiver.GetMessages().RemoveHead(nextMsg) == B_NO_ERROR)
             {
-               const char * b;
-               for (int32 i=0; (nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &b) == B_NO_ERROR); i++)
-               { 
-                  ByteBufferRef nextBuf;
-                  if (_useHex) nextBuf = ParseHexBytes(b);
+               String b;
+               for (int32 i=0; (nextMsg()->FindString(PR_NAME_TEXT_LINE, i, b) == B_NO_ERROR); i++)
+               {
+                  if (b.HasChars())
+                  {
+                     if (outBuf() == NULL) outBuf = GetByteBufferFromPool();
+ 
+                     ByteBufferRef nextBuf;
+                     if (_useHex) nextBuf = ParseHexBytes(b());
+                     else
+                     {
+                        nextBuf = GetByteBufferFromPool(b.FlattenedSize(), (const uint8 *) b());
+                        if (nextBuf()) nextBuf()->AppendByte('\n'); // add a newline byte
+                     }
+
+                     uint32 count = nextBuf() ? nextBuf()->GetNumBytes() : 0;
+                     if ((count > 0)&&(outBuf()->AppendBytes(nextBuf()->GetBuffer(), nextBuf()->GetNumBytes()) != B_NO_ERROR))
+                     {
+                        WARN_OUT_OF_MEMORY;
+                        break;
+                     }
+                  }
                   else
                   {
-                     nextBuf = GetByteBufferFromPool(strlen(b)+1, (const uint8 *) b);
-                     if (nextBuf()) nextBuf()->AppendByte('\n'); // add a newline byte
+                     // If we see an empty line, let's send whatever we've got right now
+                     // This is useful when the user is piping the output of striphextermoutput
+                     // back into hexterm for UDP retransmission
+                     if (FlushOutBuffer(outBuf, io) != B_NO_ERROR) return;
+                     outBuf.Reset();
                   }
+               }
+            }
 
-                  uint32 count = nextBuf() ? nextBuf()->GetNumBytes() : 0;
-                  if ((count > 0)&&(outBuf()->AppendBytes(nextBuf()->GetBuffer(), nextBuf()->GetNumBytes()) != B_NO_ERROR))
-                  {
-                     WARN_OUT_OF_MEMORY;
-                     break;
-                  }
-               }
-            }
-  
-            if (outBuf())
-            {
-               const uint32 wrote = io.WriteFully(outBuf()->GetBuffer(), outBuf()->GetNumBytes());
-               if (wrote == outBuf()->GetNumBytes()) 
-               {
-                  if (_decorateOutput) LogBytes(outBuf()->GetBuffer(), outBuf()->GetNumBytes(), "Sent");
-               }
-               else 
-               {
-                  LogTime(MUSCLE_LOG_ERROR, "Error, Write() only wrote " INT32_FORMAT_SPEC " of " UINT32_FORMAT_SPEC " bytes... aborting!\n", wrote, outBuf()->GetNumBytes());
-                  break;
-               }
-            }
+            if (FlushOutBuffer(outBuf, io) != B_NO_ERROR) return;
+            outBuf.Reset();
+
             if (stdinFD < 0) break;  // all done now!
          }
       }
@@ -397,6 +420,11 @@ int hextermmain(const char * argv0, const Message & args)
       _wifiModeEnabled = true;
    }
 #endif
+   if (args.HasName("delay"))
+   {
+      _postSendDelay = ParseHumanReadableTimeIntervalString(args.GetString("delay"));
+      LogTime(MUSCLE_LOG_INFO, "Setting post-send delay to %s\n", GetHumanReadableTimeIntervalString(_postSendDelay)());
+   }
 
    _printReceivedBytes = (args.HasName("quietreceive") == false);
    _quietSend = args.HasName("quietsend");

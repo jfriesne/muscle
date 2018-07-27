@@ -11,6 +11,7 @@ CXXFLAGS  += -std=c++11 $(CFLAGS) $(DEFINES)
 #CXXFLAGS += -DMUSCLE_ENABLE_SSL
 #CXXFLAGS += -DMUSCLE_AVOID_CPLUSPLUS11
 #CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING 
+#CXXFLAGS += -DMUSCLE_AVOID_STDINT 
 
 # Uncomment these to enable clang++'s static analyzer (for more thorough error checking)
 #CFLAGS   += --analyze -Xanalyzer -analyzer-output=text

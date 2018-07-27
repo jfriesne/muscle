@@ -383,7 +383,14 @@ public:
       if (item)
       {
          AbstractObjectManager * m = item->GetManager();
-         Item * newItem = m ? static_cast<Item *>(m->ObtainObjectGeneric()) : static_cast<Item *>(CloneObject(*item));
+         Item * newItem;
+         if (m)
+         {
+            newItem = static_cast<Item *>(m->ObtainObjectGeneric());
+            if (newItem) *newItem = *item;
+         }
+         else newItem = CloneObject(*item); 
+
          if (newItem) return Ref<Item>(newItem);
                  else WARN_OUT_OF_MEMORY;
       }

@@ -1484,6 +1484,26 @@ public:
      */
    HT_UniversalSinkKeyRef ValueType * PutAndGet(HT_SinkKeyParam key) {return PutAndGet(HT_ForwardKey(key), this->GetDefaultValue());}
 
+   /** Places the given (key, value) mapping into the table.  Any previous entry with a key of (key) will be replaced. 
+    *  (average O(1) insertion time, unless auto-sorting is enabled, in which case it becomes O(N) insertion time for
+    *  keys that are not already in the table)
+    *  @param key The key that the new value is to be associated with.
+    *  @param value The value to associate with the new key.  If not specified, a value object created using
+    *               the default constructor will be placed by default.
+    *  @return A pointer to the key object in the table on success, or NULL on failure (out of memory?)
+    */
+   HT_UniversalSinkKeyValueRef const KeyType * PutAndGetKey(HT_SinkKeyParam key, HT_SinkValueParam value) 
+   { 
+      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), NULL, NULL);
+      return e ? &e->_key : NULL;
+   }
+
+   /** As above, except that a default value is placed into the table and returned. 
+     * @param key The key that the new value is to be associated with.
+     * @return A pointer to the key object in the table on success, or NULL on failure (out of memory?)
+     */
+   HT_UniversalSinkKeyRef const KeyType * PutAndGetKey(HT_SinkKeyParam key) {return PutAndGetKey(HT_ForwardKey(key), this->GetDefaultValue());}
+
    /** Convenience method:  If (value) is the different from (defaultValue), then (key/value) is placed into the table and a pointer
      *                      to the placed value object is returned.
      *                      If (value) is equal to (defaultValue), on the other hand, (key) will be removed from the table, and NULL will be returned.

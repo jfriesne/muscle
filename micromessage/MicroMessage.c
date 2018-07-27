@@ -3,7 +3,22 @@
 
 #ifdef cplusplus
 extern "C" {
+#else
+// Generate a compile-time error if MuscleSupport.h didn't get the typedefs right
+char   int8_is_1_byte_assertion [(sizeof( int8)  == 1) ? 1 : -1];
+char  uint8_is_1_byte_assertion [(sizeof(uint8)  == 1) ? 1 : -1];
+char  int16_is_2_bytes_assertion[(sizeof( int16) == 2) ? 1 : -1];
+char uint16_is_2_bytes_assertion[(sizeof(uint16) == 2) ? 1 : -1];
+char  int32_is_4_bytes_assertion[(sizeof( int32) == 4) ? 1 : -1];
+char uint32_is_4_bytes_assertion[(sizeof(uint32) == 4) ? 1 : -1];
+char  float_is_4_bytes_assertion[(sizeof(float)  == 4) ? 1 : -1];
+char  float_is_4_bytes_assertion[(sizeof(float)  == 4) ? 1 : -1];
+char  int64_is_8_bytes_assertion[(sizeof( int64) == 8) ? 1 : -1];
+char uint64_is_8_bytes_assertion[(sizeof(uint64) == 8) ? 1 : -1];
+char double_is_8_bytes_assertion[(sizeof(double) == 8) ? 1 : -1];
+char double_is_8_bytes_assertion[(sizeof(double) == 8) ? 1 : -1];
 #endif
+
 
 #define OLDEST_SUPPORTED_PROTOCOL_VERSION 1347235888 /* 'PM00' */
 #define CURRENT_PROTOCOL_VERSION          1347235888 /* 'PM00' */

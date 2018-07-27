@@ -30,6 +30,11 @@ of your Makefile to alter muscle's behaviour:
    will be defined a typedef'd alias for a uint32 (rather than a C++ class
    that holds 128 bits of data).
 
+-DMUSCLE_AVOID_STDINT
+   If for some reason you want to force MuscleSupport.h to not include
+   stdint.h and inttypes.h (and instead hand-roll its typedefs from
+   scratch) you can define this.  Probably only useful on very old compilers.
+
 -DMUSCLE_SINGLE_THREAD_ONLY 
    Makes the Mutex class's methods compile down to no-ops.  Specify this if 
    you are able to guarantee that your program will never access MUSCLE

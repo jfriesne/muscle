@@ -5,6 +5,48 @@ key:  - new feature
       * bug fixed
       o other
 
+6.91 Released 7/26/2018
+   - Added Pete Goodeve's Python3 port of MUSCLE's existing Python2 
+     files (into the new python3 sub-directory)
+   - Added a striphextermoutput utility program to the tests folder,
+     since I'm tired of doing stripping hexterm output by hand.
+   - hexterm now pays attention when you enter a blank line on stdin,
+     and takes that as a hint to break up its output into separate
+     Write() calls (useful when piping striphextermoutput's results
+     back into hexterm, since otherwise the data for separate UDP
+     packets could get combined into a single giant UDP packet, which
+     isn't helpful)
+   - hexterm now takes an optional "delay" argument; if the argument
+     is specified (e.g. "delay=100 milliseconds"), then hexterm will
+     insert a delay of that duration after each call to Write().
+   - MuscleSupport.h now uses stdint.h and inttypes.h by default as 
+     the basis for its int8/int16/int32/int64/etc typedefs, rather
+     than trying to hand-roll them from the built-in C/C++ int/long
+     types.  If for some reason you can't use that, you can add the 
+     compiler flag -DMUSCLE_AVOID_STDINT to your command line and
+     the old approach will be used instead.
+   - Added SFINAE logic to the CloneObject() function (in Cloneable.h)
+     so that (on C++11 and later) it now works correctly for objects 
+     that inherit Cloneable and also concrete objects that do not.
+   - MuscleSupport.h now uses static_assert() to verify type sizes,
+     if possible.
+   - MicroMessage.c and MiniMessage.c now have pseudo-static-asserts
+     so that they will generate compile-time errors if any of of the
+     intN typedefs have the wrong size.
+   - Added PutAndGetKey() convenience methods to the Hashtable class.
+     (They work the same as PutAndGet(), except they return a pointer
+     to the key object in the table, rather than the value object)
+   * Fixed a bug that would cause Ref::Clone() to return a
+     default-initialized item (rather than a clone of the existing item) 
+     if it was called on an object being managed by an ObjectPool.
+   * Fixed a bug that would cause MuscleSupport.h to implicitly
+     defined MUSCLE_AVOID_CPLUSPLUS11 under MSVC2014/2017.  (I made
+     the mistake of thinking that Microsoft would set the value of
+     the __cplusplus macro correctly, but they do not)
+   * The 32-bit/non-stdint typedefs for int32 and uint32 are now 
+     based on int (and unsigned int, respectively) rather than
+     long/unsigned long.
+
 6.90 Released 7/14/2018
    - Updated SSLSocketDataIO.cpp to compile against newer
      versions of OpenSSL.

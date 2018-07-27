@@ -22,6 +22,7 @@ DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 #DEFINES += -DMUSCLE_USE_PTHREADS 
 #DEFINES += -DMUSCLE_COUNT_STRING_COPY_OPERATIONS
 #DEFINES += -DMUSCLE_NO_EXCEPTIONS
+#DEFINES += -DMUSCLE_AVOID_STDINT
 
 CFLAGS = -I.. -I../zlib/zlib -g
 GCCFLAGS = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS -W -Wall -Wno-multichar
@@ -34,7 +35,7 @@ CXXFLAGS += -std=c++11
 
 LFLAGS =  
 LIBS =  -lpthread
-EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testzip testrefcount testqueue testtuple testgateway calctypecode printtypecode portablereflectclient portscan testudp testsocketmultiplexer testpackettunnel testpacketio teststring testbytebuffer testmatchfiles testparsefile testtime deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs hexterm udpproxy serialproxy printsourcelocations findsourcelocations svncopy testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testthreadpool testobjectpool
+EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testzip testrefcount testqueue testtuple testgateway calctypecode printtypecode portablereflectclient portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststring testbytebuffer testmatchfiles testparsefile testtime deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs hexterm udpproxy serialproxy printsourcelocations findsourcelocations svncopy testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testthreadpool testobjectpool
 REGEXOBJS = 
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
 ZIPOBJS = zip.o unzip.o ioapi.o
@@ -211,6 +212,9 @@ testnagle : $(STDOBJS) testnagle.o SocketMultiplexer.o NetworkUtilityFunctions.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testrefcount : $(STDOBJS) testrefcount.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Thread.o Message.o ByteBuffer.o SocketMultiplexer.o NetworkUtilityFunctions.o
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+striphextermoutput : $(STDOBJS) striphextermoutput.o SysLog.o String.o SocketMultiplexer.o NetworkUtilityFunctions.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 teststring : $(STDOBJS) teststring.o SysLog.o String.o SocketMultiplexer.o NetworkUtilityFunctions.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
