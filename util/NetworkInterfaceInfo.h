@@ -3,11 +3,61 @@
 #ifndef NetworkInterfaceInfo_h
 #define NetworkInterfaceInfo_h
 
+#include "support/BitChord.h"
 #include "util/IPAddress.h"
 #include "util/Queue.h"
 #include "util/String.h"
 
 namespace muscle {
+
+/** A list of possible network-interface-hardware-type values that may be returned by NetworkInterfaceInfo::GetHardwareType() */
+enum {
+   NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN = 0, /**< We weren't able to identify this interface as any of our supported types */
+   NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK,    /**< Loopback interface (e.g. lo0), used to communicate within localhost only */
+   NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET,    /**< Your standard wired Ethernet interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_WIFI,        /**< IEEE802.11/Wi-Fi wireless medium-range interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_TOKENRING,   /**< Token Ring interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_PPP,         /**< Point to Point Protocol interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_ATM,         /**< Asynchronous Transfer Mode interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_TUNNEL,      /**< Tunnel/encapsulation interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_BRIDGE,      /**< Bridge interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_FIREWIRE,    /**< IEEE1394/FireWire interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_BLUETOOTH,   /**< Bluetooth short-range wireless interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_BONDED,      /**< Virtual interface representing several other interfaces bonded together */
+   NETWORK_INTERFACE_HARDWARE_TYPE_IRDA,        /**< IrDA line-of-sight infrared short-range wireless interface */ 
+   NETWORK_INTERFACE_HARDWARE_TYPE_DIALUP,      /**< Phone-line dialup modem interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_SERIAL,      /**< Networking via serial line */
+   NETWORK_INTERFACE_HARDWARE_TYPE_VLAN,        /**< VLAN interface */
+   NETWORK_INTERFACE_HARDWARE_TYPE_CELLULAR,    /**< Cellular network long-range wireless interface */
+
+   // more types may be inserted here in the future!
+   NUM_NETWORK_INTERFACE_HARDWARE_TYPES         /**< Guard value (useful when iterating over all known types) */
+};
+
+/** Bits that can be passed to GetNetworkInterfaceInfos() or GetNetworkInterfaceAddresses(). */
+enum {
+   GNII_FLAG_INCLUDE_IPV4_INTERFACES = 0,                     /**< If set, IPv4-specific interfaces will be returned */
+   GNII_FLAG_INCLUDE_IPV6_INTERFACES,                         /**< If set, IPv6-specific interfaces will be returned */
+   GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES,                     /**< If set, loopback interfaces (e.g. lo0/127.0.0.1) will be returned */
+   GNII_FLAG_INCLUDE_NONLOOPBACK_INTERFACES,                  /**< If set, non-loopback interfaces (e.g. en0) will be returned */
+   GNII_FLAG_INCLUDE_ENABLED_INTERFACES,                      /**< If set, enabled (aka "up") interfaces will be returned */
+   GNII_FLAG_INCLUDE_DISABLED_INTERFACES,                     /**< If set, disabled (aka "down") interfaces will be returned */
+   GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT, /**< If set, loopback interfaces will be returned only if no other interfaces are found */
+   GNII_FLAG_INCLUDE_UNADDRESSED_INTERFACES,                  /**< If set, we'll include even interfaces that don't have a valid IP address */
+   // [future flags could go here...]
+   NUM_GNII_FLAGS,                                            /**< Guard value */
+
+   // For convenience, GNII_FLAG_INCLUDE_MUSCLE_PREFERRED_INTERFACES will specify interfaces of the family specified by MUSCLE_AVOID_IPV6's presence/abscence.
+#ifdef MUSCLE_AVOID_IPV6
+   GNII_FLAG_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_FLAG_INCLUDE_IPV4_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
+#else
+   GNII_FLAG_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_FLAG_INCLUDE_IPV6_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
+#endif
+};
+DECLARE_BITCHORD_FLAGS_TYPE(GNIIFlags, NUM_GNII_FLAGS);
+
+#define GNII_FLAGS_INCLUDE_ALL_INTERFACES (GNIIFlags::WithAllBitsSet())  /**< If set, all interfaces will be returned */
+#define GNII_FLAGS_INCLUDE_ALL_ADDRESSED_INTERFACES (GNIIFlags::WithAllBitsSetExceptThese(GNII_FLAG_INCLUDE_UNADDRESSED_INTERFACES))  /**< default setting -- all interfaces that currently have an IP address will be returned */
 
 /** This little container class is used to return data from the GetNetworkInterfaceInfos() function, below */
 class NetworkInterfaceInfo MUSCLE_FINAL_CLASS
@@ -83,7 +133,7 @@ public:
    static const char * GetNetworkHardwareTypeString(uint32 hardwareType);
 
 private:
-   friend status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 includeBits);  // so it can set the _macAddress field
+   friend status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFlags includeFlags);  // so it can set the _macAddress field
 
    String _name;
    String _desc;
@@ -96,64 +146,19 @@ private:
    uint32 _hardwareType;
 };
 
-/** A list of possible network-interface-hardware-type values that may be returned by NetworkInterfaceInfo::GetHardwareType() */
-enum {
-   NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN = 0, /**< We weren't able to identify this interface as any of our supported types */
-   NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK,    /**< Loopback interface (e.g. lo0), used to communicate within localhost only */
-   NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET,    /**< Your standard wired Ethernet interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_WIFI,        /**< IEEE802.11/Wi-Fi wireless medium-range interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_TOKENRING,   /**< Token Ring interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_PPP,         /**< Point to Point Protocol interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_ATM,         /**< Asynchronous Transfer Mode interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_TUNNEL,      /**< Tunnel/encapsulation interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_BRIDGE,      /**< Bridge interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_FIREWIRE,    /**< IEEE1394/FireWire interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_BLUETOOTH,   /**< Bluetooth short-range wireless interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_BONDED,      /**< Virtual interface representing several other interfaces bonded together */
-   NETWORK_INTERFACE_HARDWARE_TYPE_IRDA,        /**< IrDA line-of-sight infrared short-range wireless interface */ 
-   NETWORK_INTERFACE_HARDWARE_TYPE_DIALUP,      /**< Phone-line dialup modem interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_SERIAL,      /**< Networking via serial line */
-   NETWORK_INTERFACE_HARDWARE_TYPE_VLAN,        /**< VLAN interface */
-   NETWORK_INTERFACE_HARDWARE_TYPE_CELLULAR,    /**< Cellular network long-range wireless interface */
-
-   // more types may be inserted here in the future!
-   NUM_NETWORK_INTERFACE_HARDWARE_TYPES         /**< Guard value (useful when iterating over all known types) */
-};
-
-
-/** Bits that can be passed to GetNetworkInterfaceInfos() or GetNetworkInterfaceAddresses(). */
-enum {
-   GNII_INCLUDE_IPV4_INTERFACES        = 0x01, /**< If set, IPv4-specific interfaces will be returned */
-   GNII_INCLUDE_IPV6_INTERFACES        = 0x02, /**< If set, IPv6-specific interfaces will be returned */
-   GNII_INCLUDE_LOOPBACK_INTERFACES    = 0x04, /**< If set, loopback interfaces (e.g. lo0/127.0.0.1) will be returned */
-   GNII_INCLUDE_NONLOOPBACK_INTERFACES = 0x08, /**< If set, non-loopback interfaces (e.g. en0) will be returned */
-   GNII_INCLUDE_ENABLED_INTERFACES     = 0x10, /**< If set, enabled (aka "up") interfaces will be returned */
-   GNII_INCLUDE_DISABLED_INTERFACES    = 0x20, /**< If set, disabled (aka "down") interfaces will be returned */
-   GNII_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT = 0x40, /**< If set, loopback interfaces will be returned only if no other interfaces are found */
-   GNII_INCLUDE_UNADDRESSED_INTERFACES = 0x80, /**< If set, we'll include even interfaces that don't have a valid IP address */
-
-   // For convenience, GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES will specify interfaces of the family specified by MUSCLE_AVOID_IPV6's presence/abscence.
-#ifdef MUSCLE_AVOID_IPV6
-   GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_INCLUDE_IPV4_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
-#else
-   GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_INCLUDE_IPV6_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
-#endif
-
-   GNII_INCLUDE_ALL_INTERFACES           = 0xFFFFFFFF,  /**< If set, all interfaces will be returned */
-   GNII_INCLUDE_ALL_ADDRESSED_INTERFACES = (GNII_INCLUDE_ALL_INTERFACES & ~(GNII_INCLUDE_UNADDRESSED_INTERFACES))  /**< default setting -- all interfaces that currently have an IP address will be returned */
-};
-
 /** This function queries the local OS for information about all available network
   * interfaces.  Note that this method is only implemented for some OS's (Linux,
   * MacOS/X, Windows), and that on other OS's it may just always return B_ERROR.
   * @param results On success, zero or more NetworkInterfaceInfo objects will
   *                be added to this Queue for you to look at.
-  * @param includeBits A chord of GNII_INCLUDE_* bits indicating which types of network interface you want to be
-  *                    included in the returned list.  Defaults to GNII_INCLUDE_ALL_ADDRESSED_INTERFACES, which
+  * @param includeFlags A chord of GNII_FLAG_INCLUDE_* bits indicating which types of network interface you want to be
+  *                    included in the returned list.  Defaults to GNII_FLAG_INCLUDE_ALL_ADDRESSED_INTERFACES, which
   *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
+  *                    (Note:  if you need to specify this argument explicitly, the syntax for the BitChord constructor
+  *                    is e.g. like this:  GNIIFlags(GNII_FLAG_INCLUDE_IPV4_INTERFACES,GNII_FLAG_INCLUDE_IPV6_INTERFACES,...))
   * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory, call not implemented for the current OS, etc)
   */
-status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 includeBits = GNII_INCLUDE_ALL_ADDRESSED_INTERFACES);
+status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFlags includeFlags = GNII_FLAGS_INCLUDE_ALL_ADDRESSED_INTERFACES);
 
 /** This is a more limited version of GetNetworkInterfaceInfos(), included for convenience.
   * Instead of returning all information about the local host's network interfaces, this
@@ -161,13 +166,15 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
   * and then iterating the returned list to assemble a list only of the IP addresses returned
   * by GetBroadcastAddress().
   * @param retAddresses On success, zero or more IPAddresses will be added to this Queue for you to look at.
-  * @param includeBits A chord of GNII_INCLUDE_* bits indicating which types of network interface you want to be
-  *                    included in the returned list.  Defaults to GNII_INCLUDE_ALL_ADDRESSED_INTERFACES, which 
+  * @param includeFlags A chord of GNII_FLAG_INCLUDE_* bits indicating which types of network interface you want to be
+  *                    included in the returned list.  Defaults to GNII_FLAG_INCLUDE_ALL_ADDRESSED_INTERFACES, which 
   *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
+  *                    (Note:  if you need to specify this argument explicitly, the syntax for the BitChord constructor
+  *                    is e.g. like this:  GNIIFlags(GNII_FLAG_INCLUDE_IPV4_INTERFACES,GNII_FLAG_INCLUDE_IPV6_INTERFACES,...))
   * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory,
   *          call not implemented for the current OS, etc)
   */
-status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & retAddresses, uint32 includeBits = GNII_INCLUDE_ALL_ADDRESSED_INTERFACES);
+status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & retAddresses, GNIIFlags includeFlags = GNII_FLAGS_INCLUDE_ALL_ADDRESSED_INTERFACES);
 
 } // end namespace muscle
 

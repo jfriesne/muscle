@@ -44,7 +44,7 @@ def GetHumanReadableTypeString(t):
    for dummy in range(4):
       nextByte = t%256
       ret = chr(nextByte) + ret
-      t = int(t/256)
+      t = t//256
    return ret
 
 class Message:
@@ -213,11 +213,11 @@ class Message:
                global _dataNeedsSwap, _hasStruct64
                fieldContents = []
                if _hasStruct64:
-                  for dummy in range(fieldDataLength/8):
+                  for dummy in range(fieldDataLength//8):
                      fieldContents.append(struct.unpack("<q", file.read(8))[0])
                else:
                   # Old versions of Python don't have <q, so we'll do it ourself
-                  for dummy in range(fieldDataLength/8):
+                  for dummy in range(fieldDataLength//8):
                      lo, hi = struct.unpack('<Ll', file.read(8))
                      fieldContents.append((int(hi)<<32)|lo)
          elif fieldTypeCode == B_MESSAGE_TYPE:
@@ -230,11 +230,11 @@ class Message:
                fieldDataLength = fieldDataLength-(subMessageLength+4)
          elif fieldTypeCode == B_POINT_TYPE:
             fieldContents = []
-            for dummy in range(fieldDataLength/8):
+            for dummy in range(fieldDataLength//8):
                fieldContents.append(struct.unpack("<2f", file.read(8)))
          elif fieldTypeCode == B_RECT_TYPE:
             fieldContents = []
-            for dummy in range(fieldDataLength/16):
+            for dummy in range(fieldDataLength//16):
                fieldContents.append(struct.unpack("<4f", file.read(16)))
          elif fieldTypeCode == B_STRING_TYPE:
             fieldContents = []

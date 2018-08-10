@@ -172,6 +172,12 @@ static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType)
    int s = (int) socket(MUSCLE_SOCKET_FAMILY, socketType, 0);
    if (s >= 0)
    {
+#if defined(__APPLE__) || defined(BSD)
+      // This is here just so that MUSCLE programs can be run in a debugger without having the debugger catch spurious SIGPIPE signals --jaf
+      int value = 1; // Set NOSIGPIPE to ON
+      if (setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, (const sockopt_arg *) &value, sizeof(value)) != 0) LogTime(MUSCLE_LOG_DEBUG, "Could not disable SIGPIPE signals on socket %i\n", s);
+#endif
+
       ConstSocketRef ret = GetConstSocketRefFromPool(s);
       if (ret())
       {
@@ -652,7 +658,7 @@ static void ExpandLocalhostAddress(IPAddress & ipAddress)
          if (_cachedLocalhostAddress == invalidIP)
          {
             Queue<NetworkInterfaceInfo> ifs;
-            (void) GetNetworkInterfaceInfos(ifs, GNII_INCLUDE_ENABLED_INTERFACES|GNII_INCLUDE_NONLOOPBACK_INTERFACES|GNII_INCLUDE_MUSCLE_PREFERRED_INTERFACES);  // just to set _cachedLocalhostAddress
+            (void) GetNetworkInterfaceInfos(ifs, GNIIFlags(GNII_FLAG_INCLUDE_ENABLED_INTERFACES,GNII_FLAG_INCLUDE_NONLOOPBACK_INTERFACES,GNII_FLAG_INCLUDE_MUSCLE_PREFERRED_INTERFACES));  // just to set _cachedLocalhostAddress
          }
          altRet = _cachedLocalhostAddress;
       }
@@ -1256,24 +1262,24 @@ bool IPAddress :: IsSelfAssigned() const
 #endif
 }
 
-static bool IsGNIIBitMatch(const IPAddress & ip, bool isInterfaceEnabled, uint32 includeBits)
+static bool IsGNIIBitMatch(const IPAddress & ip, bool isInterfaceEnabled, GNIIFlags includeFlags)
 {
-   if (((includeBits & GNII_INCLUDE_ENABLED_INTERFACES)  == 0)&&( isInterfaceEnabled)) return false;
-   if (((includeBits & GNII_INCLUDE_DISABLED_INTERFACES) == 0)&&(!isInterfaceEnabled)) return false;
+   if ((includeFlags.IsBitSet(GNII_FLAG_INCLUDE_ENABLED_INTERFACES)  == false)&&( isInterfaceEnabled)) return false;
+   if ((includeFlags.IsBitSet(GNII_FLAG_INCLUDE_DISABLED_INTERFACES) == false)&&(!isInterfaceEnabled)) return false;
 
    if (ip == invalidIP)
    {
-      if ((includeBits & GNII_INCLUDE_UNADDRESSED_INTERFACES) == 0) return false;  // FogBugz #10286
+      if (includeFlags.IsBitSet(GNII_FLAG_INCLUDE_UNADDRESSED_INTERFACES) == false) return false;  // FogBugz #10286
    }
    else
    {
       bool isLoopback = ip.IsStandardLoopbackDeviceAddress();
-      if (((includeBits & GNII_INCLUDE_LOOPBACK_INTERFACES)    == 0)&&( isLoopback)) return false;
-      if (((includeBits & GNII_INCLUDE_NONLOOPBACK_INTERFACES) == 0)&&(!isLoopback)) return false;
+      if ((includeFlags.IsBitSet(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES)    == false)&&( isLoopback)) return false;
+      if ((includeFlags.IsBitSet(GNII_FLAG_INCLUDE_NONLOOPBACK_INTERFACES) == false)&&(!isLoopback)) return false;
 
       bool isIPv4 = ip.IsIPv4();
-      if (( isIPv4)&&((includeBits & GNII_INCLUDE_IPV4_INTERFACES) == 0)) return false;
-      if ((!isIPv4)&&((includeBits & GNII_INCLUDE_IPV6_INTERFACES) == 0)) return false;
+      if (( isIPv4)&&(includeFlags.IsBitSet(GNII_FLAG_INCLUDE_IPV4_INTERFACES) == false)) return false;
+      if ((!isIPv4)&&(includeFlags.IsBitSet(GNII_FLAG_INCLUDE_IPV6_INTERFACES) == false)) return false;
    }
 
    return true;
@@ -1368,7 +1374,7 @@ static uint32 ConvertLinuxInterfaceType(int saFamily)
 }
 #endif
 
-status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 includeBits)
+status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFlags includeFlags)
 {
    uint32 origResultsSize = results.GetNumItems();
    status_t ret = B_ERROR;
@@ -1459,7 +1465,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
 
             if ((hardwareType == NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)&&(unicastIP.IsStandardLoopbackDeviceAddress())) hardwareType = NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK;
 
-            if (IsGNIIBitMatch(unicastIP, isEnabled, includeBits))
+            if (IsGNIIBitMatch(unicastIP, isEnabled, includeFlags))
             {
 #ifndef MUSCLE_AVOID_IPV6
                // FogBugz #10519:  I'm not setting the interface index for ::1 because trying to send UDP packets to ::1@1 causes ENOROUTE errors under MacOS/X
@@ -1560,7 +1566,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
                   const IPAddress ipv4_limited_broadcast_address(0xFFFFFFFF);
 
                   const bool isEnabled = true;  // It appears that GetAdaptersAddresses() only returns enabled adapters
-                  if (IsGNIIBitMatch(unicastIP, isEnabled, includeBits))
+                  if (IsGNIIBitMatch(unicastIP, isEnabled, includeFlags))
                   {
                      IPAddress broadcastIP, netmask;
                      uint32 numLocalAddrs = (bytesReturned/sizeof(INTERFACE_INFO));
@@ -1622,13 +1628,13 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, uint32 
    (void) results;  // for other OS's, this function isn't implemented.
 #endif
 
-   return ((ret == B_NO_ERROR)&&(results.GetNumItems() == origResultsSize)&&(includeBits & GNII_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT)) ? GetNetworkInterfaceInfos(results, (includeBits|GNII_INCLUDE_LOOPBACK_INTERFACES)&~(GNII_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT)) : ret;
+   return ((ret == B_NO_ERROR)&&(results.GetNumItems() == origResultsSize)&&(includeFlags.IsBitSet(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT))) ? GetNetworkInterfaceInfos(results, includeFlags.WithBit(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES).WithoutBit(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT)) : ret;
 }
 
-status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & results, uint32 includeBits)
+status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & results, GNIIFlags includeFlags)
 {
    Queue<NetworkInterfaceInfo> infos;
-   if ((GetNetworkInterfaceInfos(infos, includeBits) != B_NO_ERROR)||(results.EnsureSize(infos.GetNumItems()) != B_NO_ERROR)) return B_ERROR;
+   if ((GetNetworkInterfaceInfos(infos, includeFlags) != B_NO_ERROR)||(results.EnsureSize(infos.GetNumItems()) != B_NO_ERROR)) return B_ERROR;
 
    for (uint32 i=0; i<infos.GetNumItems(); i++) (void) results.AddTail(infos[i].GetLocalAddress());  // guaranteed not to fail
    return B_NO_ERROR;

@@ -1980,9 +1980,7 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = MuscleMessage_impl_h \
                          MUSCLE_ENABLE_ZLIB_ENCODING \
-                         MUSCLE_ENABLE_MEMORY_TRACKING \
-                         MUSCLE_FINAL_CLASS \
-                         MUSCLE_USE_CPLUSPLUS11=1 \
+                         MUSCLE_FINAL_CLASS=final \
                          DOXYGEN_SHOULD_IGNORE_THIS \
                          "HT_UniversalSinkKeyRef=" \
                          "HT_UniversalSinkValueRef=" \
@@ -1999,7 +1997,7 @@ PREDEFINED             = MuscleMessage_impl_h \
                          "HT_PlunderValue=" \
                          "QQ_UniversalSinkItemRef=" \
                          "QQ_SinkItemParam=const ItemType &" \
-                         "QQ_ForwardItem=\
+                         "QQ_ForwardItem=" \
                          "QQ_PlunderItem=" \
                          "QQ_SinkItemParam=" \
                          "QQ_UniversalSinkItemRef="

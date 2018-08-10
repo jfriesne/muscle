@@ -5,6 +5,66 @@ key:  - new feature
       * bug fixed
       o other
 
+7.00 Released 8/10/2018
+   - Rewrote the BitChord class to be much more powerful and
+     easy to use (especially in conjunction with an enum
+     of flag-names).  The implementation now includes variadic
+     methods (which are emulated via macros if C++11 isn't
+     available), a PseudoFlattenable interface, and a number 
+     of new convenience methods.
+   - BitChord now implements HashCode() and can therefore be
+     used as a key-type in a Hashtable.
+   - BitChord now implements CalculateChecksum().
+   - BitChord::ToHexString() now returns a constant-length hex
+     string, instead of returning a string that starts only at
+     the first non-zero byte.
+   - Added a testbitchord.cpp test program to the tests folder.
+   - CleanupDNSLabel() and CleanupDNSPath() now accept an optional
+     second argument specifying additional characters that the
+     filter should allow to remain in the returned String.
+   - Under MacOS/X and BSD, MUSCLE sockets now have the SO_NOSIGPIPE
+     socket-option automatically set on them, to avoid spurious
+     SIGPIPE signals while running inside a debugger.
+   - Updated PythonUtilityFunctions.cpp to be compatible with Python3.
+   o Rewrote the CHILD_PROCESS_LAUNCH_BITS in the ChildProcessDataIO
+     class to use a BitChord typedef (ChildProcessLaunchFlags)
+     instead.  Renamed them to CHILD_PROCESS_LAUNCH_FLAG_*.
+   o Removed the "inherit file descriptors" member variable and
+     arguments from the ChildProcessDataIO class and added a
+     CHILD_PROCESS_LAUNCH_FLAG_INHERIT_FDS flag to replace it.
+   o Added a (launchFlags) arg to the LaunchIndependentChildProcess()
+     convenience methods in the ChildProcessDataIO class.
+   o Changed the DATA_FLAG_* bits of the ByteBuffer class to
+     an enum, managed by the EndianFlags BitChord typedef.
+     Renamed them to ENDIAN_FLAG_* for clarity.
+   o Renamed ByteBuffer::SetDataFlags() to ByteBuffer::SetEndianFlags()
+   o BitChord is now implemented using uint32 words rather than
+     unsigned-int words.
+   o Modified the GetNetworkInterfaceInfos() function to take
+     a GNIIBits argument instead of a uint32 (and renamed the
+     GNII_* enums to GNII_FLAG_*)
+   o Renamed BitChord::GetBit() to BitChord::IsBitSet()
+   o Removed the inclusion of CoreFoundation/CFRunLoop.h
+     from DetectNetworkConfigChangesSession.h since having
+     it there could cause a namespace collision with Apple's
+     Point class.
+   o The ARRAYITEMS() templated method (in MuscleSupport.h)
+     is now declared constexpr under C++11 and higher.
+   o Moved the declaration of the Void class out of
+     util/Hashtable.h and into support/Void.h
+   o Modified the StringMatcher class to use BitChord
+     instead of a uint8 to hold its internal flags.
+   o Modified the FilePathInfo class to use BitChord
+     instead of a uint32 to hold its internal flags.
+   o Replaced the signal(SIGPIPE, SIG_IGN) call inside
+     NetworkSetupSystem with a less problematic call to
+     sigaction(SIGPIPE).
+   o Added some documentation for the BitChord class to
+     the MUSCLE-by-Example mkdocs pages.
+   * Updated the Python3 code in the python3 folder to
+     fix a couple of bugs (caused by code that was correct for 
+     Python2 but needed to be written differently for Python3)
+
 6.91 Released 7/26/2018
    - Added Pete Goodeve's Python3 port of MUSCLE's existing Python2 
      files (into the new python3 sub-directory)

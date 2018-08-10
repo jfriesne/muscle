@@ -4,6 +4,7 @@
 #define MuscleStringMatcher_h
 
 #include <sys/types.h>
+#include "support/BitChord.h"
 #include "util/Queue.h"
 #include "util/RefCount.h"
 #include "util/String.h"
@@ -45,7 +46,7 @@ public:
    ~StringMatcher();
 
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
-   bool operator == (const StringMatcher & rhs) const {return ((_bits == rhs._bits)&&(_pattern == rhs._pattern));}
+   bool operator == (const StringMatcher & rhs) const {return ((_flags == rhs._flags)&&(_pattern == rhs._pattern));}
 
    /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator != (const StringMatcher & rhs) const {return !(*this == rhs);}
@@ -88,10 +89,10 @@ public:
     *  @note StringMatchers using numeric ranges are never considered unique, because e.g. looking up the
     *        string "<5>" in a Hashtable would not return a child node whose node-name is "5".
     */
-   bool IsPatternUnique() const {return ((_ranges.IsEmpty())&&(IsBitSet(STRINGMATCHER_BIT_CANMATCHMULTIPLEVALUES|STRINGMATCHER_BIT_NEGATE) == false));}
+   bool IsPatternUnique() const {return ((_ranges.IsEmpty())&&(_flags.AreAnyOfTheseBitsSet(STRINGMATCHER_FLAG_CANMATCHMULTIPLEVALUES,STRINGMATCHER_FLAG_NEGATE) == false));}
 
    /** Returns true iff this StringMatcher's pattern specifies a comma-separated list of one or more non-wildcarded substrings. */
-   bool IsPatternListOfUniqueValues() const {return IsBitSet(STRINGMATCHER_BIT_UVLIST);}
+   bool IsPatternListOfUniqueValues() const {return _flags.IsBitSet(STRINGMATCHER_FLAG_UVLIST);}
 
    /** Returns true iff (string) is matched by the current expression.
     * @param matchString a string to match against using our current expression.
@@ -113,13 +114,13 @@ public:
      * string starts with a tilde.
      * @param negate true if we should negate our Match()-output; false for the regular logic
      */
-   void SetNegate(bool negate) {SetBit(STRINGMATCHER_BIT_NEGATE, negate);}
+   void SetNegate(bool negate) {_flags.SetBit(STRINGMATCHER_FLAG_NEGATE, negate);}
 
    /** Returns the current state of our negate flag. */
-   bool IsNegate() const {return IsBitSet(STRINGMATCHER_BIT_NEGATE);}
+   bool IsNegate() const {return _flags.IsBitSet(STRINGMATCHER_FLAG_NEGATE);}
 
    /** Returns the true iff our current pattern is of the "simple" variety, or false if it is of the "official regex" variety. */
-   bool IsSimple() const {return IsBitSet(STRINGMATCHER_BIT_SIMPLE);}
+   bool IsSimple() const {return _flags.IsBitSet(STRINGMATCHER_FLAG_SIMPLE);}
 
    /** Resets this StringMatcher to the state it would be in if created with default arguments. */
    void Reset();
@@ -128,19 +129,18 @@ public:
    String ToString() const;
 
    /** @copydoc DoxyTemplate::HashCode() const */
-   inline uint32 HashCode() const {return _pattern.HashCode() + _bits;}
+   inline uint32 HashCode() const {return _pattern.HashCode() + _flags.HashCode();}
 
 private:
-   void SetBit(uint8 bit, bool set) {if (set) _bits |= bit; else _bits &= ~(bit);}
-   bool IsBitSet(uint8 bit) const {return (_bits & bit) != 0;}
-
    enum {
-      STRINGMATCHER_BIT_REGEXVALID             = (1<<0),
-      STRINGMATCHER_BIT_NEGATE                 = (1<<1),
-      STRINGMATCHER_BIT_CANMATCHMULTIPLEVALUES = (1<<2),
-      STRINGMATCHER_BIT_SIMPLE                 = (1<<3),
-      STRINGMATCHER_BIT_UVLIST                 = (1<<4),
+      STRINGMATCHER_FLAG_REGEXVALID = 0,
+      STRINGMATCHER_FLAG_NEGATE,
+      STRINGMATCHER_FLAG_CANMATCHMULTIPLEVALUES,
+      STRINGMATCHER_FLAG_SIMPLE,
+      STRINGMATCHER_FLAG_UVLIST,
+      NUM_STRINGMATCHER_FLAGS
    };
+   DECLARE_BITCHORD_FLAGS_TYPE(StringMatcherFlags, NUM_STRINGMATCHER_FLAGS);
 
    class IDRange
    {
@@ -156,7 +156,7 @@ private:
       uint32 _max; 
    };
 
-   uint8 _bits;
+   StringMatcherFlags _flags;
    String _pattern;
    regex_t _regExp;
    Queue<IDRange> _ranges;
@@ -192,7 +192,7 @@ StringMatcherRef GetStringMatcherFromPool(const String & matchString, bool isSim
 String EscapeRegexTokens(const String & str, const char * optTokens = NULL);
 
 /** This does essentially the opposite of EscapeRegexTokens():  It removes from the string
-  * and backslashes that are not immediately preceeded by another backslash.
+  * any backslashes that are not immediately preceded by another backslash.
   */
 String RemoveEscapeChars(const String & str);
 

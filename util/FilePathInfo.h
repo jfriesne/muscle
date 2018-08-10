@@ -3,6 +3,7 @@
 #ifndef MuscleFilePathInfo_h
 #define MuscleFilePathInfo_h
 
+#include "support/BitChord.h"
 #include "util/TimeUtilityFunctions.h"
 
 namespace muscle {
@@ -35,16 +36,16 @@ public:
    ~FilePathInfo() {/* empty */}
 
    /** Returns true iff something exists at the specified path. */
-   bool Exists() const {return ((_flags & (1L<<FPI_FLAG_EXISTS)) != 0);}
+   bool Exists() const {return _flags.IsBitSet(FPI_FLAG_EXISTS);}
 
    /** Returns true iff the item at the specified path is a regular data file. */
-   bool IsRegularFile() const {return ((_flags & (1L<<FPI_FLAG_ISREGULARFILE)) != 0);}
+   bool IsRegularFile() const {return _flags.IsBitSet(FPI_FLAG_ISREGULARFILE);}
 
    /** Returns true iff the item at the specified path is a directory. */
-   bool IsDirectory()    const {return ((_flags & (1L<<FPI_FLAG_ISDIRECTORY)) != 0);}
+   bool IsDirectory()    const {return _flags.IsBitSet(FPI_FLAG_ISDIRECTORY);}
 
    /** Returns true iff the item at the specified path is a directory. */
-   bool IsSymLink()     const {return ((_flags & (1L<<FPI_FLAG_ISSYMLINK)) != 0);}
+   bool IsSymLink()     const {return _flags.IsBitSet(FPI_FLAG_ISSYMLINK);}
 
    /** Returns the current size of the file */
    uint64 GetFileSize() const {return _size;}
@@ -83,8 +84,9 @@ private:
       FPI_FLAG_ISSYMLINK,
       NUM_FPI_FLAGS
    };
+   DECLARE_BITCHORD_FLAGS_TYPE(FPIFlags, NUM_FPI_FLAGS);
 
-   uint32 _flags;
+   FPIFlags _flags;
    uint64 _size;   // file size
    uint64 _atime;  // access time
    uint64 _ctime;  // creation time

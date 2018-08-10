@@ -11,10 +11,15 @@
 namespace muscle {
 
 FilePathInfo :: FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool isSymlink, uint64 fileSizeBytes, uint64 aTime, uint64 cTime, uint64 mTime) 
-   : _flags((exists?(1<<FPI_FLAG_EXISTS):0)|(isRegularFile?(1<<FPI_FLAG_ISREGULARFILE):0)|(isDir?(1<<FPI_FLAG_ISDIRECTORY):0)|(isSymlink?(1<<FPI_FLAG_ISSYMLINK):0)),
-     _size(fileSizeBytes), _atime(aTime), _ctime(cTime), _mtime(mTime)
+   : _size(fileSizeBytes)
+   , _atime(aTime)
+   , _ctime(cTime)
+   , _mtime(mTime)
 {
-   // empty
+   if (exists)        _flags.SetBit(FPI_FLAG_EXISTS);
+   if (isRegularFile) _flags.SetBit(FPI_FLAG_ISREGULARFILE);
+   if (isDir)         _flags.SetBit(FPI_FLAG_ISDIRECTORY);
+   if (isSymlink)     _flags.SetBit(FPI_FLAG_ISSYMLINK);
 }
 
 void FilePathInfo :: SetFilePath(const char * optFilePath)
@@ -45,12 +50,12 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
       HANDLE hFile = CreateFileA(optFilePath, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
       if (hFile != INVALID_HANDLE_VALUE)
       {
-         _flags |= (1L<<FPI_FLAG_EXISTS);
+         _flags.SetBit(FPI_FLAG_EXISTS);
 
          BY_HANDLE_FILE_INFORMATION info;
          if (GetFileInformationByHandle(hFile, &info))
          {
-            _flags |= (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? (1L<<FPI_FLAG_ISDIRECTORY) : (1L<<FPI_FLAG_ISREGULARFILE);
+            _flags.SetBit((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? FPI_FLAG_ISDIRECTORY : FPI_FLAG_ISREGULARFILE);
             _atime = InternalizeFileTime(info.ftLastAccessTime);
             _ctime = InternalizeFileTime(info.ftCreationTime);
             _mtime = InternalizeFileTime(info.ftLastWriteTime);
@@ -67,9 +72,9 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
       if (stat(optFilePath, &statInfo) == 0)
 # endif
       {
-         _flags |= (1L<<FPI_FLAG_EXISTS);
-         if (S_ISDIR(statInfo.st_mode)) _flags |= (1L<<FPI_FLAG_ISDIRECTORY);
-         if (S_ISREG(statInfo.st_mode)) _flags |= (1L<<FPI_FLAG_ISREGULARFILE);
+         _flags.SetBit(FPI_FLAG_EXISTS);
+         if (S_ISDIR(statInfo.st_mode)) _flags.SetBit(FPI_FLAG_ISDIRECTORY);
+         if (S_ISREG(statInfo.st_mode)) _flags.SetBit(FPI_FLAG_ISREGULARFILE);
 
          _size = statInfo.st_size;
 # if defined(MUSCLE_64_BIT_PLATFORM) && !defined(_POSIX_SOURCE) && !defined(__CYGWIN__)
@@ -87,7 +92,7 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
 # endif
 
          struct stat lstatInfo;
-         if ((lstat(optFilePath, &lstatInfo)==0)&&(S_ISLNK(lstatInfo.st_mode))) _flags |= (1L<<FPI_FLAG_ISSYMLINK);
+         if ((lstat(optFilePath, &lstatInfo)==0)&&(S_ISLNK(lstatInfo.st_mode))) _flags.SetBit(FPI_FLAG_ISSYMLINK);
       }
 #endif
    }
@@ -95,7 +100,7 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
 
 void FilePathInfo :: Reset()
 {
-   _flags = 0;
+   _flags.ClearAllBits();
    _size  = 0;
    _atime = 0;
    _ctime = 0;

@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
    const IPAddressAndPort multicastGroup("ff12::1234", 7777, false);  // arbitrary
 
    Queue<NetworkInterfaceInfo> niis;
-   if (GetNetworkInterfaceInfos(niis, GNII_INCLUDE_IPV6_INTERFACES | GNII_INCLUDE_LOOPBACK_INTERFACES | GNII_INCLUDE_NONLOOPBACK_INTERFACES | GNII_INCLUDE_ENABLED_INTERFACES) != B_NO_ERROR)
+   if (GetNetworkInterfaceInfos(niis, GNIIFlags(GNII_FLAG_INCLUDE_IPV6_INTERFACES,GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES,GNII_FLAG_INCLUDE_NONLOOPBACK_INTERFACES,GNII_FLAG_INCLUDE_ENABLED_INTERFACES)) != B_NO_ERROR)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to retrieve the list of NetworkInterfaceInfos!\n");
       return 10;

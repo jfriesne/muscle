@@ -20,7 +20,7 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    ByteBuffer buf;
-   buf.SetDataFlags(DATA_FLAG_BIG_ENDIAN);  // we want this buffer to hold big-endian data, because reasons
+   buf.SetEndianFlags(EndianFlags(ENDIAN_FLAG_FORCE_BIG));  // we want this buffer to hold big-endian data, because reasons
 
    buf.AppendInt32(1);
    buf.AppendInt32(2);

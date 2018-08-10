@@ -894,6 +894,72 @@ public:
       return (FindFlat(fieldName, index, fcRef) == B_NO_ERROR) ? writeValueHere.SetFromRefCountableRef(fcRef.GetRefCountableRef()) : B_ERROR;
    }
 
+   /** Retrieves and returns an unflattened object of the specified type from the first data-item
+     * in the specified flattened-Message field, or a default-constructed item of the specified type on failure.
+     * @param fieldName The field name to look for the flattened object under.
+     * @returns The unflattened object that was found, if one was found and successfully unflattened, or a default-constructed item if it wasn't.
+     */
+   template <class T> T GetFlat(const String & fieldName) const
+   {
+      T ret;
+      return (FindFlat(fieldName, ret) == B_NO_ERROR) ? ret : GetDefaultObjectForType<T>();
+   }
+
+   /** Retrieves and returns an unflattened object of the specified type from the first data-item
+     * in the specified flattened-Message field, or the specified fallback-object if it wasn't.
+     * @param fieldName The field name to look for the flattened object under.
+     * @param defaultValue the fallback-value to return on failure.
+     * @param index The index of the object within (fieldName) to unflatten and return.  Defaults to zero (i.e. the first item)
+     * @returns The unflattened object that was found, if one was found and successfully unflattened, or the specified fallback-item if it wasn't.
+     */
+   template <class T> T GetFlat(const String & fieldName, const T & defaultValue, uint32 index = 0) const
+   {
+      T ret;
+      return (FindFlat(fieldName, index, ret) == B_NO_ERROR) ? ret : defaultValue;
+   }
+
+   /** Convenience method:  Calls through to AddFlat(valueToAdd), but only if (valueToAdd) is not equal to a default-constructoed object of that type.
+     * @param fieldName The field name of the field to (maybe) add the object to
+     * @param valueToAdd The flattenable object to (maybe) add to the field
+     * @returns B_NO_ERROR if (valueToAdd) was default-constructed (and therefore not added), or if it was added successfully, or B_ERROR on error.
+     */
+   template<class T> status_t CAddFlat(const String & fieldName, const T & valueToAdd)
+   {
+      return (valueToAdd == GetDefaultObjectForType<T>()) ? B_NO_ERROR : AddFlat(fieldName, valueToAdd);
+   }
+
+   /** Convenience method:  Calls through to AddFlat(valueToAdd), but only if (valueToAdd) is not equal to (defaultValue).
+     * @param fieldName The field name of the field to (maybe) add the object to
+     * @param valueToAdd The flattenable object to (maybe) add to the field
+     * @param defaultValue If (valueToAdd) is equal to (defaultValue), then this method will just return B_NO_ERROR without doing anything.
+     * @returns B_NO_ERROR if (valueToAdd) was equal to (defaultValue) (and therefore not added), or if it was added successfully, or B_ERROR on error.
+     */
+   template<class T> status_t CAddFlat(const String & fieldName, const T & valueToAdd, const T & defaultValue)
+   {
+      return (valueToAdd == defaultValue) ? B_NO_ERROR : AddFlat(fieldName, valueToAdd);
+   }
+
+   /** Convenience method:  Calls through to PrependFlat(valueToPrepend), but only if (valueToPrepend) is not equal to a default-constructoed object of that type.
+     * @param fieldName The field name of the field to (maybe) prepend the object to
+     * @param valueToPrepend The flattenable object to (maybe) prepend to the field
+     * @returns B_NO_ERROR if (valueToPrepend) was default-constructed (and therefore not prepend), or if it was prepend successfully, or B_ERROR on error.
+     */
+   template<class T> status_t CPrependFlat(const String & fieldName, const T & valueToPrepend)
+   {
+      return (valueToPrepend == GetDefaultObjectForType<T>()) ? B_NO_ERROR : PrependFlat(fieldName, valueToPrepend);
+   }
+
+   /** Convenience method:  Calls through to PrependFlat(valueToPrepend), but only if (valueToPrepend) is not equal to (defaultValue).
+     * @param fieldName The field name of the field to (maybe) add the object to
+     * @param valueToPrepend The flattenable object to (maybe) add to the field
+     * @param defaultValue If (valueToPrepend) is equal to (defaultValue), then this method will just return B_NO_ERROR without doing anything.
+     * @returns B_NO_ERROR if (valueToPrepend) was equal to (defaultValue) (and therefore not added), or if it was added successfully, or B_ERROR on error.
+     */
+   template<class T> status_t CPrependFlat(const String & fieldName, const T & valueToPrepend, const T & defaultValue)
+   {
+      return (valueToPrepend == defaultValue) ? B_NO_ERROR : PrependFlat(fieldName, valueToPrepend);
+   }
+
    /** Retrieve an ephemeral-tag-item from the Message.
     *  @param fieldName Name of the field to look for the tag under.
     *  @param index The index of the tag item in its field entry.

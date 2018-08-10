@@ -19,20 +19,17 @@ StringMatcherRef GetStringMatcherFromPool(const String & matchString, bool isSim
    return ret;
 }
 
-StringMatcher::StringMatcher() : _bits(0)
+StringMatcher::StringMatcher()
 {
    // empty
 } 
 
 StringMatcher :: StringMatcher(const String & str, bool simple)
-   : _bits(0)
 {
    (void) SetPattern(str, simple);
 }
 
-StringMatcher :: StringMatcher(const StringMatcher & rhs)
-   : RefCountable(rhs)
-   , _bits(0)
+StringMatcher :: StringMatcher(const StringMatcher & rhs) : RefCountable(rhs)
 {
    *this = rhs;
 }
@@ -44,15 +41,15 @@ StringMatcher :: ~StringMatcher()
 
 void StringMatcher :: Reset()
 {
-   if (IsBitSet(STRINGMATCHER_BIT_REGEXVALID)) regfree(&_regExp);
-   _bits = 0;
+   if (_flags.IsBitSet(STRINGMATCHER_FLAG_REGEXVALID)) regfree(&_regExp);
+   _flags.ClearAllBits();
    _ranges.Clear();
    _pattern.Clear();
 }
 
 StringMatcher & StringMatcher :: operator = (const StringMatcher & rhs)
 {
-   (void) SetPattern(rhs._pattern, rhs.IsBitSet(STRINGMATCHER_BIT_SIMPLE));
+   (void) SetPattern(rhs._pattern, rhs._flags.IsBitSet(STRINGMATCHER_FLAG_SIMPLE));
    return *this;
 }
 
@@ -69,10 +66,10 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
    TCHECKPOINT;
 
    _pattern = s;
-   SetBit(STRINGMATCHER_BIT_SIMPLE, isSimple);
+   _flags.SetBit(STRINGMATCHER_FLAG_SIMPLE, isSimple);
 
    bool onlyWildcardCharsAreCommas = false;
-   SetBit(STRINGMATCHER_BIT_CANMATCHMULTIPLEVALUES, isSimple?CanWildcardStringMatchMultipleValues(_pattern, &onlyWildcardCharsAreCommas):HasRegexTokens(_pattern));
+   _flags.SetBit(STRINGMATCHER_FLAG_CANMATCHMULTIPLEVALUES, isSimple?CanWildcardStringMatchMultipleValues(_pattern, &onlyWildcardCharsAreCommas):HasRegexTokens(_pattern));
 
    const char * str = _pattern();
    String regexPattern;
@@ -82,13 +79,13 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
       // Special case:  if the first char is a tilde, ignore it, but set the negate-bit.
       if (str[0] == '~')
       {
-         SetBit(STRINGMATCHER_BIT_NEGATE, true);
+         _flags.SetBit(STRINGMATCHER_FLAG_NEGATE);
          str++;
       }
-      else SetBit(STRINGMATCHER_BIT_NEGATE, false);
+      else _flags.ClearBit(STRINGMATCHER_FLAG_NEGATE);
 
       // Special case as of MUSCLE v6.12:  if the first char is a backtick, ignore it, but parse the remaining string as a regex instead (for Mika)
-      if (str[0] == '`') str++;  // note that I deliberately do not clear the STRINGMATCHER_BIT_SIMPLE bit, since the backtick-prefix is not part of the official regex spec
+      if (str[0] == '`') str++;  // note that I deliberately do not clear the STRINGMATCHER_FLAG_SIMPLE bit, since the backtick-prefix is not part of the official regex spec
       else
       {
          // Special case for strings of form e.g. "<15-23>", which is interpreted to
@@ -153,16 +150,16 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
          }
       }
    }
-   else SetBit(STRINGMATCHER_BIT_NEGATE, false);
+   else _flags.ClearBit(STRINGMATCHER_FLAG_NEGATE);
 
    // Free the old regular expression, if any
-   if (IsBitSet(STRINGMATCHER_BIT_REGEXVALID))
+   if (_flags.IsBitSet(STRINGMATCHER_FLAG_REGEXVALID))
    {
       regfree(&_regExp);
-      SetBit(STRINGMATCHER_BIT_REGEXVALID, false);
+      _flags.ClearBit(STRINGMATCHER_FLAG_REGEXVALID);
    }
 
-   SetBit(STRINGMATCHER_BIT_UVLIST, (onlyWildcardCharsAreCommas)&&(_ranges.IsEmpty())&&(IsBitSet(STRINGMATCHER_BIT_NEGATE) == false));
+   _flags.SetBit(STRINGMATCHER_FLAG_UVLIST, (onlyWildcardCharsAreCommas)&&(_ranges.IsEmpty())&&(_flags.IsBitSet(STRINGMATCHER_FLAG_NEGATE) == false));
 
    // And compile the new one
    if (_ranges.IsEmpty())
@@ -170,7 +167,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
       int rc = regcomp(&_regExp, regexPattern.HasChars() ? regexPattern() : str, REG_EXTENDED);
       if (rc == REG_ESPACE) WARN_OUT_OF_MEMORY;
       bool isValid = (rc == 0);
-      SetBit(STRINGMATCHER_BIT_REGEXVALID, isValid);
+      _flags.SetBit(STRINGMATCHER_FLAG_REGEXVALID, isValid);
       return isValid ? B_NO_ERROR : B_ERROR;
    }
    else return B_NO_ERROR;  // for range queries, we don't need a valid regex
@@ -184,7 +181,7 @@ bool StringMatcher :: Match(const char * const str) const
 
    if (_ranges.IsEmpty())
    {
-      if (IsBitSet(STRINGMATCHER_BIT_REGEXVALID)) ret = (regexec(&_regExp, str, 0, NULL, 0) != REG_NOMATCH);
+      if (_flags.IsBitSet(STRINGMATCHER_FLAG_REGEXVALID)) ret = (regexec(&_regExp, str, 0, NULL, 0) != REG_NOMATCH);
    }
    else if (muscleInRange(str[0], '0', '9'))
    {
@@ -196,13 +193,13 @@ bool StringMatcher :: Match(const char * const str) const
       }
    }
 
-   return IsBitSet(STRINGMATCHER_BIT_NEGATE) ? (!ret) : ret;
+   return _flags.IsBitSet(STRINGMATCHER_FLAG_NEGATE) ? (!ret) : ret;
 }
 
 String StringMatcher :: ToString() const
 {
    String s;
-   if (IsBitSet(STRINGMATCHER_BIT_NEGATE)) s = "~";
+   if (_flags.IsBitSet(STRINGMATCHER_FLAG_NEGATE)) s = "~";
 
    if (_ranges.IsEmpty()) return s+_pattern;
    else

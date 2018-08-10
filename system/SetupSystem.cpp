@@ -49,7 +49,7 @@
 #  include <signal.h>
 #  include <sys/times.h>
 # else
-#  include <sys/signal.h>  // changed signal.h to sys/signal.h to work with OS/X
+#  include <signal.h>
 #  include <sys/times.h>
 # endif
 #endif
@@ -663,11 +663,12 @@ NetworkSetupSystem :: NetworkSetupSystem()
 #ifdef WIN32
       WORD versionWanted = MAKEWORD(1, 1);
       WSADATA wsaData;
-      int ret = WSAStartup(versionWanted, &wsaData);
-      MASSERT((ret == 0), "NetworkSetupSystem:  Could not initialize Winsock!");
-      (void) ret;  // avoid compiler warning
+      if (WSAStartup(versionWanted, &wsaData) != 0) MCRASH("NetworkSetupSystem:  Could not initialize Winsock!");
 #else
-      signal(SIGPIPE, SIG_IGN);  // avoid evil SIGPIPE signals from sending on a closed socket
+      struct sigaction sa;
+      memset(&sa, 0, sizeof(sa));
+      sa.sa_handler = SIG_IGN;
+      if (sigaction(SIGPIPE, &sa, NULL) != 0) MCRASH("NetworkSetupSystem:  Could not ignore SIGPIPE signal!");
 #endif
 
 #ifdef MUSCLE_ENABLE_SSL

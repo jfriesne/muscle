@@ -5,22 +5,26 @@
 
 #include <errno.h>
 #include "dataio/DataIO.h"
+#include "support/BitChord.h"
 #include "util/Queue.h"
 
 namespace muscle {
 
-// Bits that can be passed as a bit-chord to LaunchChildProcess()
+// Flags that can be passed as a bit-chord to LaunchChildProcess()
 enum {
-   CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY    = 0x01,  /**< if set, we'll use forkpty() instead of fork() (ignored under Windows) */
-   CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDIN  = 0x02,  /**< if set, we won't redirect from the child process's stdin (supported by fork() implementation only, for now) */
-   CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDOUT = 0x04,  /**< if set, we won't capture and return output from the child process's stdout (supported by fork() implementation only, for now) */
-   CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDERR = 0x08,  /**< if set, we won't capture and return output from the child process's stderr (supported by fork() implementation only, for now) */
-   CHILD_PROCESS_LAUNCH_BIT_WIN32_HIDE_GUI = 0x10,  /**< Windows only:  if set, the child process's GUI windows will be hidden */
+   CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY = 0, /**< if set, we'll use forkpty() instead of fork() (ignored under Windows) */
+   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN,   /**< if set, we won't redirect from the child process's stdin (supported by fork() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT,  /**< if set, we won't capture and return output from the child process's stdout (supported by fork() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR,  /**< if set, we won't capture and return output from the child process's stderr (supported by fork() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_FLAG_WIN32_HIDE_GUI,  /**< Windows only:  if set, the child process's GUI windows will be hidden */
+   CHILD_PROCESS_LAUNCH_FLAG_INHERIT_FDS,     /**< If set, we will allow the child process to inherit file descriptors from this process. */
+   NUM_CHILD_PROCESS_LAUNCH_FLAGS             /**< Guard value */
 };
+DECLARE_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_LAUNCH_FLAGS);
 
-#ifndef MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS
-/** The default value of (launchBits) that will be suppplied to LaunchChildProcess(), if no value is explicitly supplied.  Defaults to CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY unless overridden at compile time via e.g. -DMUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS=CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY|CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDERR or etc. */
-# define MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS (CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY)
+#ifndef MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS
+/** The default value of (launchFlags) that will be suppplied to LaunchChildProcess(), if no value is explicitly supplied.  Defaults to CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY unless overridden at compile time via e.g. -DMUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS=CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY,CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR or etc. */
+# define MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY
 #endif
 
 /** This DataIO class is a handy cross-platform way to spawn 
@@ -45,31 +49,31 @@ public:
    /** Launch the child process.  Note that this method should only be called once!
      * @param argc The argc variable to be passed to the child process
      * @param argv The argv variable to be passed to the child process
-     * @param launchBits A bit-chord of CHILD_PROCESS_LAUNCH_BIT_* bit values.
+     * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
      */
-   status_t LaunchChildProcess(int argc, const char * argv[], uint32 launchBits = MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS, const char * optDirectory = NULL) {return LaunchChildProcessAux(muscleMax(0,argc), argv, launchBits, optDirectory);}
+   status_t LaunchChildProcess(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL) {return LaunchChildProcessAux(muscleMax(0,argc), argv, launchFlags, optDirectory);}
 
    /** As above, but the program name and all arguments are specified as a single string.
      * @param cmd String to launch the child process with
-     * @param launchBits A bit-chord of CHILD_PROCESS_LAUNCH_BIT_* bit values.
+     * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
      */
-   status_t LaunchChildProcess(const char * cmd, uint32 launchBits = MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS, const char * optDirectory = NULL) {return LaunchChildProcessAux(-1, cmd, launchBits, optDirectory);}
+   status_t LaunchChildProcess(const char * cmd, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL) {return LaunchChildProcessAux(-1, cmd, launchFlags, optDirectory);}
 
    /** Convenience method.  Launches a child process using an (argc,argv) that is constructed from the passed in argument list.
      * @param argv A list of strings to construct the (argc,argv) from.  The first string should be the executable name, the second string
      *             should be the first argument to the executable, and so on.
-     * @param launchBits A bit-chord of CHILD_PROCESS_LAUNCH_BIT_* bit values.
+     * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
      */
-   status_t LaunchChildProcess(const Queue<String> & argv, uint32 launchBits = MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS, const char * optDirectory = NULL);
+   status_t LaunchChildProcess(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL);
 
    /** Read data from the child process's stdout stream. 
      * @param buffer The read bytes will be placed here
@@ -138,17 +142,6 @@ public:
      */
    void SetChildProcessShutdownBehavior(bool okayToKillChild, int sendSignalNumber = -1, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER);
 
-   /** Set whether or not the child process we spawn should inherit our
-     * open file descriptors.  Default value is false.
-     * @param cpifds true iff the child process should inherit our file descriptors
-     */
-   void SetChildProcessInheritFileDescriptors(bool cpifds) {_childProcessInheritFileDescriptors = cpifds;}
-
-   /** Returns true iff the child process we spawn will inherit our
-     * open file descriptors.  Default value is false.
-     */
-   bool GetChildProcessInheritFileDescriptors() const {return _childProcessInheritFileDescriptors;}
-
    /** Called within the child process, just before the child process's
      * executable image is loaded in.  Default implementation is a no-op.
      * @note This method is not called when running under Windows!
@@ -205,7 +198,7 @@ public:
      * until that process has completed.
      * @param argc Number of items in the (argv) array
      * @param argv A standard argv array for the child process to use
-     * @param launchBits A bit-chord of CHILD_PROCESS_LAUNCH_BIT_* bit values.
+     * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
      * @param maxWaitTimeMicros If specified, this is the maximum amount of time (in microseconds) 
      *                          that we should wait for the child process to exit before continuing.
      *                          Defaults to MUSCLE_TIME_NEVER, meaning that we will wait indefinitely
@@ -215,7 +208,7 @@ public:
      * @returns B_NO_ERROR if the child process was launched, or B_ERROR
      *          if the child process could not be launched.
      */
-   static status_t System(int argc, const char * argv[], uint32 launchBits = MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
+   static status_t System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
 
    /** Convenience method:  acts similar to the POSIX system() call, but
      * implemented internally via a ChildProcessDataIO object.  In particular,
@@ -223,7 +216,7 @@ public:
      * until that process has completed.
      * @param argv A list of strings to construct the (argc,argv) from.  The first string should be the executable name, the second string
      *             should be the first argument to the executable, and so on.
-     * @param launchBits A bit-chord of CHILD_PROCESS_LAUNCH_BIT_* bit values.
+     * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
      * @param maxWaitTimeMicros If specified, this is the maximum amount of time (in microseconds) 
      *                          that we should wait for the child process to exit before continuing.
      *                          Defaults to MUSCLE_TIME_NEVER, meaning that we will wait indefinitely
@@ -232,14 +225,14 @@ public:
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
      */
-   static status_t System(const Queue<String> & argv, uint32 launchBits = MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
+   static status_t System(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
 
    /** Convenience method:  acts similar to the POSIX system() call, but
      * implemented internally via a ChildProcessDataIO object.  In particular,
      * this static method will launch the specified process and not return
      * until that process has completed.
      * @param cmdLine The command string to launch (as if typed into a shell)
-     * @param launchBits A bit-chord of CHILD_PROCESS_LAUNCH_BIT_* bit values.
+     * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
      * @returns B_NO_ERROR if the child process was launched, or B_ERROR
      *          if the child process could not be launched.
      * @param maxWaitTimeMicros If specified, this is the maximum amount of time (in microseconds) 
@@ -249,43 +242,40 @@ public:
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      */
-   static status_t System(const char * cmdLine, uint32 launchBits = MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_BITS, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
+   static status_t System(const char * cmdLine, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
 
    /** Convenience method:  launches a child process that will be completely independent of the current process.
      * @param argc Number of items in the (argv) array
      * @param argv A standard argv array for the child process to use
-     * @param inheritFileDescriptors If true, the child process will inherit all file descriptors from this process.
-     *                               If false (the default), the child process will not inherit any file descriptors from this process.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
+     * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
      * @returns B_NO_ERROR if the child process was launched, or B_ERROR if the child process could not be launched.
      */
-   static status_t LaunchIndependentChildProcess(int argc, const char * argv[], bool inheritFileDescriptors=false, const char * optDirectory = NULL);
+   static status_t LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags());
 
    /** Convenience method:  launches a child process that will be completely independent of the current process.
      * @param argv A list of strings to construct the (argc,argv) from.  The first string should be the executable name, the second string
      *             should be the first argument to the executable, and so on.
-     * @param inheritFileDescriptors If true, the child process will inherit all file descriptors from this process.
-     *                               If false (the default), the child process will not inherit any file descriptors from this process.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
+     * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
      * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
      */
-   static status_t LaunchIndependentChildProcess(const Queue<String> & argv, bool inheritFileDescriptors=false, const char * optDirectory = NULL);
+   static status_t LaunchIndependentChildProcess(const Queue<String> & argv, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags());
 
    /** Convenience method:  launches a child process that will be completely independent of the current process.
      * @param cmdLine The command string to launch (as if typed into a shell)
-     * @param inheritFileDescriptors If true, the child process will inherit all file descriptors from this process.
-     *                               If false (the default), the child process will not inherit any file descriptors from this process.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
+     * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
      * @returns B_NO_ERROR if the child process was launched, or B_ERROR if the child process could not be launched.
      */
-   static status_t LaunchIndependentChildProcess(const char * cmdLine, bool inheritFileDescriptors=false, const char * optDirectory = NULL);
+   static status_t LaunchIndependentChildProcess(const char * cmdLine, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags());
 
 private:
    void Close();
-   status_t LaunchChildProcessAux(int argc, const void * argv, uint32 launchBits, const char * optDirectory);
+   status_t LaunchChildProcessAux(int argc, const void * argv, ChildProcessLaunchFlags launchFlags, const char * optDirectory);
    void DoGracefulChildShutdown();
    const ConstSocketRef & GetChildSelectSocket() const;
 
@@ -296,7 +286,6 @@ private:
    int _signalNumber;
    bool _childProcessCrashed;
 
-   bool _childProcessInheritFileDescriptors;
    bool _childProcessIsIndependent;
 
 #if defined(WIN32) || defined(CYGWIN)

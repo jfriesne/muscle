@@ -40,7 +40,7 @@ int main(int, char **)
    // Now let's print the exhaustive list of ALL the NICs on this machine (set up or not!)
    {
       Queue<NetworkInterfaceInfo> ifs;
-      if (GetNetworkInterfaceInfos(ifs, GNII_INCLUDE_ALL_INTERFACES) == B_NO_ERROR)
+      if (GetNetworkInterfaceInfos(ifs, GNIIFlags(GNII_FLAGS_INCLUDE_ALL_INTERFACES)) == B_NO_ERROR)
       {
          PrintNetworkInterfaceInfos(ifs, "total network interfaces");
       }

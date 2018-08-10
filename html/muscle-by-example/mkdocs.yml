@@ -83,6 +83,7 @@ pages:
 - Additional Support Classes:
    - StringTokenizer: 'stringtokenizer.md'
    - StringMatcher: 'stringmatcher.md'
+   - BitChord: 'bitchord.md'
    - LogTime/LogCallback: 'logtime.md'
    - NestCount/NestCountGuard: 'nestcount.md'
    - MiscUtilityFunctions: 'miscutilityfunctions.md'

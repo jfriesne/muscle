@@ -4,6 +4,7 @@
 #define MuscleHashtable_h
 
 #include "support/MuscleSupport.h"
+#include "support/Void.h"  // only here since various Hashtable users may need it
 #include "util/DemandConstructedObject.h"
 
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
@@ -64,25 +65,6 @@ static const uint32 MUSCLE_HASHTABLE_INVALID_SLOT_INDEX = (uint32)-1;
 template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableIterator;
 template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableBase;
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class HashtableMid;
-
-/** This is a class that literally represents no data.  It is meant to be used as
-  * a placeholder in Hashtables that need to contain only keys and no values.
-  */
-class Void MUSCLE_FINAL_CLASS
-{
-public:
-   /** Default ctor */
-   Void() {/* empty */}
-
-   /** Always returns false -- all Voids are created equal and therefore one can't be less than another. */
-   bool operator <(const Void &) const {return false;}
-
-   /** Always returns true -- all Voids are created equal */
-   bool operator ==(const Void &) const {return true;}
-
-   /** Always returns false -- all Voids are created equal */
-   bool operator !=(const Void &) const {return false;}
-};
 
 /** These flags can be passed to the HashtableIterator constructor (or to the GetIterator()/GetIteratorAt() 
   * functions in the Hashtable class) to modify the iterator's behaviour.

@@ -8,10 +8,6 @@
 # include "system/Thread.h"  // For Linux we can just listen directly on an AF_NETLINK socket, so no thread is needed
 #endif
 
-#ifdef __APPLE__
-# include <CoreFoundation/CFRunLoop.h>
-#endif
-
 namespace muscle {
 
 class DetectNetworkConfigChangesSession;
@@ -154,7 +150,7 @@ private:
    friend void SignalInterfacesChanged(DetectNetworkConfigChangesSession * s, const Hashtable<String, Void> & optInterfaceNames);
    friend Hashtable<String, String> & GetKeyToInterfaceNameTable(DetectNetworkConfigChangesSession * s);
    friend void * GetRootPortPointerFromSession(const DetectNetworkConfigChangesSession * s);
-   CFRunLoopRef _threadRunLoop;
+   void * _threadRunLoop; // actually of type CFRunLoopRef but I don't want to include CFRunLoop.h from this header file becaues doing so breaks things
    Hashtable<String, String> _scKeyToInterfaceName;
    void * _rootPortPointer;
 # elif _WIN32

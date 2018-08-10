@@ -329,7 +329,7 @@ void DetectNetworkConfigChangesSession :: SignalInternalThread()
    _threadKeepGoing = false;
    Thread::SignalInternalThread();
 # ifdef __APPLE__
-   if (_threadRunLoop) CFRunLoopStop(_threadRunLoop);
+   if (_threadRunLoop) CFRunLoopStop((CFRunLoopRef)_threadRunLoop);
 # elif WIN32
    SetEvent(_wakeupSignal);
 # endif
@@ -644,7 +644,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
    if (root_port != 0)
    {
       powerNotifyRunLoopSource = IONotificationPortGetRunLoopSource(powerNotifyPortRef);
-      CFRunLoopAddSource(_threadRunLoop, powerNotifyRunLoopSource, kCFRunLoopCommonModes);
+      CFRunLoopAddSource((CFRunLoopRef)_threadRunLoop, powerNotifyRunLoopSource, kCFRunLoopCommonModes);
    }
    else LogTime(MUSCLE_LOG_WARNING, "DetectNetworkConfigChangesSession::InternalThreadEntry():  IORegisterForSystemPower() failed\n");
 

@@ -783,7 +783,7 @@ void RemoveANSISequences(String & s)
    }
 }
 
-String CleanupDNSLabel(const String & s)
+String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChars)
 {
    uint32 len = muscleMin(s.Length(), (uint32)63);  // DNS spec says maximum 63 chars per label!
    String ret; if (ret.Prealloc(len) != B_NO_ERROR) return ret;
@@ -799,7 +799,7 @@ String CleanupDNSLabel(const String & s)
          break;
 
          default:
-                 if ((muscleInRange(c, '0', '9'))||(muscleInRange(c, 'A', 'Z'))||(muscleInRange(c, 'a', 'z'))) ret += c;
+                 if ((muscleInRange(c, '0', '9'))||(muscleInRange(c, 'A', 'Z'))||(muscleInRange(c, 'a', 'z'))||(optAdditionalAllowedChars.Contains(c))) ret += c;
             else if ((ret.HasChars())&&(ret.EndsWith('-') == false)) ret += '-';
          break;
       }
@@ -808,7 +808,7 @@ String CleanupDNSLabel(const String & s)
    return ret;
 }
 
-String CleanupDNSPath(const String & orig)
+String CleanupDNSPath(const String & orig, const String & optAdditionalAllowedChars)
 {
    String ret; (void) ret.Prealloc(orig.Length());
 
@@ -816,7 +816,7 @@ String CleanupDNSPath(const String & orig)
    StringTokenizer tok(orig(), ".");
    while((s = tok()) != NULL)
    {
-      String cleanTok = CleanupDNSLabel(s);
+      String cleanTok = CleanupDNSLabel(s, optAdditionalAllowedChars);
       if (cleanTok.HasChars())
       {
          if (ret.HasChars()) ret += '.';

@@ -4,6 +4,7 @@
 #define MuscleByteBuffer_h
 
 #include "util/FlatCountable.h"
+#include "support/BitChord.h"
 #include "support/Point.h"
 #include "support/Rect.h"
 #include "util/String.h"
@@ -13,15 +14,17 @@ namespace muscle {
 class SeekableDataIO;
 class IMemoryAllocationStrategy;
 
+/** These flags are used as hints regarding what endian-ness a ByteBuffer should store its multibyte data in */
 enum {
-   DATA_FLAG_NATIVE_ENDIAN = 0x00,  /**< specifies that the data to be read (or written) is the same endian-ness as the host CPU */
-   DATA_FLAG_LITTLE_ENDIAN = 0x01,  /**< specifies that the data to be read (or written) is little-endian */
-   DATA_FLAG_BIG_ENDIAN    = 0x02,  /**< specifies that the data to be read (or written) is big-endian */
+   ENDIAN_FLAG_FORCE_LITTLE, /**< specifies that the data to be read (or written) is little-endian */
+   ENDIAN_FLAG_FORCE_BIG,    /**< specifies that the data to be read (or written) is big-endian */
+   NUM_ENDIAN_FLAGS          /**< Guard value */
 };
+DECLARE_BITCHORD_FLAGS_TYPE(EndianFlags, NUM_ENDIAN_FLAGS);
 
-#ifndef DEFAULT_BYTEBUFFER_DATA_FLAGS
-/** Specified which DATA_FLAG_* values should be used by default by a ByteBuffer object, when doing in-buffer serialization/deserialization operations.  Default value is DATA_FLAG_LITTLE_ENDIAN (i.e. Intel-native data endian-ness), but this can be overridden on the compiler line via -DDEFAULT_BYTEBUFFER_DATA_FLAGS=DATA_FLAG_BIG_ENDIAN or -DDEFAULT_BYTEBUFFER_DATA_FLAGS=DATA_FLAG_NATIVE_ENDIAN. */
-# define DEFAULT_BYTEBUFFER_DATA_FLAGS DATA_FLAG_LITTLE_ENDIAN
+#ifndef DEFAULT_BYTEBUFFER_ENDIAN_FLAGS
+/** Specified which ENDIAN_FLAG_* value should be used by default by a ByteBuffer object, when doing in-buffer serialization/deserialization operations.  Default value is ENDIAN_FLAG_FORCE_LITTLE (i.e. Intel-native data endian-ness), but this can be overridden on the compiler line via -DDEFAULT_BYTEBUFFER_ENDIAN_FLAGS=ENDIAN_FLAG_FORCE_BIG or -DDEFAULT_BYTEBUFFER_ENDIAN_FLAGS (if you want the default to be native-endian). */
+# define DEFAULT_BYTEBUFFER_ENDIAN_FLAGS ENDIAN_FLAG_FORCE_LITTLE
 #endif
 
 /** This class is used to hold a dynamically-resizable buffer of raw bytes (aka uint8s), and is also Flattenable and RefCountable. */
@@ -37,7 +40,7 @@ public:
      */
    ByteBuffer(uint32 numBytes = 0, const uint8 * optBuffer = NULL, IMemoryAllocationStrategy * optAllocationStrategy = NULL) : _buffer(NULL), _numValidBytes(0), _numAllocatedBytes(0), _allocStrategy(optAllocationStrategy, false)
    {
-      SetDataFlags(DEFAULT_BYTEBUFFER_DATA_FLAGS);
+      SetEndianFlags(EndianFlags(DEFAULT_BYTEBUFFER_ENDIAN_FLAGS));
       (void) SetBuffer(numBytes, optBuffer);
    }
   
@@ -226,21 +229,21 @@ public:
    /** Sets our data-format flags.  These flags are used to determine what sort of
     *  data-endian-ness rules should be used by any multi-byte Append*(), Read*(), and Write*()
     *  methods called on this object in the future.  Default state is determined by the
-    *  DEFAULT_BYTEBUFFER_DATA_FLAGS define, which expands to DATA_FLAG_LITTLE_ENDIAN by default.
-    *  @param flags a bit-chord of DATA_FLAG_* values.
+    *  DEFAULT_BYTEBUFFER_ENDIAN_FLAGS define, which expands to ENDIAN_FLAG_FORCE_LITTLE by default.
+    *  @param flags a bit-chord of ENDIAN_FLAG_* values.
     */
-   void SetDataFlags(uint32 flags) 
+   void SetEndianFlags(EndianFlags flags) 
    {
 #if B_HOST_IS_BENDIAN
-      _allocStrategy.SetBool((flags & DATA_FLAG_LITTLE_ENDIAN) != 0);
+      _allocStrategy.SetBool(flags.IsBitSet(ENDIAN_FLAG_FORCE_LITTLE));
 #else
-      _allocStrategy.SetBool((flags & DATA_FLAG_BIG_ENDIAN) != 0);
+      _allocStrategy.SetBool(flags.IsBitSet(ENDIAN_FLAG_FORCE_BIG));
 #endif
    }
 
    /** Returns true iff Append*(), Read*(), and Write*() methods will swap the endian-ness of
      * multi-byte data items as they go.
-     * @see SetDataFlags()
+     * @see SetEndianFlags()
      */
    bool IsEndianSwapEnabled() const {return _allocStrategy.GetBool();}
 

@@ -300,16 +300,22 @@ void RemoveANSISequences(String & s);
   * Note that this string cleans up just a single part of a DNS hostname path.
   * If you want to clean up a path string (e.g. "www.foo.com"), call CleanupDNSPath() instead.
   * @param s A string that is presented as a candidate for being a DNS label.
+  * @param optAdditionalAllowedChars if specified, this string represents a list of other
+  *                                  characters that we will allow into the returned String as a
+  *                                  special case (i.e. we won't filter them out)
   * @returns the DNS label that most closely resembles (s).
   */
-String CleanupDNSLabel(const String & s);
+String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChars = GetEmptyString());
 
 /** Given a DNS path string (e.g. "www.foo.com") runs each dot-separated portion of the
   * path through CleanupDNSLabel() and returns the cleaned up result.
   * @param s A string that is presented as a candidate for being a DNS path.
+  * @param optAdditionalAllowedChars if specified, this string represents a list of other
+  *                                  characters that we will allow into the returned String as a
+  *                                  special case (i.e. we won't filter them out)
   * @returns the DNS path that most closely resembles (s).
   */
-String CleanupDNSPath(const String & s);
+String CleanupDNSPath(const String & s, const String & optAdditionalAllowedChars = GetEmptyString());
 
 /** Convenience function.  Given a buffer of arbitrary data, returns a nybble-ized String
   * that represents that same data using only the ASCII characters 'A' through 'P.  The

@@ -31,7 +31,6 @@ ChildProcessDataIO :: ChildProcessDataIO(bool blocking)
    , _maxChildWaitTime(0)
    , _signalNumber(-1)
    , _childProcessCrashed(false)
-   , _childProcessInheritFileDescriptors(false)
    , _childProcessIsIndependent(false)
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    , _readFromStdout(INVALID_HANDLE_VALUE), _writeToStdin(INVALID_HANDLE_VALUE), _ioThread(INVALID_HANDLE_VALUE), _wakeupSignal(INVALID_HANDLE_VALUE), _childProcess(INVALID_HANDLE_VALUE), _childThread(INVALID_HANDLE_VALUE), _requestThreadExit(false)
@@ -53,7 +52,7 @@ static void SafeCloseHandle(::HANDLE & h)
 }
 #endif
 
-status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, uint32 launchBits, const char * optDirectory)
+status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, const char * optDirectory)
 {
    uint32 numItems = argq.GetNumItems();
    if (numItems == 0) return B_ERROR;
@@ -62,7 +61,7 @@ status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, ui
    if (argv == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
    for (uint32 i=0; i<numItems; i++) argv[i] = argq[i]();
    argv[numItems] = NULL;
-   status_t ret = LaunchChildProcess(numItems, argv, launchBits, optDirectory);
+   status_t ret = LaunchChildProcess(numItems, argv, launchFlags, optDirectory);
    delete [] argv;
    return ret;
 }
@@ -74,7 +73,7 @@ void ChildProcessDataIO :: SetChildProcessShutdownBehavior(bool okayToKillChild,
    _maxChildWaitTime = maxChildWaitTime;
 }
 
-status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args, uint32 launchBits, const char * optDirectory)
+status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args, ChildProcessLaunchFlags launchFlags, const char * optDirectory)
 {
    TCHECKPOINT;
 
@@ -82,7 +81,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    _childProcessCrashed = false;  // we don't care about the crashed-flag of a previous process anymore!
 
 #ifdef MUSCLE_AVOID_FORKPTY
-   launchBits &= ~CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY;   // no sense trying to use pseudo-terminals if they were forbidden at compile time
+   launchFlags.ClearBit(CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY);   // no sense trying to use pseudo-terminals if they were forbidden at compile time
 #endif
 
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
@@ -112,7 +111,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 
                STARTUPINFOA siStartInfo;         
                {
-                  bool hideChildGUI = ((launchBits & CHILD_PROCESS_LAUNCH_BIT_WIN32_HIDE_GUI) != 0);
+                  const bool hideChildGUI = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_WIN32_HIDE_GUI);
 
                   memset(&siStartInfo, 0, sizeof(siStartInfo));
                   siStartInfo.cb          = sizeof(siStartInfo);
@@ -181,7 +180,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    argv[argc] = NULL; // argv array must be NULL terminated!
 
    pid_t pid = (pid_t) -1;
-   if (launchBits & CHILD_PROCESS_LAUNCH_BIT_USE_FORKPTY)
+   if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY))
    {
 # ifdef MUSCLE_AVOID_FORKPTY
       return B_ERROR;  // this branch should never be taken, due to the ifdef at the top of this function... but just in case
@@ -213,9 +212,9 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       else if (pid == 0)
       {
          int fd = slaveSock()->GetFileDescriptor();
-         if (((launchBits & CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDIN)  == 0)&&(dup2(fd, STDIN_FILENO)  < 0)) ExitWithoutCleanup(20);
-         if (((launchBits & CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDOUT) == 0)&&(dup2(fd, STDOUT_FILENO) < 0)) ExitWithoutCleanup(20);
-         if (((launchBits & CHILD_PROCESS_LAUNCH_BIT_EXCLUDE_STDERR) == 0)&&(dup2(fd, STDERR_FILENO) < 0)) ExitWithoutCleanup(20);
+         if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN)  == false)&&(dup2(fd, STDIN_FILENO)  < 0)) ExitWithoutCleanup(20);
+         if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT) == false)&&(dup2(fd, STDOUT_FILENO) < 0)) ExitWithoutCleanup(20);
+         if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR) == false)&&(dup2(fd, STDERR_FILENO) < 0)) ExitWithoutCleanup(20);
       }
    }
 
@@ -226,7 +225,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       (void) signal(SIGHUP, SIG_DFL);  // FogBugz #2918
 
       // Close any file descriptors leftover from the parent process
-      if (_childProcessInheritFileDescriptors == false)
+      if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_INHERIT_FDS) == false)
       {
          const int fdlimit = (int)sysconf(_SC_OPEN_MAX);
          for (int i=STDERR_FILENO+1; i<fdlimit; i++) close(i);
@@ -619,10 +618,10 @@ void ChildProcessDataIO :: IOThreadEntry()
 }
 #endif
 
-status_t ChildProcessDataIO :: System(int argc, const char * argv[], uint32 launchBits, uint64 maxWaitTimeMicros, const char * optDirectory)
+status_t ChildProcessDataIO :: System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory)
 {
    ChildProcessDataIO cpdio(false);
-   if (cpdio.LaunchChildProcess(argc, argv, launchBits, optDirectory) == B_NO_ERROR)
+   if (cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory) == B_NO_ERROR)
    {
       cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
       return B_NO_ERROR;
@@ -630,7 +629,7 @@ status_t ChildProcessDataIO :: System(int argc, const char * argv[], uint32 laun
    else return B_ERROR;
 }
 
-status_t ChildProcessDataIO :: System(const Queue<String> & argq, uint32 launchBits, uint64 maxWaitTimeMicros, const char * optDirectory)
+status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory)
 {
    uint32 numItems = argq.GetNumItems();
    if (numItems == 0) return B_ERROR;
@@ -639,15 +638,15 @@ status_t ChildProcessDataIO :: System(const Queue<String> & argq, uint32 launchB
    if (argv == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
    for (uint32 i=0; i<numItems; i++) argv[i] = argq[i]();
    argv[numItems] = NULL;
-   status_t ret = System(numItems, argv, launchBits, maxWaitTimeMicros, optDirectory);
+   status_t ret = System(numItems, argv, launchFlags, maxWaitTimeMicros, optDirectory);
    delete [] argv;
    return ret;
 }
 
-status_t ChildProcessDataIO :: System(const char * cmdLine, uint32 launchBits, uint64 maxWaitTimeMicros, const char * optDirectory)
+status_t ChildProcessDataIO :: System(const char * cmdLine, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory)
 {
    ChildProcessDataIO cpdio(false);
-   if (cpdio.LaunchChildProcess(cmdLine, launchBits, optDirectory) == B_NO_ERROR)
+   if (cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory) == B_NO_ERROR)
    {
       cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
       return B_NO_ERROR;
@@ -655,31 +654,28 @@ status_t ChildProcessDataIO :: System(const char * cmdLine, uint32 launchBits, u
    else return B_ERROR;
 }
 
-status_t ChildProcessDataIO :: LaunchIndependentChildProcess(int argc, const char * argv[], bool inheritFileDescriptors, const char * optDirectory)
+status_t ChildProcessDataIO :: LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory, ChildProcessLaunchFlags launchFlags)
 {
    ChildProcessDataIO cpdio(true);
    cpdio._childProcessIsIndependent = true;  // so the cpdio dtor won't block waiting for the child to exit
-   cpdio.SetChildProcessInheritFileDescriptors(inheritFileDescriptors);
    cpdio.SetChildProcessShutdownBehavior(false);
-   return cpdio.LaunchChildProcess(argc, argv, false, optDirectory);
+   return cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory);
 }
 
-status_t ChildProcessDataIO :: LaunchIndependentChildProcess(const char * cmdLine, bool inheritFileDescriptors, const char * optDirectory)
+status_t ChildProcessDataIO :: LaunchIndependentChildProcess(const char * cmdLine, const char * optDirectory, ChildProcessLaunchFlags launchFlags)
 {
    ChildProcessDataIO cpdio(true);
    cpdio._childProcessIsIndependent = true;  // so the cpdio dtor won't block waiting for the child to exit
-   cpdio.SetChildProcessInheritFileDescriptors(inheritFileDescriptors);
    cpdio.SetChildProcessShutdownBehavior(false);
-   return cpdio.LaunchChildProcess(cmdLine, false, optDirectory);
+   return cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory);
 }
 
-status_t ChildProcessDataIO :: LaunchIndependentChildProcess(const Queue<String> & argv, bool inheritFileDescriptors, const char * optDirectory)
+status_t ChildProcessDataIO :: LaunchIndependentChildProcess(const Queue<String> & argv, const char * optDirectory, ChildProcessLaunchFlags launchFlags)
 {
    ChildProcessDataIO cpdio(true);
    cpdio._childProcessIsIndependent = true;  // so the cpdio dtor won't block waiting for the child to exit
-   cpdio.SetChildProcessInheritFileDescriptors(inheritFileDescriptors);
    cpdio.SetChildProcessShutdownBehavior(false);
-   return cpdio.LaunchChildProcess(argv, false, optDirectory);
+   return cpdio.LaunchChildProcess(argv, launchFlags, optDirectory);
 }
 
 } // end namespace muscle

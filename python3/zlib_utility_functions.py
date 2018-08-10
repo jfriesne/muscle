@@ -20,9 +20,9 @@ def DeflateMessage(msg, compressionLevel=6, force=1):
    if (msg.GetFieldItem(MUSCLE_ZLIB_FIELD_NAME_STRING, message.B_RAW_TYPE) == None):
       defMsg = message.Message(msg.what)
       origFlatSize = msg.FlattenedSize()
-      headerBuf = io.StringIO()
+      headerBuf = io.BytesIO()
       headerBuf.write(struct.pack("<2L", ZLIB_CODEC_HEADER_INDEPENDENT, origFlatSize))
-      bodyBuf = io.StringIO()
+      bodyBuf = io.BytesIO()
       msg.Flatten(bodyBuf)
       cobj = zlib.compressobj(compressionLevel)
       cdata = cobj.compress(bodyBuf.getvalue())
@@ -46,7 +46,7 @@ def InflateMessage(msg):
          dobj = zlib.decompressobj()
          idata = dobj.decompress(compStr[MUSCLE_ZLIB_HEADER_SIZE:], rawLen)
          idata = idata + dobj.flush()
-         infMsg.Unflatten(io.StringIO(idata))
+         infMsg.Unflatten(io.BytesIO(idata))
          return infMsg
    return msg
 

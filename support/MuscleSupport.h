@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "6.91" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        69100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "7.00" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        70000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -222,7 +222,7 @@ using std::set_new_handler;
 #endif
 
 #ifdef __cplusplus
-template<typename T, int size> unsigned int ARRAYITEMS(T(&)[size]) {return size;}  /**< Returns # of items in the array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
+template<typename T, int size> MUSCLE_CONSTEXPR unsigned int ARRAYITEMS(T(&)[size]) {return size;}  /**< Returns # of items in the array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
 #else
 # define ARRAYITEMS(x) (sizeof(x)/sizeof(x[0]))  /**< Returns # of items in the array.  This primitive C-compatible implementation will return an incorrect value if called with a pointer as an argument. */
 #endif
@@ -380,7 +380,7 @@ static_assert(sizeof(double) == 8, "sizeof(double) != 8");
 #if !defined(__BEOS__) && !defined(__HAIKU__)
 /** Be-style message-field type codes.
   * I've calculated the integer equivalents for these codes
-  * because gcc whines like a little girl about the four-byte
+  * because g++ generates warnings about four-byte
   * constants when compiling under Linux --jaf
   */
 enum {
@@ -399,7 +399,8 @@ enum {
    B_STRING_TYPE  = 1129534546, /**< 'CSTR' = String objects (variable length)            */
    B_OBJECT_TYPE  = 1330664530, /**< 'OPTR' = Flattened user objects (obsolete)           */
    B_RAW_TYPE     = 1380013908, /**< 'RAWT' = Raw data (variable number of bytes)         */
-   B_MIME_TYPE    = 1296649541  /**< 'MIME' = MIME strings (obsolete)                     */
+   B_MIME_TYPE    = 1296649541, /**< 'MIME' = MIME strings (obsolete)                     */
+   B_BITCHORD_TYPE= 1112818504  /**< 'BTCH' = BitChord type                               */
 };
 #endif
 

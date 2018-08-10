@@ -8,11 +8,11 @@
 
 using namespace muscle;
 
-static void Test(uint32 dataFlags)
+static void Test(EndianFlags endianFlags)
 {
    ByteBuffer b;
-   b.SetDataFlags(dataFlags);
-   printf("Test dataFlags=" XINT32_FORMAT_SPEC " ----- sizeof(ByteBuffer)=%i, endian-swap is %s\n", dataFlags, (int) sizeof(b), b.IsEndianSwapEnabled()?"Enabled":"Disabled");
+   b.SetEndianFlags(endianFlags);
+   printf("Test endianFlags=[%s] ----- sizeof(ByteBuffer)=%i, endian-swap is %s\n", endianFlags.ToHexString()(), (int) sizeof(b), b.IsEndianSwapEnabled()?"Enabled":"Disabled");
    {
       b.AppendInt8(0x01);
       b.AppendInt16(0x0405);
@@ -120,9 +120,9 @@ int main(int argc, char ** argv)
    }
    else
    {
-      Test(DATA_FLAG_NATIVE_ENDIAN);
-      Test(DATA_FLAG_LITTLE_ENDIAN);
-      Test(DATA_FLAG_BIG_ENDIAN);
+      Test(EndianFlags());  // native-endian
+      Test(EndianFlags(ENDIAN_FLAG_FORCE_LITTLE));
+      Test(EndianFlags(ENDIAN_FLAG_FORCE_BIG));
    }
    return 0;
 }

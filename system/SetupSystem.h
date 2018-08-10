@@ -272,7 +272,7 @@ public:
 # elif defined(__BEOS__) || defined(__HAIKU__) || defined(__ATHEOS__)
       ret._id = find_thread(NULL);
 # else
-#  error "GetCurrentThreadID():  No implementation found for this OS!"
+#  error "GetCurrentThreadID():  No implementation found for this OS!  (If you're compiling with a pre-C++11 compiler, adding -DMUSCLE_USE_PTHREADS to your compile arguments might help)"
 # endif
       return ret;
    }
@@ -316,7 +316,7 @@ private:
 # elif defined(__BEOS__) || defined(__HAIKU__) || defined(__ATHEOS__)
    thread_id _id;
 # else
-#  error "muscle_thread_id():  No implementation found for this OS!"
+#  error "muscle_thread_id():  No implementation found for this OS!  (If you're compiling with a pre-C++11 compiler, adding -DMUSCLE_USE_PTHREADS to your compile arguments might help)"
 # endif
 };
 
