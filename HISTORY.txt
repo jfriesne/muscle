@@ -5,6 +5,16 @@ key:  - new feature
       * bug fixed
       o other
 
+7.01 Released 8/22/2018
+   - Added a EuclideanModulo() convenience function
+     to MuscleSupport.h
+   * Fixed some typos in the C++03 implementation of
+     BitChord::FromWords() and BitChord::FromBytes()
+   * Fixed a bug in Hashtable::MoveToPosition() that 
+     would cause it not to correctly position the target
+     item when the specified position was in the latter
+     half of the table's iteration-sequence.
+
 7.00 Released 8/10/2018
    - Rewrote the BitChord class to be much more powerful and
      easy to use (especially in conjunction with an enum

@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "7.00" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        70000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "7.01" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        70100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -1303,6 +1303,21 @@ static inline uint32 CalculateChecksumForFloat(float v)   {uint32 le = (v==0.0f)
 /** Convenience method:  Given a double, returns a corresponding 32-bit checksum value */
 static inline uint32 CalculateChecksumForDouble(double v) {uint64 le = (v==0.0) ? 0 : B_HOST_TO_LENDIAN_IDOUBLE(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0 IS necessary, because the sign-bit might be set.  :(
 
+/** Convenience method:  Returns the Euclidean modulo of the given value for the given divisor.
+  * @param value the value to calculate the Euclidean-modulo of
+  * @param divisor the divisor to use in the calculation.  Must not be zero.
+  * @note For non-negative values of (value), this function behaves the same as (value%divisor).
+  *       For negative values of (value), this function behaves differently
+  *       in that e.g. EuclideanModulo(-1,d) will return (d-1) rather than -1.  This is
+  *       arguably more useful for cyclic-sequence applications, as there will not be
+  *       any anomalies in the resulting values as (value) transitions between positive and negative.
+  */
+static inline uint32 EuclideanModulo(int32 value, uint32 divisor)
+{
+   // Derived from the code posted at https://stackoverflow.com/a/51959866/131930
+   return (value < 0) ? ((divisor-1)-((-1-value)%divisor)) : (value%divisor);
+}
+ 
 /** This hashing functor type handles the trivial cases, where the KeyType is
  *  Plain Old Data that we can just feed directly into the CalculateHashCode() function.
  *  For more complicated key types, you should define a method in your KeyType class

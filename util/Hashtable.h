@@ -2741,7 +2741,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToPosition(const KeyType &
          else
          {
             insertAfter = this->IndexToEntryChecked(_iterTailIdx);
-            while(++idx < GetNumItems()) this->GetEntryIterPrevUnchecked(insertAfter);
+            while(++idx < GetNumItems()) insertAfter = this->GetEntryIterPrevUnchecked(insertAfter);
          }
          InsertIterationEntry(e, insertAfter);
       }
