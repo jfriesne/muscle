@@ -5,6 +5,25 @@ key:  - new feature
       * bug fixed
       o other
 
+7.02 Released 9/7/2018
+   - Added a function OptimizeMessageForTransmissionToMultipleGateways()
+     that can be used to greatly reduce a server's RAM usage when it is 
+     going to send a large Message to multiple clients simultaneously.
+   - Added a function IsMessageOptimizedForTransmissionToMultipleGateways()
+     that will return true iff the specified Message has been tagged already.
+   - Added a GetDistanceTo() method to the String class that 
+     returns the Levenshtein distance between two Strings.
+   - Added a GetInitialMemoryUsage() method to the CompleteSystemSystem class.
+   - Added a GetProcessMemoryUsage() function to MiscUtilityFunctions that
+     returns the current process's approximate resident heap-size, in bytes.
+   - Added a CreateConnectedSocketPair() convenience function
+     to message_transceiver_thread.py.
+   - Added AdoptRawDataArray() and ReleaseRawDataArray() methods to 
+     the Queue class, so that a Queue can operate using an 
+     externally-provided data-array if necessary.
+   o Replaced some #defines in GlobalMemoryAllocator.h with inline
+     functions instead, for more robust parsing.
+
 7.01 Released 8/22/2018
    - Added a EuclideanModulo() convenience function
      to MuscleSupport.h

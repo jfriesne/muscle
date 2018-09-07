@@ -81,9 +81,28 @@ void * muscleRealloc(void * ptr, size_t s, bool retryOnFailure = true);
 status_t MemoryParanoiaCheckBuffer(void * p, bool crashIfInvalid = true);
 
 #else
-# define muscleAlloc malloc
-# define muscleFree(x) {if (x) free(x);}
-# define muscleRealloc realloc
+
+/** Dummy/pass-through implementation of malloc().  Simply calls through to malloc()
+  * @param numBytes the number of byes to allocate
+  * @param retryOnFailure In this implementation, this argument is ignored.
+  * @returns a pointer to the returned buffer of memory, or NULL on failure.
+  */
+static inline void * muscleAlloc(size_t numBytes, bool retryOnFailure = true) {(void) retryOnFailure; return malloc(numBytes);}
+
+/** Dummy/pass-through implementation of free().  Simply calls through to free().
+  * @param buf the buffer to free() (as was previously returned by a call to muscleAlloc() or muscleRealloc().
+  * @note calling muscleFree(NULL) is safe to do, it will be treated as a no-op.
+  */
+static inline void muscleFree(void * buf) {if (buf) free(buf);}
+
+/** Dummy/pass-through implementation of realloc().  Simply calls through to realloc().
+  * @param ptr pointer argument (see realloc()'s man page for details)
+  * @param s size argument (see realloc()'s man page for details)
+  * @param retryOnFailure this parameter is ignored in this implementation
+  * @returns the return value from realloc()
+  */
+static inline void * muscleRealloc(void * ptr, size_t s, bool retryOnFailure = true) {(void) retryOnFailure; return realloc(ptr, s);}
+
 #endif
 
 } // end namespace muscle

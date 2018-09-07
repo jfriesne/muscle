@@ -512,7 +512,7 @@ class Message:
 # Silly little test stub.  Just writes a flattened Message out to a file, then reads in back in.
 if __name__ == "__main__":
    tm = Message(666)
-   tm.PutBool("bool", [1,0])
+   tm.PutBool("bool", [True,False])
    tm.PutInt8("int8", [8,9,10])
    tm.PutInt16("int16", [16,18,19])
    tm.PutInt32("int32", [32,31,30])

@@ -15,6 +15,20 @@ using namespace muscle;
 // This program exercises the String class.
 int main(void) 
 {
+#ifdef TEST_DISTANCE
+   while(1)
+   {
+      char base[512];  
+      printf("Enter string A: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
+      String a = base; a = a.Trim();
+      printf("Enter string B: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
+      String b = base; b = b.Trim();
+
+      printf("Distance from [%s] to [%s] is %u\n", a(), b(), a.GetDistanceTo(b));
+      printf("Distance from [%s] to [%s] is %u\n", b(), a(), b.GetDistanceTo(a));
+   }
+#endif
+
 #ifdef TEST_MEMMEM
    char lookIn[512]; printf("Enter LookIn  string: "); fflush(stdout); if (fgets(lookIn, sizeof(lookIn), stdin) == NULL) lookIn[0] = '\0';
    lookIn[strlen(lookIn)-1] = '\0';

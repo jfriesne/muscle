@@ -953,6 +953,56 @@ String String :: ArgAux(const char * buf) const
    else return *this;
 }
 
+// Stolen from:  https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C.2B.2B
+static uint32 GetLevenshteinDistanceAux(const char *shortString, uint32 shortStringLen, const char * longString, uint32 longStringLen, uint32 maxResult)
+{
+   uint32 tempBuf[256];  // We'll try to avoid using the heap for small strings
+
+   const uint32 allocLen = shortStringLen+1;
+   uint32 * columns = (allocLen > ARRAYITEMS(tempBuf)) ? newnothrow uint32[allocLen] : tempBuf;
+   if (columns == NULL)
+   {
+      WARN_OUT_OF_MEMORY;
+      return maxResult;
+   }
+
+   for (uint32 x=1; x<allocLen; x++) columns[x] = x;
+   for (uint32 x=1; x<=longStringLen; x++)
+   {
+      columns[0] = x;
+      for (uint32 y=1, lastdiag=(x-1); y<=shortStringLen; y++)
+      {
+         const uint32 olddiag = columns[y];
+         columns[y] = muscleMin(columns[y]+1, columns[y-1]+1, lastdiag+((shortString[y-1]==longString[x-1])?0:1));
+         lastdiag = olddiag;
+      }
+      if (columns[shortStringLen] >= maxResult) break;
+   }
+
+   const uint32 ret = columns[shortStringLen];
+   if (allocLen > ARRAYITEMS(tempBuf)) delete [] columns;
+   return muscleMin(ret, maxResult);
+}
+
+static uint32 GetLevenshteinDistance(const char *s1, uint32 s1len, const char *s2, uint32 s2len, uint32 maxResult)
+{
+   // Minimize the amount of heap memory required, by swapping the arguments if (s2) is shorter than (s1).
+   // Since the function is commutative, this won't affect the resulting values
+   return (s2len < s1len)
+        ? GetLevenshteinDistanceAux(s2, s2len, s1, s1len, maxResult)
+        : GetLevenshteinDistanceAux(s1, s1len, s2, s2len, maxResult);
+}
+
+uint32 String :: GetDistanceTo(const String & otherString, uint32 maxResult) const
+{
+   return GetLevenshteinDistance(Cstr(), Length(), otherString(), otherString.Length(), maxResult);
+}
+
+uint32 String :: GetDistanceTo(const char * otherString, uint32 maxResult) const
+{
+   return GetLevenshteinDistance(Cstr(), Length(), otherString?otherString:"", otherString?strlen(otherString):0, maxResult);
+}
+
 #ifdef __APPLE__
 // Congratulations to Apple for making a seemingly trivial operation as painful as it could possibly be
 status_t String :: SetFromCFStringRef(const CFStringRef & cfStringRef)

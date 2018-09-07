@@ -6,6 +6,39 @@
 
 namespace muscle {
 
+static const String PR_NAME_MESSAGE_REUSE_TAG = "_mrutag";
+
+static Mutex _messageReuseTagMutex;  // we could do one Mutex per tag, but that seems excessive, so let's just use a single Mutex for all
+
+class MessageReuseTag : public RefCountable
+{  
+public:
+   MessageReuseTag() {/* empty */}
+   virtual ~MessageReuseTag() {/* empty */}
+   
+   ByteBufferRef _cachedData;   // the first MessageIOGateway's flattened data will be cached here for potential reuse by other gateways
+};
+DECLARE_REFTYPES(MessageReuseTag);
+
+bool IsMessageOptimizedForTransmissionToMultipleGateways(const MessageRef & msg)
+{
+   return ((msg())&&(msg()->HasName(PR_NAME_MESSAGE_REUSE_TAG, B_TAG_TYPE)));
+}
+
+status_t OptimizeMessageForTransmissionToMultipleGateways(const MessageRef & msg)
+{
+   if (msg() == NULL) return B_ERROR;
+   if (IsMessageOptimizedForTransmissionToMultipleGateways(msg)) return B_NO_ERROR;  // it's already tagged!
+
+   MessageReuseTagRef tagRef(newnothrow MessageReuseTag);
+   if (tagRef() == NULL)
+   {
+      WARN_OUT_OF_MEMORY;
+      return B_ERROR;
+   } 
+   return msg()->AddTag(PR_NAME_MESSAGE_REUSE_TAG, tagRef);
+}
+
 MessageIOGateway :: MessageIOGateway(int32 encoding) :
    _maxIncomingMessageSize(MUSCLE_NO_LIMIT),
    _outgoingEncoding(encoding), 
@@ -95,7 +128,7 @@ DoOutputImplementation(uint32 maxBytes)
                }
 
                _sendBuffer._offset = 0;
-               _sendBuffer._buffer = FlattenHeaderAndMessage(nextRef);
+               _sendBuffer._buffer = FlattenHeaderAndMessageAux(nextRef);
 
                // Restore the PR_NAME_PACKET_REMOTE_LOCATION field, since we're not supposed to be modifying any Messages
                if (mtuSize > 0) (void) _scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef());
@@ -331,14 +364,40 @@ GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const
 
 ByteBufferRef 
 MessageIOGateway ::
-FlattenHeaderAndMessage(const MessageRef & msgRef) const
+FlattenHeaderAndMessageAux(const MessageRef & msgRef) const
 {
    TCHECKPOINT;
 
    ByteBufferRef ret;
    if (msgRef())
    {
-      uint32 hs = GetHeaderSize();
+      RefCountableRef rcRef;
+      if (msgRef()->FindTag(PR_NAME_MESSAGE_REUSE_TAG, rcRef) == B_NO_ERROR)
+      {
+         MessageReuseTagRef mrtRef(rcRef, false);
+         if (mrtRef())
+         {
+            MutexGuard mg(_messageReuseTagMutex);  // in case (msgRef) has been shared across threads!
+            if (mrtRef()->_cachedData()) ret = mrtRef()->_cachedData;  // re-use data from a neighboring gateway!
+            else
+            {
+               ret = FlattenHeaderAndMessage(msgRef);
+               if (ret()) mrtRef()->_cachedData = ret;  // also save the buffer for the next gateway to reuse
+            }
+         }
+      }
+   }
+   return ret() ? ret : FlattenHeaderAndMessage(msgRef);  // the standard approach (every gateway for himself)
+}
+
+ByteBufferRef 
+MessageIOGateway ::
+FlattenHeaderAndMessage(const MessageRef & msgRef) const
+{
+   ByteBufferRef ret;
+   if (msgRef())
+   {
+      const uint32 hs = GetHeaderSize();
       ret = GetByteBufferFromPool(hs+msgRef()->FlattenedSize());
       if (ret())
       {

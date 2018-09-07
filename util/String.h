@@ -580,6 +580,26 @@ public:
      */
    uint32 GetNumInstancesOf(const char * substring) const;
 
+   /** Returns the Levenshtein distance between this string and (otherString).
+     * @param otherString a String to calculate our Levenshtein distance to.
+     * @param maxResult The maximum score to return.  (Setting a maximum score to return can
+     *                  speed up execution time, as it allows this method to return early
+     *                  as soon as the maximum score has been reached).  Defaults to MUSCLE_NO_LIMIT.
+     * @returns The Levenshtein distance -- i.e. the number of single-character insertions, deletions,
+     *          or character replacements it would take to convert one string into the other.
+     */
+   uint32 GetDistanceTo(const String & otherString, uint32 maxResult = MUSCLE_NO_LIMIT) const;
+
+   /** Returns the Levenshtein distance between this string and (otherString).
+     * @param otherString a C string to calculate our Levenshtein distance to.  NULL pointers are considered a synonym for "".
+     * @param maxResult The maximum score to return.  (Setting a maximum score to return can
+     *                  speed up execution time, as it allows this method to return early
+     *                  as soon as the maximum score has been reached).  Defaults to MUSCLE_NO_LIMIT.
+     * @returns The Levenshtein distance -- i.e. the number of single-character insertions, deletions,
+     *          or character replacements it would take to convert one string into the other.
+     */
+   uint32 GetDistanceTo(const char * otherString, uint32 maxResult = MUSCLE_NO_LIMIT) const;
+
    /** Returns true iff this string starts with (c) 
      * @param c The character to see if this string starts with or not
      */

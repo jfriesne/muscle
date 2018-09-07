@@ -562,6 +562,7 @@ void SetFieldNameUniquenessEnforced(UBool enforce);
 /** Returns true iff field-name-uniqueness is being enforced.  Default value of this flag is true. */
 UBool IsFieldNameUniquenessEnforced();
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
 typedef struct imp_GenericArrayHandle {
    const uint32 _numItems;
    const uint8 * _itemData;
@@ -577,6 +578,7 @@ DECLARE_MESSAGE_DATA_ARRAY_HANDLE(Int32);
 DECLARE_MESSAGE_DATA_ARRAY_HANDLE(Int16);
 DECLARE_MESSAGE_DATA_ARRAY_HANDLE(Int8);
 DECLARE_MESSAGE_DATA_ARRAY_HANDLE(UBool);
+#endif
 
 /** Given a (Blah)ArrayHandle object, returns the number of data-items that handle points to.
   * @param arrayHandle an (Blah)ArrayHandle object of any type (as previously returned by a UMGet*s() function call)

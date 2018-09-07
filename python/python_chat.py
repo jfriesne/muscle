@@ -75,7 +75,7 @@ if __name__ == "__main__":
                  
                   # and subscribe to get updates regarding who else is on the server
                   subscribeMsg = message.Message(storage_reflect_constants.PR_COMMAND_SETPARAMETERS)
-                  subscribeMsg.PutBool("SUBSCRIBE:beshare/name", 1)
+                  subscribeMsg.PutBool("SUBSCRIBE:beshare/name", True)
                   mtt.SendOutgoingMessage(subscribeMsg)
                elif nextEvent == message_transceiver_thread.MTT_EVENT_DISCONNECTED:
                   print "Connection to server broken, goodbye!"

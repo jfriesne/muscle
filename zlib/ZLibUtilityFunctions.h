@@ -139,8 +139,6 @@ bool IsMessageDeflated(const MessageRef & msgRef);
  *  The returned Message is guaranteed to have the same 'what' code as the passed-in Message.
  *  If there is an error (out of memory?), a NULL reference is returned.
  *  @param msgRef The Message to create a compact version of.
- *  @param msgRef Reference to the newly generated compressed Message, or to the passed
- *                in Message, or a NULL reference on failure.
  *  @param compressionLevel The level of ZLib compression to use when creating the
  *                          compressed Message.  Should be between 0 (no compression)
  *                          and 9 (maximum compression).  Default value is 6.
@@ -148,6 +146,9 @@ bool IsMessageDeflated(const MessageRef & msgRef);
  *               size is bigger than that of the original(!).  Otherwise, we'll return the
  *               original Message if the compression didn't actually make the Message's flattened
  *               size smaller.  Defaults to true.
+ *  @return msgRef A reference to the newly generated compressed Message, or to the passed
+ *                 in Message (if the compressed Message turned out to be larger than the uncompressed
+ *                 one, and force was passed in as false) or a NULL reference on failure.
  */
 MessageRef DeflateMessage(const MessageRef & msgRef, int compressionLevel = 6, bool force=true);
 
@@ -158,7 +159,7 @@ MessageRef DeflateMessage(const MessageRef & msgRef, int compressionLevel = 6, b
  *  The returned Message is guaranteed to have the same 'what' code as the passed-in Message.
  *  Returns a NULL reference on failure (out of memory?)
  *  @param msgRef Message to examine and make an uncompressed equivalent of.
- *  @return Reference to an uncompressed Message on success, or a NULL reference on failure.
+ *  @return A reference to an uncompressed Message on success, or a NULL reference on failure.
  */
 MessageRef InflateMessage(const MessageRef & msgRef);
 

@@ -1979,6 +1979,7 @@ INCLUDE_FILE_PATTERNS  =
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
 PREDEFINED             = MuscleMessage_impl_h \
+                         MUSCLE_ENABLE_MEMORY_TRACKING \
                          MUSCLE_ENABLE_ZLIB_ENCODING \
                          MUSCLE_FINAL_CLASS=final \
                          DOXYGEN_SHOULD_IGNORE_THIS \
@@ -1999,7 +2000,6 @@ PREDEFINED             = MuscleMessage_impl_h \
                          "QQ_SinkItemParam=const ItemType &" \
                          "QQ_ForwardItem=" \
                          "QQ_PlunderItem=" \
-                         "QQ_SinkItemParam=" \
                          "QQ_UniversalSinkItemRef="
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this

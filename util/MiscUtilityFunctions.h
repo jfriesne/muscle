@@ -628,6 +628,13 @@ void Win32AllocateStdioConsole(const char * optOutFilePath = NULL);
   */
 float GetSystemMemoryUsagePercentage();
 
+/** Returns the (approximate) current size of the process-heap for the current process, in bytes.
+  * Returns 0 on failure (i.e. unable to determine heap size)
+  * @note this function is currently implemented for MacOS/X, Windows, and Linux only.
+  *       On other OS's it will always return 0.
+  */
+uint64 GetProcessMemoryUsage();
+
 /** @} */ // end of miscutilityfunctions doxygen group
 
 } // end namespace muscle

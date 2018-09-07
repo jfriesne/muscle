@@ -661,6 +661,31 @@ public:
    /** As above, but provides read-only access */
    const ItemType * GetRawArrayPointer() const {return _queue;}
 
+   /** Causes this Queue to drop any data it is currently holding and use the specified array as its data-buffer instead.
+     * @param numItemsInArray The number of items pointed to by (array).
+     * @param array Pointer to an array full of data.  This Queue will take ownership of the array, and will call
+     *              delete[] on it at some point (either as part of a resize, or as part of the Queue destructor)
+     *              unless you call ReleaseDataArray() beforehand.
+     * @param validItemCount how many of the items in (array) should be considered currently-valid.  If larger than (numItemsInArray)
+     *                      this value will be treated as if it was equal to (numItemsInArray).  (Useful if you have e.g. an
+     *                      array of 800 items but want the final 300 of them to be used as "room to grow" only).
+     *                      Defaults to MUSCLE_NO_LIMIT.
+     * @note Don't call this method unless you know what you are doing!
+     */
+   void AdoptRawDataArray(uint32 numItemsInArray, ItemType * array, uint32 validItemCount = MUSCLE_NO_LIMIT);
+
+   /** Relinquishes ownership of our internally-held data array, and returns it to the caller.
+     * Note that the caller becomes the owner of the returned data-array and should call delete[] on it
+     * when he is done using it, otherwise there will be a memory leak.  This method has the side effect
+     * of clearing this Queue.
+     * @param optRetArrayLen if non-NULL, the number of items in the returned array will be written into the
+     *                       uint32 this pointer points to.  You can also get this value by calling GetNumAllocatedItemSlots()
+     *                       before calling ReleaseRawDataArray() (but not afterwards!).  Defaults to NULL.
+     * @returns a pointer to an array of items for the caller to own, or NULL on failure.  Call delete[] on the returned value to avoid a memory leak.
+     * @note Don't call this method unless you know what you are doing!
+     */
+   ItemType * ReleaseRawDataArray(uint32 * optRetArrayLen = NULL);
+
 private:
    /** Returns true iff we need to set our ItemType objects to their default-constructed state when we're done using them */
    inline bool IsPerItemClearNecessary() const
@@ -1695,6 +1720,52 @@ Queue<ItemType>::Normalize()
          _headIndex = 0;
          _tailIndex = _itemCount-1;
       }
+   }
+}
+
+template <class ItemType>
+ItemType * 
+Queue<ItemType>::ReleaseRawDataArray(uint32 * optRetArrayLen)
+{
+   ItemType * ret = NULL;
+
+   if (optRetArrayLen) *optRetArrayLen = _queueSize;
+
+   if (_queue == _smallQueue)
+   {
+      // Oops, we don't have a dynamically-created array to release!  So we'll create one
+      // to return, just so the user doesn't have to worry about handling a special-case.
+      ret = newnothrow ItemType[_queueSize];
+      if (ret)
+      {
+         for (uint32 i=0; i<_itemCount; i++) ret[i] = (*this)[i];
+         Clear();
+      }
+      else WARN_OUT_OF_MEMORY;
+   }
+   else
+   {
+      // In the non-small-Queue case we can just pass out the array-pointer
+      ret        = _queue;
+      _queue     = NULL;
+      _queueSize = 0;
+      _itemCount = 0;
+   }
+   return ret;
+}
+
+template <class ItemType>
+void 
+Queue<ItemType>::AdoptRawDataArray(uint32 numItemsInArray, ItemType * array, uint32 validItemCount)
+{
+   Clear(true);
+   if (array)
+   {
+      _queue     = array;
+      _queueSize = numItemsInArray;
+      _itemCount = muscleMin(numItemsInArray, validItemCount);
+      _headIndex = 0;
+      _tailIndex = 0;
    }
 }
 

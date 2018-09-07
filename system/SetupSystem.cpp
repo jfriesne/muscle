@@ -60,12 +60,20 @@
 #endif
 
 #if defined(__APPLE__)
+# include <mach/mach.h>
 # include <mach/mach_time.h>
+# include <mach/message.h>      // for mach_msg_type_number_t
+# include <mach/kern_return.h>  // for kern_return_t
+# include <mach/task_info.h>
 #endif
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
 # include "system/AtomicCounter.h"
 # include "system/ThreadLocalStorage.h"
+#endif
+
+#ifdef WIN32
+# include <psapi.h>     // for PROCESS_MEMORY_COUNTERS (yes, this include has to be down here)
 #endif
 
 namespace muscle {
@@ -971,6 +979,7 @@ CompleteSetupSystem * CompleteSetupSystem :: GetCurrentCompleteSetupSystem() {re
 CompleteSetupSystem :: CompleteSetupSystem(bool muscleSingleThreadOnly)
    : _threads(muscleSingleThreadOnly)
    , _prevInstance(_activeCSS)
+   , _initialMemoryUsage(GetProcessMemoryUsage())
 {
    _activeCSS = this;  // push us onto the stack
 }
@@ -2201,6 +2210,31 @@ void PrintBuildFlags()
 {
    Queue<String> flagStrs = GetBuildFlags();
    for (uint32 i=0; i<flagStrs.GetNumItems(); i++) printf("MUSCLE code was compiled with preprocessor flag -D%s\n", flagStrs[i]());
+}
+
+uint64 GetProcessMemoryUsage()
+{
+#if defined(__linux__)
+   FILE* fp = fopen("/proc/self/statm", "r");
+   if (fp)
+   {
+      char buf[256];
+      if (fgets(buf, sizeof(buf), fp) == NULL) buf[0] = '\0';
+      fclose(fp);
+
+      // skip past the first number (total program size) and return Rss
+      const char * firstSpace = strchr(buf, ' ');
+      if (firstSpace) return Atoull(firstSpace+1)*sysconf(_SC_PAGESIZE);
+   }
+#elif defined(__APPLE__)
+   mach_task_basic_info_data_t taskinfo; memset(&taskinfo, 0, sizeof(taskinfo));
+   mach_msg_type_number_t outCount = MACH_TASK_BASIC_INFO_COUNT;
+   if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&taskinfo, &outCount) == KERN_SUCCESS) return taskinfo.resident_size;
+#elif defined(WIN32) && !defined(__MINGW32__)
+   PROCESS_MEMORY_COUNTERS pmc;
+   if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) return pmc.WorkingSetSize;
+#endif
+   return 0;
 }
 
 } // end namespace muscle

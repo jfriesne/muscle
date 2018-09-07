@@ -202,6 +202,12 @@ public:
      */ 
    static CompleteSetupSystem * GetCurrentCompleteSetupSystem();
 
+   /** Returns the amount of RAM being used by this process at the moment the
+     * CompleteSetupSystem constructor was executed.  (Useful for comparing how
+     * much RAM the process is using later on compared to its initial allotment)
+     */
+   size_t GetInitialMemoryUsage() const {return _initialMemoryUsage;}
+
 private: 
    TimeSetupSystem    _time;
    NetworkSetupSystem _network;
@@ -210,6 +216,7 @@ private:
    SanitySetupSystem  _sanity;
    Queue<GenericCallbackRef> _cleanupCallbacks;
    CompleteSetupSystem * _prevInstance;  // stack (via linked list) so that nested scopes are handled appropriately
+   size_t             _initialMemoryUsage;  // RAM footprint of this process at the time our constructor ran
 };
 
 /** Returns a pointer to a process-wide Mutex, or NULL if that Mutex

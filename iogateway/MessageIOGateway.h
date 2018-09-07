@@ -244,6 +244,8 @@ protected:
    virtual bool AreOutgoingMessagesIndependent() const {return false;}
 
 private:
+   ByteBufferRef FlattenHeaderAndMessageAux(const MessageRef & msgRef) const;
+
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    ZLibCodec * GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const;
 #endif
@@ -335,6 +337,27 @@ private:
    uint32 _outgoingByteCount;
 };
 DECLARE_REFTYPES(CountedMessageIOGateway);
+
+/** This function can be used to reduce memory usage when sending the same large
+  * Message to multiple MessageIOGateways.  
+  *
+  * If you call this function on your large Message object just before you pass it off 
+  * to one or more session objects for output, the Message object will be tagged with
+  * a rendezvous-point object such that only one of the gateways will have to allocate
+  * a serialized buffer and Flatten() the Message into it; the latter gateways will
+  * reuse the buffer created by the first gateway. This can be more memory-efficient 
+  * than the default behavior (where each MessageIOGateway has to allocate its
+  * own separate ByteBuffer and separately flatten the Message into it).
+  *
+  * @param msg a reference the Message you are about to pass to multiple gateways.
+  */
+status_t OptimizeMessageForTransmissionToMultipleGateways(const MessageRef & msg);
+
+/** Returns true iff the given Message has had 
+  * OptimizeMessageForTransmissionToMultipleGateways() called on it already.
+  * @param msg the Message to check for the presence of an optimization-tag.
+  */
+bool IsMessageOptimizedForTransmissionToMultipleGateways(const MessageRef & msg);
 
 //////////////////////////////////////////////////////////////////////////////////
 //
