@@ -1420,6 +1420,8 @@ DoTraversalAux(TraversalContext & data, DataNode & node)
       int32 entryIdx = 0;
       for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++)
       {
+         scratchStr.Clear();  // otherwise we might get leftover data from the previous PathMatcherEntry in the iteration
+
          const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
          if ((nextQueue)&&((int)nextQueue->GetStringMatchers().GetNumItems() > depth-data.GetRootDepth()))
          {
@@ -1432,8 +1434,8 @@ DoTraversalAux(TraversalContext & data, DataNode & node)
                const char * k = key();
                while(*k)
                {
-                  char c = *k;
-                  bool curCharIsEscape = ((c == '\\')&&(prevCharWasEscape == false));
+                  const char c = *k;
+                  const bool curCharIsEscape = ((c == '\\')&&(prevCharWasEscape == false));
                   if (curCharIsEscape == false)
                   {
                           if ((prevCharWasEscape)||(c != ',')) scratchStr += c;

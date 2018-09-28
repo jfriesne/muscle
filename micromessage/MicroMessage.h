@@ -69,7 +69,7 @@ typedef struct _UMessageFieldNameIterator {
 } UMessageFieldNameIterator;
 #endif
 
-/** Initializes the state of the specified UMessageFieldNameIterato to point at the specified UMessage.
+/** Initializes the state of the specified UMessageFieldNameIterator to point at the specified UMessage.
   * When this function returns, the iterator will be pointing to the first matching field in the UMessage (if there are any).
   * @param iter The iterator object to initialize.
   * @param msg The UMessage object the iterator is to examine.  (This object must remain valid while the iterator is in use)

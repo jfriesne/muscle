@@ -17,6 +17,11 @@ of your Makefile to alter muscle's behaviour:
    classes if you are compiling using C++11 but nevertheless you still 
    want those classes to use OS-specific back-end APIs instead.
 
+-DMUSCLE_AVOID_CPLUSPLUS11_BITCHORD
+   Set this to avoid the C++11 implementation of the BitChord class and
+   fall back to the legacy/C++03 implementation instead.  (Useful for
+   old/broken C++11 compilers that don't quite grok the C++11 implementation)
+
 -DMUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
    Tells the ThreadLocalStorage class to avoid using the C++11 thread_local
    keyword even through C++11 support is enabled.  Defined automatically for

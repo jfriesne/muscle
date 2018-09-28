@@ -954,7 +954,6 @@ void AbstractObjectRecycler :: GlobalFlushAllCachedObjects()
    // been flushed.
    AbstractObjectRecycler * r = _firstRecycler;
    while(r) r = (r->FlushCachedObjects() > 0) ? _firstRecycler : r->_next;
-
    if (m) m->Unlock();
 }
 

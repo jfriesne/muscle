@@ -5,6 +5,21 @@ key:  - new feature
       * bug fixed
       o other
 
+7.03 Released 9/28/2018
+   - WarnOutOfMemory() now calls PrintStackTrace() (but not more
+     often than once every 5 seconds, to avoid spamming)
+   - BitChord::ClearUnusedBits() is now O(1) when compiled with C++11.
+   o support/BitChord.h will now fall back to its legacy implementation
+     if MUSCLE_AVOID_CPLUSPLUS11_BITCHORD is defined.  (This define
+     will automatically be set if MUSCLE_AVOID_CPLUSPLUS11 is defined)
+   o Removed unnecessary call to ERR_print_errors_fp() from the
+     SSLSocketDataIO constructor.
+   * IPAddress's string-argument-constructor left its fields
+     uninitialized in the case where SetFromString() failed.  Fixed.
+   * Fixed a bug in StorageRectSession::DoTraversalAux() that would
+     cause the node-traversal to skip first node-name specified in 
+     the second (and later) path-strings in a Message.
+
 7.02 Released 9/7/2018
    - Added a function OptimizeMessageForTransmissionToMultipleGateways()
      that can be used to greatly reduce a server's RAM usage when it is 

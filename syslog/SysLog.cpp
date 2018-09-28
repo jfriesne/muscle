@@ -2584,6 +2584,12 @@ void WarnOutOfMemory(const char * file, int line)
    // for now.
    NestCountGuard ncg(_inWarnOutOfMemory);  // avoid potential infinite recursion if LogCallbacks called by LogTime() try to allocate more memory and also fail
    LogTime(MUSCLE_LOG_CRITICALERROR, "ERROR--MEMORY ALLOCATION FAILURE!  (" INT32_FORMAT_SPEC " bytes at %s:%i)\n", GetAndClearFailedMemoryRequestSize(), file, line);
+
+   if (_inWarnOutOfMemory.IsOutermost())
+   {
+      static uint64 _prevCallTime = 0;
+      if (OnceEvery(SecondsToMicros(5), _prevCallTime)) PrintStackTrace();
+   }
 }
 
 #endif

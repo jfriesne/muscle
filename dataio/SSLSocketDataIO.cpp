@@ -42,8 +42,6 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
                if (accept) SSL_set_accept_state(CAST_SSL);
                       else SSL_set_connect_state(CAST_SSL);
 
-               ERR_print_errors_fp(stderr);
-
                ok = true;
             }
             else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO:  BIO_new_socket() failed!\n");

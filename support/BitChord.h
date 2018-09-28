@@ -10,6 +10,10 @@
 
 namespace muscle {
 
+#if defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined (MUSCLE_AVOID_CPLUSPLUS11_BITCHORD)
+# define MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
+#endif
+
 /** A templated class for implement an N-bit-long bit-chord.  Useful for doing efficient parallel boolean operations
   * on bits-strings of lengths that can't fit in any of the standard integer types, and also for holding bit-shifted 
   * boolean flags in a "safe" container so that you can query or manipulate the flags via human-readable method-calls 
@@ -26,7 +30,7 @@ public:
    /** Default constructor */
    BitChord() {ClearAllBits();}
 
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
    /** Variadic constructor; takes a list of bit-indices indicating which bits should be set in this BitChord.
      * @param bits any number of bit-index arguments may be supplied, and the correspond bits will be set.
      * @note for example, BitChord bc(a, b, c); is equivalent to BitChord bc; bc.SetBit(a); bc.SetBit(b); bc.SetBit(c);
@@ -225,7 +229,7 @@ public:
    /** @copydoc DoxyTemplate::HashCode() const */
    uint32 HashCode() const {return CalculateChecksum();}
 
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
+#ifndef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
    /** Equivalent to calling SetBit() multiple times; once per supplied argument.
      * e.g. calling SetBits(a,b,c) is equivalent to calling SetBit(a);SetBit(b);SetBit(c).
      * @param bits a list of bit-indices indicating which bit(s) to set
@@ -494,9 +498,14 @@ public:
    }
 
 private:
-#ifdef MUSCLE_AVOID_CPLUSPLUS11
+#ifdef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
    int OneIffBitIsSet(  uint32 whichBit) const {return IsBitSet(whichBit)?1:0;}
    int OneIffBitIsUnset(uint32 whichBit) const {return IsBitSet(whichBit)?0:1;}
+#else
+   static constexpr uint32 GetWordWithFirstNBitsSet(int numBits)
+   {
+      return (numBits <= 0) ? ((uint32)0) : ((((uint32)1)<<(numBits-1)) | GetWordWithFirstNBitsSet(numBits-1));
+   }
 #endif
 
    bool IsBitSetUnchecked(uint32 whichBit) const {return ((_words[whichBit/NUM_BITS_PER_WORD] & (1<<(whichBit%NUM_BITS_PER_WORD))) != 0);}
@@ -510,8 +519,16 @@ private:
 
    void ClearUnusedBits()
    {
-      if (((NumBits%NUM_BITS_PER_WORD)!=0)&&(_words[NUM_WORDS-1] != 0))
-         for (uint32 i=NumBits; i<(NUM_WORDS*NUM_BITS_PER_WORD); i++) ClearBitUnchecked(i);
+      const uint32 numLeftoverBits = NumBits%NUM_BITS_PER_WORD;
+      if (numLeftoverBits > 0)
+      {
+         uint32 & lastWord = _words[NUM_WORDS-1];
+#ifdef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
+         if (lastWord != 0) for (uint32 i=NumBits; i<(NUM_WORDS*NUM_BITS_PER_WORD); i++) ClearBitUnchecked(i);
+#else
+         lastWord &= GetWordWithFirstNBitsSet(numLeftoverBits);  // O(1) implementation
+#endif
+      }
    }
 
    enum {NUM_BITS_PER_BYTE  = 8};
@@ -525,7 +542,7 @@ private:
 public:
    // This is the hacked-for-C++03 implementation of our variadic methods; it's here for backwards compatibility with old compilers only!
    // It works the same as the above variadic implementation, but only for up to 32 arguments (and it's macro-based, so it's a total eyesore, sorry)
-#ifdef MUSCLE_AVOID_CPLUSPLUS11
+#ifdef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
 # ifndef DOXYGEN_SHOULD_IGNORE_THIS
 
 #define BC_ARGS_1 uint32 b1

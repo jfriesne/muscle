@@ -166,8 +166,8 @@ protected:
    /**
     * Recursively creates or updates a subtree of the node database from the given Message object.
     * (It's a bit more efficient than it looks, since all data Messages are reference counted rather than copied)
-    * @param msg the Message to restore the subtree into.  This Message is typically one that was created earlier by SaveNodeTreeToMessage().
-    * @param path The relative path of the root node, e.g. "" is your home session node.
+    * @param msg the Message to restore the subtree from.  This Message is typically one that was created earlier by SaveNodeTreeToMessage().
+    * @param path The relative path of the root node to add restored nodes into, e.g. "" is your home session node.
     * @param loadData Whether or not the payload Message of (node) should be restored.  The payload Messages of (node)'s children will always be restored no matter what.
     * @param appendToIndex Used in the recursion to handle restoring indexed nodes.  You will usually want to Leave it as false when you call this method.
     * @param maxDepth How many levels of children should be restored from the Message.  If left as MUSCLE_NO_LIMIT (the default),

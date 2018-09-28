@@ -97,7 +97,7 @@ int main(void)
    printf("X18 %i\n", val.AreAnyOfTheseBitsUnset(OPTION_E, OPTION_F, OPTION_G, OPTION_H));
    printf("X19 [%s]\n", TestOptionBits::WithAllBitsSetExceptThese(OPTION_A, OPTION_C, OPTION_D).ToHexString()());
 
-   TestOptionBits fromWords = TestOptionBits::FromWords((uint32)1,(uint32)2);
+   TestOptionBits fromWords = TestOptionBits::FromWords((uint32)3,(uint32)0xFFFFFFF5);
    printf("X20 [%s]\n", fromWords.ToHexString()());
   
    TestOptionBits fromBytes = TestOptionBits::FromBytes((uint8)1,(uint8)2,(uint8)3,(uint8)4,(uint8)(0x65));
