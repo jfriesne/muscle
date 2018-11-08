@@ -429,13 +429,13 @@ public:
    BitChord WithAllBitsToggled() const {return ~(*this);}
 
    /** Returns the number of bits that are represented by this bit-chord, as specified in the template arguments */
-   uint32 GetNumBitsInBitChord() const {return NumBits;}
+   static MUSCLE_CONSTEXPR uint32 GetNumBitsInBitChord() {return NumBits;}
 
    /** Returns the number of 8-bit-bytes that are represented by this bit-chord */
-   uint32 GetNumBitsInBytesChord() const {return NUM_BYTES;}
+   static MUSCLE_CONSTEXPR uint32 GetNumBytesInBitChord() {return NUM_BYTES;}
 
    /** Returns the number of 32-bit-words that are represented by this bit-chord */
-   uint32 GetNumWordsInBytesChord() const {return NUM_WORDS;}
+   static MUSCLE_CONSTEXPR uint32 GetNumWordsInBitChord() {return NUM_WORDS;}
 
    /** Returns a fixed-length hexadecimal representation of this bit-chord. */
    String ToHexString() const

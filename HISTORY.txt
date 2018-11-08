@@ -5,6 +5,13 @@ key:  - new feature
       * bug fixed
       o other
 
+7.04
+   o BitChord::GetNumBitsInBitChord() and friends are now
+     declared as static/constexpr rather than const methods,
+     so that they can be called at compile-time now.
+   * In the BitChord class, GetNumBytesInBitChord() and
+     GetNumWordsInBitChord() were mis-named.  Fixed.
+
 7.03 Released 9/28/2018
    - WarnOutOfMemory() now calls PrintStackTrace() (but not more
      often than once every 5 seconds, to avoid spamming)
