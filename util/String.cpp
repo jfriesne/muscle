@@ -953,6 +953,28 @@ String String :: ArgAux(const char * buf) const
    else return *this;
 }
 
+String String :: WithoutNumericSuffix(uint32 * optRemovedSuffixValue) const
+{
+   String ret(*this);
+   String suffix;
+   while(ret.HasChars())
+   {
+      const char c = ret[ret.Length()-1];
+      if (muscleInRange(c, '0', '9'))
+      {
+         suffix += c;
+         ret--;
+      }
+      else break;
+   }
+   if (optRemovedSuffixValue)
+   {
+      suffix.Reverse();
+      *optRemovedSuffixValue = atol(suffix());
+   }
+   return ret;
+}
+
 // Stolen from:  https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C.2B.2B
 static uint32 GetLevenshteinDistanceAux(const char *shortString, uint32 shortStringLen, const char * longString, uint32 longStringLen, uint32 maxResult)
 {

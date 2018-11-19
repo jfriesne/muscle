@@ -6,6 +6,8 @@ key:  - new feature
       o other
 
 7.04
+   - Added a WithoutNumericSuffix() convenience method to
+     the String class.
    - The CMakeLists.txt file has been modified so that it
      is now usable by CMake 2.8.x and higher.
    o BitChord::GetNumBitsInBitChord() and friends are now

@@ -1171,6 +1171,14 @@ public:
      */
    String WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
+   /** Returns a String equal to this one, but with any integer/numeric suffix removed.
+     * For example, if you called this method on the String "Joe-54", this method would return "Joe".
+     * @param optRetRemovedSuffixValue If non-NULL, the numeric suffix that was removed will be returned here.
+     *                                 If there was no numeric suffix, zero will be written here.
+     * @note that negative numeric suffixes aren't supported -- i.e. plus or minus is not considered to be part of the numeric-suffix.
+     */
+   String WithoutNumericSuffix(uint32 * retRemovedSuffixValue = NULL) const;
+
    /** Returns a 32-bit checksum corresponding to this String's contents.
      * Note that this method method is O(N).
      */
