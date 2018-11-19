@@ -92,13 +92,9 @@ of your Makefile to alter muscle's behaviour:
    This might be useful to do if compiling on a platform where multicast
    APIs aren't supported.
 
--DMUSCLE_ENABLE_KEEPALIVE_API
-   Set this to make the TCP keepalive API calls in NetworkUtilityFunctions.h
-   available for use.  (it's disabled by default to make sure that the
-   keepalive functions won't break the build on platforms that don't 
-   support keepalive).  Note that muscled itself won't use keepalive even 
-   if this constant is specified; the functions are a convenience for 
-   other MUSCLE-based applications to use if they wish.
+-DMUSCLE_DISABLE_KEEPALIVE_API
+   Set this to avoid attempting to compile the TCP-keepalive API calls in 
+   NetworkUtilityFunctions.{cpp,h} under Linux.
 
 -DMUSCLE_64_BIT_PLATFORM
    Set this to indicate that compilation is being done on a 64-bit platform.

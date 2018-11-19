@@ -1855,7 +1855,7 @@ static IPAddress _customLocalhostIP = invalidIP;  // disabled by default
 void SetLocalHostIPOverride(const IPAddress & ip) {_customLocalhostIP = ip;}
 IPAddress GetLocalHostIPOverride() {return _customLocalhostIP;}
 
-#ifdef MUSCLE_ENABLE_KEEPALIVE_API
+#ifndef MUSCLE_DISABLE_KEEPALIVE_API
 
 static inline int KeepAliveMicrosToSeconds(uint64 micros) {return ((micros+(MICROS_PER_SECOND-1))/MICROS_PER_SECOND);}  // round up to the nearest second!
 static inline uint64 KeepAliveSecondsToMicros(int second) {return (second*MICROS_PER_SECOND);}

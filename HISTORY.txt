@@ -6,9 +6,15 @@ key:  - new feature
       o other
 
 7.04
+   - The CMakeLists.txt file has been modified so that it
+     is now usable by CMake 2.8.x and higher.
    o BitChord::GetNumBitsInBitChord() and friends are now
      declared as static/constexpr rather than const methods,
      so that they can be called at compile-time now.
+   o Replaced the MUSCLE_ENABLE_KEEPALIVE_API compile-flag
+     with a new MUSCLE_DISABLE_KEEPALIVE_API flag (i.e.
+     so that the socket-keepalive API is now enabled by
+     default if neither flag is specified)
    * In the BitChord class, GetNumBytesInBitChord() and
      GetNumWordsInBitChord() were mis-named.  Fixed.
 

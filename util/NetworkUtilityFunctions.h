@@ -504,7 +504,7 @@ void SetGlobalSocketCallback(GlobalSocketCallback * cb);
 /** Returns the currently installed GlobalSocketCallback object, or NULL if there is none installed. */
 GlobalSocketCallback * GetGlobalSocketCallback();
 
-#ifdef MUSCLE_ENABLE_KEEPALIVE_API
+#ifndef MUSCLE_DISABLE_KEEPALIVE_API
 
 /**
   * This function modifies the TCP keep-alive behavior for the given TCP socket -- that is, you can use this
