@@ -1857,8 +1857,10 @@ IPAddress GetLocalHostIPOverride() {return _customLocalhostIP;}
 
 #ifndef MUSCLE_DISABLE_KEEPALIVE_API
 
+#ifdef __linux__
 static inline int KeepAliveMicrosToSeconds(uint64 micros) {return ((micros+(MICROS_PER_SECOND-1))/MICROS_PER_SECOND);}  // round up to the nearest second!
 static inline uint64 KeepAliveSecondsToMicros(int second) {return (second*MICROS_PER_SECOND);}
+#endif
 
 status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbeCount, uint64 idleTime, uint64 retransmitTime)
 {
