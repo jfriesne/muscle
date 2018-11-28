@@ -306,53 +306,73 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
 #   endif
      typedef int32 c_status_t; /**< For C programs: This type indicates an expected value of either CB_NO_ERROR/CB_OK on success, or another value (often CB_ERROR) on failure. */
 #   if defined(__cplusplus) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
-     // This C++11 implementation of status_t allows for better compile-time type-safety than the old enum-based implementation did
-     enum class status_t_values : int32
-     {
-        B_ERROR    = -1,  ///< This value is returned by a function or method that errored out
-        B_NO_ERROR = 0,   ///< This value is returned by a function or method that succeeded
-     };
-     constexpr status_t_values B_ERROR    = status_t_values::B_ERROR;    ///< This value is returned by a function or method that errored out
-     constexpr status_t_values B_NO_ERROR = status_t_values::B_NO_ERROR; ///< This value is returned by a function or method that succeeded
-     constexpr status_t_values B_OK       = status_t_values::B_NO_ERROR; ///< This value is a synonym for B_NO_ERROR
-
-     class status_t
-     {
-     public:
-        /** Constructor.  Sets our value to the specified status_t_value
-          * param v the enum-value to set us to.  Defaults to status_t_values::B_ERROR
-          */
-        status_t(status_t_values v = status_t_values::B_ERROR) : _val(v) {/* empty */}
-
-        /** Copy constructor
-          * @param rhs the status_t to make this object a copy of
-          */
-        status_t(const status_t & rhs) : _val(rhs._val) {/* empty */}
+     namespace muscle {
+        // This C++11 implementation of status_t allows for better compile-time type-safety than the old enum-based implementation did
+        enum class status_t_values : int32
+        {
+           B_ERROR    = -1,  ///< This value is returned by a function or method that errored out
+           B_NO_ERROR = 0,   ///< This value is returned by a function or method that succeeded
+        };
+        constexpr status_t_values B_ERROR    = status_t_values::B_ERROR;    ///< This value is returned by a function or method that errored out
+        constexpr status_t_values B_NO_ERROR = status_t_values::B_NO_ERROR; ///< This value is returned by a function or method that succeeded
+        constexpr status_t_values B_OK       = status_t_values::B_NO_ERROR; ///< This value is a synonym for B_NO_ERROR
    
-        bool operator ==(const status_t & rhs) const {return (_val == rhs._val);}
-        bool operator !=(const status_t & rhs) const {return (_val != rhs._val);}
+        /** This class represents the return value of a function or method that returns success or failure.
+          * Under C++11 and newer, It's implemented as a class instead of a typedef so that the compiler can
+          * provide stricter compile-time type-checking.  Valid values for this class are B_ERROR, B_NO_ERROR, 
+          * or B_OK (which is a synonym for B_NO_ERROR)
+          */
+        class status_t
+        {
+        public:
+           /** Constructor.  Sets our value to the specified status_t_value
+             * param v the enum-value to set us to.  Defaults to status_t_values::B_ERROR
+             */
+           status_t(status_t_values v = status_t_values::B_ERROR) : _val(v) {/* empty */}
    
-        /** This operator returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR, 
-          * otherwise it returns one of the non-B_NO_ERROR values.
-          * @param rhs the second status_t to test this status_t against
-          */
-        status_t operator | (const status_t & rhs) const {return rhs.IsOK() ? *this : rhs;}
+           /** Copy constructor
+             * @param rhs the status_t to make this object a copy of
+             */
+           status_t(const status_t & rhs) : _val(rhs._val) {/* empty */}
+      
+           /** Comparison operator.  Returns true iff this object has the same value as (rhs)
+             * @param rhs the status_t to compare against
+             */
+           bool operator ==(const status_t & rhs) const {return (_val == rhs._val);}
 
-        /** Sets this object equal to ((*this)|rhs).
-          * @param rhs the second status_t to test this status_t against
-          */
-        status_t & operator |= (const status_t & rhs) {*this = ((*this)|rhs); return *this;}
-
-        const char * operator()() const {return IsOK() ? "OK" : "ERROR";}
-
-        /** Convenience method:  Returns true iff our value is B_NO_ERROR */
-        bool IsOK() const {return (_val == status_t_values::B_NO_ERROR);}
-
-        /** Convenience method:  Returns true iff our value is not B_NO_ERROR */
-        bool IsError() const {return !IsOK();}
-
-     private:
-        status_t_values _val;
+           /** Comparison operator.  Returns true iff this object has a different value than (rhs)
+             * @param rhs the status_t to compare against
+             */
+           bool operator !=(const status_t & rhs) const {return (_val != rhs._val);}
+      
+           /** This operator returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR, 
+             * otherwise it returns one of the non-B_NO_ERROR values.  This operator is
+             * useful for aggregating a series of operations together and checking the
+             * result of the series (e.g. status_t ret = a() | b() | c() | d())
+             * @param rhs the second status_t to test this status_t against
+             * @note Due to the way the | operator is defined in C++, the order of evaluations
+             *       of the operations in the series in unspecified.  Also, no short-circuiting
+             *       is performed; all operands will be evaluated regardless of their values.
+             */
+           status_t operator | (const status_t & rhs) const {return rhs.IsOK() ? *this : rhs;}
+   
+           /** Sets this object equal to ((*this)|rhs).
+             * @param rhs the second status_t to test this status_t against
+             */
+           status_t & operator |= (const status_t & rhs) {*this = ((*this)|rhs); return *this;}
+   
+           /** For debugging: Implemented to return "OK" if our value is B_NO_ERROR, or "ERROR" otherwise. */
+           const char * operator()() const {return IsOK() ? "OK" : "ERROR";}
+   
+           /** Convenience method:  Returns true iff our value is B_NO_ERROR */
+           bool IsOK() const {return (_val == status_t_values::B_NO_ERROR);}
+   
+           /** Convenience method:  Returns true iff our value is not B_NO_ERROR */
+           bool IsError() const {return !IsOK();}
+   
+        private:
+           status_t_values _val;
+        };
      };
 #   else
      typedef int32 status_t; /**< This type indicates an expected value of either B_NO_ERROR/B_OK on success, or another value (often B_ERROR) on failure. */

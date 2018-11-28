@@ -10,6 +10,9 @@ key:  - new feature
      class rather than a simple typedef for int32.  It
      is used pretty much the same way as before, except
      now it provides better compile-time error-checking.
+   - Under C++11 and later, the status_t type (and its
+     values B_OK, B_ERROR, and B_NO_ERROR) are now part
+     of the muscle namespace.
    - Added a WithoutNumericSuffix() convenience method to
      the String class.
    - The CMakeLists.txt file has been modified so that it

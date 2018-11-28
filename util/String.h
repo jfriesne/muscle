@@ -1177,7 +1177,7 @@ public:
      *                                 If there was no numeric suffix, zero will be written here.
      * @note that negative numeric suffixes aren't supported -- i.e. plus or minus is not considered to be part of the numeric-suffix.
      */
-   String WithoutNumericSuffix(uint32 * retRemovedSuffixValue = NULL) const;
+   String WithoutNumericSuffix(uint32 * optRetRemovedSuffixValue = NULL) const;
 
    /** Returns a 32-bit checksum corresponding to this String's contents.
      * Note that this method method is O(N).
