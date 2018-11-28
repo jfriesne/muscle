@@ -57,9 +57,9 @@ void MGFreeMessageGateway(MMessageGateway * gw);
   * @param gw The Gateway to add the message data to.
   * @param msg The MMessage object to flatten.  Note that the gateway DOES NOT assume ownership of this MMessage!
   *            You are still responsible for freeing it, and may do so immediately on return of this function, if you wish.
-  * @returns B_NO_ERROR on success, or B_ERROR on error (out of memory?)
+  * @returns CB_NO_ERROR on success, or CB_ERROR on error (out of memory?)
   */
-status_t MGAddOutgoingMessage(MMessageGateway * gw, const MMessage * msg);
+c_status_t MGAddOutgoingMessage(MMessageGateway * gw, const MMessage * msg);
 
 /** Returns MTrue iff the given gateway has any output bytes queued up, that it wants to send.
   * @param gw The Gateway to query.

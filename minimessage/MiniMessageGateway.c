@@ -61,7 +61,7 @@ void MGFreeMessageGateway(MMessageGateway * gw)
 
 static const uint32 _MUSCLE_MESSAGE_ENCODING_DEFAULT = 1164862256; /* 'Enc0' -- vanilla encoding */
 
-status_t MGAddOutgoingMessage(MMessageGateway * gw, const MMessage * msg)
+c_status_t MGAddOutgoingMessage(MMessageGateway * gw, const MMessage * msg)
 {
    uint32 flatSize = MMGetFlattenedSize(msg);
    MByteBuffer * buf = MBAllocByteBuffer(sizeof(MMessage *) + (2*sizeof(uint32)) + flatSize, false);
@@ -81,9 +81,9 @@ status_t MGAddOutgoingMessage(MMessageGateway * gw, const MMessage * msg)
       }
       else gw->_curOutput = gw->_outputTail = buf;
        
-      return B_NO_ERROR;
+      return CB_NO_ERROR;
    }
-   else return B_ERROR;
+   else return CB_ERROR;
 }
 
 MBool MGHasBytesToOutput(const MMessageGateway * gw)
@@ -148,7 +148,7 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
                MMessage * msg = MMAllocMessage(0);
                if (msg == NULL) return -1;  /* out of memory */
 
-               if (MMUnflattenMessage(msg, (&gw->_curInput->bytes)+(2*sizeof(uint32)), gw->_maxInputPos-(2*sizeof(uint32))) == B_NO_ERROR)
+               if (MMUnflattenMessage(msg, (&gw->_curInput->bytes)+(2*sizeof(uint32)), gw->_maxInputPos-(2*sizeof(uint32))) == CB_NO_ERROR)
                {
                   /* set parser up for the next go-round */
                   gw->_curInputPos = 0;

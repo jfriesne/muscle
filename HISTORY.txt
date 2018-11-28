@@ -5,11 +5,19 @@ key:  - new feature
       * bug fixed
       o other
 
-7.04
+7.10
+   - Under C++11 and later, the status_t type is now a
+     class rather than a simple typedef for int32.  It
+     is used pretty much the same way as before, except
+     now it provides better compile-time error-checking.
    - Added a WithoutNumericSuffix() convenience method to
      the String class.
    - The CMakeLists.txt file has been modified so that it
      is now usable by CMake 2.8.x and higher.
+   o Functions in the C APIs have been modified to return
+     type c_status_t (CB_ERROR or CB_NO_ERROR) rather than
+     status_t, to avoid ambiguities with the new C++11
+     version of status_t in mixed C/C++11 programs.
    o BitChord::GetNumBitsInBitChord() and friends are now
      declared as static/constexpr rather than const methods,
      so that they can be called at compile-time now.

@@ -70,12 +70,12 @@ void * MRealloc(void * oldBuf, uint32 newSize)
 
 #endif
 
-static status_t ReadData(const uint8 * inBuf, uint32 inputBufferBytes, uint32 * readOffset, void * copyTo, uint32 blockSize)
+static c_status_t ReadData(const uint8 * inBuf, uint32 inputBufferBytes, uint32 * readOffset, void * copyTo, uint32 blockSize)
 {
-   if ((*readOffset + blockSize) > inputBufferBytes) return B_ERROR;
+   if ((*readOffset + blockSize) > inputBufferBytes) return CB_ERROR;
    memcpy(copyTo, &inBuf[*readOffset], blockSize);
    *readOffset += blockSize;
-   return B_NO_ERROR;
+   return CB_NO_ERROR;
 };     
 
 static void WriteData(uint8 * outBuf, uint32 * writeOffset, const void * copyFrom, uint32 blockSize)
@@ -458,16 +458,16 @@ static void * PutMMFixedFieldAux(MMessage * msg, MBool retainOldData, uint32 typ
    return newField ? newField->data : NULL;
 }
 
-status_t MMRemoveField(MMessage * msg, const char * fieldName)
+c_status_t MMRemoveField(MMessage * msg, const char * fieldName)
 {
    MMessageField * field = LookupMMessageField(msg, fieldName, B_ANY_TYPE);
    if (field)
    {
       DetachMMessageField(msg, field);
       FreeMMessageField(field);
-      return B_NO_ERROR;
+      return CB_NO_ERROR;
    }
-   return B_ERROR;
+   return CB_ERROR;
 }
 
 MByteBuffer ** MMPutStringField(MMessage * msg, MBool retainOldData, const char * fieldName, uint32 numItems)
@@ -806,7 +806,7 @@ static MMessageField * ImportMMessageField(const char * fieldName, uint32 nameLe
    return NULL;
 }
 
-status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBufferBytes)
+c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBufferBytes)
 {
    uint32 i, readOffset = 0;
    const uint8 * buffer = (const uint8 *) inBuf;
@@ -815,17 +815,17 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
    uint32 networkByteOrder, numEntries;
    {
       uint32 messageProtocolVersion;
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) return B_ERROR;
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != CB_NO_ERROR) return CB_ERROR;
 
       messageProtocolVersion = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
-      if ((messageProtocolVersion < OLDEST_SUPPORTED_PROTOCOL_VERSION)||(messageProtocolVersion > CURRENT_PROTOCOL_VERSION)) return B_ERROR;
+      if ((messageProtocolVersion < OLDEST_SUPPORTED_PROTOCOL_VERSION)||(messageProtocolVersion > CURRENT_PROTOCOL_VERSION)) return CB_ERROR;
    
       /* Read 'what' code */
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) return B_ERROR;
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != CB_NO_ERROR) return CB_ERROR;
       msg->what = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
 
       /* Read number of entries */
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) return B_ERROR;
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != CB_NO_ERROR) return CB_ERROR;
       numEntries = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
    }
 
@@ -841,23 +841,23 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
       const uint8 * dataPtr;
 
       /* Read entry name length */
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) return B_ERROR;
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != CB_NO_ERROR) return CB_ERROR;
 
       nameLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
-      if (nameLength > inputBufferBytes-readOffset) return B_ERROR;
+      if (nameLength > inputBufferBytes-readOffset) return CB_ERROR;
 
       /* Read entry name */
       fieldName = (const char *) &buffer[readOffset];
       readOffset += nameLength;
 
       /* Read entry type code */
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) return B_ERROR;
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != CB_NO_ERROR) return CB_ERROR;
       tc = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
 
       /* Read entry data length */
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) return B_ERROR;
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != CB_NO_ERROR) return CB_ERROR;
       eLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
-      if (eLength > inputBufferBytes-readOffset) return B_ERROR;
+      if (eLength > inputBufferBytes-readOffset) return CB_ERROR;
       
       dataPtr = &buffer[readOffset];
       switch(tc)
@@ -878,12 +878,12 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
             uint32 eUsed = 0;
             uint32 eOffset = readOffset;
             uint32 listLength = 0;
-            status_t ret = B_NO_ERROR;
-            while((eUsed < eLength)&&(ret == B_NO_ERROR))
+            c_status_t ret = CB_NO_ERROR;
+            while((eUsed < eLength)&&(ret == CB_NO_ERROR))
             {
                uint32 entryLen;
-               ret = B_ERROR;  /* go pessimistic for a bit */
-               if (ReadData(buffer, inputBufferBytes, &eOffset, &entryLen, sizeof(entryLen)) == B_NO_ERROR)
+               ret = CB_ERROR;  /* go pessimistic for a bit */
+               if (ReadData(buffer, inputBufferBytes, &eOffset, &entryLen, sizeof(entryLen)) == CB_NO_ERROR)
                {
                   entryLen = B_LENDIAN_TO_HOST_INT32(entryLen);
                   if (eOffset + entryLen <= inputBufferBytes)
@@ -891,9 +891,9 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
                      MMessage * newMsg = MMAllocMessage(0);
                      if (newMsg)
                      {
-                        if (MMUnflattenMessage(newMsg, &buffer[eOffset], entryLen) == B_NO_ERROR)
+                        if (MMUnflattenMessage(newMsg, &buffer[eOffset], entryLen) == CB_NO_ERROR)
                         {
-                           ret = B_NO_ERROR;
+                           ret = CB_NO_ERROR;
                            eOffset += entryLen;
                            eUsed   += (sizeof(uint32) + entryLen);
                            if (tail) 
@@ -910,7 +910,7 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
                   }
                }
             }
-            if (ret == B_NO_ERROR)
+            if (ret == CB_NO_ERROR)
             {
                MMessage ** newMsgField = MMPutMessageField(msg, MFalse, fieldName, listLength);
                if (newMsgField)
@@ -923,9 +923,9 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
                   }
                   doAddField = MFalse;
                }
-               else ret = B_ERROR; 
+               else ret = CB_ERROR; 
             }
-            if (ret != B_NO_ERROR)
+            if (ret != CB_NO_ERROR)
             {
                /* Clean up on error */
                while(head)
@@ -935,7 +935,7 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
                   head = next; 
                }
                MMRemoveField(msg, fieldName);
-               return B_ERROR;
+               return CB_ERROR;
             }
          }
          break;
@@ -952,7 +952,7 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
             /* All other types get loaded as variable-sized byte buffers */
             uint32 numItems;
             uint32 eOffset = readOffset;
-            if (ReadData(buffer, inputBufferBytes, &eOffset, &numItems, sizeof(numItems)) == B_NO_ERROR)
+            if (ReadData(buffer, inputBufferBytes, &eOffset, &numItems, sizeof(numItems)) == CB_NO_ERROR)
             {
                MByteBuffer ** bufs;
                numItems = B_LENDIAN_TO_HOST_INT32(numItems);
@@ -967,7 +967,7 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
                   {
                      uint32 itemSize; 
                      MBool ok = MFalse;
-                     if (ReadData(buffer, inputBufferBytes, &eOffset, &itemSize, sizeof(itemSize)) == B_NO_ERROR)
+                     if (ReadData(buffer, inputBufferBytes, &eOffset, &itemSize, sizeof(itemSize)) == CB_NO_ERROR)
                      {
                         itemSize = B_LENDIAN_TO_HOST_INT32(itemSize);
                         if ((itemSize+sizeof(uint32) <= eLeft)&&((bufs[i] = MBAllocByteBuffer(itemSize, MFalse)) != NULL))
@@ -981,7 +981,7 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
                      if (ok == MFalse)
                      {
                         MMRemoveField(msg, fieldName);
-                        return B_ERROR;
+                        return CB_ERROR;
                      }
                   }
                }
@@ -993,17 +993,17 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBuff
       if (doAddField)
       {
          if (newField) AddMMessageField(msg, newField);
-                  else return B_ERROR;
+                  else return CB_ERROR;
       }
 
       readOffset += eLength;
    }
-   return B_NO_ERROR;
+   return CB_NO_ERROR;
 }
 
-status_t MMMoveField(MMessage * sourceMsg, const char * fieldName, MMessage * destMsg)
+c_status_t MMMoveField(MMessage * sourceMsg, const char * fieldName, MMessage * destMsg)
 {
-   if (sourceMsg == destMsg) return B_NO_ERROR;  /* easy to move it to itself, it's already there! */
+   if (sourceMsg == destMsg) return CB_NO_ERROR;  /* easy to move it to itself, it's already there! */
    else
    {
       MMessageField * moveMe = LookupMMessageField(sourceMsg, fieldName, B_ANY_TYPE);
@@ -1022,15 +1022,15 @@ status_t MMMoveField(MMessage * sourceMsg, const char * fieldName, MMessage * de
          }
          else FreeMMessageField(moveMe);  /* move to NULL == kill it */
 
-         return B_NO_ERROR;
+         return CB_NO_ERROR;
       }
-      return B_ERROR;
+      return CB_ERROR;
    }
 }
 
-status_t MMCopyField(const MMessage * sourceMsg, const char * fieldName, MMessage * destMsg)
+c_status_t MMCopyField(const MMessage * sourceMsg, const char * fieldName, MMessage * destMsg)
 {
-   if (sourceMsg == destMsg) return B_NO_ERROR;  /* easy to move it to itself, it's already there! */
+   if (sourceMsg == destMsg) return CB_NO_ERROR;  /* easy to move it to itself, it's already there! */
    else
    {
       MMessageField * copyMe = LookupMMessageField(sourceMsg, fieldName, B_ANY_TYPE);
@@ -1049,17 +1049,17 @@ status_t MMCopyField(const MMessage * sourceMsg, const char * fieldName, MMessag
                }
                AddMMessageField(destMsg, clone);
             }
-            else return B_ERROR;
+            else return CB_ERROR;
          }
-         return B_NO_ERROR;
+         return CB_NO_ERROR;
       }
-      return B_ERROR;
+      return CB_ERROR;
    }
 }
 
-status_t MMRenameField(MMessage * msg, const char * oldFieldName, const char * newFieldName)
+c_status_t MMRenameField(MMessage * msg, const char * oldFieldName, const char * newFieldName)
 {
-   if (strcmp(oldFieldName, newFieldName) == 0) return B_NO_ERROR;
+   if (strcmp(oldFieldName, newFieldName) == 0) return CB_NO_ERROR;
    else
    {
       MMessageField * f = LookupMMessageField(msg, oldFieldName, B_ANY_TYPE);
@@ -1072,7 +1072,7 @@ status_t MMRenameField(MMessage * msg, const char * oldFieldName, const char * n
          {
             uint32 newSize = f->allocSize+diff;
             MMessageField * g = (MMessageField *) MRealloc(f, newSize);
-            if (g == NULL) return B_ERROR;
+            if (g == NULL) return CB_ERROR;
 
             g->allocSize = newSize;
             g->nameBytes = slen;
@@ -1097,10 +1097,10 @@ status_t MMRenameField(MMessage * msg, const char * oldFieldName, const char * n
             FreeMMessageField(overwriteThis);
          }
 
-         return B_NO_ERROR;
+         return CB_NO_ERROR;
       }
    }
-   return B_ERROR;
+   return CB_ERROR;
 }
    
 MByteBuffer ** MMGetStringField(const MMessage * msg, const char * fieldName, uint32 * optRetNumItems)
@@ -1168,16 +1168,16 @@ MByteBuffer ** MMGetDataField(const MMessage * msg, uint32 typeCode, const char 
    return ((typeCode != B_MESSAGE_TYPE)&&(IsTypeCodeVariableSize(typeCode))) ? (MByteBuffer **) GetFieldDataAux(msg, fieldName, typeCode, optRetNumItems) : NULL;
 }
 
-status_t MMGetFieldInfo(const MMessage * msg, const char * fieldName, uint32 typeCode, uint32 * optRetNumItems, uint32 * optRetTypeCode)
+c_status_t MMGetFieldInfo(const MMessage * msg, const char * fieldName, uint32 typeCode, uint32 * optRetNumItems, uint32 * optRetTypeCode)
 {
    MMessageField * f = LookupMMessageField(msg, fieldName, typeCode);
    if (f)
    {
       if (optRetNumItems) *optRetNumItems = f->numItems; 
       if (optRetTypeCode) *optRetTypeCode = f->typeCode;
-      return B_NO_ERROR;
+      return CB_NO_ERROR;
    }
-   return B_ERROR;
+   return CB_ERROR;
 }
 
 MMessageIterator MMGetFieldNameIterator(const MMessage * msg, uint32 typeCode)

@@ -147,9 +147,9 @@ void MMClearMessage(MMessage * msg);
 /** Attempts to remove and free the specified field from the given MMessage.
   * @param msg the MMessage object to remove the field from
   * @param fieldName Name of the field to remove and free. 
-  * @returns B_NO_ERROR if the field was found and removed, or B_ERROR if it wasn't found.
+  * @returns CB_NO_ERROR if the field was found and removed, or CB_ERROR if it wasn't found.
   */
-status_t MMRemoveField(MMessage * msg, const char * fieldName);
+c_status_t MMRemoveField(MMessage * msg, const char * fieldName);
 
 /** Attempts to create and install a string field with the specified field name into the MMessage.
   * On success, any previously installed field with the same name will be replaced and freed.
@@ -370,10 +370,10 @@ void MMFlattenMessage(const MMessage * msg, void * outBuf);
   * @param inBuf Buffer containing the flattened MMessage bytes, as previously created by 
   *              MMFlattenMessage() (or some other code that writes the flattened MUSCLE Message format).
   * @param bufSizeBytes How many valid bytes of data are available at (inBuf).
-  * @returns B_NO_ERROR if the restoration was a success, or B_ERROR otherwise (in which case (msg) will
+  * @returns CB_NO_ERROR if the restoration was a success, or CB_ERROR otherwise (in which case (msg) will
   *                     likely be left in some valid but only partially restored state)
   */
-status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 bufSizeBytes);
+c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 bufSizeBytes);
 
 /** Moves the specified field from one MMessage to another.
   * @param sourceMsg The MMessage where the field currently resides.
@@ -381,9 +381,9 @@ status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 bufSizeBy
   * @param destMsg The MMessage to move the field to.  If a field with this name already exists
   *                inside (destMsg), it will be replaced and freed.  If (destMsg) is NULL, the
   *                field will be removed from the source Message and freed.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.  
+  * @returns CB_NO_ERROR on success, or CB_ERROR on failure.  
   */
-status_t MMMoveField(MMessage * sourceMsg, const char * fieldName, MMessage * destMsg);
+c_status_t MMMoveField(MMessage * sourceMsg, const char * fieldName, MMessage * destMsg);
 
 /** Copies the specified field from one MMessage to another.
   * @param sourceMsg The MMessage where the field currently resides.
@@ -391,18 +391,18 @@ status_t MMMoveField(MMessage * sourceMsg, const char * fieldName, MMessage * de
   * @param destMsg The MMessage to copy the field to.  If a field with this name already exists
   *                inside (destMsg), it will be replaced and freed.  If (destMsg) is NULL, this
   *                call will have no effect.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.  
+  * @returns CB_NO_ERROR on success, or CB_ERROR on failure.  
   */
-status_t MMCopyField(const MMessage * sourceMsg, const char * fieldName, MMessage * destMsg);
+c_status_t MMCopyField(const MMessage * sourceMsg, const char * fieldName, MMessage * destMsg);
 
 /** Change the name of a field within its Message.
   * @param sourceMsg The MMessage where the field currently resides.
   * @param oldFieldName Current name of the field.
   * @param newFieldName Desired new name of the field.  If a field with this name already exists
   *                inside (sourceMsg), it will be replaced and freed.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.  
+  * @returns CB_NO_ERROR on success, or CB_ERROR on failure.  
   */
-status_t MMRenameField(MMessage * sourceMsg, const char * oldFieldName, const char * newFieldName);
+c_status_t MMRenameField(MMessage * sourceMsg, const char * oldFieldName, const char * newFieldName);
 
 /** Retrieves the string field with the given name.
   * @param msg The MMessage to look for the field in.
@@ -528,9 +528,9 @@ MByteBuffer ** MMGetDataField(const MMessage * msg, uint32 typeCode, const char 
   * @param typeCode The typecode of the field to look for, or B_ANY_TYPE if you aren't particular about type.
   * @param optRetNumItems If non-NULL, on success the uint32 this points to will have the number of items in the field written into it.
   * @param optRetTypeCode If non-NULL, on success the uint32 this points to will have the type code of the field written into it.
-  * @returns B_NO_ERROR if the field was found, or B_ERROR if no field with the specified name and type were present.
+  * @returns CB_NO_ERROR if the field was found, or CB_ERROR if no field with the specified name and type were present.
   */
-status_t MMGetFieldInfo(const MMessage * msg, const char * fieldName, uint32 typeCode, uint32 * optRetNumItems, uint32 * optRetTypeCode);
+c_status_t MMGetFieldInfo(const MMessage * msg, const char * fieldName, uint32 typeCode, uint32 * optRetNumItems, uint32 * optRetTypeCode);
 
 /** Returns MTrue iff the two MMessage objects are exactly equivalent.  (Note that field ordering is not considered)
   * @param msg1 First MMessage to compare.  Must not be NULL.

@@ -45,7 +45,7 @@ public:
      */
    virtual int32 Write(const void * buffer, uint32 size)
    {
-      if ((GetChildDataIO()() == NULL)||(_tempBuf.SetNumBytes(size, buffer) != B_NO_ERROR)) return B_ERROR;
+      if ((GetChildDataIO()() == NULL)||(_tempBuf.SetNumBytes(size, buffer) != B_NO_ERROR)) return -1;
       XorCopy(_tempBuf.GetBuffer(), buffer, size);
       return ProxyDataIO::Write(_tempBuf.GetBuffer(), size);
    }

@@ -167,8 +167,8 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          } 
          else printf("Error allocating point field!\n");
 
-         if (MMRenameField(msg, "testX", "testPoints") != B_NO_ERROR) printf("ERROR:  MMRenameField() failed!\n");
-         if (MMRenameField(msg, "testX", "testPoints") == B_NO_ERROR) printf("ERROR:  Invalid MMRenameField() succeeded!\n");
+         if (MMRenameField(msg, "testX", "testPoints") != CB_NO_ERROR) printf("ERROR:  MMRenameField() failed!\n");
+         if (MMRenameField(msg, "testX", "testPoints") == CB_NO_ERROR) printf("ERROR:  Invalid MMRenameField() succeeded!\n");
       }
       {
          MRect * data = MMPutRectField(msg, false, "testRects", ITEM_COUNT);
@@ -268,7 +268,7 @@ int main(int, char **)
             mmsg2 = MMAllocMessage(0);
             if (mmsg2)
             {
-               if (MMUnflattenMessage(mmsg2, mmbuf, mmBufSize) == B_NO_ERROR)
+               if (MMUnflattenMessage(mmsg2, mmbuf, mmBufSize) == CB_NO_ERROR)
                {
                   mmBuf2Size = MMGetFlattenedSize(mmsg2);
                   if (mmBuf2Size == mmBufSize)

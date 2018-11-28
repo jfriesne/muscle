@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "7.03" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        70300  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "7.10" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        71000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -237,9 +237,18 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
 #  define BEOS_OLD_NETSERVER
 # endif
 #else
-# define B_ERROR    -1         /**< A value typically returned by a function or method with return type status_t, to indicate that it failed.  (When checking the value, it's better to check against B_NO_ERROR though, in case other failure values are defined in the future) */
-# define B_NO_ERROR 0          /**< The value returned by a function or method with return type status_t, to indicate that it succeeded with no errors. */
-# define B_OK       B_NO_ERROR /**< Synonym for B_NO_ERROR */
+   enum {
+      CB_ERROR    = -1,        /**< For C programs: A value typically returned by a function or method with return type status_t, to indicate that it failed.  (When checking the value, it's better to check against B_NO_ERROR though, in case other failure values are defined in the future) */
+      CB_NO_ERROR = 0,         /**< For C programs: The value returned by a function or method with return type status_t, to indicate that it succeeded with no errors. */
+      CB_OK       = CB_NO_ERROR /**< For C programs: Synonym for CB_NO_ERROR */
+   };
+#  if (defined(__cplusplus) && defined(MUSCLE_AVOID_CPLUSPLUS11))
+   enum {
+      B_ERROR    = -1,        /**< A value typically returned by a function or method with return type status_t, to indicate that it failed.  (When checking the value, it's better to check against B_NO_ERROR though, in case other failure values are defined in the future) */
+      B_NO_ERROR = 0,         /**< The value returned by a function or method with return type status_t, to indicate that it succeeded with no errors. */
+      B_OK       = B_NO_ERROR /**< Synonym for B_NO_ERROR */
+   };
+#  endif
 # ifdef __ATHEOS__
 #  include </ainc/atheos/types.h>
 # else
@@ -294,8 +303,60 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
      typedef uint32_t uint32; /**< uint32 is a 32-bit unsigned integer type */
      typedef  int64_t  int64; /**< int64 is a 64-bit signed integer type */
      typedef uint64_t uint64; /**< uint64 is a 64-bit unsigned integer type */
-#endif
-    typedef int32 status_t; /**< This type indicates an expected value of either B_NO_ERROR/B_OK on success, or another value (often B_ERROR) on failure. */
+#   endif
+     typedef int32 c_status_t; /**< For C programs: This type indicates an expected value of either CB_NO_ERROR/CB_OK on success, or another value (often CB_ERROR) on failure. */
+#   if defined(__cplusplus) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
+     // This C++11 implementation of status_t allows for better compile-time type-safety than the old enum-based implementation did
+     enum class status_t_values : int32
+     {
+        B_ERROR    = -1,  ///< This value is returned by a function or method that errored out
+        B_NO_ERROR = 0,   ///< This value is returned by a function or method that succeeded
+     };
+     constexpr status_t_values B_ERROR    = status_t_values::B_ERROR;    ///< This value is returned by a function or method that errored out
+     constexpr status_t_values B_NO_ERROR = status_t_values::B_NO_ERROR; ///< This value is returned by a function or method that succeeded
+     constexpr status_t_values B_OK       = status_t_values::B_NO_ERROR; ///< This value is a synonym for B_NO_ERROR
+
+     class status_t
+     {
+     public:
+        /** Constructor.  Sets our value to the specified status_t_value
+          * param v the enum-value to set us to.  Defaults to status_t_values::B_ERROR
+          */
+        status_t(status_t_values v = status_t_values::B_ERROR) : _val(v) {/* empty */}
+
+        /** Copy constructor
+          * @param rhs the status_t to make this object a copy of
+          */
+        status_t(const status_t & rhs) : _val(rhs._val) {/* empty */}
+   
+        bool operator ==(const status_t & rhs) const {return (_val == rhs._val);}
+        bool operator !=(const status_t & rhs) const {return (_val != rhs._val);}
+   
+        /** This operator returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR, 
+          * otherwise it returns one of the non-B_NO_ERROR values.
+          * @param rhs the second status_t to test this status_t against
+          */
+        status_t operator | (const status_t & rhs) const {return rhs.IsOK() ? *this : rhs;}
+
+        /** Sets this object equal to ((*this)|rhs).
+          * @param rhs the second status_t to test this status_t against
+          */
+        status_t & operator |= (const status_t & rhs) {*this = ((*this)|rhs); return *this;}
+
+        const char * operator()() const {return IsOK() ? "OK" : "ERROR";}
+
+        /** Convenience method:  Returns true iff our value is B_NO_ERROR */
+        bool IsOK() const {return (_val == status_t_values::B_NO_ERROR);}
+
+        /** Convenience method:  Returns true iff our value is not B_NO_ERROR */
+        bool IsError() const {return !IsOK();}
+
+     private:
+        status_t_values _val;
+     };
+#   else
+     typedef int32 status_t; /**< This type indicates an expected value of either B_NO_ERROR/B_OK on success, or another value (often B_ERROR) on failure. */
+#   endif  /* !(defined(__cplusplus) && !defined(MUSCLE_AVOID_CPLUSPLUS11)) */
 #  endif  /* !MUSCLE_TYPES_PREDEFINED */
 # endif  /* !__ATHEOS__*/
 #endif  /* __BEOS__ || __HAIKU__ */
