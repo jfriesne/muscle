@@ -50,7 +50,7 @@ void DataNode :: Reset()
    _cachedDataChecksum = 0;
 }
 
-void DataNode :: IncrementSubscriptionRefCount(const String & sessionID, long delta)
+void DataNode :: IncrementSubscriptionRefCount(const String & sessionID, int32 delta)
 {
    TCHECKPOINT;
 
@@ -72,7 +72,7 @@ void DataNode :: IncrementSubscriptionRefCount(const String & sessionID, long de
       uint32 * pCount = _subscribers ? _subscribers->Get(&sessionID) : NULL;
       if (pCount)
       {
-         uint32 decBy = (uint32) -delta;
+         const uint32 decBy = (uint32) -delta;
          if (decBy >= *pCount) (void) _subscribers->Remove(&sessionID);
                           else (*pCount) -= decBy;
       }

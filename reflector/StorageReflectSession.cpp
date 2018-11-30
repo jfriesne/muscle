@@ -189,6 +189,18 @@ AboutToDetachFromServer()
    DumbReflectSession::AboutToDetachFromServer();
 }
 
+/** Used to pass arguments to the SubscribeRefCallback method */
+class SubscribeRefCallbackArgs
+{
+public:
+   SubscribeRefCallbackArgs(int32 refCountDelta) : _refCountDelta(refCountDelta) {/* empty */}
+
+   int32 GetRefCountDelta() const {return _refCountDelta;}
+
+private:
+   const int32 _refCountDelta;
+};
+
 void
 StorageReflectSession ::
 Cleanup()
@@ -223,8 +235,8 @@ Cleanup()
       else 
       {
          // Remove all of our subscription-marks from neighbor's nodes
-         long decrementAll = -LONG_MAX;
-         (void) _subscriptions.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &decrementAll);
+         SubscribeRefCallbackArgs srcArgs(-2147483647);  // remove all of our subscriptions no matter how many ref-counts we have
+         (void) _subscriptions.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &srcArgs);
       }
       _sharedData = NULL;
    }
@@ -284,7 +296,7 @@ void
 StorageReflectSession ::
 NodeCreated(DataNode & newNode)
 {
-   newNode.IncrementSubscriptionRefCount(GetSessionIDString(), _subscriptions.GetMatchCount(newNode, newNode.GetData()(), 0));  // FogBugz #5803
+   newNode.IncrementSubscriptionRefCount(GetSessionIDString(), _subscriptions.GetMatchCount(newNode, NULL, 0));  // FogBugz #14596
 }
 
 void
@@ -299,7 +311,7 @@ NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, bool isBeingRem
       if (_subscriptions.GetNumFilters() > 0)
       {
          ConstMessageRef constOldData = oldData;  // We need a non-const ConstMessageRef to pass to MatchesNode(), in case MatchesNode() changes the ref -- even though we won't use the changed data
-         bool matchedBefore = _subscriptions.MatchesNode(modifiedNode, constOldData, 0);
+         const bool matchedBefore = _subscriptions.MatchesNode(modifiedNode, constOldData, 0);
 
          // uh oh... we gotta determine whether the modified node's status wrt QueryFilters has changed!
          // Based on that, we will simulate for the client the node's "addition" or "removal" at the appropriate times.
@@ -309,7 +321,7 @@ NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, bool isBeingRem
          }
          else if (constOldData())
          {
-            bool matchesNow = _subscriptions.MatchesNode(modifiedNode, constNewData, 0);
+            const bool matchesNow = _subscriptions.MatchesNode(modifiedNode, constNewData, 0);
 
                  if ((matchedBefore == false)&&(matchesNow == false)) return;                 // no change in status, so no update is necessary
             else if ((matchedBefore)&&(matchesNow == false))          isBeingRemoved = true;  // no longer matches, so we need to send a node-removed update
@@ -605,8 +617,8 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                      NodePathMatcher temp;
                      if ((temp.PutPathString(fixPath, ConstQueryFilterRef()) == B_NO_ERROR)&&(_subscriptions.PutPathString(fixPath, filter) == B_NO_ERROR)) 
                      {
-                        long incrementOne = 1;
-                        (void) temp.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &incrementOne);
+                        SubscribeRefCallbackArgs srcArgs(+1);   // add one subscription-reference to each matching node
+                        (void) temp.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &srcArgs);
                      }
                   }
                   if ((subscribeQuietly == false)&&(getMsg.AddString(PR_NAME_KEYS, path) == B_NO_ERROR))
@@ -1201,8 +1213,8 @@ ChangeQueryFilterCallback(DataNode & node, void * ud)
    const QueryFilter * newFilter = static_cast<const QueryFilter *>(args[1]);
    ConstMessageRef constMsg1 = node.GetData();
    ConstMessageRef constMsg2 = node.GetData();
-   bool oldMatches = ((constMsg1() == NULL)||(oldFilter == NULL)||(oldFilter->Matches(constMsg1, &node)));
-   bool newMatches = ((constMsg2() == NULL)||(newFilter == NULL)||(newFilter->Matches(constMsg2, &node)));
+   const bool oldMatches = ((constMsg1() == NULL)||(oldFilter == NULL)||(oldFilter->Matches(constMsg1, &node)));
+   const bool newMatches = ((constMsg2() == NULL)||(newFilter == NULL)||(newFilter->Matches(constMsg2, &node)));
    if (oldMatches != newMatches) NodeChangedAux(node, CastAwayConstFromRef(constMsg2), oldMatches);
    return node.GetDepth();  // continue traversal as usual
 }
@@ -1211,7 +1223,8 @@ int
 StorageReflectSession ::
 DoSubscribeRefCallback(DataNode & node, void * userData)
 {
-   node.IncrementSubscriptionRefCount(GetSessionIDString(), *static_cast<const long *>(userData));
+   const SubscribeRefCallbackArgs * srcArgs = static_cast<const SubscribeRefCallbackArgs *>(userData);
+   node.IncrementSubscriptionRefCount(GetSessionIDString(), srcArgs->GetRefCountDelta());
    return node.GetDepth();  // continue traversal as usual
 }
 
@@ -1348,7 +1361,7 @@ GetMatchCount(DataNode & node, const Message * optData, int rootDepth) const
 {
    TCHECKPOINT;
 
-   int matchCount = 0;
+   uint32 matchCount = 0;
    ConstMessageRef fakeRef(optData, false);
    for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++) if (PathMatches(node, fakeRef, iter.GetValue(), rootDepth)) matchCount++;
    return matchCount;
@@ -1824,8 +1837,8 @@ status_t StorageReflectSession :: RemoveParameter(const String & paramName, bool
          // Remove the references from this subscription from all nodes
          NodePathMatcher temp;
          (void) temp.PutPathString(str, ConstQueryFilterRef());
-         long decrementOne = -1;
-         (void) temp.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &decrementOne);
+         SubscribeRefCallbackArgs srcArgs(-1);
+         (void) temp.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &srcArgs);
       }
    }
    else if (paramName == PR_NAME_REFLECT_TO_SELF)            SetRoutingFlag(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF,      false);

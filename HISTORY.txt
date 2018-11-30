@@ -30,6 +30,17 @@ key:  - new feature
      default if neither flag is specified)
    * In the BitChord class, GetNumBytesInBitChord() and
      GetNumWordsInBitChord() were mis-named.  Fixed.
+   * Fixed a bug that affected MUSCLE subscriptions that 
+     included a QueryFilter:  If a DataNode matched a 
+     subscription's node-path string, but its Message-payload
+     didn't match the QueryFilter's criteria (at the time the 
+     subscription was created), then future modifications to the 
+     DataNode would not cause the subscriber to be notified 
+     even if the updated Message-payload did change to match
+     the QueryFilter's criteria.
+   * Modified StorageReflectSession::DoSubscribeRefCallback() to
+     take its argument via an object-pointer rather than
+     smuggling an integer delta-value to it inside a (void *).
 
 7.03 Released 9/28/2018
    - WarnOutOfMemory() now calls PrintStackTrace() (but not more

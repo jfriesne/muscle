@@ -158,11 +158,14 @@ public:
 
    /**
     * Modifies the refcount for the given sessionID.
-    * Any sessionID's with (refCount > 0) will be in the GetSubscribers() list.
+    * Any sessionID's with (refCount > 0) will be in the GetSubscribers() table.
     * @param sessionID the sessionID whose reference count is to be modified
-    * @param delta the amount to add to the reference count.
+    * @param refCountDelta the amount to add to the reference count.
+    * @note Reducing a session's reference count to less than zero has the
+    *       same effect as reducing it to zero -- the session will be removed
+    *       from the subscribers-table.
     */
-   void IncrementSubscriptionRefCount(const String & sessionID, long delta);
+   void IncrementSubscriptionRefCount(const String & sessionID, int32 refCountDelta);
 
    /** Returns an iterator that can be used to iterate over our list of active subscribers */
    HashtableIterator<const String *, uint32> GetSubscribers() const {return _subscribers ? _subscribers->GetIterator() : HashtableIterator<const String *, uint32>();}
