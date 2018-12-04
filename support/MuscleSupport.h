@@ -619,6 +619,7 @@ template<typename T> inline void muscleSwap(T & t1, T & t2) {T t=t1; t1 = t2; t2
 
 #else
 
+# ifndef DOXYGEN_SHOULD_IGNORE_THIS
 namespace ugly_swapcontents_method_sfinae_implementation
 {
    // This code was adapted from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
@@ -671,6 +672,7 @@ namespace ugly_swapcontents_method_sfinae_implementation
       typedef typename if_<test_swapcontents_impl<ItemType>::value, SwapContentsSwapper<ItemType>, PODSwapper<ItemType> >::result Type;
    };
 }
+# endif
 
 /** Swaps the two arguments.
   * @param t1 First item to swap.  After this method returns, it will be equal to the old value of t2.
@@ -1444,6 +1446,7 @@ public:
 /** This macro can be used whenever you want to explicitly specify the default AutoChooseHashFunctorHelper functor for your type.  It's easier than remembering the tortured C++ syntax */
 #define DEFAULT_HASH_FUNCTOR(type) AutoChooseHashFunctorHelper<type>::Type
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
 namespace ugly_hashcode_method_sfinae_implementation
 {
    // This code was adapted from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
@@ -1465,6 +1468,7 @@ namespace ugly_hashcode_method_sfinae_implementation
    template <typename TrueResult, typename FalseResult> struct if_<true,  TrueResult, FalseResult> {typedef TrueResult  result;};
    template <typename TrueResult, typename FalseResult> struct if_<false, TrueResult, FalseResult> {typedef FalseResult result;};
 }
+#endif
 
 template<typename ItemType> class AutoChooseHashFunctorHelper
 {

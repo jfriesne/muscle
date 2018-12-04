@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-7.10
+7.10 Released 12/3/2018
    - Under C++11 and later, the status_t type is now a
      class rather than a simple typedef for int32.  It
      is used pretty much the same way as before, except
@@ -28,6 +28,8 @@ key:  - new feature
      with a new MUSCLE_DISABLE_KEEPALIVE_API flag (i.e.
      so that the socket-keepalive API is now enabled by
      default if neither flag is specified)
+   o DOxygen documentation is now generated with C++11
+     enabled (before it was documenting the pre-C++11 API)
    * In the BitChord class, GetNumBytesInBitChord() and
      GetNumWordsInBitChord() were mis-named.  Fixed.
    * Fixed a bug that affected MUSCLE subscriptions that 
