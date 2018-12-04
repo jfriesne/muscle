@@ -39,7 +39,7 @@ public:
     */
    status_t CopyFrom(const Flattenable & copyFrom)
    {
-#if !defined(MSC_VER) || (MSC_VER >= 1910)  // avoids error C2027: use of undefined type 'muscle::Flattenable'
+#if !defined(_MSC_VER) || (_MSC_VER >= 1910)  // avoids error C2027: use of undefined type 'muscle::Flattenable'
       (void) copyFrom;
 #endif
       return B_ERROR;

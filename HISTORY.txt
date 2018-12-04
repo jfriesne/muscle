@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   * _MSC_VER was misspelled as MSC_VER in
+     PseudoFlattenable.h, causing the code to
+     fail to compile under MSVC2013.  Fixed.
+
 7.10 Released 12/3/2018
    - Under C++11 and later, the status_t type is now a
      class rather than a simple typedef for int32.  It
