@@ -29,7 +29,7 @@ status_t ThreadedInternalSession :: AttachedToServer()
 
 // Our SignalMessageIOGateway gateway sends us an empty dummy Message whenever it wants us to check our 
 // internal thread's reply-messages-queue.  We respond here (in the MUSCLE thread) by grabbing all of the Messages 
-// from the internal thread's queue, and handing them over to the superclass's MesageReceivedFromGateway() 
+// from the internal thread's queue, and handing them over to the superclass's MessageReceivedFromGateway() 
 // method, as if they came from a regular old (TCP-connected) AdvancedThreadWorkerSession's client process.
 void ThreadedInternalSession :: MessageReceivedFromGateway(const MessageRef & /*dummyMsg*/, void * userData)
 {

@@ -24,7 +24,7 @@ public:
 
    /** Our SignalMessageIOGateway gateway sends us an empty dummy Message whenever it wants us to check our 
     * internal thread's reply-messages-queue.  We respond by grabbing all of the Messages from the internal thread's queue,
-    * and handing them over to the superclass's MesageReceivedFromGateway() method, as if they came from a regular
+    * and handing them over to the superclass's MessageReceivedFromGateway() method, as if they came from a regular
     * old (TCP-connected) AdvancedThreadWorkerSession's client process.
     */
    virtual void MessageReceivedFromGateway(const MessageRef & /*dummyMsg*/, void * userData);
