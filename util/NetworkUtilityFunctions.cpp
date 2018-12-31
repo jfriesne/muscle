@@ -1811,7 +1811,7 @@ void IPAddress :: Flatten(uint8 * buffer) const
 {
    muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT64(_lowBits));        buffer += sizeof(_lowBits);
    muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT64(_highBits));       buffer += sizeof(_highBits);
-   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(_interfaceIndex)); buffer += sizeof(_interfaceIndex);
+   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(_interfaceIndex)); //buffer += sizeof(_interfaceIndex);
 }
 
 status_t IPAddress :: Unflatten(const uint8 * buffer, uint32 size)
@@ -1820,7 +1820,7 @@ status_t IPAddress :: Unflatten(const uint8 * buffer, uint32 size)
 
    _lowBits        = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(buffer)); buffer += sizeof(_lowBits);
    _highBits       = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(buffer)); buffer += sizeof(_highBits);
-   _interfaceIndex = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer)); buffer += sizeof(_interfaceIndex);
+   _interfaceIndex = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer)); //buffer += sizeof(_interfaceIndex);
    return B_NO_ERROR;
 }
 
