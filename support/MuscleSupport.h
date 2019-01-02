@@ -129,7 +129,7 @@
 #endif
 
 /* Borland C++ builder also runs under Win32, but it doesn't set this flag So we'd better set it ourselves. */
-#if defined(__BORLANDC__) || defined(__WIN32__) || defined(_MSC_VER)
+#if defined(__BORLANDC__) || defined(__WIN32__) || defined(_MSC_VER) || defined(_WIN32)
 # ifndef WIN32
 #  define WIN32 1
 # endif
