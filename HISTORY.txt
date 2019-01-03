@@ -16,7 +16,6 @@ key:  - new feature
      is the first muscle-include file to be parsed.
    * MuscleSupport.h now checks for the presence of
      _WIN32 (in addition to __WIN32__, etc)
-    
 
 7.10 Released 12/3/2018
    - Under C++11 and later, the status_t type is now a

@@ -1,5 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#include "dataio/FileDescriptorDataIO.h"  // must be first!
+
 #ifndef WIN32  // Windows can't handle file descriptors!
 
 #if defined(__linux__)
@@ -16,7 +18,6 @@
 # endif
 #endif
 
-#include "dataio/FileDescriptorDataIO.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/NetworkUtilityFunctions.h"  // for read_ignore_eintr() and write_ignore_eintr()
 
