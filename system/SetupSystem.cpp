@@ -538,24 +538,24 @@ private:
    MutexEventBlock * _tailBlock;
 };
 
-static ThreadLocalStorage<MutexEventLog> _mutexEventLogs(false);  // false argument is necessary otherwise we can't read the threads' logs after they've gone away!
-static Mutex _logsTableMutex;
-static Queue<MutexEventLog *> _logsTable;  // read at process-shutdown time (I use a Queue rather than a Hashtable because muscle_thread_id isn't usable as a Hashtable key)
+static ThreadLocalStorage<MutexEventLog> _mutexEventsLog(false);  // false argument is necessary otherwise we can't read the threads' logs after they've gone away!
+static Mutex _mutexLogTableMutex;
+static Queue<MutexEventLog *> _mutexLogTable;  // read at process-shutdown time (I use a Queue rather than a Hashtable because muscle_thread_id isn't usable as a Hashtable key)
 
 void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fileName, int fileLine)
 {
-   MutexEventLog * mel = _mutexEventLogs.GetThreadLocalObject();
+   MutexEventLog * mel = _mutexEventsLog.GetThreadLocalObject();
    if (mel == NULL)
    {
       mel = static_cast<MutexEventLog *>(malloc(sizeof(MutexEventLog)));  // MUST CALL malloc() here to avoid inappropriate re-entrancy!
       if (mel)
       {
          mel->Initialize(muscle_thread_id::GetCurrentThreadID());
-         _mutexEventLogs.SetThreadLocalObject(mel);
-         if (_logsTableMutex.Lock() == B_NO_ERROR)
+         _mutexEventsLog.SetThreadLocalObject(mel);
+         if (_mutexLogTableMutex.Lock() == B_NO_ERROR)
          {
-            _logsTable.AddTail(mel);
-            _logsTableMutex.Unlock();
+            _mutexLogTable.AddTail(mel);
+            _mutexLogTableMutex.Unlock();
          }
       }
    }
@@ -565,8 +565,8 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
 
 static void DeadlockFinder_ProcessEnding()
 {
-   for (uint32 i=0; i<_logsTable.GetNumItems(); i++) _logsTable[i]->PrintToStream();
-   _logsTableMutex.Unlock();
+   MutexGuard mg(_mutexLogTableMutex);
+   for (uint32 i=0; i<_mutexLogTable.GetNumItems(); i++) _mutexLogTable[i]->PrintToStream();
 }
 
 #endif
