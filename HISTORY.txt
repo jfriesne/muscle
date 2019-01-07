@@ -5,6 +5,18 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Queue:GetWithDefault() methods that
+     take a default-value argument (by-reference)
+     now return their return-value by-value rather
+     than by-reference, to avoid any possibility
+     of returning a dangling reference if they
+     are called with a temporary-object argument.
+   o Hashtable:Get*WithDefault() methods that
+     take a default-value argument (by-reference)
+     now return their return-value by-value rather
+     than by-reference, to avoid any possibility
+     of returning a dangling reference if they
+     are called with a temporary-object argument.
    * _MSC_VER was misspelled as MSC_VER in
      PseudoFlattenable.h, causing the code to
      fail to compile under MSVC2013.  Fixed.

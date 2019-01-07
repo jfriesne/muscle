@@ -278,13 +278,16 @@ public:
      */
    const ItemType & GetWithDefault(uint32 index) const {return (index<_itemCount)?(*this)[index]:GetDefaultItem();}
 
-   /** Returns a reference to the (index)'th item in the Queue, if such an item exists,
+   /** Returns the (index)'th item in the Queue, if such an item exists,
      * or the supplied default item if it doesn't.  Unlike the [] operator,
      * it is okay to call this method with any value of (index).
      * @param index Which item to return.
      * @param defItem An item to return if (index) isn't a valid value.
+     * @note that this method returns by-value rather than by-reference, because
+     *       returning (defItem) by-reference makes it too easy to call this method
+     *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   const ItemType & GetWithDefault(uint32 index, const ItemType & defItem) const {return (index<_itemCount)?(*this)[index]:defItem;}
+   ItemType GetWithDefault(uint32 index, const ItemType & defItem) const {return (index<_itemCount)?(*this)[index]:defItem;}
 
    /** Replaces the (index)'th item in the queue with (newItem).
     *  @param index Which item to replace--can range from zero 
@@ -393,16 +396,22 @@ public:
 
    /** Returns a read-only reference the head item in the queue, or to the supplied default item if the Queue is empty.
      * @param defaultItem An item to return if the Queue is empty.
+     * @note that this method returns by-value rather than by-reference, because
+     *       returning (defItem) by-reference makes it too easy to call this method
+     *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   const ItemType & HeadWithDefault(const ItemType & defaultItem) const {return HasItems() ? Head() : defaultItem;}
+   ItemType HeadWithDefault(const ItemType & defaultItem) const {return HasItems() ? Head() : defaultItem;}
 
    /** Returns a read-only reference the tail item in the queue, or a default item if the Queue is empty. */
    const ItemType & TailWithDefault() const {return HasItems() ? Tail() : GetDefaultItem();}
 
    /** Returns a read-only reference the tail item in the queue, or to the supplied default item if the Queue is empty.
      * @param defaultItem An item to return if the Queue is empty.
+     * @note that this method returns by-value rather than by-reference, because
+     *       returning (defItem) by-reference makes it too easy to call this method
+     *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   const ItemType & TailWithDefault(const ItemType & defaultItem) const {return HasItems() ? Tail() : defaultItem;}
+   ItemType TailWithDefault(const ItemType & defaultItem) const {return HasItems() ? Tail() : defaultItem;}
 
    /** Returns a writable reference the head item in the queue.  You must not call this when the queue is empty! */
    ItemType & Head() {return *GetItemAtUnchecked(0);}

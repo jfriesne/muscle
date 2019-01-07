@@ -389,8 +389,11 @@ public:
     *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetNumItems()-1].
     *  @param defaultKey If (index) is not less than the number of items in this table, then this will be returned.
     *  @return A reference to a key value, either one from the table or the one specified.
+    *  @note that this method returns by-value rather than by-reference, because
+    *        returning (defaultKey) by-reference makes it too easy to call this method
+    *        in a way that would cause it to return a dangling-reference-to-a-temporary-object.
     */
-   const KeyType & GetKeyAtWithDefault(uint32 index, const KeyType & defaultKey) const;
+   KeyType GetKeyAtWithDefault(uint32 index, const KeyType & defaultKey) const;
 
    /** Returns a pointer to the (index)'th value in this Hashtable.
     *  (This Hashtable class keeps its entries in a well-defined order)
@@ -421,8 +424,11 @@ public:
     *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
     *  @param defaultValue If (index) is not less than the number of items in this table, then this will be returned.
     *  @return A reference to a value value, either one from the table or the one specified.
+    *  @note that this method returns by-value rather than by-reference, because
+    *        returning (defaultValue) by-reference makes it too easy to call this method
+    *        in a way that would cause it to return a dangling-reference-to-a-temporary-object.
     */
-   const ValueType & GetValueAtWithDefault(uint32 index, const ValueType & defaultValue) const;
+   ValueType GetValueAtWithDefault(uint32 index, const ValueType & defaultValue) const;
 
    /** Given a value, returns a pointer to the first key in the table that
      * is paired with that value.  Note that this method is an O(N) operation.
@@ -710,8 +716,11 @@ public:
      * @param defaultValue The value to return is (key) is not in the table.
      *                     Defaults to a default-constructed item of the value type.
      * @returns (key)'s associated value, or (defaultValue).
+     * @note that this method returns by-value rather than by-reference, because
+     *       returning (defaultValue) by-reference makes it too easy to call this method
+     *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   const ValueType & GetWithDefault(const KeyType & key, const ValueType & defaultValue) const
+   ValueType GetWithDefault(const KeyType & key, const ValueType & defaultValue) const
    {
       const ValueType * v = Get(key);
       return v ? *v : defaultValue;
@@ -733,8 +742,11 @@ public:
 
    /** Convenience method.  Returns a reference to the first key in our iteration list, or the specified default key object if the table is empty.
      * @param defaultKey The key value to return if the table is empty.
+     * @note that this method returns by-value rather than by-reference, because
+     *       returning (defaultKey) by-reference makes it too easy to call this method
+     *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   const KeyType & GetFirstKeyWithDefault(const KeyType & defaultKey) const 
+   KeyType GetFirstKeyWithDefault(const KeyType & defaultKey) const 
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       return e ? e->_key : defaultKey;
@@ -756,8 +768,11 @@ public:
 
    /** Convenience method.  Returns a reference to the last key in our iteration list, or the specified default key object if the table is empty. 
      * @param defaultKey The key value to return if the table is empty.
+     * @note that this method returns by-value rather than by-reference, because
+     *       returning (defaultKey) by-reference makes it too easy to call this method
+     *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   const KeyType & GetLastKeyWithDefault(const KeyType & defaultKey) const 
+   KeyType GetLastKeyWithDefault(const KeyType & defaultKey) const 
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       return e ? e->_key : defaultKey;
@@ -786,8 +801,11 @@ public:
 
    /** Convenience method.  Returns a reference to the first value in our iteration list, or the specified default value object if the table is empty. 
      * @param defaultValue The value to return if the table is empty.
+     * @note that this method returns by-value rather than by-reference, because
+     *       returning (defaultValue) by-reference makes it too easy to call this method
+     *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   const ValueType & GetFirstValueWithDefault(const ValueType & defaultValue) const 
+   ValueType GetFirstValueWithDefault(const ValueType & defaultValue) const 
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       return e ? e->_value : defaultValue;
@@ -816,8 +834,11 @@ public:
 
    /** Convenience method.  Returns a reference to the last value in our iteration list, or the specified default value object if the table is empty.
      * @param defaultValue The value to return if the table is empty.
+     * @note that this method returns by-value rather than by-reference, because
+     *       returning (defaultValue) by-reference makes it too easy to call this method
+     *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   const ValueType & GetLastValueWithDefault(const ValueType & defaultValue) const 
+   ValueType GetLastValueWithDefault(const ValueType & defaultValue) const 
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       return e ? e->_value : defaultValue;
@@ -2066,7 +2087,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAtWithDefault(uint32 ind
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-const KeyType & 
+KeyType
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAtWithDefault(uint32 index, const KeyType & defaultKey) const
 {
    HashtableEntryBase * e = GetEntryAt(index);
@@ -2103,7 +2124,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAtWithDefault(uint32 i
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-const ValueType & 
+ValueType
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAtWithDefault(uint32 index, const ValueType & defaultValue) const
 {
    HashtableEntryBase * e = GetEntryAt(index);
