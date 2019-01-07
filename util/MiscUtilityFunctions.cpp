@@ -84,7 +84,7 @@ String UnparseArgs(const Message & argsMsg)
       const String * ps;
       for (int32 i=0; argsMsg.FindString(fn, i, &ps) == B_NO_ERROR; i++)
       {
-         String tmp = QuoteAndEscapeStringIfNecessary(fn);
+         tmp = QuoteAndEscapeStringIfNecessary(fn);
          if (ps->HasChars())
          {
             next  = tmp;

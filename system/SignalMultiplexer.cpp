@@ -72,7 +72,7 @@ status_t SignalMultiplexer :: UpdateSignalSets()
    {
       const ISignalHandler * s = _handlers[i];
       int sigNum;
-      for (uint32 i=0; s->GetNthSignalNumber(i, sigNum) == B_NO_ERROR; i++) if ((newSignalSet.IndexOf(sigNum) < 0)&&(newSignalSet.AddTail(sigNum) != B_NO_ERROR)) return B_ERROR;
+      for (uint32 j=0; s->GetNthSignalNumber(j, sigNum) == B_NO_ERROR; j++) if ((newSignalSet.IndexOf(sigNum) < 0)&&(newSignalSet.AddTail(sigNum) != B_NO_ERROR)) return B_ERROR;
    }
    newSignalSet.Sort();
 

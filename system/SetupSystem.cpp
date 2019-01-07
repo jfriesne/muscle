@@ -1451,7 +1451,7 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
       // A simple, single-line format
       if (optDesc) {ret += optDesc; ret += ": ";}
       ret += '[';
-      if (buf) for (uint32 i=0; i<numBytes; i++) {char buf[32]; muscleSprintf(buf, "%s%02x", (i==0)?"":" ", buf[i]); ret += buf;}
+      if (buf) for (uint32 i=0; i<numBytes; i++) {char zbuf[32]; muscleSprintf(zbuf, "%s%02x", (i==0)?"":" ", buf[i]); ret += zbuf;}
           else ret += "NULL buffer";
       ret += ']';
    }

@@ -820,11 +820,7 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
    {
       for (HashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
-         if (iter.GetValue() < 0)
-         {
-            IPAddress ret;
-            if (iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret) == B_NO_ERROR) return ret;
-         }
+         if ((iter.GetValue() < 0)&&(iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret) == B_NO_ERROR)) return ret;
       }
    }
 
@@ -1104,12 +1100,12 @@ NetworkInterfaceInfo :: NetworkInterfaceInfo()
    // empty
 }
 
-NetworkInterfaceInfo :: NetworkInterfaceInfo(const String &name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType)
+NetworkInterfaceInfo :: NetworkInterfaceInfo(const String &name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType)
    : _name(name)
    , _desc(desc)
    , _ip(ip)
    , _netmask(netmask)
-   , _broadcastIP(broadcastIP)
+   , _broadcastIP(broadIP)
    , _enabled(enabled)
    , _copper(copper)
    , _macAddress(macAddress)
@@ -1442,12 +1438,12 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 #endif
             }
 
-            IPAddress unicastIP   = SockAddrToIPAddr(p->ifa_addr);
-            IPAddress netmask     = SockAddrToIPAddr(p->ifa_netmask);
-            IPAddress broadcastIP = SockAddrToIPAddr(p->ifa_broadaddr);
-            bool isEnabled        = ((p->ifa_flags & IFF_UP)      != 0);
-            bool hasCopper        = ((p->ifa_flags & IFF_RUNNING) != 0);
-            uint32 hardwareType   = NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN;  // default
+            IPAddress unicastIP  = SockAddrToIPAddr(p->ifa_addr);
+            IPAddress netmask    = SockAddrToIPAddr(p->ifa_netmask);
+            IPAddress broadIP    = SockAddrToIPAddr(p->ifa_broadaddr);
+            bool isEnabled       = ((p->ifa_flags & IFF_UP)      != 0);
+            bool hasCopper       = ((p->ifa_flags & IFF_RUNNING) != 0);
+            uint32 hardwareType  = NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN;  // default
 #if defined(__APPLE__)
             hardwareType = inameToType.GetWithDefault(iname, NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN);
 #elif defined(__linux__) && !defined(MUSCLE_AVOID_LINUX_DETECT_NETWORK_HARDWARE_TYPES)
@@ -1471,7 +1467,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                // FogBugz #10519:  I'm not setting the interface index for ::1 because trying to send UDP packets to ::1@1 causes ENOROUTE errors under MacOS/X
                if (unicastIP != localhostIP) unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignore by the TCP stack
 #endif
-               if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadcastIP, isEnabled, hasCopper, 0, hardwareType)) == B_NO_ERROR)  // MAC address will be set later
+               if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType)) == B_NO_ERROR)  // MAC address will be set later
                {
                   if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
                }
@@ -1568,23 +1564,23 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                   const bool isEnabled = true;  // It appears that GetAdaptersAddresses() only returns enabled adapters
                   if (IsGNIIBitMatch(unicastIP, isEnabled, includeFlags))
                   {
-                     IPAddress broadcastIP, netmask;
+                     IPAddress broadIP, netmask;
                      uint32 numLocalAddrs = (bytesReturned/sizeof(INTERFACE_INFO));
                      for (uint32 i=0; i<numLocalAddrs; i++)
                      {
                         IPAddress nextIP = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiAddress);
                         if (nextIP == unicastIP)
                         {
-                           broadcastIP = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiBroadcastAddress);
-                           netmask     = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiNetmask);
+                           broadIP = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiBroadcastAddress);
+                           netmask = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiNetmask);
 
                            // Berkeley FogBugz #9902:  If GetAdaptersAddresses() wants to be dumb
                            // and just return 255.255.255.255 as the broadcast address, then we'll
                            // just have to compute the direct broadcast address ourselves!
 #ifdef MUSCLE_AVOID_IPV6
-                           if (broadcastIP == ipv4_limited_broadcast_address) broadcastIP = (unicastIP & netmask) | ~netmask;
+                           if (broadIP == ipv4_limited_broadcast_address) broadIP = (unicastIP & netmask) | ~netmask;
 #else
-                           if ((unicastIP.IsIPv4())&&(broadcastIP.EqualsIgnoreInterfaceIndex(ipv4_limited_broadcast_address))) broadcastIP.SetLowBits((unicastIP.GetLowBits() & netmask.GetLowBits()) | (0xFFFFFFFF & ~(netmask.GetLowBits())));
+                           if ((unicastIP.IsIPv4())&&(broadIP.EqualsIgnoreInterfaceIndex(ipv4_limited_broadcast_address))) broadIP.SetLowBits((unicastIP.GetLowBits() & netmask.GetLowBits()) | (0xFFFFFFFF & ~(netmask.GetLowBits())));
 #endif
                            break;
                         }
@@ -1602,7 +1598,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                      if (pCurrAddresses->PhysicalAddressLength == 6) for (uint32 i=0; i<6; i++) mac |= (((uint64)(pCurrAddresses->PhysicalAddress[i]))<<(8*(5-i)));
 
                      const uint32 hardwareType = ConvertWindowsInterfaceType(pCurrAddresses->IfType);
-                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, outBuf, unicastIP, netmask, broadcastIP, isEnabled, false, mac, hardwareType)) == B_NO_ERROR)
+                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, outBuf, unicastIP, netmask, broadIP, isEnabled, false, mac, hardwareType)) == B_NO_ERROR)
                      {
                         if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
                      }

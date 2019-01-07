@@ -1242,10 +1242,10 @@ GetDataCallback(DataNode & node, void * userData)
    // Don't send our own data to our own client; he already knows what we have, because he uploaded it!
    MessageRef & resultMsg = messageArray[0];
    if (resultMsg() == NULL) resultMsg = GetMessageFromPool(PR_RESULT_DATAITEMS);
-   String np;
-   if ((resultMsg())&&(node.GetNodePath(np) == B_NO_ERROR))
+   String np1;
+   if ((resultMsg())&&(node.GetNodePath(np1) == B_NO_ERROR))
    {
-      (void) resultMsg()->AddMessage(np, node.GetData());
+      (void) resultMsg()->AddMessage(np1, node.GetData());
       if (resultMsg()->GetNumNames() >= _maxSubscriptionMessageItems) SendGetDataResults(resultMsg);
    }
    else 
@@ -1263,15 +1263,15 @@ GetDataCallback(DataNode & node, void * userData)
       {
          MessageRef & indexUpdateMsg = messageArray[1];
          if (indexUpdateMsg() == NULL) indexUpdateMsg = GetMessageFromPool(PR_RESULT_INDEXUPDATED);
-         String np;
-         if ((indexUpdateMsg())&&(node.GetNodePath(np) == B_NO_ERROR))
+         String np2;
+         if ((indexUpdateMsg())&&(node.GetNodePath(np2) == B_NO_ERROR))
          {
             char clearStr[] = {INDEX_OP_CLEARED, '\0'};
-            (void) indexUpdateMsg()->AddString(np, clearStr);
+            (void) indexUpdateMsg()->AddString(np2, clearStr);
             for (uint32 i=0; i<indexLen; i++) 
             {
                char temp[100]; muscleSprintf(temp, "%c" UINT32_FORMAT_SPEC ":", INDEX_OP_ENTRYINSERTED, i);
-               (void) indexUpdateMsg()->AddString(np, (*index)[i]()->GetNodeName().Prepend(temp));
+               (void) indexUpdateMsg()->AddString(np2, (*index)[i]()->GetNodeName().Prepend(temp));
             }
             if (indexUpdateMsg()->GetNumNames() >= _maxSubscriptionMessageItems) SendGetDataResults(messageArray[1]);
          }
