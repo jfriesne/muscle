@@ -81,14 +81,11 @@ enum {
  * implementations.
  *
  * Given a Hashtable object, you can obtain one or more of these
- * iterator objects by calling the Hashtable's GetIterator() method.
+ * iterator objects by calling the Hashtable's GetIterator() method;
+ * or you can just specify the Hashtable you want to iterate over as 
+ * an argument to the HashtableIterator constructor.
  *
- * This iterator actually contains separate state for two iterations:
- * one for iterating over the values in the Hashtable, and one for 
- * iterating over the keys.  These two iterations can be done independently
- * of each other.
- *
- * The most common form for an iteration is this:
+ * The most common form for a Hashtable iteration is this:
  *
  * for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++)
  * {
@@ -97,9 +94,10 @@ enum {
  *    [...]
  * }
  *
- * It is safe to modify or delete a Hashtable during a traversal; the active iterators
- * will be automatically notified so that they do the right thing and won't continue to
- * reference at any now-invalid items.
+ * It is safe to modify or delete a Hashtable during an iteration-traversal (from the same 
+ * thread only); any HashtableIterators that are in the middle of iterating over the Hashtable 
+ * will be automatically notified about the modification, so that they can do the right thing 
+ * (and in particular, not continue to point to any no-longer-existing hashtable entries).
  */
 template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class HashtableIterator MUSCLE_FINAL_CLASS
 {
