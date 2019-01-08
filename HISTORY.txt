@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.11 Released 1/7/2019
    o Queue:GetWithDefault() methods that
      take a default-value argument (by-reference)
      now return their return-value by-value rather
