@@ -762,7 +762,7 @@ Queue<ItemType>::operator =(const Queue& rhs)
 {
    if (this != &rhs)
    {
-      uint32 hisNumItems = rhs.GetNumItems();
+      const uint32 hisNumItems = rhs.GetNumItems();
            if (hisNumItems == 0) Clear(true);  // FogBugz #10274
       else if (EnsureSize(hisNumItems, true) == B_NO_ERROR) for (uint32 i=0; i<hisNumItems; i++) (*this)[i] = rhs[i];
    }
@@ -775,7 +775,7 @@ Queue<ItemType>::CopyFrom(const Queue & rhs)
 {
    if (this == &rhs) return B_NO_ERROR;
 
-   uint32 numItems = rhs.GetNumItems();
+   const uint32 numItems = rhs.GetNumItems();
    if (EnsureSize(numItems, true) == B_NO_ERROR)
    {
       for (uint32 i=0; i<numItems; i++) (*this)[i] = rhs[i];
@@ -841,11 +841,11 @@ status_t
 Queue<ItemType>::
 AddTailMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItems)
 {
-   uint32 hisSize = queue.GetNumItems();
+   const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
    
-   uint32 mySize = GetNumItems();
-   uint32 newSize = mySize+numNewItems;
+   const uint32 mySize = GetNumItems();
+   const uint32 newSize = mySize+numNewItems;
    if (EnsureSize(newSize, true) != B_NO_ERROR) return B_ERROR;
    for (uint32 i=mySize; i<newSize; i++) (*this)[i] = queue[startIndex++];
 
@@ -857,8 +857,8 @@ status_t
 Queue<ItemType>::
 AddTailMulti(const ItemType * items, uint32 numItems)
 {
-   uint32 mySize = GetNumItems();
-   uint32 newSize = mySize+numItems;
+   const uint32 mySize = GetNumItems();
+   const uint32 newSize = mySize+numItems;
    uint32 rhs = 0;
 
    ItemType * oldArray;
@@ -902,7 +902,7 @@ status_t
 Queue<ItemType>::
 AddHeadMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItems)
 {
-   uint32 hisSize = queue.GetNumItems();
+   const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
 
    if (EnsureSize(numNewItems+GetNumItems()) != B_NO_ERROR) return B_ERROR;
@@ -958,7 +958,7 @@ Queue<ItemType>::
 RemoveHead()
 {
    if (_itemCount == 0) return B_ERROR;
-   int oldHeadIndex = _headIndex;
+   const int oldHeadIndex = _headIndex;
    _headIndex = NextIndex(_headIndex);
    _itemCount--;
    if (IsPerItemClearNecessary()) _queue[oldHeadIndex] = GetDefaultItem();  // this must be done last, as queue state must be coherent when we do this
@@ -995,7 +995,7 @@ Queue<ItemType>::
 RemoveTail()
 {
    if (_itemCount == 0) return B_ERROR;
-   int removedItemIndex = _tailIndex;
+   const int removedItemIndex = _tailIndex;
    _tailIndex = PrevIndex(_tailIndex);
    _itemCount--;
    if (IsPerItemClearNecessary()) _queue[removedItemIndex] = GetDefaultItem();  // this must be done last, as queue state must be coherent when we do this
@@ -1143,7 +1143,7 @@ status_t
 Queue<ItemType>::
 InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItems)
 {
-   uint32 hisSize = queue.GetNumItems();
+   const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
    if (numNewItems == 0) return B_NO_ERROR;
    if (index > _itemCount) return B_ERROR;
@@ -1153,8 +1153,8 @@ InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex, ui
       if (index == _itemCount) return AddTail(queue.Head());
    }
 
-   uint32 oldSize = GetNumItems();
-   uint32 newSize = oldSize+numNewItems;
+   const uint32 oldSize = GetNumItems();
+   const uint32 newSize = oldSize+numNewItems;
 
    if (EnsureSize(newSize, true) != B_NO_ERROR) return B_ERROR;
    for (uint32 i=index; i<oldSize; i++)           (*this)[i+numNewItems] = (*this)[i];
@@ -1322,7 +1322,7 @@ void
 Queue<ItemType>::
 Sort(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, void * optCookie) 
 {
-   uint32 size = GetNumItems();
+   const uint32 size = GetNumItems();
    if (to > size) to = size;
    if (to > from)
    {
@@ -1335,7 +1335,7 @@ Sort(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, void * o
             {
                for (uint32 j=i; j>from; j--) 
                {
-                  int ret = compareFunctor.Compare(*(GetItemAtUnchecked(j)), *(GetItemAtUnchecked(j-1)), optCookie);
+                  const int ret = compareFunctor.Compare(*(GetItemAtUnchecked(j)), *(GetItemAtUnchecked(j-1)), optCookie);
                   if (ret < 0) Swap(j, j-1); 
                           else break; 
                }
@@ -1345,7 +1345,7 @@ Sort(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, void * o
       else
       {
          // Okay, do the real thing
-         uint32 middle = (from + to)/2; 
+         const uint32 middle = (from + to)/2; 
          Sort(compareFunctor, from, middle, optCookie); 
          Sort(compareFunctor, middle, to, optCookie); 
          Merge(compareFunctor, from, middle, to, middle-from, to-middle, optCookie); 
@@ -1358,7 +1358,7 @@ void
 Queue<ItemType>::
 ReverseItemOrdering(uint32 from, uint32 to) 
 {
-   uint32 size = GetNumItems();
+   const uint32 size = GetNumItems();
    if (size > 0)
    {
       to--;  // make it inclusive
@@ -1372,7 +1372,7 @@ status_t
 Queue<ItemType>::
 RemoveFirstInstanceOf(const ItemType & val) 
 {
-   uint32 ni = GetNumItems();
+   const uint32 ni = GetNumItems();
    for (uint32 i=0; i<ni; i++) if ((*this)[i] == val) return RemoveItemAt(i);
    return B_ERROR;
 }
@@ -1436,7 +1436,7 @@ RemoveDuplicateItems(bool assumeAlreadySorted)
       if (nextItem != wItem) (*this)[numWrittenItems++] = nextItem;
    } 
 
-   uint32 ret = GetNumItems()-numWrittenItems;
+   const uint32 ret = GetNumItems()-numWrittenItems;
    (void) EnsureSize(numWrittenItems, true);  // guaranteed to succeed
    return ret;
 }
@@ -1505,7 +1505,7 @@ Merge(const CompareFunctorType & compareFunctor, uint32 from, uint32 pivot, uint
             }
          }
 
-         uint32 new_mid = first_cut+len22; 
+         const uint32 new_mid = first_cut+len22; 
          Merge(compareFunctor, from,    first_cut,  new_mid, len11,        len22,        optCookie); 
          Merge(compareFunctor, new_mid, second_cut, to,      len1 - len11, len2 - len22, optCookie); 
       }
@@ -1548,8 +1548,8 @@ Upper(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const I
       uint32 len = to - from;
       while (len > 0) 
       { 
-         uint32 half = len/2; 
-         uint32 mid  = from + half; 
+         const uint32 half = len/2; 
+         const uint32 mid  = from + half; 
          if (compareFunctor.Compare(val, *(GetItemAtUnchecked(mid)), optCookie) < 0) len = half; 
          else 
          {
@@ -1594,8 +1594,8 @@ Queue<ItemType>::SwapContents(Queue<ItemType> & that)
 {
    if (&that == this) return;  // no point trying to swap with myself
 
-   bool thisSmall = (_queue == _smallQueue);
-   bool thatSmall = (that._queue == that._smallQueue);
+   const bool thisSmall = (_queue == _smallQueue);
+   const bool thatSmall = (that._queue == that._smallQueue);
 
    if ((thisSmall)&&(thatSmall))
    {
@@ -1628,7 +1628,7 @@ void
 Queue<ItemType>::SwapContentsAux(Queue<ItemType> & largeThat)
 {
    // First, copy over our (small) contents to his small-buffer
-   uint32 ni = GetNumItems();
+   const uint32 ni = GetNumItems();
    for (uint32 i=0; i<ni; i++) largeThat._smallQueue[i] = QQ_PlunderItem((*this)[i]);
 
    // Now adopt his dynamic buffer
@@ -1664,7 +1664,7 @@ bool
 Queue<ItemType>::StartsWith(const Queue<ItemType> & prefixQueue) const
 {
    if (prefixQueue.GetNumItems() > GetNumItems()) return false;
-   uint32 prefixQueueLen = prefixQueue.GetNumItems();
+   const uint32 prefixQueueLen = prefixQueue.GetNumItems();
    for (uint32 i=0; i<prefixQueueLen; i++) if (!(prefixQueue[i] == (*this)[i])) return false;
    return true;
 }
