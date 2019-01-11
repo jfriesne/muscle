@@ -222,9 +222,11 @@ QMessageTransceiverThread * QMessageTransceiverThreadPool :: ObtainThread()
    QMessageTransceiverThread * newThread = CreateThread();
    if ((newThread == NULL)||(newThread->StartInternalThread() != B_NO_ERROR)||(_threads.PutWithDefault(newThread) != B_NO_ERROR))
    {
-      WARN_OUT_OF_MEMORY;
-      newThread->ShutdownInternalThread();  // in case Put() failed
-      delete newThread;
+      if (newThread)
+      {
+         newThread->ShutdownInternalThread();  // in case Put() failed
+         delete newThread;
+      }
       return NULL;
    }
    return newThread;

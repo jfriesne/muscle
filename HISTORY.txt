@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a AddConstToRef() convenience-function to RefCount.h,
+     as a counterpart to the existing CastAwayConstFromRef().
+
 7.11 Released 1/7/2019
    o Queue:GetWithDefault() methods that
      take a default-value argument (by-reference)

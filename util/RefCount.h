@@ -534,8 +534,18 @@ template <class Item> inline Item * CheckedGetItemPointer(const Ref<Item> * rt) 
 
 /** Convenience method for converting a ConstRef into a non-const Ref.  Only call this method if you are sure you know what you are doing,
   * because usually the original ConstRef was declared as a ConstRef for a good reason!
+  * @param constItem the ConstRef we want to return a Ref equivalent of.
+  * @returns a non-const Ref that is pointing to the same object that the passed-in ConstRef was pointing to.
   */
 template <class Item> inline Ref<Item> CastAwayConstFromRef(const ConstRef<Item> & constItem) {return Ref<Item>(const_cast<Item *>(constItem()), constItem.IsRefCounting());}
+
+/** Convenience method for converting a non-const Ref into a ConstRef.  This method isn't strictly necessary, since
+  * you can also just use the assignment-operator, but I'm including it for completeness, and because some compilers
+  * want to warn you about object-slicing if you just use the assignment operator to do this.
+  * @param nonConstItem the Ref we want to return a ConstRef equivalent of.
+  * @returns a ConstRef that is pointing to the same object that the passed-in non-const Ref was pointing to.
+  */
+template <class Item> inline ConstRef<Item> AddConstToRef(const Ref<Item> & nonConstItem) {return ConstRef<Item>(nonConstItem(), nonConstItem.IsRefCounting());}
 
 } // end namespace muscle
 
