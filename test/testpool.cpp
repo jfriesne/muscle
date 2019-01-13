@@ -23,8 +23,10 @@ int main(int argc, char ** argv)
    {
       case 1:
       {
+#ifndef __clang_analyzer__   // yes, it's a memory leak -- no, I don't care
          // See how long it takes to allocate an array of objects
-         (void) new Message[NUM_OBJECTS];
+         volatile Message * mArray = new Message[NUM_OBJECTS];  // volatile just so it won't get optimized away
+#endif
       }
       break;
 

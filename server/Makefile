@@ -13,9 +13,6 @@ CXXFLAGS  += -std=c++11 $(CFLAGS) $(DEFINES)
 #CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING 
 #CXXFLAGS += -DMUSCLE_AVOID_STDINT 
 
-# Uncomment these to enable clang++'s static analyzer (for more thorough error checking)
-#CFLAGS   += --analyze -Xanalyzer -analyzer-output=text
-
 # compilation flags that are specific to the gcc compiler (hard-coded) 
 GCCFLAGS    = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS -W -Wall -Wno-multichar 
 

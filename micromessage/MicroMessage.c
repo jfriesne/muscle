@@ -1001,7 +1001,7 @@ UPoint UMGetPointFromArray(UPointArrayHandle handle, uint32 idx)
    if (itemData)
    {
       ret.x = UMReadFloat(itemData); itemData += sizeof(uint32);
-      ret.y = UMReadFloat(itemData); itemData += sizeof(uint32);
+      ret.y = UMReadFloat(itemData); //itemData += sizeof(uint32);
       return ret;
    }
    else
@@ -1020,7 +1020,7 @@ URect UMGetRectFromArray(URectArrayHandle handle, uint32 idx)
       ret.left   = UMReadFloat(itemData); itemData += sizeof(uint32);
       ret.top    = UMReadFloat(itemData); itemData += sizeof(uint32);
       ret.right  = UMReadFloat(itemData); itemData += sizeof(uint32);
-      ret.bottom = UMReadFloat(itemData); itemData += sizeof(uint32);
+      ret.bottom = UMReadFloat(itemData); //itemData += sizeof(uint32);
       return ret;
    }
    else

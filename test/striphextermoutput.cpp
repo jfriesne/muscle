@@ -38,7 +38,7 @@ int main(int, char **)
 {
    bool printedSep = true;
    char buf[1024];
-   while(gets(buf))
+   while(fgets(buf, sizeof(buf), stdin))
    {
       String s = buf; s = s.Trim();
       const int32 leftBracket  = s.LastIndexOf('[');

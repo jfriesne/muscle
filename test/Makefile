@@ -32,10 +32,6 @@ GCCFLAGS = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS -W -Wall -Wno-multichar
 CXXFLAGS = $(CFLAGS) -O3 $(DEFINES)
 CXXFLAGS += -std=c++11
 
-# Uncomment these to enable clang++'s static analyzer (for more thorough error checking)
-#CXXFLAGS += --analyze -Xanalyzer -analyzer-output=text
-#CFLAGS   += --analyze -Xanalyzer -analyzer-output=text
-
 LFLAGS =  
 LIBS =  -lpthread
 EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testzip testrefcount testqueue testtuple testgateway calctypecode printtypecode portablereflectclient portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststring testbitchord testbytebuffer testmatchfiles testparsefile testtime deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs hexterm udpproxy serialproxy printsourcelocations findsourcelocations svncopy testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testthreadpool testobjectpool

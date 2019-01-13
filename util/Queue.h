@@ -715,7 +715,11 @@ private:
    inline uint32 PrevIndex(uint32 idx) const {return (idx == 0) ? _queueSize-1 : idx-1;}
 
    // Translates a user-index into an index into the _queue array.
-   inline uint32 InternalizeIndex(uint32 idx) const {return (_headIndex + idx) % _queueSize;}
+   inline uint32 InternalizeIndex(uint32 idx) const 
+   {
+      assert(idx < _queueSize);  // just to reassure ClangSA
+      return (_headIndex + idx) % _queueSize;
+   }
 
    // Helper methods, used for sorting (stolen from http://www-ihm.lri.fr/~thomas/VisuTri/inplacestablesort.html)
    template<class CompareFunctorType> void   Merge(const CompareFunctorType & compareFunctor, uint32 from, uint32 pivot, uint32 to, uint32 len1, uint32 len2, void * optCookie);
@@ -732,14 +736,14 @@ private:
 
 template <class ItemType>
 Queue<ItemType>::Queue()
-   : _queue(NULL), _queueSize(0), _itemCount(0)
+   : _queue(NULL), _queueSize(0), _itemCount(0), _headIndex(0), _tailIndex(0)
 {
    // empty
 }
 
 template <class ItemType>
 Queue<ItemType>::Queue(const Queue& rhs)
-   : _queue(NULL), _queueSize(0), _itemCount(0)
+   : _queue(NULL), _queueSize(0), _itemCount(0), _headIndex(0), _tailIndex(0)
 {
    *this = rhs;
 }
@@ -847,7 +851,7 @@ AddTailMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
    const uint32 mySize = GetNumItems();
    const uint32 newSize = mySize+numNewItems;
    if (EnsureSize(newSize, true) != B_NO_ERROR) return B_ERROR;
-   for (uint32 i=mySize; i<newSize; i++) (*this)[i] = queue[startIndex++];
+   for (uint32 i=mySize; i<newSize; i++) (*this)[i] = queue[startIndex+(i-mySize)];
 
    return B_NO_ERROR;
 }

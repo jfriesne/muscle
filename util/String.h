@@ -1198,7 +1198,11 @@ private:
    void ClearSmallBuffer() {memset(_strData._smallBuffer, 0, sizeof(_strData._smallBuffer));}
    void WriteNULTerminatorByte() {GetBuffer()[_length] = '\0';}
 
-   union StringUnion {  // the StringUnion name is apparently necessary for muscleSwap() to work on the union
+#ifdef __clang_analyzer__
+   struct ShortStringOptimizationData {  // ClangSA gets confused by unions, so we'll avoid SSO during Clang analysis
+#else
+   union ShortStringOptimizationData {
+#endif
       char * _bigBuffer;                                // Pointer to allocated array.  Valid iff (_bufferLen >  sizeof(_smallBuffer))
       char _smallBuffer[SMALL_MUSCLE_STRING_LENGTH+1];  // inline character array.      Valid iff (_bufferLen <= sizeof(_smallBuffer))
    } _strData;
