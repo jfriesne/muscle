@@ -1594,18 +1594,18 @@ Queue<ItemType>::SwapContents(Queue<ItemType> & that)
 {
    if (&that == this) return;  // no point trying to swap with myself
 
-   const bool thisSmall = (_queue == _smallQueue);
-   const bool thatSmall = (that._queue == that._smallQueue);
+   const bool thisSmall = (this->_queue == this->_smallQueue);
+   const bool thatSmall = (that._queue  == that._smallQueue);
 
    if ((thisSmall)&&(thatSmall))
    {
       // First, move any extra items from the longer queue to the shorter one...
-      uint32 commonSize = muscleMin(GetNumItems(), that.GetNumItems());
-      int32 sizeDiff    = ((int32)GetNumItems())-((int32)that.GetNumItems());
+      const uint32 commonSize    = muscleMin(GetNumItems(), that.GetNumItems());
+      const int32 sizeDiff       = ((int32)GetNumItems())-((int32)that.GetNumItems());
       Queue<ItemType> & copyTo   = (sizeDiff > 0) ? that : *this;
       Queue<ItemType> & copyFrom = (sizeDiff > 0) ? *this : that;
-      (void) copyTo.AddTailMulti(copyFrom, commonSize);   // guaranteed not to fail
-      (void) copyFrom.EnsureSize(commonSize, true);  // remove the copied items from (copyFrom)
+      (void) copyTo.AddTailMulti(copyFrom, commonSize); // guaranteed not to fail
+      (void) copyFrom.EnsureSize(commonSize, true);     // remove the copied items from (copyFrom)
 
       // Then just swap the elements that are present in both arrays
       for (uint32 i=0; i<commonSize; i++) muscleSwap((*this)[i], that[i]);

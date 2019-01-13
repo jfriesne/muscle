@@ -5,6 +5,12 @@
 
 #include "support/MuscleSupport.h"
 
+#ifdef __clang_analyzer__
+# ifndef MUSCLE_AVOID_BITSTUFFING
+#  define MUSCLE_AVOID_BITSTUFFING // poor ClangSA just can't handle the bit-stuffing
+# endif
+#endif
+
 namespace muscle {
 
 /** This class abuses the fact that objects are word-aligned on most hardware to allow us to store

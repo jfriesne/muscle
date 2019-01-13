@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Tweaked the code to avoid a few false-positive warnings
+     from Clang Static Analyzer.
+   o Removed SSLSocketDataIO.{cpp,h} from the include XCode
+     project since it is typically not necessary and breaks
+     the build if OpenSSL isn't installed on the host Mac.
    - Added a AddConstToRef() convenience-function to RefCount.h,
      as a counterpart to the existing CastAwayConstFromRef().
 

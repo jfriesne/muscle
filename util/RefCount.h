@@ -414,7 +414,7 @@ private:
       const Item * item = this->GetItemPointer();
       if (item)
       {
-         bool isRefCounting = this->IsRefCounting();
+         const bool isRefCounting = this->IsRefCounting();
          if ((isRefCounting)&&(item->DecrementRefCount()))
          {
             AbstractObjectManager * m = item->GetManager();

@@ -22,14 +22,12 @@
 		7BB2CFAA207D06EB0092DBBD /* RS232DataIO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BB2CF8E207D06E90092DBBD /* RS232DataIO.cpp */; };
 		7BB2CFAB207D06EB0092DBBD /* FileDescriptorDataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF8F207D06E90092DBBD /* FileDescriptorDataIO.h */; };
 		7BB2CFAC207D06EB0092DBBD /* ProxyDataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF90207D06E90092DBBD /* ProxyDataIO.h */; };
-		7BB2CFAD207D06EB0092DBBD /* SSLSocketDataIO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BB2CF91207D06E90092DBBD /* SSLSocketDataIO.cpp */; };
 		7BB2CFAE207D06EB0092DBBD /* UDPSocketDataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF92207D06E90092DBBD /* UDPSocketDataIO.h */; };
 		7BB2CFAF207D06EB0092DBBD /* AsyncDataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF93207D06E90092DBBD /* AsyncDataIO.h */; };
 		7BB2CFB0207D06EB0092DBBD /* ChildProcessDataIO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BB2CF94207D06E90092DBBD /* ChildProcessDataIO.cpp */; };
 		7BB2CFB1207D06EB0092DBBD /* FileDescriptorDataIO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BB2CF95207D06E90092DBBD /* FileDescriptorDataIO.cpp */; };
 		7BB2CFB2207D06EB0092DBBD /* MultiDataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF96207D06E90092DBBD /* MultiDataIO.h */; };
 		7BB2CFB3207D06EB0092DBBD /* RS232DataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF97207D06EA0092DBBD /* RS232DataIO.h */; };
-		7BB2CFB4207D06EB0092DBBD /* SSLSocketDataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF98207D06EA0092DBBD /* SSLSocketDataIO.h */; };
 		7BB2CFB5207D06EB0092DBBD /* AsyncDataIO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7BB2CF99207D06EA0092DBBD /* AsyncDataIO.cpp */; };
 		7BB2CFB6207D06EB0092DBBD /* ChildProcessDataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF9A207D06EA0092DBBD /* ChildProcessDataIO.h */; };
 		7BB2CFB7207D06EB0092DBBD /* PacketDataIO.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB2CF9B207D06EA0092DBBD /* PacketDataIO.h */; };
@@ -225,14 +223,12 @@
 		7BB2CF8E207D06E90092DBBD /* RS232DataIO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RS232DataIO.cpp; path = ../dataio/RS232DataIO.cpp; sourceTree = "<group>"; };
 		7BB2CF8F207D06E90092DBBD /* FileDescriptorDataIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileDescriptorDataIO.h; path = ../dataio/FileDescriptorDataIO.h; sourceTree = "<group>"; };
 		7BB2CF90207D06E90092DBBD /* ProxyDataIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProxyDataIO.h; path = ../dataio/ProxyDataIO.h; sourceTree = "<group>"; };
-		7BB2CF91207D06E90092DBBD /* SSLSocketDataIO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SSLSocketDataIO.cpp; path = ../dataio/SSLSocketDataIO.cpp; sourceTree = "<group>"; };
 		7BB2CF92207D06E90092DBBD /* UDPSocketDataIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UDPSocketDataIO.h; path = ../dataio/UDPSocketDataIO.h; sourceTree = "<group>"; };
 		7BB2CF93207D06E90092DBBD /* AsyncDataIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AsyncDataIO.h; path = ../dataio/AsyncDataIO.h; sourceTree = "<group>"; };
 		7BB2CF94207D06E90092DBBD /* ChildProcessDataIO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ChildProcessDataIO.cpp; path = ../dataio/ChildProcessDataIO.cpp; sourceTree = "<group>"; };
 		7BB2CF95207D06E90092DBBD /* FileDescriptorDataIO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileDescriptorDataIO.cpp; path = ../dataio/FileDescriptorDataIO.cpp; sourceTree = "<group>"; };
 		7BB2CF96207D06E90092DBBD /* MultiDataIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MultiDataIO.h; path = ../dataio/MultiDataIO.h; sourceTree = "<group>"; };
 		7BB2CF97207D06EA0092DBBD /* RS232DataIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RS232DataIO.h; path = ../dataio/RS232DataIO.h; sourceTree = "<group>"; };
-		7BB2CF98207D06EA0092DBBD /* SSLSocketDataIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SSLSocketDataIO.h; path = ../dataio/SSLSocketDataIO.h; sourceTree = "<group>"; };
 		7BB2CF99207D06EA0092DBBD /* AsyncDataIO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AsyncDataIO.cpp; path = ../dataio/AsyncDataIO.cpp; sourceTree = "<group>"; };
 		7BB2CF9A207D06EA0092DBBD /* ChildProcessDataIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChildProcessDataIO.h; path = ../dataio/ChildProcessDataIO.h; sourceTree = "<group>"; };
 		7BB2CF9B207D06EA0092DBBD /* PacketDataIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PacketDataIO.h; path = ../dataio/PacketDataIO.h; sourceTree = "<group>"; };
@@ -462,8 +458,6 @@
 				7BB2CF89207D06E90092DBBD /* SeekableDataIO.h */,
 				7BB2CF8B207D06E90092DBBD /* SimulatedMulticastDataIO.cpp */,
 				7BB2CF9C207D06EA0092DBBD /* SimulatedMulticastDataIO.h */,
-				7BB2CF91207D06E90092DBBD /* SSLSocketDataIO.cpp */,
-				7BB2CF98207D06EA0092DBBD /* SSLSocketDataIO.h */,
 				7BB2CF87207D06E90092DBBD /* StdinDataIO.cpp */,
 				7BB2CF8C207D06E90092DBBD /* StdinDataIO.h */,
 				7BB2CF9E207D06EA0092DBBD /* TCPSocketDataIO.h */,
@@ -769,7 +763,6 @@
 				7BB2CFAF207D06EB0092DBBD /* AsyncDataIO.h in Headers */,
 				7BB2D09B207D080E0092DBBD /* TimeUtilityFunctions.h in Headers */,
 				7BB2D043207D07DD0092DBBD /* DetectNetworkConfigChangesSession.h in Headers */,
-				7BB2CFB4207D06EB0092DBBD /* SSLSocketDataIO.h in Headers */,
 				7BB2CFFF207D07840092DBBD /* DataNode.h in Headers */,
 				7BB2D0A8207D080E0092DBBD /* NetworkUtilityFunctions.h in Headers */,
 				7BB2CFB6207D06EB0092DBBD /* ChildProcessDataIO.h in Headers */,
@@ -933,7 +926,6 @@
 				7BB2D003207D07840092DBBD /* ReflectServer.cpp in Sources */,
 				7BB2D08C207D080E0092DBBD /* Directory.cpp in Sources */,
 				7BB2D04B207D07DD0092DBBD /* SetupSystem.cpp in Sources */,
-				7BB2CFAD207D06EB0092DBBD /* SSLSocketDataIO.cpp in Sources */,
 				7BB2D059207D07DD0092DBBD /* MessageTransceiverThread.cpp in Sources */,
 				7BB2D048207D07DD0092DBBD /* Thread.cpp in Sources */,
 				7BB2CFDA207D07430092DBBD /* SLIPFramedDataMessageIOGateway.cpp in Sources */,

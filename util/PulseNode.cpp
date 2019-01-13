@@ -137,11 +137,12 @@ void PulseNode :: ReschedulePulseChild(PulseNode * child, int whichList)
             PulseNode * p = _firstChild[whichList];
             if (p)
             {
-               if (child->_aggregatePulseTime >= _lastChild[whichList]->_aggregatePulseTime)
+               PulseNode * lastChild = _lastChild[whichList];  // checking this for non-NULL solely to keep ClangSA happy --jaf
+               if ((lastChild)&&(child->_aggregatePulseTime >= lastChild->_aggregatePulseTime))
                {
                   // Shortcut:  append to the tail of the list!
-                  child->_prevSibling = _lastChild[whichList];
-                  _lastChild[whichList]->_nextSibling = child;
+                  child->_prevSibling = lastChild;
+                  lastChild->_nextSibling = child;
                   _lastChild[whichList] = child;
                }
                else
@@ -165,7 +166,7 @@ void PulseNode :: ReschedulePulseChild(PulseNode * child, int whichList)
             if (_parent) _parent->ReschedulePulseChild(this, LINKED_LIST_NEEDSRECALC);  // if our child is rescheduled that reschedules us too!
          case LINKED_LIST_UNSCHEDULED: 
          {
-            // These lists are unsorted, so we can just quickly append the child to the head of the list
+            // These lists are unsorted, so we can just quickly prepend the child to the head of the list
             if (_firstChild[whichList])
             {
                child->_nextSibling = _firstChild[whichList];

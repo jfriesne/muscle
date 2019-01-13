@@ -970,7 +970,7 @@ String String :: WithoutNumericSuffix(uint32 * optRemovedSuffixValue) const
    if (optRemovedSuffixValue)
    {
       suffix.Reverse();
-      *optRemovedSuffixValue = atol(suffix());
+      *optRemovedSuffixValue = (uint32) atol(suffix());
    }
    return ret;
 }
@@ -978,10 +978,15 @@ String String :: WithoutNumericSuffix(uint32 * optRemovedSuffixValue) const
 // Stolen from:  https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C.2B.2B
 static uint32 GetLevenshteinDistanceAux(const char *shortString, uint32 shortStringLen, const char * longString, uint32 longStringLen, uint32 maxResult)
 {
-   uint32 tempBuf[256];  // We'll try to avoid using the heap for small strings
+   assert(shortStringLen<=longStringLen);  // this makes clang++SA happy
 
    const uint32 allocLen = shortStringLen+1;
+#ifdef __clang_analyzer__
+   uint32 * columns = newnothrow uint32[allocLen];  // ClangSA doesn't like my tempBuf trick
+#else
+   uint32 tempBuf[256];  // We'll try to avoid using the heap for small strings
    uint32 * columns = (allocLen > ARRAYITEMS(tempBuf)) ? newnothrow uint32[allocLen] : tempBuf;
+#endif
    if (columns == NULL)
    {
       WARN_OUT_OF_MEMORY;
@@ -1002,7 +1007,11 @@ static uint32 GetLevenshteinDistanceAux(const char *shortString, uint32 shortStr
    }
 
    const uint32 ret = columns[shortStringLen];
+#ifdef __clang_analyzer__
+   delete [] columns;  // ClangSA doesn't like my tempBuf trick
+#else
    if (allocLen > ARRAYITEMS(tempBuf)) delete [] columns;
+#endif
    return muscleMin(ret, maxResult);
 }
 
@@ -1022,7 +1031,7 @@ uint32 String :: GetDistanceTo(const String & otherString, uint32 maxResult) con
 
 uint32 String :: GetDistanceTo(const char * otherString, uint32 maxResult) const
 {
-   return GetLevenshteinDistance(Cstr(), Length(), otherString?otherString:"", otherString?strlen(otherString):0, maxResult);
+   return GetLevenshteinDistance(Cstr(), Length(), otherString?otherString:"", otherString?(uint32)strlen(otherString):(uint32)0, maxResult);
 }
 
 #ifdef __APPLE__
