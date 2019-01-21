@@ -17,9 +17,9 @@ class String;
 extern void UpdateAllocationStackTrace(bool isAllocation, String * & s);  // implemented in SysLog.cpp
 #endif
 
-/** This macro lets you easily declare Reference classes fora give RefCountable type in the standard way,
-  * which is that e.g. given a RefCountable class Named XXX it will create types XXXRef and ConstXXXRef 
-  * as more readable synonyms for Ref<XXX> and ConstRef<XXX>, respectively.
+/** This macro declares typedefs for a given RefCountable type that follow the standard convention.
+  * Given a RefCountable class Named XXX it will create typedefs named XXXRef and ConstXXXRef as 
+  * more readable synonyms for Ref<XXX> and ConstRef<XXX>, respectively.
   */
 #define DECLARE_REFTYPES(RefCountableClassName)                                       \
    typedef muscle::ConstRef<RefCountableClassName> Const##RefCountableClassName##Ref; \
