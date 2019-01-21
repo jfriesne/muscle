@@ -12,7 +12,7 @@ namespace muscle {
 
 /** A list of possible network-interface-hardware-type values that may be returned by NetworkInterfaceInfo::GetHardwareType() */
 enum {
-   NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN = 0, /**< We weren't able to identify this interface as any of our supported types */
+   NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN = 0, /**< We weren't able to identify this interface as any of our recognized types */
    NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK,    /**< Loopback interface (e.g. lo0), used to communicate within localhost only */
    NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET,    /**< Your standard wired Ethernet interface */
    NETWORK_INTERFACE_HARDWARE_TYPE_WIFI,        /**< IEEE802.11/Wi-Fi wireless medium-range interface */
@@ -73,7 +73,7 @@ public:
      * @param netmask The netmask being used by this interface.
      * @param broadcastIP The broadcast IP address associated with this interface.
      * @param enabled True iff the interface is currently enabled; false if it is not.
-     * @param copper True iff the interface currently has an ethernet cable plugged into it.
+     * @param copper True iff the interface is currently operations (e.g. has a connected ethernet cable plugged into it)
      * @param macAddress 48-bit MAC address value, or 0 if MAC address is unknown.
      * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value (NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN if the hardware type isn't known)
      */
@@ -115,9 +115,7 @@ public:
    bool IsEnabled() const {return _enabled;}
 
    /** Returns true iff this network interface is currently plugged in to anything 
-     * (i.e. iff the Ethernet cable is connected to the jack).
-     * Note that copper detection is not currently supported under Windows, so
-     * under Windows this will always return false.
+     * (i.e. iff a connected Ethernet cable is attached to the Ethernet jack).
      */
    bool IsCopperDetected() const {return _copper;}
 

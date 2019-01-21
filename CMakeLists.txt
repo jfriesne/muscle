@@ -31,7 +31,7 @@ if (WIN32)
    )
 else (!WIN32)
    if(${CMAKE_VERSION} VERSION_LESS "3.1.0")
-      add_definitions(-std=c++11)   # fallbck for older versions of CMake that don't know about CMAKE_CXX_STANDARD
+      add_definitions(-std=c++11)   # fallback for older versions of CMake that don't know about CMAKE_CXX_STANDARD
    endif()
    find_package(ZLIB 1.2.8)
    if (ZLIB_FOUND)
