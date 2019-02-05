@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.12 Released 2/5/2019
    - Added a AddConstToRef() convenience-function to RefCount.h,
      as a counterpart to the existing CastAwayConstFromRef().
    - NetworkInterfaceInfo::IsCopperDetected() now returns
