@@ -5,6 +5,7 @@
 
 #include "util/Hashtable.h"
 #include "util/String.h"
+#include "util/TimeUtilityFunctions.h"  // for GetCurrentTime64() and GetRunTime64()
 
 #ifndef MUSCLE_DEBUG_TIMER_CLOCK
 # if defined(__BEOS__) || defined(__HAIKU__) || defined(__ATHEOS__) || defined(WIN32) || (defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)) || (defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI))

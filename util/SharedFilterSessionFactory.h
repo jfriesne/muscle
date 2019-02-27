@@ -6,6 +6,7 @@
 #include "reflector/AbstractReflectSession.h"
 #include "reflector/AbstractSessionIOPolicy.h"
 #include "regex/PathMatcher.h"
+#include "system/SharedMemory.h"
 
 namespace muscle {
 
@@ -76,12 +77,14 @@ public:
      *                    then when the SharedMemory area doesn't exist, the call will be passed
      *                    on through to the slave factory.  If false, it won't be.
      */
-   static bool IsAccessAllowedForIP(const String & sharedMemName, const IPAddress & ip, bool isGrantList, bool defaultPass);
+   bool IsAccessAllowedForIP(const IPAddress & ip) const;
 
 private:
    String _sharedMemName;
    bool _isGrantList;
    bool _defaultPass;
+
+   mutable SharedMemory _sharedMemory;
 };
 DECLARE_REFTYPES(SharedFilterSessionFactory);
 

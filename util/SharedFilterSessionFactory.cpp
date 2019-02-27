@@ -1,7 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
 #include "util/SharedFilterSessionFactory.h"
-#include "system/SharedMemory.h"
 #include "util/NetworkUtilityFunctions.h"
 #include "util/MiscUtilityFunctions.h"
 
@@ -24,24 +23,24 @@ SharedFilterSessionFactory :: ~SharedFilterSessionFactory()
 AbstractReflectSessionRef SharedFilterSessionFactory :: CreateSession(const String & clientIP, const IPAddressAndPort & iap)
 {
    TCHECKPOINT;
-   return ((GetSlave()())&&(IsAccessAllowedForIP(_sharedMemName, iap.GetIPAddress().IsStandardLoopbackDeviceAddress()?localhostIP:Inet_AtoN(clientIP()), _isGrantList, _defaultPass))) ? GetSlave()()->CreateSession(clientIP, iap) : AbstractReflectSessionRef();
+   return ((GetSlave()())&&(IsAccessAllowedForIP(iap.GetIPAddress().IsStandardLoopbackDeviceAddress()?localhostIP:Inet_AtoN(clientIP())))) ? GetSlave()()->CreateSession(clientIP, iap) : AbstractReflectSessionRef();
 }
 
-bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMemName, const IPAddress & ip, bool isGrantList, bool defaultPass)
+bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const IPAddress & ip) const
 {
-   bool allowAccess = defaultPass;
+   bool allowAccess = _defaultPass;
    if (ip != invalidIP)
    {
-      SharedMemory sm;
-      if (sm.SetArea(sharedMemName(), 0, true) == B_NO_ERROR)
+      // demand-setup the shared-memory object, and then lock it for read-only access
+      if (((_sharedMemory.GetAreaSize() > 0)||(_sharedMemory.SetArea(_sharedMemName(), 0, false) == B_NO_ERROR))&&(_sharedMemory.LockAreaReadOnly() == B_NO_ERROR))
       {
          Queue<NetworkInterfaceInfo> ifs;
          bool gotIFs = false;  // we'll demand-allocate them
 
-         allowAccess = !isGrantList;  // if there is a list, you're off it unless you're on it!
+         allowAccess = !_isGrantList;  // if there is a list, you're off it unless you're on it!
 
-         const IPAddress * ips = reinterpret_cast<const IPAddress *>(sm());
-         uint32 numIPs = sm.GetAreaSize()/sizeof(IPAddress);
+         const IPAddress * ips = reinterpret_cast<const IPAddress *>(_sharedMemory());
+         uint32 numIPs = _sharedMemory.GetAreaSize()/sizeof(IPAddress);
          for (uint32 i=0; i<numIPs; i++)
          {
             IPAddress nextIP = ips[i];
@@ -51,7 +50,7 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMem
             if (nextIP.EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
 #endif
             {
-               allowAccess = isGrantList;
+               allowAccess = _isGrantList;
                break;
             }
             else if (nextIP.IsStandardLoopbackDeviceAddress())
@@ -72,7 +71,7 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMem
                   if (ifs[j].GetLocalAddress().EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
 #endif
                   {
-                     allowAccess = isGrantList;
+                     allowAccess = _isGrantList;
                      matchedLocal = true;
                      break;
                   }
@@ -80,7 +79,8 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const String & sharedMem
                if (matchedLocal) break;
             }
          }
-         sm.UnlockArea(); 
+
+         _sharedMemory.UnlockArea(); 
       }
    }
    return allowAccess;
