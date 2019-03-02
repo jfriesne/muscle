@@ -162,7 +162,7 @@ status_t Thread :: SendMessageAux(int whichQueue, const MessageRef & replyRef)
    if (tsd._queueLock.Lock() == B_NO_ERROR)
    {
       if (tsd._messages.AddTail(replyRef) == B_NO_ERROR) ret = B_NO_ERROR;
-      bool sendNotification = (tsd._messages.GetNumItems() == 1);
+      const bool sendNotification = (tsd._messages.GetNumItems() == 1);
       (void) tsd._queueLock.Unlock();
       if ((sendNotification)&&(_signalLock.Lock() == B_NO_ERROR))
       {
@@ -191,10 +191,10 @@ void Thread :: SignalAux(int whichSocket)
 {
    if (_messageSocketsAllocated)
    {
-      int fd = _threadData[whichSocket]._messageSocket.GetFileDescriptor();
+      const int fd = _threadData[whichSocket]._messageSocket.GetFileDescriptor();
       if (fd >= 0) 
       {
-         char junk = 'S';
+         const char junk = 'S';
          (void) send_ignore_eintr(fd, &junk, sizeof(junk), 0);
       }
    }
