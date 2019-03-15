@@ -141,7 +141,7 @@ ifeq ($(MUSCLE_BUILD_CONTEXT),meyer)
    CXXFLAGS    += -DLCS_RELEASE_IS_FULLY_QUALIFIED=$(LCS_RELEASE_IS_FULLY_QUALIFIED)
    CXXFLAGS    += -DSVN_VERSION_STRING="$(SVN_REVISION)"
    VPATH       += ../../../version/
-   HEXTERMOBJS += dmitri_version.o
+   HEXTERMOBJS += core_version.o
 endif
 
 # Makes all the programs that can be made using just cross-platform code

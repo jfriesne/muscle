@@ -18,7 +18,7 @@
 #include "util/MiscUtilityFunctions.h"
 
 #ifdef BUILD_MUSCLE_IN_MEYER_CONTEXT
-# include "version/dmitri_version.h"
+# include "version/core_version.h"
 #endif
 
 using namespace muscle;
@@ -369,7 +369,7 @@ static void LogUsage(const char * argv0)
 
 #ifdef BUILD_MUSCLE_IN_MEYER_CONTEXT
    char buf[256];
-   Log(MUSCLE_LOG_INFO, "%s (%s)\n\n", progName(), GetLocalDmitriReleaseVersionTitle(progName(), false, buf));
+   Log(MUSCLE_LOG_INFO, "%s (%s)\n\n", progName(), GetLocalCoreReleaseVersionTitle(progName(), false, buf));
 #else
    Log(MUSCLE_LOG_INFO, "%s (compiled from MUSCLE v%s)\n\n", progName(), MUSCLE_VERSION_STRING);
 #endif
