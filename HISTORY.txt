@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added <, <=, >=, and > operators to the Queue class, to
+     allow for easy lexicographical comparison of Queues.
    o Modified SharedFilterSessionFactory::IsAccessAllowedForIP()
      to be non-static, to avoid having to re-open the shared
      memory region on every call to the method.

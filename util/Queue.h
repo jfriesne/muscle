@@ -71,6 +71,18 @@ public:
    /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator!=(const Queue & rhs) const {return !(*this == rhs);}
 
+   /** @copydoc DoxyTemplate::operator<(const DoxyTemplate &) const */
+   bool operator<(const Queue & rhs) const {return (lexicographicalCompare(rhs) < 0);}
+
+   /** @copydoc DoxyTemplate::operator<=(const DoxyTemplate &) const */
+   bool operator<=(const Queue & rhs) const {return (lexicographicalCompare(rhs) <= 0);}
+
+   /** @copydoc DoxyTemplate::operator>(const DoxyTemplate &) const */
+   bool operator>(const Queue & rhs) const {return (lexicographicalCompare(rhs) > 0);}
+
+   /** @copydoc DoxyTemplate::operator>=(const DoxyTemplate &) const */
+   bool operator>=(const Queue & rhs) const {return (lexicographicalCompare(rhs) >= 0);}
+
    /** Similar to the assignment operator, except this method returns a status code.
      * @param rhs This Queue's contents will become a copy of (rhs)'s items.
      * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?).
@@ -704,6 +716,23 @@ private:
 #else
       return true;
 #endif
+   }
+
+   // Like strcmp() except for vectors instead of strings
+   int lexicographicalCompare(const Queue & rhs) const
+   {
+      const uint32 commonRange = muscleMin(GetNumItems(), rhs.GetNumItems());
+      for (uint32 i=0; i<commonRange; i++)
+      {
+         const ItemType & leftItem  = (*this)[i];
+         const ItemType & rightItem = rhs[i];
+         if (leftItem < rightItem) return -1;
+         if (rightItem < leftItem) return +1;
+      }
+
+      if (GetNumItems() < rhs.GetNumItems()) return -1;
+      if (GetNumItems() > rhs.GetNumItems()) return +1;
+      return 0; 
    }
 
    status_t EnsureSizeAux(uint32 numSlots, ItemType ** optRetOldArray) {return EnsureSizeAux(numSlots, false, 0, optRetOldArray, false);}

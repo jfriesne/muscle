@@ -31,6 +31,7 @@ int main(void)
 {
    CompleteSetupSystem css;  // needed for string-count stats
 
+//#define TEST_SWAP_METHOD
 #ifdef TEST_SWAP_METHOD
    while(1)
    {
@@ -44,6 +45,15 @@ int main(void)
       while((s = t2()) != NULL) q2.AddTail(atoi(s));
       printf("T1Before="); PrintToStream(q1);
       printf("T2Before="); PrintToStream(q2);
+      printf("\n");
+      printf("q1 <  q2 = %i\n",  q1<q2);
+      printf("q1 <= q2 = %i\n", q1<=q2);
+      printf("q1 >  q2 = %i\n", q1>q2);
+      printf("q1 >= q2 = %i\n", q1>=q2);
+      printf("q1 == q2 = %i\n", q1==q2);
+      printf("q1 != q2 = %i\n", q1!=q2);
+      printf("\n");
+
       q1.SwapContents(q2);
       printf("T1After="); PrintToStream(q1);
       printf("T2After="); PrintToStream(q2);
