@@ -242,7 +242,7 @@ void DetectNetworkConfigChangesSession :: MessageReceivedFromGateway(const Messa
 
 int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceiver & /*r*/, uint32 /*maxBytes*/)
 {
-   int fd = GetSessionReadSelectSocket().GetFileDescriptor();
+   const int fd = GetSessionReadSelectSocket().GetFileDescriptor();
    if (fd < 0) return -1;
 
    bool sendReport = false;
@@ -250,10 +250,10 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
    struct iovec iov = {buf, sizeof(buf)};
    struct sockaddr_nl sa;
    struct msghdr msg = {(void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
-   int len = recvmsg(fd, &msg, 0);
-   if (len >= 0)  // FogBugz #9620
+   const int msgLen = recvmsg(fd, &msg, 0);
+   if (msgLen >= 0)  // FogBugz #9620
    {
-      for (struct nlmsghdr *nh = (struct nlmsghdr *)buf; ((sendReport == false)&&(NLMSG_OK(nh, (unsigned int)len))); nh=NLMSG_NEXT(nh, len))
+      for (struct nlmsghdr *nh = (struct nlmsghdr *)buf; ((sendReport == false)&&(NLMSG_OK(nh, (unsigned int)msgLen))); nh=NLMSG_NEXT(nh, msgLen))
       {
          /* The end of multipart message. */
          if (nh->nlmsg_type == NLMSG_DONE) break;
@@ -264,10 +264,10 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
                case RTM_NEWLINK: case RTM_DELLINK: case RTM_NEWADDR: case RTM_DELADDR:
                {
                   struct ifinfomsg * iface = (struct ifinfomsg *) NLMSG_DATA(nh);
-                  int len = nh->nlmsg_len - NLMSG_LENGTH(sizeof(*iface));
-                  for (struct rtattr * a = IFLA_RTA(iface); RTA_OK(a, len); a = RTA_NEXT(a, len))
+                  const int nextLen = nh->nlmsg_len - NLMSG_LENGTH(sizeof(*iface));
+                  for (struct rtattr * a = IFLA_RTA(iface); RTA_OK(a, nextLen); a = RTA_NEXT(a, nextLen))
                      if (a->rta_type == IFLA_IFNAME)
-                       _pendingChangedInterfaceNames.PutWithDefault((const char *) RTA_DATA(a));
+                       (void) _pendingChangedInterfaceNames.PutWithDefault((const char *) RTA_DATA(a));
                   sendReport = true;
                }
                break; 
@@ -280,7 +280,7 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
       }
    }
    if (sendReport) ScheduleSendReport();
-   return len;
+   return msgLen;
 }
 
 #else

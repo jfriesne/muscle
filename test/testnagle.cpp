@@ -11,15 +11,15 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
 
    TCPSocketDataIO sockIO(sock, false);
    uint64 lastThrowTime = 0;
-   uint8 ball = 'B';  // this is what we throw back and forth over the TCP socket!
    uint64 min=((uint64)-1), max=0;
    uint64 lastPrintTime = 0;
    uint64 count = 0;
    uint64 total = 0;
+   uint8 ball = 'B';  // this is what we throw back and forth over the TCP socket!
    SocketMultiplexer multiplexer;
    while(1)
    {
-      int fd = sock.GetFileDescriptor();
+      const int fd = sock.GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(fd);
       if (myTurnToThrow) multiplexer.RegisterSocketForWriteReady(fd);
 
@@ -31,7 +31,7 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
 
       if ((myTurnToThrow)&&(multiplexer.IsSocketReadyForWrite(fd)))
       {
-         int32 bytesWritten = sockIO.Write(&ball, sizeof(ball));
+         const int32 bytesWritten = sockIO.Write(&ball, sizeof(ball));
          if (bytesWritten == sizeof(ball))
          {
             if (doFlush) sockIO.FlushOutput();   // nagle's algorithm gets toggled here!
@@ -47,14 +47,14 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
 
       if (multiplexer.IsSocketReadyForRead(fd))
       {
-         int32 bytesRead = sockIO.Read(&ball, sizeof(ball));
+         const int32 bytesRead = sockIO.Read(&ball, sizeof(ball));
          if (bytesRead == sizeof(ball))
          {
             if (myTurnToThrow == false)
             {
                if (lastThrowTime > 0)
                {
-                  uint64 elapsedTime = GetRunTime64() - lastThrowTime;
+                  const uint64 elapsedTime = GetRunTime64() - lastThrowTime;
                   count++;
                   total += elapsedTime;
                   min = muscleMin(min, elapsedTime);
@@ -78,7 +78,7 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
 // byte to make each round-trip, and prints statistics about it.
 int main(int argc, char ** argv)
 {
-   bool doFlush = (strcmp(argv[argc-1], "flush") == 0);
+   const bool doFlush = (strcmp(argv[argc-1], "flush") == 0);
    if (doFlush) argc--;
 
    const uint16 TEST_PORT = 15000;

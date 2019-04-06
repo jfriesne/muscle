@@ -76,16 +76,16 @@ int main(int argc, char ** argv)
    uint64 nextTimeoutTime = MUSCLE_TIME_NEVER;
    while(keepGoing)
    {
-      int stdinFD       = stdinIO.GetReadSelectSocket().GetFileDescriptor();
-      int socketReadFD  = networkIORef()->GetReadSelectSocket().GetFileDescriptor();
-      int socketWriteFD = networkIORef()->GetWriteSelectSocket().GetFileDescriptor();
+      const int stdinFD       = stdinIO.GetReadSelectSocket().GetFileDescriptor();
+      const int socketReadFD  = networkIORef()->GetReadSelectSocket().GetFileDescriptor();
+      const int socketWriteFD = networkIORef()->GetWriteSelectSocket().GetFileDescriptor();
 
       multiplexer.RegisterSocketForReadReady(stdinFD);
       multiplexer.RegisterSocketForReadReady(socketReadFD);
       if (gatewayRef()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(socketWriteFD);
       if (multiplexer.WaitForEvents(nextTimeoutTime) < 0) printf("portablereflectclient: WaitForEvents() failed!\n");
 
-      uint64 now = GetRunTime64();
+      const uint64 now = GetRunTime64();
       if (now >= nextTimeoutTime)
       {
          // For OpenSSL testing:  Generate some traffic to the server every 50mS
@@ -107,7 +107,7 @@ int main(int argc, char ** argv)
       {
          while(1)
          {
-            int32 bytesRead = stdinGateway.DoInput(stdinInQueue);
+            const int32 bytesRead = stdinGateway.DoInput(stdinInQueue);
             if (bytesRead < 0)
             {
                printf("Stdin closed, exiting!\n");
@@ -263,10 +263,10 @@ int main(int argc, char ** argv)
       }
 
       // Handle input and output on the TCP socket
-      bool reading = multiplexer.IsSocketReadyForRead(socketReadFD);
-      bool writing = multiplexer.IsSocketReadyForWrite(socketWriteFD);
-      bool writeError = ((writing)&&(gatewayRef()->DoOutput() < 0));
-      bool readError  = ((reading)&&(gatewayRef()->DoInput(tcpInQueue) < 0));
+      const bool reading = multiplexer.IsSocketReadyForRead(socketReadFD);
+      const bool writing = multiplexer.IsSocketReadyForWrite(socketWriteFD);
+      const bool writeError = ((writing)&&(gatewayRef()->DoOutput() < 0));
+      const bool readError  = ((reading)&&(gatewayRef()->DoInput(tcpInQueue) < 0));
       if ((readError)||(writeError))
       {
          printf("Connection closed (%s), exiting.\n", writeError?"Write Error":"Read Error");

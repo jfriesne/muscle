@@ -150,7 +150,7 @@ status_t QMessageTransceiverThread :: RegisterHandler(QMessageTransceiverThread 
    if (this != &thread) return thread.RegisterHandler(thread, handler, sessionRef);  // paranoia
    else
    {
-      int32 id = sessionRef() ? (int32)sessionRef()->GetSessionID() : -1;
+      const int32 id = sessionRef() ? (int32)sessionRef()->GetSessionID() : -1;
       if ((id >= 0)&&(_handlers.Put(id, handler) == B_NO_ERROR)) 
       {
          handler->_master    = this;

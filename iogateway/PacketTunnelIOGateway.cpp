@@ -41,7 +41,7 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
    {
       firstTime = false;
 
-      int32 bytesRead = GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes());
+      const int32 bytesRead = GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes());
 //printf("   READ " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes\n", bytesRead, _inputPacketBuffer.GetNumBytes());
       if (bytesRead > 0)
       {
@@ -100,7 +100,7 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
                         rs->_buf()->SetNumBytes(totalSize, false);
                      }
 
-                     uint32 rsSize = rs->_buf()->GetNumBytes();
+                     const uint32 rsSize = rs->_buf()->GetNumBytes();
 //printf("  CHECK:  offset=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " %s\n", offset, rs->_offset, (offset==rs->_offset)?"":"DISCONTINUITY!!!");
                      if ((messageID == rs->_messageID)&&(totalSize == rsSize)&&(offset == rs->_offset)&&(offset+chunkSize <= rsSize))
                      {
@@ -146,7 +146,7 @@ void PacketTunnelIOGateway :: HandleIncomingMessage(AbstractGatewayMessageReceiv
       {
          _scratchReceiver    = &receiver;
          _scratchReceiverArg = (void *) &fromIAP;
-         int32 nextBytesRead = _slaveGateway()->DoInput(*this, buf()->GetNumBytes()-slaveBytesRead);
+         const int32 nextBytesRead = _slaveGateway()->DoInput(*this, buf()->GetNumBytes()-slaveBytesRead);
          if (nextBytesRead > 0) slaveBytesRead += nextBytesRead;
                            else break;
       }
@@ -207,8 +207,8 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          }
          if (_currentOutputBuffer() == NULL) break;   // oops, out of mem?
 
-         uint32 sbSize          = _currentOutputBuffer()->GetNumBytes();
-         uint32 dataBytesToSend = muscleMin(_maxTransferUnit-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
+         const uint32 sbSize          = _currentOutputBuffer()->GetNumBytes();
+         const uint32 dataBytesToSend = muscleMin(_maxTransferUnit-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
 
          uint8 * p = _outputPacketBuffer.GetBuffer()+_outputPacketSize;
          muscleCopyOut(&p[0*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_magic));                      // a well-known magic number, for sanity checking
@@ -234,7 +234,7 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       if (_outputPacketSize > 0)
       {
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
-         int32 bytesWritten = GetDataIO()()->Write(_outputPacketBuffer.GetBuffer(), _outputPacketSize);
+         const int32 bytesWritten = GetDataIO()()->Write(_outputPacketBuffer.GetBuffer(), _outputPacketSize);
 //printf("WROTE " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes %s\n", bytesWritten, _outputPacketSize, (bytesWritten==(int32)_outputPacketSize)?"":"******** SHORT ***********");
          if (bytesWritten > 0)
          {

@@ -50,7 +50,7 @@ static void DoSearch(const String & path, uint32 code)
       {
          if (nextName[0] != '.')
          {
-            String subPath = path + GetFilePathSeparator() + nextName;
+            const String subPath = path + GetFilePathSeparator() + nextName;
             FilePathInfo fpi(subPath());
                  if (fpi.IsDirectory()) DoSearch(subPath, code);
             else if (fpi.IsRegularFile())

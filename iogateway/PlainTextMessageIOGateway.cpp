@@ -100,12 +100,12 @@ DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth)
       {
          // Send as much as we can of the current text line
          const char * bytes = _currentSendText.Cstr() + _currentSendOffset;
-         int32 bytesWritten = GetDataIO()()->Write(bytes, muscleMin(_currentSendText.Length()-_currentSendOffset, maxBytes));
+         const int32 bytesWritten = GetDataIO()()->Write(bytes, muscleMin(_currentSendText.Length()-_currentSendOffset, maxBytes));
               if (bytesWritten < 0) return -1;
          else if (bytesWritten > 0)
          {
             _currentSendOffset += bytesWritten;
-            int32 subRet = DoOutputImplementationAux(maxBytes-bytesWritten, recurseDepth+1);
+            const int32 subRet = DoOutputImplementationAux(maxBytes-bytesWritten, recurseDepth+1);
             return (subRet >= 0) ? subRet+bytesWritten : -1;
          }
       }
@@ -218,7 +218,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          int32 beginAt = 0;
          for (uint32 i=0; i<filteredBytesRead; i++)
          {
-            char nextChar = buf[i];
+            const char nextChar = buf[i];
             if ((nextChar == '\r')||(nextChar == '\n'))
             {
                buf[i] = '\0';  // terminate the string here
@@ -244,7 +244,6 @@ FilterInputBuffer(char * /*buf*/, uint32 & /*bufLen*/, uint32 /*maxLen*/)
 {
    // empty
 }
-
 
 void 
 PlainTextMessageIOGateway :: FlushInput(AbstractGatewayMessageReceiver & receiver)

@@ -52,7 +52,7 @@ static String ChecksumHexString(uint32 checksum)
 
 static void LogChecksum(const uint8 * buf, uint32 numBytes)
 {
-   uint32 chk = Calculate32BitChecksum(buf, numBytes);
+   const uint32 chk = Calculate32BitChecksum(buf, numBytes);
    LogTime(MUSCLE_LOG_INFO, "Computed checksum is " UINT32_FORMAT_SPEC " [%s]\n", chk, ChecksumHexString(chk)());
 }
 
@@ -155,9 +155,9 @@ static void DoSession(DataIO & io)
    bool keepGoing = true;
    while(keepGoing)
    {
-      int readFD  = io.GetReadSelectSocket().GetFileDescriptor();
-      int writeFD = io.GetWriteSelectSocket().GetFileDescriptor();
-      int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
+      const int readFD  = io.GetReadSelectSocket().GetFileDescriptor();
+      const int writeFD = io.GetWriteSelectSocket().GetFileDescriptor();
+      int stdinFD       = stdinIO.GetReadSelectSocket().GetFileDescriptor();
 
       multiplexer.RegisterSocketForReadReady(readFD);
       if (_spamsPerSecond == MUSCLE_NO_LIMIT) multiplexer.RegisterSocketForWriteReady(writeFD);
@@ -182,12 +182,12 @@ static void DoSession(DataIO & io)
          if (multiplexer.IsSocketReadyForRead(readFD))
          {
             uint8 buf[2048];
-            int32 ret = io.Read(buf, sizeof(buf));
+            const int32 ret = io.Read(buf, sizeof(buf));
             if (ret > 0) 
             {
-               uint64 now = GetCurrentTime64();  // I'm using GetCurrentTime64() rather than GetRunTime64() because I think it will give me better precision under Windows --jaf
+               const uint64 now = GetCurrentTime64();  // I'm using GetCurrentTime64() rather than GetRunTime64() because I think it will give me better precision under Windows --jaf
                if (_prevReceiveTime == 0) _prevReceiveTime = now;
-               int64 timeSince = (now-_prevReceiveTime);
+               const int64 timeSince = (now-_prevReceiveTime);
                if (timeSince < 1000) sinceString = "<1 millisecond";
                                 else sinceString = GetHumanReadableTimeIntervalString(now-_prevReceiveTime, 1);
 
@@ -214,7 +214,7 @@ static void DoSession(DataIO & io)
          {
             while(1)
             {
-               int32 bytesRead = stdinGateway.DoInput(receiver);
+               const int32 bytesRead = stdinGateway.DoInput(receiver);
                if (bytesRead < 0) 
                {
                   stdinFD = -1;  // indicate that stdin is no longer available
@@ -249,7 +249,7 @@ static void DoSession(DataIO & io)
                         if (nextBuf()) nextBuf()->AppendByte('\n'); // add a newline byte
                      }
 
-                     uint32 count = nextBuf() ? nextBuf()->GetNumBytes() : 0;
+                     const uint32 count = nextBuf() ? nextBuf()->GetNumBytes() : 0;
                      if ((count > 0)&&(outBuf()->AppendBytes(nextBuf()->GetBuffer(), nextBuf()->GetNumBytes()) != B_NO_ERROR))
                      {
                         WARN_OUT_OF_MEMORY;
@@ -282,10 +282,10 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
 #ifndef MUSCLE_AVOID_MULTICAST_API
    if (_wifiModeEnabled)
    {
-      IPAddress ip = GetHostByName(optHost(), false);
+      const IPAddress ip = GetHostByName(optHost(), false);
       if (ip != invalidIP)
       {
-         IPAddressAndPort iap(ip, port);
+         const IPAddressAndPort iap(ip, port);
          SimulatedMulticastDataIO smdIO(iap);
          LogTime(MUSCLE_LOG_INFO, "Ready to send simulated-multicast UDP packets to %s\n", iap.ToString()());
          DoSession(smdIO);
@@ -305,7 +305,7 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
    UDPSocketDataIO udpIO(ss, false);
    if (optHost.HasChars())
    {
-      IPAddress ip = GetHostByName(optHost(), false);
+      const IPAddress ip = GetHostByName(optHost(), false);
       if (ip != invalidIP)
       {
 #ifndef MUSCLE_AVOID_MULTICAST_API
@@ -339,7 +339,7 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
                                                                  else LogTime(MUSCLE_LOG_ERROR, "Could not enable UDP broadcast on socket!\n");
          }
 #endif
-         IPAddressAndPort iap(ip, port);
+         const IPAddressAndPort iap(ip, port);
          if (udpIO.SetPacketSendDestination(iap) != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "SetPacketSendDestination(%s) failed!\n", iap.ToString()());
          if (optBindPort >= 0)
          {
@@ -453,9 +453,9 @@ int hextermmain(const char * argv0, const Message & args)
    if (args.FindString("child", arg) == B_NO_ERROR)
    {
       ChildProcessDataIO cpdio(false);
-      int32 spaceIdx       = arg.IndexOf(' ');
-      String childProgName = arg.Substring(0, spaceIdx).Trim();
-      String childArgs     = arg.Substring(spaceIdx).Trim()();
+      const int32 spaceIdx       = arg.IndexOf(' ');
+      const String childProgName = arg.Substring(0, spaceIdx).Trim();
+      const String childArgs     = arg.Substring(spaceIdx).Trim()();
       if (cpdio.LaunchChildProcess(arg()) == B_NO_ERROR)
       {
          LogTime(MUSCLE_LOG_INFO, "Communicating with child process (%s), childArgs=[%s]\n", childProgName(), childArgs());
@@ -468,7 +468,7 @@ int hextermmain(const char * argv0, const Message & args)
    {
       const char * colon = strchr(arg(), ':');
       uint32 baudRate = colon ? atoi(colon+1) : 0; if (baudRate == 0) baudRate = 38400;
-      String devName = arg.Substring(0, ":");
+      const String devName = arg.Substring(0, ":");
       Queue<String> devs;
       if (RS232DataIO::GetAvailableSerialPortNames(devs) == B_NO_ERROR)
       {
@@ -552,8 +552,8 @@ int hextermmain(const char * argv0, const Message & args)
    else if (ParseConnectArg(args, "udp", host, port, true) == B_NO_ERROR) 
    {
       int optBindPort = -1;  // if we set it to non-negative, we'll also bind the UDP socket to this port (0 == system chooses a port!)
-      String argStr = args.GetString("udp");
-      int32 lastUnderbar = argStr.LastIndexOf('_');
+      const String argStr = args.GetString("udp");
+      const int32 lastUnderbar = argStr.LastIndexOf('_');
       if (lastUnderbar >= 0) optBindPort = atoi(argStr()+lastUnderbar+1);
       DoUDPSession(host, port, joinMulticastGroup, optBindPort);
    }

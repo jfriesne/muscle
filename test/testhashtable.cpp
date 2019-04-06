@@ -42,7 +42,7 @@ protected:
    virtual void InternalThreadEntry()
    {
       uint32 totalCount = 0;
-      uint64 endTime = GetRunTime64()+SecondsToMicros(10);
+      const uint64 endTime = GetRunTime64()+SecondsToMicros(10);
       while(GetRunTime64()<endTime)
       {
          uint32 count = 0;
@@ -140,7 +140,7 @@ static int DoInteractiveTest()
          bool first = true;
          if (table.HasItems())
          {
-            int32 offset = table.GetNumItems()/2;
+            const int32 offset = table.GetNumItems()/2;
             for (int i=offset-1; i>=0; i--) 
             {
                MASSERT(iter.HasData(), "Not enough keys in table!?!?\n");
@@ -279,9 +279,9 @@ static void TestIteratorSanityOnRemoval(bool backwards)
       LogTime(MUSCLE_LOG_DEBUG, " Beginning traversal...\n");
       for(HashtableIterator<int32,int32> iter(table, backwards?HTIT_FLAG_BACKWARDS:0); iter.HasData(); iter++)
       {
-         int32 expectedKey = (backwards?(prevKey-1):(prevKey+1));
-         int32 gotKey      = iter.GetKey();
-         int32 gotValue    = iter.GetValue();
+         const int32 expectedKey = (backwards?(prevKey-1):(prevKey+1));
+         const int32 gotKey      = iter.GetKey();
+         const int32 gotValue    = iter.GetValue();
 
          LogTime(MUSCLE_LOG_TRACE, "  Iter returned " INT32_FORMAT_SPEC " -> " INT32_FORMAT_SPEC "\n", iter.GetKey(), iter.GetValue());
          if (gotKey != expectedKey)
@@ -329,7 +329,7 @@ template<class T> void TestMuscleSwap(const char * desc)
 
 static void AddTally(Hashtable<String, double> & tallies, const char * verb, uint64 startTime, uint32 numItems)
 {
-   uint64 elapsed = (GetRunTime64()-startTime);
+   const uint64 elapsed = (GetRunTime64()-startTime);
    double itemsPerSecond = ((double)numItems*((double)MICROS_PER_SECOND))/elapsed;
    printf("   It took " UINT64_FORMAT_SPEC " microseconds to %s " UINT32_FORMAT_SPEC " items, so we %s %.0f items per second\n", elapsed, verb, numItems, verb, itemsPerSecond);
    *(tallies.GetOrPut(verb)) += itemsPerSecond;
@@ -361,8 +361,8 @@ int main(int argc, char ** argv)
 
    // Test C++11 move semantics to make sure they aren't stealing
    {
-      String key = "key";
-      String value = "value";
+      const String key = "key";
+      const String value = "value";
       Hashtable<String,String> table;
       table.Put(key, value);
       if (key != "key") {printf("ERROR, Hashtable stole my key!\n"); exit(10);}
@@ -417,8 +417,8 @@ int main(int argc, char ** argv)
       // A quick test of the Tuple class as a Hashtable key
       Hashtable<Rect, int> tupleTable;
 
-      Rect a(1,2,3,4);
-      Rect b(5,6,7,8);
+      const Rect a(1,2,3,4);
+      const Rect b(5,6,7,8);
       tupleTable.Put(a, 1);
       tupleTable.Put(b, 2);
       for (HashtableIterator<Rect, int> iter(tupleTable); iter.HasData(); iter++)  
@@ -437,8 +437,8 @@ int main(int argc, char ** argv)
       // A quick test of the Tuple class as a Hashtable key
       Hashtable<Point, int> tupleTable;
 
-      Point a(9,10);
-      Point b(-11,-12);
+      const Point a(9,10);
+      const Point b(-11,-12);
       tupleTable.Put(a, 1);
       tupleTable.Put(b, 2);
       for (HashtableIterator<Point, int> iter(tupleTable); iter.HasData(); iter++)  
@@ -457,13 +457,13 @@ int main(int argc, char ** argv)
       const uint32 numItems = 100000;
       Hashtable<int, Void> table; (void) table.EnsureSize(100000);
       for (uint32 i=0; i<numItems; i++) table.PutWithDefault((int)rand());
-      uint32 actualNumItems = table.GetNumItems();  // may be smaller than numItems, due to duplicate values!
+      const uint32 actualNumItems = table.GetNumItems();  // may be smaller than numItems, due to duplicate values!
       (void) table.CountAverageLookupComparisons(true);
 
       LogTime(MUSCLE_LOG_INFO, "Sorting...\n");
-      uint64 start = GetRunTime64();
+      const uint64 start = GetRunTime64();
       table.SortByKey();
-      uint64 end = GetRunTime64();
+      const uint64 end = GetRunTime64();
 
       LogTime(MUSCLE_LOG_INFO, "Time to sort " UINT32_FORMAT_SPEC " items: " UINT64_FORMAT_SPEC "ms\n", numItems, (end-start)/1000);
 
@@ -479,12 +479,12 @@ int main(int argc, char ** argv)
       const uint32 numItems = 100000;
       Hashtable<int, Void> table;
       for (uint32 i=0; i<numItems; i++) table.PutWithDefault((int)rand());
-      uint32 actualNumItems = table.GetNumItems();  // may be smaller than numItems, due to duplicate values!
+      const uint32 actualNumItems = table.GetNumItems();  // may be smaller than numItems, due to duplicate values!
 
       LogTime(MUSCLE_LOG_INFO, "Sorting...\n");
-      uint64 start = GetRunTime64();
+      const uint64 start = GetRunTime64();
       table.SortByKey();
-      uint64 end = GetRunTime64();
+      const uint64 end = GetRunTime64();
 
       LogTime(MUSCLE_LOG_INFO, "Time to sort " UINT32_FORMAT_SPEC " items: " UINT64_FORMAT_SPEC "ms\n", numItems, (end-start)/1000);
 

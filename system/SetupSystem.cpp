@@ -118,7 +118,7 @@ static uint32 _failedMemoryRequestSize = MUSCLE_NO_LIMIT;  // start with an obvi
 uint32 GetAndClearFailedMemoryRequestSize();  // just to avoid a compiler warning
 uint32 GetAndClearFailedMemoryRequestSize()
 {
-   uint32 ret = _failedMemoryRequestSize;       // yes, it's racy.  But I'll live with that for now.
+   const uint32 ret = _failedMemoryRequestSize; // yes, it's racy.  But I'll live with that for now.
    _failedMemoryRequestSize = MUSCLE_NO_LIMIT;
    return ret; 
 }
@@ -131,7 +131,7 @@ static int swap_memcmp(const void * vp1, const void * vp2, uint32 numBytes)
    const uint8 * p2 = (const uint8 *) vp2;
    for (uint32 i=0; i<numBytes; i++)
    {
-      int diff = p2[numBytes-(i+1)]-p1[i];
+      const int diff = p2[numBytes-(i+1)]-p1[i];
       if (diff) return diff;
    }
    return 0;
@@ -210,7 +210,7 @@ SanitySetupSystem :: SanitySetupSystem()
 
    // Make sure our endian-ness info is correct
    static const uint32 one = 1;
-   bool testsLittleEndian =  (*((const uint8 *) &one) == 1);
+   const bool testsLittleEndian = (*((const uint8 *) &one) == 1);
 
    // Make sure our endian-swap macros do what we expect them to
 #if B_HOST_IS_BENDIAN
@@ -218,48 +218,48 @@ SanitySetupSystem :: SanitySetupSystem()
    else
    {
       {
-         uint16 orig = 0x1234;
-         uint16 HtoL = B_HOST_TO_LENDIAN_INT16(orig);
-         uint16 LtoH = B_LENDIAN_TO_HOST_INT16(orig);
-         uint16 HtoB = B_HOST_TO_BENDIAN_INT16(orig);  // should be a no-op
-         uint16 BtoH = B_BENDIAN_TO_HOST_INT16(orig);  // should be a no-op
+         const uint16 orig = 0x1234;
+         const uint16 HtoL = B_HOST_TO_LENDIAN_INT16(orig);
+         const uint16 LtoH = B_LENDIAN_TO_HOST_INT16(orig);
+         const uint16 HtoB = B_HOST_TO_BENDIAN_INT16(orig);  // should be a no-op
+         const uint16 BtoH = B_BENDIAN_TO_HOST_INT16(orig);  // should be a no-op
          CheckOp(sizeof(orig), &orig, &HtoL, &LtoH, &HtoB, &BtoH, "16-bit swap macro does not work!");
       }
 
       {
-         uint32 orig = 0x12345678;
-         uint32 HtoL = B_HOST_TO_LENDIAN_INT32(orig);
-         uint32 LtoH = B_LENDIAN_TO_HOST_INT32(orig);
-         uint32 HtoB = B_HOST_TO_BENDIAN_INT32(orig);  // should be a no-op
-         uint32 BtoH = B_BENDIAN_TO_HOST_INT32(orig);  // should be a no-op
+         const uint32 orig = 0x12345678;
+         const uint32 HtoL = B_HOST_TO_LENDIAN_INT32(orig);
+         const uint32 LtoH = B_LENDIAN_TO_HOST_INT32(orig);
+         const uint32 HtoB = B_HOST_TO_BENDIAN_INT32(orig);  // should be a no-op
+         const uint32 BtoH = B_BENDIAN_TO_HOST_INT32(orig);  // should be a no-op
          CheckOp(sizeof(orig), &orig, &HtoL, &LtoH, &HtoB, &BtoH, "32-bit swap macro does not work!");
       }
 
       {
-         uint64 orig = (((uint64)0x12345678)<<32)|(((uint64)0x12312312));
-         uint64 HtoL = B_HOST_TO_LENDIAN_INT64(orig);
-         uint64 LtoH = B_LENDIAN_TO_HOST_INT64(orig);
-         uint64 HtoB = B_HOST_TO_BENDIAN_INT64(orig);  // should be a no-op
-         uint64 BtoH = B_BENDIAN_TO_HOST_INT64(orig);  // should be a no-op
+         const uint64 orig = (((uint64)0x12345678)<<32)|(((uint64)0x12312312));
+         const uint64 HtoL = B_HOST_TO_LENDIAN_INT64(orig);
+         const uint64 LtoH = B_LENDIAN_TO_HOST_INT64(orig);
+         const uint64 HtoB = B_HOST_TO_BENDIAN_INT64(orig);  // should be a no-op
+         const uint64 BtoH = B_BENDIAN_TO_HOST_INT64(orig);  // should be a no-op
          CheckOp(sizeof(orig), &orig, &HtoL, &LtoH, &HtoB, &BtoH, "64-bit swap macro does not work!");
       }
 
       {
-         float orig  = -1234567.89012345f;
-         uint32 HtoL = B_HOST_TO_LENDIAN_IFLOAT(orig);
-         float  LtoH = B_LENDIAN_TO_HOST_IFLOAT(HtoL);
-         uint32 HtoB = B_HOST_TO_BENDIAN_IFLOAT(orig);  // should be a no-op
-         float  BtoH = B_BENDIAN_TO_HOST_IFLOAT(HtoB);  // should be a no-op
+         const float orig  = -1234567.89012345f;
+         const uint32 HtoL = B_HOST_TO_LENDIAN_IFLOAT(orig);
+         const float  LtoH = B_LENDIAN_TO_HOST_IFLOAT(HtoL);
+         const uint32 HtoB = B_HOST_TO_BENDIAN_IFLOAT(orig);  // should be a no-op
+         const float  BtoH = B_BENDIAN_TO_HOST_IFLOAT(HtoB);  // should be a no-op
          CheckOp(sizeof(orig), &orig, &HtoL, NULL, &HtoB, &BtoH, "float swap macro does not work!");
          CheckOp(sizeof(orig), &orig, NULL,  NULL, &LtoH,  NULL, "float swap macro does not work!");
       }
 
       {
-         double orig = ((double)-1234567.89012345) * ((double)987654321.0987654321);
-         uint64 HtoL = B_HOST_TO_LENDIAN_IDOUBLE(orig);
-         double LtoH = B_LENDIAN_TO_HOST_IDOUBLE(HtoL);
-         uint64 HtoB = B_HOST_TO_BENDIAN_IDOUBLE(orig);  // should be a no-op
-         double BtoH = B_BENDIAN_TO_HOST_IDOUBLE(HtoB);  // should be a no-op
+         const double orig = ((double)-1234567.89012345) * ((double)987654321.0987654321);
+         const uint64 HtoL = B_HOST_TO_LENDIAN_IDOUBLE(orig);
+         const double LtoH = B_LENDIAN_TO_HOST_IDOUBLE(HtoL);
+         const uint64 HtoB = B_HOST_TO_BENDIAN_IDOUBLE(orig);  // should be a no-op
+         const double BtoH = B_BENDIAN_TO_HOST_IDOUBLE(HtoB);  // should be a no-op
          CheckOp(sizeof(orig), &orig, &HtoL, NULL, &HtoB, &BtoH, "double swap macro does not work!");
          CheckOp(sizeof(orig), &orig,  NULL, NULL, &LtoH,  NULL, "double swap macro does not work!");
       }
@@ -268,48 +268,48 @@ SanitySetupSystem :: SanitySetupSystem()
    if (testsLittleEndian)
    {
       {
-         uint16 orig = 0x1234;
-         uint16 HtoB = B_HOST_TO_BENDIAN_INT16(orig);
-         uint16 BtoH = B_BENDIAN_TO_HOST_INT16(orig);
-         uint16 HtoL = B_HOST_TO_LENDIAN_INT16(orig);  // should be a no-op
-         uint16 LtoH = B_LENDIAN_TO_HOST_INT16(orig);  // should be a no-op
+         const uint16 orig = 0x1234;
+         const uint16 HtoB = B_HOST_TO_BENDIAN_INT16(orig);
+         const uint16 BtoH = B_BENDIAN_TO_HOST_INT16(orig);
+         const uint16 HtoL = B_HOST_TO_LENDIAN_INT16(orig);  // should be a no-op
+         const uint16 LtoH = B_LENDIAN_TO_HOST_INT16(orig);  // should be a no-op
          CheckOp(sizeof(orig), &orig, &HtoB, &BtoH, &HtoL, &LtoH, "16-bit swap macro does not work!");
       }
 
       {
-         uint32 orig = 0x12345678;
-         uint32 HtoB = B_HOST_TO_BENDIAN_INT32(orig);
-         uint32 BtoH = B_BENDIAN_TO_HOST_INT32(orig);
-         uint32 HtoL = B_HOST_TO_LENDIAN_INT32(orig);  // should be a no-op
-         uint32 LtoH = B_LENDIAN_TO_HOST_INT32(orig);  // should be a no-op
+         const uint32 orig = 0x12345678;
+         const uint32 HtoB = B_HOST_TO_BENDIAN_INT32(orig);
+         const uint32 BtoH = B_BENDIAN_TO_HOST_INT32(orig);
+         const uint32 HtoL = B_HOST_TO_LENDIAN_INT32(orig);  // should be a no-op
+         const uint32 LtoH = B_LENDIAN_TO_HOST_INT32(orig);  // should be a no-op
          CheckOp(sizeof(orig), &orig, &HtoB, &BtoH, &HtoL, &LtoH, "32-bit swap macro does not work!");
       }
 
       {
-         uint64 orig = (((uint64)0x12345678)<<32)|(((uint64)0x12312312));
-         uint64 HtoB = B_HOST_TO_BENDIAN_INT64(orig);
-         uint64 BtoH = B_BENDIAN_TO_HOST_INT64(orig);
-         uint64 HtoL = B_HOST_TO_LENDIAN_INT64(orig);  // should be a no-op
-         uint64 LtoH = B_LENDIAN_TO_HOST_INT64(orig);  // should be a no-op
+         const uint64 orig = (((uint64)0x12345678)<<32)|(((uint64)0x12312312));
+         const uint64 HtoB = B_HOST_TO_BENDIAN_INT64(orig);
+         const uint64 BtoH = B_BENDIAN_TO_HOST_INT64(orig);
+         const uint64 HtoL = B_HOST_TO_LENDIAN_INT64(orig);  // should be a no-op
+         const uint64 LtoH = B_LENDIAN_TO_HOST_INT64(orig);  // should be a no-op
          CheckOp(sizeof(orig), &orig, &HtoB, &BtoH, &HtoL, &LtoH, "64-bit swap macro does not work!");
       }
 
       {
-         float orig  = -1234567.89012345f;
-         uint32 HtoB = B_HOST_TO_BENDIAN_IFLOAT(orig);
-         float  BtoH = B_BENDIAN_TO_HOST_IFLOAT(HtoB);
-         uint32 HtoL = B_HOST_TO_LENDIAN_IFLOAT(orig);  // should be a no-op
-         float  LtoH = B_LENDIAN_TO_HOST_IFLOAT(HtoL);  // should be a no-op
+         const float orig  = -1234567.89012345f;
+         const uint32 HtoB = B_HOST_TO_BENDIAN_IFLOAT(orig);
+         const float  BtoH = B_BENDIAN_TO_HOST_IFLOAT(HtoB);
+         const uint32 HtoL = B_HOST_TO_LENDIAN_IFLOAT(orig);  // should be a no-op
+         const float  LtoH = B_LENDIAN_TO_HOST_IFLOAT(HtoL);  // should be a no-op
          CheckOp(sizeof(orig), &orig, &HtoB, NULL, &HtoL, &LtoH, "float swap macro does not work!");
          CheckOp(sizeof(orig), &orig,  NULL, NULL, &BtoH,  NULL, "float swap macro does not work!");
       }
 
       {
-         double orig = ((double)-1234567.89012345) * ((double)987654321.0987654321);
-         uint64 HtoB = B_HOST_TO_BENDIAN_IDOUBLE(orig);
-         double BtoH = B_BENDIAN_TO_HOST_IDOUBLE(HtoB);
-         uint64 HtoL = B_HOST_TO_LENDIAN_IDOUBLE(orig);  // should be a no-op
-         double LtoH = B_LENDIAN_TO_HOST_IDOUBLE(HtoL);  // should be a no-op
+         const double orig = ((double)-1234567.89012345) * ((double)987654321.0987654321);
+         const uint64 HtoB = B_HOST_TO_BENDIAN_IDOUBLE(orig);
+         const double BtoH = B_BENDIAN_TO_HOST_IDOUBLE(HtoB);
+         const uint64 HtoL = B_HOST_TO_LENDIAN_IDOUBLE(orig);  // should be a no-op
+         const double LtoH = B_LENDIAN_TO_HOST_IDOUBLE(HtoL);  // should be a no-op
          CheckOp(sizeof(orig), &orig, &HtoB, NULL, &HtoL, &LtoH, "double swap macro does not work!");
          CheckOp(sizeof(orig), &orig,  NULL, NULL, &BtoH,  NULL, "double swap macro does not work!");
       }
@@ -360,8 +360,8 @@ SanitySetupSystem :: ~SanitySetupSystem()
 void PrintAndClearStringCopyCounts(const char * optDesc)
 {
    const uint32 * s = _stringOpCounts;  // just to save chars
-   uint32 totalCopies = s[STRING_OP_COPY_CTOR] + s[STRING_OP_PARTIAL_COPY_CTOR] + s[STRING_OP_SET_FROM_STRING];
-   uint32 totalMoves  = s[STRING_OP_MOVE_CTOR] + s[STRING_OP_MOVE_FROM_STRING];
+   const uint32 totalCopies = s[STRING_OP_COPY_CTOR] + s[STRING_OP_PARTIAL_COPY_CTOR] + s[STRING_OP_SET_FROM_STRING];
+   const uint32 totalMoves  = s[STRING_OP_MOVE_CTOR] + s[STRING_OP_MOVE_FROM_STRING];
 
    printf("String Op Counts [%s]\n", optDesc?optDesc:"Untitled");
    printf("# Default Ctors = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_DEFAULT_CTOR]);
@@ -730,7 +730,7 @@ static uint64 GetRunTime64Aux()
          LARGE_INTEGER curTicks;
          if ((_qpcTicksPerSecond > 0)&&(QueryPerformanceCounter(&curTicks)))
          {
-            uint64 checkGetTime = ((uint64)timeGetTime())*1000;
+            const uint64 checkGetTime = ((uint64)timeGetTime())*1000;
             ret = (curTicks.QuadPart*MICROS_PER_SECOND)/_qpcTicksPerSecond;
 
             // Hack-around for evil Windows/hardware bug in QueryPerformanceCounter().
@@ -739,8 +739,8 @@ static uint64 GetRunTime64Aux()
             static uint64 _lastCheckQPCTime = 0;
             if (_lastCheckGetTime > 0)
             {
-               uint64 getTimeElapsed = checkGetTime - _lastCheckGetTime;
-               uint64 qpcTimeElapsed = ret          - _lastCheckQPCTime;
+               const uint64 getTimeElapsed = checkGetTime - _lastCheckGetTime;
+               const uint64 qpcTimeElapsed = ret          - _lastCheckQPCTime;
                if ((muscleMax(getTimeElapsed, qpcTimeElapsed) - muscleMin(getTimeElapsed, qpcTimeElapsed)) > 500000)
                {
                   //LogTime(MUSCLE_LOG_DEBUG, "QueryPerformanceCounter() is buggy, reverting to timeGetTime() method instead!\n");
@@ -758,7 +758,7 @@ static uint64 GetRunTime64Aux()
          static uint32 _prevVal    = 0;
          static uint64 _wrapOffset = 0;
          
-         uint32 newVal = (uint32) timeGetTime();
+         const uint32 newVal = (uint32) timeGetTime();
          if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32); 
          ret = (_wrapOffset+newVal)*1000;  // convert to microseconds
          _prevVal = newVal;
@@ -772,13 +772,13 @@ static uint64 GetRunTime64Aux()
 #elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY) && defined(MUSCLE_POWERPC_TIMEBASE_HZ)
    while(1)
    {
-      uint32 hi1 = get_tbu();
-      uint32 low = get_tbl();
-      uint32 hi2 = get_tbu();
+      const uint32 hi1 = get_tbu();
+      const uint32 low = get_tbl();
+      const uint32 hi2 = get_tbu();
       if (hi1 == hi2) 
       {
          // FogBugz #3199
-         uint64 cycles = ((((uint64)hi1)<<32)|((uint64)low));
+         const uint64 cycles = ((((uint64)hi1)<<32)|((uint64)low));
          return ((cycles/MUSCLE_POWERPC_TIMEBASE_HZ)*MICROS_PER_SECOND)+(((cycles%MUSCLE_POWERPC_TIMEBASE_HZ)*(MICROS_PER_SECOND))/MUSCLE_POWERPC_TIMEBASE_HZ);
       }
    }
@@ -803,9 +803,9 @@ static uint64 GetRunTime64Aux()
          static uint64 _wrapOffset = 0;
          
          struct tms junk; clock_t newTicks = (clock_t) times(&junk);
-         uint32 newVal = (uint32) newTicks;
+         const uint32 newVal = (uint32) newTicks;
          if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
-         uint64 ret = ((_wrapOffset+newVal)*MICROS_PER_SECOND)/_posixTicksPerSecond;  // convert to microseconds
+         const uint64 ret = ((_wrapOffset+newVal)*MICROS_PER_SECOND)/_posixTicksPerSecond;  // convert to microseconds
          _prevVal = newTicks;
 
          _rtMutex.Unlock();
@@ -1004,7 +1004,7 @@ uint32 DataIO :: WriteFully(const void * buffer, uint32 size)
    const uint8 * firstInvalidByte = b+size;
    while(b < firstInvalidByte)
    {
-      int32 bytesWritten = Write(b, (uint32)(firstInvalidByte-b));
+      const int32 bytesWritten = Write(b, (uint32)(firstInvalidByte-b));
       if (bytesWritten <= 0) break;
       b += bytesWritten;
    }
@@ -1017,7 +1017,7 @@ uint32 DataIO :: ReadFully(void * buffer, uint32 size)
    uint8 * firstInvalidByte = b+size;
    while(b < firstInvalidByte)
    {
-      int32 bytesRead = Read(b, (uint32) (firstInvalidByte-b));
+      const int32 bytesRead = Read(b, (uint32) (firstInvalidByte-b));
       if (bytesRead <= 0) break;
       b += bytesRead;
    }
@@ -1026,10 +1026,10 @@ uint32 DataIO :: ReadFully(void * buffer, uint32 size)
 
 int64 SeekableDataIO :: GetLength()
 {
-   int64 origPos = GetPosition();
+   const int64 origPos = GetPosition();
    if ((origPos >= 0)&&(Seek(0, IO_SEEK_END) == B_NO_ERROR))
    {
-      int64 ret = GetPosition();
+      const int64 ret = GetPosition();
       if (Seek(origPos, IO_SEEK_SET) == B_NO_ERROR) return ret;
    }
    return -1;  // error!
@@ -1039,8 +1039,9 @@ status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeade
 {
    uint8 smallBuf[256];
    uint8 * bigBuf = NULL;
-   uint32 fs = FlattenedSize();
-   uint32 bufSize = fs+(addSizeHeader?sizeof(uint32):0);
+
+   const uint32 fs = FlattenedSize();
+   const uint32 bufSize = fs+(addSizeHeader?sizeof(uint32):0);
 
    uint8 * b;
    if (bufSize<=ARRAYITEMS(smallBuf)) b = smallBuf;
@@ -1059,7 +1060,7 @@ status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeade
    else Flatten(b);
 
    // And finally, write out the buffer
-   status_t ret = (outputStream.WriteFully(b, bufSize) == bufSize) ? B_NO_ERROR : B_ERROR;
+   const status_t ret = (outputStream.WriteFully(b, bufSize) == bufSize) ? B_NO_ERROR : B_ERROR;
    delete [] bigBuf;
    return ret;
 }
@@ -1085,7 +1086,7 @@ status_t Flattenable :: UnflattenFromDataIO(DataIO & inputStream, int32 optReadS
       if (bigBuf == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
    }
 
-   status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? Unflatten(b, readSize) : B_ERROR;
+   const status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? Unflatten(b, readSize) : B_ERROR;
    delete [] bigBuf;
    return ret;
 }
@@ -1094,7 +1095,7 @@ status_t Flattenable :: CopyFromImplementation(const Flattenable & copyFrom)
 {
    uint8 smallBuf[256];
    uint8 * bigBuf = NULL;
-   uint32 flatSize = copyFrom.FlattenedSize();
+   const uint32 flatSize = copyFrom.FlattenedSize();
    if (flatSize > ARRAYITEMS(smallBuf))
    {
       bigBuf = newnothrow_array(uint8, flatSize);
@@ -1105,7 +1106,7 @@ status_t Flattenable :: CopyFromImplementation(const Flattenable & copyFrom)
       }
    }
    copyFrom.Flatten(bigBuf ? bigBuf : smallBuf);
-   status_t ret = Unflatten(bigBuf ? bigBuf : smallBuf, flatSize);
+   const status_t ret = Unflatten(bigBuf ? bigBuf : smallBuf, flatSize);
    delete [] bigBuf;
    return ret;
 }
@@ -1236,7 +1237,7 @@ void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uin
       fprintf(optFile, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
+      const int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) fputc('-', optFile);
       fputc('\n', optFile);
       if (buf)
@@ -1250,14 +1251,14 @@ void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uin
             uint32 idx = 0;
             while(idx<numBytes)
             {
-               uint8 c = buf[idx];
+               const uint8 c = buf[idx];
                ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-               size_t hexBufLen = strlen(hexBuf);
+               const size_t hexBufLen = strlen(hexBuf);
                muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
                idx++;
                if ((idx%numColumns) == 0) FlushAsciiChars(optFile, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
             }
-            uint32 leftovers = (numBytes%numColumns);
+            const uint32 leftovers = (numBytes%numColumns);
             if (leftovers > 0) FlushAsciiChars(optFile, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
          }
          else WARN_OUT_OF_MEMORY;
@@ -1283,7 +1284,7 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
 {
    if (optFile == NULL) optFile = stdout;
 
-   uint32 numBytes = buf.GetNumItems();
+   const uint32 numBytes = buf.GetNumItems();
    if (numColumns == 0)
    {
       // A simple, single-line format
@@ -1300,7 +1301,7 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
       fprintf(optFile, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
+      const int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) fputc('-', optFile);
       fputc('\n', optFile);
       char * ascBuf = newnothrow_array(char, numColumns+1);
@@ -1312,14 +1313,14 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
          uint32 idx = 0;
          while(idx<numBytes)
          {
-            uint8 c = buf[idx];
+            const uint8 c = buf[idx];
             ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-            size_t hexBufLen = strlen(hexBuf);
+            const size_t hexBufLen = strlen(hexBuf);
             muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
             idx++;
             if ((idx%numColumns) == 0) FlushAsciiChars(optFile, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
          }
-         uint32 leftovers = (numBytes%numColumns);
+         const uint32 leftovers = (numBytes%numColumns);
          if (leftovers > 0) FlushAsciiChars(optFile, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
       }
       else WARN_OUT_OF_MEMORY;
@@ -1350,7 +1351,7 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
       LogTime(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
+      const int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) Log(logLevel, "-");
       Log(logLevel, "\n");
       if (buf)
@@ -1364,14 +1365,14 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
             uint32 idx = 0;
             while(idx<numBytes)
             {
-               uint8 c = buf[idx];
+               const uint8 c = buf[idx];
                ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-               size_t hexBufLen = strlen(hexBuf);
+               const size_t hexBufLen = strlen(hexBuf);
                muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
                idx++;
                if ((idx%numColumns) == 0) FlushLogAsciiChars(logLevel, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
             }
-            uint32 leftovers = (numBytes%numColumns);
+            const uint32 leftovers = (numBytes%numColumns);
             if (leftovers > 0) FlushLogAsciiChars(logLevel, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
          }
          else WARN_OUT_OF_MEMORY;
@@ -1385,7 +1386,7 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
 
 void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, uint32 numColumns)
 {
-   uint32 numBytes = buf.GetNumItems();
+   const uint32 numBytes = buf.GetNumItems();
    if (numColumns == 0)
    {
       // A simple, single-line format
@@ -1402,7 +1403,7 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
       Log(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
+      const int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) Log(logLevel, "-");
       Log(logLevel, "\n");
       char * ascBuf = newnothrow_array(char, numColumns+1);
@@ -1414,14 +1415,14 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
          uint32 idx = 0;
          while(idx<numBytes)
          {
-            uint8 c = buf[idx];
+            const uint8 c = buf[idx];
             ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-            size_t hexBufLen = strlen(hexBuf);
+            const size_t hexBufLen = strlen(hexBuf);
             muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
             idx++;
             if ((idx%numColumns) == 0) FlushLogAsciiChars(logLevel, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
          }
-         uint32 leftovers = (numBytes%numColumns);
+         const uint32 leftovers = (numBytes%numColumns);
          if (leftovers > 0) FlushLogAsciiChars(logLevel, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
       }
       else WARN_OUT_OF_MEMORY;
@@ -1463,7 +1464,7 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
       ret += headBuf;
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
+      const int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) ret += '-';
       ret += '\n';
       if (buf)
@@ -1477,14 +1478,14 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
             uint32 idx = 0;
             while(idx<numBytes)
             {
-               uint8 c = buf[idx];
+               const uint8 c = buf[idx];
                ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-               size_t hexBufLen = strlen(hexBuf);
+               const size_t hexBufLen = strlen(hexBuf);
                muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
                idx++;
                if ((idx%numColumns) == 0) FlushStringAsciiChars(ret, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
             }
-            uint32 leftovers = (numBytes%numColumns);
+            const uint32 leftovers = (numBytes%numColumns);
             if (leftovers > 0) FlushStringAsciiChars(ret, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
          }
          else WARN_OUT_OF_MEMORY;
@@ -1501,7 +1502,7 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
 {
    String ret;
 
-   uint32 numBytes = buf.GetNumItems();
+   const uint32 numBytes = buf.GetNumItems();
    if (numColumns == 0)
    {
       // A simple, single-line format
@@ -1518,7 +1519,7 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
       ret += headBuf;
 
       const int hexBufSize = (numColumns*8)+1;
-      int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
+      const int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) ret += '-';
       ret += '\n';
       char * ascBuf = newnothrow_array(char, numColumns+1);
@@ -1530,14 +1531,14 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
          uint32 idx = 0;
          while(idx<numBytes)
          {
-            uint8 c = buf[idx];
+            const uint8 c = buf[idx];
             ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-            size_t hexBufLen = strlen(hexBuf);
+            const size_t hexBufLen = strlen(hexBuf);
             muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
             idx++;
             if ((idx%numColumns) == 0) FlushStringAsciiChars(ret, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
          }
-         uint32 leftovers = (numBytes%numColumns);
+         const uint32 leftovers = (numBytes%numColumns);
          if (leftovers > 0) FlushStringAsciiChars(ret, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
       }
       else WARN_OUT_OF_MEMORY;
@@ -1580,7 +1581,7 @@ DebugTimer :: ~DebugTimer()
       // And print out our stats
       for (HashtableIterator<uint32, uint64> iter(_modeToElapsedTime); iter.HasData(); iter++)
       {
-         uint64 nextTime = iter.GetValue();
+         const uint64 nextTime = iter.GetValue();
          if (nextTime >= _minLogTime)
          {
             if (_debugLevel >= 0)
@@ -1666,7 +1667,7 @@ int64 Atoll(const char * str)
       negative = (negative == false);
       s++;
    }
-   int64 ret = (int64) Atoull(s);
+   const int64 ret = (int64) Atoull(s);
    return negative ? -ret : ret;
 }
 
@@ -1706,7 +1707,7 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
 
    const unsigned char * data = (const unsigned char *)key;
    uint32 h = seed ^ numBytes;
-   uint32 align = ((uint32)((uintptr)data)) & 3;
+   const uint32 align = ((uint32)((uintptr)data)) & 3;
    if ((align!=0)&&(numBytes >= 4))
    {
       // Pre-load the temp registers

@@ -31,7 +31,7 @@ int main(int argc, char ** argv)
 
    if (argc < 3) PrintUsageAndExit();
 
-   uint32 numProcesses = atol(argv[1]);
+   const uint32 numProcesses = atol(argv[1]);
    if (numProcesses == 0) PrintUsageAndExit();
 
    const char * cmd = argv[2];
@@ -70,10 +70,12 @@ int main(int argc, char ** argv)
          int readFD = readSock.GetFileDescriptor();
          multiplexer.RegisterSocketForReadReady(readFD);
 
-         int writeFD = ioGateway.HasBytesToOutput() ? refs[i]()->GetWriteSelectSocket().GetFileDescriptor() : -1;
+         const int writeFD = ioGateway.HasBytesToOutput() ? refs[i]()->GetWriteSelectSocket().GetFileDescriptor() : -1;
          if (writeFD >= 0) multiplexer.RegisterSocketForWriteReady(writeFD);
-         int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
+
+         const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
          multiplexer.RegisterSocketForReadReady(stdinFD);
+
          if (multiplexer.WaitForEvents() < 0) printf("testchildprocess: WaitForEvents() failed!\n");
 
          // First, deliver any lines of text from stdin to the child process
@@ -83,10 +85,10 @@ int main(int argc, char ** argv)
             break;
          }
 
-         bool reading    = multiplexer.IsSocketReadyForRead(readFD);
-         bool writing    = ((writeFD >= 0)&&(multiplexer.IsSocketReadyForWrite(writeFD)));
-         bool writeError = ((writing)&&(ioGateway.DoOutput() < 0));
-         bool readError  = ((reading)&&(ioGateway.DoInput(ioInputQueue) < 0));
+         const bool reading    = multiplexer.IsSocketReadyForRead(readFD);
+         const bool writing    = ((writeFD >= 0)&&(multiplexer.IsSocketReadyForWrite(writeFD)));
+         const bool writeError = ((writing)&&(ioGateway.DoOutput() < 0));
+         const bool readError  = ((reading)&&(ioGateway.DoInput(ioInputQueue) < 0));
          if ((readError)||(writeError))
          {
             printf("Connection closed, exiting.\n");

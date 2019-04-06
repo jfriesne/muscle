@@ -12,9 +12,9 @@ namespace muscle {
 static status_t ExpandFilePathWildCardsAux(const String & curDir, const String & path, Queue<String> & outputPaths, bool isSimpleFormat)
 {
    const char * fs = GetFilePathSeparator();
-   int32 sepIdx = path.IndexOf(fs);
-   String firstClause  = (sepIdx >= 0) ? path.Substring(0, sepIdx) : path;
-   String restOfString = (sepIdx >= 0) ? path.Substring(sepIdx+1) : GetEmptyString();
+   const int32 sepIdx = path.IndexOf(fs);
+   const String firstClause  = (sepIdx >= 0) ? path.Substring(0, sepIdx) : path;
+   const String restOfString = (sepIdx >= 0) ? path.Substring(sepIdx+1) : GetEmptyString();
 
    StringMatcher sm(firstClause, isSimpleFormat);
    Directory dir(curDir());
@@ -29,7 +29,7 @@ static status_t ExpandFilePathWildCardsAux(const String & curDir, const String &
             {
                if ((strcmp(fn, ".") != 0)&&(strcmp(fn, "..") != 0)&&((fn[0] != '.')||(firstClause.StartsWith(".")))&&(sm.Match(fn)))
                {
-                  String childPath = String(dir.GetPath())+fn;
+                  const String childPath = String(dir.GetPath())+fn;
                   if (restOfString.HasChars())
                   {
                      if (ExpandFilePathWildCardsAux(childPath, restOfString, outputPaths, isSimpleFormat) != B_NO_ERROR) return B_ERROR;
@@ -43,7 +43,7 @@ static status_t ExpandFilePathWildCardsAux(const String & curDir, const String &
       }
       else
       {
-         String childPath = String(dir.GetPath())+firstClause;
+         const String childPath = String(dir.GetPath())+firstClause;
          if (FilePathInfo(childPath()).Exists())
          {
             if (restOfString.HasChars())

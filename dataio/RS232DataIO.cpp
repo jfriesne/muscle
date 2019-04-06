@@ -101,7 +101,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
    {
       okay = true;
 
-      int fd = _handle.GetFileDescriptor();
+      const int fd = _handle.GetFileDescriptor();
 
       struct termios t;
       tcgetattr(fd, &t);
@@ -203,7 +203,7 @@ int32 RS232DataIO :: Read(void *buf, uint32 len)
       }
       else 
       {
-         int32 ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
+         const int32 ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
          if (ret >= 0) SetEvent(_wakeupSignal);  // wake up the thread in case he has more data to give us
          return ret;
       }
@@ -226,7 +226,7 @@ int32 RS232DataIO :: Write(const void *buf, uint32 len)
       }
       else 
       {
-         int32 ret = SendData(_masterNotifySocket, buf, len, _blocking);
+         const int32 ret = SendData(_masterNotifySocket, buf, len, _blocking);
          if (ret > 0) SetEvent(_wakeupSignal);  // wake up the thread so he'll check his socket for our new data
          return ret;
       }
@@ -244,7 +244,7 @@ void RS232DataIO :: FlushOutput()
 #ifdef USE_WINDOWS_IMPLEMENTATION
       // not implemented yet!
 #else 
-      int fd = _handle.GetFileDescriptor();
+      const int fd = _handle.GetFileDescriptor();
       if (fd >= 0) tcdrain(fd);
 #endif
    }
@@ -279,7 +279,7 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
 #endif
    {
       char szDevices[65535];
-      DWORD dwChars = QueryDosDeviceA(NULL, szDevices, 65535);
+      const DWORD dwChars = QueryDosDeviceA(NULL, szDevices, 65535);
       if (dwChars)
       {
          for (uint32 i=0; szDevices[i] != '\0';)
@@ -355,10 +355,10 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
       char buf[64]; 
 #  if defined(__BEOS__) || defined(__HAIKU__)
       muscleSprintf(buf, "/dev/ports/serial%i", i+1);
-      int temp = open(buf, O_RDWR | O_NONBLOCK);
+      const int temp = open(buf, O_RDWR | O_NONBLOCK);
 #  else
       muscleSprintf(buf, "/dev/ttyS%i", i);
-      int temp = open(buf, O_RDWR | O_NOCTTY);
+      const int temp = open(buf, O_RDWR | O_NOCTTY);
 #  endif
       if (temp >= 0)
       {
@@ -455,7 +455,7 @@ void RS232DataIO :: IOThreadEntry()
          }
          else 
          {
-            DWORD err = GetLastError();
+            const DWORD err = GetLastError();
             if (err == ERROR_IO_PENDING) isWaiting = true;
                                     else LogTime(MUSCLE_LOG_ERROR, "WaitCommEvent() failed! errorCode=" INT32_FORMAT_SPEC "\n", err);
          }
@@ -526,8 +526,8 @@ void RS232DataIO :: IOThreadEntry()
       while(inQueue.HasItems())
       {
          SerialBuffer * buf = inQueue.Head();
-         int32 bytesToWrite = buf->_length-buf->_index;
-         int32 bytesWritten = (bytesToWrite > 0) ? SendData(_slaveNotifySocket, &buf->_buf[buf->_index], bytesToWrite, false) : 0;
+         const int32 bytesToWrite = buf->_length-buf->_index;
+         const int32 bytesWritten = (bytesToWrite > 0) ? SendData(_slaveNotifySocket, &buf->_buf[buf->_index], bytesToWrite, false) : 0;
          if (bytesWritten > 0)
          {
             buf->_index += bytesWritten;
@@ -548,12 +548,12 @@ void RS232DataIO :: IOThreadEntry()
             bool keepGoing = false;
 
             // fill up the outBuf with as many more bytes as possible...
-            int32 numBytesToRead = sizeof(outBuf._buf)-outBuf._length;
-            int32 numBytesRead = (numBytesToRead > 0) ? ReceiveData(_slaveNotifySocket, &outBuf._buf[outBuf._length], numBytesToRead, false) : 0;
+            const int32 numBytesToRead = sizeof(outBuf._buf)-outBuf._length;
+            const int32 numBytesRead = (numBytesToRead > 0) ? ReceiveData(_slaveNotifySocket, &outBuf._buf[outBuf._length], numBytesToRead, false) : 0;
             if (numBytesRead > 0) outBuf._length += numBytesRead;
       
             // Try to write the bytes from outBuf to the serial port
-            int32 numBytesToWrite = outBuf._length-outBuf._index;
+            const int32 numBytesToWrite = outBuf._length-outBuf._index;
             if (numBytesToWrite > 0)
             {
                DWORD numBytesWritten;

@@ -19,7 +19,7 @@ static status_t ReadIncomingData(const char * desc, DataIO & readIO, const Socke
    if (multiplexer.IsSocketReadyForRead(readIO.GetReadSelectSocket().GetFileDescriptor()))
    {
       uint8 buf[4096];
-      int32 ret = readIO.Read(buf, sizeof(buf));
+      const int32 ret = readIO.Read(buf, sizeof(buf));
       if (ret > 0) 
       {
          LogTime(MUSCLE_LOG_TRACE, "Read " INT32_FORMAT_SPEC " bytes from %s:\n", ret, desc);
@@ -40,7 +40,7 @@ static status_t WriteOutgoingData(const char * desc, DataIO & writeIO, const Soc
       while(outQ.HasItems())
       {
          ByteBufferRef & firstBuf = outQ.Head();
-         uint32 bufSize = firstBuf()->GetNumBytes();
+         const uint32 bufSize = firstBuf()->GetNumBytes();
          if (writeIdx >= bufSize) 
          {
             outQ.RemoveHead();
@@ -48,7 +48,7 @@ static status_t WriteOutgoingData(const char * desc, DataIO & writeIO, const Soc
          }
          else
          {
-            int32 ret = writeIO.Write(firstBuf()->GetBuffer()+writeIdx, firstBuf()->GetNumBytes()-writeIdx);
+            const int32 ret = writeIO.Write(firstBuf()->GetBuffer()+writeIdx, firstBuf()->GetNumBytes()-writeIdx);
             if (ret > 0)
             {
                writeIO.FlushOutput();
@@ -71,10 +71,10 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
    SocketMultiplexer multiplexer;
    while(true)
    {
-      int networkReadFD  = networkIO.GetReadSelectSocket().GetFileDescriptor();
-      int serialReadFD   = serialIO.GetReadSelectSocket().GetFileDescriptor();
-      int networkWriteFD = networkIO.GetWriteSelectSocket().GetFileDescriptor();
-      int serialWriteFD  = serialIO.GetWriteSelectSocket().GetFileDescriptor();
+      const int networkReadFD  = networkIO.GetReadSelectSocket().GetFileDescriptor();
+      const int serialReadFD   = serialIO.GetReadSelectSocket().GetFileDescriptor();
+      const int networkWriteFD = networkIO.GetWriteSelectSocket().GetFileDescriptor();
+      const int serialWriteFD  = serialIO.GetWriteSelectSocket().GetFileDescriptor();
 
       multiplexer.RegisterSocketForReadReady(networkReadFD);
       multiplexer.RegisterSocketForReadReady(serialReadFD);

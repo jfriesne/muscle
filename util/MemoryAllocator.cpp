@@ -55,7 +55,7 @@ status_t UsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t currentlyAlloc
 void AutoCleanupProxyMemoryAllocator :: AllocationFailed(size_t currentlyAllocatedBytes, size_t allocRequestBytes)
 {
    ProxyMemoryAllocator::AllocationFailed(currentlyAllocatedBytes, allocRequestBytes);
-   uint32 nc = _callbacks.GetNumItems();
+   const uint32 nc = _callbacks.GetNumItems();
    for (uint32 i=0; i<nc; i++) if (_callbacks[i]()) (void) (_callbacks[i]())->Callback(NULL);
 }
 

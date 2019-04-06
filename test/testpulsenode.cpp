@@ -53,7 +53,7 @@ public:
 
       if (AbstractReflectSession::AttachedToServer() != B_NO_ERROR) return B_ERROR;
 
-      uint64 baseTime = GetRunTime64();
+      const uint64 baseTime = GetRunTime64();
       for (int i=0; i<NUM_PULSE_CHILDREN; i++)
       {
          TestPulseChild * tpc = new TestPulseChild(baseTime, i);

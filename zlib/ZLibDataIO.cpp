@@ -91,7 +91,7 @@ void ZLibDataIO :: SetChildDataIO(const DataIORef & dio)
 #define ZLIB_READ_COPY_TO_USER                                                            \
    if (_readInflater.next_out > _sendToUser)                                              \
    {                                                                                      \
-      uint32 bytesToCopy = muscleMin(size, (uint32)(_readInflater.next_out-_sendToUser)); \
+      const uint32 bytesToCopy = muscleMin(size, (uint32)(_readInflater.next_out-_sendToUser)); \
       memcpy(buffer, _sendToUser, bytesToCopy);                                           \
       uint8 * buf8 = (uint8 *) buffer;                                                    \
       buffer       = buf8+bytesToCopy;                                                    \
@@ -108,7 +108,7 @@ void ZLibDataIO :: SetChildDataIO(const DataIORef & dio)
 #define ZLIB_READ_INFLATE                                              \
    if (_inflateOkay)                                                   \
    {                                                                   \
-      int zRet = inflate(&_readInflater, Z_NO_FLUSH);                  \
+      const int zRet = inflate(&_readInflater, Z_NO_FLUSH);            \
       if ((zRet != Z_OK)&&(zRet != Z_BUF_ERROR)) _inflateOkay = false; \
       ZLIB_READ_COPY_TO_USER;                                          \
    }
@@ -125,7 +125,7 @@ int32 ZLibDataIO :: Read(void * buffer, uint32 size)
       if (_inputStreamOkay)
       {
          if (_readInflater.avail_in == 0) _readInflater.next_in = _toInflateBuf;
-         int32 bytesRead = ProxyDataIO::Read(_readInflater.next_in, (int32)((_toInflateBuf+sizeof(_toInflateBuf))-_readInflater.next_in));
+         const int32 bytesRead = ProxyDataIO::Read(_readInflater.next_in, (int32)((_toInflateBuf+sizeof(_toInflateBuf))-_readInflater.next_in));
          if (bytesRead >= 0)
          {
             _readInflater.avail_in += bytesRead;
@@ -145,7 +145,7 @@ int32 ZLibDataIO :: Write(const void * buffer, uint32 size)
 #define ZLIB_WRITE_SEND_TO_SLAVE                                                                           \
    if (_writeDeflater.next_out > _sendToChild)                                                             \
    {                                                                                                       \
-      int32 bytesWritten = ProxyDataIO::Write(_sendToChild, (int32)(_writeDeflater.next_out-_sendToChild)); \
+      const int32 bytesWritten = ProxyDataIO::Write(_sendToChild, (int32)(_writeDeflater.next_out-_sendToChild)); \
       if (bytesWritten >= 0)                                                                               \
       {                                                                                                    \
          _sendToChild += bytesWritten;                                                                     \
@@ -170,7 +170,7 @@ int32 ZLibDataIO :: WriteAux(const void * buffer, uint32 size, bool flushAtEnd)
          if (_writeDeflater.avail_in == 0) _writeDeflater.next_in = _toDeflateBuf;
          if (buffer)
          {
-            uint32 bytesToCopy = muscleMin((uint32)((_toDeflateBuf+sizeof(_toDeflateBuf))-_writeDeflater.next_in), size);
+            const uint32 bytesToCopy = muscleMin((uint32)((_toDeflateBuf+sizeof(_toDeflateBuf))-_writeDeflater.next_in), size);
             memcpy(_writeDeflater.next_in, buffer, bytesToCopy);
             bytesCompressed += bytesToCopy;
 #ifdef REMOVED_TO_SUPPRESS_CLANG_STATIC_ANALYZER_WARNING_BUT_REENABLE_THIS_IF_THERES_ANOTHER_STEP_ADDED_IN_THE_FUTURE
@@ -181,7 +181,7 @@ int32 ZLibDataIO :: WriteAux(const void * buffer, uint32 size, bool flushAtEnd)
             _writeDeflater.avail_in += bytesToCopy;
          }
 
-         int zRet = deflate(&_writeDeflater, ((flushAtEnd)&&(_writeDeflater.avail_in == 0)) ? Z_SYNC_FLUSH : Z_NO_FLUSH);
+         const int zRet = deflate(&_writeDeflater, ((flushAtEnd)&&(_writeDeflater.avail_in == 0)) ? Z_SYNC_FLUSH : Z_NO_FLUSH);
          if ((zRet != Z_OK)&&(zRet != Z_BUF_ERROR)) return -1;
          ZLIB_WRITE_SEND_TO_SLAVE;
       }

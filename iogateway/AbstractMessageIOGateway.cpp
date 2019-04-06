@@ -81,12 +81,12 @@ status_t
 AbstractMessageIOGateway :: 
 ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64 timeoutPeriod)
 {
-   int readFD  = GetDataIO()() ? GetDataIO()()->GetReadSelectSocket().GetFileDescriptor()  : -1;
-   int writeFD = GetDataIO()() ? GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor() : -1;
+   const int readFD  = GetDataIO()() ? GetDataIO()()->GetReadSelectSocket().GetFileDescriptor()  : -1;
+   const int writeFD = GetDataIO()() ? GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor() : -1;
    if ((readFD < 0)||(writeFD < 0)) return B_ERROR;  // no socket to transmit or receive on!
 
    ScratchProxyReceiver scratchReceiver(this, optReceiver);
-   uint64 endTime = (timeoutPeriod == MUSCLE_TIME_NEVER) ? MUSCLE_TIME_NEVER : (GetRunTime64()+timeoutPeriod);
+   const uint64 endTime = (timeoutPeriod == MUSCLE_TIME_NEVER) ? MUSCLE_TIME_NEVER : (GetRunTime64()+timeoutPeriod);
    SocketMultiplexer multiplexer;
    while(IsStillAwaitingSynchronousMessagingReply())
    {

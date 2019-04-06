@@ -32,7 +32,7 @@ TarFileWriter :: ~TarFileWriter()
 
 status_t TarFileWriter :: Close()
 {
-   status_t ret = _writerIO() ? FinishCurrentFileDataBlock() : B_NO_ERROR;
+   const status_t ret = _writerIO() ? FinishCurrentFileDataBlock() : B_NO_ERROR;
    _writerIO.Reset();  // do this no matter what
    return ret;
 }
@@ -74,7 +74,7 @@ static void WriteOctalASCII(uint8 * b, uint64 val, uint8 fieldSize)
 
    char tmp[256];
    muscleSprintf(tmp, formatStr, val);
-   int numChars = muscleMin((int)fieldSize, ((int)(strlen(tmp)+1)));  // include the NUL byte if possible
+   const int numChars = muscleMin((int)fieldSize, ((int)(strlen(tmp)+1)));  // include the NUL byte if possible
    uint8 * dStart = (b+fieldSize)-numChars;
    memcpy(dStart, tmp, numChars);
 
@@ -89,12 +89,12 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
 
    if (_currentHeaderOffset >= 0)
    {
-      int64 currentPos = GetCurrentSeekPosition();
-      uint64 currentFileLength = currentPos-(_currentHeaderOffset+TAR_BLOCK_SIZE);
-      int64 extraBytes = (currentPos%TAR_BLOCK_SIZE);
+      const int64 currentPos = GetCurrentSeekPosition();
+      const uint64 currentFileLength = currentPos-(_currentHeaderOffset+TAR_BLOCK_SIZE);
+      const int64 extraBytes = (currentPos%TAR_BLOCK_SIZE);
       if (extraBytes != 0)
       {
-         int64 numPadBytes = (TAR_BLOCK_SIZE-extraBytes);
+         const int64 numPadBytes = (TAR_BLOCK_SIZE-extraBytes);
          uint8 zeros[TAR_BLOCK_SIZE]; memset(zeros, 0, (size_t) numPadBytes);
          if (_writerIO()->WriteFully(zeros, (uint32) numPadBytes) != (uint32) numPadBytes) return B_ERROR;
       }
@@ -122,7 +122,7 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
    if ((strlen(fileName) > 100)||((linkedFileName)&&(strlen(linkedFileName)>100))) return B_ERROR;  // string fields are only 100 chars long!
    if (FinishCurrentFileDataBlock() != B_NO_ERROR) return B_ERROR;  // should pad out position out to a multiple of 512, if necessary
 
-   int64 curSeekPos = GetCurrentSeekPosition();
+   const int64 curSeekPos = GetCurrentSeekPosition();
    if ((curSeekPos < 0)||((curSeekPos%TAR_BLOCK_SIZE) != 0)) return B_ERROR;
 
    _currentHeaderOffset = curSeekPos;
@@ -133,7 +133,7 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
    WriteOctalASCII(&_currentHeaderBytes[108], ownerID, 8);
    WriteOctalASCII(&_currentHeaderBytes[116], groupID, 8);
 
-   uint64 secondsSince1970 = MicrosToSeconds(modificationTime);
+   const uint64 secondsSince1970 = MicrosToSeconds(modificationTime);
    if (secondsSince1970 != 0) WriteOctalASCII(&_currentHeaderBytes[136], secondsSince1970, 12);
 
    memset(&_currentHeaderBytes[148], ' ', 8);  // these spaces are used later on, when calculating the header checksum

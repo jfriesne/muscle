@@ -205,7 +205,7 @@ status_t SharedMemory :: DeleteArea()
       if ((_isLocked)||(LockAreaReadWrite() == B_NO_ERROR))
       {
 # ifdef WIN32
-         String fileName = _fileName;  // hold as temp since UnsetArea() will clear it
+         const String fileName = _fileName;  // hold as temp since UnsetArea() will clear it
          UnsetArea();
          return DeleteFileA(fileName()) ? B_NO_ERROR : B_ERROR;  // now that everything is detached, try to delete the file
 # else

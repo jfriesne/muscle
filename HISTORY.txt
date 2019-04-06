@@ -10,6 +10,7 @@ key:  - new feature
    o Modified SharedFilterSessionFactory::IsAccessAllowedForIP()
      to be non-static, to avoid having to re-open the shared
      memory region on every call to the method.
+   o Added const-qualifiers to local variables where appropriate.
    * Added a missing #include directive to DebugTimer.h
 
 7.12 Released 2/5/2019

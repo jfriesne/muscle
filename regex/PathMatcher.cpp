@@ -128,7 +128,7 @@ bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, c
 {
    TCHECKPOINT;
 
-   uint32 numClauses = GetPathDepth(path);
+   const uint32 numClauses = GetPathDepth(path);
    for (HashtableIterator<String, PathMatcherEntry> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const StringMatcherQueue * nextSubscription = iter.GetValue().GetParser()();      

@@ -203,7 +203,7 @@ public:
 protected:
    virtual void AddToString(String & s, uint32, int indent) const
    {
-      uint32 numItems = GetNumItems();
+      const uint32 numItems = GetNumItems();
       for (uint32 i=0; i<numItems; i++) AddItemDescriptionToString(indent, i, _data[i], s);
    }
 };
@@ -225,7 +225,7 @@ public:
 
    virtual void Flatten(uint8 * buffer) const
    {
-      uint32 numItems = this->_data.GetNumItems(); 
+      const uint32 numItems = this->_data.GetNumItems(); 
       for (uint32 i=0; i<numItems; i++) 
       {
          this->_data[i].Flatten(buffer);
@@ -268,7 +268,7 @@ public:
 protected:
    virtual void AddToString(String & s, uint32, int indent) const
    {
-      uint32 numItems = this->GetNumItems();
+      const uint32 numItems = this->GetNumItems();
       for (uint32 i=0; i<numItems; i++) 
       {
          AddItemPreambleToString(indent, i, s);
@@ -347,7 +347,7 @@ protected:
 
    virtual void AddToString(String & s, uint32, int indent) const
    {
-      uint32 numItems = this->GetNumItems();
+      const uint32 numItems = this->GetNumItems();
       for (uint32 i=0; i<numItems; i++) 
       {
          AddItemPreambleToString(indent, i, s);
@@ -451,7 +451,7 @@ public:
 
    virtual void Flatten(uint8 * buffer) const
    {
-      uint32 numItems = _data.GetNumItems(); 
+      const uint32 numItems = _data.GetNumItems(); 
       for (uint32 i=0; i<numItems; i++) buffer[i] = (uint8) (_data[i] ? 1 : 0);
    }
 
@@ -728,12 +728,12 @@ public:
    virtual void Flatten(uint8 * buffer) const
    {
       uint32 writeOffset = 0;
-      uint32 numItems = this->_data.GetNumItems(); 
+      const uint32 numItems = this->_data.GetNumItems(); 
 
       // Conditional to allow maintaining backwards compatibility with old versions of muscle's MessageDataArrays (sigh)
       if (ShouldWriteNumItems()) 
       {
-         uint32 writeNumElements = B_HOST_TO_LENDIAN_INT32(numItems);
+         const uint32 writeNumElements = B_HOST_TO_LENDIAN_INT32(numItems);
          this->WriteData(buffer, &writeOffset, &writeNumElements, sizeof(writeNumElements));
       }
 
@@ -742,8 +742,8 @@ public:
          const FlatCountable * next = this->ItemAt(i)();
          if (next)
          {
-            uint32 fs = next->FlattenedSize();
-            uint32 writeFs = B_HOST_TO_LENDIAN_INT32(fs);
+            const uint32 fs = next->FlattenedSize();
+            const uint32 writeFs = B_HOST_TO_LENDIAN_INT32(fs);
             this->WriteData(buffer, &writeOffset, &writeFs, sizeof(writeFs));
             next->Flatten(&buffer[writeOffset]);
             writeOffset += fs;
@@ -754,7 +754,7 @@ public:
    // Flattenable interface
    virtual uint32 FlattenedSize() const 
    {
-      uint32 numItems = this->GetNumItems();
+      const uint32 numItems = this->GetNumItems();
       uint32 count = (numItems+(ShouldWriteNumItems()?1:0))*sizeof(uint32);
       for (uint32 i=0; i<numItems; i++) count += GetItemSize(i);
       return count;
@@ -862,7 +862,7 @@ public:
 
    virtual void AddToString(String & s, uint32, int indent) const
    {
-      uint32 numItems = GetNumItems();
+      const uint32 numItems = GetNumItems();
       for (uint32 i=0; i<numItems; i++) AddItemDescriptionToString(indent, i, ItemAt(i), s);
    }
 
@@ -969,7 +969,7 @@ public:
 
    virtual void AddToString(String & s, uint32 maxRecurseLevel, int indent) const
    {
-      uint32 numItems = GetNumItems();
+      const uint32 numItems = GetNumItems();
       for (uint32 i=0; i<numItems; i++) AddItemDescriptionToString(indent, i, ItemAt(i), s, maxRecurseLevel);
    }
 
@@ -1020,9 +1020,9 @@ public:
       //          1. entry size in bytes (4 bytes)
       //          2. entry data (n bytes)
       //          (repeat 1. and 2. as necessary)
-      uint32 numElements      = this->GetNumItems();
-      uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(numElements);
-      uint32 writeOffset      = 0;
+      const uint32 numElements = this->GetNumItems();
+      uint32 networkByteOrder  = B_HOST_TO_LENDIAN_INT32(numElements);
+      uint32 writeOffset       = 0;
 
       this->WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
 
@@ -1030,7 +1030,7 @@ public:
       {
          // write element size
          const DataType & s = this->ItemAt(i);
-         uint32 nextElementBytes = s.FlattenedSize();
+         const uint32 nextElementBytes = s.FlattenedSize();
          networkByteOrder = B_HOST_TO_LENDIAN_INT32(nextElementBytes);
          this->WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
 
@@ -1042,7 +1042,7 @@ public:
 
    virtual uint32 FlattenedSize() const 
    {
-      uint32 num = this->GetNumItems();
+      const uint32 num = this->GetNumItems();
       uint32 sum = (num+1)*sizeof(uint32);  // 1 uint32 for the count, plus 1 per entry for entry-size
       for (uint32 i=0; i<num; i++) sum += this->ItemAt(i).FlattenedSize();
       return sum;
@@ -1102,7 +1102,7 @@ public:
 
    virtual void AddToString(String & s, uint32, int indent) const
    {
-      uint32 numItems = GetNumItems();
+      const uint32 numItems = GetNumItems();
       for (uint32 i=0; i<numItems; i++) AddDataItemToString(indent, i, ItemAt(i), s);
    }
 
@@ -1319,7 +1319,7 @@ void Message :: Flatten(uint8 * buffer) const
          numFlattenedEntries++;
 
          // Write entry name length
-         uint32 keyNameSize = it.GetKey().FlattenedSize();
+         const uint32 keyNameSize = it.GetKey().FlattenedSize();
          networkByteOrder = B_HOST_TO_LENDIAN_INT32(keyNameSize);
          WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
 
@@ -1332,7 +1332,7 @@ void Message :: Flatten(uint8 * buffer) const
          WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
 
          // Write entry data length
-         uint32 dataSize = mf.FlattenedSize();
+         const uint32 dataSize = mf.FlattenedSize();
          networkByteOrder = B_HOST_TO_LENDIAN_INT32(dataSize);
          WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
          
@@ -1553,7 +1553,7 @@ status_t Message :: AddFlat(const String & fieldName, const FlatCountableRef & r
    FlatCountable * fc = ref();
    if (fc)
    {
-      uint32 tc = fc->TypeCode();
+      const uint32 tc = fc->TypeCode();
       switch(tc)
       {
          case B_STRING_TYPE:  return B_ERROR;  // sorry, can't do that (Strings aren't FlatCountables)
@@ -1610,7 +1610,7 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
    MessageField * mf = GetOrCreateMessageField(fieldName, tc);
    if (mf == NULL) return B_ERROR;
 
-   uint32 numElements = numBytes/elementSize;
+   const uint32 numElements = numBytes/elementSize;
    const uint8 * dataBuf = (const uint8 *) data;
    for (uint32 i=0; i<numElements; i++) 
    {
@@ -1658,7 +1658,7 @@ status_t Message :: RemoveData(const String & fieldName, uint32 index)
    MessageField * mf = GetMessageField(fieldName, B_ANY_TYPE);
    if (mf) 
    {
-      status_t ret = mf->RemoveDataItem(index);
+      const status_t ret = mf->RemoveDataItem(index);
       return mf->IsEmpty() ? RemoveName(fieldName) : ret;
    }
    else return B_ERROR;
@@ -1721,7 +1721,7 @@ const uint8 * Message :: FindFlatAux(const MessageField * mf, uint32 index, uint
    }
 
    const void * data; 
-   status_t ret = mf->FindDataItem(index, &data);
+   const status_t ret = mf->FindDataItem(index, &data);
    if (ret == B_NO_ERROR) 
    { 
       retNumBytes = mf->GetItemSize(index); 
@@ -1802,7 +1802,7 @@ status_t Message :: FindDataItemAux(const String & fieldName, uint32 index, uint
    const MessageField * field = GetMessageField(fieldName, tc);
    if (field == NULL) return B_ERROR;
    const void * addressOfValue;
-   status_t ret = field->FindDataItem(index, &addressOfValue);
+   const status_t ret = field->FindDataItem(index, &addressOfValue);
    if (ret != B_NO_ERROR) return ret;
    memcpy(setValue, addressOfValue, valueSize);
    return B_NO_ERROR;
@@ -1985,7 +1985,7 @@ status_t Message :: ReplaceFlat(bool okayToAdd, const String & fieldName, uint32
    const FlatCountable * fc = ref();
    if (fc)
    {
-      uint32 tc = fc->TypeCode();
+      const uint32 tc = fc->TypeCode();
       MessageField * field = GetMessageField(fieldName, tc);
       if ((okayToAdd)&&((field == NULL)||(index >= field->GetNumItems()))) return AddFlat(fieldName, ref);
       if (field)
@@ -2029,7 +2029,7 @@ status_t Message :: ReplaceData(bool okayToAdd, const String & fieldName, uint32
    }
 
    if (numBytes % elementSize) return B_ERROR;  // Can't add half an element, silly!
-   uint32 numElements = numBytes / elementSize;
+   const uint32 numElements = numBytes / elementSize;
    const uint8 * dataBuf = (const uint8 *) data;
    for (uint32 i=index; i<index+numElements; i++) 
    {
@@ -2178,7 +2178,7 @@ status_t Message :: PrependFlat(const String & fieldName, const FlatCountableRef
    FlatCountable * fc = ref();
    if (fc)
    {
-      uint32 tc = fc->TypeCode();
+      const uint32 tc = fc->TypeCode();
       switch(tc)
       {
          case B_STRING_TYPE:  return B_ERROR;  // sorry, can't do that (Strings aren't FlatCountables)
@@ -2262,12 +2262,12 @@ uint32 MessageField :: SingleFlattenedSize() const
    if (_typeCode == B_BOOL_TYPE) return sizeof(uint8);                                // bools are always flattened to one uint8 each
    else
    {
-      uint32 itemSizeBytes = SingleGetItemSize(0);
+      const uint32 itemSizeBytes = SingleGetItemSize(0);
            if (_typeCode == B_MESSAGE_TYPE) return sizeof(uint32)+itemSizeBytes;  // special case: Message fields don't write number-of-items, for historical reasons
       else if (_typeCode == B_STRING_TYPE)  return sizeof(uint32)+sizeof(uint32)+GetInlineItemAsString().FlattenedSize();
       else
       {
-         uint32 fixedSize = Message::GetElementSize(_typeCode);
+         const uint32 fixedSize = Message::GetElementSize(_typeCode);
          if (fixedSize > 0) return fixedSize;  // for fixed-size elements with known size, no headers are necessary
 
          // if we got here, then it's the one uint32 for the object-count, one uint32 for the size-of-object, plus the space for the object itself
@@ -2295,7 +2295,7 @@ void MessageField :: SingleFlatten(uint8 *buffer) const
       {
          const Message * msg = dynamic_cast<Message *>(GetInlineItemAsRefCountableRef()());
          // Note:  No number-of-items field is written, for historical reasons
-         uint32 leMsgSize = B_HOST_TO_LENDIAN_INT32(msg->FlattenedSize());
+         const uint32 leMsgSize = B_HOST_TO_LENDIAN_INT32(msg->FlattenedSize());
          muscleCopyOut(buffer, leMsgSize); buffer += sizeof(uint32);
          msg->Flatten(buffer);
       }
@@ -2307,11 +2307,11 @@ void MessageField :: SingleFlatten(uint8 *buffer) const
 
       case B_STRING_TYPE:
       {
-         uint32 leItemCount = B_HOST_TO_LENDIAN_INT32(1);  // because we have one string to write
+         const uint32 leItemCount = B_HOST_TO_LENDIAN_INT32(1);  // because we have one string to write
          muscleCopyOut(buffer, leItemCount); buffer += sizeof(uint32);
 
          const String & s = GetInlineItemAsString();
-         uint32 leFlatSize = B_HOST_TO_LENDIAN_INT32(s.FlattenedSize());
+         const uint32 leFlatSize = B_HOST_TO_LENDIAN_INT32(s.FlattenedSize());
          muscleCopyOut(buffer, leFlatSize);  buffer += sizeof(uint32);
          s.Flatten(buffer); 
       }
@@ -2322,11 +2322,11 @@ void MessageField :: SingleFlatten(uint8 *buffer) const
       default:
       {
          // all other types will follow the variable-sized-objects-field convention
-         uint32 leItemCount = B_HOST_TO_LENDIAN_INT32(1);  // because we have one variable-sized-object to write
+         const uint32 leItemCount = B_HOST_TO_LENDIAN_INT32(1);  // because we have one variable-sized-object to write
          muscleCopyOut(buffer, leItemCount); buffer += sizeof(uint32);
 
          const FlatCountable * fc = dynamic_cast<const FlatCountable *>(GetInlineItemAsRefCountableRef()());
-         uint32 leFlatSize = B_HOST_TO_LENDIAN_INT32(fc ? fc->FlattenedSize() : 0);
+         const uint32 leFlatSize = B_HOST_TO_LENDIAN_INT32(fc ? fc->FlattenedSize() : 0);
          muscleCopyOut(buffer, leFlatSize); buffer += sizeof(uint32);
 
          if (fc) fc->Flatten(buffer);
@@ -2680,8 +2680,8 @@ bool MessageField :: IsEqualTo(const MessageField & rhs, bool compareContents) c
 {
    if (_typeCode != rhs._typeCode) return false;
 
-   uint32 mySize  = GetNumItems();
-   uint32 hisSize = rhs.GetNumItems();  // FogBugz #10980
+   const uint32 mySize  = GetNumItems();
+   const uint32 hisSize = rhs.GetNumItems();  // FogBugz #10980
    if (mySize != hisSize) return false;  // can't be equal if we don't have the same sizes
    if (mySize == 0)       return true;   // no more to compare, if we're both empty
    if (compareContents == false) return true;  // if we're not comparing contents, then that's all we need to check
@@ -2896,14 +2896,14 @@ status_t MessageField :: ReplaceFlatCountableDataItem(uint32 index, muscle::Ref<
 
 uint32 MessageField :: GetNumItemsInFlattenedBuffer(const uint8 * bytes, uint32 numBytes) const
 {
-   uint32 fsItemSize = GetFlattenedSizeForFixedSizeType(_typeCode);
+   const uint32 fsItemSize = GetFlattenedSizeForFixedSizeType(_typeCode);
 
         if (fsItemSize > 0) return numBytes/fsItemSize;
    else if (_typeCode == B_MESSAGE_TYPE)
    {
       // special case for the Message type since it doesn't have a number-of-items-count, annoyingly enough
       if (numBytes < sizeof(uint32)) return 0;  // huh?
-      uint32 firstMsgSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(bytes));
+      const uint32 firstMsgSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(bytes));
 
       numBytes -= sizeof(uint32);                 // this must be done exactly here!
       if (firstMsgSize > numBytes) return 0;      // malformed buffer size?

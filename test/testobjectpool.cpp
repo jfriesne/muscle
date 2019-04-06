@@ -49,10 +49,10 @@ int main(int argc, char ** argv)
 
    while(1)
    {
-      uint32 max = (rand()%10)+1;
+      const uint32 max = (rand()%10)+1;
       for (uint32 i=0; i<MAX_NUM_REFS; i++) 
       {
-         uint32 idx = rand()%MAX_NUM_REFS;
+         const uint32 idx = rand()%MAX_NUM_REFS;
          if ((rand()%max)==0) refs[idx] = GetCounterRefFromPool();
                          else refs[idx].Reset();
       }

@@ -38,9 +38,9 @@ CPULoadMeter :: ~CPULoadMeter()
 
 float CPULoadMeter :: CalculateCPULoad(uint64 idleTicks, uint64 totalTicks)
 {
-   uint64 totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
-   uint64 idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
-   float ret = 1.0f-((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime)/totalTicksSinceLastTime : 0);
+   const uint64 totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
+   const uint64 idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
+   const float ret = 1.0f-((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime)/totalTicksSinceLastTime : 0);
    _previousTotalTicks = totalTicks;
    _previousIdleTicks  = idleTicks;
    return ret;

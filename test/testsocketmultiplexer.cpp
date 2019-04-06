@@ -44,7 +44,7 @@ int main(int argc, char ** argv)
    }
 
    // Start the game off
-   char c = 'C';
+   const char c = 'C';
    if (SendData(senders[0], &c, 1, false) != 1)
    {
       printf("Error, couldn't send initial byte!\n");
@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
    uint64 minRunTime = (uint64)-1;
    uint64 maxRunTime = 0;
    SocketMultiplexer multiplexer;
-   uint64 endTime = GetRunTime64() + SecondsToMicros(10);
+   const uint64 endTime = GetRunTime64() + SecondsToMicros(10);
    bool error = false;
    while(error==false)
    {
@@ -71,17 +71,17 @@ int main(int argc, char ** argv)
       }
       if (error) break;
 
-      uint64 then = GetRunTime64();
+      const uint64 then = GetRunTime64();
       if (then >= endTime) break;
 
-      int ret = multiplexer.WaitForEvents();
+      const int ret = multiplexer.WaitForEvents();
       if (ret < 0)
       {
          printf("WaitForEvents errored out, aborting test!\n"); 
          break;
       }
 
-      uint64 elapsed = GetRunTime64()-then; 
+      const uint64 elapsed = GetRunTime64()-then; 
       if (quiet == false) printf("WaitForEvents returned %i after " UINT64_FORMAT_SPEC " microseconds.\n", ret, elapsed);
 
       count++;
@@ -94,12 +94,12 @@ int main(int argc, char ** argv)
          if (multiplexer.IsSocketReadyForRead(receivers[i].GetFileDescriptor()))
          {
             char buf[64];
-            int32 numBytesReceived = ReceiveData(receivers[i], buf, sizeof(buf), false);
+            const int32 numBytesReceived = ReceiveData(receivers[i], buf, sizeof(buf), false);
             if (quiet == false) printf("Receiver #" UINT32_FORMAT_SPEC " signalled ready-for-read, read " INT32_FORMAT_SPEC " bytes.\n", i, numBytesReceived);
             if (numBytesReceived > 0)
             {
-               uint32 nextIdx = (i+1)%numPairs;
-               int32 sentBytes = SendData(senders[nextIdx], buf, numBytesReceived, false);
+               const uint32 nextIdx = (i+1)%numPairs;
+               const int32 sentBytes = SendData(senders[nextIdx], buf, numBytesReceived, false);
                if (quiet == false) printf("Sent " INT32_FORMAT_SPEC " bytes on sender #" UINT32_FORMAT_SPEC "\n", sentBytes, nextIdx);
             }
          }

@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Receiving packetized data...\n");
       while(1)
       {
-         int32 numBytesRead = pack.Read(buf.GetBuffer(), buf.GetNumBytes());
+         const int32 numBytesRead = pack.Read(buf.GetBuffer(), buf.GetNumBytes());
          if (numBytesRead < 0)
          {
             LogTime(MUSCLE_LOG_ERROR, "Connection closed!\n");
@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
          }
 
          LogTime(MUSCLE_LOG_INFO, "Read a packet that was " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes long...\n", numBytesRead, mtu);
-         uint8 c = numBytesRead % 256;
+         const uint8 c = numBytesRead % 256;
          const uint8 * p = buf.GetBuffer();
          for (int32 i=0; i<numBytesRead; i++)
          {
@@ -94,11 +94,11 @@ int main(int argc, char ** argv)
       // We're sending...
       while(1)
       {
-         uint32 sendLen = rand() % mtu;
-         uint8 c = (sendLen % 256);
+         const uint32 sendLen = rand() % mtu;
+         const uint8 c = (sendLen % 256);
          uint8 * b = buf.GetBuffer();
          for (uint32 i=0; i<sendLen; i++) b[i] = c;
-         int32 numBytesSent = pack.Write(b, sendLen);
+         const int32 numBytesSent = pack.Write(b, sendLen);
          LogTime(MUSCLE_LOG_INFO, "Write(" UINT32_FORMAT_SPEC ") returned " INT32_FORMAT_SPEC "\n", sendLen, numBytesSent);
          if (numBytesSent < 0) break;
       }

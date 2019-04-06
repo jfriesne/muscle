@@ -19,7 +19,7 @@ int32 SignalHandlerSession :: DoInput(AbstractGatewayMessageReceiver &, uint32)
    while(1)
    {
       char buf[64];
-      int32 bytesReceived = ReceiveData(GetSessionReadSelectSocket(), buf, sizeof(buf), false);
+      const int32 bytesReceived = ReceiveData(GetSessionReadSelectSocket(), buf, sizeof(buf), false);
       if (bytesReceived > 0)
       {
          byteCount += bytesReceived;

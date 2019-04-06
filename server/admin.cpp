@@ -18,8 +18,8 @@ void Kick(MessageIOGateway & gw, const char * arg)
       String str("/");
       str += arg;
       str += "/*";
-      msg()->AddString(PR_NAME_KEYS, str);
-      gw.AddOutgoingMessage(msg);
+      (void) msg()->AddString(PR_NAME_KEYS, str);
+      (void) gw.AddOutgoingMessage(msg);
       LogTime(MUSCLE_LOG_INFO, "Kicking users matching pattern [%s]\n", str.Cstr());
    }
 }
@@ -30,8 +30,8 @@ void Ban(MessageIOGateway & gw, const char * arg, bool unBan)
    MessageRef msg = GetMessageFromPool(unBan ? PR_COMMAND_REMOVEBANS : PR_COMMAND_ADDBANS);
    if (msg())
    {
-      msg()->AddString(PR_NAME_KEYS, arg);
-      gw.AddOutgoingMessage(msg);
+      (void) msg()->AddString(PR_NAME_KEYS, arg);
+      (void) gw.AddOutgoingMessage(msg);
       if (unBan) LogTime(MUSCLE_LOG_INFO, "Removing ban patterns that match pattern [%s]\n", arg);
             else LogTime(MUSCLE_LOG_INFO, "Adding ban pattern [%s]\n", arg);
    }
@@ -43,13 +43,12 @@ void Require(MessageIOGateway & gw, const char * arg, bool unRequire)
    MessageRef msg = GetMessageFromPool(unRequire ? PR_COMMAND_REMOVEREQUIRES : PR_COMMAND_ADDREQUIRES);
    if (msg())
    {
-      msg()->AddString(PR_NAME_KEYS, arg);
-      gw.AddOutgoingMessage(msg);
+      (void) msg()->AddString(PR_NAME_KEYS, arg);
+      (void) gw.AddOutgoingMessage(msg);
       if (unRequire) LogTime(MUSCLE_LOG_INFO, "Removing require patterns that match pattern [%s]\n", arg);
             else LogTime(MUSCLE_LOG_INFO, "Adding require pattern [%s]\n", arg);
    }
 }
-
 
 // This is a little admin program, useful for kicking, banning, or unbanning users
 // without having to restart the MUSCLE server.  Example command line:
@@ -70,7 +69,7 @@ int main(int argc, char ** argv)
    for (int i=1; i<argc; i++)
    {
       char * next = argv[i];
-      if (strncmp(next, "server=", 7) == 0) hostName = &next[7];
+           if (strncmp(next, "server=", 7) == 0) hostName = &next[7];
       else if (strcmp(next, "help") == 0)
       {
          LogTime(MUSCLE_LOG_INFO, "This program lets you send admin commands to a running MUSCLE server.\n");
@@ -82,7 +81,7 @@ int main(int argc, char ** argv)
    }
    
    const char * colon = strchr(hostName, ':');
-   int16 port = (colon) ? atoi(colon+1) : 2960;
+   const int16 port   = (colon) ? atoi(colon+1) : 2960;
 
    ConstSocketRef s = Connect(String(hostName).Substring(0, ":")(), port, "admin", false);
    if (s() == NULL)
@@ -104,12 +103,13 @@ int main(int argc, char ** argv)
       {
          char * arg = colon+1;
          *colon = '\0';
-              if (strcmp(line, "kick")     == 0) Kick(gw, arg);
-         else if (strcmp(line, "ban")      == 0) Ban(gw, arg, false);
-         else if (strcmp(line, "unban")    == 0) Ban(gw, arg, true);
+
+              if (strcmp(line, "kick")      == 0) Kick(gw, arg);
+         else if (strcmp(line, "ban")       == 0) Ban(gw, arg, false);
+         else if (strcmp(line, "unban")     == 0) Ban(gw, arg, true);
          else if (strcmp(line, "require")   == 0) Require(gw, arg, false);
          else if (strcmp(line, "unrequire") == 0) Require(gw, arg, true);
-         else if (strcmp(line, "kickban")  == 0)
+         else if (strcmp(line, "kickban")   == 0)
          {
             Kick(gw, arg);
             Ban(gw, arg, false);
@@ -118,7 +118,7 @@ int main(int argc, char ** argv)
    }
 
    // Lastly, request a PONG so we know when all has been done
-   gw.AddOutgoingMessage(MessageRef(GetMessageFromPool(PR_COMMAND_PING)));
+   (void) gw.AddOutgoingMessage(MessageRef(GetMessageFromPool(PR_COMMAND_PING)));
 
    // send them, and then wait for the pong back
    uint32 errorCount = 0;
@@ -126,7 +126,7 @@ int main(int argc, char ** argv)
    SocketMultiplexer multiplexer;
    while(s())
    {
-      int fd = s()->GetFileDescriptor();
+      const int fd = s()->GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(fd);
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
 
@@ -137,8 +137,8 @@ int main(int argc, char ** argv)
          break;
       }
 
-      bool readError  = ((multiplexer.IsSocketReadyForRead(fd))&&(gw.DoInput(inQueue) < 0));
-      bool writeError = ((multiplexer.IsSocketReadyForWrite(fd))&&(gw.DoOutput() < 0));
+      const bool readError  = ((multiplexer.IsSocketReadyForRead(fd)) &&(gw.DoInput(inQueue) < 0));
+      const bool writeError = ((multiplexer.IsSocketReadyForWrite(fd))&&(gw.DoOutput()       < 0));
       if ((readError)||(writeError))
       {
          LogTime(MUSCLE_LOG_ERROR, "TCP connection was cut prematurely!\n");

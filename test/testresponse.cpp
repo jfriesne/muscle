@@ -41,7 +41,7 @@ int main(int argc, char ** argv)
                lastThrowTime = GetRunTime64();
             }
 
-            int fd = s.GetFileDescriptor();
+            const int fd = s.GetFileDescriptor();
             multiplexer.RegisterSocketForReadReady(fd);
             if (ioGateway.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
             if (multiplexer.WaitForEvents() < 0)
@@ -62,7 +62,7 @@ int main(int argc, char ** argv)
                {
                   if ((pingSent)&&(next()->what == PR_RESULT_PONG))
                   {
-                     uint64 result = GetRunTime64()-lastThrowTime;
+                     const uint64 result = GetRunTime64()-lastThrowTime;
                      min = muscleMin(min, result);
                      max = muscleMax(max, result);
                      total += result;

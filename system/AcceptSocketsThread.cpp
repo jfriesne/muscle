@@ -52,8 +52,8 @@ void AcceptSocketsThread :: InternalThreadEntry()
    bool keepGoing = true;
    while(keepGoing)
    {
-      int afd = _acceptSocket.GetFileDescriptor();
-      int nfd = _notifySocket.GetFileDescriptor();
+      const int afd = _acceptSocket.GetFileDescriptor();
+      const int nfd = _notifySocket.GetFileDescriptor();
 
       multiplexer.RegisterSocketForReadReady(afd);
       multiplexer.RegisterSocketForReadReady(nfd);

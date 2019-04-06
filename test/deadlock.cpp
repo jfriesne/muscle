@@ -20,7 +20,7 @@ public:
       const uint32 numIterations = 25;  // enough iterations that we deadlock sometimes, but not always
       for (uint32 i=0; i<numIterations; i++)
       {
-         bool reverseOrder = ((rand()%2) == 0);
+         const bool reverseOrder = ((rand()%2) == 0);
          Mutex * m1 = reverseOrder ? &_mutexB : &_mutexA;
          Mutex * m2 = reverseOrder ? &_mutexA : &_mutexB;
          if (m1->Lock() != B_NO_ERROR) printf("Error, couldn't lock first Mutex!  (this should never happen!)\n");

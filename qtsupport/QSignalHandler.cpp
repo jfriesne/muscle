@@ -29,7 +29,7 @@ void QSignalHandler :: SocketDataReady()
    while(1)
    {
       char buf[64];
-      int32 bytesReceived = ReceiveData(_mainThreadSocket, buf, sizeof(buf), false);
+      const int32 bytesReceived = ReceiveData(_mainThreadSocket, buf, sizeof(buf), false);
       if (bytesReceived <= 0) break;
       for (int32 i=0; i<bytesReceived; i++) emit SignalReceived(buf[i]);
    }
@@ -46,7 +46,7 @@ void QSignalHandler :: SignalHandlerFunc(int sigNum)
    {
       if (sigNum == nextSigNum)
       {
-         char c = (char) sigNum;
+         const char c = (char) sigNum;
          (void) SendData(_handlerFuncSocket, &c, 1, false);  // send the signal value to the main thread so it can handle it later
          break;
       }

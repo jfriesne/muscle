@@ -17,7 +17,7 @@ static status_t ReadIncomingData(const String & desc, DataIO & readIO, const Soc
    if (multiplexer.IsSocketReadyForRead(readIO.GetReadSelectSocket().GetFileDescriptor()))
    {
       uint8 buf[4096];
-      int32 ret = readIO.Read(buf, sizeof(buf));
+      const int32 ret = readIO.Read(buf, sizeof(buf));
       if (ret > 0) 
       {
          LogTime(MUSCLE_LOG_TRACE, "Read " INT32_FORMAT_SPEC " bytes from %s:\n", ret, desc());
@@ -38,7 +38,7 @@ static status_t WriteOutgoingData(const String & desc, DataIO & writeIO, const S
       while(outQ.HasItems())
       {
          ByteBufferRef & firstBuf = outQ.Head();
-         uint32 bufSize = firstBuf()->GetNumBytes();
+         const uint32 bufSize = firstBuf()->GetNumBytes();
          if (writeIdx >= bufSize) 
          {
             outQ.RemoveHead();
@@ -46,7 +46,7 @@ static status_t WriteOutgoingData(const String & desc, DataIO & writeIO, const S
          }
          else
          {
-            int32 ret = writeIO.Write(firstBuf()->GetBuffer()+writeIdx, firstBuf()->GetNumBytes()-writeIdx);
+            const int32 ret = writeIO.Write(firstBuf()->GetBuffer()+writeIdx, firstBuf()->GetNumBytes()-writeIdx);
             if (ret > 0)
             {
                writeIO.FlushOutput();
@@ -70,10 +70,10 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
 
    while(true)
    {
-      int aReadFD  = aIO.GetReadSelectSocket().GetFileDescriptor();
-      int bReadFD  = bIO.GetReadSelectSocket().GetFileDescriptor();
-      int aWriteFD = aIO.GetWriteSelectSocket().GetFileDescriptor();
-      int bWriteFD = bIO.GetWriteSelectSocket().GetFileDescriptor();
+      const int aReadFD  = aIO.GetReadSelectSocket().GetFileDescriptor();
+      const int bReadFD  = bIO.GetReadSelectSocket().GetFileDescriptor();
+      const int aWriteFD = aIO.GetWriteSelectSocket().GetFileDescriptor();
+      const int bWriteFD = bIO.GetWriteSelectSocket().GetFileDescriptor();
 
       multiplexer.RegisterSocketForReadReady(aReadFD);
       multiplexer.RegisterSocketForReadReady(bReadFD);
@@ -182,7 +182,7 @@ int main(int argc, char ** argv)
       udpIOs[i].SetRef(dio);
    }
 
-   status_t ret = DoSession(targets[0].ToString(), *udpIOs[0](), targets[1].ToString(), *udpIOs[1]());
+   const status_t ret = DoSession(targets[0].ToString(), *udpIOs[0](), targets[1].ToString(), *udpIOs[1]());
    LogTime(MUSCLE_LOG_INFO, "udpproxy exiting%s!\n", (ret==B_NO_ERROR)?"":" with an error");
    return 0;
 }

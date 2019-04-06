@@ -1415,7 +1415,7 @@ status_t PrintStackTrace(FILE * optFile, uint32 maxDepth)
 
 #if defined(MUSCLE_USE_BACKTRACE)
    void *array[MAX_STACK_TRACE_DEPTH];
-   size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
+   const size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
    fprintf(optFile, "--Stack trace follows (%i frames):\n", (int) size);
    backtrace_symbols_fd(array, (int)size, fileno(optFile));
    fprintf(optFile, "--End Stack trace\n");
@@ -1436,7 +1436,7 @@ status_t GetStackTrace(String & retStr, uint32 maxDepth)
 
 #if defined(MUSCLE_USE_BACKTRACE)
    void *array[MAX_STACK_TRACE_DEPTH];
-   size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
+   const size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
    char ** strings = backtrace_symbols(array, (int)size);
    if (strings)
    {
@@ -1555,10 +1555,10 @@ void DefaultFileLogger :: Log(const LogCallbackArgs & a)
       _logFile.FlushOutput();
       if ((_maxLogFileSize != MUSCLE_NO_LIMIT)&&(_inLogPreamble.IsInBatch() == false))  // wait until we're outside the preamble to avoid breaking up lines too much
       {
-         int64 curFileSize = _logFile.GetPosition();
+         const int64 curFileSize = _logFile.GetPosition();
          if ((curFileSize < 0)||(curFileSize >= (int64)_maxLogFileSize))
          {
-            uint32 tempStoreSize = _maxLogFileSize;
+            const uint32 tempStoreSize = _maxLogFileSize;
             _maxLogFileSize = MUSCLE_NO_LIMIT;  // otherwise we'd recurse indefinitely here!
             CloseLogFile();
             _maxLogFileSize = tempStoreSize;
@@ -1576,7 +1576,7 @@ void DefaultFileLogger :: Flush()
 uint32 DefaultFileLogger :: AddPreExistingLogFiles(const String & filePattern)
 {
    String dirPart, filePart;
-   int32 lastSlash = filePattern.LastIndexOf(GetFilePathSeparator());
+   const int32 lastSlash = filePattern.LastIndexOf(GetFilePathSeparator());
    if (lastSlash >= 0)
    {
       dirPart = filePattern.Substring(0, lastSlash);
@@ -1599,10 +1599,10 @@ uint32 DefaultFileLogger :: AddPreExistingLogFiles(const String & filePattern)
          const char * nextName;
          while((nextName = d.GetCurrentFileName()) != NULL)
          {
-            String fn = nextName;
+            const String fn = nextName;
             if (sm.Match(fn))
             {
-               String fullPath = dirPart+GetFilePathSeparator()+fn;
+               const String fullPath = dirPart+GetFilePathSeparator()+fn;
                FilePathInfo fpi(fullPath());
                if ((fpi.Exists())&&(fpi.IsRegularFile())) pathToTime.Put(fullPath, fpi.GetCreationTime());
             }
@@ -1643,7 +1643,7 @@ status_t DefaultFileLogger :: EnsureLogFileCreated(const LogCallbackArgs & a)
             _oldLogFileNames.RemoveHead();
          }
 
-         String headerString = GetLogFileHeaderString(a);
+         const String headerString = GetLogFileHeaderString(a);
          if (headerString.HasChars()) fprintf(_logFile.GetFile(), "%s\n", headerString());
       }
       else
@@ -1671,7 +1671,7 @@ void DefaultFileLogger :: CloseLogFile()
          FileDataIO inIO(muscleFopen(oldFileName(), "rb"));
          if (inIO.GetFile() != NULL)
          {
-            String gzName = oldFileName + ".gz";
+            const String gzName = oldFileName + ".gz";
             gzFile gzOut = gzopen(gzName(), "wb9"); // 9 for maximum compression
             if (gzOut != Z_NULL)
             {
@@ -1683,10 +1683,10 @@ void DefaultFileLogger :: CloseLogFile()
                {
                   while(1)
                   {
-                     int32 bytesRead = inIO.Read(buf, bufSize);
+                     const int32 bytesRead = inIO.Read(buf, bufSize);
                      if (bytesRead < 0) break;  // EOF
 
-                     int bytesWritten = gzwrite(gzOut, buf, bytesRead);
+                     const int bytesWritten = gzwrite(gzOut, buf, bytesRead);
                      if (bytesWritten <= 0)
                      {
                         ok = false;  // write error, oh dear
@@ -1737,15 +1737,15 @@ void LogLineCallback :: Log(const LogCallbackArgs & a)
 
    // Generate the new text
 #ifdef __MWERKS__
-   int bytesAttempted = vsprintf(_writeTo, a.GetText(), *a.GetArgList());  // BeOS/PPC doesn't know vsnprintf :^P
+   const int bytesAttempted = vsprintf(_writeTo, a.GetText(), *a.GetArgList());  // BeOS/PPC doesn't know vsnprintf :^P
 #elif __STDC_WANT_SECURE_LIB__
-   int bytesAttempted = _vsnprintf_s(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), _TRUNCATE, a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator
+   const int bytesAttempted = _vsnprintf_s(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), _TRUNCATE, a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator
 #elif WIN32
-   int bytesAttempted = _vsnprintf(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator
+   const int bytesAttempted = _vsnprintf(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator
 #else
-   int bytesAttempted = vsnprintf(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator
+   const int bytesAttempted = vsnprintf(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator
 #endif
-   bool wasTruncated = (bytesAttempted != (int)strlen(_writeTo));  // do not combine with above line!
+   const bool wasTruncated = (bytesAttempted != (int)strlen(_writeTo));  // do not combine with above line!
 
    // Log any newly completed lines
    char * logFrom  = _buf;
@@ -1779,7 +1779,7 @@ void LogLineCallback :: Log(const LogCallbackArgs & a)
    // And finally, move any remaining incomplete lines back to the beginning of the array, for next time
    if (logFrom > _buf)
    {
-      int slen = (int) strlen(logFrom);
+      const int slen = (int) strlen(logFrom);
       memmove(_buf, logFrom, slen+1);  // include NUL byte
       _writeTo = &_buf[slen];          // point to our just-moved NUL byte
    }
@@ -1883,7 +1883,7 @@ status_t SetOldLogFilesPattern(const String & pattern)
 {
    if (LockLog() == B_NO_ERROR)
    {
-      uint32 numAdded = _dfl.AddPreExistingLogFiles(pattern);
+      const uint32 numAdded = _dfl.AddPreExistingLogFiles(pattern);
       LogTime(MUSCLE_LOG_DEBUG, "Old Log Files pattern set to: [%s] (" UINT32_FORMAT_SPEC " files matched)\n", pattern(), numAdded);
       (void) UnlockLog();
       return B_NO_ERROR;
@@ -2018,7 +2018,7 @@ uint32 SourceCodeLocationKeyFromString(const String & ss)
       const char * p = strchr(_keyAlphabet, s[i]);
       if (p == NULL) return 0;  // invalid character!
 
-      int whichChar = (int) (p-_keyAlphabet);
+      const int whichChar = (int) (p-_keyAlphabet);
       ret += (whichChar*base);
       base *= NUM_CHARS_IN_KEY_ALPHABET;
    }
@@ -2072,11 +2072,11 @@ status_t _LogTime(const char * sourceFile, const char * sourceFunction, int sour
 status_t LogTime(int ll, const char * fmt, ...)
 #endif
 {
-   status_t lockRet = LockLog();
+   const status_t lockRet = LockLog();
    if (_inWarnOutOfMemory.GetCount() < 2)  // avoid potential infinite recursion (while still allowing the first Out-of-memory message to attempt to get into the log)
    {
       // First, log the preamble
-      time_t when = time(NULL);
+      const time_t when = time(NULL);
       char buf[128];
 
 #ifndef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
@@ -2135,7 +2135,7 @@ status_t LogStackTrace(int ll, uint32 maxDepth)
 
 #if defined(MUSCLE_USE_BACKTRACE)
    void *array[MAX_STACK_TRACE_DEPTH];
-   size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
+   const size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
    char ** strings = backtrace_symbols(array, (int)size);
    if (strings)
    {
@@ -2155,7 +2155,7 @@ status_t LogStackTrace(int ll, uint32 maxDepth)
 
 status_t Log(int ll, const char * fmt, ...)
 {
-   status_t lockRet = LockLog();
+   const status_t lockRet = LockLog();
    {
       // No way to get these, since #define Log() as a macro causes
       // nasty namespace collisions with other methods/functions named Log()
@@ -2163,7 +2163,7 @@ status_t Log(int ll, const char * fmt, ...)
       static const char * sourceFunction = "";
       static const int sourceLine        = -1;
 
-      time_t when = time(NULL);  // don't inline this, ya dummy
+      const time_t when = time(NULL);  // don't inline this, ya dummy
       DO_LOGGING_CALLBACK(_dfl);
       DO_LOGGING_CALLBACK(_dcl);
       if (lockRet == B_NO_ERROR) DO_LOGGING_CALLBACKS;
@@ -2188,6 +2188,7 @@ status_t ClearLogCallbacks()
    status_t ret = B_ERROR;
    if (LockLog() == B_NO_ERROR)
    {
+      ret = B_NO_ERROR;
       _logCallbacks.Clear();
       (void) UnlockLog();
    }
@@ -2217,11 +2218,11 @@ status_t GetHumanReadableTimeValues(uint64 timeUS, HumanReadableTimeValues & v, 
 
    if (timeUS == MUSCLE_TIME_NEVER) return B_ERROR;
 
-   int microsLeft = (int)(timeUS % MICROS_PER_SECOND);
+   const int microsLeft = (int)(timeUS % MICROS_PER_SECOND);
 
 #ifdef WIN32
    // Borland's localtime() function is buggy, so we'll use the Win32 API instead.
-   uint64 winTime = (timeUS*10) + _windowsDiffTime;  // Convert to (100ns units)
+   const uint64 winTime = (timeUS*10) + _windowsDiffTime;  // Convert to (100ns units)
 
    FILETIME fileTime;
    fileTime.dwHighDateTime = (DWORD) ((winTime>>32) & 0xFFFFFFFF);
@@ -2269,7 +2270,7 @@ static bool MUSCLE_TzSpecificLocalTimeToSystemTime(LPTIME_ZONE_INFORMATION tzi, 
    if (lib == NULL) return false;
 
    TzSpecificLocalTimeToSystemTimeProc tzProc = (TzSpecificLocalTimeToSystemTimeProc) GetProcAddress(lib, "TzSpecificLocalTimeToSystemTime");
-   bool ret = ((tzProc)&&(tzProc(tzi, st, st)));
+   const bool ret = ((tzProc)&&(tzProc(tzi, st, st)));
    FreeLibrary(lib);
    return ret;
 # else
@@ -2317,7 +2318,7 @@ status_t GetTimeStampFromHumanReadableTimeValues(const HumanReadableTimeValues &
    ltm.tm_wday = v.GetDayOfWeek();    /* days since Sunday [0-6] */
    ltm.tm_isdst = -1;  /* Let mktime() decide whether summer time is in effect */
 
-   time_t tm = ((uint64)((timeType == MUSCLE_TIMEZONE_UTC) ? mktime(&ltm) : timegm(&ltm)));
+   const time_t tm = ((uint64)((timeType == MUSCLE_TIMEZONE_UTC) ? mktime(&ltm) : timegm(&ltm)));
    if (tm == -1) return B_ERROR;
 
    retTimeStamp = SecondsToMicros(tm);
@@ -2357,10 +2358,13 @@ String HumanReadableTimeValues :: ExpandTokens(const String & origString) const
    (void) newString.Replace("%s", String("%1").Arg(GetSecond(),         "%02i"));
    (void) newString.Replace("%x", String("%1").Arg(GetMicrosecond(),    "%06i"));
 
-   uint32 r1 = rand();
-   uint32 r2 = rand();
-   char buf[64]; muscleSprintf(buf, UINT64_FORMAT_SPEC, (((uint64)r1)<<32)|((uint64)r2));
-   (void) newString.Replace("%r", buf);
+   while(newString.Contains("%r"))
+   {
+      const uint32 r1 = rand();
+      const uint32 r2 = rand();
+      char buf[64]; muscleSprintf(buf, UINT64_FORMAT_SPEC, (((uint64)r1)<<32)|((uint64)r2));
+      if (newString.Replace("%r", buf) <= 0) break;
+   }
 
    return newString;
 }
@@ -2515,7 +2519,7 @@ uint64 ParseHumanReadableTimeIntervalString(const String & s)
    while((*letters)&&(isalpha(*letters) == false)) letters++;
    if (*letters == '\0') letters = "s";  // default to seconds
 
-   uint64 multiplier = GetTimeUnitMultiplier(letters, _timeUnits[TIME_UNIT_SECOND]);   // default units is seconds
+   const uint64 multiplier = GetTimeUnitMultiplier(letters, _timeUnits[TIME_UNIT_SECOND]);   // default units is seconds
 
    const char * afterLetters = letters;
    while((*afterLetters)&&((*afterLetters==',')||(isalpha(*afterLetters)||(isspace(*afterLetters))))) afterLetters++;
@@ -2530,7 +2534,7 @@ static const int64 _largestSigned64BitValue = 0x7FFFFFFFFFFFFFFFLL;  // closest 
 int64 ParseHumanReadableSignedTimeIntervalString(const String & s)
 {
    const bool isNegative = s.StartsWith('-');
-   uint64 unsignedVal = ParseHumanReadableTimeIntervalString(isNegative ? s.Substring(1) : s);
+   const uint64 unsignedVal = ParseHumanReadableTimeIntervalString(isNegative ? s.Substring(1) : s);
    return (unsignedVal == MUSCLE_TIME_NEVER) ? _largestSigned64BitValue : (isNegative ? -((int64)unsignedVal) : ((int64)unsignedVal));
 }
 

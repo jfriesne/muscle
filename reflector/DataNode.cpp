@@ -320,7 +320,7 @@ status_t DataNode :: GetNodePath(String & retPath, uint32 startDepth) const
       uint32 d = _depth;
       while((d >= startDepth)&&(node->_parent))
       {
-         int len = node->_nodeName.Length();
+         const int len = node->_nodeName.Length();
          writeAt -= len;
          memcpy(writeAt, node->_nodeName(), len);
          if ((startDepth == 0)||(d > startDepth)) *(--writeAt) = '/';
@@ -444,7 +444,7 @@ DataNode * DataNode :: FindFirstMatchingNode(const char * path, uint32 maxDepth)
          if ((_children == NULL)||(maxDepth == 0)) return NULL;
 
          const char * nextSlash = strchr(path, '/');
-         String childKey(path, (nextSlash)?((uint32)(nextSlash-path)):MUSCLE_NO_LIMIT);
+         const String childKey(path, (nextSlash)?((uint32)(nextSlash-path)):MUSCLE_NO_LIMIT);
          const char * recurseArg = nextSlash?(nextSlash+1):"";
 
          if (CanWildcardStringMatchMultipleValues(childKey))

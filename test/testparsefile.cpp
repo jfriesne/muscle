@@ -31,7 +31,7 @@ int main(int argc, char ** argv)
                   msg.PrintToStream();
                   printf("\n");
 
-                  String s = UnparseFile(msg);
+                  const String s = UnparseFile(msg);
                   printf(" UnparseFile(msg) output is below: -------------\n[%s]", s());
                }
                else LogTime(MUSCLE_LOG_ERROR, "Error parsing file [%s]\n", argv[i]);
@@ -46,11 +46,11 @@ int main(int argc, char ** argv)
             if (fpIn)
             {
                FileDataIO fdio(fpIn);
-               int64 fileLen = fdio.GetLength();
+               const int64 fileLen = fdio.GetLength();
                ByteBuffer bb;
                if ((fileLen >= 0)&&(bb.SetNumBytes((uint32)fileLen, false) == B_NO_ERROR)&&(fdio.ReadFully(bb.GetBuffer(), fileLen) == fileLen))
                {
-                  String s((const char *) bb.GetBuffer(), bb.GetNumBytes());
+                  const String s((const char *) bb.GetBuffer(), bb.GetNumBytes());
                   Message msg;
                   if (ParseFile(s, msg) == B_NO_ERROR)
                   {
@@ -58,7 +58,7 @@ int main(int argc, char ** argv)
                      msg.PrintToStream();
                      printf("\n");
 
-                     String s = UnparseFile(msg);
+                     const String s = UnparseFile(msg);
                      printf(" UnparseFile(msg) output is below: -------------\n[%s]", s());
                   }
                   else LogTime(MUSCLE_LOG_ERROR, "Error parsing file [%s]\n", argv[i]);

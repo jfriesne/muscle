@@ -38,7 +38,7 @@ static void Fail(const char * name, const void * orig, const void * xChange, con
    ExitWithoutCleanup(10);
 }
 
-static void CheckSwap(const char * title, void * oldVal, void * newVal, int numBytes, int index)
+static void CheckSwap(const char * title, const void * oldVal, const void * newVal, int numBytes, int index)
 {
    const uint8 * old8 = (const uint8 *) oldVal;
    const uint8 * new8 = (const uint8 *) newVal;
@@ -98,37 +98,37 @@ int main(void)
       for (uint32 i=0; i<ARRAYLEN; i++)
       {
          {
-            int16 o16 = origArray16[i];
-            int16 x16 = B_SWAP_INT16(o16); CheckSwap("A. B_SWAP i16", &o16, &x16, sizeof(o16), i);
-            int16 n16 = B_SWAP_INT16(x16); CheckSwap("B. B_SWAP i16", &x16, &n16, sizeof(x16), i);
+            const int16 o16 = origArray16[i];
+            const int16 x16 = B_SWAP_INT16(o16); CheckSwap("A. B_SWAP i16", &o16, &x16, sizeof(o16), i);
+            const int16 n16 = B_SWAP_INT16(x16); CheckSwap("B. B_SWAP i16", &x16, &n16, sizeof(x16), i);
             if ((muscleSwapBytes(o16) != x16) || (n16 != o16)) {Fail("C. B_SWAP i16", &o16, &x16, &n16, sizeof(int16), i);}
          }
 
          {
-            int32 o32 = origArray32[i];
-            int32 x32 = B_SWAP_INT32(o32); CheckSwap("A. B_SWAP i32", &o32, &x32, sizeof(o32), i);
-            int32 n32 = B_SWAP_INT32(x32); CheckSwap("B. B_SWAP i32", &x32, &n32, sizeof(x32), i);
+            const int32 o32 = origArray32[i];
+            const int32 x32 = B_SWAP_INT32(o32); CheckSwap("A. B_SWAP i32", &o32, &x32, sizeof(o32), i);
+            const int32 n32 = B_SWAP_INT32(x32); CheckSwap("B. B_SWAP i32", &x32, &n32, sizeof(x32), i);
             if ((muscleSwapBytes(o32) != x32) || (n32 != o32)) {Fail("C. B_SWAP i32", &o32, &x32, &n32, sizeof(int32), i);}
          }
 
          {
-            int64 o64 = origArray64[i];
-            int64 x64 = B_SWAP_INT64(o64); CheckSwap("A. B_SWAP i64", &o64, &x64, sizeof(o64), i);
-            int64 n64 = B_SWAP_INT64(x64); CheckSwap("B. B_SWAP i64", &x64, &n64, sizeof(x64), i);
+            const int64 o64 = origArray64[i];
+            const int64 x64 = B_SWAP_INT64(o64); CheckSwap("A. B_SWAP i64", &o64, &x64, sizeof(o64), i);
+            const int64 n64 = B_SWAP_INT64(x64); CheckSwap("B. B_SWAP i64", &x64, &n64, sizeof(x64), i);
             if ((muscleSwapBytes(o64) != x64) || (n64 != o64)) {Fail("C. B_SWAP i64", &o64, &x64, &n64, sizeof(int64), i);}
          }
 
          {
-            float ofl  = origArrayFloat[i];
-            uint32 xfl = B_SWAP_INT32(B_REINTERPRET_FLOAT_AS_INT32(ofl)); CheckSwap("A. B_SWAP float", &ofl, &xfl, sizeof(ofl), i);
-            float nfl  = B_REINTERPRET_INT32_AS_FLOAT(B_SWAP_INT32(xfl)); CheckSwap("B. B_SWAP float", &xfl, &nfl, sizeof(xfl), i);
+            const float ofl  = origArrayFloat[i];
+            const uint32 xfl = B_SWAP_INT32(B_REINTERPRET_FLOAT_AS_INT32(ofl)); CheckSwap("A. B_SWAP float", &ofl, &xfl, sizeof(ofl), i);
+            const float nfl  = B_REINTERPRET_INT32_AS_FLOAT(B_SWAP_INT32(xfl)); CheckSwap("B. B_SWAP float", &xfl, &nfl, sizeof(xfl), i);
             if ((muscleSwapBytes(B_REINTERPRET_FLOAT_AS_INT32(ofl)) != xfl) || (nfl != ofl)) {Fail("C. B_SWAP float", &ofl, &xfl, &nfl, sizeof(float), i);}
          }
 
          {
-            double odb = origArrayDouble[i];
-            uint64 xdb = B_SWAP_INT64(B_REINTERPRET_DOUBLE_AS_INT64(odb)); CheckSwap("A. B_SWAP double", &odb, &xdb, sizeof(odb), i);
-            double ndb = B_REINTERPRET_INT64_AS_DOUBLE(B_SWAP_INT64(xdb)); CheckSwap("B. B_SWAP double", &xdb, &ndb, sizeof(xdb), i);
+            const double odb = origArrayDouble[i];
+            const uint64 xdb = B_SWAP_INT64(B_REINTERPRET_DOUBLE_AS_INT64(odb)); CheckSwap("A. B_SWAP double", &odb, &xdb, sizeof(odb), i);
+            const double ndb = B_REINTERPRET_INT64_AS_DOUBLE(B_SWAP_INT64(xdb)); CheckSwap("B. B_SWAP double", &xdb, &ndb, sizeof(xdb), i);
             if ((muscleSwapBytes(B_REINTERPRET_DOUBLE_AS_INT64(odb)) != xdb) || (ndb != odb)) {Fail("C. B_SWAP double", &odb, &xdb, &ndb, sizeof(double), i);}
          }
       }
@@ -139,37 +139,37 @@ int main(void)
       for (uint32 i=0; i<ARRAYLEN; i++)
       {
          {
-            int16 o16 = origArray16[i];
-            int16 x16 = B_HOST_TO_LENDIAN_INT16(o16);
-            int16 n16 = B_LENDIAN_TO_HOST_INT16(x16);
+            const int16 o16 = origArray16[i];
+            const int16 x16 = B_HOST_TO_LENDIAN_INT16(o16);
+            const int16 n16 = B_LENDIAN_TO_HOST_INT16(x16);
             if (n16 != o16) {Fail("D. HOST_TO_LENDIAN i16", &o16, &x16, &n16, sizeof(int16), i);}
          }
 
          {
-            int32 o32 = origArray32[i];
-            int32 x32 = B_HOST_TO_LENDIAN_INT32(o32);
-            int32 n32 = B_LENDIAN_TO_HOST_INT32(x32);
+            const int32 o32 = origArray32[i];
+            const int32 x32 = B_HOST_TO_LENDIAN_INT32(o32);
+            const int32 n32 = B_LENDIAN_TO_HOST_INT32(x32);
             if (n32 != o32) {Fail("D. HOST_TO_LENDIAN i32", &o32, &x32, &n32, sizeof(int32), i);}
          }
 
          {
-            int64 o64 = origArray64[i];
-            int64 x64 = B_HOST_TO_LENDIAN_INT64(o64);
-            int64 n64 = B_LENDIAN_TO_HOST_INT64(x64);
+            const int64 o64 = origArray64[i];
+            const int64 x64 = B_HOST_TO_LENDIAN_INT64(o64);
+            const int64 n64 = B_LENDIAN_TO_HOST_INT64(x64);
             if (n64 != o64) {Fail("D. HOST_TO_LENDIAN i64", &o64, &x64, &n64, sizeof(int64), i);}
          }
 
          {
-            float ofl  = origArrayFloat[i];
-            uint32 xfl = B_HOST_TO_LENDIAN_IFLOAT(ofl);
-            float nfl  = B_LENDIAN_TO_HOST_IFLOAT(xfl);
+            const float ofl  = origArrayFloat[i];
+            const uint32 xfl = B_HOST_TO_LENDIAN_IFLOAT(ofl);
+            const float nfl  = B_LENDIAN_TO_HOST_IFLOAT(xfl);
             if (nfl != ofl) {Fail("D. HOST_TO_LENDIAN float", &ofl, &xfl, &nfl, sizeof(float), i);}
          }
 
          {
-            double odb = origArrayDouble[i];
-            uint64 xdb = B_HOST_TO_LENDIAN_IDOUBLE(odb);
-            double ndb = B_LENDIAN_TO_HOST_IDOUBLE(xdb);
+            const double odb = origArrayDouble[i];
+            const uint64 xdb = B_HOST_TO_LENDIAN_IDOUBLE(odb);
+            const double ndb = B_LENDIAN_TO_HOST_IDOUBLE(xdb);
             if (ndb != odb) {Fail("D. HOST_TO_LENDIAN double", &odb, &xdb, &ndb, sizeof(double), i);}
          }
       }
@@ -180,37 +180,37 @@ int main(void)
       for (uint32 i=0; i<ARRAYLEN; i++)
       {
          {
-            int16 o16 = origArray16[i];
-            int16 x16 = B_LENDIAN_TO_HOST_INT16(o16);
-            int16 n16 = B_HOST_TO_LENDIAN_INT16(x16);
+            const int16 o16 = origArray16[i];
+            const int16 x16 = B_LENDIAN_TO_HOST_INT16(o16);
+            const int16 n16 = B_HOST_TO_LENDIAN_INT16(x16);
             if (n16 != o16) {Fail("E. LENDIAN_TO_HOST i16", &o16, &x16, &x16, sizeof(int16), i);}
          }
 
          {
-            int32 o32 = origArray32[i];
-            int32 x32 = B_LENDIAN_TO_HOST_INT32(o32);
-            int32 n32 = B_HOST_TO_LENDIAN_INT32(x32);
+            const int32 o32 = origArray32[i];
+            const int32 x32 = B_LENDIAN_TO_HOST_INT32(o32);
+            const int32 n32 = B_HOST_TO_LENDIAN_INT32(x32);
             if (n32 != o32) {Fail("E. LENDIAN_TO_HOST i32", &o32, &x32, &n32, sizeof(int32), i);}
          }
 
          {
-            int64 o64 = origArray64[i];
-            int64 x64 = B_LENDIAN_TO_HOST_INT64(o64);
-            int64 n64 = B_HOST_TO_LENDIAN_INT64(x64);
+            const int64 o64 = origArray64[i];
+            const int64 x64 = B_LENDIAN_TO_HOST_INT64(o64);
+            const int64 n64 = B_HOST_TO_LENDIAN_INT64(x64);
             if (n64 != o64) {Fail("E. LENDIAN_TO_HOST i64", &o64, &x64, &n64, sizeof(int64), i);}
          }
 
          {
-            uint32 ofl = B_REINTERPRET_FLOAT_AS_INT32(origArrayFloat[i]);
-            float  xfl = B_LENDIAN_TO_HOST_IFLOAT(ofl);
-            uint32 nfl = B_HOST_TO_LENDIAN_IFLOAT(xfl);
+            const uint32 ofl = B_REINTERPRET_FLOAT_AS_INT32(origArrayFloat[i]);
+            const float  xfl = B_LENDIAN_TO_HOST_IFLOAT(ofl);
+            const uint32 nfl = B_HOST_TO_LENDIAN_IFLOAT(xfl);
             if (nfl != ofl) {Fail("E. LENDIAN_TO_HOST float", &ofl, &xfl, &nfl, sizeof(float), i);}
          }
 
          {
-            uint64 odb = B_REINTERPRET_DOUBLE_AS_INT64(origArrayDouble[i]);
-            double xdb = B_LENDIAN_TO_HOST_IDOUBLE(odb);
-            uint64 ndb = B_HOST_TO_LENDIAN_IDOUBLE(xdb);
+            const uint64 odb = B_REINTERPRET_DOUBLE_AS_INT64(origArrayDouble[i]);
+            const double xdb = B_LENDIAN_TO_HOST_IDOUBLE(odb);
+            const uint64 ndb = B_HOST_TO_LENDIAN_IDOUBLE(xdb);
             if (ndb != odb) {Fail("E. LENDIAN_TO_HOST double", &odb, &xdb, &ndb, sizeof(double), i);}
          }
       }
@@ -221,37 +221,37 @@ int main(void)
       for (uint32 i=0; i<ARRAYLEN; i++)
       {
          {
-            int16 o16 = origArray16[i];
-            int16 x16 = B_HOST_TO_BENDIAN_INT16(o16);
-            int16 n16 = B_BENDIAN_TO_HOST_INT16(x16);
+            const int16 o16 = origArray16[i];
+            const int16 x16 = B_HOST_TO_BENDIAN_INT16(o16);
+            const int16 n16 = B_BENDIAN_TO_HOST_INT16(x16);
             if (n16 != o16) {Fail("F. HOST_TO_BENDIAN i16", &o16, &x16, &n16, sizeof(int16), i);}
          }
 
          {
-            int32 o32 = origArray32[i];
-            int32 x32 = B_HOST_TO_BENDIAN_INT32(o32);
-            int32 n32 = B_BENDIAN_TO_HOST_INT32(x32);
+            const int32 o32 = origArray32[i];
+            const int32 x32 = B_HOST_TO_BENDIAN_INT32(o32);
+            const int32 n32 = B_BENDIAN_TO_HOST_INT32(x32);
             if (n32 != o32) {Fail("F. HOST_TO_BENDIAN i32", &o32, &x32, &n32, sizeof(int32), i);}
          }
 
          {
-            int64 o64 = origArray64[i];
-            int64 x64 = B_HOST_TO_BENDIAN_INT64(o64);
-            int64 n64 = B_BENDIAN_TO_HOST_INT64(x64);
+            const int64 o64 = origArray64[i];
+            const int64 x64 = B_HOST_TO_BENDIAN_INT64(o64);
+            const int64 n64 = B_BENDIAN_TO_HOST_INT64(x64);
             if (n64 != o64) {Fail("F. HOST_TO_BENDIAN i64", &o64, &x64, &n64, sizeof(int64), i);}
          }
 
          {
-            float ofl  = origArrayFloat[i];
-            uint32 xfl = B_HOST_TO_BENDIAN_IFLOAT(ofl);
-            float nfl  = B_BENDIAN_TO_HOST_IFLOAT(xfl);
+            const float ofl  = origArrayFloat[i];
+            const uint32 xfl = B_HOST_TO_BENDIAN_IFLOAT(ofl);
+            const float nfl  = B_BENDIAN_TO_HOST_IFLOAT(xfl);
             if (nfl != ofl) {Fail("F. HOST_TO_BENDIAN float", &ofl, &xfl, &nfl, sizeof(float), i);}
          }
 
          {
-            double odb = origArrayDouble[i];
-            uint64 xdb = B_HOST_TO_BENDIAN_IDOUBLE(odb);
-            double ndb = B_BENDIAN_TO_HOST_IDOUBLE(xdb);
+            const double odb = origArrayDouble[i];
+            const uint64 xdb = B_HOST_TO_BENDIAN_IDOUBLE(odb);
+            const double ndb = B_BENDIAN_TO_HOST_IDOUBLE(xdb);
             if (ndb != odb) {Fail("F. HOST_TO_BENDIAN double", &odb, &xdb, &ndb, sizeof(double), i);}
          }
       }
@@ -262,37 +262,37 @@ int main(void)
       for (uint32 i=0; i<ARRAYLEN; i++)
       {
          {
-            int16 o16 = origArray16[i];
-            int16 x16 = B_BENDIAN_TO_HOST_INT16(o16);
-            int16 n16 = B_HOST_TO_BENDIAN_INT16(x16);
+            const int16 o16 = origArray16[i];
+            const int16 x16 = B_BENDIAN_TO_HOST_INT16(o16);
+            const int16 n16 = B_HOST_TO_BENDIAN_INT16(x16);
             if (n16 != o16) {Fail("G. BENDIAN_TO_HOST i16", &o16, &x16, &n16, sizeof(int16), i);}
          }
 
          {
-            int32 o32 = origArray32[i];
-            int32 x32 = B_BENDIAN_TO_HOST_INT32(o32);
-            int32 n32 = B_HOST_TO_BENDIAN_INT32(x32);
+            const int32 o32 = origArray32[i];
+            const int32 x32 = B_BENDIAN_TO_HOST_INT32(o32);
+            const int32 n32 = B_HOST_TO_BENDIAN_INT32(x32);
             if (n32 != o32) {Fail("G. BENDIAN_TO_HOST i32", &o32, &x32, &n32, sizeof(int32), i);}
          }
 
          {
-            int64 o64 = origArray64[i];
-            int64 x64 = B_BENDIAN_TO_HOST_INT64(o64);
-            int64 n64 = B_HOST_TO_BENDIAN_INT64(x64);
+            const int64 o64 = origArray64[i];
+            const int64 x64 = B_BENDIAN_TO_HOST_INT64(o64);
+            const int64 n64 = B_HOST_TO_BENDIAN_INT64(x64);
             if (n64 != o64) {Fail("G. BENDIAN_TO_HOST i64", &o64, &x64, &n64, sizeof(int64), i);}
          }
 
          {
-            uint32 ofl = B_REINTERPRET_FLOAT_AS_INT32(origArrayFloat[i]);
-            float xfl  = B_BENDIAN_TO_HOST_IFLOAT(ofl);
-            uint32 nfl = B_HOST_TO_BENDIAN_IFLOAT(xfl);
+            const uint32 ofl = B_REINTERPRET_FLOAT_AS_INT32(origArrayFloat[i]);
+            const float xfl  = B_BENDIAN_TO_HOST_IFLOAT(ofl);
+            const uint32 nfl = B_HOST_TO_BENDIAN_IFLOAT(xfl);
             if (nfl != ofl) {Fail("G. BENDIAN_TO_HOST float", &ofl, &xfl, &nfl, sizeof(float), i);}
          }
 
          {
-            uint64 odb = B_REINTERPRET_DOUBLE_AS_INT64(origArrayDouble[i]);
-            double xdb = B_BENDIAN_TO_HOST_IDOUBLE(odb);
-            uint64 ndb = B_HOST_TO_BENDIAN_IDOUBLE(xdb);
+            const uint64 odb = B_REINTERPRET_DOUBLE_AS_INT64(origArrayDouble[i]);
+            const double xdb = B_BENDIAN_TO_HOST_IDOUBLE(odb);
+            const uint64 ndb = B_HOST_TO_BENDIAN_IDOUBLE(xdb);
             if (ndb != odb) {Fail("G. BENDIAN_TO_HOST double", &odb, &xdb, &ndb, sizeof(double), i);}
          }
       }
@@ -309,7 +309,7 @@ int main(void)
    {
       {for (uint32 i=0; i<ARRAYLEN; i++) bigArray16[i] = (int16)i;}
 
-      uint64 beginTime = GetRunTime64();
+      const uint64 beginTime = GetRunTime64();
       {
          for (uint32 i=0; i<NUM_ITERATIONS; i++)
          {
@@ -323,7 +323,7 @@ int main(void)
    {
       {for (uint32 i=0; i<ARRAYLEN; i++) bigArray32[i] = i;}
 
-      uint64 beginTime = GetRunTime64();
+      const uint64 beginTime = GetRunTime64();
       {
          for (uint32 i=0; i<NUM_ITERATIONS; i++)
          {
@@ -337,7 +337,7 @@ int main(void)
    {
       {for (uint32 i=0; i<ARRAYLEN; i++) bigArray64[i] = i;}
 
-      uint64 beginTime = GetRunTime64();
+      const uint64 beginTime = GetRunTime64();
       {
          for (uint32 i=0; i<NUM_ITERATIONS; i++)
          {
@@ -351,7 +351,7 @@ int main(void)
    {
       {for (uint32 i=0; i<ARRAYLEN; i++) bigArrayFloat[i] = (float)i;}
 
-      uint64 beginTime = GetRunTime64();
+      const uint64 beginTime = GetRunTime64();
       {
          for (uint32 i=0; i<NUM_ITERATIONS; i++)
          {
@@ -365,7 +365,7 @@ int main(void)
    {
       {for (uint32 i=0; i<ARRAYLEN; i++) bigArrayDouble[i] = (double)i;}
 
-      uint64 beginTime = GetRunTime64();
+      const uint64 beginTime = GetRunTime64();
       {
          for (uint32 i=0; i<NUM_ITERATIONS; i++)
          {

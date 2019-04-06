@@ -20,7 +20,7 @@ public:
        if (this != Thread::GetCurrentThread()) printf("TestThread:  Error, GetCurrentThread() should return %p, actually returned %p\n", this, Thread::GetCurrentThread());
        if (IsCallerInternalThread() == false) printf("TestThread:  Error, IsCallerInternalThread() returned false!\n");
 
-       bool hasValue = (_tls.GetThreadLocalObject() != NULL);
+       const bool hasValue = (_tls.GetThreadLocalObject() != NULL);
        int * tls = _tls.GetOrCreateThreadLocalObject();
        if (tls)
        {

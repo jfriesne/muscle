@@ -187,7 +187,7 @@ int32 StdinDataIO :: Read(void * buffer, uint32 size)
 #else
    // Turn off stdin's blocking I/O mode only during the Read() call.
    if (_stdinBlocking == false) (void) _fdIO.SetBlockingIOEnabled(false);
-   int32 ret = _fdIO.Read(buffer, size);
+   const int32 ret = _fdIO.Read(buffer, size);
    if (_stdinBlocking == false) (void) _fdIO.SetBlockingIOEnabled(true);
    return ret;
 #endif

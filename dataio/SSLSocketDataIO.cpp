@@ -149,7 +149,7 @@ int32 SSLSocketDataIO :: Read(void *buffer, uint32 size)
    else if (bytes == 0) return -1;  // connection was terminated
    else
    {
-      int err = SSL_get_error(CAST_SSL, bytes);
+      const int err = SSL_get_error(CAST_SSL, bytes);
       if (err == SSL_ERROR_WANT_WRITE)
       {
          // We have to wait until our socket is writeable, and then repeat our SSL_read() call.
@@ -182,7 +182,7 @@ int32 SSLSocketDataIO :: Write(const void *buffer, uint32 size)
    else if (bytes == 0) return -1;  // connection was terminated
    else
    {
-      int err = SSL_get_error(CAST_SSL, bytes);
+      const int err = SSL_get_error(CAST_SSL, bytes);
       if (err == SSL_ERROR_WANT_READ)
       {
          // We have to wait until our socket is readable, and then repeat our SSL_write() call.

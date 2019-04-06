@@ -157,7 +157,7 @@ status_t WriteZipFile(DataIO & writeTo, const Message & msg, int compressionLeve
          }
       }
       
-      status_t ret = WriteZipFileAux(zf, "", msg, compressionLevel, fi);
+      const status_t ret = WriteZipFileAux(zf, "", msg, compressionLevel, fi);
       zipClose(zf, NULL);
       return ret; 
    }
@@ -174,7 +174,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
       // Add the new entry to the appropriate spot in the tree (demand-allocate sub-Messages as necessary)
       {
          const char * nulByte = strchr(nameBuf, '\0');
-         bool isFolder = ((nulByte > nameBuf)&&(*(nulByte-1) == '/'));
+         const bool isFolder = ((nulByte > nameBuf)&&(*(nulByte-1) == '/'));
          Message * m = &msg;
          StringTokenizer tok(true, nameBuf, "/");
          const char * nextTok;

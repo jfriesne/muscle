@@ -17,7 +17,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
-         bool b = ((i%2) != 0);
+         const bool b = ((i%2) != 0);
          if (UMAddBool(um, "testBools", b?UTrue:UFalse) != CB_NO_ERROR) printf("UMAddBool(%i) failed!\n", b);
          m.AddBool("testBools", b);
       }
@@ -53,7 +53,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
-         float v = i/10.0f;
+         const float v = i/10.0f;
          if (UMAddFloat(um, "testFloats", v) != CB_NO_ERROR) printf("UMAddFloat(%f) failed!\n", v);
          m.AddFloat("testFloats", v);
       }
@@ -61,7 +61,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
-         double v = i/100.0f;
+         const double v = i/100.0f;
          if (UMAddDouble(um, "testDoubles", v) != CB_NO_ERROR) printf("UMAddDouble(%f) failed!\n", v);
          m.AddDouble("testDoubles", v);
       }
@@ -175,12 +175,12 @@ int main(int, char **)
 
    printf("\n---------------------------------UMsg:\n");
    const uint8 * umPtr = UMGetFlattenedBuffer(&um);
-   uint32 umFlatSize = UMGetFlattenedSize(&um);
+   const uint32 umFlatSize = UMGetFlattenedSize(&um);
    PrintHexBytes(umPtr, umFlatSize);
 
    ByteBufferRef bufRef = GetByteBufferFromPool(m.FlattenedSize());
    uint8 * mPtr = bufRef()->GetBuffer();
-   uint32 mFlatSize = bufRef()->GetNumBytes();
+   const uint32 mFlatSize = bufRef()->GetNumBytes();
    m.Flatten(mPtr);
    printf("\n---------------------------------Msg:\n");
    PrintHexBytes(mPtr, mFlatSize);

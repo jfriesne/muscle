@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
    char text[1000] = "";
    while(s())
    {
-      int fd = s.GetFileDescriptor();
+      const int fd = s.GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(fd);
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
       multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
@@ -57,10 +57,10 @@ int main(int argc, char ** argv)
             text[0] = '\0';
          }
    
-         bool reading = multiplexer.IsSocketReadyForRead(fd);
-         bool writing = multiplexer.IsSocketReadyForWrite(fd);
-         bool writeError = ((writing)&&(gw.DoOutput() < 0));
-         bool readError  = ((reading)&&(gw.DoInput(inQueue) < 0));
+         const bool reading = multiplexer.IsSocketReadyForRead(fd);
+         const bool writing = multiplexer.IsSocketReadyForWrite(fd);
+         const bool writeError = ((writing)&&(gw.DoOutput() < 0));
+         const bool readError  = ((reading)&&(gw.DoInput(inQueue) < 0));
          if ((readError)||(writeError))
          {
             printf("Connection closed, exiting.\n");

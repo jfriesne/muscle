@@ -6,7 +6,7 @@ int32 MultiDataIO :: Read(void * buffer, uint32 size)
 {
    if (HasChildren())
    {
-      int32 ret = GetFirstChild()->Read(buffer, size);
+      const int32 ret = GetFirstChild()->Read(buffer, size);
       if (ret < 0) 
       {
          if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1))
@@ -28,7 +28,7 @@ int32 MultiDataIO :: Write(const void * buffer, uint32 size)
    uint32 minWrittenBytes = MUSCLE_NO_LIMIT;
    for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--)
    {
-      int32 childRet = _childIOs[i]()->Write(buffer, muscleMin(size, minWrittenBytes));
+      const int32 childRet = _childIOs[i]()->Write(buffer, muscleMin(size, minWrittenBytes));
       if (childRet < 0) 
       {
          if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1)) (void) _childIOs.RemoveItemAt(i);

@@ -575,7 +575,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
          case PR_COMMAND_SETPARAMETERS:
          {
             bool updateDefaultMessageRoute = false;
-            bool subscribeQuietly = msg.HasName(PR_NAME_SUBSCRIBE_QUIETLY);
+            const bool subscribeQuietly = msg.HasName(PR_NAME_SUBSCRIBE_QUIETLY);
             Message getMsg(PR_COMMAND_GETDATA);
             for (MessageFieldNameIterator it = msg.GetFieldNameIterator(); it.HasData(); it++)
             {
@@ -587,7 +587,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                   MessageRef filterMsgRef;
                   if (msg.FindMessage(fn, filterMsgRef) == B_NO_ERROR) filter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*filterMsgRef());
                   
-                  String path = fn.Substring(10);
+                  const String path = fn.Substring(10);
                   String fixPath(path);
                   _subscriptions.AdjustStringPrefix(fixPath, DEFAULT_PATH_PREFIX);
                   const PathMatcherEntry * e = _subscriptions.GetEntries().Get(fixPath);
@@ -757,7 +757,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
 
          case PR_COMMAND_SETDATA:
          {
-            bool quiet = msg.HasName(PR_NAME_SET_QUIETLY);
+            const bool quiet = msg.HasName(PR_NAME_SET_QUIETLY);
             for (MessageFieldNameIterator it = msg.GetFieldNameIterator(B_MESSAGE_TYPE); it.HasData(); it++)
             {
                MessageRef dataMsgRef;
@@ -990,7 +990,7 @@ status_t StorageReflectSession :: FindMatchingNodes(const String & nodePath, con
 {
    status_t ret = B_NO_ERROR;
 
-   bool isGlobal = nodePath.StartsWith('/');
+   const bool isGlobal = nodePath.StartsWith('/');
    NodePathMatcher matcher;
    if (matcher.PutPathString(isGlobal?nodePath.Substring(1):nodePath, filter) == B_NO_ERROR)
    {
@@ -1258,7 +1258,7 @@ GetDataCallback(DataNode & node, void * userData)
    const Queue<DataNodeRef> * index = node.GetIndex();
    if (index)
    {
-      uint32 indexLen = index->GetNumItems();
+      const uint32 indexLen = index->GetNumItems();
       if (indexLen > 0)
       {
          MessageRef & indexUpdateMsg = messageArray[1];
@@ -1266,7 +1266,7 @@ GetDataCallback(DataNode & node, void * userData)
          String np2;
          if ((indexUpdateMsg())&&(node.GetNodePath(np2) == B_NO_ERROR))
          {
-            char clearStr[] = {INDEX_OP_CLEARED, '\0'};
+            const char clearStr[] = {INDEX_OP_CLEARED, '\0'};
             (void) indexUpdateMsg()->AddString(np2, clearStr);
             for (uint32 i=0; i<indexLen; i++) 
             {
@@ -1379,7 +1379,7 @@ PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry &
    DataNode * travNode = &node;
    for (int j=nextSubscription->GetStringMatchers().GetNumItems()-1; j>=rootDepth; j--,travNode=travNode->GetParent())
    {
-      StringMatcher * nextMatcher = nextSubscription->GetStringMatchers().GetItemAt(j)->GetItemPointer();
+      const StringMatcher * nextMatcher = nextSubscription->GetStringMatchers().GetItemAt(j)->GetItemPointer();
       if ((nextMatcher)&&(nextMatcher->Match(travNode->GetNodeName()()) == false)) return false;
    }
    return entry.FilterMatches(optData, &node);
@@ -1508,7 +1508,7 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optK
          const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
          if (nextQueue)
          {
-            int numClausesInParser = nextQueue->GetStringMatchers().GetNumItems();
+            const int numClausesInParser = nextQueue->GetStringMatchers().GetNumItems();
             if (numClausesInParser > depth-data.GetRootDepth())
             {
                const StringMatcher * nextMatcher = (entryIdx==optKnownMatchingEntryIdx) ? NULL : nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
@@ -1562,7 +1562,7 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optK
                      if (recursed == false)
                      {
                         // If we match a non-terminal clause in the path, recurse to the child.
-                        int nextDepth = DoTraversalAux(data, *nextChild);
+                        const int nextDepth = DoTraversalAux(data, *nextChild);
                         if (nextDepth < ((int)nextChild->GetDepth())-1) 
                         {
                            depth = nextDepth;
@@ -1700,7 +1700,7 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
       DataNode * clone = GetDataNode(destPath);
       if (clone)
       {
-         uint32 idxLen = index->GetNumItems();
+         const uint32 idxLen = index->GetNumItems();
          for (uint32 i=0; i<idxLen; i++) if (clone->InsertIndexEntryAt(i, this, (*index)[i]()->GetNodeName()) != B_NO_ERROR) return B_ERROR;
       }
       else return B_ERROR;
@@ -1727,7 +1727,7 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
       const Queue<DataNodeRef> * index = node->GetIndex();
       if (index)
       {
-         uint32 indexSize = index->GetNumItems();
+         const uint32 indexSize = index->GetNumItems();
          if (indexSize > 0)
          {
             MessageRef indexMsgRef(GetMessageFromPool());
@@ -1773,7 +1773,7 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
    }
    else
    {
-      MessageRef junk = CastAwayConstFromRef(GetEmptyMessageRef());
+      MessageRef junk = GetMessageFromPool();
       if ((optPruner)&&(optPruner->MatchPath(path, junk) == false)) return B_NO_ERROR;
    }
 

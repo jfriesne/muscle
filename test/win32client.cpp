@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
       while(keepGoing)
       {
          // Wait for next event or timeout
-         int waitResult = WaitForMultipleObjects(ARRAYITEMS(waitObjects), waitObjects, false, 1000);
+         const int waitResult = WaitForMultipleObjects(ARRAYITEMS(waitObjects), waitObjects, false, 1000);
          if (waitResult == WAIT_TIMEOUT)
          {
             MessageRef msg = GetMessageFromPool(PR_COMMAND_GETPARAMETERS);

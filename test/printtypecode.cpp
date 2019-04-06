@@ -10,11 +10,11 @@ int main(int argc, char ** argv)
    if ((argc == 2)&&(muscleInRange(argv[1][0], '0', '9')))
    {
       char * code = argv[1];
-      uint32 val = strtod(code, NULL);
+      const uint32 val = strtod(code, NULL);
       
       for (int i=3; i>=0; i--) 
       {
-         char c = (char) ((val>>(i*8))&0xFF);
+         const char c = (char) ((val>>(i*8))&0xFF);
          putc(c, stdout);
       }
       printf("\n");

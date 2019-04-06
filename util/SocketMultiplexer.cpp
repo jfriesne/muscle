@@ -58,7 +58,7 @@ SocketMultiplexer :: ~SocketMultiplexer()
 
 int SocketMultiplexer :: WaitForEvents(uint64 optTimeoutAtTime)
 {
-   int ret = GetCurrentFDState().WaitForEvents(optTimeoutAtTime);
+   const int ret = GetCurrentFDState().WaitForEvents(optTimeoutAtTime);
 #if !defined(MUSCLE_USE_KQUEUE) && !defined(MUSCLE_USE_EPOLL)
    _curFDState = _curFDState?0:1;
 #endif
@@ -73,7 +73,7 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
    if (optTimeoutAtTime == MUSCLE_TIME_NEVER) waitTimeMicros = MUSCLE_TIME_NEVER;
    else
    {
-      uint64 now = GetRunTime64();
+      const uint64 now = GetRunTime64();
       waitTimeMicros = (optTimeoutAtTime>now) ? (optTimeoutAtTime-now) : 0;
    }
 
@@ -159,7 +159,7 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
          }
       }
 #elif defined(MUSCLE_USE_POLL)
-      int timeoutMillis = (waitTimeMicros == MUSCLE_TIME_NEVER) ? -1 : ((int) muscleMin(MicrosToMillis(waitTimeMicros), (int64)(INT_MAX)));
+      const int timeoutMillis = (waitTimeMicros == MUSCLE_TIME_NEVER) ? -1 : ((int) muscleMin(MicrosToMillis(waitTimeMicros), (int64)(INT_MAX)));
 # ifdef WIN32
       int ret = WSAPoll(_pollFDArray.GetItemAt(0), _pollFDArray.GetNumItems(), timeoutMillis);
 # else

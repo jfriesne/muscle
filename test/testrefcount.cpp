@@ -41,7 +41,7 @@ public:
       uint32 counter = 0;
       while(keepGoing)
       {
-         uint32 x = rand() % 10000;
+         const uint32 x = rand() % 10000;
          while(q.GetNumItems() < x) 
          {
             TestItemRef tRef(_pool.ObtainObject());

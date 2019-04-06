@@ -17,8 +17,8 @@ int main(int argc, char ** argv)
    Queue<MessageRef> tempQ;
    if (tempQ.EnsureSize(NUM_OBJECTS, true) != B_NO_ERROR) return 10;
 
-   int whichTest = (argc>1) ? atoi(argv[1]) : -1;
-   uint64 startTime = GetRunTime64();
+   const int whichTest = (argc>1) ? atoi(argv[1]) : -1;
+   const uint64 startTime = GetRunTime64();
    switch(whichTest)
    {
       case 1:
@@ -79,7 +79,7 @@ int main(int argc, char ** argv)
       break;
    }
 
-   uint64 endTime = GetRunTime64();
+   const uint64 endTime = GetRunTime64();
    printf("Test duration for " UINT32_FORMAT_SPEC " objects was " UINT64_FORMAT_SPEC "ms \n", NUM_OBJECTS, (endTime-startTime)/1000);
 
    if ((argc > 2)&&(strcmp(argv[2], "hold") == 0))

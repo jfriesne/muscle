@@ -20,7 +20,7 @@ int32 PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
    if (_inputBufferSizeBytesRead < sizeof(uint32))
    {
       uint8 * ip = (uint8 *) &_inputBufferSize;
-      int32 numSizeBytesRead = ProxyDataIO::Read(&ip[_inputBufferSizeBytesRead], sizeof(uint32)-_inputBufferSizeBytesRead);
+      const int32 numSizeBytesRead = ProxyDataIO::Read(&ip[_inputBufferSizeBytesRead], sizeof(uint32)-_inputBufferSizeBytesRead);
       if (numSizeBytesRead < 0) return -1;
       _inputBufferSizeBytesRead += numSizeBytesRead;
       if (_inputBufferSizeBytesRead == sizeof(uint32))
@@ -39,16 +39,16 @@ int32 PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
       }
    }
 
-   uint32 inBufSize = _inputBuffer.GetNumBytes();
+   const uint32 inBufSize = _inputBuffer.GetNumBytes();
    if ((_inputBufferSizeBytesRead == sizeof(uint32))&&(_inputBufferBytesRead < inBufSize))
    {
-      int32 numBytesRead = ProxyDataIO::Read(_inputBuffer.GetBuffer()+_inputBufferBytesRead, inBufSize-_inputBufferBytesRead);
+      const int32 numBytesRead = ProxyDataIO::Read(_inputBuffer.GetBuffer()+_inputBufferBytesRead, inBufSize-_inputBufferBytesRead);
       if (numBytesRead < 0) return -1;
 
       _inputBufferBytesRead += numBytesRead;
       if (_inputBufferBytesRead == inBufSize)
       {
-         uint32 copyBytes = muscleMin(size, inBufSize);
+         const uint32 copyBytes = muscleMin(size, inBufSize);
          if (size < inBufSize) LogTime(MUSCLE_LOG_WARNING, "PacketizedProxyDataIO:  Truncating incoming packet (" UINT32_FORMAT_SPEC " bytes available, only " UINT32_FORMAT_SPEC " bytes in user buffer)\n", inBufSize, size);
          memcpy(buffer, _inputBuffer.GetBuffer(), copyBytes);
          ret = copyBytes;
@@ -83,20 +83,18 @@ int32 PacketizedProxyDataIO :: Write(const void * buffer, uint32 size)
       ret = size;
    }
 
-   if (WriteBufferedOutputAux() != B_NO_ERROR) 
-   {
-      return -1;
-   }
+   if (WriteBufferedOutputAux() != B_NO_ERROR) return -1;
+
    return ((tryAgainAfter)&&(HasBufferedOutput() == false)) ? Write(buffer, size) : ret;
 }
 
 status_t PacketizedProxyDataIO :: WriteBufferedOutputAux()
 {
    // Now try to send as much of our buffered output data as we can
-   uint32 bufSize = _outputBuffer.GetNumBytes();
+   const uint32 bufSize = _outputBuffer.GetNumBytes();
    if (_outputBufferBytesSent < bufSize)
    {
-      int32 bytesSent = ProxyDataIO::Write(_outputBuffer.GetBuffer()+_outputBufferBytesSent, bufSize-_outputBufferBytesSent);
+      const int32 bytesSent = ProxyDataIO::Write(_outputBuffer.GetBuffer()+_outputBufferBytesSent, bufSize-_outputBufferBytesSent);
       if (bytesSent >= 0) 
       {
          _outputBufferBytesSent += bytesSent;

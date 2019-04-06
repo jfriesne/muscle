@@ -19,9 +19,9 @@ int main(int argc, char ** argv)
    FILE * fpIn = muscleFopen(fileName, "rb");
    if (fpIn)
    {
-      uint32 bufSize = 100*1024; // if your message is >100KB flattened, then tough luck
+      const uint32 bufSize = 100*1024; // if your message is >100KB flattened, then tough luck
       uint8 * buf = new uint8[bufSize]; 
-      int numBytesRead = fread(buf, 1, bufSize, fpIn);
+      const int numBytesRead = fread(buf, 1, bufSize, fpIn);
       printf("Read %i bytes from [%s]\n", numBytesRead, fileName);
 
       Message msg;

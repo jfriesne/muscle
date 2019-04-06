@@ -70,7 +70,7 @@ int main(void)
    {
       printf("Testing string-buffer-expansion behavior...\n");
 
-      String shortString = "1234567890";
+      const String shortString = "1234567890";
       printf("shortString=[%s] length=" UINT32_FORMAT_SPEC " numAllocedBytes=" UINT32_FORMAT_SPEC "\n", shortString(), shortString.Length(), shortString.GetNumAllocatedBytes());
 
       // Watch the behavior of the buffer size
@@ -79,7 +79,7 @@ int main(void)
       for (int i=0; i<50000; i++)
       {
          s += 'x';
-         uint32 newNumAlloced = s.GetNumAllocatedBytes();
+         const uint32 newNumAlloced = s.GetNumAllocatedBytes();
          if (newNumAlloced != numAllocedBytes)
          {
             printf("i=%i s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", i, s.Length(), newNumAlloced);
@@ -114,7 +114,7 @@ int main(void)
       char withMe[512];    printf("Enter withMe:    "); fflush(stdout); if (fgets(withMe,    sizeof(withMe),    stdin) == NULL) withMe[0]    = '\0';
 
       String b(base);
-      int32 ret = b.Replace(replaceMe, withMe);
+      const int32 ret = b.Replace(replaceMe, withMe);
       printf(INT32_FORMAT_SPEC ": Afterwards, [%s] (" UINT32_FORMAT_SPEC ")\n", ret, b(), b.Length());
    }
 #endif
@@ -129,9 +129,9 @@ int main(void)
    PrintAndClearStringCopyCounts("After Swap");
    printf("ss1=[%s] ss2=[%s]\n", ss1(), ss2());
 
-   Point p(1.5,2.5);
-   Rect r(3.5,4.5,5.5,6.5);
-   int16 dozen = 13;
+   const Point p(1.5,2.5);
+   const Rect r(3.5,4.5,5.5,6.5);
+   const int16 dozen = 13;
    String aString = String("%1 is a %2 %3 booltrue=%4 boolfalse=%5 point=%6 rect=%7").Arg(dozen).Arg("baker's dozen").Arg(3.14159).Arg(true).Arg(false).Arg(p).Arg(r);
    printf("arg string = [%s]\n", aString());
 

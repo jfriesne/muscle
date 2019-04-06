@@ -124,7 +124,7 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
    {
       for (uint32 i=0; i<numBytes; i++)
       {
-         uint8 b = buf[i];
+         const uint8 b = buf[i];
          if (_lastReceivedCharWasEscape)
          {
             switch(b)

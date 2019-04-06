@@ -25,7 +25,7 @@ int main(int argc, char ** argv)
       else
       {
          uint8 * a = m.GetAreaPointer();
-         uint32 s = m.GetAreaSize();
+         const uint32 s = m.GetAreaSize();
 
          if (m.IsCreatedLocally()) 
          {
@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
             // Test out the read/write exclusive lock
             if (m.LockAreaReadWrite() == B_NO_ERROR)
             {
-               uint32 s = m.GetAreaSize();
+               const uint32 s = m.GetAreaSize();
                if (s > 0)
                {
                   uint8 * a = m.GetAreaPointer();
@@ -67,7 +67,7 @@ int main(int argc, char ** argv)
             // Also test out the read-only lock
             if (m.LockAreaReadOnly() == B_NO_ERROR)
             {
-               uint32 s = m.GetAreaSize();
+               const uint32 s = m.GetAreaSize();
                if (s > 0)
                {
                   const uint8 * a = m.GetAreaPointer();

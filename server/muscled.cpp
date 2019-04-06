@@ -86,13 +86,13 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    {
       for (int32 i=0; (args.FindString("port", i, &value) == B_NO_ERROR); i++)
       {
-         int16 port = (int16) atoi(value);
+         const int16 port = (int16) atoi(value);
          if (port >= 0) listenPorts.PutWithDefault(IPAddressAndPort(invalidIP, port));
       }
 
       for (int32 i=0; (args.FindString("listen", i, &value) == B_NO_ERROR); i++)
       {
-         IPAddressAndPort iap(value, DEFAULT_MUSCLED_PORT, false);
+         const IPAddressAndPort iap(value, DEFAULT_MUSCLED_PORT, false);
          if (iap.GetPort() > 0) listenPorts.PutWithDefault(iap);
                            else LogTime(MUSCLE_LOG_ERROR, "Unable to parse IP/port string [%s]\n", value);
       }
@@ -104,7 +104,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
          StringTokenizer tok(value, ",=");
          const char * from = tok();
          const char * to = tok();
-         IPAddress fromIP = from ? Inet_AtoN(from) : 0;
+         const IPAddress fromIP = from ? Inet_AtoN(from) : 0;
          if ((fromIP != invalidIP)&&(to))
          {
             char ipbuf[64]; Inet_NtoA(fromIP, ipbuf);
@@ -118,7 +118,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
    if (args.FindString("maxmem", &value) == B_NO_ERROR)
    {
-      int megs = muscleMax(1, atoi(value));
+      const int megs = muscleMax(1, atoi(value));
       LogTime(MUSCLE_LOG_INFO, "Limiting memory usage to %i megabyte%s.\n", megs, (megs==1)?"":"s");
       maxBytes = megs*1024L*1024L;
    }
@@ -126,26 +126,26 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
 
    if (args.FindString("maxmessagesize", &value) == B_NO_ERROR)
    {
-      int k = muscleMax(1, atoi(value));
+      const int k = muscleMax(1, atoi(value));
       LogTime(MUSCLE_LOG_INFO, "Limiting message sizes to %i kilobyte%s.\n", k, (k==1)?"":"s");
       maxMessageSize = k*1024L;
    }
 
    if (args.FindString("maxsendrate", &value) == B_NO_ERROR)
    {
-      float k = (float) atof(value);
+      const float k = (float) atof(value);
       maxSendRate = muscleMax((uint32)0, (uint32)(k*1024.0f));
    }
 
    if (args.FindString("maxreceiverate", &value) == B_NO_ERROR)
    {
-      float k = (float) atof(value);
+      const float k = (float) atof(value);
       maxReceiveRate = muscleMax((uint32)0, (uint32)(k*1024.0f));
    }
 
    if (args.FindString("maxcombinedrate", &value) == B_NO_ERROR)
    {
-      float k = (float) atof(value);
+      const float k = (float) atof(value);
       maxCombinedRate = muscleMax((uint32)0, (uint32)(k*1024.0f));
    }
 
@@ -190,9 +190,8 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
          for (int32 q=0; (args.FindString(privNames[p], q, &value) == B_NO_ERROR); q++)
          {
             LogTime(MUSCLE_LOG_INFO, "Clients whose IP addresses match [%s] get %s privileges.\n", value, privNames[p]+4);
-            char tt[32]; 
-            muscleSprintf(tt, "priv%i", p);
-            tempPrivs.AddString(tt, value);
+            char tt[32]; muscleSprintf(tt, "priv%i", p);
+            (void) tempPrivs.AddString(tt, value);
          }
       }
    }
@@ -244,7 +243,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
          }
       }
    }
-      
+
    // Set up the Session Factory.  This factory object creates the new StorageReflectSessions
    // as needed when people connect, and also has a filter to keep out the riff-raff.
    StorageReflectSessionFactory factory; factory.SetMaxIncomingMessageSize(maxMessageSize);
@@ -331,7 +330,7 @@ int main(int argc, char ** argv)
    UsageLimitProxyMemoryAllocator usageLimitAllocator(MemoryAllocatorRef(&cleanupAllocator, false));
 
    SetCPlusPlusGlobalMemoryAllocator(MemoryAllocatorRef(&usageLimitAllocator, false));
-      int ret = muscledmainAux(argc, argv, &usageLimitAllocator);
+   const int ret = muscledmainAux(argc, argv, &usageLimitAllocator);
    SetCPlusPlusGlobalMemoryAllocator(MemoryAllocatorRef());  // unset, so that none of our allocator objects will be used after they are gone
 
    return ret;

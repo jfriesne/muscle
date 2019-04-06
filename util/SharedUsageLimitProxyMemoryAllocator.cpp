@@ -41,7 +41,7 @@ SharedUsageLimitProxyMemoryAllocator :: ~SharedUsageLimitProxyMemoryAllocator()
 
 void SharedUsageLimitProxyMemoryAllocator :: ResetDaemonCounter()
 {
-   int32 numSlots = _shared.GetAreaSize() / sizeof(size_t);
+   const int32 numSlots = _shared.GetAreaSize() / sizeof(size_t);
    size_t * sa = GetArrayPointer();
    if ((sa)&&(_memberID >= 0)&&(_memberID < numSlots)) sa[_memberID] = 0;
    _localCachedBytes = _localAllocated = 0;
@@ -54,7 +54,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(int32 byteD
       if ((size_t)byteDelta > _localCachedBytes)
       {
          // Hmm, we don't have enough bytes locally, better ask for some from the shared region
-         int32 wantBytes = ((byteDelta/CACHE_BYTES)+1)*CACHE_BYTES; // round up to nearest multiple
+         const int32 wantBytes = ((byteDelta/CACHE_BYTES)+1)*CACHE_BYTES; // round up to nearest multiple
          if (ChangeDaemonCounterAux(wantBytes) == B_NO_ERROR) _localCachedBytes += wantBytes;
       }
       if ((size_t)byteDelta > _localCachedBytes) return B_ERROR;  // still not enough!?
@@ -78,13 +78,13 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounterAux(int32 by
    status_t ret = B_ERROR;
    if ((_memberID >= 0)&&(_shared.LockAreaReadWrite() == B_NO_ERROR))
    {
-      int32 numSlots = _shared.GetAreaSize() / sizeof(size_t);
+      const int32 numSlots = _shared.GetAreaSize() / sizeof(size_t);
       size_t * sa = GetArrayPointer();
       if ((sa)&&(_memberID < numSlots))
       {
          if (byteDelta <= 0)
          {
-            size_t reduceBy = -byteDelta;
+            const size_t reduceBy = -byteDelta;
             if (reduceBy > _localAllocated)
             {
                // This should never happen, but just in case it does...
@@ -114,7 +114,7 @@ size_t SharedUsageLimitProxyMemoryAllocator :: CalculateTotalAllocationSum() con
    const size_t * sa = GetArrayPointer();
    if (sa)
    {
-      uint32 numSlots = GetNumSlots();
+      const uint32 numSlots = GetNumSlots();
       for (uint32 i=0; i<numSlots; i++) total += sa[i];
    }
    return total;

@@ -164,9 +164,9 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
    // And compile the new one
    if (_ranges.IsEmpty())
    {
-      int rc = regcomp(&_regExp, regexPattern.HasChars() ? regexPattern() : str, REG_EXTENDED);
+      const int rc = regcomp(&_regExp, regexPattern.HasChars() ? regexPattern() : str, REG_EXTENDED);
       if (rc == REG_ESPACE) WARN_OUT_OF_MEMORY;
-      bool isValid = (rc == 0);
+      const bool isValid = (rc == 0);
       _flags.SetBit(STRINGMATCHER_FLAG_REGEXVALID, isValid);
       return isValid ? B_NO_ERROR : B_ERROR;
    }
@@ -185,7 +185,7 @@ bool StringMatcher :: Match(const char * const str) const
    }
    else if (muscleInRange(str[0], '0', '9'))
    {
-      uint32 id = (uint32) atoi(str);
+      const uint32 id = (uint32) atoi(str);
       for (uint32 i=0; i<_ranges.GetNumItems(); i++) 
       {
          const IDRange & r = _ranges[i];
@@ -209,8 +209,8 @@ String StringMatcher :: ToString() const
       {
          if (i > 0) s += ',';
          const IDRange & r = _ranges[i];
-         uint32 min = r.GetMin();
-         uint32 max = r.GetMax();
+         const uint32 min  = r.GetMin();
+         const uint32 max  = r.GetMax();
          char buf[128];
          if (max > min) muscleSprintf(buf, UINT32_FORMAT_SPEC "-" UINT32_FORMAT_SPEC, min, max);
                    else muscleSprintf(buf, UINT32_FORMAT_SPEC, min);
@@ -258,13 +258,13 @@ String EscapeRegexTokens(const String & s, const char * optTokens)
 
 String RemoveEscapeChars(const String & s)
 {
-   uint32 len = s.Length();
+   const uint32 len = s.Length();
    String ret; (void) ret.Prealloc(len);
    bool lastWasEscape = false;
    for (uint32 i=0; i<len; i++)
    {
-      char c = s[i];
-      bool isEscape = (c == '\\');
+      const char c = s[i];
+      const bool isEscape = (c == '\\');
       if ((lastWasEscape)||(isEscape == false)) ret += c;
       lastWasEscape = ((isEscape)&&(lastWasEscape == false));
    }
@@ -296,7 +296,7 @@ bool CanWildcardStringMatchMultipleValues(const char * str, bool * optRetOnlySpe
    const char * s         = str;
    while(*s)
    {
-      bool isEscape = ((*s == '\\')&&(prevCharWasEscape == false));
+      const bool isEscape = ((*s == '\\')&&(prevCharWasEscape == false));
       if ((isEscape == false)&&(*s != '-')&&(prevCharWasEscape == false)&&(IsRegexToken(*s, (s==str))))
       {
          if ((*s == ',')&&(optRetOnlySpecialCharIsCommas != NULL)) sawComma = true;
@@ -318,7 +318,7 @@ bool MakeRegexCaseInsensitive(String & str)
    String ret;
    for (uint32 i=0; i<str.Length(); i++)
    {
-     char next = str[i];
+     const char next = str[i];
      if ((next >= 'A')&&(next <= 'Z'))
      {
         char buf[5];

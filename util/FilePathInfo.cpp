@@ -24,7 +24,7 @@ FilePathInfo :: FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool i
 
 void FilePathInfo :: SetFilePath(const char * optFilePath)
 {
-   size_t sLen = optFilePath ? strlen(optFilePath) : 0;
+   const size_t sLen = optFilePath ? strlen(optFilePath) : 0;
    if ((sLen > 0)&&(optFilePath[sLen-1] == *GetFilePathSeparator()))
    {
       // Special case for paths that end in a slash:  we want to ignore the slash (otherwise we can't see files at this location, only folders)
@@ -112,9 +112,8 @@ uint64 FilePathInfo :: InternalizeFileTime(const FILETIME & ft) const
 {
    // subtract (1970-1601) to convert from Windows time base, in 100ns units
    const uint64 diffTime = ((uint64)116444736)*NANOS_PER_SECOND; 
-   uint64 wft = (((uint64)ft.dwHighDateTime)<<32)|((uint64)ft.dwLowDateTime);
-   if (wft <= diffTime) return 0;
-   return ((wft-diffTime)/10);  // convert to MUSCLE-style microseconds
+   const uint64 wft      = (((uint64)ft.dwHighDateTime)<<32)|((uint64)ft.dwLowDateTime);
+   return (wft <= diffTime) ? (uint64)0 : ((wft-diffTime)/10);  // convert to MUSCLE-style microseconds
 }
 #endif
 

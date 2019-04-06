@@ -26,7 +26,7 @@ int main(int argc, char ** argv)
 
    Queue<int> foundPorts;
 
-   IPAddress ip = GetHostByName(hostName);
+   const IPAddress ip = GetHostByName(hostName);
    if (ip == invalidIP)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to resolve hostname [%s]\n", hostName);
@@ -34,7 +34,7 @@ int main(int argc, char ** argv)
    }
 
    char buf[64]; Inet_NtoA(ip, buf);
-   int final = muscleMin(base+count, 65536);
+   const int final = muscleMin(base+count, 65536);
    LogTime(MUSCLE_LOG_INFO, "Beginning scan of ports %i-%i at %s...\n", base, final-1, buf);
    uint64 lastTime = 0;
    for (int i=base; i<final; i++)

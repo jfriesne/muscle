@@ -54,7 +54,7 @@ static void SafeCloseHandle(::HANDLE & h)
 
 status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, const char * optDirectory)
 {
-   uint32 numItems = argq.GetNumItems();
+   const uint32 numItems = argq.GetNumItems();
    if (numItems == 0) return B_ERROR;
 
    const char ** argv = newnothrow_array(const char *, numItems+1);
@@ -163,7 +163,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 #else
    // First, set up our arguments array here in the parent process, since the child process won't be able to do any dynamic allocations.
    Queue<String> scratchChildArgQ;  // holds the strings that the pointers in the argv buffer will point to
-   bool isParsed = (argc<0);
+   const bool isParsed = (argc<0);
    if (argc < 0)
    {
       if (ParseArgs(String((const char *)args), scratchChildArgQ) != B_NO_ERROR) return B_ERROR;
@@ -369,7 +369,7 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
    if (maxWaitTimeMicros == MUSCLE_TIME_NEVER) 
    {
       int status = 0;
-      int pid = waitpid(_childPID, &status, 0);
+      const int pid = waitpid(_childPID, &status, 0);
       if (pid == _childPID)
       {
          _childProcessCrashed = WIFSIGNALED(status);
@@ -382,12 +382,12 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
       // I'm implementing it via a polling loop, which is a sucky way to implement
       // it but the only alternative would involve mucking about with signal handlers,
       // and doing it that way would be unreliable in multithreaded environments.
-      uint64 endTime = GetRunTime64()+maxWaitTimeMicros;
+      const uint64 endTime = GetRunTime64()+maxWaitTimeMicros;
       uint64 pollInterval = 0;  // we'll start quickly, and start polling more slowly only if the child process doesn't exit soon
       while(1)
       {
          int status = 0;
-         int r = waitpid(_childPID, &status, WNOHANG);  // WNOHANG should guarantee that this call will not block
+         const int r = waitpid(_childPID, &status, WNOHANG);  // WNOHANG should guarantee that this call will not block
          if (r == _childPID) 
          {
             _childProcessCrashed = WIFSIGNALED(status);
@@ -395,7 +395,7 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
          }
          else if (r == -1) break;      // fail on error
 
-         int64 microsLeft = endTime-GetRunTime64();
+         const int64 microsLeft = endTime-GetRunTime64();
          if (microsLeft <= 0) break;   // we're out of time!
 
          // At this point, r was probably zero because the child wasn't ready to exit
@@ -422,7 +422,7 @@ int32 ChildProcessDataIO :: Read(void *buf, uint32 len)
       }
       else 
       {
-         int32 ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
+         const int32 ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
          if (ret >= 0) SetEvent(_wakeupSignal);  // wake up the thread in case he has more data to give us
          return ret;
       }
@@ -448,7 +448,7 @@ int32 ChildProcessDataIO :: Write(const void *buf, uint32 len)
       }
       else 
       {
-         int32 ret = SendData(_masterNotifySocket, buf, len, _blocking);
+         const int32 ret = SendData(_masterNotifySocket, buf, len, _blocking);
          if (ret > 0) SetEvent(_wakeupSignal);  // wake up the thread so he'll check his socket for our new data
          return ret;
       }
@@ -526,8 +526,8 @@ void ChildProcessDataIO :: IOThreadEntry()
          // While we have any data in inBuf, send as much of it as possible back to the user thread.  This won't block.
          while(inBuf._index < inBuf._length)
          {
-            int32 bytesToWrite = inBuf._length-inBuf._index;
-            int32 bytesWritten = (bytesToWrite > 0) ? SendData(_slaveNotifySocket, &inBuf._buf[inBuf._index], bytesToWrite, false) : 0;
+            const int32 bytesToWrite = inBuf._length-inBuf._index;
+            const int32 bytesWritten = (bytesToWrite > 0) ? SendData(_slaveNotifySocket, &inBuf._buf[inBuf._index], bytesToWrite, false) : 0;
             if (bytesWritten > 0)
             {
                inBuf._index += bytesWritten;
@@ -543,8 +543,8 @@ void ChildProcessDataIO :: IOThreadEntry()
          // While we have room in our outBuf, try to read some more data into it from the slave socket.  This won't block.
          while(outBuf._length < sizeof(outBuf._buf))
          {
-            int32 maxLen = sizeof(outBuf._buf)-outBuf._length;
-            int32 ret = ReceiveData(_slaveNotifySocket, &outBuf._buf[outBuf._length], maxLen, false);
+            const int32 maxLen = sizeof(outBuf._buf)-outBuf._length;
+            const int32 ret = ReceiveData(_slaveNotifySocket, &outBuf._buf[outBuf._length], maxLen, false);
             if (ret > 0) outBuf._length += ret;
             else
             {
@@ -566,7 +566,7 @@ void ChildProcessDataIO :: IOThreadEntry()
          // the Window anonymous pipes system doesn't allow me to
          // to check for events on the pipe using WaitForMultipleObjects().
          // It may be worth it to use named pipes some day to get around this...
-         int evt = WaitForMultipleObjects(ARRAYITEMS(events)-(childProcessExited?1:0), events, false, 250)-WAIT_OBJECT_0;
+         const int evt = WaitForMultipleObjects(ARRAYITEMS(events)-(childProcessExited?1:0), events, false, 250)-WAIT_OBJECT_0;
          if (evt == 1) childProcessExited = true;
 
          int32 numBytesToRead;
@@ -631,14 +631,14 @@ status_t ChildProcessDataIO :: System(int argc, const char * argv[], ChildProces
 
 status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory)
 {
-   uint32 numItems = argq.GetNumItems();
+   const uint32 numItems = argq.GetNumItems();
    if (numItems == 0) return B_ERROR;
 
    const char ** argv = newnothrow_array(const char *, numItems+1);
    if (argv == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
    for (uint32 i=0; i<numItems; i++) argv[i] = argq[i]();
    argv[numItems] = NULL;
-   status_t ret = System(numItems, argv, launchFlags, maxWaitTimeMicros, optDirectory);
+   const status_t ret = System(numItems, argv, launchFlags, maxWaitTimeMicros, optDirectory);
    delete [] argv;
    return ret;
 }

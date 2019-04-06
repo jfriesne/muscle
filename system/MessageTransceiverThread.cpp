@@ -127,7 +127,7 @@ status_t MessageTransceiverThread :: AddNewConnectSession(const String & targetH
          if (IsInternalThreadRunning()) return SendAddNewSessionMessage(sRef, ConstSocketRef(), targetHostName(), 0, port, expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);
          else
          {
-            IPAddress ip = GetHostByName(targetHostName(), expandLocalhost);
+            const IPAddress ip = GetHostByName(targetHostName(), expandLocalhost);
             return (ip != invalidIP) ? _server()->AddNewConnectSession(sRef, ip, port, autoReconnectDelay, maxAsyncConnectPeriod) : B_ERROR;
          }
       }
@@ -477,7 +477,7 @@ void ThreadWorkerSession :: AboutToDetachFromServer()
 
 int32 ThreadWorkerSession :: DoOutput(uint32 maxBytes)
 {
-   int32 ret = StorageReflectSession::DoOutput(maxBytes);
+   const int32 ret = StorageReflectSession::DoOutput(maxBytes);
    if (_drainedNotifiers.HasItems())
    {
       AbstractMessageIOGateway * gw = GetGateway()();
@@ -651,7 +651,7 @@ bool ThreadSupervisorSession :: ClientConnectionClosed()
 
 status_t ThreadSupervisorSession :: AddNewWorkerConnectSession(const ThreadWorkerSessionRef & sessionRef, const IPAddress & hostIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
-   status_t ret = (hostIP != invalidIP) ? AddNewConnectSession(sessionRef, hostIP, port, autoReconnectDelay, maxAsyncConnectPeriod) : B_ERROR;
+   const status_t ret = (hostIP != invalidIP) ? AddNewConnectSession(sessionRef, hostIP, port, autoReconnectDelay, maxAsyncConnectPeriod) : B_ERROR;
 
    // For immediate failure: Since (sessionRef) never attached, we need to send the disconnect message ourself.
    if ((ret != B_NO_ERROR)&&(sessionRef()))
@@ -688,9 +688,9 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
                   {
                      const char * hostName;
                      IPAddress hostIP;
-                     uint16 port                  = msg->GetInt16(MTT_NAME_PORT);
-                     uint64 autoReconnectDelay    = msg->GetInt64(MTT_NAME_AUTORECONNECTDELAY, MUSCLE_TIME_NEVER);
-                     uint64 maxAsyncConnectPeriod = msg->GetInt64(MTT_NAME_MAXASYNCCONNPERIOD, MUSCLE_TIME_NEVER);
+                     const uint16 port                  = msg->GetInt16(MTT_NAME_PORT);
+                     const uint64 autoReconnectDelay    = msg->GetInt64(MTT_NAME_AUTORECONNECTDELAY, MUSCLE_TIME_NEVER);
+                     const uint64 maxAsyncConnectPeriod = msg->GetInt64(MTT_NAME_MAXASYNCCONNPERIOD, MUSCLE_TIME_NEVER);
 
                           if (FindIPAddressInMessage(*msg, MTT_NAME_IP_ADDRESS, hostIP) == B_NO_ERROR) (void) AddNewWorkerConnectSession(sessionRef, hostIP, port, autoReconnectDelay, maxAsyncConnectPeriod);
                      else if (msg->FindString(MTT_NAME_HOSTNAME, &hostName)             == B_NO_ERROR) (void) AddNewWorkerConnectSession(sessionRef, GetHostByName(hostName, msg->GetBool(MTT_NAME_EXPANDLOCALHOST)), port, autoReconnectDelay, maxAsyncConnectPeriod);
@@ -709,7 +709,7 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
                   ThreadWorkerSessionFactoryRef factoryRef(tagRef, true);
                   if (factoryRef())
                   {
-                     uint16 port = 0; (void) msg->FindInt16(MTT_NAME_PORT, port);
+                     const uint16 port = msg->GetInt16(MTT_NAME_PORT);
                      IPAddress ip = invalidIP; (void) FindIPAddressInMessage(*msg, MTT_NAME_IP_ADDRESS, ip);
                      (void) PutAcceptFactory(port, factoryRef, ip);
                   }

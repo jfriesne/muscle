@@ -119,7 +119,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
       const ConstSocketRef & sock = newSession->GetSessionReadSelectSocket();
       if (sock.GetFileDescriptor() >= 0)
       {
-         IPAddress ip = GetPeerIPAddress(sock, true);
+         const IPAddress ip = GetPeerIPAddress(sock, true);
          const String * remapString = _remapIPs.Get(ip);
          char ipbuf[64]; Inet_NtoA(ip, ipbuf);
 
@@ -355,7 +355,7 @@ void ReflectServer :: CheckForOutOfMemory(const AbstractReflectSessionRef & optS
          AddLameDuckSession(optSessionRef);
       }
 
-      uint32 dumpCount = DumpBoggedSessions();       // see what other cleanup we can do
+      const uint32 dumpCount = DumpBoggedSessions();       // see what other cleanup we can do
       if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "Low Memory condition detected in session [%s].  Dumped " UINT32_FORMAT_SPEC " bogged sessions!\n", optSessionRef()?optSessionRef()->GetSessionDescriptionString()():NULL, dumpCount);
    }
 #else
@@ -483,14 +483,14 @@ ServerProcessLoop()
                   AbstractMessageIOGateway * g = session->GetGateway()();
                   if (g)
                   {
-                     int sessionReadFD = session->GetSessionReadSelectSocket().GetFileDescriptor();
+                     const int sessionReadFD = session->GetSessionReadSelectSocket().GetFileDescriptor();
                      if ((sessionReadFD >= 0)&&(session->IsConnectingAsync() == false))
                      {
                         session->_maxInputChunk = CheckPolicy(policies, session->GetInputPolicy(), PolicyHolder(session->IsReadyForInput() ? session : NULL, true), now);
                         if (session->_maxInputChunk > 0) (void) _multiplexer.RegisterSocketForReadReady(sessionReadFD);
                      }
 
-                     int sessionWriteFD = session->GetSessionWriteSelectSocket().GetFileDescriptor();
+                     const int sessionWriteFD = session->GetSessionWriteSelectSocket().GetFileDescriptor();
                      if (sessionWriteFD >= 0)
                      {
                         bool out;
@@ -561,7 +561,7 @@ ServerProcessLoop()
       // This block is the center of the MUSCLE server's universe -- where we sit and wait for the next event
       {
          _inWaitForEvents.AtomicIncrement();   // so a watchdog thread can know we're meant to be waiting at this point
-         int r = _multiplexer.WaitForEvents(nextPulseAt);
+         const int r = _multiplexer.WaitForEvents(nextPulseAt);
          _inWaitForEvents.AtomicDecrement();   // so a watchdog thread can know we're done waiting at this point
 
          if (r < 0)
@@ -631,7 +631,7 @@ ServerProcessLoop()
 
                   if (readBytes < 0)
                   {
-                     bool wasConnecting = session->IsConnectingAsync();
+                     const bool wasConnecting = session->IsConnectingAsync();
                      if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (read error).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed");
                   }
                }
@@ -670,13 +670,14 @@ ServerProcessLoop()
 
                   if (wroteBytes < 0)
                   {
-                     bool wasConnecting = session->IsConnectingAsync();
+                     const bool wasConnecting = session->IsConnectingAsync();
                      if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (write error).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed");
                   }
                   else if (session->_lastByteOutputAt > 0)
                   {
                      // Check for output stalls
                      const uint64 now = GetRunTime64();
+
                           if ((wroteBytes > 0)||(session->_maxOutputChunk == 0)) session->_lastByteOutputAt = now;  // reset the moribundness-timer
                      else if (now-session->_lastByteOutputAt > session->_outputStallLimit)
                      {
@@ -745,7 +746,7 @@ ServerProcessLoop()
             if (factory->IsReadyToAcceptSessions())
             {
                ConstSocketRef * as = _factorySockets.Get(iter.GetKey());
-               int fd = as ? as->GetFileDescriptor() : -1;
+               const int fd = as ? as->GetFileDescriptor() : -1;
                if ((fd >= 0)&&(_multiplexer.IsSocketReadyForRead(fd))) (void) DoAccept(iter.GetKey(), *as, factory);
             }
          }
@@ -817,8 +818,8 @@ status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSock
    if (newSocket())
    {
       NestCountGuard ncg(_inDoAccept);
-      IPAddressAndPort nip(acceptedFromIP, iap.GetPort());
-      IPAddress remoteIP = GetPeerIPAddress(newSocket, true);
+      const IPAddressAndPort nip(acceptedFromIP, iap.GetPort());
+      const IPAddress remoteIP = GetPeerIPAddress(newSocket, true);
       if (remoteIP == invalidIP) LogAcceptFailed(MUSCLE_LOG_DEBUG, "GetPeerIPAddress() failed", NULL, nip);
       else
       {
@@ -954,7 +955,7 @@ bool ReflectServer :: DisconnectSession(AbstractReflectSession * session)
    AbstractMessageIOGateway * oldGW = session->GetGateway()();
    DataIO * oldIO = oldGW ? oldGW->GetDataIO()() : NULL;
 
-   bool ret = session->ClientConnectionClosed(); 
+   const bool ret = session->ClientConnectionClosed(); 
 
    AbstractMessageIOGateway * newGW = session->GetGateway()();
    DataIO * newIO = newGW ? newGW->GetDataIO()() : NULL;

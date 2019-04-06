@@ -43,7 +43,7 @@ static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<Strin
    if (optAddToQueue) return optAddToQueue->AddTail(argName);
    else
    {
-      int equalsAt = argName.IndexOf('=');
+      const int equalsAt = argName.IndexOf('=');
       String argValue;
       if (equalsAt >= 0)
       {
@@ -124,7 +124,7 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
    TCHECKPOINT;
 
    const String trimmed = line.Trim();
-   uint32 len = trimmed.Length();
+   const uint32 len = trimmed.Length();
 
    // First, we'll pre-process the string into a StringTokenizer-friendly
    // form, by replacing all quoted spaces with gunk and removing the quotes
@@ -227,7 +227,7 @@ static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * op
       if (((checkForSection == "begin")||(checkForSection.StartsWith("begin ")))&&(optAddToMsg))  // the check for (optAddToMsg) isn't really necessary, but it makes clang++ happy
       {
          checkForSection = checkForSection.Substring(6).Trim();
-         int32 hashIdx = checkForSection.IndexOf('#');
+         const int32 hashIdx = checkForSection.IndexOf('#');
          if (hashIdx >= 0) checkForSection = checkForSection.Substring(0, hashIdx).Trim();
          
          // Don't allow the parsing to fail just because the user specified a section name the same as a param name!
@@ -262,7 +262,7 @@ static status_t ParseFileAux(const String * optInStr, FILE * fpIn, Message * opt
       char * buf = newnothrow_array(char, bufSize);
       if (buf)
       {
-         status_t ret = ParseFileAux(NULL, fpIn, optAddToMsg, optAddToQueue, buf, bufSize, cs);
+         const status_t ret = ParseFileAux(NULL, fpIn, optAddToMsg, optAddToQueue, buf, bufSize, cs);
          delete [] buf;
          return ret;
       }
@@ -299,7 +299,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
 {
    if ((optFile == NULL)&&(optString == NULL)) return B_ERROR;
 
-   String indentStr = String().Pad(indentLevel);
+   const String indentStr = String().Pad(indentLevel);
    Message scratchMsg;
    for (MessageFieldNameIterator fnIter(readFrom); fnIter.HasData(); fnIter++)
    {
@@ -347,11 +347,11 @@ String UnparseFile(const Message & readFrom) {String s; return (UnparseFileAux(r
 
 static status_t ParseConnectArgAux(const String & s, uint32 startIdx, uint16 & retPort, bool portRequired)
 {
-   int32 colIdx = s.IndexOf(':', startIdx);
+   const int32 colIdx = s.IndexOf(':', startIdx);
    const char * pStr = (colIdx>=0)?(s()+colIdx+1):NULL;
    if ((pStr)&&(muscleInRange(*pStr, '0', '9')))
    {
-      uint16 p = (uint16) atoi(pStr);
+      const uint16 p = (uint16) atoi(pStr);
       if (p > 0) retPort = p;
       return B_NO_ERROR; 
    }
@@ -367,7 +367,7 @@ status_t ParseConnectArg(const Message & args, const String & fn, String & retHo
 status_t ParseConnectArg(const String & s, String & retHost, uint16 & retPort, bool portRequired)
 {
 #ifndef MUSCLE_AVOID_IPV6
-   int32 rBracket = s.StartsWith('[') ? s.IndexOf(']') : -1;
+   const int32 rBracket = s.StartsWith('[') ? s.IndexOf(']') : -1;
    if (rBracket >= 0)
    {
       // If there are brackets, they are assumed to surround the address part, e.g. "[::1]:9999"
@@ -392,7 +392,7 @@ status_t ParsePortArg(const Message & args, const String & fn, uint16 & retPort,
    const char * v;
    if (args.FindString(fn, argIdx, &v) == B_NO_ERROR)
    {
-      uint16 r = (uint16) atoi(v);
+      const uint16 r = (uint16) atoi(v);
       if (r > 0)
       {
          retPort = r;
@@ -436,8 +436,8 @@ LONG Win32FaultHandler(struct _EXCEPTION_POINTERS * ExInfo)
       default                              : faultDesc = "(unknown)"                ; break;
     }
 
-    int    faultCode   = ExInfo->ExceptionRecord->ExceptionCode;
-    PVOID  CodeAddress = ExInfo->ExceptionRecord->ExceptionAddress;
+    const int    faultCode   = ExInfo->ExceptionRecord->ExceptionCode;
+    const PVOID  CodeAddress = ExInfo->ExceptionRecord->ExceptionAddress;
     printf("****************************************************\n");
     printf("*** A Program Fault occurred:\n");
     printf("*** Error code %08X: %s\n", faultCode, faultDesc);
@@ -460,7 +460,7 @@ LONG Win32FaultHandler(struct _EXCEPTION_POINTERS * ExInfo)
 static status_t SetRealTimePriority(const char * priStr, bool useFifo)
 {
    struct sched_param schedparam; memset(&schedparam, 0, sizeof(schedparam));
-   int pri = (strlen(priStr) > 0) ? atoi(priStr) : 11;
+   const int pri = (strlen(priStr) > 0) ? atoi(priStr) : 11;
    schedparam.sched_priority = pri;
 
    const char * desc = useFifo ? "SCHED_FIFO" : "SCHED_RR";
@@ -530,11 +530,10 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if ((args.FindString("maxlogfiles", &value) == B_NO_ERROR)||(args.FindString("maxnumlogfiles", &value) == B_NO_ERROR))
    {
-      uint32 maxNumFiles = (uint32) atol(value);
+      const uint32 maxNumFiles = (uint32) atol(value);
       if (maxNumFiles > 0) SetMaxNumLogFiles(maxNumFiles);
                       else LogTime(MUSCLE_LOG_ERROR, "Please specify a maxnumlogfiles value that is greater than zero.\n");
    }
-
 
    if (args.FindString("logfile", &value) == B_NO_ERROR)
    {
@@ -544,14 +543,14 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if (args.FindString("filelevel", &value) == B_NO_ERROR)
    {
-      int ll = ParseLogLevelKeyword(value);
+      const int ll = ParseLogLevelKeyword(value);
       if (ll >= 0) SetFileLogLevel(ll);
               else LogTime(MUSCLE_LOG_INFO, "Error, unknown file log level type [%s]\n", value);
    }
 
    if (args.FindString("maxlogfilesize", &value) == B_NO_ERROR)
    {
-      uint32 maxSizeKB = (uint32) atol(value);
+      const uint32 maxSizeKB = (uint32) atol(value);
       if (maxSizeKB > 0) SetFileLogMaximumSize(maxSizeKB*1024);
                     else LogTime(MUSCLE_LOG_ERROR, "Please specify a maxlogfilesize in kilobytes, that is greater than zero.\n");
    }
@@ -560,7 +559,7 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if (args.FindString("localhost", &value) == B_NO_ERROR)
    {
-      IPAddress ip = Inet_AtoN(value);
+      const IPAddress ip = Inet_AtoN(value);
       if (ip != invalidIP)
       {
          char ipbuf[64]; Inet_NtoA(ip, ipbuf);
@@ -572,7 +571,7 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if (args.FindString("dnscache", &value) == B_NO_ERROR)
    {
-      uint64 micros = ParseHumanReadableTimeIntervalString(value);
+      const uint64 micros = ParseHumanReadableTimeIntervalString(value);
       if (micros > 0)
       {
          uint32 maxCacheSize = 1024;
@@ -607,14 +606,14 @@ void HandleStandardDaemonArgs(const Message & args)
       const char * niceStr = NULL; (void) args.FindString("nice", &niceStr);
       const char * meanStr = NULL; (void) args.FindString("mean", &meanStr);
 
-      int32 niceLevel = niceStr ? ((strlen(niceStr) > 0) ? atoi(niceStr) : 5) : 0;
-      int32 meanLevel = meanStr ? ((strlen(meanStr) > 0) ? atoi(meanStr) : 5) : 0;
-      int32 effectiveLevel = niceLevel-meanLevel;
+      const int32 niceLevel = niceStr ? ((strlen(niceStr) > 0) ? atoi(niceStr) : 5) : 0;
+      const int32 meanLevel = meanStr ? ((strlen(meanStr) > 0) ? atoi(meanStr) : 5) : 0;
+      const int32 effectiveLevel = niceLevel-meanLevel;
 
       if (effectiveLevel)
       {
          errno = 0;  // the only reliable way to check for an error here :^P
-         int ret = nice(effectiveLevel);  // I'm only looking at the return value to shut gcc 4.4.3 up
+         const int ret = nice(effectiveLevel);  // I'm only looking at the return value to shut gcc 4.4.3 up
          if (errno != 0) LogTime(MUSCLE_LOG_WARNING, "Could not change process execution priority to " INT32_FORMAT_SPEC " (ret=%i).\n", effectiveLevel, ret);
                     else LogTime(MUSCLE_LOG_INFO, "Process is now %s (niceLevel=%i)\n", (effectiveLevel<0)?"mean":"nice", effectiveLevel);
       }
@@ -723,8 +722,8 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
    //    if you have a logfile, for example, you might wish to open it as stdout or stderr, and open `/dev/null'
    //    as stdin; alternatively, you could open `/dev/console' as stderr and/or stdout, and `/dev/null' as stdin,
    //    or any other combination that makes sense for your particular daemon.
-   mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH;
-   int nullfd = open("/dev/null", O_RDWR, mode);
+   const mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH;
+   const int nullfd = open("/dev/null", O_RDWR, mode);
    if (nullfd >= 0) dup2(nullfd, STDIN_FILENO);
 
    int outfd = -1;
@@ -744,7 +743,7 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
 status_t BecomeDaemonProcess(const char * optNewDir, const char * optOutputTo, bool createIfNecessary)
 {
    bool isParent;
-   status_t ret = SpawnDaemonProcess(isParent, optNewDir, optOutputTo, createIfNecessary);
+   const status_t ret = SpawnDaemonProcess(isParent, optNewDir, optOutputTo, createIfNecessary);
    if ((ret == B_NO_ERROR)&&(isParent)) ExitWithoutCleanup(0);
    return ret;
 }
@@ -758,7 +757,7 @@ void RemoveANSISequences(String & s)
 
    while(true)
    {
-      int32 idx = s.IndexOf(_escape);  // find the next escape sequence
+      const int32 idx = s.IndexOf(_escape);  // find the next escape sequence
       if (idx >= 0)
       {
          const char * data = s()+idx+2;  // move past the ESC char and the [ char
@@ -785,13 +784,13 @@ void RemoveANSISequences(String & s)
 
 String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChars)
 {
-   uint32 len = muscleMin(s.Length(), (uint32)63);  // DNS spec says maximum 63 chars per label!
+   const uint32 len = muscleMin(s.Length(), (uint32)63);  // DNS spec says maximum 63 chars per label!
    String ret; if (ret.Prealloc(len) != B_NO_ERROR) return ret;
   
    const char * p = s();
    for (uint32 i=0; i<len; i++)
    {
-      char c = p[i];
+      const char c = p[i];
       switch(c)
       {
          case '\'': case '\"': case '(': case ')': case '[': case ']': case '{': case '}':
@@ -833,7 +832,7 @@ status_t NybbleizeData(const uint8 * b, uint32 numBytes, String & retString)
    retString.Clear();
    for (uint32 i=0; i<numBytes; i++)
    {
-      uint8 c = b[i];
+      const uint8 c = b[i];
       retString += ((c>>0)&0x0F)+'A';
       retString += ((c>>4)&0x0F)+'A';
    }
@@ -847,7 +846,7 @@ status_t NybbleizeData(const ByteBuffer & buf, String & retString)
 
 status_t DenybbleizeData(const String & nybbleizedText, ByteBuffer & retBuf)
 {
-   uint32 numBytes = nybbleizedText.Length();
+   const uint32 numBytes = nybbleizedText.Length();
    if ((numBytes%2)!=0)
    {
       LogTime(MUSCLE_LOG_ERROR, "DenybblizeData:  Nybblized text [%s] has an odd length; that shouldn't ever happen!\n", nybbleizedText());
@@ -859,8 +858,8 @@ status_t DenybbleizeData(const String & nybbleizedText, ByteBuffer & retBuf)
    uint8 * b = retBuf.GetBuffer();
    for (uint32 i=0; i<numBytes; i+=2)
    {
-      char c1 = nybbleizedText[i+0];
-      char c2 = nybbleizedText[i+1];
+      const char c1 = nybbleizedText[i+0];
+      const char c2 = nybbleizedText[i+1];
       if ((muscleInRange(c1, 'A', 'P') == false)||(muscleInRange(c2, 'A', 'P') == false))
       {
          LogTime(MUSCLE_LOG_ERROR, "DenybblizeData:  Nybblized text [%s] contains characters other than A through P!\n", nybbleizedText());
@@ -876,7 +875,7 @@ String NybbleizeString(const String & s)
    String retStr;
    ByteBuffer inBuf; inBuf.AdoptBuffer(s.Length(), (uint8 *) s());
 
-   status_t ret = NybbleizeData(inBuf, retStr);
+   const status_t ret = NybbleizeData(inBuf, retStr);
    (void) inBuf.ReleaseBuffer();
 
    if (ret != B_NO_ERROR) retStr.Clear();
@@ -895,7 +894,7 @@ const uint8 * MemMem(const uint8 * lookIn, uint32 numLookInBytes, const uint8 * 
    else if (numLookForBytes == numLookInBytes) return (memcmp(lookIn, lookFor, numLookInBytes) == 0) ? lookIn : NULL;
    else if (numLookForBytes < numLookInBytes)
    {
-      uint32 scanLength = (1+numLookInBytes-numLookForBytes);
+      const uint32 scanLength = (1+numLookInBytes-numLookForBytes);
       for (uint32 i=0; i<scanLength; i++)
       {
          const uint8 * li = &lookIn[i];
@@ -932,7 +931,7 @@ String HexBytesToString(const ByteBuffer & bb)
 
 String HexBytesToString(const Queue<uint8> & bytes)
 {
-   uint32 numBytes = bytes.GetNumItems();
+   const uint32 numBytes = bytes.GetNumItems();
 
    String ret;
    if (ret.Prealloc(numBytes*3) == B_NO_ERROR)
@@ -1012,7 +1011,7 @@ status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg)
 bool FileExists(const char * filePath)
 {
    FILE * fp = muscleFopen(filePath, "rb");
-   bool ret = (fp != NULL);  // gotta take this value before calling fclose(), or cppcheck complains
+   const bool ret = (fp != NULL);  // gotta take this value before calling fclose(), or cppcheck complains
    if (fp) fclose(fp);
    return ret;
 }
@@ -1074,14 +1073,14 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
       while(1)
       {
          char buf[4*1024];
-         size_t bytesRead = fread(buf, 1, sizeof(buf), fpIn);
+         const size_t bytesRead = fread(buf, 1, sizeof(buf), fpIn);
          if ((bytesRead < sizeof(buf))&&(feof(fpIn) == false))
          {
             ret = B_ERROR;
             break;
          }
          
-         size_t bytesWritten = fwrite(buf, 1, bytesRead, fpOut);
+         const size_t bytesWritten = fwrite(buf, 1, bytesRead, fpOut);
          if (bytesWritten < bytesRead)
          {
             ret = B_ERROR;
@@ -1102,9 +1101,9 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
 status_t DeleteFile(const char * filePath)
 {
 #ifdef _MSC_VER
-   int unlinkRet = _unlink(filePath);  // stupid MSVC!
+   const int unlinkRet = _unlink(filePath);
 #else
-   int unlinkRet = unlink(filePath);
+   const int unlinkRet = unlink(filePath);
 #endif
    return (unlinkRet == 0) ? B_NO_ERROR : B_ERROR;
 }
@@ -1140,10 +1139,12 @@ void Win32AllocateStdioConsole(const char * optArg)
    if (optOutFile.HasChars())
    {
       const int lastDotIdx = optOutFile.LastIndexOf('.');
+
       if (lastDotIdx > 0)
          conErrHolder = optOutFile.Substring(0, lastDotIdx) + "_stderr" + optOutFile.Substring(lastDotIdx);
       else
          conErrHolder = optOutFile + "_stderr.txt";
+
       conErrStr = conErrHolder();
    }
    else conErrStr = conOutStr;  // for the output-to-console-window case, where redirecting both stdout and stderr DOES work
@@ -1188,7 +1189,7 @@ float GetSystemMemoryUsagePercentage()
 
       if ((memTotal > 0.0)&&(memFree >= 0.0)&&(buffered >= 0.0)&&(cached >= 0.0))
       {
-         double memUsed = memTotal-(memFree+buffered+cached);
+         const double memUsed = memTotal-(memFree+buffered+cached);
          return (float) (memUsed/memTotal);
       }
    }
@@ -1202,7 +1203,7 @@ float GetSystemMemoryUsagePercentage()
       {
          if (strncmp(buf, "Pages", 5) == 0)
          {
-            double val = ParseMemValue(buf);
+            const double val = ParseMemValue(buf);
             if (val >= 0.0)
             {
                if ((strncmp(buf, "Pages wired", 11) == 0)||(strncmp(buf, "Pages active", 12) == 0)) pagesUsed += val;
@@ -1229,7 +1230,7 @@ bool ParseBool(const String & word, bool defaultValue)
    static const char * _onWords[]  = {"on",  "enable",  "enabled",  "true",  "t", "y", "yes", "1"};
    static const char * _offWords[] = {"off", "disable", "disabled", "false", "f", "n", "no",  "0"};
 
-   String s = word.Trim().ToLowerCase();
+   const String s = word.Trim().ToLowerCase();
    for (uint32 i=0; i<ARRAYITEMS(_onWords);  i++) if (s == _onWords[i])  return true;
    for (uint32 i=0; i<ARRAYITEMS(_offWords); i++) if (s == _offWords[i]) return false;
    return defaultValue; 

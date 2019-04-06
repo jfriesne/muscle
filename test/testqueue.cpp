@@ -77,7 +77,7 @@ int main(void)
       for (int i=0; i<50000; i++)
       {
          q.AddTail(i);
-         uint32 newNumAlloced = q.GetNumAllocatedItemSlots();
+         const uint32 newNumAlloced = q.GetNumAllocatedItemSlots();
          if (newNumAlloced != numAllocedSlots)
          {
             printf("i=%i q.GetNumItems()=" UINT32_FORMAT_SPEC " q.GetNumAllocatedItemSlots()=" UINT32_FORMAT_SPEC "\n", i, q.GetNumItems(), newNumAlloced);
@@ -110,7 +110,7 @@ int main(void)
    const int testSize = 15;
    Queue<int> q;
 
-   int vars[] = {5,6,7,8,9,10,11,12,13,14,15};
+   const int vars[] = {5,6,7,8,9,10,11,12,13,14,15};
 
    printf("ADDTAIL TEST\n");
    {
@@ -173,7 +173,7 @@ int main(void)
       q.Clear();
       for (int i=0; i<testSize; i++)
       {
-         int next = rand()%255;
+         const int next = rand()%255;
          TEST(q.AddTail(next));
          printf("Added item %i = %i\n", i, q[i]);
       }
@@ -187,7 +187,7 @@ int main(void)
       Queue<String> q2;
       for (int i=0; i<testSize; i++)
       {
-         int next = rand()%255;
+         const int next = rand()%255;
          char buf[64];
          muscleSprintf(buf, "%i", next);
          TEST(q2.AddTail(buf));
@@ -221,11 +221,11 @@ int main(void)
 
          srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) q[i] = rand();  // we want this to be repeatable, hence srand(0)
          
-         uint64 startTime = GetRunTime64();
+         const uint64 startTime = GetRunTime64();
          q.Sort();
-         uint64 elapsed = (GetRunTime64()-startTime);
+         const uint64 elapsed = (GetRunTime64()-startTime);
 
-         double itemsPerSecond = ((double)NUM_ITEMS*((double)MICROS_PER_SECOND))/(elapsed);
+         const double itemsPerSecond = ((double)NUM_ITEMS*((double)MICROS_PER_SECOND))/(elapsed);
          printf("   It took " UINT64_FORMAT_SPEC " microseconds to sort " UINT32_FORMAT_SPEC " items, so we sorted %f items per second\n", elapsed, NUM_ITEMS, itemsPerSecond);
          tally += itemsPerSecond;
       }
@@ -244,11 +244,11 @@ int main(void)
 
          srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) q[i] = String("FooBarBaz-%1").Arg(rand()).Pad(500);  // we want this to be repeatable, hence srand(0)
          
-         uint64 startTime = GetRunTime64();
+         const uint64 startTime = GetRunTime64();
          q.Sort();
-         uint64 elapsed = (GetRunTime64()-startTime);
+         const uint64 elapsed = (GetRunTime64()-startTime);
 
-         double itemsPerSecond = ((double)NUM_ITEMS*((double)MICROS_PER_SECOND))/(elapsed);
+         const double itemsPerSecond = ((double)NUM_ITEMS*((double)MICROS_PER_SECOND))/(elapsed);
          printf("   It took " UINT64_FORMAT_SPEC " microseconds to sort " UINT32_FORMAT_SPEC " items, so we sorted %f items per second\n", elapsed, NUM_ITEMS, itemsPerSecond);
          tally += itemsPerSecond;
       }

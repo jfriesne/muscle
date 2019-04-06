@@ -60,7 +60,7 @@ void PulseNode :: GetPulseTimeAux(uint64 now, uint64 & min)
    if (firstNeedy) while(firstNeedy) firstNeedy->GetPulseTimeAux(now, min);  // guaranteed to move (firstNeedy) out of the recalc list!
 
    // Recalculate our effective pulse time
-   uint64 oldAggregatePulseTime = _aggregatePulseTime;
+   const uint64 oldAggregatePulseTime = _aggregatePulseTime;
    _aggregatePulseTime = muscleMin(_myScheduledTime, GetFirstScheduledChildTime());
    if ((_parent)&&((_curList == LINKED_LIST_NEEDSRECALC)||(_aggregatePulseTime != oldAggregatePulseTime))) _parent->ReschedulePulseChild(this, (_aggregatePulseTime==MUSCLE_TIME_NEVER)?LINKED_LIST_UNSCHEDULED:LINKED_LIST_SCHEDULED);
 
@@ -99,7 +99,7 @@ status_t PulseNode :: RemovePulseChild(PulseNode * child)
 {
    if (child->_parent == this)
    {
-      bool doResched = (child == _firstChild[LINKED_LIST_SCHEDULED]);
+      const bool doResched = (child == _firstChild[LINKED_LIST_SCHEDULED]);
       ReschedulePulseChild(child, -1);
       child->_parent = NULL;
       child->_myScheduledTimeValid = false;
@@ -116,7 +116,7 @@ void PulseNode :: ClearPulseChildren()
 
 void PulseNode :: ReschedulePulseChild(PulseNode * child, int whichList)
 {
-   int cl = child->_curList;
+   const int cl = child->_curList;
    if ((whichList != cl)||(cl == LINKED_LIST_SCHEDULED))  // since we may need to move within the scheduled list
    {
       // First, remove the child from any list he may currently be in

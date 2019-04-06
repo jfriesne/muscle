@@ -93,12 +93,12 @@ status_t MemoryParanoiaCheckBuffer(void * userPtr, bool crashIfInvalid)
          {
             foundCorruption = true;
             TCHECKPOINT;
-            printf("MEMORY GUARD CORRUPTION (%i words after rear):   buffer (%p,%u) (userptr=%p,%u) expected %p, got %p!\n", i+1, internalPtr, *internalPtr, userPtr, userBufLen, expectedRearVal, rearRead[i]);
+            printf("MEMORY GUARD CORRUPTION (%i words after rear):   buffer (%p,%zu) (userptr=%p,%zu) expected %p, got %p!\n", i+1, internalPtr, *internalPtr, userPtr, userBufLen, expectedRearVal, rearRead[i]);
          }
       }
       if (foundCorruption) 
       {
-         printf("CORRUPTED MEMORY BUFFER CONTENTS ARE (including %i front-guards and %i rear-guards of %u bytes each):\n", MUSCLE_ENABLE_MEMORY_PARANOIA, MUSCLE_ENABLE_MEMORY_PARANOIA, sizeof(size_t *));
+         printf("CORRUPTED MEMORY BUFFER CONTENTS ARE (including %i front-guards and %i rear-guards of %zu bytes each):\n", MUSCLE_ENABLE_MEMORY_PARANOIA, MUSCLE_ENABLE_MEMORY_PARANOIA, sizeof(size_t *));
          for (size_t i=0; i<*internalPtr; i++) printf("%02x ", ((char *)internalPtr)[i]); printf("\n");
          if (crashIfInvalid) 
          {
@@ -143,7 +143,7 @@ void * muscleAlloc(size_t userSize, bool retryOnFailure)
 {
    using namespace muscle;
 
-   size_t internalSize = CONVERT_USER_TO_INTERNAL_SIZE(userSize);
+   const size_t internalSize = CONVERT_USER_TO_INTERNAL_SIZE(userSize);
 
    void * userPtr = NULL;
    MemoryAllocator * ma = GetCPlusPlusGlobalMemoryAllocator()();
@@ -223,9 +223,9 @@ void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
       return NULL;
    }
 
-   size_t newInternalSize  = CONVERT_USER_TO_INTERNAL_SIZE(newUserSize);
-   size_t * oldInternalPtr = CONVERT_USER_TO_INTERNAL_POINTER(oldUserPtr);
-   size_t oldInternalSize  = *oldInternalPtr;
+   const size_t newInternalSize = CONVERT_USER_TO_INTERNAL_SIZE(newUserSize);
+   size_t * oldInternalPtr      = CONVERT_USER_TO_INTERNAL_POINTER(oldUserPtr);
+   const size_t oldInternalSize = *oldInternalPtr;
    if (newInternalSize == oldInternalSize) return oldUserPtr;  // same size as before?  Then we are already done!
 
    void * newUserPtr = NULL;
@@ -241,10 +241,10 @@ void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
    }
 #endif
 
-   size_t oldUserSize = CONVERT_INTERNAL_TO_USER_SIZE(oldInternalSize);
+   const size_t oldUserSize = CONVERT_INTERNAL_TO_USER_SIZE(oldInternalSize);
    if (newInternalSize > oldInternalSize)
    {
-      size_t growBy = newInternalSize-oldInternalSize;
+      const size_t growBy = newInternalSize-oldInternalSize;
       if ((ma == NULL)||(ma->AboutToAllocate(_currentlyAllocatedBytes, growBy) == B_NO_ERROR))
       {
          size_t * newInternalPtr = (size_t *) realloc(oldInternalPtr, newInternalSize);
@@ -288,7 +288,7 @@ void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
    }
    else
    {
-      size_t shrinkBy = oldInternalSize-newInternalSize;
+      const size_t shrinkBy = oldInternalSize-newInternalSize;
       if (ma) ma->AboutToFree(_currentlyAllocatedBytes, shrinkBy);
       size_t * newInternalPtr = (size_t *) realloc(oldInternalPtr, newInternalSize);
       if (newInternalPtr)

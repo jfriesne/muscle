@@ -141,7 +141,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
          if (inMsg)
          {
-            int32 bytesRead = GetDataIO()()->Read(&((char*)_recvBuf)[_recvBufByteOffset], muscleMin(maxBytes, (uint32)(_recvBufLength-_recvBufByteOffset)));
+            const int32 bytesRead = GetDataIO()()->Read(&((char*)_recvBuf)[_recvBufByteOffset], muscleMin(maxBytes, (uint32)(_recvBufLength-_recvBufByteOffset)));
                  if (bytesRead < 0) return -1;
             else if (bytesRead > 0)
             {
@@ -152,7 +152,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                   // This buffer is full... forward it on to the user, and start receiving the next one.
                   receiver.CallMessageReceivedFromGateway(_recvMsgRef);
                   _recvMsgRef.Reset();
-                  int32 subRet = IsSuggestedTimeSliceExpired() ? 0 : DoInputImplementation(receiver, maxBytes-bytesRead);
+                  const int32 subRet = IsSuggestedTimeSliceExpired() ? 0 : DoInputImplementation(receiver, maxBytes-bytesRead);
                   return (subRet >= 0) ? (ret+subRet) : -1;
                }
             }
@@ -174,7 +174,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             }
          }
 
-         int32 bytesRead = GetDataIO()()->Read(_recvScratchSpace, muscleMin(_recvScratchSpaceSize, maxBytes));
+         const int32 bytesRead = GetDataIO()()->Read(_recvScratchSpace, muscleMin(_recvScratchSpaceSize, maxBytes));
               if (bytesRead < 0) return -1;
          else if (bytesRead > 0)
          {
@@ -224,7 +224,7 @@ status_t CountedRawDataMessageIOGateway :: AddOutgoingMessage(const MessageRef &
 {
    if (RawDataMessageIOGateway::AddOutgoingMessage(messageRef) != B_NO_ERROR) return B_ERROR;
 
-   uint32 msgSize = GetNumRawBytesInMessage(messageRef);
+   const uint32 msgSize = GetNumRawBytesInMessage(messageRef);
    if (GetOutgoingMessageQueue().GetNumItems() > 1) _outgoingByteCount += msgSize;
                                                else _outgoingByteCount  = msgSize;  // semi-paranoia about meddling via GetOutgoingMessageQueue() access
    return B_NO_ERROR;
@@ -241,7 +241,7 @@ MessageRef CountedRawDataMessageIOGateway :: PopNextOutgoingMessage()
    MessageRef ret = RawDataMessageIOGateway::PopNextOutgoingMessage();
    if (GetOutgoingMessageQueue().HasItems())
    {
-      uint32 retSize = GetNumRawBytesInMessage(ret);
+      const uint32 retSize = GetNumRawBytesInMessage(ret);
       _outgoingByteCount = (retSize<_outgoingByteCount) ? (_outgoingByteCount-retSize) : 0;  // paranoia to avoid underflow
    }
    else _outgoingByteCount = 0;  // semi-paranoia about meddling via GetOutgoingMessageQueue() access

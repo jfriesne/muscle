@@ -75,9 +75,9 @@ MessageIOGateway :: SendMoreData(int32 & sentBytes, uint32 & maxBytes)
 {
    TCHECKPOINT;
 
-   const ByteBuffer * bb = _sendBuffer._buffer();
-   int32 attemptSize  = muscleMin(maxBytes, bb->GetNumBytes()-_sendBuffer._offset);
-   int32 numBytesSent = GetDataIO()()->Write(bb->GetBuffer()+_sendBuffer._offset, attemptSize);
+   const ByteBuffer * bb    = _sendBuffer._buffer();
+   const int32 attemptSize  = muscleMin(maxBytes, bb->GetNumBytes()-_sendBuffer._offset);
+   const int32 numBytesSent = GetDataIO()()->Write(bb->GetBuffer()+_sendBuffer._offset, attemptSize);
    if (numBytesSent >= 0)
    {
       maxBytes            -= numBytesSent;
@@ -138,10 +138,10 @@ DoOutputImplementation(uint32 maxBytes)
                if (_flattenedCallback) _flattenedCallback(nextRef, _flattenedCallbackData);
 
 #ifdef DELIBERATELY_INJECT_ERRORS_INTO_OUTGOING_MESSAGE_FOR_TESTING_ONLY_DONT_ENABLE_THIS_UNLESS_YOU_LIKE_CHAOS
- uint32 hs    = GetHeaderSize();
- uint32 bs    = _sendBuffer._buffer()->GetNumBytes() - hs;
- uint32 start = rand()%bs;
- uint32 end   = (start+5)%bs;
+ const uint32 hs    = GetHeaderSize();
+ const uint32 bs    = _sendBuffer._buffer()->GetNumBytes() - hs;
+ const uint32 start = rand()%bs;
+ const uint32 end   = (start+5)%bs;
  if (start > end) muscleSwap(start, end);
  printf("Bork! %u->%u\n", start, end);
  for (uint32 i=start; i<=end; i++) _sendBuffer._buffer()->GetBuffer()[i+hs] = (uint8) (rand()%256);
@@ -276,10 +276,10 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if (_recvBuffer._offset >= hs)  // how about now?
             {
                // Now that we have the full header, parse it and allocate space for the message-body-bytes per its instructions
-               int32 bodySize = GetBodySize(bb->GetBuffer());
+               const int32 bodySize = GetBodySize(bb->GetBuffer());
                if ((bodySize >= 0)&&(((uint32)bodySize) <= _maxIncomingMessageSize))
                {
-                  int32 availableBodyBytes = bb->GetNumBytes()-hs;
+                  const int32 availableBodyBytes = bb->GetNumBytes()-hs;
                   if (bodySize <= availableBodyBytes) (void) bb->SetNumBytes(hs+bodySize, true);  // trim off any extra space we don't need
                   else
                   {
@@ -327,8 +327,8 @@ MessageIOGateway :: ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32
 {
    TCHECKPOINT;
 
-   int32 attemptSize  = muscleMin(maxBytes, (uint32)((maxArraySize>_recvBuffer._offset)?(maxArraySize-_recvBuffer._offset):0));
-   int32 numBytesRead = GetDataIO()()->Read(_recvBuffer._buffer()->GetBuffer()+_recvBuffer._offset, attemptSize);
+   const int32 attemptSize  = muscleMin(maxBytes, (uint32)((maxArraySize>_recvBuffer._offset)?(maxArraySize-_recvBuffer._offset):0));
+   const int32 numBytesRead = GetDataIO()()->Read(_recvBuffer._buffer()->GetBuffer()+_recvBuffer._offset, attemptSize);
    if (numBytesRead >= 0)
    {
       maxBytes            -= numBytesRead;
@@ -349,7 +349,7 @@ GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const
 
    if (muscleInRange(newEncoding, (int32)MUSCLE_MESSAGE_ENCODING_ZLIB_1, (int32)MUSCLE_MESSAGE_ENCODING_ZLIB_9))
    {
-      int newLevel = (newEncoding-MUSCLE_MESSAGE_ENCODING_ZLIB_1)+1;
+      const int newLevel = (newEncoding-MUSCLE_MESSAGE_ENCODING_ZLIB_1)+1;
       if ((setCodec == NULL)||(newLevel != setCodec->GetCompressionLevel()))
       {
          delete setCodec;  // oops, encoding change!  Throw out the old codec, if any
@@ -455,7 +455,7 @@ UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const
             return MessageRef();
          }
 
-         int32 encoding = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(&lhb[1*sizeof(uint32)]));
+         const int32 encoding = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(&lhb[1*sizeof(uint32)]));
 
          const ByteBuffer * bb = bufRef();  // default; may be changed below
 
@@ -566,7 +566,7 @@ MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & 
 {
    MessageRef ret;
 
-   uint64 timeBeforeConnect = GetRunTime64();
+   const uint64 timeBeforeConnect = GetRunTime64();
    ConstSocketRef s = Connect(targetIAP, NULL, NULL, true, timeoutPeriod);
    if (s())
    {
@@ -589,13 +589,13 @@ MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & 
 status_t MessageIOGateway :: ExecuteSynchronousMessageSend(const Message & requestMessage, const IPAddressAndPort & targetIAP, uint64 timeoutPeriod)
 {
    status_t ret = B_ERROR;
-   uint64 timeBeforeConnect = GetRunTime64();
+   const uint64 timeBeforeConnect = GetRunTime64();
    ConstSocketRef s = Connect(targetIAP, NULL, NULL, true, timeoutPeriod);
    if (s())
    {
       if (timeoutPeriod != MUSCLE_TIME_NEVER)
       {
-         uint64 connectDuration = GetRunTime64()-timeBeforeConnect;
+         const uint64 connectDuration = GetRunTime64()-timeBeforeConnect;
          timeoutPeriod = (timeoutPeriod > connectDuration) ? (timeoutPeriod-connectDuration) : 0;
       }
  
@@ -624,7 +624,7 @@ status_t CountedMessageIOGateway :: AddOutgoingMessage(const MessageRef & messag
 {
    if (MessageIOGateway::AddOutgoingMessage(messageRef) != B_NO_ERROR) return B_ERROR;
 
-   uint32 msgSize = messageRef()?messageRef()->FlattenedSize():0;
+   const uint32 msgSize = messageRef()?messageRef()->FlattenedSize():0;
    if (GetOutgoingMessageQueue().GetNumItems() > 1) _outgoingByteCount += msgSize;
                                                else _outgoingByteCount  = msgSize;  // semi-paranoia about meddling via GetOutgoingMessageQueue() access
    return B_NO_ERROR;
@@ -642,7 +642,7 @@ status_t CountedMessageIOGateway :: PopNextOutgoingMessage(MessageRef & ret)
 
    if (GetOutgoingMessageQueue().HasItems())
    {
-      uint32 retSize = ret()?ret()->FlattenedSize():0;
+      const uint32 retSize = ret()?ret()->FlattenedSize():0;
       _outgoingByteCount = (retSize<_outgoingByteCount) ? (_outgoingByteCount-retSize) : 0;  // paranoia to avoid underflow
    }
    else _outgoingByteCount = 0;  // semi-paranoia about meddling via GetOutgoingMessageQueue() access

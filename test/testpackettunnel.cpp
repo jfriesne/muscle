@@ -43,7 +43,7 @@ protected:
             {
                for (uint32 i=0; i<spamLen; i++)
                {
-                  char c = 'A'+(((char)i)%26);
+                  const char c = 'A'+(((char)i)%26);
                   if (temp[i] != c)
                   {
                      LogTime(MUSCLE_LOG_ERROR, "Incoming Message's String was malformed! (i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") (expected %c, got %c\n", i, spamLen, c, temp[i]);
@@ -162,8 +162,8 @@ int main(int argc, char ** argv)
 
    uint64 nextSpamTime = 0;
    LogTime(MUSCLE_LOG_INFO, "%s Event loop starting [%s]...\n", useTCP?"TCP":"UDP", (spamInterval>0) ? "Broadcast mode" : "Receive mode");
-   int readFD  = dio()->GetReadSelectSocket().GetFileDescriptor();
-   int writeFD = dio()->GetWriteSelectSocket().GetFileDescriptor();
+   const int readFD  = dio()->GetReadSelectSocket().GetFileDescriptor();
+   const int writeFD = dio()->GetWriteSelectSocket().GetFileDescriptor();
    uint64 lastTime = 0;
    while(1)
    {
@@ -172,10 +172,10 @@ int main(int argc, char ** argv)
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
       if (multiplexer.WaitForEvents((spamInterval>0)?nextSpamTime:MUSCLE_TIME_NEVER) < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "testpackettunnel: WaitForEvents() failed!\n");
 
-      bool reading = multiplexer.IsSocketReadyForRead(readFD);
-      bool writing = multiplexer.IsSocketReadyForWrite(writeFD);
-      bool writeError = ((writing)&&(gw.DoOutput() < 0));
-      bool readError  = ((reading)&&(gw.DoInput(receiver) < 0));
+      const bool reading = multiplexer.IsSocketReadyForRead(readFD);
+      const bool writing = multiplexer.IsSocketReadyForWrite(writeFD);
+      const bool writeError = ((writing)&&(gw.DoOutput() < 0));
+      const bool readError  = ((reading)&&(gw.DoInput(receiver) < 0));
       if ((readError)||(writeError))
       {
          LogTime(MUSCLE_LOG_INFO, "%s:  Connection closed, exiting (%i,%i).\n", readError?"Read Error":"Write Error",readError,writeError);
@@ -184,11 +184,11 @@ int main(int argc, char ** argv)
 
       if (spamInterval > 0)
       {
-         uint64 now = GetRunTime64();
+         const uint64 now = GetRunTime64();
          if (now >= nextSpamTime)
          {
             nextSpamTime = now + spamInterval;
-            uint32 numMessages = rand() % 10;
+            const uint32 numMessages = rand() % 10;
 
             LogTime(MUSCLE_LOG_TRACE, "Spam! (" UINT32_FORMAT_SPEC " messages, counter=" UINT32_FORMAT_SPEC ")\n", numMessages, _sendWhatCounter);
 
@@ -198,7 +198,7 @@ int main(int argc, char ** argv)
                MessageRef m = GetMessageFromPool(_sendWhatCounter++);
                if (m())
                {
-                  uint32 spamLen = ((rand()%5)==0)?(rand()%(mtu*50)):(rand()%(mtu/5));
+                  const uint32 spamLen = ((rand()%5)==0)?(rand()%(mtu*50)):(rand()%(mtu/5));
                   char * tmp = new char[spamLen+1];
                   for (uint32 j=0; j<spamLen; j++) tmp[j] = 'A'+(((char)j)%26);
                   tmp[spamLen] = '\0';

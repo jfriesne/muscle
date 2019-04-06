@@ -62,7 +62,7 @@ status_t MultiQueryFilter :: SaveToArchive(Message & archive) const
 {
    if (QueryFilter::SaveToArchive(archive) != B_NO_ERROR) return B_ERROR;
 
-   uint32 numChildren = _children.GetNumItems();
+   const uint32 numChildren = _children.GetNumItems();
    for (uint32 i=0; i<numChildren; i++)
    {
       const QueryFilter * nextChild = _children[i]();
@@ -101,9 +101,9 @@ status_t AndOrQueryFilter :: SetFromArchive(const Message & archive)
 bool AndOrQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
 {
    const Queue<ConstQueryFilterRef> & kids = GetChildren();
-   uint32 numKids = kids.GetNumItems();
+   const uint32 numKids = kids.GetNumItems();
+   const uint32 threshold = muscleMin(_minMatches, numKids);
    uint32 matchCount = 0;
-   uint32 threshold  = muscleMin(_minMatches, numKids);
    for (uint32 i=0; i<numKids; i++)
    {
       if ((threshold-matchCount) > (numKids-i)) return false;  // might as well give up, even all-true wouldn't get us there now
@@ -130,9 +130,9 @@ status_t NandNotQueryFilter :: SetFromArchive(const Message & archive)
 bool NandNotQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
 {
    const Queue<ConstQueryFilterRef> & kids = GetChildren();
-   uint32 numKids = kids.GetNumItems();
+   const uint32 numKids = kids.GetNumItems();
+   const uint32 threshold  = muscleMin(_maxMatches, numKids);
    uint32 matchCount = 0;
-   uint32 threshold  = muscleMin(_maxMatches, numKids);
    for (uint32 i=0; i<numKids; i++)
    {
       if ((threshold-matchCount) > (numKids-i)) return true;  // might as well give up, even all-true wouldn't get us there now
@@ -146,7 +146,7 @@ bool NandNotQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNo
 bool XorQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
 {
    const Queue<ConstQueryFilterRef> & kids = GetChildren();
-   uint32 numKids = kids.GetNumItems();
+   const uint32 numKids = kids.GetNumItems();
    uint32 matchCount = 0;
    for (uint32 i=0; i<numKids; i++)
    {
@@ -279,7 +279,7 @@ status_t RawDataQueryFilter :: SaveToArchive(Message & archive) const
    const ByteBuffer * bb = _value();
    if (bb)
    {
-      uint32 numBytes = bb->GetNumBytes();
+      const uint32 numBytes = bb->GetNumBytes();
       const uint8 * bytes = bb->GetBuffer();
       if ((bytes)&&(numBytes > 0)&&(archive.AddData("val", B_RAW_TYPE, bytes, numBytes) != B_NO_ERROR)) return B_ERROR;
    }
@@ -287,7 +287,7 @@ status_t RawDataQueryFilter :: SaveToArchive(Message & archive) const
    const ByteBuffer * dd = _default();
    if (dd)
    {
-      uint32 numBytes = dd->GetNumBytes();
+      const uint32 numBytes = dd->GetNumBytes();
       const uint8 * bytes = dd->GetBuffer();
       if ((bytes)&&(archive.AddData("def", B_RAW_TYPE, bytes, numBytes) != B_NO_ERROR)) return B_ERROR;  // I'm deliberately not checking (numBytes>0) here!
    }
@@ -333,10 +333,10 @@ bool RawDataQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) cons
       else return false;
    }
 
-   const uint8 * hisBytes = (const uint8 *) hb;
-   uint32 myNumBytes     = _value() ? _value()->GetNumBytes() : 0;
-   const uint8 * myBytes = _value() ? _value()->GetBuffer()   : NULL;
-   uint32 clen           = muscleMin(myNumBytes, hisNumBytes);
+   const uint8 * hisBytes  = (const uint8 *) hb;
+   const uint32 myNumBytes = _value() ? _value()->GetNumBytes() : 0;
+   const uint8 * myBytes   = _value() ? _value()->GetBuffer()   : NULL;
+   const uint32 clen       = muscleMin(myNumBytes, hisNumBytes);
    if (myBytes == NULL) return false;
 
    switch(_op)
@@ -345,28 +345,28 @@ bool RawDataQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) cons
 
       case OP_LESS_THAN:                
       {
-         int mret = memcmp(hisBytes, myBytes, clen);
+         const int mret = memcmp(hisBytes, myBytes, clen);
          if (mret < 0) return true;
          return (mret == 0) ? (hisNumBytes < myNumBytes) : false;
       }
 
       case OP_GREATER_THAN:
       {
-         int mret = memcmp(hisBytes, myBytes, clen);
+         const int mret = memcmp(hisBytes, myBytes, clen);
          if (mret > 0) return true;
          return (mret == 0) ? (hisNumBytes > myNumBytes) : false;
       }
 
       case OP_LESS_THAN_OR_EQUAL_TO:
       {
-         int mret = memcmp(hisBytes, myBytes, clen);
+         const int mret = memcmp(hisBytes, myBytes, clen);
          if (mret <= 0) return true;
          return (mret == 0) ? (hisNumBytes <= myNumBytes) : false;
       }
 
       case OP_GREATER_THAN_OR_EQUAL_TO:
       {
-         int mret = memcmp(hisBytes, myBytes, clen);
+         const int mret = memcmp(hisBytes, myBytes, clen);
          if (mret >= 0) return true;
          return (mret == 0) ? (hisNumBytes >= myNumBytes) : false;
       }

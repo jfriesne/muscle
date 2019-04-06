@@ -135,7 +135,7 @@ int main(int argc, char ** argv)
    SocketMultiplexer multiplexer;
    while(s())
    {
-      int fd = s.GetFileDescriptor();
+      const int fd = s.GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(fd);
 
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
@@ -196,10 +196,10 @@ int main(int argc, char ** argv)
 
          text.Clear();
 
-         bool reading = multiplexer.IsSocketReadyForRead(fd);
-         bool writing = multiplexer.IsSocketReadyForWrite(fd);
-         bool writeError = ((writing)&&(gw.DoOutput() < 0));
-         bool readError  = ((reading)&&(gw.DoInput(inQueue) < 0));
+         const bool reading = multiplexer.IsSocketReadyForRead(fd);
+         const bool writing = multiplexer.IsSocketReadyForWrite(fd);
+         const bool writeError = ((writing)&&(gw.DoOutput() < 0));
+         const bool readError  = ((reading)&&(gw.DoInput(inQueue) < 0));
          if ((readError)||(writeError))
          {
             LogTime(MUSCLE_LOG_ERROR, "Connection closed, exiting.\n");
@@ -255,7 +255,7 @@ int main(int argc, char ** argv)
                   String nodepath;
                   for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, nodepath) == B_NO_ERROR); i++)
                   {
-                     int pathDepth = GetPathDepth(nodepath.Cstr());
+                     const int pathDepth = GetPathDepth(nodepath.Cstr());
                      if (pathDepth >= USER_NAME_DEPTH)
                      {
                         String sessionID = GetPathClause(SESSION_ID_DEPTH, nodepath.Cstr());
@@ -278,7 +278,7 @@ int main(int argc, char ** argv)
                   for (MessageFieldNameIterator iter = msg()->GetFieldNameIterator(B_MESSAGE_TYPE); iter.HasData(); iter++)
                   {
                      const String & np = iter.GetFieldName();
-                     int pathDepth = GetPathDepth(np());
+                     const int pathDepth = GetPathDepth(np());
                      if (pathDepth == USER_NAME_DEPTH)
                      {
                         MessageRef tempRef;

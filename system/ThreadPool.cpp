@@ -49,7 +49,7 @@ uint32 ThreadPool :: Shutdown()
    for (HashtableIterator<uint32, ThreadPoolThreadRef> iter(_activeThreads);    iter.HasData(); iter++) iter.GetValue()()->ShutdownInternalThread();
    for (HashtableIterator<IThreadPoolClient *, bool> iter(_registeredClients);  iter.HasData(); iter++) iter.GetKey()->_threadPool = NULL;  // so they won't try to unregister from us
 
-   uint32 ret = _availableThreads.GetNumItems()+_activeThreads.GetNumItems()+_registeredClients.GetNumItems()+_pendingMessages.GetNumItems()+_deferredMessages.GetNumItems()+_waitingForCompletion.GetNumItems();
+   const uint32 ret = _availableThreads.GetNumItems()+_activeThreads.GetNumItems()+_registeredClients.GetNumItems()+_pendingMessages.GetNumItems()+_deferredMessages.GetNumItems()+_waitingForCompletion.GetNumItems();
    _availableThreads.Clear();
    _activeThreads.Clear();
    _registeredClients.Clear();

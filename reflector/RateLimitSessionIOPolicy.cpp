@@ -73,7 +73,7 @@ UpdateTransferTally(uint64 now)
 {
    if (_maxRate > 0)
    {
-      uint32 newBytesAvailable = (_lastTransferAt > 0) ? ((uint32)(((now-_lastTransferAt)*_maxRate)/MICROS_PER_SECOND)) : MUSCLE_NO_LIMIT;
+      const uint32 newBytesAvailable = (_lastTransferAt > 0) ? ((uint32)(((now-_lastTransferAt)*_maxRate)/MICROS_PER_SECOND)) : MUSCLE_NO_LIMIT;
       if (_transferTally > newBytesAvailable) _transferTally -= newBytesAvailable;
                                          else _transferTally = 0;
    }

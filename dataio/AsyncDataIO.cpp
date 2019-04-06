@@ -20,7 +20,7 @@ int32 AsyncDataIO :: Read(void * buffer, uint32 size)
 int32 AsyncDataIO :: Write(const void * buffer, uint32 size)
 {
    if (IsInternalThreadRunning() == false) {LogTime(MUSCLE_LOG_ERROR, "StartInternalThread() must be called before calling AsyncDataIO::Write()!\n"); return -1;}
-   int32 ret = SendData(GetOwnerWakeupSocket(), buffer, size, false);
+   const int32 ret = SendData(GetOwnerWakeupSocket(), buffer, size, false);
    if (ret > 0) _mainThreadBytesWritten += ret;  // we count the bytes written, so that Seek()/Flush()/Shutdown() commands can be re-spliced into the stream later if necessary
    return ret;
 }
@@ -45,7 +45,7 @@ void AsyncDataIO :: FlushOutput()
    {
       if (_asyncCommandsMutex.Lock() == B_NO_ERROR)
       {
-         status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_FLUSH));
+         const status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_FLUSH));
          _asyncCommandsMutex.Unlock();
          if (ret == B_NO_ERROR) NotifyInternalThread();
       }
@@ -59,7 +59,7 @@ void AsyncDataIO :: Shutdown()
    {
       if (_asyncCommandsMutex.Lock() == B_NO_ERROR)
       {
-         status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_SHUTDOWN));
+         const status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_SHUTDOWN));
          _asyncCommandsMutex.Unlock();
          if (ret == B_NO_ERROR) NotifyInternalThread();
       }
@@ -81,7 +81,7 @@ status_t AsyncDataIO :: StartInternalThread()
 
 void AsyncDataIO :: NotifyInternalThread()
 {
-   char buf = 'j'; 
+   const char buf = 'j'; 
    (void) SendData(_mainThreadNotifySocket, &buf, sizeof(buf), false);
 }
 
@@ -131,7 +131,7 @@ void AsyncDataIO :: InternalThreadEntry()
       if (multiplexer.WaitForEvents(pulseTime) < 0) break; // we block here, waiting for data availability or for the next pulse time
       if (pulseTime != MUSCLE_TIME_NEVER)
       {
-         uint64 now = GetRunTime64();
+         const uint64 now = GetRunTime64();
          if (now >= pulseTime) InternalThreadPulse(pulseTime);
       }
 
@@ -166,7 +166,7 @@ void AsyncDataIO :: InternalThreadEntry()
          // Read the data from the child FD, into our from-child buffer
          if ((childReadFD >= 0)&&(fromChildIOBufNumValid < sizeof(fromChildIOBuf))&&(multiplexer.IsSocketReadyForRead(childReadFD)))
          {
-            int32 bytesRead = ProxyDataIO::Read(&fromChildIOBuf[fromChildIOBufNumValid], sizeof(fromChildIOBuf)-fromChildIOBufNumValid);
+            const int32 bytesRead = ProxyDataIO::Read(&fromChildIOBuf[fromChildIOBufNumValid], sizeof(fromChildIOBuf)-fromChildIOBufNumValid);
             if (bytesRead >= 0) fromChildIOBufNumValid += bytesRead;
                            else break;
          }
@@ -174,10 +174,10 @@ void AsyncDataIO :: InternalThreadEntry()
          if (childWriteFD >= 0)
          {
             // Write the data from our from-main-thread buffer, to our child I/O
-            uint32 bytesToWriteToChild = muscleMin(bytesUntilNextCommand, fromMainThreadBufNumValid-fromMainThreadBufReadIdx);
+            const uint32 bytesToWriteToChild = muscleMin(bytesUntilNextCommand, fromMainThreadBufNumValid-fromMainThreadBufReadIdx);
             if ((bytesToWriteToChild > 0)&&(multiplexer.IsSocketReadyForWrite(childWriteFD)))
             {
-               int32 bytesWritten = ProxyDataIO::Write(&fromMainThreadBuf[fromMainThreadBufReadIdx], bytesToWriteToChild);
+               const int32 bytesWritten = ProxyDataIO::Write(&fromMainThreadBuf[fromMainThreadBufReadIdx], bytesToWriteToChild);
                if (bytesWritten >= 0)
                {
                   ioThreadBytesWritten         += bytesWritten;
@@ -194,7 +194,7 @@ void AsyncDataIO :: InternalThreadEntry()
             // Read the data from the main thread's socket, into our from-main-thread buffer
             if ((fromMainThreadBufNumValid < sizeof(fromMainThreadBuf))&&(multiplexer.IsSocketReadyForRead(fromMainFD)))
             {
-               int32 bytesRead = ReceiveData(GetInternalThreadWakeupSocket(), &fromMainThreadBuf[fromMainThreadBufNumValid], sizeof(fromMainThreadBuf)-fromMainThreadBufNumValid, false);
+               const int32 bytesRead = ReceiveData(GetInternalThreadWakeupSocket(), &fromMainThreadBuf[fromMainThreadBufNumValid], sizeof(fromMainThreadBuf)-fromMainThreadBufNumValid, false);
                if (bytesRead >= 0) fromMainThreadBufNumValid += bytesRead;
                               else exitWhenDoneWriting = true;
             }
@@ -202,7 +202,7 @@ void AsyncDataIO :: InternalThreadEntry()
             // Write the data from our from-child-IO buffer, to the main thread's socket
             if ((fromChildIOBufReadIdx < fromChildIOBufNumValid)&&(multiplexer.IsSocketReadyForWrite(fromMainFD)))
             {
-               int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromChildIOBuf[fromChildIOBufReadIdx], fromChildIOBufNumValid-fromChildIOBufReadIdx, false);
+               const int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromChildIOBuf[fromChildIOBufReadIdx], fromChildIOBufNumValid-fromChildIOBufReadIdx, false);
                if (bytesWritten >= 0) 
                {
                   fromChildIOBufReadIdx += bytesWritten;
@@ -239,10 +239,10 @@ void AsyncDataIO :: InternalThreadEntry()
 // Should only be called from inside InternalThreadEntry() (e.g. by InternalThreadPulse())
 uint32 AsyncDataIO :: WriteToMainThread(const uint8 * bytes, uint32 numBytes, bool allowPartial)
 {
-   uint32 freeSpaceAvailable = _fromChildIOBufSize-(*_fromChildIOBufNumValid);
+   const uint32 freeSpaceAvailable = _fromChildIOBufSize-(*_fromChildIOBufNumValid);
    if ((allowPartial == false)&&(freeSpaceAvailable < numBytes)) return 0;
 
-   uint32 numToWrite = muscleMin(numBytes, freeSpaceAvailable);
+   const uint32 numToWrite = muscleMin(numBytes, freeSpaceAvailable);
    memcpy(_fromChildIOBuf+(*_fromChildIOBufNumValid), bytes, numToWrite);
    (*_fromChildIOBufNumValid) += numToWrite;
    return numToWrite;

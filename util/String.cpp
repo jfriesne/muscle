@@ -113,7 +113,7 @@ void String :: ClearAndFlush()
 status_t String :: SetFromString(const String & s, uint32 firstChar, uint32 afterLastChar)
 {
    afterLastChar = muscleMin(afterLastChar, s.Length());
-   uint32 len = (afterLastChar > firstChar) ? (afterLastChar-firstChar) : 0;
+   const uint32 len = (afterLastChar > firstChar) ? (afterLastChar-firstChar) : 0;
    if (len > 0)
    {
       if (EnsureBufferSize(len+1, false, false) != B_NO_ERROR) return B_ERROR;  // guaranteed not to realloc in the (&s==this) case
@@ -154,7 +154,7 @@ status_t String :: SetCstr(const char * str, uint32 maxLen)
 String &
 String :: operator+=(const String &other)
 {
-   uint32 otherLen = other.Length();  // save this value first, in case (&other==this)
+   const uint32 otherLen = other.Length();  // save this value first, in case (&other==this)
    if ((otherLen > 0)&&(EnsureBufferSize(Length()+otherLen+1, true, false) == B_NO_ERROR))
    {
       memmove(GetBuffer()+_length, other(), otherLen+1);  // memmove() is used in case (&other==this)
@@ -167,7 +167,7 @@ String &
 String :: operator+=(const char * other)
 {
    if (other == NULL) other = "";
-   uint32 otherLen = (uint32) strlen(other);
+   const uint32 otherLen = (uint32) strlen(other);
    if (otherLen > 0)
    {
       if (IsCharInLocalArray(other)) return operator+=(String(other,otherLen));  // avoid potential free-ing of (other) inside EnsureBufferSize()
@@ -182,7 +182,7 @@ String :: operator+=(const char * other)
 
 String & String :: operator-=(const char aChar)
 {
-   int idx = LastIndexOf(aChar);
+   const int idx = LastIndexOf(aChar);
    if (idx >= 0)
    {
       char * b = GetBuffer();
@@ -197,10 +197,10 @@ String & String :: operator-=(const String &other)
         if (*this == other) Clear();
    else if (other.HasChars())
    {
-      int idx = LastIndexOf(other);
+      const int idx = LastIndexOf(other);
       if (idx >= 0)
       {
-         uint32 newEndIdx = idx+other.Length();
+         const uint32 newEndIdx = idx+other.Length();
          char * b = GetBuffer();
          memmove(b+idx, b+newEndIdx, 1+_length-newEndIdx);
          _length -= other.Length();
@@ -211,13 +211,13 @@ String & String :: operator-=(const String &other)
 
 String & String :: operator-=(const char * other)
 {
-   int otherLen = ((other)&&(*other)) ? (int)strlen(other) : 0;
+   const int otherLen = ((other)&&(*other)) ? (int)strlen(other) : 0;
    if (otherLen > 0)
    {
-      int idx = LastIndexOf(other);
+      const int idx = LastIndexOf(other);
       if (idx >= 0)
       {
-         uint32 newEndIdx = idx+otherLen;
+         const uint32 newEndIdx = idx+otherLen;
          char * b = GetBuffer();
          memmove(b+idx, b+newEndIdx, 1+_length-newEndIdx);
          _length -= otherLen;
@@ -228,16 +228,16 @@ String & String :: operator-=(const char * other)
 
 String & String :: operator<<(int rhs)
 {
-   char buff[64];
-   muscleSprintf(buff, "%d", rhs);
-   return *this << buff;
+   char buf[64];
+   muscleSprintf(buf, "%d", rhs);
+   return *this << buf;
 }
 
 String & String :: operator<<(float rhs)
 {
-   char buff[64];
-   muscleSprintf(buff, "%.2f", rhs);
-   return *this << buff;
+   char buf[64];
+   muscleSprintf(buf, "%.2f", rhs);
+   return *this << buf;
 }
 
 String & String :: operator<<(bool rhs)
@@ -295,7 +295,7 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
    if (&withMe    == this)   return Replace(replaceMe, String(withMe), maxReplaceCount);       // avoid self-entanglement
 
    String temp;
-   int32 perInstanceDelta = ((int32)withMe.Length())-((int32)replaceMe.Length());
+   const int32 perInstanceDelta = ((int32)withMe.Length())-((int32)replaceMe.Length());
    if (perInstanceDelta > 0)
    {
       // If we are replacing a shorter string with a longer string, we'll have to do a copy-and-swap
@@ -332,7 +332,7 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
          if (writePtr)
          {
             // Finish up
-            uint32 numBytes = (uint32) (Cstr()+Length()-readPtr);
+            const uint32 numBytes = (uint32) (Cstr()+Length()-readPtr);
             if (perInstanceDelta != 0) memmove(writePtr, readPtr, numBytes);
             writePtr += numBytes;
             *writePtr = '\0';
@@ -371,7 +371,7 @@ int String :: LastIndexOf(const char * s2, uint32 fromIndex) const
    TCHECKPOINT;
 
    if (s2 == NULL) s2 = "";
-   uint32 s2Len = (uint32) strlen(s2);
+   const uint32 s2Len = (uint32) strlen(s2);
    if (s2Len == 0) return Length()-1;
    if (fromIndex >= Length()) return -1;
    for (int i=fromIndex; i>=0; i--) if (strncmp(Cstr()+i, s2, s2Len) == 0) return i;
@@ -394,7 +394,7 @@ String String :: ToMixedCase() const
    for (uint32 i=0; i<ret.Length(); i++) 
    {
       char & c = b[i];
-      bool charIsLetter = (muscleInRange(c, 'a', 'z'))||(muscleInRange(c, 'A', 'Z'))||(muscleInRange(c, '0', '9'));  // yes, digits count as letters, dontcha know
+      const bool charIsLetter = (muscleInRange(c, 'a', 'z'))||(muscleInRange(c, 'A', 'Z'))||(muscleInRange(c, '0', '9'));  // yes, digits count as letters, dontcha know
       c = prevCharWasLetter ? (char)tolower(c) : (char)toupper(c);
       prevCharWasLetter = charIsLetter;
    }
@@ -413,7 +413,7 @@ String String :: Trim() const
 {
    TCHECKPOINT;
 
-   int32 len = (int32) Length();
+   const int32 len = (int32) Length();
    const char * s = Cstr();
    int32 startIdx; for (startIdx = 0;     startIdx<len;    startIdx++) if (!IsSpaceChar(s[startIdx])) break; 
    int32 endIdx;   for (endIdx   = len-1; endIdx>startIdx; endIdx--)   if (!IsSpaceChar(s[endIdx]))   break; 
@@ -451,7 +451,7 @@ uint32 String :: GetNumInstancesOf(const char * substring) const
 
    if (substring == NULL) substring = "";
    uint32 ret = 0;
-   uint32 substringLength = (uint32) strlen(substring);
+   const uint32 substringLength = (uint32) strlen(substring);
    if (substringLength > 0)
    {
       uint32 lastIdx = 0;
@@ -472,7 +472,7 @@ String String :: Prepend(const String & str, uint32 count) const
    if (&str == this) return Prepend(String(str), count);  // avoid self-entanglement
 
    String ret;
-   uint32 newLen = (count*str.Length())+Length();
+   const uint32 newLen = (count*str.Length())+Length();
    if (ret.Prealloc(newLen) == B_NO_ERROR)
    {
       char * b = ret.GetBuffer();
@@ -506,9 +506,9 @@ String String :: Prepend(const char * str, uint32 count) const
    else if (IsCharInLocalArray(str))       return Prepend(String(str), count);  // avoid self-entanglement!
    else
    {
-      uint32 sLen = (uint32) strlen(str);
+      const uint32 sLen = (uint32) strlen(str);
       String ret;
-      uint32 newLen = (count*sLen)+Length();
+      const uint32 newLen = (count*sLen)+Length();
       if (ret.Prealloc(newLen) == B_NO_ERROR)
       {
          char * b = ret.GetBuffer();
@@ -541,7 +541,7 @@ String String :: Append(const String & str, uint32 count) const
    if (&str == this) return Append(String(str), count);  // avoid self-entanglement
 
    String ret;
-   uint32 newLen = Length()+(count*str.Length());
+   const uint32 newLen = Length()+(count*str.Length());
    if (ret.Prealloc(newLen) == B_NO_ERROR)
    {
       char * b = ret.GetBuffer();
@@ -573,9 +573,9 @@ String String :: Append(const char * str, uint32 count) const
    else if (IsCharInLocalArray(str))       return Append(String(str), count);  // avoid self-entanglement!
    else
    {
-      uint32 sLen = (uint32) strlen(str);
+      const uint32 sLen = (uint32) strlen(str);
       String ret;
-      uint32 newLen = Length()+(count*sLen);
+      const uint32 newLen = Length()+(count*sLen);
       if (ret.Prealloc(newLen) == B_NO_ERROR)
       {
          char * b = ret.GetBuffer();
@@ -648,7 +648,7 @@ static uint32 GetNextBufferSize(uint32 bufLen)
    // For large (multi-page) allocations, we'll increase by one page.  According to Trolltech, modern implementations
    // of realloc() don't actually copy the entire large buffer, they just rearrange the memory map and add
    // a new page to the end, so this will be more efficient than it appears.
-   uint32 curNumPages = (bufLen+STRING_MALLOC_OVERHEAD)/STRING_PAGE_SIZE; 
+   const uint32 curNumPages = (bufLen+STRING_MALLOC_OVERHEAD)/STRING_PAGE_SIZE; 
    return ((curNumPages+1)*STRING_PAGE_SIZE)-STRING_MALLOC_OVERHEAD;
 }
 
@@ -663,16 +663,16 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
    // If we're doing a first-time allocation or a shrink, allocate exactly the number of the bytes requested.
    // If it's a re-allocation, allocate more than requested in the hopes avoiding another realloc in the future.
    char * newBuf = NULL;
-   bool arrayWasDynamicallyAllocated = IsArrayDynamicallyAllocated();
-   uint32 newBufLen = ((allowShrink)||(requestedBufLen <= SMALL_MUSCLE_STRING_LENGTH+1)||((IsEmpty())&&(!arrayWasDynamicallyAllocated))) ? requestedBufLen : GetNextBufferSize(requestedBufLen);
+   const bool arrayWasDynamicallyAllocated = IsArrayDynamicallyAllocated();
+   const uint32 newBufLen = ((allowShrink)||(requestedBufLen <= SMALL_MUSCLE_STRING_LENGTH+1)||((IsEmpty())&&(!arrayWasDynamicallyAllocated))) ? requestedBufLen : GetNextBufferSize(requestedBufLen);
    if (newBufLen == 0)
    {
       ClearAndFlush();
       return B_NO_ERROR; 
    }
 
-   bool goToSmallBufferMode = ((allowShrink)&&(newBufLen <= (SMALL_MUSCLE_STRING_LENGTH+1)));
-   uint32 newMaxLength = newBufLen-1;
+   const bool goToSmallBufferMode = ((allowShrink)&&(newBufLen <= (SMALL_MUSCLE_STRING_LENGTH+1)));
+   const uint32 newMaxLength = newBufLen-1;
    if (retainValue)
    {
       if (arrayWasDynamicallyAllocated)
@@ -742,7 +742,7 @@ String String :: Pad(uint32 minLength, bool padOnRight, char padChar) const
 {
    if (Length() < minLength)
    {
-      uint32 padLen = minLength-Length();
+      const uint32 padLen = minLength-Length();
       String temp; temp += padChar;
       return (padOnRight) ? Append(temp, padLen) : Prepend(temp, padLen);
    }
@@ -753,7 +753,7 @@ String String :: Indent(uint32 numIndentChars, char indentChar) const
 {
    if ((numIndentChars == 0)||(indentChar == '\0')) return *this;
 
-   String pad = String().Pad(numIndentChars);
+   const String pad = String().Pad(numIndentChars);
    String ret;
    if ((StartsWith('\r'))||(StartsWith('\n'))) ret = pad;
 
@@ -797,9 +797,9 @@ String String :: WithoutSuffix(const String & str, uint32 maxToRemove) const
 
 String String :: WithoutPrefix(char c, uint32 maxToRemove) const
 {
-   String ret = *this;
    uint32 numInitialChars = 0;
-   for (uint32 i=0; i<ret.Length(); i++)
+   const uint32 len = Length();
+   for (uint32 i=0; i<len; i++)
    {
       if ((*this)[i] == c) 
       {
@@ -808,13 +808,16 @@ String String :: WithoutPrefix(char c, uint32 maxToRemove) const
       }
       else break;
    }
+
    return Substring(numInitialChars);
 }
 
 String String :: WithoutPrefix(const String & str, uint32 maxToRemove) const 
 {
+   if (StartsWith(str) == false) return *this;
+
    String ret = *this;
-   while(ret.StartsWith(str)) 
+   while(ret.StartsWith(str))
    {
       ret = ret.Substring(str.Length());
       if (--maxToRemove == 0) break;
@@ -824,8 +827,10 @@ String String :: WithoutPrefix(const String & str, uint32 maxToRemove) const
 
 String String :: WithoutSuffixIgnoreCase(char c, uint32 maxToRemove) const
 {
+   if (EndsWithIgnoreCase(c) == false) return *this;
+
    String ret = *this;
-   while(ret.EndsWithIgnoreCase(c)) 
+   while(ret.EndsWithIgnoreCase(c))
    {
       ret--;
       if (--maxToRemove == 0) break;
@@ -835,8 +840,10 @@ String String :: WithoutSuffixIgnoreCase(char c, uint32 maxToRemove) const
 
 String String :: WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove) const
 {
+   if (EndsWithIgnoreCase(str) == false) return *this;
+
    String ret = *this;
-   while(ret.EndsWithIgnoreCase(str)) 
+   while(ret.EndsWithIgnoreCase(str))
    {
       ret.TruncateChars(str.Length());
       if (--maxToRemove == 0) break;
@@ -846,14 +853,14 @@ String String :: WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove)
 
 String String :: WithoutPrefixIgnoreCase(char c, uint32 maxToRemove) const
 {
-   char cU = (char) toupper(c);
-   char cL = (char) tolower(c);
+   const char cU = (char) toupper(c);
+   const char cL = (char) tolower(c);
 
    String ret = *this;
    uint32 numInitialChars = 0;
    for (uint32 i=0; i<ret.Length(); i++)
    {
-      char n = (*this)[i];
+      const char n = (*this)[i];
       if ((n==cU)||(n==cL))
       {
          numInitialChars++;
@@ -866,6 +873,8 @@ String String :: WithoutPrefixIgnoreCase(char c, uint32 maxToRemove) const
 
 String String :: WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove) const 
 {
+   if (StartsWithIgnoreCase(str) == false) return *this;
+
    String ret = *this;
    while(ret.StartsWithIgnoreCase(str)) 
    {

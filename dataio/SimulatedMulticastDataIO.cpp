@@ -328,7 +328,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
 
       // Block until it is time to do something
       MessageRef msgRef;
-      int32 numLeft = WaitForNextMessageFromOwner(msgRef, nextMulticastPingTime);
+      const int32 numLeft = WaitForNextMessageFromOwner(msgRef, nextMulticastPingTime);
       if (numLeft >= 0)
       {
          if (msgRef())

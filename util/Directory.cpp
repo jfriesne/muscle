@@ -45,9 +45,9 @@ static DIR * opendir(const char *name)
    DIR * dir = NULL;
    if((name)&&(name[0]))
    {
-      size_t base_length = strlen(name);
+      const size_t base_length = strlen(name);
       const char *all = strchr("/\\", name[base_length - 1]) ? "*" : "/*";
-      size_t nameLen = base_length + strlen(all) + 1;
+      const size_t nameLen = base_length + strlen(all) + 1;
       if (((dir = (DIR *)malloc(sizeof *dir)) != NULL) && ((dir->name = (char *) malloc(nameLen)) != NULL))
       {
          muscleStrncpy(dir->name, name, nameLen);
@@ -114,7 +114,7 @@ static void rewinddir(DIR *dir)
 void Directory :: operator++(int)
 {
    DIR * dir = (DIR *) _dirPtr;
-   struct dirent * entry = dir ? readdir(dir) : NULL;
+   const struct dirent * entry = dir ? readdir(dir) : NULL;
    _currentFileName = entry ? entry->d_name : NULL;
 }
 
@@ -149,11 +149,11 @@ status_t Directory :: SetDir(const char * dirPath)
    Reset();
    if (dirPath)
    {
-      int pathLen = (int) strlen(dirPath);
+      const int pathLen = (int) strlen(dirPath);
       const char * sep = GetFilePathSeparator();
-      int sepLen = (int) strlen(sep);
-      int extraBytes = ((pathLen<sepLen)||(strcmp(dirPath+pathLen-sepLen, sep) != 0)) ? sepLen : 0;
-      int allocLen = pathLen+extraBytes+1;
+      const int sepLen = (int) strlen(sep);
+      const int extraBytes = ((pathLen<sepLen)||(strcmp(dirPath+pathLen-sepLen, sep) != 0)) ? sepLen : 0;
+      const int allocLen = pathLen+extraBytes+1;
       _path = newnothrow_array(char, allocLen);
       if (_path == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
       muscleStrncpy(_path, dirPath, allocLen);
@@ -207,14 +207,14 @@ status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParent
 
 status_t Directory :: MakeDirectoryForFile(const char * filePath)
 {
-   int pathLen = (int) strlen(filePath);
+   const int pathLen = (int) strlen(filePath);
    char * p = newnothrow_array(char, pathLen+1);
    if (p == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
 
    muscleStrncpy(p, filePath, pathLen+1);
    char * lastSep = strrchr(p, GetFilePathSeparator()[0]);
    if (lastSep) *lastSep = '\0';  // truncate the file name 
-   status_t ret = lastSep ? MakeDirectory(p, true) : B_NO_ERROR;  // No directory clauses?  then there's nothing for us to do.
+   const status_t ret = lastSep ? MakeDirectory(p, true) : B_NO_ERROR;  // No directory clauses?  then there's nothing for us to do.
    delete [] p;
    return ret;
 }
@@ -226,9 +226,9 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
       Directory d;
       if ((dirPath==NULL)||(d.SetDir(dirPath) != B_NO_ERROR)) return B_ERROR;
 
-      const char * sep = GetFilePathSeparator();
-      int sepLen       = (int) strlen(sep);
-      int dirPathLen   = (int) strlen(dirPath);
+      const char * sep       = GetFilePathSeparator();
+      const int dirPathLen   = (int) strlen(dirPath);
+      int sepLen             = (int) strlen(sep);
 
       // No point in including a separator if (dirPath) already ends in one
       if ((dirPathLen >= sepLen)&&(strcmp(&dirPath[dirPathLen-sepLen], sep) == 0)) {sep = ""; sepLen=0;}
@@ -237,9 +237,9 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
       {
          if ((strcmp(fn, ".") != 0)&&(strcmp(fn, "..") != 0))
          {
-            int fnLen = (int) strlen(fn);
-            int catLen = dirPathLen+sepLen+fnLen+1;
-            char * catStr = newnothrow_array(char, catLen);
+            const int fnLen  = (int) strlen(fn);
+            const int catLen = dirPathLen+sepLen+fnLen+1;
+            char * catStr    = newnothrow_array(char, catLen);
             if (catStr == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
 
             // Compose the sub-item's full path
@@ -249,11 +249,11 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
 
             // First, try to delete the sub-item as a file; if not, as a directory
 #ifdef _MSC_VER
-            int unlinkRet = _unlink(catStr);  // stupid MSVC!
+            const int unlinkRet = _unlink(catStr);  // stupid MSVC!
 #else
-            int unlinkRet = unlink(catStr);
+            const int unlinkRet = unlink(catStr);
 #endif
-            status_t ret = (unlinkRet == 0) ? B_NO_ERROR : Directory::DeleteDirectory(catStr, true);
+            const status_t ret = (unlinkRet == 0) ? B_NO_ERROR : Directory::DeleteDirectory(catStr, true);
             delete [] catStr;
             if (ret != B_NO_ERROR) return ret;
          }

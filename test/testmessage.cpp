@@ -305,7 +305,7 @@ int main(int, char **)
    printSep("Extracted subsubMessage!\n");
    subExtract.PrintToStream();
 
-   uint32 flatSize = msg.FlattenedSize();
+   const uint32 flatSize = msg.FlattenedSize();
    printf("FlatSize=" UINT32_FORMAT_SPEC "\n",flatSize);
    uint8 * buf = new uint8[flatSize*10];
    {for (uint32 i=flatSize; i<flatSize*10; i++) buf[i] = 'J';}

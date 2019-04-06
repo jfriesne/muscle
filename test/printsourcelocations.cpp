@@ -33,10 +33,10 @@ static void CheckFile(const String & path, Queue<String> & codes)
          const String * line;
          for (uint32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &line) == B_NO_ERROR; i++)
          {
-            int32 ltIdx = line->IndexOf("LogTime(");
+            const int32 ltIdx = line->IndexOf("LogTime(");
             if (ltIdx >= 0)
             {
-               int32 commentIdx = line->IndexOf("//");   // don't include LogTime() calls that are commented out
+               const int32 commentIdx = line->IndexOf("//");   // don't include LogTime() calls that are commented out
                if ((commentIdx < 0)||(commentIdx > ltIdx)) 
                {
                   const String loc = SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber));
@@ -59,7 +59,7 @@ static void DoSearch(const String & path, Queue<String> & codes)
       {
          if (nextName[0] != '.')
          {
-            String subPath = path + GetFilePathSeparator() + nextName;
+            const String subPath = path + GetFilePathSeparator() + nextName;
             FilePathInfo fpi(subPath());
                  if (fpi.IsDirectory()) DoSearch(subPath, codes);
             else if (fpi.IsRegularFile())

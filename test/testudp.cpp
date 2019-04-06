@@ -78,7 +78,7 @@ int main(int argc, char ** argv)
    printf("UDP Event loop starting...\n");
    while(s())
    {
-      int fd = s.GetFileDescriptor();
+      const int fd = s.GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(fd);
 
       if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
@@ -208,10 +208,10 @@ int main(int argc, char ** argv)
             text[0] = '\0';
          }
    
-         bool reading = multiplexer.IsSocketReadyForRead(fd);
-         bool writing = multiplexer.IsSocketReadyForWrite(fd);
-         bool writeError = ((writing)&&(agw()->DoOutput() < 0));
-         bool readError  = ((reading)&&(agw()->DoInput(inQueue) < 0));
+         const bool reading = multiplexer.IsSocketReadyForRead(fd);
+         const bool writing = multiplexer.IsSocketReadyForWrite(fd);
+         const bool writeError = ((writing)&&(agw()->DoOutput() < 0));
+         const bool readError  = ((reading)&&(agw()->DoInput(inQueue) < 0));
          if ((readError)||(writeError))
          {
             printf("%s:  Connection closed, exiting.\n", readError?"Read Error":"Write Error");

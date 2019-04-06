@@ -39,14 +39,14 @@ int main(int argc, char ** argv)
       gw.SetDataIO(DataIORef(new TCPSocketDataIO(s, false)));
       while(true)
       {
-         int fd = s.GetFileDescriptor();
+         const int fd = s.GetFileDescriptor();
          multiplexer.RegisterSocketForReadReady(fd);
          multiplexer.RegisterSocketForWriteReady(fd);
 
          if (multiplexer.WaitForEvents() < 0) printf("uploadstress: WaitForEvents() failed!\n");
 
-         bool reading = multiplexer.IsSocketReadyForRead(fd);
-         bool writing = multiplexer.IsSocketReadyForWrite(fd);
+         const bool reading = multiplexer.IsSocketReadyForRead(fd);
+         const bool writing = multiplexer.IsSocketReadyForWrite(fd);
 
          if (gw.HasBytesToOutput() == false)
          {
@@ -61,8 +61,8 @@ int main(int argc, char ** argv)
             gw.AddOutgoingMessage(smsg);
          }
 
-         bool writeError = ((writing)&&(gw.DoOutput() < 0));
-         bool readError  = ((reading)&&(gw.DoInput(inQueue) < 0));
+         const bool writeError = ((writing)&&(gw.DoOutput() < 0));
+         const bool readError  = ((reading)&&(gw.DoInput(inQueue) < 0));
          if ((readError)||(writeError))
          {
             printf("Connection closed, exiting.\n");

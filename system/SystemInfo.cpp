@@ -125,7 +125,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       case SYSTEM_PATH_EXECUTABLE: // executable's directory
       {
 #ifdef WIN32
-         DWORD len = GetModuleFileNameA(NULL, buf, sizeof(buf));
+         const DWORD len = GetModuleFileNameA(NULL, buf, sizeof(buf));
          if ((len > 0)&&(len < sizeof(buf)))
          {
             found = true;
@@ -157,7 +157,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
          // And it can't hurt to at least try it under other OS's, anyway...
          char linkName[64]; muscleSprintf(linkName, "/proc/%i/exe", getpid());
          char linkVal[1024];
-         int rl = readlink(linkName, linkVal, sizeof(linkVal));
+         const int rl = readlink(linkName, linkVal, sizeof(linkVal));
          if ((rl >= 0)&&(rl < (int)sizeof(linkVal)))
          {
             linkVal[rl] = '\0';  // gotta terminate the string!
@@ -228,7 +228,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       {
 #ifdef WIN32
          char homeDrive[4096];
-         DWORD res = GetEnvironmentVariableA("HOMEDRIVE", homeDrive, sizeof(homeDrive));
+         const DWORD res = GetEnvironmentVariableA("HOMEDRIVE", homeDrive, sizeof(homeDrive));
          if (res > 0)
          {
             outStr = homeDrive;
