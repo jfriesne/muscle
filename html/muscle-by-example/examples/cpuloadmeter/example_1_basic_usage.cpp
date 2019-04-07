@@ -11,7 +11,7 @@ static void PrintExampleDescription()
    printf("\n");
 }
 
-/* This little program demonstrates basic usage of the muscle::String class */
+/* This little program demonstrates basic usage of the muscle::CPULoadMeter class */
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;

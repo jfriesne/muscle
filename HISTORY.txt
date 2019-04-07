@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.13 Released 4/6/2019
    - Added <, <=, >=, and > operators to the Queue class, to
      allow for easy lexicographical comparison of Queues.
    o Modified SharedFilterSessionFactory::IsAccessAllowedForIP()

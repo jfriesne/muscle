@@ -250,7 +250,7 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
    struct iovec iov = {buf, sizeof(buf)};
    struct sockaddr_nl sa;
    struct msghdr msg = {(void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
-   const int msgLen = recvmsg(fd, &msg, 0);
+   int msgLen = recvmsg(fd, &msg, 0);
    if (msgLen >= 0)  // FogBugz #9620
    {
       for (struct nlmsghdr *nh = (struct nlmsghdr *)buf; ((sendReport == false)&&(NLMSG_OK(nh, (unsigned int)msgLen))); nh=NLMSG_NEXT(nh, msgLen))
@@ -264,7 +264,7 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
                case RTM_NEWLINK: case RTM_DELLINK: case RTM_NEWADDR: case RTM_DELADDR:
                {
                   struct ifinfomsg * iface = (struct ifinfomsg *) NLMSG_DATA(nh);
-                  const int nextLen = nh->nlmsg_len - NLMSG_LENGTH(sizeof(*iface));
+                  int nextLen = nh->nlmsg_len - NLMSG_LENGTH(sizeof(*iface));
                   for (struct rtattr * a = IFLA_RTA(iface); RTA_OK(a, nextLen); a = RTA_NEXT(a, nextLen))
                      if (a->rta_type == IFLA_IFNAME)
                        (void) _pendingChangedInterfaceNames.PutWithDefault((const char *) RTA_DATA(a));
