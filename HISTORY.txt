@@ -5,6 +5,12 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added new convenience methods to the Hashtable class:
+     PutAtFront(), PutAtBack(), PutBefore(), PutBehind(), and
+     PutAtPosition().  (These are similar to Put() but allow
+     the caller to simultaneously specify the object's 
+     desired position in the Hashtable's iteration-sequence)
+
 7.13 Released 4/6/2019
    - Added <, <=, >=, and > operators to the Queue class, to
      allow for easy lexicographical comparison of Queues.

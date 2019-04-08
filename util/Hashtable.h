@@ -613,52 +613,49 @@ public:
    void SwapContents(HashtableBase & swapMe) {SwapContentsAux(swapMe, true);}
 
    /** Moves the given entry to the head of the HashtableIterator traversal sequence.
-     * Note that calling this method is generally a bad idea if the table is in auto-sort mode,
-     * as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
-     * calling Sort() will restore the sort-order and make auto-sorting work again)
      * @param moveMe Key of the item to be moved to the front of the sequence.
      * @return B_NO_ERROR on success, or B_ERROR if (moveMe) was not found in the table.
+     * @note calling this method is generally a bad idea if the table is in auto-sort mode,
+     *       as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
+     *       calling Sort() will restore the sort-order and make auto-sorting work again)
      */
    status_t MoveToFront(const KeyType & moveMe);
 
    /** Moves the given entry to the tail of the HashtableIterator traversal sequence.
-     * Note that calling this method is generally a bad idea if the table is in auto-sort mode,
-     * as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
-     * calling Sort() will restore the sort-order and make auto-sorting work again)
      * @param moveMe Key of the item to be moved to the end of the sequence.
      * @return B_NO_ERROR on success, or B_ERROR if (moveMe) was not found in the table.
+     * @note calling this method is generally a bad idea if the table is in auto-sort mode,
+     *       as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
+     *       calling Sort() will restore the sort-order and make auto-sorting work again)
      */
    status_t MoveToBack(const KeyType & moveMe);
 
    /** Moves the given entry to the spot just in front of the other specified entry in the 
      * HashtableIterator traversal sequence.
-     * Note that calling this method is generally a bad idea if the table is in auto-sort mode,
-     * as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
-     * calling Sort() will restore the sort-order and make auto-sorting work again)
      * @param moveMe Key of the item to be moved.
      * @param toBeforeMe Key of the item that (moveMe) should be placed in front of.
      * @return B_NO_ERROR on success, or B_ERROR if (moveMe) was not found in the table, 
      *         or was the same item as (toBeforeMe).
+     * @note calling this method is generally a bad idea if the table is in auto-sort mode,
+     *       as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
+     *       calling Sort() will restore the sort-order and make auto-sorting work again)
      */
    status_t MoveToBefore(const KeyType & moveMe, const KeyType & toBeforeMe);
 
    /** Moves the given entry to the spot just behind the other specified entry in the 
      * HashtableIterator traversal sequence.
-     * Note that calling this method is generally a bad idea if the table is in auto-sort mode,
-     * as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
-     * calling Sort() will restore the sort-order and make auto-sorting work again)
      * @param moveMe Key of the item to be moved.
      * @param toBehindMe Key of the item that (moveMe) should be placed behind.
      * @return B_NO_ERROR on success, or B_ERROR if (moveMe) was not found in the table, 
      *         or was the same item as (toBehindMe).
+     * @note calling this method is generally a bad idea if the table is in auto-sort mode,
+     *       as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
+     *       calling Sort() will restore the sort-order and make auto-sorting work again)
      */
    status_t MoveToBehind(const KeyType & moveMe, const KeyType & toBehindMe);
 
    /** Moves the given entry to the (nth) position in the HashtableIterator traversal sequence.
      * Note that this is an O(N) operation.
-     * Note that calling this method is generally a bad idea if the table is in auto-sort mode,
-     * as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
-     * calling Sort() will restore the sort-order and make auto-sorting work again)
      * @param moveMe Key of the item to be moved.
      * @param toPosition The position that this item should be moved to.  Zero would move
      *                   the item to the head of the traversal sequence, one to the second
@@ -1328,6 +1325,29 @@ private:
       }
    }
 
+   void MoveToPositionAux(HashtableEntryBase * moveMe, uint32 idx)
+   {
+           if (idx == 0)             this->MoveToFrontAux(moveMe);
+      else if (idx >= GetNumItems()) this->MoveToBackAux(moveMe);
+      else 
+      {
+         RemoveIterationEntry(moveMe);
+
+         HashtableEntryBase * insertAfter;
+         if (idx < GetNumItems()/2)
+         {
+            insertAfter = this->IndexToEntryChecked(_iterHeadIdx);
+            while(--idx > 0) insertAfter = this->GetEntryIterNextUnchecked(insertAfter);
+         }
+         else
+         {
+            insertAfter = this->IndexToEntryChecked(_iterTailIdx);
+            while(++idx < GetNumItems()) insertAfter = this->GetEntryIterPrevUnchecked(insertAfter);
+         }
+         InsertIterationEntry(moveMe, insertAfter);
+      }
+   }
+
    const KeyType * GetKeyWithValueAux(const ValueType & value, bool backwards) const
    {
       for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER|(backwards?HTIT_FLAG_NOREGISTER:0)); iter.HasData(); iter++)
@@ -1432,6 +1452,56 @@ public:
      * @returns B_NO_ERROR on success, or B_ERROR on failue (out of memory?)
      */
    template<class RHSHashFunctorType, class RHSSubclassType> status_t Put(const HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & pairs) {return this->CopyFrom(pairs, false);}
+
+   /** Same as Put(), except this call also makes sure that on success, (key) will
+     * be located at the front of the table's iteration-sequence.
+     * @param key Key of the item to be placed at the front of the sequence.
+     * @param v Value of the item to be associated with (key).
+     * @return B_NO_ERROR on success, or B_ERROR if (key) was not found in the table.
+     */
+   HT_UniversalSinkKeyValueRef status_t PutAtFront(HT_SinkKeyParam key, HT_SinkValueParam v);
+
+   /** Same as Put(), except this call also makes sure that on success, (key) will
+     * be located at the end of the table's iteration-sequence.
+     * @param key Key of the item to be placed at the end of the sequence.
+     * @param v Value of the item to be associated with (key).
+     */
+   HT_UniversalSinkKeyValueRef status_t PutAtBack(HT_SinkKeyParam key, HT_SinkValueParam v);
+
+   /** Same as Put(), except this call also makes sure that on success, (key) will
+     * be located just before (placeBeforeMe) in the table's iteration-sequence.
+     * @param key Key of the item to be placed into th table.
+     * @param placeBeforeMe Key of the item that (key) should be placed in front of.
+     *                      If (placeBeforeMe==key), or no key equal to (placeBeforeMe) 
+     *                      currently exists in the table, then this method will act the 
+     *                      same as a call to Put().
+     * @param v Value of the item to be associated with (key).
+     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   HT_UniversalSinkKeyValueRef status_t PutBefore(HT_SinkKeyParam key, HT_SinkKeyParam placeBeforeMe, HT_SinkValueParam v);
+
+   /** Same as Put(), except this call also makes sure that on success, (key) will
+     * be located just behind (placeBehindMe) in the table's iteration-sequence.
+     * @param key Key of the item to be placed into th table.
+     * @param placeBehindMe Key of the item that (key) should be placed in front of.
+     *                      If (placeBehindMe==key), or no key equal to (placeBehindMe) 
+     *                      currently exists in the table, then this method will act the 
+     *                      same as a call to Put().
+     * @param v Value of the item to be associated with (key).
+     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   HT_UniversalSinkKeyValueRef status_t PutBehind(HT_SinkKeyParam key, HT_SinkKeyParam placeBehindMe, HT_SinkValueParam v);
+
+   /** Places the given value at the (nth) position in the HashtableIterator traversal sequence.
+     * Note that this is an O(N) operation.
+     * @param key Key of the item to be placed.
+     * @param atPosition The position that this item should be placed at.  Zero would place
+     *                   the item at the head of the traversal sequence, one to the second
+     *                   position, and so on.  Values greater than or equal to the number
+     *                   of items in the Hashtable will place the item at the last position.
+     * @return B_NO_ERROR on success, or B_ERROR if (key) was not found in the table.
+     */
+   HT_UniversalSinkKeyValueRef status_t PutAtPosition(HT_SinkKeyParam key, uint32 atPosition, HT_SinkValueParam v);
 
    /** Convenience method -- returns a pointer to the value specified by (key),
     *  or if no such value exists, it will Put() a (key,value) pair in the HashtableMid,
@@ -1876,7 +1946,6 @@ private:
    void SortAux() {this->SortByKey(_compareFunctor, this->GetCompareCookie());}
    KeyCompareFunctorType _compareFunctor;
 };
-
 
 /** This is a Hashtable that keeps its iteration entries sorted by value at all times (unless you specifically call SetAutoSortEnabled(false)) */
 template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareFunctor<ValueType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedValuesHashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >
@@ -2743,30 +2812,9 @@ status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToPosition(const KeyType & moveMe, uint32 idx)
 {
    HashtableEntryBase * e = this->GetEntry(this->ComputeHash(moveMe), moveMe);
-   if (e)
-   {
-           if (idx == 0)             this->MoveToFrontAux(e);
-      else if (idx >= GetNumItems()) this->MoveToBackAux(e);
-      else 
-      {
-         RemoveIterationEntry(e);
-
-         HashtableEntryBase * insertAfter;
-         if (idx < GetNumItems()/2)
-         {
-            insertAfter = this->IndexToEntryChecked(_iterHeadIdx);
-            while(--idx > 0) insertAfter = this->GetEntryIterNextUnchecked(insertAfter);
-         }
-         else
-         {
-            insertAfter = this->IndexToEntryChecked(_iterTailIdx);
-            while(++idx < GetNumItems()) insertAfter = this->GetEntryIterPrevUnchecked(insertAfter);
-         }
-         InsertIterationEntry(e, insertAfter);
-      }
-      return B_NO_ERROR;
-   }
-   return B_ERROR;
+   if (e == NULL) return B_ERROR;
+   this->MoveToPositionAux(e, idx);
+   return B_NO_ERROR;
 }
 
 // Adds (e) to the our iteration linked list, behind (optBehindThis), or at the head if (optBehindThis) is NULL.
@@ -2984,6 +3032,63 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAux(uint32 hash
 
    this->_numItems++;
    return e; 
+}
+
+template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
+HT_UniversalSinkKeyValueRef
+status_t 
+HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtFront(HT_SinkKeyParam key, HT_SinkValueParam v)
+{
+   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
+   if (e == NULL) return B_ERROR;
+   this->MoveToFrontAux(e);
+   return B_NO_ERROR;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
+HT_UniversalSinkKeyValueRef
+status_t 
+HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtBack(HT_SinkKeyParam key, HT_SinkValueParam v)
+{
+   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
+   if (e == NULL) return B_ERROR;
+   this->MoveToBackAux(e);
+   return B_NO_ERROR;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
+HT_UniversalSinkKeyValueRef
+status_t 
+HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutBefore(HT_SinkKeyParam key, HT_SinkKeyParam placeBeforeMe, HT_SinkValueParam v)
+{
+   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
+   if (e == NULL) return B_ERROR;
+   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * f = this->GetEntry(this->ComputeHash(placeBeforeMe), placeBeforeMe);
+   if ((f)&&(e != f)) this->MoveToBeforeAux(e, f);
+   return B_NO_ERROR;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
+HT_UniversalSinkKeyValueRef
+status_t 
+HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutBehind(HT_SinkKeyParam key, HT_SinkKeyParam placeBehindMe, HT_SinkValueParam v)
+{
+   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
+   if (e == NULL) return B_ERROR;
+   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * d = this->GetEntry(this->ComputeHash(placeBehindMe), placeBehindMe);
+   if ((d)&&(e != d)) this->MoveToBehindAux(e, d);
+   return B_NO_ERROR;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
+HT_UniversalSinkKeyValueRef
+status_t 
+HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtPosition(HT_SinkKeyParam key, uint32 atPosition, HT_SinkValueParam v)
+{
+   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
+   if (e == NULL) return B_ERROR;
+   this->MoveToPositionAux(e, atPosition);
+   return B_NO_ERROR;
 }
 
 //===============================================================
