@@ -500,8 +500,8 @@ int main(int argc, char ** argv)
       table.Put("Ham", "Eggs");
       table.Put("Pork", "Beans");
       table.Put("Slash", "Dot");
-      table.Put("Data", "Mining");  
-      table.Put("TestDouble", "Play");
+      table.Put("Data", "Mining");    // will be overwritten and moved to the end by PutAtBack() below
+      table.PutAtFront("TestDouble", "ThisShouldBeFirst");
       table.Put("Abbot", "Costello");
       table.Put("Laurel", "Hardy");
       table.Put("Thick", "Thin");
@@ -509,6 +509,15 @@ int main(int argc, char ** argv)
       table.Put("Total", "Carnage");
       table.Put("Summer", "Time");
       table.Put("Terrible", "Twos");
+      table.PutAtBack("Data", "ThisShouldBeLast");  // should overwrite Data->Mining and move it to the end
+      table.PutBefore(String("Margarine"), String("Butter"), "ThisShouldBeBeforeButter");
+      table.PutBehind(String("Oil"),       String("Butter"), "ThisShouldBeAfterButter");
+
+      {
+         LogTime(MUSCLE_LOG_INFO, "String Table constents\n");
+         for (HashtableIterator<String, String> iter(table); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO,"[%s] -> [%s]\n", iter.GetKey()(), iter.GetValue()());
+      }
+
       table.CountAverageLookupComparisons(true);
 
       printf("table[\"Summer\"] = [%s]\n", table["Summer"]());
@@ -516,15 +525,15 @@ int main(int argc, char ** argv)
       printf("table[\"Total\"]  = [%s]\n", table["Total"]());
       printf("table[\"Winter\"] = [%s] (should be blank!)\n", table["Winter"]());
 
-      if (table.GetNumItems() != 14)
+      if (table.GetNumItems() != 16)
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "String table has %i entries in it, expected 14!\n", table.GetNumItems());
+         LogTime(MUSCLE_LOG_CRITICALERROR, "String table has %i entries in it, expected 16!\n", table.GetNumItems());
          ExitWithoutCleanup(10);
       }
 
       {
          LogTime(MUSCLE_LOG_INFO, "Test partial backwards iteration\n");
-         for (HashtableIterator<String, String> iter(table, "Slash", HTIT_FLAG_BACKWARDS); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO,"[%s] <-> [%s]\n", iter.GetKey()(), iter.GetValue()());
+         for (HashtableIterator<String, String> iter(table, "Slash", HTIT_FLAG_BACKWARDS); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO,"[%s] -> [%s]\n", iter.GetKey()(), iter.GetValue()());
       }
 
       String lookup;
