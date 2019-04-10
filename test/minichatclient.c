@@ -180,19 +180,19 @@ static uint32 GetHostByName(const char * name)
 
 static int Connect(const char * hostName, uint16 port)
 {
-   uint32 hostIP = GetHostByName(hostName);
+   const uint32 hostIP = GetHostByName(hostName);
    return (hostIP > 0) ? ConnectToIP(hostIP, port) : -1;
 }
 
 static int32 SocketSendFunc(const uint8 * buf, uint32 numBytes, void * arg)
 {
-   int ret = send(*((int *)arg), (const char *)buf, numBytes, 0L);
+   const int ret = send(*((int *)arg), (const char *)buf, numBytes, 0L);
    return (ret == -1) ? ((errno == EWOULDBLOCK)?0:-1) : ret;
 }
 
 static int32 SocketRecvFunc(uint8 * buf, uint32 numBytes, void * arg)
 {
-   int ret = recv(*((int *)arg), (char *)buf, numBytes, 0L);
+   const int ret = recv(*((int *)arg), (char *)buf, numBytes, 0L);
    if (ret == 0) return -1;  // 0 means TCP connection has closed, we'll treat that as an error
    return (ret == -1) ? ((errno == EWOULDBLOCK)?0:-1) : ret;
 }
@@ -565,10 +565,10 @@ int main(int argc, char ** argv)
    
             {
                MMessage * msg = NULL;
-               MBool reading    = FD_ISSET(s, &readSet);
-               MBool writing    = FD_ISSET(s, &writeSet);
-               MBool writeError = ((writing)&&(MGDoOutput(gw, ~0, SocketSendFunc, &s) < 0));
-               MBool readError  = ((reading)&&(MGDoInput( gw, ~0, SocketRecvFunc, &s, &msg) < 0));  /* sets (msg) if one is available */
+               const MBool reading    = FD_ISSET(s, &readSet);
+               const MBool writing    = FD_ISSET(s, &writeSet);
+               const MBool writeError = ((writing)&&(MGDoOutput(gw, ~0, SocketSendFunc, &s) < 0));
+               const MBool readError  = ((reading)&&(MGDoInput( gw, ~0, SocketRecvFunc, &s, &msg) < 0));  /* sets (msg) if one is available */
                if (msg)
                {
 /* printf("Heard message from server:-----------------------------------\n"); */
@@ -582,7 +582,7 @@ int main(int argc, char ** argv)
                         if (sf)
                         {
                            const char * replyTo = (const char *) &sf[0]->bytes;
-                           int replyToLen = 3+((int)strlen(replyTo))+8+1;
+                           const int replyToLen = 3+((int)strlen(replyTo))+8+1;
                            MByteBuffer * temp = MBAllocByteBuffer(replyToLen, MTrue);
 
                            MMSetWhat(msg, NET_CLIENT_PONG);
@@ -620,7 +620,7 @@ int main(int argc, char ** argv)
                         if ((textField)&&(sessionField))
                         {
                            const char * text = (const char *) &textField[0]->bytes; 
-                           int session       = atoi((const char *)&sessionField[0]->bytes);
+                           int const session = atoi((const char *)&sessionField[0]->bytes);
                            if (strncmp(text, "/me ", 4) == 0) printf("<ACTION>: %s %s\n", GetUserName(users, session), &text[4]); 
                                                          else printf("%s(%s): %s\n", MMGetBoolField(msg, "private", NULL) ? "<PRIVATE>: ":"", GetUserName(users, session), text);
                         }
@@ -636,13 +636,13 @@ int main(int argc, char ** argv)
                         for (i=0; i<removeCount; i++)
                         {
                            const char * nodepath = (const char *) &removedField[i]->bytes;
-                           int pathDepth = GetPathDepth(nodepath);
+                           const int pathDepth = GetPathDepth(nodepath);
                            if (pathDepth >= USER_NAME_DEPTH)
                            {
                               const char * sessionID = GetPathClause(SESSION_ID_DEPTH, nodepath);
                               if (sessionID)
                               {
-                                 int sid = atol(sessionID);
+                                 const int sid = atol(sessionID);
                                  switch(GetPathDepth(nodepath))
                                  {
                                     case USER_NAME_DEPTH:
@@ -667,7 +667,7 @@ int main(int argc, char ** argv)
                            const char * nodepath;
                            while((nodepath = MMGetNextFieldName(&iter, NULL)) != NULL)
                            {
-                              int pathDepth = GetPathDepth(nodepath);
+                              const int pathDepth = GetPathDepth(nodepath);
                               if (pathDepth == USER_NAME_DEPTH)
                               {
                                  uint32 msgCount = 0;
@@ -679,7 +679,7 @@ int main(int argc, char ** argv)
                                     const char * sessionIDStr = GetPathClause(SESSION_ID_DEPTH, nodepath);
                                     if (sessionIDStr)
                                     {
-                                       int sid = atol(sessionIDStr);
+                                       const int sid = atol(sessionIDStr);
                                        switch(pathDepth)
                                        {
                                           case USER_NAME_DEPTH:

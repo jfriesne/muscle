@@ -180,19 +180,19 @@ static uint32 GetHostByName(const char * name)
 
 static int Connect(const char * hostName, uint16 port)
 {
-   uint32 hostIP = GetHostByName(hostName);
+   const uint32 hostIP = GetHostByName(hostName);
    return (hostIP > 0) ? ConnectToIP(hostIP, port) : -1;
 }
 
 static int32 SocketSendFunc(const uint8 * buf, uint32 numBytes, void * arg)
 {
-   int ret = send(*((int *)arg), (const char *)buf, numBytes, 0L);
+   const int ret = send(*((int *)arg), (const char *)buf, numBytes, 0L);
    return (ret == -1) ? ((errno == EWOULDBLOCK)?0:-1) : ret;
 }
 
 static int32 SocketRecvFunc(uint8 * buf, uint32 numBytes, void * arg)
 {
-   int ret = recv(*((int *)arg), (char *)buf, numBytes, 0L);
+   const int ret = recv(*((int *)arg), (char *)buf, numBytes, 0L);
    if (ret == 0) return -1;  // 0 means TCP connection has closed, we'll treat that as an error
    return (ret == -1) ? ((errno == EWOULDBLOCK)?0:-1) : ret;
 }
@@ -469,10 +469,10 @@ int main(int argc, char ** argv)
    
             {
                UMessage msg = {0};
-               UBool reading    = FD_ISSET(s, &readSet);
-               UBool writing    = FD_ISSET(s, &writeSet);
-               UBool writeError = ((writing)&&(UGDoOutput(&gw, ~0, SocketSendFunc, &s) < 0));
-               UBool readError  = ((reading)&&(UGDoInput( &gw, ~0, SocketRecvFunc, &s, &msg) < 0));  /* sets (msg) if one is available */
+               const UBool reading    = FD_ISSET(s, &readSet);
+               const UBool writing    = FD_ISSET(s, &writeSet);
+               const UBool writeError = ((writing)&&(UGDoOutput(&gw, ~0, SocketSendFunc, &s) < 0));
+               const UBool readError  = ((reading)&&(UGDoInput( &gw, ~0, SocketRecvFunc, &s, &msg) < 0));  /* sets (msg) if one is available */
                if (UMIsMessageValid(&msg))
                {
 /* printf("Heard message from server:-----------------------------------\n"); */
@@ -490,7 +490,7 @@ int main(int argc, char ** argv)
                            {
                               UMAddString(&pongMsg, "session", replyTo);
 
-                              int replyToLen = strlen(replyTo);
+                              const int replyToLen = strlen(replyTo);
                               char * keyBuf = malloc(3+replyToLen+8+1);
                               if (keyBuf)
                               {
@@ -514,7 +514,7 @@ int main(int argc, char ** argv)
                         const char * session = UMGetString(&msg, "session", 0);
                         if ((text)&&(session))
                         {
-                           int sid = atoi(session);
+                           const int sid = atoi(session);
                            if (strncmp(text, "/me ", 4) == 0) printf("<ACTION>: %s %s\n", GetUserName(users, sid), &text[4]); 
                                                          else printf("%s(%s): %s\n", UMGetBool(&msg, "private", 0) ? "<PRIVATE>: ":"", GetUserName(users, sid), text);
                         }
@@ -528,13 +528,13 @@ int main(int argc, char ** argv)
                         const char * nodepath;
                         for (i=0; ((nodepath = UMGetString(&msg, PR_NAME_REMOVED_DATAITEMS, i)) != NULL); i++)
                         {
-                           int pathDepth = GetPathDepth(nodepath);
+                           const int pathDepth = GetPathDepth(nodepath);
                            if (pathDepth >= USER_NAME_DEPTH)
                            {
                               const char * sessionID = GetPathClause(SESSION_ID_DEPTH, nodepath);
                               if (sessionID)
                               {
-                                 int sid = atol(sessionID);
+                                 const int sid = atol(sessionID);
                                  switch(GetPathDepth(nodepath))
                                  {
                                     case USER_NAME_DEPTH:
@@ -571,7 +571,7 @@ int main(int argc, char ** argv)
                                     const char * sessionIDStr = GetPathClause(SESSION_ID_DEPTH, fieldName);
                                     if (sessionIDStr)
                                     {
-                                       int sid = atol(sessionIDStr);
+                                       const int sid = atol(sessionIDStr);
                                        switch(pathDepth)
                                        {
                                           case USER_NAME_DEPTH:

@@ -42,14 +42,14 @@ public:
      * @param maxSize the maximum number of bytes to read.
      * @returns the actual number of bytes read.
      */
-   virtual qint64 readData(       char * data, qint64 maxSize) {int32 ret = _dataIO()->Read( data, (uint32) muscleMin(maxSize, (qint64)MUSCLE_NO_LIMIT)); if (ret < 0) _isHosed = true; return muscleMax(ret, (int32)0);}
+   virtual qint64 readData(       char * data, qint64 maxSize) {const int32 ret = _dataIO()->Read( data, (uint32) muscleMin(maxSize, (qint64)MUSCLE_NO_LIMIT)); if (ret < 0) _isHosed = true; return muscleMax(ret, (int32)0);}
 
    /** Attempts to write the specified number of bytes to the device.
      * @param data A buffer of data to be written.  Must be at least (maxSize) bytes long.
      * @param maxSize the maximum number of bytes to write.
      * @returns the actual number of bytes written.
      */
-   virtual qint64 writeData(const char * data, qint64 maxSize) {int32 ret = _dataIO()->Write(data, (uint32) muscleMin(maxSize, (qint64)MUSCLE_NO_LIMIT)); if (ret < 0) _isHosed = true; return muscleMax(ret, (int32)0);}
+   virtual qint64 writeData(const char * data, qint64 maxSize) {const int32 ret = _dataIO()->Write(data, (uint32) muscleMin(maxSize, (qint64)MUSCLE_NO_LIMIT)); if (ret < 0) _isHosed = true; return muscleMax(ret, (int32)0);}
 
 private:
    DataIORef _dataIO;

@@ -35,7 +35,7 @@ public:
      */
    virtual int32 Read(void * buffer, uint32 size)
    {
-      int32 ret = ProxyDataIO::Read(buffer, size);
+      const int32 ret = ProxyDataIO::Read(buffer, size);
       if (ret > 0) XorCopy(buffer, buffer, size);
       return ret;
    }

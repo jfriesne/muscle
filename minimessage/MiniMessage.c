@@ -130,7 +130,7 @@ MByteBuffer * MBAllocByteBuffer(uint32 numBytes, MBool clearBytes)
 
 MByteBuffer * MBStrdupByteBuffer(const char * sourceString)
 {
-   int slen = ((int)strlen(sourceString))+1;
+   const int slen = ((int)strlen(sourceString))+1;
    MByteBuffer * mbb = MBAllocByteBuffer(slen, MFalse);
    if (mbb) memcpy(&mbb->bytes, sourceString, slen);
    return mbb;
@@ -412,7 +412,7 @@ static MByteBuffer ** PutMMVariableFieldAux(MMessage * msg, MBool retainOldData,
       {
          if ((retainOldData)&&(oldField->typeCode == typeCode))
          {
-            uint32 commonItems = (numItems < oldField->numItems) ? numItems : oldField->numItems;
+            const uint32 commonItems = (numItems < oldField->numItems) ? numItems : oldField->numItems;
             uint32 i;
             MByteBuffer ** fromArray = (MByteBuffer **) oldField->data;
             MByteBuffer ** toArray   = (MByteBuffer **) newField->data;
@@ -521,7 +521,7 @@ MMessage ** MMPutMessageField(MMessage * msg, MBool retainOldData, const char * 
       {
          if ((retainOldData)&&(oldField->typeCode == B_MESSAGE_TYPE))
          {
-            uint32 commonItems = (numItems < oldField->numItems) ? numItems : oldField->numItems;
+            const uint32 commonItems = (numItems < oldField->numItems) ? numItems : oldField->numItems;
             uint32 i;
             MMessage ** fromArray = (MMessage **) oldField->data;
             MMessage ** toArray   = (MMessage **) newField->data;
@@ -622,7 +622,7 @@ static uint32 FlattenMMessageField(const MMessageField * f, void * outBuf)
    uint32 writeOffset = 0;
    uint8 * buffer = (uint8 *) outBuf;
    {
-      uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(f->nameBytes);
+      const uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(f->nameBytes);
       WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
    }
 
@@ -631,20 +631,20 @@ static uint32 FlattenMMessageField(const MMessageField * f, void * outBuf)
 
    /* Write entry type code */
    {
-      uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(f->typeCode);
+      const uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(f->typeCode);
       WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
    }
 
    /* Write entry data length */
    {
-      uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(GetMMessageFieldFlattenedSize(f, MFalse));
+      const uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(GetMMessageFieldFlattenedSize(f, MFalse));
       WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
    }
 
    /* Write entry data */
    if (IsTypeCodeVariableSize(f->typeCode))
    {
-      uint32 numItems = f->numItems;
+      const uint32 numItems = f->numItems;
       uint32 i; 
 
       if (f->typeCode == B_MESSAGE_TYPE)
@@ -655,7 +655,7 @@ static uint32 FlattenMMessageField(const MMessageField * f, void * outBuf)
          for (i=0; i<numItems; i++) 
          {
             const MMessage * subMsg = msgs[i];
-            uint32 msgSize = subMsg ? MMGetFlattenedSize(subMsg) : (3*sizeof(uint32));
+            const uint32 msgSize    = subMsg ? MMGetFlattenedSize(subMsg) : (3*sizeof(uint32));
             uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(msgSize);
             WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
             if (subMsg) 
@@ -670,7 +670,7 @@ static uint32 FlattenMMessageField(const MMessageField * f, void * outBuf)
                /*          2. Number of entries (4 bytes)                                                */
 
                /* Write current protocol version */
-               uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(CURRENT_PROTOCOL_VERSION);
+               networkByteOrder = B_HOST_TO_LENDIAN_INT32(CURRENT_PROTOCOL_VERSION);
                WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
 
                /* Write 'what' code (zero) */
@@ -689,28 +689,30 @@ static uint32 FlattenMMessageField(const MMessageField * f, void * outBuf)
          int i;
 
          /* Write the number of items in the array */
-         uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(numItems);
-         WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
+         {
+            const uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(numItems);
+            WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
+         }
 
          for (i=0; i<numItems; i++) 
          {
-            uint32 bufSize = bufs[i] ? bufs[i]->numBytes : 0;
-            uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(bufSize);
+            const uint32 bufSize = bufs[i] ? bufs[i]->numBytes : 0;
+            const uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(bufSize);
             WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
             memcpy(&buffer[writeOffset], &bufs[i]->bytes, bufSize); writeOffset += bufSize;
          }
       }
    }
-   else 
+   else
    {
-      uint32 dataSize = f->numItems*f->itemSize;
+      const uint32 dataSize = f->numItems*f->itemSize;
       MBool doMemcpy = MTrue;
       if (BYTE_ORDER != LITTLE_ENDIAN)
       {
          doMemcpy = MFalse;
          switch(f->typeCode)
          {
-            case B_BOOL_TYPE: case B_INT8_TYPE: doMemcpy = MTrue;                                   break;
+            case B_BOOL_TYPE: case B_INT8_TYPE: doMemcpy = MTrue;                                      break;
             case B_POINT_TYPE:  SwapCopy(&buffer[writeOffset], f->data, f->numItems*2, sizeof(float)); break;
             case B_RECT_TYPE:   SwapCopy(&buffer[writeOffset], f->data, f->numItems*4, sizeof(float)); break;
             default:            SwapCopy(&buffer[writeOffset], f->data, f->numItems, f->itemSize);     break;
@@ -752,13 +754,13 @@ void MMFlattenMessage(const MMessage * msg, void * outBuf)
    /* Write current protocol version */
    uint32 writeOffset = 0;
    {
-      uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(CURRENT_PROTOCOL_VERSION);
+      const uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(CURRENT_PROTOCOL_VERSION);
       WriteData(outBuf, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
    }
 
    /* Write 'what' code */
    {
-      uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(msg->what);
+      const uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(msg->what);
       WriteData(outBuf, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
    }
 
@@ -776,7 +778,7 @@ void MMFlattenMessage(const MMessage * msg, void * outBuf)
 
       /* Write number of entries */
       {
-         uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(numFlattenableEntries);
+         const uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(numFlattenableEntries);
          WriteData(outBuf, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
       }
 
@@ -795,7 +797,7 @@ void MMFlattenMessage(const MMessage * msg, void * outBuf)
 
 static MMessageField * ImportMMessageField(const char * fieldName, uint32 nameLength, uint32 tc, uint32 eLength, const void * dataPtr, uint32 itemSize, uint32 swapSize)
 {
-   uint32 numItems = eLength/itemSize;
+   const uint32 numItems = eLength/itemSize;
    MMessageField * field = AllocMMessageField(fieldName, nameLength, tc, numItems, itemSize);
    if (field)
    {
@@ -1066,11 +1068,11 @@ c_status_t MMRenameField(MMessage * msg, const char * oldFieldName, const char *
       if (f)
       {
          MMessageField * overwriteThis = LookupMMessageField(msg, newFieldName, B_ANY_TYPE);  /* do this lookup before any mods! */
-         int slen = ((int)strlen(newFieldName))+1;
-         int diff = (slen - f->nameBytes);
+         const int slen = ((int)strlen(newFieldName))+1;
+         const int diff = (slen - f->nameBytes);
          if (diff != 0)
          {
-            uint32 newSize = f->allocSize+diff;
+            const uint32 newSize = f->allocSize+diff;
             MMessageField * g = (MMessageField *) MRealloc(f, newSize);
             if (g == NULL) return CB_ERROR;
 

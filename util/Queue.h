@@ -783,9 +783,7 @@ Queue<ItemType>::operator ==(const Queue& rhs) const
 {
    if (this == &rhs) return true;
    if (GetNumItems() != rhs.GetNumItems()) return false;
-
-   for (int i = GetNumItems()-1; i>=0; i--) if (((*this)[i] == rhs[i]) == false) return false;
-
+   for (int32 i = GetNumItems()-1; i>=0; i--) if (((*this)[i] == rhs[i]) == false) return false;
    return true;
 }
 
@@ -877,7 +875,7 @@ AddTailMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
    const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
    
-   const uint32 mySize = GetNumItems();
+   const uint32 mySize  = GetNumItems();
    const uint32 newSize = mySize+numNewItems;
    if (EnsureSize(newSize, true) != B_NO_ERROR) return B_ERROR;
    for (uint32 i=mySize; i<newSize; i++) (*this)[i] = queue[startIndex+(i-mySize)];
@@ -890,7 +888,7 @@ status_t
 Queue<ItemType>::
 AddTailMulti(const ItemType * items, uint32 numItems)
 {
-   const uint32 mySize = GetNumItems();
+   const uint32 mySize  = GetNumItems();
    const uint32 newSize = mySize+numItems;
    uint32 rhs = 0;
 
@@ -939,7 +937,7 @@ AddHeadMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
 
    if (EnsureSize(numNewItems+GetNumItems()) != B_NO_ERROR) return B_ERROR;
-   for (int i=((int)startIndex+numNewItems)-1; i>=(int32)startIndex; i--) (void) AddHead(queue[i]);  // guaranteed not to fail
+   for (int32 i=((int)startIndex+numNewItems)-1; i>=(int32)startIndex; i--) (void) AddHead(queue[i]);  // guaranteed not to fail
    return B_NO_ERROR;
 }
 
@@ -950,7 +948,7 @@ AddHeadMulti(const ItemType * items, uint32 numItems)
 {
    ItemType * oldArray;
    if (EnsureSizeAux(_itemCount+numItems, &oldArray) != B_NO_ERROR) return B_ERROR;
-   for (int i=((int)numItems)-1; i>=0; i--) (void) AddHead(items[i]);  // guaranteed not to fail
+   for (int32 i=((int32)numItems)-1; i>=0; i--) (void) AddHead(items[i]);  // guaranteed not to fail
    delete [] oldArray;  // must be done last!
    return B_NO_ERROR;
 }
@@ -991,7 +989,7 @@ Queue<ItemType>::
 RemoveHead()
 {
    if (_itemCount == 0) return B_ERROR;
-   const int oldHeadIndex = _headIndex;
+   const uint32 oldHeadIndex = _headIndex;
    _headIndex = NextIndex(_headIndex);
    _itemCount--;
    if (IsPerItemClearNecessary()) _queue[oldHeadIndex] = GetDefaultItem();  // this must be done last, as queue state must be coherent when we do this
@@ -1028,7 +1026,7 @@ Queue<ItemType>::
 RemoveTail()
 {
    if (_itemCount == 0) return B_ERROR;
-   const int removedItemIndex = _tailIndex;
+   const uint32 removedItemIndex = _tailIndex;
    _tailIndex = PrevIndex(_tailIndex);
    _itemCount--;
    if (IsPerItemClearNecessary()) _queue[removedItemIndex] = GetDefaultItem();  // this must be done last, as queue state must be coherent when we do this
@@ -1088,7 +1086,7 @@ RemoveItemAt(uint32 index)
       // item is closer to the head:  shift everything forward one, ending at the head
       while(internalizedIndex != _headIndex)
       {
-         uint32 prev = PrevIndex(internalizedIndex);
+         const uint32 prev = PrevIndex(internalizedIndex);
          _queue[internalizedIndex] = _queue[prev];
          internalizedIndex = prev;
       }
@@ -1100,7 +1098,7 @@ RemoveItemAt(uint32 index)
       // item is closer to the tail:  shift everything back one, ending at the tail
       while(internalizedIndex != _tailIndex)
       {
-         uint32 next = NextIndex(internalizedIndex);
+         const uint32 next = NextIndex(internalizedIndex);
          _queue[internalizedIndex] = _queue[next];
          internalizedIndex = next;
       }
@@ -1121,7 +1119,7 @@ RemoveItemAtWithDefault(uint32 index)
    if (index >= GetNumItems()) return GetDefaultItem();
    else
    {
-      ItemType ret = (*this)[index];
+      const ItemType ret = (*this)[index];
       (void) RemoveItemAt(index); 
       return ret;
    }
@@ -1208,8 +1206,8 @@ InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems)
       if (index == _itemCount) return AddTail(*items);
    }
 
-   uint32 oldSize = GetNumItems();
-   uint32 newSize = oldSize+numNewItems;
+   const uint32 oldSize = GetNumItems();
+   const uint32 newSize = oldSize+numNewItems;
 
    ItemType * oldItems;
    if (EnsureSizeAux(newSize, true, &oldItems, NULL, false) != B_NO_ERROR) return B_ERROR;
@@ -1258,7 +1256,7 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
    if ((_queue == NULL)||(allowShrink ? (_queueSize != (size+extraPreallocs)) : (_queueSize < size)))
    {
       const uint32 sqLen = ARRAYITEMS(_smallQueue);
-      uint32 temp    = size + extraPreallocs;
+      const uint32 temp  = size + extraPreallocs;
       uint32 newQLen = muscleMax((uint32)SMALL_QUEUE_SIZE, ((setNumItems)||(temp <= sqLen)) ? muscleMax(sqLen,temp) : temp);
 
       ItemType * newQueue = ((_queue == _smallQueue)||(newQLen > sqLen)) ? newnothrow_array(ItemType,newQLen) : _smallQueue;
@@ -1432,9 +1430,9 @@ RemoveAllInstancesOf(const ItemType & val)
    }
 
    // Efficiently collapse all non-matching slots up to the top of the list
-   uint32 ret      = 0;
-   uint32 writeTo  = 0;
-   uint32 origSize = GetNumItems();
+   const uint32 origSize = GetNumItems();
+   uint32 ret     = 0;
+   uint32 writeTo = 0;
    for(uint32 readFrom=0; readFrom<origSize; readFrom++)
    {
       const ItemType & nextRead = (*this)[readFrom];
@@ -1460,8 +1458,8 @@ RemoveDuplicateItems(bool assumeAlreadySorted)
    if (IsEmpty()) return 0;  // nothing to do!
    if (assumeAlreadySorted == false) Sort();
 
-   uint32 numWrittenItems = 1;  // we'll always keep the first item
-   uint32 totalItems = GetNumItems();
+   uint32 numWrittenItems  = 1;  // we'll always keep the first item
+   const uint32 totalItems = GetNumItems();
    for (uint32 i=0; i<totalItems; i++)
    {
       const ItemType & nextItem = (*this)[i];
@@ -1524,7 +1522,7 @@ Merge(const CompareFunctorType & compareFunctor, uint32 from, uint32 pivot, uint
             while(n--) 
             {
                ItemType val = QQ_PlunderItem(*GetItemAtUnchecked(first_cut+n)); 
-               uint32 shift = pivot - first_cut; 
+               const uint32 shift = pivot - first_cut;
                uint32 p1 = first_cut+n;
                uint32 p2 = p1+shift; 
                while (p2 != first_cut + n) 
@@ -1555,10 +1553,10 @@ Lower(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const I
    if (to > from)
    {
       uint32 len = to - from;
-      while (len > 0) 
+      while(len > 0) 
       {
-         uint32 half = len/2; 
-         uint32 mid  = from + half; 
+         const uint32 half = len/2; 
+         const uint32 mid  = from + half; 
          if (compareFunctor.Compare(*(GetItemAtUnchecked(mid)), val, optCookie) < 0) 
          {
             from = mid+1; 
@@ -1579,7 +1577,7 @@ Upper(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const I
    if (to > from)
    {
       uint32 len = to - from;
-      while (len > 0) 
+      while(len > 0) 
       { 
          const uint32 half = len/2; 
          const uint32 mid  = from + half; 
@@ -1726,7 +1724,7 @@ Queue<ItemType>::Normalize()
          // valid items in a large array.
          const bool isPerItemClearNecessary = IsPerItemClearNecessary();
          const ItemType & defaultItem       = GetDefaultItem();
-         uint32 startAt = _tailIndex+1;
+         const uint32 startAt               = _tailIndex+1;
          for (uint32 i=0; i<_itemCount; i++) 
          {
             ItemType & from = (*this)[i];
@@ -1745,19 +1743,19 @@ Queue<ItemType>::Normalize()
          uint32 c = 0;
          for (uint32 v = 0; c<_queueSize; v++)
          {
-             uint32 t  = v;
-             uint32 tp = v + _headIndex;
-             ItemType tmp = _queue[v];
-             c++;
-             while(tp != v) 
-             {
-                 _queue[t] = _queue[tp];
-                 t = tp;
-                 tp += _headIndex;
-                 if (tp >= _queueSize) tp -= _queueSize;
-                 c++;
-             }
-             _queue[t] = tmp;
+            uint32 t  = v;
+            uint32 tp = v + _headIndex;
+            const ItemType tmp = _queue[v];
+            c++;
+            while(tp != v) 
+            {
+               _queue[t] = _queue[tp];
+               t = tp;
+               tp += _headIndex;
+               if (tp >= _queueSize) tp -= _queueSize;
+               c++;
+            }
+            _queue[t] = tmp;
          }
          _headIndex = 0;
          _tailIndex = _itemCount-1;

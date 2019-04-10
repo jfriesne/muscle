@@ -34,7 +34,7 @@ public:
    {
       if (_file)
       {
-         int32 ret = (int32) fread(buffer, 1, size, _file);
+         const int32 ret = (int32) fread(buffer, 1, size, _file);
          return (ret > 0) ? ret : -1;  // EOF is an error, and it's returned as zero
       }
       else return -1;
@@ -50,7 +50,7 @@ public:
    {
       if (_file)
       {
-         int32 ret = (int32) fwrite(buffer, 1, size, _file);
+         const int32 ret = (int32) fwrite(buffer, 1, size, _file);
          return (ret > 0) ? ret : -1;   // zero is an error
       }
       else return -1;
@@ -162,7 +162,7 @@ private:
 #ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE   // windows can't do the select-on-file-descriptor trick, sorry!
       _selectSocket.Clear(); 
 
-      int fd = optFile ? fileno(optFile) : -1;
+      const int fd = optFile ? fileno(optFile) : -1;
       if (fd >= 0)
       {
          _selectSocket.SetFileDescriptor(fd, false);  // false because the fclose() will call close(fd), so we should not

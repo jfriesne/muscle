@@ -267,7 +267,7 @@ inline bool OnceEvery(const struct timeval & interval, struct timeval & lastTime
  */
 inline bool OnceEvery(uint64 interval, uint64 & lastTime)
 {
-   uint64 now = GetRunTime64();
+   const uint64 now = GetRunTime64();
    if (now >= lastTime+interval)
    {
       lastTime = now;

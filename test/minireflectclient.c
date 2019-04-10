@@ -60,19 +60,19 @@ static uint32 GetHostByName(const char * name)
 
 static int Connect(const char * hostName, uint16 port)
 {
-   uint32 hostIP = GetHostByName(hostName);
+   const uint32 hostIP = GetHostByName(hostName);
    return (hostIP > 0) ? ConnectToIP(hostIP, port) : -1;
 }
 
 static int32 SocketSendFunc(const uint8 * buf, uint32 numBytes, void * arg)
 {
-   int ret = send(*((int *)arg), (const char *)buf, numBytes, 0L);
+   const int ret = send(*((int *)arg), (const char *)buf, numBytes, 0L);
    return (ret == -1) ? ((errno == EWOULDBLOCK)?0:-1) : ret;
 }
 
 static int32 SocketRecvFunc(uint8 * buf, uint32 numBytes, void * arg)
 {
-   int ret = recv(*((int *)arg), (char *)buf, numBytes, 0L);
+   const int ret = recv(*((int *)arg), (char *)buf, numBytes, 0L);
    if (ret == 0) return -1;  // 0 means TCP connection has closed, we'll treat that as an error
    return (ret == -1) ? ((errno == EWOULDBLOCK)?0:-1) : ret;
 }
@@ -284,10 +284,10 @@ int main(int argc, char ** argv)
    
             {
                MMessage * incomingMsg = NULL;
-               MBool reading    = FD_ISSET(s, &readSet);
-               MBool writing    = FD_ISSET(s, &writeSet);
-               MBool writeError = ((writing)&&(MGDoOutput(gw, ~0, SocketSendFunc, &s) < 0));
-               MBool readError  = ((reading)&&(MGDoInput( gw, ~0, SocketRecvFunc, &s, &incomingMsg) < 0));
+               const MBool reading    = FD_ISSET(s, &readSet);
+               const MBool writing    = FD_ISSET(s, &writeSet);
+               const MBool writeError = ((writing)&&(MGDoOutput(gw, ~0, SocketSendFunc, &s) < 0));
+               const MBool readError  = ((reading)&&(MGDoInput( gw, ~0, SocketRecvFunc, &s, &incomingMsg) < 0));
 
                if (incomingMsg)
                {

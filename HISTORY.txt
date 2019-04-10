@@ -12,6 +12,7 @@ key:  - new feature
      desired position in the Hashtable's iteration-sequence)
    - Modified the StringTokenizer class so that it no longer
      needs to perform a heap allocation for short strings.
+   o Added const-qualifiers to more local variables where appropriate.
 
 7.13 Released 4/6/2019
    - Added <, <=, >=, and > operators to the Queue class, to

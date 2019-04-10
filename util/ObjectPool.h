@@ -222,7 +222,7 @@ public:
       }
       if (minItemsInUseInSlab == MUSCLE_NO_LIMIT) minItemsInUseInSlab = 0;  // just to avoid questions
 
-      uint32 slabSizeItems = NUM_OBJECTS_PER_SLAB;
+      const uint32 slabSizeItems = NUM_OBJECTS_PER_SLAB;
       printf("ObjectPool<%s> contains " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-slot slabs, with " UINT32_FORMAT_SPEC " total items in use (%.1f%% loading, " UINT32_FORMAT_SPEC " total bytes).   LightestSlab=" UINT32_FORMAT_SPEC ", HeaviestSlab=" UINT32_FORMAT_SPEC " (" UINT32_FORMAT_SPEC " bytes per item)\n", GetObjectClassName(), numSlabs, slabSizeItems, totalItemsInUse, (numSlabs>0)?(100.0f*(((float)totalItemsInUse)/(numSlabs*slabSizeItems))):0.0f, (uint32)(numSlabs*sizeof(ObjectSlab)), minItemsInUseInSlab, maxItemsInUseInSlab, (uint32) sizeof(Object));
    }
 

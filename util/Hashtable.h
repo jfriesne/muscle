@@ -909,7 +909,7 @@ private:
 
    void CopyFromAux(const HashtableBase<KeyType, ValueType, HashFunctorType> & rhs)
    {
-      bool wasEmpty = IsEmpty();
+      const bool wasEmpty = IsEmpty();
       const HashtableEntryBase * e = rhs.IndexToEntryChecked(rhs._iterHeadIdx);  // start of linked list to iterate through
       while(e)
       {
@@ -955,7 +955,7 @@ private:
          this->_indices[HTE_INDEX_ITER_PREV]   = this->_indices[HTE_INDEX_ITER_NEXT] = this->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType)-1;
          this->_indices[HTE_INDEX_BUCKET_NEXT] = (IndexType) getRetFreeHeadIdx;
 
-         uint32 thisIdx = table->EntryToIndexUnchecked(this);
+         const uint32 thisIdx = table->EntryToIndexUnchecked(this);
          if (getRetFreeHeadIdx != MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) static_cast<HashtableEntry *>(table->IndexToEntryUnchecked(getRetFreeHeadIdx))->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType) thisIdx;
          getRetFreeHeadIdx = thisIdx;
 
@@ -976,7 +976,7 @@ private:
          IndexType & myBucketPrev = this->_indices[HTE_INDEX_BUCKET_PREV];
          if (myBucketNext != (IndexType)-1) h[myBucketNext]._indices[HTE_INDEX_BUCKET_PREV] = myBucketPrev;
          if (myBucketPrev != (IndexType)-1) h[myBucketPrev]._indices[HTE_INDEX_BUCKET_NEXT] = myBucketNext;
-         uint32 ret = (freeHeadIdx == table->EntryToIndexUnchecked(this)) ? ((myBucketNext == (IndexType)-1) ? MUSCLE_HASHTABLE_INVALID_SLOT_INDEX : myBucketNext) : freeHeadIdx;
+         const uint32 ret = (freeHeadIdx == table->EntryToIndexUnchecked(this)) ? ((myBucketNext == (IndexType)-1) ? MUSCLE_HASHTABLE_INVALID_SLOT_INDEX : myBucketNext) : freeHeadIdx;
          myBucketPrev = myBucketNext = (IndexType)-1;
          return ret;
       }
@@ -990,7 +990,7 @@ private:
             for (uint32 i=0; i<size; i++) 
             {
                HashtableEntry * e = &ret[i];
-               e->_hash       = MUSCLE_HASHTABLE_INVALID_HASH_CODE;
+               e->_hash                           = MUSCLE_HASHTABLE_INVALID_HASH_CODE;
                e->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType)(i-1);  // yes, _bucketPrev will be set to (IndexType)-1 when (i==0)
                e->_indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)(i+1);
                e->_indices[HTE_INDEX_ITER_PREV]   = e->_indices[HTE_INDEX_ITER_NEXT]   = (IndexType)-1;
@@ -1031,16 +1031,16 @@ private:
       {
          case TABLE_INDEX_TYPE_UINT8:  
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            {uint8  r = (static_cast<const HashtableEntry<uint8>  *>(entry))->_indices[whichIndex]; return (r==(uint8)-1)?MUSCLE_HASHTABLE_INVALID_SLOT_INDEX:((uint32)r);}
+            {const uint8  r = (static_cast<const HashtableEntry<uint8>  *>(entry))->_indices[whichIndex]; return (r==(uint8)-1)?MUSCLE_HASHTABLE_INVALID_SLOT_INDEX:((uint32)r);}
 #endif
 
          case TABLE_INDEX_TYPE_UINT16: 
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            {uint16 r = (static_cast<const HashtableEntry<uint16> *>(entry))->_indices[whichIndex]; return (r==(uint16)-1)?MUSCLE_HASHTABLE_INVALID_SLOT_INDEX:((uint32)r);}
+            {const uint16 r = (static_cast<const HashtableEntry<uint16> *>(entry))->_indices[whichIndex]; return (r==(uint16)-1)?MUSCLE_HASHTABLE_INVALID_SLOT_INDEX:((uint32)r);}
 #endif
 
          default:
-            {uint32 r = (static_cast<const HashtableEntry<uint32> *>(entry))->_indices[whichIndex]; return r;}
+            {const uint32 r = (static_cast<const HashtableEntry<uint32> *>(entry))->_indices[whichIndex]; return r;}
       }
    }
 
@@ -2128,7 +2128,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 const KeyType * 
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAt(uint32 index) const
 {
-   HashtableEntryBase * e = GetEntryAt(index);
+   const HashtableEntryBase * e = GetEntryAt(index);
    return e ? &e->_key : NULL;
 }
 
@@ -2136,7 +2136,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 status_t 
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAt(uint32 index, KeyType & retKey) const
 {
-   HashtableEntryBase * e = GetEntryAt(index);
+   const HashtableEntryBase * e = GetEntryAt(index);
    if (e)
    {
       retKey = e->_key;
@@ -2149,7 +2149,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 const KeyType & 
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAtWithDefault(uint32 index) const
 {
-   HashtableEntryBase * e = GetEntryAt(index);
+   const HashtableEntryBase * e = GetEntryAt(index);
    return e ? e->_key : GetDefaultKey();
 }
 
@@ -2157,7 +2157,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 KeyType
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAtWithDefault(uint32 index, const KeyType & defaultKey) const
 {
-   HashtableEntryBase * e = GetEntryAt(index);
+   const HashtableEntryBase * e = GetEntryAt(index);
    return e ? e->_key : defaultKey;
 }
 
@@ -2165,7 +2165,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 const ValueType * 
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAt(uint32 index) const
 {
-   HashtableEntryBase * e = GetEntryAt(index);
+   const HashtableEntryBase * e = GetEntryAt(index);
    return e ? &e->_value : NULL;
 }
 
@@ -2173,7 +2173,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 status_t 
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAt(uint32 index, ValueType & retValue) const
 {
-   HashtableEntryBase * e = GetEntryAt(index);
+   const HashtableEntryBase * e = GetEntryAt(index);
    if (e)
    {
       retValue = e->_value;
@@ -2186,7 +2186,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 const ValueType & 
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAtWithDefault(uint32 index) const
 {
-   HashtableEntryBase * e = GetEntryAt(index);
+   const HashtableEntryBase * e = GetEntryAt(index);
    return e ? e->_value : GetDefaultValue();
 }
 
@@ -2194,7 +2194,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 ValueType
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAtWithDefault(uint32 index, const ValueType & defaultValue) const
 {
-   HashtableEntryBase * e = GetEntryAt(index);
+   const HashtableEntryBase * e = GetEntryAt(index);
    return e ? e->_value : defaultValue;
 }
 
@@ -2231,7 +2231,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 const KeyType * 
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetKey(const KeyType & lookupKey) const
 {
-   HashtableEntryBase * e = this->GetEntry(this->ComputeHash(lookupKey), lookupKey);
+   const HashtableEntryBase * e = this->GetEntry(this->ComputeHash(lookupKey), lookupKey);
    return e ? &e->_key : NULL;
 }
 
@@ -2497,10 +2497,10 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::PutAuxAux(uint32 hash, HT_Sink
 
       // insert e into the list immediately after (tableSlot)
       this->SetEntryBucketPrevUnchecked(e, tableSlot);
-      uint32 eBucketNext = this->GetEntryBucketNext(tableSlot);
+      const uint32 eBucketNext = this->GetEntryBucketNext(tableSlot);
       this->SetEntryBucketNext(e, eBucketNext);
 
-      uint32 eIdx = this->EntryToIndexUnchecked(e);
+      const uint32 eIdx = this->EntryToIndexUnchecked(e);
       if (eBucketNext != MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) this->SetEntryBucketPrev(this->IndexToEntryUnchecked(eBucketNext), eIdx);
       this->SetEntryBucketNext(tableSlot, eIdx);
       return e;
@@ -2638,8 +2638,8 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Clear(bool releaseCachedBuffer
 
    if (releaseCachedBuffers)
    {
-      HashtableEntryBase * oldTable = _table;
-      uint32 oldTableIndexType = _tableIndexType;
+      HashtableEntryBase * oldTable  = _table;
+      const uint32 oldTableIndexType = _tableIndexType;
 
       _table          = NULL;
       _freeHeadIdx    = MUSCLE_HASHTABLE_INVALID_SLOT_INDEX;
@@ -2696,21 +2696,21 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::CountAverageLookupComparisons(
    }
    histogram.SortByKey();
 
-   uint32 totalNumItems = GetNumItems();
+   const uint32 totalNumItems = GetNumItems();
    if (printStatistics) printf("Hashtable statistics:  " UINT32_FORMAT_SPEC " items in table, " UINT32_FORMAT_SPEC " slots allocated, " UINT32_FORMAT_SPEC " chains.\n", totalNumItems, _tableSize, chainCount);
    if (totalNumItems > 0)
    {
       uint64 totalCounts = 0, totalExtras = 0;
       for (HashtableIterator<uint32, uint32> iter(histogram); iter.HasData(); iter++)
       {
-         uint32 curChainSize           = iter.GetKey();
-         uint32 numChainsOfThisSize    = iter.GetValue();
-         uint32 numItemsInCurChainSize = numChainsOfThisSize*curChainSize;
+         const uint32 curChainSize           = iter.GetKey();
+         const uint32 numChainsOfThisSize    = iter.GetValue();
+         const uint32 numItemsInCurChainSize = numChainsOfThisSize*curChainSize;
          if (printStatistics) printf("  " UINT32_FORMAT_SPEC " chains of size " UINT32_FORMAT_SPEC " (aka %.3f%% of items)\n", numChainsOfThisSize, curChainSize, (100.0f*numItemsInCurChainSize)/totalNumItems);
          totalCounts += ((uint64)numItemsInCurChainSize)*curChainSize;
          totalExtras += ((uint64)numItemsInCurChainSize)*(curChainSize-1);
       }
-      float ret = (((float)totalExtras)/(2.0f*totalNumItems))+1.0f;
+      const float ret = (((float)totalExtras)/(2.0f*totalNumItems))+1.0f;
       if (printStatistics) printf("Average chain length is %.3f.  Average lookup requires %.3f key-comparisons.\n", ((float)totalCounts)/totalNumItems, ret);
       return ret;
    }
@@ -2891,7 +2891,7 @@ template <class KeyType, class ValueType, class HashFunctorType, class SubclassT
 status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 requestedSize, bool allowShrink)
 {
-   uint32 biggerTableSize = muscleMax(this->_numItems, allowShrink?requestedSize:muscleMax(requestedSize,this->_tableSize));
+   const uint32 biggerTableSize = muscleMax(this->_numItems, allowShrink?requestedSize:muscleMax(requestedSize,this->_tableSize));
    if (biggerTableSize == this->_tableSize) return B_NO_ERROR;      // no point in continuing if the new table's size will equal what we have now
    if (biggerTableSize == 0)  // in the case where the user wants to shrink an empty table's array to zero, we can handle that via Clear(true)
    {
@@ -2959,7 +2959,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
 #ifdef MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS
    if (this->GetNumItems() > 16)
    {
-      float av = this->CountAverageLookupComparisons();
+      const float av = this->CountAverageLookupComparisons();
 # if MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS >= 100
       if (av >= ((MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS)/100.0f))
 # else
@@ -2980,7 +2980,7 @@ template <class RHSHashFunctorType, class RHSSubclassType>
 status_t 
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::CopyToTable(const KeyType & copyMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & toTable) const
 {
-   uint32 hash = this->ComputeHash(copyMe);
+   const uint32 hash = this->ComputeHash(copyMe);
    const typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(hash, copyMe);
    if (e)
    { 
@@ -2995,7 +2995,7 @@ template <class RHSHashFunctorType, class RHSSubclassType>
 status_t 
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::MoveToTable(const KeyType & moveMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & toTable)
 {
-   uint32 hash = this->ComputeHash(moveMe);
+   const uint32 hash = this->ComputeHash(moveMe);
    const typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(hash, moveMe);
    if (e)
    {

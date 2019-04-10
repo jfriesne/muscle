@@ -44,7 +44,7 @@ public:
    {
       if (_buf())
       {
-         int32 copyBytes = muscleMin((int32)size, muscleMax((int32)0, (int32)(_buf()->GetNumBytes()-_seekPos)));
+         const int32 copyBytes = muscleMin((int32)size, muscleMax((int32)0, (int32)(_buf()->GetNumBytes()-_seekPos)));
          memcpy(buffer, _buf()->GetBuffer()+_seekPos, copyBytes);
          _seekPos += copyBytes;
          return copyBytes;
@@ -62,11 +62,11 @@ public:
    {
       if (_buf() == NULL) return -1;
 
-      uint32 oldBufSize = _buf()->GetNumBytes();
-      uint32 pastOffset = muscleMax(oldBufSize, _seekPos+size);
+      const uint32 oldBufSize = _buf()->GetNumBytes();
+      const uint32 pastOffset = muscleMax(oldBufSize, _seekPos+size);
       if (pastOffset > oldBufSize)
       {
-         uint32 preallocBytes = (pastOffset*2);  // exponential resize to avoid too many reallocs
+         const uint32 preallocBytes = (pastOffset*2);  // exponential resize to avoid too many reallocs
          if (_buf()->SetNumBytes(preallocBytes, true) != B_NO_ERROR) return -1;   // allocate the memory
          memset(_buf()->GetBuffer()+oldBufSize, 0, preallocBytes-oldBufSize);  // make sure newly alloc'd memory is zeroed out!
          (void) _buf()->SetNumBytes(pastOffset, true);  // guaranteed not to fail
@@ -85,8 +85,8 @@ public:
     */ 
    virtual status_t Seek(int64 offset, int whence)
    {
-      uint32 fileLen = _buf() ? _buf()->GetNumBytes() : 0;
-      int32 o = (int32) offset;
+      const uint32 fileLen = _buf() ? _buf()->GetNumBytes() : 0;
+      const int32 o = (int32) offset;
       int32 newSeekPos = -1;
       switch(whence)
       {

@@ -63,7 +63,7 @@ static const uint32 _MUSCLE_MESSAGE_ENCODING_DEFAULT = 1164862256; /* 'Enc0' -- 
 
 c_status_t MGAddOutgoingMessage(MMessageGateway * gw, const MMessage * msg)
 {
-   uint32 flatSize = MMGetFlattenedSize(msg);
+   const uint32 flatSize = MMGetFlattenedSize(msg);
    MByteBuffer * buf = MBAllocByteBuffer(sizeof(MMessage *) + (2*sizeof(uint32)) + flatSize, false);
    if (buf) 
    {

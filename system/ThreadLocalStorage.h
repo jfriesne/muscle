@@ -121,7 +121,7 @@ public:
       status_t ret = B_NO_ERROR;
       if (SetThreadLocalObjectAux(newObj) == B_NO_ERROR)  // SetThreadLocalObjectAux() MUST be called first to avoid re-entrancy trouble!
       {
-         int32 idx = oldObj ? _allocedObjs.IndexOf(oldObj) : -1;
+         const int32 idx = oldObj ? _allocedObjs.IndexOf(oldObj) : -1;
          if (idx >= 0)
          {
             if (newObj) _allocedObjs[idx] = newObj;

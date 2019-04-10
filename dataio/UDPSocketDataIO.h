@@ -122,7 +122,7 @@ public:
     */
    status_t SetBlockingIOEnabled(bool blocking)
    {
-      status_t ret = SetSocketBlockingEnabled(_sock, blocking);
+      const status_t ret = SetSocketBlockingEnabled(_sock, blocking);
       if (ret == B_NO_ERROR) _blocking = blocking;
       return ret;
    }

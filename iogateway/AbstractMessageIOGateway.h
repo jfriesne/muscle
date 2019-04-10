@@ -174,7 +174,7 @@ public:
    int32 DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT) 
    {
       receiver.DoInputBegins();
-      int32 ret = DoInputImplementation(receiver, maxBytes); 
+      const int32 ret = DoInputImplementation(receiver, maxBytes); 
       receiver.DoInputEnds();
       return ret;
    }

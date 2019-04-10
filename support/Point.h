@@ -134,8 +134,8 @@ public:
      */
    float GetDistanceToSquared(const Point & pt) const
    {
-      float dx = pt.x()-x();
-      float dy = pt.y()-y();
+      const float dx = pt.x()-x();
+      const float dy = pt.y()-y();
       return ((dx*dx)+(dy*dy));
    }
 };
