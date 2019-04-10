@@ -22,27 +22,30 @@ public:
     *  @param separators ASCII string representing a list of characters to interpret a substring-separators.
     *                    Defaults to ", \t\r\n".
     */
-   StringTokenizer(const char * tokenizeMe, const char * separators = ", \t\r\n")
+   StringTokenizer(const char * tokenizeMe, const char * separators = ", \t\r\n") : _alloced(false)
    {
-      int tlen = (int) strlen(tokenizeMe);
-      int slen = (int) strlen(separators);
- 
-      int tempLen = slen+1+tlen+1;
-      char * temp = newnothrow_array(char, tempLen);
+      const size_t tlen   = strlen(tokenizeMe);
+      const size_t slen   = strlen(separators);
+      const size_t bufLen = slen+1+tlen+1;
+      const bool doAlloc  = (bufLen > sizeof(_smallStringBuf));  // only allocate from the heap if _smallStringBuf isn't big enough
+
+      char * temp;
+      if (doAlloc) 
+      {
+         temp = newnothrow_array(char, bufLen);
+         if (temp) _alloced = true;
+              else WARN_OUT_OF_MEMORY;
+      }
+      else temp = _smallStringBuf;
+
       if (temp)
       {
-         muscleStrncpy(temp, separators, tempLen);
+         muscleStrncpy(temp, separators, bufLen);
          _seps = temp;
          _next = temp + slen + 1;
-         muscleStrncpy(_next, tokenizeMe, tempLen-(slen+1));
+         muscleStrncpy(_next, tokenizeMe, bufLen-(slen+1));
       }
-      else 
-      {
-         _seps = _next = NULL;
-         WARN_OUT_OF_MEMORY;
-      }
- 
-      _alloced = true;
+      else _seps = _next = NULL;
    }
 
    /** This Constructor is the same as above, only with this one you allow
@@ -53,12 +56,9 @@ public:
     *  @param separators ASCII string representing a list of characters to interpret as word-separator characters.
     *                    Defaults to ", \t" (where "\t" is of course the tab character)
     */
-   StringTokenizer(bool junk, char * tokenizeMe, const char * separators = ", \t\r\n")
+   StringTokenizer(bool junk, char * tokenizeMe, const char * separators = ", \t\r\n") : _alloced(false), _seps(separators), _next(tokenizeMe)
    {
       (void) junk;
-      _next = tokenizeMe;
-      _seps = separators;
-      _alloced = false;
    }
 
    /** Destructor */
@@ -117,6 +117,7 @@ private:
    bool _alloced;
    const char * _seps;
    char * _next;
+   char _smallStringBuf[128];
 };
 
 } // end namespace muscle
