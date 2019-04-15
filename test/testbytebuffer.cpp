@@ -8,6 +8,39 @@
 
 using namespace muscle;
 
+// Test class, just to exercise the ByteBuffer::*Flat() methods 
+class TestFlattenable : public Flattenable
+{
+public:
+   TestFlattenable() : _v1(0), _v2(0.0f) {/* empty */}
+   TestFlattenable(int v1, float v2) : _v1(v1), _v2(v2) {/* empty */}
+
+   virtual bool IsFixedSize()     const {return true;}
+   virtual uint32 TypeCode()      const {return 0;}
+   virtual uint32 FlattenedSize() const {return sizeof(_v1) + sizeof(_v2);}
+
+   virtual void Flatten(uint8 *buffer) const
+   {
+      muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32 (_v1)); buffer += sizeof(_v1);
+      muscleCopyOut(buffer, B_HOST_TO_LENDIAN_IFLOAT(_v2)); //buffer += sizeof(_v2);
+   }
+
+   virtual status_t Unflatten(const uint8 *buffer, uint32 size)
+   {
+      if (size < FlattenedSize()) return B_ERROR; 
+
+      _v1 = B_LENDIAN_TO_HOST_INT32 (muscleCopyIn<int32>(buffer));  buffer += sizeof(_v1);
+      _v2 = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<uint32>(buffer)); //buffer += sizeof(_v2);
+      return B_NO_ERROR;
+   }
+
+   String ToString() const {return String("TestFlattenable: [%1,%2]").Arg(_v1).Arg(_v2);}
+
+private:
+   int32 _v1;
+   float _v2;
+};
+
 static void Test(EndianFlags endianFlags)
 {
    ByteBuffer b;
@@ -24,6 +57,7 @@ static void Test(EndianFlags endianFlags)
       b.AppendString("Pardner");
       b.AppendPoint(Point(-1.1f, -2.2f));
       b.AppendRect(Rect(10.1f, 20.2f, 30.3f, 40.4f));
+      b.AppendFlat(TestFlattenable(6, 7.5f));
       b.AppendString("----");
       const int8  i8s[]  = {1,2,3,4};     b.AppendInt8s(i8s, ARRAYITEMS(i8s));
       const int16 i16s[] = {5,6,7,8};     b.AppendInt16s(i16s, ARRAYITEMS(i16s));
@@ -50,6 +84,11 @@ static void Test(EndianFlags endianFlags)
 
    Point p = b.ReadPoint(offset); printf("Point=%f,%f\n", p.x(), p.y());
    Rect r = b.ReadRect(offset); printf("Rect=%f,%f,%f,%f\n", r.left(), r.top(), r.Width(), r.Height());
+
+   TestFlattenable tf;
+   if (b.ReadFlat(tf, offset) == B_NO_ERROR) printf("Flat=[%s]\n", tf.ToString()());
+                                        else printf("ReadFlat() failed!?\n");
+
    printf("string3=[%s]\n", b.ReadString(offset)());  // should be "----"
 
    int8 i8s[4] = {0}; nr = b.ReadInt8s(i8s, ARRAYITEMS(i8s), offset); 

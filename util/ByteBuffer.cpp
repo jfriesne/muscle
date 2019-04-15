@@ -397,6 +397,15 @@ uint32 ByteBuffer :: ReadRects(Rect * vals, uint32 numValsToRead, uint32 & readB
    return numValsToRead;
 }
 
+status_t ByteBuffer :: ReadFlat(Flattenable & flat, uint32 & readByteOffset, uint32 optMaxReadSize) const
+{
+   if (&flat == this) return B_ERROR;  // don't get cute
+
+   if (flat.Unflatten(&_buffer[readByteOffset], muscleMin(optMaxReadSize, (readByteOffset < _numValidBytes) ? (_numValidBytes-readByteOffset) : 0)) != B_NO_ERROR) return B_ERROR;
+   readByteOffset += flat.FlattenedSize();
+   return B_NO_ERROR;
+}
+
 uint32 ByteBuffer :: ReadStrings(String * vals, uint32 numValsToRead, uint32 & readByteOffset) const
 {
    for (uint32 i=0; i<numValsToRead; i++)
@@ -576,6 +585,19 @@ status_t ByteBuffer :: WriteRects(const Rect * vals, uint32 numVals, uint32 & wr
       }
    }
 
+   writeByteOffset += numBytes;
+   return B_NO_ERROR;
+}
+
+status_t ByteBuffer :: WriteFlat(const Flattenable & val, uint32 & writeByteOffset)
+{
+   if (&val == this) return B_ERROR;  // don't get cute
+
+   const uint32 numBytes     = val.FlattenedSize();
+   const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
+   if ((newValidSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newValidSize, true) != B_NO_ERROR)) return B_ERROR;
+
+   val.Flatten(&_buffer[writeByteOffset]);
    writeByteOffset += numBytes;
    return B_NO_ERROR;
 }

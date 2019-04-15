@@ -267,6 +267,7 @@ public:
    status_t AppendPoint( const Point  & val) {return AppendPoints( &val, 1);}
    status_t AppendRect(  const Rect   & val) {return AppendRects(  &val, 1);}
    status_t AppendString(const String & val) {return AppendStrings(&val, 1);}
+   status_t AppendFlat(  const Flattenable & val) {uint32 w = _numValidBytes; return WriteFlat(val, w);}
 ///@}
 
 ///@{
@@ -304,6 +305,17 @@ public:
    String ReadString(uint32 & readByteOffset) const {String ret; return (ReadStrings(&ret, 1, readByteOffset) == 1) ? ret : String();}
 ///@}
 
+   /** Sets the state of the specified Flattenable item from this buffer.
+     * @param flat the Flattenable item whose state should be read in from this buffer.
+     * @param readByteOffset The offset from the top of our buffer at which to start reading.  On success, this value will
+     *                       be increased by flat.FlattenedSize()
+     * @param optMaxReadSize optional maximum number of bytes to pass to flat.Unflatten().  Default is MUSCLE_NO_LIMIT,
+     *                       meaning that the flat.Unflatten() will be given access to the all bytes in this ByteBuffer
+     *                       starting at (readByteOffset).
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   status_t ReadFlat(Flattenable & flat, uint32 & readByteOffset, uint32 optMaxReadSize = MUSCLE_NO_LIMIT) const;
+
 ///@{
    /** Convenience method for reading an array of data items from this buffer.  (readByteOffset) will be advanced to the byte-offset after
      * the last read item.  The number of items actually read will be returned.
@@ -340,6 +352,7 @@ public:
    status_t WritePoint( const Point  & val, uint32 & writeByteOffset) {return WritePoints( &val, 1, writeByteOffset);}
    status_t WriteRect(  const Rect   & val, uint32 & writeByteOffset) {return WriteRects(  &val, 1, writeByteOffset);}
    status_t WriteString(const String & val, uint32 & writeByteOffset) {return WriteStrings(&val, 1, writeByteOffset);}
+   status_t WriteFlat(const Flattenable & val, uint32 & writeByteOffset);
 ///@}
 
 ///@{
