@@ -7,18 +7,26 @@ key:  - new feature
 
    - Added new convenience methods to the Hashtable class:
      PutAtFront(), PutAtBack(), PutBefore(), PutBehind(), and
-     PutAtPosition().  (These are similar to Put() but allow
-     the caller to simultaneously specify the object's 
-     desired position in the Hashtable's iteration-sequence)
-   - Modified the StringTokenizer class so that it no longer
-     needs to perform a heap allocation for short strings.
+     PutAtPosition().  (These are variations of Put() that
+     allow the caller to simultaneously specify the desired
+     position of the object in the table's iteration-sequence)
+   - The StringTokenizer class no longer performs a heap 
+     allocation when tokenizing short strings.
    - Added ReadFlat(), WriteFlat(), and AppendFlat() methods
      to the ByteBuffer class.
+   - Added a Reposition(const KeyType &) method to the 
+     OrderedKeysHashtable class.
    o Added const-qualifiers to more local variables where appropriate.
    o Refactored the Hashtable class's internal sorting 
      implementation to reduce the amount of redundant code.
    * Some private members of the HashtableBase class had been
      declared protected by mistake.  Fixed.
+   * Fixed a bug in the Hashtable class that could cause a 
+     HashtableIterator to be updated improperly, if the 
+     Hashtable was resized during the iteration.
+   * testhashtable's interactive test manually changed the 
+     ordering of its OrderedKeysHashtable on startup, breaking
+     the table's automatic-sort functionality.  Fixed.
 
 7.13 Released 4/6/2019
    - Added <, <=, >=, and > operators to the Queue class, to

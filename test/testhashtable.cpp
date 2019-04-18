@@ -106,9 +106,6 @@ static int DoInteractiveTest()
       table.Put(i, buf);
    }
 
-   // Let's see if this reverses it
-   for (HashtableIterator<int, String> rev(table); rev.HasData(); rev++) table.MoveToFront(rev.GetKey());
-
    while(true)
    {
       {
@@ -211,6 +208,15 @@ static int DoInteractiveTest()
                if (arg1)
                {
                   printf("%s(%s %i)", first?"":", ", (table.Remove(atoi(arg1)) == B_NO_ERROR) ? "Removed" : "FailedToRemove", atoi(arg1));
+                  first = false;
+               }
+               else printf("(No arg1!)");
+            break;
+
+            case 'R':
+               if (arg1)
+               {
+                  printf("%s(%s %i)", first?"":", ", (table.Reposition(atoi(arg1)) == B_NO_ERROR) ? "Repositioned" : "FailedToReposition", atoi(arg1));
                   first = false;
                }
                else printf("(No arg1!)");
