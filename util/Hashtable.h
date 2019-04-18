@@ -218,9 +218,8 @@ private:
       }
    }
 
-   void * _scratchSpace[2];   // ignore this; it's temp scratch space used by EnsureSize().
-
-   void * _iterCookie;
+   void * _scratchSpace;         // ignore this; it's temp scratch space used by EnsureSize().
+   void * _iterCookie;           // points to the HashtableEntryBase we are associated with
    const KeyType * _currentKey;  // cached result, so that GetKey() can be a branch-free inline method
    ValueType * _currentVal;      // cached result, so that GetValue() can be a branch-free inline method
 
@@ -1170,8 +1169,8 @@ private:
    }
 
    // These ugly methods are here to expose the HashtableIterator's privates to the Hashtable class without exposing them to the rest of the world
-   void * GetIteratorScratchSpace(const IteratorType & iter, int i) const {return iter._scratchSpace[i];}
-   void SetIteratorScratchSpace(IteratorType & iter, int i, void * val) const {iter._scratchSpace[i] = val;}
+   void * GetIteratorScratchSpace(const IteratorType & iter) const {return iter._scratchSpace;}
+   void SetIteratorScratchSpace(IteratorType & iter, void * val) const {iter._scratchSpace = val;}
    void * GetIteratorNextCookie(const IteratorType & iter) const {return iter._iterCookie;}
    void SetIteratorNextCookie(IteratorType & iter, void * val) const {iter._iterCookie = val;}
    void UpdateIteratorKeyAndValuePointers(IteratorType & iter) const {iter.UpdateKeyAndValuePointers();}
@@ -2964,8 +2963,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
       IteratorType * nextIter = this->_iterList;
       while(nextIter)
       {
-         this->SetIteratorScratchSpace(*nextIter, 0, NULL);
-         this->SetIteratorScratchSpace(*nextIter, 1, NULL); // these will hold our switch-to-on-success values
+         this->SetIteratorScratchSpace(*nextIter, NULL);
          nextIter = this->GetIteratorNextIterator(*nextIter);
       }
    }
@@ -2988,7 +2986,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
             IteratorType * nextIter = this->_iterList;
             while(nextIter)
             {
-               if (this->GetIteratorNextCookie(*nextIter) == next) this->SetIteratorScratchSpace(*nextIter, 0, hisClone);
+               if (this->GetIteratorNextCookie(*nextIter) == next) this->SetIteratorScratchSpace(*nextIter, hisClone);
                nextIter = this->GetIteratorNextIterator(*nextIter);
             }
          }
@@ -3012,7 +3010,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
       while(nextIter)
       {
          IteratorType & ni = *nextIter;
-         this->SetIteratorNextCookie(ni, this->GetIteratorScratchSpace(ni, 0));
+         this->SetIteratorNextCookie(ni, this->GetIteratorScratchSpace(ni));
          this->UpdateIteratorKeyAndValuePointers(ni);
          nextIter = this->GetIteratorNextIterator(ni);
       }
