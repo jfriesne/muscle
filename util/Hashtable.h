@@ -1374,9 +1374,9 @@ private:
       const ValueCompareFunctor & _vf;
    };
 
-   template <class EntryCompareFunctorType> void SortByEntry(const EntryCompareFunctorType & compareFunctor, void * cookie);
-   template <class EntryCompareFunctorType> void InsertIterationEntryInOrder(HashtableEntryBase * e, const EntryCompareFunctorType & entryCompareFunctor);
-   template <class EntryCompareFunctor>     void MoveIterationEntryToCorrectPosition(HashtableEntryBase * e, const EntryCompareFunctor & ecf);
+   template <class EntryCompareFunctorType> void SortByEntry(                        const EntryCompareFunctorType & ecf, void * cookie);
+   template <class EntryCompareFunctorType> void InsertIterationEntryInOrder(        const EntryCompareFunctorType & ecf, HashtableEntryBase * e);
+   template <class EntryCompareFunctorType> void MoveIterationEntryToCorrectPosition(const EntryCompareFunctorType & ecf, HashtableEntryBase * e);
 
    HashFunctorType _hashFunctor;  // used to compute hash codes for key objects
 
@@ -1946,7 +1946,7 @@ public:
       typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
       if (e)
       {
-         this->MoveIterationEntryToCorrectPosition(e, _entryCompareFunctor);
+         this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e);
          return B_NO_ERROR;
       }
       else return B_ERROR;
@@ -1983,8 +1983,8 @@ private:
    // These are the "fake virtual functions" that can be called by HashtableMid as part of the
    // Curiously Recurring Template Pattern that Hashtable uses to implement polymorphic behavior at compile time.
    friend class HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >;
-   void InsertIterationEntryAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->InsertIterationEntryInOrder(e, _entryCompareFunctor);}
-   void MoveIterationEntryToCorrectPositionAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->MoveIterationEntryToCorrectPosition(e, _entryCompareFunctor);}
+   void InsertIterationEntryAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->InsertIterationEntryInOrder(_entryCompareFunctor, e);}
+   void MoveIterationEntryToCorrectPositionAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e);}
    void SortAux() {this->SortByEntry(_entryCompareFunctor, this->GetCompareCookie());}
 
    const KeyCompareFunctorType _keyCompareFunctor;
@@ -2033,7 +2033,7 @@ public:
       typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
       if (e)
       {
-         this->MoveIterationEntryToCorrectPosition(e, _entryCompareFunctor);
+         this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e);
          return B_NO_ERROR;
       }
       else return B_ERROR;
@@ -2070,8 +2070,8 @@ private:
    // These are the "fake virtual functions" that can be called by HashtableMid as part of the
    // Curiously Recurring Template Pattern that Hashtable uses to implement polymorphic behavior at compile time.
    friend class HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >;
-   void InsertIterationEntryAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->InsertIterationEntryInOrder(e, _entryCompareFunctor);}
-   void MoveIterationEntryToCorrectPositionAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->MoveIterationEntryToCorrectPosition(e, _entryCompareFunctor);}
+   void InsertIterationEntryAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->InsertIterationEntryInOrder(_entryCompareFunctor, e);}
+   void MoveIterationEntryToCorrectPositionAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e);}
    void SortAux() {this->SortByEntry(_entryCompareFunctor, this->GetCompareCookie());}
 
    const ValueCompareFunctorType _valueCompareFunctor;
@@ -2358,7 +2358,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeySetsEqual(const Hashtabl
 template <class KeyType, class ValueType, class HashFunctorType>
 template <class EntryCompareFunctorType>
 void 
-HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompareFunctorType & compareFunctor, void * cookie)
+HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompareFunctorType & ecf, void * cookie)
 {
    if (this->_iterHeadIdx == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) return;
 
@@ -2388,10 +2388,10 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompare
             typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e;
 
             /* decide whether next element of the merge comes from p or q */
-                 if (psize == 0)                                {e = q; q = this->GetEntryIterNextChecked(q); qsize--;}
-            else if ((qsize == 0)||(q == NULL))                 {e = p; p = this->GetEntryIterNextChecked(p); psize--;}
-            else if (compareFunctor.Compare(*p,*q,cookie) <= 0) {e = p; p = this->GetEntryIterNextChecked(p); psize--;}
-            else                                                {e = q; q = this->GetEntryIterNextChecked(q); qsize--;}
+                 if (psize == 0)                     {e = q; q = this->GetEntryIterNextChecked(q); qsize--;}
+            else if ((qsize == 0)||(q == NULL))      {e = p; p = this->GetEntryIterNextChecked(p); psize--;}
+            else if (ecf.Compare(*p,*q,cookie) <= 0) {e = p; p = this->GetEntryIterNextChecked(p); psize--;}
+            else                                     {e = q; q = this->GetEntryIterNextChecked(q); qsize--;}
 
             /* append to our new more-sorted list */
             typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * tail = this->IndexToEntryChecked(_iterTailIdx);
@@ -2865,7 +2865,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveIterationEntry(Hashtable
 template <class KeyType, class ValueType, class HashFunctorType>
 template <class EntryCompareFunctorType>
 void
-HashtableBase<KeyType,ValueType,HashFunctorType>::InsertIterationEntryInOrder(HashtableEntryBase * e, const EntryCompareFunctorType & ecf)
+HashtableBase<KeyType,ValueType,HashFunctorType>::InsertIterationEntryInOrder(const EntryCompareFunctorType & ecf, HashtableEntryBase * e)
 {
    HashtableEntryBase * insertAfter = this->IndexToEntryChecked(this->_iterTailIdx);  // default to appending to the end of the list
    if ((this->GetAutoSortEnabled())&&(this->_iterHeadIdx != MUSCLE_HASHTABLE_INVALID_SLOT_INDEX))
@@ -2895,9 +2895,9 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::InsertIterationEntryInOrder(Ha
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-template <class EntryCompareFunctor>
+template <class EntryCompareFunctorType>
 void
-HashtableBase<KeyType,ValueType,HashFunctorType>::MoveIterationEntryToCorrectPosition(HashtableEntryBase * e, const EntryCompareFunctor & ecf)
+HashtableBase<KeyType,ValueType,HashFunctorType>::MoveIterationEntryToCorrectPosition(const EntryCompareFunctorType & ecf, HashtableEntryBase * e)
 {
    HashtableEntryBase * b;
    if (((b = this->GetEntryIterPrevChecked(e)) != NULL)&&(ecf.Compare(*e, *b, this->_compareCookie) < 0))
