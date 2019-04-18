@@ -68,14 +68,7 @@ public:
    void SetDefaultPass(bool dp) {_defaultPass = dp;}
 
    /** Convenience method:  Returns true iff access should be allowed for the given settings and IP address. 
-     * @param sharedMemName Name of the SharedMemory area to consult
      * @param ip the IP address to inquire about
-     * @param isGrantList If true, then the requesting IP address will be accepted only if
-     *                    it is present in the SharedMemory area.  If false, then requesting IP
-     *                    addresses in the SharedMemory area will be denied.
-     * @param defaultPass Specifies what to do if the SharedMemory area doesn't exist.  If true,
-     *                    then when the SharedMemory area doesn't exist, the call will be passed
-     *                    on through to the slave factory.  If false, it won't be.
      */
    bool IsAccessAllowedForIP(const IPAddress & ip) const;
 

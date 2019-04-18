@@ -876,14 +876,13 @@ public:
       return sizeof(*this)+(this->GetNumAllocatedItemSlots()*sizePerItem);
    }
 
-protected:
+private:
    /** If we don't already have the storage array allocated for this Hashtable, 
      * allocates one.  If the table was already allocated, does nothing and returns B_NO_ERROR.
      * @returns B_NO_ERROR if the table is present, B_ERROR on failure (out of memory?)
      */
    status_t EnsureTableAllocated();
 
-private:
    enum {
       HTE_INDEX_BUCKET_PREV = 0, // slot index: for making linked lists in our bucket
       HTE_INDEX_BUCKET_NEXT,     // slot index: for making linked lists in our bucket
@@ -903,7 +902,6 @@ private:
 
    void SwapContentsAux(HashtableBase & swapMe, bool swapIterators);
 
-   /// @cond HIDDEN_SYMBOLS
    HashtableBase(uint32 tableSize, bool autoSortEnabled, void * cookie) : _numItems(0), _tableSize(tableSize), _tableIndexType(ComputeTableIndexTypeForTableSize(tableSize)), _table(NULL), _iterHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _iterTailIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _freeHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _autoSortEnabled(autoSortEnabled), _compareCookie(cookie), _iterList(NULL) {/* empty */}
    ~HashtableBase() {Clear(true);}
 
@@ -1396,8 +1394,6 @@ private:
    mutable AtomicCounter _iteratorCount;    // this represents the number of HashtableIterators currently registered with this Hashtable
    mutable muscle_thread_id _iteratorThreadID; // this is the ID of the thread that is allowed to register iterators (or 0 if none are registered)
 #endif
-
-   /// @endcond
 };
 
 /** This internal superclass is an implementation detail and should not be instantiated directly.  Instantiate a Hashtable, OrderedKeysHashtable, or OrderedValuesHashtable instead. */
@@ -1521,6 +1517,7 @@ public:
      *                   the item at the head of the traversal sequence, one to the second
      *                   position, and so on.  Values greater than or equal to the number
      *                   of items in the Hashtable will place the item at the last position.
+     * @param v Value of the item to be associated with (key).
      * @return B_NO_ERROR on success, or B_ERROR if (key) was not found in the table.
      */
    HT_UniversalSinkKeyValueRef status_t PutAtPosition(HT_SinkKeyParam key, uint32 atPosition, HT_SinkValueParam v);
