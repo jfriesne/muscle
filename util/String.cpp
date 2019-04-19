@@ -962,6 +962,14 @@ String String :: ArgAux(const char * buf) const
    else return *this;
 }
 
+uint32 String :: ParseNumericSuffix(uint32 defaultValue) const
+{
+   const char * s = Cstr();
+   const char * n = s+Length();  // initially points to the NUL terminator
+   while((n>s)&&(muscleInRange(*(n-1), '0', '9'))) n--;  // move back to first char of numeric suffix
+   return muscleInRange(*n, '0', '9') ? (uint32) atol(n) : defaultValue;
+}
+
 String String :: WithoutNumericSuffix(uint32 * optRemovedSuffixValue) const
 {
    String ret(*this);

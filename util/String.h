@@ -1179,6 +1179,13 @@ public:
      */
    String WithoutNumericSuffix(uint32 * optRetRemovedSuffixValue = NULL) const;
 
+   /** If this string ends in a numeric value, returns that value; otherwise returns (defaultValue).
+     *  For example, ParseNumericSuffix("Joe-54") would return 54.
+     *  @param defaultValue the value to return if no numeric suffix is found.  Defaults to zero.
+     *  @note that negative numeric suffixes aren't supported -- i.e. plus or minus is not considered to be part of the numeric-suffix.
+     */
+   uint32 ParseNumericSuffix(uint32 defaultValue = 0) const;
+
    /** Returns a 32-bit checksum corresponding to this String's contents.
      * Note that this method method is O(N).
      */

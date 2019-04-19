@@ -10,6 +10,7 @@ key:  - new feature
      PutAtPosition().  (These are variations of Put() that
      allow the caller to simultaneously specify the desired
      position of the object in the table's iteration-sequence)
+   - Added a ParseNumericSuffix() method to the String class.
    - The StringTokenizer class no longer performs a heap 
      allocation when tokenizing short strings.
    - Added ReadFlat(), WriteFlat(), and AppendFlat() methods
