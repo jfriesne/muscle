@@ -1341,7 +1341,7 @@ private:
       return NULL;
    }
 
-#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 5) && (__GNUC_MINOR__ <= 4)
+#if !defined(__clang__) && defined(__GNUC__) && ((__GNUC__ < 5) || ((__GNUC__ == 5) && (__GNUC_MINOR__ <= 4)))
 public:  // work-around for an apparent bug in g++ 5.4.0 -- friend-template doesn't work for the Ordered*Hashtable constructors!?
 #endif
    template<class KeyCompareFunctor> class ByKeyEntryCompareFunctor
