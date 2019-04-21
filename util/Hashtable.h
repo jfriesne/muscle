@@ -102,6 +102,9 @@ enum {
 template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class HashtableIterator MUSCLE_FINAL_CLASS
 {
 public:
+   /** Convenience typedef for the type of Hashtable this HashtableIterator is associated with. */
+   typedef HashtableBase<KeyType, ValueType, HashFunctorType> HashtableType;
+
    /**
     * Default constructor.  It's here only so that you can include HashtableIterators
     * as member variables, in arrays, etc.  HashtableIterators created with this
@@ -111,13 +114,13 @@ public:
    HashtableIterator();
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   HashtableIterator(const HashtableIterator<KeyType, ValueType, HashFunctorType> & rhs);
+   HashtableIterator(const HashtableIterator & rhs);
 
    /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIterator().  
      * @param table the Hashtable to iterate over.
      * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero for default behaviour.  
      */
-   HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, uint32 flags = 0);
+   HashtableIterator(const HashtableType & table, uint32 flags = 0);
 
    /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIteratorAt().  
      * @param table the Hashtable to iterate over.
@@ -125,13 +128,13 @@ public:
      *                the iterator will not return any results.
      * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Set to zero to get the default behaviour.
      */
-   HT_UniversalSinkKeyRef HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, HT_SinkKeyParam startAt, uint32 flags);
+   HT_UniversalSinkKeyRef HashtableIterator(const HashtableType & table, HT_SinkKeyParam startAt, uint32 flags);
 
    /** Destructor */
    ~HashtableIterator();
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
-   HashtableIterator<KeyType, ValueType, HashFunctorType> & operator=(const HashtableIterator<KeyType, ValueType, HashFunctorType> & rhs);
+   HashtableIterator & operator=(const HashtableIterator & rhs);
 
    /** Advances this iterator by one entry in the table.  */
    void operator++(int) 
@@ -190,7 +193,7 @@ public:
    bool IsBackwards() const {return ((_flags & HTIT_FLAG_BACKWARDS) != 0);}
 
 private:
-   friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
+   friend HashtableType;
 
    HT_UniversalSinkKeyValueRef void SetScratchValues(HT_SinkKeyParam key, HT_SinkValueParam val)
    {
@@ -219,14 +222,14 @@ private:
    }
 
    void * _scratchSpace;         // ignore this; it's temp scratch space used by EnsureSize().
-   void * _iterCookie;           // points to the HashtableEntryBase we are associated with
+   void * _iterCookie;           // points to the HashtableEntryBase object that we are currently associated with
    const KeyType * _currentKey;  // cached result, so that GetKey() can be a branch-free inline method
    ValueType * _currentVal;      // cached result, so that GetValue() can be a branch-free inline method
 
    uint32 _flags;
-   HashtableIterator<KeyType,   ValueType, HashFunctorType> * _prevIter; // for the doubly linked list so that the table can notify us if it is modified
-   HashtableIterator<KeyType,   ValueType, HashFunctorType> * _nextIter; // for the doubly linked list so that the table can notify us if it is modified
-   const HashtableBase<KeyType, ValueType, HashFunctorType> * _owner;    // table that we are associated with
+   HashtableIterator * _prevIter; // for the doubly linked list so that the table can notify us if it is modified
+   HashtableIterator * _nextIter; // for the doubly linked list so that the table can notify us if it is modified
+   const HashtableType * _owner;  // table that we are associated with
 
    // Used for emergency storage of scratch values
    class KeyAndValue
@@ -587,22 +590,6 @@ public:
      */
    void SortByValue(void * optCompareCookie = NULL) {SortByValue(CompareFunctor<ValueType>(), optCompareCookie);}
 
-   /** Returns true iff auto-sort is currently enabled on this Hashtable.  Note that the auto-sort flag only has any
-     * effect on OrderedKeysHashtable and OrderedValuesHashtable objects;  for plain Hashtable objects it has no effect.
-     */
-   bool GetAutoSortEnabled() const {return _autoSortEnabled;}
-
-   /** This method can be used to set the "cookie value" that will be passed in to the comparison functor
-     * objects that this class is templated on.  The functor objects can then use this value to access
-     * any context information that might be necessary to do their comparison.
-     * This value will be passed along during whenever a user-defined compare functor is called implicitly.
-     * @param cookie the new cookie value (meaning is application-specific)
-     */
-   void SetCompareCookie(void * cookie) {_compareCookie = cookie;}
-
-   /** Returns the current comparison cookie, as previously set by SetCompareCookie().  Default value is NULL. */
-   void * GetCompareCookie() const {return _compareCookie;}
-
    /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).  
     *  That is to say, when this method returns, (swapMe) will be identical to the old state of this 
     *  Hashtable, and this Hashtable will be identical to the old state of (swapMe). 
@@ -901,7 +888,7 @@ private:
 
    void SwapContentsAux(HashtableBase & swapMe, bool swapIterators);
 
-   HashtableBase(uint32 tableSize, bool autoSortEnabled, void * cookie) : _numItems(0), _tableSize(tableSize), _tableIndexType(ComputeTableIndexTypeForTableSize(tableSize)), _table(NULL), _iterHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _iterTailIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _freeHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _autoSortEnabled(autoSortEnabled), _compareCookie(cookie), _iterList(NULL) {/* empty */}
+   HashtableBase(uint32 tableSize) : _numItems(0), _tableSize(tableSize), _tableIndexType(ComputeTableIndexTypeForTableSize(tableSize)), _table(NULL), _iterHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _iterTailIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _freeHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _iterList(NULL) {/* empty */}
    ~HashtableBase() {Clear(true);}
 
    void CopyFromAux(const HashtableBase<KeyType, ValueType, HashFunctorType> & rhs)
@@ -1179,6 +1166,7 @@ private:
    // Give these classes (and only these classes!) access to the HashtableEntryBase inner class
    template<class HisKeyType, class HisValueType, class HisHashFunctorType, class HisSubclassType>          friend class HashtableMid;
    template<class HisKeyType, class HisValueType, class HisHashFunctorType>                                 friend class Hashtable;
+   template<class HisKeyType, class HisValueType, class HisHashFunctorType, class HisEntryCompareFunctorType, class HisSubclassType > friend class OrderedHashtable;
    template<class HisKeyType, class HisValueType, class HisKeyCompareFunctorType, class HisHashFunctorType> friend class OrderedKeysHashtable;
    template<class HisKeyType, class HisValueType, class HisKeyCompareFunctorType, class HisHashFunctorType> friend class OrderedValuesHashtable;
 
@@ -1374,8 +1362,8 @@ private:
    };
 
    template <class EntryCompareFunctorType> void SortByEntry(                        const EntryCompareFunctorType & ecf, void * cookie);
-   template <class EntryCompareFunctorType> void InsertIterationEntryInOrder(        const EntryCompareFunctorType & ecf, HashtableEntryBase * e);
-   template <class EntryCompareFunctorType> void MoveIterationEntryToCorrectPosition(const EntryCompareFunctorType & ecf, HashtableEntryBase * e);
+   template <class EntryCompareFunctorType> void InsertIterationEntryInOrder(        const EntryCompareFunctorType & ecf, HashtableEntryBase * e, bool isAutoSortEnabled, void * compareCookie);
+   template <class EntryCompareFunctorType> void MoveIterationEntryToCorrectPosition(const EntryCompareFunctorType & ecf, HashtableEntryBase * e, void * compareCookie);
 
    HashFunctorType _hashFunctor;  // used to compute hash codes for key objects
 
@@ -1387,9 +1375,6 @@ private:
    uint32 _iterHeadIdx;         // index of the start of linked list to iterate through
    uint32 _iterTailIdx;         // index of the end of linked list to iterate through
    uint32 _freeHeadIdx;         // index of the head of the list of unused HashtableEntries in our _table array
-
-   bool _autoSortEnabled;  // only used in the ordered Hashtable subclasses, but kept here so that its state can be swapped by SwapContents(), etc.
-   void * _compareCookie;
 
    mutable IteratorType * _iterList;  // list of existing iterators for this table
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
@@ -1739,39 +1724,12 @@ public:
      */
    void Sort() {static_cast<SubclassType *>(this)->SortAux();}
 
-   /** This method can be used to activate or deactivate auto-sorting on this Hashtable.
-     *
-     * If active, auto-sorting ensures that whenever Put() is called, the new/updated item is
-     * automatically moved to the correct place in the iterator traversal list.  Note that when
-     * auto-sort is enabled, Put() becomes an O(N) operation instead of O(1).
-     *
-     * Note that auto-sorting only has an effect on OrderedKeysHashtables and OrderedValuesHashtables,
-     * in which it is enabled by default.  For plain Hashtables, auto-sort mode has no effect and is
-     * disabled by default.
-     *
-     * @param enabled True if autosort should be enabled; false if it shouldn't be.
-     * @param sortNow If true, Sort() will be called when entering a new auto-sort mode, to ensure that
-     *                the table is in a sorted state.  You can avoid an immediate sort by specifying this
-     *                parameter as false, but be aware that when auto-sorting is enabled, Put() expects
-     *                the table's contents to already be sorted according to the current auto-sort state,
-     *                and if they aren't, it won't insert its new item at the correct location.  Defaults to true.
-     */
-   void SetAutoSortEnabled(bool enabled, bool sortNow = true)
-   {
-      if (enabled != this->_autoSortEnabled)
-      {
-         this->_autoSortEnabled = enabled;
-         if ((sortNow)&&(enabled)) static_cast<SubclassType *>(this)->Sort();
-      }
-   }
-
 private:
-   HashtableMid(uint32 tableSize, bool autoSortEnabled, void * cookie) : HashtableBase<KeyType,ValueType,HashFunctorType>(tableSize, autoSortEnabled, cookie) {/* empty */}
+   HashtableMid(uint32 tableSize) : HashtableBase<KeyType,ValueType,HashFunctorType>(tableSize) {/* empty */}
 
    // Only these classes are allowed to construct a HashtableMid object
-   template<class HisKeyType, class HisValueType, class HisHashFunctorType>                                 friend class Hashtable;
-   template<class HisKeyType, class HisValueType, class HisKeyCompareFunctorType, class HisHashFunctorType> friend class OrderedKeysHashtable;
-   template<class HisKeyType, class HisValueType, class HisKeyCompareFunctorType, class HisHashFunctorType> friend class OrderedValuesHashtable;
+   template<class HisKeyType, class HisValueType, class HisHashFunctorType> friend class Hashtable;
+   template<class HisKeyType, class HisValueType, class HisHashFunctorType, class HisEntryCompareFunctorType, class HisSubclassType > friend class OrderedHashtable;
 
    HT_UniversalSinkKeyValueRef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * PutAux(uint32 hash, HT_SinkKeyParam key, HT_SinkValueParam value, ValueType * optSetPreviousValue, bool * optReplacedFlag);
 };
@@ -1849,15 +1807,15 @@ public:
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
 
    /** Default constructor. */
-   Hashtable() : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(MUSCLE_HASHTABLE_DEFAULT_CAPACITY, false, NULL) {/* empty */}
+   Hashtable() : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(MUSCLE_HASHTABLE_DEFAULT_CAPACITY) {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   Hashtable(const Hashtable & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), false, NULL) {(void) this->CopyFrom(rhs);}
+   Hashtable(const Hashtable & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots()) {(void) this->CopyFrom(rhs);}
 
    /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
      * @param rhs the Hashtable to make this Hashtable a duplicate of
      */
-   template<class RHSHashFunctorType, class RHSSubclassType> Hashtable(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), false, NULL) {(void) this->CopyFrom(rhs);}
+   template<class RHSHashFunctorType, class RHSSubclassType> Hashtable(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots()) {(void) this->CopyFrom(rhs);}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    Hashtable & operator=(const Hashtable & rhs) {(void) this->CopyFrom(rhs); return *this;}
@@ -1878,12 +1836,12 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   Hashtable(Hashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0, false, NULL) {this->SwapContents(rhs);}
+   Hashtable(Hashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0) {this->SwapContents(rhs);}
 
    /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
      * @param rhs the table to steal the contents of, to make them our own
      */
-   template<class RHSHashFunctorType, class RHSSubclassType> Hashtable(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0, false, NULL) {this->SwapContents(rhs);}
+   template<class RHSHashFunctorType, class RHSSubclassType> Hashtable(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0) {this->SwapContents(rhs);}
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
    Hashtable & operator=(Hashtable && rhs) {this->SwapContents(rhs); return *this;}
@@ -1900,28 +1858,116 @@ private:
    friend class HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >;
    void InsertIterationEntryAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->InsertIterationEntry(e, this->IndexToEntryChecked(this->_iterTailIdx));}
    void MoveIterationEntryToCorrectPositionAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase *) {/* empty -- this class doesn't have a well-defined sort ordering */}
+   void DisableAutoSort() const {/* empty -- this class never auto-sorts anyway  */}
    void SortAux() {/* empty -- this class doesn't have a well-defined sort ordering */}
 };
 
-/** This is a Hashtable that keeps its iteration entries sorted by key at all times (unless you specifically call SetAutoSortEnabled(false)) */
-template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFunctor<KeyType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedKeysHashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> >
+/** This is an intermediate class containing functionality common to both the OrderedKeysHashtable and the
+  * OrderedValuesHashtable classes.  It is not intended to be instantiated directly, only subclassed from,
+  * by those two classes.
+  */
+template <class KeyType, class ValueType, class HashFunctorType, class EntryCompareFunctorType, class SubclassType > class OrderedHashtable : public HashtableMid<KeyType, ValueType, HashFunctorType, SubclassType>
 {
 public:
    /** The iterator type that goes with this HashtableMid type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
 
+   /** This method can be used to deactivate or re-activate auto-sorting on this Hashtable.
+     * Auto-sorting is active by default.
+     *
+     * If active, auto-sorting ensures that whenever Put() is called, the new/updated item is
+     * automatically moved to the correct place in the iterator traversal list.  Note that when
+     * auto-sort is enabled, Put() becomes an O(N) operation instead of O(1).
+     *
+     * @param enabled True if autosort should be enabled; false if it shouldn't be.
+     * @param sortNow If true, Sort() will be called when entering a new auto-sort mode, to ensure that
+     *                the table is in a sorted state.  You can avoid an immediate sort by specifying this
+     *                parameter as false, but be aware that when auto-sorting is enabled, Put() expects
+     *                the table's contents to already be sorted according to the current auto-sort state,
+     *                and if they aren't, it won't insert its new item at the correct location.  Defaults to true.
+     */
+   void SetAutoSortEnabled(bool enabled, bool sortNow = true)
+   {
+      if (enabled != this->_autoSortEnabled)
+      {
+         this->_autoSortEnabled = enabled;
+         if ((sortNow)&&(enabled)) static_cast<SubclassType *>(this)->Sort();
+      }
+   }
+
+   /** Returns true iff auto-sort is currently enabled on this Hashtable.  Default state is true/enabled. */
+   bool GetAutoSortEnabled() const {return _autoSortEnabled;}
+
+   /** This method can be used to set the "cookie value" that will be passed in to the comparison-functor
+     * objects that this class is templated on.  The functor objects can then use this value to access
+     * any context information that might be necessary to do their comparison.
+     * This value will be passed along during whenever a user-defined compare-functor is called implicitly
+     * as part of this table's auto-sorting mechanism.
+     * @param cookie the new cookie value (meaning is application-specific)
+     */
+   void SetCompareCookie(void * cookie) {_compareCookie = cookie;}
+
+   /** Returns the current comparison cookie, as previously set by SetCompareCookie().  Default value is NULL. */
+   void * GetCompareCookie() const {return _compareCookie;}
+
+   /** Moves the specified key/value pair so that it is in the correct position based on the
+     * class's current iteration-ordering.  Generally this call isn't necessary if the table's
+     * auto-sort mode is enabled, but you might want to call it after e.g. manually modifying
+     * that table's iteration-order.
+     * @param key The key object of the key/value pair that may need to be repositioned to
+     *            its correct (sorted-by-value) location.
+     * @returns B_NO_ERROR on success, or B_ERROR if (key) was not found in the table.
+     */
+   status_t Reposition(const KeyType & key)
+   {
+      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
+      if (e)
+      {
+         this->MoveIterationEntryToCorrectPositionAux(e);
+         return B_NO_ERROR;
+      }
+      else return B_ERROR;
+   }
+   
+protected:
+   typedef HashtableMid<KeyType, ValueType, HashFunctorType, SubclassType> HashtableMidType;
+
+   OrderedHashtable(uint32 tableSize, const EntryCompareFunctorType & efc, void * optCompareCookie = NULL) : HashtableMidType(tableSize), _entryCompareFunctor(efc), _autoSortEnabled(true), _compareCookie(optCompareCookie) {/* empty */}
+
+private:
+   const EntryCompareFunctorType _entryCompareFunctor;
+
+   // These are the "fake virtual functions" that can be called by HashtableMid as part of the
+   // Curiously Recurring Template Pattern that Hashtable uses to implement polymorphic behavior at compile time.
+   friend class HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>;
+   void InsertIterationEntryAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->InsertIterationEntryInOrder(_entryCompareFunctor, e, _autoSortEnabled, _compareCookie);}
+   void MoveIterationEntryToCorrectPositionAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e, _compareCookie);}
+   void DisableAutoSort() {_autoSortEnabled = false;}
+   void SortAux() {this->SortByEntry(_entryCompareFunctor, _compareCookie);}
+
+   bool _autoSortEnabled;  // only used in the ordered Hashtable subclasses, but kept here so that its state can be swapped by SwapContents(), etc.
+   void * _compareCookie;
+};
+
+/** This is a specialized Hashtable that keeps its iteration entries sorted-by-key at all times (unless you specifically call SetAutoSortEnabled(false)) */
+template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFunctor<KeyType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedKeysHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByKeyEntryCompareFunctor<KeyCompareFunctorType>, OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> >
+{
+public:
+   // Some convenient typedefs, for brevity's sake
+   typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
+
    /** Default constructor.
      * @param optCompareCookie the value that will be passed to our compare functor.  Defaults to NULL.
      */
-   OrderedKeysHashtable(void * optCompareCookie = NULL) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(MUSCLE_HASHTABLE_DEFAULT_CAPACITY, true, optCompareCookie), _keyCompareFunctor(), _entryCompareFunctor(_keyCompareFunctor) {/* empty */}
+   OrderedKeysHashtable(void * optCompareCookie = NULL) : OrderedHashtableType(MUSCLE_HASHTABLE_DEFAULT_CAPACITY, ByKeyEntryCompareFunctorType(_keyCompareFunctor), optCompareCookie), _keyCompareFunctor() {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   OrderedKeysHashtable(const OrderedKeysHashtable & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), true, NULL), _keyCompareFunctor(), _entryCompareFunctor(_keyCompareFunctor) {(void) this->CopyFrom(rhs);}
+   OrderedKeysHashtable(const OrderedKeysHashtable & rhs) : OrderedHashtableType(rhs.GetNumAllocatedItemSlots(), ByKeyEntryCompareFunctorType(_keyCompareFunctor), rhs.GetCompareCookie()), _keyCompareFunctor() {(void) this->CopyFrom(rhs);}
 
    /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. 
      * @param rhs the hash table to make this hash table a duplicate of
      */
-   template<class RHSKeyCompareFunctorType, class RHSHashFunctorType> OrderedKeysHashtable(const HashtableMid<KeyType,ValueType,RHSKeyCompareFunctorType,RHSHashFunctorType> & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), NULL), _keyCompareFunctor(), _entryCompareFunctor(_keyCompareFunctor) {(void) this->CopyFrom(rhs);}
+   template<class RHSKeyCompareFunctorType, class RHSHashFunctorType> OrderedKeysHashtable(const HashtableMid<KeyType,ValueType,RHSKeyCompareFunctorType,RHSHashFunctorType> & rhs) : OrderedHashtableType(rhs.GetNumAllocatedItemSlots(), ByKeyEntryCompareFunctorType(_keyCompareFunctor), NULL), _keyCompareFunctor() {(void) this->CopyFrom(rhs);}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    OrderedKeysHashtable & operator=(const OrderedKeysHashtable & rhs) {(void) this->CopyFrom(rhs); return *this;}
@@ -1931,43 +1977,26 @@ public:
      */
    template<class RHSHashFunctorType, class RHSSubclassType> OrderedKeysHashtable & operator=(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
-   /** Moves the specified key/value pair so that it is in the correct position based on the
-     * current by-key iteration-ordering.  The only time you should need to call this is if 
-     * the Hashtable is in automatic-sort-by-key mode (see SetAutoSortEnabled()) and you
-     * have manually modified the table's sort order such that the modification violates 
-     * the table's by-value ordering. 
-     * @param key The key object of the key/value pair that may need to be repositioned to
-     *            its correct (sorted-by-value) location.
-     * @returns B_NO_ERROR on success, or B_ERROR if (key) was not found in the table.
-     */
-   status_t Reposition(const KeyType & key) 
-   {
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
-      if (e)
-      {
-         this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e);
-         return B_NO_ERROR;
-      }
-      else return B_ERROR;
-   }
-   
    /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).  
     *  That is to say, when this method returns, (swapMe) will be identical to the old state of this 
     *  Hashtable, and this Hashtable will be identical to the old state of (swapMe). 
     *  Any active iterators present for either table will swap owners also, becoming associated with the other table.
     *  @param swapMe The table whose contents and iterators are to be swapped with this table's.
     *  @note This method is redeclared here solely to make sure that the muscleSwap() SFINAE magic sees it.
+    *  @note This table's compare-functor object and compare-cookie value will NOT be swapped as part of this
+    *        operation.  That means that if (swapMe) was sorted using a different sorting mechanism than the
+    *        one in use by this table's auto-sort, you may want to call Sort() on this table after the swap.
     */
    void SwapContents(OrderedKeysHashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   OrderedKeysHashtable(OrderedKeysHashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(0, true, NULL), _keyCompareFunctor(), _entryCompareFunctor(_keyCompareFunctor) {this->SwapContents(rhs);}
+   OrderedKeysHashtable(OrderedKeysHashtable && rhs) : OrderedHashtableType(0, ByKeyEntryCompareFunctorType(_keyCompareFunctor), NULL), _keyCompareFunctor() {this->SwapContents(rhs);}
 
    /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
      * @param rhs the hash table that we are to steal the contents of, to make them our own
      */
-   template<class RHSKeyCompareFunctorType, class RHSHashFunctorType> OrderedKeysHashtable(HashtableMid<KeyType,ValueType,RHSKeyCompareFunctorType,RHSHashFunctorType> && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >(0, NULL), _keyCompareFunctor(), _entryCompareFunctor(_keyCompareFunctor) {this->SwapContents(rhs);}
+   template<class RHSKeyCompareFunctorType, class RHSHashFunctorType> OrderedKeysHashtable(HashtableMid<KeyType,ValueType,RHSKeyCompareFunctorType,RHSHashFunctorType> && rhs) : OrderedHashtableType(0, ByKeyEntryCompareFunctorType(_keyCompareFunctor), NULL), _keyCompareFunctor() {this->SwapContents(rhs);}
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
    OrderedKeysHashtable & operator=(OrderedKeysHashtable && rhs) {this->SwapContents(rhs); return *this;}
@@ -1978,65 +2007,40 @@ public:
    template<class RHSHashFunctorType, class RHSSubclassType> OrderedKeysHashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) {(void) this->SwapContents(rhs); return *this;}
 #endif
 
-private:
-   // These are the "fake virtual functions" that can be called by HashtableMid as part of the
-   // Curiously Recurring Template Pattern that Hashtable uses to implement polymorphic behavior at compile time.
-   friend class HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >;
-   void InsertIterationEntryAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->InsertIterationEntryInOrder(_entryCompareFunctor, e);}
-   void MoveIterationEntryToCorrectPositionAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e);}
-   void SortAux() {this->SortByEntry(_entryCompareFunctor, this->GetCompareCookie());}
+   typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByKeyEntryCompareFunctor<KeyCompareFunctorType> ByKeyEntryCompareFunctorType;
+   typedef OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> OrderedKeysHashtableType;
+   typedef OrderedHashtable<KeyType, ValueType, HashFunctorType, ByKeyEntryCompareFunctorType, OrderedKeysHashtableType> OrderedHashtableType;
 
    const KeyCompareFunctorType _keyCompareFunctor;
-   const typename HashtableBase<KeyType, ValueType, HashFunctorType>::template ByKeyEntryCompareFunctor<KeyCompareFunctorType> _entryCompareFunctor;
 };
 
-/** This is a Hashtable that keeps its iteration entries sorted by value at all times (unless you specifically call SetAutoSortEnabled(false)) */
-template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareFunctor<ValueType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedValuesHashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >
+/** This is a specialized Hashtable that keeps its iteration entries sorted-by-value at all times (unless you specifically call SetAutoSortEnabled(false)) */
+template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareFunctor<ValueType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedValuesHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByValueEntryCompareFunctor<ValueCompareFunctorType>, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >
 {
 public:
-   /** The iterator type that goes with this HashtableMid type */
+   // Some convenient typedefs, for brevity's sake
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
 
    /** Default constructor.
      * @param optCompareCookie the value that will be passed to our compare functor.  Defaults to NULL.
      */
-   OrderedValuesHashtable(void * optCompareCookie = NULL) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(MUSCLE_HASHTABLE_DEFAULT_CAPACITY, true, optCompareCookie), _valueCompareFunctor(), _entryCompareFunctor(_valueCompareFunctor) {/* empty */}
+   OrderedValuesHashtable(void * optCompareCookie = NULL) : OrderedHashtableType(MUSCLE_HASHTABLE_DEFAULT_CAPACITY, ByValueEntryCompareFunctorType(_valueCompareFunctor), optCompareCookie), _valueCompareFunctor() {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   OrderedValuesHashtable(const OrderedValuesHashtable & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), true, NULL), _valueCompareFunctor(), _entryCompareFunctor(_valueCompareFunctor) {(void) this->CopyFrom(rhs);}
+   OrderedValuesHashtable(const OrderedValuesHashtable & rhs) : OrderedHashtableType(rhs.GetNumAllocatedItemSlots(), ByValueEntryCompareFunctorType(_valueCompareFunctor), rhs.GetCompareCookie()), _valueCompareFunctor() {(void) this->CopyFrom(rhs);}
 
    /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. 
-     * @param rhs the Hashtable to make this Hashtable a duplicate of
+     * @param rhs the hash table to make this hash table a duplicate of
      */
-   template<class RHSValueCompareFunctorType, class RHSHashFunctorType> OrderedValuesHashtable(const HashtableMid<KeyType,ValueType,RHSValueCompareFunctorType,RHSHashFunctorType> & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots(), true, NULL), _valueCompareFunctor(), _entryCompareFunctor(_valueCompareFunctor) {(void) this->CopyFrom(rhs);}
+   template<class RHSValueCompareFunctorType, class RHSHashFunctorType> OrderedValuesHashtable(const HashtableMid<KeyType,ValueType,RHSValueCompareFunctorType,RHSHashFunctorType> & rhs) : OrderedHashtableType(rhs.GetNumAllocatedItemSlots(), ByValueEntryCompareFunctorType(_valueCompareFunctor), NULL), _valueCompareFunctor() {(void) this->CopyFrom(rhs);}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    OrderedValuesHashtable & operator=(const OrderedValuesHashtable & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
    /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types. 
-     * @param rhs the Hashtable to make this Hashtable a duplicate of
+     * @param rhs the hash table to make this hash table a duplicate of
      */
    template<class RHSHashFunctorType, class RHSSubclassType> OrderedValuesHashtable & operator=(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) {(void) this->CopyFrom(rhs); return *this;}
-
-   /** Moves the specified key/value pair so that it is in the correct position based on the
-     * current by-value iteration-ordering.  The only time you should need to call this is if 
-     * the Hashtable is in automatic-sort-by-value mode (see SetAutoSortEnabled()) and you
-     * have manually modified the table's sort order, or modified a value in the table 
-     * in-place such that the modification would violate the table's by-value ordering. 
-     * @param key The key object of the key/value pair that may need to be repositioned to
-     *            its correct (sorted-by-value) location.
-     * @returns B_NO_ERROR on success, or B_ERROR if (key) was not found in the table.
-     */
-   status_t Reposition(const KeyType & key)
-   {
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
-      if (e)
-      {
-         this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e);
-         return B_NO_ERROR;
-      }
-      else return B_ERROR;
-   }
 
    /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).  
     *  That is to say, when this method returns, (swapMe) will be identical to the old state of this 
@@ -2044,37 +2048,35 @@ public:
     *  Any active iterators present for either table will swap owners also, becoming associated with the other table.
     *  @param swapMe The table whose contents and iterators are to be swapped with this table's.
     *  @note This method is redeclared here solely to make sure that the muscleSwap() SFINAE magic sees it.
+    *  @note This table's compare-functor object and compare-cookie value will NOT be swapped as part of this
+    *        operation.  That means that if (swapMe) was sorted using a different sorting mechanism than the
+    *        one in use by this table's auto-sort, you may want to call Sort() on this table after the swap.
     */
    void SwapContents(OrderedValuesHashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   OrderedValuesHashtable(OrderedValuesHashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(0, true, NULL), _valueCompareFunctor(), _entryCompareFunctor(_valueCompareFunctor) {this->SwapContents(rhs);}
+   OrderedValuesHashtable(OrderedValuesHashtable && rhs) : OrderedHashtableType(0, ByValueEntryCompareFunctorType(_valueCompareFunctor), NULL), _valueCompareFunctor() {this->SwapContents(rhs);}
 
-   /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. 
-     * @param rhs the Hashtable to cannibalize and make this Hashtable a duplicate of
+   /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
+     * @param rhs the hash table that we are to steal the contents of, to make them our own
      */
-   template<class RHSValueCompareFunctorType, class RHSHashFunctorType> OrderedValuesHashtable(HashtableMid<KeyType,ValueType,RHSValueCompareFunctorType,RHSHashFunctorType> && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >(0, true, NULL), _valueCompareFunctor(), _entryCompareFunctor(_valueCompareFunctor) {this->SwapContents(rhs);}
+   template<class RHSValueCompareFunctorType, class RHSHashFunctorType> OrderedValuesHashtable(HashtableMid<KeyType,ValueType,RHSValueCompareFunctorType,RHSHashFunctorType> && rhs) : OrderedHashtableType(0, ByValueEntryCompareFunctorType(_valueCompareFunctor), NULL), _valueCompareFunctor() {this->SwapContents(rhs);}
 
-   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
    OrderedValuesHashtable & operator=(OrderedValuesHashtable && rhs) {this->SwapContents(rhs); return *this;}
 
-   /** Templated pseudo-move-assignment-operator:  Allows us to be set from similar table with different functor types. 
-     * @param rhs the Hashtable to cannibalize and make this Hashtable a duplicate of
+   /** Templated pseudo-move-assignment-operator:  Allows us to be set from similar table with different functor types.
+     * @param rhs the hash table that we are to steal the contents of, to make them our own
      */
-   template<class RHSHashFunctorType, class RHSSubclassType> OrderedValuesHashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) {this->SwapContents(rhs); return *this;}
+   template<class RHSHashFunctorType, class RHSSubclassType> OrderedValuesHashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) {(void) this->SwapContents(rhs); return *this;}
 #endif
 
-private:
-   // These are the "fake virtual functions" that can be called by HashtableMid as part of the
-   // Curiously Recurring Template Pattern that Hashtable uses to implement polymorphic behavior at compile time.
-   friend class HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >;
-   void InsertIterationEntryAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->InsertIterationEntryInOrder(_entryCompareFunctor, e);}
-   void MoveIterationEntryToCorrectPositionAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e);}
-   void SortAux() {this->SortByEntry(_entryCompareFunctor, this->GetCompareCookie());}
+   typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByValueEntryCompareFunctor<ValueCompareFunctorType> ByValueEntryCompareFunctorType;
+   typedef OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> OrderedValuesHashtableType;
+   typedef OrderedHashtable<KeyType, ValueType, HashFunctorType, ByValueEntryCompareFunctorType, OrderedValuesHashtableType> OrderedHashtableType;
 
    const ValueCompareFunctorType _valueCompareFunctor;
-   const typename HashtableBase<KeyType, ValueType, HashFunctorType>::template ByValueEntryCompareFunctor<ValueCompareFunctorType> _entryCompareFunctor;
 };
 
 //===============================================================
@@ -2411,15 +2413,13 @@ template <class KeyType, class ValueType, class HashFunctorType>
 void
 HashtableBase<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableBase<KeyType,ValueType,HashFunctorType> & swapMe, bool swapIterators)
 {
-   muscleSwap(_numItems,         swapMe._numItems);
-   muscleSwap(_tableSize,        swapMe._tableSize);
-   muscleSwap(_tableIndexType,   swapMe._tableIndexType);
-   muscleSwap(_table,            swapMe._table);
-   muscleSwap(_iterHeadIdx,      swapMe._iterHeadIdx);
-   muscleSwap(_iterTailIdx,      swapMe._iterTailIdx);
-   muscleSwap(_freeHeadIdx,      swapMe._freeHeadIdx);
-   muscleSwap(_autoSortEnabled,  swapMe._autoSortEnabled);
-   muscleSwap(_compareCookie,    swapMe._compareCookie);
+   muscleSwap(_numItems,       swapMe._numItems);
+   muscleSwap(_tableSize,      swapMe._tableSize);
+   muscleSwap(_tableIndexType, swapMe._tableIndexType);
+   muscleSwap(_table,          swapMe._table);
+   muscleSwap(_iterHeadIdx,    swapMe._iterHeadIdx);
+   muscleSwap(_iterTailIdx,    swapMe._iterTailIdx);
+   muscleSwap(_freeHeadIdx,    swapMe._freeHeadIdx);
    if (swapIterators)
    {
       muscleSwap(_iterList,         swapMe._iterList);
@@ -2864,20 +2864,20 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveIterationEntry(Hashtable
 template <class KeyType, class ValueType, class HashFunctorType>
 template <class EntryCompareFunctorType>
 void
-HashtableBase<KeyType,ValueType,HashFunctorType>::InsertIterationEntryInOrder(const EntryCompareFunctorType & ecf, HashtableEntryBase * e)
+HashtableBase<KeyType,ValueType,HashFunctorType>::InsertIterationEntryInOrder(const EntryCompareFunctorType & ecf, HashtableEntryBase * e, bool isAutoSortEnabled, void * compareCookie)
 {
    HashtableEntryBase * insertAfter = this->IndexToEntryChecked(this->_iterTailIdx);  // default to appending to the end of the list
-   if ((this->GetAutoSortEnabled())&&(this->_iterHeadIdx != MUSCLE_HASHTABLE_INVALID_SLOT_INDEX))
+   if ((isAutoSortEnabled)&&(this->_iterHeadIdx != MUSCLE_HASHTABLE_INVALID_SLOT_INDEX))
    {
       // We're in sorted mode, so we'll try to place this guy in the correct position.
-           if (ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterHeadIdx), this->_compareCookie) < 0) insertAfter = NULL;  // easy; append to the head of the list
-      else if (ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterTailIdx), this->_compareCookie) < 0)  // only iterate through if we're before the tail, otherwise the tail is fine
+           if (ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterHeadIdx), compareCookie) < 0) insertAfter = NULL;  // easy; append to the head of the list
+      else if (ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterTailIdx), compareCookie) < 0)  // only iterate through if we're before the tail, otherwise the tail is fine
       {
          HashtableEntryBase * prev = this->IndexToEntryUnchecked(this->_iterHeadIdx);
          HashtableEntryBase * next = this->GetEntryIterNextChecked(prev);  // more difficult;  find where to insert into the middle
          while(next)
          {
-            if (ecf.Compare(*e, *next, this->_compareCookie) < 0)
+            if (ecf.Compare(*e, *next, compareCookie) < 0)
             {
                insertAfter = prev;
                break;
@@ -2896,26 +2896,26 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::InsertIterationEntryInOrder(co
 template <class KeyType, class ValueType, class HashFunctorType>
 template <class EntryCompareFunctorType>
 void
-HashtableBase<KeyType,ValueType,HashFunctorType>::MoveIterationEntryToCorrectPosition(const EntryCompareFunctorType & ecf, HashtableEntryBase * e)
+HashtableBase<KeyType,ValueType,HashFunctorType>::MoveIterationEntryToCorrectPosition(const EntryCompareFunctorType & ecf, HashtableEntryBase * e, void * compareCookie)
 {
    HashtableEntryBase * b;
-   if (((b = this->GetEntryIterPrevChecked(e)) != NULL)&&(ecf.Compare(*e, *b, this->_compareCookie) < 0))
+   if (((b = this->GetEntryIterPrevChecked(e)) != NULL)&&(ecf.Compare(*e, *b, compareCookie) < 0))
    {
-      if (ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterHeadIdx), this->_compareCookie) < 0) this->MoveToFrontAux(e);
+      if (ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterHeadIdx), compareCookie) < 0) this->MoveToFrontAux(e);
       else
       {
          HashtableEntryBase * prev;
-         while(((prev = this->GetEntryIterPrevChecked(b)) != NULL)&&(ecf.Compare(*e, *prev, this->_compareCookie) < 0)) b = prev;
+         while(((prev = this->GetEntryIterPrevChecked(b)) != NULL)&&(ecf.Compare(*e, *prev, compareCookie) < 0)) b = prev;
          this->MoveToBeforeAux(e, b);
       }
    }
-   else if (((b = this->GetEntryIterNextChecked(e)) != NULL)&&(ecf.Compare(*e, *b, this->_compareCookie) > 0))
+   else if (((b = this->GetEntryIterNextChecked(e)) != NULL)&&(ecf.Compare(*e, *b, compareCookie) > 0))
    {
-      if (ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterTailIdx), this->_compareCookie) > 0) this->MoveToBackAux(e);
+      if (ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterTailIdx), compareCookie) > 0) this->MoveToBackAux(e);
       else
       {
          HashtableEntryBase * next;
-         while(((next = this->GetEntryIterNextChecked(b)) != NULL)&&(ecf.Compare(*e, *next, this->_compareCookie) > 0)) b = next;
+         while(((next = this->GetEntryIterNextChecked(b)) != NULL)&&(ecf.Compare(*e, *next, compareCookie) > 0)) b = next;
          this->MoveToBehindAux(e, b);
       }
    }
@@ -2972,7 +2972,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
    SubclassType biggerTable;
    biggerTable._tableSize      = biggerTableSize;
    biggerTable._tableIndexType = this->ComputeTableIndexTypeForTableSize(biggerTable._tableSize);
-   biggerTable.SetAutoSortEnabled(false);  // make sure he doesn't do any sorting during the initial population phase
+   biggerTable.DisableAutoSort();  // he doesn't need to auto-sort as our entries will already be in the correct order
 
    // 3. Place all of our data into (biggerTable)
    {
@@ -2996,15 +2996,10 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
       }
    }
 
-   // 4. Only now do we set biggerTable's auto-sort params; that way he isn't trying to sort the data we gave him in step (3)
-   //    (which is unecessary since if auto-sort is activated, we already have the data sorted in the correct order)
-   biggerTable.SetCompareCookie(this->_compareCookie);
-   biggerTable.SetAutoSortEnabled(this->_autoSortEnabled, false);  // no need to sort now, he is already sorted
-
-   // 5. Swap contents with the bigger table, but don't swap iterator lists (we want to keep ours!)
+   // 4. Swap contents with the bigger table, but don't swap iterator lists (we want to keep ours!)
    this->SwapContentsAux(biggerTable, false);
 
-   // 6. Lastly, fix up our iterators to point to their new entries.
+   // 5. Lastly, fix up our iterators to point to their new entries.
    {
       IteratorType * nextIter = this->_iterList;
       while(nextIter)

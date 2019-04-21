@@ -20,6 +20,11 @@ key:  - new feature
    o Added const-qualifiers to more local variables where appropriate.
    o Refactored the Hashtable class's internal sorting 
      implementation to reduce the amount of redundant code.
+   o Moved all of the auto-sort functionality out of the 
+     HashtableBase class and into an OrderedHashtable subclass that 
+     OrderedKeysHashtable and OrderedValuesHashtable now derive from.
+   o Hashtable::SwapContents() no longer swaps the values of the
+     auto-sort-enabled flag or the auto-sort-cookie value.
    * Some private members of the HashtableBase class had been
      declared protected by mistake.  Fixed.
    * Fixed a bug in the Hashtable class that could cause a 
