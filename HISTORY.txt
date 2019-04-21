@@ -25,6 +25,8 @@ key:  - new feature
      OrderedKeysHashtable and OrderedValuesHashtable now derive from.
    o Hashtable::SwapContents() no longer swaps the values of the
      auto-sort-enabled flag or the auto-sort-cookie value.
+   o Added some private typedefs to make the Hashtable methods'
+     implementation code less verbose.
    * Some private members of the HashtableBase class had been
      declared protected by mistake.  Fixed.
    * Fixed a bug in the Hashtable class that could cause a 

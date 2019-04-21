@@ -273,7 +273,7 @@ public:
      * @param considerOrdering Whether the order of the key/value pairs within the tables should be considered as part of "equality".  Defaults to false. 
      * @returns true iff (rhs) is equal to to (this), false if they differ.
      */
-   bool IsEqualTo(const HashtableBase<KeyType, ValueType, HashFunctorType> & rhs, bool considerOrdering = false) const;
+   bool IsEqualTo(const HashtableBase & rhs, bool considerOrdering = false) const;
 
    /** Returns true iff the keys in this Hashtable are the same as the keys in (rhs).
      * Note that the ordering of the keys is not considered, only their values.  Values in either table are not considered, either.
@@ -357,7 +357,7 @@ public:
      */
    HT_UniversalSinkKeyRef IteratorType GetIteratorAt(HT_KeyParam startAt, uint32 flags = 0) const 
    {
-      return HashtableIterator<KeyType,ValueType,HashFunctorType>(*this, HT_ForwardKey(startAt), flags);
+      return IteratorType(*this, HT_ForwardKey(startAt), flags);
    }
 
    /** Returns a pointer to the (index)'th key in this Hashtable.
@@ -891,7 +891,7 @@ private:
    HashtableBase(uint32 tableSize) : _numItems(0), _tableSize(tableSize), _tableIndexType(ComputeTableIndexTypeForTableSize(tableSize)), _table(NULL), _iterHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _iterTailIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _freeHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _iterList(NULL) {/* empty */}
    ~HashtableBase() {Clear(true);}
 
-   void CopyFromAux(const HashtableBase<KeyType, ValueType, HashFunctorType> & rhs)
+   void CopyFromAux(const HashtableBase & rhs)
    {
       const bool wasEmpty = IsEmpty();
       const HashtableEntryBase * e = rhs.IndexToEntryChecked(rhs._iterHeadIdx);  // start of linked list to iterate through
@@ -1336,7 +1336,7 @@ private:
 
    const KeyType * GetKeyWithValueAux(const ValueType & value, bool backwards) const
    {
-      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER|(backwards?HTIT_FLAG_NOREGISTER:0)); iter.HasData(); iter++)
+      for (IteratorType iter(*this, HTIT_FLAG_NOREGISTER|(backwards?HTIT_FLAG_NOREGISTER:0)); iter.HasData(); iter++)
          if (iter.GetValue() == value) return &iter.GetKey();
       return NULL;
    }
@@ -1383,7 +1383,7 @@ private:
 #endif
 };
 
-/** This internal superclass is an implementation detail and should not be instantiated directly.  Instantiate a Hashtable, OrderedKeysHashtable, or OrderedValuesHashtable instead. */
+/** This class should not be instantiated directly.  Instantiate a Hashtable, OrderedKeysHashtable, or OrderedValuesHashtable instead. */
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class HashtableMid : public HashtableBase<KeyType, ValueType, HashFunctorType>
 {
 public:
@@ -1519,8 +1519,8 @@ public:
     */
    HT_UniversalSinkKeyValueRef ValueType * GetOrPut(HT_SinkKeyParam key, HT_SinkValueParam defaultValue)
    {
-      uint32 hash = this->ComputeHash(key);
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(hash, key);
+      const uint32 hash = this->ComputeHash(key);
+      HashtableEntryBaseType * e = this->GetEntry(hash, key);
       if (e == NULL) e = PutAux(hash, HT_ForwardKey(key), HT_ForwardValue(defaultValue), NULL, NULL);
       return e ? &e->_value : NULL;
    }
@@ -1535,8 +1535,8 @@ public:
     */
    HT_UniversalSinkKeyRef ValueType * GetOrPut(HT_KeyParam key)
    {
-      uint32 hash = this->ComputeHash(key);
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(hash, key);
+      const uint32 hash = this->ComputeHash(key);
+      HashtableEntryBaseType * e = this->GetEntry(hash, key);
       if (e == NULL) e = PutAux(hash, HT_ForwardKey(key), this->GetDefaultValue(), NULL, NULL);
       return e ? &e->_value : NULL;
    }
@@ -1551,7 +1551,7 @@ public:
     */
    HT_UniversalSinkKeyValueRef ValueType * PutAndGet(HT_SinkKeyParam key, HT_SinkValueParam value) 
    { 
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), NULL, NULL);
+      HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), NULL, NULL);
       return e ? &e->_value : NULL;
    }
 
@@ -1571,7 +1571,7 @@ public:
     */
    HT_UniversalSinkKeyValueRef const KeyType * PutAndGetKey(HT_SinkKeyParam key, HT_SinkValueParam value) 
    { 
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), NULL, NULL);
+      HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), NULL, NULL);
       return e ? &e->_key : NULL;
    }
 
@@ -1640,8 +1640,8 @@ public:
     */
    HT_UniversalSinkKeyValueRef ValueType * PutIfNotAlreadyPresent(HT_SinkKeyParam key, HT_SinkValueParam value) 
    {
-      uint32 hash = this->ComputeHash(key);
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(hash, key);
+      const uint32 hash = this->ComputeHash(key);
+      HashtableEntryBaseType * e = this->GetEntry(hash, key);
       if (e) return NULL;
       else
       {
@@ -1658,8 +1658,8 @@ public:
     */
    HT_UniversalSinkKeyRef ValueType * PutIfNotAlreadyPresent(HT_SinkKeyParam key) 
    {
-      uint32 hash = this->ComputeHash(key);
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(hash, key);
+      const uint32 hash = this->ComputeHash(key);
+      HashtableEntryBaseType * e = this->GetEntry(hash, key);
       if (e) return NULL;
       else
       {
@@ -1725,13 +1725,15 @@ public:
    void Sort() {static_cast<SubclassType *>(this)->SortAux();}
 
 private:
+   typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase HashtableEntryBaseType;
+
    HashtableMid(uint32 tableSize) : HashtableBase<KeyType,ValueType,HashFunctorType>(tableSize) {/* empty */}
 
    // Only these classes are allowed to construct a HashtableMid object
    template<class HisKeyType, class HisValueType, class HisHashFunctorType> friend class Hashtable;
    template<class HisKeyType, class HisValueType, class HisHashFunctorType, class HisEntryCompareFunctorType, class HisSubclassType > friend class OrderedHashtable;
 
-   HT_UniversalSinkKeyValueRef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * PutAux(uint32 hash, HT_SinkKeyParam key, HT_SinkValueParam value, ValueType * optSetPreviousValue, bool * optReplacedFlag);
+   HT_UniversalSinkKeyValueRef HashtableEntryBaseType * PutAux(uint32 hash, HT_SinkKeyParam key, HT_SinkValueParam value, ValueType * optSetPreviousValue, bool * optReplacedFlag);
 };
 
 /**
@@ -1853,18 +1855,20 @@ public:
 #endif
 
 private:
+   typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase HashtableEntryBaseType;
+
    // These are the "fake virtual functions" that can be called by HashtableMid as part of the
    // Curiously Recurring Template Pattern that Hashtable uses to implement polymorphic behavior at compile time.
    friend class HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >;
-   void InsertIterationEntryAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->InsertIterationEntry(e, this->IndexToEntryChecked(this->_iterTailIdx));}
-   void MoveIterationEntryToCorrectPositionAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase *) {/* empty -- this class doesn't have a well-defined sort ordering */}
+   void InsertIterationEntryAux(HashtableEntryBaseType * e) {this->InsertIterationEntry(e, this->IndexToEntryChecked(this->_iterTailIdx));}
+   void MoveIterationEntryToCorrectPositionAux(HashtableEntryBaseType *) {/* empty -- this class doesn't have a well-defined sort ordering */}
    void DisableAutoSort() const {/* empty -- this class never auto-sorts anyway  */}
    void SortAux() {/* empty -- this class doesn't have a well-defined sort ordering */}
 };
 
 /** This is an intermediate class containing functionality common to both the OrderedKeysHashtable and the
-  * OrderedValuesHashtable classes.  It is not intended to be instantiated directly, only subclassed from,
-  * by those two classes.
+  * OrderedValuesHashtable classes.  This class is not intended to be instantiated directly -- to use it,
+  * you should instantiate an OrderedKeysHashtable or an OrderedValuesHashtable instead.
   */
 template <class KeyType, class ValueType, class HashFunctorType, class EntryCompareFunctorType, class SubclassType > class OrderedHashtable : public HashtableMid<KeyType, ValueType, HashFunctorType, SubclassType>
 {
@@ -1891,7 +1895,7 @@ public:
       if (enabled != this->_autoSortEnabled)
       {
          this->_autoSortEnabled = enabled;
-         if ((sortNow)&&(enabled)) static_cast<SubclassType *>(this)->Sort();
+         if ((sortNow)&&(enabled)) this->Sort();
       }
    }
 
@@ -1920,7 +1924,7 @@ public:
      */
    status_t Reposition(const KeyType & key)
    {
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
+      HashtableEntryBaseType * e = this->GetEntry(this->ComputeHash(key), key);
       if (e)
       {
          this->MoveIterationEntryToCorrectPositionAux(e);
@@ -1929,19 +1933,22 @@ public:
       else return B_ERROR;
    }
    
-protected:
+private:
    typedef HashtableMid<KeyType, ValueType, HashFunctorType, SubclassType> HashtableMidType;
+   typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase HashtableEntryBaseType;
+
+   template<class HisKeyType, class HisValueType, class HisKeyCompareFunctorType,   class HisHashFunctorType> friend class OrderedKeysHashtable;
+   template<class HisKeyType, class HisValueType, class HisValueCompareFunctorType, class HisHashFunctorType> friend class OrderedValuesHashtable;
 
    OrderedHashtable(uint32 tableSize, const EntryCompareFunctorType & efc, void * optCompareCookie = NULL) : HashtableMidType(tableSize), _entryCompareFunctor(efc), _autoSortEnabled(true), _compareCookie(optCompareCookie) {/* empty */}
 
-private:
    const EntryCompareFunctorType _entryCompareFunctor;
 
    // These are the "fake virtual functions" that can be called by HashtableMid as part of the
    // Curiously Recurring Template Pattern that Hashtable uses to implement polymorphic behavior at compile time.
    friend class HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>;
-   void InsertIterationEntryAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->InsertIterationEntryInOrder(_entryCompareFunctor, e, _autoSortEnabled, _compareCookie);}
-   void MoveIterationEntryToCorrectPositionAux(typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e) {this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e, _compareCookie);}
+   void InsertIterationEntryAux(HashtableEntryBaseType * e) {this->InsertIterationEntryInOrder(_entryCompareFunctor, e, _autoSortEnabled, _compareCookie);}
+   void MoveIterationEntryToCorrectPositionAux(HashtableEntryBaseType * e) {this->MoveIterationEntryToCorrectPosition(_entryCompareFunctor, e, _compareCookie);}
    void DisableAutoSort() {_autoSortEnabled = false;}
    void SortAux() {this->SortByEntry(_entryCompareFunctor, _compareCookie);}
 
@@ -2365,7 +2372,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompare
 
    for (uint32 mergeSize = 1; /* empty */; mergeSize *= 2)
    {
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * p = this->IndexToEntryChecked(_iterHeadIdx);
+      HashtableEntryBase * p = this->IndexToEntryChecked(_iterHeadIdx);
       this->_iterHeadIdx = this->_iterTailIdx = MUSCLE_HASHTABLE_INVALID_SLOT_INDEX;
 
       uint32 numMerges = 0;  /* count number of merges we do in this pass */
@@ -2374,7 +2381,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompare
          numMerges++;  /* there exists a merge to be done */
 
          /* step `mergeSize' places along from p */
-         typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * q = p;
+         HashtableEntryBase * q = p;
          uint32 psize = 0;
          for (uint32 i=0; i<mergeSize; i++) 
          {
@@ -2386,7 +2393,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompare
          /* now we have two lists; merge them */
          for (uint32 qsize=mergeSize; ((psize > 0)||((qsize > 0)&&(q))); /* empty */) 
          {
-            typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e;
+            HashtableEntryBase * e;
 
             /* decide whether next element of the merge comes from p or q */
                  if (psize == 0)                     {e = q; q = this->GetEntryIterNextChecked(q); qsize--;}
@@ -2395,7 +2402,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompare
             else                                     {e = q; q = this->GetEntryIterNextChecked(q); qsize--;}
 
             /* append to our new more-sorted list */
-            typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * tail = this->IndexToEntryChecked(_iterTailIdx);
+            HashtableEntryBase * tail = this->IndexToEntryChecked(_iterTailIdx);
             if (tail) this->SetEntryIterNextChecked(tail, e);
                  else this->_iterHeadIdx = this->EntryToIndexChecked(e);
             this->SetEntryIterPrevChecked(e, tail);
@@ -2976,10 +2983,10 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
 
    // 3. Place all of our data into (biggerTable)
    {
-      typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * next = this->IndexToEntryChecked(this->_iterHeadIdx);
+      HashtableEntryBaseType * next = this->IndexToEntryChecked(this->_iterHeadIdx);
       while(next)
       {
-         typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * hisClone = biggerTable.PutAux(next->_hash, HT_PlunderKey(next->_key), HT_PlunderValue(next->_value), NULL, NULL);
+         HashtableEntryBaseType * hisClone = biggerTable.PutAux(next->_hash, HT_PlunderKey(next->_key), HT_PlunderValue(next->_value), NULL, NULL);
          if (hisClone)
          {
             // Mark any iterators that will need to be redirected to point to the new nodes.
@@ -3036,7 +3043,7 @@ status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::CopyToTable(const KeyType & copyMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & toTable) const
 {
    const uint32 hash = this->ComputeHash(copyMe);
-   const typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(hash, copyMe);
+   HashtableEntryBaseType * e = this->GetEntry(hash, copyMe);
    if (e)
    { 
       if (this == &toTable) return B_NO_ERROR;  // it's already here!
@@ -3051,7 +3058,7 @@ status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::MoveToTable(const KeyType & moveMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & toTable)
 {
    const uint32 hash = this->ComputeHash(moveMe);
-   const typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(hash, moveMe);
+   HashtableEntryBaseType * e = this->GetEntry(hash, moveMe);
    if (e)
    {
       if (this == &toTable) return B_NO_ERROR;  // it's already here!
@@ -3069,7 +3076,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAux(uint32 hash
    if (this->EnsureTableAllocated() != B_NO_ERROR) return NULL;
 
    // If we already have an entry for this key in the table, we can just replace its contents
-   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = this->GetEntry(hash, key);
+   HashtableEntryBaseType * e = this->GetEntry(hash, key);
    if (e)
    {
       if (optSetPreviousValue) *optSetPreviousValue = e->_value;
@@ -3094,7 +3101,7 @@ HT_UniversalSinkKeyValueRef
 status_t 
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtFront(HT_SinkKeyParam key, HT_SinkValueParam v)
 {
-   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
+   HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
    if (e == NULL) return B_ERROR;
    this->MoveToFrontAux(e);
    return B_NO_ERROR;
@@ -3105,7 +3112,7 @@ HT_UniversalSinkKeyValueRef
 status_t 
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtBack(HT_SinkKeyParam key, HT_SinkValueParam v)
 {
-   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
+   HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
    if (e == NULL) return B_ERROR;
    this->MoveToBackAux(e);
    return B_NO_ERROR;
@@ -3116,9 +3123,9 @@ HT_UniversalSinkKeyValueRef
 status_t 
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutBefore(HT_SinkKeyParam key, HT_SinkKeyParam placeBeforeMe, HT_SinkValueParam v)
 {
-   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
+   HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
    if (e == NULL) return B_ERROR;
-   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * f = this->GetEntry(this->ComputeHash(placeBeforeMe), placeBeforeMe);
+   HashtableEntryBaseType * f = this->GetEntry(this->ComputeHash(placeBeforeMe), placeBeforeMe);
    if ((f)&&(e != f)) this->MoveToBeforeAux(e, f);
    return B_NO_ERROR;
 }
@@ -3128,9 +3135,9 @@ HT_UniversalSinkKeyValueRef
 status_t 
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutBehind(HT_SinkKeyParam key, HT_SinkKeyParam placeBehindMe, HT_SinkValueParam v)
 {
-   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
+   HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
    if (e == NULL) return B_ERROR;
-   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * d = this->GetEntry(this->ComputeHash(placeBehindMe), placeBehindMe);
+   HashtableEntryBaseType * d = this->GetEntry(this->ComputeHash(placeBehindMe), placeBehindMe);
    if ((d)&&(e != d)) this->MoveToBehindAux(e, d);
    return B_NO_ERROR;
 }
@@ -3140,7 +3147,7 @@ HT_UniversalSinkKeyValueRef
 status_t 
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtPosition(HT_SinkKeyParam key, uint32 atPosition, HT_SinkValueParam v)
 {
-   typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
+   HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
    if (e == NULL) return B_ERROR;
    this->MoveToPositionAux(e, atPosition);
    return B_NO_ERROR;
