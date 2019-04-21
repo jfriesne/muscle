@@ -1166,7 +1166,7 @@ private:
    // Give these classes (and only these classes!) access to the HashtableEntryBase inner class
    template<class HisKeyType, class HisValueType, class HisHashFunctorType, class HisSubclassType>          friend class HashtableMid;
    template<class HisKeyType, class HisValueType, class HisHashFunctorType>                                 friend class Hashtable;
-   template<class HisKeyType, class HisValueType, class HisHashFunctorType, class HisEntryCompareFunctorType, class HisSubclassType > friend class OrderedHashtable;
+   template<class HisKeyType, class HisValueType, class HisHashFunctorType, class HisEntryCompareFunctorType, class HisSubclassType> friend class OrderedHashtable;
    template<class HisKeyType, class HisValueType, class HisKeyCompareFunctorType, class HisHashFunctorType> friend class OrderedKeysHashtable;
    template<class HisKeyType, class HisValueType, class HisKeyCompareFunctorType, class HisHashFunctorType> friend class OrderedValuesHashtable;
 
@@ -1341,6 +1341,9 @@ private:
       return NULL;
    }
 
+#if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ == 5) && (__GNUC_MINOR__ <= 4)
+public:  // work-around for an apparent bug in g++ 5.4.0 -- friend-template doesn't work for the Ordered*Hashtable constructors!?
+#endif
    template<class KeyCompareFunctor> class ByKeyEntryCompareFunctor
    {
    public:
@@ -1361,6 +1364,7 @@ private:
       const ValueCompareFunctor & _vf;
    };
 
+private:
    template <class EntryCompareFunctorType> void SortByEntry(                        const EntryCompareFunctorType & ecf, void * cookie);
    template <class EntryCompareFunctorType> void InsertIterationEntryInOrder(        const EntryCompareFunctorType & ecf, HashtableEntryBase * e, bool isAutoSortEnabled, void * compareCookie);
    template <class EntryCompareFunctorType> void MoveIterationEntryToCorrectPosition(const EntryCompareFunctorType & ecf, HashtableEntryBase * e, void * compareCookie);
