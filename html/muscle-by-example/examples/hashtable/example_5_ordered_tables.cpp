@@ -26,9 +26,13 @@ int main(int argc, char ** argv)
 
    OrderedKeysHashtable<int, String> okTable;
    okTable.Put(3, "Three"); 
+   okTable.Put(7, "Seven"); 
    okTable.Put(1, "One"); 
+   okTable.Put(5, "Five"); 
+   okTable.Put(9, "Nine"); 
    okTable.Put(4, "Four"); 
-   okTable.Put(1, "One"); 
+   okTable.Put(8, "Eight"); 
+   okTable.Put(2, "Two"); 
    okTable.Put(6, "Six"); 
 
    printf("Contents of OrderedKeysHashtable: (auto-sorted by key)\n");
@@ -47,6 +51,10 @@ int main(int argc, char ** argv)
    ovTable.Put(4, "Four"); 
    ovTable.Put(1, "One"); 
    ovTable.Put(6, "Six"); 
+   ovTable.Put(9, "Nine"); 
+   ovTable.Put(8, "Eight"); 
+   ovTable.Put(2, "Two"); 
+   ovTable.Put(5, "Five"); 
 
    printf("Contents of OrderedValuesHashtable (Note value-strings are auto-sorted alphabetically):\n");
    for (HashtableIterator<int, String> iter(ovTable); iter.HasData(); iter++)
