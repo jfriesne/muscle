@@ -3168,7 +3168,7 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator() : _i
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableIterator<KeyType, ValueType, HashFunctorType> & rhs) : _flags(0), _owner(NULL), _okayToUnsetThreadID(false)
+HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableIterator & rhs) : _flags(0), _owner(NULL), _okayToUnsetThreadID(false)
 {
    *this = rhs;
 }
