@@ -236,7 +236,10 @@ private:
    {
    public:
       KeyAndValue() {/* empty */}
-      HT_UniversalSinkKeyValueRef KeyAndValue(HT_SinkKeyParam key, HT_SinkValueParam value) : _key(HT_ForwardKey(key)), _value(HT_ForwardValue(value)) {/* empty */}
+      HT_UniversalSinkKeyValueRef KeyAndValue(HT_SinkKeyParam key, HT_SinkValueParam value) 
+         : _key(HT_ForwardKey(key))
+         , _value(HT_ForwardValue(value)) 
+      {/* empty */}
    
       KeyType _key;
       ValueType _value;
@@ -841,7 +844,7 @@ public:
    uint32 GetTotalDataSize() const 
    {
       uint32 sizePerItem = 0;
-      switch(this->_tableIndexType)
+      switch(this->GetTableIndexType())
       {
          case TABLE_INDEX_TYPE_UINT8:  
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
@@ -888,7 +891,18 @@ private:
 
    void SwapContentsAux(HashtableBase & swapMe, bool swapIterators);
 
-   HashtableBase(uint32 tableSize) : _numItems(0), _tableSize(tableSize), _tableIndexType(ComputeTableIndexTypeForTableSize(tableSize)), _table(NULL), _iterHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _iterTailIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _freeHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX), _iterList(NULL) {/* empty */}
+   HashtableBase(uint32 tableSize) 
+      : _numItems(0)
+      , _tableSize(tableSize)
+#ifndef MUSCLE_HASHTABLE_EXCLUDE_TABLE_INDEX_TYPE_FIELD
+      , _tableIndexType(this->ComputeTableIndexTypeForTableSize(tableSize))
+#endif
+      , _iterHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX)
+      , _iterTailIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX)
+      , _freeHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX)
+      , _table(NULL)
+      , _iterList(NULL) {/* empty */}
+
    ~HashtableBase() {Clear(true);}
 
    void CopyFromAux(const HashtableBase & rhs)
@@ -908,7 +922,14 @@ private:
       }
    }
 
-   uint32 ComputeTableIndexTypeForTableSize(uint32 tableSize) {return (tableSize < 255) ? TABLE_INDEX_TYPE_UINT8 : ((tableSize < 65535) ? TABLE_INDEX_TYPE_UINT16 : TABLE_INDEX_TYPE_UINT32);}
+   /** Returns the TABLE_INDEX_TYPE_* value associated with our current table-size */
+#ifndef MUSCLE_HASHTABLE_EXCLUDE_TABLE_INDEX_TYPE_FIELD
+   int GetTableIndexType() const {return _tableIndexType;}
+#else
+   int GetTableIndexType() const {return this->ComputeTableIndexTypeForTableSize(_tableSize);}
+#endif
+
+   static uint32 ComputeTableIndexTypeForTableSize(uint32 tableSize) {return (tableSize>=255) + (tableSize>=65535);}
 
    /** This class is an implementation detail, please ignore it.  Do not access it directly. */
    class HashtableEntryBase
@@ -1011,7 +1032,7 @@ private:
 
    uint32 GetEntryIndexValue(const HashtableEntryBase * entry, uint32 whichIndex) const
    {
-      switch(_tableIndexType)
+      switch(this->GetTableIndexType())
       {
          case TABLE_INDEX_TYPE_UINT8:  
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
@@ -1030,7 +1051,7 @@ private:
 
    void SetEntryIndexValue(HashtableEntryBase * entry, uint32 whichIndex, uint32 value) const
    {
-      switch(_tableIndexType)
+      switch(this->GetTableIndexType())
       {
          case TABLE_INDEX_TYPE_UINT8:  
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
@@ -1100,7 +1121,7 @@ private:
    
    uint32 EntryToIndexUnchecked(const HashtableEntryBase * entry) const
    {
-      switch(_tableIndexType)
+      switch(this->GetTableIndexType())
       {
          case TABLE_INDEX_TYPE_UINT8:  
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
@@ -1121,7 +1142,7 @@ private:
    HashtableEntryBase * IndexToEntryUnchecked(uint32 idx) const
    {
       HashtableEntryBase * t = const_cast<HashtableEntryBase *>(_table);
-      switch(_tableIndexType)
+      switch(this->GetTableIndexType())
       {
          case TABLE_INDEX_TYPE_UINT8:  
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
@@ -1189,14 +1210,13 @@ private:
 
    inline uint32 ComputeHash(const KeyType & key) const
    {
-      uint32 ret = _hashFunctor(key);
-      if (ret == MUSCLE_HASHTABLE_INVALID_HASH_CODE) ret++;  // avoid using the guard value as a hash code (unlikely but possible)
-      return ret;
+      const uint32 ret = GetHashFunctor()(key);
+      return (ret == MUSCLE_HASHTABLE_INVALID_HASH_CODE) ? (ret+1) : ret;  // avoid using the guard value as a hash code (unlikely but possible)
    }
 
    inline bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const
    {
-      return _hashFunctor.AreKeysEqual(k1, k2);
+      return GetHashFunctor().AreKeysEqual(k1, k2);
    }
 
    void InsertIterationEntry(HashtableEntryBase * e, HashtableEntryBase * optBehindThisOne);
@@ -1369,21 +1389,23 @@ private:
    template <class EntryCompareFunctorType> void InsertIterationEntryInOrder(        const EntryCompareFunctorType & ecf, HashtableEntryBase * e, bool isAutoSortEnabled, void * compareCookie);
    template <class EntryCompareFunctorType> void MoveIterationEntryToCorrectPosition(const EntryCompareFunctorType & ecf, HashtableEntryBase * e, void * compareCookie);
 
-   HashFunctorType _hashFunctor;  // used to compute hash codes for key objects
+   const HashFunctorType & GetHashFunctor() const {return GetDefaultObjectForType<HashFunctorType>();}  // used to compute hash codes for key objects
 
    uint32 _numItems;       // the number of valid elements in the hashtable
    uint32 _tableSize;      // the number of entries in _table (or the number to allocate if _table is NULL)
+#ifndef MUSCLE_HASHTABLE_EXCLUDE_TABLE_INDEX_TYPE_FIELD
    uint32 _tableIndexType; // will be a TABLE_INDEX_TYPE_* value
+#endif
+   uint32 _iterHeadIdx;    // index of the start of linked list to iterate through
+   uint32 _iterTailIdx;    // index of the end of linked list to iterate through
+   uint32 _freeHeadIdx;    // index of the head of the list of unused HashtableEntries in our _table array
 
    HashtableEntryBase * _table; // our array of table entries (actually an array of HashtableEntry objects of some flavor: NOT an array of HashtableEntryBase objects!  Be careful!)
-   uint32 _iterHeadIdx;         // index of the start of linked list to iterate through
-   uint32 _iterTailIdx;         // index of the end of linked list to iterate through
-   uint32 _freeHeadIdx;         // index of the head of the list of unused HashtableEntries in our _table array
 
    mutable IteratorType * _iterList;  // list of existing iterators for this table
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
-   mutable AtomicCounter _iteratorCount;    // this represents the number of HashtableIterators currently registered with this Hashtable
    mutable muscle_thread_id _iteratorThreadID; // this is the ID of the thread that is allowed to register iterators (or 0 if none are registered)
+   mutable AtomicCounter _iteratorCount;       // this represents the number of HashtableIterators currently registered with this Hashtable
 #endif
 };
 
@@ -2426,7 +2448,9 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableBase<
 {
    muscleSwap(_numItems,       swapMe._numItems);
    muscleSwap(_tableSize,      swapMe._tableSize);
+#ifndef MUSCLE_HASHTABLE_EXCLUDE_TABLE_INDEX_TYPE_FIELD
    muscleSwap(_tableIndexType, swapMe._tableIndexType);
+#endif
    muscleSwap(_table,          swapMe._table);
    muscleSwap(_iterHeadIdx,    swapMe._iterHeadIdx);
    muscleSwap(_iterTailIdx,    swapMe._iterTailIdx);
@@ -2465,7 +2489,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::EnsureTableAllocated()
 {
    if (this->_table == NULL) 
    {
-      switch(this->_tableIndexType)
+      switch(this->GetTableIndexType())
       {
          case TABLE_INDEX_TYPE_UINT8:  
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
@@ -2584,7 +2608,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveEntry(HashtableEntryBase
    }
 
    _numItems--;
-   switch(_tableIndexType)
+   switch(this->GetTableIndexType())
    {
       case TABLE_INDEX_TYPE_UINT8:  
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
@@ -2609,7 +2633,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 uint32
 HashtableBase<KeyType,ValueType,HashFunctorType>::PopFromFreeList(HashtableEntryBase * e, uint32 freeHeadIdx) 
 {
-   switch(_tableIndexType)
+   switch(this->GetTableIndexType())
    {
       case TABLE_INDEX_TYPE_UINT8:  
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
@@ -2647,13 +2671,15 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Clear(bool releaseCachedBuffer
 
    if (releaseCachedBuffers)
    {
-      HashtableEntryBase * oldTable  = _table;
-      const uint32 oldTableIndexType = _tableIndexType;
+      HashtableEntryBase * oldTable = _table;
+      const uint8 oldTableIndexType = this->GetTableIndexType();
 
       _table          = NULL;
       _freeHeadIdx    = MUSCLE_HASHTABLE_INVALID_SLOT_INDEX;
       _tableSize      = MUSCLE_HASHTABLE_DEFAULT_CAPACITY;
+#ifndef MUSCLE_HASHTABLE_EXCLUDE_TABLE_INDEX_TYPE_FIELD
       _tableIndexType = this->ComputeTableIndexTypeForTableSize(_tableSize);
+#endif
 
       // done after state is updated, in case of re-entrancies in the dtors
       switch(oldTableIndexType)
@@ -2982,7 +3008,9 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
    // 2. Create a new, bigger table, to hold a copy of our data.
    SubclassType biggerTable;
    biggerTable._tableSize      = biggerTableSize;
+#ifndef MUSCLE_HASHTABLE_EXCLUDE_TABLE_INDEX_TYPE_FIELD
    biggerTable._tableIndexType = this->ComputeTableIndexTypeForTableSize(biggerTable._tableSize);
+#endif
    biggerTable.DisableAutoSort();  // he doesn't need to auto-sort as our entries will already be in the correct order
 
    // 3. Place all of our data into (biggerTable)
@@ -3162,26 +3190,41 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtPosition(HT_S
 //===============================================================
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator() : _iterCookie(NULL), _currentKey(NULL), _currentVal(NULL), _flags(0), _owner(NULL), _okayToUnsetThreadID(false)
+HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator() 
+   : _iterCookie(NULL)
+   , _currentKey(NULL)
+   , _currentVal(NULL)
+   , _flags(0)
+   , _owner(NULL)
+   , _okayToUnsetThreadID(false)
 {
    // empty
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableIterator & rhs) : _flags(0), _owner(NULL), _okayToUnsetThreadID(false)
+HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableIterator & rhs) 
+   : _flags(0)
+   , _owner(NULL)
+   , _okayToUnsetThreadID(false)
 {
    *this = rhs;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, uint32 flags) : _flags(flags), _owner(&table), _okayToUnsetThreadID(false)
+HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, uint32 flags) 
+   : _flags(flags)
+   , _owner(&table)
+   , _okayToUnsetThreadID(false)
 {
    table.InitializeIterator(*this);
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
 HT_UniversalSinkKeyRef
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, HT_SinkKeyParam startAt, uint32 flags) : _flags(flags), _owner(&table), _okayToUnsetThreadID(false)
+HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, HT_SinkKeyParam startAt, uint32 flags) 
+   : _flags(flags)
+   , _owner(&table)
+   , _okayToUnsetThreadID(false)
 {
    table.InitializeIteratorAt(*this, HT_ForwardKey(startAt));
 }

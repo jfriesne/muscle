@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "system/SharedMemory.h"
+#include "system/SetupSystem.h"
 #include "util/NetworkUtilityFunctions.h"
 #include "util/ObjectPool.h"
 #include "util/RefCount.h"

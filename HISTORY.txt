@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Reduced sizeof(Hashtable) by 8 bytes, from 64 to 56.
+
 7.20 Released 4/23/2019
    - Added new convenience methods to the Hashtable class:
      PutAtFront(), PutAtBack(), PutBefore(), PutBehind(), and
