@@ -290,7 +290,7 @@ public:
      */
    const ItemType & GetWithDefault(uint32 index) const {return (index<_itemCount)?(*this)[index]:GetDefaultItem();}
 
-   /** Returns the (index)'th item in the Queue, if such an item exists,
+   /** Returns a copy of the (index)'th item in the Queue, if such an item exists,
      * or the supplied default item if it doesn't.  Unlike the [] operator,
      * it is okay to call this method with any value of (index).
      * @param index Which item to return.

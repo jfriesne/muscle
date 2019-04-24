@@ -384,7 +384,7 @@ public:
     */
    const KeyType & GetKeyAtWithDefault(uint32 index) const;
 
-   /** Returns a reference to the (index)'th key in this Hashtable, or (defaultKey) if this table doesn't contain that many keys.
+   /** Returns a copy of the (index)'th key in this Hashtable, or (defaultKey) if this table doesn't contain that many keys.
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
     *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetNumItems()-1].
     *  @param defaultKey If (index) is not less than the number of items in this table, then this will be returned.
@@ -419,7 +419,7 @@ public:
     */
    const ValueType & GetValueAtWithDefault(uint32 index) const;
 
-   /** Returns a reference to the (index)'th value in this Hashtable, or (defaultValue) if this table doesn't contain that many value.
+   /** Returns a copy of the (index)'th value in this Hashtable, or (defaultValue) if this table doesn't contain that many value.
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
     *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
     *  @param defaultValue If (index) is not less than the number of items in this table, then this will be returned.
@@ -780,7 +780,7 @@ public:
       return e ? e->_value : GetDefaultValue();
    }
 
-   /** Convenience method.  Returns a reference to the first value in our iteration list, or the specified default value object if the table is empty. 
+   /** Convenience method.  Returns a copy of the first value in our iteration list, or the specified default value object if the table is empty. 
      * @param defaultValue The value to return if the table is empty.
      * @note that this method returns by-value rather than by-reference, because
      *       returning (defaultValue) by-reference makes it too easy to call this method
@@ -813,7 +813,7 @@ public:
       return e ? e->_value : GetDefaultValue();
    }
 
-   /** Convenience method.  Returns a reference to the last value in our iteration list, or the specified default value object if the table is empty.
+   /** Convenience method.  Returns a copy of the last value in our iteration list, or the specified default value object if the table is empty.
      * @param defaultValue The value to return if the table is empty.
      * @note that this method returns by-value rather than by-reference, because
      *       returning (defaultValue) by-reference makes it too easy to call this method
