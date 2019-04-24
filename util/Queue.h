@@ -56,10 +56,22 @@ public:
    /** Initializer-list Constructor (C++11 only)
      * @param list the initializer-list of items to add to this Queue
      */
-   Queue(const std::initializer_list<ItemType> & list) : _queue(NULL), _queueSize(0), _itemCount(0) {(void) AddTailMulti(list);}
+   Queue(const std::initializer_list<ItemType> & list) 
+      : _queue(NULL)
+      , _queueSize(0)
+      , _itemCount(0) 
+   {
+      (void) AddTailMulti(list);
+   }
 
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   Queue(Queue && rhs) : _queue(NULL), _queueSize(0), _itemCount(0) {if (rhs._queue == rhs._smallQueue) *this = rhs; else SwapContents(rhs);}
+   Queue(Queue && rhs) 
+      : _queue(NULL)
+      , _queueSize(0)
+      , _itemCount(0) 
+   {
+      if (rhs._queue == rhs._smallQueue) *this = rhs; else SwapContents(rhs);
+   }
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
    Queue & operator =(Queue && rhs) {if (rhs._queue == rhs._smallQueue) *this = rhs; else SwapContents(rhs); return *this;}
@@ -755,24 +767,34 @@ private:
    template<class CompareFunctorType> uint32 Lower(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const ItemType & val, void * optCookie) const;
    template<class CompareFunctorType> uint32 Upper(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const ItemType & val, void * optCookie) const;
 
-   ItemType _smallQueue[SMALL_QUEUE_SIZE];  // small queues can be stored inline in this array
-   ItemType * _queue;                       // points to _smallQueue, or to a dynamically alloc'd array
-   uint32 _queueSize;  // number of slots in the _queue array
-   uint32 _itemCount;  // number of valid items in the array
-   uint32 _headIndex;  // index of the first filled slot (meaningless if _itemCount is zero)
-   uint32 _tailIndex;  // index of the last filled slot (meaningless if _itemCount is zero)
+   ItemType * _queue; // points to _smallQueue, or to a dynamically alloc'd array
+   uint32 _queueSize; // number of slots in the _queue array
+   uint32 _itemCount; // number of valid items in the array
+   uint32 _headIndex; // index of the first filled slot (meaningless if _itemCount is zero)
+   uint32 _tailIndex; // index of the last filled slot (meaningless if _itemCount is zero)
+
+   enum {ACTUAL_SMALL_QUEUE_SIZE = ((sizeof(ItemType)*SMALL_QUEUE_SIZE) < sizeof(void*)) ? (sizeof(void*)/sizeof(ItemType)) : SMALL_QUEUE_SIZE};
+   ItemType _smallQueue[ACTUAL_SMALL_QUEUE_SIZE];  // small queues can be stored inline in this array
 };
 
 template <class ItemType>
 Queue<ItemType>::Queue()
-   : _queue(NULL), _queueSize(0), _itemCount(0), _headIndex(0), _tailIndex(0)
+   : _queue(NULL)
+   , _queueSize(0)
+   , _itemCount(0)
+   , _headIndex(0)
+   , _tailIndex(0)
 {
    // empty
 }
 
 template <class ItemType>
 Queue<ItemType>::Queue(const Queue& rhs)
-   : _queue(NULL), _queueSize(0), _itemCount(0), _headIndex(0), _tailIndex(0)
+   : _queue(NULL)
+   , _queueSize(0)
+   , _itemCount(0)
+   , _headIndex(0)
+   , _tailIndex(0)
 {
    *this = rhs;
 }
@@ -1257,7 +1279,7 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
    {
       const uint32 sqLen = ARRAYITEMS(_smallQueue);
       const uint32 temp  = size + extraPreallocs;
-      uint32 newQLen = muscleMax((uint32)SMALL_QUEUE_SIZE, ((setNumItems)||(temp <= sqLen)) ? muscleMax(sqLen,temp) : temp);
+      uint32 newQLen = muscleMax((uint32)ARRAYITEMS(_smallQueue), ((setNumItems)||(temp <= sqLen)) ? muscleMax(sqLen,temp) : temp);
 
       ItemType * newQueue = ((_queue == _smallQueue)||(newQLen > sqLen)) ? newnothrow_array(ItemType,newQLen) : _smallQueue;
 
