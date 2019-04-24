@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.20 Released 4/23/2019
    - Added new convenience methods to the Hashtable class:
      PutAtFront(), PutAtBack(), PutBefore(), PutBehind(), and
      PutAtPosition().  (These are variations of Put() that
