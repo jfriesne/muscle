@@ -132,8 +132,71 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                   cmd = UnparseArgs(tmpQ);
                }
 
-               if (CreateProcessA((argc>=0)?(((const char **)args)[0]):NULL, (char *)cmd(), NULL, NULL, TRUE, 0, NULL, optDirectory, &siStartInfo, &piProcInfo))
+               // If environment-vars are specified, we need to create a new environment-variable-block
+               // for the child process to use.  It will be the same as our own, but with the specified
+               // env-vars added/updated in it.
+               bool ok         = true;
+               void * envVars  = NULL;
+               char * newBlock = NULL;
+               if ((optEnvironmentVariables)&&(optEnvironmentVariables->HasItems()))
                {
+                  Hashtable<String, String> curEnvVars;
+
+                  const char * oldEnvs = GetEnvironmentStringsA();
+                  if (oldEnvs)
+                  {
+                     const char * s = oldEnvs;
+                     while(s)
+                     {
+                        if (*s)
+                        {
+                           const char * equals = strchr(s, '=');
+                           if ((equals ? curEnvVars.Put(String(s, equals-s), equals+1) : curEnvVars.Put(s, GetEmptyString())) == B_NO_ERROR) s = strchr(s, '\0')+1;
+                           else
+                           {
+                              ok = false;
+                              break;
+                           }
+                        }
+                        else break;
+                     }
+
+                     FreeEnvironmentStringsA(oldEnvs);
+                  }
+
+                  (void) curEnvVars.Put(*optEnvironmentVariables);  // update our existing vars with the specified ones
+
+                  // Now we can make a new environment-variables-block out of (curEnvVars)
+                  uint32 newBlockSize = 1;  // this represents the final NUL terminator (after the last string)
+                  for (HashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++) newBlockSize += iter.GetKey().FlattenedSize()+iter.GetValue().FlattenedSize();  // includes NUL terminators
+
+                  char * newBlock = newnothrow char[newBlockSize];
+                  if (newBlock)
+                  {
+                     char * s = newBlock;
+                     for (HashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++)
+                     {
+                        iter.GetKey().Flatten(s);   s += iter.GetKey().FlattenedSize();
+                        *s++ = '=';
+                        iter.GetValue().Flatten(s); s += iter.GetValue().FlattenedSize();
+                        *s++ = '\0';
+                     }
+                     *s++ = '\0';
+
+                     envVars = newBlock;
+                  }
+                  else
+                  {
+                     WARN_OUT_OF_MEMORY;
+                     ok = false;     
+                  }
+               }
+             
+               if ((ok)&&(CreateProcessA((argc>=0)?(((const char **)args)[0]):NULL, (char *)cmd(), NULL, NULL, TRUE, 0, envVars, optDirectory, &siStartInfo, &piProcInfo)))
+               {
+                  delete [] newBlock;
+                  newBlock = NULL;  // void possible double-delete below
+
                   _childProcess   = piProcInfo.hProcess;
                   _childThread    = piProcInfo.hThread;
 
@@ -150,6 +213,8 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                      }
                   }
                }
+
+               delete [] newBlock;
             }
             SafeCloseHandle(childStdinRead);     // cleanup
             SafeCloseHandle(childStdinWrite);    // cleanup
