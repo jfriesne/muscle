@@ -7,6 +7,7 @@
 #include "dataio/DataIO.h"
 #include "support/BitChord.h"
 #include "util/Queue.h"
+#include "util/Hashtable.h"
 
 namespace muscle {
 
@@ -52,18 +53,22 @@ public:
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
+     * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
+                           variables in the child process.
      * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
      */
-   status_t LaunchChildProcess(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL) {return LaunchChildProcessAux(muscleMax(0,argc), argv, launchFlags, optDirectory);}
+   status_t LaunchChildProcess(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL) {return LaunchChildProcessAux(muscleMax(0,argc), argv, launchFlags, optDirectory, optEnvironmentVariables);}
 
    /** As above, but the program name and all arguments are specified as a single string.
      * @param cmd String to launch the child process with
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
+     * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
+                           variables in the child process.
      * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
      */
-   status_t LaunchChildProcess(const char * cmd, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL) {return LaunchChildProcessAux(-1, cmd, launchFlags, optDirectory);}
+   status_t LaunchChildProcess(const char * cmd, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL) {return LaunchChildProcessAux(-1, cmd, launchFlags, optDirectory, optEnvironmentVariables);}
 
    /** Convenience method.  Launches a child process using an (argc,argv) that is constructed from the passed in argument list.
      * @param argv A list of strings to construct the (argc,argv) from.  The first string should be the executable name, the second string
@@ -71,9 +76,11 @@ public:
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
+     * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
+                           variables in the child process.
      * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
      */
-   status_t LaunchChildProcess(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL);
+   status_t LaunchChildProcess(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
    /** Read data from the child process's stdout stream. 
      * @param buffer The read bytes will be placed here
@@ -205,10 +212,11 @@ public:
      *                          for the child to exit, if necessary.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
-     * @returns B_NO_ERROR if the child process was launched, or B_ERROR
-     *          if the child process could not be launched.
+     * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
+                           variables in the child process.
+     * @returns B_NO_ERROR if the child process was launched, or B_ERROR if the child process could not be launched.
      */
-   static status_t System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
+   static status_t System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
    /** Convenience method:  acts similar to the POSIX system() call, but
      * implemented internally via a ChildProcessDataIO object.  In particular,
@@ -223,9 +231,11 @@ public:
      *                          for the child to exit, if necessary.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
+     * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
+                           variables in the child process.
      * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
      */
-   static status_t System(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
+   static status_t System(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
    /** Convenience method:  acts similar to the POSIX system() call, but
      * implemented internally via a ChildProcessDataIO object.  In particular,
@@ -241,8 +251,10 @@ public:
      *                          for the child to exit, if necessary.
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
+     * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
+                           variables in the child process.
      */
-   static status_t System(const char * cmdLine, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL);
+   static status_t System(const char * cmdLine, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
    /** Convenience method:  launches a child process that will be completely independent of the current process.
      * @param argc Number of items in the (argv) array
@@ -250,9 +262,11 @@ public:
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
+     * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
+                                      variables in the child process.
      * @returns B_NO_ERROR if the child process was launched, or B_ERROR if the child process could not be launched.
      */
-   static status_t LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags());
+   static status_t LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
    /** Convenience method:  launches a child process that will be completely independent of the current process.
      * @param argv A list of strings to construct the (argc,argv) from.  The first string should be the executable name, the second string
@@ -260,22 +274,26 @@ public:
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
+     * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
+                                      variables in the child process.
      * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
      */
-   static status_t LaunchIndependentChildProcess(const Queue<String> & argv, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags());
+   static status_t LaunchIndependentChildProcess(const Queue<String> & argv, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
    /** Convenience method:  launches a child process that will be completely independent of the current process.
      * @param cmdLine The command string to launch (as if typed into a shell)
      * @param optDirectory Optional directory path to set the child process's current directory to.  
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
+     * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
+                                      variables in the child process.
      * @returns B_NO_ERROR if the child process was launched, or B_ERROR if the child process could not be launched.
      */
-   static status_t LaunchIndependentChildProcess(const char * cmdLine, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags());
+   static status_t LaunchIndependentChildProcess(const char * cmdLine, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
 private:
    void Close();
-   status_t LaunchChildProcessAux(int argc, const void * argv, ChildProcessLaunchFlags launchFlags, const char * optDirectory);
+   status_t LaunchChildProcessAux(int argc, const void * argv, ChildProcessLaunchFlags launchFlags, const char * optDirectory, const Hashtable<String,String> * optEnvironmentVariables);
    void DoGracefulChildShutdown();
    const ConstSocketRef & GetChildSelectSocket() const;
 

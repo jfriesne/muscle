@@ -36,13 +36,18 @@ int main(int argc, char ** argv)
 
    const char * cmd = argv[2];
 
+   Hashtable<String,String> testEnvVars;
+   (void) testEnvVars.Put("Peanut Butter", "Jelly");
+   (void) testEnvVars.Put("Jelly", "Peanut Butter");
+   (void) testEnvVars.Put("Oranges", "Grapes");
+
    Queue<DataIORef> refs;
    for (uint32 i=0; i<numProcesses; i++)
    {
       ChildProcessDataIO * dio = new ChildProcessDataIO(false);
       refs.AddTail(DataIORef(dio));
       printf("About To Launch child process #" UINT32_FORMAT_SPEC ":  [%s]\n", i+1, cmd); fflush(stdout);
-      ConstSocketRef s = (dio->LaunchChildProcess(argc-2, ((const char **) argv)+2) == B_NO_ERROR) ? dio->GetReadSelectSocket() : ConstSocketRef();
+      ConstSocketRef s = (dio->LaunchChildProcess(argc-2, ((const char **) argv)+2, ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), NULL, &testEnvVars) == B_NO_ERROR) ? dio->GetReadSelectSocket() : ConstSocketRef();
       printf("Finished Launching child process #" UINT32_FORMAT_SPEC ":  [%s]\n", i+1, cmd); fflush(stdout);
       if (s() == NULL)
       {

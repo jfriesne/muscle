@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - ChildProcessDataIO::LaunchChildProcess() and friends now
+     take an optional Hashtable<String,String> that, if specified,
+     will be passed to the child process as environment-variables.
    o Reduced sizeof(Hashtable) by 8 bytes, from 64 to 56.
    o Queues of very small Item-types (e.g. 1 or 2 bytes per
      Item) now automatically get larger ACTUAL_SMALL_QUEUE_SIZE 
