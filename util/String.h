@@ -384,7 +384,7 @@ public:
      * @param numExtraBytes an additional number of bytes that the buffer should have room for.  Defaults to zero.
      * @returns B_NO_ERROR on success, or B_ERROR on failure.
      */
-   status_t ShrinkToFit(uint32 numExtraBytes = 0) {return EnsureBufferSize(Length()+1+numExtraBytes, true, true);}
+   status_t ShrinkToFit(uint32 numExtraBytes = 0) {return EnsureBufferSize(FlattenedSize()+numExtraBytes, true, true);}
 
    /** Sets our state from the given C-style string.
      * @param str The new string to copy from.  If maxLen is negative, this may be NULL.
@@ -966,7 +966,7 @@ public:
     *  @note The clever secret here is that a flattened String is just a C-style
     *        zero-terminated char array, and can be used interchangably as such.
     */
-   void Flatten(uint8 *buffer) const {memcpy((char *)buffer, Cstr(), Length()+1);}
+   void Flatten(uint8 *buffer) const {memcpy((char *)buffer, Cstr(), FlattenedSize());}
 
    /** Unflattens a String from (buf).
     *  @param buf an array of (size) bytes.

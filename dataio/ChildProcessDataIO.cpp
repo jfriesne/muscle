@@ -6,7 +6,10 @@
 #include "util/NetworkUtilityFunctions.h"  // SendData() and ReceiveData()
 
 #if defined(WIN32) || defined(__CYGWIN__)
-# include <process.h>  // for _beginthreadex()
+# include <process.h>     // for _beginthreadex()
+# ifdef _UNICODE
+#  undef GetEnvironmentStrings   // here because Windows headers are FUBAR ( https://devblogs.microsoft.com/oldnewthing/20130117-00/?p=5533 )
+# endif
 # define USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
 #else
 # if defined(__linux__)
@@ -142,7 +145,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                {
                   Hashtable<String, String> curEnvVars;
 
-                  const char * oldEnvs = GetEnvironmentStringsA();
+                  char * oldEnvs = GetEnvironmentStrings();
                   if (oldEnvs)
                   {
                      const char * s = oldEnvs;
@@ -170,16 +173,15 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                   uint32 newBlockSize = 1;  // this represents the final NUL terminator (after the last string)
                   for (HashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++) newBlockSize += iter.GetKey().FlattenedSize()+iter.GetValue().FlattenedSize();  // includes NUL terminators
 
-                  char * newBlock = newnothrow char[newBlockSize];
+                  uint8 * newBlock = newnothrow uint8[newBlockSize];
                   if (newBlock)
                   {
-                     char * s = newBlock;
+                     uint8 * s = newBlock;
                      for (HashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++)
                      {
                         iter.GetKey().Flatten(s);   s += iter.GetKey().FlattenedSize();
-                        *s++ = '=';
+                        *(s-1) = '=';  // replace key's trailing-NUL with an '=' sign
                         iter.GetValue().Flatten(s); s += iter.GetValue().FlattenedSize();
-                        *s++ = '\0';
                      }
                      *s++ = '\0';
 
