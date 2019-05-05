@@ -21,18 +21,18 @@
  * systems.  It can be compiled using any C++ compiler that supports C++03 or higher (although C++11 or
  * higher is preferred) and can run under any OS with a TCP/IP stack and BSD-style sockets API.
  *
- * MUSCLE allows (n) client programs (each of which may be running on a separate computer and/or 
- * under a different OS) to communicate with each other in a many-to-many message-passing style.  It 
- * employs a central server to which client programs may connect or disconnect at any time  (This design 
- * is similar to other client-server systems such as Quake servers, IRC servers, and Napster servers, 
- * but more general in application).  In addition to the client-server system, MUSCLE contains classes 
- * to support peer-to-peer message streaming connections, as well as some handy miscellaneous utility 
+ * MUSCLE allows an arbitrary number of client programs (each of which may be running on a separate computer and/or 
+ * under a different OS) to communicate with each other in a many-to-many structured-message-passing style.  It 
+ * employs a central server to which client programs may connect or disconnect at any time.  In addition to the client-server system, MUSCLE contains classes 
+ * to support peer-to-peer message-queue connections, as well as some handy miscellaneous utility 
  * classes, all of which are documented here.
  *
  * All classes documented here should compile under most modern OS's with a modern C++ compiler.
  * Where platform-specific code is necessary, it has been provided (inside \#ifdef's) for various OS's.
- * Templates are used throughout; exceptions are avoided in favor of error codes.  The code is usable 
+ * C++ templates are used where appropriate; C++ exceptions are avoided in favor of returned error-codes.  The code is usable 
  * in multithreaded environments, as long as you are careful.
+ *
+ * An examples-oriented tour of the various MUSCLE APIs can be found <a href="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/site/index.html">here</a>.
  *
  * As distributed, the server side of the software is ready to compile and run, but to do much with it 
  * you'll want to write your own client software.  Example client software can be found in the "test" 
