@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.21 Released 5/7/2019
    - ChildProcessDataIO::LaunchChildProcess() and friends now
      take an optional Hashtable<String,String> that, if specified,
      will be passed to the child process as environment-variables.
