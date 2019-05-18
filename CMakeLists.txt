@@ -1,4 +1,9 @@
 cmake_minimum_required (VERSION 2.8)
+
+if(TARGET muscle)
+   return()  # This library has already been built
+endif()
+
 project (muscle)
 set (CMAKE_CXX_STANDARD 11)
 

@@ -7,6 +7,8 @@ key:  - new feature
 
    o Hashtable.h was using some C++11-specific syntax that would
      cause a warning to be generated when compiling in C++03 mode.  Fixed.
+   o Added an "if(TARGET muscle) return()" idempotency test to
+     the CMakeLists.txt file, to avoid potential cmake errors.
      
 7.21 Released 5/7/2019
    - ChildProcessDataIO::LaunchChildProcess() and friends now
