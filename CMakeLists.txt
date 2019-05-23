@@ -56,6 +56,7 @@ target_compile_definitions(muscle PUBLIC MUSCLE_ENABLE_ZLIB_ENCODING MUSCLE_NO_E
 if (APPLE)
    target_link_libraries(muscle "-framework CoreFoundation")
    target_link_libraries(muscle "-framework SystemConfiguration")
+   target_link_libraries(muscle "-framework IOKit")
 endif (APPLE)
 
 if (WIN32)
