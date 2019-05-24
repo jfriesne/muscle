@@ -1145,16 +1145,27 @@ typedef ptrdiff_t ptrdiff; /**< ptrdiff is a signed integer type that is guarant
 # include "syslog/SysLog.h"  /* for LogTime() */
 #endif  /* __cplusplus */
 
+/** Platform-neutral interface to errno -- returns WSAGetLastError() on Windows, or errno on other OS's */
+static inline int GetErrno()
+{
+#ifdef WIN32
+   return WSAGetLastError();
+#else
+   return errno;
+#endif
+}
+
 /** Checks errno and returns true iff the last I/O operation
   * failed because it would have had to block otherwise.
   * NOTE:  Returns int so that it will compile even in C environments where no bool type is defined.
   */
 static inline int PreviousOperationWouldBlock()
 {
+   const int e = GetErrno();
 #ifdef WIN32
-   return (WSAGetLastError() == WSAEWOULDBLOCK);
+   return (e == WSAEWOULDBLOCK);
 #else
-   return (errno == EWOULDBLOCK);
+   return (e == EWOULDBLOCK);
 #endif
 }
 
@@ -1164,10 +1175,11 @@ static inline int PreviousOperationWouldBlock()
   */
 static inline int PreviousOperationWasInterrupted()
 {
+   const int e = GetErrno();
 #ifdef WIN32
-   return (WSAGetLastError() == WSAEINTR);
+   return (e == WSAEINTR);
 #else
-   return (errno == EINTR);
+   return (e == EINTR);
 #endif
 }
 
@@ -1177,11 +1189,10 @@ static inline int PreviousOperationWasInterrupted()
   */
 static inline int PreviousOperationHadTransientFailure()
 {
+   const int e = GetErrno();
 #ifdef WIN32
-   int e = WSAGetLastError();
    return ((e == WSAEINTR)||(e == WSAENOBUFS));
 #else
-   int e = errno;
    return ((e == EINTR)||(e == ENOBUFS));
 #endif
 }
