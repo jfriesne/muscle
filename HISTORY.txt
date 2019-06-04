@@ -7,6 +7,11 @@ key:  - new feature
 
    - Added a GetErrno() function to MuscleSupport.h, as a portable 
      front-end to either errno or WSAGetLastError(), depending on OS.
+   - The tests/readmessage.cpp program now inflates zlib-compressed
+     files, and takes a new optional "sizes" keyword, which, if
+     specified, will cause the program to print a report of how
+     many bytes each sub-Message in the file takes up, sorted by
+     increasing size.
    o Hashtable.h was using some C++11-specific syntax that would
      cause a warning to be generated when compiling in C++03 mode.  Fixed.
    o Added an "if(TARGET muscle) return()" idempotency test to

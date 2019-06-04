@@ -2,11 +2,52 @@
 
 #include <stdio.h>
 
+#include "dataio/FileDataIO.h"
 #include "system/SetupSystem.h"
 #include "message/Message.h"
+#include "util/ByteBuffer.h"
+#include "util/Hashtable.h"
 #include "zlib/ZLibUtilityFunctions.h"
 
 using namespace muscle;
+
+static String GetBytesSizeString(uint64 val)
+{
+   const double b = 1000.0;  // note that we defined 1KB=1000 bytes, not 1024 bytes!
+        if (val < b)     return String("%1 bytes").Arg(val);
+   else if (val < b*b)   return String("%1kB").Arg(((double)val)/b,       "%.0f");
+   else if (val < b*b*b) return String("%1MB").Arg(((double)val)/(b*b),   "%.01");
+   else                  return String("%1GB").Arg(((double)val)/(b*b*b), "%.02");
+}
+
+static void GenerateMessageSizeReportAux(const String & curPath, Message & msg, Hashtable<String, uint32> & results)
+{
+   for (MessageFieldNameIterator fnIter(msg, B_MESSAGE_TYPE); fnIter.HasData(); fnIter++)
+   {
+      const String & fn = fnIter.GetFieldName();
+      MessageRef subMsg;
+      for (uint32 i=0; msg.FindMessage(fn, i, subMsg) == B_NO_ERROR; i++)
+      {
+         String subPath = curPath + "/" + fn;
+         if (i > 0) subPath += String(":%1").Arg(i+1);
+         GenerateMessageSizeReportAux(subPath, *subMsg(), results);
+      }
+      (void) msg.RemoveName(fn);  // so that child-fields won't be counted in our own payload-size below
+   }
+   (void) results.Put(curPath, msg.FlattenedSize());
+}
+
+static void PrintMessageReport(Message & msg, bool isSizeReport)
+{
+   if (isSizeReport)
+   {
+      Hashtable<String, uint32> results;
+      GenerateMessageSizeReportAux(GetEmptyString(), msg, results);
+      results.SortByValue();
+      for (HashtableIterator<String, uint32> iter(results); iter.HasData(); iter++) printf("%s:  %s\n", GetBytesSizeString(iter.GetValue())(), iter.GetKey()());
+   }
+   else msg.PrintToStream();
+}
 
 // A simple utility to read in a flattened Message file from disk, and print it out.
 int main(int argc, char ** argv)
@@ -15,39 +56,62 @@ int main(int argc, char ** argv)
 
    CompleteSetupSystem css;
 
-   const char * fileName = (argc > 1) ? argv[1] : "test.msg";
+   const char * fileName   = (argc > 1) ? argv[1] : "test.msg";
+   const bool isSizeReport = (((argc > 2)&&(strstr(argv[2], "sizes") != NULL))||(String(argv[0]).EndsWith("sizes")));
    FILE * fpIn = muscleFopen(fileName, "rb");
    if (fpIn)
    {
-      const uint32 bufSize = 100*1024; // if your message is >100KB flattened, then tough luck
-      uint8 * buf = new uint8[bufSize]; 
-      const int numBytesRead = fread(buf, 1, bufSize, fpIn);
-      printf("Read %i bytes from [%s]\n", numBytesRead, fileName);
+      FileDataIO fdio(fpIn);
+
+      const uint64 fileSize = fdio.GetLength();
+      ByteBufferRef buf = GetByteBufferFromPool(fileSize);
+      if (buf() == NULL)
+      {
+         WARN_OUT_OF_MEMORY;
+         return 10;
+      }
+
+      const uint32 numBytesRead = fdio.ReadFully(buf()->GetBuffer(), buf()->GetNumBytes());
+      if (numBytesRead == fileSize) LogTime(MUSCLE_LOG_INFO, "Read " INT32_FORMAT_SPEC " bytes from [%s]\n", numBytesRead, fileName);
+      else
+      {
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Short read error (" UINT32_FORMAT_SPEC "/" UINT64_FORMAT_SPEC " bytes read)\n", numBytesRead, fileSize);
+         return 10;
+      }
+
+      ByteBufferRef infBuf = InflateByteBuffer(buf);
+      if (infBuf())
+      {
+         LogTime(MUSCLE_LOG_INFO, "Zlib-inflated file data from " INT32_FORMAT_SPEC " to " UINT32_FORMAT_SPEC " bytes.\n", numBytesRead, infBuf()->GetNumBytes());
+         buf = infBuf;
+      }
 
       Message msg;
-      if (msg.Unflatten(buf, numBytesRead) == B_NO_ERROR) 
+      if (msg.Unflatten(infBuf()->GetBuffer(), infBuf()->GetNumBytes()) == B_NO_ERROR)
       {
-         printf("Message is:\n");
-         msg.PrintToStream();
-
          MessageRef infMsg = InflateMessage(MessageRef(&msg, false));
-         if (infMsg())
+         if ((infMsg())&&(infMsg() != &msg))
          {
-            printf("Inflated Message is:\n");
+            LogTime(MUSCLE_LOG_INFO, "Zlib-inflated Message from " UINT32_FORMAT_SPEC " bytes to " UINT32_FORMAT_SPEC " bytes\n", msg.FlattenedSize(), infMsg()->FlattenedSize());
+            LogTime(MUSCLE_LOG_INFO, "Message is:\n");
+            PrintMessageReport(*infMsg(), isSizeReport);
             infMsg()->PrintToStream();
+         }
+         else
+         {
+            LogTime(MUSCLE_LOG_INFO, "Message is:\n");
+            PrintMessageReport(msg, isSizeReport);
          }
       }
       else 
       {
-         printf("Error unflattening message! (%i bytes read)\n", numBytesRead);
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error unflattening message! (" INT32_FORMAT_SPEC " bytes read)\n", numBytesRead);
          retVal = 10;
       }
-      fclose(fpIn);
-      delete [] buf;
    }
    else 
    {
-      printf("Could not read input flattened-message file [%s]\n", fileName);
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Could not read input flattened-message file [%s]\n", fileName);
       retVal = 10;
    }
 
