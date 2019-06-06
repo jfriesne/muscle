@@ -184,7 +184,7 @@ unsigned int SSLSocketDataIO :: PSKServerCallback(const char *identity, unsigned
    return _pskPassword.Length();
 }
 
-unsigned int SSLSocketDataIO :: PSKClientCallback(const char * hint, char * identity, unsigned int maxIdentityLen, unsigned char * psk, unsigned int pskLen) const
+unsigned int SSLSocketDataIO :: PSKClientCallback(const char * /*hint*/, char * identity, unsigned int maxIdentityLen, unsigned char * psk, unsigned int pskLen) const
 {
    if (_pskUserName.FlattenedSize() > maxIdentityLen)
    {
@@ -207,12 +207,8 @@ void SSLSocketDataIO :: SetPreSharedKeyLoginInfo(const String & userName, const 
 {
    _pskUserName = userName;
    _pskPassword = password;
-   if (_isServer) 
-   {
-      if (SSL_use_psk_identity_hint(_ssl, "psk hint") == 0) LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO::SetPreSharedKeyLoginInfo(): SSL_use_psk_identity_hint() failed!\n");
-      SSL_set_psk_server_callback(_ssl, pskServerCallbackFunc);
-   }
-   else SSL_set_psk_client_callback(_ssl, pskClientCallbackFunc);
+   if (_isServer) SSL_set_psk_server_callback(_ssl, pskServerCallbackFunc);
+             else SSL_set_psk_client_callback(_ssl, pskClientCallbackFunc);
 }
 
 int32 SSLSocketDataIO :: Read(void *buffer, uint32 size) 
