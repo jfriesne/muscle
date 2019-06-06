@@ -62,16 +62,23 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
                   {
                      const char * desc = _inDoAccept.IsInBatch() ? "incoming" : "outgoing";
 
-                     if ((_publicKey())&&(sslIORef()->SetPublicKeyCertificate(_publicKey) != B_NO_ERROR))
-                     {
-                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use public key data, %s session aborted!  (Bad .pem data?)\n", desc); 
-                        newSession->SetOwner(NULL); 
-                        return B_ERROR;
+                     ConstByteBufferRef effectivePublicKey = _publicKey;
+
+                     if (_privateKey())
+                     { 
+                        if (sslIORef()->SetPrivateKey(_privateKey) != B_NO_ERROR)
+                        {
+                           LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use private key data, %s session aborted!  (Bad .pem data?)\n", desc); 
+                           newSession->SetOwner(NULL); 
+                           return B_ERROR;
+                        }
+
+                        if (effectivePublicKey() == NULL) effectivePublicKey = _privateKey;  // the private key includes the public key, so
                      }
 
-                     if ((_privateKey())&&(sslIORef()->SetPrivateKey(_privateKey) != B_NO_ERROR))
+                     if ((effectivePublicKey())&&(sslIORef()->SetPublicKeyCertificate(effectivePublicKey) != B_NO_ERROR))
                      {
-                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use private key data, %s session aborted!  (Bad .pem data?)\n", desc); 
+                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use public key data, %s session aborted!  (Bad .pem data?)\n", desc); 
                         newSession->SetOwner(NULL); 
                         return B_ERROR;
                      }
