@@ -46,6 +46,7 @@ enum {
    MTT_COMMAND_SET_OUTGOING_ENCODING,          /**< set the MUSCLE_MESSAGE_ENCODING_* setting on worker sessions */
    MTT_COMMAND_SET_SSL_PRIVATE_KEY,            /**< set the private key used to authenticate accepted incoming TCP connections */
    MTT_COMMAND_SET_SSL_PUBLIC_KEY,             /**< set the public key used to certify outgoing TCP connections */
+   MTT_COMMAND_SET_SSL_PSK_INFO,               /**< set the PSK username/password for authenticating incoming or outgoing TCP connections */
    MTT_LAST_COMMAND                            /**< guard value */
 };
 
@@ -695,6 +696,14 @@ public:
      * @note this method is only available if MUSCLE_ENABLE_OPENSSL is defined.
      */
    status_t SetSSLPublicKeyCertificate(const ConstByteBufferRef & publicKey);
+
+   /** Sets the SSL pre-shared-key data that should be used to authenticate and
+     * encrypt either incoming or outgoing TCP connections.  Default state is empty strings.
+     * @param userName the user name to transmit (or expect)
+     * @param password the password to transmit (or expect)
+     * @note this method is only available if MUSCLE_ENABLE_OPENSSL is defined.
+     */
+   status_t SetSSLPreSharedKeyLoginInfo(const String & userName, const String & password);
 #endif
 
 protected:
@@ -742,6 +751,8 @@ private:
 #ifdef MUSCLE_ENABLE_SSL
    ConstByteBufferRef _privateKey;
    ConstByteBufferRef _publicKey;
+   String _pskUserName;            // used for pre-shared-key connections
+   String _pskPassword;            // used for pre-shared-key connections
 #endif
    bool _forwardAllIncomingMessagesToSupervisor;
 

@@ -55,49 +55,34 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
             if (io()) 
             {
 #ifdef MUSCLE_ENABLE_SSL
-               if (_inDoAccept.IsInBatch())
+               if (((_inDoAccept.IsInBatch())||(_inDoConnect.IsInBatch()))&&(((_publicKey())||(_privateKey())||(_pskUserName.HasChars()))&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL)))
                {
-                  if (_privateKey()) 
+                  SSLSocketDataIORef sslIORef(newnothrow SSLSocketDataIO(s, false, false));
+                  if (sslIORef())
                   {
-                     if (dynamic_cast<TCPSocketDataIO *>(io()) != NULL)  // We only support SSL over TCP, for now
+                     const char * desc = _inDoAccept.IsInBatch() ? "incoming" : "outgoing";
+
+                     if ((_publicKey())&&(sslIORef()->SetPublicKeyCertificate(_publicKey) != B_NO_ERROR))
                      {
-                        SSLSocketDataIO * sslIO = newnothrow SSLSocketDataIO(s, false, true);
-                        DataIORef sslIORef(sslIO);
-                        if (sslIO)
-                        {
-                           if ((sslIO->SetPublicKeyCertificate(_privateKey) == B_NO_ERROR)&&(sslIO->SetPrivateKey(_privateKey()->GetBuffer(), _privateKey()->GetNumBytes()) == B_NO_ERROR))
-                           {
-                              io = sslIORef; 
-                              gatewayRef.SetRef(newnothrow SSLSocketAdapterGateway(gatewayRef));
-                              if (gatewayRef() == NULL) {WARN_OUT_OF_MEMORY; newSession->SetOwner(NULL); return B_ERROR;}
-                           }
-                           else {LogTime(MUSCLE_LOG_ERROR, "AcceptSession:  Unable to use private key file, incoming connection refused!  (Bad .pem file format?)\n"); newSession->SetOwner(NULL); return B_ERROR;}
-                        }
-                        else {WARN_OUT_OF_MEMORY; newSession->SetOwner(NULL); return B_ERROR;}
+                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use public key data, %s session aborted!  (Bad .pem data?)\n", desc); 
+                        newSession->SetOwner(NULL); 
+                        return B_ERROR;
                      }
-                  }
-               }
-               else if (_inDoConnect.IsInBatch())
-               {
-                  if (_publicKey()) 
-                  {
-                     if (dynamic_cast<TCPSocketDataIO *>(io()) != NULL)  // We only support SSL over TCP, for now
+
+                     if ((_privateKey())&&(sslIORef()->SetPrivateKey(_privateKey) != B_NO_ERROR))
                      {
-                        SSLSocketDataIO * sslIO = newnothrow SSLSocketDataIO(s, false, false);
-                        DataIORef sslIORef(sslIO);
-                        if (sslIO)
-                        {
-                           if (sslIO->SetPublicKeyCertificate(_publicKey) == B_NO_ERROR)
-                           {
-                              io = sslIORef; 
-                              gatewayRef.SetRef(newnothrow SSLSocketAdapterGateway(gatewayRef));
-                              if (gatewayRef() == NULL) {WARN_OUT_OF_MEMORY; newSession->SetOwner(NULL); return B_ERROR;}
-                           }
-                           else {LogTime(MUSCLE_LOG_ERROR, "ConnectSession:  Unable to use public key file, outgoing connection aborted!  (Bad .pem file format?)\n"); newSession->SetOwner(NULL); return B_ERROR;}
-                        }
-                        else {WARN_OUT_OF_MEMORY; newSession->SetOwner(NULL); return B_ERROR;}
+                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use private key data, %s session aborted!  (Bad .pem data?)\n", desc); 
+                        newSession->SetOwner(NULL); 
+                        return B_ERROR;
                      }
+
+                     if (_pskUserName.HasChars()) sslIORef()->SetPreSharedKeyLoginInfo(_pskUserName, _pskPassword);
+
+                     io = sslIORef; 
+                     gatewayRef.SetRef(newnothrow SSLSocketAdapterGateway(gatewayRef));
+                     if (gatewayRef() == NULL) {WARN_OUT_OF_MEMORY; newSession->SetOwner(NULL); return B_ERROR;}
                   }
+                  else {WARN_OUT_OF_MEMORY; newSession->SetOwner(NULL); return B_ERROR;}
                }
 #endif
 

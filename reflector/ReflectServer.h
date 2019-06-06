@@ -289,6 +289,19 @@ public:
 
    /** Returns the current SSL public key data, or a NULL ref if there isn't any. */
    const ConstByteBufferRef & GetSSLPublicKeyCertificate() const {return _publicKey;}
+
+   /** Sets the SSL pre-shared-key data that should be used to authenticate and
+     * encrypt either incoming or outgoing TCP connections.  Default state is empty strings.
+     * @param userName the user name to transmit (or expect)
+     * @param password the password to transmit (or expect)
+     */
+   void SetSSLPreSharedKeyLoginInfo(const String & userName, const String & password) {_pskUserName = userName; _pskPassword = password;}
+
+   /** Returns the PSK user name, as previously set via SetSSLPreSharedKeyLoginInfo().  Default is an empty string */
+   const String & GetSSLPreSharedKeyUserName() const {return _pskUserName;}
+
+   /** Returns the PSK password, as previously set via SetPreSharedKeyLoginInfo().  Default is an empty string */
+   const String & GetSSLPreSharedKeyPassword() const {return _pskPassword;}
 #endif
 
    /** Returns true iff our event loop is currently blocked inside the SocketMultiplexer::WaitForEvents() call.
@@ -406,6 +419,8 @@ private:
 #ifdef MUSCLE_ENABLE_SSL
    ConstByteBufferRef _publicKey;  // used for making outgoing TCP connections
    ConstByteBufferRef _privateKey; // used for receiving incoming TCP connections
+   String _pskUserName;            // used for pre-shared-key connections
+   String _pskPassword;            // used for pre-shared-key connections
 #endif
    NestCount _inDoAccept;
    NestCount _inDoConnect;

@@ -54,6 +54,7 @@ status_t MessageTransceiverThread :: EnsureServerAllocated()
 #ifdef MUSCLE_ENABLE_SSL
                   if (_privateKey()) server()->SetSSLPrivateKey(_privateKey);
                   if (_publicKey())  server()->SetSSLPublicKeyCertificate(_publicKey);
+                  if (_pskUserName.HasChars()) server()->SetSSLPreSharedKeyLoginInfo(_pskUserName, _pskPassword);
 #endif
                   return B_NO_ERROR;
                }
@@ -206,6 +207,19 @@ status_t MessageTransceiverThread :: SetSSLPublicKeyCertificate(const ConstByteB
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PUBLIC_KEY));
       if ((msgRef() == NULL)||((_publicKey())&&(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(_publicKey)) != B_NO_ERROR))||(SendMessageToInternalThread(msgRef) != B_NO_ERROR)) return B_ERROR;
+   }
+   return B_NO_ERROR;
+}
+
+status_t MessageTransceiverThread :: SetSSLPreSharedKeyLoginInfo(const String & userName, const String & password)
+{
+   _pskUserName = userName;
+   _pskPassword = password;
+
+   if (IsInternalThreadRunning())
+   {
+      MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PSK_INFO));
+      if ((msgRef() == NULL)||(msgRef()->AddString(MTT_NAME_DATA, _pskUserName) != B_NO_ERROR)||(msgRef()->AddString(MTT_NAME_DATA, _pskPassword) != B_NO_ERROR)||(SendMessageToInternalThread(msgRef) != B_NO_ERROR)) return B_ERROR;
    }
    return B_NO_ERROR;
 }
@@ -766,6 +780,10 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
 
             case MTT_COMMAND_SET_SSL_PUBLIC_KEY:
                _mtt->_server()->SetSSLPublicKeyCertificate(msg->GetFlat(MTT_NAME_DATA));
+            break;
+
+            case MTT_COMMAND_SET_SSL_PSK_INFO:
+               _mtt->_server()->SetSSLPreSharedKeyLoginInfo(msg->GetString(MTT_NAME_DATA, GetEmptyString(), 0), msg->GetString(MTT_NAME_DATA, GetEmptyString(), 1));
             break;
 #endif
 

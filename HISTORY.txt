@@ -14,6 +14,18 @@ key:  - new feature
      increasing size.
    - Added a SetPreSharedKeyLoginInfo() method to the SSLSocketDataIO
      class so that it can now support PSK-based authentication.
+   - Added GetPreSharedKeyUserName() and GetPreSharedKeyPassword()
+     methods to the SSLSocketDataIO class.
+   - Added a SetSSLPreSharedKeyLoginInfo() method (and corresponding
+     GetSSLPreSharedUserName() and GetSSLPreSharedPassword() methods)
+     to the ReflectServer class.
+   - Added a SetSSLPreSharedKeyLoginInfo() method to the 
+     MessageTransceiverThread class.
+   - Added a SetPrivateKey(const ConstMessageRef &) convenience
+     method to the SSLSocketDataIO class.
+   - Modified the ReflectServer class so that any combination
+     of public, private, and pre-shared keys can be applied to
+     newly created sessions.
    o Hashtable.h was using some C++11-specific syntax that would
      cause a warning to be generated when compiling in C++03 mode.  Fixed.
    o Added an "if(TARGET muscle) return()" idempotency test to

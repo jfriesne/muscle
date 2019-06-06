@@ -98,6 +98,11 @@ status_t SSLSocketDataIO :: SetPrivateKey(const uint8 * bytes, uint32 numBytes)
    return ret;
 }
 
+status_t SSLSocketDataIO :: SetPrivateKey(const ConstByteBufferRef & privateKeyFile)
+{
+   return privateKeyFile() ? SetPrivateKey(privateKeyFile()->GetBuffer(), privateKeyFile()->GetNumBytes()) : B_ERROR;
+}
+
 status_t SSLSocketDataIO :: SetPublicKeyCertificate(const char * path) 
 {
    if (_ssl == NULL) return B_ERROR;

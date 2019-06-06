@@ -85,6 +85,12 @@ public:
      */
    status_t SetPrivateKey(const uint8 * bytes, uint32 numBytes);
 
+   /** Same as above, except instead of reading from a raw array we read from a ConstByteBufferRef.
+     * @param privateKeyFile The bytes to read from.  We will retain a reference to this buffer.
+     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     */
+   status_t SetPrivateKey(const ConstByteBufferRef & privateKeyFile);
+
    /** Call this to set up this session to use a Pre-Shared-Key authentication with
      * the specified username and password.
      * @param userName the username to send (on the client side) or require (on the server side)
@@ -92,6 +98,16 @@ public:
      * @returns B_NO_ERROR on success, or B_ERROR on failure.
      */
    void SetPreSharedKeyLoginInfo(const String & userName, const String & password);
+
+   /** Returns the pre-shared-key's username, as was previously passed to SetPreSharedKeyLoginInfo().
+     * Default value is an empty string.
+     */
+   const String & GetPreSharedKeyUserName() const {return _pskUserName;}
+
+   /** Returns the pre-shared-key's password, as was previously passed to SetPreSharedKeyLoginInfo().
+     * Default value is an empty string.
+     */
+   const String & GetPreSharedKeyPassword() const {return _pskPassword;}
 
    /** Overridden to return a dummy (always-ready-for-read) socket when necessary,
      * as there are times when we need gateway->DoInput() to be called when even when there
