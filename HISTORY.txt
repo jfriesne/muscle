@@ -30,6 +30,8 @@ key:  - new feature
      cause a warning to be generated when compiling in C++03 mode.  Fixed.
    o Added an "if(TARGET muscle) return()" idempotency test to
      the CMakeLists.txt file, to avoid potential cmake errors.
+   o Dropped support for old (pre-1.1.x) versions of OpenSSL
+     from the SSLSocketDataIO class.
    * The CMakeLists.txt now links in the IOKit framework under MacOS/X.
      
 7.21 Released 5/7/2019

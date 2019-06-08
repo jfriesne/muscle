@@ -14,6 +14,8 @@ exists($$FLAGSDIR/muscle_enable_ssl) {
    win32:LIBS        += libcrypto.lib libssl.lib
    win32:QMAKE_FLAGS += /LIBPATH:../../../openssl/out32dll
    win32:INCLUDEPATH += ../../../openssl/include
+   mac:INCLUDEPATH   += /usr/local/include   # For openssl, if it's installed there
+   mac:QMAKE_LFLAGS  += -L/usr/local/lib     # For openssl, if it's installed there
 }
 
 win32:DEFINES += _WIN32_WINNT=0x0501

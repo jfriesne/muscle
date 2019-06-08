@@ -57,28 +57,25 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
 #ifdef MUSCLE_ENABLE_SSL
                if (((_inDoAccept.IsInBatch())||(_inDoConnect.IsInBatch()))&&(((_publicKey())||(_privateKey())||(_pskUserName.HasChars()))&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL)))
                {
-                  SSLSocketDataIORef sslIORef(newnothrow SSLSocketDataIO(s, false, false));
+                  SSLSocketDataIORef sslIORef(newnothrow SSLSocketDataIO(s, false, _inDoAccept.IsInBatch()));
                   if (sslIORef())
                   {
                      const char * desc = _inDoAccept.IsInBatch() ? "incoming" : "outgoing";
 
-                     ConstByteBufferRef effectivePublicKey = _publicKey;
-
-                     if (_privateKey())
-                     { 
-                        if (sslIORef()->SetPrivateKey(_privateKey) != B_NO_ERROR)
-                        {
-                           LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use private key data, %s session aborted!  (Bad .pem data?)\n", desc); 
-                           newSession->SetOwner(NULL); 
-                           return B_ERROR;
-                        }
-
-                        if (effectivePublicKey() == NULL) effectivePublicKey = _privateKey;  // the private key includes the public key, so
-                     }
+                     ConstByteBufferRef effectivePrivateKey = _privateKey;
+                     ConstByteBufferRef effectivePublicKey  = _publicKey;
+                     if ((_inDoAccept.IsInBatch())&&(effectivePrivateKey() != NULL)&&(effectivePublicKey() == NULL)) effectivePublicKey = effectivePrivateKey;  // private key file contains public key also
 
                      if ((effectivePublicKey())&&(sslIORef()->SetPublicKeyCertificate(effectivePublicKey) != B_NO_ERROR))
                      {
                         LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use public key data, %s session aborted!  (Bad .pem data?)\n", desc); 
+                        newSession->SetOwner(NULL); 
+                        return B_ERROR;
+                     }
+
+                     if ((effectivePrivateKey())&&(sslIORef()->SetPrivateKey(effectivePrivateKey) != B_NO_ERROR))
+                     {
+                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use private key data, %s session aborted!  (Bad .pem data?)\n", desc); 
                         newSession->SetOwner(NULL); 
                         return B_ERROR;
                      }
@@ -95,7 +92,6 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
 
                gatewayRef()->SetDataIO(io);
                newSession->SetGateway(gatewayRef);
-
             }
             else {newSession->SetOwner(NULL); return B_ERROR;}
          }
