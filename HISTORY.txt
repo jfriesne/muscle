@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.30 Released 6/7/2019
    - Added a GetErrno() function to MuscleSupport.h, as a portable 
      front-end to either errno or WSAGetLastError(), depending on OS.
    - The tests/readmessage.cpp program now inflates zlib-compressed

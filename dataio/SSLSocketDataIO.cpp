@@ -19,11 +19,7 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
    ConstSocketRef tempSocket;  // yes, it's intentional that this socket will be closed as soon as we exit this scope
    if (CreateConnectedSocketPair(tempSocket, _alwaysReadableSocket) == B_NO_ERROR)
    {
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
       _ctx = SSL_CTX_new(TLS_method());
-#else
-      _ctx = SSL_CTX_new(SSLv3_method());  // Using SSLv3_method() instead of SSLv23_method to avoid errors from SSL_pending()
-#endif
       if (_ctx)
       {
          if (!blocking) SSL_CTX_set_mode(_ctx, SSL_MODE_ENABLE_PARTIAL_WRITE);
@@ -83,11 +79,7 @@ status_t SSLSocketDataIO :: SetPrivateKey(const uint8 * bytes, uint32 numBytes)
    BIO * in = BIO_new_mem_buf((void *)bytes, numBytes);
    if (in)
    {
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
       EVP_PKEY * pkey = PEM_read_bio_PrivateKey(in, NULL, SSL_get_default_passwd_cb(_ssl), SSL_get_default_passwd_cb_userdata(_ssl));
-#else
-      EVP_PKEY * pkey = PEM_read_bio_PrivateKey(in, NULL, _ssl->ctx->default_passwd_callback, _ssl->ctx->default_passwd_callback_userdata);
-#endif
       if (pkey)
       {
          if (SSL_use_PrivateKey(_ssl, pkey) == 1) ret = B_NO_ERROR;
@@ -128,11 +120,7 @@ status_t SSLSocketDataIO :: SetPublicKeyCertificate(const ConstByteBufferRef & b
    BIO * in = BIO_new_mem_buf((void *)buf()->GetBuffer(), buf()->GetNumBytes());
    if (in)
    {
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
       X509 * x509Cert = PEM_read_bio_X509(in, NULL, SSL_get_default_passwd_cb(_ssl), SSL_get_default_passwd_cb_userdata(_ssl));
-#else
-      X509 * x509Cert = PEM_read_bio_X509(in, NULL, _ssl->ctx->default_passwd_callback, _ssl->ctx->default_passwd_callback_userdata);
-#endif
       if (x509Cert)
       {
          if (SSL_use_certificate(_ssl, x509Cert) == 1) 
