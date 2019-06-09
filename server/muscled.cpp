@@ -19,6 +19,30 @@ using namespace muscle;
 
 #define DEFAULT_MUSCLED_PORT 2960
 
+static status_t LoadCryptoKey(bool isPublic, const String * optKeyFilePath, ReflectServer & server)
+{
+   if (optKeyFilePath == NULL) return B_NO_ERROR;  // no request == no SSL == no problem
+
+   const char * desc = isPublic?"public":"private";
+
+#ifdef MUSCLE_ENABLE_SSL
+   FileDataIO fdio(muscleFopen(optKeyFilePath->Cstr(), "rb"));
+   ByteBufferRef fileData = GetByteBufferFromPool((uint32)fdio.GetLength());
+   if ((fdio.GetFile())&&(fileData())&&(fdio.ReadFully(fileData()->GetBuffer(), fileData()->GetNumBytes()) == fileData()->GetNumBytes()))
+   {
+      if (isPublic) server.SetSSLPublicKeyCertificate(fileData);
+               else server.SetSSLPrivateKey(fileData);
+
+      LogTime(MUSCLE_LOG_INFO, "Using %s key file [%s] to authenticate with connecting clients\n", desc, optKeyFilePath->Cstr());
+      return B_NO_ERROR;
+   }
+   else LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load %s key file [%s] (file not found?)\n", desc, optKeyFilePath->Cstr());
+#else
+   LogTime(MUSCLE_LOG_CRITICALERROR, "Can't load %s key file [%s], SSL support is not compiled in!\n", desc, optKeyFilePath->Cstr());
+#endif
+   return B_ERROR;
+}
+
 // Aux method; main() without the global stuff.  This is a good method to
 // call if you already have the global stuff set up the way you like it.
 // The third argument can be passed in as NULL, or point to a UsageLimitProxyMemoryAllocator object 
@@ -254,31 +278,8 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    for (int b=bans.GetNumItems()-1;     ((okay)&&(b>=0)); b--) if (filter.PutBanPattern(bans[b]())         != B_NO_ERROR) okay = false;
    for (int a=requires.GetNumItems()-1; ((okay)&&(a>=0)); a--) if (filter.PutRequirePattern(requires[a]()) != B_NO_ERROR) okay = false;
 
-   const String * privateKeyFilePath = args.GetStringPointer("privatekey");
-#ifdef MUSCLE_ENABLE_SSL
-   ByteBufferRef optCryptoBuf;
-   if (privateKeyFilePath)
-   {
-      FileDataIO fdio(muscleFopen(privateKeyFilePath->Cstr(), "rb"));
-      ByteBufferRef fileData = GetByteBufferFromPool((uint32)fdio.GetLength());
-      if ((fdio.GetFile())&&(fileData())&&(fdio.ReadFully(fileData()->GetBuffer(), fileData()->GetNumBytes()) == fileData()->GetNumBytes()))
-      { 
-         LogTime(MUSCLE_LOG_INFO, "Using private key file [%s] to authenticate with connecting clients\n", privateKeyFilePath->Cstr());
-         server.SetSSLPrivateKey(fileData);
-      }
-      else
-      {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load private key file [%s] (file not found?)\n", privateKeyFilePath->Cstr());
-         okay = false;
-      }
-   }
-#else
-   if (privateKeyFilePath)
-   {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Can't load private key file [%s], SSL support is not compiled in!\n", privateKeyFilePath->Cstr());
-      okay = false;
-   }
-#endif
+   if (LoadCryptoKey(false, args.GetStringPointer("privatekey"), server) != B_NO_ERROR) okay = false;
+   if (LoadCryptoKey(true,  args.GetStringPointer("publickey"),  server) != B_NO_ERROR) okay = false;
 
    // Set up ports.  We allow multiple ports, mostly just to show how it can be done;
    // they all get the same set of ban/require patterns (since they all do the same thing anyway).

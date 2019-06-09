@@ -46,27 +46,48 @@ int main(int argc, char ** argv)
    AbstractMessageIOGatewayRef gatewayRef(&tcpGateway, false);
 
 #ifdef MUSCLE_ENABLE_SSL
+   const char * publicKeyPath  = NULL;
+   const char * privateKeyPath = NULL;
+
    for (int i=1; i<argc; i++)
    {
       const char * a = argv[i];
-      if (strncmp(a, "publickey=", 10) == 0)
-      { 
-         a += 10;  // skip past the 'publickey=' part
-         SSLSocketDataIO * sslIO = new SSLSocketDataIO(sock, false, false);
-         DataIORef sslIORef(sslIO);
-         if (sslIO->SetPublicKeyCertificate(a) == B_NO_ERROR) 
+           if (strncmp(a, "publickey=",  10) == 0) publicKeyPath  = a+10;
+      else if (strncmp(a, "privatekey=", 11) == 0) privateKeyPath = a+11;
+   }
+
+   if ((privateKeyPath)&&(publicKeyPath == NULL)) publicKeyPath = privateKeyPath;  // grab public key from private-key-file
+   if ((publicKeyPath)||(privateKeyPath))
+   { 
+      SSLSocketDataIORef sslIORef(new SSLSocketDataIO(sock, false, false));
+      if (publicKeyPath)
+      {
+         if (sslIORef()->SetPublicKeyCertificate(publicKeyPath) == B_NO_ERROR)
          {
-            LogTime(MUSCLE_LOG_INFO, "Using public key certificate file [%s] to connect to server\n", a);
-            networkIORef = sslIORef;
-            gatewayRef.SetRef(new SSLSocketAdapterGateway(gatewayRef));
-            gatewayRef()->SetDataIO(networkIORef);
+            LogTime(MUSCLE_LOG_INFO, "Using public key certificate file [%s] to connect to server\n", publicKeyPath);
          }
          else
          {
-            LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load public key certificate file [%s] (file not found?)\n", a);
+            LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load public key certificate file [%s] (file not found?)\n", publicKeyPath);
             return 10;
          }
       }
+      if (privateKeyPath)
+      {
+         if (sslIORef()->SetPrivateKey(privateKeyPath) == B_NO_ERROR)
+         {
+            LogTime(MUSCLE_LOG_INFO, "Using private key file [%s] to authenticate client with server\n", privateKeyPath);
+         }
+         else
+         {
+            LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load private key file [%s] (file not found?)\n", privateKeyPath);
+            return 10;
+         }
+      }
+
+      networkIORef = sslIORef;
+      gatewayRef.SetRef(new SSLSocketAdapterGateway(gatewayRef));
+      gatewayRef()->SetDataIO(networkIORef);
    }
 #endif
 

@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Updated muscled.cpp and portablereflectclient.cpp so that
+     either one can specify public or private keys to load.
+
 7.30 Released 6/7/2019
    - Added a GetErrno() function to MuscleSupport.h, as a portable 
      front-end to either errno or WSAGetLastError(), depending on OS.
