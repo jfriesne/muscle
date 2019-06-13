@@ -611,11 +611,11 @@ static LRESULT CALLBACK window_message_handler(HWND hWnd, UINT message, WPARAM w
       switch(wParam)
       {
          case PBT_APMRESUMEAUTOMATIC: case PBT_APMRESUMESUSPEND: case PBT_APMQUERYSUSPENDFAILED: case PBT_APMRESUMECRITICAL:
-            MySleepCallbackAux((DetectNetworkConfigChangesSession *)(GetWindowLongPtr(hWnd, GWL_USERDATA)), false);
+            MySleepCallbackAux((DetectNetworkConfigChangesSession *)(GetWindowLongPtr(hWnd, GWLP_USERDATA)), false);
          break;
 
          case PBT_APMQUERYSUSPEND: case PBT_APMSUSPEND:
-            MySleepCallbackAux((DetectNetworkConfigChangesSession *)(GetWindowLongPtr(hWnd, GWL_USERDATA)), true);
+            MySleepCallbackAux((DetectNetworkConfigChangesSession *)(GetWindowLongPtr(hWnd, GWLP_USERDATA)), true);
          break;
 
          default:
@@ -700,7 +700,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
   
    // This window will never be shown; its only purpose is to allow us to receive WM_POWERBROADCAST events so we can alert the calling code to sleep and wake events
    HWND hiddenWindow = CreateWindow(WINDOW_CLASS_NAME, _T(""), WS_OVERLAPPEDWINDOW, -1, -1, 0, 0, (HWND)NULL, (HMENU) NULL, NULL, (LPVOID)NULL); 
-   if (hiddenWindow) SetWindowLongPtr(hiddenWindow, GWL_USERDATA, (LONG) this);  // ok because we don't need access to (this) in WM_CREATE
+   if (hiddenWindow) SetWindowLongPtr(hiddenWindow, GWLP_USERDATA, (LONG) this);  // ok because we don't need access to (this) in WM_CREATE
                 else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession::InternalThreadEntry():  CreateWindow() failed!\n");
    
 # ifndef MUSCLE_AVOID_NETIOAPI
