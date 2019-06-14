@@ -700,8 +700,15 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
   
    // This window will never be shown; its only purpose is to allow us to receive WM_POWERBROADCAST events so we can alert the calling code to sleep and wake events
    HWND hiddenWindow = CreateWindow(WINDOW_CLASS_NAME, _T(""), WS_OVERLAPPEDWINDOW, -1, -1, 0, 0, (HWND)NULL, (HMENU) NULL, NULL, (LPVOID)NULL); 
-   if (hiddenWindow) SetWindowLongPtr(hiddenWindow, GWLP_USERDATA, this);  // ok because we don't need access to (this) in WM_CREATE
-                else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession::InternalThreadEntry():  CreateWindow() failed!\n");
+   if (hiddenWindow) 
+   {
+# if defined(MUSCLE_64_BIT_PLATFORM)
+      SetWindowLongPtr(hiddenWindow, GWLP_USERDATA, this);
+# else
+      SetWindowLongPtr(hiddenWindow, GWLP_USERDATA, (LONG) this);
+# endif
+   }
+   else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession::InternalThreadEntry():  CreateWindow() failed!\n");
    
 # ifndef MUSCLE_AVOID_NETIOAPI
    HANDLE handle1 = MY_INVALID_HANDLE_VALUE; (void) NotifyUnicastIpAddressChange(AF_UNSPEC, &AddressCallbackDemo,   this, FALSE, &handle1);
