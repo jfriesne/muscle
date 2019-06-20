@@ -7,6 +7,8 @@ key:  - new feature
 
    - Updated muscled.cpp and portablereflectclient.cpp so that
      either one can specify public or private keys to load.
+   o Modified the Hashtable-templatized-friend workaround to
+     be active on g++ up to v8.2.0.
 
 7.30 Released 6/7/2019
    - Added a GetErrno() function to MuscleSupport.h, as a portable 
