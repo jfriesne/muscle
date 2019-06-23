@@ -7,6 +7,9 @@ key:  - new feature
 
    - Updated muscled.cpp and portablereflectclient.cpp so that
      either one can specify public or private keys to load.
+   o ChildProcessDataIO::ChildProcessReadyToRun() now returns
+     B_NO_ERROR if the child process should run, or B_ERROR
+     if the child process should be aborted.
    o Modified the Hashtable-templatized-friend workaround to
      be active on g++ up to v8.2.0.
 

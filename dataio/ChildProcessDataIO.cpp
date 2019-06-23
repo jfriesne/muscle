@@ -317,9 +317,11 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
          for (HashtableIterator<String,String> iter(*optEnvironmentVariables); iter.HasData(); iter++) (void) setenv(iter.GetKey()(), iter.GetValue()(), 1);
       }
 
-      ChildProcessReadyToRun();
-
-      if (execvp(zargv0, const_cast<char **>(zargv)) < 0) perror("ChildProcessDataIO::execvp");  // execvp() should never return
+      if (ChildProcessReadyToRun() == B_NO_ERROR)
+      {
+         if (execvp(zargv0, const_cast<char **>(zargv)) < 0) perror("ChildProcessDataIO::execvp");  // execvp() should never return
+      }
+      else LogTime(MUSCLE_LOG_ERROR, "ChildProcessDataIO:  ChildProcessReadyToRun() returned an error, not running child process!\n");
 
       ExitWithoutCleanup(20);
    }
@@ -536,9 +538,9 @@ void ChildProcessDataIO :: FlushOutput()
    // not implemented
 }
 
-void ChildProcessDataIO :: ChildProcessReadyToRun()
+status_t ChildProcessDataIO :: ChildProcessReadyToRun()
 {
-   // empty
+   return B_NO_ERROR;
 }
 
 const ConstSocketRef & ChildProcessDataIO :: GetChildSelectSocket() const

@@ -150,10 +150,13 @@ public:
    void SetChildProcessShutdownBehavior(bool okayToKillChild, int sendSignalNumber = -1, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER);
 
    /** Called within the child process, just before the child process's
-     * executable image is loaded in.  Default implementation is a no-op.
+     * executable image is loaded in.  Default implementation is a no-op
+     * that just returns B_NO_ERROR.
      * @note This method is not called when running under Windows!
+     * @return B_NO_ERROR on success, or B_ERROR on failure (in which case
+     *                    the child process will not run, but rather just exit immediately)
      */
-   virtual void ChildProcessReadyToRun();
+   virtual status_t ChildProcessReadyToRun();
 
    /** Returns the process ID of the child process. */
 #if defined(WIN32) || defined(CYGWIN)
