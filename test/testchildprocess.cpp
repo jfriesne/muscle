@@ -23,11 +23,81 @@ static void PrintUsageAndExit()
    exit(10);
 }
 
+// This class is here only to verify that we do something reasonable
+// when ChildProcessReadyToRun() returns an error
+class AbortOnTakeoffChildProcessDataIO : public ChildProcessDataIO
+{
+public:
+   AbortOnTakeoffChildProcessDataIO(bool blocking) : ChildProcessDataIO(blocking) {/* empty */}
+
+   virtual status_t ChildProcessReadyToRun()
+   {
+      (void) ChildProcessDataIO::ChildProcessReadyToRun();
+
+      printf("AbortOnTakeoffChildProcessDataIO::ChildProcessReadyToRun() deliberately returning B_ERROR for testing purposes.\n");
+      return B_ERROR;
+   }
+
+   static void UnitTest()
+   {
+      printf("Testing abort-on-takeoff logic, to verify that the child process is aborted cleanly.\n");
+
+      Queue<String> args;
+      args.AddTail("foobar"); 
+
+      // Scope for the child process object
+      {
+         AbortOnTakeoffChildProcessDataIO cpdio(false);
+         if (cpdio.LaunchChildProcess(args) == B_NO_ERROR)
+         {
+            printf("ChildProcessDataIO::LaunchChildProcess() succeeded!\n");
+
+            // See what we can read from the aborted child process.  Expected behavior
+            // is an immediate error due to EOF.
+            SocketMultiplexer sm;
+            while(1)
+            {
+               if (sm.RegisterSocketForReadReady(cpdio.GetReadSelectSocket().GetFileDescriptor()) != B_NO_ERROR) printf("RegisterSocketForReadReady() failed!\n");
+
+               const int r = sm.WaitForEvents();
+               printf("WaitForEvents() returned %i\n", r);
+
+               if (sm.IsSocketReadyForRead(cpdio.GetReadSelectSocket().GetFileDescriptor()))
+               {
+                  printf("File descriptor is ready-for-read\n");
+
+                  char buf[1024];
+                  const int32 numBytesRead = cpdio.Read(buf, sizeof(buf));
+                  printf("numBytesRead=%i\n", numBytesRead);
+                  if (numBytesRead >= 0) printf("Read: [%s]\n", buf);
+                                    else break;
+               }
+            }
+
+            printf("Sleeping for 10 seconds...\n");
+            Snooze64(SecondsToMicros(10));
+         }
+         else printf("ChildProcessDataIO::LaunchChildProcess() failed!\n");
+
+         printf("Calling AbortOnTakeoffChildProcessDataIO dtor\n");
+      }
+
+      printf("AbortOnTakeoffChildProcessDataIO dtor returned, sleeping 10 more seconds\n");
+      Snooze64(SecondsToMicros(10));
+   }
+};
+
 // This program is equivalent to the portableplaintext client, except
 // that we communicate with a child process instead of a socket.
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
+
+   if ((argc >= 2)&&(strcmp(argv[1], "abortontakeoff") == 0))
+   {
+      AbortOnTakeoffChildProcessDataIO::UnitTest();
+      return 0;
+   }
 
    if (argc < 3) PrintUsageAndExit();
 
