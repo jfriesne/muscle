@@ -7,6 +7,9 @@ key:  - new feature
 
    - Updated muscled.cpp and portablereflectclient.cpp so that
      either one can specify public or private keys to load.
+   - Added tests/testhashcodes.cpp, to check the consistency
+     of CalculateHashCode() and CalculateHashCode64() across
+     CPU architectures.
    o ChildProcessDataIO::ChildProcessReadyToRun() now returns
      B_NO_ERROR if the child process should run, or B_ERROR
      if the child process should be aborted.
