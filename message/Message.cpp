@@ -900,7 +900,7 @@ private:
 };
 DECLAREFIELDTYPE(ByteBufferDataArray);
 
-static bool AreMessagePointersEqual(const Message * myMsg, const Message * hisMsg)
+static bool AreMessagePointersDeeplyEqual(const Message * myMsg, const Message * hisMsg)
 {
    if ((myMsg != NULL) != (hisMsg != NULL)) return false;
    return myMsg ? (*myMsg == *hisMsg) : true;
@@ -997,7 +997,7 @@ protected:
       {
          const Message * myMsg  = static_cast<const Message *>(this->ItemAt(i)());
          const Message * hisMsg = static_cast<const Message *>(trhs->ItemAt(i)());
-         if (AreMessagePointersEqual(myMsg, hisMsg) == false) return false;
+         if (AreMessagePointersDeeplyEqual(myMsg, hisMsg) == false) return false;
       }
       return true;
    }
@@ -2707,7 +2707,7 @@ bool MessageField :: IsEqualTo(const MessageField & rhs, bool compareContents) c
                   {
                      const Message * myMsg  = dynamic_cast<Message *>(GetInlineItemAsRefCountableRef()());
                      const Message * hisMsg = dynamic_cast<Message *>(rhs.GetInlineItemAsRefCountableRef()());
-                     return AreMessagePointersEqual(myMsg, hisMsg);
+                     return AreMessagePointersDeeplyEqual(myMsg, hisMsg);
                   }
 
                   case B_POINTER_TYPE: return (GetInlineItemAsPointer() == rhs.GetInlineItemAsPointer());
@@ -2715,7 +2715,7 @@ bool MessageField :: IsEqualTo(const MessageField & rhs, bool compareContents) c
                   case B_RECT_TYPE:    return (GetInlineItemAsRect()    == rhs.GetInlineItemAsRect());
                   case B_STRING_TYPE:  return (GetInlineItemAsString()  == rhs.GetInlineItemAsString());
                   case B_TAG_TYPE:     // fall through!
-                  default:             return (GetInlineItemAsRefCountableRef() == rhs.GetInlineItemAsRefCountableRef());
+                  default:             return CompareRefCountableRefs(GetInlineItemAsRefCountableRef(), rhs.GetInlineItemAsRefCountableRef());
                }
             break;
 
@@ -2739,7 +2739,7 @@ bool MessageField :: IsEqualTo(const MessageField & rhs, bool compareContents) c
                   {
                      const Message * myMsg  = dynamic_cast<Message *>(GetInlineItemAsRefCountableRef()());
                      const Message * hisMsg = dynamic_cast<Message *>((*(static_cast<const RefCountableRef *>(hisData)))());
-                     return AreMessagePointersEqual(myMsg, hisMsg);
+                     return AreMessagePointersDeeplyEqual(myMsg, hisMsg);
                   }
                   // no break necessary since we never get here
 

@@ -15,6 +15,10 @@ key:  - new feature
      if the child process should be aborted.
    o Modified the Hashtable-templatized-friend workaround to
      be active on g++ up to v8.2.0.
+   * Fixed a bug that could cause the Message class's equality
+     operator to incorrectly return true in the case where both 
+     Message objects are semantically the same, but are pointing 
+     to different (yet identical) binary data-buffers.
 
 7.30 Released 6/7/2019
    - Added a GetErrno() function to MuscleSupport.h, as a portable 
