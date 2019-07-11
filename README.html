@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-6/7/2019 v7.30 jaf@meyersound.com<p>
+7/11/2019 v7.31 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -29,7 +29,7 @@ All of this code (except the atheossupport, besupport, and qtsupport
 directories) should compile under any up-to-date C++ compiler--
 no proprietary APIs are used except inside of the appropriate #ifdefs.
 <p>
-For better documentation than this, please see the <a href="http://www.lcscanada.com/muscle">MUSCLE web site</a>.
+For better documentation than this, please see the <a href="https://public.msli.com/lcs/muscle/">MUSCLE web site</a>.
 <p>
 This code has been compiled (typically with gmake, or MSVC in Windows) and tested in the following environments:
 <p>
@@ -71,9 +71,10 @@ Directory contents descriptions follow:
     <tr><td>FileDescriptorDataIO</td><td>For reading/writing via a Unix file descriptor</td></tr>
     <tr><td>MultiDataIO</td><td>Multiplexer wrapper class for writing to multiple outputs at once</td></tr>
     <tr><td>NullDataIO</td><td>Dummy class for directing data to the bit-bucket</td></tr>
-    <tr><td>PacketizedDataIO</td><td>Wrapper for making TCP act more tr UDP</td></tr>
+    <tr><td>PacketizedProxyDataIO</td><td>Wrapper for making TCP act more like "reliable UDP"</td></tr>
     <tr><td>RS232DataIO</td><td>For communicating via an RS-232 serial port</td></tr>
     <tr><td>SSLSocketDataIO</td><td>For communicating over SSL over TCP</td></tr>
+    <tr><td>SimulatedMulticastDataIO</td><td>For Wi-Fi; simulates multicast semantics using mostly unicast packets</td></tr>
     <tr><td>StdinDataIO</td><td>For reading from stdin</td></tr>
     <tr><td>TCPSocketDataIO</td><td>For communicating using a TCP socket</td></tr>
     <tr><td>UDPSocketDataIO</td><td>For communicating using a UDP socket</td></tr>
@@ -94,8 +95,9 @@ Directory contents descriptions follow:
 <p>
    This directory contains various HTML documentation for the MUSCLE project,
    including the Beginner's Guide to MUSCLE, a document on how to create 
-   custom MUSCLE servers, and the autodoc folder that contains files useful
-   for creating API documentation using the DOxygen documentation tool.
+   custom MUSCLE servers, a directory of simple toy example programs, 
+   and the autodoc folder that contains files useful for creating API 
+   documentation using the DOxygen documentation tool.
 <p>
 </li>
 <li>
@@ -121,6 +123,7 @@ Directory contents descriptions follow:
     <tr><td>PlainTextMessageIOGateway</td><td>Converts free-form lines of ASCII text into Messages, and vice versa</td></tr>
     <tr><td>RawDataMessageIOGateway</td><td>Converts arbitrary raw data into Messages, and vice versa</td></tr>
     <tr><td>SLIPFramedDataMessageIOGateway</td><td>Similar to the RawDataMessageIOGateway class, except it uses SLIP framing conventions</td></tr>
+    <tr><td>SSLSocketAdapterGateway</td><td>An adapter class to provide transparent support for OpenSSL's particular I/O needs</td></tr>
     <tr><td>SignalMessageIOGateway</td><td>Dummy gateway that doesn't send actual data, only indicates when data is available</td></tr>
    </table>
 
@@ -436,8 +439,8 @@ Directory contents descriptions follow:
       BatchOperator is a templated mechanism for ensuring that a specified
       method gets called on the first-level recursion into a call tree, and
       that a matching method gets called on the final recursion out of the call tree.
-      This is handy for making sure that setup and shutdown code is called a the 
-      correct times.
+      This is handy for making sure that setup and shutdown code is called exactly
+      once at the beginning and once at the end of a set of nested recursive function calls.
    </p>
    <b>ByteBuffer</b>
    <p>
@@ -519,6 +522,13 @@ Directory contents descriptions follow:
       path enters or exits a particular function, and (optionally)
       making decisions based on whether a specified function is currently
       on the stack or not.
+   <p>
+   </li>
+   <li>
+   <b>MiscUtilityFunctions</b>
+   <p>
+      MiscUtilityFunctions.cpp is a catch-all for various useful functions
+      that didn't fit anywhere else.
    <p>
    </li>
    <li>
@@ -647,7 +657,7 @@ Directory contents descriptions follow:
 </li>
 </ol>
 <p>
-For more details, have a look at the <a href="http://www.lcscanada.com/muscle/html/hierarchy.html">autodocs</a>, header files and/or the source itself.
+For more details, have a look at the <a href="https://public.msli.com/lcs/muscle/html/hierarchy.html">autodocs</a>, header files and/or the source itself.
 <p>
 -Jeremy 
 
