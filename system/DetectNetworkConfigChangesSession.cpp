@@ -629,7 +629,9 @@ static LRESULT CALLBACK window_message_handler(HWND hWnd, UINT message, WPARAM w
 
 void DetectNetworkConfigChangesSession :: InternalThreadEntry()
 {
-# ifdef __APPLE__
+# if defined(MUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION)
+   // empty
+# elif defined(__APPLE__)
    _threadRunLoop = CFRunLoopGetCurrent();
 
    // notification port allocated by IORegisterForSystemPower
@@ -679,7 +681,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
       (void) IONotificationPortDestroy(powerNotifyPortRef);
    }
 
-# elif WIN32
+# elif defined(WIN32)
 #define WINDOW_CLASS_NAME   _T("DetectNetworkConfigChangesSession_HiddenWndClass")
 #define WINDOW_MENU_NAME    _T("DetectNetworkConfigChangesSession_MainMenu")
 

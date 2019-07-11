@@ -2,7 +2,7 @@ greaterThan(QT_MAJOR_VERSION, 4) {
    QT += widgets
 }
 win32:LIBS     += shlwapi.lib ws2_32.lib winmm.lib User32.lib Advapi32.lib shell32.lib iphlpapi.lib version.lib
-unix:!mac:LIBS += -lutil -lrt
+#unix:!mac:LIBS += -lutil -lrt
 mac:LIBS       += -framework IOKit -framework SystemConfiguration -framework Carbon
 OBJECTS_DIR = objects
 MUSCLE_DIR = ../..

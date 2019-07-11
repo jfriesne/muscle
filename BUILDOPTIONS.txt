@@ -338,3 +338,6 @@ of your Makefile to alter muscle's behaviour:
    the MUSCLE headers to use C++11 APIs as back-ends for the MUSCLE
    Thread/Mutex/AtomicCounter/etc classes.
 
+-DMUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION
+   Tells the DetectNetworkConfigChangesSession class to build but
+   not do anything useful.

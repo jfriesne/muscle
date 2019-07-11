@@ -835,8 +835,8 @@ status_t Snooze64(uint64 micros)
 #elif WIN32
    Sleep((DWORD)((micros/1000)+(((micros%1000)!=0)?1:0)));
    return B_NO_ERROR;
-#elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
-   const struct timespec ts = {MicrosToSeconds(micros), MicrosToNanos(micros%MICROS_PER_SECOND)};
+#elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK) && !defined(__EMSCRIPTEN__)
+   const struct timespec ts = {(time_t) MicrosToSeconds(micros), (time_t) MicrosToNanos(micros%MICROS_PER_SECOND)};
    return (clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL) == 0) ? B_NO_ERROR : B_ERROR;
 #else
    /** We can use select(), if nothing else */

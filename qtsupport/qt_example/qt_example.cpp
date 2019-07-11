@@ -79,8 +79,12 @@ void ExampleWidget :: DrawUser(QPainter & p, const MessageRef & data)
 void ExampleWidget :: DrawText(QPainter & p, const QPoint & pt, const QString & text, const QColor & c, bool inBox)
 {
    QFontMetrics fm = p.fontMetrics();
-   int tw = fm.width(text);
-   int th = fm.ascent()+fm.descent();
+#if QT_VERSION >= 0x050B00
+   const int tw = fm.horizontalAdvance(text);
+#else
+   const int tw = fm.width(text);
+#endif
+   const int th = fm.ascent()+fm.descent();
    QRect r(pt.x()-(tw/2), pt.y()-(th/2), tw, th);
    if (inBox)
    {

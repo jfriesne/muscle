@@ -14,7 +14,7 @@
 #else
 # if defined(__linux__)
 #  include <pty.h>     // for forkpty() on Linux
-# else
+# elif !defined(MUSCLE_AVOID_FORKPTY)
 #  include <util.h>    // for forkpty() on MacOS/X
 # endif
 # include <termios.h>

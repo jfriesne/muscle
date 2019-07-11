@@ -5,6 +5,13 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Tweaked some #ifdefs so that MUSCLE code can be compiled
+     to WebAssembly using Emscripten.
+   o Added support for a -DMUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION
+     build-flag, for easier test-building on systems that aren't
+     currently supported by the DetectNetworkConfigChangesSession
+   * Fixed some compiler-warnings in the included Qt-examples.
+
 7.31 Released 7/11/2019
    - Updated muscled.cpp and portablereflectclient.cpp so that
      either one can specify public or private keys to load.
