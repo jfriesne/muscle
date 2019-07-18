@@ -32,8 +32,8 @@ enum {
    QUERY_FILTER_TYPE_STRING,                /**< filter on the contents of a String in the Message */
    QUERY_FILTER_TYPE_MESSAGE,               /**< filter on the contents of a sub-Message in the Message */
    QUERY_FILTER_TYPE_RAWDATA,               /**< filter on the raw bytes of a field in the Message */
-   QUERY_FILTER_TYPE_NANDNOT,               /**< combine the results of two or more child filters using a NAND or NOR operator  */
-   QUERY_FILTER_TYPE_ANDOR,                 /**< combine the results of two or more child filters using an AND or OR operator  */
+   QUERY_FILTER_TYPE_MAXMATCH,              /**< filter matchis iff at no more than (n) of its children match */
+   QUERY_FILTER_TYPE_MINMATCH,              /**< filter matches iff at least (n) of its children match */
    QUERY_FILTER_TYPE_XOR,                   /**< combine the results of two or more child filters using an XOR operator  */
    // add more codes here...
    LAST_QUERY_FILTER_TYPE                   /**< guard value */
@@ -399,7 +399,10 @@ typedef NumericQueryFilter<int8,   B_INT8_TYPE,   QUERY_FILTER_TYPE_INT8>   Int8
 typedef NumericQueryFilter<Point,  B_POINT_TYPE,  QUERY_FILTER_TYPE_POINT>  PointQueryFilter;  DECLARE_REFTYPES(PointQueryFilter);
 typedef NumericQueryFilter<Point,  B_RECT_TYPE,   QUERY_FILTER_TYPE_RECT>   RectQueryFilter;   DECLARE_REFTYPES(RectQueryFilter);
 
-/** A semi-abstract base class for any QueryFilter that holds a list of references to child filters. */
+/** A semi-abstract base class for any QueryFilter that holds a list of references to "child" QueryFilters.
+  * Subclasses of this class typically compute the output of their Match() method by calling Match() on
+  * each of their child QueryFilters and then aggregating those values together in some way.
+  */
 class MultiQueryFilter : public QueryFilter
 {
 public:
@@ -427,72 +430,30 @@ private:
 };
 DECLARE_REFTYPES(MultiQueryFilter);
 
-/** This class matches iff at least (n) of its children match.  As such, it can be used as an OR operator,
-  * an AND operator, or something in-between the two.
+/** This class matches iff more than (n) of its children match.  As such, it can be used as an OR operator,
+  * an AND operator, or as something in-between the two (e.g. "match iff at least N children match")
+  * @note For a slightly simpler interface to AND and OR operators, you can instantiate an AndQueryFilter or an OrQueryFilter instead.
   */
-class AndOrQueryFilter : public MultiQueryFilter
+class MinimumThresholdQueryFilter : public MultiQueryFilter
 {
 public:
    /** Default constructor.  Creates an AND filter with no children. 
-     * @param minMatches The minimum number of children that must match before this filter considers
-     *                   the match to be valid.  Default to MUSCLE_NO_LIMIT, meaning all children must match.
+     * @param minMatches The threshold value -- our Match() method will return true iff more than this-many
+     *                   of our children's Match() methods return true.  If this value is greater than the
+     *                   number of child QueryFilters in our list, then it will be treated as if it was equal
+     *                   to (numKids-1) (which means you can pass in MUSCLE_NO_LIMIT here to get traditional
+     *                   AND behavior regardless of how many child QueryFilters you add, or alternatively
+     *                   you can pass in 0 to get traditional OR behavior)
+     * @note For a slightly simpler interface to AND and OR operators, you can instantiate an AndQueryFilter or an OrQueryFilter instead.
      */
-   AndOrQueryFilter(uint32 minMatches = MUSCLE_NO_LIMIT) : _minMatches(minMatches) {/* empty */}
-
-   /** Convenience constructor.  Note that you usually want to manually add at least one more child as well.
-     * @param isAnd If true, the operation will be an 'and' operation.  Otherwise it will be an 'or' operation.
-     * @param child First argument to the operation
-     */
-   AndOrQueryFilter(bool isAnd, const ConstQueryFilterRef & child) : _minMatches(isAnd ? MUSCLE_NO_LIMIT : 1)
-   {
-      GetChildren().AddTail(child);
-   }
-
-   /** Convenience constructor for simple binary 'or' or 'and' operations.
-     * @param isAnd If true, the operation will be an 'and' operation.  Otherwise it will be an 'or' operation.
-     * @param child1 First argument to the operation
-     * @param child2 Second argument to the operation
-     */
-   AndOrQueryFilter(bool isAnd, const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2) : _minMatches(isAnd ? MUSCLE_NO_LIMIT : 1)
-   {
-      GetChildren().AddTail(child1);
-      GetChildren().AddTail(child2);
-   }
-
-   /** Convenience constructor for simple ternary 'or' or 'and' operations.
-     * @param isAnd If true, the operation will be an 'and' operation.  Otherwise it will be an 'or' operation.
-     * @param child1 First argument to the operation
-     * @param child2 Second argument to the operation
-     * @param child3 Third argument to the operation
-     */
-   AndOrQueryFilter(bool isAnd, const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3) : _minMatches(isAnd ? MUSCLE_NO_LIMIT : 1)
-   {
-      GetChildren().AddTail(child1);
-      GetChildren().AddTail(child2);
-      GetChildren().AddTail(child3);
-   }
-
-   /** Convenience constructor for simple ternary 'or' or 'and' operations.
-     * @param isAnd If true, the operation will be an 'and' operation.  Otherwise it will be an 'or' operation.
-     * @param child1 First argument to the operation
-     * @param child2 Second argument to the operation
-     * @param child3 Third argument to the operation
-     * @param child4 Fourth argument to the operation
-     */
-   AndOrQueryFilter(bool isAnd, const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3, const ConstQueryFilterRef & child4) : _minMatches(isAnd ? MUSCLE_NO_LIMIT : 1)
-   {
-      GetChildren().AddTail(child1);
-      GetChildren().AddTail(child2);
-      GetChildren().AddTail(child3);
-      GetChildren().AddTail(child4);
-   }
+   MinimumThresholdQueryFilter(uint32 minMatches) : _minMatches(minMatches) {/* empty */}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** Initializer-list Constructor (C++11 only)
-     * @param isAnd If true, the operation will be an 'and' operation.  Otherwise it will be an 'or' operation.
+     * @param minMatches See the previous constructor's docs for description of this argument.
      * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
      */
-   AndOrQueryFilter(bool isAnd, const std::initializer_list<ConstQueryFilterRef> & childrenList) : MultiQueryFilter(childrenList), _minMatches(isAnd ? MUSCLE_NO_LIMIT : 1)
+   MinimumThresholdQueryFilter(uint32 minMatches, const std::initializer_list<ConstQueryFilterRef> & childrenList) : MultiQueryFilter(childrenList), _minMatches(minMatches)
    {
       // empty
    }
@@ -500,7 +461,7 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_ANDOR;}
+   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_MINMATCH;}
    virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
    /** Set the minimum number of children that must match the target Message in order for this
@@ -517,55 +478,31 @@ public:
 private:
    uint32 _minMatches;
 };
-DECLARE_REFTYPES(AndOrQueryFilter);
+DECLARE_REFTYPES(MinimumThresholdQueryFilter);
 
-/** This class matches iff no more than (n) of its children match.  As such, it can be used as a NAND operator,
-  * a NOT operator, or something in-between the two.
+/** This class matches iff no more than (n) of its children match.  As such, it can be used as a NOT operator,
+  * a NOR operator, a NAND operator, or something in-between.
+  * @note For a slightly simpler interface to the NOT, NOR, or NAND operators, you can instantiate a NandQueryFilter or a NorQueryFilter instead.
   */
-class NandNotQueryFilter : public MultiQueryFilter
+class MaximumThresholdQueryFilter : public MultiQueryFilter
 {
 public:
-   /** Default constructor.  Creates an NAND filter with no children. 
-     * @param maxMatches The maximum number of children that may match before this filter considers
-     *                   the match to be invalid.  Defaults to 0, meaning no children may match.
+   /** Constructor.
+     * @param maxMatches The threshold value -- our Match() method will return true iff no more than this-many
+     *                   of our childrens' Match() methods return true.  If this value is equal to or greater than
+     *                   the number of child QueryFilters in our list, then it will be treated as if it was equal
+     *                   to (numKids-1).  That means that you can pass in MUSCLE_NO_LIMIT to get NAND behavior,
+     *                   or 0 to get NOT/NOR behavior.
+     * @note For a slightly simpler interface to the NOT, NOR, or NAND operators, you can instantiate a NandQueryFilter or a NorQueryFilter instead.
      */
-   NandNotQueryFilter(uint32 maxMatches = 0) : _maxMatches(maxMatches) {/* empty */}
-
-   /** Convenience constructor for simple unary 'not' operation.
-     * @param child Child whose logic we should negate.  This child is added to our child list, and the MaxMatchCount is set to zero. 
-     */
-   NandNotQueryFilter(const ConstQueryFilterRef & child) : _maxMatches(0)
-   {
-      GetChildren().AddTail(child);
-   }
-
-   /** Convenience constructor for simple binary 'nand' operation.  MaxMatchCount is set to one.
-     * @param child1 First argument to the operation
-     * @param child2 Second argument to the operation
-     */
-   NandNotQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2) : _maxMatches(1)
-   {
-      GetChildren().AddTail(child1);
-      GetChildren().AddTail(child2);
-   }
-
-   /** Convenience constructor for simple ternary 'nand' operation.  MaxMatchCount is set to one.
-     * @param child1 First argument to the operation
-     * @param child2 Second argument to the operation
-     * @param child3 Third argument to the operation
-     */
-   NandNotQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3) : _maxMatches(1)
-   {
-      GetChildren().AddTail(child1);
-      GetChildren().AddTail(child2);
-      GetChildren().AddTail(child3);
-   }
+   MaximumThresholdQueryFilter(uint32 maxMatches) : _maxMatches(maxMatches) {/* empty */}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** Initializer-list Constructor (C++11 only)
+     * @param maxMatches See the previous constructor's docs for description of this argument.
      * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
      */
-   NandNotQueryFilter(const std::initializer_list<ConstQueryFilterRef> & childrenList) : MultiQueryFilter(childrenList), _maxMatches(1)
+   MaximumThresholdQueryFilter(uint32 maxMatches, const std::initializer_list<ConstQueryFilterRef> & childrenList) : MultiQueryFilter(childrenList), _maxMatches(maxMatches)
    {
       // empty
    }
@@ -573,7 +510,7 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_NANDNOT;}
+   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_MAXMATCH;}
    virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
    /** Set the maximum number of children that may match the target Message in order for this
@@ -590,13 +527,289 @@ public:
 private:
    uint32 _maxMatches;
 };
-DECLARE_REFTYPES(NandNotQueryFilter);
+DECLARE_REFTYPES(MaximumThresholdQueryFilter);
+
+/** Convenience class for specifying QueryFilters that represent the logical AND of two or more child QueryFilters. */
+class AndQueryFilter : public MinimumThresholdQueryFilter
+{
+public:
+   /** Default constructor.  Creates an AND filter with no children.  The Match() method of an AndQueryFilter with
+     * no children will always return true, so you'll probably want to call GetChildren().AddTail() or similar before using it.
+     */
+   AndQueryFilter() : MinimumThresholdQueryFilter(MUSCLE_NO_LIMIT) {/* empty */}
+
+   /** Convenience constructor to specify a unary AND operator.
+     * This really just makes us a pass-through/decorator object to the child QueryFilter.
+     * @param child The child QueryFilter
+     */
+   AndQueryFilter(const ConstQueryFilterRef & child) : MinimumThresholdQueryFilter(MUSCLE_NO_LIMIT)
+   {
+      (void) GetChildren().AddTail(child);
+   }
+
+   /** Convenience constructor to specify a binary AND operator.
+     * That is, our Match() method will only return true if both of our childrens' Match methods return true.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     */
+   AndQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2) : MinimumThresholdQueryFilter(MUSCLE_NO_LIMIT)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+   }
+
+   /** Convenience constructor to specify a ternary AND operator.
+     * That is, our Match() method will only return true if all three of our childrens' Match methods return true.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     */
+   AndQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3) : MinimumThresholdQueryFilter(MUSCLE_NO_LIMIT)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child3);
+   }
+
+   /** Convenience constructor to specify a quaternary AND operator.
+     * That is, our Match() method will only return true if all four of our childrens' Match methods return true.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     * @param child4 Fourth argument to the operation
+     */
+   AndQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3, const ConstQueryFilterRef & child4) : MinimumThresholdQueryFilter(MUSCLE_NO_LIMIT)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child3);
+      (void) GetChildren().AddTail(child4);
+   }
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Initializer-list Constructor (C++11 only)
+     * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
+     */
+   AndQueryFilter(const std::initializer_list<ConstQueryFilterRef> & childrenList) : MinimumThresholdQueryFilter(MUSCLE_NO_LIMIT, childrenList)
+   {
+      // empty
+   }
+#endif
+};
+DECLARE_REFTYPES(AndQueryFilter);
+
+/** Convenience class for specifying QueryFilters that represent the logical OR of two or more child QueryFilters. */
+class OrQueryFilter : public MinimumThresholdQueryFilter
+{
+public:
+   /** Default constructor.  Creates an OR filter with no children.  The Match() method of an OrQueryFilter with
+     * no children will always return true, so you'll probably want to call GetChildren().AddTail() or similar before using it.
+     */
+   OrQueryFilter() : MinimumThresholdQueryFilter(0) {/* empty */}
+
+   /** Convenience constructor to specify a unary OR operator.
+     * This really just makes us a pass-through/decorator object to the child QueryFilter.
+     * @param child The child QueryFilter
+     */
+   OrQueryFilter(const ConstQueryFilterRef & child) : MinimumThresholdQueryFilter(0)
+   {
+      (void) GetChildren().AddTail(child);
+   }
+
+   /** Convenience constructor to specify a binary OR operator.
+     * That is, our Match() method will only return true if at least one of childrens' Match methods return true.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     */
+   OrQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2) : MinimumThresholdQueryFilter(0)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+   }
+
+   /** Convenience constructor to specify a ternary OR operator.
+     * That is, our Match() method will only return true if at least one of childrens' Match methods return true.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     */
+   OrQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3) : MinimumThresholdQueryFilter(0)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child3);
+   }
+
+   /** Convenience constructor to specify a quaternary OR operator.
+     * That is, our Match() method will only return true if at least one of childrens' Match methods return true.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     * @param child4 Fourth argument to the operation
+     */
+   OrQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3, const ConstQueryFilterRef & child4) : MinimumThresholdQueryFilter(0)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child3);
+      (void) GetChildren().AddTail(child4);
+   }
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Initializer-list Constructor (C++11 only)
+     * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
+     */
+   OrQueryFilter(const std::initializer_list<ConstQueryFilterRef> & childrenList) : MinimumThresholdQueryFilter(0, childrenList)
+   {
+      // empty
+   }
+#endif
+};
+DECLARE_REFTYPES(OrQueryFilter);
+
+/** Convenience class for specifying a QueryFilter that will match in every case EXCEPT when all of its children match */
+class NandQueryFilter : public MaximumThresholdQueryFilter
+{
+public:
+   /** Default constructor.  Creates an NAND filter with no children.  The Match() method of an NandQueryFilter with
+     * no children will always return false, so you'll probably want to call GetChildren().AddTail() or similar before using it.
+     */
+   NandQueryFilter() : MaximumThresholdQueryFilter(MUSCLE_NO_LIMIT) {/* empty */}
+
+   /** Convenience constructor to specify a unary NOT operator.
+     * @param child QueryFilter whose Match() method we will always return the opposite of
+     */
+   NandQueryFilter(const ConstQueryFilterRef & child) : MaximumThresholdQueryFilter(MUSCLE_NO_LIMIT)
+   {
+      (void) GetChildren().AddTail(child);
+   }
+
+   /** Convenience constructor to specify a binary NAND operator.
+     * That is, our Match() method will only return false unless both children's Match methods return true.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     */
+   NandQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2) : MaximumThresholdQueryFilter(MUSCLE_NO_LIMIT)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+   }
+
+   /** Convenience constructor to specify a ternary NAND operator.
+     * That is, our Match() method will only return false unless all three of our children's Match methods return true.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     */
+   NandQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3) : MaximumThresholdQueryFilter(MUSCLE_NO_LIMIT)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child3);
+   }
+
+   /** Convenience constructor to specify a quaternary NAND operator.
+     * That is, our Match() method will only return false unless all four of our children's Match methods return true.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     * @param child4 Fourth argument to the operation
+     */
+   NandQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3, const ConstQueryFilterRef & child4) : MaximumThresholdQueryFilter(MUSCLE_NO_LIMIT)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child3);
+      (void) GetChildren().AddTail(child4);
+   }
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Initializer-list Constructor (C++11 only)
+     * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
+     */
+   NandQueryFilter(const std::initializer_list<ConstQueryFilterRef> & childrenList) : MaximumThresholdQueryFilter(MUSCLE_NO_LIMIT, childrenList)
+   {
+      // empty
+   }
+#endif
+};
+DECLARE_REFTYPES(NandQueryFilter);
+
+/** Convenience class for specifying a QueryFilter that will match only if ALL of its children do NOT match */
+class NorQueryFilter : public MaximumThresholdQueryFilter
+{
+public:
+   /** Default constructor.  Creates an NOR filter with no children.  The Match() method of an NorQueryFilter with
+     * no children will always return false, so you'll probably want to call GetChildren().AddTail() or similar before using it.
+     */
+   NorQueryFilter() : MaximumThresholdQueryFilter(0) {/* empty */}
+
+   /** Convenience constructor to specify a unary NOT operator.
+     * @param child QueryFilter whose Match() method we will always return the opposite of
+     */
+   NorQueryFilter(const ConstQueryFilterRef & child) : MaximumThresholdQueryFilter(0)
+   {
+      (void) GetChildren().AddTail(child);
+   }
+
+   /** Convenience constructor to specify a binary NOR operator.
+     * That is, our Match() method will only return true iff both childrens' Match() methods returned false.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     */
+   NorQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2) : MaximumThresholdQueryFilter(0)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+   }
+
+   /** Convenience constructor to specify a ternary NOR operator.
+     * That is, our Match() method will only return true iff all three of our childrens' Match() methods returned false.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     */
+   NorQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3) : MaximumThresholdQueryFilter(0)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child3);
+   }
+
+   /** Convenience constructor to specify a quaternary NOR operator.
+     * That is, our Match() method will only return true iff all four of our childrens' Match() methods returned false.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     * @param child4 Fourth argument to the operation
+     */
+   NorQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3, const ConstQueryFilterRef & child4) : MaximumThresholdQueryFilter(0)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child3);
+      (void) GetChildren().AddTail(child4);
+   }
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Initializer-list Constructor (C++11 only)
+     * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
+     */
+   NorQueryFilter(const std::initializer_list<ConstQueryFilterRef> & childrenList) : MaximumThresholdQueryFilter(0, childrenList)
+   {
+      // empty
+   }
+#endif
+};
+DECLARE_REFTYPES(NorQueryFilter);
 
 /** This class matches only if an odd number of its children match. */
 class XorQueryFilter : public MultiQueryFilter
 {
 public:
-   /** Default constructor.  You'll want to add children to this object manually. */
+   /** Default constructor.  Creates an XOR filter with no children.  The Match() method of an XorQueryFilter with
+     * no children will always return false, so you'll probably want to call GetChildren().AddTail() or similar before using it.
+     */
    XorQueryFilter() {/* empty */}
 
    /** Convenience constructor for simple binary 'xor' operation.
@@ -607,6 +820,32 @@ public:
    {
       GetChildren().AddTail(child1);
       GetChildren().AddTail(child2);
+   }
+
+   /** Convenience constructor to specify a ternary 'xor' operator.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     */
+   XorQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child3);
+   }
+
+   /** Convenience constructor to specify a quaternary 'xor' operator.
+     * @param child1 First argument to the operation
+     * @param child2 Second argument to the operation
+     * @param child3 Third argument to the operation
+     * @param child4 Fourth argument to the operation
+     */
+   XorQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2, const ConstQueryFilterRef & child3, const ConstQueryFilterRef & child4)
+   {
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child3);
+      (void) GetChildren().AddTail(child4);
    }
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11

@@ -85,62 +85,57 @@ status_t MultiQueryFilter :: SetFromArchive(const Message & archive)
    return B_NO_ERROR;
 }
 
-status_t AndOrQueryFilter :: SaveToArchive(Message & archive) const
+status_t MinimumThresholdQueryFilter :: SaveToArchive(Message & archive) const
 {
    return ((MultiQueryFilter::SaveToArchive(archive) == B_NO_ERROR)&&
            ((_minMatches == MUSCLE_NO_LIMIT)||(archive.AddInt32("min", _minMatches) == B_NO_ERROR))) ? B_NO_ERROR : B_ERROR;
 }
 
-status_t AndOrQueryFilter :: SetFromArchive(const Message & archive)
+status_t MinimumThresholdQueryFilter :: SetFromArchive(const Message & archive)
 {
    if (MultiQueryFilter::SetFromArchive(archive) != B_NO_ERROR) return B_ERROR;
    if (archive.FindInt32("min", _minMatches) != B_NO_ERROR) _minMatches = MUSCLE_NO_LIMIT;
    return B_NO_ERROR;
 }
 
-bool AndOrQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
+static bool ThresholdMaxAux(const Queue<ConstQueryFilterRef> & kids, uint32 numMatches, ConstMessageRef & msg, const DataNode * optNode)
 {
-   const Queue<ConstQueryFilterRef> & kids = GetChildren();
    const uint32 numKids = kids.GetNumItems();
-   const uint32 threshold = muscleMin(_minMatches, numKids);
+   if (numKids == 0) return true;  // avoid potential underflow in next line
+
+   const uint32 threshold = muscleMin(numMatches, numKids-1);
    uint32 matchCount = 0;
    for (uint32 i=0; i<numKids; i++)
    {
-      if ((threshold-matchCount) > (numKids-i)) return false;  // might as well give up, even all-true wouldn't get us there now
+      if ((1+threshold-matchCount) > (numKids-i)) break;  // might as well give up, even all-true wouldn't get us there now
 
       const QueryFilter * next = kids[i]();
-      if ((next)&&(next->Matches(msg, optNode))&&(++matchCount == threshold)) return true;
+      if ((next)&&(next->Matches(msg, optNode))&&(++matchCount > threshold)) return true;
    }
    return false;
 }
 
-status_t NandNotQueryFilter :: SaveToArchive(Message & archive) const
+bool MinimumThresholdQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
+{
+   return ThresholdMaxAux(GetChildren(), _minMatches, msg, optNode);
+}
+
+bool MaximumThresholdQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
+{
+   return (ThresholdMaxAux(GetChildren(), _maxMatches, msg, optNode) == false);
+}
+
+status_t MaximumThresholdQueryFilter :: SaveToArchive(Message & archive) const
 {
    return ((MultiQueryFilter::SaveToArchive(archive) == B_NO_ERROR)&&
            ((_maxMatches == 0)||(archive.AddInt32("max", _maxMatches) == B_NO_ERROR))) ? B_NO_ERROR : B_ERROR;
 }
 
-status_t NandNotQueryFilter :: SetFromArchive(const Message & archive)
+status_t MaximumThresholdQueryFilter :: SetFromArchive(const Message & archive)
 {
    if (MultiQueryFilter::SetFromArchive(archive) != B_NO_ERROR) return B_ERROR;
    if (archive.FindInt32("max", _maxMatches) != B_NO_ERROR) _maxMatches = 0;
    return B_NO_ERROR;
-}
-
-bool NandNotQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
-{
-   const Queue<ConstQueryFilterRef> & kids = GetChildren();
-   const uint32 numKids = kids.GetNumItems();
-   const uint32 threshold  = muscleMin(_maxMatches, numKids);
-   uint32 matchCount = 0;
-   for (uint32 i=0; i<numKids; i++)
-   {
-      if ((threshold-matchCount) > (numKids-i)) return true;  // might as well give up, even all-true wouldn't get us there now
-
-      const QueryFilter * next = kids[i]();
-      if ((next)&&(next->Matches(msg, optNode))&&(++matchCount > threshold)) return false;
-   }
-   return (matchCount < numKids);
 }
 
 bool XorQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
@@ -409,8 +404,8 @@ QueryFilterRef MuscleQueryFilterFactory :: CreateQueryFilter(uint32 typeCode) co
       case QUERY_FILTER_TYPE_STRING:      f = newnothrow StringQueryFilter;      break;
       case QUERY_FILTER_TYPE_MESSAGE:     f = newnothrow MessageQueryFilter;     break;
       case QUERY_FILTER_TYPE_RAWDATA:     f = newnothrow RawDataQueryFilter;     break;
-      case QUERY_FILTER_TYPE_NANDNOT:     f = newnothrow NandNotQueryFilter;     break;
-      case QUERY_FILTER_TYPE_ANDOR:       f = newnothrow AndOrQueryFilter;       break;
+      case QUERY_FILTER_TYPE_MAXMATCH:    f = newnothrow MaximumThresholdQueryFilter(0); break;
+      case QUERY_FILTER_TYPE_MINMATCH:    f = newnothrow MinimumThresholdQueryFilter(0); break;
       case QUERY_FILTER_TYPE_XOR:         f = newnothrow XorQueryFilter;         break;
       default:                            return QueryFilterRef();  /* unknown type code! */
    }

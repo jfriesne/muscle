@@ -63,17 +63,13 @@ int main(int argc, char ** argv)
    
    // Lastly we'll compose a few boolean expressions
 
-   AndOrQueryFilter answerIs42AndThereIsPi;
-   answerIs42AndThereIsPi.GetChildren().AddTail(ConstQueryFilterRef(&answerIs42, false));
-   answerIs42AndThereIsPi.GetChildren().AddTail(ConstQueryFilterRef(&piExists,   false));
+   AndQueryFilter answerIs42AndThereIsPi(ConstQueryFilterRef(&answerIs42, false), ConstQueryFilterRef(&piExists, false));
    TestTheMessage(testMsg, "answerIs42AndThereIsPi", answerIs42AndThereIsPi); // does field "answer" contain 42 AND the field "pi" exists?
 
-   AndOrQueryFilter answerIs37OrThereIsPi(1);  // 1 == at least 1 child must match for this to match
-   answerIs37OrThereIsPi.GetChildren().AddTail(ConstQueryFilterRef(&answerIs37, false));
-   answerIs37OrThereIsPi.GetChildren().AddTail(ConstQueryFilterRef(&piExists,   false));
+   OrQueryFilter answerIs37OrThereIsPi(ConstQueryFilterRef(&answerIs37, false), ConstQueryFilterRef(&piExists, false));
    TestTheMessage(testMsg, "answerIs37OrThereIsPi", answerIs37OrThereIsPi); // does field "answer" contain 37 OR the field "pi" exists?
 
-   AndOrQueryFilter answerIs37OrThereIsFnord(1);  // 1 == at least 1 child must match for this to match
+   OrQueryFilter answerIs37OrThereIsFnord;
    answerIs37OrThereIsFnord.GetChildren().AddTail(ConstQueryFilterRef(&answerIs37,  false));
    answerIs37OrThereIsFnord.GetChildren().AddTail(ConstQueryFilterRef(&fnordExists, false));
    TestTheMessage(testMsg, "answerIs37OrThereIsFnord", answerIs37OrThereIsFnord); // does field "answer" contain 37 OR the field "fnord" exists?

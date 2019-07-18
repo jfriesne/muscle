@@ -5,11 +5,23 @@ key:  - new feature
       * bug fixed
       o other
 
+7.40
+   - Added an AndQueryFilter class, for better ease-of-use.
+   - Added an OrQueryFilter  class, for better ease-of-use.
+   - Added a NandQueryFilter class, for better ease-of-use.
+   - Added a NorQueryFilter  class, for better ease-of-use.
+   o Renamed the existing AndOrQueryFilter class to 
+     MinimumThresholdQueryFilter.  This class now serves as the
+     superclass of the AndQueryFilter and OrQueryFilter classes.
+   o Renamed the NandNotQueryFilter class to 
+     MaximumThresholdQueryFilter.  This class now serves as the
+     superclass of the NandQueryFilter and NorQueryFilter classes.
    o Tweaked some #ifdefs so that MUSCLE code can be compiled
      to WebAssembly using Emscripten.
    o Added support for a -DMUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION
      build-flag, for easier test-building on systems that aren't
      currently supported by the DetectNetworkConfigChangesSession
+   * Rewrote testqueryfilter.cpp to unit-test the new classes.
    * Fixed some compiler-warnings in the included Qt-examples.
    * Various style tweakages in response to suggestions generated
      by GitHub CodeFactor
