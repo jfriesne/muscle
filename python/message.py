@@ -121,7 +121,7 @@ class Message:
       the field doesn't exist or is of the wrong type, or if the index isn't
       a valid one for that list.
       """
-      ret = self.GetFieldContents(fieldName, fieldTypeCode);
+      ret = self.GetFieldContents(fieldName, fieldTypeCode)
       if ret != None:
          num = len(ret)
          if index < -num or index >= num:
@@ -464,47 +464,47 @@ class Message:
 
    def GetString(self, fieldName, index=0):
       """Convenience method; returns the (index)th String item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_STRING_TYPE, index);
+      return self.GetFieldItem(fieldName, B_STRING_TYPE, index)
 
    def GetInt8(self, fieldName, index=0):
       """Convenience method; returns the (index)th Int8 item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_INT8_TYPE, index);
+      return self.GetFieldItem(fieldName, B_INT8_TYPE, index)
 
    def GetInt16(self, fieldName, index=0):
       """Convenience method; returns the (index)th Int16 item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_INT16_TYPE, index);
+      return self.GetFieldItem(fieldName, B_INT16_TYPE, index)
 
    def GetInt32(self, fieldName, index=0):
       """Convenience method; returns the (index)th Int32 item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_INT32_TYPE, index);
+      return self.GetFieldItem(fieldName, B_INT32_TYPE, index)
 
    def GetInt64(self, fieldName, index=0):
       """Convenience method; returns the (index)th Int64 item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_INT64_TYPE, index);
+      return self.GetFieldItem(fieldName, B_INT64_TYPE, index)
 
    def GetBool(self, fieldName, index=0):
       """Convenience method; returns the (index)th Bool item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_BOOL_TYPE, index);
+      return self.GetFieldItem(fieldName, B_BOOL_TYPE, index)
 
    def GetFloat(self, fieldName, index=0):
       """Convenience method; returns the (index)th Float item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_FLOAT_TYPE, index);
+      return self.GetFieldItem(fieldName, B_FLOAT_TYPE, index)
 
    def GetDouble(self, fieldName, index=0):
       """Convenience method; returns the (index)th Double item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_DOUBLE_TYPE, index);
+      return self.GetFieldItem(fieldName, B_DOUBLE_TYPE, index)
 
    def GetMessage(self, fieldName, index=0):
       """Convenience method; returns the (index)th Message item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_MESSAGE_TYPE, index);
+      return self.GetFieldItem(fieldName, B_MESSAGE_TYPE, index)
 
    def GetPoint(self, fieldName, index=0):
       """Convenience method; returns the (index)th Point item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_POINT_TYPE, index);
+      return self.GetFieldItem(fieldName, B_POINT_TYPE, index)
 
    def GetRect(self, fieldName, index=0):
       """Convenience method; returns the (index)th Rect item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_RECT_TYPE, index);
+      return self.GetFieldItem(fieldName, B_RECT_TYPE, index)
 		
 
 # --------------------------------------------------------------------------------------------
@@ -535,6 +535,6 @@ if __name__ == "__main__":
    print "Unflattening..."
    infile = open('test.msg', 'rb')
    m2 = Message()
-   m2.Unflatten(infile);
+   m2.Unflatten(infile)
    infile.close()
    m2.PrintToStream()

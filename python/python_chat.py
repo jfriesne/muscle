@@ -100,7 +100,7 @@ if __name__ == "__main__":
                      fromSession = nextEvent.GetString("session") 
                      if fromSession != None:
                         nextEvent.what = NET_CLIENT_PONG
-                        nextEvent.PutString(storage_reflect_constants.PR_NAME_KEYS, "/*/"+fromSession+"/beshare");
+                        nextEvent.PutString(storage_reflect_constants.PR_NAME_KEYS, "/*/"+fromSession+"/beshare")
                         nextEvent.PutString("session", "blah")   # server will set this
                         nextEvent.PutString("version", "PythonChat v" + VERSION_STRING)
                         mtt.SendOutgoingMessage(nextEvent)

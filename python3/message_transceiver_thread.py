@@ -390,7 +390,7 @@ if __name__ == "__main__":
       mtt = TestMTT(hostname, int(port))
       print("Attempting to connect to", hostname, "port", port, "...")
 
-   mtt.start();  # important!  Otherwise nothing will happen :^)
+   mtt.start()  # important!  Otherwise nothing will happen :^)
    while True:
       nextline = sys.stdin.readline().strip()
       if nextline == "q":
