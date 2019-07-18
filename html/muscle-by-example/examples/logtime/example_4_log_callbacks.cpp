@@ -34,7 +34,6 @@ public:
 
       fprintf(stderr, "MyLogCallback::Flush() called.\n");
    }
-
 };
 
 // This callback is called whenever a full line of text is available for logging.  It's less flexible but easier to use. */

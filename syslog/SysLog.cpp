@@ -156,7 +156,6 @@ public:
      OptionsAll = 0x3F,
 
      OptionsJAF = (RetrieveSymbol|RetrieveLine)
-
    } StackWalkOptions;
 
    StackWalker(
