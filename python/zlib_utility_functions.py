@@ -17,7 +17,7 @@ def DeflateMessage(msg, compressionLevel=6, force=True):
        @param force If set to False, compression will not occur if the compressed Message turns out to be larger
                     than the original Message.  (instead the original Message will be returned).  Defaults to True.
    """
-   if (msg.GetFieldItem(MUSCLE_ZLIB_FIELD_NAME_STRING, message.B_RAW_TYPE) == None):
+   if (msg.GetFieldItem(MUSCLE_ZLIB_FIELD_NAME_STRING, message.B_RAW_TYPE) is None):
       defMsg = message.Message(msg.what)
       origFlatSize = msg.FlattenedSize()
       headerBuf = cStringIO.StringIO()
@@ -39,7 +39,7 @@ def InflateMessage(msg):
        @param msg The Message to decompress, if it is compressed.
    """
    compStr = msg.GetFieldItem(MUSCLE_ZLIB_FIELD_NAME_STRING, message.B_RAW_TYPE)
-   if compStr != None and len(compStr) >= MUSCLE_ZLIB_HEADER_SIZE:
+   if compStr is not None and len(compStr) >= MUSCLE_ZLIB_HEADER_SIZE:
       header, rawLen = struct.unpack("<2L", compStr[0:MUSCLE_ZLIB_HEADER_SIZE])
       if header == ZLIB_CODEC_HEADER_INDEPENDENT:
          infMsg = message.Message()

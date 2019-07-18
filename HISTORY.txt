@@ -11,6 +11,8 @@ key:  - new feature
      build-flag, for easier test-building on systems that aren't
      currently supported by the DetectNetworkConfigChangesSession
    * Fixed some compiler-warnings in the included Qt-examples.
+   * Various style tweakages in response to suggestions generated
+     by GitHub CodeFactor
 
 7.31 Released 7/11/2019
    - Updated muscled.cpp and portablereflectclient.cpp so that

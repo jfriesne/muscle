@@ -88,8 +88,8 @@ class MessageTransceiverThread(threading.Thread):
       self._endSession = IOError()
 
       # Set up for accepting incoming TCP connections, if necessary
-      if self.__hostname == None:
-         if acceptFrom == None:
+      if self.__hostname is None:
+         if acceptFrom is None:
             acceptFrom = ""
          self.__acceptsocket = socket.socket(self.__getSocketFamily(), socket.SOCK_STREAM)
          self.__acceptsocket.bind((acceptFrom, port))
@@ -116,16 +116,16 @@ class MessageTransceiverThread(threading.Thread):
 
          Call this method when you are done using this object forever and want it to go away.  
          This method is typically called by your main thread of execution."""
-      if (self.__outQ != None):
+      if (self.__outQ is not None):
          self.SendOutgoingMessage(self._endSession)  # special 'please die' code
          self.join()                            # wait for the internal thread to go away
          self.__outQ = None
          self.__inQ  = None
-         if self.__mainsocket != None:
+         if self.__mainsocket is not None:
             self.__mainsocket.close()
-         if self.__threadsocket != None:
+         if self.__threadsocket is not None:
             self.__threadsocket.close()
-         if self.__acceptsocket != None:
+         if self.__acceptsocket is not None:
             self.__acceptsocket.close()
 
    def GetPort(self):
@@ -172,7 +172,7 @@ class MessageTransceiverThread(threading.Thread):
       toremote = None
       try:
          self._connectStillInProgress = False 
-         if self.__acceptsocket == None:
+         if self.__acceptsocket is None:
             try:
                toremote = self.__createConnectingSocket(False)  # FogBugz 10491:  if we can't connect with our preferred protocol (e.g. IPv6)...
             except socket.error:
@@ -189,9 +189,9 @@ class MessageTransceiverThread(threading.Thread):
          outHeader, outBody = self.__getNextMessageFromMain()
          while True:
             try:
-               waitingForAccept = self.__acceptsocket != None and toremote == None
+               waitingForAccept = self.__acceptsocket is not None and toremote is None
 
-               if (outHeader != None or outBody != None or self._connectStillInProgress) and waitingForAccept == False:
+               if (outHeader is not None or outBody is not None or self._connectStillInProgress) and waitingForAccept is False:
                   useoutlist = outlist
                else:
                   useoutlist = emptylist
@@ -212,9 +212,9 @@ class MessageTransceiverThread(threading.Thread):
                   self.__sendReplyToMainThread(MTT_EVENT_CONNECTED)
 
                if toremote in inready:
-                  if inHeader != None:
+                  if inHeader is not None:
                      newbytes = toremote.recv(8-len(inHeader))
-                     if len(newbytes) == 0:
+                     if not newbytes:
                         raise socket.error
                      ## inHeader = inHeader + newbytes.decode()
                      inHeader = inHeader + newbytes
@@ -226,7 +226,7 @@ class MessageTransceiverThread(threading.Thread):
                         inHeader = None    # signal that we are now ready to read the inBody
                   else:
                      newbytes = toremote.recv(inBodySize-len(inBody))
-                     if len(newbytes) == 0:
+                     if not newbytes:
                         raise socket.error
                      ## inBody = inBody + newbytes.decode()
                      inBody = inBody + newbytes
@@ -239,7 +239,7 @@ class MessageTransceiverThread(threading.Thread):
 
                # Note that we don't need to do anything with the data we read from
                # threadsocket; it's enough that it woke us up so we can check the out-queue.
-               if self.__threadsocket in inready and len(self.__threadsocket.recv(1024)) == 0:
+               if self.__threadsocket in inready and not self.__threadsocket.recv(1024):
                      raise self._endSession
 
                if toremote in outready:
@@ -248,23 +248,23 @@ class MessageTransceiverThread(threading.Thread):
                      self.__sendReplyToMainThread(MTT_EVENT_CONNECTED)
                      self._connectStillInProgress = False 
                   else:
-                     if outHeader != None:
+                     if outHeader is not None:
                         numSent = toremote.send(outHeader)
                         if numSent > 0:
                            outHeader = outHeader[numSent:]
-                           if len(outHeader) == 0:
+                           if not outHeader:
                               outHeader = None
-                     elif outBody != None:
+                     elif outBody is not None:
                         numSent = toremote.send(outBody)
                         if numSent > 0:
                            outBody = outBody[numSent:]
-                           if len(outBody) == 0:
+                           if not outBody:
                               outBody = None
 
-               if outHeader == None and outBody == None:
+               if outHeader is None and outBody is None:
                   outHeader, outBody = self.__getNextMessageFromMain()
             except socket.error:
-               if self.__acceptsocket != None:
+               if self.__acceptsocket is not None:
                   self.__sendReplyToMainThread(MTT_EVENT_DISCONNECTED)
                   toremote = None # for accepting sessions, we can disconnect and then go back to waiting for an accept
                else:
@@ -277,7 +277,7 @@ class MessageTransceiverThread(threading.Thread):
          else:
             raise
 
-      if toremote != None:
+      if toremote is not None:
          toremote.close()
 
    def __sendReplyToMainThread(self, what):
@@ -313,7 +313,7 @@ class MessageTransceiverThread(threading.Thread):
       remoteSocket.setblocking(False)
       try:
          r = socket.getaddrinfo(self.__hostname, self.__port, family, socket.SOCK_STREAM, socket.IPPROTO_IP, socket.AI_CANONNAME)
-         if ((r != None) and (len(r) > 0)):   # paranoia
+         if ((r is not None) and (r)):   # paranoia
             remoteSocket.connect(r[0][4])
          else:
             raise socket.error
@@ -323,7 +323,7 @@ class MessageTransceiverThread(threading.Thread):
          else:
             raise
 
-      if self._connectStillInProgress == False:
+      if self._connectStillInProgress is False:
          self.__sendReplyToMainThread(MTT_EVENT_CONNECTED)
 
       return remoteSocket
@@ -364,7 +364,7 @@ if __name__ == "__main__":
             elif nextEvent == MTT_EVENT_DISCONNECTED:
                print("")
                print("TCP Connection failed or was disconnected!")
-            elif nextEvent == None:
+            elif nextEvent is None:
                break  # If we got here, the Queue is empty, nothing more to show
             else:
                print("")

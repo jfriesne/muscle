@@ -68,7 +68,7 @@ class Message:
 
    def HasFieldName(self, fieldName, fieldTypeCode=B_ANY_TYPE):
       """Returns 1 if the given fieldName exists and is of the given type, or 0 otherwise."""
-      if self.GetFieldContents(fieldName, fieldTypeCode) != None:
+      if self.GetFieldContents(fieldName, fieldTypeCode) is not None:
          return 1
       else:
          return 0
@@ -122,7 +122,7 @@ class Message:
       a valid one for that list.
       """
       ret = self.GetFieldContents(fieldName, fieldTypeCode)
-      if ret != None:
+      if ret is not None:
          num = len(ret)
          if index < -num or index >= num:
             ret = None
