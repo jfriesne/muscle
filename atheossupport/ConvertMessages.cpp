@@ -121,7 +121,6 @@ status_t ConvertFromAMessage(const os::Message & from, Message & to)
                   if (to.AddData(name.c_str(), type, nextItem, itemSize) != B_NO_ERROR) return B_ERROR;
                break;
             }
-
          }
       }
    }

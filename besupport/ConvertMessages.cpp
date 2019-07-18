@@ -122,7 +122,6 @@ status_t ConvertFromBMessage(const BMessage & from, Message & to)
                if (to.AddData(name, type, nextItem, itemSize) != B_NO_ERROR) return B_ERROR;
             break;
          }
-
       }
    }
    return B_NO_ERROR;

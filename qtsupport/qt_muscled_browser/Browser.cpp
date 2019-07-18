@@ -174,7 +174,6 @@ void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscrib
          _subscriptions.PutWithDefault(subscribePath);
          printf("Subscribed to path [%s]\n", subscribePath());
          _mtt.SendMessageToSessions(subMsg);
-         
       }
       else
       {

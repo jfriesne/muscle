@@ -672,7 +672,6 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
       CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sourceRef, kCFRunLoopDefaultMode);
       CFRelease(storeRef);
       CFRelease(sourceRef);
-
    }
    if (powerNotifyRunLoopSource) CFRunLoopRemoveSource(CFRunLoopGetCurrent(), powerNotifyRunLoopSource, kCFRunLoopDefaultMode);
    if (powerNotifyPortRef) 
