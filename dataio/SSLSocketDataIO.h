@@ -121,7 +121,7 @@ public:
    virtual void Shutdown();
 
 private:
-   friend SSLSocketAdapterGateway;
+   friend class SSLSocketAdapterGateway;
 
    static unsigned int pskClientCallbackFunc(SSL * ssl, const char *hint, char * identity, unsigned int maxIdentityLen, unsigned char * psk, unsigned int maxPSKLen);
    static unsigned int pskServerCallbackFunc(SSL * ssl, const char *identity, unsigned char *outPSKBuf, unsigned int outPSKBufLen);
