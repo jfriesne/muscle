@@ -193,11 +193,7 @@ public:
    bool IsBackwards() const {return ((_flags & HTIT_FLAG_BACKWARDS) != 0);}
 
 private:
-#ifdef MUSCLE_AVOID_CPLUSPLUS11
    friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
-#else
-   friend HashtableType;  // this syntax is C++11-specific
-#endif
 
    HT_UniversalSinkKeyValueRef void SetScratchValues(HT_SinkKeyParam key, HT_SinkValueParam val)
    {
