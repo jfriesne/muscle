@@ -865,6 +865,12 @@ ItemType *
 Queue<ItemType>::
 AddTailAndGet(QQ_SinkItemParam item)
 {
+   if ((GetNumUnusedItemSlots() < 1)&&(IsItemLocatedInThisContainer(item)))
+   {
+      const ItemType temp = QQ_ForwardItem(item); // avoid dangling pointer issue by copying the item to a temporary location
+      return AddTailAndGet(temp);
+   }
+
    ItemType * oldArray;
    if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray, false) != B_NO_ERROR) return NULL;
 
@@ -927,6 +933,12 @@ ItemType *
 Queue<ItemType>::
 AddHeadAndGet(QQ_SinkItemParam item)
 {
+   if ((GetNumUnusedItemSlots() < 1)&&(IsItemLocatedInThisContainer(item)))
+   {
+      const ItemType temp = QQ_ForwardItem(item); // avoid dangling pointer issue by copying the item to a temporary location
+      return AddTailAndGet(temp);
+   }
+
    ItemType * oldArray;
    if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray, false) != B_NO_ERROR) return NULL;
    if (_itemCount == 0) _headIndex = _tailIndex = 0;
@@ -1162,18 +1174,18 @@ template <class ItemType>
 QQ_UniversalSinkItemRef
 status_t 
 Queue<ItemType>::
-InsertItemAt(uint32 index, QQ_SinkItemParam newItem)
+InsertItemAt(uint32 index, QQ_SinkItemParam item)
 {
-   if ((GetNumUnusedItemSlots() < 1)&&(IsItemLocatedInThisContainer(newItem)))
+   if ((GetNumUnusedItemSlots() < 1)&&(IsItemLocatedInThisContainer(item)))
    {
-      ItemType temp = QQ_ForwardItem(newItem); // avoid dangling pointer issue by copying the item to a temporary location
+      const ItemType temp = QQ_ForwardItem(item); // avoid dangling pointer issue by copying the item to a temporary location
       return InsertItemAt(index, temp);
    }
 
    // Simple cases
    if (index >  _itemCount) return B_ERROR;
-   if (index == _itemCount) return AddTail(QQ_ForwardItem(newItem));
-   if (index == 0)          return AddHead(QQ_ForwardItem(newItem));
+   if (index == _itemCount) return AddTail(QQ_ForwardItem(item));
+   if (index == 0)          return AddHead(QQ_ForwardItem(item));
 
    // Harder case:  inserting into the middle of the array
    if (index < _itemCount/2)
@@ -1188,7 +1200,7 @@ InsertItemAt(uint32 index, QQ_SinkItemParam newItem)
       if (AddTail() != B_NO_ERROR) return B_ERROR;  // allocate an extra slot
       for (int32 i=((int32)_itemCount)-1; i>((int32)index); i--) ReplaceItemAt(i, QQ_ForwardItem(*GetItemAtUnchecked(i-1)));
    }
-   return ReplaceItemAt(index, QQ_ForwardItem(newItem));
+   return ReplaceItemAt(index, QQ_ForwardItem(item));
 }
 
 template <class ItemType>

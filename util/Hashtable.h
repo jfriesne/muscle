@@ -834,6 +834,26 @@ public:
     */
    uint32 GetNumAllocatedItemSlots() const {return _tableSize;}
 
+   /** Returns true iff the given key-object has an address that is located within this
+     * Hashtable's internal data-array.
+     * @param key Reference to a key-object to check the location of.
+     * @note This method checks whether the specified key-object is physically located
+     *       inside this Hashtable's internal data-array, NOT whether a key/value pair
+     *       with a key equivalent to the argument is present in the table.
+     *       (i.e. this method is NOT a synonym for the ContainsKey() method!)
+     */
+   bool IsKeyLocatedInThisContainer(const KeyType & key) {return IsPointerPointingIntoDataTable(&key);}
+
+   /** Returns true iff the given value-object has an address that is located within this
+     * Hashtable's internal data-array.
+     * @param value Reference to a value-object to check the location of.
+     * @note This method checks whether the specified value-object is physically located
+     *       inside this Hashtable's internal data-array, NOT whether a key/value pair
+     *       with a value equivalent to the argument is present in the table.
+     *       (i.e. this method is NOT a synonym for the ContainsValue() method!)
+     */
+   bool IsValueLocatedInThisContainer(const ValueType & value) {return IsPointerPointingIntoDataTable(&value);}
+
    /** Returns a reference to a default-constructed Key item.  The reference will remain valid for as long as this Hashtable is valid. */
    const KeyType & GetDefaultKey() const {return GetDefaultObjectForType<KeyType>();}
 
@@ -1027,6 +1047,18 @@ private:
 #endif
       }
   
+      /** Returns true iff the given ValueType pointer is located within our allocated array */
+      static bool IsPointerPointingIntoDataTable(const HashtableBase * table, const void * ptr)
+      {
+         const uint32 numSlots = table->GetNumAllocatedItemSlots();
+         if ((numSlots == 0)||(ptr == NULL)) return false;
+
+         const HashtableEntry * h = static_cast<const HashtableEntry *>(table->GetEntriesArrayPointer());
+         const void * first       = &h[0];
+         const void * afterLast   = &h[numSlots];
+         return ((ptr >= first)&&(ptr < afterLast));
+      }
+
       IndexType _indices[NUM_HTE_INDICES];
    };
 
@@ -1360,6 +1392,8 @@ private:
          if (iter.GetValue() == value) return &iter.GetKey();
       return NULL;
    }
+
+   bool IsPointerPointingIntoDataTable(const void * ptr) const;
 
 #if !defined(__clang__) && defined(__GNUC__) && ((__GNUC__ < 8) || ((__GNUC__ == 8) && (__GNUC_MINOR__ <= 2)))
 public:  // work-around for an apparent bug in g++ 5.4.0 -- friend-template doesn't work for the Ordered*Hashtable constructors!?
@@ -2651,6 +2685,27 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::PopFromFreeList(HashtableEntry
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
+bool
+HashtableBase<KeyType,ValueType,HashFunctorType>::IsPointerPointingIntoDataTable(const void * ptr) const 
+{
+   switch(this->GetTableIndexType())
+   {
+      case TABLE_INDEX_TYPE_UINT8:  
+#ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
+         return HashtableEntry<uint8> ::IsPointerPointingIntoDataTable(this, ptr);
+#endif
+
+      case TABLE_INDEX_TYPE_UINT16: 
+#ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
+         return HashtableEntry<uint16>::IsPointerPointingIntoDataTable(this, ptr); 
+#endif
+
+      default:
+         return HashtableEntry<uint32>::IsPointerPointingIntoDataTable(this, ptr);
+   }
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
 void
 HashtableBase<KeyType,ValueType,HashFunctorType>::Clear(bool releaseCachedBuffers)
 {
@@ -3101,7 +3156,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::MoveToTable(const 
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
 HT_UniversalSinkKeyValueRef
-typename HashtableBase<KeyType,ValueType, HashFunctorType>::HashtableEntryBase *
+typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase *
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAux(uint32 hash, HT_SinkKeyParam key, HT_SinkValueParam value, ValueType * optSetPreviousValue, bool * optReplacedFlag)
 {
    if (optReplacedFlag) *optReplacedFlag = false;
@@ -3119,7 +3174,18 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAux(uint32 hash
    }
 
    // Rehash the table if the threshold is exceeded
-   if (this->_numItems == this->_tableSize) return (EnsureSize(this->_tableSize*2) == B_NO_ERROR) ? PutAux(hash, HT_ForwardKey(key), HT_ForwardValue(value), optSetPreviousValue, optReplacedFlag) : NULL;
+   if (this->_numItems == this->_tableSize) 
+   {
+      // Avoid dangling-pointer-issues in the case where we need to realloc the array, 
+      // but our arguments are pointing into the old array that is about to be freed inside EnsureSize()
+      if ((this->IsKeyLocatedInThisContainer(key))||(this->IsValueLocatedInThisContainer(value)))
+      {
+         const KeyType   tempKey = key;
+         const ValueType tempVal = value;
+         return PutAux(hash, tempKey, tempVal, optSetPreviousValue, optReplacedFlag);  // go again
+      }
+      return (EnsureSize(this->_tableSize*2) == B_NO_ERROR) ? PutAux(hash, HT_ForwardKey(key), HT_ForwardValue(value), optSetPreviousValue, optReplacedFlag) : NULL;
+   }
 
    e = this->PutAuxAux(hash, HT_ForwardKey(key), HT_ForwardValue(value));
    static_cast<SubclassType*>(this)->InsertIterationEntryAux(e);

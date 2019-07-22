@@ -10,6 +10,10 @@ key:  - new feature
    - Added an OrQueryFilter  class, for better ease-of-use.
    - Added a NandQueryFilter class, for better ease-of-use.
    - Added a NorQueryFilter  class, for better ease-of-use.
+   - Added IsKeyLocatedInThisContainer() and
+     IsValueLocatedInThisContainer() methods to the
+     Hashtable class (to match the IsItemLocatedInThisContainer()
+     method already present in the Queue class)
    o Renamed the existing AndOrQueryFilter class to 
      MinimumThresholdQueryFilter.  This class now serves as the
      superclass of the AndQueryFilter and OrQueryFilter classes.
@@ -27,6 +31,13 @@ key:  - new feature
      by GitHub CodeFactor
    * Added the 'class' keyword to a couple of friend-declarations 
      in SSLSocketDataIO.h, since pre-C++11 compilers require it.
+   * Fixed a bug where the Hashtable class's Put() call would not
+     do the right thing when it had to reallocate the table's
+     internal array, and the passed-in value-argument pointed
+     to a value-item that was located within the Hashtable's
+     old data-array.
+   * Fixed a bug similar to the above in Queue::AddHeadAndGet()
+     and Queue::AddTailAndGet().
 
 7.31 Released 7/11/2019
    - Updated muscled.cpp and portablereflectclient.cpp so that
