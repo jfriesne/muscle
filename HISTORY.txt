@@ -29,15 +29,15 @@ key:  - new feature
    * Fixed some compiler-warnings in the included Qt-examples.
    * Various style tweakages in response to suggestions generated
      by GitHub CodeFactor
-   * Added the 'class' keyword to a couple of friend-declarations 
+   * Added the 'class' keyword to a couple of friend-declarations
      in SSLSocketDataIO.h, since pre-C++11 compilers require it.
-   * Fixed a bug where the Hashtable class's Put() call would not
-     do the right thing when it had to reallocate the table's
-     internal array, and the passed-in value-argument pointed
-     to a value-item that was located within the Hashtable's
-     old data-array.
-   * Fixed a bug similar to the above in Queue::AddHeadAndGet()
-     and Queue::AddTailAndGet().
+   * Fixed a use-after-free bug that could occur when the
+     Hashtable class's Put() methods needed to allocate a
+     larger internal array to hold the new item, AND the
+     passed-in value-argument was a reference to an object
+     that was located within the Hashtable's old data-array.
+   * Fixed a bug similar to the above in the Queue class's
+     AddHead*() and AddTail*() methods.
 
 7.31 Released 7/11/2019
    - Updated muscled.cpp and portablereflectclient.cpp so that

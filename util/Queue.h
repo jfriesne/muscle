@@ -905,6 +905,14 @@ AddTailMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
    
    const uint32 mySize  = GetNumItems();
    const uint32 newSize = mySize+numNewItems;
+
+   if ((&queue == this)&&(newSize > GetNumAllocatedItemSlots()))
+   {
+      // Avoid re-entrancy problems by making a partial copy of myself to add back into myself
+      Queue<ItemType> temp;
+      return (temp.AddTailMulti(queue, startIndex, numNewItems) == B_NO_ERROR) ? AddTailMulti(temp) : B_ERROR;
+   }
+
    if (EnsureSize(newSize, true) != B_NO_ERROR) return B_ERROR;
    for (uint32 i=mySize; i<newSize; i++) (*this)[i] = queue[startIndex+(i-mySize)];
 
@@ -919,6 +927,13 @@ AddTailMulti(const ItemType * items, uint32 numItems)
    const uint32 mySize  = GetNumItems();
    const uint32 newSize = mySize+numItems;
    uint32 rhs = 0;
+
+   if ((newSize > GetNumAllocatedItemSlots())&&(IsItemLocatedInThisContainer(*items)))
+   {
+      // Avoid re-entrancy problems by making a temporary copy of the items before adding them back to myself
+      Queue<ItemType> temp;
+      return (temp.AddTailMulti(items, numItems) == B_NO_ERROR) ? AddTailMulti(temp) : B_ERROR;
+   }
 
    ItemType * oldArray;
    if (EnsureSizeAux(newSize, true, 0, &oldArray, false) != B_NO_ERROR) return B_ERROR;
@@ -970,6 +985,13 @@ AddHeadMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
    const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
 
+   if ((&queue == this)&&(numNewItems > GetNumUnusedItemSlots()))
+   {
+      // Avoid re-entrancy problems by making a partial copy of myself to prepend back into myself
+      Queue<ItemType> temp;
+      return (temp.AddTailMulti(queue, startIndex, numNewItems) == B_NO_ERROR) ? AddHeadMulti(temp) : B_ERROR;  // yes, AddTailMulti() and then AddHeadMulti() is intentional
+   }
+
    if (EnsureSize(numNewItems+GetNumItems()) != B_NO_ERROR) return B_ERROR;
    for (int32 i=((int)startIndex+numNewItems)-1; i>=(int32)startIndex; i--) (void) AddHead(queue[i]);  // guaranteed not to fail
    return B_NO_ERROR;
@@ -980,6 +1002,13 @@ status_t
 Queue<ItemType>::
 AddHeadMulti(const ItemType * items, uint32 numItems)
 {
+   if ((numItems > GetNumUnusedItemSlots())&&(IsItemLocatedInThisContainer(*items)))
+   {
+      // Avoid re-entrancy problems by making a temporary copy of the items before adding them back to myself
+      Queue<ItemType> temp;
+      return (temp.AddTailMulti(items, numItems) == B_NO_ERROR) ? AddHeadMulti(temp) : B_ERROR;  // Yes, AddTailMulti() and then AddHeadMulti() is intentional
+   }
+
    ItemType * oldArray;
    if (EnsureSizeAux(_itemCount+numItems, &oldArray) != B_NO_ERROR) return B_ERROR;
    for (int32 i=((int32)numItems)-1; i>=0; i--) (void) AddHead(items[i]);  // guaranteed not to fail
