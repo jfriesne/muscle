@@ -5,11 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
-7.40
+7.40 Released 7/23/2019
    - Added an AndQueryFilter class, for better ease-of-use.
-   - Added an OrQueryFilter  class, for better ease-of-use.
+   - Added an  OrQueryFilter class, for better ease-of-use.
    - Added a NandQueryFilter class, for better ease-of-use.
-   - Added a NorQueryFilter  class, for better ease-of-use.
+   - Added a  NorQueryFilter class, for better ease-of-use.
    - Added IsKeyLocatedInThisContainer() and
      IsValueLocatedInThisContainer() methods to the
      Hashtable class (to match the IsItemLocatedInThisContainer()

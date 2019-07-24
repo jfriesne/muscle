@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
    <H1>MUSCLE Overview and Beginner's Guide</H1>
-   <H4>v7.31 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 7/11/2019</H4>
+   <H4>v7.40 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 7/23/2019</H4>
    <A HREF="http://www.lcscanada.com/muscle/html/index.html">Click here for DOxygen class API documentation</A>
 </HEAD>
 
@@ -643,23 +643,10 @@ Here is a brief list of the various available types, and what they do:
        if the MessageQueryFilter finds a Message field inside the node's data Message
        with the given field name, it will call the child QueryFilter on the
        found Message and return the result.
- <LI>AndOrQueryFilter<br>
-       This filter is a "meta-filter", in that you can add one or more child
-       QueryFilters to it, and it will combine their operations together to make
-       a more complex operation.  Its function is this:  It will match the given
-       Message if at least (n) of its child filters match the Message.  You get
-       to specify what (n) is.  The two most common uses for this filter are OR
-       (set n=1, and this filter will match if any one of its children match),
-       and AND (set n equal to the number of child filters, and this filter will
-       match only if all of its children match).  
- </LI>
- <LI>NandNotQueryFilter<br>
-       This filter is another "meta-filter", and is useful primarily for combining
-       child QueryFilters together with NAND or NOT operations.  Its function is
-       this:  It will match the given Message if no more than (n) of its children
-       match the Message.  So, to get a NOT filter, you could add a single child
-       to this filter and set (n=0).  To get a NAND filter, you could add two
-       children and set (n=1).  And so on.
+ <LI>AndQueryFilter,OrQueryFilter,NandQueryFilter,NorQueryFilter<br>
+       These are "composite filters", in that you can add one or more child
+       QueryFilters to them, and they will combine their children's result-values
+       together via short-circuit boolean logic to render a final result.
  </LI>
  <LI>XorQueryFilter<br>
        This meta-filter is quite simple:  it will return true if and only if
