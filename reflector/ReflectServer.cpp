@@ -683,12 +683,15 @@ ServerProcessLoop()
                      const uint32 outQSize = g->GetOutgoingMessageQueue().GetNumItems();
                      if (outQSize > session->_lastReportedQueueSize+100)
                      {
-                        LogTime(MUSCLE_LOG_WARNING, "Session [%s] has " UINT32_FORMAT_SPEC " Messages in its outgoing-Message-Queue, but no writeable socket.  Possible resource leak?\n", session->GetSessionDescriptionString()(), outQSize);
+                        const DataIO * dio = g->GetDataIO()();
+                        const Socket * sck = dio ? dio->GetWriteSelectSocket()() : NULL;
+                        LogTime(MUSCLE_LOG_WARNING, "Session [%s] has " UINT32_FORMAT_SPEC " Messages in its outgoing-Message-Queue, but no writeable socket (gw=[%s] dio=[%s] sock=%p).  Possible resource leak?\n", session->GetSessionDescriptionString()(), outQSize, typeid(*g).name(), dio?typeid(*dio).name():NULL, sck);
                         session->_lastReportedQueueSize = outQSize;
                      }
                   }
                }
             }
+
             TCHECKPOINT;
             CheckForOutOfMemory(sessionRef);  // if the session caused a memory error, give him the boot
          }
