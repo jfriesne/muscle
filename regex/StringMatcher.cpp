@@ -19,26 +19,6 @@ StringMatcherRef GetStringMatcherFromPool(const String & matchString, bool isSim
    return ret;
 }
 
-StringMatcher::StringMatcher()
-{
-   // empty
-} 
-
-StringMatcher :: StringMatcher(const String & str, bool simple)
-{
-   (void) SetPattern(str, simple);
-}
-
-StringMatcher :: StringMatcher(const StringMatcher & rhs) : RefCountable(rhs)
-{
-   *this = rhs;
-}
-
-StringMatcher :: ~StringMatcher()
-{
-   Reset();
-}
-
 void StringMatcher :: Reset()
 {
    if (_flags.IsBitSet(STRINGMATCHER_FLAG_REGEXVALID)) regfree(&_regExp);
@@ -219,6 +199,14 @@ String StringMatcher :: ToString() const
       s += '>';
       return s;
    }
+}
+
+void StringMatcher :: SwapContents(StringMatcher & withMe)
+{
+   muscleSwap(_flags,   withMe._flags);
+   muscleSwap(_pattern, withMe._pattern);
+   muscleSwap(_regExp,  withMe._regExp);
+   muscleSwap(_ranges,  withMe._ranges);
 }
 
 bool IsRegexToken(char c, bool isFirstCharInString)

@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+7.41
+   - Added a SwapContents() method to the StringMatcher class,
+     and also a move-constructor and a move-assignment-operator.
+
 7.40 Released 7/23/2019
    - Added an AndQueryFilter class, for better ease-of-use.
    - Added an  OrQueryFilter class, for better ease-of-use.

@@ -30,20 +30,20 @@ class StringMatcher MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Default Constructor. */
-   StringMatcher();
+   StringMatcher() {/* empty */}
 
    /** A constructor that sets the given expression.  See SetPattern() for argument semantics.
      * @param expression the pattern string to use in future pattern-matches.
      * @param isSimpleFormat if true, a simple globbing syntax is expected in (expression).  
      *                       Otherwise, the full regex syntax will be expected.  Defaults to true.
      */
-   StringMatcher(const String & expression, bool isSimpleFormat = true);
+   StringMatcher(const String & expression, bool isSimpleFormat = true) {(void) SetPattern(expression, isSimpleFormat);}
     
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   StringMatcher(const StringMatcher & rhs);
+   StringMatcher(const StringMatcher & rhs) : RefCountable(rhs) {*this = rhs;}
 
    /** Destructor */
-   ~StringMatcher();
+   ~StringMatcher() {Reset();}
 
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator == (const StringMatcher & rhs) const {return ((_flags == rhs._flags)&&(_pattern == rhs._pattern));}
@@ -130,6 +130,19 @@ public:
 
    /** @copydoc DoxyTemplate::HashCode() const */
    inline uint32 HashCode() const {return _pattern.HashCode() + _flags.HashCode();}
+
+   /** Efficiently swaps our state with the state of the StringMatcher passed in as an argument.
+     * @param withMe the StringMatcher whose state should be swapped with our own.
+     */
+   void SwapContents(StringMatcher & withMe);
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   StringMatcher(StringMatcher && rhs) {SwapContents(rhs);}
+
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   StringMatcher & operator =(StringMatcher && rhs) {SwapContents(rhs); return *this;}
+#endif
 
 private:
    enum {
