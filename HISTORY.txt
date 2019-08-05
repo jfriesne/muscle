@@ -8,6 +8,9 @@ key:  - new feature
 7.41
    - Added a SwapContents() method to the StringMatcher class,
      and also a move-constructor and a move-assignment-operator.
+   - The CMakeLists.txt file now takes an optional
+     -DBUILD_MUSCLE_LIBRARY_ONLY=1 flag, for use-cases where
+     the user wants only muscle.lib to be built and not muscled.
 
 7.40 Released 7/23/2019
    - Added an AndQueryFilter class, for better ease-of-use.
