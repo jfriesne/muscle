@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
    <H1>Implementing a Custom Server with MUSCLE</H1>
-   <H4>v7.40 / Jeremy Friesner / Meyer Sound Laboratories Inc / jaf@meyersound.com 7/23/2019</H4>
+   <H4>v7.41 / Jeremy Friesner / Meyer Sound Laboratories Inc / jaf@meyersound.com 8/8/2019</H4>
 </HEAD>
 <BODY bgcolor=#ffffff>
 <H2>Introduction</H2>
@@ -9,7 +9,7 @@ As you may be aware, MUSCLE includes a fairly powerful general purpose server pr
 <p>
 However, there are some things that muscled does not do, such as read or write from the hard disk, authenticate users, or implement application-specific logic.  But if your client-server application needs to do such things, don't worry, the muscled architecture can be seamlessly extended to include the functionality you require.  This document will show you how to do that.
 <p>
-This document assumes that you have some basic knowledge of C++, and how MUSCLE works (at least from a client program's perspective).  If you don't, you may want to review the <a href="http://www.lcscanada.com/muscle/muscle/html/Beginners%20Guide.html">Beginner's Guide to MUSCLE programming</a>.  You will want to have the MUSCLE header files (muscle/*/*.h) handy as you read along, as this document does not attempt to be comprehensive in its API descriptions.
+This document assumes that you have some basic knowledge of C++, and how MUSCLE works (at least from a client program's perspective).  If you don't, you may want to review the <a href="https://public.msli.com/lcs/muscle/muscle/html/Beginners%20Guide.html">Beginner's Guide to MUSCLE programming</a>.  You will want to have the MUSCLE header files (muscle/*/*.h) handy as you read along, as this document does not attempt to be comprehensive in its API descriptions.
 <p>
 Note that the server side of MUSCLE is 100% single-threaded by default.  It uses multiplexed non-blocking I/O and message queues to achieve a multithreaded effect, but is single-threaded for purposes of stability and portability.  Trying to integrate multithreaded code into a MUSCLE server is possible, but usually not necessary.  I suggest you stick with the single-thread model if you can, it's not as bad as you think ;^).
 

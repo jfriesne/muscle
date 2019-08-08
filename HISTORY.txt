@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-7.41
+7.41 Released 8/8/2019
    - Added a SwapContents() method to the StringMatcher class,
      and also a move-constructor and a move-assignment-operator.
    - The CMakeLists.txt file can now take an optional
