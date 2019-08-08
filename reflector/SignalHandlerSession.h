@@ -23,7 +23,6 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef &, void *) {/* empty */}
    virtual status_t AttachedToServer();
    virtual void AboutToDetachFromServer();
-   virtual const char * GetTypeName() const {return "SignalHandler";}
    virtual void SignalHandlerFunc(int whichSignal);
 
 protected:

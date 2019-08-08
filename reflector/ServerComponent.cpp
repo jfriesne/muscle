@@ -1,5 +1,11 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#include <typeinfo>   // For typeid().name()
+
+#if defined(__GNUC__) 
+# include <cxxabi.h>  // for abi::__cxa_demangle()
+#endif
+
 #include "reflector/ServerComponent.h"
 #include "reflector/ReflectServer.h"
 
@@ -19,11 +25,35 @@ ServerComponent ::
    MASSERT(_owner == NULL, "ServerComponent deleted while still attached to its ReflectServer!  Maybe you did not call Cleanup() on the ReflectServer object, or did not forward an AboutToDetachFromServer() call to your superclass's implementation?");
 }
 
+static String DemangleTypeName(const char * mangled_name)
+{
+   String ret = mangled_name;
+
+#if defined(__GNUC__) 
+   // Stolen from Wikipedia:  https://en.wikipedia.org/wiki/Name_mangling#Standardised_name_mangling_in_C++
+   int status = -1;
+   char *demangled_name = abi::__cxa_demangle(ret(), NULL, NULL, &status);
+   ret = demangled_name;
+   free(demangled_name);
+#endif
+
+   const int32 doubleColonIdx = ret.IndexOf("::");
+   return (doubleColonIdx >= 0) ? ret.Substring(doubleColonIdx+2) : ret;   // remove namespace prefix
+}
+
 status_t 
 ServerComponent ::
 AttachedToServer()
 {
    return B_NO_ERROR;
+}
+
+const char *
+ServerComponent ::
+GetTypeName() const
+{
+   if ((_fullyAttached == false)||(_rttiTypeName.IsEmpty())) _rttiTypeName = DemangleTypeName(typeid(*this).name());
+   return _rttiTypeName();
 }
 
 void

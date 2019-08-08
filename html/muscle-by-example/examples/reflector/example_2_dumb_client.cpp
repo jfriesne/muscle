@@ -82,8 +82,6 @@ public:
       EndServer();
       return DumbReflectSession::ClientConnectionClosed();
    }
-
-   virtual const char * GetTypeName() const {return "MyDumbStdinSession";}
 };
 
 int main(int argc, char ** argv)

@@ -119,8 +119,6 @@ public:
       }
    }
 
-   virtual const char * GetTypeName() const {return "UDP Ping Pong";}
-
 private:
    Hashtable<MessageRef, uint64> _pendingReplies;  // Message -> timeToSendItAt
 };

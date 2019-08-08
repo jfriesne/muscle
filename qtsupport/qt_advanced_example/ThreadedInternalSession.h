@@ -38,8 +38,6 @@ public:
    virtual void AboutToDetachFromServer();
 
 protected:
-   virtual const char * GetTypeName() const {return "ThreadedInternalSession";}
-
    /** Called by InternalThreadEntry(), in the internal/slave thread, whenever the main thread has a Message to give the slave Thread
      * @param msgRef the MessageRef that was handed to us from the MUSCLE thread.
      * @param numLeft the number of Messages left for us to process in the FIFO queue after this one.

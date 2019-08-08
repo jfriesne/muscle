@@ -72,7 +72,6 @@ public:
    }
 
    virtual void MessageReceivedFromGateway(const MessageRef &, void *) {/* empty */}
-   virtual const char * GetTypeName() const {return "TestPulseChild";}
 
 private:
    Queue<TestPulseChild *> _tpcs;

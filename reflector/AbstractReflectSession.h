@@ -308,9 +308,6 @@ public:
    /** Overridden to support auto-reconnect via SetAutoReconnectDelay() */
    virtual void Pulse(const PulseArgs &);
 
-   /** Should return a pretty, human readable string identifying this class.  */
-   virtual const char * GetTypeName() const = 0;
-
    /** Convenience method -- returns a human-readable string describing our
     *  type, our hostname, our session ID, and what port we are connected to.
     */
@@ -494,8 +491,10 @@ private:
    bool IsThisSessionScheduledForPostSleepReconnect() const;
 
    friend class ReflectServer;
+
    uint32 _sessionID;
    String _idString;
+
    IPAddressAndPort _ipAddressAndPort;
 
    bool _connectingAsync;

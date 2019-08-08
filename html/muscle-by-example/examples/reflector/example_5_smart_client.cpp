@@ -79,9 +79,6 @@ public:
       return AbstractReflectSession::ClientConnectionClosed();  // returns true
    }
 
-   virtual const char * GetTypeName() const {return "MySmartStdinSession";}
-
-
 private:
    // My function to parse commands from stdin (see help text in main() for the syntax)
    void HandleStdinCommandFromUser(const String & stdinCommand)

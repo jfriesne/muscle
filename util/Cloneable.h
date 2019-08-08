@@ -5,10 +5,11 @@
 
 #include "support/MuscleSupport.h"
 
-#ifdef MUSCLE_AVOID_CPLUSPLUS11
-# include <typeinfo>
-#else
+#include <typeinfo>
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
 # include <type_traits>
+# include <typeindex>
 #endif
 
 namespace muscle {
@@ -25,12 +26,41 @@ public:
    /** Virtual destructor, to keep C++ honest.  Don't remove this unless you like crashing */
    virtual ~Cloneable() {/* empty */}
 
+   /** Wrapper function that calls CloneImp() and verifies that the returned value is of the correct type.
+     * @returns a pointer to a newly-allocated copy of this object on success, or NULL on failure (out of memory?)
+     */
+   Cloneable * Clone() const
+   {
+      Cloneable * ret = CloneImp();
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+      if ((ret)&&(std::type_index(typeid(*ret)) != std::type_index(typeid(*this))))
+      {
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Class [%s]'s CloneImp() method erroneously returned an object of type [%s], check to see if it forget to include a DECLARE_STANDARD_CLONE_METHOD() invocation!\n", typeid(*this).name(), typeid(*ret).name());
+         MCRASH("Clone() detected a malformed Cloneable subclass-implementation");
+      }
+#endif
+      return ret;
+   }
+
+protected:
    /** Should be implemented by the inheriting concrete class to return a freshly allocated copy of itself. */
-   virtual Cloneable * Clone() const = 0;
+   virtual Cloneable * CloneImp() const = 0;
 };
 
-/** This macro declares a "virtual Cloneable * Clone() const" method that performs the standard/basic Clone() implementation:  Allocates a duplicate of this object on the heap, using the copy constructor, and returns it.  The macro allows us to avoid the tedious and error-prone re-entering of the same three lines of code for every Cloneable class.  (If there was a way to automate this using templates, I'd use that instead, but I haven't seen a reasonable way to do that yet) */
-#define DECLARE_STANDARD_CLONE_METHOD(class_name) virtual Cloneable * Clone() const {Cloneable * r = newnothrow class_name(*this); if (r == NULL) WARN_OUT_OF_MEMORY; return r;}
+/** This macro declares a "virtual Cloneable * CloneImp() const" method that performs the 
+  * standard/basic CloneImp() implementation:  Allocates a duplicate of this object on the 
+  * heap, using the copy constructor, and returns it.  The macro allows us to avoid the 
+  * tedious and error-prone re-entering of the same few lines of code for every Cloneable 
+  * class.  (If there was a way to automate this using templates, I'd use that instead, 
+  * but I haven't seen a reasonable way to do that yet) 
+  */
+#define DECLARE_STANDARD_CLONE_METHOD(class_name)   \
+   virtual Cloneable * CloneImp() const             \
+   {                                                \
+      Cloneable * r = newnothrow class_name(*this); \
+      if (r == NULL) WARN_OUT_OF_MEMORY;            \
+      return r;                                     \
+   }
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
 

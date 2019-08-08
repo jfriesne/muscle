@@ -106,9 +106,6 @@ public:
    // Overridden to call PushSubscriptionMessages()
    virtual void AfterMessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
-   /** Returns a human-readable label for this session type:  "Session" */
-   virtual const char * GetTypeName() const {return "Session";}
-
    /** Prints to stdout a report of what sessions are currently present on this server, and how
      * much memory each of them is currently using for various things.  Useful for understanding
      * what your RAM is being used for.

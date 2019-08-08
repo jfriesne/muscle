@@ -68,9 +68,6 @@ public:
      */
    bool IsRoutingFlagSet(uint32 flag) const {return ((_defaultRoutingFlags & flag) != 0);}
 
-   /** Returns a human-readable label for our session type:  "Dumb Session" */
-   virtual const char * GetTypeName() const {return "Dumb Session";}
-
 private:
    uint32 _defaultRoutingFlags;
 

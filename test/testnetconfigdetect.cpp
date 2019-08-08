@@ -9,8 +9,6 @@ class SomeOtherSession : public AbstractReflectSession, public INetworkConfigCha
 public:
    SomeOtherSession () {/* empty */}
 
-   virtual const char * GetTypeName() const {return "SomeOther";}
-
    virtual void MessageReceivedFromGateway(const MessageRef &, void *) {/* empty */}
 
    virtual void NetworkInterfacesChanged(const Hashtable<String, Void> & interfaceNames)

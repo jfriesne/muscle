@@ -11,6 +11,14 @@ key:  - new feature
    - The CMakeLists.txt file can now take an optional
      -DBUILD_MUSCLED=OFF argument, for use-cases where
      the user wants only muscle.lib to be built and not muscled.
+   - The Cloneable interface class now includes logic to verify
+     that the object returned by Clone() is of the correct
+     subclass, and will trigger an assertion-failure if it isn't.
+   - Added a test/testclone unit-test program to test Cloneable.
+   o Moved AbstractReflectSession::GetTypeName() up into the
+     ServerComponent superclass, and gave it a default implementation
+     (based on RTTI) so that it no longer needs to be implemented
+     manually by every subclass.
 
 7.40 Released 7/23/2019
    - Added an AndQueryFilter class, for better ease-of-use.

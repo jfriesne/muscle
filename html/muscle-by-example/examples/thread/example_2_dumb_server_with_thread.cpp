@@ -88,8 +88,6 @@ public:
    }
 
 protected:
-   virtual const char * GetTypeName() const {return "Server Thread";}
-
    /** Called, in the slave thread, whenever the main thread has a Message to give the slave Thread */
    virtual status_t MessageReceivedFromOwner(const MessageRef & msgRef, uint32 numLeft)
    {

@@ -70,8 +70,6 @@ class AdvancedThreadWorkerSession : public ThreadWorkerSession
 public:
    AdvancedThreadWorkerSession() {/* empty */}
 
-   virtual const char * GetTypeName() const {return "AdvancedThreadWorker";}
-
    // Overridden to specially handle messages coming from the ThreadSupervisorSession (and therefore by extension, from the GUI thread)
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void * userData);
 };
@@ -83,8 +81,6 @@ class AdvancedThreadSupervisorSession : public ThreadSupervisorSession
 {
 public:
    AdvancedThreadSupervisorSession() {/* empty */}
-
-   virtual const char * GetTypeName() const {return "AdvancedThreadSupervisor";}
 };
 
 #endif

@@ -136,9 +136,6 @@ public:
      */
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData);
 
-   /** Returns a human-readable label for this session type:  "ThreadWorker" */
-   virtual const char * GetTypeName() const {return "ThreadWorker";}
-
    /** Overridden to clear our _drainNotifiers Queue when appropriate 
      * @copydoc StorageReflectSession::DoOutput(uint32)
      */
@@ -295,9 +292,6 @@ public:
 
    /** Returns the current default distribution path. */
    const String & GetDefaultDistributionPath() const {return _defaultDistributionPath;}
-
-   /** Returns a human-readable label for this session type:  "ThreadSupervisor" */
-   virtual const char * GetTypeName() const {return "ThreadSupervisor";}
 
 protected:
    /** Handles control messages received from the main thread. 

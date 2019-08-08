@@ -42,6 +42,13 @@ public:
    /** Destructor. */
    virtual ~ServerComponent();
 
+   /** Returns a pretty/human-readable string identifying this class.
+     * Default implementation generates a type-name from our subclass's
+     * RTTI info; subclasses may override this to return something prettier, 
+     * if they wish.
+     */
+   virtual const char * GetTypeName() const;
+
    /**
     * This method is called when this object has been added to
     * a ReflectServer object.  When this method is called, it
@@ -288,6 +295,8 @@ such factory exists. */
 private:
    ReflectServer * _owner;
    bool _fullyAttached;
+
+   mutable String _rttiTypeName;
 
    DECLARE_COUNTED_OBJECT(ServerComponent);
 };

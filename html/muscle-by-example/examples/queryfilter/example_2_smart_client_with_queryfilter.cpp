@@ -36,8 +36,6 @@ public:
       LogTime(MUSCLE_LOG_INFO, "Received the following Message from the server:\n");
       msg()->PrintToStream();
    }
- 
-   virtual const char * GetTypeName() const {return "MyTCPSession";}
 };
 
 int main(int argc, char ** argv)

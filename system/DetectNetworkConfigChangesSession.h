@@ -60,8 +60,6 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
    virtual ConstSocketRef CreateDefaultSocket();
-   virtual const char * GetTypeName() const {return "DetectNetworkConfigChanges";}
-
    virtual uint64 GetPulseTime(const PulseArgs & args) {return muscleMin(_callbackTime, AbstractReflectSession::GetPulseTime(args));}
    virtual void Pulse(const PulseArgs & args);
 
