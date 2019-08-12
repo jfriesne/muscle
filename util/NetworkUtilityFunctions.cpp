@@ -15,7 +15,10 @@
 
 #ifdef __APPLE__
 # include <CoreFoundation/CoreFoundation.h>
-# include <SystemConfiguration/SystemConfiguration.h>
+# include <TargetConditionals.h>
+# if !(TARGET_OS_IPHONE)
+#  include <SystemConfiguration/SystemConfiguration.h>
+# endif
 #endif
 
 #ifdef WIN32
@@ -1288,6 +1291,7 @@ static bool IsGNIIBitMatch(const IPAddress & ip, bool isInterfaceEnabled, GNIIFl
 // Given an Apple-style interface-type string, returns the corresponding NETWORK_INTERFACE_HARDWARE_TYPE_* value, or NETWORK_INTERFACE_TYPE_UNKNOWN.
 static uint32 ParseAppleInterfaceTypeString(CFStringRef appleTypeString)
 {
+# if !(TARGET_OS_IPHONE)
    static const CFStringRef _appleTypeStrings[] = {
       kSCNetworkInterfaceType6to4,
       kSCNetworkInterfaceTypeBluetooth,
@@ -1331,6 +1335,8 @@ static uint32 ParseAppleInterfaceTypeString(CFStringRef appleTypeString)
    const String s(appleTypeString);
    if (s.EqualsIgnoreCase("bridge")) return NETWORK_INTERFACE_HARDWARE_TYPE_BRIDGE; 
    
+# endif // TARGET_OS_IPHONE
+
    return NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN;
 }
 #endif
@@ -1394,6 +1400,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 #ifdef __APPLE__
       Hashtable<String, uint32> inameToType;  // e.g. "en0" -> NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET
       {
+# if !(TARGET_OS_IPHONE)
          CFArrayRef interfaces = SCNetworkInterfaceCopyAll();  // we can use this to get network interface hardware types later
          if (interfaces)
          {
@@ -1409,6 +1416,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             }
             CFRelease(interfaces);
          }
+# endif  // !(TARGET_OS_IPHONE)
       }
 #endif
 

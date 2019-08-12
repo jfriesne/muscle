@@ -8,8 +8,15 @@
 # include <mach/mach_port.h>
 # include <mach/mach_interface.h>
 # include <mach/mach_init.h>
-# include <IOKit/pwr_mgt/IOPMLib.h>
-# include <IOKit/IOMessage.h>
+# include <TargetConditionals.h>
+# if !(TARGET_OS_IPHONE)
+#  include <IOKit/pwr_mgt/IOPMLib.h>
+#  include <IOKit/IOMessage.h>
+# else
+#  ifndef MUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION
+#   define MUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION
+#  endif
+# endif
 # include <SystemConfiguration/SystemConfiguration.h>
 #elif WIN32
 # if defined(UNICODE) && !defined(_UNICODE)
@@ -336,7 +343,7 @@ void DetectNetworkConfigChangesSession :: SignalInternalThread()
 }
 
 # ifdef __APPLE__
-
+#  if !(TARGET_OS_IPHONE)
 // MacOS/X Code taken from http://developer.apple.com/technotes/tn/tn1145.html
 static OSStatus MoreSCErrorBoolean(Boolean success)
 {
@@ -498,7 +505,7 @@ Hashtable<String, String> & GetKeyToInterfaceNameTable(DetectNetworkConfigChange
 {
    return s->_scKeyToInterfaceName;
 }
-
+#  endif // TARGET_OS_IPHONE
 # endif  // __APPLE__
 
 #if defined(WIN32) && !defined(MUSCLE_AVOID_NETIOAPI)
@@ -530,7 +537,7 @@ VOID __stdcall InterfaceCallbackDemo(IN PVOID context, IN PMIB_IPINTERFACE_ROW i
 
 #endif
 
-#if defined(__APPLE__) || defined(WIN32)
+#if (defined(__APPLE__) && !(TARGET_OS_IPHONE)) || defined(WIN32)
 static void MySleepCallbackAux(DetectNetworkConfigChangesSession * s, bool isGoingToSleep) {s->MySleepCallbackAux(isGoingToSleep);}
 
 void DetectNetworkConfigChangesSession :: MySleepCallbackAux(bool isAboutToSleep)
@@ -546,7 +553,7 @@ void DetectNetworkConfigChangesSession :: MySleepCallbackAux(bool isAboutToSleep
 }
 #endif
 
-#ifdef __APPLE__
+#if (defined(__APPLE__) && !(TARGET_OS_IPHONE))
 static void * GetRootPortPointerFromSession(const DetectNetworkConfigChangesSession * s) {return s->_rootPortPointer;}
 static void MySleepCallBack(void * refCon, io_service_t /*service*/, natural_t messageType, void * messageArgument)
 {

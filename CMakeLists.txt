@@ -50,13 +50,90 @@ else (!WIN32)
    endif (ZLIB_FOUND)
 endif (WIN32)
 
-add_library(muscle ${MUSCLE_SRCS})
+if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "iOS")
+   add_library(muscle ${MUSCLE_SRCS})
+else ()
+   add_library(muscle STATIC ${MUSCLE_SRCS})
+   set_target_properties(muscle PROPERTIES
+        FRAMEWORK TRUE
+        MACOSX_FRAMEWORK_IDENTIFIER com.meyersound.muscle
+   )
+   install(TARGETS muscle
+      FRAMEWORK DESTINATION lib
+   )
+   install(DIRECTORY "./dataio"
+            DESTINATION lib/muscle.framework/Headers
+            COMPONENT header_files
+            FILES_MATCHING PATTERN "*.h"
+            PATTERN "*SSL*" EXCLUDE
+   )
+   install(DIRECTORY "./iogateway"
+            DESTINATION lib/muscle.framework/Headers
+            COMPONENT header_files
+            FILES_MATCHING PATTERN "*.h"
+   )
+   install(DIRECTORY "./message"
+            DESTINATION lib/muscle.framework/Headers
+            COMPONENT header_files
+            FILES_MATCHING PATTERN "*.h"
+   )
+   install(DIRECTORY "./reflector"
+            DESTINATION lib/muscle.framework/Headers
+            COMPONENT header_files
+            FILES_MATCHING PATTERN "*.h"
+   )
+   install(DIRECTORY "./regex"
+            DESTINATION lib/muscle.framework/Headers
+            COMPONENT header_files
+            FILES_MATCHING PATTERN "*.h"
+   )
+   install(DIRECTORY "./support"
+            DESTINATION lib/muscle.framework/Headers
+            COMPONENT header_files
+            FILES_MATCHING PATTERN "*.h"
+   )
+   install(DIRECTORY "./syslog"
+            DESTINATION lib/muscle.framework/Headers
+            COMPONENT header_files
+            FILES_MATCHING PATTERN "*.h"
+   )
+   install(DIRECTORY "./system"
+            DESTINATION lib/muscle.framework/Headers
+            COMPONENT header_files
+            FILES_MATCHING PATTERN "*.h"
+   )
+   install(DIRECTORY "./util"
+            DESTINATION lib/muscle.framework/Headers
+            COMPONENT header_files
+            FILES_MATCHING PATTERN "*.h"
+   )
+   install(DIRECTORY "./zlib"
+            DESTINATION lib/muscle.framework/Headers
+            COMPONENT header_files
+            FILES_MATCHING PATTERN "*.h"
+   )
+endif()
+
 target_include_directories(muscle PUBLIC .)
 target_compile_definitions(muscle PUBLIC MUSCLE_ENABLE_ZLIB_ENCODING MUSCLE_NO_EXCEPTIONS)
 if (APPLE)
-   target_link_libraries(muscle "-framework CoreFoundation")
-   target_link_libraries(muscle "-framework SystemConfiguration")
-   target_link_libraries(muscle "-framework IOKit")
+   find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
+   if (NOT COREFOUNDATION_FRAMEWORK)
+      message(FATAL_ERROR "CoreFoundation framework not found.")
+   endif()
+   target_link_libraries(muscle ${COREFOUNDATION_FRAMEWORK})
+   if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL iOS)
+      find_library(SYSTEMCONFIGURATION_FRAMEWORK SystemConfiguration)
+      if (NOT SYSTEMCONFIGURATION_FRAMEWORK)
+         message(FATAL_ERROR "SystemConfiguration framework not found.")
+      endif()
+      target_link_libraries(muscle ${SYSTEMCONFIGURATION_FRAMEWORK})
+      find_library(IOKIT_FRAMEWORK IOKit)
+      if (NOT IOKIT_FRAMEWORK)
+         message(FATAL_ERROR "IOKit framework not found.")
+      endif()
+      target_link_libraries(muscle ${IOKIT_FRAMEWORK})
+   endif()
 endif (APPLE)
 
 if (WIN32)

@@ -5,6 +5,13 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Merged in some iOS-compatibility patches supplied
+     by Arno Gramatke.  The CMakeLists.txt now does the
+     right thing for iOS, and several non-iOS-supported
+     classes (i.e.  DetectNetworkConfigChangesSession
+     and RS232DataIO) now compile under iOS as dummy/no-op
+     classes, rather than breaking the build.
+
 7.41 Released 8/8/2019
    - Added a SwapContents() method to the StringMatcher class,
      and also a move-constructor and a move-assignment-operator.

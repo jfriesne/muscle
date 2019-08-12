@@ -4,10 +4,13 @@
 
 #if defined(__APPLE__)
 # include <CoreFoundation/CoreFoundation.h>
-# include <IOKit/IOKitLib.h>
-# include <IOKit/serial/IOSerialKeys.h>
-# include <IOKit/IOBSD.h>
-#endif
+# include <TargetConditionals.h>
+# if !(TARGET_OS_IPHONE)
+#  include <IOKit/IOKitLib.h>
+#  include <IOKit/serial/IOSerialKeys.h>
+#  include <IOKit/IOBSD.h>
+# endif // !(TARGET_OS_IPHONE)
+#endif // __APPLE__
 
 #if defined(WIN32) || defined(__CYGWIN__)
 # include <process.h>  // for _beginthreadex()
@@ -321,6 +324,7 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
    }
 #else
 # if defined(__APPLE__)
+#  if !(TARGET_OS_IPHONE)
    mach_port_t masterPort;
    if (IOMasterPort(MACH_PORT_NULL, &masterPort) == KERN_SUCCESS)
    {
@@ -348,6 +352,7 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
          }
       }
    }
+#  endif
    return B_ERROR;  // if we got here, it didn't work
 # else
    for (int i=0; /*empty*/; i++)
