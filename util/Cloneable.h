@@ -35,7 +35,7 @@ public:
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
       if ((ret)&&(std::type_index(typeid(*ret)) != std::type_index(typeid(*this))))
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Class [%s]'s CloneImp() method erroneously returned an object of type [%s], check to see if it forget to include a DECLARE_STANDARD_CLONE_METHOD() invocation!\n", typeid(*this).name(), typeid(*ret).name());
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Class [%s]'s CloneImp() method erroneously returned an object of type [%s], check to see if it forgot to include a DECLARE_STANDARD_CLONE_METHOD() invocation!\n", typeid(*this).name(), typeid(*ret).name());
          MCRASH("Clone() detected a malformed Cloneable subclass-implementation");
       }
 #endif
