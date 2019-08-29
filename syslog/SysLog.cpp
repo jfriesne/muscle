@@ -1083,6 +1083,14 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
   s.AddrFrame.Mode = AddrModeFlat;
   s.AddrStack.Offset = _context.Sp;
   s.AddrStack.Mode = AddrModeFlat;
+#elif _M_ARM64
+  imageType = IMAGE_FILE_MACHINE_ARM64;
+  s.AddrPC.Offset = _context.Pc;
+  s.AddrPC.Mode = AddrModeFlat;
+  s.AddrFrame.Offset = _context.Fp;
+  s.AddrFrame.Mode = AddrModeFlat;
+  s.AddrStack.Offset = _context.Sp;
+  s.AddrStack.Mode = AddrModeFlat;
 #else
 # error "StackWalker:  Platform not supported!"
 #endif
