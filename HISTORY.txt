@@ -11,6 +11,7 @@ key:  - new feature
      classes (i.e.  DetectNetworkConfigChangesSession
      and RS232DataIO) now compile under iOS as dummy/no-op
      classes, rather than breaking the build.
+   - Merged in Mika Lindqvist's patch for VS2019 and ARM64.
    * Fixed an output-formatting bug in test/readmessages.cpp
 
 7.41 Released 8/8/2019
