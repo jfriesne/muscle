@@ -816,7 +816,7 @@ static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * f
               defined(__alpha__) || defined(__alpha) || defined(__CYGWIN__) || \
               defined(_M_IX86) || defined(_M_AMD64) || defined(__GNUWIN32__) || defined(__LITTLEENDIAN__) || \
               defined(__MINGW32__) || defined(__MINGW64__) || \
-              defined(_M_ARM) || \
+              defined(_M_ARM) || defined(_M_ARM64) || \
               (defined(__Lynx__) && defined(__x86__))
         #define BYTE_ORDER      LITTLE_ENDIAN
       #endif

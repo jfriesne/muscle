@@ -13,6 +13,8 @@ key:  - new feature
      classes, rather than breaking the build.
    * Updated the friend-template work-around in Hashtable.h
      to include g++ 8.3.x
+   - Merged in Mika Lindqvist's patch for VS2019 and ARM64.
+   * Fixed an output-formatting bug in test/readmessages.cpp
 
 7.41 Released 8/8/2019
    - Added a SwapContents() method to the StringMatcher class,
