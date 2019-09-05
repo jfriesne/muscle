@@ -11,6 +11,8 @@ key:  - new feature
      classes (i.e.  DetectNetworkConfigChangesSession
      and RS232DataIO) now compile under iOS as dummy/no-op
      classes, rather than breaking the build.
+   * Updated the friend-template work-around in Hashtable.h
+     to include g++ 8.3.x
 
 7.41 Released 8/8/2019
    - Added a SwapContents() method to the StringMatcher class,

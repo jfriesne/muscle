@@ -1395,7 +1395,7 @@ private:
 
    bool IsPointerPointingIntoDataTable(const void * ptr) const;
 
-#if !defined(__clang__) && defined(__GNUC__) && ((__GNUC__ < 8) || ((__GNUC__ == 8) && (__GNUC_MINOR__ <= 2)))
+#if !defined(__clang__) && defined(__GNUC__) && ((__GNUC__ < 8) || ((__GNUC__ == 8) && (__GNUC_MINOR__ <= 3)))
 public:  // work-around for an apparent bug in g++ 5.4.0 -- friend-template doesn't work for the Ordered*Hashtable constructors!?
 #endif
    template<class KeyCompareFunctor> class ByKeyEntryCompareFunctor
