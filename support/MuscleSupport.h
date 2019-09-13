@@ -242,13 +242,6 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
       CB_NO_ERROR = 0,         /**< For C programs: The value returned by a function or method with return type status_t, to indicate that it succeeded with no errors. */
       CB_OK       = CB_NO_ERROR /**< For C programs: Synonym for CB_NO_ERROR */
    };
-#  if (defined(__cplusplus) && defined(MUSCLE_AVOID_CPLUSPLUS11))
-   enum {
-      B_ERROR    = -1,        /**< A value typically returned by a function or method with return type status_t, to indicate that it failed.  (When checking the value, it's better to check against B_NO_ERROR though, in case other failure values are defined in the future) */
-      B_NO_ERROR = 0,         /**< The value returned by a function or method with return type status_t, to indicate that it succeeded with no errors. */
-      B_OK       = B_NO_ERROR /**< Synonym for B_NO_ERROR */
-   };
-#  endif
 # ifdef __ATHEOS__
 #  include </ainc/atheos/types.h>
 # else
@@ -305,47 +298,44 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
      typedef uint64_t uint64; /**< uint64 is a 64-bit unsigned integer type */
 #   endif
      typedef int32 c_status_t; /**< For C programs: This type indicates an expected value of either CB_NO_ERROR/CB_OK on success, or another value (often CB_ERROR) on failure. */
-#   if defined(__cplusplus) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
+#   if defined(__cplusplus)
      namespace muscle {
-        // This C++11 implementation of status_t allows for better compile-time type-safety than the old enum-based implementation did
-        enum class status_t_values : int32
-        {
-           B_ERROR    = -1,  ///< This value is returned by a function or method that errored out
-           B_NO_ERROR = 0,   ///< This value is returned by a function or method that succeeded
-        };
-        constexpr status_t_values B_ERROR    = status_t_values::B_ERROR;    ///< This value is returned by a function or method that errored out
-        constexpr status_t_values B_NO_ERROR = status_t_values::B_NO_ERROR; ///< This value is returned by a function or method that succeeded
-        constexpr status_t_values B_OK       = status_t_values::B_NO_ERROR; ///< This value is a synonym for B_NO_ERROR
-   
-        /** This class represents the return value of a function or method that returns success or failure.
-          * Under C++11 and newer, It's implemented as a class instead of a typedef so that the compiler can
-          * provide stricter compile-time type-checking.  Valid values for this class are B_ERROR, B_NO_ERROR, 
-          * or B_OK (which is a synonym for B_NO_ERROR)
+        /** This class represents the return-value of a function or method that indicates success or failure.
+          * It's implemented as a class instead of as a typedef so that the compiler can provide stricter 
+          * compile-time type-checking.  Valid values for this class are B_ERROR, B_NO_ERROR, or B_OK 
+          * (which is a synonym for B_NO_ERROR).  With B_ERROR you may optionally supply a human-readable
+          * compile-time-constant-string describing the error, e.g. B_ERROR("Some error description").
           */
         class status_t
         {
         public:
-           /** Constructor.  Sets our value to the specified status_t_value
-             * param v the enum-value to set us to.  Defaults to status_t_values::B_ERROR
+           /** Default-constructor.  Creates a status_t representing success. */
+           status_t() : _desc(NULL) {/* empty */}
+
+           /** Explicit Constructor.
+             * param desc An optional human-description of the error.  If passed in as NULL (the default), the status will represent success.
+             * @note The (desc) string is NOT copied: only the pointer is retained, so any non-NULL (desc) argument 
+             *       should be a compile-time-constant string!
              */
-           status_t(status_t_values v = status_t_values::B_ERROR) : _val(v) {/* empty */}
-   
+           explicit status_t(const char * desc) : _desc(desc) {/* empty */}
+
            /** Copy constructor
              * @param rhs the status_t to make this object a copy of
              */
-           status_t(const status_t & rhs) : _val(rhs._val) {/* empty */}
-      
-           /** Comparison operator.  Returns true iff this object has the same value as (rhs)
+           status_t(const status_t & rhs) : _desc(rhs._desc) {/* empty */}
+
+           /** Comparison operator.  Returns true iff this object has the same error/non-error value as (rhs)
              * @param rhs the status_t to compare against
+             * @note that only the OK/not-OK status of the two objects is compared; the equality of any error-description strings is not considered here.
              */
-           bool operator ==(const status_t & rhs) const {return (_val == rhs._val);}
+           bool operator ==(const status_t & rhs) const {return (IsOK() == rhs.IsOK());}
 
            /** Comparison operator.  Returns true iff this object has a different value than (rhs)
              * @param rhs the status_t to compare against
              */
-           bool operator !=(const status_t & rhs) const {return (_val != rhs._val);}
-      
-           /** This operator returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR, 
+           bool operator !=(const status_t & rhs) const {return (IsOK() != rhs.IsOK());}
+
+           /** This operator returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR,
              * otherwise it returns one of the non-B_NO_ERROR values.  This operator is
              * useful for aggregating a series of operations together and checking the
              * result of the series (e.g. status_t ret = a() | b() | c() | d())
@@ -354,29 +344,42 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
              *       of the operations in the series in unspecified.  Also, no short-circuiting
              *       is performed; all operands will be evaluated regardless of their values.
              */
-           status_t operator | (const status_t & rhs) const {return rhs.IsOK() ? *this : rhs;}
-   
+           status_t operator | (const status_t & rhs) const {return ((rhs.IsError())&&(!IsError())) ? rhs : *this;}
+
            /** Sets this object equal to ((*this)|rhs).
              * @param rhs the second status_t to test this status_t against
              */
            status_t & operator |= (const status_t & rhs) {*this = ((*this)|rhs); return *this;}
-   
-           /** For debugging: Implemented to return "OK" if our value is B_NO_ERROR, or "ERROR" otherwise. */
-           const char * operator()() const {return IsOK() ? "OK" : "ERROR";}
-   
-           /** Convenience method:  Returns true iff our value is B_NO_ERROR */
-           bool IsOK() const {return (_val == status_t_values::B_NO_ERROR);}
-   
-           /** Convenience method:  Returns true iff our value is not B_NO_ERROR */
-           bool IsError() const {return !IsOK();}
-   
+
+           /** Convenience method -- a synonym for GetDescription() */
+           const char * operator()() const {return GetDescription();}
+
+           /** Returns "OK" if our value is B_NO_ERROR, or a human-readable description of the error otherwise. */
+           const char * GetDescription() const {return IsOK() ? "OK" : _desc;}
+
+           /** Convenience method:  Returns true this object represents an ok/non-error status */
+           bool IsOK() const {return (_desc == NULL);}
+
+           /** Convenience method:  Returns true iff this object represents an error-status */
+           bool IsError() const {return (_desc != NULL);}
+
+           /** Returns a status_t with the given error-string.  (Added to allow e.g. B_ERROR("The Reason Why") syntax)
+             * @param desc the error-string the returned status_t should have.  Should be a compile-time constant.
+             * @note if this is called on a status_t that has a NULL error-string, then (desc) will be ignored and
+             *       the returned status_t will also have a NULL error string.  That is to avoid doing the wrong thing
+             *       if someone tries to do a B_NO_ERROR("Yay") or etc.
+             */ 
+           status_t operator()(const char * desc) const {return status_t(_desc?desc:NULL);}
+
         private:
-           status_t_values _val;
+           const char * _desc;  // If non-NULL, we represent an error
         };
+
+        const status_t B_ERROR("Error"); ///< This value is returned by a function or method that errored out in a non-descript fashion
+        const status_t B_NO_ERROR;       ///< This value is returned by a function or method that succeeded
+        const status_t B_OK;             ///< This value is a synonym for B_NO_ERROR
      };
-#   else
-     typedef int32 status_t; /**< This type indicates an expected value of either B_NO_ERROR/B_OK on success, or another value (often B_ERROR) on failure. */
-#   endif  /* !(defined(__cplusplus) && !defined(MUSCLE_AVOID_CPLUSPLUS11)) */
+#   endif  /* defined(__cplusplus) */
 #  endif  /* !MUSCLE_TYPES_PREDEFINED */
 # endif  /* !__ATHEOS__*/
 #endif  /* __BEOS__ || __HAIKU__ */

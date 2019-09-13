@@ -16,7 +16,7 @@ public:
    {
       (void) retIPAddress;  // avoid compiler warning
       printf("TestHostNameResolver (priority %i):  name=[%s] expandLocalhost=%i preferIPv6=%i\n", _pri, name, expandLocalhost, preferIPv6);
-      return B_ERROR;
+      return B_ERROR("Artificially induced error");
    }
 
 private:

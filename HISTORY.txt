@@ -11,6 +11,13 @@ key:  - new feature
      classes (i.e.  DetectNetworkConfigChangesSession
      and RS232DataIO) now compile under iOS as dummy/no-op
      classes, rather than breaking the build.
+   - When compiling under C++11 or higher, the status_t
+     class can now hold a (const char *)-pointer containing
+     a human-readable description of the error that occurred
+     (or NULL to indicate that the operation succeeded).
+   - B_ERROR now optionally takes a (const char *) argument
+     specifiying a human-readable error-string describing
+     the error that occurred.
    * Updated the friend-template work-around in Hashtable.h
      to include g++ 8.3.x
    - Merged in Mika Lindqvist's patch for VS2019 and ARM64.

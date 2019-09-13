@@ -34,7 +34,7 @@ CXXFLAGS += -std=c++11
 
 LFLAGS =  
 LIBS =  -lpthread
-EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue testtuple testgateway calctypecode printtypecode portablereflectclient portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs hexterm udpproxy serialproxy printsourcelocations findsourcelocations svncopy testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testthreadpool testobjectpool
+EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue testtuple testgateway calctypecode printtypecode portablereflectclient portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs hexterm udpproxy serialproxy printsourcelocations findsourcelocations svncopy testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testthreadpool testobjectpool
 REGEXOBJS = 
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
 ZIPOBJS = zip.o unzip.o ioapi.o
@@ -217,6 +217,9 @@ testrefcount : $(STDOBJS) testrefcount.o SysLog.o String.o SetupSystem.o MiscUti
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 striphextermoutput : $(STDOBJS) striphextermoutput.o SysLog.o String.o SocketMultiplexer.o NetworkUtilityFunctions.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+teststatus : teststatus.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 teststring : $(STDOBJS) teststring.o SysLog.o String.o SocketMultiplexer.o NetworkUtilityFunctions.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o

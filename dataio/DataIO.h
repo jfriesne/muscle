@@ -104,7 +104,7 @@ public:
     *                    otherwise B_ERROR.  Default implementation
     *                    always returns B_ERROR.
     */
-   virtual status_t GetReadByteTimeStamp(int32 whichByte, uint64 & retStamp) const {(void) whichByte; (void) retStamp; return B_ERROR;}
+   virtual status_t GetReadByteTimeStamp(int32 whichByte, uint64 & retStamp) const {(void) whichByte; (void) retStamp; return B_ERROR("Unimplemented");}
 
    /**
     * Optional:  If your DataIO subclass is holding buffered data that it wants

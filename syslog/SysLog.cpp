@@ -1434,7 +1434,7 @@ status_t PrintStackTrace(FILE * optFile, uint32 maxDepth)
    fprintf(optFile, "PrintStackTrace:  Error, stack trace printing not available on this platform!\n");
 #endif
 
-   return B_ERROR;  // I don't know how to do this for other systems!
+   return B_ERROR("Unsupported OS");  // I don't know how to do this for other systems!
 }
 
 status_t GetStackTrace(String & retStr, uint32 maxDepth)
@@ -1465,7 +1465,7 @@ status_t GetStackTrace(String & retStr, uint32 maxDepth)
    (void) maxDepth;
 #endif
 
-   return B_ERROR;
+   return B_ERROR("Unsupported OS");
 }
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS

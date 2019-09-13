@@ -82,7 +82,7 @@ status_t FileDescriptorDataIO :: SetBlockingIOEnabled(bool blocking)
          return B_ERROR;
       }
    }
-   else return B_ERROR;
+   else return B_ERROR("No File");
 }
 
 void FileDescriptorDataIO :: Shutdown()
@@ -100,7 +100,7 @@ status_t FileDescriptorDataIO :: Seek(int64 offset, int whence)
          case IO_SEEK_SET:  whence = SEEK_SET;  break;
          case IO_SEEK_CUR:  whence = SEEK_CUR;  break;
          case IO_SEEK_END:  whence = SEEK_END;  break;
-         default:           return B_ERROR;
+         default:           return B_ERROR("Bad Argument");
       }
 #ifdef MUSCLE_USE_LLSEEK
       loff_t spot;
@@ -109,7 +109,7 @@ status_t FileDescriptorDataIO :: Seek(int64 offset, int whence)
       return (lseek(fd, (off_t) offset, whence) >= 0) ? B_NO_ERROR : B_ERROR; 
 #endif
    }
-   return B_ERROR;
+   return B_ERROR("No File");
 }
 
 int64 FileDescriptorDataIO :: GetPosition() const

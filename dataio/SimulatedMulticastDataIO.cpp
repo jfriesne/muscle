@@ -129,7 +129,7 @@ status_t SimulatedMulticastDataIO :: ReadPacket(DataIO & dio, ByteBufferRef & re
       _scratchBuf.Reset();
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_ERROR("I/O Error");
 }
 
 status_t SimulatedMulticastDataIO :: SendIncomingDataPacketToMainThread(const ByteBufferRef & data, const IPAddressAndPort & source)
@@ -239,11 +239,11 @@ static const uint64 _halfTimeoutPeriodMicros           = _timeoutPeriodMicros/2;
 
 status_t SimulatedMulticastDataIO :: ParseMulticastControlPacket(const ByteBuffer & buf, uint64 now, uint32 & retWhatCode)
 {
-   if (buf.GetNumBytes() < sizeof(uint64)+sizeof(uint32)) return B_ERROR;
+   if (buf.GetNumBytes() < sizeof(uint64)+sizeof(uint32)) return B_ERROR("Malformed packet");
 
    const uint8 * b      = buf.GetBuffer();
    const uint64 magic   = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(b)); b += sizeof(uint64);
-   if (magic != SIMULATED_MULTICAST_CONTROL_MAGIC) return B_ERROR;
+   if (magic != SIMULATED_MULTICAST_CONTROL_MAGIC) return B_ERROR("Bad Magic Number");
    retWhatCode          = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(b)); b += sizeof(uint32);
 
    if (retWhatCode == SMDIO_COMMAND_PONG)
