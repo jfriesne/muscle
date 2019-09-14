@@ -18,6 +18,10 @@ key:  - new feature
    - B_ERROR now optionally takes a (const char *) argument
      specifiying a human-readable error-string describing
      the error that occurred.
+   - Added IsOK(status_t &) and IsError(status_t &) methods
+     to the status_t class, to support short-circuit logic
+     chains that support returning an error-description
+     string (see test/teststatus.cpp for examples)
    * Updated the friend-template work-around in Hashtable.h
      to include g++ 8.3.x
    - Merged in Mika Lindqvist's patch for VS2019 and ARM64.

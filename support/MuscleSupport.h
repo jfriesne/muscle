@@ -360,8 +360,30 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
            /** Convenience method:  Returns true this object represents an ok/non-error status */
            bool IsOK() const {return (_desc == NULL);}
 
+           /** Convenience method:  Returns true iff this object represents an ok/non-error status
+             * @param writeErrorTo If this object represents an error, this object will be copied into (writeErrorTo)
+             * @note this allows for e.g. status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
+             */
+           bool IsOK(status_t & writeErrorTo) const 
+           {
+              const bool isOK = IsOK();
+              if (isOK == false) writeErrorTo = *this;
+              return isOK;
+           }
+
            /** Convenience method:  Returns true iff this object represents an error-status */
            bool IsError() const {return (_desc != NULL);}
+
+           /** Convenience method:  Returns true iff this object represents an error-status
+             * @param writeErrorTo If this object represents an error, this object will be copied into (writeErrorTo)
+             * @note this allows for e.g. status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
+             */
+           bool IsError(status_t & writeErrorTo) const 
+           {
+              const bool isError = IsError();
+              if (isError) writeErrorTo = *this;
+              return isError;
+           }
 
            /** Returns a status_t with the given error-string.  (Added to allow e.g. B_ERROR("The Reason Why") syntax)
              * @param desc the error-string the returned status_t should have.  Should be a compile-time constant.

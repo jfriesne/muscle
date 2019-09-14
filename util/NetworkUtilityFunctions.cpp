@@ -1641,11 +1641,14 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 
 status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & results, GNIIFlags includeFlags)
 {
+   status_t ret;
+
    Queue<NetworkInterfaceInfo> infos;
-   if ((GetNetworkInterfaceInfos(infos, includeFlags) != B_NO_ERROR)||(results.EnsureSize(infos.GetNumItems()) != B_NO_ERROR)) return B_ERROR;
+   if ((GetNetworkInterfaceInfos(infos, includeFlags).IsError(ret))
+    || (results.EnsureSize(infos.GetNumItems())      .IsError(ret))) return ret;
 
    for (uint32 i=0; i<infos.GetNumItems(); i++) (void) results.AddTail(infos[i].GetLocalAddress());  // guaranteed not to fail
-   return B_NO_ERROR;
+   return ret;
 }
 
 static void Inet4_NtoA(uint32 addr, char * buf)
@@ -1895,7 +1898,7 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
    (void) maxProbeCount;
    (void) idleTime;
    (void) retransmitTime;
-   return B_ERROR;
+   return B_ERROR("Unsupported OS");
 #endif
 }
 
