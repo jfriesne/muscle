@@ -18,6 +18,9 @@ key:  - new feature
    - B_ERROR now optionally takes a (const char *) argument
      specifiying a human-readable error-string describing
      the error that occurred.
+   - Added a B_ERRNO macro which is similar to B_ERROR, 
+     except it includes the current errno-string, as
+     returned by strerror(errno).
    - Added IsOK(status_t &) and IsError(status_t &) methods
      to the status_t class, to support short-circuit logic
      chains that support returning an error-description

@@ -400,6 +400,8 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
         const status_t B_ERROR("Error"); ///< This value is returned by a function or method that errored out in a non-descript fashion
         const status_t B_NO_ERROR;       ///< This value is returned by a function or method that succeeded
         const status_t B_OK;             ///< This value is a synonym for B_NO_ERROR
+
+#    define B_ERRNO B_ERROR(strerror(GetErrno()));  ///< Macro for return a B_ERROR with the current errno-string as its string-value
      };
 #   endif  /* defined(__cplusplus) */
 #  endif  /* !MUSCLE_TYPES_PREDEFINED */

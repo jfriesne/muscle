@@ -681,7 +681,7 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
    //    your program. This step is required so that the new process is guaranteed not to be a process
    //    group leader. The next step, setsid(), fails if you're a process group leader.
    pid_t pid = fork();
-   if (pid < 0) return B_ERROR;
+   if (pid < 0) return B_ERRNO;
    if (pid > 0) 
    {
       returningAsParent = true;
@@ -698,14 +698,14 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
    //    non-session group leader, can never regain a controlling terminal.
    signal(SIGHUP, SIG_IGN);
    pid = fork();
-   if (pid < 0) return B_ERROR;
+   if (pid < 0) return B_ERRNO;
    if (pid > 0) ExitWithoutCleanup(0);
 
    // 4. chdir("/") can ensure that our process doesn't keep any directory in use. Failure to do this
    //    could make it so that an administrator couldn't unmount a filesystem, because it was our
    //    current directory. [Equivalently, we could change to any directory containing files important
    //    to the daemon's operation.]
-   if ((optNewDir)&&(chdir(optNewDir) != 0)) return B_ERROR;
+   if ((optNewDir)&&(chdir(optNewDir) != 0)) return B_ERRNO;
 
    // 5. umask(0) so that we have complete control over the permissions of anything we write.
    //    We don't know what umask we may have inherited. [This step is optional]
@@ -1018,7 +1018,7 @@ bool FileExists(const char * filePath)
 
 status_t RenameFile(const char * oldPath, const char * newPath)
 {
-   return (rename(oldPath, newPath) == 0) ? B_NO_ERROR : B_ERROR;
+   return (rename(oldPath, newPath) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 static status_t CopyDirectoryRecursive(const char * oldDirPath, const char * newDirPath)
@@ -1064,7 +1064,7 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
    }
 
    FILE * fpIn = muscleFopen(oldPath, "rb");
-   if (fpIn == NULL) return B_ERROR;
+   if (fpIn == NULL) return B_ERRNO;
 
    status_t ret = B_NO_ERROR;  // optimistic default
    FILE * fpOut = muscleFopen(newPath, "wb");
@@ -1105,7 +1105,7 @@ status_t DeleteFile(const char * filePath)
 #else
    const int unlinkRet = unlink(filePath);
 #endif
-   return (unlinkRet == 0) ? B_NO_ERROR : B_ERROR;
+   return (unlinkRet == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 String GetHumanReadableProgramNameFromArgv0(const char * argv0)
