@@ -39,7 +39,7 @@ status_t StorageReflectSessionFactory :: SetMaxIncomingMessageSizeFor(AbstractRe
       if (session->GetGateway()() == NULL) session->SetGateway(session->CreateGateway());
       MessageIOGateway * gw = dynamic_cast<MessageIOGateway*>(session->GetGateway()());
       if (gw) gw->SetMaxIncomingMessageSize(_maxIncomingMessageSize);
-         else return B_ERROR("Gateway was not a MessageIOGateway");
+         else return B_BAD_OBJECT;
    }
    return B_NO_ERROR;
 }
@@ -101,7 +101,7 @@ AttachedToServer()
    if (DumbReflectSession::AttachedToServer() != B_NO_ERROR) return B_ERROR;
 
    _sharedData = InitSharedData();
-   if (_sharedData == NULL) return B_ERROR("InitShareData failed");
+   if (_sharedData == NULL) return B_OUT_OF_MEMORY;
    
    Message & state = GetCentralState();
    const String & hostname = GetHostName();

@@ -1877,19 +1877,19 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
 {
 #ifdef __linux__
    const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_ERROR;
+   if (fd < 0) return B_BAD_ARGUMENT;
 
    int arg = KeepAliveMicrosToSeconds(idleTime);
-   if (setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &arg, sizeof(arg)) != 0) return B_ERROR;
+   if (setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &arg, sizeof(arg)) != 0) return B_ERRNO;
 
    arg = (int) maxProbeCount;
-   if (setsockopt(fd, SOL_TCP, TCP_KEEPCNT, &arg, sizeof(arg)) != 0) return B_ERROR;
+   if (setsockopt(fd, SOL_TCP, TCP_KEEPCNT, &arg, sizeof(arg)) != 0) return B_ERRNO;
 
    arg = KeepAliveMicrosToSeconds(retransmitTime);
-   if (setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &arg, sizeof(arg)) != 0) return B_ERROR;
+   if (setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &arg, sizeof(arg)) != 0) return B_ERRNO;
 
    arg = (maxProbeCount>0);  // true iff we want keepalive enabled
-   if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (const sockopt_arg *) &arg, sizeof(arg)) != 0) return B_ERROR;
+   if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (const sockopt_arg *) &arg, sizeof(arg)) != 0) return B_ERRNO;
 
    return B_NO_ERROR;
 #else
@@ -1898,7 +1898,7 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
    (void) maxProbeCount;
    (void) idleTime;
    (void) retransmitTime;
-   return B_ERROR("Unsupported OS");
+   return B_UNIMPLEMENTED;
 #endif
 }
 
@@ -1906,7 +1906,7 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
 {
 #ifdef __linux__
    const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_ERROR;
+   if (fd < 0) return B_BAD_ARGUMENT;
 
    int val;
    muscle_socklen_t valLen;

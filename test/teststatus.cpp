@@ -30,7 +30,6 @@ status_t Func3()
    return B_ERROR("Func3");
 }
 
-
 // This program exercises the String class.
 int main(void) 
 {

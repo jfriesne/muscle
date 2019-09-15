@@ -304,7 +304,7 @@ public:
    /** Attempts to retrieve the associated value from the table for a given key.  (O(1) lookup time)
     *  @param key The key to use to look up a value.
     *  @param setValue On success, the associated value is copied into this object.
-    *  @return B_NO_ERROR on success, B_ERROR if their was no value found for the given key.
+    *  @return B_NO_ERROR on success, B_DATA_NOT_FOUND if their was no value found for the given key.
     */
    status_t GetValue(const KeyType & key, ValueType & setValue) const; 
 
@@ -329,7 +329,7 @@ public:
     *  functions are such that lookupKeys and held keys are not guaranteed equivalent.
     *  @param lookupKey The key used to look up the held key object.
     *  @param setKey On success, the actual key held in the table is placed here.
-    *  @return B_NO_ERROR on success, or B_ERROR on failure.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure.
     */
    status_t GetKey(const KeyType & lookupKey, KeyType & setKey) const;
 
@@ -376,7 +376,7 @@ public:
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
     *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetNumItems()-1].
     *  @param retKey On success, the contents of the (index)'th key will be written into this object.
-    *  @return B_NO_ERROR on success, or B_ERROR on failure.
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure.
     */
    status_t GetKeyAt(uint32 index, KeyType & retKey) const;
 
@@ -411,7 +411,7 @@ public:
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
     *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
     *  @param retValue On success, the contents of the (index)'th value will be written into this object.
-    *  @return B_NO_ERROR on success, or B_ERROR on failure.
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure.
     */
    status_t GetValueAt(uint32 index, ValueType & retValue) const;
 
@@ -449,14 +449,14 @@ public:
 
    /** Removes a mapping from the table.  (O(1) removal time)
     *  @param key The key of the key-value mapping to remove.
-    *  @return B_NO_ERROR if a key was found and the mapping removed, or B_ERROR if the key wasn't found.
+    *  @return B_NO_ERROR if a key was found and the mapping removed, or B_DATA_NOT_FOUND if the key wasn't found.
     */
    status_t Remove(const KeyType & key) {return RemoveAux(key, NULL);}
 
    /** Removes the mapping with the given (key) and places its value into (setRemovedValue).  (O(1) removal time)
     *  @param key The key of the key-value mapping to remove.
     *  @param setRemovedValue On success, the removed value is copied into this object.
-    *  @return B_NO_ERROR if a key was found and the mapping removed, or B_ERROR if the key wasn't found.
+    *  @return B_NO_ERROR if a key was found and the mapping removed, or B_DATA_NOT_FOUND if the key wasn't found.
     */
    status_t Remove(const KeyType & key, ValueType & setRemovedValue) {return RemoveAux(key, &setRemovedValue);}
 
@@ -488,19 +488,19 @@ public:
    uint32 Intersect(const HashtableBase & pairs);
 
    /** Convenience method:  Removes the first key/value mapping in the table.  (O(1) removal time)
-    *  @return B_NO_ERROR if the first mapping was removed, or B_ERROR if this table was empty.
+    *  @return B_NO_ERROR if the first mapping was removed, or B_BAD_OBJECT if this table was already empty.
     */
    status_t RemoveFirst() {return RemoveEntryByIndex(_iterHeadIdx, NULL);}
 
    /** Convenience method:  Removes the first key/value mapping in the table and places the removed key
     *  into (setRemovedKey).  (O(1) removal time)
     *  @param setRemovedKey On success, the removed key is copied into this object.
-    *  @return B_NO_ERROR if the first mapping was removed and the key placed into (setRemovedKey), or B_ERROR if the table was empty.
+    *  @return B_NO_ERROR if the first mapping was removed and the key placed into (setRemovedKey), or B_BAD_OBJECT if the table was already empty.
     */
    status_t RemoveFirst(KeyType & setRemovedKey) 
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
-      if (e == NULL) return B_ERROR;
+      if (e == NULL) return B_BAD_OBJECT;
       setRemovedKey = e->_key;
       return RemoveEntry(e, NULL);
    }
@@ -509,34 +509,34 @@ public:
     *  key into (setRemovedKey) and its value into (setRemovedValue).  (O(1) removal time)
     *  @param setRemovedKey On success, the removed key is copied into this object.
     *  @param setRemovedValue On success, the removed value is copied into this object.
-    *  @return B_NO_ERROR if the first mapping was removed and the key and value placed into the arguments, or B_ERROR if the table was empty.
+    *  @return B_NO_ERROR if the first mapping was removed and the key and value placed into the arguments, or B_BAD_OBJECT if the table was already empty.
     */
    status_t RemoveFirst(KeyType & setRemovedKey, ValueType & setRemovedValue) 
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
-      if (e == NULL) return B_ERROR;
+      if (e == NULL) return B_BAD_OBJECT;
       setRemovedKey = e->_key;
       return RemoveEntry(e, &setRemovedValue);
    }
 
    /** Convenience method:  Removes the last key/value mapping in the table.  (O(1) removal time)
-    *  @return B_NO_ERROR if the last mapping was removed, or B_ERROR if the table was empty.
+    *  @return B_NO_ERROR if the last mapping was removed, or B_BAD_OBJECT if the table was already empty.
     */
    status_t RemoveLast() 
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
-      return e ? RemoveEntry(e, NULL) : B_ERROR;
+      return e ? RemoveEntry(e, NULL) : B_BAD_OBJECT;
    }
 
    /** Convenience method:  Removes the last key/value mapping in the table and places the removed key
     *  into (setRemovedKey).  (O(1) removal time)
     *  @param setRemovedKey On success, the removed key is copied into this object.
-    *  @return B_NO_ERROR if the last mapping was removed and the key placed into (setRemovedKey), or B_ERROR if the table was empty.
+    *  @return B_NO_ERROR if the last mapping was removed and the key placed into (setRemovedKey), or B_BAD_OBJECT if the table was already empty.
     */
    status_t RemoveLast(KeyType & setRemovedKey) 
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
-      if (e == NULL) return B_ERROR;
+      if (e == NULL) return B_BAD_OBJECT;
       setRemovedKey = e->_key;
       return RemoveEntry(e, NULL);
    }
@@ -545,7 +545,7 @@ public:
     *  key into (setRemovedKey) and its value into (setRemovedValue).  (O(1) removal time)
     *  @param setRemovedKey On success, the removed key is copied into this object.
     *  @param setRemovedValue On success, the removed value is copied into this object.
-    *  @return B_NO_ERROR if the last mapping was removed and the key and value placed into the arguments, or B_ERROR if the table was empty.
+    *  @return B_NO_ERROR if the last mapping was removed and the key and value placed into the arguments, or B_BAD_OBJECT if the table was already empty.
     */
    status_t RemoveLast(KeyType & setRemovedKey, ValueType & setRemovedValue) 
    {
@@ -603,7 +603,7 @@ public:
 
    /** Moves the given entry to the head of the HashtableIterator traversal sequence.
      * @param moveMe Key of the item to be moved to the front of the sequence.
-     * @return B_NO_ERROR on success, or B_ERROR if (moveMe) was not found in the table.
+     * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if (moveMe) was not found in the table.
      * @note calling this method is generally a bad idea if the table is in auto-sort mode,
      *       as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
      *       calling Sort() will restore the sort-order and make auto-sorting work again)
@@ -612,7 +612,7 @@ public:
 
    /** Moves the given entry to the tail of the HashtableIterator traversal sequence.
      * @param moveMe Key of the item to be moved to the end of the sequence.
-     * @return B_NO_ERROR on success, or B_ERROR if (moveMe) was not found in the table.
+     * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if (moveMe) was not found in the table.
      * @note calling this method is generally a bad idea if the table is in auto-sort mode,
      *       as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
      *       calling Sort() will restore the sort-order and make auto-sorting work again)
@@ -623,8 +623,8 @@ public:
      * HashtableIterator traversal sequence.
      * @param moveMe Key of the item to be moved.
      * @param toBeforeMe Key of the item that (moveMe) should be placed in front of.
-     * @return B_NO_ERROR on success, or B_ERROR if (moveMe) was not found in the table, 
-     *         or was the same item as (toBeforeMe).
+     * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if (moveMe) was not found in the table, 
+     *         or B_BAD_ARGUMENT if (moveMe) and (toBeforeMe) are equal.
      * @note calling this method is generally a bad idea if the table is in auto-sort mode,
      *       as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
      *       calling Sort() will restore the sort-order and make auto-sorting work again)
@@ -635,8 +635,8 @@ public:
      * HashtableIterator traversal sequence.
      * @param moveMe Key of the item to be moved.
      * @param toBehindMe Key of the item that (moveMe) should be placed behind.
-     * @return B_NO_ERROR on success, or B_ERROR if (moveMe) was not found in the table, 
-     *         or was the same item as (toBehindMe).
+     * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if (moveMe) was not found in the table, 
+     *         or B_BAD_ARGUMENT if (moveMe) and (toBehindMe) are equal.
      * @note calling this method is generally a bad idea if the table is in auto-sort mode,
      *       as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
      *       calling Sort() will restore the sort-order and make auto-sorting work again)
@@ -650,14 +650,14 @@ public:
      *                   the item to the head of the traversal sequence, one to the second
      *                   position, and so on.  Values greater than or equal to the number
      *                   of items in the Hashtable will move the item to the last position.
-     * @return B_NO_ERROR on success, or B_ERROR if (moveMe) was not found in the table.
+     * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if (moveMe) was not found in the table.
      */
    status_t MoveToPosition(const KeyType & moveMe, uint32 toPosition);
 
    /** Convenience synonym for GetValue() 
      * @param key the key to inquire about
      * @param retValue on success, the value associated with (key) is written here
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (key-not-found)
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (key-not-found)
      */
    status_t Get(const KeyType & key, ValueType & retValue) const {return GetValue(key, retValue);}
 
@@ -888,7 +888,7 @@ public:
 private:
    /** If we don't already have the storage array allocated for this Hashtable, 
      * allocates one.  If the table was already allocated, does nothing and returns B_NO_ERROR.
-     * @returns B_NO_ERROR if the table is present, B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR if the table is present, B_OUT_OF_MEMORY on failure.
      */
    status_t EnsureTableAllocated();
 
@@ -1228,12 +1228,12 @@ private:
    status_t RemoveAux(uint32 hash, const KeyType & key, ValueType * optSetValue)
    {
       HashtableEntryBase * e = this->GetEntry(hash, key);
-      return e ? RemoveEntry(e, optSetValue) : B_ERROR;
+      return e ? RemoveEntry(e, optSetValue) : B_DATA_NOT_FOUND;
    }
    status_t RemoveAux(const KeyType & key, ValueType * optSetValue)
    {
       HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
-      return e ? RemoveEntry(e, optSetValue) : B_ERROR;
+      return e ? RemoveEntry(e, optSetValue) : B_DATA_NOT_FOUND;
    }
    status_t RemoveEntry(HashtableEntryBase * e, ValueType * optSetValue);
    status_t RemoveEntryByIndex(uint32 idx, ValueType * optSetValue);
@@ -1479,7 +1479,7 @@ public:
      *            copied in; other settings such as sort mode and key/value cookies are not copied in.
      * @param clearFirst If true, this HashtableMid will be cleared before the contents of (rhs) are copied
      *                   into it.  Otherwise, the contents of (rhs) will be copied in on top of the current contents.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    template<class RHSHashFunctorType> status_t CopyFrom(const HashtableBase<KeyType,ValueType,RHSHashFunctorType> & rhs, bool clearFirst = true);
 
@@ -1490,23 +1490,23 @@ public:
     *  @param value The value to associate with the new key.
     *  @param setPreviousValue If there was a previously existing value associated with (key), it will be copied into this object.
     *  @param optSetReplaced If set non-NULL, this boolean will be set to true if (setPreviousValue) was written into, false otherwise.
-    *  @return B_NO_ERROR If the operation succeeded, B_ERROR if it failed (out of memory?)
+    *  @return B_NO_ERROR If the operation succeeded, B_OUT_OF_MEMORY if it failed.
     */
-   HT_UniversalSinkKeyValueRef status_t Put(HT_SinkKeyParam key, HT_SinkValueParam value, ValueType & setPreviousValue, bool * optSetReplaced = NULL) {return (PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), &setPreviousValue, optSetReplaced) != NULL) ? B_NO_ERROR : B_ERROR;}
+   HT_UniversalSinkKeyValueRef status_t Put(HT_SinkKeyParam key, HT_SinkValueParam value, ValueType & setPreviousValue, bool * optSetReplaced = NULL) {return (PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), &setPreviousValue, optSetReplaced) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;}
 
    /** Places the given (key, value) mapping into the table.  Any previous entry with a key of (key) will be replaced. 
     *  (average O(1) insertion time, unless auto-sorting is enabled, in which case it becomes O(N) insertion time for
     *  keys that are not already in the table)
     *  @param key The key that the new value is to be associated with.
     *  @param value The value to associate with the new key.
-    *  @return B_NO_ERROR If the operation succeeded, B_ERROR if it failed (out of memory?)
+    *  @return B_NO_ERROR If the operation succeeded, B_OUT_OF_MEMORY if it failed.
     */
-   HT_UniversalSinkKeyValueRef status_t Put(HT_SinkKeyParam key, HT_SinkValueParam value) {return (PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), NULL, NULL) != NULL) ? B_NO_ERROR : B_ERROR;}
+   HT_UniversalSinkKeyValueRef status_t Put(HT_SinkKeyParam key, HT_SinkValueParam value) {return (PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), NULL, NULL) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;}
 
    /** Places a (key, value) mapping into the table.  The value will be a default-constructed item of the value type.
     *  This call is equivalent to calling Put(key, ValueType()), but slightly more efficient.
     *  @param key The key to be used in the placed mapping.
-    *  @return B_NO_ERROR If the operation succeeded, B_ERROR if it failed (out of memory?)
+    *  @return B_NO_ERROR If the operation succeeded, B_OUT_OF_MEMORY if it failed.
     */
    HT_UniversalSinkKeyRef status_t PutWithDefault(HT_SinkKeyParam key) {return Put(HT_ForwardKey(key), this->GetDefaultValue());}
 
@@ -1514,7 +1514,7 @@ public:
      * key/value pair into this table.  Any existing items in this table with the same
      * key as any in (pairs) will be overwritten.
      * @param pairs A table full of items to Put() into this table.
-     * @returns B_NO_ERROR on success, or B_ERROR on failue (out of memory?)
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    template<class RHSHashFunctorType, class RHSSubclassType> status_t Put(const HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & pairs) {return this->CopyFrom(pairs, false);}
 
@@ -1522,7 +1522,7 @@ public:
      * be located at the front of the table's iteration-sequence.
      * @param key Key of the item to be placed at the front of the sequence.
      * @param v Value of the item to be associated with (key).
-     * @return B_NO_ERROR on success, or B_ERROR if (key) was not found in the table.
+     * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    HT_UniversalSinkKeyValueRef status_t PutAtFront(HT_SinkKeyParam key, HT_SinkValueParam v);
 
@@ -1541,7 +1541,7 @@ public:
      *                      currently exists in the table, then this method will act the 
      *                      same as a call to Put().
      * @param v Value of the item to be associated with (key).
-     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    HT_UniversalSinkKeyValueRef status_t PutBefore(HT_SinkKeyParam key, HT_SinkKeyParam placeBeforeMe, HT_SinkValueParam v);
 
@@ -1553,7 +1553,7 @@ public:
      *                      currently exists in the table, then this method will act the 
      *                      same as a call to Put().
      * @param v Value of the item to be associated with (key).
-     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    HT_UniversalSinkKeyValueRef status_t PutBehind(HT_SinkKeyParam key, HT_SinkKeyParam placeBehindMe, HT_SinkValueParam v);
 
@@ -1565,7 +1565,7 @@ public:
      *                   position, and so on.  Values greater than or equal to the number
      *                   of items in the Hashtable will place the item at the last position.
      * @param v Value of the item to be associated with (key).
-     * @return B_NO_ERROR on success, or B_ERROR if (key) was not found in the table.
+     * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    HT_UniversalSinkKeyValueRef status_t PutAtPosition(HT_SinkKeyParam key, uint32 atPosition, HT_SinkValueParam v);
 
@@ -1731,8 +1731,8 @@ public:
    /** Convenience method:  Moves an item from this table to another table.
      * @param moveMe The key in this table of the item that should be moved.
      * @param toTable The table that the item should be in when this operation completes.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory, or (moveMe)
-     *          was not found in this table.  Note that trying to move an item into its
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on memory failure, or B_DATA_NOT_FOUND
+     *          if (moveMe) was not found in this table.  Note that trying to move an item into its
      *          own table will simply return B_NO_ERROR with no side effects.
      */
    template<class RHSHashFunctorType, class RHSSubclassType> status_t MoveToTable(const KeyType & moveMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & toTable);
@@ -1740,8 +1740,8 @@ public:
    /** Convenience method:  Copies an item from this table to another table.
      * @param copyMe The key in this table of the item that should be copied.
      * @param toTable The table that the item should be in when this operation completes.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory, or (copyMe)
-     *          was not found in this table.  Note that trying to copy an item into its
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on memory failure, or B_DATA_NOT_FOUND
+     *          if (moveMe) was not found in this table.  Note that trying to copy an item into its
      *          own table will simply return B_NO_ERROR with no side effects.
      */
    template<class RHSHashFunctorType, class RHSSubclassType> status_t CopyToTable(const KeyType & copyMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & toTable) const;
@@ -1755,7 +1755,7 @@ public:
     *                      from the number of actual items in the table)
     *  @param allowShrink If set to true and (newTableSize) is less than the current number of slots in
     *                     the table, EnsureSize() will shrink the table down to muscleMax(newTableSize, GetNumItems()).
-    *  @return B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t EnsureSize(uint32 newTableSize, bool allowShrink = false);
 
@@ -1763,7 +1763,7 @@ public:
      * extra space allocated to fit another (numExtras) items without having to do a reallocation.
      * If it doesn't, it will do a reallocation so that it does have at least that much extra space.
      * @param numExtraSlots How many extra items we want to ensure room for.  Defaults to 1.
-     * @returns B_NO_ERROR if the extra space now exists, or B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR if the extra space now exists, or B_OUT_OF_MEMORY on failure.
      */
    status_t EnsureCanPut(uint32 numExtraSlots = 1) {return EnsureSize(this->GetNumItems()+numExtraSlots, false);}
 
@@ -1771,7 +1771,7 @@ public:
      * equal to the size of the data it contains, plus (numExtraSlots).
      * @param numExtraSlots the number of extra empty slots the Hashtable should contains after the shrink.
      *                      Defaults to zero.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t ShrinkToFit(uint32 numExtraSlots = 0) {return EnsureSize(this->GetNumItems()+numExtraSlots, true);}
 
@@ -1980,7 +1980,7 @@ public:
      * that table's iteration-order.
      * @param key The key object of the key/value pair that may need to be repositioned to
      *            its correct (sorted-by-value) location.
-     * @returns B_NO_ERROR on success, or B_ERROR if (key) was not found in the table.
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if (key) was not found in the table.
      */
    status_t Reposition(const KeyType & key)
    {
@@ -1990,7 +1990,7 @@ public:
          this->MoveIterationEntryToCorrectPositionAux(e);
          return B_NO_ERROR;
       }
-      else return B_ERROR;
+      else return B_DATA_NOT_FOUND;
    }
    
 private:
@@ -2263,7 +2263,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAt(uint32 index, KeyType
       retKey = e->_key;
       return B_NO_ERROR;
    }
-   return B_ERROR;
+   return B_BAD_ARGUMENT;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
@@ -2300,7 +2300,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAt(uint32 index, Value
       retValue = e->_value;
       return B_NO_ERROR;
    }
-   return B_ERROR;
+   return B_BAD_ARGUMENT;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
@@ -2329,7 +2329,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetValue(const KeyType & key, 
       setValue = *ptr;
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_DATA_NOT_FOUND;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
@@ -2366,7 +2366,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetKey(const KeyType & lookupK
       setKey = *ptr;
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_DATA_NOT_FOUND;
 }
 
 /// @cond HIDDEN_SYMBOLS
@@ -2543,7 +2543,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::EnsureTableAllocated()
       }
       this->_freeHeadIdx = 0;
    }
-   return this->_table ? B_NO_ERROR : B_ERROR;
+   return this->_table ? B_NO_ERROR : B_OUT_OF_MEMORY;
 }
 
 // This is the part of the insertion that is CompareFunctor-neutral.
@@ -2618,7 +2618,7 @@ status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveEntryByIndex(uint32 idx, ValueType * optSetValue)
 {
    HashtableEntryBase * entry = this->IndexToEntryChecked(idx);
-   return entry ? RemoveEntry(entry, optSetValue) : B_ERROR;
+   return entry ? RemoveEntry(entry, optSetValue) : B_BAD_ARGUMENT;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
@@ -2852,7 +2852,7 @@ status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToFront(const KeyType & moveMe)
 {
    HashtableEntryBase * e = this->GetEntry(this->ComputeHash(moveMe), moveMe);
-   if (e == NULL) return B_ERROR;
+   if (e == NULL) return B_DATA_NOT_FOUND;
    this->MoveToFrontAux(e);
    return B_NO_ERROR;
 }
@@ -2862,7 +2862,7 @@ status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToBack(const KeyType & moveMe)
 {
    HashtableEntryBase * e = this->GetEntry(this->ComputeHash(moveMe), moveMe);
-   if (e == NULL) return B_ERROR;
+   if (e == NULL) return B_DATA_NOT_FOUND;
    this->MoveToBackAux(e);
    return B_NO_ERROR;
 }
@@ -2875,11 +2875,12 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToBefore(const KeyType & m
    {
       HashtableEntryBase * e = this->GetEntry(this->ComputeHash(moveMe),     moveMe);
       HashtableEntryBase * f = this->GetEntry(this->ComputeHash(toBeforeMe), toBeforeMe);
-      if ((e == NULL)||(f == NULL)||(e == f)) return B_ERROR;
+      if ((e == NULL)||(f == NULL)) return B_DATA_NOT_FOUND;
+      if (e == f)                   return B_BAD_ARGUMENT;
       this->MoveToBeforeAux(e, f);
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_DATA_NOT_FOUND;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
@@ -2890,11 +2891,12 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToBehind(const KeyType & m
    {
       HashtableEntryBase * d = this->GetEntry(this->ComputeHash(toBehindMe), toBehindMe);
       HashtableEntryBase * e = this->GetEntry(this->ComputeHash(moveMe),     moveMe);
-      if ((d == NULL)||(e == NULL)||(d == e)) return B_ERROR;
+      if ((d == NULL)||(e == NULL)) return B_DATA_NOT_FOUND;
+      if (d == e)                   return B_BAD_ARGUMENT;
       this->MoveToBehindAux(e, d);
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_DATA_NOT_FOUND;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
@@ -2902,7 +2904,7 @@ status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToPosition(const KeyType & moveMe, uint32 idx)
 {
    HashtableEntryBase * e = this->GetEntry(this->ComputeHash(moveMe), moveMe);
-   if (e == NULL) return B_ERROR;
+   if (e == NULL) return B_DATA_NOT_FOUND;
    this->MoveToPositionAux(e, idx);
    return B_NO_ERROR;
 }
@@ -3031,7 +3033,9 @@ CopyFrom(const HashtableBase<KeyType, ValueType, RHSHashFunctorType> & rhs, bool
    if (clearFirst) this->Clear((rhs.IsEmpty())&&(this->_tableSize>MUSCLE_HASHTABLE_DEFAULT_CAPACITY));  // FogBugz #10274
    if (rhs.HasItems())
    {
-      if ((EnsureSize(this->GetNumItems()+rhs.GetNumItems()) != B_NO_ERROR)||(this->EnsureTableAllocated() != B_NO_ERROR)) return B_ERROR;
+      status_t ret;
+      if ((EnsureSize(this->GetNumItems()+rhs.GetNumItems()).IsError(ret))||(this->EnsureTableAllocated().IsError(ret))) return ret;
+
       this->CopyFromAux(rhs);
       static_cast<SubclassType *>(this)->SortAux();  // We do the sort (if any) at the end, since that is more efficient than traversing the list after every insert
    }
@@ -3084,7 +3088,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
                nextIter = this->GetIteratorNextIterator(*nextIter);
             }
          }
-         else return B_ERROR;  // oops, out of mem, too bad.  
+         else return B_OUT_OF_MEMORY;
 
          next = this->GetEntryIterNextChecked(next);
       }
@@ -3136,7 +3140,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::CopyToTable(const 
       if (this == &toTable) return B_NO_ERROR;  // it's already here!
       if (toTable.PutAux(hash, copyMe, e->_value, NULL, NULL) != NULL) return B_NO_ERROR;
    }
-   return B_ERROR;
+   return B_BAD_ARGUMENT;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
@@ -3151,7 +3155,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::MoveToTable(const 
       if (this == &toTable) return B_NO_ERROR;  // it's already here!
       if (toTable.PutAux(hash, moveMe, HT_PlunderValue(e->_value), NULL, NULL) != NULL) return this->RemoveAux(e->_hash, moveMe, NULL);
    }
-   return B_ERROR;
+   return B_BAD_ARGUMENT;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
@@ -3200,7 +3204,7 @@ status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtFront(HT_SinkKeyParam key, HT_SinkValueParam v)
 {
    HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
-   if (e == NULL) return B_ERROR;
+   if (e == NULL) return B_OUT_OF_MEMORY;
    this->MoveToFrontAux(e);
    return B_NO_ERROR;
 }
@@ -3211,7 +3215,7 @@ status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtBack(HT_SinkKeyParam key, HT_SinkValueParam v)
 {
    HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
-   if (e == NULL) return B_ERROR;
+   if (e == NULL) return B_OUT_OF_MEMORY;
    this->MoveToBackAux(e);
    return B_NO_ERROR;
 }
@@ -3222,7 +3226,7 @@ status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutBefore(HT_SinkKeyParam key, HT_SinkKeyParam placeBeforeMe, HT_SinkValueParam v)
 {
    HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
-   if (e == NULL) return B_ERROR;
+   if (e == NULL) return B_OUT_OF_MEMORY;
    HashtableEntryBaseType * f = this->GetEntry(this->ComputeHash(placeBeforeMe), placeBeforeMe);
    if ((f)&&(e != f)) this->MoveToBeforeAux(e, f);
    return B_NO_ERROR;
@@ -3234,7 +3238,7 @@ status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutBehind(HT_SinkKeyParam key, HT_SinkKeyParam placeBehindMe, HT_SinkValueParam v)
 {
    HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
-   if (e == NULL) return B_ERROR;
+   if (e == NULL) return B_OUT_OF_MEMORY;
    HashtableEntryBaseType * d = this->GetEntry(this->ComputeHash(placeBehindMe), placeBehindMe);
    if ((d)&&(e != d)) this->MoveToBehindAux(e, d);
    return B_NO_ERROR;
@@ -3246,7 +3250,7 @@ status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtPosition(HT_SinkKeyParam key, uint32 atPosition, HT_SinkValueParam v)
 {
    HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
-   if (e == NULL) return B_ERROR;
+   if (e == NULL) return B_OUT_OF_MEMORY;
    this->MoveToPositionAux(e, atPosition);
    return B_NO_ERROR;
 }

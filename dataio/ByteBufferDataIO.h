@@ -93,9 +93,9 @@ public:
          case IO_SEEK_SET:  newSeekPos = o;          break;
          case IO_SEEK_CUR:  newSeekPos = _seekPos+o; break;
          case IO_SEEK_END:  newSeekPos = fileLen-o;  break;
-         default:           return B_ERROR("Bad Argument");
+         default:           return B_BAD_ARGUMENT;
       }
-      if (newSeekPos < 0) return B_ERROR("Bad Seek Pos");
+      if (newSeekPos < 0) return B_BAD_ARGUMENT;
       _seekPos = newSeekPos;
       return B_NO_ERROR;
    }

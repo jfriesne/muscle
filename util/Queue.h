@@ -97,18 +97,18 @@ public:
 
    /** Similar to the assignment operator, except this method returns a status code.
      * @param rhs This Queue's contents will become a copy of (rhs)'s items.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?).
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t CopyFrom(const Queue<ItemType> & rhs);
 
    /** Appends (item) to the end of the queue.  Queue size grows by one.
     *  @param item The item to append. 
-    *  @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
-   QQ_UniversalSinkItemRef status_t AddTail(QQ_SinkItemParam item) {return (AddTailAndGet(QQ_ForwardItem(item)) != NULL) ? B_NO_ERROR : B_ERROR;}
+   QQ_UniversalSinkItemRef status_t AddTail(QQ_SinkItemParam item) {return (AddTailAndGet(QQ_ForwardItem(item)) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;}
 
    /** As above, except that a default-initialized item is appended.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddTail() {return AddTail(GetDefaultItem());}
 
@@ -121,7 +121,7 @@ public:
     *  @param queue The queue to append to our queue.
     *  @param startIndex Index in (queue) to start adding at.  Default to zero.
     *  @param numItems Number of items to add.  If this number is too large, it will be capped appropriately.  Default is to add all items.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddTailMulti(const Queue<ItemType> & queue, uint32 startIndex = 0, uint32 numItems = MUSCLE_NO_LIMIT);
 
@@ -130,7 +130,7 @@ public:
     *  more efficient.  On success, the queue size grows by (numItems).
     *  @param items Pointer to an array of items to add to the Queue.
     *  @param numItems Number of items in the array
-    *  @return B_NO_ERROR on success, or B_ERROR on failure (out of memory)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddTailMulti(const ItemType * items, uint32 numItems);
 
@@ -138,11 +138,12 @@ public:
    /** Available in C++11 only:  Appends the items specified in the initializer
     *  list to this Queue.
     *  @param list The C++11 initializer list of items (e.g. {1,2,3,4,5} to add.
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+    *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddTailMulti(const std::initializer_list<ItemType> & list)
    {
-      if (EnsureCanAdd((uint32) list.size()) != B_NO_ERROR) return B_ERROR;
+      status_t ret;
+      if (EnsureCanAdd((uint32) list.size()).IsError(ret)) return ret;
       for (auto i : list) (void) AddTail(i);  // can't fail, because we allocated the necessary space on the previous line
       return B_NO_ERROR;
    }
@@ -162,12 +163,12 @@ public:
 
    /** Prepends (item) to the head of the queue.  Queue size grows by one.
     *  @param item The item to prepend. 
-    *  @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
-   QQ_UniversalSinkItemRef status_t AddHead(QQ_SinkItemParam item) {return (AddHeadAndGet(QQ_ForwardItem(item)) != NULL) ? B_NO_ERROR : B_ERROR;}
+   QQ_UniversalSinkItemRef status_t AddHead(QQ_SinkItemParam item) {return (AddHeadAndGet(QQ_ForwardItem(item)) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;}
 
    /** As above, except that a default-initialized item is prepended.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddHead() {return AddHead(GetDefaultItem());}
 
@@ -180,7 +181,7 @@ public:
     *  @param queue The queue to prepend to our queue.
     *  @param startIndex Index in (queue) to start adding at.  Default to zero.
     *  @param numItems Number of items to add.  If this number is too large, it will be capped appropriately.  Default is to add all items.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddHeadMulti(const Queue<ItemType> & queue, uint32 startIndex = 0, uint32 numItems = MUSCLE_NO_LIMIT);
 
@@ -188,7 +189,7 @@ public:
     *  The semantics are the same as for AddHeadMulti(const Queue<ItemType> &).
     *  @param items Pointer to an array of items to add to the Queue.
     *  @param numItems Number of items in the array
-    *  @return B_NO_ERROR on success, or B_ERROR on failure (out of memory)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddHeadMulti(const ItemType * items, uint32 numItems);
 
@@ -205,7 +206,7 @@ public:
    ItemType * AddHeadAndGet();
 
    /** Removes the item at the head of the queue.
-    *  @return B_NO_ERROR on success, B_ERROR if the queue was empty.
+    *  @return B_NO_ERROR on success, or B_BAD_OBJECT if the queue was already empty.
     */
    status_t RemoveHead();
 
@@ -222,18 +223,18 @@ public:
 
    /** Removes the item at the head of the queue and places it into (returnItem).
     *  @param returnItem On success, the removed item is copied into this object.
-    *  @return B_NO_ERROR on success, B_ERROR if the queue was empty
+    *  @return B_NO_ERROR on success, or B_BAD_OBJECT if the queue was empty
     */
    status_t RemoveHead(ItemType & returnItem);
 
    /** Removes the item at the tail of the queue.
-    *  @return B_NO_ERROR on success, B_ERROR if the queue was empty.
+    *  @return B_NO_ERROR on success, or B_BAD_OBJECT if the queue was empty.
     */
    status_t RemoveTail();
 
    /** Removes the item at the tail of the queue and places it into (returnItem).
     *  @param returnItem On success, the removed item is copied into this object.
-    *  @return B_NO_ERROR on success, B_ERROR if the queue was empty
+    *  @return B_NO_ERROR on success, or B_BAD_OBJECT if the queue was empty
     */
    status_t RemoveTail(ItemType & returnItem);
 
@@ -251,7 +252,7 @@ public:
    /** Removes the item at the (index)'th position in the queue.
     *  @param index Which item to remove--can range from zero 
     *               (head of the queue) to GetNumItems()-1 (tail of the queue).
-    *  @return B_NO_ERROR on success, B_ERROR on failure (i.e. bad index)
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (i.e. bad index)
     *  Note that this method is somewhat inefficient for indices that
     *  aren't at the head or tail of the queue (i.e. O(n) time)
     */
@@ -261,7 +262,7 @@ public:
     *  @param index Which item to remove--can range from zero 
     *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
     *  @param returnItem On success, the removed item is copied into this object.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (i.e. bad index)
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (i.e. bad index)
     */
    status_t RemoveItemAt(uint32 index, ItemType & returnItem);
 
@@ -275,7 +276,7 @@ public:
     *  @param index Which item to get--can range from zero 
     *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
     *  @param returnItem On success, the retrieved item is copied into this object.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (e.g. bad index)
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (e.g. bad index)
     */
    status_t GetItemAt(uint32 index, ItemType & returnItem) const;
 
@@ -317,14 +318,14 @@ public:
     *  @param index Which item to replace--can range from zero 
     *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
     *  @param newItem The item to place into the queue at the (index)'th position.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (e.g. bad index)
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (e.g. bad index)
     */
    QQ_UniversalSinkItemRef status_t ReplaceItemAt(uint32 index, QQ_SinkItemParam newItem);
  
    /** As above, except the specified item is replaced with a default-initialized item.
     *  @param index Which item to replace--can range from zero 
     *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
-    *  @return B_NO_ERROR on success, B_ERROR on failure (e.g. bad index)
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (e.g. bad index)
     */
    status_t ReplaceItemAt(uint32 index) {return ReplaceItemAt(index, GetDefaultItem());}
 
@@ -333,13 +334,13 @@ public:
     *  as AddTail(item).  Other positions will involve an O(n) shifting of contents.
     *  @param index The position at which to insert the new item.
     *  @param newItem The item to insert into the queue.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (i.e. bad index).
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (i.e. bad index).
     */
    QQ_UniversalSinkItemRef status_t InsertItemAt(uint32 index, QQ_SinkItemParam newItem);
    
    /** As above, except that a default-initialized item is inserted.
     *  @param index The position at which to insert the new item.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (i.e. bad index).
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (i.e. bad index).
     */
    status_t InsertItemAt(uint32 index) {return InsertItemAt(index, GetDefaultItem());}
 
@@ -353,7 +354,7 @@ public:
     *  @param queue The queue whose items are to be inserted into this queue.
     *  @param startIndex Index in (queue) to start reading items from.  Defaults to zero.
     *  @param numNewItems Number of items to insert.  If this number is too large, it will be capped appropriately.  Default is to add all items.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex = 0, uint32 numNewItems = MUSCLE_NO_LIMIT);
 
@@ -366,7 +367,7 @@ public:
     *  @param index The index into this Queue that items from (queue) should be inserted at.
     *  @param items Pointer to the items to insert into this queue.
     *  @param numNewItems Number of items to insert.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems);
 
@@ -475,7 +476,7 @@ public:
     *  @param allowShrink If set to true, the array will be reallocated even if the new array size is smaller than the 
     *                     existing size.  Defaults to false (i.e. only reallocate if the desired size is greater than
     *                     the existing size).
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory)
+    *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t EnsureSize(uint32 numSlots, bool setNumItems = false, uint32 extraReallocItems = 0, bool allowShrink = false) {return EnsureSizeAux(numSlots, setNumItems, extraReallocItems, NULL, allowShrink);}
 
@@ -483,7 +484,7 @@ public:
      * extra space allocated to fit another (numExtraSlots) items without having to do a reallocation.
      * If it doesn't, it will do a reallocation so that it does have at least that much extra space.
      * @param numExtraSlots How many extra items we want to ensure room for.  Defaults to 1.
-     * @returns B_NO_ERROR if the extra space now exists, or B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR if the extra space now exists, or B_OUT_OF_MEMORY on failure.
      */
    status_t EnsureCanAdd(uint32 numExtraSlots = 1) {return EnsureSize(GetNumItems()+numExtraSlots);}
 
@@ -491,7 +492,7 @@ public:
      * equal to the size of the data it contains, plus (numExtraSlots).
      * @param numExtraSlots the number of extra empty slots the Queue should contains after the shrink.
      *                      Defaults to zero.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t ShrinkToFit(uint32 numExtraSlots = 0) {return EnsureSize(GetNumItems()+numExtraSlots, false, 0, true);}
 
@@ -610,14 +611,14 @@ public:
    /**
     *  Goes through the array and removes the first item that is equal to (val).
     *  @param val the item to look for and remove
-    *  @return B_NO_ERROR if a matching item was found and removed, or B_ERROR if it wasn't found.
+    *  @return B_NO_ERROR if a matching item was found and removed, or B_BAD_ARGUMENT if it wasn't found.
     */
    status_t RemoveFirstInstanceOf(const ItemType & val);
 
    /**
     *  Goes through the array and removes the last item that is equal to (val).
     *  @param val the item to look for and remove
-    *  @return B_NO_ERROR if a matching item was found and removed, or B_ERROR if it wasn't found.
+    *  @return B_NO_ERROR if a matching item was found and removed, or B_BAD_ARGUMENT if it wasn't found.
     */
    status_t RemoveLastInstanceOf(const ItemType & val);
 
@@ -828,13 +829,14 @@ Queue<ItemType>::CopyFrom(const Queue & rhs)
 {
    if (this == &rhs) return B_NO_ERROR;
 
+   status_t ret;
    const uint32 numItems = rhs.GetNumItems();
-   if (EnsureSize(numItems, true) == B_NO_ERROR)
+   if (EnsureSize(numItems, true).IsOK(ret))
    {
       for (uint32 i=0; i<numItems; i++) (*this)[i] = rhs[i];
       return B_NO_ERROR;
    }
-   return B_ERROR;
+   else return ret;
 }
 
 template <class ItemType>
@@ -906,16 +908,17 @@ AddTailMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
    const uint32 mySize  = GetNumItems();
    const uint32 newSize = mySize+numNewItems;
 
+   status_t ret;
    if ((&queue == this)&&(newSize > GetNumAllocatedItemSlots()))
    {
       // Avoid re-entrancy problems by making a partial copy of myself to add back into myself
       Queue<ItemType> temp;
-      return (temp.AddTailMulti(queue, startIndex, numNewItems) == B_NO_ERROR) ? AddTailMulti(temp) : B_ERROR;
+      return (temp.AddTailMulti(queue, startIndex, numNewItems).IsOK(ret)) ? AddTailMulti(temp) : ret;
    }
 
-   if (EnsureSize(newSize, true) != B_NO_ERROR) return B_ERROR;
-   for (uint32 i=mySize; i<newSize; i++) (*this)[i] = queue[startIndex+(i-mySize)];
+   if (EnsureSize(newSize, true).IsError(ret)) return ret;
 
+   for (uint32 i=mySize; i<newSize; i++) (*this)[i] = queue[startIndex+(i-mySize)];
    return B_NO_ERROR;
 }
 
@@ -928,15 +931,17 @@ AddTailMulti(const ItemType * items, uint32 numItems)
    const uint32 newSize = mySize+numItems;
    uint32 rhs = 0;
 
+   status_t ret;
    if ((newSize > GetNumAllocatedItemSlots())&&(IsItemLocatedInThisContainer(*items)))
    {
       // Avoid re-entrancy problems by making a temporary copy of the items before adding them back to myself
       Queue<ItemType> temp;
-      return (temp.AddTailMulti(items, numItems) == B_NO_ERROR) ? AddTailMulti(temp) : B_ERROR;
+      return (temp.AddTailMulti(items, numItems).IsOK(ret)) ? AddTailMulti(temp) : ret;
    }
 
    ItemType * oldArray;
-   if (EnsureSizeAux(newSize, true, 0, &oldArray, false) != B_NO_ERROR) return B_ERROR;
+   if (EnsureSizeAux(newSize, true, 0, &oldArray, false).IsError(ret)) return ret;
+
    for (uint32 i=mySize; i<newSize; i++) (*this)[i] = items[rhs++];
    delete [] oldArray;  // must be done after all references to (items)
    return B_NO_ERROR;
@@ -985,14 +990,16 @@ AddHeadMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
    const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
 
+   status_t ret;
    if ((&queue == this)&&(numNewItems > GetNumUnusedItemSlots()))
    {
       // Avoid re-entrancy problems by making a partial copy of myself to prepend back into myself
       Queue<ItemType> temp;
-      return (temp.AddTailMulti(queue, startIndex, numNewItems) == B_NO_ERROR) ? AddHeadMulti(temp) : B_ERROR;  // yes, AddTailMulti() and then AddHeadMulti() is intentional
+      return (temp.AddTailMulti(queue, startIndex, numNewItems).IsOK(ret)) ? AddHeadMulti(temp) : ret;  // yes, AddTailMulti() and then AddHeadMulti() is intentional
    }
 
-   if (EnsureSize(numNewItems+GetNumItems()) != B_NO_ERROR) return B_ERROR;
+   if (EnsureSize(numNewItems+GetNumItems()).IsError(ret)) return ret;
+
    for (int32 i=((int)startIndex+numNewItems)-1; i>=(int32)startIndex; i--) (void) AddHead(queue[i]);  // guaranteed not to fail
    return B_NO_ERROR;
 }
@@ -1002,15 +1009,16 @@ status_t
 Queue<ItemType>::
 AddHeadMulti(const ItemType * items, uint32 numItems)
 {
+   status_t ret;
    if ((numItems > GetNumUnusedItemSlots())&&(IsItemLocatedInThisContainer(*items)))
    {
       // Avoid re-entrancy problems by making a temporary copy of the items before adding them back to myself
       Queue<ItemType> temp;
-      return (temp.AddTailMulti(items, numItems) == B_NO_ERROR) ? AddHeadMulti(temp) : B_ERROR;  // Yes, AddTailMulti() and then AddHeadMulti() is intentional
+      return (temp.AddTailMulti(items, numItems).IsOK(ret)) ? AddHeadMulti(temp) : ret;  // Yes, AddTailMulti() and then AddHeadMulti() is intentional
    }
 
    ItemType * oldArray;
-   if (EnsureSizeAux(_itemCount+numItems, &oldArray) != B_NO_ERROR) return B_ERROR;
+   if (EnsureSizeAux(_itemCount+numItems, &oldArray).IsError(ret)) return ret;
    for (int32 i=((int32)numItems)-1; i>=0; i--) (void) AddHead(items[i]);  // guaranteed not to fail
    delete [] oldArray;  // must be done last!
    return B_NO_ERROR;
@@ -1021,7 +1029,7 @@ status_t
 Queue<ItemType>::
 RemoveHead(ItemType & returnItem)
 {
-   if (_itemCount == 0) return B_ERROR;
+   if (_itemCount == 0) return B_BAD_OBJECT;
    returnItem = _queue[_headIndex];
    return RemoveHead();
 }
@@ -1051,7 +1059,7 @@ status_t
 Queue<ItemType>::
 RemoveHead()
 {
-   if (_itemCount == 0) return B_ERROR;
+   if (_itemCount == 0) return B_BAD_OBJECT;
    const uint32 oldHeadIndex = _headIndex;
    _headIndex = NextIndex(_headIndex);
    _itemCount--;
@@ -1078,7 +1086,7 @@ status_t
 Queue<ItemType>::
 RemoveTail(ItemType & returnItem)
 {
-   if (_itemCount == 0) return B_ERROR;
+   if (_itemCount == 0) return B_BAD_OBJECT;
    returnItem = _queue[_tailIndex];
    return RemoveTail();
 }
@@ -1088,7 +1096,7 @@ status_t
 Queue<ItemType>::
 RemoveTail()
 {
-   if (_itemCount == 0) return B_ERROR;
+   if (_itemCount == 0) return B_BAD_OBJECT;
    const uint32 removedItemIndex = _tailIndex;
    _tailIndex = PrevIndex(_tailIndex);
    _itemCount--;
@@ -1121,7 +1129,7 @@ GetItemAt(uint32 index, ItemType & returnItem) const
       returnItem = *p;
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_BAD_ARGUMENT;
 }
 
 template <class ItemType>
@@ -1129,7 +1137,7 @@ status_t
 Queue<ItemType>::
 RemoveItemAt(uint32 index, ItemType & returnItem)
 {
-   if (index >= _itemCount) return B_ERROR;
+   if (index >= _itemCount) return B_BAD_ARGUMENT;
    returnItem = _queue[InternalizeIndex(index)];
    return RemoveItemAt(index);
 }
@@ -1139,7 +1147,7 @@ status_t
 Queue<ItemType>::
 RemoveItemAt(uint32 index)
 {
-   if (index >= _itemCount) return B_ERROR;
+   if (index >= _itemCount) return B_BAD_ARGUMENT;
 
    uint32 internalizedIndex = InternalizeIndex(index);
    uint32 indexToClear;
@@ -1194,7 +1202,7 @@ status_t
 Queue<ItemType>::
 ReplaceItemAt(uint32 index, QQ_SinkItemParam newItem)
 {
-   if (index >= _itemCount) return B_ERROR;
+   if (index >= _itemCount) return B_BAD_ARGUMENT;
    _queue[InternalizeIndex(index)] = QQ_ForwardItem(newItem);
    return B_NO_ERROR;
 }
@@ -1212,7 +1220,7 @@ InsertItemAt(uint32 index, QQ_SinkItemParam item)
    }
 
    // Simple cases
-   if (index >  _itemCount) return B_ERROR;
+   if (index >  _itemCount) return B_BAD_ARGUMENT;
    if (index == _itemCount) return AddTail(QQ_ForwardItem(item));
    if (index == 0)          return AddHead(QQ_ForwardItem(item));
 
@@ -1220,14 +1228,16 @@ InsertItemAt(uint32 index, QQ_SinkItemParam item)
    if (index < _itemCount/2)
    {
       // Add a space at the front, and shift things back
-      if (AddHead() != B_NO_ERROR) return B_ERROR;  // allocate an extra slot
-      for (uint32 i=0; i<index; i++) ReplaceItemAt(i, QQ_ForwardItem(*GetItemAtUnchecked(i+1)));
+      status_t ret = AddHead();  // allocate an extra slot
+      if (ret.IsError()) return ret;
+      for (uint32 i=0; i<index; i++) (void) ReplaceItemAt(i, QQ_ForwardItem(*GetItemAtUnchecked(i+1)));
    }
    else
    {
       // Add a space at the rear, and shift things forward
-      if (AddTail() != B_NO_ERROR) return B_ERROR;  // allocate an extra slot
-      for (int32 i=((int32)_itemCount)-1; i>((int32)index); i--) ReplaceItemAt(i, QQ_ForwardItem(*GetItemAtUnchecked(i-1)));
+      status_t ret = AddTail();  // allocate an extra slot
+      if (ret.IsError()) return ret;
+      for (int32 i=((int32)_itemCount)-1; i>((int32)index); i--) (void) ReplaceItemAt(i, QQ_ForwardItem(*GetItemAtUnchecked(i-1)));
    }
    return ReplaceItemAt(index, QQ_ForwardItem(item));
 }
@@ -1240,7 +1250,7 @@ InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex, ui
    const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
    if (numNewItems == 0) return B_NO_ERROR;
-   if (index > _itemCount) return B_ERROR;
+   if (index > _itemCount) return B_BAD_ARGUMENT;
    if (numNewItems == 1)
    {
       if (index == 0)          return AddHead(queue.Head());
@@ -1250,7 +1260,9 @@ InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex, ui
    const uint32 oldSize = GetNumItems();
    const uint32 newSize = oldSize+numNewItems;
 
-   if (EnsureSize(newSize, true) != B_NO_ERROR) return B_ERROR;
+   status_t ret = EnsureSize(newSize, true);
+   if (ret.IsError()) return ret;
+
    for (uint32 i=index; i<oldSize; i++)           (*this)[i+numNewItems] = (*this)[i];
    for (uint32 i=index; i<index+numNewItems; i++) (*this)[i]             = queue[startIndex++];
    return B_NO_ERROR;
@@ -1262,7 +1274,7 @@ Queue<ItemType>::
 InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems)
 {
    if (numNewItems == 0) return B_NO_ERROR;
-   if (index > _itemCount) return B_ERROR;
+   if (index > _itemCount) return B_BAD_ARGUMENT;
    if (numNewItems == 1)
    {
       if (index == 0)          return AddHead(*items);
@@ -1273,7 +1285,9 @@ InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems)
    const uint32 newSize = oldSize+numNewItems;
 
    ItemType * oldItems;
-   if (EnsureSizeAux(newSize, true, &oldItems, NULL, false) != B_NO_ERROR) return B_ERROR;
+   status_t ret = EnsureSizeAux(newSize, true, &oldItems, NULL, false);
+   if (ret.IsError()) return ret;
+
    int32 si = 0;
    for (uint32 i=index; i<oldSize; i++)           (*this)[i+numNewItems] = (*this)[i];
    for (uint32 i=index; i<index+numNewItems; i++) (*this)[i]             = items[si++];
@@ -1324,7 +1338,7 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
 
       ItemType * newQueue = ((_queue == _smallQueue)||(newQLen > sqLen)) ? newnothrow_array(ItemType,newQLen) : _smallQueue;
 
-      if (newQueue == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+      if (newQueue == NULL) {WARN_OUT_OF_MEMORY; return B_OUT_OF_MEMORY;}
       if (newQueue == _smallQueue) newQLen = sqLen;
       
       // The (_queueSize > 0) check below isn't strictly necessary, but it makes clang++ feel better
@@ -1468,7 +1482,7 @@ RemoveFirstInstanceOf(const ItemType & val)
 {
    const uint32 ni = GetNumItems();
    for (uint32 i=0; i<ni; i++) if ((*this)[i] == val) return RemoveItemAt(i);
-   return B_ERROR;
+   return B_BAD_ARGUMENT;
 }
 
 template <class ItemType>
@@ -1477,7 +1491,7 @@ Queue<ItemType>::
 RemoveLastInstanceOf(const ItemType & val) 
 {
    for (int32 i=((int32)GetNumItems())-1; i>=0; i--) if ((*this)[i] == val) return RemoveItemAt(i);
-   return B_ERROR;
+   return B_BAD_ARGUMENT;
 }
 
 template <class ItemType>

@@ -58,7 +58,7 @@ static void SafeCloseHandle(::HANDLE & h)
 status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
 {
    const uint32 numItems = argq.GetNumItems();
-   if (numItems == 0) return B_ERROR("No Arguments");
+   if (numItems == 0) return B_BAD_ARGUMENT;
 
    const char ** argv = newnothrow_array(const char *, numItems+1);
    if (argv == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
@@ -250,7 +250,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY))
    {
 # ifdef MUSCLE_AVOID_FORKPTY
-      return B_ERROR("ForkPTY disabled");  // this branch should never be taken, due to the ifdef at the top of this function... but just in case
+      return B_UNIMPLEMENTED;  // this branch should never be taken, due to the ifdef at the top of this function... but just in case
 # else
       // New-fangled forkpty() implementation
       int masterFD = -1;
@@ -285,7 +285,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       }
    }
 
-        if (pid < 0) return B_ERROR("fork() failed");      // fork failure!
+        if (pid < 0) return B_ERRNO;  // fork failure!
    else if (pid == 0)
    {
       // we are the child process
@@ -375,10 +375,11 @@ status_t ChildProcessDataIO :: SignalChildProcess(int sigNum)
 
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    (void) sigNum;   // to shut the compiler up
-   return B_ERROR("Unimplemented");  // Not implemented under Windows!
+   return B_UNIMPLEMENTED;  // Not implemented under Windows!
 #else
    // Yes, kill() is a misnomer.  Silly Unix people!
-   return ((_childPID >= 0)&&(kill(_childPID, sigNum) == 0)) ? B_NO_ERROR : B_ERROR;
+   if (_childPID < 0) return B_BAD_OBJECT;
+   return (kill(_childPID, sigNum) == 0) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
 

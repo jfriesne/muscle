@@ -71,11 +71,11 @@ public:
             case IO_SEEK_SET:  whence = SEEK_SET;  break;
             case IO_SEEK_CUR:  whence = SEEK_CUR;  break;
             case IO_SEEK_END:  whence = SEEK_END;  break;
-            default:           return B_ERROR("Bad Argument");
+            default:           return B_BAD_ARGUMENT;
          }
-         if (fseek(_file, (long) offset, whence) == 0) return B_NO_ERROR;
+         if (fseek(_file, (long) offset, whence) != 0) return B_ERRNO;
       }
-      return B_ERROR("No File");
+      return B_BAD_OBJECT;
    }
    
    /** Returns our current position in the file.
