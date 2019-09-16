@@ -57,7 +57,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(int32 byteD
          const int32 wantBytes = ((byteDelta/CACHE_BYTES)+1)*CACHE_BYTES; // round up to nearest multiple
          if (ChangeDaemonCounterAux(wantBytes) == B_NO_ERROR) _localCachedBytes += wantBytes;
       }
-      if ((size_t)byteDelta > _localCachedBytes) return B_ERROR;  // still not enough!?
+      if ((size_t)byteDelta > _localCachedBytes) return B_ACCESS_DENIED;  // still not enough!?
       _localCachedBytes -= byteDelta;
    }
    else
@@ -75,8 +75,8 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(int32 byteD
 // Locks the shared memory region and adjusts our counter there.  This is a bit expensive, so we try to minimize the number of times we do it.
 status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounterAux(int32 byteDelta)
 {
-   status_t ret = B_ERROR;
-   if ((_memberID >= 0)&&(_shared.LockAreaReadWrite() == B_NO_ERROR))
+   status_t ret = B_BAD_OBJECT;
+   if ((_memberID >= 0)&&(_shared.LockAreaReadWrite().IsOK(ret)))
    {
       const int32 numSlots = _shared.GetAreaSize() / sizeof(size_t);
       size_t * sa = GetArrayPointer();
@@ -103,6 +103,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounterAux(int32 by
 
          sa[_memberID] = _localAllocated;  // write our current allocation out to the shared memory region
       }
+
       _shared.UnlockArea();
    }
    return ret;
@@ -122,8 +123,8 @@ size_t SharedUsageLimitProxyMemoryAllocator :: CalculateTotalAllocationSum() con
 
 status_t SharedUsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t cab, size_t arb)
 {
-   status_t ret = B_ERROR;
-   if (ChangeDaemonCounter((int32)arb) == B_NO_ERROR)
+   status_t ret;
+   if (ChangeDaemonCounter((int32)arb).IsOK(ret))
    {
       ret = ProxyMemoryAllocator::AboutToAllocate(cab, arb);
       if (ret != B_NO_ERROR) (void) ChangeDaemonCounter(-((int32)arb)); // roll back!
@@ -150,7 +151,8 @@ size_t SharedUsageLimitProxyMemoryAllocator :: GetNumAvailableBytes(size_t alloc
 
 status_t SharedUsageLimitProxyMemoryAllocator :: GetCurrentMemoryUsage(size_t * retCounts, size_t * optRetTotal) const
 {
-   if (_shared.LockAreaReadOnly() == B_NO_ERROR)
+   status_t ret;
+   if (_shared.LockAreaReadOnly().IsOK(ret))
    {
       const size_t * sa = GetArrayPointer();
       if ((sa)&&(retCounts)) for (int32 i=GetNumSlots()-1; i>=0; i--) retCounts[i] = sa[i];
@@ -158,7 +160,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: GetCurrentMemoryUsage(size_t * 
       _shared.UnlockArea();
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 } // end namespace muscle

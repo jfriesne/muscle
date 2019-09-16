@@ -229,7 +229,7 @@ public:
    /** Removes all "spare" objects from the pool and deletes them. 
      * This method is thread-safe.
      * @param optSetNumDrained If non-NULL, this value will be set to the number of objects destroyed.
-     * @returns B_NO_ERROR on success, or B_ERROR if it couldn't lock the lock for some reason.
+     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if it couldn't lock the lock for some reason.
      */
    status_t Drain(uint32 * optSetNumDrained = NULL)
    {
@@ -268,7 +268,7 @@ public:
          if (optSetNumDrained) *optSetNumDrained = numObjectsDeleted;
          return B_NO_ERROR;
       }
-      else return B_ERROR;
+      else return B_LOCK_FAILED;
    }
 
    /** Returns the maximum number of "spare" objects that will be kept

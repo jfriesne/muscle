@@ -86,11 +86,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
    if (_orderedIndex == NULL)
    {
       _orderedIndex = newnothrow Queue<DataNodeRef>;
-      if (_orderedIndex == NULL)
-      {
-         WARN_OUT_OF_MEMORY; 
-         return B_ERROR;
-      }
+      if (_orderedIndex == NULL) RETURN_OUT_OF_MEMORY;
    }
 
    // Find a unique ID string for our new kid
@@ -107,11 +103,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
    }
 
    DataNodeRef dref = notifyWithOnSetParent->GetNewDataNode(*optNodeName, data);
-   if (dref() == NULL)
-   {
-      WARN_OUT_OF_MEMORY; 
-      return B_ERROR;
-   }
+   if (dref() == NULL) RETURN_OUT_OF_MEMORY;
 
    uint32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
    if ((optInsertBefore)&&(optInsertBefore->Cstr()[0] == 'I'))  // only 'I''s could be in our index!
@@ -127,9 +119,11 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
    }
  
    // Update the index
-   if (PutChild(dref, notifyWithOnSetParent, optNotifyChangedData) == B_NO_ERROR)
+   status_t ret;
+
+   if (PutChild(dref, notifyWithOnSetParent, optNotifyChangedData).IsOK(ret))
    {
-      if (_orderedIndex->InsertItemAt(insertIndex, dref) == B_NO_ERROR)
+      if (_orderedIndex->InsertItemAt(insertIndex, dref).IsOK(ret))
       {
          String np;
          if ((optRetAdded)&&(dref()->GetNodePath(np) == B_NO_ERROR)) (void) optRetAdded->Put(np, dref);
@@ -140,53 +134,57 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
       }
       else RemoveChild(dref()->GetNodeName(), notifyWithOnSetParent, false, NULL);  // undo!
    }
-   return B_ERROR;
+
+   return ret | B_ERROR;
 }
 
 status_t DataNode :: RemoveIndexEntryAt(uint32 removeIndex, StorageReflectSession * optNotifyWith)
 {
    TCHECKPOINT;
 
-   if ((_orderedIndex)&&(removeIndex < _orderedIndex->GetNumItems()))
-   {
-      DataNodeRef holdKey = _orderedIndex->RemoveItemAtWithDefault(removeIndex);  // gotta make a temp copy here, or it's dangling pointer time
-      if ((holdKey())&&(optNotifyWith)) optNotifyWith->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYREMOVED, removeIndex, holdKey()->GetNodeName());
-      return B_NO_ERROR;
-   }
-   return B_ERROR;
+   if (_orderedIndex == NULL) return B_BAD_OBJECT;
+   if (removeIndex >= _orderedIndex->GetNumItems()) return B_BAD_ARGUMENT;
+
+   DataNodeRef holdKey = _orderedIndex->RemoveItemAtWithDefault(removeIndex);  // gotta make a temp copy here, or it's dangling pointer time
+   if ((holdKey())&&(optNotifyWith)) optNotifyWith->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYREMOVED, removeIndex, holdKey()->GetNodeName());
+   return B_NO_ERROR;
 }
 
 status_t DataNode :: InsertIndexEntryAt(uint32 insertIndex, StorageReflectSession * notifyWithOnSetParent, const String & key)
 {
    TCHECKPOINT;
 
-   if (_children)
+   if (_children == NULL) return B_BAD_OBJECT;
+
+   status_t ret;
+   DataNodeRef childNode;
+   if (_children->Get(&key, childNode).IsOK(ret))
    {
-      DataNodeRef childNode;
-      if (_children->Get(&key, childNode) == B_NO_ERROR)
+      if (_orderedIndex == NULL)
       {
-         if (_orderedIndex == NULL)
-         {
-            _orderedIndex = newnothrow Queue<DataNodeRef>;
-            if (_orderedIndex == NULL) WARN_OUT_OF_MEMORY; 
-         }
-         if ((_orderedIndex)&&(_orderedIndex->InsertItemAt(insertIndex, childNode) == B_NO_ERROR))
-         {
-            // Notify anyone monitoring this node that the ordered-index has been updated
-            notifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, childNode()->GetNodeName());
-            return B_NO_ERROR;
-         }
+         _orderedIndex = newnothrow Queue<DataNodeRef>;
+         if (_orderedIndex == NULL) RETURN_OUT_OF_MEMORY;
+      }
+      if (_orderedIndex->InsertItemAt(insertIndex, childNode).IsOK(ret))
+      {
+         // Notify anyone monitoring this node that the ordered-index has been updated
+         notifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, childNode()->GetNodeName());
+         return B_NO_ERROR;
       }
    }
-   return B_ERROR;
+   return ret;
 }
 
 status_t DataNode :: ReorderChild(const DataNodeRef & child, const String * moveToBeforeThis, StorageReflectSession * optNotifyWith)
 {
    TCHECKPOINT;
 
+   if (_orderedIndex == NULL) return B_BAD_OBJECT;
+   if ((child() == NULL)||((moveToBeforeThis)&&(*moveToBeforeThis == child()->GetNodeName()))) return B_BAD_ARGUMENT;
+
    // Only do anything if we have an index, and the node isn't going to be moved to before itself (silly) and (child) can be removed from the index
-   if ((_orderedIndex)&&(child())&&((moveToBeforeThis == NULL)||(*moveToBeforeThis != child()->GetNodeName()))&&(RemoveIndexEntry(child()->GetNodeName(), optNotifyWith) == B_NO_ERROR))
+   status_t ret;
+   if (RemoveIndexEntry(child()->GetNodeName(), optNotifyWith).IsOK(ret))
    {
       // Then re-add him to the index at the appropriate point
       uint32 targetIndex = _orderedIndex->GetNumItems();  // default to end of index
@@ -203,37 +201,37 @@ status_t DataNode :: ReorderChild(const DataNodeRef & child, const String * move
       }
 
       // Now add the child back into the index at his new position
-      if (_orderedIndex->InsertItemAt(targetIndex, child) == B_NO_ERROR)
+      if (_orderedIndex->InsertItemAt(targetIndex, child).IsOK(ret))
       {
          // Notify anyone monitoring this node that the ordered-index has been updated
          if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, targetIndex, child()->GetNodeName());
          return B_NO_ERROR;
       }
    }
-   return B_ERROR;
+   return ret;
 }
 
 status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyChangedData)
 {
    TCHECKPOINT;
 
-   status_t ret = B_ERROR;
    DataNode * child = node();
-   if (child)
+   if (child == NULL) return B_BAD_ARGUMENT;
+
+   if (_children == NULL) 
    {
-      if (_children == NULL) 
-      {
-         _children = newnothrow Hashtable<const String *, DataNodeRef>;
-         if (_children == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
-      }
-      child->SetParent(this, optNotifyWithOnSetParent);
-      DataNodeRef oldNode;
-      ret = _children->Put(&child->_nodeName, node, oldNode);
-      if ((ret == B_NO_ERROR)&&(optNotifyChangedData))
-      {
-         MessageRef oldData; if (oldNode()) oldData = oldNode()->GetData();
-         optNotifyChangedData->NotifySubscribersThatNodeChanged(*child, oldData, false);
-      }
+      _children = newnothrow Hashtable<const String *, DataNodeRef>;
+      if (_children == NULL) RETURN_OUT_OF_MEMORY;
+   }
+
+   child->SetParent(this, optNotifyWithOnSetParent);
+   DataNodeRef oldNode;
+
+   status_t ret;
+   if ((_children->Put(&child->_nodeName, node, oldNode).IsOK(ret))&&(optNotifyChangedData))
+   {
+      MessageRef oldData; if (oldNode()) oldData = oldNode()->GetData();
+      optNotifyChangedData->NotifySubscribersThatNodeChanged(*child, oldData, false);
    }
    return ret;
 }
@@ -299,7 +297,8 @@ status_t DataNode :: GetNodePath(String & retPath, uint32 startDepth) const
       if ((pathLen > 0)&&(startDepth > 0)) pathLen--;  // for (startDepth>0), there will be no initial slash
 
       // Might as well make sure we have enough memory to return it, up front
-      if (retPath.Prealloc(pathLen) != B_NO_ERROR) return B_ERROR;
+      status_t ret;
+      if (retPath.Prealloc(pathLen).IsError(ret)) return ret;
 
       char * dynBuf = NULL;
       const uint32 stackAllocSize = 256;
@@ -307,11 +306,7 @@ status_t DataNode :: GetNodePath(String & retPath, uint32 startDepth) const
       if (pathLen >= stackAllocSize)  // but do a dynamic allocation if we have to (should be rare)
       {
          dynBuf = newnothrow_array(char, pathLen+1);
-         if (dynBuf == NULL) 
-         { 
-            WARN_OUT_OF_MEMORY; 
-            return B_ERROR;
-         }
+         if (dynBuf == NULL) RETURN_OUT_OF_MEMORY;
       }
 
       char * writeAt = (dynBuf ? dynBuf : stackBuf) + pathLen;  // points to last char in buffer
@@ -358,7 +353,7 @@ status_t DataNode :: RemoveChild(const String & key, StorageReflectSession * opt
       (void) _children->Remove(&key, childRef);
       return B_NO_ERROR;
    }
-   return B_ERROR;
+   else return B_DATA_NOT_FOUND;
 }
 
 status_t DataNode :: RemoveIndexEntry(const String & key, StorageReflectSession * optNotifyWith)
@@ -378,7 +373,7 @@ status_t DataNode :: RemoveIndexEntry(const String & key, StorageReflectSession 
          }
       }
    }
-   return B_ERROR;
+   return B_DATA_NOT_FOUND;
 }
 
 void DataNode :: SetData(const MessageRef & data, StorageReflectSession * optNotifyWith, bool isBeingCreated)

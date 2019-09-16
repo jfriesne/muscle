@@ -1338,7 +1338,7 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
 
       ItemType * newQueue = ((_queue == _smallQueue)||(newQLen > sqLen)) ? newnothrow_array(ItemType,newQLen) : _smallQueue;
 
-      if (newQueue == NULL) {WARN_OUT_OF_MEMORY; return B_OUT_OF_MEMORY;}
+      if (newQueue == NULL) RETURN_OUT_OF_MEMORY;
       if (newQueue == _smallQueue) newQLen = sqLen;
       
       // The (_queueSize > 0) check below isn't strictly necessary, but it makes clang++ feel better

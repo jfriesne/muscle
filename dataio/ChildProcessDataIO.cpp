@@ -61,7 +61,7 @@ status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, Ch
    if (numItems == 0) return B_BAD_ARGUMENT;
 
    const char ** argv = newnothrow_array(const char *, numItems+1);
-   if (argv == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+   if (argv == NULL) RETURN_OUT_OF_MEMORY;
    for (uint32 i=0; i<numItems; i++) argv[i] = argq[i]();
    argv[numItems] = NULL;
    status_t ret = LaunchChildProcess(numItems, argv, launchFlags, optDirectory, optEnvironmentVariables);
@@ -228,17 +228,19 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    Close();  // free all allocated object state we may have
    return B_ERROR;
 #else
+   status_t ret;
+
    // First, set up our arguments array here in the parent process, since the child process won't be able to do any dynamic allocations.
    Queue<String> scratchChildArgQ;  // holds the strings that the pointers in the argv buffer will point to
    const bool isParsed = (argc<0);
    if (argc < 0)
    {
-      if (ParseArgs(String((const char *)args), scratchChildArgQ) != B_NO_ERROR) return B_ERROR;
+      if (ParseArgs(String((const char *)args), scratchChildArgQ).IsError(ret)) return ret;
       argc = scratchChildArgQ.GetNumItems();
    }
 
    Queue<const char *> scratchChildArgv;  // the child process's argv array, NULL terminated
-   if (scratchChildArgv.EnsureSize(argc+1, true) != B_NO_ERROR) return B_ERROR;
+   if (scratchChildArgv.EnsureSize(argc+1, true).IsError(ret)) return ret;
 
    // Populate the argv array for our child process to use
    const char ** argv = scratchChildArgv.HeadPointer();
@@ -273,7 +275,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    {
       // Old-fashioned fork() implementation
       ConstSocketRef masterSock, slaveSock;
-      if (CreateConnectedSocketPair(masterSock, slaveSock, true) != B_NO_ERROR) return B_ERROR;
+      if (CreateConnectedSocketPair(masterSock, slaveSock, true).IsError(ret)) return ret;
       pid = fork();
            if (pid > 0) _handle = masterSock;
       else if (pid == 0)
@@ -356,17 +358,18 @@ status_t ChildProcessDataIO :: KillChildProcess()
    TCHECKPOINT;
 
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
-   if ((_childProcess != INVALID_HANDLE_VALUE)&&(TerminateProcess(_childProcess, 0))) return B_NO_ERROR;
+   if (_childProcess == INVALID_HANDLE_VALUE) return B_BAD_OBJECT;
+   return TerminateProcess(_childProcess, 0) ? B_NO_ERROR : B_ERRNO;
 #else
-   if ((_childPID >= 0)&&(kill(_childPID, SIGKILL) == 0))
+   if (_childPID < 0) return B_BAD_OBJECT;
+   if (kill(_childPID, SIGKILL) == 0)
    {
       (void) waitpid(_childPID, NULL, 0);  // avoid creating a zombie process
       _childPID = -1;
       return B_NO_ERROR;
    }
+   else return B_ERRNO;
 #endif
-
-   return B_ERROR;
 }
 
 status_t ChildProcessDataIO :: SignalChildProcess(int sigNum)
@@ -695,22 +698,23 @@ void ChildProcessDataIO :: IOThreadEntry()
 
 status_t ChildProcessDataIO :: System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
 {
+   status_t ret;
    ChildProcessDataIO cpdio(false);
-   if (cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory, optEnvironmentVariables) == B_NO_ERROR)
+   if (cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory, optEnvironmentVariables).IsOK(ret))
    {
-      cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
+      (void) cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
 {
    const uint32 numItems = argq.GetNumItems();
-   if (numItems == 0) return B_ERROR;
+   if (numItems == 0) return B_BAD_ARGUMENT;
 
    const char ** argv = newnothrow_array(const char *, numItems+1);
-   if (argv == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+   if (argv == NULL) RETURN_OUT_OF_MEMORY;
    for (uint32 i=0; i<numItems; i++) argv[i] = argq[i]();
    argv[numItems] = NULL;
    const status_t ret = System(numItems, argv, launchFlags, maxWaitTimeMicros, optDirectory, optEnvironmentVariables);
@@ -721,12 +725,13 @@ status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLa
 status_t ChildProcessDataIO :: System(const char * cmdLine, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
 {
    ChildProcessDataIO cpdio(false);
-   if (cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory, optEnvironmentVariables) == B_NO_ERROR)
+   status_t ret;
+   if (cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory, optEnvironmentVariables).IsOK(ret))
    {
       cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 status_t ChildProcessDataIO :: LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory, ChildProcessLaunchFlags launchFlags, const Hashtable<String, String> * optEnvironmentVariables)

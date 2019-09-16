@@ -1660,7 +1660,7 @@ status_t DefaultFileLogger :: EnsureLogFileCreated(const LogCallbackArgs & a)
          LogTime(MUSCLE_LOG_ERROR, "Failed to open Log file [%s], logging to file is now disabled.\n", logFileName());
       }
    }
-   return (_logFile.GetFile() != NULL) ? B_NO_ERROR : B_ERROR;
+   return (_logFile.GetFile() != NULL) ? B_NO_ERROR : B_IO_ERROR;
 }
 
 void DefaultFileLogger :: CloseLogFile()
@@ -1876,31 +1876,34 @@ int GetMaxLogLevel()
 
 status_t SetFileLogName(const String & logName)
 {
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
       _dfl.SetLogFileName(logName);
       LogTime(MUSCLE_LOG_DEBUG, "File log name set to: %s\n", logName());
       (void) UnlockLog();
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 status_t SetOldLogFilesPattern(const String & pattern)
 {
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
       const uint32 numAdded = _dfl.AddPreExistingLogFiles(pattern);
       LogTime(MUSCLE_LOG_DEBUG, "Old Log Files pattern set to: [%s] (" UINT32_FORMAT_SPEC " files matched)\n", pattern(), numAdded);
       (void) UnlockLog();
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 status_t SetFileLogMaximumSize(uint32 maxSizeBytes)
 {
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
       _dfl.SetMaxLogFileSize(maxSizeBytes);
       if (maxSizeBytes == MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_DEBUG, "File log maximum size set to: (unlimited).\n");
@@ -1908,12 +1911,13 @@ status_t SetFileLogMaximumSize(uint32 maxSizeBytes)
       (void) UnlockLog();
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 status_t SetMaxNumLogFiles(uint32 maxNumLogFiles)
 {
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
       _dfl.SetMaxNumLogFiles(maxNumLogFiles);
       if (maxNumLogFiles == MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_DEBUG, "Maximum number of log files set to: (unlimited).\n");
@@ -1921,25 +1925,26 @@ status_t SetMaxNumLogFiles(uint32 maxNumLogFiles)
       (void) UnlockLog();
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 status_t SetFileLogCompressionEnabled(bool enable)
 {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
       _dfl.SetFileCompressionEnabled(enable);
       LogTime(MUSCLE_LOG_DEBUG, "File log compression %s.\n", enable?"enabled":"disabled");
       (void) UnlockLog();
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 #else
    if (enable)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Can not enable log file compression, MUSCLE was compiled without MUSCLE_ENABLE_ZLIB_ENCODING specified!\n");
-      return B_ERROR;
+      return B_UNIMPLEMENTED;
    }
    else return B_NO_ERROR;
 #endif
@@ -1947,7 +1952,8 @@ status_t SetFileLogCompressionEnabled(bool enable)
 
 void CloseCurrentLogFile()
 {
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
       _dfl.CloseLogFile();
       (void) UnlockLog();
@@ -1956,26 +1962,28 @@ void CloseCurrentLogFile()
 
 status_t SetFileLogLevel(int loglevel)
 {
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
       _dfl.SetFileLogLevel(loglevel);
       LogTime(MUSCLE_LOG_DEBUG, "File logging level set to: %s\n", GetLogLevelName(_dfl.GetFileLogLevel()));
       (void) UnlockLog();
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 status_t SetConsoleLogLevel(int loglevel)
 {
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
       _dcl.SetConsoleLogLevel(loglevel);
       LogTime(MUSCLE_LOG_DEBUG, "Console logging level set to: %s\n", GetLogLevelName(_dcl.GetConsoleLogLevel()));
       (void) UnlockLog();
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 // Our 26-character alphabet of usable symbols
@@ -2127,13 +2135,14 @@ status_t LogFlush()
 {
    TCHECKPOINT;
 
+   status_t ret;
    if (LockLog() == B_NO_ERROR)
    {
       for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) if (iter.GetKey()()) iter.GetKey()()->Flush();
       (void) UnlockLog();
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 status_t LogStackTrace(int ll, uint32 maxDepth)
@@ -2157,7 +2166,7 @@ status_t LogStackTrace(int ll, uint32 maxDepth)
    (void) maxDepth;  // shut the compiler up
 #endif
 
-   return B_ERROR;  // I don't know how to do this for other systems!
+   return B_UNIMPLEMENTED;  // I don't know how to do this for other systems!
 }
 
 status_t Log(int ll, const char * fmt, ...)
@@ -2181,8 +2190,8 @@ status_t Log(int ll, const char * fmt, ...)
 
 status_t PutLogCallback(const LogCallbackRef & cb)
 {
-   status_t ret = B_ERROR;
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
       ret = _logCallbacks.PutWithDefault(cb);
       (void) UnlockLog();
@@ -2192,10 +2201,9 @@ status_t PutLogCallback(const LogCallbackRef & cb)
 
 status_t ClearLogCallbacks()
 {
-   status_t ret = B_ERROR;
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
-      ret = B_NO_ERROR;
       _logCallbacks.Clear();
       (void) UnlockLog();
    }
@@ -2204,8 +2212,8 @@ status_t ClearLogCallbacks()
 
 status_t RemoveLogCallback(const LogCallbackRef & cb)
 {
-   status_t ret = B_ERROR;
-   if (LockLog() == B_NO_ERROR)
+   status_t ret;
+   if (LockLog().IsOK(ret))
    {
       ret = _logCallbacks.Remove(cb);
       (void) UnlockLog();
@@ -2223,7 +2231,7 @@ status_t GetHumanReadableTimeValues(uint64 timeUS, HumanReadableTimeValues & v, 
 {
    TCHECKPOINT;
 
-   if (timeUS == MUSCLE_TIME_NEVER) return B_ERROR;
+   if (timeUS == MUSCLE_TIME_NEVER) return B_BAD_ARGUMENT;
 
    const int microsLeft = (int)(timeUS % MICROS_PER_SECOND);
 
@@ -2241,11 +2249,12 @@ status_t GetHumanReadableTimeValues(uint64 timeUS, HumanReadableTimeValues & v, 
       if (timeType == MUSCLE_TIMEZONE_UTC)
       {
          TIME_ZONE_INFORMATION tzi;
-         if ((GetTimeZoneInformation(&tzi) == TIME_ZONE_ID_INVALID)||(SystemTimeToTzSpecificLocalTime(&tzi, &st, &st) == false)) return B_ERROR;
+         if ((GetTimeZoneInformation(&tzi) == TIME_ZONE_ID_INVALID)||(SystemTimeToTzSpecificLocalTime(&tzi, &st, &st) == false)) return B_ERRNO;
       }
       v = HumanReadableTimeValues(st.wYear, st.wMonth-1, st.wDay-1, st.wDayOfWeek, st.wHour, st.wMinute, st.wSecond, microsLeft);
       return B_NO_ERROR;
    }
+   else return B_ERRNO;
 #else
    struct tm ltm, gtm;
    time_t timeS = (time_t) MicrosToSeconds(timeUS);  // timeS is seconds since 1970
@@ -2255,9 +2264,8 @@ status_t GetHumanReadableTimeValues(uint64 timeUS, HumanReadableTimeValues & v, 
       v = HumanReadableTimeValues(ts->tm_year+1900, ts->tm_mon, ts->tm_mday-1, ts->tm_wday, ts->tm_hour, ts->tm_min, ts->tm_sec, microsLeft);
       return B_NO_ERROR;
    }
+   else return B_ERRNO;
 #endif
-
-   return B_ERROR;
 }
 
 #ifdef WIN32
@@ -2304,7 +2312,7 @@ status_t GetTimeStampFromHumanReadableTimeValues(const HumanReadableTimeValues &
    if (timeType == MUSCLE_TIMEZONE_UTC)
    {
       TIME_ZONE_INFORMATION tzi;
-      if ((GetTimeZoneInformation(&tzi) == TIME_ZONE_ID_INVALID)||(MUSCLE_TzSpecificLocalTimeToSystemTime(&tzi, &st) == false)) return B_ERROR;
+      if ((GetTimeZoneInformation(&tzi) == TIME_ZONE_ID_INVALID)||(MUSCLE_TzSpecificLocalTimeToSystemTime(&tzi, &st) == false)) return B_ERRNO;
    }
 
    FILETIME fileTime;
@@ -2313,7 +2321,7 @@ status_t GetTimeStampFromHumanReadableTimeValues(const HumanReadableTimeValues &
       retTimeStamp = (((((uint64)fileTime.dwHighDateTime)<<32)|((uint64)fileTime.dwLowDateTime))-_windowsDiffTime)/10;
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_ERRNO;
 #else
    struct tm ltm; memset(&ltm, 0, sizeof(ltm));
    ltm.tm_sec  = v.GetSecond();       /* seconds after the minute [0-60] */
@@ -2326,7 +2334,7 @@ status_t GetTimeStampFromHumanReadableTimeValues(const HumanReadableTimeValues &
    ltm.tm_isdst = -1;  /* Let mktime() decide whether summer time is in effect */
 
    const time_t tm = ((uint64)((timeType == MUSCLE_TIMEZONE_UTC) ? mktime(&ltm) : timegm(&ltm)));
-   if (tm == -1) return B_ERROR;
+   if (tm == -1) return B_ERRNO;
 
    retTimeStamp = SecondsToMicros(tm);
    return B_NO_ERROR;

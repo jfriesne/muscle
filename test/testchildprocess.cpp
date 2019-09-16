@@ -35,7 +35,7 @@ public:
       (void) ChildProcessDataIO::ChildProcessReadyToRun();
 
       printf("AbortOnTakeoffChildProcessDataIO::ChildProcessReadyToRun() deliberately returning B_ERROR for testing purposes.\n");
-      return B_ERROR;
+      return B_ERROR("Deliberate Error");
    }
 
    static void UnitTest()

@@ -98,7 +98,8 @@ AttachedToServer()
 {
    TCHECKPOINT;
 
-   if (DumbReflectSession::AttachedToServer() != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (DumbReflectSession::AttachedToServer().IsError(ret)) return ret;
 
    _sharedData = InitSharedData();
    if (_sharedData == NULL) return B_OUT_OF_MEMORY;
@@ -113,12 +114,12 @@ AttachedToServer()
    {
       // nope.... we'll add one then
       hostDir = GetNewDataNode(hostname, CastAwayConstFromRef(GetEmptyMessageRef()));
-      if ((hostDir() == NULL)||(GetGlobalRoot().PutChild(hostDir, this, this) != B_NO_ERROR)) {WARN_OUT_OF_MEMORY; Cleanup(); return B_ERROR;}
+      if ((hostDir() == NULL)||(GetGlobalRoot().PutChild(hostDir, this, this) != B_NO_ERROR)) {Cleanup(); RETURN_OUT_OF_MEMORY;}
    }
 
    // Create a new node for our session (we assume no such
    // node already exists, as session id's are supposed to be unique)
-   if (hostDir() == NULL) {Cleanup(); return B_ERROR;}
+   if (hostDir() == NULL) {Cleanup(); RETURN_OUT_OF_MEMORY;}
    if (hostDir()->HasChild(sessionid())) LogTime(MUSCLE_LOG_WARNING, "WARNING:  Non-unique session id [%s] being overwritten!\n", sessionid());
 
    SetSessionRootPath(hostname.Prepend("/") + "/" + sessionid);
@@ -161,7 +162,7 @@ AttachedToServer()
       }
 
       _sessionDir = sessionNode;
-      if (hostDir()->PutChild(_sessionDir, this, this) != B_NO_ERROR) {WARN_OUT_OF_MEMORY; Cleanup(); return B_ERROR;}
+      if (hostDir()->PutChild(_sessionDir, this, this).IsError(ret)) {Cleanup(); return ret;}
  
       // do subscription notifications here
       PushSubscriptionMessages();
@@ -174,11 +175,8 @@ AttachedToServer()
       return B_NO_ERROR;
    }
 
-   WARN_OUT_OF_MEMORY; 
    Cleanup(); 
-
-   TCHECKPOINT;
-   return B_ERROR;
+   RETURN_OUT_OF_MEMORY;
 }
 
 void
@@ -396,7 +394,7 @@ SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, bool overwri
    TCHECKPOINT;
 
    DataNode * node = _sessionDir();
-   if (node == NULL) return B_ERROR;
+   if (node == NULL) return B_BAD_OBJECT;
  
    if ((nodePath.HasChars())&&(nodePath[0] != '/'))
    {
@@ -427,15 +425,15 @@ SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, bool overwri
                   }
                   else if (node->PutChild(childNodeRef, this, ((quiet)||(slashPos < 0)) ? NULL : this) == B_NO_ERROR) _currentNodeCount++;
                }
-               else {WARN_OUT_OF_MEMORY; return B_ERROR;}
+               else RETURN_OUT_OF_MEMORY;
             }
-            else return B_ERROR;
+            else return B_DATA_NOT_FOUND;
          }
 
          node = childNodeRef();
          if ((slashPos < 0)&&(addToIndex == false))
          {
-            if ((node == NULL)||((overwrite == false)&&(node != allocedNode()))) return B_ERROR;
+            if ((node == NULL)||((overwrite == false)&&(node != allocedNode()))) return B_ACCESS_DENIED;
             node->SetData(dataMsgRef, quiet ? NULL : this, (node == allocedNode()));  // do this to trigger the changed-notification
          }
          prevSlashPos = slashPos;
@@ -893,7 +891,7 @@ status_t StorageReflectSession :: FindMatchingSessions(const String & nodePath, 
 {
    TCHECKPOINT;
 
-   status_t ret = B_NO_ERROR;
+   status_t ret;
 
    if (nodePath.HasChars())
    {
@@ -907,13 +905,12 @@ status_t StorageReflectSession :: FindMatchingSessions(const String & nodePath, 
       }
 
       NodePathMatcher matcher;
-      if (matcher.PutPathString(s, filter) == B_NO_ERROR)
+      if (matcher.PutPathString(s, filter).IsOK(ret))
       {
          FindMatchingSessionsData data(retSessions, maxResults);
          (void) matcher.DoTraversal((PathMatchCallback)FindSessionsCallbackFunc, const_cast<StorageReflectSession*>(this), GetGlobalRoot(), true, &data);
          ret = data._ret;
       }
-      else ret = B_ERROR;
    }
    else return retSessions.Put(GetSessions());
 
@@ -936,14 +933,15 @@ status_t StorageReflectSession :: SendMessageToMatchingSessions(const MessageRef
          s = temp();
       }
 
+      status_t ret;
       NodePathMatcher matcher;
-      if (matcher.PutPathString(s, filter) == B_NO_ERROR)
+      if (matcher.PutPathString(s, filter).IsOK(ret))
       {
          void * sendMessageData[] = {const_cast<MessageRef *>(&msgRef), &includeSelf}; // gotta include the includeSelf param too, alas
          (void) matcher.DoTraversal((PathMatchCallback)SendMessageCallbackFunc, this, GetGlobalRoot(), true, sendMessageData);
          return B_NO_ERROR;
       }
-      return B_ERROR;
+      return ret;
    }
    else
    {
@@ -972,9 +970,8 @@ public:
 int StorageReflectSession :: FindNodesCallback(DataNode & node, void * userData)
 {
    FindMatchingNodesData * data = static_cast<FindMatchingNodesData *>(userData);
-   if (data->_results.AddTail(DataNodeRef(&node)) != B_NO_ERROR)
+   if (data->_results.AddTail(DataNodeRef(&node)).IsError(data->_ret)) 
    {
-      data->_ret = B_ERROR;  // Oops, out of memory!
       return -1;  // abort now
    }
    else return (data->_results.GetNumItems() == data->_maxResults) ? -1 : (int)node.GetDepth();  // continue traversal as usual unless, we have reached our limit
@@ -988,17 +985,16 @@ DataNodeRef StorageReflectSession :: FindMatchingNode(const String & nodePath, c
 
 status_t StorageReflectSession :: FindMatchingNodes(const String & nodePath, const ConstQueryFilterRef & filter, Queue<DataNodeRef> & retNodes, uint32 maxResults) const
 {
-   status_t ret = B_NO_ERROR;
+   status_t ret;
 
    const bool isGlobal = nodePath.StartsWith('/');
    NodePathMatcher matcher;
-   if (matcher.PutPathString(isGlobal?nodePath.Substring(1):nodePath, filter) == B_NO_ERROR)
+   if (matcher.PutPathString(isGlobal?nodePath.Substring(1):nodePath, filter).IsOK(ret))
    {
       FindMatchingNodesData data(retNodes, maxResults);
       (void) matcher.DoTraversal((PathMatchCallback)FindNodesCallbackFunc, const_cast<StorageReflectSession*>(this), isGlobal?GetGlobalRoot():*_sessionDir(), true, &data);
       ret = data._ret;
    }
-   else ret = B_ERROR;
 
    return ret;
 }
@@ -1015,16 +1011,17 @@ status_t StorageReflectSession :: InsertOrderedData(const MessageRef & msgRef, H
 {
    TCHECKPOINT;
 
-   // Because INSERTORDEREDDATA operates solely on pre-existing nodes, we can allow wildcards in our node paths.
-   if ((_sessionDir())&&(msgRef()))
+   if (_sessionDir() == NULL) return B_BAD_OBJECT;
+   if (msgRef())
    {
+      // Because INSERTORDEREDDATA operates solely on pre-existing nodes, we can allow wildcards in our node paths.
       void * args[2] = {msgRef(), optNewNodes};
       NodePathMatcher matcher;
       (void) matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, *msgRef(), NULL);
       (void) matcher.DoTraversal((PathMatchCallback)InsertOrderedDataCallbackFunc, this, *_sessionDir(), true, args);
       return B_NO_ERROR;
    }
-   return B_ERROR;
+   else return B_BAD_ARGUMENT;
 }
 
 void
@@ -1092,7 +1089,8 @@ status_t StorageReflectSession :: RemoveDataNodes(const String & nodePath, const
    TCHECKPOINT;
 
    NodePathMatcher matcher;
-   if (matcher.PutPathString(nodePath, filterRef) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (matcher.PutPathString(nodePath, filterRef).IsError(ret)) return ret;
    DoRemoveData(matcher, quiet);
    return B_NO_ERROR;
 }
@@ -1164,9 +1162,8 @@ FindSessionsCallback(DataNode & node, void * userData)
 
    StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(sref());
    FindMatchingSessionsData * data = static_cast<FindMatchingSessionsData *>(userData);
-   if ((next)&&(data->_results.Put(&next->GetSessionIDString(), sref) != B_NO_ERROR))
+   if ((next)&&(data->_results.Put(&next->GetSessionIDString(), sref).IsError(data->_ret)))
    {
-      data->_ret = B_ERROR;  // Oops, out of memory!
       return -1;  // abort now
    }
    else return (data->_results.GetNumItems() == data->_maxResults) ? -1 : NODE_DEPTH_SESSIONNAME; // This causes the traversal to immediately skip to the next session
@@ -1325,13 +1322,16 @@ status_t
 StorageReflectSession ::
 InsertOrderedChildNode(DataNode & node, const String * optInsertBefore, const MessageRef & childNodeMsg, Hashtable<String, DataNodeRef> * optAddNewChildren)
 {
-   if ((_currentNodeCount < _maxNodeCount)&&(node.InsertOrderedChild(childNodeMsg, optInsertBefore, NULL, this, this, optAddNewChildren) == B_NO_ERROR))
+   if (_currentNodeCount >= _maxNodeCount) return B_ACCESS_DENIED;
+
+   status_t ret;
+   if (node.InsertOrderedChild(childNodeMsg, optInsertBefore, NULL, this, this, optAddNewChildren).IsOK(ret))
    {
       _indexingPresent = true;  // disable optimization in GetDataCallback()
       _currentNodeCount++;
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 int
@@ -1680,17 +1680,19 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
 {
    TCHECKPOINT;
 
+   status_t ret;
    {
       MessageRef payload = node.GetData();
       if ((optPruner)&&(optPruner->MatchPath(destPath, payload) == false)) return B_NO_ERROR;
-      if ((payload() == NULL)||(SetDataNode(destPath, payload, allowOverwriteData, allowCreateNode, quiet, addToTargetIndex, optInsertBefore) != B_NO_ERROR)) return B_ERROR;
+      if (payload() == NULL) return B_BAD_OBJECT;
+      if (SetDataNode(destPath, payload, allowOverwriteData, allowCreateNode, quiet, addToTargetIndex, optInsertBefore).IsError(ret)) return ret;
    }
 
    // Then clone all of his children
    for (DataNodeRefIterator iter = node.GetChildIterator(); iter.HasData(); iter++)
    {
       // Note that we don't deal with the index-cloning here; we do it separately (below) instead, for efficiency
-      if ((iter.GetValue()())&&(CloneDataNodeSubtree(*iter.GetValue()(), destPath+'/'+(*iter.GetKey()), false, true, quiet, false, NULL, optPruner) != B_NO_ERROR)) return B_ERROR;
+      if ((iter.GetValue()())&&(CloneDataNodeSubtree(*iter.GetValue()(), destPath+'/'+(*iter.GetKey()), false, true, quiet, false, NULL, optPruner).IsError(ret))) return ret;
    }
 
    // Lastly, if he has an index, make sure the clone ends up with an equivalent index
@@ -1701,9 +1703,9 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
       if (clone)
       {
          const uint32 idxLen = index->GetNumItems();
-         for (uint32 i=0; i<idxLen; i++) if (clone->InsertIndexEntryAt(i, this, (*index)[i]()->GetNodeName()) != B_NO_ERROR) return B_ERROR;
+         for (uint32 i=0; i<idxLen; i++) if (clone->InsertIndexEntryAt(i, this, (*index)[i]()->GetNodeName()).IsError(ret)) return ret;
       }
-      else return B_ERROR;
+      else return B_DATA_NOT_FOUND;
    }
 
    return B_NO_ERROR;
@@ -1715,10 +1717,12 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
 {
    TCHECKPOINT;
 
+   status_t ret;
+
    {
       MessageRef payload = node->GetData();
       if ((optPruner)&&(optPruner->MatchPath(path, payload) == false)) return B_NO_ERROR;
-      if ((saveData)&&(msg.AddMessage(PR_NAME_NODEDATA, payload) != B_NO_ERROR)) return B_ERROR;
+      if ((saveData)&&(msg.AddMessage(PR_NAME_NODEDATA, payload).IsError(ret))) return ret;
    }
    
    if ((node->HasChildren())&&(maxDepth > 0))
@@ -1731,16 +1735,19 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
          if (indexSize > 0)
          {
             MessageRef indexMsgRef(GetMessageFromPool());
-            if ((indexMsgRef() == NULL)||(msg.AddMessage(PR_NAME_NODEINDEX, indexMsgRef) != B_NO_ERROR)) return B_ERROR;
+            if (indexMsgRef() == NULL) return B_OUT_OF_MEMORY;
+            if (msg.AddMessage(PR_NAME_NODEINDEX, indexMsgRef).IsError(ret)) return ret;
+
             Message * indexMsg = indexMsgRef();
-            for (uint32 i=0; i<indexSize; i++) if (indexMsg->AddString(PR_NAME_KEYS, (*index)[i]()->GetNodeName()) != B_NO_ERROR) return B_ERROR;
+            for (uint32 i=0; i<indexSize; i++) if (indexMsg->AddString(PR_NAME_KEYS, (*index)[i]()->GetNodeName()).IsError(ret)) return ret;
          }
       }
 
       // Then save the children, recursing to each one as necessary
       {
          MessageRef childrenMsgRef(GetMessageFromPool());
-         if ((childrenMsgRef() == NULL)||(msg.AddMessage(PR_NAME_NODECHILDREN, childrenMsgRef) != B_NO_ERROR)) return B_ERROR;
+         if (childrenMsgRef() == NULL) return B_OUT_OF_MEMORY;
+         if (msg.AddMessage(PR_NAME_NODECHILDREN, childrenMsgRef).IsError(ret)) return ret;
          for (DataNodeRefIterator childIter = node->GetChildIterator(); childIter.HasData(); childIter++)
          {
             DataNode * child = childIter.GetValue()();
@@ -1751,7 +1758,8 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
                childPath += child->GetNodeName();
 
                MessageRef childMsgRef(GetMessageFromPool());
-               if ((childMsgRef() == NULL)||(childrenMsgRef()->AddMessage(child->GetNodeName(), childMsgRef) != B_NO_ERROR)||(SaveNodeTreeToMessage(*childMsgRef(), child, childPath, true, maxDepth-1, optPruner) != B_NO_ERROR)) return B_ERROR;
+               if (childMsgRef() == NULL) return B_OUT_OF_MEMORY;
+               if ((childrenMsgRef()->AddMessage(child->GetNodeName(), childMsgRef).IsError(ret))||(SaveNodeTreeToMessage(*childMsgRef(), child, childPath, true, maxDepth-1, optPruner).IsError(ret))) return ret;
             }
          }
       }
@@ -1764,17 +1772,20 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
 {
    TCHECKPOINT;
 
+   status_t ret;
+
    if (loadData)
    {
       MessageRef payload;
-      if (msg.FindMessage(PR_NAME_NODEDATA, payload) != B_NO_ERROR) return B_ERROR;
+      if (msg.FindMessage(PR_NAME_NODEDATA, payload).IsError(ret)) return ret;
       if ((optPruner)&&(optPruner->MatchPath(path, payload) == false)) return B_NO_ERROR;
-      if (SetDataNode(path, payload, true, true, quiet, appendToIndex) != B_NO_ERROR) return B_ERROR;
+      if (SetDataNode(path, payload, true, true, quiet, appendToIndex).IsError(ret)) return ret;
    }
-   else
+   else if (optPruner)
    {
       MessageRef junk = GetMessageFromPool();
-      if ((optPruner)&&(optPruner->MatchPath(path, junk) == false)) return B_NO_ERROR;
+      if (junk() == NULL) return B_OUT_OF_MEMORY;
+      if (optPruner->MatchPath(path, junk) == false) return B_NO_ERROR;
    }
 
    MessageRef childrenRef;
@@ -1795,8 +1806,8 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
                   String childPath(path);
                   if (childPath.HasChars()) childPath += '/';
                   childPath += *nextFieldName;
-                  if (RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, true, maxDepth-1, optPruner, quiet) != B_NO_ERROR) return B_ERROR;
-                  if (indexLookup.Put(nextFieldName, i) != B_NO_ERROR) return B_ERROR;
+                  if (RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, true, maxDepth-1, optPruner, quiet).IsError(ret)) return ret;
+                  if (indexLookup.Put(nextFieldName, i).IsError(ret)) return ret;
                }
             }
          }
@@ -1815,7 +1826,7 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
                   String childPath(path);
                   if (childPath.HasChars()) childPath += '/';
                   childPath += nextFieldName;
-                  if (RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, false, maxDepth-1, optPruner, quiet) != B_NO_ERROR) return B_ERROR;
+                  if (RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, false, maxDepth-1, optPruner, quiet).IsError(ret)) return ret;
                }
             }
          }
@@ -1826,7 +1837,7 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
 
 status_t StorageReflectSession :: RemoveParameter(const String & paramName, bool & retUpdateDefaultMessageRoute)
 {
-   if (_parameters.HasName(paramName) == false) return B_ERROR;  // FogBugz #6348:  DO NOT remove paramName until the end of this method!
+   if (_parameters.HasName(paramName) == false) return B_DATA_NOT_FOUND;  // FogBugz #6348:  DO NOT remove paramName until the end of this method!
 
    if (paramName.StartsWith("SUBSCRIBE:"))
    {

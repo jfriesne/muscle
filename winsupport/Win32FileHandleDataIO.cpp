@@ -44,7 +44,13 @@ void Win32FileHandleDataIO :: FlushOutput()
 
 status_t Win32FileHandleDataIO :: SetBlockingIOEnabled(bool blocking)
 {
-   return ((_handle != INVALID_HANDLE_VALUE)&&(blocking==false)) ? B_NO_ERROR : B_ERROR;
+   if (_handle == INVALID_HANDLE_VALUE) return B_BAD_OBJECT;
+
+   // I think code is wrong, but it's the same logic as the old code, so I'm leaving it for now --jaf
+   return blocking ? B_UNIMPLEMENTED : B_NO_ERROR;
+
+   // the old code was:
+   // return ((_handle != INVALID_HANDLE_VALUE)&&(blocking==false)) ? B_NO_ERROR : B_ERROR;
 }
 
 void Win32FileHandleDataIO :: Shutdown()
@@ -58,21 +64,19 @@ void Win32FileHandleDataIO :: Shutdown()
 
 status_t Win32FileHandleDataIO :: Seek(int64 offset, int whence)
 {
-   if (_handle != INVALID_HANDLE_VALUE)
-   {
-      switch(whence)
-      {
-         case IO_SEEK_SET: whence = FILE_BEGIN;   break;
-         case IO_SEEK_CUR: whence = FILE_CURRENT; break;
-         case IO_SEEK_END: whence = FILE_END;     break;
-         default:          return B_ERROR;
-      }
+   if (_handle == INVALID_HANDLE_VALUE) return B_BAD_OBJECT;
 
-      LARGE_INTEGER newPosition;    newPosition.QuadPart    = 0;
-      LARGE_INTEGER distanceToMove; distanceToMove.QuadPart = offset;
-      return SetFilePointerEx(_handle, distanceToMove, &newPosition, whence) ? B_NO_ERROR : B_ERROR;
+   switch(whence)
+   {
+      case IO_SEEK_SET: whence = FILE_BEGIN;   break;
+      case IO_SEEK_CUR: whence = FILE_CURRENT; break;
+      case IO_SEEK_END: whence = FILE_END;     break;
+      default:          return B_BAD_ARGUMENT;;
    }
-   return B_ERROR;
+
+   LARGE_INTEGER newPosition;    newPosition.QuadPart    = 0;
+   LARGE_INTEGER distanceToMove; distanceToMove.QuadPart = offset;
+   return SetFilePointerEx(_handle, distanceToMove, &newPosition, whence) ? B_NO_ERROR : B_ERRNO;
 }
 
 int64 Win32FileHandleDataIO :: GetPosition() const

@@ -75,13 +75,14 @@ bool MultiDataIO :: HasBufferedOutput() const
 
 status_t MultiDataIO :: SeekAll(uint32 first, int64 offset, int whence)
 {
+   status_t ret;
    for (int32 i=_childIOs.GetNumItems()-1; i>=(int32)first; i--)
    {
       SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(_childIOs[i]());
-      if ((sdio == NULL)||(sdio->Seek(offset, whence) != B_NO_ERROR))
+      if ((sdio == NULL)||(sdio->Seek(offset, whence).IsError(ret)))
       {
          if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1)) (void) _childIOs.RemoveItemAt(i);
-                                                               else return B_ERROR;
+                                                               else return ret | B_ERROR;
       }
    }
    return B_NO_ERROR;

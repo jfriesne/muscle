@@ -116,7 +116,8 @@ status_t String :: SetFromString(const String & s, uint32 firstChar, uint32 afte
    const uint32 len = (afterLastChar > firstChar) ? (afterLastChar-firstChar) : 0;
    if (len > 0)
    {
-      if (EnsureBufferSize(len+1, false, false) != B_NO_ERROR) return B_ERROR;  // guaranteed not to realloc in the (&s==this) case
+      status_t ret;
+      if (EnsureBufferSize(len+1, false, false).IsError(ret)) return ret;  // guaranteed not to realloc in the (&s==this) case
 
       char * b = GetBuffer();
       memmove(b, s()+firstChar, len);  // memmove() is used in case (&s==this)
@@ -139,7 +140,9 @@ status_t String :: SetCstr(const char * str, uint32 maxLen)
    if (maxLen > 0)
    {
       if (str[maxLen-1] != '\0') maxLen++;  // make room to add the NUL byte if necessary
-      if (EnsureBufferSize(maxLen, false, false) != B_NO_ERROR) return B_ERROR;  // guaranteed not to realloc in the IsCharInLocalArray(str) case
+
+      status_t ret;
+      if (EnsureBufferSize(maxLen, false, false).IsError(ret)) return ret;  // guaranteed not to realloc in the IsCharInLocalArray(str) case
 
       char * b = GetBuffer();
       memmove(b, str, maxLen-1);  // memmove() is used in case (str) points into our array
@@ -691,7 +694,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
          {
             // Here we call muscleRealloc() to (hopefully) avoid unnecessary data copying
             newBuf = (char *) muscleRealloc(_strData._bigBuffer, newBufLen);
-            if (newBuf == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+            if (newBuf == NULL) RETURN_OUT_OF_MEMORY;
          }
       }
       else 
@@ -708,7 +711,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
          {
             // Oops, muscleRealloc() won't do in this case.... we'll just have to copy the bytes over
             newBuf = (char *) muscleAlloc(newBufLen);
-            if (newBuf == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+            if (newBuf == NULL) RETURN_OUT_OF_MEMORY;
             memcpy(newBuf, GetBuffer(), muscleMin(Length()+1, newBufLen));
          }
       }
@@ -725,7 +728,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
       else
       {
          newBuf = (char *) muscleAlloc(newBufLen);
-         if (newBuf == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+         if (newBuf == NULL) RETURN_OUT_OF_MEMORY;
          newBuf[0] = '\0';  // avoid potential user-visible garbage bytes
          if (arrayWasDynamicallyAllocated) muscleFree(_strData._bigBuffer);
       }
@@ -1065,10 +1068,10 @@ status_t String :: SetFromCFStringRef(const CFStringRef & cfStringRef)
       char * str = doAlloc ? (char *)muscleAlloc(allocLen) : tempBuf;
       if (str)
       {
-         ret = CFStringGetCString(cfStringRef, str, allocLen, kCFStringEncodingUTF8) ? SetCstr(str) : B_ERROR;
+         ret = CFStringGetCString(cfStringRef, str, allocLen, kCFStringEncodingUTF8) ? SetCstr(str) : B_ERROR("CFStringGetCString() failed");
          if (doAlloc) muscleFree(str);
       }
-      else {WARN_OUT_OF_MEMORY; return B_ERROR;}
+      else RETURN_OUT_OF_MEMORY;
    }
    else Clear();
 

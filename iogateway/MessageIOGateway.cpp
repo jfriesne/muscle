@@ -31,11 +31,7 @@ status_t OptimizeMessageForTransmissionToMultipleGateways(const MessageRef & msg
    if (IsMessageOptimizedForTransmissionToMultipleGateways(msg)) return B_NO_ERROR;  // it's already tagged!
 
    MessageReuseTagRef tagRef(newnothrow MessageReuseTag);
-   if (tagRef() == NULL)
-   {
-      WARN_OUT_OF_MEMORY;
-      return B_ERROR;
-   } 
+   if (tagRef() == NULL) RETURN_OUT_OF_MEMORY;
    return msg()->AddTag(PR_NAME_MESSAGE_REUSE_TAG, tagRef);
 }
 

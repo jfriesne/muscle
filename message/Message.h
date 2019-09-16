@@ -267,7 +267,7 @@ public:
     *  @param type If non-NULL, On sucess the type code of the found field is copied into this value.
     *  @param c If non-NULL, On success, the number of elements in the found field is copied into this value.
     *  @param fixed_size If non-NULL, On success, (*fixed_size) is set to reflect whether the returned field's objects are all the same size, or not.
-    *  @return B_NO_ERROR on success, or B_ERROR if the requested field couldn't be found.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the requested field couldn't be found.
     */
    status_t GetInfo(const String & fieldName, uint32 *type, uint32 *c = NULL, bool *fixed_size = NULL) const;
 
@@ -320,7 +320,7 @@ public:
     *  @param old_entry Field name to rename from.
     *  @param new_entry Field name to rename to.  If a field with this name already exists,
     *                   it will be replaced.
-    *  @return B_NO_ERROR on success, or B_ERROR if a field named (old_entry) couldn't be found. 
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if a field named (old_entry) couldn't be found. 
     */
    status_t Rename(const String & old_entry, const String & new_entry);
 
@@ -345,7 +345,7 @@ public:
     *  this Message will be erased, and replaced with the data specified in the byte buffer.
     *  @param buf Pointer to a byte buffer containing a flattened Message to restore.
     *  @param size The number of bytes in the flattened byte buffer.
-    *  @return B_NO_ERROR if the buffer was successfully Unflattened, or B_ERROR if there
+    *  @return B_NO_ERROR if the buffer was successfully Unflattened, or an error code if there
     *          was an error (usually meaning the buffer was corrupt, or out-of-memory)
     */
    virtual status_t Unflatten(const uint8 *buf, uint32 size);
@@ -353,56 +353,56 @@ public:
    /** Adds a new string to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param val The string to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddString(const String & fieldName, const String & val);
 
    /** Adds a new int8 to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param val The int8 to add 
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddInt8(const String & fieldName, int8 val);
 
    /** Adds a new int16 to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param val The int16 to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddInt16(const String & fieldName, int16 val);
 
    /** Adds a new int32 to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param val The int32 to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddInt32(const String & fieldName, int32 val);
 
    /** Adds a new int64 to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param val The int64 to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddInt64(const String & fieldName, int64 val);
 
    /** Adds a new boolean to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param val The boolean to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddBool(const String & fieldName, bool val);
 
    /** Adds a new float to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param val The float to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddFloat(const String & fieldName, float val);
 
    /** Adds a new double to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param val The double to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddDouble(const String & fieldName, double val);
 
@@ -412,7 +412,7 @@ public:
     *  necessitates copying all the data in (msg).
     *  @param fieldName Name of the field to add (or add to)
     *  @param msg The Message to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddMessage(const String & fieldName, const Message & msg) {return AddMessage(fieldName, GetMessageFromPool(msg));}
 
@@ -422,7 +422,7 @@ public:
     *  need not make a copy of the referenced Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param msgRef Reference to the Message to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddMessage(const String & fieldName, const MessageRef & msgRef); 
 
@@ -430,28 +430,28 @@ public:
     *  state into a Message, then adds the resulting Message into this Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param obj The object to archive.  May be any type with a SaveToArchive() method.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or SaveToArchive() failed.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY if out of memory or SaveToArchive() failed.
     */
    template<class T> inline status_t AddArchiveMessage(const String & fieldName, const T & obj);
 
    /** Adds a new pointer value to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param ptr The pointer value to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddPointer(const String & fieldName, const void * ptr);
 
    /** Adds a new point to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param point The point to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddPoint(const String & fieldName, const Point & point);
 
    /** Adds a new rect to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param rect The rect to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddRect(const String & fieldName, const Rect & rect);
 
@@ -460,21 +460,21 @@ public:
     *  @param obj The Flattenable object (or at least an object with TypeCode(), Flatten(), 
     *             and FlattenedSize() methods).  Flatten() is called on this object, and the 
     *             resulting bytes are appended to the given field in this Message.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    template <class T> status_t AddFlat(const String & fieldName, const T & obj) {return AddFlatAux(fieldName, GetFlattenedByteBufferFromPool(obj), obj.TypeCode(), false);}
 
    /** Adds a reference to a FlatCountable object to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param ref The FlatCountable reference to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddFlat(const String & fieldName, const FlatCountableRef & ref);
 
    /** Adds a reference to a ByteBuffer object to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param ref The ByteBuffer reference to add
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddFlat(const String & fieldName, const ByteBufferRef & ref)
    {
@@ -488,7 +488,7 @@ public:
     *  Flatten()'d with the rest of the contents of the Message!
     *  @param fieldName Name of the field to add (or add to)
     *  @param tagRef Reference to the tag object to add.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddTag(const String & fieldName, const RefCountableRef & tagRef);
 
@@ -505,64 +505,64 @@ public:
     *                  is a known type such as B_INT32_TYPE or B_RECT_TYPE, (numBytes)
     *                  may be a multiple of the datatype's size, allowing you to add
     *                  multiple entries with a single call.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or (numBytes) isn't a multiple (type)'s 
-    *          known size, or a type conflict occurred.
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY if out of memory or B_BAD_ARGUMENT if
+    *          (numBytes) isn't a multiple of (type)'s known size, or B_TYPE_MISMATCH if a type conflict occurred.
     */
    status_t AddData(const String & fieldName, uint32 type, const void *data, uint32 numBytes) {return AddDataAux(fieldName, data, numBytes, type, false);}
 
    /** Prepends a new string to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param val The string to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependString(const String & fieldName, const String & val);
 
    /** Prepends a new int8 to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param val The int8 to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependInt8(const String & fieldName, int8 val);
 
    /** Prepends a new int16 to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param val The int16 to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependInt16(const String & fieldName, int16 val);
 
    /** Prepends a new int32 to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param val The int32 to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependInt32(const String & fieldName, int32 val);
 
    /** Prepends a new int64 to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param val The int64 to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependInt64(const String & fieldName, int64 val);
 
    /** Prepends a new boolean to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param val The boolean to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependBool(const String & fieldName, bool val);
 
    /** Prepends a new float to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param val The float to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependFloat(const String & fieldName, float val);
 
    /** Prepends a new double to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param val The double to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependDouble(const String & fieldName, double val);
 
@@ -571,7 +571,7 @@ public:
     *  as this method necessitates making a copy of (msg) and all the data it contains.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param msg The Message to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependMessage(const String & fieldName, const Message & msg) {return PrependMessage(fieldName, GetMessageFromPool(msg));}
 
@@ -581,7 +581,7 @@ public:
     *  need not make a copy of the referenced Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param msgRef Reference to the Message to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependMessage(const String & fieldName, const MessageRef & msgRef); 
 
@@ -589,28 +589,28 @@ public:
     *  state into a Message, then prepends the resulting Message into this Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param obj The object to archive.  May be any type with a SaveToArchive() method.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or SaveToArchive() failed.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY if out of memory or SaveToArchive() failed.
     */
    template<class T> inline status_t PrependArchiveMessage(const String & fieldName, const T & obj);
 
    /** Prepends a new pointer value to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param ptr The pointer value to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependPointer(const String & fieldName, const void * ptr);
 
    /** Prepends a new point to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param point The point to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependPoint(const String & fieldName, const Point & point);
 
    /** Prepends a new rectangle to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param rect The rectangle to add or prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependRect(const String & fieldName, const Rect & rect);
 
@@ -619,21 +619,21 @@ public:
     *  @param obj The Flattenable object (or at least an object with TypeCode(), Flatten(), 
     *             and FlattenedSize() methods).  Flatten() is called on this object, and the 
     *             resulting bytes are appended to the given field in this Message.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    template <class T> status_t PrependFlat(const String & fieldName, const T & obj) {return AddFlatAux(fieldName, GetFlattenedByteBufferFromPool(obj), obj.TypeCode(), true);}
 
    /** Prepends a reference to a FlatCountable object to the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param flatRef FlatCountable reference to prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependFlat(const String & fieldName, const FlatCountableRef & flatRef);
 
    /** Prepends a reference to a ByteBuffer object to the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param ref The ByteBuffer reference to prepend
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependFlat(const String & fieldName, const ByteBufferRef & ref)
    {
@@ -647,7 +647,7 @@ public:
     *  Flatten()'d with the rest of the contents of the Message!
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param tagRef Reference to the tag object to add or prepend.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependTag(const String & fieldName, const RefCountableRef & tagRef);
 
@@ -664,8 +664,8 @@ public:
     *                  is a known type such as B_INT32_TYPE or B_RECT_TYPE, (numBytes)
     *                  may be a multiple of the datatype's size, allowing you to add
     *                  multiple entries with a single call.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or (numBytes) isn't a multiple (type)'s 
-    *          known size, or a type conflict occurred.
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY if out of memory or B_BAD_ARGUMENT if
+    *          (numBytes) isn't a multiple of (type)'s known size, or B_TYPE_MISMATCH if a type conflict occurred.
     */
    status_t PrependData(const String & fieldName, uint32 type, const void *data, uint32 numBytes) {return AddDataAux(fieldName, data, numBytes, type, true);}
 
@@ -673,13 +673,13 @@ public:
     *  empty, the field itself is removed also.
     *  @param fieldName Name of the field to remove an item from.
     *  @param index Index of the item to remove.
-    *  @return B_NO_ERROR on success, B_ERROR if the field name wasn't found, or the specified index was invalid.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field name/index wasn't found.
     */
    status_t RemoveData(const String & fieldName, uint32 index = 0);
 
    /** Removes the given field name and its contents from the Message.
     *  @param fieldName Name of the field to remove.
-    *  @return B_NO_ERROR on success, B_ERROR if the field name wasn't found.
+    *  @return B_NO_ERROR on success, B_DATA_NOT_FOUND if the field name wasn't found.
     */
    status_t RemoveName(const String & fieldName) {return _entries.Remove(fieldName);}
 
@@ -693,7 +693,7 @@ public:
     *  @param fieldName The field name to look for the string value under.
     *  @param index The index of the string item in its field entry.
     *  @param writeValueHere On success, this pointer will be pointing to a String containing the result.
-    *  @return B_NO_ERROR if the string value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the string value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindString(const String & fieldName, uint32 index, const String ** writeValueHere) const;
 
@@ -701,7 +701,7 @@ public:
     *  @param fieldName The field name to look for the string value under.
     *  @param index The index of the string item in its field entry.
     *  @param writeValueHere On success, a pointer to the string value is written into this object.
-    *  @return B_NO_ERROR if the string value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the string value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindString(const String & fieldName, uint32 index, const char * & writeValueHere) const;
 
@@ -709,7 +709,7 @@ public:
     *  @param fieldName The field name to look for the string value under.
     *  @param index The index of the string item in its field entry.
     *  @param writeValueHere On success, the value of the string is written into this object.
-    *  @return B_NO_ERROR if the string value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the string value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindString(const String & fieldName, uint32 index, String & writeValueHere) const;
 
@@ -717,7 +717,7 @@ public:
     *  @param fieldName The field name to look for the int8 value under.
     *  @param index The index of the int8 item in its field entry.
     *  @param writeValueHere On success, the value of the int8 is written into this object.
-    *  @return B_NO_ERROR if the int8 value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the int8 value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindInt8(const String & fieldName, uint32 index, int8 & writeValueHere) const {return FindDataItemAux(fieldName, index, B_INT8_TYPE, &writeValueHere, sizeof(int8));}
 
@@ -725,7 +725,7 @@ public:
     *  @param fieldName The field name to look for the int16 value under.
     *  @param index The index of the int16 item in its field entry.
     *  @param writeValueHere On success, the value of the int16 is written into this object.
-    *  @return B_NO_ERROR if the int16 value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the int16 value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindInt16(const String & fieldName, uint32 index, int16 & writeValueHere) const {return FindDataItemAux(fieldName, index, B_INT16_TYPE, &writeValueHere, sizeof(int16));} 
 
@@ -733,7 +733,7 @@ public:
     *  @param fieldName The field name to look for the int32 value under.
     *  @param index The index of the int32 item in its field entry.
     *  @param writeValueHere On success, the value of the int32 is written into this object.
-    *  @return B_NO_ERROR if the int32 value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the int32 value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindInt32(const String & fieldName, uint32 index, int32 & writeValueHere) const {return FindDataItemAux(fieldName, index, B_INT32_TYPE, &writeValueHere, sizeof(int32));} 
 
@@ -741,7 +741,7 @@ public:
     *  @param fieldName The field name to look for the int64 value under.
     *  @param index The index of the int64 item in its field entry.
     *  @param writeValueHere On success, the value of the int64 is written into this object.
-    *  @return B_NO_ERROR if the int64 value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the int64 value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindInt64(const String & fieldName, uint32 index, int64 & writeValueHere) const {return FindDataItemAux(fieldName, index, B_INT64_TYPE, &writeValueHere, sizeof(int64));}  
 
@@ -749,7 +749,7 @@ public:
     *  @param fieldName The field name to look for the boolean value under.
     *  @param index The index of the boolean item in its field entry.
     *  @param writeValueHere On success, the value of the boolean is written into this object.
-    *  @return B_NO_ERROR if the boolean value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the boolean value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindBool(const String & fieldName, uint32 index, bool & writeValueHere) const {return FindDataItemAux(fieldName, index, B_BOOL_TYPE, &writeValueHere, sizeof(bool));} 
 
@@ -757,7 +757,7 @@ public:
     *  @param fieldName The field name to look for the float value under.
     *  @param index The index of the float item in its field entry.
     *  @param writeValueHere On success, the value of the float is written into this object.
-    *  @return B_NO_ERROR if the float value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the float value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindFloat(const String & fieldName, uint32 index, float & writeValueHere) const {return FindDataItemAux(fieldName, index, B_FLOAT_TYPE, &writeValueHere, sizeof(float));}
 
@@ -765,7 +765,7 @@ public:
     *  @param fieldName The field name to look for the double value under.
     *  @param index The index of the double item in its field entry.
     *  @param writeValueHere On success, the value of the double is written into this object.
-    *  @return B_NO_ERROR if the double value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the double value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindDouble(const String & fieldName, uint32 index, double & writeValueHere) const {return FindDataItemAux(fieldName, index, B_DOUBLE_TYPE, &writeValueHere, sizeof(double));}
 
@@ -775,7 +775,7 @@ public:
     *  @param fieldName The field name to look for the Message value under.
     *  @param index The index of the Message item in its field entry.
     *  @param writeValueHere On success, the value of the Message is written into this object.
-    *  @return B_NO_ERROR if the Message value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the Message value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindMessage(const String & fieldName, uint32 index, Message & writeValueHere) const;
 
@@ -785,7 +785,7 @@ public:
     *  @param fieldName The field name to look for the Message value under.
     *  @param index The index of the Message item in its field entry.
     *  @param writeValueHere On success, the value of the Message is written into this object.
-    *  @return B_NO_ERROR if the Message value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the Message value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindMessage(const String & fieldName, uint32 index, MessageRef & writeValueHere) const;
 
@@ -795,12 +795,12 @@ public:
     *  @param index The index of the Message item in its field entry.
     *  @param writeValueHere The object to call SetFromArchive(msg) on.  Since this method is templated,
     *                        this object may be of any type that has a SetFromArchive(const Message &) method.
-    *  @return B_NO_ERROR if the Message value was found and SetFromArchive() returned B_NO_ERROR, or B_ERROR otherwise.
+    *  @return B_NO_ERROR if the Message value was found and SetFromArchive() succeeded, or B_DATA_NOT_FOUND otherwise.
     */
    template<class T> inline status_t FindArchiveMessage(const String & fieldName, uint32 index, T & writeValueHere) const
    {
       MessageRef msg;
-      return (FindMessage(fieldName, index, msg) == B_NO_ERROR) ? writeValueHere.SetFromArchive(*msg()) : B_ERROR;
+      return (FindMessage(fieldName, index, msg) == B_NO_ERROR) ? writeValueHere.SetFromArchive(*msg()) : B_DATA_NOT_FOUND;
    }
 
    /** Convenience method:  Retrieves a Message value from this Message,
@@ -832,7 +832,7 @@ public:
     *  @param fieldName The field name to look for the pointer value under.
     *  @param index The index of the pointer item in its field entry.
     *  @param writeValueHere On success, the value of the pointer is written into this object.
-    *  @return B_NO_ERROR if the pointer value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the pointer value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindPointer(const String & fieldName, uint32 index, void * & writeValueHere) const {return FindDataItemAux(fieldName, index, B_POINTER_TYPE, &writeValueHere, sizeof(void *));}
 
@@ -840,7 +840,7 @@ public:
     *  @param fieldName The field name to look for the point value under.
     *  @param index The index of the point item in its field entry.
     *  @param writeValueHere On success, the value of the point is written into this object.
-    *  @return B_NO_ERROR if the point value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the point value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindPoint(const String & fieldName, uint32 index, Point & writeValueHere) const;
 
@@ -848,7 +848,7 @@ public:
     *  @param fieldName The field name to look for the rectangle value under.
     *  @param index The index of the rectangle item in its field entry.
     *  @param writeValueHere On success, the value of the rectangle is written into this object.
-    *  @return B_NO_ERROR if the rectangle value was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the rectangle value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindRect(const String & fieldName, uint32 index, Rect & writeValueHere) const;
 
@@ -856,13 +856,16 @@ public:
     *  @param fieldName The field name to look for the flattened object value under.
     *  @param index The index of the flattened object item in its field entry.
     *  @param writeValueHere On success, the flattened object is copied into this object.
-    *  @return B_NO_ERROR if the flattened object was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the flattened object was found, or B_DATA_NOT_FOUND if it wasn't,
+    *                     or B_TYPE_MISMATCH if the found item isn't compatible with (writeValueHere)
     */
    template <class T> status_t FindFlat(const String & fieldName, uint32 index, T & writeValueHere) const
    {
       uint32 arrayTypeCode;
       const muscle_message_imp::MessageField * mf = GetMessageFieldAndTypeCode(fieldName, index, &arrayTypeCode);
-      if ((mf)&&(writeValueHere.AllowsTypeCode(arrayTypeCode)))
+      if (mf == NULL) return B_DATA_NOT_FOUND;
+
+      if (writeValueHere.AllowsTypeCode(arrayTypeCode))
       {
          uint32 numBytes;
          const FlatCountable * fcPtr;
@@ -870,14 +873,15 @@ public:
               if (ptr)   return writeValueHere.Unflatten(ptr, numBytes);
          else if (fcPtr) return writeValueHere.CopyFrom(*fcPtr);
       }
-      return B_ERROR;
+      return B_TYPE_MISMATCH;
    }
          
    /** Retrieve a FlatCountable reference from the Message.
     *  @param fieldName The field name to look for the FlatCountable reference under.
     *  @param index The index of the flattened object item in its field entry.
     *  @param writeValueHere On success, this reference will refer to the FlatCountable object.
-    *  @return B_NO_ERROR if the flattened object was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the flattened object was found, or B_DATA_NOT_FOUND if it wasn't,
+    *                     or B_TYPE_MISMATCH if the found data item isn't compatible with (writeValueHere)
     */
    status_t FindFlat(const String & fieldName, uint32 index, FlatCountableRef & writeValueHere) const;
 
@@ -886,12 +890,14 @@ public:
      * @param fieldName The field name to look for the FlatCountable reference under.
      * @param index The index of the flattened object item in its field entry.
      * @param writeValueHere On success, this reference will refer to the discovered ByteBufferRef object.
-     * @return B_NO_ERROR if the ByteBufferRef was found, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the flattened object was found, or B_DATA_NOT_FOUND if it wasn't,
+    *                     or B_TYPE_MISMATCH if the found data item isn't compatible with (writeValueHere)
      */
    status_t FindFlat(const String & fieldName, uint32 index, ByteBufferRef & writeValueHere) const
    {
       FlatCountableRef fcRef;
-      return (FindFlat(fieldName, index, fcRef) == B_NO_ERROR) ? writeValueHere.SetFromRefCountableRef(fcRef.GetRefCountableRef()) : B_ERROR;
+      status_t ret;
+      return (FindFlat(fieldName, index, fcRef).IsOK(ret)) ? writeValueHere.SetFromRefCountableRef(fcRef.GetRefCountableRef()) : ret;
    }
 
    /** Retrieves and returns an unflattened object of the specified type from the first data-item
@@ -921,7 +927,7 @@ public:
    /** Convenience method:  Calls through to AddFlat(valueToAdd), but only if (valueToAdd) is not equal to a default-constructoed object of that type.
      * @param fieldName The field name of the field to (maybe) add the object to
      * @param valueToAdd The flattenable object to (maybe) add to the field
-     * @returns B_NO_ERROR if (valueToAdd) was default-constructed (and therefore not added), or if it was added successfully, or B_ERROR on error.
+     * @returns B_NO_ERROR if (valueToAdd) was default-constructed (and therefore not added), or if it was added successfully, or an error code on error.
      */
    template<class T> status_t CAddFlat(const String & fieldName, const T & valueToAdd)
    {
@@ -932,7 +938,7 @@ public:
      * @param fieldName The field name of the field to (maybe) add the object to
      * @param valueToAdd The flattenable object to (maybe) add to the field
      * @param defaultValue If (valueToAdd) is equal to (defaultValue), then this method will just return B_NO_ERROR without doing anything.
-     * @returns B_NO_ERROR if (valueToAdd) was equal to (defaultValue) (and therefore not added), or if it was added successfully, or B_ERROR on error.
+     * @returns B_NO_ERROR if (valueToAdd) was equal to (defaultValue) (and therefore not added), or if it was added successfully, or an error code on error.
      */
    template<class T> status_t CAddFlat(const String & fieldName, const T & valueToAdd, const T & defaultValue)
    {
@@ -942,7 +948,7 @@ public:
    /** Convenience method:  Calls through to PrependFlat(valueToPrepend), but only if (valueToPrepend) is not equal to a default-constructoed object of that type.
      * @param fieldName The field name of the field to (maybe) prepend the object to
      * @param valueToPrepend The flattenable object to (maybe) prepend to the field
-     * @returns B_NO_ERROR if (valueToPrepend) was default-constructed (and therefore not prepend), or if it was prepend successfully, or B_ERROR on error.
+     * @returns B_NO_ERROR if (valueToPrepend) was default-constructed (and therefore not prepend), or if it was prepend successfully, or an error code on error.
      */
    template<class T> status_t CPrependFlat(const String & fieldName, const T & valueToPrepend)
    {
@@ -953,7 +959,7 @@ public:
      * @param fieldName The field name of the field to (maybe) add the object to
      * @param valueToPrepend The flattenable object to (maybe) add to the field
      * @param defaultValue If (valueToPrepend) is equal to (defaultValue), then this method will just return B_NO_ERROR without doing anything.
-     * @returns B_NO_ERROR if (valueToPrepend) was equal to (defaultValue) (and therefore not added), or if it was added successfully, or B_ERROR on error.
+     * @returns B_NO_ERROR if (valueToPrepend) was equal to (defaultValue) (and therefore not added), or if it was added successfully, or an error code on error.
      */
    template<class T> status_t CPrependFlat(const String & fieldName, const T & valueToPrepend, const T & defaultValue)
    {
@@ -964,7 +970,7 @@ public:
     *  @param fieldName Name of the field to look for the tag under.
     *  @param index The index of the tag item in its field entry.
     *  @param writeValueHere On success, this object becomes a reference to the found tag object.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the tag couldn't be found.
     */
    status_t FindTag(const String & fieldName, uint32 index, RefCountableRef & writeValueHere) const;
 
@@ -977,7 +983,7 @@ public:
     *        object, and NOT a Message object, or flattened-Message-buffer!
     *        (This is inconsistent with BMessage::FindData, which returns a flattened BMessage buffer.  Sorry!)
     *  @param numBytes On success, the number of bytes in the returned data array will be written into this object.  (May be NULL)
-    *  @return B_NO_ERROR if the data pointer was retrieved successfully, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the data pointer was retrieved successfully, or an error code if it wasn't.
     */
    status_t FindData(const String & fieldName, uint32 type, uint32 index, const void **data, uint32 *numBytes) const;
 
@@ -989,7 +995,7 @@ public:
     *        object, and NOT a Message object, or flattened-Message-buffer!
     *        (This is inconsistent with BMessage::FindData, which returns a flattened BMessage buffer.  Sorry!)
     *  @param numBytes On success, the number of bytes in the returned data array will be written into this object.  (May be NULL)
-    *  @return B_NO_ERROR if the data pointer was retrieved successfully, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the data pointer was retrieved successfully, or an error code if it wasn't.
     */
    status_t FindData(const String & fieldName, uint32 type, const void **data, uint32 *numBytes) const {return FindData(fieldName, type, 0, data, numBytes);}
 
@@ -1005,7 +1011,7 @@ public:
     *        object, and NOT a Message object, or flattened-Message-buffer!
     *        (This is inconsistent with BMessage::FindData, which returns a flattened BMessage buffer.  Sorry!)
     *  @param numBytes On success, the number of bytes in the returned data array will be written into this object.  (May be NULL)
-    *  @return B_NO_ERROR if the data pointer was retrieved successfully, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the data pointer was retrieved successfully, or an error code if it wasn't.
     */
    status_t FindDataPointer(const String & fieldName, uint32 type, uint32 index, void **data, uint32 *numBytes) const;
 
@@ -1017,7 +1023,7 @@ public:
     *         object, and NOT a Message object, or flattened-Message-buffer!
     *         (This is inconsistent with BMessage::FindData, which returns a flattened BMessage buffer.  Sorry!)
     *  @param numBytes On success, the number of bytes in the returned data array will be written into this object.  (May be NULL)
-    *  @return B_NO_ERROR if the data pointer was retrieved successfully, or B_ERROR if it wasn't.
+    *  @return B_NO_ERROR if the data pointer was retrieved successfully, or an error code if it wasn't.
     */
    status_t FindDataPointer(const String & fieldName, uint32 type, void **data, uint32 *numBytes) const {return FindDataPointer(fieldName, type, 0, data, numBytes);}
 
@@ -1027,7 +1033,7 @@ public:
      * (storing a single value inside a field name) without having to constantly type FindXXX(fieldName, 0, myVar) for every call.
      * @param fieldName The field name to look for the value under.
      * @param writeValueHere On success, the found value is written into the variable indicated by this argument
-     * @return B_NO_ERROR if the value value was found, or B_ERROR if it wasn't.
+     * @return B_NO_ERROR if the value value was found, or B_DATA_NOT_FOUND if it wasn't.
      */ 
    status_t FindString(const String & fieldName, const String ** writeValueHere) const {return FindString(fieldName, 0, writeValueHere);}
    status_t FindString(const String & fieldName, const char * & writeValueHere) const {return FindString(fieldName, 0, writeValueHere);}
@@ -1052,129 +1058,129 @@ public:
 ///@}
 
    /** Replaces a string value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param newString The new string value to put overwrite the old string with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceString(bool okayToAdd, const String & fieldName, uint32 index, const String & newString);
 
    /** Replaces an int8 value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param val The new int8 value to put overwrite the old int8 with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceInt8(bool okayToAdd, const String & fieldName, uint32 index, int8 val);
 
    /** Replaces an int16 value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param val The new int16 value to put overwrite the old int16 with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceInt16(bool okayToAdd, const String & fieldName, uint32 index, int16 val);
 
    /** Replaces an int32 value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param val The new int32 value to put overwrite the old int32 with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceInt32(bool okayToAdd, const String & fieldName, uint32 index, int32 val);
 
    /** Replaces an int64 value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param val The new int64 value to put overwrite the old int8 with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceInt64(bool okayToAdd, const String & fieldName, uint32 index, int64 val);
 
    /** Replaces a boolean value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param val The new boolean value to put overwrite the old boolean with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceBool(bool okayToAdd, const String & fieldName, uint32 index, bool val);
 
    /** Replaces a float value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param val The new float value to put overwrite the old float with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceFloat(bool okayToAdd, const String & fieldName, uint32 index, float val);
 
    /** Replaces a double value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param val The new double value to put overwrite the old double with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceDouble(bool okayToAdd, const String & fieldName, uint32 index, double val);
 
    /** Replaces a pointer value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param ptr The new pointer value to put overwrite the old pointer with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplacePointer(bool okayToAdd, const String & fieldName, uint32 index, const void * ptr);
 
    /** Replaces a point value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param point The new point value to put overwrite the old point with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplacePoint(bool okayToAdd, const String & fieldName, uint32 index, const Point & point);
 
    /** Replaces a rectangle value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param rect The new rectangle value to put overwrite the old rectangle with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceRect(bool okayToAdd, const String & fieldName, uint32 index, const Rect & rect);
 
    /** Replaces a Message value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param msg The new Message value to put overwrite the old Message with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceMessage(bool okayToAdd, const String & fieldName, uint32 index, const Message & msg) {return ReplaceMessage(okayToAdd, fieldName, index, GetMessageFromPool(msg));}
 
    /** Replaces a Message value in an existing Message field with a new value.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param msgRef The new Message value to put overwrite the old Message with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceMessage(bool okayToAdd, const String & fieldName, uint32 index, const MessageRef & msgRef);
 
    /** Convenience method: Replaces a Message value in an existing Message field with a new value 
     *  that was generated by calling SaveToArchive() on the passed in object.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param obj The object to call SaveToArchive() on.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, if SaveToArchive() failed, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    template<class T> inline status_t ReplaceArchiveMessage(bool okayToAdd, const String & fieldName, uint32 index, const T & obj)
    {
@@ -1182,31 +1188,31 @@ public:
    }
 
    /** Flattens a Flattenable object and adds the resulting bytes into this Message.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName Name of the field to add (or add to)
     *  @param index The index of the entry within the field name to modify
     *  @param obj The Flattenable object (or at least an object with TypeCode(), Flatten(), 
     *             and FlattenedSize() methods).  Flatten() is called on this object, and the 
     *             resulting bytes are appended to the given field in this Message.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory or a type conflict occurred
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    template <class T> status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const T & obj) {return ReplaceFlatAux(okayToAdd, fieldName, index, GetFlattenedByteBufferFromPool(obj), obj.TypeCode());}
 
    /** Replaces a FlatCountable reference in an existing Message field with a new reference.
-    *  @param okayToAdd If set true, attempting to replace an reference that doesn't exist will cause the new reference to be added to the end of the field array, instead.  If false, attempting to replace a non-existent reference will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an reference that doesn't exist will cause the new reference to be added to the end of the field array, instead.  If false, attempting to replace a non-existent reference will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param newVal The new FlatCountableRef put overwrite the old reference with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & newVal);
 
    /** As above, only (ref) is specified as a ByteBufferRef, to save you having to do the necessary casting to FlatCountableRef yourself 
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param newVal The new ByteBufferRef put overwrite the old reference with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
      */
    status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & newVal) 
    {
@@ -1215,16 +1221,16 @@ public:
    }
 
    /** Replaces a tag object in an existing Message field with a new tag object.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
     *  @param newTag The new tag reference to overwrite the old tag reference with.
-    *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceTag(bool okayToAdd, const String & fieldName, uint32 index, const RefCountableRef & newTag);
 
    /** Replace one entry in a field of any type.
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name to replace an entry in.
     *  @param type The uint32 of the field you are interested, or B_ANY_TYPE if any type is acceptable.
     *  @param index Index in the field to replace the data at.
@@ -1233,12 +1239,12 @@ public:
     *  Note:  If you are replacing B_MESSAGE_TYPE, then (data) must point to a MessageRef
     *         object, and NOT a Message object, or flattened-Message-buffer!
     *         (This is inconsistent with BMessage::ReplaceData, which expects a flattened BMessage buffer.  Sorry!)
-    *  @return B_NO_ERROR if the data item(s) were replaced successfully, or B_ERROR they weren't.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceData(bool okayToAdd, const String & fieldName, uint32 type, uint32 index, const void *data, uint32 numBytes);
 
    /** As above, only (index) isn't specified.  It is assumed to be zero. 
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name to replace an entry in.
     *  @param type The uint32 of the field you are interested, or B_ANY_TYPE if any type is acceptable.
     *  @param data The bytes representing the item you wish to replace an old item in the field with
@@ -1246,7 +1252,7 @@ public:
     *  Note:  If you are replacing B_MESSAGE_TYPE, then (data) must point to a MessageRef
     *         object, and NOT a Message object, or flattened-Message-buffer!
     *         (This is inconsistent with BMessage::ReplaceData, which expects a flattened BMessage buffer.  Sorry!)
-    *  @return B_NO_ERROR if the data item(s) were replaced successfully, or B_ERROR they weren't.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceData(bool okayToAdd, const String & fieldName, uint32 type, const void *data, uint32 numBytes) {return ReplaceData(okayToAdd, fieldName, type, 0, data, numBytes);}
 
@@ -1254,10 +1260,10 @@ public:
    /** Convenience method that calls through to its like-named counterpart with
      * a default value of zero for the index argument.  This allows you to handle the common case
      * (storing a single value inside a field name) without having to constantly type ReplaceXX(true, fieldName, 0, myVar) every time.
-     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_ERROR to be returned with no side effects.
+     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
      *  @param fieldName the field name of an existing field to modify
      *  @param newVal the new value to overwrite the existing value with
-     *  @return B_NO_ERROR on success, or B_ERROR if the field wasn't found, or if (index) wasn't a valid index, or out of memory.
+     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
      */
    status_t ReplaceString(bool okayToAdd, const String & fieldName, const String & newVal) {return ReplaceString(okayToAdd, fieldName, 0, newVal);}
    status_t ReplaceInt8(bool okayToAdd, const String & fieldName, int8 newVal) {return ReplaceInt8(okayToAdd, fieldName, 0, newVal);}
@@ -1314,7 +1320,7 @@ public:
     *  Any data that was already in (moveTo) under (fieldName) will be replaced.
     *  @param fieldName Name of an existing field (in this Message) to be moved.
     *  @param moveTo A Message to move the specified field into.
-    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error moving the field.
+    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
     */
    status_t MoveName(const String & fieldName, Message & moveTo) {return MoveName(fieldName, moveTo, fieldName);}
 
@@ -1324,7 +1330,7 @@ public:
     *  @param oldFieldName Name of an existing field (in this Message) to be moved.
     *  @param moveTo A Message to move the field into.
     *  @param newFieldName The name the field should have in the new Message.
-    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error moving the field.
+    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
     */
    status_t MoveName(const String & oldFieldName, Message & moveTo, const String & newFieldName);
 
@@ -1332,7 +1338,7 @@ public:
     *  Any data that was already in (copyTo) under (fieldName) will be replaced.
     *  @param fieldName Name of an existing field (in this Message) to be copied.
     *  @param copyTo A Message to copy the field into.
-    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error copying the field.
+    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
     */
    status_t CopyName(const String & fieldName, Message & copyTo) const {return CopyName(fieldName, copyTo, fieldName);}
 
@@ -1342,7 +1348,7 @@ public:
     *  @param oldFieldName Name of an existing field (in this Message) to be copied.
     *  @param copyTo A Message to copy the field into.
     *  @param newFieldName The name the field should have in the new Message.
-    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error copying the field.
+    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
     */
    status_t CopyName(const String & oldFieldName, Message & copyTo, const String & newFieldName) const;
 
@@ -1356,7 +1362,7 @@ public:
     *  when using it or you may get unexpected results...
     *  @param fieldName Name of an existing field to be shared.
     *  @param shareTo A Message to share the field into.
-    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error sharing the field.
+    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
     */
    status_t ShareName(const String & fieldName, Message & shareTo) const {return ShareName(fieldName, shareTo, fieldName);}
 
@@ -1372,40 +1378,40 @@ public:
     *  @param oldFieldName Name of an existing field to be shared.
     *  @param shareTo A Message to share the field into.
     *  @param newFieldName The name the field should have in the new Message.
-    *  @returns B_NO_ERROR on success, or B_ERROR if there is an error sharing the field.
+    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
     */
    status_t ShareName(const String & oldFieldName, Message & shareTo, const String & newFieldName) const;
 
    /** Moves the field with the specified name to the beginning of the field-names-iteration-list.
      * @param fieldNameToMove Name of the field to move to the beginning of the iteration list.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (field name not found?)
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
      */
    status_t MoveNameToFront(const String & fieldNameToMove) {return _entries.MoveToFront(fieldNameToMove);}
 
    /** Moves the field with the specified name to the end of the field-names-iteration-list.
      * @param fieldNameToMove Name of the field to move to the end of the iteration list.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (field name not found?)
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
      */
    status_t MoveNameToBack(const String & fieldNameToMove) {return _entries.MoveToBack(fieldNameToMove);}
 
    /** Moves the field with the specified name to just before the second specified field name.
      * @param fieldNameToMove Name of the field to move
      * @param toBeforeMe Name of the field that (fieldNameToMove) should appear just before.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (field name not found?)
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
      */
    status_t MoveNameToBefore(const String & fieldNameToMove, const String & toBeforeMe) {return _entries.MoveToBefore(fieldNameToMove, toBeforeMe);}
 
    /** Moves the field with the specified name to just after the second specified field name.
      * @param fieldNameToMove Name of the field to move
      * @param toBehindMe Name of the field that (fieldNameToMove) should appear just after.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (field name not found?)
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
      */
    status_t MoveNameToBehind(const String & fieldNameToMove, const String & toBehindMe) {return _entries.MoveToBehind(fieldNameToMove, toBehindMe);}
 
    /** Moves the field with the specified name to the nth position in the field-names-iteration-list.
      * @param fieldNameToMove Name of the field to move
      * @param toPosition The position to move it to (0==first, 1=second, and so on)
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (field name not found?)
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the source field couldn't be found.
      */
    status_t MoveNameToPosition(const String & fieldNameToMove, uint32 toPosition) {return _entries.MoveToPosition(fieldNameToMove, toPosition);}
 
@@ -1418,7 +1424,7 @@ public:
      * to first make sure that the field isn't shared by any other Messages.
      * @param fieldName Name of the field to ensure the non-sharedness of.
      * @returns B_NO_ERROR on success (i.e. either the copy was made, or no copy was necessary)
-     *          or B_ERROR on failure (field not found, or out-of-memory)
+     *          or B_DATA_NOT_FOUND if the specified field couldn't be found.
      */
    status_t EnsureFieldIsPrivate(const String & fieldName);
 
@@ -1580,7 +1586,7 @@ public:
 protected:
    /** Overridden to copy directly if (copyFrom) is a Message as well.
      * @param copyFrom the object to copy our new state from
-     * @returns B_NO_ERROR on success or B_ERROR on failure
+     * @returns B_NO_ERROR on success or an error code on failure
      */
    virtual status_t CopyFromImplementation(const Flattenable & copyFrom);
 

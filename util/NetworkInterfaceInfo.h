@@ -146,7 +146,7 @@ private:
 
 /** This function queries the local OS for information about all available network
   * interfaces.  Note that this method is only implemented for some OS's (Linux,
-  * MacOS/X, Windows), and that on other OS's it may just always return B_ERROR.
+  * MacOS/X, Windows), and that on other OS's it may just always return B_UNIMPLEMENTED.
   * @param results On success, zero or more NetworkInterfaceInfo objects will
   *                be added to this Queue for you to look at.
   * @param includeFlags A chord of GNII_FLAG_INCLUDE_* bits indicating which types of network interface you want to be
@@ -154,7 +154,7 @@ private:
   *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
   *                    (Note:  if you need to specify this argument explicitly, the syntax for the BitChord constructor
   *                    is e.g. like this:  GNIIFlags(GNII_FLAG_INCLUDE_IPV4_INTERFACES,GNII_FLAG_INCLUDE_IPV6_INTERFACES,...))
-  * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory, call not implemented for the current OS, etc)
+  * @returns B_NO_ERROR on success, or an errorcode on failure (out of memory, call not implemented for the current OS, etc)
   */
 status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFlags includeFlags = GNII_FLAGS_INCLUDE_ALL_ADDRESSED_INTERFACES);
 
@@ -169,7 +169,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
   *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
   *                    (Note:  if you need to specify this argument explicitly, the syntax for the BitChord constructor
   *                    is e.g. like this:  GNIIFlags(GNII_FLAG_INCLUDE_IPV4_INTERFACES,GNII_FLAG_INCLUDE_IPV6_INTERFACES,...))
-  * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory,
+  * @returns B_NO_ERROR on success, or an errorcode on failure (out of memory,
   *          call not implemented for the current OS, etc)
   */
 status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & retAddresses, GNIIFlags includeFlags = GNII_FLAGS_INCLUDE_ALL_ADDRESSED_INTERFACES);

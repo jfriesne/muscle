@@ -126,10 +126,13 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
    const String trimmed = line.Trim();
    const uint32 len = trimmed.Length();
 
+   status_t ret;
+
    // First, we'll pre-process the string into a StringTokenizer-friendly
    // form, by replacing all quoted spaces with gunk and removing the quotes
    String tokenizeThis; 
-   if (tokenizeThis.Prealloc(len) != B_NO_ERROR) return B_ERROR;
+   if (tokenizeThis.Prealloc(len).IsError(ret)) return ret;
+
    const char GUNK_CHAR      = (char) 0x01;
    bool lastCharWasBackslash = false;
    bool inQuotes = false;
@@ -160,7 +163,7 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
             // It's the "x =5" case (2 tokens)
             String n2(next);
             n2.Replace(GUNK_CHAR, ' ');
-            if (ParseArgAux(n+n2, optAddToMsg, optAddToQueue, cs) != B_NO_ERROR) return B_ERROR;
+            if (ParseArgAux(n+n2, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;
             t = tok();
          }
          else
@@ -171,12 +174,12 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
             {
                String n3(next);
                n3.Replace(GUNK_CHAR, ' ');
-               if (ParseArgAux(n+"="+n3, optAddToMsg, optAddToQueue, cs) != B_NO_ERROR) return B_ERROR;
+               if (ParseArgAux(n+"="+n3, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;
                t = tok();
             }
             else 
             {
-               if (ParseArgAux(n, optAddToMsg, optAddToQueue, cs) != B_NO_ERROR) return B_ERROR;  // for the "x =" case, just parse x and ignore the equals
+               if (ParseArgAux(n, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;  // for the "x =" case, just parse x and ignore the equals
                t = NULL;
             }
          }
@@ -186,13 +189,13 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
          // Try to attach the next keyword
          String n4(next);
          n4.Replace(GUNK_CHAR, ' ');
-         if (ParseArgAux(n+n4, optAddToMsg, optAddToQueue, cs) != B_NO_ERROR) return B_ERROR;
+         if (ParseArgAux(n+n4, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;
          t = tok();
       }
       else
       {
          // Nope, it's just the normal case
-         if (ParseArgAux(n, optAddToMsg, optAddToQueue, cs) != B_NO_ERROR) return B_ERROR;
+         if (ParseArgAux(n, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;
          t = next;
       }
    }
@@ -203,19 +206,21 @@ status_t ParseArgs(const String & line, Queue<String> & addTo, bool cs) {return 
 
 status_t ParseArgs(int argc, char ** argv, Message & addTo, bool cs)
 {
-   for (int i=0; i<argc; i++) if (ParseArg(argv[i], addTo, cs) != B_NO_ERROR) return B_ERROR;
-   return B_NO_ERROR;
+   status_t ret;
+   for (int i=0; i<argc; i++) if (ParseArg(argv[i], addTo, cs).IsError(ret)) break;
+   return ret;
 }
 
 status_t ParseArgs(int argc, char ** argv, Queue<String> & addTo, bool cs)
 {
-   for (int i=0; i<argc; i++) if (ParseArg(argv[i], addTo, cs) != B_NO_ERROR) return B_ERROR;
-   return B_NO_ERROR;
+   status_t ret;
+   for (int i=0; i<argc; i++) if (ParseArg(argv[i], addTo, cs).IsError(ret)) break;
+   return ret;
 }
 
 static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * optAddToMsg, Queue<String> * optAddToQueue, char * scratchBuf, uint32 bufSize, bool cs)
 {
-   status_t ret = B_NO_ERROR;
+   status_t ret;
    while(1)
    {
       const char * lineOfText = (optTok) ? optTok->GetNextToken() : fgets(scratchBuf, bufSize, fpIn);
@@ -235,14 +240,11 @@ static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * op
          if ((optAddToMsg->GetInfo(checkForSection, &tc) == B_NO_ERROR)&&(tc != B_MESSAGE_TYPE)) (void) optAddToMsg->RemoveName(checkForSection);
 
          MessageRef subMsg = GetMessageFromPool();
-         if ((subMsg() == NULL)||(optAddToMsg->AddMessage(checkForSection, subMsg) != B_NO_ERROR)||(ParseFileAux(optTok, fpIn, subMsg(), optAddToQueue, scratchBuf, bufSize, cs) != B_NO_ERROR)) return B_ERROR;
+         if (subMsg() == NULL) RETURN_OUT_OF_MEMORY;
+         if ((optAddToMsg->AddMessage(checkForSection, subMsg).IsError(ret))||(ParseFileAux(optTok, fpIn, subMsg(), optAddToQueue, scratchBuf, bufSize, cs).IsError(ret))) return ret;
       }
       else if ((checkForSection == "end")||(checkForSection.StartsWith("end "))) return B_NO_ERROR;
-      else if (ParseArgsAux(lineOfText, optAddToMsg, optAddToQueue, cs) != B_NO_ERROR)
-      {
-         ret = B_ERROR;
-         break;
-      }
+      else if (ParseArgsAux(lineOfText, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;
    }
    return ret;
 }
@@ -254,7 +256,7 @@ static status_t ParseFileAux(const String * optInStr, FILE * fpIn, Message * opt
    if (optInStr)
    {
       StringTokenizer tok(optInStr->Cstr(), "\r\n");
-      return (tok.GetRemainderOfString() != NULL) ? ParseFileAux(&tok, NULL, optAddToMsg, optAddToQueue, NULL, 0, cs) : B_ERROR;
+      return (tok.GetRemainderOfString() != NULL) ? ParseFileAux(&tok, NULL, optAddToMsg, optAddToQueue, NULL, 0, cs) : B_BAD_ARGUMENT;
    } 
    else
    {
@@ -266,11 +268,7 @@ static status_t ParseFileAux(const String * optInStr, FILE * fpIn, Message * opt
          delete [] buf;
          return ret;
       }
-      else 
-      {
-         WARN_OUT_OF_MEMORY;
-         return B_ERROR;
-      }
+      else RETURN_OUT_OF_MEMORY;
    }
 }
 status_t ParseFile(FILE * fpIn, Message & addTo, bool cs)            {return ParseFileAux(NULL, fpIn, &addTo, NULL,   cs);}
@@ -297,8 +295,9 @@ static void AddUnparseFileLine(FILE * optFile, String * optString, const String 
 
 static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String * optString, uint32 indentLevel)
 {
-   if ((optFile == NULL)&&(optString == NULL)) return B_ERROR;
+   if ((optFile == NULL)&&(optString == NULL)) return B_BAD_ARGUMENT;
 
+   status_t ret;
    const String indentStr = String().Pad(indentLevel);
    Message scratchMsg;
    for (MessageFieldNameIterator fnIter(readFrom); fnIter.HasData(); fnIter++)
@@ -315,7 +314,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
                for (uint32 i=0; readFrom.FindMessage(fn, i, nextVal) == B_NO_ERROR; i++)
                {
                   AddUnparseFileLine(optFile, optString, indentStr, String("begin %1").Arg(fn));
-                  if (UnparseFileAux(*nextVal(), optFile, optString, indentLevel+3) != B_NO_ERROR) return B_ERROR; 
+                  if (UnparseFileAux(*nextVal(), optFile, optString, indentLevel+3).IsError(ret)) return ret;
                   AddUnparseFileLine(optFile, optString, indentStr, "end");
                }
             }
@@ -326,7 +325,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
                const String * nextVal;
                for (uint32 i=0; readFrom.FindString(fn, i, &nextVal) == B_NO_ERROR; i++)
                {
-                  scratchMsg.Clear(); if (scratchMsg.AddString(fn, *nextVal) != B_NO_ERROR) return B_ERROR;
+                  scratchMsg.Clear(); if (scratchMsg.AddString(fn, *nextVal).IsError(ret)) return ret;
                   AddUnparseFileLine(optFile, optString, indentStr, UnparseArgs(scratchMsg));
                }
             }
@@ -355,13 +354,14 @@ static status_t ParseConnectArgAux(const String & s, uint32 startIdx, uint16 & r
       if (p > 0) retPort = p;
       return B_NO_ERROR; 
    }
-   else return portRequired ? B_ERROR : B_NO_ERROR;
+   else return portRequired ? B_BAD_ARGUMENT : B_NO_ERROR;
 }
 
 status_t ParseConnectArg(const Message & args, const String & fn, String & retHost, uint16 & retPort, bool portRequired, uint32 argIdx)
 {
    const String * s;
-   return (args.FindString(fn, argIdx, &s) == B_NO_ERROR) ? ParseConnectArg(*s, retHost, retPort, portRequired) : B_ERROR;
+   status_t ret;
+   return (args.FindString(fn, argIdx, &s).IsOK(ret)) ? ParseConnectArg(*s, retHost, retPort, portRequired) : ret;
 }
 
 status_t ParseConnectArg(const String & s, String & retHost, uint16 & retPort, bool portRequired)
@@ -377,7 +377,7 @@ status_t ParseConnectArg(const String & s, String & retHost, uint16 & retPort, b
    else if (s.GetNumInstancesOf(':') != 1)  // I assume IPv6-style address strings never have exactly one colon in them
    {  
       retHost = s;
-      return portRequired ? B_ERROR : B_NO_ERROR;
+      return portRequired ? B_BAD_ARGUMENT : B_NO_ERROR;
    }  
 #endif
 
@@ -389,8 +389,9 @@ status_t ParsePortArg(const Message & args, const String & fn, uint16 & retPort,
 {
    TCHECKPOINT;
 
+   status_t ret;
    const char * v;
-   if (args.FindString(fn, argIdx, &v) == B_NO_ERROR)
+   if (args.FindString(fn, argIdx, &v).IsOK(ret))
    {
       const uint16 r = (uint16) atoi(v);
       if (r > 0)
@@ -398,8 +399,9 @@ status_t ParsePortArg(const Message & args, const String & fn, uint16 & retPort,
          retPort = r;
          return B_NO_ERROR;
       }
+      else return B_BAD_ARGUMENT;
    }
-   return B_ERROR;
+   return ret;
 }
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -472,7 +474,7 @@ static status_t SetRealTimePriority(const char * priStr, bool useFifo)
    else 
    {
       LogTime(MUSCLE_LOG_ERROR, "Could not invoke real time (%s) scheduling priority %i (access denied?)\n", desc, pri);
-      return B_ERROR;
+      return B_ACCESS_DENIED;
    }
 }
 #endif
@@ -669,7 +671,7 @@ bool IsDaemonProcess() {return _isDaemonProcess;}
 #ifdef WIN32
 status_t SpawnDaemonProcess(bool &, const char *, const char *, bool) 
 { 
-   return B_ERROR;  // Win32 can't do this trick, he's too lame  :^(
+   return B_UNIMPLEMENTED;  // Win32 can't do this trick, he's too lame  :^(
 }
 #else
 status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, const char * optOutputTo, bool createIfNecessary)
@@ -827,7 +829,8 @@ String CleanupDNSPath(const String & orig, const String & optAdditionalAllowedCh
 
 status_t NybbleizeData(const uint8 * b, uint32 numBytes, String & retString)
 {
-   if (retString.Prealloc(numBytes*2) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (retString.Prealloc(numBytes*2).IsError(ret)) return ret;
 
    retString.Clear();
    for (uint32 i=0; i<numBytes; i++)
@@ -850,10 +853,11 @@ status_t DenybbleizeData(const String & nybbleizedText, ByteBuffer & retBuf)
    if ((numBytes%2)!=0)
    {
       LogTime(MUSCLE_LOG_ERROR, "DenybblizeData:  Nybblized text [%s] has an odd length; that shouldn't ever happen!\n", nybbleizedText());
-      return B_ERROR;
+      return B_BAD_DATA;
    }
 
-   if (retBuf.SetNumBytes(numBytes/2, false) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (retBuf.SetNumBytes(numBytes/2, false).IsError(ret)) return ret;
 
    uint8 * b = retBuf.GetBuffer();
    for (uint32 i=0; i<numBytes; i+=2)
@@ -863,7 +867,7 @@ status_t DenybbleizeData(const String & nybbleizedText, ByteBuffer & retBuf)
       if ((muscleInRange(c1, 'A', 'P') == false)||(muscleInRange(c2, 'A', 'P') == false))
       {
          LogTime(MUSCLE_LOG_ERROR, "DenybblizeData:  Nybblized text [%s] contains characters other than A through P!\n", nybbleizedText());
-         return B_ERROR;
+         return B_BAD_DATA;
       }
       *b++ = (uint8) (((c1-'A')<<0)|((c2-'A')<<4));
    }
@@ -999,13 +1003,16 @@ status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg)
    else
    {
       MessageRef newBatchMsg = GetMessageFromPool(PR_COMMAND_BATCH);
-      if ((newBatchMsg())&&(newBatchMsg()->AddMessage(PR_NAME_KEYS, batchMsg) == B_NO_ERROR)&&(newBatchMsg()->AddMessage(PR_NAME_KEYS, newMsg) == B_NO_ERROR))
+      if (newBatchMsg() == NULL) RETURN_OUT_OF_MEMORY;
+
+      status_t ret;
+      if ((newBatchMsg()->AddMessage(PR_NAME_KEYS, batchMsg).IsOK(ret))&&(newBatchMsg()->AddMessage(PR_NAME_KEYS, newMsg).IsOK(ret)))
       {
          batchMsg = newBatchMsg;
          return B_NO_ERROR;
       }
+      else return ret;
    }
-   return B_ERROR;
 }
 
 bool FileExists(const char * filePath)
@@ -1026,9 +1033,10 @@ static status_t CopyDirectoryRecursive(const char * oldDirPath, const char * new
    if (strcmp(oldDirPath, newDirPath) == 0) return B_NO_ERROR;  // paranoia: Copying a directory onto itself is a no-op
 
    Directory srcDir(oldDirPath);
-   if (srcDir.IsValid() == false) return B_ERROR;
+   if (srcDir.IsValid() == false) return B_FILE_NOT_FOUND;
 
-   if (Directory::MakeDirectory(newDirPath, true, true) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (Directory::MakeDirectory(newDirPath, true, true).IsError(ret)) return ret;
 
    const String srcDirPath = srcDir.GetPath();
 
@@ -1036,7 +1044,7 @@ static status_t CopyDirectoryRecursive(const char * oldDirPath, const char * new
    {
       // In an inner scope simply to keep (dstDir) off the stack during any recursion
       Directory dstDir(newDirPath);
-      if (dstDir.IsValid() == false) return B_ERROR;
+      if (dstDir.IsValid() == false) return B_FILE_NOT_FOUND;
       dstDirPath = dstDir.GetPath();
    }
 
@@ -1045,7 +1053,7 @@ static status_t CopyDirectoryRecursive(const char * oldDirPath, const char * new
    {
       if ((strcmp(curSourceName, ".") != 0)&&(strcmp(curSourceName, "..") != 0))
       { 
-         if (CopyFile((srcDirPath+curSourceName)(), (dstDirPath+curSourceName)(), true) != B_NO_ERROR) return B_ERROR;
+         if (CopyFile((srcDirPath+curSourceName)(), (dstDirPath+curSourceName)(), true).IsError(ret)) return ret;
       }
       srcDir++;
    }
@@ -1076,21 +1084,21 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
          const size_t bytesRead = fread(buf, 1, sizeof(buf), fpIn);
          if ((bytesRead < sizeof(buf))&&(feof(fpIn) == false))
          {
-            ret = B_ERROR;
+            ret = B_ERRNO;
             break;
          }
          
          const size_t bytesWritten = fwrite(buf, 1, bytesRead, fpOut);
          if (bytesWritten < bytesRead)
          {
-            ret = B_ERROR;
+            ret = B_ERRNO;
             break;
          }
          if (feof(fpIn)) break;
       }
       fclose(fpOut);
    }
-   else ret = B_ERROR;
+   else ret = B_ERRNO;
 
    fclose(fpIn);
 

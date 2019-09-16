@@ -45,7 +45,7 @@ public:
 
    virtual status_t Unflatten(const uint8 *buf, uint32 size)
    {
-      if (size < sizeof(_val)) return B_ERROR;
+      if (size < sizeof(_val)) return B_BAD_DATA;
       _val = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(buf)); buf += sizeof(_val); size -= sizeof(_val);
       return _string.Unflatten(buf, size);
    }

@@ -47,9 +47,9 @@ const char * GetDefaultPythonArgFieldName(uint32 type)
 
 status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message & msg)
 {
-   status_t ret = B_ERROR;
-
    if (pyValue == Py_None) return B_NO_ERROR;  // None is the same as not specifying the arg
+
+   status_t ret = B_ERROR;
 
 #if PY_MAJOR_VERSION < 3
         if (JAF_PyInt_Check(pyValue)) ret = msg.AddInt32( fname(optKey, "_argInt32"),  PyInt_AS_LONG(pyValue));
@@ -76,7 +76,7 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
          ret = msg.AddString(fname(optKey, "_argString"), s);
          Py_DECREF(utf8);
       }
-      else ret = B_ERROR;
+      else ret = B_OUT_OF_MEMORY;
    }
    else if (PyDict_Check(pyValue))
    {
@@ -95,14 +95,16 @@ static status_t ParsePythonSequence(PyObject * args, Message & msg)
 {
    msg.what = MESSAGE_PYTHON_LIST;
    const int seqLen = PySequence_Fast_GET_SIZE(args);
-   for (int i=0; i<seqLen; i++) if (AddPyObjectToMessage("", PySequence_Fast_GET_ITEM(args, i), msg) != B_NO_ERROR) return B_ERROR;
-   return B_NO_ERROR;
+
+   status_t ret;
+   for (int i=0; i<seqLen; i++) if (AddPyObjectToMessage("", PySequence_Fast_GET_ITEM(args, i), msg).IsError(ret)) break;
+   return ret;
 }
 
 static status_t ParsePythonDictionary(PyObject * keywords, Message & msg)
 {
    msg.what = MESSAGE_PYTHON_DICTIONARY;
-   status_t ret = B_NO_ERROR;
+   status_t ret;
    PyListObject * keys = (PyListObject *) PyDict_Keys(keywords);
    if (keys)
    {
@@ -125,25 +127,17 @@ static status_t ParsePythonDictionary(PyObject * keywords, Message & msg)
                   PyObject * utf8 = PyUnicode_AsUTF8String(key);
                   if (utf8) 
                   {
-                     if (AddPyObjectToMessage(PyBytes_AS_STRING(utf8), value, msg) != B_NO_ERROR)
-                     {
-                        ret = B_ERROR;
-                        break;
-                     }
+                     if (AddPyObjectToMessage(PyBytes_AS_STRING(utf8), value, msg).IsError(ret)) break;
                      Py_DECREF(utf8);
                   }
                   else 
                   {
-                     ret = B_ERROR;
+                     ret = B_OUT_OF_MEMORY;
                      break;
                   }
                }
 #else
-               if ((PyString_Check(key))&&(AddPyObjectToMessage(PyString_AS_STRING(key), value, msg) != B_NO_ERROR))
-               {
-                  ret = B_ERROR;
-                  break;
-               }
+               if ((PyString_Check(key))&&(AddPyObjectToMessage(PyString_AS_STRING(key), value, msg).IsError(ret))) break;
 #endif
             }
          }

@@ -114,7 +114,7 @@ status_t ConvertFromBMessage(const BMessage & from, Message & to)
                   if (ConvertFromBMessage(bmsg, *newMsg) != B_NO_ERROR) return B_ERROR;
                   if (to.AddMessage(name, msgRef) != B_NO_ERROR) return B_ERROR;
                }
-               else {WARN_OUT_OF_MEMORY; return B_ERROR;}
+               else RETURN_OUT_OF_MEMORY;
             }
             break;
 

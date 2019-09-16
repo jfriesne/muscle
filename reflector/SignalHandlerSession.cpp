@@ -33,7 +33,9 @@ int32 SignalHandlerSession :: DoInput(AbstractGatewayMessageReceiver &, uint32)
 
 status_t SignalHandlerSession :: AttachedToServer()
 {
-   if (AbstractReflectSession::AttachedToServer() != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (AbstractReflectSession::AttachedToServer().IsError(ret)) return ret;
+
    return SignalMultiplexer::GetSignalMultiplexer().AddHandler(this);
 }
 

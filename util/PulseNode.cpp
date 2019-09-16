@@ -106,7 +106,7 @@ status_t PulseNode :: RemovePulseChild(PulseNode * child)
       if ((doResched)&&(_parent)) _parent->ReschedulePulseChild(this, LINKED_LIST_NEEDSRECALC);
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_BAD_ARGUMENT;
 }
 
 void PulseNode :: ClearPulseChildren()

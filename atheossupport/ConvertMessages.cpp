@@ -113,7 +113,7 @@ status_t ConvertFromAMessage(const os::Message & from, Message & to)
                      if (ConvertFromAMessage(amsg, *newMsg) != B_NO_ERROR) return B_ERROR;
                      if (to.AddMessage(name.c_str(), msgRef) != B_NO_ERROR) return B_ERROR;
                   }
-                  else {WARN_OUT_OF_MEMORY; return B_ERROR;}
+                  else RETURN_OUT_OF_MEMORY;
                }
                break;
 

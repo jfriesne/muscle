@@ -185,9 +185,9 @@ status_t ThreadedInternalSession :: SetupNotifierGateway()
             SetGateway(gw);
             return B_NO_ERROR;
          }
-         else WARN_OUT_OF_MEMORY;
+         else RETURN_OUT_OF_MEMORY;
       }
-      else WARN_OUT_OF_MEMORY;
+      else RETURN_OUT_OF_MEMORY;
    }
    return B_ERROR;
 }

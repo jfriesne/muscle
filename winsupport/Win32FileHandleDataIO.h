@@ -15,7 +15,7 @@ class Win32FileHandleDataIO : public SeekableDataIO
 public:
    /**
     *  Constructor.
-    *  @param handle The file descriptor to use.  Becomes property of this FileHandleDataIO object.
+    *  @param handle The file descriptor to use.  Becomes property of this Win32FileHandleDataIO object.
     */
    Win32FileHandleDataIO(::HANDLE handle);
 
@@ -47,10 +47,10 @@ public:
    virtual void FlushOutput();
    
    /**
-    * Enables or diables blocking I/O on this file descriptor.
+    * Enables or disables blocking I/O on this file descriptor.
     * If this object is to be used by an AbstractMessageIOGateway,
     * then non-blocking I/O is usually better to use.
-    * NOTE: Win32 File handles currently do not use this flag.
+    * NOTE: Win32 File handles currently do not use this flag; only blocking mode is supported.
     * @param blocking If true, file descriptor is set to blocking I/O mode.  Otherwise, non-blocking I/O.
     * @return B_NO_ERROR on success, B_ERROR on error.
     */

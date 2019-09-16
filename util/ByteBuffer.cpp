@@ -21,7 +21,7 @@ status_t ByteBuffer :: SetBuffer(uint32 numBytes, const uint8 * buffer)
       if (numBytes > numReadableBytes)
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "ByteBuffer::SetBuffer();  Attempted to read " UINT32_FORMAT_SPEC " bytes off the end of our internal buffer!\n", numBytes-numReadableBytes);
-         return B_ERROR;
+         return B_BAD_ARGUMENT;
       }
       else
       {
@@ -32,7 +32,9 @@ status_t ByteBuffer :: SetBuffer(uint32 numBytes, const uint8 * buffer)
    else
    {
       Clear(numBytes<(_numAllocatedBytes/2));  // FogBugz #6933: if the new buffer takes up less than half of our current space, toss it
-      if (SetNumBytes(numBytes, false) != B_NO_ERROR) return B_ERROR;
+
+      status_t ret;
+      if (SetNumBytes(numBytes, false).IsError(ret)) return ret;
       if ((buffer)&&(_buffer)) memcpy(_buffer, buffer, numBytes);
       return B_NO_ERROR;
    }
@@ -53,11 +55,7 @@ status_t ByteBuffer :: SetNumBytes(uint32 newNumBytes, bool retainData)
             _buffer = newBuf;
             _numAllocatedBytes = _numValidBytes = newNumBytes;
          }
-         else
-         {
-            WARN_OUT_OF_MEMORY;
-            return B_ERROR;
-         }
+         else RETURN_OUT_OF_MEMORY;
       }
       else
       {
@@ -65,11 +63,7 @@ status_t ByteBuffer :: SetNumBytes(uint32 newNumBytes, bool retainData)
          if (newNumBytes > 0)
          {
             newBuf = (uint8 *) (as ? as->Malloc(newNumBytes) : muscleAlloc(newNumBytes));
-            if (newBuf == NULL) 
-            {
-               WARN_OUT_OF_MEMORY;
-               return B_ERROR;
-            }
+            if (newBuf == NULL) RETURN_OUT_OF_MEMORY;
          }
          if (as) as->Free(_buffer, _numAllocatedBytes); else muscleFree(_buffer);
          _buffer = newBuf;
@@ -91,26 +85,28 @@ status_t ByteBuffer :: AppendBytes(const uint8 * bytes, uint32 numBytes, bool al
       // So to avoid freeing (bytes) before we read from them, we're going to copy them over to a temporary buffer first.
       uint8 * tmpBuf = newnothrow uint8[numBytes];
       if (tmpBuf) memcpy(tmpBuf, bytes, numBytes);
-             else {WARN_OUT_OF_MEMORY; return B_ERROR;}
+             else RETURN_OUT_OF_MEMORY;
       const status_t ret = AppendBytes(tmpBuf, numBytes, allocExtra);
       delete [] tmpBuf;
       return ret;
    }
 
    const uint32 oldValidBytes = _numValidBytes;  // save this value since SetNumBytes() will change it
-   if (SetNumBytesWithExtraSpace(_numValidBytes+numBytes, allocExtra) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (SetNumBytesWithExtraSpace(_numValidBytes+numBytes, allocExtra).IsError(ret)) return ret;
    if (bytes != NULL) memcpy(_buffer+oldValidBytes, bytes, numBytes);
    return B_NO_ERROR;
 }
 
 status_t ByteBuffer :: SetNumBytesWithExtraSpace(uint32 newNumValidBytes, bool allocExtra)
 {
-   if (SetNumBytes(((allocExtra)&&(newNumValidBytes > _numAllocatedBytes)) ? muscleMax(newNumValidBytes*4, (uint32)128) : newNumValidBytes, true) == B_NO_ERROR) 
+   status_t ret;
+   if (SetNumBytes(((allocExtra)&&(newNumValidBytes > _numAllocatedBytes)) ? muscleMax(newNumValidBytes*4, (uint32)128) : newNumValidBytes, true).IsOK(ret))
    {
       _numValidBytes = newNumValidBytes;
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 status_t ByteBuffer :: FreeExtraBytes()
@@ -126,7 +122,7 @@ status_t ByteBuffer :: FreeExtraBytes()
          _buffer            = newBuf;
          _numAllocatedBytes = _numValidBytes;
       }
-      else return B_ERROR;
+      else RETURN_OUT_OF_MEMORY;
    }
    return B_NO_ERROR;
 }
@@ -135,7 +131,8 @@ status_t ByteBuffer :: FreeExtraBytes()
 status_t ByteBuffer :: CopyFromImplementation(const Flattenable & copyFrom)
 {
    const uint32 numBytes = copyFrom.FlattenedSize();
-   if (SetNumBytes(numBytes, false) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (SetNumBytes(numBytes, false).IsError(ret)) return ret;
    copyFrom.Flatten(_buffer);
    return B_NO_ERROR;
 }
@@ -219,7 +216,8 @@ Ref<ByteBuffer> Flattenable :: FlattenToByteBuffer() const
 
 status_t Flattenable :: FlattenToByteBuffer(ByteBuffer & outBuf) const
 {
-   if (outBuf.SetNumBytes(FlattenedSize(), false) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (outBuf.SetNumBytes(FlattenedSize(), false).IsError(ret)) return ret;
    Flatten(outBuf.GetBuffer());
    return B_NO_ERROR;
 }
@@ -231,7 +229,7 @@ status_t Flattenable :: UnflattenFromByteBuffer(const ByteBuffer & buf)
 
 status_t Flattenable :: UnflattenFromByteBuffer(const ConstRef<ByteBuffer> & buf)
 {
-   return buf() ? Unflatten(buf()->GetBuffer(), buf()->GetNumBytes()) : B_ERROR;
+   return buf() ? Unflatten(buf()->GetBuffer(), buf()->GetNumBytes()) : B_BAD_ARGUMENT;
 }
 
 uint32 ByteBuffer :: ReadInt8s(int8 * vals, uint32 numValsToRead, uint32 & readByteOffset) const
@@ -399,9 +397,10 @@ uint32 ByteBuffer :: ReadRects(Rect * vals, uint32 numValsToRead, uint32 & readB
 
 status_t ByteBuffer :: ReadFlat(Flattenable & flat, uint32 & readByteOffset, uint32 optMaxReadSize) const
 {
-   if (&flat == this) return B_ERROR;  // don't get cute
+   if (&flat == this) return B_BAD_ARGUMENT;  // don't get cute
 
-   if (flat.Unflatten(&_buffer[readByteOffset], muscleMin(optMaxReadSize, (readByteOffset < _numValidBytes) ? (_numValidBytes-readByteOffset) : 0)) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (flat.Unflatten(&_buffer[readByteOffset], muscleMin(optMaxReadSize, (readByteOffset < _numValidBytes) ? (_numValidBytes-readByteOffset) : 0)).IsError(ret)) return ret;
    readByteOffset += flat.FlattenedSize();
    return B_NO_ERROR;
 }
@@ -420,7 +419,11 @@ uint32 ByteBuffer :: ReadStrings(String * vals, uint32 numValsToRead, uint32 & r
 status_t ByteBuffer :: WriteInt8s(const int8 * vals, uint32 numVals, uint32 & writeByteOffset)
 {
    const uint32 newByteSize = muscleMax(_numValidBytes, writeByteOffset+numVals);
-   if ((newByteSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newByteSize, true) != B_NO_ERROR)) return B_ERROR;
+   if (newByteSize > _numValidBytes)
+   {
+      status_t ret;
+      if (SetNumBytesWithExtraSpace(newByteSize, true).IsError(ret)) return ret;
+   }
 
    uint8 * writeTo = _buffer+writeByteOffset;
    memcpy(writeTo, vals, numVals);
@@ -432,7 +435,11 @@ status_t ByteBuffer :: WriteInt16s(const int16 * vals, uint32 numVals, uint32 & 
 {
    const uint32 numBytes     = numVals*sizeof(int16);
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if ((newValidSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newValidSize, true) != B_NO_ERROR)) return B_ERROR;
+   if (newValidSize > _numValidBytes)
+   {
+      status_t ret;
+      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
+   }
 
    uint8 * writeTo = _buffer+writeByteOffset;
    if (IsEndianSwapEnabled())
@@ -449,7 +456,11 @@ status_t ByteBuffer :: WriteInt32s(const int32 * vals, uint32 numVals, uint32 & 
 {
    const uint32 numBytes     = numVals*sizeof(int32);
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if ((newValidSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newValidSize, true) != B_NO_ERROR)) return B_ERROR;
+   if (newValidSize > _numValidBytes)
+   {
+      status_t ret;
+      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
+   }
 
    uint8 * writeTo = _buffer+writeByteOffset;
    if (IsEndianSwapEnabled())
@@ -466,7 +477,11 @@ status_t ByteBuffer :: WriteInt64s(const int64 * vals, uint32 numVals, uint32 & 
 {
    const uint32 numBytes     = numVals*sizeof(int64);
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if ((newValidSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newValidSize, true) != B_NO_ERROR)) return B_ERROR;
+   if (newValidSize > _numValidBytes)
+   {
+      status_t ret;
+      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
+   }
 
    uint8 * writeTo = _buffer+writeByteOffset;
    if (IsEndianSwapEnabled())
@@ -483,7 +498,11 @@ status_t ByteBuffer :: WriteFloats(const float * vals, uint32 numVals, uint32 & 
 {
    const uint32 numBytes     = numVals*sizeof(int32);
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if ((newValidSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newValidSize, true) != B_NO_ERROR)) return B_ERROR;
+   if (newValidSize > _numValidBytes)
+   {
+      status_t ret;
+      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
+   }
 
    uint8 * writeTo = _buffer+writeByteOffset;
    if (IsEndianSwapEnabled())
@@ -504,7 +523,11 @@ status_t ByteBuffer :: WriteDoubles(const double * vals, uint32 numVals, uint32 
 {
    const uint32 numBytes     = numVals*sizeof(int64);
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if ((newValidSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newValidSize, true) != B_NO_ERROR)) return B_ERROR;
+   if (newValidSize > _numValidBytes)
+   {
+      status_t ret;
+      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
+   }
 
    uint8 * writeTo = _buffer+writeByteOffset;
    if (IsEndianSwapEnabled())
@@ -526,7 +549,11 @@ status_t ByteBuffer :: WritePoints(const Point * vals, uint32 numVals, uint32 & 
    const uint32 bytesPerPoint = sizeof(int32)*2;
    const uint32 numBytes     = numVals*bytesPerPoint;
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if ((newValidSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newValidSize, true) != B_NO_ERROR)) return B_ERROR;
+   if (newValidSize > _numValidBytes)
+   {
+      status_t ret;
+      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
+   }
 
    uint8 * writeTo = _buffer+writeByteOffset;
 
@@ -560,7 +587,11 @@ status_t ByteBuffer :: WriteRects(const Rect * vals, uint32 numVals, uint32 & wr
    const uint32 bytesPerRect = sizeof(int32)*4;
    const uint32 numBytes     = numVals*bytesPerRect;
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if ((newValidSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newValidSize, true) != B_NO_ERROR)) return B_ERROR;
+   if (newValidSize > _numValidBytes)
+   {
+      status_t ret;
+      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
+   }
 
    uint8 * writeTo = _buffer+writeByteOffset;
 
@@ -591,11 +622,15 @@ status_t ByteBuffer :: WriteRects(const Rect * vals, uint32 numVals, uint32 & wr
 
 status_t ByteBuffer :: WriteFlat(const Flattenable & val, uint32 & writeByteOffset)
 {
-   if (&val == this) return B_ERROR;  // don't get cute
+   if (&val == this) return B_BAD_ARGUMENT;  // don't get cute
 
    const uint32 numBytes     = val.FlattenedSize();
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if ((newValidSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newValidSize, true) != B_NO_ERROR)) return B_ERROR;
+   if (newValidSize > _numValidBytes)
+   {
+      status_t ret;
+      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
+   }
 
    val.Flatten(&_buffer[writeByteOffset]);
    writeByteOffset += numBytes;
@@ -606,7 +641,11 @@ status_t ByteBuffer :: WriteStrings(const String * vals, uint32 numVals, uint32 
 {
    uint32 numBytes = 0; for (uint32 i=0; i<numVals; i++) numBytes += vals[i].FlattenedSize();
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if ((newValidSize > _numValidBytes)&&(SetNumBytesWithExtraSpace(newValidSize, true) != B_NO_ERROR)) return B_ERROR;
+   if (newValidSize > _numValidBytes)
+   {
+      status_t ret;
+      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
+   }
 
    for (uint32 i=0; i<numVals; i++)
    {

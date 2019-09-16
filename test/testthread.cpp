@@ -28,7 +28,7 @@ public:
           if (msgRef()) {printf("threadTLS=%i: Internal thread saw: ", *tls); msgRef()->PrintToStream(); return B_NO_ERROR;}
                    else {printf("threadTLS=%i: Internal thread exiting\n", *tls); return B_ERROR;}
        }
-       else {WARN_OUT_OF_MEMORY; return B_ERROR;}
+       else RETURN_OUT_OF_MEMORY;
    }
 };
 

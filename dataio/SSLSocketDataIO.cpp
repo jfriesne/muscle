@@ -67,12 +67,13 @@ void SSLSocketDataIO :: Shutdown()
 
 status_t SSLSocketDataIO :: SetPrivateKey(const char * path) 
 {
-   return ((_ssl)&&(SSL_use_PrivateKey_file(_ssl, path, SSL_FILETYPE_PEM) == 1)) ? B_NO_ERROR : B_ERROR;
+   if (_ssl == NULL) return B_BAD_OBJECT;
+   return (SSL_use_PrivateKey_file(_ssl, path, SSL_FILETYPE_PEM) == 1) ? B_NO_ERROR : B_FILE_NOT_FOUND;
 }
 
 status_t SSLSocketDataIO :: SetPrivateKey(const uint8 * bytes, uint32 numBytes)
 {
-   if (_ssl == NULL) return B_ERROR;
+   if (_ssl == NULL) return B_BAD_OBJECT;
 
    status_t ret = B_ERROR;
 
@@ -87,33 +88,37 @@ status_t SSLSocketDataIO :: SetPrivateKey(const uint8 * bytes, uint32 numBytes)
       }
       BIO_free(in);
    }
+   else ret = B_OUT_OF_MEMORY;
+
    return ret;
 }
 
 status_t SSLSocketDataIO :: SetPrivateKey(const ConstByteBufferRef & privateKeyFile)
 {
-   return privateKeyFile() ? SetPrivateKey(privateKeyFile()->GetBuffer(), privateKeyFile()->GetNumBytes()) : B_ERROR;
+   return privateKeyFile() ? SetPrivateKey(privateKeyFile()->GetBuffer(), privateKeyFile()->GetNumBytes()) : B_BAD_ARGUMENT;
 }
 
 status_t SSLSocketDataIO :: SetPublicKeyCertificate(const char * path) 
 {
-   if (_ssl == NULL) return B_ERROR;
+   if (_ssl == NULL) return B_BAD_OBJECT;
 
    FileDataIO fdio(muscleFopen(path, "rb"));
-   if (fdio.GetFile() == NULL) return B_ERROR;
+   if (fdio.GetFile() == NULL) return B_FILE_NOT_FOUND;
 
    ByteBufferRef buf = GetByteBufferFromPool((uint32)fdio.GetLength());
-   return ((buf())&&(fdio.ReadFully(buf()->GetBuffer(), buf()->GetNumBytes()) == buf()->GetNumBytes())) ? SetPublicKeyCertificate(buf) : B_ERROR;
+   if (buf() == NULL) return B_OUT_OF_MEMORY;
+
+   return (fdio.ReadFully(buf()->GetBuffer(), buf()->GetNumBytes()) == buf()->GetNumBytes()) ? SetPublicKeyCertificate(buf) : B_IO_ERROR;
 }
 
 status_t SSLSocketDataIO :: SetPublicKeyCertificate(const uint8 * bytes, uint32 numBytes)
 {       
-   return _ssl ? SetPublicKeyCertificate(GetByteBufferFromPool(numBytes, bytes)) : B_ERROR;
+   return _ssl ? SetPublicKeyCertificate(GetByteBufferFromPool(numBytes, bytes)) : B_BAD_OBJECT;
 }
 
 status_t SSLSocketDataIO :: SetPublicKeyCertificate(const ConstByteBufferRef & buf)
 {
-   if (buf() == NULL) return B_ERROR;
+   if (buf() == NULL) return B_BAD_OBJECT;
 
    status_t ret = B_ERROR;
 
@@ -132,6 +137,8 @@ status_t SSLSocketDataIO :: SetPublicKeyCertificate(const ConstByteBufferRef & b
       }
       BIO_free(in);
    }
+   else ret = B_OUT_OF_MEMORY;
+
    return ret;
 }
 

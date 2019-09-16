@@ -44,7 +44,7 @@ public:
 
    /** Closes any existing held directory and replaces it with the one indicated by (dirPath).
      * @param dirPath Path to the new directory to open.  SetDir(NULL) is the same as calling Reset().
-     * @returns B_NO_ERROR if the new directory was successfully opened, B_ERROR if it was not (directory not found?).
+     * @returns B_NO_ERROR if the new directory was successfully opened, an error code if it was not (directory not found?).
      */
    status_t SetDir(const char * dirPath);
 
@@ -52,11 +52,11 @@ public:
      * @param dirPath the directory's name (include path if desired) to create.
      * @param forceCreateParentDirsIfNecessary If true, we'll create directories above the new directory also if necessary.
      *                                         Otherwise we'll fail if the new directory's parent director doesn't exist.
-     * @param errorIfAlreadyExists If true, and the requested folder already exists, then this method will return B_ERROR.
+     * @param errorIfAlreadyExists If true, and the requested folder already exists, then this method will return an error code.
      *                             If false (the default), then this method will return B_NO_ERROR if the directory already exists.
      * @note This method was originally called CreateDirectory() but that was causing namespace collisions with
      *       some defines in the Microsoft Windows system headers, so I've renamed it to MakeDirectory() to avoid that problem.
-     * @return B_NO_ERROR on success, or B_ERROR on failure (directory already exists, or permission denied).
+     * @return B_NO_ERROR on success, or an error code on failure (directory already exists, or permission denied).
      */
    static status_t MakeDirectory(const char * dirPath, bool forceCreateParentDirsIfNecessary, bool errorIfAlreadyExists=false);
 
@@ -64,14 +64,14 @@ public:
      * @param dirPath the directory's name (include path if desired) to delete.
      * @param forceDeleteSubItemsIfNecessary If true, we'll recursively delete all the items in the directory as well.
      *                                         Otherwise we'll fail if the directory to be deleted isn't empty.
-     * @return B_NO_ERROR on success, or B_ERROR on failure (directory wasn't empty, or permission denied).
+     * @return B_NO_ERROR on success, or an error code on failure (directory wasn't empty, or permission denied).
      */
    static status_t DeleteDirectory(const char * dirPath, bool forceDeleteSubItemsIfNecessary);
 
    /** Convenience method.  Given a path to a file, this method will create any missing directories
      * along that path, so that the file can be created.
      * @param filePath a path to a file, including the filename itself (the filename part will be ignored)
-     * @returns B_NO_ERROR on success (i.e. directory was created, or already exists), or B_ERROR on failure (out of memory or permission denied?)
+     * @returns B_NO_ERROR on success (i.e. directory was created, or already exists), or an error code on failure (out of memory or permission denied?)
      */
    static status_t MakeDirectoryForFile(const char * filePath);
 

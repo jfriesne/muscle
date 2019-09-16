@@ -155,7 +155,7 @@ status_t Directory :: SetDir(const char * dirPath)
       const int extraBytes = ((pathLen<sepLen)||(strcmp(dirPath+pathLen-sepLen, sep) != 0)) ? sepLen : 0;
       const int allocLen = pathLen+extraBytes+1;
       _path = newnothrow_array(char, allocLen);
-      if (_path == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+      if (_path == NULL) RETURN_OUT_OF_MEMORY;
       muscleStrncpy(_path, dirPath, allocLen);
       if (extraBytes != 0) muscleStrncpy(_path+pathLen, sep, allocLen-pathLen);
 
@@ -163,13 +163,12 @@ status_t Directory :: SetDir(const char * dirPath)
       if (_dirPtr == NULL) 
       {
          Reset();  // to free and null-out _path
-         return B_ERROR;
+         return B_ERRNO;
       }
 
       (*this)++;   // make the first entry in the directory the current entry.
-      return B_NO_ERROR;
    }
-   else return B_NO_ERROR;
+   return B_NO_ERROR;
 }
 
 status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParentDirsIfNecessary, bool errorIfAlreadyExists)
@@ -182,16 +181,17 @@ status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParent
       {
          uint32 subLen = (uint32)(lastSlash-dirPath);
          char * temp = newnothrow_array(char, subLen+1);
-         if (temp == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+         if (temp == NULL) RETURN_OUT_OF_MEMORY;
 
          memcpy(temp, dirPath, subLen);
          temp[subLen] = '\0';
 
          Directory pd(temp);
-         if ((pd.IsValid() == false)&&(Directory::MakeDirectory(temp, true, false) != B_NO_ERROR))
+         status_t ret;
+         if ((pd.IsValid() == false)&&(Directory::MakeDirectory(temp, true, false).IsError(ret)))
          {
             delete [] temp;
-            return B_ERROR;
+            return ret;
          }
          else delete [] temp;
       }
@@ -199,9 +199,9 @@ status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParent
 
    // base case!
 #ifdef WIN32
-   return ((CreateDirectoryA(dirPath, NULL))||((errorIfAlreadyExists==false)&&(GetLastError()==ERROR_ALREADY_EXISTS))) ? B_NO_ERROR : B_ERROR;
+   return ((CreateDirectoryA(dirPath, NULL))||((errorIfAlreadyExists==false)&&(GetLastError()==ERROR_ALREADY_EXISTS))) ? B_NO_ERROR : B_ERRNO;
 #else
-   return ((mkdir(dirPath, S_IRWXU|S_IRWXG|S_IRWXO) == 0)||((errorIfAlreadyExists==false)&&(errno==EEXIST))) ? B_NO_ERROR : B_ERROR;
+   return ((mkdir(dirPath, S_IRWXU|S_IRWXG|S_IRWXO) == 0)||((errorIfAlreadyExists==false)&&(errno==EEXIST))) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
 
@@ -209,7 +209,7 @@ status_t Directory :: MakeDirectoryForFile(const char * filePath)
 {
    const int pathLen = (int) strlen(filePath);
    char * p = newnothrow_array(char, pathLen+1);
-   if (p == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+   if (p == NULL) RETURN_OUT_OF_MEMORY;
 
    muscleStrncpy(p, filePath, pathLen+1);
    char * lastSep = strrchr(p, GetFilePathSeparator()[0]);
@@ -223,8 +223,12 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
 {
    if (forceDeleteSubItemsIfNecessary)
    {
+      if (dirPath == NULL) return B_BAD_ARGUMENT;
+
+      status_t ret;
+
       Directory d;
-      if ((dirPath==NULL)||(d.SetDir(dirPath) != B_NO_ERROR)) return B_ERROR;
+      if (d.SetDir(dirPath).IsError(ret)) return ret;
 
       const char * sep       = GetFilePathSeparator();
       const int dirPathLen   = (int) strlen(dirPath);
@@ -240,7 +244,7 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
             const int fnLen  = (int) strlen(fn);
             const int catLen = dirPathLen+sepLen+fnLen+1;
             char * catStr    = newnothrow_array(char, catLen);
-            if (catStr == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
+            if (catStr == NULL) RETURN_OUT_OF_MEMORY;
 
             // Compose the sub-item's full path
             muscleStrncpy(catStr,                   dirPath, catLen);
@@ -260,9 +264,9 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
       }
    }
 #ifdef WIN32
-   return RemoveDirectoryA(dirPath) ? B_NO_ERROR : B_ERROR;
+   return RemoveDirectoryA(dirPath) ? B_NO_ERROR : B_ERRNO;
 #else
-   return (rmdir(dirPath) == 0) ? B_NO_ERROR : B_ERROR;
+   return (rmdir(dirPath) == 0) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
 

@@ -296,7 +296,7 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
          }
          return B_NO_ERROR;
       }
-      return B_ERROR;
+      return B_ERRNO;
    }
    else
    {

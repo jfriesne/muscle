@@ -63,7 +63,7 @@ protected:
 private:
    // Deliberately made private because we don't want this method to be called while our internal thread is running
    // For this class, you have to choose your destination address in the constructor, and stick with it
-   virtual status_t SetPacketSendDestination(const IPAddressAndPort & /*iap*/) {return B_ERROR;}
+   virtual status_t SetPacketSendDestination(const IPAddressAndPort & /*iap*/) {return B_UNIMPLEMENTED;}
 
    void ShutdownAux();
    status_t ReadPacket(DataIO & dio, ByteBufferRef & retBuf);

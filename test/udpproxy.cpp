@@ -26,7 +26,7 @@ static status_t ReadIncomingData(const String & desc, DataIO & readIO, const Soc
          ByteBufferRef toNetworkBuf = GetByteBufferFromPool(ret, buf);
          if (toNetworkBuf()) (void) outQ.AddTail(toNetworkBuf); 
       }
-      else if (ret < 0) {LogTime(MUSCLE_LOG_ERROR, "Error, readIO.Read() returned %i\n", ret); return B_ERROR;}
+      else if (ret < 0) {LogTime(MUSCLE_LOG_ERROR, "Error, readIO.Read() returned %i\n", ret); return B_IO_ERROR;}
    }
    return B_NO_ERROR;
 }
@@ -82,10 +82,10 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
 
       if (multiplexer.WaitForEvents() >= 0)
       {
-         if (ReadIncomingData( aDesc, aIO, multiplexer, outgoingBData)         != B_NO_ERROR) return B_ERROR;
-         if (ReadIncomingData( bDesc, bIO, multiplexer, outgoingAData)         != B_NO_ERROR) return B_ERROR;
-         if (WriteOutgoingData(aDesc, aIO, multiplexer, outgoingAData, aIndex) != B_NO_ERROR) return B_ERROR;
-         if (WriteOutgoingData(bDesc, bIO, multiplexer, outgoingBData, bIndex) != B_NO_ERROR) return B_ERROR;
+         if (ReadIncomingData( aDesc, aIO, multiplexer, outgoingBData)         != B_NO_ERROR) return B_IO_ERROR;
+         if (ReadIncomingData( bDesc, bIO, multiplexer, outgoingAData)         != B_NO_ERROR) return B_IO_ERROR;
+         if (WriteOutgoingData(aDesc, aIO, multiplexer, outgoingAData, aIndex) != B_NO_ERROR) return B_IO_ERROR;
+         if (WriteOutgoingData(bDesc, bIO, multiplexer, outgoingBData, bIndex) != B_NO_ERROR) return B_IO_ERROR;
       }
       else 
       {

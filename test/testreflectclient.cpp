@@ -119,31 +119,32 @@ public:
 
 status_t SetupTransceiverThread(MessageTransceiverThread & mtt, const char * hostName, uint16 port, int method)
 {
+   status_t ret;
    switch(method)
    {
       case METHOD_MANUAL:
-         if (mtt.AddNewSession(Connect(hostName, port, "trc")) != B_NO_ERROR)
+         if (mtt.AddNewSession(Connect(hostName, port, "trc")).IsError(ret))
          {
             printf("Error adding manual session!\n");
-            return B_ERROR;
+            return ret;
          }
       break;
 
       case METHOD_AUTOMATIC:
-         if (mtt.AddNewConnectSession(hostName, port) != B_NO_ERROR)
+         if (mtt.AddNewConnectSession(hostName, port).IsError(ret))
          {
             printf("Error adding connect session!\n");
-            return B_ERROR;
+            return ret;
          }
          else printf("Will connect asynchronously to %s\n", GetConnectString(hostName, port)());
       break;
 
       case METHOD_ACCEPT:
       {
-         if (mtt.PutAcceptFactory(port) != B_NO_ERROR)
+         if (mtt.PutAcceptFactory(port).IsError(ret))
          {
             printf("Error adding accept factory!\n");
-            return B_ERROR;
+            return ret;
          }
          printf("Accepting connections\n");
       }
@@ -151,7 +152,7 @@ status_t SetupTransceiverThread(MessageTransceiverThread & mtt, const char * hos
 
       default:
          printf("CreateTransceiverThread(): unknown method %i\n", method);
-         return B_ERROR;
+         return B_BAD_ARGUMENT;
       break;
    }
 

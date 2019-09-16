@@ -33,7 +33,9 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
    TCHECKPOINT;
 
    AbstractReflectSession * newSession = ref();
-   if (newSession == NULL) return B_ERROR;
+   if (newSession == NULL) return B_BAD_ARGUMENT;
+
+   status_t ret; 
 
    newSession->SetOwner(this);  // in case CreateGateway() needs to use the owner
 
@@ -66,37 +68,37 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
                      ConstByteBufferRef effectivePublicKey  = _publicKey;
                      if ((_inDoAccept.IsInBatch())&&(effectivePrivateKey() != NULL)&&(effectivePublicKey() == NULL)) effectivePublicKey = effectivePrivateKey;  // private key file contains public key also
 
-                     if ((effectivePublicKey())&&(sslIORef()->SetPublicKeyCertificate(effectivePublicKey) != B_NO_ERROR))
+                     if ((effectivePublicKey())&&(sslIORef()->SetPublicKeyCertificate(effectivePublicKey).IsError(ret)))
                      {
                         LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use public key data, %s session aborted!  (Bad .pem data?)\n", desc); 
                         newSession->SetOwner(NULL); 
-                        return B_ERROR;
+                        return ret;
                      }
 
-                     if ((effectivePrivateKey())&&(sslIORef()->SetPrivateKey(effectivePrivateKey) != B_NO_ERROR))
+                     if ((effectivePrivateKey())&&(sslIORef()->SetPrivateKey(effectivePrivateKey).IsError(ret)))
                      {
                         LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use private key data, %s session aborted!  (Bad .pem data?)\n", desc); 
                         newSession->SetOwner(NULL); 
-                        return B_ERROR;
+                        return ret;
                      }
 
                      if (_pskUserName.HasChars()) sslIORef()->SetPreSharedKeyLoginInfo(_pskUserName, _pskPassword);
 
                      io = sslIORef; 
                      gatewayRef.SetRef(newnothrow SSLSocketAdapterGateway(gatewayRef));
-                     if (gatewayRef() == NULL) {WARN_OUT_OF_MEMORY; newSession->SetOwner(NULL); return B_ERROR;}
+                     if (gatewayRef() == NULL) {newSession->SetOwner(NULL); RETURN_OUT_OF_MEMORY;}
                   }
-                  else {WARN_OUT_OF_MEMORY; newSession->SetOwner(NULL); return B_ERROR;}
+                  else {newSession->SetOwner(NULL); RETURN_OUT_OF_MEMORY;}
                }
 #endif
 
                gatewayRef()->SetDataIO(io);
                newSession->SetGateway(gatewayRef);
             }
-            else {newSession->SetOwner(NULL); return B_ERROR;}
+            else {newSession->SetOwner(NULL); return B_ERROR("CreateDataIO() returned NULL");}
          }
       }
-      else {newSession->SetOwner(NULL); return B_ERROR;}
+      else {newSession->SetOwner(NULL); return B_ERROR("CreateGateway() returned NULL");}
    }
 
    TCHECKPOINT;
@@ -116,12 +118,12 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
       else newSession->_hostName = newSession->GenerateHostName(invalidIP, DEFAULT_SESSION_HOSTNAME);
    }
 
-        if (AttachNewSession(ref) == B_NO_ERROR) return B_NO_ERROR;
-   else if (newSession) newSession->SetOwner(NULL);
-
-   TCHECKPOINT;
-
-   return B_ERROR;
+   if (AttachNewSession(ref).IsOK(ret)) return B_NO_ERROR;
+   else 
+   {
+      if (newSession) newSession->SetOwner(NULL);
+      return ret;
+   }
 }
 
 status_t
@@ -129,67 +131,66 @@ ReflectServer ::
 AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & destIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    AbstractReflectSession * session = ref();
-   if (session)
+   if (session == NULL) return B_BAD_ARGUMENT;
+
+   status_t ret;
+   if (_computerIsAboutToSleep)
    {
-      if (_computerIsAboutToSleep)
+      // Oh dear, we're in the time just before the computer is about to go to sleep; it's no good
+      // starting a TCP connection now!  Instead we'll make it dormant and call Reconnect() on it when we re-awake.
+      if (AddNewDormantConnectSession(ref, destIP, port, autoReconnectDelay, maxAsyncConnectPeriod).IsError(ret)) return ret;
+      (void) _sessionsToReconnectOnWakeup.Put(ref()->GetSessionIDString(), true);  // true indicates "Gotta call Reconnect() when we wake up"
+      return B_NO_ERROR;
+   }
+
+   ConstSocketRef sock = ConnectAsync(destIP, port, session->_isConnected);
+
+   // FogBugz #5256:  If ConnectAsync() fails, we want to act as if it succeeded, so that the calling
+   //                 code still uses its normal asynchronous-connect-failure code path.  That way the
+   //                 caller doesn't have to worry about synchronous failure as a separate case.
+   bool usingFakeBrokenConnection = false;
+   if (sock() == NULL)
+   {
+      ConstSocketRef tempSockRef;  // tempSockRef represents the closed remote end of the failed connection and is intentionally closed ASAP
+      if (CreateConnectedSocketPair(sock, tempSockRef).IsOK(ret))
       {
-         // Oh dear, we're in the time just before the computer is about to go to sleep; it's no good
-         // starting a TCP connection now!  Instead we'll make it dormant and call Reconnect() on it when we re-awake.
-         status_t ret = AddNewDormantConnectSession(ref, destIP, port, autoReconnectDelay, maxAsyncConnectPeriod);
-         if (ret != B_NO_ERROR) return B_ERROR;
-
-         (void) _sessionsToReconnectOnWakeup.Put(ref()->GetSessionIDString(), true);  // true indicates "Gotta call Reconnect() when we wake up"
-         return B_NO_ERROR;
-      }
-
-      ConstSocketRef sock = ConnectAsync(destIP, port, session->_isConnected);
-
-      // FogBugz #5256:  If ConnectAsync() fails, we want to act as if it succeeded, so that the calling
-      //                 code still uses its normal asynchronous-connect-failure code path.  That way the
-      //                 caller doesn't have to worry about synchronous failure as a separate case.
-      bool usingFakeBrokenConnection = false;
-      if (sock() == NULL)
-      {
-         ConstSocketRef tempSockRef;  // tempSockRef represents the closed remote end of the failed connection and is intentionally closed ASAP
-         if (CreateConnectedSocketPair(sock, tempSockRef) == B_NO_ERROR) 
-         {
-            session->_isConnected = false;
-            usingFakeBrokenConnection = true;
-         }
-      }
-
-      if (sock())
-      {
-         NestCountGuard ncg(_inDoConnect);
-         session->_asyncConnectDest = IPAddressAndPort(destIP, port);
-         session->_reconnectViaTCP  = true;
-         session->SetMaxAsyncConnectPeriod(maxAsyncConnectPeriod);  // must be done BEFORE SetConnectingAsync()!
-         session->SetConnectingAsync((usingFakeBrokenConnection == false)&&(session->_isConnected == false));
-
-         char ipbuf[64]; Inet_NtoA(destIP, ipbuf);
-         session->_hostName = session->GenerateHostName(destIP, (destIP != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME);
-
-         if (AddNewSession(ref, sock) == B_NO_ERROR)
-         {
-            if (autoReconnectDelay != MUSCLE_TIME_NEVER) session->SetAutoReconnectDelay(autoReconnectDelay);
-            if (session->_isConnected) 
-            {
-               session->_wasConnected = true;
-               session->AsyncConnectCompleted();
-            }
-            if (session->_isExpendable.HasValueBeenSet() == false) session->SetExpendable(true);
-            return B_NO_ERROR;
-         }
-         else
-         {
-            session->_asyncConnectDest.Reset();
-            session->_hostName.Clear();
-            session->_isConnected = false;
-            session->SetConnectingAsync(false);
-         }
+         session->_isConnected = false;
+         usingFakeBrokenConnection = true;
       }
    }
-   return B_ERROR;
+
+   if (sock())
+   {
+      NestCountGuard ncg(_inDoConnect);
+      session->_asyncConnectDest = IPAddressAndPort(destIP, port);
+      session->_reconnectViaTCP  = true;
+      session->SetMaxAsyncConnectPeriod(maxAsyncConnectPeriod);  // must be done BEFORE SetConnectingAsync()!
+      session->SetConnectingAsync((usingFakeBrokenConnection == false)&&(session->_isConnected == false));
+
+      char ipbuf[64]; Inet_NtoA(destIP, ipbuf);
+      session->_hostName = session->GenerateHostName(destIP, (destIP != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME);
+
+      if (AddNewSession(ref, sock).IsOK(ret))
+      {
+         if (autoReconnectDelay != MUSCLE_TIME_NEVER) session->SetAutoReconnectDelay(autoReconnectDelay);
+         if (session->_isConnected) 
+         {
+            session->_wasConnected = true;
+            session->AsyncConnectCompleted();
+         }
+         if (session->_isExpendable.HasValueBeenSet() == false) session->SetExpendable(true);
+         return B_NO_ERROR;
+      }
+      else
+      {
+         session->_asyncConnectDest.Reset();
+         session->_hostName.Clear();
+         session->_isConnected = false;
+         session->SetConnectingAsync(false);
+      }
+   }
+
+   return ret | B_ERROR;
 }
 
 status_t
@@ -197,27 +198,27 @@ ReflectServer ::
 AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & destIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    AbstractReflectSession * session = ref();
-   if (session)
+   if (session == NULL) return B_BAD_ARGUMENT;
+
+   NestCountGuard ncg(_inDoConnect);
+   session->_asyncConnectDest = IPAddressAndPort(destIP, port);
+   session->_reconnectViaTCP  = true;
+   char ipbuf[64]; Inet_NtoA(destIP, ipbuf);
+   session->_hostName = session->GenerateHostName(destIP, (destIP != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME);
+
+   status_t ret;
+   if (AddNewSession(ref, ConstSocketRef()).IsOK(ret))
    {
-      NestCountGuard ncg(_inDoConnect);
-      session->_asyncConnectDest = IPAddressAndPort(destIP, port);
-      session->_reconnectViaTCP  = true;
-      char ipbuf[64]; Inet_NtoA(destIP, ipbuf);
-      session->_hostName = session->GenerateHostName(destIP, (destIP != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME);
-      status_t ret = AddNewSession(ref, ConstSocketRef());
-      if (ret == B_NO_ERROR)
-      {
-         if (autoReconnectDelay != MUSCLE_TIME_NEVER) session->SetAutoReconnectDelay(autoReconnectDelay);
-         session->SetMaxAsyncConnectPeriod(maxAsyncConnectPeriod);
-         return B_NO_ERROR;
-      }
-      else
-      {
-         session->_asyncConnectDest.Reset();
-         session->_hostName.Clear();
-      }
+      if (autoReconnectDelay != MUSCLE_TIME_NEVER) session->SetAutoReconnectDelay(autoReconnectDelay);
+      session->SetMaxAsyncConnectPeriod(maxAsyncConnectPeriod);
+      return B_NO_ERROR;
    }
-   return B_ERROR;
+   else
+   {
+      session->_asyncConnectDest.Reset();
+      session->_hostName.Clear();
+   }
+   return ret;
 }
 
 status_t
@@ -225,10 +226,13 @@ ReflectServer ::
 AttachNewSession(const AbstractReflectSessionRef & ref)
 {
    AbstractReflectSession * newSession = ref();
-   if ((newSession)&&(_sessions.Put(&newSession->GetSessionIDString(), ref) == B_NO_ERROR))
+   if (newSession == NULL) return B_BAD_ARGUMENT;
+
+   status_t ret;
+   if (_sessions.Put(&newSession->GetSessionIDString(), ref).IsOK(ret))
    {
       newSession->SetOwner(this);
-      if (newSession->AttachedToServer() == B_NO_ERROR)
+      if (newSession->AttachedToServer().IsOK(ret))
       {
          newSession->SetFullyAttachedToServer(true);
          if (_doLogging) LogTime(MUSCLE_LOG_DEBUG, "New %s (" UINT32_FORMAT_SPEC " total)\n", newSession->GetSessionDescriptionString()(), _sessions.GetNumItems());
@@ -243,9 +247,8 @@ AttachNewSession(const AbstractReflectSessionRef & ref)
       newSession->SetOwner(NULL);
       (void) _sessions.Remove(&newSession->GetSessionIDString());
    }
-   return B_ERROR;
+   return ret;
 }
-
 
 ReflectServer :: ReflectServer()
    : _keepServerGoing(true)
@@ -357,6 +360,7 @@ ServerProcessLoop()
 {
    TCHECKPOINT;
 
+   status_t ret;
    _serverStartedAt = GetRunTime64();
 
    if (_doLogging)
@@ -376,19 +380,19 @@ ServerProcessLoop()
    if ((_mainReflectServerCatchSignals)&&(IsCurrentThreadMainThread()))
    {
       SignalHandlerSessionRef shs(newnothrow SignalHandlerSession);
-      if (shs() == NULL) {WARN_OUT_OF_MEMORY; return B_ERROR;}
-      if (AddNewSession(shs) != B_NO_ERROR)
+      if (shs() == NULL) RETURN_OUT_OF_MEMORY;
+      if (AddNewSession(shs).IsError(ret))
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::ReadyToRun:  Could not install SignalHandlerSession!\n");
-         return B_ERROR;
+         return ret;
       }
    }
 #endif
 
-   if (ReadyToRun() != B_NO_ERROR) 
+   if (ReadyToRun().IsError(ret))
    {
       if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "Server:  ReadyToRun() failed, aborting.\n");
-      return B_ERROR;
+      return ret;
    }
 
    TCHECKPOINT;
@@ -556,7 +560,7 @@ ServerProcessLoop()
          {
             if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting!\n");
             ClearLameDucks();
-            return B_ERROR;
+            return B_ERRNO;
          }
       }
 
@@ -811,9 +815,15 @@ status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSock
       NestCountGuard ncg(_inDoAccept);
       const IPAddressAndPort nip(acceptedFromIP, iap.GetPort());
       const IPAddress remoteIP = GetPeerIPAddress(newSocket, true);
-      if (remoteIP == invalidIP) LogAcceptFailed(MUSCLE_LOG_DEBUG, "GetPeerIPAddress() failed", NULL, nip);
+      if (remoteIP == invalidIP) 
+      {
+         LogAcceptFailed(MUSCLE_LOG_DEBUG, "GetPeerIPAddress() failed", NULL, nip);
+         return B_ERROR("GetPeerIPAddress() failed");
+      }
       else
       {
+         status_t ret;
+
          char ipbuf[64]; Inet_NtoA(remoteIP, ipbuf);
 
          AbstractReflectSessionRef newSessionRef;
@@ -824,7 +834,7 @@ status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSock
             if (newSessionRef()->_isExpendable.HasValueBeenSet() == false) newSessionRef()->SetExpendable(true);
             newSessionRef()->_ipAddressAndPort = iap;
             newSessionRef()->_isConnected      = true;
-            if (AddNewSession(newSessionRef, newSocket) == B_NO_ERROR) 
+            if (AddNewSession(newSessionRef, newSocket).IsOK(ret))
             {
                newSessionRef()->_wasConnected = true;   
                return B_NO_ERROR;  // success!
@@ -835,12 +845,20 @@ status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSock
                newSessionRef()->_ipAddressAndPort.Reset();
             }
          }
-         else if (optFactory) LogAcceptFailed(MUSCLE_LOG_DEBUG, "Session creation denied", ipbuf, nip);
+         else if (optFactory) 
+         {
+            LogAcceptFailed(MUSCLE_LOG_DEBUG, "Session creation denied", ipbuf, nip);
+            ret = B_ACCESS_DENIED;
+         }
+
+         return ret | B_ERROR;
       }
    }
-   else LogAcceptFailed(MUSCLE_LOG_DEBUG, "Accept() failed", NULL, iap);
-
-   return B_ERROR;
+   else 
+   {
+      LogAcceptFailed(MUSCLE_LOG_DEBUG, "Accept() failed", NULL, iap);
+      return B_ERROR("Accept() failed");
+   }
 }
 
 uint32 ReflectServer :: DumpBoggedSessions()
@@ -915,13 +933,14 @@ ReplaceSession(const AbstractReflectSessionRef & newSessionRef, AbstractReflectS
 
    // move the gateway from the old session to the new one...
    AbstractReflectSession * newSession = newSessionRef();
-   if (newSession == NULL) return B_ERROR;
+   if (newSession == NULL) return B_BAD_ARGUMENT;
 
    newSession->SetGateway(oldSession->GetGateway());
    newSession->_hostName = oldSession->_hostName;
    newSession->_ipAddressAndPort = oldSession->_ipAddressAndPort;
 
-   if (AttachNewSession(newSessionRef) == B_NO_ERROR)
+   status_t ret;
+   if (AttachNewSession(newSessionRef).IsOK(ret))
    {
       oldSession->SetGateway(AbstractMessageIOGatewayRef());   /* gateway now belongs to newSession */
       EndSession(oldSession);
@@ -933,7 +952,7 @@ ReplaceSession(const AbstractReflectSessionRef & newSessionRef, AbstractReflectS
        newSession->SetGateway(AbstractMessageIOGatewayRef());
        newSession->_hostName.Clear();
        newSession->_ipAddressAndPort.Reset();
-       return B_ERROR;
+       return ret;
    }
 }
 
@@ -987,29 +1006,28 @@ PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const
       ConstSocketRef acceptSocket = CreateAcceptingSocket(port, 20, &port, optInterfaceIP);
       if (acceptSocket())
       {
-         IPAddressAndPort iap(optInterfaceIP, port);
-         if ((SetSocketBlockingEnabled(acceptSocket, false) == B_NO_ERROR)&&(_factories.Put(iap, factoryRef) == B_NO_ERROR))
+         status_t ret;
+         const IPAddressAndPort iap(optInterfaceIP, port);
+         if ((SetSocketBlockingEnabled(acceptSocket, false).IsOK(ret))&&(_factories.Put(iap, factoryRef).IsOK(ret)))
          {
-            if (_factorySockets.Put(iap, acceptSocket) == B_NO_ERROR)
+            if (_factorySockets.Put(iap, acceptSocket).IsOK(ret))
             {
                f->SetOwner(this);
                if (optRetPort) *optRetPort = port;
-               if (f->AttachedToServer() == B_NO_ERROR) 
+               if (f->AttachedToServer().IsOK(ret))
                {
                   f->SetFullyAttachedToServer(true);
                   return B_NO_ERROR;
                }
-               else
-               {
-                  (void) RemoveAcceptFactory(port, optInterfaceIP);
-                  return B_ERROR;
-               }
+               else (void) RemoveAcceptFactory(port, optInterfaceIP);
             }
-            else _factories.Remove(iap); // roll back!
+            else (void) _factories.Remove(iap); // roll back!
          }
+         return ret;
       }
+      else return B_ERROR("CreateAcceptingSocket() failed");
    }
-   return B_ERROR;
+   else return B_BAD_ARGUMENT;
 }
 
 status_t
@@ -1033,7 +1051,7 @@ RemoveAcceptFactoryAux(const IPAddressAndPort & iap)
 
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_BAD_ARGUMENT;
 }
 
 status_t
@@ -1053,14 +1071,17 @@ ReflectServer ::
 FinalizeAsyncConnect(const AbstractReflectSessionRef & ref)
 {
    AbstractReflectSession * session = ref();
-   if ((session)&&(muscle::FinalizeAsyncConnect(session->GetSessionReadSelectSocket()) == B_NO_ERROR))
+   if (session == NULL) return B_BAD_ARGUMENT;
+
+   status_t ret;
+   if (muscle::FinalizeAsyncConnect(session->GetSessionReadSelectSocket()).IsOK(ret))
    {
       session->SetConnectingAsync(false);
       session->_isConnected = session->_wasConnected = true;
       session->AsyncConnectCompleted();
       return B_NO_ERROR;
    }
-   return B_ERROR;
+   return ret;
 }
 
 uint64 

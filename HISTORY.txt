@@ -25,6 +25,10 @@ key:  - new feature
      to the status_t class, to support short-circuit logic
      chains that support returning an error-description
      string (see test/teststatus.cpp for examples)
+   - Added a RETURN_OUT_OF_MEMORY macro to replace the
+     common "WARN_OUT_OF_MEMORY; return B_OUT_OF_MEMORY;" lines.
+   o Updated the code to return more descriptive status_t
+     error strings when possible (instead of just B_ERROR).
    * Updated the friend-template work-around in Hashtable.h
      to include g++ 8.3.x
    - Merged in Mika Lindqvist's patch for VS2019 and ARM64.

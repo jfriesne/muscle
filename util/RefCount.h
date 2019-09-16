@@ -303,7 +303,7 @@ public:
    /** Convenience method; attempts to set this typed ConstRef to be referencing the same item as the given ConstRefCountableRef.  
      * If the conversion cannot be done, our state will remain unchanged.
      * @param refCountableRef The ConstRefCountableRef to set ourselves from.
-     * @returns B_NO_ERROR if the conversion was successful, or B_ERROR if the ConstRefCountableRef's item
+     * @returns B_NO_ERROR if the conversion was successful, or B_BAD_ARGUMENT if the ConstRefCountableRef's item
      *                     type is incompatible with our own item type (as dictated by dynamic_cast)
      */
    status_t SetFromRefCountableRef(const ConstRefCountableRef & refCountableRef)
@@ -312,7 +312,7 @@ public:
       if (refCountableItem)
       {
          const Item * typedItem = dynamic_cast<const Item *>(refCountableItem);
-         if (typedItem == NULL) return B_ERROR;
+         if (typedItem == NULL) return B_BAD_ARGUMENT;
          SetRef(typedItem, refCountableRef.IsRefCounting());
       }
       else Reset();
@@ -360,7 +360,7 @@ public:
      * make a copy that wasn't strictly necessary, but it will never fail to
      * make a copy when making a copy is necessary.
      * @returns B_NO_ERROR on success (i.e. the object was successfully copied,
-     *                     or a copy turned out to be unnecessary), or B_ERROR
+     *                     or a copy turned out to be unnecessary), or B_OUT_OF_MEMORY
      *                     on failure (i.e. out of memory)
      */
    status_t EnsureRefIsPrivate()
@@ -368,7 +368,7 @@ public:
       if (IsRefPrivate() == false)
       {
          Ref<Item> copyRef = this->Clone();
-         if (copyRef() == NULL) return B_ERROR;
+         if (copyRef() == NULL) return B_OUT_OF_MEMORY;
          *this = copyRef;
       }
       return B_NO_ERROR;

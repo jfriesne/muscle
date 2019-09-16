@@ -51,7 +51,8 @@ public:
    {
       LogTime(MUSCLE_LOG_INFO, "TestSession::AttachedToServer() called...\n");
 
-      if (AbstractReflectSession::AttachedToServer() != B_NO_ERROR) return B_ERROR;
+      status_t ret;
+      if (AbstractReflectSession::AttachedToServer().IsError(ret)) return ret;
 
       const uint64 baseTime = GetRunTime64();
       for (int i=0; i<NUM_PULSE_CHILDREN; i++)

@@ -28,7 +28,7 @@ static status_t ReadIncomingData(const char * desc, DataIO & readIO, const Socke
          ByteBufferRef toNetworkBuf = GetByteBufferFromPool(ret, buf);
          if (toNetworkBuf()) (void) outQ.AddTail(toNetworkBuf); 
       }
-      else if (ret < 0) {LogTime(MUSCLE_LOG_ERROR, "Error, readIO.Read() returned %i\n", ret); return B_ERROR;}
+      else if (ret < 0) {LogTime(MUSCLE_LOG_ERROR, "Error, readIO.Read() returned %i\n", ret); return B_IO_ERROR;}
    }
    return B_NO_ERROR;
 }
@@ -56,7 +56,7 @@ static status_t WriteOutgoingData(const char * desc, DataIO & writeIO, const Soc
                LogHexBytes(MUSCLE_LOG_TRACE, firstBuf()->GetBuffer()+writeIdx, ret);
                writeIdx += ret;
             }
-            else if (ret < 0) {LogTime(MUSCLE_LOG_ERROR, "Error, writeIO.Write() returned %i\n", ret); return B_ERROR;}
+            else if (ret < 0) {LogTime(MUSCLE_LOG_ERROR, "Error, writeIO.Write() returned %i\n", ret); return B_IO_ERROR;}
          }
       }
    }
@@ -85,9 +85,9 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
       if (multiplexer.WaitForEvents() >= 0)
       {
          if (ReadIncomingData("network",  networkIO, multiplexer, outgoingSerialData)                != B_NO_ERROR) return B_NO_ERROR;  // tells main() to wait for the next TCP connection
-         if (ReadIncomingData("serial",   serialIO,  multiplexer, outgoingNetworkData)               != B_NO_ERROR) return B_ERROR;     // tells main() to exit
+         if (ReadIncomingData("serial",   serialIO,  multiplexer, outgoingNetworkData)               != B_NO_ERROR) return B_IO_ERROR;  // tells main() to exit
          if (WriteOutgoingData("network", networkIO, multiplexer, outgoingNetworkData, networkIndex) != B_NO_ERROR) return B_NO_ERROR;  // tells main() to wait for the next TCP connection
-         if (WriteOutgoingData("serial",  serialIO,  multiplexer, outgoingSerialData,  serialIndex)  != B_NO_ERROR) return B_ERROR;     // tells main() to exit
+         if (WriteOutgoingData("serial",  serialIO,  multiplexer, outgoingSerialData,  serialIndex)  != B_NO_ERROR) return B_IO_ERROR;  // tells main() to exit
       }
       else 
       {

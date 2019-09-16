@@ -100,7 +100,8 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
 #endif
    {
 #if defined(MUSCLE_USE_KQUEUE)
-      if (ComputeStateBitsChangeRequests() != B_NO_ERROR) return B_ERROR;
+      status_t ret = ComputeStateBitsChangeRequests();
+      if (ret.IsError()) return ret;
 
       struct timespec waitTime;
       struct timespec * pWaitTime;
@@ -140,7 +141,7 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
          }
       }
 #elif defined(MUSCLE_USE_EPOLL)
-      if (ComputeStateBitsChangeRequests() != B_NO_ERROR) return B_ERROR;
+      if (ComputeStateBitsChangeRequests().IsError(ret)) return ret;
 
       int ret = epoll_wait(_kernelFD, _scratchEvents.HeadPointer(), _scratchEvents.GetNumItems(), (waitTimeMicros==MUSCLE_TIME_NEVER)?-1:(int)(muscleMin(MicrosToMillis(waitTimeMicros), (int64)INT_MAX)));
       if (ret >= 0)
@@ -216,7 +217,7 @@ status_t SocketMultiplexer :: FDState :: PollRegisterNewSocket(int fd, uint32 wh
       if (_pollFDToArrayIndex.Put(fd, _pollFDArray.GetNumItems()-1) == B_NO_ERROR) return B_NO_ERROR;
                                                                               else _pollFDArray.RemoveTail();  // roll back!
    }
-   return B_ERROR;
+   return B_OUT_OF_MEMORY;
 }
 #endif
 
@@ -249,11 +250,11 @@ status_t SocketMultiplexer :: FDState :: AddKQueueChangeRequest(int fd, uint32 w
       case FDSTATE_SET_READ:   filter = EVFILT_READ;  break;
       case FDSTATE_SET_WRITE:  filter = EVFILT_WRITE; break;
       case FDSTATE_SET_EXCEPT: return B_NO_ERROR;  // not sure how kqueue handles exception-sets:  nerf them for now, since MUSCLE only uses them under Windows anyway
-      default:                 return B_ERROR;     // bad set type!?
+      default:                 return B_BAD_ARGUMENT; // bad set type!?
    }
 
    struct kevent * kevt = _scratchChanges.AddTailAndGet();
-   if (kevt == NULL) return B_ERROR;  // wtf?
+   if (kevt == NULL) return B_OUT_OF_MEMORY;
 
    EV_SET(kevt, fd, filter, add?EV_ADD:EV_DELETE, 0, 0, NULL);
    return B_NO_ERROR;
@@ -294,6 +295,7 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
    }
 
    // Generate change requests to the kernel, based on how the userBits differ from the kernelBits
+   status_t ret;
    for (HashtableIterator<int, uint16> iter(_bits); iter.HasData(); iter++)
    {
       uint16 & bits  = iter.GetValue();
@@ -307,7 +309,7 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
          {
             const bool hasBit = ((userBits&(1<<i)) != 0);
             const bool hadBit = ((kernBits&(1<<i)) != 0);
-            if ((hasBit != hadBit)&&(AddKQueueChangeRequest(iter.GetKey(), i, hasBit) != B_NO_ERROR)) return B_ERROR;
+            if ((hasBit != hadBit)&&(AddKQueueChangeRequest(iter.GetKey(), i, hasBit).IsError(ret))) return ret;
          }
 #else
          struct epoll_event evt; memset(&evt, 0, sizeof(evt));  // paranoia
@@ -316,7 +318,7 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
          if (userBits & (1<<FDSTATE_SET_WRITE))  evt.events |= EPOLLOUT;
          if (userBits & (1<<FDSTATE_SET_EXCEPT)) evt.events |= EPOLLERR;
          int op = ((userBits==0)&&(kernBits != 0)) ? EPOLL_CTL_DEL : (((userBits!=0)&&(kernBits==0)) ? EPOLL_CTL_ADD : EPOLL_CTL_MOD);
-         if ((epoll_ctl(_kernelFD, op, iter.GetKey(), &evt) != 0)&&(op != EPOLL_CTL_DEL)) return B_ERROR;  // DEL may fail if fd was already closed, that's okay
+         if ((epoll_ctl(_kernelFD, op, iter.GetKey(), &evt) != 0)&&(op != EPOLL_CTL_DEL)) return B_ERRNO;  // DEL may fail if fd was already closed, that's okay
 #endif
       }
 

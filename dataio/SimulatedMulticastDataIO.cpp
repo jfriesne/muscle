@@ -119,7 +119,7 @@ static UDPSocketDataIORef CreateUnicastUDPDataIO(uint16 & retPort)
 status_t SimulatedMulticastDataIO :: ReadPacket(DataIO & dio, ByteBufferRef & retBuf)
 {
    if (_scratchBuf() == NULL) _scratchBuf = GetByteBufferFromPool(_maxPacketSize);
-   if ((_scratchBuf() == NULL)||(_scratchBuf()->SetNumBytes(_maxPacketSize, false) != B_NO_ERROR)) return B_ERROR;
+   if ((_scratchBuf() == NULL)||(_scratchBuf()->SetNumBytes(_maxPacketSize, false) != B_NO_ERROR)) return B_OUT_OF_MEMORY;
 
    const int32 bytesRead = dio.Read(_scratchBuf()->GetBuffer(), _scratchBuf()->GetNumBytes());
    if (bytesRead > 0)
@@ -135,7 +135,11 @@ status_t SimulatedMulticastDataIO :: ReadPacket(DataIO & dio, ByteBufferRef & re
 status_t SimulatedMulticastDataIO :: SendIncomingDataPacketToMainThread(const ByteBufferRef & data, const IPAddressAndPort & source)
 {
    MessageRef toMainThreadMsg = GetMessageFromPool(SMDIO_COMMAND_DATA);
-   return ((toMainThreadMsg())&&(toMainThreadMsg()->AddFlat(SMDIO_NAME_DATA, data) == B_NO_ERROR)&&(toMainThreadMsg()->AddFlat(SMDIO_NAME_RLOC, source) == B_NO_ERROR)) ? SendMessageToOwner(toMainThreadMsg) : B_ERROR;
+   if (toMainThreadMsg() == NULL) return B_OUT_OF_MEMORY;
+
+   status_t ret;
+   return ((toMainThreadMsg()->AddFlat(SMDIO_NAME_DATA, data).IsOK(ret))
+         &&(toMainThreadMsg()->AddFlat(SMDIO_NAME_RLOC, source).IsOK(ret))) ? SendMessageToOwner(toMainThreadMsg) : ret;
 }
 
 void SimulatedMulticastDataIO :: NoteHeardFromMember(const IPAddressAndPort & heardFromPingSource, uint64 timeStampMicros)
@@ -209,10 +213,10 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    }
 
    ConstByteBufferRef buf = GetByteBufferFromPool((uint32)(b-pingBuf), pingBuf);
-   if (buf() == NULL) return B_ERROR;
+   if (buf() == NULL) return B_OUT_OF_MEMORY;
 
    Queue<ConstByteBufferRef> * pq = _outgoingPacketsTable.GetOrPut(destIAP);
-   return pq ? pq->AddTail(buf) : B_ERROR;
+   return pq ? pq->AddTail(buf) : B_OUT_OF_MEMORY;
 }
 
 void SimulatedMulticastDataIO :: DrainOutgoingPacketsTable()

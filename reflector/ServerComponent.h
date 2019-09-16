@@ -142,7 +142,7 @@ protected:
     *                        as (invalidIP), then connections will be accepted from all local network interfaces.
     *  @param optRetPort If specified non-NULL, then on success the port that the factory was bound to will
     *                    be placed into this parameter.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (couldn't bind to socket?)
+    *  @return B_NO_ERROR on success, or an error code on failure (couldn't bind to socket?)
     */
    status_t PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const IPAddress & optInterfaceIP = invalidIP, uint16 * optRetPort = NULL);
 
@@ -150,7 +150,7 @@ protected:
     *  @param port whose callback should be removed.  If (port) is set to zero, all callbacks will be removed.
     *  @param optInterfaceIP Interface(s) that the specified callbacks were assigned to in their PutAcceptFactory() call.
     *                        This parameter is ignored when (port) is zero.
-    *  @returns B_NO_ERROR on success, or B_ERROR if a factory for the specified port was not found.
+    *  @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if a factory for the specified port was not found.
     */
    status_t RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP);
 
@@ -177,7 +177,7 @@ protected:
     *               CreateDefaultSocket() method will be called to supply the ConstSocketRef.
     *               If that also returns a NULL reference, then the client will run without
     *               a connection to anything.
-    * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error.
+    * @return B_NO_ERROR if the session was successfully added, or an error code on error.
     */
    status_t AddNewSession(const AbstractReflectSessionRef & session, const ConstSocketRef & socket = ConstSocketRef());
 
@@ -203,7 +203,7 @@ protected:
     *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
     *                              is used; typically this means that it will be left up to the operating system how long to wait
     *                              before timing out the connection attempt.
-    * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error 
+    * @return B_NO_ERROR if the session was successfully added, or an error code on error 
     *                    (out-of-memory or the connect attempt failed immediately).
     */
    status_t AddNewConnectSession(const AbstractReflectSessionRef & session, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
@@ -228,7 +228,7 @@ protected:
     *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
     *                              is used; typically this means that it will be left up to the operating system how long to wait
     *                              before timing out the connection attempt.
-    * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error
+    * @return B_NO_ERROR if the session was successfully added, or an error code on error
     *                    (out-of-memory, or the connect attempt failed immediately)
     */
    status_t AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
@@ -266,7 +266,7 @@ protected:
    /** Convenience method:  Populates the specified table with sessions of the specified session type.
      * @param results The list of matching sessions is returned here.
      * @param maxSessionsToReturn No more than this many sessions will be placed into the table.  Defaults to MUSCLE_NO_LIMIT.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory)
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    template <class SessionType> status_t FindSessionsOfType(Queue<AbstractReflectSessionRef> & results, uint32 maxSessionsToReturn = MUSCLE_NO_LIMIT) const
    {
@@ -277,7 +277,7 @@ protected:
             SessionType * ret = dynamic_cast<SessionType *>(iter.GetValue()());
             if (ret)
             {
-               if (results.AddTail(iter.GetValue()) != B_NO_ERROR) return B_ERROR;
+               if (results.AddTail(iter.GetValue()) != B_NO_ERROR) return B_OUT_OF_MEMORY;
                if (--maxSessionsToReturn == 0) break;
             }
          }

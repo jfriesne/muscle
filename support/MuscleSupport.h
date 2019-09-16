@@ -208,6 +208,9 @@ using std::set_new_handler;
 /** This macro logs an out-of-memory warning that includes the current filename and source-code line number.  WARN_OUT_OF_MEMORY() should be called whenever newnothrow or malloc() return NULL. */
 #define WARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)
 
+/** This macro logs an out-of-memory warning that includes the current filename and source-code line number, and then returns B_OUT_OF_MEMORY.  RETURN_OUT_OF_MEMORY() may be called whenever newnothrow or malloc() return NULL inside a function that returns a status_t. */
+#define RETURN_OUT_OF_MEMORY {muscle::WarnOutOfMemory(__FILE__, __LINE__); return B_OUT_OF_MEMORY;}
+
 /** This macro logs a warning message including the the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
 #define MCHECKPOINT muscle::LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
 
@@ -361,7 +364,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
 
            /** Returns "OK" if this status_t indicates success; otherwise returns the human-readable description 
              * of the error this status_t indicates.
-           . */
+             */
            const char * GetDescription() const {return IsOK() ? "OK" : _desc;}
 
            /** Convenience method -- a synonym for GetDescription() */
@@ -425,8 +428,8 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
         const status_t B_BAD_OBJECT(    "Bad Object");     ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
         const status_t B_TIMED_OUT(     "Timed Out");      ///< "Timed Out"      - the operation took too long, so we gave up
         const status_t B_IO_ERROR(      "I/O Error");      ///< "I/O Error"      - an I/O operation failed
-
-       
+        const status_t B_LOCK_FAILED(   "Lock Failed");    ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
+        const status_t B_TYPE_MISMATCH( "Type Mismatch");  ///< "Type Mismatch"  - tried to fit a square block into a round hole
      };
 #   endif  /* defined(__cplusplus) */
 #  endif  /* !MUSCLE_TYPES_PREDEFINED */

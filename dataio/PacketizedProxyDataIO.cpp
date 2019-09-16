@@ -104,7 +104,7 @@ status_t PacketizedProxyDataIO :: WriteBufferedOutputAux()
             _outputBufferBytesSent = 0;
          }
       }
-      else return B_ERROR;
+      else return B_IO_ERROR;
    }
    return B_NO_ERROR;
 }

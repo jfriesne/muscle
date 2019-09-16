@@ -27,7 +27,7 @@ public:
 
    virtual status_t Unflatten(const uint8 *buffer, uint32 size)
    {
-      if (size < FlattenedSize()) return B_ERROR; 
+      if (size < FlattenedSize()) return B_BAD_DATA; 
 
       _v1 = B_LENDIAN_TO_HOST_INT32 (muscleCopyIn<int32>(buffer));  buffer += sizeof(_v1);
       _v2 = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<uint32>(buffer)); //buffer += sizeof(_v2);

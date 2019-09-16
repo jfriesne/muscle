@@ -28,7 +28,7 @@ public:
 
    /** The main loop for the message reflection server.
     *  This method will not return until the server stops running (usually due to an error).
-    *  @return B_NO_ERROR if the server has decided to exit peacefully, or B_ERROR if there was a 
+    *  @return B_NO_ERROR if the server has decided to exit peacefully, or an error code if there was a 
     *                     fatal error during setup or execution.
     */
    virtual status_t ServerProcessLoop();
@@ -45,7 +45,7 @@ public:
     *                        as (invalidIP), then connections will be accepted from all local network interfaces.
     *  @param optRetPort If specified non-NULL, then on success the port that the factory was bound to will
     *                    be placed into this parameter.
-    *  @return B_NO_ERROR on success, B_ERROR on failure (couldn't bind to socket?)
+    *  @return B_NO_ERROR on success, an error code on failure (couldn't bind to socket?)
     */
    virtual status_t PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & sessionFactoryRef, const IPAddress & optInterfaceIP = invalidIP, uint16 * optRetPort = NULL);
     
@@ -53,13 +53,13 @@ public:
     *  @param port whose callback should be removed.  If (port) is set to zero, all callbacks will be removed.
     *  @param optInterfaceIP Interface(s) that the specified callbacks were assigned to in their PutAcceptFactory() call.
     *                        This parameter is ignored when (port) is zero. 
-    *  @returns B_NO_ERROR on success, or B_ERROR if a factory for the specified port was not found.
+    *  @returns B_NO_ERROR on success, or an error code if a factory for the specified port was not found.
     */
    virtual status_t RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP);
 
    /**
     * Called after the server is set up, but just before accepting any connections.
-    * Should return B_NO_ERROR if it's okay to continue, or B_ERROR to abort and shut down the server.
+    * Should return B_NO_ERROR if it's okay to continue, or an error code to abort and shut down the server.
     * @return Default implementation returns B_NO_ERROR.
     */
    virtual status_t ReadyToRun();
@@ -68,14 +68,14 @@ public:
     * Adds a new session that uses the given socket for I/O.
     * @param ref New session to add to the server.
     * @param socket The TCP socket that the new session should use, or a NULL reference, if the new session is to have no client connection (or use the default socket, if CreateDefaultSocket() has been overridden by the session's subclass).  Note that if the session already has a gateway and DataIO installed, then the DataIO's existing socket will be used instead, and this socket will be ignored.
-    * @return B_NO_ERROR if the new session was added successfully, or B_ERROR if there was an error setting it up.
+    * @return B_NO_ERROR if the new session was added successfully, or an error code if there was an error setting it up.
     */
    virtual status_t AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & socket);
 
    /** Convenience method:  Calls AddNewSession() with a NULL Socket reference, so the session's default socket
      * (obtained by calling ref()->CreateDefaultSocket()) will be used.
      * @param ref New session to add to the server
-     * @return B_NO_ERROR if the new session was added successfully, or B_ERROR if there was an error setting it up.
+     * @return B_NO_ERROR if the new session was added successfully, or an error code if there was an error setting it up.
      */
    status_t AddNewSession(const AbstractReflectSessionRef & ref) {return AddNewSession(ref, ConstSocketRef());}
 
@@ -101,7 +101,7 @@ public:
     *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
     *                              is used; typically this means that it will be left up to the operating system how long to wait
     *                              before timing out the connection attempt.
-    * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error (out-of-memory?)
+    * @return B_NO_ERROR if the session was successfully added, or an error code on error.
     */
    status_t AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS); 
 
@@ -125,7 +125,7 @@ public:
     *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
     *                              is used; typically this means that it will be left up to the operating system how long to wait
     *                              before timing out the connection attempt.
-    * @return B_NO_ERROR if the session was successfully added, or B_ERROR on error (out-of-memory?)
+    * @return B_NO_ERROR if the session was successfully added, or an error code on error.
     */
    status_t AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
@@ -186,7 +186,7 @@ public:
    /** Convenience method:  Populates the specified table with sessions of the specified session type.
      * @param results The list of matching sessions is returned here.
      * @param maxSessionsToReturn No more than this many sessions will be placed into the table.  Defaults to MUSCLE_NO_LIMIT.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory)
+     * @returns B_NO_ERROR on success, or an B_OUT_OF_MEMORY on error.
      */
    template <class SessionType> status_t FindSessionsOfType(Queue<AbstractReflectSessionRef> & results, uint32 maxSessionsToReturn = MUSCLE_NO_LIMIT) const
    {
@@ -197,7 +197,7 @@ public:
             SessionType * ret = dynamic_cast<SessionType *>(iter.GetValue()());
             if (ret)
             {
-               if (results.AddTail(iter.GetValue()) != B_NO_ERROR) return B_ERROR;
+               if (results.AddTail(iter.GetValue()) != B_NO_ERROR) return B_OUT_OF_MEMORY;
                if (--maxSessionsToReturn == 0) break;
             }
          }
@@ -344,7 +344,7 @@ protected:
     * version) assumes that the gateway, hostname, port, etc of the
     * new session have already been set up.
     * @param ref The new session to add.
-    * @return B_NO_ERROR if the new session was added successfully, or B_ERROR if there was an error setting it up.
+    * @return B_NO_ERROR if the new session was added successfully, or an error code if there was an error setting it up.
     */
    virtual status_t AttachNewSession(const AbstractReflectSessionRef & ref);
 
@@ -362,9 +362,9 @@ protected:
     * as the old one)
     * @param newSession the new session we want to have replace the old one
     * @param replaceThisOne the old session that we want to go away
-    * @returns B_NO_ERROR on success, B_ERROR if the new session
+    * @returns B_NO_ERROR on success, an error code if the new session
     *          returns an error in its AttachedToServer() method.  If 
-    *          B_ERROR is returned, then this call is guaranteed not to
+    *          an error code is returned, then this call is guaranteed not to
     *          have had any effect on the old session.
     */
    status_t ReplaceSession(const AbstractReflectSessionRef & newSession, AbstractReflectSession * replaceThisOne);
@@ -389,7 +389,7 @@ private:
    void AddLameDuckSession(const AbstractReflectSessionRef & whoRef);
    void AddLameDuckSession(AbstractReflectSession * who);  // convenience method ... less efficient
    void ShutdownIOFor(AbstractReflectSession * session);
-   status_t ClearLameDucks();  // returns B_NO_ERROR if the server should keep going, or B_ERROR otherwise
+   status_t ClearLameDucks();  // returns B_NO_ERROR if the server should keep going, or an error code otherwise
    uint32 DumpBoggedSessions();
    status_t RemoveAcceptFactoryAux(const IPAddressAndPort & iap);
    status_t FinalizeAsyncConnect(const AbstractReflectSessionRef & ref);

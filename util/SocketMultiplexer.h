@@ -58,7 +58,7 @@ public:
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.
      * @param fd The file descriptor to watch for data-ready-to-read.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory or bad fd value?)
+     * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad fd value?)
      */
    inline status_t RegisterSocketForReadReady(int fd) {return GetCurrentFDState().RegisterSocket(fd, FDSTATE_SET_READ);}
 
@@ -67,7 +67,7 @@ public:
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.
      * @param fd The file descriptor to watch for space-available-to-write.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory or bad fd value?)
+     * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad fd value?)
      */
    inline status_t RegisterSocketForWriteReady(int fd) {return GetCurrentFDState().RegisterSocket(fd, FDSTATE_SET_WRITE);}
 
@@ -76,7 +76,7 @@ public:
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.
      * @param fd The file descriptor to watch for space-available-to-write.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory or bad fd value?)
+     * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad fd value?)
      */
    inline status_t RegisterSocketForExceptionRaised(int fd) {return GetCurrentFDState().RegisterSocket(fd, FDSTATE_SET_EXCEPT);}
 
@@ -86,7 +86,7 @@ public:
      *       your socket on each iteration of your event loop.
      * @param fd The file descriptor to watch for the event type specified by (whichSet)
      * @param whichSet A FDSTATE_SET_* value indicating the type of event to watch the socket for.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory or bad fd value?)
+     * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad fd value?)
      */
    inline status_t RegisterSocketForEventsByTypeIndex(int fd, uint32 whichSet) {return GetCurrentFDState().RegisterSocket(fd, whichSet);}
 
@@ -156,11 +156,11 @@ private:
 
       inline status_t RegisterSocket(int fd, int whichSet)
       {
-         if (fd < 0) return B_ERROR;
+         if (fd < 0) return B_BAD_ARGUMENT;
 
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
          uint16 * b = _bits.GetOrPut(fd);
-         if (b == NULL) return B_ERROR;
+         if (b == NULL) return B_OUT_OF_MEMORY;
          *b |= (1<<whichSet);
 #elif defined(MUSCLE_USE_POLL)
          uint32 idx;
@@ -168,7 +168,7 @@ private:
                                                         else return PollRegisterNewSocket(fd, whichSet);
 #else
 # ifndef WIN32  // Window supports file descriptors that are greater than FD_SETSIZE!  Other OS's do not
-         if (fd >= FD_SETSIZE) return B_ERROR;
+         if (fd >= FD_SETSIZE) return B_BAD_ARGUMENT;
 # endif
          FD_SET(fd, &_fdSets[whichSet]);
          _maxFD[whichSet] = muscleMax(_maxFD[whichSet], fd);

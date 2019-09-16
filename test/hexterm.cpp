@@ -133,7 +133,7 @@ static status_t FlushOutBuffer(const ByteBufferRef & outBuf, DataIO & io)
       else 
       {
          LogTime(MUSCLE_LOG_ERROR, "Error, Write() only wrote " INT32_FORMAT_SPEC " of " UINT32_FORMAT_SPEC " bytes... aborting!\n", wrote, outBuf()->GetNumBytes());
-         return B_ERROR;
+         return B_IO_ERROR;
       }
       if (_postSendDelay > 0) Snooze64(_postSendDelay);
    }
