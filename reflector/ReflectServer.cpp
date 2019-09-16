@@ -490,7 +490,7 @@ ServerProcessLoop()
                         {
                            out = true;  // so we can watch for the async-connect event
 #if defined(WIN32)
-                           // Under Windows, failed asynchronous TCP connect()'s are communicated via the a raised exception-flag
+                           // Under Windows, failed asynchronous TCP connect()'s are communicated via a raised exception-flag
                            (void) _multiplexer.RegisterSocketForExceptionRaised(sessionWriteFD);
 #endif
                         }

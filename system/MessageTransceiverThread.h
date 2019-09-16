@@ -13,8 +13,6 @@ namespace muscle {
 class ThreadSupervisorSession;
 class MessageTransceiverThread;
 
-// MTT_EVENT_SESSION_CONNECTED events, this field contains a string representation of the IPAddressAndPort object
-
 /** These are reply codes returned by MessageTransceiverThread::GetNextEventFromInternalThread() 
   * @see MessageTransceiverThread::GetNextEventFromInternalThread()
   */

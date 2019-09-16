@@ -125,7 +125,7 @@ private:
   *                   case MTT_EVENT_SESSION_CONNECTED:
   *                      printf("Connected to remote peer complete!\n");
   *                   break;
-
+  *
   *                   case MTT_EVENT_SESSION_DISCONNECTED:
   *                      printf("Disconnected from remote peer, or connection failed!\n");
   *                   break;

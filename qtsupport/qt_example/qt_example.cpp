@@ -434,7 +434,7 @@ void ExampleWindow :: MessageReceived(const MessageRef & msg)
 void ExampleWindow :: SendChatText()
 {
    QString text = _chatEntry->text();
-   _chatEntry->setText(QString::null);
+   _chatEntry->setText(QString());
 
    MessageRef chatMsg = GetMessageFromPool(QT_EXAMPLE_CHAT_TEXT);
    chatMsg()->AddString("username", FromQ(_curUserName));  // tag Message with who sent it

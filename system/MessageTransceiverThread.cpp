@@ -65,7 +65,7 @@ status_t MessageTransceiverThread :: EnsureServerAllocated()
       }
       return B_ERROR("CreateReflectServer() failed");
    }
-   return B_BAD_OBJECT;
+   return B_NO_ERROR;
 }
 
 ReflectServerRef MessageTransceiverThread :: CreateReflectServer()
@@ -79,7 +79,7 @@ ReflectServerRef MessageTransceiverThread :: CreateReflectServer()
 status_t MessageTransceiverThread :: StartInternalThread()
 {
    status_t ret;
-   return ((IsInternalThreadRunning() == false)&&(EnsureServerAllocated().IsOK(ret))) ? Thread::StartInternalThread() : ret;
+   return EnsureServerAllocated().IsOK(ret) ? Thread::StartInternalThread() : ret;
 }
 
 status_t MessageTransceiverThread :: SendMessageToSessions(const MessageRef & userMsg, const char * optPath)
