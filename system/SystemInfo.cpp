@@ -249,7 +249,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       if (outStr.EndsWith(c) == false) outStr += c;
    }
 
-   return found ? B_NO_ERROR : B_ERROR;
+   return found ? B_NO_ERROR : B_BAD_ARGUMENT;
 };
 
 status_t GetNumberOfProcessors(uint32 & retNumProcessors)
@@ -261,6 +261,7 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
       retNumProcessors = info.cpu_count;
       return B_NO_ERROR;  
    }
+   else return B_ERRNO;
 #elif defined(__APPLE__)
    host_basic_info_data_t hostInfo;
    mach_msg_type_number_t infoCount = HOST_BASIC_INFO_COUNT;
@@ -269,6 +270,7 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
       retNumProcessors = (uint32) hostInfo.max_cpus;
       return B_NO_ERROR;
    }
+   else return B_ERRNO;
 #elif defined(WIN32)
    SYSTEM_INFO info;
    GetSystemInfo(&info);
@@ -284,11 +286,11 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
       fclose(f);
       return B_NO_ERROR;
    }
+   else return B_ERRNO;
 #else
    (void) retNumProcessors;  // dunno how to do it on this OS!
+   return B_UNIMPLEMENTED;
 #endif
-
-   return B_ERROR;
 }
 
 } // end namespace muscle

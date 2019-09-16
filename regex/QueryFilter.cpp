@@ -14,87 +14,107 @@ status_t QueryFilter :: SaveToArchive(Message & archive) const
 
 status_t QueryFilter :: SetFromArchive(const Message & archive)
 {
-   return AcceptsTypeCode(archive.what) ? B_NO_ERROR : B_ERROR;
+   return AcceptsTypeCode(archive.what) ? B_NO_ERROR : B_TYPE_MISMATCH;
 }
 
 status_t WhatCodeQueryFilter :: SaveToArchive(Message & archive) const
 {
-   return ((QueryFilter::SaveToArchive(archive)   == B_NO_ERROR) &&
-           (archive.AddInt32("min", _minWhatCode) == B_NO_ERROR) &&
-           ((_maxWhatCode == _minWhatCode)||(archive.AddInt32("max", _maxWhatCode) == B_NO_ERROR))) ? B_NO_ERROR : B_ERROR;
+   status_t ret;
+   if (QueryFilter::SaveToArchive(archive).IsError(ret)) return ret;
+
+   return archive.CAddInt32("min", _minWhatCode)
+        | archive.CAddInt32("max", _maxWhatCode, _minWhatCode);
 }
 
 status_t WhatCodeQueryFilter :: SetFromArchive(const Message & archive)
 {
-   if (QueryFilter::SetFromArchive(archive) != B_NO_ERROR) return B_ERROR;
-   if (archive.FindInt32("min", _minWhatCode) != B_NO_ERROR) return B_ERROR;
-   if (archive.FindInt32("max", _maxWhatCode) != B_NO_ERROR) _maxWhatCode = _minWhatCode;
-   return B_NO_ERROR;
+   status_t ret;
+   if (QueryFilter::SetFromArchive(archive).IsError(ret)) return ret;
+
+   _minWhatCode = archive.GetInt32("min");
+   _maxWhatCode = archive.GetInt32("max", _minWhatCode);
+   return ret;
 }
 
 status_t ValueQueryFilter :: SaveToArchive(Message & archive) const
 {
-   return ((QueryFilter::SaveToArchive(archive) == B_NO_ERROR) &&
-           (archive.AddString("fn", _fieldName) == B_NO_ERROR) &&
-           ((_index == 0)||(archive.AddInt32("idx", _index) == B_NO_ERROR))) ? B_NO_ERROR : B_ERROR;
+   status_t ret;
+   if (QueryFilter::SaveToArchive(archive).IsError(ret)) return ret;
+
+   return archive.AddString("fn", _fieldName)
+        | archive.CAddInt32("idx", _index);
 }
 
 status_t ValueQueryFilter :: SetFromArchive(const Message & archive)
 {
-   if (QueryFilter::SetFromArchive(archive) != B_NO_ERROR) return B_ERROR;
-   if (archive.FindInt32("idx", _index) != B_NO_ERROR) _index = 0;
+   status_t ret;
+   if (QueryFilter::SetFromArchive(archive).IsError(ret)) return ret;
+
+   _index = archive.GetInt32("idx");
    return archive.FindString("fn", _fieldName);
 }
 
 status_t ValueExistsQueryFilter :: SaveToArchive(Message & archive) const
 {
-   return ((ValueQueryFilter::SaveToArchive(archive) == B_NO_ERROR)&&((_typeCode == B_ANY_TYPE)||(archive.AddInt32("type", _typeCode) == B_NO_ERROR))) ? B_NO_ERROR : B_ERROR;
+   status_t ret;
+   if (ValueQueryFilter::SaveToArchive(archive).IsError(ret)) return ret;
+
+   return archive.CAddInt32("type", _typeCode, B_ANY_TYPE);
 }
 
 status_t ValueExistsQueryFilter :: SetFromArchive(const Message & archive)
 {
-   if (ValueQueryFilter::SetFromArchive(archive) != B_NO_ERROR) return B_ERROR;
-   if (archive.FindInt32("type", _typeCode) != B_NO_ERROR) _typeCode = B_ANY_TYPE;
+   status_t ret;
+   if (ValueQueryFilter::SetFromArchive(archive).IsError(ret)) return ret;
+
+   _typeCode = archive.GetInt32("type", B_ANY_TYPE);
    return B_NO_ERROR;
 }
 
 status_t MultiQueryFilter :: SaveToArchive(Message & archive) const
 {
-   if (QueryFilter::SaveToArchive(archive) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (QueryFilter::SaveToArchive(archive).IsError(ret)) return ret;
 
    const uint32 numChildren = _children.GetNumItems();
    for (uint32 i=0; i<numChildren; i++)
    {
       const QueryFilter * nextChild = _children[i]();
-      if ((nextChild)&&(archive.AddArchiveMessage("kid", *nextChild) != B_NO_ERROR)) return B_ERROR;
+      if ((nextChild)&&(archive.AddArchiveMessage("kid", *nextChild).IsError(ret))) return ret;
    }
    return B_NO_ERROR;
 }
 
 status_t MultiQueryFilter :: SetFromArchive(const Message & archive)
 {
-   if (QueryFilter::SetFromArchive(archive) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (QueryFilter::SetFromArchive(archive).IsError(ret)) return ret;
 
    _children.Clear();
    MessageRef next;
    for (uint32 i=0; archive.FindMessage("kid", i, next) == B_NO_ERROR; i++)
    {
       ConstQueryFilterRef kid = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*next());
-      if ((kid() == NULL)||(_children.AddTail(kid) != B_NO_ERROR)) return B_ERROR;
+      if (kid() == NULL) return B_ERROR("CreateQueryFilter() failed");
+      if (_children.AddTail(kid).IsError(ret)) return ret;
    }
    return B_NO_ERROR;
 }
 
 status_t MinimumThresholdQueryFilter :: SaveToArchive(Message & archive) const
 {
-   return ((MultiQueryFilter::SaveToArchive(archive) == B_NO_ERROR)&&
-           ((_minMatches == MUSCLE_NO_LIMIT)||(archive.AddInt32("min", _minMatches) == B_NO_ERROR))) ? B_NO_ERROR : B_ERROR;
+   status_t ret;
+   if (MultiQueryFilter::SaveToArchive(archive).IsError(ret)) return ret;
+
+   return archive.CAddInt32("min", _minMatches, MUSCLE_NO_LIMIT);
 }
 
 status_t MinimumThresholdQueryFilter :: SetFromArchive(const Message & archive)
 {
-   if (MultiQueryFilter::SetFromArchive(archive) != B_NO_ERROR) return B_ERROR;
-   if (archive.FindInt32("min", _minMatches) != B_NO_ERROR) _minMatches = MUSCLE_NO_LIMIT;
+   status_t ret;
+   if (MultiQueryFilter::SetFromArchive(archive).IsError(ret)) return ret;
+
+   _minMatches = archive.GetInt32("min", MUSCLE_NO_LIMIT);
    return B_NO_ERROR;
 }
 
@@ -127,14 +147,18 @@ bool MaximumThresholdQueryFilter :: Matches(ConstMessageRef & msg, const DataNod
 
 status_t MaximumThresholdQueryFilter :: SaveToArchive(Message & archive) const
 {
-   return ((MultiQueryFilter::SaveToArchive(archive) == B_NO_ERROR)&&
-           ((_maxMatches == 0)||(archive.AddInt32("max", _maxMatches) == B_NO_ERROR))) ? B_NO_ERROR : B_ERROR;
+   status_t ret;
+   if (MultiQueryFilter::SaveToArchive(archive).IsError(ret)) return ret;
+
+   return archive.CAddInt32("max", _maxMatches);
 }
 
 status_t MaximumThresholdQueryFilter :: SetFromArchive(const Message & archive)
 {
-   if (MultiQueryFilter::SetFromArchive(archive) != B_NO_ERROR) return B_ERROR;
-   if (archive.FindInt32("max", _maxMatches) != B_NO_ERROR) _maxMatches = 0;
+   status_t ret;
+   if (MultiQueryFilter::SetFromArchive(archive).IsError(ret)) return ret;
+
+   _maxMatches = archive.GetInt32("max");
    return B_NO_ERROR;
 }
 
@@ -153,20 +177,23 @@ bool XorQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) 
 
 status_t MessageQueryFilter :: SaveToArchive(Message & archive) const
 {
-   if (ValueQueryFilter::SaveToArchive(archive) != B_NO_ERROR) return B_NO_ERROR;
-   if ((_childFilter())&&(archive.AddArchiveMessage("kid", *_childFilter()) != B_NO_ERROR)) return B_ERROR;
+   status_t ret;
+   if (ValueQueryFilter::SaveToArchive(archive).IsError(ret)) return ret;
+
+   if ((_childFilter())&&(archive.AddArchiveMessage("kid", *_childFilter()).IsError(ret))) return ret;
    return B_NO_ERROR;
 }
 
 status_t MessageQueryFilter :: SetFromArchive(const Message & archive)
 {
-   if (ValueQueryFilter::SetFromArchive(archive) != B_NO_ERROR) return B_NO_ERROR;
+   status_t ret;
+   if (ValueQueryFilter::SetFromArchive(archive).IsError(ret)) return ret;
 
    MessageRef subMsg;
    if (archive.FindMessage("kid", subMsg) == B_NO_ERROR)
    {
       _childFilter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*subMsg());
-      if (_childFilter() == NULL) return B_ERROR;
+      if (_childFilter() == NULL) return B_ERROR("CreateQueryFilter() failed");
    }
    else _childFilter.Reset();
 
@@ -185,9 +212,10 @@ bool MessageQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNo
 
 status_t StringQueryFilter :: SaveToArchive(Message & archive) const
 {
-   return ((ValueQueryFilter::SaveToArchive(archive) == B_NO_ERROR)&&
-           (archive.AddString("val", _value)         == B_NO_ERROR)&&
-           ((_assumeDefault == false)||(archive.AddString("val", _default) == B_NO_ERROR))) ? archive.AddInt8("op", _op) : B_ERROR;
+   status_t ret;
+   if (ValueQueryFilter::SaveToArchive(archive).IsError(ret)) return ret;
+
+   return ((archive.AddString("val", _value).IsOK(ret))&&((_assumeDefault == false)||(archive.AddString("val", _default).IsOK(ret)))) ? archive.AddInt8("op", _op) : ret;
 }
 
 status_t StringQueryFilter :: SetFromArchive(const Message & archive)
@@ -195,7 +223,11 @@ status_t StringQueryFilter :: SetFromArchive(const Message & archive)
    FreeMatcher();
    _default.Clear();
    _assumeDefault = (archive.FindString("val", 1, _default) == B_NO_ERROR);
-   return ((ValueQueryFilter::SetFromArchive(archive) == B_NO_ERROR)&&(archive.FindString("val", _value) == B_NO_ERROR)) ? archive.FindInt8("op", _op) : B_ERROR;
+
+   status_t ret;
+   if (ValueQueryFilter::SetFromArchive(archive).IsError(ret)) return ret;
+
+   return archive.FindString("val", _value).IsOK(ret) ? archive.FindInt8("op", _op) : ret;
 }
 
 bool StringQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) const
@@ -269,14 +301,17 @@ bool StringQueryFilter :: DoMatch(const String & s) const
 
 status_t RawDataQueryFilter :: SaveToArchive(Message & archive) const
 {
-   if ((ValueQueryFilter::SaveToArchive(archive) != B_NO_ERROR)||(archive.AddInt8("op", _op) != B_NO_ERROR)||((_typeCode != B_ANY_TYPE)&&(archive.AddInt32("type", _typeCode) != B_NO_ERROR))) return B_ERROR;
+   status_t ret;
+   if ((ValueQueryFilter::SaveToArchive(archive).IsError(ret))
+    || (archive.AddInt8("op", _op).IsError(ret))
+    || (archive.CAddInt32("type", _typeCode, B_ANY_TYPE).IsError(ret))) return ret;
 
    const ByteBuffer * bb = _value();
    if (bb)
    {
       const uint32 numBytes = bb->GetNumBytes();
       const uint8 * bytes = bb->GetBuffer();
-      if ((bytes)&&(numBytes > 0)&&(archive.AddData("val", B_RAW_TYPE, bytes, numBytes) != B_NO_ERROR)) return B_ERROR;
+      if ((bytes)&&(numBytes > 0)&&(archive.AddData("val", B_RAW_TYPE, bytes, numBytes).IsError(ret))) return ret;
    }
 
    const ByteBuffer * dd = _default();
@@ -284,7 +319,7 @@ status_t RawDataQueryFilter :: SaveToArchive(Message & archive) const
    {
       const uint32 numBytes = dd->GetNumBytes();
       const uint8 * bytes = dd->GetBuffer();
-      if ((bytes)&&(archive.AddData("def", B_RAW_TYPE, bytes, numBytes) != B_NO_ERROR)) return B_ERROR;  // I'm deliberately not checking (numBytes>0) here!
+      if ((bytes)&&(archive.AddData("def", B_RAW_TYPE, bytes, numBytes).IsError(ret))) return ret;  // I'm deliberately not checking (numBytes>0) here!
    }
 
    return B_NO_ERROR;
@@ -292,8 +327,9 @@ status_t RawDataQueryFilter :: SaveToArchive(Message & archive) const
 
 status_t RawDataQueryFilter :: SetFromArchive(const Message & archive)
 {
-   if ((ValueQueryFilter::SetFromArchive(archive) != B_NO_ERROR)||(archive.FindInt8("op", _op) != B_NO_ERROR)) return B_ERROR;
-   if (archive.FindInt32("type", _typeCode) != B_NO_ERROR) _typeCode = B_ANY_TYPE;
+   status_t ret;
+   if ((ValueQueryFilter::SetFromArchive(archive).IsError(ret))||(archive.FindInt8("op", _op).IsError(ret))) return ret;
+   _typeCode = archive.GetInt32("type", B_ANY_TYPE);
 
    _value.Reset();
    const void * data;
@@ -301,14 +337,14 @@ status_t RawDataQueryFilter :: SetFromArchive(const Message & archive)
    if (archive.FindData("val", B_RAW_TYPE, &data, &numBytes) == B_NO_ERROR)
    {
       _value = GetByteBufferFromPool(numBytes, (const uint8 *) data);
-      if (_value() == NULL) return B_ERROR;
+      if (_value() == NULL) RETURN_OUT_OF_MEMORY;
    }
 
    _default.Reset();
    if (archive.FindData("def", B_RAW_TYPE, &data, &numBytes) == B_NO_ERROR)
    {
       _default = GetByteBufferFromPool(numBytes, (const uint8 *) data);
-      if (_default() == NULL) return B_ERROR;
+      if (_default() == NULL) RETURN_OUT_OF_MEMORY;
    }
 
    return B_NO_ERROR;

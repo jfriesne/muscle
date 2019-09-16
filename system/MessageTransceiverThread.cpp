@@ -10,7 +10,7 @@ namespace muscle {
 static status_t FindIPAddressInMessage(const Message & msg, const String & fieldName, IPAddress & ip)
 {
    const String * s = NULL;
-   if (msg.FindString(fieldName, &s) != B_NO_ERROR) return B_ERROR;
+   if (msg.FindString(fieldName, &s) != B_NO_ERROR) return B_DATA_NOT_FOUND;
 
    ip = Inet_AtoN(s->Cstr());
    return B_NO_ERROR;
@@ -63,9 +63,9 @@ status_t MessageTransceiverThread :: EnsureServerAllocated()
          }
          server()->Cleanup();
       }
-      return B_ERROR;
+      return B_ERROR("CreateReflectServer() failed");
    }
-   return B_NO_ERROR;
+   return B_BAD_OBJECT;
 }
 
 ReflectServerRef MessageTransceiverThread :: CreateReflectServer()
@@ -78,13 +78,17 @@ ReflectServerRef MessageTransceiverThread :: CreateReflectServer()
 
 status_t MessageTransceiverThread :: StartInternalThread()
 {
-   return ((IsInternalThreadRunning() == false)&&(EnsureServerAllocated() == B_NO_ERROR)) ? Thread::StartInternalThread() : B_ERROR;
+   status_t ret;
+   return ((IsInternalThreadRunning() == false)&&(EnsureServerAllocated().IsOK(ret))) ? Thread::StartInternalThread() : ret;
 }
 
 status_t MessageTransceiverThread :: SendMessageToSessions(const MessageRef & userMsg, const char * optPath)
 {
    MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SEND_USER_MESSAGE));
-   return ((msgRef())&&(msgRef()->AddMessage(MTT_NAME_MESSAGE, userMsg) == B_NO_ERROR)&&((optPath==NULL)||(msgRef()->AddString(MTT_NAME_PATH, optPath) == B_NO_ERROR))) ? SendMessageToInternalThread(msgRef) : B_ERROR;
+   if (msgRef() == NULL) RETURN_OUT_OF_MEMORY;
+
+   status_t ret;
+   return ((msgRef()->AddMessage(MTT_NAME_MESSAGE, userMsg).IsOK(ret))&&((optPath==NULL)||(msgRef()->AddString(MTT_NAME_PATH, optPath).IsOK(ret)))) ? SendMessageToInternalThread(msgRef) : ret;
 }
 
 void ThreadWorkerSession :: SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(bool defaultValue)
@@ -94,31 +98,36 @@ void ThreadWorkerSession :: SetForwardAllIncomingMessagesToSupervisorIfNotAlread
 
 status_t MessageTransceiverThread :: AddNewSession(const ConstSocketRef & sock, const ThreadWorkerSessionRef & sessionRef)
 {
-   if (EnsureServerAllocated() == B_NO_ERROR)
+   status_t ret;
+   if (EnsureServerAllocated().IsOK(ret))
    {
       ThreadWorkerSessionRef sRef = sessionRef;
       if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
       if (sRef()) sRef()->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
-      return (sRef()) ? (IsInternalThreadRunning() ? SendAddNewSessionMessage(sRef, sock, NULL, invalidIP, 0, false, MUSCLE_TIME_NEVER, MUSCLE_TIME_NEVER) : _server()->AddNewSession(sRef, sock)) : B_ERROR;
+             else return B_ERROR("CreateDefaultWorkerSession() failed");
+      return IsInternalThreadRunning() ? SendAddNewSessionMessage(sRef, sock, NULL, invalidIP, 0, false, MUSCLE_TIME_NEVER, MUSCLE_TIME_NEVER) : _server()->AddNewSession(sRef, sock);
    }
-   return B_ERROR;
+   else return ret;
 }
 
 status_t MessageTransceiverThread :: AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, const ThreadWorkerSessionRef & sessionRef, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
-   if (EnsureServerAllocated() == B_NO_ERROR)
+   status_t ret;
+   if (EnsureServerAllocated().IsOK(ret))
    {
       ThreadWorkerSessionRef sRef = sessionRef;
       if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
       if (sRef()) sRef()->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
-      return (sRef()) ? (IsInternalThreadRunning() ? SendAddNewSessionMessage(sRef, ConstSocketRef(), NULL, targetIPAddress, port, false, autoReconnectDelay, maxAsyncConnectPeriod) : _server()->AddNewConnectSession(sRef, targetIPAddress, port, autoReconnectDelay, maxAsyncConnectPeriod)) : B_ERROR;
+             else return B_ERROR("CreateDefaultWorkerSession() failed");
+      return IsInternalThreadRunning() ? SendAddNewSessionMessage(sRef, ConstSocketRef(), NULL, targetIPAddress, port, false, autoReconnectDelay, maxAsyncConnectPeriod) : _server()->AddNewConnectSession(sRef, targetIPAddress, port, autoReconnectDelay, maxAsyncConnectPeriod);
    }
-   return B_ERROR;
+   else return ret;
 }
 
 status_t MessageTransceiverThread :: AddNewConnectSession(const String & targetHostName, uint16 port, const ThreadWorkerSessionRef & sessionRef, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
-   if (EnsureServerAllocated() == B_NO_ERROR)
+   status_t ret;
+   if (EnsureServerAllocated().IsOK(ret))
    {
       ThreadWorkerSessionRef sRef = sessionRef;
       if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
@@ -129,31 +138,36 @@ status_t MessageTransceiverThread :: AddNewConnectSession(const String & targetH
          else
          {
             const IPAddress ip = GetHostByName(targetHostName(), expandLocalhost);
-            return (ip != invalidIP) ? _server()->AddNewConnectSession(sRef, ip, port, autoReconnectDelay, maxAsyncConnectPeriod) : B_ERROR;
+            return (ip != invalidIP) ? _server()->AddNewConnectSession(sRef, ip, port, autoReconnectDelay, maxAsyncConnectPeriod) : B_ERROR("GetHostByName() failed");
          }
       }
+      else return B_ERROR("CreateDefaultWorkerSession() failed");
    }
-   return B_ERROR;
+   else return ret;
 }
 
 status_t MessageTransceiverThread :: SendAddNewSessionMessage(const ThreadWorkerSessionRef & sessionRef, const ConstSocketRef & sock, const char * hostName, const IPAddress & hostIP, uint16 port, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
-   MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_ADD_NEW_SESSION));
+   if (sessionRef() == NULL) return B_BAD_ARGUMENT;
 
-   return ((sessionRef())&&(msgRef())&&
-       ((hostIP == invalidIP)||(AddIPAddressToMessage(*msgRef(), MTT_NAME_IP_ADDRESS, hostIP)       == B_NO_ERROR))&&
-       (msgRef()->AddTag(    MTT_NAME_SESSION,            sessionRef)                               == B_NO_ERROR) &&
-       (msgRef()->CAddString(MTT_NAME_HOSTNAME,           hostName)                                 == B_NO_ERROR) &&
-       (msgRef()->CAddInt16( MTT_NAME_PORT,               port)                                     == B_NO_ERROR) &&
-       (msgRef()->CAddBool(  MTT_NAME_EXPANDLOCALHOST,    expandLocalhost)                          == B_NO_ERROR) &&
-       (msgRef()->CAddTag(   MTT_NAME_SOCKET,             CastAwayConstFromRef(sock))               == B_NO_ERROR) &&
-       (msgRef()->CAddInt64( MTT_NAME_AUTORECONNECTDELAY, autoReconnectDelay,    MUSCLE_TIME_NEVER) == B_NO_ERROR) &&
-       (msgRef()->CAddInt64( MTT_NAME_MAXASYNCCONNPERIOD, maxAsyncConnectPeriod, MUSCLE_TIME_NEVER) == B_NO_ERROR)) ? SendMessageToInternalThread(msgRef) : B_ERROR;
+   MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_ADD_NEW_SESSION));
+   if (msgRef() == NULL) RETURN_OUT_OF_MEMORY;
+
+   status_t ret;
+   return (((hostIP == invalidIP)||(AddIPAddressToMessage(*msgRef(), MTT_NAME_IP_ADDRESS, hostIP)  .IsOK(ret)))&&
+       (msgRef()->AddTag(    MTT_NAME_SESSION,            sessionRef)                              .IsOK(ret)) &&
+       (msgRef()->CAddString(MTT_NAME_HOSTNAME,           hostName)                                .IsOK(ret)) &&
+       (msgRef()->CAddInt16( MTT_NAME_PORT,               port)                                    .IsOK(ret)) &&
+       (msgRef()->CAddBool(  MTT_NAME_EXPANDLOCALHOST,    expandLocalhost)                         .IsOK(ret)) &&
+       (msgRef()->CAddTag(   MTT_NAME_SOCKET,             CastAwayConstFromRef(sock))              .IsOK(ret)) &&
+       (msgRef()->CAddInt64( MTT_NAME_AUTORECONNECTDELAY, autoReconnectDelay,    MUSCLE_TIME_NEVER).IsOK(ret)) &&
+       (msgRef()->CAddInt64( MTT_NAME_MAXASYNCCONNPERIOD, maxAsyncConnectPeriod, MUSCLE_TIME_NEVER).IsOK(ret))) ? SendMessageToInternalThread(msgRef) : ret;
 }
 
 status_t MessageTransceiverThread :: PutAcceptFactory(uint16 port, const ThreadWorkerSessionFactoryRef & factoryRef, const IPAddress & optInterfaceIP, uint16 * optRetPort)
 {
-   if (EnsureServerAllocated() == B_NO_ERROR)
+   status_t ret;
+   if (EnsureServerAllocated().IsOK(ret))
    {
       ThreadWorkerSessionFactoryRef fRef = factoryRef;
       if (fRef() == NULL) fRef = CreateDefaultSessionFactory();
@@ -163,12 +177,17 @@ status_t MessageTransceiverThread :: PutAcceptFactory(uint16 port, const ThreadW
          if (IsInternalThreadRunning())
          {
             MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_PUT_ACCEPT_FACTORY));
-            if ((msgRef())&&(msgRef()->AddInt16(MTT_NAME_PORT, port) == B_NO_ERROR)&&(msgRef()->AddTag(MTT_NAME_FACTORY, fRef) == B_NO_ERROR)&&(AddIPAddressToMessage(*msgRef(), MTT_NAME_IP_ADDRESS, optInterfaceIP) == B_NO_ERROR)&&(SendMessageToInternalThread(msgRef) == B_NO_ERROR)) return B_NO_ERROR;
+            if (msgRef() == NULL) RETURN_OUT_OF_MEMORY;
+            if ((msgRef()->AddInt16(MTT_NAME_PORT, port)                              .IsOK(ret)) &&
+                (msgRef()->AddTag(MTT_NAME_FACTORY, fRef)                             .IsOK(ret)) &&
+                (AddIPAddressToMessage(*msgRef(), MTT_NAME_IP_ADDRESS, optInterfaceIP).IsOK(ret)) &&
+                (SendMessageToInternalThread(msgRef)                                  .IsOK(ret))) return B_NO_ERROR;
          }
-         else if (_server()->PutAcceptFactory(port, fRef, optInterfaceIP, optRetPort) == B_NO_ERROR) return B_NO_ERROR;
+         else if (_server()->PutAcceptFactory(port, fRef, optInterfaceIP, optRetPort).IsOK(ret)) return B_NO_ERROR;
       }
+      else return B_ERROR("CreateDefaultSessionFactory() failed");
    }
-   return B_ERROR;
+   return ret;
 }
 
 status_t MessageTransceiverThread :: RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP)
@@ -178,7 +197,11 @@ status_t MessageTransceiverThread :: RemoveAcceptFactory(uint16 port, const IPAd
       if (IsInternalThreadRunning())
       {
          MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_REMOVE_ACCEPT_FACTORY));
-         return ((msgRef())&&(msgRef()->AddInt16(MTT_NAME_PORT, port) == B_NO_ERROR)&&(AddIPAddressToMessage(*msgRef(), MTT_NAME_IP_ADDRESS, optInterfaceIP) == B_NO_ERROR)) ? SendMessageToInternalThread(msgRef) : B_ERROR;
+         if (msgRef() == NULL) RETURN_OUT_OF_MEMORY;
+
+         status_t ret;
+         return ((msgRef()->AddInt16(MTT_NAME_PORT, port).IsOK(ret))&&
+                 (AddIPAddressToMessage(*msgRef(), MTT_NAME_IP_ADDRESS, optInterfaceIP).IsOK(ret))) ? SendMessageToInternalThread(msgRef) : ret;
       }
       else return _server()->RemoveAcceptFactory(port, optInterfaceIP);
    }
@@ -194,9 +217,12 @@ status_t MessageTransceiverThread :: SetSSLPrivateKey(const ConstByteBufferRef &
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PRIVATE_KEY));
-      if ((msgRef() == NULL)||((_privateKey())&&(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(privateKey)) != B_NO_ERROR))||(SendMessageToInternalThread(msgRef) != B_NO_ERROR)) return B_ERROR;
+      if (msgRef() == NULL) RETURN_OUT_OF_MEMORY;
+
+      status_t ret;
+      return (((_privateKey())&&(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(privateKey)).IsError(ret)))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
    }
-   return B_NO_ERROR;
+   else return B_BAD_OBJECT;
 }
 
 status_t MessageTransceiverThread :: SetSSLPublicKeyCertificate(const ConstByteBufferRef & publicKey)
@@ -206,9 +232,12 @@ status_t MessageTransceiverThread :: SetSSLPublicKeyCertificate(const ConstByteB
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PUBLIC_KEY));
-      if ((msgRef() == NULL)||((_publicKey())&&(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(_publicKey)) != B_NO_ERROR))||(SendMessageToInternalThread(msgRef) != B_NO_ERROR)) return B_ERROR;
+      if (msgRef() == NULL) RETURN_OUT_OF_MEMORY;
+
+      status_t ret;
+      return (((_publicKey())&&(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(_publicKey)).IsError(ret)))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
    }
-   return B_NO_ERROR;
+   else return B_BAD_OBJECT;
 }
 
 status_t MessageTransceiverThread :: SetSSLPreSharedKeyLoginInfo(const String & userName, const String & password)
@@ -219,24 +248,28 @@ status_t MessageTransceiverThread :: SetSSLPreSharedKeyLoginInfo(const String & 
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PSK_INFO));
-      if ((msgRef() == NULL)||(msgRef()->AddString(MTT_NAME_DATA, _pskUserName) != B_NO_ERROR)||(msgRef()->AddString(MTT_NAME_DATA, _pskPassword) != B_NO_ERROR)||(SendMessageToInternalThread(msgRef) != B_NO_ERROR)) return B_ERROR;
+      if (msgRef() == NULL) RETURN_OUT_OF_MEMORY;
+
+      status_t ret;
+      return ((msgRef()->AddString(MTT_NAME_DATA, _pskUserName).IsErorr(ret))||(msgRef()->AddString(MTT_NAME_DATA, _pskPassword).IsError(ret))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
    }
-   return B_NO_ERROR;
+   else return B_BAD_OBJECT;
 }
 
 #endif
 
 status_t MessageTransceiverThread :: SetDefaultDistributionPath(const String & path)
 {
-   if (_defaultDistributionPath != path)
+   if (IsInternalThreadRunning())
    {
-      if (IsInternalThreadRunning())
-      {
-         MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_DEFAULT_PATH));
-         if ((msgRef() == NULL)||(msgRef()->AddString(MTT_NAME_PATH, path) != B_NO_ERROR)||(SendMessageToInternalThread(msgRef) != B_NO_ERROR)) return B_ERROR;
-      }
-      _defaultDistributionPath = path;
+      MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_DEFAULT_PATH));
+      if (msgRef() == NULL) RETURN_OUT_OF_MEMORY;
+
+      status_t ret;
+      if ((msgRef()->AddString(MTT_NAME_PATH, path).IsError(ret))||(SendMessageToInternalThread(msgRef).IsError(ret))) return ret;
    }
+   else _defaultDistributionPath = path;
+
    return B_NO_ERROR;
 }
 
@@ -276,14 +309,17 @@ status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(cons
    // it's too late to handle it properly.
    MessageRef commandRef = GetMessageFromPool(MTT_COMMAND_NOTIFY_ON_OUTPUT_DRAIN);
    MessageRef replyRef   = GetMessageFromPool(MTT_EVENT_OUTPUT_QUEUES_DRAINED);
-   if ((commandRef())&&(replyRef())&&((notifyRef() == NULL)||(replyRef()->AddMessage(MTT_NAME_MESSAGE, notifyRef) == B_NO_ERROR)))
+   if ((commandRef() == NULL)||(replyRef() == NULL)) RETURN_OUT_OF_MEMORY;
+
+   status_t ret;
+   if (replyRef()->CAddMessage(MTT_NAME_MESSAGE, notifyRef).IsOK(ret))
    {
       DrainTagRef drainTagRef(optDrainTag ? optDrainTag : newnothrow DrainTag);
       if (drainTagRef()) drainTagRef()->SetReplyMessage(replyRef);
       if ((drainTagRef())&&
-          ((optDistPath == NULL)||(commandRef()->AddString(MTT_NAME_PATH, optDistPath) == B_NO_ERROR))&&
-          (commandRef()->AddTag(MTT_NAME_DRAIN_TAG, drainTagRef)                       == B_NO_ERROR)&&
-          (SendMessageToInternalThread(commandRef)                                     == B_NO_ERROR)) return B_NO_ERROR;
+          (commandRef()->CAddString(MTT_NAME_PATH, optDistPath) .IsOK(ret)) &&
+          (commandRef()->AddTag(MTT_NAME_DRAIN_TAG, drainTagRef).IsOK(ret)) &&
+          (SendMessageToInternalThread(commandRef)              .IsOK(ret))) return B_NO_ERROR;
 
       // User keeps ownership of his custom DrainTag on error, so we don't delete it.
       if ((drainTagRef())&&(drainTagRef() == optDrainTag)) 
@@ -292,7 +328,7 @@ status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(cons
          drainTagRef.Neutralize();
       }
    }
-   return B_ERROR;
+   return ret;
 }
 
 status_t MessageTransceiverThread :: SetNewInputPolicy(const AbstractSessionIOPolicyRef & pref, const char * optDistPath)
@@ -308,25 +344,28 @@ status_t MessageTransceiverThread :: SetNewOutputPolicy(const AbstractSessionIOP
 status_t MessageTransceiverThread :: SetNewPolicyAux(uint32 what, const AbstractSessionIOPolicyRef & pref, const char * optDistPath)    
 {
    MessageRef commandRef = GetMessageFromPool(what);
-   return ((commandRef())&&
-           ((optDistPath == NULL)||(commandRef()->AddString(MTT_NAME_PATH, optDistPath) == B_NO_ERROR))&&
-           ((pref() == NULL)||(commandRef()->AddTag(MTT_NAME_POLICY_TAG, pref) == B_NO_ERROR)))
-           ? SendMessageToInternalThread(commandRef) : B_ERROR;
+   if (commandRef() == NULL) RETURN_OUT_OF_MEMORY;
+
+   status_t ret;
+   return ((commandRef()->CAddString(MTT_NAME_PATH, optDistPath).IsOK(ret))&&(commandRef()->CAddTag(MTT_NAME_POLICY_TAG, pref).IsOK(ret))) ? SendMessageToInternalThread(commandRef) : ret;
 }
 
 status_t MessageTransceiverThread :: SetOutgoingMessageEncoding(int32 encoding, const char * optDistPath)
 {
    MessageRef commandRef = GetMessageFromPool(MTT_COMMAND_SET_OUTGOING_ENCODING);
-   return ((commandRef())&&
-           ((optDistPath == NULL)||(commandRef()->AddString(MTT_NAME_PATH, optDistPath) == B_NO_ERROR))&&
-            (commandRef()->AddInt32(MTT_NAME_ENCODING, encoding)                        == B_NO_ERROR))
-           ? SendMessageToInternalThread(commandRef) : B_ERROR;
+   if (commandRef() == NULL) RETURN_OUT_OF_MEMORY;
+
+   status_t ret;
+   return ((commandRef()->CAddString(MTT_NAME_PATH, optDistPath).IsOK(ret))&&(commandRef()->AddInt32(MTT_NAME_ENCODING, encoding).IsOK(ret))) ? SendMessageToInternalThread(commandRef) : ret;
 }
 
 status_t MessageTransceiverThread :: RemoveSessions(const char * optDistPath)
 {
    MessageRef commandRef = GetMessageFromPool(MTT_COMMAND_REMOVE_SESSIONS);
-   return ((commandRef())&&((optDistPath == NULL)||(commandRef()->AddString(MTT_NAME_PATH, optDistPath) == B_NO_ERROR))) ? SendMessageToInternalThread(commandRef) : B_ERROR;
+   if (commandRef() == NULL) RETURN_OUT_OF_MEMORY;
+ 
+   status_t ret;
+   return (commandRef()->CAddString(MTT_NAME_PATH, optDistPath).IsOK(ret)) ? SendMessageToInternalThread(commandRef) : ret;
 }
 
 void MessageTransceiverThread :: Reset()
@@ -373,7 +412,8 @@ ThreadWorkerSessionFactory :: ThreadWorkerSessionFactory()
 
 status_t ThreadWorkerSessionFactory :: AttachedToServer()
 {
-   return (StorageReflectSessionFactory::AttachedToServer() == B_NO_ERROR) ? SendMessageToSupervisorSession(GetMessageFromPool(MTT_EVENT_FACTORY_ATTACHED)) : B_ERROR;
+   status_t ret;
+   return (StorageReflectSessionFactory::AttachedToServer().IsOK(ret)) ? SendMessageToSupervisorSession(GetMessageFromPool(MTT_EVENT_FACTORY_ATTACHED)) : ret;
 }
 
 void ThreadWorkerSessionFactory :: AboutToDetachFromServer()
@@ -392,7 +432,7 @@ status_t ThreadWorkerSessionFactory :: SendMessageToSupervisorSession(const Mess
       supervisorSession->MessageReceivedFromFactory(*this, msg, userData);
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_BAD_OBJECT;
 }
 
 void ThreadWorkerSessionFactory :: SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(bool defaultValue)
@@ -451,16 +491,18 @@ void ThreadWorkerSession :: AsyncConnectCompleted()
 
 status_t ThreadWorkerSession :: AttachedToServer()
 {
-   if (StorageReflectSession::AttachedToServer() == B_NO_ERROR)
+   status_t ret;
+   if (StorageReflectSession::AttachedToServer().IsOK(ret))
    {
       if (_acceptedIAP.IsValid())
       {
          MessageRef msg = GetMessageFromPool(MTT_EVENT_SESSION_ACCEPTED);
-         if ((msg() == NULL)||(msg()->AddString(MTT_NAME_LOCATION, _acceptedIAP.ToString()) != B_NO_ERROR)||(SendMessageToSupervisorSession(msg) != B_NO_ERROR)) return B_ERROR;
+         if (msg() == NULL) RETURN_OUT_OF_MEMORY;
+         if ((msg()->AddString(MTT_NAME_LOCATION, _acceptedIAP.ToString()).IsError(ret))||(SendMessageToSupervisorSession(msg).IsError(ret))) return ret;
       }
       return SendMessageToSupervisorSession(GetMessageFromPool(MTT_EVENT_SESSION_ATTACHED));
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 status_t ThreadWorkerSession :: SendMessageToSupervisorSession(const MessageRef & msg, void * userData)
@@ -471,7 +513,7 @@ status_t ThreadWorkerSession :: SendMessageToSupervisorSession(const MessageRef 
       _supervisorSession->MessageReceivedFromSession(*this, msg, userData);
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_BAD_OBJECT;
 }
 
 bool ThreadWorkerSession :: ClientConnectionClosed()
@@ -665,7 +707,7 @@ bool ThreadSupervisorSession :: ClientConnectionClosed()
 
 status_t ThreadSupervisorSession :: AddNewWorkerConnectSession(const ThreadWorkerSessionRef & sessionRef, const IPAddress & hostIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
-   const status_t ret = (hostIP != invalidIP) ? AddNewConnectSession(sessionRef, hostIP, port, autoReconnectDelay, maxAsyncConnectPeriod) : B_ERROR;
+   const status_t ret = (hostIP != invalidIP) ? AddNewConnectSession(sessionRef, hostIP, port, autoReconnectDelay, maxAsyncConnectPeriod) : B_BAD_ARGUMENT;
 
    // For immediate failure: Since (sessionRef) never attached, we need to send the disconnect message ourself.
    if ((ret != B_NO_ERROR)&&(sessionRef()))
@@ -741,11 +783,7 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
             break;
 
             case MTT_COMMAND_SET_DEFAULT_PATH:
-            {
-               String dpath;
-               (void) msg->FindString(MTT_NAME_PATH, dpath);
-               SetDefaultDistributionPath(dpath);
-            }
+               _defaultDistributionPath = msg->GetString(MTT_NAME_PATH);;
             break;
 
             case MTT_COMMAND_NOTIFY_ON_OUTPUT_DRAIN:
@@ -796,7 +834,7 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
 
       return B_NO_ERROR;
    }
-   else return B_ERROR;
+   else return B_BAD_ARGUMENT;
 }
 
 DrainTag :: ~DrainTag() 

@@ -143,7 +143,7 @@ void AdvancedExampleWindow :: UpdateButtons()
 // like "/_unknown_/7" and "status/float"
 static status_t ParsePath(const String & path, String & retSessionString, String & retSubString)
 {
-   if (path.StartsWith('/') == false) return B_ERROR;  // paranoia
+   if (path.StartsWith('/') == false) return B_BAD_ARGUMENT;  // paranoia
 
    StringTokenizer tok(path(), "/");
    retSessionString  = "/";

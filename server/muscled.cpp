@@ -40,7 +40,7 @@ static status_t LoadCryptoKey(bool isPublic, const String * optKeyFilePath, Refl
 #else
    LogTime(MUSCLE_LOG_CRITICALERROR, "Can't load %s key file [%s], SSL support is not compiled in!\n", desc, optKeyFilePath->Cstr());
 #endif
-   return B_ERROR;
+   return B_IO_ERROR;
 }
 
 // Aux method; main() without the global stuff.  This is a good method to

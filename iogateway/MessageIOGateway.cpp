@@ -27,7 +27,7 @@ bool IsMessageOptimizedForTransmissionToMultipleGateways(const MessageRef & msg)
 
 status_t OptimizeMessageForTransmissionToMultipleGateways(const MessageRef & msg)
 {
-   if (msg() == NULL) return B_ERROR;
+   if (msg() == NULL) return B_BAD_ARGUMENT;
    if (IsMessageOptimizedForTransmissionToMultipleGateways(msg)) return B_NO_ERROR;  // it's already tagged!
 
    MessageReuseTagRef tagRef(newnothrow MessageReuseTag);
@@ -531,16 +531,19 @@ MessageRef MessageIOGateway :: CreateSynchronousPingMessage(uint32 syncPingCount
 status_t MessageIOGateway :: ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64 timeoutPeriod)
 {
    const DataIO * dio = GetDataIO()();
-   if ((dio == NULL)||(dio->GetReadSelectSocket().GetFileDescriptor() < 0)||(dio->GetWriteSelectSocket().GetFileDescriptor() < 0)) return B_ERROR;
+   if ((dio == NULL)||(dio->GetReadSelectSocket().GetFileDescriptor() < 0)||(dio->GetWriteSelectSocket().GetFileDescriptor() < 0)) return B_BAD_OBJECT;
 
    MessageRef pingMsg = CreateSynchronousPingMessage(_syncPingCounter);
-   if ((pingMsg())&&(AddOutgoingMessage(pingMsg) == B_NO_ERROR))
+   if (pingMsg() == NULL) return B_ERROR("CreateSynchronousPingMessage() failed");
+
+   status_t ret;
+   if (AddOutgoingMessage(pingMsg).IsOK(ret))
    {
       _pendingSyncPingCounter = _syncPingCounter;
       _syncPingCounter++;
       return AbstractMessageIOGateway::ExecuteSynchronousMessaging(optReceiver, timeoutPeriod);
    }
-   else return B_ERROR;
+   else return ret;
 }
 
 void MessageIOGateway :: SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r) 
@@ -618,7 +621,8 @@ CountedMessageIOGateway :: CountedMessageIOGateway(int32 outgoingEncoding)
 
 status_t CountedMessageIOGateway :: AddOutgoingMessage(const MessageRef & messageRef)
 {
-   if (MessageIOGateway::AddOutgoingMessage(messageRef) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (MessageIOGateway::AddOutgoingMessage(messageRef).IsError(ret)) return ret;
 
    const uint32 msgSize = messageRef()?messageRef()->FlattenedSize():0;
    if (GetOutgoingMessageQueue().GetNumItems() > 1) _outgoingByteCount += msgSize;
@@ -632,13 +636,14 @@ void CountedMessageIOGateway :: Reset()
    _outgoingByteCount = 0;
 }
 
-status_t CountedMessageIOGateway :: PopNextOutgoingMessage(MessageRef & ret)
+status_t CountedMessageIOGateway :: PopNextOutgoingMessage(MessageRef & outMsg)
 {
-   if (MessageIOGateway::PopNextOutgoingMessage(ret) != B_NO_ERROR) return B_ERROR;
+   status_t ret;
+   if (MessageIOGateway::PopNextOutgoingMessage(outMsg).IsError(ret)) return ret;
 
    if (GetOutgoingMessageQueue().HasItems())
    {
-      const uint32 retSize = ret()?ret()->FlattenedSize():0;
+      const uint32 retSize = outMsg()?outMsg()->FlattenedSize():0;
       _outgoingByteCount = (retSize<_outgoingByteCount) ? (_outgoingByteCount-retSize) : 0;  // paranoia to avoid underflow
    }
    else _outgoingByteCount = 0;  // semi-paranoia about meddling via GetOutgoingMessageQueue() access

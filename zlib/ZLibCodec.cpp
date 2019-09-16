@@ -104,33 +104,36 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
 
 status_t ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool independent, ByteBuffer & outBuf, uint32 addHeaderBytes, uint32 addFooterBytes)
 {
-   if ((rawBytes)&&(_deflateOkay))
+   if (rawBytes     == NULL)  return B_BAD_ARGUMENT;
+   if (_deflateOkay == false) return B_BAD_OBJECT;
+   
+   if ((independent)&&(deflateReset(&_deflater) != Z_OK))
    {
-      if ((independent)&&(deflateReset(&_deflater) != Z_OK))
-      {
-         _deflateOkay = false;
-         return B_ERROR;
-      }
-
-      const uint32 compAvailSize = (uint32)(ZLIB_CODEC_HEADER_SIZE+deflateBound(&_deflater, numRaw)+13);
-      if (outBuf.SetNumBytes(addHeaderBytes+compAvailSize+addFooterBytes, false) == B_NO_ERROR)
-      {
-         _deflater.next_in   = (Bytef *)rawBytes;
-         _deflater.total_in  = 0;
-         _deflater.avail_in  = numRaw;
-
-         _deflater.next_out  = outBuf.GetBuffer()+addHeaderBytes+ZLIB_CODEC_HEADER_SIZE;
-         _deflater.total_out = 0;
-         _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
-         
-         if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(outBuf.SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true) == B_NO_ERROR))
-         {
-            WriteZLibCodecHeader(outBuf.GetBuffer()+addHeaderBytes, independent, numRaw);
-            return B_NO_ERROR;
-         }
-      }
+      _deflateOkay = false;
+      return B_ZLIB_ERROR;
    }
-   return B_ERROR;
+
+   status_t ret;
+   const uint32 compAvailSize = (uint32)(ZLIB_CODEC_HEADER_SIZE+deflateBound(&_deflater, numRaw)+13);
+   if (outBuf.SetNumBytes(addHeaderBytes+compAvailSize+addFooterBytes, false).IsOK(ret))
+   {
+      _deflater.next_in   = (Bytef *)rawBytes;
+      _deflater.total_in  = 0;
+      _deflater.avail_in  = numRaw;
+
+      _deflater.next_out  = outBuf.GetBuffer()+addHeaderBytes+ZLIB_CODEC_HEADER_SIZE;
+      _deflater.total_out = 0;
+      _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
+      
+      if (deflate(&_deflater, Z_SYNC_FLUSH) != Z_OK) return B_ZLIB_ERROR;
+      if (outBuf.SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true).IsOK(ret))
+      {
+         WriteZLibCodecHeader(outBuf.GetBuffer()+addHeaderBytes, independent, numRaw);
+         return B_NO_ERROR;
+      }
+      else return ret;
+   }
+   else return ret;
 }
 
 int32 ZLibCodec :: GetInflatedSize(const uint8 * compBytes, uint32 numComp, bool * optRetIsIndependent) const
@@ -183,50 +186,51 @@ status_t ZLibCodec :: Inflate(const uint8 * compBytes, uint32 numComp, ByteBuffe
 {
    bool independent;
    const int32 rawLen = GetInflatedSize(compBytes, numComp, &independent);
-   if ((rawLen >= 0)&&(_inflateOkay))
+   if (rawLen < 0) return B_BAD_ARGUMENT;
+   if (_inflateOkay == false) return B_BAD_OBJECT;
+
+   if ((independent)&&(inflateReset(&_inflater) != Z_OK))
    {
-      if ((independent)&&(inflateReset(&_inflater) != Z_OK))
-      {
-         _inflateOkay = false;
-         return B_ERROR;
-      }
-
-      if (outBuf.SetNumBytes(rawLen, false) == B_NO_ERROR)
-      {
-         _inflater.next_in   = (Bytef *) (compBytes+ZLIB_CODEC_HEADER_SIZE);
-         _inflater.total_in  = 0;
-         _inflater.avail_in  = numComp-ZLIB_CODEC_HEADER_SIZE;
-
-         _inflater.next_out  = outBuf.GetBuffer();
-         _inflater.total_out = 0;
-         _inflater.avail_out = outBuf.GetNumBytes();
-
-         const int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
-         return (((zRet != Z_OK)&&(zRet != Z_STREAM_END))||((int32)_inflater.total_out != rawLen)) ? B_ERROR : B_NO_ERROR;
-      }
+      _inflateOkay = false;
+      return B_ZLIB_ERROR;
    }
-   return B_ERROR;
+
+   status_t ret;
+   if (outBuf.SetNumBytes(rawLen, false).IsOK(ret))
+   {
+      _inflater.next_in   = (Bytef *) (compBytes+ZLIB_CODEC_HEADER_SIZE);
+      _inflater.total_in  = 0;
+      _inflater.avail_in  = numComp-ZLIB_CODEC_HEADER_SIZE;
+
+      _inflater.next_out  = outBuf.GetBuffer();
+      _inflater.total_out = 0;
+      _inflater.avail_out = outBuf.GetNumBytes();
+
+      const int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
+      return (((zRet != Z_OK)&&(zRet != Z_STREAM_END))||((int32)_inflater.total_out != rawLen)) ? B_ZLIB_ERROR : B_NO_ERROR;
+   }
+   else return ret;
 }
 
 status_t ZLibCodec :: ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & destDeflatedIO, bool independent, uint32 totalBytesToRead)
 {
-   if (_deflateOkay == false) return B_ERROR;
+   if (_deflateOkay == false) return B_BAD_OBJECT;
 
    ByteBuffer scratchInBuf(32*1024);
-   if (scratchInBuf.GetNumBytes() == 0) return B_ERROR;
+   if (scratchInBuf.GetNumBytes() == 0) RETURN_OUT_OF_MEMORY;
 
    ByteBuffer scratchOutBuf(scratchInBuf.GetNumBytes()*2);  // yes, bigger than scratchInBuf!  Because I'm paranoid
-   if (scratchOutBuf.GetNumBytes() == 0) return B_ERROR;
+   if (scratchOutBuf.GetNumBytes() == 0) RETURN_OUT_OF_MEMORY;
 
    if ((independent)&&(deflateReset(&_deflater) != Z_OK))
    {
       _deflateOkay = false;
-      return B_ERROR;
+      return B_ZLIB_ERROR;
    }
 
    uint8 headerBuf[ZLIB_CODEC_HEADER_SIZE];
    WriteZLibCodecHeader(headerBuf, independent, totalBytesToRead);
-   if (destDeflatedIO.WriteFully(headerBuf, sizeof(headerBuf)) != sizeof(headerBuf)) return B_ERROR;
+   if (destDeflatedIO.WriteFully(headerBuf, sizeof(headerBuf)) != sizeof(headerBuf)) return B_IO_ERROR;
 
    _deflater.next_in   = scratchInBuf.GetBuffer();
    _deflater.avail_in  = 0;
@@ -243,8 +247,8 @@ status_t ZLibCodec :: ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & dest
       // Pull in some more input data, if we don't have any
       if ((_deflater.avail_in == 0)&&(numRawBytesLeftToRead > 0))
       {
-         int32 numBytesRead = sourceRawIO.Read(scratchInBuf.GetBuffer(), muscleMin(numRawBytesLeftToRead, scratchInBuf.GetNumBytes()));
-         if (numBytesRead <= 0) return B_ERROR;
+         const int32 numBytesRead = sourceRawIO.Read(scratchInBuf.GetBuffer(), muscleMin(numRawBytesLeftToRead, scratchInBuf.GetNumBytes()));
+         if (numBytesRead <= 0) return B_IO_ERROR;
 
          numRawBytesLeftToRead -= numBytesRead;
          _deflater.next_in  = scratchInBuf.GetBuffer();
@@ -252,14 +256,14 @@ status_t ZLibCodec :: ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & dest
       }
 
       const int zRet = deflate(&_deflater, Z_SYNC_FLUSH);
-      if ((zRet != Z_OK)&&(zRet != Z_STREAM_END)) return B_ERROR;
+      if ((zRet != Z_OK)&&(zRet != Z_STREAM_END)) return B_ZLIB_ERROR;
 
       // If deflate() generated some deflated bytes, write them out to the destDeflatedIO
       const int32 numBytesProduced = (int32)(_deflater.next_out-scratchOutBuf.GetBuffer());
       if (numBytesProduced > 0)
       {
-         int32 numBytesWritten = destDeflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced);
-         if (numBytesWritten != numBytesProduced) return B_ERROR;
+         const int32 numBytesWritten = destDeflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced);
+         if (numBytesWritten != numBytesProduced) return B_IO_ERROR;
       }
    }
 
@@ -268,26 +272,26 @@ status_t ZLibCodec :: ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & dest
 
 status_t ZLibCodec :: ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO & destInflatedIO)
 {
-   if (_inflateOkay == false) return B_ERROR;
+   if (_inflateOkay == false) return B_BAD_OBJECT;
 
    ByteBuffer scratchInBuf(32*1024);
-   if (scratchInBuf.GetNumBytes() == 0) return B_ERROR;
+   if (scratchInBuf.GetNumBytes() == 0) RETURN_OUT_OF_MEMORY;
 
    ByteBuffer scratchOutBuf(scratchInBuf.GetNumBytes()*8);
-   if (scratchOutBuf.GetNumBytes() == 0) return B_ERROR;
+   if (scratchOutBuf.GetNumBytes() == 0) RETURN_OUT_OF_MEMORY ;
 
    uint8 headerBuf[ZLIB_CODEC_HEADER_SIZE];
    const uint32 headerBytesRead = sourceDeflatedIO.ReadFully(headerBuf, sizeof(headerBuf));
-   if (headerBytesRead != sizeof(headerBuf)) return B_ERROR;
+   if (headerBytesRead != sizeof(headerBuf)) return B_IO_ERROR;
 
    bool independent;
    const int32 numBytesToBeWritten = GetInflatedSize(headerBuf, sizeof(headerBuf), &independent);
-   if (numBytesToBeWritten < 0) return B_ERROR;
+   if (numBytesToBeWritten < 0) return B_BAD_DATA;
 
    if ((independent)&&(inflateReset(&_inflater) != Z_OK))
    {
       _inflateOkay = false;
-      return B_ERROR;
+      return B_ZLIB_ERROR;
    }
 
    _inflater.next_in   = scratchInBuf.GetBuffer();
@@ -304,22 +308,22 @@ status_t ZLibCodec :: ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO &
       // Pull in some more input data, if we don't have any
       if (_inflater.avail_in == 0)
       {
-         int32 numBytesRead = sourceDeflatedIO.Read(scratchInBuf.GetBuffer(), scratchInBuf.GetNumBytes());
-         if (numBytesRead <= 0) return B_ERROR;
+         const int32 numBytesRead = sourceDeflatedIO.Read(scratchInBuf.GetBuffer(), scratchInBuf.GetNumBytes());
+         if (numBytesRead <= 0) return B_IO_ERROR;
 
          _inflater.next_in  = scratchInBuf.GetBuffer();
          _inflater.avail_in = numBytesRead;
       }
 
       const int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
-      if ((zRet != Z_OK)&&(zRet != Z_STREAM_END)) return B_ERROR;
+      if ((zRet != Z_OK)&&(zRet != Z_STREAM_END)) return B_ZLIB_ERROR;
 
       // If inflate() generated some inflated bytes, write them out to the destInflatedIO
       const int32 numBytesProduced = (int32)(_inflater.next_out-scratchOutBuf.GetBuffer());
       if (numBytesProduced > 0)
       {
-         int32 numBytesWritten = destInflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced);
-         if (numBytesWritten != numBytesProduced) return B_ERROR;
+         const int32 numBytesWritten = destInflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced);
+         if (numBytesWritten != numBytesProduced) return B_IO_ERROR;
       }
    }
    return B_NO_ERROR;

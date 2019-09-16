@@ -100,9 +100,9 @@ status_t FileDescriptorDataIO :: Seek(int64 offset, int whence)
       }
 #ifdef MUSCLE_USE_LLSEEK
       loff_t spot;
-      return (_llseek(fd, (uint32)((offset >> 32) & 0xFFFFFFFF), (uint32)(offset & 0xFFFFFFFF), &spot, whence) >= 0) ? B_NO_ERROR : B_ERROR;   
+      return (_llseek(fd, (uint32)((offset >> 32) & 0xFFFFFFFF), (uint32)(offset & 0xFFFFFFFF), &spot, whence) >= 0) ? B_NO_ERROR : B_ERRNO;   
 #else
-      return (lseek(fd, (off_t) offset, whence) >= 0) ? B_NO_ERROR : B_ERROR; 
+      return (lseek(fd, (off_t) offset, whence) >= 0) ? B_NO_ERROR : B_ERRNO; 
 #endif
    }
    return B_BAD_OBJECT;

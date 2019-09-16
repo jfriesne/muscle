@@ -24,7 +24,10 @@ ThreadedInternalSession :: ThreadedInternalSession(const MessageRef & args)
 /** Called in the MUSCLE thread during setup.  Overridden to start the internal thread running also. */
 status_t ThreadedInternalSession :: AttachedToServer()
 {
-   return ((_gatewayOK)&&(AdvancedThreadWorkerSession::AttachedToServer() == B_NO_ERROR)) ? StartInternalThread() : B_ERROR;
+   if (_gatewayOK == false) return B_BAD_OBJECT;
+
+   status_t ret;
+   return (AdvancedThreadWorkerSession::AttachedToServer().IsOK(ret)) ? StartInternalThread() : ret;
 }
 
 // Our SignalMessageIOGateway gateway sends us an empty dummy Message whenever it wants us to check our 
@@ -189,5 +192,5 @@ status_t ThreadedInternalSession :: SetupNotifierGateway()
       }
       else RETURN_OUT_OF_MEMORY;
    }
-   return B_ERROR;
+   else return B_BAD_OBJECT;
 }

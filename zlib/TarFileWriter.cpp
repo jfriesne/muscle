@@ -59,7 +59,7 @@ status_t TarFileWriter :: SetFile(const char * outputFileName, bool append)
          if (_writerIO()) return B_NO_ERROR;
                      else {fclose(fpOut); WARN_OUT_OF_MEMORY;}
       }
-      return B_ERROR;
+      return B_ERRNO;
    }
    else return B_NO_ERROR;
 }
@@ -85,8 +85,9 @@ static void WriteOctalASCII(uint8 * b, uint64 val, uint8 fieldSize)
 
 status_t TarFileWriter :: FinishCurrentFileDataBlock()
 {
-   if (_writerIO() == NULL) return B_ERROR;
+   if (_writerIO() == NULL) return B_BAD_OBJECT;
 
+   status_t ret;
    if (_currentHeaderOffset >= 0)
    {
       const int64 currentPos = GetCurrentSeekPosition();
@@ -96,7 +97,7 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
       {
          const int64 numPadBytes = (TAR_BLOCK_SIZE-extraBytes);
          uint8 zeros[TAR_BLOCK_SIZE]; memset(zeros, 0, (size_t) numPadBytes);
-         if (_writerIO()->WriteFully(zeros, (uint32) numPadBytes) != (uint32) numPadBytes) return B_ERROR;
+         if (_writerIO()->WriteFully(zeros, (uint32) numPadBytes) != (uint32) numPadBytes) return B_IO_ERROR;
       }
 
       WriteOctalASCII(&_currentHeaderBytes[124], currentFileLength, 12);
@@ -105,7 +106,9 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
       for (uint32 i=0; i<TAR_BLOCK_SIZE; i++) checksum += _currentHeaderBytes[i];
       WriteOctalASCII(&_currentHeaderBytes[148], checksum, 8);
 
-      if ((_writerIO()->Seek(_currentHeaderOffset, SeekableDataIO::IO_SEEK_SET) != B_NO_ERROR)||(_writerIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes)) != sizeof(_currentHeaderBytes))||(_writerIO()->Seek(0, SeekableDataIO::IO_SEEK_END) != B_NO_ERROR)) return B_ERROR;
+      if (_writerIO()->Seek(_currentHeaderOffset, SeekableDataIO::IO_SEEK_SET).IsError(ret)) return ret;
+      if (_writerIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes)) != sizeof(_currentHeaderBytes)) return B_IO_ERROR;
+      if (_writerIO()->Seek(0, SeekableDataIO::IO_SEEK_END).IsError(ret)) return ret;
 
       _currentHeaderOffset = -1;
    }
@@ -119,11 +122,13 @@ int64 TarFileWriter :: GetCurrentSeekPosition() const
 
 status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkedFileName)
 {
-   if ((strlen(fileName) > 100)||((linkedFileName)&&(strlen(linkedFileName)>100))) return B_ERROR;  // string fields are only 100 chars long!
-   if (FinishCurrentFileDataBlock() != B_NO_ERROR) return B_ERROR;  // should pad out position out to a multiple of 512, if necessary
+   if ((strlen(fileName) > 100)||((linkedFileName)&&(strlen(linkedFileName)>100))) return B_BAD_ARGUMENT;  // string fields are only 100 chars long!
+
+   status_t ret;
+   if (FinishCurrentFileDataBlock().IsError(ret)) return ret;  // should pad out position out to a multiple of 512, if necessary
 
    const int64 curSeekPos = GetCurrentSeekPosition();
-   if ((curSeekPos < 0)||((curSeekPos%TAR_BLOCK_SIZE) != 0)) return B_ERROR;
+   if ((curSeekPos < 0)||((curSeekPos%TAR_BLOCK_SIZE) != 0)) return B_BAD_OBJECT;
 
    _currentHeaderOffset = curSeekPos;
    memset(_currentHeaderBytes, 0, sizeof(_currentHeaderBytes));
@@ -142,13 +147,13 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
 
    // We write out the header as it is now, in order to keep the file offsets correct... but we'll rewrite it again later
    // when we know the actual file size.
-   return (_writerIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes)) == sizeof(_currentHeaderBytes)) ? B_NO_ERROR : B_ERROR;
+   return (_writerIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes)) == sizeof(_currentHeaderBytes)) ? B_NO_ERROR : B_IO_ERROR;
 }
 
 status_t TarFileWriter :: WriteFileData(const uint8 * fileData, uint32 numBytes)
 {
-   if ((_writerIO() == NULL)||(_currentHeaderOffset < 0)) return B_ERROR;
-   return (_writerIO()->WriteFully(fileData, numBytes) == numBytes) ? B_NO_ERROR : B_ERROR;
+   if ((_writerIO() == NULL)||(_currentHeaderOffset < 0)) return B_BAD_OBJECT;
+   return (_writerIO()->WriteFully(fileData, numBytes) == numBytes) ? B_NO_ERROR : B_IO_ERROR;
 }
 
 } // end namespace muscle

@@ -170,7 +170,7 @@ int GetMaxLogLevel();
  *  Any calls to Log*() that specify a log level greater than (loglevel)
  *  will be suppressed.  Default level is MUSCLE_LOG_NONE (i.e. no file logging is done)
  *  @param loglevel The MUSCLE_LOG_* value to use in determining which log messages to save to disk.
- *  @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+ *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
 status_t SetFileLogLevel(int loglevel);
 
@@ -183,7 +183,7 @@ void CloseCurrentLogFile();
  *                 Note that this string can contain any of the special tokens described by the
  *                 HumanReadableTimeValues::ExpandTokens() method, and these values will be expanded
  *                 out when the log file is opened.
- *  @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+ *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
 status_t SetFileLogName(const String & logName);
 
@@ -193,7 +193,7 @@ status_t SetFileLogName(const String & logName);
   * that will expand out differently).
   * Default state is no limit on log file size.  (aka MUSCLE_NO_LIMIT)
   * @param maxSizeBytes The maximum allowable log file size, or MUSCLE_NO_LIMIT to allow any size log file.
-  * @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+  * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
   */
 status_t SetFileLogMaximumSize(uint32 maxSizeBytes);
 
@@ -201,7 +201,7 @@ status_t SetFileLogMaximumSize(uint32 maxSizeBytes);
   * is allowed to delete.
   * @param pattern The pattern to match against (e.g. "/var/log/mylogfiles-*.txt").  The matching will
   *                be done immediately/synchronously inside this call.
-  * @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+  * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
   */
 status_t SetOldLogFilesPattern(const String & pattern);
 
@@ -210,14 +210,14 @@ status_t SetOldLogFilesPattern(const String & pattern);
   * space taken up by log files limited to a finite amount.
   * Default state is no limit on the number of log files.  (aka MUSCLE_NO_LIMIT)
   * @param maxNumLogFiles The maximum allowable number of log files, or MUSCLE_NO_LIMIT to allow any number of log files.
-  * @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+  * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
   */
 status_t SetMaxNumLogFiles(uint32 maxNumLogFiles);
 
 /** Set this to true if you want log files to be compressed when they are closed (and given a .gz extension).
   * or false if they should be left in raw text form.
   * @param enable True to enable log file compression; false otherwise.
-  * @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+  * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
   */
 status_t SetFileLogCompressionEnabled(bool enable);
 
@@ -225,14 +225,14 @@ status_t SetFileLogCompressionEnabled(bool enable);
  *  Any calls to Log*() that specify a log level greater than (loglevel)
  *  will be suppressed.  Default level is MUSCLE_LOG_INFO.
  *  @param loglevel The MUSCLE_LOG_* value to use in determining which log messages to print to stdout.
- *  @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+ *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
 status_t SetConsoleLogLevel(int loglevel);
 
 /** Same semantics as printf, only outputs to the log file/console instead
  *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.
  *  @param fmt A printf-style format string (e.g. "hello %s\n").  Note that \n is NOT added for you.
- *  @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+ *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
 status_t Log(int logLevel, const char * fmt, ...);
 
@@ -260,7 +260,7 @@ status_t _LogTime(const char * sourceFile, const char * optSourceFunction, int l
  *  e.g. LogTime(MUSCLE_LOG_INFO, "Hello %s!", "world") would generate "[I 12/18 12:11:49] Hello world!"
  *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.
  *  @param fmt A printf-style format string (e.g. "hello %s\n").  Note that \n is NOT added for you.
- *  @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+ *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
 status_t LogTime(int logLevel, const char * fmt, ...);
 
@@ -268,14 +268,14 @@ status_t LogTime(int logLevel, const char * fmt, ...);
 
 /** Ensures that all previously logged output is actually sent.  That is, it simply 
  *  calls fflush() on any streams that we are logging to.
- *  @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+ *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
 status_t LogFlush();
 
 /** Attempts to lock the Mutex that is used to serialize LogCallback calls.
   * Typically you won't need to call this function, as it is called for you
   * before any LogCallback calls are made.
-  * @returns B_NO_ERROR on success or B_ERROR on failure.
+  * @returns B_NO_ERROR on success or B_LOCK_FAILED on failure.
   * @note Be sure to call UnlockLog() when you are done!
   */
 status_t LockLog();
@@ -285,7 +285,7 @@ status_t LockLog();
   * after any LogCallback calls are made.  The only time you need to call it
   * is after you've made a call to LockLog() and are now done with your critical
   * section.
-  * @returns B_NO_ERROR on success or B_ERROR on failure.
+  * @returns B_NO_ERROR on success or B_LOCK_FAILED on failure.
   */
 status_t UnlockLog();
 
@@ -297,16 +297,16 @@ status_t UnlockLog();
   * @param maxDepth The maximum number of levels of stack trace that we should print out.  Defaults to
   *                 64.  The absolute maximum is 256; if you specify a value higher than that, you will still get 256.
   * @note This function is currently only implemented under Linux and MacOS/X Leopard; for other OS's, this function is a no-op.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure.
   */
 status_t PrintStackTrace(FILE * optFile = NULL, uint32 maxDepth = 64);
 
-/** Logs out a stack trace, if possible.  Returns B_ERROR if not.
+/** Logs out a stack trace, if possible.
  *  @note Currently only works under Linux and MacOS/X Leopard, and then only if -rdynamic is specified as a compile flag.
  *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.
  *  @param maxDepth The maximum number of levels of stack trace that we should print out.  Defaults to
  *                  64.  The absolute maximum is 256; if you specify a value higher than that, you will still get 256.
- *  @returns B_NO_ERROR on success, or B_ERROR if a stack trace couldn't be logged because the platform doesn't support it.
+ *  @returns B_NO_ERROR on success, or B_UNIMPLEMENTED if a stack trace couldn't be logged because the platform doesn't support it.
  */
 status_t LogStackTrace(int logLevel = MUSCLE_LOG_INFO, uint32 maxDepth = 64);
 
@@ -315,7 +315,7 @@ status_t LogStackTrace(int logLevel = MUSCLE_LOG_INFO, uint32 maxDepth = 64);
   * @param retStr On success, the stack trace is written to this String object.
   * @param maxDepth The maximum number of levels of stack trace that we should print out.  Defaults to
   *                 64.  The absolute maximum is 256; if you specify a value higher than that, you will still get 256.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or B_UNIMPLEMENTED if a stack trace couldn't be logged because the platform doesn't support it.
   * @note This function is currently only implemented under Linux and MacOS/X Leopard; for other OS's, this function is a no-op.
   */
 status_t GetStackTrace(String & retStr, uint32 maxDepth = 64);

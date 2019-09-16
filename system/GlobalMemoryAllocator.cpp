@@ -105,7 +105,7 @@ status_t MemoryParanoiaCheckBuffer(void * userPtr, bool crashIfInvalid)
             fflush(stdout);
             MCRASH("MEMORY PARANOIA:  MEMORY CORRUPTION DETECTED!");
          }
-         return B_ERROR;
+         return B_ERROR("Memory Corruption Detected");
       }
    }
    return B_NO_ERROR;

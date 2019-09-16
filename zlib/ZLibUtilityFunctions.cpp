@@ -168,7 +168,7 @@ status_t ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & destDeflatedIO, b
    return codec.ReadAndDeflateAndWrite(sourceRawIO, destDeflatedIO, independent, numBytesToRead);
 #else
    ZLibCodec * codec = GetZLibCodec(compressionLevel);
-   return codec ? codec->ReadAndDeflateAndWrite(sourceRawIO, destDeflatedIO, independent, numBytesToRead) : B_ERROR;
+   return codec ? codec->ReadAndDeflateAndWrite(sourceRawIO, destDeflatedIO, independent, numBytesToRead) : B_BAD_ARGUMENT;
 #endif
 }
 
@@ -179,7 +179,7 @@ status_t ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO & destInflated
    return codec.ReadAndInflateAndWrite(sourceDeflatedIO, destInflatedIO);
 #else
    ZLibCodec * codec = GetZLibCodec(6);  // doesn't matter which one we use, any of them can inflate anything
-   return codec ? codec->ReadAndInflateAndWrite(sourceDeflatedIO, destInflatedIO) : B_ERROR;
+   return codec ? codec->ReadAndInflateAndWrite(sourceDeflatedIO, destInflatedIO) : B_BAD_ARGUMENT;
 #endif
 }
 

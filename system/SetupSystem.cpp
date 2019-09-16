@@ -831,21 +831,20 @@ status_t Snooze64(uint64 micros)
    }
 
 #if __ATHEOS__
-   return (snooze(micros) >= 0) ? B_NO_ERROR : B_ERROR;
+   return (snooze(micros) >= 0) ? B_NO_ERROR : B_ERRNO;
 #elif WIN32
    Sleep((DWORD)((micros/1000)+(((micros%1000)!=0)?1:0)));
    return B_NO_ERROR;
 #elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK) && !defined(__EMSCRIPTEN__)
    const struct timespec ts = {(time_t) MicrosToSeconds(micros), (time_t) MicrosToNanos(micros%MICROS_PER_SECOND)};
-   return (clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL) == 0) ? B_NO_ERROR : B_ERROR;
+   return (clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL) == 0) ? B_NO_ERROR : B_ERRNO;
 #else
    /** We can use select(), if nothing else */
    struct timeval waitTime;
    Convert64ToTimeVal(micros, waitTime);
-   return (select(0, NULL, NULL, NULL, &waitTime) >= 0) ? B_NO_ERROR : B_ERROR;
+   return (select(0, NULL, NULL, NULL, &waitTime) >= 0) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
-
 
 #ifdef WIN32
 // Broken out so ParseHumanReadableTimeValues() can use it also
@@ -1060,7 +1059,7 @@ status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeade
    else Flatten(b);
 
    // And finally, write out the buffer
-   const status_t ret = (outputStream.WriteFully(b, bufSize) == bufSize) ? B_NO_ERROR : B_ERROR;
+   const status_t ret = (outputStream.WriteFully(b, bufSize) == bufSize) ? B_NO_ERROR : B_IO_ERROR;
    delete [] bigBuf;
    return ret;
 }
@@ -1071,9 +1070,9 @@ status_t Flattenable :: UnflattenFromDataIO(DataIO & inputStream, int32 optReadS
    if (optReadSize < 0)
    {
       uint32 leSize;
-      if (inputStream.ReadFully(&leSize, sizeof(leSize)) != sizeof(leSize)) return B_ERROR;
+      if (inputStream.ReadFully(&leSize, sizeof(leSize)) != sizeof(leSize)) return B_IO_ERROR;
       readSize = (uint32) B_LENDIAN_TO_HOST_INT32(leSize);
-      if (readSize > optMaxReadSize) return B_ERROR;
+      if (readSize > optMaxReadSize) return B_BAD_DATA;
    }
 
    uint8 smallBuf[256];
@@ -1086,7 +1085,7 @@ status_t Flattenable :: UnflattenFromDataIO(DataIO & inputStream, int32 optReadS
       if (bigBuf == NULL) RETURN_OUT_OF_MEMORY;
    }
 
-   const status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? Unflatten(b, readSize) : B_ERROR;
+   const status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? Unflatten(b, readSize) : B_IO_ERROR;
    delete [] bigBuf;
    return ret;
 }
@@ -1897,22 +1896,22 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results)
    Mutex * m = _muscleLock;
    if ((m==NULL)||(m->Lock() == B_NO_ERROR))
    {
-      status_t ret = B_NO_ERROR;
+      status_t ret;
 
       const ObjectCounterBase * oc = _firstObjectCounter;
       while(oc)
       {
-         if (results.Put(oc->GetCounterTypeName(), oc->GetCount()) != B_NO_ERROR) ret = B_ERROR;
+         (void) results.Put(oc->GetCounterTypeName(), oc->GetCount()).IsError(ret);
          oc = oc->GetNextCounter();
       }
 
       if (m) m->Unlock();
       return ret;
    }
-   else return B_ERROR;
+   else return B_LOCK_FAILED;
 #else
    (void) results;
-   return B_ERROR;
+   return B_UNIMPLEMENTED;
 #endif
 }
 

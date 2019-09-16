@@ -19,6 +19,7 @@ status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) cons
       case 2:  signalNumber = CTRL_CLOSE_EVENT;    return B_NO_ERROR;
       case 3:  signalNumber = CTRL_LOGOFF_EVENT;   return B_NO_ERROR;
       case 4:  signalNumber = CTRL_SHUTDOWN_EVENT; return B_NO_ERROR;
+      deafult: /* empty */                         return B_BAD_ARGUMENT;
    }
 #elif defined(MUSCLE_USE_POSIX_SIGNALS)
    switch(n)
@@ -26,9 +27,10 @@ status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) cons
       case 0:  signalNumber = SIGINT;  return B_NO_ERROR;
       case 1:  signalNumber = SIGTERM; return B_NO_ERROR;
       case 2:  signalNumber = SIGHUP;  return B_NO_ERROR;
+      deafult: /* empty */             return B_BAD_ARGUMENT;
    }
 #endif
-   return B_ERROR;
+   return B_UNIMPLEMENTED;
 }
 
 #if defined(WIN32)
@@ -40,12 +42,13 @@ static void POSIXSignalHandlerCallbackFunc(int sigNum)   {SignalMultiplexer::Get
 status_t SignalMultiplexer :: AddHandler(ISignalHandler * s) 
 {
    MutexGuard m(_mutex);
-   if (_handlers.AddTail(s) != B_NO_ERROR) return B_ERROR;
-   if (UpdateSignalSets() == B_NO_ERROR) return B_NO_ERROR;
+   status_t ret;
+   if (_handlers.AddTail(s).IsError(ret)) return ret;
+   if (UpdateSignalSets().IsOK(ret)) return B_NO_ERROR;
    else
    {
       _handlers.RemoveTail();
-      return B_ERROR;
+      return ret;
    }
 }
 
@@ -68,11 +71,12 @@ void SignalMultiplexer :: CallSignalHandlers(int sigNum)
 status_t SignalMultiplexer :: UpdateSignalSets()
 {
    Queue<int> newSignalSet;
+   status_t ret;
    for (uint32 i=0; i<_handlers.GetNumItems(); i++)
    {
       const ISignalHandler * s = _handlers[i];
       int sigNum;
-      for (uint32 j=0; s->GetNthSignalNumber(j, sigNum) == B_NO_ERROR; j++) if ((newSignalSet.IndexOf(sigNum) < 0)&&(newSignalSet.AddTail(sigNum) != B_NO_ERROR)) return B_ERROR;
+      for (uint32 j=0; s->GetNthSignalNumber(j, sigNum) == B_NO_ERROR; j++) if ((newSignalSet.IndexOf(sigNum) < 0)&&(newSignalSet.AddTail(sigNum).IsError(ret))) return ret;
    }
    newSignalSet.Sort();
 
@@ -95,7 +99,8 @@ status_t SignalMultiplexer :: UpdateSignalSets()
 status_t SignalMultiplexer :: RegisterSignals()
 {
 #if defined(WIN32)
-   return ((_currentSignalSet.IsEmpty())||(SetConsoleCtrlHandler((PHANDLER_ROUTINE) Win32SignalHandlerCallbackFunc, true))) ? B_NO_ERROR : B_ERROR;
+   if (_currentSignalSet.IsEmpty()) return B_BAD_OBJECT;
+   return SetConsoleCtrlHandler((PHANDLER_ROUTINE) Win32SignalHandlerCallbackFunc, true) ? B_NO_ERROR : B_ERRNO;
 #elif defined(MUSCLE_USE_POSIX_SIGNALS)
    struct sigaction newact;
    sigemptyset(&newact.sa_mask);
@@ -103,17 +108,18 @@ status_t SignalMultiplexer :: RegisterSignals()
    newact.sa_handler = POSIXSignalHandlerCallbackFunc;  /*set the new handler*/
    for (uint32 i=0; i<_currentSignalSet.GetNumItems(); i++)
    {
-      int sigNum = _currentSignalSet[i];
+      const int sigNum = _currentSignalSet[i];
       if (sigaction(sigNum, &newact, NULL) == -1) 
       {
+         const status_t ret = B_ERRNO;
          LogTime(MUSCLE_LOG_WARNING, "Could not install signal handler for signal #%i\n", sigNum);
          UnregisterSignals();
-         return B_ERROR;
+         return ret;
       }
    }
    return B_NO_ERROR;
 #else
-   return B_ERROR;
+   return B_UNIMPLEMENTED;
 #endif
 }
 

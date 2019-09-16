@@ -31,13 +31,14 @@ status_t PathMatcher :: RemovePathString(const String & wildpath)
       if (temp.GetFilter()()) _numFilters--;
       return B_NO_ERROR;
    }
-   return B_ERROR;
+   return B_DATA_NOT_FOUND;
 }
 
 status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilterRef & filter)
 {
    TCHECKPOINT;
 
+   status_t ret;
    if (path.HasChars()) 
    {
       StringMatcherQueue * newQ = GetStringMatcherQueuePool()->ObtainObject();
@@ -57,26 +58,27 @@ status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilte
             if (strcmp(temp(), "*"))
             {
                smRef.SetRef(smPool->ObtainObject());
-               if ((smRef() == NULL)||(smRef()->SetPattern(temp()) != B_NO_ERROR)) return B_ERROR;
+               if (smRef() == NULL) RETURN_OUT_OF_MEMORY;
+               if (smRef()->SetPattern(temp()).IsError(ret)) return ret;
             }
-            if (newQ->GetStringMatchers().AddTail(smRef) != B_NO_ERROR) return B_ERROR;
+            if (newQ->GetStringMatchers().AddTail(smRef).IsError(ret)) return ret;
             lastSlashPos = slashPos;
          }
-         if (_entries.Put(path, PathMatcherEntry(qRef, filter)) == B_NO_ERROR)
+         if (_entries.Put(path, PathMatcherEntry(qRef, filter)).IsOK(ret))
          {
             if (filter()) _numFilters++;
             return B_NO_ERROR;
          }
       }
    }
-   return B_ERROR;
+   return ret;
 }
 
 status_t PathMatcher :: PutPathsFromMessage(const char * pathFieldName, const char * optFilterFieldName, const Message & msg, const char * prependIfNoLeadingSlash)
 {
    TCHECKPOINT;
 
-   status_t ret = B_NO_ERROR;
+   status_t ret;
 
    ConstQueryFilterRef filter;  // declared here so that queries can "bleed down" the list without being specified multiple times
    const String * str;
@@ -87,7 +89,7 @@ status_t PathMatcher :: PutPathsFromMessage(const char * pathFieldName, const ch
          MessageRef filterMsgRef;
          if (msg.FindMessage(optFilterFieldName, i, filterMsgRef) == B_NO_ERROR) filter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*filterMsgRef());
       }
-      if (PutPathFromString(*str, filter, prependIfNoLeadingSlash) != B_NO_ERROR) ret = B_ERROR;
+      (void) PutPathFromString(*str, filter, prependIfNoLeadingSlash).IsError(ret);
    }
    return ret;
 }
@@ -95,7 +97,7 @@ status_t PathMatcher :: PutPathsFromMessage(const char * pathFieldName, const ch
 status_t PathMatcher :: SetFilterForEntry(const String & path, const ConstQueryFilterRef & newFilter)
 {
    PathMatcherEntry * pme = _entries.Get(path);
-   if (pme == NULL) return B_ERROR;
+   if (pme == NULL) return B_DATA_NOT_FOUND;
 
    if ((newFilter() != NULL) != (pme->GetFilter()() != NULL)) _numFilters += ((newFilter() != NULL) ? 1 : -1);  // FogBugz #5803
    pme->SetFilter(newFilter);
@@ -113,15 +115,16 @@ status_t PathMatcher :: PutPathsFromMatcher(const PathMatcher & matcher)
 {
    TCHECKPOINT;
 
+   status_t ret;
    for (HashtableIterator<String, PathMatcherEntry> iter(matcher.GetEntries(), HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
-      if (_entries.Put(iter.GetKey(), iter.GetValue()) == B_NO_ERROR)
+      if (_entries.Put(iter.GetKey(), iter.GetValue()).IsOK(ret))
       {
          if (iter.GetValue().GetFilter()()) _numFilters++;
       }
-      else return B_ERROR;
+      else break;
    }
-   return B_NO_ERROR;
+   return ret;
 }
 
 bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, const DataNode * optNode) const

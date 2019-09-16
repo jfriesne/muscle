@@ -300,9 +300,11 @@ status_t DetectNetworkConfigChangesSession :: AttachedToServer()
 # endif
 # ifdef WIN32
    _wakeupSignal = CreateEvent(0, false, false, 0);
-   if (_wakeupSignal == MY_INVALID_HANDLE_VALUE) return B_ERROR;
+   if (_wakeupSignal == MY_INVALID_HANDLE_VALUE) return B_ERROR("CreateEvent() failed");
 # endif
-   return (AbstractReflectSession::AttachedToServer() == B_NO_ERROR) ? StartInternalThread() : B_ERROR;
+
+   status_t ret;
+   return (AbstractReflectSession::AttachedToServer().IsOK(ret)) ? StartInternalThread() : ret;
 }
 
 void DetectNetworkConfigChangesSession :: EndSession()

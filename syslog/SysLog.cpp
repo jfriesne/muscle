@@ -1429,12 +1429,12 @@ status_t PrintStackTrace(FILE * optFile, uint32 maxDepth)
    return B_NO_ERROR;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
    _Win32PrintStackTraceForContext(optFile, NULL, maxDepth);
+   return B_NO_ERROR;
 #else
    (void) maxDepth;  // shut the compiler up
    fprintf(optFile, "PrintStackTrace:  Error, stack trace printing not available on this platform!\n");
-#endif
-
    return B_UNIMPLEMENTED;  // I don't know how to do this for other systems!
+#endif
 }
 
 status_t GetStackTrace(String & retStr, uint32 maxDepth)
@@ -1458,14 +1458,16 @@ status_t GetStackTrace(String & retStr, uint32 maxDepth)
       free(strings);
       return B_NO_ERROR;
    }
+   else return B_OUT_OF_MEMORY;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
    StackWalker(NULL, &retStr, StackWalker::OptionsJAF).ShowCallstack(maxDepth);
+   return B_NO_ERROR;
 #else
    (void) retStr;   // shut the compiler up
    (void) maxDepth;
+   return B_UNIMPLEMENTED;
 #endif
 
-   return B_UNIMPLEMENTED;
 }
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
@@ -2161,12 +2163,12 @@ status_t LogStackTrace(int ll, uint32 maxDepth)
       free(strings);
       return B_NO_ERROR;
    }
+   else return B_OUT_OF_MEMORY;
 #else
    (void) ll;        // shut the compiler up
    (void) maxDepth;  // shut the compiler up
-#endif
-
    return B_UNIMPLEMENTED;  // I don't know how to do this for other systems!
+#endif
 }
 
 status_t Log(int ll, const char * fmt, ...)

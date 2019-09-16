@@ -32,8 +32,9 @@ status_t AcceptSocketsThread :: SetPort(uint16 port, const IPAddress & optInterf
          _port = port;
          return B_NO_ERROR;
       }
+      else return B_ERROR("CreateAcceptingSocket() failed");
    }
-   return B_ERROR;
+   return B_BAD_OBJECT;
 }
 
 status_t AcceptSocketsThread :: StartInternalThread()
@@ -41,9 +42,9 @@ status_t AcceptSocketsThread :: StartInternalThread()
    if ((IsInternalThreadRunning() == false)&&(_acceptSocket()))
    {
       _notifySocket = GetInternalThreadWakeupSocket();
-      return (_notifySocket.GetFileDescriptor() >= 0) ? Thread::StartInternalThread() : B_ERROR;
+      return (_notifySocket.GetFileDescriptor() >= 0) ? Thread::StartInternalThread() : B_BAD_OBJECT;
    } 
-   return B_ERROR;
+   return B_BAD_OBJECT;
 }
 
 void AcceptSocketsThread :: InternalThreadEntry()

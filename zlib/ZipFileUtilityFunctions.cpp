@@ -70,7 +70,9 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
       const String & fn = iter.GetFieldName();
 
       uint32 fieldType;
-      if (msg.GetInfo(fn, &fieldType) != B_NO_ERROR) return B_ERROR;
+      status_t ret;
+      if (msg.GetInfo(fn, &fieldType).IsError(ret)) return ret;
+
       switch(fieldType)
       {
          case B_MESSAGE_TYPE:
@@ -81,7 +83,7 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
 
             // Message fields we treat as sub-directories   
             MessageRef subMsg;
-            for (int32 i=0; msg.FindMessage(fn, i, subMsg) == B_NO_ERROR; i++) if (WriteZipFileAux(zf, newBaseName, *subMsg(), compressionLevel, fileInfo) != B_NO_ERROR) return B_ERROR;
+            for (int32 i=0; msg.FindMessage(fn, i, subMsg) == B_NO_ERROR; i++) if (WriteZipFileAux(zf, newBaseName, *subMsg(), compressionLevel, fileInfo).IsError(ret)) return ret;
          }
          break;
 
@@ -105,9 +107,9 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
                                         NULL,        // const char* comment,
                                         (compressionLevel>0)?Z_DEFLATED:0,  // int method,
                                         compressionLevel,  // int compressionLevel
-                                        0) != ZIP_OK) return B_ERROR;
-               if (zipWriteInFileInZip(zf, data, numBytes) != ZIP_OK) return B_ERROR;
-               if (zipCloseFileInZip(zf) != ZIP_OK) return B_ERROR;
+                                        0) != ZIP_OK) return B_ZLIB_ERROR;
+               if (zipWriteInFileInZip(zf, data, numBytes) != ZIP_OK) return B_ZLIB_ERROR;
+               if (zipCloseFileInZip(zf) != ZIP_OK) return B_ZLIB_ERROR;
             }
          }
          break;
@@ -161,7 +163,7 @@ status_t WriteZipFile(DataIO & writeTo, const Message & msg, int compressionLeve
       zipClose(zf, NULL);
       return ret; 
    }
-   else return B_ERROR;
+   else return B_ZLIB_ERROR;
 }
 
 static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32 nameBufLen, bool loadData)
@@ -169,10 +171,11 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
    while(unzOpenCurrentFile(zf) == UNZ_OK)
    {
       unz_file_info fileInfo;
-      if (unzGetCurrentFileInfo(zf, &fileInfo, nameBuf, nameBufLen, NULL, 0, NULL, 0) != UNZ_OK) return B_ERROR;
+      if (unzGetCurrentFileInfo(zf, &fileInfo, nameBuf, nameBufLen, NULL, 0, NULL, 0) != UNZ_OK) return B_ZLIB_ERROR;
 
       // Add the new entry to the appropriate spot in the tree (demand-allocate sub-Messages as necessary)
       {
+         status_t ret;
          const char * nulByte = strchr(nameBuf, '\0');
          const bool isFolder = ((nulByte > nameBuf)&&(*(nulByte-1) == '/'));
          Message * m = &msg;
@@ -187,7 +190,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
                MessageRef subMsg;
                if (m->FindMessage(fn, subMsg) != B_NO_ERROR) 
                {
-                  if ((m->AddMessage(fn, Message()) != B_NO_ERROR)||(m->FindMessage(fn, subMsg) != B_NO_ERROR)) return B_ERROR;
+                  if ((m->AddMessage(fn, Message()).IsError(ret))||(m->FindMessage(fn, subMsg).IsError(ret))) return ret;
                }
                m = subMsg();
             }
@@ -196,13 +199,15 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
                if (loadData)
                {
                   ByteBufferRef bufRef = GetByteBufferFromPool((uint32) fileInfo.uncompressed_size);
-                  if ((bufRef() == NULL)||(unzReadCurrentFile(zf, bufRef()->GetBuffer(), bufRef()->GetNumBytes()) != (int32)bufRef()->GetNumBytes())||(m->AddFlat(fn, bufRef) != B_NO_ERROR)) return B_ERROR;
+                  if (bufRef() == NULL) RETURN_OUT_OF_MEMORY;
+                  if (unzReadCurrentFile(zf, bufRef()->GetBuffer(), bufRef()->GetNumBytes()) != (int32)bufRef()->GetNumBytes()) return B_IO_ERROR;
+                  if (m->AddFlat(fn, bufRef).IsError(ret)) return ret;
                }
-               else if (m->AddInt64(fn, fileInfo.uncompressed_size) != B_NO_ERROR) return B_ERROR;
+               else if (m->AddInt64(fn, fileInfo.uncompressed_size).IsError(ret)) return ret;
             }
          }
       }
-      if (unzCloseCurrentFile(zf) != UNZ_OK) return B_ERROR;
+      if (unzCloseCurrentFile(zf) != UNZ_OK) return B_ZLIB_ERROR;
       if (unzGoToNextFile(zf) != UNZ_OK) break;
    }
    return B_NO_ERROR;

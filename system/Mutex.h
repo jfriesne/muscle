@@ -127,7 +127,7 @@ public:
      * will block until the other thread unlocks the lock.  The lock is recursive, however;
      * if a given thread calls Lock() twice in a row it won't deadlock itself (although it will
      * need to call Unlock() twice in a row in order to truly unlock the lock)
-     * @returns B_NO_ERROR on success, or B_ERROR if the lock could not be locked for some reason.
+     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked for some reason.
      */
    status_t Lock() const
 #endif
@@ -144,10 +144,10 @@ public:
 #  endif
          _locker.lock();
 #  if !defined(MUSCLE_NO_EXCEPTIONS)
-      } catch(...) {ret = B_ERROR;}
+      } catch(...) {ret = B_LOCK_FAILED;}
 #  endif
 # elif defined(MUSCLE_USE_PTHREADS)
-      status_t ret = (pthread_mutex_lock(&_locker) == 0) ? B_NO_ERROR : B_ERROR;
+      status_t ret = (pthread_mutex_lock(&_locker) == 0) ? B_NO_ERROR : B_LOCK_FAILED;
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       EnterCriticalSection(&_locker);
       status_t ret = B_NO_ERROR;
@@ -155,9 +155,9 @@ public:
       _locker.lock();
       status_t ret = B_NO_ERROR;
 # elif defined(__BEOS__) || defined(__HAIKU__)
-      status_t ret = _locker.Lock() ? B_NO_ERROR : B_ERROR;
+      status_t ret = _locker.Lock() ? B_NO_ERROR : B_LOCK_FAILED;
 # elif defined(__ATHEOS__)
-      status_t ret = _locker.Lock() ? B_ERROR : B_NO_ERROR;  // Is this correct?  Kurt's documentation sucks
+      status_t ret = _locker.Lock() ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?  Kurt's documentation sucks
 # endif
 
 # ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
@@ -174,7 +174,7 @@ public:
 #else
    /** Unlocks the lock.  Once this is done, any other thread that is blocked in the Lock()
      * method will gain ownership of the lock and return.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (perhaps you tried to unlock a lock
+     * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure (perhaps you tried to unlock a lock
      *          that wasn't locked?  This method should never fail in typical usage)
      */
    status_t Unlock() const
@@ -194,7 +194,7 @@ public:
       _locker.unlock();
       return B_NO_ERROR;
 # elif defined(MUSCLE_USE_PTHREADS)
-      return (pthread_mutex_unlock(&_locker) == 0) ? B_NO_ERROR : B_ERROR;
+      return (pthread_mutex_unlock(&_locker) == 0) ? B_NO_ERROR : B_LOCK_FAILED;
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       LeaveCriticalSection(&_locker);
       return B_NO_ERROR;
@@ -205,7 +205,7 @@ public:
       _locker.Unlock();
       return B_NO_ERROR;
 # elif defined(__ATHEOS__)
-      return _locker.Unlock() ? B_ERROR : B_NO_ERROR;  // Is this correct?  Kurt's documentation sucks
+      return _locker.Unlock() ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?  Kurt's documentation sucks
 # endif
 #endif
    }

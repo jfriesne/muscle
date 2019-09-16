@@ -13,7 +13,9 @@ IThreadPoolClient :: ~IThreadPoolClient()
 
 status_t IThreadPoolClient :: SendMessageToThreadPool(const MessageRef & msg)
 {
-   return ((_threadPool)&&(msg())) ? _threadPool->SendMessageToThreadPool(this, msg) : B_ERROR;
+   if (_threadPool == NULL) return B_BAD_OBJECT;
+   if (msg()       == NULL) return B_BAD_ARGUMENT;
+   return _threadPool->SendMessageToThreadPool(this, msg);
 }
 
 void IThreadPoolClient :: SetThreadPool(ThreadPool * tp)
@@ -139,10 +141,14 @@ status_t ThreadPool :: SendMessageToThreadPool(IThreadPoolClient * client, const
    MutexGuard mg(_poolLock);
 
    bool * isBeingHandled = mg.IsMutexLocked() ? _registeredClients.Get(client) : NULL;
-   if (isBeingHandled == NULL) return B_ERROR;   
+   if (isBeingHandled == NULL) return B_BAD_ARGUMENT;   
 
    Queue<MessageRef> * mq = ((*isBeingHandled)?_deferredMessages:_pendingMessages).GetOrPut(client);
-   if ((mq == NULL)||(mq->AddTail(msg) != B_NO_ERROR)) return B_ERROR;
+   if (mq == NULL) RETURN_OUT_OF_MEMORY;
+
+   status_t ret;
+   if (mq->AddTail(msg).IsError(ret)) return ret;
+
    if ((*isBeingHandled == false)&&(mq->GetNumItems() == 1)) DispatchPendingMessagesUnsafe();
    return B_NO_ERROR;
 }

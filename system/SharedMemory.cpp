@@ -207,7 +207,7 @@ status_t SharedMemory :: DeleteArea()
 # ifdef WIN32
          const String fileName = _fileName;  // hold as temp since UnsetArea() will clear it
          UnsetArea();
-         return DeleteFileA(fileName()) ? B_NO_ERROR : B_ERROR;  // now that everything is detached, try to delete the file
+         return DeleteFileA(fileName()) ? B_NO_ERROR : B_ERRNO;  // now that everything is detached, try to delete the file
 # else
          if (_areaID >= 0) (void) shmctl(_areaID, IPC_RMID, NULL);  // bye bye shared memory!
          _areaID = -1;
@@ -220,7 +220,7 @@ status_t SharedMemory :: DeleteArea()
 # endif
       }
    }
-   return B_ERROR;
+   return B_BAD_OBJECT;
 #endif
 }
 
@@ -279,18 +279,21 @@ status_t SharedMemory :: LockArea(bool readOnly)
    _isLockedReadOnly = readOnly;
    return B_NO_ERROR;
 #else
-   if (_isLocked == false)
+   status_t ret;
+   if (_isLocked) ret = B_BAD_OBJECT;
+   else
    {
       _isLocked = true;  // Set these first just so they are correct while we're waiting
       _isLockedReadOnly = readOnly;
 # ifdef WIN32
       if (WaitForSingleObject(_mutex, INFINITE) == WAIT_OBJECT_0) return B_NO_ERROR;
+                                                             else ret = B_ERRNO;
 # else
-      if (AdjustSemaphore(_isLockedReadOnly ? -1: -LARGEST_SEMAPHORE_DELTA) == B_NO_ERROR) return B_NO_ERROR;
+      if (AdjustSemaphore(_isLockedReadOnly ? -1: -LARGEST_SEMAPHORE_DELTA).IsOK(ret)) return B_NO_ERROR;
 # endif
       _isLocked = _isLockedReadOnly = false;  // oops, roll back!
    }
-   return B_ERROR;
+   return ret;
 #endif
 }
 
@@ -322,7 +325,7 @@ status_t SharedMemory :: AdjustSemaphore(short delta)
          if (errno != EINTR) break;  // on EINTR, we'll try again --jaf
       }
    }
-   return B_ERROR;
+   return B_BAD_OBJECT;
 }
 #endif
 

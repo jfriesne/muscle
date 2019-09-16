@@ -430,6 +430,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
         const status_t B_IO_ERROR(      "I/O Error");      ///< "I/O Error"      - an I/O operation failed
         const status_t B_LOCK_FAILED(   "Lock Failed");    ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
         const status_t B_TYPE_MISMATCH( "Type Mismatch");  ///< "Type Mismatch"  - tried to fit a square block into a round hole
+        const status_t B_ZLIB_ERROR(    "ZLib Error");     ///< "ZLib Error"     - a zlib library-function reported an error
      };
 #   endif  /* defined(__cplusplus) */
 #  endif  /* !MUSCLE_TYPES_PREDEFINED */

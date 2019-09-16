@@ -49,7 +49,7 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
 {
    if (pyValue == Py_None) return B_NO_ERROR;  // None is the same as not specifying the arg
 
-   status_t ret = B_ERROR;
+   status_t ret = B_BAD_ARGUMENT;
 
 #if PY_MAJOR_VERSION < 3
         if (JAF_PyInt_Check(pyValue)) ret = msg.AddInt32( fname(optKey, "_argInt32"),  PyInt_AS_LONG(pyValue));

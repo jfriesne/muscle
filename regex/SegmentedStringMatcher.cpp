@@ -45,18 +45,20 @@ status_t SegmentedStringMatcher::SetPattern(const String & s, bool isSimple, con
 {
    Clear();
 
+   status_t ret;
    StringTokenizer tok(s(), sc);
    const char * t;
    while((t = tok()) != NULL)
    {
       if ((isSimple)&&(strcmp(t, "*") == 0))
       {
-         if (_segments.AddTail(StringMatcherRef()) != B_NO_ERROR) {Clear(); return B_ERROR;}
+         if (_segments.AddTail(StringMatcherRef()).IsError(ret)) {Clear(); return ret;}
       }
       else
       {
          StringMatcherRef subMatcherRef = GetStringMatcherFromPool(t, isSimple);
-         if ((subMatcherRef() == NULL)||(_segments.AddTail(subMatcherRef) != B_NO_ERROR)) {Clear(); return B_ERROR;}
+         if (subMatcherRef() == NULL) RETURN_OUT_OF_MEMORY;
+         if (_segments.AddTail(subMatcherRef).IsError(ret)) {Clear(); return ret;}
       }
    }
    _pattern = s;
