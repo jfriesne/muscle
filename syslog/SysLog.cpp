@@ -1467,7 +1467,6 @@ status_t GetStackTrace(String & retStr, uint32 maxDepth)
    (void) maxDepth;
    return B_UNIMPLEMENTED;
 #endif
-
 }
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
