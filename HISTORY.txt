@@ -12,27 +12,32 @@ key:  - new feature
      classes (i.e.  DetectNetworkConfigChangesSession
      and RS232DataIO) now compile under iOS as dummy/no-op
      classes, rather than breaking the build.
-   - When compiling under C++11 or higher, the status_t
-     class can now hold a (const char *)-pointer containing
-     a human-readable description of the error that occurred
-     (or NULL to indicate that the operation succeeded).
-   - B_ERROR now optionally takes a (const char *) argument
-     specifiying a human-readable error-string describing
-     the error that occurred.
    - Added a B_ERRNO macro which is similar to B_ERROR, 
-     except it includes the current errno-string, as
-     returned by strerror(errno).
+     except it automatically references the current
+     errno-string, as returned by strerror(errno).
+   - Added various status_t error-constants for "common" 
+     error types, such as B_BAD_ARGUMENT, B_DATA_NOT_FOUND, 
+     B_OUT_OF_MEMORY, B_FILE_NOT_FOUND, etc.  See 
+     support/MuscleSupport.h for the full list.
    - Added IsOK(status_t &) and IsError(status_t &) methods
      to the status_t class, to support short-circuit logic
-     chains that support returning an error-description
-     string (see test/teststatus.cpp for examples)
-   - Added a RETURN_OUT_OF_MEMORY macro to replace the
-     common "WARN_OUT_OF_MEMORY; return B_OUT_OF_MEMORY;" lines.
+     chains that return an error-description string 
+     (see test/teststatus.cpp for examples)
+   - Added a RETURN_OUT_OF_MEMORY macro to formalize the
+     common "WARN_OUT_OF_MEMORY; return B_OUT_OF_MEMORY;" couplet.
    - Merged in Mika Lindqvist's patch for VS2019 and ARM64.
-   - Added the state-string of the relevant status_t variable 
-     to LogTime() error-reports, where applicable.
-   o Updated the code to return more descriptive status_t
-     error strings when possible (instead of just B_ERROR).
+   o Instead of an enum/int, the status_t class now holds a
+     (const char *) containing a human-readable description 
+     of the error that occurred (or a NULL pointer to indicate 
+     that the operation succeeded).
+   o B_ERROR now optionally takes a (const char *) argument
+     specifying a human-readable error-string describing
+     the error that occurred.
+   o Updated the codebase to return more specific status_t
+     error strings when possible (instead of only B_ERROR).
+   o Updates the codebase so that LogTime() calls reporting
+     an error now include the state-string of the relevant 
+     status_t variable, when applicable.
    * Updated the friend-template work-around in Hashtable.h
      to include g++ 8.3.x
    * Fixed an output-formatting bug in test/readmessages.cpp
