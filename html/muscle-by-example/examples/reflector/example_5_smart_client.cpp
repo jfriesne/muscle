@@ -254,7 +254,6 @@ int main(int argc, char ** argv)
    printf("\n");
 
    // Now there's nothing left to do but run the event loop
-   status_t ret;
    if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
       LogTime(MUSCLE_LOG_INFO, "example_5_smart_client is exiting normally.\n");

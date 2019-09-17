@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
    // This factory will create a DumbReflectSession object whenever
    // a TCP connection is received on DUMB_SERVER_TCP_PORT, and
    // attach the DumbReflectSession to the ReflectServer for use.   
-   status_t ert;
+   status_t ret;
    DumbReflectSessionFactory dumbSessionFactory;
    if (reflectServer.PutAcceptFactory(DUMB_SERVER_TCP_PORT, ReflectSessionFactoryRef(&dumbSessionFactory, false)).IsError(ret))
    {
