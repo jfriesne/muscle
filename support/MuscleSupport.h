@@ -319,24 +319,24 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
         {
         public:
            /** Default-constructor.  Creates a status_t representing success. */
-           status_t() : _desc(NULL) {/* empty */}
+           MUSCLE_CONSTEXPR status_t() : _desc(NULL) {/* empty */}
 
            /** Explicit Constructor.
              * param desc An optional human-description of the error.  If passed in as NULL (the default), the status will represent success.
              * @note The (desc) string is NOT copied: only the pointer is retained, so any non-NULL (desc) argument 
              *       should be a compile-time-constant string!
              */
-           explicit status_t(const char * desc) : _desc(desc) {/* empty */}
+           MUSCLE_CONSTEXPR explicit status_t(const char * desc) : _desc(desc) {/* empty */}
 
            /** Copy constructor
              * @param rhs the status_t to make this object a copy of
              */
-           status_t(const status_t & rhs) : _desc(rhs._desc) {/* empty */}
+           MUSCLE_CONSTEXPR status_t(const status_t & rhs) : _desc(rhs._desc) {/* empty */}
 
            /** Comparison operator.  Returns true iff this object is equivalent to (rhs).
              * @param rhs the status_t to compare against
              */
-           bool operator ==(const status_t & rhs) const
+           MUSCLE_CONSTEXPR bool operator ==(const status_t & rhs) const
            {
               return _desc ? ((rhs._desc)&&(strcmp(_desc, rhs._desc) == 0)) : (rhs._desc == NULL);
            }
@@ -344,7 +344,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
            /** Comparison operator.  Returns true iff this object has a different value than (rhs)
              * @param rhs the status_t to compare against
              */
-           bool operator !=(const status_t & rhs) const {return !(*this==rhs);}
+           MUSCLE_CONSTEXPR bool operator !=(const status_t & rhs) const {return !(*this==rhs);}
 
            /** This operator returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR,
              * otherwise it returns one of the non-B_NO_ERROR values.  This operator is
@@ -355,7 +355,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
              *       of the operations in the series in unspecified.  Also, no short-circuiting
              *       is performed; all operands will be evaluated regardless of their values.
              */
-           status_t operator | (const status_t & rhs) const {return ((rhs.IsError())&&(!IsError())) ? rhs : *this;}
+           MUSCLE_CONSTEXPR status_t operator | (const status_t & rhs) const {return ((rhs.IsError())&&(!IsError())) ? rhs : *this;}
 
            /** Sets this object equal to ((*this)|rhs).
              * @param rhs the second status_t to test this status_t against
@@ -365,13 +365,13 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
            /** Returns "OK" if this status_t indicates success; otherwise returns the human-readable description 
              * of the error this status_t indicates.
              */
-           const char * GetDescription() const {return IsOK() ? "OK" : _desc;}
+           MUSCLE_CONSTEXPR const char * GetDescription() const {return IsOK() ? "OK" : _desc;}
 
            /** Convenience method -- a synonym for GetDescription() */
-           const char * operator()() const {return GetDescription();}
+           MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
 
            /** Convenience method:  Returns true this object represents an ok/non-error status */
-           bool IsOK() const {return (_desc == NULL);}
+           MUSCLE_CONSTEXPR bool IsOK() const {return (_desc == NULL);}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
@@ -385,7 +385,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
            }
 
            /** Convenience method:  Returns true iff this object represents an error-status */
-           bool IsError() const {return (_desc != NULL);}
+           MUSCLE_CONSTEXPR bool IsError() const {return (_desc != NULL);}
 
            /** Convenience method:  Returns true iff this object represents an error-status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
@@ -404,7 +404,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
              *       the returned status_t will also have a NULL error string.  That is to avoid doing the wrong thing
              *       if someone tries to do a B_NO_ERROR("Yay") or etc.
              */ 
-           status_t operator()(const char * desc) const {return status_t(_desc?desc:NULL);}
+           MUSCLE_CONSTEXPR status_t operator()(const char * desc) const {return status_t(_desc?desc:NULL);}
 
         private:
            const char * _desc;  // If non-NULL, we represent an error
@@ -418,21 +418,21 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
 
         // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of 
         // differently-phrased error strings for common types of reasons-for-failure)
-        const status_t B_OUT_OF_MEMORY( "Out of Memory");  ///< "Out of Memory"  - we tried to allocate memory from the heap and got denied
-        const status_t B_UNIMPLEMENTED( "Unimplemented");  ///< "Unimplemented"  - function is not implemented (for this OS?)
-        const status_t B_ACCESS_DENIED( "Access Denied");  ///< "Access Denied"  - we aren't allowed to do the thing we tried to do
-        const status_t B_DATA_NOT_FOUND("Data not Found"); ///< "Data not Found" - we couldn't find the data we were looking for
-        const status_t B_FILE_NOT_FOUND("File not Found"); ///< "File not Found" - we couldn't find the file we were looking for
-        const status_t B_BAD_ARGUMENT(  "Bad Argument");   ///< "Bad Argument"   - one of the passed-in arguments didn't make sense
-        const status_t B_BAD_DATA(      "Bad Data");       ///< "Bad Data"       - data we were trying to use was malformed
-        const status_t B_BAD_OBJECT(    "Bad Object");     ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
-        const status_t B_TIMED_OUT(     "Timed Out");      ///< "Timed Out"      - the operation took too long, so we gave up
-        const status_t B_IO_ERROR(      "I/O Error");      ///< "I/O Error"      - an I/O operation failed
-        const status_t B_LOCK_FAILED(   "Lock Failed");    ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
-        const status_t B_TYPE_MISMATCH( "Type Mismatch");  ///< "Type Mismatch"  - tried to fit a square block into a round hole
-        const status_t B_ZLIB_ERROR(    "ZLib Error");     ///< "ZLib Error"     - a zlib library-function reported an error
-        const status_t B_SSL_ERROR(     "SSL Error");      ///< "SSL Error"      - an OpenSSL library-function reported an error
-        const status_t B_LOGIC_ERROR(   "Logic Error");    ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
+        extern const status_t B_OUT_OF_MEMORY;  ///< "Out of Memory"  - we tried to allocate memory from the heap and got denied
+        extern const status_t B_UNIMPLEMENTED;  ///< "Unimplemented"  - function is not implemented (for this OS?)
+        extern const status_t B_ACCESS_DENIED;  ///< "Access Denied"  - we aren't allowed to do the thing we tried to do
+        extern const status_t B_DATA_NOT_FOUND; ///< "Data not Found" - we couldn't find the data we were looking for
+        extern const status_t B_FILE_NOT_FOUND; ///< "File not Found" - we couldn't find the file we were looking for
+        extern const status_t B_BAD_ARGUMENT;   ///< "Bad Argument"   - one of the passed-in arguments didn't make sense
+        extern const status_t B_BAD_DATA;       ///< "Bad Data"       - data we were trying to use was malformed
+        extern const status_t B_BAD_OBJECT;     ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
+        extern const status_t B_TIMED_OUT;      ///< "Timed Out"      - the operation took too long, so we gave up
+        extern const status_t B_IO_ERROR;       ///< "I/O Error"      - an I/O operation failed
+        extern const status_t B_LOCK_FAILED;    ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
+        extern const status_t B_TYPE_MISMATCH;  ///< "Type Mismatch"  - tried to fit a square block into a round hole
+        extern const status_t B_ZLIB_ERROR;     ///< "ZLib Error"     - a zlib library-function reported an error
+        extern const status_t B_SSL_ERROR;      ///< "SSL Error"      - an OpenSSL library-function reported an error
+        extern const status_t B_LOGIC_ERROR;    ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
      };
 #   endif  /* defined(__cplusplus) */
 #  endif  /* !MUSCLE_TYPES_PREDEFINED */
