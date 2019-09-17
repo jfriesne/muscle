@@ -28,12 +28,16 @@ key:  - new feature
      string (see test/teststatus.cpp for examples)
    - Added a RETURN_OUT_OF_MEMORY macro to replace the
      common "WARN_OUT_OF_MEMORY; return B_OUT_OF_MEMORY;" lines.
+   - Merged in Mika Lindqvist's patch for VS2019 and ARM64.
+   - Added the state-string of the relevant status_t variable 
+     to LogTime() error-reports, where applicable.
    o Updated the code to return more descriptive status_t
      error strings when possible (instead of just B_ERROR).
    * Updated the friend-template work-around in Hashtable.h
      to include g++ 8.3.x
-   - Merged in Mika Lindqvist's patch for VS2019 and ARM64.
    * Fixed an output-formatting bug in test/readmessages.cpp
+   * Fixed a bug in test/readmessage.cpp that could cause
+     readmessage to crash when reading an invalid file.
 
 7.41 Released 8/8/2019
    - Added a SwapContents() method to the StringMatcher class,

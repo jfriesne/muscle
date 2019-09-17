@@ -68,12 +68,15 @@ int main(int /*argc*/, char ** /*argv*/)
    TestSession testSession;        // detects config changes and computer sleeps/wakes
    SomeOtherSession otherSession;  // just to verify that the callbacks get called on other sessions also
 
-   if ((server.AddNewSession(AbstractReflectSessionRef(&testSession, false)) == B_NO_ERROR)&&(server.AddNewSession(AbstractReflectSessionRef(&otherSession, false)) == B_NO_ERROR))
+   status_t ret;
+   if ((server.AddNewSession(AbstractReflectSessionRef(&testSession, false)).IsOK(ret))&&(server.AddNewSession(AbstractReflectSessionRef(&otherSession, false)).IsOK(ret)))
    {
       LogTime(MUSCLE_LOG_INFO, "Beginning Network-Configuration-Change-Detector test... try changing your network config, or plugging/unplugging an Ethernet cable, or putting your computer to sleep.\n");
-      if (server.ServerProcessLoop() == B_NO_ERROR) LogTime(MUSCLE_LOG_INFO, "testnetconfigdetect event loop exiting.\n");
-                                               else LogTime(MUSCLE_LOG_CRITICALERROR, "testnetconfigdetect event loop exiting with an error condition.\n");
+      if (server.ServerProcessLoop().IsOK(ret)) LogTime(MUSCLE_LOG_INFO, "testnetconfigdetect event loop exiting.\n");
+                                           else LogTime(MUSCLE_LOG_CRITICALERROR, "testnetconfigdetect event loop exiting with an error condition [%s].\n", ret());
    }
+   else LogTime(MUSCLE_LOG_CRITICALERROR, "AddNewSession() failed!  [%s]\n", ret());
+
    server.Cleanup();
 
    return 0;

@@ -225,7 +225,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    int retVal = 0;
    ReflectServer server;
 
-   bool okay = true;
+   status_t ret;
    server.GetAddressRemappingTable() = tempRemaps;
 
    if (maxNodesPerSession != MUSCLE_NO_LIMIT) server.GetCentralState().AddInt32(PR_NAME_MAX_NODES_PER_SESSION, maxNodesPerSession);
@@ -241,7 +241,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
       else
       {
          WARN_OUT_OF_MEMORY;
-         okay = false;
+         ret = B_OUT_OF_MEMORY;
       }
    }
    else
@@ -253,7 +253,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
          else
          {
             WARN_OUT_OF_MEMORY;
-            okay = false;
+            ret = B_OUT_OF_MEMORY;
          }
       }
       if (maxSendRate != MUSCLE_NO_LIMIT)
@@ -263,7 +263,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
          else
          {
             WARN_OUT_OF_MEMORY;
-            okay = false; 
+            ret = B_OUT_OF_MEMORY;
          }
       }
    }
@@ -275,11 +275,11 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    filter.SetInputPolicy(inputPolicyRef);
    filter.SetOutputPolicy(outputPolicyRef);
 
-   for (int b=bans.GetNumItems()-1;     ((okay)&&(b>=0)); b--) if (filter.PutBanPattern(bans[b]())         != B_NO_ERROR) okay = false;
-   for (int a=requires.GetNumItems()-1; ((okay)&&(a>=0)); a--) if (filter.PutRequirePattern(requires[a]()) != B_NO_ERROR) okay = false;
+   for (int b=bans.GetNumItems()-1;     ((ret.IsOK())&&(b>=0)); b--) ret |= filter.PutBanPattern(bans[b]());
+   for (int a=requires.GetNumItems()-1; ((ret.IsOK())&&(a>=0)); a--) ret |= filter.PutRequirePattern(requires[a]());
 
-   if (LoadCryptoKey(false, args.GetStringPointer("privatekey"), server) != B_NO_ERROR) okay = false;
-   if (LoadCryptoKey(true,  args.GetStringPointer("publickey"),  server) != B_NO_ERROR) okay = false;
+   ret |= LoadCryptoKey(false, args.GetStringPointer("privatekey"), server);
+   ret |= LoadCryptoKey(true,  args.GetStringPointer("publickey"),  server);
 
    // Set up ports.  We allow multiple ports, mostly just to show how it can be done;
    // they all get the same set of ban/require patterns (since they all do the same thing anyway).
@@ -288,19 +288,18 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    {
       const IPAddressAndPort & iap = iter.GetKey();
 
-      if (server.PutAcceptFactory(iap.GetPort(), ReflectSessionFactoryRef(&filter, false), iap.GetIPAddress()) != B_NO_ERROR)
+      if (server.PutAcceptFactory(iap.GetPort(), ReflectSessionFactoryRef(&filter, false), iap.GetIPAddress()).IsError(ret))
       {
-         if (iap.GetIPAddress() == invalidIP) LogTime(MUSCLE_LOG_CRITICALERROR, "Error adding port %u, aborting.\n", iap.GetPort());
-                                         else LogTime(MUSCLE_LOG_CRITICALERROR, "Error adding port %u to interface %s, aborting.\n", iap.GetPort(), Inet_NtoA(iap.GetIPAddress())());
-         okay = false;
+         if (iap.GetIPAddress() == invalidIP) LogTime(MUSCLE_LOG_CRITICALERROR, "Error adding port %u, aborting.  [%s]\n", iap.GetPort(), ret());
+                                         else LogTime(MUSCLE_LOG_CRITICALERROR, "Error adding port %u to interface %s, aborting.  [%s]\n", iap.GetPort(), Inet_NtoA(iap.GetIPAddress())(), ret());
          break;
       }
    }
 
-   if (okay)
+   if (ret.IsOK())
    {
-      retVal = (server.ServerProcessLoop() == B_NO_ERROR) ? 0 : 10;
-      if (retVal > 0) LogTime(MUSCLE_LOG_CRITICALERROR, "Server process aborted!\n");
+      retVal = server.ServerProcessLoop().IsOK(ret) ? 0 : 10;
+      if (retVal > 0) LogTime(MUSCLE_LOG_CRITICALERROR, "Server process aborted! [%s]\n", ret());
                  else LogTime(MUSCLE_LOG_INFO,          "Server process exiting.\n");
    }
    else LogTime(MUSCLE_LOG_CRITICALERROR, "Error occurred during setup, aborting!\n");

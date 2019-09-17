@@ -473,7 +473,7 @@ static status_t SetRealTimePriority(const char * priStr, bool useFifo)
    }
    else 
    {
-      LogTime(MUSCLE_LOG_ERROR, "Could not invoke real time (%s) scheduling priority %i (access denied?)\n", desc, pri);
+      LogTime(MUSCLE_LOG_ERROR, "Could not invoke real time (%s) scheduling priority %i [%s]\n", desc, pri, B_ERRNO());
       return B_ACCESS_DENIED;
    }
 }
@@ -501,9 +501,10 @@ void HandleStandardDaemonArgs(const Message & args)
    if (args.FindString("daemon", &n) == B_NO_ERROR)
    {
       LogTime(MUSCLE_LOG_INFO, "Spawning off a daemon-child...\n");
-      if (BecomeDaemonProcess(NULL, n[0] ? n : "/dev/null") != B_NO_ERROR)
+      status_t ret;
+      if (BecomeDaemonProcess(NULL, n[0] ? n : "/dev/null").IsError(ret))
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Could not spawn daemon-child process!\n");
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Could not spawn daemon-child process! [%s]\n", ret());
          ExitWithoutCleanup(10);
       }
    }
@@ -616,7 +617,7 @@ void HandleStandardDaemonArgs(const Message & args)
       {
          errno = 0;  // the only reliable way to check for an error here :^P
          const int ret = nice(effectiveLevel);  // I'm only looking at the return value to shut gcc 4.4.3 up
-         if (errno != 0) LogTime(MUSCLE_LOG_WARNING, "Could not change process execution priority to " INT32_FORMAT_SPEC " (ret=%i).\n", effectiveLevel, ret);
+         if (errno != 0) LogTime(MUSCLE_LOG_WARNING, "Could not change process execution priority to " INT32_FORMAT_SPEC " (ret=%i) [%s].\n", effectiveLevel, ret, B_ERRNO());
                     else LogTime(MUSCLE_LOG_INFO, "Process is now %s (niceLevel=%i)\n", (effectiveLevel<0)?"mean":"nice", effectiveLevel);
       }
    }
@@ -732,7 +733,7 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
    if (optOutputTo) 
    {
       outfd = open(optOutputTo, O_WRONLY | (createIfNecessary ? O_CREAT : 0), mode);
-      if (outfd < 0) LogTime(MUSCLE_LOG_ERROR, "BecomeDaemonProcess():  Could not open %s to redirect stdout, stderr\n", optOutputTo);
+      if (outfd < 0) LogTime(MUSCLE_LOG_ERROR, "BecomeDaemonProcess():  Could not open %s to redirect stdout, stderr [%s]\n", optOutputTo, B_ERRNO());
    }
    if (outfd >= 0) (void) dup2(outfd, STDOUT_FILENO);
    if (outfd >= 0) (void) dup2(outfd, STDERR_FILENO);

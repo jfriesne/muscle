@@ -70,14 +70,14 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
 
                      if ((effectivePublicKey())&&(sslIORef()->SetPublicKeyCertificate(effectivePublicKey).IsError(ret)))
                      {
-                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use public key data, %s session aborted!  (Bad .pem data?)\n", desc); 
+                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use public key data, %s session aborted!  (Bad .pem data?) [%s]\n", desc, ret()); 
                         newSession->SetOwner(NULL); 
                         return ret;
                      }
 
                      if ((effectivePrivateKey())&&(sslIORef()->SetPrivateKey(effectivePrivateKey).IsError(ret)))
                      {
-                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use private key data, %s session aborted!  (Bad .pem data?)\n", desc); 
+                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use private key data, %s session aborted!  (Bad .pem data?) [%s]\n", desc, ret()); 
                         newSession->SetOwner(NULL); 
                         return ret;
                      }
@@ -242,7 +242,7 @@ AttachNewSession(const AbstractReflectSessionRef & ref)
       {
          newSession->AboutToDetachFromServer();  // well, it *was* attached, if only for a moment
          newSession->DoOutput(MUSCLE_NO_LIMIT);  // one last chance for him to send any leftover data!
-         if (_doLogging) LogTime(MUSCLE_LOG_DEBUG, "%s aborted startup (" UINT32_FORMAT_SPEC " left)\n", newSession->GetSessionDescriptionString()(), _sessions.GetNumItems()-1);
+         if (_doLogging) LogTime(MUSCLE_LOG_DEBUG, "%s aborted startup [%s] (" UINT32_FORMAT_SPEC " left)\n", newSession->GetSessionDescriptionString()(), ret(), _sessions.GetNumItems()-1);
       }
       newSession->SetOwner(NULL);
       (void) _sessions.Remove(&newSession->GetSessionIDString());
@@ -391,7 +391,7 @@ ServerProcessLoop()
 
    if (ReadyToRun().IsError(ret))
    {
-      if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "Server:  ReadyToRun() failed, aborting.\n");
+      if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "Server:  ReadyToRun() failed [%s], aborting.\n", ret());
       return ret;
    }
 
@@ -418,7 +418,7 @@ ServerProcessLoop()
          if (listeningOnAll)
          {
             Queue<NetworkInterfaceInfo> ifs;
-            if ((GetNetworkInterfaceInfos(ifs) == B_NO_ERROR)&&(ifs.HasItems()))
+            if ((GetNetworkInterfaceInfos(ifs).IsOK(ret))&&(ifs.HasItems()))
             {
                LogTime(MUSCLE_LOG_DEBUG, "This host's network interface addresses are as follows:\n");
                for (uint32 i=0; i<ifs.GetNumItems(); i++) 
@@ -426,7 +426,7 @@ ServerProcessLoop()
                   LogTime(MUSCLE_LOG_DEBUG, "- %s (%s)\n", Inet_NtoA(ifs[i].GetLocalAddress())(), ifs[i].GetName()());
                }
             }
-            else LogTime(MUSCLE_LOG_ERROR, "Could not retrieve this server's network interface addresses list.\n"); 
+            else LogTime(MUSCLE_LOG_ERROR, "Could not retrieve this server's network interface addresses list. [%s]\n", ret()); 
          }
       }
       else LogTime(MUSCLE_LOG_DEBUG, "Server is not listening on any ports.\n");
@@ -558,7 +558,7 @@ ServerProcessLoop()
 
          if (r < 0)
          {
-            if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting!\n");
+            if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting! [%s]\n", B_ERRNO());
             ClearLameDucks();
             return B_ERRNO;
          }

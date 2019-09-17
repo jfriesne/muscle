@@ -36,6 +36,8 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
+   status_t ret;
+
    const char * outputFileName = "./example_output.tar";
    TarFileWriter writer(outputFileName, false);
 
@@ -46,9 +48,9 @@ int main(int argc, char ** argv)
    };
    for (uint32 i=0; i<ARRAYITEMS(fakeFileNames); i++) 
    {
-      if (WriteFakeFileDataToTarFile(writer, fakeFileNames[i]) != B_NO_ERROR)
+      if (WriteFakeFileDataToTarFile(writer, fakeFileNames[i]).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_ERROR, "Error writing fake file data for [%s] to .tar file [%s], aborting!\n", fakeFileNames[i], outputFileName);
+         LogTime(MUSCLE_LOG_ERROR, "Error writing fake file data for [%s] to .tar file [%s], aborting! [%s]\n", fakeFileNames[i], outputFileName, ret());
          return 10;
       }
    }

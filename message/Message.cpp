@@ -254,7 +254,7 @@ public:
          {
             if ((temp.Unflatten(buffer, FlatItemSize).IsError(ret))||(this->_data.AddTail(temp).IsError(ret)))
             {
-               LogTime(MUSCLE_LOG_DEBUG, "FixedSizeDataArray %p:  Error unflattened item " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", this, i, numItems);
+               LogTime(MUSCLE_LOG_DEBUG, "FixedSizeDataArray %p:  Error unflattened item " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " [%s]\n", this, i, numItems, ret());
                break;
             }
             buffer += FlatItemSize;
@@ -796,7 +796,7 @@ public:
       uint32 numItems;
       if (ReadData(buffer, numBytes, &readOffset, &numItems, sizeof(numItems)).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_DEBUG, "ByteBufferDataArray %p:  Error reading numItems (numBytes=" UINT32_FORMAT_SPEC ")\n", this, numBytes);
+         LogTime(MUSCLE_LOG_DEBUG, "ByteBufferDataArray %p:  Error reading numItems (numBytes=" UINT32_FORMAT_SPEC ") [%s]\n", this, numBytes, ret());
          return ret;
       }
       numItems = B_LENDIAN_TO_HOST_INT32(numItems);
@@ -806,7 +806,7 @@ public:
          uint32 readFs;
          if (ReadData(buffer, numBytes, &readOffset, &readFs, sizeof(readFs)).IsError(ret))
          {
-            LogTime(MUSCLE_LOG_DEBUG, "ByteBufferDataArray %p:  Error reading item size (i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ", readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ")\n", this, i, numItems, readOffset, numBytes);
+            LogTime(MUSCLE_LOG_DEBUG, "ByteBufferDataArray %p:  Error reading item size (i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ", readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, i, numItems, readOffset, numBytes, ret());
             return ret;
          }
 
@@ -930,7 +930,7 @@ public:
          uint32 readFs;
          if (ReadData(buffer, numBytes, &readOffset, &readFs, sizeof(readFs)).IsError(ret))
          {
-            LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Read of sub-message size failed (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ")\n", this, readOffset, numBytes);
+            LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Read of sub-message size failed (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, readOffset, numBytes, ret());
             return ret;
          }
 
@@ -945,7 +945,7 @@ public:
          {
             if (nextMsg()->Unflatten(&buffer[readOffset], readFs).IsError(ret))
             {
-               LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Sub-message unflatten failed (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ", readFs=" UINT32_FORMAT_SPEC ")\n", this, readOffset, numBytes, readFs);
+               LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Sub-message unflatten failed (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ", readFs=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, readOffset, numBytes, readFs, ret());
                return ret;
             }
             if (AddDataItem(&nextMsg, sizeof(nextMsg)).IsError(ret)) return ret;
@@ -1064,7 +1064,7 @@ public:
 
       if (this->ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Read of numElements failed (inputBufferBytes=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes);
+         LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Read of numElements failed (inputBufferBytes=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, inputBufferBytes, ret());
          return ret;
       }
 
@@ -1075,7 +1075,7 @@ public:
       {
          if (this->ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)).IsError(ret))
          {
-            LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Read of element size failed (inputBufferBytes=" UINT32_FORMAT_SPEC ", i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, i, numElements);
+            LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Read of element size failed (inputBufferBytes=" UINT32_FORMAT_SPEC ", i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, inputBufferBytes, i, numElements, ret());
             return ret;
          }
 
@@ -1096,7 +1096,7 @@ public:
          // parse element data
          if ((this->_data.AddTail().IsError(ret))||(this->_data.TailPointer()->Unflatten(&buffer[readOffset], elementSize).IsError(ret)))
          {
-            LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Error unflattening element! (inputBufferBytes=" UINT32_FORMAT_SPEC ", i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ", readOffset=" UINT32_FORMAT_SPEC ", elementSize=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, i, numElements, readOffset, elementSize);
+            LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Error unflattening element! (inputBufferBytes=" UINT32_FORMAT_SPEC ", i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ", readOffset=" UINT32_FORMAT_SPEC ", elementSize=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, inputBufferBytes, i, numElements, readOffset, elementSize, ret());
             return ret;
          }
          readOffset += elementSize;
@@ -1370,12 +1370,14 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
 
    uint32 readOffset = 0;
    
+   status_t ret;
+
    // Read and check protocol version number
    uint32 networkByteOrder;
-   if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+   if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Couldn't read message protocol version! (inputBufferBytes=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes);
-      return B_BAD_DATA;
+      LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Couldn't read message protocol version! (inputBufferBytes=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, inputBufferBytes, ret());
+      return ret;
    }
 
    const uint32 messageProtocolVersion = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
@@ -1386,18 +1388,18 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
    }
    
    // Read 'what' code
-   if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR)
+   if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Couldn't read what-code! (inputBufferBytes=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes);
-      return B_BAD_DATA;
+      LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Couldn't read what-code! (inputBufferBytes=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, inputBufferBytes, ret());
+      return ret;
    }
    what = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
 
    // Read number of entries
-   if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+   if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Couldn't read number-of-entries! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what);
-      return B_BAD_DATA;
+      LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Couldn't read number-of-entries! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, inputBufferBytes, what, ret());
+      return ret;
    }
 
    const uint32 numEntries         = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
@@ -1409,17 +1411,16 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
       return B_BAD_DATA;
    }
 
-   status_t ret;
    if (_entries.EnsureSize(numEntries, true).IsError(ret)) return ret;
 
    // Read entries
    for (uint32 i=0; i<numEntries; i++)
    {
       // Read entry name length
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Error reading entry name length! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what, i, numEntries);
-         return B_BAD_DATA;
+         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Error reading entry name length! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, inputBufferBytes, what, i, numEntries, ret());
+         return ret;
       }
 
       const uint32 nameLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
@@ -1431,26 +1432,26 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
 
       // Read entry name
       String entryName;
-      if (entryName.Unflatten(&buffer[readOffset], nameLength) != B_NO_ERROR) 
+      if (entryName.Unflatten(&buffer[readOffset], nameLength).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to unflatten entry name! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " nameLength=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what, i, numEntries, nameLength);
-         return B_BAD_DATA;
+         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to unflatten entry name! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " nameLength=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, inputBufferBytes, what, i, numEntries, nameLength, ret());
+         return ret;
       }
       readOffset += nameLength;
 
       // Read entry type code
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to read entry type code! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, inputBufferBytes, what, i, numEntries, entryName());
-         return B_BAD_DATA;
+         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to read entry type code! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " entryName=[%s] ret=[%s])\n", this, inputBufferBytes, what, i, numEntries, entryName(), ret());
+         return ret;
       }
       const uint32 tc = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
 
       // Read entry data length
-      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != B_NO_ERROR) 
+      if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to read data length! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, inputBufferBytes, what, i, numEntries, tc, entryName());
-         return B_BAD_DATA;
+         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to read data length! (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " entryName=[%s]) ret=[%s]\n", this, inputBufferBytes, what, i, numEntries, tc, entryName(), ret());
+         return ret;
       }
 
       const uint32 eLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
@@ -1469,7 +1470,7 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
 
       if (nextEntry->Unflatten(&buffer[readOffset], eLength).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to unflatten data field object!  (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " entryName=[%s] eLength=" UINT32_FORMAT_SPEC ")\n", this, inputBufferBytes, what, i, numEntries, tc, entryName(), eLength);
+         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to unflatten data field object!  (inputBufferBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " entryName=[%s] eLength=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, inputBufferBytes, what, i, numEntries, tc, entryName(), eLength, ret());
          Clear();  // fix for occasional crash bug; we were deleting nextEntry here, *and* in the destructor!
          return ret;
       }

@@ -45,6 +45,8 @@ int main(int argc, char ** argv)
    DataIORef networkIORef(&tcpIO, false);
    AbstractMessageIOGatewayRef gatewayRef(&tcpGateway, false);
 
+   status_t ret;
+
 #ifdef MUSCLE_ENABLE_SSL
    const char * publicKeyPath  = NULL;
    const char * privateKeyPath = NULL;
@@ -62,25 +64,25 @@ int main(int argc, char ** argv)
       SSLSocketDataIORef sslIORef(new SSLSocketDataIO(sock, false, false));
       if (publicKeyPath)
       {
-         if (sslIORef()->SetPublicKeyCertificate(publicKeyPath) == B_NO_ERROR)
+         if (sslIORef()->SetPublicKeyCertificate(publicKeyPath).IsOK(ret))
          {
             LogTime(MUSCLE_LOG_INFO, "Using public key certificate file [%s] to connect to server\n", publicKeyPath);
          }
          else
          {
-            LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load public key certificate file [%s] (file not found?)\n", publicKeyPath);
+            LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load public key certificate file [%s] [%s]\n", publicKeyPath, ret());
             return 10;
          }
       }
       if (privateKeyPath)
       {
-         if (sslIORef()->SetPrivateKey(privateKeyPath) == B_NO_ERROR)
+         if (sslIORef()->SetPrivateKey(privateKeyPath).IsOK(ret))
          {
             LogTime(MUSCLE_LOG_INFO, "Using private key file [%s] to authenticate client with server\n", privateKeyPath);
          }
          else
          {
-            LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load private key file [%s] (file not found?)\n", privateKeyPath);
+            LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load private key file [%s] [%s]\n", privateKeyPath, ret());
             return 10;
          }
       }

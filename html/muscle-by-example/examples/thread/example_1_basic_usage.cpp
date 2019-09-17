@@ -45,10 +45,12 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
+   status_t ret;
+
    MyThread theThread;
-   if (theThread.StartInternalThread() != B_NO_ERROR)
+   if (theThread.StartInternalThread().IsError(ret))
    {
-      LogTime(MUSCLE_LOG_ERROR, "Error, couldn't start the internal thread!?\n");
+      LogTime(MUSCLE_LOG_ERROR, "Error, couldn't start the internal thread!? [%s]\n", ret());
       return 10;
    }
 
@@ -72,7 +74,7 @@ int main(int argc, char ** argv)
 
          MessageRef toThread = GetMessageFromPool();
          toThread()->AddString("user_command", s);
-         if (theThread.SendMessageToInternalThread(toThread) != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "SendMessageToThread() failed!?\n");
+         if (theThread.SendMessageToInternalThread(toThread).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SendMessageToThread() failed!? [%s]\n", ret());
       }
    }
 

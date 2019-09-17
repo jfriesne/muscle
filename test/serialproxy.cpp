@@ -91,7 +91,7 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
       }
       else 
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed!\n");
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed! [%s]\n", B_ERRNO());
          return B_ERROR("WaitForEvents() failed");
       }
    }

@@ -17,6 +17,8 @@ int main(int argc, char ** argv)
    }
    else
    {
+      status_t ret;
+
       for (int i=1; i<argc; i++)
       {
          printf("TESTING ParseFile() with a FILE pointer for file [%s]\n", argv[i]);
@@ -25,7 +27,7 @@ int main(int argc, char ** argv)
             if (fpIn)
             {
                Message msg;
-               if (ParseFile(fpIn, msg) == B_NO_ERROR)
+               if (ParseFile(fpIn, msg).IsOK(ret))
                {
                   LogTime(MUSCLE_LOG_INFO, "Parsed contents of file [%s]:\n", argv[i]);
                   msg.PrintToStream();
@@ -34,10 +36,10 @@ int main(int argc, char ** argv)
                   const String s = UnparseFile(msg);
                   printf(" UnparseFile(msg) output is below: -------------\n[%s]", s());
                }
-               else LogTime(MUSCLE_LOG_ERROR, "Error parsing file [%s]\n", argv[i]);
+               else LogTime(MUSCLE_LOG_ERROR, "Error parsing file [%s] [%s]\n", argv[i], ret());
                fclose(fpIn);
             }
-            else LogTime(MUSCLE_LOG_ERROR, "Unable to open file [%s]\n", argv[i]);
+            else LogTime(MUSCLE_LOG_ERROR, "Unable to open file [%s] [%s]\n", argv[i], B_ERRNO());
          }
 
          printf("\n\nTESTING ParseFile() with a String for file [%s]\n", argv[i]);
@@ -52,7 +54,7 @@ int main(int argc, char ** argv)
                {
                   const String s((const char *) bb.GetBuffer(), bb.GetNumBytes());
                   Message msg;
-                  if (ParseFile(s, msg) == B_NO_ERROR)
+                  if (ParseFile(s, msg).IsOK(ret))
                   {
                      LogTime(MUSCLE_LOG_INFO, "Parsed contents of file [%s]:\n", argv[i]);
                      msg.PrintToStream();
@@ -61,11 +63,11 @@ int main(int argc, char ** argv)
                      const String s = UnparseFile(msg);
                      printf(" UnparseFile(msg) output is below: -------------\n[%s]", s());
                   }
-                  else LogTime(MUSCLE_LOG_ERROR, "Error parsing file [%s]\n", argv[i]);
+                  else LogTime(MUSCLE_LOG_ERROR, "Error parsing file [%s] [%s]\n", argv[i], ret());
                }
                else LogTime(MUSCLE_LOG_ERROR, "Unable to read file [%s]\n", argv[i]);
             }
-            else LogTime(MUSCLE_LOG_ERROR, "Unable to open file [%s]\n", argv[i]);
+            else LogTime(MUSCLE_LOG_ERROR, "Unable to open file [%s] [%s]\n", argv[i], B_ERRNO());
          }
       }
       return 0;

@@ -32,10 +32,12 @@ int main(int argc, char ** argv)
 
    const uint32 areaSize = 64;  // bytes
 
+   status_t ret;
+
    SharedMemory sm;
-   if (sm.SetArea("example_1_basic_usage_shared_memory_area", areaSize, true) != B_NO_ERROR)
+   if (sm.SetArea("example_1_basic_usage_shared_memory_area", areaSize, true).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_ERROR, "Couldn't open shared memory area, aborting!\n");
+      LogTime(MUSCLE_LOG_ERROR, "Couldn't open shared memory area, aborting! [%s]\n", ret());
       return 10;
    }
 
@@ -55,22 +57,24 @@ int main(int argc, char ** argv)
    while(true)
    {
       // Let's write to the shared memory area!
-      if (sm.LockAreaReadWrite() == B_NO_ERROR)
+      if (sm.LockAreaReadWrite().IsOK(ret))
       {
          const uint32 offset = rand() % sm.GetAreaSize();
          printf("\nWRITING value %c to offset " UINT32_FORMAT_SPEC "\n", myVal, offset);
          sm()[offset] = myVal;
          sm.UnlockArea();
       }
+      else printf("LockAreaReadWrite() failed?! [%s]\n", ret());
 
       // Now we'll read the area's current state and print it out
       // For this we only need a read-only lock (which won't block other readers)
-      if (sm.LockAreaReadOnly() == B_NO_ERROR)
+      if (sm.LockAreaReadOnly().IsOK(ret))
       {
          printf("\nREADING shared memory area, its contents are as follows:\n");
          PrintHexBytes(sm(), sm.GetAreaSize());
          sm.UnlockArea();
       }
+      else printf("LockAreaReadOnly() failed?! [%s]\n", ret());
 
       Snooze64(MillisToMicros(100));
    }

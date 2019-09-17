@@ -117,11 +117,12 @@ int main(int argc, char ** argv)
       ChildProcessDataIO * dio = new ChildProcessDataIO(false);
       refs.AddTail(DataIORef(dio));
       printf("About To Launch child process #" UINT32_FORMAT_SPEC ":  [%s]\n", i+1, cmd); fflush(stdout);
-      ConstSocketRef s = (dio->LaunchChildProcess(argc-2, ((const char **) argv)+2, ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), NULL, &testEnvVars) == B_NO_ERROR) ? dio->GetReadSelectSocket() : ConstSocketRef();
+      status_t ret;
+      ConstSocketRef s = dio->LaunchChildProcess(argc-2, ((const char **) argv)+2, ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), NULL, &testEnvVars).IsOK(ret) ? dio->GetReadSelectSocket() : ConstSocketRef();
       printf("Finished Launching child process #" UINT32_FORMAT_SPEC ":  [%s]\n", i+1, cmd); fflush(stdout);
       if (s() == NULL)
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Error launching child process #" UINT32_FORMAT_SPEC " [%s]!\n", i+1, cmd);
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error launching child process #" UINT32_FORMAT_SPEC " [%s] [%s]!\n", i+1, cmd, ret());
          return 10;
       }
    }

@@ -168,9 +168,9 @@ Reconnect()
       if (_gateway() == NULL) return B_ERROR("CreateGateway() failed");
    }
 
+#ifdef MUSCLE_ENABLE_SSL
    status_t ret;
 
-#ifdef MUSCLE_ENABLE_SSL
    // auto-wrap the user's gateway and socket in the necessary SSL adapters!
    if ((publicKey())&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL))
    {
@@ -421,9 +421,11 @@ Pulse(const PulseArgs & args)
          // FogBugz #3810
          if (_wasConnected) LogTime(MUSCLE_LOG_DEBUG, "%s is attempting to auto-reconnect...\n", GetSessionDescriptionString()());
          _reconnectTime = MUSCLE_TIME_NEVER;
-         if (Reconnect() != B_NO_ERROR)
+
+         status_t ret;
+         if (Reconnect().IsError(ret))
          {
-            LogTime(MUSCLE_LOG_DEBUG, "%s: Could not auto-reconnect, will try again later...\n", GetSessionDescriptionString()());
+            LogTime(MUSCLE_LOG_DEBUG, "%s: Could not auto-reconnect [%s], will try again later...\n", ret(), GetSessionDescriptionString()());
             PlanForReconnect();  // okay, we'll try again later!
          }
       }

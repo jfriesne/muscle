@@ -52,9 +52,10 @@ int main(int argc, char ** argv)
    // Still using a DumbReflectSession here since all we need is Message-forwarding.
    // (All of the client's "smarts" will be implemented in the MySmartStdinSession class)
    MyTCPSession tcpSession;
-   if (reflectServer.AddNewConnectSession(AbstractReflectSessionRef(&tcpSession, false), localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)) != B_NO_ERROR)
+   status_t ret;
+   if (reflectServer.AddNewConnectSession(AbstractReflectSessionRef(&tcpSession, false), localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add tcpSession to the client, aborting!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add tcpSession to the client, aborting! [%s]\n", ret());
       return 10;
    }
 
@@ -64,9 +65,9 @@ int main(int argc, char ** argv)
 
       // Our filter to only match Messages whose "User String" field contains \"magic\"
       StringQueryFilter sqf("User String", StringQueryFilter::OP_CONTAINS_IGNORECASE, "magic");
-      if (subscribeToNodesMsg()->AddArchiveMessage("SUBSCRIBE:/*/*/*", sqf) != B_NO_ERROR)
+      if (subscribeToNodesMsg()->AddArchiveMessage("SUBSCRIBE:/*/*/*", sqf).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_ERROR, "Couldn't add StringQueryFilter to subscribe Message, aborting!\n");
+         LogTime(MUSCLE_LOG_ERROR, "Couldn't add StringQueryFilter to subscribe Message, aborting! [%s]\n", ret());
          return 10;
       }
 
@@ -75,9 +76,9 @@ int main(int argc, char ** argv)
       subscribeToNodesMsg()->PrintToStream();
 
       // Send off our subscription request
-      if (tcpSession.AddOutgoingMessage(subscribeToNodesMsg) != B_NO_ERROR)
+      if (tcpSession.AddOutgoingMessage(subscribeToNodesMsg).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_ERROR, "Couldn't send filtered-subscription Message, aborting!\n");
+         LogTime(MUSCLE_LOG_ERROR, "Couldn't send filtered-subscription Message, aborting! [%s]\n", ret());
          return 10;
       }
    }
@@ -96,11 +97,11 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "subscription is concerned)\n");
    printf("\n");
 
-   if (reflectServer.ServerProcessLoop() == B_NO_ERROR)
+   if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
       LogTime(MUSCLE_LOG_INFO, "eexample_2_smart_client_with_queryfilter is exiting normally.\n");
    }
-   else LogTime(MUSCLE_LOG_ERROR, "example_2_smart_client_with_queryfilter is exiting due to an error.\n");
+   else LogTime(MUSCLE_LOG_ERROR, "example_2_smart_client_with_queryfilter is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions
    // before they are destroyed (necessary only because we have 

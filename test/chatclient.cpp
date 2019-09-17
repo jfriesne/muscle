@@ -147,7 +147,7 @@ int main(int argc, char ** argv)
       {
          if (multiplexer.WaitForEvents() < 0)
          {
-            LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed!\n");
+            LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed! [%s]\n", B_ERRNO());
             s.Reset();
             break;
          }

@@ -116,9 +116,10 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
       // stdin gets redirected to nul... once you've created one non-blocking
       // StdinDataIO, you'll need to continue accessing stdin only via
       // non-blocking StdinDataIOs.
+      status_t ret;
       bool okay = false;
       ConstSocketRef slaveSocket;
-      if ((CreateConnectedSocketPair(_masterSocket, slaveSocket, false) == B_NO_ERROR)&&(SetSocketBlockingEnabled(slaveSocket, true) == B_NO_ERROR)&&(_slaveSocketsMutex.Lock() == B_NO_ERROR))
+      if ((CreateConnectedSocketPair(_masterSocket, slaveSocket, false).IsOK(ret))&&(SetSocketBlockingEnabled(slaveSocket, true).IsOK(ret))&&(_slaveSocketsMutex.Lock().IsOK(ret)))
       {
          bool threadCreated = false;
          if (_stdinThreadStatus == STDIN_THREAD_STATUS_UNINITIALIZED)
@@ -136,14 +137,19 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
                &&((_slaveThread = (::HANDLE) _beginthreadex(NULL, 0, StdinThreadEntryFunc, NULL, CREATE_SUSPENDED, (unsigned *) &junkThreadID)) != 0)) ? STDIN_THREAD_STATUS_RUNNING : STDIN_THREAD_STATUS_EXITED;
             threadCreated = (_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING);
          }
-         if ((_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING)&&(_slaveSockets.Put(_slaveSocketTag = (++_slaveSocketTagCounter), slaveSocket) == B_NO_ERROR)) okay = true;
-                                                                                                                                                        else LogTime(MUSCLE_LOG_ERROR, "StdinDataIO:  Could not start stdin thread!\n");
+
+         if ((_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING)&&(_slaveSockets.Put(_slaveSocketTag = (++_slaveSocketTagCounter), slaveSocket) == B_NO_ERROR))
+         {
+            okay = true;
+         }
+         else LogTime(MUSCLE_LOG_ERROR, "StdinDataIO:  Could not start stdin thread!\n");
+
          _slaveSocketsMutex.Unlock();
 
          // We don't start the thread running until here, that way there's no chance of race conditions if the thread exits immediately
          if (threadCreated) ResumeThread(_slaveThread);
       }
-      else LogTime(MUSCLE_LOG_ERROR, "StdinDataIO:  Error setting up I/O sockets!\n");
+      else LogTime(MUSCLE_LOG_ERROR, "StdinDataIO:  Error setting up I/O sockets! [%s]\n", ret());
 
       if (okay == false) Close();
    }

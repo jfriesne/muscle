@@ -30,15 +30,17 @@ int main(int argc, char ** argv)
       return 10;
    }   
 
+   status_t ret;
+
    // Bind to a UDP port (let the OS choose an available port for us)
    uint16 udpPort;
-   if (BindUDPSocket(udpSock, 0, &udpPort) == B_NO_ERROR)
+   if (BindUDPSocket(udpSock, 0, &udpPort).IsOK(ret))
    {
       LogTime(MUSCLE_LOG_ERROR, "Bound UDP socket to port %u\n", udpPort);
    }
    else
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to bind the UDP socket!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to bind the UDP socket! [%s]\n", ret());
       return 10;
    }   
 

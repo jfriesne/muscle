@@ -58,7 +58,7 @@ public:
       for (int i=0; i<NUM_PULSE_CHILDREN; i++)
       {
          TestPulseChild * tpc = new TestPulseChild(baseTime, i);
-         if ((_tpcs.AddTail(tpc) != B_NO_ERROR)||(PutPulseChild(tpc) != B_NO_ERROR)) LogTime(MUSCLE_LOG_CRITICALERROR, "error creating pulse child #%i!\n", i);
+         if ((_tpcs.AddTail(tpc).IsError(ret))||(PutPulseChild(tpc).IsError(ret))) LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] creating pulse child #%i!\n", ret(), i);
       }
       return B_NO_ERROR;
    }
@@ -88,12 +88,15 @@ int main(int argc, char ** argv)
    ReflectServer server;
    TestSession session;
 
-   if (server.AddNewSession(AbstractReflectSessionRef(&session, false)) == B_NO_ERROR)
+   status_t ret;
+   if (server.AddNewSession(AbstractReflectSessionRef(&session, false)).IsOK(ret))
    {
       LogTime(MUSCLE_LOG_INFO, "Beginning PulseNode test...\n");
-      if (server.ServerProcessLoop() == B_NO_ERROR) LogTime(MUSCLE_LOG_INFO, "testpulsechild event loop exiting.\n");
-                                               else LogTime(MUSCLE_LOG_CRITICALERROR, "testpulsechild event loop exiting with an error condition.\n");
+      if (server.ServerProcessLoop().IsOK(ret)) LogTime(MUSCLE_LOG_INFO, "testpulsechild event loop exiting.\n");
+                                           else LogTime(MUSCLE_LOG_CRITICALERROR, "testpulsechild event loop exiting with error condition [%s].\n", ret());
    }
+   else LogTime(MUSCLE_LOG_CRITICALERROR, "AddNewSession() failed [%s]\n", ret());
+
    server.Cleanup();
 
    return 0;

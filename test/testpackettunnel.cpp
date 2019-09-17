@@ -105,6 +105,8 @@ int main(int argc, char ** argv)
       spamInterval = (spamHz > 0) ? MICROS_PER_SECOND/spamHz : 1;
    }
    
+   status_t ret;
+
    bool useTCP = false;
    DataIORef dio;
    if (args.FindString("tcp", &temp) == B_NO_ERROR)
@@ -138,9 +140,9 @@ int main(int argc, char ** argv)
    else
    {
       ConstSocketRef s = CreateUDPSocket();
-      if ((s() == NULL)||(SetUDPSocketBroadcastEnabled(s, true) != B_NO_ERROR)||(BindUDPSocket(s, port, NULL, invalidIP, true) != B_NO_ERROR))
+      if ((s() == NULL)||(SetUDPSocketBroadcastEnabled(s, true).IsError(ret))||(BindUDPSocket(s, port, NULL, invalidIP, true).IsError(ret)))
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Error setting up UDP broadcast Socket on port %i!\n", port);
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error setting up UDP broadcast Socket on port %i! [%s]\n", port, ret());
          return 10;
       }
 

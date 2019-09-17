@@ -31,10 +31,12 @@ int main(int argc, char ** argv)
    
    const IPAddressAndPort multicastGroup("ff12::1234", 7777, false);  // arbitrary
 
+   status_t ret;
+
    Queue<NetworkInterfaceInfo> niis;
-   if (GetNetworkInterfaceInfos(niis, GNIIFlags(GNII_FLAG_INCLUDE_IPV6_INTERFACES,GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES,GNII_FLAG_INCLUDE_NONLOOPBACK_INTERFACES,GNII_FLAG_INCLUDE_ENABLED_INTERFACES)) != B_NO_ERROR)
+   if (GetNetworkInterfaceInfos(niis, GNIIFlags(GNII_FLAG_INCLUDE_IPV6_INTERFACES,GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES,GNII_FLAG_INCLUDE_NONLOOPBACK_INTERFACES,GNII_FLAG_INCLUDE_ENABLED_INTERFACES)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to retrieve the list of NetworkInterfaceInfos!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to retrieve the list of NetworkInterfaceInfos! [%s]\n", ret());
       return 10;
    }
 
@@ -61,16 +63,16 @@ int main(int argc, char ** argv)
          return 10;
       }   
 
-      if (BindUDPSocket(udpSock, multicastGroup.GetPort(), NULL, invalidIP, true) == B_NO_ERROR)  // true == share the port with the other UDP sockets
+      if (BindUDPSocket(udpSock, multicastGroup.GetPort(), NULL, invalidIP, true).IsOK(ret))  // true == share the port with the other UDP sockets
       {
-         if (AddSocketToMulticastGroup(udpSock, multicastGroup.GetIPAddress().WithInterfaceIndex(scopeID)) == B_NO_ERROR)
+         if (AddSocketToMulticastGroup(udpSock, multicastGroup.GetIPAddress().WithInterfaceIndex(scopeID)).IsOK(ret))
          {
             LogTime(MUSCLE_LOG_ERROR, "Added multicast UDP socket for scope %i\n", scopeID);
             (void) udpSocks.Put(udpSock, scopeID);
          }
-         else LogTime(MUSCLE_LOG_ERROR, "Unable to add the UDP socket for scope %i to multicast group %s!\n", scopeID, multicastGroup.GetIPAddress().ToString()());
+         else LogTime(MUSCLE_LOG_ERROR, "Unable to add the UDP socket for scope %i to multicast group %s! [%s]\n", scopeID, multicastGroup.GetIPAddress().ToString()(), ret());
       }
-      else LogTime(MUSCLE_LOG_ERROR, "Unable to bind the UDP socket for scope %i!\n", scopeID);
+      else LogTime(MUSCLE_LOG_ERROR, "Unable to bind the UDP socket for scope %i! [%s]\n", scopeID, ret());
    }
 
 #ifdef WIN32

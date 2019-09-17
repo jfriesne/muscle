@@ -657,7 +657,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
       powerNotifyRunLoopSource = IONotificationPortGetRunLoopSource(powerNotifyPortRef);
       CFRunLoopAddSource((CFRunLoopRef)_threadRunLoop, powerNotifyRunLoopSource, kCFRunLoopCommonModes);
    }
-   else LogTime(MUSCLE_LOG_WARNING, "DetectNetworkConfigChangesSession::InternalThreadEntry():  IORegisterForSystemPower() failed\n");
+   else LogTime(MUSCLE_LOG_WARNING, "DetectNetworkConfigChangesSession::InternalThreadEntry():  IORegisterForSystemPower() failed [%s]\n", B_ERRNO());
 
    SCDynamicStoreRef storeRef = NULL;
    CFRunLoopSourceRef sourceRef = NULL;
@@ -718,7 +718,7 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
       SetWindowLongPtr(hiddenWindow, GWLP_USERDATA, (LONG) this);
 # endif
    }
-   else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession::InternalThreadEntry():  CreateWindow() failed!\n");
+   else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession::InternalThreadEntry():  CreateWindow() failed! [%s]\n", B_ERRNO());
    
 # ifndef MUSCLE_AVOID_NETIOAPI
    HANDLE handle1 = MY_INVALID_HANDLE_VALUE; (void) NotifyUnicastIpAddressChange(AF_UNSPEC, &AddressCallbackDemo,   this, FALSE, &handle1);
@@ -762,13 +762,13 @@ void DetectNetworkConfigChangesSession :: InternalThreadEntry()
          }
          else 
          {
-            LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession:  NotifyAddrChange() failed, code %i (%i)\n", nacRet, WSAGetLastError());
+            LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession:  NotifyAddrChange() failed, code %i (%i) [%s]\n", nacRet, WSAGetLastError(), B_ERRNO());
             break;
          }
       }
       CloseHandle(olap.hEvent);
    }
-   else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession:  CreateEvent() failed\n");
+   else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesSession:  CreateEvent() failed [%s]\n", B_ERRNO());
 
 # ifndef MUSCLE_AVOID_NETIOAPI
    if (handle2 != MY_INVALID_HANDLE_VALUE) CancelMibChangeNotify2(handle2);

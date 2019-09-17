@@ -21,7 +21,8 @@ SimulatedMulticastDataIO :: SimulatedMulticastDataIO(const IPAddressAndPort & mu
    , _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET)
    , _isUnicastSocketRegisteredForWrite(false)
 {
-   if (StartInternalThread() != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  Unable to start internal thread for group [%s]\n", multicastAddress.ToString()());
+   status_t ret;
+   if (StartInternalThread().IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  Unable to start internal thread for group [%s] [%s]\n", multicastAddress.ToString()(), ret());
 }
 
 enum {
@@ -86,15 +87,16 @@ static UDPSocketDataIORef CreateMulticastUDPDataIO(const IPAddressAndPort & iap)
    if (udpSock() == NULL) return UDPSocketDataIORef();
 
    // This must be done before adding the socket to any multicast groups, otherwise Windows gets uncooperative
-   if (BindUDPSocket(udpSock, iap.GetPort(), NULL, invalidIP, true) != B_NO_ERROR)
+   status_t errRet;
+   if (BindUDPSocket(udpSock, iap.GetPort(), NULL, invalidIP, true).IsError(errRet))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to bind multicast socket to UDP port %u!\n", iap.GetPort());
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to bind multicast socket to UDP port %u! [%s]\n", iap.GetPort(), errRet());
       return UDPSocketDataIORef();
    }
 
-   if (AddSocketToMulticastGroup(udpSock, iap.GetIPAddress()) != B_NO_ERROR)
+   if (AddSocketToMulticastGroup(udpSock, iap.GetIPAddress()).IsError(errRet))
    {
-      LogTime(MUSCLE_LOG_ERROR, "CreateMulticastUDPDataIO:  Unable to add UDP socket to multicast address [%s]\n", Inet_NtoA(iap.GetIPAddress())());
+      LogTime(MUSCLE_LOG_ERROR, "CreateMulticastUDPDataIO:  Unable to add UDP socket to multicast address [%s] [%s]\n", Inet_NtoA(iap.GetIPAddress())(), errRet());
       return UDPSocketDataIORef();
    }
 

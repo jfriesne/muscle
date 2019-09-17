@@ -89,7 +89,7 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
       }
       else 
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed!\n");
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed! [%s]\n", B_ERRNO());
          return B_ERROR("WaitForEvents() failed");
       }
    }
@@ -114,6 +114,8 @@ int main(int argc, char ** argv)
       return 10;
    }
 
+   status_t ret;
+  
    uint16 listenPorts[2] = {DEFAULT_PORT, DEFAULT_PORT+1};
    IPAddressAndPort targets[2];
    {
@@ -121,9 +123,9 @@ int main(int argc, char ** argv)
       String hostNames[2];
       for (uint32 i=0; i<2; i++)
       {
-         if (ParseConnectArg(args, "target", hostNames[i], targetPorts[i], false, i) != B_NO_ERROR)
+         if (ParseConnectArg(args, "target", hostNames[i], targetPorts[i], false, i).IsError(ret))
          {
-            LogTime(MUSCLE_LOG_CRITICALERROR, "Error, couldn't parse target argument #%i\n", i+1);
+            LogTime(MUSCLE_LOG_CRITICALERROR, "Error, couldn't parse target argument #%i [%s]\n", i+1, ret());
             LogUsage();
             return 10;
          }
@@ -148,9 +150,9 @@ int main(int argc, char ** argv)
          LogTime(MUSCLE_LOG_ERROR, "Creating UDP socket failed!\n");
          return 10;
       }
-      if (BindUDPSocket(udpSock, listenPorts[i], &listenPorts[i], invalidIP, true) != B_NO_ERROR)
+      if (BindUDPSocket(udpSock, listenPorts[i], &listenPorts[i], invalidIP, true).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_ERROR, "Failed to bind UDP socket to port %u!\n", listenPorts[i]);
+         LogTime(MUSCLE_LOG_ERROR, "Failed to bind UDP socket to port %u! [%s]\n", listenPorts[i], ret());
          return 10;
       }
 
@@ -161,14 +163,14 @@ int main(int argc, char ** argv)
       // in order to get packets from the group.
       if (ip.IsMulticast())
       {
-         if (AddSocketToMulticastGroup(udpSock, ip) == B_NO_ERROR)
+         if (AddSocketToMulticastGroup(udpSock, ip).IsOK(ret))
          {
             LogTime(MUSCLE_LOG_INFO, "Added UDP socket to multicast group %s!\n", Inet_NtoA(ip)());
 #ifdef DISALLOW_MULTICAST_TO_SELF
             if (SetSocketMulticastToSelf(udpSock, false) != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "Error disabling multicast-to-self on socket\n");
 #endif
          }
-         else LogTime(MUSCLE_LOG_ERROR, "Error adding UDP socket to multicast group %s!\n", Inet_NtoA(ip)());
+         else LogTime(MUSCLE_LOG_ERROR, "Error adding UDP socket to multicast group %s! [%s]\n", Inet_NtoA(ip)(), ret());
       }
 #endif
 
@@ -182,7 +184,7 @@ int main(int argc, char ** argv)
       udpIOs[i].SetRef(dio);
    }
 
-   const status_t ret = DoSession(targets[0].ToString(), *udpIOs[0](), targets[1].ToString(), *udpIOs[1]());
+   ret = DoSession(targets[0].ToString(), *udpIOs[0](), targets[1].ToString(), *udpIOs[1]());
    LogTime(MUSCLE_LOG_INFO, "udpproxy exiting%s!\n", (ret==B_NO_ERROR)?"":" with an error");
    return 0;
 }

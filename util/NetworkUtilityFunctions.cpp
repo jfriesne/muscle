@@ -178,7 +178,7 @@ static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType)
 #if defined(__APPLE__) || defined(BSD)
       // This is here just so that MUSCLE programs can be run in a debugger without having the debugger catch spurious SIGPIPE signals --jaf
       const int value = 1; // Set NOSIGPIPE to ON
-      if (setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, (const sockopt_arg *) &value, sizeof(value)) != 0) LogTime(MUSCLE_LOG_DEBUG, "Could not disable SIGPIPE signals on socket %i\n", s);
+      if (setsockopt(s, SOL_SOCKET, SO_NOSIGPIPE, (const sockopt_arg *) &value, sizeof(value)) != 0) LogTime(MUSCLE_LOG_DEBUG, "Could not disable SIGPIPE signals on socket %i [%s]\n", s, B_ERRNO());
 #endif
 
       ConstSocketRef ret = GetConstSocketRefFromPool(s);
@@ -189,7 +189,7 @@ static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType)
          if (_automaticIPv4AddressMappingEnabled)
          {
             int v6OnlyEnabled = 0;  // we want v6-only mode disabled, which is to say we want v6-to-v4 compatibility
-            if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (const sockopt_arg *) &v6OnlyEnabled, sizeof(v6OnlyEnabled)) != 0) LogTime(MUSCLE_LOG_DEBUG, "Could not disable v6-only mode for socket %i\n", s);
+            if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (const sockopt_arg *) &v6OnlyEnabled, sizeof(v6OnlyEnabled)) != 0) LogTime(MUSCLE_LOG_DEBUG, "Could not disable v6-only mode for socket %i [%s]\n", s, B_ERRNO());
          }
 #endif
          if (DoGlobalSocketCallback(createType, ret) == B_NO_ERROR) return ret;

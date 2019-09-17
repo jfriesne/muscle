@@ -15,9 +15,10 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
    , _sslState(0)
    , _forceReadReady(false)
 {
+   status_t ret;
    bool ok = false;
    ConstSocketRef tempSocket;  // yes, it's intentional that this socket will be closed as soon as we exit this scope
-   if (CreateConnectedSocketPair(tempSocket, _alwaysReadableSocket).IsOK())
+   if (CreateConnectedSocketPair(tempSocket, _alwaysReadableSocket).IsOK(ret))
    {
       _ctx = SSL_CTX_new(TLS_method());
       if (_ctx)
@@ -48,7 +49,7 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
       }
       else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO:  SSL_CTX_new() failed!\n");
    }
-   else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO:  Error setting up dummy socket pair!\n");
+   else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO:  Error setting up dummy socket pair! [%s]\n", ret());
 
    if (ok == false) Shutdown();  // might as well clean up now
 }

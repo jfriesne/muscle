@@ -12,7 +12,8 @@ SharedUsageLimitProxyMemoryAllocator :: SharedUsageLimitProxyMemoryAllocator(con
    , _groupSize(groupSize)
    , _localCachedBytes(0)
 {
-   if (_shared.SetArea(sharedAreaKey, groupSize*sizeof(size_t), true) == B_NO_ERROR)
+   status_t ret;
+   if (_shared.SetArea(sharedAreaKey, groupSize*sizeof(size_t), true).IsOK(ret))
    {
       if (_shared.IsCreatedLocally()) 
       {
@@ -27,7 +28,7 @@ SharedUsageLimitProxyMemoryAllocator :: SharedUsageLimitProxyMemoryAllocator(con
 
       _shared.UnlockArea();  // because it was locked for us by SetArea()
    }
-   else LogTime(MUSCLE_LOG_CRITICALERROR, "SharedUsageLimitProxyMemoryAllocator:  Could not initialize shared memory area [%s]!\n", sharedAreaKey);
+   else LogTime(MUSCLE_LOG_CRITICALERROR, "SharedUsageLimitProxyMemoryAllocator:  Could not initialize shared memory area [%s]! [%s]\n", sharedAreaKey, ret());
 }
 
 SharedUsageLimitProxyMemoryAllocator :: ~SharedUsageLimitProxyMemoryAllocator()

@@ -101,9 +101,10 @@ int main(int argc, char ** argv)
    // a TCP connection is received on SMART_SERVER_TCP_PORT, and
    // attach the StorageReflectSession to the ReflectServer for use.   
    TimerStorageReflectSessionFactory timerSmartSessionFactory;
-   if (reflectServer.PutAcceptFactory(SMART_SERVER_TCP_PORT, ReflectSessionFactoryRef(&timerSmartSessionFactory, false)) != B_NO_ERROR)
+   status_t ret;
+   if (reflectServer.PutAcceptFactory(SMART_SERVER_TCP_PORT, ReflectSessionFactoryRef(&timerSmartSessionFactory, false)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't bind to TCP port %u!  (Perhaps a copy of this program is already running?\n", SMART_SERVER_TCP_PORT);
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't bind to TCP port %u!  (Perhaps a copy of this program is already running?) [%s]\n", SMART_SERVER_TCP_PORT, ret());
       return 5;
    }
 
@@ -115,11 +116,11 @@ int main(int argc, char ** argv)
    printf("\n");
 
    // Our server's event loop will run here -- ServerProcessLoop() return until it's time for the server to exit
-   if (reflectServer.ServerProcessLoop() == B_NO_ERROR)
+   if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
        LogTime(MUSCLE_LOG_INFO, "example_6_smart_server_with_pulsenode is exiting normally.\n");
    }
-   else LogTime(MUSCLE_LOG_ERROR, "example_6_smart_server_with_pulsenode is exiting due to an error.\n");
+   else LogTime(MUSCLE_LOG_ERROR, "example_6_smart_server_with_pulsenode is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions and factories
    // before they are destroyed (necessary only because we may have 

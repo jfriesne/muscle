@@ -396,9 +396,10 @@ void Thread::InternalThreadEntryAux()
       _curThreadsMutex.Unlock();
    }
 
-   if ((_threadPriority != PRIORITY_UNSPECIFIED)&&(SetThreadPriorityAux(_threadPriority) != B_NO_ERROR))
+   status_t ret;
+   if ((_threadPriority != PRIORITY_UNSPECIFIED)&&(SetThreadPriorityAux(_threadPriority).IsError(ret)))
    {
-      LogTime(MUSCLE_LOG_ERROR, "Thread %p:  Unable to set thread priority to %i\n", this, _threadPriority);
+      LogTime(MUSCLE_LOG_ERROR, "Thread %p:  Unable to set thread priority to %i [%s]\n", this, _threadPriority, ret());
    }
 
    if (_threadData[MESSAGE_THREAD_OWNER]._messages.HasItems()) SignalOwner();

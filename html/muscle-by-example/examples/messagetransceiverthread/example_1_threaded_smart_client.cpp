@@ -155,16 +155,18 @@ int main(int argc, char ** argv)
    // Let's enable a bit of debug-output, just to see what the client is doing
    SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
 
+   status_t ret;
+
    MessageTransceiverThread mtt;
-   if (mtt.StartInternalThread() != B_NO_ERROR)
+   if (mtt.StartInternalThread().IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't start the MessageTransceiverThread, aborting!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't start the MessageTransceiverThread, aborting! [%s]\n", ret());
       return 10;
    }
 
-   if (mtt.AddNewConnectSession(localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)) != B_NO_ERROR)
+   if (mtt.AddNewConnectSession(localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "mtt.AddNewConnectSession() failed, aborting!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "mtt.AddNewConnectSession() failed, aborting! [%s]\n", ret());
       mtt.ShutdownInternalThread();
       return 10;
    }

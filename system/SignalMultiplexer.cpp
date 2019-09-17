@@ -112,7 +112,7 @@ status_t SignalMultiplexer :: RegisterSignals()
       if (sigaction(sigNum, &newact, NULL) == -1) 
       {
          const status_t ret = B_ERRNO;
-         LogTime(MUSCLE_LOG_WARNING, "Could not install signal handler for signal #%i\n", sigNum);
+         LogTime(MUSCLE_LOG_WARNING, "Could not install signal handler for signal #%i [%s]\n", sigNum, ret());
          UnregisterSignals();
          return ret;
       }

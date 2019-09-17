@@ -1648,7 +1648,7 @@ status_t DefaultFileLogger :: EnsureLogFileCreated(const LogCallbackArgs & a)
          {
             const char * c = _oldLogFileNames.Head()();
                  if (remove(c) == 0)  LogTime(MUSCLE_LOG_DEBUG, "Deleted old Log file [%s]\n", c);
-            else if (errno != ENOENT) LogTime(MUSCLE_LOG_ERROR, "Error deleting old Log file [%s]\n", c);
+            else if (errno != ENOENT) LogTime(MUSCLE_LOG_ERROR, "Error [%s] deleting old Log file [%s]\n", B_ERRNO(), c);
             _oldLogFileNames.RemoveHead();
          }
 
@@ -1659,7 +1659,7 @@ status_t DefaultFileLogger :: EnsureLogFileCreated(const LogCallbackArgs & a)
       {
          _activeLogFileName.Clear();
          _logFileOpenAttemptFailed = true;  // avoid an indefinite number of log-failed messages
-         LogTime(MUSCLE_LOG_ERROR, "Failed to open Log file [%s], logging to file is now disabled.\n", logFileName());
+         LogTime(MUSCLE_LOG_ERROR, "Failed to open Log file [%s], logging to file is now disabled. [%s]\n", logFileName(), B_ERRNO());
       }
    }
    return (_logFile.GetFile() != NULL) ? B_NO_ERROR : B_IO_ERROR;
@@ -1711,17 +1711,17 @@ void DefaultFileLogger :: CloseLogFile()
                if (ok)
                {
                   inIO.Shutdown();
-                  if (remove(oldFileName()) != 0) LogTime(MUSCLE_LOG_ERROR, "Error deleting log file [%s] after compressing it to [%s]!\n", oldFileName(), gzName());
+                  if (remove(oldFileName()) != 0) LogTime(MUSCLE_LOG_ERROR, "Error deleting log file [%s] after compressing it to [%s] [%s]!\n", oldFileName(), gzName(), B_ERRNO());
                   oldFileName = gzName;
                }
                else
                {
-                  if (remove(gzName()) != 0) LogTime(MUSCLE_LOG_ERROR, "Error deleting gzip'd log file [%s] after compression failed!\n", gzName());
+                  if (remove(gzName()) != 0) LogTime(MUSCLE_LOG_ERROR, "Error deleting gzip'd log file [%s] after compression failed! [%s]\n", gzName(), B_ERRNO());
                }
             }
-            else LogTime(MUSCLE_LOG_ERROR, "Could not open compressed Log file [%s]!\n", gzName());
+            else LogTime(MUSCLE_LOG_ERROR, "Could not open compressed Log file [%s]! [%s]\n", gzName(), B_ERRNO());
          }
-         else LogTime(MUSCLE_LOG_ERROR, "Could not reopen Log file [%s] to compress it!\n", oldFileName());
+         else LogTime(MUSCLE_LOG_ERROR, "Could not reopen Log file [%s] to compress it! [%s]\n", oldFileName(), B_ERRNO());
       }
 #endif
       if ((_maxNumLogFiles != MUSCLE_NO_LIMIT)&&(_oldLogFileNames.Contains(oldFileName) == false)) (void) _oldLogFileNames.AddTail(oldFileName);  // so we can delete it later

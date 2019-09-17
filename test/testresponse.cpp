@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
             if (ioGateway.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
             if (multiplexer.WaitForEvents() < 0)
             {
-               LogTime(MUSCLE_LOG_ERROR, "WaitForEvents() failed, aborting!\n");
+               LogTime(MUSCLE_LOG_ERROR, "WaitForEvents() failed, aborting! [%s]\n", B_ERRNO());
                break;
             }
             if (multiplexer.IsSocketReadyForRead(fd))

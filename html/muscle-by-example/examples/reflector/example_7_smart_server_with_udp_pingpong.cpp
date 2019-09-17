@@ -139,17 +139,18 @@ int main(int argc, char ** argv)
    // a TCP connection is received on SMART_SERVER_TCP_PORT, and
    // attach the StorageReflectSession to the ReflectServer for use.   
    StorageReflectSessionFactory smartSessionFactory;
-   if (reflectServer.PutAcceptFactory(SMART_SERVER_TCP_PORT, ReflectSessionFactoryRef(&smartSessionFactory, false)) != B_NO_ERROR)
+   status_t ret;
+   if (reflectServer.PutAcceptFactory(SMART_SERVER_TCP_PORT, ReflectSessionFactoryRef(&smartSessionFactory, false)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't bind to TCP port %u!  (Perhaps a copy of this program is already running?\n", SMART_SERVER_TCP_PORT);
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't bind to TCP port %u!  (Perhaps a copy of this program is already running?) [%s]\n", SMART_SERVER_TCP_PORT, ret());
       return 5;
    }
 
    // This UDP session will handle the UDP ping pong games
    UDPPingPongSession udpPingPong;
-   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&udpPingPong, false)) != B_NO_ERROR)
+   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&udpPingPong, false)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add UDP ping pong session!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add UDP ping pong session! [%s]\n", ret());
       return 5;
    }
    
@@ -158,11 +159,11 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "\n");
 
    // Our server's event loop will run here -- ServerProcessLoop() return until it's time for the server to exit
-   if (reflectServer.ServerProcessLoop() == B_NO_ERROR)
+   if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
        LogTime(MUSCLE_LOG_INFO, "example_7_smart_server_wth_udp_pingpong is exiting normally.\n");
    }
-   else LogTime(MUSCLE_LOG_ERROR, "example_7_smart_server_wth_udp_pingpong is exiting due to an error.\n");
+   else LogTime(MUSCLE_LOG_ERROR, "example_7_smart_server_wth_udp_pingpong is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions and factories
    // before they are destroyed (necessary only because we may have 

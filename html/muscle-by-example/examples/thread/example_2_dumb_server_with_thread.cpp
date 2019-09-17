@@ -154,17 +154,18 @@ int main(int argc, char ** argv)
    // a TCP connection is received on DUMB_SERVER_TCP_PORT, and
    // attach the DumbReflectSession to the ReflectServer for use.   
    DumbReflectSessionFactory dumbSessionFactory;
-   if (reflectServer.PutAcceptFactory(DUMB_SERVER_TCP_PORT, ReflectSessionFactoryRef(&dumbSessionFactory, false)) != B_NO_ERROR)
+   status_t ret;
+   if (reflectServer.PutAcceptFactory(DUMB_SERVER_TCP_PORT, ReflectSessionFactoryRef(&dumbSessionFactory, false)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't bind to TCP port %u!  (Perhaps a copy of this program is already running?\n", DUMB_SERVER_TCP_PORT);
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't bind to TCP port %u!  (Perhaps a copy of this program is already running?) [%s]\n", DUMB_SERVER_TCP_PORT, ret());
       return 5;
    }
 
    // This session will represent the internal thread.
    ServerThreadSession threadSession;
-   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&threadSession, false)) != B_NO_ERROR)
+   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&threadSession, false)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't set up ServerThreadSession!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't set up ServerThreadSession! [%s]\n", ret());
       return 5;
    }
 
@@ -173,11 +174,11 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "\n");
 
    // Our server's event loop will run here -- ServerProcessLoop() return until it's time for the server to exit
-   if (reflectServer.ServerProcessLoop() == B_NO_ERROR)
+   if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
        LogTime(MUSCLE_LOG_INFO, "example_2_dumb_server_with_thread is exiting normally.\n");
    }
-   else LogTime(MUSCLE_LOG_ERROR, "example_2_dumb_server_with_thread is exiting due to an error.\n");
+   else LogTime(MUSCLE_LOG_ERROR, "example_2_dumb_server_with_thread is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions and factories
    // before they are destroyed (necessary only because we may have 

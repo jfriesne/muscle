@@ -75,8 +75,8 @@ int main(int argc, char ** argv)
          startTime = now;
       }
 
-      if (multiplexer.WaitForEvents() < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "bandwidthtester: WaitForEvents() failed!\n");
-      if ((send)&&(gw.HasBytesToOutput() == false)) for (int i=0; i<10; i++) gw.AddOutgoingMessage(sendMsgRef);
+      if (multiplexer.WaitForEvents() < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "bandwidthtester: WaitForEvents() failed! [%s]\n", B_ERRNO());
+      if ((send)&&(gw.HasBytesToOutput() == false)) for (int i=0; i<10; i++) (void) gw.AddOutgoingMessage(sendMsgRef);
       const bool reading = multiplexer.IsSocketReadyForRead(fd);
       const bool writing = multiplexer.IsSocketReadyForWrite(fd);
       const int32 wroteBytes = (writing) ? gw.DoOutput() : 0;

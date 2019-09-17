@@ -216,19 +216,21 @@ int main(int argc, char ** argv)
 
    ReflectServer reflectServer;
 
+   status_t ret;
+
    MySmartStdinSession myStdinSession;
-   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&myStdinSession, false), GetInvalidSocket()) != B_NO_ERROR)
+   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&myStdinSession, false), GetInvalidSocket()).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add MySmartStdinSession to the client, aborting!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add MySmartStdinSession to the client, aborting! [%s]\n", ret());
       return 10;
    }
 
    // Still using a DumbReflectSession here since all we need is Message-forwarding.
    // (All of the client's "smarts" will be implemented in the MySmartStdinSession class)
    DumbReflectSession tcpSession;
-   if (reflectServer.AddNewConnectSession(AbstractReflectSessionRef(&tcpSession, false), localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)) != B_NO_ERROR)
+   if (reflectServer.AddNewConnectSession(AbstractReflectSessionRef(&tcpSession, false), localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add StorageReflectSession to the client, aborting!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add StorageReflectSession to the client, aborting! [%s]\n", ret());
       return 10;
    }
 
@@ -252,11 +254,12 @@ int main(int argc, char ** argv)
    printf("\n");
 
    // Now there's nothing left to do but run the event loop
-   if (reflectServer.ServerProcessLoop() == B_NO_ERROR)
+   status_t ret;
+   if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
       LogTime(MUSCLE_LOG_INFO, "example_5_smart_client is exiting normally.\n");
    }
-   else LogTime(MUSCLE_LOG_ERROR, "example_5_smart_client is exiting due to an error.\n");
+   else LogTime(MUSCLE_LOG_ERROR, "example_5_smart_client is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions
    // before they are destroyed (necessary only because we have 

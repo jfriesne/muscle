@@ -100,9 +100,10 @@ int main(int argc, char ** argv)
    // This session's job will be to read text from stdin and create Messages
    // to pass to the DumbReflectSession that is connected to the server.
    MyDumbStdinSession myStdinSession;
-   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&myStdinSession, false), GetInvalidSocket()) != B_NO_ERROR)
+   status_t ret;
+   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&myStdinSession, false), GetInvalidSocket()).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add MyDumbStdinSession to the client, aborting!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add MyDumbStdinSession to the client, aborting! [%s]\n", ret());
       return 10;
    }
 
@@ -112,18 +113,18 @@ int main(int argc, char ** argv)
    // The SecondsToMicros(1) argument tells the ReflectServer to handle
    // a TCP disconnect by automatically reconnecting the session after a 1-second delay.
    DumbReflectSession tcpSession;
-   if (reflectServer.AddNewConnectSession(AbstractReflectSessionRef(&tcpSession, false), localhostIP, DUMB_SERVER_TCP_PORT, SecondsToMicros(1)) != B_NO_ERROR)
+   if (reflectServer.AddNewConnectSession(AbstractReflectSessionRef(&tcpSession, false), localhostIP, DUMB_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add DumbReflectSession to the client, aborting!\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add DumbReflectSession to the client, aborting! [%s]\n", ret());
       return 10;
    }
 
    // Now there's nothing left to do but run the event loop
-   if (reflectServer.ServerProcessLoop() == B_NO_ERROR)
+   if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
       LogTime(MUSCLE_LOG_INFO, "example_2_dumb_client is exiting normally.\n");
    }
-   else LogTime(MUSCLE_LOG_ERROR, "example_2_dumb_client is exiting due to an error.\n");
+   else LogTime(MUSCLE_LOG_ERROR, "example_2_dumb_client is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions
    // before they are destroyed (necessary only because we have 

@@ -10,12 +10,14 @@ QSignalHandler :: QSignalHandler(QObject * parent, const char * name)
    , _socketNotifier(NULL)
 {
    if (name) setObjectName(name);
-   if ((CreateConnectedSocketPair(_mainThreadSocket, _handlerFuncSocket) == B_NO_ERROR)&&(SignalMultiplexer::GetSignalMultiplexer().AddHandler(this) == B_NO_ERROR))
+
+   status_t ret;
+   if ((CreateConnectedSocketPair(_mainThreadSocket, _handlerFuncSocket).IsOK(ret))&&(SignalMultiplexer::GetSignalMultiplexer().AddHandler(this).IsOK(ret)))
    {
       _socketNotifier = new QSocketNotifier(_mainThreadSocket.GetFileDescriptor(), QSocketNotifier::Read, this);
       connect(_socketNotifier, SIGNAL(activated(int)), this, SLOT(SocketDataReady()));
    }
-   else LogTime(MUSCLE_LOG_CRITICALERROR, "QSignalHandler %p could not register with the SignalMultiplexer!\n", this);
+   else LogTime(MUSCLE_LOG_CRITICALERROR, "QSignalHandler %p could not register with the SignalMultiplexer! [%s]\n", this, ret());
 }
 
 QSignalHandler :: ~QSignalHandler()

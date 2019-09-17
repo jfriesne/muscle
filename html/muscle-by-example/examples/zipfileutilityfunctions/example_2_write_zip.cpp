@@ -52,11 +52,12 @@ int main(int argc, char ** argv)
       AddFileToDir(someDataMsg, "nerf_nerf.txt", 512);
    }
 
-   if (WriteZipFile(argv[1], someDataMsg) == B_NO_ERROR)
+   status_t ret;
+   if (WriteZipFile(argv[1], someDataMsg).IsOK(ret))
    {
       LogTime(MUSCLE_LOG_INFO, "Wrote file [%s] as a .zip file.  Run \"unzip -l %s\" to see its contents.\n", argv[1], argv[1]);
    }
-   else LogTime(MUSCLE_LOG_CRITICALERROR, "Error writing [%s] as a .zip file!\n", argv[1]);
+   else LogTime(MUSCLE_LOG_CRITICALERROR, "Error writing [%s] as a .zip file! [%s]\n", argv[1], ret());
 
    return 0;
 }

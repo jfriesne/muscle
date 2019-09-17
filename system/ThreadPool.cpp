@@ -158,6 +158,7 @@ void ThreadPool :: DispatchPendingMessagesUnsafe()
 {
    if (_shuttingDown) return;  // no sense dispatching more messages if we're in the process of shutting down
 
+   status_t ret;
    while(_pendingMessages.HasItems())
    {
       IThreadPoolClient * client = *_pendingMessages.GetFirstKey();
@@ -172,7 +173,7 @@ void ThreadPool :: DispatchPendingMessagesUnsafe()
             // demand-allocate a new Thread for us to use
             ThreadPoolThreadRef tRef(newnothrow ThreadPoolThread(this, _threadIDCounter++));
             if (tRef() == NULL) {WARN_OUT_OF_MEMORY; break;}
-            if (StartInternalThread(*tRef()) != B_NO_ERROR) {LogTime(MUSCLE_LOG_ERROR, "ThreadPool:  Error launching thread!\n"); break;}
+            if (StartInternalThread(*tRef()).IsError(ret)) {LogTime(MUSCLE_LOG_ERROR, "ThreadPool:  Error launching thread! [%s]\n", ret()); break;}
             if (_availableThreads.Put(tRef()->GetThreadID(), tRef) != B_NO_ERROR) {tRef()->ShutdownInternalThread(); break;}  // should never happen, but just in case
          }
 

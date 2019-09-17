@@ -64,18 +64,16 @@ public:
     */ 
    virtual status_t Seek(int64 offset, int whence)
    {
-      if (_file)
+      if (_file == NULL) return B_BAD_OBJECT;
+
+      switch(whence)
       {
-         switch(whence)
-         {
-            case IO_SEEK_SET:  whence = SEEK_SET;  break;
-            case IO_SEEK_CUR:  whence = SEEK_CUR;  break;
-            case IO_SEEK_END:  whence = SEEK_END;  break;
-            default:           return B_BAD_ARGUMENT;
-         }
-         if (fseek(_file, (long) offset, whence) != 0) return B_ERRNO;
+         case IO_SEEK_SET:  whence = SEEK_SET;  break;
+         case IO_SEEK_CUR:  whence = SEEK_CUR;  break;
+         case IO_SEEK_END:  whence = SEEK_END;  break;
+         default:           return B_BAD_ARGUMENT;
       }
-      return B_BAD_OBJECT;
+      return (fseek(_file, (long) offset, whence) == 0) ? B_NO_ERROR : B_ERRNO;
    }
    
    /** Returns our current position in the file.
