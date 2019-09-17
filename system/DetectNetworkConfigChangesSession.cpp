@@ -309,7 +309,6 @@ status_t DetectNetworkConfigChangesSession :: AttachedToServer()
 
 void DetectNetworkConfigChangesSession :: EndSession()
 {
-#error hi
    ShutdownInternalThread();  // do this ASAP, otherwise we get the occasional crash on shutdown :(
    AbstractReflectSession::EndSession();
 }
