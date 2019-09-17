@@ -110,7 +110,7 @@ public:
 
    /** Convenience method; Removes the next item from the head of the queue and returns it.
      * @param msg On success, the removed Message will be written into this MessageRef
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure.
      */
    status_t RemoveHead(MessageRef & msg) {return _messageQueue.RemoveHead(msg);}
 
@@ -143,9 +143,9 @@ public:
    /**
     * Appends the given message reference to the end of our list of outgoing messages to send.  Never blocks.  
     * @param messageRef A reference to the Message to send out through the gateway.
-    * @return B_NO_ERROR on success, B_ERROR iff for some reason the message can't be queued (out of memory?)
+    * @return B_NO_ERROR on success, or B_BAD_OBJECT if this gateway is out of commision, or B_OUT_OF_MEMORY.
     */
-   virtual status_t AddOutgoingMessage(const MessageRef & messageRef) {return _hosed ? B_ERROR : _outgoingMessages.AddTail(messageRef);}
+   virtual status_t AddOutgoingMessage(const MessageRef & messageRef) {return _hosed ? B_BAD_OBJECT : _outgoingMessages.AddTail(messageRef);}
 
    /**
     * Writes some of our outgoing message bytes to the wire.
@@ -267,9 +267,9 @@ public:
      *                 method.  If NULL, then no data will be read from the socket.
      * @param timeoutPeriod A timeout period for this method.  If left as MUSCLE_TIME_NEVER
      *                (the default), then no timeout is applied.  If set to another value,
-     *                then this method will return B_ERROR after (timeoutPeriod) microseconds
+     *                then this method will return an error code after (timeoutPeriod) microseconds
      *                if the operation hasn't already completed by then.
-     * @returns B_NO_ERROR on success (all pending outgoing Messages were sent) or B_ERROR
+     * @returns B_NO_ERROR on success (all pending outgoing Messages were sent) or an error code
      *                     on failure (usually because the connection was severed while
      *                     outgoing data was still pending)
      * @see SynchronousMessageReceivedFromGateway(), SynchronousAfterMessageReceivedFromGateway(),

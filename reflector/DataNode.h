@@ -33,7 +33,7 @@ public:
     * @param child Reference to the child to accept into our list of children
     * @param optNotifyWithOnSetParent If non-NULL, a StorageReflectSession to use to notify subscribers that the new node has been added
     * @param optNotifyWithOnChangedData If non-NULL, a StorageReflectSession to use to notify subscribers when the node's data has been alterered
-    * @return B_NO_ERROR on success, B_ERROR if out of memory
+    * @return B_NO_ERROR on success, B_OUT_OF_MEMORY if out of memory
     */
    status_t PutChild(const DataNodeRef & child, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyWithOnChangedData);
 
@@ -45,7 +45,7 @@ public:
     * @param optNotifyWithOnSetParent If non-NULL, a StorageReflectSession to use to notify subscribers that the new node has been added
     * @param optNotifyWithOnChangedData If non-NULL, a StorageReflectSession to use to notify subscribers when the node's data has been alterered
     * @param optAddNewChildren If non-NULL, any newly formed nodes will be added to this hashtable, keyed on their absolute node path.
-    * @return B_NO_ERROR on success, B_ERROR if out of memory
+    * @return B_NO_ERROR on success, B_OUT_OF_MEMORY if out of memory
     */
    status_t InsertOrderedChild(const MessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyWithOnChangedData, Hashtable<String, DataNodeRef> * optAddNewChildren);
  
@@ -58,7 +58,7 @@ public:
     *                         not found in our index, we'll move (child) to the end of the index.
     * @param optNotifyWith If non-NULL, this will be used to sent INDEXUPDATE message to the
     *                      interested clients, notifying them of the change.
-    * @return B_NO_ERROR on success, B_ERROR on failure (out of memory)
+    * @return B_NO_ERROR on success, B_OUT_OF_MEMORY on failure (out of memory)
     */
    status_t ReorderChild(const DataNodeRef & child, const String * moveToBeforeThis, StorageReflectSession * optNotifyWith);
 
@@ -70,9 +70,9 @@ public:
    /** Retrieves the child with the given name.
     *  @param key The name of the child we wish to retrieve
     *  @param returnChild On success, a reference to the retrieved child is written into this object.
-    *  @return B_NO_ERROR if a child node was successfully retrieved, or B_ERROR if it was not found.
+    *  @return B_NO_ERROR if a child node was successfully retrieved, or B_DATA_NOT_FOUND if it was not found.
     */
-   status_t GetChild(const String & key, DataNodeRef & returnChild) const {return ((_children)&&(_children->Get(&key, returnChild) == B_NO_ERROR)) ? B_NO_ERROR : B_ERROR;}
+   status_t GetChild(const String & key, DataNodeRef & returnChild) const {return ((_children)&&(_children->Get(&key, returnChild) == B_NO_ERROR)) ? B_NO_ERROR : B_DATA_NOT_FOUND;}
 
    /** As above, except the reference to the child is returned as the return value rather than in a parameter.
     *  @param key The name of the child we wish to retrieve
@@ -92,7 +92,7 @@ public:
     *  @param optNotifyWith If non-NULL, the StorageReflectSession that should be used to notify subscribers that the given node has been removed
     *  @param recurse if true, the removed child's children will be removed from it, and so on, and so on...
     *  @param optCounter if non-NULL, this value will be incremented whenever a child is removed (recursively)
-    *  @return B_NO_ERROR if the given child is found and removed, or B_ERROR if it could not be found.
+    *  @return B_NO_ERROR if the given child is found and removed, or B_DATA_NOT_FOUND if it could not be found.
     */
    status_t RemoveChild(const String & key, StorageReflectSession * optNotifyWith, bool recurse, uint32 * optCounter);
 
@@ -116,7 +116,7 @@ public:
      *                   Values greater than zero will return a partial path (e.g. a startDepth of 1 in the
      *                   above example would return "12.18.240.15/1234/beshare/files/joe", and a startDepth
      *                   of 2 would return "1234/beshare/files/joe")
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t GetNodePath(String & retPath, uint32 startDepth = 0) const;
 
@@ -179,7 +179,7 @@ public:
     *  @param optNotifyWith Session to use to inform everybody that the index has been changed.
     *  @param key Name of an existing child of this node that should be associated with the given entry.
     *             This child must not already be in the ordered-entry index!
-    *  @return B_NO_ERROR on success, or B_ERROR on failure (bad index or unknown child).
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT if (insertIndex) was invalid, or B_OUT_OF_MEMORY.
     */
    status_t InsertIndexEntryAt(uint32 insertIndex, StorageReflectSession * optNotifyWith, const String & key);
 
@@ -187,7 +187,7 @@ public:
     *  Don't call this function unless you really know what you are doing!
     *  @param removeIndex Offset into the array to remove
     *  @param optNotifyWith Session to use to inform everybody that the index has been changed.
-    *  @return B_NO_ERROR on success, or B_ERROR on failure.
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT if (removeIndex) was invalid, or B_OUT_OF_MEMORY.
     */
    status_t RemoveIndexEntryAt(uint32 removeIndex, StorageReflectSession * optNotifyWith);
 

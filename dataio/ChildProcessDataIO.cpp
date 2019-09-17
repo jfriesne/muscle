@@ -95,6 +95,8 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       saAttr.bInheritHandle = true;
    }
 
+   status_t ret;
+
    ::HANDLE childStdoutRead, childStdoutWrite;
    if (CreatePipe(&childStdoutRead, &childStdoutWrite, &saAttr, 0))
    {
@@ -138,7 +140,6 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                // If environment-vars are specified, we need to create a new environment-variable-block
                // for the child process to use.  It will be the same as our own, but with the specified
                // env-vars added/updated in it.
-               bool ok         = true;
                void * envVars  = NULL;
                char * newBlock = NULL;
                if ((optEnvironmentVariables)&&(optEnvironmentVariables->HasItems()))
@@ -154,12 +155,8 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                         if (*s)
                         {
                            const char * equals = strchr(s, '=');
-                           if ((equals ? curEnvVars.Put(String(s, equals-s), equals+1) : curEnvVars.Put(s, GetEmptyString())) == B_NO_ERROR) s = strchr(s, '\0')+1;
-                           else
-                           {
-                              ok = false;
-                              break;
-                           }
+                           if ((equals ? curEnvVars.Put(String(s, equals-s), equals+1) : curEnvVars.Put(s, GetEmptyString())).IsOK(ret)) s = strchr(s, '\0')+1;
+                                                                                                                                    else break;
                         }
                         else break;
                      }
@@ -190,43 +187,56 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                   else
                   {
                      WARN_OUT_OF_MEMORY;
-                     ok = false;     
+                     ret = B_OUT_OF_MEMORY;
                   }
                }
              
-               if ((ok)&&(CreateProcessA((argc>=0)?(((const char **)args)[0]):NULL, (char *)cmd(), NULL, NULL, TRUE, 0, envVars, optDirectory, &siStartInfo, &piProcInfo)))
+               if (ret == B_NO_ERROR)
                {
-                  delete [] newBlock;
-                  newBlock = NULL;  // void possible double-delete below
-
-                  _childProcess   = piProcInfo.hProcess;
-                  _childThread    = piProcInfo.hThread;
-
-                  if (_blocking) return B_NO_ERROR;  // done!
-                  else 
+                  if (CreateProcessA((argc>=0)?(((const char **)args)[0]):NULL, (char *)cmd(), NULL, NULL, TRUE, 0, envVars, optDirectory, &siStartInfo, &piProcInfo))
                   {
-                     // For non-blocking, we must have a separate proxy thread do the I/O for us :^P
-                     _wakeupSignal = CreateEvent(0, false, false, 0);
-                     if ((_wakeupSignal != INVALID_HANDLE_VALUE)&&(CreateConnectedSocketPair(_masterNotifySocket, _slaveNotifySocket, false) == B_NO_ERROR))
+                     delete [] newBlock;
+                     newBlock = NULL;  // void possible double-delete below
+   
+                     _childProcess   = piProcInfo.hProcess;
+                     _childThread    = piProcInfo.hThread;
+   
+                     if (_blocking) return B_NO_ERROR;  // done!
+                     else 
                      {
-                        DWORD junkThreadID;
-                        typedef unsigned (__stdcall *PTHREAD_START) (void *);
-                        if ((_ioThread = (::HANDLE) _beginthreadex(NULL, 0, (PTHREAD_START)IOThreadEntryFunc, this, 0, (unsigned *) &junkThreadID)) != INVALID_HANDLE_VALUE) return B_NO_ERROR;
+                        // For non-blocking, we must have a separate proxy thread do the I/O for us :^P
+                        _wakeupSignal = CreateEvent(0, false, false, 0);
+                             if (_wakeupSignal == INVALID_HANDLE_VALUE) ret = B_ERRNO;
+                        else if (CreateConnectedSocketPair(_masterNotifySocket, _slaveNotifySocket, false).IsOK(ret))
+                        {
+                           DWORD junkThreadID;
+                           typedef unsigned (__stdcall *PTHREAD_START) (void *);
+                           if ((_ioThread = (::HANDLE) _beginthreadex(NULL, 0, (PTHREAD_START)IOThreadEntryFunc, this, 0, (unsigned *) &junkThreadID)) != INVALID_HANDLE_VALUE) return B_NO_ERROR;
+                                                                                                                                                                           else ret = B_ERRNO;
+                        }
                      }
                   }
+                  else ret = B_ERRNO;
                }
 
                delete [] newBlock;
             }
+            else ret = B_ERRNO;
+
             SafeCloseHandle(childStdinRead);     // cleanup
             SafeCloseHandle(childStdinWrite);    // cleanup
          }
+         else ret = B_ERRNO;
       }
+      else ret = B_ERRNO;
+
       SafeCloseHandle(childStdoutRead);    // cleanup
       SafeCloseHandle(childStdoutWrite);   // cleanup
    }
+   else ret = B_ERRNO;
+
    Close();  // free all allocated object state we may have
-   return B_ERROR;
+   return ret | B_ERROR;
 #else
    status_t ret;
 
@@ -319,22 +329,22 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
          for (HashtableIterator<String,String> iter(*optEnvironmentVariables); iter.HasData(); iter++) (void) setenv(iter.GetKey()(), iter.GetValue()(), 1);
       }
 
-      if (ChildProcessReadyToRun() == B_NO_ERROR)
+      if (ChildProcessReadyToRun().IsOK(ret))
       {
          if (execvp(zargv0, const_cast<char **>(zargv)) < 0) perror("ChildProcessDataIO::execvp");  // execvp() should never return
       }
-      else LogTime(MUSCLE_LOG_ERROR, "ChildProcessDataIO:  ChildProcessReadyToRun() returned an error, not running child process!\n");
+      else LogTime(MUSCLE_LOG_ERROR, "ChildProcessDataIO:  ChildProcessReadyToRun() returned [%s], not running child process!\n", ret());
 
       ExitWithoutCleanup(20);
    }
    else if (_handle())   // if we got this far, we are the parent process
    {
       _childPID = pid;
-      if (SetSocketBlockingEnabled(_handle, _blocking) == B_NO_ERROR) return B_NO_ERROR;
+      if (SetSocketBlockingEnabled(_handle, _blocking).IsOK(ret)) return B_NO_ERROR;
    }
 
    Close();  // roll back!
-   return B_ERROR;
+   return ret | B_ERROR;
 #endif
 }
 

@@ -39,7 +39,7 @@ public:
     * @param isSimpleFormat If you wish to use the formal regex syntax, instead of the simple syntax, set isSimpleFormat to false.
     * @param segmentSeparatorChars The set of characters that denote sub-keys within the key string.  This string will be passed to
     *                              our StringTokenizer.  Defaults to "/".
-    * @return B_NO_ERROR on success, B_ERROR on error (e.g. expression wasn't parsable, or out of memory)
+    * @return B_NO_ERROR on success, B_BAD_ARGUMENT if the expression wasn't parsable, or B_OUT_OF_MEMORY.
     */
    status_t SetPattern(const String & matchString, bool isSimpleFormat=true, const char * segmentSeparatorChars = "/");
     

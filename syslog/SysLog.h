@@ -519,7 +519,7 @@ enum {
   *                 Note that the values returned are ALWAYS in reference to local time 
   *                 zone -- the (timeType) argument governs how (timeUS) should be interpreted.  
   *                 (timeType) does NOT control the meaning of the return values.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t GetHumanReadableTimeValues(uint64 timeUS, HumanReadableTimeValues & retValues, uint32 timeType = MUSCLE_TIMEZONE_UTC);
 
@@ -530,7 +530,7 @@ status_t GetHumanReadableTimeValues(uint64 timeUS, HumanReadableTimeValues & ret
   * @param timeType If set to MUSCLE_TIMEZONE_UTC (the default) then (values) will be interpreted as being in UTC, 
   *                 and (retTimeUS) be converted to the local time zone as part of the conversion process.  If set to 
   *                 MUSCLE_TIMEZONE_LOCAL, on the other hand, then no time zone conversion will be done.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t GetTimeStampFromHumanReadableTimeValues(const HumanReadableTimeValues & values, uint64 & retTimeUS, uint32 timeType = MUSCLE_TIMEZONE_UTC);
 

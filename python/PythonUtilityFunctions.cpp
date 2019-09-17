@@ -141,7 +141,7 @@ static status_t ParsePythonDictionary(PyObject * keywords, Message & msg)
 #endif
             }
          }
-         else ret = B_ERROR;  // wtf?
+         else ret = B_LOGIC_ERROR;  // wtf?
 
          Py_DECREF(values);
       }

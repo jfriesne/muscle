@@ -186,7 +186,7 @@ status_t ZLibCodec :: Inflate(const uint8 * compBytes, uint32 numComp, ByteBuffe
 {
    bool independent;
    const int32 rawLen = GetInflatedSize(compBytes, numComp, &independent);
-   if (rawLen < 0) return B_BAD_ARGUMENT;
+   if (rawLen < 0)            return B_BAD_ARGUMENT;
    if (_inflateOkay == false) return B_BAD_OBJECT;
 
    if ((independent)&&(inflateReset(&_inflater) != Z_OK))

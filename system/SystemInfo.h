@@ -40,15 +40,14 @@ enum {
   * @param outStr on success, this string will contain the appopriate
   *               path name,  The path is guaranteed to end with a file
   *               separator character (i.e. "/" or "\\", as appropriate).
-  * @returns B_NO_ERROR on success, or B_ERROR if the requested path could
+  * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the requested path could
   *          not be determined. 
   */
 status_t GetSystemPath(uint32 whichPath, String & outStr);
 
 /** Queries the number of CPU processing cores available on this computer.
   * @param retNumProcessors On success, the number of cores is placed here
-  * @returns B_NO_ERROR on success, or B_ERROR if the number of processors
-  *          could not be determined (e.g. call is unimplemented on this OS)
+  * @returns B_NO_ERROR on success, or B_UNIMPLEMENTED, or some other error code.
   */
 status_t GetNumberOfProcessors(uint32 & retNumProcessors);
 

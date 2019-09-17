@@ -45,12 +45,7 @@ void Win32FileHandleDataIO :: FlushOutput()
 status_t Win32FileHandleDataIO :: SetBlockingIOEnabled(bool blocking)
 {
    if (_handle == INVALID_HANDLE_VALUE) return B_BAD_OBJECT;
-
-   // I think code is wrong, but it's the same logic as the old code, so I'm leaving it for now --jaf
-   return blocking ? B_UNIMPLEMENTED : B_NO_ERROR;
-
-   // the old code was:
-   // return ((_handle != INVALID_HANDLE_VALUE)&&(blocking==false)) ? B_NO_ERROR : B_ERROR;
+   return blocking ? B_NO_ERROR : B_UNIMPLEMENTED;  // only blocking-mode supported for now
 }
 
 void Win32FileHandleDataIO :: Shutdown()
@@ -71,7 +66,7 @@ status_t Win32FileHandleDataIO :: Seek(int64 offset, int whence)
       case IO_SEEK_SET: whence = FILE_BEGIN;   break;
       case IO_SEEK_CUR: whence = FILE_CURRENT; break;
       case IO_SEEK_END: whence = FILE_END;     break;
-      default:          return B_BAD_ARGUMENT;;
+      default:          return B_BAD_ARGUMENT;
    }
 
    LARGE_INTEGER newPosition;    newPosition.QuadPart    = 0;

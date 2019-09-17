@@ -203,13 +203,13 @@ public:
    /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
    status_t Unflatten(const uint8 * buffer, uint32 size)
    {
-      if (size < sizeof(uint32)) return B_ERROR;  // not enough data to even read the #-of-valid-bits header?
+      if (size < sizeof(uint32)) return B_BAD_DATA;  // not enough data to even read the #-of-valid-bits header?
 
       const uint32 numBitsToRead = muscleMin(B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer)), NumBits);
       buffer += sizeof(uint32); size -= sizeof(uint32);
 
       const uint32 numWordsToRead = (numBitsToRead+NUM_BITS_PER_WORD-1)/NUM_BITS_PER_WORD;
-      if (size < numWordsToRead) return B_ERROR;
+      if (size < numWordsToRead) return B_BAD_DATA;
          
       for (uint32 i=0; i<numWordsToRead; i++) _words[i] = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&buffer[i*sizeof(uint32)]));
 

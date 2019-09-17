@@ -39,7 +39,7 @@ public:
    virtual status_t AttachedToServer()
    {
       status_t ret = DumbReflectSession::AttachedToServer();  // this call is what attaches us to the ReflectServer
-      LogTime(MUSCLE_LOG_INFO, "MyDumbReflectSession(%p)::AttachedToServer() called -- returning %s (my session ID is " UINT32_FORMAT_SPEC ")\n", this, (ret==B_NO_ERROR)?"B_NO_ERROR":"B_ERROR", GetSessionID());
+      LogTime(MUSCLE_LOG_INFO, "MyDumbReflectSession(%p)::AttachedToServer() called -- returning %s (my session ID is " UINT32_FORMAT_SPEC ")\n", this, ret(), GetSessionID());
       return ret;
    }
 

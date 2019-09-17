@@ -101,8 +101,8 @@ public:
     * @param retStamp On success, this value is set to the timestamp
     *                 of the byte.
     * @return B_NO_ERROR if a timestamp was written into (retStamp),
-    *                    otherwise B_ERROR.  Default implementation
-    *                    always returns B_ERROR.
+    *                    otherwise an error code.  Default implementation
+    *                    always just returns B_UNIMPLEMENTED.
     */
    virtual status_t GetReadByteTimeStamp(int32 whichByte, uint64 & retStamp) const {(void) whichByte; (void) retStamp; return B_UNIMPLEMENTED;}
 

@@ -98,10 +98,10 @@ void FilterSessionFactory :: MessageReceivedFromSession(AbstractReflectSession &
       {
          switch(msg->what)
          {
-            case PR_COMMAND_ADDBANS:        PutBanPattern(*s);                 break;
-            case PR_COMMAND_ADDREQUIRES:    PutRequirePattern(*s);             break;
-            case PR_COMMAND_REMOVEBANS:     RemoveMatchingBanPatterns(*s);     break;                    
-            case PR_COMMAND_REMOVEREQUIRES: RemoveMatchingRequirePatterns(*s); break;                    
+            case PR_COMMAND_ADDBANS:        (void) PutBanPattern(*s);                 break;
+            case PR_COMMAND_ADDREQUIRES:    (void) PutRequirePattern(*s);             break;
+            case PR_COMMAND_REMOVEBANS:            RemoveMatchingBanPatterns(*s);     break;                    
+            case PR_COMMAND_REMOVEREQUIRES:        RemoveMatchingRequirePatterns(*s); break;                    
          }
       }
       _tempLogFor = NULL;

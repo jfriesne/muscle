@@ -147,13 +147,13 @@ void SetHostNameCacheSettings(uint32 maxCacheSize, uint64 expirationTimeMicros);
   *                 before calling GetHostByNameNative(); resolvers with priority
   *                 less than zero will be called only if the GetHostByNameNative() doesn't
   *                 return a valid IP address.  Defaults to zero.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure. 
+  * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure. 
   */
 status_t PutHostNameResolver(const IHostNameResolverRef & resolver, int priority = 0);
 
 /** Removes a IHostNameResolver that had previously been installed via PutHostNameResolver().
   * @param resolver Reference the IHostNameResolver to remove.
-  * @returns B_NO_ERROR on success, or B_ERROR if the given resolver wasn't installed.
+  * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the given resolver wasn't currently installed.
   */
 status_t RemoveHostNameResolver(const IHostNameResolverRef & resolver);
 
@@ -309,7 +309,7 @@ inline ConstSocketRef ConnectAsync(const IPAddressAndPort & iap, bool & retIsRea
   * This function will finalize the asynchronous-TCP-connection-process, and make the TCP socket 
   * usable for data-transfer.
   * @param sock The socket that was connecting asynchronously
-  * @returns B_NO_ERROR if the connection is ready to use, or B_ERROR if the connect failed.
+  * @returns B_NO_ERROR if the connection is ready to use, or an error code if the connect failed.
   * @note Under Windows, select() won't return ready-for-write if the asynchronous TCP connection fails... 
   *       instead it will select-as-ready for your socket on the exceptions-fd_set (if you provided one).
   *       Once this happens, there is no need to call FinalizeAsyncConnect() -- the fact that the
@@ -325,7 +325,7 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock);
  *  @param sock The socket to permanently shut down communication on. 
  *  @param disableReception If true, further reception of data will be disabled on this socket.  Defaults to true.
  *  @param disableTransmission If true, further transmission of data will be disabled on this socket.  Defaults to true.
- *  @return B_NO_ERROR on success, or B_ERROR on failure.
+ *  @return B_NO_ERROR on success, or an error code on failure.
  */
 status_t ShutdownSocket(const ConstSocketRef & sock, bool disableReception = true, bool disableTransmission = true);
 
@@ -388,7 +388,7 @@ IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, ui
  *  @param retSocket1 On success, this value will be set to the socket ID of the first socket.
  *  @param retSocket2 On success, this value will be set to the socket ID of the second socket.
  *  @param blocking Whether the two sockets should use blocking I/O or not.  Defaults to false.
- *  @return B_NO_ERROR on success, or B_ERROR on failure.
+ *  @return B_NO_ERROR on success, or an error code on failure.
  *  @note the Windows implementation of this function will return a pair of connected TCP sockets.
  *        On other OS's, an AF_UNIX socketpair() is returned.  The resulting behavior is the same in either case.
  */
@@ -398,7 +398,7 @@ status_t CreateConnectedSocketPair(ConstSocketRef & retSocket1, ConstSocketRef &
  *  @note The default state for a newly created socket is: true/blocking-mode-enabled.
  *  @param sock the socket to act on.
  *  @param enabled True to set this socket to blocking I/O mode, or false to set it to non-blocking I/O mode.
- *  @return B_NO_ERROR on success, or B_ERROR on failure.
+ *  @return B_NO_ERROR on success, or an error code on failure.
  */
 status_t SetSocketBlockingEnabled(const ConstSocketRef & sock, bool enabled);
 
@@ -417,7 +417,7 @@ bool GetSocketBlockingEnabled(const ConstSocketRef & sock);
   * @param enabled If true, outgoing TCP data will be held briefly (per Nagle's algorithm) before sending, 
   *                to allow for fewer, bigger packets.  If false, then each SendData() call will cause a 
   *                new TCP packet to be sent immediately.
-  * @return B_NO_ERROR on success, B_ERROR on error.
+  * @return B_NO_ERROR on success, an error code on error.
   */
 status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabled);
 
@@ -432,7 +432,7 @@ bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock);
   * size (or as close to that size as is possible).
   * @param sock the socket to act on.
   * @param sendBufferSizeBytes New requested size for the outgoing-data-buffer, in bytes.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t SetSocketSendBufferSize(const ConstSocketRef & sock, uint32 sendBufferSizeBytes);
 
@@ -448,7 +448,7 @@ int32 GetSocketSendBufferSize(const ConstSocketRef & sock);
   * size (or as close to that size as is possible).
   * @param sock the socket to act on.
   * @param receiveBufferSizeBytes New size of the incoming-data-buffer, in bytes.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t SetSocketReceiveBufferSize(const ConstSocketRef & sock, uint32 receiveBufferSizeBytes);
 
@@ -478,7 +478,7 @@ public:
      * @note this method may be called by different threads, so it needs to be thread-safe.
      * @param eventType a SOCKET_CALLBACK_* value indicating what caused this callback call.
      * @param sock The socket in question
-     * @returns B_NO_ERROR on success, or B_ERROR if the calling operation should be aborted.
+     * @return B_NO_ERROR on success, or an error code if the calling operation should be aborted.
      */
    virtual status_t SocketCallback(uint32 eventType, const ConstSocketRef & sock) = 0;
 
@@ -523,7 +523,8 @@ GlobalSocketCallback * GetGlobalSocketCallback();
   *                       next keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by  
   *                       the operating system, so the actual timeout period may be somewhat more or less than the specified number
   *                       of microseconds.  (Currently it gets rounded up to the nearest second)
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
+  * @note This function is currently implemented only on Linux; on other OS's it will always just return B_UNIMPLEMENTED.
   */
 status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbeCount, uint64 idleTime, uint64 retransmitTime);
 
@@ -533,7 +534,8 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
   * @param retMaxProbeCount if non-NULL, the max-probe-count value of the socket will be written into this argument.
   * @param retIdleTime if non-NULL, the idle-time of the socket will be written into this argument.
   * @param retRetransmitTime if non-NULL, the transmit-time of the socket will be written into this argument.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
+  * @note This function is currently implemented only on Linux; on other OS's it will always just return B_UNIMPLEMENTED.
   * @see SetSocketKeepAliveBehavior()
   */ 
 status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMaxProbeCount, uint64 * retIdleTime, uint64 * retRetransmitTime);
@@ -573,7 +575,7 @@ ConstSocketRef CreateUDPSocket();
  *                     can bind to it simultaneously.  This is useful for sockets that are 
  *                     to be receiving multicast or broadcast UDP packets, since then you can 
  *                     run multiple UDP multicast or broadcast-receiving processes on a single computer. 
- *  @returns B_NO_ERROR on success, or B_ERROR on failure.
+ *  @returns B_NO_ERROR on success, or an error code on failure.
  */
 status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRetPort = NULL, const IPAddress & optFrom = invalidIP, bool allowShared = false);
 
@@ -584,7 +586,7 @@ status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRet
  *  @param sock The UDP socket to send to (previously created by CreateUDPSocket()).
  *  @param remoteIP Remote IP address that data should be sent to.
  *  @param remotePort Remote UDP port ID that data should be sent to.
- *  @returns B_NO_ERROR on success, or B_ERROR on failure.
+ *  @returns B_NO_ERROR on success, or an error code on failure.
  */
 status_t SetUDPSocketTarget(const ConstSocketRef & sock, const IPAddress & remoteIP, uint16 remotePort);
 
@@ -598,7 +600,7 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const IPAddress & remot
   *                        will attempt to determine the host machine's actual primary IP
   *                        address and return that instead.  Otherwise, 127.0.0.1 will be
   *                        returned in this case.  Defaults to false.
- *  @returns B_NO_ERROR on success, or B_ERROR on failure.
+ *  @returns B_NO_ERROR on success, or an error code on failure.
  */
 status_t SetUDPSocketTarget(const ConstSocketRef & sock, const char * remoteHostName, uint16 remotePort, bool expandLocalhost = false);
 
@@ -606,7 +608,7 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const char * remoteHost
  *  @param sock UDP socket to enable or disable the sending of broadcast UDP packets with.
  *              (Note that the default state of newly created UDP sockets is broadcast-disabled)
  *  @param broadcast True if broadcasting should be enabled, false if broadcasting should be disabled.
- *  @returns B_NO_ERROR on success, or B_ERROR on failure.
+ *  @returns B_NO_ERROR on success, or an error code on failure.
  *  @note this function is only useful in conjunction with IPv4 sockets.  IPv6 doesn't use broadcast anyway.
  */
 status_t SetUDPSocketBroadcastEnabled(const ConstSocketRef & sock, bool broadcast);
@@ -624,7 +626,7 @@ bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock);
   * this socket or not (IP_MULTICAST_LOOP).  Default state is enabled/true.
   * @param sock The socket to set the state of the IP_MULTICAST_LOOP flag on.
   * @param multicastToSelf If true, enable loopback.  Otherwise, disable it.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t SetSocketMulticastToSelf(const ConstSocketRef & sock, bool multicastToSelf);
 
@@ -641,7 +643,7 @@ bool GetSocketMulticastToSelf(const ConstSocketRef & sock);
   * 32-63 ("local region only"), 64-127 ("local continent only"), or 128-255 ("global").
   * @param sock The socket to set the TTL value for
   * @param ttl The ttl value to set (see above).
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t SetSocketMulticastTimeToLive(const ConstSocketRef & sock, uint8 ttl);
 
@@ -659,7 +661,7 @@ uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock);
   * an appropriate default interface to send on.
   * @param sock The socket to set the sending interface for.
   * @param address The address of the local interface to send multicast packets on.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t SetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, const IPAddress & address);
 
@@ -676,7 +678,7 @@ IPAddress GetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
   * @param localInterfaceAddress Optional IP address of the local interface use for receiving
   *                              data from this group.  If left as (invalidIP), an appropriate
   *                              interface will be chosen automatically.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress = invalidIP);
 
@@ -687,7 +689,7 @@ status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress 
   * @param localInterfaceAddress Optional IP address of the local interface used for receiving
   *                              data from this group.  If left as (invalidIP), the first matching
   *                              group will be removed.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress = invalidIP);
 
@@ -700,7 +702,7 @@ status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAdd
   * @param interfaceIndex Optional index of the interface to send the multicast packets on.
   *                       Zero means the default interface, larger values mean another interface.
   *                       You can call GetNetworkInterfaceInfos() to get the list of available interfaces.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t SetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock, uint32 interfaceIndex);
 
@@ -717,14 +719,14 @@ int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock);
   * @note Under Windows this call will fail unless the socket has already
   *       been bound to a port (e.g. with BindUDPSocket()).  Other OS's don't
   *       seem to have that requirement.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress);
 
 /** Attempts to remove the specified socket from the specified multicast group that it was previously added to.
   * @param sock The socket to add to the multicast group
   * @param groupAddress The IP address of the multicast group.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress);
 

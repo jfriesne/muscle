@@ -104,7 +104,7 @@ public:
 /** For debugging.  On success, populates (results) with type names and their associated object counts,
   * respectively.
   * @param results a Hashtable to populate.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory, or -DMUSCLE_TRACK_OBJECT_COUNTS wasn't defined)
+  * @returns B_NO_ERROR on success, or B_LOCK_FAILED, or B_OUT_OF_MEMORY, or B_UNIMPLEMENTED (if -DMUSCLE_TRACK_OBJECT_COUNTS wasn't defined).
   */
 status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results);
 

@@ -129,7 +129,7 @@ public:
      * the server's results are returned before this method returns.
      * @param optReceiver optional object to call MessageReceivedFromGateway() on when a reply Message is received.
      * @param timeoutPeriod Optional timeout period in microseconds, or MUSCLE_TIME_NEVER if no timeout is requested.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (timeout or network error)
+     * @returns B_NO_ERROR on success, or an error code on failure (timeout or network error)
      */
    virtual status_t ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64 timeoutPeriod = MUSCLE_TIME_NEVER);
 
@@ -148,11 +148,11 @@ public:
 
    /** This method is similar to ExecuteSynchronousMessageRPCCall(), except that it doesn't wait for a reply Message.
      * Instead, it sends the specified (requestMessage), and returns B_NO_ERROR if the Message successfully goes out
-     * over the TCP socket, or B_ERROR otherwise.
+     * over the TCP socket, or an error code otherwise.
      * @param requestMessage the request Message to send
      * @param targetIAP Where to connect to (via TCP) to send (requestMessage)
      * @param timeoutPeriod The maximum amount of time this function should wait for TCP to connect, before returning.
-     * @returns B_NO_ERROR if the Message was sent, or B_ERROR if we couldn't connect (or if we connected but couldn't send the data).
+     * @returns B_NO_ERROR if the Message was sent, or an error code if we couldn't connect (or if we connected but couldn't send the data).
      *          Note that there is no way to know what (if anything) the receiving client did with the Message.
      */
    status_t ExecuteSynchronousMessageSend(const Message & requestMessage, const IPAddressAndPort & targetIAP, uint64 timeoutPeriod = MUSCLE_TIME_NEVER);
@@ -228,7 +228,7 @@ protected:
    /** 
      * Removes the next MessageRef from our outgoing Message queue and returns it in (retMsg).
      * @param retMsg on success, the next MessageRef to send will be written into this MessageRef.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (queue was empty)
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (queue was empty)
      */
    virtual status_t PopNextOutgoingMessage(MessageRef & retMsg);
 

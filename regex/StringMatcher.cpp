@@ -144,11 +144,13 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
    // And compile the new one
    if (_ranges.IsEmpty())
    {
+      status_t ret;
       const int rc = regcomp(&_regExp, regexPattern.HasChars() ? regexPattern() : str, REG_EXTENDED);
-      if (rc == REG_ESPACE) WARN_OUT_OF_MEMORY;
-      const bool isValid = (rc == 0);
-      _flags.SetBit(STRINGMATCHER_FLAG_REGEXVALID, isValid);
-      return isValid ? B_NO_ERROR : B_ERROR;
+           if (rc == REG_ESPACE) {ret = B_OUT_OF_MEMORY; WARN_OUT_OF_MEMORY;}
+      else if (rc != 0)           ret = B_BAD_ARGUMENT;  // we'll assume other return-values from regcomp() all indicate a parse-failure
+
+      _flags.SetBit(STRINGMATCHER_FLAG_REGEXVALID, ret.IsOK());
+      return ret;
    }
    else return B_NO_ERROR;  // for range queries, we don't need a valid regex
 }

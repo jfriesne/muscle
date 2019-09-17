@@ -488,19 +488,19 @@ public:
    uint32 Intersect(const HashtableBase & pairs);
 
    /** Convenience method:  Removes the first key/value mapping in the table.  (O(1) removal time)
-    *  @return B_NO_ERROR if the first mapping was removed, or B_BAD_OBJECT if this table was already empty.
+    *  @return B_NO_ERROR if the first mapping was removed, or B_DATA_NOT_FOUND if this table was already empty.
     */
    status_t RemoveFirst() {return RemoveEntryByIndex(_iterHeadIdx, NULL);}
 
    /** Convenience method:  Removes the first key/value mapping in the table and places the removed key
     *  into (setRemovedKey).  (O(1) removal time)
     *  @param setRemovedKey On success, the removed key is copied into this object.
-    *  @return B_NO_ERROR if the first mapping was removed and the key placed into (setRemovedKey), or B_BAD_OBJECT if the table was already empty.
+    *  @return B_NO_ERROR if the first mapping was removed and the key placed into (setRemovedKey), or B_DATA_NOT_FOUND if the table was already empty.
     */
    status_t RemoveFirst(KeyType & setRemovedKey) 
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
-      if (e == NULL) return B_BAD_OBJECT;
+      if (e == NULL) return B_DATA_NOT_FOUND;
       setRemovedKey = e->_key;
       return RemoveEntry(e, NULL);
    }
@@ -509,34 +509,34 @@ public:
     *  key into (setRemovedKey) and its value into (setRemovedValue).  (O(1) removal time)
     *  @param setRemovedKey On success, the removed key is copied into this object.
     *  @param setRemovedValue On success, the removed value is copied into this object.
-    *  @return B_NO_ERROR if the first mapping was removed and the key and value placed into the arguments, or B_BAD_OBJECT if the table was already empty.
+    *  @return B_NO_ERROR if the first mapping was removed and the key and value placed into the arguments, or B_DATA_NOT_FOUND if the table was already empty.
     */
    status_t RemoveFirst(KeyType & setRemovedKey, ValueType & setRemovedValue) 
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
-      if (e == NULL) return B_BAD_OBJECT;
+      if (e == NULL) return B_DATA_NOT_FOUND;
       setRemovedKey = e->_key;
       return RemoveEntry(e, &setRemovedValue);
    }
 
    /** Convenience method:  Removes the last key/value mapping in the table.  (O(1) removal time)
-    *  @return B_NO_ERROR if the last mapping was removed, or B_BAD_OBJECT if the table was already empty.
+    *  @return B_NO_ERROR if the last mapping was removed, or B_DATA_NOT_FOUND if the table was already empty.
     */
    status_t RemoveLast() 
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
-      return e ? RemoveEntry(e, NULL) : B_BAD_OBJECT;
+      return e ? RemoveEntry(e, NULL) : B_DATA_NOT_FOUND;
    }
 
    /** Convenience method:  Removes the last key/value mapping in the table and places the removed key
     *  into (setRemovedKey).  (O(1) removal time)
     *  @param setRemovedKey On success, the removed key is copied into this object.
-    *  @return B_NO_ERROR if the last mapping was removed and the key placed into (setRemovedKey), or B_BAD_OBJECT if the table was already empty.
+    *  @return B_NO_ERROR if the last mapping was removed and the key placed into (setRemovedKey), or B_DATA_NOT_FOUND if the table was already empty.
     */
    status_t RemoveLast(KeyType & setRemovedKey) 
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
-      if (e == NULL) return B_BAD_OBJECT;
+      if (e == NULL) return B_DATA_NOT_FOUND;
       setRemovedKey = e->_key;
       return RemoveEntry(e, NULL);
    }
@@ -545,7 +545,7 @@ public:
     *  key into (setRemovedKey) and its value into (setRemovedValue).  (O(1) removal time)
     *  @param setRemovedKey On success, the removed key is copied into this object.
     *  @param setRemovedValue On success, the removed value is copied into this object.
-    *  @return B_NO_ERROR if the last mapping was removed and the key and value placed into the arguments, or B_BAD_OBJECT if the table was already empty.
+    *  @return B_NO_ERROR if the last mapping was removed and the key and value placed into the arguments, or B_DATA_NOT_FOUND if the table was already empty.
     */
    status_t RemoveLast(KeyType & setRemovedKey, ValueType & setRemovedValue) 
    {

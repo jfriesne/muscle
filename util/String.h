@@ -382,7 +382,7 @@ public:
 
    /** Shrinks our internally allocated buffer down so that it is just big enough to hold the current string (plus numExtraBytes)
      * @param numExtraBytes an additional number of bytes that the buffer should have room for.  Defaults to zero.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure (although I don't know why this method would ever fail).
      */
    status_t ShrinkToFit(uint32 numExtraBytes = 0) {return EnsureBufferSize(FlattenedSize()+numExtraBytes, true, true);}
 
@@ -402,14 +402,14 @@ public:
      *                   Defaults to zero, so that by default the entire string is included.
      * @param endIndex Index after the last character in (str) to include.  
      *                 Defaults to a very large number, so that by default the entire remainder of the string is included.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t SetFromString(const String & str, uint32 beginIndex = 0, uint32 endIndex = MUSCLE_NO_LIMIT);
 
 #ifdef __APPLE__
    /** MACOS/X-only convenience method:  Sets our string equal to the string pointed to by (cfStringRef).
      * @param cfStringRef A CFStringRef that we will get our string value from.  May be NULL (in which case we'll be set to an empty string)
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetFromCFStringRef(const CFStringRef & cfStringRef);
 
@@ -981,7 +981,7 @@ public:
     *  at least (numChars) bytes long (not including the NUL byte).
     *  If not, this method will try to allocate the space.  
     *  @param numChars How much space to pre-allocate, in ASCII characters.
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory).
+    *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */ 
    status_t Prealloc(uint32 numChars) {return EnsureBufferSize(numChars+1, true, false);}
 

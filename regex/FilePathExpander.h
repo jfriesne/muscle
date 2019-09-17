@@ -14,7 +14,7 @@ namespace muscle {
   * @param outputPaths On successful return, this will contain all matching files and folders discovered.
   * @param isSimpleFormat if true, a simple globbing syntax is expected in (expression).  
   *                       Otherwise, the full regex syntax will be expected.  Defaults to true.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY.
   */
 status_t ExpandFilePathWildCards(const String & path, Queue<String> & outputPaths, bool isSimpleFormat = true);
 

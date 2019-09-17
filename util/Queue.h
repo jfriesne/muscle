@@ -206,7 +206,7 @@ public:
    ItemType * AddHeadAndGet();
 
    /** Removes the item at the head of the queue.
-    *  @return B_NO_ERROR on success, or B_BAD_OBJECT if the queue was already empty.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the queue was already empty.
     */
    status_t RemoveHead();
 
@@ -223,18 +223,18 @@ public:
 
    /** Removes the item at the head of the queue and places it into (returnItem).
     *  @param returnItem On success, the removed item is copied into this object.
-    *  @return B_NO_ERROR on success, or B_BAD_OBJECT if the queue was empty
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the queue was empty
     */
    status_t RemoveHead(ItemType & returnItem);
 
    /** Removes the item at the tail of the queue.
-    *  @return B_NO_ERROR on success, or B_BAD_OBJECT if the queue was empty.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the queue was empty.
     */
    status_t RemoveTail();
 
    /** Removes the item at the tail of the queue and places it into (returnItem).
     *  @param returnItem On success, the removed item is copied into this object.
-    *  @return B_NO_ERROR on success, or B_BAD_OBJECT if the queue was empty
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the queue was empty
     */
    status_t RemoveTail(ItemType & returnItem);
 
@@ -1029,7 +1029,7 @@ status_t
 Queue<ItemType>::
 RemoveHead(ItemType & returnItem)
 {
-   if (_itemCount == 0) return B_BAD_OBJECT;
+   if (_itemCount == 0) return B_DATA_NOT_FOUND;
    returnItem = _queue[_headIndex];
    return RemoveHead();
 }
@@ -1059,7 +1059,7 @@ status_t
 Queue<ItemType>::
 RemoveHead()
 {
-   if (_itemCount == 0) return B_BAD_OBJECT;
+   if (_itemCount == 0) return B_DATA_NOT_FOUND;
    const uint32 oldHeadIndex = _headIndex;
    _headIndex = NextIndex(_headIndex);
    _itemCount--;
@@ -1086,7 +1086,7 @@ status_t
 Queue<ItemType>::
 RemoveTail(ItemType & returnItem)
 {
-   if (_itemCount == 0) return B_BAD_OBJECT;
+   if (_itemCount == 0) return B_DATA_NOT_FOUND;
    returnItem = _queue[_tailIndex];
    return RemoveTail();
 }
@@ -1096,7 +1096,7 @@ status_t
 Queue<ItemType>::
 RemoveTail()
 {
-   if (_itemCount == 0) return B_BAD_OBJECT;
+   if (_itemCount == 0) return B_DATA_NOT_FOUND;
    const uint32 removedItemIndex = _tailIndex;
    _tailIndex = PrevIndex(_tailIndex);
    _itemCount--;

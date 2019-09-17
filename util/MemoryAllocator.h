@@ -28,7 +28,7 @@ public:
     *  @param allocRequestBytes How many bytes the system would like to allocate.
     *  @note Implementations of this method shall assume that calls to this method will
     *        be serialized, so they don't need to do any serialization themselves.
-    *  @return Should return B_NO_ERROR if the allocation may proceed, or B_ERROR if the allocation should fail.
+    *  @return Should return B_NO_ERROR if the allocation may proceed, or an error code if the allocation should fail.
     */
    virtual status_t AboutToAllocate(size_t currentlyAllocatedBytes, size_t allocRequestBytes) = 0;
 

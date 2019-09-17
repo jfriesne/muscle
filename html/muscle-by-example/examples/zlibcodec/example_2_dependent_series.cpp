@@ -34,7 +34,7 @@ status_t VerifyInflatedData(const ByteBuffer & inflatedData)
    static uint8 v = 0;
    for (uint32 i=0; i<numBytes; i++)
    {
-      if (b[i] != v) return B_ERROR;
+      if (b[i] != v) return B_LOGIC_ERROR;  // wtf?
       v++;
    }
 

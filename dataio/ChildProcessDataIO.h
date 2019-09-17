@@ -55,7 +55,7 @@ public:
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
                            variables in the child process.
-     * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
+     * @return B_NO_ERROR on success, or an error code if the launch failed.
      */
    status_t LaunchChildProcess(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL) {return LaunchChildProcessAux(muscleMax(0,argc), argv, launchFlags, optDirectory, optEnvironmentVariables);}
 
@@ -66,7 +66,7 @@ public:
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
                            variables in the child process.
-     * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
+     * @return B_NO_ERROR on success, or an error code if the launch failed.
      */
    status_t LaunchChildProcess(const char * cmd, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL) {return LaunchChildProcessAux(-1, cmd, launchFlags, optDirectory, optEnvironmentVariables);}
 
@@ -78,7 +78,7 @@ public:
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
                            variables in the child process.
-     * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
+     * @return B_NO_ERROR on success, or an error code if the launch failed.
      */
    status_t LaunchChildProcess(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
@@ -151,10 +151,9 @@ public:
 
    /** Called within the child process, just before the child process's
      * executable image is loaded in.  Default implementation is a no-op
-     * that just returns B_NO_ERROR.
+     * that always just returns B_NO_ERROR.
      * @note This method is not called when running under Windows!
-     * @return B_NO_ERROR on success, or B_ERROR on failure (in which case
-     *                    the child process will not run, but rather just exit immediately)
+     * @return B_NO_ERROR on success, or an error code on failure (in which case the child process will not execute, but rather just exit immediately)
      */
    virtual status_t ChildProcessReadyToRun();
 
@@ -166,15 +165,15 @@ public:
 #endif
 
    /** Tries to forcibly kill the child process immediately. 
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t KillChildProcess();
 
    /** Sends the specified signal to the child process.
      * Note that this method is not currently implemented under Windows, 
-     * and thus under Windows this method is a no-op that just returns B_ERROR.
+     * and thus under Windows this method is a no-op that just returns B_UNIMPLEMENTED.
      * @param sigNum a signal number, e.g. SIGINT or SIGHUP.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t SignalChildProcess(int sigNum);
 
@@ -217,7 +216,7 @@ public:
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
                            variables in the child process.
-     * @returns B_NO_ERROR if the child process was launched, or B_ERROR if the child process could not be launched.
+     * @returns B_NO_ERROR if the child process was launched, or an error code if the child process could not be launched.
      */
    static status_t System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
@@ -236,7 +235,7 @@ public:
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
                            variables in the child process.
-     * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
+     * @return B_NO_ERROR on success, or an error code if the launch failed.
      */
    static status_t System(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
@@ -246,7 +245,7 @@ public:
      * until that process has completed.
      * @param cmdLine The command string to launch (as if typed into a shell)
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
-     * @returns B_NO_ERROR if the child process was launched, or B_ERROR
+     * @returns B_NO_ERROR if the child process was launched, or an error code
      *          if the child process could not be launched.
      * @param maxWaitTimeMicros If specified, this is the maximum amount of time (in microseconds) 
      *                          that we should wait for the child process to exit before continuing.
@@ -267,7 +266,7 @@ public:
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
                                       variables in the child process.
-     * @returns B_NO_ERROR if the child process was launched, or B_ERROR if the child process could not be launched.
+     * @returns B_NO_ERROR if the child process was launched, or an error code if the child process could not be launched.
      */
    static status_t LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
@@ -279,7 +278,7 @@ public:
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
                                       variables in the child process.
-     * @return B_NO_ERROR on success, or B_ERROR if the launch failed.
+     * @return B_NO_ERROR on success, or an error code if the launch failed.
      */
    static status_t LaunchIndependentChildProcess(const Queue<String> & argv, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL);
 
@@ -290,7 +289,7 @@ public:
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
                                       variables in the child process.
-     * @returns B_NO_ERROR if the child process was launched, or B_ERROR if the child process could not be launched.
+     * @returns B_NO_ERROR if the child process was launched, or an error code if the child process could not be launched.
      */
    static status_t LaunchIndependentChildProcess(const char * cmdLine, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL);
 

@@ -82,7 +82,7 @@ public:
    virtual ~Thread();
 
    /** Start the internal thread running
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory, or thread is already running)
+     * @returns B_NO_ERROR on success, or B_BAD_OBJECT if our internal thread is already running, or etc.
      */
    virtual status_t StartInternalThread();
 
@@ -116,7 +116,7 @@ public:
      * before deleting this Thread object or calling StartInternalThread() again--even if 
      * your thread has already terminated itself!  That way consistency is guaranteed and
      * race conditions are avoided.
-     * @returns B_NO_ERROR on success, or B_ERROR if the internal thread wasn't running.
+     * @returns B_NO_ERROR on success, or B_BAD_OBJECT if the internal thread wasn't running.
      */
    status_t WaitForInternalThreadToExit();
 
@@ -126,7 +126,7 @@ public:
      * MessageRef will be queued up and available to the internal thread to process when it is started.
      * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
      * @param msg Reference to the message that is to be given to the internal thread. 
-     * @return B_NO_ERROR on success, or B_ERROR on failure (out of memory)
+     * @return B_NO_ERROR on success, or an error code on failure (out of memory?)
      */
    virtual status_t SendMessageToInternalThread(const MessageRef & msg);
 
@@ -159,7 +159,7 @@ public:
      * Should be called exactly once after each successful call to LockAndReturnMessageQueue().
      * After this call returns, it is no longer safe to use the pointer that was
      * previously returned by LockAndReturnMessageQueue().
-     * @returns B_NO_ERROR on success, or B_ERROR if the unlock call failed (perhaps it wasn't locked?)
+     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the unlock call failed (perhaps it wasn't locked?)
      */
    status_t UnlockMessageQueue();
 
@@ -176,7 +176,7 @@ public:
      * Should be called exactly once after each successful call to LockAndReturnReplyQueue().
      * After this call returns, it is no longer safe to use the pointer that was
      * previously returned by LockAndReturnReplyQueue().
-     * @returns B_NO_ERROR on success, or B_ERROR if the unlock call failed (perhaps it wasn't locked?)
+     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the unlock call failed (perhaps it wasn't locked?)
      */
    status_t UnlockReplyQueue();
 
@@ -227,16 +227,16 @@ public:
      * whenever this socket indicates that it is (ready-for-read, ready-for-write, or has-exception)
      * @param sock The socket to watch.
      * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are interested in
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (socket ref was NULL, or out of memory?).
+     * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if sock ref was NULL, or B_OUT_OF_MEMORY.
      * @note This method should only be called from the main thread!
      */
-   virtual status_t RegisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return sock() ? GetOwnerThreadSocketSetRW(socketSet).Put(sock, false) : B_ERROR;}
+   virtual status_t RegisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return sock() ? GetOwnerThreadSocketSetRW(socketSet).Put(sock, false) : B_BAD_ARGUMENT;}
 
    /** Unregisters the specified socket so that WaitForNextMessageFromOwner() will no longer return
      * because this socket indicated that it is (ready-for-read, ready-for-write, or has-exception)
      * @param sock The socket to watch.
      * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are no longer interested in
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (sock wasn't registered?).
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (sock wasn't registered?).
      * @note This method should only be called from the main thread!
      */
    virtual status_t UnregisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return GetOwnerThreadSocketSetRW(socketSet).Remove(sock);}
@@ -278,7 +278,7 @@ public:
      * If the thread is currently running, the change will take place immediately; otherwise
      * the priority will be set when the thread is started.
      * @param newPriority a PRIORITY_* value indicating how much CPU-priority this thread should have over other threads.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetThreadPriority(int newPriority);
 
@@ -325,7 +325,7 @@ protected:
      * @note this method will not be called if this Thread was created with constructor argument useMessagingSockets=false.
      * @param msgRef Reference to the just-received Message object.
      * @param numLeft Number of Messages still left in the owner's message queue.
-     * @return B_NO_ERROR if you wish to continue processing, or B_ERROR if you wish to
+     * @return B_NO_ERROR if you wish to continue processing, or an error code if you wish to
      *                    terminate the internal thread and go away.
      */
    virtual status_t MessageReceivedFromOwner(const MessageRef & msgRef, uint32 numLeft);
@@ -335,7 +335,7 @@ protected:
      * (if necessary) to notify the main thread that replies are pending.
      * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
      * @param replyRef MessageRef to send back to the owning thread.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t SendMessageToOwner(const MessageRef & replyRef);
 
@@ -397,12 +397,12 @@ protected:
 
    /** Locks the lock we use to serialize calls to SignalInternalThread() and
      * SignalOwner().  Be sure to call UnlockSignallingLock() when you are done with the lock.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (couldn't lock)
+     * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure.
      */
    status_t LockSignalling() {return _signalLock.Lock();}
 
    /** Unlocks the lock we use to serialize calls to SignalInternalThread() and SignalOwner().  
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (couldn't unlock)
+     * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure.
      */
    status_t UnlockSignalling() {return _signalLock.Unlock();}
 
@@ -441,16 +441,16 @@ protected:
      * whenever this socket indicates that it is (ready-for-read, ready-for-write, or has-exception)
      * @param sock The socket to watch.
      * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are interested in
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (socket ref was NULL, or out of memory?).
+     * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if (sock) was a NULL ref, or B_OUT_OF_MEMORY;
      * @note This method should only be called from the internal thread!
      */
-   virtual status_t RegisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return sock() ? GetInternalThreadSocketSetRW(socketSet).Put(sock, false) : B_ERROR;}
+   virtual status_t RegisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return sock() ? GetInternalThreadSocketSetRW(socketSet).Put(sock, false) : B_BAD_ARGUMENT;}
 
    /** Unregisters the specified socket so that WaitForNextMessageFromOwner() will no longer return
      * because this socket indicated that it is (ready-for-read, ready-for-write, or has-exception)
      * @param sock The socket to watch.
      * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are no longer interested in
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (sock wasn't registered).
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (sock wasn't registered).
      * @note This method should only be called from the internal thread!
      */
    virtual status_t UnregisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return GetInternalThreadSocketSetRW(socketSet).Remove(sock);}

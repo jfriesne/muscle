@@ -44,7 +44,7 @@ public:
      * the server.
      * @param args This Message can contain whatever initialization
      *             arguments need to be passed to the new session.
-     * @returns B_NO_ERROR on success, of B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t AddNewThreadedInternalSession(const MessageRef & args);
 

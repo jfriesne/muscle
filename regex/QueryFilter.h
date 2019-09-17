@@ -58,7 +58,7 @@ public:
 
    /** @copydoc DoxyTemplate::SetFromArchive(const Message &)
     *  @note the base-class implementation returns B_NO_ERROR if the archive's 'what'-code causes our AcceptTypeCode() method 
-    *        to return true, or B_ERROR otherwise.  Other than that it does nothing.
+    *        to return true, or B_TYPE_MISMATCH otherwise.  Other than that it does nothing.
     */     
    virtual status_t SetFromArchive(const Message & archive);
 
@@ -265,22 +265,26 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const
    {
-      return ((ValueQueryFilter::SaveToArchive(archive)                                                      == B_NO_ERROR)&&
-              (archive.CAddInt8("op", _op)                                                                   == B_NO_ERROR)&&
-              (archive.CAddInt8("mop", _maskOp)                                                              == B_NO_ERROR)&&
-              (archive.AddData("val", DataTypeCode, &_value, sizeof(_value))                                 == B_NO_ERROR)&&
-              (archive.AddData("msk", DataTypeCode, &_mask,  sizeof(_mask))                                  == B_NO_ERROR)&&
-              ((_assumeDefault == false)||(archive.AddData("val", DataTypeCode, &_default, sizeof(_default)) == B_NO_ERROR))) ? B_NO_ERROR : B_ERROR;
+      status_t ret;
+      return ((ValueQueryFilter::SaveToArchive(archive)                                                     .IsOK(ret))&&
+              (archive.CAddInt8("op", _op)                                                                  .IsOK(ret))&&
+              (archive.CAddInt8("mop", _maskOp)                                                             .IsOK(ret))&&
+              (archive.AddData("val", DataTypeCode, &_value, sizeof(_value))                                .IsOK(ret))&&
+              (archive.AddData("msk", DataTypeCode, &_mask,  sizeof(_mask))                                 .IsOK(ret))&&
+              ((_assumeDefault == false)||(archive.AddData("val", DataTypeCode, &_default, sizeof(_default)).IsOK(ret)))) ? B_NO_ERROR : ret;
    }
 
    virtual status_t SetFromArchive(const Message & archive)
    {
       _assumeDefault = false;
 
+      status_t ret;
       const void * dt = NULL;  // dt doesn't really need to be set to NULL here, but doing so avoids a compiler-warning --jaf
       uint32 numBytes;
-      if ((ValueQueryFilter::SetFromArchive(archive) == B_NO_ERROR)&&(archive.FindData("val", DataTypeCode, &dt, &numBytes) == B_NO_ERROR)&&(numBytes == sizeof(_value)))
+      if ((ValueQueryFilter::SetFromArchive(archive).IsOK(ret))&&(archive.FindData("val", DataTypeCode, &dt, &numBytes).IsOK(ret)))
       {
+         if (numBytes != sizeof(_value)) return B_BAD_DATA;
+
          _op     = archive.GetInt8("op");
          _value  = *((DataType *)dt);
          _maskOp = archive.GetInt8("mop");
@@ -293,7 +297,7 @@ public:
          }
          return B_NO_ERROR;
       }
-      return B_ERROR;
+      else return ret;
    }
 
    virtual uint32 TypeCode() const {return ClassTypeCode;}

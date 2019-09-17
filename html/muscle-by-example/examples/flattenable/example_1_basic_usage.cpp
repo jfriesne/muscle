@@ -71,7 +71,7 @@ public:
 
    virtual status_t Unflatten(const uint8 *buffer, uint32 numBytes)
    {
-      if (numBytes < FlattenedSize()) return B_ERROR;
+      if (numBytes < FlattenedSize()) return B_BAD_DATA;
 
       const uint8 * readFrom = buffer;
       _latitude  = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<uint32>(readFrom));

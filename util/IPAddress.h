@@ -208,7 +208,7 @@ public:
    /** Given a human-readable IP-address string (as returned by ToString()), sets this IPAddress object to the
      * value represented by the string.  Behaves similarly to Inet_AtoN()
      * @param ipAddressString The string to parse
-     * @returns B_NO_ERROR on success, or B_ERROR if the String could not be parsed.
+     * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the String could not be parsed.
      */
    status_t SetFromString(const String & ipAddressString);
 
@@ -414,7 +414,7 @@ public:
    /** Restores this point from an endian-neutral flattened buffer.
     *  @param buffer Points to an array of (size) bytes
     *  @param size The number of bytes (buffer) points to (should be at least FlattenedSize())
-    *  @return B_NO_ERROR on success, B_ERROR on failure (size was too small)
+    *  @return B_NO_ERROR on success, B_BAD_DATA on failure (size was too small)
     */
    status_t Unflatten(const uint8 * buffer, uint32 size);
 

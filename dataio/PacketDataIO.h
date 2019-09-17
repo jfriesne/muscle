@@ -44,8 +44,7 @@ public:
      * to set/change the IPAddressAndPort that outgoing packets will
      * be sent to (by default).
      * @param iap The new default address-and-port to send outgoing packets to.
-     * @returns B_NO_ERROR if the operation was successful, or B_ERROR if it failed.
-     * The default implementation just returns B_ERROR.
+     * @returns B_NO_ERROR if the operation was successful, or an error code if it failed.
      */
    virtual status_t SetPacketSendDestination(const IPAddressAndPort & iap) = 0;
 

@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.50 
    - Merged in some iOS-compatibility patches supplied
      by Arno Gramatke.  The CMakeLists.txt now does the
      right thing for iOS, and several non-iOS-supported

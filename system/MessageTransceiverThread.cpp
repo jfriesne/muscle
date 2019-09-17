@@ -88,7 +88,7 @@ status_t MessageTransceiverThread :: SendMessageToSessions(const MessageRef & us
    if (msgRef() == NULL) RETURN_OUT_OF_MEMORY;
 
    status_t ret;
-   return ((msgRef()->AddMessage(MTT_NAME_MESSAGE, userMsg).IsOK(ret))&&((optPath==NULL)||(msgRef()->AddString(MTT_NAME_PATH, optPath).IsOK(ret)))) ? SendMessageToInternalThread(msgRef) : ret;
+   return ((msgRef()->AddMessage(MTT_NAME_MESSAGE, userMsg).IsOK(ret))&&(msgRef()->CAddString(MTT_NAME_PATH, optPath).IsOK(ret))) ? SendMessageToInternalThread(msgRef) : ret;
 }
 
 void ThreadWorkerSession :: SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(bool defaultValue)
@@ -251,7 +251,7 @@ status_t MessageTransceiverThread :: SetSSLPreSharedKeyLoginInfo(const String & 
       if (msgRef() == NULL) RETURN_OUT_OF_MEMORY;
 
       status_t ret;
-      return ((msgRef()->AddString(MTT_NAME_DATA, _pskUserName).IsErorr(ret))||(msgRef()->AddString(MTT_NAME_DATA, _pskPassword).IsError(ret))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
+      return ((msgRef()->AddString(MTT_NAME_DATA, _pskUserName).IsError(ret))||(msgRef()->AddString(MTT_NAME_DATA, _pskPassword).IsError(ret))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
    }
    else return B_BAD_OBJECT;
 }

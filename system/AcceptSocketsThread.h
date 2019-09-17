@@ -48,8 +48,8 @@ public:
      * @param optInterfaceIP if specified, this should be the IP address of a local network interface
      *                       to listen for incoming connections on.  If left unspecified (or set to invalidIP)
      *                       then we will accept connections on all network interfaces.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (port couldn't be allocated, or internal
-     *          thread was already running)
+     * @returns B_NO_ERROR on success, or an error code on failure (port couldn't be allocated, or the 
+     *          internal thread was already running)
      */
    status_t SetPort(uint16 port, const IPAddress & optInterfaceIP = invalidIP);
 

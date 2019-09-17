@@ -60,7 +60,7 @@ public:
     *  @note this subclass only supports 32-bit offsets.
     *  @param offset Where to seek to.
     *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END. 
-    *  @return B_NO_ERROR on success, B_ERROR on failure.
+    *  @return B_NO_ERROR on success, an error code on failure.
     */ 
    virtual status_t Seek(int64 offset, int whence)
    {

@@ -186,7 +186,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
 #endif
 
    UnsetArea();  // oops, roll back everything!
-   return B_ERROR;
+   return B_BAD_OBJECT;
 }
 
 status_t SharedMemory :: DeleteArea()
@@ -201,8 +201,9 @@ status_t SharedMemory :: DeleteArea()
    if (_semID >= 0)
 # endif
    {
+      status_t ret;
       if ((_isLocked)&&(_isLockedReadOnly)) UnlockArea();
-      if ((_isLocked)||(LockAreaReadWrite() == B_NO_ERROR))
+      if ((_isLocked)||(LockAreaReadWrite().IsOK(ret)))
       {
 # ifdef WIN32
          const String fileName = _fileName;  // hold as temp since UnsetArea() will clear it
@@ -219,6 +220,7 @@ status_t SharedMemory :: DeleteArea()
          return B_NO_ERROR;
 # endif
       }
+      else return ret;
    }
    return B_BAD_OBJECT;
 #endif
@@ -280,7 +282,7 @@ status_t SharedMemory :: LockArea(bool readOnly)
    return B_NO_ERROR;
 #else
    status_t ret;
-   if (_isLocked) ret = B_BAD_OBJECT;
+   if (_isLocked) ret = B_LOCK_FAILED;
    else
    {
       _isLocked = true;  // Set these first just so they are correct while we're waiting

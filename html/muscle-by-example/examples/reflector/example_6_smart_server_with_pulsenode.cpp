@@ -31,7 +31,8 @@ public:
 
    virtual status_t AttachedToServer()
    {
-      if (StorageReflectSession::AttachedToServer() != B_NO_ERROR) return B_ERROR;
+      status_t ret;
+      if (StorageReflectSession::AttachedToServer().IsError(ret)) return ret;
 
       _nextTimerTime = GetRunTime64();  // now that we're attached, we'd like to get our first Pulse() callback ASAP please
       InvalidatePulseTime();  // make sure GetPulseTime() gets called again ASAP, since we've changed the value it will return

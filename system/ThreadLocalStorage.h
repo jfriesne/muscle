@@ -103,12 +103,12 @@ public:
      *               If (newObj) is non-NULL, then this class takes ownership of the object
      *               and will call delete on it at the appropriate time.  If (newObj) is
      *               NULL, then this method will free any existing object only.
-     * @returns B_NO_ERROR if (newObj) was successfully installed, or B_ERROR if it was not.
+     * @returns B_NO_ERROR if (newObj) was successfully installed, or an error code if it was not.
      *                     If an error occurred, then (newObj) still belongs to the caller.
      */
    status_t SetThreadLocalObject(ObjType * newObj)
    {
-      if (IsSetupOkay() == false) return B_ERROR;
+      if (IsSetupOkay() == false) return B_BAD_OBJECT;
 
       ObjType * oldObj = GetThreadLocalObjectAux();
       if (oldObj == newObj) return B_NO_ERROR;  // nothing to do!
@@ -116,10 +116,11 @@ public:
 #if defined(MUSCLE_USE_QT_THREADLOCALSTORAGE) || defined(MUSCLE_USE_PTHREADS)
       return SetThreadLocalObjectAux(newObj);   // pthreads and Qt manage memory so we don't have to
 #else
-      if (_allocedObjsMutex.Lock() != B_NO_ERROR) return B_ERROR;
 
-      status_t ret = B_NO_ERROR;
-      if (SetThreadLocalObjectAux(newObj) == B_NO_ERROR)  // SetThreadLocalObjectAux() MUST be called first to avoid re-entrancy trouble!
+      status_t ret;
+      if (_allocedObjsMutex.Lock().IsError(ret)) return ret;
+
+      if (SetThreadLocalObjectAux(newObj).IsOK(ret))  // SetThreadLocalObjectAux() MUST be called first to avoid re-entrancy trouble!
       {
          const int32 idx = oldObj ? _allocedObjs.IndexOf(oldObj) : -1;
          if (idx >= 0)
@@ -129,7 +130,6 @@ public:
          }
          else if (newObj) (void) _allocedObjs.AddTail(newObj);
       }
-      else ret = B_ERROR;
 
       _allocedObjsMutex.Unlock();
       if (ret == B_NO_ERROR) delete oldObj;
@@ -185,9 +185,9 @@ private:
 #elif defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
       _threadLocalObject = o;   return B_NO_ERROR;
 #elif defined(MUSCLE_USE_PTHREADS)
-      return (pthread_setspecific(_key, o) == 0) ? B_NO_ERROR : B_ERROR;
+      return (pthread_setspecific(_key, o) == 0) ? B_NO_ERROR : B_ERROR("pthread_setspecific() failed");
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      return TlsSetValue(_tlsIndex, o) ? B_NO_ERROR : B_ERROR;
+      return TlsSetValue(_tlsIndex, o) ? B_NO_ERROR : B_ERRNO;
 #endif
    }
 

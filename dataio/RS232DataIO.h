@@ -58,7 +58,7 @@ public:
    /** Returns a list of serial port names that are present on this machine.
     *  These names may be passed in to the constructor of this class verbatim.
     *  @param retList On success, this list will contain serial port names.
-    *  @return B_NO_ERROR on success, or B_ERROR on failure.
+    *  @return B_NO_ERROR on success, or an error code on failure.
     */
    static status_t GetAvailableSerialPortNames(Queue<String> & retList);
 

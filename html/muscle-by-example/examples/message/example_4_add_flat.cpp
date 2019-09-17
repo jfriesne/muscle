@@ -69,32 +69,33 @@ public:
 
    virtual status_t Unflatten(const uint8 *buffer, uint32 numBytes)
    {
-      if (numBytes < sizeof(uint32)) return B_ERROR;
+      if (numBytes < sizeof(uint32)) return B_BAD_DATA;
 
       const uint8 * readFrom = buffer;
       const uint8 * afterEnd = buffer+numBytes;   // points to the first forbidden byte after then end of our (buffer, numBytes) array
 
       const uint32 flattenedSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(readFrom));
-      if (numBytes < flattenedSize) return B_ERROR;  // truncated input buffer?!
+      if (numBytes < flattenedSize) return B_BAD_DATA;  // truncated input buffer?!
       readFrom += sizeof(flattenedSize);
 
-      if (_name.Unflatten(readFrom, numBytes) != B_NO_ERROR) return B_ERROR;
+      status_t ret;
+      if (_name.Unflatten(readFrom, numBytes).IsError(ret)) return ret;
       readFrom += _name.FlattenedSize();
-      if (readFrom >= afterEnd) return B_ERROR;
+      if (readFrom >= afterEnd) return B_BAD_DATA;
       
-      if (_address.Unflatten(readFrom, numBytes) != B_NO_ERROR) return B_ERROR;
+      if (_address.Unflatten(readFrom, numBytes).IsError(ret)) return ret;
       readFrom += _address.FlattenedSize();
-      if (readFrom >= afterEnd) return B_ERROR;
+      if (readFrom >= afterEnd) return B_BAD_DATA;
 
-      if (_city.Unflatten(readFrom, numBytes) != B_NO_ERROR) return B_ERROR;
+      if (_city.Unflatten(readFrom, numBytes).IsError(ret)) return ret;
       readFrom += _city.FlattenedSize();
-      if (readFrom >= afterEnd) return B_ERROR;
+      if (readFrom >= afterEnd) return B_BAD_DATA;
 
-      if (_state.Unflatten(readFrom, numBytes) != B_NO_ERROR) return B_ERROR;
+      if (_state.Unflatten(readFrom, numBytes).IsError(ret)) return ret;
       readFrom += _state.FlattenedSize();
-      if (readFrom >= afterEnd) return B_ERROR;
+      if (readFrom >= afterEnd) return B_BAD_DATA;
 
-      if ((afterEnd-readFrom) < sizeof(_zipCode)) return B_ERROR;
+      if ((afterEnd-readFrom) < sizeof(_zipCode)) return B_BAD_DATA;
       _zipCode = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(readFrom));
 
       // success!

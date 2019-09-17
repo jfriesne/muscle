@@ -106,7 +106,7 @@ public:
      * @param allocExtra If true, and we need to resize the buffer larger, we will use an exponential resize
      *                   so that the number of reallocations is small.  This is useful if you are going to be
      *                   doing a number of small appends.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY.
      */
    status_t AppendByte(uint8 theByte, bool allocExtra = true) {return AppendBytes(&theByte, 1, allocExtra);}
 
@@ -116,14 +116,14 @@ public:
      * @param allocExtra If true, and we need to resize the buffer larger, we will use an exponential resize
      *                   so that the number of reallocations is small.  This is useful if you are going to be
      *                   doing a number of small appends.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY.
      */
    status_t AppendBytes(const uint8 * bytes, uint32 numBytes, bool allocExtra = true);
 
    /** Convenience method, works the same as above
      * @param bb A ByteBuffer whose contents we should append to our own.
      * @param allocExtra See above for details
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY.
      */
    status_t AppendBytes(const ByteBuffer & bb, bool allocExtra = true) {return AppendBytes(bb.GetBuffer(), bb.GetNumBytes(), allocExtra);}
 
@@ -141,7 +141,7 @@ public:
      * @param numBytes Number of bytes to copy in (or just to allocate, if (optBuffer) is NULL).  Defaults to zero bytes (i.e., don't allocate a buffer)
      * @param optBuffer May be set to point to an array of bytes to copy into our internal buffer.
      *                  If NULL, this ByteBuffer will contain (numBytes) uninitialized bytes.  Defaults to NULL.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory--there are no side effects if this occurs)
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on out of memory--there are no side effects if that occurs.
      */ 
    status_t SetBuffer(uint32 numBytes = 0, const uint8 * optBuffer = NULL);
 
@@ -163,7 +163,7 @@ public:
      * @param newNumBytes New desired length for our buffer
      * @param retainData If true, we will take steps to ensure our current data is retained (as much as possible).
      *                   Otherwise, the contents of the resized buffer will be undefined.
-     * @return B_NO_ERROR on success, or B_ERROR on out-of-memory.
+     * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY.
      */
    status_t SetNumBytes(uint32 newNumBytes, bool retainData);
 
@@ -171,7 +171,7 @@ public:
     *  is returning a valud greater than GetNumBytes(), this method can be called to free up the unused bytes.
     *  This method calls muscleRealloc(), so it should be quite efficient.  After this method returns successfully,
     *  the number of allocated bytes will be equal to the number of used bytes.
-    *  @returns B_NO_ERROR on success or B_ERROR on failure (although I can't imagine why muscleRealloc() would ever fail)
+    *  @returns B_NO_ERROR on success or B_OUT_OF_MEMORY (although I can't imagine why muscleRealloc() would ever fail)
     */
    status_t FreeExtraBytes();
 
@@ -254,9 +254,9 @@ public:
 
 ///@{
    /** Convenience method for appending one data-item to the end of this buffer.  The buffer will be resized larger if necessary to hold
-     * the written data.  Returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+     * the written data.
      * @param val the value to append to the end of the buffer
-     * @returns B_NO_ERROR on success, or B_ERROR on failure
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure
      */
    status_t AppendInt8(  int8           val) {return AppendInt8s(  &val, 1);}
    status_t AppendInt16( int16          val) {return AppendInt16s( &val, 1);}
@@ -272,10 +272,10 @@ public:
 
 ///@{
    /** Convenience method for appending an array of data-items to the end of this buffer.  The buffer will be resized larger if necessary 
-     * to hold the written data.  Returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+     * to hold the written data.
      * @param vals Pointer to an array of values to append
      * @param numVals the number of value that (vals) points to
-     * @returns B_NO_ERROR on success, or B_ERROR on failure
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure
      */
    status_t AppendInt8s(  const int8   * vals, uint32 numVals) {uint32 w = _numValidBytes; return WriteInt8s(  vals, numVals, w);}
    status_t AppendInt16s( const int16  * vals, uint32 numVals) {uint32 w = _numValidBytes; return WriteInt16s( vals, numVals, w);}
@@ -312,7 +312,7 @@ public:
      * @param optMaxReadSize optional maximum number of bytes to pass to flat.Unflatten().  Default is MUSCLE_NO_LIMIT,
      *                       meaning that the flat.Unflatten() will be given access to the all bytes in this ByteBuffer
      *                       starting at (readByteOffset).
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t ReadFlat(Flattenable & flat, uint32 & readByteOffset, uint32 optMaxReadSize = MUSCLE_NO_LIMIT) const;
 
@@ -341,7 +341,7 @@ public:
      * byte-offset after the written item.  The buffer will be resized larger if necessary to hold the written data.
      * @param val the value to copy in to the buffer
      * @param writeByteOffset the offset-from-the-top-of-the-buffer, in bytes, to write to.  This value will be increased as a side-effect of this call.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY.
      */
    status_t WriteInt8(  int8           val, uint32 & writeByteOffset) {return WriteInt8s(  &val, 1, writeByteOffset);}
    status_t WriteInt16( int16          val, uint32 & writeByteOffset) {return WriteInt16s( &val, 1, writeByteOffset);}
@@ -358,11 +358,10 @@ public:
 ///@{
    /** Convenience method for writing an array data-items to a specified offset in this buffer.  (writeByteOffset) will be advanced to 
      * the byte-offset after the last written item.  The buffer will be resized larger if necessary to hold the written data.
-     * Returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
      * @param vals Pointer to an array of values to copy in to the buffer.  Must point to at least (numVals) valid items.
      * @param numVals How many items to copy out of the (vals) array.
      * @param writeByteOffset the offset-from-the-top-of-the-buffer, in bytes, to write to.  This value will be increased as a side-effect of this call.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t WriteInt8s(  const int8   * vals, uint32 numVals, uint32 & writeByteOffset);
    status_t WriteInt16s( const int16  * vals, uint32 numVals, uint32 & writeByteOffset);

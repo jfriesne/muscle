@@ -39,7 +39,7 @@ public:
     *  @param returnLocked If set true, then the area will be read/write locked when this function
     *                      returns successfully, and it is the caller's responsibility to call
     *                      UnlockArea() when appropriate.
-    *  @return B_NO_ERROR on success, or B_ERROR on failure.
+    *  @return B_NO_ERROR on success, or an error code on failure.
     */
    status_t SetArea(const char * areaName, uint32 createSize = 0, bool returnLocked = false);
 
@@ -50,7 +50,7 @@ public:
     *  Reading the contents of the shared memory area is safe while in this mode,
     *  but modifying them is not.  If you need to modify the shared memory area,
     *  use LockAreaReadWrite() instead.
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure (no area, or already locked)
+    *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if we're already locked.
     *  @note under Windows this call is currently equivalent to the LockAreaReadWrite()
     *        call, because as far as I can tell there is no good way to implement
     *        shared-reader/single-writer interprocess locks under Windows.  If you
@@ -64,7 +64,7 @@ public:
     *  It is safe to read or modify the shared memory area while this lock is active,
     *  but if you will not need to modify anything, then it is more efficient to
     *  lock using LockAreaReadOnly() instead.
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure (no area, or already locked)
+    *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if we're already locked.
     */
    status_t LockAreaReadWrite() {return LockArea(false);}
 
@@ -105,7 +105,7 @@ public:
     *  before deleting everything, so other processes who currently have the area
     *  locked will at least be able to finish their current transaction before everything
     *  goes away.
-    *  @returns B_NO_ERROR on success, or B_ERROR if there is no current area or
+    *  @returns B_NO_ERROR on success, or an error code if there is no current area or
     *           some other problem prevented the current area from being deleted.
     */
    status_t DeleteArea();

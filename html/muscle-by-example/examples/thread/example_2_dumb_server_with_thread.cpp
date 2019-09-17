@@ -43,8 +43,11 @@ public:
    /** Called during setup, when we are first attached to the ReflectServer */
    virtual status_t AttachedToServer()
    {
+      if (_gatewayOK == false) return B_BAD_OBJECT;
+
       // Only agree to be attached to the server if we can start up our internal thread
-      return ((_gatewayOK)&&(DumbReflectSession::AttachedToServer() == B_NO_ERROR)) ? StartInternalThread() : B_ERROR;
+      status_t ret;
+      return DumbReflectSession::AttachedToServer().IsOK(ret) ? StartInternalThread() : ret;
    }
 
    /** Called in the main thread whenever our slave thread has a result Message for us to get 
@@ -104,7 +107,7 @@ protected:
 
          return B_NO_ERROR;
       }
-      else return B_ERROR;  // a NULL MessageRef means it's time for us (the internal thread) to go away
+      else return B_ERROR;  // a NULL (msgRef) means it's time for us (the internal thread) to go away; returning an error code will accomplish our demise
    }
 
 private:
@@ -124,11 +127,11 @@ private:
                SetGateway(gw);
                return B_NO_ERROR;
             }
-            else WARN_OUT_OF_MEMORY;
+            else RETURN_OUT_OF_MEMORY;
          }
-         else WARN_OUT_OF_MEMORY;
+         else RETURN_OUT_OF_MEMORY;
       }
-      return B_ERROR;
+      return B_BAD_OBJECT;
    }
 
    bool _gatewayOK;

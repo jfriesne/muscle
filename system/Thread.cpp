@@ -78,11 +78,13 @@ status_t Thread :: StartInternalThread()
    if (IsInternalThreadRunning() == false)
    {
       const bool needsInitialSignal = (_threadData[MESSAGE_THREAD_INTERNAL]._messages.HasItems());
-      if (StartInternalThreadAux() == B_NO_ERROR)
+      status_t ret;
+      if (StartInternalThreadAux().IsOK(ret))
       {
          if (needsInitialSignal) SignalInternalThread();  // make sure he gets his already-queued messages!
          return B_NO_ERROR;
       }
+      else return ret;
    }
    return B_BAD_OBJECT;
 }
@@ -121,12 +123,22 @@ status_t Thread :: StartInternalThreadAux()
       if ((_thread = spawn_thread(InternalThreadEntryFunc, "MUSCLE Thread", B_NORMAL_PRIORITY, this)) >= 0)
       {
          if (resume_thread(_thread) == B_NO_ERROR) return B_NO_ERROR;
-                                              else kill_thread(_thread);
+         else 
+         {
+            ret = B_ERRNO; 
+            kill_thread(_thread);
+            return ret;
+         }
       }
 #elif defined(__ATHEOS__)
       if ((_thread = spawn_thread("MUSCLE Thread", InternalThreadEntryFunc, NORMAL_PRIORITY, 32767, this)) >= 0)
       {
          if (resume_thread(_thread) == B_NO_ERROR) return B_NO_ERROR;
+         else 
+         {
+            ret = B_ERRNO; 
+            return ret;
+         }
       }
 #endif
 
@@ -268,7 +280,7 @@ void Thread :: InternalThreadEntry()
    while(true)
    {
       MessageRef msgRef;
-      int32 numLeft = WaitForNextMessageFromOwner(msgRef);
+      const int32 numLeft = WaitForNextMessageFromOwner(msgRef);
       if ((numLeft >= 0)&&(MessageReceivedFromOwner(msgRef, numLeft) != B_NO_ERROR)) break;
    }
 #endif
@@ -311,7 +323,7 @@ status_t Thread :: WaitForInternalThreadToExit()
          _thread.join();
 # if !defined(MUSCLE_NO_EXCEPTIONS)
       }
-      catch(...) {return B_ERROR;}
+      catch(...) {return B_LOGIC_ERROR;}
 # endif
 #elif defined(MUSCLE_USE_PTHREADS)
       (void) pthread_join(_thread, NULL);

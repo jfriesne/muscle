@@ -34,8 +34,7 @@ protected:
    /** If we have a limited maximum size for incoming messages, then this method 
      * demand-allocates the session's gateway, and set its max incoming message size if possible.
      * @param session the session whose gateway we should call SetMaxIncomingMessageSize() on
-     * @return B_NO_ERROR on success, or B_ERROR on failure (out of memory or the created gateway
-     *         wasn't a MessageIOGateway)
+     * @return B_NO_ERROR on success, or B_BAD_OBJECT if the factory's gateway wasn't a MessageIOGateway.
      */
    status_t SetMaxIncomingMessageSizeFor(AbstractReflectSession * session) const;
 
@@ -92,7 +91,7 @@ public:
    virtual ~StorageReflectSession();
 
    /** Called after the constructor, when the session is ready to interact with the server.
-    *  @return B_NO_ERROR if everything is okay to go, B_ERROR if there was a problem
+    *  @return B_NO_ERROR if everything is okay to go, or an error code if there was a problem
     *          setting up, or if the IP address of our client has been banned. 
     */
    virtual status_t AttachedToServer();
@@ -131,7 +130,7 @@ protected:
     * @param addToIndex If set to true, this node will be inserted under its parent as a new indexed node, rather than doing the regular add/replace bit.
     * @param optInsertBefore If (addToIndex) is true, this may be the name of the node to insert this new node before in the index.
     *                        If NULL, the new node will be appended to the end of the index.  If (addToIndex) is false, this argument is ignored.
-    * @return B_NO_ERROR on success, or B_ERROR on failure.
+    * @return B_NO_ERROR on success, or an error code on failure.
     */
    virtual status_t SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, bool allowOverwriteData=true, bool allowCreateNode=true, bool quiet=false, bool addToIndex=false, const String *optInsertBefore=NULL);
 
@@ -140,7 +139,7 @@ protected:
     *  @param filterRef If non-NULL, we'll use the given QueryFilter object to filter out our result set.
     *                   Only nodes whose Messages match the QueryFilter will be removed.  Default is a NULL reference.
     *  @param quiet If set to true, subscribers won't be updated regarding this change to the database
-    *  @return B_NO_ERROR on success, or B_ERROR on failure.
+    *  @return B_NO_ERROR on success, or an error code on failure.
     */
    virtual status_t RemoveDataNodes(const String & nodePath, const ConstQueryFilterRef & filterRef = ConstQueryFilterRef(), bool quiet = false);
 
@@ -156,7 +155,7 @@ protected:
     *                 If (maxDepth) is zero, only (node) will be saved.
     * @param optPruner If set non-NULL, this object will be used as a callback to prune the traversal, and optionally
     *                  to filter the data that gets saved into (msg).
-    * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+    * @returns B_NO_ERROR on success, or an error code on failure.
     */
    status_t SaveNodeTreeToMessage(Message & msg, const DataNode * node, const String & path, bool saveData, uint32 maxDepth = MUSCLE_NO_LIMIT, const ITraversalPruner * optPruner = NULL) const;
 
@@ -173,7 +172,7 @@ protected:
     * @param optPruner If set non-NULL, this object will be used as a callback to prune the traversal, and optionally
     *                  to filter the data that gets loaded from (msg).
     * @param quiet If set to true, subscribers won't be updated regarding this change to the database
-    * @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+    * @returns B_NO_ERROR on success, or an error code on failure.
     */
    status_t RestoreNodeTreeFromMessage(const Message & msg, const String & path, bool loadData, bool appendToIndex = false, uint32 maxDepth = MUSCLE_NO_LIMIT, const ITraversalPruner * optPruner = NULL, bool quiet = false);
 
@@ -183,7 +182,7 @@ protected:
      * Message, only it gives more information back about what happened.
      * @param insertMsg a PR_COMMAND_INSERTORDEREDDATA Message specifying what insertions should be done.
      * @param optRetNewNodes If non-NULL, any newly-created DataNodes will be adde to this table for your inspection.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    virtual status_t InsertOrderedData(const MessageRef & insertMsg, Hashtable<String, DataNodeRef> * optRetNewNodes);
 
@@ -194,7 +193,7 @@ protected:
      * @param data Reference to a message to create a new child node for.
      * @param optInsertBefore if non-NULL, the name of the child to put the new child before in our index.  If NULL, (or the specified child cannot be found) the new child will be appended to the end of the index.
      * @param optAddNewChildren If non-NULL, any newly formed nodes will be added to this hashtable, keyed on their absolute node path.
-     * @return B_NO_ERROR on success, B_ERROR if out of memory
+     * @return B_NO_ERROR on success, an error code on failure.
      */
    status_t InsertOrderedChildNode(DataNode & parentNode, const String * optInsertBefore, const MessageRef & data, Hashtable<String, DataNodeRef> * optAddNewChildren);
 
@@ -308,7 +307,7 @@ protected:
     *  @param retSessions A table that will on return contain the set of matching sessions, keyed by their session ID strings.
     *  @param matchSelf If true, we will include as a candidate for pattern matching.  Otherwise we won't.
     *  @param maxResults Maximum number of matching sessions to return.  Defaults to MUSCLE_NO_LIMIT.
-    *  @return B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+    *  @return B_NO_ERROR on success, or an error code on failure.  Note that failing to find any matching sessions is NOT considered an error.
     */
    status_t FindMatchingSessions(const String & nodePath, const ConstQueryFilterRef & filter, Hashtable<const String *, AbstractReflectSessionRef> & retSessions, bool matchSelf, uint32 maxResults = MUSCLE_NO_LIMIT) const;
 
@@ -318,7 +317,7 @@ protected:
      *  @param filter If non-NULL, only nodes whose data Messages match this filter will have their sessions added 
      *                to the (retSessions) table.
      *  @param matchSelf If true, we will include as a candidate for pattern matching.  Otherwise we won't.
-     *  @returns a reference to the first matching session on success, or a NULL reference on failure.
+     *  @returns a reference to the first matching session on success, or a NULL reference on failure to find a matching session.
      */
    AbstractReflectSessionRef FindMatchingSession(const String & nodePath, const ConstQueryFilterRef & filter, bool matchSelf) const;
 
@@ -330,7 +329,7 @@ protected:
     *                  If the nodePath is a zero-length String, all sessions will match.
     *  @param filter If non-NULL, only nodes whose data Messages match this filter will receive the Message.
     *  @param matchSelf If true, we will include as a candidate for pattern matching.  Otherwise we won't.
-    *  @return B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+    *  @return B_NO_ERROR on success, or an error code on failure.  Note that failing to find any matching sessions is NOT considered an error.
     */
    status_t SendMessageToMatchingSessions(const MessageRef & msgRef, const String & nodePath, const ConstQueryFilterRef & filter, bool matchSelf);
 
@@ -340,7 +339,7 @@ protected:
     *  @param filter If non-NULL, only nodes whose data Messages match this filter will be added to the (retMatchingNodes) table.
     *  @param retMatchingNodes A Queue that will on return contain the list of matching nodes.
     *  @param maxResults Maximum number of matching nodes to return.  Defaults to MUSCLE_NO_LIMIT.
-    *  @return B_NO_ERROR on success, or B_ERROR on failure (out of memory?)
+    *  @return B_NO_ERROR on success, or an error code on failure.  Note that failing to find any matching nodes is NOT considered an error.
     */
    status_t FindMatchingNodes(const String & nodePath, const ConstQueryFilterRef & filter, Queue<DataNodeRef> & retMatchingNodes, uint32 maxResults = MUSCLE_NO_LIMIT) const;
 
@@ -367,7 +366,7 @@ protected:
     *                        Otherwise, this argument is ignored.
     * @param optPruner If non-NULL, this object can be used as a callback to prune the traversal or filter
     *                  the MessageRefs cloned.
-    * @return B_NO_ERROR on success, or B_ERROR on failure (may leave a partially cloned subtree on failure)
+    * @return B_NO_ERROR on success, or an error code on failure (may leave a partially cloned subtree on failure)
     */
    status_t CloneDataNodeSubtree(const DataNode & sourceNode, const String & destPath, bool allowOverwriteData=true, bool allowCreateNode=true, bool quiet=false, bool addToTargetIndex=false, const String * optInsertBefore = NULL, const ITraversalPruner * optPruner = NULL);
 

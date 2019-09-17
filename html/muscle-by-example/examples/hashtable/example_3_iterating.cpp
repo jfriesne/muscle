@@ -22,9 +22,9 @@ int main(int argc, char ** argv)
    Hashtable<String, int> table;
    (void) table.Put("Three",    3);
    (void) table.Put("Five",     5);   // The (void) is just to indicate
-   (void) table.Put("Eight",    8);   // the B_NO_ERROR/B_ERROR return
-   (void) table.Put("Ten",     10);   // that I am deliberately ignoring
-   (void) table.Put("Fifteen", 15);   // value of the Put() calls
+   (void) table.Put("Eight",    8);   // that I am deliberately ignoring
+   (void) table.Put("Ten",     10);   // the return values of the Put() calls
+   (void) table.Put("Fifteen", 15);
 
    printf("\n");
    printf("Standard iteration:\n");

@@ -34,7 +34,7 @@ public:
    /** Sends the specified MessageRef object to the ThreadPool for later handling.  
      * @param msg A Message for the ThreadPool to handle.  Our MessageReceivedFromThreadPoolClient() method
      *            will be called in the near future, from within a ThreadPool thread.
-     * @returns B_NO_ERROR if the Message was scheduled for execution by a thread in the ThreadPool, or B_ERROR if it wasn't.
+     * @returns B_NO_ERROR if the Message was scheduled for execution by a thread in the ThreadPool, or an error code if it wasn't.
      * Messages are guaranteed to be processed in the order that they were passed to this method, but there is no
      * guarantee that they will all be processed in the same thread as each other.
      */
@@ -109,7 +109,7 @@ protected:
      * Broken out into a virtual method so that the Thread's attributes (stack size, etc) can be customized if desired.   
      * Default implementation just calls StartInternalThread() on the thread object.
      * @param thread The Thread object to start.
-     * @returns B_NO_ERROR if the Thread was successfully started, or B_ERROR otherwise.
+     * @returns B_NO_ERROR if the Thread was successfully started, or an error code otherwise.
      */
    virtual status_t StartInternalThread(Thread & thread);
 

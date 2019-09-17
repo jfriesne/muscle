@@ -277,7 +277,7 @@ public:
          bottom() = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&buffer[3*sizeof(int32)]));
          return B_NO_ERROR;
       }
-      else return B_ERROR;
+      else return B_BAD_DATA;
    }
 
    /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be 

@@ -40,7 +40,7 @@ protected:
      * @param thread the QMessageTransceiverThread to attach the handler to
      * @param handler the QMessageTransceiverHandler to attach to the thread
      * @param sessionRef the AbstractReflectSession that will represent the handler inside the thread.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    virtual status_t RegisterHandler(QMessageTransceiverThread & thread, QMessageTransceiverHandler * handler, const ThreadWorkerSessionRef & sessionRef) = 0;
 
@@ -179,7 +179,7 @@ public slots:
     * @param msgRef a reference to the Message to send out.
     * @param optDistPath if non-NULL, then only sessions that contain at least one node that matches this
     *                    path will receive the Message.  Otherwise all sessions will receive the Message.
-    * @return B_NO_ERROR on success, B_ERROR if out of memory.
+    * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY.
     */
    status_t SendMessageToSessions(const MessageRef & msgRef, const char * optDistPath = NULL);
 
@@ -312,7 +312,7 @@ public:
      *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts 
      *                      like one, or else things won't work correctly.
      *                      The referenced session becomes sole property of the MessageTransceiverThread on success.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */  
    virtual status_t SetupAsNewSession(IMessageTransceiverMaster & master, const ConstSocketRef & socket, const ThreadWorkerSessionRef & optSessionRef);
@@ -321,7 +321,7 @@ public:
      * @param master the IMessageTransceiverMaster to bind this handler to.
      * @param socket The TCP socket that the new session will be using, or -1, if the new session is to have no
      *               associated TCP connection.  This socket becomes property of this object on success.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
    status_t SetupAsNewSession(IMessageTransceiverMaster & master, const ConstSocketRef & socket) {return SetupAsNewSession(master, socket, ThreadWorkerSessionRef());}
@@ -353,7 +353,7 @@ public:
      *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
      *                              is used; typically this means that it will be left up to the operating system how long to wait
      *                              before timing out the connection attempt.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
    virtual status_t SetupAsNewConnectSession(IMessageTransceiverMaster & master, const IPAddress & targetIPAddress, uint16 port, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
@@ -380,7 +380,7 @@ public:
      *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
      *                              is used; typically this means that it will be left up to the operating system how long to wait
      *                              before timing out the connection attempt.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
    status_t SetupAsNewConnectSession(IMessageTransceiverMaster & master, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return SetupAsNewConnectSession(master, targetIPAddress, port, ThreadWorkerSessionRef(), autoReconnectDelay, maxAsyncConnectPeriod);}
@@ -413,7 +413,7 @@ public:
      *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
      *                              is used; typically this means that it will be left up to the operating system how long to wait
      *                              before timing out the connection attempt.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
    virtual status_t SetupAsNewConnectSession(IMessageTransceiverMaster & master, const String & targetHostName, uint16 port, const ThreadWorkerSessionRef & optSessionRef, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
@@ -435,7 +435,7 @@ public:
      *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
      *                              is used; typically this means that it will be left up to the operating system how long to wait
      *                              before timing out the connection attempt.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
    status_t SetupAsNewConnectSession(IMessageTransceiverMaster & master, const String & targetHostName, uint16 port, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return SetupAsNewConnectSession(master, targetHostName, port, ThreadWorkerSessionRef(), expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);}
@@ -449,7 +449,7 @@ public:
      *                    know what you are doing.  ;^)  On success, (optDrainTag) becomes property
      *                    of this MessageTransceiverThread.
      * @returns B_NO_ERROR on success (in which case an MTT_EVENT_OUTPUT_QUEUES_DRAINED event will be
-     *          forthcoming) or B_ERROR on error (out of memory).
+     *          forthcoming) or B_OUT_OF_MEMORY.
      */
    status_t RequestOutputQueueDrainedNotification(const MessageRef & notificationMsg, DrainTag * optDrainTag = NULL);
 
@@ -459,7 +459,7 @@ public:
      *             not thread safe, the referenced IOPolicy should not be used after it has
      *             been successfully passed in via this call.  May be a NULL ref to remove
      *             the existing input policy.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     * @return B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetNewInputPolicy(const AbstractSessionIOPolicyRef & pref);
 
@@ -469,7 +469,7 @@ public:
      *             not thread safe, the referenced IOPolicy should not be used after it has
      *             been successfully passed in via this call.  May be a NULL ref to remove
      *             the existing output policy.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     * @return B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetNewOutputPolicy(const AbstractSessionIOPolicyRef & pref);
 
@@ -480,7 +480,7 @@ public:
      * Note that ZLIB encoding is only enabled if your program is compiled with the
      * -DMUSCLE_ENABLE_ZLIB_ENCODING compiler flag set.
      * @param encoding one of the MUSCLE_MESSAGE_ENCODING_* constant declared in MessageIOGateway.h
-     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     * @return B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetOutgoingMessageEncoding(int32 encoding);
 
@@ -551,7 +551,7 @@ public slots:
    /**
     * Sends the specified Message to our session inside the I/O thread.
     * @param msgRef a reference to the Message to send out.
-    * @return B_NO_ERROR on success, B_ERROR if out of memory.
+    * @return B_NO_ERROR on success, an error code if out of memory.
     */
    status_t SendMessageToSession(const MessageRef & msgRef);
 

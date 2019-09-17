@@ -32,7 +32,7 @@ public:
     * Dummy implemention of CopyFrom().  It's here only so that Message::FindFlat() will
     * compile when called with a PseudoFlattenable object as an argument.
     * @param copyFrom This parameter is ignored.   
-    * @returns B_ERROR always, because given that this object is not a Flattenable object,
+    * @returns B_UNIMPLEMENTED always, because given that this object is not a Flattenable object,
     *          it's assumed that it can't receive the state of a Flattenable object either.
     *          (but if that's not the case for your class, your subclass can implement its
     *           own CopyFrom() method to taste)
@@ -42,7 +42,7 @@ public:
 #if !defined(_MSC_VER) || (_MSC_VER >= 1910)  // avoids error C2027: use of undefined type 'muscle::Flattenable'
       (void) copyFrom;
 #endif
-      return B_ERROR;
+      return B_UNIMPLEMENTED;
    }
 };
 

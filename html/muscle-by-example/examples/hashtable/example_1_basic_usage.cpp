@@ -23,8 +23,8 @@ int main(int argc, char ** argv)
    Hashtable<String, int> table;
    (void) table.Put("Five",     5);   // The (void) is just to indicate
    (void) table.Put("Ten",     10);   // that I am deliberately ignoring
-   (void) table.Put("Eight",    8);   // the B_NO_ERROR/B_ERROR return
-   (void) table.Put("Fifteen", 15);   // value of the Put() calls
+   (void) table.Put("Eight",    8);   // the return values of the Put() calls
+   (void) table.Put("Fifteen", 15);
    (void) table.Put("Three",    3);
 
    printf("   The table currently has " UINT32_FORMAT_SPEC " key/value pairs in it.\n", table.GetNumItems());

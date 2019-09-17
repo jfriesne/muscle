@@ -2414,12 +2414,12 @@ status_t MessageField :: SingleUnflatten(const uint8 * buffer, uint32 numBytes)
 
          // string type follows the variable-sized-objects-field convention
          const uint32 itemCount = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
-         if (itemCount != 1) return B_BAD_OBJECT;  // wtf, if we're in this function there should only be one item!
+         if (itemCount != 1) return B_LOGIC_ERROR;  // wtf, if we're in this function there should only be one item!
          buffer += sizeof(uint32); numBytes -= sizeof(uint32);
 
          const uint32 itemSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
          buffer += sizeof(uint32); numBytes -= sizeof(uint32);  // yes, this line MUST be exactly here!
-         if (itemSize != numBytes) return B_BAD_OBJECT;  // our one item should take up the entire buffer, or something is wrong
+         if (itemSize != numBytes) return B_LOGIC_ERROR;  // our one item should take up the entire buffer, or something is wrong
 
          String s;
          if (s.Unflatten(buffer, numBytes).IsError(ret)) return ret;
@@ -2435,12 +2435,12 @@ status_t MessageField :: SingleUnflatten(const uint8 * buffer, uint32 numBytes)
 
          // all other types will follow the variable-sized-objects-field convention
          const uint32 itemCount = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
-         if (itemCount != 1) return B_BAD_OBJECT;  // wtf, if we're in this function there should only be one item!
+         if (itemCount != 1) return B_LOGIC_ERROR;  // wtf, if we're in this function there should only be one item!
          buffer += sizeof(uint32); numBytes -= sizeof(uint32);
 
          const uint32 itemSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer));
          buffer += sizeof(uint32); numBytes -= sizeof(uint32);  // yes, this line MUST be exactly here!
-         if (itemSize != numBytes) return B_BAD_OBJECT;  // our one item should take up the entire buffer, or something is wrong
+         if (itemSize != numBytes) return B_LOGIC_ERROR;  // our one item should take up the entire buffer, or something is wrong
 
          ByteBufferRef bbRef = GetByteBufferFromPool(numBytes, buffer);
          if (bbRef() == NULL) return B_OUT_OF_MEMORY;
@@ -2911,7 +2911,7 @@ status_t MessageField :: ReplaceFlatCountableDataItem(uint32 index, muscle::Ref<
    {
       case FIELD_STATE_INLINE:
          SetInlineItemAsRefCountableRef(fcRef.GetRefCountableRef());
-      break;
+      return B_NO_ERROR;
 
       case FIELD_STATE_ARRAY:
       {
@@ -2929,10 +2929,14 @@ status_t MessageField :: ReplaceFlatCountableDataItem(uint32 index, muscle::Ref<
             RefCountableRef rcRef = fcRef.GetRefCountableRef();
             return tda->ReplaceDataItem(index, &rcRef, sizeof(rcRef));
          }
+
+         return B_BAD_OBJECT;
       }
       break;
+
+      case FIELD_STATE_EMPTY: return B_DATA_NOT_FOUND;
+      default:                return B_LOGIC_ERROR;
    }
-   return B_BAD_OBJECT;
 }
 
 uint32 MessageField :: GetNumItemsInFlattenedBuffer(const uint8 * bytes, uint32 numBytes) const

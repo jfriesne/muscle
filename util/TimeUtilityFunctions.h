@@ -231,7 +231,7 @@ inline uint64 GetRunTime64ForCurrentTime64(uint64 currentTime64, uint32 timeType
 
 /** Convenience function:  Won't return for a given number of microsends.
  *  @param micros The number of microseconds to wait for.
- *  @return B_NO_ERROR on success, or B_ERROR on failure.
+ *  @return B_NO_ERROR on success, or an error code on failure.
  */
 #if defined(__BEOS__) || defined(__HAIKU__)
 inline status_t Snooze64(uint64 microseconds) {return snooze(microseconds);}

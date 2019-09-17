@@ -118,7 +118,7 @@ public:
     * If this object is to be used by an AbstractMessageIOGateway,
     * then non-blocking I/O is usually better to use.
     * @param blocking If true, socket is set to blocking I/O mode.  Otherwise, non-blocking I/O.
-    * @return B_NO_ERROR on success, B_ERROR on error.
+    * @return B_NO_ERROR on success, or an error code on error.
     */
    status_t SetBlockingIOEnabled(bool blocking)
    {

@@ -19,7 +19,7 @@ status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) cons
       case 2:  signalNumber = CTRL_CLOSE_EVENT;    return B_NO_ERROR;
       case 3:  signalNumber = CTRL_LOGOFF_EVENT;   return B_NO_ERROR;
       case 4:  signalNumber = CTRL_SHUTDOWN_EVENT; return B_NO_ERROR;
-      deafult: /* empty */                         return B_BAD_ARGUMENT;
+      default: /* empty */                         return B_BAD_ARGUMENT;
    }
 #elif defined(MUSCLE_USE_POSIX_SIGNALS)
    switch(n)
@@ -27,7 +27,7 @@ status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) cons
       case 0:  signalNumber = SIGINT;  return B_NO_ERROR;
       case 1:  signalNumber = SIGTERM; return B_NO_ERROR;
       case 2:  signalNumber = SIGHUP;  return B_NO_ERROR;
-      deafult: /* empty */             return B_BAD_ARGUMENT;
+      default: /* empty */             return B_BAD_ARGUMENT;
    }
 #endif
    return B_UNIMPLEMENTED;

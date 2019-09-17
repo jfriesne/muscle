@@ -113,13 +113,13 @@ public:
     *  @param path a string of form "x/y/z/...", representing a pattern-matching function.
     *  @param filter Reference to a QueryFilter object to use to filter Messages that match our path.  If the 
     *                reference is a NULL reference, then no filtering will be done.
-    *  @return B_NO_ERROR on success, B_ERROR if out of memory.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY.
     */
    status_t PutPathString(const String & path, const ConstQueryFilterRef & filter);
 
    /** Adds all of (matcher)'s StringMatchers to this matcher 
      * @param matcher the matcher whose list of StringMatchers we should append to our own
-     * @return B_NO_ERROR on success, B_ERROR if out of memory.
+     * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY.
      */
    status_t PutPathsFromMatcher(const PathMatcher & matcher);
 
@@ -128,7 +128,7 @@ public:
     *  @param optFilterFieldName If non-NULL, the name of a Message field to look for archived QueryFilter objects (one for each node path expression) in.
     *  @param msg the Message to look for node path expressions in
     *  @param optPrependIfNoLeadingSlash If non-NULL, a '/' and this string will be prepended to any found path string that doesn't start with a '/' character.
-    *  @return B_NO_ERROR on success, or B_ERROR if out of memory.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY.
     */
    status_t PutPathsFromMessage(const char * pathFieldName, const char * optFilterFieldName, const Message & msg, const char * optPrependIfNoLeadingSlash);
 
@@ -139,13 +139,13 @@ public:
     *  @param optPrependIfNoLeadingSlash If non-NULL, a '/' and this string will be prepended to any found path string that doesn't start with a '/' character.
     *  @param filter Reference to a QueryFilter object to use for content-based Message filter, or a NULL reference if
     *                no additional filtering is necessary.
-    *  @return B_NO_ERROR on success, or B_ERROR if out of memory.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY.
     */
    status_t PutPathFromString(const String & path, const ConstQueryFilterRef & filter, const char * optPrependIfNoLeadingSlash);
 
    /** Removes the given path string and its associated StringMatchers from this matcher.
     *  @param wildpath the path string to remove
-    *  @return B_NO_ERROR if the given path string was found and removed, or B_ERROR if it couldn't be found.
+    *  @return B_NO_ERROR if the given path string was found and removed, or B_DATA_NOT_FOUND if it couldn't be found.
     */
    status_t RemovePathString(const String & wildpath);
 
@@ -173,7 +173,7 @@ public:
      * @note You should always set an entries filter via this method rather than calling SetEntry() on
      *       the PathMatcherEntry object directly; that way, the PathMatcher class can keep its filters-count 
      *       up to date.
-     * @returns B_NO_ERROR on success, or B_ERROR if an entry with the given path could not be found. 
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if an entry with the given path could not be found. 
      */
    status_t SetFilterForEntry(const String & path, const ConstQueryFilterRef & newFilter);
 

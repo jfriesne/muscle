@@ -107,13 +107,13 @@ public:
     *  set of children will have its pulsing needs taken care of by us, but it is
     *  not considered "owned" by this PulseNode--it will not be deleted when we are.
     *  @param child The child to place into our set of child PulseNodes.
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory).
+    *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t PutPulseChild(PulseNode * child);
 
    /** Attempts to remove the given child from our set of child PulseNodes.
     *  @param child The child to remove
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure (child wasn't in our set)
+    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (i.e. child wasn't in our current-set of pulse-children)
     */
    status_t RemovePulseChild(PulseNode * child);
 

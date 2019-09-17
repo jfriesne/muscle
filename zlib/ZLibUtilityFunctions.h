@@ -112,7 +112,7 @@ static inline ByteBufferRef InflateByteBuffer(const ConstByteBufferRef & buf) {r
   * @param compressionLevel The level of ZLib compression to use when creating the
   *                         compressed Message.  Should be between 0 (no compression)
   *                         and 9 (maximum compression).  Default value is 6.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & destDeflatedIO, bool independent, uint32 numBytesToRead, int compressionLevel = 6);
 
@@ -121,7 +121,7 @@ status_t ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & destDeflatedIO, b
   * @note All DataIO objects should be set to blocking mode, as this is a synchronous operation.
   * @param sourceDeflatedIO The DataIO to read the zlib-compressed/deflated data from.
   * @param destInflatedIO The DataIO to write the inflated/raw data to.
-  * @returns B_NO_ERROR on success, or B_ERROR on failure.
+  * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO & destInflatedIO);
 

@@ -146,7 +146,7 @@ public:
    /** Restores this object's state from the data contained in the supplied memory buffer.
     *  @param buffer points to the raw data we should read in this object's state from.
     *  @param size The number of bytes (buffer) points at
-    *  @return B_NO_ERROR on success, B_ERROR on failure (size was too small, or data was inappropriate?)
+    *  @return B_NO_ERROR on success, B_BAD_DATA if (size) was too small, or B_BAD_DATA if data was inappropriate, or etc.
     */
    status_t Unflatten(const uint8 * buffer, uint32 size);
 
@@ -169,13 +169,13 @@ public:
 
    /** Writes this object's state out to the given Message object.
     *  @param archive the Message to write our state into.
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure (out of memory?).
+    *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t SaveToArchive(Message & archive) const;
 
    /** Sets this object's state from the contents of the given Message object.
     *  @param archive The Message to restore our state (typically a Message that was previously populated by SaveToArchive())
-    *  @returns B_NO_ERROR on success, or B_ERROR on failure (inappropriate data or out of memory?).
+    *  @returns B_NO_ERROR on success, or B_BAD_DATA (or etc) on failure.
     */
    status_t SetFromArchive(const Message & archive);
 };

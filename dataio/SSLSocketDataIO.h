@@ -42,7 +42,7 @@ public:
 
    /** Adds a certification to use for this session.
      * @param certFilePath File path of the certificate file to use.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (couldn't find file?)
+     * @returns B_NO_ERROR on success, or an error code on failure (couldn't find file?)
      */ 
    status_t SetPublicKeyCertificate(const char * certFilePath);
 
@@ -50,13 +50,13 @@ public:
      * file, the certificate is read from memory.
      * @param bytes The array containing the certificate (i.e. the contents of a .pub file)
      * @param numBytes The number of bytes that (bytes) points to.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetPublicKeyCertificate(const uint8 * bytes, uint32 numBytes);
 
    /** Same as above, except instead of reading from a raw array we read from a ConstByteBufferRef.
      * @param publicKeyFile The bytes to read from.  We will retain a reference to this buffer.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetPublicKeyCertificate(const ConstByteBufferRef & publicKeyFile);
 
@@ -65,7 +65,7 @@ public:
 
    /** Adds a private key to use for this session.
      * @param privateKeyFilePath File path of the private key file to use.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (couldn't find file?)
+     * @returns B_NO_ERROR on success, or an error code on failure (couldn't find file?)
      * @note Typically on the server side you'll want to call both SetPrivateKey() *and*
      *       SetPublicKeyCertificate() on your SSLSocketDataIO object.  The same
      *       file data can be passed to both (assuming the file in question contains
@@ -77,7 +77,7 @@ public:
      * file, the private key is read from memory.
      * @param bytes The array containing the private key (i.e. the contents of a .pem file)
      * @param numBytes The number of bytes that (bytes) points to.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      * @note Typically on the server side you'll want to call both SetPrivateKey() *and*
      *       SetPublicKeyCertificate() on your SSLSocketDataIO object.  The same
      *       file data can be passed to both (assuming the file in question contains
@@ -87,7 +87,7 @@ public:
 
    /** Same as above, except instead of reading from a raw array we read from a ConstByteBufferRef.
      * @param privateKeyFile The bytes to read from.  We will retain a reference to this buffer.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetPrivateKey(const ConstByteBufferRef & privateKeyFile);
 
@@ -95,7 +95,7 @@ public:
      * the specified username and password.
      * @param userName the username to send (on the client side) or require (on the server side)
      * @param password the username to send (on the client side) or require (on the server side)
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.
+     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    void SetPreSharedKeyLoginInfo(const String & userName, const String & password);
 

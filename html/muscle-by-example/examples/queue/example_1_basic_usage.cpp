@@ -25,8 +25,8 @@ int main(int argc, char ** argv)
 #endif
       (void) q.AddTail(5);    // The (void) is just to indicate
       (void) q.AddTail(10);   // that I am deliberately ignoring
-      (void) q.AddTail(15);   // the B_NO_ERROR/B_ERROR return
-      (void) q.AddTail(20);   // value of the AddTail() calls
+      (void) q.AddTail(15);   // the return values of the AddTail() calls
+      (void) q.AddTail(20);
 
       for (uint32 i=0; i<q.GetNumItems(); i++)
       {

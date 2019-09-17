@@ -12,7 +12,7 @@
 
 using namespace muscle;
 
-static const int DEFAULT_PORT = 5274;  // What CueStation 2.5 connects to by deafult
+static const int DEFAULT_PORT = 5274;  // What CueStation 2.5 connects to by default
 
 static status_t ReadIncomingData(const char * desc, DataIO & readIO, const SocketMultiplexer & multiplexer, Queue<ByteBufferRef> & outQ)
 {
@@ -92,7 +92,7 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
       else 
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed!\n");
-         return B_ERROR;
+         return B_ERROR("WaitForEvents() failed");
       }
    }
 }

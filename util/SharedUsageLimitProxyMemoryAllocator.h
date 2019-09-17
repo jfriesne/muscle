@@ -58,7 +58,7 @@ public:
     *                     will be placed here.  This value should always be the sum of the values returned in (retCounts).
     *                     (although it is possible it might not be if the shared memory area becomes inconsistent).
     *                     Defaults to NULL.
-    *  @returns B_NO_ERROR on success, or B_ERROR if the information could not be accessed.
+    *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the shared-memory region couldn't be locked-for-read.
     */
    status_t GetCurrentMemoryUsage(size_t * retCounts, size_t * optRetTotal = NULL) const;
 

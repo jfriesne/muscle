@@ -1383,7 +1383,7 @@ static uint32 ConvertLinuxInterfaceType(int saFamily)
 status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFlags includeFlags)
 {
    const uint32 origResultsSize = results.GetNumItems();
-   status_t ret = B_ERROR;
+   status_t ret;
 
 #if defined(USE_GETIFADDRS)
    /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1422,7 +1422,6 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 #endif
 
       Hashtable<String, uint64> inameToMAC;
-      ret = B_NO_ERROR;
       {
 #if defined(__linux__)
          ConstSocketRef dummySocket;  // just for doing ioctl()s on; will be demand-allocated when required
@@ -1479,15 +1478,11 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                // FogBugz #10519:  I'm not setting the interface index for ::1 because trying to send UDP packets to ::1@1 causes ENOROUTE errors under MacOS/X
                if (unicastIP != localhostIP) unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignore by the TCP stack
 #endif
-               if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType)) == B_NO_ERROR)  // MAC address will be set later
+               if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType)).IsOK(ret))  // MAC address will be set later
                {
                   if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
                }
-               else
-               {
-                  ret = B_OUT_OF_MEMORY;  // out of memory!?
-                  break;
-               }
+               else break;
             }
             p = p->ifa_next;
          }
@@ -1545,6 +1540,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 
    PIP_ADAPTER_ADDRESSES pAddresses = NULL;
    ULONG outBufLen = 0;
+   ret = B_ERROR;  // so we can enter the while-loop
    while(ret != B_NO_ERROR)  // keep going until we succeeded (on failure we'll return directly)
    {
       const DWORD flags = GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_SKIP_ANYCAST|GAA_FLAG_SKIP_MULTICAST|GAA_FLAG_SKIP_DNS_SERVER;
@@ -1628,14 +1624,14 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 
          default:
            if (pAddresses) muscleFree(pAddresses);
-           return B_UNIMPLEMENTED;
+           return B_ERRNO;
       }
    }
 #else
    (void) results;  // for other OS's, this function isn't implemented.
 #endif
 
-   return ((ret == B_NO_ERROR)&&(results.GetNumItems() == origResultsSize)&&(includeFlags.IsBitSet(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT))) ? GetNetworkInterfaceInfos(results, includeFlags.WithBit(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES).WithoutBit(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT)) : ret;
+   return ((ret.IsOK())&&(results.GetNumItems() == origResultsSize)&&(includeFlags.IsBitSet(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT))) ? GetNetworkInterfaceInfos(results, includeFlags.WithBit(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES).WithoutBit(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT)) : ret;
 }
 
 status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & results, GNIIFlags includeFlags)

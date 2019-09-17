@@ -22,7 +22,7 @@ public:
 
    /** This method will be called by the caller.
      * @param arg An argument, the semantics of which are defined by the use case.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure.  The semantics of what these mean are defined by the use case.
+     * @return B_NO_ERROR on success, or an error code on failure.  The semantics of what these mean are defined by the use case.
      */
    virtual status_t Callback(void * arg) = 0;
 };
@@ -53,7 +53,7 @@ public:
    virtual status_t Callback(void *) 
    {
       if (_funcA) {_funcA(); return B_NO_ERROR;}
-      return _funcB ? _funcB(_arg) : B_ERROR;
+      return _funcB ? _funcB(_arg) : B_BAD_OBJECT;
    }
 
 private:

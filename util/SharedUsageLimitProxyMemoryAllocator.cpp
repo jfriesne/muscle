@@ -75,8 +75,10 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(int32 byteD
 // Locks the shared memory region and adjusts our counter there.  This is a bit expensive, so we try to minimize the number of times we do it.
 status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounterAux(int32 byteDelta)
 {
-   status_t ret = B_BAD_OBJECT;
-   if ((_memberID >= 0)&&(_shared.LockAreaReadWrite().IsOK(ret)))
+   if (_memberID < 0) return B_BAD_OBJECT;
+
+   status_t ret ;
+   if (_shared.LockAreaReadWrite().IsOK(ret))
    {
       const int32 numSlots = _shared.GetAreaSize() / sizeof(size_t);
       size_t * sa = GetArrayPointer();

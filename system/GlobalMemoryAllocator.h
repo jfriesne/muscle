@@ -70,12 +70,12 @@ void muscleFree(void * buf);
 void * muscleRealloc(void * ptr, size_t s, bool retryOnFailure = true);
 
 /** Given a pointer that was allocated with muscleAlloc(), muscleRealloc(), or the new operator,
-  * returns B_NO_ERROR if the memory paranoia guard values are correct, or B_ERROR if they are
+  * returns B_NO_ERROR if the memory paranoia guard values are correct, or B_LOGIC_ERROR if they are
   * not.  Note that this function is a no-op unless MUSCLE_ENABLE_MEMORY_PARANOIA is defined
   * as a positive integer.
   * @param p the pointer to check for validity/memory corruption.  If NULL, this function will return B_NO_ERROR.
   * @param crashIfInvalid If true, this function will crash the app if corruption is detected.  Defaults to true.
-  * @returns B_NO_ERROR if the buffer is valid, B_ERROR if it isn't (or won't return if it crashed the app!)
+  * @returns B_NO_ERROR if the buffer is valid, B_LOGIC_ERROR if it isn't (or we won't return if we crash the app!)
    *                    If MUSCLE_ENABLE_MEMORY_PARANOIA isn't defined, then this function always returns B_NO_ERROR.
   */ 
 status_t MemoryParanoiaCheckBuffer(void * p, bool crashIfInvalid = true);

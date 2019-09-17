@@ -36,12 +36,14 @@ public:
    // Idiom:  SaveToArchive() saves our current state into the specified Message object
    status_t SaveToArchive(Message & msg) const
    {
-      if (msg.AddString("name",    _name)    != B_NO_ERROR) return B_ERROR;
-      if (msg.AddString("address", _address) != B_NO_ERROR) return B_ERROR;
-      if (msg.AddString("city",    _city)    != B_NO_ERROR) return B_ERROR;
-      if (msg.AddString("state",   _state)   != B_NO_ERROR) return B_ERROR;
-      if (msg.AddInt32("zip_code", _zipCode) != B_NO_ERROR) return B_ERROR;
-      return B_NO_ERROR;  // success!
+      // Note that | operator means these Add*() calls won't necessarily be executed in the order they are
+      // listed in -- so don't use it if order-of-additions is important (e.g. when adding multiple values
+      // to the same field-name)
+      return msg.AddString("name",    _name);
+           | msg.AddString("address", _address);
+           | msg.AddString("city",    _city);
+           | msg.AddString("state",   _state);
+           | msg.AddInt32("zip_code", _zipCode);
    }
 
    // Idiom:  SetFromArchive() replaces our current state with the state held in the specified Message object

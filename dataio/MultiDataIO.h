@@ -48,7 +48,7 @@ public:
      *               IO_SEEK_CUR if it should be relative to the current
      *               stream position, or IO_SEEK_END if it should be
      *               relative to the end of the stream.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     * @return B_NO_ERROR on success, or an error code on failure.
      */
    virtual status_t Seek(int64 offset, int whence) {return SeekAll(0, offset, whence);}
 
@@ -68,7 +68,7 @@ public:
    virtual const ConstSocketRef & GetReadSelectSocket()  const {return HasChildren() ? GetFirstChild()->GetReadSelectSocket()  : GetNullSocket();}
    virtual const ConstSocketRef & GetWriteSelectSocket() const {return HasChildren() ? GetFirstChild()->GetWriteSelectSocket() : GetNullSocket();}
 
-   virtual status_t GetReadByteTimeStamp(int32 whichByte, uint64 & retStamp) const {return HasChildren() ? GetFirstChild()->GetReadByteTimeStamp(whichByte, retStamp) : B_ERROR;}
+   virtual status_t GetReadByteTimeStamp(int32 whichByte, uint64 & retStamp) const {return HasChildren() ? GetFirstChild()->GetReadByteTimeStamp(whichByte, retStamp) : B_BAD_OBJECT;}
 
    virtual bool HasBufferedOutput() const;
    virtual void WriteBufferedOutput();

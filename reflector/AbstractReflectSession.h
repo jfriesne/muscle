@@ -171,7 +171,7 @@ public:
     * and the session specified in (newSessionRef) to take its
     * place using the same socket connection & message IO gateway.
     * @param newSession the new session object that is to take the place of this one.
-    * @return B_NO_ERROR on success, B_ERROR if the new session refused to be attached.
+    * @return B_NO_ERROR on success, an error code if the new session refused to be attached.
     */
    status_t ReplaceSession(const AbstractReflectSessionRef & newSession);
 
@@ -402,7 +402,7 @@ public:
     * Adds a MessageRef to our gateway's outgoing message queue.
     * (ref) will be sent back to our client when time permits.
     * @param ref Reference to a Message to send to our client.
-    * @return B_NO_ERROR on success, B_ERROR if out-of-memory.
+    * @return B_NO_ERROR on success, B_OUT_OF_MEMORY if out-of-memory.
     */
    virtual status_t AddOutgoingMessage(const MessageRef & ref);
 
@@ -452,7 +452,7 @@ public:
     * for other types of session, it will just destroy this session's DataIO and IOGateway
     * and then create new ones by calling CreateDefaultSocket() and CreateDataIO().
     * @note This method will call CreateDataIO() to make a new DataIO object for the newly created socket.
-    * @returns B_NO_ERROR on success, or B_ERROR on failure.
+    * @returns B_NO_ERROR on success, or an error code on failure.
     *          On success, the connection result will be reported back
     *          later, either via a call to AsyncConnectCompleted() (if the connection
     *          succeeds) or a call to ClientConnectionClosed() (if the connection fails)

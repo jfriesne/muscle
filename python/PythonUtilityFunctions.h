@@ -24,7 +24,7 @@ class String;
  *  @param args The args tuple parameter for the positional arguments in the call.  May be NULL.
  *  @param keywords The keywords dictionary parameter for the keyword arguments in the call.  May be NULL.
  *  @param msg The Message object where the argument data will be written to on success.
- *  @return B_NO_ERROR on success, or B_ERROR on failure.
+ *  @return B_NO_ERROR on success, or an error code on failure.
  */
 status_t ParsePythonArgs(PyObject * args, PyObject * keywords, Message & msg);
 
@@ -50,7 +50,7 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
  *                then an appropriate default name will be chosen (see GetDefaultPythonArgFieldName()).
  *  @param pyValue The value to add into the Mesasge.  Should not be NULL.
  *  @param addToMsg The Message to add the data to.
- *  @return B_NO_ERROR on success, or B_ERROR if the function was unable to add the data to the Message.
+ *  @return B_NO_ERROR on success, or an error code if the function was unable to add the data to the Message.
  */
 status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message & addToMsg);
 

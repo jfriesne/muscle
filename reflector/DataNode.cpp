@@ -335,8 +335,10 @@ status_t DataNode :: RemoveChild(const String & key, StorageReflectSession * opt
 {
    TCHECKPOINT;
 
+   status_t ret;
+
    DataNodeRef childRef;
-   if ((_children)&&(_children->Get(&key, childRef) == B_NO_ERROR))
+   if ((_children)&&(_children->Get(&key, childRef).IsOK(ret)))
    {
       DataNode * child = childRef();
       if (child)
@@ -353,7 +355,7 @@ status_t DataNode :: RemoveChild(const String & key, StorageReflectSession * opt
       (void) _children->Remove(&key, childRef);
       return B_NO_ERROR;
    }
-   else return B_DATA_NOT_FOUND;
+   else return ret;
 }
 
 status_t DataNode :: RemoveIndexEntry(const String & key, StorageReflectSession * optNotifyWith)

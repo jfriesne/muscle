@@ -23,7 +23,7 @@ public:
      * @param expandLocalhost true iff the caller would prefer that "localhost" should be expanded to a globally meaningful IP address; false if e.g. 127.0.0.1 or ::1 are preferable.
      * @param preferIPv6 true iff the caller would prefer an IPv6 address; false if an IPv4 address is preferable.
      * @param retIPAddress on success, the IP address to use should be written here (or an invalid/default-constructed IP address if you want the lookup to fail).
-     * @returns B_NO_ERROR if the IPAddress written to the (retIPAddress) argument should be used, or B_ERROR if the hostname lookup should be continued by other means if possible.
+     * @return B_NO_ERROR if the IPAddress written to the (retIPAddress) argument should be used, or an error code (e.g. B_ERROR) if the hostname lookup should be continued by other means if possible.
      * @note that this callback may be called from multiple threads concurrently (e.g. if multiple threads are calling GetHostByName() concurrently)
      */
    virtual status_t GetIPAddressForHostName(const char * name, bool expandLocalhost, bool preferIPv6, IPAddress & retIPAddress) = 0;

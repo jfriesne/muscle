@@ -157,7 +157,7 @@ protected:
    /** Sends the specified Message to our ThreadSupervisorSession object
      * @param msg The Message to send
      * @param userData Can be used to pass context information to the supervisor's MessageReceivedFromSession() method, if desired.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (supervisor not found?)
+     * @returns B_NO_ERROR on success, or B_BAD_OBJECT if the supervisor-session couldn't be found.
      */
    status_t SendMessageToSupervisorSession(const MessageRef & msg, void * userData = NULL);
 
@@ -231,7 +231,7 @@ protected:
    /** Sends the specified Message to our ThreadSupervisorSession object
      * @param msg The Message to send
      * @param userData Can be used to pass context information to the supervisor's MessageReceivedFromFactory() method, if desired.
-     * @returns B_NO_ERROR on success, or B_ERROR on failure (supervisor not found?)
+     * @returns B_NO_ERROR on success, or B_BAD_OBJECT if the supervisor-session couldn't be found.
      */
    status_t SendMessageToSupervisorSession(const MessageRef & msg, void * userData = NULL);
 
@@ -295,7 +295,7 @@ protected:
    /** Handles control messages received from the main thread. 
      * @param msg Reference to the message from the owner.
      * @param numLeft Number of messages still pending in the message queue
-     * @returns B_NO_ERROR on success, or B_ERROR if the thread should go away.
+     * @returns B_NO_ERROR on success, or an error code if the thread should go away.
      */
    virtual status_t MessageReceivedFromOwner(const MessageRef & msg, uint32 numLeft);
 
@@ -341,7 +341,7 @@ public:
    virtual ~MessageTransceiverThread();
 
    /** Overridden to do some additional setup, before starting the internal thread.
-     * @returns B_NO_ERROR on success, B_ERROR on error (out of memory, or thread is already running)
+     * @returns B_NO_ERROR on success, or B_BAD_OBJECT if the internal thread is already running.
      */
    virtual status_t StartInternalThread();
 
@@ -351,7 +351,7 @@ public:
      * @param msgRef Reference to the message to send
      * @param optDistPath Optional node path to match against to decide which ThreadWorkerSessions to send to.  
      *                    If left as NULL, the default distribution path will be used.
-     * @returns B_NO_ERROR if the message was enqueued successfully, or B_ERROR if out-of-memory
+     * @returns B_NO_ERROR if the message was enqueued successfully, or an error code on failure.
      */
    virtual status_t SendMessageToSessions(const MessageRef & msgRef, const char * optDistPath = NULL);
 
@@ -367,7 +367,7 @@ public:
      *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts 
      *                      like one, or else things won't work correctly.
      *                      The referenced session becomes sole property of the MessageTransceiverThread on success.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */  
    virtual status_t AddNewSession(const ConstSocketRef & socket, const ThreadWorkerSessionRef & optSessionRef);
@@ -409,7 +409,7 @@ public:
      *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
      *                              is used; typically this means that it will be left up to the operating system how long to wait
      *                              before timing out the connection attempt.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
    virtual status_t AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
@@ -433,7 +433,7 @@ public:
      *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
      *                              is used; typically this means that it will be left up to the operating system how long to wait
      *                              before timing out the connection attempt.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
    status_t AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return AddNewConnectSession(targetIPAddress, port, ThreadWorkerSessionRef(), autoReconnectDelay, maxAsyncConnectPeriod);}
@@ -463,7 +463,7 @@ public:
      *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
      *                              is used; typically this means that it will be left up to the operating system how long to wait
      *                              before timing out the connection attempt.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
    virtual status_t AddNewConnectSession(const String & targetHostName, uint16 port, const ThreadWorkerSessionRef & optSessionRef, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
@@ -488,7 +488,7 @@ public:
      *                              abort.  If not specified, the default value (as specified by MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS)
      *                              is used; typically this means that it will be left up to the operating system how long to wait
      *                              before timing out the connection attempt.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
    status_t AddNewConnectSession(const String & targetHostName, uint16 port, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return AddNewConnectSession(targetHostName, port, ThreadWorkerSessionRef(), expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);}
@@ -511,7 +511,7 @@ public:
      *                   internal thread has been started.  If the internal thread is running already, this argument
      *                   will be ignored (because the socket binding will happen asynchronously and therefore the
      *                   port chosen is not known in time to return it here).  Defaults to NULL.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the put command was enqueued successfully, not that it was executed (yet).
      */
    virtual status_t PutAcceptFactory(uint16 port, const ThreadWorkerSessionFactoryRef & optFactoryRef, const IPAddress & optInterfaceIP = invalidIP, uint16 * optRetPort = NULL);
@@ -528,7 +528,7 @@ public:
      * @param port The port to remove the factory from, or zero to remove all factories.
      *  @param optInterfaceIP Interface(s) that the specified callbacks were assigned to in their PutAcceptFactory() call.
      *                        This parameter is ignored when (port) is zero. 
-     * @return B_NO_ERROR on success, or B_ERROR on failure.  Note that if the internal thread is currently running,
+     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the remove command was enqueued successfully, not that it was executed (yet).
      */
    virtual status_t RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP);
@@ -549,7 +549,7 @@ public:
      * The change of target path will only affect the routing of messages enqueued after this call has
      * returned, not ones that are currently enqueued for distribution or transmission.
      * @param distPath Node path to use by default, or NULL to send to all.
-     * @return B_NO_ERROR if the set-target-path command was enqueued successfully, or B_ERROR if there was
+     * @return B_NO_ERROR if the set-target-path command was enqueued successfully, or an error code if there was
      *                    an error enqueueing it.  Note that the actual change-of-path is done asynchronously.
      */
    status_t SetDefaultDistributionPath(const String & distPath);
@@ -604,7 +604,7 @@ public:
      *                    know what you are doing.  ;^)  On success, (optDrainTag) becomes property
      *                    of this MessageTransceiverThread.
      * @returns B_NO_ERROR on success (in which case an MTT_EVENT_OUTPUT_QUEUES_DRAINED event will be
-     *          forthcoming) or B_ERROR on error (out of memory).
+     *          forthcoming) or an error code on failure.
      */
    status_t RequestOutputQueuesDrainedNotification(const MessageRef & notificationMsg, const char * optDistPath = NULL, DrainTag * optDrainTag = NULL);
 
@@ -616,7 +616,7 @@ public:
      *             the existing input policy.
      * @param optDistPath If non-NULL, only sessions matching this path will be affected.
      *                    A NULL path (the default) means affect all worker sessions.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     * @return B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetNewInputPolicy(const AbstractSessionIOPolicyRef & pref, const char * optDistPath = NULL);
 
@@ -628,7 +628,7 @@ public:
      *             the existing output policy.
      * @param optDistPath If non-NULL, only sessions matching this path will be affected.
      *                    A NULL path (the default) means affect all worker sessions.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     * @return B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetNewOutputPolicy(const AbstractSessionIOPolicyRef & pref, const char * optDistPath = NULL);
 
@@ -641,7 +641,7 @@ public:
      * @param encoding one of the MUSCLE_MESSAGE_ENCODING_* constant declared in MessageIOGateway.h
      * @param optDistPath If non-NULL, only sessions matching this path will be affected.
      *                    A NULL path (the default) means affect all worker sessions.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     * @return B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetOutgoingMessageEncoding(int32 encoding, const char * optDistPath = NULL);
 
@@ -649,7 +649,7 @@ public:
      * Tells the specified worker session(s) to go away.
      * @param optDistPath If non-NULL, only sessions matching this path will be affected.
      *                    A NULL path (the default) means all worker sessions will be destroyed.
-     * @return B_NO_ERROR on success, or B_ERROR on failure.
+     * @return B_NO_ERROR on success, or an error code on failure.
      */
    status_t RemoveSessions(const char * optDistPath = NULL);
 

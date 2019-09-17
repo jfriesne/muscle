@@ -90,7 +90,7 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
       else 
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed!\n");
-         return B_ERROR;
+         return B_ERROR("WaitForEvents() failed");
       }
    }
 }

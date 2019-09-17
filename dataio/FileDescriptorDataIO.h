@@ -62,7 +62,7 @@ public:
     * If this object is to be used by an AbstractMessageIOGateway,
     * then non-blocking I/O is usually better to use.
     * @param blocking If true, file descriptor is set to blocking I/O mode.  Otherwise, non-blocking I/O.
-    * @return B_NO_ERROR on success, B_ERROR on error.
+    * @return B_NO_ERROR on success, or an error code on error.
     */
    status_t SetBlockingIOEnabled(bool blocking);
 
@@ -75,7 +75,7 @@ public:
    /** Seeks to the specified point in the file stream.
     *  @param offset Where to seek to.
     *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END. 
-    *  @return B_NO_ERROR on success, B_ERROR on failure.
+    *  @return B_NO_ERROR on success, or an error code on failure.
     */ 
    virtual status_t Seek(int64 offset, int whence);
    

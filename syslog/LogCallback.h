@@ -180,17 +180,18 @@ DECLARE_REFTYPES(LogLineCallback);
 
 /** Add a custom LogCallback object to the global log callbacks set.
  *  @param cbRef Reference to a LogCallback object. 
+ *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log-lock couldn't be locked.
  */
 status_t PutLogCallback(const LogCallbackRef & cbRef);
 
 /** Removes the given callback from our list.  
  *  @param cbRef Reference of the LogCallback to remove from the callback list.
- *  @returns B_NO_ERROR on success, or B_ERROR if the given callback wasn't found, or the lock couldn't be locked.
+ *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the given callback wasn't found, or B_LOCK_FAILED if the log-lock couldn't be locked.
  */
 status_t RemoveLogCallback(const LogCallbackRef & cbRef);
 
 /** Removes all log callbacks from the callback set
- *  @returns B_NO_ERROR on success, or B_ERROR if the log lock couldn't be locked for some reason.
+ *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log-lock couldn't be locked.
  */ 
 status_t ClearLogCallbacks();
 

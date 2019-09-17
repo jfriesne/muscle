@@ -84,7 +84,7 @@ public:
     * If this object is to be used by an AbstractMessageIOGateway,
     * then non-blocking I/O is usually better to use.
     * @param blocking If true, socket is set to blocking I/O mode.  Otherwise, non-blocking I/O.
-    * @return B_NO_ERROR on success, B_ERROR on error.
+    * @return B_NO_ERROR on success, or an error code on error.
     */
    status_t SetBlockingIOEnabled(bool blocking)
    {
@@ -97,7 +97,7 @@ public:
     * Turns Nagle's algorithm (output packet buffering/coalescing) on or off.
     * @param enabled If true, data will be held momentarily before sending, to allow for bigger packets.
     *                If false, each Write() call will cause a new packet to be sent immediately.
-    * @return B_NO_ERROR on success, B_ERROR on error.
+    * @return B_NO_ERROR on success, or an error code on error.
     */
    status_t SetNaglesAlgorithmEnabled(bool enabled)
    {

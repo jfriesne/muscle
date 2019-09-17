@@ -336,7 +336,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
             break;
          }
       }
-      else return B_ERROR;  // should never happen
+      else return B_LOGIC_ERROR;  // should never happen
    }
    return B_NO_ERROR;
 }
