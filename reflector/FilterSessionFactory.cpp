@@ -173,14 +173,14 @@ status_t FilterSessionFactory :: RemoveRequirePattern(const String & requirePatt
 void FilterSessionFactory :: RemoveMatchingBanPatterns(const String & exp)
 {
    StringMatcher sm(exp);
-   for (HashtableIterator<String, StringMatcherRef> iter(_bans); iter.HasData(); iter++) if (sm.Match(iter.GetKey()())) RemoveBanPattern(iter.GetKey());
+   for (HashtableIterator<String, StringMatcherRef> iter(_bans); iter.HasData(); iter++) if (sm.Match(iter.GetKey()())) (void) RemoveBanPattern(iter.GetKey());
 }
 
 
 void FilterSessionFactory :: RemoveMatchingRequirePatterns(const String & exp)
 {
    StringMatcher sm(exp);
-   for (HashtableIterator<String, StringMatcherRef> iter(_requires); iter.HasData(); iter++) if (sm.Match(iter.GetKey()())) RemoveRequirePattern(iter.GetKey());
+   for (HashtableIterator<String, StringMatcherRef> iter(_requires); iter.HasData(); iter++) if (sm.Match(iter.GetKey()())) (void) RemoveRequirePattern(iter.GetKey());
 }
 
 } // end namespace muscle

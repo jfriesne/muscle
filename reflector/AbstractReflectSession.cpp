@@ -20,22 +20,11 @@ static uint32 _factoryIDCounter = 0L;
 
 static uint32 GetNextGlobalID(uint32 & counter)
 {
-   uint32 ret;
-
    Mutex * ml = GetGlobalMuscleLock();
    MASSERT(ml, "Please instantiate a CompleteSetupSystem object on the stack before creating any session or session-factory objects (at beginning of main() is preferred)\n");
 
-   if (ml->Lock() == B_NO_ERROR) 
-   {
-      ret = counter++;
-      ml->Unlock();
-   }
-   else
-   {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Could not lock global muscle lock while assigning new ID!!?!\n");
-      ret = counter++;  // do it anyway, I guess
-   }
-   return ret;
+   MutexGuard mg(*ml);
+   return counter++;
 }
 
 ReflectSessionFactory :: ReflectSessionFactory()

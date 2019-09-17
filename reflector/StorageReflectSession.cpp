@@ -214,10 +214,10 @@ Cleanup()
          if (hostNode)
          {
             // make sure our session node is gone
-            hostNode->RemoveChild(GetSessionIDString(), this, true, NULL);
+            (void) hostNode->RemoveChild(GetSessionIDString(), this, true, NULL);
 
             // If our host node is now empty, it goes too
-            if (hostNode->HasChildren() == false) GetGlobalRoot().RemoveChild(hostNode->GetNodeName(), this, true, NULL);
+            if (hostNode->HasChildren() == false) (void) GetGlobalRoot().RemoveChild(hostNode->GetNodeName(), this, true, NULL);
          }
       
          PushSubscriptionMessages();
@@ -1079,7 +1079,7 @@ void StorageReflectSession :: DoRemoveData(NodePathMatcher & matcher, bool quiet
       {
          DataNode * next = removeSet[i]();
          DataNode * parent = next->GetParent();
-         if ((next)&&(parent)) parent->RemoveChild(next->GetNodeName(), quiet ? NULL : this, true, &_currentNodeCount);
+         if ((next)&&(parent)) (void) parent->RemoveChild(next->GetNodeName(), quiet ? NULL : this, true, &_currentNodeCount);
       }
    }
 }

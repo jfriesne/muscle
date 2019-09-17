@@ -132,7 +132,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
          notifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, dref()->GetNodeName());
          return B_NO_ERROR;
       }
-      else RemoveChild(dref()->GetNodeName(), notifyWithOnSetParent, false, NULL);  // undo!
+      else (void) RemoveChild(dref()->GetNodeName(), notifyWithOnSetParent, false, NULL);  // undo!
    }
 
    return ret | B_ERROR;
@@ -142,8 +142,7 @@ status_t DataNode :: RemoveIndexEntryAt(uint32 removeIndex, StorageReflectSessio
 {
    TCHECKPOINT;
 
-   if (_orderedIndex == NULL) return B_BAD_OBJECT;
-   if (removeIndex >= _orderedIndex->GetNumItems()) return B_BAD_ARGUMENT;
+   if ((_orderedIndex == NULL)||(removeIndex >= _orderedIndex->GetNumItems())) return B_DATA_NOT_FOUND;
 
    DataNodeRef holdKey = _orderedIndex->RemoveItemAtWithDefault(removeIndex);  // gotta make a temp copy here, or it's dangling pointer time
    if ((holdKey())&&(optNotifyWith)) optNotifyWith->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYREMOVED, removeIndex, holdKey()->GetNodeName());
@@ -335,15 +334,16 @@ status_t DataNode :: RemoveChild(const String & key, StorageReflectSession * opt
 {
    TCHECKPOINT;
 
-   status_t ret;
+   if (_children == NULL) return B_DATA_NOT_FOUND;
 
+   status_t ret;
    DataNodeRef childRef;
-   if ((_children)&&(_children->Get(&key, childRef).IsOK(ret)))
+   if (_children->Get(&key, childRef).IsOK(ret))
    {
       DataNode * child = childRef();
       if (child)
       {
-         if (recurse) while(child->HasChildren()) child->RemoveChild(**(child->_children->GetFirstKey()), optNotifyWith, recurse, optCurrentNodeCount);
+         if (recurse) while(child->HasChildren()) (void) child->RemoveChild(**(child->_children->GetFirstKey()), optNotifyWith, recurse, optCurrentNodeCount);
 
          (void) RemoveIndexEntry(key, optNotifyWith);
          if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*child, child->GetData(), true);

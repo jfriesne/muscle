@@ -92,7 +92,7 @@ public:
     *  @param optNotifyWith If non-NULL, the StorageReflectSession that should be used to notify subscribers that the given node has been removed
     *  @param recurse if true, the removed child's children will be removed from it, and so on, and so on...
     *  @param optCounter if non-NULL, this value will be incremented whenever a child is removed (recursively)
-    *  @return B_NO_ERROR if the given child is found and removed, or B_DATA_NOT_FOUND if it could not be found.
+    *  @return B_NO_ERROR if the given child was found and removed, or B_DATA_NOT_FOUND if it could not be found.
     */
    status_t RemoveChild(const String & key, StorageReflectSession * optNotifyWith, bool recurse, uint32 * optCounter);
 
@@ -187,7 +187,7 @@ public:
     *  Don't call this function unless you really know what you are doing!
     *  @param removeIndex Offset into the array to remove
     *  @param optNotifyWith Session to use to inform everybody that the index has been changed.
-    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT if (removeIndex) was invalid, or B_OUT_OF_MEMORY.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND there was no index-entry at position (removeIndex).
     */
    status_t RemoveIndexEntryAt(uint32 removeIndex, StorageReflectSession * optNotifyWith);
 

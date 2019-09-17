@@ -611,14 +611,14 @@ public:
    /**
     *  Goes through the array and removes the first item that is equal to (val).
     *  @param val the item to look for and remove
-    *  @return B_NO_ERROR if a matching item was found and removed, or B_BAD_ARGUMENT if it wasn't found.
+    *  @return B_NO_ERROR if a matching item was found and removed, or B_DATA_NOT_FOUND if it wasn't found.
     */
    status_t RemoveFirstInstanceOf(const ItemType & val);
 
    /**
     *  Goes through the array and removes the last item that is equal to (val).
     *  @param val the item to look for and remove
-    *  @return B_NO_ERROR if a matching item was found and removed, or B_BAD_ARGUMENT if it wasn't found.
+    *  @return B_NO_ERROR if a matching item was found and removed, or B_DATA_NOT_FOUND if it wasn't found.
     */
    status_t RemoveLastInstanceOf(const ItemType & val);
 
@@ -1482,7 +1482,7 @@ RemoveFirstInstanceOf(const ItemType & val)
 {
    const uint32 ni = GetNumItems();
    for (uint32 i=0; i<ni; i++) if ((*this)[i] == val) return RemoveItemAt(i);
-   return B_BAD_ARGUMENT;
+   return B_DATA_NOT_FOUND;
 }
 
 template <class ItemType>
@@ -1491,7 +1491,7 @@ Queue<ItemType>::
 RemoveLastInstanceOf(const ItemType & val) 
 {
    for (int32 i=((int32)GetNumItems())-1; i>=0; i--) if ((*this)[i] == val) return RemoveItemAt(i);
-   return B_BAD_ARGUMENT;
+   return B_DATA_NOT_FOUND;
 }
 
 template <class ItemType>

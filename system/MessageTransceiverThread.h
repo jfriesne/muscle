@@ -528,8 +528,9 @@ public:
      * @param port The port to remove the factory from, or zero to remove all factories.
      *  @param optInterfaceIP Interface(s) that the specified callbacks were assigned to in their PutAcceptFactory() call.
      *                        This parameter is ignored when (port) is zero. 
-     * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
-     *         then success merely indicates that the remove command was enqueued successfully, not that it was executed (yet).
+     * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if no factory is currently installed on the given port.
+     *         Note that if the internal thread is currently running, then success merely indicates that the remove 
+     *         command was enqueued successfully, not that it was executed (yet).
      */
    virtual status_t RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP);
 

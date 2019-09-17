@@ -139,7 +139,7 @@ protected:
     *  @param filterRef If non-NULL, we'll use the given QueryFilter object to filter out our result set.
     *                   Only nodes whose Messages match the QueryFilter will be removed.  Default is a NULL reference.
     *  @param quiet If set to true, subscribers won't be updated regarding this change to the database
-    *  @return B_NO_ERROR on success, or an error code on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    virtual status_t RemoveDataNodes(const String & nodePath, const ConstQueryFilterRef & filterRef = ConstQueryFilterRef(), bool quiet = false);
 

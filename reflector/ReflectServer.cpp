@@ -1035,7 +1035,8 @@ ReflectServer ::
 RemoveAcceptFactoryAux(const IPAddressAndPort & iap)
 {
    ReflectSessionFactoryRef ref;
-   if (_factories.Get(iap, ref) == B_NO_ERROR)  // don't remove it yet, in case AboutToDetachFromServer() calls a method on us
+   status_t ret;
+   if (_factories.Get(iap, ref).IsOK(ret))  // don't remove it yet, in case AboutToDetachFromServer() calls a method on us
    {
       ref()->SetFullyAttachedToServer(false);
       ref()->AboutToDetachFromServer();
@@ -1051,7 +1052,7 @@ RemoveAcceptFactoryAux(const IPAddressAndPort & iap)
 
       return B_NO_ERROR;
    }
-   else return B_BAD_ARGUMENT;
+   else return ret;
 }
 
 status_t

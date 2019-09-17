@@ -53,7 +53,7 @@ public:
     *  @param port whose callback should be removed.  If (port) is set to zero, all callbacks will be removed.
     *  @param optInterfaceIP Interface(s) that the specified callbacks were assigned to in their PutAcceptFactory() call.
     *                        This parameter is ignored when (port) is zero. 
-    *  @returns B_NO_ERROR on success, or an error code if a factory for the specified port was not found.
+    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if a factory for the specified port was not found.
     */
    virtual status_t RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP);
 

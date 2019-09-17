@@ -2138,7 +2138,7 @@ status_t LogFlush()
    TCHECKPOINT;
 
    status_t ret;
-   if (LockLog() == B_NO_ERROR)
+   if (LockLog().IsOK(ret))
    {
       for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) if (iter.GetKey()()) iter.GetKey()()->Flush();
       (void) UnlockLog();
