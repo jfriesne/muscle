@@ -257,7 +257,7 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
 #else
             const int unlinkRet = unlink(catStr);
 #endif
-            const status_t ret = (unlinkRet == 0) ? B_NO_ERROR : Directory::DeleteDirectory(catStr, true);
+            ret = (unlinkRet == 0) ? B_NO_ERROR : Directory::DeleteDirectory(catStr, true);
             delete [] catStr;
             if (ret != B_NO_ERROR) return ret;
          }
