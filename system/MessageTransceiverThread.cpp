@@ -783,7 +783,7 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
             break;
 
             case MTT_COMMAND_SET_DEFAULT_PATH:
-               _defaultDistributionPath = msg->GetString(MTT_NAME_PATH);;
+               _defaultDistributionPath = msg->GetString(MTT_NAME_PATH);
             break;
 
             case MTT_COMMAND_NOTIFY_ON_OUTPUT_DRAIN:
