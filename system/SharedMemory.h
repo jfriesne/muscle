@@ -3,6 +3,7 @@
 #ifndef MuscleSharedMemory_h
 #define MuscleSharedMemory_h
 
+#include "support/NotCopyable.h"
 #include "util/String.h"
 #include "util/CountedObject.h"
 
@@ -18,7 +19,7 @@ namespace muscle {
   * The current implementation only works under Windows and POSIX, but other implementations may be
   * added in the future.
   */
-class SharedMemory MUSCLE_FINAL_CLASS
+class SharedMemory MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
    /** Default constructor.  You'll need to call SetArea() before this object will be useful. */

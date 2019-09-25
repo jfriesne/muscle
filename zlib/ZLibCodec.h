@@ -5,6 +5,7 @@
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 
+# include "support/NotCopyable.h"
 # include "util/ByteBuffer.h"
 # include "zlib/zlib/zlib.h"
 
@@ -15,7 +16,7 @@ class DataIO;
 /** This class is a handy wrapper around the zlib C functions.
   * It quickly and easily inflates and deflates data to/from independently compressed chunks.
   */
-class ZLibCodec MUSCLE_FINAL_CLASS
+class ZLibCodec MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
    /** Constructor.

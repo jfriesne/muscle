@@ -3,6 +3,7 @@
 #ifndef TarFileUtilityFunctions_h
 #define TarFileUtilityFunctions_h
 
+#include "support/NotCopyable.h"
 #include "dataio/SeekableDataIO.h"
 
 namespace muscle {
@@ -13,7 +14,7 @@ namespace muscle {
  *  only the writing of a .tar file is supported; at some point I may add
  *  support for reading .tar files as well.
  */
-class TarFileWriter
+class TarFileWriter : public NotCopyable
 {
 public:
    /** Default constructor. */

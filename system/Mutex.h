@@ -4,6 +4,7 @@
 #define MuscleMutex_h
 
 #include "support/MuscleSupport.h"  // needed for WIN32 defines, etc
+#include "support/NotCopyable.h"
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
 # if defined(QT_CORE_LIB)  // is Qt4 available?
@@ -69,7 +70,7 @@ extern bool _muscleSingleThreadOnly;
   * (e.g. the MUSCLE ObjectPool or Thread classes)
   * When compiling with the MUSCLE_SINGLE_THREAD_ONLY preprocessor flag defined, this class becomes a no-op.
   */
-class Mutex MUSCLE_FINAL_CLASS
+class Mutex MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
    /** Constructor */

@@ -38,6 +38,8 @@ key:  - new feature
    o Updates the codebase so that LogTime() calls reporting
      an error now include the state-string of the relevant 
      status_t variable, when applicable.
+   o The Mutex, SharedMemory, TarFileWriter, and ZLibCodec
+     classes all now now inherit from NotCopyable.
    * Updated the friend-template work-around in Hashtable.h
      to include g++ 8.3.x
    * Fixed an output-formatting bug in test/readmessages.cpp
