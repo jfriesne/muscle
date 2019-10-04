@@ -4,6 +4,7 @@
 #include "dataio/ChildProcessDataIO.h"
 #include "util/MiscUtilityFunctions.h"     // for ExitWithoutCleanup()
 #include "util/NetworkUtilityFunctions.h"  // SendData() and ReceiveData()
+#include "util/SocketMultiplexer.h"
 
 #if defined(WIN32) || defined(__CYGWIN__)
 # include <process.h>     // for _beginthreadex()
@@ -20,6 +21,12 @@
 # include <termios.h>
 # include <signal.h>  // for SIGHUP, etc
 # include <sys/wait.h>  // for waitpid()
+#endif
+
+#if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+# include <fcntl.h>    // for F_GETOWN
+# include <Security/Authorization.h>
+# include <Security/AuthorizationTags.h>
 #endif
 
 #include "util/NetworkUtilityFunctions.h"
@@ -39,6 +46,9 @@ ChildProcessDataIO :: ChildProcessDataIO(bool blocking)
    , _readFromStdout(INVALID_HANDLE_VALUE), _writeToStdin(INVALID_HANDLE_VALUE), _ioThread(INVALID_HANDLE_VALUE), _wakeupSignal(INVALID_HANDLE_VALUE), _childProcess(INVALID_HANDLE_VALUE), _childThread(INVALID_HANDLE_VALUE), _requestThreadExit(false)
 #else
    , _childPID(-1)
+#endif
+#if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   , _authRef(NULL)
 #endif
 {
    // empty
@@ -258,6 +268,10 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
             else memcpy(argv, args, argc*sizeof(char *));
    argv[argc] = NULL; // argv array must be NULL terminated!
 
+#if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   if (_dialogPrompt.HasChars()) return LaunchPrivilegedChildProcess(argv);
+#endif
+   
    pid_t pid = (pid_t) -1;
    if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY))
    {
@@ -348,6 +362,77 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 #endif
 }
 
+#if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+status_t ChildProcessDataIO :: LaunchPrivilegedChildProcess(const char ** argv)
+{
+   // Code adapted from Performant Design's cocoasudo program 
+   // at git://github.com/performantdesign/cocoasudo.git
+   OSStatus status;
+   AuthorizationRef authRef = NULL;
+
+   AuthorizationItem right = { kAuthorizationRightExecute, strlen(argv[0]), &argv[0], 0 };
+   AuthorizationRights rightSet = { 1, &right };
+
+   AuthorizationEnvironment myAuthorizationEnvironment = {0, 0};
+   AuthorizationItem kAuthEnv[2]; memset(&kAuthEnv, 0, sizeof(kAuthEnv));
+   myAuthorizationEnvironment.items = kAuthEnv;
+
+   if ((_dialogPrompt.HasChars())&&(_dialogIcon.HasChars()))
+   {
+      kAuthEnv[0].name        = kAuthorizationEnvironmentPrompt;
+      kAuthEnv[0].valueLength = _dialogPrompt.Length();
+      kAuthEnv[0].value       = (void *) _dialogPrompt();
+      kAuthEnv[0].flags       = 0;
+
+      kAuthEnv[1].name        = kAuthorizationEnvironmentIcon;
+      kAuthEnv[1].valueLength = _dialogIcon.Length();
+      kAuthEnv[1].value       = (void *) _dialogIcon();
+      kAuthEnv[1].flags       = 0;
+
+      myAuthorizationEnvironment.count = 2;
+   }
+   else
+   {
+      kAuthEnv[0].name        = kAuthorizationEnvironmentPrompt;
+      kAuthEnv[0].valueLength = _dialogPrompt.Length();
+      kAuthEnv[0].value       = (void *) _dialogPrompt();
+      kAuthEnv[0].flags       = 0;
+
+      myAuthorizationEnvironment.count = 1;
+   }
+
+   if (AuthorizationCreate(NULL, &myAuthorizationEnvironment, kAuthorizationFlagDefaults, &authRef) != errAuthorizationSuccess)
+   {
+      LogTime(MUSCLE_LOG_ERROR, "ChildProcessDataIO::LaunchPrivilegedChildProcess():  Could not create authorization reference object.\n");
+      return B_ERROR("AuthorizationCreate() failed");
+   }
+   else status = AuthorizationCopyRights(authRef, &rightSet, &myAuthorizationEnvironment, kAuthorizationFlagDefaults|kAuthorizationFlagPreAuthorize|kAuthorizationFlagInteractionAllowed|kAuthorizationFlagExtendRights, NULL);
+
+   if (status == errAuthorizationSuccess)
+   {
+      FILE *ioPipe;
+      status = AuthorizationExecuteWithPrivileges(authRef, argv[0], kAuthorizationFlagDefaults, (char **)(&argv[1]), &ioPipe);  // +1 because it doesn't take the traditional argv[0]
+      if (status == errAuthorizationSuccess)
+      {
+         _ioPipe.SetFile(ioPipe);
+         _handle  = _ioPipe.GetReadSelectSocket();
+         _authRef = authRef;
+         return _handle() ? SetSocketBlockingEnabled(_handle, false) : B_ERROR;
+      }
+      else 
+      {
+         AuthorizationFree(authRef, kAuthorizationFlagDestroyRights);
+         return (status == errAuthorizationCanceled) ? B_ACCESS_DENIED : B_ERROR("AuthorizationExecuteWithPrivileges() failed");
+      }
+   }
+   else
+   {
+      AuthorizationFree(authRef, kAuthorizationFlagDestroyRights);
+      return (status == errAuthorizationCanceled) ? B_ACCESS_DENIED : B_ERROR("AuthorizationCopyRights() pre-authorization failed");
+   }
+}
+#endif
+
 ChildProcessDataIO :: ~ChildProcessDataIO()
 {
    TCHECKPOINT;
@@ -371,6 +456,9 @@ status_t ChildProcessDataIO :: KillChildProcess()
    if (_childProcess == INVALID_HANDLE_VALUE) return B_BAD_OBJECT;
    return TerminateProcess(_childProcess, 0) ? B_NO_ERROR : B_ERRNO;
 #else
+# if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   if (_ioPipe.GetFile()) return B_UNIMPLEMENTED;  // no can do
+# endif
    if (_childPID < 0) return B_BAD_OBJECT;
    if (kill(_childPID, SIGKILL) == 0)
    {
@@ -390,9 +478,11 @@ status_t ChildProcessDataIO :: SignalChildProcess(int sigNum)
    (void) sigNum;   // to shut the compiler up
    return B_UNIMPLEMENTED;  // Not implemented under Windows!
 #else
-   // Yes, kill() is a misnomer.  Silly Unix people!
+# if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   if (_ioPipe.GetFile()) return B_UNIMPLEMENTED;  // no can do
+# endif
    if (_childPID < 0) return B_BAD_OBJECT;
-   return (kill(_childPID, sigNum) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (kill(_childPID, sigNum) == 0) ? B_NO_ERROR : B_ERRNO; // Yes, kill() is a misnomer.  Silly Unix people!
 #endif
 }
 
@@ -418,9 +508,24 @@ void ChildProcessDataIO :: Close()
    SafeCloseHandle(_childProcess);
    SafeCloseHandle(_childThread);
 #else
+
    _handle.Reset();
+# if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   if ((_ioPipe.GetFile())||(_childPID >= 0)) DoGracefulChildShutdown();
+# else
    if (_childPID >= 0) DoGracefulChildShutdown();
+#endif
+
    _childPID = -1;
+
+# if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   _ioPipe.Shutdown();
+   if (_authRef)
+   {  
+      AuthorizationFree((AuthorizationRef)_authRef, kAuthorizationFlagDestroyRights);
+      _authRef = NULL;
+   }
+# endif
 #endif
 }
 
@@ -451,6 +556,34 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
       return true;
    }
 #else
+# if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   if (_ioPipe.GetFile())
+   {
+      const int fd = fileno(_ioPipe.GetFile());
+      //doesn't work:  if (shutdown(fd, SHUT_WR) != 0) perror("shutdown");  // let the child process know we're ready to leave
+
+      // Since AuthorizationExecuteWithPrivileges() doesn't give us a _childPID to wait on, all we can do is 
+      // block-and-read until either we read EOF from the _ioPipe or we reach the timeout-time.
+      bool sawEOF = false;
+      SocketMultiplexer sm;
+      const uint64 endTime = (maxWaitTimeMicros == MUSCLE_TIME_NEVER) ? MUSCLE_TIME_NEVER : (GetRunTime64()+maxWaitTimeMicros);
+      while(GetRunTime64() < endTime)
+      {
+         if ((sm.RegisterSocketForReadReady(fd) != B_NO_ERROR)||(sm.WaitForEvents(endTime) < 0)) break;
+         else
+         {
+            char junk[1024];
+            if ((fread(junk, sizeof(junk), 1, _ioPipe.GetFile()) < 0)||(feof(_ioPipe.GetFile())))
+            {
+               sawEOF = true;
+               break;
+            }
+         }
+      }
+      return sawEOF;  // if we saw EOF on the _ioPipe, we'll take that to mean the child process exited -- best we can do
+   }
+# endif
+
    if (_childPID < 0) return true;   // a non-existent child process is an exited child process, if you ask me.
    _childProcessCrashed = false;     // reset the flag only when there is an actual child process to wait for
 

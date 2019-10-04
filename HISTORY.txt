@@ -5,6 +5,14 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES
+     compile-time flag and a SetRequestRootAccessForChildProcessEnabled()
+     method to the ChildProcessDataIO class that will be available
+     only on MacOS/X and only if the compile-time flag was specified
+     when compiling MUSCLE.  The new method tells the ChildProcessDataIO
+     class to launch the child process as a privileged/root-level process
+     (and causes the OS to prompt for the user's password before allowing that)
+
 7.50 Released 9/25/2019
    - Merged in some iOS-compatibility patches supplied
      by Arno Gramatke.  The CMakeLists.txt now does the

@@ -341,3 +341,9 @@ of your Makefile to alter muscle's behaviour:
 -DMUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION
    Tells the DetectNetworkConfigChangesSession class to build but
    not do anything useful.
+
+-DMUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES
+   If specified, the ChildProcessDataIO class will enable the
+   SetRequestRootAccessForChildProcessEnabled() method and attendant
+   functionality for launching a root-enabled child process under
+   MacOS/X.

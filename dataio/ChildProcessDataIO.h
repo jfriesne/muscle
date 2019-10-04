@@ -4,7 +4,7 @@
 #define ChildProcessDataIO_h
 
 #include <errno.h>
-#include "dataio/DataIO.h"
+#include "dataio/FileDataIO.h"
 #include "support/BitChord.h"
 #include "util/Queue.h"
 #include "util/Hashtable.h"
@@ -201,6 +201,22 @@ public:
      */
    bool DidChildProcessCrash() const {return _childProcessCrashed;}
 
+#if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   /** Currently implemented under MacOS/X only, and only if you set 
+     * -DMUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES as a compiler-argument.
+     * If you'd like the child process to execute as root (and are okay with the OS 
+     * presenting a type-in-your-password dialog before it will permit that), you can 
+     * call this method before calling LaunchChildProcess().
+     * @param dialogPrompt the text you'd like the user to see in the dialog
+     *                     (e.g. "Please enter your password so that MyProgram can do privileged stuff")
+     *                     If an empty String is passed, then privileged-mode will not be requested.
+     * @param optIconPath if non-empty, the full-file-path to an NSImage-compatible icon file
+     *                    that should be displayed in the dialog.  Defaults to an empty string.
+     * @note this method only has an effect if called before LaunchChildProcess() is called.
+     */
+   void SetRequestRootAccessForChildProcessEnabled(const String & dialogPrompt, const String & optIconPath = GetEmptyString()) {_dialogPrompt = dialogPrompt; _dialogIcon = optIconPath;}
+#endif
+
    /** Convenience method:  acts similar to the POSIX system() call, but
      * implemented internally via a ChildProcessDataIO object.  In particular,
      * this static method will launch the specified process and not return
@@ -296,6 +312,9 @@ public:
 private:
    void Close();
    status_t LaunchChildProcessAux(int argc, const void * argv, ChildProcessLaunchFlags launchFlags, const char * optDirectory, const Hashtable<String,String> * optEnvironmentVariables);
+#if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   status_t LaunchPrivilegedChildProcess(const char ** argv);
+#endif
    void DoGracefulChildShutdown();
    const ConstSocketRef & GetChildSelectSocket() const;
 
@@ -324,6 +343,13 @@ private:
 #else
    ConstSocketRef _handle;
    pid_t _childPID;
+#endif
+
+#if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   String _dialogPrompt;
+   String _dialogIcon;
+   const void * _authRef;  // Actually of type AuthorizationRef but I don't want to add the necessary MacOS/X #includes to this .h file
+   FileDataIO _ioPipe;
 #endif
 
    DECLARE_COUNTED_OBJECT(ChildProcessDataIO);

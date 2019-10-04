@@ -24,6 +24,7 @@ DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 #DEFINES += -DMUSCLE_COUNT_STRING_COPY_OPERATIONS
 #DEFINES += -DMUSCLE_NO_EXCEPTIONS
 #DEFINES += -DMUSCLE_AVOID_STDINT
+DEFINES += -DMUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES
 
 CFLAGS = -I.. -I../zlib/zlib -g
 #CFLAGS += -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk
@@ -101,7 +102,7 @@ ifeq ($(OSTYPE),DragonFly)
 endif 
 
 ifeq ($(OSTYPE),Darwin) 
-   LIBS += -framework IOKit -framework Carbon -framework SystemConfiguration
+   LIBS += -framework IOKit -framework Carbon -framework SystemConfiguration -framework Security
    CXXFLAGS += -stdlib=libc++
 endif 
 

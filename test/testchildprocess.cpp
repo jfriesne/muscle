@@ -101,6 +101,18 @@ int main(int argc, char ** argv)
 
    if (argc < 3) PrintUsageAndExit();
 
+#if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+   bool doPriv = false;
+   for (int i=argc-1; i>=1; i--)
+   {
+      if (strcmp(argv[i], "--asroot") == 0)
+      {
+         doPriv = true;
+         for (int j=i; j<argc; j++) argv[j] = argv[j+1];  // remove the --asroot argument and shift the other back one
+      }
+   }
+#endif
+
    const uint32 numProcesses = atol(argv[1]);
    if (numProcesses == 0) PrintUsageAndExit();
 
@@ -117,6 +129,11 @@ int main(int argc, char ** argv)
       ChildProcessDataIO * dio = new ChildProcessDataIO(false);
       refs.AddTail(DataIORef(dio));
       printf("About To Launch child process #" UINT32_FORMAT_SPEC ":  [%s]\n", i+1, cmd); fflush(stdout);
+
+#if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
+      if (doPriv) dio->SetRequestRootAccessForChildProcessEnabled("testchildprocess needs your password to test privilege escalation of the child process");
+#endif
+
       status_t ret;
       ConstSocketRef s = dio->LaunchChildProcess(argc-2, ((const char **) argv)+2, ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), NULL, &testEnvVars).IsOK(ret) ? dio->GetReadSelectSocket() : ConstSocketRef();
       printf("Finished Launching child process #" UINT32_FORMAT_SPEC ":  [%s]\n", i+1, cmd); fflush(stdout);
