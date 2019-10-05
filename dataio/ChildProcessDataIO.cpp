@@ -373,33 +373,15 @@ status_t ChildProcessDataIO :: LaunchPrivilegedChildProcess(const char ** argv)
    AuthorizationItem right = { kAuthorizationRightExecute, strlen(argv[0]), &argv[0], 0 };
    AuthorizationRights rightSet = { 1, &right };
 
-   AuthorizationEnvironment myAuthorizationEnvironment = {0, 0};
-   AuthorizationItem kAuthEnv[2]; memset(&kAuthEnv, 0, sizeof(kAuthEnv));
-   myAuthorizationEnvironment.items = kAuthEnv;
+   AuthorizationEnvironment myAuthorizationEnvironment; memset(&myAuthorizationEnvironment, 0, sizeof(myAuthorizationEnvironment));
+   AuthorizationItem kAuthEnv;                          memset(&kAuthEnv, 0, sizeof(kAuthEnv));
+   myAuthorizationEnvironment.items = &kAuthEnv;
 
-   if ((_dialogPrompt.HasChars())&&(_dialogIcon.HasChars()))
-   {
-      kAuthEnv[0].name        = kAuthorizationEnvironmentPrompt;
-      kAuthEnv[0].valueLength = _dialogPrompt.Length();
-      kAuthEnv[0].value       = (void *) _dialogPrompt();
-      kAuthEnv[0].flags       = 0;
-
-      kAuthEnv[1].name        = kAuthorizationEnvironmentIcon;
-      kAuthEnv[1].valueLength = _dialogIcon.Length();
-      kAuthEnv[1].value       = (void *) _dialogIcon();
-      kAuthEnv[1].flags       = 0;
-
-      myAuthorizationEnvironment.count = 2;
-   }
-   else
-   {
-      kAuthEnv[0].name        = kAuthorizationEnvironmentPrompt;
-      kAuthEnv[0].valueLength = _dialogPrompt.Length();
-      kAuthEnv[0].value       = (void *) _dialogPrompt();
-      kAuthEnv[0].flags       = 0;
-
-      myAuthorizationEnvironment.count = 1;
-   }
+   kAuthEnv.name        = kAuthorizationEnvironmentPrompt;
+   kAuthEnv.valueLength = _dialogPrompt.Length();
+   kAuthEnv.value       = (void *) _dialogPrompt();
+   kAuthEnv.flags       = 0;
+   myAuthorizationEnvironment.count = 1;
 
    if (AuthorizationCreate(NULL, &myAuthorizationEnvironment, kAuthorizationFlagDefaults, &authRef) != errAuthorizationSuccess)
    {

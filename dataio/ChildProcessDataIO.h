@@ -204,17 +204,16 @@ public:
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
    /** Currently implemented under MacOS/X only, and only if you set 
      * -DMUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES as a compiler-argument.
-     * If you'd like the child process to execute as root (and are okay with the OS 
-     * presenting a type-in-your-password dialog before it will permit that), you can 
-     * call this method before calling LaunchChildProcess().
+     * If you'd like the child process to execute with an effective-user-ID of 0/root
+     * (and you are okay with the OS presenting a type-in-your-password-for-access
+     * dialog before it will permit that to happen), then you can call this method 
+     * before calling LaunchChildProcess() to enable that behavior.
      * @param dialogPrompt the text you'd like the user to see in the dialog
      *                     (e.g. "Please enter your password so that MyProgram can do privileged stuff")
      *                     If an empty String is passed, then privileged-mode will not be requested.
-     * @param optIconPath if non-empty, the full-file-path to an NSImage-compatible icon file
-     *                    that should be displayed in the dialog.  Defaults to an empty string.
      * @note this method only has an effect if called before LaunchChildProcess() is called.
      */
-   void SetRequestRootAccessForChildProcessEnabled(const String & dialogPrompt, const String & optIconPath = GetEmptyString()) {_dialogPrompt = dialogPrompt; _dialogIcon = optIconPath;}
+   void SetRequestRootAccessForChildProcessEnabled(const String & dialogPrompt) {_dialogPrompt = dialogPrompt;}
 #endif
 
    /** Convenience method:  acts similar to the POSIX system() call, but
@@ -347,7 +346,6 @@ private:
 
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
    String _dialogPrompt;
-   String _dialogIcon;
    const void * _authRef;  // Actually of type AuthorizationRef but I don't want to add the necessary MacOS/X #includes to this .h file
    FileDataIO _ioPipe;
 #endif
