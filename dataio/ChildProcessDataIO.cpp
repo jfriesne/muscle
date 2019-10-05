@@ -492,12 +492,8 @@ void ChildProcessDataIO :: Close()
 #else
 
    _handle.Reset();
-# if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
-   if ((_ioPipe.GetFile())||(_childPID >= 0)) DoGracefulChildShutdown();
-# else
-   if (_childPID >= 0) DoGracefulChildShutdown();
-#endif
 
+   if (_childPID >= 0) DoGracefulChildShutdown();
    _childPID = -1;
 
 # if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
@@ -542,7 +538,6 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
    if (_ioPipe.GetFile())
    {
       const int fd = fileno(_ioPipe.GetFile());
-      //doesn't work:  if (shutdown(fd, SHUT_WR) != 0) perror("shutdown");  // let the child process know we're ready to leave
 
       // Since AuthorizationExecuteWithPrivileges() doesn't give us a _childPID to wait on, all we can do is 
       // block-and-read until either we read EOF from the _ioPipe or we reach the timeout-time.
@@ -554,7 +549,7 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
          if ((sm.RegisterSocketForReadReady(fd) != B_NO_ERROR)||(sm.WaitForEvents(endTime) < 0)) break;
          else
          {
-            char junk[1024];
+            char junk[1024] = "";
             if ((fread(junk, sizeof(junk), 1, _ioPipe.GetFile()) < 0)||(feof(_ioPipe.GetFile())))
             {
                sawEOF = true;
