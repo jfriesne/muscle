@@ -12,6 +12,10 @@ key:  - new feature
      when compiling MUSCLE.  The new method tells the ChildProcessDataIO
      class to launch the child process as a privileged/root-level process
      (and causes the OS to prompt for the user's password before allowing that)
+   - Moved the time-unit-conversion helper-functions into their own
+     separate header file (util/TimeUnitConversions.h), and implemented
+     the full matrix of possible unit-conversions within the set of 
+     supported time-units.
 
 7.50 Released 9/25/2019
    - Merged in some iOS-compatibility patches supplied
