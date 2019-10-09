@@ -182,7 +182,7 @@ inline int64 MinutesToWeeks(int64 m)     {return HoursToWeeks(MinutesToHours(m))
   */
 inline int64 SecondsToHours(int64 s)     {return MinutesToHours(SecondsToMinutes(s));}
 
-/** Given a value in seconds, returns the equivalent number of dys. 
+/** Given a value in seconds, returns the equivalent number of days. 
   * @param s A time value, in seconds.
   */
 inline int64 SecondsToDays(int64 s)      {return MinutesToDays(SecondsToMinutes(s));}
