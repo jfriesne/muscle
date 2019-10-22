@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.51 Released 10/22/2019
    - Added a MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES
      compile-time flag and a SetRequestRootAccessForChildProcessEnabled()
      method to the ChildProcessDataIO class that will be available
