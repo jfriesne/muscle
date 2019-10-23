@@ -807,7 +807,7 @@ String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChar
       }
    }
    while(ret.EndsWith('-')) ret -= '-';  // remove any trailing dashes
-   return ret;
+   return ret.Trim();
 }
 
 String CleanupDNSPath(const String & orig, const String & optAdditionalAllowedChars)
@@ -825,7 +825,7 @@ String CleanupDNSPath(const String & orig, const String & optAdditionalAllowedCh
          ret += cleanTok;
       }
    }
-   return ret;  
+   return ret;
 }
 
 status_t NybbleizeData(const uint8 * b, uint32 numBytes, String & retString)
