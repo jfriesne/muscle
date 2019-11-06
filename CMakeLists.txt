@@ -7,7 +7,7 @@ endif()
 project (muscle)
 set (CMAKE_CXX_STANDARD 11)
 
-file(GLOB MUSCLE_SRCS 
+file(GLOB MUSCLE_SRCS
    "./dataio/*.cpp"
    "./iogateway/*.cpp"
    "./message/*.cpp"
@@ -26,7 +26,7 @@ list(REMOVE_ITEM MUSCLE_SRCS ${EXCLUDE_THESE_SOURCES} )
 
 if (WIN32)
    file(GLOB ZLIB_SRCS "./zlib/zlib/*.c")
-   set(MUSCLE_SRCS 
+   set(MUSCLE_SRCS
       ${MUSCLE_SRCS}
       ${ZLIB_SRCS}
       "./regex/regex/regcomp.c"
@@ -54,6 +54,8 @@ if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "iOS")
    add_library(muscle ${MUSCLE_SRCS})
 else ()
    add_library(muscle STATIC ${MUSCLE_SRCS})
+   target_compile_options(muscle PUBLIC -fembed-bitcode)
+   target_link_libraries(muscle -fembed-bitcode)
    set_target_properties(muscle PROPERTIES
         FRAMEWORK TRUE
         MACOSX_FRAMEWORK_IDENTIFIER com.meyersound.muscle
