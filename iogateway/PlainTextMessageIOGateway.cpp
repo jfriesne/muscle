@@ -65,7 +65,7 @@ DoOutputImplementation(uint32 maxBytes)
    else 
    {
       const int32 ret = DoOutputImplementationAux(maxBytes, 0);  // stream-based implementation is here
-      if ((ret >= 0)&&(GetOutgoingMessageQueue().IsEmpty())) GetDataIO()()->FlushOutput();
+      if ((ret >= 0)&&(HasBytesToOutput() == false)) GetDataIO()()->FlushOutput();
       return ret;
    }
 }
