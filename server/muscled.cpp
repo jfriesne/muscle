@@ -38,6 +38,7 @@ static status_t LoadCryptoKey(bool isPublic, const String * optKeyFilePath, Refl
    }
    else LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load %s key file [%s] (file not found?)\n", desc, optKeyFilePath->Cstr());
 #else
+   (void) server;
    LogTime(MUSCLE_LOG_CRITICALERROR, "Can't load %s key file [%s], SSL support is not compiled in!\n", desc, optKeyFilePath->Cstr());
 #endif
    return B_IO_ERROR;

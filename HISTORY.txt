@@ -6,6 +6,15 @@ key:  - new feature
       o other
 
    - Enabled bitcode-generation for iOS in the CMakeLists.txt file.
+   - Added SetSocketCorkAlgorithmEnabled() and GetSocketCorkAlgorithmEnabled()
+     functions to the NetworkUtilityFunctions API (currently implemented
+     for Linux only)
+   o Under Linux, TCPSocketDataIO::FlushOutput() will now call the new
+     SetSocketCorkAlgorithmEnabled() function to flush pending output bytes
+     to the network, rather than the old disable-Nagle's-algorithm-and-call-send()
+     approach.
+   * PlainTextMessageIOGateway wasn't calling FlushOutput() on its DataIO
+     object at the appropriate times.  Fixed.
 
 7.51 Released 10/22/2019
    - Added a MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES

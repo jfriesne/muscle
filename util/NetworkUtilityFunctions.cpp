@@ -1014,6 +1014,36 @@ bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock)
 #endif
 }
 
+status_t SetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock, bool enabled)
+{
+#ifdef __linux__
+   const int fd = sock.GetFileDescriptor();
+   if (fd < 0) return B_BAD_ARGUMENT;
+
+   const int iEnabled = enabled;  // it's gotta be an int!
+   return (setsockopt(fd, IPPROTO_TCP, TCP_CORK, (const sockopt_arg *) &iEnabled, sizeof(iEnabled)) == 0) ? B_NO_ERROR : B_ERRNO;
+#else
+   (void) sock;
+   (void) enabled;
+   return B_UNIMPLEMENTED;
+#endif
+}
+
+bool GetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock)
+{
+#ifdef __linux__
+   const int fd = sock.GetFileDescriptor();
+   if (fd < 0) return false;
+
+   int enabled;
+   socklen_t len = sizeof(enabled);
+   return (getsockopt(fd, IPPROTO_TCP, TCP_CORK, (sockopt_arg *) &enabled, &len) == 0) ? (bool)enabled : false;
+#else
+   (void) sock;
+   return false;
+#endif
+}
+
 status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
 {
    TCHECKPOINT;

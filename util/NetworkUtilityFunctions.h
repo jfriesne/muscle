@@ -428,6 +428,22 @@ status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabl
 bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock);
 
 /**
+  * Turns the TCP_CORK algorithm (i.e. only full packets sent until the socket is un-corked) on or off.
+  * @param sock the socket to act on.
+  * @param enabled If true, partial outgoing TCP packets will be held indefinitely, until the TCP_CORK 
+  *                 algorithm has been disabled on this socket.  Full packets will still be sent.
+  * @param note that this function is currently implemented only under Linux; on other OS's it will return an error code.
+  * @return B_NO_ERROR on success, an error code on error.
+  */
+status_t SetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock, bool enabled);
+
+/** Returns true iff the given socket has the TCP_CORK algorithm enabled.
+ *  @param sock the socket to query.
+ *  @returns true iff the socket is corked, or false if it is not corked not (or if it is an invalid socket)
+ */ 
+bool GetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock);
+
+/**
   * Sets the size of the given socket's outgoing-data-buffer to the specified
   * size (or as close to that size as is possible).
   * @param sock the socket to act on.
