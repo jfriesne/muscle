@@ -140,7 +140,7 @@ static status_t FlushOutBuffer(const ByteBufferRef & outBuf, DataIO & io)
    return B_NO_ERROR;
 }
 
-static void DoSession(DataIO & io)
+static void DoSession(DataIO & io, bool allowRead = true)
 {
    StdinDataIO stdinIO(false);
    PlainTextMessageIOGateway stdinGateway; stdinGateway.SetDataIO(DataIORef(&stdinIO, false));
@@ -159,7 +159,7 @@ static void DoSession(DataIO & io)
       const int writeFD = io.GetWriteSelectSocket().GetFileDescriptor();
       int stdinFD       = stdinIO.GetReadSelectSocket().GetFileDescriptor();
 
-      multiplexer.RegisterSocketForReadReady(readFD);
+      if (allowRead) multiplexer.RegisterSocketForReadReady(readFD);
       if (_spamsPerSecond == MUSCLE_NO_LIMIT) multiplexer.RegisterSocketForWriteReady(writeFD);
       multiplexer.RegisterSocketForReadReady(stdinFD);
       if (multiplexer.WaitForEvents(spamTime) >= 0)
@@ -502,7 +502,7 @@ int hextermmain(const char * argv0, const Message & args)
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not get list of serial device names!\n");
    }
 #ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
-   else if (args.FindString("file", arg) == B_NO_ERROR)
+   else if (args.FindString("rfile", arg) == B_NO_ERROR)
    {
       FileDataIO fdio(fopen(arg(), "rb"));
       if (fdio.GetFile() != NULL)
@@ -510,6 +510,17 @@ int hextermmain(const char * argv0, const Message & args)
          LogTime(MUSCLE_LOG_INFO, "Reading input bytes from file [%s]\n", arg());
          DoSession(fdio);
          LogTime(MUSCLE_LOG_INFO, "Reading of input file complete.\n");
+      }
+      else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open input file [%s]\n", arg());
+   }
+   else if (args.FindString("wfile", arg) == B_NO_ERROR)
+   {
+      FileDataIO fdio(fopen(arg(), "wb"));
+      if (fdio.GetFile() != NULL)
+      {
+         LogTime(MUSCLE_LOG_INFO, "Writing output bytes to file [%s]\n", arg());
+         DoSession(fdio, false);
+         LogTime(MUSCLE_LOG_INFO, "Writing of output file complete.\n");
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open input file [%s]\n", arg());
    }
