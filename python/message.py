@@ -81,7 +81,7 @@ class Message:
       (fieldContents) should be the field's contents (either an item or a list or array of items)
       Returns None.
       """
-      if isinstance(fieldContents, list) or isinstance(fieldContents, array.array):
+      if isinstance(fieldContents, (list, array.array)):
          self.__fields[fieldName] = (fieldTypeCode, fieldContents)
       else:
          self.__fields[fieldName] = (fieldTypeCode, [fieldContents])

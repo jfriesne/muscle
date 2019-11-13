@@ -132,7 +132,7 @@ if __name__ == "__main__":
                         
          if sys.stdin in inReady:
             usertyped = sys.stdin.readline().strip()
-            if usertyped == "/quit":
+            if (not usertyped) or (usertyped == "/quit"):
                print("Exiting!")
                mtt.Destroy()  # important, or we'll hang
                sys.exit(0)
@@ -141,7 +141,7 @@ if __name__ == "__main__":
                chatMsg.PutString(storage_reflect_constants.PR_NAME_KEYS, "/*/*/beshare")
                chatMsg.PutString("session", "blah")  # server will set this for us
                chatMsg.PutString("text", usertyped)
-            mtt.SendOutgoingMessage(chatMsg)
+               mtt.SendOutgoingMessage(chatMsg)
    except:
       if mtt is not None:
          mtt.Destroy()
