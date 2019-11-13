@@ -410,7 +410,7 @@ if __name__ == "__main__":
    mtt.start()  # important!  Otherwise nothing will happen :^)
    while True:
       nextline = sys.stdin.readline().strip()
-      if nextline == "q":
+      if (not nextline) or (nextline == "q"):
          mtt.Destroy()
          print "Bye bye!"
          sys.exit()

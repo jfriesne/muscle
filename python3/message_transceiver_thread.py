@@ -49,6 +49,9 @@ def CreateConnectedSocketPair(blockingMode):
    socketA.setblocking(blockingMode)
    return (socketA, socketB)
 
+class TimeForMessageTransceiverThreadToGoAwayException(Exception):
+   pass
+
 class MessageTransceiverThread(threading.Thread):
    """Python implementation of the MUSCLE MessageTransceiverThread class.
 
@@ -86,7 +89,7 @@ class MessageTransceiverThread(threading.Thread):
       self.__preferIPv6   = preferIPv6
 
       # Used internally by the MessageTransceiverThread class, to clean up
-      self._endSession = IOError()
+      self._endSession = TimeForMessageTransceiverThreadToGoAwayException()
 
       # Set up for accepting incoming TCP connections, if necessary
       if self.__hostname is None:
@@ -272,6 +275,8 @@ class MessageTransceiverThread(threading.Thread):
                   raise # for connecting sessions, the first disconnection means game over, so rethrow
       except OSError as err:
          self.__sendReplyToMainThread(MTT_EVENT_DISCONNECTED)
+      except TimeForMessageTransceiverThreadToGoAwayException:
+         pass
 
       if toremote is not None:
          toremote.close()
@@ -389,7 +394,7 @@ if __name__ == "__main__":
    mtt.start()  # important!  Otherwise nothing will happen :^)
    while True:
       nextline = sys.stdin.readline().strip()
-      if nextline == "q":
+      if (not nextline) or (nextline == "q"):
          mtt.Destroy()
          print("Bye bye!")
          sys.exit()
