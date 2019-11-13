@@ -34,7 +34,7 @@ B_RAW_TYPE     = 1380013908 # 'RAWT',  // used for raw byte arrays
 
 CURRENT_PROTOCOL_VERSION = 1347235888 # 'PM00' -- our magic number
 
-_dataNeedsSwap = not ord(array.array("i",[1]).tostring()[0])
+_dataNeedsSwap = (sys.byteorder != 'little')  # MUSCLE's serialized-bytes-protocol expected little-endian data
 _hasStruct64   = (((sys.version_info[0]*10) + sys.version_info[1]) >= 22)
 _longIs64Bits  = (array.array('l').itemsize > 4)
 
@@ -81,8 +81,7 @@ class Message:
       (fieldContents) should be the field's contents (either an item or a list or array of items)
       Returns None.
       """
-      ctype = type(fieldContents)
-      if ctype == types.ListType or ctype == array.ArrayType:
+      if isinstance(fieldContents, list) or isinstance(fieldContents, array.array):
          self.__fields[fieldName] = (fieldTypeCode, fieldContents)
       else:
          self.__fields[fieldName] = (fieldTypeCode, [fieldContents])
@@ -248,7 +247,7 @@ class Message:
             for dummy in range(numItems):
                fieldContents.append(inFile.read(struct.unpack("<L", inFile.read(4))[0]))
 
-         if _dataNeedsSwap and type(fieldContents) == array.ArrayType:
+         if _dataNeedsSwap and isinstance(fieldContents, array.array):
             fieldContents.byteswap()
 
          self.PutFieldContents(fieldName, fieldTypeCode, fieldContents)
@@ -266,7 +265,10 @@ class Message:
          outFile.write(struct.pack("<2L", fieldType, self.GetFieldContentsLength(fieldType, fieldContents)))
 
          # Convert to array form and byte swap, if necessary
-         if _dataNeedsSwap or type(fieldContents) != array.ArrayType:
+         isFieldContentsArray = isinstance(fieldContents, array.array)
+         if _dataNeedsSwap or (not isFieldContentsArray):
+            wasFieldContentsArray = isFieldContentsArray
+            isFieldContentsArray = True
             if fieldType == B_BOOL_TYPE:
                fieldContents = array.array('b', fieldContents)
             elif fieldType == B_DOUBLE_TYPE:
@@ -281,12 +283,14 @@ class Message:
                fieldContents = array.array('h', fieldContents)
             elif fieldType == B_INT8_TYPE:
                fieldContents = array.array('b', fieldContents)
+            else:
+               isFieldContentsArray = wasFieldContentsArray  # roll back!
 
-            if _dataNeedsSwap and type(fieldContents) == array.ArrayType:
+            if _dataNeedsSwap and isFieldContentsArray:
                fieldContents.byteswap()
 
          # Add the actual data for this field's contents
-         if type(fieldContents) == array.ArrayType:
+         if isFieldContentsArray:
             if fieldType == B_BOOL_TYPE or fieldType == B_DOUBLE_TYPE or fieldType == B_FLOAT_TYPE or fieldType == B_INT32_TYPE or fieldType == B_INT16_TYPE or fieldType == B_INT8_TYPE or fieldType == B_INT64_TYPE:
                outFile.write(fieldContents.tostring())
             else:
