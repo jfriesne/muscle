@@ -138,7 +138,7 @@ class MessageTransceiverThread(threading.Thread):
          This method is typically called by your main thread of execution."""
       if (self.__outQ is not None):
          self.SendOutgoingMessage(self._endSession)  # special 'please die' code
-         self.join()                            # wait for the internal thread to go away
+         self.join()                                 # wait for the internal thread to go away
          self.__outQ = None
          self.__inQ  = None
          if self.__mainsocket is not None:
@@ -257,7 +257,7 @@ class MessageTransceiverThread(threading.Thread):
                # Note that we don't need to do anything with the data we read from
                # threadsocket; it's enough that it woke us up so we can check the out-queue.
                if self.__threadsocket in inready and not self.__threadsocket.recv(1024):
-                     raise self._endSession
+                  raise self._endSession
 
                if toremote in outready:
                   if self._connectStillInProgress:
