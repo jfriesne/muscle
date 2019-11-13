@@ -17,6 +17,8 @@ key:  - new feature
      to allow hexterm to also write hex bytes into a file.
    * PlainTextMessageIOGateway wasn't calling FlushOutput() on its DataIO
      object at the appropriate times.  Fixed.
+   * Removed some obsolete backwards-compatibility-with-early-Python-2.x
+     code from the python3/message.py class.
 
 7.51 Released 10/22/2019
    - Added a MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES

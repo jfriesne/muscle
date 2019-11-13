@@ -35,8 +35,6 @@ B_RAW_TYPE     = 1380013908 # 'RAWT',  // used for raw byte arrays
 CURRENT_PROTOCOL_VERSION = 1347235888 # 'PM00' -- our magic number
 
 _dataNeedsSwap = not ord(chr(array.array("i",[1]).tobytes()[0]))
-_hasStruct64   = (((sys.version_info[0]*10) + sys.version_info[1]) >= 22)
-_longIs64Bits  = (array.array('l').itemsize > 4)
 
 def GetHumanReadableTypeString(t):
    """Given a B_*_TYPE value, returns a human-readable string showing its bytes"""
@@ -196,7 +194,7 @@ class Message:
             fieldContents = array.array('f')
             fieldContents.fromstring(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_INT32_TYPE: 
-            fieldContents = array.array('i')  # 'i' is 32 bits, 'l' could be 64 bits so we don't use it
+            fieldContents = array.array('i')
             fieldContents.fromstring(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_INT16_TYPE:
             fieldContents = array.array('h')
@@ -205,21 +203,8 @@ class Message:
             fieldContents = array.array('b')
             fieldContents.fromstring(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_INT64_TYPE:
-            global _longIs64Bits
-            if _longIs64Bits == 1:
-               fieldContents = array.array('l')
-               fieldContents.fromstring(inFile.read(fieldDataLength))
-            else:
-               global _dataNeedsSwap, _hasStruct64
-               fieldContents = []
-               if _hasStruct64:
-                  for dummy in range(fieldDataLength//8):
-                     fieldContents.append(struct.unpack("<q", inFile.read(8))[0])
-               else:
-                  # Old versions of Python don't have <q, so we'll do it ourself
-                  for dummy in range(fieldDataLength//8):
-                     lo, hi = struct.unpack('<Ll', inFile.read(8))
-                     fieldContents.append((int(hi)<<32)|lo)
+            fieldContents = array.array('q')
+            fieldContents.fromstring(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_MESSAGE_TYPE:
             fieldContents = []
             while fieldDataLength > 0:
@@ -255,7 +240,7 @@ class Message:
           
    def Flatten(self, outFile):
       """Writes the state of this Message out to the given file object, in the standard platform-neutral flattened represenation."""
-      global _dataNeedsSwap, _longIs64Bits
+      global _dataNeedsSwap
       outFile.write(struct.pack("<3L", CURRENT_PROTOCOL_VERSION, self.what, len(self.__fields)))
       for fieldName in list(self.__fields.keys()):
          outFile.write(struct.pack("<L", len(fieldName)+1))
@@ -275,8 +260,8 @@ class Message:
                fieldContents = array.array('f', fieldContents)
             elif fieldType == B_INT32_TYPE:
                fieldContents = array.array('i', fieldContents)
-            elif (fieldType == B_INT64_TYPE) and (_longIs64Bits == 1):
-               fieldContents = array.array('l', fieldContents)
+            elif (fieldType == B_INT64_TYPE):
+               fieldContents = array.array('q', fieldContents)
             elif fieldType == B_INT16_TYPE:
                fieldContents = array.array('h', fieldContents)
             elif fieldType == B_INT8_TYPE:
@@ -292,15 +277,9 @@ class Message:
             else:
                raise ValueError("Array fieldContents found for non-Array type in field ").with_traceback(fieldName)
          else:
-            if (fieldType == B_INT64_TYPE) and (_longIs64Bits == 0):
-               global _hasStruct64
-               if _hasStruct64:
-                  for fieldItem in fieldContents:
-                     outFile.write(struct.pack("<q", fieldItem))
-               else:
-                  # Old versions of Python don't have <q, so we'll do it ourself
-                  for fieldItem in fieldContents:
-                     outFile.write(struct.pack('<Ll', fieldItem & 0xffffffff, fieldItem >> 32))
+            if (fieldType == B_INT64_TYPE):
+               for fieldItem in fieldContents:
+                  outFile.write(struct.pack("<q", fieldItem))
             elif fieldType == B_MESSAGE_TYPE:
                for fieldItem in fieldContents:
                   outFile.write(struct.pack("<L", fieldItem.FlattenedSize())) 
