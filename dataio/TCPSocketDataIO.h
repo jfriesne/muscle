@@ -57,21 +57,22 @@ public:
 
    /**
     * Flushes the output buffer by turning off Nagle's Algorithm and then turning it back on again.
-    * Exception:  Under Linux, the buffer is flushed by disabling TCP_CORK and then re-enabling it, instead.
     * If Nagle's Algorithm is disabled, then this call is a no-op (since there is never anything to flush)
     */
    virtual void FlushOutput()
    {
       if (_sock())
       {
-#ifdef __linux__
+#if defined(__linux__) && defined(MUSCLE_USE_TCP_CORK_FOR_TCPSOCKETDATAIO_FLUSH)  // not enabled by default because TCP_CORK seems buggy on ARM
          (void) SetSocketCorkAlgorithmEnabled(_sock, false);
          (void) SetSocketCorkAlgorithmEnabled(_sock, true);
 #else
          if (_naglesEnabled)
          {
             SetSocketNaglesAlgorithmEnabled(_sock, false);
-            (void) SendData(_sock, NULL, 0, _blocking);  // Force immediate buffer flush of any pending data
+# if !defined(__linux__)
+            (void) SendData(_sock, NULL, 0, _blocking);  // Force immediate buffer flush (not necessary under Linux)
+# endif
             SetSocketNaglesAlgorithmEnabled(_sock, true);
          }
 #endif
