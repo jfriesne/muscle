@@ -74,7 +74,6 @@ public:
 # endif
             SetSocketNaglesAlgorithmEnabled(_sock, true);
          }
-#endif
          (void) SetSocketCorkAlgorithmEnabled(_sock, true);
       }
    }
