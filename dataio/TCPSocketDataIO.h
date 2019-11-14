@@ -63,10 +63,9 @@ public:
    {
       if (_sock())
       {
-#if defined(__linux__) && defined(MUSCLE_USE_TCP_CORK_FOR_TCPSOCKETDATAIO_FLUSH)  // not enabled by default because TCP_CORK seems buggy on ARM
+         // Note:  I use both cork AND Nagle because cork is a no-op outside of Linux,
+         // and inside of Linux cork doesn't always transmit the data right away if I don't also toggle Nagle.  --jaf
          (void) SetSocketCorkAlgorithmEnabled(_sock, false);
-         (void) SetSocketCorkAlgorithmEnabled(_sock, true);
-#else
          if (_naglesEnabled)
          {
             SetSocketNaglesAlgorithmEnabled(_sock, false);
@@ -76,6 +75,7 @@ public:
             SetSocketNaglesAlgorithmEnabled(_sock, true);
          }
 #endif
+         (void) SetSocketCorkAlgorithmEnabled(_sock, true);
       }
    }
    
