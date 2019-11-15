@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.52 Released
    - Enabled bitcode-generation for iOS in the CMakeLists.txt file.
    - Added SetSocketCorkAlgorithmEnabled() and GetSocketCorkAlgorithmEnabled()
      functions to the NetworkUtilityFunctions API (currently implemented
