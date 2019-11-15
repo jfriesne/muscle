@@ -19,7 +19,9 @@ INCLUDEPATH    += $$MUSCLE_DIR
 
 win32:INCLUDEPATH += $$MUSCLE_DIR/regex/regex 
 
-MUSCLE_SOURCES = $$MUSCLE_DIR/iogateway/AbstractMessageIOGateway.cpp  \
+MUSCLE_SOURCES = $$MUSCLE_DIR/dataio/FileDataIO.cpp                   \
+                 $$MUSCLE_DIR/dataio/TCPSocketDataIO.cpp              \
+                 $$MUSCLE_DIR/iogateway/AbstractMessageIOGateway.cpp  \
                  $$MUSCLE_DIR/iogateway/MessageIOGateway.cpp          \
                  $$MUSCLE_DIR/iogateway/RawDataMessageIOGateway.cpp   \
                  $$MUSCLE_DIR/message/Message.cpp                     \

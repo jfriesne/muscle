@@ -21,7 +21,10 @@ DEFINES	+= MUSCLE_AVOID_SIGNAL_HANDLING
 INCLUDEPATH	+= $$MUSCLE_DIR
 win32:INCLUDEPATH	+= $$MUSCLE_DIR/regex/regex $$MUSCLE_DIR/zlib/zlib/win32
 
-SOURCES	+= $$MUSCLE_DIR/message/Message.cpp \
+SOURCES	+=  \
+        $$MUSCLE_DIR/dataio/FileDataIO.cpp \
+        $$MUSCLE_DIR/dataio/TCPSocketDataIO.cpp \
+        $$MUSCLE_DIR/message/Message.cpp \
         $$MUSCLE_DIR/iogateway/MessageIOGateway.cpp \
         $$MUSCLE_DIR/iogateway/AbstractMessageIOGateway.cpp \
         $$MUSCLE_DIR/iogateway/PlainTextMessageIOGateway.cpp \

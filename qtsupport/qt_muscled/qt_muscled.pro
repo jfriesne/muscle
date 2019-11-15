@@ -24,6 +24,8 @@ SOURCES	+= $$MUSCLE_DIR/message/Message.cpp \
         $$MUSCLE_DIR/iogateway/AbstractMessageIOGateway.cpp \
         $$MUSCLE_DIR/iogateway/PlainTextMessageIOGateway.cpp \
         $$MUSCLE_DIR/dataio/ChildProcessDataIO.cpp \
+        $$MUSCLE_DIR/dataio/FileDataIO.cpp \
+        $$MUSCLE_DIR/dataio/TCPSocketDataIO.cpp \
         $$MUSCLE_DIR/syslog/SysLog.cpp \
         $$MUSCLE_DIR/system/SetupSystem.cpp \
         $$MUSCLE_DIR/system/SignalMultiplexer.cpp \
