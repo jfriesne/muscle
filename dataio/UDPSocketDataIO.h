@@ -21,50 +21,16 @@ public:
     *  If you will be using this object with a AbstractMessageIOGateway,
     *  and/or select(), then it's usually better to set blocking to false.
     */
-   UDPSocketDataIO(const ConstSocketRef & sock, bool blocking) : _sock(sock), _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET)
-   {
-      (void) SetBlockingIOEnabled(blocking);
-      _sendTo.AddTail();  // so that by default, Write() will just call send() on our socket
-   }
+   UDPSocketDataIO(const ConstSocketRef & sock, bool blocking);
 
    /** Destructor.
     *  Closes the socket descriptor, if necessary.
     */
-   virtual ~UDPSocketDataIO() 
-   {
-      // empty
-   }
+   virtual ~UDPSocketDataIO(); 
 
-   virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSource) 
-   {
-      IPAddress tmpAddr = invalidIP;
-      uint16 tmpPort = 0;
-      const int32 ret = ReceiveDataUDP(_sock, buffer, size, _blocking, &tmpAddr, &tmpPort);
-      retSource.Set(tmpAddr, tmpPort);
-      SetSourceOfLastReadPacket(retSource);  // in case this is a direct call e.g. from the gateway code
-      return ret;
-   }
-
-   virtual int32 Write(const void * buffer, uint32 size) 
-   {
-      // This method is overridden to support multiple destinations too
-      bool sawErrors  = false;
-      bool sawSuccess = false;
-      int32 ret = 0;
-      for (uint32 i=0; i<_sendTo.GetNumItems(); i++) 
-      {
-         const int32 numBytesSent = WriteTo(buffer, size, _sendTo[i]);
-         if (numBytesSent >= 0) sawSuccess = true;
-                           else sawErrors  = true;
-         ret = muscleMax(numBytesSent, ret);
-      }
-      return ((sawErrors)&&(sawSuccess == false)) ? -1 : ret;
-   }
-
-   virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) 
-   {
-      return SendDataUDP(_sock, buffer, size, _blocking, packetDest.GetIPAddress(), packetDest.GetPort());
-   }
+   virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSource);
+   virtual int32 Write(const void * buffer, uint32 size);
+   virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
 
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
    virtual void FlushOutput() {/* empty */}
@@ -120,12 +86,7 @@ public:
     * @param blocking If true, socket is set to blocking I/O mode.  Otherwise, non-blocking I/O.
     * @return B_NO_ERROR on success, or an error code on error.
     */
-   status_t SetBlockingIOEnabled(bool blocking)
-   {
-      const status_t ret = SetSocketBlockingEnabled(_sock, blocking);
-      if (ret == B_NO_ERROR) _blocking = blocking;
-      return ret;
-   }
+   status_t SetBlockingIOEnabled(bool blocking);
 
    /** Returns true iff our socket is set to use blocking I/O (as specified in
     *  the constructor or in our SetBlockingIOEnabled() method)

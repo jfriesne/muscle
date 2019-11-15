@@ -17,12 +17,12 @@ public:
     *  @param file File to read from or write to.  Becomes property of this FileDataIO object,
     *         and will be fclose()'d when this object is deleted.  Defaults to NULL.
     */
-   FileDataIO(FILE * file = NULL) : _file(file) {SetSocketsFromFile(_file);}
+   FileDataIO(FILE * file = NULL);
 
    /** Destructor.
     *  Calls fclose() on the held file.
     */
-   virtual ~FileDataIO() {if (_file) fclose(_file);}
+   virtual ~FileDataIO();
 
    /** Reads bytes from our file and places them into (buffer).
     *  @param buffer Buffer to write the bytes into
@@ -30,15 +30,7 @@ public:
     *  @return Number of bytes read, or -1 on error.  
     *  @see DataIO::Read()
     */
-   virtual int32 Read(void * buffer, uint32 size)  
-   {
-      if (_file)
-      {
-         const int32 ret = (int32) fread(buffer, 1, size, _file);
-         return (ret > 0) ? ret : -1;  // EOF is an error, and it's returned as zero
-      }
-      else return -1;
-   }
+   virtual int32 Read(void * buffer, uint32 size);
 
    /** Takes bytes from (buffer) and writes them out to our file.
     *  @param buffer Buffer to read the bytes from.
@@ -46,15 +38,7 @@ public:
     *  @return Number of bytes written, or -1 on error.
     *  @see DataIO::Write()
     */
-   virtual int32 Write(const void * buffer, uint32 size)
-   {
-      if (_file)
-      {
-         const int32 ret = (int32) fwrite(buffer, 1, size, _file);
-         return (ret > 0) ? ret : -1;   // zero is an error
-      }
-      else return -1;
-   }
+   virtual int32 Write(const void * buffer, uint32 size);
 
    /** Seeks to the specified point in the file.
     *  @note this subclass only supports 32-bit offsets.
@@ -62,51 +46,25 @@ public:
     *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END. 
     *  @return B_NO_ERROR on success, an error code on failure.
     */ 
-   virtual status_t Seek(int64 offset, int whence)
-   {
-      if (_file == NULL) return B_BAD_OBJECT;
-
-      switch(whence)
-      {
-         case IO_SEEK_SET:  whence = SEEK_SET;  break;
-         case IO_SEEK_CUR:  whence = SEEK_CUR;  break;
-         case IO_SEEK_END:  whence = SEEK_END;  break;
-         default:           return B_BAD_ARGUMENT;
-      }
-      return (fseek(_file, (long) offset, whence) == 0) ? B_NO_ERROR : B_ERRNO;
-   }
+   virtual status_t Seek(int64 offset, int whence);
    
    /** Returns our current position in the file.
     *  @note this subclass only supports 32-bit offsets.
     */
-   virtual int64 GetPosition() const
-   {
-      return _file ? (int64) ftell(_file) : -1;
-   }
+   virtual int64 GetPosition() const;
 
    /** Flushes the file output by calling fflush() */
-   virtual void FlushOutput() {if (_file) fflush(_file);}
+   virtual void FlushOutput();
    
    /** Calls fclose() on the held file descriptor (if any) and forgets it */
-   virtual void Shutdown()
-   {
-      if (_file)
-      {
-         fclose(_file);
-         ReleaseFile();
-      }
-   }
+   virtual void Shutdown();
  
    /**
     * Releases control of the contained FILE object to the calling code.
     * After this method returns, this object no longer owns or can
     * use or close the file descriptor descriptor it once held.
     */
-   void ReleaseFile() 
-   {
-      _file = NULL;
-      SetSocketsFromFile(NULL);
-   }
+   void ReleaseFile();
 
    /**
     * Returns the FILE object held by this object, or NULL if there is none.
@@ -117,7 +75,7 @@ public:
     * Sets our file pointer to the specified handle, closing any previously held file handle first.
     * @param fp The new file handle.  If non-NULL, this FileDataIO becomes the owner of (fp).
     */
-   void SetFile(FILE * fp) {Shutdown(); _file = fp; SetSocketsFromFile(_file);}
+   void SetFile(FILE * fp);
 
    /**
     * This method should return a ConstSocketRef object containing a file descriptor
@@ -154,22 +112,7 @@ public:
    virtual const ConstSocketRef & GetWriteSelectSocket() const {return _selectSocketRef;}
 
 private:
-   void SetSocketsFromFile(FILE * optFile)
-   {
-      _selectSocketRef.Reset();
-#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE   // windows can't do the select-on-file-descriptor trick, sorry!
-      _selectSocket.Clear(); 
-
-      const int fd = optFile ? fileno(optFile) : -1;
-      if (fd >= 0)
-      {
-         _selectSocket.SetFileDescriptor(fd, false);  // false because the fclose() will call close(fd), so we should not
-         _selectSocketRef.SetRef(&_selectSocket, false);
-      } 
-#else
-      (void) optFile; // avoid compiler warning
-#endif
-   }
+   void SetSocketsFromFile(FILE * optFile);
 
    FILE * _file;
    ConstSocketRef _selectSocketRef;

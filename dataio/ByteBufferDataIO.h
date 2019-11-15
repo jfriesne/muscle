@@ -20,10 +20,10 @@ public:
     *  @param buf Reference to the byte buffer to read from.  If not specified (or specified
     *             as a NULL reference), you will need to call SetBuffer() before using this ByteBufferDataIO.
     */
-   ByteBufferDataIO(const ByteBufferRef & buf = ByteBufferRef()) : _buf(buf), _seekPos(0) {/* empty */}
+   ByteBufferDataIO(const ByteBufferRef & buf = ByteBufferRef());
 
    /** Virtual Destructor, to keep C++ honest */
-   virtual ~ByteBufferDataIO() {/* empty */}
+   virtual ~ByteBufferDataIO();
 
    /** Sets our held buffer to a different value.  Note that this call will not change the seek
      * position of this ByteBufferDataIO, so you may want to call Seek() also.
@@ -40,17 +40,7 @@ public:
     *  @param size Number of bytes in the buffer.
     *  @return zero.
     */
-   virtual int32 Read(void * buffer, uint32 size)  
-   {
-      if (_buf())
-      {
-         const int32 copyBytes = muscleMin((int32)size, muscleMax((int32)0, (int32)(_buf()->GetNumBytes()-_seekPos)));
-         memcpy(buffer, _buf()->GetBuffer()+_seekPos, copyBytes);
-         _seekPos += copyBytes;
-         return copyBytes;
-      }
-      return -1;
-   }
+   virtual int32 Read(void * buffer, uint32 size);
 
    /** 
     *  Writes bytes into our write buffer.  If we have no write buffer, or we cannot allocate more memory for the write buffer, returns -1.
@@ -58,24 +48,7 @@ public:
     *  @param size Number of bytes in the buffer.
     *  @return (size).
     */
-   virtual int32 Write(const void * buffer, uint32 size) 
-   {
-      if (_buf() == NULL) return -1;
-
-      const uint32 oldBufSize = _buf()->GetNumBytes();
-      const uint32 pastOffset = muscleMax(oldBufSize, _seekPos+size);
-      if (pastOffset > oldBufSize)
-      {
-         const uint32 preallocBytes = (pastOffset*2);  // exponential resize to avoid too many reallocs
-         if (_buf()->SetNumBytes(preallocBytes, true) != B_NO_ERROR) return -1;   // allocate the memory
-         memset(_buf()->GetBuffer()+oldBufSize, 0, preallocBytes-oldBufSize);  // make sure newly alloc'd memory is zeroed out!
-         (void) _buf()->SetNumBytes(pastOffset, true);  // guaranteed not to fail
-      }
-      
-      memcpy(_buf()->GetBuffer()+_seekPos, buffer, size);
-      _seekPos += size;
-      return size;
-   }
+   virtual int32 Write(const void * buffer, uint32 size);
 
    /** Seeks to the specified point in our ByteBuffer.
     *  Note that only 32-bit seeks are supported in this implementation.
@@ -83,22 +56,7 @@ public:
     *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END. 
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure.
     */ 
-   virtual status_t Seek(int64 offset, int whence)
-   {
-      const uint32 fileLen = _buf() ? _buf()->GetNumBytes() : 0;
-      const int32 o = (int32) offset;
-      int32 newSeekPos = -1;
-      switch(whence)
-      {
-         case IO_SEEK_SET:  newSeekPos = o;          break;
-         case IO_SEEK_CUR:  newSeekPos = _seekPos+o; break;
-         case IO_SEEK_END:  newSeekPos = fileLen-o;  break;
-         default:           return B_BAD_ARGUMENT;
-      }
-      if (newSeekPos < 0) return B_BAD_ARGUMENT;
-      _seekPos = newSeekPos;
-      return B_NO_ERROR;
-   }
+   virtual status_t Seek(int64 offset, int whence);
    
    virtual int64 GetPosition() const {return _seekPos;}
 

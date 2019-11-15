@@ -28,18 +28,12 @@ public:
     *  If you will be using this object with a AbstractMessageIOGateway,
     *  and/or select(), then it's usually better to set blocking to false.
     */
-   TCPSocketDataIO(const ConstSocketRef & sock, bool blocking) : _sock(sock), _blocking(true), _naglesEnabled(true), _stallLimit(MUSCLE_DEFAULT_TCP_STALL_TIMEOUT)
-   {
-      (void) SetBlockingIOEnabled(blocking);
-   }
+   TCPSocketDataIO(const ConstSocketRef & sock, bool blocking);
 
    /** Destructor.
     *  Closes the socket descriptor, if necessary.
     */
-   virtual ~TCPSocketDataIO() 
-   {
-      Shutdown();
-   }
+   virtual ~TCPSocketDataIO();
 
    virtual int32 Read(void * buffer, uint32 size) {return ReceiveData(_sock, buffer, size, _blocking);}
    virtual int32 Write(const void * buffer, uint32 size) {return SendData(_sock, buffer, size, _blocking);}
@@ -59,24 +53,7 @@ public:
     * Flushes the output buffer by turning off Nagle's Algorithm and then turning it back on again.
     * If Nagle's Algorithm is disabled, then this call is a no-op (since there is never anything to flush)
     */
-   virtual void FlushOutput()
-   {
-      if (_sock())
-      {
-         // Note:  I use both cork AND Nagle because cork is a no-op outside of Linux,
-         // and inside of Linux cork doesn't always transmit the data right away if I don't also toggle Nagle.  --jaf
-         (void) SetSocketCorkAlgorithmEnabled(_sock, false);
-         if (_naglesEnabled)
-         {
-            SetSocketNaglesAlgorithmEnabled(_sock, false);
-# if !defined(__linux__)
-            (void) SendData(_sock, NULL, 0, _blocking);  // Force immediate buffer flush (not necessary under Linux)
-# endif
-            SetSocketNaglesAlgorithmEnabled(_sock, true);
-         }
-         (void) SetSocketCorkAlgorithmEnabled(_sock, true);
-      }
-   }
+   virtual void FlushOutput();
    
    /**
     * Closes our socket connection
@@ -93,12 +70,7 @@ public:
     * @param blocking If true, socket is set to blocking I/O mode.  Otherwise, non-blocking I/O.
     * @return B_NO_ERROR on success, or an error code on error.
     */
-   status_t SetBlockingIOEnabled(bool blocking)
-   {
-      status_t ret = SetSocketBlockingEnabled(_sock, blocking);
-      if (ret == B_NO_ERROR) _blocking = blocking;
-      return ret;
-   }
+   status_t SetBlockingIOEnabled(bool blocking);
 
    /**
     * Turns Nagle's algorithm (output packet buffering/coalescing) on or off.
@@ -106,12 +78,7 @@ public:
     *                If false, each Write() call will cause a new packet to be sent immediately.
     * @return B_NO_ERROR on success, or an error code on error.
     */
-   status_t SetNaglesAlgorithmEnabled(bool enabled)
-   {
-      status_t ret = SetSocketNaglesAlgorithmEnabled(_sock, enabled);
-      if (ret == B_NO_ERROR) _naglesEnabled = enabled;
-      return ret;
-   }
+   status_t SetNaglesAlgorithmEnabled(bool enabled);
 
    /** Returns true iff our socket is set to use blocking I/O (as specified in
     *  the constructor or in our SetBlockingIOEnabled() method)
