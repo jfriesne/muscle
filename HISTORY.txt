@@ -9,11 +9,9 @@ key:  - new feature
    - Enabled bitcode-generation for iOS in the CMakeLists.txt file.
    - Added SetSocketCorkAlgorithmEnabled() and GetSocketCorkAlgorithmEnabled()
      functions to the NetworkUtilityFunctions API (currently implemented
-     for Linux only)
+     for Linux, BSD, and MacOS/X)
    - TCPSocketDataIO::FlushOutput() now also calls also the new
-     SetSocketCorkAlgorithmEnabled() function, so that under Linux and
-     MacOS/X (or any BSD) we can get better TCP-packet-packing efficiency 
-     than we would by simply disabling Nagle's algorithm.
+     SetSocketCorkAlgorithmEnabled() function for better efficiency.
    o Moved inline code out of TCPSocketDataIO.h, UDPSocketDataIO.h,
      ByteBufferDataIO.h, and FileDataIO.h and into corresponding .cpp files.
    o Split hexterm's "file=blah" argument into "rfile=blah" and "wfile=blah"
