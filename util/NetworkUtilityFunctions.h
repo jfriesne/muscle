@@ -434,8 +434,8 @@ bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock);
   * @param enabled If true, partial outgoing TCP packets will be held internally until the 
   *                TCP_CORK/TCP_NOPUSH algorithm has been disabled on this socket.  Full 
   *                packets will still be sent ASAP.
-  * @param note that this function is currently implemented only under MacOS/X, BSD, and Linux; on 
-  *             other OS's it will return B_UNIMPLEMENTED.
+  * @note that this function is currently implemented only under MacOS/X, BSD, and Linux; on 
+  *       other OS's it will return B_UNIMPLEMENTED.
   * @return B_NO_ERROR on success, an error code on error.
   */
 status_t SetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock, bool enabled);
