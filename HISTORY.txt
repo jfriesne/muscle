@@ -5,6 +5,12 @@ key:  - new feature
       * bug fixed
       o other
 
+7.53
+   o Modified SharedFilterSessionFactory.cpp to treat an all-zeros
+     shared memory region the same as a non-existent one (so that
+     we no longer have to delete the memory region just to return the
+     filter's behavior to its default state)
+
 7.52 Released 11/28/2019
    - Enabled bitcode-generation for iOS in the CMakeLists.txt file.
    - Added SetSocketCorkAlgorithmEnabled() and GetSocketCorkAlgorithmEnabled()

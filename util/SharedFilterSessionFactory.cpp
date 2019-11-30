@@ -26,6 +26,12 @@ AbstractReflectSessionRef SharedFilterSessionFactory :: CreateSession(const Stri
    return ((GetSlave()())&&(IsAccessAllowedForIP(iap.GetIPAddress().IsStandardLoopbackDeviceAddress()?localhostIP:Inet_AtoN(clientIP())))) ? GetSlave()()->CreateSession(clientIP, iap) : AbstractReflectSessionRef();
 }
 
+static bool IsMemoryAllZeros(const uint8 * mem, uint32 numBytes)
+{
+   for (uint32 i=0; i<numBytes; i++) if (mem[i] != 0) return false;
+   return true;
+}
+
 bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const IPAddress & ip) const
 {
    bool allowAccess = _defaultPass;
@@ -37,46 +43,50 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const IPAddress & ip) co
          Queue<NetworkInterfaceInfo> ifs;
          bool gotIFs = false;  // we'll demand-allocate them
 
-         allowAccess = !_isGrantList;  // if there is a list, you're off it unless you're on it!
-
-         const IPAddress * ips = reinterpret_cast<const IPAddress *>(_sharedMemory());
-         const uint32 numIPs = _sharedMemory.GetAreaSize()/sizeof(IPAddress);
-         for (uint32 i=0; i<numIPs; i++)
+         // FogBugz #17090 special case:  If the memory-area is all-zeroes, then that means we will stick with our _defaultPass logic
+         if (!IsMemoryAllZeros(_sharedMemory(), _sharedMemory.GetAreaSize()))
          {
-            IPAddress nextIP = ips[i];
-#ifdef MUSCLE_AVOID_IPV6
-            if (nextIP == ip)
-#else
-            if (nextIP.EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
-#endif
-            {
-               allowAccess = _isGrantList;
-               break;
-            }
-            else if (nextIP.IsStandardLoopbackDeviceAddress())
-            {
-               if (gotIFs == false)
-               {
-                  (void) GetNetworkInterfaceInfos(ifs);
-                  gotIFs = true;
-               }
+            allowAccess = !_isGrantList;  // if there is a list, you're off it unless you're on it!
 
-               // Special case for the localhost IP... see if it matches any of our localhost's known IP addresses
-               bool matchedLocal = false;
-               for (uint32 j=0; j<ifs.GetNumItems(); j++)
-               {
+            const IPAddress * ips = reinterpret_cast<const IPAddress *>(_sharedMemory());
+            const uint32 numIPs = _sharedMemory.GetAreaSize()/sizeof(IPAddress);
+            for (uint32 i=0; i<numIPs; i++)
+            {
+               IPAddress nextIP = ips[i];
 #ifdef MUSCLE_AVOID_IPV6
-                  if (ifs[j].GetLocalAddress() == ip)
+               if (nextIP == ip)
 #else
-                  if (ifs[j].GetLocalAddress().EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
+               if (nextIP.EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
 #endif
-                  {
-                     allowAccess = _isGrantList;
-                     matchedLocal = true;
-                     break;
-                  }
+               {
+                  allowAccess = _isGrantList;
+                  break;
                }
-               if (matchedLocal) break;
+               else if (nextIP.IsStandardLoopbackDeviceAddress())
+               {
+                  if (gotIFs == false)
+                  {
+                     (void) GetNetworkInterfaceInfos(ifs);
+                     gotIFs = true;
+                  }
+
+                  // Special case for the localhost IP... see if it matches any of our localhost's known IP addresses
+                  bool matchedLocal = false;
+                  for (uint32 j=0; j<ifs.GetNumItems(); j++)
+                  {
+#ifdef MUSCLE_AVOID_IPV6
+                     if (ifs[j].GetLocalAddress() == ip)
+#else
+                     if (ifs[j].GetLocalAddress().EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
+#endif
+                     {
+                        allowAccess = _isGrantList;
+                        matchedLocal = true;
+                        break;
+                     }
+                  }
+                  if (matchedLocal) break;
+               }
             }
          }
 
