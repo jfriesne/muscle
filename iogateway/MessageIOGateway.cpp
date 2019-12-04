@@ -73,7 +73,7 @@ MessageIOGateway :: SendMoreData(int32 & sentBytes, uint32 & maxBytes)
 
    const ByteBuffer * bb    = _sendBuffer._buffer();
    const int32 attemptSize  = muscleMin(maxBytes, bb->GetNumBytes()-_sendBuffer._offset);
-   const int32 numBytesSent = GetDataIO()()->Write(bb->GetBuffer()+_sendBuffer._offset, attemptSize);
+   const int32 numBytesSent = GetDataIO()() ? GetDataIO()()->Write(bb->GetBuffer()+_sendBuffer._offset, attemptSize) : -1;
    if (numBytesSent >= 0)
    {
       maxBytes            -= numBytesSent;
@@ -102,11 +102,7 @@ DoOutputImplementation(uint32 maxBytes)
          while(true)
          {
             MessageRef nextRef;
-            if (PopNextOutgoingMessage(nextRef) != B_NO_ERROR) 
-            {
-               if ((GetFlushOnEmpty())&&(sentBytes > 0)) GetDataIO()()->FlushOutput();
-               return sentBytes;  // nothing more to send, so we're done!
-            }
+            if (PopNextOutgoingMessage(nextRef) != B_NO_ERROR) return sentBytes;  // nothing more to send, so we're done!
 
             if (nextRef())
             {
@@ -324,7 +320,7 @@ MessageIOGateway :: ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32
    TCHECKPOINT;
 
    const int32 attemptSize  = muscleMin(maxBytes, (uint32)((maxArraySize>_recvBuffer._offset)?(maxArraySize-_recvBuffer._offset):0));
-   const int32 numBytesRead = GetDataIO()()->Read(_recvBuffer._buffer()->GetBuffer()+_recvBuffer._offset, attemptSize);
+   const int32 numBytesRead = GetDataIO()() ? GetDataIO()()->Read(_recvBuffer._buffer()->GetBuffer()+_recvBuffer._offset, attemptSize) : -1;
    if (numBytesRead >= 0)
    {
       maxBytes            -= numBytesRead;

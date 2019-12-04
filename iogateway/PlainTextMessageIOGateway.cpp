@@ -62,12 +62,7 @@ DoOutputImplementation(uint32 maxBytes)
       }
       return totalNumBytesSent;
    }
-   else 
-   {
-      const int32 ret = DoOutputImplementationAux(maxBytes, 0);  // stream-based implementation is here
-      if ((ret >= 0)&&(HasBytesToOutput() == false)) GetDataIO()()->FlushOutput();
-      return ret;
-   }
+   else return DoOutputImplementationAux(maxBytes, 0);  // stream-based implementation is here
 }
 
 int32
@@ -105,7 +100,7 @@ DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth)
       {
          // Send as much as we can of the current text line
          const char * bytes = _currentSendText.Cstr() + _currentSendOffset;
-         const int32 bytesWritten = GetDataIO()()->Write(bytes, muscleMin(_currentSendText.Length()-_currentSendOffset, maxBytes));
+         const int32 bytesWritten = GetDataIO()() ? GetDataIO()()->Write(bytes, muscleMin(_currentSendText.Length()-_currentSendOffset, maxBytes)) : -1;
               if (bytesWritten < 0) return -1;
          else if (bytesWritten > 0)
          {
@@ -206,7 +201,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    else
    {
       // Stream-IO implementation
-      const int32 bytesRead = GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)(sizeof(buf)-1)));
+      const int32 bytesRead = GetDataIO()() ? GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)(sizeof(buf)-1))) : -1;
       if (bytesRead < 0)
       {
          FlushInput(receiver);

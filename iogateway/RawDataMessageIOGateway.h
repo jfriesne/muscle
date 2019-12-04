@@ -45,8 +45,6 @@ protected:
    virtual MessageRef PopNextOutgoingMessage();
 
 private:
-   void FlushPendingInput();
-
    MessageRef _sendMsgRef;
    const void * _sendBuf;
    int32 _sendBufLength;      // # of bytes in current buffer

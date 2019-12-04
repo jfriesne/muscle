@@ -56,6 +56,14 @@ Reset()
    _hosed = false;
 }
 
+void
+AbstractMessageIOGateway ::
+FlushOutput()
+{
+   DataIO * dio = GetDataIO()();
+   if (dio) dio->FlushOutput();
+}
+
 /** Used to funnel callbacks from DoInput() back through the AbstractMessageIOGateway's own API, so that subclasses can insert their logic as necessary */
 class ScratchProxyReceiver : public AbstractGatewayMessageReceiver
 {
@@ -106,6 +114,13 @@ void AbstractMessageIOGateway :: SetDataIO(const DataIORef & ref)
 
    _packetDataIO = dynamic_cast<PacketDataIO *>(_ioRef());
    _mtuSize = _packetDataIO ? _packetDataIO->GetMaximumPacketSize() : 0;
+}
+
+int32 AbstractMessageIOGateway :: DoOutput(uint32 maxBytes) 
+{
+   const int32 numBytesSent = DoOutputImplementation(maxBytes);
+   if ((numBytesSent > 0)&&(_flushOnEmpty)&&(HasBytesToOutput() == false)) FlushOutput();
+   return numBytesSent;
 }
 
 } // end namespace muscle

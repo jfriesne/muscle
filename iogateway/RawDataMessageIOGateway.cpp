@@ -67,7 +67,7 @@ DoOutputImplementation(uint32 maxBytes)
          else
          {
             // TCP mode -- send as much as we can of the current data block
-            const int32 bytesWritten = GetDataIO()()->Write(&((char *)_sendBuf)[_sendBufByteOffset], muscleMin(maxBytes, (uint32) (_sendBufLength-_sendBufByteOffset)));
+            const int32 bytesWritten = GetDataIO()() ? GetDataIO()()->Write(&((char *)_sendBuf)[_sendBufByteOffset], muscleMin(maxBytes, (uint32) (_sendBufLength-_sendBufByteOffset))) : -1;
                  if (bytesWritten < 0) return -1;
             else if (bytesWritten > 0)
             {
@@ -141,7 +141,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
          if (inMsg)
          {
-            const int32 bytesRead = GetDataIO()()->Read(&((char*)_recvBuf)[_recvBufByteOffset], muscleMin(maxBytes, (uint32)(_recvBufLength-_recvBufByteOffset)));
+            const int32 bytesRead = GetDataIO()() ? GetDataIO()()->Read(&((char*)_recvBuf)[_recvBufByteOffset], muscleMin(maxBytes, (uint32)(_recvBufLength-_recvBufByteOffset))) : -1;
                  if (bytesRead < 0) return -1;
             else if (bytesRead > 0)
             {
@@ -174,7 +174,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             }
          }
 
-         const int32 bytesRead = GetDataIO()()->Read(_recvScratchSpace, muscleMin(_recvScratchSpaceSize, maxBytes));
+         const int32 bytesRead = GetDataIO()() ? GetDataIO()()->Read(_recvScratchSpace, muscleMin(_recvScratchSpaceSize, maxBytes)) : -1;
               if (bytesRead < 0) return -1;
          else if (bytesRead > 0)
          {

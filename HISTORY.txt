@@ -6,10 +6,18 @@ key:  - new feature
       o other
 
 7.53
+   - Added a new FlushOutput() virtual method to the
+     AbstractMessageIOGateway class, in case a subclass
+     needs to hook into the gateway's flush-output functionality.
    o Modified SharedFilterSessionFactory.cpp to treat an all-zeros
      shared memory region the same as a non-existent one (so that
      we no longer have to delete the memory region just to return the
      filter's behavior to its default state)
+   o Moved the FlushOutput() calls for the gateway classes up into 
+     AbstractMessageIOGateway::DoOutput() so that it only needs to
+     be implemented in one place rather than separately in each subclass.
+   o Modified the gateway classes to fail gracefully if GetDataIO()
+     returns a NULL reference, instead of dereferencing a NULL pointer.
 
 7.52 Released 11/28/2019
    - Enabled bitcode-generation for iOS in the CMakeLists.txt file.

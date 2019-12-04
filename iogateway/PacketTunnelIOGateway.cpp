@@ -41,7 +41,7 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
    {
       firstTime = false;
 
-      const int32 bytesRead = GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes());
+      const int32 bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
 //printf("   READ " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes\n", bytesRead, _inputPacketBuffer.GetNumBytes());
       if (bytesRead > 0)
       {
@@ -234,7 +234,7 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       if (_outputPacketSize > 0)
       {
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
-         const int32 bytesWritten = GetDataIO()()->Write(_outputPacketBuffer.GetBuffer(), _outputPacketSize);
+         const int32 bytesWritten = GetDataIO()() ? GetDataIO()()->Write(_outputPacketBuffer.GetBuffer(), _outputPacketSize) : -1;
 //printf("WROTE " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes %s\n", bytesWritten, _outputPacketSize, (bytesWritten==(int32)_outputPacketSize)?"":"******** SHORT ***********");
          if (bytesWritten > 0)
          {

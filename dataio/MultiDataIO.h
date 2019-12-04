@@ -61,7 +61,7 @@ public:
 
    virtual uint64 GetOutputStallLimit() const {return HasChildren() ? GetFirstChild()->GetOutputStallLimit() : MUSCLE_TIME_NEVER;}
 
-   virtual void FlushOutput() ;
+   virtual void FlushOutput();
 
    virtual void Shutdown() {_childIOs.Clear();}
 

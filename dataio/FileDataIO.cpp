@@ -54,7 +54,10 @@ int64 FileDataIO :: GetPosition() const
    return _file ? (int64) ftell(_file) : -1;
 }
 
-void FileDataIO :: FlushOutput() {if (_file) fflush(_file);}
+void FileDataIO :: FlushOutput() 
+{
+   if (_file) fflush(_file);
+}
 
 void FileDataIO :: Shutdown()
 {

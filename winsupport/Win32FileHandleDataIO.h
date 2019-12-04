@@ -45,7 +45,7 @@ public:
     *  Implemented as a no-op (I don't believe file descriptors need flushing?)
     */
    virtual void FlushOutput();
-   
+
    /**
     * If implemented, this would enable or disable blocking I/O on this Win32FileHandleDataIO.
     * NOTE: Win32FileHandleDataIO currently does not use this flag; as only blocking-mode is supported.
@@ -63,7 +63,7 @@ public:
     *  @return B_NO_ERROR on success, an error code on failure.
     */ 
    virtual status_t Seek(int64 offset, int whence);
-   
+
    /** Returns our current position in the file */
    virtual int64 GetPosition() const;
 
