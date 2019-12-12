@@ -9,6 +9,8 @@ key:  - new feature
    - Added a new FlushOutput() virtual method to the
      AbstractMessageIOGateway class, in case a subclass
      needs to hook into the gateway's flush-output functionality.
+   o Added the MUSCLE_CONSTEXPR tag to the TimeUnitConversionFunctions
+     so that they can be evaluated at compile time when possible.
    o Modified SharedFilterSessionFactory.cpp to treat an all-zeros
      shared memory region the same as a non-existent one (so that
      we no longer have to delete the memory region just to return the
