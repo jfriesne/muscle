@@ -20,6 +20,9 @@ key:  - new feature
      be implemented in one place rather than separately in each subclass.
    o Modified the gateway classes to fail gracefully if GetDataIO()
      returns a NULL reference, instead of dereferencing a NULL pointer.
+   o Updated the friend-template workaround in Hashtable.h to apply
+     to all versions of GCC, to avoid having to update the code
+     every time a new version of GCC comes out with the bug still unfixed.
 
 7.52 Released 11/28/2019
    - Enabled bitcode-generation for iOS in the CMakeLists.txt file.
