@@ -211,6 +211,13 @@ status_t ParseArgs(int argc, char ** argv, Message & addTo, bool cs)
    return ret;
 }
 
+status_t ParseArgs(const Queue<String> & args, Message & addTo, bool cs)
+{
+   status_t ret;
+   for (uint32 i=0; i<args.GetNumItems(); i++) if (ParseArg(args[i], addTo, cs).IsError(ret)) break;
+   return ret;
+}
+
 status_t ParseArgs(int argc, char ** argv, Queue<String> & addTo, bool cs)
 {
    status_t ret;

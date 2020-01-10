@@ -28,6 +28,19 @@ namespace muscle {
   */
 status_t ParseArgs(int argc, char ** argv, Message & addTo, bool caseSensitive = false);
 
+/** Parses the given arguments into a Message full of string fields.
+  * Arguments should be of the form argname or argname=value.
+  * The latter will be added as string fields; the former will
+  * be treated the same, with the string equal to "".
+  * Any prefixed dashes will be stripped/ignored.
+  * All argument names will be forced to lower case.
+  * @param args a list of String arguments
+  * @param addTo The message to add the arguments to
+  * @param caseSensitive Defaults to false.  If true, the case of the arguments will be retained; if false, they will be forced to lower case.
+  * @returns B_NO_ERROR on success, B_OUT_OF_MEMORY on failure.
+  */
+status_t ParseArgs(const Queue<String> & args, Message & addTo, bool caseSensitive = false);
+
 /** Parses settings from the given file.  Works similarly to
  *  ParseArgs() (above), only the values are read from a file
  *  instead of from the arguments vector.  The file may contain

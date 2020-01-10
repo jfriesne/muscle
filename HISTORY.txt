@@ -9,6 +9,8 @@ key:  - new feature
    - Added a new FlushOutput() virtual method to the
      AbstractMessageIOGateway class, in case a subclass
      needs to hook into the gateway's flush-output functionality.
+   - Added a ParseArgs(const Queue<String> &, Message &, bool) 
+     convenience-method to MiscUtilityFunctions.{cpp,h}.
    o Added the MUSCLE_CONSTEXPR tag to the TimeUnitConversionFunctions
      so that they can be evaluated at compile time when possible.
    o Modified SharedFilterSessionFactory.cpp to treat an all-zeros
