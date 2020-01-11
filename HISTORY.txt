@@ -11,6 +11,7 @@ key:  - new feature
      needs to hook into the gateway's flush-output functionality.
    - Added a ParseArgs(const Queue<String> &, Message &, bool) 
      convenience-method to MiscUtilityFunctions.{cpp,h}.
+   - hexterm now reports more details about certain network errors.
    o Added the MUSCLE_CONSTEXPR tag to the TimeUnitConversionFunctions
      so that they can be evaluated at compile time when possible.
    o Modified SharedFilterSessionFactory.cpp to treat an all-zeros

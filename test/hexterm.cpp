@@ -313,39 +313,41 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
          // in order to get packets from the group.
          if (ip.IsMulticast())
          {
+            status_t ret;
             uint16 boundPort;
-            if (BindUDPSocket(ss, joinMulticastGroup?port:0, &boundPort, invalidIP, true) == B_NO_ERROR)
+            if (BindUDPSocket(ss, joinMulticastGroup?port:0, &boundPort, invalidIP, true).IsOK(ret))
             {
                LogTime(MUSCLE_LOG_INFO, "Bound UDP socket to port %u\n", boundPort);
 
                     if (joinMulticastGroup == false) LogTime(MUSCLE_LOG_INFO, "Not joining to multicast group [%s] since nojoin was specified as a command line argument.\n", Inet_NtoA(ip)());
-               else if (AddSocketToMulticastGroup(ss, ip) == B_NO_ERROR)
+               else if (AddSocketToMulticastGroup(ss, ip).IsOK(ret))
                {
                   LogTime(MUSCLE_LOG_INFO, "Added UDP socket to multicast group %s!\n", Inet_NtoA(ip)());
 #ifdef DISALLOW_MULTICAST_TO_SELF
-                  if (SetSocketMulticastToSelf(ss, false) != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "Error disabling multicast-to-self on socket\n");
+                  if (SetSocketMulticastToSelf(ss, false).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "Error [%s] disabling multicast-to-self on socket\n", ret());
 #endif
                }
-               else LogTime(MUSCLE_LOG_ERROR, "Error adding UDP socket to multicast group %s!\n", Inet_NtoA(ip)());
+               else LogTime(MUSCLE_LOG_ERROR, "Error [%s] adding UDP socket to multicast group %s!\n", ret(), Inet_NtoA(ip)());
             }
-            else LogTime(MUSCLE_LOG_ERROR, "Error binding multicast socket to port %u\n", port);
+            else LogTime(MUSCLE_LOG_ERROR, "Error [%s] binding multicast socket to port %u\n", ret(), port);
          }
 #endif
 
+         status_t ret;
 #ifdef MUSCLE_AVOID_IPV6
          if ((ip & 0xFF) == 0xFF)
          {
-            if (SetUDPSocketBroadcastEnabled(ss, true) == B_NO_ERROR) LogTime(MUSCLE_LOG_INFO, "Broadcast UDP address detected:  UDP broadcast enabled on socket.\n");
-                                                                 else LogTime(MUSCLE_LOG_ERROR, "Could not enable UDP broadcast on socket!\n");
+            if (SetUDPSocketBroadcastEnabled(ss, true).IsOK(ret)) LogTime(MUSCLE_LOG_INFO, "Broadcast UDP address detected:  UDP broadcast enabled on socket.\n");
+                                                             else LogTime(MUSCLE_LOG_ERROR, "Could not enable UDP broadcast on socket! [%s]\n", ret());
          }
 #endif
          const IPAddressAndPort iap(ip, port);
-         if (udpIO.SetPacketSendDestination(iap) != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "SetPacketSendDestination(%s) failed!\n", iap.ToString()());
+         if (udpIO.SetPacketSendDestination(iap).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SetPacketSendDestination(%s) failed! [%s]\n", iap.ToString()(), ret());
          if (optBindPort >= 0)
          {
             uint16 retPort;
-            if (BindUDPSocket(ss, (uint16)optBindPort, &retPort) == B_NO_ERROR) LogTime(MUSCLE_LOG_INFO, "Bound UDP socket to port %u\n", retPort);
-                                                                           else LogTime(MUSCLE_LOG_ERROR, "Couldn't bind UDP socket to port %u!\n", optBindPort);
+            if (BindUDPSocket(ss, (uint16)optBindPort, &retPort).IsOK(ret)) LogTime(MUSCLE_LOG_INFO, "Bound UDP socket to port %u\n", retPort);
+                                                                       else LogTime(MUSCLE_LOG_ERROR, "Couldn't bind UDP socket to port %u [%s]!\n", optBindPort, ret());
          }
          LogTime(MUSCLE_LOG_INFO, "Ready to send UDP packets to %s\n", iap.ToString()());
          DoSession(udpIO);
@@ -354,12 +356,13 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
    }
    else 
    {
-      if (BindUDPSocket(ss, port) == B_NO_ERROR)
+      status_t ret;
+      if (BindUDPSocket(ss, port).IsOK(ret))
       {
          LogTime(MUSCLE_LOG_INFO, "Listening for incoming UDP packets on port %i\n", port);
          DoSession(udpIO);
       }
-      else LogTime(MUSCLE_LOG_ERROR, "Could not bind UDP socket to port %i\n", port);
+      else LogTime(MUSCLE_LOG_ERROR, "Could not bind UDP socket to port %i [%s]\n", port, ret());
    }
 }
 
@@ -449,6 +452,8 @@ int hextermmain(const char * argv0, const Message & args)
 
    const bool joinMulticastGroup = (args.HasName("nojoin") == false);
 
+   status_t ret;
+
    String arg;
    if (args.FindString("child", arg) == B_NO_ERROR)
    {
@@ -456,13 +461,13 @@ int hextermmain(const char * argv0, const Message & args)
       const int32 spaceIdx       = arg.IndexOf(' ');
       const String childProgName = arg.Substring(0, spaceIdx).Trim();
       const String childArgs     = arg.Substring(spaceIdx).Trim()();
-      if (cpdio.LaunchChildProcess(arg()) == B_NO_ERROR)
+      if (cpdio.LaunchChildProcess(arg()).IsOK(ret))
       {
          LogTime(MUSCLE_LOG_INFO, "Communicating with child process (%s), childArgs=[%s]\n", childProgName(), childArgs());
          DoSession(cpdio);
          LogTime(MUSCLE_LOG_INFO, "Child process session aborted, exiting.\n");
       }
-      else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open child process (%s) with childArgs (%s)\n", childProgName(), childArgs());
+      else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open child process (%s) with childArgs (%s) [%s]\n", childProgName(), childArgs(), ret());
    }
    else if (args.FindString("serial", arg) == B_NO_ERROR)
    {
@@ -470,7 +475,7 @@ int hextermmain(const char * argv0, const Message & args)
       uint32 baudRate = colon ? atoi(colon+1) : 0; if (baudRate == 0) baudRate = 38400;
       const String devName = arg.Substring(0, ":");
       Queue<String> devs;
-      if (RS232DataIO::GetAvailableSerialPortNames(devs) == B_NO_ERROR)
+      if (RS232DataIO::GetAvailableSerialPortNames(devs).IsOK(ret))
       {
          String serName;
          for (int32 i=devs.GetNumItems()-1; i>=0; i--)
@@ -499,7 +504,7 @@ int hextermmain(const char * argv0, const Message & args)
             for (uint32 i=0; i<devs.GetNumItems(); i++) LogTime(MUSCLE_LOG_CRITICALERROR, "   %s\n", devs[i]());
          }
       }
-      else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not get list of serial device names!\n");
+      else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not get list of serial device names! [%s]\n", ret());
    }
 #ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
    else if (args.FindString("rfile", arg) == B_NO_ERROR)
