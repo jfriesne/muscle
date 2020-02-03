@@ -69,6 +69,11 @@ typedef void sockopt_arg;  // Whereas sane operating systems use void pointers
 # endif
 #endif
 
+#if defined(__APPLE__)
+# include <net/if_types.h>
+# include <sys/sockio.h>
+#endif
+
 #if defined(__linux__) && !defined(MUSCLE_AVOID_LINUX_DETECT_NETWORK_HARDWARE_TYPES)
 # include <net/if_arp.h>
 #endif
@@ -1328,11 +1333,10 @@ static bool IsGNIIBitMatch(const IPAddress & ip, bool isInterfaceEnabled, GNIIFl
    return true;
 }
 
-#ifdef __APPLE__
+# if defined(__APPLE__) && !(TARGET_OS_IPHONE)
 // Given an Apple-style interface-type string, returns the corresponding NETWORK_INTERFACE_HARDWARE_TYPE_* value, or NETWORK_INTERFACE_TYPE_UNKNOWN.
 static uint32 ParseAppleInterfaceTypeString(CFStringRef appleTypeString)
 {
-# if !(TARGET_OS_IPHONE)
    static const CFStringRef _appleTypeStrings[] = {
       kSCNetworkInterfaceType6to4,
       kSCNetworkInterfaceTypeBluetooth,
@@ -1376,8 +1380,6 @@ static uint32 ParseAppleInterfaceTypeString(CFStringRef appleTypeString)
    const String s(appleTypeString);
    if (s.EqualsIgnoreCase("bridge")) return NETWORK_INTERFACE_HARDWARE_TYPE_BRIDGE; 
    
-# endif // TARGET_OS_IPHONE
-
    return NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN;
 }
 #endif
@@ -1438,10 +1440,10 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 
    if (getifaddrs(&ifap) == 0)
    {
-#ifdef __APPLE__
+#if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__)
       Hashtable<String, uint32> inameToType;  // e.g. "en0" -> NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET
       {
-# if !(TARGET_OS_IPHONE)
+# if defined(__APPLE__) && !(TARGET_OS_IPHONE)
          CFArrayRef interfaces = SCNetworkInterfaceCopyAll();  // we can use this to get network interface hardware types later
          if (interfaces)
          {
@@ -1457,15 +1459,13 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             }
             CFRelease(interfaces);
          }
-# endif  // !(TARGET_OS_IPHONE)
+# endif  // defined(__APPLE__) && !(TARGET_OS_IPHONE)
       }
 #endif
 
       Hashtable<String, uint64> inameToMAC;
       {
-#if defined(__linux__)
          ConstSocketRef dummySocket;  // just for doing ioctl()s on; will be demand-allocated when required
-#endif
          struct ifaddrs * p = ifap;
          while(p)
          {
@@ -1478,6 +1478,62 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                   const unsigned char * ptr = (const unsigned char *)LLADDR((struct sockaddr_dl *)p->ifa_addr);
                   uint64 mac = 0; for (uint32 i=0; i<6; i++) mac |= (((uint64)ptr[i])<<(8*(5-i)));
                   (void) inameToMAC.Put(iname, mac);
+
+                  if (inameToType.ContainsKey(iname) == false)
+                  {
+                     // fall back to trying to get network-interface-type info from the BSD interface
+                     const struct if_data * ifd = (const struct if_data *) p->ifa_data;
+                     if (ifd)
+                     {
+                        uint32 devType = NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN;
+                        switch(ifd->ifi_type)
+                        {
+                           case IFT_ETHER:      devType = NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET;  break; /* Ethernet or Wi-Fi (!?) */
+                           case IFT_ISO88023:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET;  break; /* CMSA CD */
+                           case IFT_ISO88025:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_TOKENRING; break; /* Token Ring */
+                           case IFT_PPP:        devType = NETWORK_INTERFACE_HARDWARE_TYPE_PPP;       break; /* RFC 1331 */
+                           case IFT_LOOP:       devType = NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK;  break; /* loopback */
+                           case IFT_SLIP:       devType = NETWORK_INTERFACE_HARDWARE_TYPE_SERIAL;    break; /* IP over generic TTY */
+                           case IFT_RS232:      devType = NETWORK_INTERFACE_HARDWARE_TYPE_SERIAL;    break;
+                           case IFT_ATM:        devType = NETWORK_INTERFACE_HARDWARE_TYPE_ATM;       break; /* ATM cells */
+                           case IFT_MODEM:      devType = NETWORK_INTERFACE_HARDWARE_TYPE_DIALUP;    break; /* Generic Modem */
+                           case IFT_L2VLAN:     devType = NETWORK_INTERFACE_HARDWARE_TYPE_VLAN;      break; /* Layer 2 Virtual LAN using 802.1Q */
+                           case IFT_IEEE1394:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_FIREWIRE;  break; /* IEEE1394 High Performance SerialBus*/
+                           case IFT_BRIDGE:     devType = NETWORK_INTERFACE_HARDWARE_TYPE_BRIDGE;    break; /* Transparent bridge interface */
+                           case IFT_ENC:        devType = NETWORK_INTERFACE_HARDWARE_TYPE_TUNNEL;    break; /* Encapsulation */
+                           case IFT_CELLULAR:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_CELLULAR;  break; /* Packet Data over Cellular */
+                           default:             /* empty */                                          break;
+                        }
+
+#if defined(__APPLE__)
+                        if ((devType == NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)||(devType == NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET))
+                        {
+                           // Oops, IFT_ETHER is still ambiguous, since it could actually be Wired Ethernet or Wi-Fi or etc.
+                           // let's investigate a bit further and try to figure out what this network interface *really* is!
+                           if (dummySocket() == NULL) dummySocket = GetConstSocketRefFromPool(socket(AF_UNIX, SOCK_DGRAM, 0));
+                           if (dummySocket())
+                           {
+                              struct ifreq ifr; memset(&ifr, 0, sizeof(ifr));
+                              memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
+                              if (ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFFUNCTIONALTYPE, &ifr) == 0)
+                              {
+                                 switch(ifr.ifr_ifru.ifru_functional_type)
+                                 {
+                                    case IFRTYPE_FUNCTIONAL_LOOPBACK:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK; break;
+                                    case IFRTYPE_FUNCTIONAL_WIRED:      devType = NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET; break;
+                                    case IFRTYPE_FUNCTIONAL_WIFI_INFRA: devType = NETWORK_INTERFACE_HARDWARE_TYPE_WIFI;     break;
+                                    case IFRTYPE_FUNCTIONAL_WIFI_AWDL:  devType = NETWORK_INTERFACE_HARDWARE_TYPE_WIFI;     break;
+                                    case IFRTYPE_FUNCTIONAL_CELLULAR:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_CELLULAR; break;
+                                    default:                            /* empty */                                         break;
+                                 }
+                              }
+                           }
+                        }
+#endif
+
+                        if (devType != NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN) (void) inameToType.Put(iname, devType);
+                     }
+                  }
                }
 #elif defined(__linux__)
                if (p->ifa_addr->sa_family == AF_PACKET)

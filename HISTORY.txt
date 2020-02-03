@@ -12,6 +12,9 @@ key:  - new feature
    - Added a ParseArgs(const Queue<String> &, Message &, bool) 
      convenience-method to MiscUtilityFunctions.{cpp,h}.
    - hexterm now reports more details about certain network errors.
+   - Updated the MacOSX/iOS implementation of GetNetworkInterfaceInfos()
+     to call ioctl(SIOCGIFFUNCTIONALTYPE) to disambiguate the device-type
+     of a network-interface device.
    o Added the MUSCLE_CONSTEXPR tag to the TimeUnitConversionFunctions
      so that they can be evaluated at compile time when possible.
    o Modified SharedFilterSessionFactory.cpp to treat an all-zeros
