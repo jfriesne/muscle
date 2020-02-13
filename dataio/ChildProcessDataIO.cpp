@@ -8,7 +8,7 @@
 
 #if defined(WIN32) || defined(__CYGWIN__)
 # include <process.h>     // for _beginthreadex()
-# ifdef _UNICODE
+# if defined(_UNICODE) || defined(UNICODE)
 #  undef GetEnvironmentStrings   // here because Windows headers are FUBAR ( https://devblogs.microsoft.com/oldnewthing/20130117-00/?p=5533 )
 # endif
 # define USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION

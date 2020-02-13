@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Tweaked the Windows #ifdef's in ChildProcessDataIO.cpp per Mika
+
 7.53
    - Added a new FlushOutput() virtual method to the
      AbstractMessageIOGateway class, in case a subclass
