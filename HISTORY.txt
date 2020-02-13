@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-7.53
+7.53 Released 2/13/2020
    - Added a new FlushOutput() virtual method to the
      AbstractMessageIOGateway class, in case a subclass
      needs to hook into the gateway's flush-output functionality.
