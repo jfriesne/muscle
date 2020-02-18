@@ -415,6 +415,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
         const status_t B_OK;             ///< This value is a synonym for B_NO_ERROR
         const status_t B_ERROR("Error"); ///< "Error": This value is returned by a function or method that errored out in a non-descript fashion
 #       define B_ERRNO B_ERROR(strerror(GetErrno())) ///< Macro for return a B_ERROR with the current errno-string as its string-value
+#       define B_ERRNUM(errnum) ((errnum==0)?B_NO_ERROR:B_ERROR(strerror(errnum))) ///< Macro for converting an errno-style return value (0==success, negative==error_value) result into a status_t
 
         // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of 
         // differently-phrased error strings for common types of reasons-for-failure)

@@ -63,7 +63,7 @@ public:
       if (IsSetupOkay())
       {
 #if defined(MUSCLE_USE_PTHREADS)
-         pthread_key_delete(_key);
+         (void) pthread_key_delete(_key);
 #elif !defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && defined(MUSCLE_PREFER_WIN32_OVER_QT)
          TlsFree(_tlsIndex);
 #endif
@@ -185,7 +185,7 @@ private:
 #elif defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
       _threadLocalObject = o;   return B_NO_ERROR;
 #elif defined(MUSCLE_USE_PTHREADS)
-      return (pthread_setspecific(_key, o) == 0) ? B_NO_ERROR : B_ERROR("pthread_setspecific() failed");
+      return B_ERRNUM(pthread_setspecific(_key, o));
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       return TlsSetValue(_tlsIndex, o) ? B_NO_ERROR : B_ERRNO;
 #endif

@@ -148,7 +148,7 @@ public:
       } catch(...) {ret = B_LOCK_FAILED;}
 #  endif
 # elif defined(MUSCLE_USE_PTHREADS)
-      status_t ret = (pthread_mutex_lock(&_locker) == 0) ? B_NO_ERROR : B_LOCK_FAILED;
+      status_t ret = B_ERRNUM(pthread_mutex_lock(&_locker));
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       EnterCriticalSection(&_locker);
       status_t ret = B_NO_ERROR;
@@ -195,7 +195,7 @@ public:
       _locker.unlock();
       return B_NO_ERROR;
 # elif defined(MUSCLE_USE_PTHREADS)
-      return (pthread_mutex_unlock(&_locker) == 0) ? B_NO_ERROR : B_LOCK_FAILED;
+      return B_ERRNUM(pthread_mutex_unlock(&_locker));
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       LeaveCriticalSection(&_locker);
       return B_NO_ERROR;
@@ -227,7 +227,7 @@ private:
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11)
          // dunno of a way to do this with a std::mutex
 # elif defined(MUSCLE_USE_PTHREADS)
-         pthread_mutex_destroy(&_locker);
+         (void) pthread_mutex_destroy(&_locker);
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
          DeleteCriticalSection(&_locker);
 # elif defined(MUSCLE_QT_HAS_THREADS)

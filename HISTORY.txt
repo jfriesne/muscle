@@ -5,7 +5,12 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a B_ERRNUM(e) macro that works similarly to B_ERRNO, except
+     it calls strerror() with the passed-in integer value rather than
+     calling strerror(errno).
    * Tweaked the Windows #ifdef's in ChildProcessDataIO.cpp per Mika
+   * Return values of pthreads functions weren't being used correctly
+     to set status_t results on error.  Fixed.
 
 7.53 Released 2/13/2020
    - Added a new FlushOutput() virtual method to the

@@ -110,9 +110,9 @@ status_t Thread :: StartInternalThreadAux()
       if (_suggestedStackSize != 0)
       {
          pthread_attr_init(&attr);
-         pthread_attr_setstacksize(&attr, _suggestedStackSize);
+         (void) pthread_attr_setstacksize(&attr, _suggestedStackSize);
       }
-      return (pthread_create(&_thread, (_suggestedStackSize!=0)?&attr:NULL, InternalThreadEntryFunc, this) == 0) ? B_NO_ERROR : B_ERRNO;
+      return B_ERRNUM(pthread_create(&_thread, (_suggestedStackSize!=0)?&attr:NULL, InternalThreadEntryFunc, this));
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       typedef unsigned (__stdcall *PTHREAD_START) (void *);
       return ((_thread = (::HANDLE)_beginthreadex(NULL, _suggestedStackSize, (PTHREAD_START)InternalThreadEntryFunc, this, 0, (unsigned *)&_threadID)) != NULL) ? B_NO_ERROR : B_ERRNO;
@@ -316,6 +316,8 @@ status_t Thread :: WaitForInternalThreadToExit()
 {
    if (_threadRunning)
    {
+      status_t ret;
+
 #if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
 # if !defined(MUSCLE_NO_EXCEPTIONS)
       try {
@@ -326,7 +328,8 @@ status_t Thread :: WaitForInternalThreadToExit()
       catch(...) {return B_LOGIC_ERROR;}
 # endif
 #elif defined(MUSCLE_USE_PTHREADS)
-      (void) pthread_join(_thread, NULL);
+      const int pret = pthread_join(_thread, NULL);
+      if (pret != 0) ret = B_ERRNUM(pret);
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       (void) WaitForSingleObject(_thread, INFINITE);
       ::CloseHandle(_thread);  // Raymond Dahlberg's fix for handle-leak problem
@@ -340,7 +343,7 @@ status_t Thread :: WaitForInternalThreadToExit()
 #endif
       _threadRunning = false;
       CloseSockets();
-      return B_NO_ERROR;
+      return ret;
    }
    else return B_BAD_OBJECT;
 }
@@ -525,10 +528,11 @@ status_t Thread :: SetThreadPriorityAux(int newPriority)
    int schedPolicy;
    sched_param param;
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-   if (pthread_getschedparam(_thread.native_handle(), &schedPolicy, &param) != 0) return B_ERRNO;
+   int pret = pthread_getschedparam(_thread.native_handle(), &schedPolicy, &param);
 # else
-   if (pthread_getschedparam(_thread, &schedPolicy, &param) != 0) return B_ERRNO;
+   int pret = pthread_getschedparam(_thread, &schedPolicy, &param);
 # endif
+   if (pret != 0) return B_ERRNUM(pret);
 
    const int minPrio = sched_get_priority_min(schedPolicy);
    const int maxPrio = sched_get_priority_max(schedPolicy);
@@ -536,9 +540,9 @@ status_t Thread :: SetThreadPriorityAux(int newPriority)
 
    param.sched_priority = muscleClamp(((newPriority*(maxPrio-minPrio))/(NUM_PRIORITIES-1))+minPrio, minPrio, maxPrio);
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-   return (pthread_setschedparam(_thread.native_handle(), schedPolicy, &param) == 0) ? B_NO_ERROR : B_ERRNO;
+   return B_ERRNUM(pthread_setschedparam(_thread.native_handle(), schedPolicy, &param));
 # else
-   return (pthread_setschedparam(_thread, schedPolicy, &param) == 0) ? B_NO_ERROR : B_ERRNO;
+   return B_ERRNUM(pthread_setschedparam(_thread, schedPolicy, &param));
 # endif
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
