@@ -8,6 +8,7 @@ key:  - new feature
    - Added a B_ERRNUM(e) macro that works similarly to B_ERRNO, except
      it calls strerror() with the passed-in integer value rather than
      calling strerror(errno).
+   - Added a TryLock() method to the Mutex class.
    * Tweaked the Windows #ifdef's in ChildProcessDataIO.cpp per Mika
    * Return values of pthreads functions weren't being used correctly
      to set status_t results on error.  Fixed.

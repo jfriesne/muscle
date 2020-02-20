@@ -158,7 +158,7 @@ public:
 # elif defined(__BEOS__) || defined(__HAIKU__)
       status_t ret = _locker.Lock() ? B_NO_ERROR : B_LOCK_FAILED;
 # elif defined(__ATHEOS__)
-      status_t ret = _locker.Lock() ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?  Kurt's documentation sucks
+      status_t ret = _locker.Lock() ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?
 # endif
 
 # ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
@@ -167,6 +167,34 @@ public:
 # endif
 
       return ret;
+#endif
+   }
+
+   /** Similar to Lock(), except this method is guaranteed to always return immediately (i.e. never blocks).
+     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked (e.g. because it is 
+     *          already locked by another thread)
+     */
+   status_t TryLock() const
+   {
+#ifdef MUSCLE_SINGLE_THREAD_ONLY
+      return B_NO_ERROR;
+#else
+      if (_isEnabled == false) return B_NO_ERROR;
+
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+      return _locker.try_lock() ? B_NO_ERROR : B_LOCK_FAILED;
+# elif defined(MUSCLE_USE_PTHREADS)
+      const int pret = pthread_mutex_lock(&_locker);
+      return (pret == EBUSY) ? B_LOCK_FAILED : B_ERRNUM(pret);
+# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+      return TryEnterCriticalSection(&_locker) ? B_NO_ERROR : B_LOCK_FAILED;
+# elif defined(MUSCLE_QT_HAS_THREADS)
+      return _locker.tryLock() ? B_NO_ERROR : B_LOCK_FAILED;
+# elif defined(__BEOS__) || defined(__HAIKU__)
+      return (_locker.LockWithTimeout() == B_NO_ERROR) ? B_NO_ERROR : B_LOCK_FAILED;
+# elif defined(__ATHEOS__)
+      return _locker.Lock(0) ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?
+# endif
 #endif
    }
 
@@ -206,7 +234,7 @@ public:
       _locker.Unlock();
       return B_NO_ERROR;
 # elif defined(__ATHEOS__)
-      return _locker.Unlock() ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?  Kurt's documentation sucks
+      return _locker.Unlock() ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?
 # endif
 #endif
    }
