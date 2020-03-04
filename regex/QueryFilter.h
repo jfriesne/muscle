@@ -32,7 +32,7 @@ enum {
    QUERY_FILTER_TYPE_STRING,                /**< filter on the contents of a String in the Message */
    QUERY_FILTER_TYPE_MESSAGE,               /**< filter on the contents of a sub-Message in the Message */
    QUERY_FILTER_TYPE_RAWDATA,               /**< filter on the raw bytes of a field in the Message */
-   QUERY_FILTER_TYPE_MAXMATCH,              /**< filter matchis iff at no more than (n) of its children match */
+   QUERY_FILTER_TYPE_MAXMATCH,              /**< filter matches iff at no more than (n) of its children match */
    QUERY_FILTER_TYPE_MINMATCH,              /**< filter matches iff at least (n) of its children match */
    QUERY_FILTER_TYPE_XOR,                   /**< combine the results of two or more child filters using an XOR operator  */
    // add more codes here...
@@ -240,7 +240,7 @@ public:
    /** Default constructor.  Sets our value to its default (usually zero), and the operator to OP_EQUAL_TO. */
    NumericQueryFilter() : _value(), _mask(), _op(OP_EQUAL_TO), _maskOp(NQF_MASK_OP_NONE), _assumeDefault(false) {/* empty */}
 
-   /** Constructor.  This constructor will create a QueryFilter that only returns true from Match()
+   /** Constructor.  This constructor will create a QueryFilter that only returns true from Matches()
      * If the matched Message has the field item with the specified value in it.
      * @param fieldName Field name to look under.
      * @param op The operator to use (should be one of the OP_* values enumerated below)
@@ -351,7 +351,7 @@ public:
      */
    void SetAssumedDefault(const DataType & d) {_default = d; _assumeDefault = true;}
 
-   /** Unsets the assumed default.  After calling this, our Match() method will simply always
+   /** Unsets the assumed default.  After calling this, our Matches() method will simply always
      * return false if the specified data item is not found in the Message.
      */
    void UnsetAssumedDefault() {_default = DataType(); _assumeDefault = false;}
@@ -404,7 +404,7 @@ typedef NumericQueryFilter<Point,  B_POINT_TYPE,  QUERY_FILTER_TYPE_POINT>  Poin
 typedef NumericQueryFilter<Point,  B_RECT_TYPE,   QUERY_FILTER_TYPE_RECT>   RectQueryFilter;   DECLARE_REFTYPES(RectQueryFilter);
 
 /** A semi-abstract base class for any QueryFilter that holds a list of references to "child" QueryFilters.
-  * Subclasses of this class typically compute the output of their Match() method by calling Match() on
+  * Subclasses of this class typically compute the output of their Matches() method by calling Matches() on
   * each of their child QueryFilters and then aggregating those values together in some way.
   */
 class MultiQueryFilter : public QueryFilter
@@ -442,8 +442,8 @@ class MinimumThresholdQueryFilter : public MultiQueryFilter
 {
 public:
    /** Default constructor.  Creates an AND filter with no children. 
-     * @param minMatches The threshold value -- our Match() method will return true iff more than this-many
-     *                   of our children's Match() methods return true.  If this value is greater than the
+     * @param minMatches The threshold value -- our Matches() method will return true iff more than this-many
+     *                   of our children's Matches() methods return true.  If this value is greater than the
      *                   number of child QueryFilters in our list, then it will be treated as if it was equal
      *                   to (numKids-1) (which means you can pass in MUSCLE_NO_LIMIT here to get traditional
      *                   AND behavior regardless of how many child QueryFilters you add, or alternatively
@@ -492,8 +492,8 @@ class MaximumThresholdQueryFilter : public MultiQueryFilter
 {
 public:
    /** Constructor.
-     * @param maxMatches The threshold value -- our Match() method will return true iff no more than this-many
-     *                   of our childrens' Match() methods return true.  If this value is equal to or greater than
+     * @param maxMatches The threshold value -- our Matches() method will return true iff no more than this-many
+     *                   of our childrens' Matches() methods return true.  If this value is equal to or greater than
      *                   the number of child QueryFilters in our list, then it will be treated as if it was equal
      *                   to (numKids-1).  That means that you can pass in MUSCLE_NO_LIMIT to get NAND behavior,
      *                   or 0 to get NOT/NOR behavior.
@@ -537,7 +537,7 @@ DECLARE_REFTYPES(MaximumThresholdQueryFilter);
 class AndQueryFilter : public MinimumThresholdQueryFilter
 {
 public:
-   /** Default constructor.  Creates an AND filter with no children.  The Match() method of an AndQueryFilter with
+   /** Default constructor.  Creates an AND filter with no children.  The Matches() method of an AndQueryFilter with
      * no children will always return true, so you'll probably want to call GetChildren().AddTail() or similar before using it.
      */
    AndQueryFilter() : MinimumThresholdQueryFilter(MUSCLE_NO_LIMIT) {/* empty */}
@@ -552,7 +552,7 @@ public:
    }
 
    /** Convenience constructor to specify a binary AND operator.
-     * That is, our Match() method will only return true if both of our childrens' Match methods return true.
+     * That is, our Matches() method will only return true if both of our childrens' Matches() methods return true.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      */
@@ -563,7 +563,7 @@ public:
    }
 
    /** Convenience constructor to specify a ternary AND operator.
-     * That is, our Match() method will only return true if all three of our childrens' Match methods return true.
+     * That is, our Matches() method will only return true if all three of our childrens' Matches() methods return true.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      * @param child3 Third argument to the operation
@@ -576,7 +576,7 @@ public:
    }
 
    /** Convenience constructor to specify a quaternary AND operator.
-     * That is, our Match() method will only return true if all four of our childrens' Match methods return true.
+     * That is, our Matches() method will only return true if all four of our childrens' Matches() methods return true.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      * @param child3 Third argument to the operation
@@ -606,7 +606,7 @@ DECLARE_REFTYPES(AndQueryFilter);
 class OrQueryFilter : public MinimumThresholdQueryFilter
 {
 public:
-   /** Default constructor.  Creates an OR filter with no children.  The Match() method of an OrQueryFilter with
+   /** Default constructor.  Creates an OR filter with no children.  The Matches() method of an OrQueryFilter with
      * no children will always return true, so you'll probably want to call GetChildren().AddTail() or similar before using it.
      */
    OrQueryFilter() : MinimumThresholdQueryFilter(0) {/* empty */}
@@ -621,7 +621,7 @@ public:
    }
 
    /** Convenience constructor to specify a binary OR operator.
-     * That is, our Match() method will only return true if at least one of childrens' Match methods return true.
+     * That is, our Matches() method will only return true if at least one of childrens' Matches() methods return true.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      */
@@ -632,7 +632,7 @@ public:
    }
 
    /** Convenience constructor to specify a ternary OR operator.
-     * That is, our Match() method will only return true if at least one of childrens' Match methods return true.
+     * That is, our Matches() method will only return true if at least one of childrens' Matches() methods return true.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      * @param child3 Third argument to the operation
@@ -645,7 +645,7 @@ public:
    }
 
    /** Convenience constructor to specify a quaternary OR operator.
-     * That is, our Match() method will only return true if at least one of childrens' Match methods return true.
+     * That is, our Matches() method will only return true if at least one of childrens' Matches() methods return true.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      * @param child3 Third argument to the operation
@@ -675,13 +675,13 @@ DECLARE_REFTYPES(OrQueryFilter);
 class NandQueryFilter : public MaximumThresholdQueryFilter
 {
 public:
-   /** Default constructor.  Creates an NAND filter with no children.  The Match() method of an NandQueryFilter with
+   /** Default constructor.  Creates an NAND filter with no children.  The Matches() method of an NandQueryFilter with
      * no children will always return false, so you'll probably want to call GetChildren().AddTail() or similar before using it.
      */
    NandQueryFilter() : MaximumThresholdQueryFilter(MUSCLE_NO_LIMIT) {/* empty */}
 
    /** Convenience constructor to specify a unary NOT operator.
-     * @param child QueryFilter whose Match() method we will always return the opposite of
+     * @param child QueryFilter whose Matches() method we will always return the opposite of
      */
    NandQueryFilter(const ConstQueryFilterRef & child) : MaximumThresholdQueryFilter(MUSCLE_NO_LIMIT)
    {
@@ -689,7 +689,7 @@ public:
    }
 
    /** Convenience constructor to specify a binary NAND operator.
-     * That is, our Match() method will only return false unless both children's Match methods return true.
+     * That is, our Matches() method will only return false unless both children's Matches() methods return true.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      */
@@ -700,7 +700,7 @@ public:
    }
 
    /** Convenience constructor to specify a ternary NAND operator.
-     * That is, our Match() method will only return false unless all three of our children's Match methods return true.
+     * That is, our Matches() method will only return false unless all three of our children's Matches() methods return true.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      * @param child3 Third argument to the operation
@@ -713,7 +713,7 @@ public:
    }
 
    /** Convenience constructor to specify a quaternary NAND operator.
-     * That is, our Match() method will only return false unless all four of our children's Match methods return true.
+     * That is, our Matches() method will only return false unless all four of our children's Matches() methods return true.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      * @param child3 Third argument to the operation
@@ -743,13 +743,13 @@ DECLARE_REFTYPES(NandQueryFilter);
 class NorQueryFilter : public MaximumThresholdQueryFilter
 {
 public:
-   /** Default constructor.  Creates an NOR filter with no children.  The Match() method of an NorQueryFilter with
+   /** Default constructor.  Creates an NOR filter with no children.  The Matches() method of an NorQueryFilter with
      * no children will always return false, so you'll probably want to call GetChildren().AddTail() or similar before using it.
      */
    NorQueryFilter() : MaximumThresholdQueryFilter(0) {/* empty */}
 
    /** Convenience constructor to specify a unary NOT operator.
-     * @param child QueryFilter whose Match() method we will always return the opposite of
+     * @param child QueryFilter whose Matches() method we will always return the opposite of
      */
    NorQueryFilter(const ConstQueryFilterRef & child) : MaximumThresholdQueryFilter(0)
    {
@@ -757,7 +757,7 @@ public:
    }
 
    /** Convenience constructor to specify a binary NOR operator.
-     * That is, our Match() method will only return true iff both childrens' Match() methods returned false.
+     * That is, our Matches() method will only return true iff both childrens' Matches() methods returned false.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      */
@@ -768,7 +768,7 @@ public:
    }
 
    /** Convenience constructor to specify a ternary NOR operator.
-     * That is, our Match() method will only return true iff all three of our childrens' Match() methods returned false.
+     * That is, our Matches() method will only return true iff all three of our childrens' Matches() methods returned false.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      * @param child3 Third argument to the operation
@@ -781,7 +781,7 @@ public:
    }
 
    /** Convenience constructor to specify a quaternary NOR operator.
-     * That is, our Match() method will only return true iff all four of our childrens' Match() methods returned false.
+     * That is, our Matches() method will only return true iff all four of our childrens' Matches() methods returned false.
      * @param child1 First argument to the operation
      * @param child2 Second argument to the operation
      * @param child3 Third argument to the operation
@@ -811,7 +811,7 @@ DECLARE_REFTYPES(NorQueryFilter);
 class XorQueryFilter : public MultiQueryFilter
 {
 public:
-   /** Default constructor.  Creates an XOR filter with no children.  The Match() method of an XorQueryFilter with
+   /** Default constructor.  Creates an XOR filter with no children.  The Matches() method of an XorQueryFilter with
      * no children will always return false, so you'll probably want to call GetChildren().AddTail() or similar before using it.
      */
    XorQueryFilter() {/* empty */}
@@ -993,7 +993,7 @@ public:
      */
    void SetAssumedDefault(const String & d) {_default = d; _assumeDefault = true;}
 
-   /** Unsets the assumed default.  After calling this, our Match() method will simply always
+   /** Unsets the assumed default.  After calling this, our Matches() method will simply always
      * return false if the specified data item is not found in the Message.
      */
    void UnsetAssumedDefault() {_default.Clear(); _assumeDefault = false;}
@@ -1127,7 +1127,7 @@ public:
 
    /** Convenience method:  Attempts to create, populate, and return a QueryFilter object from 
      *                      the given Message, by first calling CreateQueryFilter(msg.what),
-     *                      and then calling SetFromArchive(msg) on the return QueryFilter object.
+     *                      and then calling SetFromArchive(msg) on the returned QueryFilter object.
      * @param msg A Message object that was previously filled out by the SaveToArchive() method
      *            of a QueryFilter object.
      * @returns Reference to the new QueryFilter object on success, or a NULL reference on failure.
@@ -1154,7 +1154,7 @@ DECLARE_REFTYPES(MuscleQueryFilterFactory);
 /** Returns a reference to the globally installed QueryFilterFactory object
   * that is used to create QueryFilter objects.  This method is guaranteed
   * never to return a NULL reference -- even if you call 
-  * SetglobalQueryFilterFactory(QueryFilterFactoryRef()), this method
+  * SetGlobalQueryFilterFactory(QueryFilterFactoryRef()), this method
   * will fall back to returning a reference to a MuscleQueryFilterFactory
   * object (which is also what it does by default).
   */
