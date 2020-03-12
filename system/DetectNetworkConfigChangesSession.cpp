@@ -298,7 +298,7 @@ printf("a1\n");
                   struct rtattr *rth = IFA_RTA(ifa);
                   const int rtl = IFA_PAYLOAD(nh);
 printf("a2 ifa=%p rth=%p rtl=%i\n", ifa, rth, rtl);
-                  while (rtl && RTA_OK(rth, rtl))
+                  while(rtl && RTA_OK(rth, rtl))
                   {
 printf("  a3 rta_type=%i/%i\n", rth->rta_type, IFA_LOCAL);
                      if (rth->rta_type == IFA_LOCAL)
@@ -308,6 +308,7 @@ printf("  a3 rta_type=%i/%i\n", rth->rta_type, IFA_LOCAL);
 printf("        a4 %i -> [%s]\n", ifa->ifa_index, ifName);
                         (void) _pendingChangedInterfaceNames.PutWithDefault(ifName);
                      }
+                     rth = RTA_NEXT(rth, rtl);
                   }
                   sendReport = true;
                }
