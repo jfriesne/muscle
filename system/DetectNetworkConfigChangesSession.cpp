@@ -260,8 +260,10 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
    int msgLen = recvmsg(fd, &msg, 0);
    if (msgLen >= 0)  // FogBugz #9620
    {
+printf("   DNCCS:  msgLen=%i\n", msgLen);
       for (struct nlmsghdr *nh = (struct nlmsghdr *)buf; ((sendReport == false)&&(NLMSG_OK(nh, (unsigned int)msgLen))); nh=NLMSG_NEXT(nh, msgLen))
       {
+printf("     B  nh->nlmsg_type=%i (%i/%i/%i/%i)\n", nh->nlmsg_type, RTM_NEWLINK, RTM_DELLINK, RTM_NEWADDR, RTM_DELADDR);
          /* The end of multipart message. */
          if (nh->nlmsg_type == NLMSG_DONE) break;
          else
@@ -272,10 +274,15 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
                {
                   struct ifinfomsg * iface = (struct ifinfomsg *) NLMSG_DATA(nh);
                   int nextLen = nh->nlmsg_len - NLMSG_LENGTH(sizeof(*iface));
+printf("        C  nextLen=%i\n", nextLen);
                   for (struct rtattr * a = IFLA_RTA(iface); RTA_OK(a, nextLen); a = RTA_NEXT(a, nextLen))
+{
+printf("           D  a=%p a->rta_type=%i\n", a, a->rta_type);
                      if (a->rta_type == IFLA_IFNAME)
                        (void) _pendingChangedInterfaceNames.PutWithDefault((const char *) RTA_DATA(a));
+}
                   sendReport = true;
+printf("   E\n");
                }
                break; 
 
