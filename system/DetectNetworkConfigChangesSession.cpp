@@ -296,7 +296,7 @@ printf("   E\n");
 printf("a1\n");
                   struct ifaddrmsg * ifa = (struct ifaddrmsg *) NLMSG_DATA(nh);
                   struct rtattr *rth = IFA_RTA(ifa);
-                  const int rtl = IFA_PAYLOAD(nh);
+                  int rtl = IFA_PAYLOAD(nh);
 printf("a2 ifa=%p rth=%p rtl=%i\n", ifa, rth, rtl);
                   while(rtl && RTA_OK(rth, rtl))
                   {
