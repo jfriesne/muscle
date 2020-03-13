@@ -307,10 +307,10 @@ printf("  a3 rta_type=%i/%i\n", rth->rta_type, IFA_LOCAL);
                         (void) if_indextoname(ifa->ifa_index, ifName);
 printf("        a4 %i -> [%s]\n", ifa->ifa_index, ifName);
                         (void) _pendingChangedInterfaceNames.PutWithDefault(ifName);
+                        sendReport = true;  // FogBugz #17683:  only notify if IFA_LOCAL was specified, to avoid getting spammed about IFA_CACHEINFO
                      }
                      rth = RTA_NEXT(rth, rtl);
                   }
-                  sendReport = true;
                }
                break; 
 
