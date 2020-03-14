@@ -352,6 +352,76 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
    return ret;  // just to shut the compiler up; we never actually get here
 }
 
+String String :: WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount) const
+{
+   if ((maxReplaceCount == 0)||(beforeToAfter.IsEmpty())||(IsEmpty())) return *this;
+
+   // We'll set each pointer in this array to point to the key in the Hashtable that has a claim on its associated char in our String
+   const String ** reservations = newnothrow const String *[Length()];
+   if (reservations) for (uint32 i=0; i<Length(); i++) reservations[i] = NULL; 
+   else
+   {
+      WARN_OUT_OF_MEMORY;
+      return *this;
+   }
+
+   const char * nullTerminator = Cstr()+Length();
+
+   int32 stringLengthDelta = 0;
+   for (HashtableIterator<String, String> iter(beforeToAfter); ((maxReplaceCount > 0)&&(iter.HasData())); iter++)
+   {
+      const String & replaceMe = iter.GetKey();
+      const String &    withMe = iter.GetValue();
+
+      const char * readPtr = Cstr();
+      while((maxReplaceCount > 0)&&((nullTerminator-readPtr)>=replaceMe.Length()))
+      {
+         const char * nextFind = strstr(readPtr, replaceMe());
+         if (nextFind)
+         {
+            // Check to see if all of the reservation-char-slots for this substring are still open (if not, we'll skip this match)
+            bool alreadyReserved     = false;
+            const uint32 startOffset = (nextFind-Cstr());
+            const uint32 endOffset   = startOffset+replaceMe.Length();
+            for (uint32 i=startOffset; i<endOffset; i++) {if (reservations[i] != NULL) alreadyReserved = true; break;}
+            if (alreadyReserved == false)
+            {
+               // Make the reservation!
+               for (uint32 i=startOffset; i<endOffset; i++) reservations[i] = &replaceMe;
+               stringLengthDelta += (withMe.Length()-replaceMe.Length());
+               if (maxReplaceCount != MUSCLE_NO_LIMIT) maxReplaceCount--;
+            }
+            readPtr = nextFind + replaceMe.Length();
+         }
+         else break;
+      }
+   }
+
+   // Now that we have our reservations-table set up, we can use it to generate the new String
+   String ret;
+   if (ret.Prealloc(Length()+stringLengthDelta).IsOK())
+   {
+      for (uint32 i=0; i<Length(); i++)
+      {
+         if (reservations[i])
+         {
+            const String & replaceMe = *reservations[i];
+            ret += beforeToAfter[replaceMe];
+            i += replaceMe.Length()-1;   // -1 because the for-loop will also do an increment 
+         }
+         else ret += (*this)[i];
+      }
+   }
+   else 
+   {
+      WARN_OUT_OF_MEMORY;
+      ret = *this;
+   }
+
+   delete [] reservations;
+   return ret;
+}
+
 String String :: WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount) const
 {
    String ret = *this;

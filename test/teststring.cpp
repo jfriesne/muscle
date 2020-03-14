@@ -119,6 +119,27 @@ int main(void)
    }
 #endif
 
+   // Test the multi-search-and-replace version of WithReplacements()
+   {
+      const String before = "One potato, Two potato, Three potato, Four.  Five potato, Six potato, Seven potato, more!  One Two Three Four Five";
+
+      Hashtable<String,String> replaceMap;
+      replaceMap.Put("One", "Two");
+      replaceMap.Put("Two", "3");
+      replaceMap.Put("Three", "4");
+      replaceMap.Put("potato", "sweet potato");
+      replaceMap.Put("sweet", "sour");   // shouldn't have any effect, since the original string doesn't contain the substring 'sour'
+      const String after = before.WithReplacements(replaceMap);
+
+      const String expected = "Two sweet potato, 3 sweet potato, 4 sweet potato, Four.  Five sweet potato, Six sweet potato, Seven sweet potato, more!  Two 3 4 Four Five";
+      if (after == expected) printf("Multi-replace:  got expected result [%s]\n", after());
+      else
+      {
+         printf("ERROR GOT WRONG MULTI-REPLACE RESULT [%s], expected [%s]\n", after(), expected());
+         return 10;
+      }
+   }
+
    int five=5, six=6;
    muscleSwap(five, six);
    if ((five != 6)||(six != 5)) {printf("Oh no, trivial muscleSwap() is broken!  five=%i six=%i\n", five, six); exit(10);}

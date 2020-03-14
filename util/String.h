@@ -15,6 +15,7 @@
 #include "support/PseudoFlattenable.h"
 #include "syslog/SysLog.h"
 #include "system/GlobalMemoryAllocator.h"  // for muscleFree()
+#include "util/Hashtable.h"
 
 #ifdef __APPLE__
 // Using a forward declaration rather than an #include here to avoid pulling in other things like Mac's
@@ -937,6 +938,20 @@ public:
      */
    String WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const;
  
+   /** Returns a String equal to this one, except with a set of search-and-replace operations performed.
+     * @param beforeToAfter the search-and-replace operations to perform.  Keys in this table are the strings
+     *                      to be searched for, and each key's associated value is the string to replace it with.
+     * @param maxReplaceCount The maximum number of substrings that should be replaced.  Defaults to MUSCLE_NO_LIMIT.
+     * @note By performing multiple search-and-replace operations simultaneously, we can give correct results in
+     *       certain cases where a series of single-string search-and-replace operations would not.  For example, 
+     *       String("1,2,3,4").WithReplacements("1","2").WithReplacements("2","3") returns "3,3,3,4"
+     *       instead of the hoped-for "2,3,3,4".
+     * @note Search-and-replace operations will be done in the iteration-order of the beforeToAfter Hashtable
+     *       argument, so in any cases of conflicts, key->value pairs found earlier in the iteration will
+     *       take precedence over those found later in the iteration.
+     */
+   String WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const;
+
    /** Reverses the order of all characters in the string, so that e.g. "string" becomes "gnirts" */
    void Reverse();
 

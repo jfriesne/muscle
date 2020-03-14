@@ -9,6 +9,9 @@ key:  - new feature
      it calls strerror() with the passed-in integer value rather than
      calling strerror(errno).
    - Added a TryLock() method to the Mutex class.
+   - Added a WithReplacements() method to the String class that takes
+     a (const Hashtable<String,String> &) argument, for doing multiple
+     simultaneous search-and-replace operations at one time.
    * Fixed the handling of RTM_NEWADDR and RTM_DELADDR messages in the
      Linux implementation of DetectNetworkConfigChangesSession.
    * Tweaked the Windows #ifdef's in ChildProcessDataIO.cpp per Mika
