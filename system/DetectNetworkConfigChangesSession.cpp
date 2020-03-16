@@ -262,10 +262,8 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
    int msgLen = recvmsg(fd, &msg, 0);
    if (msgLen >= 0)  // FogBugz #9620
    {
-printf("   DNCCS:  msgLen=%i\n", msgLen);
       for (struct nlmsghdr *nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, (unsigned int)msgLen); nh=NLMSG_NEXT(nh, msgLen))
       {
-printf("     B  nh->nlmsg_type=%i (%i/%i/%i/%i)\n", nh->nlmsg_type, RTM_NEWLINK, RTM_DELLINK, RTM_NEWADDR, RTM_DELADDR);
          /* The end of multipart message. */
          if (nh->nlmsg_type == NLMSG_DONE) break;
          else
@@ -276,36 +274,24 @@ printf("     B  nh->nlmsg_type=%i (%i/%i/%i/%i)\n", nh->nlmsg_type, RTM_NEWLINK,
                {
                   struct ifinfomsg * iface = (struct ifinfomsg *) NLMSG_DATA(nh);
                   int nextLen = nh->nlmsg_len - NLMSG_LENGTH(sizeof(*iface));
-printf("        C  nextLen=%i\n", nextLen);
                   for (struct rtattr * a = IFLA_RTA(iface); RTA_OK(a, nextLen); a = RTA_NEXT(a, nextLen))
-{
-printf("           D  a=%p a->rta_type=%i/%i\n", a, a->rta_type, IFLA_IFNAME);
                      if (a->rta_type == IFLA_IFNAME)
-{
                        (void) _pendingChangedInterfaceNames.PutWithDefault((const char *) RTA_DATA(a));
-printf("              D.2  a=%p a->rta_type=%i [%s]\n", a, a->rta_type, (const char *) RTA_DATA(a));
-}
-}
                   sendReport = true;
-printf("   E\n");
                }
                break; 
 
                case RTM_NEWADDR: case RTM_DELADDR:
                {
-printf("a1\n");
                   struct ifaddrmsg * ifa = (struct ifaddrmsg *) NLMSG_DATA(nh);
                   struct rtattr *rth = IFA_RTA(ifa);
                   int rtl = IFA_PAYLOAD(nh);
-printf("a2 ifa=%p rth=%p rtl=%i\n", ifa, rth, rtl);
                   while(rtl && RTA_OK(rth, rtl))
                   {
-printf("  a3 rta_type=%i/%i\n", rth->rta_type, IFA_LOCAL);
                      if (rth->rta_type == IFA_LOCAL)
                      {
                         char ifName[IFNAMSIZ];
                         (void) if_indextoname(ifa->ifa_index, ifName);
-printf("        a4 %i -> [%s]\n", ifa->ifa_index, ifName);
                         (void) _pendingChangedInterfaceNames.PutWithDefault(ifName);
                         sendReport = true;  // FogBugz #17683:  only notify if IFA_LOCAL was specified, to avoid getting spammed about IFA_CACHEINFO
                      }
@@ -315,7 +301,6 @@ printf("        a4 %i -> [%s]\n", ifa->ifa_index, ifName);
                break; 
 
                default:
-printf("   b1 nlmsg_type=%i\n", nh->nlmsg_type);
                   // do nothing
                break;
             }
