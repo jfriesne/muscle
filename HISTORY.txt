@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.54 Released 3/20/2020
    - Added a B_ERRNUM(e) macro that works similarly to B_ERRNO, except
      it calls strerror() with the passed-in integer value rather than
      calling strerror(errno).
