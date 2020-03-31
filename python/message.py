@@ -16,21 +16,21 @@ import sys
 import cStringIO
 
 # Standard MUSCLE field type-constants
-B_ANY_TYPE     = 1095653716 # 'ANYT',  // wild card
-B_BOOL_TYPE    = 1112493900 # 'BOOL',
-B_DOUBLE_TYPE  = 1145195589 # 'DBLE',
-B_FLOAT_TYPE   = 1179406164 # 'FLOT',
-B_INT64_TYPE   = 1280069191 # 'LLNG',
-B_INT32_TYPE   = 1280265799 # 'LONG',
-B_INT16_TYPE   = 1397248596 # 'SHRT',
-B_INT8_TYPE    = 1113150533 # 'BYTE',
-B_MESSAGE_TYPE = 1297303367 # 'MSGG',
-B_POINTER_TYPE = 1347310674 # 'PNTR',
-B_POINT_TYPE   = 1112559188 # 'BPNT',
-B_RECT_TYPE    = 1380270932 # 'RECT',
-B_STRING_TYPE  = 1129534546 # 'CSTR',
-B_OBJECT_TYPE  = 1330664530 # 'OPTR',  // used for flattened objects
-B_RAW_TYPE     = 1380013908 # 'RAWT',  // used for raw byte arrays
+B_ANY_TYPE     = 1095653716 # 'ANYT' : wild card
+B_BOOL_TYPE    = 1112493900 # 'BOOL'
+B_DOUBLE_TYPE  = 1145195589 # 'DBLE'
+B_FLOAT_TYPE   = 1179406164 # 'FLOT'
+B_INT64_TYPE   = 1280069191 # 'LLNG'
+B_INT32_TYPE   = 1280265799 # 'LONG'
+B_INT16_TYPE   = 1397248596 # 'SHRT'
+B_INT8_TYPE    = 1113150533 # 'BYTE'
+B_MESSAGE_TYPE = 1297303367 # 'MSGG'
+B_POINTER_TYPE = 1347310674 # 'PNTR'
+B_POINT_TYPE   = 1112559188 # 'BPNT'
+B_RECT_TYPE    = 1380270932 # 'RECT'
+B_STRING_TYPE  = 1129534546 # 'CSTR'
+B_OBJECT_TYPE  = 1330664530 # 'OPTR' : used for flattened objects
+B_RAW_TYPE     = 1380013908 # 'RAWT' : used for raw byte arrays
 
 CURRENT_PROTOCOL_VERSION = 1347235888 # 'PM00' -- our magic number
 
@@ -397,6 +397,24 @@ class Message:
       """Convenience method; identical to PutFieldContents(fieldName, B_BOOL_TYPE, fieldContents)"""
       return self.PutFieldContents(fieldName, B_BOOL_TYPE, fieldContents)
 
+   def PutFlat(self, fieldName, fieldContents):
+      """Flattens the specified Flattenable object (or objects) and places it/them into a field of its specified type
+         Note that objects passed to this method must have their TypeCode() and Flatten() method defined appropriately.
+      """
+      ctype = type(fieldContents)
+      if ctype == list or ctype == array.ArrayType:
+         vals = []
+         for obj in fieldContents:
+            bio = cStringIO.StringIO()
+            obj.Flatten(bio)
+            vals.append(bio.getvalue())
+         if (len(vals) > 0):
+            return self.PutFieldContents(fieldName, fieldContents[0].TypeCode(), vals)
+      else:
+         bio = cStringIO.StringIO()
+         fieldContents.Flatten(bio)
+         return self.PutFieldContents(fieldName, fieldContents.TypeCode(), bio.getvalue())
+
    def PutFloat(self, fieldName, fieldContents):
       """Convenience method; identical to PutFieldContents(fieldName, B_FLOAT_TYPE, fieldContents)"""
       return self.PutFieldContents(fieldName, B_FLOAT_TYPE, fieldContents)
@@ -489,6 +507,14 @@ class Message:
    def GetBool(self, fieldName, index=0):
       """Convenience method; returns the (index)th Bool item under (fieldName), or None."""
       return self.GetFieldItem(fieldName, B_BOOL_TYPE, index)
+
+   def GetFlat(self, fieldName, flattenableObject, index=0):
+      """Convenience method; Unflattens the the (index)th Flattenable item under (fieldName) into (flattenableObject) and then return it, or None."""
+      blob = self.GetFieldItem(fieldName, flattenableObject.TypeCode(), index)
+      if (blob != None):
+         flattenableObject.Unflatten(cStringIO.StringIO(blob))
+         return flattenableObject
+      return None
 
    def GetFloat(self, fieldName, index=0):
       """Convenience method; returns the (index)th Float item under (fieldName), or None."""

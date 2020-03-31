@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a Python implementation of the BitChord class to
+     python/bit_chord.py
+   - Added PutFlat() and GetFlat() convenience method to the
+     Python Message class in message.py
+
 7.54 Released 3/20/2020
    - Added a B_ERRNUM(e) macro that works similarly to B_ERRNO, except
      it calls strerror() with the passed-in integer value rather than
