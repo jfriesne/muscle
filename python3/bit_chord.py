@@ -78,9 +78,9 @@ class BitChord:
             if (self._words[i] != WORD_WITH_ALL_BITS_SET):
                return False
          for j in range((self.GetNumWords()-1)*NUM_BITS_PER_WORD, self._numBits):
-            if (self.IsBitSet(j) == False):
+            if (not self.IsBitSet(j)):
                return False
-      return True;
+      return True
 
    def GetNumBits(self):
       return self._numBits
@@ -119,7 +119,7 @@ class BitChord:
       return (whichBit%NUM_BITS_PER_WORD)
 
    def __clearUnusedBits(self):
-      numLeftoverBits = self._numBits%NUM_BITS_PER_WORD;
+      numLeftoverBits = self._numBits%NUM_BITS_PER_WORD
       if (numLeftoverBits > 0):
          for i in range(self._numBits, self._numWords*NUM_BITS_PER_WORD):
             self.ClearBit(i)
@@ -145,7 +145,7 @@ if __name__ == "__main__":
    print(bc.AreAnyBitsSet())
    print(bc.AreAllBitsSet())
 
-   print("Flattening: %s", bc);
+   print("Flattening: %s", bc)
    outFile = open("test.bitchord", "wb")   
    bc.Flatten(outFile)
    outFile.close()
@@ -156,4 +156,3 @@ if __name__ == "__main__":
    bc2.Unflatten(inFile)
    inFile.close()
    print("Unflattened:  %s" % bc2)
-

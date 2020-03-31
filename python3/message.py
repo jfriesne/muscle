@@ -491,7 +491,7 @@ class Message:
    def GetFlat(self, fieldName, flattenableObject, index=0):
       """Convenience method; Unflattens the the (index)th Flattenable item under (fieldName) into (flattenableObject) and then return it, or None."""
       blob = self.GetFieldItem(fieldName, flattenableObject.TypeCode(), index)
-      if (blob != None):
+      if (blob is not None):
          flattenableObject.Unflatten(io.BytesIO(blob))
          return flattenableObject
       return None
