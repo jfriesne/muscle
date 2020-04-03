@@ -173,7 +173,7 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "Try running one or more instances of reflector/example_2_dumb_client to connect and chat with the thread!\n");
    LogTime(MUSCLE_LOG_INFO, "\n");
 
-   // Our server's event loop will run here -- ServerProcessLoop() return until it's time for the server to exit
+   // Our server's event loop will run here -- ServerProcessLoop() will not return until it's time for the server to exit
    if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
        LogTime(MUSCLE_LOG_INFO, "example_2_dumb_server_with_thread is exiting normally.\n");

@@ -50,7 +50,7 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "Try pressing Control-C (or doing a \"kill -s SIGINT this_process_id\" in another Terminal) to see this process do a controlled shutdown.\n");
    LogTime(MUSCLE_LOG_INFO, "\n");
 
-   // Our server's event loop will run here -- ServerProcessLoop() return until it's time for the server to exit
+   // Our server's event loop will run here -- ServerProcessLoop() will not return until it's time for the server to exit
    if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
        LogTime(MUSCLE_LOG_INFO, "example_1_basic_usage is exiting normally.\n");

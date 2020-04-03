@@ -97,7 +97,7 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "Try modifying your computer's Network Settings, or putting your computer to sleep!\n");
    LogTime(MUSCLE_LOG_INFO, "\n");
 
-   // Our server's event loop will run here -- ServerProcessLoop() return until it's time for the server to exit
+   // Our server's event loop will run here -- ServerProcessLoop() will not return until it's time for the server to exit
    if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
        LogTime(MUSCLE_LOG_INFO, "example_2_without_subclassing is exiting normally.\n");

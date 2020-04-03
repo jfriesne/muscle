@@ -115,7 +115,7 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "Try running one or more instances of example_5_smart_client to connect/chat/subscribe!\n");
    printf("\n");
 
-   // Our server's event loop will run here -- ServerProcessLoop() return until it's time for the server to exit
+   // Our server's event loop will run here -- ServerProcessLoop() will not return until it's time for the server to exit
    if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
        LogTime(MUSCLE_LOG_INFO, "example_6_smart_server_with_pulsenode is exiting normally.\n");

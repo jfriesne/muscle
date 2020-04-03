@@ -139,7 +139,7 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "Try running one or more instances of example_2_dumb_client to connect and chat!\n");
    printf("\n");
 
-   // Our server's event loop will run here -- ServerProcessLoop() return until it's time for the server to exit
+   // Our server's event loop will run here -- ServerProcessLoop() will not return until it's time for the server to exit
    if (reflectServer.ServerProcessLoop().IsOK(ret))
    {
        LogTime(MUSCLE_LOG_INFO, "example_3_annotated_dumb_server is exiting normally.\n");
