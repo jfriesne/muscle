@@ -349,9 +349,9 @@ class MessageTransceiverThread(threading.Thread):
 #
 # Test stub below: exercises basic sending and receiving of Message objects.
 # Easiest way to test this is to open two shell windows, and in the first type:
-#   python MessageTransceiverThread.py accept 9999
+#   python message_transceiver_thread.py accept 9999
 # and then in the other shell window, type:
-#   python MessageTransceiverThread.py localhost 9999
+#   python message_transceiver_thread.py localhost 9999
 # Then the two programs should connect to each other, and typing anything into
 # one window should result in output being printed to the other.  Fun!
 #
@@ -389,8 +389,8 @@ if __name__ == "__main__":
                nextEvent.PrintToStream()
 
    if len(sys.argv) < 2:
-      print "Usage:  python MessageTransceiverThread.py accept [port=0]"
-      print "   or:  python MessageTransceiverThread.py <hostname> [port=2960]"
+      print "Usage:  python message_transceiver_thread.py accept [port=0]"
+      print "   or:  python message_transceiver_thread.py <hostname> [port=2960]"
       sys.exit(5)
 
    if sys.argv[1] == "accept":
