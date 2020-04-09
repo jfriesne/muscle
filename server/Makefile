@@ -13,6 +13,11 @@ CXXFLAGS  += -std=c++11 $(CFLAGS) $(DEFINES)
 #CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING 
 #CXXFLAGS += -DMUSCLE_AVOID_STDINT 
 
+# Enable these lines if you want to build libmuscle.a for a MacOS/X "Catalyst" framework
+#CATALYSTFLAGS = -target x86_64-apple-ios13.0-macabi -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/iOSSupport/usr/include -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/iOSSupport/System/Library/Frameworks
+#CFLAGS   += $(CATALYSTFLAGS)
+#CXXFLAGS += $(CATALYSTFLAGS)
+
 # compilation flags that are specific to the gcc compiler (hard-coded) 
 GCCFLAGS    = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS -W -Wall -Wno-multichar 
 
@@ -29,7 +34,7 @@ LIBS        =
 EXECUTABLES = muscled admin 
 
 # object files to include in all executables 
-OBJFILES = Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o AbstractReflectSession.o SignalMultiplexer.o SignalHandlerSession.o DumbReflectSession.o StorageReflectSession.o DataNode.o ReflectServer.o SocketMultiplexer.o StringMatcher.o MiscUtilityFunctions.o NetworkUtilityFunctions.o SysLog.o PulseNode.o PathMatcher.o FilterSessionFactory.o RateLimitSessionIOPolicy.o MemoryAllocator.o GlobalMemoryAllocator.o SetupSystem.o ServerComponent.o ZLibCodec.o ByteBuffer.o QueryFilter.o Directory.o FilePathInfo.o ChildProcessDataIO.o FileDataIO.o TCPSocketDataIO.o UDPSocketDataIO.o StdinDataIO.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o FileDescriptorDataIO.o SystemInfo.o regcomp.o regerror.o regexec.o regfree.o SharedMemory.o ZipFileUtilityFunctions.o ZLibUtilityFunctions.o CPULoadMeter.o TarFileWriter.o 
+OBJFILES = Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o AbstractReflectSession.o SignalMultiplexer.o SignalHandlerSession.o DumbReflectSession.o StorageReflectSession.o DataNode.o ReflectServer.o SocketMultiplexer.o SegmentedStringMatcher.o StringMatcher.o MiscUtilityFunctions.o NetworkUtilityFunctions.o SysLog.o PulseNode.o PathMatcher.o FilterSessionFactory.o RateLimitSessionIOPolicy.o MemoryAllocator.o GlobalMemoryAllocator.o SetupSystem.o ServerComponent.o ZLibCodec.o ByteBuffer.o QueryFilter.o Directory.o FilePathInfo.o ChildProcessDataIO.o FileDataIO.o TCPSocketDataIO.o UDPSocketDataIO.o StdinDataIO.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o FileDescriptorDataIO.o SystemInfo.o regcomp.o regerror.o regexec.o regfree.o SharedMemory.o ZipFileUtilityFunctions.o ZLibUtilityFunctions.o CPULoadMeter.o TarFileWriter.o 
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o zip.o unzip.o ioapi.o
 
 # These files aren't used by muscled, but some of the muscle-by-example programs need them to be in libmuscle.a

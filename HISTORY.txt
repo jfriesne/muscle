@@ -9,6 +9,9 @@ key:  - new feature
      python/bit_chord.py
    - Added PutFlat() and GetFlat() convenience method to the
      Python Message class in message.py
+   - Added SegmentedStringMatcher to the libmuscle.a build.
+   - Added some experimental support for building libmuscle.a as
+     a Catalyst-compatible library (see server/Makefile)
 
 7.54 Released 3/20/2020
    - Added a B_ERRNUM(e) macro that works similarly to B_ERRNO, except
