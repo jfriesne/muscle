@@ -12,6 +12,16 @@ key:  - new feature
    - Added SegmentedStringMatcher to the libmuscle.a build.
    - Added some experimental support for building libmuscle.a as
      a Catalyst-compatible library (see server/Makefile)
+   - Added a SetErrno(int) function to MuscleSupport.h, to
+     complement the existing GetErrno() function.
+   o Modified SendDataUDP() so that when it returns, errno is
+     still set to the state that the sendto() call set it to.
+   * Added a work-around to SimulatedMulticastDataIO for the
+     occasional MacOS/X bug that causes SendDataUDP() to always
+     return ENOBUFS on a Wi-Fi device's socket.  This won't fix
+     the underlying problem in MacOS/X, but it will at least
+     keep SimulatedMulticastDataIO from spinning a core at 100%
+     when the fault occurs.
 
 7.54 Released 3/20/2020
    - Added a B_ERRNUM(e) macro that works similarly to B_ERRNO, except

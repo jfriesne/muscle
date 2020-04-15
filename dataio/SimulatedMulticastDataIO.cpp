@@ -21,6 +21,8 @@ SimulatedMulticastDataIO :: SimulatedMulticastDataIO(const IPAddressAndPort & mu
    , _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET)
    , _isUnicastSocketRegisteredForWrite(false)
 {
+   SetEnobufsErrorMode(false);  // initialize _enobufsCount and _nextErrorModeSendTime to their default settings
+
    status_t ret;
    if (StartInternalThread().IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  Unable to start internal thread for group [%s] [%s]\n", multicastAddress.ToString()(), ret());
 }
@@ -154,8 +156,32 @@ void SimulatedMulticastDataIO :: NoteHeardFromMember(const IPAddressAndPort & he
    }
 }
 
+static const uint32 ENOBUFS_COUNT_THRESHOLD  = 100;  // if SendDataUDP() errors out with ENOBUFS (this many) times in a row, then we'll assume the Wi-Fi is broken and nerf ourself out to avoid a spinloop
+static const uint32 ENOBUFS_DURATION_SECONDS = 5;    // how long to disable attempts to write to the socket for, before trying again
+
+void SimulatedMulticastDataIO :: SetEnobufsErrorMode(bool enable)
+{
+   _enobufsCount          = enable ? ENOBUFS_COUNT_THRESHOLD : 0;
+   _nextErrorModeSendTime = enable ? (GetRunTime64()+SecondsToMicros(ENOBUFS_DURATION_SECONDS)) : MUSCLE_TIME_NEVER;
+}
+
+bool SimulatedMulticastDataIO :: IsInEnobufsErrorMode() const
+{
+   return (_enobufsCount >= ENOBUFS_COUNT_THRESHOLD);
+}
+
 void SimulatedMulticastDataIO :: UpdateUnicastSocketRegisteredForWrite(bool shouldBeRegisteredForWrite)
 {
+   if ((IsInEnobufsErrorMode())&&(shouldBeRegisteredForWrite))
+   {
+      if (GetRunTime64() < _nextErrorModeSendTime) shouldBeRegisteredForWrite = false; // don't bother trying to write, when in enobufs-error-mode
+      else 
+      {
+         LogTime(MUSCLE_LOG_WARNING, "SimulatedMulticastDataIO %p:  Exiting fault-mode to see if the ENOBUFS fault has cleared yet.\n", this);
+         SetEnobufsErrorMode(false);
+      }
+   }
+
    if (shouldBeRegisteredForWrite != _isUnicastSocketRegisteredForWrite)
    {
       const ConstSocketRef & udpSock = _udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST]()->GetWriteSelectSocket();
@@ -231,7 +257,24 @@ void SimulatedMulticastDataIO :: DrainOutgoingPacketsTable()
       { 
          const IPAddressAndPort & dest = *_outgoingPacketsTable.GetFirstKey();
          const ConstByteBufferRef & b  = pq.Head();
-         if (SendDataUDP(udpSock, b()->GetBuffer(), b()->GetNumBytes(), false, dest.GetIPAddress(), dest.GetPort()) == 0) return;
+         if (SendDataUDP(udpSock, b()->GetBuffer(), b()->GetNumBytes(), false, dest.GetIPAddress(), dest.GetPort()) == 0)
+         {
+            // Work-around for occasional Apple bug where a disabled Wi-Fi interface will errneously show up and appear
+            // to be usable and ready-for-write, but every call to SendDataUDP() on it results in immediate ENOBUFS,
+            // causing the internal thread to go into a loop and spin the CPU.
+            if ((PreviousOperationHadTransientFailure())&&(b()->GetNumBytes() > 0))
+            {
+               ++_enobufsCount;
+               if (IsInEnobufsErrorMode())
+               {
+                  LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  ENOBUFS bug detected, disabling writes to socket for " UINT32_FORMAT_SPEC " seconds to avoid a spin-loop.\n", this, ENOBUFS_DURATION_SECONDS);
+                  SetEnobufsErrorMode(true);  // this call is here to set _nextErrorModeSendTime
+               }
+            }
+            return;
+         }
+         else SetEnobufsErrorMode(false);  // reset the _enobufsCounter to zero on any sign of success
+ 
          (void) pq.RemoveHead();
       }
       if (pq.IsEmpty()) (void) _outgoingPacketsTable.RemoveFirst();
@@ -352,7 +395,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
                         // Special case for WriteTo():  This packet can go out as a normal UDP packet
                         (void) _udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST]()->WriteTo(data()->GetBuffer(), data()->GetNumBytes(), destIAP);
                      }
-                     else (void) outgoingUserPacketsQueue.AddTail(data);  // Normal case:  the packet will go out via simulated-multicast
+                     else if (IsInEnobufsErrorMode() == false) outgoingUserPacketsQueue.AddTail(data);  // Normal case:  the packet will go out via simulated-multicast
                   }
                   else LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  No data in SMDIO_COMMAND_DATA Message!\n");
                }

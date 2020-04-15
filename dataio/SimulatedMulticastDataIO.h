@@ -75,6 +75,8 @@ private:
    status_t EnqueueOutgoingMulticastControlCommand(uint32 whatCode, uint64 now, const IPAddressAndPort & destIAP);
    status_t ParseMulticastControlPacket(const ByteBuffer & buf, uint64 now, uint32 & retWhatCode);
    const char * GetUDPSocketTypeName(uint32 which) const;
+   bool IsInEnobufsErrorMode() const;
+   void SetEnobufsErrorMode(bool enableErrorMode);
 
    IPAddressAndPort _multicastAddress;
    uint32 _maxPacketSize;
@@ -93,6 +95,9 @@ private:
    UDPSocketDataIORef _udpDataIOs[NUM_SMDIO_SOCKET_TYPES];
    bool _isUnicastSocketRegisteredForWrite;
    Hashtable<IPAddressAndPort, Queue<ConstByteBufferRef> > _outgoingPacketsTable;
+
+   uint32 _enobufsCount;
+   uint64 _nextErrorModeSendTime;
 
    DECLARE_COUNTED_OBJECT(SimulatedMulticastDataIO);
 };

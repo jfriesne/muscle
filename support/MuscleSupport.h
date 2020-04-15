@@ -1206,13 +1206,25 @@ typedef ptrdiff_t ptrdiff; /**< ptrdiff is a signed integer type that is guarant
 # include "syslog/SysLog.h"  /* for LogTime() */
 #endif  /* __cplusplus */
 
-/** Platform-neutral interface to errno -- returns WSAGetLastError() on Windows, or errno on other OS's */
+/** Platform-neutral interface to reading errno -- returns WSAGetLastError() on Windows, or errno on other OS's */
 static inline int GetErrno()
 {
 #ifdef WIN32
    return WSAGetLastError();
 #else
    return errno;
+#endif
+}
+
+/** Platform-neutral interface to setting errno -- calls WSASetLastError() on Windows, or sets errno on other OS's
+  * @param e The new value to set the errno variable to
+  */
+static inline int SetErrno(int e)
+{
+#ifdef WIN32
+   return WSASetLastError(e);
+#else
+   return errno = e;
 #endif
 }
 
