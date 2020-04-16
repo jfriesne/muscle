@@ -1219,12 +1219,12 @@ static inline int GetErrno()
 /** Platform-neutral interface to setting errno -- calls WSASetLastError() on Windows, or sets errno on other OS's
   * @param e The new value to set the errno variable to
   */
-static inline int SetErrno(int e)
+static inline void SetErrno(int e)
 {
 #ifdef WIN32
-   return WSASetLastError(e);
+   WSASetLastError(e);
 #else
-   return errno = e;
+   errno = e;
 #endif
 }
 
