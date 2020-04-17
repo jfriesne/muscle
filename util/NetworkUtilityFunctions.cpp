@@ -406,9 +406,17 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
 
       if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
 
+#ifdef MUSCLE_USE_IFIDX_WORKAROUND
+      const int errnoFromSendCall = GetErrno();
+#endif
+
       const int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
-      if (oldInterfaceIndex >= 0) (void) SetSocketMulticastSendInterfaceIndex(sock, oldInterfaceIndex);  // gotta do this AFTER computing the return value, as it clears errno!
+      if (oldInterfaceIndex >= 0) 
+      {
+         (void) SetSocketMulticastSendInterfaceIndex(sock, oldInterfaceIndex);  // gotta do this AFTER computing the return value, as it clears errno!
+         SetErrno(errnoFromSendCall);  // restore the errno from the send_ignore_eintr() call, in case our calling code wants to examine it
+      }
 #endif
       return ret;
    }
