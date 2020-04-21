@@ -134,6 +134,39 @@ public:
       return true;
    }
 
+   /** Convenience method:  Returns the current value of the given bit,
+     * and clears the bit as a side-effect.
+     * @param whichBit the index of the bit to return and then clear.
+     */
+   bool GetAndClearBit(uint32 whichBit)
+   {
+      const bool ret = IsBitSet(whichBit);
+      ClearBit(whichBit);
+      return ret;
+   }
+
+   /** Convenience method:  Returns the current value of the given bit,
+     * and set the bit as a side-effect.
+     * @param whichBit the index of the bit to return and then set.
+     */
+   bool GetAndSetBit(uint32 whichBit)
+   {
+      const bool ret = IsBitSet(whichBit);
+      SetBit(whichBit);
+      return ret;
+   }
+
+   /** Convenience method:  Returns the current value of the given bit,
+     * and toggles the bit as a side-effect.
+     * @param whichBit the index of the bit to return and then toggles.
+     */
+   bool GetAndToggleBit(uint32 whichBit)
+   {
+      const bool ret = IsBitSet(whichBit);
+      ToggleBit(whichBit);
+      return ret;
+   }
+
    /** Returns true iff at least one bit is unset in this bit-chord. */
    bool AreAnyBitsUnset() const {return (AreAllBitsSet() == false);}
 

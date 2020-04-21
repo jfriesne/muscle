@@ -82,6 +82,21 @@ class BitChord:
                return False
       return True
 
+   def GetAndClearBit(self, whichBit):
+      ret = self.IsBitSet(whichBit)
+      self.ClearBit(whichBit)
+      return ret
+
+   def GetAndSetBit(self, whichBit):
+      ret = self.IsBitSet(whichBit)
+      self.SetBit(whichBit)
+      return ret
+
+   def GetAndToggleBit(self, whichBit):
+      ret = self.IsBitSet(whichBit)
+      self.ToggleBit(whichBit)
+      return ret
+
    def GetNumBits(self):
       return self._numBits
 

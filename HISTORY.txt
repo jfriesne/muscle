@@ -12,6 +12,8 @@ key:  - new feature
    - Added SegmentedStringMatcher to the libmuscle.a build.
    - Added some experimental support for building libmuscle.a as
      a Catalyst-compatible library (see server/Makefile)
+   - Added GetAndClearBit(), GetAndSetBit() and GetAndToggleBit()
+     convenience methods to the BitChord class.
    - Added a SetErrno(int) function to MuscleSupport.h, to
      complement the existing GetErrno() function.
    o Modified SendDataUDP() so that when it returns, errno is
