@@ -16,6 +16,8 @@ key:  - new feature
      convenience methods to the BitChord class.
    - Added a SetErrno(int) function to MuscleSupport.h, to
      complement the existing GetErrno() function.
+   - Added muscleproxy.cpp to the tests sub-folder, as simple
+     demonstration of how to implement a proxy using MUSCLE.
    o Modified SendDataUDP() so that when it returns, errno is
      still set to the state that the sendto() call set it to.
    * Added a work-around to SimulatedMulticastDataIO for the
