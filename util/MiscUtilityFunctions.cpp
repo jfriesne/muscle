@@ -752,7 +752,7 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
 
 status_t BecomeDaemonProcess(const char * optNewDir, const char * optOutputTo, bool createIfNecessary)
 {
-   bool isParent;
+   bool isParent = false;  // set to false to avoid compiler warning
    const status_t ret = SpawnDaemonProcess(isParent, optNewDir, optOutputTo, createIfNecessary);
    if ((ret == B_NO_ERROR)&&(isParent)) ExitWithoutCleanup(0);
    return ret;

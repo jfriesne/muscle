@@ -793,7 +793,7 @@ public:
 
       status_t ret;
 
-      uint32 numItems;
+      uint32 numItems = 0;  // se to zero to avoid compiler warning
       if (ReadData(buffer, numBytes, &readOffset, &numItems, sizeof(numItems)).IsError(ret))
       {
          LogTime(MUSCLE_LOG_DEBUG, "ByteBufferDataArray %p:  Error reading numItems (numBytes=" UINT32_FORMAT_SPEC ") [%s]\n", this, numBytes, ret());
@@ -803,7 +803,7 @@ public:
    
       for (uint32 i=0; i<numItems; i++)
       {
-         uint32 readFs;
+         uint32 readFs = 0;  // set to zero to avoid compiler warning
          if (ReadData(buffer, numBytes, &readOffset, &readFs, sizeof(readFs)).IsError(ret))
          {
             LogTime(MUSCLE_LOG_DEBUG, "ByteBufferDataArray %p:  Error reading item size (i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ", readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, i, numItems, readOffset, numBytes, ret());
@@ -1057,7 +1057,7 @@ public:
    {
       this->Clear(false);
 
-      uint32 networkByteOrder;
+      uint32 networkByteOrder = 0;  // set to zero to avoid compiler warning
       uint32 readOffset = 0;
 
       status_t ret;
@@ -1373,7 +1373,7 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
    status_t ret;
 
    // Read and check protocol version number
-   uint32 networkByteOrder;
+   uint32 networkByteOrder = 0;  // set to zero to avoid compiler warning
    if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)).IsError(ret))
    {
       LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Couldn't read message protocol version! (inputBufferBytes=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, inputBufferBytes, ret());
