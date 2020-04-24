@@ -591,15 +591,17 @@ private:
 
    /** Our node class needs access to our internals too */
    friend class StorageReflectSession :: NodePathMatcher;
-
-   enum {
-      NODE_DEPTH_ROOT = 0,     /**< Depth of the root node at the top of the node-tree (i.e. zero) */
-      NODE_DEPTH_HOSTNAME,     /**< Depth of the hostname/IP-address nodes directly underneath the root node (i.e. one) */
-      NODE_DEPTH_SESSIONNAME,  /**< Depth of the per-connection session ID strings underneath the hostname/IP-address nodes */
-      NODE_DEPTH_USER          /**< Depth of the first level of the tree where a client program can add its own nodes */
-   };
 };
 DECLARE_REFTYPES(StorageReflectSession);
+
+
+/** Enumeration of some common node-depth levels in the MUSCLE node-tree database */
+enum {
+   NODE_DEPTH_ROOT = 0,     /**< Depth of the root node at the top of the node-tree (i.e. zero) */
+   NODE_DEPTH_HOSTNAME,     /**< Depth of the hostname/IP-address nodes directly underneath the root node (i.e. one) */
+   NODE_DEPTH_SESSIONNAME,  /**< Depth of the per-connection session ID strings underneath the hostname/IP-address nodes */
+   NODE_DEPTH_USER          /**< Depth of the first level of the tree where a client program can add its own nodes */
+};
 
 } // end namespace muscle
 

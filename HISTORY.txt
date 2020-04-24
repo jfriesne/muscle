@@ -20,6 +20,9 @@ key:  - new feature
      demonstration of how to implement a proxy using MUSCLE.
    o Modified SendDataUDP() so that when it returns, errno is
      still set to the state that the sendto() call set it to.
+   o Moved the NODE_DEPTH_* enum out of the StorageReflectSession
+     class and up into muscle-namespace scope, so that it
+     can be referenced by non-StorageReflectSession code.
    * Added a work-around to SimulatedMulticastDataIO for the
      occasional MacOS/X bug that causes SendDataUDP() to always
      return ENOBUFS on a Wi-Fi device's socket.  This won't fix
