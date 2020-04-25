@@ -143,7 +143,7 @@ void ThreadedInternalSession :: InternalThreadEntry()
          break;
       }         
 
-      uint64 now = GetRunTime64();
+      const uint64 now = GetRunTime64();
       if (now >= _nextStatusPostTime) SendExampleMessageToMainThread();
    }
 #endif

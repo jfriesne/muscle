@@ -140,7 +140,7 @@ inline bool OnceEvery(uint64 interval, uint64 & lastTime)
    static uint32 count     = 0; \
    static uint64 startTime = 0; \
    static uint64 lastTime  = 0; \
-   uint64 now = GetRunTime64(); \
+   const uint64 now = GetRunTime64(); \
    if (startTime == 0) startTime = now; \
    count++; \
    if ((OnceEvery(500000, lastTime))&&(now>startTime)) printf("%s: " UINT64_FORMAT_SPEC "/s\n", x, (MICROS_PER_SECOND*((uint64)count))/(now-startTime)); \

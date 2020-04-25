@@ -703,7 +703,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                   resultMessage()->RemoveName(PR_NAME_SERVER_MEM_MAX);
                   resultMessage()->AddInt64(PR_NAME_SERVER_MEM_MAX, GetMaxNumBytes());
 
-                  uint64 now = GetRunTime64();
+                  const uint64 now = GetRunTime64();
 
                   resultMessage()->RemoveName(PR_NAME_SERVER_UPTIME);
                   resultMessage()->AddInt64(PR_NAME_SERVER_UPTIME, now-GetServerStartTime());
