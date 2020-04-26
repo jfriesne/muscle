@@ -430,9 +430,17 @@ public:
     *  state into a Message, then adds the resulting Message into this Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param obj The object to archive.  May be any type with a SaveToArchive() method.
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY if out of memory or SaveToArchive() failed.
+    *  @return B_NO_ERROR on success, or an error code on failure.
     */
    template<class T> inline status_t AddArchiveMessage(const String & fieldName, const T & obj);
+
+   /** Convenience method:  Same as AddArchiveMessage(), but this method only actually adds a
+    *  Message if the (objRef) reference-argument is non-NULL.
+    *  @param fieldName Name of the field to add (or add to)
+    *  @param objRef Reference to the object to archive.  The object may be any type with a SaveToArchive() method.
+    *  @return B_NO_ERROR on success (or if (objRef) was NULL), or an error code on failure.
+    */
+   template<typename T> inline status_t CAddArchiveMessage(const String & fieldName, const ConstRef<T> & objRef);
 
    /** Adds a new pointer value to the Message.
     *  @param fieldName Name of the field to add (or add to)
@@ -592,6 +600,14 @@ public:
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY if out of memory or SaveToArchive() failed.
     */
    template<class T> inline status_t PrependArchiveMessage(const String & fieldName, const T & obj);
+
+   /** Convenience method:  Same as PrependArchiveMessage(), but this method only actually prepends a
+    *  Message if the (objRef) reference-argument is non-NULL.
+    *  @param fieldName Name of the field to add (or add to)
+    *  @param objRef Reference to the object to archive.  The object may be any type with a SaveToArchive() method.
+    *  @return B_NO_ERROR on success (or if (objRef) was NULL), or an error code on failure.
+    */
+   template<typename T> inline status_t CPrependArchiveMessage(const String & fieldName, const ConstRef<T> & objRef);
 
    /** Prepends a new pointer value to the beginning of a field array in the Message.
     *  @param fieldName Name of the field to add (or prepend to)
@@ -1721,9 +1737,21 @@ template<class T> status_t Message :: AddArchiveMessage(const String & fieldName
 }
 
 // declared down here to make clang++ happy
+template<typename T> status_t Message :: CAddArchiveMessage(const String & fieldName, const ConstRef<T> & objRef)
+{
+   return objRef() ? AddArchiveMessage(fieldName, *objRef()) : B_NO_ERROR;
+}
+
+// declared down here to make clang++ happy
 template<class T> status_t Message :: PrependArchiveMessage(const String & fieldName, const T & obj)
 {
    return PrependMessage(fieldName, GetArchiveMessageFromPool(obj));
+}
+
+// declared down here to make clang++ happy
+template<typename T> status_t Message :: CPrependArchiveMessage(const String & fieldName, const ConstRef<T> & objRef)
+{
+   return objRef() ? PrependArchiveMessage(fieldName, *objRef()) : B_NO_ERROR;
 }
 
 /** Convenience method for printing out 'what'-codes

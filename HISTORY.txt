@@ -20,6 +20,8 @@ key:  - new feature
      demonstration of how to implement a proxy using MUSCLE.
    - Added a MoveIndexEntries() convenience method to the
      StorageReflectSession class.
+   - Added CAddArchiveMessage() and CPrependArchiveMessage()
+     convenience methods to the Message class.
    o Modified SendDataUDP() so that when it returns, errno is
      still set to the state that the sendto() call set it to.
    o Moved the NODE_DEPTH_* enum out of the StorageReflectSession
