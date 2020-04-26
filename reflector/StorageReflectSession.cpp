@@ -1095,6 +1095,18 @@ status_t StorageReflectSession :: RemoveDataNodes(const String & nodePath, const
    return B_NO_ERROR;
 }
 
+status_t StorageReflectSession :: MoveIndexEntries(const String & nodePath, const String * optBefore, const ConstQueryFilterRef & filterRef)
+{
+   TCHECKPOINT;
+
+   NodePathMatcher matcher;
+   status_t ret;
+   if (matcher.PutPathString(nodePath, filterRef).IsError(ret)) return ret;
+
+   (void) matcher.DoTraversal((PathMatchCallback)ReorderDataCallbackFunc, this, *_sessionDir(), true, (void *)optBefore);
+   return B_NO_ERROR;
+}
+
 void
 StorageReflectSession ::
 PushSubscriptionMessages()

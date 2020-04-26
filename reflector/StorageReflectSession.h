@@ -143,6 +143,15 @@ protected:
     */
    virtual status_t RemoveDataNodes(const String & nodePath, const ConstQueryFilterRef & filterRef = ConstQueryFilterRef(), bool quiet = false);
 
+   /** Moves the node(s) specified in (nodePath) to a new location within their parent nodes' node-index.
+    *  @param nodePath A relative path indicating node(s) that we want to move within their parents' node-index.  Wildcarding is okay.
+    *  @param optBefore if non-NULL, the moved nodes in the index will be moved to just before the node with this name.  If NULL, they'll be moved to the end of the index.
+    *  @param filterRef If non-NULL, we'll use the given QueryFilter object to filter out our result set.
+    *                   Only nodes whose Messages match the QueryFilter will have their parent-nodes' index modified.  Default is a NULL reference.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    */
+    virtual status_t MoveIndexEntries(const String & nodePath, const String * optBefore, const ConstQueryFilterRef & filterRef = ConstQueryFilterRef());
+
    /**
     * Recursively saves a given subtree of the node database into the given Message object, for safe-keeping.
     * (It's a bit more efficient than it looks, since all data Messages are reference counted rather than copied)
