@@ -26,8 +26,10 @@ public:
     * @param isSimpleFormat If you wish to use the formal regex syntax, instead of the simple syntax, set isSimpleFormat to false.
     * @param segmentSeparatorChars The set of characters that denote sub-keys within the key string.  This string will be passed to
     *                              our StringTokenizer.  Defaults to "/".
+    * @param maxSegments the maximum number of segments from (matchString) that should be added to this SegmentedStringMatcher.
+    *                    Default is MUSCLE_NO_LIMIT, meaning all segments will be added with no fixed limit applied.
     */
-   SegmentedStringMatcher(const String & matchString, bool isSimpleFormat = true, const char * segmentSeparatorChars = "/");
+   SegmentedStringMatcher(const String & matchString, bool isSimpleFormat = true, const char * segmentSeparatorChars = "/", uint32 maxSegments = MUSCLE_NO_LIMIT);
     
    /** Destructor */
    ~SegmentedStringMatcher();
@@ -39,9 +41,11 @@ public:
     * @param isSimpleFormat If you wish to use the formal regex syntax, instead of the simple syntax, set isSimpleFormat to false.
     * @param segmentSeparatorChars The set of characters that denote sub-keys within the key string.  This string will be passed to
     *                              our StringTokenizer.  Defaults to "/".
+    * @param maxSegments the maximum number of segments from (matchString) that should be added to this SegmentedStringMatcher.
+    *                    Default is MUSCLE_NO_LIMIT, meaning all segments will be added with no fixed limit applied.
     * @return B_NO_ERROR on success, B_BAD_ARGUMENT if the expression wasn't parsable, or B_OUT_OF_MEMORY.
     */
-   status_t SetPattern(const String & matchString, bool isSimpleFormat=true, const char * segmentSeparatorChars = "/");
+   status_t SetPattern(const String & matchString, bool isSimpleFormat=true, const char * segmentSeparatorChars = "/", uint32 maxSegments = MUSCLE_NO_LIMIT);
     
    /** Returns the pattern String as it was previously passed in to SetPattern() */
    const String & GetPattern() const {return _pattern;}
@@ -105,7 +109,7 @@ SegmentedStringMatcherRef GetSegmentedStringMatcherFromPool();
 /** Convenience method.  Obtains a StringMatcher object from the default StringMatcher pool, calls SetPattern() on it
   * with the given arguments, and returns it, or a NULL reference on failure (out of memory, or a parse error?)
   */
-SegmentedStringMatcherRef GetSegmentedStringMatcherFromPool(const String & matchString, bool isSimpleFormat = true, const char * segmentSeparatorChars = "/");
+SegmentedStringMatcherRef GetSegmentedStringMatcherFromPool(const String & matchString, bool isSimpleFormat = true, const char * segmentSeparatorChars = "/", uint32 maxSegements = MUSCLE_NO_LIMIT);
 
 } // end namespace muscle
 
