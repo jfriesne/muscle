@@ -2,7 +2,6 @@
 #define Browser_h
 
 #include <QWidget>
-#include "qtsupport/QMessageTransceiverThread.h"
 
 class QLabel;
 class QPushButton;
@@ -11,6 +10,8 @@ class QLineEdit;
 class NodeTreeWidgetItem;
 class QTextEdit;
 class QTreeWidgetItem;
+
+#include "qtsupport/QMessageTransceiverThread.h"
 
 using namespace muscle;
 
@@ -29,6 +30,7 @@ private slots:
    void NodeExpanded(QTreeWidgetItem *);
    void NodeCollapsed(QTreeWidgetItem *);
    void SetMessageContentsViewContents(QTreeWidgetItem *);
+   void CloneWindow();
 
 private:
    void UpdateState();

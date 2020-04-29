@@ -24,6 +24,8 @@ key:  - new feature
      convenience methods to the Message class.
    - Added an optional (maxSegments) argument to the SetPattern()
      method of the SegmentedStringMatcher class.
+   - Added a "Clone Window" button to the qt_muscled_browser GUI.
+   - Made qt_muscled_browser's stdout output prettier. 
    o Modified SendDataUDP() so that when it returns, errno is
      still set to the state that the sendto() call set it to.
    o Moved the NODE_DEPTH_* enum out of the StorageReflectSession

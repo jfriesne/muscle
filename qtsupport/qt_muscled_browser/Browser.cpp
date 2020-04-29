@@ -57,6 +57,7 @@ BrowserWindow :: BrowserWindow()
    : _isConnecting(false)
    , _isConnected(false)
 {
+   setAttribute(Qt::WA_DeleteOnClose);
    setWindowTitle("MUSCLE Database Browser");
 
    const int defaultWindowWidth  = 640;
@@ -71,6 +72,10 @@ BrowserWindow :: BrowserWindow()
    {
       QBoxLayout * topRowLayout = new QBoxLayout(QBoxLayout::LeftToRight, topRow);
       topRowLayout->setMargin(2);
+
+      QPushButton * cloneButton = new QPushButton("Clone Window");
+      connect(cloneButton, SIGNAL(clicked()), this, SLOT(CloneWindow()));
+      topRowLayout->addWidget(cloneButton);
 
       _stateLabel = new QLabel;
       topRowLayout->addWidget(_stateLabel);
@@ -172,14 +177,14 @@ void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscrib
          MessageRef subMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
          subMsg()->AddBool(subscribePath.Prepend("SUBSCRIBE:"), true);
          _subscriptions.PutWithDefault(subscribePath);
-         printf("Subscribed to path [%s]\n", subscribePath());
+         LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p subscribed to path [%s]\n", this, subscribePath());
          _mtt.SendMessageToSessions(subMsg);
       }
       else
       {
          MessageRef unsubMsg = GetMessageFromPool(PR_COMMAND_REMOVEPARAMETERS);
          unsubMsg()->AddString(PR_NAME_KEYS, EscapeRegexTokens(subscribePath).Prepend("SUBSCRIBE:"));
-         printf("Unsubscribed from path [%s]\n", subscribePath());
+         LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p unsubscribed from path [%s]\n", this, subscribePath());
          _subscriptions.Remove(subscribePath);
 
          // Also remove from our tree of locally-cached data any nodes that start with this path
@@ -187,7 +192,7 @@ void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscrib
          for (HashtableIterator<String, MessageRef> iter(_pathToMessage); iter.HasData(); iter++) if (iter.GetKey().StartsWith(removePath)) 
          {
             _pathToMessage.Remove(iter.GetKey());
-            printf("   Dropped node for [%s]\n", iter.GetKey()());
+            LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p dropped node for [%s]\n", this, iter.GetKey()());
          }
 
          _mtt.SendMessageToSessions(unsubMsg);
@@ -268,7 +273,7 @@ void BrowserWindow :: MessageReceivedFromServer(const MessageRef & msg)
                if (_pathToMessage.Remove(*nodePath) == B_NO_ERROR)
                {
                    UpdateDataNodeInTreeView(*nodePath);
-                   printf("Removed node at [%s]\n", nodePath->Cstr());
+                   LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p removed node at [%s]\n", this, nodePath->Cstr());
                }
             }
          }
@@ -284,7 +289,7 @@ void BrowserWindow :: MessageReceivedFromServer(const MessageRef & msg)
                   if (_pathToMessage.Put(nodePath, data) == B_NO_ERROR)
                   {
                      UpdateDataNodeInTreeView(nodePath);
-                     printf("   Added/Updated node at [%s]\n", nodePath());
+                     LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p added/updated node at [%s]\n", this, nodePath());
                   } 
                }
             }
@@ -299,6 +304,13 @@ void BrowserWindow :: DisconnectedFromServer()
    _isConnected = _isConnecting = false;
    ClearState();
    UpdateState();
+}
+
+void BrowserWindow :: CloneWindow()
+{
+   BrowserWindow * clone = new BrowserWindow();
+   clone->_serverName->setText(_serverName->text());
+   clone->show();
 }
 
 void BrowserWindow :: ConnectButtonClicked()
@@ -346,7 +358,8 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
    QApplication app(argc, argv);
 
-   BrowserWindow bw;
-   bw.show();
-   return app.exec();
+   BrowserWindow * bw = new BrowserWindow;  // must be on the heap since we call setAttribute(Qt::WA_DeleteOnClose) in the BrowserWindow constructor
+   bw->show();
+   const int ret = app.exec();
+   return ret;
 }
