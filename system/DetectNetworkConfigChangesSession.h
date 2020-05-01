@@ -3,22 +3,11 @@
 
 #include "system/INetworkConfigChangesTarget.h"
 #include "reflector/AbstractReflectSession.h"
-
-#ifndef __linux__
-# include "system/Thread.h"  // For Linux we can just listen directly on an AF_NETLINK socket, so no thread is needed
-#endif
+#include "system/Mutex.h"
 
 namespace muscle {
 
-class DetectNetworkConfigChangesSession;
-
-#if defined(FORWARD_DECLARE_SIGNAL_INTERFACES_CHANGED) && (defined(__APPLE__) || defined(WIN32))
-static void SignalInterfacesChanged(DetectNetworkConfigChangesSession * s, const Hashtable<String, Void> & optInterfaceNames);
-static void MySleepCallbackAux(DetectNetworkConfigChangesSession * s, bool isGoingToSleep);
-# ifdef __APPLE__
-static void * GetRootPortPointerFromSession(const DetectNetworkConfigChangesSession * s);
-# endif
-#endif
+class DetectNetworkConfigChangesThread;
 
 /** This class watches the set of available network interfaces and when that set
   * changes, this class calls the NetworkInterfacesChanged() virtual method on any
@@ -37,9 +26,6 @@ static void * GetRootPortPointerFromSession(const DetectNetworkConfigChangesSess
   * @see tests/testnetconfigdetect.cpp for an example usage of this class.
   */
 class DetectNetworkConfigChangesSession : public AbstractReflectSession, public INetworkConfigChangesTarget
-#ifndef __linux__
-   , private Thread
-#endif
 {
 public:
    /** Constructor
@@ -50,22 +36,17 @@ public:
      */
    DetectNetworkConfigChangesSession(bool notifyReflectServer=true);
 
-#ifndef __linux__
    virtual status_t AttachedToServer();
    virtual void AboutToDetachFromServer();
    virtual void EndSession();
-   virtual AbstractMessageIOGatewayRef CreateGateway();
-#endif
 
-   virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
+   virtual void MessageReceivedFromGateway(const MessageRef & /*msg*/, void * /*userData*/) {/* empty */}
 
    virtual ConstSocketRef CreateDefaultSocket();
    virtual uint64 GetPulseTime(const PulseArgs & args) {return muscleMin(_callbackTime, AbstractReflectSession::GetPulseTime(args));}
    virtual void Pulse(const PulseArgs & args);
 
-#ifdef __linux__
    virtual int32 DoInput(AbstractGatewayMessageReceiver & r, uint32 maxBytes);
-#endif
 
    /** This method can be called to disable or enable this session.
      * A disabled session will not call any of the callback methods in the INetworkConfigChangesTarget class.
@@ -94,11 +75,6 @@ public:
    uint64 GetExplicitDelayMicros() const {return _explicitDelayMicros;}
 
 protected:
-#ifndef __linux__
-   /** Overridden to do the signalling the Carbon way */
-   virtual void SignalInternalThread();
-#endif
-
    /** Called when a change in the local interfaces set is detected.
      * Default implementation is a no-op.  Note, however, that NetworkInterfacesChanged(optInterfaceNames)
      * will be called on any session or factory that implements INetworkConfigChangesTarget (including this session).
@@ -129,34 +105,24 @@ private:
    void CallComputerIsAboutToSleepOnAllTargets();
    void CallComputerJustWokeUpOnAllTargets();
 
-   enum {
-      DNCCS_MESSAGE_INTERFACES_CHANGED = 1684956003, // 'dncc' 
-      DNCCS_MESSAGE_ABOUT_TO_SLEEP,
-      DNCCS_MESSAGE_JUST_WOKE_UP
-   };
-
 #ifndef __linux__
-   virtual void InternalThreadEntry();
-   status_t ThreadSafeSendMessageToOwner(const MessageRef & msg);
+   friend class DetectNetworkConfigChangesThread;
+   status_t ThreadSafeMessageReceivedFromSingletonThread(const MessageRef & msg)
+   {
+      MutexGuard mg(_messagesFromSingletonThreadMutex);
 
-   volatile bool _threadKeepGoing;
-#if defined(__APPLE__) || defined(WIN32)
-   void MySleepCallbackAux(bool isGoingToSleep);
-   friend void MySleepCallbackAux(DetectNetworkConfigChangesSession * s, bool isGoingToSleep);
+      status_t ret;
+      if (_messagesFromSingletonThread.AddTail(msg).IsError(ret)) return ret;
+
+      // send a byte on the socket-pair to wake up the user thread so he'll check his _messagesFromSingletonThread queue
+      const char junk = 'S';
+      (void) send_ignore_eintr(_notifySocket.GetFileDescriptor(), &junk, sizeof(junk), 0);
+      return ret;
+   }
+   Mutex _messagesFromSingletonThreadMutex;
+   Queue<MessageRef> _messagesFromSingletonThread;
+   ConstSocketRef _notifySocket, _waitSocket;
 #endif
-# ifdef __APPLE__
-   friend void SignalInterfacesChanged(DetectNetworkConfigChangesSession * s, const Hashtable<String, Void> & optInterfaceNames);
-   friend Hashtable<String, String> & GetKeyToInterfaceNameTable(DetectNetworkConfigChangesSession * s);
-   friend void * GetRootPortPointerFromSession(const DetectNetworkConfigChangesSession * s);
-   void * _threadRunLoop; // actually of type CFRunLoopRef but I don't want to include CFRunLoop.h from this header file becaues doing so breaks things
-   Hashtable<String, String> _scKeyToInterfaceName;
-   void * _rootPortPointer;
-# elif _WIN32
-   friend void SignalInterfacesChanged(DetectNetworkConfigChangesSession * s, const Hashtable<String, Void> & optInterfaceNames);
-   ::HANDLE _wakeupSignal;
-   Mutex _sendMessageToOwnerMutex;
-# endif
-#endif // __linux__
 
    uint64 _explicitDelayMicros;
    uint64 _callbackTime;
@@ -164,7 +130,6 @@ private:
 
    Hashtable<String, Void> _pendingChangedInterfaceNames;  // currently used under MacOS/X only
    bool _changeAllPending;
-   bool _isComputerSleeping;
    const bool _notifyReflectServer;
 
    DECLARE_COUNTED_OBJECT(DetectNetworkConfigChangesSession);
