@@ -67,6 +67,13 @@ static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedK
 static void SleepCallback(void * refCon, io_service_t /*service*/, natural_t messageType, void * messageArgument);
 #endif
 
+#ifdef WIN32
+static LRESULT CALLBACK dnccsWindowHandler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+static VOID __stdcall AddressCallback(IN PVOID context, IN PMIB_UNICASTIPADDRESS_ROW Address OPTIONAL, IN MIB_NOTIFICATION_TYPE NotificationType);
+static VOID __stdcall InterfaceCallback(IN PVOID context, IN PMIB_IPINTERFACE_ROW interfaceRow, IN MIB_NOTIFICATION_TYPE NotificationType);
+
+#endif
+
 enum {
    DNCCS_MESSAGE_INTERFACES_CHANGED = 1684956003, // 'dncc'
    DNCCS_MESSAGE_ABOUT_TO_SLEEP,
@@ -310,7 +317,7 @@ protected:
       // Register the window class for the main window. 
       WNDCLASS window_class; memset(&window_class, 0, sizeof(window_class));
       window_class.style          = 0;
-      window_class.lpfnWndProc    = (WNDPROC) window_message_handler;
+      window_class.lpfnWndProc    = (WNDPROC) dnccsWindowHandler;
       window_class.cbClsExtra     = 0;
       window_class.cbWndExtra     = 0;
       window_class.hInstance      = NULL;
@@ -598,7 +605,7 @@ VOID __stdcall InterfaceCallback(IN PVOID context, IN PMIB_IPINTERFACE_ROW inter
    if (interfaceRow != NULL) ((DetectNetworkConfigChangesThread *)context)->SignalInterfacesChanged(interfaceRow->InterfaceIndex);
 }
 
-static LRESULT CALLBACK window_message_handler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK dnccsWindowHandler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
    if (message == WM_POWERBROADCAST)
    {
