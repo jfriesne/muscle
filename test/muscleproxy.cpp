@@ -28,7 +28,7 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {if (_downstreamSession) _downstreamSession->MessageReceivedFromSession(*this, msg, NULL);}
 
    // When we get handed an incoming-from-the-client Message from our DownstreamSession, pass it on to the upstream server
-   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData) 
+   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void *) 
    {
       if (&from == _downstreamSession)
       {
@@ -88,7 +88,7 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {if (_upstreamSession()) _upstreamSession()->MessageReceivedFromSession(*this, msg, NULL);}
 
    // When we get handed an incoming-from-the-upstream-server Message by our UpstreamSession, pass it back to our downstream client via TCP
-   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData) {if (&from == _upstreamSession()) (void) AddOutgoingMessage(msg);}
+   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void *) {if (&from == _upstreamSession()) (void) AddOutgoingMessage(msg);}
 
 private:
    const IPAddressAndPort _upstreamLocation;

@@ -374,7 +374,7 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
       const String &    withMe = iter.GetValue();
 
       const char * readPtr = Cstr();
-      while((maxReplaceCount > (uint32)0)&&((nullTerminator-readPtr)>=replaceMe.Length()))
+      while((maxReplaceCount > (uint32)0)&&((uint32)(nullTerminator-readPtr)>=replaceMe.Length()))
       {
          const char * nextFind = strstr(readPtr, replaceMe());
          if (nextFind)
