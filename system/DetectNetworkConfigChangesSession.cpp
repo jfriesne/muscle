@@ -417,7 +417,7 @@ private:
       return ret;
    }
 
-   virtual void ShutdownInternalThread()
+   virtual void ShutdownInternalThread(bool waitForThread = true)
    {
       _threadKeepGoing = false;
 # ifdef __APPLE__
@@ -426,7 +426,7 @@ private:
       SetEvent(_wakeupSignal);
 # endif
 
-      Thread::ShutdownInternalThread();
+      Thread::ShutdownInternalThread(waitForThread);
       CleanupSignalling();
    }
 
