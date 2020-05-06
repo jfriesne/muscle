@@ -360,6 +360,5 @@ int main(int argc, char ** argv)
 
    BrowserWindow * bw = new BrowserWindow;  // must be on the heap since we call setAttribute(Qt::WA_DeleteOnClose) in the BrowserWindow constructor
    bw->show();
-   const int ret = app.exec();
-   return ret;
+   return app.exec();
 }
