@@ -5,13 +5,14 @@ key:  - new feature
       * bug fixed
       o other
 
+7.55 Released 5/7/2020
    - Rewrote DetectNetworkConfigChangesSession's Windows
      and Mac implementation to use a single thread for all
      DetectNetworkConfigChangesSessions in the process,
      rather than one thread per DetectNetworkConfigChangesSession.
    - Added a Python implementation of the BitChord class to
      python/bit_chord.py
-   - Added PutFlat() and GetFlat() convenience method to the
+   - Added PutFlat() and GetFlat() convenience methods to the
      Python Message class in message.py
    - Added SegmentedStringMatcher to the libmuscle.a build.
    - Added some experimental support for building libmuscle.a as
