@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a "daemonsitter" program to the tests folder, to
+     demonstrate how to use MUSCLE to babysit a litter of child
+     processes.
+
 7.55 Released 5/7/2020
    - Rewrote DetectNetworkConfigChangesSession's Windows
      and Mac implementation to use a single thread for all
