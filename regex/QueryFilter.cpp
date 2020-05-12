@@ -1,5 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#include "reflector/DataNode.h"
 #include "regex/QueryFilter.h"
 #include "regex/StringMatcher.h"
 #include "util/MiscUtilityFunctions.h"  // for MemMem()
@@ -414,6 +415,13 @@ bool RawDataQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) cons
    return false;
 }
 
+bool ChildCountQueryFilter :: Matches(ConstMessageRef & /*msg*/, const DataNode * optNode) const
+{
+   Message temp; (void) temp.AddInt32(GetEmptyString(), optNode ? optNode->GetNumChildren() : 0);
+   ConstMessageRef tempRef(&temp, false);
+   return NumericQueryFilter<int32, B_INT32_TYPE, QUERY_FILTER_TYPE_CHILDCOUNT>::Matches(tempRef, optNode);
+}
+
 QueryFilterRef QueryFilterFactory :: CreateQueryFilter(const Message & msg) const
 {
    QueryFilterRef ret = CreateQueryFilter(msg.what);
@@ -443,6 +451,7 @@ QueryFilterRef MuscleQueryFilterFactory :: CreateQueryFilter(uint32 typeCode) co
       case QUERY_FILTER_TYPE_MAXMATCH:    f = newnothrow MaximumThresholdQueryFilter(0); break;
       case QUERY_FILTER_TYPE_MINMATCH:    f = newnothrow MinimumThresholdQueryFilter(0); break;
       case QUERY_FILTER_TYPE_XOR:         f = newnothrow XorQueryFilter;         break;
+      case QUERY_FILTER_TYPE_CHILDCOUNT:  f = newnothrow ChildCountQueryFilter;  break;
       default:                            return QueryFilterRef();  /* unknown type code! */
    }
    if (f == NULL) WARN_OUT_OF_MEMORY;

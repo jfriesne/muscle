@@ -34,7 +34,8 @@ enum {
    QUERY_FILTER_TYPE_RAWDATA,               /**< filter on the raw bytes of a field in the Message */
    QUERY_FILTER_TYPE_MAXMATCH,              /**< filter matches iff at no more than (n) of its children match */
    QUERY_FILTER_TYPE_MINMATCH,              /**< filter matches iff at least (n) of its children match */
-   QUERY_FILTER_TYPE_XOR,                   /**< combine the results of two or more child filters using an XOR operator  */
+   QUERY_FILTER_TYPE_XOR,                   /**< combine the results of two or more child filters using an XOR operator */
+   QUERY_FILTER_TYPE_CHILDCOUNT,            /**< filter based on the number of child nodes the DataNode in question has */
    // add more codes here...
    LAST_QUERY_FILTER_TYPE                   /**< guard value */
 };
@@ -402,6 +403,25 @@ typedef NumericQueryFilter<int16,  B_INT16_TYPE,  QUERY_FILTER_TYPE_INT16>  Int1
 typedef NumericQueryFilter<int8,   B_INT8_TYPE,   QUERY_FILTER_TYPE_INT8>   Int8QueryFilter;   DECLARE_REFTYPES(Int8QueryFilter);
 typedef NumericQueryFilter<Point,  B_POINT_TYPE,  QUERY_FILTER_TYPE_POINT>  PointQueryFilter;  DECLARE_REFTYPES(PointQueryFilter);
 typedef NumericQueryFilter<Point,  B_RECT_TYPE,   QUERY_FILTER_TYPE_RECT>   RectQueryFilter;   DECLARE_REFTYPES(RectQueryFilter);
+
+/** This QueryFilter makes decisions about a node based on the number of child-nodes the node currently has.
+  * It doesn't pay any attention to the node's Message-payload.
+  */
+class ChildCountQueryFilter : public NumericQueryFilter<int32, B_INT32_TYPE, QUERY_FILTER_TYPE_CHILDCOUNT>
+{
+public:
+   /** Default constructor -- creates a query filter that matches only nodes with no child-nodes. */
+   ChildCountQueryFilter() {/* empty */}
+
+   /** Constructor.
+     * @param op a NumericQueryFilter::OP_* value indicating which logical operator to use when testing the number-of-children count.
+     * @param value the number of children to test against using (op)
+     */
+   ChildCountQueryFilter(uint8 op, uint32 value) : NumericQueryFilter(GetEmptyString(), op, value) {/* empty */}
+
+   virtual bool Matches(ConstMessageRef & /*msg*/, const DataNode * optNode) const;
+};
+DECLARE_REFTYPES(ChildCountQueryFilter);
 
 /** A semi-abstract base class for any QueryFilter that holds a list of references to "child" QueryFilters.
   * Subclasses of this class typically compute the output of their Matches() method by calling Matches() on

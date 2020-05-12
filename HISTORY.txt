@@ -8,6 +8,9 @@ key:  - new feature
    - Added a "daemonsitter" program to the tests folder, to
      demonstrate how to use MUSCLE to babysit a litter of child
      processes.
+   - Added a ChildCountQueryFilter class, for constructing
+     QueryFilters that take the number of child nodes of
+     a DataNode into account when deciding on a match.
 
 7.55 Released 5/7/2020
    - Rewrote DetectNetworkConfigChangesSession's Windows
