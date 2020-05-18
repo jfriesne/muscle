@@ -11,6 +11,11 @@ key:  - new feature
    - Added a ChildCountQueryFilter class, for constructing
      QueryFilters that take the number of child nodes of
      a DataNode into account when deciding on a match.
+   - Merged in Richard Spindler's addition of CMakeList.txt
+     files so that the Qt example programs are now built
+     via cmake when possible, and also so that MUSCLE's
+     Qt support code is built into a separate qtsupport 
+     library.
 
 7.55 Released 5/7/2020
    - Rewrote DetectNetworkConfigChangesSession's Windows
