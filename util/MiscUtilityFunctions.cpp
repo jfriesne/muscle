@@ -1000,21 +1000,21 @@ ByteBufferRef ParseHexBytes(const char * buf)
    return bb;
 }
 
-status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg)
+status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg, bool prepend)
 {
    if (batchMsg() == NULL)
    {
       batchMsg = newMsg;
       return B_NO_ERROR;
    }
-   else if (batchMsg()->what == PR_COMMAND_BATCH) return batchMsg()->AddMessage(PR_NAME_KEYS, newMsg);
+   else if (batchMsg()->what == PR_COMMAND_BATCH) return prepend ? batchMsg()->PrependMessage(PR_NAME_KEYS, newMsg) : batchMsg()->AddMessage(PR_NAME_KEYS, newMsg);
    else
    {
       MessageRef newBatchMsg = GetMessageFromPool(PR_COMMAND_BATCH);
       if (newBatchMsg() == NULL) RETURN_OUT_OF_MEMORY;
 
       status_t ret;
-      if ((newBatchMsg()->AddMessage(PR_NAME_KEYS, batchMsg).IsOK(ret))&&(newBatchMsg()->AddMessage(PR_NAME_KEYS, newMsg).IsOK(ret)))
+      if ((newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?newMsg:batchMsg).IsOK(ret))&&(newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?batchMsg:newMsg).IsOK(ret)))
       {
          batchMsg = newBatchMsg;
          return B_NO_ERROR;

@@ -16,6 +16,8 @@ key:  - new feature
      via cmake when possible, and also so that MUSCLE's
      Qt support code is built into a separate qtsupport 
      library.
+   - Added an optional (prepend) argument to the 
+     AssembleBatchMessage() utility function.
 
 7.55 Released 5/7/2020
    - Rewrote DetectNetworkConfigChangesSession's Windows

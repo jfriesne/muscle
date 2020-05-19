@@ -574,11 +574,13 @@ String HexBytesToString(const Queue<uint8> & bytes);
   * @param batchMsg Reference to the Message that you will want to eventually
   *                 send to the server.  This Reference will be modified.
   *                 May be a NULL ref.
-  * @param newMsg Reference to the Message to add to (batchMsg).  May not
-  *                 be a NULL ref.
+  * @param newMsg Reference to the Message to add to (batchMsg).  May not be a NULL ref.
+  * @param prepend If set to true, the new Message will be added to the beginning
+  *                of the assembled batch-Message's sub-Messages list, rather than the end.
+  *                Default to false.
   * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
   */
-status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg);
+status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg, bool prepend = false);
 
 /** Returns true iff the file with the specified path exists. 
   * @param filePath Path of the file to check for.
