@@ -18,6 +18,9 @@ key:  - new feature
      library.
    - Added an optional (prepend) argument to the 
      AssembleBatchMessage() utility function.
+   - SimulatedMulticastDataIO now tries to send a test
+     UDP packet on its UDP socket before committing to
+     use it.
 
 7.55 Released 5/7/2020
    - Rewrote DetectNetworkConfigChangesSession's Windows
