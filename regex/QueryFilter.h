@@ -281,7 +281,7 @@ public:
 
       status_t ret;
       const void * dt = NULL;  // dt doesn't really need to be set to NULL here, but doing so avoids a compiler-warning --jaf
-      uint32 numBytes;
+      uint32 numBytes = 0;  // set to zero to avoid compiler warning
       if ((ValueQueryFilter::SetFromArchive(archive).IsOK(ret))&&(archive.FindData("val", DataTypeCode, &dt, &numBytes).IsOK(ret)))
       {
          if (numBytes != sizeof(_value)) return B_BAD_DATA;
