@@ -393,6 +393,10 @@ void operator delete(  void * p) THROW LPAREN RPAREN {using namespace muscle; mu
 void operator delete[](void * p) THROW LPAREN RPAREN {using namespace muscle; muscleFree(p);}
 
 #else
+
+// this variable is here only to avoid a "libmuscle.a(GlobalMemoryAllocator.cpp.o) has no symbols" warning when linking
+int _globalMemoryAllocatorDummySymbol = 0;
+
 # if MUSCLE_ENABLE_MEMORY_PARANOIA > 0
 #  error "If you want to enable MUSCLE_ENABLE_MEMORY_PARANOIA, you must define MUSCLE_ENABLE_MEMORY_TRACKING also!"
 # endif
