@@ -21,6 +21,10 @@ key:  - new feature
    - SimulatedMulticastDataIO now tries to send a test
      UDP packet on its UDP socket before committing to
      use it.
+   - Added a testservethread.cpp program to the tests
+     folder to test/demonstrate launching a child thread
+     that runs its own ReflectServer event loop, and how
+     the main thread can send Messages to it
    o Added a dummy symbol to GlobalMemoryAllocator.cpp
      to avoid a "GlobalMemoryAllocator.o has no symbols" warning
 
