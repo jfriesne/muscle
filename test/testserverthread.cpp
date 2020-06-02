@@ -89,14 +89,13 @@ void WatchNotifySocketSession :: MessageReceivedFromGateway(const MessageRef & /
 }
 
 // This program demonstrates running a ReflectServer event-loop in a child thread, and communicating with it from the main thread
-int main(void) 
+int main(int, char **) 
 {
    CompleteSetupSystem css;
 
-   TestThread t;
-   printf("main thread: TestThread is %p (main thread is %p/%i)\n", &t, Thread::GetCurrentThread(), t.IsCallerInternalThread());
-
    status_t ret;
+
+   TestThread t;
    if (t.StartInternalThread().IsError(ret))
    {
       LogTime(MUSCLE_LOG_ERROR, "Couldn't spawn child thread!  [%s]\n", ret());
@@ -121,11 +120,8 @@ int main(void)
    }
 
    printf("Telling child thread to shut down...\n");
-   t.SendMessageToInternalThread(MessageRef());  // ask internal thread to shut down
+   t.ShutdownInternalThread();
 
-   printf("Waiting for child thread to exit...\n");
-   t.WaitForInternalThreadToExit();
-
-   printf("Child thread has exited -- bye!\n");
+   printf("Child thread has exited -- main thread is exiting now -- bye!\n");
    return 0;
 }
