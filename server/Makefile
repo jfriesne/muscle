@@ -13,10 +13,12 @@ CXXFLAGS  += -std=c++11 $(CFLAGS) $(DEFINES)
 #CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING 
 #CXXFLAGS += -DMUSCLE_AVOID_STDINT 
 
-# Enable these lines if you want to build libmuscle.a for a MacOS/X "Catalyst" framework
-#CATALYSTFLAGS = -target x86_64-apple-ios13.0-macabi -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/iOSSupport/usr/include -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/iOSSupport/System/Library/Frameworks
-#CFLAGS   += $(CATALYSTFLAGS)
-#CXXFLAGS += $(CATALYSTFLAGS)
+# run "ENABLECATALYST=1 make -j4 libmuscle.a" if you want to build libmuscle.a for Catalyst
+ifneq ($(ENABLECATALYST),)
+   CATALYSTFLAGS = -target x86_64-apple-ios13.0-macabi -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/iOSSupport/usr/include -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/iOSSupport/System/Library/Frameworks
+   CFLAGS   += $(CATALYSTFLAGS)
+   CXXFLAGS += $(CATALYSTFLAGS)
+endif
 
 # compilation flags that are specific to the gcc compiler (hard-coded) 
 GCCFLAGS    = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS -W -Wall -Wno-multichar 
