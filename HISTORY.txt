@@ -29,6 +29,8 @@ key:  - new feature
      the main thread can send Messages to it
    o Added a dummy symbol to GlobalMemoryAllocator.cpp
      to avoid a "GlobalMemoryAllocator.o has no symbols" warning
+   o Modified CMakeLists.txt to use WITH_MUSCLED option instead
+     of BUILD_MUSCLED environment variable.
 
 7.55 Released 5/7/2020
    - Rewrote DetectNetworkConfigChangesSession's Windows
