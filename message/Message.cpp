@@ -927,7 +927,7 @@ public:
       uint32 readOffset = 0;
       while(readOffset < numBytes)
       {
-         uint32 readFs;
+         uint32 readFs = 0;  // set to zero to avoid compiler warning
          if (ReadData(buffer, numBytes, &readOffset, &readFs, sizeof(readFs)).IsError(ret))
          {
             LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Read of sub-message size failed (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, readOffset, numBytes, ret());

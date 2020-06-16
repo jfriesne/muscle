@@ -98,7 +98,7 @@ void QMessageTransceiverThread :: HandleQueuedIncomingEvents()
       const char * id = _handlers.HasItems() ? strchr(sessionID()+1, '/') : NULL;
       if (id)
       {
-         QMessageTransceiverHandler * handler;
+         QMessageTransceiverHandler * handler = NULL;  // set to NULL just to avoid a compiler warning
          if (_handlers.Get(atoi(id+1), handler) == B_NO_ERROR)
          {
             // If it's not already in the list, prepend it to the list and tell it to emit its BeginMessageBatch() signal
