@@ -14,8 +14,8 @@ namespace muscle {
 /// Flags that can be passed as a bit-chord to the SetDataNode() method
 enum {
    SETDATANODE_FLAG_DONTCREATENODE = 0,  ///< Specify this bit if the SetDataNode() call should error out rather than creating a new DataNode.
-   SETDATANODE_FLAG_DONTOVERWRITEDATA,   ///< Specify this bit if the SetDataNode() call should error out rather than overwriting the Message-payload of an existing node.
-   SETDATANODE_FLAG_QUIET,               ///< Specify this bit if the SetDataNode() call to suppress the node-updated notifications that would otherwise be sent out to the node's subscribers
+   SETDATANODE_FLAG_DONTOVERWRITEDATA,   ///< Specify this bit if the SetDataNode() call should error out rather than overwriting the Message payload of an existing node.
+   SETDATANODE_FLAG_QUIET,               ///< Specify this bit if the SetDataNode() call should suppress the node-updated-notifications that would otherwise be sent out to the node's subscribers
    SETDATANODE_FLAG_ADDTOINDEX,          ///< Specify this bit if you want the node to be added to the parent node's ordered-children index.
    NUM_SETDATANODE_FLAGS                 ///< Guard value
 };
