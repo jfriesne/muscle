@@ -105,8 +105,9 @@ enum
 #define PR_NAME_FILTERS                    "!SnFl"      /**< Message: One or more archived QueryFilter objects */
 #define PR_NAME_REMOVED_DATAITEMS          "!SnRd"      /**< String:  one or more key-strings of removed data items */
 #define PR_NAME_SUBSCRIBE_QUIETLY          "!SnQs"      /**< Any type:  if present in a PR_COMMAND_SETPARAMETERS message, disables inital-value-send from new subscriptions */
-#define PR_NAME_SET_QUIETLY                "!SnQ2"      /**< Any type:  if present in a PR_COMMAND_SETDATA message, then the message won't cause subscribers to be notified. */
+#define PR_NAME_SET_QUIETLY                "!SnQ2"      /**< Any type:  if present in a PR_COMMAND_SETDATA message, then the message won't cause subscribers to be notified.  (Deprecated; prefer PR_NAME_FLAGS instead) */
 #define PR_NAME_REMOVE_QUIETLY             "!SnQ3"      /**< Any type:  if present in a PR_COMMAND_REMOVEDATA message, then the message won't cause subscribers to be notified. */
+#define PR_NAME_FLAGS                      "!SnQ4"      /**< Flattened SetDataNodeFlags (for PR_COMMAND_SETDATA) */
 #define PR_NAME_REFLECT_TO_SELF            "!Self"      /**< If set as parameter, include ourself in wildcard matches */
 #define PR_NAME_ROUTE_GATEWAY_TO_NEIGHBORS "!G2N"       /**< If set as parameter, session broadcasts unrecognized Messages to neighbors (set by default) */
 #define PR_NAME_ROUTE_NEIGHBORS_TO_GATEWAY "!N2G"       /**< If set as parameter, session accepts unrecognized Messages from neighbors and sends them to gateway (set by default) */

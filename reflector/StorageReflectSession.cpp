@@ -389,7 +389,7 @@ NodeIndexChanged(DataNode & modifiedNode, char op, uint32 index, const String & 
 
 status_t
 StorageReflectSession ::
-SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, bool overwrite, bool create, bool quiet, bool addToIndex, const String * optInsertBefore)
+SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, SetDataNodeFlags flags, const String *optInsertBefore)
 {
    TCHECKPOINT;
 
@@ -409,32 +409,30 @@ SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, bool overwri
          DataNodeRef allocedNode;
          if (node->GetChild(nextClause, childNodeRef) != B_NO_ERROR)
          {
-            if ((create)&&(_currentNodeCount < _maxNodeCount))
+            if ((_currentNodeCount >= _maxNodeCount)||(flags.IsBitSet(SETDATANODE_FLAG_DONTCREATENODE))) return B_ACCESS_DENIED;
+
+            allocedNode = GetNewDataNode(nextClause, ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false)) ? dataMsgRef : CastAwayConstFromRef(GetEmptyMessageRef()));
+            if (allocedNode())
             {
-               allocedNode = GetNewDataNode(nextClause, ((slashPos < 0)&&(addToIndex == false)) ? dataMsgRef : CastAwayConstFromRef(GetEmptyMessageRef()));
-               if (allocedNode())
+               childNodeRef = allocedNode;
+               if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)))
                {
-                  childNodeRef = allocedNode;
-                  if ((slashPos < 0)&&(addToIndex))
+                  if (node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL) == B_NO_ERROR)
                   {
-                     if (node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, quiet?NULL:this, NULL) == B_NO_ERROR)
-                     {
-                        _currentNodeCount++;
-                        _indexingPresent = true;
-                     }
+                     _currentNodeCount++;
+                     _indexingPresent = true;
                   }
-                  else if (node->PutChild(childNodeRef, this, ((quiet)||(slashPos < 0)) ? NULL : this) == B_NO_ERROR) _currentNodeCount++;
                }
-               else RETURN_OUT_OF_MEMORY;
+               else if (node->PutChild(childNodeRef, this, ((flags.IsBitSet(SETDATANODE_FLAG_QUIET))||(slashPos < 0)) ? NULL : this) == B_NO_ERROR) _currentNodeCount++;
             }
-            else return B_DATA_NOT_FOUND;
+            else RETURN_OUT_OF_MEMORY;
          }
 
          node = childNodeRef();
-         if ((slashPos < 0)&&(addToIndex == false))
+         if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false))
          {
-            if ((node == NULL)||((overwrite == false)&&(node != allocedNode()))) return B_ACCESS_DENIED;
-            node->SetData(dataMsgRef, quiet ? NULL : this, (node == allocedNode()));  // do this to trigger the changed-notification
+            if ((node == NULL)||(flags.IsBitSet(SETDATANODE_FLAG_DONTOVERWRITEDATA)&&(node != allocedNode()))) return B_ACCESS_DENIED;
+            node->SetData(dataMsgRef, flags.IsBitSet(SETDATANODE_FLAG_QUIET) ? NULL : this, (node == allocedNode()));  // do this to trigger the changed-notification
          }
          prevSlashPos = slashPos;
       }
@@ -755,11 +753,12 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
 
          case PR_COMMAND_SETDATA:
          {
-            const bool quiet = msg.HasName(PR_NAME_SET_QUIETLY);
+            SetDataNodeFlags flags;
+            if ((msg.FindFlat<SetDataNodeFlags>(PR_NAME_FLAGS, flags).IsError())&&(msg.HasName(PR_NAME_SET_QUIETLY))) flags.SetBit(SETDATANODE_FLAG_QUIET);
             for (MessageFieldNameIterator it = msg.GetFieldNameIterator(B_MESSAGE_TYPE); it.HasData(); it++)
             {
                MessageRef dataMsgRef;
-               for (int32 i=0; msg.FindMessage(it.GetFieldName(), i, dataMsgRef) == B_NO_ERROR; i++) SetDataNode(it.GetFieldName(), dataMsgRef, true, true, quiet);
+               for (int32 i=0; msg.FindMessage(it.GetFieldName(), i, dataMsgRef) == B_NO_ERROR; i++) SetDataNode(it.GetFieldName(), dataMsgRef, flags);
             }
          }
          break;
@@ -1688,7 +1687,7 @@ JettisonOutgoingResults(const NodePathMatcher * matcher)
 }
 
 status_t
-StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const String & destPath, bool allowOverwriteData, bool allowCreateNode, bool quiet, bool addToTargetIndex, const String * optInsertBefore, const ITraversalPruner * optPruner)
+StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const String & destPath, SetDataNodeFlags flags, const String * optInsertBefore, const ITraversalPruner * optPruner)
 {
    TCHECKPOINT;
 
@@ -1697,14 +1696,18 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
       MessageRef payload = node.GetData();
       if ((optPruner)&&(optPruner->MatchPath(destPath, payload) == false)) return B_NO_ERROR;
       if (payload() == NULL) return B_BAD_OBJECT;
-      if (SetDataNode(destPath, payload, allowOverwriteData, allowCreateNode, quiet, addToTargetIndex, optInsertBefore).IsError(ret)) return ret;
+      if (SetDataNode(destPath, payload, flags, optInsertBefore).IsError(ret)) return ret;
    }
 
    // Then clone all of his children
    for (DataNodeRefIterator iter = node.GetChildIterator(); iter.HasData(); iter++)
    {
       // Note that we don't deal with the index-cloning here; we do it separately (below) instead, for efficiency
-      if ((iter.GetValue()())&&(CloneDataNodeSubtree(*iter.GetValue()(), destPath+'/'+(*iter.GetKey()), false, true, quiet, false, NULL, optPruner).IsError(ret))) return ret;
+      SetDataNodeFlags subFlags = flags;
+      subFlags.SetBit(SETDATANODE_FLAG_DONTOVERWRITEDATA);
+      subFlags.ClearBit(SETDATANODE_FLAG_DONTCREATENODE);
+      subFlags.ClearBit(SETDATANODE_FLAG_ADDTOINDEX);
+      if ((iter.GetValue()())&&(CloneDataNodeSubtree(*iter.GetValue()(), destPath+'/'+(*iter.GetKey()), subFlags, NULL, optPruner).IsError(ret))) return ret;
    }
 
    // Lastly, if he has an index, make sure the clone ends up with an equivalent index
@@ -1780,7 +1783,7 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
 }
 
 status_t
-StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const String & path, bool loadData, bool appendToIndex, uint32 maxDepth, const ITraversalPruner * optPruner, bool quiet)
+StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const String & path, bool loadData, SetDataNodeFlags flags, uint32 maxDepth, const ITraversalPruner * optPruner)
 {
    TCHECKPOINT;
 
@@ -1791,7 +1794,7 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
       MessageRef payload;
       if (msg.FindMessage(PR_NAME_NODEDATA, payload).IsError(ret)) return ret;
       if ((optPruner)&&(optPruner->MatchPath(path, payload) == false)) return B_NO_ERROR;
-      if (SetDataNode(path, payload, true, true, quiet, appendToIndex).IsError(ret)) return ret;
+      if (SetDataNode(path, payload, flags).IsError(ret)) return ret;
    }
    else if (optPruner)
    {
@@ -1818,7 +1821,7 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
                   String childPath(path);
                   if (childPath.HasChars()) childPath += '/';
                   childPath += *nextFieldName;
-                  if (RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, true, maxDepth-1, optPruner, quiet).IsError(ret)) return ret;
+                  if (RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, flags.WithBit(SETDATANODE_FLAG_ADDTOINDEX), maxDepth-1, optPruner).IsError(ret)) return ret;
                   if (indexLookup.Put(nextFieldName, i).IsError(ret)) return ret;
                }
             }
@@ -1838,7 +1841,7 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
                   String childPath(path);
                   if (childPath.HasChars()) childPath += '/';
                   childPath += nextFieldName;
-                  if (RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, false, maxDepth-1, optPruner, quiet).IsError(ret)) return ret;
+                  if (RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, flags.WithoutBit(SETDATANODE_FLAG_ADDTOINDEX), maxDepth-1, optPruner).IsError(ret)) return ret;
                }
             }
          }

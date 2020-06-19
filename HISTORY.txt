@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.60 
    - Added a "daemonsitter" program to the tests folder, to
      demonstrate how to use MUSCLE to babysit a litter of child
      processes.
@@ -27,6 +28,10 @@ key:  - new feature
      folder to test/demonstrate launching a child thread
      that runs its own ReflectServer event loop, and how
      the main thread can send Messages to it
+   o Modified StorageReflectSession::SetDataNode(),
+     RestoreNodeTreeFromMessage(), and CloneDataNodeSubree()
+     to take a bit-chord of SETDATANODE_FLAG_* bits rather
+     than an error-prone list of boolean arguments.
    o Added a dummy symbol to GlobalMemoryAllocator.cpp
      to avoid a "GlobalMemoryAllocator.o has no symbols" warning
    o Modified CMakeLists.txt to use WITH_MUSCLED option instead

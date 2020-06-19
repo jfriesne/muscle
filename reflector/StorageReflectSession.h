@@ -7,8 +7,19 @@
 #include "reflector/DumbReflectSession.h"
 #include "reflector/StorageReflectConstants.h"
 #include "regex/PathMatcher.h"
+#include "support/BitChord.h"
 
 namespace muscle {
+
+/// Flags that can be passed as a bit-chord to the SetDataNode() method
+enum {
+   SETDATANODE_FLAG_DONTCREATENODE = 0,  ///< Specify this bit if the SetDataNode() call should error out rather than creating a new DataNode.
+   SETDATANODE_FLAG_DONTOVERWRITEDATA,   ///< Specify this bit if the SetDataNode() call should error out rather than overwriting the Message-payload of an existing node.
+   SETDATANODE_FLAG_QUIET,               ///< Specify this bit if the SetDataNode() call to suppress the node-updated notifications that would otherwise be sent out to the node's subscribers
+   SETDATANODE_FLAG_ADDTOINDEX,          ///< Specify this bit if you want the node to be added to the parent node's ordered-children index.
+   NUM_SETDATANODE_FLAGS                 ///< Guard value
+};
+DECLARE_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS);
 
 /**
  *  This is a factory class that returns new StorageReflectSession objects.
@@ -124,15 +135,12 @@ protected:
     * Create or Set the value of a data node.
     * @param nodePath Should be the path relative to the home dir (e.g. "MyNode/Child1/Grandchild2")
     * @param dataMsgRef The value to set the node to
-    * @param allowOverwriteData Indicates whether existing node-data may be overwritten.  If false, the method will fail if the specified node already exists.
-    * @param allowCreateNode indicates whether new nodes may be created.  (If false, the method will fail if any node in the specified node path doesn't already exist)
-    * @param quiet If set to true, subscribers won't be updated regarding this change to the database.
-    * @param addToIndex If set to true, this node will be inserted under its parent as a new indexed node, rather than doing the regular add/replace bit.
+    * @param flags a bit-chord of SETDATANODE_FLAG_* bits that can be used to modify this call's behavior.  Defaults to no-flags-set.
     * @param optInsertBefore If (addToIndex) is true, this may be the name of the node to insert this new node before in the index.
     *                        If NULL, the new node will be appended to the end of the index.  If (addToIndex) is false, this argument is ignored.
     * @return B_NO_ERROR on success, or an error code on failure.
     */
-   virtual status_t SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, bool allowOverwriteData=true, bool allowCreateNode=true, bool quiet=false, bool addToIndex=false, const String *optInsertBefore=NULL);
+   virtual status_t SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, SetDataNodeFlags flags = SetDataNodeFlags(), const String *optInsertBefore=NULL);
 
    /** Remove all nodes that match (nodePath).
     *  @param nodePath A relative path indicating node(s) to remove.  Wildcarding is okay.
@@ -174,16 +182,15 @@ protected:
     * @param msg the Message to restore the subtree from.  This Message is typically one that was created earlier by SaveNodeTreeToMessage().
     * @param path The relative path of the root node to add restored nodes into, e.g. "" is your home session node.
     * @param loadData Whether or not the payload Message of (node) should be restored.  The payload Messages of (node)'s children will always be restored no matter what.
-    * @param appendToIndex Used in the recursion to handle restoring indexed nodes.  You will usually want to Leave it as false when you call this method.
+    * @param flags Optional bit-chord of SETDATANODE_FLAG_* bits to affect our behavior.  Defaults to no-flags-set.
     * @param maxDepth How many levels of children should be restored from the Message.  If left as MUSCLE_NO_LIMIT (the default),
     *                 the entire subtree will be restored; otherwise the tree will be clipped to at most (maxDepth) levels.
     *                 If (maxDepth) is zero, only (node) will be restored.
     * @param optPruner If set non-NULL, this object will be used as a callback to prune the traversal, and optionally
     *                  to filter the data that gets loaded from (msg).
-    * @param quiet If set to true, subscribers won't be updated regarding this change to the database
     * @returns B_NO_ERROR on success, or an error code on failure.
     */
-   status_t RestoreNodeTreeFromMessage(const Message & msg, const String & path, bool loadData, bool appendToIndex = false, uint32 maxDepth = MUSCLE_NO_LIMIT, const ITraversalPruner * optPruner = NULL, bool quiet = false);
+   status_t RestoreNodeTreeFromMessage(const Message & msg, const String & path, bool loadData, SetDataNodeFlags flags = SetDataNodeFlags(), uint32 maxDepth = MUSCLE_NO_LIMIT, const ITraversalPruner * optPruner = NULL);
 
    /** 
      * Create and insert a new node into one or more ordered child indices in the node tree.
@@ -364,20 +371,14 @@ protected:
     * Make (path) a deep, recursive clone of (node).
     * @param sourceNode Reference to a DataNode to clone.
     * @param destPath Path of where the newly created node subtree will appear.  Should be relative to our home node.
-    * @param allowOverwriteData If true, we will clobber any previously existing node at the destination path.
-    *                           Otherwise, the existence of a pre-existing node there will cause us to fail.
-    * @param allowCreateNode If true, we will create a node at the destination path if necessary.
-    *                        Otherwise, the non-existence of a pre-existing node there will cause us to fail.
-    * @param quiet If false, no subscribers will be notified of the changes we make.
-    * @param addToTargetIndex If true, the newly created subtree will be added to the target node using InsertOrderedChild().
-    *                         If false, it will be added using PutChild().
+    * @param flags optional bit-chord of SETDATANODE_FLAG_* flags to modify our behavior.  Defaults to no-flags-set.
     * @param optInsertBefore If (addToTargetIndex) is true, this argument will be passed on to InsertOrderedChild().
     *                        Otherwise, this argument is ignored.
     * @param optPruner If non-NULL, this object can be used as a callback to prune the traversal or filter
     *                  the MessageRefs cloned.
     * @return B_NO_ERROR on success, or an error code on failure (may leave a partially cloned subtree on failure)
     */
-   status_t CloneDataNodeSubtree(const DataNode & sourceNode, const String & destPath, bool allowOverwriteData=true, bool allowCreateNode=true, bool quiet=false, bool addToTargetIndex=false, const String * optInsertBefore = NULL, const ITraversalPruner * optPruner = NULL);
+   status_t CloneDataNodeSubtree(const DataNode & sourceNode, const String & destPath, SetDataNodeFlags flags = SetDataNodeFlags(), const String * optInsertBefore = NULL, const ITraversalPruner * optPruner = NULL);
 
    /** Tells other sessions that we have modified (node) in our node subtree.
     *  @param node The node that has been modfied.
