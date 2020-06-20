@@ -24,7 +24,7 @@ key:  - new feature
      use it.
    - Updated server/Makefile to conditionally build for 
      Catalyst based on presence of ENABLECATALYST env-var.
-   - Added a testservethread.cpp program to the tests
+   - Added a testserverthread.cpp program to the tests
      folder to test/demonstrate launching a child thread
      that runs its own ReflectServer event loop, and how
      the main thread can send Messages to it
