@@ -130,6 +130,11 @@ public:
    /** Returns a read-only reference to our parameters message */
    const Message & GetParametersConst() const {return _parameters;}
 
+   /** Convenience method:  Returns the effective Parameters Message for this session (i.e. as
+     * would be returned in response to a PR_COMMAND_GETPARAMETERS Message from our client)
+     */
+   MessageRef GetEffectiveParameters() const;
+
 protected:
    /**
     * Create or Set the value of a data node.

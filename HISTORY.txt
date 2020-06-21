@@ -28,6 +28,8 @@ key:  - new feature
      folder to test/demonstrate launching a child thread
      that runs its own ReflectServer event loop, and how
      the main thread can send Messages to it
+   - Added a GetEffectiveParameters() convenience method
+     to the StorageReflectSession class.
    o Modified StorageReflectSession::SetDataNode(),
      RestoreNodeTreeFromMessage(), and CloneDataNodeSubree()
      to take a bit-chord of SETDATANODE_FLAG_* bits rather
