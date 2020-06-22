@@ -33,7 +33,7 @@ enum {
 };
 
 /** Callback function type for flatten/unflatten notification callbacks */
-typedef void (*MessageFlattenedCallback)(const MessageRef & msgRef, void * userData);
+typedef status_t(*MessageFlattenedCallback)(const MessageRef & msgRef, void * userData);
 
 /**
  * A MessageIOGateway object knows how to send/receive Messages over a wire, via a provided DataIO object. 

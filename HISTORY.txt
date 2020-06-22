@@ -38,6 +38,9 @@ key:  - new feature
      to avoid a "GlobalMemoryAllocator.o has no symbols" warning
    o Modified CMakeLists.txt to use WITH_MUSCLED option instead
      of BUILD_MUSCLED environment variable.
+   o Changed MessageIOGateway's MessageFlattenedCallback's
+     return type from void to status_t, so that the callback
+     can affect whether the Message goes out or not.
 
 7.55 Released 5/7/2020
    - Rewrote DetectNetworkConfigChangesSession's Windows

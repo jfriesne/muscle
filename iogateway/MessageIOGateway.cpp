@@ -102,15 +102,15 @@ DoOutputImplementation(uint32 maxBytes)
          while(true)
          {
             MessageRef nextRef;
-            if (PopNextOutgoingMessage(nextRef) != B_NO_ERROR) return sentBytes;  // nothing more to send, so we're done!
+            if (PopNextOutgoingMessage(nextRef).IsError()) return sentBytes;  // nothing more to send, so we're done!
 
             if (nextRef())
             {
-               if (_aboutToFlattenCallback) _aboutToFlattenCallback(nextRef, _aboutToFlattenCallbackData);
+               if ((_aboutToFlattenCallback)&&(_aboutToFlattenCallback(nextRef, _aboutToFlattenCallbackData).IsError())) continue;
 
                if (mtuSize > 0)
                {
-                  if (nextRef()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, _nextPacketDest) == B_NO_ERROR) 
+                  if (nextRef()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, _nextPacketDest).IsOK()) 
                   {
                      // Temporarily move this field out before flattening the Message, 
                      // since we don't want to send the destination IAP as part of the packet
@@ -127,7 +127,7 @@ DoOutputImplementation(uint32 maxBytes)
 
                if (_sendBuffer._buffer() == NULL) {SetHosed(); return -1;}
 
-               if (_flattenedCallback) _flattenedCallback(nextRef, _flattenedCallbackData);
+               if (_flattenedCallback) (void) _flattenedCallback(nextRef, _flattenedCallbackData);
 
 #ifdef DELIBERATELY_INJECT_ERRORS_INTO_OUTGOING_MESSAGE_FOR_TESTING_ONLY_DONT_ENABLE_THIS_UNLESS_YOU_LIKE_CHAOS
  const uint32 hs    = GetHeaderSize();
@@ -165,7 +165,7 @@ DoOutputImplementation(uint32 maxBytes)
       }
       else
       {
-         if (SendMoreData(sentBytes, maxBytes) != B_NO_ERROR) break;  // output buffer is temporarily full
+         if (SendMoreData(sentBytes, maxBytes).IsError()) break;  // output buffer is temporarily full
          if (_sendBuffer._offset == _sendBuffer._buffer()->GetNumBytes()) _sendBuffer.Reset();
       }
    }
@@ -178,7 +178,7 @@ GetScratchReceiveBuffer()
 {
    static const uint32 _scratchRecvBufferSizeBytes = 2048;  // seems like a reasonable upper limit for "small" Messages, no?
 
-   if ((_scratchRecvBuffer())&&(_scratchRecvBuffer()->SetNumBytes(_scratchRecvBufferSizeBytes, false) == B_NO_ERROR)) return _scratchRecvBuffer;
+   if ((_scratchRecvBuffer())&&(_scratchRecvBuffer()->SetNumBytes(_scratchRecvBufferSizeBytes, false).IsOK())) return _scratchRecvBuffer;
    else
    {
       _scratchRecvBuffer = GetByteBufferFromPool(_scratchRecvBufferSizeBytes);  // demand-allocation
@@ -241,8 +241,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                (void) msg()->RemoveName(PR_NAME_PACKET_REMOTE_LOCATION);  // paranoia
                if (sourceIAP.IsValid()) (void) msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP);
 
-               if (_unflattenedCallback) _unflattenedCallback(msg, _unflattenedCallbackData);
-               receiver.CallMessageReceivedFromGateway(msg);
+               if ((_unflattenedCallback == NULL)||(_unflattenedCallback(msg, _unflattenedCallbackData).IsOK())) receiver.CallMessageReceivedFromGateway(msg);
             }
          }
          else break;
@@ -264,7 +263,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          if (_recvBuffer._offset < hs)
          { 
             // We don't have the entire header yet, so try and read some more of it
-            if (ReceiveMoreData(readBytes, maxBytes, hs) != B_NO_ERROR) break;
+            if (ReceiveMoreData(readBytes, maxBytes, hs).IsError()) break;
             if (_recvBuffer._offset >= hs)  // how about now?
             {
                // Now that we have the full header, parse it and allocate space for the message-body-bytes per its instructions
@@ -294,7 +293,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
          if (_recvBuffer._offset >= hs)  // if we got here, we're ready to read the body of the incoming Message
          {
-            if ((_recvBuffer._offset < bb->GetNumBytes())&&(ReceiveMoreData(readBytes, maxBytes, bb->GetNumBytes()) != B_NO_ERROR)) break;
+            if ((_recvBuffer._offset < bb->GetNumBytes())&&(ReceiveMoreData(readBytes, maxBytes, bb->GetNumBytes()).IsError())) break;
             if (_recvBuffer._offset == bb->GetNumBytes())
             {
                // Finished receiving message bytes... now reconstruct that bad boy!
@@ -364,7 +363,7 @@ FlattenHeaderAndMessageAux(const MessageRef & msgRef) const
    if (msgRef())
    {
       RefCountableRef rcRef;
-      if (msgRef()->FindTag(PR_NAME_MESSAGE_REUSE_TAG, rcRef) == B_NO_ERROR)
+      if (msgRef()->FindTag(PR_NAME_MESSAGE_REUSE_TAG, rcRef).IsOK())
       {
          MessageReuseTagRef mrtRef(rcRef, false);
          if (mrtRef())
@@ -472,7 +471,7 @@ UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const
          if (encoding != MUSCLE_MESSAGE_ENCODING_DEFAULT) bb = NULL;
 #endif
 
-         if ((bb == NULL)||(ret()->Unflatten(bb->GetBuffer()+offset, bb->GetNumBytes()-offset) != B_NO_ERROR)) ret.Reset();
+         if ((bb == NULL)||(ret()->Unflatten(bb->GetBuffer()+offset, bb->GetNumBytes()-offset).IsError())) ret.Reset();
       }
    }
    return ret;
@@ -521,7 +520,7 @@ Reset()
 MessageRef MessageIOGateway :: CreateSynchronousPingMessage(uint32 syncPingCounter) const
 {
    MessageRef pingMsg = GetMessageFromPool(PR_COMMAND_PING);
-   return ((pingMsg())&&(pingMsg()->AddInt32("_miosp", syncPingCounter) == B_NO_ERROR)) ? pingMsg : MessageRef();
+   return ((pingMsg())&&(pingMsg()->AddInt32("_miosp", syncPingCounter).IsOK())) ? pingMsg : MessageRef();
 }
 
 status_t MessageIOGateway :: ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64 timeoutPeriod)
@@ -575,7 +574,7 @@ MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & 
       TCPSocketDataIO tsdio(s, false);
       SetDataIO(DataIORef(&tsdio, false));
       QueueGatewayMessageReceiver receiver;
-      if ((AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)) == B_NO_ERROR)&&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod) == B_NO_ERROR)) ret = receiver.GetMessages().HasItems() ? receiver.GetMessages().Head() : GetMessageFromPool();
+      if ((AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)).IsOK())&&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod).IsOK())) ret = receiver.GetMessages().HasItems() ? receiver.GetMessages().Head() : GetMessageFromPool();
       SetDataIO(oldIO);  // restore any previous I/O
    }
    return ret;
@@ -598,7 +597,7 @@ status_t MessageIOGateway :: ExecuteSynchronousMessageSend(const Message & reque
       TCPSocketDataIO tsdio(s, false);
       SetDataIO(DataIORef(&tsdio, false));
       QueueGatewayMessageReceiver receiver;
-      if (AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)) == B_NO_ERROR) 
+      if (AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)).IsOK()) 
       {
          NestCountGuard ncg(_noRPCReply);  // so that we'll return as soon as we've sent the request Message, and not wait for a reply Message.
          ret = ExecuteSynchronousMessaging(&receiver, timeoutPeriod);
