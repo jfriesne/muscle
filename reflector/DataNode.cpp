@@ -106,7 +106,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
    if (dref() == NULL) RETURN_OUT_OF_MEMORY;
 
    uint32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
-   if ((optInsertBefore)&&(optInsertBefore->Cstr()[0] == 'I'))  // only 'I''s could be in our index!
+   if (optInsertBefore)
    {
       for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--) 
       {
@@ -363,7 +363,7 @@ status_t DataNode :: RemoveIndexEntry(const String & key, StorageReflectSession 
    TCHECKPOINT;
 
    // Update our ordered-node index & notify everyone about the change
-   if ((_orderedIndex)&&(key()[0] == 'I'))  // if it doesn't start with I, we know it's not part of our ordered-index!
+   if (_orderedIndex)
    {
       for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--)
       {

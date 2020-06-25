@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Removed MUSCLE's requirement that indexed-child-nodes'
+     node-names must start with the capital letter I.  Now
+     any name is acceptable for use as an indexed-child-node.
+
 7.60 Released 6/25/2020
    - Added a "daemonsitter" program to the tests folder, to
      demonstrate how to use MUSCLE to babysit a litter of child
