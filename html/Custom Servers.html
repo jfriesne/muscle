@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
    <H1>Implementing a Custom Server with MUSCLE</H1>
-   <H4>v7.55 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 5/7/2020</H4>
+   <H4>v7.60 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 6/25/2020</H4>
 </HEAD>
 <BODY bgcolor=#ffffff>
 <H2>Introduction</H2>
@@ -256,13 +256,13 @@ If you need more control than the client messaging API can provide, however, you
 MyReflectSession ::
 SetupMyStuff2(const MessageRef & msg1, const MessageRef & msg2, const MessageRef & msg3)
 {
-   SetDataNode("appnodes/node1", msg1, true, true);
-   SetDataNode("appnodes/node2", msg2, true, true);
-   SetDataNode("appnodes/node3", msg3, true, true);
+   SetDataNode("appnodes/node1", msg1);
+   SetDataNode("appnodes/node2", msg2);
+   SetDataNode("appnodes/node3", msg3);
 }
 </pre><p>
 
-This method gives you some additional control, allowing you to specify whether or not nodes should be created or overwritten (the third and fourth arguments of SetDataNode()).
+This method is easier to code and gives you some additional control.
 <p>
 Sometimes you'll want to do your own queries of the server-side database.  One way to do this would be to create a PR_COMMAND_GETDATA message, pass it to StorageReflectSession::MessageReceivedFromGateway(), and then parse the resulting PR_RESULTS_DATAITEMS message that is given to your MessageReceivedFromSession() method.  But that method is somewhat inefficient, and a little bit error-prone (how are you to know which PR_REZULTS_DATAITEMS message corresponds with which PR_COMMAND_GETDATA message?).  A better way to do it is by setting up your own query callback.  In the following example, we will execute a query for all connected clients' session nodes ("*/*"), and our callback will be executed once for every node that matches the query string.
 

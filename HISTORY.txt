@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-7.60 
+7.60 Released 6/25/2020
    - Added a "daemonsitter" program to the tests folder, to
      demonstrate how to use MUSCLE to babysit a litter of child
      processes.
