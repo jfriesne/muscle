@@ -962,7 +962,7 @@ String String :: WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove)
    muscleSprintf(buf, fmt, value); \
    return ArgAux(buf)
 
-String String :: Arg(bool   value, const char * fmt) const 
+String String :: Arg(bool value, const char * fmt) const
 {
    if (strstr(fmt, "%s")) return ArgAux(value?"true":"false");
                      else {ARG_IMPLEMENTATION;}
@@ -981,6 +981,36 @@ String String :: Arg(unsigned long long value, const char * fmt) const {ARG_IMPL
 String String :: Arg(double value,             const char * fmt) const {ARG_IMPLEMENTATION;}
 String String :: Arg(const String & value)                       const {return ArgAux(value());}
 String String :: Arg(const char * value)                         const {return ArgAux(value);}
+
+String String :: Arg(double f, uint32 minDigitsAfterDecimal, uint32 maxDigitsAfterDecimal) const
+{
+   char buf[256];
+   if (maxDigitsAfterDecimal == MUSCLE_NO_LIMIT) muscleSprintf(buf, "%f", f);
+   else
+   {
+      char formatBuf[128];
+      muscleSprintf(formatBuf, "%%.0" UINT32_FORMAT_SPEC "f", maxDigitsAfterDecimal);
+      muscleSprintf(buf, formatBuf, f);
+   }
+
+   String ret = buf;
+
+   // Start by removing all trailing zeroes from the String
+   if (ret.Contains('.')) while(ret.EndsWith('0')) ret--;
+   if (minDigitsAfterDecimal == 0)
+   {
+      if (ret.EndsWith('.')) ret--;  // Remove trailing . for integer-style display
+   }
+   else
+   {
+      // Pad with 0's if necessary to meet the minDigitsAfterDecimal requirement
+      int32 dotIdx = ret.LastIndexOf('.');
+      if (dotIdx < 0) {ret += '.'; dotIdx = ret.Length()-1;}  // semi-paranoia
+      uint32 numDigitsPresent = (ret.Length()-dotIdx)-1;
+      for(uint32 i=numDigitsPresent; i<minDigitsAfterDecimal; i++) ret += '0';
+   }
+   return ret;
+}
 
 String String :: Arg(const Point & value, const char * fmt) const
 {

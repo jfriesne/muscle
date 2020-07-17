@@ -1049,7 +1049,7 @@ public:
    /** As above, but for int values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(int value, const char * fmt = "%i")  const;
+   String Arg(int value, const char * fmt = "%i") const;
 
    /** As above, but for unsigned int values.
      * @copydoc Arg(bool, const char *) const
@@ -1059,7 +1059,7 @@ public:
    /** As above, but for long values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(long value, const char * fmt = "%li")  const;
+   String Arg(long value, const char * fmt = "%li") const;
 
    /** As above, but for unsigned long values.
      * @copydoc Arg(bool, const char *) const
@@ -1069,7 +1069,7 @@ public:
    /** As above, but for long long values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(long long value, const char * fmt = INT64_FORMAT_SPEC)  const;
+   String Arg(long long value, const char * fmt = INT64_FORMAT_SPEC) const;
 
    /** As above, but for unsigned long long values.
      * @copydoc Arg(bool, const char *) const
@@ -1079,7 +1079,21 @@ public:
    /** As above, but for double values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(double value, const char * fmt = "%f") const;
+   String Arg(double value, const char * fmt) const;
+
+   /** As above, but for double values.
+     * Returns a String representation of the given floating point value,
+     * with up to (maxDigitsAfterDecimal) digits appearing after the decimal point.
+     * @param f the floating-point value to return a String representation of.
+     * @param minDigitsAfterDecimal the minimum number of digits to display after the decimal
+     *                              point.  Defaults to 0 (meaning try to use as few as possible)
+     * @param maxDigitsAfterDecimal the maximum number of digits to display after the decimal
+     *                              point.  Defaults to MUSCLE_NO_LIMIT (meaning that no particular
+     *                              maximum value should be enforced)
+     * @note Trailing zeroes will be omitted from the string, as will the decimal point itself, if it
+     *       would otherwise be the last character in the String.
+     */
+   String Arg(double f, uint32 minDigitsAfterDecimal = 0, uint32 maxDigitsAfterDecimal = MUSCLE_NO_LIMIT) const;
 
    /** As above, but for string values.
      * @param value the string to replace any instances of %1 with (or %2 if %1 isn't present, or etc)

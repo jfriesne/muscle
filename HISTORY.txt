@@ -8,6 +8,9 @@ key:  - new feature
    - Removed MUSCLE's requirement that indexed-child-nodes'
      node-names must start with the capital letter I.  Now
      any name is acceptable for use as an indexed-child-node.
+   - Added a new Arg(double, uint32, uint32) overload to the
+     String class, which can yield better floating-point-to-String
+     formatting than the standard printf() specifiers provide.
 
 7.60 Released 6/25/2020
    - Added a "daemonsitter" program to the tests folder, to
