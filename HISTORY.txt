@@ -11,6 +11,8 @@ key:  - new feature
    - Added a new Arg(double, uint32, uint32) overload to the
      String class, which can yield better floating-point-to-String
      formatting than the standard printf() specifiers provide.
+   * Fixed a warning in the CMakeLists.txt that would occur
+     on build systems that don't have Qt installed.
 
 7.60 Released 6/25/2020
    - Added a "daemonsitter" program to the tests folder, to
