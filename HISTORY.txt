@@ -11,6 +11,9 @@ key:  - new feature
    - Added a new Arg(double, uint32, uint32) overload to the
      String class, which can yield better floating-point-to-String
      formatting than the standard printf() specifiers provide.
+   - muscleMin(), muscleMax(), and various other inline functions
+     in MuscleSupport.h are now tagged as MUSCLE_CONSTEXPR
+     so that they can be evaluated at compile-time when possible.
    * Fixed a warning in the CMakeLists.txt that would occur
      on build systems that don't have Qt installed.
 

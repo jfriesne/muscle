@@ -625,42 +625,42 @@ template <typename T> T & GetGlobalObjectForType()
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
 
 /** Returns the smaller of the two arguments */
-template<typename T> T muscleMin(T arg1, T arg2) {return (arg1<arg2) ? arg1 : arg2;}
+template<typename T> MUSCLE_CONSTEXPR T muscleMin(T arg1, T arg2) {return (arg1<arg2) ? arg1 : arg2;}
 
 /** Returns the smallest of all of the arguments */
-template<typename T1, typename ...T2> T1 muscleMin(T1 arg1, T2... args) {return muscleMin(arg1, muscleMin(args...));}
+template<typename T1, typename ...T2> MUSCLE_CONSTEXPR T1 muscleMin(T1 arg1, T2... args) {return muscleMin(arg1, muscleMin(args...));}
 
 /** Returns the larger of the two arguments */
-template<typename T> T muscleMax(T arg1, T arg2) {return (arg1>arg2) ? arg1 : arg2;}
+template<typename T> MUSCLE_CONSTEXPR T muscleMax(T arg1, T arg2) {return (arg1>arg2) ? arg1 : arg2;}
 
 /** Returns the largest of all of the arguments */
-template<typename T1, typename ...T2> T1 muscleMax(T1 arg1, T2... args) {return muscleMax(arg1, muscleMax(args...));}
+template<typename T1, typename ...T2> MUSCLE_CONSTEXPR T1 muscleMax(T1 arg1, T2... args) {return muscleMax(arg1, muscleMax(args...));}
 
 #else
 
 /** Returns the smaller of the two arguments */
-template<typename T> inline T muscleMin(T p1, T p2) {return (p1 < p2) ? p1 : p2;}
+template<typename T> inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2) {return (p1 < p2) ? p1 : p2;}
 
 /** Returns the smallest of the three arguments */
-template<typename T> inline T muscleMin(T p1, T p2, T p3) {return muscleMin(p3, muscleMin(p1, p2));}
+template<typename T> inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2, T p3) {return muscleMin(p3, muscleMin(p1, p2));}
 
 /** Returns the smallest of the four arguments */
-template<typename T> inline T muscleMin(T p1, T p2, T p3, T p4) {return muscleMin(p3, p4, muscleMin(p1, p2));}
+template<typename T> inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2, T p3, T p4) {return muscleMin(p3, p4, muscleMin(p1, p2));}
 
 /** Returns the smallest of the five arguments */
-template<typename T> inline T muscleMin(T p1, T p2, T p3, T p4, T p5) {return muscleMin(p3, p4, p5, muscleMin(p1, p2));}
+template<typename T> inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2, T p3, T p4, T p5) {return muscleMin(p3, p4, p5, muscleMin(p1, p2));}
 
 /** Returns the larger of the two arguments */
-template<typename T> inline T muscleMax(T p1, T p2) {return (p1 < p2) ? p2 : p1;}
+template<typename T> inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2) {return (p1 < p2) ? p2 : p1;}
 
 /** Returns the largest of the three arguments */
-template<typename T> inline T muscleMax(T p1, T p2, T p3) {return muscleMax(p3, muscleMax(p1, p2));}
+template<typename T> inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3) {return muscleMax(p3, muscleMax(p1, p2));}
 
 /** Returns the largest of the four arguments */
-template<typename T> inline T muscleMax(T p1, T p2, T p3, T p4) {return muscleMax(p3, p4, muscleMax(p1, p2));}
+template<typename T> inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3, T p4) {return muscleMax(p3, p4, muscleMax(p1, p2));}
 
 /** Returns the largest of the five arguments */
-template<typename T> inline T muscleMax(T p1, T p2, T p3, T p4, T p5) {return muscleMax(p3, p4, p5, muscleMax(p1, p2));}
+template<typename T> inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3, T p4, T p5) {return muscleMax(p3, p4, p5, muscleMax(p1, p2));}
 
 #endif
 
@@ -746,7 +746,7 @@ template<typename T> inline void muscleSwap(T & t1, T & t2) {typename ugly_swapc
   * @param theArray an array of any type
   * @returns True iff i is non-negative AND less than ARRAYITEMS(theArray))
   */
-template<typename T, int size> inline bool muscleArrayIndexIsValid(int i, T (&theArray)[size]) {(void) theArray; return (((unsigned int)i) < size);}
+template<typename T, int size> inline MUSCLE_CONSTEXPR bool muscleArrayIndexIsValid(int i, T (&theArray)[size]) {(void) theArray; return (((unsigned int)i) < size);}
 
 /** Convenience method for setting all items in the specified one-dimensional array to their default-constructed state (i.e. zero)
   * @param theArray an array of any type
@@ -772,7 +772,7 @@ template<typename T, int size1, int size2, int size3> inline void muscleClearArr
   * @param hi a maximum value
   * @returns The value in the range [lo, hi] that is closest to (v).
   */
-template<typename T> inline T muscleClamp(T v, T lo, T hi) {return (v < lo) ? lo : ((v > hi) ? hi : v);}
+template<typename T> inline MUSCLE_CONSTEXPR T muscleClamp(T v, T lo, T hi) {return (v < lo) ? lo : ((v > hi) ? hi : v);}
 
 /** Returns true iff (v) is in the range [lo,hi].
   * @param v A value
@@ -780,23 +780,23 @@ template<typename T> inline T muscleClamp(T v, T lo, T hi) {return (v < lo) ? lo
   * @param hi A maximum value
   * @returns true iff (v >= lo) and (v <= hi)
   */
-template<typename T> inline bool muscleInRange(T v, T lo, T hi) {return ((v >= lo)&&(v <= hi));}
+template<typename T> inline MUSCLE_CONSTEXPR bool muscleInRange(T v, T lo, T hi) {return ((v >= lo)&&(v <= hi));}
 
 /** Returns -1 if arg1 is larger, or 1 if arg2 is larger, or 0 if they are equal.
   * @param arg1 First item to compare
   * @param arg2 Second item to compare
   * @returns -1 if (arg1<arg2), or 1 if (arg2<arg1), or 0 otherwise.
   */
-template<typename T> inline int muscleCompare(const T & arg1, const T & arg2) {return (arg2<arg1) ? 1 : ((arg1<arg2) ? -1 : 0);}
+template<typename T> inline MUSCLE_CONSTEXPR int muscleCompare(const T & arg1, const T & arg2) {return (arg2<arg1) ? 1 : ((arg1<arg2) ? -1 : 0);}
 
 /** Returns the absolute value of (arg) */
-template<typename T> inline T muscleAbs(T arg) {return (arg<0)?(-arg):arg;}
+template<typename T> inline MUSCLE_CONSTEXPR T muscleAbs(T arg) {return (arg<0)?(-arg):arg;}
 
 /** Rounds the given float to the nearest integer value. */
-inline int muscleRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
+inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
 
 /** Returns -1 if the value is less than zero, +1 if it is greater than zero, or 0 otherwise. */
-template<typename T> inline int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
+template<typename T> inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
 
 #endif  /* __cplusplus */
 
