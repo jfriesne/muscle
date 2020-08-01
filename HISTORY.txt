@@ -14,6 +14,8 @@ key:  - new feature
    - muscleMin(), muscleMax(), and various other inline functions
      in MuscleSupport.h are now tagged as MUSCLE_CONSTEXPR
      so that they can be evaluated at compile-time when possible.
+   o muscleArrayIndexIsValid now returns false if the passed-in
+     array-pointer is NULL.
    * Fixed a warning in the CMakeLists.txt that would occur
      on build systems that don't have Qt installed.
 
