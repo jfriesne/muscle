@@ -1009,7 +1009,7 @@ String String :: Arg(double f, uint32 minDigitsAfterDecimal, uint32 maxDigitsAft
       uint32 numDigitsPresent = (ret.Length()-dotIdx)-1;
       for(uint32 i=numDigitsPresent; i<minDigitsAfterDecimal; i++) ret += '0';
    }
-   return ret;
+   return ArgAux(buf);
 }
 
 String String :: Arg(const Point & value, const char * fmt) const
