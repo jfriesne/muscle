@@ -482,6 +482,14 @@ public:
       return ret;
    }
  
+   /** Returns a fixed-length binary representation of this bit-chord. */
+   String ToBinaryString() const
+   {
+      String ret; (void) ret.Prealloc(NumBits+1);
+      for (int32 i=NumBits-1; i>=0; i--) ret += IsBitSet(i)?'1':'0';
+      return ret;
+   }
+ 
    /** Sets a given 32-bit word full of bits in our internal words-array.
      * Don't call this unless you know what you're doing!
      * @param whichWord index of the word to set
