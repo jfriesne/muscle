@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a ToBinaryString() convenience-method to the
+     BitChord class.
+
 7.61 Released 8/5/2020
    - Removed MUSCLE's requirement that indexed-child-nodes'
      node-names must start with the capital letter I.  Now
