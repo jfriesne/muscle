@@ -381,7 +381,7 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
          {
             // Check to see if all of the reservation-char-slots for this substring are still open (if not, we'll skip this match)
             bool alreadyReserved     = false;
-            const uint32 startOffset = (nextFind-Cstr());
+            const uint32 startOffset = (uint32)(nextFind-Cstr());
             const uint32 endOffset   = startOffset+replaceMe.Length();
             for (uint32 i=startOffset; i<endOffset; i++) {if (reservations[i] != NULL) alreadyReserved = true; break;}
             if (alreadyReserved == false)
