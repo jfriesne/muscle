@@ -7,6 +7,7 @@ key:  - new feature
 
    - Added a ToBinaryString() convenience-method to the
      BitChord class.
+   o Modified CMakeList.txt to avoid policy warnings under Windows.
 
 7.61 Released 8/5/2020
    - Removed MUSCLE's requirement that indexed-child-nodes'
