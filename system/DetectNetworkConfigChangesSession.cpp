@@ -333,7 +333,7 @@ protected:
       if (hiddenWindow) 
       {
 # if defined(MUSCLE_64_BIT_PLATFORM)
-         SetWindowLongPtr(hiddenWindow, GWLP_USERDATA, this);
+         SetWindowLongPtr(hiddenWindow, GWLP_USERDATA, (LONG_PTR) this);
 # else
          SetWindowLongPtr(hiddenWindow, GWLP_USERDATA, (LONG) this);
 # endif
