@@ -378,7 +378,7 @@ public:
    /** Clears this string so that it contains no characters.  Equivalent to setting this string to "". */
    void Clear() {_length = 0; WriteNULTerminatorByte();}
 
-   /** Similar to Clear(), except this version also frees up any dynamically allocated character arary we may have cached. */
+   /** Similar to Clear(), except this version also frees up any dynamically allocated character array we may have cached. */
    void ClearAndFlush();
 
    /** Shrinks our internally allocated buffer down so that it is just big enough to hold the current string (plus numExtraBytes)
