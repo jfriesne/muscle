@@ -7,6 +7,9 @@ key:  - new feature
 
    - Added a ToBinaryString() convenience-method to the
      BitChord class.
+   - Updated TarFileWriter so that it can now write using non-seekable
+     DataIO objects as well as SeekableDataIO objects (although with
+     non-seekable you have to explicitly specify the file sizes up-front)
    o Modified CMakeList.txt to avoid policy warnings under Windows.
    * Fixed pointer-casting in Windows call to SetWindowLongPtr()
 
