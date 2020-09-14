@@ -93,6 +93,8 @@ static void WriteOctalASCII(uint8 * b, uint64 val, uint8 fieldSize)
 
 void TarFileWriter::UpdateCurrentHeaderChecksum()
 {
+   memset(&_currentHeaderBytes[148], ' ', 8);  // when calculating the checksum, the checksum field must be full of spaces
+
    uint32 checksum = 0;
    for (uint32 i=0; i<TAR_BLOCK_SIZE; i++) checksum += _currentHeaderBytes[i];
    WriteOctalASCII(&_currentHeaderBytes[148], checksum, 8);
@@ -117,11 +119,11 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
          if (numBytesWritten != (uint32) numPadBytes) return B_IO_ERROR;
       }
 
-      WriteOctalASCII(&_currentHeaderBytes[124], currentFileLength, 12);
-      UpdateCurrentHeaderChecksum();
-
       if (_seekableWriterIO())
       {
+         WriteOctalASCII(&_currentHeaderBytes[124], currentFileLength, 12);
+         UpdateCurrentHeaderChecksum();
+
          if (_seekableWriterIO()->Seek(_currentHeaderOffset, SeekableDataIO::IO_SEEK_SET).IsError(ret)) return ret;
          _currentSeekPosition = _currentHeaderOffset;
  
@@ -165,7 +167,6 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
    const uint64 secondsSince1970 = MicrosToSeconds(modificationTime);
    if (secondsSince1970 != 0) WriteOctalASCII(&_currentHeaderBytes[136], secondsSince1970, 12);
 
-   memset(&_currentHeaderBytes[148], ' ', 8);  // these spaces are used later on, when calculating the header checksum
    _currentHeaderBytes[156] = (uint8) (linkIndicator+'0');
    if (linkedFileName) muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkedFileName, sizeof(_currentHeaderBytes)-157);
 
