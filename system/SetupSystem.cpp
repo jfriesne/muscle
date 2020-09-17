@@ -994,7 +994,7 @@ CompleteSetupSystem * CompleteSetupSystem :: GetCurrentCompleteSetupSystem() {re
 CompleteSetupSystem :: CompleteSetupSystem(bool muscleSingleThreadOnly)
    : _threads(muscleSingleThreadOnly)
    , _prevInstance(_activeCSS)
-   , _initialMemoryUsage(GetProcessMemoryUsage())
+   , _initialMemoryUsage((size_t) GetProcessMemoryUsage())
 {
    _activeCSS = this;  // push us onto the stack
 }
