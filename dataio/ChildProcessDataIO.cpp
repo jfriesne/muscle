@@ -165,8 +165,8 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                         if (*s)
                         {
                            const char * equals = strchr(s, '=');
-                           if ((equals ? curEnvVars.Put(String(s, equals-s), equals+1) : curEnvVars.Put(s, GetEmptyString())).IsOK(ret)) s = strchr(s, '\0')+1;
-                                                                                                                                    else break;
+                           if ((equals ? curEnvVars.Put(String(s, (uint32)(equals-s)), equals+1) : curEnvVars.Put(s, GetEmptyString())).IsOK(ret)) s = strchr(s, '\0')+1;
+                                                                                                                                              else break;
                         }
                         else break;
                      }
