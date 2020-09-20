@@ -285,11 +285,6 @@ uLong* bytesRecovered;
       }
     }
   } else {
-    // avoid file handle leak on error --jaf
-    if (fpZip)   fclose(fpZip);
-    if (fpOut)   fclose(fpOut);
-    if (fpOutCD) fclose(fpOutCD);
-
     err = Z_STREAM_ERROR;
   }
   return err;

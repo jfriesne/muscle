@@ -10,6 +10,7 @@ key:  - new feature
    - Updated TarFileWriter so that it can now write using non-seekable
      DataIO objects as well as SeekableDataIO objects (although with
      non-seekable you have to explicitly specify the file sizes up-front)
+   - Updated the captive zlib implementation to the latest (v1.2.11)
    o Modified CMakeList.txt to avoid policy warnings under Windows.
    * Fixed pointer-casting in Windows call to SetWindowLongPtr()
 
