@@ -153,7 +153,7 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
    status_t ret;
    if (FinishCurrentFileDataBlock().IsError(ret)) return ret;  // should pad out position out to a multiple of 512, if necessary
 
-   if ((_currentSeekPosition < 0)||((_currentSeekPosition%TAR_BLOCK_SIZE) != 0)) return B_BAD_OBJECT;
+   if ((_currentSeekPosition%TAR_BLOCK_SIZE) != 0) return B_BAD_OBJECT;
 
    _currentHeaderOffset = _currentSeekPosition;
    memset(_currentHeaderBytes, 0, sizeof(_currentHeaderBytes));

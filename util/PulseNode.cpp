@@ -164,6 +164,7 @@ void PulseNode :: ReschedulePulseChild(PulseNode * child, int whichList)
 
          case LINKED_LIST_NEEDSRECALC:
             if (_parent) _parent->ReschedulePulseChild(this, LINKED_LIST_NEEDSRECALC);  // if our child is rescheduled that reschedules us too!
+         // fall through!
          case LINKED_LIST_UNSCHEDULED: 
          {
             // These lists are unsorted, so we can just quickly prepend the child to the head of the list

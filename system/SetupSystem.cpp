@@ -1726,9 +1726,9 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
       uint32 t = 0, d = 0;
       switch(align)
       {
-         case 1: t |= data[2] << 16;
-         case 2: t |= data[1] << 8;
-         case 3: t |= data[0];
+         case 1: t |= data[2] << 16;  // fall through!
+         case 2: t |= data[1] << 8;   // fall through!
+         case 3: t |= data[0];        // fall through!
       }
 
       t <<= (8 * align);
@@ -1758,9 +1758,9 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
       {
          switch(align)
          {
-            case 3: d |= data[2] << 16;
-            case 2: d |= data[1] << 8;
-            case 1: d |= data[0];
+            case 3: d |= data[2] << 16;  // fall through
+            case 2: d |= data[1] << 8;   // fall through
+            case 1: d |= data[0];        // fall through
          }
 
          uint32 k = (t >> sr) | (d << sl);
@@ -1773,9 +1773,9 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
          // Handle tail bytes
          switch(numBytes)
          {
-            case 3: h ^= data[2] << 16;
-            case 2: h ^= data[1] << 8;
-            case 1: h ^= data[0];
+            case 3: h ^= data[2] << 16; // fall through!
+            case 2: h ^= data[1] << 8;  // fall through!
+            case 1: h ^= data[0];       // fall through!
                     h *= m;
          };
       }
@@ -1783,9 +1783,9 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
       {
          switch(numBytes)
          {
-            case 3: d |= data[2] << 16;
-            case 2: d |= data[1] << 8;
-            case 1: d |= data[0];
+            case 3: d |= data[2] << 16;  // fall through!
+            case 2: d |= data[1] << 8;   // fall through!
+            case 1: d |= data[0];        // fall through!
             case 0: h ^= (t >> sr) | (d << sl);
                     h *= m;
          }
@@ -1812,9 +1812,9 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
 
       switch(numBytes)
       {
-         case 3: h ^= data[2] << 16;
-         case 2: h ^= data[1] << 8;
-         case 1: h ^= data[0];
+         case 3: h ^= data[2] << 16; // fall through!
+         case 2: h ^= data[1] << 8;  // fall through!
+         case 1: h ^= data[0];       // fall through!
                  h *= m;
       };
 
@@ -1849,13 +1849,13 @@ uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int
    const unsigned char * data2 = (const unsigned char*)data;
    switch(numBytes & 7)
    {     
-      case 7: h ^= uint64(data2[6]) << 48;
-      case 6: h ^= uint64(data2[5]) << 40;
-      case 5: h ^= uint64(data2[4]) << 32;
-      case 4: h ^= uint64(data2[3]) << 24;
-      case 3: h ^= uint64(data2[2]) << 16;
-      case 2: h ^= uint64(data2[1]) << 8;
-      case 1: h ^= uint64(data2[0]);
+      case 7: h ^= uint64(data2[6]) << 48; // fall through!
+      case 6: h ^= uint64(data2[5]) << 40; // fall through!
+      case 5: h ^= uint64(data2[4]) << 32; // fall through!
+      case 4: h ^= uint64(data2[3]) << 24; // fall through!
+      case 3: h ^= uint64(data2[2]) << 16; // fall through!
+      case 2: h ^= uint64(data2[1]) << 8;  // fall through!
+      case 1: h ^= uint64(data2[0]);       // fall through!
               h *= m;
    }     
             
