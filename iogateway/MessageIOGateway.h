@@ -157,6 +157,26 @@ public:
      */
    status_t ExecuteSynchronousMessageSend(const Message & requestMessage, const IPAddressAndPort & targetIAP, uint64 timeoutPeriod = MUSCLE_TIME_NEVER);
 
+   /** Calls through to our protected FlattenHeaderAndMessage() method.  Provided for special-case classes that want to
+     * to access that functionality directly rather than going through the gateway's usual DoOutput() interface.
+     * @param bufRef Reference to a ByteBuffer object that contains the appropriate header
+     *               bytes, followed by some flattened Message bytes.
+     * @returns a Reference to a Message object containing the Message that was encoded in
+     *          the ByteBuffer on success, or a NULL reference on failure.
+     * @note see UnflattenHeaderAndMessage() for details.
+     */
+   ByteBufferRef CallFlattenHeaderAndMessage(const MessageRef & msgRef) const {return FlattenHeaderAndMessage(msgRef);}
+
+   /** Calls through to our protected UnflattenHeaderAndMessage() method.  Provided for special-case classes that want to
+     * to access that functionality directly rather than going through the gateway's usual DoInput() interface.
+     * @param bufRef Reference to a ByteBuffer object that contains the appropriate header
+     *               bytes, followed by some flattened Message bytes.
+     * @returns a Reference to a Message object containing the Message that was encoded in
+     *          the ByteBuffer on success, or a NULL reference on failure.
+     * @note see UnflattenHeaderAndMessage() for details.
+     */
+   MessageRef CallUnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const {return UnflattenHeaderAndMessage(bufRef);}
+
 protected:
    virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
    virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
