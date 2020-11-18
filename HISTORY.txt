@@ -12,6 +12,8 @@ key:  - new feature
    - Updated the captive zlib implementation to the latest (v1.2.11)
    - Added CallFlattenHeaderAndMessage() and CallUnflattenHeaderAndMessage()
      convenience-methods to the MessageIOGateway class.
+   - Added a GZDataIO class to the zlib folder, as quick way to wrap
+     the gzread()/gzwrite() API inside a DataIO interface.
    o Modified CMakeList.txt to avoid policy warnings under Windows.
    * Fixed pointer-casting in Windows call to SetWindowLongPtr()
 
