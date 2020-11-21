@@ -16,6 +16,9 @@ key:  - new feature
      the gzread()/gzwrite() API inside a DataIO interface.
    o Modified CMakeList.txt to avoid policy warnings under Windows.
    * Fixed pointer-casting in Windows call to SetWindowLongPtr()
+   * Fixed a bug where String::WithoutSuffix() and String::WithoutPrefix() 
+     would spin the CPU if they were passed an empty String as an argument.
+     Now these methods immediately return (*this) in that case, instead.
 
 7.61 Released 8/5/2020
    - Removed MUSCLE's requirement that indexed-child-nodes'

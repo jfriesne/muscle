@@ -859,6 +859,8 @@ String String :: WithoutSuffix(char c, uint32 maxToRemove) const
 
 String String :: WithoutSuffix(const String & str, uint32 maxToRemove) const
 {
+   if (str.IsEmpty()) return *this;
+
    String ret = *this;
    while(ret.EndsWith(str)) 
    {
@@ -887,7 +889,7 @@ String String :: WithoutPrefix(char c, uint32 maxToRemove) const
 
 String String :: WithoutPrefix(const String & str, uint32 maxToRemove) const 
 {
-   if (StartsWith(str) == false) return *this;
+   if ((str.IsEmpty())||(StartsWith(str) == false)) return *this;
 
    String ret = *this;
    while(ret.StartsWith(str))
@@ -913,7 +915,7 @@ String String :: WithoutSuffixIgnoreCase(char c, uint32 maxToRemove) const
 
 String String :: WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove) const
 {
-   if (EndsWithIgnoreCase(str) == false) return *this;
+   if ((str.IsEmpty())||(EndsWithIgnoreCase(str) == false)) return *this;
 
    String ret = *this;
    while(ret.EndsWithIgnoreCase(str))
@@ -946,7 +948,7 @@ String String :: WithoutPrefixIgnoreCase(char c, uint32 maxToRemove) const
 
 String String :: WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove) const 
 {
-   if (StartsWithIgnoreCase(str) == false) return *this;
+   if ((str.IsEmpty())||(StartsWithIgnoreCase(str) == false)) return *this;
 
    String ret = *this;
    while(ret.StartsWithIgnoreCase(str)) 

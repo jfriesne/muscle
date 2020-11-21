@@ -1155,6 +1155,7 @@ public:
      * @param str The substring we want to be sure is not at the end of the returned String.
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
      *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all trailing (str) substrings.
+     * @note if (str) is empty, this method will return (*this).
      */
    String WithoutSuffix(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
@@ -1169,6 +1170,7 @@ public:
      * @param str The substring we want to be sure is not at the beginning of the returned String.
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
      *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all starting (str) substrings.
+     * @note if (str) is empty, this method will return (*this).
      */
    String WithoutPrefix(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
@@ -1183,6 +1185,7 @@ public:
      * @param str The substring we want to be sure is not at the end of the returned String (case-insensitive).
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
      *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all trailing (str) substrings.
+     * @note if (str) is empty, this method will return (*this).
      */
    String WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
@@ -1197,6 +1200,7 @@ public:
      * @param str The substring we want to be sure is not at the beginning of the returned String (case-insensitive).
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
      *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all starting (str) substrings.
+     * @note if (str) is empty, this method will return (*this).
      */
    String WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
