@@ -159,10 +159,9 @@ public:
 
    /** Calls through to our protected FlattenHeaderAndMessage() method.  Provided for special-case classes that want to
      * to access that functionality directly rather than going through the gateway's usual DoOutput() interface.
-     * @param bufRef Reference to a ByteBuffer object that contains the appropriate header
-     *               bytes, followed by some flattened Message bytes.
-     * @returns a Reference to a Message object containing the Message that was encoded in
-     *          the ByteBuffer on success, or a NULL reference on failure.
+     * @param msgRef Reference to the Message object to flatten.
+     * @returns a Reference to a ByteBuffer containing the flattened bytes of both the MessageIOGateway header
+     *          and the passed-in Message object.
      * @note see UnflattenHeaderAndMessage() for details.
      */
    ByteBufferRef CallFlattenHeaderAndMessage(const MessageRef & msgRef) const {return FlattenHeaderAndMessage(msgRef);}

@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+7.62 - Released 11/20/2020
    - Added a ToBinaryString() convenience-method to the BitChord class.
    - Updated TarFileWriter so that it can now write using non-seekable
      DataIO objects as well as SeekableDataIO objects (although with
