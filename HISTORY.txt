@@ -5,6 +5,14 @@ key:  - new feature
       * bug fixed
       o other
 
+7.70 -
+   - The subscribed-sessions tables used by DataNode objects are 
+     now immutable and shared across multiple DataNodes when 
+     appropriate, reducing the server's RAM usage.
+   o Modified the DataNode::GetSubscribers() method to return a
+     (const Hashtable<String, uint32> &) rather than a
+     (HashtableIterator<const String *, uint32>)
+    
 7.62 - Released 11/20/2020
    - Added a ToBinaryString() convenience-method to the BitChord class.
    - Updated TarFileWriter so that it can now write using non-seekable
