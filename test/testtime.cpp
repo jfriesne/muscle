@@ -75,7 +75,7 @@ int main(int argc, char ** argv)
       const String s = GetHumanReadableTimeIntervalString(i, MUSCLE_NO_LIMIT, 0, &isAccurate);
       if (isAccurate == false) printf("Error, string [%s] is not accurate for i=" UINT64_FORMAT_SPEC ".\n", s(), i);
       const uint64 t = ParseHumanReadableTimeIntervalString(s);
-      //printf(" %llu -> %s -> %llu\n", i, s(), t);
+      //printf(" " UINT64_FORMAT_SPEC " -> %s -> " UINT64_FORMAT_SPEC "\n", i, s(), t);
       if (t != i) printf("Error, Recovered time " UINT64_FORMAT_SPEC " does not match original time " UINT64_FORMAT_SPEC " (string=[%s])\n", t, i, s());
       delta++;
    }

@@ -99,7 +99,7 @@ protected:
          LogTime(MUSCLE_LOG_ERROR, "Internal Thread now processing a Message (5 seconds to complete!)\n");
          Snooze64(5*1000000);  // simulate a lengthy operation (e.g. disk I/O) for demonstration purposes
          _count++;
-         LogTime(MUSCLE_LOG_ERROR, "Internal Thread processing complete!  Tagging the Message with the result (%lu), and returning it!\n", _count);
+         LogTime(MUSCLE_LOG_ERROR, "Internal Thread processing complete!  Tagging the Message with the result (" UINT32_FORMAT_SPEC "), and returning it!\n", _count);
 
          // Add a tag to the Message -- in real life, you might add the results of the operation or whatnot
          msgRef()->AddInt32("ServerThreadSession's processing-result was", _count);

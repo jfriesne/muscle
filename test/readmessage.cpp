@@ -64,7 +64,7 @@ int main(int argc, char ** argv)
       FileDataIO fdio(fpIn);
 
       const uint64 fileSize = fdio.GetLength();
-      printf("fileSize=%lli\n", fileSize);
+      printf("fileSize=" UINT64_FORMAT_SPEC "\n", fileSize);
 
       ByteBufferRef buf = GetByteBufferFromPool(fileSize);
       if (buf() == NULL)
