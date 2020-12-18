@@ -1579,8 +1579,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             if (IsGNIIBitMatch(unicastIP, isEnabled, includeFlags))
             {
 #ifndef MUSCLE_AVOID_IPV6
-               // FogBugz #10519:  I'm not setting the interface index for ::1 because trying to send UDP packets to ::1@1 causes ENOROUTE errors under MacOS/X
-               if (unicastIP != localhostIP) unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignore by the TCP stack
+               unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignore by the TCP stack
 #endif
                if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType)).IsOK(ret))  // MAC address will be set later
                {
@@ -1697,8 +1696,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                      }
 
 #ifndef MUSCLE_AVOID_IPV6
-                     // FogBugz #10519:  I'm not setting the interface index for ::1 because trying to send UDP packets to ::1@1 causes ENOROUTE errors under MacOS/X
-                     if (unicastIP != localhostIP) unicastIP.SetInterfaceIndex(pCurrAddresses->Ipv6IfIndex);  // so the user can find out; it will be ignore by the TCP stack
+                     unicastIP.SetInterfaceIndex(pCurrAddresses->Ipv6IfIndex);  // so the user can find out; it will be ignore by the TCP stack
 #endif
 
                      char outBuf[512];

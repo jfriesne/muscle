@@ -12,6 +12,9 @@ key:  - new feature
    o Modified the DataNode::GetSubscribers() method to return a
      (const Hashtable<String, uint32> &) rather than a
      (HashtableIterator<const String *, uint32>)
+   o Removed a work-around that left the interface-index field unset
+     in the NetworkInterfaceInfo's IP address for for loopback devices,
+     as it was causing trouble under Windows.
     
 7.62 - Released 11/20/2020
    - Added a ToBinaryString() convenience-method to the BitChord class.
