@@ -13,7 +13,7 @@ key:  - new feature
      (const Hashtable<String, uint32> &) rather than a
      (HashtableIterator<const String *, uint32>)
    o Removed a work-around that left the interface-index field unset
-     in the NetworkInterfaceInfo's IP address for for loopback devices,
+     in the NetworkInterfaceInfo's IP address for loopback devices,
      as it was causing trouble under Windows.
     
 7.62 - Released 11/20/2020
