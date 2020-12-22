@@ -44,8 +44,8 @@ int main(int argc, char ** argv)
    Hashtable<uint32, Void> scopeIDs; 
    for (uint32 i=0; i<niis.GetNumItems(); i++) 
    {
-      const uint32 scopeID = niis[i].GetLocalAddress().GetInterfaceIndex();
-      if (scopeID > 0) (void) scopeIDs.PutWithDefault(scopeID);
+      const IPAddress & ip = niis[i].GetLocalAddress();
+      if (ip.IsInterfaceIndexValid()) (void) scopeIDs.PutWithDefault(ip.GetInterfaceIndex());
    }
 
    // Now let's set up one multicast UDP socket per scope index (IPv6 multicast

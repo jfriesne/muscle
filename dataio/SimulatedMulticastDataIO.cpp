@@ -314,7 +314,7 @@ status_t SimulatedMulticastDataIO :: ParseMulticastControlPacket(const ByteBuffe
             const uint64 microsSinceHeardFrom = MillisToMicros(next.GetIPAddress().GetInterfaceIndex()); // yes, I'm abusing this field
             if (microsSinceHeardFrom < _timeoutPeriodMicros) 
             {
-               next = next.WithInterfaceIndex(_localAddressAndPort.GetIPAddress().GetInterfaceIndex());  // since we don't actually it anyway
+               next = next.WithInterfaceIndex(_localAddressAndPort.GetIPAddress().GetInterfaceIndex());  // since we don't actually use it anyway
                NoteHeardFromMember(next, (now>microsSinceHeardFrom)?(now-microsSinceHeardFrom):0);       // semi-paranoia
             }
             b += IPAddressAndPort::FlattenedSize();

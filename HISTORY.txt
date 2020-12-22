@@ -9,17 +9,23 @@ key:  - new feature
    - The subscribed-sessions tables used by DataNode objects are 
      now immutable and shared across multiple DataNodes when 
      appropriate, reducing the server's RAM usage.
+   - Added IsInterfaceIndexValid(), UnsetInterfaceIndex(),
+     SetInterfaceIndexFrom(), and WithoutInterfaceIndex() methods 
+     to the IPAddress class.
+   - Added AddTailIfNotAlreadyPresent() and AddHeadIfNotAlreadyPresent()
+     convenience methods to the Queue class.
+   - Added a (defaultInterfaceIndex) value to IPAddress::GetInterfaceIndex()
+     to specify what to return if the current interface index value isn't
+     valid.  Defaults to zero.
    o Modified the DataNode::GetSubscribers() method to return a
      (const Hashtable<String, uint32> &) rather than a
      (HashtableIterator<const String *, uint32>)
-   o Removed a work-around that left the interface-index field unset
-     in the NetworkInterfaceInfo's IP address for loopback devices,
-     as it was causing trouble under Windows.
-   * Added some work-around logic to support Linux's idea of
-     how IPv6-zone-IDs should work in conjunctions with the
-     loopback device.  IPAddress::GetInterfaceIndex() can now return
-     a special value (MUSCLE_NO_LIMIT) to indicate that the index is
-     a valid zone ID but also zero.
+   o Revised the way interface-index values are handled in the IPAddress
+     class.  Now unset/invalid interface-indices are represented
+     via a guard value (MUSCLE_NO_LIMIT) rather than 0, since 0 can
+     sometimes be a valid interface-index value (e.g. for a loopback
+     device under Linux)
+
     
 7.62 - Released 11/20/2020
    - Added a ToBinaryString() convenience-method to the BitChord class.

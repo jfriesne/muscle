@@ -353,9 +353,9 @@ int32 WriteData(const ConstSocketRef & sock, const void * buffer, uint32 size, b
 int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm, const IPAddress & optToIP, uint16 optToPort)
 {
 #ifdef DEBUG_SENDING_UDP_PACKETS_ON_INTERFACE_ZERO
-   if ((optToIP != invalidIP)&&(optToIP.GetInterfaceIndex() == 0)&&(optToIP.IsIPv4() == false)&&(optToIP.IsStandardLoopbackDeviceAddress() == false))
+   if ((optToIP != invalidIP)&&(optToIP.IsInterfaceIndexValid() == false)&&(optToIP.IsIPv4() == false)&&(optToIP.IsStandardLoopbackDeviceAddress() == false))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "SendDataUDP:  Sending to interface 0!  [%s]:%u\n", Inet_NtoA(optToIP)(), optToPort);
+      LogTime(MUSCLE_LOG_CRITICALERROR, "SendDataUDP:  Sending to IP address with invalid interface-index!  [%s]:%u\n", Inet_NtoA(optToIP)(), optToPort);
       PrintStackTrace();
    }
 #endif
@@ -387,10 +387,10 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
             SET_SOCKADDR_IP(toAddr, optToIP);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
             // Work-around for MacOS/X problem (?) where the interface index in the specified IP address doesn't get used
-            if ((optToIP.GetInterfaceIndex() != 0)&&(optToIP.IsMulticast()))
+            if ((optToIP.IsInterfaceIndexValid())&&(optToIP.IsMulticast()))
             {
                const int         oidx = GetSocketMulticastSendInterfaceIndex(sock);
-               const uint32 actualIdx = (optToIP.GetInterfaceIndex() == MUSCLE_NO_LIMIT) ? 0 : optToIP.GetInterfaceIndex();
+               const uint32 actualIdx = optToIP.GetInterfaceIndex();
                if (oidx != ((int)actualIdx))
                {
                   // temporarily set the socket's interface index to the desired one
@@ -1582,10 +1582,8 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 #ifndef MUSCLE_AVOID_IPV6
 # ifdef __linux__
                // Linux seems to demand a zone ID of 0 for its "lo" loopback interface, or multicast-packet-sends won't work?!
-               // but simultaneously we need to set it non-zero so that the calling code can see that it's a valid Zone ID (since 0
-               // is used to indicate "no Zone ID".  So my solution is to set it to MUSCLE_NO_LIMIT in that case, and have the
-               // relevant MUSCLE code recognize that as a synonym for 0 (but valid).
-               unicastIP.SetInterfaceIndex((hardwareType == NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK) ? MUSCLE_NO_LIMIT : if_nametoindex(iname()));
+               // This despite the fact that if_nametoindex() returns a non-zero value for the loopback device.  Annoying :(
+               unicastIP.SetInterfaceIndex((hardwareType == NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK) ? 0 : if_nametoindex(iname()));
 # else
                unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignored by the TCP stack
 # endif
@@ -1772,15 +1770,14 @@ void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4)
    else
    {
       const int MIN_IPBUF_LENGTH = 64;
-      uint32 iIdx = 0;
-      uint8 ip6[16]; addr.WriteToNetworkArray(ip6, &iIdx);
+      uint8 ip6[16]; addr.WriteToNetworkArray(ip6, NULL);
       if (Inet_NtoP(AF_INET6, (const in6_addr *) ip6, ipbuf, MIN_IPBUF_LENGTH) != NULL)
       {
-         if (iIdx > 0)
+         if (addr.IsInterfaceIndexValid())
          {
             // Add the index suffix
             const size_t ipbuflen = strlen(ipbuf);
-            muscleSnprintf(ipbuf+ipbuflen, MIN_IPBUF_LENGTH-ipbuflen, "@" UINT32_FORMAT_SPEC, iIdx);
+            muscleSnprintf(ipbuf+ipbuflen, MIN_IPBUF_LENGTH-ipbuflen, "@" UINT32_FORMAT_SPEC, addr.GetInterfaceIndex());
          }
       }
       else ipbuf[0] = '\0';
@@ -1856,7 +1853,7 @@ status_t IPAddress :: SetFromString(const String & ipAddressString)
       const String suffix        = ipAddressString.Substring(atIdx+1);
       return Inet6_AtoN(withoutSuffix(), (uint32) Atoll(suffix()), *this);
    }
-   else return Inet6_AtoN(ipAddressString(), 0, *this);
+   else return Inet6_AtoN(ipAddressString(), MUSCLE_NO_LIMIT, *this);
 #endif
 }
 

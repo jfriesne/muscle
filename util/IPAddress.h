@@ -22,15 +22,15 @@ public:
    /** Constructor
      * @param lowBits the lower 64 bits of the IP address (defaults to 0).  For an IPv4 address, only the lower 32 bits of this value are used.
      * @param highBits the upper 64 bits of the IP address (defaults to 0).  Not used for IPv4 addresses.
-     * @param interfaceIndex the interface index (defaults to zero).  Useful primarily for fe80::blah type IPv6 addresses.  Not used for IPv4.
+     * @param interfaceIndex the interface index (defaults to MUSCLE_NO_LIMIT, a.k.a invalid).  Useful primarily for link-local IPv6 addresses.  Not used for IPv4.
      */
-   IPAddress(uint64 lowBits = 0, uint64 highBits = 0, uint32 interfaceIndex = 0) : _lowBits(lowBits), _highBits(highBits), _interfaceIndex(interfaceIndex) {/* empty */}
+   IPAddress(uint64 lowBits = 0, uint64 highBits = 0, uint32 interfaceIndex = MUSCLE_NO_LIMIT) : _lowBits(lowBits), _highBits(highBits), _interfaceIndex(interfaceIndex) {/* empty */}
 
    /** Convenience constructor.  Calling this is equivalent to creating an IPAddress
      * object and then calling SetFromString() on it with the given arguments.
      * @param s an IPAddress to parse (e.g. "127.0.0.1" or "ff12::02@3")
      */
-   IPAddress(const String & s) : _lowBits(0), _highBits(0), _interfaceIndex(0) {(void) SetFromString(s);}
+   IPAddress(const String & s) : _lowBits(0), _highBits(0), _interfaceIndex(MUSCLE_NO_LIMIT) {(void) SetFromString(s);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    IPAddress(const IPAddress & rhs) : _lowBits(rhs._lowBits), _highBits(rhs._highBits), _interfaceIndex(rhs._interfaceIndex) {/* empty */}
@@ -112,19 +112,28 @@ public:
      */
    void SetHighBits(uint64 hb) {_highBits = hb;}
 
-   /** Set the interface-index/Zone-ID value for this IP address
-     * @param iidx the new interface index (or 0 to indicate "No Zone ID", or MUSCLE_NO_LIMIT to indicate
-     *             0 but as a valid Zone ID)
+   /** Set a valid interface-index/Zone-ID value for this IP address.
+     * @param iidx the new interface index to use.  To specify an invalid Interface Index, pass 
+     *             MUSCLE_NO_LIMIT here, or call UnsetInterfaceIndex() instead.
      * @note this value is meaningful only for link-local IPv6 addresses.
      */
    void SetInterfaceIndex(uint32 iidx) {_interfaceIndex = iidx;}
 
-   /** Returns the interface-index/Zone-ID value for this IP address.  Meaningful only in the context of IPv6.
-     * @note 0 indicates "No valid Zone ID", and non-zero indicates a valid Zone ID.
-     *         The special value MUSCLE_NO_LIMIT (aka ((uint32)-1)) is a special value meaning "0, but still a valid Zone ID".
-     *         (Thank you Linux, for pushing us into that bit of brain-twisting)
+   /** Convenience method:  Sets our own interface-index to match that of (ip)
+     * @param ip the IPAddress who interface-index we should match
      */
-   uint32 GetInterfaceIndex() const {return _interfaceIndex;}
+   void SetInterfaceIndexFrom(const IPAddress & ip) {_interfaceIndex = ip._interfaceIndex;}
+
+   /** Resets our interface-index field back to an invalid value. */
+   void UnsetInterfaceIndex() {_interfaceIndex = MUSCLE_NO_LIMIT;}
+
+   /** Returns true iff our interface-index field is currently set to a valid value */
+   bool IsInterfaceIndexValid() const {return (_interfaceIndex != MUSCLE_NO_LIMIT);}
+
+   /** Returns the interface-index/Zone-ID value for this IP address.  Meaningful only in the context of IPv6.
+     * @param optDefaultValue what value to return if our interface-index field isn't currently valid.  Defaults to 0.
+     */
+   uint32 GetInterfaceIndex(uint32 optDefaultValue = 0) const {return IsInterfaceIndexValid() ? _interfaceIndex : optDefaultValue;}
 
    /** @copydoc DoxyTemplate::HashCode() const */
    uint32 HashCode() const {return CalculateHashCode(_interfaceIndex)+CalculateHashCode(_lowBits)+CalculateHashCode(_highBits);}
@@ -142,13 +151,13 @@ public:
          WriteToNetworkArrayAux(&networkBuf[0], _highBits);
          WriteToNetworkArrayAux(&networkBuf[8], _lowBits);
       }
-      if (optInterfaceIndex) *optInterfaceIndex = (_interfaceIndex == MUSCLE_NO_LIMIT) ? 0 : _interfaceIndex;
+      if (optInterfaceIndex) *optInterfaceIndex = GetInterfaceIndex();
    }
 
    /** Reads our address in from the specified uint8 array, in the required network-friendly order.
      * @param networkBuf If non-NULL, a 16-byte network-endian-array to read from.  Typically you would pass in 
      *                    mySockAddr_in6.sin6_addr.s6_addr as the argument to this function.
-     * @param optInterfaceIndex If non-NULL, this value will be used to set this object's _interfaceIndex value.
+     * @param optInterfaceIndex If non-NULL, this value will be passed to SetInterfaceIndex() to set this object's interface-index value.
      */
    void ReadFromNetworkArray(const uint8 * networkBuf, const uint32 * optInterfaceIndex)
    {
@@ -157,7 +166,7 @@ public:
          ReadFromNetworkArrayAux(&networkBuf[0], _highBits);
          ReadFromNetworkArrayAux(&networkBuf[8], _lowBits);
       }
-      if (optInterfaceIndex) _interfaceIndex = *optInterfaceIndex;
+      if (optInterfaceIndex) SetInterfaceIndex(*optInterfaceIndex);
    }
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns true */
@@ -229,7 +238,7 @@ public:
 
    /** Convenience method:  Returns an IPAddress object identical to this one,
      * except that the returned IPAddress has its interface index field set to the specified value.
-     * @param interfaceIndex The new interface index value to use in the returned object.
+     * @param interfaceIndex The new interface index value to use in the returned object (or MUSCLE_NO_LIMIT to specify an invalid interface index)
      */
    IPAddress WithInterfaceIndex(uint32 interfaceIndex) const
    {
@@ -238,13 +247,16 @@ public:
       return addr;
    }
 
+   /** Convenience method:  Returns an IPAddress object identical to this one, but with the interface-index field unset. */
+   IPAddress WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
+
 private:
    void WriteToNetworkArrayAux( uint8 * out, const uint64 & in ) const {uint64 tmp = B_HOST_TO_BENDIAN_INT64(in); muscleCopyOut(out, tmp);}
    void ReadFromNetworkArrayAux(const uint8 * in, uint64 & out) const {uint64 tmp; muscleCopyIn(tmp, in); out = B_BENDIAN_TO_HOST_INT64(tmp);}
 
    uint64 _lowBits;
    uint64 _highBits;
-   uint32 _interfaceIndex;
+   uint32 _interfaceIndex;  // will be set to MUSCLE_NO_LIMIT if the interface-index value is invalid
 };
 typedef IPAddress ip_address;  // for backwards compatibility with old code
 
@@ -425,7 +437,7 @@ public:
 
    /** Convenience method:  Returns an IPAddressAndPort object identical to this one,
      * except that the included IPAddress has its interface index field set to the specified value.
-     * @param interfaceIndex The new interface index value to use in the returned object.
+     * @param interfaceIndex The new interface index value to use in the returned object (or MUSCLE_NO_LIMIT to specify an invalid index)
      */
    IPAddressAndPort WithInterfaceIndex(uint32 interfaceIndex) const
    {
@@ -433,6 +445,9 @@ public:
       addr.SetInterfaceIndex(interfaceIndex);
       return IPAddressAndPort(addr, _port); 
    }
+
+   /** Convenience method:  Returns an IPAddressAndPort object identical to this one, but with the interface-index field unset. */
+   IPAddressAndPort WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
 
 private:
    IPAddress _ip;

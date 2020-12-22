@@ -149,6 +149,13 @@ public:
    }
 #endif
 
+   /** Convenience method:  Appends (item) to the end of the queue, if no object equal to (item) is already present in the Queue.
+    *  @param item The item to append. 
+    *  @note this method runs in O(N) time, so be careful about using it on large Queues (maybe use a Hashtable instead?)
+    *  @return B_NO_ERROR on success (or if an equivalent item was already present), or B_OUT_OF_MEMORY on failure.
+    */
+   QQ_UniversalSinkItemRef status_t AddTailIfNotAlreadyPresent(QQ_SinkItemParam item) {return Contains(item) ? B_NO_ERROR : AddTail(item);}
+
    /** Appends (item) to the end of the queue.  Queue size grows by one.
     *  @param item The item to append. 
     *  @return A pointer to the appended item on success, or a NULL pointer on failure.
@@ -192,6 +199,13 @@ public:
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddHeadMulti(const ItemType * items, uint32 numItems);
+
+   /** Convenience method:  Prepends (item) to the head of the queue, if no object equal to (item) is already present in the Queue.
+    *  @param item The item to prepend. 
+    *  @note this method runs in O(N) time, so be careful about using it on large Queues (maybe use a Hashtable instead?)
+    *  @return B_NO_ERROR on success (or if an equivalent item was already present), or B_OUT_OF_MEMORY on failure.
+    */
+   QQ_UniversalSinkItemRef status_t AddHeadIfNotAlreadyPresent(QQ_SinkItemParam item) {return Contains(item) ? B_NO_ERROR : AddHead(item);}
 
    /** Prepends (item) to the beginning of the queue.  Queue size grows by one.
     *  @param item The item to prepend. 

@@ -235,7 +235,8 @@ public:
          for (uint32 i=0; i<q.GetNumItems(); i++)
          {
             const NetworkInterfaceInfo & nii = q[i];
-            if (nii.GetLocalAddress().GetInterfaceIndex() == changedIdx) iNames.PutWithDefault(nii.GetName());
+            const IPAddress & ip = nii.GetLocalAddress();
+            if ((ip.IsInterfaceIndexValid())&&(ip.GetInterfaceIndex() == changedIdx)) iNames.PutWithDefault(nii.GetName());
          }
       }
       SignalInterfacesChanged(iNames);
