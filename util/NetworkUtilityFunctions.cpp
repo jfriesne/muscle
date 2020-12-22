@@ -1255,7 +1255,7 @@ bool IPAddress :: IsIPv4() const
 #ifdef MUSCLE_AVOID_IPV6
    return true;
 #else
-   if ((*this == invalidIP)||(*this == localhostIP_IPv6)) return false;  // :: and ::1 are considered to be IPv6 addresses
+   if ((EqualsIgnoreInterfaceIndex(invalidIP))||(EqualsIgnoreInterfaceIndex(localhostIP_IPv6))) return false;  // :: and ::1 are considered to be IPv6 addresses
 
    if (GetHighBits() != 0) return false;
    const uint64 lb = (_lowBits>>32);
