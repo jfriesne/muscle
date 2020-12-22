@@ -389,11 +389,12 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
             // Work-around for MacOS/X problem (?) where the interface index in the specified IP address doesn't get used
             if ((optToIP.GetInterfaceIndex() != 0)&&(optToIP.IsMulticast()))
             {
-               int oidx = GetSocketMulticastSendInterfaceIndex(sock);
-               if (oidx != (int) optToIP.GetInterfaceIndex())
+               const int         oidx = GetSocketMulticastSendInterfaceIndex(sock);
+               const uint32 actualIdx = (optToIP.GetInterfaceIndex() == MUSCLE_NO_LIMIT) ? 0 : optToIP.GetInterfaceIndex();
+               if (oidx != ((int)actualIdx))
                {
                   // temporarily set the socket's interface index to the desired one
-                  if (SetSocketMulticastSendInterfaceIndex(sock, optToIP.GetInterfaceIndex()) != B_NO_ERROR) return -1;
+                  if (SetSocketMulticastSendInterfaceIndex(sock, actualIdx) != B_NO_ERROR) return -1;
                   oldInterfaceIndex = oidx;  // and remember to set it back afterwards
                }
             }
@@ -1579,7 +1580,15 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             if (IsGNIIBitMatch(unicastIP, isEnabled, includeFlags))
             {
 #ifndef MUSCLE_AVOID_IPV6
-               unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignore by the TCP stack
+# ifdef __linux__
+               // Linux seems to demand a zone ID of 0 for its "lo" loopback interface, or multicast-packet-sends won't work?!
+               // but simultaneously we need to set it non-zero so that the calling code can see that it's a valid Zone ID (since 0
+               // is used to indicate "no Zone ID".  So my solution is to set it to MUSCLE_NO_LIMIT in that case, and have the
+               // relevant MUSCLE code recognize that as a synonym for 0 (but valid).
+               unicastIP.SetInterfaceIndex((hardwareType == NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK) ? MUSCLE_NO_LIMIT : if_nametoindex(iname()));
+# else
+               unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignored by the TCP stack
+# endif
 #endif
                if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType)).IsOK(ret))  // MAC address will be set later
                {
@@ -1845,7 +1854,7 @@ status_t IPAddress :: SetFromString(const String & ipAddressString)
       // I have to chop that out and parse it separately.
       const String withoutSuffix = ipAddressString.Substring(0, atIdx);
       const String suffix        = ipAddressString.Substring(atIdx+1);
-      return Inet6_AtoN(withoutSuffix(), atoi(suffix()), *this);
+      return Inet6_AtoN(withoutSuffix(), (uint32) Atoll(suffix()), *this);
    }
    else return Inet6_AtoN(ipAddressString(), 0, *this);
 #endif
@@ -2155,7 +2164,7 @@ status_t SetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock, uint3
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   const int idx = interfaceIndex;
+   const int idx = (interfaceIndex == MUSCLE_NO_LIMIT) ? 0 : (int) interfaceIndex;
    return (setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (const sockopt_arg *) &idx, sizeof(idx)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 

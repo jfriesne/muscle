@@ -1,5 +1,9 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#ifndef WIN32
+# include <signal.h>  // for SIGINT
+#endif
+
 #include "dataio/ChildProcessDataIO.h"
 #include "dataio/StdinDataIO.h"
 #include "iogateway/PlainTextMessageIOGateway.h"
@@ -213,7 +217,7 @@ private:
 };
 
 // Our dummy child-process program.  It just listens for commands from the parent process (sent to it from stdin)
-static int DoChildProcess(const String & label, int argc, char ** argv)
+static int DoChildProcess(const String & label, int /*argc*/, char ** /*argv*/)
 {
    ReflectServer server;
 

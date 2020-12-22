@@ -112,14 +112,19 @@ public:
      */
    void SetHighBits(uint64 hb) {_highBits = hb;}
 
-   /** Set the interface-index value for this IP address
-     * @param iidx the new interface index
-     * @note this value is meaningful only for IPv6 addresses, and usually only for fe80::blah IPv6 addresses.
+   /** Set the interface-index/Zone-ID value for this IP address
+     * @param iidx the new interface index (or 0 to indicate "No Zone ID", or MUSCLE_NO_LIMIT to indicate
+     *             0 but as a valid Zone ID)
+     * @note this value is meaningful only for link-local IPv6 addresses.
      */
    void SetInterfaceIndex(uint32 iidx) {_interfaceIndex = iidx;}
 
-   /** Returns the interface-index value for this IP address */
-   uint32 GetInterfaceIndex() const    {return _interfaceIndex;}
+   /** Returns the interface-index/Zone-ID value for this IP address.  Meaningful only in the context of IPv6.
+     * @note 0 indicates "No valid Zone ID", and non-zero indicates a valid Zone ID.
+     *         The special value MUSCLE_NO_LIMIT (aka ((uint32)-1)) is a special value meaning "0, but still a valid Zone ID".
+     *         (Thank you Linux, for pushing us into that bit of brain-twisting)
+     */
+   uint32 GetInterfaceIndex() const {return _interfaceIndex;}
 
    /** @copydoc DoxyTemplate::HashCode() const */
    uint32 HashCode() const {return CalculateHashCode(_interfaceIndex)+CalculateHashCode(_lowBits)+CalculateHashCode(_highBits);}
@@ -137,7 +142,7 @@ public:
          WriteToNetworkArrayAux(&networkBuf[0], _highBits);
          WriteToNetworkArrayAux(&networkBuf[8], _lowBits);
       }
-      if (optInterfaceIndex) *optInterfaceIndex = _interfaceIndex;
+      if (optInterfaceIndex) *optInterfaceIndex = (_interfaceIndex == MUSCLE_NO_LIMIT) ? 0 : _interfaceIndex;
    }
 
    /** Reads our address in from the specified uint8 array, in the required network-friendly order.

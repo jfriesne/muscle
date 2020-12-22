@@ -41,10 +41,10 @@ int main(int argc, char ** argv)
    }
 
    // Let's build up the set of IPv6 scope indices we want to send/receive on
-   Hashtable<int, Void> scopeIDs; 
+   Hashtable<uint32, Void> scopeIDs; 
    for (uint32 i=0; i<niis.GetNumItems(); i++) 
    {
-      const int scopeID = niis[i].GetLocalAddress().GetInterfaceIndex();
+      const uint32 scopeID = niis[i].GetLocalAddress().GetInterfaceIndex();
       if (scopeID > 0) (void) scopeIDs.PutWithDefault(scopeID);
    }
 
@@ -52,9 +52,9 @@ int main(int argc, char ** argv)
    // works more reliably that way, than if we tried to get a single socket to 
    // handle traffic on all the interfaces at once -- sadly)
    Hashtable<ConstSocketRef, int> udpSocks;   // socket -> scopeID
-   for (HashtableIterator<int, Void> iter(scopeIDs); iter.HasData(); iter++)
+   for (HashtableIterator<uint32, Void> iter(scopeIDs); iter.HasData(); iter++)
    {
-      const int scopeID = iter.GetKey();
+      const uint32 scopeID = iter.GetKey();
 
       ConstSocketRef udpSock = CreateUDPSocket();
       if (udpSock() == NULL)
@@ -67,12 +67,12 @@ int main(int argc, char ** argv)
       {
          if (AddSocketToMulticastGroup(udpSock, multicastGroup.GetIPAddress().WithInterfaceIndex(scopeID)).IsOK(ret))
          {
-            LogTime(MUSCLE_LOG_ERROR, "Added multicast UDP socket for scope %i\n", scopeID);
+            LogTime(MUSCLE_LOG_ERROR, "Added multicast UDP socket for scope " UINT32_FORMAT_SPEC "\n", scopeID);
             (void) udpSocks.Put(udpSock, scopeID);
          }
-         else LogTime(MUSCLE_LOG_ERROR, "Unable to add the UDP socket for scope %i to multicast group %s! [%s]\n", scopeID, multicastGroup.GetIPAddress().ToString()(), ret());
+         else LogTime(MUSCLE_LOG_ERROR, "Unable to add the UDP socket for scope " UINT32_FORMAT_SPEC " to multicast group %s! [%s]\n", scopeID, multicastGroup.GetIPAddress().ToString()(), ret());
       }
-      else LogTime(MUSCLE_LOG_ERROR, "Unable to bind the UDP socket for scope %i! [%s]\n", scopeID, ret());
+      else LogTime(MUSCLE_LOG_ERROR, "Unable to bind the UDP socket for scope " UINT32_FORMAT_SPEC "! [%s]\n", scopeID, ret());
    }
 
 #ifdef WIN32

@@ -15,6 +15,11 @@ key:  - new feature
    o Removed a work-around that left the interface-index field unset
      in the NetworkInterfaceInfo's IP address for for loopback devices,
      as it was causing trouble under Windows.
+   * Added some work-around logic to support Linux's idea of
+     how IPv6-zone-IDs should work in conjunctions with the
+     loopback device.  IPAddress::GetInterfaceIndex() can now return
+     a special value (MUSCLE_NO_LIMIT) to indicate that the index is
+     a valid zone ID but also zero.
     
 7.62 - Released 11/20/2020
    - Added a ToBinaryString() convenience-method to the BitChord class.
