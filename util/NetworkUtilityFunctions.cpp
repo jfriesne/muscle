@@ -1580,13 +1580,16 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             if (IsGNIIBitMatch(unicastIP, isEnabled, includeFlags))
             {
 #ifndef MUSCLE_AVOID_IPV6
+               if (unicastIP.IsIPv4() == false)
+               {
 # ifdef __linux__
-               // Linux seems to demand a zone ID of 0 for its "lo" loopback interface, or multicast-packet-sends won't work?!
-               // This despite the fact that if_nametoindex() returns a non-zero value for the loopback device.  Annoying :(
-               unicastIP.SetInterfaceIndex((hardwareType == NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK) ? 0 : if_nametoindex(iname()));
+                  // Linux seems to demand a zone ID of 0 for its "lo" loopback interface, or multicast-packet-sends won't work?!
+                  // This despite the fact that if_nametoindex() returns a non-zero value for the loopback device.  Annoying :(
+                  unicastIP.SetInterfaceIndex((hardwareType == NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK) ? 0 : if_nametoindex(iname()));
 # else
-               unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignored by the TCP stack
+                  unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignored by the TCP stack
 # endif
+               }
 #endif
                if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType)).IsOK(ret))  // MAC address will be set later
                {

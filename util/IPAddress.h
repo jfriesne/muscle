@@ -213,11 +213,11 @@ public:
    /** Returns true iff this address is a stateless/self-assigned IP address (i.e. 169.254.*.* for IPv4, or fe80::* for IPv6) */
    bool IsSelfAssigned() const;
 
-   /** Returns a human-readable string equivalent to this IPAddress object.  Behaves the same as Inet_NtoA(*this, preferIPv4Style).
-     *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
-     *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
+   /** Returns a human-readable string equivalent to this IPAddress object.  Behaves the same as Inet_NtoA(*this, printIPv4AddressesInIPv4Style).
+     *  @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
+     *                                       Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
      */
-   String ToString(bool preferIPv4Style = false) const;
+   String ToString(bool printIPv4AddressesInIPv4Style = true) const;
 
    /** Given a human-readable IP-address string (as returned by ToString()), sets this IPAddress object to the
      * value represented by the string.  Behaves similarly to Inet_AtoN()
@@ -401,10 +401,10 @@ public:
    /** Returns a string representation of this object, similar to the forms
      * described in the SetFromString() documentation, above.
      * @param includePort If true, the port will be included in the string.  Defaults to true.
-     * @param preferIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
-     *                        Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
+     * @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
+     *                                      Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
      */
-   String ToString(bool includePort = true, bool preferIPv4Style = false) const;
+   String ToString(bool includePort = true, bool printIPv4AddressesInIPv4Style = true) const;
 
    /** Part of the Flattenable pseudo-interface:  Returns true */
    static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
