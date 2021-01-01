@@ -613,14 +613,21 @@ public:
    uint32 RemoveAllInstancesOf(const ItemType & val);
 
    /**
-    *  Goes through the array and removes all duplicate items.
-    *  @param assumeAlreadySorted If set to true, the algorithm will assume the array is
-    *                             already sorted by value.  Otherwise it will sort the array
-    *                             (so that duplicates are next to each other) before doing the
-    *                             duplicate-removal step.  Defaults to false.
-    *  @return The number of duplicate items that were found and removed during this operation.
+    *  Sorts the Queue, then iterates through the items and 
+    *  removes any duplicate items (i.e. any items that are == to each other)
+    *  such that there is only at most a single instance of any given value
+    *  left in the Queue.
+    *  @return The number of duplicate items that were found and 
+    *          removed during this operation.
     */
-   uint32 RemoveDuplicateItems(bool assumeAlreadySorted = false);
+   uint32 RemoveDuplicateItems();
+
+   /** Same as RemoveDuplicateItems(), except this version assumes that
+    *  the items are already in sorted order.
+    *  @return The number of duplicate items that were found and 
+    *          removed during this operation.
+    */ 
+   uint32 RemoveSortedDuplicateItems();
 
    /**
     *  Goes through the array and removes the first item that is equal to (val).
@@ -1544,18 +1551,24 @@ RemoveAllInstancesOf(const ItemType & val)
 template <class ItemType>
 uint32 
 Queue<ItemType>::
-RemoveDuplicateItems(bool assumeAlreadySorted)
+RemoveDuplicateItems()
 {
-   if (IsEmpty()) return 0;  // nothing to do!
-   if (assumeAlreadySorted == false) Sort();
+   Sort();
+   return RemoveSortedDuplicateItems();
+}
 
+template <class ItemType>
+uint32 
+Queue<ItemType>::
+RemoveSortedDuplicateItems()
+{
    uint32 numWrittenItems  = 1;  // we'll always keep the first item
    const uint32 totalItems = GetNumItems();
    for (uint32 i=0; i<totalItems; i++)
    {
       const ItemType & nextItem = (*this)[i];
       const ItemType & wItem    = (*this)[numWrittenItems-1];
-      if (nextItem != wItem) (*this)[numWrittenItems++] = nextItem;
+      if (!(nextItem == wItem)) (*this)[numWrittenItems++] = nextItem;
    } 
 
    const uint32 ret = GetNumItems()-numWrittenItems;

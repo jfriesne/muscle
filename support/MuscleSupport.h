@@ -746,7 +746,7 @@ template<typename T> inline void muscleSwap(T & t1, T & t2) {typename ugly_swapc
   * @param theArray an array of any type
   * @returns True iff i is non-negative AND less than ARRAYITEMS(theArray))
   */
-template<typename T, int size> inline MUSCLE_CONSTEXPR bool muscleArrayIndexIsValid(int i, T (&theArray)[size]) {return ((theArray)&&(((unsigned int)i) < size));}
+template<typename T, int size> inline MUSCLE_CONSTEXPR bool muscleArrayIndexIsValid(int i, T (&theArray)[size]) {return ((theArray==theArray)&&(((unsigned int)i) < size));}
 
 /** Convenience method for setting all items in the specified one-dimensional array to their default-constructed state (i.e. zero)
   * @param theArray an array of any type

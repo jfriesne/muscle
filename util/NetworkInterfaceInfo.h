@@ -130,6 +130,16 @@ public:
      */
    static const char * GetNetworkHardwareTypeString(uint32 hardwareType);
 
+   /** Comparison Operator.  Returns true iff the two NetworkInterfaceInfos contain the same data as each other in all fields.
+     * @param rhs A NetworkInterfaceInfo to compare ourself with
+     */
+   bool operator == (const NetworkInterfaceInfo & rhs) const;
+
+   /** Comparison Operator.  Returns true iff the two NetworkInterfaceInfos do not contain the same data as each other in all fields.
+     * @param rhs A NetworkInterfaceInfo to compare ourself with
+     */
+   bool operator != (const NetworkInterfaceInfo & rhs) const {return !(*this==rhs);}
+
 private:
    friend status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFlags includeFlags);  // so it can set the _macAddress field
 

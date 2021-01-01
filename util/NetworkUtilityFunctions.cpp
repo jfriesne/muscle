@@ -1215,6 +1215,19 @@ const char * NetworkInterfaceInfo :: GetNetworkHardwareTypeString(uint32 hardwar
    return _hardwareTypeStrs[hardwareType];
 }
 
+bool NetworkInterfaceInfo :: operator == (const NetworkInterfaceInfo & rhs) const
+{
+   return ((_name         == rhs._name)
+         &&(_desc         == rhs._desc)
+         &&(_ip           == rhs._ip)
+         &&(_netmask      == rhs._netmask)
+         &&(_broadcastIP  == rhs._broadcastIP)
+         &&(_enabled      == rhs._enabled)
+         &&(_copper       == rhs._copper)
+         &&(_macAddress   == rhs._macAddress)
+         &&(_hardwareType == rhs._hardwareType));
+}
+
 String NetworkInterfaceInfo :: ToString() const
 {
    return String("Name=[%1] Description=[%2] Type=[%3] IP=[%4] Netmask=[%5] Broadcast=[%6] MAC=[%7] Enabled=%8 Copper=%9").Arg(_name).Arg(_desc).Arg(GetNetworkHardwareTypeString(_hardwareType)).Arg(Inet_NtoA(_ip)).Arg(Inet_NtoA(_netmask)).Arg(Inet_NtoA(_broadcastIP)).Arg(MACAddressToString(_macAddress)).Arg(_enabled).Arg(_copper);
@@ -1290,6 +1303,21 @@ bool IPAddress :: IsMulticast() const
    const IPAddress minMulticastAddress = Inet_AtoN("224.0.0.0");
    const IPAddress maxMulticastAddress = Inet_AtoN("239.255.255.255");
    return muscleInRange(_lowBits, minMulticastAddress.GetLowBits(), maxMulticastAddress.GetLowBits());
+}
+
+bool IPAddress :: IsIPv6LocalMulticast(uint8 scope) const
+{
+   if ((IsIPv4() == false)&&(IsMulticast()))
+   {
+      const uint64 highBits = GetHighBits();
+      const uint64 topEight = (((uint64)0xFF)<<56);
+      if ((highBits & topEight) == topEight)
+      {
+         const uint8 scopeBits = (highBits >> 48) & 0x0F;
+         return (scopeBits==scope); 
+      }
+   }
+   return false;
 }
 
 bool IPAddress :: IsStandardLoopbackDeviceAddress() const
@@ -1580,16 +1608,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             if (IsGNIIBitMatch(unicastIP, isEnabled, includeFlags))
             {
 #ifndef MUSCLE_AVOID_IPV6
-               if (unicastIP.IsIPv4() == false)
-               {
-# ifdef __linux__
-                  // Linux seems to demand a zone ID of 0 for its "lo" loopback interface, or multicast-packet-sends won't work?!
-                  // This despite the fact that if_nametoindex() returns a non-zero value for the loopback device.  Annoying :(
-                  unicastIP.SetInterfaceIndex((hardwareType == NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK) ? 0 : if_nametoindex(iname()));
-# else
-                  unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignored by the TCP stack
-# endif
-               }
+               if (unicastIP.IsIPv4() == false) unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignored by the TCP stack
 #endif
                if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType)).IsOK(ret))  // MAC address will be set later
                {

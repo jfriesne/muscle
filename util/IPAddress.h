@@ -207,6 +207,12 @@ public:
    /** Returns true iff this address qualifies as a multicast address.  */
    bool IsMulticast() const;
 
+   /** Returns true iff this address qualifies as an IPv6 node-local multicast address.  */
+   bool IsIPv6NodeLocalMulticast() const {return IsIPv6LocalMulticast(0x01);}
+
+   /** Returns true iff this address qualifies as an IPv6 link-local multicast address.  */
+   bool IsIPv6LinkLocalMulticast() const {return IsIPv6LocalMulticast(0x02);}
+
    /** Returns true iff this address qualifies as a standard loopback-device address (e.g. 127.0.0.1 or ::1 or fe80::1) */
    bool IsStandardLoopbackDeviceAddress() const;
 
@@ -251,6 +257,7 @@ public:
    IPAddress WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
 
 private:
+   bool IsIPv6LocalMulticast(uint8 scope) const;
    void WriteToNetworkArrayAux( uint8 * out, const uint64 & in ) const {uint64 tmp = B_HOST_TO_BENDIAN_INT64(in); muscleCopyOut(out, tmp);}
    void ReadFromNetworkArrayAux(const uint8 * in, uint64 & out) const {uint64 tmp; muscleCopyIn(tmp, in); out = B_BENDIAN_TO_HOST_INT64(tmp);}
 

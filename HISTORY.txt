@@ -17,16 +17,22 @@ key:  - new feature
    - Added a (defaultInterfaceIndex) value to IPAddress::GetInterfaceIndex()
      to specify what to return if the current interface index value isn't
      valid.  Defaults to zero.
+   - Added IPAddress::IsIPv6NodeLocalMulticast() and 
+     IPAddress::IsIPv6LinkLocalMulticast() convenience methods.
+   - Added == and != operators to the NetworkInterfaceInfo class.
    o Modified the DataNode::GetSubscribers() method to return a
      (const Hashtable<String, uint32> &) rather than a
      (HashtableIterator<const String *, uint32>)
+   o Split Queue::RemoveDuplicateItems(bool) into
+     Queue::RemoveDuplicateItems() and Queue:RemoveSortedDuplicateItems().
    o Revised the way interface-index values are handled in the IPAddress
      class.  Now unset/invalid interface-indices are represented
-     via a guard value (MUSCLE_NO_LIMIT) rather than 0, since 0 can
-     sometimes be a valid interface-index value (e.g. for a loopback
-     device under Linux)
+     internally via a guard value (MUSCLE_NO_LIMIT) rather than 0.
    o IPAddress::ToString()'s (printIPv4AddressesInIPv4Style) argument
      now defaults to true instead of false.
+   o Modified muscleArrayIndexIsValid() to reference (theArray) via
+     a dummy (theArray==theArray) test rather than a (theArray!=NULL)
+     test, as the latter test can generate a warning at compile time.
     
 7.62 - Released 11/20/2020
    - Added a ToBinaryString() convenience-method to the BitChord class.
