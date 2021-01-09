@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-7.70 -
+7.70 - Released 1/8/2021
    - The subscribed-sessions tables used by DataNode objects are 
      now immutable and shared across multiple DataNodes when 
      appropriate, reducing the server's RAM usage.
