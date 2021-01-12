@@ -1656,7 +1656,7 @@ void * Message :: GetPointerToNormalizedFieldData(const String & fieldName, uint
    {
       e->Normalize();
 
-      const void * ptr;
+      const void * ptr = NULL;
       if (e->FindDataItem(0, &ptr) == B_NO_ERROR)  // must be called AFTER e->Normalize()
       {
          if (retNumItems) *retNumItems = e->GetNumItems();
@@ -1739,7 +1739,7 @@ const uint8 * Message :: FindFlatAux(const MessageField * mf, uint32 index, uint
       }
    }
 
-   const void * data; 
+   const void * data = NULL; 
    const status_t ret = mf->FindDataItem(index, &data);
    if (ret == B_NO_ERROR) 
    { 
@@ -1824,10 +1824,10 @@ status_t Message :: FindDataItemAux(const String & fieldName, uint32 index, uint
    const MessageField * field = GetMessageField(fieldName, tc);
    if (field == NULL) return B_DATA_NOT_FOUND;
 
-   const void * addressOfValue;
+   const void * addressOfValue = NULL;
    const status_t ret = field->FindDataItem(index, &addressOfValue);
    if (ret != B_NO_ERROR) return ret;
-   memcpy(setValue, addressOfValue, valueSize);
+   if (addressOfValue) memcpy(setValue, addressOfValue, valueSize);  // the "if" is only here to assuage ClangSA's paranoia
    return B_NO_ERROR;
 }
 
@@ -1899,7 +1899,7 @@ status_t Message :: FindMessage(const String & fieldName, uint32 index, MessageR
 
 status_t Message :: FindDataPointer(const String & fieldName, uint32 tc, uint32 index, void ** data, uint32 * setSize) const 
 {
-   const void * dataLoc;
+   const void * dataLoc = NULL;
    status_t ret;
    if (FindData(fieldName, tc, index, &dataLoc, setSize).IsOK(ret))
    {

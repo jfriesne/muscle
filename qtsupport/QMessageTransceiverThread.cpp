@@ -96,25 +96,22 @@ void QMessageTransceiverThread :: HandleQueuedIncomingEvents()
       emit InternalThreadEvent(code, next, sessionID, factoryID);  // these get emitted for any event
 
       const char * id = _handlers.HasItems() ? strchr(sessionID()+1, '/') : NULL;
-      if (id)
+      QMessageTransceiverHandler * handler = id ? _handlers[atoi(id+1)] : NULL;
+      if (handler)
       {
-         QMessageTransceiverHandler * handler = NULL;  // set to NULL just to avoid a compiler warning
-         if (_handlers.Get(atoi(id+1), handler) == B_NO_ERROR)
+         // If it's not already in the list, prepend it to the list and tell it to emit its BeginMessageBatch() signal
+         if ((code == MTT_EVENT_INCOMING_MESSAGE)&&(handler != _lastSeenHandler)&&(handler->_nextSeen == NULL))
          {
-            // If it's not already in the list, prepend it to the list and tell it to emit its BeginMessageBatch() signal
-            if ((code == MTT_EVENT_INCOMING_MESSAGE)&&(handler != _lastSeenHandler)&&(handler->_nextSeen == NULL))
+            if (_firstSeenHandler == NULL) _firstSeenHandler = _lastSeenHandler = handler;
+            else
             {
-               if (_firstSeenHandler == NULL) _firstSeenHandler = _lastSeenHandler = handler;
-               else
-               {
-                  _firstSeenHandler->_prevSeen = handler;
-                  handler->_nextSeen = _firstSeenHandler;
-                  _firstSeenHandler = handler;
-               }
-               handler->EmitBeginMessageBatch();
+               _firstSeenHandler->_prevSeen = handler;
+               handler->_nextSeen = _firstSeenHandler;
+               _firstSeenHandler = handler;
             }
-            handler->HandleIncomingEvent(code, next, iap);
+            handler->EmitBeginMessageBatch();
          }
+         handler->HandleIncomingEvent(code, next, iap);
       }
    }
 
