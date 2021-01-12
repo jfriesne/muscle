@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Updated the muscle.dox file to work with DOxygen v1.9.2.
+
 7.70 - Released 1/8/2021
    - The subscribed-sessions tables used by DataNode objects are 
      now immutable and shared across multiple DataNodes when 
