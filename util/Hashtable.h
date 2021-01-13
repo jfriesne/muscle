@@ -1647,16 +1647,16 @@ public:
      * @param key The key value to affect.
      * @param value The value to possibly place into the table.
      * @param defaultValue The value to compare (value) with to decide whether to Put() or Remove() the key.
-     * @returns A pointer to the placed value if a value was placed, or a NULL pointer if the value was removed (or on error).
+     * @returns B_NO_ERROR on success (i.e. if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
      */
-   HT_UniversalSinkKeyValueRef ValueType * PutOrRemove(HT_SinkKeyParam key, HT_SinkValueParam value, const ValueType & defaultValue)  // yes, defaultValue is not declared as HT_SinkValueParam!
+   HT_UniversalSinkKeyValueRef status_t PutOrRemove(HT_SinkKeyParam key, HT_SinkValueParam value, const ValueType & defaultValue)  // yes, defaultValue is not declared as HT_SinkValueParam!
    {
       if (value == defaultValue)
       {
-         (void) this->Remove(key);
-         return NULL;
+         const status_t ret = this->Remove(HT_ForwardKey(key));
+         return (ret == B_DATA_NOT_FOUND) ? B_NO_ERROR : ret;  // we count removing a key that isn't present as a successful operation, since the table is in the expected state
       }
-      else return PutAndGet(HT_ForwardKey(key), HT_ForwardValue(value));
+      else return Put(HT_ForwardKey(key), HT_ForwardValue(value));
    }
 
    /** As above, except no (defaultValue) is specified.  The default-constructed ValueType is assumed.
@@ -1664,14 +1664,14 @@ public:
      * @param value The value to possibly place into the table.
      * @returns A pointer to the placed value if a value was placed, or a NULL pointer if the value was removed (or on out of memory)
      */
-   HT_UniversalSinkKeyValueRef ValueType * PutOrRemove(HT_SinkKeyParam key, HT_SinkValueParam value)
+   HT_UniversalSinkKeyValueRef status_t PutOrRemove(HT_SinkKeyParam key, HT_SinkValueParam value)
    {
       if (value == this->GetDefaultValue())
       {
-         (void) this->Remove(key);
-         return NULL;
+         const status_t ret = this->Remove(HT_ForwardKey(key));
+         return (ret == B_DATA_NOT_FOUND) ? B_NO_ERROR : ret;  // we count removing a key that isn't present as a successful operation, since the table is in the expected state
       }
-      else return PutAndGet(HT_ForwardKey(key), HT_ForwardValue(value));
+      else return Put(HT_ForwardKey(key), HT_ForwardValue(value));
    }
 
    /** If (optValue) is non-NULL, this call places the specified key/value pair into the table.
@@ -1680,13 +1680,13 @@ public:
      * @param optValue A pointer to the value to place into the table, or a NULL pointer to remove the key/value pair of the specified key.
      * @returns A pointer to the placed value if a value was placed, or a NULL pointer if the value was removed (or on out of memory)
      */
-   HT_UniversalSinkKeyRef ValueType * PutOrRemove(HT_SinkKeyParam key, const ValueType * optValue)
+   HT_UniversalSinkKeyRef status_t PutOrRemove(HT_SinkKeyParam key, const ValueType * optValue)
    {
-      if (optValue) return PutAndGet(HT_ForwardKey(key), *optValue);
+      if (optValue) return Put(HT_ForwardKey(key), *optValue);
       else
       {
-         (void) this->Remove(key);
-         return NULL;
+         const status_t ret = this->Remove(HT_ForwardKey(key));
+         return (ret == B_DATA_NOT_FOUND) ? B_NO_ERROR : ret;  // we count removing a key that isn't present as a successful operation, since the table is in the expected state
       }
    }
 
