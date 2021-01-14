@@ -1662,7 +1662,7 @@ public:
    /** As above, except no (defaultValue) is specified.  The default-constructed ValueType is assumed.
      * @param key The key value to affect.
      * @param value The value to possibly place into the table.
-     * @returns A pointer to the placed value if a value was placed, or a NULL pointer if the value was removed (or on out of memory)
+     * @returns B_NO_ERROR on success (i.e. if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
      */
    HT_UniversalSinkKeyValueRef status_t PutOrRemove(HT_SinkKeyParam key, HT_SinkValueParam value)
    {
@@ -1678,7 +1678,7 @@ public:
      * If (optValue) is NULL, this call removes the key/value pair from the table.
      * @param key The key value to affect.
      * @param optValue A pointer to the value to place into the table, or a NULL pointer to remove the key/value pair of the specified key.
-     * @returns A pointer to the placed value if a value was placed, or a NULL pointer if the value was removed (or on out of memory)
+     * @returns B_NO_ERROR on success (i.e. if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
      */
    HT_UniversalSinkKeyRef status_t PutOrRemove(HT_SinkKeyParam key, const ValueType * optValue)
    {
