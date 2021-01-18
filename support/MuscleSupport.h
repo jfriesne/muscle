@@ -1618,7 +1618,7 @@ template <> class AutoChooseHashFunctorHelper<void *>       {typedef PODHashFunc
 /** Given an ASCII decimal representation of a non-negative number, returns that number as a uint64. */
 uint64 Atoull(const char * str);
 
-/** Similar to Atoll(), but handles negative numbers as well */
+/** Similar to Atoull(), but handles negative numbers as well */
 int64 Atoll(const char * str);
 
 /** Given an ASCII hexadecimal representation of a non-negative number (with or without the optional "0x" prefix), returns that number as a uint64. */
