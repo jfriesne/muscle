@@ -2078,7 +2078,7 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
 
 status_t SetSocketMulticastToSelf(const ConstSocketRef & sock, bool multicastToSelf)
 {
-   const uint8 toSelf = (uint8) multicastToSelf;
+   const int toSelf = multicastToSelf ? 1 : 0;
    const int fd = sock.GetFileDescriptor();
 #ifdef MUSCLE_AVOID_IPV6
    return ((fd>=0)&&(setsockopt(fd, IPPROTO_IP,   IP_MULTICAST_LOOP,   (const sockopt_arg *) &toSelf, sizeof(toSelf)) == 0)) ? B_NO_ERROR : B_ERRNO;
@@ -2102,7 +2102,7 @@ bool GetSocketMulticastToSelf(const ConstSocketRef & sock)
 status_t SetSocketMulticastTimeToLive(const ConstSocketRef & sock, uint8 ttl)
 {
    const int fd = sock.GetFileDescriptor();
-   const int ttl_arg = (int) ttl;  // MacOS/X won't take a uint8
+   const int ttl_arg = (int) ttl;
 #ifdef MUSCLE_AVOID_IPV6
    return ((fd>=0)&&(setsockopt(fd, IPPROTO_IP,   IP_MULTICAST_TTL,    (const sockopt_arg *) &ttl_arg, sizeof(ttl_arg)) == 0)) ? B_NO_ERROR : B_ERRNO;
 #else
