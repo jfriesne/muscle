@@ -9,6 +9,7 @@ key:  - new feature
    o Fixed some ClangSA warnings
    o Modified Hashtable::PutOrRemove() to return a status_t
      instead of a pointer-to-value.
+   * SetSocketMulticastToSelf() was broken under MacOS/X; fixed.
 
 7.70 - Released 1/8/2021
    - The subscribed-sessions tables used by DataNode objects are 
