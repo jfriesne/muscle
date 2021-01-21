@@ -642,14 +642,22 @@ bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock);
 #ifndef MUSCLE_AVOID_MULTICAST_API
 
 /** Sets whether multicast data sent on this socket should be received by
-  * this socket or not (IP_MULTICAST_LOOP).  Default state is enabled/true.
+  * sockets on the local host machine, or not (IP_MULTICAST_LOOP).  
+  * Default state is enabled/true.
   * @param sock The socket to set the state of the IP_MULTICAST_LOOP flag on.
   * @param multicastToSelf If true, enable loopback.  Otherwise, disable it.
   * @returns B_NO_ERROR on success, or an error code on failure.
+  * @note If this option is set to false, the filtering is done at the IP-address
+  *       level rather than at the per-socket level, which means that other sockets
+  *       subscribed to the same multicast-group on the same host will not receive
+  *       the filtered multicast packets either.  That limits the usefulness of
+  *       this function for applications that need to support multiple multicast-using
+  *       processes running together on on the same host.
   */
 status_t SetSocketMulticastToSelf(const ConstSocketRef & sock, bool multicastToSelf);
 
-/** Returns true iff multicast packets sent by this socket should be received by this socket.
+/** Returns true iff multicast packets sent by this socket should be received by sockets on
+  * the local host machine.
   * Default state is enabled.
   * @param sock The socket to query
   * @returns true iff this socket has multicast-to-self (IP_MULTICAST_LOOP) enabled.
