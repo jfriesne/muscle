@@ -17,7 +17,7 @@ class StringTokenizer MUSCLE_FINAL_CLASS
 public:
    /** Initializes the StringTokenizer to parse (tokenizeMe), which should be a string of tokens (e.g. words) separated by any 
     *  of the characters specified in (separators)
-    *  @param tokenizeMe the string to break up into 'words'.
+    *  @param tokenizeMe the string to tokenize.  If NULL is passed in, an empty string ("") is assumed.
     *  @param hardSeparators ASCII string representing a list of characters to interpret as "hard" substring-separators.
     *                        Defaults to ","; passing in NULL is the same as passing in "" (i.e. no separators of this type).
     *  @param softSeparators ASCII string representing a list of characters to interpret as "soft" substring-separators.
@@ -45,6 +45,12 @@ public:
     */
    StringTokenizer(bool junk, char * tokenizeMe, const char * hardSeparators = ",", const char * softSeparators = " \t\r\n");
 
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   StringTokenizer(const StringTokenizer & rhs);
+
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
+   StringTokenizer & operator = (const StringTokenizer & rhs);
+
    /** Destructor */
    ~StringTokenizer();
 
@@ -67,14 +73,19 @@ public:
    const char * GetSoftSeparatorChars() const {return _softSeparators;}
 
 private:
-   StringTokenizer(const StringTokenizer &);   // unimplemented on purpose
-   StringTokenizer & operator = (const StringTokenizer &);  // unimplemented on purpose
-
    bool IsHardSeparatorChar(char c) const {return (strchr(_hardSeparators, c) != NULL);}
    bool IsSoftSeparatorChar(char c) const {return (strchr(_softSeparators, c) != NULL);}
 
-   bool _alloced;
+   void DefaultInitialize();
+   void DeletePrivateBufferIfNecessary();
+   void CopyDataToPrivateBuffer(const StringTokenizer & copyFrom);
+   void SetPointersAnalogousTo(char * myNewBuf, const StringTokenizer & copyFrom);
+
+   bool _allocedBufferOnHeap;
    bool _prevSepWasHard;
+
+   uint32 _bufLen;
+
    const char * _hardSeparators;
    const char * _softSeparators;
    char * _next;

@@ -18,8 +18,15 @@ int main(void)
          printf("\nYou typed: [%s]\n", s());
          const char * t;
          StringTokenizer tok(s());
+
+         StringTokenizer tokCopy(tok);
+
          int i=0;
          while((t = tok()) != NULL) printf(" %i. tok=[%s] remainder=[%s]\n", i++, t, tok.GetRemainderOfString());
+         printf("\n");
+
+         printf("Checking copy of StringTokenizer:\n");
+         while((t = tokCopy()) != NULL) printf(" %i. tok=[%s] remainder=[%s]\n", i++, t, tokCopy.GetRemainderOfString());
          printf("\n");
 
          // Call a few more times just to see that it returns NULL as expected
