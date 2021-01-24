@@ -147,7 +147,7 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
       }
       lastCharWasBackslash = (c == '\\');
    }
-   StringTokenizer tok(tokenizeThis()," \t\r\n");
+   StringTokenizer tok(tokenizeThis(), NULL);   // soft/whitespace separators only
    const char * t = tok();
    while(t)
    {
@@ -262,7 +262,7 @@ static status_t ParseFileAux(const String * optInStr, FILE * fpIn, Message * opt
 
    if (optInStr)
    {
-      StringTokenizer tok(optInStr->Cstr(), "\r\n");
+      StringTokenizer tok(optInStr->Cstr(), NULL, "\r\n");
       return (tok.GetRemainderOfString() != NULL) ? ParseFileAux(&tok, NULL, optAddToMsg, optAddToQueue, NULL, 0, cs) : B_BAD_ARGUMENT;
    } 
    else
@@ -822,7 +822,7 @@ String CleanupDNSPath(const String & orig, const String & optAdditionalAllowedCh
    String ret; (void) ret.Prealloc(orig.Length());
 
    const char * s;
-   StringTokenizer tok(orig(), ".");
+   StringTokenizer tok(orig(), NULL, ".");
    while((s = tok()) != NULL)
    {
       String cleanTok = CleanupDNSLabel(s, optAdditionalAllowedChars);
@@ -965,7 +965,7 @@ ByteBufferRef ParseHexBytes(const char * buf)
    {
       uint8 * b = bb()->GetBuffer();
       uint32 count = 0;
-      StringTokenizer tok(buf, " \t\r\n");
+      StringTokenizer tok(buf, NULL);  // soft/whitespace separators only
       const char * next;
       while((next = tok()) != NULL) 
       {

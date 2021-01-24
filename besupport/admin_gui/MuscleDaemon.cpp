@@ -275,7 +275,7 @@ App::ArgvReceived(int32 argc, char **argv)
 
 	{
 		for (int32 i = 0; (args.FindString("remap", i, &value) == B_NO_ERROR); i++) {
-			StringTokenizer tok(value, ",=");
+			StringTokenizer tok(value, ",=", NULL);
 			const char * from = tok();
 			const char * to = tok();
 			IPAddress fromIP = from ? Inet_AtoN(from) : invalidIP;

@@ -50,6 +50,7 @@ SOURCES	+= $$MUSCLE_DIR/message/Message.cpp \
         $$MUSCLE_DIR/util/MiscUtilityFunctions.cpp \
         $$MUSCLE_DIR/util/ByteBuffer.cpp \
         $$MUSCLE_DIR/util/String.cpp \
+        $$MUSCLE_DIR/util/StringTokenizer.cpp \
         $$MUSCLE_DIR/util/NetworkUtilityFunctions.cpp \
         $$MUSCLE_DIR/util/PulseNode.cpp \
         $$MUSCLE_DIR/util/SocketMultiplexer.cpp \

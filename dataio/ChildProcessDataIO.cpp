@@ -31,7 +31,6 @@
 
 #include "util/NetworkUtilityFunctions.h"
 #include "util/String.h"
-#include "util/StringTokenizer.h"
 
 namespace muscle {
 

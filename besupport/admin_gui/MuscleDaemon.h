@@ -14,7 +14,6 @@
 #include "system/GlobalMemoryAllocator.h"
 #include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"
-#include "util/StringTokenizer.h"
 
 #define STR_MUSCLE_DEAMON_NAME "application/x-vnd.Haiku-MuscleDaemon"
 

@@ -16,12 +16,12 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
-   const char * someCString = "   One, Two, Three, Four, Five   ";
+   const char * someCString = "   One, Two, Three,,, Four, Five   ";
    printf("Here is the string we want to parse tokens out of:\n");
    printf("   [%s]\n", someCString);
 
    printf("\n");
-   printf("Basic StringTokenizer usage (using default separator chars: comma, space, tab, newline, carriage-return):\n");
+   printf("Basic StringTokenizer usage (using default separator-chars arguments:  hard=\",\" soft=\" \\t\\r\\n\"):\n");
    {
       StringTokenizer tok(someCString);
 
@@ -33,9 +33,9 @@ int main(int argc, char ** argv)
    }
 
    printf("\n");
-   printf("Basic StringTokenizer usage (explicit separator-chars argument: commas-only):\n");
+   printf("Basic StringTokenizer usage (with explicit separator-chars arguments:  hard=\",\" soft=NULL)\n");
    {
-      StringTokenizer tok(someCString, ",");
+      StringTokenizer tok(someCString, ",", NULL);
 
       const char * nextTok;
       while((nextTok = tok()) != NULL)

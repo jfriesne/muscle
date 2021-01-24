@@ -40,7 +40,7 @@ static MessageRef ParseStdinCommand(const String & stdinCommand)
 {
    if (stdinCommand.IsEmpty()) return MessageRef();
 
-   StringTokenizer tok(stdinCommand(), " ");
+   StringTokenizer tok(stdinCommand(), NULL, " ");
    const String cmd  = tok();
    if ((cmd == "set") || (cmd == "s"))
    {

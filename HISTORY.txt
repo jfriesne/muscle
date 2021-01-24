@@ -5,10 +5,17 @@ key:  - new feature
       * bug fixed
       o other
 
+7.71 - 
    o Updated the muscle.dox file to work with DOxygen v1.9.2.
    o Fixed some ClangSA warnings
    o Modified Hashtable::PutOrRemove() to return a status_t
      instead of a pointer-to-value.
+   o StringTokenizer constructor now takes separate arguments
+     for "hard" and "soft" separator-chars (with multiple
+     contiguous "hard" separator-chars returning empty strings
+     when tokenized, while contiguous "soft" separator-chars
+     will be handled as a single separator)
+   o Removed svncopy.cpp from the tests subfolder
    * SetSocketMulticastToSelf() was broken under MacOS/X; fixed.
 
 7.70 - Released 1/8/2021

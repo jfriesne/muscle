@@ -50,7 +50,7 @@ int main(int, char **)
          // Let's verify that all of the hexBytes are of the form XX
          bool sawWeirdness = false;
          {
-            StringTokenizer tok(hexBytes(), " ");
+            StringTokenizer tok(hexBytes(), NULL, " ");
             const char * t;
             while(((t = tok()) != NULL)&&(sawWeirdness == false))
             {

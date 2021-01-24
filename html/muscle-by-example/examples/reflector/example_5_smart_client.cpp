@@ -85,7 +85,7 @@ private:
    {
       if (stdinCommand.IsEmpty()) return;
 
-      StringTokenizer tok(stdinCommand(), " ");
+      StringTokenizer tok(stdinCommand(), NULL, " ");
       const String cmd  = tok();
       if (cmd == "die")
       {

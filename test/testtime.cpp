@@ -50,7 +50,7 @@ int main(int argc, char ** argv)
       {
          printf("Enter micros, minPrecision(micros): ");  fflush(stdout);
          char buf[512]; if (fgets(buf, sizeof(buf), stdin) == NULL) buf[0] = '\0';
-         StringTokenizer tok(buf, ", ");
+         StringTokenizer tok(buf);
          const char * m = tok();
          const char * p = tok();
          if (m)

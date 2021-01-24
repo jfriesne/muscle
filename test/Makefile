@@ -35,11 +35,11 @@ CXXFLAGS += -std=c++11
 
 LFLAGS =  
 LIBS =  -lpthread
-EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue testtuple testgateway calctypecode printtypecode portablereflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations svncopy testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool
+EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode portablereflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool
 REGEXOBJS = 
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
 ZIPOBJS = zip.o unzip.o ioapi.o
-STDOBJS = $(ZLIBOBJS) FilePathInfo.o Directory.o StringMatcher.o FileDataIO.o TCPSocketDataIO.o UDPSocketDataIO.o NetworkUtilityFunctions.o SocketMultiplexer.o
+STDOBJS = $(ZLIBOBJS) FilePathInfo.o Directory.o StringMatcher.o FileDataIO.o TCPSocketDataIO.o UDPSocketDataIO.o NetworkUtilityFunctions.o SocketMultiplexer.o StringTokenizer.o
 
 VPATH = ../hashtable ../message ../iogateway ../reflector ../regex ../util ../syslog ../system ../dataio ../zlib ../zlib/zlib ../zlib/zlib/contrib/minizip ../minimessage ../micromessage
 
@@ -208,7 +208,7 @@ minireflectclient : minireflectclient.o MiniMessage.o MiniMessageGateway.o
 minichatclient : minichatclient.o MiniMessage.o MiniMessageGateway.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-readmessage : $(STDOBJS) Message.o String.o readmessage.o SysLog.o ByteBuffer.o SetupSystem.o ZLibUtilityFunctions.o ZLibCodec.o 
+readmessage : $(STDOBJS) Message.o String.o readmessage.o SysLog.o ByteBuffer.o SetupSystem.o ZLibUtilityFunctions.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testresponse : $(STDOBJS) testresponse.o MessageIOGateway.o AbstractMessageIOGateway.o SysLog.o SetupSystem.o PulseNode.o Message.o String.o ByteBuffer.o ZLibCodec.o 
@@ -217,7 +217,7 @@ testresponse : $(STDOBJS) testresponse.o MessageIOGateway.o AbstractMessageIOGat
 testnagle : $(STDOBJS) testnagle.o SysLog.o SetupSystem.o String.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testrefcount : $(STDOBJS) testrefcount.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Thread.o Message.o ByteBuffer.o 
+testrefcount : $(STDOBJS) testrefcount.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Thread.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 striphextermoutput : $(STDOBJS) striphextermoutput.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
@@ -227,6 +227,9 @@ teststatus : teststatus.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 teststring : $(STDOBJS) teststring.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+teststringtokenizer : $(STDOBJS) teststringtokenizer.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testbitchord : $(STDOBJS) testbitchord.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
@@ -241,7 +244,7 @@ testbytebuffer : $(STDOBJS) testbytebuffer.o SysLog.o String.o SetupSystem.o Mis
 testmatchfiles : $(STDOBJS) testmatchfiles.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o StringMatcher.o FilePathExpander.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testparsefile : $(STDOBJS) testparsefile.o SysLog.o String.o MiscUtilityFunctions.o SetupSystem.o Message.o ByteBuffer.o 
+testparsefile : $(STDOBJS) testparsefile.o SysLog.o String.o MiscUtilityFunctions.o SetupSystem.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testtime : $(STDOBJS) testtime.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o ByteBuffer.o Message.o MiscUtilityFunctions.o
@@ -263,7 +266,7 @@ testtuple : $(STDOBJS) testtuple.o String.o SysLog.o SetupSystem.o
 testserial : $(STDOBJS) testserial.o SysLog.o RS232DataIO.o String.o SetupSystem.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testgateway : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o testgateway.o SysLog.o PulseNode.o SetupSystem.o ZLibDataIO.o ZLibCodec.o ByteBuffer.o 
+testgateway : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o testgateway.o SysLog.o PulseNode.o SetupSystem.o ZLibDataIO.o ZLibCodec.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testregex : $(STDOBJS) testregex.o String.o SysLog.o SetupSystem.o $(REGEXOBJS)
@@ -293,13 +296,13 @@ testpackettunnel : $(STDOBJS) testpackettunnel.o Message.o AbstractMessageIOGate
 testpacketio : $(STDOBJS) testpacketio.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-bandwidthtester : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o bandwidthtester.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o 
+bandwidthtester : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o bandwidthtester.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-uploadstress : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o uploadstress.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o 
+uploadstress : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o uploadstress.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-portableplaintextclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o portableplaintextclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o 
+portableplaintextclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o portableplaintextclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testchildprocess : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o testchildprocess.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o 
@@ -345,9 +348,6 @@ deadlockfinder : $(STDOBJS) deadlockfinder.o SysLog.o String.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 deadlock: $(STDOBJS) deadlock.o SysLog.o String.o SetupSystem.o Thread.o Message.o ByteBuffer.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-svncopy : $(STDOBJS) svncopy.o String.o SetupSystem.o SysLog.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 clean :

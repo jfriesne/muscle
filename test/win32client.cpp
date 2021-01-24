@@ -3,7 +3,6 @@
 #include "reflector/StorageReflectConstants.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/NetworkUtilityFunctions.h"
-#include "util/StringTokenizer.h"
 #include "system/SetupSystem.h"
 
 using namespace muscle;

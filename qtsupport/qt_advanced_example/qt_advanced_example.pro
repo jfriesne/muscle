@@ -50,6 +50,7 @@ MUSCLE_SOURCES = $$MUSCLE_DIR/dataio/FileDataIO.cpp                   \
                  $$MUSCLE_DIR/util/NetworkUtilityFunctions.cpp        \
                  $$MUSCLE_DIR/util/SocketMultiplexer.cpp              \
                  $$MUSCLE_DIR/util/String.cpp                         \
+                 $$MUSCLE_DIR/util/StringTokenizer.cpp                \
                  $$MUSCLE_DIR/util/PulseNode.cpp
 
 win32:MUSCLE_SOURCES += $$MUSCLE_DIR/regex/regex/regcomp.c            \

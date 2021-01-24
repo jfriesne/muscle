@@ -4,7 +4,6 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "syslog/SysLog.h"       // for SetConsoleLogLevel()
 #include "util/String.h"
-#include "util/StringTokenizer.h"
 
 using namespace muscle;
 
