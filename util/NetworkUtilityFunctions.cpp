@@ -94,8 +94,9 @@ static inline void GET_SOCKADDR_IP(const struct sockaddr_in6 & sockAddr, IPAddre
    {
       case AF_INET6:
       {
+         ipAddr.UnsetInterfaceIndex();
          const uint32 tmp = sockAddr.sin6_scope_id;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
-         ipAddr.ReadFromNetworkArray(sockAddr.sin6_addr.s6_addr, &tmp);
+         ipAddr.ReadFromNetworkArray(sockAddr.sin6_addr.s6_addr, tmp ? &tmp : NULL);
          if ((_automaticIPv4AddressMappingEnabled)&&(ipAddr != localhostIP)&&(ipAddr.IsValid())&&(ipAddr.IsIPv4())) ipAddr.SetLowBits(ipAddr.GetLowBits() & ((uint64)0xFFFFFFFF));  // remove IPv4-mapped-IPv6-bits
       }
       break;
@@ -780,8 +781,8 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
                if (ret6.IsValid() == false)
                {
                   struct sockaddr_in6 * sin6 = (struct sockaddr_in6 *) next->ai_addr;
-                  uint32 tmp = sin6->sin6_scope_id;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
-                  ret6.ReadFromNetworkArray(sin6->sin6_addr.s6_addr, &tmp);
+                  const uint32 tmp = sin6->sin6_scope_id;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
+                  ret6.ReadFromNetworkArray(sin6->sin6_addr.s6_addr, tmp ? &tmp : NULL);
                }
             break;
          }
@@ -1252,8 +1253,8 @@ static IPAddress SockAddrToIPAddr(const struct sockaddr * a)
          {
             struct sockaddr_in6 * sin6 = (struct sockaddr_in6 *) a;
             IPAddress ret;
-            uint32 tmp = sin6->sin6_scope_id;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
-            ret.ReadFromNetworkArray(sin6->sin6_addr.s6_addr, &tmp);
+            const uint32 tmp = sin6->sin6_scope_id;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
+            ret.ReadFromNetworkArray(sin6->sin6_addr.s6_addr, tmp ? &tmp : NULL);
             return ret;
          }
 #endif
@@ -1843,7 +1844,7 @@ static status_t Inet6_AtoN(const char * buf, uint32 iIdx, IPAddress & retIP)
    struct in6_addr dst;
    if (Inet_PtoN(AF_INET6, buf, &dst) > 0)
    {
-      retIP.ReadFromNetworkArray(dst.s6_addr, &iIdx);
+      retIP.ReadFromNetworkArray(dst.s6_addr, iIdx ? &iIdx : NULL);
       return B_NO_ERROR;
    }
    else return IsIP4Address(buf) ? Inet4_AtoN(buf, retIP) : B_BAD_ARGUMENT;

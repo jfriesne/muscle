@@ -20,6 +20,10 @@ key:  - new feature
    o Removed svncopy.cpp from the tests subfolder.
    o Added teststringtokenizer.cpp to the tests subfolder.
    * SetSocketMulticastToSelf() was broken under MacOS/X; fixed.
+   * The calls to ReadFromNetworkArray() inside 
+     NetworkUtilityFunctions.cpp no longer pass zero as an
+     interface index, to avoid an unnecessary @0 suffix in
+     IPv6 address strings.
 
 7.70 - Released 1/8/2021
    - The subscribed-sessions tables used by DataNode objects are 
