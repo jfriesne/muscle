@@ -67,11 +67,12 @@ static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedK
 static void SleepCallback(void * refCon, io_service_t /*service*/, natural_t messageType, void * messageArgument);
 #endif
 
-#ifdef WIN32
+#if defined(WIN32)
 static LRESULT CALLBACK dnccsWindowHandler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+# if !defined(MUSCLE_AVOID_NETIOAPI)
 static VOID __stdcall AddressCallback(IN PVOID context, IN PMIB_UNICASTIPADDRESS_ROW Address OPTIONAL, IN MIB_NOTIFICATION_TYPE NotificationType);
 static VOID __stdcall InterfaceCallback(IN PVOID context, IN PMIB_IPINTERFACE_ROW interfaceRow, IN MIB_NOTIFICATION_TYPE NotificationType);
-
+# endif
 #endif
 
 enum {
@@ -594,7 +595,8 @@ static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedK
 
 # endif  // __APPLE__
 
-# if defined(WIN32) && !defined(MUSCLE_AVOID_NETIOAPI)
+# if defined(WIN32)
+#  if !defined(MUSCLE_AVOID_NETIOAPI)
 
 VOID __stdcall AddressCallback(IN PVOID context, IN PMIB_UNICASTIPADDRESS_ROW Address OPTIONAL, IN MIB_NOTIFICATION_TYPE /*NotificationType*/)
 {
@@ -605,6 +607,7 @@ VOID __stdcall InterfaceCallback(IN PVOID context, IN PMIB_IPINTERFACE_ROW inter
 {
    if (interfaceRow != NULL) ((DetectNetworkConfigChangesThread *)context)->SignalInterfacesChanged(interfaceRow->InterfaceIndex);
 }
+#  endif
 
 static LRESULT CALLBACK dnccsWindowHandler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {

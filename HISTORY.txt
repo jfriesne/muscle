@@ -24,6 +24,8 @@ key:  - new feature
      NetworkUtilityFunctions.cpp no longer pass zero as an
      interface index, to avoid an unnecessary @0 suffix in
      IPv6 address strings.
+   * Modified DetectNetworkConfigChangesSession.cpp to again
+     compile when _WIN32_WINNT is set to 0x0501 (aka WinXP)
 
 7.70 - Released 1/8/2021
    - The subscribed-sessions tables used by DataNode objects are 
