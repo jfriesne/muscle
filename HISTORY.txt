@@ -26,6 +26,9 @@ key:  - new feature
      IPv6 address strings.
    * Modified DetectNetworkConfigChangesSession.cpp to again
      compile when _WIN32_WINNT is set to 0x0501 (aka WinXP)
+   * Fixed a bug in the Win32 implementation of
+     Thread::SetThreadPriority() that would cause it to
+     always return B_UNIMPLEMENTED.
 
 7.70 - Released 1/8/2021
    - The subscribed-sessions tables used by DataNode objects are 

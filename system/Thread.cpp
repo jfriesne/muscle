@@ -553,7 +553,13 @@ status_t Thread :: SetThreadPriorityAux(int newPriority)
 #elif defined(MUSCLE_USE_QT_THREADS)
    _thread.setPriority(MuscleThreadPriorityToQtThreadPriority(newPriority));
    return B_NO_ERROR;
-#else
+#elif defined(WIN32)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   return ::SetThreadPriority(_thread.native_handle(), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
+# else
+   return ::SetThreadPriority(_thread, MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
+# endif
+#elif
    return B_UNIMPLEMENTED;  // dunno how to set thread priorities on this platform
 #endif
 }
