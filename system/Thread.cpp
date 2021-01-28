@@ -559,7 +559,7 @@ status_t Thread :: SetThreadPriorityAux(int newPriority)
 # else
    return ::SetThreadPriority(_thread, MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # endif
-#elif
+#else
    return B_UNIMPLEMENTED;  // dunno how to set thread priorities on this platform
 #endif
 }
