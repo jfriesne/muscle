@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-7.71 - 
+7.71 - Released 2/14/2021
    - Added copy-constructor and assignment-operator to the
      StringTokenizer class.
    o Updated the muscle.dox file to work with DOxygen v1.9.2.
