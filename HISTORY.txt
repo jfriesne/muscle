@@ -5,6 +5,13 @@ key:  - new feature
       * bug fixed
       o other
 
+7.80 -
+   - Added TemplatedFlatten() and TemplatedUnflatten()
+     methods to the Message class, to allow storing of
+     a Message's payload-data separately from its metadata.
+   - Added SetValuesToDefaults() method to the Message class.
+   o Added template-testing code to testmessage.cpp
+
 7.71 - Released 2/14/2021
    - Added copy-constructor and assignment-operator to the
      StringTokenizer class.

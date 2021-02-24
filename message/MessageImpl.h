@@ -19,6 +19,8 @@
 
 namespace muscle {
 
+class Message;
+
 namespace muscle_message_imp {
 
 /** This class is a private part of the Message class's implementation.  User code should not access this class directly.
@@ -38,6 +40,9 @@ public:
 
    // Clears the field
    virtual void Clear(bool releaseDataBuffers) = 0;
+
+   // Sets all values in the field to their default state
+   virtual void SetValuesToDefaults(uint32 maxRecursions) = 0;
 
    // Normalizes the field
    virtual void Normalize() = 0;
@@ -90,6 +95,12 @@ public:
      */
    virtual RefCountableRef GetItemAtAsRefCountableRef(uint32 idx) const {(void) idx; return GetDefaultObjectForType<RefCountableRef>();}
 
+   /** Used by the TemplatedFlatten() methods */
+   virtual void Flatten(uint8 * buf, uint32 maxItemsToFlatten) const = 0;
+
+   /** Used by the regular Flatten() methods */
+   virtual void Flatten(uint8 * buf) const {Flatten(buf, MUSCLE_NO_LIMIT);}
+
 protected:
    /** Must be implemented by each subclass to return true iff (rhs) is of the same type
     *  and has the same data as (*this).  The TypeCode() and GetNumItems() of (rhs) are
@@ -130,7 +141,7 @@ public:
    uint32 TypeCode() const {return _typeCode;}
    bool AllowsTypeCode(uint32 tc) const {return tc == TypeCode();}
    uint32 FlattenedSize() const {return HasArray() ? GetArray()->FlattenedSize() : SingleFlattenedSize();}
-   void Flatten(uint8 *buffer) const {if (HasArray()) GetArray()->Flatten(buffer); else SingleFlatten(buffer);}
+   void Flatten(uint8 *buffer, uint32 maxItemsToFlatten) const {if (HasArray()) GetArray()->Flatten(buffer, maxItemsToFlatten); else SingleFlatten(buffer);}
    status_t Unflatten(const uint8 * buf, uint32 numBytes);
 
    // Pseudo-AbstractDataArray interface
@@ -139,6 +150,7 @@ public:
    status_t PrependDataItem(const void * data, uint32 numBytes) {return HasArray() ? GetArray()->PrependDataItem(data, numBytes) : SinglePrependDataItem(data, numBytes);}
    void Clear();
    void Normalize() {if (HasArray()) GetArray()->Normalize();}
+   void SetValuesToDefaults(uint32 maxRecursions) {if (HasArray()) GetArray()->SetValuesToDefaults(maxRecursions); else SingleSetValuesToDefaults(maxRecursions);}
    status_t FindDataItem(uint32 index, const void ** setDataLoc) const {return HasArray() ? GetArray()->FindDataItem(index, setDataLoc) : SingleFindDataItem(index, setDataLoc);}
    status_t ReplaceDataItem(uint32 index, const void * data, uint32 numBytes) {return HasArray() ? GetArray()->ReplaceDataItem(index, data, numBytes) : SingleReplaceDataItem(index, data, numBytes);}
    uint32 GetItemSize(uint32 index) const {return HasArray() ? GetArray()->GetItemSize(index) : SingleGetItemSize(index);}
@@ -161,6 +173,11 @@ public:
    status_t ShareTo(MessageField & shareToMe) const;
    bool HasArray() const {return (_state == FIELD_STATE_ARRAY);}  // returns true iff we have an AbstractDataArray object allocated
 
+   uint64 TemplatedHashCode64() const {return ((uint64)GetNumItems())*((uint64)TypeCode());}
+   uint32 TemplatedFlattenedSize(const MessageField * optPayloadField) const;
+   void TemplatedFlatten(const MessageField * optPayloadField, uint8 * & buf) const;
+   status_t TemplatedUnflatten(Message & unflattenTo, const String & fieldName, const uint8 * & buf, uint32 & bufSize) const; 
+   
 private:
    const AbstractDataArray * GetArray() const {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
    AbstractDataArray * GetArray() {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
@@ -182,6 +199,7 @@ private:
    bool SingleIsFlattenable() const;
    void SingleAddToString(String & s, uint32 maxRecurseLevel, int indent) const;
    void SingleSetValue(const void * data, uint32 numBytes);
+   void SingleSetValuesToDefaults(uint32 maxRecursions);
    AbstractDataArrayRef CreateDataArray(uint32 typeCode) const;
    void ChangeType(uint8 newType);
 

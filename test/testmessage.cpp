@@ -58,6 +58,39 @@ private:
 };
 DECLARE_REFTYPES(TestFlatCountable);
 
+static void TestTemplatedFlatten(const Message & m, int lineNumber)
+{
+   Message templateMsg = m;
+   templateMsg.SetValuesToDefaults();
+
+   const uint32 templatedFlatSize = m.TemplatedFlattenedSize(templateMsg);
+   const uint32 regularFlatSize   = m.FlattenedSize();
+   printf("TEMPLATE TEST at line %i:  templatedFlatSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " (%.0f%% size reduction)\n", lineNumber, templatedFlatSize, regularFlatSize, 100.0*(1.0-((float)templatedFlatSize/regularFlatSize)));
+
+   ByteBufferRef buf = GetByteBufferFromPool(templatedFlatSize);
+   m.TemplatedFlatten(templateMsg, buf()->GetBuffer());
+
+   //printf("Templated flattened buffer is:\n");
+   //PrintHexBytes(buf);
+
+   status_t ret;
+   Message newMsg;
+   if (newMsg.TemplatedUnflatten(templateMsg, buf()->GetBuffer(), buf()->GetNumBytes()).IsOK(ret))
+   {
+      if (newMsg != m)
+      {
+         printf("Template test failed (line %i), Unflattened Message didn't match the original!  Unflattened Message is:\n", lineNumber);
+         newMsg.PrintToStream();
+         exit(10);
+      }
+   }
+   else 
+   {
+      printf("TemplatedUnflatten() (line %i) failed [%s]\n", lineNumber, ret());
+      exit(10);
+   }
+}
+
 // This program exercises the Message class.
 int main(int, char **)
 {
@@ -81,10 +114,13 @@ int main(int, char **)
 
    Message m1;
    m1.AddFloat("va", 1.0f);
-   printf("m1=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
+   TestTemplatedFlatten(m1, __LINE__);
+   m1.AddFloat("va", 2.0f);
+   TestTemplatedFlatten(m1, __LINE__);
+   printf("m1 flattenedSize=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
    m1.AddInt32("co", 32);
-   printf("m2=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
-   m1.PrintToStream();
+   TestTemplatedFlatten(m1, __LINE__);
+   printf("m2 flattenedSize=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
 
    printSep("Testing Replace*() with okayToAdd...");
    Message butter;
@@ -96,6 +132,7 @@ int main(int, char **)
    butter.ReplaceDouble(true, "double", 6.28);
    butter.ReplacePoint(true, "point", Point(5,4));
    butter.ReplaceRect(true, "rect", Rect(5,6,7,8));
+   TestTemplatedFlatten(butter, __LINE__);
    butter.ReplacePointer(true, "pointer", &butter);
    butter.PrintToStream();
 
@@ -110,6 +147,10 @@ int main(int, char **)
 
    void * t;
    if ((butter.FindPointer("pointer", t) != B_NO_ERROR)||(t != &butter)) printf("Error retrieving pointer!\n");
+
+   (void) butter.RemoveName("pointer");  // otherwise the templated test will fail since pointer fields don't get flattened
+   (void) butter.RemoveName("Tag");      // otherwise the templated test will fail since tag fields don't get flattened
+   TestTemplatedFlatten(butter, __LINE__);
 
    printf("(butter==m1) == %i\n", butter == m1);
    printf("(butter==butter) == %i\n", butter == butter);
@@ -136,11 +177,12 @@ int main(int, char **)
    TEST(msg.AddFloat("float", 3.14159));
    TEST(msg.AddDouble("double", 6.28));
    TEST(msg.AddDouble("double", 6.66));
-   TEST(msg.AddPointer("ptr", &msg));
-   TEST(msg.AddPointer("ptr", &butter));
    TEST(msg.AddMessage("msg", butter));
    TEST(msg.AddData("Data", B_RAW_TYPE, "ABCDEFGHIJKLMNOPQRS", 12));
    TEST(msg.AddData("Data", B_RAW_TYPE, "Mouse", 3));
+   TestTemplatedFlatten(msg, __LINE__);
+   TEST(msg.AddPointer("ptr", &msg));
+   TEST(msg.AddPointer("ptr", &butter));
 
    printf("Testing the Get*() functions...\n");
    printf("GetCstr(\"Friesner\")     =%s\n", msg.GetCstr(  "Friesner", "<not found>"));
