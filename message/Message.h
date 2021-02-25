@@ -705,14 +705,11 @@ public:
     */
    void Clear(bool releaseCachedBuffers = false) {_entries.Clear(releaseCachedBuffers);}
 
-   /** Sets the values in all of our fields to their default states (e.g. 0 for values in numeric fields,
-     * to empty for string fields, and so on).  Useful for making Template Messages more succinct.
-     * @param maxRecursions how deep into child-Messages this modification should reach.  Default
-     *                      value is MUSCLE_NO_LIMIT, indicating that all fields in all sub-Messages
-     *                      should be reset to their defaults.
-     * @note Messages-values and tag-values are not affected by this method.
+   /** Returns a Message that is identical to this one, except that all data-values have been
+     * set to their default/empty values.  The returned Message can be used as a template for 
+     * use in future calls to TemplatedFlatten(), TemplatedUnflatten(), TemplatedFlattenedSize(), etc.
      */
-   void SetValuesToDefaults(uint32 maxRecursions = MUSCLE_NO_LIMIT);
+   MessageRef CreateMessageTemplate() const;
 
    /** Retrieve a string value from the Message.
     *  @param fieldName The field name to look for the string value under.
@@ -1688,7 +1685,9 @@ private:
 
    status_t ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & bufRef, uint32 tc);
    status_t ReplaceDataAux(bool okayToAdd, const String & fieldName, uint32 index, void * dataBuf, uint32 bufSize, uint32 tc);
- 
+
+   uint64 TemplateHashCode64Aux(uint32 & count) const;
+
    const String * GetExtremeFieldNameStringAux(uint32 optTypeCode, bool isLast) const
    {
       if (optTypeCode == B_ANY_TYPE) return isLast ? _entries.GetLastKey() : _entries.GetFirstKey(); 

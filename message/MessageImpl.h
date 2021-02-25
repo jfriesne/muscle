@@ -41,9 +41,6 @@ public:
    // Clears the field
    virtual void Clear(bool releaseDataBuffers) = 0;
 
-   // Sets all values in the field to their default state
-   virtual void SetValuesToDefaults(uint32 maxRecursions) = 0;
-
    // Normalizes the field
    virtual void Normalize() = 0;
 
@@ -150,7 +147,6 @@ public:
    status_t PrependDataItem(const void * data, uint32 numBytes) {return HasArray() ? GetArray()->PrependDataItem(data, numBytes) : SinglePrependDataItem(data, numBytes);}
    void Clear();
    void Normalize() {if (HasArray()) GetArray()->Normalize();}
-   void SetValuesToDefaults(uint32 maxRecursions) {if (HasArray()) GetArray()->SetValuesToDefaults(maxRecursions); else SingleSetValuesToDefaults(maxRecursions);}
    status_t FindDataItem(uint32 index, const void ** setDataLoc) const {return HasArray() ? GetArray()->FindDataItem(index, setDataLoc) : SingleFindDataItem(index, setDataLoc);}
    status_t ReplaceDataItem(uint32 index, const void * data, uint32 numBytes) {return HasArray() ? GetArray()->ReplaceDataItem(index, data, numBytes) : SingleReplaceDataItem(index, data, numBytes);}
    uint32 GetItemSize(uint32 index) const {return HasArray() ? GetArray()->GetItemSize(index) : SingleGetItemSize(index);}
@@ -199,7 +195,6 @@ private:
    bool SingleIsFlattenable() const;
    void SingleAddToString(String & s, uint32 maxRecurseLevel, int indent) const;
    void SingleSetValue(const void * data, uint32 numBytes);
-   void SingleSetValuesToDefaults(uint32 maxRecursions);
    AbstractDataArrayRef CreateDataArray(uint32 typeCode) const;
    void ChangeType(uint8 newType);
 

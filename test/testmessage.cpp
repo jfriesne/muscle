@@ -60,22 +60,41 @@ DECLARE_REFTYPES(TestFlatCountable);
 
 static void TestTemplatedFlatten(const Message & m, int lineNumber)
 {
-   Message templateMsg = m;
-   templateMsg.SetValuesToDefaults();
+   const uint32 oldChecksum = m.CalculateChecksum();
+   MessageRef messageTemplate = m.CreateMessageTemplate();
+   if (messageTemplate() == NULL)
+   {
+      printf("CreateMessageTemplate() failed!\n");
+      exit(10);
+   }
 
-   const uint32 templatedFlatSize = m.TemplatedFlattenedSize(templateMsg);
+   const uint32 newChecksum = m.CalculateChecksum();
+   if (newChecksum != oldChecksum)
+   {
+      printf("CreateMessageTemplate() caused original Message's checksum to change from " UINT32_FORMAT_SPEC " to " UINT32_FORMAT_SPEC ", that shouldn't happen!\n", oldChecksum, newChecksum);
+      exit(10);
+   }
+
+   const uint32 templatedFlatSize = m.TemplatedFlattenedSize(*messageTemplate());
    const uint32 regularFlatSize   = m.FlattenedSize();
    printf("TEMPLATE TEST at line %i:  templatedFlatSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " (%.0f%% size reduction)\n", lineNumber, templatedFlatSize, regularFlatSize, 100.0*(1.0-((float)templatedFlatSize/regularFlatSize)));
 
+   printf("Message is:\n");
+   m.PrintToStream();
+ 
    ByteBufferRef buf = GetByteBufferFromPool(templatedFlatSize);
-   m.TemplatedFlatten(templateMsg, buf()->GetBuffer());
+   memset(buf()->GetBuffer(), 'X', buf()->GetNumBytes());  // just to make any unwritten-to-bytes more obvious
+   m.TemplatedFlatten(*messageTemplate(), buf()->GetBuffer());
 
-   //printf("Templated flattened buffer is:\n");
-   //PrintHexBytes(buf);
+   //printf("Template Message is:\n");
+   //messageTemplate()->PrintToStream();
+
+   printf("Templated flattened buffer is:\n");
+   PrintHexBytes(buf);
 
    status_t ret;
    Message newMsg;
-   if (newMsg.TemplatedUnflatten(templateMsg, buf()->GetBuffer(), buf()->GetNumBytes()).IsOK(ret))
+   if (newMsg.TemplatedUnflatten(*messageTemplate(), buf()->GetBuffer(), buf()->GetNumBytes()).IsOK(ret))
    {
       if (newMsg != m)
       {
@@ -173,11 +192,11 @@ int main(int, char **)
    TEST(msg.AddInt8("int8", 45));
    TEST(msg.AddInt16("int16", 123));
    TEST(msg.AddInt32("int32", 89));
-   TEST(msg.AddInt64("int64", 99999));
    TEST(msg.AddFloat("float", 3.14159));
    TEST(msg.AddDouble("double", 6.28));
    TEST(msg.AddDouble("double", 6.66));
    TEST(msg.AddMessage("msg", butter));
+   TEST(msg.AddInt64("int64", 99999));
    TEST(msg.AddData("Data", B_RAW_TYPE, "ABCDEFGHIJKLMNOPQRS", 12));
    TEST(msg.AddData("Data", B_RAW_TYPE, "Mouse", 3));
    TestTemplatedFlatten(msg, __LINE__);

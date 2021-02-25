@@ -99,11 +99,6 @@ public:
    virtual void Clear(bool releaseDataBuffers) {_data.Clear(releaseDataBuffers);}
    virtual void Normalize() {_data.Normalize();}
 
-   virtual void SetValuesToDefaults(uint32)
-   {
-      for (int32 i=_data.GetNumItems()-1; i>=0; i--) _data[i] = GetDefaultObjectForType<DataType>();
-   }
-
    virtual status_t AddDataItem(const void * item, uint32 size)
    {
       return (size == sizeof(DataType)) ? (item ? _data.AddTail(*(reinterpret_cast<const DataType *>(item))) : _data.AddTail()) : B_BAD_ARGUMENT;
@@ -183,11 +178,6 @@ public:
    {
       MCRASH("Message::TagDataArray:Unflatten()  This method should never be called!");
       return B_NO_ERROR;  // just to keep the compiler happy
-   }
-
-   virtual void SetValuesToDefaults(uint32)
-   {
-      // deliberate no-op here
    }
 
    virtual uint32 TypeCode() const {return B_TAG_TYPE;}
@@ -741,11 +731,6 @@ public:
 
    virtual bool ElementsAreFixedSize() const {return false;}
 
-   virtual void SetValuesToDefaults(uint32)
-   {
-      // deliberate no-op here
-   }
-
    /** Whether or not we should write the number-of-items element when we flatten this field.
      * Older versions of muscle didn't do this for MessageDataArray objects, so we need to
      * maintain that behaviour so that we don't break compatibility.  (bleah)
@@ -943,15 +928,6 @@ public:
 
    /** For backwards compatibility with older muscle streams */
    virtual bool ShouldWriteNumItems() const {return false;}
-
-   virtual void SetValuesToDefaults(uint32 maxRecursions)
-   {
-      if (maxRecursions > 0)
-      {
-         const uint32 newRecurseVal = maxRecursions-((maxRecursions==MUSCLE_NO_LIMIT)?0:1);
-         for (int32 i=GetNumItems()-1; i>=0; i--) _data[i]()->SetValuesToDefaults(newRecurseVal);
-      } 
-   }
 
    virtual status_t Unflatten(const uint8 * buffer, uint32 numBytes)
    {
@@ -1194,9 +1170,60 @@ Message & Message :: operator=(const Message & rhs)
    return *this;
 }
 
-void Message :: SetValuesToDefaults(uint32 maxRecursions)
+MessageRef Message :: CreateMessageTemplate() const
 {
-   for (HashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++) it.GetValue().SetValuesToDefaults(maxRecursions);
+   MessageRef ret = GetMessageFromPool(what);
+   if (ret() == NULL) return MessageRef();
+
+   for (HashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++) 
+   {
+      const String & fn = it.GetKey();
+      const MessageField & mf = it.GetValue();
+
+      const uint32 numItems = mf.GetNumItems();
+      if (mf.IsFlattenable())
+      {
+         if (mf.TypeCode() == B_MESSAGE_TYPE)
+         {
+            for (uint32 i=0; i<numItems; i++)
+            {
+               MessageRef newSubMsg = static_cast<const Message *>(mf.GetItemAtAsRefCountableRef(i)())->CreateMessageTemplate();
+               if ((newSubMsg() == NULL)||(ret()->AddMessage(fn, newSubMsg).IsError())) return MessageRef();
+            }
+         }
+         else if (mf.TypeCode() == B_STRING_TYPE)
+         {
+            for (uint32 i=0; i<numItems; i++) if (ret()->AddString(fn, GetEmptyString()).IsError()) return MessageRef();
+         }
+         else if (mf.ElementsAreFixedSize())
+         {
+            if (ret()->AddData(fn, mf.TypeCode(), NULL, mf.GetNumItems()*mf.GetItemSize(0)).IsError()) return MessageRef();
+         }
+         else
+         {
+            // If we got here, it's a non-fixed-size type; we'll do our best to set it to default values
+            // but if it's some user-defined type, we may not be able to do that.
+            MessageField * newMF = ret()->_entries.PutAndGet(fn, MessageField(mf));
+            if ((newMF == NULL)||(newMF->EnsurePrivate().IsError())) return MessageRef();
+
+            ByteBufferRef emptyBuf;  // demand-allocated
+            for (int32 i=newMF->GetNumItems()-1; i>=0; i--)
+            {
+               const ByteBuffer * optBB = dynamic_cast<const ByteBuffer *>(newMF->GetItemAtAsRefCountableRef(i)());
+               if (optBB)
+               {
+                  if (emptyBuf() == NULL)
+                  {
+                     emptyBuf = GetByteBufferFromPool(0);
+                     if (emptyBuf() == NULL) return MessageRef();
+                  }
+                  if (newMF->ReplaceDataItem(i, &emptyBuf, sizeof(emptyBuf)).IsError()) return MessageRef();
+               }
+            }
+         }
+      }
+   }
+   return ret;
 }
 
 status_t Message :: GetInfo(const String & fieldName, uint32 * type, uint32 * c, bool * fixedSize) const
@@ -1649,7 +1676,7 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
    if (numBytes == 0) return B_BAD_ARGUMENT;   // can't add 0 bytes, that's silly
    if (tc == B_STRING_TYPE) 
    {
-      String temp((const char *)data);  // kept separate to avoid BeOS gcc optimizer bug (otherwise -O3 crashes here)
+      const String temp((const char *)data);  // kept separate to avoid BeOS gcc optimizer bug (otherwise -O3 crashes here)
       return prepend ? PrependString(fieldName, temp) : AddString(fieldName, temp);
    }
 
@@ -2309,12 +2336,28 @@ void Message :: SwapContents(Message & swapWith)
 
 uint64 Message :: TemplateHashCode64() const
 {
-   uint64 sum   = 0;
    uint32 count = 0;
+   return TemplateHashCode64Aux(count);
+}
+ 
+uint64 Message :: TemplateHashCode64Aux(uint32 & count) const
+{
+   uint64 sum = 0;
    for (HashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const MessageField & mf = iter.GetValue();
-      if (mf.IsFlattenable()) sum += ((++count)*(iter.GetKey().HashCode64() + mf.TemplatedHashCode64()));
+      if (mf.IsFlattenable()) 
+      {
+         ++count;
+
+         const String & fn = iter.GetKey();
+         sum += (count*(fn.HashCode64() + mf.TemplatedHashCode64()));
+         if (mf.TypeCode() == B_MESSAGE_TYPE)
+         {
+            MessageRef subMsg;
+            for (uint32 i=0; FindMessage(fn, i, subMsg).IsOK(); i++) sum += subMsg()->TemplateHashCode64Aux(count);
+         }
+      }
    }
    return sum; 
 }
@@ -2570,52 +2613,25 @@ status_t MessageField :: SingleUnflatten(const uint8 * buffer, uint32 numBytes)
    return B_NO_ERROR;
 }
 
-void MessageField :: SingleSetValuesToDefaults(uint32 maxRecursions)
-{
-   _state = FIELD_STATE_INLINE;
-   switch(_typeCode)
-   {
-      case B_BOOL_TYPE:    SetInlineItemAsBool(    false                    ); break;
-      case B_DOUBLE_TYPE:  SetInlineItemAsDouble(  0.0                      ); break;
-      case B_FLOAT_TYPE:   SetInlineItemAsFloat(   0.0f                     ); break;
-      case B_INT64_TYPE:   SetInlineItemAsInt64(   0                        ); break;
-      case B_INT32_TYPE:   SetInlineItemAsInt32(   0                        ); break;
-      case B_INT16_TYPE:   SetInlineItemAsInt16(   0                        ); break;
-      case B_INT8_TYPE:    SetInlineItemAsInt8(    0                        ); break;
-      case B_POINTER_TYPE: SetInlineItemAsPointer( NULL                     ); break;
-      case B_POINT_TYPE:   SetInlineItemAsPoint(   Point(0.0f,0.0f)         ); break;
-      case B_RECT_TYPE:    SetInlineItemAsRect(    Rect(0.0f,0.0f,0.0f,0.0f)); break;
-      case B_STRING_TYPE:  SetInlineItemAsString(  GetEmptyString()         ); break;
-
-      case B_MESSAGE_TYPE: 
-         if (maxRecursions > 0) static_cast<Message *>(GetInlineItemAsRefCountableRef()())->SetValuesToDefaults(maxRecursions-((maxRecursions==MUSCLE_NO_LIMIT)?0:1));
-      break;
-
-      default:
-         // empty
-      break;
-   }
-}
-
 void MessageField :: SingleSetValue(const void * data, uint32 /*size*/)
 {
    _state = FIELD_STATE_INLINE;
    switch(_typeCode)
    {
-      case B_BOOL_TYPE:    SetInlineItemAsBool(   *static_cast<const bool          *>(data)); break;
-      case B_DOUBLE_TYPE:  SetInlineItemAsDouble( *static_cast<const double        *>(data)); break;
-      case B_FLOAT_TYPE:   SetInlineItemAsFloat(  *static_cast<const float         *>(data)); break;
-      case B_INT64_TYPE:   SetInlineItemAsInt64(  *static_cast<const int64         *>(data)); break;
-      case B_INT32_TYPE:   SetInlineItemAsInt32(  *static_cast<const int32         *>(data)); break;
-      case B_INT16_TYPE:   SetInlineItemAsInt16(  *static_cast<const int16         *>(data)); break;
-      case B_INT8_TYPE:    SetInlineItemAsInt8(   *static_cast<const int8          *>(data)); break;
-      case B_POINTER_TYPE: SetInlineItemAsPointer(*static_cast<const MFVoidPointer *>(data)); break;
-      case B_POINT_TYPE:   SetInlineItemAsPoint(  *static_cast<const Point         *>(data)); break;
-      case B_RECT_TYPE:    SetInlineItemAsRect(   *static_cast<const Rect          *>(data)); break;
-      case B_STRING_TYPE:  SetInlineItemAsString( *static_cast<const String        *>(data)); break;
-
-      case B_MESSAGE_TYPE: case B_TAG_TYPE: default:
-         SetInlineItemAsRefCountableRef(*static_cast<const RefCountableRef *>(data));
+      case B_BOOL_TYPE:    SetInlineItemAsBool(   data ? *static_cast<const bool          *>(data) : false);    break;
+      case B_DOUBLE_TYPE:  SetInlineItemAsDouble( data ? *static_cast<const double        *>(data) : 0.0);      break;
+      case B_FLOAT_TYPE:   SetInlineItemAsFloat(  data ? *static_cast<const float         *>(data) : 0.0f);     break;
+      case B_INT64_TYPE:   SetInlineItemAsInt64(  data ? *static_cast<const int64         *>(data) : 0);        break;
+      case B_INT32_TYPE:   SetInlineItemAsInt32(  data ? *static_cast<const int32         *>(data) : 0);        break;
+      case B_INT16_TYPE:   SetInlineItemAsInt16(  data ? *static_cast<const int16         *>(data) : 0);        break;
+      case B_INT8_TYPE:    SetInlineItemAsInt8(   data ? *static_cast<const int8          *>(data) : 0);        break;
+      case B_POINTER_TYPE: SetInlineItemAsPointer(data ? *static_cast<const MFVoidPointer *>(data) : 0);        break;
+      case B_POINT_TYPE:   SetInlineItemAsPoint(  data ? *static_cast<const Point         *>(data) : Point());  break;
+      case B_RECT_TYPE:    SetInlineItemAsRect(   data ? *static_cast<const Rect          *>(data) : Rect());   break;
+      case B_STRING_TYPE:  SetInlineItemAsString( data ? *static_cast<const String        *>(data) : String()); break;
+      case B_MESSAGE_TYPE: SetInlineItemAsRefCountableRef(data ? *static_cast<const RefCountableRef *>(data) : GetMessageFromPool().GetRefCountableRef()); break;
+      default:
+         if (data) SetInlineItemAsRefCountableRef(*static_cast<const RefCountableRef *>(data));
       break;
    }
 }
@@ -3198,15 +3214,28 @@ void MessageField :: Clear()
 
 uint32 MessageField :: TemplatedFlattenedSize(const MessageField * optPayloadField) const
 {
-   if (optPayloadField)
+   const uint32 numItemsInTemplateField = GetNumItems();
+   const uint32 numItemsInPayloadField  = optPayloadField ? optPayloadField->GetNumItems() : 0;
+
+   if (_typeCode == B_MESSAGE_TYPE)
+   {
+      uint32 numBytes = (1+numItemsInTemplateField)*sizeof(uint32);  // 1 for number-of-Messages header, plus one Message-size-sub-header per sub-Message
+      for (uint32 i=0; i<numItemsInTemplateField; i++) 
+      {
+         const Message * templateSubMsg   = static_cast<const Message *>(GetItemAtAsRefCountableRef(i)());
+         const Message * optPayloadSubMsg = (i<numItemsInPayloadField)?static_cast<const Message *>(optPayloadField->GetItemAtAsRefCountableRef(i)()):NULL;
+         const Message * srcMsg           = optPayloadSubMsg?optPayloadSubMsg:templateSubMsg;
+         numBytes += srcMsg->TemplatedFlattenedSize(*templateSubMsg);
+      }
+      return numBytes;
+   }
+   else if (optPayloadField)
    {
       if (ElementsAreFixedSize()) return FlattenedSize();  // since in the fixed-elements-size case, what the elements' values are doesn't affect the size
 
       // In this case we have to mix-and-match, and I'm just going to have to write out the necessary
       // logic here, since it's not possible to implement it efficiently using only calls to FlattenedSize()
-      const uint32 numItemsInTemplateField = GetNumItems();
-      const uint32 numItemsInPayloadField  = optPayloadField->GetNumItems();
-      uint32 numBytes = (((_typeCode==B_MESSAGE_TYPE)?0:1)+numItemsInTemplateField) * sizeof(uint32);  // B_MESSAGE_TYPE doesn't get a number-of-items field for historical reasons, sigh
+      uint32 numBytes = (1+numItemsInTemplateField) * sizeof(uint32);  // 1 uint32 for the number-of-items header, plus 1 item-size header per variable-sized item
       for (uint32 i=0; i<numItemsInTemplateField; i++) numBytes += ((i<numItemsInPayloadField)?optPayloadField:this)->GetItemSize(i);
       return numBytes;
    }
@@ -3215,49 +3244,69 @@ uint32 MessageField :: TemplatedFlattenedSize(const MessageField * optPayloadFie
 
 void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint8 * & buf) const
 {
-   if (optPayloadField)
+   const uint32 numItemsInPayloadField  = optPayloadField ? optPayloadField->GetNumItems() : 0;
+   const uint32 numItemsInTemplateField = GetNumItems();
+
+   if (_typeCode == B_MESSAGE_TYPE)
    {
-      const uint32 numItemsInPayload  = optPayloadField->GetNumItems();
-      const uint32 numItemsInTemplate = GetNumItems();
-      if (numItemsInPayload >= numItemsInTemplate) optPayloadField->Flatten(buf, numItemsInTemplate);
-      else
+      muscleCopyOut(buf, B_HOST_TO_LENDIAN_INT32(numItemsInTemplateField)); buf += sizeof(uint32);
+      for (uint32 i=0; i<numItemsInTemplateField; i++) 
       {
-         // In this case the payload-field has fewer values than the template-field, and in this case
-         // I want the result to contain the payload-field-values first, with template-field values
-         // used to pad out the data to the expected size.
-         // I don't really like this implementation since it requires allocating memory and therefore
-         // could conceivably fail, but I don't have a better idea right now (short of reimplementing
-         // all of the Flatten() methods to handle this case, which would complicate things a lot for them)
-         status_t ret;
-         MessageField synthField = *this;
-         if (synthField.EnsurePrivate().IsOK(ret))
+         const Message * templateSubMsg   = static_cast<const Message *>(GetItemAtAsRefCountableRef(i)());
+         const Message * optPayloadSubMsg = (i<numItemsInPayloadField)?static_cast<const Message *>(optPayloadField->GetItemAtAsRefCountableRef(i)()):NULL;
+         const Message * srcMsg           = optPayloadSubMsg?optPayloadSubMsg:templateSubMsg;
+
+         const uint32 subMsgSize = srcMsg->TemplatedFlattenedSize(*templateSubMsg);
+         muscleCopyOut(buf, B_HOST_TO_LENDIAN_INT32(subMsgSize)); buf += sizeof(uint32);
+         srcMsg->TemplatedFlatten(*templateSubMsg, buf);
+         buf += subMsgSize;
+      }
+   }
+   else
+   {
+      if (optPayloadField)
+      {
+         if (numItemsInPayloadField >= numItemsInTemplateField) optPayloadField->Flatten(buf, numItemsInTemplateField);
+         else
          {
-            for (uint32 i=0; i<numItemsInPayload; i++) 
+            // In this case the payload-field has fewer values than the template-field, and therefore
+            // I want the result to contain the payload-field-values when possible, with template-field's 
+            // values used to pad out the flattened-data to the expected size.
+            //
+            // I don't really like this implementation since it requires allocating memory and therefore
+            // could conceivably fail, but I don't have a better idea right now (short of reimplementing
+            // all of the Flatten() methods to handle this case, which would complicate their implementation considerably)
+            status_t ret;
+            MessageField synthField = *this;
+            if (synthField.EnsurePrivate().IsOK(ret))
             {
-               const void * ptr = NULL;
-               if (optPayloadField->FindDataItem(i, &ptr).IsOK(ret))
+               for (uint32 i=0; i<numItemsInPayloadField; i++) 
                {
-                  if (synthField.ReplaceDataItem(i, ptr, optPayloadField->GetItemSize(i)).IsError(ret))
+                  const void * ptr = NULL;
+                  if (optPayloadField->FindDataItem(i, &ptr).IsOK(ret))
                   {
-                     LogTime(MUSCLE_LOG_ERROR, "TemplatedFlatten:  ReplaceDataItem(" UINT32_FORMAT_SPEC ") failed! [%s]\n", i, ret());
+                     if (synthField.ReplaceDataItem(i, ptr, optPayloadField->GetItemSize(i)).IsError(ret))
+                     {
+                        LogTime(MUSCLE_LOG_ERROR, "TemplatedFlatten:  ReplaceDataItem(" UINT32_FORMAT_SPEC ") failed! [%s]\n", i, ret());
+                        break;
+                     }
+                  }
+                  else 
+                  {
+                     LogTime(MUSCLE_LOG_ERROR, "TemplatedFlatten:  FindDataItem(" UINT32_FORMAT_SPEC ") failed! [%s]\n", i, ret());
                      break;
                   }
                }
-               else 
-               {
-                  LogTime(MUSCLE_LOG_ERROR, "TemplatedFlatten:  FindDataItem(" UINT32_FORMAT_SPEC ") failed! [%s]\n", i, ret());
-                  break;
-               }
             }
+            else LogTime(MUSCLE_LOG_ERROR, "TemplatedFlatten:  EnsurePrivate() failed! [%s]\n", ret());
+
+            (ret.IsOK() ? &synthField : this)->Flatten(buf, MUSCLE_NO_LIMIT);
          }
-         else LogTime(MUSCLE_LOG_ERROR, "TemplatedFlatten:  EnsurePrivate() failed! [%s]\n", ret());
-
-         (ret.IsOK() ? &synthField : this)->Flatten(buf, MUSCLE_NO_LIMIT);
       }
-   }
-   else Flatten(buf, MUSCLE_NO_LIMIT);  // no payload field means we'll be flattening entirely from the template-Message's field-data
+      else Flatten(buf, MUSCLE_NO_LIMIT);  // no payload field means we'll be flattening entirely from the template-Message's field-data
 
-   buf += TemplatedFlattenedSize(optPayloadField);  // advance the pointer for the next call
+      buf += TemplatedFlattenedSize(optPayloadField);  // advance the pointer for the next call
+   }
 }
 
 status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String & fieldName, const uint8 * & buf, uint32 & bufSize) const
@@ -3284,25 +3333,24 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
       uint32 subBufSize = bufSize;
 
       const uint32 expectedNumItems = GetNumItems();
-      if (mf->TypeCode() != B_MESSAGE_TYPE)  // Message fields don't have a number-of-items header, for historical reasons
+      if (subBufSize < sizeof(uint32))
       {
-         if (subBufSize < sizeof(uint32))
-         {
-            LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  Not enough bytes for number-of-items-field [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", fieldName(), subBufSize, sizeof(uint32));
-            return B_BAD_DATA;
-         }
-
-         const uint32 numItems = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(subBuf));
-         if (numItems != expectedNumItems)
-         {
-            LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  number-of-items-field [%s] has wrong value (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", fieldName(), numItems, expectedNumItems);
-            return B_BAD_DATA;
-         }
-
-         // skip past number-of-items field
-         subBuf     += sizeof(uint32);
-         subBufSize -= sizeof(uint32);
+         LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  Not enough bytes for number-of-items-field [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", fieldName(), subBufSize, sizeof(uint32));
+         return B_BAD_DATA;
       }
+
+      const uint32 numItems = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(subBuf));
+      if (numItems != expectedNumItems)
+      {
+         LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  number-of-items-field [%s] has wrong value (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", fieldName(), numItems, expectedNumItems);
+         return B_BAD_DATA;
+      }
+
+      // skip past number-of-items field
+      subBuf     += sizeof(uint32);
+      subBufSize -= sizeof(uint32);
+
+      const bool isMessageField = (_typeCode == B_MESSAGE_TYPE);
 
       // Calculate the field-size to pass to mf->Unflatten(), by walking the items-list
       for (uint32 i=0; i<expectedNumItems; i++)
@@ -3315,18 +3363,35 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
 
          const uint32 itemSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(subBuf));
          subBuf += sizeof(uint32); subBufSize -= sizeof(uint32);
-
          if (subBufSize < itemSize)
          {
             LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  Not enough bytes for items-data-field " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " of [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", i, expectedNumItems, fieldName(), subBufSize, itemSize);
             return B_BAD_DATA;
          }
 
+         if (isMessageField)
+         {
+            // Gotta use custom-unflattening logic here, since the regular MessageField::Unflatten() expects 
+            // the traditional full-metadata-included format, but our sub-Message's data is expected to be in
+            // the new templated/payload-only format.
+            MessageRef subMsg = GetMessageFromPool();
+            if (subMsg() == NULL) RETURN_OUT_OF_MEMORY;
+
+            const Message * templateMsg = static_cast<const Message *>(GetItemAtAsRefCountableRef(i)());
+            if (subMsg()->TemplatedUnflatten(*templateMsg, subBuf, itemSize).IsError(ret))
+            {
+               LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  TemplatedUnflatten() of sub-Message " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " of [%s] failed (%s) (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", i, expectedNumItems, fieldName(), ret(), subBufSize, itemSize);
+               return ret;
+            }
+
+            if (mf->AddDataItem(&subMsg, sizeof(subMsg)).IsError(ret)) return ret;
+         }
+
          subBuf += itemSize; subBufSize -= itemSize;
       }
 
       mfSize = subBuf-buf;
-      if (mf->Unflatten(buf, mfSize).IsError(ret)) return ret;
+      if ((isMessageField == false)&&(mf->Unflatten(buf, mfSize).IsError(ret))) return ret;
    }
 
    buf     += mfSize;

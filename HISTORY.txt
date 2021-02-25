@@ -6,11 +6,13 @@ key:  - new feature
       o other
 
 7.80 -
-   - Added TemplatedFlatten() and TemplatedUnflatten()
-     methods to the Message class, to allow storing of
+   - Added TemplatedFlatten(), TemplatedUnflatten(),
+     TemplatedFlattenedSize(), and CreateMessageTemplate()
+     methods to the Message class, to allow encoding of
      a Message's payload-data separately from its metadata.
-   - Added SetValuesToDefaults() method to the Message class.
    o Added template-testing code to testmessage.cpp
+   * Fixed a bug where calling Message::AddData() with
+     a NULL data-pointer could cause a crash.
 
 7.71 - Released 2/14/2021
    - Added copy-constructor and assignment-operator to the

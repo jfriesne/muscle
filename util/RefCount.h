@@ -123,6 +123,7 @@ template <class Item> class ConstRef
 {
 public:
    typedef ObjectPool<Item> ItemPool;        /**< type of an ObjectPool of user data structures */
+   typedef Item ItemType;                    /**< the type we are specialized to */
 
    /** 
     *  Default constructor.
