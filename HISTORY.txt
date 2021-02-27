@@ -10,8 +10,9 @@ key:  - new feature
      TemplatedFlattenedSize(), and CreateMessageTemplate()
      methods to the Message class, to allow encoding of
      a Message's payload-data separately from its metadata.
-   - Added a TemplatingMessageIOGateway class to take advantage
-     of Message's new templated-flattening feature.
+   - Added a TemplatingMessageIOGateway class that takes
+     advantage of Message's new templated-flattening 
+     functionality to reduce network bandwidth.
    - Added GetAndMoveToFront() and GetAndMoveToBack()
      convenience-methods to the Hashtable class.
    - Added protected GetSendCodec() and GetReceiveCodec() methods
