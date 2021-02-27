@@ -1607,8 +1607,8 @@ public:
 
    /** 
     * This method calculates and returns a 64-bit checksum based only on the names, ordering,
-    * types, and item-counts of the message-fields.  The fields' contents and the Message's "what" code are
-    * not included in the checksum.
+    * types, and item-counts of its data-fields.  The fields' contents and the Message's "what" code are
+    * not included in the checksum, but this call does recurse to child Messages.
     * @note this method is guaranteed never to return 0, so that 0 can
     *       be used as a guard-value in calling code if desired.
     */

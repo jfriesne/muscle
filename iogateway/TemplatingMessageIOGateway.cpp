@@ -14,73 +14,56 @@ TemplatingMessageIOGateway :: TemplatingMessageIOGateway(uint32 maxLRUCacheSizeB
    // empty
 }
 
-void TemplatingMessageIOGateway :: TrimLRUCache(Hashtable<uint64, MessageRef> & lruCache, uint32 & tallyBytes) const
-{
-   while((lruCache.GetNumItems()>1)&(tallyBytes > _maxLRUCacheSizeBytes))
-   {
-      const uint32 lastSize = lruCache.GetLastValue()->GetItemPointer()->FlattenedSize();
-      (void) lruCache.RemoveLast();
-
-      if (tallyBytes >= lastSize) tallyBytes -= lastSize;
-      else
-      {
-         LogTime(MUSCLE_LOG_ERROR, "TrimLRUCache():  tallyBytes is too small!  " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", tallyBytes, lastSize, lruCache.GetNumItems());
-         tallyBytes = 0;  // I guess?
-      }
-   }
-}
-
-static const uint32 _templateIncludedMask = (1<<31);  // high-bit-set in the encoding word means we've included a template definition
+static const uint32 CREATE_TEMPLATE_BIT  = (1<<31);  // if the high-bit is set in the length-word, that means the receiver should use the buffer's Message to create a template
+static const uint32 PAYLOAD_ENCODING_BIT = (1<<31);  // if the high-bit is set in the encoding-word, that means the receiver should interpret the buffer as payload-only and not as a flattened Message
 
 int32 TemplatingMessageIOGateway :: GetBodySize(const uint8 * headerBuf) const
 {
-   return (muscleInRange(((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&headerBuf[1*sizeof(uint32)])))&~_templateIncludedMask, (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)MUSCLE_MESSAGE_ENCODING_END_MARKER-1)) ? (int32)(B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&headerBuf[0*sizeof(uint32)]))) : -1;
+   const uint32 bodySize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&headerBuf[0*sizeof(uint32)])) & ~CREATE_TEMPLATE_BIT;
+   const uint32 encoding = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&headerBuf[1*sizeof(uint32)])) & ~PAYLOAD_ENCODING_BIT;
+   return muscleInRange(encoding, (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)(MUSCLE_MESSAGE_ENCODING_END_MARKER-1)) ? (int32)bodySize : (int32)-1;
 }
 
 ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const MessageRef & msgRef) const
 {
    if (msgRef() == NULL) return ByteBufferRef();
 
-   uint32 sendTemplateSize = 0;  // if non-zero, the flattened-size of the template-Message that we also need to send
-   const MessageRef * templateMsgRef = NULL;
-   uint64 templateID = GetTemplateHashCode64ForMessage(*msgRef());
-   if (templateID > 0)
+   bool createTemplate = false;
+   const MessageRef * templateMsgRef = NULL;  // will be set non-NULL iff we want to send our Message as payload-only
+   uint64 templateID = 0;
+   const bool isMessageTrivial = (msgRef()->GetNumNames() == 0);  // what-code only Messages can be sent in just 4 bytes
+   if ((isMessageTrivial == false)&&(IsOkayToTemplatizeMessage(*msgRef())))
    {
+      templateID     = msgRef()->TemplateHashCode64();
       templateMsgRef = _outgoingTemplates.GetAndMoveToFront(templateID);
       if (templateMsgRef == NULL)
       {
-         // demand-allocate a template for this Message-fields-layout
+         // demand-allocate a template-Message for us to cache and use in the future
+         // Note that I'm deliberately leaving (templateMsgRef) set to NULL here, though
+         // since I want this Message to be sent via Flatten() so that the receiver can make a template out of it
          MessageRef newTemplateMsgRef = msgRef()->CreateMessageTemplate();
          if ((newTemplateMsgRef())&&(_outgoingTemplates.PutAtFront(templateID, newTemplateMsgRef).IsOK()))
          {
-            templateMsgRef = _outgoingTemplates.GetFirstValue();  // guaranteed not to fail
-            sendTemplateSize = newTemplateMsgRef()->FlattenedSize();
-            _outgoingTemplatesTotalSizeBytes += sendTemplateSize;
+            createTemplate = true;
+            _outgoingTemplatesTotalSizeBytes += newTemplateMsgRef()->FlattenedSize();
             TrimLRUCache(_outgoingTemplates, _outgoingTemplatesTotalSizeBytes);
          }
          else LogTime(MUSCLE_LOG_ERROR, "TemplatingMessageIOGateway::FlattenHeaderAndMessage():  Couldn't create a template for Message hash=" UINT64_FORMAT_SPEC "\n", templateID);
       }
    }
 
-   uint32 msgFlatSize = 0;
-   if (templateMsgRef) msgFlatSize = msgRef()->TemplatedFlattenedSize(*templateMsgRef->GetItemPointer());
-   else
-   {
-      templateID = 0;                           // in case template-generation failed above
-      msgFlatSize = msgRef()->FlattenedSize();  // we'll send this one the old-fashioned way
-   }
-
    const uint32 hs = GetHeaderSize();
-   ByteBufferRef retBuf = GetByteBufferFromPool(hs+sendTemplateSize+msgFlatSize);
+   ByteBufferRef retBuf = GetByteBufferFromPool(hs+(templateMsgRef ? (sizeof(uint64)+msgRef()->TemplatedFlattenedSize(*templateMsgRef->GetItemPointer())) : (isMessageTrivial ? sizeof(uint32) : msgRef()->FlattenedSize())));
    if (retBuf())
    {
+      uint8 * bodyPtr = retBuf()->GetBuffer()+hs;
       if (templateMsgRef)
       {
-         const Message & templateMsg = *templateMsgRef->GetItemPointer();
-         if (sendTemplateSize > 0) templateMsg.Flatten(retBuf()->GetBuffer()+hs);            // template-send (first-time only, for a given template ID)
-         msgRef()->TemplatedFlatten(templateMsg, retBuf()->GetBuffer()+hs+sendTemplateSize);  // new-style metadata-only send
+         muscleCopyOut(bodyPtr, B_HOST_TO_LENDIAN_INT64(templateID));
+         msgRef()->TemplatedFlatten(*templateMsgRef->GetItemPointer(), bodyPtr+sizeof(uint64));  // the new payload-only format
       }
-      else msgRef()->Flatten(retBuf()->GetBuffer()+hs);  // old-style send with inline metadata
+      else if (isMessageTrivial) muscleCopyOut(bodyPtr, B_HOST_TO_LENDIAN_INT32(msgRef()->what));  // special-case for what-code-only Messages
+      else                       msgRef()->Flatten(bodyPtr);  // the old full-freight MessageIOGateway-style format
 
       int32 encoding = MUSCLE_MESSAGE_ENCODING_DEFAULT;
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
@@ -99,19 +82,19 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
          }
       }
 #endif
-      if (sendTemplateSize > 0) encoding |= _templateIncludedMask;  // we'll set the high bit of the encoding-word to indicate that we've included both the template and its first payload
 
       if (retBuf())
       {
          uint8 * lhb = retBuf()->GetBuffer();
-         muscleCopyOut(&lhb[0*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(retBuf()->GetNumBytes()-hs));
-         muscleCopyOut(&lhb[1*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(encoding));
-         muscleCopyOut(&lhb[2*sizeof(uint32)], B_HOST_TO_LENDIAN_INT64(templateID));
+         muscleCopyOut(&lhb[0*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(((uint32)(retBuf()->GetNumBytes()-hs)) | (createTemplate ? CREATE_TEMPLATE_BIT  : 0)));
+         muscleCopyOut(&lhb[1*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(((uint32)encoding)                     | (templateMsgRef ? PAYLOAD_ENCODING_BIT : 0)));
       }
    }
+
 #ifdef DEBUG_TEMPLATING_MESSAGE_IO_GATEWAY
-   printf("SENDING: outgoingTableSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " templateID=" UINT64_FORMAT_SPEC " sendTemplateSize=" UINT32_FORMAT_SPEC " bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", _outgoingTemplates.GetNumItems(), _outgoingTemplatesTotalSizeBytes, templateID, sendTemplateSize, retBuf()->GetNumBytes(), msgRef()->FlattenedSize()); retBuf()->PrintToStream();
+   printf("SENDING: outgoingTableSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " templateID=" UINT64_FORMAT_SPEC " createTemplate=%i templateMsgRef=%p bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", _outgoingTemplates.GetNumItems(), _outgoingTemplatesTotalSizeBytes, templateID, createTemplate, templateMsgRef, retBuf()->GetNumBytes(), (uint32)(msgRef()->FlattenedSize()+(3*sizeof(uint32)))); retBuf()->PrintToStream();
 #endif
+
    return retBuf;
 }
 
@@ -124,23 +107,17 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
 
    uint32 offset = GetHeaderSize();
 
-   const uint8 * lhb    = bufRef()->GetBuffer();
-   const uint32 lhbSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&lhb[0*sizeof(uint32)]));
+   const uint8 * lhb       = bufRef()->GetBuffer();
+   const uint32 lengthWord = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&lhb[0*sizeof(uint32)]));
+   const uint32 lhbSize    = lengthWord & ~CREATE_TEMPLATE_BIT;
    if ((offset+lhbSize) != bufRef()->GetNumBytes())
    {
       LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " INT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
       return MessageRef();
    }
 
-   bool templateIncluded = false;
-   uint32 encoding = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&lhb[1*sizeof(uint32)]));
-   if (encoding & _templateIncludedMask)
-   {
-      encoding &= ~_templateIncludedMask;
-      templateIncluded = true;
-   }
-
-   const uint64 templateID = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(&lhb[2*sizeof(uint32)]));
+   const uint32 encodingWord = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&lhb[1*sizeof(uint32)]));
+   uint32 encoding = encodingWord & ~PAYLOAD_ENCODING_BIT;
 
    const ByteBuffer * bb = bufRef();  // default; may be changed below
 
@@ -165,53 +142,75 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
    if (encoding != MUSCLE_MESSAGE_ENCODING_DEFAULT) bb = NULL;
 #endif
 
-   if (bb)
+   if (bb == NULL) return MessageRef();
+
+   const bool createTemplate      = ((lengthWord & CREATE_TEMPLATE_BIT) != 0);
+   const uint8 * inPtr            = bb->GetBuffer()+offset;
+   const uint8 * firstInvalidByte = bb->GetBuffer()+bb->GetNumBytes();
+   const uint32 numBodyBytes      = firstInvalidByte-inPtr;
+   uint64 templateID              = 0;
+
+   status_t ret;
+   if ((encodingWord & PAYLOAD_ENCODING_BIT) != 0)
    {
-      const uint8 * inPtr            = bb->GetBuffer()+offset;
-      const uint8 * firstInvalidByte = bb->GetBuffer()+bb->GetNumBytes();
-
-      if (templateID > 0)
+      if (createTemplate)
       {
-         MessageRef * templateMsgRef = NULL;
-         if (templateIncluded)
-         {
-            MessageRef tMsg = GetMessageFromPool();
-            status_t ret;
-            if ((tMsg() == NULL)||(tMsg()->Unflatten(inPtr, firstInvalidByte-inPtr).IsError(ret))||(_incomingTemplates.PutAtFront(templateID, tMsg).IsError(ret)))
-            {
-               LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Unable to unflatten template Message from " UINT32_FORMAT_SPEC " bytes of data (%s)\n", (uint32)(firstInvalidByte-inPtr), ret());
-               return MessageRef();
-            }
-
-            templateMsgRef = _incomingTemplates.GetFirstValue();  // guaranteed not to fail
-            const uint32 templateSize = tMsg()->FlattenedSize();
-            _incomingTemplatesTotalSizeBytes += templateSize;
-            inPtr                            += templateSize;
-            TrimLRUCache(_incomingTemplates, _incomingTemplatesTotalSizeBytes);
-         }
-         else templateMsgRef = _incomingTemplates.GetAndMoveToFront(templateID);
-
+         LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway %p:  Incoming buffer had both CREATE_TEMPLATE_BIT and PAYLOAD_ENCODING_BIT bits set!\n", this);
+         return MessageRef();
+      }
+      else if (numBodyBytes >= sizeof(uint64))
+      {
+         templateID = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(inPtr));
+         const MessageRef * templateMsgRef = _incomingTemplates.GetAndMoveToFront(templateID);
          if (templateMsgRef)
          {
-            status_t ret;
-            if (retMsg()->TemplatedUnflatten(*templateMsgRef->GetItemPointer(), inPtr, firstInvalidByte-inPtr).IsError(ret))
+            const uint8 * payloadBytes = inPtr + sizeof(uint64);
+            if (retMsg()->TemplatedUnflatten(*templateMsgRef->GetItemPointer(), payloadBytes, firstInvalidByte-payloadBytes).IsError(ret))
             {
-               LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Error unflattening " UINT32_FORMAT_SPEC " bytes using template ID " UINT64_FORMAT_SPEC "\n", (uint32)(firstInvalidByte-inPtr), templateID);
+               LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Error unflattening " UINT32_FORMAT_SPEC " payload-bytes using template ID " UINT64_FORMAT_SPEC "\n", (uint32)(firstInvalidByte-payloadBytes), templateID);
                return MessageRef();
             }
          }
          else
          {
-            LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Template " UINT64_FORMAT_SPEC " not found in cache!\n", templateID);
+            LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Template " UINT64_FORMAT_SPEC " not found in incoming-templates cache!\n", templateID);
             return MessageRef();
          }
       }
-      else if (retMsg()->Unflatten(inPtr, firstInvalidByte-inPtr).IsError()) return MessageRef();
+      else
+      {
+         LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Payload-only buffer is too short for template ID!  (" UINT32_FORMAT_SPEC " bytes)\n", numBodyBytes);
+         return MessageRef();
+      }
    }
-   else return MessageRef();
+   else
+   {
+           if (numBodyBytes == sizeof(uint32)) retMsg()->what = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(inPtr));  // special-case for what-code-only Messages
+      else if (retMsg()->Unflatten(inPtr, numBodyBytes).IsError(ret))
+      {
+         LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Unflatten() failed on " UINT32_FORMAT_SPEC "-byte buffer (%s)\n", numBodyBytes, ret());
+         return MessageRef();
+      }
+
+      if (createTemplate)
+      {
+         MessageRef tMsg = retMsg()->CreateMessageTemplate();
+         if (tMsg() == NULL)
+         {
+            LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  CreateTemplateMessage() failed!\n");
+            return MessageRef();
+         }
+
+         templateID = tMsg()->TemplateHashCode64();
+         if (_incomingTemplates.PutAtFront(templateID, tMsg).IsError()) return MessageRef();
+
+         _incomingTemplatesTotalSizeBytes += tMsg()->FlattenedSize();
+         TrimLRUCache(_incomingTemplates, _incomingTemplatesTotalSizeBytes);
+      }
+   }
 
 #ifdef DEBUG_TEMPLATING_MESSAGE_IO_GATEWAY
-   printf("RECEIVED: incomingTable=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " templateIncluded=%i templateID=" UINT64_FORMAT_SPEC " bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", _incomingTemplates.GetNumItems(), _incomingTemplatesTotalSizeBytes, templateIncluded, templateID, bufRef()->GetNumBytes(), retMsg()?retMsg()->FlattenedSize():0); bufRef()->PrintToStream();
+   printf("RECEIVED: incomingTable=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " createTemplate=%i templateID=" UINT64_FORMAT_SPEC " bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", _incomingTemplates.GetNumItems(), _incomingTemplatesTotalSizeBytes, createTemplate, templateID, bufRef()->GetNumBytes(), (uint32)(retMsg()?(retMsg()->FlattenedSize()+(3*sizeof(uint32))):0)); bufRef()->PrintToStream();
 #endif
    return retMsg;
 }
@@ -222,6 +221,22 @@ void TemplatingMessageIOGateway :: Reset()
    _incomingTemplates.Clear();
    _outgoingTemplates.Clear();
    _incomingTemplatesTotalSizeBytes = _outgoingTemplatesTotalSizeBytes = 0;
+}
+
+void TemplatingMessageIOGateway :: TrimLRUCache(Hashtable<uint64, MessageRef> & lruCache, uint32 & tallyBytes) const
+{
+   while((lruCache.GetNumItems()>1)&(tallyBytes > _maxLRUCacheSizeBytes))
+   {
+      const uint32 lastSize = lruCache.GetLastValue()->GetItemPointer()->FlattenedSize();
+      (void) lruCache.RemoveLast();
+
+      if (tallyBytes >= lastSize) tallyBytes -= lastSize;
+      else
+      {
+         LogTime(MUSCLE_LOG_ERROR, "TrimLRUCache():  tallyBytes is too small!  " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", tallyBytes, lastSize, lruCache.GetNumItems());
+         tallyBytes = 0;  // I guess?
+      }
+   }
 }
 
 } // end namespace muscle

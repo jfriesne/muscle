@@ -47,18 +47,15 @@ public:
 protected:
    virtual ByteBufferRef FlattenHeaderAndMessage(const MessageRef & msgRef) const;
    virtual MessageRef UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const;
-   virtual uint32 GetHeaderSize() const {return CountedMessageIOGateway::GetHeaderSize() + sizeof(uint64);}  // we add a template-ID field
    virtual int32 GetBodySize(const uint8 * header) const;
 
-   /** Returns the template-hash-code to use for the given Message that is about to
-     * be sent, or 0 if the Message should be just sent the old/traditional way without
-     * any templating.  Default implementation always calls through to the TemplateHashCode64()
-     * method of the passed-in Message object; but an application-specific subclass of
-     * TemplatingMessageIOGateway could override this method to always return 0 for
-     * Messages that it knows are unlikely to benefit from templating.
-     * @param msg the Message to get a template-hash-code for.
+   /** Should return true iff the given outgoing Message is something we should attempt
+     * to send using our templatization mechanism.  Default implementation always returns true.
+     * @param outgoingMsg the Message we are about to send
+     * @return true if we should use templatizing to send it, or false if we should just
+     *              send it using the old MessageIOGateway/Flatten() mechanism instead.
      */
-   virtual uint64 GetTemplateHashCode64ForMessage(const Message & msg) const {return msg.TemplateHashCode64();}
+   virtual bool IsOkayToTemplatizeMessage(const Message & outgoingMsg) const {(void) outgoingMsg; return true;}
 
 private:
    const uint32 _maxLRUCacheSizeBytes;
