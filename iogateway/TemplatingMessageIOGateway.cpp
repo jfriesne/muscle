@@ -14,9 +14,9 @@ TemplatingMessageIOGateway :: TemplatingMessageIOGateway(uint32 maxLRUCacheSizeB
    // empty
 }
 
-void TemplatingMessageIOGateway :: TrimLRUCache(Hashtable<uint64, MessageRef> & lruCache, const MessageRef & justAdded, uint32 & tallyBytes) const
+void TemplatingMessageIOGateway :: TrimLRUCache(Hashtable<uint64, MessageRef> & lruCache, uint32 & tallyBytes) const
 {
-   while((lruCache.HasItems())&&((*lruCache.GetLastValue())() != justAdded())&&(tallyBytes > _maxLRUCacheSizeBytes))
+   while((lruCache.GetNumItems()>1)&(tallyBytes > _maxLRUCacheSizeBytes))
    {
       const uint32 lastSize = lruCache.GetLastValue()->GetItemPointer()->FlattenedSize();
       (void) lruCache.RemoveLast();
@@ -56,7 +56,7 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
             templateMsgRef = _outgoingTemplates.GetFirstValue();  // guaranteed not to fail
             sendTemplateSize = newTemplateMsgRef()->FlattenedSize();
             _outgoingTemplatesTotalSizeBytes += sendTemplateSize;
-            TrimLRUCache(_outgoingTemplates, newTemplateMsgRef, _outgoingTemplatesTotalSizeBytes);
+            TrimLRUCache(_outgoingTemplates, _outgoingTemplatesTotalSizeBytes);
          }
          else LogTime(MUSCLE_LOG_ERROR, "TemplatingMessageIOGateway::FlattenHeaderAndMessage():  Couldn't create a template for Message hash=" UINT64_FORMAT_SPEC "\n", templateID);
       }
@@ -187,7 +187,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
             const uint32 templateSize = tMsg()->FlattenedSize();
             _incomingTemplatesTotalSizeBytes += templateSize;
             inPtr                            += templateSize;
-            TrimLRUCache(_incomingTemplates, tMsg, _incomingTemplatesTotalSizeBytes);
+            TrimLRUCache(_incomingTemplates, _incomingTemplatesTotalSizeBytes);
          }
          else templateMsgRef = _incomingTemplates.GetAndMoveToFront(templateID);
 
