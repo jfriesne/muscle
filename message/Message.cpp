@@ -2337,7 +2337,8 @@ void Message :: SwapContents(Message & swapWith)
 uint64 Message :: TemplateHashCode64() const
 {
    uint32 count = 0;
-   return TemplateHashCode64Aux(count);
+   const uint64 ret = TemplateHashCode64Aux(count);
+   return ret ? ret : 1;  // semi-paranoia -- I want to use zero as a guard-value, so this will ensure a real Message never ever returns 0
 }
  
 uint64 Message :: TemplateHashCode64Aux(uint32 & count) const

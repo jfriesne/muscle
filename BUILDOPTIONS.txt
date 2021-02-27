@@ -251,7 +251,7 @@ of your Makefile to alter muscle's behaviour:
    If defined, the CountedObject<> class will be enabled, so that
    PrintCountedObjectInfo() will print out tallies of the numbers
    of various kinds of objects currently in memory.
-   Otherwise it is compiled down to a no-op, and the 
+   Otherwise it is compiled down to a no-op, and the
    DECLARE_COUNTED_OBJECT macro likewise becomes a no-op.
 
 -DMUSCLE_AVOID_THREAD_LOCAL_STORAGE
@@ -276,7 +276,7 @@ of your Makefile to alter muscle's behaviour:
    does impose some overhead, though -- about 16 bytes of RAM per
    Hashtable object, and a small amount of CPU overhead imposed
    by using an AtomicCounter.  If you want to avoid that overhead
-   and you're confident that you will always supply the 
+   and you're confident that you will always supply the
    HTIT_FLAG_NOREGISTER argument whenever you are doing 
    concurrent iterations over a Hashtable (or Message), you can
    supply this flag on the command line to avoid the overhead.
@@ -313,7 +313,7 @@ of your Makefile to alter muscle's behaviour:
    such that every time a RefCountable object is obtained from an
    ObjectPool, the thread's current stack trace will be recorded and 
    associated with the RefCountable object.  What this does (apart from 
-   making your program really slow and memory-hungry) is allow the 
+   making your program really slow and memory-hungry) is allow the
    assertion failures in the ObjectPool class's destructor to tell you 
    exactly where a "leaked" object had been allocated, rather than just 
    telling you that an object is still in use.  That can make it much 
@@ -347,3 +347,12 @@ of your Makefile to alter muscle's behaviour:
    SetRequestRootAccessForChildProcessEnabled() method and attendant
    functionality for launching a root-enabled child process under
    MacOS/X.
+
+-DMUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
+   If specified, the AbstractReflectSession class will use a
+   TemplatingMessageIOGateway by default rather than a
+   MessageIOGateway.  Note that this will break compatibility
+   with other MUSCLE code that does not use the
+   TemplatingMessageIOGateway class, so this flag should be used
+   with caution.
+

@@ -262,6 +262,25 @@ protected:
      */
    virtual bool AreOutgoingMessagesIndependent() const {return false;}
 
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+   /** Convenience method for subclasses:   Returns the ZLibCodec to use for deflating outgoing data,
+     * or NULL if no ZLibCodec should be used for outgoing data.
+     * @note this method is only declared if preprocessor constant MUSCLE_ENABLE_ZLIB_ENCODING is defined.
+     */
+   ZLibCodec * GetSendCodec() const {return GetCodec(_outgoingEncoding, _sendCodec);}
+
+   /** Convenience method for subclasses:   Returns the ZLibCodec to use for inflating incoming data,
+     * or NULL if no ZLibCodec should be used for incoming data.
+     * @param encoding the MUSCLE_MESSAGE_ENCODING_* value we want to decode
+     * @note this method is only declared if preprocessor constant MUSCLE_ENABLE_ZLIB_ENCODING is defined.
+     */
+   ZLibCodec * GetReceiveCodec(int32 encoding) const
+   {
+      // For receiving data, any ZLibCodec will do, so we'll just force it to the default codec-level
+      return GetCodec(muscleInRange((int32)encoding, (int32)MUSCLE_MESSAGE_ENCODING_ZLIB_1, (int32)MUSCLE_MESSAGE_ENCODING_ZLIB_9) ? MUSCLE_MESSAGE_ENCODING_ZLIB_6 : encoding, _recvCodec);
+   }
+#endif
+
 private:
    ByteBufferRef FlattenHeaderAndMessageAux(const MessageRef & msgRef) const;
 

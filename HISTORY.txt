@@ -10,6 +10,17 @@ key:  - new feature
      TemplatedFlattenedSize(), and CreateMessageTemplate()
      methods to the Message class, to allow encoding of
      a Message's payload-data separately from its metadata.
+   - Added a TemplatingMessageIOGateway class to take advantage
+     of Message's new templated-flattening feature.
+   - Added GetAndMoveToFront() and GetAndMoveToBack()
+     convenience-methods to the Hashtable class.
+   - Added protected GetSendCodec() and GetReceiveCodec() methods
+     to the MessageIOGateway class, so subclasses can access them.
+   - Added a DMUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
+     compile-time flag, to make it easier to exercise the
+     TemplatedMessageIOGateway class.  Defining this flag
+     causes the AbstractMessageIOGateway class to use a
+     TemplatedMessageIOGateway by default.
    o Added template-testing code to testmessage.cpp
    * Fixed a bug where calling Message::AddData() with
      a NULL data-pointer could cause a crash.

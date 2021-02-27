@@ -4,7 +4,11 @@
 #include "reflector/AbstractSessionIOPolicy.h"
 #include "reflector/ReflectServer.h"
 #include "dataio/TCPSocketDataIO.h"
-#include "iogateway/MessageIOGateway.h"
+#ifdef MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
+# include "iogateway/TemplatingMessageIOGateway.h"
+#else
+# include "iogateway/MessageIOGateway.h"
+#endif
 #include "system/Mutex.h"
 #include "system/SetupSystem.h"
 
@@ -222,7 +226,11 @@ AbstractMessageIOGatewayRef
 AbstractReflectSession ::
 CreateGateway()
 {
+#ifdef MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
+   MessageIOGatewayRef ret(newnothrow TemplatingMessageIOGateway());
+#else
    MessageIOGatewayRef ret(newnothrow MessageIOGateway());
+#endif
    if (ret() == NULL) WARN_OUT_OF_MEMORY;
    return ret;
 }

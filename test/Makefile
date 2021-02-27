@@ -25,6 +25,7 @@ DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 #DEFINES += -DMUSCLE_NO_EXCEPTIONS
 #DEFINES += -DMUSCLE_AVOID_STDINT
 #DEFINES += -DMUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES
+#DEFINES += -DMUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT 
 
 CFLAGS = -I.. -I../zlib/zlib -g
 #CFLAGS += -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk
@@ -175,7 +176,7 @@ testfilepathinfo : $(STDOBJS) testfilepathinfo.o FilePathInfo.o SetupSystem.o St
 testthread : $(STDOBJS) testthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testserverthread : $(STDOBJS) testserverthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o
+testserverthread : $(STDOBJS) testserverthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testthreadpool : $(STDOBJS) testthreadpool.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o ThreadPool.o 
@@ -272,10 +273,10 @@ testgateway : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o
 testregex : $(STDOBJS) testregex.o String.o SysLog.o SetupSystem.o $(REGEXOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-portablereflectclient : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o portablereflectclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o QueryFilter.o $(REGEXOBJS)
+portablereflectclient : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o TemplatingMessageIOGateway.o MessageIOGateway.o String.o portablereflectclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o QueryFilter.o $(REGEXOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-muscleproxy : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o muscleproxy.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o SetupSystem.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o ReflectServer.o ServerComponent.o AbstractReflectSession.o ZLibCodec.o $(REGEXOBJS)
+muscleproxy : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o String.o muscleproxy.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o SetupSystem.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o ReflectServer.o ServerComponent.o AbstractReflectSession.o ZLibCodec.o $(REGEXOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 portscan : $(STDOBJS) portscan.o SysLog.o SetupSystem.o String.o ByteBuffer.o
@@ -308,7 +309,7 @@ portableplaintextclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainT
 testchildprocess : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o testchildprocess.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o 
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-daemonsitter : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o daemonsitter.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o StdinDataIO.o ReflectServer.o ServerComponent.o AbstractReflectSession.o MessageIOGateway.o StdinDataIO.o FileDescriptorDataIO.o ZLibCodec.o
+daemonsitter : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o daemonsitter.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o StdinDataIO.o ReflectServer.o ServerComponent.o AbstractReflectSession.o MessageIOGateway.o TemplatingMessageIOGateway.o StdinDataIO.o FileDescriptorDataIO.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 hexterm : $(STDOBJS) $(HEXTERMOBJS)
@@ -335,13 +336,13 @@ testobjectpool: $(STDOBJS) SysLog.o SharedMemory.o testobjectpool.o String.o Set
 testqueryfilter: $(STDOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o testqueryfilter.o SetupSystem.o MiscUtilityFunctions.o 
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testpulsenode:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o ServerComponent.o MessageIOGateway.o ZLibCodec.o testpulsenode.o ByteBuffer.o
+testpulsenode:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o testpulsenode.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testnetconfigdetect:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o DetectNetworkConfigChangesSession.o ServerComponent.o MessageIOGateway.o ZLibCodec.o Thread.o testnetconfigdetect.o
+testnetconfigdetect:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o DetectNetworkConfigChangesSession.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o Thread.o testnetconfigdetect.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testnetutil:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o DetectNetworkConfigChangesSession.o ServerComponent.o MessageIOGateway.o ZLibCodec.o Thread.o testnetutil.o
+testnetutil:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o DetectNetworkConfigChangesSession.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o Thread.o testnetutil.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 deadlockfinder : $(STDOBJS) deadlockfinder.o SysLog.o String.o SetupSystem.o

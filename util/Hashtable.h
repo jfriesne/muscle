@@ -828,6 +828,40 @@ public:
       return e ? e->_value : defaultValue;
    }
 
+   /** Similar to Get(), but on success this method will have the side-effect of moving
+     * the returned value to the front of the iteration-ordering-list of this Hashtable.
+     * This can be useful when using a Hashtable as an LRU cache.
+     * @param key the key to lookup a value for
+     * @returns A pointer to the value associated with key on success, or NULL on failure (key-not-found)
+     */ 
+   ValueType * GetAndMoveToFront(const KeyType & key)
+   {
+      HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
+      if (e)
+      {
+         MoveToFrontAux(e);
+         return &e->_value;
+      }
+      else return NULL;
+   }
+
+   /** Similar to Get(), but on success this method will have the side-effect of moving
+     * the returned value to the front of the iteration-ordering-list of this Hashtable.
+     * This can be useful when using a Hashtable as an LRU cache.
+     * @param key the key to lookup a value for
+     * @returns A pointer to the value associated with key on success, or NULL on failure (key-not-found)
+     */ 
+   ValueType * GetAndMoveToBack(const KeyType & key)
+   {
+      HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
+      if (e)
+      {
+         MoveToBackAux(e);
+         return &e->_value;
+      }
+      else return NULL;
+   }
+
    /** Returns the number of table-slots that we currently have allocated.  Since we often
     *  pre-allocate slots to avoid unnecessary reallocations, this number will usually be
     *  greater than the value returned by GetNumItems().  It will never be less than that value.
@@ -1855,7 +1889,8 @@ private:
  *     and their implementation uniform.
  *   - Methods like GetFirstKey(), GetFirstValue(), RemoveFirst() and RemoveLast() allow the
  *     Hashtable to be used as an efficient, keyed, double-ended FIFO queue, if desired.  This
- *     (along with MoveToFront()) makes it very easy to implement an efficient LRU cache using a Hashtable.
+ *     (along with MoveToFront() or GetAndMoveToFront()) makes it very easy to implement an efficient
+ *     LRU cache using a Hashtable.
  *   - The CountAverageLookupComparisons() method can be called during development to easily
  *     quantify the performance of the hash functions being used.
  *   - Memory overhead is 6 bytes per key-value entry if the table's capacity is less than 256;

@@ -7,7 +7,11 @@
 
 #include "dataio/StdinDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
-#include "iogateway/MessageIOGateway.h"
+#ifdef MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
+# include "iogateway/TemplatingMessageIOGateway.h"
+#else
+# include "iogateway/MessageIOGateway.h"
+#endif
 #include "iogateway/PlainTextMessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
 #include "regex/QueryFilter.h"
@@ -39,7 +43,11 @@ int main(int argc, char ** argv)
 
    // And send and receive flattened Message objects over our TCP socket
    TCPSocketDataIO tcpIO(sock, false);
+#ifdef MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
+   TemplatingMessageIOGateway tcpGateway;
+#else
    MessageIOGateway tcpGateway;
+#endif
    tcpGateway.SetDataIO(DataIORef(&tcpIO, false));
 
    DataIORef networkIORef(&tcpIO, false);
