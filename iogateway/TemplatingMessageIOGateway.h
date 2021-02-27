@@ -65,8 +65,7 @@ private:
    mutable uint32 _incomingTemplatesTotalSizeBytes;
    mutable uint32 _outgoingTemplatesTotalSizeBytes;
 
-   void TrimLRUCache(Hashtable<uint64, MessageRef> & lruCache, uint32 & tallyBytes) const;
-
+   void TrimLRUCache(Hashtable<uint64, MessageRef> & lruCache, uint32 & tallyBytes, const char * desc) const;
 
    DECLARE_COUNTED_OBJECT(TemplatingMessageIOGateway);
 };

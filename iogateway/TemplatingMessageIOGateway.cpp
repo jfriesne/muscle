@@ -46,7 +46,7 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
          {
             createTemplate = true;
             _outgoingTemplatesTotalSizeBytes += newTemplateMsgRef()->FlattenedSize();
-            TrimLRUCache(_outgoingTemplates, _outgoingTemplatesTotalSizeBytes);
+            TrimLRUCache(_outgoingTemplates, _outgoingTemplatesTotalSizeBytes, "SEND");
          }
          else LogTime(MUSCLE_LOG_ERROR, "TemplatingMessageIOGateway::FlattenHeaderAndMessage():  Couldn't create a template for Message hash=" UINT64_FORMAT_SPEC "\n", templateID);
       }
@@ -92,7 +92,10 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
    }
 
 #ifdef DEBUG_TEMPLATING_MESSAGE_IO_GATEWAY
-   printf("SENDING: outgoingTableSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " templateID=" UINT64_FORMAT_SPEC " createTemplate=%i templateMsgRef=%p bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", _outgoingTemplates.GetNumItems(), _outgoingTemplatesTotalSizeBytes, templateID, createTemplate, templateMsgRef, retBuf()->GetNumBytes(), (uint32)(msgRef()->FlattenedSize()+(3*sizeof(uint32)))); retBuf()->PrintToStream();
+   const uint32 mySize  = retBuf()->GetNumBytes();
+   const uint32 oldSize = msgRef()->FlattenedSize()+(3*sizeof(uint32));
+   printf("SENT (down %.0f%%): outgoingTableSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " templateID=" UINT64_FORMAT_SPEC " createTemplate=%i templateMsgRef=%p bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", 100.0f*(1.0f-(((float)mySize)/oldSize)), _outgoingTemplates.GetNumItems(), _outgoingTemplatesTotalSizeBytes, templateID, createTemplate, templateMsgRef, mySize, oldSize);
+   //retBuf()->PrintToStream();
 #endif
 
    return retBuf;
@@ -205,12 +208,15 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
          if (_incomingTemplates.PutAtFront(templateID, tMsg).IsError()) return MessageRef();
 
          _incomingTemplatesTotalSizeBytes += tMsg()->FlattenedSize();
-         TrimLRUCache(_incomingTemplates, _incomingTemplatesTotalSizeBytes);
+         TrimLRUCache(_incomingTemplates, _incomingTemplatesTotalSizeBytes, "RECV");
       }
    }
 
 #ifdef DEBUG_TEMPLATING_MESSAGE_IO_GATEWAY
-   printf("RECEIVED: incomingTable=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " createTemplate=%i templateID=" UINT64_FORMAT_SPEC " bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", _incomingTemplates.GetNumItems(), _incomingTemplatesTotalSizeBytes, createTemplate, templateID, bufRef()->GetNumBytes(), (uint32)(retMsg()?(retMsg()->FlattenedSize()+(3*sizeof(uint32))):0)); bufRef()->PrintToStream();
+   const uint32 mySize  = bufRef()->GetNumBytes();
+   const uint32 oldSize = (retMsg()?retMsg()->FlattenedSize():0)+(3*sizeof(uint32));
+   printf("RECEIVED (down %.0f%%): incomingTable=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " createTemplate=%i templateID=" UINT64_FORMAT_SPEC " bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", 100.0f*(1.0f-(((float)mySize)/oldSize)), _incomingTemplates.GetNumItems(), _incomingTemplatesTotalSizeBytes, createTemplate, templateID, mySize, oldSize);
+   //bufRef()->PrintToStream();
 #endif
    return retMsg;
 }
@@ -223,7 +229,7 @@ void TemplatingMessageIOGateway :: Reset()
    _incomingTemplatesTotalSizeBytes = _outgoingTemplatesTotalSizeBytes = 0;
 }
 
-void TemplatingMessageIOGateway :: TrimLRUCache(Hashtable<uint64, MessageRef> & lruCache, uint32 & tallyBytes) const
+void TemplatingMessageIOGateway :: TrimLRUCache(Hashtable<uint64, MessageRef> & lruCache, uint32 & tallyBytes, const char * desc) const
 {
    while((lruCache.GetNumItems()>1)&(tallyBytes > _maxLRUCacheSizeBytes))
    {
@@ -236,6 +242,12 @@ void TemplatingMessageIOGateway :: TrimLRUCache(Hashtable<uint64, MessageRef> & 
          LogTime(MUSCLE_LOG_ERROR, "TrimLRUCache():  tallyBytes is too small!  " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", tallyBytes, lastSize, lruCache.GetNumItems());
          tallyBytes = 0;  // I guess?
       }
+
+#ifdef DEBUG_TEMPLATING_MESSAGE_IO_GATEWAY
+      printf("TRIM lastSize=" UINT32_FORMAT_SPEC ", %s LRU is now at size=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", lastSize, desc, lruCache.GetNumItems(), tallyBytes);
+#else
+      (void) desc;
+#endif
    }
 }
 
