@@ -90,7 +90,7 @@ public:
       ret = newnothrow ObjType;
       if (ret == NULL) {WARN_OUT_OF_MEMORY; return NULL;}
 
-      if (SetThreadLocalObject(ret) == B_NO_ERROR) return ret;
+      if (SetThreadLocalObject(ret).IsOK()) return ret;
       else
       {
          delete ret;
@@ -132,7 +132,7 @@ public:
       }
 
       _allocedObjsMutex.Unlock();
-      if (ret == B_NO_ERROR) delete oldObj;
+      if (ret.IsOK()) delete oldObj;
       return ret;
 #endif
    }

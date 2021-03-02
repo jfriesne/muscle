@@ -25,10 +25,11 @@ int main(int argc, char ** argv)
       return 10;
    }
 
+   status_t ret;
    uint16 udpPort;
-   if (BindUDPSocket(udpSock, 0, &udpPort) != B_NO_ERROR)
+   if (BindUDPSocket(udpSock, 0, &udpPort).IsError(ret))
    {
-      printf("Unable to bind UDP socket to a port!\n");
+      printf("Unable to bind UDP socket to a port! [%s]\n", ret());
       return 10;
    }
 

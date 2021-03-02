@@ -31,7 +31,7 @@ int32 PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
             LogTime(MUSCLE_LOG_ERROR, "PacketizedProxyDataIO:  Error, incoming packet with size " UINT32_FORMAT_SPEC ", max transfer unit is set to " UINT32_FORMAT_SPEC "\n", _inputBufferSize, _maxTransferUnit);
             return -1;
          }
-         if (_inputBuffer.SetNumBytes(_inputBufferSize, false) != B_NO_ERROR) return -1;
+         if (_inputBuffer.SetNumBytes(_inputBufferSize, false).IsError()) return -1;
          _inputBufferBytesRead = 0;
 
          // Special case for empty packets
@@ -77,13 +77,13 @@ int32 PacketizedProxyDataIO :: Write(const void * buffer, uint32 size)
       // No data buffered?
       _outputBufferBytesSent = 0;
 
-      if (_outputBuffer.SetNumBytes(sizeof(uint32)+size, false) != B_NO_ERROR) return 0;
+      if (_outputBuffer.SetNumBytes(sizeof(uint32)+size, false).IsError()) return 0;
       muscleCopyOut(_outputBuffer.GetBuffer(), B_HOST_TO_LENDIAN_INT32(size));
       memcpy(_outputBuffer.GetBuffer()+sizeof(uint32), buffer, size);
       ret = size;
    }
 
-   if (WriteBufferedOutputAux() != B_NO_ERROR) return -1;
+   if (WriteBufferedOutputAux().IsError()) return -1;
 
    return ((tryAgainAfter)&&(HasBufferedOutput() == false)) ? Write(buffer, size) : ret;
 }

@@ -54,7 +54,7 @@ int main(int argc, char ** argv)
 
    // Next we'll parse the flattened bytes back in to a separate Message object, just to show that we can
    Message anotherMsg;
-   if (anotherMsg.Unflatten(buf.GetBuffer(), buf.GetNumBytes()) == B_NO_ERROR)
+   if (anotherMsg.Unflatten(buf.GetBuffer(), buf.GetNumBytes()).IsOK())
    {
       printf("\n");
       printf("Unflattened the ByteBuffer back into anotherMsg.  anotherMsg now contains this:\n");
@@ -67,7 +67,7 @@ int main(int argc, char ** argv)
 
    // And finally we'll extract some values from (anotherMsg) programatically, just to demonstrate how
    int32 sizeInches;
-   if (anotherMsg.FindInt32("size_inches", sizeInches) == B_NO_ERROR)
+   if (anotherMsg.FindInt32("size_inches", sizeInches).IsOK())
    {
       printf("The customer wants a " INT32_FORMAT_SPEC "-inch pizza.\n", sizeInches);
    }
@@ -80,14 +80,14 @@ int main(int argc, char ** argv)
    
    // And we'll list out all of the toppings (note multiple values in a single field here!)
    String nextTopping;
-   for (int32 i=0; anotherMsg.FindString("toppings", i, nextTopping) == B_NO_ERROR; i++)
+   for (int32 i=0; anotherMsg.FindString("toppings", i, nextTopping).IsOK(); i++)
    {
       printf("User specified topping:  %s\n", nextTopping());
    }
 
    // And dig out the delivery-info sub-Message
    MessageRef anotherSubMsg;
-   if (anotherMsg.FindMessage("delivery_info", anotherSubMsg) == B_NO_ERROR)
+   if (anotherMsg.FindMessage("delivery_info", anotherSubMsg).IsOK())
    {
       printf("\n");
       printf("DELIVER TO:\n");

@@ -109,13 +109,13 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    }
 
    {
-      for (int32 i=0; (args.FindString("port", i, &value) == B_NO_ERROR); i++)
+      for (int32 i=0; (args.FindString("port", i, &value).IsOK()); i++)
       {
          const int16 port = (int16) atoi(value);
          if (port >= 0) listenPorts.PutWithDefault(IPAddressAndPort(invalidIP, port));
       }
 
-      for (int32 i=0; (args.FindString("listen", i, &value) == B_NO_ERROR); i++)
+      for (int32 i=0; (args.FindString("listen", i, &value).IsOK()); i++)
       {
          const IPAddressAndPort iap(value, DEFAULT_MUSCLED_PORT, false);
          if (iap.GetPort() > 0) listenPorts.PutWithDefault(iap);
@@ -124,7 +124,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    }
 
    {
-      for (int32 i=0; (args.FindString("remap", i, &value) == B_NO_ERROR); i++)
+      for (int32 i=0; (args.FindString("remap", i, &value).IsOK()); i++)
       {
          StringTokenizer tok(value, ",=");
          const char * from = tok();
@@ -141,7 +141,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    }
 
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
-   if (args.FindString("maxmem", &value) == B_NO_ERROR)
+   if (args.FindString("maxmem", &value).IsOK())
    {
       const int megs = muscleMax(1, atoi(value));
       LogTime(MUSCLE_LOG_INFO, "Limiting memory usage to %i megabyte%s.\n", megs, (megs==1)?"":"s");
@@ -149,51 +149,51 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    }
 #endif
 
-   if (args.FindString("maxmessagesize", &value) == B_NO_ERROR)
+   if (args.FindString("maxmessagesize", &value).IsOK())
    {
       const int k = muscleMax(1, atoi(value));
       LogTime(MUSCLE_LOG_INFO, "Limiting message sizes to %i kilobyte%s.\n", k, (k==1)?"":"s");
       maxMessageSize = k*1024L;
    }
 
-   if (args.FindString("maxsendrate", &value) == B_NO_ERROR)
+   if (args.FindString("maxsendrate", &value).IsOK())
    {
       const float k = (float) atof(value);
       maxSendRate = muscleMax((uint32)0, (uint32)(k*1024.0f));
    }
 
-   if (args.FindString("maxreceiverate", &value) == B_NO_ERROR)
+   if (args.FindString("maxreceiverate", &value).IsOK())
    {
       const float k = (float) atof(value);
       maxReceiveRate = muscleMax((uint32)0, (uint32)(k*1024.0f));
    }
 
-   if (args.FindString("maxcombinedrate", &value) == B_NO_ERROR)
+   if (args.FindString("maxcombinedrate", &value).IsOK())
    {
       const float k = (float) atof(value);
       maxCombinedRate = muscleMax((uint32)0, (uint32)(k*1024.0f));
    }
 
-   if (args.FindString("maxnodespersession", &value) == B_NO_ERROR)
+   if (args.FindString("maxnodespersession", &value).IsOK())
    {
       maxNodesPerSession = atoi(value);
       LogTime(MUSCLE_LOG_INFO, "Limiting nodes-per-session to " UINT32_FORMAT_SPEC ".\n", maxNodesPerSession);
    }
 
-   if (args.FindString("maxsessions", &value) == B_NO_ERROR)
+   if (args.FindString("maxsessions", &value).IsOK())
    {
       maxSessions = atoi(value);
       LogTime(MUSCLE_LOG_INFO, "Limiting total session count to " UINT32_FORMAT_SPEC ".\n", maxSessions);
    }
 
-   if (args.FindString("maxsessionsperhost", &value) == B_NO_ERROR) 
+   if (args.FindString("maxsessionsperhost", &value).IsOK()) 
    {
       maxSessionsPerHost = atoi(value);
       LogTime(MUSCLE_LOG_INFO, "Limiting session count for any given host to " UINT32_FORMAT_SPEC ".\n", maxSessionsPerHost);
    }
 
    {
-      for (int32 i=0; (args.FindString("ban", i, &value) == B_NO_ERROR); i++)
+      for (int32 i=0; (args.FindString("ban", i, &value).IsOK()); i++)
       {
          LogTime(MUSCLE_LOG_INFO, "Banning all clients whose IP addresses match [%s].\n", value);   
          bans.AddTail(value);
@@ -201,7 +201,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    }
 
    {
-      for (int32 i=0; (args.FindString("require", i, &value) == B_NO_ERROR); i++)
+      for (int32 i=0; (args.FindString("require", i, &value).IsOK()); i++)
       {
          LogTime(MUSCLE_LOG_INFO, "Allowing only clients whose IP addresses match [%s].\n", value);   
          requires.AddTail(value);
@@ -212,7 +212,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
       const char * privNames[] = {"privkick", "privban", "privunban", "privall"};
       for (int p=0; p<=PR_NUM_PRIVILEGES; p++)  // if (p == PR_NUM_PRIVILEGES), that means all privileges
       {
-         for (int32 q=0; (args.FindString(privNames[p], q, &value) == B_NO_ERROR); q++)
+         for (int32 q=0; (args.FindString(privNames[p], q, &value).IsOK()); q++)
          {
             LogTime(MUSCLE_LOG_INFO, "Clients whose IP addresses match [%s] get %s privileges.\n", value, privNames[p]+4);
             char tt[32]; muscleSprintf(tt, "priv%i", p);

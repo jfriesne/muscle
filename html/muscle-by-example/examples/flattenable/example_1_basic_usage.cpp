@@ -119,7 +119,7 @@ int main(int argc, char ** argv)
 
    // Now let's Unflatten() the data again, retrieving it back from the byte-buffer
    GPSCoordinate anotherGPS;
-   if (anotherGPS.Unflatten(tempBuf, gps.FlattenedSize()) == B_NO_ERROR)
+   if (anotherGPS.Unflatten(tempBuf, gps.FlattenedSize()).IsOK())
    {
       printf("Recovered from flat-buffer:  %s\n", anotherGPS.ToString()());
    }

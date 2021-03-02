@@ -13,12 +13,12 @@ static void PrintExampleDescription()
 static void AddFileToDir(Message & dirMsg, const String & fileName, uint32 fileLenBytes)
 {
    // Add an uninitialized raw-data field to the Message with the given name
-   if (dirMsg.AddData(fileName, B_RAW_TYPE, NULL, fileLenBytes) == B_NO_ERROR)
+   if (dirMsg.AddData(fileName, B_RAW_TYPE, NULL, fileLenBytes).IsOK())
    {
       // And then populate the raw-data field with some data
       void * rawData;
       uint32 rawDataLen;  // should be the same as (fileLenBytes) but I'm paranoid
-      if (dirMsg.FindDataPointer(fileName, B_RAW_TYPE, &rawData, &rawDataLen) == B_NO_ERROR)
+      if (dirMsg.FindDataPointer(fileName, B_RAW_TYPE, &rawData, &rawDataLen).IsOK())
       {
          uint8 * b = (uint8 *) rawData;
          const char dummyBuf[] = "All work and no play make Jack a dull boy.  ";

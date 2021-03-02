@@ -59,7 +59,7 @@ public:
      *  @param rhs the ByteBuffer to become a duplicate of
      *  @note We do NOT adopt (rhs)'s allocation strategy pointer or data format setting!
      */
-   ByteBuffer & operator=(const ByteBuffer & rhs) {if ((this != &rhs)&&(SetBuffer(rhs.GetNumBytes(), rhs.GetBuffer()) != B_NO_ERROR)) Clear(); return *this;}
+   ByteBuffer & operator=(const ByteBuffer & rhs) {if ((this != &rhs)&&(SetBuffer(rhs.GetNumBytes(), rhs.GetBuffer()).IsError())) Clear(); return *this;}
 
    /** Read/Write Accessor.  Returns a pointer to our held buffer, or NULL if we are not currently holding a buffer. */
    uint8 * GetBuffer() {return _buffer;}

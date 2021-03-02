@@ -98,7 +98,7 @@ int main(int argc, char ** argv)
 
    // Test retrieving a value using a MyKeyClass object as the key
    int retVal;
-   if (myTable.Get(MyKeyClass(21, 22), retVal) == B_NO_ERROR) 
+   if (myTable.Get(MyKeyClass(21, 22), retVal).IsOK()) 
    {
       printf("myTable.Get(MyKeyClass(21, 22) retrieved a key with value %i\n", retVal);
    }

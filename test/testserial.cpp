@@ -5,7 +5,7 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Test failed, line %i\n",__LINE__)
+#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
 #define TESTSIZE(x) if ((x) < 0) printf("Test failed, line %i\n",__LINE__)
 
 int main(int /*argc*/, char ** /*argv*/) 

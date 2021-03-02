@@ -569,7 +569,7 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
       {
          mel->Initialize(muscle_thread_id::GetCurrentThreadID());
          _mutexEventsLog.SetThreadLocalObject(mel);
-         if (_mutexLogTableMutex.Lock() == B_NO_ERROR)
+         if (_mutexLogTableMutex.Lock().IsOK())
          {
             _mutexLogTable.AddTail(mel);
             _mutexLogTableMutex.Unlock();
@@ -735,7 +735,7 @@ static uint64 GetRunTime64Aux()
    return rt_timer_tsc2ns(rt_timer_tsc())/1000;
 #elif defined(WIN32)
    uint64 ret = 0;
-   if (_rtMutex.Lock() == B_NO_ERROR)
+   if (_rtMutex.Lock().IsOK())
    {
 # ifdef MUSCLE_USE_QUERYPERFORMANCECOUNTER
       if (_qpcTicksPerSecond == 0) InitClockFrequency();  // in case we got called before main()
@@ -814,7 +814,7 @@ static uint64 GetRunTime64Aux()
    else
    {
       // Oops, clock_t is skinny enough that it might wrap.  So we need to watch for that.
-      if (_rtMutex.Lock() == B_NO_ERROR)
+      if (_rtMutex.Lock().IsOK())
       {
          static uint32 _prevVal;
          static uint64 _wrapOffset = 0;
@@ -843,7 +843,7 @@ status_t Snooze64(uint64 micros)
 {
    if (micros == MUSCLE_TIME_NEVER) 
    {
-      while(Snooze64(DaysToMicros(1)) == B_NO_ERROR) {/* empty */}
+      while(Snooze64(DaysToMicros(1)).IsOK()) {/* empty */}
       return B_ERROR;  // we should never exit the while loop above; so if we got here, it's an error
    }
 
@@ -936,7 +936,7 @@ static AbstractObjectRecycler * _firstRecycler = NULL;
 AbstractObjectRecycler :: AbstractObjectRecycler()
 {
    Mutex * m = GetGlobalMuscleLock();
-   if ((m)&&(m->Lock() != B_NO_ERROR)) m = NULL;
+   if ((m)&&(m->Lock().IsError())) m = NULL;
 
    // Append us to the front of the linked list
    if (_firstRecycler) _firstRecycler->_prev = this;
@@ -950,7 +950,7 @@ AbstractObjectRecycler :: AbstractObjectRecycler()
 AbstractObjectRecycler :: ~AbstractObjectRecycler()
 {
    Mutex * m = GetGlobalMuscleLock();
-   if ((m)&&(m->Lock() != B_NO_ERROR)) m = NULL;
+   if ((m)&&(m->Lock().IsError())) m = NULL;
 
    // Remove us from the linked list
    if (_prev) _prev->_next = _next;
@@ -963,7 +963,7 @@ AbstractObjectRecycler :: ~AbstractObjectRecycler()
 void AbstractObjectRecycler :: GlobalFlushAllCachedObjects()
 {
    Mutex * m = GetGlobalMuscleLock();
-   if ((m)&&(m->Lock() != B_NO_ERROR)) m = NULL;
+   if ((m)&&(m->Lock().IsError())) m = NULL;
 
    // We restart at the head of the list anytime anything is flushed,
    // for safety.  When we get to the end of the list, everything has
@@ -976,7 +976,7 @@ void AbstractObjectRecycler :: GlobalFlushAllCachedObjects()
 void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
 {
    Mutex * m = GetGlobalMuscleLock();
-   if ((m)&&(m->Lock() != B_NO_ERROR)) m = NULL;
+   if ((m)&&(m->Lock().IsError())) m = NULL;
 
    const AbstractObjectRecycler * r = _firstRecycler;
    while(r) 
@@ -1007,7 +1007,7 @@ CompleteSetupSystem :: ~CompleteSetupSystem()
 #endif
 
    GenericCallbackRef r;
-   while(_cleanupCallbacks.RemoveTail(r) == B_NO_ERROR) (void) r()->Callback(NULL);
+   while(_cleanupCallbacks.RemoveTail(r).IsOK()) (void) r()->Callback(NULL);
 
    AbstractObjectRecycler::GlobalFlushAllCachedObjects();
 
@@ -1043,10 +1043,10 @@ uint32 DataIO :: ReadFully(void * buffer, uint32 size)
 int64 SeekableDataIO :: GetLength()
 {
    const int64 origPos = GetPosition();
-   if ((origPos >= 0)&&(Seek(0, IO_SEEK_END) == B_NO_ERROR))
+   if ((origPos >= 0)&&(Seek(0, IO_SEEK_END).IsOK()))
    {
       const int64 ret = GetPosition();
-      if (Seek(origPos, IO_SEEK_SET) == B_NO_ERROR) return ret;
+      if (Seek(origPos, IO_SEEK_SET).IsOK()) return ret;
    }
    return -1;  // error!
 }
@@ -1911,7 +1911,7 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results)
 {
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
    Mutex * m = _muscleLock;
-   if ((m==NULL)||(m->Lock() == B_NO_ERROR))
+   if ((m==NULL)||(m->Lock().IsOK()))
    {
       status_t ret;
 
@@ -1936,7 +1936,7 @@ void PrintCountedObjectInfo()
 {
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
    Hashtable<const char *, uint32> table;
-   if (GetCountedObjectInfo(table) == B_NO_ERROR)
+   if (GetCountedObjectInfo(table).IsOK())
    {
       table.SortByKey();  // so they'll be printed in alphabetical order
       printf("Counted Object Info report follows: (" UINT32_FORMAT_SPEC " types counted)\n", table.GetNumItems());

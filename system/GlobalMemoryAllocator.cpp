@@ -150,7 +150,7 @@ void * muscleAlloc(size_t userSize, bool retryOnFailure)
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
    Mutex * glock = ma ? GetGlobalMuscleLock() : NULL;
-   if ((glock)&&(glock->Lock() != B_NO_ERROR))
+   if ((glock)&&(glock->Lock().IsError()))
    {
       printf("Error, muscleAlloc() could not lock the global muscle lock!\n");
       SetFailedMemoryRequestSize(userSize);   // FogBugz #7547
@@ -158,7 +158,7 @@ void * muscleAlloc(size_t userSize, bool retryOnFailure)
    }
 #endif
 
-   if ((ma == NULL)||(ma->AboutToAllocate(_currentlyAllocatedBytes, internalSize) == B_NO_ERROR))
+   if ((ma == NULL)||(ma->AboutToAllocate(_currentlyAllocatedBytes, internalSize).IsOK()))
    {
       size_t * internalPtr = (size_t *) malloc(internalSize);
       if (internalPtr)
@@ -233,7 +233,7 @@ void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
    Mutex * glock = ma ? GetGlobalMuscleLock() : NULL;
-   if ((glock)&&(glock->Lock() != B_NO_ERROR)) 
+   if ((glock)&&(glock->Lock().IsError())) 
    {
       printf("Error, muscleRealloc() could not lock the global muscle lock!\n");
       SetFailedMemoryRequestSize(newUserSize);   // FogBugz #7547
@@ -245,7 +245,7 @@ void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
    if (newInternalSize > oldInternalSize)
    {
       const size_t growBy = newInternalSize-oldInternalSize;
-      if ((ma == NULL)||(ma->AboutToAllocate(_currentlyAllocatedBytes, growBy) == B_NO_ERROR))
+      if ((ma == NULL)||(ma->AboutToAllocate(_currentlyAllocatedBytes, growBy).IsOK()))
       {
          size_t * newInternalPtr = (size_t *) realloc(oldInternalPtr, newInternalSize);
          if (newInternalPtr)
@@ -335,7 +335,7 @@ void muscleFree(void * userPtr)
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
       Mutex * glock = ma ? GetGlobalMuscleLock() : NULL;
-      if ((glock)&&(glock->Lock() != B_NO_ERROR)) 
+      if ((glock)&&(glock->Lock().IsError())) 
       {
          printf("Error, muscleFree() could not lock the global muscle lock!!!\n");
          return;  // serialize access to (ma)

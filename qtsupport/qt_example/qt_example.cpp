@@ -324,11 +324,11 @@ void ExampleWindow :: ConnectToServer()
 
    String hostname;
    uint16 port = 2960;  // default port for muscled
-   if (ParseConnectArg(FromQ(_serverName->text()), hostname, port) != B_NO_ERROR) 
+   if (ParseConnectArg(FromQ(_serverName->text()), hostname, port).IsError()) 
    {
       AddChatText(QString("Unable to parse server name %1.").arg(_serverName->text()));
    }
-   else if ((_mtt.AddNewConnectSession(hostname, port, false, SecondsToMicros(1)) == B_NO_ERROR)&&(_mtt.StartInternalThread() == B_NO_ERROR))
+   else if ((_mtt.AddNewConnectSession(hostname, port, false, SecondsToMicros(1)).IsOK())&&(_mtt.StartInternalThread().IsOK()))
    {
       AddChatText(QString("Connecting to server %1...").arg(_serverName->text()));
    }
@@ -402,10 +402,10 @@ void ExampleWindow :: MessageReceived(const MessageRef & msg)
          // Look for strings that indicate that subscribed nodes were removed from the tree
          {
             const String * nodePath;
-            for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, &nodePath) == B_NO_ERROR); i++)
+            for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, &nodePath).IsOK()); i++)
             {
                MessageRef existingState;
-               if (_states.Remove(*nodePath, existingState) == B_NO_ERROR)
+               if (_states.Remove(*nodePath, existingState).IsOK())
                {
                   AddChatText(QString("[%1] has disconnected from the server.").arg(existingState()->GetString("username")()));
                   _exampleWidget->update();
@@ -418,7 +418,7 @@ void ExampleWindow :: MessageReceived(const MessageRef & msg)
             for (MessageFieldNameIterator iter = msg()->GetFieldNameIterator(B_MESSAGE_TYPE); iter.HasData(); iter++)
             {
                MessageRef data;
-               for (uint32 i=0; msg()->FindMessage(iter.GetFieldName(), i, data) == B_NO_ERROR; i++)
+               for (uint32 i=0; msg()->FindMessage(iter.GetFieldName(), i, data).IsOK(); i++)
                {
                   if (_states.ContainsKey(iter.GetFieldName()) == false) AddChatText(QString("[%1] has connected to the server.").arg(data()->GetString("username")()));
                   _states.Put(iter.GetFieldName(), data);

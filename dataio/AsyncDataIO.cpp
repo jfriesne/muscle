@@ -34,7 +34,7 @@ status_t AsyncDataIO :: Seek(int64 offset, int whence)
    {
       ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_SEEK, offset, whence));
       _asyncCommandsMutex.Unlock();
-      if (ret == B_NO_ERROR) NotifyInternalThread();
+      if (ret.IsOK()) NotifyInternalThread();
    }
    return ret;
 }
@@ -43,11 +43,11 @@ void AsyncDataIO :: FlushOutput()
 {
    if (IsInternalThreadRunning()) 
    {
-      if (_asyncCommandsMutex.Lock() == B_NO_ERROR)
+      if (_asyncCommandsMutex.Lock().IsOK())
       {
          const status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_FLUSH));
          _asyncCommandsMutex.Unlock();
-         if (ret == B_NO_ERROR) NotifyInternalThread();
+         if (ret.IsOK()) NotifyInternalThread();
       }
    }
    else LogTime(MUSCLE_LOG_ERROR, "StartInternalThread() must be called before calling AsyncDataIO::FlushOutput()!\n");
@@ -57,11 +57,11 @@ void AsyncDataIO :: Shutdown()
 {
    if (IsInternalThreadRunning())
    {
-      if (_asyncCommandsMutex.Lock() == B_NO_ERROR)
+      if (_asyncCommandsMutex.Lock().IsOK())
       {
          const status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_SHUTDOWN));
          _asyncCommandsMutex.Unlock();
-         if (ret == B_NO_ERROR) NotifyInternalThread();
+         if (ret.IsOK()) NotifyInternalThread();
       }
    }
    else ProxyDataIO::Shutdown();
@@ -146,7 +146,7 @@ void AsyncDataIO :: InternalThreadEntry()
       // Determine how many bytes until the next command in the output stream (we want them to be executed at the same point
       // in the I/O thread's output stream as they were called at in the main thread's output stream)
       uint32 bytesUntilNextCommand = MUSCLE_NO_LIMIT;
-      if (_asyncCommandsMutex.Lock() == B_NO_ERROR)
+      if (_asyncCommandsMutex.Lock().IsOK())
       {
          if (_asyncCommands.HasItems())
          {

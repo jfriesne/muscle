@@ -28,7 +28,7 @@ int main(int, char **)
    // This is usually the list you want.
    {
       Queue<NetworkInterfaceInfo> ifs;
-      if (GetNetworkInterfaceInfos(ifs) == B_NO_ERROR)
+      if (GetNetworkInterfaceInfos(ifs).IsOK())
       {
          PrintNetworkInterfaceInfos(ifs, "ACTIVE network interfaces");
       }
@@ -40,7 +40,7 @@ int main(int, char **)
    // Now let's print the exhaustive list of ALL the NICs on this machine (set up or not!)
    {
       Queue<NetworkInterfaceInfo> ifs;
-      if (GetNetworkInterfaceInfos(ifs, GNIIFlags(GNII_FLAGS_INCLUDE_ALL_INTERFACES)) == B_NO_ERROR)
+      if (GetNetworkInterfaceInfos(ifs, GNIIFlags(GNII_FLAGS_INCLUDE_ALL_INTERFACES)).IsOK())
       {
          PrintNetworkInterfaceInfos(ifs, "total network interfaces");
       }

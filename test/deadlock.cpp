@@ -23,10 +23,10 @@ public:
          const bool reverseOrder = ((rand()%2) == 0);
          Mutex * m1 = reverseOrder ? &_mutexB : &_mutexA;
          Mutex * m2 = reverseOrder ? &_mutexA : &_mutexB;
-         if (m1->Lock() != B_NO_ERROR) printf("Error, couldn't lock first Mutex!  (this should never happen!)\n");
-         if (m2->Lock() != B_NO_ERROR) printf("Error, couldn't lock second Mutex!  (this should never happen!)\n");
-         if (m2->Unlock() != B_NO_ERROR) printf("Error, couldn't unlock second Mutex!  (this should never happen!)\n");
-         if (m1->Unlock() != B_NO_ERROR) printf("Error, couldn't unlock first Mutex!  (this should never happen!)\n");
+         if (m1->Lock().IsError()) printf("Error, couldn't lock first Mutex!  (this should never happen!)\n");
+         if (m2->Lock().IsError()) printf("Error, couldn't lock second Mutex!  (this should never happen!)\n");
+         if (m2->Unlock().IsError()) printf("Error, couldn't unlock second Mutex!  (this should never happen!)\n");
+         if (m1->Unlock().IsError()) printf("Error, couldn't unlock first Mutex!  (this should never happen!)\n");
       }
    }
 };
@@ -44,8 +44,8 @@ int main(int /*argc*/, char ** /*argv*/)
 
    printf("Deadlocking program begins!\n");
    TestThread threads[10];
-   for (uint32 i=0; i<ARRAYITEMS(threads); i++) if (threads[i].StartInternalThread() != B_NO_ERROR) printf("Error, couldn't start thread #" UINT32_FORMAT_SPEC "\n", i);
-   for (uint32 i=0; i<ARRAYITEMS(threads); i++) if (threads[i].WaitForInternalThreadToExit() != B_NO_ERROR) printf("Error, couldn't wait for thread #" UINT32_FORMAT_SPEC "\n", i);
+   for (uint32 i=0; i<ARRAYITEMS(threads); i++) if (threads[i].StartInternalThread().IsError()) printf("Error, couldn't start thread #" UINT32_FORMAT_SPEC "\n", i);
+   for (uint32 i=0; i<ARRAYITEMS(threads); i++) if (threads[i].WaitForInternalThreadToExit().IsError()) printf("Error, couldn't wait for thread #" UINT32_FORMAT_SPEC "\n", i);
    printf("Deadlocking program completed!  Lucky!\n");
    return 0;
 }

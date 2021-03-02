@@ -91,7 +91,7 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
          _deflater.total_out = 0;
          _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
          
-         if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(ret()->SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true) == B_NO_ERROR))
+         if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(ret()->SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true).IsOK()))
          {
             (void) ret()->FreeExtraBytes();  // no sense keeping all that extra space around, is there?
             WriteZLibCodecHeader(ret()->GetBuffer()+addHeaderBytes, independent, numRaw);

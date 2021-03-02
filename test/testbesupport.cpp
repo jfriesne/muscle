@@ -5,8 +5,8 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Operation failed, line " INT32_FORMAT_SPEC "\n", __LINE__);
-#define NEGATIVETEST(x) if ((x) == B_NO_ERROR) printf("Operation succeeded when it should not have, line " INT32_FORMAT_SPEC "\n", __LINE__);
+#define TEST(x) if ((x).IsError()) printf("Operation failed, line " INT32_FORMAT_SPEC "\n", __LINE__);
+#define NEGATIVETEST(x) if ((x).IsOK()) printf("Operation succeeded when it should not have, line " INT32_FORMAT_SPEC "\n", __LINE__);
 
 // This program tests the Message <-> BMessage conversion functions in the besupport directory.
 int main(void) 
@@ -55,8 +55,8 @@ int main(void)
    mmsg.PrintToStream();
 
    Message rSub, rDeep;
-   if ((mmsg.FindMessage("TestMessage", rSub) == B_NO_ERROR)&&
-       (rSub.FindMessage("Russian Dolls", rDeep) == B_NO_ERROR)) 
+   if ((mmsg.FindMessage("TestMessage", rSub).IsOK())&&
+       (rSub.FindMessage("Russian Dolls", rDeep).IsOK())) 
    { 
       printf("Nested messages are:\n");
       rSub.PrintToStream();

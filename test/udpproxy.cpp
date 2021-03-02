@@ -82,10 +82,11 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
 
       if (multiplexer.WaitForEvents() >= 0)
       {
-         if (ReadIncomingData( aDesc, aIO, multiplexer, outgoingBData)         != B_NO_ERROR) return B_IO_ERROR;
-         if (ReadIncomingData( bDesc, bIO, multiplexer, outgoingAData)         != B_NO_ERROR) return B_IO_ERROR;
-         if (WriteOutgoingData(aDesc, aIO, multiplexer, outgoingAData, aIndex) != B_NO_ERROR) return B_IO_ERROR;
-         if (WriteOutgoingData(bDesc, bIO, multiplexer, outgoingBData, bIndex) != B_NO_ERROR) return B_IO_ERROR;
+         status_t ret;
+         if (ReadIncomingData( aDesc, aIO, multiplexer, outgoingBData)        .IsError(ret)) return ret;
+         if (ReadIncomingData( bDesc, bIO, multiplexer, outgoingAData)        .IsError(ret)) return ret;
+         if (WriteOutgoingData(aDesc, aIO, multiplexer, outgoingAData, aIndex).IsError(ret)) return ret;
+         if (WriteOutgoingData(bDesc, bIO, multiplexer, outgoingBData, bIndex).IsError(ret)) return ret;
       }
       else 
       {
@@ -167,7 +168,7 @@ int main(int argc, char ** argv)
          {
             LogTime(MUSCLE_LOG_INFO, "Added UDP socket to multicast group %s!\n", Inet_NtoA(ip)());
 #ifdef DISALLOW_MULTICAST_TO_SELF
-            if (SetSocketMulticastToSelf(udpSock, false) != B_NO_ERROR) LogTime(MUSCLE_LOG_ERROR, "Error disabling multicast-to-self on socket\n");
+            if (SetSocketMulticastToSelf(udpSock, false).IsError()) LogTime(MUSCLE_LOG_ERROR, "Error disabling multicast-to-self on socket\n");
 #endif
          }
          else LogTime(MUSCLE_LOG_ERROR, "Error adding UDP socket to multicast group %s! [%s]\n", Inet_NtoA(ip)(), ret());
@@ -185,6 +186,6 @@ int main(int argc, char ** argv)
    }
 
    ret = DoSession(targets[0].ToString(), *udpIOs[0](), targets[1].ToString(), *udpIOs[1]());
-   LogTime(MUSCLE_LOG_INFO, "udpproxy exiting%s!\n", (ret==B_NO_ERROR)?"":" with an error");
+   LogTime(MUSCLE_LOG_INFO, "udpproxy exiting:  %s!\n", ret());
    return 0;
 }

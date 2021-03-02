@@ -58,7 +58,7 @@ const ConstSocketRef & Thread :: GetOwnerWakeupSocket()
 
 const ConstSocketRef & Thread :: GetThreadWakeupSocketAux(ThreadSpecificData & tsd)
 {
-   if ((_messageSocketsAllocated == false)&&(CreateConnectedSocketPair(_threadData[MESSAGE_THREAD_INTERNAL]._messageSocket, _threadData[MESSAGE_THREAD_OWNER]._messageSocket) != B_NO_ERROR)) return GetNullSocket();
+   if ((_messageSocketsAllocated == false)&&(CreateConnectedSocketPair(_threadData[MESSAGE_THREAD_INTERNAL]._messageSocket, _threadData[MESSAGE_THREAD_OWNER]._messageSocket).IsError())) return GetNullSocket();
 
    _messageSocketsAllocated = true;
    return tsd._messageSocket;
@@ -122,7 +122,7 @@ status_t Thread :: StartInternalThreadAux()
 #elif defined(__BEOS__) || defined(__HAIKU__)
       if ((_thread = spawn_thread(InternalThreadEntryFunc, "MUSCLE Thread", B_NORMAL_PRIORITY, this)) >= 0)
       {
-         if (resume_thread(_thread) == B_NO_ERROR) return B_NO_ERROR;
+         if (resume_thread(_thread).IsOK()) return B_NO_ERROR;
          else 
          {
             ret = B_ERRNO; 
@@ -133,7 +133,7 @@ status_t Thread :: StartInternalThreadAux()
 #elif defined(__ATHEOS__)
       if ((_thread = spawn_thread("MUSCLE Thread", InternalThreadEntryFunc, NORMAL_PRIORITY, 32767, this)) >= 0)
       {
-         if (resume_thread(_thread) == B_NO_ERROR) return B_NO_ERROR;
+         if (resume_thread(_thread).IsOK()) return B_NO_ERROR;
          else 
          {
             ret = B_ERRNO; 
@@ -223,9 +223,9 @@ int32 Thread :: WaitForNextMessageFromOwner(MessageRef & ref, uint64 wakeupTime)
 int32 Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref, uint64 wakeupTime)
 {
    int32 ret = -1;  // pessimistic default
-   if (tsd._queueLock.Lock() == B_NO_ERROR)
+   if (tsd._queueLock.Lock().IsOK())
    {
-      if (tsd._messages.RemoveHead(ref) == B_NO_ERROR) ret = tsd._messages.GetNumItems();
+      if (tsd._messages.RemoveHead(ref).IsOK()) ret = tsd._messages.GetNumItems();
       (void) tsd._queueLock.Unlock();
 
       int msgfd;
@@ -281,7 +281,7 @@ void Thread :: InternalThreadEntry()
    {
       MessageRef msgRef;
       const int32 numLeft = WaitForNextMessageFromOwner(msgRef);
-      if ((numLeft >= 0)&&(MessageReceivedFromOwner(msgRef, numLeft) != B_NO_ERROR)) break;
+      if ((numLeft >= 0)&&(MessageReceivedFromOwner(msgRef, numLeft).IsError())) break;
    }
 #endif
 }
@@ -295,7 +295,7 @@ void Thread :: QtSocketReadReady(int /*sock*/)
       const int32 numLeft = WaitForNextMessageFromOwner(msgRef, 0);  // 0 because we don't want to block here, this is a poll only
       if (numLeft >= 0)
       {
-         if (MessageReceivedFromOwner(msgRef, numLeft) != B_NO_ERROR)
+         if (MessageReceivedFromOwner(msgRef, numLeft).IsError())
          {
             // Oops, MessageReceivedFromOwner() wants us to exit!
             _thread.quit();
@@ -351,7 +351,7 @@ status_t Thread :: WaitForInternalThreadToExit()
 Queue<MessageRef> * Thread :: LockAndReturnMessageQueue()
 {
    ThreadSpecificData & tsd = _threadData[MESSAGE_THREAD_INTERNAL];
-   return (tsd._queueLock.Lock() == B_NO_ERROR) ? &tsd._messages : NULL;
+   return (tsd._queueLock.Lock().IsOK()) ? &tsd._messages : NULL;
 }
 
 status_t Thread :: UnlockMessageQueue()
@@ -362,7 +362,7 @@ status_t Thread :: UnlockMessageQueue()
 Queue<MessageRef> * Thread :: LockAndReturnReplyQueue()
 {
    ThreadSpecificData & tsd = _threadData[MESSAGE_THREAD_OWNER];
-   return (tsd._queueLock.Lock() == B_NO_ERROR) ? &tsd._messages : NULL;
+   return (tsd._queueLock.Lock().IsOK()) ? &tsd._messages : NULL;
 }
 
 status_t Thread :: UnlockReplyQueue()
@@ -378,7 +378,7 @@ Thread * Thread :: GetCurrentThread()
    muscle_thread_key key = GetCurrentThreadKey();
 
    Thread * ret = NULL; 
-   if (_curThreadsMutex.Lock() == B_NO_ERROR)
+   if (_curThreadsMutex.Lock().IsOK())
    {
       (void) _curThreads.Get(key, ret);
       _curThreadsMutex.Unlock();
@@ -393,7 +393,7 @@ void Thread::InternalThreadEntryAux()
    _threadStackBase = &threadStackBase;  // remember this stack location so GetCurrentStackUsage() can reference it later on
 
    muscle_thread_key curThreadKey = GetCurrentThreadKey();
-   if (_curThreadsMutex.Lock() == B_NO_ERROR)
+   if (_curThreadsMutex.Lock().IsOK())
    {
       (void) _curThreads.Put(curThreadKey, this);
       _curThreadsMutex.Unlock();
@@ -409,7 +409,7 @@ void Thread::InternalThreadEntryAux()
    InternalThreadEntry();
    _threadData[MESSAGE_THREAD_INTERNAL]._messageSocket.Reset();  // this will wake up the owner thread with EOF on socket
 
-   if (_curThreadsMutex.Lock() == B_NO_ERROR)
+   if (_curThreadsMutex.Lock().IsOK())
    {
       (void) _curThreads.Remove(curThreadKey);
       _curThreadsMutex.Unlock();

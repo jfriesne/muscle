@@ -36,7 +36,7 @@ int32 ByteBufferDataIO :: Write(const void * buffer, uint32 size)
    if (pastOffset > oldBufSize)
    {
       const uint32 preallocBytes = (pastOffset*2);  // exponential resize to avoid too many reallocs
-      if (_buf()->SetNumBytes(preallocBytes, true) != B_NO_ERROR) return -1;   // allocate the memory
+      if (_buf()->SetNumBytes(preallocBytes, true).IsError()) return -1;   // allocate the memory
       memset(_buf()->GetBuffer()+oldBufSize, 0, preallocBytes-oldBufSize);  // make sure newly alloc'd memory is zeroed out!
       (void) _buf()->SetNumBytes(pastOffset, true);  // guaranteed not to fail
    }

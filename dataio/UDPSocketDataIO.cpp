@@ -49,7 +49,7 @@ int32 UDPSocketDataIO :: WriteTo(const void * buffer, uint32 size, const IPAddre
 status_t UDPSocketDataIO :: SetBlockingIOEnabled(bool blocking)
 {
    const status_t ret = SetSocketBlockingEnabled(_sock, blocking);
-   if (ret == B_NO_ERROR) _blocking = blocking;
+   if (ret.IsOK()) _blocking = blocking;
    return ret;
 }
 

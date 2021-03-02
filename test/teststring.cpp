@@ -49,7 +49,7 @@ int main(void)
       char base[512];  printf("Enter string: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
 
       Message args;
-      if (ParseArgs(base, args) == B_NO_ERROR)
+      if (ParseArgs(base, args).IsOK())
       {
          printf("Parsed: "); args.PrintToStream();
       }
@@ -86,24 +86,24 @@ int main(void)
             numAllocedBytes = newNumAlloced;
          }
       }
-      if (s.ShrinkToFit() == B_NO_ERROR) printf("After ShrinkToFit():  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
-                                    else printf("ShrinkToFit() failed!\n");
+      if (s.ShrinkToFit().IsOK()) printf("After ShrinkToFit():  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
+                              else printf("ShrinkToFit() failed!\n");
 
       s = "Now I'm small";
       printf("After setting small:  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
 
-      if (s.ShrinkToFit() == B_NO_ERROR) printf("After ShrinkToFit to small():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
-                                    else printf("ShrinkToFit() to small failed!\n");
+      if (s.ShrinkToFit().IsOK()) printf("After ShrinkToFit to small():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
+                              else printf("ShrinkToFit() to small failed!\n");
 
       s = "tiny";
       printf("After setting tiny:  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
-      if (s.ShrinkToFit() == B_NO_ERROR) printf("After ShrinkToFit to tiny():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
-                                    else printf("ShrinkToFit() to tiny failed!\n");
+      if (s.ShrinkToFit().IsOK()) printf("After ShrinkToFit to tiny():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
+                              else printf("ShrinkToFit() to tiny failed!\n");
 
       s = "tin";
       printf("After setting tin:  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
-      if (s.ShrinkToFit() == B_NO_ERROR) printf("After ShrinkToFit to tin():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
-                                    else printf("ShrinkToFit() to tin failed!\n");
+      if (s.ShrinkToFit().IsOK()) printf("After ShrinkToFit to tin():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
+                              else printf("ShrinkToFit() to tin failed!\n");
    }
 
 #ifdef TEST_REPLACE_METHOD

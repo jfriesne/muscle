@@ -95,7 +95,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
       if (_orderedIndex->InsertItemAt(insertIndex, dref).IsOK(ret))
       {
          String np;
-         if ((optRetAdded)&&(dref()->GetNodePath(np) == B_NO_ERROR)) (void) optRetAdded->Put(np, dref);
+         if ((optRetAdded)&&(dref()->GetNodePath(np).IsOK())) (void) optRetAdded->Put(np, dref);
 
          // Notify anyone monitoring this node that the ordered-index has been updated
          notifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, dref()->GetNodeName());

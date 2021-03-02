@@ -90,7 +90,7 @@ int main(int argc, char ** argv)
       tallyBytesReceived += readBytes;
 
       MessageRef incoming;
-      while(inQueue.RemoveHead(incoming) == B_NO_ERROR) {/* ignore it, we just want to measure bandwidth */}
+      while(inQueue.RemoveHead(incoming).IsOK()) {/* ignore it, we just want to measure bandwidth */}
    }
    LogTime(MUSCLE_LOG_INFO, "\n\nBye!\n");
    return 0;

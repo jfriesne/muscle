@@ -38,8 +38,8 @@ int main(void)
    // Simple test
    {
       status_t ret = TestFunction();
-      if (ret == B_NO_ERROR) printf("Success!  [%s]\n", ret());
-                        else printf("Failure:  [%s]\n", ret());
+      if (ret.IsOK()) printf("Success!  [%s]\n", ret());
+                 else printf("Failure:  [%s]\n", ret());
       printf("\n");
    }
 

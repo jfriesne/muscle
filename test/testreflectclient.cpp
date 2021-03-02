@@ -34,7 +34,7 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Test failed, line %i\n",__LINE__)
+#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
 
 enum {
    METHOD_MANUAL = 0,
@@ -207,7 +207,7 @@ int main(int argc, char ** argv)
       MyLooper * looper = new MyLooper(mtt);
       looper->Run();
       mtt.SetTarget(looper);
-      if ((mtt.StartInternalThread() == B_NO_ERROR)&&(SetupTransceiverThread(mtt, hostName, (uint16)port, method) == B_NO_ERROR))
+      if ((mtt.StartInternalThread().IsOK())&&(SetupTransceiverThread(mtt, hostName, (uint16)port, method).IsOK()))
       {
          char text[1000];
          bool keepGoing = true;

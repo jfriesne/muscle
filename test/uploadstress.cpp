@@ -14,7 +14,7 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Test failed, line %i\n",__LINE__)
+#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
 
 // This client just uploads a bunch of stuff to the server, trying to batter it down.
 int main(int argc, char ** argv)
@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
          }
 
          MessageRef incoming;
-         while(inQueue.RemoveHead(incoming) == B_NO_ERROR)
+         while(inQueue.RemoveHead(incoming).IsOK())
          {
             printf("Heard message from server:-----------------------------------\n");
             incoming()->PrintToStream();

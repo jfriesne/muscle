@@ -231,7 +231,7 @@ public:
    {
       Hashtable<String, Void> iNames;
       Queue<NetworkInterfaceInfo> q;
-      if (GetNetworkInterfaceInfos(q) == B_NO_ERROR)
+      if (GetNetworkInterfaceInfos(q).IsOK())
       {
          for (uint32 i=0; i<q.GetNumItems(); i++)
          {
@@ -294,7 +294,7 @@ protected:
                int32 numLeft = WaitForNextMessageFromOwner(msgRef, 0);
                if (numLeft >= 0)
                {
-                  if (MessageReceivedFromOwner(msgRef, numLeft) != B_NO_ERROR) _threadKeepGoing = false;
+                  if (MessageReceivedFromOwner(msgRef, numLeft).IsError()) _threadKeepGoing = false;
                }
                else break; 
             }
@@ -788,7 +788,7 @@ ConstSocketRef DetectNetworkConfigChangesSession :: CreateDefaultSocket()
    sa.nl_groups = RTMGRP_LINK | RTMGRP_IPV6_IFADDR;
 
    ConstSocketRef ret = GetConstSocketRefFromPool(socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE));
-   return ((ret())&&(bind(ret()->GetFileDescriptor(), (struct sockaddr*)&sa, sizeof(sa)) == 0)&&(SetSocketBlockingEnabled(ret, false) == B_NO_ERROR)) ? ret : ConstSocketRef();
+   return ((ret())&&(bind(ret()->GetFileDescriptor(), (struct sockaddr*)&sa, sizeof(sa)) == 0)&&(SetSocketBlockingEnabled(ret, false).IsOK())) ? ret : ConstSocketRef();
 #else
    return CreateConnectedSocketPair(_notifySocket, _waitSocket).IsOK() ? _waitSocket : ConstSocketRef();
 #endif
@@ -877,7 +877,7 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
                if (msg()->HasName("if", B_STRING_TYPE))
                {
                   const String * ifName;
-                  for (int32 i=0; msg()->FindString("if", i, &ifName) == B_NO_ERROR; i++) _pendingChangedInterfaceNames.PutWithDefault(*ifName);
+                  for (int32 i=0; msg()->FindString("if", i, &ifName).IsOK(); i++) _pendingChangedInterfaceNames.PutWithDefault(*ifName);
                }
                else _changeAllPending = true;  // no interfaces specified means "it could be anything"
             }

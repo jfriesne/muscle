@@ -48,7 +48,7 @@ static long ZCALLBACK fseek_dataio_func (voidpf /*opaque*/, voidpf stream, uLong
    }
    DataIO * dio = (DataIO *)stream;
    SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(dio);
-   return (long) ((sdio)&&(sdio->Seek(offset, muscleSeekOrigin) == B_NO_ERROR)) ? 0 : -1;
+   return (long) ((sdio)&&(sdio->Seek(offset, muscleSeekOrigin).IsOK())) ? 0 : -1;
 }
 
 static int ZCALLBACK fclose_dataio_func (voidpf /*opaque*/, voidpf /*stream*/)
@@ -83,7 +83,7 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
 
             // Message fields we treat as sub-directories   
             MessageRef subMsg;
-            for (int32 i=0; msg.FindMessage(fn, i, subMsg) == B_NO_ERROR; i++) if (WriteZipFileAux(zf, newBaseName, *subMsg(), compressionLevel, fileInfo).IsError(ret)) return ret;
+            for (int32 i=0; msg.FindMessage(fn, i, subMsg).IsOK(); i++) if (WriteZipFileAux(zf, newBaseName, *subMsg(), compressionLevel, fileInfo).IsError(ret)) return ret;
          }
          break;
 
@@ -95,7 +95,7 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
 
             const void * data;
             uint32 numBytes;
-            for (int32 i=0; msg.FindData(fn, B_RAW_TYPE, i, &data, &numBytes) == B_NO_ERROR; i++)
+            for (int32 i=0; msg.FindData(fn, B_RAW_TYPE, i, &data, &numBytes).IsOK(); i++)
             {
                if (zipOpenNewFileInZip2(zf,
                                         fileName(),  // file name
@@ -147,7 +147,7 @@ status_t WriteZipFile(DataIO & writeTo, const Message & msg, int compressionLeve
       {
          memset(&fileInfo, 0, sizeof(fileInfo));
          HumanReadableTimeValues v;
-         if (GetHumanReadableTimeValues((fileCreationTime==MUSCLE_TIME_NEVER)?GetCurrentTime64(MUSCLE_TIMEZONE_LOCAL):fileCreationTime, v, MUSCLE_TIMEZONE_LOCAL) == B_NO_ERROR)
+         if (GetHumanReadableTimeValues((fileCreationTime==MUSCLE_TIME_NEVER)?GetCurrentTime64(MUSCLE_TIMEZONE_LOCAL):fileCreationTime, v, MUSCLE_TIMEZONE_LOCAL).IsOK())
          {
             fi = &fileInfo;
             fileInfo.tmz_date.tm_sec  = v.GetSecond();
@@ -188,7 +188,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
             {
                // Demand-allocate a sub-message
                MessageRef subMsg;
-               if (m->FindMessage(fn, subMsg) != B_NO_ERROR) 
+               if (m->FindMessage(fn, subMsg).IsError()) 
                {
                   if ((m->AddMessage(fn, Message()).IsError(ret))||(m->FindMessage(fn, subMsg).IsError(ret))) return ret;
                }
@@ -243,7 +243,7 @@ MessageRef ReadZipFile(DataIO & readFrom, bool loadData)
          zipFile zf = unzOpen2(NULL, &zdefs);
          if (zf != NULL)
          {
-            if (ReadZipFileAux(zf, *ret(), nameBuf, NAME_BUF_LEN, loadData) != B_NO_ERROR) ret.Reset();
+            if (ReadZipFileAux(zf, *ret(), nameBuf, NAME_BUF_LEN, loadData).IsError()) ret.Reset();
             unzClose(zf);
          }
          else ret.Reset();  // failure!

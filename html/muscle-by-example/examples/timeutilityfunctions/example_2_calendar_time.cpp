@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
       const uint64 nowLocal = GetCurrentTime64(MUSCLE_TIMEZONE_LOCAL);
       printf("Current Local time (micros-since-1970) is:  " UINT64_FORMAT_SPEC ", aka %s\n", nowLocal, GetHumanReadableTimeString(nowLocal, MUSCLE_TIMEZONE_LOCAL)());
       HumanReadableTimeValues localVals;
-      if (GetHumanReadableTimeValues(nowLocal, localVals, MUSCLE_TIMEZONE_LOCAL) == B_NO_ERROR)
+      if (GetHumanReadableTimeValues(nowLocal, localVals, MUSCLE_TIMEZONE_LOCAL).IsOK())
       {
          printf("  Local HumanReadableTimeValues=[%s]\n", localVals.ToString()());
       }
@@ -38,7 +38,7 @@ int main(int argc, char ** argv)
       const uint64 nowUTC = GetCurrentTime64(MUSCLE_TIMEZONE_UTC);  // default argument shown explicitly here for clarity
       printf("Current UTC   time (micros-since-1970) is:  " UINT64_FORMAT_SPEC ", aka %s\n", nowUTC, GetHumanReadableTimeString(nowUTC, MUSCLE_TIMEZONE_LOCAL)());
       HumanReadableTimeValues utcVals;
-      if (GetHumanReadableTimeValues(nowUTC, utcVals, MUSCLE_TIMEZONE_LOCAL) == B_NO_ERROR)
+      if (GetHumanReadableTimeValues(nowUTC, utcVals, MUSCLE_TIMEZONE_LOCAL).IsOK())
       {
          printf("  UTC HumanReadableTimeValues=[%s]\n", utcVals.ToString()());
       }

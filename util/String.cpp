@@ -158,7 +158,7 @@ String &
 String :: operator+=(const String &other)
 {
    const uint32 otherLen = other.Length();  // save this value first, in case (&other==this)
-   if ((otherLen > 0)&&(EnsureBufferSize(Length()+otherLen+1, true, false) == B_NO_ERROR))
+   if ((otherLen > 0)&&(EnsureBufferSize(Length()+otherLen+1, true, false).IsOK()))
    {
       memmove(GetBuffer()+_length, other(), otherLen+1);  // memmove() is used in case (&other==this)
       _length += otherLen;
@@ -174,7 +174,7 @@ String :: operator+=(const char * other)
    if (otherLen > 0)
    {
       if (IsCharInLocalArray(other)) return operator+=(String(other,otherLen));  // avoid potential free-ing of (other) inside EnsureBufferSize()
-      if (EnsureBufferSize(Length()+otherLen+1, true, false) == B_NO_ERROR)
+      if (EnsureBufferSize(Length()+otherLen+1, true, false).IsOK())
       {
          memcpy(GetBuffer()+_length, other, otherLen+1);
          _length += otherLen;
@@ -294,7 +294,7 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
    if (maxReplaceCount == 0) return 0;
    if (replaceMe.IsEmpty())  return 0;  // can't replace an empty string, that's silly!
    if (replaceMe  == withMe) return muscleMin(maxReplaceCount, GetNumInstancesOf(replaceMe));  // no changes necessary!
-   if (&replaceMe == this)   return (SetFromString(withMe)==B_NO_ERROR)?1:-1;                  // avoid self-entanglement
+   if (&replaceMe == this)   return SetFromString(withMe).IsOK()?1:-1;                         // avoid self-entanglement
    if (&withMe    == this)   return Replace(replaceMe, String(withMe), maxReplaceCount);       // avoid self-entanglement
 
    String temp;
@@ -304,7 +304,7 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
       // If we are replacing a shorter string with a longer string, we'll have to do a copy-and-swap
       uint32 numInstances = muscleMin(GetNumInstancesOf(replaceMe), maxReplaceCount);
       if (numInstances == 0) return 0;  // no changes necessary!
-      if (temp.Prealloc(Length()+(perInstanceDelta*numInstances)) != B_NO_ERROR) return -1;
+      if (temp.Prealloc(Length()+(perInstanceDelta*numInstances)).IsError()) return -1;
    }
 
    // This code works for both the in-place and the copy-over modes!
@@ -546,7 +546,7 @@ String String :: Prepend(const String & str, uint32 count) const
 
    String ret;
    const uint32 newLen = (count*str.Length())+Length();
-   if (ret.Prealloc(newLen) == B_NO_ERROR)
+   if (ret.Prealloc(newLen).IsOK())
    {
       char * b = ret.GetBuffer();
 
@@ -582,7 +582,7 @@ String String :: Prepend(const char * str, uint32 count) const
       const uint32 sLen = (uint32) strlen(str);
       String ret;
       const uint32 newLen = (count*sLen)+Length();
-      if (ret.Prealloc(newLen) == B_NO_ERROR)
+      if (ret.Prealloc(newLen).IsOK())
       {
          char * b = ret.GetBuffer();
 
@@ -615,7 +615,7 @@ String String :: Append(const String & str, uint32 count) const
 
    String ret;
    const uint32 newLen = Length()+(count*str.Length());
-   if (ret.Prealloc(newLen) == B_NO_ERROR)
+   if (ret.Prealloc(newLen).IsOK())
    {
       char * b = ret.GetBuffer();
       if (HasChars())
@@ -649,7 +649,7 @@ String String :: Append(const char * str, uint32 count) const
       const uint32 sLen = (uint32) strlen(str);
       String ret;
       const uint32 newLen = Length()+(count*sLen);
-      if (ret.Prealloc(newLen) == B_NO_ERROR)
+      if (ret.Prealloc(newLen).IsOK())
       {
          char * b = ret.GetBuffer();
          if (HasChars())

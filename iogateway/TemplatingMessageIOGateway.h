@@ -37,7 +37,7 @@ public:
     *                          MUSCLE_MESSAGE_ENCODING_ZLIB_* encodings, you MUST have
     *                          defined the compiler symbol -DMUSCLE_ENABLE_ZLIB_ENCODING.
     */
-   TemplatingMessageIOGateway(uint32 maxTemplateCacheSizeBytes = 1024*1024, int32 outgoingEncoding = MUSCLE_MESSAGE_ENCODING_DEFAULT);
+   TemplatingMessageIOGateway(uint32 maxLRUCacheSizeBytes = 1024*1024, int32 outgoingEncoding = MUSCLE_MESSAGE_ENCODING_DEFAULT);
 
    /** Destructor. */
    virtual ~TemplatingMessageIOGateway() {/* empty */}

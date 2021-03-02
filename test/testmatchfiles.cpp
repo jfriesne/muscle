@@ -15,7 +15,7 @@ int main(void)
       String s(buf); s = s.Trim();
 
       Queue<String> q;
-      if (ExpandFilePathWildCards(s, q) == B_NO_ERROR)
+      if (ExpandFilePathWildCards(s, q).IsOK())
       {
          printf("File path [%s] expanded to " UINT32_FORMAT_SPEC " paths:\n", s(), q.GetNumItems());
          for (uint32 i=0; i<q.GetNumItems(); i++) printf("   - [%s]\n", q[i]());

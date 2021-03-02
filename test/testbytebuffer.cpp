@@ -86,8 +86,8 @@ static void Test(EndianFlags endianFlags)
    Rect r = b.ReadRect(offset); printf("Rect=%f,%f,%f,%f\n", r.left(), r.top(), r.Width(), r.Height());
 
    TestFlattenable tf;
-   if (b.ReadFlat(tf, offset) == B_NO_ERROR) printf("Flat=[%s]\n", tf.ToString()());
-                                        else printf("ReadFlat() failed!?\n");
+   if (b.ReadFlat(tf, offset).IsOK()) printf("Flat=[%s]\n", tf.ToString()());
+                                 else printf("ReadFlat() failed!?\n");
 
    printf("string3=[%s]\n", b.ReadString(offset)());  // should be "----"
 

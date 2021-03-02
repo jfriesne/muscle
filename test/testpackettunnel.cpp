@@ -37,7 +37,7 @@ protected:
       {
          uint32 spamLen = 0;
          String temp;
-         if ((msg()->FindString("spam", temp) == B_NO_ERROR)&&(msg()->FindInt32("spamlen", spamLen) == B_NO_ERROR))
+         if ((msg()->FindString("spam", temp).IsOK())&&(msg()->FindInt32("spamlen", spamLen).IsOK()))
          {
             if (spamLen == temp.Length())
             {
@@ -87,19 +87,19 @@ int main(int argc, char ** argv)
    const char * temp; 
 
    uint16 port = 0;
-   if (args.FindString("port", &temp) == B_NO_ERROR) port = atol(temp);
+   if (args.FindString("port", &temp).IsOK()) port = atol(temp);
    if (port == 0) port = 9999;
 
    uint32 mtu = 0;
-   if (args.FindString("mtu", &temp) == B_NO_ERROR) mtu = atol(temp);
+   if (args.FindString("mtu", &temp).IsOK()) mtu = atol(temp);
    if (mtu == 0) mtu = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET;
 
    uint32 magic = 0;
-   if (args.FindString("magic", &temp) == B_NO_ERROR) magic = atol(temp);
+   if (args.FindString("magic", &temp).IsOK()) magic = atol(temp);
    if (magic == 0) magic = 666;
 
    uint64 spamInterval = 0;
-   if (args.FindString("spam", &temp) == B_NO_ERROR)
+   if (args.FindString("spam", &temp).IsOK())
    {
       int spamHz = atol(temp);
       spamInterval = (spamHz > 0) ? MICROS_PER_SECOND/spamHz : 1;
@@ -109,7 +109,7 @@ int main(int argc, char ** argv)
 
    bool useTCP = false;
    DataIORef dio;
-   if (args.FindString("tcp", &temp) == B_NO_ERROR)
+   if (args.FindString("tcp", &temp).IsOK())
    {
       useTCP = true;
       ConstSocketRef s;
@@ -204,10 +204,10 @@ int main(int argc, char ** argv)
                   char * tmp = new char[spamLen+1];
                   for (uint32 j=0; j<spamLen; j++) tmp[j] = 'A'+(((char)j)%26);
                   tmp[spamLen] = '\0';
-                  if (m()->AddString("spam", tmp) != B_NO_ERROR) WARN_OUT_OF_MEMORY;
-                  if (m()->AddInt32("spamlen", spamLen) != B_NO_ERROR) WARN_OUT_OF_MEMORY;
+                  if (m()->AddString("spam", tmp).IsError()) WARN_OUT_OF_MEMORY;
+                  if (m()->AddInt32("spamlen", spamLen).IsError()) WARN_OUT_OF_MEMORY;
                   LogTime(MUSCLE_LOG_TRACE, "ADDING OUTGOING MESSAGE what=" UINT32_FORMAT_SPEC " size=" UINT32_FORMAT_SPEC "\n", m()->what, m()->FlattenedSize());
-                  if (gw.AddOutgoingMessage(m) != B_NO_ERROR) WARN_OUT_OF_MEMORY;
+                  if (gw.AddOutgoingMessage(m).IsError()) WARN_OUT_OF_MEMORY;
                   delete [] tmp;
                   byteCount += m()->FlattenedSize();
                }

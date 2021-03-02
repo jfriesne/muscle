@@ -25,7 +25,7 @@ int main(void)
    const uint32 MAX_BUF_SIZE = 1000;
 
    Queue<uint8> bytes;
-   if (bytes.EnsureSize(MAX_BUF_SIZE) != B_NO_ERROR) return 10;
+   if (bytes.EnsureSize(MAX_BUF_SIZE).IsError()) return 10;
    
    uint32 metaHash32 = 0;
    uint64 metaHash64 = 0;

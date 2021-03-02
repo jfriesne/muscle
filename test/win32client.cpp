@@ -23,7 +23,7 @@ int main(int argc, char ** argv)
    Win32MessageTransceiverThread mtt(CreateEvent(0, false, false, 0), true);
 
    printf("Connecting to host=[%s] port=%i\n", hostName, port);
-   if ((mtt.StartInternalThread() == B_NO_ERROR)&&(mtt.AddNewConnectSession(hostName, port) == B_NO_ERROR))
+   if ((mtt.StartInternalThread().IsOK())&&(mtt.AddNewConnectSession(hostName, port).IsOK()))
    {
       // The only thing this example needs to wait for notification on
       // is the MessageTransceiverThread's signal-handle.  A real-life

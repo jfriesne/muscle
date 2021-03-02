@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
    
    for (uint32 i=0; i<numPairs; i++) 
    {
-      if (CreateConnectedSocketPair(senders[i], receivers[i]) != B_NO_ERROR)
+      if (CreateConnectedSocketPair(senders[i], receivers[i]).IsError())
       {
          printf("Error, failed to create socket pair #" UINT32_FORMAT_SPEC "!\n", i);
          return 10;
@@ -62,7 +62,7 @@ int main(int argc, char ** argv)
    {
       for (uint32 i=0; i<numPairs; i++)
       {
-         if (multiplexer.RegisterSocketForReadReady(receivers[i].GetFileDescriptor()) != B_NO_ERROR)
+         if (multiplexer.RegisterSocketForReadReady(receivers[i].GetFileDescriptor()).IsError())
          {
             printf("Error, RegisterSocketForRead() failed for receiver #" UINT32_FORMAT_SPEC "!\n", i);
             error = true;

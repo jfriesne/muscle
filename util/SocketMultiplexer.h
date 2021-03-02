@@ -164,8 +164,8 @@ private:
          *b |= (1<<whichSet);
 #elif defined(MUSCLE_USE_POLL)
          uint32 idx;
-         if (_pollFDToArrayIndex.Get(fd, idx) == B_NO_ERROR) _pollFDArray[idx].events |= GetPollBitsForFDSet(whichSet, true);
-                                                        else return PollRegisterNewSocket(fd, whichSet);
+         if (_pollFDToArrayIndex.Get(fd, idx).IsOK()) _pollFDArray[idx].events |= GetPollBitsForFDSet(whichSet, true);
+                                                 else return PollRegisterNewSocket(fd, whichSet);
 #else
 # ifndef WIN32  // Window supports file descriptors that are greater than FD_SETSIZE!  Other OS's do not
          if (fd >= FD_SETSIZE) return B_BAD_ARGUMENT;
@@ -182,7 +182,7 @@ private:
          return ((_bits.GetWithDefault(fd) & (1<<(whichSet+8))) != 0);
 #elif defined(MUSCLE_USE_POLL)
          uint32 idx;
-         return ((_pollFDToArrayIndex.Get(fd, idx) == B_NO_ERROR)&&((_pollFDArray[idx].revents & GetPollBitsForFDSet(whichSet, false)) != 0));
+         return ((_pollFDToArrayIndex.Get(fd, idx).IsOK())&&((_pollFDArray[idx].revents & GetPollBitsForFDSet(whichSet, false)) != 0));
 #else
          return (FD_ISSET(fd, const_cast<fd_set *>(&_fdSets[whichSet])) != 0);
 #endif

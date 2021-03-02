@@ -43,8 +43,11 @@ int main(void)
 
    TestThread t;
    printf("main thread: TestThread is %p (main thread is %p/%i)\n", &t, Thread::GetCurrentThread(), t.IsCallerInternalThread());
-   if (t.SetThreadPriority(Thread::PRIORITY_LOWER) != B_NO_ERROR) printf("Warning, SetThreadPriority(Thread::PRIORITY_LOWER) failed!\n");  // just to see what happens
-   if (t.StartInternalThread() == B_NO_ERROR)
+
+   status_t ret;
+   if (t.SetThreadPriority(Thread::PRIORITY_LOWER).IsError(ret)) printf("Warning, SetThreadPriority(Thread::PRIORITY_LOWER) failed! [%s]\n", ret());  // just to see what happens
+
+   if (t.StartInternalThread().IsOK())
    {
       char buf[256];
       while(fgets(buf, sizeof(buf), stdin))

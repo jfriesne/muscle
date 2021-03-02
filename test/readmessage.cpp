@@ -26,7 +26,7 @@ static void GenerateMessageSizeReportAux(const String & curPath, Message & msg, 
    {
       const String & fn = fnIter.GetFieldName();
       MessageRef subMsg;
-      for (uint32 i=0; msg.FindMessage(fn, i, subMsg) == B_NO_ERROR; i++)
+      for (uint32 i=0; msg.FindMessage(fn, i, subMsg).IsOK(); i++)
       {
          String subPath = curPath + "/" + fn;
          if (i > 0) subPath += String(":%1").Arg(i+1);

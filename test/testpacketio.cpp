@@ -20,14 +20,14 @@ int main(int argc, char ** argv)
  
    const char * temp; 
    IPAddress connectTo = invalidIP;
-   if (args.FindString("host", &temp) == B_NO_ERROR) connectTo = GetHostByName(temp);
+   if (args.FindString("host", &temp).IsOK()) connectTo = GetHostByName(temp);
    
    uint16 port = 0;
-   if (args.FindString("port", &temp) == B_NO_ERROR) port = atol(temp);
+   if (args.FindString("port", &temp).IsOK()) port = atol(temp);
    if (port == 0) port = 8888;
 
    uint32 mtu = 0;
-   if (args.FindString("mtu", &temp) == B_NO_ERROR) mtu = atol(temp);
+   if (args.FindString("mtu", &temp).IsOK()) mtu = atol(temp);
    if (mtu == 0) mtu = 64*1024;
 
    ConstSocketRef s;
@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
    }
 
    ByteBuffer buf;
-   if (buf.SetNumBytes(mtu, false) != B_NO_ERROR)
+   if (buf.SetNumBytes(mtu, false).IsError())
    {
       WARN_OUT_OF_MEMORY;
       return 10;

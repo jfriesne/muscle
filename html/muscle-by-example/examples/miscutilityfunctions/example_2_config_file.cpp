@@ -59,7 +59,7 @@ int main(int argc, char ** argv)
       return 10;
    }
 
-   if (UnparseFile(myConfig, fpOut) == B_NO_ERROR)
+   if (UnparseFile(myConfig, fpOut).IsOK())
    {
       printf("Wrote config to test_config.txt\n");
    }
@@ -96,7 +96,7 @@ int main(int argc, char ** argv)
    }
 
    Message readInMsg;
-   if (ParseFile(fpIn, readInMsg) == B_NO_ERROR)
+   if (ParseFile(fpIn, readInMsg).IsOK())
    {
       readInMsg.PrintToStream();
    }

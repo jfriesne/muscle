@@ -37,7 +37,7 @@ public:
       // Set up our communication mechanism with our internally held I/O thread
       // Must be done in the constructor so that the ReflectServer's event loop
       // will have access to our signalling socket.
-      _gatewayOK = (SetupNotifierGateway() == B_NO_ERROR);
+      _gatewayOK = (SetupNotifierGateway().IsOK());
    }
 
    /** Called during setup, when we are first attached to the ReflectServer */
@@ -60,7 +60,7 @@ public:
       while(GetNextReplyFromInternalThread(ref) >= 0)
       {
          String replyTo;
-         if ((ref())&&(ref()->FindString(MESSAGE_SOURCE_SESSION_ID_NAME, replyTo) == B_NO_ERROR))
+         if ((ref())&&(ref()->FindString(MESSAGE_SOURCE_SESSION_ID_NAME, replyTo).IsOK()))
          {
             ref()->RemoveName(MESSAGE_SOURCE_SESSION_ID_NAME);  // might as well clean up after myself
             LogTime(MUSCLE_LOG_INFO, "ServerThreadSession: got Message from my internal thread, sending it back to [%s]\n", replyTo());

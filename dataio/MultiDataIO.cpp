@@ -16,7 +16,7 @@ int32 MultiDataIO :: Read(void * buffer, uint32 size)
          }
          else return -1;
       }
-      else if (ret > 0) return (SeekAll(1, ret, IO_SEEK_CUR)==B_NO_ERROR) ? ret : -1;
+      else if (ret > 0) return SeekAll(1, ret, IO_SEEK_CUR).IsOK() ? ret : -1;
    }
    return 0;
 }
@@ -51,7 +51,7 @@ int32 MultiDataIO :: Write(const void * buffer, uint32 size)
    {
       // Oh dear, some children wrote more bytes than others.  To make their seek-positions equal again,
       // we are going to seek everybody to the seek-position of the child that wrote the fewest bytes.
-      if (SeekAll(0, newSeekPos, IO_SEEK_CUR) != B_NO_ERROR) return -1;
+      if (SeekAll(0, newSeekPos, IO_SEEK_CUR).IsError()) return -1;
    }
 
    return (maxWrittenBytes > 0) ? minWrittenBytes : 0;  // the conditional is there in case minWrittenBytes is still MUSCLE_NO_LIMIT

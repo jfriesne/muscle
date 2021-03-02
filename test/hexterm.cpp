@@ -232,10 +232,10 @@ static void DoSession(DataIO & io, bool allowRead = true)
             // (Main benefit is that this makes for prettier pretty-printed output on the receiving, if the receiver is another hexterm)
             ByteBufferRef outBuf; // demand-allocated
             MessageRef nextMsg;
-            while(receiver.GetMessages().RemoveHead(nextMsg) == B_NO_ERROR)
+            while(receiver.GetMessages().RemoveHead(nextMsg).IsOK())
             {
                String b;
-               for (int32 i=0; (nextMsg()->FindString(PR_NAME_TEXT_LINE, i, b) == B_NO_ERROR); i++)
+               for (int32 i=0; (nextMsg()->FindString(PR_NAME_TEXT_LINE, i, b).IsOK()); i++)
                {
                   if (b.HasChars())
                   {
@@ -250,7 +250,7 @@ static void DoSession(DataIO & io, bool allowRead = true)
                      }
 
                      const uint32 count = nextBuf() ? nextBuf()->GetNumBytes() : 0;
-                     if ((count > 0)&&(outBuf()->AppendBytes(nextBuf()->GetBuffer(), nextBuf()->GetNumBytes()) != B_NO_ERROR))
+                     if ((count > 0)&&(outBuf()->AppendBytes(nextBuf()->GetBuffer(), nextBuf()->GetNumBytes()).IsError()))
                      {
                         WARN_OUT_OF_MEMORY;
                         break;
@@ -261,13 +261,13 @@ static void DoSession(DataIO & io, bool allowRead = true)
                      // If we see an empty line, let's send whatever we've got right now
                      // This is useful when the user is piping the output of striphextermoutput
                      // back into hexterm for UDP retransmission
-                     if (FlushOutBuffer(outBuf, io) != B_NO_ERROR) return;
+                     if (FlushOutBuffer(outBuf, io).IsError()) return;
                      outBuf.Reset();
                   }
                }
             }
 
-            if (FlushOutBuffer(outBuf, io) != B_NO_ERROR) return;
+            if (FlushOutBuffer(outBuf, io).IsError()) return;
             outBuf.Reset();
 
             if (stdinFD < 0) break;  // all done now!
@@ -455,7 +455,7 @@ int hextermmain(const char * argv0, const Message & args)
    status_t ret;
 
    String arg;
-   if (args.FindString("child", arg) == B_NO_ERROR)
+   if (args.FindString("child", arg).IsOK())
    {
       ChildProcessDataIO cpdio(false);
       const int32 spaceIdx       = arg.IndexOf(' ');
@@ -469,7 +469,7 @@ int hextermmain(const char * argv0, const Message & args)
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open child process (%s) with childArgs (%s) [%s]\n", childProgName(), childArgs(), ret());
    }
-   else if (args.FindString("serial", arg) == B_NO_ERROR)
+   else if (args.FindString("serial", arg).IsOK())
    {
       const char * colon = strchr(arg(), ':');
       uint32 baudRate = colon ? atoi(colon+1) : 0; if (baudRate == 0) baudRate = 38400;
@@ -507,7 +507,7 @@ int hextermmain(const char * argv0, const Message & args)
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not get list of serial device names! [%s]\n", ret());
    }
 #ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
-   else if (args.FindString("rfile", arg) == B_NO_ERROR)
+   else if (args.FindString("rfile", arg).IsOK())
    {
       FileDataIO fdio(fopen(arg(), "rb"));
       if (fdio.GetFile() != NULL)
@@ -518,7 +518,7 @@ int hextermmain(const char * argv0, const Message & args)
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open input file [%s]\n", arg());
    }
-   else if (args.FindString("wfile", arg) == B_NO_ERROR)
+   else if (args.FindString("wfile", arg).IsOK())
    {
       FileDataIO fdio(fopen(arg(), "wb"));
       if (fdio.GetFile() != NULL)
@@ -530,7 +530,7 @@ int hextermmain(const char * argv0, const Message & args)
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open input file [%s]\n", arg());
    }
 #endif
-   else if (ParseConnectArg(args, "tcp", host, port, true) == B_NO_ERROR)
+   else if (ParseConnectArg(args, "tcp", host, port, true).IsOK())
    {
       ConstSocketRef ss = Connect(host(), port, "hexterm", false);
       if (ss())
@@ -542,7 +542,7 @@ int hextermmain(const char * argv0, const Message & args)
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to connect to %s\n", GetConnectString(host, port)());
    }
-   else if (ParsePortArg(args, "tcp", port) == B_NO_ERROR)
+   else if (ParsePortArg(args, "tcp", port).IsOK())
    {
       ConstSocketRef as = CreateAcceptingSocket(port);
       if (as())
@@ -565,7 +565,7 @@ int hextermmain(const char * argv0, const Message & args)
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not bind to port %i\n", port);
    }
-   else if (ParseConnectArg(args, "udp", host, port, true) == B_NO_ERROR) 
+   else if (ParseConnectArg(args, "udp", host, port, true).IsOK()) 
    {
       int optBindPort = -1;  // if we set it to non-negative, we'll also bind the UDP socket to this port (0 == system chooses a port!)
       const String argStr = args.GetString("udp");
@@ -573,7 +573,7 @@ int hextermmain(const char * argv0, const Message & args)
       if (lastUnderbar >= 0) optBindPort = atoi(argStr()+lastUnderbar+1);
       DoUDPSession(host, port, joinMulticastGroup, optBindPort);
    }
-   else if (ParsePortArg(args, "udp", port) == B_NO_ERROR) DoUDPSession("", port, joinMulticastGroup, -1);
+   else if (ParsePortArg(args, "udp", port).IsOK()) DoUDPSession("", port, joinMulticastGroup, -1);
    else LogUsage(argv0);
 
    return 0;

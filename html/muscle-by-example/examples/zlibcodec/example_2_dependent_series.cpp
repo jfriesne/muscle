@@ -122,7 +122,7 @@ int main(int argc, char ** argv)
       }
 
       ByteBufferRef inflatedData = codec.Inflate(*deflatedData());
-      if (VerifyInflatedData(*inflatedData()) == B_NO_ERROR) rawBytesRead += inflatedData()->GetNumBytes();
+      if (VerifyInflatedData(*inflatedData()).IsOK()) rawBytesRead += inflatedData()->GetNumBytes();
       else
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "Verification of re-inflated data failed at offset " UINT64_FORMAT_SPEC ", corrupt file?\n", rawBytesRead);

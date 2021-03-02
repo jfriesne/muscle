@@ -59,7 +59,7 @@ static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<Strin
          static const String _quote = "\"";
          argName.Replace(_escapedQuote, _quote);
          argValue.Replace(_escapedQuote, _quote);
-         if ((optAddToMsg->GetInfo(argName, &tc) == B_NO_ERROR)&&(tc != B_STRING_TYPE)) (void) optAddToMsg->RemoveName(argName);
+         if ((optAddToMsg->GetInfo(argName, &tc).IsOK())&&(tc != B_STRING_TYPE)) (void) optAddToMsg->RemoveName(argName);
          return optAddToMsg->AddString(argName, argValue);
       }
       else return B_NO_ERROR;
@@ -82,7 +82,7 @@ String UnparseArgs(const Message & argsMsg)
    {
       const String & fn = it.GetFieldName();
       const String * ps;
-      for (int32 i=0; argsMsg.FindString(fn, i, &ps) == B_NO_ERROR; i++)
+      for (int32 i=0; argsMsg.FindString(fn, i, &ps).IsOK(); i++)
       {
          tmp = QuoteAndEscapeStringIfNecessary(fn);
          if (ps->HasChars())
@@ -244,7 +244,7 @@ static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * op
          
          // Don't allow the parsing to fail just because the user specified a section name the same as a param name!
          uint32 tc;
-         if ((optAddToMsg->GetInfo(checkForSection, &tc) == B_NO_ERROR)&&(tc != B_MESSAGE_TYPE)) (void) optAddToMsg->RemoveName(checkForSection);
+         if ((optAddToMsg->GetInfo(checkForSection, &tc).IsOK())&&(tc != B_MESSAGE_TYPE)) (void) optAddToMsg->RemoveName(checkForSection);
 
          MessageRef subMsg = GetMessageFromPool();
          if (subMsg() == NULL) RETURN_OUT_OF_MEMORY;
@@ -311,14 +311,14 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
    {
       const String & fn = fnIter.GetFieldName();
       uint32 tc;
-      if (readFrom.GetInfo(fn, &tc) == B_NO_ERROR)
+      if (readFrom.GetInfo(fn, &tc).IsOK())
       {
          switch(tc)
          {
             case B_MESSAGE_TYPE:
             {
                MessageRef nextVal;
-               for (uint32 i=0; readFrom.FindMessage(fn, i, nextVal) == B_NO_ERROR; i++)
+               for (uint32 i=0; readFrom.FindMessage(fn, i, nextVal).IsOK(); i++)
                {
                   AddUnparseFileLine(optFile, optString, indentStr, String("begin %1").Arg(fn));
                   if (UnparseFileAux(*nextVal(), optFile, optString, indentLevel+3).IsError(ret)) return ret;
@@ -330,7 +330,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
             case B_STRING_TYPE:
             {
                const String * nextVal;
-               for (uint32 i=0; readFrom.FindString(fn, i, &nextVal) == B_NO_ERROR; i++)
+               for (uint32 i=0; readFrom.FindString(fn, i, &nextVal).IsOK(); i++)
                {
                   scratchMsg.Clear(); if (scratchMsg.AddString(fn, *nextVal).IsError(ret)) return ret;
                   AddUnparseFileLine(optFile, optString, indentStr, UnparseArgs(scratchMsg));
@@ -349,7 +349,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
 }
 
 status_t UnparseFile(const Message & readFrom, FILE * file) {return UnparseFileAux(readFrom, file, NULL, 0);}
-String UnparseFile(const Message & readFrom) {String s; return (UnparseFileAux(readFrom, NULL, &s, 0) == B_NO_ERROR) ? s : "";}
+String UnparseFile(const Message & readFrom) {String s; return (UnparseFileAux(readFrom, NULL, &s, 0).IsOK()) ? s : "";}
 
 static status_t ParseConnectArgAux(const String & s, uint32 startIdx, uint16 & retPort, bool portRequired)
 {
@@ -505,7 +505,7 @@ void HandleStandardDaemonArgs(const Message & args)
 
    // Do this first, so that the stuff below will affect the right process.
    const char * n;
-   if (args.FindString("daemon", &n) == B_NO_ERROR)
+   if (args.FindString("daemon", &n).IsOK())
    {
       LogTime(MUSCLE_LOG_INFO, "Spawning off a daemon-child...\n");
       status_t ret;
@@ -529,36 +529,36 @@ void HandleStandardDaemonArgs(const Message & args)
 #endif
 
    const char * value;
-   if (args.FindString("displaylevel", &value) == B_NO_ERROR)
+   if (args.FindString("displaylevel", &value).IsOK())
    {
       int ll = ParseLogLevelKeyword(value);
       if (ll >= 0) SetConsoleLogLevel(ll);
               else LogTime(MUSCLE_LOG_INFO, "Error, unknown display log level type [%s]\n", value);
    }
 
-   if ((args.FindString("oldlogfilespattern", &value) == B_NO_ERROR)&&(*value != '\0')) SetOldLogFilesPattern(value);
+   if ((args.FindString("oldlogfilespattern", &value).IsOK())&&(*value != '\0')) SetOldLogFilesPattern(value);
 
-   if ((args.FindString("maxlogfiles", &value) == B_NO_ERROR)||(args.FindString("maxnumlogfiles", &value) == B_NO_ERROR))
+   if ((args.FindString("maxlogfiles", &value).IsOK())||(args.FindString("maxnumlogfiles", &value).IsOK()))
    {
       const uint32 maxNumFiles = (uint32) atol(value);
       if (maxNumFiles > 0) SetMaxNumLogFiles(maxNumFiles);
                       else LogTime(MUSCLE_LOG_ERROR, "Please specify a maxnumlogfiles value that is greater than zero.\n");
    }
 
-   if (args.FindString("logfile", &value) == B_NO_ERROR)
+   if (args.FindString("logfile", &value).IsOK())
    {
       SetFileLogName(value);
       if (GetFileLogLevel() == MUSCLE_LOG_NONE) SetFileLogLevel(MUSCLE_LOG_INFO); // no sense specifying a name and then not logging anything!
    }
 
-   if (args.FindString("filelevel", &value) == B_NO_ERROR)
+   if (args.FindString("filelevel", &value).IsOK())
    {
       const int ll = ParseLogLevelKeyword(value);
       if (ll >= 0) SetFileLogLevel(ll);
               else LogTime(MUSCLE_LOG_INFO, "Error, unknown file log level type [%s]\n", value);
    }
 
-   if (args.FindString("maxlogfilesize", &value) == B_NO_ERROR)
+   if (args.FindString("maxlogfilesize", &value).IsOK())
    {
       const uint32 maxSizeKB = (uint32) atol(value);
       if (maxSizeKB > 0) SetFileLogMaximumSize(maxSizeKB*1024);
@@ -567,7 +567,7 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if ((args.HasName("compresslogfile"))||(args.HasName("compresslogfiles"))) SetFileLogCompressionEnabled(true);
 
-   if (args.FindString("localhost", &value) == B_NO_ERROR)
+   if (args.FindString("localhost", &value).IsOK())
    {
       const IPAddress ip = Inet_AtoN(value);
       if (ip != invalidIP)
@@ -579,13 +579,13 @@ void HandleStandardDaemonArgs(const Message & args)
       else LogTime(MUSCLE_LOG_ERROR, "Error parsing localhost IP address [%s]!\n", value);
    }
 
-   if (args.FindString("dnscache", &value) == B_NO_ERROR)
+   if (args.FindString("dnscache", &value).IsOK())
    {
       const uint64 micros = ParseHumanReadableTimeIntervalString(value);
       if (micros > 0)
       {
          uint32 maxCacheSize = 1024;
-         if (args.FindString("dnscachesize", &value) == B_NO_ERROR) maxCacheSize = (uint32) atol(value);
+         if (args.FindString("dnscachesize", &value).IsOK()) maxCacheSize = (uint32) atol(value);
          LogTime(MUSCLE_LOG_INFO, "Setting DNS cache parameters to " UINT32_FORMAT_SPEC " entries, expiration period is %s\n", maxCacheSize, GetHumanReadableTimeIntervalString(micros)());
          SetHostNameCacheSettings(maxCacheSize, micros);
       }
@@ -632,9 +632,9 @@ void HandleStandardDaemonArgs(const Message & args)
 
 #ifdef __linux__
    const char * priStr;
-        if (args.FindString("realtime",      &priStr) == B_NO_ERROR) SetRealTimePriority(priStr, false);
-   else if (args.FindString("realtime_rr",   &priStr) == B_NO_ERROR) SetRealTimePriority(priStr, false);
-   else if (args.FindString("realtime_fifo", &priStr) == B_NO_ERROR) SetRealTimePriority(priStr, true);
+        if (args.FindString("realtime",      &priStr).IsOK()) SetRealTimePriority(priStr, false);
+   else if (args.FindString("realtime_rr",   &priStr).IsOK()) SetRealTimePriority(priStr, false);
+   else if (args.FindString("realtime_fifo", &priStr).IsOK()) SetRealTimePriority(priStr, true);
 #endif
 
 #ifdef MUSCLE_CATCH_SIGNALS_BY_DEFAULT
@@ -661,7 +661,7 @@ void HandleStandardDaemonArgs(const Message & args)
    if (args.HasName("printnetworkinterfaces"))
    {
       Queue<NetworkInterfaceInfo> infos;
-      if (GetNetworkInterfaceInfos(infos) == B_NO_ERROR)
+      if (GetNetworkInterfaceInfos(infos).IsOK())
       {
          printf("--- Network interfaces on this machine are as follows: ---\n");
          for (uint32 i=0; i<infos.GetNumItems(); i++) printf("  %s\n", infos[i].ToString()());
@@ -754,7 +754,7 @@ status_t BecomeDaemonProcess(const char * optNewDir, const char * optOutputTo, b
 {
    bool isParent = false;  // set to false to avoid compiler warning
    const status_t ret = SpawnDaemonProcess(isParent, optNewDir, optOutputTo, createIfNecessary);
-   if ((ret == B_NO_ERROR)&&(isParent)) ExitWithoutCleanup(0);
+   if ((ret.IsOK())&&(isParent)) ExitWithoutCleanup(0);
    return ret;
 }
 
@@ -795,7 +795,7 @@ void RemoveANSISequences(String & s)
 String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChars)
 {
    const uint32 len = muscleMin(s.Length(), (uint32)63);  // DNS spec says maximum 63 chars per label!
-   String ret; if (ret.Prealloc(len) != B_NO_ERROR) return ret;
+   String ret; if (ret.Prealloc(len).IsError()) return ret;
   
    const char * p = s();
    for (uint32 i=0; i<len; i++)
@@ -890,14 +890,14 @@ String NybbleizeString(const String & s)
    const status_t ret = NybbleizeData(inBuf, retStr);
    (void) inBuf.ReleaseBuffer();
 
-   if (ret != B_NO_ERROR) retStr.Clear();
+   if (ret.IsError()) retStr.Clear();
    return retStr;
 }
 
 String DenybbleizeString(const String & ns)
 {
    ByteBuffer outBuf;
-   return (DenybbleizeData(ns, outBuf) == B_NO_ERROR) ? String((const char *) outBuf.GetBuffer(), outBuf.GetNumBytes()) : String();
+   return (DenybbleizeData(ns, outBuf).IsOK()) ? String((const char *) outBuf.GetBuffer(), outBuf.GetNumBytes()) : String();
 }
 
 const uint8 * MemMem(const uint8 * lookIn, uint32 numLookInBytes, const uint8 * lookFor, uint32 numLookForBytes)
@@ -919,7 +919,7 @@ const uint8 * MemMem(const uint8 * lookIn, uint32 numLookInBytes, const uint8 * 
 String HexBytesToString(const uint8 * buf, uint32 numBytes)
 {
    String ret;
-   if (ret.Prealloc(numBytes*3) == B_NO_ERROR)
+   if (ret.Prealloc(numBytes*3).IsOK())
    {
       for (uint32 i=0; i<numBytes; i++)
       {
@@ -946,7 +946,7 @@ String HexBytesToString(const Queue<uint8> & bytes)
    const uint32 numBytes = bytes.GetNumItems();
 
    String ret;
-   if (ret.Prealloc(numBytes*3) == B_NO_ERROR)
+   if (ret.Prealloc(numBytes*3).IsOK())
    {
       for (uint32 i=0; i<numBytes; i++)
       {
@@ -1110,7 +1110,7 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
 
    fclose(fpIn);
 
-   if ((fpOut)&&(ret != B_NO_ERROR)) (void) DeleteFile(newPath);  // clean up on error
+   if ((fpOut)&&(ret.IsError())) (void) DeleteFile(newPath);  // clean up on error
    return ret;
 }
 

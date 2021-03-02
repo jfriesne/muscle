@@ -84,10 +84,11 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
 
       if (multiplexer.WaitForEvents() >= 0)
       {
-         if (ReadIncomingData("network",  networkIO, multiplexer, outgoingSerialData)                != B_NO_ERROR) return B_NO_ERROR;  // tells main() to wait for the next TCP connection
-         if (ReadIncomingData("serial",   serialIO,  multiplexer, outgoingNetworkData)               != B_NO_ERROR) return B_IO_ERROR;  // tells main() to exit
-         if (WriteOutgoingData("network", networkIO, multiplexer, outgoingNetworkData, networkIndex) != B_NO_ERROR) return B_NO_ERROR;  // tells main() to wait for the next TCP connection
-         if (WriteOutgoingData("serial",  serialIO,  multiplexer, outgoingSerialData,  serialIndex)  != B_NO_ERROR) return B_IO_ERROR;  // tells main() to exit
+         status_t ret;
+         if (ReadIncomingData("network",  networkIO, multiplexer, outgoingSerialData)               .IsError())    return B_NO_ERROR;  // tells main() to wait for the next TCP connection
+         if (ReadIncomingData("serial",   serialIO,  multiplexer, outgoingNetworkData)              .IsError(ret)) return ret;         // tells main() to exit
+         if (WriteOutgoingData("network", networkIO, multiplexer, outgoingNetworkData, networkIndex).IsError())    return B_NO_ERROR;  // tells main() to wait for the next TCP connection
+         if (WriteOutgoingData("serial",  serialIO,  multiplexer, outgoingSerialData,  serialIndex) .IsError(ret)) return ret;         // tells main() to exit
       }
       else 
       {
@@ -124,13 +125,13 @@ int main(int argc, char ** argv)
    if (port == 0) port = DEFAULT_PORT;
    
    String arg;
-   if (args.FindString("serial", arg) == B_NO_ERROR)
+   if (args.FindString("serial", arg).IsOK())
    {
       const char * colon = strchr(arg(), ':');
       uint32 baudRate = colon ? atoi(colon+1) : 0; if (baudRate == 0) baudRate = 38400;
       String devName = arg.Substring(0, ":");
       Queue<String> devs;
-      if (RS232DataIO::GetAvailableSerialPortNames(devs) == B_NO_ERROR)
+      if (RS232DataIO::GetAvailableSerialPortNames(devs).IsOK())
       {
          String serName;
          for (int32 i=devs.GetNumItems()-1; i>=0; i--)
@@ -161,7 +162,7 @@ int main(int argc, char ** argv)
                      {
                         LogTime(MUSCLE_LOG_INFO, "Beginning serial proxy session!\n");
                         TCPSocketDataIO networkIO(tcpSock, false);
-                        keepGoing = (DoSession(networkIO, serialIO) == B_NO_ERROR);
+                        keepGoing = (DoSession(networkIO, serialIO).IsOK());
                         LogTime(MUSCLE_LOG_INFO, "Serial proxy session ended%s!\n", keepGoing?", awaiting new connection":", aborting!");
                      }
                   }

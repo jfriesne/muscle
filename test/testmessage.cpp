@@ -8,8 +8,8 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Operation failed, line %i\n", __LINE__);
-#define NEGATIVETEST(x) if ((x) == B_NO_ERROR) printf("Operation succeeded when it should not have, line %i\n", __LINE__); 
+#define TEST(x) if ((x).IsError()) printf("Operation failed, line %i\n", __LINE__);
+#define NEGATIVETEST(x) if ((x).IsOK()) printf("Operation succeeded when it should not have, line %i\n", __LINE__); 
 
 void printSep(const char * title);
 void printSep(const char * title)
@@ -165,7 +165,7 @@ int main(int, char **)
    butter.PrintToStream();
 
    void * t;
-   if ((butter.FindPointer("pointer", t) != B_NO_ERROR)||(t != &butter)) printf("Error retrieving pointer!\n");
+   if ((butter.FindPointer("pointer", t).IsError())||(t != &butter)) printf("Error retrieving pointer!\n");
 
    (void) butter.RemoveName("pointer");  // otherwise the templated test will fail since pointer fields don't get flattened
    (void) butter.RemoveName("Tag");      // otherwise the templated test will fail since tag fields don't get flattened
@@ -379,7 +379,7 @@ int main(int, char **)
    PrintHexBytes(buf, flatSize);
 
    Message copy;
-   if (copy.Unflatten(buf, flatSize) == B_NO_ERROR)
+   if (copy.Unflatten(buf, flatSize).IsOK())
    {
       printf("****************************\n");
       copy.PrintToStream();
@@ -407,10 +407,10 @@ int main(int, char **)
 
    printf("Testing adding and retrieval of FlatCountableRefs by reference\n");
    TestFlatCountableRef tfcRef(new TestFlatCountable("Hello", 5));
-   if (msg.AddFlat("tfc", FlatCountableRef(tfcRef.GetRefCountableRef(), false)) == B_NO_ERROR)
+   if (msg.AddFlat("tfc", FlatCountableRef(tfcRef.GetRefCountableRef(), false)).IsOK())
    {
       TestFlatCountable tfc2;
-      if (msg.FindFlat("tfc", tfc2) == B_NO_ERROR) 
+      if (msg.FindFlat("tfc", tfc2).IsOK()) 
       {
          printf("FindFlat() found: [%s]\n", tfc2.ToString()());
          if (tfc2 != *tfcRef()) printf("Error, found TFC [%s] doesn't match original [%s]\n", tfc2.ToString()(), tfcRef()->ToString()());
@@ -427,7 +427,7 @@ int main(int, char **)
          if (newMsg())
          {
             TestFlatCountable tfc3;
-            if (newMsg()->FindFlat("tfc", tfc3) == B_NO_ERROR)
+            if (newMsg()->FindFlat("tfc", tfc3).IsOK())
             {
                printf("FindFlat() found: [%s]\n", tfc3.ToString()());
                if (tfc3 != *tfcRef()) printf("Error, found TFC [%s] doesn't match original [%s]\n", tfc3.ToString()(), tfcRef()->ToString()());

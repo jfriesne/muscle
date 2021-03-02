@@ -147,7 +147,7 @@ int main(int argc, char ** argv)
       }
 
       MessageRef incoming;
-      while(inQueue.RemoveHead(incoming) == B_NO_ERROR)
+      while(inQueue.RemoveHead(incoming).IsOK())
       {
          const Message * msg = incoming();
          if (msg)
@@ -164,7 +164,7 @@ int main(int argc, char ** argv)
                   MessageRef subMsg;
                   LogTime(MUSCLE_LOG_ERROR, "Access denied!  ");
                   const char * who;
-                  if ((msg->FindMessage(PR_NAME_REJECTED_MESSAGE, subMsg) == B_NO_ERROR)&&(subMsg()->FindString(PR_NAME_KEYS, &who) == B_NO_ERROR))
+                  if ((msg->FindMessage(PR_NAME_REJECTED_MESSAGE, subMsg).IsOK())&&(subMsg()->FindString(PR_NAME_KEYS, &who).IsOK()))
                   {
                      const char * action = "do that to";
                      switch(subMsg() ? subMsg()->what : 0)

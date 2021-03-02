@@ -40,7 +40,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
       while(ReadFile(_stdinHandle, buf, sizeof(buf), &numBytesRead, NULL))
       {
          // Grab a temporary copy of the listeners-set.  That we we don't risk blocking in SendData() while holding the mutex.
-         if (_slaveSocketsMutex.Lock() == B_NO_ERROR)
+         if (_slaveSocketsMutex.Lock().IsOK())
          {
             temp = _slaveSockets;
             _slaveSocketsMutex.Unlock();
@@ -52,7 +52,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
 
          // Lastly, remove from the registered-sockets-set any sockets that SendData() errored out on.
          // This will cause the socket connection to be closed and the master thread(s) to be notified.
-         if ((trim)&&(_slaveSocketsMutex.Lock() == B_NO_ERROR))
+         if ((trim)&&(_slaveSocketsMutex.Lock().IsOK()))
          {
             for (HashtableIterator<uint32, ConstSocketRef> iter(_slaveSockets); iter.HasData(); iter++)
             {
@@ -70,7 +70,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
    }
 
    // Oops, stdin failed... clear the slave sockets table so that the client objects will know to close up shop
-   if (_slaveSocketsMutex.Lock() == B_NO_ERROR)
+   if (_slaveSocketsMutex.Lock().IsOK())
    {
       _stdinThreadStatus = STDIN_THREAD_STATUS_EXITED;
       _slaveSockets.Clear();
@@ -138,7 +138,7 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
             threadCreated = (_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING);
          }
 
-         if ((_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING)&&(_slaveSockets.Put(_slaveSocketTag = (++_slaveSocketTagCounter), slaveSocket) == B_NO_ERROR))
+         if ((_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING)&&(_slaveSockets.Put(_slaveSocketTag = (++_slaveSocketTagCounter), slaveSocket).IsOK()))
          {
             okay = true;
          }
@@ -170,7 +170,7 @@ void StdinDataIO :: Shutdown()
 void StdinDataIO :: Close()
 {
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
-   if ((_stdinBlocking == false)&&(_slaveSocketsMutex.Lock() == B_NO_ERROR))
+   if ((_stdinBlocking == false)&&(_slaveSocketsMutex.Lock().IsOK()))
    {
       _slaveSockets.Remove(_slaveSocketTag);
       _slaveSocketsMutex.Unlock();

@@ -141,7 +141,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
             const CFStringRef cfPath = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
             if (cfPath)
             {
-               if (outStr.SetFromCFStringRef(cfPath) == B_NO_ERROR)
+               if (outStr.SetFromCFStringRef(cfPath).IsOK())
                {
                   found = true;
 
@@ -207,7 +207,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       break;
 
       case SYSTEM_PATH_DESKTOP:  // user's desktop directory
-         if (GetSystemPath(SYSTEM_PATH_USERHOME, outStr) == B_NO_ERROR)
+         if (GetSystemPath(SYSTEM_PATH_USERHOME, outStr).IsOK())
          {
             found = true;
             outStr += "Desktop";  // it's the same under WinXP, Linux, and OS/X, yay!
@@ -215,7 +215,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       break;
 
       case SYSTEM_PATH_DOCUMENTS:  // user's documents directory
-         if (GetSystemPath(SYSTEM_PATH_USERHOME, outStr) == B_NO_ERROR)
+         if (GetSystemPath(SYSTEM_PATH_USERHOME, outStr).IsOK())
          {
             found = true;
 #ifndef WIN32
@@ -256,7 +256,7 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
 {
 #if defined(__BEOS__) || defined(__HAIKU__)
    system_info info;
-   if (get_system_info(&info) == B_NO_ERROR)
+   if (get_system_info(&info).IsOK())
    {
       retNumProcessors = info.cpu_count;
       return B_NO_ERROR;  

@@ -57,7 +57,7 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userPtr)
    {
       const String * nextStr;
-      for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr) == B_NO_ERROR; i++) HandleStdinCommandFromUser(*nextStr);
+      for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++) HandleStdinCommandFromUser(*nextStr);
    }
 
    // Called when we've received a MessageRef from another session object on 

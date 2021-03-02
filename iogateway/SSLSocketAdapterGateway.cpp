@@ -73,7 +73,7 @@ int32 SSLSocketAdapterGateway :: DoInputImplementation(AbstractGatewayMessageRec
    if (_sslMessages.HasItems())
    {
       SetSSLForceReadReady(false);
-      MessageRef msg; while(_sslMessages.RemoveHead(msg) == B_NO_ERROR) receiver.CallMessageReceivedFromGateway(msg);
+      MessageRef msg; while(_sslMessages.RemoveHead(msg).IsOK()) receiver.CallMessageReceivedFromGateway(msg);
    }
 
    if (((GetSSLState() & SSLSocketDataIO::SSL_STATE_WRITE_WANTS_READABLE_SOCKET) != 0)&&((_slaveGateway()==NULL)||(_slaveGateway()->DoOutput() < 0))) return -1;

@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
    // to worry about out-of-memory errors, or the memory-locations of key or 
    // value-items changing, while populating the table.
 
-   if (table.EnsureSize(20) != B_NO_ERROR) WARN_OUT_OF_MEMORY;
+   if (table.EnsureSize(20).IsError()) WARN_OUT_OF_MEMORY;
 
    // Put some initial data into the table
    table.Put("One", 1);

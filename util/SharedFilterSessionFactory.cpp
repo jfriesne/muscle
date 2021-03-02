@@ -38,7 +38,7 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const IPAddress & ip) co
    if (ip != invalidIP)
    {
       // demand-setup the shared-memory object, and then lock it for read-only access
-      if (((_sharedMemory.GetAreaSize() > 0)||(_sharedMemory.SetArea(_sharedMemName(), 0, false) == B_NO_ERROR))&&(_sharedMemory.LockAreaReadOnly() == B_NO_ERROR))
+      if (((_sharedMemory.GetAreaSize() > 0)||(_sharedMemory.SetArea(_sharedMemName(), 0, false).IsOK()))&&(_sharedMemory.LockAreaReadOnly().IsOK()))
       {
          Queue<NetworkInterfaceInfo> ifs;
          bool gotIFs = false;  // we'll demand-allocate them

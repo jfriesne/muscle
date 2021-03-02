@@ -170,7 +170,7 @@ void QMessageTransceiverThread :: UnregisterHandler(QMessageTransceiverThread & 
    if (this != &thread) thread.UnregisterHandler(thread, handler, emitEndMessageBatchIfNecessary);  // paranoia
    else
    {
-      if (_handlers.Remove(handler->_sessionID) == B_NO_ERROR)
+      if (_handlers.Remove(handler->_sessionID).IsOK())
       {
          // paranoia:  in case we are doing this in the middle of our last-seen traversal, we need
          // to safely remove (handler) from the traversal so that the traversal doesn't break
@@ -220,7 +220,7 @@ QMessageTransceiverThread * QMessageTransceiverThreadPool :: ObtainThread()
 
    // If we got here, we need to create a new thread
    QMessageTransceiverThread * newThread = CreateThread();
-   if ((newThread == NULL)||(newThread->StartInternalThread() != B_NO_ERROR)||(_threads.PutWithDefault(newThread) != B_NO_ERROR))
+   if ((newThread == NULL)||(newThread->StartInternalThread().IsError())||(_threads.PutWithDefault(newThread).IsError()))
    {
       if (newThread)
       {

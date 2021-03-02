@@ -22,7 +22,11 @@ key:  - new feature
      TemplatedMessageIOGateway class.  Defining this flag
      causes the AbstractMessageIOGateway class to use a
      TemplatedMessageIOGateway by default.
+   - Added a (maxRecursions) argument to the SortFieldNames()
+     method of the Message class.
    o Added template-testing code to testmessage.cpp
+   o Replaced explicit comparisons to B_NO_ERROR with calls
+     to .IsOK() and .IsError()
    * Fixed a bug where calling Message::AddData() with
      a NULL data-pointer could cause a crash.
 

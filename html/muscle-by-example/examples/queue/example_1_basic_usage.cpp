@@ -77,13 +77,13 @@ int main(int argc, char ** argv)
 
       for (int i=0; i<5; i++)
       {
-         if (q.AddTail(i) == B_NO_ERROR)
+         if (q.AddTail(i).IsOK())
          {
             printf("   Added %i to the tail of the Queue...\n", i);
          }
 
          int poppedFromHead;
-         if (q.RemoveHead(poppedFromHead) == B_NO_ERROR)
+         if (q.RemoveHead(poppedFromHead).IsOK())
          {
             printf("   Popped %i from the head of the Queue...\n", poppedFromHead);
          }

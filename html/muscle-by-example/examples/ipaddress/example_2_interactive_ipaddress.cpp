@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
       s = s.Trim();  // get rid of newline ugliness
 
       IPAddress ip; 
-      if (ip.SetFromString(s) == B_NO_ERROR)
+      if (ip.SetFromString(s).IsOK())
       {
          printf("I parsed the string [%s] as IPAddress %s\n", s(), ip.ToString()());
          printf("    ip.IsValid() returned %i\n", ip.IsValid());

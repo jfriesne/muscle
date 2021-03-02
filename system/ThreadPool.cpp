@@ -85,8 +85,8 @@ void ThreadPool :: UnregisterClient(IThreadPoolClient * client)
       if (DoesClientHaveMessagesOutstandingUnsafe(client))
       {
          ConstSocketRef signalSock;
-         if (CreateConnectedSocketPair(waitSock, signalSock, true) == B_NO_ERROR) (void) _waitingForCompletion.Put(client, signalSock);
-                                                                             else printf("ThreadPool::UnregisterClient:  Couldn't set up socket pair for shutdown notification!\n");
+         if (CreateConnectedSocketPair(waitSock, signalSock, true).IsOK()) (void) _waitingForCompletion.Put(client, signalSock);
+                                                                      else printf("ThreadPool::UnregisterClient:  Couldn't set up socket pair for shutdown notification!\n");
       }
    }
 
@@ -107,7 +107,7 @@ status_t ThreadPool :: ThreadPoolThread :: SendMessagesToInternalThread(IThreadP
 
    _currentClient = client;
    _internalQueue.SwapContents(mq);
-   if (SendMessageToInternalThread(MessageRef(&_dummyMsg, false)) == B_NO_ERROR) return B_NO_ERROR;  // Send an empty Message, just to signal the internal thread
+   if (SendMessageToInternalThread(MessageRef(&_dummyMsg, false)).IsOK()) return B_NO_ERROR;  // Send an empty Message, just to signal the internal thread
    else
    {
       // roll back!
@@ -174,16 +174,16 @@ void ThreadPool :: DispatchPendingMessagesUnsafe()
             ThreadPoolThreadRef tRef(newnothrow ThreadPoolThread(this, _threadIDCounter++));
             if (tRef() == NULL) {WARN_OUT_OF_MEMORY; break;}
             if (StartInternalThread(*tRef()).IsError(ret)) {LogTime(MUSCLE_LOG_ERROR, "ThreadPool:  Error launching thread! [%s]\n", ret()); break;}
-            if (_availableThreads.Put(tRef()->GetThreadID(), tRef) != B_NO_ERROR) {tRef()->ShutdownInternalThread(); break;}  // should never happen, but just in case
+            if (_availableThreads.Put(tRef()->GetThreadID(), tRef).IsError()) {tRef()->ShutdownInternalThread(); break;}  // should never happen, but just in case
          }
 
          if (_availableThreads.HasItems())
          {
             // Okay, there's an idle thread awaiting something to do, so we'll just pass the next client's requests off to him.
             ThreadPoolThreadRef tRef = *_availableThreads.GetLastValue();  // use the last thread because it's "hottest" in cache
-            if (_availableThreads.MoveToTable(tRef()->GetThreadID(), _activeThreads) == B_NO_ERROR)
+            if (_availableThreads.MoveToTable(tRef()->GetThreadID(), _activeThreads).IsOK())
             {
-               if (tRef()->SendMessagesToInternalThread(client, *mq) == B_NO_ERROR)
+               if (tRef()->SendMessagesToInternalThread(client, *mq).IsOK())
                {
                   *isBeingHandled = true;  // this is to note that this client now has a Thread that is processing its data
                   (void) _pendingMessages.RemoveFirst();

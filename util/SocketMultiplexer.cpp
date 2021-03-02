@@ -17,7 +17,7 @@ static Mutex _multiplexersListMutex;
 static SocketMultiplexer * _headMultiplexer = NULL;
 void NotifySocketMultiplexersThatSocketIsClosed(int fd)
 {
-   if (_multiplexersListMutex.Lock() == B_NO_ERROR)
+   if (_multiplexersListMutex.Lock().IsOK())
    {
       SocketMultiplexer * sm = _headMultiplexer;
       while(sm)
@@ -214,8 +214,8 @@ status_t SocketMultiplexer :: FDState :: PollRegisterNewSocket(int fd, uint32 wh
       p->fd      = fd;
       p->events  = GetPollBitsForFDSet(whichSet, true);
       p->revents = 0;
-      if (_pollFDToArrayIndex.Put(fd, _pollFDArray.GetNumItems()-1) == B_NO_ERROR) return B_NO_ERROR;
-                                                                              else _pollFDArray.RemoveTail();  // roll back!
+      if (_pollFDToArrayIndex.Put(fd, _pollFDArray.GetNumItems()-1).IsOK()) return B_NO_ERROR;
+                                                                       else _pollFDArray.RemoveTail();  // roll back!
    }
    return B_OUT_OF_MEMORY;
 }

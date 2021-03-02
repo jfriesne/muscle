@@ -18,7 +18,7 @@ ThreadedInternalSession :: ThreadedInternalSession(const MessageRef & args)
    // Set up our communication mechanism with our internally held I/O thread
    // Must be done in the constructor so that the ReflectServer's event loop
    // will have access to our signalling socket.
-   _gatewayOK = (SetupNotifierGateway() == B_NO_ERROR);
+   _gatewayOK = (SetupNotifierGateway().IsOK());
 }
 
 /** Called in the MUSCLE thread during setup.  Overridden to start the internal thread running also. */
@@ -137,7 +137,7 @@ void ThreadedInternalSession :: InternalThreadEntry()
       // the second argument, and that would cause WaitForNextMessageFromOwner() to always return immediately.
       MessageRef msgRef;
       int32 numLeftInQueue = WaitForNextMessageFromOwner(msgRef, _nextStatusPostTime);
-      if ((numLeftInQueue >= 0)&&(MessageReceivedFromOwner(msgRef, numLeftInQueue) != B_NO_ERROR)) 
+      if ((numLeftInQueue >= 0)&&(MessageReceivedFromOwner(msgRef, numLeftInQueue).IsError())) 
       {
          // MessageReceivedFromOwner() returned an error, that means this thread needs to exit!
          break;

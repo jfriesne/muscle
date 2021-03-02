@@ -179,7 +179,7 @@ int main(int argc, char ** argv)
 
          // Now that we're done reading (for now), print out any Messages we received
          MessageRef nextMsg;
-         while(qReceiver.RemoveHead(nextMsg) == B_NO_ERROR)
+         while(qReceiver.RemoveHead(nextMsg).IsOK())
          {
             printf("\n");
             printf("Received the following Message via TCP:\n");

@@ -115,7 +115,7 @@ int main(int argc, char ** argv)
    const char * userName   = "clyde";                     (void) args.FindString("nick", &userName);
    const char * userStatus = "here";                      (void) args.FindString("status", &userStatus);
    const char * tempStr;
-   uint16 port = 0; if (args.FindString("port", &tempStr) == B_NO_ERROR) port = (uint16) atoi(tempStr);
+   uint16 port = 0; if (args.FindString("port", &tempStr).IsOK()) port = (uint16) atoi(tempStr);
    if (port == 0) port = 2960;
       
    // Connect to the server
@@ -207,14 +207,14 @@ int main(int argc, char ** argv)
          }
 
          MessageRef msg;
-         while(inQueue.RemoveHead(msg) == B_NO_ERROR)
+         while(inQueue.RemoveHead(msg).IsOK())
          {
             switch(msg()->what)
             {
                case NET_CLIENT_PING:  // respond to other clients' pings
                {
                   String replyTo;
-                  if (msg()->FindString("session", replyTo) == B_NO_ERROR)
+                  if (msg()->FindString("session", replyTo).IsOK())
                   {
                      msg()->what = NET_CLIENT_PONG;
 
@@ -241,7 +241,7 @@ int main(int argc, char ** argv)
                   // Someone has sent a line of chat text to display
                   const char * text;
                   const char * session;
-                  if ((msg()->FindString("text", &text) == B_NO_ERROR)&&(msg()->FindString("session", &session) == B_NO_ERROR)) 
+                  if ((msg()->FindString("text", &text).IsOK())&&(msg()->FindString("session", &session).IsOK())) 
                   {
                      if (strncmp(text, "/me ", 4) == 0) LogTime(MUSCLE_LOG_INFO, "<ACTION>: %s %s\n", GetUserName(_users, session)(), &text[4]); 
                                                    else LogTime(MUSCLE_LOG_INFO, "%s(%s): %s\n", msg()->HasName("private") ? "<PRIVATE>: ":"", GetUserName(_users, session)(), text);
@@ -253,7 +253,7 @@ int main(int argc, char ** argv)
                {
                   // Look for sub-messages that indicate that nodes were removed from the tree
                   String nodepath;
-                  for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, nodepath) == B_NO_ERROR); i++)
+                  for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, nodepath).IsOK()); i++)
                   {
                      const int pathDepth = GetPathDepth(nodepath.Cstr());
                      if (pathDepth >= USER_NAME_DEPTH)
@@ -267,7 +267,7 @@ int main(int argc, char ** argv)
                            if (strncmp(GetPathClause(USER_NAME_DEPTH, nodepath.Cstr()), "name", 4) == 0) 
                            {
                               String userName = GetUserName(_users, sessionID);
-                              if (_users.Remove(sessionID) == B_NO_ERROR) LogTime(MUSCLE_LOG_INFO, "User [%s] has disconnected.\n", userName());
+                              if (_users.Remove(sessionID).IsOK()) LogTime(MUSCLE_LOG_INFO, "User [%s] has disconnected.\n", userName());
                            }
                            break;
                         }
@@ -282,7 +282,7 @@ int main(int argc, char ** argv)
                      if (pathDepth == USER_NAME_DEPTH)
                      {
                         MessageRef tempRef;
-                        if (msg()->FindMessage(np, tempRef) == B_NO_ERROR)
+                        if (msg()->FindMessage(np, tempRef).IsOK())
                         {
                            const Message * pmsg = tempRef();
                            String sessionID = GetPathClause(SESSION_ID_DEPTH, np());
@@ -298,7 +298,7 @@ int main(int argc, char ** argv)
                                  if (strncmp(nodeName, "name", 4) == 0)
                                  {
                                     const char * name;
-                                    if (pmsg->FindString("name", &name) == B_NO_ERROR)
+                                    if (pmsg->FindString("name", &name).IsOK())
                                     {
                                        if (_users.ContainsKey(sessionID) == false) LogTime(MUSCLE_LOG_INFO, "User #%s has connected\n", sessionID());
                                        _users.Put(sessionID, name);
@@ -308,7 +308,7 @@ int main(int argc, char ** argv)
                                  else if (strncmp(nodeName, "userstatus", 9) == 0)
                                  {
                                     const char * status;
-                                    if (pmsg->FindString("userstatus", &status) == B_NO_ERROR) LogTime(MUSCLE_LOG_INFO, "%s is now [%s]\n", GetUserName(_users, sessionID)(), status);
+                                    if (pmsg->FindString("userstatus", &status).IsOK()) LogTime(MUSCLE_LOG_INFO, "%s is now [%s]\n", GetUserName(_users, sessionID)(), status);
                                  }
                               }
                               break;

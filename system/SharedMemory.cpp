@@ -76,7 +76,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    if (_mutex != NULL)
    {
       bool ok = true;
-      if (GetLastError() == ERROR_ALREADY_EXISTS) ok = (LockAreaReadWrite() == B_NO_ERROR);
+      if (GetLastError() == ERROR_ALREADY_EXISTS) ok = (LockAreaReadWrite().IsOK());
       else
       {
          // We created it in our CreateMutex() call, and it's already locked for us
@@ -158,7 +158,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
          _areaName = "private";  // sorry, it's the best I can do short of figuring out how to invert the hash function!
       }
 
-      if ((_key != IPC_PRIVATE)&&(LockAreaReadWrite() == B_NO_ERROR))
+      if ((_key != IPC_PRIVATE)&&(LockAreaReadWrite().IsOK()))
       {
          _areaID = shmget(_key, 0, permissionBits);
          if ((_areaID < 0)&&(createSize > 0)) 

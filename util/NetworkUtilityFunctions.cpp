@@ -198,7 +198,7 @@ static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType)
             if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (const sockopt_arg *) &v6OnlyEnabled, sizeof(v6OnlyEnabled)) != 0) LogTime(MUSCLE_LOG_DEBUG, "Could not disable v6-only mode for socket %i [%s]\n", s, B_ERRNO());
          }
 #endif
-         if (DoGlobalSocketCallback(createType, ret) == B_NO_ERROR) return ret;
+         if (DoGlobalSocketCallback(createType, ret).IsOK()) return ret;
       }
    }
    return ConstSocketRef();
@@ -395,7 +395,7 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
                if (oidx != ((int)actualIdx))
                {
                   // temporarily set the socket's interface index to the desired one
-                  if (SetSocketMulticastSendInterfaceIndex(sock, actualIdx) != B_NO_ERROR) return -1;
+                  if (SetSocketMulticastSendInterfaceIndex(sock, actualIdx).IsError()) return -1;
                   oldInterfaceIndex = oidx;  // and remember to set it back afterwards
                }
             }
@@ -450,7 +450,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
    if (fd >= 0)
    {
       ConstSocketRef ret = GetConstSocketRefFromPool((int) accept(fd, (struct sockaddr *)&saSocket, &nLen));
-      if (DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret) != B_NO_ERROR) return ConstSocketRef();  // called separately since accept() created this socket, not CreateMuscleSocket()
+      if (DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret).IsError()) return ConstSocketRef();  // called separately since accept() created this socket, not CreateMuscleSocket()
 
       if ((ret())&&(optRetInterfaceIP))
       {
@@ -519,7 +519,7 @@ ConstSocketRef Connect(const IPAddress & hostIP, uint16 port, const char * optDe
 #endif
                   if (multiplexer.IsSocketReadyForWrite(fd))
                   {
-                     if ((FinalizeAsyncConnect(s) == B_NO_ERROR)&&(SetSocketBlockingEnabled(s, true) == B_NO_ERROR)) ret = 0;
+                     if ((FinalizeAsyncConnect(s).IsOK())&&(SetSocketBlockingEnabled(s, true).IsOK())) ret = 0;
                      break;
                   }
                }
@@ -830,7 +830,7 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
          if (iter.GetValue() < 0) break;  // we'll do any negative-priority callbacks only after our built-in functionality has failed
 
          IPAddress ret;
-         if (iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret) == B_NO_ERROR) return ret;
+         if (iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK()) return ret;
       }
    }
 
@@ -841,7 +841,7 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
    {
       for (HashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
-         if ((iter.GetValue() < 0)&&(iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret) == B_NO_ERROR)) return ret;
+         if ((iter.GetValue() < 0)&&(iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK())) return ret;
       }
    }
 
@@ -853,7 +853,7 @@ ConstSocketRef ConnectAsync(const IPAddress & hostIP, uint16 port, bool & retIsR
    ConstSocketRef s = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT);
    if (s())
    {
-      if (SetSocketBlockingEnabled(s, false) == B_NO_ERROR)
+      if (SetSocketBlockingEnabled(s, false).IsOK())
       {
          DECLARE_SOCKADDR(saAddr, &hostIP, port);
          const int result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
@@ -901,7 +901,7 @@ status_t CreateConnectedSocketPair(ConstSocketRef & socket1, ConstSocketRef & so
    {
       socket1 = GetConstSocketRefFromPool(temp[0]);
       socket2 = GetConstSocketRefFromPool(temp[1]);
-      if ((SetSocketBlockingEnabled(socket1, blocking) == B_NO_ERROR)&&(SetSocketBlockingEnabled(socket2, blocking) == B_NO_ERROR)) return B_NO_ERROR;
+      if ((SetSocketBlockingEnabled(socket1, blocking).IsOK())&&(SetSocketBlockingEnabled(socket2, blocking).IsOK())) return B_NO_ERROR;
    }
    else return B_ERRNO;
 #else
@@ -916,7 +916,7 @@ status_t CreateConnectedSocketPair(ConstSocketRef & socket1, ConstSocketRef & so
          if (newfd())
          {
             socket1 = newfd;
-            if ((SetSocketBlockingEnabled(socket1, blocking) == B_NO_ERROR)&&(SetSocketBlockingEnabled(socket2, blocking) == B_NO_ERROR))
+            if ((SetSocketBlockingEnabled(socket1, blocking).IsOK())&&(SetSocketBlockingEnabled(socket2, blocking).IsOK()))
             {
                (void) SetSocketNaglesAlgorithmEnabled(socket1, false);
                (void) SetSocketNaglesAlgorithmEnabled(socket2, false);
@@ -1674,7 +1674,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
    PIP_ADAPTER_ADDRESSES pAddresses = NULL;
    ULONG outBufLen = 0;
    ret = B_ERROR;  // so we can enter the while-loop
-   while(ret != B_NO_ERROR)  // keep going until we succeeded (on failure we'll return directly)
+   while(ret.IsError())  // keep going until we succeeded (on failure we'll return directly)
    {
       const DWORD flags = GAA_FLAG_INCLUDE_PREFIX|GAA_FLAG_SKIP_ANYCAST|GAA_FLAG_SKIP_MULTICAST|GAA_FLAG_SKIP_DNS_SERVER;
       switch(GetAdaptersAddresses(AF_UNSPEC, flags, NULL, pAddresses, &outBufLen))
@@ -1854,7 +1854,7 @@ static status_t Inet6_AtoN(const char * buf, uint32 iIdx, IPAddress & retIP)
 IPAddress Inet_AtoN(const char * buf)
 {
    IPAddress ret;
-   return (ret.SetFromString(buf) == B_NO_ERROR) ? ret : IPAddress();
+   return (ret.SetFromString(buf).IsOK()) ? ret : IPAddress();
 }
 
 String IPAddress :: ToString(bool preferIPv4Style) const

@@ -80,7 +80,7 @@ static int DoThreadTest()
    for (uint32 i=0; i<ARRAYITEMS(threads); i++)
    {
       threads[i] = new TestThread(testMsg);
-      if (threads[i]->StartInternalThread() != B_NO_ERROR) printf("Error starting thread!\n");
+      if (threads[i]->StartInternalThread().IsError()) printf("Error starting thread!\n");
    }
    for (uint32 i=0; i<ARRAYITEMS(threads); i++) 
    {
@@ -153,7 +153,7 @@ static int DoInteractiveTest()
             case 'F':  
                if ((arg1)&&(arg2))
                {
-                  printf("%s(%s %i before %i)", first?"":", ", (table.MoveToBefore(atoi(arg1),atoi(arg2)) == B_NO_ERROR) ? "Befored" : "FailedToBefored", atoi(arg1), atoi(arg2));
+                  printf("%s(%s %i before %i)", first?"":", ", (table.MoveToBefore(atoi(arg1),atoi(arg2)).IsOK()) ? "Befored" : "FailedToBefored", atoi(arg1), atoi(arg2));
                   first = false;
                }
                else printf("(No arg1 or arg2!)");
@@ -162,7 +162,7 @@ static int DoInteractiveTest()
             case 'B':  
                if ((arg1)&&(arg2))
                {
-                  printf("%s(%s %i behind %i)", first?"":", ", (table.MoveToBehind(atoi(arg1),atoi(arg2)) == B_NO_ERROR) ? "Behinded" : "FailedToBehind", atoi(arg1), atoi(arg2));
+                  printf("%s(%s %i behind %i)", first?"":", ", (table.MoveToBehind(atoi(arg1),atoi(arg2)).IsOK()) ? "Behinded" : "FailedToBehind", atoi(arg1), atoi(arg2));
                   first = false;
                }
                else printf("(No arg1 or arg2!)");
@@ -171,7 +171,7 @@ static int DoInteractiveTest()
             case 'm':  
                if ((arg1)&&(arg2))
                {
-                  printf("%s(%s %i to position %i)", first?"":", ", (table.MoveToPosition(atoi(arg1),atoi(arg2)) == B_NO_ERROR) ? "Positioned" : "FailedToPosition", atoi(arg1), atoi(arg2));
+                  printf("%s(%s %i to position %i)", first?"":", ", (table.MoveToPosition(atoi(arg1),atoi(arg2)).IsOK()) ? "Positioned" : "FailedToPosition", atoi(arg1), atoi(arg2));
                   first = false;
                }
                else printf("(No arg1 or arg2!)");
@@ -180,7 +180,7 @@ static int DoInteractiveTest()
             case 'f':  
                if (arg1)
                {
-                  printf("%s(%s %i)", first?"":", ", (table.MoveToFront(atoi(arg1)) == B_NO_ERROR) ? "Fronted" : "FailedToFront", atoi(arg1));
+                  printf("%s(%s %i)", first?"":", ", (table.MoveToFront(atoi(arg1)).IsOK()) ? "Fronted" : "FailedToFront", atoi(arg1));
                   first = false;
                }
                else printf("(No arg1!)");
@@ -189,7 +189,7 @@ static int DoInteractiveTest()
             case 'b':  
                if (arg1)
                {
-                  printf("%s(%s %i)", first?"":", ", (table.MoveToBack(atoi(arg1)) == B_NO_ERROR) ? "Backed" : "FailedToBack", atoi(arg1));
+                  printf("%s(%s %i)", first?"":", ", (table.MoveToBack(atoi(arg1)).IsOK()) ? "Backed" : "FailedToBack", atoi(arg1));
                   first = false;
                }
                else printf("(No arg1!)");
@@ -198,7 +198,7 @@ static int DoInteractiveTest()
             case 'p':  
                if (arg1)
                {
-                  printf("%s(%s %i)", first?"":", ", (table.Put(atoi(arg1), arg1) == B_NO_ERROR) ? "Put" : "FailedToPut", atoi(arg1));
+                  printf("%s(%s %i)", first?"":", ", (table.Put(atoi(arg1), arg1).IsOK()) ? "Put" : "FailedToPut", atoi(arg1));
                   first = false;
                }
                else printf("(No arg1!)");
@@ -207,7 +207,7 @@ static int DoInteractiveTest()
             case 'r':  
                if (arg1)
                {
-                  printf("%s(%s %i)", first?"":", ", (table.Remove(atoi(arg1)) == B_NO_ERROR) ? "Removed" : "FailedToRemove", atoi(arg1));
+                  printf("%s(%s %i)", first?"":", ", (table.Remove(atoi(arg1)).IsOK()) ? "Removed" : "FailedToRemove", atoi(arg1));
                   first = false;
                }
                else printf("(No arg1!)");
@@ -216,7 +216,7 @@ static int DoInteractiveTest()
             case 'R':
                if (arg1)
                {
-                  printf("%s(%s %i)", first?"":", ", (table.Reposition(atoi(arg1)) == B_NO_ERROR) ? "Repositioned" : "FailedToReposition", atoi(arg1));
+                  printf("%s(%s %i)", first?"":", ", (table.Reposition(atoi(arg1)).IsOK()) ? "Repositioned" : "FailedToReposition", atoi(arg1));
                   first = false;
                }
                else printf("(No arg1!)");
@@ -347,7 +347,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   Message temp; if (ParseArgs(argc, argv, temp) == B_NO_ERROR) HandleStandardDaemonArgs(temp);
+   Message temp; if (ParseArgs(argc, argv, temp).IsOK()) HandleStandardDaemonArgs(temp);
 
    if (temp.HasName("inter")) return DoInteractiveTest();
 
@@ -357,8 +357,8 @@ int main(int argc, char ** argv)
       for (int32 i=0; i<1000; i++) table.Put(String("xxx%1").Arg(i), "foo");
       printf("After population of " UINT32_FORMAT_SPEC " items, table size is " UINT32_FORMAT_SPEC "\n", table.GetNumItems(), table.GetNumAllocatedItemSlots());
 
-      if (table.ShrinkToFit() == B_NO_ERROR) printf("After shrink-to-fit, table allocation is " UINT32_FORMAT_SPEC " for " UINT32_FORMAT_SPEC " items\n", table.GetNumAllocatedItemSlots(), table.GetNumItems());
-                                        else printf("Shrink-to-fit failed!?\n");
+      if (table.ShrinkToFit().IsOK()) printf("After shrink-to-fit, table allocation is " UINT32_FORMAT_SPEC " for " UINT32_FORMAT_SPEC " items\n", table.GetNumAllocatedItemSlots(), table.GetNumItems());
+                                 else printf("Shrink-to-fit failed!?\n");
 
       printf("Before copy-from-empty, table allocation is " UINT32_FORMAT_SPEC "\n", table.GetNumAllocatedItemSlots()); 
       table = GetDefaultObjectForType< Hashtable<String,String> > ();
@@ -543,17 +543,17 @@ int main(int argc, char ** argv)
       }
 
       String lookup;
-      if (table.Get(String("Hello"), lookup) == B_NO_ERROR) LogTime(MUSCLE_LOG_DEBUG, "Hello -> %s\n", lookup());
-                                                       else bomb("Lookup 1 failed.\n");
-      if (table.Get(String("Peanut Butter"), lookup) == B_NO_ERROR) LogTime(MUSCLE_LOG_DEBUG, "Peanut Butter -> %s\n", lookup());
-                                                               else bomb("Lookup 2 failed.\n");
+      if (table.Get(String("Hello"), lookup).IsOK()) LogTime(MUSCLE_LOG_DEBUG, "Hello -> %s\n", lookup());
+                                                else bomb("Lookup 1 failed.\n");
+      if (table.Get(String("Peanut Butter"), lookup).IsOK()) LogTime(MUSCLE_LOG_DEBUG, "Peanut Butter -> %s\n", lookup());
+                                                        else bomb("Lookup 2 failed.\n");
 
 
       LogTime(MUSCLE_LOG_INFO, "Testing delete-as-you-go traveral\n");
       for (HashtableIterator<String, String> st(table); st.HasData(); st++)
       {
          LogTime(MUSCLE_LOG_INFO, "t3 = %s -> %s (tableSize=" UINT32_FORMAT_SPEC ")\n", st.GetKey()(), st.GetValue()(), table.GetNumItems());
-         if (table.Remove(st.GetKey()) != B_NO_ERROR) bomb("Could not remove string!\n");
+         if (table.Remove(st.GetKey()).IsError()) bomb("Could not remove string!\n");
 #if 0
          for (HashtableIterator<String,String> st2(table); st2.HasData(); st2++) printf("  tx = %s -> %s\n", nextKeyString(), nextValueString());
 #endif
@@ -577,7 +577,7 @@ int main(int argc, char ** argv)
       {
          const char * nextValue = NULL;
          status_t ret = sillyTable.Get(it.GetKey(), nextValue);
-         printf("%i %s: " UINT32_FORMAT_SPEC " -> %s\n", it.HasData(), (ret == B_NO_ERROR) ? "OK" : "ERROR", it.GetKey(), nextValue);
+         printf("%i %s: " UINT32_FORMAT_SPEC " -> %s\n", it.HasData(), ret(), it.GetKey(), nextValue);
       }
    }
    table.Clear();   
@@ -678,7 +678,7 @@ int main(int argc, char ** argv)
             {
                char temp[300];
                muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
-               if (t.Put(temp, i) != B_NO_ERROR)
+               if (t.Put(temp, i).IsError())
                {
                   printf("Whoops, (hopefully simulated) memory failure!  (Put(" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") failed) ... recovering\n", i, numEntries);
 
@@ -701,7 +701,7 @@ int main(int argc, char ** argv)
                   char temp[300];
                   muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                   uint32 tv = 0;
-                  if (t.Get(temp, tv) != B_NO_ERROR) bomb("ERROR, MISSING KEY [%s]\n", temp);
+                  if (t.Get(temp, tv).IsError()) bomb("ERROR, MISSING KEY [%s]\n", temp);
                   if (tv != ((uint32)i)) bomb("ERROR, WRONG KEY %s != " UINT32_FORMAT_SPEC "!\n", temp, tv);
                }
             }
@@ -728,7 +728,7 @@ int main(int argc, char ** argv)
                   char temp[64];
                   muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                   uint32 tv = 0;  // just to shut the compiler up
-                  if (t.Remove(temp, tv) != B_NO_ERROR) bomb("ERROR, MISSING REMOVE KEY [%s] A\n", temp);
+                  if (t.Remove(temp, tv).IsError()) bomb("ERROR, MISSING REMOVE KEY [%s] A\n", temp);
                   if (tv != i) bomb("ERROR, REMOVE WAS WRONG VALUE " UINT32_FORMAT_SPEC "\n", tv);
                }
             }
@@ -760,7 +760,7 @@ int main(int argc, char ** argv)
                char temp[300];
                muscleSprintf(temp, UINT32_FORMAT_SPEC, i);
                uint32 tv = 0;  // just to shut the compiler up
-               if (t.Remove(temp, tv) != B_NO_ERROR) bomb("ERROR, MISSING REMOVE KEY [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") B\n", temp, i, half);
+               if (t.Remove(temp, tv).IsError()) bomb("ERROR, MISSING REMOVE KEY [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") B\n", temp, i, half);
                if (tv != i) bomb("ERROR, REMOVE WAS WRONG VALUE " UINT32_FORMAT_SPEC "\n", tv);
             }
          }

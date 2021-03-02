@@ -26,17 +26,17 @@ DoOutputImplementation(uint32 maxBytes)
       // It'll be up to the user to make sure not to put too much text in one Message
       uint32 totalNumBytesSent = 0;
       MessageRef nextMsg;
-      while((totalNumBytesSent < maxBytes)&&(GetOutgoingMessageQueue().RemoveHead(nextMsg) == B_NO_ERROR))
+      while((totalNumBytesSent < maxBytes)&&(GetOutgoingMessageQueue().RemoveHead(nextMsg).IsOK()))
       {
          uint32 outBufLen = 1; // 1 for the one extra NUL byte at the end of all the strings (per String::Flatten(), below)
          const String * nextStr;
-         for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr) == B_NO_ERROR; i++) outBufLen += (nextStr->Length() + _eolString.Length());
+         for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++) outBufLen += (nextStr->Length() + _eolString.Length());
 
          ByteBufferRef outBuf = GetByteBufferFromPool(outBufLen);
          if (outBuf())
          {
             uint8 * b = outBuf()->GetBuffer();
-            for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr) == B_NO_ERROR; i++) 
+            for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++) 
             {
                nextStr->Flatten(b);   b += nextStr->Length();   // Advance by Length() instead of FlattenedSize()
                _eolString.Flatten(b); b += _eolString.Length(); // to avoid NUL bytes inside our outBuf
@@ -47,7 +47,7 @@ DoOutputImplementation(uint32 maxBytes)
 
             PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL
             IPAddressAndPort packetDest;
-            const int32 numBytesSent = (nextMsg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDest) == B_NO_ERROR)
+            const int32 numBytesSent = (nextMsg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDest).IsOK())
                                      ? pdio->WriteTo(outBytes, numBytesToSend, packetDest)
                                      : pdio->Write(  outBytes, numBytesToSend);
                  if (numBytesSent > 0) totalNumBytesSent += numBytesSent;
@@ -85,7 +85,7 @@ DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth)
       if ((_currentSendOffset < 0)||(_currentSendOffset >= (int32)_currentSendText.Length()))
       {
          // Try to get the next line of text from our message
-         if (msg->FindString(PR_NAME_TEXT_LINE, ++_currentSendLineIndex, _currentSendText) == B_NO_ERROR)
+         if (msg->FindString(PR_NAME_TEXT_LINE, ++_currentSendLineIndex, _currentSendText).IsOK())
          {
             _currentSendOffset = 0;
             _currentSendText += _eolString;
@@ -251,7 +251,7 @@ PlainTextMessageIOGateway :: FlushInput(AbstractGatewayMessageReceiver & receive
    if (_incomingText.HasChars())
    {
       MessageRef inMsg = GetMessageFromPool(PR_COMMAND_TEXT_STRINGS);
-      if ((inMsg())&&(inMsg()->AddString(PR_NAME_TEXT_LINE, _incomingText) == B_NO_ERROR))
+      if ((inMsg())&&(inMsg()->AddString(PR_NAME_TEXT_LINE, _incomingText).IsOK()))
       {
          _incomingText.Clear();
          receiver.CallMessageReceivedFromGateway(inMsg);

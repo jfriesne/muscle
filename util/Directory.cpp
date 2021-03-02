@@ -141,7 +141,7 @@ void Directory :: Reset()
 bool Directory :: Exists(const char * dirPath)
 {
    Directory d;
-   return ((dirPath)&&(d.SetDir(dirPath) == B_NO_ERROR));
+   return ((dirPath)&&(d.SetDir(dirPath).IsOK()));
 }
 
 status_t Directory :: SetDir(const char * dirPath)
@@ -259,7 +259,7 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
 #endif
             ret = (unlinkRet == 0) ? B_NO_ERROR : Directory::DeleteDirectory(catStr, true);
             delete [] catStr;
-            if (ret != B_NO_ERROR) return ret;
+            if (ret.IsError()) return ret;
          }
       }
    }

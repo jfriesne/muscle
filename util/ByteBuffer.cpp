@@ -157,7 +157,7 @@ void ByteBuffer :: PrintToStream(uint32 maxBytesToPrint, uint32 numColumns, FILE
 ByteBuffer operator+(const ByteBuffer & lhs, const ByteBuffer & rhs)
 {
    ByteBuffer ret;
-   if (ret.SetNumBytes(lhs.GetNumBytes()+rhs.GetNumBytes(), false) == B_NO_ERROR)
+   if (ret.SetNumBytes(lhs.GetNumBytes()+rhs.GetNumBytes(), false).IsOK())
    {
       memcpy(ret.GetBuffer(), lhs.GetBuffer(), lhs.GetNumBytes());
       memcpy(ret.GetBuffer()+lhs.GetNumBytes(), rhs.GetBuffer(), rhs.GetNumBytes());
@@ -176,7 +176,7 @@ ByteBufferRef GetByteBufferFromPool(uint32 numBytes, const uint8 * optBuffer) {r
 ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, uint32 numBytes, const uint8 * optBuffer)
 {
    ByteBufferRef ref(pool.ObtainObject());
-   if ((ref())&&(ref()->SetBuffer(numBytes, optBuffer) != B_NO_ERROR)) ref.Reset();  // return NULL ref on out-of-memory
+   if ((ref())&&(ref()->SetBuffer(numBytes, optBuffer).IsError())) ref.Reset();  // return NULL ref on out-of-memory
    return ref;
 }
 
@@ -410,7 +410,7 @@ uint32 ByteBuffer :: ReadStrings(String * vals, uint32 numValsToRead, uint32 & r
    for (uint32 i=0; i<numValsToRead; i++)
    {
       const uint32 numBytesAvailable = GetNumValidBytesAtOffset(readByteOffset);
-      if ((numBytesAvailable == 0)||(vals[i].SetCstr((const char *)(_buffer+readByteOffset), numBytesAvailable) != B_NO_ERROR)) return i;
+      if ((numBytesAvailable == 0)||(vals[i].SetCstr((const char *)(_buffer+readByteOffset), numBytesAvailable).IsError())) return i;
       readByteOffset = muscleMin(readByteOffset+vals[i].Length()+1, _numValidBytes);
    }
    return numValsToRead;

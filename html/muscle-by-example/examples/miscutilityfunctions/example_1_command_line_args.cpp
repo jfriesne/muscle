@@ -31,8 +31,8 @@ int main(int argc, char ** argv)
    printf("\n");
 
    Message msg;
-   if (ParseArgs(argc, argv, msg) == B_NO_ERROR) msg.PrintToStream();
-                                            else printf("ParseArgs() failed!\n");
+   if (ParseArgs(argc, argv, msg).IsOK()) msg.PrintToStream();
+                                     else printf("ParseArgs() failed!\n");
 
    return 0;
 }

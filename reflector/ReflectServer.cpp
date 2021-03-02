@@ -436,7 +436,7 @@ ServerProcessLoop()
    // These variables are used as scratch space, but are declared outside the loop to avoid having to reinitialize them all the time.
    Hashtable<AbstractSessionIOPolicyRef, Void> policies;
 
-   while(ClearLameDucks() == B_NO_ERROR)
+   while(ClearLameDucks().IsOK())
    {
       TCHECKPOINT;
       EventLoopCycleBegins();
@@ -637,7 +637,7 @@ ServerProcessLoop()
 
                   if (_multiplexer.IsSocketReadyForWrite(writeSock))
                   {
-                     if (session->IsConnectingAsync()) wroteBytes = (FinalizeAsyncConnect(sessionRef) == B_NO_ERROR) ? 0 : -1;
+                     if (session->IsConnectingAsync()) wroteBytes = (FinalizeAsyncConnect(sessionRef).IsOK()) ? 0 : -1;
                      else
                      {
                         // if the session's DataIO object is still has bytes buffered for output, try to send them now
@@ -775,7 +775,7 @@ status_t ReflectServer :: ClearLameDucks()
 
    // Remove any sessions that were previously marked for removal
    AbstractReflectSessionRef duckRef;
-   while(_lameDuckSessions.RemoveHead(duckRef) == B_NO_ERROR)
+   while(_lameDuckSessions.RemoveHead(duckRef).IsOK())
    {
       AbstractReflectSession * duck = duckRef();
       if (duck)
@@ -1124,7 +1124,7 @@ void
 ReflectServer ::
 AddLameDuckSession(const AbstractReflectSessionRef & ref)
 {
-   if ((_lameDuckSessions.IndexOf(ref) < 0)&&(_lameDuckSessions.AddTail(ref) != B_NO_ERROR)&&(_doLogging)) LogTime(MUSCLE_LOG_CRITICALERROR, "Server:  AddLameDuckSession() failed, I'm REALLY in trouble!  Aggh!\n");
+   if ((_lameDuckSessions.IndexOf(ref) < 0)&&(_lameDuckSessions.AddTail(ref).IsError())&&(_doLogging)) LogTime(MUSCLE_LOG_CRITICALERROR, "Server:  AddLameDuckSession() failed, I'm REALLY in trouble!  Aggh!\n");
 }
 
 void
@@ -1168,7 +1168,7 @@ SetComputerIsAboutToSleep(bool isAboutToSleep)
                // Only schedule reconnects for those sessions that could benefit from them
                const bool scheduleReconnect = ((s()->GetAsyncConnectDestination().IsValid())&&(s()->GetAutoReconnectDelay() != MUSCLE_TIME_NEVER));
                (void) s()->DisconnectSession();
-               if ((scheduleReconnect)&&(_lameDuckSessions.Contains(s) == false)&&(_sessionsToReconnectOnWakeup.Put(sessionID, false) == B_NO_ERROR))
+               if ((scheduleReconnect)&&(_lameDuckSessions.Contains(s) == false)&&(_sessionsToReconnectOnWakeup.Put(sessionID, false).IsOK()))
                {
                   s()->InvalidatePulseTime();  // Avoid extra call to Pulse() if session's _autoReconnectTime was set
                   scheduleCount++;

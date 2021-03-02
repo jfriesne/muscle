@@ -1481,7 +1481,7 @@ void UpdateAllocationStackTrace(bool isAllocation, String * & s)
       }
       if (s)
       {
-         if (GetStackTrace(*s) != B_NO_ERROR) s->SetCstr("(no stack trace available)");
+         if (GetStackTrace(*s).IsError()) s->SetCstr("(no stack trace available)");
       }
    }
    else
@@ -1557,7 +1557,7 @@ DefaultFileLogger :: ~DefaultFileLogger()
 
 void DefaultFileLogger :: Log(const LogCallbackArgs & a)
 {
-   if ((a.GetLogLevel() <= GetFileLogLevel())&&(EnsureLogFileCreated(a) == B_NO_ERROR))
+   if ((a.GetLogLevel() <= GetFileLogLevel())&&(EnsureLogFileCreated(a).IsOK()))
    {
       vfprintf(_logFile.GetFile(), a.GetText(), *a.GetArgList());
       _logFile.FlushOutput();
@@ -2125,9 +2125,9 @@ status_t LogTime(int ll, const char * fmt, ...)
       DO_LOGGING_CALLBACK(_dcl);  // must be outside of the braces!
 
       // Then log the actual message as supplied by the user
-      if (lockRet == B_NO_ERROR) DO_LOGGING_CALLBACKS;
+      if (lockRet.IsOK()) DO_LOGGING_CALLBACKS;
    }
-   if (lockRet == B_NO_ERROR) UnlockLog();
+   if (lockRet.IsOK()) UnlockLog();
 
    return lockRet;
 }
@@ -2183,9 +2183,9 @@ status_t Log(int ll, const char * fmt, ...)
       const time_t when = time(NULL);  // don't inline this, ya dummy
       DO_LOGGING_CALLBACK(_dfl);
       DO_LOGGING_CALLBACK(_dcl);
-      if (lockRet == B_NO_ERROR) DO_LOGGING_CALLBACKS;
+      if (lockRet.IsOK()) DO_LOGGING_CALLBACKS;
    }
-   if (lockRet == B_NO_ERROR) (void) UnlockLog();
+   if (lockRet.IsOK()) (void) UnlockLog();
    return lockRet;
 }
 
@@ -2393,7 +2393,7 @@ String GetHumanReadableTimeString(uint64 timeUS, uint32 timeType)
    else
    {
       HumanReadableTimeValues v;
-      if (GetHumanReadableTimeValues(timeUS, v, timeType) == B_NO_ERROR)
+      if (GetHumanReadableTimeValues(timeUS, v, timeType).IsOK())
       {
          char buf[256];
          muscleSprintf(buf, "%02i/%02i/%02i %02i:%02i:%02i", v.GetYear(), v.GetMonth()+1, v.GetDayOfMonth()+1, v.GetHour(), v.GetMinute(), v.GetSecond());

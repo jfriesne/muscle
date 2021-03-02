@@ -55,7 +55,7 @@ private:
 
          // And if there is a "count" integer in the Message data, show it too
          int32 count;
-         if (iter.GetValue()()->FindInt32("count", count) == B_NO_ERROR) s += String("=%1").Arg(count);
+         if (iter.GetValue()()->FindInt32("count", count).IsOK()) s += String("=%1").Arg(count);
          s += ' ';
       }
       
@@ -117,13 +117,13 @@ AdvancedExampleWindow :: AdvancedExampleWindow()
    UpdateButtons();
 
    // start the MUSCLE thread running
-   if (_serverThread.StartInternalThread() == B_NO_ERROR)
+   if (_serverThread.StartInternalThread().IsOK())
    {
       // Tell the ThreadSuperVisorSession in the MUSCLE thread that we want to know about updates to session status nodes
       MessageRef subscribeMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
       subscribeMsg()->AddBool("SUBSCRIBE:/*/*", true);    // so we can see all sessions that are created or destroyed
       subscribeMsg()->AddBool("SUBSCRIBE:/*/*/*", true);  // so we can watch any nodes any session places in its "home directory" also
-      if (_serverThread.SendMessageToInternalThread(subscribeMsg) != B_NO_ERROR) printf("Error, couldn't send subcribe message to MUSCLE thread!\n");
+      if (_serverThread.SendMessageToInternalThread(subscribeMsg).IsError()) printf("Error, couldn't send subcribe message to MUSCLE thread!\n");
    }
    else printf("Error, couldn't start MUSCLE thread!\n");
 }
@@ -177,17 +177,17 @@ void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, 
       { 
          // Look for strings that indicate that subscribed nodes were removed from the tree
          const String * removedNodePath;
-         for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, &removedNodePath) == B_NO_ERROR); i++)
+         for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, &removedNodePath).IsOK()); i++)
          {
             // (removedNodePath) will be something like "/_unknown_/7/status/float"
             String sessionStr, subPath;
-            if (ParsePath(*removedNodePath, sessionStr, subPath) == B_NO_ERROR)
+            if (ParsePath(*removedNodePath, sessionStr, subPath).IsOK())
             {
                if (subPath.HasChars())
                {
                   // If there is a sub-path, that means a node inside a session has been deleted, so we'll tell our corresponding SessionListViewItem about that
                   SessionListViewItem * item;
-                  if (_sessionLookup.Get(sessionStr, item) == B_NO_ERROR)
+                  if (_sessionLookup.Get(sessionStr, item).IsOK())
                   {
                      printf("GUI Thread removing subPath [%s] from SessionListViewItem %p (aka [%s])\n", subPath(), item, sessionStr());
                      item->DataReceived(subPath, MessageRef());
@@ -198,7 +198,7 @@ void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, 
                {
                   // No sub-path means the session itself has gone away
                   SessionListViewItem * item;
-                  if (_sessionLookup.Remove(sessionStr, item) == B_NO_ERROR)
+                  if (_sessionLookup.Remove(sessionStr, item).IsOK())
                   {
                      printf("GUI Thread removing SessionListViewItem %p (for session [%s])\n", item, removedNodePath->Cstr());
                      delete item;
@@ -214,14 +214,14 @@ void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, 
          {
             const String & pathStr = iter.GetFieldName(); // e.g. "/_unknown_/7/status/float"
             String sessionStr, subPath;
-            if (ParsePath(pathStr, sessionStr, subPath) == B_NO_ERROR)
+            if (ParsePath(pathStr, sessionStr, subPath).IsOK())
             {
                MessageRef data;
-               for (int32 i=0; msg()->FindMessage(iter.GetFieldName(), i, data) == B_NO_ERROR; i++)
+               for (int32 i=0; msg()->FindMessage(iter.GetFieldName(), i, data).IsOK(); i++)
                {
                   // Create a SessionListViewItem for this sessionStr, if we don't already have one
                   SessionListViewItem * item;
-                  if (_sessionLookup.Get(sessionStr, item) != B_NO_ERROR) 
+                  if (_sessionLookup.Get(sessionStr, item).IsError()) 
                   {
                      item = new SessionListViewItem(_sessionsView, sessionStr);
                      _sessionLookup.Put(sessionStr, item);

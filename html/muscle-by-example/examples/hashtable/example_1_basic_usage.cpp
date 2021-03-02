@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
 
    // Look up the value associated with a key
    int aVal;
-   if (table.Get("Ten", aVal) == B_NO_ERROR)
+   if (table.Get("Ten", aVal).IsOK())
    {
       printf("A: The value associated with key \"Ten\" was %i\n", aVal);
    }
@@ -66,7 +66,7 @@ int main(int argc, char ** argv)
 
    // Now let's remove a key/value pair from the table
    int removedValue;
-   if (table.Remove("Fifteen", removedValue) == B_NO_ERROR)
+   if (table.Remove("Fifteen", removedValue).IsOK())
    {
       printf("C: Removed key \"Fifteen\" from the table, and its associated value (%i)\n", removedValue);
    }
@@ -75,7 +75,7 @@ int main(int argc, char ** argv)
    printf("\n");
 
    // We can remove a key/value pair without even caring what the value was...
-   if (table.Remove("Eight") == B_NO_ERROR)
+   if (table.Remove("Eight").IsOK())
    {
       printf("D: Removed key \"Eight\" from the table\n");
    }

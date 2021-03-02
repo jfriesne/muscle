@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
    printf("   This program is running under the following OS:  %s\n", GetOSName());
 
    uint32 numProcs;
-   if (GetNumberOfProcessors(numProcs) == B_NO_ERROR)
+   if (GetNumberOfProcessors(numProcs).IsOK())
    {
       printf("   This computer has " UINT32_FORMAT_SPEC " processing cores.\n", numProcs);
    }
@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
    for (uint32 i=0; i<ARRAYITEMS(pathTypeNames); i++)
    {
       String pathVal;
-      if (GetSystemPath(i, pathVal) == B_NO_ERROR)
+      if (GetSystemPath(i, pathVal).IsOK())
       {
          printf("   %s %s\n", pathTypeNames[i], pathVal());
       }

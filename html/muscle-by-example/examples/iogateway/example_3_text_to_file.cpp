@@ -80,7 +80,7 @@ int main(int argc, char ** argv)
       // And finally, we'll print out the Messages that our gateway read in
       printf("Here are the Messages I read back in from example_3_output.txt:\n");
       MessageRef nextMsg;
-      while(qReceiver.RemoveHead(nextMsg) == B_NO_ERROR)
+      while(qReceiver.RemoveHead(nextMsg).IsOK())
       {
          printf("\n");
          nextMsg()->PrintToStream();

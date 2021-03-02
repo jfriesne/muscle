@@ -95,10 +95,10 @@ MessageRef SLIPFramedDataMessageIOGateway :: PopNextOutgoingMessage()
    // slipMsg will be like (msg), except that we've slip-encoded each data item
    const uint8 * buf;
    uint32 numBytes;
-   for (int32 i=0; msg()->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, i, (const void **) &buf, &numBytes) == B_NO_ERROR; i++)
+   for (int32 i=0; msg()->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, i, (const void **) &buf, &numBytes).IsOK(); i++)
    {
       ByteBufferRef slipData = SLIPEncodeBytes(buf, numBytes);
-      if ((slipData()==NULL)||(slipMsg()->AddFlat(PR_NAME_DATA_CHUNKS, slipData) != B_NO_ERROR)) return MessageRef();
+      if ((slipData()==NULL)||(slipMsg()->AddFlat(PR_NAME_DATA_CHUNKS, slipData).IsError())) return MessageRef();
    }
 
    return slipMsg;
@@ -120,7 +120,7 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
 {
    const uint8 * buf;
    uint32 numBytes;
-   for (int32 x=0; msg()->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, x, (const void **) &buf, &numBytes) == B_NO_ERROR; x++)
+   for (int32 x=0; msg()->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, x, (const void **) &buf, &numBytes).IsOK(); x++)
    {
       for (uint32 i=0; i<numBytes; i++)
       {

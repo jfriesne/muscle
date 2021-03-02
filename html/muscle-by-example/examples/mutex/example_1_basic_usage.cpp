@@ -23,7 +23,7 @@ protected:
    {
       while(1)
       {
-         if (_theMutex.Lock() == B_NO_ERROR)
+         if (_theMutex.Lock().IsOK())
          {
             // Do some thready little task
             const int max = 10;

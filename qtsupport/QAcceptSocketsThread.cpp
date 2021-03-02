@@ -51,7 +51,7 @@ bool QAcceptSocketsThread :: event(QEvent * event)
             case AST_EVENT_NEW_SOCKET_ACCEPTED:      
             {
                RefCountableRef tag;
-               if (next()->FindTag(AST_NAME_SOCKET, tag) == B_NO_ERROR)
+               if (next()->FindTag(AST_NAME_SOCKET, tag).IsOK())
                {
                   ConstSocketRef sref(tag, false);
                   if (sref()) emit ConnectionAccepted(sref);

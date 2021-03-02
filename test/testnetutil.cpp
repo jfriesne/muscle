@@ -38,7 +38,7 @@ int main(int, char **)
    printf("\n");
 
    Queue<NetworkInterfaceInfo> ifs;
-   if (GetNetworkInterfaceInfos(ifs) == B_NO_ERROR)
+   if (GetNetworkInterfaceInfos(ifs).IsOK())
    {
       printf("Found " UINT32_FORMAT_SPEC " local network interfaces:\n", ifs.GetNumItems());
       for (uint32 i=0; i<ifs.GetNumItems(); i++)

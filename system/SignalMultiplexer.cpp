@@ -55,7 +55,7 @@ status_t SignalMultiplexer :: AddHandler(ISignalHandler * s)
 void SignalMultiplexer :: RemoveHandler(ISignalHandler * s) 
 {
    MutexGuard m(_mutex);
-   if (_handlers.RemoveFirstInstanceOf(s) == B_NO_ERROR) (void) UpdateSignalSets();
+   if (_handlers.RemoveFirstInstanceOf(s).IsOK()) (void) UpdateSignalSets();
 }
 
 void SignalMultiplexer :: CallSignalHandlers(int sigNum)
@@ -76,7 +76,7 @@ status_t SignalMultiplexer :: UpdateSignalSets()
    {
       const ISignalHandler * s = _handlers[i];
       int sigNum;
-      for (uint32 j=0; s->GetNthSignalNumber(j, sigNum) == B_NO_ERROR; j++) if ((newSignalSet.IndexOf(sigNum) < 0)&&(newSignalSet.AddTail(sigNum).IsError(ret))) return ret;
+      for (uint32 j=0; s->GetNthSignalNumber(j, sigNum).IsOK(); j++) if ((newSignalSet.IndexOf(sigNum) < 0)&&(newSignalSet.AddTail(sigNum).IsError(ret))) return ret;
    }
    newSignalSet.Sort();
 

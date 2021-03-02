@@ -30,9 +30,10 @@ int main(int argc, char ** argv)
    }
    printf("Wrote 50 lines of text to example_3_seekable_dataio.txt; total file size is now " INT64_FORMAT_SPEC "\n", fileDataIO.GetLength());
 
-   if (fileDataIO.Seek(666, SeekableDataIO::IO_SEEK_SET) != B_NO_ERROR)
+   status_t ret;
+   if (fileDataIO.Seek(666, SeekableDataIO::IO_SEEK_SET).IsError(ret))
    {
-      printf("Error, Seek() failed!\n");
+      printf("Error, Seek() failed! [%s]\n", ret());
    }
 
    printf("After Seek(), our read/write head is now positioned at offset " INT64_FORMAT_SPEC " from the top of the file.\n", fileDataIO.GetPosition());
@@ -45,9 +46,9 @@ int main(int argc, char ** argv)
 
    printf("Now we will read the contents of the file and print it to stdout:\n\n");
 
-   if (fileDataIO.Seek(0, SeekableDataIO::IO_SEEK_SET) != B_NO_ERROR)
+   if (fileDataIO.Seek(0, SeekableDataIO::IO_SEEK_SET).IsError(ret))
    {
-      printf("Error, Seek() to top failed!\n");
+      printf("Error, Seek() to top failed! [%s]\n", ret());
    }
 
    char inputBuf[1024];

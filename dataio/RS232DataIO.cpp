@@ -82,7 +82,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
                   _ovWait.hEvent  = CreateEvent(0, true, false, 0);
                   _ovRead.hEvent  = CreateEvent(0, true, false, 0);
                   _ovWrite.hEvent = CreateEvent(0, true, false, 0);
-                  if ((_wakeupSignal != INVALID_HANDLE_VALUE)&&(_ovWait.hEvent != INVALID_HANDLE_VALUE)&&(_ovRead.hEvent != INVALID_HANDLE_VALUE)&&(_ovWrite.hEvent != INVALID_HANDLE_VALUE)&&(CreateConnectedSocketPair(_masterNotifySocket, _slaveNotifySocket, false) == B_NO_ERROR))
+                  if ((_wakeupSignal != INVALID_HANDLE_VALUE)&&(_ovWait.hEvent != INVALID_HANDLE_VALUE)&&(_ovRead.hEvent != INVALID_HANDLE_VALUE)&&(_ovWrite.hEvent != INVALID_HANDLE_VALUE)&&(CreateConnectedSocketPair(_masterNotifySocket, _slaveNotifySocket, false).IsOK()))
                   {
                      DWORD junkThreadID;
                      typedef unsigned (__stdcall *PTHREAD_START) (void *);
@@ -100,7 +100,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
 #  else
    _handle = GetConstSocketRefFromPool(open(port, O_RDWR | O_NOCTTY));
 #  endif
-   if (SetSocketBlockingEnabled(_handle, _blocking) == B_NO_ERROR)
+   if (SetSocketBlockingEnabled(_handle, _blocking).IsOK())
    {
       okay = true;
 
@@ -417,7 +417,7 @@ static void ProcessReadBytes(Queue<SerialBuffer *> & inQueue, const char * inByt
    {
       // Oops, not enough room.  We'll allocate a new SerialBuffer object instead.
       buf = newnothrow SerialBuffer;
-      if ((buf)&&(inQueue.AddTail(buf) == B_NO_ERROR))
+      if ((buf)&&(inQueue.AddTail(buf).IsOK()))
       {
          memcpy(&buf->_buf, inBytes, numBytesRead);
          buf->_length = numBytesRead;

@@ -36,7 +36,7 @@ DoOutputImplementation(uint32 maxBytes)
       if ((_sendBufByteOffset < 0)||(_sendBufByteOffset >= _sendBufLength))
       {
          // Try to get the next field from our message message
-         if (msg->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, ++_sendBufIndex, &_sendBuf, (uint32*)(&_sendBufLength)) == B_NO_ERROR) _sendBufByteOffset = 0;
+         if (msg->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, ++_sendBufIndex, &_sendBuf, (uint32*)(&_sendBufLength)).IsOK()) _sendBufByteOffset = 0;
          else 
          {
             _sendMsgRef.Reset();  // no more data available?  Go to the next message then.
@@ -53,7 +53,7 @@ DoOutputImplementation(uint32 maxBytes)
             PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL because (mtuSize > 0)
             const uint32 sendSize = muscleMin((uint32)_sendBufLength, mtuSize);
             IPAddressAndPort packetDestIAP;
-            const int32 bytesWritten = (msg->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDestIAP) == B_NO_ERROR)
+            const int32 bytesWritten = (msg->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDestIAP).IsOK())
                                      ? pdio->WriteTo(_sendBuf, sendSize, packetDestIAP)
                                      : pdio->Write(  _sendBuf, sendSize);
             if (bytesWritten > 0)
@@ -105,7 +105,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          {
             (void) bufRef()->SetNumBytes(bytesRead, true);
             MessageRef msg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
-            if ((msg())&&(msg()->AddFlat(PR_NAME_DATA_CHUNKS, bufRef) == B_NO_ERROR)&&(msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetSource) == B_NO_ERROR))
+            if ((msg())&&(msg()->AddFlat(PR_NAME_DATA_CHUNKS, bufRef).IsOK())&&(msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetSource).IsOK()))
             {
                ret += bytesRead;
                maxBytes = (maxBytes>(uint32)bytesRead) ? (maxBytes-bytesRead) : 0;         
@@ -130,8 +130,8 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             inMsg = _recvMsgRef();
             if (inMsg)
             {
-               if ((inMsg->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, NULL, _minChunkSize)                         == B_NO_ERROR)&&
-                   (inMsg->FindDataPointer(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, &_recvBuf, (uint32*)&_recvBufLength) == B_NO_ERROR)) _recvBufByteOffset = 0;
+               if ((inMsg->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, NULL, _minChunkSize)                        .IsOK())&&
+                   (inMsg->FindDataPointer(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, &_recvBuf, (uint32*)&_recvBufLength).IsOK())) _recvBufByteOffset = 0;
                else
                {
                   _recvMsgRef.Reset();
@@ -180,7 +180,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          {
             ret += bytesRead;
             MessageRef ref = GetMessageFromPool(PR_COMMAND_RAW_DATA);
-            if ((ref())&&(ref()->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, _recvScratchSpace, bytesRead) == B_NO_ERROR)) receiver.CallMessageReceivedFromGateway(ref);
+            if ((ref())&&(ref()->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, _recvScratchSpace, bytesRead).IsOK())) receiver.CallMessageReceivedFromGateway(ref);
             // note:  don't recurse here!  It would be bad (tm) on a fast feed since we might never return
          }
       }
@@ -257,7 +257,7 @@ uint32 CountedRawDataMessageIOGateway :: GetNumRawBytesInMessage(const MessageRe
       uint32 count = 0;
       const void * junk;
       uint32 temp;
-      for (int32 i=0; messageRef()->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, i, &junk, &temp) == B_NO_ERROR; i++) count += temp;
+      for (int32 i=0; messageRef()->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, i, &junk, &temp).IsOK(); i++) count += temp;
       return count;
    }
    else return 0;

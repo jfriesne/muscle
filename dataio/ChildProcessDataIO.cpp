@@ -200,7 +200,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                   }
                }
              
-               if (ret == B_NO_ERROR)
+               if (ret.IsOK())
                {
                   if (CreateProcessA((argc>=0)?(((const char **)args)[0]):NULL, (char *)cmd(), NULL, NULL, TRUE, 0, envVars, optDirectory, &siStartInfo, &piProcInfo))
                   {
@@ -545,7 +545,7 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
       const uint64 endTime = (maxWaitTimeMicros == MUSCLE_TIME_NEVER) ? MUSCLE_TIME_NEVER : (GetRunTime64()+maxWaitTimeMicros);
       while(GetRunTime64() < endTime)
       {
-         if ((sm.RegisterSocketForReadReady(fd) != B_NO_ERROR)||(sm.WaitForEvents(endTime) < 0)) break;
+         if ((sm.RegisterSocketForReadReady(fd).IsError())||(sm.WaitForEvents(endTime) < 0)) break;
          else
          {
             char junk[1024] = "";

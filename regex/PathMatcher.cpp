@@ -26,7 +26,7 @@ void PathMatcher :: AdjustStringPrefix(String & path, const char * optPrepend) c
 status_t PathMatcher :: RemovePathString(const String & wildpath) 
 {
    PathMatcherEntry temp;
-   if (_entries.Remove(wildpath, temp) == B_NO_ERROR)
+   if (_entries.Remove(wildpath, temp).IsOK())
    {
       if (temp.GetFilter()()) _numFilters--;
       return B_NO_ERROR;
@@ -82,12 +82,12 @@ status_t PathMatcher :: PutPathsFromMessage(const char * pathFieldName, const ch
 
    ConstQueryFilterRef filter;  // declared here so that queries can "bleed down" the list without being specified multiple times
    const String * str;
-   for (uint32 i=0; msg.FindString(pathFieldName, i, &str) == B_NO_ERROR; i++) 
+   for (uint32 i=0; msg.FindString(pathFieldName, i, &str).IsOK(); i++) 
    {
       if (optFilterFieldName)
       {
          MessageRef filterMsgRef;
-         if (msg.FindMessage(optFilterFieldName, i, filterMsgRef) == B_NO_ERROR) filter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*filterMsgRef());
+         if (msg.FindMessage(optFilterFieldName, i, filterMsgRef).IsOK()) filter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*filterMsgRef());
       }
       (void) PutPathFromString(*str, filter, prependIfNoLeadingSlash).IsError(ret);
    }

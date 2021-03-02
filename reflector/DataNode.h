@@ -75,7 +75,7 @@ public:
     *  @param returnChild On success, a reference to the retrieved child is written into this object.
     *  @return B_NO_ERROR if a child node was successfully retrieved, or B_DATA_NOT_FOUND if it was not found.
     */
-   status_t GetChild(const String & key, DataNodeRef & returnChild) const {return ((_children)&&(_children->Get(&key, returnChild) == B_NO_ERROR)) ? B_NO_ERROR : B_DATA_NOT_FOUND;}
+   status_t GetChild(const String & key, DataNodeRef & returnChild) const {return ((_children)&&(_children->Get(&key, returnChild).IsOK())) ? B_NO_ERROR : B_DATA_NOT_FOUND;}
 
    /** As above, except the reference to the child is returned as the return value rather than in a parameter.
     *  @param key The name of the child we wish to retrieve

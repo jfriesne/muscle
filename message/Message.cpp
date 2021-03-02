@@ -49,7 +49,7 @@ MessageRef GetMessageFromPool(const Message & copyMe)
 MessageRef GetMessageFromPool(const uint8 * flatBytes, uint32 numBytes)
 {
    MessageRef ref(_messagePool.ObtainObject());
-   if ((ref())&&(ref()->Unflatten(flatBytes, numBytes) != B_NO_ERROR)) ref.Reset();
+   if ((ref())&&(ref()->Unflatten(flatBytes, numBytes).IsError())) ref.Reset();
    return ref;
 }
 
@@ -70,7 +70,7 @@ MessageRef GetMessageFromPool(ObjectPool<Message> & pool, const Message & copyMe
 MessageRef GetMessageFromPool(ObjectPool<Message> & pool, const uint8 * flatBytes, uint32 numBytes)
 {
    MessageRef ref(pool.ObtainObject());
-   if ((ref())&&(ref()->Unflatten(flatBytes, numBytes) != B_NO_ERROR)) ref.Reset();
+   if ((ref())&&(ref()->Unflatten(flatBytes, numBytes).IsError())) ref.Reset();
    return ref;
 }
 
@@ -1328,7 +1328,7 @@ status_t Message :: Rename(const String & oldFieldName, const String & newFieldN
    if (oldFieldName == newFieldName) return B_NO_ERROR;  // nothing needs to be done in this case
 
    MessageField temp;
-   return (_entries.Remove(oldFieldName, temp) == B_NO_ERROR) ? _entries.Put(newFieldName, temp) : B_DATA_NOT_FOUND;
+   return (_entries.Remove(oldFieldName, temp).IsOK()) ? _entries.Put(newFieldName, temp) : B_DATA_NOT_FOUND;
 }
 
 uint32 Message :: FlattenedSize() const 
@@ -1724,7 +1724,7 @@ void * Message :: GetPointerToNormalizedFieldData(const String & fieldName, uint
       e->Normalize();
 
       const void * ptr = NULL;
-      if (e->FindDataItem(0, &ptr) == B_NO_ERROR)  // must be called AFTER e->Normalize()
+      if (e->FindDataItem(0, &ptr).IsOK())  // must be called AFTER e->Normalize()
       {
          if (retNumItems) *retNumItems = e->GetNumItems();
          return const_cast<void *>(ptr);
@@ -1808,7 +1808,7 @@ const uint8 * Message :: FindFlatAux(const MessageField * mf, uint32 index, uint
 
    const void * data = NULL; 
    const status_t ret = mf->FindDataItem(index, &data);
-   if (ret == B_NO_ERROR) 
+   if (ret.IsOK()) 
    { 
       retNumBytes = mf->GetItemSize(index); 
       return (const uint8 *)data;
@@ -1893,7 +1893,7 @@ status_t Message :: FindDataItemAux(const String & fieldName, uint32 index, uint
 
    const void * addressOfValue = NULL;
    const status_t ret = field->FindDataItem(index, &addressOfValue);
-   if (ret != B_NO_ERROR) return ret;
+   if (ret.IsError()) return ret;
    if (addressOfValue) memcpy(setValue, addressOfValue, valueSize);  // the "if" is only here to assuage ClangSA's paranoia
    return B_NO_ERROR;
 }
@@ -2649,9 +2649,9 @@ status_t MessageField :: SingleAddDataItem(const void * data, uint32 size)
    {
       // Oops, we need to allocate an array now!
       AbstractDataArrayRef adaRef = CreateDataArray(_typeCode);
-      if ((adaRef())&&(adaRef()->AddDataItem(_union._data, size) == B_NO_ERROR))  // add our existing single-item to the array
+      if ((adaRef())&&(adaRef()->AddDataItem(_union._data, size).IsOK()))  // add our existing single-item to the array
       {
-         if (adaRef()->AddDataItem(data, size) == B_NO_ERROR)
+         if (adaRef()->AddDataItem(data, size).IsOK())
          {
             _state = FIELD_STATE_ARRAY;
             SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
@@ -2683,9 +2683,9 @@ status_t MessageField :: SinglePrependDataItem(const void * data, uint32 size)
    {
       // Oops, we need to allocate an array now!
       AbstractDataArrayRef adaRef = CreateDataArray(_typeCode);
-      if ((adaRef())&&(adaRef()->AddDataItem(_union._data, size) == B_NO_ERROR))  // add our existing single-item to the array
+      if ((adaRef())&&(adaRef()->AddDataItem(_union._data, size).IsOK()))  // add our existing single-item to the array
       {
-         if (adaRef()->PrependDataItem(data, size) == B_NO_ERROR)
+         if (adaRef()->PrependDataItem(data, size).IsOK())
          {
             _state = FIELD_STATE_ARRAY;
             SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
@@ -2924,7 +2924,7 @@ bool MessageField :: IsEqualTo(const MessageField & rhs, bool compareContents) c
             {
                // Case:  I'm inline, he's array
                const void * hisData;
-               if (rhs.GetArray()->FindDataItem(0, &hisData) != B_NO_ERROR) return false;  // semi-paranoia: this call should never fail
+               if (rhs.GetArray()->FindDataItem(0, &hisData).IsError()) return false;  // semi-paranoia: this call should never fail
 
                switch(_typeCode)
                {

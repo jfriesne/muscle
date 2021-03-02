@@ -15,7 +15,7 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Test failed, line %i\n",__LINE__)
+#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
 
 static void PrintUsageAndExit()
 {
@@ -48,7 +48,7 @@ public:
       // Scope for the child process object
       {
          AbortOnTakeoffChildProcessDataIO cpdio(false);
-         if (cpdio.LaunchChildProcess(args) == B_NO_ERROR)
+         if (cpdio.LaunchChildProcess(args).IsOK())
          {
             printf("ChildProcessDataIO::LaunchChildProcess() succeeded!\n");
 
@@ -57,7 +57,7 @@ public:
             SocketMultiplexer sm;
             while(1)
             {
-               if (sm.RegisterSocketForReadReady(cpdio.GetReadSelectSocket().GetFileDescriptor()) != B_NO_ERROR) printf("RegisterSocketForReadReady() failed!\n");
+               if (sm.RegisterSocketForReadReady(cpdio.GetReadSelectSocket().GetFileDescriptor()).IsError()) printf("RegisterSocketForReadReady() failed!\n");
 
                const int r = sm.WaitForEvents();
                printf("WaitForEvents() returned %i\n", r);
@@ -189,11 +189,11 @@ int main(int argc, char ** argv)
          }
 
          MessageRef incoming;
-         while(ioInputQueue.RemoveHead(incoming) == B_NO_ERROR)
+         while(ioInputQueue.RemoveHead(incoming).IsOK())
          {
             printf("Heard message from server:-----------------------------------\n");
             const char * inStr;
-            for (int i=0; (incoming()->FindString(PR_NAME_TEXT_LINE, i, &inStr) == B_NO_ERROR); i++) printf("Line %i: [%s]\n", i, inStr);
+            for (int i=0; (incoming()->FindString(PR_NAME_TEXT_LINE, i, &inStr).IsOK()); i++) printf("Line %i: [%s]\n", i, inStr);
            
             printf("-------------------------------------------------------------\n");
          }

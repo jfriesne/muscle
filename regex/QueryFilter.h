@@ -167,7 +167,7 @@ public:
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
    virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_VALUEEXISTS;}
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const {(void) optNode; const void * junk; return (msg()->FindData(GetFieldName(), _typeCode, &junk, NULL) == B_NO_ERROR);}
+   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const {(void) optNode; const void * junk; return (msg()->FindData(GetFieldName(), _typeCode, &junk, NULL).IsOK());}
 
    /** Sets the type code that we will look for in the target Message.
      * @param typeCode the type code to look for.  Use B_ANY_TYPE to indicate that you don't care what the type code is.
@@ -289,9 +289,9 @@ public:
          _op     = archive.GetInt8("op");
          _value  = *((DataType *)dt);
          _maskOp = archive.GetInt8("mop");
-         _mask   = ((archive.FindData("msk", DataTypeCode, &dt, &numBytes) == B_NO_ERROR)&&(numBytes == sizeof(_mask))) ? *((DataType *)dt) : DataType();
+         _mask   = ((archive.FindData("msk", DataTypeCode, &dt, &numBytes).IsOK())&&(numBytes == sizeof(_mask))) ? *((DataType *)dt) : DataType();
          
-         if (archive.FindData("val", DataTypeCode, 1, &dt, &numBytes) == B_NO_ERROR)
+         if (archive.FindData("val", DataTypeCode, 1, &dt, &numBytes).IsOK())
          {
             _assumeDefault = true;
             _default = *((DataType *)dt);
@@ -310,7 +310,7 @@ public:
       const DataType * valueInMsg;
      
       const void * p;
-           if (msg()->FindData(GetFieldName(), DataTypeCode, GetIndex(), &p, NULL) == B_NO_ERROR) valueInMsg = (const DataType *)p;
+           if (msg()->FindData(GetFieldName(), DataTypeCode, GetIndex(), &p, NULL).IsOK()) valueInMsg = (const DataType *)p;
       else if (_assumeDefault) valueInMsg = &_default;
       else return false;
 

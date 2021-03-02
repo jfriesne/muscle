@@ -44,7 +44,7 @@ void QSignalHandler :: SignalHandlerFunc(int sigNum)
    // worry that the SignalHandlerSession object might have been deleted by the time we get here, but I don't
    // think there is much I can do about that)
    int nextSigNum;
-   for (uint32 i=0; GetNthSignalNumber(i, nextSigNum) == B_NO_ERROR; i++)
+   for (uint32 i=0; GetNthSignalNumber(i, nextSigNum).IsOK(); i++)
    {
       if (sigNum == nextSigNum)
       {

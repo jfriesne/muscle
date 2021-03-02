@@ -839,7 +839,7 @@ Queue<ItemType>::operator =(const Queue& rhs)
    {
       const uint32 hisNumItems = rhs.GetNumItems();
            if (hisNumItems == 0) Clear(true);  // FogBugz #10274
-      else if (EnsureSize(hisNumItems, true) == B_NO_ERROR) for (uint32 i=0; i<hisNumItems; i++) (*this)[i] = rhs[i];
+      else if (EnsureSize(hisNumItems, true).IsOK()) for (uint32 i=0; i<hisNumItems; i++) (*this)[i] = rhs[i];
    }
    return *this;
 }
@@ -895,7 +895,7 @@ AddTailAndGet(QQ_SinkItemParam item)
    }
 
    ItemType * oldArray;
-   if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray, false) != B_NO_ERROR) return NULL;
+   if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray, false).IsError()) return NULL;
 
    if (_itemCount == 0) _headIndex = _tailIndex = 0;
                    else _tailIndex = NextIndex(_tailIndex);
@@ -911,7 +911,7 @@ ItemType *
 Queue<ItemType>::
 AddTailAndGet()
 {
-   if (EnsureSize(_itemCount+1, false, _itemCount+1) != B_NO_ERROR) return NULL;
+   if (EnsureSize(_itemCount+1, false, _itemCount+1).IsError()) return NULL;
    if (_itemCount == 0) _headIndex = _tailIndex = 0;
                    else _tailIndex = NextIndex(_tailIndex);
    _itemCount++;
@@ -981,7 +981,7 @@ AddHeadAndGet(QQ_SinkItemParam item)
    }
 
    ItemType * oldArray;
-   if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray, false) != B_NO_ERROR) return NULL;
+   if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray, false).IsError()) return NULL;
    if (_itemCount == 0) _headIndex = _tailIndex = 0;
                    else _headIndex = PrevIndex(_headIndex);
    _itemCount++;
@@ -996,7 +996,7 @@ ItemType *
 Queue<ItemType>::
 AddHeadAndGet()
 {
-   if (EnsureSize(_itemCount+1, false, _itemCount+1) != B_NO_ERROR) return NULL;
+   if (EnsureSize(_itemCount+1, false, _itemCount+1).IsError()) return NULL;
    if (_itemCount == 0) _headIndex = _tailIndex = 0;
                    else _headIndex = PrevIndex(_headIndex);
    _itemCount++;
@@ -1441,8 +1441,8 @@ InsertItemAtSortedPosition(const CompareFunctor<ItemType> & compareFunctor, QQ_S
    if ((insertAfter > 0)&&(compareFunctor.Compare(item, Head(), optCookie) >= 0)) 
       while(--insertAfter >= 0) 
          if (compareFunctor.Compare(item, (*this)[insertAfter], optCookie) >= 0) 
-            return (InsertItemAt(insertAfter+1, QQ_ForwardItem(item)) == B_NO_ERROR) ? (insertAfter+1) : -1;
-   return (AddHead(QQ_ForwardItem(item)) == B_NO_ERROR) ? 0 : -1;
+            return (InsertItemAt(insertAfter+1, QQ_ForwardItem(item)).IsOK()) ? (insertAfter+1) : -1;
+   return (AddHead(QQ_ForwardItem(item)).IsOK()) ? 0 : -1;
 }
 
 template <class ItemType>

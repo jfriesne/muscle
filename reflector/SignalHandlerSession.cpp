@@ -63,7 +63,7 @@ void SignalHandlerSession :: SignalHandlerFunc(int sigNum)
    if (IsAttachedToServer())
    {
       int nextSigNum;
-      for (uint32 i=0; GetNthSignalNumber(i, nextSigNum) == B_NO_ERROR; i++)
+      for (uint32 i=0; GetNthSignalNumber(i, nextSigNum).IsOK(); i++)
       {
          if (sigNum == nextSigNum)
          {

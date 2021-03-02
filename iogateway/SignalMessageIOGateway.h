@@ -46,7 +46,7 @@ protected:
    virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT)
    {
       // Just eat and drop ... we don't really support outgoing messages
-      while(GetOutgoingMessageQueue().RemoveHead() == B_NO_ERROR) {/* keep doing it */}
+      while(GetOutgoingMessageQueue().RemoveHead().IsOK()) {/* keep doing it */}
       return maxBytes;
    }
 

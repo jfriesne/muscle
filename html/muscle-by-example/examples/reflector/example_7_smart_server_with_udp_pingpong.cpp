@@ -37,7 +37,7 @@ public:
       ConstSocketRef sock = CreateUDPSocket();
 
       uint16 udpPort;
-      if (BindUDPSocket(sock, 0, &udpPort) == B_NO_ERROR)
+      if (BindUDPSocket(sock, 0, &udpPort).IsOK())
       {
          LogTime(MUSCLE_LOG_INFO, "UDP Ping Pong Session is Listening for incoming UDP packets on port %u\n", udpPort);
          return sock;
@@ -68,10 +68,10 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData)
    {
       ByteBufferRef receivedData;
-      if (msg()->FindFlat(PR_NAME_DATA_CHUNKS, receivedData) == B_NO_ERROR)
+      if (msg()->FindFlat(PR_NAME_DATA_CHUNKS, receivedData).IsOK())
       {
          IPAddressAndPort sourceIAP;
-         if (msg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP) == B_NO_ERROR)
+         if (msg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP).IsOK())
          {
             printf("Received from [%s]:\n", sourceIAP.ToString()());
             PrintHexBytes(receivedData);
@@ -80,7 +80,7 @@ public:
             // But example_2_udp_pingpong waits 100mS before sending back the reply, so let's do that
             // here as well.  We'll use Pulse() and GetPulseTime() to implement without blocking the
             // server's event loop.
-            if (_pendingReplies.Put(msg, GetRunTime64()+MillisToMicros(100)) == B_NO_ERROR) InvalidatePulseTime(); 
+            if (_pendingReplies.Put(msg, GetRunTime64()+MillisToMicros(100)).IsOK()) InvalidatePulseTime(); 
          }
          else LogTime(MUSCLE_LOG_ERROR, "Error, gateway didn't provide the UDP packet's source location?!\n");
       }
@@ -103,7 +103,7 @@ public:
          if (args.GetCallbackTime() >= nextSendTime)
          {
             MessageRef msgToSend;
-            if (_pendingReplies.RemoveFirst(msgToSend) == B_NO_ERROR) 
+            if (_pendingReplies.RemoveFirst(msgToSend).IsOK()) 
             {
                IPAddressAndPort dest; (void) msgToSend()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, dest);
 

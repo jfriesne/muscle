@@ -94,7 +94,7 @@ void FilterSessionFactory :: MessageReceivedFromSession(AbstractReflectSession &
    {
       _tempLogFor = &from;
       const String * s;
-      for (int b=0; (msg->FindString(PR_NAME_KEYS, b, &s) == B_NO_ERROR); b++)
+      for (int b=0; (msg->FindString(PR_NAME_KEYS, b, &s).IsOK()); b++)
       {
          switch(msg->what)
          {

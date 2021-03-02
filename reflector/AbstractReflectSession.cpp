@@ -158,7 +158,7 @@ Reconnect()
    if ((doTCPConnect)&&(sock() == NULL))
    {
       ConstSocketRef tempSockRef;  // tempSockRef represents the closed remote end of the failed connection and is intentionally closed ASAP
-      if (CreateConnectedSocketPair(sock, tempSockRef) == B_NO_ERROR) doTCPConnect = false;
+      if (CreateConnectedSocketPair(sock, tempSockRef).IsOK()) doTCPConnect = false;
    }
 
    if (sock() == NULL) return B_IO_ERROR;

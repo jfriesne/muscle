@@ -204,7 +204,7 @@ public:
     */
    String & operator += (char ch)
    {
-      if (EnsureBufferSize(Length()+2, true, false) == B_NO_ERROR)
+      if (EnsureBufferSize(Length()+2, true, false).IsOK())
       {
          GetBuffer()[_length++] = ch;
          WriteNULTerminatorByte();

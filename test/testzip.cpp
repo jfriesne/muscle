@@ -41,8 +41,8 @@ int main(int argc, char ** argv)
          if (loadData)
          {
             printf("\n\n... writing new .zip file [%s]\n", argv[2]);
-            if (WriteZipFile(argv[2], *msg()) == B_NO_ERROR) printf("Creation of [%s] succeeded!\n", argv[2]);
-                                                        else printf("Creation of [%s] FAILED!\n", argv[2]);
+            if (WriteZipFile(argv[2], *msg()).IsOK()) printf("Creation of [%s] succeeded!\n", argv[2]);
+                                                 else printf("Creation of [%s] FAILED!\n", argv[2]);
          }
          else printf("There's no point in writing output file [%s], since I never loaded the .zip data anyway.\n", argv[2]);
       }

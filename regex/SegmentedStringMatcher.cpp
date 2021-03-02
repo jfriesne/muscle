@@ -13,7 +13,7 @@ SegmentedStringMatcherRef GetSegmentedStringMatcherFromPool() {return SegmentedS
 SegmentedStringMatcherRef GetSegmentedStringMatcherFromPool(const String & matchString, bool isSimpleFormat, const char * sc, uint32 maxSegments)
 {
    SegmentedStringMatcherRef ret(_segmentedStringMatcherPool.ObtainObject());
-   if ((ret())&&(ret()->SetPattern(matchString, isSimpleFormat, sc, maxSegments) != B_NO_ERROR)) ret.Reset();
+   if ((ret())&&(ret()->SetPattern(matchString, isSimpleFormat, sc, maxSegments).IsError())) ret.Reset();
    return ret;
 }
 

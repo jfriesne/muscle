@@ -268,9 +268,9 @@ void BrowserWindow :: MessageReceivedFromServer(const MessageRef & msg)
          // Look for strings that indicate that subscribed nodes were removed from the tree
          {
             const String * nodePath;
-            for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, &nodePath) == B_NO_ERROR); i++)
+            for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, &nodePath).IsOK()); i++)
             {
-               if (_pathToMessage.Remove(*nodePath) == B_NO_ERROR)
+               if (_pathToMessage.Remove(*nodePath).IsOK())
                {
                    UpdateDataNodeInTreeView(*nodePath);
                    LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p removed node at [%s]\n", this, nodePath->Cstr());
@@ -284,9 +284,9 @@ void BrowserWindow :: MessageReceivedFromServer(const MessageRef & msg)
             {
                const String & nodePath = iter.GetFieldName();
                MessageRef data;
-               for (uint32 i=0; msg()->FindMessage(nodePath, i, data) == B_NO_ERROR; i++)
+               for (uint32 i=0; msg()->FindMessage(nodePath, i, data).IsOK(); i++)
                {
-                  if (_pathToMessage.Put(nodePath, data) == B_NO_ERROR)
+                  if (_pathToMessage.Put(nodePath, data).IsOK())
                   {
                      UpdateDataNodeInTreeView(nodePath);
                      LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p added/updated node at [%s]\n", this, nodePath());
@@ -323,7 +323,7 @@ void BrowserWindow :: ConnectButtonClicked()
    {
       String serverName;
       uint16 port = 2960;
-      if ((ParseConnectArg(FromQ(_serverName->text()), serverName, port) == B_NO_ERROR)&&(_mtt.AddNewConnectSession(serverName, port) == B_NO_ERROR)&&(_mtt.StartInternalThread() == B_NO_ERROR)) _isConnecting = true;
+      if ((ParseConnectArg(FromQ(_serverName->text()), serverName, port).IsOK())&&(_mtt.AddNewConnectSession(serverName, port).IsOK())&&(_mtt.StartInternalThread().IsOK())) _isConnecting = true;
    }      
    UpdateState();
 }

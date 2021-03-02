@@ -72,7 +72,7 @@ public:
       if ((msg())&&(msg()->what == PR_COMMAND_TEXT_STRINGS))
       {
          const String * nextLine;
-         for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextLine) == B_NO_ERROR; i++)
+         for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextLine).IsOK(); i++)
          {
             printf("[%s] said: %s\n", _processLabel(), nextLine->Cstr());
          }
@@ -142,7 +142,7 @@ public:
       if ((msg())&&(msg()->what == PR_COMMAND_TEXT_STRINGS))
       {
          const String * nextCmd;
-         for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextCmd) == B_NO_ERROR; i++)
+         for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextCmd).IsOK(); i++)
          {
             const String nc = nextCmd->Trim();
             if (nc.IsEmpty()) continue;  // no sense commenting about blank lines

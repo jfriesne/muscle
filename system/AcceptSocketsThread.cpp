@@ -65,7 +65,7 @@ void AcceptSocketsThread :: InternalThreadEntry()
          int32 numLeft;
          while((numLeft = WaitForNextMessageFromOwner(msgRef, 0)) >= 0)
          {
-            if (MessageReceivedFromOwner(msgRef, numLeft) != B_NO_ERROR)
+            if (MessageReceivedFromOwner(msgRef, numLeft).IsError())
             { 
                keepGoing = false;
                break;

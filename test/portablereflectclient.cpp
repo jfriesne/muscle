@@ -22,7 +22,7 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Test failed, line %i\n",__LINE__)
+#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
 
 // This is a text based test client for the muscled server.  It is useful for testing
 // the server, and could possibly be useful for other things, I don't know.
@@ -151,10 +151,10 @@ int main(int argc, char ** argv)
 
       // Handle any input lines that were received from stdin
       MessageRef msgFromStdin;
-      while(stdinInQueue.RemoveHead(msgFromStdin) == B_NO_ERROR)
+      while(stdinInQueue.RemoveHead(msgFromStdin).IsOK())
       {
          const String * st;
-         for (int32 i=0; msgFromStdin()->FindString(PR_NAME_TEXT_LINE, i, &st) == B_NO_ERROR; i++)
+         for (int32 i=0; msgFromStdin()->FindString(PR_NAME_TEXT_LINE, i, &st).IsOK(); i++)
          {
             const char * text = st->Cstr();
 
@@ -305,7 +305,7 @@ int main(int argc, char ** argv)
       }
 
       MessageRef msgFromTCP;
-      while(tcpInQueue.RemoveHead(msgFromTCP) == B_NO_ERROR)
+      while(tcpInQueue.RemoveHead(msgFromTCP).IsOK())
       {
          printf("Heard message from server:-----------------------------------\n");
          msgFromTCP()->PrintToStream();

@@ -8,7 +8,7 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Test failed, line %i\n",__LINE__)
+#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
 #define TESTSIZE(x) if ((x) < 0) printf("Test failed, line %i\n",__LINE__)
 
 DataIORef GetFileRef(FILE * file)
@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
          while(g.DoInput(inQueue) >= 0) 
          {
             MessageRef msgRef;
-            while(inQueue.RemoveHead(msgRef) == B_NO_ERROR) msgRef()->PrintToStream();
+            while(inQueue.RemoveHead(msgRef).IsOK()) msgRef()->PrintToStream();
          }
 
          printf("Done Reading!\n");
@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
             {
                printf("Read " UINT32_FORMAT_SPEC " bytes...\n", readBytes);
                MessageRef msgRef;
-               while(inQueue.RemoveHead(msgRef) == B_NO_ERROR) msgRef()->PrintToStream();
+               while(inQueue.RemoveHead(msgRef).IsOK()) msgRef()->PrintToStream();
             }
             printf("Done Reading file [%s]!\n", argv[i]);
          }

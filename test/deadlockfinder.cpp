@@ -224,7 +224,7 @@ int main(void)
                {
                   Queue<String> cantBeAfterK;  for (uint32 m=0;   m<k;                  m++) cantBeAfterK.AddTail( ExtractPointerString(seqA[m]));
                   Queue<String> cantBeBeforeK; for (uint32 m=k+1; m<seqA.GetNumItems(); m++) cantBeBeforeK.AddTail(ExtractPointerString(seqA[m]));
-                  if (CheckOrderingConstraints(ExtractPointerString(seqA[k]), seqB, cantBeBeforeK, cantBeAfterK) != B_NO_ERROR)
+                  if (CheckOrderingConstraints(ExtractPointerString(seqA[k]), seqB, cantBeBeforeK, cantBeAfterK).IsError())
                   {
                      foundProblems = true;
 

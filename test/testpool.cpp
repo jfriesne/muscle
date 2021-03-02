@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
 
    const uint32 NUM_OBJECTS = 10000000;
    Queue<MessageRef> tempQ;
-   if (tempQ.EnsureSize(NUM_OBJECTS, true) != B_NO_ERROR) return 10;
+   if (tempQ.EnsureSize(NUM_OBJECTS, true).IsError()) return 10;
 
    const int whichTest = (argc>1) ? atoi(argv[1]) : -1;
    const uint64 startTime = GetRunTime64();

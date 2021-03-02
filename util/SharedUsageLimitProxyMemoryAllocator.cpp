@@ -33,7 +33,7 @@ SharedUsageLimitProxyMemoryAllocator :: SharedUsageLimitProxyMemoryAllocator(con
 
 SharedUsageLimitProxyMemoryAllocator :: ~SharedUsageLimitProxyMemoryAllocator()
 {
-   if (_shared.LockAreaReadWrite() == B_NO_ERROR)
+   if (_shared.LockAreaReadWrite().IsOK())
    {
       ResetDaemonCounter();
       _shared.UnlockArea();
@@ -56,7 +56,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(int32 byteD
       {
          // Hmm, we don't have enough bytes locally, better ask for some from the shared region
          const int32 wantBytes = ((byteDelta/CACHE_BYTES)+1)*CACHE_BYTES; // round up to nearest multiple
-         if (ChangeDaemonCounterAux(wantBytes) == B_NO_ERROR) _localCachedBytes += wantBytes;
+         if (ChangeDaemonCounterAux(wantBytes).IsOK()) _localCachedBytes += wantBytes;
       }
       if ((size_t)byteDelta > _localCachedBytes) return B_ACCESS_DENIED;  // still not enough!?
       _localCachedBytes -= byteDelta;
@@ -67,7 +67,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(int32 byteD
       if (_localCachedBytes > 2*CACHE_BYTES)
       {
          int32 diffBytes = (int32)(_localCachedBytes-CACHE_BYTES);  // FogBugz #4569 -- reduce cache to our standard cache size
-         if (ChangeDaemonCounterAux(-diffBytes) == B_NO_ERROR) _localCachedBytes -= diffBytes;
+         if (ChangeDaemonCounterAux(-diffBytes).IsOK()) _localCachedBytes -= diffBytes;
       }
    }
    return B_NO_ERROR;
@@ -130,7 +130,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t cab, siz
    if (ChangeDaemonCounter((int32)arb).IsOK(ret))
    {
       ret = ProxyMemoryAllocator::AboutToAllocate(cab, arb);
-      if (ret != B_NO_ERROR) (void) ChangeDaemonCounter(-((int32)arb)); // roll back!
+      if (ret.IsError()) (void) ChangeDaemonCounter(-((int32)arb)); // roll back!
    }
    return ret;
 }
@@ -144,7 +144,7 @@ void SharedUsageLimitProxyMemoryAllocator :: AboutToFree(size_t cab, size_t arb)
 size_t SharedUsageLimitProxyMemoryAllocator :: GetNumAvailableBytes(size_t allocated) const
 {
    size_t totalUsed = ((size_t)-1);
-   if (_shared.LockAreaReadOnly() == B_NO_ERROR)
+   if (_shared.LockAreaReadOnly().IsOK())
    {
       totalUsed = CalculateTotalAllocationSum();
       _shared.UnlockArea();

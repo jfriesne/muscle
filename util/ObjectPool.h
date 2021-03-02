@@ -150,7 +150,7 @@ public:
       return ret;
 #else
       Object * ret = NULL;
-      if (_mutex.Lock() == B_NO_ERROR)
+      if (_mutex.Lock().IsOK())
       {
          ret = ObtainObjectAux();
          _mutex.Unlock();
@@ -177,7 +177,7 @@ public:
 #ifdef DISABLE_OBJECT_POOLING
          delete obj;
 #else
-         if (_mutex.Lock() == B_NO_ERROR)
+         if (_mutex.Lock().IsOK())
          {
             ObjectSlab * slabToDelete = ReleaseObjectAux(obj);
             _mutex.Unlock();
@@ -209,7 +209,7 @@ public:
       uint32 minItemsInUseInSlab = MUSCLE_NO_LIMIT;
       uint32 maxItemsInUseInSlab = 0;
       uint32 totalItemsInUse     = 0;
-      if (_mutex.Lock() == B_NO_ERROR)
+      if (_mutex.Lock().IsOK())
       {
          const ObjectSlab * slab = _firstSlab;
          while(slab)
@@ -233,7 +233,7 @@ public:
      */
    status_t Drain(uint32 * optSetNumDrained = NULL)
    {
-      if (_mutex.Lock() == B_NO_ERROR)
+      if (_mutex.Lock().IsOK())
       {
          // This will be our linked list of slabs to delete, later
          ObjectSlab * toDelete = NULL;
@@ -296,7 +296,7 @@ public:
    uint32 GetTotalDataSize() const 
    {
       uint32 ret = sizeof(*this);
-      if (_mutex.Lock() == B_NO_ERROR)
+      if (_mutex.Lock().IsOK())
       {
          ObjectSlab * slab = _firstSlab;
          while(slab)
@@ -315,7 +315,7 @@ public:
    uint32 GetNumAllocatedItemSlots() const 
    {
       uint32 ret = 0;
-      if (_mutex.Lock() == B_NO_ERROR)
+      if (_mutex.Lock().IsOK())
       {
          ObjectSlab * slab = _firstSlab;
          while(slab)

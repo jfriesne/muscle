@@ -100,7 +100,7 @@ private:
   * From inside a Win32 thread, using the PostThreadMessage()/PeekMessage() method:
   *
   * Win32MessageTransceiverThread * mtt = new Win32MessageTransceiverThread(GetCurrentThreadId());
-  * if ((mtt->AddNewConnectSession("beshare.tycomsystems.com", 2960) == B_NO_ERROR)&&(mtt->StartInternalThread() == B_NO_ERROR))
+  * if ((mtt->AddNewConnectSession("beshare.tycomsystems.com", 2960).IsOK())&&(mtt->StartInternalThread().IsOK()))
   * {
   *    while(1)
   *    {
@@ -146,7 +146,7 @@ private:
   * From inside a Win32 thread, using the SetEvent()/WaitForMultipleObjects() method:
   *
   * Win32MessageTransceiverThread * mtt = new Win32MessageTransceiverThread(CreateEvent(0, false, false, 0), true);
-  * if ((mtt->AddNewConnectSession("beshare.tycomsystems.com", 2960) == B_NO_ERROR)&&(mtt->StartInternalThread() == B_NO_ERROR))
+  * if ((mtt->AddNewConnectSession("beshare.tycomsystems.com", 2960).IsOK())&&(mtt->StartInternalThread().IsOK()))
   * {
   *    while(1)
   *    {

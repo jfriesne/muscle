@@ -163,7 +163,7 @@ public:
 
 # ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret == B_NO_ERROR) LOG_DEADLOCK_FINDER_EVENT(true);
+      if (ret.IsOK()) LOG_DEADLOCK_FINDER_EVENT(true);
 # endif
 
       return ret;
@@ -191,7 +191,7 @@ public:
 # elif defined(MUSCLE_QT_HAS_THREADS)
       return _locker.tryLock() ? B_NO_ERROR : B_LOCK_FAILED;
 # elif defined(__BEOS__) || defined(__HAIKU__)
-      return (_locker.LockWithTimeout() == B_NO_ERROR) ? B_NO_ERROR : B_LOCK_FAILED;
+      return (_locker.LockWithTimeout().IsOK()) ? B_NO_ERROR : B_LOCK_FAILED;
 # elif defined(__ATHEOS__)
       return _locker.Lock(0) ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?
 # endif
@@ -297,7 +297,7 @@ public:
      */
    MutexGuard(const Mutex & m) : _mutex(m)
    {
-      if (_mutex.Lock() == B_NO_ERROR) _isMutexLocked = true;
+      if (_mutex.Lock().IsOK()) _isMutexLocked = true;
       else
       {
          _isMutexLocked = false;
@@ -308,7 +308,7 @@ public:
    /** Destructor.  Unlocks the Mutex previously specified in the constructor. */
    ~MutexGuard()
    {
-      if ((_isMutexLocked)&&(_mutex.Unlock() != B_NO_ERROR)) printf("MutexGuard %p:  could not unlock mutex %p!\n", this, &_mutex);
+      if ((_isMutexLocked)&&(_mutex.Unlock().IsError())) printf("MutexGuard %p:  could not unlock mutex %p!\n", this, &_mutex);
    }
 
    /** Returns true iff we successfully locked our Mutex. */

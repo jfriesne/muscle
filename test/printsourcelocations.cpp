@@ -28,10 +28,10 @@ static void CheckFile(const String & path, Queue<String> & codes)
       // Now parse the lines, and for any that have LogTime() in them, print out the line and the corresponding code key
       uint32 lineNumber = 1;
       MessageRef msg;
-      while(q.RemoveHead(msg) == B_NO_ERROR)
+      while(q.RemoveHead(msg).IsOK())
       {
          const String * line;
-         for (uint32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &line) == B_NO_ERROR; i++)
+         for (uint32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &line).IsOK(); i++)
          {
             const int32 ltIdx = line->IndexOf("LogTime(");
             if (ltIdx >= 0)

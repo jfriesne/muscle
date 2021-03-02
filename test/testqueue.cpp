@@ -9,7 +9,7 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Test failed, line %i\n",__LINE__)
+#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
 
 void PrintToStream(const Queue<int> & q);
 void PrintToStream(const Queue<int> & q)
@@ -84,8 +84,8 @@ int main(void)
             numAllocedSlots = newNumAlloced;
          }
       }
-      if (q.ShrinkToFit() == B_NO_ERROR) printf("After ShrinkToFit():  q.GetNumItems()=" UINT32_FORMAT_SPEC " q.GetNumAllocatedItemSlots()=" UINT32_FORMAT_SPEC "\n", q.GetNumItems(), q.GetNumAllocatedItemSlots());
-                                    else printf("ShrinkToFit() failed!\n");
+      if (q.ShrinkToFit().IsOK()) printf("After ShrinkToFit():  q.GetNumItems()=" UINT32_FORMAT_SPEC " q.GetNumAllocatedItemSlots()=" UINT32_FORMAT_SPEC "\n", q.GetNumItems(), q.GetNumAllocatedItemSlots());
+                             else printf("ShrinkToFit() failed!\n");
 
       printf("Before setting equal to empty, q's allocated-slots size is: " UINT32_FORMAT_SPEC "\n", q.GetNumAllocatedItemSlots());
       q = GetDefaultObjectForType< Queue<int> >();
@@ -202,7 +202,7 @@ int main(void)
    {
       Queue<int> q;
       const int vars[] = {9,2,3,5,8,3,5,6,6,7,2,3,4,6,8,9,3,5,6,4,3,2,1};
-      if (q.AddTailMulti(vars, ARRAYITEMS(vars)) == B_NO_ERROR)
+      if (q.AddTailMulti(vars, ARRAYITEMS(vars)).IsOK())
       {
          q.RemoveDuplicateItems(); 
          for (uint32 i=0; i<q.GetNumItems(); i++) printf("%u ", q[i]);

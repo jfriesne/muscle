@@ -33,7 +33,7 @@ PacketTunnelIOGateway :: PacketTunnelIOGateway(const AbstractMessageIOGatewayRef
 
 int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
-   if (_inputPacketBuffer.SetNumBytes(_maxTransferUnit, false) != B_NO_ERROR) return -1;
+   if (_inputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;
 
    bool firstTime = true;
    uint32 totalBytesRead = 0;
@@ -157,13 +157,13 @@ void PacketTunnelIOGateway :: HandleIncomingMessage(AbstractGatewayMessageReceiv
    else
    {
       MessageRef inMsg = GetMessageFromPool();
-      if ((inMsg())&&(inMsg()->UnflattenFromByteBuffer(*buf()) == B_NO_ERROR)) receiver.CallMessageReceivedFromGateway(inMsg, (void *) &fromIAP);
+      if ((inMsg())&&(inMsg()->UnflattenFromByteBuffer(*buf()).IsOK())) receiver.CallMessageReceivedFromGateway(inMsg, (void *) &fromIAP);
    }
 }
 
 int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 {
-   if (_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false) != B_NO_ERROR) return -1;
+   if (_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;
 
    uint32 totalBytesWritten = 0;
    bool firstTime = true;
@@ -178,7 +178,7 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          if (_currentOutputBuffer() == NULL)
          {
             MessageRef msg;
-            if (GetOutgoingMessageQueue().RemoveHead(msg) == B_NO_ERROR)
+            if (GetOutgoingMessageQueue().RemoveHead(msg).IsOK())
             {
                _currentOutputBufferOffset = 0; 
                _currentOutputBuffer.Reset();
@@ -197,7 +197,7 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
                   _slaveGateway()->SetDataIO(oldIO);  // restore slave gateway's old state
                   _currentOutputBuffer.SetRef(&_fakeSendBuffer, false);
                }
-               else if (_fakeSendBuffer.SetNumBytes(msg()->FlattenedSize(), false) == B_NO_ERROR)
+               else if (_fakeSendBuffer.SetNumBytes(msg()->FlattenedSize(), false).IsOK())
                {
                   // Default algorithm:  Just flatten the Message into the buffer
                   msg()->Flatten(_fakeSendBuffer.GetBuffer());

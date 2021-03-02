@@ -15,7 +15,7 @@ StringMatcherRef GetStringMatcherFromPool() {return StringMatcherRef(_stringMatc
 StringMatcherRef GetStringMatcherFromPool(const String & matchString, bool isSimpleFormat)
 {
    StringMatcherRef ret(_stringMatcherPool.ObtainObject());
-   if ((ret())&&(ret()->SetPattern(matchString, isSimpleFormat) != B_NO_ERROR)) ret.Reset();
+   if ((ret())&&(ret()->SetPattern(matchString, isSimpleFormat).IsError())) ret.Reset();
    return ret;
 }
 

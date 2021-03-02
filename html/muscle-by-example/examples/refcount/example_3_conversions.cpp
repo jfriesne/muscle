@@ -66,7 +66,7 @@ int main(int argc, char ** argv)
 
    // Another way to do the same thing
    MySubClassRef sc3;
-   if (sc3.SetFromRefCountableRef(mc5.GetRefCountableRef()) == B_NO_ERROR)
+   if (sc3.SetFromRefCountableRef(mc5.GetRefCountableRef()).IsOK())
    {
       printf("SetFromRefCountableRef succeeded, sc3 now points to MySubClass object %p\n", sc3());
    }

@@ -93,7 +93,7 @@ status_t MultiQueryFilter :: SetFromArchive(const Message & archive)
 
    _children.Clear();
    MessageRef next;
-   for (uint32 i=0; archive.FindMessage("kid", i, next) == B_NO_ERROR; i++)
+   for (uint32 i=0; archive.FindMessage("kid", i, next).IsOK(); i++)
    {
       ConstQueryFilterRef kid = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*next());
       if (kid() == NULL) return B_ERROR("CreateQueryFilter() failed");
@@ -191,7 +191,7 @@ status_t MessageQueryFilter :: SetFromArchive(const Message & archive)
    if (ValueQueryFilter::SetFromArchive(archive).IsError(ret)) return ret;
 
    MessageRef subMsg;
-   if (archive.FindMessage("kid", subMsg) == B_NO_ERROR)
+   if (archive.FindMessage("kid", subMsg).IsOK())
    {
       _childFilter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*subMsg());
       if (_childFilter() == NULL) return B_ERROR("CreateQueryFilter() failed");
@@ -204,7 +204,7 @@ status_t MessageQueryFilter :: SetFromArchive(const Message & archive)
 bool MessageQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
 {
    MessageRef subMsg;
-   if (msg()->FindMessage(GetFieldName(), GetIndex(), subMsg) != B_NO_ERROR) return false;
+   if (msg()->FindMessage(GetFieldName(), GetIndex(), subMsg).IsError()) return false;
    if (_childFilter() == NULL) return true;
 
    ConstMessageRef constSubMsg = subMsg;
@@ -223,7 +223,7 @@ status_t StringQueryFilter :: SetFromArchive(const Message & archive)
 {
    FreeMatcher();
    _default.Clear();
-   _assumeDefault = (archive.FindString("val", 1, _default) == B_NO_ERROR);
+   _assumeDefault = (archive.FindString("val", 1, _default).IsOK());
 
    status_t ret;
    if (ValueQueryFilter::SetFromArchive(archive).IsError(ret)) return ret;
@@ -234,7 +234,7 @@ status_t StringQueryFilter :: SetFromArchive(const Message & archive)
 bool StringQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) const
 {
    const String * ps;
-   if (msg()->FindString(GetFieldName(), GetIndex(), &ps) != B_NO_ERROR)
+   if (msg()->FindString(GetFieldName(), GetIndex(), &ps).IsError())
    {
       if (_assumeDefault) ps = &_default;
                      else return false;
@@ -335,14 +335,14 @@ status_t RawDataQueryFilter :: SetFromArchive(const Message & archive)
    _value.Reset();
    const void * data;
    uint32 numBytes;
-   if (archive.FindData("val", B_RAW_TYPE, &data, &numBytes) == B_NO_ERROR)
+   if (archive.FindData("val", B_RAW_TYPE, &data, &numBytes).IsOK())
    {
       _value = GetByteBufferFromPool(numBytes, (const uint8 *) data);
       if (_value() == NULL) RETURN_OUT_OF_MEMORY;
    }
 
    _default.Reset();
-   if (archive.FindData("def", B_RAW_TYPE, &data, &numBytes) == B_NO_ERROR)
+   if (archive.FindData("def", B_RAW_TYPE, &data, &numBytes).IsOK())
    {
       _default = GetByteBufferFromPool(numBytes, (const uint8 *) data);
       if (_default() == NULL) RETURN_OUT_OF_MEMORY;
@@ -355,7 +355,7 @@ bool RawDataQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) cons
 {
    const void * hb;
    uint32 hisNumBytes;
-   if (msg()->FindData(GetFieldName(), _typeCode, &hb, &hisNumBytes) != B_NO_ERROR)
+   if (msg()->FindData(GetFieldName(), _typeCode, &hb, &hisNumBytes).IsError())
    {
       if (_default())
       {
@@ -425,7 +425,7 @@ bool ChildCountQueryFilter :: Matches(ConstMessageRef & /*msg*/, const DataNode 
 QueryFilterRef QueryFilterFactory :: CreateQueryFilter(const Message & msg) const
 {
    QueryFilterRef ret = CreateQueryFilter(msg.what);
-   if ((ret())&&(ret()->SetFromArchive(msg) != B_NO_ERROR)) ret.Reset();
+   if ((ret())&&(ret()->SetFromArchive(msg).IsError())) ret.Reset();
    return ret;
 }
 

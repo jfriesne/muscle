@@ -31,12 +31,12 @@ int main(int argc, char ** argv)
 
    printf("\n"); 
    String nybbleizedBytes;
-   if (NybbleizeData(myBuf, sizeof(myBuf), nybbleizedBytes) == B_NO_ERROR)
+   if (NybbleizeData(myBuf, sizeof(myBuf), nybbleizedBytes).IsOK())
    {
       printf("Here it is as rendered into nybblized-data by NybbleizeData():  [%s]\n", nybbleizedBytes());
 
       ByteBuffer denybbleizedBytes;
-      if (DenybbleizeData(nybbleizedBytes, denybbleizedBytes) == B_NO_ERROR)
+      if (DenybbleizeData(nybbleizedBytes, denybbleizedBytes).IsOK())
       {
          printf("And here we've decoded it again with DenybbleizeData():  [%s]\n", denybbleizedBytes());
       }

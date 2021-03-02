@@ -38,10 +38,10 @@ int main(int argc, char ** argv)
    printf("The offset between local time and UTC is %.1f hours.\n", GetDiffHours(nowLocal, nowUTC));
 
    HumanReadableTimeValues v;
-   if (GetHumanReadableTimeValues(nowLocal, v, MUSCLE_TIMEZONE_LOCAL) == B_NO_ERROR) printf("HRTV(local) = [%s]\n", v.ExpandTokens("%T DoW=%w (%t) (%f) (%q) (micro=%x) (rand=%r)")());
-                                                                                else printf("Error getting human readable time values for local!\n");
-   if (GetHumanReadableTimeValues(nowUTC, v, MUSCLE_TIMEZONE_LOCAL) == B_NO_ERROR)   printf("HRTV(UTC)   = [%s]\n", v.ExpandTokens("%T DoW=%w (%t) (%f) (%q) (micro=%x) (rand=%r)")());
-                                                                                else printf("Error getting human readable time values for UTC!\n");
+   if (GetHumanReadableTimeValues(nowLocal, v, MUSCLE_TIMEZONE_LOCAL).IsOK()) printf("HRTV(local) = [%s]\n", v.ExpandTokens("%T DoW=%w (%t) (%f) (%q) (micro=%x) (rand=%r)")());
+                                                                         else printf("Error getting human readable time values for local!\n");
+   if (GetHumanReadableTimeValues(nowUTC, v, MUSCLE_TIMEZONE_LOCAL).IsOK())   printf("HRTV(UTC)   = [%s]\n", v.ExpandTokens("%T DoW=%w (%t) (%f) (%q) (micro=%x) (rand=%r)")());
+                                                                         else printf("Error getting human readable time values for UTC!\n");
 
    // Interactive time interval testing
    if ((argc > 1)&&(strcmp(argv[1], "testintervals") == 0))

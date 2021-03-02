@@ -822,7 +822,7 @@ public:
    template<class T> inline status_t FindArchiveMessage(const String & fieldName, uint32 index, T & writeValueHere) const
    {
       MessageRef msg;
-      return (FindMessage(fieldName, index, msg) == B_NO_ERROR) ? writeValueHere.SetFromArchive(*msg()) : B_DATA_NOT_FOUND;
+      return (FindMessage(fieldName, index, msg).IsOK()) ? writeValueHere.SetFromArchive(*msg()) : B_DATA_NOT_FOUND;
    }
 
    /** Convenience method:  Retrieves a Message value from this Message,
@@ -838,7 +838,7 @@ public:
    template<class T> inline status_t FindArchiveMessageWithDefault(const String & fieldName, uint32 index, T & writeValueHere, const Message & defaultMsg = GetEmptyMessage()) const
    {
       MessageRef msg; 
-      return (FindMessage(fieldName, index, msg) == B_NO_ERROR) ? writeValueHere.SetFromArchive(*msg()) : writeValueHere.SetFromArchive(defaultMsg);
+      return (FindMessage(fieldName, index, msg).IsOK()) ? writeValueHere.SetFromArchive(*msg()) : writeValueHere.SetFromArchive(defaultMsg);
    }
 
    /** Same as above, except that the index parameter is omitted (zero is implied).
@@ -930,7 +930,7 @@ public:
    template <class T> T GetFlat(const String & fieldName) const
    {
       T ret;
-      return (FindFlat(fieldName, ret) == B_NO_ERROR) ? ret : GetDefaultObjectForType<T>();
+      return (FindFlat(fieldName, ret).IsOK()) ? ret : GetDefaultObjectForType<T>();
    }
 
    /** Retrieves and returns an unflattened object of the specified type from the first data-item
@@ -943,7 +943,7 @@ public:
    template <class T> T GetFlat(const String & fieldName, const T & defaultValue, uint32 index = 0) const
    {
       T ret;
-      return (FindFlat(fieldName, index, ret) == B_NO_ERROR) ? ret : defaultValue;
+      return (FindFlat(fieldName, index, ret).IsOK()) ? ret : defaultValue;
    }
 
    /** Convenience method:  Calls through to AddFlat(valueToAdd), but only if (valueToAdd) is not equal to a default-constructoed object of that type.
@@ -1479,8 +1479,23 @@ public:
    Message & operator =(Message && rhs) {SwapContents(rhs); return *this;}
 #endif
 
-   /** Sorts the iteration-order of this Message's field names into case-sensitive alphabetical order. */
-   void SortFieldNames() {_entries.SortByKey();}
+   /** Sorts the iteration-order of this Message's field names into case-sensitive alphabetical order. 
+     * @param maxRecursions maximum depth to which this call should recurse to sub-Messages.  Defaults to zero (i.e. don't recurse)
+     * @note to specify indefinite recursion, pass in MUSCLE_NO_LIMIT as an argument.
+     */
+   void SortFieldNames(uint32 maxRecursions=0) 
+   {
+      _entries.SortByKey();
+      if (maxRecursions > 0)
+      {
+         const uint32 subMaxRecursions = (maxRecursions == MUSCLE_NO_LIMIT) ? MUSCLE_NO_LIMIT : (maxRecursions-1);
+         for (MessageFieldNameIterator fnIter = GetFieldNameIterator(B_MESSAGE_TYPE); fnIter.HasData(); fnIter++)
+         {
+            MessageRef subMsg;
+            for (int32 i=0; FindMessage(fnIter.GetFieldName(), i, subMsg).IsOK(); i++) subMsg()->SortFieldNames(subMaxRecursions);
+         }
+      }
+   }
 
    /** Returns true iff every one of our fields has a like-named, liked-typed, equal-length field in (rhs).
      * @param rhs The Message to check to see if it has a superset of our fields.
@@ -1540,7 +1555,7 @@ public:
      * @param idx The index to look under inside the field.  Defaults to zero.
      * @returns a Pointer to the String data item's Nul-terminated C string array on success, or (defVal) if the item could not be found.
      */
-   inline const char * GetCstr(const String & fn, const char * defVal = NULL, uint32 idx = 0) const {const char * r; return (FindString( fn, idx, &r) == B_NO_ERROR) ? r : defVal;}
+   inline const char * GetCstr(const String & fn, const char * defVal = NULL, uint32 idx = 0) const {const char * r; return (FindString( fn, idx, &r).IsOK()) ? r : defVal;}
 
    /** Convenience method for retrieving a pointer to a pointer data item inside a Message.
      * @param fn The field name to look for the pointer under.
@@ -1548,7 +1563,7 @@ public:
      * @param idx The index to look under inside the field.  Defaults to zero.
      * @returns The requested pointer on success, or (defVal) on failure.
      */
-   inline void * GetPointer(const String & fn, void * defVal = NULL, uint32 idx = 0) const {void * r; return (FindPointer(fn, idx,  r) == B_NO_ERROR) ? r : defVal;}
+   inline void * GetPointer(const String & fn, void * defVal = NULL, uint32 idx = 0) const {void * r; return (FindPointer(fn, idx,  r).IsOK()) ? r : defVal;}
 
    /** Convenience method for retrieving a pointer to A String data item inside a Message.
      * @param fn The field name to look for the String under.
@@ -1556,7 +1571,7 @@ public:
      * @param idx The index to look under inside the field.  Defaults to zero.
      * @returns a Pointer to the String data item on success, or (defVal) if the item could not be found.
      */
-   inline const String * GetStringPointer(const String & fn, const String * defVal=NULL, uint32 idx = 0) const {const String * r; return (FindString(fn, idx, &r) == B_NO_ERROR) ? r : defVal;}
+   inline const String * GetStringPointer(const String & fn, const String * defVal=NULL, uint32 idx = 0) const {const String * r; return (FindString(fn, idx, &r).IsOK()) ? r : defVal;}
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
 # define DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(bw)                                                                                               \
@@ -1586,7 +1601,7 @@ public:
    DECLARE_MUSCLE_POINTER_FIND_METHODS(String,  const char *); ///< This macro defines old-style Find methods with pointer value arguments, for backwards compatibility.
 
 # define DECLARE_MUSCLE_CONVENIENCE_METHODS(name, type) \
-   inline type Get##name(const String & fieldName, const type & defVal = type(), uint32 idx = 0) const {type r; return (Find##name (fieldName, idx, r) == B_NO_ERROR) ? (const type &)r : defVal;} \
+   inline type Get##name(const String & fieldName, const type & defVal = type(), uint32 idx = 0) const {type r; return (Find##name (fieldName, idx, r).IsOK()) ? (const type &)r : defVal;} \
    inline status_t CAdd##name(    const String & fieldName, const type & value, const type & defVal = type())   {return (value == defVal) ? B_NO_ERROR : Add##name     (fieldName, value);}        \
    inline status_t CPrepend##name(const String & fieldName, const type & value, const type & defVal = type())   {return (value == defVal) ? B_NO_ERROR : Prepend##name (fieldName, value);}
    DECLARE_MUSCLE_CONVENIENCE_METHODS(Bool,    bool);            ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
@@ -1742,7 +1757,7 @@ inline MessageRef GetMessageFromPool(const ConstByteBufferRef & bbRef) {return b
 template<class T> inline MessageRef GetArchiveMessageFromPool(ObjectPool<Message> & pool, const T & objectToArchive)
 {
    MessageRef m = GetMessageFromPool(pool);
-   if ((m())&&(objectToArchive.SaveToArchive(*m()) != B_NO_ERROR)) m.Reset();
+   if ((m())&&(objectToArchive.SaveToArchive(*m()).IsError())) m.Reset();
    return m;
 }
 
@@ -1754,7 +1769,7 @@ template<class T> inline MessageRef GetArchiveMessageFromPool(ObjectPool<Message
 template<class T> inline MessageRef GetArchiveMessageFromPool(const T & objectToArchive)
 {
    MessageRef m = GetMessageFromPool();
-   if ((m())&&(objectToArchive.SaveToArchive(*m()) != B_NO_ERROR)) m.Reset();
+   if ((m())&&(objectToArchive.SaveToArchive(*m()).IsError())) m.Reset();
    return m;
 }
 
@@ -1769,7 +1784,7 @@ template<class T> inline Ref<T> CreateObjectFromArchiveMessage(const Message & m
    Ref<T> newObjRef(newnothrow T);
    if (newObjRef())
    {
-      if (newObjRef()->SetFromArchive(msg) != B_NO_ERROR) newObjRef.Reset();
+      if (newObjRef()->SetFromArchive(msg).IsError()) newObjRef.Reset();
    }
    else WARN_OUT_OF_MEMORY;
    return newObjRef;

@@ -35,15 +35,15 @@ void TCPSocketDataIO :: FlushOutput()
    
 status_t TCPSocketDataIO :: SetBlockingIOEnabled(bool blocking)
 {
-   status_t ret = SetSocketBlockingEnabled(_sock, blocking);
-   if (ret == B_NO_ERROR) _blocking = blocking;
+   const status_t ret = SetSocketBlockingEnabled(_sock, blocking);
+   if (ret.IsOK()) _blocking = blocking;
    return ret;
 }
 
 status_t TCPSocketDataIO :: SetNaglesAlgorithmEnabled(bool enabled)
 {
-   status_t ret = SetSocketNaglesAlgorithmEnabled(_sock, enabled);
-   if (ret == B_NO_ERROR) _naglesEnabled = enabled;
+   const status_t ret = SetSocketNaglesAlgorithmEnabled(_sock, enabled);
+   if (ret.IsOK()) _naglesEnabled = enabled;
    return ret;
 }
 

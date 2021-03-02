@@ -29,10 +29,11 @@ int main(int argc, char ** argv)
 #else
    Queue<String> childArgv = {"./example_2_tcp_server"};
 #endif
+   status_t ret;
    ChildProcessDataIO cpIO(false);  // false == non-blocking
-   if (cpIO.LaunchChildProcess(childArgv) != B_NO_ERROR)
+   if (cpIO.LaunchChildProcess(childArgv).IsError(ret))
    {
-      printf("Unable to launch child process!  Perhaps the example2_tcp_server executable isn't in the current directory, or doesn't have execute permission set?\n");
+      printf("Unable to launch child process!  Perhaps the example2_tcp_server executable isn't in the current directory, or doesn't have execute permission set? [%s]\n", ret());
       return 10;
    }
 

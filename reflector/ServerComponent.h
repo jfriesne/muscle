@@ -277,7 +277,7 @@ protected:
             SessionType * ret = dynamic_cast<SessionType *>(iter.GetValue()());
             if (ret)
             {
-               if (results.AddTail(iter.GetValue()) != B_NO_ERROR) return B_OUT_OF_MEMORY;
+               if (results.AddTail(iter.GetValue()).IsError()) return B_OUT_OF_MEMORY;
                if (--maxSessionsToReturn == 0) break;
             }
          }

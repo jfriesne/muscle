@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
          SocketMultiplexer multiplexer;
          while(1)
          {
-            if ((pingSent == false)&&(ioGateway.AddOutgoingMessage(MessageRef(&pingMessage, false)) == B_NO_ERROR)) 
+            if ((pingSent == false)&&(ioGateway.AddOutgoingMessage(MessageRef(&pingMessage, false)).IsOK())) 
             {
                pingSent = true;
                lastThrowTime = GetRunTime64();
@@ -58,7 +58,7 @@ int main(int argc, char ** argv)
                }
 
                MessageRef next;
-               while(inQueue.RemoveHead(next) == B_NO_ERROR)
+               while(inQueue.RemoveHead(next).IsOK())
                {
                   if ((pingSent)&&(next()->what == PR_RESULT_PONG))
                   {

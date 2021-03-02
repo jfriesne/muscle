@@ -17,7 +17,7 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x) != B_NO_ERROR) printf("Test failed, line %i\n",__LINE__)
+#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
 
 static AbstractMessageIOGatewayRef CreateUDPGateway(bool useTextGateway, bool useRawGateway, const DataIORef & dataIO)
 {
@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
 
    uint16 bindPort = atoi(bindto);
    uint16 actualPort;
-   if (BindUDPSocket(s, bindPort, &actualPort) == B_NO_ERROR) printf("Bound socket to port %u\n", actualPort);
+   if (BindUDPSocket(s, bindPort, &actualPort).IsOK()) printf("Bound socket to port %u\n", actualPort);
                                                          else printf("Error, couldn't bind to port %u\n", bindPort);
    
    UDPSocketDataIORef udpIORef(new UDPSocketDataIO(s, false));
@@ -219,7 +219,7 @@ int main(int argc, char ** argv)
          }
 
          MessageRef incoming;
-         while(inQueue.RemoveHead(incoming) == B_NO_ERROR)
+         while(inQueue.RemoveHead(incoming).IsOK())
          {
             IPAddressAndPort iap;
             (void) incoming()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, iap);

@@ -471,7 +471,7 @@ public:
      * @param key The key of the key-value mapping to remove.
      * @return The value of the removed key-value mapping, or a default-constructed value if the key wasn't found.
      */
-   ValueType RemoveWithDefault(const KeyType & key) {ValueType ret; return (RemoveAux(key, &ret) == B_NO_ERROR) ? ret : GetDefaultValue();}
+   ValueType RemoveWithDefault(const KeyType & key) {ValueType ret; return (RemoveAux(key, &ret).IsOK()) ? ret : GetDefaultValue();}
 
    /** Removes a mapping from the table and returns the removed value.
      * If the mapping did not exist in the table, the specified default value is returned instead.
@@ -479,7 +479,7 @@ public:
      * @param defaultValue The default value to return if (key) wasn't found.
      * @return The value of the removed key-value mapping, or the specified default value if the key wasn't found.
      */
-   HT_UniversalSinkValueRef ValueType RemoveWithDefault(const KeyType & key, HT_SinkValueParam defaultValue) {ValueType ret; return (RemoveAux(key, &ret) == B_NO_ERROR) ? ret : HT_ForwardValue(defaultValue);}
+   HT_UniversalSinkValueRef ValueType RemoveWithDefault(const KeyType & key, HT_SinkValueParam defaultValue) {ValueType ret; return (RemoveAux(key, &ret).IsOK()) ? ret : HT_ForwardValue(defaultValue);}
 
    /** Convenience method:  Removes from this Hashtable all key/value pairs for which the same key is not present in (pairs)
      * @param pairs the other table to intersect our table against
@@ -2857,7 +2857,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Remove(const HashtableBase & p
       HashtableEntryBase * e = pairs.IndexToEntryChecked(pairs._iterHeadIdx);
       while(e)
       {
-         if (RemoveAux(e->_hash, e->_key, NULL) == B_NO_ERROR) removeCount++;
+         if (RemoveAux(e->_hash, e->_key, NULL).IsOK()) removeCount++;
          e = pairs.GetEntryIterNextChecked(e);
       }
    }
@@ -2875,7 +2875,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Intersect(const HashtableBase 
       while(e)
       {
          HashtableEntryBase * next = this->GetEntryIterNextChecked(e); // save this first, since we might be erasing (e)
-         if ((pairs.GetEntry(e->_hash, e->_key) == NULL)&&(this->RemoveAux(e->_hash, e->_key, NULL) == B_NO_ERROR)) removeCount++;
+         if ((pairs.GetEntry(e->_hash, e->_key) == NULL)&&(this->RemoveAux(e->_hash, e->_key, NULL).IsOK())) removeCount++;
          e = next;
       }
    }
@@ -3199,7 +3199,7 @@ typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase *
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAux(uint32 hash, HT_SinkKeyParam key, HT_SinkValueParam value, ValueType * optSetPreviousValue, bool * optReplacedFlag)
 {
    if (optReplacedFlag) *optReplacedFlag = false;
-   if (this->EnsureTableAllocated() != B_NO_ERROR) return NULL;
+   if (this->EnsureTableAllocated().IsError()) return NULL;
 
    // If we already have an entry for this key in the table, we can just replace its contents
    HashtableEntryBaseType * e = this->GetEntry(hash, key);
@@ -3223,7 +3223,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAux(uint32 hash
          const ValueType tempVal = value;
          return PutAux(hash, tempKey, tempVal, optSetPreviousValue, optReplacedFlag);  // go again
       }
-      return (EnsureSize(this->_tableSize*2) == B_NO_ERROR) ? PutAux(hash, HT_ForwardKey(key), HT_ForwardValue(value), optSetPreviousValue, optReplacedFlag) : NULL;
+      return (EnsureSize(this->_tableSize*2).IsOK()) ? PutAux(hash, HT_ForwardKey(key), HT_ForwardValue(value), optSetPreviousValue, optReplacedFlag) : NULL;
    }
 
    e = this->PutAuxAux(hash, HT_ForwardKey(key), HT_ForwardValue(value));
