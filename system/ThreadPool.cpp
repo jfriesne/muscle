@@ -144,7 +144,7 @@ status_t ThreadPool :: SendMessageToThreadPool(IThreadPoolClient * client, const
    if (isBeingHandled == NULL) return B_BAD_ARGUMENT;   
 
    Queue<MessageRef> * mq = ((*isBeingHandled)?_deferredMessages:_pendingMessages).GetOrPut(client);
-   if (mq == NULL) RETURN_OUT_OF_MEMORY;
+   if (mq == NULL) MRETURN_OUT_OF_MEMORY;
 
    status_t ret;
    if (mq->AddTail(msg).IsError(ret)) return ret;
@@ -172,7 +172,7 @@ void ThreadPool :: DispatchPendingMessagesUnsafe()
          {
             // demand-allocate a new Thread for us to use
             ThreadPoolThreadRef tRef(newnothrow ThreadPoolThread(this, _threadIDCounter++));
-            if (tRef() == NULL) {WARN_OUT_OF_MEMORY; break;}
+            if (tRef() == NULL) {MWARN_OUT_OF_MEMORY; break;}
             if (StartInternalThread(*tRef()).IsError(ret)) {LogTime(MUSCLE_LOG_ERROR, "ThreadPool:  Error launching thread! [%s]\n", ret()); break;}
             if (_availableThreads.Put(tRef()->GetThreadID(), tRef).IsError()) {tRef()->ShutdownInternalThread(); break;}  // should never happen, but just in case
          }

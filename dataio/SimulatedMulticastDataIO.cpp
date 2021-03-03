@@ -111,7 +111,7 @@ static UDPSocketDataIORef CreateMulticastUDPDataIO(const IPAddressAndPort & iap)
    }
 
    UDPSocketDataIORef ret(newnothrow UDPSocketDataIO(udpSock, false));
-   if (ret() == NULL) {WARN_OUT_OF_MEMORY; return UDPSocketDataIORef();}
+   if (ret() == NULL) {MWARN_OUT_OF_MEMORY; return UDPSocketDataIORef();}
    (void) ret()->SetPacketSendDestination(iap);
    return ret;
 }
@@ -124,7 +124,7 @@ static UDPSocketDataIORef CreateUnicastUDPDataIO(uint16 & retPort)
    if (BindUDPSocket(udpSock, 0, &retPort).IsError()) return UDPSocketDataIORef();
 
    UDPSocketDataIORef ret(newnothrow UDPSocketDataIO(udpSock, false));
-   if (ret() == NULL) {WARN_OUT_OF_MEMORY; return UDPSocketDataIORef();}
+   if (ret() == NULL) {MWARN_OUT_OF_MEMORY; return UDPSocketDataIORef();}
    return ret;
 }
 

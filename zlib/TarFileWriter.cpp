@@ -65,7 +65,7 @@ status_t TarFileWriter :: SetFile(const char * outputFileName, bool append)
             if (append) _currentSeekPosition = ioRef()->GetLength();
             return B_NO_ERROR;
          }
-         else {fclose(fpOut); WARN_OUT_OF_MEMORY;}
+         else {fclose(fpOut); MWARN_OUT_OF_MEMORY;}
       }
       return B_ERRNO;
    }

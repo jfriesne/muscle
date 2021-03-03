@@ -146,7 +146,7 @@ public:
 #ifdef DISABLE_OBJECT_POOLING
       Object * ret = newnothrow Object;
       if (ret) ret->SetManager(this);
-          else WARN_OUT_OF_MEMORY;
+          else MWARN_OUT_OF_MEMORY;
       return ret;
 #else
       Object * ret = NULL;
@@ -156,7 +156,7 @@ public:
          _mutex.Unlock();
       }
       if (ret) ret->SetManager(this);
-          else WARN_OUT_OF_MEMORY;
+          else MWARN_OUT_OF_MEMORY;
       return ret;
 #endif
    }
@@ -183,7 +183,7 @@ public:
             _mutex.Unlock();
             delete slabToDelete;  // do this outside the critical section, for better concurrency
          }
-         else WARN_OUT_OF_MEMORY;  // critical error -- not really out of memory but still
+         else MWARN_OUT_OF_MEMORY;  // critical error -- not really out of memory but still
 #endif
       }
    }
@@ -537,7 +537,7 @@ private:
                                       else slab->AppendToSlabList();  // could happen, if NUM_OBJECTS_PER_SLAB==1
             _curPoolSize += NUM_OBJECTS_PER_SLAB;
          }
-         // we'll do the WARN_OUT_OF_MEMORY below, outside the mutex lock
+         // we'll do the MWARN_OUT_OF_MEMORY below, outside the mutex lock
       }
       if (ret) --_curPoolSize;
       return ret;

@@ -125,7 +125,7 @@ status_t FilterSessionFactory :: PutBanPattern(const String & banPattern)
       }
       return ret;
    }
-   else RETURN_OUT_OF_MEMORY;
+   else MRETURN_OUT_OF_MEMORY;
 }
 
 status_t FilterSessionFactory :: PutRequirePattern(const String & requirePattern)
@@ -145,7 +145,7 @@ status_t FilterSessionFactory :: PutRequirePattern(const String & requirePattern
       }
       return ret;
    }
-   else RETURN_OUT_OF_MEMORY;
+   else MRETURN_OUT_OF_MEMORY;
 }
 
 status_t FilterSessionFactory :: RemoveBanPattern(const String & banPattern)

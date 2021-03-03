@@ -70,7 +70,7 @@ static ZLibCodec * GetZLibCodec(int level)
    if (_codecs[level] == NULL) 
    {
       _codecs[level] = newnothrow ZLibCodec(level);  // demand-allocate
-      if (_codecs[level] == NULL) WARN_OUT_OF_MEMORY;
+      if (_codecs[level] == NULL) MWARN_OUT_OF_MEMORY;
    }
    return _codecs[level];
 #else

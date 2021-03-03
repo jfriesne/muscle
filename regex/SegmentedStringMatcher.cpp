@@ -58,7 +58,7 @@ status_t SegmentedStringMatcher::SetPattern(const String & s, bool isSimple, con
       else
       {
          StringMatcherRef subMatcherRef = GetStringMatcherFromPool(t, isSimple);
-         if (subMatcherRef() == NULL) {Clear(); RETURN_OUT_OF_MEMORY;}
+         if (subMatcherRef() == NULL) {Clear(); MRETURN_OUT_OF_MEMORY;}
          if (_segments.AddTail(subMatcherRef).IsError(ret)) {Clear(); return ret;}
       }
    }

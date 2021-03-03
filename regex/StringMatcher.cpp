@@ -146,7 +146,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
    {
       status_t ret;
       const int rc = regcomp(&_regExp, regexPattern.HasChars() ? regexPattern() : str, REG_EXTENDED);
-           if (rc == REG_ESPACE) {ret = B_OUT_OF_MEMORY; WARN_OUT_OF_MEMORY;}
+           if (rc == REG_ESPACE) {ret = B_OUT_OF_MEMORY; MWARN_OUT_OF_MEMORY;}
       else if (rc != 0)           ret = B_BAD_ARGUMENT;  // we'll assume other return-values from regcomp() all indicate a parse-failure
 
       _flags.SetBit(STRINGMATCHER_FLAG_REGEXVALID, ret.IsOK());

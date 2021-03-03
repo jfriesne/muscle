@@ -31,7 +31,7 @@ status_t OptimizeMessageForTransmissionToMultipleGateways(const MessageRef & msg
    if (IsMessageOptimizedForTransmissionToMultipleGateways(msg)) return B_NO_ERROR;  // it's already tagged!
 
    MessageReuseTagRef tagRef(newnothrow MessageReuseTag);
-   if (tagRef() == NULL) RETURN_OUT_OF_MEMORY;
+   if (tagRef() == NULL) MRETURN_OUT_OF_MEMORY;
    return msg()->AddTag(PR_NAME_MESSAGE_REUSE_TAG, tagRef);
 }
 
@@ -345,7 +345,7 @@ GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const
       {
          delete setCodec;  // oops, encoding change!  Throw out the old codec, if any
          setCodec = newnothrow ZLibCodec(newLevel);
-         if (setCodec == NULL) WARN_OUT_OF_MEMORY;
+         if (setCodec == NULL) MWARN_OUT_OF_MEMORY;
       }
       return setCodec;
    }

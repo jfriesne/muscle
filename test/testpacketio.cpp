@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
    ByteBuffer buf;
    if (buf.SetNumBytes(mtu, false).IsError())
    {
-      WARN_OUT_OF_MEMORY;
+      MWARN_OUT_OF_MEMORY;
       return 10;
    }
 

@@ -51,7 +51,7 @@ public:
                tRef()->SetName(prefix+buf);
                q.AddTail(tRef);
             }
-            else WARN_OUT_OF_MEMORY; 
+            else MWARN_OUT_OF_MEMORY; 
          }
          while(q.GetNumItems() > x) q.RemoveTail();
 

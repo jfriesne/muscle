@@ -83,7 +83,7 @@ App::App(void)
 			LogTime(MUSCLE_LOG_INFO, "Limiting aggregate I/O bandwidth to %.02f kilobytes/second.\n", ((float)maxCombinedRate/1024.0f));
 		else
 		{
-			WARN_OUT_OF_MEMORY;
+			MWARN_OUT_OF_MEMORY;
 			okay = false;
 		}
 	} else {
@@ -93,7 +93,7 @@ App::App(void)
 			if (inputPolicyRef())
 				LogTime(MUSCLE_LOG_INFO, "Limiting aggregate receive bandwidth to %.02f kilobytes/second.\n", ((float)maxReceiveRate/1024.0f));
 			else {
-				WARN_OUT_OF_MEMORY;
+				MWARN_OUT_OF_MEMORY;
 				okay = false;
 			}
 		}
@@ -104,7 +104,7 @@ App::App(void)
 			if (outputPolicyRef())
 				LogTime(MUSCLE_LOG_INFO, "Limiting aggregate send bandwidth to %.02f kilobytes/second.\n", ((float)maxSendRate/1024.0f)); 
 			else {
-				WARN_OUT_OF_MEMORY;
+				MWARN_OUT_OF_MEMORY;
 				okay = false; 
 			}
 		}

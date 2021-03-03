@@ -34,7 +34,7 @@ void QAcceptSocketsThread :: SignalOwner()
    QCustomEvent * evt = newnothrow QCustomEvent(QMTT_SIGNAL_EVENT);
 #endif
    if (evt) QCoreApplication::postEvent(this, evt);
-       else WARN_OUT_OF_MEMORY;
+       else MWARN_OUT_OF_MEMORY;
 }
 
 bool QAcceptSocketsThread :: event(QEvent * event)

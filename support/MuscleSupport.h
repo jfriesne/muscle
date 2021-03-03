@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "7.80" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        78000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "8.00" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        80000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -191,7 +191,7 @@ using std::set_new_handler;
 #define MUSCLE_UNIQUE_NAME ___MUSCLE_UNIQUE_NAME_AUX2(__uniqueName, __LINE__)
 
 /** This macro declares an object on the stack with the specified argument(s). */
-#define DECLARE_ANONYMOUS_STACK_OBJECT(objType, ...) objType MUSCLE_UNIQUE_NAME = objType(__VA_ARGS__)
+#define MDECLARE_ANONYMOUS_STACK_OBJECT(objType, ...) objType MUSCLE_UNIQUE_NAME = objType(__VA_ARGS__)
 
 #ifdef MUSCLE_AVOID_ASSERTIONS
 # define MASSERT(x,msg) /**< assertion macro.  Unless -DMUSCLE_AVOID_ASSERTIONS is specified, this macro will crash the program (with the error message in its second argument) if its first argument evaluates to false. */
@@ -206,10 +206,13 @@ using std::set_new_handler;
 #define MEXIT(retVal,msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
 
 /** This macro logs an out-of-memory warning that includes the current filename and source-code line number.  WARN_OUT_OF_MEMORY() should be called whenever newnothrow or malloc() return NULL. */
-#define WARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)
+#define MWARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)
 
-/** This macro logs an out-of-memory warning that includes the current filename and source-code line number, and then returns B_OUT_OF_MEMORY.  RETURN_OUT_OF_MEMORY() may be called whenever newnothrow or malloc() return NULL inside a function that returns a status_t. */
-#define RETURN_OUT_OF_MEMORY {muscle::WarnOutOfMemory(__FILE__, __LINE__); return B_OUT_OF_MEMORY;}
+/** This macro logs an out-of-memory warning that includes the current filename and source-code line number, and then returns B_OUT_OF_MEMORY.  MRETURN_OUT_OF_MEMORY() may be called whenever newnothrow or malloc() return NULL inside a function that returns a status_t. */
+#define MRETURN_OUT_OF_MEMORY {muscle::WarnOutOfMemory(__FILE__, __LINE__); return B_OUT_OF_MEMORY;}
+
+/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, it returns the error value. */
+#define MRETURN_ON_ERROR(cmd) {const status_t the_return_value = cmd; if (the_return_value.IsError()) return the_return_value;}
 
 /** This macro logs a warning message including the the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
 #define MCHECKPOINT muscle::LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)

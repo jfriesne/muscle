@@ -58,7 +58,7 @@ status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilte
             if (strcmp(temp(), "*"))
             {
                smRef.SetRef(smPool->ObtainObject());
-               if (smRef() == NULL) RETURN_OUT_OF_MEMORY;
+               if (smRef() == NULL) MRETURN_OUT_OF_MEMORY;
                if (smRef()->SetPattern(temp()).IsError(ret)) return ret;
             }
             if (newQ->GetStringMatchers().AddTail(smRef).IsError(ret)) return ret;

@@ -252,7 +252,7 @@ static void DoSession(DataIO & io, bool allowRead = true)
                      const uint32 count = nextBuf() ? nextBuf()->GetNumBytes() : 0;
                      if ((count > 0)&&(outBuf()->AppendBytes(nextBuf()->GetBuffer(), nextBuf()->GetNumBytes()).IsError()))
                      {
-                        WARN_OUT_OF_MEMORY;
+                        MWARN_OUT_OF_MEMORY;
                         break;
                      }
                   }

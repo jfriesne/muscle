@@ -204,10 +204,10 @@ int main(int argc, char ** argv)
                   char * tmp = new char[spamLen+1];
                   for (uint32 j=0; j<spamLen; j++) tmp[j] = 'A'+(((char)j)%26);
                   tmp[spamLen] = '\0';
-                  if (m()->AddString("spam", tmp).IsError()) WARN_OUT_OF_MEMORY;
-                  if (m()->AddInt32("spamlen", spamLen).IsError()) WARN_OUT_OF_MEMORY;
+                  if (m()->AddString("spam", tmp).IsError()) MWARN_OUT_OF_MEMORY;
+                  if (m()->AddInt32("spamlen", spamLen).IsError()) MWARN_OUT_OF_MEMORY;
                   LogTime(MUSCLE_LOG_TRACE, "ADDING OUTGOING MESSAGE what=" UINT32_FORMAT_SPEC " size=" UINT32_FORMAT_SPEC "\n", m()->what, m()->FlattenedSize());
-                  if (gw.AddOutgoingMessage(m).IsError()) WARN_OUT_OF_MEMORY;
+                  if (gw.AddOutgoingMessage(m).IsError()) MWARN_OUT_OF_MEMORY;
                   delete [] tmp;
                   byteCount += m()->FlattenedSize();
                }

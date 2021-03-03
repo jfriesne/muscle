@@ -1359,7 +1359,7 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
 
       ItemType * newQueue = ((_queue == _smallQueue)||(newQLen > sqLen)) ? newnothrow_array(ItemType,newQLen) : _smallQueue;
 
-      if (newQueue == NULL) RETURN_OUT_OF_MEMORY;
+      if (newQueue == NULL) MRETURN_OUT_OF_MEMORY;
       if (newQueue == _smallQueue) newQLen = sqLen;
       
       // The (_queueSize > 0) check below isn't strictly necessary, but it makes clang++ feel better
@@ -1885,7 +1885,7 @@ Queue<ItemType>::ReleaseRawDataArray(uint32 * optRetArrayLen)
          for (uint32 i=0; i<_itemCount; i++) ret[i] = (*this)[i];
          Clear();
       }
-      else WARN_OUT_OF_MEMORY;
+      else MWARN_OUT_OF_MEMORY;
    }
    else
    {

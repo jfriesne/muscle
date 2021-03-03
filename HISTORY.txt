@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-7.80 -
+8.00 -
    - Added TemplatedFlatten(), TemplatedUnflatten(),
      TemplatedFlattenedSize(), and CreateMessageTemplate()
      methods to the Message class, to allow encoding of
@@ -24,9 +24,20 @@ key:  - new feature
      TemplatedMessageIOGateway by default.
    - Added a (maxRecursions) argument to the SortFieldNames()
      method of the Message class.
+   - Added a MRETURN_ON_ERROR macro to facility returning
+     of status_t error-codes from function calls.
    o Added template-testing code to testmessage.cpp
    o Replaced explicit comparisons to B_NO_ERROR with calls
      to .IsOK() and .IsError()
+   o Renamed WARN_OUT_OF_MEMORY macro to MWARN_OUT_OF_MEMORY
+     to reduce the chance of macro-namespace collisions.
+   o Renamed RETURN_OUT_OF_MEMORY macro to MRETURN_OUT_OF_MEMORY
+     to reduce the chance of macro-namespace collisions.
+   o Renamed DECLARE_ANONYMOUS_STACK_OBJECT macro to
+     MDECLARE_ANONYMOUS_STACK_OBJECT to reduce the chance
+     of macro-namespace collisions.
+   o Renamed DECLARE_DEBUGTIMER to MDECLARE_DEBUGTIMER to
+     reduce the chance of macro-namespace collisions.
    * Fixed a bug where calling Message::AddData() with
      a NULL data-pointer could cause a crash.
 

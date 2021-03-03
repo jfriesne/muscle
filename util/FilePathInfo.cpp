@@ -37,7 +37,7 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
          delete [] temp;
          return;
       }
-      else WARN_OUT_OF_MEMORY;
+      else MWARN_OUT_OF_MEMORY;
    }
 
    Reset();

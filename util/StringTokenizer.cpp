@@ -26,7 +26,7 @@ StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSep
    {
       temp = newnothrow_array(char, _bufLen);
       if (temp) _allocedBufferOnHeap = true;
-           else WARN_OUT_OF_MEMORY;
+           else MWARN_OUT_OF_MEMORY;
    }
    else temp = _smallStringBuf;
    
@@ -100,7 +100,7 @@ void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom
       }
       else
       {
-         WARN_OUT_OF_MEMORY;
+         MWARN_OUT_OF_MEMORY;
          DefaultInitialize(); // We're boned -- default-initialize everything just to avoid undefined behavior
       }
    }

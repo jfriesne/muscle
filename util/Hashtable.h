@@ -1057,7 +1057,7 @@ private:
             }
             ret[size-1]._indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)-1;
          }
-         else WARN_OUT_OF_MEMORY;
+         else MWARN_OUT_OF_MEMORY;
          return ret;
       }
 

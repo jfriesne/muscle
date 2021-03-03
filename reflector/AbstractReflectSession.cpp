@@ -179,14 +179,14 @@ Reconnect()
    if ((publicKey())&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL))
    {
       SSLSocketDataIO * ssio = newnothrow SSLSocketDataIO(sock, false, false);
-      if (ssio == NULL) RETURN_OUT_OF_MEMORY;
+      if (ssio == NULL) MRETURN_OUT_OF_MEMORY;
       io.SetRef(ssio);
       if (ssio->SetPublicKeyCertificate(publicKey).IsError(ret)) return ret;
 
       if (dynamic_cast<SSLSocketAdapterGateway *>(_gateway()) == NULL) 
       {
          _gateway.SetRef(newnothrow SSLSocketAdapterGateway(_gateway));
-         if (_gateway() == NULL) RETURN_OUT_OF_MEMORY;
+         if (_gateway() == NULL) MRETURN_OUT_OF_MEMORY;
       }
    }
 #endif
@@ -218,7 +218,7 @@ AbstractReflectSession ::
 CreateDataIO(const ConstSocketRef & socket)
 {
    TCPSocketDataIORef dio(newnothrow TCPSocketDataIO(socket, false));
-   if (dio() == NULL) WARN_OUT_OF_MEMORY;
+   if (dio() == NULL) MWARN_OUT_OF_MEMORY;
    return dio;
 }
 
@@ -231,7 +231,7 @@ CreateGateway()
 #else
    MessageIOGatewayRef ret(newnothrow MessageIOGateway());
 #endif
-   if (ret() == NULL) WARN_OUT_OF_MEMORY;
+   if (ret() == NULL) MWARN_OUT_OF_MEMORY;
    return ret;
 }
 

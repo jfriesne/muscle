@@ -9,7 +9,7 @@ namespace muscle {
 AbstractReflectSessionRef DumbReflectSessionFactory :: CreateSession(const String &, const IPAddressAndPort &)
 {
    DumbReflectSessionRef ret(newnothrow DumbReflectSession);
-   if (ret() == NULL) WARN_OUT_OF_MEMORY;
+   if (ret() == NULL) MWARN_OUT_OF_MEMORY;
    return ret;
 }
 

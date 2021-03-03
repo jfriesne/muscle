@@ -962,7 +962,7 @@ public:
             if (AddDataItem(&nextMsg, sizeof(nextMsg)).IsError(ret)) return ret;
             readOffset += readFs;
          }
-         else RETURN_OUT_OF_MEMORY;
+         else MRETURN_OUT_OF_MEMORY;
       }
       return B_NO_ERROR;
    }
@@ -1706,7 +1706,7 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
       if (isVariableSize)
       {
          ByteBufferRef bufRef = GetByteBufferFromPool(elementSize, (const uint8 *)dataToAdd);
-         if (bufRef() == NULL) RETURN_OUT_OF_MEMORY;
+         if (bufRef() == NULL) MRETURN_OUT_OF_MEMORY;
          fcRef.SetFromRefCountableRef(bufRef.GetRefCountableRef());
          dataToAdd = &fcRef;
          addSize = sizeof(fcRef);
@@ -2142,7 +2142,7 @@ status_t Message :: ReplaceData(bool okayToAdd, const String & fieldName, uint32
       if (isVariableSize)
       {
          ref.SetFromRefCountableRef(GetByteBufferFromPool(elementSize, (const uint8 *)dataToAdd).GetRefCountableRef());
-         if (ref() == NULL) RETURN_OUT_OF_MEMORY;
+         if (ref() == NULL) MRETURN_OUT_OF_MEMORY;
          dataToAdd = &ref;
          addSize = sizeof(ref);
       }
@@ -3313,7 +3313,7 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
 status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String & fieldName, const uint8 * & buf, uint32 & bufSize) const
 {
    MessageField * mf = unflattenTo.GetOrCreateMessageField(fieldName, _typeCode);
-   if (mf == NULL) RETURN_OUT_OF_MEMORY;
+   if (mf == NULL) MRETURN_OUT_OF_MEMORY;
 
    status_t ret;
 
@@ -3376,7 +3376,7 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
             // the traditional full-metadata-included format, but our sub-Message's data is expected to be in
             // the new templated/payload-only format.
             MessageRef subMsg = GetMessageFromPool();
-            if (subMsg() == NULL) RETURN_OUT_OF_MEMORY;
+            if (subMsg() == NULL) MRETURN_OUT_OF_MEMORY;
 
             const Message * templateMsg = static_cast<const Message *>(GetItemAtAsRefCountableRef(i)());
             if (subMsg()->TemplatedUnflatten(*templateMsg, subBuf, itemSize).IsError(ret))

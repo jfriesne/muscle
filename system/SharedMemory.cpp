@@ -58,7 +58,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
          _isLockedReadOnly = false;
          return B_NO_ERROR;
       }
-      else WARN_OUT_OF_MEMORY;   
+      else MWARN_OUT_OF_MEMORY;   
    }
 #elif defined(WIN32)
    char buf[64];

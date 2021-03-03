@@ -62,7 +62,7 @@ public:
    virtual AbstractMessageIOGatewayRef CreateGateway()
    {
       AbstractMessageIOGateway * gw = newnothrow PlainTextMessageIOGateway;
-      if (gw == NULL) WARN_OUT_OF_MEMORY;
+      if (gw == NULL) MWARN_OUT_OF_MEMORY;
       return AbstractMessageIOGatewayRef(gw);
    }
 
@@ -119,14 +119,14 @@ public:
    virtual DataIORef CreateDataIO(const ConstSocketRef &)
    {
       DataIO * dio = newnothrow StdinDataIO(false);
-      if (dio == NULL) WARN_OUT_OF_MEMORY;
+      if (dio == NULL) MWARN_OUT_OF_MEMORY;
       return DataIORef(dio);
    }
 
    virtual AbstractMessageIOGatewayRef CreateGateway()
    {
       AbstractMessageIOGateway * gw = newnothrow PlainTextMessageIOGateway;
-      if (gw == NULL) WARN_OUT_OF_MEMORY;
+      if (gw == NULL) MWARN_OUT_OF_MEMORY;
       return AbstractMessageIOGatewayRef(gw);
    }
 
@@ -278,7 +278,7 @@ int main(int argc, char ** argv)
          (void) childArgv.AddTail(String("subprocess=%1").Arg(childProcessLabel));
 
          AbstractReflectSessionRef childSessionRef(newnothrow ChildProcessSession(childProcessLabel, childArgv));
-              if (childSessionRef() == NULL) WARN_OUT_OF_MEMORY;
+              if (childSessionRef() == NULL) MWARN_OUT_OF_MEMORY;
          else if (server.AddNewSession(childSessionRef).IsError(ret))
          {
             LogTime(MUSCLE_LOG_ERROR, "daemonsitter:  Couldn't add child process #" UINT32_FORMAT_SPEC " [%s]\n", i, ret());

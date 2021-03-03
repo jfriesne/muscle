@@ -169,7 +169,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             _recvScratchSpace = newnothrow_array(uint8, _recvScratchSpaceSize);
             if (_recvScratchSpace == NULL)
             {
-               WARN_OUT_OF_MEMORY;
+               MWARN_OUT_OF_MEMORY;
                return -1;
             }
          }

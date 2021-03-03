@@ -47,7 +47,7 @@ void QMessageTransceiverThread :: SignalOwner()
    QCustomEvent * evt = newnothrow QCustomEvent(QMTT_SIGNAL_EVENT);
 #endif
    if (evt) QCoreApplication::postEvent(this, evt);
-       else WARN_OUT_OF_MEMORY;
+       else MWARN_OUT_OF_MEMORY;
 }
 
 bool QMessageTransceiverThread :: event(QEvent * event)
@@ -208,7 +208,7 @@ void QMessageTransceiverThreadPool :: ShutdownAllThreads()
 QMessageTransceiverThread * QMessageTransceiverThreadPool :: CreateThread()
 {
    QMessageTransceiverThread * newThread = newnothrow QMessageTransceiverThread;
-   if (newThread == NULL) WARN_OUT_OF_MEMORY;
+   if (newThread == NULL) MWARN_OUT_OF_MEMORY;
    return newThread; 
 }
 

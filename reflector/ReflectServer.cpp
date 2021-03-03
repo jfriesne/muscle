@@ -86,9 +86,9 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
 
                      io = sslIORef; 
                      gatewayRef.SetRef(newnothrow SSLSocketAdapterGateway(gatewayRef));
-                     if (gatewayRef() == NULL) {newSession->SetOwner(NULL); RETURN_OUT_OF_MEMORY;}
+                     if (gatewayRef() == NULL) {newSession->SetOwner(NULL); MRETURN_OUT_OF_MEMORY;}
                   }
-                  else {newSession->SetOwner(NULL); RETURN_OUT_OF_MEMORY;}
+                  else {newSession->SetOwner(NULL); MRETURN_OUT_OF_MEMORY;}
                }
 #endif
 
@@ -380,7 +380,7 @@ ServerProcessLoop()
    if ((_mainReflectServerCatchSignals)&&(IsCurrentThreadMainThread()))
    {
       SignalHandlerSessionRef shs(newnothrow SignalHandlerSession);
-      if (shs() == NULL) RETURN_OUT_OF_MEMORY;
+      if (shs() == NULL) MRETURN_OUT_OF_MEMORY;
       if (AddNewSession(shs).IsError(ret))
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::ReadyToRun:  Could not install SignalHandlerSession!\n");

@@ -64,7 +64,7 @@ public:
 
       // Launch our connection to the upstream server that we will forward our client's data to
       _upstreamSession.SetRef(newnothrow UpstreamSession(this));
-      if (_upstreamSession() == NULL) RETURN_OUT_OF_MEMORY;
+      if (_upstreamSession() == NULL) MRETURN_OUT_OF_MEMORY;
 
       return AddNewConnectSession(_upstreamSession, _upstreamLocation.GetIPAddress(), _upstreamLocation.GetPort());
    }
@@ -79,7 +79,7 @@ public:
    virtual AbstractMessageIOGatewayRef CreateGateway()
    {
       AbstractMessageIOGatewayRef ret(newnothrow PlainTextMessageIOGateway);
-      if (ret() == NULL) WARN_OUT_OF_MEMORY;
+      if (ret() == NULL) MWARN_OUT_OF_MEMORY;
       return ret;
    }
 #endif
@@ -109,7 +109,7 @@ public:
       LogTime(MUSCLE_LOG_INFO, "DownstreamSessionFactory received incoming TCP connection from [%s] on [%s]\n", clientAddress(), factoryInfo.ToString()());
 
       AbstractReflectSessionRef ret(newnothrow DownstreamSession(_upstreamLocation));
-      if (ret() == NULL) WARN_OUT_OF_MEMORY;
+      if (ret() == NULL) MWARN_OUT_OF_MEMORY;
       return ret; 
    }
 

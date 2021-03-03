@@ -55,7 +55,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
    if (_orderedIndex == NULL)
    {
       _orderedIndex = newnothrow Queue<DataNodeRef>;
-      if (_orderedIndex == NULL) RETURN_OUT_OF_MEMORY;
+      if (_orderedIndex == NULL) MRETURN_OUT_OF_MEMORY;
    }
 
    // Find a unique ID string for our new kid
@@ -72,7 +72,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
    }
 
    DataNodeRef dref = notifyWithOnSetParent->GetNewDataNode(*optNodeName, data);
-   if (dref() == NULL) RETURN_OUT_OF_MEMORY;
+   if (dref() == NULL) MRETURN_OUT_OF_MEMORY;
 
    uint32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
    if (optInsertBefore)
@@ -131,7 +131,7 @@ status_t DataNode :: InsertIndexEntryAt(uint32 insertIndex, StorageReflectSessio
       if (_orderedIndex == NULL)
       {
          _orderedIndex = newnothrow Queue<DataNodeRef>;
-         if (_orderedIndex == NULL) RETURN_OUT_OF_MEMORY;
+         if (_orderedIndex == NULL) MRETURN_OUT_OF_MEMORY;
       }
       if (_orderedIndex->InsertItemAt(insertIndex, childNode).IsOK(ret))
       {
@@ -189,7 +189,7 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
    if (_children == NULL) 
    {
       _children = newnothrow Hashtable<const String *, DataNodeRef>;
-      if (_children == NULL) RETURN_OUT_OF_MEMORY;
+      if (_children == NULL) MRETURN_OUT_OF_MEMORY;
    }
 
    child->SetParent(this, optNotifyWithOnSetParent);
@@ -274,7 +274,7 @@ status_t DataNode :: GetNodePath(String & retPath, uint32 startDepth) const
       if (pathLen >= stackAllocSize)  // but do a dynamic allocation if we have to (should be rare)
       {
          dynBuf = newnothrow_array(char, pathLen+1);
-         if (dynBuf == NULL) RETURN_OUT_OF_MEMORY;
+         if (dynBuf == NULL) MRETURN_OUT_OF_MEMORY;
       }
 
       char * writeAt = (dynBuf ? dynBuf : stackBuf) + pathLen;  // points to last char in buffer
@@ -471,7 +471,7 @@ DataNodeSubscribersTable :: DataNodeSubscribersTable(const DataNodeSubscribersTa
    {
       uint32 * c = _subscribers.GetOrPut(sessionIDString);
       if (c) (*c) += delta;
-        else WARN_OUT_OF_MEMORY;
+        else MWARN_OUT_OF_MEMORY;
    }
    else if (delta < 0)
    {

@@ -70,7 +70,7 @@ status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, Ch
    if (numItems == 0) return B_BAD_ARGUMENT;
 
    const char ** argv = newnothrow_array(const char *, numItems+1);
-   if (argv == NULL) RETURN_OUT_OF_MEMORY;
+   if (argv == NULL) MRETURN_OUT_OF_MEMORY;
    for (uint32 i=0; i<numItems; i++) argv[i] = argq[i]();
    argv[numItems] = NULL;
    status_t ret = LaunchChildProcess(numItems, argv, launchFlags, optDirectory, optEnvironmentVariables);
@@ -195,7 +195,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                   }
                   else
                   {
-                     WARN_OUT_OF_MEMORY;
+                     MWARN_OUT_OF_MEMORY;
                      ret = B_OUT_OF_MEMORY;
                   }
                }
@@ -833,7 +833,7 @@ status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLa
    if (numItems == 0) return B_BAD_ARGUMENT;
 
    const char ** argv = newnothrow_array(const char *, numItems+1);
-   if (argv == NULL) RETURN_OUT_OF_MEMORY;
+   if (argv == NULL) MRETURN_OUT_OF_MEMORY;
    for (uint32 i=0; i<numItems; i++) argv[i] = argq[i]();
    argv[numItems] = NULL;
    const status_t ret = System(numItems, argv, launchFlags, maxWaitTimeMicros, optDirectory, optEnvironmentVariables);

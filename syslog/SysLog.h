@@ -238,7 +238,7 @@ status_t Log(int logLevel, const char * fmt, ...);
 
 /** Calls LogTime() with a critical "MEMORY ALLOCATION FAILURE" Message.
   * Note that you typically wouldn't call this function directly;
-  * rather you should call the WARN_OUT_OF_MEMORY macro and it will
+  * rather you should call the MWARN_OUT_OF_MEMORY macro and it will
   * call WarnOutOfMemory() for you, with the correct arguments.
   * @param file Name of the source file where the memory failure occurred.
   * @param line Line number where the memory failure occurred.

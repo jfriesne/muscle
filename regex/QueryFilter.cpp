@@ -288,12 +288,12 @@ bool StringQueryFilter :: DoMatch(const String & s) const
       { 
          case OP_SIMPLE_WILDCARD_MATCH:
             _matcher = newnothrow StringMatcher(_value, true);
-            if (_matcher == NULL) WARN_OUT_OF_MEMORY;
+            if (_matcher == NULL) MWARN_OUT_OF_MEMORY;
          break;
 
          case OP_REGULAR_EXPRESSION_MATCH:
             _matcher = newnothrow StringMatcher(_value, false);
-            if (_matcher == NULL) WARN_OUT_OF_MEMORY;
+            if (_matcher == NULL) MWARN_OUT_OF_MEMORY;
          break;
       }
    }
@@ -338,14 +338,14 @@ status_t RawDataQueryFilter :: SetFromArchive(const Message & archive)
    if (archive.FindData("val", B_RAW_TYPE, &data, &numBytes).IsOK())
    {
       _value = GetByteBufferFromPool(numBytes, (const uint8 *) data);
-      if (_value() == NULL) RETURN_OUT_OF_MEMORY;
+      if (_value() == NULL) MRETURN_OUT_OF_MEMORY;
    }
 
    _default.Reset();
    if (archive.FindData("def", B_RAW_TYPE, &data, &numBytes).IsOK())
    {
       _default = GetByteBufferFromPool(numBytes, (const uint8 *) data);
-      if (_default() == NULL) RETURN_OUT_OF_MEMORY;
+      if (_default() == NULL) MRETURN_OUT_OF_MEMORY;
    }
 
    return B_NO_ERROR;
@@ -454,7 +454,7 @@ QueryFilterRef MuscleQueryFilterFactory :: CreateQueryFilter(uint32 typeCode) co
       case QUERY_FILTER_TYPE_CHILDCOUNT:  f = newnothrow ChildCountQueryFilter;  break;
       default:                            return QueryFilterRef();  /* unknown type code! */
    }
-   if (f == NULL) WARN_OUT_OF_MEMORY;
+   if (f == NULL) MWARN_OUT_OF_MEMORY;
    return QueryFilterRef(f);
 }
 

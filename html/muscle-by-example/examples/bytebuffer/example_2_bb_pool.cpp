@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
 
       bbRef()->PrintToStream();
    }
-   else WARN_OUT_OF_MEMORY;
+   else MWARN_OUT_OF_MEMORY;
 
    printf("\n");
 

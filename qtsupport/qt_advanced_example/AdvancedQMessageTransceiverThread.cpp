@@ -34,7 +34,7 @@ public:
    {
       AdvancedThreadWorkerSession * ret = newnothrow AdvancedThreadWorkerSession();
       if (ret) printf("AdvancedThreadWorkerSessionFactory created AdvancedThreadWorkerSession %p for client at loc=[%s] iap=[%s]\n", ret, loc(), iap.ToString()());
-          else WARN_OUT_OF_MEMORY;
+          else MWARN_OUT_OF_MEMORY;
       return ThreadWorkerSessionRef(ret);
    }
 };

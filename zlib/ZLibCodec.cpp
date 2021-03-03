@@ -217,10 +217,10 @@ status_t ZLibCodec :: ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & dest
    if (_deflateOkay == false) return B_BAD_OBJECT;
 
    ByteBuffer scratchInBuf(32*1024);
-   if (scratchInBuf.GetNumBytes() == 0) RETURN_OUT_OF_MEMORY;
+   if (scratchInBuf.GetNumBytes() == 0) MRETURN_OUT_OF_MEMORY;
 
    ByteBuffer scratchOutBuf(scratchInBuf.GetNumBytes()*2);  // yes, bigger than scratchInBuf!  Because I'm paranoid
-   if (scratchOutBuf.GetNumBytes() == 0) RETURN_OUT_OF_MEMORY;
+   if (scratchOutBuf.GetNumBytes() == 0) MRETURN_OUT_OF_MEMORY;
 
    if ((independent)&&(deflateReset(&_deflater) != Z_OK))
    {
@@ -275,10 +275,10 @@ status_t ZLibCodec :: ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO &
    if (_inflateOkay == false) return B_BAD_OBJECT;
 
    ByteBuffer scratchInBuf(32*1024);
-   if (scratchInBuf.GetNumBytes() == 0) RETURN_OUT_OF_MEMORY;
+   if (scratchInBuf.GetNumBytes() == 0) MRETURN_OUT_OF_MEMORY;
 
    ByteBuffer scratchOutBuf(scratchInBuf.GetNumBytes()*8);
-   if (scratchOutBuf.GetNumBytes() == 0) RETURN_OUT_OF_MEMORY ;
+   if (scratchOutBuf.GetNumBytes() == 0) MRETURN_OUT_OF_MEMORY ;
 
    uint8 headerBuf[ZLIB_CODEC_HEADER_SIZE];
    const uint32 headerBytesRead = sourceDeflatedIO.ReadFully(headerBuf, sizeof(headerBuf));

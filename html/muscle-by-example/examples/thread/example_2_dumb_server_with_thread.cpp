@@ -127,9 +127,9 @@ private:
                SetGateway(gw);
                return B_NO_ERROR;
             }
-            else RETURN_OUT_OF_MEMORY;
+            else MRETURN_OUT_OF_MEMORY;
          }
-         else RETURN_OUT_OF_MEMORY;
+         else MRETURN_OUT_OF_MEMORY;
       }
       return B_BAD_OBJECT;
    }

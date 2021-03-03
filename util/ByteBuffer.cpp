@@ -55,7 +55,7 @@ status_t ByteBuffer :: SetNumBytes(uint32 newNumBytes, bool retainData)
             _buffer = newBuf;
             _numAllocatedBytes = _numValidBytes = newNumBytes;
          }
-         else RETURN_OUT_OF_MEMORY;
+         else MRETURN_OUT_OF_MEMORY;
       }
       else
       {
@@ -63,7 +63,7 @@ status_t ByteBuffer :: SetNumBytes(uint32 newNumBytes, bool retainData)
          if (newNumBytes > 0)
          {
             newBuf = (uint8 *) (as ? as->Malloc(newNumBytes) : muscleAlloc(newNumBytes));
-            if (newBuf == NULL) RETURN_OUT_OF_MEMORY;
+            if (newBuf == NULL) MRETURN_OUT_OF_MEMORY;
          }
          if (as) as->Free(_buffer, _numAllocatedBytes); else muscleFree(_buffer);
          _buffer = newBuf;
@@ -85,7 +85,7 @@ status_t ByteBuffer :: AppendBytes(const uint8 * bytes, uint32 numBytes, bool al
       // So to avoid freeing (bytes) before we read from them, we're going to copy them over to a temporary buffer first.
       uint8 * tmpBuf = newnothrow uint8[numBytes];
       if (tmpBuf) memcpy(tmpBuf, bytes, numBytes);
-             else RETURN_OUT_OF_MEMORY;
+             else MRETURN_OUT_OF_MEMORY;
       const status_t ret = AppendBytes(tmpBuf, numBytes, allocExtra);
       delete [] tmpBuf;
       return ret;
@@ -122,7 +122,7 @@ status_t ByteBuffer :: FreeExtraBytes()
          _buffer            = newBuf;
          _numAllocatedBytes = _numValidBytes;
       }
-      else RETURN_OUT_OF_MEMORY;
+      else MRETURN_OUT_OF_MEMORY;
    }
    return B_NO_ERROR;
 }

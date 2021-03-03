@@ -1120,7 +1120,7 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
   CallstackEntry *csEntry = newnothrow CallstackEntry;
   if (csEntry == NULL)
   {
-    WARN_OUT_OF_MEMORY;
+    MWARN_OUT_OF_MEMORY;
     goto cleanup;
   }
 
@@ -1477,7 +1477,7 @@ void UpdateAllocationStackTrace(bool isAllocation, String * & s)
       if (s == NULL) 
       {
          s = newnothrow String;
-         if (s == NULL) WARN_OUT_OF_MEMORY;
+         if (s == NULL) MWARN_OUT_OF_MEMORY;
       }
       if (s)
       {
@@ -1703,7 +1703,7 @@ void DefaultFileLogger :: CloseLogFile()
                   }
                   delete [] buf;
                }
-               else WARN_OUT_OF_MEMORY;
+               else MWARN_OUT_OF_MEMORY;
 
                gzclose(gzOut);
 

@@ -361,7 +361,7 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
    if (reservations) for (uint32 i=0; i<Length(); i++) reservations[i] = NULL; 
    else
    {
-      WARN_OUT_OF_MEMORY;
+      MWARN_OUT_OF_MEMORY;
       return *this;
    }
 
@@ -414,7 +414,7 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
    }
    else 
    {
-      WARN_OUT_OF_MEMORY;
+      MWARN_OUT_OF_MEMORY;
       ret = *this;
    }
 
@@ -764,7 +764,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
          {
             // Here we call muscleRealloc() to (hopefully) avoid unnecessary data copying
             newBuf = (char *) muscleRealloc(_strData._bigBuffer, newBufLen);
-            if (newBuf == NULL) RETURN_OUT_OF_MEMORY;
+            if (newBuf == NULL) MRETURN_OUT_OF_MEMORY;
          }
       }
       else 
@@ -781,7 +781,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
          {
             // Oops, muscleRealloc() won't do in this case.... we'll just have to copy the bytes over
             newBuf = (char *) muscleAlloc(newBufLen);
-            if (newBuf == NULL) RETURN_OUT_OF_MEMORY;
+            if (newBuf == NULL) MRETURN_OUT_OF_MEMORY;
             memcpy(newBuf, GetBuffer(), muscleMin(Length()+1, newBufLen));
          }
       }
@@ -798,7 +798,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
       else
       {
          newBuf = (char *) muscleAlloc(newBufLen);
-         if (newBuf == NULL) RETURN_OUT_OF_MEMORY;
+         if (newBuf == NULL) MRETURN_OUT_OF_MEMORY;
          newBuf[0] = '\0';  // avoid potential user-visible garbage bytes
          if (arrayWasDynamicallyAllocated) muscleFree(_strData._bigBuffer);
       }
@@ -1111,7 +1111,7 @@ static uint32 GetLevenshteinDistanceAux(const char *shortString, uint32 shortStr
 #endif
    if (columns == NULL)
    {
-      WARN_OUT_OF_MEMORY;
+      MWARN_OUT_OF_MEMORY;
       return maxResult;
    }
 
@@ -1173,7 +1173,7 @@ status_t String :: SetFromCFStringRef(const CFStringRef & cfStringRef)
          ret = CFStringGetCString(cfStringRef, str, allocLen, kCFStringEncodingUTF8) ? SetCstr(str) : B_ERROR("CFStringGetCString() failed");
          if (doAlloc) muscleFree(str);
       }
-      else RETURN_OUT_OF_MEMORY;
+      else MRETURN_OUT_OF_MEMORY;
    }
    else Clear();
 

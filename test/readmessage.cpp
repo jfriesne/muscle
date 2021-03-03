@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
       ByteBufferRef buf = GetByteBufferFromPool(fileSize);
       if (buf() == NULL)
       {
-         WARN_OUT_OF_MEMORY;
+         MWARN_OUT_OF_MEMORY;
          return 10;
       }
 

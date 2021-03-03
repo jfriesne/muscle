@@ -488,7 +488,7 @@ public:
          }
          else 
          {
-            printf("MutexEventLog::AddEvent():  malloc() failed!\n");   // what else to do?  Even WARN_OUT_OF_MEMORY isn't safe here
+            printf("MutexEventLog::AddEvent():  malloc() failed!\n");   // what else to do?  Even MWARN_OUT_OF_MEMORY isn't safe here
             return;
          }
       }
@@ -577,7 +577,7 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
       }
    }
    if (mel) mel->AddEvent(isLock, mutexPtr, fileName, fileLine);
-       else printf("DeadlockFinder_LogEvent:  malloc failed!?\n");  // we can't even call WARN_OUT_OF_MEMORY here
+       else printf("DeadlockFinder_LogEvent:  malloc failed!?\n");  // we can't even call MWARN_OUT_OF_MEMORY here
 }
 
 static void DeadlockFinder_ProcessEnding()
@@ -1064,7 +1064,7 @@ status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeade
    else
    {
       b = bigBuf = newnothrow_array(uint8, bufSize);
-      if (bigBuf == NULL) RETURN_OUT_OF_MEMORY;
+      if (bigBuf == NULL) MRETURN_OUT_OF_MEMORY;
    }
 
    // Populate the buffer
@@ -1099,7 +1099,7 @@ status_t Flattenable :: UnflattenFromDataIO(DataIO & inputStream, int32 optReadS
    else
    {
       b = bigBuf = newnothrow_array(uint8, readSize);
-      if (bigBuf == NULL) RETURN_OUT_OF_MEMORY;
+      if (bigBuf == NULL) MRETURN_OUT_OF_MEMORY;
    }
 
    const status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? Unflatten(b, readSize) : B_IO_ERROR;
@@ -1115,7 +1115,7 @@ status_t Flattenable :: CopyFromImplementation(const Flattenable & copyFrom)
    if (flatSize > ARRAYITEMS(smallBuf))
    {
       bigBuf = newnothrow_array(uint8, flatSize);
-      if (bigBuf == NULL) RETURN_OUT_OF_MEMORY;
+      if (bigBuf == NULL) MRETURN_OUT_OF_MEMORY;
    }
    copyFrom.Flatten(bigBuf ? bigBuf : smallBuf);
    const status_t ret = Unflatten(bigBuf ? bigBuf : smallBuf, flatSize);
@@ -1273,7 +1273,7 @@ void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uin
             const uint32 leftovers = (numBytes%numColumns);
             if (leftovers > 0) FlushAsciiChars(optFile, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
          }
-         else WARN_OUT_OF_MEMORY;
+         else MWARN_OUT_OF_MEMORY;
 
          delete [] ascBuf;
          delete [] hexBuf;
@@ -1335,7 +1335,7 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
          const uint32 leftovers = (numBytes%numColumns);
          if (leftovers > 0) FlushAsciiChars(optFile, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
       }
-      else WARN_OUT_OF_MEMORY;
+      else MWARN_OUT_OF_MEMORY;
 
       delete [] ascBuf;
       delete [] hexBuf;
@@ -1387,7 +1387,7 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
             const uint32 leftovers = (numBytes%numColumns);
             if (leftovers > 0) FlushLogAsciiChars(logLevel, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
          }
-         else WARN_OUT_OF_MEMORY;
+         else MWARN_OUT_OF_MEMORY;
 
          delete [] ascBuf;
          delete [] hexBuf;
@@ -1437,7 +1437,7 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
          const uint32 leftovers = (numBytes%numColumns);
          if (leftovers > 0) FlushLogAsciiChars(logLevel, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
       }
-      else WARN_OUT_OF_MEMORY;
+      else MWARN_OUT_OF_MEMORY;
 
       delete [] ascBuf;
       delete [] hexBuf;
@@ -1500,7 +1500,7 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
             const uint32 leftovers = (numBytes%numColumns);
             if (leftovers > 0) FlushStringAsciiChars(ret, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
          }
-         else WARN_OUT_OF_MEMORY;
+         else MWARN_OUT_OF_MEMORY;
 
          delete [] ascBuf;
          delete [] hexBuf;
@@ -1553,7 +1553,7 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
          const uint32 leftovers = (numBytes%numColumns);
          if (leftovers > 0) FlushStringAsciiChars(ret, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
       }
-      else WARN_OUT_OF_MEMORY;
+      else MWARN_OUT_OF_MEMORY;
 
       delete [] ascBuf;
       delete [] hexBuf;

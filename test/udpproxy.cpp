@@ -178,7 +178,7 @@ int main(int argc, char ** argv)
       UDPSocketDataIO * dio = newnothrow UDPSocketDataIO(udpSock, false);
       if (dio == NULL)
       {
-         WARN_OUT_OF_MEMORY;
+         MWARN_OUT_OF_MEMORY;
          return 10;
       }
       (void) dio->SetPacketSendDestination(targets[i]);

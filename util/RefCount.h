@@ -393,7 +393,7 @@ public:
          else newItem = CloneObject(*item); 
 
          if (newItem) return Ref<Item>(newItem);
-                 else WARN_OUT_OF_MEMORY;
+                 else MWARN_OUT_OF_MEMORY;
       }
       return Ref<Item>();
    }

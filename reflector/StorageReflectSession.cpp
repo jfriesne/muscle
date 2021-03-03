@@ -27,7 +27,7 @@ AbstractReflectSessionRef StorageReflectSessionFactory :: CreateSession(const St
    if ((srs())&&(SetMaxIncomingMessageSizeFor(srs()).IsOK())) return srs;
    else
    {
-      WARN_OUT_OF_MEMORY;
+      MWARN_OUT_OF_MEMORY;
       return AbstractReflectSessionRef();
    }
 }
@@ -87,7 +87,7 @@ InitSharedData()
          if (state.ReplacePointer(true, SRS_SHARED_DATA, sd).IsOK()) return sd;
          delete sd;
       }
-      else WARN_OUT_OF_MEMORY;
+      else MWARN_OUT_OF_MEMORY;
    }
    return NULL;
 }
@@ -114,12 +114,12 @@ AttachedToServer()
    {
       // nope.... we'll add one then
       hostDir = GetNewDataNode(hostname, CastAwayConstFromRef(GetEmptyMessageRef()));
-      if ((hostDir() == NULL)||(GetGlobalRoot().PutChild(hostDir, this, this).IsError())) {Cleanup(); RETURN_OUT_OF_MEMORY;}
+      if ((hostDir() == NULL)||(GetGlobalRoot().PutChild(hostDir, this, this).IsError())) {Cleanup(); MRETURN_OUT_OF_MEMORY;}
    }
 
    // Create a new node for our session (we assume no such
    // node already exists, as session id's are supposed to be unique)
-   if (hostDir() == NULL) {Cleanup(); RETURN_OUT_OF_MEMORY;}
+   if (hostDir() == NULL) {Cleanup(); MRETURN_OUT_OF_MEMORY;}
    if (hostDir()->HasChild(sessionid())) LogTime(MUSCLE_LOG_WARNING, "WARNING:  Non-unique session id [%s] being overwritten!\n", sessionid());
 
    SetSessionRootPath(hostname.Prepend("/") + "/" + sessionid);
@@ -176,7 +176,7 @@ AttachedToServer()
    }
 
    Cleanup(); 
-   RETURN_OUT_OF_MEMORY;
+   MRETURN_OUT_OF_MEMORY;
 }
 
 void
@@ -323,7 +323,7 @@ GetDataNodeSubscribersTableFromPool(const DataNodeSubscribersTableRef & curTable
 
    // If we got here, we didn't have anything in our cache for the requested table, so we'll create a new table and store and return it
    DataNodeSubscribersTableRef newRef(newnothrow DataNodeSubscribersTable(curTable(), sessionIDString, delta));
-   if ((newRef() == NULL)||(_sharedData->_cachedSubscribersTables.Put(newRef()->HashCode(), newRef).IsError())) WARN_OUT_OF_MEMORY;
+   if ((newRef() == NULL)||(_sharedData->_cachedSubscribersTables.Put(newRef()->HashCode(), newRef).IsError())) MWARN_OUT_OF_MEMORY;
    return newRef; 
 }
 
@@ -398,7 +398,7 @@ NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, bool isBein
       }
       if (_nextSubscriptionMessage()->GetNumNames() >= _maxSubscriptionMessageItems) PushSubscriptionMessages(); 
    }
-   else WARN_OUT_OF_MEMORY;
+   else MWARN_OUT_OF_MEMORY;
 }
 
 void
@@ -419,7 +419,7 @@ NodeIndexChanged(DataNode & modifiedNode, char op, uint32 index, const String & 
          muscleSprintf(temp, "%c" UINT32_FORMAT_SPEC ":%s", op, index, key());
          _nextIndexSubscriptionMessage()->AddString(np, temp);
       }
-      else WARN_OUT_OF_MEMORY;
+      else MWARN_OUT_OF_MEMORY;
       // don't push subscription messages here.... it will be done elsewhere
    }
 }
@@ -462,7 +462,7 @@ SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, SetDataNodeF
                }
                else if (node->PutChild(childNodeRef, this, ((flags.IsBitSet(SETDATANODE_FLAG_QUIET))||(slashPos < 0)) ? NULL : this).IsOK()) _currentNodeCount++;
             }
-            else RETURN_OUT_OF_MEMORY;
+            else MRETURN_OUT_OF_MEMORY;
          }
 
          node = childNodeRef();
@@ -1298,7 +1298,7 @@ GetDataCallback(DataNode & node, void * userData)
    }
    else 
    {      
-      WARN_OUT_OF_MEMORY;
+      MWARN_OUT_OF_MEMORY;
       return 0;  // abort!
    }
 
@@ -1325,7 +1325,7 @@ GetDataCallback(DataNode & node, void * userData)
          }
          else 
          {
-            WARN_OUT_OF_MEMORY;
+            MWARN_OUT_OF_MEMORY;
             return 0;  // abort!
          }
       }

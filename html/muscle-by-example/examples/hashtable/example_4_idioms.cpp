@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
    // to worry about out-of-memory errors, or the memory-locations of key or 
    // value-items changing, while populating the table.
 
-   if (table.EnsureSize(20).IsError()) WARN_OUT_OF_MEMORY;
+   if (table.EnsureSize(20).IsError()) MWARN_OUT_OF_MEMORY;
 
    // Put some initial data into the table
    table.Put("One", 1);
@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
    int * pEight = table.GetOrPut("Eight");
    printf("C:  table.GetOrPut(\"Eight\") returned %p\n", pEight);
    if (pEight) *pEight = 8;
-          else WARN_OUT_OF_MEMORY;   // GetOrPut() returns NULL only on memory-exhaustion
+          else MWARN_OUT_OF_MEMORY;   // GetOrPut() returns NULL only on memory-exhaustion
 
    printf("\n");
 

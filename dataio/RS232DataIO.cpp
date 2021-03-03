@@ -424,7 +424,7 @@ static void ProcessReadBytes(Queue<SerialBuffer *> & inQueue, const char * inByt
       }
       else
       {
-         WARN_OUT_OF_MEMORY;
+         MWARN_OUT_OF_MEMORY;
          delete buf;
       }
    }

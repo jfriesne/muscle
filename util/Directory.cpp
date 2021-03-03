@@ -155,7 +155,7 @@ status_t Directory :: SetDir(const char * dirPath)
       const int extraBytes = ((pathLen<sepLen)||(strcmp(dirPath+pathLen-sepLen, sep) != 0)) ? sepLen : 0;
       const int allocLen = pathLen+extraBytes+1;
       _path = newnothrow_array(char, allocLen);
-      if (_path == NULL) RETURN_OUT_OF_MEMORY;
+      if (_path == NULL) MRETURN_OUT_OF_MEMORY;
       muscleStrncpy(_path, dirPath, allocLen);
       if (extraBytes != 0) muscleStrncpy(_path+pathLen, sep, allocLen-pathLen);
 
@@ -181,7 +181,7 @@ status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParent
       {
          uint32 subLen = (uint32)(lastSlash-dirPath);
          char * temp = newnothrow_array(char, subLen+1);
-         if (temp == NULL) RETURN_OUT_OF_MEMORY;
+         if (temp == NULL) MRETURN_OUT_OF_MEMORY;
 
          memcpy(temp, dirPath, subLen);
          temp[subLen] = '\0';
@@ -209,7 +209,7 @@ status_t Directory :: MakeDirectoryForFile(const char * filePath)
 {
    const int pathLen = (int) strlen(filePath);
    char * p = newnothrow_array(char, pathLen+1);
-   if (p == NULL) RETURN_OUT_OF_MEMORY;
+   if (p == NULL) MRETURN_OUT_OF_MEMORY;
 
    muscleStrncpy(p, filePath, pathLen+1);
    char * lastSep = strrchr(p, GetFilePathSeparator()[0]);
@@ -244,7 +244,7 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
             const int fnLen  = (int) strlen(fn);
             const int catLen = dirPathLen+sepLen+fnLen+1;
             char * catStr    = newnothrow_array(char, catLen);
-            if (catStr == NULL) RETURN_OUT_OF_MEMORY;
+            if (catStr == NULL) MRETURN_OUT_OF_MEMORY;
 
             // Compose the sub-item's full path
             muscleStrncpy(catStr,                   dirPath, catLen);

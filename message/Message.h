@@ -1786,7 +1786,7 @@ template<class T> inline Ref<T> CreateObjectFromArchiveMessage(const Message & m
    {
       if (newObjRef()->SetFromArchive(msg).IsError()) newObjRef.Reset();
    }
-   else WARN_OUT_OF_MEMORY;
+   else MWARN_OUT_OF_MEMORY;
    return newObjRef;
 }
 
