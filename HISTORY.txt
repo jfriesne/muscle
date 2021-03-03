@@ -42,6 +42,8 @@ key:  - new feature
      reduce the chance of macro-namespace collisions.
    * Fixed a bug where calling Message::AddData() with
      a NULL data-pointer could cause a crash.
+   * Fixed a potential crash-on-exit bug in the
+     StorageReflectSession class's Cleanup method.
 
 7.71 - Released 2/14/2021
    - Added copy-constructor and assignment-operator to the
