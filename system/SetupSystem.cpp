@@ -1970,6 +1970,10 @@ Queue<String> GetBuildFlags()
    q.AddTail("MUSCLE_AVOID_CPLUSPLUS11");
 #endif
 
+#ifdef MUSCLE_USE_CPLUSPLUS17
+   q.AddTail("MUSCLE_USE_CPLUSPLUS17");
+#endif
+
 #ifdef MUSCLE_AVOID_CPLUSPLUS11_THREADS
    q.AddTail("MUSCLE_AVOID_CPLUSPLUS11_THREADS");
 #endif

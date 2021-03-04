@@ -11,6 +11,11 @@ of your Makefile to alter muscle's behaviour:
    Set this to avoid C++11-specific features such as move-constructors
    (i.e. so that you can build MUSCLE under older, pre-C++11 compilers)
 
+-DMUSCLE_USE_CPLUSPLUS17
+   This should be set automatically when compiling with a compiler that
+   is targetting C++17 or later.  If not, you can manually define it in
+   order to enable C++17-specific features in MUSCLE.
+
 -DMUSCLE_AVOID_CPLUSPLUS11_THREADS
    Set this to avoid using the C++11-specific APIs (thread, mutex,
    etc) as back-ends for the MUSCLE Thread/Mutex/AtomicCounter etc 

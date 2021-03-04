@@ -25,7 +25,10 @@ key:  - new feature
    - Added a (maxRecursions) argument to the SortFieldNames()
      method of the Message class.
    - Added a .And() method to the status_t class for easier
-     ordered-chaining of multiple status_t-returning calls.
+     ordered-chaining of multiple status_t-returning calls
+     (available under C++17 and later only)
+   - Added a MUSCLE_USE_CPLUSPLUS17 define that is automatically
+     set when compiling with C++17 or later.
    - Added a MRETURN_ON_ERROR macro to facility returning
      of status_t error-codes from function calls.
    - Added a MRETURN_ON_NULL(ptr) macro that will invoke

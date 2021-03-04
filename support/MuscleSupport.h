@@ -16,26 +16,26 @@
 
 /*! \mainpage MUSCLE Documentation Page
  *
- * The MUSCLE API provides a robust, efficient, scalable, cross-platform, client-server messaging system 
- * for network-distributed applications for Linux, MacOS/X, BSD, Windows, BeOS, and other operating 
+ * The MUSCLE API provides a robust, efficient, scalable, cross-platform, client-server messaging system
+ * for network-distributed applications for Linux, MacOS/X, BSD, Windows, BeOS, and other operating
  * systems.  It can be compiled using any C++ compiler that supports C++03 or higher (although C++11 or
  * higher is preferred) and can run under any OS with a TCP/IP stack and BSD-style sockets API.
  *
- * MUSCLE allows an arbitrary number of client programs (each of which may be running on a separate computer and/or 
- * under a different OS) to communicate with each other in a many-to-many structured-message-passing style.  It 
- * employs a central server to which client programs may connect or disconnect at any time.  In addition to the client-server system, MUSCLE contains classes 
- * to support peer-to-peer message-queue connections, as well as some handy miscellaneous utility 
+ * MUSCLE allows an arbitrary number of client programs (each of which may be running on a separate computer and/or
+ * under a different OS) to communicate with each other in a many-to-many structured-message-passing style.  It
+ * employs a central server to which client programs may connect or disconnect at any time.  In addition to the client-server system, MUSCLE contains classes
+ * to support peer-to-peer message-queue connections, as well as some handy miscellaneous utility
  * classes, all of which are documented here.
  *
  * All classes documented here should compile under most modern OS's with a modern C++ compiler.
  * Where platform-specific code is necessary, it has been provided (inside \#ifdef's) for various OS's.
- * C++ templates are used where appropriate; C++ exceptions are avoided in favor of returned error-codes.  The code is usable 
+ * C++ templates are used where appropriate; C++ exceptions are avoided in favor of returned error-codes.  The code is usable
  * in multithreaded environments, as long as you are careful.
  *
  * An examples-oriented tour of the various MUSCLE APIs can be found <a href="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/site/index.html">here</a>.
  *
- * As distributed, the server side of the software is ready to compile and run, but to do much with it 
- * you'll want to write your own client software.  Example client software can be found in the "test" 
+ * As distributed, the server side of the software is ready to compile and run, but to do much with it
+ * you'll want to write your own client software.  Example client software can be found in the "test"
  * subdirectory.
  */
 
@@ -76,7 +76,7 @@
 #endif
 
 #ifdef __cplusplus
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11) && (__cplusplus < 201100) && !defined(_MSVC_LANG)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11) && (__cplusplus < 201100L) && !defined(_MSVC_LANG)
 #  define MUSCLE_AVOID_CPLUSPLUS11
 # endif
 # ifndef MUSCLE_AVOID_CPLUSPLUS11
@@ -104,6 +104,10 @@
 # define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (e.g. because we're on an ancient platform) */
 #endif
 
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined(MUSCLE_USE_CPLUSPLUS17) && ((__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L)))
+# define MUSCLE_USE_CPLUSPLUS17
+#endif
+
 #if !defined(MUSCLE_AVOID_STDINT) && (defined(MUSCLE_AVOID_CPLUSPLUS11) || (defined(_MSC_VER) && (_MSC_VER < 1800)))
 # define MUSCLE_AVOID_STDINT  // No sense trying to use cstdint on older compilers that we know do not provide it
 #endif
@@ -118,7 +122,7 @@
 # endif
 #endif
 
-// For non-C++-11 environments, we don't have the ability to make a class final, so we just define 
+// For non-C++-11 environments, we don't have the ability to make a class final, so we just define
 // MUSCLE_FINAL_CLASS to expand to nothing, and leave it up to the user to know not to subclass the class.
 #ifndef MUSCLE_FINAL_CLASS
 # define MUSCLE_FINAL_CLASS
@@ -310,15 +314,15 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
 #   if defined(__cplusplus)
      namespace muscle {
         /** This class represents a return-value from a function or method that indicates success or failure.
-          * It's implemented as a class instead of as a typedef or enum so that the compiler can provide 
-          * stricter compile-time type-checking and better error-reporting functionality.  When a function 
+          * It's implemented as a class instead of as a typedef or enum so that the compiler can provide
+          * stricter compile-time type-checking and better error-reporting functionality.  When a function
           * wants to indicate that it succeeded, it should return B_NO_ERROR (or B_OK, which is a synonym).
-          * If the function wants to indicate that it failed, it can return B_ERROR to indicate a 
-          * general/undescribed failure, or one of the other B_SOMETHING values (as listed in 
-          * support/MuscleSupport.h), or it can return B_ERROR("Some Error Description") if it wants to 
-          * describe its failure using an ad-hoc human-readable string.  In that last case, make sure the 
-          * string you pass in to B_ERROR is a compile-time constant, or in some other way * will remain 
-          * valid indefinitely, since the status_t object will keep only a (const char *) pointer to the 
+          * If the function wants to indicate that it failed, it can return B_ERROR to indicate a
+          * general/undescribed failure, or one of the other B_SOMETHING values (as listed in
+          * support/MuscleSupport.h), or it can return B_ERROR("Some Error Description") if it wants to
+          * describe its failure using an ad-hoc human-readable string.  In that last case, make sure the
+          * string you pass in to B_ERROR is a compile-time constant, or in some other way * will remain
+          * valid indefinitely, since the status_t object will keep only a (const char *) pointer to the
           * string, and therefore depends on that pointed-to char-array remaining valid.
           */
         class status_t
@@ -329,7 +333,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
 
            /** Explicit Constructor.
              * param desc An optional human-description of the error.  If passed in as NULL (the default), the status will represent success.
-             * @note The (desc) string is NOT copied: only the pointer is retained, so any non-NULL (desc) argument 
+             * @note The (desc) string is NOT copied: only the pointer is retained, so any non-NULL (desc) argument
              *       should be a compile-time-constant string!
              */
            MUSCLE_CONSTEXPR explicit status_t(const char * desc) : _desc(desc) {/* empty */}
@@ -347,16 +351,20 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
               return _desc ? ((rhs._desc)&&(strcmp(_desc, rhs._desc) == 0)) : (rhs._desc == NULL);
            }
 
+#ifdef MUSCLE_USE_CPLUSPLUS17
            /** This method returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR,
              * otherwise it returns the first non-B_NO_ERROR value available.  This method is
              * useful for chaining a ordered series of operations together and then
              * checking the aggregate result (e.g. status_t ret = a().And(b()).And(c()).And(d());)
              * @param rhs the second status_t to test this status_t against
              * @note Unlike with the | operator (below), the order-of-operations here is
-             *       well-defined, at least in C++17 and later.
+             *       well-defined; however, this method is available only under C++17 or
+             *       later, because older versions of C++ don't specify a well-defined
+             *       order of operations for chained methods.
              * @note No short-circuiting is performed.
              */
            MUSCLE_CONSTEXPR status_t And(const status_t & rhs) const {return ((rhs.IsError())&&(!IsError())) ? rhs : *this;}
+#endif
 
            /** Comparison operator.  Returns true iff this object has a different value than (rhs)
              * @param rhs the status_t to compare against
@@ -365,7 +373,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
 
            /** This operator returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR,
              * otherwise it returns one of the non-B_NO_ERROR values.  This operator is
-             * useful for aggregating a unordered series of operations together and 
+             * useful for aggregating a unordered series of operations together and
              * checking the aggregate result (e.g. status_t ret = a() | b() | c() | d())
              * @param rhs the second status_t to test this status_t against
              * @note Due to the way the | operator is defined in C++, the order of evaluations
@@ -379,7 +387,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
              */
            status_t & operator |= (const status_t & rhs) {*this = ((*this)|rhs); return *this;}
 
-           /** Returns "OK" if this status_t indicates success; otherwise returns the human-readable description 
+           /** Returns "OK" if this status_t indicates success; otherwise returns the human-readable description
              * of the error this status_t indicates.
              */
            MUSCLE_CONSTEXPR const char * GetDescription() const {return IsOK() ? "OK" : _desc;}
@@ -394,7 +402,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
              * @note this allows for e.g. status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
              */
-           bool IsOK(status_t & writeErrorTo) const 
+           bool IsOK(status_t & writeErrorTo) const
            {
               const bool isOK = IsOK();
               if (isOK == false) writeErrorTo = *this;
@@ -408,7 +416,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
              * @note this allows for e.g. status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
              */
-           bool IsError(status_t & writeErrorTo) const 
+           bool IsError(status_t & writeErrorTo) const
            {
               const bool isError = IsError();
               if (isError) writeErrorTo = *this;
@@ -420,7 +428,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
              * @note if this is called on a status_t that has a NULL error-string, then (desc) will be ignored and
              *       the returned status_t will also have a NULL error string.  That is to avoid doing the wrong thing
              *       if someone tries to do a B_NO_ERROR("Yay") or etc.
-             */ 
+             */
            MUSCLE_CONSTEXPR status_t operator()(const char * desc) const {return status_t(_desc?desc:NULL);}
 
         private:
@@ -434,7 +442,7 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
 #       define B_ERRNO B_ERROR(strerror(GetErrno())) ///< Macro for return a B_ERROR with the current errno-string as its string-value
 #       define B_ERRNUM(errnum) ((errnum==0)?B_NO_ERROR:B_ERROR(strerror(errnum))) ///< Macro for converting an errno-style return value (0==success, negative==error_value) result into a status_t
 
-        // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of 
+        // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of
         // differently-phrased error strings for common types of reasons-for-failure)
         extern const status_t B_OUT_OF_MEMORY;  ///< "Out of Memory"  - we tried to allocate memory from the heap and got denied
         extern const status_t B_UNIMPLEMENTED;  ///< "Unimplemented"  - function is not implemented (for this OS?)
@@ -726,7 +734,7 @@ namespace ugly_swapcontents_method_sfinae_implementation
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
          T tmp(std::move(t1));
-         t1 = std::move(t2); 
+         t1 = std::move(t2);
          t2 = std::move(tmp);
 #else
          T tmp = t1;
@@ -1083,7 +1091,7 @@ MUSCLE_INLINE int32 B_SWAP_INT32(int32 arg)
    u2._i8[2] = u1._i8[1];
    u2._i8[3] = u1._i8[0];
    return u2._i32;
-}  
+}
 
 /** Given a 16-bit integer, returns its endian-swapped counterpart */
 MUSCLE_INLINE int16 B_SWAP_INT16(int16 arg)
@@ -1162,25 +1170,25 @@ static inline double B_REINTERPRET_INT64_AS_DOUBLE(uint64 arg) {double r; memcpy
 /** Given a 32-bit floating point value in native-endian form, returns a 32-bit integer contains the floating-point value's bits in big-endian format. */
 #define B_HOST_TO_BENDIAN_IFLOAT(arg)  B_HOST_TO_BENDIAN_INT32(B_REINTERPRET_FLOAT_AS_INT32(arg))
 
-/** Given a 32-bit integer representing a floating point value in big-endian format, returns the floating point value in native-endian form. */ 
+/** Given a 32-bit integer representing a floating point value in big-endian format, returns the floating point value in native-endian form. */
 #define B_BENDIAN_TO_HOST_IFLOAT(arg)  B_REINTERPRET_INT32_AS_FLOAT(B_BENDIAN_TO_HOST_INT32(arg))
 
 /** Given a 32-bit floating point value in native-endian form, returns a 32-bit integer contains the floating-point value's bits in little-endian format. */
 #define B_HOST_TO_LENDIAN_IFLOAT(arg)  B_HOST_TO_LENDIAN_INT32(B_REINTERPRET_FLOAT_AS_INT32(arg))
 
-/** Given a 32-bit integer representing a floating point value in little-endian format, returns the floating point value in native-endian form. */ 
+/** Given a 32-bit integer representing a floating point value in little-endian format, returns the floating point value in native-endian form. */
 #define B_LENDIAN_TO_HOST_IFLOAT(arg)  B_REINTERPRET_INT32_AS_FLOAT(B_LENDIAN_TO_HOST_INT32(arg))
 
 /** Given a 64-bit floating point value in native-endian form, returns a 64-bit integer contains the floating-point value's bits in big-endian format. */
 #define B_HOST_TO_BENDIAN_IDOUBLE(arg) B_HOST_TO_BENDIAN_INT64(B_REINTERPRET_DOUBLE_AS_INT64(arg))
 
-/** Given a 64-bit integer representing a floating point value in big-endian format, returns the double-precision floating point value in native-endian form. */ 
+/** Given a 64-bit integer representing a floating point value in big-endian format, returns the double-precision floating point value in native-endian form. */
 #define B_BENDIAN_TO_HOST_IDOUBLE(arg) B_REINTERPRET_INT64_AS_DOUBLE(B_BENDIAN_TO_HOST_INT64(arg))
 
 /** Given a 64-bit floating point value in native-endian format, returns a 64-bit integer contains the floating-point value's bits in little-endian format. */
 #define B_HOST_TO_LENDIAN_IDOUBLE(arg) B_HOST_TO_LENDIAN_INT64(B_REINTERPRET_DOUBLE_AS_INT64(arg))
 
-/** Given a 64-bit integer representing a floating point value in little-endian format, returns the double-precision floating point value in native-endian form. */ 
+/** Given a 64-bit integer representing a floating point value in little-endian format, returns the double-precision floating point value in native-endian form. */
 #define B_LENDIAN_TO_HOST_IDOUBLE(arg) B_REINTERPRET_INT64_AS_DOUBLE(B_LENDIAN_TO_HOST_INT64(arg))
 
 /* Macro to turn a type code into a string representation.
@@ -1457,13 +1465,13 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed = 0);
   */
 uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int seed = 0);
 
-/** Convenience method; returns the hash code of the given data item.  Any POD type will do. 
+/** Convenience method; returns the hash code of the given data item.  Any POD type will do.
   * @param val The value to calculate a hashcode for
   * @returns a hash code.
   */
 template<typename T> inline uint32 CalculateHashCode(const T & val) {return CalculateHashCode(&val, sizeof(val));}
 
-/** Convenience method; returns the 64-bit hash code of the given data item.  Any POD type will do. 
+/** Convenience method; returns the 64-bit hash code of the given data item.  Any POD type will do.
   * @param val The value to calculate a hashcode for
   * @returns a hash code.
   */
@@ -1501,7 +1509,7 @@ static inline uint32 EuclideanModulo(int32 value, uint32 divisor)
    // Derived from the code posted at https://stackoverflow.com/a/51959866/131930
    return (value < 0) ? ((divisor-1)-((-1-value)%divisor)) : (value%divisor);
 }
- 
+
 /** This hashing functor type handles the trivial cases, where the KeyType is
  *  Plain Old Data that we can just feed directly into the CalculateHashCode() function.
  *  For more complicated key types, you should define a method in your KeyType class
@@ -1513,7 +1521,7 @@ static inline uint32 EuclideanModulo(int32 value, uint32 divisor)
 template <class KeyType> class PODHashFunctor
 {
 public:
-   uint32 operator()(const KeyType & x) const 
+   uint32 operator()(const KeyType & x) const
    {
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
       static_assert(!std::is_class<KeyType>::value, "PODHashFunctor cannot be used on class or struct objects, because the object's compiler-inserted padding bytes would be unitialized and therefore they would cause inconsistent hash-code generation.  Try adding a 'uint32 HashCode() const' method to the class/struct instead.");
