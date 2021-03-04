@@ -235,11 +235,13 @@ Cleanup()
          // Remove all of our subscription-marks from neighbor's nodes
          SubscribeRefCallbackArgs srcArgs(-2147483647);  // remove all of our subscriptions no matter how many ref-counts we have
          (void) _subscriptions.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &srcArgs);
-      }
 
-      // Remove any cached tables that reference our session-ID String, as we know they can no longer be useful to anyone.
-      for (HashtableIterator<uint32, DataNodeSubscribersTableRef> iter(_sharedData->_cachedSubscribersTables); iter.HasData(); iter++)
-         if (iter.GetValue()()->GetSubscribers().ContainsKey(GetSessionIDString())) (void) _sharedData->_cachedSubscribersTables.Remove(iter.GetKey()); 
+         // Remove any cached tables that reference our session-ID String, as we know they can no longer be useful to anyone.
+         for (HashtableIterator<uint32, DataNodeSubscribersTableRef> iter(_sharedData->_cachedSubscribersTables); iter.HasData(); iter++)
+         {
+            if (iter.GetValue()()->GetSubscribers().ContainsKey(GetSessionIDString())) (void) _sharedData->_cachedSubscribersTables.Remove(iter.GetKey()); 
+         }
+      }
 
       _sharedData = NULL;
    }
