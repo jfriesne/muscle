@@ -69,6 +69,7 @@ int main(void)
       else printf("B All functions succeeded!\n");
    }
 
+#ifdef MUSCLE_USE_CPLUSPLUS17
    // Test And-chaining
    {
       printf("Testing And-Chaining:\n");
@@ -77,6 +78,7 @@ int main(void)
                 .And(Func3());
       printf("Final result is [%s]\n", ret());
    }
+#endif
 
    return 0;
 }
