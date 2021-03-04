@@ -69,5 +69,14 @@ int main(void)
       else printf("B All functions succeeded!\n");
    }
 
+   // Test And-chaining
+   {
+      printf("Testing And-Chaining:\n");
+      status_t ret = Func1()
+                .And(Func2())
+                .And(Func3());
+      printf("Final result is [%s]\n", ret());
+   }
+
    return 0;
 }

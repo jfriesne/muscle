@@ -24,6 +24,8 @@ key:  - new feature
      TemplatedMessageIOGateway by default.
    - Added a (maxRecursions) argument to the SortFieldNames()
      method of the Message class.
+   - Added a .And() method to the status_t class for easier
+     ordered-chaining of multiple status_t-returning calls.
    - Added a MRETURN_ON_ERROR macro to facility returning
      of status_t error-codes from function calls.
    - Added a MRETURN_ON_NULL(ptr) macro that will invoke

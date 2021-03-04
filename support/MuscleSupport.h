@@ -347,6 +347,17 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
               return _desc ? ((rhs._desc)&&(strcmp(_desc, rhs._desc) == 0)) : (rhs._desc == NULL);
            }
 
+           /** This method returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR,
+             * otherwise it returns the first non-B_NO_ERROR value available.  This method is
+             * useful for chaining a ordered series of operations together and then
+             * checking the aggregate result (e.g. status_t ret = a().And(b()).And(c()).And(d());)
+             * @param rhs the second status_t to test this status_t against
+             * @note Unlike with the | operator (below), the order-of-operations here is
+             *       well-defined, at least in C++17 and later.
+             * @note No short-circuiting is performed.
+             */
+           MUSCLE_CONSTEXPR status_t And(const status_t & rhs) const {return ((rhs.IsError())&&(!IsError())) ? rhs : *this;}
+
            /** Comparison operator.  Returns true iff this object has a different value than (rhs)
              * @param rhs the status_t to compare against
              */
