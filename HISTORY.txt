@@ -49,6 +49,9 @@ key:  - new feature
      a NULL data-pointer could cause a crash.
    * Fixed a potential crash-on-exit bug in the
      StorageReflectSession class's Cleanup method.
+   * Fixed a bug in the pthreads implementation of
+     Mutex::TryLock() (it was calling through to
+     pthread_mutex_lock() rather than pthread_mutex_trylock())
 
 7.71 - Released 2/14/2021
    - Added copy-constructor and assignment-operator to the

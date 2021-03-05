@@ -184,7 +184,7 @@ public:
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       return _locker.try_lock() ? B_NO_ERROR : B_LOCK_FAILED;
 # elif defined(MUSCLE_USE_PTHREADS)
-      const int pret = pthread_mutex_lock(&_locker);
+      const int pret = pthread_mutex_trylock(&_locker);
       return (pret == EBUSY) ? B_LOCK_FAILED : B_ERRNUM(pret);
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       return TryEnterCriticalSection(&_locker) ? B_NO_ERROR : B_LOCK_FAILED;
