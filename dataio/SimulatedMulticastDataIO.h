@@ -65,6 +65,7 @@ private:
    // For this class, you have to choose your destination address in the constructor, and stick with it
    virtual status_t SetPacketSendDestination(const IPAddressAndPort & /*iap*/) {return B_UNIMPLEMENTED;}
 
+   UDPSocketDataIORef CreateMulticastUDPDataIO(const IPAddressAndPort & iap) const;
    void ShutdownAux();
    status_t ReadPacket(DataIO & dio, ByteBufferRef & retBuf);
    status_t SendIncomingDataPacketToMainThread(const ByteBufferRef & data, const IPAddressAndPort & source);

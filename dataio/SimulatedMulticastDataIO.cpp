@@ -24,7 +24,7 @@ SimulatedMulticastDataIO :: SimulatedMulticastDataIO(const IPAddressAndPort & mu
    SetEnobufsErrorMode(false);  // initialize _enobufsCount and _nextErrorModeSendTime to their default settings
 
    status_t ret;
-   if (StartInternalThread().IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  Unable to start internal thread for group [%s] [%s]\n", multicastAddress.ToString()(), ret());
+   if (StartInternalThread().IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  Unable to start internal thread for group [%s] [%s]\n", this, multicastAddress.ToString()(), ret());
 }
 
 enum {
@@ -61,7 +61,7 @@ int32 SimulatedMulticastDataIO :: ReadFrom(void * buffer, uint32 size, IPAddress
       break;
 
       default:
-         LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO::ReadFrom():  Unexpected whatCode " UINT32_FORMAT_SPEC "\n", msg()->what);
+         LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  ReadFrom():  Unexpected whatCode " UINT32_FORMAT_SPEC "\n", this, msg()->what);
       break;
    }
    return 0;
@@ -83,7 +83,7 @@ int32 SimulatedMulticastDataIO :: WriteTo(const void * buffer, uint32 size, cons
            (SendMessageToInternalThread(toInternalThreadMsg).IsOK())) ? size : -1;
 }
 
-static UDPSocketDataIORef CreateMulticastUDPDataIO(const IPAddressAndPort & iap)
+UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IPAddressAndPort & iap) const
 {
    ConstSocketRef udpSock = CreateUDPSocket();
    if (udpSock() == NULL) return UDPSocketDataIORef();
@@ -92,7 +92,7 @@ static UDPSocketDataIORef CreateMulticastUDPDataIO(const IPAddressAndPort & iap)
    status_t errRet;
    if (BindUDPSocket(udpSock, iap.GetPort(), NULL, invalidIP, true).IsError(errRet))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "SimulatedUDPMulticastDataIO:  Unable to bind multicast socket to UDP port %u! [%s]\n", iap.GetPort(), errRet());
+      LogTime(MUSCLE_LOG_CRITICALERROR, "SimulatedMulticastDataIO %p:  Unable to bind multicast socket to UDP port %u! [%s]\n", this, iap.GetPort(), errRet());
       return UDPSocketDataIORef();
    }
 
@@ -100,13 +100,13 @@ static UDPSocketDataIORef CreateMulticastUDPDataIO(const IPAddressAndPort & iap)
    const uint8 dummyBuf = 0;  // doesn't matter what this is, I just want to make sure I can actually send on this socket
    if (SendDataUDP(udpSock, &dummyBuf, 0, true, iap.GetIPAddress(), iap.GetPort()) != 0)
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "SimulatedUDPMulticastDataIO:  Unable to send test UDP packet to multicast destination [%s]\n", iap.ToString()());
+      LogTime(MUSCLE_LOG_CRITICALERROR, "SimulatedMulticastDataIO %p:  Unable to send test UDP packet to multicast destination [%s]\n", this, iap.ToString()());
       return UDPSocketDataIORef();
    }
 
    if (AddSocketToMulticastGroup(udpSock, iap.GetIPAddress()).IsError(errRet))
    {
-      LogTime(MUSCLE_LOG_ERROR, "SimulatedUDPMulticastDataIO:  Unable to add UDP socket to multicast address [%s] [%s]\n", Inet_NtoA(iap.GetIPAddress())(), errRet());
+      LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  Unable to add UDP socket to multicast address [%s] [%s]\n", this, Inet_NtoA(iap.GetIPAddress())(), errRet());
       return UDPSocketDataIORef();
    }
 
@@ -370,7 +370,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
       UDPSocketDataIORef & io = _udpDataIOs[i];
       if ((io() == NULL)||(RegisterInternalThreadSocket(io()->GetReadSelectSocket(), SOCKET_SET_READ).IsError()))
       {
-         LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  Unable to set up %s UDP socket\n", GetUDPSocketTypeName(i));
+         LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  Unable to set up %s UDP socket\n", this, GetUDPSocketTypeName(i));
          Thread::InternalThreadEntry();  // just wait for death, then
          return;
       }
@@ -405,12 +405,12 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
                      }
                      else if (IsInEnobufsErrorMode() == false) outgoingUserPacketsQueue.AddTail(data);  // Normal case:  the packet will go out via simulated-multicast
                   }
-                  else LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  No data in SMDIO_COMMAND_DATA Message!\n");
+                  else LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  No data in SMDIO_COMMAND_DATA Message!\n", this);
                }
                break;
 
                default:
-                  LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO:  Got unexpected whatCode " UINT32_FORMAT_SPEC " from main thread.\n", msgRef()->what);
+                  LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  Got unexpected whatCode " UINT32_FORMAT_SPEC " from main thread.\n", this, msgRef()->what);
                break;
             }
          }
@@ -452,7 +452,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
                      break;
 
                      default:
-                        LogTime(MUSCLE_LOG_WARNING, "SimulatedMulticastDataIO:  Got unexpected what-code " UINT32_FORMAT_SPEC " from %s\n", whatCode, fromIAP.ToString()());
+                        LogTime(MUSCLE_LOG_WARNING, "SimulatedMulticastDataIO %p:  Got unexpected what-code " UINT32_FORMAT_SPEC " from %s\n", this, whatCode, fromIAP.ToString()());
                      break;
                   }
                }
