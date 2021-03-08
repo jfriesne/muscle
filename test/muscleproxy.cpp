@@ -64,7 +64,7 @@ public:
 
       // Launch our connection to the upstream server that we will forward our client's data to
       _upstreamSession.SetRef(newnothrow UpstreamSession(this));
-      if (_upstreamSession() == NULL) MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(_upstreamSession());
 
       return AddNewConnectSession(_upstreamSession, _upstreamLocation.GetIPAddress(), _upstreamLocation.GetPort());
    }

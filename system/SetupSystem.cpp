@@ -1064,7 +1064,7 @@ status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeade
    else
    {
       b = bigBuf = newnothrow_array(uint8, bufSize);
-      if (bigBuf == NULL) MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(bigBuf);
    }
 
    // Populate the buffer
@@ -1099,7 +1099,7 @@ status_t Flattenable :: UnflattenFromDataIO(DataIO & inputStream, int32 optReadS
    else
    {
       b = bigBuf = newnothrow_array(uint8, readSize);
-      if (bigBuf == NULL) MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(bigBuf);
    }
 
    const status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? Unflatten(b, readSize) : B_IO_ERROR;
@@ -1115,7 +1115,7 @@ status_t Flattenable :: CopyFromImplementation(const Flattenable & copyFrom)
    if (flatSize > ARRAYITEMS(smallBuf))
    {
       bigBuf = newnothrow_array(uint8, flatSize);
-      if (bigBuf == NULL) MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(bigBuf);
    }
    copyFrom.Flatten(bigBuf ? bigBuf : smallBuf);
    const status_t ret = Unflatten(bigBuf ? bigBuf : smallBuf, flatSize);

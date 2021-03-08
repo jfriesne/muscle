@@ -115,17 +115,15 @@ status_t FilterSessionFactory :: PutBanPattern(const String & banPattern)
    if (_bans.ContainsKey(banPattern)) return B_NO_ERROR;
 
    StringMatcherRef newMatcherRef(newnothrow StringMatcher(banPattern));
-   if (newMatcherRef())
+   MRETURN_OOM_ON_NULL(newMatcherRef());
+
+   status_t ret;
+   if (_bans.Put(banPattern, newMatcherRef).IsOK(ret))
    {
-      status_t ret;
-      if (_bans.Put(banPattern, newMatcherRef).IsOK(ret))
-      {
-         if (_tempLogFor) LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is banning [%s] on port %u\n", _tempLogFor->GetHostName()(), _tempLogFor->GetSessionIDString()(), banPattern(), _tempLogFor->GetPort());
-         return B_NO_ERROR;
-      }
-      return ret;
+      if (_tempLogFor) LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is banning [%s] on port %u\n", _tempLogFor->GetHostName()(), _tempLogFor->GetSessionIDString()(), banPattern(), _tempLogFor->GetPort());
+      return B_NO_ERROR;
    }
-   else MRETURN_OUT_OF_MEMORY;
+   return ret;
 }
 
 status_t FilterSessionFactory :: PutRequirePattern(const String & requirePattern)
@@ -135,17 +133,15 @@ status_t FilterSessionFactory :: PutRequirePattern(const String & requirePattern
    if (_requires.ContainsKey(requirePattern)) return B_NO_ERROR;
 
    StringMatcherRef newMatcherRef(newnothrow StringMatcher(requirePattern));
-   if (newMatcherRef())
+   MRETURN_OOM_ON_NULL(newMatcherRef());
+
+   status_t ret;
+   if (_requires.Put(requirePattern, newMatcherRef).IsOK(ret))
    {
-      status_t ret;
-      if (_requires.Put(requirePattern, newMatcherRef).IsOK(ret))
-      {
-         if (_tempLogFor) LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is requiring [%s] on port %u\n", _tempLogFor->GetHostName()(), _tempLogFor->GetSessionIDString()(), requirePattern(), _tempLogFor->GetPort());
-         return B_NO_ERROR;
-      }
-      return ret;
+      if (_tempLogFor) LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is requiring [%s] on port %u\n", _tempLogFor->GetHostName()(), _tempLogFor->GetSessionIDString()(), requirePattern(), _tempLogFor->GetPort());
+      return B_NO_ERROR;
    }
-   else MRETURN_OUT_OF_MEMORY;
+   return ret;
 }
 
 status_t FilterSessionFactory :: RemoveBanPattern(const String & banPattern)

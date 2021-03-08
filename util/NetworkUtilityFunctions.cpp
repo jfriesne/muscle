@@ -1688,7 +1688,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             outBufLen *= 2;
 
             pAddresses = (IP_ADAPTER_ADDRESSES *) muscleAlloc(outBufLen);
-            if (pAddresses == NULL) MRETURN_OUT_OF_MEMORY;
+            MRETURN_OOM_ON_NULL(pAddresses);
          break;
 
          case ERROR_SUCCESS:

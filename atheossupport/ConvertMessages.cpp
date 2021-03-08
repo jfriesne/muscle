@@ -106,14 +106,13 @@ status_t ConvertFromAMessage(const os::Message & from, Message & to)
                {
                   os::Message amsg;
                   if (amsg.Unflatten(static_cast<const uint8 *>(nextItem)) != B_NO_ERROR) return B_ERROR;
+
                   Message * newMsg = newnothrow Message;
-                  if (newMsg)
-                  {
-                     MessageRef msgRef(newMsg);
-                     if (ConvertFromAMessage(amsg, *newMsg) != B_NO_ERROR) return B_ERROR;
-                     if (to.AddMessage(name.c_str(), msgRef) != B_NO_ERROR) return B_ERROR;
-                  }
-                  else MRETURN_OUT_OF_MEMORY;
+                  MRETURN_OOM_ON_NULL(newMsg);
+
+                  MessageRef msgRef(newMsg);
+                  if (ConvertFromAMessage(amsg, *newMsg) != B_NO_ERROR) return B_ERROR;
+                  if (to.AddMessage(name.c_str(), msgRef) != B_NO_ERROR) return B_ERROR;
                }
                break;
 

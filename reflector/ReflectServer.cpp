@@ -380,7 +380,7 @@ ServerProcessLoop()
    if ((_mainReflectServerCatchSignals)&&(IsCurrentThreadMainThread()))
    {
       SignalHandlerSessionRef shs(newnothrow SignalHandlerSession);
-      if (shs() == NULL) MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(shs());
       if (AddNewSession(shs).IsError(ret))
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::ReadyToRun:  Could not install SignalHandlerSession!\n");

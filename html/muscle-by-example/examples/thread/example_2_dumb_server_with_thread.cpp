@@ -115,23 +115,17 @@ private:
    {
       // Allocate the sockets we will use to signal the thread...
       const ConstSocketRef & sock = GetOwnerWakeupSocket();  // the socket we will read a byte on when the internal thread has a reply Message ready for us
-      if (sock())
-      {
-         DataIORef dataIORef(newnothrow TCPSocketDataIO(sock, false));
-         if (dataIORef())
-         {
-            AbstractMessageIOGatewayRef gw(newnothrow SignalMessageIOGateway());
-            if (gw())
-            {
-               gw()->SetDataIO(dataIORef);
-               SetGateway(gw);
-               return B_NO_ERROR;
-            }
-            else MRETURN_OUT_OF_MEMORY;
-         }
-         else MRETURN_OUT_OF_MEMORY;
-      }
-      return B_BAD_OBJECT;
+      if (sock() == NULL) return B_BAD_OBJECT;
+
+      DataIORef dataIORef(newnothrow TCPSocketDataIO(sock, false));
+      MRETURN_OOM_ON_NULL(dataIORef());
+
+      AbstractMessageIOGatewayRef gw(newnothrow SignalMessageIOGateway());
+      MRETURN_OOM_ON_NULL(gw());
+
+      gw()->SetDataIO(dataIORef);
+      SetGateway(gw);
+      return B_NO_ERROR;
    }
 
    bool _gatewayOK;

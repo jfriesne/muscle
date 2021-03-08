@@ -764,7 +764,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
          {
             // Here we call muscleRealloc() to (hopefully) avoid unnecessary data copying
             newBuf = (char *) muscleRealloc(_strData._bigBuffer, newBufLen);
-            if (newBuf == NULL) MRETURN_OUT_OF_MEMORY;
+            MRETURN_OOM_ON_NULL(newBuf);
          }
       }
       else 
@@ -781,7 +781,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
          {
             // Oops, muscleRealloc() won't do in this case.... we'll just have to copy the bytes over
             newBuf = (char *) muscleAlloc(newBufLen);
-            if (newBuf == NULL) MRETURN_OUT_OF_MEMORY;
+            MRETURN_OOM_ON_NULL(newBuf);
             memcpy(newBuf, GetBuffer(), muscleMin(Length()+1, newBufLen));
          }
       }
@@ -798,7 +798,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
       else
       {
          newBuf = (char *) muscleAlloc(newBufLen);
-         if (newBuf == NULL) MRETURN_OUT_OF_MEMORY;
+         MRETURN_OOM_ON_NULL(newBuf);
          newBuf[0] = '\0';  // avoid potential user-visible garbage bytes
          if (arrayWasDynamicallyAllocated) muscleFree(_strData._bigBuffer);
       }
@@ -1168,12 +1168,10 @@ status_t String :: SetFromCFStringRef(const CFStringRef & cfStringRef)
       const bool doAlloc    = (allocLen > sizeof(tempBuf));
 
       char * str = doAlloc ? (char *)muscleAlloc(allocLen) : tempBuf;
-      if (str)
-      {
-         ret = CFStringGetCString(cfStringRef, str, allocLen, kCFStringEncodingUTF8) ? SetCstr(str) : B_ERROR("CFStringGetCString() failed");
-         if (doAlloc) muscleFree(str);
-      }
-      else MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(str);
+
+      ret = CFStringGetCString(cfStringRef, str, allocLen, kCFStringEncodingUTF8) ? SetCstr(str) : B_ERROR("CFStringGetCString() failed");
+      if (doAlloc) muscleFree(str);
    }
    else Clear();
 

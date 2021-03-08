@@ -50,12 +50,10 @@ status_t ByteBuffer :: SetNumBytes(uint32 newNumBytes, bool retainData)
       if (retainData)
       {
          uint8 * newBuf = (uint8 *) (as ? as->Realloc(_buffer, newNumBytes, _numAllocatedBytes, true) : muscleRealloc(_buffer, newNumBytes));
-         if (newBuf)
-         {
-            _buffer = newBuf;
-            _numAllocatedBytes = _numValidBytes = newNumBytes;
-         }
-         else MRETURN_OUT_OF_MEMORY;
+         MRETURN_OOM_ON_NULL(newBuf);
+
+         _buffer = newBuf;
+         _numAllocatedBytes = _numValidBytes = newNumBytes;
       }
       else
       {
@@ -63,7 +61,7 @@ status_t ByteBuffer :: SetNumBytes(uint32 newNumBytes, bool retainData)
          if (newNumBytes > 0)
          {
             newBuf = (uint8 *) (as ? as->Malloc(newNumBytes) : muscleAlloc(newNumBytes));
-            if (newBuf == NULL) MRETURN_OUT_OF_MEMORY;
+            MRETURN_OOM_ON_NULL(newBuf);
          }
          if (as) as->Free(_buffer, _numAllocatedBytes); else muscleFree(_buffer);
          _buffer = newBuf;
@@ -84,8 +82,9 @@ status_t ByteBuffer :: AppendBytes(const uint8 * bytes, uint32 numBytes, bool al
       // Oh dear, caller wants us to add a copy of some of our own bytes to ourself, AND we'll need to perform a reallocation to do it!
       // So to avoid freeing (bytes) before we read from them, we're going to copy them over to a temporary buffer first.
       uint8 * tmpBuf = newnothrow uint8[numBytes];
-      if (tmpBuf) memcpy(tmpBuf, bytes, numBytes);
-             else MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(tmpBuf);
+      memcpy(tmpBuf, bytes, numBytes);
+
       const status_t ret = AppendBytes(tmpBuf, numBytes, allocExtra);
       delete [] tmpBuf;
       return ret;

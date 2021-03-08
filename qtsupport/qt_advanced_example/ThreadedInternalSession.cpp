@@ -172,25 +172,19 @@ status_t ThreadedInternalSession :: SetupNotifierGateway()
    // Set up the sockets, DataIO, and SignalMessageIOGateway that we will use to signal
    // the MUSCLE thread that the internal thread has Messages ready for it to receive, and vice versa.
    const ConstSocketRef & socket = GetOwnerWakeupSocket();
-   if (socket())
-   {
-      // This is a socket connection between the internal thread and the MUSCLE thread, used for signalling only
-      // We don't send the actual Messages over it, we only use it to wake up the other thread by sending
-      // a single byte across the TCP connection.  This makes the messaging efficient even when the Messages
-      // are large, because (once created) the Messages never need to be copied or flattened/unflattened.
-      DataIORef dataIORef(newnothrow TCPSocketDataIO(socket, false));
-      if (dataIORef())
-      {
-         AbstractMessageIOGatewayRef gw(newnothrow SignalMessageIOGateway());
-         if (gw())
-         {
-            gw()->SetDataIO(dataIORef);
-            SetGateway(gw);
-            return B_NO_ERROR;
-         }
-         else MRETURN_OUT_OF_MEMORY;
-      }
-      else MRETURN_OUT_OF_MEMORY;
-   }
-   else return B_BAD_OBJECT;
+   if (socket() == NULL) return B_BAD_OBJECT;
+
+   // This is a socket connection between the internal thread and the MUSCLE thread, used for signalling only
+   // We don't send the actual Messages over it, we only use it to wake up the other thread by sending
+   // a single byte across the TCP connection.  This makes the messaging efficient even when the Messages
+   // are large, because (once created) the Messages never need to be copied or flattened/unflattened.
+   DataIORef dataIORef(newnothrow TCPSocketDataIO(socket, false));
+   MRETURN_OOM_ON_NULL(dataIORef());
+
+   AbstractMessageIOGatewayRef gw(newnothrow SignalMessageIOGateway());
+   MRETURN_OOM_ON_NULL(gw());
+
+   gw()->SetDataIO(dataIORef);
+   SetGateway(gw);
+   return B_NO_ERROR;
 }

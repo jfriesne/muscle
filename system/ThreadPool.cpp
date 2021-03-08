@@ -144,7 +144,7 @@ status_t ThreadPool :: SendMessageToThreadPool(IThreadPoolClient * client, const
    if (isBeingHandled == NULL) return B_BAD_ARGUMENT;   
 
    Queue<MessageRef> * mq = ((*isBeingHandled)?_deferredMessages:_pendingMessages).GetOrPut(client);
-   if (mq == NULL) MRETURN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(mq);
 
    status_t ret;
    if (mq->AddTail(msg).IsError(ret)) return ret;

@@ -219,7 +219,7 @@ using std::set_new_handler;
 #define MRETURN_ON_ERROR(cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) return the_return_value;}
 
 /** This macro invokes the MRETURN_OUT_OF_MEMORY macro if the argument is a NULL pointer. */
-#define MRETURN_ON_NULL(ptr) {if (ptr==NULL) MRETURN_OUT_OF_MEMORY;}
+#define MRETURN_OOM_ON_NULL(ptr) {if (ptr==NULL) MRETURN_OUT_OF_MEMORY;}
 
 /** This macro logs a warning message including the the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
 #define MCHECKPOINT muscle::LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)

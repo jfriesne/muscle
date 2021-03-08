@@ -338,14 +338,14 @@ status_t RawDataQueryFilter :: SetFromArchive(const Message & archive)
    if (archive.FindData("val", B_RAW_TYPE, &data, &numBytes).IsOK())
    {
       _value = GetByteBufferFromPool(numBytes, (const uint8 *) data);
-      if (_value() == NULL) MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(_value());
    }
 
    _default.Reset();
    if (archive.FindData("def", B_RAW_TYPE, &data, &numBytes).IsOK())
    {
       _default = GetByteBufferFromPool(numBytes, (const uint8 *) data);
-      if (_default() == NULL) MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(_default());
    }
 
    return B_NO_ERROR;

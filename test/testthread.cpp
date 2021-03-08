@@ -22,13 +22,11 @@ public:
 
        const bool hasValue = (_tls.GetThreadLocalObject() != NULL);
        int * tls = _tls.GetOrCreateThreadLocalObject();
-       if (tls)
-       {
-          if (hasValue == false) *tls = 12;
-          if (msgRef()) {printf("threadTLS=%i: Internal thread saw: ", *tls); msgRef()->PrintToStream(); return B_NO_ERROR;}
-                   else {printf("threadTLS=%i: Internal thread exiting\n", *tls); return B_ERROR;}
-       }
-       else MRETURN_OUT_OF_MEMORY;
+       MRETURN_OOM_ON_NULL(tls);
+
+       if (hasValue == false) *tls = 12;
+       if (msgRef()) {printf("threadTLS=%i: Internal thread saw: ", *tls); msgRef()->PrintToStream(); return B_NO_ERROR;}
+                else {printf("threadTLS=%i: Internal thread exiting\n", *tls); return B_ERROR;}
    }
 };
 

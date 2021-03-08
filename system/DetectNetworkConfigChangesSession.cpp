@@ -639,7 +639,7 @@ static status_t RegisterWithSingletonThread(DetectNetworkConfigChangesSession * 
    if (_singletonThread == NULL)
    {
       _singletonThread = newnothrow DetectNetworkConfigChangesThread;
-      if (_singletonThread == NULL) MRETURN_OUT_OF_MEMORY; 
+      MRETURN_OOM_ON_NULL(_singletonThread);
    }
 
    status_t ret;

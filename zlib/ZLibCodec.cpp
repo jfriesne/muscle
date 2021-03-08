@@ -278,7 +278,7 @@ status_t ZLibCodec :: ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO &
    if (scratchInBuf.GetNumBytes() == 0) MRETURN_OUT_OF_MEMORY;
 
    ByteBuffer scratchOutBuf(scratchInBuf.GetNumBytes()*8);
-   if (scratchOutBuf.GetNumBytes() == 0) MRETURN_OUT_OF_MEMORY ;
+   if (scratchOutBuf.GetNumBytes() == 0) MRETURN_OUT_OF_MEMORY;
 
    uint8 headerBuf[ZLIB_CODEC_HEADER_SIZE];
    const uint32 headerBytesRead = sourceDeflatedIO.ReadFully(headerBuf, sizeof(headerBuf));

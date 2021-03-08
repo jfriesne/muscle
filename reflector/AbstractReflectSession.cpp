@@ -179,14 +179,14 @@ Reconnect()
    if ((publicKey())&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL))
    {
       SSLSocketDataIO * ssio = newnothrow SSLSocketDataIO(sock, false, false);
-      if (ssio == NULL) MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(ssio);
       io.SetRef(ssio);
       if (ssio->SetPublicKeyCertificate(publicKey).IsError(ret)) return ret;
 
       if (dynamic_cast<SSLSocketAdapterGateway *>(_gateway()) == NULL) 
       {
          _gateway.SetRef(newnothrow SSLSocketAdapterGateway(_gateway));
-         if (_gateway() == NULL) MRETURN_OUT_OF_MEMORY;
+         MRETURN_OOM_ON_NULL(_gateway());
       }
    }
 #endif

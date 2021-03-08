@@ -31,7 +31,7 @@ key:  - new feature
      set when compiling with C++17 or later.
    - Added a MRETURN_ON_ERROR macro to facility returning
      of status_t error-codes from function calls.
-   - Added a MRETURN_ON_NULL(ptr) macro that will invoke
+   - Added a MRETURN_OOM_ON_NULL(ptr) macro that will invoke
      MRETURN_OUT_OF_MEMORY if the passed-in pointer is NULL.
    o Added template-testing code to testmessage.cpp
    o Replaced explicit comparisons to B_NO_ERROR with calls

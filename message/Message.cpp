@@ -952,17 +952,15 @@ public:
             return B_BAD_DATA;  // message size too large for our buffer... corruption?
          }
          MessageRef nextMsg = GetMessageFromPool();
-         if (nextMsg())
+         MRETURN_OOM_ON_NULL(nextMsg());
+
+         if (nextMsg()->Unflatten(&buffer[readOffset], readFs).IsError(ret))
          {
-            if (nextMsg()->Unflatten(&buffer[readOffset], readFs).IsError(ret))
-            {
-               LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Sub-message unflatten failed (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ", readFs=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, readOffset, numBytes, readFs, ret());
-               return ret;
-            }
-            if (AddDataItem(&nextMsg, sizeof(nextMsg)).IsError(ret)) return ret;
-            readOffset += readFs;
+            LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Sub-message unflatten failed (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ", readFs=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, readOffset, numBytes, readFs, ret());
+            return ret;
          }
-         else MRETURN_OUT_OF_MEMORY;
+         if (AddDataItem(&nextMsg, sizeof(nextMsg)).IsError(ret)) return ret;
+         readOffset += readFs;
       }
       return B_NO_ERROR;
    }
@@ -1706,7 +1704,7 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
       if (isVariableSize)
       {
          ByteBufferRef bufRef = GetByteBufferFromPool(elementSize, (const uint8 *)dataToAdd);
-         if (bufRef() == NULL) MRETURN_OUT_OF_MEMORY;
+         MRETURN_OOM_ON_NULL(bufRef());
          fcRef.SetFromRefCountableRef(bufRef.GetRefCountableRef());
          dataToAdd = &fcRef;
          addSize = sizeof(fcRef);
@@ -2142,7 +2140,7 @@ status_t Message :: ReplaceData(bool okayToAdd, const String & fieldName, uint32
       if (isVariableSize)
       {
          ref.SetFromRefCountableRef(GetByteBufferFromPool(elementSize, (const uint8 *)dataToAdd).GetRefCountableRef());
-         if (ref() == NULL) MRETURN_OUT_OF_MEMORY;
+         MRETURN_OOM_ON_NULL(ref());
          dataToAdd = &ref;
          addSize = sizeof(ref);
       }
@@ -3313,7 +3311,7 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
 status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String & fieldName, const uint8 * & buf, uint32 & bufSize) const
 {
    MessageField * mf = unflattenTo.GetOrCreateMessageField(fieldName, _typeCode);
-   if (mf == NULL) MRETURN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(mf);
 
    status_t ret;
 
@@ -3376,7 +3374,7 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
             // the traditional full-metadata-included format, but our sub-Message's data is expected to be in
             // the new templated/payload-only format.
             MessageRef subMsg = GetMessageFromPool();
-            if (subMsg() == NULL) MRETURN_OUT_OF_MEMORY;
+            MRETURN_OOM_ON_NULL(subMsg());
 
             const Message * templateMsg = static_cast<const Message *>(GetItemAtAsRefCountableRef(i)());
             if (subMsg()->TemplatedUnflatten(*templateMsg, subBuf, itemSize).IsError(ret))

@@ -247,7 +247,7 @@ static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * op
          if ((optAddToMsg->GetInfo(checkForSection, &tc).IsOK())&&(tc != B_MESSAGE_TYPE)) (void) optAddToMsg->RemoveName(checkForSection);
 
          MessageRef subMsg = GetMessageFromPool();
-         if (subMsg() == NULL) MRETURN_OUT_OF_MEMORY;
+         MRETURN_OOM_ON_NULL(subMsg());
          if ((optAddToMsg->AddMessage(checkForSection, subMsg).IsError(ret))||(ParseFileAux(optTok, fpIn, subMsg(), optAddToQueue, scratchBuf, bufSize, cs).IsError(ret))) return ret;
       }
       else if ((checkForSection == "end")||(checkForSection.StartsWith("end "))) return B_NO_ERROR;
@@ -269,13 +269,11 @@ static status_t ParseFileAux(const String * optInStr, FILE * fpIn, Message * opt
    {
       const int bufSize = 2048;
       char * buf = newnothrow_array(char, bufSize);
-      if (buf)
-      {
-         const status_t ret = ParseFileAux(NULL, fpIn, optAddToMsg, optAddToQueue, buf, bufSize, cs);
-         delete [] buf;
-         return ret;
-      }
-      else MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(buf);
+
+      const status_t ret = ParseFileAux(NULL, fpIn, optAddToMsg, optAddToQueue, buf, bufSize, cs);
+      delete [] buf;
+      return ret;
    }
 }
 status_t ParseFile(FILE * fpIn, Message & addTo, bool cs)            {return ParseFileAux(NULL, fpIn, &addTo, NULL,   cs);}
@@ -1011,7 +1009,7 @@ status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg, 
    else
    {
       MessageRef newBatchMsg = GetMessageFromPool(PR_COMMAND_BATCH);
-      if (newBatchMsg() == NULL) MRETURN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(newBatchMsg());
 
       status_t ret;
       if ((newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?newMsg:batchMsg).IsOK(ret))&&(newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?batchMsg:newMsg).IsOK(ret)))
