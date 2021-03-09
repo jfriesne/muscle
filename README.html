@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-2/14/2021 v7.71 jaf@meyersound.com<p>
+3/8/2021 v8.00 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -125,6 +125,7 @@ Directory contents descriptions follow:
     <tr><td>SLIPFramedDataMessageIOGateway</td><td>Similar to the RawDataMessageIOGateway class, except it uses SLIP framing conventions</td></tr>
     <tr><td>SSLSocketAdapterGateway</td><td>An adapter class to provide transparent support for OpenSSL's particular I/O needs</td></tr>
     <tr><td>SignalMessageIOGateway</td><td>Dummy gateway that doesn't send actual data, only indicates when data is available</td></tr>
+    <tr><td>TemplatingMessageIOGateway</td><td>A specialized MessgeIOGateway class that sends Messages' metadata separately from their payload data, to reduce bandwidth</td></tr>
    </table>
 
 <p>

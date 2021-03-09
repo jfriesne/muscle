@@ -16,8 +16,8 @@
           int localVarsAreLowerCamelCase = 0;
 
           // On failure, prefer returning an error-code 
-          // (usually B_ERROR) over throwing an exception
-          if (SomethingWentWrong()) return B_ERROR;  
+          // (e.g. B_ERROR) over throwing an exception
+          if (SomethingWentWrong()) return B_ERROR("Something bad happened");
 
           [...]
 

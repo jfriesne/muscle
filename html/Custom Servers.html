@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
    <H1>Implementing a Custom Server with MUSCLE</H1>
-   <H4>v7.71 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 2/14/2021</H4>
+   <H4>v8.00 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 3/8/2021</H4>
 </HEAD>
 <BODY bgcolor=#ffffff>
 <H2>Introduction</H2>
@@ -25,7 +25,7 @@ The AbstractReflectSession class is an abstract base class, each object of which
 <li>
 <i>virtual status_t AttachedToServer();</i>
 <p>
-   When the server receives a new TCP connection from a client, it uses the factory object passed in to its constructor to create a new AbstractReflectSession object.  After the session object is created and initialized, this method is called on it.  Here is where you can do any setup work that needs to be done for your new client, and return B_NO_ERROR if everything is okay.  If something has gone horribly wrong, you can return B_ERROR, and the connection to the client will be closed, and this session object deleted.  Be sure to call your superclass's AttachedToServer() method as the first thing in your implementation, otherwise your session won't get set up properly!
+   When the server receives a new TCP connection from a client, it uses the factory object passed in to its constructor to create a new AbstractReflectSession object.  After the session object is created and initialized, this method is called on it.  Here is where you can do any setup work that needs to be done for your new client, and return B_NO_ERROR if everything is okay.  If something has gone horribly wrong, you can return an error code (e.g. B_ERROR or B_BAD_OBJECT or similar), and the connection to the client will be closed, and this session object deleted.  Be sure to call your superclass's AttachedToServer() method as the first thing in your implementation, otherwise your session won't get set up properly!
 </li>
 <p>
 <li>
@@ -76,7 +76,7 @@ The ReflectServer class is a singleton-style class in the MUSCLE framework;  it 
 <li>
 <i>virtual status_t ReadyToRun();</i>
 <p>
-   Called when the server starts up.  You can do any initialization work here, and return B_NO_ERROR if you are ready to go.  (B_ERROR will abort startup).
+   Called when the server starts up.  You can do any initialization work here, and return B_NO_ERROR if you are ready to go.  (Any other return value, such as B_ERROR, will abort startup).
 </li>
 <p>
 <li>
@@ -115,8 +115,8 @@ int main(int argc, char ** argv)
    ReflectServer myServer;  // instantiate regular ReflectServer or your own subclass
    myServer.PutAcceptFactory(2960, ReflectSessionFactoryRef(new MySessionFactory));  // Whenever we get a connection on port 2960, use my factory to create a new session object
    status_t ret = myServer.ServerProcessLoop();  // everything happens here!  Will not return for a long time (if ever!)
-   if (ret == B_NO_ERROR) printf("Server terminated normally.\n");
-                     else printf("Server exited with an error condition!\n");
+   if (ret.IsOK()) printf("Server terminated normally.\n");
+              else printf("Server exited with an error condition [%s]!\n", ret());
    myServer.Cleanup();
    return 0;
 }
@@ -329,20 +329,20 @@ MyReflectServer ::
 ReadyToRun()
 {
    status_t ret = ReflectServer::ReadyToRun();
-   if (ret != B_NO_ERROR) return ret;
+   if (ret.IsError()) return ret;
 
    FakeSession * fakeSession = newnothrow FakeSession();
    if (fakeSession)
    {
-      // Add with socket = ConstSocketRef(), meaning there is no client for this session.
-      if (AddNewSession(AbstractReflectSessionRef(fakeSession), ConstSocketRef()) == B_NO_ERROR)
+      // Note that I'm passing ConstSocketRef() for the socket argument, meaning there is no client for this session.
+      if (AddNewSession(AbstractReflectSessionRef(fakeSession), ConstSocketRef()).IsOK(ret))
       {
          return B_NO_ERROR;  // success!
       }            
    }
    else WARN_OUT_OF_MEMORY;
 
-   return B_ERROR;
+   return ret;
 }
 </pre><p>
 
