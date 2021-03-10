@@ -3,7 +3,7 @@
 #ifndef MuscleWin32FileHandleDataIO_h
 #define MuscleWin32FileHandleDataIO_h
 
-#include "dataio/DataIO.h"
+#include "dataio/SeekableDataIO.h"
 
 namespace muscle {
 
