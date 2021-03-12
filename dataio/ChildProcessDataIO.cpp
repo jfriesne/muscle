@@ -715,6 +715,10 @@ void ChildProcessDataIO :: IOThreadEntry()
    ChildProcessBuffer inBuf;  // bytes from the child process's stdout, waiting to go to the _slaveNotifySocket
    ChildProcessBuffer outBuf; // bytes from the _slaveNotifySocket, waiting to go to the child process's stdin
 
+   const uint64 minPollTimeMicros = MillisToMicros(0);
+   const uint64 maxPollTimeMicros = MillisToMicros(250);
+   uint64 pollTimeMicros          = maxPollTimeMicros;
+
    ::HANDLE events[] = {_wakeupSignal, _childProcess};
    while(_requestThreadExit == false)
    {
@@ -763,9 +767,10 @@ void ChildProcessDataIO :: IOThreadEntry()
          // the Window anonymous pipes system doesn't allow me to
          // to check for events on the pipe using WaitForMultipleObjects().
          // It may be worth it to use named pipes some day to get around this...
-         const int evt = WaitForMultipleObjects(ARRAYITEMS(events)-(childProcessExited?1:0), events, false, 250)-WAIT_OBJECT_0;
+         const int evt = WaitForMultipleObjects(ARRAYITEMS(events)-(childProcessExited?1:0), events, false, MicrosToMillis(pollTimeMicros))-WAIT_OBJECT_0;
          if (evt == 1) childProcessExited = true;
 
+         int32 totalNumBytesRead = 0;
          int32 numBytesToRead;
          while((numBytesToRead = sizeof(inBuf._buf)-inBuf._length) > 0)
          {
@@ -779,6 +784,7 @@ void ChildProcessDataIO :: IOThreadEntry()
                   if (ReadFile(_readFromStdout, &inBuf._buf[inBuf._length], numBytesToRead, &numBytesRead, NULL))
                   {
                      inBuf._length += numBytesRead;
+                     totalNumBytesRead += numBytesRead;
                   }
                   else
                   {
@@ -795,6 +801,7 @@ void ChildProcessDataIO :: IOThreadEntry()
             }
          }
 
+         int32 totalNumBytesWritten = 0;
          int32 numBytesToWrite;
          while((numBytesToWrite = outBuf._length-outBuf._index) > 0)
          {
@@ -803,12 +810,24 @@ void ChildProcessDataIO :: IOThreadEntry()
             {
                if (bytesWritten > 0)
                {
+                  totalNumBytesWritten += bytesWritten;
                   outBuf._index += bytesWritten;
                   if (outBuf._index == outBuf._length) outBuf._index = outBuf._length = 0;
                }
                else break;  // no more space to write to, for now
             }
             else IOThreadAbort();  // wtf?
+         }
+
+         if ((totalNumBytesRead > 0)||(totalNumBytesWritten > 0))
+         {
+            // traffic!  Quickly decrease poll time to improve throughput (MAV-80)
+            pollTimeMicros = (pollTimeMicros+minPollTimeMicros)/2;
+         }
+         else
+         {
+            // quiet!  Gradually increase poll time to reduce polling overhead
+            pollTimeMicros = ((pollTimeMicros*95)+(maxPollTimeMicros*5))/100;
          }
       }
    }

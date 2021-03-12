@@ -6,6 +6,9 @@ key:  - new feature
       o other
 
 8.01 - 
+   - Win32 implementation of ChildProcessDataIO now
+     uses a variable-duration polling algorithm to improve
+     throughput between parent and child processes.
    * Fixed #include in Win32FileHandleDataIO.h
 
 8.00 - Released 3/8/2021
