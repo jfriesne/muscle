@@ -271,6 +271,73 @@ public:
       else return B_LOCK_FAILED;
    }
 
+   /** Pre-allocates objects until there are (desiredPrefilledSize)
+     * pool-objects in existence (either in our reserve-list, or held
+     * by the calling code)
+     * @param desiredPrefilledSize the desired number of objects
+     *                that should be preallocated by this ObjectPool.
+     *                If this number is greater than GetMaxPoolSize(),
+     *                we'll act as if GetMaxPoolSize() was passed
+     *                for this argument.
+     * @returns B_NO_ERROR on success, or an error code (probably B_OUT_OF_MEMORY) on failure.
+     * @note this method is useful if you want to pre-fill the pool
+     *       to avoid later allocations happening at an awkward time
+     *       (e.g. in the context of a real-time thread)
+     */
+   status_t Prefill(uint32 desiredPrefilledSize = MUSCLE_NO_LIMIT)
+   {
+      status_t ret;
+
+#ifdef DISABLE_OBJECT_POOLING // it would be pointless to prefill a fake pool!
+      (void) desiredPrefilledSize;
+#else
+      MRETURN_ON_ERROR(_mutex.Lock());
+
+      desiredPrefilledSize = muscleMin(desiredPrefilledSize, _maxPoolSize);
+
+      const uint32 currentlyAlloced = GetNumAllocatedItemSlots();
+      if (currentlyAlloced < desiredPrefilledSize)
+      {
+         const uint32 numToAllocate  = desiredPrefilledSize-currentlyAlloced;
+         const uint32 stackArraySize = 1000;
+
+         Object * stackArray[stackArraySize];  // try to use this if possible
+         Object ** arrayPtr = stackArray;
+         if (numToAllocate > stackArraySize)
+         {
+            arrayPtr = newnothrow Object *[numToAllocate];  // but sometimes it isn't possible
+            if (arrayPtr == NULL)
+            {
+               MWARN_OUT_OF_MEMORY;
+               ret = B_OUT_OF_MEMORY;
+            }
+         }
+
+         if (arrayPtr)
+         {
+            uint32 numValid = 0;
+            for (uint32 i=0; i<numToAllocate; i++)
+            {
+               arrayPtr[i] = this->ObtainObjectAux();
+               if (arrayPtr[i] != NULL) numValid++;
+                                   else {ret = B_OUT_OF_MEMORY; break;}
+            }
+            for (int32 i=numValid-1; i>=0; i--)
+            {
+               ObjectSlab * slabToDelete = ReleaseObjectAux(arrayPtr[i]);
+               if (slabToDelete) delete slabToDelete;  // this should never happen, but I'm paranoid
+            }
+
+            if (arrayPtr != stackArray) delete [] arrayPtr;
+         }
+      }
+
+      _mutex.Unlock();
+#endif
+
+      return ret;
+   }
+
    /** Returns the maximum number of "spare" objects that will be kept
      * in the pool, ready to be recycled.  This is the value that was
      * previously set either in the constructor or by SetMaxPoolSize().
