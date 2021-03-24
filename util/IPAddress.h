@@ -235,7 +235,7 @@ public:
    /** Sets us to the IPv4 address specified by (bits)
      * @param bits a 32-bit representation of an IPv4 address.
      */
-   void SetIPv4AddressFromUint32(uint32 bits) {_lowBits = bits; _highBits = 0; _interfaceIndex = 0;}
+   void SetIPv4AddressFromUint32(uint32 bits) {_lowBits = bits; _highBits = 0; UnsetInterfaceIndex();}
 
    /** Returns our IPv4 address as a uint32.  
      * If we represent something other than an IPv4 address, the return value is undefined.

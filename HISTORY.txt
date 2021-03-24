@@ -11,6 +11,9 @@ key:  - new feature
      throughput between parent and child processes.
    - Added a Prefill() method to the ObjectPool class.
    * Fixed #include in Win32FileHandleDataIO.h
+   * Fixed a bug in IPAddress::SetIPv4AddressFromUint32()
+     that was causing it to set the interface-index of an
+     IPv4 address to 0 instead of to MUSCLE_NO_LIMIT/invalid.
 
 8.00 - Released 3/8/2021
    - Added TemplatedFlatten(), TemplatedUnflatten(),
