@@ -11,16 +11,6 @@
 
 namespace muscle {
 
-/// Flags that can be passed as a bit-chord to the SetDataNode() method
-enum {
-   SETDATANODE_FLAG_DONTCREATENODE = 0,  ///< Specify this bit if the SetDataNode() call should error out rather than creating a new DataNode.
-   SETDATANODE_FLAG_DONTOVERWRITEDATA,   ///< Specify this bit if the SetDataNode() call should error out rather than overwriting the Message payload of an existing node.
-   SETDATANODE_FLAG_QUIET,               ///< Specify this bit if the SetDataNode() call should suppress the node-updated-notifications that would otherwise be sent out to the node's subscribers
-   SETDATANODE_FLAG_ADDTOINDEX,          ///< Specify this bit if you want the node to be added to the parent node's ordered-children index.
-   NUM_SETDATANODE_FLAGS                 ///< Guard value
-};
-DECLARE_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS);
-
 /**
  *  This is a factory class that returns new StorageReflectSession objects.
  */
@@ -136,6 +126,14 @@ public:
    MessageRef GetEffectiveParameters() const;
 
 protected:
+   /// Flags that may be passed to a NotifySubscribersThatNodeChanged() callback
+   enum {
+      NODE_CHANGE_FLAG_ISBEINGREMOVED = 0, ///< if set, the specified DataNode is being removed as part of this callback
+      NODE_CHANGE_FLAG_ENABLESUPERCEDE,    ///< if set, the user has specified that this node-update should implicitly cancel any currently-queued earlier updates regarding this node
+      NUM_NODE_CHANGE_FLAGS                ///< Guard value
+   };
+   DECLARE_BITCHORD_FLAGS_TYPE(NodeChangeFlags, NUM_NODE_CHANGE_FLAGS);
+
    /**
     * Create or Set the value of a data node.
     * @param nodePath Should be the path relative to the home dir (e.g. "MyNode/Child1/Grandchild2")
@@ -390,9 +388,9 @@ protected:
     *  @param oldData If the node is being modified, this argument contains the node's previously
     *                 held data.  If it is being created, this is a NULL reference.  If the node
     *                 is being destroyed, this will contain the node's current data.
-    *  @param isBeingRemoved If true, this node is about to go away.
+    *  @param nodeChangeFlags a bit-chord of NODE_CHANGED_* flags describing how the node is being changed
     */
-   virtual void NotifySubscribersThatNodeChanged(DataNode & node, const MessageRef & oldData, bool isBeingRemoved);
+   virtual void NotifySubscribersThatNodeChanged(DataNode & node, const MessageRef & oldData, NodeChangeFlags nodeChangeFlags);
 
    /** Tells other sessions that we have changed the index of (node) in our node subtree.
     *  @param node The node whose index was changed.
@@ -408,9 +406,9 @@ protected:
     *  @param oldData If the node is being modified, this argument contains the node's previously
     *                 held data.  If it is being created, this is a NULL reference.  If the node
     *                 is being destroyed, this will contain the node's current data.
-    *  @param isBeingRemoved True iff this node is about to be destroyed.
+    *  @param nodeChangeFlags a bit-chord of NODE_CHANGED_* flags describing how the node is being changed
     */
-   virtual void NodeChanged(DataNode & node, const MessageRef & oldData, bool isBeingRemoved);
+   virtual void NodeChanged(DataNode & node, const MessageRef & oldData, NodeChangeFlags nodeChangeFlags);
 
    /** Called by NotifySubscribersThatIndexChanged() to tell us how (node)'s index has been modified.  
     *  @param node The node whose index was changed.
@@ -519,7 +517,7 @@ protected:
 private:
    void PushSubscriptionMessage(MessageRef & msgRef); 
    void SendGetDataResults(MessageRef & msg);
-   void NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, bool isBeingRemoved);
+   void NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, NodeChangeFlags nodeChangeFlags);
    void UpdateDefaultMessageRoute();
    status_t RemoveParameter(const String & paramName, bool & retUpdateDefaultMessageRoute);
    int PassMessageCallbackAux(DataNode & node, const MessageRef & msgRef, bool matchSelfOkay);

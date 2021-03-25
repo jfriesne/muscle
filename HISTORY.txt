@@ -5,11 +5,29 @@ key:  - new feature
       * bug fixed
       o other
 
-8.01 - 
+8.10 -
    - Win32 implementation of ChildProcessDataIO now
      uses a variable-duration polling algorithm to improve
-     throughput between parent and child processes.
+     data-transfer rate from child's stdout to parent process.
    - Added a Prefill() method to the ObjectPool class.
+   - Added a new flag SETDATANODE_FLAG_ENABLESUPERCEDE
+     to the SetDataNodeFlags enum.  PR_COMMAND_SETDATA
+     Message specifying this flag will try to remove
+     any previously-enqueued-but-still-pending updates
+     regarding the DataNodes they modify, so as not to
+     build up a FIFO backlog of update-Messages when
+     the server is under a heavy update-load.
+   - PR_COMAMND_SETDATA parser now accepts PR_NAME_FLAGS
+     field as either a SetDataNodeFlags or a uint32,
+     for convenience when client isn't C++-based.
+   o Moved the declaration of the SetDataNodeFlags
+     BitChord type from StorageReflectSession.h to
+     StorageReflectConstants.h.
+   o Modified the NotifySubscribersThatNodeChanged()
+     and NoeChanged() methods in StorageReflectSession.
+     to accept a NodeChangeFlags argument instead of a boolean.
+   o Modified the SetData() method in DataNode to
+     accept a SetDataFlags argument instead of a boolean.
    * Fixed #include in Win32FileHandleDataIO.h
    * Fixed a bug in IPAddress::SetIPv4AddressFromUint32()
      that was causing it to set the interface-index of an

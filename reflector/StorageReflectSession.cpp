@@ -230,7 +230,7 @@ Cleanup()
          _sharedData->_root.Reset(); // do this first!
          delete _sharedData;
       }
-      else 
+      else
       {
          // Remove all of our subscription-marks from neighbor's nodes
          SubscribeRefCallbackArgs srcArgs(-2147483647);  // remove all of our subscriptions no matter how many ref-counts we have
@@ -252,14 +252,14 @@ Cleanup()
 
 void 
 StorageReflectSession ::
-NotifySubscribersThatNodeChanged(DataNode & modifiedNode, const MessageRef & oldData, bool isBeingRemoved)
+NotifySubscribersThatNodeChanged(DataNode & modifiedNode, const MessageRef & oldData, NodeChangeFlags nodeChangeFlags)
 {
    TCHECKPOINT;
 
    for (HashtableIterator<String, uint32> subIter(modifiedNode.GetSubscribers()); subIter.HasData(); subIter++)
    {
       StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(GetSession(subIter.GetKey())());
-      if ((next)&&((next != this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF)))) next->NodeChanged(modifiedNode, oldData, isBeingRemoved);
+      if ((next)&&((next != this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF)))) next->NodeChanged(modifiedNode, oldData, nodeChangeFlags);
    }
 
    TCHECKPOINT;
@@ -338,7 +338,7 @@ NodeCreated(DataNode & newNode)
 
 void
 StorageReflectSession ::
-NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, bool isBeingRemoved)
+NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, NodeChangeFlags nodeChangeFlags)
 {
    TCHECKPOINT;
 
@@ -352,7 +352,7 @@ NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, bool isBeingRem
 
          // uh oh... we gotta determine whether the modified node's status wrt QueryFilters has changed!
          // Based on that, we will simulate for the client the node's "addition" or "removal" at the appropriate times.
-         if (isBeingRemoved)
+         if (nodeChangeFlags.IsBitSet(NODE_CHANGE_FLAG_ISBEINGREMOVED))
          {
             if (matchedBefore == false) return;  // since the node didn't match before either, no node-removed-update is necessary now
          }
@@ -361,18 +361,19 @@ NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, bool isBeingRem
             const bool matchesNow = _subscriptions.MatchesNode(modifiedNode, constNewData, 0);
 
                  if ((matchedBefore == false)&&(matchesNow == false)) return;                 // no change in status, so no update is necessary
-            else if ((matchedBefore)&&(matchesNow == false))          isBeingRemoved = true;  // no longer matches, so we need to send a node-removed update
+            else if ((matchedBefore)&&(matchesNow == false))          nodeChangeFlags.SetBit(NODE_CHANGE_FLAG_ISBEINGREMOVED);  // no longer matches, so we need to send a node-removed update
          }
          else if (matchedBefore == false) return;  // Adding a new node:  only notify the client if it matches at least one of his QueryFilters
          else (void) _subscriptions.MatchesNode(modifiedNode, constNewData, 0);  // just in case one our QueryFilters needs to modify (constNewData)
       }
-      NodeChangedAux(modifiedNode, CastAwayConstFromRef(constNewData), isBeingRemoved);
+
+      NodeChangedAux(modifiedNode, CastAwayConstFromRef(constNewData), nodeChangeFlags);
    }
 }
 
 void
 StorageReflectSession ::
-NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, bool isBeingRemoved)
+NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, NodeChangeFlags nodeChangeFlags)
 {
    TCHECKPOINT;
 
@@ -380,10 +381,11 @@ NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, bool isBein
    if (_nextSubscriptionMessage())
    {
       _sharedData->_subsDirty = true;
+
       String np;
       if (modifiedNode.GetNodePath(np).IsOK())
       {
-         if (isBeingRemoved) 
+         if (nodeChangeFlags.IsBitSet(NODE_CHANGE_FLAG_ISBEINGREMOVED))
          {
             if (_nextSubscriptionMessage()->HasName(np, B_MESSAGE_TYPE))
             {
@@ -392,13 +394,37 @@ NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, bool isBein
                // So in this case we have to force a flush of the current message now, and 
                // then add the new notification to the next one!
                PushSubscriptionMessages();
-               NodeChangedAux(modifiedNode, nodeData, isBeingRemoved);  // and then start again
+               NodeChangedAux(modifiedNode, nodeData, nodeChangeFlags);  // and then start again
             }
-            else _nextSubscriptionMessage()->AddString(PR_NAME_REMOVED_DATAITEMS, np);
+            else (void) _nextSubscriptionMessage()->AddString(PR_NAME_REMOVED_DATAITEMS, np);
          }
-         else _nextSubscriptionMessage()->AddMessage(np, nodeData);
+         else
+         {
+            // If Supercede is enabled, get rid of any previous update for this nodePath, as it is now superceded by the new update
+            // Note that for efficiency's sake I stop searching after finding just the most recent previous update for our nodePath
+            if ((nodeChangeFlags.IsBitSet(NODE_CHANGE_FLAG_ENABLESUPERCEDE))&&(_nextSubscriptionMessage()->RemoveName(np).IsError()))
+            {
+               AbstractMessageIOGateway * gw = GetGateway()();
+               if (gw)
+               {
+                  Queue<MessageRef> & oq = gw->GetOutgoingMessageQueue();
+                  for (int32 i=oq.GetNumItems()-1; i>=0; i--)
+                  {
+                     Message & m = *oq[i]();
+                     if ((m.what == PR_RESULT_DATAITEMS)&&(m.RemoveName(np).IsOK()))
+                     {
+                        if (m.HasNames() == false) (void) oq.RemoveItemAt(i);
+                        break;
+                     }
+                  }
+               }
+            }
+
+            (void) _nextSubscriptionMessage()->AddMessage(np, nodeData);
+         }
       }
-      if (_nextSubscriptionMessage()->GetNumNames() >= _maxSubscriptionMessageItems) PushSubscriptionMessages(); 
+
+      if ((_nextSubscriptionMessage())&&(_nextSubscriptionMessage()->GetNumNames() >= _maxSubscriptionMessageItems)) PushSubscriptionMessages(); 
    }
    else MWARN_OUT_OF_MEMORY;
 }
@@ -471,7 +497,10 @@ SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, SetDataNodeF
          if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false))
          {
             if ((node == NULL)||(flags.IsBitSet(SETDATANODE_FLAG_DONTOVERWRITEDATA)&&(node != allocedNode()))) return B_ACCESS_DENIED;
-            node->SetData(dataMsgRef, flags.IsBitSet(SETDATANODE_FLAG_QUIET) ? NULL : this, (node == allocedNode()));  // do this to trigger the changed-notification
+            DataNode::SetDataFlags setDataFlags;
+            if (node == allocedNode()) setDataFlags.SetBit(DataNode::SET_DATA_FLAG_ISBEINGCREATED);
+            if (flags.IsBitSet(SETDATANODE_FLAG_ENABLESUPERCEDE)) setDataFlags.SetBit(DataNode::SET_DATA_FLAG_ENABLESUPERCEDE);
+            node->SetData(dataMsgRef, flags.IsBitSet(SETDATANODE_FLAG_QUIET) ? NULL : this, setDataFlags);  // do this to trigger the changed-notification
          }
          prevSlashPos = slashPos;
       }
@@ -737,7 +766,13 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
          case PR_COMMAND_SETDATA:
          {
             SetDataNodeFlags flags;
-            if ((msg.FindFlat<SetDataNodeFlags>(PR_NAME_FLAGS, flags).IsError())&&(msg.HasName(PR_NAME_SET_QUIETLY))) flags.SetBit(SETDATANODE_FLAG_QUIET);
+            if (msg.FindFlat<SetDataNodeFlags>(PR_NAME_FLAGS, flags).IsError())
+            {
+               uint32 cStyleFlags = 0;
+                    if (msg.FindInt32(PR_NAME_FLAGS, cStyleFlags).IsOK()) flags.SetWord(0, cStyleFlags);  // Since C-based clients might find it difficult to flatten a BitChord
+               else if (msg.HasName(PR_NAME_SET_QUIETLY))                 flags.SetBit(SETDATANODE_FLAG_QUIET);
+            }
+
             for (MessageFieldNameIterator it = msg.GetFieldNameIterator(B_MESSAGE_TYPE); it.HasData(); it++)
             {
                MessageRef dataMsgRef;
@@ -1265,7 +1300,7 @@ ChangeQueryFilterCallback(DataNode & node, void * ud)
    ConstMessageRef constMsg2 = node.GetData();
    const bool oldMatches = ((constMsg1() == NULL)||(oldFilter == NULL)||(oldFilter->Matches(constMsg1, &node)));
    const bool newMatches = ((constMsg2() == NULL)||(newFilter == NULL)||(newFilter->Matches(constMsg2, &node)));
-   if (oldMatches != newMatches) NodeChangedAux(node, CastAwayConstFromRef(constMsg2), oldMatches);
+   if (oldMatches != newMatches) NodeChangedAux(node, CastAwayConstFromRef(constMsg2), oldMatches?NodeChangeFlags(NODE_CHANGE_FLAG_ISBEINGREMOVED):NodeChangeFlags());
    return node.GetDepth();  // continue traversal as usual
 }
 
@@ -1298,7 +1333,7 @@ GetDataCallback(DataNode & node, void * userData)
       (void) resultMsg()->AddMessage(np1, node.GetData());
       if (resultMsg()->GetNumNames() >= _maxSubscriptionMessageItems) SendGetDataResults(resultMsg);
    }
-   else 
+   else
    {      
       MWARN_OUT_OF_MEMORY;
       return 0;  // abort!
@@ -1325,7 +1360,7 @@ GetDataCallback(DataNode & node, void * userData)
             }
             if (indexUpdateMsg()->GetNumNames() >= _maxSubscriptionMessageItems) SendGetDataResults(messageArray[1]);
          }
-         else 
+         else
          {
             MWARN_OUT_OF_MEMORY;
             return 0;  // abort!
@@ -1595,9 +1630,9 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optK
                               // Hey, the QueryFilter retargetted the ConstMessageRef!  So we need the callback to see the modified Message, not the original one.
                               // We'll do that the sneaky way, by temporarily swapping out (nextChild)'s MessageRef, and then swapping it back in afterwards.
                               MessageRef origNodeMsg = nextChild->GetData(); 
-                              nextChild->SetData(CastAwayConstFromRef(constDataRef), NULL, false);
+                              nextChild->SetData(CastAwayConstFromRef(constDataRef), NULL, DataNode::SetDataFlags());
                               nextDepth = data.CallCallbackMethod(*nextChild);
-                              nextChild->SetData(origNodeMsg, NULL, false);
+                              nextChild->SetData(origNodeMsg, NULL, DataNode::SetDataFlags());
                            }
 
                            if (nextDepth < ((int)nextChild->GetDepth())-1) 

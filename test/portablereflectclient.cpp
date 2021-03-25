@@ -185,6 +185,28 @@ int main(int argc, char ** argv)
                }
                break;
 
+               case 'c': case 'C':
+               {
+                  // Set the same node multiple times in rapid succession,
+                  // to test the results of the SETDATANODE_FLAG_ENABLESUPERCEDE flag
+                  const bool enableSupercede = (text[0] == 'C');
+
+                  for (int i=0; i<10; i++)
+                  {
+                     ref = GetMessageFromPool(PR_COMMAND_SETDATA);
+                     if (enableSupercede)  ref()->AddFlat(PR_NAME_FLAGS, SetDataNodeFlags(SETDATANODE_FLAG_ENABLESUPERCEDE));
+
+                     MessageRef subMsg = GetMessageFromPool();
+                     subMsg()->AddInt32(String("%1 counter").Arg(enableSupercede?"Supercede":"Normal"), i);
+                     ref()->AddMessage("test_node", subMsg);
+
+                     gatewayRef()->AddOutgoingMessage(ref);
+                  }
+
+                  ref = GetMessageFromPool(PR_COMMAND_PING);  // just so we can see when it's done
+               }
+               break;
+
                case 'k':
                   ref()->what = PR_COMMAND_KICK;
                   if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
