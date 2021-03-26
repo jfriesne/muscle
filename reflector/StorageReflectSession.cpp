@@ -142,8 +142,7 @@ AttachedToServer()
       int32 privBits = 0;
       for (int p=0; p<=PR_NUM_PRIVILEGES; p++)
       {
-         char temp[32];
-         muscleSprintf(temp, "priv%i", p);
+         char temp[32]; muscleSprintf(temp, "priv%i", p);
          const String * privPattern;
          for (int q=0; (state.FindString(temp, q, &privPattern).IsOK()); q++)
          {
@@ -443,11 +442,11 @@ NodeIndexChanged(DataNode & modifiedNode, char op, uint32 index, const String & 
       if ((_nextIndexSubscriptionMessage())&&(modifiedNode.GetNodePath(np).IsOK()))
       {
          _sharedData->_subsDirty = true;
-         char temp[100];
-         muscleSprintf(temp, "%c" UINT32_FORMAT_SPEC ":%s", op, index, key());
-         _nextIndexSubscriptionMessage()->AddString(np, temp);
+         char temp[100]; muscleSprintf(temp, "%c" UINT32_FORMAT_SPEC ":", op, index);
+         _nextIndexSubscriptionMessage()->AddString(np, key.Prepend(temp));
       }
       else MWARN_OUT_OF_MEMORY;
+
       // don't push subscription messages here.... it will be done elsewhere
    }
 }
@@ -1165,8 +1164,8 @@ status_t StorageReflectSession :: RemoveDataNodes(const String & nodePath, const
    TCHECKPOINT;
 
    NodePathMatcher matcher;
-   status_t ret;
-   if (matcher.PutPathString(nodePath, filterRef).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(matcher.PutPathString(nodePath, filterRef));
+
    DoRemoveData(matcher, quiet);
    return B_NO_ERROR;
 }
@@ -1176,8 +1175,7 @@ status_t StorageReflectSession :: MoveIndexEntries(const String & nodePath, cons
    TCHECKPOINT;
 
    NodePathMatcher matcher;
-   status_t ret;
-   if (matcher.PutPathString(nodePath, filterRef).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(matcher.PutPathString(nodePath, filterRef));
 
    (void) matcher.DoTraversal((PathMatchCallback)ReorderDataCallbackFunc, this, *_sessionDir(), true, (void *)optBefore);
    return B_NO_ERROR;
