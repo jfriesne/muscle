@@ -401,7 +401,7 @@ NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, NodeChangeF
          {
             // If Supercede is enabled, get rid of any previous update for this nodePath, as it is now superceded by the new update
             // Note that for efficiency's sake I stop searching after finding just the most recent previous update for our nodePath
-            if ((nodeChangeFlags.IsBitSet(NODE_CHANGE_FLAG_ENABLESUPERCEDE))&&(_nextSubscriptionMessage()->RemoveName(np).IsError()))
+            if ((nodeChangeFlags.IsBitSet(NODE_CHANGE_FLAG_ENABLESUPERCEDE))&&(PruneSubscriptionMessage(*_nextSubscriptionMessage(), np).IsError()))
             {
                AbstractMessageIOGateway * gw = GetGateway()();
                if (gw)
@@ -410,7 +410,7 @@ NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, NodeChangeF
                   for (int32 i=oq.GetNumItems()-1; i>=0; i--)
                   {
                      Message & m = *oq[i]();
-                     if ((m.what == PR_RESULT_DATAITEMS)&&(m.RemoveName(np).IsOK()))
+                     if ((m.what == PR_RESULT_DATAITEMS)&&(PruneSubscriptionMessage(m, np).IsOK()))
                      {
                         if (m.HasNames() == false) (void) oq.RemoveItemAt(i);
                         break;

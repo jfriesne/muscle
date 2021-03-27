@@ -428,6 +428,13 @@ protected:
      */
    virtual status_t UpdateSubscriptionMessage(Message & subscriptionMessage, const String & nodePath, const MessageRef & optMessageData);
 
+   /** Called when the StorageReflectSession wants to remove a nodePath from a subscription-notification-Message.
+     * Default implementation just calls through to subscriptionMessage.RemoveName(nodePath).
+     * @param subscriptionMessage The PR_RESULT_DATAITEMS Message that should be altered
+     * @param nodePath the node-path to remove.
+     */
+   virtual status_t PruneSubscriptionMessage(Message & subscriptionMessage, const String & nodePath) {return subscriptionMessage.RemoveName(nodePath);}
+
    /** Called when the StorageReflectSession wants to update its outgoing PR_RESULT_INDEXUPDATED Message with more information.
      * This is exposed as a virtual method so that subclasses can augment this behavior if they care to do so.  In most cases,
      * however, the default implementation does the right thing.
