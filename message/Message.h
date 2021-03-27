@@ -1330,6 +1330,13 @@ public:
     */
    bool HasName(const String & fieldName, uint32 type = B_ANY_TYPE) const {return (GetMessageField(fieldName, type) != NULL);}
 
+   /** Returns the position of the specified field name within a MessageFieldNameIterator's name-traversal order.
+     * @param fieldName the field name to inquire about
+     * @returns returns 0 for the first field's name, 1 for the second, and so on).  Returns -1 if the field isn't found.
+     * @note this method runs with O(N) complexity.
+     */
+   int32 IndexOfName(const String & fieldName) const {return _entries.IndexOfKey(fieldName);}
+
    /** Returns the number of values in the field with the given name and type in the Message.
     *  @param fieldName the field name to look for.
     *  @param type the type to look for, or B_ANY_TYPE if type isn't important to you.

@@ -91,6 +91,7 @@ key:  - new feature
 7.71 - Released 2/14/2021
    - Added copy-constructor and assignment-operator to the
      StringTokenizer class.
+   - Added an IndexOfName() method to the Message class.
    o Updated the muscle.dox file to work with DOxygen v1.9.2.
    o Fixed some ClangSA warnings
    o Modified Hashtable::PutOrRemove() to return a status_t
