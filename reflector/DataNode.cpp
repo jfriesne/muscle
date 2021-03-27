@@ -265,8 +265,7 @@ status_t DataNode :: GetNodePath(String & retPath, uint32 startDepth) const
       if ((pathLen > 0)&&(startDepth > 0)) pathLen--;  // for (startDepth>0), there will be no initial slash
 
       // Might as well make sure we have enough memory to return it, up front
-      status_t ret;
-      if (retPath.Prealloc(pathLen).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(retPath.Prealloc(pathLen));
 
       char * dynBuf = NULL;
       const uint32 stackAllocSize = 256;

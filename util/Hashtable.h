@@ -3068,8 +3068,8 @@ CopyFrom(const HashtableBase<KeyType, ValueType, RHSHashFunctorType> & rhs, bool
    if (clearFirst) this->Clear((rhs.IsEmpty())&&(this->_tableSize>MUSCLE_HASHTABLE_DEFAULT_CAPACITY));  // FogBugz #10274
    if (rhs.HasItems())
    {
-      status_t ret;
-      if ((EnsureSize(this->GetNumItems()+rhs.GetNumItems()).IsError(ret))||(this->EnsureTableAllocated().IsError(ret))) return ret;
+      MRETURN_ON_ERROR(EnsureSize(this->GetNumItems()+rhs.GetNumItems()));
+      MRETURN_ON_ERROR(this->EnsureTableAllocated());
 
       this->CopyFromAux(rhs);
       static_cast<SubclassType *>(this)->SortAux();  // We do the sort (if any) at the end, since that is more efficient than traversing the list after every insert

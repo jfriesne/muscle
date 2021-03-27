@@ -98,8 +98,7 @@ AttachedToServer()
 {
    TCHECKPOINT;
 
-   status_t ret;
-   if (DumbReflectSession::AttachedToServer().IsError(ret)) return ret;
+   MRETURN_ON_ERROR(DumbReflectSession::AttachedToServer());
 
    _sharedData = InitSharedData();
    if (_sharedData == NULL) return B_OUT_OF_MEMORY;
@@ -161,6 +160,7 @@ AttachedToServer()
       }
 
       _sessionDir = sessionNode;
+      status_t ret;
       if (hostDir()->PutChild(_sessionDir, this, this).IsError(ret)) {Cleanup(); return ret;}
  
       // do subscription notifications here
@@ -1766,12 +1766,11 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
 {
    TCHECKPOINT;
 
-   status_t ret;
    {
       MessageRef payload = node.GetData();
       if ((optPruner)&&(optPruner->MatchPath(destPath, payload) == false)) return B_NO_ERROR;
       if (payload() == NULL) return B_BAD_OBJECT;
-      if (SetDataNode(destPath, payload, flags, optInsertBefore).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(SetDataNode(destPath, payload, flags, optInsertBefore));
    }
 
    // Then clone all of his children
@@ -1782,7 +1781,7 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
       subFlags.SetBit(SETDATANODE_FLAG_DONTOVERWRITEDATA);
       subFlags.ClearBit(SETDATANODE_FLAG_DONTCREATENODE);
       subFlags.ClearBit(SETDATANODE_FLAG_ADDTOINDEX);
-      if ((iter.GetValue()())&&(CloneDataNodeSubtree(*iter.GetValue()(), destPath+'/'+(*iter.GetKey()), subFlags, NULL, optPruner).IsError(ret))) return ret;
+      if (iter.GetValue()()) MRETURN_ON_ERROR(CloneDataNodeSubtree(*iter.GetValue()(), destPath+'/'+(*iter.GetKey()), subFlags, NULL, optPruner));
    }
 
    // Lastly, if he has an index, make sure the clone ends up with an equivalent index
@@ -1793,7 +1792,7 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
       if (clone)
       {
          const uint32 idxLen = index->GetNumItems();
-         for (uint32 i=0; i<idxLen; i++) if (clone->InsertIndexEntryAt(i, this, (*index)[i]()->GetNodeName()).IsError(ret)) return ret;
+         for (uint32 i=0; i<idxLen; i++) MRETURN_ON_ERROR(clone->InsertIndexEntryAt(i, this, (*index)[i]()->GetNodeName()));
       }
       else return B_DATA_NOT_FOUND;
    }
@@ -1807,12 +1806,10 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
 {
    TCHECKPOINT;
 
-   status_t ret;
-
    {
       MessageRef payload = node->GetData();
       if ((optPruner)&&(optPruner->MatchPath(path, payload) == false)) return B_NO_ERROR;
-      if ((saveData)&&(msg.AddMessage(PR_NAME_NODEDATA, payload).IsError(ret))) return ret;
+      if (saveData) MRETURN_ON_ERROR(msg.AddMessage(PR_NAME_NODEDATA, payload));
    }
    
    if ((node->HasChildren())&&(maxDepth > 0))
@@ -1825,19 +1822,19 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
          if (indexSize > 0)
          {
             MessageRef indexMsgRef(GetMessageFromPool());
-            if (indexMsgRef() == NULL) return B_OUT_OF_MEMORY;
-            if (msg.AddMessage(PR_NAME_NODEINDEX, indexMsgRef).IsError(ret)) return ret;
+            MRETURN_OOM_ON_NULL(indexMsgRef());
+            MRETURN_ON_ERROR(msg.AddMessage(PR_NAME_NODEINDEX, indexMsgRef));
 
             Message * indexMsg = indexMsgRef();
-            for (uint32 i=0; i<indexSize; i++) if (indexMsg->AddString(PR_NAME_KEYS, (*index)[i]()->GetNodeName()).IsError(ret)) return ret;
+            for (uint32 i=0; i<indexSize; i++) MRETURN_ON_ERROR(indexMsg->AddString(PR_NAME_KEYS, (*index)[i]()->GetNodeName()));
          }
       }
 
       // Then save the children, recursing to each one as necessary
       {
          MessageRef childrenMsgRef(GetMessageFromPool());
-         if (childrenMsgRef() == NULL) return B_OUT_OF_MEMORY;
-         if (msg.AddMessage(PR_NAME_NODECHILDREN, childrenMsgRef).IsError(ret)) return ret;
+         MRETURN_OOM_ON_NULL(childrenMsgRef());
+         MRETURN_ON_ERROR(msg.AddMessage(PR_NAME_NODECHILDREN, childrenMsgRef));
          for (DataNodeRefIterator childIter = node->GetChildIterator(); childIter.HasData(); childIter++)
          {
             DataNode * child = childIter.GetValue()();
@@ -1848,12 +1845,14 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
                childPath += child->GetNodeName();
 
                MessageRef childMsgRef(GetMessageFromPool());
-               if (childMsgRef() == NULL) return B_OUT_OF_MEMORY;
-               if ((childrenMsgRef()->AddMessage(child->GetNodeName(), childMsgRef).IsError(ret))||(SaveNodeTreeToMessage(*childMsgRef(), child, childPath, true, maxDepth-1, optPruner).IsError(ret))) return ret;
+               MRETURN_OOM_ON_NULL(childMsgRef());
+               MRETURN_ON_ERROR(childrenMsgRef()->AddMessage(child->GetNodeName(), childMsgRef));
+               MRETURN_ON_ERROR(SaveNodeTreeToMessage(*childMsgRef(), child, childPath, true, maxDepth-1, optPruner));
             }
          }
       }
    }
+
    return B_NO_ERROR;
 }
 
@@ -1862,19 +1861,17 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
 {
    TCHECKPOINT;
 
-   status_t ret;
-
    if (loadData)
    {
       MessageRef payload;
-      if (msg.FindMessage(PR_NAME_NODEDATA, payload).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(msg.FindMessage(PR_NAME_NODEDATA, payload));
       if ((optPruner)&&(optPruner->MatchPath(path, payload) == false)) return B_NO_ERROR;
-      if (SetDataNode(path, payload, flags).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(SetDataNode(path, payload, flags));
    }
    else if (optPruner)
    {
       MessageRef junk = GetMessageFromPool();
-      if (junk() == NULL) return B_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(junk());
       if (optPruner->MatchPath(path, junk) == false) return B_NO_ERROR;
    }
 
@@ -1896,8 +1893,8 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
                   String childPath(path);
                   if (childPath.HasChars()) childPath += '/';
                   childPath += *nextFieldName;
-                  if (RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, flags.WithBit(SETDATANODE_FLAG_ADDTOINDEX), maxDepth-1, optPruner).IsError(ret)) return ret;
-                  if (indexLookup.Put(nextFieldName, i).IsError(ret)) return ret;
+                  MRETURN_ON_ERROR(RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, flags.WithBit(SETDATANODE_FLAG_ADDTOINDEX), maxDepth-1, optPruner));
+                  MRETURN_ON_ERROR(indexLookup.Put(nextFieldName, i));
                }
             }
          }
@@ -1916,12 +1913,13 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
                   String childPath(path);
                   if (childPath.HasChars()) childPath += '/';
                   childPath += nextFieldName;
-                  if (RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, flags.WithoutBit(SETDATANODE_FLAG_ADDTOINDEX), maxDepth-1, optPruner).IsError(ret)) return ret;
+                  MRETURN_ON_ERROR(RestoreNodeTreeFromMessage(*nextChildRef(), childPath, true, flags.WithoutBit(SETDATANODE_FLAG_ADDTOINDEX), maxDepth-1, optPruner));
                }
             }
          }
       }
    }
+
    return B_NO_ERROR;   
 }
 

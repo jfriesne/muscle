@@ -116,8 +116,7 @@ status_t String :: SetFromString(const String & s, uint32 firstChar, uint32 afte
    const uint32 len = (afterLastChar > firstChar) ? (afterLastChar-firstChar) : 0;
    if (len > 0)
    {
-      status_t ret;
-      if (EnsureBufferSize(len+1, false, false).IsError(ret)) return ret;  // guaranteed not to realloc in the (&s==this) case
+      MRETURN_ON_ERROR(EnsureBufferSize(len+1, false, false));  // guaranteed not to realloc in the (&s==this) case
 
       char * b = GetBuffer();
       memmove(b, s()+firstChar, len);  // memmove() is used in case (&s==this)
@@ -141,8 +140,7 @@ status_t String :: SetCstr(const char * str, uint32 maxLen)
    {
       if (str[maxLen-1] != '\0') maxLen++;  // make room to add the NUL byte if necessary
 
-      status_t ret;
-      if (EnsureBufferSize(maxLen, false, false).IsError(ret)) return ret;  // guaranteed not to realloc in the IsCharInLocalArray(str) case
+      MRETURN_ON_ERROR(EnsureBufferSize(maxLen, false, false));  // guaranteed not to realloc in the IsCharInLocalArray(str) case
 
       char * b = GetBuffer();
       memmove(b, str, maxLen-1);  // memmove() is used in case (str) points into our array

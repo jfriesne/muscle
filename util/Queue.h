@@ -142,8 +142,7 @@ public:
     */
    status_t AddTailMulti(const std::initializer_list<ItemType> & list)
    {
-      status_t ret;
-      if (EnsureCanAdd((uint32) list.size()).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(EnsureCanAdd((uint32) list.size()));
       for (auto i : list) (void) AddTail(i);  // can't fail, because we allocated the necessary space on the previous line
       return B_NO_ERROR;
    }
@@ -929,15 +928,15 @@ AddTailMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
    const uint32 mySize  = GetNumItems();
    const uint32 newSize = mySize+numNewItems;
 
-   status_t ret;
    if ((&queue == this)&&(newSize > GetNumAllocatedItemSlots()))
    {
       // Avoid re-entrancy problems by making a partial copy of myself to add back into myself
       Queue<ItemType> temp;
-      return (temp.AddTailMulti(queue, startIndex, numNewItems).IsOK(ret)) ? AddTailMulti(temp) : ret;
+      status_t ret;
+      return temp.AddTailMulti(queue, startIndex, numNewItems).IsOK(ret) ? AddTailMulti(temp) : ret;
    }
 
-   if (EnsureSize(newSize, true).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(EnsureSize(newSize, true));
 
    for (uint32 i=mySize; i<newSize; i++) (*this)[i] = queue[startIndex+(i-mySize)];
    return B_NO_ERROR;
@@ -952,16 +951,16 @@ AddTailMulti(const ItemType * items, uint32 numItems)
    const uint32 newSize = mySize+numItems;
    uint32 rhs = 0;
 
-   status_t ret;
    if ((newSize > GetNumAllocatedItemSlots())&&(IsItemLocatedInThisContainer(*items)))
    {
       // Avoid re-entrancy problems by making a temporary copy of the items before adding them back to myself
       Queue<ItemType> temp;
-      return (temp.AddTailMulti(items, numItems).IsOK(ret)) ? AddTailMulti(temp) : ret;
+      status_t ret;
+      return temp.AddTailMulti(items, numItems).IsOK(ret) ? AddTailMulti(temp) : ret;
    }
 
    ItemType * oldArray;
-   if (EnsureSizeAux(newSize, true, 0, &oldArray, false).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(EnsureSizeAux(newSize, true, 0, &oldArray, false));
 
    for (uint32 i=mySize; i<newSize; i++) (*this)[i] = items[rhs++];
    delete [] oldArray;  // must be done after all references to (items)
@@ -1011,15 +1010,15 @@ AddHeadMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
    const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
 
-   status_t ret;
    if ((&queue == this)&&(numNewItems > GetNumUnusedItemSlots()))
    {
       // Avoid re-entrancy problems by making a partial copy of myself to prepend back into myself
       Queue<ItemType> temp;
-      return (temp.AddTailMulti(queue, startIndex, numNewItems).IsOK(ret)) ? AddHeadMulti(temp) : ret;  // yes, AddTailMulti() and then AddHeadMulti() is intentional
+      status_t ret;
+      return temp.AddTailMulti(queue, startIndex, numNewItems).IsOK(ret) ? AddHeadMulti(temp) : ret;  // yes, AddTailMulti() and then AddHeadMulti() is intentional
    }
 
-   if (EnsureSize(numNewItems+GetNumItems()).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(EnsureSize(numNewItems+GetNumItems()));
 
    for (int32 i=((int)startIndex+numNewItems)-1; i>=(int32)startIndex; i--) (void) AddHead(queue[i]);  // guaranteed not to fail
    return B_NO_ERROR;
@@ -1030,16 +1029,16 @@ status_t
 Queue<ItemType>::
 AddHeadMulti(const ItemType * items, uint32 numItems)
 {
-   status_t ret;
    if ((numItems > GetNumUnusedItemSlots())&&(IsItemLocatedInThisContainer(*items)))
    {
       // Avoid re-entrancy problems by making a temporary copy of the items before adding them back to myself
       Queue<ItemType> temp;
-      return (temp.AddTailMulti(items, numItems).IsOK(ret)) ? AddHeadMulti(temp) : ret;  // Yes, AddTailMulti() and then AddHeadMulti() is intentional
+      status_t ret;
+      return temp.AddTailMulti(items, numItems).IsOK(ret) ? AddHeadMulti(temp) : ret;  // Yes, AddTailMulti() and then AddHeadMulti() is intentional
    }
 
    ItemType * oldArray;
-   if (EnsureSizeAux(_itemCount+numItems, &oldArray).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(EnsureSizeAux(_itemCount+numItems, &oldArray));
    for (int32 i=((int32)numItems)-1; i>=0; i--) (void) AddHead(items[i]);  // guaranteed not to fail
    delete [] oldArray;  // must be done last!
    return B_NO_ERROR;

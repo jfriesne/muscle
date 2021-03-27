@@ -111,13 +111,12 @@ private:
    {
       MutexGuard mg(_messagesFromSingletonThreadMutex);
 
-      status_t ret;
-      if (_messagesFromSingletonThread.AddTail(msg).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(_messagesFromSingletonThread.AddTail(msg));
 
       // send a byte on the socket-pair to wake up the user thread so he'll check his _messagesFromSingletonThread queue
       const char junk = 'S';
       (void) send_ignore_eintr(_notifySocket.GetFileDescriptor(), &junk, sizeof(junk), 0);
-      return ret;
+      return B_NO_ERROR;
    }
    Mutex _messagesFromSingletonThreadMutex;
    Queue<MessageRef> _messagesFromSingletonThread;

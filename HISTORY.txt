@@ -28,6 +28,8 @@ key:  - new feature
      to accept a NodeChangeFlags argument instead of a boolean.
    o Modified the SetData() method in DataNode to
      accept a SetDataFlags argument instead of a boolean.
+   o Simplified error-handling in various locations by
+     using MRETURN_ON_ERROR instead of explicit if/returns.
    * Fixed #include in Win32FileHandleDataIO.h
    * Fixed a bug in IPAddress::SetIPv4AddressFromUint32()
      that was causing it to set the interface-index of an

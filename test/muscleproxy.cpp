@@ -59,8 +59,7 @@ public:
 
    virtual status_t AttachedToServer()
    {
-      status_t ret;
-      if (AbstractReflectSession::AttachedToServer().IsError(ret)) return ret;
+      MRETURN_ON_ERROR(AbstractReflectSession::AttachedToServer());
 
       // Launch our connection to the upstream server that we will forward our client's data to
       _upstreamSession.SetRef(newnothrow UpstreamSession(this));

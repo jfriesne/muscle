@@ -1768,14 +1768,11 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 
 status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & results, GNIIFlags includeFlags)
 {
-   status_t ret;
-
    Queue<NetworkInterfaceInfo> infos;
-   if ((GetNetworkInterfaceInfos(infos, includeFlags).IsError(ret))
-    || (results.EnsureSize(infos.GetNumItems())      .IsError(ret))) return ret;
-
+   MRETURN_ON_ERROR(GetNetworkInterfaceInfos(infos, includeFlags));
+   MRETURN_ON_ERROR(results.EnsureSize(infos.GetNumItems()));
    for (uint32 i=0; i<infos.GetNumItems(); i++) (void) results.AddTail(infos[i].GetLocalAddress());  // guaranteed not to fail
-   return ret;
+   return B_NO_ERROR;
 }
 
 static void Inet4_NtoA(uint32 addr, char * buf)
@@ -1971,8 +1968,7 @@ status_t IPAddressAndPort :: Unflatten(const uint8 * buffer, uint32 size)
 {
    if (size < FlattenedSize()) return B_BAD_DATA;
 
-   status_t ret;
-   if (_ip.Unflatten(buffer, size).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(_ip.Unflatten(buffer, size));
 
    buffer += _ip.FlattenedSize();
    _port = B_LENDIAN_TO_HOST_INT16(muscleCopyIn<uint16>(buffer));

@@ -124,7 +124,7 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
          WriteOctalASCII(&_currentHeaderBytes[124], currentFileLength, 12);
          UpdateCurrentHeaderChecksum();
 
-         if (_seekableWriterIO()->Seek(_currentHeaderOffset, SeekableDataIO::IO_SEEK_SET).IsError(ret)) return ret;
+         MRETURN_ON_ERROR(_seekableWriterIO()->Seek(_currentHeaderOffset, SeekableDataIO::IO_SEEK_SET));
          _currentSeekPosition = _currentHeaderOffset;
  
          const uint32 numBytesWritten = _seekableWriterIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes));
@@ -150,8 +150,7 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
 {
    if ((strlen(fileName) > 100)||((linkedFileName)&&(strlen(linkedFileName)>100))) return B_BAD_ARGUMENT;  // string fields are only 100 chars long!
 
-   status_t ret;
-   if (FinishCurrentFileDataBlock().IsError(ret)) return ret;  // should pad out position out to a multiple of 512, if necessary
+   MRETURN_ON_ERROR(FinishCurrentFileDataBlock());  // should pad out position out to a multiple of 512, if necessary
 
    if ((_currentSeekPosition%TAR_BLOCK_SIZE) != 0) return B_BAD_OBJECT;
 

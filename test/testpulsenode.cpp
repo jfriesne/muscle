@@ -51,13 +51,13 @@ public:
    {
       LogTime(MUSCLE_LOG_INFO, "TestSession::AttachedToServer() called...\n");
 
-      status_t ret;
-      if (AbstractReflectSession::AttachedToServer().IsError(ret)) return ret;
+      MRETURN_ON_ERROR(AbstractReflectSession::AttachedToServer());
 
       const uint64 baseTime = GetRunTime64();
       for (int i=0; i<NUM_PULSE_CHILDREN; i++)
       {
          TestPulseChild * tpc = new TestPulseChild(baseTime, i);
+         status_t ret;
          if ((_tpcs.AddTail(tpc).IsError(ret))||(PutPulseChild(tpc).IsError(ret))) LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] creating pulse child #%i!\n", ret(), i);
       }
       return B_NO_ERROR;

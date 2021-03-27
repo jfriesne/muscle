@@ -225,10 +225,8 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
    {
       if (dirPath == NULL) return B_BAD_ARGUMENT;
 
-      status_t ret;
-
       Directory d;
-      if (d.SetDir(dirPath).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(d.SetDir(dirPath));
 
       const char * sep       = GetFilePathSeparator();
       const int dirPathLen   = (int) strlen(dirPath);
@@ -257,7 +255,7 @@ status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubI
 #else
             const int unlinkRet = unlink(catStr);
 #endif
-            ret = (unlinkRet == 0) ? B_NO_ERROR : Directory::DeleteDirectory(catStr, true);
+            const status_t ret = (unlinkRet == 0) ? B_NO_ERROR : Directory::DeleteDirectory(catStr, true);
             delete [] catStr;
             if (ret.IsError()) return ret;
          }

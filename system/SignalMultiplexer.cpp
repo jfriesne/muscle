@@ -42,8 +42,9 @@ static void POSIXSignalHandlerCallbackFunc(int sigNum)   {SignalMultiplexer::Get
 status_t SignalMultiplexer :: AddHandler(ISignalHandler * s) 
 {
    MutexGuard m(_mutex);
+   MRETURN_ON_ERROR(_handlers.AddTail(s));
+
    status_t ret;
-   if (_handlers.AddTail(s).IsError(ret)) return ret;
    if (UpdateSignalSets().IsOK(ret)) return B_NO_ERROR;
    else
    {
@@ -71,12 +72,11 @@ void SignalMultiplexer :: CallSignalHandlers(int sigNum)
 status_t SignalMultiplexer :: UpdateSignalSets()
 {
    Queue<int> newSignalSet;
-   status_t ret;
    for (uint32 i=0; i<_handlers.GetNumItems(); i++)
    {
       const ISignalHandler * s = _handlers[i];
       int sigNum;
-      for (uint32 j=0; s->GetNthSignalNumber(j, sigNum).IsOK(); j++) if ((newSignalSet.IndexOf(sigNum) < 0)&&(newSignalSet.AddTail(sigNum).IsError(ret))) return ret;
+      for (uint32 j=0; s->GetNthSignalNumber(j, sigNum).IsOK(); j++) if (newSignalSet.IndexOf(sigNum) < 0) MRETURN_ON_ERROR(newSignalSet.AddTail(sigNum));
    }
    newSignalSet.Sort();
 

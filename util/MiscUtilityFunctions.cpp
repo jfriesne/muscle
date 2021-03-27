@@ -126,12 +126,10 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
    const String trimmed = line.Trim();
    const uint32 len = trimmed.Length();
 
-   status_t ret;
-
    // First, we'll pre-process the string into a StringTokenizer-friendly
    // form, by replacing all quoted spaces with gunk and removing the quotes
    String tokenizeThis; 
-   if (tokenizeThis.Prealloc(len).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(tokenizeThis.Prealloc(len));
 
    const char GUNK_CHAR      = (char) 0x01;
    bool lastCharWasBackslash = false;
@@ -163,7 +161,7 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
             // It's the "x =5" case (2 tokens)
             String n2(next);
             n2.Replace(GUNK_CHAR, ' ');
-            if (ParseArgAux(n+n2, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;
+            MRETURN_ON_ERROR(ParseArgAux(n+n2, optAddToMsg, optAddToQueue, cs));
             t = tok();
          }
          else
@@ -174,12 +172,12 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
             {
                String n3(next);
                n3.Replace(GUNK_CHAR, ' ');
-               if (ParseArgAux(n+"="+n3, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;
+               MRETURN_ON_ERROR(ParseArgAux(n+"="+n3, optAddToMsg, optAddToQueue, cs));
                t = tok();
             }
             else 
             {
-               if (ParseArgAux(n, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;  // for the "x =" case, just parse x and ignore the equals
+               MRETURN_ON_ERROR(ParseArgAux(n, optAddToMsg, optAddToQueue, cs));  // for the "x =" case, just parse x and ignore the equals
                t = NULL;
             }
          }
@@ -189,13 +187,13 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
          // Try to attach the next keyword
          String n4(next);
          n4.Replace(GUNK_CHAR, ' ');
-         if (ParseArgAux(n+n4, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;
+         MRETURN_ON_ERROR(ParseArgAux(n+n4, optAddToMsg, optAddToQueue, cs));
          t = tok();
       }
       else
       {
          // Nope, it's just the normal case
-         if (ParseArgAux(n, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;
+         MRETURN_ON_ERROR(ParseArgAux(n, optAddToMsg, optAddToQueue, cs));
          t = next;
       }
    }
@@ -206,28 +204,24 @@ status_t ParseArgs(const String & line, Queue<String> & addTo, bool cs) {return 
 
 status_t ParseArgs(int argc, char ** argv, Message & addTo, bool cs)
 {
-   status_t ret;
-   for (int i=0; i<argc; i++) if (ParseArg(argv[i], addTo, cs).IsError(ret)) break;
-   return ret;
+   for (int i=0; i<argc; i++) MRETURN_ON_ERROR(ParseArg(argv[i], addTo, cs));
+   return B_NO_ERROR;
 }
 
 status_t ParseArgs(const Queue<String> & args, Message & addTo, bool cs)
 {
-   status_t ret;
-   for (uint32 i=0; i<args.GetNumItems(); i++) if (ParseArg(args[i], addTo, cs).IsError(ret)) break;
-   return ret;
+   for (uint32 i=0; i<args.GetNumItems(); i++) MRETURN_ON_ERROR(ParseArg(args[i], addTo, cs));
+   return B_NO_ERROR;
 }
 
 status_t ParseArgs(int argc, char ** argv, Queue<String> & addTo, bool cs)
 {
-   status_t ret;
-   for (int i=0; i<argc; i++) if (ParseArg(argv[i], addTo, cs).IsError(ret)) break;
-   return ret;
+   for (int i=0; i<argc; i++) MRETURN_ON_ERROR(ParseArg(argv[i], addTo, cs));
+   return B_NO_ERROR;
 }
 
 static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * optAddToMsg, Queue<String> * optAddToQueue, char * scratchBuf, uint32 bufSize, bool cs)
 {
-   status_t ret;
    while(1)
    {
       const char * lineOfText = (optTok) ? optTok->GetNextToken() : fgets(scratchBuf, bufSize, fpIn);
@@ -248,12 +242,13 @@ static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * op
 
          MessageRef subMsg = GetMessageFromPool();
          MRETURN_OOM_ON_NULL(subMsg());
-         if ((optAddToMsg->AddMessage(checkForSection, subMsg).IsError(ret))||(ParseFileAux(optTok, fpIn, subMsg(), optAddToQueue, scratchBuf, bufSize, cs).IsError(ret))) return ret;
+         MRETURN_ON_ERROR(optAddToMsg->AddMessage(checkForSection, subMsg));
+         MRETURN_ON_ERROR(ParseFileAux(optTok, fpIn, subMsg(), optAddToQueue, scratchBuf, bufSize, cs));
       }
       else if ((checkForSection == "end")||(checkForSection.StartsWith("end "))) return B_NO_ERROR;
-      else if (ParseArgsAux(lineOfText, optAddToMsg, optAddToQueue, cs).IsError(ret)) return ret;
+      else MRETURN_ON_ERROR(ParseArgsAux(lineOfText, optAddToMsg, optAddToQueue, cs));
    }
-   return ret;
+   return B_NO_ERROR;
 }
 
 static status_t ParseFileAux(const String * optInStr, FILE * fpIn, Message * optAddToMsg, Queue<String> * optAddToQueue, bool cs)
@@ -302,7 +297,6 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
 {
    if ((optFile == NULL)&&(optString == NULL)) return B_BAD_ARGUMENT;
 
-   status_t ret;
    const String indentStr = String().Pad(indentLevel);
    Message scratchMsg;
    for (MessageFieldNameIterator fnIter(readFrom); fnIter.HasData(); fnIter++)
@@ -319,7 +313,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
                for (uint32 i=0; readFrom.FindMessage(fn, i, nextVal).IsOK(); i++)
                {
                   AddUnparseFileLine(optFile, optString, indentStr, String("begin %1").Arg(fn));
-                  if (UnparseFileAux(*nextVal(), optFile, optString, indentLevel+3).IsError(ret)) return ret;
+                  MRETURN_ON_ERROR(UnparseFileAux(*nextVal(), optFile, optString, indentLevel+3));
                   AddUnparseFileLine(optFile, optString, indentStr, "end");
                }
             }
@@ -330,7 +324,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
                const String * nextVal;
                for (uint32 i=0; readFrom.FindString(fn, i, &nextVal).IsOK(); i++)
                {
-                  scratchMsg.Clear(); if (scratchMsg.AddString(fn, *nextVal).IsError(ret)) return ret;
+                  scratchMsg.Clear(); MRETURN_ON_ERROR(scratchMsg.AddString(fn, *nextVal));
                   AddUnparseFileLine(optFile, optString, indentStr, UnparseArgs(scratchMsg));
                }
             }
@@ -835,8 +829,7 @@ String CleanupDNSPath(const String & orig, const String & optAdditionalAllowedCh
 
 status_t NybbleizeData(const uint8 * b, uint32 numBytes, String & retString)
 {
-   status_t ret;
-   if (retString.Prealloc(numBytes*2).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(retString.Prealloc(numBytes*2));
 
    retString.Clear();
    for (uint32 i=0; i<numBytes; i++)
@@ -862,8 +855,7 @@ status_t DenybbleizeData(const String & nybbleizedText, ByteBuffer & retBuf)
       return B_BAD_DATA;
    }
 
-   status_t ret;
-   if (retBuf.SetNumBytes(numBytes/2, false).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(retBuf.SetNumBytes(numBytes/2, false));
 
    uint8 * b = retBuf.GetBuffer();
    for (uint32 i=0; i<numBytes; i+=2)
@@ -1041,8 +1033,7 @@ static status_t CopyDirectoryRecursive(const char * oldDirPath, const char * new
    Directory srcDir(oldDirPath);
    if (srcDir.IsValid() == false) return B_FILE_NOT_FOUND;
 
-   status_t ret;
-   if (Directory::MakeDirectory(newDirPath, true, true).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(Directory::MakeDirectory(newDirPath, true, true));
 
    const String srcDirPath = srcDir.GetPath();
 
@@ -1057,10 +1048,7 @@ static status_t CopyDirectoryRecursive(const char * oldDirPath, const char * new
    const char * curSourceName;
    while((curSourceName = srcDir.GetCurrentFileName()) != NULL)
    {
-      if ((strcmp(curSourceName, ".") != 0)&&(strcmp(curSourceName, "..") != 0))
-      { 
-         if (CopyFile((srcDirPath+curSourceName)(), (dstDirPath+curSourceName)(), true).IsError(ret)) return ret;
-      }
+      if ((strcmp(curSourceName, ".") != 0)&&(strcmp(curSourceName, "..") != 0)) MRETURN_ON_ERROR(CopyFile((srcDirPath+curSourceName)(), (dstDirPath+curSourceName)(), true));
       srcDir++;
    }
 
