@@ -20,6 +20,9 @@ key:  - new feature
    - PR_COMAMND_SETDATA parser now accepts PR_NAME_FLAGS
      field as either a SetDataNodeFlags or a uint32,
      for convenience when client isn't C++-based.
+   - Added UpdateSubscriptionMessage() and
+     UpdateSubscriptionIndexMessage() hook-methods to
+     the StorageReflectSession class.
    o Moved the declaration of the SetDataNodeFlags
      BitChord type from StorageReflectSession.h to
      StorageReflectConstants.h.

@@ -395,7 +395,7 @@ NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, NodeChangeF
                PushSubscriptionMessages();
                NodeChangedAux(modifiedNode, nodeData, nodeChangeFlags);  // and then start again
             }
-            else (void) _nextSubscriptionMessage()->AddString(PR_NAME_REMOVED_DATAITEMS, np);
+            else (void) UpdateSubscriptionMessage(*_nextSubscriptionMessage(), np, MessageRef());
          }
          else
          {
@@ -419,13 +419,28 @@ NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, NodeChangeF
                }
             }
 
-            (void) _nextSubscriptionMessage()->AddMessage(np, nodeData);
+            (void) UpdateSubscriptionMessage(*_nextSubscriptionMessage(), np, nodeData);
          }
       }
 
       if ((_nextSubscriptionMessage())&&(_nextSubscriptionMessage()->GetNumNames() >= _maxSubscriptionMessageItems)) PushSubscriptionMessages(); 
    }
    else MWARN_OUT_OF_MEMORY;
+}
+
+status_t
+StorageReflectSession ::
+UpdateSubscriptionMessage(Message & subscriptionMessage, const String & nodePath, const MessageRef & optMessageData)
+{
+   return optMessageData() ? subscriptionMessage.AddMessage(nodePath, optMessageData) : subscriptionMessage.AddString(PR_NAME_REMOVED_DATAITEMS, nodePath);
+}
+
+status_t
+StorageReflectSession ::
+UpdateSubscriptionIndexMessage(Message & subscriptionIndexMessage, const String & nodePath, char op, uint32 index, const String & key)
+{
+   char temp[100]; muscleSprintf(temp, "%c" UINT32_FORMAT_SPEC ":", op, index);
+   return subscriptionIndexMessage.AddString(nodePath, key.Prepend(temp));
 }
 
 void
@@ -442,8 +457,7 @@ NodeIndexChanged(DataNode & modifiedNode, char op, uint32 index, const String & 
       if ((_nextIndexSubscriptionMessage())&&(modifiedNode.GetNodePath(np).IsOK()))
       {
          _sharedData->_subsDirty = true;
-         char temp[100]; muscleSprintf(temp, "%c" UINT32_FORMAT_SPEC ":", op, index);
-         _nextIndexSubscriptionMessage()->AddString(np, key.Prepend(temp));
+         (void) UpdateSubscriptionIndexMessage(*_nextIndexSubscriptionMessage(), np, op, index, key);
       }
       else MWARN_OUT_OF_MEMORY;
 

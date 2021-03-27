@@ -418,6 +418,28 @@ protected:
     */
    virtual void NodeIndexChanged(DataNode & node, char op, uint32 index, const String & key);
 
+   /** Called when the StorageReflectSession wants to update its outgoing PR_RESULT_DATAITEMS Message with more information.
+     * This is exposed as a virtual method so that subclasses can augment this behavior if they care to do so.  In most cases,
+     * however, the default implementation does the right thing.
+     * @param subscriptionMessage The PR_RESULT_DATAITEMS Message that should be altered
+     * @param nodePath the node-path of the DataNode whose state is changing
+     * @param optMessageData A reference to the DataNode's new state, or a NULL reference if the DataNode has been deleted.
+     * @returns B_NO_ERROR on success, or some other error code if there was a failure doing the update.
+     */
+   virtual status_t UpdateSubscriptionMessage(Message & subscriptionMessage, const String & nodePath, const MessageRef & optMessageData);
+
+   /** Called when the StorageReflectSession wants to update its outgoing PR_RESULT_INDEXUPDATED Message with more information.
+     * This is exposed as a virtual method so that subclasses can augment this behavior if they care to do so.  In most cases,
+     * however, the default implementation does the right thing.
+     * @param subscriptionMessage The PR_RESULT_INDEXUPDATED Message that should be altered
+     * @param nodePath the node-path of the DataNode whose index-state is changing
+     * @param op The INDEX_OP_* opcode of the change.
+     * @param index The index at which the operation took place (not defined for clear operations)
+     * @param key The key of the operation (aka the name of the associated node)
+     * @returns B_NO_ERROR on success, or some other error code if there was a failure doing the update.
+     */
+   virtual status_t UpdateSubscriptionIndexMessage(Message & subscriptionIndexMessage, const String & nodePath, char op, uint32 index, const String & key);
+
    /**
     * Takes any messages that were created in the NodeChanged() callbacks and 
     * sends them to their owner's MessageReceivedFromSession() method for
