@@ -1572,13 +1572,20 @@ public:
      */
    inline void * GetPointer(const String & fn, void * defVal = NULL, uint32 idx = 0) const {void * r; return (FindPointer(fn, idx,  r).IsOK()) ? r : defVal;}
 
-   /** Convenience method for retrieving a pointer to A String data item inside a Message.
+   /** Convenience method for retrieving a pointer to a String data item inside a Message.
      * @param fn The field name to look for the String under.
      * @param defVal The pointer to return if no data item can be found.  Defaults to NULL.
      * @param idx The index to look under inside the field.  Defaults to zero.
      * @returns a Pointer to the String data item on success, or (defVal) if the item could not be found.
      */
    inline const String * GetStringPointer(const String & fn, const String * defVal=NULL, uint32 idx = 0) const {const String * r; return (FindString(fn, idx, &r).IsOK()) ? r : defVal;}
+
+   /** Convenience method for retrieving a reference to a String data item inside a Message.
+     * @param fn The field name to look for the String under.
+     * @param idx The index to look under inside the field.  Defaults to zero.
+     * @returns a read-only reference to the String, if found, or a read-only reference to an empty String otherwise.
+     */
+   inline const String & GetStringReference(const String & fn, uint32 idx = 0) const {return *GetStringPointer(fn, &GetEmptyString(), idx);}
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
 # define DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(bw)                                                                                               \

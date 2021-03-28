@@ -23,6 +23,8 @@ key:  - new feature
    - Added UpdateSubscriptionMessage(), PruneSubscriptionMessage(),
      and UpdateSubscriptionIndexMessage() hook-methods to
      the StorageReflectSession class.
+   - Added GetStringReference() convenience-method to the
+     Message class.
    o Moved the declaration of the SetDataNodeFlags
      BitChord type from StorageReflectSession.h to
      StorageReflectConstants.h.
