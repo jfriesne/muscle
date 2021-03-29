@@ -29,7 +29,7 @@ key:  - new feature
      BitChord type from StorageReflectSession.h to
      StorageReflectConstants.h.
    o Modified the NotifySubscribersThatNodeChanged()
-     and NoeChanged() methods in StorageReflectSession.
+     and NodeChanged() methods in StorageReflectSession.
      to accept a NodeChangeFlags argument instead of a boolean.
    o Modified the SetData() method in DataNode to
      accept a SetDataFlags argument instead of a boolean.
