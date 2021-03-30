@@ -33,8 +33,7 @@ status_t ByteBuffer :: SetBuffer(uint32 numBytes, const uint8 * buffer)
    {
       Clear(numBytes<(_numAllocatedBytes/2));  // FogBugz #6933: if the new buffer takes up less than half of our current space, toss it
 
-      status_t ret;
-      if (SetNumBytes(numBytes, false).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(SetNumBytes(numBytes, false));
       if ((buffer)&&(_buffer)) memcpy(_buffer, buffer, numBytes);
       return B_NO_ERROR;
    }
@@ -91,8 +90,7 @@ status_t ByteBuffer :: AppendBytes(const uint8 * bytes, uint32 numBytes, bool al
    }
 
    const uint32 oldValidBytes = _numValidBytes;  // save this value since SetNumBytes() will change it
-   status_t ret;
-   if (SetNumBytesWithExtraSpace(_numValidBytes+numBytes, allocExtra).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(_numValidBytes+numBytes, allocExtra));
    if (bytes != NULL) memcpy(_buffer+oldValidBytes, bytes, numBytes);
    return B_NO_ERROR;
 }
@@ -130,8 +128,7 @@ status_t ByteBuffer :: FreeExtraBytes()
 status_t ByteBuffer :: CopyFromImplementation(const Flattenable & copyFrom)
 {
    const uint32 numBytes = copyFrom.FlattenedSize();
-   status_t ret;
-   if (SetNumBytes(numBytes, false).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(SetNumBytes(numBytes, false));
    copyFrom.Flatten(_buffer);
    return B_NO_ERROR;
 }
@@ -215,8 +212,7 @@ Ref<ByteBuffer> Flattenable :: FlattenToByteBuffer() const
 
 status_t Flattenable :: FlattenToByteBuffer(ByteBuffer & outBuf) const
 {
-   status_t ret;
-   if (outBuf.SetNumBytes(FlattenedSize(), false).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(outBuf.SetNumBytes(FlattenedSize(), false));
    Flatten(outBuf.GetBuffer());
    return B_NO_ERROR;
 }
@@ -398,8 +394,7 @@ status_t ByteBuffer :: ReadFlat(Flattenable & flat, uint32 & readByteOffset, uin
 {
    if (&flat == this) return B_BAD_ARGUMENT;  // don't get cute
 
-   status_t ret;
-   if (flat.Unflatten(&_buffer[readByteOffset], muscleMin(optMaxReadSize, (readByteOffset < _numValidBytes) ? (_numValidBytes-readByteOffset) : 0)).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(flat.Unflatten(&_buffer[readByteOffset], muscleMin(optMaxReadSize, (readByteOffset < _numValidBytes) ? (_numValidBytes-readByteOffset) : 0)));
    readByteOffset += flat.FlattenedSize();
    return B_NO_ERROR;
 }
@@ -418,11 +413,7 @@ uint32 ByteBuffer :: ReadStrings(String * vals, uint32 numValsToRead, uint32 & r
 status_t ByteBuffer :: WriteInt8s(const int8 * vals, uint32 numVals, uint32 & writeByteOffset)
 {
    const uint32 newByteSize = muscleMax(_numValidBytes, writeByteOffset+numVals);
-   if (newByteSize > _numValidBytes)
-   {
-      status_t ret;
-      if (SetNumBytesWithExtraSpace(newByteSize, true).IsError(ret)) return ret;
-   }
+   if (newByteSize > _numValidBytes) MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(newByteSize, true));
 
    uint8 * writeTo = _buffer+writeByteOffset;
    memcpy(writeTo, vals, numVals);
@@ -434,11 +425,7 @@ status_t ByteBuffer :: WriteInt16s(const int16 * vals, uint32 numVals, uint32 & 
 {
    const uint32 numBytes     = numVals*sizeof(int16);
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if (newValidSize > _numValidBytes)
-   {
-      status_t ret;
-      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
-   }
+   if (newValidSize > _numValidBytes) MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(newValidSize, true));
 
    uint8 * writeTo = _buffer+writeByteOffset;
    if (IsEndianSwapEnabled())
@@ -455,11 +442,7 @@ status_t ByteBuffer :: WriteInt32s(const int32 * vals, uint32 numVals, uint32 & 
 {
    const uint32 numBytes     = numVals*sizeof(int32);
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if (newValidSize > _numValidBytes)
-   {
-      status_t ret;
-      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
-   }
+   if (newValidSize > _numValidBytes) MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(newValidSize, true));
 
    uint8 * writeTo = _buffer+writeByteOffset;
    if (IsEndianSwapEnabled())
@@ -476,11 +459,7 @@ status_t ByteBuffer :: WriteInt64s(const int64 * vals, uint32 numVals, uint32 & 
 {
    const uint32 numBytes     = numVals*sizeof(int64);
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if (newValidSize > _numValidBytes)
-   {
-      status_t ret;
-      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
-   }
+   if (newValidSize > _numValidBytes) MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(newValidSize, true));
 
    uint8 * writeTo = _buffer+writeByteOffset;
    if (IsEndianSwapEnabled())
@@ -497,11 +476,7 @@ status_t ByteBuffer :: WriteFloats(const float * vals, uint32 numVals, uint32 & 
 {
    const uint32 numBytes     = numVals*sizeof(int32);
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if (newValidSize > _numValidBytes)
-   {
-      status_t ret;
-      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
-   }
+   if (newValidSize > _numValidBytes) MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(newValidSize, true));
 
    uint8 * writeTo = _buffer+writeByteOffset;
    if (IsEndianSwapEnabled())
@@ -522,11 +497,7 @@ status_t ByteBuffer :: WriteDoubles(const double * vals, uint32 numVals, uint32 
 {
    const uint32 numBytes     = numVals*sizeof(int64);
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if (newValidSize > _numValidBytes)
-   {
-      status_t ret;
-      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
-   }
+   if (newValidSize > _numValidBytes) MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(newValidSize, true));
 
    uint8 * writeTo = _buffer+writeByteOffset;
    if (IsEndianSwapEnabled())
@@ -548,11 +519,7 @@ status_t ByteBuffer :: WritePoints(const Point * vals, uint32 numVals, uint32 & 
    const uint32 bytesPerPoint = sizeof(int32)*2;
    const uint32 numBytes     = numVals*bytesPerPoint;
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if (newValidSize > _numValidBytes)
-   {
-      status_t ret;
-      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
-   }
+   if (newValidSize > _numValidBytes) MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(newValidSize, true));
 
    uint8 * writeTo = _buffer+writeByteOffset;
 
@@ -586,11 +553,7 @@ status_t ByteBuffer :: WriteRects(const Rect * vals, uint32 numVals, uint32 & wr
    const uint32 bytesPerRect = sizeof(int32)*4;
    const uint32 numBytes     = numVals*bytesPerRect;
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if (newValidSize > _numValidBytes)
-   {
-      status_t ret;
-      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
-   }
+   if (newValidSize > _numValidBytes) MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(newValidSize, true));
 
    uint8 * writeTo = _buffer+writeByteOffset;
 
@@ -625,11 +588,7 @@ status_t ByteBuffer :: WriteFlat(const Flattenable & val, uint32 & writeByteOffs
 
    const uint32 numBytes     = val.FlattenedSize();
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if (newValidSize > _numValidBytes)
-   {
-      status_t ret;
-      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
-   }
+   if (newValidSize > _numValidBytes) MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(newValidSize, true));
 
    val.Flatten(&_buffer[writeByteOffset]);
    writeByteOffset += numBytes;
@@ -640,11 +599,7 @@ status_t ByteBuffer :: WriteStrings(const String * vals, uint32 numVals, uint32 
 {
    uint32 numBytes = 0; for (uint32 i=0; i<numVals; i++) numBytes += vals[i].FlattenedSize();
    const uint32 newValidSize = muscleMax(_numValidBytes, writeByteOffset+numBytes);
-   if (newValidSize > _numValidBytes)
-   {
-      status_t ret;
-      if (SetNumBytesWithExtraSpace(newValidSize, true).IsError(ret)) return ret;
-   }
+   if (newValidSize > _numValidBytes) MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(newValidSize, true));
 
    for (uint32 i=0; i<numVals; i++)
    {

@@ -222,8 +222,7 @@ CountedRawDataMessageIOGateway :: CountedRawDataMessageIOGateway(uint32 minChunk
 
 status_t CountedRawDataMessageIOGateway :: AddOutgoingMessage(const MessageRef & messageRef)
 {
-   status_t ret;
-   if (RawDataMessageIOGateway::AddOutgoingMessage(messageRef).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(RawDataMessageIOGateway::AddOutgoingMessage(messageRef));
 
    const uint32 msgSize = GetNumRawBytesInMessage(messageRef);
    if (GetOutgoingMessageQueue().GetNumItems() > 1) _outgoingByteCount += msgSize;

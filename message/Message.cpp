@@ -959,7 +959,7 @@ public:
             LogTime(MUSCLE_LOG_DEBUG, "MessageDataArray %p:  Sub-message unflatten failed (readOffset=" UINT32_FORMAT_SPEC ", numBytes=" UINT32_FORMAT_SPEC ", readFs=" UINT32_FORMAT_SPEC ") ret=[%s]\n", this, readOffset, numBytes, readFs, ret());
             return ret;
          }
-         if (AddDataItem(&nextMsg, sizeof(nextMsg)).IsError(ret)) return ret;
+         MRETURN_ON_ERROR(AddDataItem(&nextMsg, sizeof(nextMsg)));
          readOffset += readFs;
       }
       return B_NO_ERROR;
@@ -1078,7 +1078,7 @@ public:
       }
 
       const uint32 numElements = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
-      if (this->_data.EnsureSize(numElements).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(this->_data.EnsureSize(numElements));
 
       for (uint32 i=0; i<numElements; i++)
       {
@@ -1476,7 +1476,7 @@ status_t Message :: Unflatten(const uint8 * buffer, uint32 inputBufferBytes)
       return B_BAD_DATA;
    }
 
-   if (_entries.EnsureSize(numEntries, true).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(_entries.EnsureSize(numEntries, true));
 
    // Read entries
    for (uint32 i=0; i<numEntries; i++)
@@ -1693,7 +1693,6 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
    MessageField * mf = GetOrCreateMessageField(fieldName, tc);
    if (mf == NULL) return B_TYPE_MISMATCH;
 
-   status_t ret;
    const uint32 numElements = numBytes/elementSize;
    const uint8 * dataBuf = (const uint8 *) data;
    for (uint32 i=0; i<numElements; i++) 
@@ -1709,7 +1708,7 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
          dataToAdd = &fcRef;
          addSize = sizeof(fcRef);
       }
-      if ((prepend ? mf->PrependDataItem(dataToAdd, addSize) : mf->AddDataItem(dataToAdd, addSize)).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(prepend ? mf->PrependDataItem(dataToAdd, addSize) : mf->AddDataItem(dataToAdd, addSize));
    }
    return B_NO_ERROR;
 }
@@ -2145,8 +2144,7 @@ status_t Message :: ReplaceData(bool okayToAdd, const String & fieldName, uint32
          addSize = sizeof(ref);
       }
 
-      status_t ret;
-      if (field->ReplaceDataItem(i, dataToAdd, addSize).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(field->ReplaceDataItem(i, dataToAdd, addSize));
    }
    return B_NO_ERROR;
 }
@@ -2580,7 +2578,7 @@ status_t MessageField :: SingleUnflatten(const uint8 * buffer, uint32 numBytes)
          if (itemSize != numBytes) return B_LOGIC_ERROR;  // our one item should take up the entire buffer, or something is wrong
 
          String s;
-         if (s.Unflatten(buffer, numBytes).IsError(ret)) return ret;
+         MRETURN_ON_ERROR(s.Unflatten(buffer, numBytes));
          SetInlineItemAsString(s);
       }
       break;
@@ -3313,8 +3311,6 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
    MessageField * mf = unflattenTo.GetOrCreateMessageField(fieldName, _typeCode);
    MRETURN_OOM_ON_NULL(mf);
 
-   status_t ret;
-
    uint32 mfSize = 0;
    if (mf->ElementsAreFixedSize())
    {
@@ -3324,7 +3320,7 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
          LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  Not enough bytes for field [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", fieldName(), bufSize, mfSize);
          return B_BAD_DATA;
       }
-      if (mf->Unflatten(buf, mfSize).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(mf->Unflatten(buf, mfSize));
    }
    else
    {
@@ -3376,6 +3372,7 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
             MessageRef subMsg = GetMessageFromPool();
             MRETURN_OOM_ON_NULL(subMsg());
 
+            status_t ret;
             const Message * templateMsg = static_cast<const Message *>(GetItemAtAsRefCountableRef(i)());
             if (subMsg()->TemplatedUnflatten(*templateMsg, subBuf, itemSize).IsError(ret))
             {
@@ -3383,14 +3380,14 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
                return ret;
             }
 
-            if (mf->AddDataItem(&subMsg, sizeof(subMsg)).IsError(ret)) return ret;
+            MRETURN_ON_ERROR(mf->AddDataItem(&subMsg, sizeof(subMsg)));
          }
 
          subBuf += itemSize; subBufSize -= itemSize;
       }
 
       mfSize = subBuf-buf;
-      if ((isMessageField == false)&&(mf->Unflatten(buf, mfSize).IsError(ret))) return ret;
+      if (isMessageField == false) MRETURN_ON_ERROR(mf->Unflatten(buf, mfSize));
    }
 
    buf     += mfSize;

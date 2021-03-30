@@ -100,8 +100,7 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
 #endif
    {
 #if defined(MUSCLE_USE_KQUEUE)
-      status_t ret = ComputeStateBitsChangeRequests();
-      if (ret.IsError()) return ret;
+      MRETURN_ON_ERROR(ComputeStateBitsChangeRequests());
 
       struct timespec waitTime;
       struct timespec * pWaitTime;
@@ -141,7 +140,7 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
          }
       }
 #elif defined(MUSCLE_USE_EPOLL)
-      if (ComputeStateBitsChangeRequests().IsError(ret)) return ret;
+      MRETURN_ON_ERROR(ComputeStateBitsChangeRequests());
 
       int ret = epoll_wait(_kernelFD, _scratchEvents.HeadPointer(), _scratchEvents.GetNumItems(), (waitTimeMicros==MUSCLE_TIME_NEVER)?-1:(int)(muscleMin(MicrosToMillis(waitTimeMicros), (int64)INT_MAX)));
       if (ret >= 0)
@@ -309,7 +308,7 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
          {
             const bool hasBit = ((userBits&(1<<i)) != 0);
             const bool hadBit = ((kernBits&(1<<i)) != 0);
-            if ((hasBit != hadBit)&&(AddKQueueChangeRequest(iter.GetKey(), i, hasBit).IsError(ret))) return ret;
+            if (hasBit != hadBit) MRETURN_ON_ERROR(AddKQueueChangeRequest(iter.GetKey(), i, hasBit));
          }
 #else
          struct epoll_event evt; memset(&evt, 0, sizeof(evt));  // paranoia

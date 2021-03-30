@@ -117,9 +117,9 @@ public:
       return SetThreadLocalObjectAux(newObj);   // pthreads and Qt manage memory so we don't have to
 #else
 
-      status_t ret;
-      if (_allocedObjsMutex.Lock().IsError(ret)) return ret;
+      MRETURN_ON_ERROR(_allocedObjsMutex.Lock());
 
+      status_t ret;
       if (SetThreadLocalObjectAux(newObj).IsOK(ret))  // SetThreadLocalObjectAux() MUST be called first to avoid re-entrancy trouble!
       {
          const int32 idx = oldObj ? _allocedObjs.IndexOf(oldObj) : -1;

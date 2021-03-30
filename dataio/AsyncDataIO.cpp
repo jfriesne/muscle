@@ -75,8 +75,7 @@ void AsyncDataIO :: ShutdownInternalThread(bool waitForThread)
 
 status_t AsyncDataIO :: StartInternalThread()
 {
-   status_t ret;
-   if (CreateConnectedSocketPair(_mainThreadNotifySocket, _ioThreadNotifySocket).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(CreateConnectedSocketPair(_mainThreadNotifySocket, _ioThreadNotifySocket));
    return Thread::StartInternalThread(); 
 }
 

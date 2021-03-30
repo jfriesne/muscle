@@ -133,12 +133,11 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & de
    AbstractReflectSession * session = ref();
    if (session == NULL) return B_BAD_ARGUMENT;
 
-   status_t ret;
    if (_computerIsAboutToSleep)
    {
       // Oh dear, we're in the time just before the computer is about to go to sleep; it's no good
       // starting a TCP connection now!  Instead we'll make it dormant and call Reconnect() on it when we re-awake.
-      if (AddNewDormantConnectSession(ref, destIP, port, autoReconnectDelay, maxAsyncConnectPeriod).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(AddNewDormantConnectSession(ref, destIP, port, autoReconnectDelay, maxAsyncConnectPeriod));
       (void) _sessionsToReconnectOnWakeup.Put(ref()->GetSessionIDString(), true);  // true indicates "Gotta call Reconnect() when we wake up"
       return B_NO_ERROR;
    }
@@ -152,13 +151,12 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & de
    if (sock() == NULL)
    {
       ConstSocketRef tempSockRef;  // tempSockRef represents the closed remote end of the failed connection and is intentionally closed ASAP
-      if (CreateConnectedSocketPair(sock, tempSockRef).IsOK(ret))
-      {
-         session->_isConnected = false;
-         usingFakeBrokenConnection = true;
-      }
+      MRETURN_ON_ERROR(CreateConnectedSocketPair(sock, tempSockRef));
+      session->_isConnected = false;
+      usingFakeBrokenConnection = true;
    }
 
+   status_t ret;
    if (sock())
    {
       NestCountGuard ncg(_inDoConnect);

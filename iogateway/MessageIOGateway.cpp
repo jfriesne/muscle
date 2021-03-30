@@ -616,8 +616,7 @@ CountedMessageIOGateway :: CountedMessageIOGateway(int32 outgoingEncoding)
 
 status_t CountedMessageIOGateway :: AddOutgoingMessage(const MessageRef & messageRef)
 {
-   status_t ret;
-   if (MessageIOGateway::AddOutgoingMessage(messageRef).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(MessageIOGateway::AddOutgoingMessage(messageRef));
 
    const uint32 msgSize = messageRef()?messageRef()->FlattenedSize():0;
    if (GetOutgoingMessageQueue().GetNumItems() > 1) _outgoingByteCount += msgSize;
@@ -633,8 +632,7 @@ void CountedMessageIOGateway :: Reset()
 
 status_t CountedMessageIOGateway :: PopNextOutgoingMessage(MessageRef & outMsg)
 {
-   status_t ret;
-   if (MessageIOGateway::PopNextOutgoingMessage(outMsg).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(MessageIOGateway::PopNextOutgoingMessage(outMsg));
 
    if (GetOutgoingMessageQueue().HasItems())
    {

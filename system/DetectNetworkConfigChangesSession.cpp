@@ -109,10 +109,8 @@ public:
    {
       const bool startInternalThread = _registeredSessions.IsEmpty();
 
-      status_t ret;
-      if (_registeredSessions.PutWithDefault(s).IsError(ret)) return ret;
-
-      return startInternalThread ? StartInternalThread() : ret;
+      MRETURN_ON_ERROR(_registeredSessions.PutWithDefault(s));
+      return startInternalThread ? StartInternalThread() : B_NO_ERROR;
    }
 
    status_t UnregisterSession(DetectNetworkConfigChangesSession * s) 
@@ -407,9 +405,9 @@ protected:
 private:
    virtual status_t StartInternalThread()
    {
-      status_t ret;
-      if (SetupSignalling().IsError(ret)) return ret;
+      MRETURN_ON_ERROR(SetupSignalling());
 
+      status_t ret;
       _threadKeepGoing = true;
       if (Thread::StartInternalThread().IsError(ret)) 
       {

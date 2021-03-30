@@ -145,9 +145,7 @@ status_t ThreadPool :: SendMessageToThreadPool(IThreadPoolClient * client, const
 
    Queue<MessageRef> * mq = ((*isBeingHandled)?_deferredMessages:_pendingMessages).GetOrPut(client);
    MRETURN_OOM_ON_NULL(mq);
-
-   status_t ret;
-   if (mq->AddTail(msg).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(mq->AddTail(msg));
 
    if ((*isBeingHandled == false)&&(mq->GetNumItems() == 1)) DispatchPendingMessagesUnsafe();
    return B_NO_ERROR;
@@ -158,7 +156,6 @@ void ThreadPool :: DispatchPendingMessagesUnsafe()
 {
    if (_shuttingDown) return;  // no sense dispatching more messages if we're in the process of shutting down
 
-   status_t ret;
    while(_pendingMessages.HasItems())
    {
       IThreadPoolClient * client = *_pendingMessages.GetFirstKey();
@@ -173,6 +170,8 @@ void ThreadPool :: DispatchPendingMessagesUnsafe()
             // demand-allocate a new Thread for us to use
             ThreadPoolThreadRef tRef(newnothrow ThreadPoolThread(this, _threadIDCounter++));
             if (tRef() == NULL) {MWARN_OUT_OF_MEMORY; break;}
+
+            status_t ret;
             if (StartInternalThread(*tRef()).IsError(ret)) {LogTime(MUSCLE_LOG_ERROR, "ThreadPool:  Error launching thread! [%s]\n", ret()); break;}
             if (_availableThreads.Put(tRef()->GetThreadID(), tRef).IsError()) {tRef()->ShutdownInternalThread(); break;}  // should never happen, but just in case
          }

@@ -78,20 +78,19 @@ public:
       if (numBytes < flattenedSize) return B_BAD_DATA;  // truncated input buffer?!
       readFrom += sizeof(flattenedSize);
 
-      status_t ret;
-      if (_name.Unflatten(readFrom, numBytes).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(_name.Unflatten(readFrom, numBytes));
       readFrom += _name.FlattenedSize();
       if (readFrom >= afterEnd) return B_BAD_DATA;
       
-      if (_address.Unflatten(readFrom, numBytes).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(_address.Unflatten(readFrom, numBytes));
       readFrom += _address.FlattenedSize();
       if (readFrom >= afterEnd) return B_BAD_DATA;
 
-      if (_city.Unflatten(readFrom, numBytes).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(_city.Unflatten(readFrom, numBytes));
       readFrom += _city.FlattenedSize();
       if (readFrom >= afterEnd) return B_BAD_DATA;
 
-      if (_state.Unflatten(readFrom, numBytes).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(_state.Unflatten(readFrom, numBytes));
       readFrom += _state.FlattenedSize();
       if (readFrom >= afterEnd) return B_BAD_DATA;
 

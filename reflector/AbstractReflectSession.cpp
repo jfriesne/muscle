@@ -39,9 +39,9 @@ ReflectSessionFactory :: ReflectSessionFactory()
 
 status_t ProxySessionFactory :: AttachedToServer()
 {
-   status_t ret;
-   if (ReflectSessionFactory::AttachedToServer().IsError(ret)) return ret;
+   MRETURN_ON_ERROR(ReflectSessionFactory::AttachedToServer());
 
+   status_t ret;
    if (_slaveRef())
    {
       _slaveRef()->SetOwner(GetOwner());
@@ -173,15 +173,13 @@ Reconnect()
    }
 
 #ifdef MUSCLE_ENABLE_SSL
-   status_t ret;
-
    // auto-wrap the user's gateway and socket in the necessary SSL adapters!
    if ((publicKey())&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL))
    {
       SSLSocketDataIO * ssio = newnothrow SSLSocketDataIO(sock, false, false);
       MRETURN_OOM_ON_NULL(ssio);
       io.SetRef(ssio);
-      if (ssio->SetPublicKeyCertificate(publicKey).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(ssio->SetPublicKeyCertificate(publicKey));
 
       if (dynamic_cast<SSLSocketAdapterGateway *>(_gateway()) == NULL) 
       {

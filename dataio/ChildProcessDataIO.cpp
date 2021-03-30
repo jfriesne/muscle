@@ -254,12 +254,12 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    const bool isParsed = (argc<0);
    if (argc < 0)
    {
-      if (ParseArgs(String((const char *)args), scratchChildArgQ).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(ParseArgs(String((const char *)args), scratchChildArgQ));
       argc = scratchChildArgQ.GetNumItems();
    }
 
    Queue<const char *> scratchChildArgv;  // the child process's argv array, NULL terminated
-   if (scratchChildArgv.EnsureSize(argc+1, true).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(scratchChildArgv.EnsureSize(argc+1, true));
 
    // Populate the argv array for our child process to use
    const char ** argv = scratchChildArgv.HeadPointer();
@@ -298,7 +298,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    {
       // Old-fashioned fork() implementation
       ConstSocketRef masterSock, slaveSock;
-      if (CreateConnectedSocketPair(masterSock, slaveSock, true).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(CreateConnectedSocketPair(masterSock, slaveSock, true));
       pid = fork();
            if (pid > 0) _handle = masterSock;
       else if (pid == 0)

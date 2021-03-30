@@ -139,13 +139,20 @@ public:
      */
    const String * GetPathClause(uint32 depth) const;
 
+   /// Flags that may be passed to DataNode::SetData() to modify its behavior
+   enum {
+      SET_DATA_FLAG_ISBEINGCREATED = 0, ///< if set, the specified DataNode is being created as part of this call
+      SET_DATA_FLAG_ENABLESUPERCEDE,    ///< if set, the user has specified that this node-update should implicitly cancel any currently-queued earlier updates regarding this node
+      NUM_SET_DATA_FLAGS                ///< Guard value
+   };
+   DECLARE_BITCHORD_FLAGS_TYPE(SetDataFlags, NUM_SET_DATA_FLAGS);
+
    /** Replaces this node's payload message with that of (data).
     *  @param data the new Message to associate with this node.
     *  @param optNotifyWith if non-NULL, this StorageReflectSession will be used to notify subscribers that this node's data has changed.
-    *  @param isBeingCreated Should be set true only if this is the first time SetData() was called on this node after its creation.
-    *                        Which is to say, this should almost always be false.
+    *  @param setDataFlags Flags to influence the behavior of this call.  Defaults to no-flags-set.
     */
-   void SetData(const MessageRef & data, StorageReflectSession * optNotifyWith, bool isBeingCreated);
+   void SetData(const MessageRef & data, StorageReflectSession * optNotifyWith, SetDataFlags setDataFlags = SetDataFlags());
 
    /** Returns a reference to this node's Message payload. */
    const MessageRef & GetData() const {return _data;}

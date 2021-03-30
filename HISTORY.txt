@@ -5,15 +5,42 @@ key:  - new feature
       * bug fixed
       o other
 
-8.01 - 
+8.10 -
    - Win32 implementation of ChildProcessDataIO now
      uses a variable-duration polling algorithm to improve
-     throughput between parent and child processes.
+     data-transfer rate from child's stdout to parent process.
    - Added a Prefill() method to the ObjectPool class.
+   - Added a new flag SETDATANODE_FLAG_ENABLESUPERCEDE
+     to the SetDataNodeFlags enum.  PR_COMMAND_SETDATA
+     Message specifying this flag will try to remove
+     any previously-enqueued-but-still-pending updates
+     regarding the DataNodes they modify, so as not to
+     build up a FIFO backlog of update-Messages when
+     the server is under a heavy update-load.
+   - PR_COMAMND_SETDATA parser now accepts PR_NAME_FLAGS
+     field as either a SetDataNodeFlags or a uint32,
+     for convenience when client isn't C++-based.
+   - Added UpdateSubscriptionMessage(), PruneSubscriptionMessage(),
+     and UpdateSubscriptionIndexMessage() hook-methods to
+     the StorageReflectSession class.
+   - Added GetStringReference() convenience-method to the
+     Message class.
+   o Moved the declaration of the SetDataNodeFlags
+     BitChord type from StorageReflectSession.h to
+     StorageReflectConstants.h.
+   o Modified the NotifySubscribersThatNodeChanged()
+     and NodeChanged() methods in StorageReflectSession.
+     to accept a NodeChangeFlags argument instead of a boolean.
+   o Modified the SetData() method in DataNode to
+     accept a SetDataFlags argument instead of a boolean.
+   o Simplified error-handling in various locations by
+     using MRETURN_ON_ERROR instead of explicit if/returns.
    * Fixed #include in Win32FileHandleDataIO.h
    * Fixed a bug in IPAddress::SetIPv4AddressFromUint32()
      that was causing it to set the interface-index of an
      IPv4 address to 0 instead of to MUSCLE_NO_LIMIT/invalid.
+   * Fixed a potential buffer-overrun in
+     StorageReflectSession::NodeIndexChanged().
 
 8.00 - Released 3/8/2021
    - Added TemplatedFlatten(), TemplatedUnflatten(),
@@ -66,6 +93,7 @@ key:  - new feature
 7.71 - Released 2/14/2021
    - Added copy-constructor and assignment-operator to the
      StringTokenizer class.
+   - Added an IndexOfName() method to the Message class.
    o Updated the muscle.dox file to work with DOxygen v1.9.2.
    o Fixed some ClangSA warnings
    o Modified Hashtable::PutOrRemove() to return a status_t

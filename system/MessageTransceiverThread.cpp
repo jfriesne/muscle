@@ -264,9 +264,8 @@ status_t MessageTransceiverThread :: SetDefaultDistributionPath(const String & p
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_DEFAULT_PATH));
       MRETURN_OOM_ON_NULL(msgRef());
-
-      status_t ret;
-      if ((msgRef()->AddString(MTT_NAME_PATH, path).IsError(ret))||(SendMessageToInternalThread(msgRef).IsError(ret))) return ret;
+      MRETURN_ON_ERROR(msgRef()->AddString(MTT_NAME_PATH, path));
+      MRETURN_ON_ERROR(SendMessageToInternalThread(msgRef));
    }
    else _defaultDistributionPath = path;
 
@@ -491,18 +490,16 @@ void ThreadWorkerSession :: AsyncConnectCompleted()
 
 status_t ThreadWorkerSession :: AttachedToServer()
 {
-   status_t ret;
-   if (StorageReflectSession::AttachedToServer().IsOK(ret))
+   MRETURN_ON_ERROR(StorageReflectSession::AttachedToServer());
+
+   if (_acceptedIAP.IsValid())
    {
-      if (_acceptedIAP.IsValid())
-      {
-         MessageRef msg = GetMessageFromPool(MTT_EVENT_SESSION_ACCEPTED);
-         MRETURN_OOM_ON_NULL(msg());
-         if ((msg()->AddString(MTT_NAME_LOCATION, _acceptedIAP.ToString()).IsError(ret))||(SendMessageToSupervisorSession(msg).IsError(ret))) return ret;
-      }
-      return SendMessageToSupervisorSession(GetMessageFromPool(MTT_EVENT_SESSION_ATTACHED));
+      MessageRef msg = GetMessageFromPool(MTT_EVENT_SESSION_ACCEPTED);
+      MRETURN_OOM_ON_NULL(msg());
+      MRETURN_ON_ERROR(msg()->AddString(MTT_NAME_LOCATION, _acceptedIAP.ToString()));
+      MRETURN_ON_ERROR(SendMessageToSupervisorSession(msg));
    }
-   else return ret;
+   return SendMessageToSupervisorSession(GetMessageFromPool(MTT_EVENT_SESSION_ATTACHED));
 }
 
 status_t ThreadWorkerSession :: SendMessageToSupervisorSession(const MessageRef & msg, void * userData)

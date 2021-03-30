@@ -19,8 +19,7 @@ static status_t WriteFakeFileDataToTarFile(TarFileWriter & writer, const char * 
    const uint32 fileMode = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
 #endif
 
-   status_t ret;
-   if (writer.WriteFileHeader(fakeFileName, fileMode, 0, 0, GetCurrentTime64(), TarFileWriter::TAR_LINK_INDICATOR_NORMAL_FILE, NULL, 0).IsError(ret)) return ret;
+   MRETURN_ON_ERROR(writer.WriteFileHeader(fakeFileName, fileMode, 0, 0, GetCurrentTime64(), TarFileWriter::TAR_LINK_INDICATOR_NORMAL_FILE, NULL, 0));
 
    // Generate some fake data for our fake file to contain
    uint8 fakeDataBuf[1024];

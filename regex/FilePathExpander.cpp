@@ -16,7 +16,6 @@ static status_t ExpandFilePathWildCardsAux(const String & curDir, const String &
    const String firstClause  = (sepIdx >= 0) ? path.Substring(0, sepIdx) : path;
    const String restOfString = (sepIdx >= 0) ? path.Substring(sepIdx+1) : GetEmptyString();
 
-   status_t ret;
    StringMatcher sm(firstClause, isSimpleFormat);
    Directory dir(curDir());
    if (dir.IsValid())
@@ -33,9 +32,9 @@ static status_t ExpandFilePathWildCardsAux(const String & curDir, const String &
                   const String childPath = String(dir.GetPath())+fn;
                   if (restOfString.HasChars())
                   {
-                     if (ExpandFilePathWildCardsAux(childPath, restOfString, outputPaths, isSimpleFormat).IsError(ret)) return ret;
+                     MRETURN_ON_ERROR(ExpandFilePathWildCardsAux(childPath, restOfString, outputPaths, isSimpleFormat));
                   }
-                  else if (outputPaths.AddTail(childPath).IsError(ret)) return ret;
+                  else MRETURN_ON_ERROR(outputPaths.AddTail(childPath));
                } 
                dir++;
             }
@@ -49,9 +48,9 @@ static status_t ExpandFilePathWildCardsAux(const String & curDir, const String &
          {
             if (restOfString.HasChars())
             {
-               if (ExpandFilePathWildCardsAux(childPath, restOfString, outputPaths, isSimpleFormat).IsError(ret)) return ret;
+               MRETURN_ON_ERROR(ExpandFilePathWildCardsAux(childPath, restOfString, outputPaths, isSimpleFormat));
             }
-            else if (outputPaths.AddTail(childPath).IsError(ret)) return ret;
+            else MRETURN_ON_ERROR(outputPaths.AddTail(childPath));
          }
       }
    }

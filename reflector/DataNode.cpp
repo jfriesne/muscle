@@ -199,7 +199,7 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
    if ((_children->Put(&child->_nodeName, node, oldNode).IsOK(ret))&&(optNotifyChangedData))
    {
       MessageRef oldData; if (oldNode()) oldData = oldNode()->GetData();
-      optNotifyChangedData->NotifySubscribersThatNodeChanged(*child, oldData, false);
+      optNotifyChangedData->NotifySubscribersThatNodeChanged(*child, oldData, StorageReflectSession::NodeChangeFlags());
    }
    return ret;
 }
@@ -265,8 +265,7 @@ status_t DataNode :: GetNodePath(String & retPath, uint32 startDepth) const
       if ((pathLen > 0)&&(startDepth > 0)) pathLen--;  // for (startDepth>0), there will be no initial slash
 
       // Might as well make sure we have enough memory to return it, up front
-      status_t ret;
-      if (retPath.Prealloc(pathLen).IsError(ret)) return ret;
+      MRETURN_ON_ERROR(retPath.Prealloc(pathLen));
 
       char * dynBuf = NULL;
       const uint32 stackAllocSize = 256;
@@ -315,7 +314,7 @@ status_t DataNode :: RemoveChild(const String & key, StorageReflectSession * opt
          if (recurse) while(child->HasChildren()) (void) child->RemoveChild(**(child->_children->GetFirstKey()), optNotifyWith, recurse, optCurrentNodeCount);
 
          (void) RemoveIndexEntry(key, optNotifyWith);
-         if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*child, child->GetData(), true);
+         if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*child, child->GetData(), StorageReflectSession::NodeChangeFlags(StorageReflectSession::NODE_CHANGE_FLAG_ISBEINGREMOVED));
 
          child->SetParent(NULL, optNotifyWith);
       }
@@ -347,13 +346,13 @@ status_t DataNode :: RemoveIndexEntry(const String & key, StorageReflectSession 
    return B_DATA_NOT_FOUND;
 }
 
-void DataNode :: SetData(const MessageRef & data, StorageReflectSession * optNotifyWith, bool isBeingCreated)
+void DataNode :: SetData(const MessageRef & data, StorageReflectSession * optNotifyWith, SetDataFlags setDataFlags)
 {
    MessageRef oldData;
-   if (isBeingCreated == false) oldData = _data;
+   if (setDataFlags.IsBitSet(SET_DATA_FLAG_ISBEINGCREATED) == false) oldData = _data;
    _data = data;
    _cachedDataChecksum = 0;
-   if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*this, oldData, false);
+   if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*this, oldData, setDataFlags.IsBitSet(SET_DATA_FLAG_ENABLESUPERCEDE)?StorageReflectSession::NodeChangeFlags(StorageReflectSession::NODE_CHANGE_FLAG_ENABLESUPERCEDE):StorageReflectSession::NodeChangeFlags());
 }
 
 uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
