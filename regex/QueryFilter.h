@@ -417,7 +417,7 @@ public:
      * @param op a NumericQueryFilter::OP_* value indicating which logical operator to use when testing the number-of-children count.
      * @param value the number of children to test against using (op)
      */
-   ChildCountQueryFilter(uint8 op, uint32 value) : NumericQueryFilter(GetEmptyString(), op, value) {/* empty */}
+   ChildCountQueryFilter(uint8 op, uint32 value) : NumericQueryFilter<int32, B_INT32_TYPE, QUERY_FILTER_TYPE_CHILDCOUNT>(GetEmptyString(), op, value) {/* empty */}
 
    virtual bool Matches(ConstMessageRef & /*msg*/, const DataNode * optNode) const;
 };

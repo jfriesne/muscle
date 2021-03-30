@@ -138,7 +138,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    TCHECKPOINT;
 
    int32 ret = 0;
-   const int tempBufSize = 2048;
+   const uint32 tempBufSize = 2048;
    char buf[tempBufSize];
 
    const uint32 mtuSize = GetMaximumPacketSize();
