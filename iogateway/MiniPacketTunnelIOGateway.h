@@ -2,6 +2,9 @@
 
 #include "dataio/ByteBufferDataIO.h"
 #include "iogateway/AbstractMessageIOGateway.h"
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+# include "zlib/ZLibCodec.h"
+#endif
 
 namespace muscle {
 
@@ -31,7 +34,7 @@ public:
      */
    MiniPacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway = AbstractMessageIOGatewayRef(), uint32 maxTransferUnit = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, uint32 magic = DEFAULT_MINI_TUNNEL_IOGATEWAY_MAGIC);
 
-   virtual bool HasBytesToOutput() const {return ((_currentOutputBuffer())||(GetOutgoingMessageQueue().HasItems()));}
+   virtual bool HasBytesToOutput() const {return ((_currentOutputMessageBuffer())||(GetOutgoingMessageQueue().HasItems()));}
 
    /** Sets our slave gateway.  Only necessary if you didn't specify a slave gateway in the constructor.
      * @param slaveGateway reference to the new slave gateway
@@ -64,6 +67,14 @@ public:
    /** Returns the current source-exclusion ID.  See above for details. */
    uint32 GetSourceExclusionID() const {return _sexID;}
 
+   /** Set the level of zlib-compression to apply to outgoing packets just before sending them.
+     * @param sendCompressionLevel 0 for no zlib-compression (this is the default) up to 9 for maximum compression.
+     */
+   void SetZLibCompressionLevel(uint8 sendCompressionLevel) {_sendCompressionLevel = sendCompressionLevel;}
+
+   /** Returns the level of zlib-compression we will apply to outgoing packets just before sending them. */
+   uint8 GetZLibCompressionLevel() const {return _sendCompressionLevel;}
+
 protected:
    /** Implemented to receive packets from various sources and split them up into
      * the appropriate Message objects.  Note that when MessageReceived() is called on the
@@ -86,6 +97,7 @@ private:
 
    const uint32 _magic;                 // our magic number, used to sanity check packets
    const uint32 _maxTransferUnit;       // max number of bytes to try to fit in a packet
+   uint8 _sendCompressionLevel;         // 0-9 (no zlib-deflate up to maximum-zlib-deflate)
 
    bool _allowMiscData;  // If true, we'll pass on non-magic UDP packets also, as if they were fragments
    uint32 _sexID;
@@ -97,8 +109,7 @@ private:
    uint32 _outputPacketSize;
 
    uint32 _sendPacketIDCounter;
-   ByteBufferRef _currentOutputBuffer;
-   uint32 _currentOutputBufferOffset;
+   ByteBufferRef _currentOutputMessageBuffer;
 
    ByteBufferDataIO _fakeSendIO;
    ByteBuffer _fakeSendBuffer;
@@ -109,6 +120,10 @@ private:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {_scratchReceiver->CallMessageReceivedFromGateway(msg, _scratchReceiverArg);}
    AbstractGatewayMessageReceiver * _scratchReceiver;
    void * _scratchReceiverArg;
+
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+   ZLibCodecRef _codec;
+#endif
 
    DECLARE_COUNTED_OBJECT(MiniPacketTunnelIOGateway);
 };

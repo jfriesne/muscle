@@ -7,6 +7,7 @@
 
 # include "support/NotCopyable.h"
 # include "util/ByteBuffer.h"
+# include "util/RefCount.h"
 # include "zlib/zlib/zlib.h"
 
 namespace muscle {
@@ -16,7 +17,7 @@ class DataIO;
 /** This class is a handy wrapper around the zlib C functions.
   * It quickly and easily inflates and deflates data to/from independently compressed chunks.
   */
-class ZLibCodec MUSCLE_FINAL_CLASS : public NotCopyable
+class ZLibCodec MUSCLE_FINAL_CLASS : public RefCountable, public NotCopyable
 {
 public:
    /** Constructor.
@@ -215,6 +216,7 @@ private:
    bool _deflateOkay;
    z_stream _deflater;
 };
+DECLARE_REFTYPES(ZLibCodec);
 
 } // end namespace muscle
 

@@ -30,6 +30,7 @@ key:  - new feature
    - Added a MiniPacketTunnelIOGateway class, for maximally
      efficient packing of multiple smaller-than-MTU Messages together
      into UDP packets.
+   - The ZLibCodec class now inherits from RefCountable.
    o Moved the declaration of the SetDataNodeFlags
      BitChord type from StorageReflectSession.h to
      StorageReflectConstants.h.

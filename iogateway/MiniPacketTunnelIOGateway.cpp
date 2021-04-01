@@ -6,9 +6,9 @@
 namespace muscle {
 
 // Each packet-header has the following fields in it:
-//    uint32 magic_number
-//    uint32 source_exclusion_id
-//    uint32 packet_id
+//    uint32 : magic_number
+//    uint32 : source_exclusion_id
+//    uint32 : (compression_level<<24) | packet_id
 static const uint32 PACKET_HEADER_SIZE = 3*(sizeof(uint32));
 
 // Each chunk header has the following fields in it:
@@ -18,6 +18,7 @@ static const uint32 CHUNK_HEADER_SIZE = 1*(sizeof(uint32));
 MiniPacketTunnelIOGateway :: MiniPacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway, uint32 maxTransferUnit, uint32 magic)
    : _magic(magic)
    , _maxTransferUnit(muscleMax(maxTransferUnit, PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+1))
+   , _sendCompressionLevel(0)
    , _allowMiscData(false)
    , _sexID(0)
    , _slaveGateway(slaveGateway)
@@ -31,6 +32,10 @@ MiniPacketTunnelIOGateway :: MiniPacketTunnelIOGateway(const AbstractMessageIOGa
 int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
    if (_inputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;
+
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+   ByteBufferRef infBuf;
+#endif
 
    bool firstTime = true;
    uint32 totalBytesRead = 0;
@@ -54,19 +59,43 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
             // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
             HandleIncomingMessage(receiver, p, bytesRead, fromIAP);
          }
-         else if (bytesRead >= PACKET_HEADER_SIZE)
+         else if (bytesRead >= (int32)PACKET_HEADER_SIZE)
          {
             // Read the packet header
             const uint8 * invalidByte = p+bytesRead;
 
             const uint32 magic    = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[0*sizeof(uint32)]));
             const uint32 sexID    = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[1*sizeof(uint32)]));
-            const uint32 packetID = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[2*sizeof(uint32)]));
+            const uint32 cLAndID  = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[2*sizeof(uint32)]));  // (compressionLevel<<24) | (packetID)
+            const uint8  cLevel   = (cLAndID >> 24) & 0xFF;
+            const uint32 packetID = (cLAndID >> 00) & 0xFFFFFF;
             p += PACKET_HEADER_SIZE;
-//printf("   PARSE magic=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " sex=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " packetID=" UINT32_FORMAT_SPEC "\n", magic, _magic, sexID, _sexID, packetID);
+//printf("   PARSE magic=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " compressionLevel=%u sex=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " packetID=" UINT32_FORMAT_SPEC "\n", magic, _magic, cLevel, sexID, _sexID, packetID);
 
             if ((magic == _magic)&&((_sexID == 0)||(_sexID != sexID)))
             {
+               if (cLevel > 0)
+               {
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+                  // Payloads are compressed!  Gotta zlib-inflate them first
+                  if (_codec() == NULL) _codec.SetRef(newnothrow ZLibCodec(3));  // compression-level doesn't really matter for inflation step
+                  infBuf = _codec() ? _codec()->Inflate(p, invalidByte-p) : ByteBufferRef();
+                  if (infBuf())
+                  {
+                     p = infBuf()->GetBuffer();
+                     invalidByte = p+infBuf()->GetNumBytes();
+                  }
+                  else
+                  {
+                     LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoInputImplementation():  zlib-inflate failed!\n");
+                     p = invalidByte;
+                  }
+#else
+                  LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoInputImplementation():  Can't zlib-inflate incoming MiniPacketTunnelIOGateway, ZLib support wasn't compiled in!\n");
+                  p = invalidByte;
+#endif
+               }
+
                // Parse out each message-chunk from the packet
                while((invalidByte-p) >= (int32)CHUNK_HEADER_SIZE)
                {
@@ -144,14 +173,12 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       // Step 1:  Add as many messages to our output-packet-buffer as we can fit into it
       while(HasBytesToOutput())
       {
-         // Demand-create the next send-buffer
-         if (_currentOutputBuffer() == NULL)
+         // Demand-create the next Message-buffer
+         if (_currentOutputMessageBuffer() == NULL)
          {
             MessageRef msg;
             if (GetOutgoingMessageQueue().RemoveHead(msg).IsOK())
             {
-               _currentOutputBufferOffset = 0;
-
                if (_slaveGateway())
                {
                   DataIORef oldIO = _slaveGateway()->GetDataIO(); // save slave gateway's old state
@@ -164,23 +191,23 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
                   while(_slaveGateway()->DoOutput() > 0) {/* empty */}
 
                   _slaveGateway()->SetDataIO(oldIO);  // restore slave gateway's old state
-                  _currentOutputBuffer.SetRef(&_fakeSendBuffer, false);
+                  _currentOutputMessageBuffer.SetRef(&_fakeSendBuffer, false);
                }
                else if (_fakeSendBuffer.SetNumBytes(msg()->FlattenedSize(), false).IsOK())
                {
                   // Default algorithm:  Just flatten the Message into the buffer
                   msg()->Flatten(_fakeSendBuffer.GetBuffer());
-                  _currentOutputBuffer.SetRef(&_fakeSendBuffer, false);
+                  _currentOutputMessageBuffer.SetRef(&_fakeSendBuffer, false);
                }
             }
          }
-         if (_currentOutputBuffer() == NULL) break;
+         if (_currentOutputMessageBuffer() == NULL) break;
 
-         const uint32 sbSize = _currentOutputBuffer()->GetNumBytes();
+         const uint32 sbSize = _currentOutputMessageBuffer()->GetNumBytes();
          if ((PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+sbSize) > _maxTransferUnit)
          {
-            LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Outgoing Message payload is " UINT32_FORMAT_SPEC " bytes long, it can't fit into i packet!  Dropping it\n", _currentOutputBuffer()->GetNumBytes());
-            _currentOutputBuffer.Reset();
+            LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Outgoing Message payload is " UINT32_FORMAT_SPEC " bytes long, it can't fit into i packet!  Dropping it\n", _currentOutputMessageBuffer()->GetNumBytes());
+            _currentOutputMessageBuffer.Reset();
          }
          else if ((((_outputPacketSize==0)?PACKET_HEADER_SIZE:0)+CHUNK_HEADER_SIZE+sbSize) < _maxTransferUnit)
          {
@@ -189,31 +216,67 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
             if (_outputPacketSize == 0)
             {
                // Add a packet-header to the packet
-               muscleCopyOut(&b[_outputPacketSize], B_HOST_TO_LENDIAN_INT32(_magic));               _outputPacketSize += sizeof(_magic);
-               muscleCopyOut(&b[_outputPacketSize], B_HOST_TO_LENDIAN_INT32(_sexID));               _outputPacketSize += sizeof(_sexID);
-               muscleCopyOut(&b[_outputPacketSize], B_HOST_TO_LENDIAN_INT32(_sendPacketIDCounter)); _outputPacketSize += sizeof(_sendPacketIDCounter);
-               _sendPacketIDCounter++;
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+               const uint32 cLAndID = _sendPacketIDCounter|(_sendCompressionLevel<<24);
+#else
+               const uint32 cLAndID = _sendPacketIDCounter;
+#endif
+               muscleCopyOut(&b[_outputPacketSize], B_HOST_TO_LENDIAN_INT32(_magic));  _outputPacketSize += sizeof(_magic);
+               muscleCopyOut(&b[_outputPacketSize], B_HOST_TO_LENDIAN_INT32(_sexID));  _outputPacketSize += sizeof(_sexID);
+               muscleCopyOut(&b[_outputPacketSize], B_HOST_TO_LENDIAN_INT32(cLAndID)); _outputPacketSize += sizeof(cLAndID);
             }
 
             // Add the chunk-header and chunk-data to the packet
             muscleCopyOut(&b[_outputPacketSize], B_HOST_TO_LENDIAN_INT32(sbSize));      _outputPacketSize += sizeof(sbSize);
-            memcpy(&b[_outputPacketSize], _currentOutputBuffer()->GetBuffer(), sbSize); _outputPacketSize += sbSize;
+            memcpy(&b[_outputPacketSize], _currentOutputMessageBuffer()->GetBuffer(), sbSize); _outputPacketSize += sbSize;
+            _currentOutputMessageBuffer.Reset();
          }
          else break;  // can't fit _currentOutputBuffer into this packet; it'll have to wait for the next one
       }
 
       // Step 2:  If we have a non-empty packet to send, send it!
-      if (_outputPacketSize > 0)
+      ByteBufferRef defBuf;
+      uint8 * writeBuf = _outputPacketBuffer.GetBuffer();  // may be changed below if we deflate
+      uint32 writeSize = _outputPacketSize;
+      if (writeSize > 0)
       {
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+         if (_sendCompressionLevel > 0)
+         {
+            if ((_codec() == NULL)||(_codec()->GetCompressionLevel() != _sendCompressionLevel)) _codec.SetRef(newnothrow ZLibCodec(_sendCompressionLevel));
+            if (_codec())
+            {
+               defBuf = _codec()->Deflate(_outputPacketBuffer.GetBuffer()+PACKET_HEADER_SIZE, _outputPacketSize-PACKET_HEADER_SIZE, true, PACKET_HEADER_SIZE);
+               if (defBuf())
+               {
+                  if (defBuf()->GetNumBytes() < writeSize)  // no sense sending deflated data if it didn't actually change anything!
+                  {
+                     memcpy(defBuf()->GetBuffer(), writeBuf, PACKET_HEADER_SIZE);
+                     writeBuf  = defBuf()->GetBuffer();
+                     writeSize = defBuf()->GetNumBytes();
+                  }
+               }
+               else LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Deflate() failed!\n");
+            }
+
+            if (defBuf() == NULL)
+            {
+               // Oops, no compression occurred!  Better patch the packet-header to reflect that or the receiver will be confused
+               muscleCopyOut(&writeBuf[2*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_sendPacketIDCounter));
+            }
+         }
+#endif
+
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
-         const int32 bytesWritten = GetDataIO()() ? GetDataIO()()->Write(_outputPacketBuffer.GetBuffer(), _outputPacketSize) : -1;
-//printf("WROTE " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes %s\n", bytesWritten, _outputPacketSize, (bytesWritten==(int32)_outputPacketSize)?"":"******** SHORT ***********");
+         const int32 bytesWritten = GetDataIO()() ? GetDataIO()()->Write(writeBuf, writeSize) : -1;
+//printf("WROTE " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes %s\n", bytesWritten, writeSize, (bytesWritten==(int32)writeSize)?"":"******** SHORT ***********");
          if (bytesWritten > 0)
          {
-            if (bytesWritten != (int32)_outputPacketSize) LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten, _outputPacketSize);
+            if (bytesWritten != (int32)writeSize) LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten, _outputPacketSize);
             _outputPacketBuffer.Clear();
             _outputPacketSize = 0;
             totalBytesWritten += bytesWritten;
+            _sendPacketIDCounter = (_sendPacketIDCounter+1)%16777216;  // 24-bit counter
          }
          else if (bytesWritten == 0) break;  // no more space to write, for now
          else return -1;
