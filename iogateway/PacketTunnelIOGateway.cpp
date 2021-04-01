@@ -215,8 +215,8 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          muscleCopyOut(&p[1*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_sexID));                      // source exclusion ID
          muscleCopyOut(&p[2*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_sendMessageIDCounter));       // message ID tag so the receiver can track what belongs where
          muscleCopyOut(&p[3*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_currentOutputBufferOffset));  // start offset (within its message) for this sub-chunk
-         muscleCopyOut(&p[4*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(dataBytesToSend)); // size of this sub-chunk
-         muscleCopyOut(&p[5*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(sbSize));          // total size of this message
+         muscleCopyOut(&p[4*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(dataBytesToSend));             // size of this sub-chunk
+         muscleCopyOut(&p[5*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(sbSize));                      // total size of this message
 //printf("CREATING PACKET magic=" UINT32_FORMAT_SPEC " msgID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", _magic, _sendMessageIDCounter, _currentOutputBufferOffset, dataBytesToSend, sbSize);
          memcpy(p+FRAGMENT_HEADER_SIZE, _currentOutputBuffer()->GetBuffer()+_currentOutputBufferOffset, dataBytesToSend);
 

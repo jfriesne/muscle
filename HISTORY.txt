@@ -25,6 +25,8 @@ key:  - new feature
      the StorageReflectSession class.
    - Added GetStringReference() convenience-method to the
      Message class.
+   - Added MLOG_ON_ERROR, MPRINT_ON_ERROR, MLOG_AND_RETURN_ON_ERROR,
+     and MPRINT_AND_RETURN_ON_ERROR macros for convenient error-logging.
    o Moved the declaration of the SetDataNodeFlags
      BitChord type from StorageReflectSession.h to
      StorageReflectConstants.h.
