@@ -27,6 +27,9 @@ key:  - new feature
      Message class.
    - Added MLOG_ON_ERROR, MPRINT_ON_ERROR, MLOG_AND_RETURN_ON_ERROR,
      and MPRINT_AND_RETURN_ON_ERROR macros for convenient error-logging.
+   - Added a MiniPacketTunnelIOGateway class, for maximally
+     efficient packing of multiple smaller-than-MTU Messages together
+     into UDP packets.
    o Moved the declaration of the SetDataNodeFlags
      BitChord type from StorageReflectSession.h to
      StorageReflectConstants.h.

@@ -1,6 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include "dataio/UDPSocketDataIO.h"  // for retrieving the source IP address and port, where possible
+#include "dataio/PacketDataIO.h"  // for retrieving the source IP address and port, where possible
 #include "iogateway/PacketTunnelIOGateway.h"
 
 namespace muscle {
