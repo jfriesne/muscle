@@ -94,8 +94,9 @@ protected:
    virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
 
 private:
-   void HandleIncomingMessage(AbstractGatewayMessageReceiver & receiver, const uint8 * p, uint32 bytesRead, const IPAddressAndPort & fromIAP);
-   void HandleIncomingMessage(AbstractGatewayMessageReceiver & receiver, const ByteBufferRef & buf,         const IPAddressAndPort & fromIAP);
+   void HandleIncomingByteBuffer(AbstractGatewayMessageReceiver & receiver, const uint8 * p, uint32 bytesRead, const IPAddressAndPort & fromIAP);
+   void HandleIncomingByteBuffer(AbstractGatewayMessageReceiver & receiver, const ByteBufferRef & buf,         const IPAddressAndPort & fromIAP);
+   ByteBufferRef CreateNextOutgoingByteBuffer();
 
    const uint32 _magic;                 // our magic number, used to sanity check packets
    const uint32 _maxTransferUnit;       // max number of bytes to try to fit in a packet
