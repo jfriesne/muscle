@@ -438,7 +438,7 @@ protected:
    /** Called when the StorageReflectSession wants to update its outgoing PR_RESULT_INDEXUPDATED Message with more information.
      * This is exposed as a virtual method so that subclasses can augment this behavior if they care to do so.  In most cases,
      * however, the default implementation does the right thing.
-     * @param subscriptionMessage The PR_RESULT_INDEXUPDATED Message that should be altered
+     * @param subscriptionIndexMessage The PR_RESULT_INDEXUPDATED Message that should be altered
      * @param nodePath the node-path of the DataNode whose index-state is changing
      * @param op The INDEX_OP_* opcode of the change.
      * @param index The index at which the operation took place (not defined for clear operations)

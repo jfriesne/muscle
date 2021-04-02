@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
 #include "dataio/ByteBufferDataIO.h"
-#include "iogateway/AbstractMessageIOGateway.h"
+#include "iogateway/ProxyIOGateway.h"
 #include "util/NetworkUtilityFunctions.h"  // for MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET
 
 namespace muscle {
@@ -22,7 +22,7 @@ namespace muscle {
   * If a message fragment is lost over the I/O channel, this class will simply drop the entire message
   * and continue.
   */
-class PacketTunnelIOGateway : public AbstractMessageIOGateway
+class PacketTunnelIOGateway : public ProxyIOGateway
 {
 public:
    /** @param slaveGateway This is the gateway we will call to generate data to send, etc.
@@ -41,14 +41,6 @@ public:
    PacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway = AbstractMessageIOGatewayRef(), uint32 maxTransferUnit = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, uint32 magic = DEFAULT_TUNNEL_IOGATEWAY_MAGIC);
 
    virtual bool HasBytesToOutput() const {return ((_currentOutputBuffer())||(GetOutgoingMessageQueue().HasItems()));}
-
-   /** Sets our slave gateway.  Only necessary if you didn't specify a slave gateway in the constructor.
-     * @param slaveGateway reference to the new slave gateway
-     */
-   void SetSlaveGateway(const AbstractMessageIOGatewayRef & slaveGateway) {_slaveGateway = slaveGateway;}
-
-   /** Returns our current slave gateway, or a NULL reference if we don't have one. */
-   const AbstractMessageIOGatewayRef & GetSlaveGateway() const {return _slaveGateway;}
 
    /** Sets the maximum size message we will allow ourself to receive.  Defaults to MUSCLE_NO_LIMIT.
      * @param messageSize new maximum incoming message size, in bytes, or MUSCLE_NO_LIMIT to not enforce any maximum
@@ -98,15 +90,11 @@ protected:
    virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
 
 private:
-   void HandleIncomingMessage(AbstractGatewayMessageReceiver & receiver, const ByteBufferRef & buf, const IPAddressAndPort & fromIAP);
-
    const uint32 _magic;                 // our magic number, used to sanity check packets
    const uint32 _maxTransferUnit;       // max number of bytes to try to fit in a packet
 
    bool _allowMiscData;  // If true, we'll pass on non-magic UDP packets also, as if they were fragments
-   uint32 _sexID;
-
-   AbstractMessageIOGatewayRef _slaveGateway;
+   uint32 _sexID;        // source-exclusion ID, for identifying received packets that we previously sent out ourself
 
    ByteBuffer _inputPacketBuffer;
    ByteBuffer _outputPacketBuffer;
@@ -115,11 +103,6 @@ private:
    uint32 _sendMessageIDCounter;
    ByteBufferRef _currentOutputBuffer;
    uint32 _currentOutputBufferOffset;
-
-   ByteBufferDataIO _fakeSendIO;
-   ByteBuffer _fakeSendBuffer;
-
-   ByteBufferDataIO _fakeReceiveIO;
    uint32 _maxIncomingMessageSize;
 
    class ReceiveState 
@@ -133,11 +116,6 @@ private:
       ByteBufferRef _buf;
    };
    Hashtable<IPAddressAndPort, ReceiveState> _receiveStates;
-
-   // Pass the call back through to our own caller, but with the appropriate argument.
-   virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {_scratchReceiver->CallMessageReceivedFromGateway(msg, _scratchReceiverArg);}
-   AbstractGatewayMessageReceiver * _scratchReceiver;
-   void * _scratchReceiverArg;
 
    DECLARE_COUNTED_OBJECT(PacketTunnelIOGateway);
 };

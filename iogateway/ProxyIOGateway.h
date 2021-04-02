@@ -49,6 +49,12 @@ protected:
      */
    ByteBufferRef CreateNextOutgoingByteBuffer();
 
+   /** Calls Clear() on our fakeSendBuffer object to free up memory.
+     * @param maxBytesToRetain if the fakeSendBuffer's size is greater than this, we'll free the buffer; otherwise we'll just mark it
+     *                         as zero-length in hope that we can re-use it later.
+     */
+   void ClearFakeSendBuffer(uint32 maxBytesToRetain) {_fakeSendBuffer.Clear(_fakeSendBuffer.GetNumBytes() > maxBytesToRetain);}
+
 private:
    AbstractMessageIOGatewayRef _slaveGateway;
 

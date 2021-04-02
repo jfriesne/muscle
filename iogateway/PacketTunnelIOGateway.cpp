@@ -18,17 +18,16 @@ static const uint32 FRAGMENT_HEADER_SIZE = 6*(sizeof(uint32));
 static const uint32 MAX_CACHE_SIZE = 20*1024;
 
 PacketTunnelIOGateway :: PacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway, uint32 maxTransferUnit, uint32 magic)
-   : _magic(magic)
+   : ProxyIOGateway(slaveGateway)
+   , _magic(magic)
    , _maxTransferUnit(muscleMax(maxTransferUnit, FRAGMENT_HEADER_SIZE+1))
    , _allowMiscData(false)
    , _sexID(0)
-   , _slaveGateway(slaveGateway)
    , _outputPacketSize(0)
    , _sendMessageIDCounter(0)
    , _maxIncomingMessageSize(MUSCLE_NO_LIMIT)
 {
-   _fakeSendIO.SetBuffer(ByteBufferRef(&_fakeSendBuffer, false));
-   // _fakeReceiveIO's buffer will be set just before it is used
+   // empty
 }
 
 int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
@@ -55,10 +54,7 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
          if ((_allowMiscData)&&((bytesRead < (int32)FRAGMENT_HEADER_SIZE)||(((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(p))) != _magic)))
          {
             // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
-            ByteBuffer temp;
-            temp.AdoptBuffer(bytesRead, const_cast<uint8 *>(p));
-            HandleIncomingMessage(receiver, ByteBufferRef(&temp, false), fromIAP);
-            (void) temp.ReleaseBuffer();
+            HandleIncomingByteBuffer(receiver, p, bytesRead, fromIAP);
          }
          else
          {
@@ -108,7 +104,7 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
                         rs->_offset += chunkSize;
                         if (rs->_offset == rsSize) 
                         {
-                           HandleIncomingMessage(receiver, rs->_buf, fromIAP);
+                           HandleIncomingByteBuffer(receiver, rs->_buf, fromIAP);
                            rs->_offset = 0;
                            rs->_buf()->Clear(rsSize > MAX_CACHE_SIZE);
                         }
@@ -132,35 +128,6 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
    return totalBytesRead;
 }
 
-void PacketTunnelIOGateway :: HandleIncomingMessage(AbstractGatewayMessageReceiver & receiver, const ByteBufferRef & buf, const IPAddressAndPort & fromIAP)
-{
-   if (_slaveGateway())
-   {
-      DataIORef oldIO = _slaveGateway()->GetDataIO(); // save slave gateway's old state
-
-      _fakeReceiveIO.SetBuffer(buf); (void) _fakeReceiveIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
-      _slaveGateway()->SetDataIO(DataIORef(&_fakeReceiveIO, false));
-
-      uint32 slaveBytesRead = 0;
-      while(slaveBytesRead < buf()->GetNumBytes())
-      {
-         _scratchReceiver    = &receiver;
-         _scratchReceiverArg = (void *) &fromIAP;
-         const int32 nextBytesRead = _slaveGateway()->DoInput(*this, buf()->GetNumBytes()-slaveBytesRead);
-         if (nextBytesRead > 0) slaveBytesRead += nextBytesRead;
-                           else break;
-      }
-
-      _slaveGateway()->SetDataIO(oldIO);  // restore slave gateway's old state
-      _fakeReceiveIO.SetBuffer(ByteBufferRef());
-   }
-   else
-   {
-      MessageRef inMsg = GetMessageFromPool();
-      if ((inMsg())&&(inMsg()->UnflattenFromByteBuffer(*buf()).IsOK())) receiver.CallMessageReceivedFromGateway(inMsg, (void *) &fromIAP);
-   }
-}
-
 int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 {
    if (_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;
@@ -177,33 +144,8 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          // Demand-create the next send-buffer
          if (_currentOutputBuffer() == NULL)
          {
-            MessageRef msg;
-            if (GetOutgoingMessageQueue().RemoveHead(msg).IsOK())
-            {
-               _currentOutputBufferOffset = 0; 
-               _currentOutputBuffer.Reset();
-
-               if (_slaveGateway())
-               {
-                  DataIORef oldIO = _slaveGateway()->GetDataIO(); // save slave gateway's old state
-
-                  // Get the slave gateway to generate its output into our ByteBuffer
-                  _fakeSendBuffer.SetNumBytes(0, false);
-                  _fakeSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
-                  _slaveGateway()->SetDataIO(DataIORef(&_fakeSendIO, false));
-                  _slaveGateway()->AddOutgoingMessage(msg);
-                  while(_slaveGateway()->DoOutput() > 0) {/* empty */}
-
-                  _slaveGateway()->SetDataIO(oldIO);  // restore slave gateway's old state
-                  _currentOutputBuffer.SetRef(&_fakeSendBuffer, false);
-               }
-               else if (_fakeSendBuffer.SetNumBytes(msg()->FlattenedSize(), false).IsOK())
-               {
-                  // Default algorithm:  Just flatten the Message into the buffer
-                  msg()->Flatten(_fakeSendBuffer.GetBuffer());
-                  _currentOutputBuffer.SetRef(&_fakeSendBuffer, false);
-               }
-            }
+            _currentOutputBuffer = CreateNextOutgoingByteBuffer();
+            if (_currentOutputBuffer()) _currentOutputBufferOffset = 0;
          }
          if (_currentOutputBuffer() == NULL) break;   // oops, out of mem?
 
@@ -225,7 +167,7 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          if (_currentOutputBufferOffset == sbSize)
          {
             _currentOutputBuffer.Reset();
-            _fakeSendBuffer.Clear(_fakeSendBuffer.GetNumBytes() > MAX_CACHE_SIZE);  // don't keep too much memory around!
+            ClearFakeSendBuffer(MAX_CACHE_SIZE);  // don't keep too much memory around!
             _sendMessageIDCounter++;
          }
       }
