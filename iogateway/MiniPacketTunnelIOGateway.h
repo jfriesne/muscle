@@ -1,8 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#include "dataio/ByteBufferDataIO.h"
-#include "dataio/ByteBufferPacketDataIO.h"
-#include "iogateway/AbstractMessageIOGateway.h"
+#include "iogateway/ProxyIOGateway.h"
 #include "util/NetworkUtilityFunctions.h"  // for MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 # include "zlib/ZLibCodec.h"
@@ -18,7 +16,7 @@ namespace muscle {
   * That simplification allows the Message-header overhead to be significantly reduced (compared
   * to the logic used by PacketTunnelIOGateway), so that we can pack more Messages into each packet.
   */
-class MiniPacketTunnelIOGateway : public AbstractMessageIOGateway
+class MiniPacketTunnelIOGateway : public ProxyIOGateway
 {
 public:
    /** @param slaveGateway This is the gateway we will call to generate data to send, etc.
@@ -37,14 +35,6 @@ public:
    MiniPacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway = AbstractMessageIOGatewayRef(), uint32 maxTransferUnit = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, uint32 magic = DEFAULT_MINI_TUNNEL_IOGATEWAY_MAGIC);
 
    virtual bool HasBytesToOutput() const {return ((_currentOutputMessageBuffer())||(GetOutgoingMessageQueue().HasItems()));}
-
-   /** Sets our slave gateway.  Only necessary if you didn't specify a slave gateway in the constructor.
-     * @param slaveGateway reference to the new slave gateway
-     */
-   void SetSlaveGateway(const AbstractMessageIOGatewayRef & slaveGateway) {_slaveGateway = slaveGateway;}
-
-   /** Returns our current slave gateway, or a NULL reference if we don't have one. */
-   const AbstractMessageIOGatewayRef & GetSlaveGateway() const {return _slaveGateway;}
 
    /** If set to true, any incoming UDP packets that aren't in our packetizer-format will be
      * be interpreted as separate, independent incoming messages.  If false (the default state),
@@ -94,10 +84,6 @@ protected:
    virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
 
 private:
-   void HandleIncomingByteBuffer(AbstractGatewayMessageReceiver & receiver, const uint8 * p, uint32 bytesRead, const IPAddressAndPort & fromIAP);
-   void HandleIncomingByteBuffer(AbstractGatewayMessageReceiver & receiver, const ByteBufferRef & buf,         const IPAddressAndPort & fromIAP);
-   ByteBufferRef CreateNextOutgoingByteBuffer();
-
    const uint32 _magic;                 // our magic number, used to sanity check packets
    const uint32 _maxTransferUnit;       // max number of bytes to try to fit in a packet
    uint8 _sendCompressionLevel;         // 0-9 (no zlib-deflate up to maximum-zlib-deflate)
@@ -105,26 +91,12 @@ private:
    bool _allowMiscData;  // If true, we'll pass on non-magic UDP packets also, as if they were fragments
    uint32 _sexID;
 
-   AbstractMessageIOGatewayRef _slaveGateway;
-
    ByteBuffer _inputPacketBuffer;
    ByteBuffer _outputPacketBuffer;
    uint32 _outputPacketSize;
 
    uint32 _sendPacketIDCounter;
    ByteBufferRef _currentOutputMessageBuffer;
-
-   ByteBufferDataIO _fakeStreamSendIO;
-   ByteBufferPacketDataIO _fakePacketSendIO;
-   ByteBuffer _fakeSendBuffer;
-
-   ByteBufferDataIO _fakeStreamReceiveIO;
-   ByteBufferPacketDataIO _fakePacketReceiveIO;
-
-   // Pass the call back through to our own caller, but with the appropriate argument.
-   virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {_scratchReceiver->CallMessageReceivedFromGateway(msg, _scratchReceiverArg);}
-   AbstractGatewayMessageReceiver * _scratchReceiver;
-   void * _scratchReceiverArg;
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    ZLibCodecRef _codec;

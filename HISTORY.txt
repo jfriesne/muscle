@@ -35,6 +35,10 @@ key:  - new feature
    - Added SetPacketRemoteLocationTaggingEnabled() and
      GetPacketRemoteLocationTaggingEnabled() methods to the
      AbstractMessageIOGateway class.
+   - Added a ProxyIOGateway class that centralizes some common
+     code used by both the PacketTunnelIOGateway and the
+     MiniPacketTunnelIOGateway (and potentially other
+     "decorator" style gateways in the future)
    o Moved the declaration of the SetDataNodeFlags
      BitChord type from StorageReflectSession.h to
      StorageReflectConstants.h.
