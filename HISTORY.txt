@@ -6,7 +6,7 @@ key:  - new feature
       o other
 
 8.10 -
-   - Added PacketByteBufferDataIO class to the dataio folder.
+   - Added ByteBufferPacketDataIO class to the dataio folder.
    - Win32 implementation of ChildProcessDataIO now
      uses a variable-duration polling algorithm to improve
      data-transfer rate from child's stdout to parent process.

@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifndef MusclePacketByteBufferDataIO_h
-#define MusclePacketByteBufferDataIO_h
+#ifndef MuscleByteBufferPacketDataIO_h
+#define MuscleByteBufferPacketDataIO_h
 
 #include "dataio/PacketDataIO.h"
 #include "util/ByteBuffer.h"
@@ -14,14 +14,14 @@ namespace muscle {
  *  The ByteBuffer will behave much like a packet-device (e.g. UDP socket) would, except that
  *  the each "packet" is actually a ByteBuffer rather than a network-buffer.
  */
-class PacketByteBufferDataIO : public PacketDataIO
+class ByteBufferPacketDataIO : public PacketDataIO
 {
 public:
-   /** Constructor.  Creates a PacketByteBufferDataIO with no packets ready to read.
+   /** Constructor.  Creates a ByteBufferPacketDataIO with no packets ready to read.
     *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes)
     */
-   PacketByteBufferDataIO(uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
+   ByteBufferPacketDataIO(uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
    /** Constructor.
     *  @param bufs A ByteBuffer to that will be read by the next call to ReadFrom().
@@ -29,14 +29,14 @@ public:
     *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes)
     */
-   PacketByteBufferDataIO(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
+   ByteBufferPacketDataIO(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
    /** Constructor.
     *  @param bufs A list of ByteBuffers to be read by subsequent calls to ReadFrom().
     *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes)
     */
-   PacketByteBufferDataIO(const Queue<ByteBufferRef> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
+   ByteBufferPacketDataIO(const Queue<ByteBufferRef> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
    /** Constructor.
     *  @param maxPacketSize the maximum support packet-size, in bytes.
@@ -44,10 +44,10 @@ public:
     *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes)
     */
-   PacketByteBufferDataIO(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
+   ByteBufferPacketDataIO(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
    /** Virtual Destructor, to keep C++ honest */
-   virtual ~PacketByteBufferDataIO();
+   virtual ~ByteBufferPacketDataIO();
 
    /** Clears our list of byte-buffers. */
    void ClearBuffersToRead() {_bufsToRead.Clear();}
@@ -116,9 +116,9 @@ private:
 
    IPAddressAndPort _packetSendDestination;
 
-   DECLARE_COUNTED_OBJECT(PacketByteBufferDataIO);
+   DECLARE_COUNTED_OBJECT(ByteBufferPacketDataIO);
 };
-DECLARE_REFTYPES(PacketByteBufferDataIO);
+DECLARE_REFTYPES(ByteBufferPacketDataIO);
 
 } // end namespace muscle
 
