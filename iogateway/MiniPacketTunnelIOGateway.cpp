@@ -25,8 +25,8 @@ MiniPacketTunnelIOGateway :: MiniPacketTunnelIOGateway(const AbstractMessageIOGa
    , _outputPacketSize(0)
    , _sendPacketIDCounter(0)
 {
-   _fakeSendIO.SetBuffer(ByteBufferRef(&_fakeSendBuffer, false));
-   // _fakeReceiveIO's buffer will be set just before it is used
+   _fakeStreamSendIO.SetBuffer(ByteBufferRef(&_fakeSendBuffer, false));
+   // _fakeStreamReceiveIO's buffer will be set just before it is used
 }
 
 int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
@@ -44,7 +44,6 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
       firstTime = false;
 
       const int32 bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
-//printf("   READ " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes\n", bytesRead, _inputPacketBuffer.GetNumBytes());
       if (bytesRead > 0)
       {
          totalBytesRead += bytesRead;
@@ -68,7 +67,9 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
             const uint32 sexID    = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[1*sizeof(uint32)]));
             const uint32 cLAndID  = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[2*sizeof(uint32)]));  // (compressionLevel<<24) | (packetID)
             const uint8  cLevel   = (cLAndID >> 24) & 0xFF;
+#ifdef PACKET_ID_ISNT_CURRENTLY_USED_SO_AVOID_COMPILER_WARNING
             const uint32 packetID = (cLAndID >> 00) & 0xFFFFFF;
+#endif
             p += PACKET_HEADER_SIZE;
 //printf("   PARSE magic=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " compressionLevel=%u sex=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " packetID=" UINT32_FORMAT_SPEC "\n", magic, _magic, cLevel, sexID, _sexID, packetID);
 
@@ -137,21 +138,35 @@ void MiniPacketTunnelIOGateway :: HandleIncomingMessage(AbstractGatewayMessageRe
    {
       DataIORef oldIO = _slaveGateway()->GetDataIO(); // save slave gateway's old state
 
-      _fakeReceiveIO.SetBuffer(buf); (void) _fakeReceiveIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
-      _slaveGateway()->SetDataIO(DataIORef(&_fakeReceiveIO, false));
-
-      uint32 slaveBytesRead = 0;
-      while(slaveBytesRead < buf()->GetNumBytes())
+      if (GetMaximumPacketSize() > 0)
       {
+         // packet-IO implementation
+         _fakePacketReceiveIO.SetBuffersToRead(buf, fromIAP);
+         _slaveGateway()->SetDataIO(DataIORef(&_fakePacketReceiveIO, false));
          _scratchReceiver    = &receiver;
          _scratchReceiverArg = (void *) &fromIAP;
-         const int32 nextBytesRead = _slaveGateway()->DoInput(*this, buf()->GetNumBytes()-slaveBytesRead);
-         if (nextBytesRead > 0) slaveBytesRead += nextBytesRead;
-                           else break;
+         (void) _slaveGateway()->DoInput(*this, buf()->GetNumBytes());
+         _fakePacketReceiveIO.ClearBuffersToRead();
+      }
+      else
+      {
+         // stream-IO implementation
+         _fakeStreamReceiveIO.SetBuffer(buf); (void) _fakeStreamReceiveIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
+         _slaveGateway()->SetDataIO(DataIORef(&_fakeStreamReceiveIO, false));
+
+         uint32 slaveBytesRead = 0;
+         while(slaveBytesRead < buf()->GetNumBytes())
+         {
+            _scratchReceiver    = &receiver;
+            _scratchReceiverArg = (void *) &fromIAP;
+            const int32 nextBytesRead = _slaveGateway()->DoInput(*this, buf()->GetNumBytes()-slaveBytesRead);
+            if (nextBytesRead > 0) slaveBytesRead += nextBytesRead;
+                              else break;
+         }
+         _fakeStreamReceiveIO.SetBuffer(ByteBufferRef());
       }
 
       _slaveGateway()->SetDataIO(oldIO);  // restore slave gateway's old state
-      _fakeReceiveIO.SetBuffer(ByteBufferRef());
    }
    else
    {
@@ -185,8 +200,8 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 
                   // Get the slave gateway to generate its output into our ByteBuffer
                   _fakeSendBuffer.SetNumBytes(0, false);
-                  _fakeSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
-                  _slaveGateway()->SetDataIO(DataIORef(&_fakeSendIO, false));
+                  _fakeStreamSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
+                  _slaveGateway()->SetDataIO(DataIORef(&_fakeStreamSendIO, false));
                   _slaveGateway()->AddOutgoingMessage(msg);
                   while(_slaveGateway()->DoOutput() > 0) {/* empty */}
 
@@ -255,6 +270,7 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
                      writeBuf  = defBuf()->GetBuffer();
                      writeSize = defBuf()->GetNumBytes();
                   }
+                  else defBuf.Reset();
                }
                else LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Deflate() failed!\n");
             }

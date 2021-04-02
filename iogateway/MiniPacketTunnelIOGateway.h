@@ -1,6 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/ByteBufferDataIO.h"
+#include "dataio/PacketByteBufferDataIO.h"
 #include "iogateway/AbstractMessageIOGateway.h"
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 # include "zlib/ZLibCodec.h"
@@ -111,10 +112,12 @@ private:
    uint32 _sendPacketIDCounter;
    ByteBufferRef _currentOutputMessageBuffer;
 
-   ByteBufferDataIO _fakeSendIO;
+   ByteBufferDataIO _fakeStreamSendIO;
+   PacketByteBufferDataIO _fakePacketSendIO;
    ByteBuffer _fakeSendBuffer;
 
-   ByteBufferDataIO _fakeReceiveIO;
+   ByteBufferDataIO _fakeStreamReceiveIO;
+   PacketByteBufferDataIO _fakePacketReceiveIO;
 
    // Pass the call back through to our own caller, but with the appropriate argument.
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {_scratchReceiver->CallMessageReceivedFromGateway(msg, _scratchReceiverArg);}

@@ -65,7 +65,7 @@ public:
     *  @param size Number of bytes to send. 
     *  @return Number of bytes sent, or -1 on error.        
     */
-   virtual int32 WriteTo(const void * buffer, uint32 size)
+   virtual int32 Write(const void * buffer, uint32 size)
    {
       return WriteTo(buffer, size, GetPacketSendDestination());
    }
