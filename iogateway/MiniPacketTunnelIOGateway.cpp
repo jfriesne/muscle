@@ -196,17 +196,33 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
             {
                if (_slaveGateway())
                {
+                  // Get the slave gateway to generate its output into our ByteBuffer
+                  _slaveGateway()->AddOutgoingMessage(msg);
+
                   DataIORef oldIO = _slaveGateway()->GetDataIO(); // save slave gateway's old state
 
-                  // Get the slave gateway to generate its output into our ByteBuffer
-                  _fakeSendBuffer.SetNumBytes(0, false);
-                  _fakeStreamSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
-                  _slaveGateway()->SetDataIO(DataIORef(&_fakeStreamSendIO, false));
-                  _slaveGateway()->AddOutgoingMessage(msg);
-                  while(_slaveGateway()->DoOutput() > 0) {/* empty */}
+                  if (GetMaximumPacketSize() > 0)
+                  {
+                     _slaveGateway()->SetDataIO(DataIORef(&_fakePacketSendIO, false));
+                     while(_slaveGateway()->DoOutput() > 0) {/* empty */}
 
+                     Hashtable<ByteBufferRef, IPAddressAndPort> & b = _fakePacketSendIO.GetWrittenBuffers();
+                     if (b.HasItems())
+                     {
+                        if (b.GetNumItems() > 1) LogTime(MUSCLE_LOG_WARNING, "MiniPacketTunnelIOGateway:  child gateway's DoOutput() produced " UINT32_FORMAT_SPEC " buffers, discarding all but the first one!\n", b.GetNumItems());
+                        _currentOutputMessageBuffer = *b.GetFirstKey();
+                        b.Clear();
+                     }
+                  }
+                  else
+                  {
+                     _fakeStreamSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
+                     _fakeSendBuffer.SetNumBytes(0, false);
+                     _slaveGateway()->SetDataIO(DataIORef(&_fakeStreamSendIO, false));
+                     while(_slaveGateway()->DoOutput() > 0) {/* empty */}
+                     _currentOutputMessageBuffer.SetRef(&_fakeSendBuffer, false);
+                  }
                   _slaveGateway()->SetDataIO(oldIO);  // restore slave gateway's old state
-                  _currentOutputMessageBuffer.SetRef(&_fakeSendBuffer, false);
                }
                else if (_fakeSendBuffer.SetNumBytes(msg()->FlattenedSize(), false).IsOK())
                {

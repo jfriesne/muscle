@@ -11,6 +11,7 @@ AbstractMessageIOGateway :: AbstractMessageIOGateway()
    , _mtuSize(0)
    , _hosed(false)
    , _flushOnEmpty(true)
+   , _packetRemoteLocationTaggingEnabled(true)
 {
    // empty
 }

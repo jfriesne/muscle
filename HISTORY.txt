@@ -32,6 +32,9 @@ key:  - new feature
      efficient packing of multiple smaller-than-MTU Messages together
      into UDP packets.
    - The ZLibCodec class now inherits from RefCountable.
+   - Added SetPacketRemoteLocationTaggingEnabled() and
+     GetPacketRemoteLocationTaggingEnabled() methods to the
+     AbstractMessageIOGateway class.
    o Moved the declaration of the SetDataNodeFlags
      BitChord type from StorageReflectSession.h to
      StorageReflectConstants.h.
@@ -42,6 +45,10 @@ key:  - new feature
      accept a SetDataFlags argument instead of a boolean.
    o Simplified error-handling in various locations by
      using MRETURN_ON_ERROR instead of explicit if/returns.
+   o Moved the AbstractGatewayMessageReceiver and
+     QueueGatewayMessageReceiver classes out of
+     AbstractMessageIOGateway.h and into their own
+     file AbstractGatewayMessageReceiver.h
    * Fixed #include in Win32FileHandleDataIO.h
    * Fixed a bug in IPAddress::SetIPv4AddressFromUint32()
      that was causing it to set the interface-index of an

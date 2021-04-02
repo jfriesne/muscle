@@ -4,6 +4,7 @@
 #include "system/INetworkConfigChangesTarget.h"
 #include "reflector/AbstractReflectSession.h"
 #include "system/Mutex.h"
+#include "util/NetworkUtilityFunctions.h"  /// for send_ignore_eintr()
 
 namespace muscle {
 

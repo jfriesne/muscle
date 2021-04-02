@@ -189,7 +189,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if (beginAt < (int32)filteredBytesRead) inMsg = AddIncomingText(inMsg, &pbuf[beginAt]);
             if (inMsg()) 
             {
-               (void) inMsg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP);
+               if (GetPacketRemoteLocationTaggingEnabled()) (void) inMsg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP);
                receiver.CallMessageReceivedFromGateway(inMsg);
                inMsg.Reset();
             }

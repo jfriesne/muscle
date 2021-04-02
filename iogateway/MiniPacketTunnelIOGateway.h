@@ -3,6 +3,7 @@
 #include "dataio/ByteBufferDataIO.h"
 #include "dataio/ByteBufferPacketDataIO.h"
 #include "iogateway/AbstractMessageIOGateway.h"
+#include "util/NetworkUtilityFunctions.h"  // for MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 # include "zlib/ZLibCodec.h"
 #endif

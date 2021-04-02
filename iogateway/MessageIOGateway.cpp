@@ -108,13 +108,14 @@ DoOutputImplementation(uint32 maxBytes)
             {
                if ((_aboutToFlattenCallback)&&(_aboutToFlattenCallback(nextRef, _aboutToFlattenCallbackData).IsError())) continue;
 
+               bool movedPRL = false;
                if (mtuSize > 0)
                {
                   if (nextRef()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, _nextPacketDest).IsOK()) 
                   {
                      // Temporarily move this field out before flattening the Message, 
                      // since we don't want to send the destination IAP as part of the packet
-                     (void) nextRef()->MoveName(PR_NAME_PACKET_REMOTE_LOCATION, _scratchPacketMessage);
+                     movedPRL = nextRef()->MoveName(PR_NAME_PACKET_REMOTE_LOCATION, _scratchPacketMessage).IsOK();
                   }
                   else _nextPacketDest.Reset();
                }
@@ -123,7 +124,7 @@ DoOutputImplementation(uint32 maxBytes)
                _sendBuffer._buffer = FlattenHeaderAndMessageAux(nextRef);
 
                // Restore the PR_NAME_PACKET_REMOTE_LOCATION field, since we're not supposed to be modifying any Messages
-               if (mtuSize > 0) (void) _scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef());
+               if (movedPRL) (void) _scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef());
 
                if (_sendBuffer._buffer() == NULL) {SetHosed(); return -1;}
 
@@ -238,9 +239,11 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
             if (msg())  // for UDP, unexpected data shouldn't be fatal
             {
-               (void) msg()->RemoveName(PR_NAME_PACKET_REMOTE_LOCATION);  // paranoia
-               if (sourceIAP.IsValid()) (void) msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP);
-
+               if (GetPacketRemoteLocationTaggingEnabled())
+               {
+                  if (sourceIAP.IsValid()) (void) msg()->ReplaceFlat(true, PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP);
+                                      else (void) msg()->RemoveName(PR_NAME_PACKET_REMOTE_LOCATION);  // paranoia
+               }
                if ((_unflattenedCallback == NULL)||(_unflattenedCallback(msg, _unflattenedCallbackData).IsOK())) receiver.CallMessageReceivedFromGateway(msg);
             }
          }
