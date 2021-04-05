@@ -141,15 +141,15 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       // Step 1:  Add as much data to our output packet buffer as we can fit into it
       while((_outputPacketSize+FRAGMENT_HEADER_SIZE < _maxTransferUnit)&&(HasBytesToOutput()))
       {
-         // Demand-create the next send-buffer
-         if (_currentOutputBuffer() == NULL)
+         // Demand-create the next set of send-buffers
+         if (_currentOutputBuffers.IsEmpty())
          {
-            _currentOutputBuffer = CreateNextOutgoingByteBuffer();
-            if (_currentOutputBuffer()) _currentOutputBufferOffset = 0;
+            GenerateOutgoingByteBuffers(_currentOutputBuffers);
+            if (_currentOutputBuffers.HasItems()) _currentOutputBufferOffset = 0;
          }
-         if (_currentOutputBuffer() == NULL) break;   // oops, out of mem?
+         if (_currentOutputBuffers.IsEmpty()) break;   // nothing more to send?
 
-         const uint32 sbSize          = _currentOutputBuffer()->GetNumBytes();
+         const uint32 sbSize          = _currentOutputBuffers.Head()()->GetNumBytes();
          const uint32 dataBytesToSend = muscleMin(_maxTransferUnit-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
 
          uint8 * p = _outputPacketBuffer.GetBuffer()+_outputPacketSize;
@@ -160,15 +160,16 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          muscleCopyOut(&p[4*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(dataBytesToSend));             // size of this sub-chunk
          muscleCopyOut(&p[5*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(sbSize));                      // total size of this message
 //printf("CREATING PACKET magic=" UINT32_FORMAT_SPEC " msgID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", _magic, _sendMessageIDCounter, _currentOutputBufferOffset, dataBytesToSend, sbSize);
-         memcpy(p+FRAGMENT_HEADER_SIZE, _currentOutputBuffer()->GetBuffer()+_currentOutputBufferOffset, dataBytesToSend);
+         memcpy(p+FRAGMENT_HEADER_SIZE, _currentOutputBuffers.Head()()->GetBuffer()+_currentOutputBufferOffset, dataBytesToSend);
 
          _outputPacketSize += (FRAGMENT_HEADER_SIZE+dataBytesToSend);
          _currentOutputBufferOffset += dataBytesToSend;
          if (_currentOutputBufferOffset == sbSize)
          {
-            _currentOutputBuffer.Reset();
-            ClearFakeSendBuffer(MAX_CACHE_SIZE);  // don't keep too much memory around!
+            (void) _currentOutputBuffers.RemoveHead();
             _sendMessageIDCounter++;
+            _currentOutputBufferOffset = 0;
+            if (_currentOutputBuffers.IsEmpty()) ClearFakeSendBuffer(MAX_CACHE_SIZE);  // don't keep too much memory around!
          }
       }
 

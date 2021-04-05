@@ -34,7 +34,7 @@ public:
      */
    MiniPacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway = AbstractMessageIOGatewayRef(), uint32 maxTransferUnit = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, uint32 magic = DEFAULT_MINI_TUNNEL_IOGATEWAY_MAGIC);
 
-   virtual bool HasBytesToOutput() const {return ((_currentOutputMessageBuffer())||(GetOutgoingMessageQueue().HasItems()));}
+   virtual bool HasBytesToOutput() const {return ((_currentOutputBuffers.HasItems())||(GetOutgoingMessageQueue().HasItems()));}
 
    /** If set to true, any incoming UDP packets that aren't in our packetizer-format will be
      * be interpreted as separate, independent incoming messages.  If false (the default state),
@@ -96,7 +96,7 @@ private:
    uint32 _outputPacketSize;
 
    uint32 _sendPacketIDCounter;
-   ByteBufferRef _currentOutputMessageBuffer;
+   Queue<ByteBufferRef> _currentOutputBuffers;
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    ZLibCodecRef _codec;

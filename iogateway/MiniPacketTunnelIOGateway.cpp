@@ -136,15 +136,14 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       while(HasBytesToOutput())
       {
          // Demand-create the next Message-buffer
-         if (_currentOutputMessageBuffer() == NULL) _currentOutputMessageBuffer = CreateNextOutgoingByteBuffer();
+         if (_currentOutputBuffers.IsEmpty()) GenerateOutgoingByteBuffers(_currentOutputBuffers);
+         if (_currentOutputBuffers.IsEmpty()) break;
 
-         if (_currentOutputMessageBuffer() == NULL) break;
-
-         const uint32 sbSize = _currentOutputMessageBuffer()->GetNumBytes();
+         const uint32 sbSize = _currentOutputBuffers.Head()()->GetNumBytes();
          if ((PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+sbSize) > _maxTransferUnit)
          {
-            LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Outgoing Message payload is " UINT32_FORMAT_SPEC " bytes long, it can't fit into i packet!  Dropping it\n", _currentOutputMessageBuffer()->GetNumBytes());
-            _currentOutputMessageBuffer.Reset();
+            LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Outgoing Message payload is " UINT32_FORMAT_SPEC " bytes long, it can't fit into i packet!  Dropping it\n", sbSize);
+            (void) _currentOutputBuffers.RemoveHead();
          }
          else if ((((_outputPacketSize==0)?PACKET_HEADER_SIZE:0)+CHUNK_HEADER_SIZE+sbSize) < _maxTransferUnit)
          {
@@ -164,11 +163,11 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
             }
 
             // Add the chunk-header and chunk-data to the packet
-            muscleCopyOut(&b[_outputPacketSize], B_HOST_TO_LENDIAN_INT32(sbSize));      _outputPacketSize += sizeof(sbSize);
-            memcpy(&b[_outputPacketSize], _currentOutputMessageBuffer()->GetBuffer(), sbSize); _outputPacketSize += sbSize;
-            _currentOutputMessageBuffer.Reset();
+            muscleCopyOut(&b[_outputPacketSize], B_HOST_TO_LENDIAN_INT32(sbSize));              _outputPacketSize += sizeof(sbSize);
+            memcpy(&b[_outputPacketSize], _currentOutputBuffers.Head()()->GetBuffer(), sbSize); _outputPacketSize += sbSize;
+            (void) _currentOutputBuffers.RemoveHead();
          }
-         else break;  // can't fit _currentOutputBuffer into this packet; it'll have to wait for the next one
+         else break;  // can't fit the current output buffer into this packet; it'll have to wait for the next one
       }
 
       // Step 2:  If we have a non-empty packet to send, send it!

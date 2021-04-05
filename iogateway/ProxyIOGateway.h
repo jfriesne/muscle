@@ -42,27 +42,26 @@ protected:
      */
    void HandleIncomingByteBuffer(AbstractGatewayMessageReceiver & receiver, const ByteBufferRef & buf, const IPAddressAndPort & fromIAP);
 
-   /** Pops the next MessageRef out of our outgoing-Messages-Queue and tries to convert it into a ByteBufferRef
+   /** Pops the next MessageRef out of our outgoing-Messages-Queue and tries to convert it into one or more ByteBufferRefs
      * full of bytes to be sent out.  If we have a slave-gateway, it will do the conversion by calling DoOutput()
      * on the slave-gateway as necessary; otherwise it will just call Flatten() on the Message-object.
-     * @returns a reference to a ByteBuffer to send, or a NULL ByteBuffer() if we weren't able to produce one (empty queue?)
      */
-   ByteBufferRef CreateNextOutgoingByteBuffer();
+   void GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ);
 
-   /** Calls Clear() on our fakeSendBuffer object to free up memory.
-     * @param maxBytesToRetain if the fakeSendBuffer's size is greater than this, we'll free the buffer; otherwise we'll just mark it
+   /** Calls Clear() on our fakeStreamSendBuffer object to free up memory.
+     * @param maxBytesToRetain if the fakeStreamSendBuffer's size is greater than this, we'll free the buffer; otherwise we'll just mark it
      *                         as zero-length in hope that we can re-use it later.
      */
-   void ClearFakeSendBuffer(uint32 maxBytesToRetain) {_fakeSendBuffer.Clear(_fakeSendBuffer.GetNumBytes() > maxBytesToRetain);}
+   void ClearFakeSendBuffer(uint32 maxBytesToRetain) {_fakeStreamSendBuffer.Clear(_fakeStreamSendBuffer.GetNumBytes() > maxBytesToRetain);}
 
 private:
    AbstractMessageIOGatewayRef _slaveGateway;
 
-   ByteBufferDataIO _fakeStreamSendIO;
    ByteBufferPacketDataIO _fakePacketSendIO;
-   ByteBuffer _fakeSendBuffer;
+   ByteBufferDataIO       _fakeStreamSendIO;
+   ByteBuffer             _fakeStreamSendBuffer;
 
-   ByteBufferDataIO _fakeStreamReceiveIO;
+   ByteBufferDataIO       _fakeStreamReceiveIO;
    ByteBufferPacketDataIO _fakePacketReceiveIO;
 
    // Pass the call back through to our own caller, but with the appropriate argument.

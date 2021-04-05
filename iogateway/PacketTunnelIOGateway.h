@@ -40,7 +40,7 @@ public:
      */
    PacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway = AbstractMessageIOGatewayRef(), uint32 maxTransferUnit = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, uint32 magic = DEFAULT_TUNNEL_IOGATEWAY_MAGIC);
 
-   virtual bool HasBytesToOutput() const {return ((_currentOutputBuffer())||(GetOutgoingMessageQueue().HasItems()));}
+   virtual bool HasBytesToOutput() const {return ((_currentOutputBuffers.HasItems())||(GetOutgoingMessageQueue().HasItems()));}
 
    /** Sets the maximum size message we will allow ourself to receive.  Defaults to MUSCLE_NO_LIMIT.
      * @param messageSize new maximum incoming message size, in bytes, or MUSCLE_NO_LIMIT to not enforce any maximum
@@ -101,7 +101,7 @@ private:
    uint32 _outputPacketSize;
 
    uint32 _sendMessageIDCounter;
-   ByteBufferRef _currentOutputBuffer;
+   Queue<ByteBufferRef> _currentOutputBuffers;
    uint32 _currentOutputBufferOffset;
    uint32 _maxIncomingMessageSize;
 

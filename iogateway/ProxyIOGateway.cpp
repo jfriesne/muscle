@@ -7,7 +7,7 @@ namespace muscle {
 ProxyIOGateway :: ProxyIOGateway(const AbstractMessageIOGatewayRef & slaveGateway)
    : _slaveGateway(slaveGateway)
 {
-   _fakeStreamSendIO.SetBuffer(ByteBufferRef(&_fakeSendBuffer, false));
+   _fakeStreamSendIO.SetBuffer(ByteBufferRef(&_fakeStreamSendBuffer, false));
    // _fakeStreamReceiveIO's buffer will be set just before it is used
 }
 
@@ -62,52 +62,47 @@ void ProxyIOGateway :: HandleIncomingByteBuffer(AbstractGatewayMessageReceiver &
    }
 }
 
-ByteBufferRef ProxyIOGateway :: CreateNextOutgoingByteBuffer()
+void ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
 {
-   ByteBufferRef ret;
-
    MessageRef msg;
-   if (GetOutgoingMessageQueue().RemoveHead(msg).IsOK())
+   if (GetOutgoingMessageQueue().RemoveHead(msg).IsError()) return;
+
+   if (_slaveGateway())
    {
-      if (_slaveGateway())
+      // Get the slave gateway to generate its output into our ByteBuffer
+      _slaveGateway()->AddOutgoingMessage(msg);
+
+      DataIORef oldIO = _slaveGateway()->GetDataIO(); // save slave gateway's old state
+
+      if (GetMaximumPacketSize() > 0)
       {
-         // Get the slave gateway to generate its output into our ByteBuffer
-         _slaveGateway()->AddOutgoingMessage(msg);
+         _slaveGateway()->SetDataIO(DataIORef(&_fakePacketSendIO, false));
+         while(_slaveGateway()->DoOutput() > 0) {/* empty */}
 
-         DataIORef oldIO = _slaveGateway()->GetDataIO(); // save slave gateway's old state
-
-         if (GetMaximumPacketSize() > 0)
+         Hashtable<ByteBufferRef, IPAddressAndPort> & b = _fakePacketSendIO.GetWrittenBuffers();
+         if (b.HasItems())
          {
-            _slaveGateway()->SetDataIO(DataIORef(&_fakePacketSendIO, false));
-            while(_slaveGateway()->DoOutput() > 0) {/* empty */}
-
-            Hashtable<ByteBufferRef, IPAddressAndPort> & b = _fakePacketSendIO.GetWrittenBuffers();
-            if (b.HasItems())
-            {
-               if (b.GetNumItems() > 1) LogTime(MUSCLE_LOG_WARNING, "ProxyIOGateway:  child gateway's DoOutput() produced " UINT32_FORMAT_SPEC " packet-buffers, discarding all but the first one!\n", b.GetNumItems());
-               ret = *b.GetFirstKey();
-               b.Clear();
-            }
+            for (HashtableIterator<ByteBufferRef, IPAddressAndPort> iter(b); iter.HasData(); iter++) (void) outQ.AddTail(iter.GetKey());
+            b.Clear();
          }
-         else
-         {
-            _fakeStreamSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
-            _fakeSendBuffer.SetNumBytes(0, false);
-            _slaveGateway()->SetDataIO(DataIORef(&_fakeStreamSendIO, false));
-            while(_slaveGateway()->DoOutput() > 0) {/* empty */}
-            ret.SetRef(&_fakeSendBuffer, false);
-         }
-         _slaveGateway()->SetDataIO(oldIO);  // restore slave gateway's old state
       }
-      else if (_fakeSendBuffer.SetNumBytes(msg()->FlattenedSize(), false).IsOK())
+      else
       {
-         // Default algorithm:  Just flatten the Message into the buffer
-         msg()->Flatten(_fakeSendBuffer.GetBuffer());
-         ret.SetRef(&_fakeSendBuffer, false);
+         _fakeStreamSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
+         _fakeStreamSendBuffer.SetNumBytes(0, false);
+         _slaveGateway()->SetDataIO(DataIORef(&_fakeStreamSendIO, false));
+         while(_slaveGateway()->DoOutput() > 0) {/* empty */}
+         (void) outQ.AddTail(ByteBufferRef(&_fakeStreamSendBuffer, false));
       }
+
+      _slaveGateway()->SetDataIO(oldIO);  // restore slave gateway's old state
    }
-
-   return ret;
+   else if (_fakeStreamSendBuffer.SetNumBytes(msg()->FlattenedSize(), false).IsOK())
+   {
+      // Default algorithm:  Just Flatten() the Message directly into a buffer
+      msg()->Flatten(_fakeStreamSendBuffer.GetBuffer());
+      (void) outQ.AddTail(ByteBufferRef(&_fakeStreamSendBuffer, false));
+   }
 }
 
 } // end namespace muscle
