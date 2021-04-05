@@ -142,10 +142,10 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          const uint32 sbSize = _currentOutputBuffers.Head()()->GetNumBytes();
          if ((PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+sbSize) > _maxTransferUnit)
          {
-            LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Outgoing Message payload is " UINT32_FORMAT_SPEC " bytes long, it can't fit into i packet!  Dropping it\n", sbSize);
+            LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Outgoing payload is " UINT32_FORMAT_SPEC " bytes, it can't fit into a packet with MTU=" UINT32_FORMAT_SPEC "!  Dropping it\n", sbSize, _maxTransferUnit);
             (void) _currentOutputBuffers.RemoveHead();
          }
-         else if ((((_outputPacketSize==0)?PACKET_HEADER_SIZE:0)+CHUNK_HEADER_SIZE+sbSize) < _maxTransferUnit)
+         else if ((((_outputPacketSize==0)?PACKET_HEADER_SIZE:0)+CHUNK_HEADER_SIZE+sbSize) <= _maxTransferUnit)
          {
             uint8 * b = _outputPacketBuffer.GetBuffer();
 
