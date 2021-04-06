@@ -18,7 +18,7 @@ key:  - new feature
      regarding the DataNodes they modify, so as not to
      build up a FIFO backlog of update-Messages when
      the server is under a heavy update-load.
-   - PR_COMAMND_SETDATA parser now accepts PR_NAME_FLAGS
+   - PR_COMMAND_SETDATA parser now accepts PR_NAME_FLAGS
      field as either a SetDataNodeFlags or a uint32,
      for convenience when client isn't C++-based.
    - Added UpdateSubscriptionMessage(), PruneSubscriptionMessage(),
