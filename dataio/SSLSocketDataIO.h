@@ -95,7 +95,6 @@ public:
      * the specified username and password.
      * @param userName the username to send (on the client side) or require (on the server side)
      * @param password the username to send (on the client side) or require (on the server side)
-     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    void SetPreSharedKeyLoginInfo(const String & userName, const String & password);
 

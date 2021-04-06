@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-3/8/2021 v8.00 jaf@meyersound.com<p>
+4/5/2021 v8.10 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -65,14 +65,17 @@ Directory contents descriptions follow:
    <table>
     <tr><td>AsyncDataIO</td><td>Wrapper that delegates I/O calls to an internal I/O thread</td></tr>
     <tr><td>ByteBufferDataIO</td><td>For file-style reading/writing to a ByteBuffer held in memory</td></tr>
+    <tr><td>ByteBufferPacketDataIO</td><td>Like ByteBufferDataIO, but implements a PacketDataIO interface instead</td></tr>
     <tr><td>ChildProcessDataIO</td><td>For launching a child process and communicating with it via its stdout/stdin</td></tr>
-    <tr><td>FailoverDataIO.</td><td>Wrapper for automatic fallback to a second output when a primary output fails</td></tr>
     <tr><td>FileDataIO</td><td>For reading/writing via a C (FILE *) file handle</td></tr>
     <tr><td>FileDescriptorDataIO</td><td>For reading/writing via a Unix file descriptor</td></tr>
     <tr><td>MultiDataIO</td><td>Multiplexer wrapper class for writing to multiple outputs at once</td></tr>
     <tr><td>NullDataIO</td><td>Dummy class for directing data to the bit-bucket</td></tr>
-    <tr><td>PacketizedProxyDataIO</td><td>Wrapper for making TCP act more like "reliable UDP"</td></tr>
+    <tr><td>PacketDataIO</td><td>Extended DataIO interface for UDP-like semantics</td></tr>
+    <tr><td>PacketizedProxyDataIO</td><td>Wrapper for making a TCP connection act like a "reliable UDP connection"</td></tr>
+    <tr><td>ProxyDataIO</td><td>Passes all method-calls through to a "child" DataIO object.</td></tr>
     <tr><td>RS232DataIO</td><td>For communicating via an RS-232 serial port</td></tr>
+    <tr><td>SeekableDataIO</td><td>Extended DataIO interface for file-like semantics</td></tr>
     <tr><td>SSLSocketDataIO</td><td>For communicating over SSL over TCP</td></tr>
     <tr><td>SimulatedMulticastDataIO</td><td>For Wi-Fi; simulates multicast semantics using mostly unicast packets</td></tr>
     <tr><td>StdinDataIO</td><td>For reading from stdin</td></tr>
@@ -104,7 +107,7 @@ Directory contents descriptions follow:
 <b>iogateway/</b>
 <p>
    This directory contains the AbstractMessageIOGateway interface.
-   An AbstractMessageIOGatweay is a "gateway" object that knows 
+   An AbstractMessageIOGateway is a "gateway" object that knows
    how to manage bidirectional FIFO Message-stream traffic going to and 
    coming from a DataIO object.  A gateway object queues outgoing MessageRefs, 
    and when there is room in the outgoing buffer to send one, it flattens the
@@ -119,13 +122,15 @@ Directory contents descriptions follow:
    <p> 
    <table>
     <tr><td>MessageIOGateway</td><td>Flattens Messages to the standard MUSCLE flattened-message binary format</td></tr>
-    <tr><td>PacketTunnelIOGateway</td><td>Flattens Messages into a series of fixed-size packets suitable for UDP transmission</td></tr>
     <tr><td>PlainTextMessageIOGateway</td><td>Converts free-form lines of ASCII text into Messages, and vice versa</td></tr>
     <tr><td>RawDataMessageIOGateway</td><td>Converts arbitrary raw data into Messages, and vice versa</td></tr>
     <tr><td>SLIPFramedDataMessageIOGateway</td><td>Similar to the RawDataMessageIOGateway class, except it uses SLIP framing conventions</td></tr>
     <tr><td>SSLSocketAdapterGateway</td><td>An adapter class to provide transparent support for OpenSSL's particular I/O needs</td></tr>
     <tr><td>SignalMessageIOGateway</td><td>Dummy gateway that doesn't send actual data, only indicates when data is available</td></tr>
     <tr><td>TemplatingMessageIOGateway</td><td>A specialized MessgeIOGateway class that sends Messages' metadata separately from their payload data, to reduce bandwidth</td></tr>
+    <tr><td>PacketTunnelIOGateway</td><td>Flattens Messages into a series of fixed-size packets suitable for UDP transmission</td></tr>
+    <tr><td>MiniPacketTunnelIOGateway</td><td>A lightweight version of PacketTunnelIOGateway that supports small Messages only</td></tr>
+    <tr><td>ProxyIOGateway</td><td>A semi-abstract class with routines to implement calling out to a "child" I/O gateway</td></tr>
    </table>
 
 <p>
@@ -318,6 +323,20 @@ Directory contents descriptions follow:
    codes, typedefs, and result constants, and the Flattenable 
    interface definition.
 <p>
+   Classes implemented in this directory include:
+   <p>
+   <table>
+   <tr><td>BitChord</td><td>Implements an ordered set of N individually-settable binary bits</td></tr>
+   <tr><td>Flattenable</td><td>Interface for an object that can be "Flattened" into a serialized-binary representation, and Unflattened back again</td></tr>
+   <tr><td>PseudoFlattenable</td><td>Same as Flattenable, but without the virtual methods.  Used as a tag for objects that can be flattened without runtime polymorphism</td></tr>
+   <tr><td>NotCopyable</td><td>Inheriting from this class tells the compiler not to allow copies to made of objects of your subclass</td></tr>
+   <tr><td>Point</td><td>A two-float x/y Point class</td></tr>
+   <tr><td>Rect</td><td>A four-float left/top/width/height Rectangle class</td></tr>
+   <tr><td>TamperEvidentValue</td><td>Templatized holder for an arbitrary object that will set a flag whenever the object is modified<td></td></tr>
+   <tr><td>Tuple</td><td>Templatized class that holds a fixed-size array of N same-typed values</td></tr>
+   <tr><td>Void</td><td>Placeholder class that contains no data</td></tr>
+   </table>
+<p>
 </li>
 <li>
 <b>syslog/</b>
@@ -367,25 +386,30 @@ Directory contents descriptions follow:
     <tr><td>calctypecode</td><td>Prints out the decimal equivalent of a four-character ASCII what-code</td></tr>
     <tr><td>printtypecode</td><td>Prints out the four-character ASCII equivalent of a given decimal value</td></tr>
     <tr><td>chatclient</td><td>Minimalist BeShare-compatible chat client that can connect to any MUSCLE server</td></tr>
+    <tr><td>daemonsitter</td><td>Demonstration of a program that spawns multiple sub-processes, watches their stdin/stdout, and relaunches them if necessary.</td></tr>
     <tr><td>deadlock</td><td>Deliberately tries to create a deadlock.  Primarily used for testing deadlockfinder.</td></tr>
     <tr><td>deadlockfinder</td><td>Parses the output generated by MUSCLE's MUSCLE_ENABLE_DEADLOCK_FINDER feature, and detects potential deadlock issues</td></tr>
     <tr><td>findsourcelocations</td><td>Parses source code and lists source-locations matching a specified code generated by MUSCLE's MUSCLE_INCLUDE_SOURCE_CODE_LOCATION_IN_LOGTIME feature</td></tr>
     <tr><td>hexterm</td><td>A simple interactive terminal that sends, receives, and prints hexadecimal representation of all bytes received via TCP, UDP, etc.</td></tr>
+    <tr><td>muscleproxy</td><td>Demonstration of a pass-through TCP proxy for MUSCLE connections.</td></tr>
+    <tr><td>striphextermoutput</td><td>Parses output from hexterm and removes the metadata, leaving behing only the hex values themselves.</td></tr>
     <tr><td>portableplaintextclient</td><td>A simple interactive terminal for ASCII communication over TCP</td></tr>
     <tr><td>portablereflectclient</td><td>A simple interactive terminal for Message communication over TCP (typically with a MUSCLE server)</td></tr>
     <tr><td>portscan</td><td>Attempts to connect via TCP to a range of ports on a host, and reports which ports accepted the connection</td></tr>
     <tr><td>printsourcelocations</td><td>Prints the source-code-location codes of all LogTime() commands.  Useful for building up a directory of source-location-codes for a given codebase</td></tr>
     <tr><td>readmessage</td><td>Reads a flattened Message from a file on disk and prints it to stdout in human-readable form</td></tr>
     <tr><td>serialproxy</td><td>Makes a local serial port available to the network over TCP</td></tr>
-    <tr><td>svncopy</td><td>Creates a command script for bulk-adding specified files to an SVN repository</td></tr>
     <tr><td>testatheossupport</td><td>Tests the AtheOS support files in the atheossupport folder</td></tr>
     <tr><td>testbatchguard</td><td>Unit test for the BatchGuard class</td></tr>
     <tr><td>testbesupport</td><td>Tests the BeOS support files in the beossupport folder</td></tr>
+    <tr><td>testbitchord</td><td>Unit test for the BitChord class</td></tr>
     <tr><td>testbytebuffer</td><td>Unit test for the ByteBuffer class</td></tr>
     <tr><td>testchildprocess</td><td>Unit test for the ChildProcessDataIO class</td></tr>
+    <tr><td>testclone</td><td>Unit test for the Cloneable interface</td></tr>
     <tr><td>testendian</td><td>Unit test for the endian-swapping routines</td></tr>
     <tr><td>testfilepathinfo</td><td>Unit test for the FilePathInfo class</td></tr>
     <tr><td>testgateway</td><td>Unit test for the MessageIOGateway class</td></tr>
+    <tr><td>testhashcodes</td><td>Unit test for the CalculateHashCode() functions</td></tr>
     <tr><td>testhashtable</td><td>Unit test for the Hashtable class</td></tr>
     <tr><td>testmatchfiles</td><td>Unit test for the ExpandFilePathWildCards() function</td></tr>
     <tr><td>testmessage</td><td>Unit test for the Message class</td></tr>
@@ -394,6 +418,7 @@ Directory contents descriptions follow:
     <tr><td>testnagle</td><td>Unit test to verify the presence of absence of Nagle's algorithm</td></tr>
     <tr><td>testnetconfigdetect</td><td>Unit test for the DetectNetworkConfigChangesSession class</td></tr>
     <tr><td>testnetutil</td><td>Unit test for the GetNetworkInterfaces() function</td></tr>
+    <tr><td>testobjectpool</td><td>Unit test for the ObjectPool class</td></tr>
     <tr><td>testpacketio</td><td>Unit test for the PacketizedDataIO clas</td></tr>
     <tr><td>testpackettunnel</td><td>Unit test for the PacketTunnelIOGateway class</td></tr>
     <tr><td>testparsefile</td><td>Unit test for the ParseFile() and ParseArgs() functions</td></tr>
@@ -406,13 +431,17 @@ Directory contents descriptions follow:
     <tr><td>testregex</td><td>Unit test for the StringMatcher class</td></tr>
     <tr><td>testresponse</td><td>Test to measure the response latency of a muscle server</td></tr>
     <tr><td>testserial</td><td>Unit test for the RS232DataIO class</td></tr>
+    <tr><td>testserverthread</td><td>Demonstration of a server that spawns a child thread for asynchronous processing</td></tr>
     <tr><td>testsharedmem</td><td>Unit test for the SharedMemory class</td></tr>
     <tr><td>testsocketmultiplexer</td><td>Unit test for the SocketMultiplexer class</td></tr>
+    <tr><td>teststatus</td><td>Unit test for the status_t class</td></tr>
     <tr><td>teststring</td><td>Unit test for the String class</td></tr>
+    <tr><td>teststringtokenizer</td><td>Unit test for the StringTokenizer class</td></tr>
     <tr><td>testsysteminfo</td><td>Unit test for the SystemInfo functionality</td></tr>
     <tr><td>testthread</td><td>Unit test for the Thread class</td></tr>
     <tr><td>testthreadpool</td><td>Unit test for the ThreadPool class</td></tr>
     <tr><td>testtime</td><td>Unit test for the various time-string-parsing and time-string-generation functions</td></tr>
+    <tr><td>testtimeunitconversions</td><td>Unit tests for the various time-unit-conversion functions (SecondsToMicros(), etc)</td></tr>
     <tr><td>testtuple</td><td>Unit test for the Tuple class</td></tr>
     <tr><td>testtypedefs</td><td>Unit test for MUSCLE's standard type typedefs (int32, int64, etc)</td></tr>
     <tr><td>testudp</td><td>Test/demonstration of using MUSCLE to send/receive UDP packets</td></tr>
