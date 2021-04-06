@@ -8,7 +8,7 @@ there, if you'd prefer just to compile the examples in that directory.
 
 Windows users:
 
-Assuming your have Visual Studio 2015 (or later) installed, you can compile
+Assuming you have Visual Studio 2015 (or later) installed, you can compile
 the all of the examples from the DOS prompt by cd'ing into the vc++14 
 sub-directory and entering this command:
 
