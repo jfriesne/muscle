@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added ARRAYROWS and ARRAYCOLS functions to MuscleSupport.h
+     (These are similar to the existing ARRAYITEMS except they return
+     the first and second dimensional-extents of a 2D array)
+   o Changed ARRAYITEMS to use size_t instead of "unsigned int"
+
 8.10 - Released 4/5/2021
    - Added ByteBufferPacketDataIO class to the dataio folder.
    - Win32 implementation of ChildProcessDataIO now

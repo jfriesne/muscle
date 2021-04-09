@@ -247,7 +247,9 @@ using std::set_new_handler;
 #endif
 
 #ifdef __cplusplus
-template<typename T, int size> MUSCLE_CONSTEXPR unsigned int ARRAYITEMS(T(&)[size]) {return size;}  /**< Returns # of items in the array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
+template<typename T, size_t size> MUSCLE_CONSTEXPR size_t ARRAYITEMS(T(&)[size]) {return size;}  /**< Returns # of items in the 1D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
+template<typename T, size_t rows, size_t cols> MUSCLE_CONSTEXPR size_t ARRAYROWS(T(&)[rows][cols]) {return rows;} /**< Returns # of "rows", along the first axis of the 2D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
+template<typename T, size_t rows, size_t cols> MUSCLE_CONSTEXPR size_t ARRAYCOLS(T(&)[rows][cols]) {return cols;} /**< Returns # of "columns", along the second axis of the 2D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
 #else
 # define ARRAYITEMS(x) (sizeof(x)/sizeof(x[0]))  /**< Returns # of items in the array.  This primitive C-compatible implementation will return an incorrect value if called with a pointer as an argument. */
 #endif
