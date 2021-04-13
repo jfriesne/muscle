@@ -285,6 +285,16 @@ public:
      */
    template<class HisValueType, class HisHashFunctorType> bool AreKeySetsEqual(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const;
 
+   /** Returns true iff every key present in this Hashtable is also present in (rhs).
+     * @param rhs the Hashtable to check the keys of against our own.
+     */
+   template<class HisValueType, class HisHashFunctorType> bool AreKeysASubsetOf(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const;
+
+   /** Returns true iff every key present in (rhs) is also present in this Hashtable.
+     * @param rhs the Hashtable to check the keys of against our own.
+     */
+   template<class HisValueType, class HisHashFunctorType> bool AreKeysASupersetOf(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const {return rhs.AreKeysASubsetOf(*this);}
+
    /** Returns the given key's position in the hashtable's linked list, or -1 if the key wasn't found.  O(n) count time (if the key exists, O(1) if it doesn't)
      * @param key a key value to find the index of
      * @returns the position of the key in the iteration list, or -1 if the key is not in the table.
@@ -2453,6 +2463,16 @@ bool
 HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeySetsEqual(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const
 {
    if (GetNumItems() != rhs.GetNumItems()) return false;
+   for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this); iter.HasData(); iter++) if (rhs.ContainsKey(iter.GetKey()) == false) return false;
+   return true;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+template <class HisValueType, class HisHashFunctorType>
+bool
+HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysASubsetOf(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const
+{
+   if (GetNumItems() > rhs.GetNumItems()) return false;  // pigeonhole principle!
    for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this); iter.HasData(); iter++) if (rhs.ContainsKey(iter.GetKey()) == false) return false;
    return true;
 }

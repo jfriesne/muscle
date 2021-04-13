@@ -8,6 +8,8 @@ key:  - new feature
    - Added ARRAYROWS and ARRAYCOLS functions to MuscleSupport.h
      (These are similar to the existing ARRAYITEMS except they return
      the first and second dimensional-extents of a 2D array)
+   - Added AreKeysASupersetOf() and AreKeysASubsetOf() convenience
+     methods to the Hashtable class.
    o Changed ARRAYITEMS to use size_t instead of "unsigned int"
 
 8.10 - Released 4/5/2021
