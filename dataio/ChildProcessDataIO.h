@@ -181,11 +181,11 @@ public:
      * If the child process is not currently running, returns immediately.
      * @param maxWaitTime The maximum amount of time to wait, in microseconds.
      *                    Defaults to MUSCLE_TIME_NEVER, indicating no timeout.
-     * @returns true iff the child process is known to be gone, or false 
-     *          otherwise (e.g. our timeout period elapsed and the child
-     *          process still hadn't exited)
+     * @returns true B_NO_ERROR the child process is known to be gone, or an
+     *          error code otherwise (e.g. B_TIMED_OUT if our timeout period
+     *          has elapsed and the child process still hadn't exited)
      */
-   bool WaitForChildProcessToExit(uint64 maxWaitTime = MUSCLE_TIME_NEVER);
+   status_t WaitForChildProcessToExit(uint64 maxWaitTime = MUSCLE_TIME_NEVER);
 
    /** Returns true iff our child-process-has-crashed flag was set to true.
      * Note that this flag is set only when WaitForChildProcessToExit() is called

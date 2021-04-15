@@ -509,14 +509,14 @@ void ChildProcessDataIO :: Close()
 void ChildProcessDataIO :: DoGracefulChildShutdown()
 {
    if (_signalNumber >= 0) (void) SignalChildProcess(_signalNumber);
-   if ((WaitForChildProcessToExit(_maxChildWaitTime) == false)&&(_killChildOkay)) (void) KillChildProcess();
+   if ((WaitForChildProcessToExit(_maxChildWaitTime).IsError())&&(_killChildOkay)) (void) KillChildProcess();
 }
 
-bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
+status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
 {
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
-   if (_childProcess == INVALID_HANDLE_VALUE) return true; // a non-existent child process is an exited child process, if you ask me.
-   _childProcessCrashed = false;                           // reset the flag only when there is an actual child process to wait for
+   if (_childProcess == INVALID_HANDLE_VALUE) return B_NO_ERROR; // a non-existent child process is an exited child process, if you ask me.
+   _childProcessCrashed = false;                                 // reset the flag only when there is an actual child process to wait for
 
    if (WaitForSingleObject(_childProcess, (maxWaitTimeMicros==MUSCLE_TIME_NEVER)?INFINITE:((DWORD)(maxWaitTimeMicros/1000))) == WAIT_OBJECT_0)
    {
@@ -530,7 +530,7 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
          // meet this criterion.  But in general this will work.  --jaf
          _childProcessCrashed = ((exitCode & (0xC0000000)) != 0);
       }
-      return true;
+      return B_NO_ERROR;
    }
 #else
 # if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
@@ -556,12 +556,12 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
             }
          }
       }
-      return sawEOF;  // if we saw EOF on the _ioPipe, we'll take that to mean the child process exited -- best we can do
+      return sawEOF ? B_NO_ERROR : B_TIMED_OUT;  // if we saw EOF on the _ioPipe, we'll take that to mean the child process exited -- best we can do
    }
 # endif
 
-   if (_childPID < 0) return true;   // a non-existent child process is an exited child process, if you ask me.
-   _childProcessCrashed = false;     // reset the flag only when there is an actual child process to wait for
+   if (_childPID < 0) return B_NO_ERROR; // a non-existent child process is an exited child process, if you ask me.
+   _childProcessCrashed = false;         // reset the flag only when there is an actual child process to wait for
 
    if (maxWaitTimeMicros == MUSCLE_TIME_NEVER) 
    {
@@ -570,7 +570,7 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
       if (pid == _childPID)
       {
          _childProcessCrashed = WIFSIGNALED(status);
-         return true;
+         return B_NO_ERROR;
       }
    }
    else
@@ -588,7 +588,7 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
          if (r == _childPID) 
          {
             _childProcessCrashed = WIFSIGNALED(status);
-            return true;  // yay, he exited!
+            return B_NO_ERROR;  // yay, he exited!
          }
          else if (r == -1) break;      // fail on error
 
@@ -602,7 +602,7 @@ bool ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
    }
 #endif
 
-   return false;
+   return B_TIMED_OUT;
 }
 
 int32 ChildProcessDataIO :: Read(void *buf, uint32 len)
@@ -866,7 +866,7 @@ status_t ChildProcessDataIO :: System(const char * cmdLine, ChildProcessLaunchFl
    status_t ret;
    if (cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory, optEnvironmentVariables).IsOK(ret))
    {
-      cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
+      (void) cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
       return B_NO_ERROR;
    }
    else return ret;

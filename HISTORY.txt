@@ -11,6 +11,8 @@ key:  - new feature
    - Added AreKeysASupersetOf() and AreKeysASubsetOf() convenience
      methods to the Hashtable class.
    o Changed ARRAYITEMS to use size_t instead of "unsigned int"
+   o Changed ChildProcessDataIO::WaitForChildProcessToExit()
+     to return a status_t rather than a bool.
 
 8.10 - Released 4/5/2021
    - Added ByteBufferPacketDataIO class to the dataio folder.
