@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
             matchCount++;
          }
       }
-      printf("%i/%u dictionary words matched glob pattern [%s]\n", matchCount, ARRAYITEMS(_commonWords), s());
+      printf("%i/%u dictionary words matched glob pattern [%s]\n", matchCount, (unsigned int) ARRAYITEMS(_commonWords), s());
       printf("\n");
    }
 
