@@ -10,6 +10,5 @@ target_link_libraries(qt_muscled
   Qt5::Widgets
   qtsupport
   muscle
-  util
 )
 

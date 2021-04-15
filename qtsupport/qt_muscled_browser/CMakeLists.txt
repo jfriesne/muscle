@@ -10,6 +10,5 @@ target_link_libraries(qt_muscled_browser
   Threads::Threads
   qtsupport
   muscle
-  util
 )
 
