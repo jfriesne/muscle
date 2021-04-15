@@ -10,7 +10,7 @@ key:  - new feature
      the first and second dimensional-extents of a 2D array)
    - Added AreKeysASupersetOf() and AreKeysASubsetOf() convenience
      methods to the Hashtable class.
-   o Changed ARRAYITEMS to use size_t instead of "unsigned int"
+   o Changed ARRAYITEMS to use size_t and return uint32 instead of "unsigned int"
    o Changed ChildProcessDataIO::WaitForChildProcessToExit()
      to return a status_t rather than a bool.
 

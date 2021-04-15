@@ -246,15 +246,6 @@ using std::set_new_handler;
 # endif
 #endif
 
-#ifdef __cplusplus
-template<typename T, size_t size> MUSCLE_CONSTEXPR size_t ARRAYITEMS(T(&)[size]) {return size;}  /**< Returns # of items in the 1D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
-template<typename T, size_t rows, size_t cols> MUSCLE_CONSTEXPR size_t ARRAYROWS(T(&)[rows][cols]) {return rows;} /**< Returns # of "rows", along the first axis of the 2D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
-template<typename T, size_t rows, size_t cols> MUSCLE_CONSTEXPR size_t ARRAYCOLS(T(&)[rows][cols]) {return cols;} /**< Returns # of "columns", along the second axis of the 2D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
-#else
-# define ARRAYITEMS(x) (sizeof(x)/sizeof(x[0]))  /**< Returns # of items in the array.  This primitive C-compatible implementation will return an incorrect value if called with a pointer as an argument. */
-#endif
-typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit easier, syntax-wise, to use this type than (void *) directly in some cases. */
-
 #if defined(__BEOS__) || defined(__HAIKU__)
 # include <support/Errors.h>
 # include <support/ByteOrder.h>  /* might as well use the real thing (and avoid complaints about duplication) */
@@ -478,6 +469,15 @@ typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit eas
 #  endif  /* !MUSCLE_TYPES_PREDEFINED */
 # endif  /* !__ATHEOS__*/
 #endif  /* __BEOS__ || __HAIKU__ */
+
+#ifdef __cplusplus
+template<typename T, size_t size> MUSCLE_CONSTEXPR uint32 ARRAYITEMS(T(&)[size]) {return (uint32) size;}  /**< Returns # of items in the 1D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
+template<typename T, size_t rows, size_t cols> MUSCLE_CONSTEXPR uint32 ARRAYROWS(T(&)[rows][cols]) {return (uint32) rows;} /**< Returns # of "rows", along the first axis of the 2D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
+template<typename T, size_t rows, size_t cols> MUSCLE_CONSTEXPR uint32 ARRAYCOLS(T(&)[rows][cols]) {return (uint32) cols;} /**< Returns # of "columns", along the second axis of the 2D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
+#else
+# define ARRAYITEMS(x) (sizeof(x)/sizeof(x[0]))  /**< Returns # of items in the array.  This primitive C-compatible implementation will return an incorrect value if called with a pointer as an argument. */
+#endif
+typedef void * muscleVoidPointer;  /**< Synonym for a (void *) -- it's a bit easier, syntax-wise, to use this type than (void *) directly in some cases. */
 
 #if defined(__cplusplus) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
 // Let's try to catch any type-size errors at compile-time if we can
