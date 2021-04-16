@@ -7,8 +7,7 @@ How to build a muscle server ("muscled")
      cmake ..
      make
 
-  (Under Windows, replace the "make" command above with "devenv /Build Release
-ALL_BUILD.vcxproj")
+  (Under Windows, replace the "make" command above with "devenv /Build Release ALL_BUILD.vcxproj")
 
 Alternatively, you can build muscle the old-fashioned way:
 

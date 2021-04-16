@@ -22,6 +22,9 @@ key:  - new feature
      to return a status_t rather than a bool.
    o Removed obsolete Win95/Win98 support code from RS232DataIO.cpp.
    * Fixed several const-correctness problems in the minizip code.
+   * Updated chatclient, testudp, and portableplaintextclient tests
+     to use a StdinDataIO rather than selecting on STDIN_FILENO,
+     so that they can work as expected under Windows.
 
 8.10 - Released 4/5/2021
    - Added ByteBufferPacketDataIO class to the dataio folder.

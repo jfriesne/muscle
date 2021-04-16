@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "dataio/StdinDataIO.h"
 #include "dataio/UDPSocketDataIO.h"
 #include "iogateway/MessageIOGateway.h"
 #include "iogateway/PlainTextMessageIOGateway.h"
@@ -69,6 +70,9 @@ int main(int argc, char ** argv)
 
    AbstractMessageIOGatewayRef agw = CreateUDPGateway(useTextGateway, useRawGateway, udpIORef);
 
+   StdinDataIO stdinIO(false);
+   const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
+
    char text[1000] = "";
    QueueGatewayMessageReceiver inQueue;
    SocketMultiplexer multiplexer;
@@ -77,22 +81,17 @@ int main(int argc, char ** argv)
    {
       const int fd = s.GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(fd);
-
       if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-#ifndef WIN32   // Windows doesn't support selecting on Stdin
-      multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
-#endif
+      multiplexer.RegisterSocketForReadReady(stdinFD);
 
       while(s()) 
       {
          if (multiplexer.WaitForEvents() < 0) printf("testudp: WaitForEvents() failed!\n");
-#ifndef WIN32
-         if (multiplexer.IsSocketReadyForRead(STDIN_FILENO))
+         if (multiplexer.IsSocketReadyForRead(stdinFD))
          {
             if (fgets(text, sizeof(text), stdin) == NULL) text[0] = '\0';
             char * ret = strchr(text, '\n'); if (ret) *ret = '\0';
          }
-#endif
 
          if (text[0])
          {
@@ -234,9 +233,7 @@ int main(int argc, char ** argv)
 
          multiplexer.RegisterSocketForReadReady(fd);
          if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-#ifndef WIN32
-         multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
-#endif
+         multiplexer.RegisterSocketForReadReady(stdinFD);
       }
    }
 

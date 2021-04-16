@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "dataio/StdinDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
 #include "iogateway/PlainTextMessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
@@ -29,6 +30,9 @@ int main(int argc, char ** argv)
    ConstSocketRef s = Connect(hostName, (uint16)port, "portableplaintextclient", false);
    if (s() == NULL) return 10;
 
+   StdinDataIO stdinIO(false);
+   const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
+
    SocketMultiplexer multiplexer;
    PlainTextMessageIOGateway gw;
    gw.SetDataIO(DataIORef(new TCPSocketDataIO(s, false)));
@@ -38,21 +42,17 @@ int main(int argc, char ** argv)
       const int fd = s.GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(fd);
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-#ifndef WIN32 // Win32 Can't select on STDIN_FILENO :(
-      multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
-#endif
+      multiplexer.RegisterSocketForReadReady(stdinFD);
 
       QueueGatewayMessageReceiver inQueue;
       while(s()) 
       {
          if (multiplexer.WaitForEvents() < 0) printf("portablereflectclient: WaitForEvents() failed!\n");
-#ifndef WIN32
-         if (multiplexer.IsSocketReadyForRead(STDIN_FILENO))
+         if (multiplexer.IsSocketReadyForRead(stdinFD))
          {
             if (fgets(text, sizeof(text), stdin) == NULL) text[0] = '\0';
             char * ret = strchr(text, '\n'); if (ret) *ret = '\0';
          }
-#endif
 
          if (text[0])
          {
@@ -87,6 +87,7 @@ int main(int argc, char ** argv)
 
          multiplexer.RegisterSocketForReadReady(fd);
          if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+         multiplexer.RegisterSocketForReadReady(stdinFD);
       }
    }
 

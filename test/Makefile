@@ -282,10 +282,10 @@ muscleproxy : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o Message
 portscan : $(STDOBJS) portscan.o SysLog.o SetupSystem.o String.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-chatclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o chatclient.o MiscUtilityFunctions.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PathMatcher.o QueryFilter.o
+chatclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o chatclient.o MiscUtilityFunctions.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PathMatcher.o QueryFilter.o StdinDataIO.o FileDescriptorDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testudp : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o String.o testudp.o MiscUtilityFunctions.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o
+testudp : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o String.o testudp.o MiscUtilityFunctions.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testsocketmultiplexer : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o testsocketmultiplexer.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o
@@ -303,7 +303,7 @@ bandwidthtester : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGatew
 uploadstress : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o uploadstress.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-portableplaintextclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o portableplaintextclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o
+portableplaintextclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o portableplaintextclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testchildprocess : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o testchildprocess.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o 

@@ -113,13 +113,16 @@ int main(int argc, char ** argv)
          FD_SET(s, &readSet);
          if (UGHasBytesToOutput(&gw)) FD_SET(s, &writeSet);
 
+#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE  // Windows can't select on STDIN_FILENO :(
          if (STDIN_FILENO > maxfd) maxfd = STDIN_FILENO;
          FD_SET(STDIN_FILENO, &readSet);
+#endif
 
          while(keepGoing) 
          {
             if (select(maxfd+1, &readSet, &writeSet, NULL, NULL) < 0) printf("microreflectclient: select() failed!\n");
 
+#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE  // Windows can't select on STDIN_FILENO :(
             if (FD_ISSET(STDIN_FILENO, &readSet))
             {
                char * ret;
@@ -127,6 +130,7 @@ int main(int argc, char ** argv)
                ret = strchr(text, '\n'); 
                if (ret) *ret = '\0';
             }
+#endif
 
             if (text[0])
             {
@@ -281,7 +285,9 @@ int main(int argc, char ** argv)
                FD_ZERO(&writeSet);
                FD_SET(s, &readSet);
                if (UGHasBytesToOutput(&gw)) FD_SET(s, &writeSet);
+#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE  // Windows can't select on STDIN_FILENO :(
                FD_SET(STDIN_FILENO, &readSet);
+#endif
             }
          }
       } 

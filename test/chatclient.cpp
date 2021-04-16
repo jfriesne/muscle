@@ -1,5 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#include "dataio/StdinDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
 #include "iogateway/MessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
@@ -126,6 +127,9 @@ int main(int argc, char ** argv)
    gw.AddOutgoingMessage(GenerateSetLocalUserStatus(userStatus));
    gw.AddOutgoingMessage(GenerateServerSubscription("SUBSCRIBE:beshare/*", false));
  
+   StdinDataIO stdinIO(false);
+   const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
+
    // Our event loop
    char buf[2048] = "";
    Hashtable<String, String> _users;
@@ -135,14 +139,10 @@ int main(int argc, char ** argv)
    {
       const int fd = s.GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(fd);
-
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+      multiplexer.RegisterSocketForReadReady(stdinFD);
 
       String text;
-#ifndef WIN32  // Windows can't select on STDIN_FILENO :(
-      multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
-#endif
-
       while(s()) 
       {
          if (multiplexer.WaitForEvents() < 0)
@@ -151,14 +151,12 @@ int main(int argc, char ** argv)
             s.Reset();
             break;
          }
-#ifndef WIN32
-         if (multiplexer.IsSocketReadyForRead(STDIN_FILENO))
+         if (multiplexer.IsSocketReadyForRead(stdinFD))
          {
             if (fgets(buf, sizeof(buf), stdin) == NULL) buf[0] = '\0';
             char * ret = strchr(buf, '\n'); if (ret) *ret = '\0';
             text = buf;
          }
-#endif
 
          text = text.Trim();
          StringTokenizer tok(text());
@@ -324,9 +322,7 @@ int main(int argc, char ** argv)
 
          if ((reading == false)&&(writing == false)) break;
 
-#ifndef WIN32
-         multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
-#endif
+         multiplexer.RegisterSocketForReadReady(stdinFD);
          multiplexer.RegisterSocketForReadReady(fd);
          if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
       }

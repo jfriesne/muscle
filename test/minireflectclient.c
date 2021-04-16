@@ -116,13 +116,16 @@ int main(int argc, char ** argv)
 
          if (MGHasBytesToOutput(gw)) FD_SET(s, &writeSet);
 
+#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE  // Windows doesn't support reading from STDIN_FILENO :(
          if (STDIN_FILENO > maxfd) maxfd = STDIN_FILENO;
          FD_SET(STDIN_FILENO, &readSet);
+#endif
 
          while(keepGoing) 
          {
             if (select(maxfd+1, &readSet, &writeSet, NULL, NULL) < 0) printf("minireflectclient: select() failed!\n");
 
+#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
             if (FD_ISSET(STDIN_FILENO, &readSet))
             {
                char * ret;
@@ -130,6 +133,7 @@ int main(int argc, char ** argv)
                ret = strchr(text, '\n'); 
                if (ret) *ret = '\0';
             }
+#endif
 
             if (text[0])
             {
@@ -310,7 +314,9 @@ int main(int argc, char ** argv)
                FD_ZERO(&writeSet);
                FD_SET(s, &readSet);
                if (MGHasBytesToOutput(gw)) FD_SET(s, &writeSet);
+#ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
                FD_SET(STDIN_FILENO, &readSet);
+#endif
             }
          }
       } 
