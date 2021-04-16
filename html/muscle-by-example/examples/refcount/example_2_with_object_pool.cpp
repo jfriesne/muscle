@@ -63,7 +63,6 @@ int main(int argc, char ** argv)
    for (int i=0; i<100; i+=5)
    {
       // Grab a number of MyClass objects from the ObjectPool for our use here
-      int numObjectsNeededThisTime = i;
       Queue<MyClassRef> q;
       for (int j=0; j<i; j++) q.AddTail(MyClassRef(_myClassPool.ObtainObject()));
 
