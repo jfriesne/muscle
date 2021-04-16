@@ -1,7 +1,5 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include <time.h>
-
 #include "dataio/TCPSocketDataIO.h"
 #include "iogateway/MessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
@@ -141,7 +139,9 @@ int main(int argc, char ** argv)
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
 
       String text;
+#ifndef WIN32  // Windows can't select on STDIN_FILENO :(
       multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
+#endif
 
       while(s()) 
       {
@@ -151,12 +151,14 @@ int main(int argc, char ** argv)
             s.Reset();
             break;
          }
+#ifndef WIN32
          if (multiplexer.IsSocketReadyForRead(STDIN_FILENO))
          {
             if (fgets(buf, sizeof(buf), stdin) == NULL) buf[0] = '\0';
             char * ret = strchr(buf, '\n'); if (ret) *ret = '\0';
             text = buf;
          }
+#endif
 
          text = text.Trim();
          StringTokenizer tok(text());
@@ -322,7 +324,9 @@ int main(int argc, char ** argv)
 
          if ((reading == false)&&(writing == false)) break;
 
+#ifndef WIN32
          multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
+#endif
          multiplexer.RegisterSocketForReadReady(fd);
          if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
       }

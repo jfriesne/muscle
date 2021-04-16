@@ -1,5 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#include <stdio.h>
+
 #include "dataio/TCPSocketDataIO.h"
 #include "iogateway/PlainTextMessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
@@ -36,17 +38,21 @@ int main(int argc, char ** argv)
       const int fd = s.GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(fd);
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+#ifndef WIN32 // Win32 Can't select on STDIN_FILENO :(
       multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
+#endif
 
       QueueGatewayMessageReceiver inQueue;
       while(s()) 
       {
          if (multiplexer.WaitForEvents() < 0) printf("portablereflectclient: WaitForEvents() failed!\n");
+#ifndef WIN32
          if (multiplexer.IsSocketReadyForRead(STDIN_FILENO))
          {
             if (fgets(text, sizeof(text), stdin) == NULL) text[0] = '\0';
             char * ret = strchr(text, '\n'); if (ret) *ret = '\0';
          }
+#endif
 
          if (text[0])
          {

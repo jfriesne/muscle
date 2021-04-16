@@ -1,5 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#include <stdio.h>
+
 #include "util/String.h"
 #include "util/StringTokenizer.h"
 

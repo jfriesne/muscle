@@ -14,7 +14,6 @@
 
 #if defined(WIN32) || defined(__CYGWIN__)
 # include <process.h>  // for _beginthreadex()
-# include <Shlwapi.h>  // for IsOS()
 # include "util/Queue.h"
 # define USE_WINDOWS_IMPLEMENTATION
 #else
@@ -274,12 +273,6 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
    // at http://www.codeproject.com/system/enumports.asp
    //
    // Under NT-based versions of Windows, use the QueryDosDevice API, since it's more efficient
-#if _MSC_VER >= 1800
-   if (IsOS(OS_NT))
-#else
-   OSVERSIONINFO osvi; osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-   if (GetVersionEx(&osvi)&&(osvi.dwPlatformId == VER_PLATFORM_WIN32_NT))
-#endif
    {
       char szDevices[65535];
       const DWORD dwChars = QueryDosDeviceA(NULL, szDevices, 65535);
@@ -297,30 +290,6 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
          return B_NO_ERROR;
       }
       return B_ERRNO;
-   }
-   else
-   {
-      // On 95/98 open up each port to determine their existence
-      // Up to 255 COM ports are supported so we iterate through all of them seeing
-      // if we can open them or if we fail to open them, get an access denied or general error error.
-      // Both of these cases indicate that there is a COM port at that number. 
-      for (uint32 i=1; i<256; i++)
-      {
-         // Try to open the port
-         char buf[128]; muscleSprintf(buf, "COM" UINT32_FORMAT_SPEC, i);
-         ::HANDLE hPort = CreateFileA(buf, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0);
-         if (hPort == INVALID_HANDLE_VALUE)
-         {
-            DWORD err = GetLastError();
-            if ((err == ERROR_ACCESS_DENIED)||(err == ERROR_GEN_FAILURE)) retList.AddTail(buf);  // acceptable errors
-         }
-         else
-         {
-            retList.AddTail(buf);  // success!
-            CloseHandle(hPort);
-         }
-      }
-      return B_NO_ERROR;
    }
 #else
 # if defined(__APPLE__)

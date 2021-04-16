@@ -1,9 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include <netdb.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <time.h>
+#include <stdio.h>
 
 #include "dataio/UDPSocketDataIO.h"
 #include "iogateway/MessageIOGateway.h"
@@ -82,16 +79,20 @@ int main(int argc, char ** argv)
       multiplexer.RegisterSocketForReadReady(fd);
 
       if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+#ifndef WIN32   // Windows doesn't support selecting on Stdin
       multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
+#endif
 
       while(s()) 
       {
          if (multiplexer.WaitForEvents() < 0) printf("testudp: WaitForEvents() failed!\n");
+#ifndef WIN32
          if (multiplexer.IsSocketReadyForRead(STDIN_FILENO))
          {
             if (fgets(text, sizeof(text), stdin) == NULL) text[0] = '\0';
             char * ret = strchr(text, '\n'); if (ret) *ret = '\0';
          }
+#endif
 
          if (text[0])
          {
@@ -233,7 +234,9 @@ int main(int argc, char ** argv)
 
          multiplexer.RegisterSocketForReadReady(fd);
          if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+#ifndef WIN32
          multiplexer.RegisterSocketForReadReady(STDIN_FILENO);
+#endif
       }
    }
 

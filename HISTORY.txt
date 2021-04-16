@@ -20,6 +20,7 @@ key:  - new feature
    o Changed ARRAYITEMS to return uint32 instead of unsigned int.
    o Changed ChildProcessDataIO::WaitForChildProcessToExit()
      to return a status_t rather than a bool.
+   o Removed obsolete Win95/Win98 support code from RS232DataIO.cpp.
    * Fixed several const-correctness problems in the minizip code.
 
 8.10 - Released 4/5/2021

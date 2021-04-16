@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "winsupport/Win32MessageTransceiverThread.h"
 #include "iogateway/MessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"

@@ -1,10 +1,5 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include <netdb.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <time.h>
-
 #include "dataio/UDPSocketDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
 #include "dataio/PacketizedProxyDataIO.h"

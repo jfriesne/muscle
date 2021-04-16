@@ -1,5 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#include <stdio.h>
+
 #ifdef MUSCLE_ENABLE_SSL
 # include "dataio/SSLSocketDataIO.h"
 # include "iogateway/SSLSocketAdapterGateway.h"
