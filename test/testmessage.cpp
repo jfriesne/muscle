@@ -192,7 +192,7 @@ int main(int, char **)
    TEST(msg.AddInt8("int8", 45));
    TEST(msg.AddInt16("int16", 123));
    TEST(msg.AddInt32("int32", 89));
-   TEST(msg.AddFloat("float", 3.14159));
+   TEST(msg.AddFloat("float", 3.14159f));
    TEST(msg.AddDouble("double", 6.28));
    TEST(msg.AddDouble("double", 6.66));
    TEST(msg.AddMessage("msg", butter));
@@ -246,8 +246,8 @@ int main(int, char **)
    {for (int i=0; i<10; i++) TEST(msg.AddInt32("TestInt32", i));  }
    {for (int i=0; i<10; i++) TEST(msg.AddInt64("TestInt64", i));  }
    {for (int i=0; i<10; i++) TEST(msg.AddDouble("TestDouble", i));}
-   {for (int i=0; i<10; i++) TEST(msg.AddFloat("TestFloat", i));  }
-   {for (int i=0; i<10; i++) TEST(msg.AddBool("TestBool", i));    }
+   {for (int i=0; i<10; i++) TEST(msg.AddFloat("TestFloat", (float)i));  }
+   {for (int i=0; i<10; i++) TEST(msg.AddBool("TestBool", (i!=0)));}
 
    printf("Finished message:\n");
    msg.PrintToStream();
@@ -264,9 +264,9 @@ int main(int, char **)
    TEST(msg.ReplaceString(false, "Chicken", 2, "Breast"));
    NEGATIVETEST(msg.ReplaceString(false, "Chicken", 3, "Soul"));  
    TEST(msg.ReplaceDouble(true, "TestDouble", 2, 222.222));
-   TEST(msg.ReplaceFloat(true, "TestFloat", 3, 333.333));
+   TEST(msg.ReplaceFloat(true, "TestFloat", 3, 333.333f));
    NEGATIVETEST(msg.ReplaceFloat(false, "RootBeerFloat", 0, 444.444f));
-   TEST(msg.ReplaceBool(false, "TestBool", 5));
+   TEST(msg.ReplaceBool(false, "TestBool", true));
    TEST(msg.ReplaceRect(false, "rect2345", Rect(2,3,4,5)));
 
    Message eqMsg = msg;

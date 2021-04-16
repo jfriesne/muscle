@@ -40,7 +40,7 @@ int main(int argc, char ** argv)
    printf("The DebugTimer will tell you how long it lived for (useful for measuring how long a block of code took to execute):\n");
    {
       DebugTimer tm("timer", 0);
-      for (int i=0; i<100000000; i++) count += sin(i);
+      for (int i=0; i<100000000; i++) count += (int) sin(i);
    }
 
    printf("\n");
@@ -49,13 +49,13 @@ int main(int argc, char ** argv)
       DebugTimer tm("timer", 0);
 
       tm.SetMode(0);
-      for (int i=0; i<10000000; i++) count += sin(i);
+      for (int i=0; i<10000000; i++) count += (int) sin(i);
 
       tm.SetMode(1);
-      for (int i=0; i<10000000; i++) count += cos(i);
+      for (int i=0; i<10000000; i++) count += (int) cos(i);
 
       tm.SetMode(2);
-      for (int i=0; i<10000000; i++) count += tan(i);
+      for (int i=0; i<10000000; i++) count += (int) tan(i);
    }
 
 

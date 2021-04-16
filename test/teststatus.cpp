@@ -35,7 +35,7 @@ status_t Func3()
 // This program exercises the String class.
 int main(void) 
 {
-   srand(time(NULL));
+   srand((unsigned)time(NULL));
 
    // Simple test
    {

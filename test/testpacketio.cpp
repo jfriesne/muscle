@@ -23,11 +23,11 @@ int main(int argc, char ** argv)
    if (args.FindString("host", &temp).IsOK()) connectTo = GetHostByName(temp);
    
    uint16 port = 0;
-   if (args.FindString("port", &temp).IsOK()) port = atol(temp);
+   if (args.FindString("port", &temp).IsOK()) port = (uint16) atoi(temp);
    if (port == 0) port = 8888;
 
    uint32 mtu = 0;
-   if (args.FindString("mtu", &temp).IsOK()) mtu = atol(temp);
+   if (args.FindString("mtu", &temp).IsOK()) mtu = (uint32) atoi(temp);
    if (mtu == 0) mtu = 64*1024;
 
    ConstSocketRef s;
