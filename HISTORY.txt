@@ -12,9 +12,13 @@ key:  - new feature
      methods to the Hashtable class.
    - Added an optional (fromIndex) argument to String::Replace()
      and String::GetNumInstancesOf().
+   - CMake now compiles the executables in the muscle/tests folder also. 
+   - CMake now includes zip/unzip functions from zlib/zlib/contrib/minizip
+     in the generated muscle.lib.
    o Changed ARRAYITEMS to use size_t and return uint32 instead of "unsigned int"
    o Changed ChildProcessDataIO::WaitForChildProcessToExit()
      to return a status_t rather than a bool.
+   * Fixed several const-correctness problems in the minizip code.
 
 8.10 - Released 4/5/2021
    - Added ByteBufferPacketDataIO class to the dataio folder.

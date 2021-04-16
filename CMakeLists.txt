@@ -19,6 +19,7 @@ file(GLOB MUSCLE_SRCS
    "./system/*.cpp"
    "./util/*.cpp"
    "./zlib/*.cpp"
+   "./zlib/zlib/contrib/minizip/*.c"
 )
 
 file(GLOB EXCLUDE_THESE_SOURCES
@@ -37,6 +38,10 @@ if (WIN32)
       "./regex/regex/regfree.c"
    )
 else (!WIN32)
+   file(GLOB EXCLUDE_WIN32_SPECIFIC_SOURCES
+      "./zlib/zlib/contrib/minizip/iowin32.c"
+   )
+   list(REMOVE_ITEM MUSCLE_SRCS ${EXCLUDE_WIN32_SPECIFIC_SOURCES})
    if(${CMAKE_VERSION} VERSION_LESS "3.1.0")
       add_definitions(-std=c++11)   # fallback for older versions of CMake that don't know about CMAKE_CXX_STANDARD
    endif()
@@ -131,7 +136,7 @@ else()
    message("Note:  -DWITH_QT=OFF argument was specified:  Qt executables and support code will not be built")
 endif()
 
-target_include_directories(muscle PUBLIC .)
+target_include_directories(muscle PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_compile_definitions(muscle PUBLIC MUSCLE_ENABLE_ZLIB_ENCODING MUSCLE_NO_EXCEPTIONS)
 if (APPLE)
    find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
@@ -172,3 +177,8 @@ if (WITH_MUSCLED)
 else ()
    message("Note:  -DWITH_MUSCLED=OFF argument was specified:  muscled will not be built")
 endif ()
+
+option(WITH_TESTS "Enable building of muscle tests" ON)
+if (WITH_TESTS)
+   add_subdirectory(test)
+endif (WITH_TESTS)
