@@ -3,6 +3,7 @@
 #include "dataio/StdinDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
 #include "iogateway/MessageIOGateway.h"
+#include "iogateway/PlainTextMessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
 #include "regex/PathMatcher.h"
 #include "util/NetworkUtilityFunctions.h"
@@ -128,6 +129,9 @@ int main(int argc, char ** argv)
    gw.AddOutgoingMessage(GenerateServerSubscription("SUBSCRIBE:beshare/*", false));
  
    StdinDataIO stdinIO(false);
+   QueueGatewayMessageReceiver stdinInQueue;
+   PlainTextMessageIOGateway stdinGateway;
+   stdinGateway.SetDataIO(DataIORef(&stdinIO, false));
    const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
 
    // Our event loop
@@ -142,7 +146,6 @@ int main(int argc, char ** argv)
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
       multiplexer.RegisterSocketForReadReady(stdinFD);
 
-      String text;
       while(s()) 
       {
          if (multiplexer.WaitForEvents() < 0)
@@ -151,50 +154,67 @@ int main(int argc, char ** argv)
             s.Reset();
             break;
          }
+
          if (multiplexer.IsSocketReadyForRead(stdinFD))
          {
-            if (fgets(buf, sizeof(buf), stdin) == NULL) buf[0] = '\0';
-            char * ret = strchr(buf, '\n'); if (ret) *ret = '\0';
-            text = buf;
-         }
-
-         text = text.Trim();
-         StringTokenizer tok(text());
-         if (text.StartsWith("/msg "))
-         {
-            (void) tok();
-            const char * targetSessionID = tok();
-            String sendText = String(tok.GetRemainderOfString()).Trim();
-            if (sendText.HasChars()) gw.AddOutgoingMessage(GenerateChatMessage(targetSessionID, sendText()));
-         }
-         else if (text.StartsWith("/nick "))
-         {
-            (void) tok();
-            String name = String(tok.GetRemainderOfString()).Trim();
-            if (name.HasChars()) 
+            while(1)
             {
-               LogTime(MUSCLE_LOG_INFO, "Setting local user name to [%s]\n", name());
-               gw.AddOutgoingMessage(GenerateSetLocalUserName(name()));
+               const int32 bytesRead = stdinGateway.DoInput(stdinInQueue);
+               if (bytesRead < 0)
+               {
+                  printf("Stdin closed, exiting!\n");
+                  s.Reset();  // break us out of the outer loop
+                  break;
+               }
+               else if (bytesRead == 0) break;  // no more to read
+            }
+
+            MessageRef msgFromStdin;
+            while(stdinInQueue.RemoveHead(msgFromStdin).IsOK())
+            {
+               const String * st;
+               for (int32 i=0; msgFromStdin()->FindString(PR_NAME_TEXT_LINE, i, &st).IsOK(); i++)
+               {
+                  const String & text = *st;
+                  printf("Sending: [%s]\n", text());
+
+                  StringTokenizer tok(text());
+                  if (text.StartsWith("/msg "))
+                  {
+                     (void) tok();
+                     const char * targetSessionID = tok();
+                     String sendText = String(tok.GetRemainderOfString()).Trim();
+                     if (sendText.HasChars()) gw.AddOutgoingMessage(GenerateChatMessage(targetSessionID, sendText()));
+                  }
+                  else if (text.StartsWith("/nick "))
+                  {
+                     (void) tok();
+                     String name = String(tok.GetRemainderOfString()).Trim();
+                     if (name.HasChars())
+                     {
+                        LogTime(MUSCLE_LOG_INFO, "Setting local user name to [%s]\n", name());
+                        gw.AddOutgoingMessage(GenerateSetLocalUserName(name()));
+                     }
+                  }
+                  else if (text.StartsWith("/status "))
+                  {
+                     (void) tok();
+                     String status = String(tok.GetRemainderOfString()).Trim();
+                     if (status.HasChars())
+                     {
+                        LogTime(MUSCLE_LOG_INFO, "Setting local user status to [%s]\n", status());
+                        gw.AddOutgoingMessage(GenerateSetLocalUserStatus(status()));
+                     }
+                  }
+                  else if (text.StartsWith("/help"))
+                  {
+                     LogTime(MUSCLE_LOG_INFO, "Available commands are:  /nick, /msg, /status, /help, and /quit\n");
+                  }
+                  else if (text.StartsWith("/quit")) s.Reset();
+                  else if (strlen(text()) > 0) gw.AddOutgoingMessage(GenerateChatMessage("*", text()));
+               }
             }
          }
-         else if (text.StartsWith("/status "))
-         {
-            (void) tok();
-            String status = String(tok.GetRemainderOfString()).Trim();
-            if (status.HasChars())
-            {
-               LogTime(MUSCLE_LOG_INFO, "Setting local user status to [%s]\n", status());
-               gw.AddOutgoingMessage(GenerateSetLocalUserStatus(status()));
-            }
-         }
-         else if (text.StartsWith("/help"))
-         {
-            LogTime(MUSCLE_LOG_INFO, "Available commands are:  /nick, /msg, /status, /help, and /quit\n");
-         }
-         else if (text.StartsWith("/quit")) s.Reset();
-         else if (strlen(text()) > 0) gw.AddOutgoingMessage(GenerateChatMessage("*", text()));
-
-         text.Clear();
 
          const bool reading = multiplexer.IsSocketReadyForRead(fd);
          const bool writing = multiplexer.IsSocketReadyForWrite(fd);

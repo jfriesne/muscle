@@ -31,12 +31,14 @@ int main(int argc, char ** argv)
    if (s() == NULL) return 10;
 
    StdinDataIO stdinIO(false);
+   QueueGatewayMessageReceiver stdinInQueue;
+   PlainTextMessageIOGateway stdinGateway;
+   stdinGateway.SetDataIO(DataIORef(&stdinIO, false));
    const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
 
    SocketMultiplexer multiplexer;
    PlainTextMessageIOGateway gw;
    gw.SetDataIO(DataIORef(new TCPSocketDataIO(s, false)));
-   char text[1000] = "";
    while(s())
    {
       const int fd = s.GetFileDescriptor();
@@ -50,17 +52,31 @@ int main(int argc, char ** argv)
          if (multiplexer.WaitForEvents() < 0) printf("portablereflectclient: WaitForEvents() failed!\n");
          if (multiplexer.IsSocketReadyForRead(stdinFD))
          {
-            if (fgets(text, sizeof(text), stdin) == NULL) text[0] = '\0';
-            char * ret = strchr(text, '\n'); if (ret) *ret = '\0';
+            while(1)
+            {
+               const int32 bytesRead = stdinGateway.DoInput(stdinInQueue);
+               if (bytesRead < 0)
+               {
+                  printf("Stdin closed, exiting!\n");
+                  s.Reset();  // break us out of the outer loop
+                  break;
+               }
+               else if (bytesRead == 0) break;  // no more to read
+            }
          }
 
-         if (text[0])
+         MessageRef msgFromStdin;
+         while(stdinInQueue.RemoveHead(msgFromStdin).IsOK())
          {
-            printf("Sending: [%s]\n",text);
-            MessageRef msg = GetMessageFromPool();
-            msg()->AddString(PR_NAME_TEXT_LINE, text);
-            gw.AddOutgoingMessage(msg);
-            text[0] = '\0';
+            const String * st;
+            for (int32 i=0; msgFromStdin()->FindString(PR_NAME_TEXT_LINE, i, &st).IsOK(); i++)
+            {
+               printf("Sending: [%s]\n", st->Cstr());
+
+               MessageRef msg = GetMessageFromPool();
+               (void) msg()->AddString(PR_NAME_TEXT_LINE, *st);
+               (void) gw.AddOutgoingMessage(msg);
+            }
          }
    
          const bool reading = multiplexer.IsSocketReadyForRead(fd);

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -44,8 +44,8 @@ int main(int argc, char ** argv)
    const char * target = args.GetCstr("sendto", "localhost");
    const char * bindto = args.GetCstr("listen", "3960");
    bool useTextGateway = args.HasName("text");
-   bool useRawGateway  = args.HasName("raw"); 
-   if (useTextGateway) 
+   bool useRawGateway  = args.HasName("raw");
+   if (useTextGateway)
    {
       printf("Using PlainTextMessageIOGateway...\n");
       useRawGateway = false;
@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
    uint16 actualPort;
    if (BindUDPSocket(s, bindPort, &actualPort).IsOK()) printf("Bound socket to port %u\n", actualPort);
                                                          else printf("Error, couldn't bind to port %u\n", bindPort);
-   
+
    UDPSocketDataIORef udpIORef(new UDPSocketDataIO(s, false));
    (void) udpIORef()->SetPacketSendDestination(IPAddressAndPort(target, 3960, true));
    printf("Set UDP send destination to [%s]\n", udpIORef()->GetPacketSendDestination().ToString()());
@@ -71,9 +71,11 @@ int main(int argc, char ** argv)
    AbstractMessageIOGatewayRef agw = CreateUDPGateway(useTextGateway, useRawGateway, udpIORef);
 
    StdinDataIO stdinIO(false);
+   QueueGatewayMessageReceiver stdinInQueue;
+   PlainTextMessageIOGateway stdinGateway;
+   stdinGateway.SetDataIO(DataIORef(&stdinIO, false));
    const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
 
-   char text[1000] = "";
    QueueGatewayMessageReceiver inQueue;
    SocketMultiplexer multiplexer;
    printf("UDP Event loop starting...\n");
@@ -84,130 +86,144 @@ int main(int argc, char ** argv)
       if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
       multiplexer.RegisterSocketForReadReady(stdinFD);
 
-      while(s()) 
+      while(s())
       {
          if (multiplexer.WaitForEvents() < 0) printf("testudp: WaitForEvents() failed!\n");
          if (multiplexer.IsSocketReadyForRead(stdinFD))
          {
-            if (fgets(text, sizeof(text), stdin) == NULL) text[0] = '\0';
-            char * ret = strchr(text, '\n'); if (ret) *ret = '\0';
-         }
-
-         if (text[0])
-         {
-            printf("You typed: [%s]\n",text);
-            bool send = true;
-            MessageRef ref = GetMessageFromPool(useTextGateway?PR_COMMAND_TEXT_STRINGS:(useRawGateway?PR_COMMAND_RAW_DATA:0));
-
-                 if (useTextGateway) ref()->AddString(PR_NAME_TEXT_LINE, String(text).Trim());
-            else if (useRawGateway)  ref()->AddFlat(PR_NAME_DATA_CHUNKS, ParseHexBytes(text));
-            else
+            while(1)
             {
-               switch(text[0])
+               const int32 bytesRead = stdinGateway.DoInput(stdinInQueue);
+               if (bytesRead < 0)
                {
-                  case 'm':
-                     ref()->what = MAKETYPE("umsg");
-                     ref()->AddString(PR_NAME_KEYS, &text[2]);
-                     ref()->AddString("info", "This is a user message");
-                  break;
-
-                  case 's':
-                     ref()->what = PR_COMMAND_SETDATA;
-                     ref()->AddMessage(&text[2], Message(MAKETYPE("HELO"))); 
-                  break;
-      
-                  case 'k':
-                     ref()->what = PR_COMMAND_KICK;
-                     ref()->AddString(PR_NAME_KEYS, &text[2]);
-                  break;
-
-                  case 'b':
-                     ref()->what = PR_COMMAND_ADDBANS;
-                     ref()->AddString(PR_NAME_KEYS, &text[2]);
-                  break;
-
-                  case 'B':
-                     ref()->what = PR_COMMAND_REMOVEBANS;
-                     ref()->AddString(PR_NAME_KEYS, &text[2]);
-                  break;
-
-                  case 'g':
-                     ref()->what = PR_COMMAND_GETDATA;
-                     ref()->AddString(PR_NAME_KEYS, &text[2]);
-                  break;
-      
-                  case 'G':
-                     ref()->what = PR_COMMAND_GETDATATREES;
-                     ref()->AddString(PR_NAME_KEYS, &text[2]);
-                     ref()->AddString(PR_NAME_TREE_REQUEST_ID, "Tree ID!");
-                  break;
-
-                  case 'q':
-                     send = false;
-                     s.Reset();
-                  break;
-      
-                  case 'p':
-                     ref()->what = PR_COMMAND_SETPARAMETERS;
-                     ref()->AddString(&text[2], "");
-                  break;
-      
-                  case 'P':
-                     ref()->what = PR_COMMAND_GETPARAMETERS;
-                  break;
-      
-                  case 'd':
-                     ref()->what = PR_COMMAND_REMOVEDATA;
-                     ref()->AddString(PR_NAME_KEYS, &text[2]);
-                  break;
-      
-                  case 'D':
-                     ref()->what = PR_COMMAND_REMOVEPARAMETERS;
-                     ref()->AddString(PR_NAME_KEYS, &text[2]);
-                  break;
-      
-                  case 't':
-                  {
-                     // test all data types
-                     ref()->what = 1234;
-                     ref()->AddString("String", "this is a string");
-                     ref()->AddInt8("Int8", 123);
-                     ref()->AddInt8("-Int8", -123);
-                     ref()->AddInt16("Int16", 1234);
-                     ref()->AddInt16("-Int16", -1234);
-                     ref()->AddInt32("Int32", 12345);
-                     ref()->AddInt32("-Int32", -12345);
-                     ref()->AddInt64("Int64", 123456789);
-                     ref()->AddInt64("-Int64", -123456789);
-                     ref()->AddBool("Bool", true);
-                     ref()->AddBool("-Bool", false);
-                     ref()->AddFloat("Float", 1234.56789f);
-                     ref()->AddFloat("-Float", -1234.56789f);
-                     ref()->AddDouble("Double", 1234.56789);
-                     ref()->AddDouble("-Double", -1234.56789);
-                     ref()->AddPointer("Pointer", ref());
-                     ref()->AddFlat("Flat", *ref());
-                     char data[] = "This is some data";
-                     ref()->AddData("Flat", B_RAW_TYPE, data, sizeof(data));
-                  }
-                  break;
-
-                  default:
-                     printf("Sorry, wot?\n");
-                     send = false;
+                  printf("Stdin closed, exiting!\n");
+                  s.Reset();  // break us out of the outer loop
                   break;
                }
+               else if (bytesRead == 0) break;  // no more to read
             }
-   
-            if (send) 
+
+            MessageRef msgFromStdin;
+            while(stdinInQueue.RemoveHead(msgFromStdin).IsOK())
             {
-               printf("Sending message...\n");
-//             ref()->PrintToStream();
-               agw()->AddOutgoingMessage(ref);
+               const String * st;
+               for (int32 i=0; msgFromStdin()->FindString(PR_NAME_TEXT_LINE, i, &st).IsOK(); i++)
+               {
+                  const char * text = st->Cstr();
+                  printf("You typed: [%s]\n", text);
+                  bool send = true;
+                  MessageRef ref = GetMessageFromPool(useTextGateway?PR_COMMAND_TEXT_STRINGS:(useRawGateway?PR_COMMAND_RAW_DATA:0));
+
+                       if (useTextGateway) ref()->AddString(PR_NAME_TEXT_LINE, st->Trim());
+                  else if (useRawGateway)  ref()->AddFlat(PR_NAME_DATA_CHUNKS, ParseHexBytes(text));
+                  else
+                  {
+                     switch(text[0])
+                     {
+                        case 'm':
+                           ref()->what = MAKETYPE("umsg");
+                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                           ref()->AddString("info", "This is a user message");
+                        break;
+
+                        case 's':
+                           ref()->what = PR_COMMAND_SETDATA;
+                           ref()->AddMessage(&text[2], Message(MAKETYPE("HELO")));
+                        break;
+
+                        case 'k':
+                           ref()->what = PR_COMMAND_KICK;
+                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                        break;
+
+                        case 'b':
+                           ref()->what = PR_COMMAND_ADDBANS;
+                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                        break;
+
+                        case 'B':
+                           ref()->what = PR_COMMAND_REMOVEBANS;
+                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                        break;
+
+                        case 'g':
+                           ref()->what = PR_COMMAND_GETDATA;
+                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                        break;
+
+                        case 'G':
+                           ref()->what = PR_COMMAND_GETDATATREES;
+                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                           ref()->AddString(PR_NAME_TREE_REQUEST_ID, "Tree ID!");
+                        break;
+
+                        case 'q':
+                           send = false;
+                           s.Reset();
+                        break;
+
+                        case 'p':
+                           ref()->what = PR_COMMAND_SETPARAMETERS;
+                           ref()->AddString(&text[2], "");
+                        break;
+
+                        case 'P':
+                           ref()->what = PR_COMMAND_GETPARAMETERS;
+                        break;
+
+                        case 'd':
+                           ref()->what = PR_COMMAND_REMOVEDATA;
+                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                        break;
+
+                        case 'D':
+                           ref()->what = PR_COMMAND_REMOVEPARAMETERS;
+                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                        break;
+
+                        case 't':
+                        {
+                           // test all data types
+                           ref()->what = 1234;
+                           ref()->AddString("String", "this is a string");
+                           ref()->AddInt8("Int8", 123);
+                           ref()->AddInt8("-Int8", -123);
+                           ref()->AddInt16("Int16", 1234);
+                           ref()->AddInt16("-Int16", -1234);
+                           ref()->AddInt32("Int32", 12345);
+                           ref()->AddInt32("-Int32", -12345);
+                           ref()->AddInt64("Int64", 123456789);
+                           ref()->AddInt64("-Int64", -123456789);
+                           ref()->AddBool("Bool", true);
+                           ref()->AddBool("-Bool", false);
+                           ref()->AddFloat("Float", 1234.56789f);
+                           ref()->AddFloat("-Float", -1234.56789f);
+                           ref()->AddDouble("Double", 1234.56789);
+                           ref()->AddDouble("-Double", -1234.56789);
+                           ref()->AddPointer("Pointer", ref());
+                           ref()->AddFlat("Flat", *ref());
+                           char data[] = "This is some data";
+                           ref()->AddData("Flat", B_RAW_TYPE, data, sizeof(data));
+                        }
+                        break;
+
+                        default:
+                           printf("Sorry, wot?\n");
+                           send = false;
+                        break;
+                     }
+                  }
+
+                  if (send)
+                  {
+                     printf("Sending message...\n");
+//                   ref()->PrintToStream();
+                     agw()->AddOutgoingMessage(ref);
+                  }
+               }
             }
-            text[0] = '\0';
          }
-   
+
          const bool reading = multiplexer.IsSocketReadyForRead(fd);
          const bool writing = multiplexer.IsSocketReadyForWrite(fd);
          const bool writeError = ((writing)&&(agw()->DoOutput() < 0));

@@ -282,7 +282,7 @@ muscleproxy : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o Message
 portscan : $(STDOBJS) portscan.o SysLog.o SetupSystem.o String.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-chatclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o chatclient.o MiscUtilityFunctions.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PathMatcher.o QueryFilter.o StdinDataIO.o FileDescriptorDataIO.o
+chatclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o chatclient.o MiscUtilityFunctions.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PathMatcher.o QueryFilter.o StdinDataIO.o FileDescriptorDataIO.o PlainTextMessageIOGateway.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testudp : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o String.o testudp.o MiscUtilityFunctions.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o

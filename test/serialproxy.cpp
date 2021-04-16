@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 
-#include "dataio/StdinDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
 #include "dataio/RS232DataIO.h"
 #include "system/SetupSystem.h"
