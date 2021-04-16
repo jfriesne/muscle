@@ -9,15 +9,9 @@ How to build a muscle server ("muscled")
 
   (Under Windows, replace the "make" command above with "devenv /Build Release ALL_BUILD.vcxproj")
 
-Alternatively, you can build muscle the old-fashioned way:
+Alternatively, on MacOS/X and Linux system you can build muscle the old-fashioned way:
 
-- If you wish to compile muscled under Win32 using Visual C++,
-  go to the 'vc++' subfolder and follow the directions in the
-  README.txt file there.
-
-- For all other operating systems (MacOS/X, Linux, BSD, 
-  Win32+Cygnus, etc), simply cd to the 'server' folder and
-  type 'make' or 'gmake' (whichever your system prefers to use).
+- Simply cd to the 'server' folder and type 'make'.
   Note that if zlib headers aren't installed on your system, you may 
   need to go into the 'zlib/zlib' folder and do a "./configure;make"
   first.
