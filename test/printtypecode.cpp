@@ -11,7 +11,7 @@ int main(int argc, char ** argv)
    if ((argc == 2)&&(muscleInRange(argv[1][0], '0', '9')))
    {
       char * code = argv[1];
-      const uint32 val = strtod(code, NULL);
+      const uint32 val = (uint32) muscle::Atoull(code);
       
       for (int i=3; i>=0; i--) 
       {
