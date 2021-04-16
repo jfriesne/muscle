@@ -1,5 +1,7 @@
 project(qtsupport)
 find_package(Threads REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+set(CMAKE_AUTOMOC ON)
 file(GLOB CODE_FILES *.cpp)
 add_library(qtsupport ${CODE_FILES})
 target_include_directories(qtsupport PUBLIC

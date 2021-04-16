@@ -12,10 +12,12 @@ key:  - new feature
      methods to the Hashtable class.
    - Added an optional (fromIndex) argument to String::Replace()
      and String::GetNumInstancesOf().
-   - CMake now compiles the executables in the muscle/tests folder also. 
+   - CMake now compiles the executables in the tests folder also. 
+   - CMake now compiles the executables in the 
+     html/muscle-by-example/examples/* sub-folders also. 
    - CMake now includes zip/unzip functions from zlib/zlib/contrib/minizip
      in the generated muscle.lib.
-   o Changed ARRAYITEMS to use size_t and return uint32 instead of "unsigned int"
+   o Changed ARRAYITEMS to return uint32 instead of unsigned int.
    o Changed ChildProcessDataIO::WaitForChildProcessToExit()
      to return a status_t rather than a bool.
    * Fixed several const-correctness problems in the minizip code.
