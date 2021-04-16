@@ -258,12 +258,12 @@ void String :: Reverse()
    }
 }
 
-uint32 String :: Replace(char findChar, char replaceChar, uint32 maxReplaceCount)
+uint32 String :: Replace(char findChar, char replaceChar, uint32 maxReplaceCount, uint32 fromIndex)
 {
    uint32 ret = 0; 
-   if (findChar != replaceChar)
+   if ((findChar != replaceChar)&&(fromIndex < Length()))
    {
-      char * c = GetBuffer();
+      char * c = GetBuffer()+fromIndex;
       while((*c)&&(maxReplaceCount > 0))
       {
          if (*c == findChar) 
@@ -278,29 +278,30 @@ uint32 String :: Replace(char findChar, char replaceChar, uint32 maxReplaceCount
    return ret;
 }
    
-String String :: WithReplacements(char replaceMe, char withMe, uint32 maxReplaceCount) const
+String String :: WithReplacements(char replaceMe, char withMe, uint32 maxReplaceCount, uint32 fromIndex) const
 {
    String ret = *this;
-   ret.Replace(replaceMe, withMe, maxReplaceCount);
+   ret.Replace(replaceMe, withMe, maxReplaceCount, fromIndex);
    return ret;
 }
 
-int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 maxReplaceCount)
+int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 maxReplaceCount, uint32 fromIndex)
 {
    TCHECKPOINT;
 
-   if (maxReplaceCount == 0) return 0;
-   if (replaceMe.IsEmpty())  return 0;  // can't replace an empty string, that's silly!
-   if (replaceMe  == withMe) return muscleMin(maxReplaceCount, GetNumInstancesOf(replaceMe));  // no changes necessary!
-   if (&replaceMe == this)   return SetFromString(withMe).IsOK()?1:-1;                         // avoid self-entanglement
-   if (&withMe    == this)   return Replace(replaceMe, String(withMe), maxReplaceCount);       // avoid self-entanglement
+   if (maxReplaceCount == 0)  return 0;
+   if (fromIndex >= Length()) return 0;
+   if (replaceMe.IsEmpty())   return 0;  // can't replace an empty string, that's silly!
+   if (replaceMe  == withMe)  return muscleMin(maxReplaceCount, GetNumInstancesOf(replaceMe, fromIndex));  // no changes necessary!
+   if (&replaceMe == this)    return (fromIndex==0)?(SetFromString(withMe).IsOK()?1:-1):0;                 // avoid self-entanglement
+   if (&withMe    == this)    return Replace(replaceMe, String(withMe), maxReplaceCount, fromIndex);       // avoid self-entanglement
 
    String temp;
    const int32 perInstanceDelta = ((int32)withMe.Length())-((int32)replaceMe.Length());
    if (perInstanceDelta > 0)
    {
       // If we are replacing a shorter string with a longer string, we'll have to do a copy-and-swap
-      uint32 numInstances = muscleMin(GetNumInstancesOf(replaceMe), maxReplaceCount);
+      const uint32 numInstances = muscleMin(GetNumInstancesOf(replaceMe, fromIndex), maxReplaceCount);
       if (numInstances == 0) return 0;  // no changes necessary!
       if (temp.Prealloc(Length()+(perInstanceDelta*numInstances)).IsError()) return -1;
    }
@@ -309,6 +310,8 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
    int32 ret = 0;
    const char * readPtr = Cstr();
    char * writePtr = (perInstanceDelta > 0) ? temp.GetBuffer() : NULL;
+   if (writePtr) for (uint32 i=0; i<fromIndex; i++) *writePtr++ = *readPtr++;
+            else readPtr += fromIndex;
    while(1)
    {
       char * nextReplaceMe = (maxReplaceCount>0) ? strstr((char *) readPtr, (char *) replaceMe()) : NULL;
@@ -317,7 +320,7 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
          ret++;
          if (writePtr)
          {
-            uint32 numBytes = (uint32) (nextReplaceMe-readPtr);
+            const uint32 numBytes = (uint32) (nextReplaceMe-readPtr);
             if (perInstanceDelta != 0) memmove(writePtr, readPtr, numBytes);
             writePtr += numBytes;
          }
@@ -420,10 +423,10 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
    return ret;
 }
 
-String String :: WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount) const
+String String :: WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount, uint32 fromIndex) const
 {
    String ret = *this;
-   ret.Replace(replaceMe, withMe, maxReplaceCount);
+   ret.Replace(replaceMe, withMe, maxReplaceCount, fromIndex);
    return ret;
 }
 
@@ -491,21 +494,23 @@ String String :: Trim() const
    return String(*this, (uint32)startIdx, (uint32)(endIdx+1));
 }
 
-uint32 String :: GetNumInstancesOf(char ch) const
+uint32 String :: GetNumInstancesOf(char ch, uint32 fromIndex) const
 {
+   if (fromIndex >= Length()) return 0;
+
    uint32 ret = 0;
-   for (const char * s = Cstr(); (*s != '\0'); s++) if (*s == ch) ret++; 
+   for (const char * s = Cstr()+fromIndex; (*s != '\0'); s++) if (*s == ch) ret++;
    return ret;
 }
 
-uint32 String :: GetNumInstancesOf(const String & substring) const
+uint32 String :: GetNumInstancesOf(const String & substring, uint32 fromIndex) const
 {
    TCHECKPOINT;
 
    uint32 ret = 0;
    if (substring.HasChars())
    {
-      uint32 lastIdx = 0;
+      uint32 lastIdx = fromIndex;
       int32 idx;
       while((idx = IndexOf(substring, lastIdx)) >= 0)
       {
@@ -516,7 +521,7 @@ uint32 String :: GetNumInstancesOf(const String & substring) const
    return ret;
 }
 
-uint32 String :: GetNumInstancesOf(const char * substring) const
+uint32 String :: GetNumInstancesOf(const char * substring, uint32 fromIndex) const
 {
    TCHECKPOINT;
 
@@ -525,7 +530,7 @@ uint32 String :: GetNumInstancesOf(const char * substring) const
    const uint32 substringLength = (uint32) strlen(substring);
    if (substringLength > 0)
    {
-      uint32 lastIdx = 0;
+      uint32 lastIdx = fromIndex;
       int32 idx;
       while((idx = IndexOf(substring, lastIdx)) >= 0)
       {

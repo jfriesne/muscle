@@ -568,18 +568,21 @@ public:
 
    /** Returns the number of instances of (c) in this string. 
      * @param ch The character to count the number of instances of in this String.
+     * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (i.e. to the start of the String)
      */
-   uint32 GetNumInstancesOf(char ch) const;
+   uint32 GetNumInstancesOf(char ch, uint32 fromIndex=0) const;
 
    /** Returns the number of instances of (substring) in this string. 
      * @param substring String to count the number of instances of in this String.
+     * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (i.e. to the start of the String)
      */
-   uint32 GetNumInstancesOf(const String & substring) const;
+   uint32 GetNumInstancesOf(const String & substring, uint32 fromIndex=0) const;
 
    /** Returns the number of instances of (substring) in this string. 
      * @param substring C string to count the number of instances of in this String.
+     * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (i.e. to the start of the String)
      */
-   uint32 GetNumInstancesOf(const char * substring) const;
+   uint32 GetNumInstancesOf(const char * substring, uint32 fromIndex=0) const;
 
    /** Returns the Levenshtein distance between this string and (otherString).
      * @param otherString a String to calculate our Levenshtein distance to.
@@ -910,33 +913,37 @@ public:
      * @param replaceMe The character to search for.
      * @param withMe The character to replace all occurrences of (replaceMe) with.
      * @param maxReplaceCount The maximum number of characters that should be replaced.  Defaults to MUSCLE_NO_LIMIT.
+     * @param fromIndex Index of the first character to start replacing characters at.  Defaults to 0.
      * @returns The number of characters that were successfully replaced.
      */
-   uint32 Replace(char replaceMe, char withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT); 
+   uint32 Replace(char replaceMe, char withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT, uint32 fromIndex=0);
 
    /** Same as Replace(), but instead of modifying this object, it returns a modified copy, and the called object remains unchanged.
      * @param replaceMe The character to search for.
      * @param withMe The character to replace all occurrences of (replaceMe) with.
      * @param maxReplaceCount The maximum number of characters that should be replaced.  Defaults to MUSCLE_NO_LIMIT.
+     * @param fromIndex Index of the first character to start replacing characters at.  Defaults to 0.
      * @returns The modified string.
      */
-   String WithReplacements(char replaceMe, char withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const; 
+   String WithReplacements(char replaceMe, char withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT, uint32 fromIndex=0) const;
 
    /** Replaces all instances of (replaceMe) in this string with (withMe).
      * @param replaceMe The substring to search for.
      * @param withMe The substring to replace all occurrences of (replaceMe) with.
      * @param maxReplaceCount The maximum number of substrings that should be replaced.  Defaults to MUSCLE_NO_LIMIT.
+     * @param fromIndex Index of the first character to start replacing characters at.  Defaults to 0.
      * @returns The number of substrings that were successfully replaced, or -1 if the operation failed (out of memory)
      */
-   int32 Replace(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT); 
+   int32 Replace(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT, uint32 fromIndex=0);
  
    /** Same as Replace(), but instead of modifying this object, it returns a modified copy, and the called object remains unchanged.
      * @param replaceMe The substring to search for.
      * @param withMe The substring to replace all occurrences of (replaceMe) with.
      * @param maxReplaceCount The maximum number of substrings that should be replaced.  Defaults to MUSCLE_NO_LIMIT.
+     * @param fromIndex Index of the first character to start replacing characters at.  Defaults to 0.
      * @returns The modified string.
      */
-   String WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const;
+   String WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT, uint32 fromIndex=0) const;
  
    /** Returns a String equal to this one, except with a set of search-and-replace operations performed.
      * @param beforeToAfter the search-and-replace operations to perform.  Keys in this table are the strings
