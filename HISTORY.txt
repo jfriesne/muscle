@@ -20,6 +20,7 @@ key:  - new feature
    - Added support for the -DMUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
      compile-time flag and the associated functionality in the Mutex
      class (see BUILDOPTIONS.txt for details)
+   - Added a NeuterMutex() method to the ObjectPool class.
    o Changed ARRAYITEMS to return uint32 instead of unsigned int.
    o Changed ChildProcessDataIO::WaitForChildProcessToExit()
      to return a status_t rather than a bool.

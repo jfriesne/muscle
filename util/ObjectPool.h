@@ -395,6 +395,11 @@ public:
       return ret;
    }
 
+   /** Turns the Mutex guarding this ObjectPool into a no-op by calling Mutex::Neuter() on it.
+     * Be careful with this, it will make using this ObjectPool permanently non-thread-safe!
+     */
+   void NeuterMutex() {_mutex.Neuter();}
+
 private:
    Mutex _mutex;
 
