@@ -45,6 +45,13 @@
 # endif
 #endif
 
+#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+// Should be defined elsewhere to return true iff it's considered okay to call the given method on the given
+// Mutex from the current thread-context.
+namespace muscle {class Mutex;}
+extern bool IsOkayToAccessMuscleMutex(const muscle::Mutex * m, const char * methodName);
+#endif
+
 namespace muscle {
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
@@ -138,6 +145,10 @@ public:
 #else
       if (_isEnabled == false) return B_NO_ERROR;
 
+#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+      CheckForLockingViolation("Lock");
+#endif
+
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       status_t ret = B_NO_ERROR;
 #  if !defined(MUSCLE_NO_EXCEPTIONS)
@@ -181,6 +192,10 @@ public:
 #else
       if (_isEnabled == false) return B_NO_ERROR;
 
+#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+      CheckForLockingViolation("TryLock");
+#endif
+
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       return _locker.try_lock() ? B_NO_ERROR : B_LOCK_FAILED;
 # elif defined(MUSCLE_USE_PTHREADS)
@@ -213,6 +228,10 @@ public:
       return B_NO_ERROR;
 #else
       if (_isEnabled == false) return B_NO_ERROR;
+
+#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+      CheckForLockingViolation("Unlock");
+#endif
 
 # ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging while we are still are locked, otherwise our counter can suffer from race conditions
@@ -265,6 +284,13 @@ private:
       }
 #endif
    }
+
+#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+   void CheckForLockingViolation(const char * methodName) const
+   {
+      if (::IsOkayToAccessMuscleMutex(this, methodName) == false) printf("Mutex(%p)::%s:  Locking violation!\n", this, methodName);
+   }
+#endif
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
    bool _isEnabled;  // if false, this Mutex is a no-op

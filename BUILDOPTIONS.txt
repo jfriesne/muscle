@@ -361,3 +361,12 @@ of your Makefile to alter muscle's behaviour:
    TemplatingMessageIOGateway class, so this flag should be used
    with caution.
 
+-DMUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+   If specified, the Mutex class will call the user-provided
+   global function IsOkayToAccessMuscleMutex() any time Lock(),
+   Unlock(), or TryLock() is called on a Mutex, and print an
+   error message to stdout if it returns false.  This is useful
+   e.g. for checking whether or not real-time code is trying
+   to lock a Mutex somewhere, which is often considered a no-no
+   in that context.
+
