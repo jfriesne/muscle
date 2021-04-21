@@ -19,7 +19,7 @@ using namespace muscle;
     printf(INT64_FORMAT_SPEC " %s is " INT64_FORMAT_SPEC " %s.\n", before, #fromType, after, #toType); \
 }
 
-int main(int argc, char ** argv) 
+int main(int /*argc*/, char ** /*argv*/)
 {
    TEST_CONVERSION(Nanos, Micros);
    TEST_CONVERSION(Nanos, Millis);

@@ -17,16 +17,15 @@ int main(int argc, char ** argv)
    Queue<MessageRef> tempQ;
    if (tempQ.EnsureSize(NUM_OBJECTS, true).IsError()) return 10;
 
+   Message * allocedArray = NULL;
    const int whichTest = (argc>1) ? atoi(argv[1]) : -1;
    const uint64 startTime = GetRunTime64();
    switch(whichTest)
    {
       case 1:
       {
-#ifndef __clang_analyzer__   // yes, it's a memory leak -- no, I don't care
-         // See how long it takes to allocate an array of objects
-         volatile Message * mArray = new Message[NUM_OBJECTS];  // volatile just so it won't get optimized away
-#endif
+         // See how long it takes just to allocate an array of objects
+         allocedArray = new Message[NUM_OBJECTS];
       }
       break;
 
@@ -81,6 +80,7 @@ int main(int argc, char ** argv)
 
    const uint64 endTime = GetRunTime64();
    printf("Test duration for " UINT32_FORMAT_SPEC " objects was " UINT64_FORMAT_SPEC "ms \n", NUM_OBJECTS, (endTime-startTime)/1000);
+   delete [] allocedArray;
 
    if ((argc > 2)&&(strcmp(argv[2], "hold") == 0))
    {

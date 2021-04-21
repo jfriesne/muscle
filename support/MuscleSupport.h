@@ -392,6 +392,9 @@ using std::set_new_handler;
              */
            status_t & operator |= (const status_t & rhs) {*this = ((*this)|rhs); return *this;}
 
+           /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) const */
+           status_t & operator = (const status_t & rhs) {_desc = rhs._desc; return *this;}
+
            /** Returns "OK" if this status_t indicates success; otherwise returns the human-readable description
              * of the error this status_t indicates.
              */

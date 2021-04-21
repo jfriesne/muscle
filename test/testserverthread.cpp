@@ -107,7 +107,8 @@ int main(int, char **)
    while(true)
    {
       printf("\nEnter a string to send to the child thread, or enter quit to quit.\n");
-      char buf[1024]; fgets(buf, sizeof(buf), stdin);
+      char buf[1024];
+      if (fgets(buf, sizeof(buf), stdin) == NULL) break;
 
       String s = buf; s = s.Trim();
       printf("You typed:  [%s]\n", s());

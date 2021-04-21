@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
       fflush(stdout);
 
       char buf[1024];
-      (void) fgets(buf, sizeof(buf), stdin);
+      if (fgets(buf, sizeof(buf), stdin) == NULL) break;
 
       String s = buf;
       s = s.Trim();  // get rid of newlines, etc

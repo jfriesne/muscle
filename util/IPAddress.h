@@ -331,6 +331,9 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    IPAddressAndPort(const IPAddressAndPort & rhs) : _ip(rhs._ip), _port(rhs._port) {/* empty */}
 
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
+   IPAddressAndPort & operator = (const IPAddressAndPort & rhs) {_ip = rhs._ip; _port = rhs._port; return *this;}
+
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator == (const IPAddressAndPort & rhs) const {return (_ip == rhs._ip)&&(_port == rhs._port);}
 

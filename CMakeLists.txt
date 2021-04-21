@@ -31,6 +31,8 @@ file(GLOB EXCLUDE_THESE_SOURCES
 )
 list(REMOVE_ITEM MUSCLE_SRCS ${EXCLUDE_THESE_SOURCES} )
 
+find_package(Threads REQUIRED)
+
 if (WIN32)
    file(GLOB ZLIB_SRCS "./zlib/zlib/*.c")
    set(MUSCLE_SRCS
@@ -127,6 +129,8 @@ else ()
    )
 endif()
 
+target_link_libraries(muscle Threads::Threads)
+
 option(WITH_QT "Enable Qt5 Support" ON)
 if (WITH_QT)
 	find_package(Qt5Widgets)
@@ -164,6 +168,7 @@ endif (APPLE)
 if (WIN32)
    target_include_directories(muscle PRIVATE "./regex/regex" "./zlib/zlib")
 else (!WIN32)
+   target_link_libraries(muscle util)  # for forkpty()
    if (ZLIB_FOUND)
       target_link_libraries(muscle z)
    else (!ZLIB_FOUND)

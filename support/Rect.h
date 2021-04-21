@@ -197,6 +197,9 @@ public:
       return ret;
    }
 
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) const */
+   inline Rect & operator = (const Rect & rhs) {Set(rhs.left(), rhs.top(), rhs.right(), rhs.bottom()); return *this;}
+
    /** Causes this rectangle to be come the union of itself and (rhs).
      * @param rhs the rectangle to unify with this one
      */

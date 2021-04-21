@@ -22,13 +22,13 @@ int main(int argc, char ** argv)
    fflush(stdout);
 
    char buf[1024];
-   (void) fgets(buf, sizeof(buf), stdin);
+   if (fgets(buf, sizeof(buf), stdin) == NULL) return 10;
 
    String s1 = buf;
    s1 = s1.Trim();   // Get rid of any newlines/whitespace at front/end of s1 
 
    printf("Please enter a second string: ");
-   (void) fgets(buf, sizeof(buf), stdin);
+   if (fgets(buf, sizeof(buf), stdin) == NULL) return 10;
 
    String s2 = buf;
    s2 = s2.Trim();   // Get rid of any newlines/whitespace at front/end of s2

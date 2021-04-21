@@ -29,10 +29,17 @@ key:  - new feature
      (use cmake to generate .vcproj files on-demand instead)
    o Removed Borland Makefiles as obsolete.
    o Removed dev-C++ Makefiles as obsolete.
+   o Added explicit assignment-operators to several classes so
+     that g++ 9.3.0 wouldn't warn about deprecated implicit behavior.
    * Fixed several const-correctness problems in the minizip code.
    * Updated chatclient, testudp, and portableplaintextclient tests
      to use a StdinDataIO rather than selecting on STDIN_FILENO,
      so that they can work as expected under Windows.
+   * Fixed the CMakeList.txt to link to pthreads and util libraries
+     when appropriate (before it would only do so if Qt was installed)
+   * Fixed a potential string-terminator bug in
+     TarFileWriter::WriteFileHeader().
+   * Fixed various minor compiler-warnings.
 
 8.10 - Released 4/5/2021
    - Added ByteBufferPacketDataIO class to the dataio folder.

@@ -135,7 +135,6 @@ int main(int argc, char ** argv)
    const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
 
    // Our event loop
-   char buf[2048] = "";
    Hashtable<String, String> _users;
    QueueGatewayMessageReceiver inQueue;
    SocketMultiplexer multiplexer;

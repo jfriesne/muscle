@@ -156,7 +156,7 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
 
    _currentHeaderOffset = _currentSeekPosition;
    memset(_currentHeaderBytes, 0, sizeof(_currentHeaderBytes));
-   muscleStrncpy((char *)(&_currentHeaderBytes[0]), fileName, sizeof(_currentHeaderBytes));
+   muscleStrncpy((char *)(&_currentHeaderBytes[0]), fileName, sizeof(_currentHeaderBytes)-1);
 
    WriteOctalASCII(&_currentHeaderBytes[100], fileMode, 8);
    WriteOctalASCII(&_currentHeaderBytes[108], ownerID, 8);
