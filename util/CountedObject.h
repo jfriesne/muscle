@@ -99,6 +99,9 @@ public:
       GetGlobalObjectForType< ObjectCounter<ObjectType> >().DecrementCounter();
 #endif
    }
+
+   /** Assignment operator -- implemented only to avoid compiler warnings */
+   CountedObject & operator =(const CountedObject<ObjectType> & /*rhs*/) {return *this;}
 };
 
 /** For debugging.  On success, populates (results) with type names and their associated object counts,
