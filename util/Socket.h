@@ -95,7 +95,7 @@ public:
      */
    ConstSocketRef(const RefCountableRef & ref, bool junk) : ConstRef<Socket>(ref, junk) {/* empty */}
 
-   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) const */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline ConstSocketRef & operator = (const ConstSocketRef & rhs) {(void) ConstRef<Socket>::operator=(rhs); return *this;}
 
    /** Comparison operator.  Returns true iff (this) and (rhs) both contain the same file descriptor.

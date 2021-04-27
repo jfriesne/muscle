@@ -11,8 +11,8 @@
 #ifndef MuscleSupport_h
 #define MuscleSupport_h
 
-#define MUSCLE_VERSION_STRING "8.10" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        81000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "8.20" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        82000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -28,6 +28,7 @@
  * classes, all of which are documented here.
  *
  * All classes documented here should compile under most modern OS's with a modern C++ compiler.
+ * (C++03 or newer is required, C++11 or newer is recommended)
  * Where platform-specific code is necessary, it has been provided (inside \#ifdef's) for various OS's.
  * C++ templates are used where appropriate; C++ exceptions are avoided in favor of returned error-codes.  The code is usable
  * in multithreaded environments, as long as you are careful.
@@ -392,7 +393,7 @@ using std::set_new_handler;
              */
            status_t & operator |= (const status_t & rhs) {*this = ((*this)|rhs); return *this;}
 
-           /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) const */
+           /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
            status_t & operator = (const status_t & rhs) {_desc = rhs._desc; return *this;}
 
            /** Returns "OK" if this status_t indicates success; otherwise returns the human-readable description

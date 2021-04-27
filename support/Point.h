@@ -70,7 +70,7 @@ public:
       if (y() > bottomRight.y()) y() = bottomRight.y();
    }
 
-   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) const */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline Point & operator = (const Point & rhs) {Set(rhs.x(), rhs.y()); return *this;}
 
    /** Print debug information about the point to stdout or to a file you specify.
