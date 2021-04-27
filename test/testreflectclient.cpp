@@ -184,22 +184,21 @@ int main(int argc, char ** argv)
       {
          method = METHOD_AUTOMATIC;
          if (argc > 2) hostName = argv[2];
-         if (argc > 3) port = atoi(argv[3]);
-         if (port <= 0) port = 2960;
+         if (argc > 3) port = muscleMax(0, atoi(argv[3]));
       } 
       else if (strcmp(argv[1], "-connectsync") == 0)
       {
          method = METHOD_MANUAL;
          if (argc > 2) hostName = argv[2];
-         if (argc > 3) port = atoi(argv[3]);
-         if (port <= 0) port = 2960;
+         if (argc > 3) port = muscleMax(0, atoi(argv[3]));
       }
       else if (strcmp(argv[1], "-accept") == 0)
       {
          method = METHOD_ACCEPT;
-         if (argc > 2) port = atoi(argv[2]);
+         if (argc > 2) port = muscleMax(0, atoi(argv[2]));
       }
    }
+   if (port == 0) port = 2960;
 
    if (method != -1)
    {

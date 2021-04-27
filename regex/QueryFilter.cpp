@@ -378,14 +378,14 @@ bool RawDataQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) cons
       case OP_LESS_THAN_OR_EQUAL_TO:
       {
          const int mret = memcmp(hisBytes, myBytes, clen);
-         if (mret <= 0) return true;
+         if (mret < 0) return true;
          return (mret == 0) ? (hisNumBytes <= myNumBytes) : false;
       }
 
       case OP_GREATER_THAN_OR_EQUAL_TO:
       {
          const int mret = memcmp(hisBytes, myBytes, clen);
-         if (mret >= 0) return true;
+         if (mret > 0) return true;
          return (mret == 0) ? (hisNumBytes >= myNumBytes) : false;
       }
 

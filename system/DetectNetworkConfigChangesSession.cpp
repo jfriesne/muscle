@@ -93,6 +93,7 @@ public:
       , _isComputerSleeping(false)
 #ifdef __APPLE__
       , _threadRunLoop(NULL)
+      , _rootPortPointer(NULL)
 #elif WIN32
       , _wakeupSignal(MY_INVALID_HANDLE_VALUE)
 #endif
@@ -308,7 +309,7 @@ protected:
          (void) IODeregisterForSystemPower(&root_port);
          (void) IONotificationPortDestroy(powerNotifyPortRef);
       }
-
+      _rootPortPointer = NULL;
 # elif defined(WIN32)
 #define WINDOW_CLASS_NAME   _T("DetectNetworkConfigChangesThread_HiddenWndClass")
 #define WINDOW_MENU_NAME    _T("DetectNetworkConfigChangesThread_MainMenu")
@@ -562,7 +563,8 @@ static OSStatus CreateIPAddressListChangeCallbackSCF(SCDynamicStoreCallBack call
       }
    }
 
-   if (err == noErr) err = MoreSCErrorBoolean(SCDynamicStoreSetNotificationKeys(ref, NULL, patternList));
+   err = MoreSCErrorBoolean(SCDynamicStoreSetNotificationKeys(ref, NULL, patternList));
+
    if (err == noErr) 
    {
        rls = SCDynamicStoreCreateRunLoopSource(NULL, ref, 0);
@@ -588,8 +590,8 @@ static OSStatus CreateIPAddressListChangeCallbackSCF(SCDynamicStoreCallBack call
    return err;
 }
 
-static void SleepCallback(void * refCon, io_service_t /*service*/, natural_t messageType, void * messageArgument) {((DetectNetworkConfigChangesThread *)refCon)->SleepCallback(messageType, (long)messageArgument);}
-static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedKeys, void * info) {((DetectNetworkConfigChangesThread *) info)->IPConfigChanged(store, changedKeys);}
+static void SleepCallback(void * refCon, io_service_t /*service*/, natural_t messageType, void * messageArgument) {static_cast<DetectNetworkConfigChangesThread *>(refCon)->SleepCallback(messageType, (long)messageArgument);}
+static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedKeys, void * info) {static_cast<DetectNetworkConfigChangesThread *>(info)->IPConfigChanged(store, changedKeys);}
 
 # endif  // __APPLE__
 
@@ -598,12 +600,12 @@ static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedK
 
 VOID __stdcall AddressCallback(IN PVOID context, IN PMIB_UNICASTIPADDRESS_ROW Address OPTIONAL, IN MIB_NOTIFICATION_TYPE /*NotificationType*/)
 {
-   if (Address != NULL) ((DetectNetworkConfigChangesThread *)context)->SignalInterfacesChanged(Address->InterfaceIndex);
+   if (Address != NULL) static_cast<DetectNetworkConfigChangesThread *>(context)->SignalInterfacesChanged(Address->InterfaceIndex);
 }
 
 VOID __stdcall InterfaceCallback(IN PVOID context, IN PMIB_IPINTERFACE_ROW interfaceRow, IN MIB_NOTIFICATION_TYPE /*NotificationType*/)
 {
-   if (interfaceRow != NULL) ((DetectNetworkConfigChangesThread *)context)->SignalInterfacesChanged(interfaceRow->InterfaceIndex);
+   if (interfaceRow != NULL) static_cast<DetectNetworkConfigChangesThread *>(context)->SignalInterfacesChanged(interfaceRow->InterfaceIndex);
 }
 #  endif
 
@@ -614,11 +616,11 @@ static LRESULT CALLBACK dnccsWindowHandler(HWND hWnd, UINT message, WPARAM wPara
       switch(wParam)
       {
          case PBT_APMRESUMEAUTOMATIC: case PBT_APMRESUMESUSPEND: case PBT_APMQUERYSUSPENDFAILED: case PBT_APMRESUMECRITICAL:
-            ((DetectNetworkConfigChangesThread *)(GetWindowLongPtr(hWnd, GWLP_USERDATA)))->SleepCallback(false);
+            static_cast<DetectNetworkConfigChangesThread *>(GetWindowLongPtr(hWnd, GWLP_USERDATA))->SleepCallback(false);
          break;
 
          case PBT_APMQUERYSUSPEND: case PBT_APMSUSPEND:
-            ((DetectNetworkConfigChangesThread *)(GetWindowLongPtr(hWnd, GWLP_USERDATA)))->SleepCallback(true);
+            static_cast<DetectNetworkConfigChangesThread *>(GetWindowLongPtr(hWnd, GWLP_USERDATA))->SleepCallback(true);
          break;
 
          default:
@@ -657,7 +659,7 @@ static status_t UnRegisterFromSingletonThread(DetectNetworkConfigChangesSession 
    if (_singletonThread)
    {
       status_t ret;
-      if ((_singletonThread)&&(_singletonThread->UnregisterSession(s).IsOK(ret))&&(_singletonThread->HasRegisteredSessions() == false))
+      if ((_singletonThread->UnregisterSession(s).IsOK(ret))&&(_singletonThread->HasRegisteredSessions() == false))
       {
          delete _singletonThread;
          _singletonThread = NULL;

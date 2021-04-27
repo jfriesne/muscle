@@ -57,8 +57,8 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(int32 byteD
          // Hmm, we don't have enough bytes locally, better ask for some from the shared region
          const int32 wantBytes = ((byteDelta/CACHE_BYTES)+1)*CACHE_BYTES; // round up to nearest multiple
          if (ChangeDaemonCounterAux(wantBytes).IsOK()) _localCachedBytes += wantBytes;
+         if ((size_t)byteDelta > _localCachedBytes) return B_ACCESS_DENIED;  // still not enough!?
       }
-      if ((size_t)byteDelta > _localCachedBytes) return B_ACCESS_DENIED;  // still not enough!?
       _localCachedBytes -= byteDelta;
    }
    else

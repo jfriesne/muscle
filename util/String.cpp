@@ -998,23 +998,24 @@ String String :: Arg(double f, uint32 minDigitsAfterDecimal, uint32 maxDigitsAft
       muscleSprintf(buf, formatBuf, f);
    }
 
-   String ret = buf;
+   String s = buf;
 
    // Start by removing all trailing zeroes from the String
-   if (ret.Contains('.')) while(ret.EndsWith('0')) ret--;
+   if (s.Contains('.')) while(s.EndsWith('0')) s--;
    if (minDigitsAfterDecimal == 0)
    {
-      if (ret.EndsWith('.')) ret--;  // Remove trailing . for integer-style display
+      if (s.EndsWith('.')) s--;  // Remove trailing . for integer-style display
    }
    else
    {
       // Pad with 0's if necessary to meet the minDigitsAfterDecimal requirement
-      int32 dotIdx = ret.LastIndexOf('.');
-      if (dotIdx < 0) {ret += '.'; dotIdx = ret.Length()-1;}  // semi-paranoia
-      uint32 numDigitsPresent = (ret.Length()-dotIdx)-1;
-      for(uint32 i=numDigitsPresent; i<minDigitsAfterDecimal; i++) ret += '0';
+      int32 dotIdx = s.LastIndexOf('.');
+      if (dotIdx < 0) {s += '.'; dotIdx = s.Length()-1;}  // semi-paranoia
+
+      const uint32 numDigitsPresent = (s.Length()-dotIdx)-1;
+      for(uint32 i=numDigitsPresent; i<minDigitsAfterDecimal; i++) s += '0';
    }
-   return ArgAux(buf);
+   return ArgAux(s());
 }
 
 String String :: Arg(const Point & value, const char * fmt) const

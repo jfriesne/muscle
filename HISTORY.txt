@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Applied various fixes based on warnings supplied by cppcheck.
+
 8.20 - Released 4/26/2021
    - Added ARRAYROWS and ARRAYCOLS functions to MuscleSupport.h
      (These are similar to the existing ARRAYITEMS except they return

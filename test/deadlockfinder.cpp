@@ -161,8 +161,8 @@ int main(void)
                   bool foundLock = false;
                   for (int32 i=q->GetNumItems()-1; i>=0; i--)
                   {
-                     String s = (*q)[i]; {int32 lastAmp = s.LastIndexOf('&'); s = s.Substring(0, lastAmp);}
-                     if (s == lockName)
+                     String nextStr = (*q)[i]; {int32 lastAmp = nextStr.LastIndexOf('&'); nextStr = nextStr.Substring(0, lastAmp);}
+                     if (nextStr == lockName)
                      {
                         foundLock = true;
                         q->RemoveItemAt(i);

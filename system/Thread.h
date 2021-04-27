@@ -494,6 +494,7 @@ private:
    };
 
    status_t StartInternalThreadAux();
+   status_t StartInternalThreadAuxAux();
    const ConstSocketRef & GetThreadWakeupSocketAux(ThreadSpecificData & tsd);
    int32 WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref, uint64 wakeupTime = MUSCLE_TIME_NEVER);
    status_t SendMessageAux(int whichQueue, const MessageRef & ref);

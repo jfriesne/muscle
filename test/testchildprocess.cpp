@@ -25,7 +25,7 @@ static void PrintUsageAndExit()
 class AbortOnTakeoffChildProcessDataIO : public ChildProcessDataIO
 {
 public:
-   AbortOnTakeoffChildProcessDataIO(bool blocking) : ChildProcessDataIO(blocking) {/* empty */}
+   explicit AbortOnTakeoffChildProcessDataIO(bool blocking) : ChildProcessDataIO(blocking) {/* empty */}
 
    virtual status_t ChildProcessReadyToRun()
    {
@@ -190,7 +190,7 @@ int main(int argc, char ** argv)
          {
             printf("Heard message from server:-----------------------------------\n");
             const char * inStr;
-            for (int i=0; (incoming()->FindString(PR_NAME_TEXT_LINE, i, &inStr).IsOK()); i++) printf("Line %i: [%s]\n", i, inStr);
+            for (int j=0; (incoming()->FindString(PR_NAME_TEXT_LINE, j, &inStr).IsOK()); j++) printf("Line %i: [%s]\n", j, inStr);
            
             printf("-------------------------------------------------------------\n");
          }

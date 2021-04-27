@@ -80,8 +80,8 @@ int main(int argc, char ** argv)
       }
    }
    
-   const char * colon = strchr(hostName, ':');
-   const int16 port   = (colon) ? atoi(colon+1) : 2960;
+   const char * cln = strchr(hostName, ':');
+   const int16 port = cln ? atoi(cln+1) : 2960;
 
    ConstSocketRef s = Connect(String(hostName).Substring(0, ":")(), port, "admin", false);
    if (s() == NULL)

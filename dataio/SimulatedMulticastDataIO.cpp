@@ -213,7 +213,7 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    uint8 pingBuf[sizeof(uint64)+sizeof(uint32)+(NUM_EXTRA_ADDRESSES*IPAddressAndPort::FlattenedSize())]; // ok because FlattenedSize() is declared constexpr
 #else
    // Ugly hack work-around, for e.g. MSVC2013 or pre-C++11 compilers that don't support constexpr
-   enum {ipAddressAndPortFlattenedSize = (sizeof(uint64)+sizeof(uint64)+sizeof(32)+sizeof(uint16))};  // low-bits, high-bits, interface-index, port
+   enum {ipAddressAndPortFlattenedSize = (sizeof(uint64)+sizeof(uint64)+sizeof(uint32)+sizeof(uint16))};  // low-bits, high-bits, interface-index, port
    uint8 pingBuf[sizeof(uint64)+sizeof(uint32)+(NUM_EXTRA_ADDRESSES*ipAddressAndPortFlattenedSize)];
 #endif
 

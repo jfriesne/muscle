@@ -11,7 +11,7 @@ using namespace muscle;
 class TestHostNameResolver : public IHostNameResolver
 {
 public:
-   TestHostNameResolver(int pri) : _pri(pri) {/* empty */}
+   explicit TestHostNameResolver(int pri) : _pri(pri) {/* empty */}
 
    virtual status_t GetIPAddressForHostName(const char * name, bool expandLocalhost, bool preferIPv6, IPAddress & retIPAddress)
    {

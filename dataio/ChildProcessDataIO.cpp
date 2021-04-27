@@ -150,7 +150,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                // for the child process to use.  It will be the same as our own, but with the specified
                // env-vars added/updated in it.
                void * envVars  = NULL;
-               char * newBlock = NULL;
+               uint8 * newBlock = NULL;
                if ((optEnvironmentVariables)&&(optEnvironmentVariables->HasItems()))
                {
                   Hashtable<String, String> curEnvVars;
@@ -179,7 +179,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                   uint32 newBlockSize = 1;  // this represents the final NUL terminator (after the last string)
                   for (HashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++) newBlockSize += iter.GetKey().FlattenedSize()+iter.GetValue().FlattenedSize();  // includes NUL terminators
 
-                  uint8 * newBlock = newnothrow uint8[newBlockSize];
+                  newBlock = newnothrow uint8[newBlockSize];
                   if (newBlock)
                   {
                      uint8 * s = newBlock;
@@ -549,7 +549,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
          else
          {
             char junk[1024] = "";
-            if ((fread(junk, sizeof(junk), 1, _ioPipe.GetFile()) < 0)||(feof(_ioPipe.GetFile())))
+            if ((fread(junk, sizeof(junk), 1, _ioPipe.GetFile()) == 0)||(feof(_ioPipe.GetFile())))
             {
                sawEOF = true;
                break;
@@ -767,7 +767,7 @@ void ChildProcessDataIO :: IOThreadEntry()
          // the Window anonymous pipes system doesn't allow me to
          // to check for events on the pipe using WaitForMultipleObjects().
          // It may be worth it to use named pipes some day to get around this...
-         const int evt = WaitForMultipleObjects(ARRAYITEMS(events)-(childProcessExited?1:0), events, false, MicrosToMillis(pollTimeMicros))-WAIT_OBJECT_0;
+         const int evt = WaitForMultipleObjects(ARRAYITEMS(events), events, false, MicrosToMillis(pollTimeMicros))-WAIT_OBJECT_0;
          if (evt == 1) childProcessExited = true;
 
          int32 totalNumBytesRead = 0;

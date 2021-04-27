@@ -1387,7 +1387,8 @@ static inline struct tm * muscle_localtime_r(time_t * clock, struct tm * result)
    (void) localtime_s(result, clock);
    return result;
 #else
-   struct tm * ret = localtime(clock);
+   struct tm temp;
+   struct tm * ret = localtime_r(clock, &temp);
    if (ret) *result = *ret;
    return ret;
 #endif
@@ -1400,7 +1401,8 @@ static inline struct tm * muscle_gmtime_r(time_t * clock, struct tm * result)
    (void) gmtime_s(result, clock);
    return result;
 #else
-   struct tm * ret = gmtime(clock);
+   struct tm temp;
+   struct tm * ret = gmtime_r(clock, &temp);
    if (ret) *result = *ret;
    return ret;
 #endif

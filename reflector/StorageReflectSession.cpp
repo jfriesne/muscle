@@ -190,7 +190,7 @@ AboutToDetachFromServer()
 class SubscribeRefCallbackArgs
 {
 public:
-   SubscribeRefCallbackArgs(int32 refCountDelta) : _refCountDelta(refCountDelta) {/* empty */}
+   explicit SubscribeRefCallbackArgs(int32 refCountDelta) : _refCountDelta(refCountDelta) {/* empty */}
 
    int32 GetRefCountDelta() const {return _refCountDelta;}
 
@@ -1167,8 +1167,11 @@ void StorageReflectSession :: DoRemoveData(NodePathMatcher & matcher, bool quiet
       for (int i=removeSet.GetNumItems()-1; i>=0; i--)
       {
          DataNode * next = removeSet[i]();
-         DataNode * parent = next->GetParent();
-         if ((next)&&(parent)) (void) parent->RemoveChild(next->GetNodeName(), quiet ? NULL : this, true, &_currentNodeCount);
+         if (next)
+         {
+            DataNode * parent = next->GetParent();
+            if (parent) (void) parent->RemoveChild(next->GetNodeName(), quiet ? NULL : this, true, &_currentNodeCount);
+         }
       }
    }
 }

@@ -15,8 +15,7 @@ int main(int argc, char ** argv)
       return 5;
    }
 
-   const char * hostName = "localhost";
-   if (argc > 1) hostName = argv[1];
+   const char * hostName = argv[1];
 
    int base = 0;
    if (argc > 2) base = atoi(argv[2]);

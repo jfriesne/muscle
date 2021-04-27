@@ -347,9 +347,9 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   Message temp; if (ParseArgs(argc, argv, temp).IsOK()) HandleStandardDaemonArgs(temp);
+   Message tempMsg; if (ParseArgs(argc, argv, tempMsg).IsOK()) HandleStandardDaemonArgs(tempMsg);
 
-   if (temp.HasName("inter")) return DoInteractiveTest();
+   if (tempMsg.HasName("inter")) return DoInteractiveTest();
 
    // Make sure that setting equal to an empty Hashtable clears the buffer (FogBugz #10274)
    {
@@ -567,10 +567,10 @@ int main(int argc, char ** argv)
       sillyTable.Put((uint32)-1, "2^32 - 1!");
       if (sillyTable.ContainsKey((uint32)-1) == false) bomb("large value failed!");
 
-      const char * temp = NULL;
-      sillyTable.Get(100, temp);
-      sillyTable.Get(101, temp); // will fail
-      printf("100 -> %s\n",temp);
+      const char * tempStr = NULL;
+      sillyTable.Get(100, tempStr);
+      sillyTable.Get(101, tempStr); // will fail
+      printf("100 -> %s\n", tempStr);
 
       printf("Entries in sillyTable:\n");
       for (HashtableIterator<uint32, const char *> it(sillyTable); it.HasData(); it++)
@@ -589,31 +589,31 @@ int main(int argc, char ** argv)
       Hashtable<String, double> tallies;
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
-         Hashtable<int, int> table; (void) table.EnsureSize(NUM_ITEMS);
+         Hashtable<int, int> iTable; (void) iTable.EnsureSize(NUM_ITEMS);
          printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) table.Put(rand(), rand());  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) iTable.Put(rand(), rand());  // we want this to be repeatable, hence srand(0)
          AddTally(tallies, "place", startTime, NUM_ITEMS);
          
          startTime = GetRunTime64();
-         table.SortByValue();
+         iTable.SortByValue();
          AddTally(tallies, "sort", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
-         testCopy = table;  // just to make sure copying a table works
+         testCopy = iTable;  // just to make sure copying a table works
          AddTally(tallies, "copy", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
-         if (testCopy != table) bomb("Copy was not the same!");
+         if (testCopy != iTable) bomb("Copy was not the same!");
          AddTally(tallies, "compare", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
-         if (testCopy.IsEqualTo(table, true) == false) bomb("Copy was not the same, considering ordering!");
+         if (testCopy.IsEqualTo(iTable, true) == false) bomb("Copy was not the same, considering ordering!");
          AddTally(tallies, "o-compare", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
-         table.Clear();
+         iTable.Clear();
          AddTally(tallies, "clear", startTime, NUM_ITEMS);
       }
       printf("GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS); 
@@ -629,31 +629,31 @@ int main(int argc, char ** argv)
       Hashtable<String, double> tallies;
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
-         Hashtable<String, String> table; (void) table.EnsureSize(NUM_ITEMS);
+         Hashtable<String, String> sTable; (void) sTable.EnsureSize(NUM_ITEMS);
          printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) table.Put(String("%1").Arg(rand()), String("%1").Arg(rand()));  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) sTable.Put(String("%1").Arg(rand()), String("%1").Arg(rand()));  // we want this to be repeatable, hence srand(0)
          AddTally(tallies, "place", startTime, NUM_ITEMS);
          
          startTime = GetRunTime64();
-         table.SortByValue();
+         sTable.SortByValue();
          AddTally(tallies, "sort", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
-         testCopy = table;  // just to make sure copying a table works
+         testCopy = sTable;  // just to make sure copying a table works
          AddTally(tallies, "copy", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
-         if (testCopy != table) bomb("Copy was not the same!");
+         if (testCopy != sTable) bomb("Copy was not the same!");
          AddTally(tallies, "compare", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
-         if (testCopy.IsEqualTo(table, true) == false) bomb("Copy was not the same, considering ordering!");
+         if (testCopy.IsEqualTo(sTable, true) == false) bomb("Copy was not the same, considering ordering!");
          AddTally(tallies, "o-compare", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
-         table.Clear();
+         sTable.Clear();
          AddTally(tallies, "clear", startTime, NUM_ITEMS);
       }
       printf("STRING GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS); 

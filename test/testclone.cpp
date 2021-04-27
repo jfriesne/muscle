@@ -11,7 +11,7 @@ using namespace muscle;
 class TestCloneable : public Cloneable
 {
 public:
-   TestCloneable(const String & title) : _title(title) {/* empty */}
+   explicit TestCloneable(const String & title) : _title(title) {/* empty */}
    TestCloneable(const TestCloneable & rhs) : _title(rhs._title) {/* empty */}
 
    virtual String GetTitle() const {return _title;}
@@ -25,8 +25,8 @@ private:
 class SubclassOfTestCloneable : public TestCloneable
 {
 public:
-   SubclassOfTestCloneable(const String & title) : TestCloneable(title) {/* empty */}
-   SubclassOfTestCloneable(const TestCloneable & rhs) : TestCloneable(rhs) {/* empty */}
+   explicit SubclassOfTestCloneable(const String & title) : TestCloneable(title) {/* empty */}
+   explicit SubclassOfTestCloneable(const TestCloneable & rhs) : TestCloneable(rhs) {/* empty */}
 
    virtual String GetTitle() const {return TestCloneable::GetTitle().Prepend("SubclassOf");}
 
@@ -36,8 +36,8 @@ public:
 class BrokenSubclassOfTestCloneable : public TestCloneable
 {
 public:
-   BrokenSubclassOfTestCloneable(const String & title) : TestCloneable(title) {/* empty */}
-   BrokenSubclassOfTestCloneable(const TestCloneable & rhs) : TestCloneable(rhs) {/* empty */}
+   explicit BrokenSubclassOfTestCloneable(const String & title) : TestCloneable(title) {/* empty */}
+   explicit BrokenSubclassOfTestCloneable(const TestCloneable & rhs) : TestCloneable(rhs) {/* empty */}
 
    virtual String GetTitle() const {return TestCloneable::GetTitle().Prepend("BrokenSubclassOf");}
 

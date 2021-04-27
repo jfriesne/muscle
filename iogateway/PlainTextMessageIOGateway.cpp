@@ -96,7 +96,7 @@ DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth)
             return DoOutputImplementationAux(maxBytes, recurseDepth+1);
          }
       }
-      if ((msg)&&(_currentSendOffset >= 0)&&(_currentSendOffset < (int32)_currentSendText.Length()))
+      if ((_currentSendOffset >= 0)&&(_currentSendOffset < (int32)_currentSendText.Length()))
       {
          // Send as much as we can of the current text line
          const char * bytes = _currentSendText.Cstr() + _currentSendOffset;

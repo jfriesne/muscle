@@ -48,7 +48,7 @@ public:
             TestItemRef tRef(_pool.ObtainObject());
             if (tRef())
             {
-               char buf[128]; muscleSprintf(buf, "-" UINT32_FORMAT_SPEC, ++counter);
+               muscleSprintf(buf, "-" UINT32_FORMAT_SPEC, ++counter);
                tRef()->SetName(prefix+buf);
                q.AddTail(tRef);
             }

@@ -46,13 +46,13 @@ int main(int argc, char ** argv)
             // Test out the read/write exclusive lock
             if (m.LockAreaReadWrite().IsOK(ret))
             {
-               const uint32 s = m.GetAreaSize();
-               if (s > 0)
+               const uint32 sas = m.GetAreaSize();
+               if (sas > 0)
                {
-                  uint8 * a = m.GetAreaPointer();
-                  {for (uint32 i=1; i<s; i++) if (a[i-1] != a[i]) LogTime(MUSCLE_LOG_ERROR, "A. ERROR@" UINT32_FORMAT_SPEC "\n",i);}
-                  {for (uint32 i=0; i<s; i++) a[i] = base;}
-                  {for (uint32 i=0; i<s; i++) if (a[i] != base) LogTime(MUSCLE_LOG_ERROR, "B. ERROR@" UINT32_FORMAT_SPEC "\n",i);}
+                  uint8 * ap = m.GetAreaPointer();
+                  {for (uint32 i=1; i<sas; i++) if (ap[i-1] != ap[i]) LogTime(MUSCLE_LOG_ERROR, "A. ERROR@" UINT32_FORMAT_SPEC "\n",i);}
+                  {for (uint32 i=0; i<sas; i++) ap[i] = base;}
+                  {for (uint32 i=0; i<sas; i++) if (ap[i] != base) LogTime(MUSCLE_LOG_ERROR, "B. ERROR@" UINT32_FORMAT_SPEC "\n",i);}
                }
                else LogTime(MUSCLE_LOG_ERROR, "Area size is zero!?\n");
 
@@ -67,11 +67,11 @@ int main(int argc, char ** argv)
             // Also test out the read-only lock
             if (m.LockAreaReadOnly().IsOK(ret))
             {
-               const uint32 s = m.GetAreaSize();
+               const uint32 sas = m.GetAreaSize();
                if (s > 0)
                {
-                  const uint8 * a = m.GetAreaPointer();
-                  {for (uint32 i=1; i<s; i++) if (a[i-1] != a[i]) LogTime(MUSCLE_LOG_ERROR, "C. ERROR@" UINT32_FORMAT_SPEC "\n",i);}
+                  const uint8 * ap = m.GetAreaPointer();
+                  {for (uint32 i=1; i<sas; i++) if (ap[i-1] != ap[i]) LogTime(MUSCLE_LOG_ERROR, "C. ERROR@" UINT32_FORMAT_SPEC "\n",i);}
                }
                else LogTime(MUSCLE_LOG_ERROR, "Area size is zero!?\n");
 

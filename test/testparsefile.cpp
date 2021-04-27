@@ -60,8 +60,8 @@ int main(int argc, char ** argv)
                      msg.PrintToStream();
                      printf("\n");
 
-                     const String s = UnparseFile(msg);
-                     printf(" UnparseFile(msg) output is below: -------------\n[%s]", s());
+                     const String ss = UnparseFile(msg);
+                     printf(" UnparseFile(msg) output is below: -------------\n[%s]", ss());
                   }
                   else LogTime(MUSCLE_LOG_ERROR, "Error parsing file [%s] [%s]\n", argv[i], ret());
                }

@@ -159,9 +159,9 @@ int main(void)
 
    // Check that C++11's move semantics aren't stealing values they shouldn't
    {
-      Queue<String> q;
+      Queue<String> qq;
       String myStr = "Magic";
-      q.AddTail(myStr);
+      qq.AddTail(myStr);
       if (myStr != "Magic") 
       {
          printf("Error, AddTail() stole my string!\n");
@@ -201,12 +201,12 @@ int main(void)
 
    printf("REMOVE DUPLICATES test\n");
    {
-      Queue<int> q;
-      const int vars[] = {9,2,3,5,8,3,5,6,6,7,2,3,4,6,8,9,3,5,6,4,3,2,1};
-      if (q.AddTailMulti(vars, ARRAYITEMS(vars)).IsOK())
+      Queue<int> qq;
+      const int iVars[] = {9,2,3,5,8,3,5,6,6,7,2,3,4,6,8,9,3,5,6,4,3,2,1};
+      if (qq.AddTailMulti(iVars, ARRAYITEMS(iVars)).IsOK())
       {
-         q.RemoveDuplicateItems(); 
-         for (uint32 i=0; i<q.GetNumItems(); i++) printf("%u ", q[i]);
+         qq.RemoveDuplicateItems(); 
+         for (uint32 i=0; i<qq.GetNumItems(); i++) printf("%u ", qq[i]);
          printf("\n");
       }
    }
@@ -214,16 +214,16 @@ int main(void)
    {
       const uint32 NUM_ITEMS = 1000000;
       const uint32 NUM_RUNS  = 3;
-      Queue<int> q; (void) q.EnsureSize(NUM_ITEMS, true);
+      Queue<int> iq; (void) iq.EnsureSize(NUM_ITEMS, true);
       double tally = 0.0;
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
          printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) q[i] = rand();  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) iq[i] = rand();  // we want this to be repeatable, hence srand(0)
          
          const uint64 startTime = GetRunTime64();
-         q.Sort();
+         iq.Sort();
          const uint64 elapsed = (GetRunTime64()-startTime);
 
          const double itemsPerSecond = ((double)NUM_ITEMS*((double)MICROS_PER_SECOND))/(elapsed);
@@ -237,16 +237,16 @@ int main(void)
    {
       const uint32 NUM_ITEMS = 1000000;
       const uint32 NUM_RUNS  = 3;
-      Queue<String> q; (void) q.EnsureSize(NUM_ITEMS, true);
+      Queue<String> qq; (void) qq.EnsureSize(NUM_ITEMS, true);
       double tally = 0.0;
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
          printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) q[i] = String("FooBarBaz-%1").Arg(rand()).Pad(500);  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) qq[i] = String("FooBarBaz-%1").Arg(rand()).Pad(500);  // we want this to be repeatable, hence srand(0)
          
          const uint64 startTime = GetRunTime64();
-         q.Sort();
+         qq.Sort();
          const uint64 elapsed = (GetRunTime64()-startTime);
 
          const double itemsPerSecond = ((double)NUM_ITEMS*((double)MICROS_PER_SECOND))/(elapsed);
@@ -305,28 +305,28 @@ int main(void)
    printf("\nStress-testing Queue::Normalize()... this may take a minute\n");
    for (uint32 i=0; i<20000; i++)
    {
-      Queue<int> q;
+      Queue<int> qq;
       int counter = 0;
       for (uint32 j=0; j<i; j++)
       {
          switch(rand()%6)
          {
-            case 0:  case 1: q.AddTail(counter++); break;
-            case 2:  case 3: q.AddHead(counter++); break;
-            case 4:          q.RemoveHead();       break;
-            case 5:          q.RemoveTail();       break;
+            case 0:  case 1: qq.AddTail(counter++); break;
+            case 2:  case 3: qq.AddHead(counter++); break;
+            case 4:          qq.RemoveHead();       break;
+            case 5:          qq.RemoveTail();       break;
          }
       }
 
-      int * compareArray = new int[q.GetNumItems()];
-      for (uint32 j=0; j<q.GetNumItems(); j++) compareArray[j] = q[j];
-      q.Normalize();
+      int * compareArray = new int[qq.GetNumItems()];
+      for (uint32 j=0; j<qq.GetNumItems(); j++) compareArray[j] = qq[j];
+      qq.Normalize();
 
-      const int * a = q.HeadPointer();
-      if (memcmp(compareArray, a, q.GetNumItems()*sizeof(int)))
+      const int * a = qq.HeadPointer();
+      if (memcmp(compareArray, a, qq.GetNumItems()*sizeof(int)))
       {
          printf("ERROR IN NORMALIZE!\n");
-         for (uint32 i=0; i<q.GetNumItems(); i++) printf("   Expected %i, got %i (qi=%i at " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", compareArray[i], a[i], q[i], i, q.GetNumItems());
+         for (uint32 j=0; j<qq.GetNumItems(); j++) printf("   Expected %i, got %i (qi=%i at " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", compareArray[j], a[j], qq[j], j, qq.GetNumItems());
          MCRASH("ERROR IN NORMALIZE!");
       }
 

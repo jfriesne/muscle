@@ -121,7 +121,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
    if (AttachNewSession(ref).IsOK(ret)) return B_NO_ERROR;
    else 
    {
-      if (newSession) newSession->SetOwner(NULL);
+      newSession->SetOwner(NULL);
       return ret;
    }
 }

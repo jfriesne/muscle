@@ -204,12 +204,14 @@ static MMessage * GenerateChatMessage(const char * targetSessionID, const char *
    if (chatMessage)
    {
       /* Specify which client(s) the Message should be forwarded to by muscled */
-      MByteBuffer ** sb = MMPutStringField(chatMessage, MFalse, PR_NAME_KEYS, 1); 
-      if (sb)
       {
-         char buf[1024];
-         muscleSprintf(buf, "/*/%s/beshare", targetSessionID);
-         sb[0] = MBStrdupByteBuffer(buf);
+         MByteBuffer ** sb = MMPutStringField(chatMessage, MFalse, PR_NAME_KEYS, 1); 
+         if (sb)
+         {
+            char buf[1024];
+            muscleSprintf(buf, "/*/%s/beshare", targetSessionID);
+            sb[0] = MBStrdupByteBuffer(buf);
+         }
       }
 
       /* Add a "session" field so that the target clients will know who the             */
@@ -246,8 +248,10 @@ static MMessage * GenerateServerSubscription(const char * subscriptionString, MB
    if (queryMsg)
    {
       /* Tell muscled what we want to subscribe to */
-      MBool * b = MMPutBoolField(queryMsg, MFalse, subscriptionString, 1);
-      if (b) *b = MTrue;  /* the value doesn't signify anything */
+      {
+         MBool * b = MMPutBoolField(queryMsg, MFalse, subscriptionString, 1);
+         if (b) *b = MTrue;  /* the value doesn't signify anything */
+      }
 
       if (quietly) 
       {
@@ -590,13 +594,13 @@ int main(int argc, char ** argv)
 
                            if (temp)
                            {
-                              char * buf = (char *) &temp->bytes;
+                              char * xbuf = (char *) &temp->bytes;
                               MByteBuffer ** sb = MMPutStringField(msg, MFalse, PR_NAME_KEYS, 1);
                               if (sb)
                               {
-                                 strncat(buf, "/*/",      replyToLen);
-                                 strncat(buf, replyTo,    replyToLen);
-                                 strncat(buf, "/beshare", replyToLen);
+                                 strncat(xbuf, "/*/",      replyToLen);
+                                 strncat(xbuf, replyTo,    replyToLen);
+                                 strncat(xbuf, "/beshare", replyToLen);
                                  sb[0] = temp;
                               }
                               else MBFreeByteBuffer(temp);

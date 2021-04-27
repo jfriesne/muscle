@@ -56,7 +56,7 @@ class TimerSignalReceiverObject : public QObject
 Q_OBJECT
    
 public:
-   TimerSignalReceiverObject(ThreadedInternalSession * master) : _master(master) {/* empty */}
+   explicit TimerSignalReceiverObject(ThreadedInternalSession * master) : _master(master) {/* empty */}
 
 public slots:
    void CallSendExampleMessageToMainThread();

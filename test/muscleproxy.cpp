@@ -17,7 +17,7 @@ using namespace muscle;
 class UpstreamSession : public AbstractReflectSession
 {
 public:
-   UpstreamSession(AbstractReflectSession * downstreamSession) : _downstreamSession(downstreamSession) {/* empty */}
+   explicit UpstreamSession(AbstractReflectSession * downstreamSession) : _downstreamSession(downstreamSession) {/* empty */}
 
    virtual bool ClientConnectionClosed()
    {
@@ -57,7 +57,7 @@ DECLARE_REFTYPES(UpstreamSession);  // defines UpstreamSessionRef type
 class DownstreamSession : public AbstractReflectSession
 {
 public:
-   DownstreamSession(const IPAddressAndPort & upstreamLocation) : _upstreamLocation(upstreamLocation) {/* empty */}
+   explicit DownstreamSession(const IPAddressAndPort & upstreamLocation) : _upstreamLocation(upstreamLocation) {/* empty */}
 
    virtual status_t AttachedToServer()
    {
@@ -100,7 +100,7 @@ private:
 class DownstreamSessionFactory : public ReflectSessionFactory
 {
 public:
-   DownstreamSessionFactory(const IPAddressAndPort & upstreamLocation) : _upstreamLocation(upstreamLocation)
+   explicit DownstreamSessionFactory(const IPAddressAndPort & upstreamLocation) : _upstreamLocation(upstreamLocation)
    {
       // empty
    }

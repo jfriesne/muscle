@@ -11,7 +11,7 @@ using namespace muscle;
 class DummyQueryFilter : public QueryFilter
 {
 public:
-   DummyQueryFilter(bool ret) : _ret(ret) {/* empty */}
+   explicit DummyQueryFilter(bool ret) : _ret(ret) {/* empty */}
 
    virtual uint32 TypeCode() const {return 0;}
 

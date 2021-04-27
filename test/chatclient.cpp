@@ -99,7 +99,7 @@ static MessageRef GenerateSetLocalUserStatus(const char * name)
 static String GetUserName(Hashtable<String, String> & users, const String & sessionID)
 {
    String ret;
-   String * userName = users.Get(sessionID);
+   const String * userName = users.Get(sessionID);
    return sessionID + "/" + (userName ? (*userName) : String("<unknown>"));
 }
 
@@ -285,8 +285,8 @@ int main(int argc, char ** argv)
                            case USER_NAME_DEPTH:
                            if (strncmp(GetPathClause(USER_NAME_DEPTH, nodepath.Cstr()), "name", 4) == 0) 
                            {
-                              String userName = GetUserName(_users, sessionID);
-                              if (_users.Remove(sessionID).IsOK()) LogTime(MUSCLE_LOG_INFO, "User [%s] has disconnected.\n", userName());
+                              String userNameString = GetUserName(_users, sessionID);
+                              if (_users.Remove(sessionID).IsOK()) LogTime(MUSCLE_LOG_INFO, "User [%s] has disconnected.\n", userNameString());
                            }
                            break;
                         }
@@ -310,8 +310,8 @@ int main(int argc, char ** argv)
                            {
                               case USER_NAME_DEPTH:
                               {
-                                 String hostName = GetPathClause(HOST_NAME_DEPTH, np());
-                                 hostName = hostName.Substring(0, hostName.IndexOf('/'));
+                                 String hostNameString = GetPathClause(HOST_NAME_DEPTH, np());
+                                 hostNameString = hostNameString.Substring(0, hostNameString.IndexOf('/'));
 
                                  const char * nodeName = GetPathClause(USER_NAME_DEPTH, np());
                                  if (strncmp(nodeName, "name", 4) == 0)

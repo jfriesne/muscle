@@ -95,56 +95,58 @@ status_t Thread :: StartInternalThreadAux()
    {
       _threadRunning = true;  // set this first, to avoid a race condition with the thread's startup...
 
-#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-# if !defined(MUSCLE_NO_EXCEPTIONS)
-      try {
-# endif
-         _thread = std::thread(InternalThreadEntryFunc, this);
-         return B_NO_ERROR;
-# if !defined(MUSCLE_NO_EXCEPTIONS)
-      }
-      catch(...) {/* empty */} 
-# endif
-#elif defined(MUSCLE_USE_PTHREADS)
-      pthread_attr_t attr;
-      if (_suggestedStackSize != 0)
-      {
-         pthread_attr_init(&attr);
-         (void) pthread_attr_setstacksize(&attr, _suggestedStackSize);
-      }
-      return B_ERRNUM(pthread_create(&_thread, (_suggestedStackSize!=0)?&attr:NULL, InternalThreadEntryFunc, this));
-#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      typedef unsigned (__stdcall *PTHREAD_START) (void *);
-      return ((_thread = (::HANDLE)_beginthreadex(NULL, _suggestedStackSize, (PTHREAD_START)InternalThreadEntryFunc, this, 0, (unsigned *)&_threadID)) != NULL) ? B_NO_ERROR : B_ERRNO;
-#elif defined(MUSCLE_USE_QT_THREADS)
-      _thread.start();
-      return B_NO_ERROR;
-#elif defined(__BEOS__) || defined(__HAIKU__)
-      if ((_thread = spawn_thread(InternalThreadEntryFunc, "MUSCLE Thread", B_NORMAL_PRIORITY, this)) >= 0)
-      {
-         if (resume_thread(_thread).IsOK()) return B_NO_ERROR;
-         else 
-         {
-            ret = B_ERRNO; 
-            kill_thread(_thread);
-            return ret;
-         }
-      }
-#elif defined(__ATHEOS__)
-      if ((_thread = spawn_thread("MUSCLE Thread", InternalThreadEntryFunc, NORMAL_PRIORITY, 32767, this)) >= 0)
-      {
-         if (resume_thread(_thread).IsOK()) return B_NO_ERROR;
-         else 
-         {
-            ret = B_ERRNO; 
-            return ret;
-         }
-      }
-#endif
+      const status_t ret = StartInternalThreadAuxAux();
+      if (ret.IsOK()) return ret;  // success!
 
       _threadRunning = false;  // oops, nevermind, thread spawn failed
+      return ret;
    }
-   return B_BAD_OBJECT;
+   else return B_BAD_OBJECT;
+}
+
+status_t Thread :: StartInternalThreadAuxAux()
+{
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_NO_EXCEPTIONS)
+   try {
+# endif
+      _thread = std::thread(InternalThreadEntryFunc, this);
+      return B_NO_ERROR;
+# if !defined(MUSCLE_NO_EXCEPTIONS)
+   }
+   catch(...) {/* empty */} 
+   return B_OUT_OF_MEMORY;
+# endif
+#elif defined(MUSCLE_USE_PTHREADS)
+   pthread_attr_t attr;
+   if (_suggestedStackSize != 0)
+   {
+      pthread_attr_init(&attr);
+      (void) pthread_attr_setstacksize(&attr, _suggestedStackSize);
+   }
+   return B_ERRNUM(pthread_create(&_thread, (_suggestedStackSize!=0)?&attr:NULL, InternalThreadEntryFunc, this));
+#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+   typedef unsigned (__stdcall *PTHREAD_START) (void *);
+   return ((_thread = (::HANDLE)_beginthreadex(NULL, _suggestedStackSize, (PTHREAD_START)InternalThreadEntryFunc, this, 0, (unsigned *)&_threadID)) != NULL) ? B_NO_ERROR : B_ERRNO;
+#elif defined(MUSCLE_USE_QT_THREADS)
+   _thread.start();
+   return B_NO_ERROR;
+#elif defined(__BEOS__) || defined(__HAIKU__)
+   if ((_thread = spawn_thread(InternalThreadEntryFunc, "MUSCLE Thread", B_NORMAL_PRIORITY, this)) >= 0)
+   {
+      if (resume_thread(_thread) == B_NO_ERROR) return B_NO_ERROR;
+      else 
+      {
+         ret = B_ERRNO; 
+         kill_thread(_thread);
+         return ret;
+      }
+   }
+   return B_ERRNO;
+#elif defined(__ATHEOS__)
+   if (((_thread = spawn_thread("MUSCLE Thread", InternalThreadEntryFunc, NORMAL_PRIORITY, 32767, this)) >= 0)&&(resume_thread(_thread) >= 0)) return B_NO_ERROR;
+   return B_ERRNO;
+#endif
 }
 
 void Thread :: ShutdownInternalThread(bool waitForThread)

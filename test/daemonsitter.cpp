@@ -112,7 +112,7 @@ private:
 class StdinSession : public AbstractReflectSession
 {
 public:
-   StdinSession(const String & processLabel) : _processLabel(processLabel) {/* empty */}
+   explicit StdinSession(const String & processLabel) : _processLabel(processLabel) {/* empty */}
 
    /** This is overridden to force CreateDataIO() to be called, even though no Socket was passed in to AddNewSession() */
    virtual ConstSocketRef CreateDefaultSocket() {return GetInvalidSocket();}

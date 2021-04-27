@@ -193,13 +193,13 @@ int main(int argc, char ** argv)
                   // to test the results of the SETDATANODE_FLAG_ENABLESUPERCEDE flag
                   const bool enableSupercede = (text[0] == 'C');
 
-                  for (int i=0; i<10; i++)
+                  for (int j=0; j<10; j++)
                   {
                      ref = GetMessageFromPool(PR_COMMAND_SETDATA);
                      if (enableSupercede)  ref()->AddFlat(PR_NAME_FLAGS, SetDataNodeFlags(SETDATANODE_FLAG_ENABLESUPERCEDE));
 
                      MessageRef subMsg = GetMessageFromPool();
-                     subMsg()->AddInt32(String("%1 counter").Arg(enableSupercede?"Supercede":"Normal"), i);
+                     subMsg()->AddInt32(String("%1 counter").Arg(enableSupercede?"Supercede":"Normal"), j);
                      ref()->AddMessage("test_node", subMsg);
 
                      gatewayRef()->AddOutgoingMessage(ref);

@@ -224,7 +224,7 @@ static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * op
 {
    while(1)
    {
-      const char * lineOfText = (optTok) ? optTok->GetNextToken() : fgets(scratchBuf, bufSize, fpIn);
+      const char * lineOfText = optTok ? optTok->GetNextToken() : (fpIn ? fgets(scratchBuf, bufSize, fpIn) : NULL);
       if (lineOfText == NULL) break;
 
       String checkForSection(lineOfText);
@@ -734,8 +734,11 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
       outfd = open(optOutputTo, O_WRONLY | (createIfNecessary ? O_CREAT : 0), mode);
       if (outfd < 0) LogTime(MUSCLE_LOG_ERROR, "BecomeDaemonProcess():  Could not open %s to redirect stdout, stderr [%s]\n", optOutputTo, B_ERRNO());
    }
-   if (outfd >= 0) (void) dup2(outfd, STDOUT_FILENO);
-   if (outfd >= 0) (void) dup2(outfd, STDERR_FILENO);
+   if (outfd >= 0)
+   {
+      (void) dup2(outfd, STDOUT_FILENO);
+      (void) dup2(outfd, STDERR_FILENO);
+   }
 
    _isDaemonProcess = true;
    return B_NO_ERROR;
@@ -1221,8 +1224,7 @@ float GetSystemMemoryUsagePercentage()
 #elif defined(WIN32) && !defined(__MINGW32__)
    MEMORYSTATUSEX stat; memset(&stat, 0, sizeof(stat));
    stat.dwLength = sizeof(stat);
-   GlobalMemoryStatusEx(&stat);
-   return ((float)stat.dwMemoryLoad)/100.0f;
+   if (GlobalMemoryStatusEx(&stat)) return ((float)stat.dwMemoryLoad)/100.0f;
 #endif
    return -1.0f;
 }

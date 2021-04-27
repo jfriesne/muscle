@@ -1980,10 +1980,10 @@ String GetConnectString(const String & host, uint16 port)
 {
 #ifdef MUSCLE_AVOID_IPV6
    char buf[32]; muscleSprintf(buf, ":%u", port);
-   return host + buf;
+   return host.Append(buf);
 #else
    char buf[32]; muscleSprintf(buf, "]:%u", port);
-   return host.Prepend("[") + buf;
+   return host.Prepend("[").Append(buf);
 #endif
 }
 

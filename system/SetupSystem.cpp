@@ -730,7 +730,7 @@ static inline uint32 get_tbu() {uint32 tbu; asm volatile("mftbu %0" : "=r" (tbu)
 static uint64 GetRunTime64Aux()
 {
 #if defined(__BEOS__) || defined(__HAIKU__)
-   return return system_time();
+   return system_time();
 #elif defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
    return rt_timer_tsc2ns(rt_timer_tsc())/1000;
 #elif defined(WIN32)
@@ -819,7 +819,7 @@ static uint64 GetRunTime64Aux()
          static uint32 _prevVal;
          static uint64 _wrapOffset = 0;
          
-         struct tms junk; clock_t newTicks = (clock_t) times(&junk);
+         struct tms junk = {0}; clock_t newTicks = (clock_t) times(&junk);
          const uint32 newVal = (uint32) newTicks;
          if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
          const uint64 ret = ((_wrapOffset+newVal)*MICROS_PER_SECOND)/_posixTicksPerSecond;  // convert to microseconds

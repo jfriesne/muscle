@@ -27,7 +27,7 @@ uint32 MGetNumBytesAllocated() {return _allocedBytes;}
 
 void * MMalloc(uint32 numBytes)
 {
-   char * ret = (char *) malloc(numBytes+sizeof(uint32));
+   char * ret = (char *) malloc(sizeof(uint32)+numBytes);
    if (ret)
    {
       memcpy(ret, &numBytes, sizeof(numBytes));
@@ -42,7 +42,7 @@ void MFree(void * ptr)
 {
    if (ptr)
    {
-      char * rawPtr = ptr-sizeof(uint32);
+      char * rawPtr = ((char *)ptr)-sizeof(uint32);
       uint32 allocSize; memcpy(&allocSize, rawPtr, sizeof(allocSize));
       _allocedBytes -= allocSize;
 /*printf("--" UINT32_FORMAT_SPEC " -> " UINT32_FORMAT_SPEC "\n", allocSize, _allocedBytes);*/
@@ -53,7 +53,7 @@ void MFree(void * ptr)
 void * MRealloc(void * oldBuf, uint32 newSize)
 {
    uint32 oldSize;
-   if (oldBuf) memcpy(&oldSize, oldBuf-sizeof(uint32), sizeof(oldSize));
+   if (oldBuf) memcpy(&oldSize, ((char *)oldBuf)-sizeof(uint32), sizeof(oldSize));
           else oldSize = 0;
 
    if (newSize == oldSize) return oldBuf;
@@ -571,7 +571,7 @@ static uint32 GetMMessageFieldFlattenedSize(const MMessageField * f, MBool inclu
    if (IsTypeCodeVariableSize(f->typeCode))
    {
       uint32 numItems = f->numItems;
-      uint32 i; 
+      uint32 i;
 
       sum += (numItems*sizeof(uint32));  /* because each sub-item is preceded by its byte-count */
       if (f->typeCode == B_MESSAGE_TYPE)
@@ -645,13 +645,13 @@ static uint32 FlattenMMessageField(const MMessageField * f, void * outBuf)
    if (IsTypeCodeVariableSize(f->typeCode))
    {
       const uint32 numItems = f->numItems;
-      uint32 i; 
 
       if (f->typeCode == B_MESSAGE_TYPE)
       {
          /* Note that NULL entries will be flattened as empty Messages, since the protocol doesn't support them directly. */
          /* Note also that for this type the number-of-items-in-array field is NOT written into the buffer (sigh)         */
          const MMessage ** msgs = (const MMessage **) f->data;
+         uint32 i;
          for (i=0; i<numItems; i++) 
          {
             const MMessage * subMsg = msgs[i];
@@ -686,7 +686,6 @@ static uint32 FlattenMMessageField(const MMessageField * f, void * outBuf)
       else
       {
          const MByteBuffer ** bufs = (const MByteBuffer **) f->data;
-         int i;
 
          /* Write the number of items in the array */
          {
@@ -694,6 +693,7 @@ static uint32 FlattenMMessageField(const MMessageField * f, void * outBuf)
             WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
          }
 
+         uint32 i;
          for (i=0; i<numItems; i++) 
          {
             const uint32 bufSize = bufs[i] ? bufs[i]->numBytes : 0;
@@ -810,7 +810,7 @@ static MMessageField * ImportMMessageField(const char * fieldName, uint32 nameLe
 
 c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBufferBytes)
 {
-   uint32 i, readOffset = 0;
+   uint32 readOffset = 0;
    const uint8 * buffer = (const uint8 *) inBuf;
 
    /* Read and check protocol version number */
@@ -834,6 +834,7 @@ c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBu
    MMClearMessage(msg);
 
    /* Read entries */
+   uint32 i;
    for (i=0; i<numEntries; i++)
    {
       const char * fieldName;
@@ -917,10 +918,10 @@ c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBu
                MMessage ** newMsgField = MMPutMessageField(msg, MFalse, fieldName, listLength);
                if (newMsgField)
                {
-                  uint32 i;
-                  for (i=0; i<listLength; i++) 
+                  uint32 j;
+                  for (j=0; j<listLength; j++) 
                   {
-                     newMsgField[i] = head;
+                     newMsgField[j] = head;
                      head = head->scratch;
                   }
                   doAddField = MFalse;
@@ -962,20 +963,20 @@ c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBu
                if (bufs)
                {
                   uint32 eLeft = eLength;
-                  uint32 i;
 
                   doAddField = MFalse;
-                  for (i=0; i<numItems; i++)
+                  uint32 j=0;
+                  for (j=0; j<numItems; j++)
                   {
                      uint32 itemSize; 
                      MBool ok = MFalse;
                      if (ReadData(buffer, inputBufferBytes, &eOffset, &itemSize, sizeof(itemSize)) == CB_NO_ERROR)
                      {
                         itemSize = B_LENDIAN_TO_HOST_INT32(itemSize);
-                        if ((itemSize+sizeof(uint32) <= eLeft)&&((bufs[i] = MBAllocByteBuffer(itemSize, MFalse)) != NULL))
+                        if ((itemSize+sizeof(uint32) <= eLeft)&&((bufs[j] = MBAllocByteBuffer(itemSize, MFalse)) != NULL))
                         {
                            eLeft -= (itemSize + sizeof(uint32));
-                           memcpy(&bufs[i]->bytes, &buffer[eOffset], itemSize);
+                           memcpy(&bufs[j]->bytes, &buffer[eOffset], itemSize);
                            eOffset += itemSize;
                            ok = true; 
                         }
@@ -1342,7 +1343,7 @@ MBool MMAreMessagesEqual(const MMessage * msg1, const MMessage * msg2)
 
          if (IsTypeCodeVariableSize(f1->typeCode))
          {
-            uint32 i; 
+            uint32 i;
             if (f1->typeCode == B_MESSAGE_TYPE)
             {
                const MMessage ** msgs1 = (const MMessage **) f1->data;

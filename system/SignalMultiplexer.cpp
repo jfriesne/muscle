@@ -132,7 +132,7 @@ void SignalMultiplexer :: UnregisterSignals()
    sigemptyset(&newact.sa_mask);
    newact.sa_flags   = 0;
    newact.sa_handler = NULL;
-   for (uint32 i=0; i<_currentSignalSet.GetNumItems(); i++) (void) sigaction(_currentSignalSet[i], NULL, NULL);
+   for (uint32 i=0; i<_currentSignalSet.GetNumItems(); i++) (void) sigaction(_currentSignalSet[i], &newact, NULL);
 #endif
 }
 

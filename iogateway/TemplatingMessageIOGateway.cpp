@@ -14,8 +14,8 @@ TemplatingMessageIOGateway :: TemplatingMessageIOGateway(uint32 maxLRUCacheSizeB
    // empty
 }
 
-static const uint32 CREATE_TEMPLATE_BIT  = (1<<31);  // if the high-bit is set in the length-word, that means the receiver should use the buffer's Message to create a template
-static const uint32 PAYLOAD_ENCODING_BIT = (1<<31);  // if the high-bit is set in the encoding-word, that means the receiver should interpret the buffer as payload-only and not as a flattened Message
+static const uint32 CREATE_TEMPLATE_BIT  = (((uint32)1)<<31);  // if the high-bit is set in the length-word, that means the receiver should use the buffer's Message to create a template
+static const uint32 PAYLOAD_ENCODING_BIT = (((uint32)1)<<31);  // if the high-bit is set in the encoding-word, that means the receiver should interpret the buffer as payload-only and not as a flattened Message
 
 int32 TemplatingMessageIOGateway :: GetBodySize(const uint8 * headerBuf) const
 {
@@ -231,7 +231,7 @@ void TemplatingMessageIOGateway :: Reset()
 
 void TemplatingMessageIOGateway :: TrimLRUCache(Hashtable<uint64, MessageRef> & lruCache, uint32 & tallyBytes, const char * desc) const
 {
-   while((lruCache.GetNumItems()>1)&(tallyBytes > _maxLRUCacheSizeBytes))
+   while((lruCache.GetNumItems()>1)&&(tallyBytes > _maxLRUCacheSizeBytes))
    {
       const uint32 lastSize = lruCache.GetLastValue()->GetItemPointer()->FlattenedSize();
       (void) lruCache.RemoveLast();

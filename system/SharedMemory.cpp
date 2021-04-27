@@ -61,9 +61,9 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
       else MWARN_OUT_OF_MEMORY;   
    }
 #elif defined(WIN32)
-   char buf[64];
    if (keyString == NULL)
    {
+      char buf[64];
       muscleSprintf(buf, INT32_FORMAT_SPEC, GetTickCount());  // No user-supplied name?  We'll pick an arbitrary name then
       keyString = buf;
    }
