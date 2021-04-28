@@ -616,11 +616,11 @@ static LRESULT CALLBACK dnccsWindowHandler(HWND hWnd, UINT message, WPARAM wPara
       switch(wParam)
       {
          case PBT_APMRESUMEAUTOMATIC: case PBT_APMRESUMESUSPEND: case PBT_APMQUERYSUSPENDFAILED: case PBT_APMRESUMECRITICAL:
-            static_cast<DetectNetworkConfigChangesThread *>(static_cast<void *>(GetWindowLongPtr(hWnd, GWLP_USERDATA)))->SleepCallback(false);
+            reinterpret_cast<DetectNetworkConfigChangesThread *>(GetWindowLongPtr(hWnd, GWLP_USERDATA))->SleepCallback(false);
          break;
 
          case PBT_APMQUERYSUSPEND: case PBT_APMSUSPEND:
-            static_cast<DetectNetworkConfigChangesThread *>(static_cast<void *>(GetWindowLongPtr(hWnd, GWLP_USERDATA)))->SleepCallback(true);
+            reinterpret_cast<DetectNetworkConfigChangesThread *>(GetWindowLongPtr(hWnd, GWLP_USERDATA))->SleepCallback(true);
          break;
 
          default:
