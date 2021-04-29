@@ -55,8 +55,6 @@ int main(int argc, char ** argv)
    DataIORef networkIORef(&tcpIO, false);
    AbstractMessageIOGatewayRef gatewayRef(&tcpGateway, false);
 
-   status_t ret;
-
 #ifdef MUSCLE_ENABLE_SSL
    const char * publicKeyPath  = NULL;
    const char * privateKeyPath = NULL;
@@ -74,6 +72,7 @@ int main(int argc, char ** argv)
       SSLSocketDataIORef sslIORef(new SSLSocketDataIO(sock, false, false));
       if (publicKeyPath)
       {
+         status_t ret;
          if (sslIORef()->SetPublicKeyCertificate(publicKeyPath).IsOK(ret))
          {
             LogTime(MUSCLE_LOG_INFO, "Using public key certificate file [%s] to connect to server\n", publicKeyPath);
