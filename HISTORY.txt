@@ -6,6 +6,9 @@ key:  - new feature
       o other
 
    * Applied various fixes based on warnings supplied by cppcheck.
+   * Modified TCPSocketDataIO::FlushOutput() to no longer call
+     SetSocketCorkAlgorithmEnabled() when compiled under MacOS/X,
+     because MacOS/X's implementation of TCP_NOPUSH is problematic.
 
 8.20 - Released 4/26/2021
    - Added ARRAYROWS and ARRAYCOLS functions to MuscleSupport.h

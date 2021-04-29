@@ -428,14 +428,19 @@ status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabl
 bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock);
 
 /**
-  * Enables or disables the TCP_CORK/TCP_NOPUSH algorithm.  With the algorithm enabled, 
-  * only full TCP packets will be sent.
+  * Enables or disables the TCP_CORK algorithm (TCP_NOPUSH under BSD-based OS's).
+  * With the algorithm enabled, only full TCP packets will be sent.
   * @param sock the socket to act on.
   * @param enabled If true, partial outgoing TCP packets will be held internally until the 
   *                TCP_CORK/TCP_NOPUSH algorithm has been disabled on this socket.  Full 
   *                packets will still be sent ASAP.
   * @note that this function is currently implemented only under MacOS/X, BSD, and Linux; on 
   *       other OS's it will return B_UNIMPLEMENTED.
+  * @note that MacOS/X's implementation of TCP_NOPUSH is a bit buggy -- as of 10.15.7,
+  *       disabling TCP_NOPUSH doesn't cause any of the socket's pending TCP data to be
+  *       sent ASAP, and (worse) using TCP_NOPUSH seems to sometimes cause a 5 second
+  *       delay in data being sent, even after TCP_NOPUSH has been disabled.  Until those
+  *       problems are fixed, you might want to avoid calling this function under MacOS/X.
   * @return B_NO_ERROR on success, an error code on error.
   */
 status_t SetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock, bool enabled);
