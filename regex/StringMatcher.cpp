@@ -118,6 +118,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
                   {
                      case ',':  c = '|';              break;  // commas are treated as union-bars
                      case '.':  regexPattern += '\\'; break;  // dots are considered literals, so escape those
+                     case '+':  regexPattern += '\\'; break;  // pluses are considered literals, so escape those
                      case '*':  regexPattern += '.';  break;  // hmmm.
                      case '?':  c = '.';              break;  // question marks mean any-single-char
                      case '\\': escapeMode = true;    break;  // don't transform the next character!

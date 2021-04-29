@@ -9,6 +9,8 @@ key:  - new feature
    * Modified TCPSocketDataIO::FlushOutput() to no longer call
      SetSocketCorkAlgorithmEnabled() when compiled under MacOS/X,
      because MacOS/X's implementation of TCP_NOPUSH is problematic.
+   * StringMatcher::SetPattern() wasn't escaping + characters when
+     converting simple-wildcard-strings to regex-strings.  Fixed.
 
 8.20 - Released 4/26/2021
    - Added ARRAYROWS and ARRAYCOLS functions to MuscleSupport.h
