@@ -470,6 +470,27 @@ public:
    /** Returns the number of 32-bit-words that are represented by this bit-chord */
    static MUSCLE_CONSTEXPR uint32 GetNumWordsInBitChord() {return NUM_WORDS;}
 
+   /** Returns a human-readable String listing the bit-indices that are currently set.
+     * For example, if bits #0, #3, #4, #5, and #7 are set, the returned String would
+     * be "0,3-5,7".
+     */
+   String ToString() const
+   {
+      String ret;
+      int32 runStart = -1, runEnd = -1;
+      for (uint32 i=0; i<NumBits; i++)
+      {
+         if (IsBitSet(i))
+         {
+            if (runStart < 0) runStart = i;
+            runEnd = i;
+         }
+         else FlushStringClause(ret, runStart, runEnd);
+      }
+      FlushStringClause(ret, runStart, runEnd);
+      return ret;
+   }
+
    /** Returns a fixed-length hexadecimal representation of this bit-chord. */
    String ToHexString() const
    {
@@ -569,6 +590,17 @@ private:
 #else
          lastWord &= GetWordWithFirstNBitsSet(numLeftoverBits);  // O(1) implementation
 #endif
+      }
+   }
+
+   void FlushStringClause(String & s, int32 & runStart, int32 & runEnd) const
+   {
+      if (runEnd >= 0)
+      {
+         if (s.HasChars()) s += ',';
+         if (runEnd > runStart) s += String("%1-%2").Arg(runStart).Arg(runEnd);
+                           else s += String("%1").Arg(runStart);
+         runStart = runEnd = -1;
       }
    }
 

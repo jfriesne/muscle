@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a ToString() method to the BitChord class for easier debugging.
    * Applied various fixes based on warnings supplied by cppcheck.
    * Modified TCPSocketDataIO::FlushOutput() to no longer call
      SetSocketCorkAlgorithmEnabled() when compiled under MacOS/X,
