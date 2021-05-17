@@ -59,11 +59,11 @@ int main(int argc, char ** argv)
 
    // Install a per-Log()-call LogCallback, just to demonstrate with
    MyLogCallback myLogCallback;
-   PutLogCallback(LogCallbackRef(&myLogCallback, false));
+   PutLogCallback(DummyLogCallbackRef(myLogCallback));
 
    // Also Install a per-line-call LogLineCallback, just to demonstrate with
    MyLogLineCallback myLogLineCallback;
-   PutLogCallback(LogCallbackRef(&myLogLineCallback, false));
+   PutLogCallback(DummyLogCallbackRef(myLogLineCallback));
 
    // Now let's try some logging and see how our callbacks get called
    LogTime(MUSCLE_LOG_INFO, "This message was sent via a single call to LogTime()\n");
@@ -77,8 +77,8 @@ int main(int argc, char ** argv)
    // Since we declared our log callbacks on the stack, let's take care to
    // remove the callbacks before the objects are destroyed; otherwise a late call
    // to LogTime() might try to call a deleted callback object, with unfortunate results.
-   RemoveLogCallback(LogCallbackRef(&myLogLineCallback, false));
-   RemoveLogCallback(LogCallbackRef(&myLogCallback, false));
+   RemoveLogCallback(DummyLogCallbackRef(myLogLineCallback));
+   RemoveLogCallback(DummyLogCallbackRef(myLogCallback));
 
    return 0;
 }

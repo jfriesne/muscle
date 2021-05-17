@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
    StdinDataIO stdinIO(false);
    QueueGatewayMessageReceiver stdinInQueue;
    PlainTextMessageIOGateway stdinGateway;
-   stdinGateway.SetDataIO(DataIORef(&stdinIO, false));
+   stdinGateway.SetDataIO(DummyDataIORef(stdinIO));
    const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
 
    SocketMultiplexer multiplexer;

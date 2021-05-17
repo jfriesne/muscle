@@ -143,7 +143,7 @@ static status_t FlushOutBuffer(const ByteBufferRef & outBuf, DataIO & io)
 static void DoSession(DataIO & io, bool allowRead = true)
 {
    StdinDataIO stdinIO(false);
-   PlainTextMessageIOGateway stdinGateway; stdinGateway.SetDataIO(DataIORef(&stdinIO, false));
+   PlainTextMessageIOGateway stdinGateway; stdinGateway.SetDataIO(DummyDataIORef(stdinIO));
    QueueGatewayMessageReceiver receiver;
    ByteBufferRef spamBuf;  if (_spamsPerSecond > 0) spamBuf = GetByteBufferFromPool(_spamSize);
 

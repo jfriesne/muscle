@@ -52,7 +52,7 @@ int main(int argc, char ** argv)
    // (All of the client's "smarts" will be implemented in the MySmartStdinSession class)
    MyTCPSession tcpSession;
    status_t ret;
-   if (reflectServer.AddNewConnectSession(AbstractReflectSessionRef(&tcpSession, false), localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
+   if (reflectServer.AddNewConnectSession(DummyAbstractReflectSessionRef(tcpSession), localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add tcpSession to the client, aborting! [%s]\n", ret());
       return 10;

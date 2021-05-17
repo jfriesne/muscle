@@ -41,7 +41,7 @@ int main(int argc, char ** argv)
    // We'll receive plain text over stdin
    StdinDataIO stdinIO(false);
    PlainTextMessageIOGateway stdinGateway; 
-   stdinGateway.SetDataIO(DataIORef(&stdinIO, false));
+   stdinGateway.SetDataIO(DummyDataIORef(stdinIO));
 
    // And send and receive flattened Message objects over our TCP socket
    TCPSocketDataIO tcpIO(sock, false);
@@ -50,10 +50,10 @@ int main(int argc, char ** argv)
 #else
    MessageIOGateway tcpGateway;
 #endif
-   tcpGateway.SetDataIO(DataIORef(&tcpIO, false));
+   tcpGateway.SetDataIO(DummyDataIORef(tcpIO));
 
-   DataIORef networkIORef(&tcpIO, false);
-   AbstractMessageIOGatewayRef gatewayRef(&tcpGateway, false);
+   DummyDataIORef networkIORef(tcpIO);
+   DummyAbstractMessageIOGatewayRef gatewayRef(tcpGateway);
 
 #ifdef MUSCLE_ENABLE_SSL
    const char * publicKeyPath  = NULL;

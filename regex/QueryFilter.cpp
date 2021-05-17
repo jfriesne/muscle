@@ -404,7 +404,7 @@ bool RawDataQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) cons
 bool ChildCountQueryFilter :: Matches(ConstMessageRef & /*msg*/, const DataNode * optNode) const
 {
    Message temp; (void) temp.AddInt32(GetEmptyString(), optNode ? optNode->GetNumChildren() : 0);
-   ConstMessageRef tempRef(&temp, false);
+   DummyConstMessageRef tempRef(temp);
    return NumericQueryFilter<int32, B_INT32_TYPE, QUERY_FILTER_TYPE_CHILDCOUNT>::Matches(tempRef, optNode);
 }
 
@@ -450,7 +450,7 @@ static QueryFilterFactoryRef _customQueryFilterFactoryRef;
 QueryFilterFactoryRef GetGlobalQueryFilterFactory()
 {
    if (_customQueryFilterFactoryRef()) return _customQueryFilterFactoryRef;
-                                  else return QueryFilterFactoryRef(&_defaultQueryFilterFactory, false);   
+                                  else return DummyQueryFilterFactoryRef(_defaultQueryFilterFactory);   
 }
 
 void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory)

@@ -13,7 +13,7 @@ static void DoIndents(uint32 num, String & s) {for (uint32 i=0; i<num; i++) s +=
 static MessageRef::ItemPool _messagePool;
 MessageRef::ItemPool * GetMessagePool() {return &_messagePool;}
 
-static ConstMessageRef _emptyMsgRef(&_messagePool.GetDefaultObject(), false);
+static DummyConstMessageRef _emptyMsgRef(_messagePool.GetDefaultObject());
 const ConstMessageRef & GetEmptyMessageRef() {return _emptyMsgRef;}
 
 #define DECLARECLONE(X)                             \

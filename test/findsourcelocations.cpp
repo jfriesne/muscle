@@ -20,7 +20,7 @@ static void CheckFile(const String & path, uint32 code)
       String fileName = path.Substring(GetFilePathSeparator());
 
       PlainTextMessageIOGateway gw;
-      gw.SetDataIO(DataIORef(&dio, false));
+      gw.SetDataIO(DummyDataIORef(dio));
 
       // Read in the file
       QueueGatewayMessageReceiver q;

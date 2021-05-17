@@ -66,14 +66,14 @@ int main(int argc, char ** argv)
    // attach the StorageReflectSession to the ReflectServer for use.   
    StorageReflectSessionFactory smartSessionFactory;
    status_t ret;
-   if (reflectServer.PutAcceptFactory(SMART_SERVER_TCP_PORT, ReflectSessionFactoryRef(&smartSessionFactory, false)).IsError(ret))
+   if (reflectServer.PutAcceptFactory(SMART_SERVER_TCP_PORT, DummyReflectSessionFactoryRef(smartSessionFactory)).IsError(ret))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't bind to TCP port %u!  (Perhaps a copy of this program is already running?) [%s]\n", SMART_SERVER_TCP_PORT, ret());
       return 5;
    }
 
    MyDetectNetworkConfigChangesSession myDetectSession;
-   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&myDetectSession, false)).IsError(ret))
+   if (reflectServer.AddNewSession(DummyAbstractReflectSessionRef(myDetectSession)).IsError(ret))
    {
       LogTime(MUSCLE_LOG_ERROR, "Couldn't add MyDetectNetworkConfigChangesSession, aborting! [%s]\n", ret());
       return 10;

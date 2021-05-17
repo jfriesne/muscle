@@ -21,9 +21,11 @@ extern void UpdateAllocationStackTrace(bool isAllocation, String * & s);  // imp
   * Given a RefCountable class Named XXX it will create typedefs named XXXRef and ConstXXXRef as 
   * more readable synonyms for Ref<XXX> and ConstRef<XXX>, respectively.
   */
-#define DECLARE_REFTYPES(RefCountableClassName)                                       \
-   typedef muscle::ConstRef<RefCountableClassName> Const##RefCountableClassName##Ref; \
-   typedef muscle::Ref<RefCountableClassName>      RefCountableClassName##Ref
+#define DECLARE_REFTYPES(RefCountableClassName)                                            \
+   typedef muscle::ConstRef<RefCountableClassName>      Const##RefCountableClassName##Ref; \
+   typedef muscle::Ref<RefCountableClassName>           RefCountableClassName##Ref;        \
+   typedef muscle::DummyRef<RefCountableClassName>      Dummy##RefCountableClassName##Ref; \
+   typedef muscle::DummyConstRef<RefCountableClassName> DummyConst##RefCountableClassName##Ref
 
 /** This class represents objects that can be reference-counted using the Ref class. 
   * Note that any object that can be reference-counted can also be cached and recycled via an ObjectPool.
@@ -109,8 +111,10 @@ private:
    String * _allocatedAtStackTrace;
 #endif
 };
-template <class Item> class Ref;       // forward reference
-template <class Item> class ConstRef;  // forward reference
+template <class Item> class Ref;           // forward reference
+template <class Item> class ConstRef;      // forward reference
+template <class Item> class DummyRef;      // forward reference
+template <class Item> class DummyConstRef; // forward reference
 DECLARE_REFTYPES(RefCountable);
 
 /**
@@ -429,6 +433,31 @@ private:
    PointerAndBool<const Item> _item;
 };
 
+/** This class is just syntactic sugar for more clearly declaring a
+  * ConstRef that doesn't actually do any reference-counting of the object
+  * that it refers to (e.g. if you need a ConstRef to a stack-based object and
+  * are willing to take responsibility for manually managing object-lifetime issues
+  * yourself).  It will behave similarly to a raw const-pointer
+  */
+template <class Item> class DummyConstRef : public ConstRef<Item>
+{
+public:
+   /** Default constructor.  Creates a NULL reference. */
+   DummyConstRef() {/* empty */}
+
+   /** Creates a dummy-const-refernce to the specified item
+     * @param item reference to the item to point to
+     */
+   explicit DummyConstRef(const Item & item) : ConstRef<Item>(&item, false) {/* empty */}
+
+   /** This constructor is useful for automatic upcasting (e.g. creating a
+     * DummyConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
+     * @param refItem A Ref to copy our state from.
+     */
+   template<typename T> DummyConstRef(const ConstRef<T> & refItem) : ConstRef<Item>(refItem(), false) {/* empty */}
+};
+
+
 /** When we compare references, we really want to be comparing what those references point to */
 template <typename ItemType> class CompareFunctor<ConstRef<ItemType> >
 {
@@ -517,6 +546,30 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    inline Ref &operator=(Ref && rhs) {this->SwapContents(rhs); return *this;}
 #endif
+};
+
+/** This class is just syntactic sugar for more clearly declaring a
+  * Ref that doesn't actually do any reference-counting of the object
+  * that it refers to (e.g. if you need a Ref to a stack-based object and
+  * are willing to take responsibility for manually managing object-lifetime issues
+  * yourself).  It will behave similarly to a raw pointer
+  */
+template <class Item> class DummyRef : public Ref<Item>
+{
+public:
+   /** Default constructor.  Creates a NULL reference. */
+   DummyRef() {/* empty */}
+
+   /** Creates a dummy-const-refernce to the specified item
+     * @param item reference to the item to point to
+     */
+   explicit DummyRef(Item & item) : Ref<Item>(&item, false) {/* empty */}
+
+   /** This constructor is useful for automatic upcasting (e.g. creating a
+     * DummyAbstractReflectSessionRef from a StorageReflectSessionRef)
+     * @param refItem A Ref to copy our state from.
+     */
+   template<typename T> DummyRef(const Ref<T> & refItem) : Ref<Item>(refItem(), false) {/* empty */}
 };
 
 /** This function works similarly to ConstRefCount::GetItemPointer(), except that this function 

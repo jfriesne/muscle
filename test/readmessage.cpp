@@ -92,7 +92,7 @@ int main(int argc, char ** argv)
       Message msg;
       if (msg.Unflatten(buf()->GetBuffer(), buf()->GetNumBytes()).IsOK(ret))
       {
-         MessageRef infMsg = InflateMessage(MessageRef(&msg, false));
+         MessageRef infMsg = InflateMessage(DummyMessageRef(msg));
          if ((infMsg())&&(infMsg() != &msg))
          {
             LogTime(MUSCLE_LOG_INFO, "Zlib-inflated Message from " UINT32_FORMAT_SPEC " bytes to " UINT32_FORMAT_SPEC " bytes\n", msg.FlattenedSize(), infMsg()->FlattenedSize());

@@ -95,7 +95,7 @@ int main(int argc, char ** argv)
    TCPSocketDataIO tcpIO(tcpSock, false);  // false == set socket to non-blocking mode!
 
    PlainTextMessageIOGateway gateway;
-   gateway.SetDataIO(DataIORef(&tcpIO, false));  // false == don't delete the pointer!
+   gateway.SetDataIO(DummyDataIORef(tcpIO));
 
    // And we'll use a StdinDataIO to collect stdin input from the user
    // (We could use a PlainTextPlainTextMessageIOGateway in conjunction with it, but for simplicity I won't)

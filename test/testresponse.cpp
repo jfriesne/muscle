@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
          TCPSocketDataIO sockIO(s, false);
 
          MessageIOGateway ioGateway;
-         ioGateway.SetDataIO(DataIORef(&sockIO, false));
+         ioGateway.SetDataIO(DummyDataIORef(sockIO));
 
          QueueGatewayMessageReceiver inQueue;
          uint64 lastThrowTime = 0;
@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
          SocketMultiplexer multiplexer;
          while(1)
          {
-            if ((pingSent == false)&&(ioGateway.AddOutgoingMessage(MessageRef(&pingMessage, false)).IsOK())) 
+            if ((pingSent == false)&&(ioGateway.AddOutgoingMessage(DummyMessageRef(pingMessage)).IsOK())) 
             {
                pingSent = true;
                lastThrowTime = GetRunTime64();

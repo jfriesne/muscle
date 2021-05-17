@@ -90,7 +90,7 @@ int main(int argc, char ** argv)
    TestSession session;
 
    status_t ret;
-   if (server.AddNewSession(AbstractReflectSessionRef(&session, false)).IsOK(ret))
+   if (server.AddNewSession(DummyAbstractReflectSessionRef(session)).IsOK(ret))
    {
       LogTime(MUSCLE_LOG_INFO, "Beginning PulseNode test...\n");
       if (server.ServerProcessLoop().IsOK(ret)) LogTime(MUSCLE_LOG_INFO, "testpulsechild event loop exiting.\n");

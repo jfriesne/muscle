@@ -52,11 +52,11 @@ App::App(void)
 	FunctionCallback fcb(AbstractObjectRecycler::GlobalFlushAllCachedObjects);
 	MemoryAllocatorRef nullRef;
 	AutoCleanupProxyMemoryAllocator cleanupAllocator(nullRef);
-	cleanupAllocator.GetCallbacksQueue().AddTail(GenericCallbackRef(&fcb, false));
+	cleanupAllocator.GetCallbacksQueue().AddTail(DummyGenericCallbackRef(fcb));
 
-	UsageLimitProxyMemoryAllocator usageLimitAllocator(MemoryAllocatorRef(&cleanupAllocator, false));
+	UsageLimitProxyMemoryAllocator usageLimitAllocator(DummyMemoryAllocatorRef(cleanupAllocator));
 
-	SetCPlusPlusGlobalMemoryAllocator(MemoryAllocatorRef(&usageLimitAllocator, false));
+	SetCPlusPlusGlobalMemoryAllocator(DummyMemoryAllocatorRef(usageLimitAllocator));
 	SetCPlusPlusGlobalMemoryAllocator(MemoryAllocatorRef());  // unset, so that none of our allocator objects will be used after they are gone
 	
 	if ((maxBytes != MUSCLE_NO_LIMIT) && (&usageLimitAllocator)) 
@@ -113,7 +113,7 @@ App::App(void)
 	// Set up the Session Factory.  This factory object creates the new StorageReflectSessions
 	// as needed when people connect, and also has a filter to keep out the riff-raff.
 	StorageReflectSessionFactory factory; factory.SetMaxIncomingMessageSize(maxMessageSize);
-	FilterSessionFactory filter(ReflectSessionFactoryRef(&factory, false), maxSessionsPerHost, maxSessions);
+	FilterSessionFactory filter(DummyReflectSessionFactoryRef(factory), maxSessionsPerHost, maxSessions);
 	filter.SetInputPolicy(inputPolicyRef);
 	filter.SetOutputPolicy(outputPolicyRef);
 
@@ -157,7 +157,7 @@ App::App(void)
 	
 	for (HashtableIterator<IPAddressAndPort, Void> iter(listenPorts); iter.HasData(); iter++) {
 		const IPAddressAndPort & iap = iter.GetKey();
-		if (server.PutAcceptFactory(iap.GetPort(), ReflectSessionFactoryRef(&filter, false), iap.GetIPAddress()) != B_NO_ERROR) {
+		if (server.PutAcceptFactory(iap.GetPort(), DummyReflectSessionFactoryRef(filter), iap.GetIPAddress()) != B_NO_ERROR) {
 			if (iap.GetIPAddress() == invalidIP)
 				LogTime(MUSCLE_LOG_CRITICALERROR, "Error adding port %u, aborting.\n", iap.GetPort());
 			else

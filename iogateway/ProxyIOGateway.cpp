@@ -7,7 +7,7 @@ namespace muscle {
 ProxyIOGateway :: ProxyIOGateway(const AbstractMessageIOGatewayRef & slaveGateway)
    : _slaveGateway(slaveGateway)
 {
-   _fakeStreamSendIO.SetBuffer(ByteBufferRef(&_fakeStreamSendBuffer, false));
+   _fakeStreamSendIO.SetBuffer(DummyByteBufferRef(_fakeStreamSendBuffer));
    // _fakeStreamReceiveIO's buffer will be set just before it is used
 }
 
@@ -15,7 +15,7 @@ void ProxyIOGateway :: HandleIncomingByteBuffer(AbstractGatewayMessageReceiver &
 {
    ByteBuffer temp;
    temp.AdoptBuffer(bytesRead, const_cast<uint8 *>(p));
-   HandleIncomingByteBuffer(receiver, ByteBufferRef(&temp, false), fromIAP);
+   HandleIncomingByteBuffer(receiver, DummyByteBufferRef(temp), fromIAP);
    (void) temp.ReleaseBuffer();
 }
 
@@ -29,7 +29,7 @@ void ProxyIOGateway :: HandleIncomingByteBuffer(AbstractGatewayMessageReceiver &
       {
          // packet-IO implementation
          _fakePacketReceiveIO.SetBuffersToRead(buf, fromIAP);
-         _slaveGateway()->SetDataIO(DataIORef(&_fakePacketReceiveIO, false));
+         _slaveGateway()->SetDataIO(DummyDataIORef(_fakePacketReceiveIO));
          _scratchReceiver    = &receiver;
          _scratchReceiverArg = (void *) &fromIAP;
          (void) _slaveGateway()->DoInput(*this, buf()->GetNumBytes());
@@ -39,7 +39,7 @@ void ProxyIOGateway :: HandleIncomingByteBuffer(AbstractGatewayMessageReceiver &
       {
          // stream-IO implementation
          _fakeStreamReceiveIO.SetBuffer(buf); (void) _fakeStreamReceiveIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
-         _slaveGateway()->SetDataIO(DataIORef(&_fakeStreamReceiveIO, false));
+         _slaveGateway()->SetDataIO(DummyDataIORef(_fakeStreamReceiveIO));
 
          uint32 slaveBytesRead = 0;
          while(slaveBytesRead < buf()->GetNumBytes())
@@ -76,7 +76,7 @@ void ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
 
       if (GetMaximumPacketSize() > 0)
       {
-         _slaveGateway()->SetDataIO(DataIORef(&_fakePacketSendIO, false));
+         _slaveGateway()->SetDataIO(DummyDataIORef(_fakePacketSendIO));
          while(_slaveGateway()->DoOutput() > 0) {/* empty */}
 
          Hashtable<ByteBufferRef, IPAddressAndPort> & b = _fakePacketSendIO.GetWrittenBuffers();
@@ -90,9 +90,9 @@ void ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
       {
          _fakeStreamSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
          _fakeStreamSendBuffer.SetNumBytes(0, false);
-         _slaveGateway()->SetDataIO(DataIORef(&_fakeStreamSendIO, false));
+         _slaveGateway()->SetDataIO(DummyDataIORef(_fakeStreamSendIO));
          while(_slaveGateway()->DoOutput() > 0) {/* empty */}
-         (void) outQ.AddTail(ByteBufferRef(&_fakeStreamSendBuffer, false));
+         (void) outQ.AddTail(DummyByteBufferRef(_fakeStreamSendBuffer));
       }
 
       _slaveGateway()->SetDataIO(oldIO);  // restore slave gateway's old state
@@ -101,7 +101,7 @@ void ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
    {
       // Default algorithm:  Just Flatten() the Message directly into a buffer
       msg()->Flatten(_fakeStreamSendBuffer.GetBuffer());
-      (void) outQ.AddTail(ByteBufferRef(&_fakeStreamSendBuffer, false));
+      (void) outQ.AddTail(DummyByteBufferRef(_fakeStreamSendBuffer));
    }
 }
 

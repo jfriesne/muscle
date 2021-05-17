@@ -62,7 +62,7 @@ int main(int argc, char ** argv)
    }
 
    TCPSocketDataIO tcp(s, true);
-   PacketizedProxyDataIO pack(DataIORef(&tcp, false), mtu); 
+   PacketizedProxyDataIO pack(DummyDataIORef(tcp), mtu); 
 
    if (connectTo == invalidIP)
    {

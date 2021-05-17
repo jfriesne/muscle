@@ -575,7 +575,7 @@ MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & 
  
       DataIORef oldIO = GetDataIO();
       TCPSocketDataIO tsdio(s, false);
-      SetDataIO(DataIORef(&tsdio, false));
+      SetDataIO(DummyDataIORef(tsdio));
       QueueGatewayMessageReceiver receiver;
       if ((AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)).IsOK())&&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod).IsOK())) ret = receiver.GetMessages().HasItems() ? receiver.GetMessages().Head() : GetMessageFromPool();
       SetDataIO(oldIO);  // restore any previous I/O
@@ -598,7 +598,7 @@ status_t MessageIOGateway :: ExecuteSynchronousMessageSend(const Message & reque
  
       DataIORef oldIO = GetDataIO();
       TCPSocketDataIO tsdio(s, false);
-      SetDataIO(DataIORef(&tsdio, false));
+      SetDataIO(DummyDataIORef(tsdio));
       QueueGatewayMessageReceiver receiver;
       if (AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)).IsOK()) 
       {

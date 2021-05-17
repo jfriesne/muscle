@@ -272,7 +272,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    // Set up the Session Factory.  This factory object creates the new StorageReflectSessions
    // as needed when people connect, and also has a filter to keep out the riff-raff.
    StorageReflectSessionFactory factory; factory.SetMaxIncomingMessageSize(maxMessageSize);
-   FilterSessionFactory filter(ReflectSessionFactoryRef(&factory, false), maxSessionsPerHost, maxSessions);
+   FilterSessionFactory filter(DummyReflectSessionFactoryRef(factory), maxSessionsPerHost, maxSessions);
    filter.SetInputPolicy(inputPolicyRef);
    filter.SetOutputPolicy(outputPolicyRef);
 
@@ -289,7 +289,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    {
       const IPAddressAndPort & iap = iter.GetKey();
 
-      if (server.PutAcceptFactory(iap.GetPort(), ReflectSessionFactoryRef(&filter, false), iap.GetIPAddress()).IsError(ret))
+      if (server.PutAcceptFactory(iap.GetPort(), DummyReflectSessionFactoryRef(filter), iap.GetIPAddress()).IsError(ret))
       {
          if (iap.GetIPAddress() == invalidIP) LogTime(MUSCLE_LOG_CRITICALERROR, "Error adding port %u, aborting.  [%s]\n", iap.GetPort(), ret());
                                          else LogTime(MUSCLE_LOG_CRITICALERROR, "Error adding port %u to interface %s, aborting.  [%s]\n", iap.GetPort(), Inet_NtoA(iap.GetIPAddress())(), ret());
@@ -326,11 +326,11 @@ int main(int argc, char ** argv)
    FunctionCallback fcb(AbstractObjectRecycler::GlobalFlushAllCachedObjects);
    MemoryAllocatorRef nullRef;
    AutoCleanupProxyMemoryAllocator cleanupAllocator(nullRef);
-   cleanupAllocator.GetCallbacksQueue().AddTail(GenericCallbackRef(&fcb, false));
+   cleanupAllocator.GetCallbacksQueue().AddTail(DummyGenericCallbackRef(fcb));
 
-   UsageLimitProxyMemoryAllocator usageLimitAllocator(MemoryAllocatorRef(&cleanupAllocator, false));
+   UsageLimitProxyMemoryAllocator usageLimitAllocator(DummyMemoryAllocatorRef(cleanupAllocator));
 
-   SetCPlusPlusGlobalMemoryAllocator(MemoryAllocatorRef(&usageLimitAllocator, false));
+   SetCPlusPlusGlobalMemoryAllocator(DummyMemoryAllocatorRef(usageLimitAllocator));
    const int ret = muscledmainAux(argc, argv, &usageLimitAllocator);
    SetCPlusPlusGlobalMemoryAllocator(MemoryAllocatorRef());  // unset, so that none of our allocator objects will be used after they are gone
 

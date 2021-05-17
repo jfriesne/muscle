@@ -219,7 +219,7 @@ int main(int argc, char ** argv)
    status_t ret;
 
    MySmartStdinSession myStdinSession;
-   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&myStdinSession, false), GetInvalidSocket()).IsError(ret))
+   if (reflectServer.AddNewSession(DummyAbstractReflectSessionRef(myStdinSession), GetInvalidSocket()).IsError(ret))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add MySmartStdinSession to the client, aborting! [%s]\n", ret());
       return 10;
@@ -228,7 +228,7 @@ int main(int argc, char ** argv)
    // Still using a DumbReflectSession here since all we need is Message-forwarding.
    // (All of the client's "smarts" will be implemented in the MySmartStdinSession class)
    DumbReflectSession tcpSession;
-   if (reflectServer.AddNewConnectSession(AbstractReflectSessionRef(&tcpSession, false), localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
+   if (reflectServer.AddNewConnectSession(DummyAbstractReflectSessionRef(tcpSession), localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add StorageReflectSession to the client, aborting! [%s]\n", ret());
       return 10;

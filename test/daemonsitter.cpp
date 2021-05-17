@@ -224,7 +224,7 @@ static int DoChildProcess(const String & label, int /*argc*/, char ** /*argv*/)
 
    status_t ret;
    StdinSession stdinSession(label);
-   if (server.AddNewSession(AbstractReflectSessionRef(&stdinSession, false)).IsOK(ret))
+   if (server.AddNewSession(DummyAbstractReflectSessionRef(stdinSession)).IsOK(ret))
    {
       LogTime(MUSCLE_LOG_INFO, "Child Process [%s] is running and listening to stdin.\n", label());
       if (server.ServerProcessLoop().IsOK()) LogTime(MUSCLE_LOG_INFO,  "Child Process [%s] event-loop finished.\n", label());
@@ -268,7 +268,7 @@ int main(int argc, char ** argv)
 
    status_t ret;
    ReflectServer server;
-   if (server.AddNewSession(AbstractReflectSessionRef(&stdinSession, false)).IsOK())
+   if (server.AddNewSession(DummyAbstractReflectSessionRef(stdinSession)).IsOK())
    {
       // Also add some dummy child processes that we will manage and restart
       for (uint32 i=0; i<5; i++)

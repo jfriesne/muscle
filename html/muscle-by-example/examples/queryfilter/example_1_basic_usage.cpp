@@ -13,7 +13,7 @@ static void PrintExampleDescription()
 
 static void TestTheMessage(const Message & msg, const char * filterDescription, const QueryFilter & qf)
 {
-   ConstMessageRef msgRef(&msg, false);
+   DummyConstMessageRef msgRef(msg);
    LogTime(MUSCLE_LOG_ERROR, "QueryFilter \"%s\" says the Message %s\n", filterDescription, qf.Matches(msgRef, NULL)?"MATCHES":"doesn't match");
 }
 
@@ -63,15 +63,15 @@ int main(int argc, char ** argv)
    
    // Lastly we'll compose a few boolean expressions
 
-   AndQueryFilter answerIs42AndThereIsPi(ConstQueryFilterRef(&answerIs42, false), ConstQueryFilterRef(&piExists, false));
+   AndQueryFilter answerIs42AndThereIsPi = AndQueryFilter(DummyConstQueryFilterRef(answerIs42), DummyConstQueryFilterRef(piExists));
    TestTheMessage(testMsg, "answerIs42AndThereIsPi", answerIs42AndThereIsPi); // does field "answer" contain 42 AND the field "pi" exists?
 
-   OrQueryFilter answerIs37OrThereIsPi(ConstQueryFilterRef(&answerIs37, false), ConstQueryFilterRef(&piExists, false));
+   OrQueryFilter answerIs37OrThereIsPi = OrQueryFilter(DummyConstQueryFilterRef(answerIs37), DummyConstQueryFilterRef(piExists));
    TestTheMessage(testMsg, "answerIs37OrThereIsPi", answerIs37OrThereIsPi); // does field "answer" contain 37 OR the field "pi" exists?
 
    OrQueryFilter answerIs37OrThereIsFnord;
-   answerIs37OrThereIsFnord.GetChildren().AddTail(ConstQueryFilterRef(&answerIs37,  false));
-   answerIs37OrThereIsFnord.GetChildren().AddTail(ConstQueryFilterRef(&fnordExists, false));
+   answerIs37OrThereIsFnord.GetChildren().AddTail(DummyConstQueryFilterRef(answerIs37));
+   answerIs37OrThereIsFnord.GetChildren().AddTail(DummyConstQueryFilterRef(fnordExists));
    TestTheMessage(testMsg, "answerIs37OrThereIsFnord", answerIs37OrThereIsFnord); // does field "answer" contain 37 OR the field "fnord" exists?
 
    return 0;

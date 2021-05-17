@@ -101,7 +101,7 @@ int main(int argc, char ** argv)
    // to pass to the DumbReflectSession that is connected to the server.
    MyDumbStdinSession myStdinSession;
    status_t ret;
-   if (reflectServer.AddNewSession(AbstractReflectSessionRef(&myStdinSession, false), GetInvalidSocket()).IsError(ret))
+   if (reflectServer.AddNewSession(DummyAbstractReflectSessionRef(myStdinSession), GetInvalidSocket()).IsError(ret))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add MyDumbStdinSession to the client, aborting! [%s]\n", ret());
       return 10;
@@ -113,7 +113,7 @@ int main(int argc, char ** argv)
    // The SecondsToMicros(1) argument tells the ReflectServer to handle
    // a TCP disconnect by automatically reconnecting the session after a 1-second delay.
    DumbReflectSession tcpSession;
-   if (reflectServer.AddNewConnectSession(AbstractReflectSessionRef(&tcpSession, false), localhostIP, DUMB_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
+   if (reflectServer.AddNewConnectSession(DummyAbstractReflectSessionRef(tcpSession), localhostIP, DUMB_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add DumbReflectSession to the client, aborting! [%s]\n", ret());
       return 10;

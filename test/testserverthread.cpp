@@ -72,7 +72,7 @@ protected:
 
       status_t ret;
       WatchNotifySocketSession wnss(reflectServer, *this);
-      if (reflectServer.AddNewSession(AbstractReflectSessionRef(&wnss, false), GetInternalThreadWakeupSocket()).IsOK(ret))
+      if (reflectServer.AddNewSession(DummyAbstractReflectSessionRef(wnss), GetInternalThreadWakeupSocket()).IsOK(ret))
       {
          printf("Child thread running...\n");
          (void) reflectServer.ServerProcessLoop();

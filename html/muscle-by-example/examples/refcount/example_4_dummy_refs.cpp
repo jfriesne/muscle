@@ -14,8 +14,8 @@ static void PrintExampleDescription()
 class MyClass : public RefCountable
 {
 public:
-   MyClass() {}
-   ~MyClass() {}
+   MyClass()  {printf("MyClass constructor called for object %p\n", this);}
+   ~MyClass() {printf("MyClass destructor called for object %p\n", this);}
 
    void SayHello() {printf("MyClass object %p says hello!\n", this);}
 };
@@ -50,12 +50,12 @@ int main(int argc, char ** argv)
    MyClassRef thisIsABadIdea(&stackObject);
 #endif
 
-   // But we can do this.  Note the 'false' second argument.
-   // That tells the MyClassRef object to not try to delete
-   // or recycle anything; instead, it should just act like
-   // a raw/dumb C pointer and leave the object's destruction
-   // up to us.
-   MyClassRef stackRef(&stackObject, false);
+   // But we can do this.  The "Dummy" version of the Ref
+   // class knows never to try to delete or recycle anything;
+   // instead, it should just act like a raw C pointer
+   // and leave the object's destruction up to the calling code
+   // to handle.
+   DummyMyClassRef stackRef(stackObject);
 
    // Now we can pass the object to our function.
    SomeFunctionThatTakesAMyClassRef(stackRef);
@@ -66,7 +66,7 @@ int main(int argc, char ** argv)
    // into a static variable or something) then it is liable
    // to end up holding a dangling-pointer after 'stackObject'
    // is destroyed.  So use this technique with caution, as
-   // it is similar to using raw C pointers...
+   // it introduces the same hazards as using raw C pointers.
 
    return 0;
 }

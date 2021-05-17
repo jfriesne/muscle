@@ -250,8 +250,10 @@ public:
          msg = GetMessageFromPool(DNCCS_MESSAGE_INTERFACES_CHANGED);
          if (msg()) for (HashtableIterator<String, Void> iter(optInterfaceNames); iter.HasData(); iter++) msg()->AddString("if", iter.GetKey());
       }
-      static Message _msg(DNCCS_MESSAGE_INTERFACES_CHANGED);
-      ThreadSafeSendMessageToSessions(msg() ? msg : MessageRef(&_msg, false));
+
+      static Message _defaultMsg(DNCCS_MESSAGE_INTERFACES_CHANGED);
+      if (msg()) ThreadSafeSendMessageToSessions(msg);
+            else ThreadSafeSendMessageToSessions(DummyMessageRef(_defaultMsg));
    }
 
 protected:
@@ -368,7 +370,7 @@ protected:
                {
                   // Serialized since the NotifyUnicast*Change() callbacks get called from a different thread
                   static Message _msg(DNCCS_MESSAGE_INTERFACES_CHANGED);
-                  ThreadSafeSendMessageToSessions(MessageRef(&_msg, false));
+                  ThreadSafeSendMessageToSessions(DummyMessageRef(_msg));
                }          
                else if ((hiddenWindow)&&(waitResult == DWORD(WAIT_OBJECT_0+ARRAYITEMS(events))))
                {

@@ -153,7 +153,7 @@ int main(int argc, char ** argv)
    status_t ret;
 
    ReflectServer server;
-   if (server.PutAcceptFactory(acceptPort, ReflectSessionFactoryRef(&downstreamSessionFactory, false)).IsOK(ret))
+   if (server.PutAcceptFactory(acceptPort, DummyReflectSessionFactoryRef(downstreamSessionFactory)).IsOK(ret))
    {
       LogTime(MUSCLE_LOG_INFO, "reflectclientproxy:  upstream server is at [%s], accepting incoming TCP connections on port %u.\n", upstreamLocation.ToString()(), acceptPort);
       ret = server.ServerProcessLoop();

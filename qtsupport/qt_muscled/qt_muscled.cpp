@@ -34,7 +34,7 @@ MuscledWindow :: MuscledWindow(const char * argv0)
    argv.AddTail("catchsignals");
    if (_cpdio.LaunchChildProcess(argv).IsOK()) 
    {
-      _gateway.SetDataIO(DataIORef(&_cpdio, false));
+      _gateway.SetDataIO(DummyDataIORef(_cpdio));
       _notifier = new QSocketNotifier(_cpdio.GetReadSelectSocket().GetFileDescriptor(), QSocketNotifier::Read, this);
       connect(_notifier, SIGNAL(activated(int)), this, SLOT(TextAvailableFromChildProcess()));
    }

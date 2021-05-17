@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
    // attach the DumbReflectSession to the ReflectServer for use.   
    status_t ret;
    DumbReflectSessionFactory dumbSessionFactory;
-   if (reflectServer.PutAcceptFactory(DUMB_SERVER_TCP_PORT, ReflectSessionFactoryRef(&dumbSessionFactory, false)).IsError(ret))
+   if (reflectServer.PutAcceptFactory(DUMB_SERVER_TCP_PORT, DummyReflectSessionFactoryRef(dumbSessionFactory)).IsError(ret))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't bind to TCP port %u!  (Perhaps a copy of this program is already running?)  [%s]\n", DUMB_SERVER_TCP_PORT, ret());
       return 5;

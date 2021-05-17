@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
 
       // Set up our gateway to use the FileDataIO
       MessageIOGateway outputGateway;
-      outputGateway.SetDataIO(DataIORef(&fileOutput, false));  // false == don't delete pointer!
+      outputGateway.SetDataIO(DummyDataIORef(fileOutput));
 
       // Create a couple of dummy Messages to test with
       MessageRef msg1 = GetMessageFromPool(1234);
@@ -67,7 +67,7 @@ int main(int argc, char ** argv)
 
       // Set up our gateway to use the FileDataIO
       MessageIOGateway inputGateway;
-      inputGateway.SetDataIO(DataIORef(&fileInput, false));  // false == don't delete pointer!
+      inputGateway.SetDataIO(DummyDataIORef(fileInput));
 
       // Turn the crank to eat the sausage
       QueueGatewayMessageReceiver qReceiver;  // we'll collect the parsed Messages in this

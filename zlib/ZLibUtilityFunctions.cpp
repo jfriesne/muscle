@@ -54,7 +54,7 @@ static void EnsureCleanupCallbackInstalled()
             if (css)
             {
                static FunctionCallback _freeCodecsCallback(FreeZLibCodecs);
-               if (css->GetCleanupCallbacks().AddTail(GenericCallbackRef(&_freeCodecsCallback, false)).IsOK()) _cleanupCallbackInstalled = true;
+               if (css->GetCleanupCallbacks().AddTail(DummyGenericCallbackRef(_freeCodecsCallback)).IsOK()) _cleanupCallbackInstalled = true;
             }
          }
          m->Unlock();

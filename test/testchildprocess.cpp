@@ -144,7 +144,7 @@ int main(int argc, char ** argv)
    StdinDataIO stdinIO(false);
    PlainTextMessageIOGateway stdinGateway;
    QueueGatewayMessageReceiver stdinInputQueue;
-   stdinGateway.SetDataIO(DataIORef(&stdinIO, false)); 
+   stdinGateway.SetDataIO(DummyDataIORef(stdinIO)); 
 
    SocketMultiplexer multiplexer;
 
