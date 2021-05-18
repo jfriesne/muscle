@@ -8,6 +8,7 @@ key:  - new feature
    - Added DummyRef and DummyConstRef classes to util/RefCount.h, to support
      reader-friendly declarations of references to stack-based objects.
    - Added a ToString() method to the BitChord class for easier debugging.
+   o Made one-argument constructors for several QueryFilter subclasses explicit.
    * Applied various fixes based on warnings supplied by cppcheck.
    * Modified TCPSocketDataIO::FlushOutput() to no longer call
      SetSocketCorkAlgorithmEnabled() when compiled under MacOS/X,

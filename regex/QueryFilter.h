@@ -566,7 +566,7 @@ public:
      * This really just makes us a pass-through/decorator object to the child QueryFilter.
      * @param child The child QueryFilter
      */
-   AndQueryFilter(const ConstQueryFilterRef & child) : MinimumThresholdQueryFilter(MUSCLE_NO_LIMIT)
+   explicit AndQueryFilter(const ConstQueryFilterRef & child) : MinimumThresholdQueryFilter(MUSCLE_NO_LIMIT)
    {
       (void) GetChildren().AddTail(child);
    }
@@ -635,7 +635,7 @@ public:
      * This really just makes us a pass-through/decorator object to the child QueryFilter.
      * @param child The child QueryFilter
      */
-   OrQueryFilter(const ConstQueryFilterRef & child) : MinimumThresholdQueryFilter(0)
+   explicit OrQueryFilter(const ConstQueryFilterRef & child) : MinimumThresholdQueryFilter(0)
    {
       (void) GetChildren().AddTail(child);
    }
@@ -703,7 +703,7 @@ public:
    /** Convenience constructor to specify a unary NOT operator.
      * @param child QueryFilter whose Matches() method we will always return the opposite of
      */
-   NandQueryFilter(const ConstQueryFilterRef & child) : MaximumThresholdQueryFilter(MUSCLE_NO_LIMIT)
+   explicit NandQueryFilter(const ConstQueryFilterRef & child) : MaximumThresholdQueryFilter(MUSCLE_NO_LIMIT)
    {
       (void) GetChildren().AddTail(child);
    }
@@ -771,7 +771,7 @@ public:
    /** Convenience constructor to specify a unary NOT operator.
      * @param child QueryFilter whose Matches() method we will always return the opposite of
      */
-   NorQueryFilter(const ConstQueryFilterRef & child) : MaximumThresholdQueryFilter(0)
+   explicit NorQueryFilter(const ConstQueryFilterRef & child) : MaximumThresholdQueryFilter(0)
    {
       (void) GetChildren().AddTail(child);
    }

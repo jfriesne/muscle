@@ -63,10 +63,10 @@ int main(int argc, char ** argv)
    
    // Lastly we'll compose a few boolean expressions
 
-   AndQueryFilter answerIs42AndThereIsPi = AndQueryFilter(DummyConstQueryFilterRef(answerIs42), DummyConstQueryFilterRef(piExists));
+   AndQueryFilter answerIs42AndThereIsPi((DummyConstQueryFilterRef(answerIs42)), DummyConstQueryFilterRef(piExists));  // extra parens to avoid most-vexing-parse problem
    TestTheMessage(testMsg, "answerIs42AndThereIsPi", answerIs42AndThereIsPi); // does field "answer" contain 42 AND the field "pi" exists?
 
-   OrQueryFilter answerIs37OrThereIsPi = OrQueryFilter(DummyConstQueryFilterRef(answerIs37), DummyConstQueryFilterRef(piExists));
+   OrQueryFilter answerIs37OrThereIsPi((DummyConstQueryFilterRef(answerIs37)), DummyConstQueryFilterRef(piExists));  // extra parens to avoid most-vexing-parse problem
    TestTheMessage(testMsg, "answerIs37OrThereIsPi", answerIs37OrThereIsPi); // does field "answer" contain 37 OR the field "pi" exists?
 
    OrQueryFilter answerIs37OrThereIsFnord;
