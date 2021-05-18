@@ -81,7 +81,7 @@ public:
      * @param item The Socket object to take ownership of.  This will be recycled/deleted when this ConstSocketRef is destroyed, unless (doRefCount) is specified as false.
      * @param doRefCount If set false, we will not attempt to reference-count (item), and instead will only act like a dumb pointer.  Defaults to true.
      */
-   ConstSocketRef(const Socket * item, bool doRefCount = true) : ConstRef<Socket>(item, doRefCount) {/* empty */}
+   ConstSocketRef(const Socket * item, bool doRefCount = true) {SetRef(item, doRefCount);}
 
    /** Copy constructor
      * @param rhs The ConstSocketRef to become a copy of.  Note that this doesn't copy (rhs)'s underlying Socket object, but instead

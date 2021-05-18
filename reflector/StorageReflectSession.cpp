@@ -1465,7 +1465,7 @@ GetMatchCount(DataNode & node, const Message * optData, int rootDepth) const
    TCHECKPOINT;
 
    uint32 matchCount = 0;
-   ConstMessageRef fakeRef(optData, false);
+   DummyConstMessageRef fakeRef(optData);
    for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++) if (PathMatches(node, fakeRef, iter.GetValue(), rootDepth)) matchCount++;
    return matchCount;
 }

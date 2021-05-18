@@ -138,7 +138,7 @@ public:
 
          static Message _aboutToSleepMessage(DNCCS_MESSAGE_ABOUT_TO_SLEEP);
          static Message _justWokeUpMessage(DNCCS_MESSAGE_JUST_WOKE_UP);
-         (void) ThreadSafeSendMessageToSessions(MessageRef(isAboutToSleep ? &_aboutToSleepMessage : &_justWokeUpMessage, false));
+         (void) ThreadSafeSendMessageToSessions(DummyMessageRef(isAboutToSleep ? _aboutToSleepMessage : _justWokeUpMessage));
       }       
    }
 

@@ -136,18 +136,11 @@ public:
    ConstRef() : _item(NULL, true) {/* empty */}
 
    /** 
-     * Creates a new reference-count for the given item.
+     * Explicit constructor.  Increases the reference-count of the specified item.
      * Once referenced, (item) will be automatically deleted (or recycled) when the last ConstRef that references it goes away.
      * @param item A dynamically allocated object that the ConstRef class will assume responsibility for deleting.  May be NULL.
-     * @param doRefCount If set false, then this ConstRef will not do any ref-counting on (item); rather it
-     *                   just acts as a fancy version of a normal C++ pointer.  Specifically, it will not 
-     *                   modify the object's reference count, nor will it ever delete the object.  
-     *                   Setting this argument to false can be useful if you want to supply a  
-     *                   ConstRef to an item that wasn't dynamically allocated from the heap.
-     *                   But if you do that, it allows the possibility of the object going away while
-     *                   other Refs are still using it, so be careful!
      */
-   explicit ConstRef(const Item * item, bool doRefCount = true) : _item(item, doRefCount) {RefItem();} 
+   explicit ConstRef(const Item * item) : _item(item, true) {RefItem();}
 
    /** Copy constructor.  Creates an additional reference to the object referenced by (rhs).
     *  The referenced object won't be deleted until ALL Refs that reference it are gone.
@@ -303,7 +296,7 @@ public:
    bool IsRefCounting() const {return _item.GetBool();}
 
    /** Convenience method:  Returns a ConstRefCountableRef object referencing the same RefCountable as this typed ref. */
-   ConstRefCountableRef GetRefCountableRef() const {return ConstRefCountableRef(this->GetItemPointer(), this->IsRefCounting());}
+   ConstRefCountableRef GetRefCountableRef() const {ConstRefCountableRef ret; ret.SetRef(this->GetItemPointer(), this->IsRefCounting()); return ret;}
 
    /** Convenience method; attempts to set this typed ConstRef to be referencing the same item as the given ConstRefCountableRef.  
      * If the conversion cannot be done, our state will remain unchanged.
@@ -406,6 +399,10 @@ public:
    uint32 HashCode() const {return CalculateHashCode(this->GetItemPointer());}
 
 private:
+   friend class DummyConstRef<Item>;
+   friend class Ref<Item>;
+
+   ConstRef(const Item * item, bool doRefCount) : _item(item, doRefCount) {RefItem();}
    void SetRefCounting(bool rc) {_item.SetBool(rc);}
 
    void RefItem() 
@@ -445,10 +442,15 @@ public:
    /** Default constructor.  Creates a NULL reference. */
    DummyConstRef() {/* empty */}
 
-   /** Creates a dummy-const-refernce to the specified item
+   /** Creates a dummy-const-reference to the specified item
      * @param item reference to the item to point to
      */
    explicit DummyConstRef(const Item & item) : ConstRef<Item>(&item, false) {/* empty */}
+
+   /** Creates a dummy-const-reference to the specified item
+     * @param item pointer to the item to point to, or a NULL pointer to create a NULL DummyConstRef.
+     */
+   explicit DummyConstRef(const Item * item) : ConstRef<Item>(item, false) {/* empty */}
 
    /** This constructor is useful for automatic upcasting (e.g. creating a
      * DummyConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
@@ -486,18 +488,11 @@ public:
    Ref() : ConstRef<Item>() {/* empty */}
 
    /** 
-     * Creates a new reference-count for the given item.
-     * Once referenced, (item) will be automatically deleted (or recycled) when the last Ref that references it goes away.
-     * @param item A dynamically allocated object that the Ref class will assume responsibility for deleting.  May be NULL.
-     * @param doRefCount If set false, then this Ref will not do any ref-counting on (item); rather it
-     *                   just acts as a fancy version of a normal C++ pointer.  Specifically, it will not 
-     *                   modify the object's reference count, nor will it ever delete the object.  
-     *                   Setting this argument to false can be useful if you want to supply a  
-     *                   Ref to an item that wasn't dynamically allocated from the heap.
-     *                   But if you do that, it allows the possibility of the object going away while
-     *                   other Refs are still using it, so be careful!
+     * Explicit constructor.  Increases the reference-count of the specified item.
+     * Once referenced, (item) will be automatically deleted (or recycled) when the last ConstRef that references it goes away.
+     * @param item A dynamically allocated object that the ConstRef class will assume responsibility for deleting.  May be NULL.
      */
-   explicit Ref(Item * item, bool doRefCount = true) : ConstRef<Item>(item, doRefCount) {/* empty */}
+   explicit Ref(Item * item) : ConstRef<Item>(item, true) {/* empty */}
 
    /** Copy constructor.  Creates an additional reference to the object referenced by (rhs).
     *  The referenced object won't be deleted until ALL Refs that reference it are gone.
@@ -531,7 +526,7 @@ public:
    Item * operator()() const {return GetItemPointer();}
 
    /** Convenience method:  Returns a read/write RefCountableRef object referencing the same RefCountable as this typed ref. */
-   RefCountableRef GetRefCountableRef() const {return RefCountableRef(GetItemPointer(), this->IsRefCounting());}
+   RefCountableRef GetRefCountableRef() const {RefCountableRef r; r.SetRef(GetItemPointer(), this->IsRefCounting()); return r;}
 
    /** Redeclared here so that the AutoChooseHashFunctor code will see it */
    uint32 HashCode() const {return this->ConstRef<Item>::HashCode();}
@@ -546,6 +541,11 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    inline Ref &operator=(Ref && rhs) {this->SwapContents(rhs); return *this;}
 #endif
+
+private:
+   friend class DummyRef<Item>;
+
+   Ref(Item * item, bool doRefCount) : ConstRef<Item>(item, doRefCount) {/* empty */}
 };
 
 /** This class is just syntactic sugar for more clearly declaring a
@@ -560,10 +560,15 @@ public:
    /** Default constructor.  Creates a NULL reference. */
    DummyRef() {/* empty */}
 
-   /** Creates a dummy-const-refernce to the specified item
+   /** Creates a dummy-const-reference to the specified item
      * @param item reference to the item to point to
      */
    explicit DummyRef(Item & item) : Ref<Item>(&item, false) {/* empty */}
+
+   /** Creates a dummy-const-reference to the specified item
+     * @param item pointer to the item to point to, or NULL to create a NULL DummyRef.
+     */
+   explicit DummyRef(Item * item) : Ref<Item>(item, false) {/* empty */}
 
    /** This constructor is useful for automatic upcasting (e.g. creating a
      * DummyAbstractReflectSessionRef from a StorageReflectSessionRef)
@@ -591,7 +596,7 @@ template <class Item> inline Item * CheckedGetItemPointer(const Ref<Item> * rt) 
   * @param constItem the ConstRef we want to return a Ref equivalent of.
   * @returns a non-const Ref that is pointing to the same object that the passed-in ConstRef was pointing to.
   */
-template <class Item> inline Ref<Item> CastAwayConstFromRef(const ConstRef<Item> & constItem) {return Ref<Item>(const_cast<Item *>(constItem()), constItem.IsRefCounting());}
+template <class Item> inline Ref<Item> CastAwayConstFromRef(const ConstRef<Item> & constItem) {Ref<Item> ret; ret.SetRef(const_cast<Item *>(constItem()), constItem.IsRefCounting()); return ret;}
 
 /** Convenience method for converting a non-const Ref into a ConstRef.  This method isn't strictly necessary, since
   * you can also just use the assignment-operator, but I'm including it for completeness, and because some compilers
@@ -599,7 +604,7 @@ template <class Item> inline Ref<Item> CastAwayConstFromRef(const ConstRef<Item>
   * @param nonConstItem the Ref we want to return a ConstRef equivalent of.
   * @returns a ConstRef that is pointing to the same object that the passed-in non-const Ref was pointing to.
   */
-template <class Item> inline ConstRef<Item> AddConstToRef(const Ref<Item> & nonConstItem) {return ConstRef<Item>(nonConstItem(), nonConstItem.IsRefCounting());}
+template <class Item> inline ConstRef<Item> AddConstToRef(const Ref<Item> & nonConstItem) {ConstRef<Item> ret; ret.SetRef(nonConstItem(), nonConstItem.IsRefCounting()); return ret;}
 
 } // end namespace muscle
 

@@ -577,7 +577,7 @@ MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & 
       TCPSocketDataIO tsdio(s, false);
       SetDataIO(DummyDataIORef(tsdio));
       QueueGatewayMessageReceiver receiver;
-      if ((AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)).IsOK())&&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod).IsOK())) ret = receiver.GetMessages().HasItems() ? receiver.GetMessages().Head() : GetMessageFromPool();
+      if ((AddOutgoingMessage(DummyMessageRef(const_cast<Message &>(requestMessage))).IsOK())&&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod).IsOK())) ret = receiver.GetMessages().HasItems() ? receiver.GetMessages().Head() : GetMessageFromPool();
       SetDataIO(oldIO);  // restore any previous I/O
    }
    return ret;
@@ -600,7 +600,7 @@ status_t MessageIOGateway :: ExecuteSynchronousMessageSend(const Message & reque
       TCPSocketDataIO tsdio(s, false);
       SetDataIO(DummyDataIORef(tsdio));
       QueueGatewayMessageReceiver receiver;
-      if (AddOutgoingMessage(MessageRef(const_cast<Message *>(&requestMessage), false)).IsOK()) 
+      if (AddOutgoingMessage(DummyMessageRef(const_cast<Message &>(requestMessage))).IsOK())
       {
          NestCountGuard ncg(_noRPCReply);  // so that we'll return as soon as we've sent the request Message, and not wait for a reply Message.
          ret = ExecuteSynchronousMessaging(&receiver, timeoutPeriod);

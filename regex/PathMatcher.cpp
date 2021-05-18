@@ -153,7 +153,7 @@ bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, c
 
          if (matched) 
          {
-            ConstMessageRef constMsg(optMessage, false);
+            DummyConstMessageRef constMsg(optMessage);
             const QueryFilter * filter = iter.GetValue().GetFilter()();
             if ((filter == NULL)||(optMessage == NULL)||(filter->Matches(constMsg, optNode))) return true;
          }
