@@ -8,6 +8,7 @@ key:  - new feature
    - Added DummyRef and DummyConstRef classes to util/RefCount.h, to support
      reader-friendly declarations of references to stack-based objects.
    - Added a ToString() method to the BitChord class for easier debugging.
+   - Added a WITH_THREADS CMake argument, to disable linking to threads library.
    o Made one-argument constructors for several QueryFilter subclasses explicit.
    o Made the explicit-two-argument constructors for Ref and ConstRef private;
      use the new DummyRef and DummyConstRef classes instead of calling them.
