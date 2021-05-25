@@ -9,6 +9,8 @@ key:  - new feature
      reader-friendly declarations of references to stack-based objects.
    - Added a ToString() method to the BitChord class for easier debugging.
    - Added a WITH_THREADS CMake argument, to disable linking to threads library.
+   - Added a WITH_SANITIZE CMake argument, for building MUSCLE with some of
+     clang's sanitization-checkers enabled.
    o Made one-argument constructors for several QueryFilter subclasses explicit.
    o Made the explicit-two-argument constructors for Ref and ConstRef private;
      use the new DummyRef and DummyConstRef classes instead of calling them.

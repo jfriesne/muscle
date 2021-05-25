@@ -13,6 +13,14 @@ endif()
 project (muscle)
 set (CMAKE_CXX_STANDARD 11)
 
+option(WITH_SANITIZE "Enable building with clang's sanitizer-checks enabled" OFF)
+if (WITH_SANITIZE)
+   message("Note:  -DWITH_SANITIZE=ON argument was specified:  clang will build with sanitizer-checks enabled.")
+   set(MUSCLE_SANITIZE_ARG "-fsanitize=undefined,address,undefined")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MUSCLE_SANITIZE_ARG}")
+   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MUSCLE_SANITIZE_ARG}")
+endif (WITH_SANITIZE)
+
 file(GLOB MUSCLE_SRCS
    "./dataio/*.cpp"
    "./iogateway/*.cpp"
