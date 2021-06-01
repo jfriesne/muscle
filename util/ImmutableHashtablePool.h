@@ -52,7 +52,7 @@ public:
 
    /** Returns a reference to an immutable Hashtable that is identical to one that was passed in as the first argument, except that
      * the returned Hashtable has been updated with a Put(key, value) call using the specified key and value arguments.
-     * @param startWith a Reference to the ImmutableHashtable to use as an initial state.
+     * @param startWith a Reference to the ImmutableHashtable to use as an initial state.  A NULL reference will be treated as if it was a reference to an empty table.
      * @param key the key to pass to the Put() call.
      * @param value the value to pass to the Put() call.
      * @returns a reference to an ImmutableHashtable in the new/updated state, or a NULL reference on error (out of memory?)
@@ -61,7 +61,7 @@ public:
 
    /** Returns a reference to an immutable Hashtable that is identical to one that was passed in as the first argument, except that
      * the returned Hashtable has been updated with a Remove(key) call using the specified key argument.
-     * @param startWith a Reference to the ImmutableHashtable to use as an initial state.
+     * @param startWith a Reference to the ImmutableHashtable to use as an initial state.  A NULL reference will be treated as if it was a reference to an empty table.
      * @param key the key to pass to the Remove() call.
      * @returns a reference to an ImmutableHashtable in the new/updated state, or a NULL reference on error (out of memory?)
      */

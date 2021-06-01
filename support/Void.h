@@ -25,6 +25,9 @@ public:
 
    /** Always returns false -- all Voids are created equal */
    bool operator !=(const Void &) const {return false;}
+
+   /** Always returns 0 -- implemented only so that Voids can be used as values in an ImmutableHashTablePool */
+   uint32 HashCode() const {return 0;}
 };
 
 } // end namespace muscle
