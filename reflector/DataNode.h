@@ -7,6 +7,7 @@
 #include "reflector/StorageReflectConstants.h"
 #include "support/NotCopyable.h"
 #include "regex/PathMatcher.h"
+#include "util/ImmutableHashtablePool.h"
 
 namespace muscle {
 
@@ -15,11 +16,12 @@ class StorageReflectSession;
 class DataNode;
 DECLARE_REFTYPES(DataNode);
 
-class DataNodeSubscribersTable;
+typedef ImmutableHashtable<String, uint32> DataNodeSubscribersTable;
+typedef ImmutableHashtablePool<String, uint32> DataNodeSubscribersTablePool;
+typedef DataNodeSubscribersTablePool::ConstImmutableHashtableTypeRef ConstDataNodeSubscribersTableRef;
 
 /** Iterator type for our child objects */
 typedef HashtableIterator<const String *, DataNodeRef> DataNodeRefIterator;
-DECLARE_REFTYPES(DataNodeSubscribersTable);
 
 /** Each object of this class represents one node in the server-side data-storage tree.  */
 class DataNode MUSCLE_FINAL_CLASS : public RefCountable, private NotCopyable
@@ -309,61 +311,14 @@ private:
    uint32 _depth;  // number of ancestors our node has (e.g. root's _depth is zero)
    uint32 _maxChildIDHint;  // keep track of the largest child ID, for easier allocation of non-conflicting future child IDs
 
-   DataNodeSubscribersTableRef _subscribers;  // NULL ref means no subscribers
+   ConstDataNodeSubscribersTableRef _subscribers;  // NULL ref means no subscribers
 
    DECLARE_COUNTED_OBJECT(DataNode);
 };
 
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS
-/** This class is an internal implementation detail; please ignore it. */
-class DataNodeSubscribersTable MUSCLE_FINAL_CLASS : public RefCountable
-{
-public:
-    /** Default constructor.  Creates an empty table. */
-    DataNodeSubscribersTable() : _hashCode(0) {/* empty */}
-
-    /** Relative constructor.  Creates a table that is the same as (copyMe), except with (delta) added to the specified key.
-      * @param optCopyMe if non-NULL, the table whose state we should copy before making our specified modification.  If NULL, we'll start with an empty table.
-      * @param sessionIDString the key to modify relative to (copyMe)
-      * @param delta the number of reference-count points to add to (sessionIDString).  If the pos-add value is 0, the key will be removed from the new table.
-      */
-    DataNodeSubscribersTable(const DataNodeSubscribersTable * optCopyMe, const String & sessionIDString, int32 delta);
-
-    /** Returns our pre-computed hash-code for a table with this state */ 
-    uint32 HashCode() const {return _hashCode;}
-    
-    /** Efficiently computes what the hash-code would be of a table with (the specified modification) done to it relative to our own state.
-      * @param sessionIDString the key to modify relative to (copyMe)
-      * @param delta the number of reference-count points to add to (sessionIDString).
-      */ 
-    static uint32 HashCodeAfterModification(uint32 curHashCode, const String & sessionIDString, int32 delta) {return curHashCode+((delta!=0)?(sessionIDString.HashCode()*delta):0);}
-
-    /** Returns true iff the contents of our table would be equal to the contents of (rhs) after the specified modification.
-      * @param sessionIDString the key to modify relative to (copyMe)
-      * @param delta the number of reference-count points to add to (sessionIDString)'s record.  
-      */ 
-    bool IsEqualToAfterModification(const DataNodeSubscribersTable & toMe, const String & sessionIDString, int32 delta) const;
-
-    /** Returns a read-only reference to our subscribers-table */
-    const Hashtable<String, uint32> & GetSubscribers() const {return _subscribers;}
-
-    /** Returns true iff (*this) is equal to (rhs).
-      * @param rhs the object to compare to.
-      */
-    bool operator == (const DataNodeSubscribersTable & rhs) const {return ((_hashCode == rhs._hashCode)&&(_subscribers == rhs._subscribers));}
-
-private:
-    bool IsEqualToAfterModificationAux(const DataNodeSubscribersTable & toMe, const String & sessionIDString, int32 delta) const;
-
-    uint32 _hashCode;
-    Hashtable<String, uint32> _subscribers;
-};
-DECLARE_REFTYPES(DataNodeSubscribersTable);
-#endif
-
 inline const Hashtable<String, uint32> & DataNode :: GetSubscribers() const
 {
-   return _subscribers() ? _subscribers()->GetSubscribers() : GetDefaultObjectForType<Hashtable<String, uint32> >();
+   return _subscribers() ? _subscribers()->GetTable() : GetDefaultObjectForType<Hashtable<String, uint32> >();
 }
 
 } // end namespace muscle

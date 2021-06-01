@@ -274,26 +274,50 @@ public:
    /** Returns true iff this Hashtable has the same contents as (rhs).
      * @param rhs The table to compare this table against
      * @param considerOrdering Whether the order of the key/value pairs within the tables should be considered as part of "equality".  Defaults to false. 
-     * @returns true iff (rhs) is equal to to (this), false if they differ.
+     * @returns true iff (rhs) is equal to (this), false if they differ.
      */
    bool IsEqualTo(const HashtableBase & rhs, bool considerOrdering = false) const;
 
+   /** Returns true iff this Hashtable would have the same contents as (rhs) after we applied a single Put() or Remove() operation to this Hashtable.
+     * @param rhs the Hashtable to compare against a hypothetically modified version of this Hashtable.
+     * @param key the key to imagine calling Put() or Remove() on this table with.
+     * @param optValue if non-NULL, we'll imagine calling Put(key, *optValue) on this table; if NULL, we'll imagine calling Remove(key) on this table.
+     * @param considerOrdering if true, the ordering of the key/value pairs in the tables will be considered.  Defaults to false.
+     * @returns true iff (rhs) is equal to (this after a single Put() or Remove()), false if they would differ.
+     */
+   bool WouldBeEqualToAfterModification(const HashtableBase & rhs, const KeyType & key, const ValueType * optValue, bool considerOrdering = false) const;
+
    /** Returns true iff the keys in this Hashtable are the same as the keys in (rhs).
-     * Note that the ordering of the keys is not considered, only their values.  Values in either table are not considered, either.
+     * @note values in either table are not considered.
      * @param rhs The Hashtable whose keys we should compare against our keys.
+     * @param considerOrdering if true, the ordering of the key/value pairs in the tables will be considered.  Defaults to false.
      * @returns true iff both Hashtables have the same set of Key objects.
      */
-   template<class HisValueType, class HisHashFunctorType> bool AreKeySetsEqual(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const;
+   template<class HisValueType, class HisHashFunctorType> bool AreKeySetsEqual(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs, bool considerOrdering = false) const;
 
    /** Returns true iff every key present in this Hashtable is also present in (rhs).
      * @param rhs the Hashtable to check the keys of against our own.
+     * @param considerOrdering if true, the ordering of the key/value pairs in the tables will be considered.  Defaults to false.
      */
-   template<class HisValueType, class HisHashFunctorType> bool AreKeysASubsetOf(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const;
+   template<class HisValueType, class HisHashFunctorType> bool AreKeysASubsetOf(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs, bool considerOrdering = false) const;
 
    /** Returns true iff every key present in (rhs) is also present in this Hashtable.
      * @param rhs the Hashtable to check the keys of against our own.
+     * @param considerOrdering if true, the ordering of the key/value pairs in the tables will be considered.  Defaults to false.
      */
-   template<class HisValueType, class HisHashFunctorType> bool AreKeysASupersetOf(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const {return rhs.AreKeysASubsetOf(*this);}
+   template<class HisValueType, class HisHashFunctorType> bool AreKeysASupersetOf(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs, bool considerOrdering = false) const {return rhs.AreKeysASubsetOf(*this, considerOrdering);}
+
+   /** Returns true iff every key and value present in this Hashtable is also present in (rhs).
+     * @param rhs the Hashtable to check the keys of against our own.
+     * @param considerOrdering if true, the ordering of the key/value pairs in the tables will be considered.  Defaults to false.
+     */
+   bool AreKeysAndValuesASubsetOf(const HashtableBase & rhs, bool considerOrdering = false) const;
+
+   /** Returns true iff every key and value present in (rhs) is also present in this Hashtable.
+     * @param rhs the Hashtable to check the keys of against our own.
+     * @param considerOrdering if true, the ordering of the key/value pairs in the tables will be considered.  Defaults to false.
+     */
+   bool AreKeysAndValuesASupersetOf(const HashtableBase & rhs, bool considerOrdering = false) const {return rhs.AreKeysAndValuesASubsetOf(*this, considerOrdering);}
 
    /** Returns the given key's position in the hashtable's linked list, or -1 if the key wasn't found.  O(n) count time (if the key exists, O(1) if it doesn't)
      * @param key a key value to find the index of
@@ -2210,7 +2234,7 @@ IsEqualTo(const HashtableBase<KeyType, ValueType, HashFunctorType> & rhs, bool c
       const HashtableEntryBase * hisE = rhs.IndexToEntryChecked(rhs._iterHeadIdx);
       while(e)
       {
-         if (!(hisE->_value == e->_value)) return false;
+         if ((!AreKeysEqual(e->_key, hisE->_key))||(!(hisE->_value == e->_value))) return false;
          e    = this->GetEntryIterNextChecked(e);
          hisE = rhs.GetEntryIterNextChecked(hisE);
       }
@@ -2225,6 +2249,56 @@ IsEqualTo(const HashtableBase<KeyType, ValueType, HashFunctorType> & rhs, bool c
       }
    }
    return true;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+bool
+HashtableBase<KeyType, ValueType, HashFunctorType> ::
+WouldBeEqualToAfterModification(const HashtableBase & rhs, const KeyType & key, const ValueType * optValue, bool considerOrdering) const
+{
+   if (optValue)
+   {
+      if (rhs.ContainsKey(key) == false) return false;  // rhs can't be our end-state if it doesn't contain the key we plan to add
+      if (this->ContainsKey(key))
+      {
+         if (rhs.GetNumItems() != this->GetNumItems()) return false;  // rhs can't be our post-replacement-state unless it is sized the same as (this)
+         if (considerOrdering)
+         {
+            HashtableIterator<KeyType, ValueType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
+            for (HashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++,rhsIter++)
+            {
+               const KeyType & nextKey = iter.GetKey();
+               if ((!AreKeysEqual(rhsIter.GetKey(), nextKey))||(!(rhsIter.GetValue() == (AreKeysEqual(nextKey,key)?*optValue:iter.GetValue())))) return false;
+            }
+         }
+         else
+         {
+            // Make sure the two tables are equal, except for (key) which will be set to the new value in rhs
+            for (HashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+            {
+               const KeyType & nextKey = iter.GetKey();
+               const ValueType * hisVal = rhs.Get(nextKey);
+               if ((hisVal == NULL)||(!(*hisVal == (AreKeysEqual(nextKey,key)?*optValue:iter.GetValue())))) return false;
+            }
+         }
+         return true;
+      }
+      else
+      {
+         if (rhs.GetNumItems() != (this->GetNumItems()+1)) return false;  // rhs can't be our post-insert-state unless it is exactly one larger than (this)
+         return rhs.AreKeysAndValuesASupersetOf(*this, considerOrdering);
+      }
+   }
+   else
+   {
+      if (rhs.ContainsKey(key)) return false;  // our post-modification-state would never contain (key) because we're planning to remove (key)
+      if (this->ContainsKey(key))
+      {
+         if (this->GetNumItems() != (rhs.GetNumItems()+1)) return false;  // rhs can't be our post-modification-state unless it is exactly one smaller than (this)
+         return this->AreKeysAndValuesASupersetOf(rhs, considerOrdering);
+      }
+      else return IsEqualTo(rhs, considerOrdering);  // in this case the proposed call to sTable.Remove() will be a no-op, so just compare tables as-is
+   }
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
@@ -2460,20 +2534,74 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetEntryAt(uint32 idx) const
 template <class KeyType, class ValueType, class HashFunctorType>
 template <class HisValueType, class HisHashFunctorType> 
 bool 
-HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeySetsEqual(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const
+HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeySetsEqual(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs, bool considerOrdering) const
 {
    if (GetNumItems() != rhs.GetNumItems()) return false;
-   for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this); iter.HasData(); iter++) if (rhs.ContainsKey(iter.GetKey()) == false) return false;
+   if (considerOrdering)
+   {
+      HashtableIterator<KeyType, ValueType, HashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
+      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++, rhsIter++) if (!AreKeysEqual(iter.GetKey(),rhsIter.GetKey())) return false;
+   }
+   else
+   {
+      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) if (rhs.ContainsKey(iter.GetKey()) == false) return false;
+   }
    return true;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
 template <class HisValueType, class HisHashFunctorType>
 bool
-HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysASubsetOf(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs) const
+HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysASubsetOf(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs, bool considerOrdering) const
 {
    if (GetNumItems() > rhs.GetNumItems()) return false;  // pigeonhole principle!
-   for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this); iter.HasData(); iter++) if (rhs.ContainsKey(iter.GetKey()) == false) return false;
+   if (considerOrdering)
+   {
+      HashtableIterator<KeyType, ValueType, HashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
+      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++,rhsIter++)
+      {
+         if (rhsIter.HasData() == false) return false;  // yes, this check is necessary
+         while(!AreKeysEqual(iter.GetKey(),rhsIter.GetKey()))
+         {
+            rhsIter++;
+            if (rhsIter.HasData() == false) return false;
+         }
+      } 
+   }
+   else
+   {
+      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) if (rhs.ContainsKey(iter.GetKey()) == false) return false;
+   }
+   return true;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+bool
+HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysAndValuesASubsetOf(const HashtableBase & rhs, bool considerOrdering) const
+{
+   if (GetNumItems() > rhs.GetNumItems()) return false;  // pigeonhole principle!
+   if (considerOrdering)
+   {
+      HashtableIterator<KeyType, ValueType, HashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
+      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++,rhsIter++)
+      {
+         if (rhsIter.HasData() == false) return false;  // yes, this check is necessary
+         while(!AreKeysEqual(iter.GetKey(),rhsIter.GetKey()))
+         {
+            rhsIter++;
+            if (rhsIter.HasData() == false) return false;
+         }
+         if (!(iter.GetValue() == rhsIter.GetValue())) return false;
+      } 
+   }
+   else
+   {
+      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+      {
+         const ValueType * hisVal = rhs.Get(iter.GetKey());
+         if ((hisVal == NULL)||(!(*hisVal == iter.GetValue()))) return false;
+      }
+   }
    return true;
 }
 

@@ -236,10 +236,7 @@ Cleanup()
          (void) _subscriptions.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &srcArgs);
 
          // Remove any cached tables that reference our session-ID String, as we know they can no longer be useful to anyone.
-         for (HashtableIterator<uint32, DataNodeSubscribersTableRef> iter(_sharedData->_cachedSubscribersTables); iter.HasData(); iter++)
-         {
-            if (iter.GetValue()()->GetSubscribers().ContainsKey(GetSessionIDString())) (void) _sharedData->_cachedSubscribersTables.Remove(iter.GetKey()); 
-         }
+         _sharedData->_cachedSubscribersTables.DropAllCacheEntriesContainingKey(GetSessionIDString());
       }
 
       _sharedData = NULL;
@@ -295,37 +292,18 @@ NotifySubscribersOfNewNode(DataNode & newNode)
    TCHECKPOINT;
 }
 
-DataNodeSubscribersTableRef
+ConstDataNodeSubscribersTableRef
 StorageReflectSession ::
-GetDataNodeSubscribersTableFromPool(const DataNodeSubscribersTableRef & curTable, const String & sessionIDString, int32 delta)
+GetDataNodeSubscribersTableFromPool(const ConstDataNodeSubscribersTableRef & curRef, const String & sessionIDString, int32 delta)
 {
-        if (delta == 0) return curTable;  // nothing to do!
-   else if (delta < 0)
-   {
-      // See if we can just set the DataNode back to its default/null/empty-subscribers-table state
-      const uint32 * soleRefCount = ((curTable())&&(curTable()->GetSubscribers().GetNumItems() == 1)) ? curTable()->GetSubscribers().Get(sessionIDString) : NULL;
-      if ((soleRefCount)&&(*soleRefCount <= (uint32)(-delta))) return DataNodeSubscribersTableRef();
-   }
+   if (delta == 0) return curRef;  // nothing to do!
 
-   DataNodeSubscribersTableRef * cachedTable = _sharedData->_cachedSubscribersTables.Get(DataNodeSubscribersTable::HashCodeAfterModification(curTable()?curTable()->HashCode():0, sessionIDString, delta));
-   if (cachedTable)
-   {
-      if (curTable())
-      {
-         if (curTable()->IsEqualToAfterModification(*cachedTable->GetItemPointer(), sessionIDString, delta)) return *cachedTable;
-      }
-      else if (delta > 0)
-      {
-         const Hashtable<String, uint32> & cachedSubs = cachedTable->GetItemPointer()->GetSubscribers();
-         const uint32 * soleRefCount = (cachedSubs.GetNumItems() == 1) ? cachedSubs.Get(sessionIDString) : NULL;
-         if ((soleRefCount)&&(*soleRefCount == (uint32)delta)) return *cachedTable; 
-      }
-   }
+   const Hashtable<String, uint32> & curTable = curRef() ? curRef()->GetTable() : GetDefaultObjectForType<Hashtable<String, uint32> >();
+   const uint32 curCount = curTable[sessionIDString];
+   const uint32 newCount = (delta > 0) ? (curCount+delta) : (((int32)curCount>delta)?(curCount-delta):0);
 
-   // If we got here, we didn't have anything in our cache for the requested table, so we'll create a new table and store and return it
-   DataNodeSubscribersTableRef newRef(newnothrow DataNodeSubscribersTable(curTable(), sessionIDString, delta));
-   if ((newRef() == NULL)||(_sharedData->_cachedSubscribersTables.Put(newRef()->HashCode(), newRef).IsError())) MWARN_OUT_OF_MEMORY;
-   return newRef; 
+   DataNodeSubscribersTablePool & cache = _sharedData->_cachedSubscribersTables;
+   return (newCount > 0) ? cache.GetWithPut(curRef, sessionIDString, newCount) : cache.GetWithRemove(curRef, sessionIDString);
 }
 
 void
@@ -2001,7 +1979,7 @@ void StorageReflectSession :: PrintFactoriesInfo() const
 void StorageReflectSession :: PrintSessionsInfo() const
 {
    const Hashtable<const String *, AbstractReflectSessionRef> & t = GetSessions();
-   printf("There are " UINT32_FORMAT_SPEC " sessions attached, and " UINT32_FORMAT_SPEC " subscriber-tables cached:\n", t.GetNumItems(), _sharedData->_cachedSubscribersTables.GetNumItems());
+   printf("There are " UINT32_FORMAT_SPEC " sessions attached, and " UINT32_FORMAT_SPEC " subscriber-tables cached:\n", t.GetNumItems(), _sharedData->_cachedSubscribersTables.GetNumCachedItems());
    uint32 totalNumOutMessages = 0, totalNumOutBytes = 0, totalNumNodes = 0, totalNumNodeBytes = 0;
    for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(t); iter.HasData(); iter++)
    {
