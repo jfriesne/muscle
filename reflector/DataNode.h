@@ -16,9 +16,8 @@ class StorageReflectSession;
 class DataNode;
 DECLARE_REFTYPES(DataNode);
 
-typedef ImmutableHashtable<String, uint32> DataNodeSubscribersTable;
-typedef ImmutableHashtablePool<String, uint32> DataNodeSubscribersTablePool;
-typedef DataNodeSubscribersTablePool::ConstImmutableHashtableTypeRef ConstDataNodeSubscribersTableRef;
+/** Declares DataNodeSubscribersTable, DataNodeSubscribersTablePool, and ConstDataNodeSubscribersTableRef */
+DECLARE_IMMUTABLE_HASHTABLE_POOL_TYPES(DataNodeSubscribersTable, String, uint32);
 
 /** Iterator type for our child objects */
 typedef HashtableIterator<const String *, DataNodeRef> DataNodeRefIterator;

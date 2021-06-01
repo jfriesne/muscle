@@ -11,6 +11,17 @@ namespace muscle {
 
 template <class KeyType, class ValueType, class KeyHashFunctorType, class ValueHashFunctorType> class ImmutableHashtablePool; // forward reference
 
+/** This macro declares typedefs for given ImmutableHashtablePool types that follow the standard naming convention.
+  * Given a user-provided type name (e.g. MyTable), a Key class (e.g. String), and a Value class (e.g. uint32)
+  * it will create typedefs named MyTable, MyTablePool, and ConstMyTableRef.  These types will refer to the
+  * desired ImmutableHashtable class, the ImmutableHashtablePool class that uses it, and the read-only
+  * reference class used to reference it.
+  */
+#define DECLARE_IMMUTABLE_HASHTABLE_POOL_TYPES(ImmutableTableTypeName, KeyType, ValueType) \
+   typedef ImmutableHashtable<KeyType, ValueType> ImmutableTableTypeName;                  \
+   typedef ImmutableHashtablePool<KeyType, ValueType> ImmutableTableTypeName##Pool;        \
+   typedef ImmutableHashtablePool<KeyType, ValueType>::ConstImmutableHashtableTypeRef Const##ImmutableTableTypeName##Ref
+
 /** A reference-countable object that contains an immutable Hashtable.  Objects of this type are returned by the methods of the ImmutableHashtablePool class. */
 template <class KeyType, class ValueType, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class ImmutableHashtable MUSCLE_FINAL_CLASS : public RefCountable
 {
@@ -27,7 +38,6 @@ private:
    uint64 _hashCodeSum;
    Hashtable<KeyType, ValueType, KeyHashFunctorType> _table;
 };
-//DECLARE_REFTYPES(ImmutableHashtable);
 
 /** This class is used to reduce RAM usage by allowing a large number of objects to share references to a smaller number
   * of Hashtables.  For example, a MUSCLE database with 100,000 DataNodes might have only a few clients subscribed to those
@@ -117,21 +127,32 @@ private:
       // Calculate how many key/value pairs will be in the new table so we can EnsureSize() the exact amount of slots needed for it
       const bool alreadyHadKey = oldTable.ContainsKey(key);
       const uint32 newSize = oldTable.GetNumItems() + (optNewVal ? (alreadyHadKey?0:1) : (alreadyHadKey?-1:0));
- 
-      // Demand-create a new table and add it to our cache for potential re-use later
+
+      // Demand-create a new table and add it to our tables-cache for potential re-use later by others
       ImmutableHashtableType * newObj = _pool.ObtainObject();
       ConstImmutableHashtableTypeRef newRef(newObj);
       Hashtable<KeyType, ValueType> * newTab = newObj ? &newObj->_table : NULL;
-      if ((newTab)
-       && (newTab->EnsureSize(newSize).IsOK())
-       && (newTab->CopyFrom(startWith()->GetTable()).IsOK())
-       && ((optNewVal?newTab->Put(key, *optNewVal):newTab->Remove(key)).IsOK())
-       && (_cache.Put(newSum, newRef).IsOK()))
+      if ((newTab)&&(newTab->EnsureSize(newSize).IsOK()))
       {
+         // Copy over all of the old table's contents, but with our one update applied to the new table
+         for (HashtableIterator<KeyType, ValueType> oldIter(oldTable); oldIter.HasData(); oldIter++)
+         {
+            const KeyType & nextKey = oldIter.GetKey();
+            if (nextKey == key)
+            {
+               if (optNewVal) (void) newTab->Put(nextKey, *optNewVal);  // guaranteed not to fail!
+            }
+            else (void) newTab->Put(nextKey, oldIter.GetValue());  // guaranteed not to fail!
+         }
+         if ((alreadyHadKey == false)&&(optNewVal)) (void) newTab->Put(key, *optNewVal);  // guaranteed not to fail!
+
          newObj->_hashCodeSum = newSum;
+         (void) _cache.Put(newSum, newRef);  // even if it fails, we can still at least return our table to the caller
          return newRef;
       }
-      else {MWARN_OUT_OF_MEMORY; return ConstImmutableHashtableTypeRef();}
+      else MWARN_OUT_OF_MEMORY;
+
+      return ConstImmutableHashtableTypeRef();
    }
 
    ObjectPool<ImmutableHashtable<KeyType, ValueType, KeyHashFunctorType, ValueHashFunctorType> > _pool;  // for efficiently creating new tables

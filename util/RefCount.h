@@ -17,7 +17,7 @@ class String;
 extern void UpdateAllocationStackTrace(bool isAllocation, String * & s);  // implemented in SysLog.cpp
 #endif
 
-/** This macro declares typedefs for a given RefCountable type that follow the standard convention.
+/** This macro declares typedefs for a given RefCountable type that follow the standard naming convention.
   * Given a RefCountable class Named XXX it will create typedefs named XXXRef and ConstXXXRef as 
   * more readable synonyms for Ref<XXX> and ConstRef<XXX>, respectively.
   */
