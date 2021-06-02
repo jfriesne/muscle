@@ -4,6 +4,7 @@
 #define MuscleImmutableHashtablePool_h
 
 #include "util/Hashtable.h"
+#include "util/CountedObject.h"
 #include "util/ObjectPool.h"
 #include "util/RefCount.h"
 
@@ -37,6 +38,9 @@ private:
 
    uint64 _hashCodeSum;
    Hashtable<KeyType, ValueType, KeyHashFunctorType> _table;
+
+   typedef ImmutableHashtable<KeyType, ValueType, KeyHashFunctorType, ValueHashFunctorType> SelfType;  // just to avoid the parsing limitations of the DECLARE_COUNTED_OBJECT macro
+   DECLARE_COUNTED_OBJECT(SelfType);
 };
 
 /** This class is used to reduce RAM usage by allowing a large number of objects to share references to a smaller number
