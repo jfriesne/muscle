@@ -21,6 +21,7 @@ key:  - new feature
      Hashtable::AreKeysEqual() and Hashtable::AreKeys*Of() methods.
    - Added a HashCode() method to the Void class so that a Hashtable<xxx,Void>
      can be used in conjunction with an ImmutableHashtablePool.
+   - Added a QueueStackGuard convenience class to Queue.h
    o Made one-argument constructors for several QueryFilter subclasses explicit.
    o Made the explicit-two-argument constructors for Ref and ConstRef private;
      use the new DummyRef and DummyConstRef classes instead of calling them.

@@ -8,6 +8,7 @@
 #endif
 
 #include "support/MuscleSupport.h"
+#include "support/NotCopyable.h"
 
 namespace muscle {
 
@@ -796,6 +797,26 @@ private:
 
    enum {ACTUAL_SMALL_QUEUE_SIZE = ((sizeof(ItemType)*SMALL_QUEUE_SIZE) < sizeof(void*)) ? (sizeof(void*)/sizeof(ItemType)) : SMALL_QUEUE_SIZE};
    ItemType _smallQueue[ACTUAL_SMALL_QUEUE_SIZE];  // small queues can be stored inline in this array
+};
+
+/** A trivial RAII class -- its constructor pushes a specified value onto the end of the specified Queue,
+  * and its destructor pops that value off of the end of that same Queue.  Useful for reliably pushing state
+  * information for method-calls to read when passing the data as via method-arguments is too onerous.
+  */
+template <typename ItemType> class QueueStackGuard : private NotCopyable
+{
+public:
+   /** Default constructor
+     * @param q the Queue to add an item to
+     * @param item the item to add to the tail of the Queue
+     */
+   QueueStackGuard(Queue<ItemType> & q, const ItemType & item) : _queue(q) {(void) _queue.AddTail(item);}
+
+   /** Destructor -- pops the last item out of the Queue that was specified in the constructor. */
+   virtual ~QueueStackGuard() {(void) _queue.RemoveTail();}
+
+private:
+   Queue<ItemType> & _queue;
 };
 
 template <class ItemType>
