@@ -278,14 +278,31 @@ public:
      */
    bool IsEqualTo(const HashtableBase & rhs, bool considerOrdering = false) const;
 
-   /** Returns true iff this Hashtable would have the same contents as (rhs) after we applied a single Put() or Remove() operation to this Hashtable.
+   /** Returns true iff this Hashtable would have the same contents as (rhs) after we called Put() on this Hashtable once.
+     * @param rhs the Hashtable to compare against a hypothetically modified version of this Hashtable.
+     * @param key the key to imagine placing into this table
+     * @param value the value to imagine placing into this table
+     * @param considerOrdering if true, the ordering of the key/value pairs in the two tables will be considered.  Defaults to false.
+     * @returns true iff (rhs) would be equal to (*this after a single Put()), or false if they would differ.
+     */
+   bool WouldBeEqualToAfterPut(const HashtableBase & rhs, const KeyType & key, const ValueType & value, bool considerOrdering = false) const {return WouldBeEqualToAfterPutOrRemove(rhs, key, &value, considerOrdering);}
+
+   /** Returns true iff this Hashtable would have the same contents as (rhs) after we called Remove() on this Hashtable once.
+     * @param rhs the Hashtable to compare against a hypothetically modified version of this Hashtable.
+     * @param key the key to imagine removing from this table
+     * @param considerOrdering if true, the ordering of the key/value pairs in the two tables will be considered.  Defaults to false.
+     * @returns true iff (rhs) would be equal to (*this after a single Remove()), or false if they would differ.
+     */
+   bool WouldBeEqualToAfterRemove(const HashtableBase & rhs, const KeyType & key, bool considerOrdering = false) const {return WouldBeEqualToAfterPutOrRemove(rhs, key, NULL, considerOrdering);}
+
+   /** Returns true iff this Hashtable would have the same contents as (rhs) after we applied either a single Put() or a single Remove() operation to this Hashtable.
      * @param rhs the Hashtable to compare against a hypothetically modified version of this Hashtable.
      * @param key the key to imagine calling Put() or Remove() on this table with.
      * @param optValue if non-NULL, we'll imagine calling Put(key, *optValue) on this table; if NULL, we'll imagine calling Remove(key) on this table.
      * @param considerOrdering if true, the ordering of the key/value pairs in the tables will be considered.  Defaults to false.
      * @returns true iff (rhs) is equal to (this after a single Put() or Remove()), false if they would differ.
      */
-   bool WouldBeEqualToAfterModification(const HashtableBase & rhs, const KeyType & key, const ValueType * optValue, bool considerOrdering = false) const;
+   bool WouldBeEqualToAfterPutOrRemove(const HashtableBase & rhs, const KeyType & key, const ValueType * optValue, bool considerOrdering = false) const;
 
    /** Returns true iff the keys in this Hashtable are the same as the keys in (rhs).
      * @note values in either table are not considered.
@@ -2254,7 +2271,7 @@ IsEqualTo(const HashtableBase<KeyType, ValueType, HashFunctorType> & rhs, bool c
 template <class KeyType, class ValueType, class HashFunctorType>
 bool
 HashtableBase<KeyType, ValueType, HashFunctorType> ::
-WouldBeEqualToAfterModification(const HashtableBase & rhs, const KeyType & key, const ValueType * optValue, bool considerOrdering) const
+WouldBeEqualToAfterPutOrRemove(const HashtableBase & rhs, const KeyType & key, const ValueType * optValue, bool considerOrdering) const
 {
    if (optValue)
    {

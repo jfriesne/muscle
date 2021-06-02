@@ -14,7 +14,8 @@ key:  - new feature
    - Added a WITH_THREADS CMake argument, to disable linking to threads library.
    - Added a WITH_SANITIZE CMake argument, for building MUSCLE with some of
      clang's sanitization-checkers enabled.
-   - Added WouldBeEqualToAfterModification(), AreKeysAndValuesASubsetOf(),
+   - Added WouldBeEqualToAfterPut(), WouldBeEqualToAfterRemove(),
+     WouldBeEqualToAfterPutOrRemove(), AreKeysAndValuesASubsetOf(),
      and AreKeysAndValuesASupersetOf() methods to the Hashtable class.
    - Added an optional (considerOrdering) argument to the
      Hashtable::AreKeysEqual() and Hashtable::AreKeys*Of() methods.

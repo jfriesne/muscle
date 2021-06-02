@@ -125,7 +125,7 @@ private:
       const Hashtable<KeyType, ValueType, KeyHashFunctorType> & oldTable = startWith()->GetTable();
       {
          const ConstImmutableHashtableTypeRef * ret = _lruCache.GetAndMoveToFront(newSum);
-         if ((ret)&&(oldTable.WouldBeEqualToAfterModification(ret->GetItemPointer()->GetTable(), key, optNewVal))) return *ret;
+         if ((ret)&&(oldTable.WouldBeEqualToAfterPutOrRemove(ret->GetItemPointer()->GetTable(), key, optNewVal))) return *ret;
       }
 
       // Calculate how many key/value pairs will be in the new table so we can EnsureSize() the exact amount of slots needed for it
