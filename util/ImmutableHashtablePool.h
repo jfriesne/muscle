@@ -65,31 +65,35 @@ public:
      * @param startWith a Reference to the ImmutableHashtable to use as an initial state.  A NULL reference will be treated as if it was a reference to an empty table.
      * @param key the key to pass to the Put() call.
      * @param value the value to pass to the Put() call.
+     * @param maxLRUCacheSize a maximum size for our LRU table cache.  If set to something other than MUSCLE_NO_LIMIT (the default) and we add an item
+     *                        to the cache, then we will remove not-recently-used items from the LRU cache until the cache has this many items or fewer.
      * @returns a reference to an ImmutableHashtable in the new/updated state, or a NULL reference on error (out of memory?)
      */
-   ConstImmutableHashtableTypeRef GetWithPut(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, const ValueType & value) {return GetWithAux(startWith, key, &value);}
+   ConstImmutableHashtableTypeRef GetWithPut(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, const ValueType & value, uint32 maxLRUCacheSize = MUSCLE_NO_LIMIT) {return GetWithAux(startWith, key, &value, maxLRUCacheSize);}
 
    /** Returns a reference to an immutable Hashtable that is identical to one that was passed in as the first argument, except that
      * the returned Hashtable has been updated with a Remove(key) call using the specified key argument.
      * @param startWith a Reference to the ImmutableHashtable to use as an initial state.  A NULL reference will be treated as if it was a reference to an empty table.
      * @param key the key to pass to the Remove() call.
+     * @param maxLRUCacheSize a maximum size for our LRU table cache.  If set to something other than MUSCLE_NO_LIMIT (the default) and we add an item
+     *                        to the cache, then we will remove not-recently-used items from the LRU cache until the cache has this many items or fewer.
      * @returns a reference to an ImmutableHashtable in the new/updated state, or a NULL reference on error (out of memory?)
      */
-   ConstImmutableHashtableTypeRef GetWithRemove(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key) {return GetWithAux(startWith, key, NULL);}
+   ConstImmutableHashtableTypeRef GetWithRemove(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, uint32 maxLRUCacheSize = MUSCLE_NO_LIMIT) {return GetWithAux(startWith, key, NULL, maxLRUCacheSize);}
 
    /** Returns the number of ConstImmutableHashtableTypeRef's that are currently being held in our cache. */
-   uint32 GetNumCachedItems() const {return _cache.GetNumItems();}
+   uint32 GetNumCachedItems() const {return _lruCache.GetNumItems();}
 
    /** Clears all cached ImmutableHashtables from our cache */
-   void ClearCache() {_cache.Clear();}
+   void ClearCache() {_lruCache.Clear();}
 
    /** Clears all cached ImmutableHashtable from our cache that contain the specified key.
      * @param key the key to look for in each cached ImmutableHashtable object.  If found, the object will be dropped from our cache.
      */
    void DropAllCacheEntriesContainingKey(const KeyType & key)
    {
-      for (HashtableIterator<uint64, ConstImmutableHashtableTypeRef> iter(_cache); iter.HasData(); iter++)
-         if (iter.GetValue()()->GetTable().ContainsKey(key)) (void) _cache.Remove(iter.GetKey());
+      for (HashtableIterator<uint64, ConstImmutableHashtableTypeRef> iter(_lruCache); iter.HasData(); iter++)
+         if (iter.GetValue()()->GetTable().ContainsKey(key)) (void) _lruCache.Remove(iter.GetKey());
    }
 
 private:
@@ -112,15 +116,15 @@ private:
       return newSum;
    }
 
-   ConstImmutableHashtableTypeRef GetWithAux(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, const ValueType * optNewVal)
+   ConstImmutableHashtableTypeRef GetWithAux(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, const ValueType * optNewVal, uint32 maxLRUCacheSize)
    {
-      if (startWith() == NULL) return GetWithAux(GetEmptyTable(), key, optNewVal);  // handle the NULL-ref case gracefully, as an empty-set case
+      if (startWith() == NULL) return GetWithAux(GetEmptyTable(), key, optNewVal, maxLRUCacheSize);  // handle the NULL-ref case gracefully, as an empty-set case
 
       // See if we can find the new Hash table already in our cache and re-use it
       const uint64 newSum = HashCodeAfterModification(startWith, key, optNewVal);
       const Hashtable<KeyType, ValueType, KeyHashFunctorType> & oldTable = startWith()->GetTable();
       {
-         const ConstImmutableHashtableTypeRef * ret = _cache.Get(newSum);
+         const ConstImmutableHashtableTypeRef * ret = _lruCache.GetAndMoveToFront(newSum);
          if ((ret)&&(oldTable.WouldBeEqualToAfterModification(ret->GetItemPointer()->GetTable(), key, optNewVal))) return *ret;
       }
 
@@ -147,7 +151,8 @@ private:
          if ((alreadyHadKey == false)&&(optNewVal)) (void) newTab->Put(key, *optNewVal);  // guaranteed not to fail!
 
          newObj->_hashCodeSum = newSum;
-         (void) _cache.Put(newSum, newRef);  // even if it fails, we can still at least return our table to the caller
+         (void) _lruCache.PutAtFront(newSum, newRef);  // even if it fails, we can still at least return our table to the caller
+         while(_lruCache.GetNumItems() > maxLRUCacheSize) (void) _lruCache.RemoveLast();  // keep the cache size down to something reasonable
          return newRef;
       }
       else MWARN_OUT_OF_MEMORY;
@@ -156,7 +161,7 @@ private:
    }
 
    ObjectPool<ImmutableHashtable<KeyType, ValueType, KeyHashFunctorType, ValueHashFunctorType> > _pool;  // for efficiently creating new tables
-   Hashtable<uint64, ConstImmutableHashtableTypeRef> _cache;  // hash code -> cached immutable hash table
+   Hashtable<uint64, ConstImmutableHashtableTypeRef> _lruCache;  // hash code -> cached immutable hash table
 };
 
 } // end namespace muscle
