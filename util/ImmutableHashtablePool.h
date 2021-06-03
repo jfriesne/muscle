@@ -100,6 +100,14 @@ public:
          if (iter.GetValue()()->GetTable().ContainsKey(key)) (void) _lruCache.Remove(iter.GetKey());
    }
 
+   /** Returns true iff the specified immutable Hashtable is part of our current immutable-tables-cache */
+   bool Contains(const ConstImmutableHashtableTypeRef & tableRef) const
+   {
+      if (tableRef() == NULL) return Contains(GetEmptyTable());
+      const ConstImmutableHashtableTypeRef * r = _lruCache.Get(tableRef()->_hashCodeSum);
+      return ((r)&&(r->GetItemPointer()->GetTable() == tableRef()->GetTable()));
+   }
+
 private:
    uint32 GetHashCodeForKey(const KeyType & key) const {return GetDefaultObjectForType<KeyHashFunctorType>()(key);}
    uint32 GetHashCodeForValue(const ValueType & val) const {return GetDefaultObjectForType<ValueHashFunctorType>()(val);}
@@ -140,7 +148,7 @@ private:
       ImmutableHashtableType * newObj = _pool.ObtainObject();
       ConstImmutableHashtableTypeRef newRef(newObj);
       Hashtable<KeyType, ValueType> * newTab = newObj ? &newObj->_table : NULL;
-      if ((newTab)&&(newTab->EnsureSize(newSize).IsOK()))
+      if ((newTab)&&(newTab->EnsureSize(newSize,true).IsOK()))
       {
          // Copy over all of the old table's contents, but with our one update applied to the new table
          for (HashtableIterator<KeyType, ValueType> oldIter(oldTable); oldIter.HasData(); oldIter++)
