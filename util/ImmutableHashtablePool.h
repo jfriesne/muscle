@@ -30,11 +30,34 @@ public:
    /** Default constructor */
    ImmutableHashtable() : _hashCodeSum(0) {/* empty */}
 
+   /** Explicit constructor that creates an immutale-table with one entry in it */
+   ImmutableHashtable(const KeyType & key, const ValueType & value)
+   {
+      _hashCodeSum = _table.Put(key, value).IsOK() ? GetHashCodeForKeyValuePair(key, value) : 0;
+   }
+
+   /** Creates an ImmutableHashtable containing a copy of the contents of the specified Hashtable.
+     * @param rhs the Hashtable to make our Hashtable a duplicate of
+     */
+   template<class RHSHashFunctorType, class RHSSubclassType> ImmutableHashtable(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) : _hashCodeSum(0), _table(rhs)
+   {
+      for (HashtableIterator<KeyType, ValueType> iter(_table, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) _hashCodeSum += GetHashCodeForKeyValuePair(iter.GetKey(), iter.GetValue());
+   }
+
    /** Returns a read-only reference to the immutable Hashtable. */
    const Hashtable<KeyType, ValueType, KeyHashFunctorType> & GetTable() const {return _table;}
 
 private:
    friend class ImmutableHashtablePool<KeyType, ValueType, KeyHashFunctorType, ValueHashFunctorType>;
+
+   static uint32 GetHashCodeForKey(const KeyType & key) {return GetDefaultObjectForType<KeyHashFunctorType>()(key);}
+   static uint32 GetHashCodeForValue(const ValueType & val) {return GetDefaultObjectForType<ValueHashFunctorType>()(val);}
+   static uint64 GetHashCodeForKeyValuePair(const KeyType & key, const ValueType & val)
+   {
+      const uint64 keyHash64 = GetHashCodeForKey(key);    // deliberately storing this in a uint64
+      const uint64 valHash64 = GetHashCodeForValue(val);  // deliberately storing this in a uint64
+      return (keyHash64?keyHash64:1) * (valHash64?valHash64:1);
+   }
 
    uint64 _hashCodeSum;
    Hashtable<KeyType, ValueType, KeyHashFunctorType> _table;
@@ -109,22 +132,12 @@ public:
    }
 
 private:
-   uint32 GetHashCodeForKey(const KeyType & key) const {return GetDefaultObjectForType<KeyHashFunctorType>()(key);}
-   uint32 GetHashCodeForValue(const ValueType & val) const {return GetDefaultObjectForType<ValueHashFunctorType>()(val);}
-
-   uint64 GetHashCodeForKeyValuePair(const KeyType & key, const ValueType & val) const
-   {
-      const uint64 keyHash64 = GetHashCodeForKey(key);    // deliberately storing this in a uint64
-      const uint64 valHash64 = GetHashCodeForValue(val);  // deliberately storing this in a uint64
-      return (keyHash64?keyHash64:1) * (valHash64?valHash64:1);
-   }
-
    uint64 HashCodeAfterModification(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, const ValueType * optNewVal) const
    {
       uint64 newSum = startWith()->_hashCodeSum;
       const ValueType * oldVal = startWith()->GetTable().Get(key);
-      if (oldVal)    newSum -= GetHashCodeForKeyValuePair(key, *oldVal);
-      if (optNewVal) newSum += GetHashCodeForKeyValuePair(key, *optNewVal);
+      if (oldVal)    newSum -= ImmutableHashtableType::GetHashCodeForKeyValuePair(key, *oldVal);
+      if (optNewVal) newSum += ImmutableHashtableType::GetHashCodeForKeyValuePair(key, *optNewVal);
       return newSum;
    }
 
