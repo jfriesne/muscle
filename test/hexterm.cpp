@@ -121,11 +121,12 @@ static void SanityCheckSpamPacket(const uint8 * buf, uint32 bufLen)
    LogTime(MUSCLE_LOG_INFO, "Received " UINT32_FORMAT_SPEC "-byte packet passed the spam verification check.\n", bufLen);
 }
 
-static status_t FlushOutBuffer(const ByteBufferRef & outBuf, DataIO & io)
+static status_t FlushOutBuffer(uint64 & writeCounter, const ByteBufferRef & outBuf, DataIO & io)
 {
    if (outBuf())
    {
       const uint32 wrote = io.WriteFully(outBuf()->GetBuffer(), outBuf()->GetNumBytes());
+      writeCounter++;
       if (wrote == outBuf()->GetNumBytes()) 
       {
          if (_decorateOutput) LogBytes(outBuf()->GetBuffer(), outBuf()->GetNumBytes(), "Sent");
@@ -151,6 +152,7 @@ static void DoSession(DataIO & io, bool allowRead = true)
 
    SocketMultiplexer multiplexer;
 
+   uint64 readCounter = 0, writeCounter = 0;
    uint64 spamTime = ((_spamsPerSecond > 0)&&(_spamsPerSecond != MUSCLE_NO_LIMIT)) ? GetRunTime64() : MUSCLE_TIME_NEVER;
    bool keepGoing = true;
    while(keepGoing)
@@ -185,6 +187,8 @@ static void DoSession(DataIO & io, bool allowRead = true)
             const int32 ret = io.Read(buf, sizeof(buf));
             if (ret > 0) 
             {
+               readCounter++;
+
                const uint64 now = GetCurrentTime64();  // I'm using GetCurrentTime64() rather than GetRunTime64() because I think it will give me better precision under Windows --jaf
                if (_prevReceiveTime == 0) _prevReceiveTime = now;
                const int64 timeSince = (now-_prevReceiveTime);
@@ -196,11 +200,11 @@ static void DoSession(DataIO & io, bool allowRead = true)
                {
                   const PacketDataIO * packetDataIO = dynamic_cast<const PacketDataIO *>(&io);
                   const IPAddressAndPort & fromIAP = packetDataIO ? packetDataIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();
-                  if (fromIAP.IsValid()) scratchString = String("Received from %1 (%2 since prev)").Arg(fromIAP.ToString()).Arg(sinceString);
-                                    else scratchString = String("Received (%1 since prev)").Arg(sinceString);
+                  if (fromIAP.IsValid()) scratchString = String("Read #%1: Received from %1 (%2 since prev)").Arg(readCounter).Arg(fromIAP.ToString()).Arg(sinceString);
+                                    else scratchString = String("Read #%1: Received (%1 since prev)").Arg(readCounter).Arg(sinceString);
                   LogBytes(buf, ret, scratchString());
                }
-               else LogTime(MUSCLE_LOG_DEBUG, "Received " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of data (%s since prev).\n", ret, sizeof(buf), sinceString());
+               else LogTime(MUSCLE_LOG_DEBUG, "Read #" UINT64_FORMAT_SPEC ": Received " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of data (%s since prev).\n", readCounter, ret, sizeof(buf), sinceString());
 
                _prevReceiveTime = now;
             }
@@ -261,13 +265,13 @@ static void DoSession(DataIO & io, bool allowRead = true)
                      // If we see an empty line, let's send whatever we've got right now
                      // This is useful when the user is piping the output of striphextermoutput
                      // back into hexterm for UDP retransmission
-                     if (FlushOutBuffer(outBuf, io).IsError()) return;
+                     if (FlushOutBuffer(writeCounter, outBuf, io).IsError()) return;
                      outBuf.Reset();
                   }
                }
             }
 
-            if (FlushOutBuffer(outBuf, io).IsError()) return;
+            if (FlushOutBuffer(writeCounter, outBuf, io).IsError()) return;
             outBuf.Reset();
 
             if (stdinFD < 0) break;  // all done now!

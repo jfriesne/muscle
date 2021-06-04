@@ -27,6 +27,7 @@ key:  - new feature
      use the new DummyRef and DummyConstRef classes instead of calling them.
    o Rewrote the DataNodeSubscribersTable code to use the new
      ImmutableHashtablePool class instead of its own private logic.
+   o Hexterm now prints out the number of reads it has done so far.
    * Applied various fixes based on warnings supplied by cppcheck.
    * Modified TCPSocketDataIO::FlushOutput() to no longer call
      SetSocketCorkAlgorithmEnabled() when compiled under MacOS/X,
