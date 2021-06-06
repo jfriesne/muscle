@@ -22,6 +22,10 @@ key:  - new feature
    - Added a HashCode() method to the Void class so that a Hashtable<xxx,Void>
      can be used in conjunction with an ImmutableHashtablePool.
    - Added a QueueStackGuard convenience class to Queue.h
+   - Updated the ObjectCounter class and PrintCountedObjectInfo() to
+     also report sizeof(ObjectType) for each counted-object-type.
+   o Modified the ObjectCounterBase class so it no longer contains any
+     virtual methods.
    o Made one-argument constructors for several QueryFilter subclasses explicit.
    o Made the explicit-two-argument constructors for Ref and ConstRef private;
      use the new DummyRef and DummyConstRef classes instead of calling them.

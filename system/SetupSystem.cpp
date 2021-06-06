@@ -1883,8 +1883,10 @@ void ObjectCounterBase :: RemoveObjectCounterBaseFromGlobalCountersList()
    if (_nextCounter) _nextCounter->_prevCounter = _prevCounter;
 }
 
-ObjectCounterBase :: ObjectCounterBase()
-   : _prevCounter(NULL)
+ObjectCounterBase :: ObjectCounterBase(const char * objectCounterTypeName, uint32 sizeofObject)
+   : _objectCounterTypeName(objectCounterTypeName)
+   , _sizeofObject(sizeofObject)
+   , _prevCounter(NULL)
    , _nextCounter(NULL)
 {
    if (_muscleLock)
@@ -1907,7 +1909,7 @@ ObjectCounterBase :: ~ObjectCounterBase()
 
 #endif
 
-status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results)
+status_t GetCountedObjectInfo(Hashtable<const char *, uint64> & results)
 {
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
    Mutex * m = _muscleLock;
@@ -1918,7 +1920,7 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results)
       const ObjectCounterBase * oc = _firstObjectCounter;
       while(oc)
       {
-         (void) results.Put(oc->GetCounterTypeName(), oc->GetCount()).IsError(ret);
+         (void) results.Put(oc->GetCounterTypeName(), (((uint64)oc->GetSizeofObject())<<32)|((uint64)oc->GetCount())).IsError(ret);
          oc = oc->GetNextCounter();
       }
 
@@ -1935,12 +1937,18 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results)
 void PrintCountedObjectInfo()
 {
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
-   Hashtable<const char *, uint32> table;
+   Hashtable<const char *, uint64> table;
    if (GetCountedObjectInfo(table).IsOK())
    {
       table.SortByKey();  // so they'll be printed in alphabetical order
       printf("Counted Object Info report follows: (" UINT32_FORMAT_SPEC " types counted)\n", table.GetNumItems());
-      for (HashtableIterator<const char *, uint32> iter(table); iter.HasData(); iter++) printf("   %6" UINT32_FORMAT_SPEC_NOPERCENT " %s\n", iter.GetValue(), iter.GetKey());
+      for (HashtableIterator<const char *, uint64> iter(table); iter.HasData(); iter++)
+      {
+         const uint64 v        = iter.GetValue();
+         const uint32 objSize  = ((v>>32) & 0xFFFFFFFF);
+         const uint32 objCount = ((v>>00) & 0xFFFFFFFF);
+         printf("   %6" UINT32_FORMAT_SPEC_NOPERCENT " %s (" UINT32_FORMAT_SPEC " bytes/object, %.2fkB used))\n", objCount, iter.GetKey(), objSize, ((double)objSize*((double)objCount))/1024.0);
+      }
    }
    else printf("PrintCountedObjectInfo:  GetCountedObjectInfo() failed!\n");
 #else

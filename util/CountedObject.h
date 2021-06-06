@@ -16,11 +16,20 @@ namespace muscle {
 class ObjectCounterBase : private NotCopyable
 {
 public:
+   /** Constructor
+     * @param objectCounterTypeName a human-readable string describing the type we want to count.
+     * @param sizeofObject Pass in sizeof(Object) for the types of objects we are to be counting.
+     */
+   ObjectCounterBase(const char * objectCounterTypeName, uint32 sizeofObject);
+
    /** To be implemented by ObjectCounter subclass to return a human-readable name indicating the type that is being counted */
-   virtual const char * GetCounterTypeName() const = 0;
+   const char * GetCounterTypeName() const {return _objectCounterTypeName;}
 
    /** Returns the number of objects of our type that are currently allocated. */
    uint32 GetCount() const {return _counter.GetCount();}
+
+   /** Returns sizeof(Object) for the object-type we are counting */
+   uint32 GetSizeofObject() const {return _sizeofObject;}
 
    /** Returns the previous counter in our global linked-list of ObjectCounters. */
    const ObjectCounterBase * GetPreviousCounter() const {return _prevCounter;}
@@ -39,12 +48,14 @@ protected:
    ObjectCounterBase();
 
    /** Destructor. */
-   virtual ~ObjectCounterBase();
+   ~ObjectCounterBase();
 
 private:
    void PrependObjectCounterBaseToGlobalCountersList();
    void RemoveObjectCounterBaseFromGlobalCountersList();
 
+   const char * _objectCounterTypeName;
+   const uint32 _sizeofObject;
    ObjectCounterBase * _prevCounter;
    ObjectCounterBase * _nextCounter;
    AtomicCounter _counter;
@@ -55,13 +66,7 @@ template <class ObjectType> class ObjectCounter : public ObjectCounterBase
 {
 public:
    /** Default constructor */
-   ObjectCounter() {/* empty */}
-
-   /** Destructor */
-   virtual ~ObjectCounter() {/* empty */}
-
-   /** Implemented to return a human-readable string describing ObjectType's type */
-   virtual const char * GetCounterTypeName() const {return typeid(ObjectType).name();}
+   ObjectCounter() : ObjectCounterBase(typeid(ObjectType).name(), (uint32)sizeof(ObjectType)) {/* empty */}
 };
 
 #endif
@@ -105,11 +110,13 @@ public:
 };
 
 /** For debugging.  On success, populates (results) with type names and their associated object counts,
-  * respectively.
-  * @param results a Hashtable to populate.
+  * and sizeof-object-in-bytes values, respectively.
+  * @param results a Hashtable to populate.  Keys in this table are human-readable(ish) strings identifying the class,
+  *                and values are bit-chords with the lower 32 bits being the number of objects of that class that are currently in existence,
+  *                and the upper 32 bits being sizeof() an object of that class.
   * @returns B_NO_ERROR on success, or B_LOCK_FAILED, or B_OUT_OF_MEMORY, or B_UNIMPLEMENTED (if -DMUSCLE_TRACK_OBJECT_COUNTS wasn't defined).
   */
-status_t GetCountedObjectInfo(Hashtable<const char *, uint32> & results);
+status_t GetCountedObjectInfo(Hashtable<const char *, uint64> & results);
 
 /** Convenience function.  Calls GetCountedObjectInfo() and pretty-prints the results to stdout. */
 void PrintCountedObjectInfo();

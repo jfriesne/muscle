@@ -115,7 +115,7 @@ public:
    {
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
       static_assert(NUM_OBJECTS_PER_SLAB<=65535, "Too many objects per ObjectSlab, uint16 indices will overflow!");
-      static_assert(sizeof(ObjectSlab) <= MUSCLE_POOL_SLAB_SIZE, "sizeof(ObjectSlab) is larger than MUSCLE_POOL_SLAB_SIZE");
+      static_assert(((NUM_OBJECTS_PER_SLAB==1)||(sizeof(ObjectSlab) <= MUSCLE_POOL_SLAB_SIZE)), "sizeof(ObjectSlab) is larger than MUSCLE_POOL_SLAB_SIZE");
 #endif
    }
 
