@@ -32,6 +32,8 @@ key:  - new feature
    o Rewrote the DataNodeSubscribersTable code to use the new
      ImmutableHashtablePool class instead of its own private logic.
    o Hexterm now prints out the number of reads it has done so far.
+   o PrintCountedObjectInfo() now sorts its output by size (biggest RAM hogs
+     first) and prints total-objects-counted and total-memory-counted stats.
    * Applied various fixes based on warnings supplied by cppcheck.
    * Modified TCPSocketDataIO::FlushOutput() to no longer call
      SetSocketCorkAlgorithmEnabled() when compiled under MacOS/X,

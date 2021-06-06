@@ -1934,20 +1934,44 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint64> & results)
 #endif
 }
 
+class CompareSizesFunctor
+{
+public:
+   int Compare(const uint64 & v1, const uint64 & v2, void *) const
+   {
+      const uint32 objCount1 = ((v1>>00) & 0xFFFFFFFF);
+      const uint32 objCount2 = ((v2>>00) & 0xFFFFFFFF);
+      const uint32 objSize1  = ((v1>>32) & 0xFFFFFFFF);
+      const uint32 objSize2  = ((v2>>32) & 0xFFFFFFFF);
+      return muscleCompare(((uint64)objSize1)*((uint64)objCount1), ((uint64)objSize2)*((uint64)objCount2));
+   }
+};
+
 void PrintCountedObjectInfo()
 {
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
+   uint64 totalNumObjects = 0;
+   uint64 totalNumBytes   = 0;
    Hashtable<const char *, uint64> table;
    if (GetCountedObjectInfo(table).IsOK())
    {
-      table.SortByKey();  // so they'll be printed in alphabetical order
-      printf("Counted Object Info report follows: (" UINT32_FORMAT_SPEC " types counted)\n", table.GetNumItems());
-      for (HashtableIterator<const char *, uint64> iter(table); iter.HasData(); iter++)
+      table.SortByValue(CompareSizesFunctor());  // so they'll be printed in alphabetical order
+      for (HashtableIterator<const char *, uint64> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
          const uint64 v        = iter.GetValue();
          const uint32 objSize  = ((v>>32) & 0xFFFFFFFF);
          const uint32 objCount = ((v>>00) & 0xFFFFFFFF);
-         printf("   %6" UINT32_FORMAT_SPEC_NOPERCENT " %s (" UINT32_FORMAT_SPEC " bytes/object, %.2fkB used))\n", objCount, iter.GetKey(), objSize, ((double)objSize*((double)objCount))/1024.0);
+         totalNumObjects += objCount;
+         totalNumBytes   += ((uint64)objSize)*((uint64)objCount);
+      }
+
+      printf("Counted Object Info report follows: (" UINT32_FORMAT_SPEC " types counted, " UINT64_FORMAT_SPEC " total objects, %.02f total MB, average " UINT64_FORMAT_SPEC " bytes/object)\n", table.GetNumItems(), totalNumObjects, ((double)totalNumBytes)/(1024*1024), (totalNumObjects>0)?(totalNumBytes/totalNumObjects):0LL);
+      for (HashtableIterator<const char *, uint64> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+      {
+         const uint64 v        = iter.GetValue();
+         const uint32 objSize  = ((v>>32) & 0xFFFFFFFF);
+         const uint32 objCount = ((v>>00) & 0xFFFFFFFF);
+         printf("   %6" UINT32_FORMAT_SPEC_NOPERCENT " %s (" UINT32_FORMAT_SPEC " bytes/object, %ikB used))\n", objCount, iter.GetKey(), objSize, (int)((512+(((uint64)objSize)*((uint64)objCount)))/1024));
       }
    }
    else printf("PrintCountedObjectInfo:  GetCountedObjectInfo() failed!\n");
