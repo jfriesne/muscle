@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-8.30 -
+8.30 - Released 6/2/2021
    - Added DummyRef and DummyConstRef classes to util/RefCount.h, to support
      reader-friendly declarations of references to stack-based objects.
    - Added the ImmutableHashtable and ImmutableHashtablePool classes to support
