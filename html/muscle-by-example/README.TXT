@@ -20,9 +20,17 @@ etc).
 
 The MUSCLE toy programs can be compiled under any popular OS.  The Makefiles that
 are included to compile them will work under Linux and MacOS/X (and possibly
-other POSIX-y OS's too) -- if you want to compile under Windows, use Visual
-Studio 2015 (or later) and the project files in the examples\vc++14
-sub-directory, instead.
+other POSIX-y OS's too).  Alternatively you can compile everything (including
+the example programs) using cmake:
+
+    cd muscle
+    mkdir _build
+    cd _build
+    cmake ..
+    make -j4
+
+(Note that under Windows you'd replace the "make -j4" line with building from
+the generated ALL_RUN.vcxproj file)
 
 If you'd like to generate your own HTML from the Markdown files in the "docs" folder,
 you can do so by installing the MkDocs python package (per the instructions at
