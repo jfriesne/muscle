@@ -387,7 +387,8 @@ static void LogUsage(const char * argv0)
    Log(MUSCLE_LOG_INFO, "   or:  hexterm serial=<devname>:<baud>  (send/receive via a serial device, e.g. /dev/ttyS0)\n");
    Log(MUSCLE_LOG_INFO, "   or:  hexterm child=<prog_and_args>    (send/receive via a child process, e.g. 'ls -l')\n");
 #ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm file=<filename>          (read input bytes from a file)\n");
+   Log(MUSCLE_LOG_INFO, "   or:  hexterm rfile=<filename>         (read input bytes from a file)\n");
+   Log(MUSCLE_LOG_INFO, "   or:  hexterm wfile=<filename>         (write output bytes to a file)\n");
 #endif
    Log(MUSCLE_LOG_INFO, "  Additional optional args include:\n");
    Log(MUSCLE_LOG_INFO, "                ascii                    (print and parse bytes as ASCII rather than hexadecimal)\n");
