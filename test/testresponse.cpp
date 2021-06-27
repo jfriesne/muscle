@@ -41,15 +41,15 @@ int main(int argc, char ** argv)
                lastThrowTime = GetRunTime64();
             }
 
-            const int fd = s.GetFileDescriptor();
-            multiplexer.RegisterSocketForReadReady(fd);
-            if (ioGateway.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+            const SocketDescriptor sd = s.GetSocketDescriptor();
+            multiplexer.RegisterSocketForReadReady(sd);
+            if (ioGateway.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(sd);
             if (multiplexer.WaitForEvents() < 0)
             {
                LogTime(MUSCLE_LOG_ERROR, "WaitForEvents() failed, aborting! [%s]\n", B_ERRNO());
                break;
             }
-            if (multiplexer.IsSocketReadyForRead(fd))
+            if (multiplexer.IsSocketReadyForRead(sd))
             {
                if (ioGateway.DoInput(inQueue) < 0)
                {
@@ -74,7 +74,7 @@ int main(int argc, char ** argv)
                }
             }
 
-            if ((multiplexer.IsSocketReadyForWrite(fd))&&(ioGateway.DoOutput() < 0))
+            if ((multiplexer.IsSocketReadyForWrite(sd))&&(ioGateway.DoOutput() < 0))
             {
                LogTime(MUSCLE_LOG_ERROR, "Error writing to gateway, aborting!\n");
                break;

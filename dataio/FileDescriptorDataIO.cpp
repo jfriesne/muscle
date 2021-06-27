@@ -34,14 +34,14 @@ FileDescriptorDataIO ::
 {
    if (_dofSyncOnClose)
    {
-      const int fd = _fd.GetFileDescriptor();
+      const int fd = _fd.GetSocketDescriptor();
       if (fd >= 0) (void) fsync(fd);
    }
 }
 
 int32 FileDescriptorDataIO :: Read(void * buffer, uint32 size)  
 {
-   const int fd = _fd.GetFileDescriptor();
+   const int fd = _fd.GetSocketDescriptor();
    if (fd >= 0)
    {
       const long r = read_ignore_eintr(fd, buffer, size);
@@ -52,7 +52,7 @@ int32 FileDescriptorDataIO :: Read(void * buffer, uint32 size)
 
 int32 FileDescriptorDataIO :: Write(const void * buffer, uint32 size)
 {
-   const int fd = _fd.GetFileDescriptor();
+   const int fd = _fd.GetSocketDescriptor();
    if (fd >= 0)
    {
       const long w = write_ignore_eintr(fd, buffer, size);
@@ -68,7 +68,7 @@ void FileDescriptorDataIO :: FlushOutput()
 
 status_t FileDescriptorDataIO :: SetBlockingIOEnabled(bool blocking)
 {
-   const int fd = _fd.GetFileDescriptor();
+   const int fd = _fd.GetSocketDescriptor();
    if (fd >= 0)
    {
       if (fcntl(fd, F_SETFL, blocking ? 0 : O_NONBLOCK) == 0)
@@ -88,7 +88,7 @@ void FileDescriptorDataIO :: Shutdown()
 
 status_t FileDescriptorDataIO :: Seek(int64 offset, int whence)
 {
-   const int fd = _fd.GetFileDescriptor();
+   const int fd = _fd.GetSocketDescriptor();
    if (fd < 0) return B_BAD_OBJECT;
 
    switch(whence)
@@ -109,7 +109,7 @@ status_t FileDescriptorDataIO :: Seek(int64 offset, int whence)
 
 int64 FileDescriptorDataIO :: GetPosition() const
 {
-   const int fd = _fd.GetFileDescriptor();
+   const int fd = _fd.GetSocketDescriptor();
    if (fd >= 0)
    {
 #ifdef MUSCLE_USE_LLSEEK

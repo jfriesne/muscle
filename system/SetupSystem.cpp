@@ -11,6 +11,7 @@
 #include "util/CountedObject.h"
 #include "util/MiscUtilityFunctions.h"     // for PrintHexBytes()
 #include "util/NetworkUtilityFunctions.h"  // for IPAddressAndPort
+#include "util/Socket.h"                   // for SocketDescriptor
 #include "util/String.h"
 
 #ifdef MUSCLE_ENABLE_SSL
@@ -1124,27 +1125,27 @@ status_t Flattenable :: CopyFromImplementation(const Flattenable & copyFrom)
 }
 
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
-extern void NotifySocketMultiplexersThatSocketIsClosed(int fd);
+extern void NotifySocketMultiplexersThatSocketIsClosed(SocketDescriptor sd);
 #endif
 
 // This function is now a private one, since it should no longer be necessary to call it
 // from user code.  Instead, attach any socket file descriptors you create to ConstSocketRef
 // objects by calling GetConstSocketRefFromPool(fd), and the file descriptors will be automatically
 // closed when the last ConstSocketRef that references them is destroyed.
-static void CloseSocket(int fd)
+static void CloseSocket(SocketDescriptor sd)
 {
-   if (fd >= 0)
+   if (isValidSocket(sd))
    {
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
-      // We have to do this, otherwise a socket fd value can get re-used before the next call
+      // We have to do this, otherwise a socket descriptor value can get re-used before the next call
       // to WaitForEvents(), causing the SocketMultiplexers to fail to update their in-kernel state.
-      NotifySocketMultiplexersThatSocketIsClosed(fd);
+      NotifySocketMultiplexersThatSocketIsClosed(sd);
 #endif
 
 #if defined(WIN32) || defined(BEOS_OLD_NETSERVER)
-      ::closesocket(fd);
+      ::closesocket(sd);
 #else
-      close(fd);
+      close(sd);
 #endif
    }
 }
@@ -1155,11 +1156,11 @@ const ConstSocketRef & GetInvalidSocket()
    return _ref;
 }
 
-ConstSocketRef GetConstSocketRefFromPool(int fd, bool okayToClose, bool returnNULLOnInvalidFD)
+ConstSocketRef GetConstSocketRefFromPool(SocketDescriptor sd, bool okayToClose, bool returnNULLOnInvalidFD)
 {
    static ConstSocketRef::ItemPool _socketPool;
 
-   if ((fd < 0)&&(returnNULLOnInvalidFD)) return ConstSocketRef();
+   if (!isValidSocket(sd)&&(returnNULLOnInvalidFD)) return ConstSocketRef();
    else
    {
       Socket * s = _socketPool.ObtainObject();
@@ -1167,17 +1168,17 @@ ConstSocketRef GetConstSocketRefFromPool(int fd, bool okayToClose, bool returnNU
 
       if (s) 
       {
-         s->SetFileDescriptor(fd, okayToClose);
+         s->SetSocketDescriptor(sd, okayToClose);
 #ifdef WIN32
          // FogBugz #9911:  Make the socket un-inheritable, since that
          // is the behavior you want 99% of the time.  (Anyone who wants
          // to inherit the socket will have to either avoid calling this 
          // for those sockets, or call SetHandleInformation() again 
          // afterwards to reinstate the inherit-handle flag)
-         (void) SetHandleInformation((HANDLE)((ptrdiff)fd), HANDLE_FLAG_INHERIT, 0);
+         (void) SetHandleInformation((HANDLE)((ptrdiff)sd), HANDLE_FLAG_INHERIT, 0);
 #endif
       }
-      else if (okayToClose) CloseSocket(fd);
+      else if (okayToClose) CloseSocket(sd);
 
       return ret;
    }
@@ -1188,12 +1189,12 @@ Socket :: ~Socket()
    Clear();
 }
 
-void Socket :: SetFileDescriptor(int newFD, bool okayToClose)
+void Socket :: SetSocketDescriptor(SocketDescriptor newSD, bool okayToClose)
 {
-   if (newFD != _fd)
+   if (newSD != _sd)
    {
-      if (_okayToClose) CloseSocket(_fd);  // CloseSocket(-1) is a no-op, so no need to check fd twice
-      _fd = newFD; 
+      if (_okayToClose) CloseSocket(_sd);  // CloseSocket(-1) is a no-op, so no need to check sd twice
+      _sd = newSD;
    }
    _okayToClose = okayToClose;
 }

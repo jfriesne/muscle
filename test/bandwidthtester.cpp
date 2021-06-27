@@ -47,9 +47,9 @@ int main(int argc, char ** argv)
    QueueGatewayMessageReceiver inQueue;
    while(true)
    {
-      const int fd = s.GetFileDescriptor();
-      multiplexer.RegisterSocketForReadReady(fd);
-      if ((send)||(gw.HasBytesToOutput())) multiplexer.RegisterSocketForWriteReady(fd);
+      const SocketDescriptor sd = s.GetSocketDescriptor();
+      multiplexer.RegisterSocketForReadReady(sd);
+      if ((send)||(gw.HasBytesToOutput())) multiplexer.RegisterSocketForWriteReady(sd);
 
       const struct timeval printInterval = {5, 0};
       if (OnceEvery(printInterval, lastPrintTime))
@@ -72,8 +72,8 @@ int main(int argc, char ** argv)
 
       if (multiplexer.WaitForEvents() < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "bandwidthtester: WaitForEvents() failed! [%s]\n", B_ERRNO());
       if ((send)&&(gw.HasBytesToOutput() == false)) for (int i=0; i<10; i++) (void) gw.AddOutgoingMessage(sendMsgRef);
-      const bool reading = multiplexer.IsSocketReadyForRead(fd);
-      const bool writing = multiplexer.IsSocketReadyForWrite(fd);
+      const bool reading = multiplexer.IsSocketReadyForRead(sd);
+      const bool writing = multiplexer.IsSocketReadyForWrite(sd);
       const int32 wroteBytes = (writing) ? gw.DoOutput() : 0;
       const int32 readBytes  = (reading) ? gw.DoInput(inQueue) : 0;
       if ((readBytes < 0)||(wroteBytes < 0))

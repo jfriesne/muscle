@@ -86,7 +86,7 @@ int main(int argc, char ** argv)
    SocketMultiplexer sm;
    while(true)
    {
-      for (HashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++) sm.RegisterSocketForReadReady(iter.GetKey().GetFileDescriptor());
+      for (HashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++) sm.RegisterSocketForReadReady(iter.GetKey().GetSocketDescriptor());
       (void) sm.WaitForEvents(nextPingTime);
 
       const uint64 now = GetRunTime64();
@@ -99,9 +99,9 @@ int main(int argc, char ** argv)
             const int numBytesSent = SendDataUDP(iter.GetKey(), pingData(), pingData.FlattenedSize(), true, destAddr, multicastGroup.GetPort());
             if (numBytesSent == pingData.FlattenedSize()) 
             {
-               LogTime(MUSCLE_LOG_INFO, "Sent %i-byte multicast packet to [%s] on socket #%i: [%s]\n", numBytesSent, destAddr.ToString()(), iter.GetKey().GetFileDescriptor(), pingData());
+               LogTime(MUSCLE_LOG_INFO, "Sent %i-byte multicast packet to [%s] on socket #" SOCKET_FORMAT_SPEC ": [%s]\n", numBytesSent, destAddr.ToString()(), iter.GetKey().GetSocketDescriptor(), pingData());
             }
-            else LogTime(MUSCLE_LOG_ERROR, "Error sending multicast ping to socket %i\n", iter.GetKey().GetFileDescriptor());
+            else LogTime(MUSCLE_LOG_ERROR, "Error sending multicast ping to socket " SOCKET_FORMAT_SPEC "\n", iter.GetKey().GetSocketDescriptor());
          }
 
          nextPingTime += SecondsToMicros(5);
@@ -109,7 +109,7 @@ int main(int argc, char ** argv)
 
       for (HashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++)
       {
-         if (sm.IsSocketReadyForRead(iter.GetKey().GetFileDescriptor()))
+         if (sm.IsSocketReadyForRead(iter.GetKey().GetSocketDescriptor()))
          {
             char recvBuf[1024];
             int numBytesReceived;

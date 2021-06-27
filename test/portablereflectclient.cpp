@@ -108,13 +108,13 @@ int main(int argc, char ** argv)
    uint64 nextTimeoutTime = MUSCLE_TIME_NEVER;
    while(keepGoing)
    {
-      const int stdinFD       = stdinIO.GetReadSelectSocket().GetFileDescriptor();
-      const int socketReadFD  = networkIORef()->GetReadSelectSocket().GetFileDescriptor();
-      const int socketWriteFD = networkIORef()->GetWriteSelectSocket().GetFileDescriptor();
+      const SocketDescriptor stdinSD       = stdinIO.GetReadSelectSocket().GetSocketDescriptor();
+      const SocketDescriptor socketReadSD  = networkIORef()->GetReadSelectSocket().GetSocketDescriptor();
+      const SocketDescriptor socketWriteSD = networkIORef()->GetWriteSelectSocket().GetSocketDescriptor();
 
-      multiplexer.RegisterSocketForReadReady(stdinFD);
-      multiplexer.RegisterSocketForReadReady(socketReadFD);
-      if (gatewayRef()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(socketWriteFD);
+      multiplexer.RegisterSocketForReadReady(stdinSD);
+      multiplexer.RegisterSocketForReadReady(socketReadSD);
+      if (gatewayRef()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(socketWriteSD);
       if (multiplexer.WaitForEvents(nextTimeoutTime) < 0) printf("portablereflectclient: WaitForEvents() failed!\n");
 
       const uint64 now = GetRunTime64();
@@ -135,7 +135,7 @@ int main(int argc, char ** argv)
       }
 
       // Receive data from stdin
-      if (multiplexer.IsSocketReadyForRead(stdinFD))
+      if (multiplexer.IsSocketReadyForRead(stdinSD))
       {
          while(1)
          {
@@ -317,8 +317,8 @@ int main(int argc, char ** argv)
       }
 
       // Handle input and output on the TCP socket
-      const bool reading = multiplexer.IsSocketReadyForRead(socketReadFD);
-      const bool writing = multiplexer.IsSocketReadyForWrite(socketWriteFD);
+      const bool reading = multiplexer.IsSocketReadyForRead(socketReadSD);
+      const bool writing = multiplexer.IsSocketReadyForWrite(socketWriteSD);
       const bool writeError = ((writing)&&(gatewayRef()->DoOutput() < 0));
       const bool readError  = ((reading)&&(gatewayRef()->DoInput(tcpInQueue) < 0));
       if ((readError)||(writeError))

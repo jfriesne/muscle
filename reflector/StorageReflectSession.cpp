@@ -2005,7 +2005,7 @@ void StorageReflectSession :: PrintSessionsInfo() const
       if (ars->HasBytesToOutput()) stateStr = stateStr.AppendWord("HasBytesToOutput", ", ");
       if (ars->WasConnected()) stateStr = stateStr.AppendWord("WasConnected", ", ");
       if (stateStr.HasChars()) stateStr = stateStr.Prepend(", ");
-      printf("  Session [%s] (rfd=%i,wfd=%i) is [%s]:  (" UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes%s)\n", iter.GetKey()->Cstr(), ars->GetSessionReadSelectSocket().GetFileDescriptor(), ars->GetSessionWriteSelectSocket().GetFileDescriptor(), ars->GetSessionDescriptionString()(), numOutMessages, numOutBytes, numNodes, numNodeBytes, stateStr());
+      printf("  Session [%s] (rsd=" SOCKET_FORMAT_SPEC ",wsd=" SOCKET_FORMAT_SPEC ") is [%s]:  (" UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes%s)\n", iter.GetKey()->Cstr(), ars->GetSessionReadSelectSocket().GetSocketDescriptor(), ars->GetSessionWriteSelectSocket().GetSocketDescriptor(), ars->GetSessionDescriptionString()(), numOutMessages, numOutBytes, numNodes, numNodeBytes, stateStr());
       totalNumOutMessages += numOutMessages;
       totalNumOutBytes    += numOutBytes;
       totalNumNodes       += numNodes;

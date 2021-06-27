@@ -109,21 +109,21 @@ int main(int argc, char ** argv)
    while(keepGoing)
    {
       // Tell the SocketMultiplexer what file descriptors to watch
-      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
-      sm.RegisterSocketForReadReady(gateway.GetDataIO()()->GetReadSelectSocket().GetFileDescriptor());
+      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetSocketDescriptor());
+      sm.RegisterSocketForReadReady(gateway.GetDataIO()()->GetReadSelectSocket().GetSocketDescriptor());
       if (gateway.HasBytesToOutput())
       {
          // We only care about the TCP socket's ready-for-write status if our gateway
          // actually has some data queued up to send.  Otherwise there is no point waking up
          // just because the TCP socket's output-buffer isn't full...
-         sm.RegisterSocketForWriteReady(gateway.GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor());
+         sm.RegisterSocketForWriteReady(gateway.GetDataIO()()->GetWriteSelectSocket().GetSocketDescriptor());
       }
     
       // Wait for something to happen (on either the TCP side or the stdin side)...
       sm.WaitForEvents();
 
       // Are there bytes ready-for-read on stdin?
-      if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetFileDescriptor()))
+      if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetSocketDescriptor()))
       {
          // The user typed something in to stdin!  Let's find out what he says
          char buf[1024];
@@ -155,7 +155,7 @@ int main(int argc, char ** argv)
       }
 
       // Are there bytes ready-for-read on the TCP socket?
-      if (sm.IsSocketReadyForRead(gateway.GetDataIO()()->GetReadSelectSocket().GetFileDescriptor()))
+      if (sm.IsSocketReadyForRead(gateway.GetDataIO()()->GetReadSelectSocket().GetSocketDescriptor()))
       {
          // There are some!  Let's have the gateway read them in.  If the gateway
          // has enough to assemble a complete Message out of them, it will call 
@@ -190,7 +190,7 @@ int main(int argc, char ** argv)
 
       // And finally, if there is buffer space for output on the TCP socket,
       // then we should call DoOutput() on the gateway to allow it to send some data
-      if (sm.IsSocketReadyForWrite(gateway.GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor()))
+      if (sm.IsSocketReadyForWrite(gateway.GetDataIO()()->GetWriteSelectSocket().GetSocketDescriptor()))
       {
          int numBytesSent;
          while((numBytesSent = gateway.DoOutput()) > 0)

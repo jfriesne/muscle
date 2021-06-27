@@ -159,18 +159,18 @@ int main(int argc, char ** argv)
 
    uint64 nextSpamTime = 0;
    LogTime(MUSCLE_LOG_INFO, "%s Event loop starting [%s]...\n", useTCP?"TCP":"UDP", (spamInterval>0) ? "Broadcast mode" : "Receive mode");
-   const int readFD  = dio()->GetReadSelectSocket().GetFileDescriptor();
-   const int writeFD = dio()->GetWriteSelectSocket().GetFileDescriptor();
+   const SocketDescriptor readSD  = dio()->GetReadSelectSocket().GetSocketDescriptor();
+   const SocketDescriptor writeSD = dio()->GetWriteSelectSocket().GetSocketDescriptor();
    uint64 lastTime = 0;
    while(1)
    {
       if (OnceEvery(MICROS_PER_SECOND, lastTime)) LogTime(MUSCLE_LOG_INFO, "Send counter is currently at " UINT32_FORMAT_SPEC ", Receive counter is currently at " UINT32_FORMAT_SPEC "\n", _sendWhatCounter, _recvWhatCounter);
-      multiplexer.RegisterSocketForReadReady(readFD);
-      if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
+      multiplexer.RegisterSocketForReadReady(readSD);
+      if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeSD);
       if (multiplexer.WaitForEvents((spamInterval>0)?nextSpamTime:MUSCLE_TIME_NEVER) < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "testpackettunnel: WaitForEvents() failed!\n");
 
-      const bool reading = multiplexer.IsSocketReadyForRead(readFD);
-      const bool writing = multiplexer.IsSocketReadyForWrite(writeFD);
+      const bool reading = multiplexer.IsSocketReadyForRead(readSD);
+      const bool writing = multiplexer.IsSocketReadyForWrite(writeSD);
       const bool writeError = ((writing)&&(gw.DoOutput() < 0));
       const bool readError  = ((reading)&&(gw.DoInput(receiver) < 0));
       if ((readError)||(writeError))

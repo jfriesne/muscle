@@ -529,7 +529,7 @@ MessageRef MessageIOGateway :: CreateSynchronousPingMessage(uint32 syncPingCount
 status_t MessageIOGateway :: ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64 timeoutPeriod)
 {
    const DataIO * dio = GetDataIO()();
-   if ((dio == NULL)||(dio->GetReadSelectSocket().GetFileDescriptor() < 0)||(dio->GetWriteSelectSocket().GetFileDescriptor() < 0)) return B_BAD_OBJECT;
+   if ((dio == NULL)||(!isValidSocket(dio->GetReadSelectSocket().GetSocketDescriptor()))||(!isValidSocket(dio->GetWriteSelectSocket().GetSocketDescriptor()))) return B_BAD_OBJECT;
 
    MessageRef pingMsg = CreateSynchronousPingMessage(_syncPingCounter);
    if (pingMsg() == NULL) return B_ERROR("CreateSynchronousPingMessage() failed");

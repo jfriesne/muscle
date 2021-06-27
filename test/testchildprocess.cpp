@@ -54,12 +54,12 @@ public:
             SocketMultiplexer sm;
             while(1)
             {
-               if (sm.RegisterSocketForReadReady(cpdio.GetReadSelectSocket().GetFileDescriptor()).IsError()) printf("RegisterSocketForReadReady() failed!\n");
+               if (sm.RegisterSocketForReadReady(cpdio.GetReadSelectSocket().GetSocketDescriptor()).IsError()) printf("RegisterSocketForReadReady() failed!\n");
 
                const int r = sm.WaitForEvents();
                printf("WaitForEvents() returned %i\n", r);
 
-               if (sm.IsSocketReadyForRead(cpdio.GetReadSelectSocket().GetFileDescriptor()))
+               if (sm.IsSocketReadyForRead(cpdio.GetReadSelectSocket().GetSocketDescriptor()))
                {
                   printf("File descriptor is ready-for-read\n");
 
@@ -157,26 +157,26 @@ int main(int argc, char ** argv)
       QueueGatewayMessageReceiver ioInputQueue;
       while(1)
       {
-         int readFD = readSock.GetFileDescriptor();
-         multiplexer.RegisterSocketForReadReady(readFD);
+         SocketDescriptor readSD = readSock.GetSocketDescriptor();
+         multiplexer.RegisterSocketForReadReady(readSD);
 
-         const int writeFD = ioGateway.HasBytesToOutput() ? refs[i]()->GetWriteSelectSocket().GetFileDescriptor() : -1;
-         if (writeFD >= 0) multiplexer.RegisterSocketForWriteReady(writeFD);
+         const SocketDescriptor writeSD = ioGateway.HasBytesToOutput() ? refs[i]()->GetWriteSelectSocket().GetSocketDescriptor() : INVALID_SOCKET;
+         if (isValidSocket(writeSD)) multiplexer.RegisterSocketForWriteReady(writeSD);
 
-         const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
-         multiplexer.RegisterSocketForReadReady(stdinFD);
+         const SocketDescriptor stdinSD = stdinIO.GetReadSelectSocket().GetSocketDescriptor();
+         multiplexer.RegisterSocketForReadReady(stdinSD);
 
          if (multiplexer.WaitForEvents() < 0) printf("testchildprocess: WaitForEvents() failed!\n");
 
          // First, deliver any lines of text from stdin to the child process
-         if ((multiplexer.IsSocketReadyForRead(stdinFD))&&(stdinGateway.DoInput(ioGateway) < 0))
+         if ((multiplexer.IsSocketReadyForRead(stdinSD))&&(stdinGateway.DoInput(ioGateway) < 0))
          {
             printf("Error reading from stdin, aborting!\n");
             break;
          }
 
-         const bool reading    = multiplexer.IsSocketReadyForRead(readFD);
-         const bool writing    = ((writeFD >= 0)&&(multiplexer.IsSocketReadyForWrite(writeFD)));
+         const bool reading    = multiplexer.IsSocketReadyForRead(readSD);
+         const bool writing    = (isValidSocket(writeSD)&&(multiplexer.IsSocketReadyForWrite(writeSD)));
          const bool writeError = ((writing)&&(ioGateway.DoOutput() < 0));
          const bool readError  = ((reading)&&(ioGateway.DoInput(ioInputQueue) < 0));
          if ((readError)||(writeError))
@@ -197,8 +197,8 @@ int main(int argc, char ** argv)
 
          if ((reading == false)&&(writing == false)) break;
 
-         multiplexer.RegisterSocketForReadReady(readFD);
-         if (ioGateway.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
+         multiplexer.RegisterSocketForReadReady(readSD);
+         if (ioGateway.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeSD);
       }
 
       if (ioGateway.HasBytesToOutput())

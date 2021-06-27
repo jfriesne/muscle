@@ -136,7 +136,7 @@ int main(int argc, char ** argv)
    for (HashtableIterator<ConstSocketRef, Void> iter(sockTable); iter.HasData(); iter++)
    {
       const Socket * s = iter.GetKey()();
-      printf("   socket descriptor #%i\n", s ? s->GetFileDescriptor() : -1);
+      printf("   socket descriptor #" SOCKET_FORMAT_SPEC "\n", s ? s->GetSocketDescriptor() : INVALID_SOCKET);
    }
 
    printf("\n");

@@ -46,7 +46,7 @@ public:
    virtual ConstSocketRef CreateDefaultSocket()
    {
       ConstSocketRef ret = DumbReflectSession::CreateDefaultSocket();
-      LogTime(MUSCLE_LOG_INFO, "MyDumbReflectSession(%p)::CreateDefaultSocket() called -- returning %p (socket_fd=%i)\n", this, ret(), ret.GetFileDescriptor());
+      LogTime(MUSCLE_LOG_INFO, "MyDumbReflectSession(%p)::CreateDefaultSocket() called -- returning %p (socket_fd=" SOCKET_FORMAT_SPEC ")\n", this, ret(), ret.GetSocketDescriptor());
       return ret;
    }
 

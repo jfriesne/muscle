@@ -42,7 +42,7 @@ status_t AcceptSocketsThread :: StartInternalThread()
    if ((IsInternalThreadRunning() == false)&&(_acceptSocket()))
    {
       _notifySocket = GetInternalThreadWakeupSocket();
-      return (_notifySocket.GetFileDescriptor() >= 0) ? Thread::StartInternalThread() : B_BAD_OBJECT;
+      return isValidSocket(_notifySocket.GetSocketDescriptor()) ? Thread::StartInternalThread() : B_BAD_OBJECT;
    } 
    return B_BAD_OBJECT;
 }
@@ -53,13 +53,13 @@ void AcceptSocketsThread :: InternalThreadEntry()
    bool keepGoing = true;
    while(keepGoing)
    {
-      const int afd = _acceptSocket.GetFileDescriptor();
-      const int nfd = _notifySocket.GetFileDescriptor();
+      const SocketDescriptor asd = _acceptSocket.GetSocketDescriptor();
+      const SocketDescriptor nsd = _notifySocket.GetSocketDescriptor();
 
-      multiplexer.RegisterSocketForReadReady(afd);
-      multiplexer.RegisterSocketForReadReady(nfd);
+      multiplexer.RegisterSocketForReadReady(asd);
+      multiplexer.RegisterSocketForReadReady(nsd);
       if (multiplexer.WaitForEvents() < 0) break;
-      if (multiplexer.IsSocketReadyForRead(nfd))
+      if (multiplexer.IsSocketReadyForRead(nsd))
       {
          MessageRef msgRef;
          int32 numLeft;
@@ -72,7 +72,7 @@ void AcceptSocketsThread :: InternalThreadEntry()
             }
          }
       }
-      if (multiplexer.IsSocketReadyForRead(afd))
+      if (multiplexer.IsSocketReadyForRead(asd))
       {
          ConstSocketRef newSocket = Accept(_acceptSocket);
          if (newSocket())

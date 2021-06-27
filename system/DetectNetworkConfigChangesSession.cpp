@@ -790,7 +790,7 @@ ConstSocketRef DetectNetworkConfigChangesSession :: CreateDefaultSocket()
    sa.nl_groups = RTMGRP_LINK | RTMGRP_IPV6_IFADDR;
 
    ConstSocketRef ret = GetConstSocketRefFromPool(socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE));
-   return ((ret())&&(bind(ret()->GetFileDescriptor(), (struct sockaddr*)&sa, sizeof(sa)) == 0)&&(SetSocketBlockingEnabled(ret, false).IsOK())) ? ret : ConstSocketRef();
+   return ((ret())&&(bind(ret()->GetSocketDescriptor(), (struct sockaddr*)&sa, sizeof(sa)) == 0)&&(SetSocketBlockingEnabled(ret, false).IsOK())) ? ret : ConstSocketRef();
 #else
    return CreateConnectedSocketPair(_notifySocket, _waitSocket).IsOK() ? _waitSocket : ConstSocketRef();
 #endif
@@ -798,8 +798,8 @@ ConstSocketRef DetectNetworkConfigChangesSession :: CreateDefaultSocket()
 
 int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceiver & /*r*/, uint32 /*maxBytes*/)
 {
-   const int fd = GetSessionReadSelectSocket().GetFileDescriptor();
-   if (fd < 0) return -1;
+   const SocketDescriptor sd = GetSessionReadSelectSocket().GetSocketDescriptor();
+   if (!isValidSocket(sd)) return -1;
 
 #ifdef __linux__
    bool sendReport = false;
@@ -807,7 +807,7 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
    struct iovec iov = {buf, sizeof(buf)};
    struct sockaddr_nl sa;
    struct msghdr msg = {(void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
-   int msgLen = recvmsg(fd, &msg, 0);
+   int msgLen = recvmsg(sd, &msg, 0);
    if (msgLen >= 0)  // FogBugz #9620
    {
       for (struct nlmsghdr *nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, (unsigned int)msgLen); nh=NLMSG_NEXT(nh, msgLen))

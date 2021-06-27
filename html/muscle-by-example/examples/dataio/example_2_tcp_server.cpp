@@ -49,18 +49,18 @@ int main(int argc, char ** argv)
    while(true)
    {
       // Tell the SocketMultiplexer what sockets to listen to
-      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
-      sm.RegisterSocketForReadReady(acceptSock.GetFileDescriptor());
+      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetSocketDescriptor());
+      sm.RegisterSocketForReadReady(acceptSock.GetSocketDescriptor());
       for (HashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
       {
-         sm.RegisterSocketForReadReady(iter.GetKey()()->GetReadSelectSocket().GetFileDescriptor());
+         sm.RegisterSocketForReadReady(iter.GetKey()()->GetReadSelectSocket().GetSocketDescriptor());
       }
 
       // Wait here until something happens
       (void) sm.WaitForEvents();
 
       // Time to accept an incoming TCP connection?
-      if (sm.IsSocketReadyForRead(acceptSock.GetFileDescriptor()))
+      if (sm.IsSocketReadyForRead(acceptSock.GetSocketDescriptor()))
       {
          IPAddress clientIP;
          ConstSocketRef tcpSock = Accept(acceptSock, &clientIP);
@@ -74,7 +74,7 @@ int main(int argc, char ** argv)
       }
 
       // Time to read from stdin?
-      if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetFileDescriptor()))
+      if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetSocketDescriptor()))
       {
          char inputBuf[1024];
          const int numBytesRead = stdinIO.Read(inputBuf, sizeof(inputBuf));
@@ -97,7 +97,7 @@ int main(int argc, char ** argv)
       for (HashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
       {
          DataIO * clientIO = iter.GetKey()();
-         if (sm.IsSocketReadyForRead(clientIO->GetReadSelectSocket().GetFileDescriptor()))
+         if (sm.IsSocketReadyForRead(clientIO->GetReadSelectSocket().GetSocketDescriptor()))
          {
             char inputBuf[1024];
             const int numBytesRead = clientIO->Read(inputBuf, sizeof(inputBuf)-1);

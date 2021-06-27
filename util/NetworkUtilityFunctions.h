@@ -778,10 +778,10 @@ typedef int muscle_socklen_t;
 typedef size_t muscle_socklen_t;
 #endif
 
-static inline long recv_ignore_eintr(    int s, void *b, unsigned long numBytes, int flags) {long ret; do {ret = recv(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline long recvfrom_ignore_eintr(int s, void *b, unsigned long numBytes, int flags, struct sockaddr *a, muscle_socklen_t * alen) {long ret; do {ret = recvfrom(s, (char *)b, numBytes, flags, a,  alen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline long send_ignore_eintr(    int s, const void *b, unsigned long numBytes, int flags) {long ret; do {ret = send(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline long sendto_ignore_eintr(  int s, const void *b, unsigned long numBytes, int flags, const struct sockaddr * d, int dlen) {long ret; do {ret = sendto(s, (char *)b, numBytes, flags,  d, dlen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline long recv_ignore_eintr(    SocketDescriptor s, void *b, unsigned long numBytes, int flags) {long ret; do {ret = recv(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline long recvfrom_ignore_eintr(SocketDescriptor s, void *b, unsigned long numBytes, int flags, struct sockaddr *a, muscle_socklen_t * alen) {long ret; do {ret = recvfrom(s, (char *)b, numBytes, flags, a,  alen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline long send_ignore_eintr(    SocketDescriptor s, const void *b, unsigned long numBytes, int flags) {long ret; do {ret = send(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline long sendto_ignore_eintr(  SocketDescriptor s, const void *b, unsigned long numBytes, int flags, const struct sockaddr * d, int dlen) {long ret; do {ret = sendto(s, (char *)b, numBytes, flags,  d, dlen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
 #ifndef WIN32
 static inline long read_ignore_eintr(    int f, void *b, unsigned long nbyte) {long ret; do {ret = read(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
 static inline long write_ignore_eintr(   int f, const void *b, unsigned long nbyte) {long ret; do {ret = write(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}

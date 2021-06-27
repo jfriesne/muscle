@@ -112,20 +112,20 @@ void AsyncDataIO :: InternalThreadEntry()
    DataIO  * childIO    = childIORef();     // just for convenience
    while(keepGoing)
    {
-      int childReadFD  = childIO?childIO->GetReadSelectSocket().GetFileDescriptor():-1;
-      int childWriteFD = childIO?childIO->GetWriteSelectSocket().GetFileDescriptor():-1;
-      int fromMainFD   = GetInternalThreadWakeupSocket().GetFileDescriptor();
-      int notifyFD     = _ioThreadNotifySocket.GetFileDescriptor();
+      SocketDescriptor childReadSD  = childIO?childIO->GetReadSelectSocket().GetSocketDescriptor():INVALID_SOCKET;
+      SocketDescriptor childWriteSD = childIO?childIO->GetWriteSelectSocket().GetSocketDescriptor():INVALID_SOCKET;
+      int fromMainSD   = GetInternalThreadWakeupSocket().GetSocketDescriptor();
+      int notifySD     = _ioThreadNotifySocket.GetSocketDescriptor();
 
-      if ((childReadFD  >= 0)&&(fromChildIOBufNumValid    < sizeof(fromChildIOBuf)))   multiplexer.RegisterSocketForReadReady(childReadFD);
-      if ((childWriteFD >= 0)&&(fromMainThreadBufNumValid > fromMainThreadBufReadIdx)) multiplexer.RegisterSocketForWriteReady(childWriteFD);
+      if (isValidSocket(childReadSD)&&(fromChildIOBufNumValid    < sizeof(fromChildIOBuf)))   multiplexer.RegisterSocketForReadReady(childReadSD);
+      if (isValidSocket(childWriteSD)&&(fromMainThreadBufNumValid > fromMainThreadBufReadIdx)) multiplexer.RegisterSocketForWriteReady(childWriteSD);
 
-      if (fromMainFD >= 0)
+      if (isValidSocket(fromMainSD))
       {
-         if (fromMainThreadBufNumValid < sizeof(fromMainThreadBuf)) multiplexer.RegisterSocketForReadReady(fromMainFD);
-         if (fromChildIOBufNumValid > fromChildIOBufReadIdx)        multiplexer.RegisterSocketForWriteReady(fromMainFD);
+         if (fromMainThreadBufNumValid < sizeof(fromMainThreadBuf)) multiplexer.RegisterSocketForReadReady(fromMainSD);
+         if (fromChildIOBufNumValid > fromChildIOBufReadIdx)        multiplexer.RegisterSocketForWriteReady(fromMainSD);
       }
-      if (notifyFD >= 0) multiplexer.RegisterSocketForReadReady(notifyFD);  // always be on the lookout for notifications...
+      if (isValidSocket(notifySD)) multiplexer.RegisterSocketForReadReady(notifySD);  // always be on the lookout for notifications...
 
       pulseTime = InternalThreadGetPulseTime(pulseTime);
       if (multiplexer.WaitForEvents(pulseTime) < 0) break; // we block here, waiting for data availability or for the next pulse time
@@ -136,7 +136,7 @@ void AsyncDataIO :: InternalThreadEntry()
       }
 
       // All the notify socket needs to do is make WaitForEvents() return.  We just read the junk notify-bytes and ignore them.
-      if ((notifyFD >= 0)&&(multiplexer.IsSocketReadyForRead(notifyFD))) 
+      if (isValidSocket(notifySD)&&(multiplexer.IsSocketReadyForRead(notifySD)))
       {
          char junk[128]; 
          if (ReceiveData(_ioThreadNotifySocket, junk, sizeof(junk), false) < 0) break;
@@ -164,18 +164,18 @@ void AsyncDataIO :: InternalThreadEntry()
       if (bytesUntilNextCommand > 0)
       {
          // Read the data from the child FD, into our from-child buffer
-         if ((childReadFD >= 0)&&(fromChildIOBufNumValid < sizeof(fromChildIOBuf))&&(multiplexer.IsSocketReadyForRead(childReadFD)))
+         if (isValidSocket(childReadSD)&&(fromChildIOBufNumValid < sizeof(fromChildIOBuf))&&(multiplexer.IsSocketReadyForRead(childReadSD)))
          {
             const int32 bytesRead = ProxyDataIO::Read(&fromChildIOBuf[fromChildIOBufNumValid], sizeof(fromChildIOBuf)-fromChildIOBufNumValid);
             if (bytesRead >= 0) fromChildIOBufNumValid += bytesRead;
                            else break;
          }
 
-         if (childWriteFD >= 0)
+         if (isValidSocket(childWriteSD))
          {
             // Write the data from our from-main-thread buffer, to our child I/O
             const uint32 bytesToWriteToChild = muscleMin(bytesUntilNextCommand, fromMainThreadBufNumValid-fromMainThreadBufReadIdx);
-            if ((bytesToWriteToChild > 0)&&(multiplexer.IsSocketReadyForWrite(childWriteFD)))
+            if ((bytesToWriteToChild > 0)&&(multiplexer.IsSocketReadyForWrite(childWriteSD)))
             {
                const int32 bytesWritten = ProxyDataIO::Write(&fromMainThreadBuf[fromMainThreadBufReadIdx], bytesToWriteToChild);
                if (bytesWritten >= 0)
@@ -189,10 +189,10 @@ void AsyncDataIO :: InternalThreadEntry()
             if ((fromMainThreadBufNumValid == fromMainThreadBufReadIdx)&&(exitWhenDoneWriting)) break;
          }
 
-         if (fromMainFD >= 0)
+         if (isValidSocket(fromMainSD))
          {
             // Read the data from the main thread's socket, into our from-main-thread buffer
-            if ((fromMainThreadBufNumValid < sizeof(fromMainThreadBuf))&&(multiplexer.IsSocketReadyForRead(fromMainFD)))
+            if ((fromMainThreadBufNumValid < sizeof(fromMainThreadBuf))&&(multiplexer.IsSocketReadyForRead(fromMainSD)))
             {
                const int32 bytesRead = ReceiveData(GetInternalThreadWakeupSocket(), &fromMainThreadBuf[fromMainThreadBufNumValid], sizeof(fromMainThreadBuf)-fromMainThreadBufNumValid, false);
                if (bytesRead >= 0) fromMainThreadBufNumValid += bytesRead;
@@ -200,7 +200,7 @@ void AsyncDataIO :: InternalThreadEntry()
             }
 
             // Write the data from our from-child-IO buffer, to the main thread's socket
-            if ((fromChildIOBufReadIdx < fromChildIOBufNumValid)&&(multiplexer.IsSocketReadyForWrite(fromMainFD)))
+            if ((fromChildIOBufReadIdx < fromChildIOBufNumValid)&&(multiplexer.IsSocketReadyForWrite(fromMainSD)))
             {
                const int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromChildIOBuf[fromChildIOBufReadIdx], fromChildIOBufNumValid-fromChildIOBufReadIdx, false);
                if (bytesWritten >= 0) 

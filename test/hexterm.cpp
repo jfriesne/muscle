@@ -157,16 +157,16 @@ static void DoSession(DataIO & io, bool allowRead = true)
    bool keepGoing = true;
    while(keepGoing)
    {
-      const int readFD  = io.GetReadSelectSocket().GetFileDescriptor();
-      const int writeFD = io.GetWriteSelectSocket().GetFileDescriptor();
-      int stdinFD       = stdinIO.GetReadSelectSocket().GetFileDescriptor();
+      const SocketDescriptor readSD  = io.GetReadSelectSocket().GetSocketDescriptor();
+      const SocketDescriptor writeSD = io.GetWriteSelectSocket().GetSocketDescriptor();
+      SocketDescriptor stdinSD       = stdinIO.GetReadSelectSocket().GetSocketDescriptor();
 
-      if (allowRead) multiplexer.RegisterSocketForReadReady(readFD);
-      if (_spamsPerSecond == MUSCLE_NO_LIMIT) multiplexer.RegisterSocketForWriteReady(writeFD);
-      multiplexer.RegisterSocketForReadReady(stdinFD);
+      if (allowRead) multiplexer.RegisterSocketForReadReady(readSD);
+      if (_spamsPerSecond == MUSCLE_NO_LIMIT) multiplexer.RegisterSocketForWriteReady(writeSD);
+      multiplexer.RegisterSocketForReadReady(stdinSD);
       if (multiplexer.WaitForEvents(spamTime) >= 0)
       {
-         if (((_spamsPerSecond == MUSCLE_NO_LIMIT)&&(multiplexer.IsSocketReadyForWrite(writeFD)))||(GetRunTime64() >= spamTime))
+         if (((_spamsPerSecond == MUSCLE_NO_LIMIT)&&(multiplexer.IsSocketReadyForWrite(writeSD)))||(GetRunTime64() >= spamTime))
          {
             int32 spamBytesSent = 0;
             uint8 * b = spamBuf() ? spamBuf()->GetBuffer() : NULL;
@@ -181,7 +181,7 @@ static void DoSession(DataIO & io, bool allowRead = true)
             spamTime += (1000000/_spamsPerSecond);
          }
 
-         if (multiplexer.IsSocketReadyForRead(readFD))
+         if (multiplexer.IsSocketReadyForRead(readSD))
          {
             uint8 buf[2048];
             const int32 ret = io.Read(buf, sizeof(buf));
@@ -214,14 +214,14 @@ static void DoSession(DataIO & io, bool allowRead = true)
                break;
             }
          }
-         if ((stdinFD >= 0)&&(multiplexer.IsSocketReadyForRead(stdinFD)))
+         if (isValidSocket(stdinSD)&&(multiplexer.IsSocketReadyForRead(stdinSD)))
          {
             while(1)
             {
                const int32 bytesRead = stdinGateway.DoInput(receiver);
                if (bytesRead < 0) 
                {
-                  stdinFD = -1;  // indicate that stdin is no longer available
+                  stdinSD = INVALID_SOCKET;  // indicate that stdin is no longer available
                   if (keepGoing) 
                   {
                      keepGoing = false;
@@ -274,7 +274,7 @@ static void DoSession(DataIO & io, bool allowRead = true)
             if (FlushOutBuffer(writeCounter, outBuf, io).IsError()) return;
             outBuf.Reset();
 
-            if (stdinFD < 0) break;  // all done now!
+            if (!isValidSocket(stdinSD)) break;  // all done now!
          }
       }
       else break;

@@ -107,7 +107,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
    if (newSession->_hostName.IsEmpty())
    {
       const ConstSocketRef & sock = newSession->GetSessionReadSelectSocket();
-      if (sock.GetFileDescriptor() >= 0)
+      if (isValidSocket(sock.GetSocketDescriptor()))
       {
          const IPAddress ip = GetPeerIPAddress(sock, true);
          const String * remapString = _remapIPs.Get(ip);
@@ -453,8 +453,8 @@ ServerProcessLoop()
             for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
             {
                ConstSocketRef * nextAcceptSocket = iter.GetValue()()->IsReadyToAcceptSessions() ? _factorySockets.Get(iter.GetKey()) : NULL;
-               int nfd = nextAcceptSocket ? nextAcceptSocket->GetFileDescriptor() : -1;
-               if (nfd >= 0) (void) _multiplexer.RegisterSocketForReadReady(nfd);
+               SocketDescriptor nsd = nextAcceptSocket ? nextAcceptSocket->GetSocketDescriptor() : INVALID_SOCKET;
+               if (isValidSocket(nsd)) (void) _multiplexer.RegisterSocketForReadReady(nsd);
                CallGetPulseTimeAux(*iter.GetValue()(), now, nextPulseAt);
             }
          }
@@ -473,15 +473,15 @@ ServerProcessLoop()
                   AbstractMessageIOGateway * g = session->GetGateway()();
                   if (g)
                   {
-                     const int sessionReadFD = session->GetSessionReadSelectSocket().GetFileDescriptor();
-                     if ((sessionReadFD >= 0)&&(session->IsConnectingAsync() == false))
+                     const SocketDescriptor sessionReadSD = session->GetSessionReadSelectSocket().GetSocketDescriptor();
+                     if (isValidSocket(sessionReadSD)&&(session->IsConnectingAsync() == false))
                      {
                         session->_maxInputChunk = CheckPolicy(policies, session->GetInputPolicy(), PolicyHolder(session->IsReadyForInput() ? session : NULL, true), now);
-                        if (session->_maxInputChunk > 0) (void) _multiplexer.RegisterSocketForReadReady(sessionReadFD);
+                        if (session->_maxInputChunk > 0) (void) _multiplexer.RegisterSocketForReadReady(sessionReadSD);
                      }
 
-                     const int sessionWriteFD = session->GetSessionWriteSelectSocket().GetFileDescriptor();
-                     if (sessionWriteFD >= 0)
+                     const SocketDescriptor sessionWriteSD = session->GetSessionWriteSelectSocket().GetSocketDescriptor();
+                     if (isValidSocket(sessionWriteSD))
                      {
                         bool out;
                         if (session->IsConnectingAsync()) 
@@ -489,7 +489,7 @@ ServerProcessLoop()
                            out = true;  // so we can watch for the async-connect event
 #if defined(WIN32)
                            // Under Windows, failed asynchronous TCP connect()'s are communicated via a raised exception-flag
-                           (void) _multiplexer.RegisterSocketForExceptionRaised(sessionWriteFD);
+                           (void) _multiplexer.RegisterSocketForExceptionRaised(sessionWriteSD);
 #endif
                         }
                         else
@@ -500,7 +500,7 @@ ServerProcessLoop()
 
                         if (out) 
                         {
-                           (void) _multiplexer.RegisterSocketForWriteReady(sessionWriteFD);
+                           (void) _multiplexer.RegisterSocketForWriteReady(sessionWriteSD);
                            if (session->_lastByteOutputAt == 0) session->_lastByteOutputAt = now;  // the bogged-session-clock starts ticking when we first want to write...
                            if (session->_outputStallLimit != MUSCLE_TIME_NEVER) nextPulseAt = muscleMin(nextPulseAt, session->_lastByteOutputAt+session->_outputStallLimit);
                         }
@@ -605,8 +605,8 @@ ServerProcessLoop()
 
                TCHECKPOINT;
 
-               const int readSock = session->GetSessionReadSelectSocket().GetFileDescriptor();
-               if (readSock >= 0)
+               const SocketDescriptor readSock = session->GetSessionReadSelectSocket().GetSocketDescriptor();
+               if (isValidSocket(readSock))
                {
                   int32 readBytes = 0;
                   if (_multiplexer.IsSocketReadyForRead(readSock))
@@ -626,8 +626,8 @@ ServerProcessLoop()
                   }
                }
 
-               const int writeSock = session->GetSessionWriteSelectSocket().GetFileDescriptor();
-               if (writeSock >= 0)
+               const SocketDescriptor writeSock = session->GetSessionWriteSelectSocket().GetSocketDescriptor();
+               if (isValidSocket(writeSock))
                {
                   int32 wroteBytes = 0;
 
@@ -739,8 +739,8 @@ ServerProcessLoop()
             if (factory->IsReadyToAcceptSessions())
             {
                ConstSocketRef * as = _factorySockets.Get(iter.GetKey());
-               const int fd = as ? as->GetFileDescriptor() : -1;
-               if ((fd >= 0)&&(_multiplexer.IsSocketReadyForRead(fd))) (void) DoAccept(iter.GetKey(), *as, factory);
+               const SocketDescriptor sd = as ? as->GetSocketDescriptor() : INVALID_SOCKET;
+               if (isValidSocket(sd)&&(_multiplexer.IsSocketReadyForRead(sd))) (void) DoAccept(iter.GetKey(), *as, factory);
             }
          }
       }

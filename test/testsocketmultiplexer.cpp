@@ -64,7 +64,7 @@ int main(int argc, char ** argv)
    {
       for (uint32 i=0; i<numPairs; i++)
       {
-         if (multiplexer.RegisterSocketForReadReady(receivers[i].GetFileDescriptor()).IsError())
+         if (multiplexer.RegisterSocketForReadReady(receivers[i].GetSocketDescriptor()).IsError())
          {
             printf("Error, RegisterSocketForRead() failed for receiver #" UINT32_FORMAT_SPEC "!\n", i);
             error = true;
@@ -93,7 +93,7 @@ int main(int argc, char ** argv)
       
       for (uint32 i=0; i<numPairs; i++)
       {
-         if (multiplexer.IsSocketReadyForRead(receivers[i].GetFileDescriptor()))
+         if (multiplexer.IsSocketReadyForRead(receivers[i].GetSocketDescriptor()))
          {
             char buf[64];
             const int32 numBytesReceived = ReceiveData(receivers[i], buf, sizeof(buf), false);
