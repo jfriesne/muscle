@@ -19,9 +19,9 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
    SocketMultiplexer multiplexer;
    while(1)
    {
-      const int fd = sock.GetFileDescriptor();
-      multiplexer.RegisterSocketForReadReady(fd);
-      if (myTurnToThrow) multiplexer.RegisterSocketForWriteReady(fd);
+      const SocketDescriptor sd = sock.GetSocketDescriptor();
+      multiplexer.RegisterSocketForReadReady(sd);
+      if (myTurnToThrow) multiplexer.RegisterSocketForWriteReady(sd);
 
       if (multiplexer.WaitForEvents() < 0)
       {
@@ -29,7 +29,7 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
          break;
       }
 
-      if ((myTurnToThrow)&&(multiplexer.IsSocketReadyForWrite(fd)))
+      if ((myTurnToThrow)&&(multiplexer.IsSocketReadyForWrite(sd)))
       {
          const int32 bytesWritten = sockIO.Write(&ball, sizeof(ball));
          if (bytesWritten == sizeof(ball))
@@ -45,7 +45,7 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
          }
       }
 
-      if (multiplexer.IsSocketReadyForRead(fd))
+      if (multiplexer.IsSocketReadyForRead(sd))
       {
          const int32 bytesRead = sockIO.Read(&ball, sizeof(ball));
          if (bytesRead == sizeof(ball))

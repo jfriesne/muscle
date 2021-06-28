@@ -20,7 +20,7 @@ int main(int argc, char ** argv)
    // Atypical usage:  Capturing a file descriptor into a Socket object so that
    // it will be automatically close()'d when the execution leaves the enclosing scope
    {
-      int some_fd = socket(AF_INET, SOCK_DGRAM, 0);
+      SocketDescriptor some_fd = socket(AF_INET, SOCK_DGRAM, 0);
       Socket mySock(some_fd);
       // [...]
       // close(some_fd) will automatically be called here by the Socket object's destructor 
@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
       ConstSocketRef sockRef = CreateUDPSocket();  // returns a ready-to-use UDP socket
       if (sockRef())
       {
-         printf("Allocated UDP socket ref:  ConstSocketRef=%p, underlying fd is %i\n", sockRef(), sockRef.GetFileDescriptor());
+         printf("Allocated UDP socket ref:  ConstSocketRef=%p, underlying descriptor is " SOCKET_FORMAT_SPEC "\n", sockRef(), sockRef.GetSocketDescriptor());
 
          // Code using the UDP socket could go here
          // [...]

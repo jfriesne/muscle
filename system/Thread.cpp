@@ -203,11 +203,11 @@ void Thread :: SignalAux(int whichSocket)
 {
    if (_messageSocketsAllocated)
    {
-      const int fd = _threadData[whichSocket]._messageSocket.GetFileDescriptor();
-      if (fd >= 0) 
+      const SocketDescriptor sd = _threadData[whichSocket]._messageSocket.GetSocketDescriptor();
+      if (isValidSocket(sd))
       {
          const char junk = 'S';
-         (void) send_ignore_eintr(fd, &junk, sizeof(junk), 0);
+         (void) send_ignore_eintr(sd, &junk, sizeof(junk), 0);
       }
    }
 }
@@ -230,8 +230,8 @@ int32 Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref
       if (tsd._messages.RemoveHead(ref).IsOK()) ret = tsd._messages.GetNumItems();
       (void) tsd._queueLock.Unlock();
 
-      int msgfd;
-      if ((ret < 0)&&((msgfd = tsd._messageSocket.GetFileDescriptor()) >= 0))  // no Message available?  then we'll have to wait until there is one!
+      SocketDescriptor msgsd;
+      if ((ret < 0)&&isValidSocket(msgsd = tsd._messageSocket.GetSocketDescriptor()))  // no Message available?  then we'll have to wait until there is one!
       {
          // block until either 
          //   (a) a new-message-signal-byte wakes us, or 
@@ -244,25 +244,25 @@ int32 Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref
             {
                for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
                {
-                  int nextFD = iter.GetKey().GetFileDescriptor();
-                  if (nextFD >= 0) tsd._multiplexer.RegisterSocketForEventsByTypeIndex(nextFD, i);
+                  SocketDescriptor nextSD = iter.GetKey().GetSocketDescriptor();
+                  if (isValidSocket(nextSD)) tsd._multiplexer.RegisterSocketForEventsByTypeIndex(nextSD, i);
                }
             }
          }
-         tsd._multiplexer.RegisterSocketForReadReady(msgfd);
+         tsd._multiplexer.RegisterSocketForReadReady(msgsd);
 
          if (tsd._multiplexer.WaitForEvents(wakeupTime) >= 0)
          {
             for (uint32 j=0; j<ARRAYITEMS(tsd._socketSets); j++)
             {
                Hashtable<ConstSocketRef, bool> & t = tsd._socketSets[j];
-               if (t.HasItems()) for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) iter.GetValue() = tsd._multiplexer.IsSocketEventOfTypeFlagged(iter.GetKey().GetFileDescriptor(), j);
+               if (t.HasItems()) for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) iter.GetValue() = tsd._multiplexer.IsSocketEventOfTypeFlagged(iter.GetKey().GetSocketDescriptor(), j);
             }
 
-            if (tsd._multiplexer.IsSocketReadyForRead(msgfd))  // any signals from the other thread?
+            if (tsd._multiplexer.IsSocketReadyForRead(msgsd))  // any signals from the other thread?
             {
                uint8 bytes[256];
-               if (ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(msgfd, (char *)bytes, sizeof(bytes), 0), sizeof(bytes), false) > 0) ret = WaitForNextMessageAux(tsd, ref, wakeupTime);
+               if (ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(msgsd, (char *)bytes, sizeof(bytes), 0), sizeof(bytes), false) > 0) ret = WaitForNextMessageAux(tsd, ref, wakeupTime);
             }
          }
       }
@@ -276,7 +276,7 @@ void Thread :: InternalThreadEntry()
    // In this mode, our Thread will run Qt's event-loop instead of using our own while-loop.
    // That way users who wish to subclass the Thread class and then use QObjects in
    // the the internal thread can get the Qt-appropriate behaviors that they are looking for.
-   MuscleQThreadSocketNotifier internalSocketNotifier(this, GetInternalThreadWakeupSocket().GetFileDescriptor(), QSocketNotifier::Read, NULL);
+   MuscleQThreadSocketNotifier internalSocketNotifier(this, GetInternalThreadWakeupSocket().GetSocketDescriptor(), QSocketNotifier::Read, NULL);
    (void) _thread.CallExec();
 #else
    while(true)

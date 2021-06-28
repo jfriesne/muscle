@@ -303,7 +303,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
            if (pid > 0) _handle = masterSock;
       else if (pid == 0)
       {
-         int fd = slaveSock()->GetFileDescriptor();
+         int fd = slaveSock()->GetSocketDescriptor();
          if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN)  == false)&&(dup2(fd, STDIN_FILENO)  < 0)) ExitWithoutCleanup(20);
          if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT) == false)&&(dup2(fd, STDOUT_FILENO) < 0)) ExitWithoutCleanup(20);
          if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR) == false)&&(dup2(fd, STDERR_FILENO) < 0)) ExitWithoutCleanup(20);
@@ -425,7 +425,7 @@ bool ChildProcessDataIO :: IsChildProcessAvailable() const
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    return (_readFromStdout != INVALID_HANDLE_VALUE);
 #else
-   return (_handle.GetFileDescriptor() >= 0);
+   return (_handle.GetSocketDescriptor() >= 0);
 #endif
 } 
 
@@ -624,7 +624,7 @@ int32 ChildProcessDataIO :: Read(void *buf, uint32 len)
          return ret;
       }
 #else
-      const long r = read_ignore_eintr(_handle.GetFileDescriptor(), buf, len);
+      const long r = read_ignore_eintr(_handle.GetSocketDescriptor(), buf, len);
       return _blocking ? (int32)r : ConvertReturnValueToMuscleSemantics(r, len, _blocking);
 #endif
    }
@@ -650,7 +650,7 @@ int32 ChildProcessDataIO :: Write(const void *buf, uint32 len)
          return ret;
       }
 #else
-      return ConvertReturnValueToMuscleSemantics(write_ignore_eintr(_handle.GetFileDescriptor(), buf, len), len, _blocking);
+      return ConvertReturnValueToMuscleSemantics(write_ignore_eintr(_handle.GetSocketDescriptor(), buf, len), len, _blocking);
 #endif
    }
    return -1;

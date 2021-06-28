@@ -55,7 +55,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
          dcb.fBinary           = 1;
          dcb.fOutX             = 0;
          dcb.fInX              = 0;
-         dcb.fErrorChar        = 0xfe;
+         dcb.fErrorChar        = 1;
          dcb.fTXContinueOnXoff = 0;
          dcb.fOutxCtsFlow      = 0;
          dcb.fOutxDsrFlow      = 0;
@@ -64,6 +64,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
          dcb.fNull             = 0;
          dcb.fRtsControl       = RTS_CONTROL_DISABLE;
          dcb.fAbortOnError     = 0;
+         dcb.ErrorChar         = -2;
          if (SetCommState(_handle, &dcb))
          {
             COMMTIMEOUTS tmout;
@@ -103,7 +104,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
    {
       okay = true;
 
-      const int fd = _handle.GetFileDescriptor();
+      const int fd = _handle.GetSocketDescriptor();
 
       struct termios t;
       tcgetattr(fd, &t);
@@ -166,7 +167,7 @@ bool RS232DataIO :: IsPortAvailable() const
 #ifdef USE_WINDOWS_IMPLEMENTATION
    return (_handle != INVALID_HANDLE_VALUE);
 #else
-   return (_handle.GetFileDescriptor() >= 0);
+   return (_handle.GetSocketDescriptor() >= 0);
 #endif
 } 
 
@@ -246,7 +247,7 @@ void RS232DataIO :: FlushOutput()
 #ifdef USE_WINDOWS_IMPLEMENTATION
       // not implemented yet!
 #else 
-      const int fd = _handle.GetFileDescriptor();
+      const int fd = _handle.GetSocketDescriptor();
       if (fd >= 0) tcdrain(fd);
 #endif
    }

@@ -201,12 +201,12 @@ int main(int argc, char ** argv)
    SocketMultiplexer sm;
    while(true)
    {
-      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
-      sm.RegisterSocketForReadReady(mtt.GetOwnerWakeupSocket().GetFileDescriptor());
+      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetSocketDescriptor());
+      sm.RegisterSocketForReadReady(mtt.GetOwnerWakeupSocket().GetSocketDescriptor());
 
       sm.WaitForEvents();
 
-      if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetFileDescriptor()))
+      if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetSocketDescriptor()))
       {
          // Handle stdin input, and send a Message to the MessageTransceiverThread
          // for it to send on to the server, if appropriate
@@ -229,7 +229,7 @@ int main(int argc, char ** argv)
          else if (numBytesRead < 0) break;
       }
 
-      if (sm.IsSocketReadyForRead(mtt.GetOwnerWakeupSocket().GetFileDescriptor()))
+      if (sm.IsSocketReadyForRead(mtt.GetOwnerWakeupSocket().GetSocketDescriptor()))
       {
          // Handle any feedback events sent back to us from the MessageTransceiverThread
          uint32 code;

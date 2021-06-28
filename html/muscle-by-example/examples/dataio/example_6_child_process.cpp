@@ -48,14 +48,14 @@ int main(int argc, char ** argv)
    while(true)
    {
       // Tell the SocketMultiplexer what sockets to listen to
-      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
-      sm.RegisterSocketForReadReady(cpIO.GetReadSelectSocket().GetFileDescriptor());
+      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetSocketDescriptor());
+      sm.RegisterSocketForReadReady(cpIO.GetReadSelectSocket().GetSocketDescriptor());
 
       // Wait here until something happens
       (void) sm.WaitForEvents();
 
       // Time to read from stdin?
-      if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetFileDescriptor()))
+      if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetSocketDescriptor()))
       {
          char inputBuf[1024];
          const int numBytesRead = stdinIO.Read(inputBuf, sizeof(inputBuf));
@@ -72,7 +72,7 @@ int main(int argc, char ** argv)
       }
 
       // Time to read from the child process's stdout?
-      if (sm.IsSocketReadyForRead(cpIO.GetReadSelectSocket().GetFileDescriptor()))
+      if (sm.IsSocketReadyForRead(cpIO.GetReadSelectSocket().GetSocketDescriptor()))
       {
          char inputBuf[1024];
          const int numBytesRead = cpIO.Read(inputBuf, sizeof(inputBuf)-1);

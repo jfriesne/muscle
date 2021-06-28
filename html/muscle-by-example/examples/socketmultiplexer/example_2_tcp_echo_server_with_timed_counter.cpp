@@ -45,12 +45,12 @@ int main(int argc, char ** argv)
    while(true)
    {
       // Register our acceptSock so we'll know if a new TCP connection comes in
-      (void) socketMux.RegisterSocketForReadReady(acceptSock.GetFileDescriptor());
+      (void) socketMux.RegisterSocketForReadReady(acceptSock.GetSocketDescriptor());
 
       // Register our client-sockets so we'll know if any of them send us data
       for (HashtableIterator<ConstSocketRef, Void> iter(connectedClients); iter.HasData(); iter++)
       {
-         (void) socketMux.RegisterSocketForReadReady(iter.GetKey().GetFileDescriptor());
+         (void) socketMux.RegisterSocketForReadReady(iter.GetKey().GetSocketDescriptor());
       }
 
       // Block here until there is something to do
@@ -67,14 +67,14 @@ int main(int argc, char ** argv)
       }
 
       // See if any new TCP connection requests have come in
-      if (socketMux.IsSocketReadyForRead(acceptSock.GetFileDescriptor()))
+      if (socketMux.IsSocketReadyForRead(acceptSock.GetSocketDescriptor()))
       {
          printf("SocketMultiplexer thinks that the acceptSock is ready-for-read now!\n");
 
          ConstSocketRef newClientSock = Accept(acceptSock);
          if (newClientSock())
          {
-            printf("Accepted new incoming TCP connection, socket is %p, file descriptor %i\n", newClientSock(), newClientSock.GetFileDescriptor());
+            printf("Accepted new incoming TCP connection, socket is %p, socket descriptor " SOCKET_FORMAT_SPEC "\n", newClientSock(), newClientSock.GetSocketDescriptor());
             (void) connectedClients.PutWithDefault(newClientSock);
          }
          else printf("Error, Accept() failed!\n");
@@ -84,17 +84,17 @@ int main(int argc, char ** argv)
       for (HashtableIterator<ConstSocketRef, Void> iter(connectedClients); iter.HasData(); iter++)
       {
          const ConstSocketRef & clientSock = iter.GetKey();
-         if (socketMux.IsSocketReadyForRead(clientSock.GetFileDescriptor()))
+         if (socketMux.IsSocketReadyForRead(clientSock.GetSocketDescriptor()))
          {
-            printf("Socket %p (file descriptor %i) reports ready-for-read...\n", clientSock(), clientSock.GetFileDescriptor());
+            printf("Socket %p (socket descriptor " SOCKET_FORMAT_SPEC ") reports ready-for-read...\n", clientSock(), clientSock.GetSocketDescriptor());
 
             uint8 tempBuf[1024];
             const int numBytesRead = ReceiveData(clientSock, tempBuf, sizeof(tempBuf), true);  // true because we're using blocking I/O
             if (numBytesRead >= 0)   // Note that unlike recv(), ReceiveData() returning 0 doesn't mean connection-closed
             {
-               printf("Read %i bytes from socket %i, echoing them back...\n", numBytesRead, clientSock.GetFileDescriptor());
+               printf("Read %i bytes from socket " SOCKET_FORMAT_SPEC ", echoing them back...\n", numBytesRead, clientSock.GetSocketDescriptor());
                const int numBytesWritten = SendData(clientSock, tempBuf, numBytesRead, true);   // true because we're using blocking I/O
-               printf("Wrote %i/%i bytes back to socket %i\n", numBytesWritten, numBytesRead, clientSock.GetFileDescriptor());
+               printf("Wrote %i/%i bytes back to socket " SOCKET_FORMAT_SPEC "\n", numBytesWritten, numBytesRead, clientSock.GetSocketDescriptor());
             }
             else
             {

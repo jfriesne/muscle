@@ -74,22 +74,22 @@ int main(int argc, char ** argv)
    QueueGatewayMessageReceiver stdinInQueue;
    PlainTextMessageIOGateway stdinGateway;
    stdinGateway.SetDataIO(DummyDataIORef(stdinIO));
-   const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
+   const SocketDescriptor stdinSD = stdinIO.GetReadSelectSocket().GetSocketDescriptor();
 
    QueueGatewayMessageReceiver inQueue;
    SocketMultiplexer multiplexer;
    printf("UDP Event loop starting...\n");
    while(s())
    {
-      const int fd = s.GetFileDescriptor();
-      multiplexer.RegisterSocketForReadReady(fd);
-      if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-      multiplexer.RegisterSocketForReadReady(stdinFD);
+      const SocketDescriptor sd = s.GetSocketDescriptor();
+      multiplexer.RegisterSocketForReadReady(sd);
+      if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(sd);
+      multiplexer.RegisterSocketForReadReady(stdinSD);
 
       while(s())
       {
          if (multiplexer.WaitForEvents() < 0) printf("testudp: WaitForEvents() failed!\n");
-         if (multiplexer.IsSocketReadyForRead(stdinFD))
+         if (multiplexer.IsSocketReadyForRead(stdinSD))
          {
             while(1)
             {
@@ -224,8 +224,8 @@ int main(int argc, char ** argv)
             }
          }
 
-         const bool reading = multiplexer.IsSocketReadyForRead(fd);
-         const bool writing = multiplexer.IsSocketReadyForWrite(fd);
+         const bool reading = multiplexer.IsSocketReadyForRead(sd);
+         const bool writing = multiplexer.IsSocketReadyForWrite(sd);
          const bool writeError = ((writing)&&(agw()->DoOutput() < 0));
          const bool readError  = ((reading)&&(agw()->DoInput(inQueue) < 0));
          if ((readError)||(writeError))
@@ -247,9 +247,9 @@ int main(int argc, char ** argv)
 
          if ((reading == false)&&(writing == false)) break;
 
-         multiplexer.RegisterSocketForReadReady(fd);
-         if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-         multiplexer.RegisterSocketForReadReady(stdinFD);
+         multiplexer.RegisterSocketForReadReady(sd);
+         if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(sd);
+         multiplexer.RegisterSocketForReadReady(stdinSD);
       }
    }
 

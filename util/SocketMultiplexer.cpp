@@ -15,14 +15,14 @@ namespace muscle {
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
 static Mutex _multiplexersListMutex;
 static SocketMultiplexer * _headMultiplexer = NULL;
-void NotifySocketMultiplexersThatSocketIsClosed(int fd)
+void NotifySocketMultiplexersThatSocketIsClosed(SocketDescriptor sd)
 {
    if (_multiplexersListMutex.Lock().IsOK())
    {
       SocketMultiplexer * sm = _headMultiplexer;
       while(sm)
       {
-         sm->NotifySocketClosed(fd);
+         sm->NotifySocketClosed(sd);
          sm = sm->_nextMultiplexer;
       }   
       _multiplexersListMutex.Unlock();
@@ -82,9 +82,11 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
    fd_set * sets[NUM_FDSTATE_SETS];
    for (uint32 i=0; i<NUM_FDSTATE_SETS; i++)
    {
-      if (_maxFD[i] >= 0) 
+      if (isValidSocket(_maxFD[i]))
       {
+#ifndef WIN32
          maxFD = muscleMax(maxFD, _maxFD[i]);
+#endif
          sets[i] = &_fdSets[i];
       }
       else sets[i] = NULL;

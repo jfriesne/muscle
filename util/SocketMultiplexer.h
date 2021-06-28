@@ -57,38 +57,38 @@ public:
      * socket has data ready to read.
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.
-     * @param fd The file descriptor to watch for data-ready-to-read.
-     * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad fd value?)
+     * @param sd The socket descriptor to watch for data-ready-to-read.
+     * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad sd value?)
      */
-   inline status_t RegisterSocketForReadReady(int fd) {return GetCurrentFDState().RegisterSocket(fd, FDSTATE_SET_READ);}
+   inline status_t RegisterSocketForReadReady(SocketDescriptor sd) {return GetCurrentFDState().RegisterSocket(sd, FDSTATE_SET_READ);}
 
    /** Call this to indicate that you want the next call to WaitForEvents() to return if/when the specified
      * socket has buffer space available to write to.
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.
-     * @param fd The file descriptor to watch for space-available-to-write.
-     * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad fd value?)
+     * @param sd The socket descriptor to watch for space-available-to-write.
+     * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad sd value?)
      */
-   inline status_t RegisterSocketForWriteReady(int fd) {return GetCurrentFDState().RegisterSocket(fd, FDSTATE_SET_WRITE);}
+   inline status_t RegisterSocketForWriteReady(SocketDescriptor sd) {return GetCurrentFDState().RegisterSocket(sd, FDSTATE_SET_WRITE);}
 
    /** Call this to indicate that you want the next call to WaitForEvents() to return if/when the specified
      * socket has buffer space available to write to.
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.
-     * @param fd The file descriptor to watch for space-available-to-write.
-     * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad fd value?)
+     * @param sd The socket descriptor to watch for space-available-to-write.
+     * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad sd value?)
      */
-   inline status_t RegisterSocketForExceptionRaised(int fd) {return GetCurrentFDState().RegisterSocket(fd, FDSTATE_SET_EXCEPT);}
+   inline status_t RegisterSocketForExceptionRaised(SocketDescriptor sd) {return GetCurrentFDState().RegisterSocket(sd, FDSTATE_SET_EXCEPT);}
 
    /** This method is equivalent to any of the three other Register methods, except that in this method
      * you can specify the set via a FDSTATE_SET_* value.
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.
-     * @param fd The file descriptor to watch for the event type specified by (whichSet)
+     * @param sd The socket descriptor to watch for the event type specified by (whichSet)
      * @param whichSet A FDSTATE_SET_* value indicating the type of event to watch the socket for.
      * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad fd value?)
      */
-   inline status_t RegisterSocketForEventsByTypeIndex(int fd, uint32 whichSet) {return GetCurrentFDState().RegisterSocket(fd, whichSet);}
+   inline status_t RegisterSocketForEventsByTypeIndex(SocketDescriptor sd, uint32 whichSet) {return GetCurrentFDState().RegisterSocket(sd, whichSet);}
 
    /** Blocks until at least one of the events specified in previous RegisterSocketFor*()
      * calls becomes valid, or until (timeoutAtTime), whichever comes first.
@@ -105,19 +105,19 @@ public:
 
    /** Call this after WaitForEvents() returns, to find out if the specified file descriptor has
      * data ready to read or not.
-     * @param fd The file descriptor to inquire about.  Note that (fd) must have been previously
+     * @param sd The socket descriptor to inquire about.  Note that (sd) must have been previously
      *           registered via RegisterSocketForReadyReady() for this method to work correctly.
-     * @returns true if (fd) has data ready for reading, or false if it does not.
+     * @returns true if (sd) has data ready for reading, or false if it does not.
      */
-   inline bool IsSocketReadyForRead(int fd) const {return GetAlternateFDState().IsSocketReady(fd, FDSTATE_SET_READ);}
+   inline bool IsSocketReadyForRead(SocketDescriptor sd) const {return GetAlternateFDState().IsSocketReady(sd, FDSTATE_SET_READ);}
 
    /** Call this after WaitForEvents() returns, to find out if the specified file descriptor has
      * buffer space available to write to, or not.
-     * @param fd The file descriptor to inquire about.  Note that (fd) must have been previously
+     * @param sd The socket descriptor to inquire about.  Note that (sd) must have been previously
      *           registered via RegisterSocketForWriteReady() for this method to work correctly.
-     * @returns true if (fd) has buffer space available for writing to, or false if it does not.
+     * @returns true if (sd) has buffer space available for writing to, or false if it does not.
      */
-   inline bool IsSocketReadyForWrite(int fd) const {return GetAlternateFDState().IsSocketReady(fd, FDSTATE_SET_WRITE);}
+   inline bool IsSocketReadyForWrite(SocketDescriptor sd) const {return GetAlternateFDState().IsSocketReady(sd, FDSTATE_SET_WRITE);}
 
    /** Call this after WaitForEvents() returns, to find out if the specified file descriptor has
      * an exception state raised, or not.
@@ -125,17 +125,17 @@ public:
      *           registered via RegisterSocketForExceptionRaised() for this method to work correctly.
      * @returns true if (fd) has an exception state raised, or false if it does not.
      */
-   inline bool IsSocketExceptionRaised(int fd) const {return GetAlternateFDState().IsSocketReady(fd, FDSTATE_SET_EXCEPT);}
+   inline bool IsSocketExceptionRaised(SocketDescriptor sd) const {return GetAlternateFDState().IsSocketReady(sd, FDSTATE_SET_EXCEPT);}
 
    /** Call this after WaitForEvents() returns, to find out if the specified file descriptor has
      * an event of the specified type flagged, or not.  Note that this method can be used as an
      * equivalent to any of the previous three methods.
-     * @param fd The file descriptor to inquire about.  Note that (fd) must have been previously
+     * @param sd The socket descriptor to inquire about.  Note that (sd) must have been previously
      *           registered via the appropriate RegisterSocketFor*() call for this method to work correctly.
      * @param whichSet A FDSTATE_SET_* value indicating the type of event to query the socket for.
-     * @returns true if (fd) has the specified event-type flagged, or false if it does not.
+     * @returns true if (sd) has the specified event-type flagged, or false if it does not.
      */
-   inline bool IsSocketEventOfTypeFlagged(int fd, uint32 whichSet) const {return GetAlternateFDState().IsSocketReady(fd, whichSet);}
+   inline bool IsSocketEventOfTypeFlagged(SocketDescriptor sd, uint32 whichSet) const {return GetAlternateFDState().IsSocketReady(sd, whichSet);}
 
    /** Enumeration of different types of socket-sets we support (same as those supported by select()) */
    enum {
@@ -154,56 +154,56 @@ private:
 
       void Reset();
 
-      inline status_t RegisterSocket(int fd, int whichSet)
+      inline status_t RegisterSocket(SocketDescriptor sd, int whichSet)
       {
-         if (fd < 0) return B_BAD_ARGUMENT;
+         if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
-         uint16 * b = _bits.GetOrPut(fd);
+         uint16 * b = _bits.GetOrPut(sd);
          if (b == NULL) return B_OUT_OF_MEMORY;
          *b |= (1<<whichSet);
 #elif defined(MUSCLE_USE_POLL)
          uint32 idx;
-         if (_pollFDToArrayIndex.Get(fd, idx).IsOK()) _pollFDArray[idx].events |= GetPollBitsForFDSet(whichSet, true);
-                                                 else return PollRegisterNewSocket(fd, whichSet);
+         if (_pollFDToArrayIndex.Get(sd, idx).IsOK()) _pollFDArray[idx].events |= GetPollBitsForFDSet(whichSet, true);
+                                                 else return PollRegisterNewSocket(sd, whichSet);
 #else
-# ifndef WIN32  // Window supports file descriptors that are greater than FD_SETSIZE!  Other OS's do not
-         if (fd >= FD_SETSIZE) return B_BAD_ARGUMENT;
+# ifndef WIN32  // Window supports socket descriptors that are greater than FD_SETSIZE!  Other OS's do not
+         if (sd >= FD_SETSIZE) return B_BAD_ARGUMENT;
 # endif
-         FD_SET(fd, &_fdSets[whichSet]);
-         _maxFD[whichSet] = muscleMax(_maxFD[whichSet], fd);
+         FD_SET(sd, &_fdSets[whichSet]);
+         _maxFD[whichSet] = muscleMax(_maxFD[whichSet], sd);
 #endif
          return B_NO_ERROR;
       }
 
-      inline bool IsSocketReady(int fd, int whichSet) const 
+      inline bool IsSocketReady(SocketDescriptor sd, int whichSet) const
       {
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
-         return ((_bits.GetWithDefault(fd) & (1<<(whichSet+8))) != 0);
+         return ((_bits.GetWithDefault(sd) & (1<<(whichSet+8))) != 0);
 #elif defined(MUSCLE_USE_POLL)
          uint32 idx;
-         return ((_pollFDToArrayIndex.Get(fd, idx).IsOK())&&((_pollFDArray[idx].revents & GetPollBitsForFDSet(whichSet, false)) != 0));
+         return ((_pollFDToArrayIndex.Get(sd, idx).IsOK())&&((_pollFDArray[idx].revents & GetPollBitsForFDSet(whichSet, false)) != 0));
 #else
-         return (FD_ISSET(fd, const_cast<fd_set *>(&_fdSets[whichSet])) != 0);
+         return (FD_ISSET(sd, const_cast<fd_set *>(&_fdSets[whichSet])) != 0);
 #endif
       }
       int WaitForEvents(uint64 timeoutAtTime);
 
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
-      void NotifySocketClosed(int fd)
+      void NotifySocketClosed(SocketDescriptor sd)
       {
          MutexGuard mg(_closedSocketsMutex);
-         (void) _closedSockets.PutWithDefault(fd);
+         (void) _closedSockets.PutWithDefault(sd);
       }
 #endif
 
    private:
 #if defined(MUSCLE_USE_KQUEUE)
-      status_t AddKQueueChangeRequest(int fd, uint32 whichSet, bool add);
+      status_t AddKQueueChangeRequest(SocketDescriptor sd, uint32 whichSet, bool add);
 #endif
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
       status_t ComputeStateBitsChangeRequests();
-      uint32 GetMaxNumEvents() const {return _bits.GetNumItems()*2;}  // times two since each FD could have both read and write events
+      uint32 GetMaxNumEvents() const {return _bits.GetNumItems()*2;}  // times two since each socket descriptor could have both read and write events
 
       Mutex _closedSocketsMutex;  // necessary since NotifySocketClosed() might get called from any thread
       Hashtable<int, Void> _closedSockets;  // written to by NotifySocketClosed(), read-and-cleared by WaitForEvents(), protected by _closedSocketsMutex
@@ -236,14 +236,14 @@ private:
       Hashtable<int, uint32> _pollFDToArrayIndex;
       Queue<struct pollfd> _pollFDArray;
 #else
-      int _maxFD[NUM_FDSTATE_SETS];
+      SocketDescriptor _maxFD[NUM_FDSTATE_SETS];
       fd_set _fdSets[NUM_FDSTATE_SETS];
 #endif
    };
 
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
-   friend void NotifySocketMultiplexersThatSocketIsClosed(int);
-   void NotifySocketClosed(int fd)                    {GetCurrentFDState().NotifySocketClosed(fd);}
+   friend void NotifySocketMultiplexersThatSocketIsClosed(SocketDescriptor);
+   void NotifySocketClosed(SocketDescriptor sd)       {GetCurrentFDState().NotifySocketClosed(sd);}
    inline FDState & GetCurrentFDState()               {return _fdState;}
    inline const FDState & GetCurrentFDState() const   {return _fdState;}
    inline FDState & GetAlternateFDState()             {return _fdState;}

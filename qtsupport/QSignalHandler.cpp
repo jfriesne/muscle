@@ -14,7 +14,7 @@ QSignalHandler :: QSignalHandler(QObject * parent, const char * name)
    status_t ret;
    if ((CreateConnectedSocketPair(_mainThreadSocket, _handlerFuncSocket).IsOK(ret))&&(SignalMultiplexer::GetSignalMultiplexer().AddHandler(this).IsOK(ret)))
    {
-      _socketNotifier = new QSocketNotifier(_mainThreadSocket.GetFileDescriptor(), QSocketNotifier::Read, this);
+      _socketNotifier = new QSocketNotifier(_mainThreadSocket.GetSocketDescriptor(), QSocketNotifier::Read, this);
       connect(_socketNotifier, SIGNAL(activated(int)), this, SLOT(SocketDataReady()));
    }
    else LogTime(MUSCLE_LOG_CRITICALERROR, "QSignalHandler %p could not register with the SignalMultiplexer! [%s]\n", this, ret());

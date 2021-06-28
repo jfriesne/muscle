@@ -4,6 +4,7 @@
 
 #include "util/MiscUtilityFunctions.h"  // for GetConnectString() (which is deliberately defined here)
 #include "util/NetworkUtilityFunctions.h"
+#include "util/Socket.h"
 #include "util/SocketMultiplexer.h"
 #include "util/Hashtable.h"
 
@@ -214,7 +215,7 @@ ConstSocketRef CreateUDPSocket()
       // described at http://support.microsoft.com/kb/263823/en-us
       DWORD dwBytesReturned = 0;
       BOOL bNewBehavior = FALSE;
-      if (WSAIoctl(ret.GetFileDescriptor(), SIO_UDP_CONNRESET, &bNewBehavior, sizeof(bNewBehavior), NULL, 0, &dwBytesReturned, NULL, NULL) != 0) ret.Reset();
+      if (WSAIoctl(ret.GetSocketDescriptor(), SIO_UDP_CONNRESET, &bNewBehavior, sizeof(bNewBehavior), NULL, 0, &dwBytesReturned, NULL, NULL) != 0) ret.Reset();
    }
 #endif
    return ret;
@@ -222,25 +223,25 @@ ConstSocketRef CreateUDPSocket()
 
 status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRetPort, const IPAddress & optFrom, bool allowShared)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    if (allowShared)
    {
       const int trueValue = 1;
-      setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const sockopt_arg *) &trueValue, sizeof(trueValue));
+      setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (const sockopt_arg *) &trueValue, sizeof(trueValue));
 #ifdef __APPLE__
-      setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const sockopt_arg *) &trueValue, sizeof(trueValue));
+      setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, (const sockopt_arg *) &trueValue, sizeof(trueValue));
 #endif
    }
 
    DECLARE_SOCKADDR(saSocket, &optFrom, port);
-   if (bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)
+   if (bind(sd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)
    {
       if (optRetPort)
       {
          muscle_socklen_t len = sizeof(saSocket);
-         if (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0)
+         if (getsockname(sd, (struct sockaddr *)&saSocket, &len) == 0)
          {
             *optRetPort = GET_SOCKADDR_PORT(saSocket);
             return B_NO_ERROR;
@@ -254,11 +255,11 @@ status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRet
 
 status_t SetUDPSocketTarget(const ConstSocketRef & sock, const IPAddress & remoteIP, uint16 remotePort)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    DECLARE_SOCKADDR(saAddr, &remoteIP, remotePort);
-   return (connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (connect(sd, (struct sockaddr *) &saAddr, sizeof(saAddr)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 status_t SetUDPSocketTarget(const ConstSocketRef & sock, const char * remoteHostName, uint16 remotePort, bool expandLocalhost)
@@ -272,21 +273,21 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRe
    ConstSocketRef ret = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CREATE_ACCEPTING);
    if (ret())
    {
-      const int fd = ret.GetFileDescriptor();
+      const SocketDescriptor sd = ret.GetSocketDescriptor();
 
 #ifndef WIN32
       // (Not necessary under windows -- it has the behaviour we want by default)
       const int trueValue = 1;
-      (void) setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const sockopt_arg *) &trueValue, sizeof(trueValue));
+      (void) setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (const sockopt_arg *) &trueValue, sizeof(trueValue));
 #endif
 
       DECLARE_SOCKADDR(saSocket, &optInterfaceIP, port);
-      if ((bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)&&(listen(fd, maxbacklog) == 0))
+      if ((bind(sd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)&&(listen(sd, maxbacklog) == 0))
       {
          if (optRetPort)
          {
             muscle_socklen_t len = sizeof(saSocket);
-            *optRetPort = (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT(saSocket) : 0;
+            *optRetPort = (getsockname(sd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT(saSocket) : 0;
          }
          return ret;
       }
@@ -296,8 +297,8 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRe
 
 int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
 {
-   const int fd = sock.GetFileDescriptor();
-   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(fd, (char *)buffer, size, 0L), size, bm) : -1;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   return isValidSocket(sd) ? ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(sd, (char *)buffer, size, 0L), size, bm) : -1;
 }
 
 int32 ReadData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
@@ -305,29 +306,29 @@ int32 ReadData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
 #ifdef WIN32
    return ReceiveData(sock, buffer, size, bm);  // Windows doesn't support read(), only recv()
 #else
-   const int fd = sock.GetFileDescriptor();
+   const int fd = sock.GetSocketDescriptor();
    return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(read_ignore_eintr(fd, (char *)buffer, size), size, bm) : -1;
 #endif
 }
 
 int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm, IPAddress * optFromIP, uint16 * optFromPort)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd >= 0)
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (isValidSocket(sd))
    {
       long r;
       if ((optFromIP)||(optFromPort))
       {
          DECLARE_SOCKADDR(fromAddr, NULL, 0);
          muscle_socklen_t fromAddrLen = sizeof(fromAddr);
-         r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
+         r = recvfrom_ignore_eintr(sd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
          if (r >= 0)
          {
             if (optFromIP) GET_SOCKADDR_IP(fromAddr, *optFromIP);
             if (optFromPort) *optFromPort = GET_SOCKADDR_PORT(fromAddr);
          }
       }
-      else r = recv_ignore_eintr(fd, (char *)buffer, size, 0L);
+      else r = recv_ignore_eintr(sd, (char *)buffer, size, 0L);
 
       if (r == 0) return 0;  // for UDP, zero is a valid recv() size, since there is no EOS
       return ConvertReturnValueToMuscleSemantics(r, size, bm);
@@ -337,8 +338,8 @@ int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 size, bo
 
 int32 SendData(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm)
 {
-   const int fd = sock.GetFileDescriptor();
-   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(send_ignore_eintr(fd, (const char *)buffer, size, 0L), size, bm) : -1;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   return (isValidSocket(sd)) ? ConvertReturnValueToMuscleSemantics(send_ignore_eintr(sd, (const char *)buffer, size, 0L), size, bm) : -1;
 }
 
 int32 WriteData(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm)
@@ -346,7 +347,7 @@ int32 WriteData(const ConstSocketRef & sock, const void * buffer, uint32 size, b
 #ifdef WIN32
    return SendData(sock, buffer, size, bm);  // Windows doesn't support write(), only send()
 #else
-   const int fd = sock.GetFileDescriptor();
+   const int fd = sock.GetSocketDescriptor();
    return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(write_ignore_eintr(fd, (const char *)buffer, size), size, bm) : -1;
 #endif
 }
@@ -365,8 +366,8 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
 # define MUSCLE_USE_IFIDX_WORKAROUND 1
 #endif
 
-   const int fd = sock.GetFileDescriptor();
-   if (fd >= 0)
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (isValidSocket(sd))
    {
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
       int oldInterfaceIndex = -1;  // and remember to set it back afterwards
@@ -380,7 +381,7 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
          {
             // Fill in the values with our socket's current target-values, as defaults
             muscle_socklen_t length = sizeof(sockaddr_in);
-            if ((getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0)||(GET_SOCKADDR_FAMILY(toAddr) != MUSCLE_SOCKET_FAMILY)) return -1;
+            if ((getpeername(sd, (struct sockaddr *)&toAddr, &length) != 0)||(GET_SOCKADDR_FAMILY(toAddr) != MUSCLE_SOCKET_FAMILY)) return -1;
          }
 
          if (optToIP != invalidIP) 
@@ -402,9 +403,9 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
 #endif
          }
          if (optToPort) SET_SOCKADDR_PORT(toAddr, optToPort);
-         s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
+         s = sendto_ignore_eintr(sd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
       }
-      else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
+      else s = send_ignore_eintr(sd, (const char *)buffer, size, 0L);
 
       if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
 
@@ -427,8 +428,8 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
 
 status_t ShutdownSocket(const ConstSocketRef & sock, bool dRecv, bool dSend)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    if ((dRecv == false)&&(dSend == false)) return B_NO_ERROR;  // there's nothing we need to do!
 
@@ -439,23 +440,23 @@ status_t ShutdownSocket(const ConstSocketRef & sock, bool dRecv, bool dSend)
       MUSCLE_SHUT_RDWR,
       NUM_MUSCLE_SHUTS
    };
-   return (shutdown(fd, dRecv?(dSend?MUSCLE_SHUT_RDWR:MUSCLE_SHUT_RD):MUSCLE_SHUT_WR) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (shutdown(sd, dRecv?(dSend?MUSCLE_SHUT_RDWR:MUSCLE_SHUT_RD):MUSCLE_SHUT_WR) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP)
 {
    DECLARE_SOCKADDR(saSocket, NULL, 0);
    muscle_socklen_t nLen = sizeof(saSocket);
-   const int fd = sock.GetFileDescriptor();
-   if (fd >= 0)
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (isValidSocket(sd))
    {
-      ConstSocketRef ret = GetConstSocketRefFromPool((int) accept(fd, (struct sockaddr *)&saSocket, &nLen));
+      ConstSocketRef ret = GetConstSocketRefFromPool((int) accept(sd, (struct sockaddr *)&saSocket, &nLen));
       if (DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret).IsError()) return ConstSocketRef();  // called separately since accept() created this socket, not CreateMuscleSocket()
 
       if ((ret())&&(optRetInterfaceIP))
       {
          muscle_socklen_t len = sizeof(saSocket);
-         if (getsockname(ret.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP(saSocket, *optRetInterfaceIP);
+         if (getsockname(ret.GetSocketDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP(saSocket, *optRetInterfaceIP);
                                                                                        else *optRetInterfaceIP = invalidIP;
       }
       return ret;
@@ -488,7 +489,7 @@ ConstSocketRef Connect(const IPAddress & hostIP, uint16 port, const char * optDe
    ConstSocketRef s = (maxConnectTime == MUSCLE_TIME_NEVER) ? CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT) : ConnectAsync(hostIP, port, socketIsReady);
    if (s())
    {
-      const int fd = s.GetFileDescriptor();
+      const SocketDescriptor fd = s.GetSocketDescriptor();
       int ret = -1;
       if (maxConnectTime == MUSCLE_TIME_NEVER)
       {
@@ -856,7 +857,7 @@ ConstSocketRef ConnectAsync(const IPAddress & hostIP, uint16 port, bool & retIsR
       if (SetSocketBlockingEnabled(s, false).IsOK())
       {
          DECLARE_SOCKADDR(saAddr, &hostIP, port);
-         const int result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
+         const int result = connect(s.GetSocketDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
 #ifdef WIN32
          const bool inProgress = ((result < 0)&&(WSAGetLastError() == WSAEWOULDBLOCK));
 #else
@@ -875,12 +876,12 @@ ConstSocketRef ConnectAsync(const IPAddress & hostIP, uint16 port, bool & retIsR
 IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort)
 {
    IPAddress ipAddress = invalidIP;
-   const int fd = sock.GetFileDescriptor();
-   if (fd >= 0)
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (isValidSocket(sd))
    {
       DECLARE_SOCKADDR(saTempAdd, NULL, 0);
       muscle_socklen_t length = sizeof(saTempAdd);
-      if ((getpeername(fd, (struct sockaddr *)&saTempAdd, &length) == 0)&&(GET_SOCKADDR_FAMILY(saTempAdd) == MUSCLE_SOCKET_FAMILY))
+      if ((getpeername(sd, (struct sockaddr *)&saTempAdd, &length) == 0)&&(GET_SOCKADDR_FAMILY(saTempAdd) == MUSCLE_SOCKET_FAMILY))
       {
          GET_SOCKADDR_IP(saTempAdd, ipAddress);
          if (optRetPort) *optRetPort = GET_SOCKADDR_PORT(saTempAdd);
@@ -934,41 +935,41 @@ status_t CreateConnectedSocketPair(ConstSocketRef & socket1, ConstSocketRef & so
 
 status_t SetSocketBlockingEnabled(const ConstSocketRef & sock, bool blocking)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
 #ifdef WIN32
    unsigned long mode = blocking ? 0 : 1;
-   return (ioctlsocket(fd, FIONBIO, &mode) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (ioctlsocket(sd, FIONBIO, &mode) == 0) ? B_NO_ERROR : B_ERRNO;
 #else
 # ifdef BEOS_OLD_NETSERVER
    const int b = blocking ? 0 : 1;
-   return (setsockopt(fd, SOL_SOCKET, SO_NONBLOCK, (const sockopt_arg *) &b, sizeof(b)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, SOL_SOCKET, SO_NONBLOCK, (const sockopt_arg *) &b, sizeof(b)) == 0) ? B_NO_ERROR : B_ERRNO;
 # else
-   int flags = fcntl(fd, F_GETFL, 0);
+   int flags = fcntl(sd, F_GETFL, 0);
    if (flags < 0) return B_ERRNO;
    flags = blocking ? (flags&~O_NONBLOCK) : (flags|O_NONBLOCK);
-   return (fcntl(fd, F_SETFL, flags) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (fcntl(sd, F_SETFL, flags) == 0) ? B_NO_ERROR : B_ERRNO;
 # endif
 #endif
 }
 
 bool GetSocketBlockingEnabled(const ConstSocketRef & sock)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return false;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return false;
 
 #ifdef WIN32
    // Amazingly enough, Windows has no way to query if a socket is blocking or not.  So this function doesn't work under Windows.
-   LogTime(MUSCLE_LOG_ERROR, "GetSocketBlockingEnabled() not implemented under Win32, returning false for socket %i.\n", fd);
+   LogTime(MUSCLE_LOG_ERROR, "GetSocketBlockingEnabled() not implemented under Win32, returning false for socket %i.\n", sd);
    return false;
 #else
 # ifdef BEOS_OLD_NETSERVER
    int b;
    int len = sizeof(b);
-   return (getsockopt(fd, SOL_SOCKET, SO_NONBLOCK, (sockopt_arg *) &b, &len) == 0) ? (b==0) : false;
+   return (getsockopt(sd, SOL_SOCKET, SO_NONBLOCK, (sockopt_arg *) &b, &len) == 0) ? (b==0) : false;
 # else
-   const int flags = fcntl(fd, F_GETFL, 0);
+   const int flags = fcntl(sd, F_GETFL, 0);
    return ((flags >= 0)&&((flags & O_NONBLOCK) == 0));
 # endif
 #endif
@@ -976,64 +977,64 @@ bool GetSocketBlockingEnabled(const ConstSocketRef & sock)
 
 status_t SetUDPSocketBroadcastEnabled(const ConstSocketRef & sock, bool broadcast)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    int val = (broadcast ? 1 : 0);
 #ifdef BEOS_OLD_NETSERVER
-   return (setsockopt(fd, SOL_SOCKET, INADDR_BROADCAST, (const sockopt_arg *) &val, sizeof(val)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, SOL_SOCKET, INADDR_BROADCAST, (const sockopt_arg *) &val, sizeof(val)) == 0) ? B_NO_ERROR : B_ERRNO;
 #else
-   return (setsockopt(fd, SOL_SOCKET, SO_BROADCAST,     (const sockopt_arg *) &val, sizeof(val)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, SOL_SOCKET, SO_BROADCAST,     (const sockopt_arg *) &val, sizeof(val)) == 0) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
 
 bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return false;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return false;
 
    int val;
    socklen_t len = sizeof(val);
 #ifdef BEOS_OLD_NETSERVER
-   return (getsockopt(fd, SOL_SOCKET, INADDR_BROADCAST, (sockopt_arg *) &val, &len) == 0) ? (val != 0) : false;
+   return (getsockopt(sd, SOL_SOCKET, INADDR_BROADCAST, (sockopt_arg *) &val, &len) == 0) ? (val != 0) : false;
 #else
-   return (getsockopt(fd, SOL_SOCKET, SO_BROADCAST,     (sockopt_arg *) &val, &len) == 0) ? (val != 0) : false;
+   return (getsockopt(sd, SOL_SOCKET, SO_BROADCAST,     (sockopt_arg *) &val, &len) == 0) ? (val != 0) : false;
 #endif
 }
 
 status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabled)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
 #ifdef BEOS_OLD_NETSERVER
    (void) enabled;  // prevent 'unused var' warning
    return B_UNIMPLEMENTED;  // old networking stack doesn't support this flag
 #else
    const int enableNoDelay = enabled ? 0 : 1;
-   return (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (const sockopt_arg *) &enableNoDelay, sizeof(enableNoDelay)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, IPPROTO_TCP, TCP_NODELAY, (const sockopt_arg *) &enableNoDelay, sizeof(enableNoDelay)) == 0) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
 
 bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return false;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return false;
 
 #ifdef BEOS_OLD_NETSERVER
    return true;  // old networking stack doesn't support this flag
 #else
    int enableNoDelay;
    socklen_t len = sizeof(enableNoDelay);
-   return (getsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (sockopt_arg *) &enableNoDelay, &len) == 0) ? (enableNoDelay == 0) : false;
+   return (getsockopt(sd, IPPROTO_TCP, TCP_NODELAY, (sockopt_arg *) &enableNoDelay, &len) == 0) ? (enableNoDelay == 0) : false;
 #endif
 }
 
 status_t SetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock, bool enabled)
 {
 #if defined(__linux__) || defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__)
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    const int iEnabled = enabled;  // it's gotta be an int!
 # if defined(__linux__)
@@ -1041,7 +1042,7 @@ status_t SetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock, bool enabled
 # else
    const int corkOpt = TCP_NOPUSH;
 # endif
-   return (setsockopt(fd, IPPROTO_TCP, corkOpt, (const sockopt_arg *) &iEnabled, sizeof(iEnabled)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, IPPROTO_TCP, corkOpt, (const sockopt_arg *) &iEnabled, sizeof(iEnabled)) == 0) ? B_NO_ERROR : B_ERRNO;
 #else
    (void) sock;
    (void) enabled;
@@ -1052,8 +1053,8 @@ status_t SetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock, bool enabled
 bool GetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock)
 {
 #if defined(__linux__) || defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__)
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return false;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return false;
 
    int enabled;
    socklen_t len = sizeof(enabled);
@@ -1062,7 +1063,7 @@ bool GetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock)
 # else
    const int corkOpt = TCP_NOPUSH;
 # endif
-   return (getsockopt(fd, IPPROTO_TCP, corkOpt, (sockopt_arg *) &enabled, &len) == 0) ? (bool)enabled : false;
+   return (getsockopt(sd, IPPROTO_TCP, corkOpt, (sockopt_arg *) &enabled, &len) == 0) ? (bool)enabled : false;
 #else
    (void) sock;
    return false;
@@ -1073,8 +1074,8 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
 {
    TCHECKPOINT;
 
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
 #if defined(BEOS_OLD_NETSERVER)
    // net_server and BONE behave COMPLETELY differently as far as finalizing async connects
@@ -1091,14 +1092,14 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
    if (userIsRunningBone)
    {
       char junk;
-      return (send_ignore_eintr(fd, &junk, 0, 0L) == 0) ? B_NO_ERROR : B_ERRNO;
+      return (send_ignore_eintr(sd, &junk, 0, 0L) == 0) ? B_NO_ERROR : B_ERRNO;
    }
    else
    {
       // net_server just HAS to do things differently from everyone else :^P
       struct sockaddr_in junk;
       memset(&junk, 0, sizeof(junk));
-      return (connect(fd, (struct sockaddr *) &junk, sizeof(junk)) == 0) ? B_NO_ERROR : B_ERRNO;
+      return (connect(sd, (struct sockaddr *) &junk, sizeof(junk)) == 0) ? B_NO_ERROR : B_ERRNO;
    }
 #elif defined(__FreeBSD__) || defined(BSD)
    // Nathan Whitehorn reports that send() doesn't do this trick under FreeBSD 7,
@@ -1106,11 +1107,11 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
    struct sockaddr_in junk;
    socklen_t length = sizeof(junk);
    memset(&junk, 0, sizeof(junk));
-   return (getpeername(fd, (struct sockaddr *)&junk, &length) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (getpeername(sd, (struct sockaddr *)&junk, &length) == 0) ? B_NO_ERROR : B_ERRNO;
 #else
    // For most platforms, the code below is all we need
    char junk;
-   return (send_ignore_eintr(fd, &junk, 0, 0L) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (send_ignore_eintr(sd, &junk, 0, 0L) == 0) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
 
@@ -1122,11 +1123,11 @@ static status_t SetSocketBufferSizeAux(const ConstSocketRef & sock, uint32 numBy
    (void) optionName;
    return B_UNIMPLEMENTED;  // not supported!
 #else
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    int iSize = (int) numBytes;
-   return (setsockopt(fd, SOL_SOCKET, optionName, (const sockopt_arg *) &iSize, sizeof(iSize)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, SOL_SOCKET, optionName, (const sockopt_arg *) &iSize, sizeof(iSize)) == 0) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
 status_t SetSocketSendBufferSize(   const ConstSocketRef & sock, uint32 sendBufferSizeBytes) {return SetSocketBufferSizeAux(sock, sendBufferSizeBytes, SO_SNDBUF);}
@@ -1139,12 +1140,12 @@ static int32 GetSocketBufferSizeAux(const ConstSocketRef & sock, int optionName)
    (void) optionName;
    return -1;  // not supported!
 #else
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return -1;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return -1;
 
    int iSize;
    socklen_t len = sizeof(iSize);
-   return (getsockopt(fd, SOL_SOCKET, optionName, (sockopt_arg *) &iSize, &len) == 0) ? (int32)iSize : -1;
+   return (getsockopt(sd, SOL_SOCKET, optionName, (sockopt_arg *) &iSize, &len) == 0) ? (int32)iSize : -1;
 #endif
 }
 int32 GetSocketSendBufferSize(   const ConstSocketRef & sock) {return GetSocketBufferSizeAux(sock, SO_SNDBUF);}
@@ -1553,7 +1554,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                            {
                               struct ifreq ifr; memset(&ifr, 0, sizeof(ifr));
                               memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
-                              if (ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFFUNCTIONALTYPE, &ifr) == 0)
+                              if (ioctl(dummySocket()->GetSocketDescriptor(), SIOCGIFFUNCTIONALTYPE, &ifr) == 0)
                               {
                                  switch(ifr.ifr_ifru.ifru_functional_type)
                                  {
@@ -1599,7 +1600,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                if (iname.Length() < sizeof(ifr.ifr_name))  // strictly less-than because there's also the NUL byte
                {
                   memcpy(ifr.ifr_name, iname(), iname.Length()+1);
-                  if (ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFHWADDR, &ifr) == 0) hardwareType = ConvertLinuxInterfaceType(ifr.ifr_hwaddr.sa_family);
+                  if (ioctl(dummySocket()->GetSocketDescriptor(), SIOCGIFHWADDR, &ifr) == 0) hardwareType = ConvertLinuxInterfaceType(ifr.ifr_hwaddr.sa_family);
                }
             }
 #endif
@@ -2001,7 +2002,7 @@ static inline uint64 KeepAliveSecondsToMicros(int second) {return (second*MICROS
 status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbeCount, uint64 idleTime, uint64 retransmitTime)
 {
 #ifdef __linux__
-   const int fd = sock.GetFileDescriptor();
+   const int fd = sock.GetSocketDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
    int arg = KeepAliveMicrosToSeconds(idleTime);
@@ -2030,7 +2031,7 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
 status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMaxProbeCount, uint64 * retIdleTime, uint64 * retRetransmitTime)
 {
 #ifdef __linux__
-   const int fd = sock.GetFileDescriptor();
+   const int fd = sock.GetSocketDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
    int val;
@@ -2076,11 +2077,11 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
 status_t SetSocketMulticastToSelf(const ConstSocketRef & sock, bool multicastToSelf)
 {
    const int toSelf = multicastToSelf ? 1 : 0;
-   const int fd = sock.GetFileDescriptor();
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
 #ifdef MUSCLE_AVOID_IPV6
-   return ((fd>=0)&&(setsockopt(fd, IPPROTO_IP,   IP_MULTICAST_LOOP,   (const sockopt_arg *) &toSelf, sizeof(toSelf)) == 0)) ? B_NO_ERROR : B_ERRNO;
+   return (isValidSocket(sd)&&(setsockopt(sd, IPPROTO_IP,   IP_MULTICAST_LOOP,   (const sockopt_arg *) &toSelf, sizeof(toSelf)) == 0)) ? B_NO_ERROR : B_ERRNO;
 #else
-   return ((fd>=0)&&(setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (const sockopt_arg *) &toSelf, sizeof(toSelf)) == 0)) ? B_NO_ERROR : B_ERRNO;
+   return (isValidSocket(sd)&&(setsockopt(sd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (const sockopt_arg *) &toSelf, sizeof(toSelf)) == 0)) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
 
@@ -2088,22 +2089,22 @@ bool GetSocketMulticastToSelf(const ConstSocketRef & sock)
 {
    uint8 toSelf;
    muscle_socklen_t size = sizeof(toSelf);
-   const int fd = sock.GetFileDescriptor();
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
 #ifdef MUSCLE_AVOID_IPV6
-   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IP,   IP_MULTICAST_LOOP,   (sockopt_arg *) &toSelf, &size) == 0)&&(size == sizeof(toSelf))&&(toSelf));
+   return (isValidSocket(sd)&&(getsockopt(sd, IPPROTO_IP,   IP_MULTICAST_LOOP,   (sockopt_arg *) &toSelf, &size) == 0)&&(size == sizeof(toSelf))&&(toSelf));
 #else
-   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (sockopt_arg *) &toSelf, &size) == 0)&&(size == sizeof(toSelf))&&(toSelf));
+   return (isValidSocket(sd)&&(getsockopt(sd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (sockopt_arg *) &toSelf, &size) == 0)&&(size == sizeof(toSelf))&&(toSelf));
 #endif
 }
 
 status_t SetSocketMulticastTimeToLive(const ConstSocketRef & sock, uint8 ttl)
 {
-   const int fd = sock.GetFileDescriptor();
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
    const int ttl_arg = (int) ttl;
 #ifdef MUSCLE_AVOID_IPV6
-   return ((fd>=0)&&(setsockopt(fd, IPPROTO_IP,   IP_MULTICAST_TTL,    (const sockopt_arg *) &ttl_arg, sizeof(ttl_arg)) == 0)) ? B_NO_ERROR : B_ERRNO;
+   return (isValidSocket(sd)&&(setsockopt(sd, IPPROTO_IP,   IP_MULTICAST_TTL,    (const sockopt_arg *) &ttl_arg, sizeof(ttl_arg)) == 0)) ? B_NO_ERROR : B_ERRNO;
 #else
-   return ((fd>=0)&&(setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (const sockopt_arg *) &ttl_arg, sizeof(ttl_arg)) == 0)) ? B_NO_ERROR : B_ERRNO;
+   return (isValidSocket(sd)&&(setsockopt(sd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (const sockopt_arg *) &ttl_arg, sizeof(ttl_arg)) == 0)) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
 
@@ -2111,11 +2112,11 @@ uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock)
 {
    int ttl = 0;
    muscle_socklen_t size = sizeof(ttl);
-   const int fd = sock.GetFileDescriptor();
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
 #ifdef MUSCLE_AVOID_IPV6
-   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IP,   IP_MULTICAST_TTL,    (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? (uint8)ttl : 0;
+   return (isValidSocket(sd)&&(getsockopt(sd, IPPROTO_IP,   IP_MULTICAST_TTL,    (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? (uint8)ttl : 0;
 #else
-   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? (uint8)ttl : 0;
+   return (isValidSocket(sd)&&(getsockopt(sd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? (uint8)ttl : 0;
 #endif
 }
 
@@ -2125,44 +2126,44 @@ uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock)
 
 status_t SetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, const IPAddress & address)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    struct in_addr localInterface; memset(&localInterface, 0, sizeof(localInterface));
    localInterface.s_addr = htonl(address.GetIPv4AddressAsUint32());
-   return (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, (const sockopt_arg *) &localInterface, sizeof(localInterface)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, (const sockopt_arg *) &localInterface, sizeof(localInterface)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 IPAddress GetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return invalidIP;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return invalidIP;
 
    struct in_addr localInterface; memset(&localInterface, 0, sizeof(localInterface));
    muscle_socklen_t len = sizeof(localInterface);
-   return ((getsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, (sockopt_arg *) &localInterface, &len) == 0)&&(len == sizeof(localInterface))) ? IPAddress(ntohl(localInterface.s_addr)) : invalidIP;
+   return ((getsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, (sockopt_arg *) &localInterface, &len) == 0)&&(len == sizeof(localInterface))) ? IPAddress(ntohl(localInterface.s_addr)) : invalidIP;
 }
 
 status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    struct ip_mreq req; memset(&req, 0, sizeof(req));
    req.imr_multiaddr.s_addr = htonl(groupAddress.GetIPv4AddressAsUint32());
    req.imr_interface.s_addr = htonl(localInterfaceAddress.GetIPv4AddressAsUint32());
-   return (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    struct ip_mreq req; memset(&req, 0, sizeof(req));
    req.imr_multiaddr.s_addr = htonl(groupAddress.GetIPv4AddressAsUint32());
    req.imr_interface.s_addr = htonl(localInterfaceAddress.GetIPv4AddressAsUint32());
-   return (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 #else  // end IPv4 multicast, begin IPv6 multicast
@@ -2177,45 +2178,45 @@ status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAdd
 
 status_t SetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock, uint32 interfaceIndex)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    const int idx = (interfaceIndex == MUSCLE_NO_LIMIT) ? 0 : (int) interfaceIndex;
-   return (setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (const sockopt_arg *) &idx, sizeof(idx)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (const sockopt_arg *) &idx, sizeof(idx)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return -1;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return -1;
 
    int idx = 0;
    socklen_t len = sizeof(idx);
-   return ((getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (sockopt_arg *) &idx, &len) == 0)&&(len == sizeof(idx))) ? idx : -1;
+   return ((getsockopt(sd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (sockopt_arg *) &idx, &len) == 0)&&(len == sizeof(idx))) ? idx : -1;
 }
 
 status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    struct ipv6_mreq req; memset(&req, 0, sizeof(req));
    uint32 interfaceIdx;
    groupAddress.WriteToNetworkArray((uint8*)(&req.ipv6mr_multiaddr), &interfaceIdx);
    req.ipv6mr_interface = interfaceIdx;
-   return (setsockopt(fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const SocketDescriptor sd = sock.GetSocketDescriptor();
+   if (!isValidSocket(sd)) return B_BAD_ARGUMENT;
 
    struct ipv6_mreq req; memset(&req, 0, sizeof(req));
    uint32 interfaceIdx;
    groupAddress.WriteToNetworkArray((uint8*)(&req.ipv6mr_multiaddr), &interfaceIdx);
    req.ipv6mr_interface = interfaceIdx;
-   return (setsockopt(fd, IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(sd, IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 #endif  // IPv6 multicast

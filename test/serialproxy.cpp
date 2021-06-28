@@ -15,7 +15,7 @@ static const int DEFAULT_PORT = 5274;  // What CueStation 2.5 connects to by def
 
 static status_t ReadIncomingData(const char * desc, DataIO & readIO, const SocketMultiplexer & multiplexer, Queue<ByteBufferRef> & outQ)
 {
-   if (multiplexer.IsSocketReadyForRead(readIO.GetReadSelectSocket().GetFileDescriptor()))
+   if (multiplexer.IsSocketReadyForRead(readIO.GetReadSelectSocket().GetSocketDescriptor()))
    {
       uint8 buf[4096];
       const int32 ret = readIO.Read(buf, sizeof(buf));
@@ -34,7 +34,7 @@ static status_t ReadIncomingData(const char * desc, DataIO & readIO, const Socke
 
 static status_t WriteOutgoingData(const char * desc, DataIO & writeIO, const SocketMultiplexer & multiplexer, Queue<ByteBufferRef> & outQ, uint32 & writeIdx)
 {
-   if (multiplexer.IsSocketReadyForWrite(writeIO.GetWriteSelectSocket().GetFileDescriptor()))
+   if (multiplexer.IsSocketReadyForWrite(writeIO.GetWriteSelectSocket().GetSocketDescriptor()))
    {
       while(outQ.HasItems())
       {
@@ -70,16 +70,16 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
    SocketMultiplexer multiplexer;
    while(true)
    {
-      const int networkReadFD  = networkIO.GetReadSelectSocket().GetFileDescriptor();
-      const int serialReadFD   = serialIO.GetReadSelectSocket().GetFileDescriptor();
-      const int networkWriteFD = networkIO.GetWriteSelectSocket().GetFileDescriptor();
-      const int serialWriteFD  = serialIO.GetWriteSelectSocket().GetFileDescriptor();
+      const SocketDescriptor networkReadSD  = networkIO.GetReadSelectSocket().GetSocketDescriptor();
+      const SocketDescriptor serialReadSD   = serialIO.GetReadSelectSocket().GetSocketDescriptor();
+      const SocketDescriptor networkWriteSD = networkIO.GetWriteSelectSocket().GetSocketDescriptor();
+      const SocketDescriptor serialWriteSD  = serialIO.GetWriteSelectSocket().GetSocketDescriptor();
 
-      multiplexer.RegisterSocketForReadReady(networkReadFD);
-      multiplexer.RegisterSocketForReadReady(serialReadFD);
+      multiplexer.RegisterSocketForReadReady(networkReadSD);
+      multiplexer.RegisterSocketForReadReady(serialReadSD);
 
-      if (outgoingNetworkData.HasItems()) multiplexer.RegisterSocketForWriteReady(networkWriteFD);
-      if (outgoingSerialData.HasItems())  multiplexer.RegisterSocketForWriteReady(serialWriteFD);
+      if (outgoingNetworkData.HasItems()) multiplexer.RegisterSocketForWriteReady(networkWriteSD);
+      if (outgoingSerialData.HasItems())  multiplexer.RegisterSocketForWriteReady(serialWriteSD);
 
       if (multiplexer.WaitForEvents() >= 0)
       {

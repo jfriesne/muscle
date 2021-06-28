@@ -14,7 +14,7 @@ static const int DEFAULT_PORT = 8000;  // LX-300's default port for OSC
 
 static status_t ReadIncomingData(const String & desc, DataIO & readIO, const SocketMultiplexer & multiplexer, Queue<ByteBufferRef> & outQ)
 {
-   if (multiplexer.IsSocketReadyForRead(readIO.GetReadSelectSocket().GetFileDescriptor()))
+   if (multiplexer.IsSocketReadyForRead(readIO.GetReadSelectSocket().GetSocketDescriptor()))
    {
       uint8 buf[4096];
       const int32 ret = readIO.Read(buf, sizeof(buf));
@@ -33,7 +33,7 @@ static status_t ReadIncomingData(const String & desc, DataIO & readIO, const Soc
 
 static status_t WriteOutgoingData(const String & desc, DataIO & writeIO, const SocketMultiplexer & multiplexer, Queue<ByteBufferRef> & outQ, uint32 & writeIdx)
 {
-   if (multiplexer.IsSocketReadyForWrite(writeIO.GetWriteSelectSocket().GetFileDescriptor()))
+   if (multiplexer.IsSocketReadyForWrite(writeIO.GetWriteSelectSocket().GetSocketDescriptor()))
    {
       while(outQ.HasItems())
       {
@@ -70,15 +70,15 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
 
    while(true)
    {
-      const int aReadFD  = aIO.GetReadSelectSocket().GetFileDescriptor();
-      const int bReadFD  = bIO.GetReadSelectSocket().GetFileDescriptor();
-      const int aWriteFD = aIO.GetWriteSelectSocket().GetFileDescriptor();
-      const int bWriteFD = bIO.GetWriteSelectSocket().GetFileDescriptor();
+      const SocketDescriptor aReadSD  = aIO.GetReadSelectSocket().GetSocketDescriptor();
+      const SocketDescriptor bReadSD  = bIO.GetReadSelectSocket().GetSocketDescriptor();
+      const SocketDescriptor aWriteSD = aIO.GetWriteSelectSocket().GetSocketDescriptor();
+      const SocketDescriptor bWriteSD = bIO.GetWriteSelectSocket().GetSocketDescriptor();
 
-      multiplexer.RegisterSocketForReadReady(aReadFD);
-      multiplexer.RegisterSocketForReadReady(bReadFD);
-      if (outgoingAData.HasItems()) multiplexer.RegisterSocketForWriteReady(aWriteFD);
-      if (outgoingBData.HasItems()) multiplexer.RegisterSocketForWriteReady(bWriteFD);
+      multiplexer.RegisterSocketForReadReady(aReadSD);
+      multiplexer.RegisterSocketForReadReady(bReadSD);
+      if (outgoingAData.HasItems()) multiplexer.RegisterSocketForWriteReady(aWriteSD);
+      if (outgoingBData.HasItems()) multiplexer.RegisterSocketForWriteReady(bWriteSD);
 
       if (multiplexer.WaitForEvents() >= 0)
       {

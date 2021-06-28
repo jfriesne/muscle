@@ -90,7 +90,7 @@ void FileDataIO :: SetSocketsFromFile(FILE * optFile)
    const int fd = optFile ? fileno(optFile) : -1;
    if (fd >= 0)
    {
-      _selectSocket.SetFileDescriptor(fd, false);  // false because the fclose() will call close(fd), so we should not
+      _selectSocket.SetSocketDescriptor(fd, false);  // false because the fclose() will call close(fd), so we should not
       _selectSocketRef.SetRef(&_selectSocket, false);
    } 
 #else

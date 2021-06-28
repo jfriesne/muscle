@@ -36,14 +36,14 @@ int main(int argc, char ** argv)
       gw.SetDataIO(DataIORef(new TCPSocketDataIO(s, false)));
       while(true)
       {
-         const int fd = s.GetFileDescriptor();
-         multiplexer.RegisterSocketForReadReady(fd);
-         multiplexer.RegisterSocketForWriteReady(fd);
+         const SocketDescriptor sd = s.GetSocketDescriptor();
+         multiplexer.RegisterSocketForReadReady(sd);
+         multiplexer.RegisterSocketForWriteReady(sd);
 
          if (multiplexer.WaitForEvents() < 0) printf("uploadstress: WaitForEvents() failed!\n");
 
-         const bool reading = multiplexer.IsSocketReadyForRead(fd);
-         const bool writing = multiplexer.IsSocketReadyForWrite(fd);
+         const bool reading = multiplexer.IsSocketReadyForRead(sd);
+         const bool writing = multiplexer.IsSocketReadyForWrite(sd);
 
          if (gw.HasBytesToOutput() == false)
          {

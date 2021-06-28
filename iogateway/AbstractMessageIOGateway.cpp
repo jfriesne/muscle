@@ -90,9 +90,9 @@ status_t
 AbstractMessageIOGateway :: 
 ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64 timeoutPeriod)
 {
-   const int readFD  = GetDataIO()() ? GetDataIO()()->GetReadSelectSocket().GetFileDescriptor()  : -1;
-   const int writeFD = GetDataIO()() ? GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor() : -1;
-   if ((readFD < 0)||(writeFD < 0)) return B_BAD_OBJECT;  // no socket to transmit or receive on!
+   const SocketDescriptor readSD  = GetDataIO()() ? GetDataIO()()->GetReadSelectSocket().GetSocketDescriptor()  : INVALID_SOCKET;
+   const SocketDescriptor writeSD = GetDataIO()() ? GetDataIO()()->GetWriteSelectSocket().GetSocketDescriptor() : INVALID_SOCKET;
+   if (!isValidSocket(readSD)||!isValidSocket(writeSD)) return B_BAD_OBJECT;  // no socket to transmit or receive on!
 
    ScratchProxyReceiver scratchReceiver(this, optReceiver);
    const uint64 endTime = (timeoutPeriod == MUSCLE_TIME_NEVER) ? MUSCLE_TIME_NEVER : (GetRunTime64()+timeoutPeriod);
@@ -100,11 +100,11 @@ ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64
    while(IsStillAwaitingSynchronousMessagingReply())
    {
       if (GetRunTime64() >= endTime) return B_TIMED_OUT;
-      if (optReceiver)        multiplexer.RegisterSocketForReadReady(readFD);
-      if (HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
+      if (optReceiver)        multiplexer.RegisterSocketForReadReady(readSD);
+      if (HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeSD);
       if ((multiplexer.WaitForEvents(endTime) < 0)                        ||
-         ((multiplexer.IsSocketReadyForWrite(writeFD))&&(DoOutput() < 0)) ||
-         ((multiplexer.IsSocketReadyForRead(readFD))&&(DoInput(scratchReceiver) < 0))) return IsStillAwaitingSynchronousMessagingReply() ? B_IO_ERROR : B_NO_ERROR;
+         ((multiplexer.IsSocketReadyForWrite(writeSD))&&(DoOutput() < 0)) ||
+         ((multiplexer.IsSocketReadyForRead(readSD))&&(DoInput(scratchReceiver) < 0))) return IsStillAwaitingSynchronousMessagingReply() ? B_IO_ERROR : B_NO_ERROR;
    }
    return B_NO_ERROR;
 }

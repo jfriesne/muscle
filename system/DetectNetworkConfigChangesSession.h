@@ -116,7 +116,7 @@ private:
 
       // send a byte on the socket-pair to wake up the user thread so he'll check his _messagesFromSingletonThread queue
       const char junk = 'S';
-      (void) send_ignore_eintr(_notifySocket.GetFileDescriptor(), &junk, sizeof(junk), 0);
+      (void) send_ignore_eintr(_notifySocket.GetSocketDescriptor(), &junk, sizeof(junk), 0);
       return B_NO_ERROR;
    }
    Mutex _messagesFromSingletonThreadMutex;
