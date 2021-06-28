@@ -25,9 +25,18 @@ public:
    /** Constructor.
      * @param fd File descriptor of a socket.  (fd) becomes property of this Socket object.
      * @param okayToClose If true (fd) will be closed by the destructor.
-     *                    If false, we will not close (fd).  Defaults to true. 
+     *                    If false, we will not close (fd).  Defaults to true.
      */
    explicit Socket(int fd, bool okayToClose = true) : _fd(fd), _okayToClose(okayToClose) {/* empty */}
+
+#ifdef WIN32
+   /** Convenience-constructor, for Windows only.  Accepts a SOCKET as an argument instead of an int.
+     * @param s Windows SOCKET descriptor.  (s) becomes property of this Socket object.
+     * @param okayToClose If true (s) will be closed by the destructor.
+     *                    If false, we will not close (s).  Defaults to true.
+     */
+   explicit Socket(SOCKET s, bool okayToClose = true) : _fd(static_cast<int>(s)), _okayToClose(okayToClose) {/* empty */}
+#endif
 
    /** Destructor.  Closes our held file descriptor, if we have one. */
    virtual ~Socket();
@@ -127,6 +136,21 @@ public:
   *          (okayToClose) was false; that way you don't have to worry about closing it yourself.
   */
 ConstSocketRef GetConstSocketRefFromPool(int fd, bool okayToClose = true, bool retNULLIfInvalidSocket = true);
+
+#ifdef WIN32
+/** Returns a ConstSocketRef from our ConstSocketRef pool that references the passed in file descriptor.
+  * @param s The Windows SOCKET that the returned ConstSocketRef should be tracking.
+  * @param okayToClose if true, (s) will be closed when the last ConstSocketRef
+  *                    that references it is destroyed.  If false, it won't be.
+  * @param retNULLIfInvalidSocket If left true and (s) is negative, then a NULL ConstSocketRef
+  *                               will be returned.  If set false, then we will return a
+  *                               non-NULL ConstSocketRef object, with (s)'s negative value in it.
+  * @returns a ConstSocketRef pointing to the specified socket on success, or a NULL ConstSocketRef on
+  *          failure (out of memory).  Note that in the failure case, (s) will be closed unless
+  *          (okayToClose) was false; that way you don't have to worry about closing it yourself.
+  */
+static inline ConstSocketRef GetConstSocketRefFromPool(SOCKET s, bool okayToClose = true, bool retNULLIfInvalidSocket = true) {return GetConstSocketRefFromPool(static_cast<int>(s), okayToClose, retNULLIfInvalidSocket);}
+#endif
 
 /** Convenience method:  Returns a NULL socket reference. */
 inline const ConstSocketRef & GetNullSocket() {return GetDefaultObjectForType<ConstSocketRef>();}

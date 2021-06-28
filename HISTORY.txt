@@ -5,6 +5,13 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added Windows-only convenience-constructor to the Socket class that takes
+     a SOCKET instead of an int, for easier capture of Windows sockets into
+     Socket objects.
+   - Added Windows-only convenience-version of the GetConstSocketRefFromPool()
+     function that takes a SOCKET instead of an int, for easier capture of
+     Windows sockets into ref-coutned Socket objects.
+
 8.30 - Released 6/2/2021
    - Added DummyRef and DummyConstRef classes to util/RefCount.h, to support
      reader-friendly declarations of references to stack-based objects.

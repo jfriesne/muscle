@@ -20,7 +20,11 @@ int main(int argc, char ** argv)
    // Atypical usage:  Capturing a file descriptor into a Socket object so that
    // it will be automatically close()'d when the execution leaves the enclosing scope
    {
-      int some_fd = socket(AF_INET, SOCK_DGRAM, 0);
+#ifdef WIN32
+      SOCKET some_fd = socket(AF_INET, SOCK_DGRAM, 0);
+#else
+      int    some_fd = socket(AF_INET, SOCK_DGRAM, 0);
+#endif
       Socket mySock(some_fd);
       // [...]
       // close(some_fd) will automatically be called here by the Socket object's destructor 
