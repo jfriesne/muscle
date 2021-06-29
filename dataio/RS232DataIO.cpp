@@ -55,7 +55,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
          dcb.fBinary           = 1;
          dcb.fOutX             = 0;
          dcb.fInX              = 0;
-         dcb.fErrorChar        = 0xfe;
+         dcb.fErrorChar        = 1;
          dcb.fTXContinueOnXoff = 0;
          dcb.fOutxCtsFlow      = 0;
          dcb.fOutxDsrFlow      = 0;
@@ -64,6 +64,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
          dcb.fNull             = 0;
          dcb.fRtsControl       = RTS_CONTROL_DISABLE;
          dcb.fAbortOnError     = 0;
+         dcb.ErrorChar         = -2;  // aka 0xFE
          if (SetCommState(_handle, &dcb))
          {
             COMMTIMEOUTS tmout;
