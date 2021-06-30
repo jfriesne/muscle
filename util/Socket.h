@@ -13,7 +13,7 @@ namespace muscle {
   * descriptors don't get accidentally leaked.  A Socket object is typically
   * handed to a ConstSocketRef, whose constructor and destructor will implement
   * the reference-counting necessary to automatically delete/recycle the Socket
-  * object (and thereby automatically close its held file descriptor) when the file 
+  * object (and thereby automatically close its held file-descriptor) when the file
   * descriptor is no longer needed for anything.
   */
 class Socket : public RefCountable, private NotCopyable
@@ -23,16 +23,25 @@ public:
    Socket() : _fd(-1), _okayToClose(false) {/* empty */}
 
    /** Constructor.
-     * @param fd File descriptor of a socket.  (fd) becomes property of this Socket object.
+     * @param fd File descriptor of a socket.  If (okayToClose) is true, then (fd) becomes property of this Socket object.
      * @param okayToClose If true (fd) will be closed by the destructor.
-     *                    If false, we will not close (fd).  Defaults to true. 
+     *                    If false, we will not close (fd).  Defaults to true.
      */
    explicit Socket(int fd, bool okayToClose = true) : _fd(fd), _okayToClose(okayToClose) {/* empty */}
 
-   /** Destructor.  Closes our held file descriptor, if we have one. */
+#ifdef WIN32
+   /** Convenience-constructor, for Windows only.  Accepts a SOCKET as an argument instead of an int.
+     * @param s Windows SOCKET descriptor.  If (okayToClose) is true, then (s) becomes property of this Socket object.
+     * @param okayToClose If true (s) will be closed by the destructor.
+     *                    If false, we will not close (s).  Defaults to true.
+     */
+   explicit Socket(SOCKET s, bool okayToClose = true) : _fd(static_cast<int>(s)), _okayToClose(okayToClose) {/* empty */}
+#endif
+
+   /** Destructor.  Closes our held file-descriptor, if we have one. */
    virtual ~Socket();
 
-   /** Returns and releases our held file descriptor.   
+   /** Returns and releases our held file-descriptor.
      * When this method returns, ownership of the socket is transferred to the calling code.
      */
    int ReleaseFileDescriptor() {int ret = _fd; _fd = -1; return ret;}
@@ -40,11 +49,11 @@ public:
    /** Returns the held socket fd, but does not release ownership of it. */  
    int GetFileDescriptor() const {return _fd;}
 
-   /** Sets our file descriptor.  Will close any old one if appropriate.
-     * @param fd The new file descriptor to hold, or -1 if we shouldn't hold a file descriptor any more.
+   /** Sets our file-descriptor.  Will close any old one if appropriate.
+     * @param fd The new file-descriptor to hold, or -1 if we shouldn't hold a file-descriptor any more.
      * @param okayToCloseFD true iff we should close (fd) when we're done with it, false if we shouldn't.
      *                    Note that this argument affects only what we'll do with (fd), and NOT what
-     *                    we'll do with any file descriptor we may already be holding!.  This argument
+     *                    we'll do with any file-descriptor we may already be holding!.  This argument
      *                    is not meaningful when (fd) is passed in as -1.
      */
    void SetFileDescriptor(int fd, bool okayToCloseFD = true);
@@ -67,9 +76,9 @@ private:
 };
 
 /** ConstSocketRef is subclassed rather than typedef'd so that I can override the == and != operators
-  * to check for equality based on the file descriptor value rather than on the address of the
+  * to check for equality based on the file-descriptor value rather than on the address of the
   * referenced Socket object.  Doing it this way gives more intuitive hashing behavior (i.e.
-  * multiple ConstSocketRefs referencing the same file descriptor will hash to the same entry)
+  * multiple ConstSocketRefs referencing the same file-descriptor will hash to the same entry)
   */
 class ConstSocketRef : public ConstRef<Socket>
 {
@@ -98,27 +107,27 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline ConstSocketRef & operator = (const ConstSocketRef & rhs) {(void) ConstRef<Socket>::operator=(rhs); return *this;}
 
-   /** Comparison operator.  Returns true iff (this) and (rhs) both contain the same file descriptor.
-     * @param rhs the ConstSocketRef to compare file descriptors with
+   /** Comparison operator.  Returns true iff (this) and (rhs) both contain the same file-descriptor.
+     * @param rhs the ConstSocketRef to compare file-descriptors with
      */
    inline bool operator ==(const ConstSocketRef &rhs) const {return GetFileDescriptor() == rhs.GetFileDescriptor();}
 
-   /** Comparison operator.  Returns true iff (this) and (rhs) don't both contain the same file descriptor.
-     * @param rhs the ConstSocketRef to compare file descriptors with
+   /** Comparison operator.  Returns true iff (this) and (rhs) don't both contain the same file-descriptor.
+     * @param rhs the ConstSocketRef to compare file-descriptors with
      */
    inline bool operator !=(const ConstSocketRef &rhs) const {return GetFileDescriptor() != rhs.GetFileDescriptor();}
 
-   /** Convenience method.  Returns the file descriptor we are holding, or -1 if we are a NULL reference. */
+   /** Convenience method.  Returns the file-descriptor we are holding, or -1 if we are a NULL reference. */
    int GetFileDescriptor() const {const Socket * s = GetItemPointer(); return s?s->GetFileDescriptor():-1;}
 
-   /** When we're being used as a key in a Hashtable, key on the file descriptor we hold */
+   /** When we're being used as a key in a Hashtable, key on the file-descriptor we hold */
    uint32 HashCode() const {return CalculateHashCode(GetFileDescriptor());}
 };
 
-/** Returns a ConstSocketRef from our ConstSocketRef pool that references the passed in file descriptor.
-  * @param fd The file descriptor that the returned ConstSocketRef should be tracking.
+/** Returns a ConstSocketRef from our ConstSocketRef pool that references the passed-in file-descriptor.
+  * @param fd The file-descriptor that the returned ConstSocketRef should be tracking.
   * @param okayToClose if true, (fd) will be closed when the last ConstSocketRef 
-  *                    that references it is destroyed.  If false, it won't be.
+  *                    that references it is destroyed.  If false, it won't be.  Defaults to true.
   * @param retNULLIfInvalidSocket If left true and (fd) is negative, then a NULL ConstSocketRef
   *                               will be returned.  If set false, then we will return a
   *                               non-NULL ConstSocketRef object, with (fd)'s negative value in it.
@@ -128,10 +137,25 @@ public:
   */
 ConstSocketRef GetConstSocketRefFromPool(int fd, bool okayToClose = true, bool retNULLIfInvalidSocket = true);
 
+#ifdef WIN32
+/** Returns a ConstSocketRef from our ConstSocketRef pool that references the passed-in socket-descriptor.
+  * @param s The Windows SOCKET that the returned ConstSocketRef should be tracking.
+  * @param okayToClose if true, (s) will be closed when the last ConstSocketRef
+  *                    that references it is destroyed.  If false, it won't be.  Defaults to true.
+  * @param retNULLIfInvalidSocket If left true and (s) is invalid, then a NULL ConstSocketRef
+  *                               will be returned.  If set false, then we will return a
+  *                               non-NULL ConstSocketRef object, with (s)'s negative value in it.
+  * @returns a ConstSocketRef pointing to the specified socket on success, or a NULL ConstSocketRef on
+  *          failure (out of memory).  Note that in the failure case, (s) will be closed unless
+  *          (okayToClose) was false; that way you don't have to worry about closing it yourself.
+  */
+static inline ConstSocketRef GetConstSocketRefFromPool(SOCKET s, bool okayToClose = true, bool retNULLIfInvalidSocket = true) {return GetConstSocketRefFromPool(static_cast<int>(s), okayToClose, retNULLIfInvalidSocket);}
+#endif
+
 /** Convenience method:  Returns a NULL socket reference. */
 inline const ConstSocketRef & GetNullSocket() {return GetDefaultObjectForType<ConstSocketRef>();}
 
-/** Convenience method:  Returns a reference to an invalid Socket (i.e. a Socket object with a negative file descriptor).  Note the difference between what this function returns and what GetNullSocket() returns!  If you're not sure which of these two functions to use, then GetNullSocket() is probably the one you want. */
+/** Convenience method:  Returns a reference to an invalid Socket (i.e. a Socket object with a negative file-descriptor).  Note the difference between what this function returns and what GetNullSocket() returns!  If you're not sure which of these two functions to use, then GetNullSocket() is probably the one you want. */
 const ConstSocketRef & GetInvalidSocket();
 
 } // end namespace muscle

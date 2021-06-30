@@ -178,7 +178,7 @@ static status_t DoGlobalSocketCallback(uint32 eventType, const ConstSocketRef & 
 
 static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType)
 {
-   const int s = (int) socket(MUSCLE_SOCKET_FAMILY, socketType, 0);
+   const int s = static_cast<int>(socket(MUSCLE_SOCKET_FAMILY, socketType, 0));
    if (s >= 0)
    {
 #if defined(__APPLE__) || defined(BSD)
@@ -449,7 +449,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
    const int fd = sock.GetFileDescriptor();
    if (fd >= 0)
    {
-      ConstSocketRef ret = GetConstSocketRefFromPool((int) accept(fd, (struct sockaddr *)&saSocket, &nLen));
+      ConstSocketRef ret = GetConstSocketRefFromPool(accept(fd, (struct sockaddr *)&saSocket, &nLen));
       if (DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret).IsError()) return ConstSocketRef();  // called separately since accept() created this socket, not CreateMuscleSocket()
 
       if ((ret())&&(optRetInterfaceIP))
