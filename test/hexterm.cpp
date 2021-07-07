@@ -200,8 +200,8 @@ static void DoSession(DataIO & io, bool allowRead = true)
                {
                   const PacketDataIO * packetDataIO = dynamic_cast<const PacketDataIO *>(&io);
                   const IPAddressAndPort & fromIAP = packetDataIO ? packetDataIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();
-                  if (fromIAP.IsValid()) scratchString = String("Read #%1: Received from %1 (%2 since prev)").Arg(readCounter).Arg(fromIAP.ToString()).Arg(sinceString);
-                                    else scratchString = String("Read #%1: Received (%1 since prev)").Arg(readCounter).Arg(sinceString);
+                  if (fromIAP.IsValid()) scratchString = String("Read #%1: Received from %2 (%3 since prev)").Arg(readCounter).Arg(fromIAP.ToString()).Arg(sinceString);
+                                    else scratchString = String("Read #%1: Received (%2 since prev)").Arg(readCounter).Arg(sinceString);
                   LogBytes(buf, ret, scratchString());
                }
                else LogTime(MUSCLE_LOG_DEBUG, "Read #" UINT64_FORMAT_SPEC ": Received " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of data (%s since prev).\n", readCounter, ret, sizeof(buf), sinceString());
