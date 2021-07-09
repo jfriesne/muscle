@@ -4,7 +4,7 @@
 #include <QSocketNotifier>
 #include "util/SocketCallbackMechanism.h"
 
-namespace zg {
+namespace muscle {
 
 /** This class implements the ICallbackMechanism interface
   * in a Qt-specific way that makes it easy to integrate
@@ -38,6 +38,6 @@ private:
    QSocketNotifier _notifier;
 };
 
-};  // end zg namespace
+};  // end muscle namespace
 
 #endif
