@@ -131,21 +131,8 @@ status_t Thread :: StartInternalThreadAuxAux()
 #elif defined(MUSCLE_USE_QT_THREADS)
    _thread.start();
    return B_NO_ERROR;
-#elif defined(__BEOS__) || defined(__HAIKU__)
-   if ((_thread = spawn_thread(InternalThreadEntryFunc, "MUSCLE Thread", B_NORMAL_PRIORITY, this)) >= 0)
-   {
-      if (resume_thread(_thread) == B_NO_ERROR) return B_NO_ERROR;
-      else 
-      {
-         ret = B_ERRNO; 
-         kill_thread(_thread);
-         return ret;
-      }
-   }
-   return B_ERRNO;
-#elif defined(__ATHEOS__)
-   if (((_thread = spawn_thread("MUSCLE Thread", InternalThreadEntryFunc, NORMAL_PRIORITY, 32767, this)) >= 0)&&(resume_thread(_thread) >= 0)) return B_NO_ERROR;
-   return B_ERRNO;
+#else
+   #error "Thread::StartInternalThreadAuxAux():  Unsupported platform?"
 #endif
 }
 
@@ -337,11 +324,6 @@ status_t Thread :: WaitForInternalThreadToExit()
       ::CloseHandle(_thread);  // Raymond Dahlberg's fix for handle-leak problem
 #elif defined(MUSCLE_QT_HAS_THREADS)
       (void) _thread.wait();
-#elif defined(__BEOS__) || defined(__HAIKU__)
-      status_t junk;
-      (void) wait_for_thread(_thread, &junk);
-#elif defined(__ATHEOS__)
-      (void) wait_for_thread(_thread);
 #endif
       _threadRunning = false;
       CloseSockets();
@@ -430,8 +412,6 @@ Thread::muscle_thread_key Thread :: GetCurrentThreadKey()
    return GetCurrentThreadId();
 #elif defined(MUSCLE_QT_HAS_THREADS)
    return QThread::currentThread();
-#elif defined(__BEOS__) || defined(__HAIKU__) || defined(__ATHEOS__)
-   return find_thread(NULL);
 #else
    #error "Thread::GetCurrentThreadKey():  Unsupported platform?"
 #endif
@@ -449,10 +429,6 @@ bool Thread :: IsCallerInternalThread() const
    return (_threadID == GetCurrentThreadId());
 #elif defined(MUSCLE_QT_HAS_THREADS)
    return (QThread::currentThread() == static_cast<const QThread *>(&_thread));
-#elif defined(__BEOS__) || defined(__HAIKU__)
-   return (_thread == find_thread(NULL));
-#elif defined(__ATHEOS__)
-   return (_thread == find_thread(NULL));
 #else
    #error "Thread::IsCallerInternalThread():  Unsupported platform?"
 #endif

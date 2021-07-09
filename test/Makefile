@@ -36,7 +36,8 @@ CXXFLAGS += -std=c++11
 
 LFLAGS =  
 LIBS =  -lpthread
-EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode portablereflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool
+EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode portablereflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess
+
 REGEXOBJS = 
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
 ZIPOBJS = zip.o unzip.o ioapi.o
@@ -54,45 +55,11 @@ ifeq ($(OSTYPE),IRIX64)
   OSTYPE = IRIX 
 endif 
 
-ifeq ($(OSTYPE),beos) 
-   VPATH += ../besupport
-   EXECUTABLES += testbesupport 
-   ifeq ($(BE_HOST_CPU),ppc) 
-      CXX = mwcc 
-      OBJFILES += regcomp.o regerror.o regexec.o regfree.o 
-      VPATH += ../regex/regex 
-      CFLAGS += -I../regex/regex -I../zlib/zlib 
-      MEMORY_TRACKING_SUPPORTED = no  # mwcc can't handle it correctly :^( 
-   else # not ppc 
-      CXXFLAGS += $(GCCFLAGS) $(CCOPTFLAGS) 
-      LIBS = -lbe -lnet -lroot 
-      ifeq ($(shell ls 2>/dev/null -1 /boot/develop/headers/be/bone/bone_api.h), /boot/develop/headers/be/bone/bone_api.h) 
-         CFLAGS += -I/boot/develop/headers/be/bone -DBONE 
-         LIBS = -nodefaultlibs -lbind -lsocket -lbe -lroot -L/boot/beos/system/lib 
-      endif 
-   endif 
-else # not beos
-    ifneq (,$(findstring g++,$(CXX)))
-        CXXFLAGS += $(GCCFLAGS) $(CCOPTFLAGS)
-    else
-        CXXFLAGS += $(CCOPTFLAGS)
-    endif
-endif
-
-ifeq ($(OSTYPE),Haiku)
-   VPATH       += ../besupport
-   CXXFLAGS    += -DMUSCLE_AVOID_IPV6
-   EXECUTABLES += testbesupport
-   LIBS         = -lbe -lnetwork -lroot
+ifneq (,$(findstring g++,$(CXX)))
+    CXXFLAGS += $(GCCFLAGS) $(CCOPTFLAGS)
 else
-   EXECUTABLES += testchildprocess
+    CXXFLAGS += $(CCOPTFLAGS)
 endif
-
-ifeq ($(SYSTEM),AtheOS)
-   VPATH += ../atheossupport
-   EXECUTABLES += testatheossupport
-   LIBS = -latheos
-endif                           
 
 ifeq ($(OSTYPE),freebsd4.0) 
    CXXFLAGS += -I/usr/include/machine 
@@ -148,12 +115,6 @@ endif
 
 # Makes all the programs that can be made using just cross-platform code
 all : $(EXECUTABLES)
-
-testatheossupport : $(STDOBJS) ConvertMessages.o Message.o String.o testatheossupport.o SysLog.o SetupSystem.o ByteBuffer.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-testbesupport : $(STDOBJS) ConvertMessages.o Message.o String.o testbesupport.o SysLog.o SetupSystem.o ByteBuffer.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 calctypecode : $(STDOBJS) calctypecode.o SysLog.o SetupSystem.o String.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)

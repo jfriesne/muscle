@@ -8,20 +8,6 @@
 #include "system/GlobalMemoryAllocator.h"
 #include "system/SetupSystem.h"  // for GetGlobalMuscleLock()
 
-// Metrowerk's compiler crashes at run-time if this memory-tracking
-// code is enabled.  I haven't been able to figure out why (everything
-// looks okay, but after a few dozen malloc()/free() calls, free()
-// crashes!) so I'm just going to disable this code for PowerPC/Metrowerks
-// machines.  Sorry!   --jaf 12/01/00
-#ifndef __osf__
-# ifdef __MWERKS__
-#  ifdef MUSCLE_ENABLE_MEMORY_TRACKING
-#   undef MUSCLE_ENABLE_MEMORY_TRACKING
-#   undef MUSCLE_ENABLE_MEMORY_PARANOIA
-#  endif
-# endif
-#endif
-
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
 
 // VC++ doesn't know from exceptions  :^P

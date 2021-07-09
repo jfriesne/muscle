@@ -11,10 +11,6 @@
 # include <sys/time.h>
 #endif
 
-#if defined(__BEOS__) || defined(__HAIKU__)
-# include <kernel/OS.h>
-#endif
-
 namespace muscle {
 
 /** @defgroup timeunitconversionfunction The TimeUnitConversionFuncions function API

@@ -12,9 +12,6 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <sys/stat.h>
-#ifdef __HAIKU__
-# include <sys/select.h>
-#endif
 
 #include "minimessage/MiniMessageGateway.h"
 #include "reflector/StorageReflectConstants.h"

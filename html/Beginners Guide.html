@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
    <H1>MUSCLE Overview and Beginner's Guide</H1>
-   <H4>v8.30 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 6/7/3021</H4>
+   <H4>v8.31 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 7/9/2021</H4>
    <A HREF="https://public.msli.com/lcs/muscle/html/index.html">Click here for DOxygen class API documentation</A><p>
    <A HREF="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/site/index.html">Click here for the MUSCLE-by-example tour</A>
 </HEAD>
@@ -28,7 +28,7 @@ This document assumes you are familiar with C++ programming programming.  Howeve
   <LI> <b>Open:</b>  All source code is licensed under the BSD Open Source License, and is freely distributable and usable for any purpose.  The source code contains many useful classes, including platform-neutral analogs to Be's BMessage, BDataIO, BFlattenable, and BString classes.  In addition, the archive also includes handy double-ended-queue, Hashtable, Reference-counting, and "I/O gateway" classes.</LI>
   <LI> <b>Customizable:</b>  All server-side session handlers are implemented by subclassing a standard interface (AbstractReflectSession) so that they can be easily augmented or replaced with custom logic.  Message serialization and low-level I/O is handled in a similar fashion, making it easy to replace the byte-stream format or transport mechanism with your own. </LI>
   <LI> <b>Scalable:</b>  A vanilla MUSCLE server can handle up to 1024 simultaneous TCP connections (or more than that if you enable -DMUSCLE_USE_POLL or -DMUSCLE_USE_KQUEUE or -DMUSCLE_USE_EPOLL).  Additional simultaneous connections can be supported in custom MUSCLE servers by adding multiple threads or processes</LI>
-  <LI> <b>Convenient:</b>  For selected environments, including Windows, BeOS, Qt, Java, Delphi, and Python, special utility classes are provided to hide the synchronous TCP messaging interface behind an asynchronous send-and-receive-messages API that's easier to deal with.</LI>
+  <LI> <b>Convenient:</b>  For selected environments, including Windows, Qt, Java, Delphi, and Python, special utility classes are provided to hide the synchronous TCP messaging interface behind an asynchronous send-and-receive-messages API that's easier to deal with.</LI>
 </OL>
 <p>
 
@@ -64,7 +64,7 @@ The MUSCLE package consists of dozens of classes, most of which are needed by th
 
 MUSCLE supports a multi-threaded messaging model as well as the single-threaded model (described elsewhere in this document).  In the multi-threaded model, a separate MUSCLE thread is started up to handle networking chores for you.  The advantage of doing it this way is that your GUI will never lock up due to networking activity, since all networking activity happens asynchronously.  Your GUI merely sends commands to the MUSCLE networking thread, and receives Messages back which contain information received from the network.
 <p>
-The multi-threaded messaging API for MUSCLE is represented mainly by the MessageTransceiverThread class.  This class manages the interaction between you and its internal thread, which does all the networking operations.  If you are using Qt, Windows, BeOS, or AtheOS, you are in luck--there are API-specific subclasses of MessageTransceiverThread included with MUSCLE to make things easier for you.  If not, you can still use MessageTransceiverThread, but you will need to do a little extra work to integrate it with your native threading model (how to do this is not covered here -- email me if you need help with this).
+The multi-threaded messaging API for MUSCLE is represented mainly by the MessageTransceiverThread class.  This class manages the interaction between you and its internal thread, which does all the networking operations.  If you are using Qt or Windows, you are in luck--there are API-specific subclasses of MessageTransceiverThread included with MUSCLE to make things easier for you.  If not, you can still use MessageTransceiverThread, but you will need to do a little extra work to integrate it with your native threading model (how to do this is not covered here -- email me if you need help with this).
 <p>
 There are five things that you'll need to do in a typical client:  Set up the thread, connect to the server, send messages, receive messages, and disconnect.  Here's how to do them:
 
@@ -87,7 +87,7 @@ else WARN_OUT_OF_MEMORY;
 </LI>
 
 <LI><i>Receiving messages</i><p>
-If you're using Qt, this is easy--whenever a Message arrives from the server, the MessageReceived() signal will be emitted and your connected object can act on it.  For AtheOS and BeOS, the process is slightly more involved:  Whenever a new Message arrives from the server, a MUSCLE_THREAD_SIGNAL BMessage will be sent to you via the Messenger you specified in the MessageTransceiverThread constructor.  When you receive such a message, your Looper should do something like this:<p>
+If you're using Qt, this is easy--whenever a Message arrives from the server, the MessageReceived() signal will be emitted and your connected object can act on it.  When you receive such a signal, your can retrieve the pending Message(s) like this:<p>
 
 <pre>MessageRef msg;
 uint32 code;
@@ -123,7 +123,7 @@ When you've had enough of chatting with the server, you can end your session by 
 
 <H2>The Single-Threaded messaging API (available on all platforms)</H2>
 <p>
-For code that needs to run on platforms other than Qt/Windows/BeOS/AtheOS (or even for Qt/Windows/BeOS/AtheOS code where you don't want to spawn an extra thread), you can use the single-threaded messaging API, as defined by the DataIO and MessageIOGateway classes.  These classes allow you to decouple your TCP data transfer calls from your message processing calls, and yet still keep the same general message-queue semantics that we know and love.<p>
+For code that where you don't want to spawn an extra thread, you can use the single-threaded messaging API, as defined by the DataIO and MessageIOGateway classes.  These classes allow you to decouple your TCP data transfer calls from your message processing calls, and yet still keep the same general message-queue semantics that we know and love.<p>
 To create a connection to the MUSCLE server, you would first make a TCP connection using standard BSD sockets calls (see portablereflectclient.cpp for an example of this).  Once you have a connected socket, you would use it to create a TCPSocketDataIO, which you would use to create a MessageIOGateway object:<p><pre>
 MessageIOGateway gw;  // create the gateway
 gw.SetDataIO(DataIORef(new TCPSocketDataIO(mysocketfd, false)));  // tell the gateway to use our TCP socket

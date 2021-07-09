@@ -32,10 +32,6 @@
 #   define QT_HAS_THREAD_PRIORITIES
 #  endif
 # endif
-#elif defined(__BEOS__) || defined(__HAIKU__)
-# include <kernel/OS.h>
-#elif defined(__ATHEOS__)
-# include <atheos/threads.h>
 #else
 # error "Thread:  threading support not implemented for this platform.  You'll need to add support for your platform to the MUSCLE Lock and Thread classes for your OS before you can use the Thread class here (or define MUSCLE_USE_PTHREADS or QT_THREAD_SUPPORT to use those threading APIs, respectively)."
 #endif
@@ -557,14 +553,6 @@ private:
    typedef DWORD muscle_thread_key;
 #elif defined(MUSCLE_USE_QT_THREADS)
    typedef QThread * muscle_thread_key;
-#elif defined(__BEOS__) || defined(__HAIKU__)
-   typedef thread_id muscle_thread_key;
-   thread_id _thread;
-   static int32 InternalThreadEntryFunc(void * This) {static_cast<Thread *>(This)->InternalThreadEntryAux(); return 0;}
-#elif defined(__ATHEOS__)
-   typedef thread_id muscle_thread_key;
-   thread_id _thread;
-   static void InternalThreadEntryFunc(void * This) {static_cast<Thread *>(This)->InternalThreadEntryAux();}
 #endif
 
    static muscle_thread_key GetCurrentThreadKey();

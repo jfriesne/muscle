@@ -33,7 +33,7 @@ DECLARE_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_LAUNCH_FL
  *  prints to stdout can be read from this object, and any data
  *  that is written to this object will be send to the child process's
  *  stdin.  Note that this class is currently only implemented to work 
- *  under Windows, MacOS/X, BeOS, and Linux.
+ *  under Windows, MacOS/X, BSD, and Linux.
  */
 class ChildProcessDataIO : public DataIO
 {

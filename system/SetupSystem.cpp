@@ -31,9 +31,7 @@
 # include <signal.h>
 # include <mmsystem.h>
 #else
-# if defined(__BEOS__) || defined(__HAIKU__)
-#  include <signal.h>
-# elif defined(__CYGWIN__)
+# if defined(__CYGWIN__)
 #  include <signal.h>
 #  include <sys/select.h>
 #  include <sys/signal.h>
@@ -412,9 +410,7 @@ MathSetupSystem :: ~MathSetupSystem()
    // empty
 }
 
-#if defined(__BEOS__) || defined(__HAIKU__)
-   // empty
-#elif defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
+#if defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
    // empty
 #elif defined(WIN32)
 static Mutex _rtMutex;  // used for serializing access inside GetRunTime64Aux(), if necessary
@@ -432,9 +428,7 @@ static clock_t _posixTicksPerSecond = 0;
 
 static void InitClockFrequency()
 {
-#if defined(__BEOS__) || defined(__HAIKU__)
-   // empty
-#elif defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
+#if defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
    // empty
 #elif defined(WIN32)
 # if defined(MUSCLE_USE_QUERYPERFORMANCECOUNTER)
@@ -729,9 +723,7 @@ static inline uint32 get_tbu() {uint32 tbu; asm volatile("mftbu %0" : "=r" (tbu)
 /** Defined here since every MUSCLE program will have to include this file anyway... */
 static uint64 GetRunTime64Aux()
 {
-#if defined(__BEOS__) || defined(__HAIKU__)
-   return system_time();
-#elif defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
+#if defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
    return rt_timer_tsc2ns(rt_timer_tsc())/1000;
 #elif defined(WIN32)
    uint64 ret = 0;
@@ -838,7 +830,6 @@ uint64 GetRunTime64() {return GetRunTime64Aux()+_perProcessRunTimeOffset;}
 void SetPerProcessRunTime64Offset(int64 offset) {_perProcessRunTimeOffset = offset;}
 int64 GetPerProcessRunTime64Offset() {return _perProcessRunTimeOffset;}
 
-#if !(defined(__BEOS__) || defined(__HAIKU__))
 status_t Snooze64(uint64 micros)
 {
    if (micros == MUSCLE_TIME_NEVER) 
@@ -847,9 +838,7 @@ status_t Snooze64(uint64 micros)
       return B_ERROR;  // we should never exit the while loop above; so if we got here, it's an error
    }
 
-#if __ATHEOS__
-   return (snooze(micros) >= 0) ? B_NO_ERROR : B_ERRNO;
-#elif WIN32
+#if WIN32
    Sleep((DWORD)((micros/1000)+(((micros%1000)!=0)?1:0)));
    return B_NO_ERROR;
 #elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK) && !defined(__EMSCRIPTEN__)
@@ -881,8 +870,6 @@ uint64 __Win32FileTimeToMuscleTime(const FILETIME & ft)
 }
 #endif
 
-#endif  /* !__BEOS__ && !__HAIKU__ */
-
 /** Defined here since every MUSCLE program will have to include this file anyway... */
 uint64 GetCurrentTime64(uint32 timeType)
 {
@@ -892,22 +879,14 @@ uint64 GetCurrentTime64(uint32 timeType)
    if (timeType == MUSCLE_TIMEZONE_LOCAL) (void) FileTimeToLocalFileTime(&ft, &ft);
    return __Win32FileTimeToMuscleTime(ft);
 #else
-# if defined(__BEOS__) || defined(__HAIKU__)
-   uint64 ret = real_time_clock_usecs();
-# else
    struct timeval tv;
    gettimeofday(&tv, NULL);
    uint64 ret = ConvertTimeValTo64(tv);
-# endif
    if (timeType == MUSCLE_TIMEZONE_LOCAL)
    {
       time_t now = time(NULL);
-# if defined(__BEOS__) && !defined(__HAIKU__)
-      struct tm * tm = gmtime(&now);
-# else
       struct tm gmtm;
       struct tm * tm = gmtime_r(&now, &gmtm);
-# endif
       if (tm) 
       {
          ret += SecondsToMicros(now-mktime(tm));
@@ -1141,7 +1120,7 @@ static void CloseSocket(int fd)
       NotifySocketMultiplexersThatSocketIsClosed(fd);
 #endif
 
-#if defined(WIN32) || defined(BEOS_OLD_NETSERVER)
+#if defined(WIN32)
       ::closesocket(fd);
 #else
       close(fd);

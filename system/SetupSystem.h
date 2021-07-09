@@ -276,8 +276,6 @@ public:
       ret._id = GetCurrentThreadId();
 # elif defined(MUSCLE_QT_HAS_THREADS)
       ret._id = QThread::currentThreadId();
-# elif defined(__BEOS__) || defined(__HAIKU__) || defined(__ATHEOS__)
-      ret._id = find_thread(NULL);
 # else
 #  error "GetCurrentThreadID():  No implementation found for this OS!  (If you're compiling with a pre-C++11 compiler, adding -DMUSCLE_USE_PTHREADS to your compile arguments might help)"
 # endif
@@ -320,8 +318,6 @@ private:
    DWORD _id;
 # elif defined(MUSCLE_QT_HAS_THREADS)
    Qt::HANDLE _id;
-# elif defined(__BEOS__) || defined(__HAIKU__) || defined(__ATHEOS__)
-   thread_id _id;
 # else
 #  error "muscle_thread_id():  No implementation found for this OS!  (If you're compiling with a pre-C++11 compiler, adding -DMUSCLE_USE_PTHREADS to your compile arguments might help)"
 # endif

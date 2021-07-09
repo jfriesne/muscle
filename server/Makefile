@@ -75,26 +75,11 @@ ifeq ($(OSTYPE),linux)
    LIBS     += -lutil -pthread
 endif
 
-ifeq ($(OSTYPE),beos) 
-   ifeq ($(BE_HOST_CPU),ppc) 
-      CXX = mwcc 
-      VPATH += ../regex/regex 
-      CFLAGS += -I../regex/regex -I../zlib/zlib 
-   else # not ppc 
-      CXXFLAGS += $(GCCFLAGS) $(CCOPTFLAGS) 
-      LIBS = -lbe -lnet -lroot 
-      ifeq ($(shell ls 2>/dev/null -1 /boot/develop/headers/be/bone/bone_api.h), /boot/develop/headers/be/bone/bone_api.h) 
-         CXXFLAGS += -I/boot/develop/headers/be/bone -DBONE 
-         LIBS = -nodefaultlibs -lbind -lsocket -lbe -lroot -L/boot/beos/system/lib 
-      endif 
-   endif 
-else # not beos 
-    ifneq (,$(findstring g++,$(CXX)))
-	CXXFLAGS += $(GCCFLAGS) $(CCOPTFLAGS)
-    else
-	CXXFLAGS += $(CCOPTFLAGS)
-    endif
-endif 
+ifneq (,$(findstring g++,$(CXX)))
+   CXXFLAGS += $(GCCFLAGS) $(CCOPTFLAGS)
+else
+   CXXFLAGS += $(CCOPTFLAGS)
+endif
 
 ifeq ($(OSTYPE),freebsd4.0) 
    CXXFLAGS += -I/usr/include/machine 

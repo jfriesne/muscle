@@ -13,10 +13,6 @@
 #include <netinet/in.h>
 #include <sys/stat.h>
 
-#ifdef __HAIKU__
-# include <sys/select.h>
-#endif
-
 #include "minimessage/MiniMessageGateway.h"
 #include "reflector/StorageReflectConstants.h"
 
@@ -42,18 +38,6 @@ static const char * GetOSName()
 
 #ifdef __linux__
    ret = "Linux";
-#endif
-
-#ifdef __BEOS__
-   ret = "BeOS";
-#endif
-
-#ifdef __HAIKU__
-   ret = "Haiku";
-#endif
-
-#ifdef __ATHEOS__
-   ret = "AtheOS";
 #endif
 
 #if defined(__QNX__) || defined(__QNXTO__)

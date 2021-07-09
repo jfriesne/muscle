@@ -13,10 +13,6 @@
 # include <sys/time.h>
 #endif
 
-#if defined(__BEOS__) || defined(__HAIKU__)
-# include <kernel/OS.h>
-#endif
-
 #if defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
 # include "native/timer.h"
 #endif
@@ -89,11 +85,7 @@ inline uint64 GetRunTime64ForCurrentTime64(uint64 currentTime64, uint32 timeType
  *  @param micros The number of microseconds to wait for.
  *  @return B_NO_ERROR on success, or an error code on failure.
  */
-#if defined(__BEOS__) || defined(__HAIKU__)
-inline status_t Snooze64(uint64 microseconds) {return snooze(microseconds);}
-#else
 status_t Snooze64(uint64 micros);
-#endif
 
 /** Convenience function:  Returns true no more often than once every (interval).
  *  Useful if you are in a tight loop, but don't want e.g. more than one debug output line per second, or something like that.

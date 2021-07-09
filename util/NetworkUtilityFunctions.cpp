@@ -7,12 +7,6 @@
 #include "util/SocketMultiplexer.h"
 #include "util/Hashtable.h"
 
-#if defined(__BEOS__) || defined(__HAIKU__)
-# include <kernel/OS.h>     // for snooze()
-#elif __ATHEOS__
-# include <atheos/kernel.h> // for snooze()
-#endif
-
 #ifdef __APPLE__
 # include <CoreFoundation/CoreFoundation.h>
 # include <TargetConditionals.h>
@@ -22,34 +16,26 @@
 #endif
 
 #ifdef WIN32
+typedef char sockopt_arg;  // Windows setsockopt()/getsockopt() use char pointers
 # include <iphlpapi.h>
 # include <mswsock.h>  // for SIO_UDP_CONNRESET, etc
 # include <ws2tcpip.h>
-# if !(defined(__MINGW32__) || defined(__MINGW64__))
-# ifndef MUSCLE_AVOID_MULTICAST_API
+# if !(defined(__MINGW32__) || defined(__MINGW64__)) && !defined(MUSCLE_AVOID_MULTICAST_API)
 #  include <ws2ipdef.h>  // for IP_MULTICAST_LOOP, etc
 # endif
 # pragma warning(disable: 4800 4018)
-# endif
-typedef char sockopt_arg;  // Windows setsockopt()/getsockopt() use char pointers
 #else
-typedef void sockopt_arg;  // Whereas sane operating systems use void pointers
-# include <unistd.h>
-# include <sys/socket.h>
+# include <arpa/inet.h>
+# include <fcntl.h>
 # include <netdb.h>
+# include <net/if.h>
 # include <netinet/in.h>
-# ifndef BEOS_OLD_NETSERVER
-#  include <net/if.h>
-# endif
+# include <netinet/tcp.h>
 # include <sys/ioctl.h>
-# ifdef BEOS_OLD_NETSERVER
-#  include <app/Roster.h>     // for the run-time bone check
-#  include <storage/Entry.h>  // for the backup run-time bone check
-#else
-#  include <arpa/inet.h>
-#  include <fcntl.h>
-#  include <netinet/tcp.h>
-# endif
+# include <sys/socket.h>
+# include <sys/types.h>
+# include <unistd.h>
+typedef void sockopt_arg;  // Whereas sane operating systems use void pointers
 #endif
 
 #include <sys/stat.h>
@@ -941,15 +927,10 @@ status_t SetSocketBlockingEnabled(const ConstSocketRef & sock, bool blocking)
    unsigned long mode = blocking ? 0 : 1;
    return (ioctlsocket(fd, FIONBIO, &mode) == 0) ? B_NO_ERROR : B_ERRNO;
 #else
-# ifdef BEOS_OLD_NETSERVER
-   const int b = blocking ? 0 : 1;
-   return (setsockopt(fd, SOL_SOCKET, SO_NONBLOCK, (const sockopt_arg *) &b, sizeof(b)) == 0) ? B_NO_ERROR : B_ERRNO;
-# else
    int flags = fcntl(fd, F_GETFL, 0);
    if (flags < 0) return B_ERRNO;
    flags = blocking ? (flags&~O_NONBLOCK) : (flags|O_NONBLOCK);
    return (fcntl(fd, F_SETFL, flags) == 0) ? B_NO_ERROR : B_ERRNO;
-# endif
 #endif
 }
 
@@ -963,14 +944,8 @@ bool GetSocketBlockingEnabled(const ConstSocketRef & sock)
    LogTime(MUSCLE_LOG_ERROR, "GetSocketBlockingEnabled() not implemented under Win32, returning false for socket %i.\n", fd);
    return false;
 #else
-# ifdef BEOS_OLD_NETSERVER
-   int b;
-   int len = sizeof(b);
-   return (getsockopt(fd, SOL_SOCKET, SO_NONBLOCK, (sockopt_arg *) &b, &len) == 0) ? (b==0) : false;
-# else
    const int flags = fcntl(fd, F_GETFL, 0);
    return ((flags >= 0)&&((flags & O_NONBLOCK) == 0));
-# endif
 #endif
 }
 
@@ -980,11 +955,7 @@ status_t SetUDPSocketBroadcastEnabled(const ConstSocketRef & sock, bool broadcas
    if (fd < 0) return B_BAD_ARGUMENT;
 
    int val = (broadcast ? 1 : 0);
-#ifdef BEOS_OLD_NETSERVER
-   return (setsockopt(fd, SOL_SOCKET, INADDR_BROADCAST, (const sockopt_arg *) &val, sizeof(val)) == 0) ? B_NO_ERROR : B_ERRNO;
-#else
    return (setsockopt(fd, SOL_SOCKET, SO_BROADCAST,     (const sockopt_arg *) &val, sizeof(val)) == 0) ? B_NO_ERROR : B_ERRNO;
-#endif
 }
 
 bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock)
@@ -994,11 +965,7 @@ bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock)
 
    int val;
    socklen_t len = sizeof(val);
-#ifdef BEOS_OLD_NETSERVER
-   return (getsockopt(fd, SOL_SOCKET, INADDR_BROADCAST, (sockopt_arg *) &val, &len) == 0) ? (val != 0) : false;
-#else
    return (getsockopt(fd, SOL_SOCKET, SO_BROADCAST,     (sockopt_arg *) &val, &len) == 0) ? (val != 0) : false;
-#endif
 }
 
 status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabled)
@@ -1006,13 +973,8 @@ status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabl
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-#ifdef BEOS_OLD_NETSERVER
-   (void) enabled;  // prevent 'unused var' warning
-   return B_UNIMPLEMENTED;  // old networking stack doesn't support this flag
-#else
    const int enableNoDelay = enabled ? 0 : 1;
    return (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (const sockopt_arg *) &enableNoDelay, sizeof(enableNoDelay)) == 0) ? B_NO_ERROR : B_ERRNO;
-#endif
 }
 
 bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock)
@@ -1020,13 +982,9 @@ bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock)
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return false;
 
-#ifdef BEOS_OLD_NETSERVER
-   return true;  // old networking stack doesn't support this flag
-#else
    int enableNoDelay;
    socklen_t len = sizeof(enableNoDelay);
    return (getsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (sockopt_arg *) &enableNoDelay, &len) == 0) ? (enableNoDelay == 0) : false;
-#endif
 }
 
 status_t SetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock, bool enabled)
@@ -1076,31 +1034,7 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-#if defined(BEOS_OLD_NETSERVER)
-   // net_server and BONE behave COMPLETELY differently as far as finalizing async connects
-   // go... so we have to do this horrible hack where we figure out whether we're in a
-   // true net_server or BONE environment at runtime.  Pretend you didn't see any of this,
-   // you'll sleep better.  :^P
-   static bool userIsRunningBone    = false;
-   static bool haveDoneRuntimeCheck = false;
-   if (haveDoneRuntimeCheck == false)
-   {
-      userIsRunningBone = be_roster ? (!be_roster->IsRunning("application/x-vnd.Be-NETS")) : BEntry("/boot/beos/system/lib/libsocket.so").Exists();
-      haveDoneRuntimeCheck = true;  // only do this check once, it's rather expensive!
-   }
-   if (userIsRunningBone)
-   {
-      char junk;
-      return (send_ignore_eintr(fd, &junk, 0, 0L) == 0) ? B_NO_ERROR : B_ERRNO;
-   }
-   else
-   {
-      // net_server just HAS to do things differently from everyone else :^P
-      struct sockaddr_in junk;
-      memset(&junk, 0, sizeof(junk));
-      return (connect(fd, (struct sockaddr *) &junk, sizeof(junk)) == 0) ? B_NO_ERROR : B_ERRNO;
-   }
-#elif defined(__FreeBSD__) || defined(BSD)
+#if defined(__FreeBSD__) || defined(BSD)
    // Nathan Whitehorn reports that send() doesn't do this trick under FreeBSD 7,
    // so for BSD we'll call getpeername() instead.  -- jaf
    struct sockaddr_in junk;
@@ -1116,36 +1050,23 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
 
 static status_t SetSocketBufferSizeAux(const ConstSocketRef & sock, uint32 numBytes, int optionName)
 {
-#ifdef BEOS_OLD_NETSERVER
-   (void) sock;
-   (void) numBytes;
-   (void) optionName;
-   return B_UNIMPLEMENTED;  // not supported!
-#else
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
    int iSize = (int) numBytes;
    return (setsockopt(fd, SOL_SOCKET, optionName, (const sockopt_arg *) &iSize, sizeof(iSize)) == 0) ? B_NO_ERROR : B_ERRNO;
-#endif
 }
 status_t SetSocketSendBufferSize(   const ConstSocketRef & sock, uint32 sendBufferSizeBytes) {return SetSocketBufferSizeAux(sock, sendBufferSizeBytes, SO_SNDBUF);}
 status_t SetSocketReceiveBufferSize(const ConstSocketRef & sock, uint32 recvBufferSizeBytes) {return SetSocketBufferSizeAux(sock, recvBufferSizeBytes, SO_RCVBUF);}
 
 static int32 GetSocketBufferSizeAux(const ConstSocketRef & sock, int optionName)
 {
-#ifdef BEOS_OLD_NETSERVER
-   (void) sock;
-   (void) optionName;
-   return -1;  // not supported!
-#else
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return -1;
 
    int iSize;
    socklen_t len = sizeof(iSize);
    return (getsockopt(fd, SOL_SOCKET, optionName, (sockopt_arg *) &iSize, &len) == 0) ? (int32)iSize : -1;
-#endif
 }
 int32 GetSocketSendBufferSize(   const ConstSocketRef & sock) {return GetSocketBufferSizeAux(sock, SO_SNDBUF);}
 int32 GetSocketReceiveBufferSize(const ConstSocketRef & sock) {return GetSocketBufferSizeAux(sock, SO_RCVBUF);}

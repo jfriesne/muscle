@@ -33,18 +33,6 @@ const char * GetOSName(const char * defStr)
    ret = "Linux";
 #endif
 
-#ifdef __BEOS__
-   ret = "BeOS";
-#endif
-
-#ifdef __HAIKU__
-   ret = "Haiku";
-#endif
-
-#ifdef __ATHEOS__
-   ret = "AtheOS";
-#endif
-
 #if defined(__QNX__) || defined(__QNXTO__)
    ret = "QNX";
 #endif
@@ -254,15 +242,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
 
 status_t GetNumberOfProcessors(uint32 & retNumProcessors)
 {
-#if defined(__BEOS__) || defined(__HAIKU__)
-   system_info info;
-   if (get_system_info(&info).IsOK())
-   {
-      retNumProcessors = info.cpu_count;
-      return B_NO_ERROR;  
-   }
-   else return B_ERRNO;
-#elif defined(__APPLE__)
+#if defined(__APPLE__)
    host_basic_info_data_t hostInfo;
    mach_msg_type_number_t infoCount = HOST_BASIC_INFO_COUNT;
    if (host_info(mach_host_self(), HOST_BASIC_INFO, (host_info_t)&hostInfo, &infoCount) == KERN_SUCCESS)

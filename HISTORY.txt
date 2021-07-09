@@ -5,12 +5,17 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Added Windows-only convenience-constructor to the Socket class that takes
-     a SOCKET instead of an int, for easier capture of Windows socket-descriptors
-     into Socket objects.
+8.31 - Released 7/9/2021
+   - Added Windows-only convenience-constructor to the Socket class that
+     takes a SOCKET instead of an int, for easier capture of Windows
+     socket-descriptors into Socket objects.
    - Added Windows-only convenience-version of the GetConstSocketRefFromPool()
      function that takes a SOCKET instead of an int, for easier capture of
      Windows socket-descriptors into ref-counted Socket objects.
+   o Removed support for AtheOS, BeOS, and Haiku (since AFAICT nobody was using
+     it, and because previous changes to the status_t type had rendered the
+     codebase unbuildable on those platforms anyway)
+   o Moved the Python2-specific .py files into a python2 folder, for clarity.
    * Fixed an error with the usage of the fErrorChar and ErrorChar
      fields in the Windows implementation of the RS232DataIO class
      constructor.  (Thanks to Mika Lindqvist for providing this fix)

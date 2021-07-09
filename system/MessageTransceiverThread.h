@@ -325,8 +325,6 @@ DECLARE_REFTYPES(ThreadSupervisorSession);
   * This is a class that holds a ReflectServer object in an internal thread, and mediates
   * between it and the calling code.  It is primarily used for integrating MUSCLE networking  
   * with another messaging system.
-  * @see AMessageTransceiverThread for use with AtheOS APIs
-  * @see BMessageTransceiverThread for use with BeOS APIs
   * @see QMessageTransceiverThread for use with Qt's APIs
   */
 class MessageTransceiverThread : public Thread

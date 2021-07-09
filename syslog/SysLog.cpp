@@ -1746,9 +1746,7 @@ void LogLineCallback :: Log(const LogCallbackArgs & a)
    TCHECKPOINT;
 
    // Generate the new text
-#ifdef __MWERKS__
-   const int bytesAttempted = vsprintf(_writeTo, a.GetText(), *a.GetArgList());  // BeOS/PPC doesn't know vsnprintf :^P
-#elif __STDC_WANT_SECURE_LIB__
+#if __STDC_WANT_SECURE_LIB__
    const int bytesAttempted = _vsnprintf_s(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), _TRUNCATE, a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator
 #elif WIN32
    const int bytesAttempted = _vsnprintf(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator

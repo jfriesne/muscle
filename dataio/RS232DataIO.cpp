@@ -95,11 +95,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
       }
    }
 #else
-#  if defined(__BEOS__) || defined(__HAIKU__)
-   _handle = GetConstSocketRefFromPool(open(port, O_RDWR | O_NONBLOCK));
-#  else
    _handle = GetConstSocketRefFromPool(open(port, O_RDWR | O_NOCTTY));
-#  endif
    if (SetSocketBlockingEnabled(_handle, _blocking).IsOK())
    {
       okay = true;
@@ -142,9 +138,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
       {
          t.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
          t.c_iflag &= ~(INPCK | ISTRIP | IGNCR | ICRNL | INLCR | IXOFF | IXON);
-#if !defined(__BEOS__) && !defined(__HAIKU__)
          t.c_iflag &= ~(IMAXBEL);
-#endif
          t.c_iflag |= (IGNBRK);
          t.c_cflag &= ~(HUPCL | PARENB | CRTSCTS | CSIZE);
          t.c_cflag |= (CS8 | CLOCAL);
@@ -328,13 +322,8 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
    for (int i=0; /*empty*/; i++)
    {
       char buf[64]; 
-#  if defined(__BEOS__) || defined(__HAIKU__)
-      muscleSprintf(buf, "/dev/ports/serial%i", i+1);
-      const int temp = open(buf, O_RDWR | O_NONBLOCK);
-#  else
       muscleSprintf(buf, "/dev/ttyS%i", i);
       const int temp = open(buf, O_RDWR | O_NOCTTY);
-#  endif
       if (temp >= 0)
       {
          close(temp);

@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-6/7/2021 v8.30 jaf@meyersound.com<p>
+7/9/2021 v8.31 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -25,8 +25,7 @@ BMessage-style message passing across a network of heterogeneous
 (MacOS/X, Linux, Windows, BSD, Unix, etc) systems.  The secondary goal
 is just to provide some handy data containers and other utility classes. 
 <p>
-All of this code (except the atheossupport, besupport, and qtsupport
-directories) should compile under any up-to-date C++ compiler--
+All of this code should compile under any up-to-date C++ compiler--
 no proprietary APIs are used except inside of the appropriate #ifdefs.
 <p>
 For better documentation than this, please see the <a href="https://public.msli.com/lcs/muscle/">MUSCLE web site</a>.
@@ -35,8 +34,8 @@ This code has been compiled (typically with gmake, or MSVC in Windows) and teste
 <p>
 <ol>
 <li>SUSE, Debian, and Ubuntu Linux on various 32-bit and 64-bit PCs</li>
-<li>MacOS/X on various PowerPC and Intel based Macs</li>
-<li>Microsoft Windows XP, Windows 7 and Windows 10 using Visual Studio 2008 or newer (use the projects files in the 'vc++' subfolder)</li>
+<li>MacOS/X on various PowerPC, Intel, and ARM-based Macs</li>
+<li>Microsoft Windows 7, Windows 10, and Windows 11 using Visual Studio 2008 or newer (via cmake)</li>
 </ol>
 <p>
 It has no known bugs, but may have some yet-to-be-discovered ones.
@@ -399,9 +398,7 @@ Directory contents descriptions follow:
     <tr><td>printsourcelocations</td><td>Prints the source-code-location codes of all LogTime() commands.  Useful for building up a directory of source-location-codes for a given codebase</td></tr>
     <tr><td>readmessage</td><td>Reads a flattened Message from a file on disk and prints it to stdout in human-readable form</td></tr>
     <tr><td>serialproxy</td><td>Makes a local serial port available to the network over TCP</td></tr>
-    <tr><td>testatheossupport</td><td>Tests the AtheOS support files in the atheossupport folder</td></tr>
     <tr><td>testbatchguard</td><td>Unit test for the BatchGuard class</td></tr>
-    <tr><td>testbesupport</td><td>Tests the BeOS support files in the beossupport folder</td></tr>
     <tr><td>testbitchord</td><td>Unit test for the BitChord class</td></tr>
     <tr><td>testbytebuffer</td><td>Unit test for the ByteBuffer class</td></tr>
     <tr><td>testchildprocess</td><td>Unit test for the ChildProcessDataIO class</td></tr>

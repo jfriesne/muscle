@@ -11,10 +11,6 @@
 # include <atomic>
 #elif defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
   // empty
-#elif defined(__ATHEOS__)
-# include <atheos/atomic.h>
-#elif defined(__BEOS__) || defined(__HAIKU__)
-# include <kernel/OS.h>
 #elif defined(WIN32)
   // empty
 #elif defined(__APPLE__)
@@ -88,8 +84,6 @@ public:
       return (InterlockedIncrement(&_count) == 1);
 #elif defined(__APPLE__) 
       return (OSAtomicIncrement32Barrier(&_count) == 1);
-#elif defined(__ATHEOS__) || defined(__BEOS__) || defined(__HAIKU__)
-      return (atomic_add(&_count,1) == 0);  // atomic_add() returns the previous value
 #elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY)
       volatile int * p = &_count;
       int tmp;  // tmp will be set to the value after the increment
@@ -129,10 +123,6 @@ public:
       return (InterlockedDecrement(&_count) == 0);
 #elif defined(__APPLE__)
       return (OSAtomicDecrement32Barrier(&_count) == 0);
-#elif defined(__ATHEOS__) 
-      return (atomic_add(&_count,-1)==1);
-#elif defined(__BEOS__) || defined(__HAIKU__)
-      return (atomic_add(&_count,-1)==1);
 #elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY)
       volatile int * p = &_count;
       int tmp;   // tmp will be set to the value after the decrement
@@ -191,22 +181,14 @@ public:
 #endif
 
 private:
-#if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(__HAIKU__)
+#if defined(MUSCLE_SINGLE_THREAD_ONLY)
    int32 _count;
 #elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
    std::atomic<int32> _count;
-#elif defined(__ATHEOS__)
-   atomic_t _count;
 #elif defined(WIN32)
    long _count;
 #elif defined(__APPLE__)
    volatile int32_t _count;
-#elif defined(__BEOS__)
-# if defined(B_BEOS_VERSION_5)
-   vint32 _count;
-# else
-   int32 _count;
-# endif
 #elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY) || defined(MUSCLE_USE_X86_INLINE_ASSEMBLY)
    volatile int _count;
 #else

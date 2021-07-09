@@ -9,18 +9,10 @@
 #include "util/RefCount.h"
 #include "util/String.h"
 
-#ifdef __BEOS__
-# if __POWERPC__
-#  include "regex/regex/regex.h"  // use included regex if system doesn't provide one
-# else
-#  include <regex.h>
-# endif
+#ifdef WIN32
+# include "regex/regex/regex.h"
 #else
-# ifdef WIN32
-#  include "regex/regex/regex.h"
-# else
-#  include <regex.h>
-# endif
+# include <regex.h>
 #endif
 
 namespace muscle {

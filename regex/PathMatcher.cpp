@@ -15,7 +15,7 @@ void PathMatcher :: AdjustStringPrefix(String & path, const char * optPrepend) c
            if (path[0] == '/') path = path.Substring(1);
       else if (optPrepend)     
       {
-         String temp(optPrepend);  // gcc/BeOS chokes on more compact code than this :^P
+         String temp(optPrepend);  // gcc chokes on more compact code than this :^P
          temp += '/';
          temp += path;
          path = temp;

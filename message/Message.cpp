@@ -1674,7 +1674,7 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
    if (numBytes == 0) return B_BAD_ARGUMENT;   // can't add 0 bytes, that's silly
    if (tc == B_STRING_TYPE) 
    {
-      const String temp((const char *)data);  // kept separate to avoid BeOS gcc optimizer bug (otherwise -O3 crashes here)
+      const String temp((const char *)data);  // kept separate to avoid gcc optimizer bug (otherwise -O3 crashes here)
       return prepend ? PrependString(fieldName, temp) : AddString(fieldName, temp);
    }
 

@@ -35,10 +35,6 @@
 #   else
 #    include <qthread.h>
 #   endif
-#  elif defined(__BEOS__) || defined(__HAIKU__)
-#   include <support/Locker.h>
-#  elif defined(__ATHEOS__)
-#   include <util/locker.h>
 #  else
 #   error "Mutex:  threading support not implemented for this platform.  You'll need to add code to the MUSCLE Mutex class for your platform, or add -DMUSCLE_SINGLE_THREAD_ONLY to your build line if your program is single-threaded or for some other reason does not need to worry about locking"
 #  endif
@@ -96,8 +92,6 @@ public:
 #  else
       , _locker(true)
 #  endif
-# elif defined(__ATHEOS__)
-      , _locker(NULL) 
 # endif
 #endif
    {
@@ -166,10 +160,6 @@ public:
 # elif defined(MUSCLE_QT_HAS_THREADS)
       _locker.lock();
       status_t ret = B_NO_ERROR;
-# elif defined(__BEOS__) || defined(__HAIKU__)
-      status_t ret = _locker.Lock() ? B_NO_ERROR : B_LOCK_FAILED;
-# elif defined(__ATHEOS__)
-      status_t ret = _locker.Lock() ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?
 # endif
 
 # ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
@@ -205,10 +195,6 @@ public:
       return TryEnterCriticalSection(&_locker) ? B_NO_ERROR : B_LOCK_FAILED;
 # elif defined(MUSCLE_QT_HAS_THREADS)
       return _locker.tryLock() ? B_NO_ERROR : B_LOCK_FAILED;
-# elif defined(__BEOS__) || defined(__HAIKU__)
-      return (_locker.LockWithTimeout().IsOK()) ? B_NO_ERROR : B_LOCK_FAILED;
-# elif defined(__ATHEOS__)
-      return _locker.Lock(0) ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?
 # endif
 #endif
    }
@@ -249,11 +235,6 @@ public:
 # elif defined(MUSCLE_QT_HAS_THREADS)
       _locker.unlock();
       return B_NO_ERROR;
-# elif defined(__BEOS__) || defined(__HAIKU__)
-      _locker.Unlock();
-      return B_NO_ERROR;
-# elif defined(__ATHEOS__)
-      return _locker.Unlock() ? B_LOCK_FAILED : B_NO_ERROR;  // Is this correct?
 # endif
 #endif
    }
@@ -302,10 +283,6 @@ private:
    mutable CRITICAL_SECTION _locker;
 # elif defined(MUSCLE_QT_HAS_THREADS)
    mutable QMutex _locker;
-# elif defined(__BEOS__) || defined(__HAIKU__)
-   mutable BLocker _locker;
-# elif defined(__ATHEOS__)
-   mutable os::Locker _locker;
 # endif
 #endif
 

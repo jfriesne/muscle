@@ -1,6 +1,8 @@
 This folder contains some Python code which implements client-side
-support for the MUSCLE protocol for the Python language/environment.
+support for the MUSCLE protocol for the Python2 language/environment.
 File in this folder include:
+
+For Python3 support, see the files in the muscle/python3 folder instead.
 
 message.py - Python implementation of the MUSCLE Message class.
              This typed-data container class forms the heart of
