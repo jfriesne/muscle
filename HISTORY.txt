@@ -12,6 +12,8 @@ key:  - new feature
    - Added Windows-only convenience-version of the GetConstSocketRefFromPool()
      function that takes a SOCKET instead of an int, for easier capture of
      Windows socket-descriptors into ref-counted Socket objects.
+   - Added ICallbackMechanism, ICallbackSubscriber, and SocketCallbackMechanism
+     classes to support OS-neutral inter-thread event dispatching.
    o Removed support for AtheOS, BeOS, and Haiku (since AFAICT nobody was using
      it, and because previous changes to the status_t type had rendered the
      codebase unbuildable on those platforms anyway)

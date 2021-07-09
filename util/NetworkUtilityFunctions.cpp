@@ -6,6 +6,8 @@
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketMultiplexer.h"
 #include "util/Hashtable.h"
+#include "util/ICallbackSubscriber.h"
+#include "util/SocketCallbackMechanism.h"
 
 #ifdef __APPLE__
 # include <CoreFoundation/CoreFoundation.h>
@@ -1906,6 +1908,85 @@ String GetConnectString(const String & host, uint16 port)
    char buf[32]; muscleSprintf(buf, "]:%u", port);
    return host.Prepend("[").Append(buf);
 #endif
+}
+
+ICallbackMechanism :: ~ICallbackMechanism()
+{
+   // Prevent dangling pointers in any still-registered ICallbackSubscriber objects
+   for (HashtableIterator<ICallbackSubscriber *, Void> iter(_registeredSubscribers); iter.HasData(); iter++) iter.GetKey()->SetCallbackMechanism(NULL);
+}
+
+void ICallbackMechanism :: DispatchCallbacks()
+{
+   {
+      // Critical section:  grab the set of dirty-subscribers into _scratchSubscribers
+      MutexGuard mg(_dirtySubscribersMutex);
+      _scratchSubscribers.SwapContents(_dirtySubscribers);
+   }
+
+   // Perform requested callbacks
+   for (HashtableIterator<ICallbackSubscriber *, uint32> iter(_scratchSubscribers); iter.HasData(); iter++)
+   {
+      ICallbackSubscriber * sub = iter.GetKey();
+      if (_registeredSubscribers.ContainsKey(sub)) sub->DispatchCallbacks(iter.GetValue());  // yes, the if-test is necessary!
+   }
+   _scratchSubscribers.Clear();
+}
+
+void ICallbackMechanism :: RequestCallbackInDispatchThread(ICallbackSubscriber * sub, uint32 eventTypeBits, uint32 clearBits)
+{
+   if (eventTypeBits != 0)
+   {
+      bool sendSignal = false;
+      {
+         // Critical section
+         MutexGuard mg(_dirtySubscribersMutex);
+         const bool wasEmpty = _dirtySubscribers.IsEmpty();
+         uint32 * subBits = _dirtySubscribers.GetOrPut(sub);
+         if (subBits)
+         {
+            *subBits &= ~clearBits;
+            *subBits |= eventTypeBits;
+            if (wasEmpty) sendSignal = true;
+         }
+      }
+
+      // Note that we send the signal AFTER releasing the Mutex
+      if (sendSignal) SignalDispatchThread();
+   }
+}
+
+SocketCallbackMechanism :: SocketCallbackMechanism()
+{
+   status_t ret;
+   if (CreateConnectedSocketPair(_dispatchThreadSock, _otherThreadsSock, false).IsError(ret))
+   {
+      LogTime(MUSCLE_LOG_ERROR, "SocketCallbackMechanism:  Unable to create notify-socket-pair! [%s]\n", ret());
+   }
+}
+
+SocketCallbackMechanism :: ~SocketCallbackMechanism()
+{
+   // empty
+}
+
+void SocketCallbackMechanism :: DispatchCallbacks()
+{
+   // read and discard any signalling-bytes sent by the other threads
+   char junkBuf[128];
+   (void) ReceiveData(_dispatchThreadSock, junkBuf, sizeof(junkBuf), false);
+
+   // Call superclass to perform the actual callbacks
+   ICallbackMechanism::DispatchCallbacks();
+}
+
+void SocketCallbackMechanism :: SignalDispatchThread()
+{
+   const char junk = 'j';
+   if (SendData(_otherThreadsSock, &junk, sizeof(junk), false) != sizeof(junk))
+   {
+      LogTime(MUSCLE_LOG_ERROR, "SocketCallbackMechanism::SignalDispatchThread():  Unable to send notification byte! [%s]\n", B_ERRNO());
+   }
 }
 
 static IPAddress _customLocalhostIP = invalidIP;  // disabled by default
