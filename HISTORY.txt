@@ -15,7 +15,9 @@ key:  - new feature
    - Added ICallbackMechanism, ICallbackSubscriber, SocketCallbackMechanism,
      and QSocketCallbackMechanism classes to support OS-neutral
      inter-thread event dispatching.
-   
+   o Removed Win32MessageTransceiverThread and SDLMessageTransceiverThread
+     classes.
+   o Removed the AcceptSocketsThread and QAcceptSocketsThread classes.
    o Removed support for AtheOS, BeOS, and Haiku (since AFAICT nobody was using
      it, and because previous changes to the status_t type had rendered the
      codebase unbuildable on those platforms anyway)

@@ -51,7 +51,10 @@ protected:
      * @param clearEventTypeBits Option bit-chord indicating any event-type bits you want
      *                           to remove from the pending-event-types flag.  Defaults to zero.
      */
-   void RequestCallbackInDispatchThread(uint32 eventTypeBits = ~0, uint32 clearEventTypeBits = 0) {_mechanism->RequestCallbackInDispatchThread(this, eventTypeBits, clearEventTypeBits);}
+   void RequestCallbackInDispatchThread(uint32 eventTypeBits = ~0, uint32 clearEventTypeBits = 0)
+   {
+      if (_mechanism) _mechanism->RequestCallbackInDispatchThread(this, eventTypeBits, clearEventTypeBits);
+   }
 
    /** Called by our ICallbackMechanism, from the main/dispatch thread.
      * All user-facing callbacks should be done here, since data strutures
