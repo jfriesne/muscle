@@ -21,6 +21,9 @@ key:  - new feature
    o Removed support for AtheOS, BeOS, and Haiku (since AFAICT nobody was using
      it, and because previous changes to the status_t type had rendered the
      codebase unbuildable on those platforms anyway)
+   o Renamed portablereflectclient.cpp to singlethreadedreflectclient.cpp
+   o Removed testreflectclient.cpp and replaced it with
+     multithreadedreflectclient.cpp
    o Moved the Python2-specific .py files into a python2 folder, for clarity.
    * Fixed an error with the usage of the fErrorChar and ErrorChar
      fields in the Windows implementation of the RS232DataIO class

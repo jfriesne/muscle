@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -35,12 +35,12 @@ int main(int argc, char ** argv)
    String hostName;
    uint16 port = 2960;
    if (argc > 1) ParseConnectArg(argv[1], hostName, port, false);
-   ConstSocketRef sock = Connect(hostName(), port, "portablereflectclient", false);
+   ConstSocketRef sock = Connect(hostName(), port, "singlethreadedreflectclient", false);
    if (sock() == NULL) return 10;
 
    // We'll receive plain text over stdin
    StdinDataIO stdinIO(false);
-   PlainTextMessageIOGateway stdinGateway; 
+   PlainTextMessageIOGateway stdinGateway;
    stdinGateway.SetDataIO(DummyDataIORef(stdinIO));
 
    // And send and receive flattened Message objects over our TCP socket
@@ -68,7 +68,7 @@ int main(int argc, char ** argv)
 
    if ((privateKeyPath)&&(publicKeyPath == NULL)) publicKeyPath = privateKeyPath;  // grab public key from private-key-file
    if ((publicKeyPath)||(privateKeyPath))
-   { 
+   {
       SSLSocketDataIORef sslIORef(new SSLSocketDataIO(sock, false, false));
       if (publicKeyPath)
       {
@@ -115,7 +115,7 @@ int main(int argc, char ** argv)
       multiplexer.RegisterSocketForReadReady(stdinFD);
       multiplexer.RegisterSocketForReadReady(socketReadFD);
       if (gatewayRef()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(socketWriteFD);
-      if (multiplexer.WaitForEvents(nextTimeoutTime) < 0) printf("portablereflectclient: WaitForEvents() failed!\n");
+      if (multiplexer.WaitForEvents(nextTimeoutTime) < 0) printf("singlethreadedreflectclient: WaitForEvents() failed!\n");
 
       const uint64 now = GetRunTime64();
       if (now >= nextTimeoutTime)
@@ -123,7 +123,7 @@ int main(int argc, char ** argv)
          // For OpenSSL testing:  Generate some traffic to the server every 50mS
          printf("Uploading timed OpenSSL-tester update at time " UINT64_FORMAT_SPEC "\n", now);
          MessageRef stateMsg = GetMessageFromPool();
-         stateMsg()->AddString("username", "portablereflectclient");
+         stateMsg()->AddString("username", "singlethreadedreflectclient");
          stateMsg()->AddPoint("position", Point((rand()%100)/100.0f, (rand()%100)/100.0f));
          stateMsg()->AddInt32("color", -1);
 
@@ -256,7 +256,7 @@ int main(int argc, char ** argv)
                   nextTimeoutTime = 0;
                }
                break;
- 
+
                case 'x':
                {
                   ref()->what = PR_COMMAND_SETPARAMETERS;
@@ -307,7 +307,7 @@ int main(int argc, char ** argv)
                break;
             }
 
-            if (send) 
+            if (send)
             {
                printf("Sending message...\n");
                ref()->PrintToStream();

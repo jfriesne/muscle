@@ -49,7 +49,7 @@ int main(int argc, char ** argv)
       QueueGatewayMessageReceiver inQueue;
       while(s()) 
       {
-         if (multiplexer.WaitForEvents() < 0) printf("portablereflectclient: WaitForEvents() failed!\n");
+         if (multiplexer.WaitForEvents() < 0) printf("portableplaintextclient: WaitForEvents() failed!\n");
          if (multiplexer.IsSocketReadyForRead(stdinFD))
          {
             while(1)

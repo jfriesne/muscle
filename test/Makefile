@@ -36,7 +36,7 @@ CXXFLAGS += -std=c++11
 
 LFLAGS =  
 LIBS =  -lpthread
-EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode portablereflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess
+EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess
 
 REGEXOBJS = 
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
@@ -234,7 +234,10 @@ testgateway : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o
 testregex : $(STDOBJS) testregex.o String.o SysLog.o SetupSystem.o $(REGEXOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-portablereflectclient : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o TemplatingMessageIOGateway.o MessageIOGateway.o String.o portablereflectclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o QueryFilter.o $(REGEXOBJS)
+singlethreadedreflectclient : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o TemplatingMessageIOGateway.o MessageIOGateway.o String.o singlethreadedreflectclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o QueryFilter.o $(REGEXOBJS)
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+multithreadedreflectclient : $(STDOBJS) $(SSLOBJS) Message.o Thread.o MessageTransceiverThread.o CallbackMessageTransceiverThread.o AbstractMessageIOGateway.o TemplatingMessageIOGateway.o MessageIOGateway.o String.o multithreadedreflectclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o DataNode.o PathMatcher.o QueryFilter.o ReflectServer.o ServerComponent.o AbstractReflectSession.o DumbReflectSession.o StorageReflectSession.o $(REGEXOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 muscleproxy : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o String.o muscleproxy.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o SetupSystem.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o ReflectServer.o ServerComponent.o AbstractReflectSession.o ZLibCodec.o $(REGEXOBJS)
