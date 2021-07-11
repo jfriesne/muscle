@@ -210,9 +210,4 @@ if (WITH_TESTS)
 
    add_executable(uploadstress uploadstress.cpp)
    target_link_libraries(uploadstress muscle)
-
-   if (WIN32)
-      add_executable(win32client win32client.cpp)
-      target_link_libraries(win32client muscle)
-   endif (WIN32)
 endif ()
