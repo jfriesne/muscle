@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   String hostName;
+   String hostName = "localhost";
    uint16 port = 2960;
    if (argc > 1) ParseConnectArg(argv[1], hostName, port, false);
    ConstSocketRef sock = Connect(hostName(), port, "singlethreadedreflectclient", false);

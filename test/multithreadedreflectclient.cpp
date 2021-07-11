@@ -4,20 +4,25 @@
 #include "iogateway/PlainTextMessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
 #include "regex/QueryFilter.h"
-#include "util/MiscUtilityFunctions.h"
-#include "util/SocketCallbackMechanism.h"
-#include "util/SocketMultiplexer.h"
-#include "system/SetupSystem.h"
 #include "system/CallbackMessageTransceiverThread.h"
+#include "system/SetupSystem.h"
+#include "util/MiscUtilityFunctions.h"
+#include "util/NetworkUtilityFunctions.h"
+#include "util/SocketCallbackMechanism.h"
 
 using namespace muscle;
 
-#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
-
+// Our subclass of CallbackMessageTransceiverThread.  Here's where we can get callbacks in the main thread whenever
+// anything interesting has happened in the I/O thread, so that we can respond
 class TestCallbackMessageTransceiverThread : public CallbackMessageTransceiverThread
 {
 public:
-   TestCallbackMessageTransceiverThread(ICallbackMechanism * optCallbackMechanism) : CallbackMessageTransceiverThread(optCallbackMechanism) {/* empty */}
+   TestCallbackMessageTransceiverThread(ICallbackMechanism * optCallbackMechanism) : CallbackMessageTransceiverThread(optCallbackMechanism), _keepGoing(true) {/* empty */}
+
+   void SetStdinSessionRootPath(const String & sessionRootPath) {_stdinSessionRootPath = sessionRootPath;}
+   void SetTCPSessionRootPath(  const String & sessionRootPath) {_tcpSessionRootPath   = sessionRootPath;}
+
+   bool IsKeepGoing() const {return _keepGoing;}
 
 protected:
    virtual void BeginMessageBatch()
@@ -25,10 +30,16 @@ protected:
       printf("Callback called in main thread:  BeginMessageBatch()\n");
    }
 
-   virtual void MessageReceived(const MessageRef & msg, const String & sessionID)
+   virtual void MessageReceived(const MessageRef & msg, const String & sessionRootPath)
    {
-      printf("Callback called in main thread:  MessageReceived(%p,%s)\n", msg(), sessionID());
-      if (msg()) msg()->PrintToStream();
+      printf("Callback called in main thread:  MessageReceived(%p,%s)\n", msg(), sessionRootPath());
+
+      if (sessionRootPath == _stdinSessionRootPath)
+      {
+         const String * nextLine;
+         for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextLine).IsOK(); i++) HandleTextLineFromStdin(*nextLine);
+      }
+      else if (msg()) msg()->PrintToStream();  // Any other Messages presumably came from the server, we'll just print them out
    }
 
    virtual void EndMessageBatch()
@@ -36,29 +47,29 @@ protected:
       printf("Callback called in main thread:  EndMessageBatch()\n");
    }
 
-   virtual void SessionAccepted(const String & sessionID, uint32 factoryID, const IPAddressAndPort & iap)
+   virtual void SessionAccepted(const String & sessionRootPath, uint32 factoryID, const IPAddressAndPort & iap)
    {
-      printf("Callback called in main thread:  SessionAccepted(%s, " UINT32_FORMAT_SPEC ", %s)\n", sessionID(), factoryID, iap.ToString()());
+      printf("Callback called in main thread:  SessionAccepted(%s, " UINT32_FORMAT_SPEC ", %s)\n", sessionRootPath(), factoryID, iap.ToString()());
    }
 
-   virtual void SessionAttached(const String & sessionID)
+   virtual void SessionAttached(const String & sessionRootPath)
    {
-      printf("Callback called in main thread:  SessionAttached(%s)\n", sessionID());
+      printf("Callback called in main thread:  SessionAttached(%s)\n", sessionRootPath());
    }
 
-   virtual void SessionConnected(const String & sessionID, const IPAddressAndPort & connectedTo)
+   virtual void SessionConnected(const String & sessionRootPath, const IPAddressAndPort & connectedTo)
    {
-      printf("Callback called in main thread:  SessionConnected(%s,%s)\n", sessionID(), connectedTo.ToString()());
+      printf("Callback called in main thread:  SessionConnected(%s,%s)\n", sessionRootPath(), connectedTo.ToString()());
    }
 
-   virtual void SessionDisconnected(const String & sessionID)
+   virtual void SessionDisconnected(const String & sessionRootPath)
    {
-      printf("Callback called in main thread:  SessionDisconnected(%s)\n", sessionID());
+      printf("Callback called in main thread:  SessionDisconnected(%s)\n", sessionRootPath());
    }
 
-   virtual void SessionDetached(const String & sessionID)
+   virtual void SessionDetached(const String & sessionRootPath)
    {
-      printf("Callback called in main thread:  SessionDetached(%s)\n", sessionID());
+      printf("Callback called in main thread:  SessionDetached(%s)\n", sessionRootPath());
    }
 
    virtual void FactoryAttached(uint32 factoryID)
@@ -81,6 +92,14 @@ protected:
       printf("Callback called in main thread:  OutputQueuesDrained(%p)\n", ref());
       if (ref()) ref()->PrintToStream();
    }
+
+private:
+   bool _keepGoing;
+   String _stdinSessionRootPath;  // this will be set to the session-path-string of our Stdin-reading session in the local I/O thread
+   String _tcpSessionRootPath;    // this will be set to the session-path-string of our TCP-reading/writing session in the local I/O thread
+
+   status_t SendMessageToMuscleServer(const MessageRef & msg) {return SendMessageToSessions(msg, _tcpSessionRootPath());}
+   void HandleTextLineFromStdin(const String & stdinText);
 };
 
 // This is a multithreaded text based test client for the muscled server.
@@ -90,224 +109,221 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   SocketCallbackMechanism callbackMechanism;
+   SocketCallbackMechanism callbackMechanism;  // the mechanism our I/O thread will use to notify the main thread about new events
 
-   TestCallbackMessageTransceiverThread networkThread(&callbackMechanism);
+   TestCallbackMessageTransceiverThread networkThread(&callbackMechanism);  // the I/O thread object
 
    status_t ret;
+
+   // Set up a session to receive plain-text from stdin in the I/O thread's event-loop
+   // the received text will then be sent to the main thread to be handled by our HandleTextLineFromStdin() method
+   {
+      PlainTextMessageIOGatewayRef stdinGateway(new PlainTextMessageIOGateway);
+      stdinGateway()->SetDataIO(DataIORef(new StdinDataIO(false)));
+
+      ThreadWorkerSessionRef stdinSession(new ThreadWorkerSession);
+      stdinSession()->SetGateway(stdinGateway);
+
+      if (networkThread.AddNewSession(stdinSession).IsError(ret))
+      {
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add connect stdin-reading session [%s]\n", ret());
+         return 10;
+      }
+
+      networkThread.SetStdinSessionRootPath(stdinSession()->GetSessionRootPath());  // so he'll know which Messages are coming from stdinSession
+   }
+
+   // Set up a session to connect to the muscled server via TCP and send/receive Messages to/from the server
+   {
+      ThreadWorkerSessionRef tcpSession(new ThreadWorkerSession);
+
+      String hostName = "localhost";
+      uint16 port = 2960;
+      if (argc > 1) ParseConnectArg(argv[1], hostName, port, false);
+      if (networkThread.AddNewConnectSession(hostName, port, tcpSession).IsError(ret))
+      {
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add connect session for [%s:%u] [%s]\n", hostName(), port, ret());
+         return 10;
+      }
+
+      networkThread.SetTCPSessionRootPath(tcpSession()->GetSessionRootPath());  // so he'll know which session to send outgoing-to-the-server Messages to
+   }
+
+   // Start the I/O thread running
    if (networkThread.StartInternalThread().IsError(ret))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't start networking thread!  [%s]\n", ret());
       return 10;
    }
 
-   String hostName;
-   uint16 port = 2960;
-   if (argc > 1) ParseConnectArg(argv[1], hostName, port, false);
-
-   if (networkThread.AddNewConnectSession(hostName, port).IsError(ret))
+   // Setting the notifier-socket to blocking mode allows us to do the event-loop below without having
+   // to use a SocketMultiplexer to wait until an event-signal is received.  Without this the while-loop
+   // below would busy-wait and chew up 100% of a core
+   if (SetSocketBlockingEnabled(callbackMechanism.GetDispatchThreadNotifierSocket(), true).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add connect session for [%s:%u] [%s]\n", hostName(), port, ret());
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't set notifier socket to blocking mode! [%s]\n", ret());
       return 10;
    }
 
-   // We'll receive plain text over stdin in the main thread's event-loop
-   StdinDataIO stdinIO(false);
-   PlainTextMessageIOGateway stdinGateway;
-   stdinGateway.SetDataIO(DummyDataIORef(stdinIO));
+   // Our main thread's event-loop:  Wait for the next signal from the I/O thread, then DispatchCallbacks()
+   // will call the appropriate virtual-methods in networkThread for us
+   while(networkThread.IsKeepGoing()) callbackMechanism.DispatchCallbacks();
 
-   SocketMultiplexer multiplexer;
-   QueueGatewayMessageReceiver stdinInQueue;
-   bool keepGoing = true;
-   while(keepGoing)
+   // Graceful cleanup and exit
+   printf("\n\nBye!\n");
+   (void) networkThread.ShutdownInternalThread();  // makes sure we get a well-ordered shutdown
+   return 0;
+}
+
+// Code to parse and react to handle the various text commands the user might type in to stdin
+void TestCallbackMessageTransceiverThread :: HandleTextLineFromStdin(const String & stdinText)
+{
+   status_t ret;
+
+   const char * text = stdinText();
+
+   printf("You typed: [%s]\n", text);
+   bool send = true;
+   MessageRef ref = GetMessageFromPool();
+
+   const char * arg1 = (stdinText.Length()>2) ? &text[2] : NULL;
+   switch(text[0])
    {
-      const int stdinFD        = stdinIO.GetReadSelectSocket().GetFileDescriptor();
-      const int notifierReadFD = callbackMechanism.GetDispatchThreadNotifierSocket().GetFileDescriptor();
+      case 'm':
+         ref()->what = MAKETYPE("umsg");
+         if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+         ref()->AddString("info", "This is a user message");
+      break;
 
-      multiplexer.RegisterSocketForReadReady(stdinFD);
-      multiplexer.RegisterSocketForReadReady(notifierReadFD);
-      if (multiplexer.WaitForEvents() < 0) printf("multithreadedreflectclient: WaitForEvents() failed in the main thread!\n");
+      case 'i':
+         ref()->what = PR_COMMAND_PING;
+         ref()->AddString("Test ping", "yeah");
+      break;
 
-      const uint64 now = GetRunTime64();
-
-      // Receive data from stdin
-      if (multiplexer.IsSocketReadyForRead(stdinFD))
+      case 's':
       {
-         while(1)
-         {
-            const int32 bytesRead = stdinGateway.DoInput(stdinInQueue);
-            if (bytesRead < 0)
-            {
-               printf("Stdin closed, exiting!\n");
-               keepGoing = false;
-               break;
-            }
-            else if (bytesRead == 0) break;  // no more to read
-         }
+         ref()->what = PR_COMMAND_SETDATA;
+         MessageRef uploadMsg = GetMessageFromPool(MAKETYPE("HELO"));
+         uploadMsg()->AddString("This node was posted at: ", GetHumanReadableTimeString(GetRunTime64()));
+         if (arg1) ref()->AddMessage(arg1, uploadMsg);
       }
+      break;
 
-      // Handle any input lines that were received from stdin
-      MessageRef msgFromStdin;
-      while(stdinInQueue.RemoveHead(msgFromStdin).IsOK())
+      case 'c': case 'C':
       {
-         const String * st;
-         for (int32 i=0; msgFromStdin()->FindString(PR_NAME_TEXT_LINE, i, &st).IsOK(); i++)
+         // Set the same node multiple times in rapid succession,
+         // to test the results of the SETDATANODE_FLAG_ENABLESUPERCEDE flag
+         const bool enableSupercede = (text[0] == 'C');
+
+         for (int j=0; j<10; j++)
          {
-            const char * text = st->Cstr();
+            ref = GetMessageFromPool(PR_COMMAND_SETDATA);
+            if (enableSupercede)  ref()->AddFlat(PR_NAME_FLAGS, SetDataNodeFlags(SETDATANODE_FLAG_ENABLESUPERCEDE));
 
-            printf("You typed: [%s]\n", text);
-            bool send = true;
-            MessageRef ref = GetMessageFromPool();
+            MessageRef subMsg = GetMessageFromPool();
+            subMsg()->AddInt32(String("%1 counter").Arg(enableSupercede?"Supercede":"Normal"), j);
+            ref()->AddMessage("test_node", subMsg);
 
-            const char * arg1 = (st->Length()>2) ? &text[2] : NULL;
-            switch(text[0])
-            {
-               case 'm':
-                  ref()->what = MAKETYPE("umsg");
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
-                  ref()->AddString("info", "This is a user message");
-               break;
-
-               case 'i':
-                  ref()->what = PR_COMMAND_PING;
-                  ref()->AddString("Test ping", "yeah");
-               break;
-
-               case 's':
-               {
-                  ref()->what = PR_COMMAND_SETDATA;
-                  MessageRef uploadMsg = GetMessageFromPool(MAKETYPE("HELO"));
-                  uploadMsg()->AddString("This node was posted at: ", GetHumanReadableTimeString(GetRunTime64()));
-                  if (arg1) ref()->AddMessage(arg1, uploadMsg);
-               }
-               break;
-
-               case 'c': case 'C':
-               {
-                  // Set the same node multiple times in rapid succession,
-                  // to test the results of the SETDATANODE_FLAG_ENABLESUPERCEDE flag
-                  const bool enableSupercede = (text[0] == 'C');
-
-                  for (int j=0; j<10; j++)
-                  {
-                     ref = GetMessageFromPool(PR_COMMAND_SETDATA);
-                     if (enableSupercede)  ref()->AddFlat(PR_NAME_FLAGS, SetDataNodeFlags(SETDATANODE_FLAG_ENABLESUPERCEDE));
-
-                     MessageRef subMsg = GetMessageFromPool();
-                     subMsg()->AddInt32(String("%1 counter").Arg(enableSupercede?"Supercede":"Normal"), j);
-                     ref()->AddMessage("test_node", subMsg);
-
-                     if (networkThread.SendMessageToSessions(ref).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "Fast SendMessageToSessions() failed!  [%s]\n", ret());
-                  }
-
-                  ref = GetMessageFromPool(PR_COMMAND_PING);  // just so we can see when it's done
-               }
-               break;
-
-               case 'k':
-                  ref()->what = PR_COMMAND_KICK;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
-               break;
-
-               case 'b':
-                  ref()->what = PR_COMMAND_ADDBANS;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
-               break;
-
-               case 'B':
-                  ref()->what = PR_COMMAND_REMOVEBANS;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
-               break;
-
-               case 'g':
-                  ref()->what = PR_COMMAND_GETDATA;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
-               break;
-
-               case 'G':
-                  ref()->what = PR_COMMAND_GETDATATREES;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
-                  ref()->AddString(PR_NAME_TREE_REQUEST_ID, "Tree ID!");
-               break;
-
-               case 'q':
-                  keepGoing = send = false;
-               break;
-
-               case 'p':
-                  ref()->what = PR_COMMAND_SETPARAMETERS;
-                  if (arg1) ref()->AddString(arg1, "");
-               break;
-
-               case 'P':
-                  ref()->what = PR_COMMAND_GETPARAMETERS;
-               break;
-
-               case 'x':
-               {
-                  ref()->what = PR_COMMAND_SETPARAMETERS;
-                  StringQueryFilter sqf("sc_tstr", StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH, "*Output*");
-                  ref()->AddArchiveMessage("SUBSCRIBE:/*/*/csproj/default/subcues/*", sqf);
-               }
-               break;
-
-               case 'd':
-                  ref()->what = PR_COMMAND_REMOVEDATA;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
-               break;
-
-               case 'D':
-                  ref()->what = PR_COMMAND_REMOVEPARAMETERS;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
-               break;
-
-               case 't':
-               {
-                  // test all data types
-                  ref()->what = 1234;
-                  ref()->AddString("String", "this is a string");
-                  ref()->AddInt8("Int8", 123);
-                  ref()->AddInt8("-Int8", -123);
-                  ref()->AddInt16("Int16", 1234);
-                  ref()->AddInt16("-Int16", -1234);
-                  ref()->AddInt32("Int32", 12345);
-                  ref()->AddInt32("-Int32", -12345);
-                  ref()->AddInt64("Int64", 123456789);
-                  ref()->AddInt64("-Int64", -123456789);
-                  ref()->AddBool("Bool", true);
-                  ref()->AddBool("-Bool", false);
-                  ref()->AddFloat("Float", 1234.56789f);
-                  ref()->AddFloat("-Float", -1234.56789f);
-                  ref()->AddDouble("Double", 1234.56789);
-                  ref()->AddDouble("-Double", -1234.56789);
-                  ref()->AddPointer("Pointer", ref());
-                  ref()->AddFlat("Flat", *ref());
-                  char data[] = "This is some data";
-                  ref()->AddData("Flat", B_RAW_TYPE, data, sizeof(data));
-               }
-               break;
-
-               default:
-                  printf("Sorry, wot?\n");
-                  send = false;
-               break;
-            }
-
-            if (send)
-            {
-               printf("Sending message...\n");
-               ref()->PrintToStream();
-               if (networkThread.SendMessageToSessions(ref).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SendMessageToSessions() failed!  [%s]\n", ret());
-            }
+            if (SendMessageToMuscleServer(ref).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "Fast SendMessageToMuscleServer() failed!  [%s]\n", ret());
          }
-      }
 
-      // If notifier-socket is ready-for-read, it's time to dispatch events handed to us by the network-thread
-      if (multiplexer.IsSocketReadyForRead(notifierReadFD)) callbackMechanism.DispatchCallbacks();
+         ref = GetMessageFromPool(PR_COMMAND_PING);  // just so we can see when it's done
+      }
+      break;
+
+      case 'k':
+         ref()->what = PR_COMMAND_KICK;
+         if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+      break;
+
+      case 'b':
+         ref()->what = PR_COMMAND_ADDBANS;
+         if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+      break;
+
+      case 'B':
+         ref()->what = PR_COMMAND_REMOVEBANS;
+         if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+      break;
+
+      case 'g':
+         ref()->what = PR_COMMAND_GETDATA;
+         if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+      break;
+
+      case 'G':
+         ref()->what = PR_COMMAND_GETDATATREES;
+         if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+         ref()->AddString(PR_NAME_TREE_REQUEST_ID, "Tree ID!");
+      break;
+
+      case 'q':
+         _keepGoing = send = false;
+      break;
+
+      case 'p':
+         ref()->what = PR_COMMAND_SETPARAMETERS;
+         if (arg1) ref()->AddString(arg1, "");
+      break;
+
+      case 'P':
+         ref()->what = PR_COMMAND_GETPARAMETERS;
+      break;
+
+      case 'x':
+      {
+         ref()->what = PR_COMMAND_SETPARAMETERS;
+         StringQueryFilter sqf("sc_tstr", StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH, "*Output*");
+         ref()->AddArchiveMessage("SUBSCRIBE:/*/*/csproj/default/subcues/*", sqf);
+      }
+      break;
+
+      case 'd':
+         ref()->what = PR_COMMAND_REMOVEDATA;
+         if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+      break;
+
+      case 'D':
+         ref()->what = PR_COMMAND_REMOVEPARAMETERS;
+         if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+      break;
+
+      case 't':
+      {
+         // test all data types
+         ref()->what = 1234;
+         ref()->AddString("String", "this is a string");
+         ref()->AddInt8("Int8", 123);
+         ref()->AddInt8("-Int8", -123);
+         ref()->AddInt16("Int16", 1234);
+         ref()->AddInt16("-Int16", -1234);
+         ref()->AddInt32("Int32", 12345);
+         ref()->AddInt32("-Int32", -12345);
+         ref()->AddInt64("Int64", 123456789);
+         ref()->AddInt64("-Int64", -123456789);
+         ref()->AddBool("Bool", true);
+         ref()->AddBool("-Bool", false);
+         ref()->AddFloat("Float", 1234.56789f);
+         ref()->AddFloat("-Float", -1234.56789f);
+         ref()->AddDouble("Double", 1234.56789);
+         ref()->AddDouble("-Double", -1234.56789);
+         ref()->AddPointer("Pointer", ref());
+         ref()->AddFlat("Flat", *ref());
+         char data[] = "This is some data";
+         ref()->AddData("Flat", B_RAW_TYPE, data, sizeof(data));
+      }
+      break;
+
+      default:
+         printf("Sorry, wot?\n");
+         send = false;
+      break;
    }
 
-   (void) networkThread.ShutdownInternalThread();  // makes sure we get a well-ordered shutdown
-   printf("\n\nBye!\n");
-
-   return 0;
+   if (send)
+   {
+      printf("Sending outgoing Message to I/O session [%s]...\n", _tcpSessionRootPath());
+      ref()->PrintToStream();
+      if (SendMessageToMuscleServer(ref).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SendMessageToMuscleServer() failed!  [%s]\n", ret());
+   }
 }
