@@ -27,6 +27,8 @@ key:  - new feature
    o Removed testreflectclient.cpp and replaced it with
      multithreadedreflectclient.cpp
    o Moved the Python2-specific .py files into a python2 folder, for clarity.
+   o Removed win32client.cpp from the test folder (see
+     multithreadedreflectclient.cpp instead)
    * Fixed an error with the usage of the fErrorChar and ErrorChar
      fields in the Windows implementation of the RS232DataIO class
      constructor.  (Thanks to Mika Lindqvist for providing this fix)

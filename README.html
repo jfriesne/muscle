@@ -393,7 +393,8 @@ Directory contents descriptions follow:
     <tr><td>muscleproxy</td><td>Demonstration of a pass-through TCP proxy for MUSCLE connections.</td></tr>
     <tr><td>striphextermoutput</td><td>Parses output from hexterm and removes the metadata, leaving behing only the hex values themselves.</td></tr>
     <tr><td>portableplaintextclient</td><td>A simple interactive terminal for ASCII communication over TCP</td></tr>
-    <tr><td>portablereflectclient</td><td>A simple interactive terminal for Message communication over TCP (typically with a MUSCLE server)</td></tr>
+    <tr><td>singlethreadedreflectclient</td><td>A simple interactive terminal for Message communication over TCP (typically with a MUSCLE server)</td></tr>
+    <tr><td>multihreadedreflectclient</td><td>Similar to singlethreadedreflectclient, but implemented using a CallbackMessageTransceiverThread to handle all I/O)</td></tr>
     <tr><td>portscan</td><td>Attempts to connect via TCP to a range of ports on a host, and reports which ports accepted the connection</td></tr>
     <tr><td>printsourcelocations</td><td>Prints the source-code-location codes of all LogTime() commands.  Useful for building up a directory of source-location-codes for a given codebase</td></tr>
     <tr><td>readmessage</td><td>Reads a flattened Message from a file on disk and prints it to stdout in human-readable form</td></tr>
@@ -424,7 +425,6 @@ Directory contents descriptions follow:
     <tr><td>testqueryfilter</td><td>Unit test for the QueryFilter classes</td></tr>
     <tr><td>testqueue</td><td>Unit test for the Queue class</td></tr>
     <tr><td>testrefcount</td><td>Unit test for the RefCount class</td></tr>
-    <tr><td>testreflectclient</td><td>Unit test for the various OS-specific MessageTransceiverThread subclasses</td></tr>
     <tr><td>testregex</td><td>Unit test for the StringMatcher class</td></tr>
     <tr><td>testresponse</td><td>Test to measure the response latency of a muscle server</td></tr>
     <tr><td>testserial</td><td>Unit test for the RS232DataIO class</td></tr>
@@ -445,7 +445,6 @@ Directory contents descriptions follow:
     <tr><td>testzip</td><td>Unit test of the ReadZipFile() and WriteZipFile() functions</td></tr>
     <tr><td>udpproxy</td><td>Forwards UDP packets from one computer to another, and vice versa</td></tr>
     <tr><td>uploadstress</td><td>Spams a MUSCLE server with requests to see if the server can keep up</td></tr>
-    <tr><td>win32client</td><td>Example of integrating MUSCLE client code with a Win32 event loop</td></tr>
    <p>
    <table>
 
