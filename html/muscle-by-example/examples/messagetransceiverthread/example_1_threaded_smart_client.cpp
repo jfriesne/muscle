@@ -223,7 +223,7 @@ int main(int argc, char ** argv)
             {
                printf("Calling mtt.SendMessageToSessions() with the following Message:\n");
                msgToSend()->PrintToStream();
-              (void) mtt.SendMessageToSessions(msgToSend);
+               (void) mtt.SendMessageToSessions(msgToSend);
             }
          }
          else if (numBytesRead < 0) break;

@@ -30,7 +30,7 @@ MessageTransceiverThread :: MessageTransceiverThread()
 MessageTransceiverThread :: ~MessageTransceiverThread()
 {
    MASSERT(IsInternalThreadRunning() == false, "You must call ShutdownInternalThread() on a MessageTransceiverThread before deleting it!");
-   if (_server()) _server()->Cleanup(); 
+   if (_server()) _server()->Cleanup();
 }
 
 status_t MessageTransceiverThread :: EnsureServerAllocated()
@@ -82,7 +82,7 @@ status_t MessageTransceiverThread :: StartInternalThread()
    return EnsureServerAllocated().IsOK(ret) ? Thread::StartInternalThread() : ret;
 }
 
-status_t MessageTransceiverThread :: SendMessageToSessions(const MessageRef & userMsg, const char * optPath)
+status_t MessageTransceiverThread :: SendMessageToSessions(const MessageRef & userMsg, const String & optPath)
 {
    MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SEND_USER_MESSAGE));
    MRETURN_OOM_ON_NULL(msgRef());
@@ -300,7 +300,7 @@ int32 MessageTransceiverThread :: GetNextEventFromInternalThread(uint32 & code, 
    return ret;
 }
 
-status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(const MessageRef & notifyRef, const char * optDistPath, DrainTag * optDrainTag)
+status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(const MessageRef & notifyRef, const String & optDistPath, DrainTag * optDrainTag)
 {
    // Send a command to the supervisor letting him know we are waiting for him to assure
    // us that all the matching worker sessions have dequeued their messages.  Preallocate
@@ -321,7 +321,7 @@ status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(cons
           (SendMessageToInternalThread(commandRef)              .IsOK(ret))) return B_NO_ERROR;
 
       // User keeps ownership of his custom DrainTag on error, so we don't delete it.
-      if ((drainTagRef())&&(drainTagRef() == optDrainTag)) 
+      if ((drainTagRef())&&(drainTagRef() == optDrainTag))
       {
          drainTagRef()->SetReplyMessage(MessageRef());
          drainTagRef.Neutralize();
@@ -330,17 +330,17 @@ status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(cons
    return ret;
 }
 
-status_t MessageTransceiverThread :: SetNewInputPolicy(const AbstractSessionIOPolicyRef & pref, const char * optDistPath)
+status_t MessageTransceiverThread :: SetNewInputPolicy(const AbstractSessionIOPolicyRef & pref, const String & optDistPath)
 {
    return SetNewPolicyAux(MTT_COMMAND_SET_INPUT_POLICY, pref, optDistPath);
 }
 
-status_t MessageTransceiverThread :: SetNewOutputPolicy(const AbstractSessionIOPolicyRef & pref, const char * optDistPath)
+status_t MessageTransceiverThread :: SetNewOutputPolicy(const AbstractSessionIOPolicyRef & pref, const String & optDistPath)
 {
    return SetNewPolicyAux(MTT_COMMAND_SET_OUTPUT_POLICY, pref, optDistPath);
 }
 
-status_t MessageTransceiverThread :: SetNewPolicyAux(uint32 what, const AbstractSessionIOPolicyRef & pref, const char * optDistPath)    
+status_t MessageTransceiverThread :: SetNewPolicyAux(uint32 what, const AbstractSessionIOPolicyRef & pref, const String & optDistPath)
 {
    MessageRef commandRef = GetMessageFromPool(what);
    MRETURN_OOM_ON_NULL(commandRef());
@@ -349,7 +349,7 @@ status_t MessageTransceiverThread :: SetNewPolicyAux(uint32 what, const Abstract
    return ((commandRef()->CAddString(MTT_NAME_PATH, optDistPath).IsOK(ret))&&(commandRef()->CAddTag(MTT_NAME_POLICY_TAG, pref).IsOK(ret))) ? SendMessageToInternalThread(commandRef) : ret;
 }
 
-status_t MessageTransceiverThread :: SetOutgoingMessageEncoding(int32 encoding, const char * optDistPath)
+status_t MessageTransceiverThread :: SetOutgoingMessageEncoding(int32 encoding, const String & optDistPath)
 {
    MessageRef commandRef = GetMessageFromPool(MTT_COMMAND_SET_OUTGOING_ENCODING);
    MRETURN_OOM_ON_NULL(commandRef());
@@ -358,11 +358,11 @@ status_t MessageTransceiverThread :: SetOutgoingMessageEncoding(int32 encoding, 
    return ((commandRef()->CAddString(MTT_NAME_PATH, optDistPath).IsOK(ret))&&(commandRef()->AddInt32(MTT_NAME_ENCODING, encoding).IsOK(ret))) ? SendMessageToInternalThread(commandRef) : ret;
 }
 
-status_t MessageTransceiverThread :: RemoveSessions(const char * optDistPath)
+status_t MessageTransceiverThread :: RemoveSessions(const String & optDistPath)
 {
    MessageRef commandRef = GetMessageFromPool(MTT_COMMAND_REMOVE_SESSIONS);
    MRETURN_OOM_ON_NULL(commandRef());
- 
+
    status_t ret;
    return (commandRef()->CAddString(MTT_NAME_PATH, optDistPath).IsOK(ret)) ? SendMessageToInternalThread(commandRef) : ret;
 }
@@ -375,7 +375,7 @@ void MessageTransceiverThread :: Reset()
       _server()->Cleanup();
       _server.Reset();
    }
-   
+
    // Clear both message queues of any leftover messages.
    MessageRef junk;
    while(WaitForNextMessageFromOwner(junk, 0) >= 0) {/* empty */}
@@ -423,7 +423,7 @@ void ThreadWorkerSessionFactory :: AboutToDetachFromServer()
 
 status_t ThreadWorkerSessionFactory :: SendMessageToSupervisorSession(const MessageRef & msg, void * userData)
 {
-   // I'm not bothering to cache the supervisor pointer for this class, because this method is called 
+   // I'm not bothering to cache the supervisor pointer for this class, because this method is called
    // so rarely and I can't be bothered to add anti-dangling-pointer logic for so little gain --jaf
    ThreadSupervisorSession * supervisorSession = FindFirstSessionOfType<ThreadSupervisorSession>();
    if (supervisorSession)
@@ -460,7 +460,7 @@ AbstractReflectSessionRef ThreadWorkerSessionFactory :: CreateSession(const Stri
 
 void MessageTransceiverThread :: InternalThreadEntry()
 {
-   if (_server()) 
+   if (_server())
    {
       (void) _server()->ServerProcessLoop();
       _server()->Cleanup();
@@ -572,7 +572,7 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
                      if (rmsg) rmsg->AddString(MTT_NAME_FROMSESSION, GetSessionRootPath());
 
                      // If we have any messages pending, we'll save this message reference until our
-                     // outgoing message queue becomes empty.  That way the DrainTag item held by the 
+                     // outgoing message queue becomes empty.  That way the DrainTag item held by the
                      // referenced message won't be deleted until the appropriate time, and hence
                      // the supervisor won't be notified until all the specified queues have drained.
                      AbstractMessageIOGateway * gw = GetGateway()();
@@ -616,7 +616,7 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
             break;
          }
       }
-      else if ((msg->what >= MTT_EVENT_INCOMING_MESSAGE)&&(msg->what <= MTT_LAST_EVENT)) 
+      else if ((msg->what >= MTT_EVENT_INCOMING_MESSAGE)&&(msg->what <= MTT_LAST_EVENT))
       {
          // ignore these; we don't care about silly MTT_EVENTS, those are for the supervisor and the user
       }
@@ -644,13 +644,13 @@ void ThreadSupervisorSession :: AboutToDetachFromServer()
    Queue<AbstractReflectSessionRef> workers;
    if (FindSessionsOfType<ThreadWorkerSession>(workers).IsOK())
    {
-      for (uint32 i=0; i<workers.GetNumItems(); i++) 
+      for (uint32 i=0; i<workers.GetNumItems(); i++)
       {
          ThreadWorkerSession * ws = static_cast<ThreadWorkerSession *>(workers[i]());
          if (ws->_supervisorSession == this) ws->_supervisorSession = NULL;
       }
    }
- 
+
    StorageReflectSession :: AboutToDetachFromServer();
 }
 
@@ -719,7 +719,7 @@ status_t ThreadSupervisorSession :: AddNewWorkerConnectSession(const ThreadWorke
 void ThreadSupervisorSession :: SendMessageToWorkers(const MessageRef & distMsg)
 {
    String distPath;
-   SendMessageToMatchingSessions(distMsg, (distMsg()->FindString(MTT_NAME_PATH, distPath).IsOK()) ? distPath : _defaultDistributionPath, ConstQueryFilterRef(), false); 
+   SendMessageToMatchingSessions(distMsg, (distMsg()->FindString(MTT_NAME_PATH, distPath).IsOK()) ? distPath : _defaultDistributionPath, ConstQueryFilterRef(), false);
 }
 
 status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & msgRef, uint32)
@@ -834,7 +834,7 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
    else return B_BAD_ARGUMENT;
 }
 
-DrainTag :: ~DrainTag() 
+DrainTag :: ~DrainTag()
 {
    if (_notify) _notify->DrainTagIsBeingDeleted(this);
 }

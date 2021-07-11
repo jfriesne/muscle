@@ -33,7 +33,7 @@ QMessageTransceiverThread :: ~QMessageTransceiverThread()
    for (HashtableIterator<uint32, QMessageTransceiverHandler *> iter(_handlers); iter.HasData(); iter++) iter.GetValue()->ClearRegistrationFields();
 }
 
-status_t QMessageTransceiverThread :: SendMessageToSessions(const MessageRef & msgRef, const char * optDistPath)       
+status_t QMessageTransceiverThread :: SendMessageToSessions(const MessageRef & msgRef, const String & optDistPath)
 {
    // This method is reimplemented here so it can be a Qt "slot" method
    return MessageTransceiverThread :: SendMessageToSessions(msgRef, optDistPath);
@@ -80,7 +80,7 @@ void QMessageTransceiverThread :: HandleQueuedIncomingEvents()
                seenIncomingMessage = true;
                emit BeginMessageBatch();
             }
-            emit MessageReceived(next, sessionID); 
+            emit MessageReceived(next, sessionID);
          break;
 
          case MTT_EVENT_SESSION_ACCEPTED:      emit SessionAccepted(sessionID, factoryID, iap); break;
@@ -139,7 +139,7 @@ void QMessageTransceiverThread :: Reset()
    for (HashtableIterator<uint32, QMessageTransceiverHandler *> iter(_handlers); iter.HasData(); iter++) iter.GetValue()->ClearRegistrationFields();
    _handlers.Clear();
 
-   MessageTransceiverThread::Reset(); 
+   MessageTransceiverThread::Reset();
 }
 
 status_t QMessageTransceiverThread :: RegisterHandler(QMessageTransceiverThread & thread, QMessageTransceiverHandler * handler, const ThreadWorkerSessionRef & sessionRef)
@@ -196,7 +196,7 @@ QMessageTransceiverThreadPool :: ~QMessageTransceiverThreadPool()
 
 void QMessageTransceiverThreadPool :: ShutdownAllThreads()
 {
-   for (HashtableIterator<QMessageTransceiverThread *, Void> iter(_threads); iter.HasData(); iter++) 
+   for (HashtableIterator<QMessageTransceiverThread *, Void> iter(_threads); iter.HasData(); iter++)
    {
       QMessageTransceiverThread * mtt = iter.GetKey();
       mtt->ShutdownInternalThread();
@@ -204,12 +204,12 @@ void QMessageTransceiverThreadPool :: ShutdownAllThreads()
    }
    _threads.Clear();
 }
- 
+
 QMessageTransceiverThread * QMessageTransceiverThreadPool :: CreateThread()
 {
    QMessageTransceiverThread * newThread = newnothrow QMessageTransceiverThread;
    if (newThread == NULL) MWARN_OUT_OF_MEMORY;
-   return newThread; 
+   return newThread;
 }
 
 QMessageTransceiverThread * QMessageTransceiverThreadPool :: ObtainThread()
@@ -236,7 +236,7 @@ status_t QMessageTransceiverThreadPool :: RegisterHandler(QMessageTransceiverThr
 {
    status_t ret;
    if (thread.RegisterHandler(thread, handler, sessionRef).IsOK(ret))
-   { 
+   {
       handler->_master = this;  // necessary since QMessageTransceiverThread::RegisterHandler will have overwritten it
       if (thread.GetHandlers().GetNumItems() >= _maxSessionsPerThread) (void) _threads.MoveToFront(&thread);
       return B_NO_ERROR;
@@ -356,7 +356,7 @@ status_t QMessageTransceiverHandler :: SetOutgoingMessageEncoding(int32 encoding
 
 status_t QMessageTransceiverHandler :: SendMessageToSession(const MessageRef & msgRef)
 {
-   return _mtt ? _mtt->SendMessageToSessions(msgRef, _sessionTargetString()) : B_BAD_OBJECT;
+   return _mtt ? _mtt->SendMessageToSessions(msgRef, _sessionTargetString) : B_BAD_OBJECT;
 }
 
 void QMessageTransceiverHandler :: Reset(bool emitEndBatchIfNecessary)

@@ -177,11 +177,11 @@ public slots:
     * it's reimplemented here as a pass-through merely so it can be a slot.
     * Enqueues the given message for output by one or more of our attached sessions.
     * @param msgRef a reference to the Message to send out.
-    * @param optDistPath if non-NULL, then only sessions that contain at least one node that matches this
+    * @param optDistPath if non-empty, then only sessions that contain at least one node that matches this
     *                    path will receive the Message.  Otherwise all sessions will receive the Message.
     * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY.
     */
-   status_t SendMessageToSessions(const MessageRef & msgRef, const char * optDistPath = NULL);
+   status_t SendMessageToSessions(const MessageRef & msgRef, const String & optDistPath = GetEmptyString());
 
    /** Parses through the incoming-events queue and emits signals as appropriate.
      * Typically this method is called when appropriate by the event() method,

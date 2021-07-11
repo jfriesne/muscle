@@ -52,11 +52,11 @@ if (WITH_TESTS)
    add_executable(muscleproxy muscleproxy.cpp)
    target_link_libraries(muscleproxy muscle)
 
+   add_executable(multithreadedreflectclient multithreadedreflectclient.cpp)
+   target_link_libraries(multithreadedreflectclient muscle)
+
    add_executable(portableplaintextclient portableplaintextclient.cpp)
    target_link_libraries(portableplaintextclient muscle)
-
-   add_executable(portablereflectclient portablereflectclient.cpp)
-   target_link_libraries(portablereflectclient muscle)
 
    add_executable(portscan portscan.cpp)
    target_link_libraries(portscan muscle)
@@ -72,6 +72,9 @@ if (WITH_TESTS)
 
    add_executable(serialproxy serialproxy.cpp)
    target_link_libraries(serialproxy muscle)
+
+   add_executable(singlethreadedreflectclient singlethreadedreflectclient.cpp)
+   target_link_libraries(singlethreadedreflectclient muscle)
 
    add_executable(striphextermoutput striphextermoutput.cpp)
    target_link_libraries(striphextermoutput muscle)

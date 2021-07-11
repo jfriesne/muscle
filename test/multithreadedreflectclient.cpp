@@ -98,7 +98,7 @@ private:
    String _stdinSessionRootPath;  // this will be set to the session-path-string of our Stdin-reading session in the local I/O thread
    String _tcpSessionRootPath;    // this will be set to the session-path-string of our TCP-reading/writing session in the local I/O thread
 
-   status_t SendMessageToMuscleServer(const MessageRef & msg) {return SendMessageToSessions(msg, _tcpSessionRootPath());}
+   status_t SendMessageToMuscleServer(const MessageRef & msg) {return SendMessageToSessions(msg, _tcpSessionRootPath);}
    void HandleTextLineFromStdin(const String & stdinText);
 };
 
