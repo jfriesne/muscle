@@ -4,10 +4,11 @@
 #define QMuscleSupport_h
 
 #include <QString>
+
 #include "support/MuscleSupport.h"  // for PODHashFunctor, etc
 
 #if QT_VERSION >= 0x040000
-# include <qhash.h>
+# include <QHash>
 #else
 # include "util/String.h"
 #endif

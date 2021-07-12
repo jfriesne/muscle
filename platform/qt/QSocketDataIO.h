@@ -3,7 +3,8 @@
 #ifndef MuscleQSocketDataIO_h
 #define MuscleQSocketDataIO_h
 
-#include <qsocket.h>
+#include <QSocket>
+
 #include "dataio/DataIO.h"
 
 namespace muscle {

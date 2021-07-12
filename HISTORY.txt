@@ -5,17 +5,19 @@ key:  - new feature
       * bug fixed
       o other
 
-8.31 - Released 7/9/2021
+8.31 - Released
    - Added Windows-only convenience-constructor to the Socket class that
      takes a SOCKET instead of an int, for easier capture of Windows
      socket-descriptors into Socket objects.
    - Added Windows-only convenience-version of the GetConstSocketRefFromPool()
      function that takes a SOCKET instead of an int, for easier capture of
      Windows socket-descriptors into ref-counted Socket objects.
-   - Added ICallbackMechanism, ICallbackSubscriber, SocketCallbackMechanism,
-     and QSocketCallbackMechanism classes to support OS-neutral
-     inter-thread event dispatching.
+   - Added ICallbackMechanism, ICallbackSubscriber, and SocketCallbackMechanism
+     classes to support OS-neutral inter-thread event dispatching.
    - Added Win32CallbackMechanism for integration into Win32 event loops.
+   - Added SDLCallbackMechanism for integration into SDL event loops.
+   - Added QSocketCallbackMechanism and QPostEventCallbackMechanism for
+     integration into Qt event loops.
    o Moved platform-specific code into a "platform" subdirectory.
    o Moved (non-C++) language-specific code into a "lang" subdirectory.
    o Changed MessageTransceiverThread::SendMessageToSessions() (and friends)

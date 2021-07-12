@@ -1,13 +1,12 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <QCoreApplication>
+
 #include "platform/qt/QMessageTransceiverThread.h"
 #include "platform/qt/QSocketCallbackMechanism.h"     // just to make sure it compiles, for now
 #include "platform/qt/QPostEventCallbackMechanism.h"  // just to make sure it compiles, for now
 
 namespace muscle {
-
-static const uint32 QMTT_SIGNAL_EVENT = QEvent::User+14837;  // why yes, this is a completely arbitrary number
 
 #if QT_VERSION >= 0x040000
 QMessageTransceiverThread :: QMessageTransceiverThread(QObject * parent, const char * name)
@@ -40,6 +39,8 @@ status_t QMessageTransceiverThread :: SendMessageToSessions(const MessageRef & m
    // This method is reimplemented here so it can be a Qt "slot" method
    return MessageTransceiverThread :: SendMessageToSessions(msgRef, optDistPath);
 }
+
+static const uint32 QMTT_SIGNAL_EVENT = QEvent::User+14837;  // why yes, this is a completely arbitrary number
 
 void QMessageTransceiverThread :: SignalOwner()
 {

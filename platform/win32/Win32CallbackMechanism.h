@@ -3,12 +3,11 @@
 #ifndef Win32CallbackMechanism_h
 #define Win32CallbackMechanism_h
 
-#include "support/MuscleSupport.h"
 #include "util/ICallbackMechanism.h"
 
 namespace muscle {
 
-static const UINT WIN32MTT_SIGNAL_EVENT = WM_USER;  // default signal value
+static const UINT WIN32CALLBACKMECHANISM_SIGNAL_CODE = WM_USER;  /// default signal value when using Win32CallbackMechanism's signal-to-a-thread constructor
 
 /** This is a Win32-specific subclass of ICallbackMechanism.  It can call either SetEvent() or PostThreadMEssage() to notify the main thread to dispatch events. */
 class Win32CallbackMechanism : public ICallbackMechanism
@@ -19,9 +18,9 @@ public:
      * @param replyThreadID The ID of the thread you wish notification signals
      *                       to be sent to (typically GetCurrentThreadId())
      * @param signalValue Signal value to deliver to the reply thread when notifying it of an event.
-     *                    Defaults to WIN32MTT_SIGNAL_EVENT.
+     *                    Defaults to WIN32CALLBACKMECHANISM_SIGNAL_CODE.
      */
-   Win32CallbackMechanism(DWORD replyThreadID, UINT signalValue = WIN32MTT_SIGNAL_EVENT) : _replyThreadID(replyThreadID), _signalValue(signalValue), _signalHandle(INVALID_HANDLE_VALUE), _closeHandleWhenDone(false) {/* empty */}
+   Win32CallbackMechanism(DWORD replyThreadID, UINT signalValue = WIN32CALLBACKMECHANISM_SIGNAL_CODE) : _replyThreadID(replyThreadID), _signalValue(signalValue), _signalHandle(INVALID_HANDLE_VALUE), _closeHandleWhenDone(false) {/* empty */}
 
    /** This constructor creates an object that will signal your thread by calling
      * SetEvent() on the handle that you specify here.

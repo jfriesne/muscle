@@ -3,8 +3,9 @@
 #ifndef MuscleQDataIODevice_h
 #define MuscleQDataIODevice_h
 
-#include <qiodevice.h>
-#include <qsocketnotifier.h>
+#include <QIODevice>
+#include <QSocketNotifier>
+
 #include "dataio/SeekableDataIO.h"
 
 namespace muscle {

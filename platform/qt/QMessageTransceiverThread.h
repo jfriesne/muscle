@@ -5,9 +5,10 @@
 
 #include "support/MuscleSupport.h"  // placed first to avoid ordering problems with MUSCLE_FD_SETSIZE
 
-#include <qobject.h>
-#include <qthread.h>
-#include <qsocketnotifier.h>
+#include <QObject>
+#include <QThread>
+#include <QSocketNotifier>
+
 #include "system/MessageTransceiverThread.h"
 
 namespace muscle {

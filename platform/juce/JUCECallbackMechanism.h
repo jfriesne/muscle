@@ -6,7 +6,6 @@
 // Use this (for every JUCE module) instead of the specific headers because they don't have include guards.
 #include <juce_events/juce_events.h>
 
-#include "support/MuscleSupport.h"
 #include "util/ICallbackMechanism.h"
 
 namespace muscle {

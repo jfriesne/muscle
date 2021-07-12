@@ -2,6 +2,7 @@
 #define QSocketCallbackMechanism_h
 
 #include <QSocketNotifier>
+
 #include "util/SocketCallbackMechanism.h"
 
 namespace muscle {

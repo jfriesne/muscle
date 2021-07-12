@@ -3,12 +3,11 @@
 #ifndef MuscleQSignalHandler_h
 #define MuscleQSignalHandler_h
 
-#include <qobject.h>
-#include <qsocketnotifier.h>
+#include <QObject>
+#include <QSocketNotifier>
+
 #include "system/SignalMultiplexer.h"
 #include "util/NetworkUtilityFunctions.h"
-
-class QSocketNotifier;
 
 namespace muscle {
 
