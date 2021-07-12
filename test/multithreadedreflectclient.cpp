@@ -10,6 +10,11 @@
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketCallbackMechanism.h"
 
+#ifdef WIN32
+# define TEST_WIN32CALLBACKMECHANISM
+# include "platform/win32/Win32CallbackMechanism.h"
+#endif
+
 using namespace muscle;
 
 // Our subclass of CallbackMessageTransceiverThread.  Here's where we can get callbacks in the main thread whenever
@@ -109,7 +114,16 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
+#ifdef WIN32
+   Win32AllocateStdioConsole();
+#endif
+
+#ifdef TEST_WIN32CALLBACKMECHANISM
+   // Just to test the Win32-specific callback mechanism (SocketCallbackMechanism would also work under Windows)
+   Win32CallbackMechanism callbackMechanism(CreateEvent(0, false, false, 0), true);
+#else
    SocketCallbackMechanism callbackMechanism;  // the mechanism our I/O thread will use to notify the main thread about new events
+#endif
 
    TestCallbackMessageTransceiverThread networkThread(&callbackMechanism);  // the I/O thread object
 
@@ -156,6 +170,13 @@ int main(int argc, char ** argv)
       return 10;
    }
 
+#ifdef TEST_WIN32CALLBACKMECHANISM
+   // This implementation will work on Windows only; I'm including it here solely as a
+   // way to test/verify that the Win32CallbackMechanism class works as intended
+   while((networkThread.IsKeepGoing())&&(WaitForSingleObject(callbackMechanism.GetSignalHandle(), INFINITE) == WAIT_OBJECT_0)) callbackMechanism.DispatchCallbacks();
+#else
+   // This implementation will work on all OS's (including Windows)
+
    // Setting the notifier-socket to blocking mode allows us to do the event-loop below without having
    // to use a SocketMultiplexer to wait until an event-signal is received.  Without this the while-loop
    // below would busy-wait and chew up 100% of a core
@@ -168,6 +189,7 @@ int main(int argc, char ** argv)
    // Our main thread's event-loop:  Wait for the next signal from the I/O thread, then DispatchCallbacks()
    // will call the appropriate virtual-methods in networkThread for us
    while(networkThread.IsKeepGoing()) callbackMechanism.DispatchCallbacks();
+#endif
 
    // Graceful cleanup and exit
    printf("\n\nBye!\n");
