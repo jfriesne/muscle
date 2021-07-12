@@ -34,7 +34,7 @@ following:
 
  - (Optional, if you like Qt-based GUI demos) In a third Terminal window
    - Make sure a Qt 4.x or Qt 5.x development environment is installed on your system.
-   - cd ../qtsupport/qt_example ; touch ./muscle_enable_ssl
+   - cd ../platform/qt/qt_example ; touch ./muscle_enable_ssl
    - qmake; make clean; make
    - ./qt_example.app/Contents/MacOS/qt_example publickey=../../ssl_data/muscle_test_public_key.pem
      (or under Linux, it's:  ./qt_example publickey=../../ssl_data/muscle_test_public_key.pem )

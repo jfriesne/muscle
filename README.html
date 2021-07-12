@@ -16,7 +16,7 @@ generated.  You can run this server from the command line, (type
 with any MUSCLE-aware program.
 <p>
 Alternatively, if you prefer a server that runs as a GUI program
-and you have Qt installed, you can cd to the "qtsupport/qt_muscled"
+and you have Qt installed, you can cd to the "platform/qt/qt_muscled"
 subdirectory and type "qmake; make".  A GUI server program named
 qt_muscled will be created.
 <p>
@@ -44,7 +44,7 @@ Use at your own risk, Meyer Sound is not responsible for any disasters, blah bla
 Directory contents descriptions follow:
 <p>
 <ol>
-<b>csharp/</b>
+<b>lang/csharp/</b>
 <p>
    This directory contains Wilson Yeung's alpha port of the Muscle client
    API to the C# language.  Email Wilson (wilson@whack.org) with questions
@@ -85,7 +85,7 @@ Directory contents descriptions follow:
 <p>
 </li>
 <li>
-<b>delphi/</b>
+<b>lang/delphi/</b>
 <p>
    This directory contains the MUSCLE client API written for the Delphi
    programming environment.  The contents of this directory were contributed
@@ -135,7 +135,7 @@ Directory contents descriptions follow:
 <p>
 </li>
 <li>
-<b>java/</b>
+<b>lang/java/</b>
 <p>
    This directory contains a Java implementation of the MUSCLE client side
    API.  You can use the code in this folder to enable your Java program
@@ -191,7 +191,7 @@ Directory contents descriptions follow:
 </li>
 <p>
 <li>
-<b>minimessage/</b>
+<b>lang/c/minimessage/</b>
 <p>
    This directory contains the MiniMessage and MiniMessageGateway C APIs.
    These APIs are C implementations of the C++ Message and MessageIOGateway classes.
@@ -203,7 +203,7 @@ Directory contents descriptions follow:
 <p>
 </li>
 <li>
-<b>micromessage/</b>
+<b>lang/c/micromessage/</b>
 <p>
    This directory contains the MicroMessage and MicroMessageGateway C APIs.
    These APIs are C implementations of the C++ Message and MessageIOGateway classes.
@@ -217,7 +217,7 @@ Directory contents descriptions follow:
 <p>
 </li>
 <li>
-<b>python/</b>
+<b>lang/python2/</b>
 <p>
    This directory contains a minimal MUSCLE client-side API written in Python2.
    You can use the code in this directory to enable your Python scripts to talk
@@ -228,7 +228,7 @@ Directory contents descriptions follow:
 <p>
 </li>
 <li>
-<b>python3/</b>
+<b>lang/python3/</b>
 <p>
    This directory contains a minimal MUSCLE client-side API written in Python3.
    You can use the code in this directory to enable your Python3 scripts to talk
@@ -237,7 +237,7 @@ Directory contents descriptions follow:
 </li>
 <p>
 <li>
-<b>qtsupport/</b>
+<b>platform/qt/</b>
 <p>
    This directory contains several classes that support clients that use TrollTech's
    Qt cross-platform GUI API.  The main one is the QMessageTransceiverThread class,
@@ -295,16 +295,6 @@ Directory contents descriptions follow:
    <tr><td>StringMatcher</td><td>Does shell-style pattern matching on arbitrary character strings</td></tr>
    <tr><td>SegmentedStringMatcher</td><td>Like StringMatcher, except that the strings are divided up into substrings which are evaluated separately (e.g. "a*/b*")</td></tr>
    </table>
-<p>
-</li>
-<li>
-<b>sdlsupport/</b>
-<p>
-   This directory contains the SDLMessageTransceiverThread class, which is
-   a handy way to implement MUSCLE communication ability into your SDL program.
-   SDLMessageTransceiverThread class is just a thin wrapper subclass around
-   the MessageTransceiverThread class, but it interfaces MessageTransceiverThread
-   to SDL's event-notification system.
 <p>
 </li>
 <li>
@@ -664,23 +654,6 @@ Directory contents descriptions follow:
    <p>
    </li>
    </ol>
-</li>
-<li>
-<b>vc++/</b>
-<p>  
-   This directory contains project files for building muscled under Visual C++
-   for Windows.  These files were provided by Vitaliy Mikitchenko (aka VitViper)
-<p>  
-</li>
-<li>
-<b>winsupport/</b>
-<p>  
-   This directory contains the Win32MessageTransceiverThread class, which is
-   useful for interface MUSCLE code to the standard Win32 GUI event loop.
-   You can use this class to enable your Win32 C and C++ programs to communicate
-   with a MUSCLE server or any other program that speaks the MUSCLE Message
-   protocol.
-<p>
 </li>
 <li>
 <b>zlib/</b>

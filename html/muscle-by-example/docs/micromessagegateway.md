@@ -1,6 +1,6 @@
 # MicroMessageGateway C class [(API)](https://public.msli.com/lcs/muscle/html/group__micromessagegateway.html)
 
-```#include "micromessage/MicroMessageGateway.h"```
+```#include "lang/c/micromessage/MicroMessageGateway.h"```
 
 * C-only implementation of the MUSCLE [MessageIOGateway](https://public.msli.com/lcs/muscle/html/classmuscle_1_1MessageIOGateway.html) class
 * Handles sending and receiving of flattened-Message-data over a TCP socket (or other transport layer, specified via function pointers)

@@ -142,4 +142,4 @@ Quick links to source code of relevant MUSCLE-by-example programs:
 * [reflector/example_5_smart_client.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/reflector/example_5_smart_client.cpp)
 * [test/portablereflectclient.cpp](https://public.msli.com/lcs/muscle/muscle/test/portablereflectclient.cpp)
 * [test/chatclient.cpp](https://public.msli.com/lcs/muscle/muscle/test/chatclient.cpp)
-* [qtsupport/qt_example/qt_example.cpp](https://public.msli.com/lcs/muscle/muscle/qtsupport/qt_example/qt_example.cpp)
+* [platform/qt/qt_example/qt_example.cpp](https://public.msli.com/lcs/muscle/muscle/platform/qt/qt_example/qt_example.cpp)

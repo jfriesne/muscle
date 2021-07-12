@@ -1,8 +1,8 @@
-All source code in this archive (except for the "csharp", "regex/regex",
-"delphi", and "zlib/zlib" subfolders) is Copyright 2000-2007
+All source code in this archive (except for the "lang/csharp", "regex/regex",
+"lang/delphi", and "zlib/zlib" subfolders) is Copyright 2000-2007
 Meyer Sound Laboratories Inc.
 
-The "csharp" subfolder was written by Wilson Yeung, and is included
+The "lang/csharp" subfolder was written by Wilson Yeung, and is included
 by permission.
 
 The "regex/regex" subfolder's contents were written by Henry Spencer,
@@ -12,8 +12,8 @@ The "zlib/zlib" subfolder's contents were written by Jean-loup Gailly
 and Mark Adler and are used by permission.  See the file 
 zlib/zlib/README for details.
 
-The "delphi" subfolder's contents were written by Matthew Emson,
-and are used by permission.  See the file delphi/licence-delphi.txt
+The "lang/delphi" subfolder's contents were written by Matthew Emson,
+and are used by permission.  See the file lang/delphi/licence-delphi.txt
 for details.
 
 ----------------------------------------------------------------------

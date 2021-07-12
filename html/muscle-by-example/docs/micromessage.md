@@ -1,6 +1,6 @@
 # MicroMessage C class [(API)](https://public.msli.com/lcs/muscle/html/group__micromessage.html)
 
-```#include "micromessage/MicroMessage.h"```
+```#include "lang/c/micromessage/MicroMessage.h"```
 
 * C-only implementation of the MUSCLE [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) class
 * Flattened-data format is 100% compatible with the C++ implementation (i.e. can be used to communicate with C++ based MUSCLE programs)
