@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include <sys/stat.h>
 
-#include "micromessage/MicroMessageGateway.h"
+#include "lang/c/micromessage/MicroMessageGateway.h"
 #include "reflector/StorageReflectConstants.h"
 
 #define VERSION_STRING "1.05"

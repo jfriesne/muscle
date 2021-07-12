@@ -1,5 +1,5 @@
 file(GLOB_RECURSE CODE_FILES *.cpp)
-add_executable(qt_advanced_example ${CODE_FILES} ../../server/muscled.cpp)
+add_executable(qt_advanced_example ${CODE_FILES} ../../../server/muscled.cpp)
 target_compile_definitions(qt_advanced_example PUBLIC 
     UNIFIED_DAEMON
     MUSCLE_ENABLE_ZLIB_ENCODING

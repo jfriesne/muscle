@@ -2,8 +2,8 @@
 
 #include <stdio.h>
 
+#include "lang/c/micromessage/MicroMessage.h"
 #include "message/Message.h"
-#include "micromessage/MicroMessage.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
 
 using namespace muscle;

@@ -11,7 +11,7 @@ class NodeTreeWidgetItem;
 class QTextEdit;
 class QTreeWidgetItem;
 
-#include "qtsupport/QMessageTransceiverThread.h"
+#include "platform/qt/QMessageTransceiverThread.h"
 
 using namespace muscle;
 

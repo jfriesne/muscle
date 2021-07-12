@@ -1,7 +1,9 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <QCoreApplication>
-#include "qtsupport/QMessageTransceiverThread.h"
+#include "platform/qt/QMessageTransceiverThread.h"
+#include "platform/qt/QSocketCallbackMechanism.h"     // just to make sure it compiles, for now
+#include "platform/qt/QPostEventCallbackMechanism.h"  // just to make sure it compiles, for now
 
 namespace muscle {
 

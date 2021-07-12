@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "message/Message.h"
-#include "minimessage/MiniMessage.h"
+#include "lang/c/minimessage/MiniMessage.h"
 
 using namespace muscle;
 

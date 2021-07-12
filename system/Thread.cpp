@@ -10,7 +10,7 @@
 #include "system/SetupSystem.h"  // for GetCurrentThreadID()
 
 #if defined(MUSCLE_USE_QT_THREADS) && defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
-# include "qtsupport/QMessageTransceiverThread.h"   // for MuscleQThreadSocketNotifier
+# include "platform/qt/QMessageTransceiverThread.h"   // for MuscleQThreadSocketNotifier
 #endif
 
 #if defined(MUSCLE_PREFER_WIN32_OVER_QT)

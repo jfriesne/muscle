@@ -15,6 +15,8 @@ key:  - new feature
    - Added ICallbackMechanism, ICallbackSubscriber, SocketCallbackMechanism,
      and QSocketCallbackMechanism classes to support OS-neutral
      inter-thread event dispatching.
+   o Moved platform-specific code into a "platform" subdirectory.
+   o Moved (non-C++) language-specific code into a "lang" subdirectory.
    o Changed MessageTransceiverThread::SendMessageToSessions() (and friends)
      to pass strings as (const String &) rather than as (const char *).
    o Removed Win32MessageTransceiverThread and SDLMessageTransceiverThread

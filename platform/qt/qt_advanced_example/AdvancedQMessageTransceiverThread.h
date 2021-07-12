@@ -1,7 +1,7 @@
 #ifndef AdvancedQMessageTransceiverThread_h
 #define AdvancedQMessageTransceiverThread_h
 
-#include "qtsupport/QMessageTransceiverThread.h"
+#include "platform/qt/QMessageTransceiverThread.h"
 
 using namespace muscle;
 

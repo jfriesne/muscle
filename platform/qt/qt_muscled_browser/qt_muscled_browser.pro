@@ -7,27 +7,31 @@ mac:LIBS        += -lz -framework Carbon -framework SystemConfiguration
 
 win32:DEFINES += _WIN32_WINNT=0x0501 WINAPI_FAMILY=100
 
-OBJECTS_DIR	= objects
-MUSCLE_DIR	= ../../
+!win32:LIBS	+= -lpthread
 
-DEFINES  += UNIFIED_DAEMON   # so we can have our own main() function, without clashing with the one inside muscled.cpp
-DEFINES  += MUSCLE_ENABLE_ZLIB_ENCODING
-DEFINES  += MUSCLE_SINGLE_THREAD_ONLY
-#DEFINES += MUSCLE_AVOID_IPV6
-unix:mac:QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
+OBJECTS_DIR	= objects
+MUSCLE_DIR	= ../../..
+
+DEFINES	+= MUSCLE_ENABLE_ZLIB_ENCODING
+DEFINES	+= MUSCLE_AVOID_NEWNOTHROW
+DEFINES	+= MUSCLE_AVOID_SIGNAL_HANDLING
+
+!win32:DEFINES	+= MUSCLE_USE_PTHREADS
 
 INCLUDEPATH	+= $$MUSCLE_DIR
 win32:INCLUDEPATH	+= $$MUSCLE_DIR/regex/regex $$MUSCLE_DIR/zlib/zlib/win32
 
-SOURCES	+= $$MUSCLE_DIR/message/Message.cpp \
+SOURCES	+=  \
+        $$MUSCLE_DIR/dataio/FileDataIO.cpp \
+        $$MUSCLE_DIR/dataio/TCPSocketDataIO.cpp \
+        $$MUSCLE_DIR/message/Message.cpp \
         $$MUSCLE_DIR/iogateway/MessageIOGateway.cpp \
         $$MUSCLE_DIR/iogateway/AbstractMessageIOGateway.cpp \
         $$MUSCLE_DIR/iogateway/PlainTextMessageIOGateway.cpp \
-        $$MUSCLE_DIR/dataio/ChildProcessDataIO.cpp \
-        $$MUSCLE_DIR/dataio/FileDataIO.cpp \
-        $$MUSCLE_DIR/dataio/TCPSocketDataIO.cpp \
         $$MUSCLE_DIR/syslog/SysLog.cpp \
         $$MUSCLE_DIR/system/SetupSystem.cpp \
+        $$MUSCLE_DIR/system/MessageTransceiverThread.cpp \
+        $$MUSCLE_DIR/system/Thread.cpp \
         $$MUSCLE_DIR/system/SignalMultiplexer.cpp \
         $$MUSCLE_DIR/system/GlobalMemoryAllocator.cpp \
         $$MUSCLE_DIR/zlib/ZLibCodec.cpp \
@@ -54,8 +58,8 @@ SOURCES	+= $$MUSCLE_DIR/message/Message.cpp \
         $$MUSCLE_DIR/util/NetworkUtilityFunctions.cpp \
         $$MUSCLE_DIR/util/PulseNode.cpp \
         $$MUSCLE_DIR/util/SocketMultiplexer.cpp \
-        $$MUSCLE_DIR/server/muscled.cpp \
-        qt_muscled.cpp 
+        $$MUSCLE_DIR/platform/qt/QMessageTransceiverThread.cpp \
+        Browser.cpp
 
 win32:SOURCES	+= $$MUSCLE_DIR/regex/regex/regcomp.c \
         $$MUSCLE_DIR/regex/regex/regerror.c \
@@ -74,4 +78,4 @@ win32:SOURCES	+= $$MUSCLE_DIR/regex/regex/regcomp.c \
         $$MUSCLE_DIR/zlib/zlib/trees.c \
         $$MUSCLE_DIR/zlib/zlib/zutil.c
 
-HEADERS += qt_muscled.h
+HEADERS	+= $$MUSCLE_DIR/platform/qt/QMessageTransceiverThread.h Browser.h

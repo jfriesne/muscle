@@ -1,5 +1,5 @@
 #include <string.h>  // for memmove()
-#include "micromessage/MicroMessageGateway.h"
+#include "lang/c/micromessage/MicroMessageGateway.h"
 
 #ifdef __cplusplus
 extern "C" {

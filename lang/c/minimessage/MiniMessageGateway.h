@@ -1,7 +1,7 @@
 #ifndef MiniMessageGateway_h
 #define MiniMessageGateway_h
 
-#include "minimessage/MiniMessage.h"
+#include "lang/c/minimessage/MiniMessage.h"
 
 #ifdef __cplusplus
 extern "C" {

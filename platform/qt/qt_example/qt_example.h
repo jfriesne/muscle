@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include <QTimer>
-#include "qtsupport/QMessageTransceiverThread.h"
+#include "platform/qt/QMessageTransceiverThread.h"
 #include "support/Point.h"
 
 using namespace muscle;

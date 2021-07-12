@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <QCoreApplication>
-#include "qtsupport/QSignalHandler.h"
+#include "platform/qt/QSignalHandler.h"
 
 namespace muscle {
 

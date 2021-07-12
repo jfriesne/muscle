@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include <sys/stat.h>
 
-#include "minimessage/MiniMessageGateway.h"
+#include "lang/c/minimessage/MiniMessageGateway.h"
 #include "reflector/StorageReflectConstants.h"
 
 static void Inet_NtoA(uint32 addr, char * ipbuf)

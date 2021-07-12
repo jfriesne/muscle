@@ -1,5 +1,5 @@
 #include <string.h>
-#include "micromessage/MicroMessage.h"
+#include "lang/c/micromessage/MicroMessage.h"
 
 #ifdef cplusplus
 extern "C" {

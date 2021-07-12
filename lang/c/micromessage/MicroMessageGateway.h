@@ -1,7 +1,7 @@
 #ifndef MicroMessageGateway_h
 #define MicroMessageGateway_h
 
-#include "micromessage/MicroMessage.h"
+#include "lang/c/micromessage/MicroMessage.h"
 
 #ifdef __cplusplus
 extern "C" {

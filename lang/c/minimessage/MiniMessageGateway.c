@@ -1,5 +1,5 @@
 #include <string.h>  // for memcpy()
-#include "minimessage/MiniMessageGateway.h"
+#include "lang/c/minimessage/MiniMessageGateway.h"
 
 #ifdef __cplusplus
 extern "C" {

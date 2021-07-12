@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include <sys/stat.h>
 
-#include "micromessage/MicroMessageGateway.h"
+#include "lang/c/micromessage/MicroMessageGateway.h"
 #include "reflector/StorageReflectConstants.h"
 
 static void Inet_NtoA(uint32 addr, char * ipbuf)
@@ -76,7 +76,7 @@ static int32 SocketRecvFunc(uint8 * buf, uint32 numBytes, void * arg)
 
 // This is a text based test client for the muscled server.  It is useful for testing
 // the server, and could possibly be useful for other things, I don't know.
-// This implementation of the client uses only the C UMessage interface, for micronal executable size.
+// This implementation of the client uses only the C UMessage interface, for minimal executable size.
 int main(int argc, char ** argv)
 {
    char * hostName = "localhost";
