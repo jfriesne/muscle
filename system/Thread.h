@@ -7,6 +7,7 @@
 #include "system/Mutex.h"
 #include "message/Message.h"
 #include "util/Queue.h"
+#include "util/ICallbackSubscriber.h"
 #include "util/SocketMultiplexer.h"
 
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
@@ -58,18 +59,21 @@ private:
   * It also includes support for sending Messages to the thread, receiving reply Messages from the thread,
   * and for waiting for the thread to exit.
   */
-class Thread : private NotCopyable
+class Thread : public ICallbackSubscriber, private NotCopyable
 {
 public:
    /** Constructor.  Does very little (in particular, the internal thread is not started here...
      * that happens when you call StartInternalThread())
+     * @param optCallbackMechanism if specified non-NULL, our SignalOwner() method will call
+     *                             RequestCallbackInDispatchThread() in order to request that
+     *                             the main/dispatch-thread call DispatchCallbacks() later on.
      * @param useMessagingSockets Whether or not this thread should allocate a connected pair of 
      *                            sockets to handle messaging between the internal thread and the
      *                            calling thread.  Defaults to true.  Don't set this to false unless
      *                            you really know what you are doing, as setting it to false will
      *                            break much of the Thread object's standard functionality.
      */
-   Thread(bool useMessagingSockets = true);
+   Thread(ICallbackMechanism * optCallbackMechanism = NULL, bool useMessagingSockets = true);
 
    /** Destructor.  You must have made sure that the internal thread is no longer running before
      * deleting the Thread object, or an assertion failure will occur.  (You should make sure the
@@ -314,6 +318,13 @@ public:
 #endif
 
 protected:
+   /** Implemented to call MessageReceivedFromInternalThread() as necessary.
+     * This method will be called in the main thread iff a non-NULL ICallbackMechanism
+     * was passed to our constructor.
+     * @param eventTypeBits this argument is not currently used for anything.
+     */
+   virtual void DispatchCallbacks(uint32 eventTypeBits);
+
    /** If you are using the default implementation of InternalThreadEntry(), then this
      * method will be called whenever a new MessageRef is received by the internal thread.
      * Default implementation does nothing, and returns B_NO_ERROR if (msgRef) is valid,
@@ -325,6 +336,14 @@ protected:
      *                    terminate the internal thread and go away.
      */
    virtual status_t MessageReceivedFromOwner(const MessageRef & msgRef, uint32 numLeft);
+
+   /** If you specified a non-NULL ICallbackMechanism in our constructor, this method will be called
+     * in the main/dispatch thread by the ICallbackMechanism whenever the internal thread has sent
+     * a MessageRef to the main thread.
+     * @param msgRef a reference the next Message that was sent by the internal thread
+     * @param numLeft the number of Messages still remaining in the queue (as returned by GetNextReplyFromInternalThread())
+     */
+   virtual void MessageReceivedFromInternalThread(const MessageRef & msgRef, uint32 numLeft);
 
    /** May be called by the internal thread to send a Message back to the owning thread.
      * Puts the given MessageRef into the replies queue, and then calls SignalOwner()
@@ -377,10 +396,9 @@ protected:
    virtual void SignalInternalThread();
 
    /** Called by SendMessageToOwner() whenever there is a need to wake up the owning
-     * thread so that it will look at its reply queue.  Default implementation sends
-     * a byte to the main-thread-listen socket, but you can override this method to
-     * do it different way if you need to.
-     * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
+     * thread so that it will look at its reply queue.  Default implementation calls
+     * RequestCallbackInDispatchThread() and also sends a byte to the main-thread-listen socket
+     * (if allocated), but you can override this method to do it different way if you need to.
      */
    virtual void SignalOwner();
 
@@ -390,17 +408,6 @@ protected:
      * @returns The socket fd that the thread is to listen on, or a NULL reference on error.
      */
    const ConstSocketRef & GetInternalThreadWakeupSocket();
-
-   /** Locks the lock we use to serialize calls to SignalInternalThread() and
-     * SignalOwner().  Be sure to call UnlockSignallingLock() when you are done with the lock.
-     * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure.
-     */
-   status_t LockSignalling() {return _signalLock.Lock();}
-
-   /** Unlocks the lock we use to serialize calls to SignalInternalThread() and SignalOwner().  
-     * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure.
-     */
-   status_t UnlockSignalling() {return _signalLock.Unlock();}
 
    /** Closes all of our threading sockets, if they are open. */
    void CloseSockets();
@@ -466,6 +473,8 @@ protected:
    bool IsInternalThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const {return GetInternalThreadSocketSet(socketSet).GetWithDefault(sock, false);}
 
 private:
+   ICallbackMechanism * _optCallbackMechanism;
+
    // The read/write versions of these methods are intentionally private, since we want callers to use the Register()/Unregister() calls instead
    // of modifying the Hashtables directly.  That way the registration mechanism can be customized by subclasses, if desired.
    Hashtable<ConstSocketRef, bool> & GetInternalThreadSocketSetRW(uint32 socketSet) {return _threadData[MESSAGE_THREAD_INTERNAL]._socketSets[socketSet];}
@@ -510,7 +519,6 @@ private:
    ThreadSpecificData _threadData[NUM_MESSAGE_THREADS];
 
    bool _threadRunning;
-   Mutex _signalLock;
 
 #if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
    std::thread _thread;

@@ -88,7 +88,7 @@ class DetectNetworkConfigChangesThread : public Thread
 {
 public:
    DetectNetworkConfigChangesThread()
-      : Thread(false)
+      : Thread(NULL, false)
       , _threadKeepGoing(false)
       , _isComputerSleeping(false)
 #ifdef __APPLE__

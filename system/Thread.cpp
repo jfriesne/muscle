@@ -27,8 +27,9 @@ namespace muscle {
 extern void DeadlockFinder_PrintAndClearLogEventsForCurrentThread();
 #endif
 
-Thread :: Thread(bool useMessagingSockets)
-   : _useMessagingSockets(useMessagingSockets)
+Thread :: Thread(ICallbackMechanism * optCallbackMechanism, bool useMessagingSockets)
+   : ICallbackSubscriber(optCallbackMechanism)
+   , _useMessagingSockets(useMessagingSockets)
    , _messageSocketsAllocated(!useMessagingSockets)
    , _threadRunning(false)
    , _suggestedStackSize(0)
@@ -163,14 +164,13 @@ status_t Thread :: SendMessageAux(int whichQueue, const MessageRef & replyRef)
    {
       const bool sendNotification = ((tsd._messages.AddTail(replyRef).IsOK(ret))&&(tsd._messages.GetNumItems() == 1));
       (void) tsd._queueLock.Unlock();
-      if ((sendNotification)&&(_signalLock.Lock().IsOK(ret)))
+      if (sendNotification)
       {
          switch(whichQueue)
          {
             case MESSAGE_THREAD_INTERNAL: SignalInternalThread(); break;
             case MESSAGE_THREAD_OWNER:    SignalOwner();          break;
          }
-         (void) _signalLock.Unlock();
       }
    }
    return ret;
@@ -184,6 +184,7 @@ void Thread :: SignalInternalThread()
 void Thread :: SignalOwner() 
 {
    SignalAux(MESSAGE_THREAD_INTERNAL);  // we send a byte on the internal socket and the byte comes out on the owner's socket
+   RequestCallbackInDispatchThread();
 }
 
 void Thread :: SignalAux(int whichSocket)
@@ -197,6 +198,21 @@ void Thread :: SignalAux(int whichSocket)
          (void) send_ignore_eintr(fd, &junk, sizeof(junk), 0);
       }
    }
+}
+
+// Called in the main thread by the ICallbackMechanism, if there is one
+void Thread :: DispatchCallbacks(uint32 /*eventTypeBits*/)
+{
+   int32 numLeft;
+   MessageRef ref;
+   while((numLeft = GetNextReplyFromInternalThread(ref)) >= 0) MessageReceivedFromInternalThread(ref, numLeft);
+}
+
+// default implementation is a no-op
+void Thread :: MessageReceivedFromInternalThread(const MessageRef & ref, uint32 numLeft)
+{
+   (void) ref;
+   (void) numLeft;
 }
 
 int32 Thread :: GetNextReplyFromInternalThread(MessageRef & ref, uint64 wakeupTime)

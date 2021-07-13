@@ -6,6 +6,8 @@ namespace muscle {
 
 void CallbackMessageTransceiverThread :: DispatchCallbacks(uint32)
 {
+   // deliberately not calling up to the superclass!
+
    uint32 code;
    MessageRef next;
    String sessionID;

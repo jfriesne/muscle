@@ -3,7 +3,6 @@
 #ifndef MuscleCallbackMessageTransceiverThread_h
 #define MuscleCallbackMessageTransceiverThread_h
 
-#include "util/ICallbackSubscriber.h"
 #include "system/MessageTransceiverThread.h"
 
 namespace muscle {
@@ -13,22 +12,15 @@ namespace muscle {
   * with various environment-specific event-loops; you simply need to supply the correct
   * type of ICallbackMechanism to the constructor.
   */
-class CallbackMessageTransceiverThread : public MessageTransceiverThread, public ICallbackSubscriber
+class CallbackMessageTransceiverThread : public MessageTransceiverThread
 {
 public:
    /** Constructor
      * @param optCallbackMechanism Pointer to the ICallbackMechanism object we should register with
      */
-   CallbackMessageTransceiverThread(ICallbackMechanism * optCallbackMechanism) : ICallbackSubscriber(optCallbackMechanism) {/* empty */}
+   CallbackMessageTransceiverThread(ICallbackMechanism * optCallbackMechanism) : MessageTransceiverThread(optCallbackMechanism) {/* empty */}
 
 protected:
-   /** Overridden to RequestCallbackInDispatchThread() also */
-   virtual void SignalOwner()
-   {
-      MessageTransceiverThread::SignalOwner();
-      RequestCallbackInDispatchThread();
-   }
-
    /** Implemented to call the appropriate virtual methods when a signal is received from the internal thread.
      * @param eventTypeBits this argument is ignored, for now
      */

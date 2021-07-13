@@ -330,8 +330,12 @@ DECLARE_REFTYPES(ThreadSupervisorSession);
 class MessageTransceiverThread : public Thread
 {
 public:
-   /** Constructor */
-   MessageTransceiverThread();
+   /** Constructor
+     * @param optCallbackMechanism if specified non-NULL, the SignalOwner() method will call
+     *                             RequestCallbackInDispatchThread() on this object in order to request that
+     *                             the dispatch-thread call DispatchCallbacks() later on.
+     */
+   MessageTransceiverThread(ICallbackMechanism * optCallbackMechanism = NULL);
 
    /** Destructor.  If the internal thread was started, you must make sure it has been
      * shut down by calling ShutdownInternalThread() before deleting the MessageTransceiverThread object.

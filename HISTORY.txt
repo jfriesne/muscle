@@ -18,6 +18,10 @@ key:  - new feature
    - Added SDLCallbackMechanism for integration into SDL event loops.
    - Added QSocketCallbackMechanism and QPostEventCallbackMechanism for
      integration into Qt event loops.
+   - Thread class now inherits from ICallbackSubscriber and its constructor
+     optionally takes a pointer to an ICallbackMechanism that can be used
+     to automatically handle Messages sent back to the owning thread by
+     the Thread's internal thread.
    o Moved platform-specific code into a "platform" subdirectory.
    o Moved (non-C++) language-specific code into a "lang" subdirectory.
    o Changed MessageTransceiverThread::SendMessageToSessions() (and friends)
@@ -34,6 +38,8 @@ key:  - new feature
    o Moved the Python2-specific .py files into a python2 folder, for clarity.
    o Removed win32client.cpp from the test folder (see
      multithreadedreflectclient.cpp instead)
+   o Removed the LockSignalling() and UnlockSignalling() methods from the
+     Thread class as they aren't useful any longer.
    * Fixed an error with the usage of the fErrorChar and ErrorChar
      fields in the Windows implementation of the RS232DataIO class
      constructor.  (Thanks to Mika Lindqvist for providing this fix)

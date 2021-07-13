@@ -21,8 +21,9 @@ static status_t AddIPAddressToMessage(Message & msg, const String & fieldName, c
    return msg.AddString(fieldName, Inet_NtoA(ip));
 }
 
-MessageTransceiverThread :: MessageTransceiverThread()
-   : _forwardAllIncomingMessagesToSupervisor(true)
+MessageTransceiverThread :: MessageTransceiverThread(ICallbackMechanism * optCallbackMechanism)
+   : Thread(optCallbackMechanism)
+   , _forwardAllIncomingMessagesToSupervisor(true)
 {
    // empty
 }
