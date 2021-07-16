@@ -78,7 +78,7 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
                   // Payloads are compressed!  Gotta zlib-inflate them first
                   if (_codec() == NULL) _codec.SetRef(newnothrow ZLibCodec(3));  // compression-level doesn't really matter for inflation step
-                  infBuf = _codec() ? _codec()->Inflate(p, invalidByte-p) : ByteBufferRef();
+                  infBuf = _codec() ? _codec()->Inflate(p, (uint32) (invalidByte-p)) : ByteBufferRef();
                   if (infBuf())
                   {
                      p = infBuf()->GetBuffer();
@@ -101,7 +101,7 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
                   const uint32 chunkSizeBytes = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(p));
                   p += CHUNK_HEADER_SIZE;
 
-                  const uint32 bytesAvailable = invalidByte-p;
+                  const uint32 bytesAvailable = (uint32) (invalidByte-p);
                   if (chunkSizeBytes <= bytesAvailable)
                   {
                      HandleIncomingByteBuffer(receiver, p, chunkSizeBytes, fromIAP);
