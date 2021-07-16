@@ -1,7 +1,8 @@
 site_name: MUSCLE by Example
+site_url:  https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/site/index.html
 theme:     readthedocs
 
-pages:
+nav:
 - Home: 'index.md'
 
 - MUSCLE Naming Conventions: 'naming-conventions.md'
