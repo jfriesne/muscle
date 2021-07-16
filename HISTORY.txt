@@ -5,8 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
-8.31 - Released
-   - Added Windows-only convenience-constructor to the Socket class that
+8.40 - Released 7/15/2021
+   - Added a Windows-only convenience-constructor to the Socket class that
      takes a SOCKET instead of an int, for easier capture of Windows
      socket-descriptors into Socket objects.
    - Added Windows-only convenience-version of the GetConstSocketRefFromPool()
