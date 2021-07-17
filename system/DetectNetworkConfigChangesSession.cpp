@@ -80,7 +80,7 @@ enum {
    DNCCS_MESSAGE_JUST_WOKE_UP
 };
 
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 static void on_path_monitor_update_event(DetectNetworkConfigChangesThread * t);
 static void dummy_source_func(void *) {/* empty */}
 #endif
@@ -484,7 +484,7 @@ private:
 #endif
 };
 
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 static void on_path_monitor_update_event(DetectNetworkConfigChangesThread * t) {if (t) t->SignalInterfacesChanged(Hashtable<String, Void>());}
 #endif
 
