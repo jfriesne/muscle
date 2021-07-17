@@ -7,13 +7,12 @@
 # include <mach/mach_interface.h>
 # include <mach/mach_init.h>
 # include <TargetConditionals.h>
-# if !(TARGET_OS_IPHONE)
+# if (TARGET_OS_IPHONE)
+#  include <dispatch/dispatch.h>
+#  include <Network/Network.h>
+# else
 #  include <IOKit/pwr_mgt/IOPMLib.h>
 #  include <IOKit/IOMessage.h>
-# else
-#  ifndef MUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION
-#   define MUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION
-#  endif
 # endif
 # include <SystemConfiguration/SystemConfiguration.h>
 #elif WIN32
@@ -44,7 +43,7 @@
 
 #include "reflector/ReflectServer.h"
 
-#if (defined(__APPLE__) && !(TARGET_OS_IPHONE)) || defined(WIN32)
+#if defined(__APPLE__) || defined(WIN32)
 # define USE_SINGLETON_THREAD
 # include "system/Thread.h"
 # if defined(MUSCLE_SINGLE_THREAD_ONLY)
@@ -61,7 +60,7 @@ class DetectNetworkConfigChangesThread;
 static Mutex _singletonThreadMutex;
 static DetectNetworkConfigChangesThread * _singletonThread = NULL;  // demand-allocated
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !(TARGET_OS_IPHONE)
 static OSStatus CreateIPAddressListChangeCallbackSCF(SCDynamicStoreCallBack callback, void *contextPtr, SCDynamicStoreRef * storeRef, CFRunLoopSourceRef *sourceRef, Hashtable<String, String> & keyToInterfaceName);
 static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedKeys, void * info);
 static void SleepCallback(void * refCon, io_service_t /*service*/, natural_t messageType, void * messageArgument);
@@ -81,6 +80,11 @@ enum {
    DNCCS_MESSAGE_JUST_WOKE_UP
 };
 
+#ifdef TARGET_OS_IPHONE
+static void on_path_monitor_update_event(DetectNetworkConfigChangesThread * t);
+static void dummy_source_func(void *) {/* empty */}
+#endif
+
 // We'll create just one DetectNetworkConfigChangesThread per process and let all DetectNetworkConfigChangesSession objects
 // use it.  That way we limit the number of detect-network-changes-threads created to 1, and relieve the user's code from 
 // any pressure to minimize the number of DetectNetworkConfigChangesSessions it creates.
@@ -88,12 +92,14 @@ class DetectNetworkConfigChangesThread : public Thread
 {
 public:
    DetectNetworkConfigChangesThread()
-      : Thread(NULL, false)
+      : Thread(false)
       , _threadKeepGoing(false)
       , _isComputerSleeping(false)
 #ifdef __APPLE__
       , _threadRunLoop(NULL)
+# if !(TARGET_OS_IPHONE)
       , _rootPortPointer(NULL)
+# endif
 #elif WIN32
       , _wakeupSignal(MY_INVALID_HANDLE_VALUE)
 #endif
@@ -142,7 +148,7 @@ public:
       }       
    }
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !(TARGET_OS_IPHONE)
    void SleepCallback(natural_t messageType, long messageArgument)
    {
       switch(messageType)
@@ -259,11 +265,34 @@ public:
 protected:
    virtual void InternalThreadEntry()
    {
-# if defined(MUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION)
-      // empty
-# elif defined(__APPLE__)
+#if defined(__APPLE__)
       _threadRunLoop = CFRunLoopGetCurrent();
 
+# if TARGET_OS_IPHONE
+      nw_path_monitor_t monitor = nw_path_monitor_create();
+      if (monitor)
+      {
+         nw_path_monitor_set_queue(monitor, dispatch_get_main_queue());
+         nw_path_monitor_set_update_handler(monitor, ^(nw_path_t path){on_path_monitor_update_event(this);});
+         nw_path_monitor_start(monitor);
+
+         // FogBugz #5260:  Add a dummy source context, just to keep our CFRunLoopInMode() loop from spinning the CPU
+         CFRunLoopSourceContext context; memset(&context, 0, sizeof(context)); context.perform = dummy_source_func;
+         CFRunLoopSourceRef dummySource = CFRunLoopSourceCreate(NULL, 0, &context);
+         if (dummySource)
+         {
+            CFRunLoopAddSource(CFRunLoopGetCurrent(), dummySource, kCFRunLoopDefaultMode);
+            while(_threadKeepGoing) CFRunLoopRun();
+            CFRunLoopRemoveSource(CFRunLoopGetCurrent(), dummySource, kCFRunLoopDefaultMode);
+            CFRelease(dummySource);
+         }
+         else LogTime(MUSCLE_LOG_CRITICALERROR, "DetectNetworkConfigChangesThread::InternalThreadEntry():  CFRunLoopSourceCreate() failed!\n");
+
+         nw_path_monitor_cancel(monitor);
+         nw_release(monitor);
+      }
+      else LogTime(MUSCLE_LOG_ERROR, "DetectNetworkConfigChangesThread::InternalThreadEntry():  nw_path_monitor_create() failed!\n");
+# else
       // notification port allocated by IORegisterForSystemPower
       IONotificationPortRef powerNotifyPortRef = NULL;
       io_object_t notifierObject;    // notifier object, used to deregister later
@@ -285,22 +314,7 @@ protected:
       if (CreateIPAddressListChangeCallbackSCF(muscle::IPConfigChangedCallback, this, &storeRef, &sourceRef, _scKeyToInterfaceName) == noErr)
       {
          CFRunLoopAddSource(CFRunLoopGetCurrent(), sourceRef, kCFRunLoopDefaultMode);
-         while(_threadKeepGoing) 
-         {
-            CFRunLoopRun();
-#ifdef TODO_REWRITE_THIS
-            while(1)
-            {
-               MessageRef msgRef;
-               int32 numLeft = WaitForNextMessageFromOwner(msgRef, 0);
-               if (numLeft >= 0)
-               {
-                  if (MessageReceivedFromOwner(msgRef, numLeft).IsError()) _threadKeepGoing = false;
-               }
-               else break; 
-            }
-#endif
-         }
+         while(_threadKeepGoing) CFRunLoopRun();
          CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sourceRef, kCFRunLoopDefaultMode);
          CFRelease(storeRef);
          CFRelease(sourceRef);
@@ -312,9 +326,10 @@ protected:
          (void) IONotificationPortDestroy(powerNotifyPortRef);
       }
       _rootPortPointer = NULL;
-# elif defined(WIN32)
-#define WINDOW_CLASS_NAME   _T("DetectNetworkConfigChangesThread_HiddenWndClass")
-#define WINDOW_MENU_NAME    _T("DetectNetworkConfigChangesThread_MainMenu")
+# endif
+#elif defined(WIN32)
+# define WINDOW_CLASS_NAME   _T("DetectNetworkConfigChangesThread_HiddenWndClass")
+# define WINDOW_MENU_NAME    _T("DetectNetworkConfigChangesThread_MainMenu")
 
       // Gotta create a hidden window to receive WM_POWERBROADCAST events, lame-o!
       // Register the window class for the main window. 
@@ -346,7 +361,7 @@ protected:
 # ifndef MUSCLE_AVOID_NETIOAPI
       HANDLE handle1 = MY_INVALID_HANDLE_VALUE; (void) NotifyUnicastIpAddressChange(AF_UNSPEC, &AddressCallback,   this, FALSE, &handle1);
       HANDLE handle2 = MY_INVALID_HANDLE_VALUE; (void) NotifyIpInterfaceChange(     AF_UNSPEC, &InterfaceCallback, this, FALSE, &handle2);
-#endif
+# endif
 
       OVERLAPPED olap; memset(&olap, 0, sizeof(olap));
       olap.hEvent = CreateEvent(NULL, false, false, NULL);
@@ -400,9 +415,9 @@ protected:
 
       if (hiddenWindow) DestroyWindow(hiddenWindow);
       // Deliberately leaving the window_class registered here, since to do otherwise could be thread-unsafe
-# else
-#  error "DetectNetworkConfigChangesThread:  OS not supported!"
-# endif
+#else
+# error "DetectNetworkConfigChangesThread:  OS not supported!"
+#endif
    }
 
 private:
@@ -423,11 +438,11 @@ private:
    virtual void ShutdownInternalThread(bool waitForThread = true)
    {
       _threadKeepGoing = false;
-# ifdef __APPLE__
+#ifdef __APPLE__
       if (_threadRunLoop) CFRunLoopStop((CFRunLoopRef)_threadRunLoop);
-# elif WIN32
+#elif WIN32
       SetEvent(_wakeupSignal);
-# endif
+#endif
 
       Thread::ShutdownInternalThread(waitForThread);
       CleanupSignalling();
@@ -458,16 +473,22 @@ private:
    volatile bool _threadKeepGoing;
    bool _isComputerSleeping;
 
-# ifdef __APPLE__
+#ifdef __APPLE__
    void * _threadRunLoop; // actually of type CFRunLoopRef but I don't want to include CFRunLoop.h from this header file becaues doing so breaks things
-   Hashtable<String, String> _scKeyToInterfaceName;
+# if !(TARGET_OS_IPHONE)
    io_connect_t * _rootPortPointer;
-# elif _WIN32
-   ::HANDLE _wakeupSignal;
+   Hashtable<String, String> _scKeyToInterfaceName;
 # endif
+#elif _WIN32
+   ::HANDLE _wakeupSignal;
+#endif
 };
 
-# ifdef __APPLE__
+#ifdef TARGET_OS_IPHONE
+static void on_path_monitor_update_event(DetectNetworkConfigChangesThread * t) {if (t) t->SignalInterfacesChanged(Hashtable<String, Void>());}
+#endif
+
+#if defined(__APPLE__) && !(TARGET_OS_IPHONE)
 // MacOS/X Code taken from http://developer.apple.com/technotes/tn/tn1145.html
 static OSStatus MoreSCErrorBoolean(Boolean success)
 {
@@ -595,10 +616,10 @@ static OSStatus CreateIPAddressListChangeCallbackSCF(SCDynamicStoreCallBack call
 static void SleepCallback(void * refCon, io_service_t /*service*/, natural_t messageType, void * messageArgument) {static_cast<DetectNetworkConfigChangesThread *>(refCon)->SleepCallback(messageType, (long)messageArgument);}
 static void IPConfigChangedCallback(SCDynamicStoreRef store, CFArrayRef changedKeys, void * info) {static_cast<DetectNetworkConfigChangesThread *>(info)->IPConfigChanged(store, changedKeys);}
 
-# endif  // __APPLE__
+#endif  // __APPLE__
 
-# if defined(WIN32)
-#  if !defined(MUSCLE_AVOID_NETIOAPI)
+#if defined(WIN32)
+# if !defined(MUSCLE_AVOID_NETIOAPI)
 
 VOID __stdcall AddressCallback(IN PVOID context, IN PMIB_UNICASTIPADDRESS_ROW Address OPTIONAL, IN MIB_NOTIFICATION_TYPE /*NotificationType*/)
 {
@@ -609,7 +630,7 @@ VOID __stdcall InterfaceCallback(IN PVOID context, IN PMIB_IPINTERFACE_ROW inter
 {
    if (interfaceRow != NULL) static_cast<DetectNetworkConfigChangesThread *>(context)->SignalInterfacesChanged(interfaceRow->InterfaceIndex);
 }
-#  endif
+# endif
 
 static LRESULT CALLBACK dnccsWindowHandler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -632,7 +653,7 @@ static LRESULT CALLBACK dnccsWindowHandler(HWND hWnd, UINT message, WPARAM wPara
    }
    return DefWindowProc(hWnd, message, wParam, lParam);
 }
-# endif
+#endif
 
 static status_t RegisterWithSingletonThread(DetectNetworkConfigChangesSession * s)
 {
