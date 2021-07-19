@@ -496,7 +496,6 @@ static void on_path_monitor_update_event(DetectNetworkConfigChangesThread * t, n
          (void) pIfaceNames->PutWithDefault(nw_interface_get_name(interface));
          return true;
       });
-printf("ZZZ %u\n", ifaceNames.GetNumItems());
       t->SignalInterfacesChanged(ifaceNames);
    }
 }
