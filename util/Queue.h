@@ -813,7 +813,7 @@ public:
    QueueStackGuard(Queue<ItemType> & q, const ItemType & item) : _queue(q) {(void) _queue.AddTail(item);}
 
    /** Destructor -- pops the last item out of the Queue that was specified in the constructor. */
-   virtual ~QueueStackGuard() {(void) _queue.RemoveTail();}
+   ~QueueStackGuard() {(void) _queue.RemoveTail();}
 
 private:
    Queue<ItemType> & _queue;
