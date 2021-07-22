@@ -10,6 +10,8 @@ key:  - new feature
      the local network devices can be detected properly under iOS.
    o Removed the "virtual" tag from the QueStackGuard class
      constructor since it isn't necessary.
+   * CMakeLists.txt now sets CMAKE_OBJECT_PATH_MAX to 500 to
+     work around path-length restrictions under Windows.
 
 8.40 - Released 7/15/2021
    - Added a Windows-only convenience-constructor to the Socket class that

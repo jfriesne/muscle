@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 2.8)
 
 cmake_policy(SET CMP0020 NEW)
 
+set(CMAKE_OBJECT_PATH_MAX 500)  # work-around for windows max-path-length lameness
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
