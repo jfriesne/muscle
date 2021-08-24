@@ -407,7 +407,7 @@ private:
 
    Message _centralState;
    Hashtable<const String *, AbstractReflectSessionRef> _sessions;
-   Queue<AbstractReflectSessionRef> _lameDuckSessions;  // sessions that are due to be removed
+   Hashtable<const String *, AbstractReflectSessionRef> _lameDuckSessions;  // sessions that are due to be removed
    bool _keepServerGoing;
    uint64 _serverStartedAt;
    bool _doLogging;

@@ -258,7 +258,8 @@ ReflectServer :: ReflectServer()
    if (_serverSessionID == 0) _serverSessionID++;  // paranoia:  make sure 0 can be used as a guard value
 
    // make sure _lameDuckSessions has plenty of memory available in advance (we need might need it in a tight spot later!)
-   _lameDuckSessions.EnsureSize(256);
+   (void) _lameDuckSessions.EnsureSize(256);
+   (void) _lameDuckFactories.EnsureSize(16);
 }
 
 ReflectServer :: ~ReflectServer()
@@ -271,7 +272,7 @@ ReflectServer :: Cleanup()
 {
    // Detach all sessions
    {
-      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(_sessions); iter.HasData(); iter++)
       {
          AbstractReflectSessionRef nextValue = iter.GetValue();
          if (nextValue()) 
@@ -281,8 +282,8 @@ ReflectServer :: Cleanup()
             ars.AboutToDetachFromServer();
             ars.DoOutput(MUSCLE_NO_LIMIT);  // one last chance for him to send any leftover data!
             ars.SetOwner(NULL);
-            _lameDuckSessions.AddTail(nextValue);  // we'll delete it below
-            _sessions.Remove(iter.GetKey());  // but prevent other sessions from accessing it now that it's detached
+
+            (void) _sessions.MoveToTable(iter.GetKey(), _lameDuckSessions);
          }
       }
    }
@@ -574,7 +575,7 @@ ServerProcessLoop()
 
       // Do I/O for each of our attached sessions
       {
-         for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+         for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(_sessions); iter.HasData(); iter++)
          {
             TCHECKPOINT;
 
@@ -676,7 +677,7 @@ ServerProcessLoop()
                      }
                   }
                }
-               else
+               else if (_lameDuckSessions.ContainsKey(iter.GetKey()) == false)  // no sense reporting about a session that is about to go away anyway
                {
                   // Watch for a continually-growing/never-drained output queue, and warn if we see it happening.
                   const AbstractMessageIOGateway * g = session->GetGateway()();
@@ -773,9 +774,9 @@ status_t ReflectServer :: ClearLameDucks()
 
    // Remove any sessions that were previously marked for removal
    AbstractReflectSessionRef duckRef;
-   while(_lameDuckSessions.RemoveHead(duckRef).IsOK())
+   while(_lameDuckSessions.HasItems())
    {
-      AbstractReflectSession * duck = duckRef();
+      AbstractReflectSession * duck = _lameDuckSessions.GetFirstValue()->GetItemPointer();
       if (duck)
       {
          const String & id = duck->GetSessionIDString();
@@ -789,6 +790,7 @@ status_t ReflectServer :: ClearLameDucks()
             (void) _sessions.Remove(&id);
          }
       }
+      (void) _lameDuckSessions.RemoveFirst();
    }
 
    return _keepServerGoing ? B_NO_ERROR : B_ERROR;
@@ -1122,7 +1124,8 @@ void
 ReflectServer ::
 AddLameDuckSession(const AbstractReflectSessionRef & ref)
 {
-   if ((_lameDuckSessions.IndexOf(ref) < 0)&&(_lameDuckSessions.AddTail(ref).IsError())&&(_doLogging)) LogTime(MUSCLE_LOG_CRITICALERROR, "Server:  AddLameDuckSession() failed, I'm REALLY in trouble!  Aggh!\n");
+   status_t ret;
+   if ((ref())&&(_lameDuckSessions.Put(&ref()->GetSessionIDString(), ref).IsError(ret))&&(_doLogging)) LogTime(MUSCLE_LOG_CRITICALERROR, "Server:  AddLameDuckSession() failed [%s], I'm REALLY in trouble!  Aggh!\n", ret());
 }
 
 void
@@ -1166,7 +1169,7 @@ SetComputerIsAboutToSleep(bool isAboutToSleep)
                // Only schedule reconnects for those sessions that could benefit from them
                const bool scheduleReconnect = ((s()->GetAsyncConnectDestination().IsValid())&&(s()->GetAutoReconnectDelay() != MUSCLE_TIME_NEVER));
                (void) s()->DisconnectSession();
-               if ((scheduleReconnect)&&(_lameDuckSessions.Contains(s) == false)&&(_sessionsToReconnectOnWakeup.Put(sessionID, false).IsOK()))
+               if ((scheduleReconnect)&&(_lameDuckSessions.ContainsKey(&sessionID) == false)&&(_sessionsToReconnectOnWakeup.Put(sessionID, false).IsOK()))
                {
                   s()->InvalidatePulseTime();  // Avoid extra call to Pulse() if session's _autoReconnectTime was set
                   scheduleCount++;

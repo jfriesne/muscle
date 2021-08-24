@@ -10,6 +10,11 @@ key:  - new feature
      the local network devices can be detected properly under iOS.
    o Removed the "virtual" tag from the QueStackGuard class
      constructor since it isn't necessary.
+   o Changed ReflectServer's _lameDuckSessions to be a Hashtable
+     instead of a Queue, for better consistency with _sessions.
+   * Fixed a bug that could cause ReflectServer to occasionally
+     report a resource-leak for a lame-duck session just before
+     the session was disposed of.
    * CMakeLists.txt now sets CMAKE_OBJECT_PATH_MAX to 500 to
      work around path-length restrictions under Windows.
 
