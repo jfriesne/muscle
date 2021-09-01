@@ -8,6 +8,9 @@ key:  - new feature
    - Added an NWPathMonitor-based implementation to the
      DetectNetworkConfigChangesSession class so that changes to
      the local network devices can be detected properly under iOS.
+   - Added a PointerAndBools class for PointerAndBool.h, for
+     extremely frugal programmers who want to smuggle two booleans
+     into their pointer-fields.
    o Removed the "virtual" tag from the QueStackGuard class
      constructor since it isn't necessary.
    o Changed ReflectServer's _lameDuckSessions to be a Hashtable

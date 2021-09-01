@@ -243,10 +243,18 @@ of your Makefile to alter muscle's behaviour:
    in the slabs aren't needed.  This value should be specified in bytes.
 
 -DMUSCLE_AVOID_BITSTUFFING
-   If set, this flag will cause the RefCount and ByteBuffer classes
+   If set, this flag will cause the PointerAndBool class
    to use a separate boolean state value, rather than stuffing that bit
    into its held pointer.  This flag might be necessary on systems
    that don't word-align their object pointers (if such systems exist)
+
+-DMUSCLE_AVOID_DOUBLE_BITSTUFFING
+   If set, this flag will cause the PointerAndBools class
+   to use a separate bitchord, rather than stuffing its two bits
+   into its held pointer.  This flag might be necessary on systems
+   that don't word-align their object pointers (if such systems exist)
+   Note that if -DMUSCLE_AVOID_BITSTUFFING is specified, then
+   MUSCLE_AVOID_DOUBLE_BITSTUFFING will be automatically defined also.
 
 -DMUSCLE_AVOID_CHECK_THREAD_STACK_USAGE
    If set, calls to the CHECK_THREAD_STACK_USAGE macro will be
