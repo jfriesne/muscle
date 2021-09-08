@@ -5,6 +5,12 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Changed the windows implementation of the muscleSprintf
+     and muscleSnprintf macros back to plain old sprintf and
+     snprintf, since sprintf_s was throwing assertions on
+     buffer-overflow rather than simply truncating the way
+     snprintf() would.
+
 8.41 - Released 9/1/2021
    - Added an NWPathMonitor-based implementation to the
      DetectNetworkConfigChangesSession class so that changes to

@@ -818,19 +818,18 @@ template<typename T> inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0
 
 #if defined(__cplusplus) && (_MSC_VER >= 1400)
 /** For MSVC, we provide CRT-friendly versions of these functions to avoid security warnings */
-# define muscleSprintf  sprintf_s  /* Ooh, template magic! */
-# define muscleSnprintf sprintf_s  /* Yes, sprintf_s is correct here! (this version is usable when template magic isn't possible) -jaf */
 # define muscleStrcpy   strcpy_s   /* Ooh, template magic! */
 static inline char * muscleStrncpy(char * to, const char * from, size_t maxLen) {(void) strcpy_s(to, maxLen, from); return to;}
 static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * fp; return (fopen_s(&fp, path, mode) == 0) ? fp : NULL;}
 #else
 /** Other OS's can use the usual functions instead. */
-# define muscleSprintf  sprintf   /**< On Windows, this expands to sprintf_s to avoid security warnings; on other OS's it expands to plain old sprintf */
-# define muscleSnprintf snprintf  /**< On Windows, this expands to snprintf_s to avoid security warnings; on other OS's it expands to plain old snprintf */
 # define muscleStrcpy   strcpy    /**< On Windows, this expands to strcpy_s to avoid security warnings; on other OS's it expands to plain old strcpy */
 # define muscleStrncpy  strncpy   /**< On Windows, this expands to strncpy_s to avoid security warnings; on other OS's it expands to plain old strncpy */
 # define muscleFopen    fopen     /**< On Windows, this expands to fopen_s to avoid security warnings; on other OS's it expands to plain old fopen */
 #endif
+
+#define muscleSprintf  sprintf   /**< Always expands to regular sprintf(), for now (sprintf_s under Windows turned out not to be a good substitute) */
+#define muscleSnprintf snprintf  /**< Always expands to regular snprintf(), for now (sprintf_s under Windows turned out not to be a good substitute) */
 
 /*
  * Copyright(c) 1983,   1989
