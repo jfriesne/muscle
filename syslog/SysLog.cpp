@@ -2043,7 +2043,7 @@ uint32 SourceCodeLocationKeyFromString(const String & ss)
 
 void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
 {
-   const size_t MINIMUM_PREMABLE_BUF_SIZE_PER_DOCUMENTATION = 64;
+   const size_t MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION = 64;
    struct tm ltm;
    time_t when = a.GetWhen();
    struct tm * temp = muscle_localtime_r(&when, &ltm);
@@ -2058,15 +2058,15 @@ void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
    if (lastSlash) fn = lastSlash+1;
 
    static const size_t suffixSize = 16;
-   muscleSnprintf(buf, MINIMUM_PREMABLE_BUF_SIZE_PER_DOCUMENTATION-suffixSize, "[%c %02i/%02i %02i:%02i:%02i] [%s", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, fn);
+   muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION-suffixSize, "[%c %02i/%02i %02i:%02i:%02i] [%s", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, fn);
    char buf2[suffixSize];
    muscleSnprintf(buf2, sizeof(buf2), ":%i] ", a.GetSourceLineNumber());
-   strncat(buf, buf2, MINIMUM_PREMABLE_BUF_SIZE_PER_DOCUMENTATION);
+   strncat(buf, buf2, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION);
 # else
-   muscleSnprintf(buf, MINIMUM_PREMABLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] [%s] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(a.GetSourceFile(), a.GetSourceLineNumber()))());
+   muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] [%s] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(a.GetSourceFile(), a.GetSourceLineNumber()))());
 #endif
 #else
-   muscleSnprintf(buf, MINIMUM_PREMABLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec);
+   muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec);
 #endif
 }
 
