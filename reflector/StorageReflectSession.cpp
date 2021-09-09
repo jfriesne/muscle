@@ -468,20 +468,18 @@ SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, SetDataNodeF
             if ((_currentNodeCount >= _maxNodeCount)||(flags.IsBitSet(SETDATANODE_FLAG_DONTCREATENODE))) return B_ACCESS_DENIED;
 
             allocedNode = GetNewDataNode(nextClause, ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false)) ? dataMsgRef : CastAwayConstFromRef(GetEmptyMessageRef()));
-            if (allocedNode())
+            MRETURN_OOM_ON_NULL(allocedNode());
+
+            childNodeRef = allocedNode;
+            if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)))
             {
-               childNodeRef = allocedNode;
-               if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)))
+               if (node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL).IsOK())
                {
-                  if (node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL).IsOK())
-                  {
-                     _currentNodeCount++;
-                     _indexingPresent = true;
-                  }
+                  _currentNodeCount++;
+                  _indexingPresent = true;
                }
-               else if (node->PutChild(childNodeRef, this, ((flags.IsBitSet(SETDATANODE_FLAG_QUIET))||(slashPos < 0)) ? NULL : this).IsOK()) _currentNodeCount++;
             }
-            else MRETURN_OUT_OF_MEMORY;
+            else if (node->PutChild(childNodeRef, this, ((flags.IsBitSet(SETDATANODE_FLAG_QUIET))||(slashPos < 0)) ? NULL : this).IsOK()) _currentNodeCount++;
          }
 
          node = childNodeRef();
