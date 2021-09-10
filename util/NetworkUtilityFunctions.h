@@ -382,15 +382,15 @@ String GetLocalHostName();
  */
 IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort = NULL);
 
-/** Creates a pair of stream-oriented sockets that are connected to each other, so that any bytes 
+/** Creates and returns a pair of stream-oriented sockets that are connected to each other, so that any bytes
  *  you write into one socket come out as bytes to read from the other socket.
  *  This is particularly useful for inter-thread communication and/or signalling.
- *  @param retSocket1 On success, this value will be set to the socket ID of the first socket.
- *  @param retSocket2 On success, this value will be set to the socket ID of the second socket.
+ *  @param retSocket1 On success, the first socket of the socket-pair will be written into this reference.
+ *  @param retSocket2 On success, the second socket of the socket-pair will be written into this reference.
  *  @param blocking Whether the two sockets should use blocking I/O or not.  Defaults to false.
  *  @return B_NO_ERROR on success, or an error code on failure.
  *  @note the Windows implementation of this function will return a pair of connected TCP sockets.
- *        On other OS's, an AF_UNIX socketpair() is returned.  The resulting behavior is the same in either case.
+ *        On other OS's, an AF_UNIX socketpair() is returned.  The resulting behavior is approximately the same in either case.
  */
 status_t CreateConnectedSocketPair(ConstSocketRef & retSocket1, ConstSocketRef & retSocket2, bool blocking = false);
 
