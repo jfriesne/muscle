@@ -883,13 +883,15 @@ status_t CreateConnectedSocketPair(ConstSocketRef & socket1, ConstSocketRef & so
 {
    TCHECKPOINT;
 
+   status_t ret;
+
 #if defined(USE_SOCKETPAIR)
    int temp[2];
    if (socketpair(AF_UNIX, SOCK_STREAM, 0, temp) == 0)
    {
       socket1 = GetConstSocketRefFromPool(temp[0]);
       socket2 = GetConstSocketRefFromPool(temp[1]);
-      if ((SetSocketBlockingEnabled(socket1, blocking).IsOK())&&(SetSocketBlockingEnabled(socket2, blocking).IsOK())) return B_NO_ERROR;
+      if ((SetSocketBlockingEnabled(socket1, blocking).IsOK(ret))&&(SetSocketBlockingEnabled(socket2, blocking).IsOK(ret))) return B_NO_ERROR;
    }
    else return B_ERRNO;
 #else
@@ -904,7 +906,7 @@ status_t CreateConnectedSocketPair(ConstSocketRef & socket1, ConstSocketRef & so
          if (newfd())
          {
             socket1 = newfd;
-            if ((SetSocketBlockingEnabled(socket1, blocking).IsOK())&&(SetSocketBlockingEnabled(socket2, blocking).IsOK()))
+            if ((SetSocketBlockingEnabled(socket1, blocking).IsOK(ret))&&(SetSocketBlockingEnabled(socket2, blocking).IsOK(ret)))
             {
                (void) SetSocketNaglesAlgorithmEnabled(socket1, false);
                (void) SetSocketNaglesAlgorithmEnabled(socket2, false);
@@ -917,7 +919,7 @@ status_t CreateConnectedSocketPair(ConstSocketRef & socket1, ConstSocketRef & so
 
    socket1.Reset();
    socket2.Reset();
-   return B_IO_ERROR;
+   return ret | B_IO_ERROR;
 }
 
 status_t SetSocketBlockingEnabled(const ConstSocketRef & sock, bool blocking)
