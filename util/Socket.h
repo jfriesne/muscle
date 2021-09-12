@@ -75,6 +75,8 @@ private:
    DECLARE_COUNTED_OBJECT(Socket);
 };
 
+class DummyConstSocketRef;  // forward declaration
+
 /** ConstSocketRef is subclassed rather than typedef'd so that I can override the == and != operators
   * to check for equality based on the file-descriptor value rather than on the address of the
   * referenced Socket object.  Doing it this way gives more intuitive hashing behavior (i.e.
@@ -87,10 +89,10 @@ public:
    ConstSocketRef() : ConstRef<Socket>() {/* empty */}
 
    /** This constructor takes ownership of the given Socket object.
-     * @param item The Socket object to take ownership of.  This will be recycled/deleted when this ConstSocketRef is destroyed, unless (doRefCount) is specified as false.
-     * @param doRefCount If set false, we will not attempt to reference-count (item), and instead will only act like a dumb pointer.  Defaults to true.
+     * Once referenced, (sock) will be automatically deleted (or recycled) and its file-descriptor closed when the last ConstSocketRef that references it goes away.
+     * @param sock A dynamically allocated Socket object that the ConstSocketRef class will assume responsibility for deleting.  May be NULL.
      */
-   ConstSocketRef(const Socket * item, bool doRefCount = true) {SetRef(item, doRefCount);}
+   explicit ConstSocketRef(const Socket * sock) : ConstRef<Socket>(sock) {/* empty */}
 
    /** Copy constructor
      * @param rhs The ConstSocketRef to become a copy of.  Note that this doesn't copy (rhs)'s underlying Socket object, but instead
@@ -122,6 +124,34 @@ public:
 
    /** When we're being used as a key in a Hashtable, key on the file-descriptor we hold */
    uint32 HashCode() const {return CalculateHashCode(GetFileDescriptor());}
+
+private:
+   ConstSocketRef(const Socket * sock, bool doRefCount) {SetRef(sock, doRefCount);}
+
+   friend class DummyConstSocketRef;
+};
+
+/** This class is just syntactic sugar for more clearly declaring a
+  * ConstSocketRef that doesn't actually do any reference-counting of the Socket object
+  * that it refers to (e.g. if you need a ConstSocketRef to a stack-based Socket and
+  * are willing to take responsibility for manually managing object-lifetime issues
+  * yourself).  It will behave similarly to a raw pointer.
+  */
+class DummyConstSocketRef : public ConstSocketRef
+{
+public:
+   /** Default constructor.  Creates a NULL reference. */
+   DummyConstSocketRef() {/* empty */}
+
+   /** Creates a dummy-const-reference to the specified Socket object
+     * @param sock reference to the Socket to point to
+     */
+   explicit DummyConstSocketRef(const Socket & sock) : ConstSocketRef(&sock, false) {/* empty */}
+
+   /** Creates a dummy-const-reference to the specified socket
+     * @param sock pointer to the Socket to point to, or NULL to create a NULL DummyConstSocketRef.
+     */
+   explicit DummyConstSocketRef(const Socket * sock) : ConstSocketRef(sock, false) {/* empty */}
 };
 
 /** Returns a ConstSocketRef from our ConstSocketRef pool that references the passed-in file-descriptor.

@@ -97,44 +97,56 @@ void ThreadWorkerSession :: SetForwardAllIncomingMessagesToSupervisorIfNotAlread
    if (_forwardAllIncomingMessagesToSupervisor.HasValueBeenSet() == false) SetForwardAllIncomingMessagesToSupervisor(defaultValue);
 }
 
-status_t MessageTransceiverThread :: AddNewSession(const ConstSocketRef & sock, const ThreadWorkerSessionRef & sessionRef)
+status_t MessageTransceiverThread :: AddNewSession(const ConstSocketRef & sock, const AbstractReflectSessionRef & sessionRef)
 {
    status_t ret;
    if (EnsureServerAllocated().IsOK(ret))
    {
-      ThreadWorkerSessionRef sRef = sessionRef;
+      AbstractReflectSessionRef sRef = sessionRef;
       if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
-      if (sRef()) sRef()->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
-             else return B_ERROR("CreateDefaultWorkerSession() failed");
+      if (sRef())
+      {
+          ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(sRef());
+          if (tws) tws->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
+      }
+      else return B_ERROR("CreateDefaultWorkerSession() failed");
+
       return IsInternalThreadRunning() ? SendAddNewSessionMessage(sRef, sock, NULL, invalidIP, 0, false, MUSCLE_TIME_NEVER, MUSCLE_TIME_NEVER) : _server()->AddNewSession(sRef, sock);
    }
    else return ret;
 }
 
-status_t MessageTransceiverThread :: AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, const ThreadWorkerSessionRef & sessionRef, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+status_t MessageTransceiverThread :: AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, const AbstractReflectSessionRef & sessionRef, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    status_t ret;
    if (EnsureServerAllocated().IsOK(ret))
    {
-      ThreadWorkerSessionRef sRef = sessionRef;
+      AbstractReflectSessionRef sRef = sessionRef;
       if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
-      if (sRef()) sRef()->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
-             else return B_ERROR("CreateDefaultWorkerSession() failed");
+      if (sRef())
+      {
+         ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(sRef());
+         if (tws) tws->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
+      }
+      else return B_ERROR("CreateDefaultWorkerSession() failed");
+
       return IsInternalThreadRunning() ? SendAddNewSessionMessage(sRef, ConstSocketRef(), NULL, targetIPAddress, port, false, autoReconnectDelay, maxAsyncConnectPeriod) : _server()->AddNewConnectSession(sRef, targetIPAddress, port, autoReconnectDelay, maxAsyncConnectPeriod);
    }
    else return ret;
 }
 
-status_t MessageTransceiverThread :: AddNewConnectSession(const String & targetHostName, uint16 port, const ThreadWorkerSessionRef & sessionRef, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+status_t MessageTransceiverThread :: AddNewConnectSession(const String & targetHostName, uint16 port, const AbstractReflectSessionRef & sessionRef, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    status_t ret;
    if (EnsureServerAllocated().IsOK(ret))
    {
-      ThreadWorkerSessionRef sRef = sessionRef;
+      AbstractReflectSessionRef sRef = sessionRef;
       if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
       if (sRef())
       {
-         sRef()->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
+         ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(sRef());
+         if (tws) tws->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
+
          if (IsInternalThreadRunning()) return SendAddNewSessionMessage(sRef, ConstSocketRef(), targetHostName(), 0, port, expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);
          else
          {
@@ -147,7 +159,7 @@ status_t MessageTransceiverThread :: AddNewConnectSession(const String & targetH
    else return ret;
 }
 
-status_t MessageTransceiverThread :: SendAddNewSessionMessage(const ThreadWorkerSessionRef & sessionRef, const ConstSocketRef & sock, const char * hostName, const IPAddress & hostIP, uint16 port, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+status_t MessageTransceiverThread :: SendAddNewSessionMessage(const AbstractReflectSessionRef & sessionRef, const ConstSocketRef & sock, const char * hostName, const IPAddress & hostIP, uint16 port, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    if (sessionRef() == NULL) return B_BAD_ARGUMENT;
 
@@ -165,16 +177,17 @@ status_t MessageTransceiverThread :: SendAddNewSessionMessage(const ThreadWorker
        (msgRef()->CAddInt64( MTT_NAME_MAXASYNCCONNPERIOD, maxAsyncConnectPeriod, MUSCLE_TIME_NEVER).IsOK(ret))) ? SendMessageToInternalThread(msgRef) : ret;
 }
 
-status_t MessageTransceiverThread :: PutAcceptFactory(uint16 port, const ThreadWorkerSessionFactoryRef & factoryRef, const IPAddress & optInterfaceIP, uint16 * optRetPort)
+status_t MessageTransceiverThread :: PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const IPAddress & optInterfaceIP, uint16 * optRetPort)
 {
    status_t ret;
    if (EnsureServerAllocated().IsOK(ret))
    {
-      ThreadWorkerSessionFactoryRef fRef = factoryRef;
+      ReflectSessionFactoryRef fRef = factoryRef;
       if (fRef() == NULL) fRef = CreateDefaultSessionFactory();
       if (fRef())
       {
-         fRef()->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
+         ThreadWorkerSessionFactory * twsf = dynamic_cast<ThreadWorkerSessionFactory *>(fRef());
+         if (twsf) twsf->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
          if (IsInternalThreadRunning())
          {
             MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_PUT_ACCEPT_FACTORY));
@@ -647,7 +660,7 @@ void ThreadSupervisorSession :: AboutToDetachFromServer()
    {
       for (uint32 i=0; i<workers.GetNumItems(); i++)
       {
-         ThreadWorkerSession * ws = static_cast<ThreadWorkerSession *>(workers[i]());
+         ThreadWorkerSession * ws = static_cast<ThreadWorkerSession *>(workers[i]());  // static_cast is okay because FindSessionsOfType() guarantees it for us
          if (ws->_supervisorSession == this) ws->_supervisorSession = NULL;
       }
    }
@@ -703,7 +716,7 @@ bool ThreadSupervisorSession :: ClientConnectionClosed()
    return StorageReflectSession::ClientConnectionClosed();
 }
 
-status_t ThreadSupervisorSession :: AddNewWorkerConnectSession(const ThreadWorkerSessionRef & sessionRef, const IPAddress & hostIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+status_t ThreadSupervisorSession :: AddNewWorkerConnectSession(const AbstractReflectSessionRef & sessionRef, const IPAddress & hostIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    const status_t ret = (hostIP != invalidIP) ? AddNewConnectSession(sessionRef, hostIP, port, autoReconnectDelay, maxAsyncConnectPeriod) : B_BAD_ARGUMENT;
 
@@ -737,7 +750,7 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
                RefCountableRef tagRef;
                if (msg->FindTag(MTT_NAME_SESSION, tagRef).IsOK())
                {
-                  ThreadWorkerSessionRef sessionRef(tagRef, true);
+                  AbstractReflectSessionRef sessionRef(tagRef, true);
                   if (sessionRef())
                   {
                      const char * hostName;
@@ -750,8 +763,9 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
                      else if (msg->FindString(MTT_NAME_HOSTNAME, &hostName)            .IsOK()) (void) AddNewWorkerConnectSession(sessionRef, GetHostByName(hostName, msg->GetBool(MTT_NAME_EXPANDLOCALHOST)), port, autoReconnectDelay, maxAsyncConnectPeriod);
                      else                                                                       (void) AddNewSession(sessionRef, ConstSocketRef(msg->GetTag(MTT_NAME_SOCKET), true));
                   }
-                  else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_PUT_ACCEPT_FACTORY:  Could not get Session!\n");
+                  else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_ADD_NEW_SESSION:  Could not get sessionRef!\n");
                }
+               else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_ADD_NEW_SESSION:  No MTT_NAME_SESSION tag!\n");
             }
             break;
 
@@ -760,15 +774,16 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
                RefCountableRef tagRef;
                if (msg->FindTag(MTT_NAME_FACTORY, tagRef).IsOK())
                {
-                  ThreadWorkerSessionFactoryRef factoryRef(tagRef, true);
+                  ReflectSessionFactoryRef factoryRef(tagRef, true);
                   if (factoryRef())
                   {
                      const uint16 port = msg->GetInt16(MTT_NAME_PORT);
                      IPAddress ip = invalidIP; (void) FindIPAddressInMessage(*msg, MTT_NAME_IP_ADDRESS, ip);
                      (void) PutAcceptFactory(port, factoryRef, ip);
                   }
-                  else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_PUT_ACCEPT_FACTORY:  Could not get ReflectSessionFactory!\n");
+                  else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_PUT_ACCEPT_FACTORY:  Could not get factoryRef!\n");
                }
+               else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_PUT_ACCEPT_FACTORY:  No MTT_NAME_FACTORY tag!\n");
             }
             break;
 

@@ -552,7 +552,7 @@ private:
   * Ref that doesn't actually do any reference-counting of the object
   * that it refers to (e.g. if you need a Ref to a stack-based object and
   * are willing to take responsibility for manually managing object-lifetime issues
-  * yourself).  It will behave similarly to a raw pointer
+  * yourself).  It will behave similarly to a raw pointer.
   */
 template <class Item> class DummyRef : public Ref<Item>
 {

@@ -5,6 +5,20 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a DummyConstSocketRef class, for consistency with
+     the existing DummyConstXXXRef naming conventions
+   - Modified MessageTransceiverThread::AddNewSession() and
+     MessageTransceiverThread::AddNewConnectSession() to take
+     an AbstractReflectSessionRef argument instead of a
+     ThreadWorkerSessionRef, to allow the addition of
+     non-ThreadWorkerSession session objects to the
+     internal ReflectServer when necessary.
+   - Modified MessageTransceiverThread::PutAcceptFactory()
+     to take a ReflectSessionFactoryRef argument instead
+     of a ThreadWorkerSessionFactoryRef argument.
+   o Made the one-argument ConstSocketRef constructor explicit.
+   o Removed the ConstSocketRef(const Socket *, bool) constructor;
+     use the new DummyConstSocketRef class intead.
    * Changed the windows implementation of the muscleSprintf
      and muscleSnprintf macros back to plain old sprintf and
      snprintf, since sprintf_s was throwing assertions on

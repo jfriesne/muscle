@@ -1130,7 +1130,7 @@ static void CloseSocket(int fd)
 
 const ConstSocketRef & GetInvalidSocket()
 {
-   static const ConstSocketRef _ref(&GetDefaultObjectForType<Socket>(), false);
+   static const DummyConstSocketRef _ref(GetDefaultObjectForType<Socket>());
    return _ref;
 }
 

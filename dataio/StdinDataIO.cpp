@@ -102,7 +102,7 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
    , _slaveSocketTag(0)
 #else
-   , _fdIO(ConstSocketRef(&_stdinSocket, false), true)
+   , _fdIO(DummyConstSocketRef(_stdinSocket), true)  // deliberately always setting the blocking-argument to true here (we'll disable blocking only when we need to, elsewhere)
 #endif
 {
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION

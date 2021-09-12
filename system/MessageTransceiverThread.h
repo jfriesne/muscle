@@ -311,7 +311,7 @@ private:
    friend class DrainTag;
 
    void DrainTagIsBeingDeleted(DrainTag * tag);
-   status_t AddNewWorkerConnectSession(const ThreadWorkerSessionRef & sessionRef, const IPAddress & hostIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod);
+   status_t AddNewWorkerConnectSession(const AbstractReflectSessionRef & sessionRef, const IPAddress & hostIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod);
 
    Hashtable<DrainTag *, Void> _drainTags;
    String _defaultDistributionPath;
@@ -364,25 +364,23 @@ public:
      * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewSession().
      * @param socket The TCP socket that the new session will be using, or a NULL ConstSocketRef, if the new session is to have no
      *               associated TCP connection.  This socket becomes property of this object on success.
-     * @param optSessionRef Optional reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession
-     *                      will be created and used.  If you do specify a session here, you will want to use either a
-     *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts
-     *                      like one, or else things won't work correctly.
+     * @param optSessionRef Optional reference for a session to add.  If it's a NULL reference, a ThreadWorkerSession
+     *                      object will be default-constructed and used.
      *                      The referenced session becomes sole property of the MessageTransceiverThread on success.
      * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
-   virtual status_t AddNewSession(const ConstSocketRef & socket, const ThreadWorkerSessionRef & optSessionRef);
+   virtual status_t AddNewSession(const ConstSocketRef & socket, const AbstractReflectSessionRef & optSessionRef);
 
    /** Convenience method -- calls the above method with a NULL session reference.
      * @param socket the socket that the new session should use
      */
-   status_t AddNewSession(const ConstSocketRef & socket) {return AddNewSession(socket, ThreadWorkerSessionRef());}
+   status_t AddNewSession(const ConstSocketRef & socket) {return AddNewSession(socket, AbstractReflectSessionRef());}
 
    /** Convenience method -- calls the above method with a NULL socket reference.
      * @param optSessionRef the worker session that should be added
      */
-   status_t AddNewSession(const ThreadWorkerSessionRef & optSessionRef) {return AddNewSession(ConstSocketRef(), optSessionRef);}
+   status_t AddNewSession(const AbstractReflectSessionRef & optSessionRef) {return AddNewSession(ConstSocketRef(), optSessionRef);}
 
    /** Convenience method -- calls the above method with a NULL socket and NULL session reference. */
    status_t AddNewSession() {return AddNewSession(ConstSocketRef(), ThreadWorkerSessionRef());}
@@ -395,9 +393,9 @@ public:
      * @param targetIPAddress IP address to connect to
      * @param port Port to connect to at that IP address.
      * @param optSessionRef optional Reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession
-     *                      will be created and used.  If you do specify a session here, you will want to use either a
+     *                      will be created and used.  If you do specify a session here, you will probably want to supply either a
      *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts
-     *                      like one, or things won't work correctly.
+     *                      like one, or else automatic Message-forwarding to the parent thread won't work correctly.
      *                      The referenced session becomes sole property of the MessageTransceiverThread on success.
      * @param autoReconnectDelay If specified, this is the number of microseconds after the
      *                           connection is broken that an automatic reconnect should be
@@ -414,7 +412,7 @@ public:
      * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
-   virtual status_t AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
+   virtual status_t AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, const AbstractReflectSessionRef & optSessionRef, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
    /**
      * Convenience method:  Adds a new default ThreadWorkerSession that will connect out to the given IP address and port.
@@ -448,9 +446,9 @@ public:
      * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (e.g. "blah.com" or "132.239.50.8")
      * @param port Port to connect to at that IP address.
      * @param optSessionRef optional Reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession
-     *                      will be created and used.  If you do specify session here, you will want to use either a
+     *                      will be created and used.  If you do specify session here, you will probably want to supply either a
      *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts
-     *                      like one, or things won't work correctly.
+     *                      like one, or else automatic Message-forwarding to the parent thread will not work.
      *                      The referenced session becomes sole property of the MessageTransceiverThread on success.
      * @param expandLocalhost Passed to GetHostByName().  See GetHostByName() documentation for details.  Defaults to false.
      * @param autoReconnectDelay If specified, this is the number of microseconds after the
@@ -468,7 +466,7 @@ public:
      * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
-   virtual status_t AddNewConnectSession(const String & targetHostName, uint16 port, const ThreadWorkerSessionRef & optSessionRef, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
+   virtual status_t AddNewConnectSession(const String & targetHostName, uint16 port, const AbstractReflectSessionRef & optSessionRef, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
    /**
      * Convenience method: Adds a new default ThreadWorkerSession that will connect out to the given hostname and port.
@@ -493,7 +491,7 @@ public:
      * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
-   status_t AddNewConnectSession(const String & targetHostName, uint16 port, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return AddNewConnectSession(targetHostName, port, ThreadWorkerSessionRef(), expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);}
+   status_t AddNewConnectSession(const String & targetHostName, uint16 port, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return AddNewConnectSession(targetHostName, port, AbstractReflectSessionRef(), expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);}
 
    /** Installs a new ReflectSessionFactory onto the ReflectServer (or replaces an existing one) on the given port.
      * May be called at any time, but behaves slightly differently depending on whether the internal
@@ -501,9 +499,9 @@ public:
      * the ReflectServer asynchronously; otherwise the call is passed directly through to ReflectServer::PutAcceptFactory().
      * @param port The port to place the new factory on.
      * @param optFactoryRef Optional reference to a factory object to use to instantiate new sessions.
-     *                      Note that in order for things to work as expected, (optFactory) should create
-     *                      only ThreadWorkerSessions (or sessions which are subclasses thereof)
-     *                      If left as NULL (the default), a default ThreadWorkerFactory will be created and used.
+     *                      Note that in order for message-forwarding to work as expected, (optFactory) should create
+     *                      ThreadWorkerSessions (or sessions which are subclasses thereof)
+     *                      If left as NULL (the default), a default-constructed ThreadWorkerFactory will be created and used.
      *                      The referenced factory becomes sole property of the MessageTransceiverThread on success.
      * @param optInterfaceIP Optional local interface address to listen on.  If not specified, or if specified
      *                       as (invalidIP), then connections will be accepted from all local network interfaces.
@@ -516,12 +514,12 @@ public:
      * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the put command was enqueued successfully, not that it was executed (yet).
      */
-   virtual status_t PutAcceptFactory(uint16 port, const ThreadWorkerSessionFactoryRef & optFactoryRef, const IPAddress & optInterfaceIP = invalidIP, uint16 * optRetPort = NULL);
+   virtual status_t PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & optFactoryRef, const IPAddress & optInterfaceIP = invalidIP, uint16 * optRetPort = NULL);
 
    /** Convenience method -- calls the above method with a NULL factory reference.
      * @param port the TCP port to install the new factory at
      */
-   status_t PutAcceptFactory(uint16 port) {return PutAcceptFactory(port, ThreadWorkerSessionFactoryRef());}
+   status_t PutAcceptFactory(uint16 port) {return PutAcceptFactory(port, ReflectSessionFactoryRef());}
 
    /** Removes an existing ReflectSessionFactory from the held ReflectServer.
      * May be called at any time, but behaves slightly differently depending on whether the internal
@@ -731,14 +729,14 @@ private:
    /** These method are here (and private, and unimplemented) just to make sure the developer doesn't forget to include the (expandLocalhost) argument. */
    status_t AddNewConnectSession(const String &, uint16, uint64);           // deliberately private and unimplemented!
    status_t AddNewConnectSession(const String &, uint16, uint64, uint64);   // deliberately private and unimplemented!
-   status_t AddNewConnectSession(const String &, uint16, const ThreadWorkerSessionRef &, uint64);          // deliberately private and unimplemented!
-   status_t AddNewConnectSession(const String &, uint16, const ThreadWorkerSessionRef &, uint64, uint64);  // deliberately private and unimplemented!
+   status_t AddNewConnectSession(const String &, uint16, const AbstractReflectSessionRef &, uint64);          // deliberately private and unimplemented!
+   status_t AddNewConnectSession(const String &, uint16, const AbstractReflectSessionRef &, uint64, uint64);  // deliberately private and unimplemented!
 
    friend class ThreadSupervisorSession;
    status_t EnsureServerAllocated();
    void UpdateWorkerSessionForwardingLogic(ThreadWorkerSessionRef & sRef) const;
    void UpdateWorkerSessionFactoryForwardingLogic(ThreadWorkerSessionFactoryRef & fRef) const;
-   status_t SendAddNewSessionMessage(const ThreadWorkerSessionRef & sessionRef, const ConstSocketRef & socket, const char * hostName, const IPAddress & hostIP, uint16 port, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod);
+   status_t SendAddNewSessionMessage(const AbstractReflectSessionRef & sessionRef, const ConstSocketRef & socket, const char * hostName, const IPAddress & hostIP, uint16 port, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod);
    status_t SetNewPolicyAux(uint32 what, const AbstractSessionIOPolicyRef & pref, const String & optDistPath);
 
    ReflectServerRef _server;
