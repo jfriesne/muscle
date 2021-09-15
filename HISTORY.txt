@@ -24,6 +24,8 @@ key:  - new feature
      snprintf, since sprintf_s was throwing assertions on
      buffer-overflow rather than simply truncating the way
      snprintf() would.
+   * Changed B_ERRNUM to be an inline-function instead of
+     a #define, to avoid double-evaluation of its argument.
 
 8.41 - Released 9/1/2021
    - Added an NWPathMonitor-based implementation to the

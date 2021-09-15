@@ -434,7 +434,11 @@ enum {
         const status_t B_OK;             ///< This value is a synonym for B_NO_ERROR
         const status_t B_ERROR("Error"); ///< "Error": This value is returned by a function or method that errored out in a non-descript fashion
 #       define B_ERRNO B_ERROR(strerror(GetErrno())) ///< Macro for return a B_ERROR with the current errno-string as its string-value
-#       define B_ERRNUM(errnum) ((errnum==0)?B_NO_ERROR:B_ERROR(strerror(errnum))) ///< Macro for converting an errno-style return value (0==success, negative==error_value) result into a status_t
+
+        /** B_ERRNUM returns B_NO_ERROR if (errnum==0), otherwise it returns a status_t containing the strerror() string for errnum
+          * @param errnum a POSIX-style error code (like ENOMEM) to pass to strerror(), or 0 if there is no error
+          */
+        static inline status_t B_ERRNUM(int errnum) {return ((errnum==0)?B_NO_ERROR:B_ERROR(strerror(errnum)));}
 
         // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of
         // differently-phrased error strings for common types of reasons-for-failure)
