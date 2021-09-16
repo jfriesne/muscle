@@ -429,16 +429,33 @@ enum {
            const char * _desc;  // If non-NULL, we represent an error
         };
 
+        /** Synonym for strerror()
+         *  @param e the errno value to return a statically-allocated human-readable-string for
+         *  @returns a pointer to a human-readable string describing the error
+         */
+        static inline const char * muscleStrError(int e)
+        {
+#ifdef _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4996 )
+#endif
+           const char * ret = strerror(e);
+#ifdef _MSC_VER
+# pragma warning( pop )
+#endif
+           return ret;
+        }
+
         // Basic/general status_t return codes
         const status_t B_NO_ERROR;       ///< This value is returned by a function or method that succeeded
         const status_t B_OK;             ///< This value is a synonym for B_NO_ERROR
         const status_t B_ERROR("Error"); ///< "Error": This value is returned by a function or method that errored out in a non-descript fashion
-#       define B_ERRNO B_ERROR(strerror(GetErrno())) ///< Macro for return a B_ERROR with the current errno-string as its string-value
+#       define B_ERRNO B_ERROR(muscleStrError(GetErrno())) ///< Macro for return a B_ERROR with the current errno-string as its string-value
 
         /** B_ERRNUM returns B_NO_ERROR if (errnum==0), otherwise it returns a status_t containing the strerror() string for errnum
           * @param errnum a POSIX-style error code (like ENOMEM) to pass to strerror(), or 0 if there is no error
           */
-        static inline status_t B_ERRNUM(int errnum) {return ((errnum==0)?B_NO_ERROR:B_ERROR(strerror(errnum)));}
+        static inline status_t B_ERRNUM(int errnum) {return ((errnum==0)?B_NO_ERROR:B_ERROR(muscleStrError(errnum)));}
 
         // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of
         // differently-phrased error strings for common types of reasons-for-failure)
@@ -823,17 +840,39 @@ template<typename T> inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0
 #if defined(__cplusplus) && (_MSC_VER >= 1400)
 /** For MSVC, we provide CRT-friendly versions of these functions to avoid security warnings */
 # define muscleStrcpy   strcpy_s   /* Ooh, template magic! */
-static inline char * muscleStrncpy(char * to, const char * from, size_t maxLen) {(void) strcpy_s(to, maxLen, from); return to;}
 static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * fp; return (fopen_s(&fp, path, mode) == 0) ? fp : NULL;}
 #else
 /** Other OS's can use the usual functions instead. */
 # define muscleStrcpy   strcpy    /**< On Windows, this expands to strcpy_s to avoid security warnings; on other OS's it expands to plain old strcpy */
-# define muscleStrncpy  strncpy   /**< On Windows, this expands to strncpy_s to avoid security warnings; on other OS's it expands to plain old strncpy */
 # define muscleFopen    fopen     /**< On Windows, this expands to fopen_s to avoid security warnings; on other OS's it expands to plain old fopen */
 #endif
 
-#define muscleSprintf  sprintf   /**< Always expands to regular sprintf(), for now (sprintf_s under Windows turned out not to be a good substitute) */
-#define muscleSnprintf snprintf  /**< Always expands to regular snprintf(), for now (sprintf_s under Windows turned out not to be a good substitute) */
+/** Same as strncpy(), except this version ensures that the destination buffer is NUL-terminated in all cases.
+ *  @param dst buffer to copy characters into
+ *  @param src buffer to copy characters from
+ *  @param dstLen How many bytes of writeable storage (dst) points to
+ *  @returns (dst)
+ */
+static inline char * muscleStrncpy(char * dst, const char * src, size_t dstLen)
+{
+#ifdef _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4996 )
+#endif
+   char * ret = strncpy(dst, src, dstLen);
+#ifdef _MSC_VER
+# pragma warning( pop )
+#endif
+   if (dstLen > 0) dst[dstLen-1] = '\0';
+   return ret;
+}
+
+#define  muscleSprintf   sprintf /**< Always expands to regular sprintf(), for now (sprintf_s under Windows turned out not to be a good substitute) */
+#if defined(_MSC_VER)&& (_MSC_VER < 1900)
+# define muscleSnprintf _snprintf /**< Expands to regular snprintf() on newer MSVC and all other OS's, or _snprintf() on MSVC before 2015 */
+#else
+# define muscleSnprintf  snprintf /**< Expands to regular snprintf() on newer MSVC and all other OS's, or _snprintf() on MSVC before 2015 */
+#endif
 
 /*
  * Copyright(c) 1983,   1989

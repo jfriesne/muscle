@@ -16,6 +16,8 @@ key:  - new feature
    - Modified MessageTransceiverThread::PutAcceptFactory()
      to take a ReflectSessionFactoryRef argument instead
      of a ThreadWorkerSessionFactoryRef argument.
+   - Added a muscleStrError(int) function to MuscleSupport.h,
+     just to avoid warning messages under MSVC.
    o Made the one-argument ConstSocketRef constructor explicit.
    o Removed the ConstSocketRef(const Socket *, bool) constructor;
      use the new DummyConstSocketRef class intead.
@@ -24,6 +26,8 @@ key:  - new feature
      snprintf, since sprintf_s was throwing assertions on
      buffer-overflow rather than simply truncating the way
      snprintf() would.
+   * Modified muscleStrncpy() to just call through to strncpy()
+     to avoid assertions on truncation under Windows.
    * Changed B_ERRNUM to be an inline-function instead of
      a #define, to avoid double-evaluation of its argument.
 
