@@ -21,13 +21,13 @@ key:  - new feature
    o Made the one-argument ConstSocketRef constructor explicit.
    o Removed the ConstSocketRef(const Socket *, bool) constructor;
      use the new DummyConstSocketRef class intead.
-   * Changed the windows implementation of the muscleSprintf
-     and muscleSnprintf macros back to plain old sprintf and
-     snprintf, since sprintf_s was throwing assertions on
-     buffer-overflow rather than simply truncating the way
-     snprintf() would.
-   * Modified muscleStrncpy() to just call through to strncpy()
-     to avoid assertions on truncation under Windows.
+   * muscleSnprintf now calls _vsnprintf() (with appropriate
+     wrapper-logic to ensure NUL-termination in all cases)
+     when compiled on MSVC older than MSVC2015; in all other
+     environments it is now a simple synonym for snprintf().
+   * muscleStrncpy() now calls through to strncpy() in all cases,
+     but also ensures that the last byte in the destination-buffer
+     is set to NUL.
    * Changed B_ERRNUM to be an inline-function instead of
      a #define, to avoid double-evaluation of its argument.
 

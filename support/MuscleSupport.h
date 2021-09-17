@@ -42,6 +42,7 @@
 
 #include <assert.h>  /* for assert() */
 #include <string.h>  /* for memcpy() */
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>   /* for errno */
@@ -840,11 +841,13 @@ template<typename T> inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0
 #if defined(__cplusplus) && (_MSC_VER >= 1400)
 /** For MSVC, we provide CRT-friendly versions of these functions to avoid security warnings */
 # define muscleStrcpy   strcpy_s   /* Ooh, template magic! */
+# define muscleSprintf  sprintf_s  /* Ooh, template magic! */
 static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * fp; return (fopen_s(&fp, path, mode) == 0) ? fp : NULL;}
 #else
 /** Other OS's can use the usual functions instead. */
 # define muscleStrcpy   strcpy    /**< On Windows, this expands to strcpy_s to avoid security warnings; on other OS's it expands to plain old strcpy */
 # define muscleFopen    fopen     /**< On Windows, this expands to fopen_s to avoid security warnings; on other OS's it expands to plain old fopen */
+# define muscleSprintf  sprintf   /**< On Windows, this expands to sprintf_s to avoid security warnings; on other OS's it expands to plain old sprintf */
 #endif
 
 /** Same as strncpy(), except this version ensures that the destination buffer is NUL-terminated in all cases.
@@ -867,11 +870,24 @@ static inline char * muscleStrncpy(char * dst, const char * src, size_t dstLen)
    return ret;
 }
 
-#define  muscleSprintf   sprintf /**< Always expands to regular sprintf(), for now (sprintf_s under Windows turned out not to be a good substitute) */
 #if defined(_MSC_VER)&& (_MSC_VER < 1900)
-# define muscleSnprintf _snprintf /**< Expands to regular snprintf() on newer MSVC and all other OS's, or _snprintf() on MSVC before 2015 */
+/** Work-around for older versions of MSVC (pre-MSVC2015) that don't provide a proper vsnprintf() implementation
+  * @param buf buffer to write into
+  * @param bufLen how many bytes of writable space (buf) should point to
+  * @param format printf()-style format string
+  * @returns the number of chars written
+  */
+static inline int muscleSnprintf(char * buf, size_t bufLen, const char * format, ...)
+{
+   va_list va;
+   va_start(va, format);
+   const int ret = _vsnprintf(buf, bufLen, format, va); // _vsnprintf() doesn't insert a NUL terminator if it fills the buffer entirely
+   if (bufLen > 0) buf[bufLen-1] = '\0';                // so we'll manually place a NUL byte just to make sure (buf) is terminated in all cases
+   va_end(va);
+   return ret;
+}
 #else
-# define muscleSnprintf  snprintf /**< Expands to regular snprintf() on newer MSVC and all other OS's, or _snprintf() on MSVC before 2015 */
+# define muscleSnprintf snprintf /**< On new Windows and non-Windows platforms, muscleSnprintf() is just a synonym for snprintf() */
 #endif
 
 /*
