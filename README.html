@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-9/1/2021 v8.41 jaf@meyersound.com<p>
+9/18/2021 v8.42 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -44,13 +44,6 @@ Use at your own risk, Meyer Sound is not responsible for any disasters, blah bla
 Directory contents descriptions follow:
 <p>
 <ol>
-<b>lang/csharp/</b>
-<p>
-   This directory contains Wilson Yeung's alpha port of the Muscle client
-   API to the C# language.  Email Wilson (wilson@whack.org) with questions
-   about this port.
-<p>
-</li>
 <li>
 <b>dataio/</b>
 <p>
@@ -82,14 +75,6 @@ Directory contents descriptions follow:
     <tr><td>UDPSocketDataIO</td><td>For communicating using a UDP socket</td></tr>
     <tr><td>XorDataIO</td><td>Wrapper class that applies XOR-"encryption" to all data that flows through it</td></tr>
    </table>
-<p>
-</li>
-<li>
-<b>lang/delphi/</b>
-<p>
-   This directory contains the MUSCLE client API written for the Delphi
-   programming environment.  The contents of this directory were contributed
-   by Matthew Emson; see the Readme.txt file in this directory for more information.
 <p>
 </li>
 <li>
@@ -135,12 +120,11 @@ Directory contents descriptions follow:
 <p>
 </li>
 <li>
-<b>lang/java/</b>
+<b>lang/</b>
 <p>
-   This directory contains a Java implementation of the MUSCLE client side
-   API.  You can use the code in this folder to enable your Java program
-   to talk to a MUSCLE server or any other program that speaks the MUSCLE
-   Message protocol.
+   This directory contains the MUSCLE client APIs written for the various
+   programming languages other than C++.  Languages currently supported are:
+   C, C#, Delphi, Java, Java/J2ME, Python2, and Python3.
 <p>
 </li>
 <li>
@@ -188,52 +172,6 @@ Directory contents descriptions follow:
     iterate over the fields of a Message.
 </li>
 </ol>
-</li>
-<p>
-<li>
-<b>lang/c/minimessage/</b>
-<p>
-   This directory contains the MiniMessage and MiniMessageGateway C APIs.
-   These APIs are C implementations of the C++ Message and MessageIOGateway classes.
-   They can be used in cases where (for whatever reason) you want to code your
-   program in C only and avoid C++.  They aren't as easy-to-use as the C++ implementation,
-   but they should be sufficient for simple things, and they compile down to only
-   a few dozen kilobytes of object code.  See the testmini.c and minireflectclient.c
-   test files in the tests directory for examples on how they are used.
-<p>
-</li>
-<li>
-<b>lang/c/micromessage/</b>
-<p>
-   This directory contains the MicroMessage and MicroMessageGateway C APIs.
-   These APIs are C implementations of the C++ Message and MessageIOGateway classes.
-   These APIs go even farther towards minimalism than the minimessage APIs:  in
-   particular, these APIs never allocate or free any data.  Instead of converting
-   the message's flattened-data-bytes into a separate in-memory data structure like
-   Message and MiniMessage do, MicroMessage operates on the flattened-data-bytes directly.
-   This makes for a potentially much more efficient implementation; the main downside
-   is that when creating a MicroMessage, you can only append data; you cannot insert
-   or remove fields that you previously added.
-<p>
-</li>
-<li>
-<b>lang/python2/</b>
-<p>
-   This directory contains a minimal MUSCLE client-side API written in Python2.
-   You can use the code in this directory to enable your Python scripts to talk
-   to a MUSCLE server or any other program that speaks the MUSCLE Message protocol.
-   Also included in this directory is some C++ glue code (in PythonUtilityFunctions.cpp)
-   that is useful when embedding Python code into C++ code -- the glue code uses MUSCLE
-   Messages as to transfer arguments from C++ to Python context and back again.
-<p>
-</li>
-<li>
-<b>lang/python3/</b>
-<p>
-   This directory contains a minimal MUSCLE client-side API written in Python3.
-   You can use the code in this directory to enable your Python3 scripts to talk
-   to a MUSCLE server or any other program that speaks the MUSCLE Message protocol.
-<p>
 </li>
 <p>
 <li>

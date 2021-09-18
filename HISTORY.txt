@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+8.42 - Released 9/18/2021
    - Added a DummyConstSocketRef class, for consistency with
      the existing DummyConstXXXRef naming conventions
    - Modified MessageTransceiverThread::AddNewSession() and
