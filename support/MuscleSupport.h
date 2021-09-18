@@ -870,7 +870,7 @@ static inline char * muscleStrncpy(char * dst, const char * src, size_t dstLen)
    return ret;
 }
 
-#if defined(_MSC_VER)&& (_MSC_VER < 1900)
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
 /** Work-around for older versions of MSVC (pre-MSVC2015) that don't provide a proper vsnprintf() implementation
   * @param buf buffer to write into
   * @param bufLen how many bytes of writable space (buf) should point to
