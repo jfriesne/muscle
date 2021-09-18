@@ -767,7 +767,7 @@ void ChildProcessDataIO :: IOThreadEntry()
          // the Window anonymous pipes system doesn't allow me to
          // to check for events on the pipe using WaitForMultipleObjects().
          // It may be worth it to use named pipes some day to get around this...
-         const int evt = WaitForMultipleObjects(ARRAYITEMS(events), events, false, MicrosToMillis(pollTimeMicros))-WAIT_OBJECT_0;
+         const int evt = WaitForMultipleObjects(ARRAYITEMS(events), events, false, (DWORD) MicrosToMillis(pollTimeMicros))-WAIT_OBJECT_0;
          if (evt == 1) childProcessExited = true;
 
          int32 totalNumBytesRead = 0;

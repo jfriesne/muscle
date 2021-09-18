@@ -1583,7 +1583,14 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
    // IPv6 implementation, adapted from
    // http://msdn.microsoft.com/en-us/library/aa365915(VS.85).aspx
    //
+#ifdef _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4996 )
+#endif
    SOCKET s = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, NULL, 0, 0);
+#ifdef _MSC_VER
+# pragma warning( pop )
+#endif
    if (s == INVALID_SOCKET) return B_ERROR("WSASocket() Failed");
 
    INTERFACE_INFO localAddrs[64];  // Assume there will be no more than 64 IP interfaces
