@@ -881,7 +881,10 @@ static inline int muscleSnprintf(char * buf, size_t bufLen, const char * format,
 {
    va_list va;
    va_start(va, format);
+# pragma warning( push )
+# pragma warning( disable: 4996 )
    const int ret = _vsnprintf(buf, bufLen, format, va); // _vsnprintf() doesn't insert a NUL terminator if it fills the buffer entirely
+# pragma warning( pop )
    if (bufLen > 0) buf[bufLen-1] = '\0';                // so we'll manually place a NUL byte just to make sure (buf) is terminated in all cases
    va_end(va);
    return ret;
