@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added BitChord::GetNumBitsSet() method.
+
 8.42 - Released 9/18/2021
    - Added a DummyConstSocketRef class, for consistency with
      the existing DummyConstXXXRef naming conventions

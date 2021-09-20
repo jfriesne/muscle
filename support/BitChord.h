@@ -119,6 +119,14 @@ public:
       return false; 
    }
 
+   /** Returns the number of bits that are currently set in this BitChord */
+   uint32 GetNumBitsSet() const
+   {
+      uint32 ret = 0;
+      if (AreAnyBitsSet()) for (uint32 i=0;i<NumBits; i++) if (IsBitSet(i)) ret++;
+      return ret;
+   }
+
    /** Returns true iff all bits in this bit-chord are set. */
    bool AreAllBitsSet() const
    {
