@@ -469,6 +469,17 @@ public:
      */
    const ConstSocketRef & GetSessionWriteSelectSocket() const;
 
+   /** Prints to stdout a report of what sessions are currently present on this server, and how
+     * much memory each of them is currently using for various things.  Useful for understanding
+     * what your RAM is being used for.
+     */
+   void PrintSessionsInfo() const;
+
+   /** Prints to stdout a report of what ReflectSessionFactories are currently present on this server,
+     * and what interfaces and ports they are listening on.
+     */
+   void PrintFactoriesInfo() const;
+
 protected:
    /** Set by StorageReflectSession::AttachedToServer()
      * @param p the new session-root-path for us to use (e.g. "/127.0.0.1/12345")
@@ -485,6 +496,8 @@ protected:
    virtual String GenerateHostName(const IPAddress & ip, const String & defaultHostName) const;
 
 private:
+   virtual void TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint32 & tallyNumNodes, uint32 & tallyNumNodeBytes) const;  // yes, this virtual method is intentionally private!
+
    void SetPolicyAux(AbstractSessionIOPolicyRef & setRef, uint32 & setChunk, const AbstractSessionIOPolicyRef & newRef, bool isInput);
    void PlanForReconnect();
    void SetConnectingAsync(bool isConnectingAsync);

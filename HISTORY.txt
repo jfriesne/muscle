@@ -6,6 +6,8 @@ key:  - new feature
       o other
 
    - Added BitChord::GetNumBitsSet() method.
+   o Moved PrintSessionsInfo() and PrintFactoriesInfo() up out
+     of StorageReflectSession and into AbstractReflectSession.
 
 8.42 - Released 9/18/2021
    - Added a DummyConstSocketRef class, for consistency with

@@ -106,17 +106,6 @@ public:
    // Overridden to call PushSubscriptionMessages()
    virtual void AfterMessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
-   /** Prints to stdout a report of what sessions are currently present on this server, and how
-     * much memory each of them is currently using for various things.  Useful for understanding
-     * what your RAM is being used for.
-     */
-   void PrintSessionsInfo() const;
-
-   /** Prints to stdout a report of what ReflectSessionFactories are currently present on this server, 
-     * and what interfaces and ports they are listening on.
-     */
-   void PrintFactoriesInfo() const;
-
    /** Returns a read-only reference to our parameters message */
    const Message & GetParametersConst() const {return _parameters;}
 
@@ -544,6 +533,8 @@ protected:
    DECLARE_MUSCLE_TRAVERSAL_CALLBACK(StorageReflectSession, PassMessageCallback);    /** Matching nodes are sent the given message.  */
 
 private:
+   virtual void TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint32 & tallyNumNodes, uint32 & tallyNumNodeBytes) const;  // yes, this virtual method is intentionally private!
+
    void PushSubscriptionMessage(MessageRef & msgRef); 
    void SendGetDataResults(MessageRef & msg);
    void NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, NodeChangeFlags nodeChangeFlags);

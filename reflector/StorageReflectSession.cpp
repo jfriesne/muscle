@@ -1964,53 +1964,14 @@ void StorageReflectSession :: TallyNodeBytes(const DataNode & n, uint32 & retNum
    for (DataNodeRefIterator iter = n.GetChildIterator(); iter.HasData(); iter++) TallyNodeBytes(*iter.GetValue()(), retNumNodes, retNodeBytes);
 }
 
-void StorageReflectSession :: PrintFactoriesInfo() const
+void
+StorageReflectSession ::
+TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint32 & tallyNumNodes, uint32 & tallyNumNodeBytes) const
 {
-   printf("There are " UINT32_FORMAT_SPEC " factories attached:\n", GetFactories().GetNumItems());
-   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
-   {
-      const ReflectSessionFactory & f = *iter.GetValue()();
-      printf("   %s [%p] is listening at [%s] (%sid=" UINT32_FORMAT_SPEC ").\n", f.GetTypeName(), &f, iter.GetKey().ToString()(), f.IsReadyToAcceptSessions()?"ReadyToAcceptSessions, ":"", f.GetFactoryID());
-   }
-}
+   retNumCachedSubscriberTables = muscleMax(retNumCachedSubscriberTables, _sharedData->_cachedSubscribersTables.GetNumCachedItems());
 
-void StorageReflectSession :: PrintSessionsInfo() const
-{
-   const Hashtable<const String *, AbstractReflectSessionRef> & t = GetSessions();
-   printf("There are " UINT32_FORMAT_SPEC " sessions attached, and " UINT32_FORMAT_SPEC " subscriber-tables cached:\n", t.GetNumItems(), _sharedData->_cachedSubscribersTables.GetNumCachedItems());
-   uint32 totalNumOutMessages = 0, totalNumOutBytes = 0, totalNumNodes = 0, totalNumNodeBytes = 0;
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(t); iter.HasData(); iter++)
-   {
-      AbstractReflectSession * ars = iter.GetValue()();
-      uint32 numOutMessages = 0, numOutBytes = 0, numNodes = 0, numNodeBytes = 0;
-      const AbstractMessageIOGateway * gw = ars->GetGateway()();
-      if (gw)
-      {
-         const Queue<MessageRef> & q = gw->GetOutgoingMessageQueue();
-         numOutMessages = q.GetNumItems();
-         for (uint32 i=0; i<numOutMessages; i++) numOutBytes = q[i]()->FlattenedSize();
-      }
-
-      StorageReflectSession * srs = dynamic_cast<StorageReflectSession *>(iter.GetValue()()); 
-      const DataNode * dn = srs ? srs->GetSessionNode()() : NULL;
-      if (dn) TallyNodeBytes(*dn, numNodes, numNodeBytes);
-
-      String stateStr;
-      if (ars->IsConnectingAsync()) stateStr = stateStr.AppendWord("ConnectingAsync", ", ");
-      if (ars->IsConnected()) stateStr = stateStr.AppendWord("Connected", ", ");
-      if (ars->IsExpendable()) stateStr = stateStr.AppendWord("Expendable", ", ");
-      if (ars->IsReadyForInput()) stateStr = stateStr.AppendWord("IsReadyForInput", ", ");
-      if (ars->HasBytesToOutput()) stateStr = stateStr.AppendWord("HasBytesToOutput", ", ");
-      if (ars->WasConnected()) stateStr = stateStr.AppendWord("WasConnected", ", ");
-      if (stateStr.HasChars()) stateStr = stateStr.Prepend(", ");
-      printf("  Session [%s] (rfd=%i,wfd=%i) is [%s]:  (" UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes%s)\n", iter.GetKey()->Cstr(), ars->GetSessionReadSelectSocket().GetFileDescriptor(), ars->GetSessionWriteSelectSocket().GetFileDescriptor(), ars->GetSessionDescriptionString()(), numOutMessages, numOutBytes, numNodes, numNodeBytes, stateStr());
-      totalNumOutMessages += numOutMessages;
-      totalNumOutBytes    += numOutBytes;
-      totalNumNodes       += numNodes;
-      totalNumNodeBytes   += numNodeBytes;
-   }
-   printf("------------------------------------------------------------\n");
-   printf("Totals: " UINT32_FORMAT_SPEC " messages, " UINT32_FORMAT_SPEC " message-bytes, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes.\n", totalNumOutMessages, totalNumOutBytes, totalNumNodes, totalNumNodeBytes);
+   const DataNode * dn = GetSessionNode()();
+   if (dn) TallyNodeBytes(*dn, tallyNumNodes, tallyNumNodeBytes);
 }
 
 } // end namespace muscle
