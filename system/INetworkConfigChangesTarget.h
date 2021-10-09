@@ -33,13 +33,15 @@ public:
 
    /** Called by the DetectNetworkConfigChanges session, when the host computer is about to go to sleep.  
      * Currently implemented for Windows and MacOS/X only.  
+     * @note Default implementation is a no-op.
      */
-   virtual void ComputerIsAboutToSleep() = 0;
+   virtual void ComputerIsAboutToSleep() {/* empty */}
 
    /** Called by the DetectNetworkConfigChanges session, when the host computer has just woken up from sleep.  
      * Currently implemented for Windows and MacOS/X only.
+     * @note Default implementation is a no-op.
      */
-   virtual void ComputerJustWokeUp() = 0;
+   virtual void ComputerJustWokeUp() {/* empty */}
 };
 
 }  // end namespace muscle

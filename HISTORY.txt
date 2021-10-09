@@ -8,6 +8,9 @@ key:  - new feature
    - Added BitChord::GetNumBitsSet() method.
    o Moved PrintSessionsInfo() and PrintFactoriesInfo() up out
      of StorageReflectSession and into AbstractReflectSession.
+   o Changed the ComputerIsAboutToSleep() and ComputerJustWokeUp()
+     methods of the INetworkConfigChangesTarget interface to be
+     implemented as no-ops methods instead of pure-virtual.
 
 8.42 - Released 9/18/2021
    - Added a DummyConstSocketRef class, for consistency with
