@@ -6,7 +6,7 @@ MUSCLE's user-friendly C++ wrapper around the [BSD Sockets C API](https://en.wik
 
 * Uses [ConstSocketRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ConstSocketRef.html) (instead of `int`) to represent file descriptors, to avoid any chance of file descriptor "leaks"
 * Code written to this API will generally "just work" over both IPv4 and IPv6, no special-case code required.
-* [GetHostByName()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga5faef555511356cd7f58ad65f72b4669) returns the [IPAddress](https://public.msli.com/lcs/muscle/html/classmuscle_1_1IPAddress.html) assocaited with a given hostname.
+* [GetHostByName()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga5faef555511356cd7f58ad65f72b4669) returns the [IPAddress](https://public.msli.com/lcs/muscle/html/classmuscle_1_1IPAddress.html) associated with a given hostname.
 * [CreateUDPSocket()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga518bcf2c4446cd8ebdacee98cc9e1880) creates a UDP socket.
 * [BindUDPSocket()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#gad080462f95926cd17ef349bf6df6ddd4) binds the UDP socket to a local port.
 * [Connect()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga7b33d4801f68ff0fdb0e120cfbd448ad) returns a TCP socket that is connected to the specified host and port.
