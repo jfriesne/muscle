@@ -98,6 +98,7 @@ public:
 
    virtual void Clear(bool releaseDataBuffers) {_data.Clear(releaseDataBuffers);}
    virtual void Normalize() {_data.Normalize();}
+   virtual void Sort(uint32 from, uint32 to) {_data.Sort(from, to);}
 
    virtual status_t AddDataItem(const void * item, uint32 size)
    {
@@ -1353,7 +1354,7 @@ uint32 Message :: CalculateChecksum(bool countNonFlattenableFields) const
       const MessageField & mf = it.GetValue();
       if ((countNonFlattenableFields)||(mf.IsFlattenable()))
       {
-         uint32 fnChk = it.GetKey().CalculateChecksum();
+         const uint32 fnChk = it.GetKey().CalculateChecksum();
          ret += fnChk;
          if (fnChk == 0) ret++;  // almost-paranoia 
          ret += (fnChk*mf.CalculateChecksum(countNonFlattenableFields));  // multiplying by fnChck helps catch when two fields were swapped
@@ -1711,6 +1712,12 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
       MRETURN_ON_ERROR(prepend ? mf->PrependDataItem(dataToAdd, addSize) : mf->AddDataItem(dataToAdd, addSize));
    }
    return B_NO_ERROR;
+}
+
+void Message :: SortDataInField(const String & fieldName, uint32 from, uint32 to)
+{
+   MessageField * e = GetMessageField(fieldName, B_ANY_TYPE);
+   if (e) e->Sort(from, to);
 }
 
 void * Message :: GetPointerToNormalizedFieldData(const String & fieldName, uint32 * retNumItems, uint32 typeCode) 

@@ -1504,6 +1504,13 @@ public:
       }
    }
 
+   /** Sorts the data-items within a specified field using the default comparator for the field's type.
+     * @param fieldName the field whose contents we should sort
+     * @param from the first index to sort (defaults to zero, so that by default all items in the field will be sorted)
+     * @param to one more than the the last index to sort (defaults to MUSCLE_NO_LIMIT, so that by default all items in the field will be sorted)
+     */
+   void SortDataInField(const String & fieldName, uint32 from=0, uint32 to=MUSCLE_NO_LIMIT);
+
    /** Returns true iff every one of our fields has a like-named, liked-typed, equal-length field in (rhs).
      * @param rhs The Message to check to see if it has a superset of our fields.
      * @param compareData If true, then the data in the fields will be compared also, and true will not be returned unless all the data items are equal.

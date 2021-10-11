@@ -6,6 +6,7 @@ key:  - new feature
       o other
 
    - Added BitChord::GetNumBitsSet() method.
+   - Added a Message::SortDataInField() method.
    o Moved PrintSessionsInfo() and PrintFactoriesInfo() up out
      of StorageReflectSession and into AbstractReflectSession.
    o Changed the ComputerIsAboutToSleep() and ComputerJustWokeUp()

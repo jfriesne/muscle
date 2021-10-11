@@ -44,6 +44,9 @@ public:
    // Normalizes the field
    virtual void Normalize() = 0;
 
+   // Sorts the data items in the field
+   virtual void Sort(uint32 from=0, uint32 to=MUSCLE_NO_LIMIT) = 0;
+
    // Sets (setDataLoc) to point to the (index)'th item in our field.
    // Result is not guaranteed to remain valid after this object is modified.
    virtual status_t FindDataItem(uint32 index, const void ** setDataLoc) const = 0;
@@ -147,6 +150,7 @@ public:
    status_t PrependDataItem(const void * data, uint32 numBytes) {return HasArray() ? GetArray()->PrependDataItem(data, numBytes) : SinglePrependDataItem(data, numBytes);}
    void Clear();
    void Normalize() {if (HasArray()) GetArray()->Normalize();}
+   void Sort(uint32 from, uint32 to) {if (HasArray()) GetArray()->Sort(from, to);}
    status_t FindDataItem(uint32 index, const void ** setDataLoc) const {return HasArray() ? GetArray()->FindDataItem(index, setDataLoc) : SingleFindDataItem(index, setDataLoc);}
    status_t ReplaceDataItem(uint32 index, const void * data, uint32 numBytes) {return HasArray() ? GetArray()->ReplaceDataItem(index, data, numBytes) : SingleReplaceDataItem(index, data, numBytes);}
    uint32 GetItemSize(uint32 index) const {return HasArray() ? GetArray()->GetItemSize(index) : SingleGetItemSize(index);}
