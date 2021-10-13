@@ -195,19 +195,15 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             }
             ret += bytesRead;
          }
-         else return ret;
+         else if ((_flushPartialIncomingLines)&&(HasBufferedIncomingText())) FlushInput(receiver);
       }
    }
    else
    {
       // Stream-IO implementation
       const int32 bytesRead = GetDataIO()() ? GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)(sizeof(buf)-1))) : -1;
-      if (bytesRead < 0)
-      {
-         FlushInput(receiver);
-         return -1;
-      }
-      if (bytesRead > 0)
+           if (bytesRead < 0) {FlushInput(receiver); return -1;}
+      else if (bytesRead > 0)
       {
          uint32 filteredBytesRead = bytesRead;
          FilterInputBuffer(buf, filteredBytesRead, sizeof(buf)-1);
@@ -234,7 +230,9 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
          if (inMsg()) receiver.CallMessageReceivedFromGateway(inMsg);
       }
+      else if ((_flushPartialIncomingLines)&&(HasBufferedIncomingText())) FlushInput(receiver);
    }
+
    return ret;
 }
 

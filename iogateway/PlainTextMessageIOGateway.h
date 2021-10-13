@@ -52,6 +52,9 @@ public:
      */
    void FlushInput(AbstractGatewayMessageReceiver & receiver);
 
+   /** Returns true iff we currently have any incoming text buffered up waiting for a carriage return to be received */
+   bool HasBufferedIncomingText() const {return _incomingText.HasChars();}
+
 protected:
    virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
    virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);

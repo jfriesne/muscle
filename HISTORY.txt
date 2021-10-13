@@ -7,11 +7,15 @@ key:  - new feature
 
    - Added BitChord::GetNumBitsSet() method.
    - Added a Message::SortDataInField() method.
+   - Added HasBufferedIncomingText() method to PlainTextMessageIOGateway
    o Moved PrintSessionsInfo() and PrintFactoriesInfo() up out
      of StorageReflectSession and into AbstractReflectSession.
    o Changed the ComputerIsAboutToSleep() and ComputerJustWokeUp()
      methods of the INetworkConfigChangesTarget interface to be
      implemented as no-ops methods instead of pure-virtual.
+   * PlainTextMessageIOGateway::DoInput() now flushes its input
+     buffer when it's in flush-partial-incoming-lines mode, even
+     when it didn't actually read any more bytes.
 
 8.42 - Released 9/18/2021
    - Added a DummyConstSocketRef class, for consistency with
