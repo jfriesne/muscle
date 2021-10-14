@@ -693,7 +693,9 @@ NetworkSetupSystem :: NetworkSetupSystem()
 #ifdef MUSCLE_ENABLE_SSL
       SSL_load_error_strings();
       SSLeay_add_ssl_algorithms();
+# if (OPENSSL_VERSION_MAJOR < 3)
       ERR_load_BIO_strings();
+# endif
       SSL_library_init();
 # ifndef MUSCLE_SINGLE_THREAD_ONLY
       if (openssl_thread_setup() != 0) MCRASH("Error setting up thread-safety callbacks for OpenSSL!");

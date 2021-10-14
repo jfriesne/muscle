@@ -85,6 +85,7 @@ int main(int argc, char ** argv)
       }
       if (privateKeyPath)
       {
+         status_t ret;
          if (sslIORef()->SetPrivateKey(privateKeyPath).IsOK(ret))
          {
             LogTime(MUSCLE_LOG_INFO, "Using private key file [%s] to authenticate client with server\n", privateKeyPath);

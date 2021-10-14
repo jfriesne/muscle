@@ -36,10 +36,18 @@ file(GLOB MUSCLE_SRCS
    "./zlib/zlib/contrib/minizip/*.c"
 )
 
-file(GLOB EXCLUDE_THESE_SOURCES
-  "./dataio/*SSL*"
-)
-list(REMOVE_ITEM MUSCLE_SRCS ${EXCLUDE_THESE_SOURCES} )
+option(WITH_SSL "Enable OpenSSL Support" OFF)
+if (WITH_SSL)
+   message("Note:  -DWITH_SSL=ON argument was specified:  enabling OpenSSL support.")
+   find_package(OpenSSL REQUIRED)
+   add_definitions(-DMUSCLE_ENABLE_SSL)
+else ()
+   message("Note:  -DWITH_SSL=ON argument was NOT specified:  not including OpenSSL support.")
+   file(GLOB EXCLUDE_THESE_SOURCES
+     "./dataio/*SSL*"
+   )
+   list(REMOVE_ITEM MUSCLE_SRCS ${EXCLUDE_THESE_SOURCES} )
+endif (WITH_SSL)
 
 find_package(Threads REQUIRED)
 
@@ -160,6 +168,11 @@ endif()
 
 target_include_directories(muscle PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_compile_definitions(muscle PUBLIC MUSCLE_ENABLE_ZLIB_ENCODING MUSCLE_NO_EXCEPTIONS)
+if (WITH_SSL)
+   target_include_directories(muscle PRIVATE ${OPENSSL_INCLUDE_DIR})
+   target_link_libraries(muscle OpenSSL::Crypto OpenSSL::SSL)
+endif (WITH_SSL)
+
 if (APPLE)
    find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
    if (NOT COREFOUNDATION_FRAMEWORK)
