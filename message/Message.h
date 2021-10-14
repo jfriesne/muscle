@@ -1381,6 +1381,14 @@ public:
     */
    status_t CopyName(const String & oldFieldName, Message & copyTo, const String & newFieldName) const;
 
+   /** Swaps the contents of the field named (fieldName) in this Message with the contents of the like-named field in (swapWith).
+    *  If a field with the given name is found only in one Message, it will be moved to the other Message.
+    *  @param fieldName Name of an existing field (in either Message) to be swapped.
+    *  @param swapWith A Message to swap a field's contents with
+    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field couldn't be found in either Message.
+    */
+   status_t SwapName(const String & fieldName, Message & swapWith);
+
    /** Take the data under (fieldName) in this message, and shares it into (shareTo). 
     *  Any data that was under (fieldName) in (shareTo) will be replaced.
     *  This operation is similar to CopyName(), except that if there is more than

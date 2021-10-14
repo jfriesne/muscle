@@ -2204,6 +2204,11 @@ status_t Message :: MoveName(const String & oldFieldName, Message & moveTo, cons
    else return ret;
 }
 
+status_t Message :: SwapName(const String & fieldName, Message & swapWith)
+{
+   return _entries.SwapWithTable(fieldName, swapWith._entries);
+}
+
 status_t Message :: PrependString(const String & fieldName, const String & val) 
 {
    MessageField * mf = GetOrCreateMessageField(fieldName, B_STRING_TYPE);

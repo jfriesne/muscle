@@ -131,6 +131,18 @@ int main(int, char **)
       }
    }
 
+   // Test SwapName()
+   {
+      Message m1(1), m2(2);
+      m1.AddString("blah", "m1");
+      m2.AddString("blah", "m2");
+
+      status_t ret = m1.SwapName("blah", m2);
+      printf("SwapName(\"blah\") returned %s\n", ret());
+      printf("m1 is now:\n"); m1.PrintToStream();
+      printf("m2 is now:\n"); m2.PrintToStream();
+   }
+
    Message m1;
    m1.AddFloat("va", 1.0f);
    TestTemplatedFlatten(m1, __LINE__);

@@ -1831,6 +1831,16 @@ public:
      */
    template<class RHSHashFunctorType, class RHSSubclassType> status_t CopyToTable(const KeyType & copyMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & toTable) const;
 
+   /** Convenience method:  Swaps an item from this table with the same-keyed item from another table.
+     * @param swapMe The key of the items that should be swapped.
+     * @param otherTable The table to swap the item with.
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on memory failure, or B_DATA_NOT_FOUND
+     *          if (moveMe) was not found in either table.  Note that trying to swap an item into its
+     *          own table will simply return B_NO_ERROR with no side effects.  If the key exists in only
+     *          one of the two tables, it will be moved to the other table.
+     */
+   template<class RHSHashFunctorType, class RHSSubclassType> status_t SwapWithTable(const KeyType & swapMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & otherTable);
+
    /** This method resizes the Hashtable larger if necessary, so that it has at least (newTableSize)
     *  entries in it.  It is not necessary to call this method, but if you know in advance how many
     *  items you will be adding to the table, you can make the population of the table more efficient
@@ -3338,9 +3348,9 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::CopyToTable(const 
    if (e)
    { 
       if (this == &toTable) return B_NO_ERROR;  // it's already here!
-      if (toTable.PutAux(hash, copyMe, e->_value, NULL, NULL) != NULL) return B_NO_ERROR;
+      return (toTable.PutAux(hash, copyMe, e->_value, NULL, NULL) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;
    }
-   return B_BAD_ARGUMENT;
+   return B_DATA_NOT_FOUND;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
@@ -3353,9 +3363,28 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::MoveToTable(const 
    if (e)
    {
       if (this == &toTable) return B_NO_ERROR;  // it's already here!
-      if (toTable.PutAux(hash, moveMe, HT_PlunderValue(e->_value), NULL, NULL) != NULL) return this->RemoveAux(e->_hash, moveMe, NULL);
+      return (toTable.PutAux(hash, moveMe, HT_PlunderValue(e->_value), NULL, NULL) != NULL) ? this->RemoveAux(e->_hash, moveMe, NULL) : B_OUT_OF_MEMORY;
    }
-   return B_BAD_ARGUMENT;
+   return B_DATA_NOT_FOUND;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
+template <class RHSHashFunctorType, class RHSSubclassType>
+status_t
+HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::SwapWithTable(const KeyType & swapMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & swapTable)
+{
+   const uint32 hash             =        this->ComputeHash(swapMe);
+   HashtableEntryBaseType * myE  =     this->GetEntry(hash, swapMe);
+   HashtableEntryBaseType * hisE = swapTable.GetEntry(hash, swapMe);
+
+   if ((myE)||(hisE))
+   {
+           if (myE == hisE)   return B_NO_ERROR;  // swapping with myself is a no-op
+      else if ((myE)&&(hisE)) {muscleSwap(myE->_value, hisE->_value); return B_NO_ERROR;}
+      else if (myE)           return (swapTable.PutAux(hash, swapMe, HT_PlunderValue( myE->_value), NULL, NULL) != NULL) ? this->RemoveAux(     myE->_hash, swapMe, NULL) : B_OUT_OF_MEMORY;
+      else                    return (    this->PutAux(hash, swapMe, HT_PlunderValue(hisE->_value), NULL, NULL) != NULL) ? swapTable.RemoveAux(hisE->_hash, swapMe, NULL) : B_OUT_OF_MEMORY;
+   }
+   return B_DATA_NOT_FOUND;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>

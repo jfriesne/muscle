@@ -8,6 +8,8 @@ key:  - new feature
    - Added BitChord::GetNumBitsSet() method.
    - Added a Message::SortDataInField() method.
    - Added HasBufferedIncomingText() method to PlainTextMessageIOGateway
+   - Added a Hashtable::SwapWithTable() method for swapping a key/value pair.
+   - Added a Message::SwapName() method for swapping a named field.
    o Moved PrintSessionsInfo() and PrintFactoriesInfo() up out
      of StorageReflectSession and into AbstractReflectSession.
    o Changed the ComputerIsAboutToSleep() and ComputerJustWokeUp()

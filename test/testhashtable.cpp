@@ -397,6 +397,30 @@ int main(int argc, char ** argv)
    }
 
    {
+      LogTime(MUSCLE_LOG_INFO, "Testing SwapWithTable()...\n");
+
+      Hashtable<int, int> t1, t2;
+      for (int i=0; i<5; i++) {(void) t1.Put(i, 100+i); (void) t2.Put(i+3, 200+i);}
+
+      status_t ret = t1.SwapWithTable(3, t2);
+      printf("t1.SwapWithTable(3, t2) returned [%s]\n", ret());
+
+      ret = t1.SwapWithTable(0, t2);
+      printf("t1.SwapWithTable(0, t2) returned [%s]\n", ret());
+
+      ret = t1.SwapWithTable(6, t2);
+      printf("t1.SwapWithTable(6, t2) returned [%s]\n", ret());
+
+      ret = t1.SwapWithTable(8, t2);
+      printf("t1.SwapWithTable(8, t2) returned [%s] (failure is expected)\n", ret());
+
+      printf("t1 now contains:\n");
+      for (HashtableIterator<int, int> iter(t1); iter.HasData(); iter++) printf("  %i -> %i\n", iter.GetKey(), iter.GetValue());
+      printf("t2 now contains:\n");
+      for (HashtableIterator<int, int> iter(t2); iter.HasData(); iter++) printf("  %i -> %i\n", iter.GetKey(), iter.GetValue());
+   }
+
+   {
       LogTime(MUSCLE_LOG_INFO, "Testing Tuple as a Hashtable key...\n");
 
       // A quick test of the Tuple class as a Hashtable key
