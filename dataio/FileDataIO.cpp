@@ -1,17 +1,29 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/FileDataIO.h"
+#include "system/GlobalMemoryAllocator.h"  // for muscleStrdup()
 
 namespace muscle {
 
 FileDataIO :: FileDataIO(FILE * file)
-   : _file(file) 
+   : _pendingFilePath(NULL)
+   , _pendingFileMode(NULL)
+   , _file(file)
 {
    SetSocketsFromFile(_file);
 }
 
-FileDataIO ::~FileDataIO() 
+FileDataIO :: FileDataIO(const char * path, const char * mode)
+   : _pendingFilePath(muscleStrdup(path))
+   , _pendingFileMode(muscleStrdup(mode))
+   , _file(NULL)
 {
+   // empty
+}
+
+FileDataIO :: ~FileDataIO()
+{
+   FreePendingFileInfo();
    if (_file) fclose(_file);
 }
 
@@ -22,7 +34,7 @@ int32 FileDataIO :: Read(void * buffer, uint32 size)
       const int32 ret = (int32) fread(buffer, 1, size, _file);
       return (ret > 0) ? ret : -1;  // EOF is an error, and it's returned as zero
    }
-   else return -1;
+   else return EnsureDeferredModeFopenCalled() ? Read(buffer, size) : -1;
 }
 
 int32 FileDataIO :: Write(const void * buffer, uint32 size)
@@ -32,12 +44,12 @@ int32 FileDataIO :: Write(const void * buffer, uint32 size)
       const int32 ret = (int32) fwrite(buffer, 1, size, _file);
       return (ret > 0) ? ret : -1;   // zero is an error
    }
-   else return -1;
+   else return EnsureDeferredModeFopenCalled() ? Write(buffer, size) : -1;
 }
 
 status_t FileDataIO :: Seek(int64 offset, int whence)
 {
-   if (_file == NULL) return B_BAD_OBJECT;
+   if (_file == NULL) return EnsureDeferredModeFopenCalled() ? Seek(offset, whence) : B_BAD_OBJECT;
 
    switch(whence)
    {
@@ -51,7 +63,7 @@ status_t FileDataIO :: Seek(int64 offset, int whence)
 
 int64 FileDataIO :: GetPosition() const
 {
-   return _file ? (int64) ftell(_file) : -1;
+   return _file ? (int64) ftell(_file) : (_pendingFilePath?0:-1);
 }
 
 void FileDataIO :: FlushOutput() 
@@ -66,6 +78,7 @@ void FileDataIO :: Shutdown()
       fclose(_file);
       ReleaseFile();
    }
+   FreePendingFileInfo();
 }
  
 void FileDataIO :: ReleaseFile() 
@@ -96,6 +109,22 @@ void FileDataIO :: SetSocketsFromFile(FILE * optFile)
 #else
    (void) optFile; // avoid compiler warning
 #endif
+}
+
+void FileDataIO :: FreePendingFileInfo()
+{
+   if (_pendingFilePath) {muscleFree(_pendingFilePath); _pendingFilePath = NULL;}
+   if (_pendingFileMode) {muscleFree(_pendingFileMode); _pendingFileMode = NULL;}
+}
+
+bool FileDataIO :: EnsureDeferredModeFopenCalled()
+{
+   if ((_pendingFilePath)&&(_file == NULL))
+   {
+      SetFile(fopen(_pendingFilePath, _pendingFileMode?_pendingFileMode:"rb"));  // SetFile() will call Shutdown()
+      return (_file != NULL);                                                    // which will call FreePendingFileInfo()
+   }
+   return false;
 }
 
 } // end namespace muscle

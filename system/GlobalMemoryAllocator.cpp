@@ -193,6 +193,14 @@ void * muscleAlloc(size_t userSize, bool retryOnFailure)
    return userPtr;
 }
 
+char * muscleStrdup(const char * s, bool retryOnFailure)
+{
+   const size_t sLen = s ? strlen(s) : 0;
+   char * dupStr = muscleAlloc(sLen+1, retryOnFailure);  // +1 for the NUL terminator byte
+   if (dupStr) muscleStrcpy(dupStr, s);
+   return dupStr;
+}
+
 void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
 {
    using namespace muscle;

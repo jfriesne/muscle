@@ -12,6 +12,10 @@ key:  - new feature
    - Added a Message::SwapName() method for swapping a named field.
    - The CMakeLists.txt file now supports a WITH_SSL=ON option to
      compile the muscle library with OpenSSL support enabled.
+   - Added a second constructor to FileDataIO to allow the call to
+     fopen() to be deferred until the first time the calling code
+     tries to use the FileDataIO's I/O methods.
+   - Added a muscleStrdup() function, for convenience.
    o Moved PrintSessionsInfo() and PrintFactoriesInfo() up out
      of StorageReflectSession and into AbstractReflectSession.
    o Changed the ComputerIsAboutToSleep() and ComputerJustWokeUp()

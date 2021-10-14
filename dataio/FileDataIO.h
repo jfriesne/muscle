@@ -19,6 +19,14 @@ public:
     */
    FileDataIO(FILE * file = NULL);
 
+   /** Alternative constructor that can be used if you'd prefer to defer the call to fopen()
+     * until when the file-handle is needed.
+     * @param path the path to the file to open (will be passed as the first argument to fopen())
+     * @param mode the mode of the file to open (will be passed as the second argument to fopen())
+     * @note fopen() will be called the first time Read()/Write()/Seek()/etc are called on this object.
+     */
+   FileDataIO(const char * path, const char * mode);
+
    /** Destructor.
     *  Calls fclose() on the held file.
     */
@@ -48,9 +56,7 @@ public:
     */ 
    virtual status_t Seek(int64 offset, int whence);
    
-   /** Returns our current position in the file.
-    *  @note this subclass only supports 32-bit offsets.
-    */
+   /** Returns our current position in the file. */
    virtual int64 GetPosition() const;
 
    /** Flushes the file output by calling fflush() */
@@ -113,6 +119,11 @@ public:
 
 private:
    void SetSocketsFromFile(FILE * optFile);
+   bool EnsureDeferredModeFopenCalled();  // returns true iff fopen() was called and succeeded
+   void FreePendingFileInfo();
+
+   char * _pendingFilePath;  // used in deferred-mode only
+   char * _pendingFileMode;  // ditto
 
    FILE * _file;
    ConstSocketRef _selectSocketRef;
