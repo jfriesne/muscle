@@ -16,6 +16,8 @@ key:  - new feature
      fopen() to be deferred until the first time the calling code
      tries to use the FileDataIO's I/O methods.
    - Added a muscleStrdup() function, for convenience.
+   o Updated the cmake_minimum_required in CMakeLists.txt to 3.0
+     to avoid deprecation warnings.
    o Moved PrintSessionsInfo() and PrintFactoriesInfo() up out
      of StorageReflectSession and into AbstractReflectSession.
    o Changed the ComputerIsAboutToSleep() and ComputerJustWokeUp()
