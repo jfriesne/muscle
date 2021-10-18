@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#ifndef MusclePseudoFlattenable_h
+#define MusclePseudoFlattenable_h
+
 /******************************************************************************
 /
 /   File:      PseudoFlattenable.h
@@ -7,9 +10,6 @@
 /   Description:    no-op/empty/template-compatible version of the Flattenable interface
 /
 ******************************************************************************/
-
-#ifndef MusclePseudoFlattenable_h
-#define MusclePseudoFlattenable_h
 
 #include "support/MuscleSupport.h"
 

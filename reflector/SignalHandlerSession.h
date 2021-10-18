@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#ifndef MuscleSignalHandlerSession_h
+#define MuscleSignalHandlerSession_h
+
 #include "reflector/AbstractReflectSession.h"
 #include "system/SignalMultiplexer.h"
 
@@ -56,3 +59,5 @@ void SetMainReflectServerCatchSignals(bool enable);
 bool GetMainReflectServerCatchSignals();
 
 } // end namespace muscle
+
+#endif

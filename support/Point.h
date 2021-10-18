@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#ifndef MusclePoint_h
+#define MusclePoint_h
+
 /*******************************************************************************
 /
 /   File:      Point.h
@@ -7,9 +10,6 @@
 /   Description:     version of Be's Point class
 /
 *******************************************************************************/
-
-#ifndef MusclePoint_h
-#define MusclePoint_h
 
 #include <math.h>  // for sqrt()
 #include "support/PseudoFlattenable.h"

@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#ifndef MuscleProxyIOGateway_h
+#define MuscleProxyIOGateway_h
+
 #include "dataio/ByteBufferDataIO.h"
 #include "dataio/ByteBufferPacketDataIO.h"
 #include "iogateway/AbstractMessageIOGateway.h"
@@ -72,3 +75,5 @@ private:
 DECLARE_REFTYPES(ProxyIOGateway);
 
 } // end namespace muscle
+
+#endif

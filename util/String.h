@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#ifndef MuscleString_h
+#define MuscleString_h
+
 /* NOTE TO MACOS/X X-CODE USERS:  If you are trying to #include <string.h>
  * and X-Code is "helpfully" pulling in this file instead (because the
  * OS/X filesystem is case-insensitive), you can get around that problem
@@ -7,9 +10,6 @@
  * ref:  http://lists.apple.com/archives/xcode-users/2004/Aug/msg00934.html
  *  --Jeremy
  */
-
-#ifndef MuscleString_h
-#define MuscleString_h
 
 #include <ctype.h> 
 #include "support/PseudoFlattenable.h"

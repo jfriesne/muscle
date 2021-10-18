@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#ifndef MuscleRect_h
+#define MuscleRect_h
+
 /*******************************************************************************
 /
 /   File:      Rect.h
@@ -7,9 +10,6 @@
 /   Description:     version of Be's BRect class
 /
 *******************************************************************************/
-
-#ifndef MuscleRect_h
-#define MuscleRect_h
 
 #include "support/PseudoFlattenable.h"
 #include "support/Point.h"

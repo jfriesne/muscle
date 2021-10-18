@@ -4,6 +4,7 @@
 #include "dataio/TCPSocketDataIO.h"
 #include "dataio/PacketizedProxyDataIO.h"
 #include "iogateway/MessageIOGateway.h"
+#include "iogateway/MiniPacketTunnelIOGateway.h"
 #include "iogateway/PacketTunnelIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
 #include "system/SetupSystem.h"
@@ -68,7 +69,7 @@ protected:
 };
 
 
-// This is a text based test of the PacketTunnelIOGateway class.  With this test we
+// This is a text based test of the MiniPacketTunnelIOGateway class.  With this test we
 // should be able to broadcast Messages of any size over UDP, and (barring UDP lossage)
 // they should be received and properly re-assembled by the listeners.
 int main(int argc, char ** argv)
@@ -142,7 +143,7 @@ int main(int argc, char ** argv)
       }
 
       UDPSocketDataIO * udpDio = new UDPSocketDataIO(s, false);
-      (void) udpDio->SetPacketSendDestination(IPAddressAndPort(broadcastIP, port));  // gotta do it this way because SetUDPSocketTarget() would break our incoming messages!
+      (void) udpDio->SetPacketSendDestination(IPAddressAndPort(broadcastIP_IPv4, port));  // gotta do it this way because SetUDPSocketTarget() would break our incoming messages!
       dio.SetRef(udpDio);
    }
 
@@ -151,8 +152,10 @@ int main(int argc, char ** argv)
    AbstractMessageIOGatewayRef slaveGatewayRef;
    if (args.HasName("usegw")) slaveGatewayRef.SetRef(new MessageIOGateway(MUSCLE_MESSAGE_ENCODING_ZLIB_9));
 
-   PacketTunnelIOGateway gw(slaveGatewayRef, mtu, magic);
-   gw.SetDataIO(dio);
+   const bool testMini = args.HasName("mini");
+   LogTime(MUSCLE_LOG_INFO, "Using the %s class for I/O\n", testMini?"MiniPacketTunnelIOGateway":"PacketTunnelIOGateway");
+   PacketTunnelIOGateway         gw(slaveGatewayRef, mtu, magic); if (!testMini) gw.SetDataIO(dio);
+   MiniPacketTunnelIOGateway minigw(slaveGatewayRef, mtu, magic); if  (testMini) minigw.SetDataIO(dio);
    TestPacketGatewayMessageReceiver receiver;
 
    SocketMultiplexer multiplexer;
@@ -166,13 +169,13 @@ int main(int argc, char ** argv)
    {
       if (OnceEvery(MICROS_PER_SECOND, lastTime)) LogTime(MUSCLE_LOG_INFO, "Send counter is currently at " UINT32_FORMAT_SPEC ", Receive counter is currently at " UINT32_FORMAT_SPEC "\n", _sendWhatCounter, _recvWhatCounter);
       multiplexer.RegisterSocketForReadReady(readFD);
-      if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
+      if (testMini ? minigw.HasBytesToOutput() : gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
       if (multiplexer.WaitForEvents((spamInterval>0)?nextSpamTime:MUSCLE_TIME_NEVER) < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "testpackettunnel: WaitForEvents() failed!\n");
 
       const bool reading = multiplexer.IsSocketReadyForRead(readFD);
       const bool writing = multiplexer.IsSocketReadyForWrite(writeFD);
-      const bool writeError = ((writing)&&(gw.DoOutput() < 0));
-      const bool readError  = ((reading)&&(gw.DoInput(receiver) < 0));
+      const bool writeError = ((writing)&&((testMini?minigw.DoOutput():gw.DoOutput()) < 0));
+      const bool readError  = ((reading)&&((testMini?minigw.DoInput(receiver):gw.DoInput(receiver)) < 0));
       if ((readError)||(writeError))
       {
          LogTime(MUSCLE_LOG_INFO, "%s:  Connection closed, exiting (%i,%i).\n", readError?"Read Error":"Write Error",readError,writeError);
@@ -195,14 +198,16 @@ int main(int argc, char ** argv)
                MessageRef m = GetMessageFromPool(_sendWhatCounter++);
                if (m())
                {
-                  const uint32 spamLen = ((rand()%5)==0)?(rand()%(mtu*50)):(rand()%(mtu/5));
+                  uint32 spamLen = ((rand()%5)==0)?(rand()%(mtu*50)):(rand()%(mtu/5));
+                  if (testMini) spamLen = muscleMin(spamLen, mtu-128);  // the mini gateway will drop packets that are too large, which will mess up our test, so don't send large
+
                   char * tmp = new char[spamLen+1];
                   for (uint32 j=0; j<spamLen; j++) tmp[j] = 'A'+(((char)j)%26);
                   tmp[spamLen] = '\0';
                   if (m()->AddString("spam", tmp).IsError()) MWARN_OUT_OF_MEMORY;
                   if (m()->AddInt32("spamlen", spamLen).IsError()) MWARN_OUT_OF_MEMORY;
                   LogTime(MUSCLE_LOG_TRACE, "ADDING OUTGOING MESSAGE what=" UINT32_FORMAT_SPEC " size=" UINT32_FORMAT_SPEC "\n", m()->what, m()->FlattenedSize());
-                  if (gw.AddOutgoingMessage(m).IsError()) MWARN_OUT_OF_MEMORY;
+                  if ((testMini?minigw.AddOutgoingMessage(m):gw.AddOutgoingMessage(m)).IsError()) MWARN_OUT_OF_MEMORY;
                   delete [] tmp;
                   byteCount += m()->FlattenedSize();
                }

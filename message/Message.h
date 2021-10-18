@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#ifndef MuscleMessage_h
+#define MuscleMessage_h
+
 /******************************************************************************
 /
 /   File:       Message.h
@@ -13,9 +16,6 @@
 /         data (for efficiency)
 /
 *******************************************************************************/
-
-#ifndef MuscleMessage_h
-#define MuscleMessage_h
 
 #include "message/MessageImpl.h"  // this is the only place that MessageImpl.h should ever be #included!
 

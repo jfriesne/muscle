@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#ifndef MuscleSupport_h
+#define MuscleSupport_h
+
 /******************************************************************************
 /
 /     File:     MuscleSupport.h
@@ -7,9 +10,6 @@
 /     Description:  Standard types, macros, functions, etc, for MUSCLE.
 /
 *******************************************************************************/
-
-#ifndef MuscleSupport_h
-#define MuscleSupport_h
 
 #define MUSCLE_VERSION_STRING "8.42" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
 #define MUSCLE_VERSION        84200  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */

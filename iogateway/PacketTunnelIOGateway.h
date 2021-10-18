@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#ifndef MusclePacketTunnelIOGateway_h
+#define MusclePacketTunnelIOGateway_h
+
 #include "dataio/ByteBufferDataIO.h"
 #include "iogateway/ProxyIOGateway.h"
 #include "util/NetworkUtilityFunctions.h"  // for MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET
@@ -122,3 +125,5 @@ private:
 DECLARE_REFTYPES(PacketTunnelIOGateway);
 
 } // end namespace muscle
+
+#endif

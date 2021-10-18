@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#ifndef MuscleMiniPacketTunnelIOGateway_h
+#define MuscleMiniPacketTunnelIOGateway_h
+
 #include "iogateway/ProxyIOGateway.h"
 #include "util/NetworkUtilityFunctions.h"  // for MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
@@ -107,3 +110,5 @@ private:
 DECLARE_REFTYPES(MiniPacketTunnelIOGateway);
 
 } // end namespace muscle
+
+#endif

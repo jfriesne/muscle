@@ -26,6 +26,12 @@ key:  - new feature
    * PlainTextMessageIOGateway::DoInput() now flushes its input
      buffer when it's in flush-partial-incoming-lines mode, even
      when it didn't actually read any more bytes.
+   * Fixed a bug in MiniPacketTunnelIOGateway::DoOutput() that
+     could cause it a buffer overrun when under load.
+   * Updates testpackettunnel.cpp to be able to test either
+     PacketTunnelIOGateway or MiniPacketTunnelIOGateway
+   * Fixed the #include-guards and copyright-comments of
+     several header files that didn't have them included correctly.
 
 8.42 - Released 9/18/2021
    - Added a DummyConstSocketRef class, for consistency with

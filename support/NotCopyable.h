@@ -1,5 +1,8 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#ifndef MuscleNotCopyable_h
+#define MuscleNotCopyable_h
+
 /******************************************************************************
 /
 /   File:      NotCopyable.h
@@ -7,9 +10,6 @@
 /   Description:    Base class for classes we want to make sure are not copied.
 /
 ******************************************************************************/
-
-#ifndef MuscleNotCopyable_h
-#define MuscleNotCopyable_h
 
 #include "support/MuscleSupport.h"
 
