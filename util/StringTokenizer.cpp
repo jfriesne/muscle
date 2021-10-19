@@ -19,19 +19,19 @@ StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSep
    _bufLen = (uint32) strlen(tokenizeMe)+1; // +1 for the NUL byte
    const bool doAlloc = (_bufLen > sizeof(_smallStringBuf));  // only allocate from the heap if _smallStringBuf isn't big enough
 
-   char * temp;
+   char * bufPtr;
    if (doAlloc)
    {
-      temp = newnothrow_array(char, _bufLen);
-      if (temp) _allocedBufferOnHeap = true;
-           else MWARN_OUT_OF_MEMORY;
+      bufPtr = newnothrow_array(char, _bufLen);
+      if (bufPtr) _allocedBufferOnHeap = true;
+             else MWARN_OUT_OF_MEMORY;
    }
-   else temp = _smallStringBuf;
+   else bufPtr = _smallStringBuf;
    
-   if (temp)
+   if (bufPtr)
    {
-      _nextToRead = _nextToWrite = _tokenizeMe = temp;
-      memcpy(temp, tokenizeMe, _bufLen);
+      _nextToRead = _nextToWrite = _tokenizeMe = bufPtr;
+      memcpy(bufPtr, tokenizeMe, _bufLen);
    }
    else DefaultInitialize();  // D'oh!
 }
@@ -73,9 +73,6 @@ StringTokenizer :: ~StringTokenizer()
 
 void StringTokenizer :: DefaultInitialize()
 {
-   SetBitChord(_hardSepsBitChord, NULL);
-   SetBitChord(_softSepsBitChord, NULL);
-
    _allocedBufferOnHeap = false;
    _prevSepWasHard      = false;
    _escapeChar          = '\0';
@@ -84,26 +81,36 @@ void StringTokenizer :: DefaultInitialize()
    _tokenizeMe          = _dummyString;
    _nextToRead          = _dummyString;
    _nextToWrite         = _dummyString;
+
+   SetBitChord(_hardSepsBitChord, NULL);
+   SetBitChord(_softSepsBitChord, NULL);
 }
 
-// Should only be called when all of our pointers are pointing to another StringTokenizer's buffer,
-// and we want to allocate our own duplicate buffer and point to that instead
 // Note that this method gets called from the copy-constructor while all member variables are still
-// uninitialized so it needs to be careful not to read from any of this object's member variables!
+// uninitialized, so it needs to be careful not to read from any of this object's member variables!
 void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom)
 {
-   _allocedBufferOnHeap = copyFrom._allocedBufferOnHeap;
-   _prevSepWasHard      = copyFrom._prevSepWasHard;
-   _escapeChar          = copyFrom._escapeChar;
-   _prevChar            = copyFrom._prevChar;
-   _bufLen              = copyFrom._bufLen;
+   memcpy(_hardSepsBitChord, copyFrom._hardSepsBitChord, sizeof(_hardSepsBitChord));
+   memcpy(_softSepsBitChord, copyFrom._softSepsBitChord, sizeof(_softSepsBitChord));
 
-   if (copyFrom._allocedBufferOnHeap)
+   _prevSepWasHard = copyFrom._prevSepWasHard;
+   _escapeChar     = copyFrom._escapeChar;
+   _prevChar       = copyFrom._prevChar;
+   _bufLen         = copyFrom._bufLen;
+
+   if (_bufLen <= sizeof(_smallStringBuf))
+   {
+      _allocedBufferOnHeap = false;
+      memcpy(_smallStringBuf, copyFrom._tokenizeMe, _bufLen);
+      SetPointersAnalogousTo(_smallStringBuf, copyFrom);
+   }
+   else
    {
       char * newBuf = newnothrow_array(char, copyFrom._bufLen);
       if (newBuf)
       {
-         memcpy(newBuf, copyFrom._tokenizeMe, copyFrom._bufLen); // copies all three strings at once!
+         _allocedBufferOnHeap = true;
+         memcpy(newBuf, copyFrom._tokenizeMe, copyFrom._bufLen);
          SetPointersAnalogousTo(newBuf, copyFrom);
       }
       else
@@ -112,30 +119,12 @@ void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom
          DefaultInitialize(); // We're boned -- default-initialize everything just to avoid undefined behavior
       }
    }
-   else if (copyFrom._tokenizeMe == copyFrom._smallStringBuf)
-   {
-      // (copyFrom) is using the small-data optimization, so we should too
-      memcpy(_smallStringBuf, copyFrom._smallStringBuf, copyFrom._bufLen);
-      SetPointersAnalogousTo(_smallStringBuf, copyFrom);
-   }
-   else
-   {
-      // (copyFrom)'s pointers are pointing to user-provided memory, so just use the same pointers he is using
-      memcpy(_hardSepsBitChord, copyFrom._hardSepsBitChord, sizeof(_hardSepsBitChord));
-      memcpy(_softSepsBitChord, copyFrom._softSepsBitChord, sizeof(_softSepsBitChord));
-      _tokenizeMe  = copyFrom._tokenizeMe;
-      _nextToRead  = copyFrom._nextToRead;
-      _nextToWrite = copyFrom._nextToWrite;
-   } 
 }
 
 // Sets our points at the same offsets relative to (myNewBuf) that (copyFrom)'s pointers are relative to its _hardSeparators pointer
 void StringTokenizer :: SetPointersAnalogousTo(char * myNewBuf, const StringTokenizer & copyFrom)
 {
    const char * oldBuf = copyFrom._tokenizeMe;
-
-   memcpy(_hardSepsBitChord, copyFrom._hardSepsBitChord, sizeof(_hardSepsBitChord));
-   memcpy(_softSepsBitChord, copyFrom._softSepsBitChord, sizeof(_softSepsBitChord));
    _tokenizeMe  = myNewBuf;
    _nextToRead  = myNewBuf + (copyFrom._nextToRead  - copyFrom._tokenizeMe);
    _nextToWrite = myNewBuf + (copyFrom._nextToWrite - copyFrom._tokenizeMe);

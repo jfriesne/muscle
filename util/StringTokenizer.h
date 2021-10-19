@@ -84,7 +84,7 @@ private:
    {
       _prevChar = (_prevChar==_escapeChar)?(_escapeChar+1):(*_nextToRead);
       *_nextToWrite = *_nextToRead++;
-      if (_prevChar != _escapeChar) _nextToWrite++;
+      if (_prevChar != _escapeChar) _nextToWrite++;  // conditional because we don't want (_escapeChar) to appear in the string returned by GetNextToken()
    }
 
    bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[whichBit/32]&(1<<(whichBit%32))) != 0);}
@@ -97,7 +97,7 @@ private:
 
    uint32 _bufLen;
 
-   char * _tokenizeMe;   // as passed in to our ctor
+   char * _tokenizeMe;   // pointer to the beginning of the string to tokenize
    char * _nextToRead;   // where our parser is reading from
    char * _nextToWrite;  // where our parser is writing to (the writing is necessary in to absorb escape-chars so they won't be seen by the calling code)
 

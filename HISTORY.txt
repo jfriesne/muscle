@@ -18,7 +18,8 @@ key:  - new feature
    - Added a muscleStrdup() function, for convenience.
    - Added an optional (escapeChar) argument to the StringTokenizer
      class constructors, to allow specifying an escape-character
-     for separator-chars that are intended to be literal-chars.
+     that can be inserted before separator-chars that are intended
+     to be interpreted as literals.
    - StringTokenizer class now uses a bit-chord lookup rather than
      strchr() when determining if a character is a separator-char.
    o Removed the GetHardSeparatorChars() and GetSoftSeparatorChars()
@@ -39,6 +40,9 @@ key:  - new feature
      PacketTunnelIOGateway or MiniPacketTunnelIOGateway
    * Fixed the #include-guards and copyright-comments of
      several header files that didn't have them included correctly.
+   * The StringTokenizer copy-constructor now handles copying
+     from (StringTokenizers using user-provided memory) more
+     elegantly.
 
 8.42 - Released 9/18/2021
    - Added a DummyConstSocketRef class, for consistency with
