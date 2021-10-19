@@ -9,29 +9,28 @@ namespace muscle {
 
 /** String tokenizer class, similar to Java's java.util.StringTokenizer.  This class is used
   * to interpret a specified character string as a series of sub-strings, with each sub-string
-  * differentiated from its neighbors by the presence of one or more of the specified separator-tokens 
+  * differentiated from its neighbors by the presence of one or more of the specified separator-tokens
   * between the two sub-strings.
   */
 class StringTokenizer MUSCLE_FINAL_CLASS
 {
 public:
-   /** Initializes the StringTokenizer to parse (tokenizeMe), which should be a string of tokens (e.g. words) separated by any 
+   /** Initializes the StringTokenizer to parse (tokenizeMe), which should be a string of tokens (e.g. words) separated by any
     *  of the characters specified in (separators)
     *  @param tokenizeMe the string to tokenize.  If NULL is passed in, an empty string ("") is assumed.
     *  @param hardSeparators ASCII string representing a list of characters to interpret as "hard" substring-separators.
     *                        Defaults to ","; passing in NULL is the same as passing in "" (i.e. no separators of this type).
     *  @param softSeparators ASCII string representing a list of characters to interpret as "soft" substring-separators.
     *                        Defaults to " \t\r\n"; passing in NULL is the same as passing in "" (i.e. no separators of this type).
-    *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.
-    *                    Defaults to zero.  (Note that the escapeChar will still appear in the tokenized substrings, though!)
+    *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.  Defaults to zero.
     *  @note the difference between a "soft" separator and a "hard" separator is that a contiguous series of soft separators
     *        is counted as a single separator, while a contiguous series of hard separators is counted as separating one or
-    *        more empty strings.  For example, given the default separator-arguments listed above, ",A,B,,,C,D" would be tokenized 
+    *        more empty strings.  For example, given the default separator-arguments listed above, ",A,B,,,C,D" would be tokenized
     *        as ("", "A", "B", "", "", "C", "D"), while "  A B  C   D  " would be tokenized as ("A", "B", "C", "D").
     */
    StringTokenizer(const char * tokenizeMe, const char * hardSeparators = ",", const char * softSeparators = " \t\r\n", char escapeChar = '\0');
 
-   /** This Constructor is the same as above, only with this one you allow the StringTokenizer to modify (tokenizeMe) directly, 
+   /** This Constructor is the same as above, only with this one you allow the StringTokenizer to modify (tokenizeMe) directly,
     *  rather than making a copy of the string first and modifying that.  (it's a bit more efficient as no dynamic allocations
     *  need to be done; however it does modify (tokenizeMe) in the process)
     *  @param junk Ignored; it's only here to disambiguate the two constructors.
@@ -40,11 +39,10 @@ public:
     *                        Defaults to ","; passing in NULL is the same as passing in "" (i.e. no separators of this type).
     *  @param softSeparators ASCII string representing a list of characters to interpret as "soft" substring-separators.
     *                        Defaults to " \t\r\n"; passing in NULL is the same as passing in "" (i.e. no separators of this type).
-    *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.
-    *                    Defaults to zero.  (Note that the escapeChar will still appear in the tokenized substrings, though!)
+    *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.  Defaults to zero.
     *  @note the difference between a "soft" separator and a "hard" separator is that a contiguous series of soft separators
     *        is counted as a single separator, while a contiguous series of hard separators is counted as separating one or
-    *        more empty strings.  For example, given the default separator-arguments listed above, ",A,B,,,C,D" would be tokenized 
+    *        more empty strings.  For example, given the default separator-arguments listed above, ",A,B,,,C,D" would be tokenized
     *        as ("", "A", "B", "", "", "C", "D"), while "  A B  C   D  " would be tokenized as ("A", "B", "C", "D").
     */
    StringTokenizer(bool junk, char * tokenizeMe, const char * hardSeparators = ",", const char * softSeparators = " \t\r\n", char escapeChar = '\0');
@@ -63,7 +61,7 @@ public:
 
    /** Convenience synonym for GetNextToken() */
    char * operator()() {return GetNextToken();}
- 
+
    /** Returns the remainder of the string, starting with the next token,
     *  or NULL if there are no more tokens in the string.
     *  Doesn't affect the next return value of GetNextToken(), though.
@@ -81,8 +79,14 @@ private:
    void DeletePrivateBufferIfNecessary();
    void CopyDataToPrivateBuffer(const StringTokenizer & copyFrom);
    void SetPointersAnalogousTo(char * myNewBuf, const StringTokenizer & copyFrom);
-   void MovePastSoftSeparatorChars() {while((*_next)&&(IsSoftSeparatorChar(_prevChar, *_next))) UpdatePrevChar(*_next++);}
-   void UpdatePrevChar(char c) {_prevChar = (_prevChar==_escapeChar)?'\0':c;}
+   void MovePastSoftSeparatorChars() {while((*_nextToRead)&&(IsSoftSeparatorChar(_prevChar, *_nextToRead))) Advance();}
+   void Advance()
+   {
+      _prevChar = (_prevChar==_escapeChar)?(_escapeChar+1):(*_nextToRead);
+      *_nextToWrite = *_nextToRead++;
+      if (_prevChar != _escapeChar) _nextToWrite++;
+   }
+
    bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[whichBit/32]&(1<<(whichBit%32))) != 0);}
    void SetBitChord(uint32 * bits, const char * seps);
 
@@ -93,8 +97,9 @@ private:
 
    uint32 _bufLen;
 
-   char * _tokenizeMe;
-   char * _next;
+   char * _tokenizeMe;   // as passed in to our ctor
+   char * _nextToRead;   // where our parser is reading from
+   char * _nextToWrite;  // where our parser is writing to (the writing is necessary in to absorb escape-chars so they won't be seen by the calling code)
 
    char _smallStringBuf[128];
 

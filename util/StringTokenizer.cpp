@@ -30,7 +30,7 @@ StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSep
    
    if (temp)
    {
-      _next = _tokenizeMe = temp;
+      _nextToRead = _nextToWrite = _tokenizeMe = temp;
       memcpy(temp, tokenizeMe, _bufLen);
    }
    else DefaultInitialize();  // D'oh!
@@ -43,7 +43,8 @@ StringTokenizer :: StringTokenizer(bool junk, char * tokenizeMe, const char * ha
    , _prevChar(escapeChar+1)
    , _bufLen(0)
    , _tokenizeMe(tokenizeMe?tokenizeMe:_dummyString)
-   , _next(tokenizeMe?tokenizeMe:_dummyString)
+   , _nextToRead(_tokenizeMe)
+   , _nextToWrite(_tokenizeMe)
 {
    (void) junk;
    SetBitChord(_hardSepsBitChord, hardSeparators);
@@ -81,7 +82,8 @@ void StringTokenizer :: DefaultInitialize()
    _prevChar            = _escapeChar+1;
    _bufLen              = 0;
    _tokenizeMe          = _dummyString;
-   _next                = _dummyString;
+   _nextToRead          = _dummyString;
+   _nextToWrite         = _dummyString;
 }
 
 // Should only be called when all of our pointers are pointing to another StringTokenizer's buffer,
@@ -121,8 +123,9 @@ void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom
       // (copyFrom)'s pointers are pointing to user-provided memory, so just use the same pointers he is using
       memcpy(_hardSepsBitChord, copyFrom._hardSepsBitChord, sizeof(_hardSepsBitChord));
       memcpy(_softSepsBitChord, copyFrom._softSepsBitChord, sizeof(_softSepsBitChord));
-      _tokenizeMe = copyFrom._tokenizeMe;
-      _next       = copyFrom._next;
+      _tokenizeMe  = copyFrom._tokenizeMe;
+      _nextToRead  = copyFrom._nextToRead;
+      _nextToWrite = copyFrom._nextToWrite;
    } 
 }
 
@@ -133,8 +136,9 @@ void StringTokenizer :: SetPointersAnalogousTo(char * myNewBuf, const StringToke
 
    memcpy(_hardSepsBitChord, copyFrom._hardSepsBitChord, sizeof(_hardSepsBitChord));
    memcpy(_softSepsBitChord, copyFrom._softSepsBitChord, sizeof(_softSepsBitChord));
-   _tokenizeMe = myNewBuf;
-   _next       = myNewBuf + (copyFrom._next - copyFrom._tokenizeMe);
+   _tokenizeMe  = myNewBuf;
+   _nextToRead  = myNewBuf + (copyFrom._nextToRead  - copyFrom._tokenizeMe);
+   _nextToWrite = myNewBuf + (copyFrom._nextToWrite - copyFrom._tokenizeMe);
 }
 
 void StringTokenizer :: DeletePrivateBufferIfNecessary()
@@ -145,21 +149,25 @@ void StringTokenizer :: DeletePrivateBufferIfNecessary()
 char * StringTokenizer :: GetNextToken()
 {
    MovePastSoftSeparatorChars();
-   if ((*_next)||(_prevSepWasHard))
+   if ((*_nextToRead)||(_prevSepWasHard))
    {
       _prevSepWasHard = false;
-      char * ret = _next;
+      char * ret = _nextToRead;
 
-      // Advance _next to the next sep-char in the string
-      while((*_next)&&(!IsHardSeparatorChar(_prevChar, *_next))&&(!IsSoftSeparatorChar(_prevChar, *_next))) UpdatePrevChar(*_next++);
+      // Advance _nextToRead to the next sep-char in the string
+      while((*_nextToRead)&&(!IsHardSeparatorChar(_prevChar, *_nextToRead))&&(!IsSoftSeparatorChar(_prevChar, *_nextToRead))) Advance();
 
-      if (*_next)
+      if (*_nextToRead)
       {
-         const bool wasHardSep = IsHardSeparatorChar(_prevChar, *_next);
-         *_next++  = '\0';
-         _prevChar = _escapeChar+1;
-         if ((wasHardSep)&&(*_next == '\0')) _prevSepWasHard = true;  // so that e.g. strings ending in a comma produce an extra empty-output
+         const bool wasHardSep = IsHardSeparatorChar(_prevChar, *_nextToRead);
+         *_nextToRead++ = '\0';
+         *_nextToWrite  = '\0';
+         _nextToWrite = _nextToRead;
+         _prevChar    = _escapeChar+1;
+         if ((wasHardSep)&&(*_nextToWrite == '\0')) _prevSepWasHard = true;  // so that e.g. strings ending in a comma produce an extra empty-output
       }
+      else if (_nextToRead > _nextToWrite) *_nextToWrite = '\0';
+
       return ret;
    }
 
@@ -169,7 +177,7 @@ char * StringTokenizer :: GetNextToken()
 char * StringTokenizer :: GetRemainderOfString()
 {  
    MovePastSoftSeparatorChars();
-   return (*_next) ? _next : NULL;  // and return from there
+   return (*_nextToRead) ? _nextToRead : NULL;  // and return from there
 }
 
 void StringTokenizer :: SetBitChord(uint32 * bits, const char * seps)
