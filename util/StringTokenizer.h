@@ -70,18 +70,12 @@ public:
     */
    char * GetRemainderOfString();
 
-   /** Returns a string representing the set of hard-separator-chars we are using (or "" if none) */
-   const char * GetHardSeparatorChars() const {return _hardSeparators;}
-
-   /** Returns a string representing the set of soft-separator-chars we are using (or "" if none) */
-   const char * GetSoftSeparatorChars() const {return _softSeparators;}
-
    /** Returns the separator-escape character that was passed in to our constructor (or '\0' if none) */
    char GetEscapeChar() const {return _escapeChar;}
 
 private:
-   bool IsHardSeparatorChar(char prevChar, char c) const {return (((_escapeChar=='\0')||(prevChar!=_escapeChar))&&(strchr(_hardSeparators, c) != NULL));}
-   bool IsSoftSeparatorChar(char prevChar, char c) const {return (((_escapeChar=='\0')||(prevChar!=_escapeChar))&&(strchr(_softSeparators, c) != NULL));}
+   bool IsHardSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_hardSepsBitChord, c)));}
+   bool IsSoftSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_softSepsBitChord, c)));}
 
    void DefaultInitialize();
    void DeletePrivateBufferIfNecessary();
@@ -89,6 +83,8 @@ private:
    void SetPointersAnalogousTo(char * myNewBuf, const StringTokenizer & copyFrom);
    void MovePastSoftSeparatorChars() {while((*_next)&&(IsSoftSeparatorChar(_prevChar, *_next))) UpdatePrevChar(*_next++);}
    void UpdatePrevChar(char c) {_prevChar = (_prevChar==_escapeChar)?'\0':c;}
+   bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[whichBit/32]&(1<<(whichBit%32))) != 0);}
+   void SetBitChord(uint32 * bits, const char * seps);
 
    bool _allocedBufferOnHeap;
    bool _prevSepWasHard;
@@ -97,11 +93,13 @@ private:
 
    uint32 _bufLen;
 
-   const char * _hardSeparators;
-   const char * _softSeparators;
+   char * _tokenizeMe;
    char * _next;
 
    char _smallStringBuf[128];
+
+   uint32 _hardSepsBitChord[8];  // 32x8 = 256, aka all possible 8-bit values of a sep
+   uint32 _softSepsBitChord[8];  // bit N is set iff the corresponding 8-bit value is a sep
 };
 
 } // end namespace muscle

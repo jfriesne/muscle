@@ -19,6 +19,10 @@ key:  - new feature
    - Added an optional (escapeChar) argument to the StringTokenizer
      class constructors, to allow specifying an escape-character
      for separator-chars that are intended to be literal-chars.
+   - StringTokenizer class now uses a bit-chord lookup rather than
+     strchr() when determining if a character is a separator-char.
+   o Removed the GetHardSeparatorChars() and GetSoftSeparatorChars()
+     methods from the StringTokenizer class.
    o Updated the cmake_minimum_required in CMakeLists.txt to 3.0
      to avoid deprecation warnings.
    o Moved PrintSessionsInfo() and PrintFactoriesInfo() up out

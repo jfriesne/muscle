@@ -10,19 +10,15 @@ StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSep
    : _allocedBufferOnHeap(false)
    , _prevSepWasHard(false)
    , _escapeChar(escapeChar)
-   , _prevChar('\0')
+   , _prevChar(escapeChar+1)
 {
-   if (tokenizeMe     == NULL) tokenizeMe     = "";
-   if (hardSeparators == NULL) hardSeparators = "";
-   if (softSeparators == NULL) softSeparators = "";
-   
-   const size_t tlen  = strlen(tokenizeMe)    +1; // +1 for the NUL byte
-   const size_t sslen = strlen(softSeparators)+1; // ""
-   const size_t hslen = strlen(hardSeparators)+1; // ""
+   SetBitChord(_hardSepsBitChord, hardSeparators);
+   SetBitChord(_softSepsBitChord, softSeparators);
 
-   _bufLen = (uint32) (sslen+hslen+tlen);
-   const bool doAlloc  = (_bufLen > sizeof(_smallStringBuf));  // only allocate from the heap if _smallStringBuf isn't big enough
-   
+   if (tokenizeMe == NULL) tokenizeMe = "";
+   _bufLen = (uint32) strlen(tokenizeMe)+1; // +1 for the NUL byte
+   const bool doAlloc = (_bufLen > sizeof(_smallStringBuf));  // only allocate from the heap if _smallStringBuf isn't big enough
+
    char * temp;
    if (doAlloc)
    {
@@ -34,9 +30,8 @@ StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSep
    
    if (temp)
    {
-      _hardSeparators = temp; memcpy(temp, hardSeparators, hslen); temp += hslen;
-      _softSeparators = temp; memcpy(temp, softSeparators, sslen); temp += sslen;
-      _next           = temp; memcpy(temp,     tokenizeMe, tlen);  //temp += tlen;
+      _next = _tokenizeMe = temp;
+      memcpy(temp, tokenizeMe, _bufLen);
    }
    else DefaultInitialize();  // D'oh!
 }
@@ -45,13 +40,14 @@ StringTokenizer :: StringTokenizer(bool junk, char * tokenizeMe, const char * ha
    : _allocedBufferOnHeap(false)
    , _prevSepWasHard(false)
    , _escapeChar(escapeChar)
-   , _prevChar('\0')
+   , _prevChar(escapeChar+1)
    , _bufLen(0)
-   , _hardSeparators(hardSeparators?hardSeparators:"")
-   , _softSeparators(softSeparators?softSeparators:"")
+   , _tokenizeMe(tokenizeMe?tokenizeMe:_dummyString)
    , _next(tokenizeMe?tokenizeMe:_dummyString)
 {
    (void) junk;
+   SetBitChord(_hardSepsBitChord, hardSeparators);
+   SetBitChord(_softSepsBitChord, softSeparators);
 }
 
 StringTokenizer :: StringTokenizer(const StringTokenizer & rhs)
@@ -76,13 +72,15 @@ StringTokenizer :: ~StringTokenizer()
 
 void StringTokenizer :: DefaultInitialize()
 {
+   SetBitChord(_hardSepsBitChord, NULL);
+   SetBitChord(_softSepsBitChord, NULL);
+
    _allocedBufferOnHeap = false;
    _prevSepWasHard      = false;
    _escapeChar          = '\0';
-   _prevChar            = '\0';
+   _prevChar            = _escapeChar+1;
    _bufLen              = 0;
-   _hardSeparators      = "";
-   _softSeparators      = "";
+   _tokenizeMe          = _dummyString;
    _next                = _dummyString;
 }
 
@@ -103,7 +101,7 @@ void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom
       char * newBuf = newnothrow_array(char, copyFrom._bufLen);
       if (newBuf)
       {
-         memcpy(newBuf, copyFrom._hardSeparators, copyFrom._bufLen); // copies all three strings at once!
+         memcpy(newBuf, copyFrom._tokenizeMe, copyFrom._bufLen); // copies all three strings at once!
          SetPointersAnalogousTo(newBuf, copyFrom);
       }
       else
@@ -112,7 +110,7 @@ void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom
          DefaultInitialize(); // We're boned -- default-initialize everything just to avoid undefined behavior
       }
    }
-   else if (copyFrom._hardSeparators == copyFrom._smallStringBuf)
+   else if (copyFrom._tokenizeMe == copyFrom._smallStringBuf)
    {
       // (copyFrom) is using the small-data optimization, so we should too
       memcpy(_smallStringBuf, copyFrom._smallStringBuf, copyFrom._bufLen);
@@ -121,26 +119,27 @@ void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom
    else
    {
       // (copyFrom)'s pointers are pointing to user-provided memory, so just use the same pointers he is using
-      _hardSeparators = copyFrom._hardSeparators;
-      _softSeparators = copyFrom._softSeparators;
-      _next           = copyFrom._next;
+      memcpy(_hardSepsBitChord, copyFrom._hardSepsBitChord, sizeof(_hardSepsBitChord));
+      memcpy(_softSepsBitChord, copyFrom._softSepsBitChord, sizeof(_softSepsBitChord));
+      _tokenizeMe = copyFrom._tokenizeMe;
+      _next       = copyFrom._next;
    } 
 }
 
 // Sets our points at the same offsets relative to (myNewBuf) that (copyFrom)'s pointers are relative to its _hardSeparators pointer
 void StringTokenizer :: SetPointersAnalogousTo(char * myNewBuf, const StringTokenizer & copyFrom)
 {
-   const char * oldBuf = copyFrom._hardSeparators;
+   const char * oldBuf = copyFrom._tokenizeMe;
 
-   _hardSeparators = myNewBuf;
-   _softSeparators = myNewBuf + (copyFrom._softSeparators - oldBuf);
-   _next           = myNewBuf + (copyFrom._next           - oldBuf);
+   memcpy(_hardSepsBitChord, copyFrom._hardSepsBitChord, sizeof(_hardSepsBitChord));
+   memcpy(_softSepsBitChord, copyFrom._softSepsBitChord, sizeof(_softSepsBitChord));
+   _tokenizeMe = myNewBuf;
+   _next       = myNewBuf + (copyFrom._next - copyFrom._tokenizeMe);
 }
 
 void StringTokenizer :: DeletePrivateBufferIfNecessary()
 {
-   // must cast to (char *) or VC++ complains :^P
-   if (_allocedBufferOnHeap) delete [] ((char *)_hardSeparators);  // yes, this holds all three strings in a single allocation
+   if (_allocedBufferOnHeap) delete [] _tokenizeMe;
 }
 
 char * StringTokenizer :: GetNextToken()
@@ -157,7 +156,8 @@ char * StringTokenizer :: GetNextToken()
       if (*_next)
       {
          const bool wasHardSep = IsHardSeparatorChar(_prevChar, *_next);
-         _prevChar = *_next++ = '\0';
+         *_next++  = '\0';
+         _prevChar = _escapeChar+1;
          if ((wasHardSep)&&(*_next == '\0')) _prevSepWasHard = true;  // so that e.g. strings ending in a comma produce an extra empty-output
       }
       return ret;
@@ -170,6 +170,12 @@ char * StringTokenizer :: GetRemainderOfString()
 {  
    MovePastSoftSeparatorChars();
    return (*_next) ? _next : NULL;  // and return from there
+}
+
+void StringTokenizer :: SetBitChord(uint32 * bits, const char * seps)
+{
+   memset(bits, 0, sizeof(_hardSepsBitChord));
+   if (seps) for (const char * s = seps; (*s != '\0'); s++) bits[(*s)/32] |= (1<<((*s)%32));
 }
 
 } // end namespace muscle
