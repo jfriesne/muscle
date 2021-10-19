@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -7,7 +7,7 @@
 
 using namespace muscle;
 
-int main(void) 
+int main(int, char **)
 {
    while(1)
    {
@@ -19,7 +19,7 @@ int main(void)
 
          printf("\nYou typed: [%s]\n", s());
          const char * t;
-         StringTokenizer tok(s());
+         StringTokenizer tok(s(), ",", " \t\r\n", '\\');
 
          StringTokenizer tokCopy(tok);
 
@@ -38,7 +38,7 @@ int main(void)
          if (extra) printf("WTF B?  [%s]\n", extra);
          extra = tok();
          if (extra) printf("WTF C?  [%s]\n", extra);
-      } 
+      }
    }
 
    return 0;

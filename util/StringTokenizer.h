@@ -22,12 +22,14 @@ public:
     *                        Defaults to ","; passing in NULL is the same as passing in "" (i.e. no separators of this type).
     *  @param softSeparators ASCII string representing a list of characters to interpret as "soft" substring-separators.
     *                        Defaults to " \t\r\n"; passing in NULL is the same as passing in "" (i.e. no separators of this type).
+    *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.
+    *                    Defaults to zero.  (Note that the escapeChar will still appear in the tokenized substrings, though!)
     *  @note the difference between a "soft" separator and a "hard" separator is that a contiguous series of soft separators
     *        is counted as a single separator, while a contiguous series of hard separators is counted as separating one or
     *        more empty strings.  For example, given the default separator-arguments listed above, ",A,B,,,C,D" would be tokenized 
     *        as ("", "A", "B", "", "", "C", "D"), while "  A B  C   D  " would be tokenized as ("A", "B", "C", "D").
     */
-   StringTokenizer(const char * tokenizeMe, const char * hardSeparators = ",", const char * softSeparators = " \t\r\n");
+   StringTokenizer(const char * tokenizeMe, const char * hardSeparators = ",", const char * softSeparators = " \t\r\n", char escapeChar = '\0');
 
    /** This Constructor is the same as above, only with this one you allow the StringTokenizer to modify (tokenizeMe) directly, 
     *  rather than making a copy of the string first and modifying that.  (it's a bit more efficient as no dynamic allocations
@@ -38,12 +40,14 @@ public:
     *                        Defaults to ","; passing in NULL is the same as passing in "" (i.e. no separators of this type).
     *  @param softSeparators ASCII string representing a list of characters to interpret as "soft" substring-separators.
     *                        Defaults to " \t\r\n"; passing in NULL is the same as passing in "" (i.e. no separators of this type).
+    *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.
+    *                    Defaults to zero.  (Note that the escapeChar will still appear in the tokenized substrings, though!)
     *  @note the difference between a "soft" separator and a "hard" separator is that a contiguous series of soft separators
     *        is counted as a single separator, while a contiguous series of hard separators is counted as separating one or
     *        more empty strings.  For example, given the default separator-arguments listed above, ",A,B,,,C,D" would be tokenized 
     *        as ("", "A", "B", "", "", "C", "D"), while "  A B  C   D  " would be tokenized as ("A", "B", "C", "D").
     */
-   StringTokenizer(bool junk, char * tokenizeMe, const char * hardSeparators = ",", const char * softSeparators = " \t\r\n");
+   StringTokenizer(bool junk, char * tokenizeMe, const char * hardSeparators = ",", const char * softSeparators = " \t\r\n", char escapeChar = '\0');
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    StringTokenizer(const StringTokenizer & rhs);
@@ -72,17 +76,24 @@ public:
    /** Returns a string representing the set of soft-separator-chars we are using (or "" if none) */
    const char * GetSoftSeparatorChars() const {return _softSeparators;}
 
+   /** Returns the separator-escape character that was passed in to our constructor (or '\0' if none) */
+   char GetEscapeChar() const {return _escapeChar;}
+
 private:
-   bool IsHardSeparatorChar(char c) const {return (strchr(_hardSeparators, c) != NULL);}
-   bool IsSoftSeparatorChar(char c) const {return (strchr(_softSeparators, c) != NULL);}
+   bool IsHardSeparatorChar(char prevChar, char c) const {return (((_escapeChar=='\0')||(prevChar!=_escapeChar))&&(strchr(_hardSeparators, c) != NULL));}
+   bool IsSoftSeparatorChar(char prevChar, char c) const {return (((_escapeChar=='\0')||(prevChar!=_escapeChar))&&(strchr(_softSeparators, c) != NULL));}
 
    void DefaultInitialize();
    void DeletePrivateBufferIfNecessary();
    void CopyDataToPrivateBuffer(const StringTokenizer & copyFrom);
    void SetPointersAnalogousTo(char * myNewBuf, const StringTokenizer & copyFrom);
+   void MovePastSoftSeparatorChars() {while((*_next)&&(IsSoftSeparatorChar(_prevChar, *_next))) UpdatePrevChar(*_next++);}
+   void UpdatePrevChar(char c) {_prevChar = (_prevChar==_escapeChar)?'\0':c;}
 
    bool _allocedBufferOnHeap;
    bool _prevSepWasHard;
+   char _escapeChar;
+   char _prevChar;
 
    uint32 _bufLen;
 

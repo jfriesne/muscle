@@ -6,9 +6,11 @@ namespace muscle {
 
 static char _dummyString[] = "";
 
-StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSeparators, const char * softSeparators)
+StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSeparators, const char * softSeparators, char escapeChar)
    : _allocedBufferOnHeap(false)
    , _prevSepWasHard(false)
+   , _escapeChar(escapeChar)
+   , _prevChar('\0')
 {
    if (tokenizeMe     == NULL) tokenizeMe     = "";
    if (hardSeparators == NULL) hardSeparators = "";
@@ -39,9 +41,11 @@ StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSep
    else DefaultInitialize();  // D'oh!
 }
 
-StringTokenizer :: StringTokenizer(bool junk, char * tokenizeMe, const char * hardSeparators, const char * softSeparators)
+StringTokenizer :: StringTokenizer(bool junk, char * tokenizeMe, const char * hardSeparators, const char * softSeparators, char escapeChar)
    : _allocedBufferOnHeap(false)
    , _prevSepWasHard(false)
+   , _escapeChar(escapeChar)
+   , _prevChar('\0')
    , _bufLen(0)
    , _hardSeparators(hardSeparators?hardSeparators:"")
    , _softSeparators(softSeparators?softSeparators:"")
@@ -74,6 +78,8 @@ void StringTokenizer :: DefaultInitialize()
 {
    _allocedBufferOnHeap = false;
    _prevSepWasHard      = false;
+   _escapeChar          = '\0';
+   _prevChar            = '\0';
    _bufLen              = 0;
    _hardSeparators      = "";
    _softSeparators      = "";
@@ -88,6 +94,8 @@ void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom
 {
    _allocedBufferOnHeap = copyFrom._allocedBufferOnHeap;
    _prevSepWasHard      = copyFrom._prevSepWasHard;
+   _escapeChar          = copyFrom._escapeChar;
+   _prevChar            = copyFrom._prevChar;
    _bufLen              = copyFrom._bufLen;
 
    if (copyFrom._allocedBufferOnHeap)
@@ -137,19 +145,19 @@ void StringTokenizer :: DeletePrivateBufferIfNecessary()
 
 char * StringTokenizer :: GetNextToken()
 {
-   while((*_next)&&(IsSoftSeparatorChar(*_next))) _next++;
+   MovePastSoftSeparatorChars();
    if ((*_next)||(_prevSepWasHard))
    {
       _prevSepWasHard = false;
       char * ret = _next;
 
       // Advance _next to the next sep-char in the string
-      while((*_next)&&(!IsHardSeparatorChar(*_next))&&(!IsSoftSeparatorChar(*_next))) _next++;
+      while((*_next)&&(!IsHardSeparatorChar(_prevChar, *_next))&&(!IsSoftSeparatorChar(_prevChar, *_next))) UpdatePrevChar(*_next++);
 
       if (*_next)
       {
-         const bool wasHardSep = IsHardSeparatorChar(*_next);
-         *_next++ = '\0';
+         const bool wasHardSep = IsHardSeparatorChar(_prevChar, *_next);
+         _prevChar = *_next++ = '\0';
          if ((wasHardSep)&&(*_next == '\0')) _prevSepWasHard = true;  // so that e.g. strings ending in a comma produce an extra empty-output
       }
       return ret;
@@ -160,7 +168,7 @@ char * StringTokenizer :: GetNextToken()
 
 char * StringTokenizer :: GetRemainderOfString()
 {  
-   while((*_next)&&(IsSoftSeparatorChar(*_next))) _next++;
+   MovePastSoftSeparatorChars();
    return (*_next) ? _next : NULL;  // and return from there
 }
 
