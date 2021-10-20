@@ -12,20 +12,33 @@ int main(int, char **)
 {
    // First, a performance test
    {
-      const uint32 BIGBUFSIZE = 10*1024*1024;  // a 10MB string, to give us some room to exercise
-      char * tempBuf = new char[BIGBUFSIZE];
-      for (uint32 i=0; i<BIGBUFSIZE; i++) tempBuf[i] = (rand()%80)+' ';
-      tempBuf[BIGBUFSIZE-1] = '\0';
+      uint64 totalElapsedTime = 0;
+      uint64 totalChars       = 0;
+      const uint32 numRuns    = 10;
 
-      StringTokenizer tok(false, tempBuf);
-      uint32 count = 0;
-      const uint64 startTime = GetRunTime64();
+      for (uint32 i=0; i<numRuns; i++)
       {
-         const char * t;
-         while((t=tok()) != NULL) count++;
+         const uint32 BIGBUFSIZE = 50*1024*1024;  // a really big string, to give us some room to exercise
+         char * tempBuf = new char[BIGBUFSIZE];
+         for (uint32 i=0; i<BIGBUFSIZE; i++) tempBuf[i] = (rand()%80)+' ';
+         tempBuf[BIGBUFSIZE-1] = '\0';
+
+         StringTokenizer tok(false, tempBuf);
+         uint32 count = 0;
+         const uint64 startTime = GetRunTime64();
+         {
+            const char * t;
+            while((t=tok()) != NULL) count++;
+         }
+         const uint64 runTime = GetRunTime64()-startTime;
+         LogTime(MUSCLE_LOG_INFO, "Run #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ": Tokenized " UINT32_FORMAT_SPEC " chars into " UINT32_FORMAT_SPEC " strings over [%s], speed was %.0f chars/usec\n", i+1, numRuns, BIGBUFSIZE, count, GetHumanReadableTimeIntervalString(runTime, 1)(), ((double)(BIGBUFSIZE))/((runTime>0)?runTime:1LL));
+         totalChars       += BIGBUFSIZE;
+         totalElapsedTime += runTime;
+         delete [] tempBuf;
       }
-      const uint64 endTime = GetRunTime64();
-      LogTime(MUSCLE_LOG_INFO, "Tokenized " UINT32_FORMAT_SPEC " chars into " UINT32_FORMAT_SPEC " strings over [%s], speed is %.0f chars/sec\n", BIGBUFSIZE, count, GetHumanReadableTimeIntervalString(endTime-startTime)(), ((double)(1000000LL*count))/((endTime>startTime)?(endTime-startTime):1LL));
+
+      const uint64 averageRunTime = totalElapsedTime/numRuns;
+      LogTime(MUSCLE_LOG_INFO, "Average run time over " UINT32_FORMAT_SPEC " runs was [%s], average speed was %.0f chars/usec\n", numRuns, GetHumanReadableTimeIntervalString(averageRunTime, 1)(), ((double)(totalChars))/((totalElapsedTime>0)?totalElapsedTime:1LL));
    }
 
    while(1)

@@ -148,12 +148,11 @@ char * StringTokenizer :: GetNextToken()
 
       if (*_nextToRead)
       {
-         const bool wasHardSep = IsHardSeparatorChar(_prevChar, *_nextToRead);
+         _prevSepWasHard = IsHardSeparatorChar(_prevChar, *_nextToRead);
          *_nextToRead++ = '\0';
          *_nextToWrite  = '\0';
          _nextToWrite = _nextToRead;
          _prevChar    = _escapeChar+1;
-         if ((wasHardSep)&&(*_nextToWrite == '\0')) _prevSepWasHard = true;  // so that e.g. strings ending in a comma produce an extra empty-output
       }
       else if (_nextToRead > _nextToWrite) *_nextToWrite = '\0';
 
