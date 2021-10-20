@@ -19,10 +19,10 @@ int main(void)
    while(1)
    {
       char base[512];
-      printf("Enter a string to escape dots in: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
+      printf("Enter a string to escape dots and spaces in: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
       String a = base; a = a.Trim();
       printf("You entered:  [%s]\n", a());
-      printf(" Escaped to:  [%s]\n", a.WithCharEscaped('.')());
+      printf(" Escaped to:  [%s]\n", a.WithCharsEscaped(". ")());
    }
 #endif
 

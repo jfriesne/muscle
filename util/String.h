@@ -959,14 +959,15 @@ public:
      */
    String WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const;
 
-   /** Returns a String equal to this one, except with all instances of (charToEscape) escaped by inserting
-     * an instance of (escapeChar) just before them, unless they already had an instance of (escapeChar) before them.
-     * Also any freestanding instances of (escapeChar) will also be escaped the same way.
-     * @param charToEscape the character that should have (escapeChar) inserted before it.
+   /** Returns a String equal to this one, except with all instances of any of the characters specified in
+     * (charsToEscape) escaped by inserting an instance of (escapeChar) just before them (unless they already
+     * had an instance of (escapeChar) before them, in which case they will be left as-is)
+     * Also any freestanding-instances of (escapeChar) will also be escaped the same way.
+     * @param charsToEscape a string containing all of the character(s) you wish to have escaped.
      * @param escapeChar the character to use as the escape character.  Defaults to a backslash ('\\').
      * @returns the escaped String.
      */
-   String WithCharEscaped(char charToEscape, char escapeChar = '\\') const;
+   String WithCharsEscaped(const char * charsToEscape, char escapeChar = '\\') const;
 
    /** Reverses the order of all characters in the string, so that e.g. "string" becomes "gnirts" */
    void Reverse();

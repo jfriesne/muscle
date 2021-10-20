@@ -285,9 +285,24 @@ String String :: WithReplacements(char replaceMe, char withMe, uint32 maxReplace
    return ret;
 }
 
-String String :: WithCharEscaped(char charToEscape, char escapeChar) const
+static bool IsSeparatorChar(uint8 c, const uint32 * sepBits) {return ((sepBits[c/32] & (1<<(c%32))) != 0);}
+
+String String :: WithCharsEscaped(const char * charsToEscape, char escapeChar) const
 {
-   const uint32 numSeps        = GetNumInstancesOf(charToEscape);
+   if (charsToEscape == NULL) charsToEscape = "";
+
+   uint32 sepBits[8]; memset(sepBits, 0, sizeof(sepBits));
+   {
+      for (const char * pc = charsToEscape; *pc != '\0'; pc++)
+      {
+         const uint8 c = *pc;
+         sepBits[c/32] |= (1<<(c%32));
+      }
+   }
+
+   uint32 numSeps = 0;
+   for (const char * pc = Cstr(); *pc != '\0'; pc++) if (IsSeparatorChar(*pc, sepBits)) numSeps++;
+
    const uint32 numBackslashes = GetNumInstancesOf(escapeChar);
    if ((numSeps == 0)&&(numBackslashes == 0)) return *this;  // nothing to do!
    
@@ -303,8 +318,8 @@ String String :: WithCharEscaped(char charToEscape, char escapeChar) const
       const char nextChar = thisStr[i+1];
       if (prevCharWasEscape == false)
       {
-              if (curChar==charToEscape)                                                         escapedName += escapeChar;
-         else if ((curChar == escapeChar)&&(nextChar != escapeChar)&&(nextChar != charToEscape)) escapedName += escapeChar;
+              if (IsSeparatorChar(curChar, sepBits))                                                        escapedName += escapeChar;
+         else if ((curChar == escapeChar)&&(nextChar != escapeChar)&&(!IsSeparatorChar(nextChar, sepBits))) escapedName += escapeChar;
       }
 
       escapedName       += curChar;
