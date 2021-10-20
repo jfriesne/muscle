@@ -15,6 +15,17 @@ using namespace muscle;
 // This program exercises the String class.
 int main(void) 
 {
+#ifdef TEST_ESCAPE
+   while(1)
+   {
+      char base[512];
+      printf("Enter a string to escape dots in: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
+      String a = base; a = a.Trim();
+      printf("You entered:  [%s]\n", a());
+      printf(" Escaped to:  [%s]\n", a.WithCharEscaped('.')());
+   }
+#endif
+
 #ifdef TEST_DISTANCE
    while(1)
    {

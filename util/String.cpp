@@ -285,6 +285,35 @@ String String :: WithReplacements(char replaceMe, char withMe, uint32 maxReplace
    return ret;
 }
 
+String String :: WithCharEscaped(char charToEscape, char escapeChar) const
+{
+   const uint32 numSeps        = GetNumInstancesOf(charToEscape);
+   const uint32 numBackslashes = GetNumInstancesOf(escapeChar);
+   if ((numSeps == 0)&&(numBackslashes == 0)) return *this;  // nothing to do!
+   
+   String escapedName;
+   (void) escapedName.Prealloc(Length()+(2*(numSeps+numBackslashes)));  // conservative estimate, to avoid any reallocs below
+
+   const char * thisStr   = Cstr();
+   bool prevCharWasEscape = false;
+   char actualPrevChar    = '\0';
+   for (uint32 i=0; i<Length(); i++)
+   {
+      const char curChar  = thisStr[i];
+      const char nextChar = thisStr[i+1];
+      if (prevCharWasEscape == false)
+      {
+              if (curChar==charToEscape)                                                         escapedName += escapeChar;
+         else if ((curChar == escapeChar)&&(nextChar != escapeChar)&&(nextChar != charToEscape)) escapedName += escapeChar;
+      }
+
+      escapedName       += curChar;
+      prevCharWasEscape  = ((curChar == escapeChar)&&(actualPrevChar != escapeChar));
+      actualPrevChar     = curChar;
+   }
+   return escapedName;
+}
+
 int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 maxReplaceCount, uint32 fromIndex)
 {
    TCHECKPOINT;
