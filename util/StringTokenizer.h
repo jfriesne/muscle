@@ -4,6 +4,8 @@
 #define MuscleStringTokenizer_h
 
 #include "support/MuscleSupport.h"
+#include "util/Queue.h"
+#include "util/String.h"
 
 namespace muscle {
 
@@ -70,6 +72,20 @@ public:
 
    /** Returns the separator-escape character that was passed in to our constructor (or '\0' if none) */
    char GetEscapeChar() const {return _escapeChar;}
+
+   /** Convenience method:  Returns a Queue containing all the remaining the tokenized substrings from this StringTokenizer.
+    *  @param maxResults the maximum number of tokens to add to the returned Queue before returning.  Defaults to MUSCLE_NO_LIMIT.
+    */
+   Queue<String> Split(uint32 maxResults = MUSCLE_NO_LIMIT);
+
+   /** Convenience method:  Joins the tokenizedStrings in the supplied list together with (joinChar), and returns the resulting String.
+     * @param tokenizedStrings the list of sub-strings to join together
+     * @param joinChar the separator-char to place between adjacent sub-strings
+     * @param includeEmptyStrings if true, we'll include empty sub-strings in the resulting String (as two joinChar's in a row).  If false, we'll omit them.
+     * @param escapeChar if non-zero, we'll use this escape-character to keep instances of (joinChar) within the tokenized substrings unambiguous.
+     *                   Defaults to zero.
+     */
+   static String Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, char joinChar, char escapeChar = '\0');
 
 private:
    bool IsHardSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_hardSepsBitChord, c)));}

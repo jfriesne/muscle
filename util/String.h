@@ -969,6 +969,17 @@ public:
      */
    String WithCharsEscaped(const char * charsToEscape, char escapeChar = '\\') const;
 
+   /** Same as the previous method, except this version lets you specify a single escape-character directly as a char.
+     * @param charToEscape the character to you want escaped in the String.
+     * @param escapeChar the character to use as the escape character.  Defaults to a backslash ('\\').
+     * @returns the escaped String.
+     */
+   String WithCharsEscaped(char charToEscape, char escapeChar = '\\') const
+   {
+      const char s[] = {charToEscape, '\0'};
+      return WithCharsEscaped(s, escapeChar);
+   }
+
    /** Reverses the order of all characters in the string, so that e.g. "string" becomes "gnirts" */
    void Reverse();
 

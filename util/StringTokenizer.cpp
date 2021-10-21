@@ -124,7 +124,6 @@ void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom
 // Sets our points at the same offsets relative to (myNewBuf) that (copyFrom)'s pointers are relative to its _hardSeparators pointer
 void StringTokenizer :: SetPointersAnalogousTo(char * myNewBuf, const StringTokenizer & copyFrom)
 {
-   const char * oldBuf = copyFrom._tokenizeMe;
    _tokenizeMe  = myNewBuf;
    _nextToRead  = myNewBuf + (copyFrom._nextToRead  - copyFrom._tokenizeMe);
    _nextToWrite = myNewBuf + (copyFrom._nextToWrite - copyFrom._tokenizeMe);
@@ -172,6 +171,29 @@ void StringTokenizer :: SetBitChord(uint32 * bits, const char * seps)
 {
    memset(bits, 0, sizeof(_hardSepsBitChord));
    if (seps) for (const char * s = seps; (*s != '\0'); s++) bits[(*s)/32] |= (1<<((*s)%32));
+}
+
+Queue<String> StringTokenizer :: Split(uint32 maxResults)
+{
+   Queue<String> ret;
+   const char * t;
+   while((ret.GetNumItems()<maxResults)&&((t=(*this)()) != NULL)) (void) ret.AddTail(t);
+   return ret;
+}
+
+String StringTokenizer :: Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, char joinChar, char escapeChar)
+{
+   String ret;
+   for (uint32 i=0; i<tokenizedStrings.GetNumItems(); i++)
+   {
+      const String & subStr = tokenizedStrings[i];
+      if ((includeEmptyStrings)||(subStr.HasChars()))
+      {
+         if (includeEmptyStrings?(i>0):ret.HasChars()) ret += joinChar;
+         ret += (escapeChar != '\0') ? subStr.WithCharsEscaped(joinChar, escapeChar) : subStr;
+      }
+   }
+   return ret;
 }
 
 } // end namespace muscle

@@ -24,6 +24,9 @@ key:  - new feature
      strchr() when determining if a character is a separator-char.
    - Added String::WithCharsEscaped() to support appropriate
      backslash-insertions before specified "special" chars.
+   - Added Split() and Join() convenience-methods to the
+     StringTokenizer class, for easy conversion between
+     a String and a Queue<String> of sub-strings.
    o Removed the GetHardSeparatorChars() and GetSoftSeparatorChars()
      methods from the StringTokenizer class.
    o Updated the cmake_minimum_required in CMakeLists.txt to 3.0
