@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+8.43 - Release 10/25/2021
    - Added BitChord::GetNumBitsSet() method.
    - Added a Message::SortDataInField() method.
    - Added HasBufferedIncomingText() method to PlainTextMessageIOGateway
