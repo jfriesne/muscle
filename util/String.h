@@ -966,6 +966,9 @@ public:
      * @param charsToEscape a string containing all of the character(s) you wish to have escaped.
      * @param escapeChar the character to use as the escape character.  Defaults to a backslash ('\\').
      * @returns the escaped String.
+     * @note this method is designed for use in combination with the escapeChar feature of the StringTokenizer
+     *       class; i.e. you'd use this method to add escape-characters to literals in a String that you plan
+     *       to parse later on using a StringTokenizer to which you have passed the same (escapeChar) argument.
      */
    String WithCharsEscaped(const char * charsToEscape, char escapeChar = '\\') const;
 
@@ -973,6 +976,9 @@ public:
      * @param charToEscape the character to you want escaped in the String.
      * @param escapeChar the character to use as the escape character.  Defaults to a backslash ('\\').
      * @returns the escaped String.
+     * @note this method is designed for use in combination with the escapeChar feature of the StringTokenizer
+     *       class; i.e. you'd use this method to add escape-characters to literals in a String that you plan
+     *       to parse later on using a StringTokenizer to which you have passed the same (escapeChar) argument.
      */
    String WithCharsEscaped(char charToEscape, char escapeChar = '\\') const
    {
