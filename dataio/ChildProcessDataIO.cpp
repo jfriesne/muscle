@@ -16,7 +16,11 @@
 # if defined(__linux__)
 #  include <pty.h>     // for forkpty() on Linux
 # elif !defined(MUSCLE_AVOID_FORKPTY)
-#  include <util.h>    // for forkpty() on MacOS/X
+#  if defined(__FreeBSD__)
+#   include <libutil.h> // for forkpty() on FreeBSD
+#  else
+#   include <util.h>    // for forkpty() on MacOS/X
+#  endif
 # endif
 # include <termios.h>
 # include <signal.h>  // for SIGHUP, etc

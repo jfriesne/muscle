@@ -64,7 +64,7 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
          CloseHandle(hFile);
       }
 #else
-# if defined(MUSCLE_64_BIT_PLATFORM) && !defined(__APPLE__) && !defined(__CYGWIN__)
+# if defined(MUSCLE_64_BIT_PLATFORM) && !defined(__APPLE__) && !defined(__CYGWIN__) && !defined(__FreeBSD__)
       struct stat64 statInfo;
       if (stat64(optFilePath, &statInfo) == 0)
 # else
