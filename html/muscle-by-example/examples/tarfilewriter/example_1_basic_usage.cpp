@@ -2,6 +2,10 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "zlib/TarFileWriter.h"
 
+#if defined(__FreeBSD__)
+# define <sys/stat.h> // for the S_IR* macros
+#endif
+
 using namespace muscle;
 
 static void PrintExampleDescription()

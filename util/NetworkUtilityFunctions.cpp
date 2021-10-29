@@ -51,7 +51,13 @@ typedef void sockopt_arg;  // Whereas sane operating systems use void pointers
 #  include <ifaddrs.h>
 #  if defined(__linux__)
 #   include <linux/if_packet.h>  // for sockaddr_ll
-#else
+#  else
+#   if defined(__FreeBSD__)
+#    include <net/if_types.h>  // for IFT_* defines
+#    if !defined(IFT_CELLULAR)  // removed in later FreeBSD versions
+#     define IFT_CELLULAR 0xff
+#    endif
+#   endif
 #   include <net/if_dl.h>  // for the LLADDR macro
 #  endif
 # endif
