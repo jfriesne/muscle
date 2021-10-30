@@ -1363,7 +1363,7 @@ Clear(bool releaseCachedBuffers)
       }
    }
 
-   FastClear();  // BAB-37:  Gotta call this in ALL cases, to make ensure the Queue is normalized when we return
+   FastClear();  // BAB-38:  Gotta call this in ALL cases, to make ensure the Queue is normalized when we return
 }
 
 template <class ItemType>
