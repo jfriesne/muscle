@@ -705,7 +705,9 @@ public:
      */
    bool IsItemLocatedInThisContainer(const ItemType & val) const {return ((HasItems())&&((uintptr)((&val)-_queue) < (uintptr)GetNumItems()));}
 
-   /** Returns a read-only reference to a default-constructed item of this Queue's type.  This item will be valid as long as this Queue is valid. */
+   /** Returns a read-only reference to a default-constructed item of this Queue's type.
+     * This item is guaranteed to remain valid for the life of the process.
+     */
    const ItemType & GetDefaultItem() const {return GetDefaultObjectForType<ItemType>();}
 
    /** Returns a pointer to our internally held array of items.  Note that this array's items are not guaranteed
