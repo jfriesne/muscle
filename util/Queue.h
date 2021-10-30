@@ -388,6 +388,7 @@ public:
    /** Removes all items from the queue. 
     *  @param releaseCachedBuffers If true, we will immediately free any buffers that we may be holding.  Otherwise
     *                              we will keep them around so that they can be re-used in the future.
+    *  @note on return, the Queue is guaranteed to be empty and normalized.
     */
    void Clear(bool releaseCachedBuffers = false);
 
@@ -397,6 +398,7 @@ public:
      * referenced by the MessageRef objects will not get recycled during the Clear() call because the
      * MessageRefs still exist in the Queue's internal array, even though they aren't readily accessible  
      * anymore.  Only call this method if you know what you are doing!
+     * @note on return, the Queue is guaranteed to be empty and normalized.
      */
    void FastClear() {_itemCount = _headIndex = _tailIndex = 0;}
 
@@ -1346,7 +1348,6 @@ Clear(bool releaseCachedBuffers)
       delete [] _queue;
       _queue = NULL;
       _queueSize = 0;
-      _itemCount = 0;
    }
    else if (HasItems())
    {
@@ -1360,8 +1361,9 @@ Clear(bool releaseCachedBuffers)
             if (p) {for (uint32 j=0; j<arrayLen; j++) p[j] = defaultItem;}
          }
       }
-      FastClear();
    }
+
+   FastClear();  // BAB-37:  Gotta call this in ALL cases, to make ensure the Queue is normalized when we return
 }
 
 template <class ItemType>

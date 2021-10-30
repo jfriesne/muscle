@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Merged in Kreeblah's FreeBSD 13.0 compatibility fixes.
+   * Fixed a bug in Queue::Clear() that allowed the Queue to remain
+     un-normalized in some cases after Clear() returned.  This bug
+     could in turn cause Message::Unflatten() to corrupt memory.
+
 8.43 - Release 10/25/2021
    - Added BitChord::GetNumBitsSet() method.
    - Added a Message::SortDataInField() method.
