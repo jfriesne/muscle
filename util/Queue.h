@@ -1349,21 +1349,18 @@ Clear(bool releaseCachedBuffers)
       _queue = NULL;
       _queueSize = 0;
    }
-   else if (HasItems())
+   else if ((HasItems())&&(IsPerItemClearNecessary()))
    {
-      if (IsPerItemClearNecessary())
+      const ItemType & defaultItem = GetDefaultItem();
+      for (uint32 i=0; i<2; i++)
       {
-         const ItemType & defaultItem = GetDefaultItem();
-         for (uint32 i=0; i<2; i++)
-         {
-            uint32 arrayLen = 0;  // set to zero just to shut the compiler up
-            ItemType * p = GetArrayPointer(i, arrayLen);
-            if (p) {for (uint32 j=0; j<arrayLen; j++) p[j] = defaultItem;}
-         }
+         uint32 arrayLen = 0;  // set to zero just to shut the compiler up
+         ItemType * p = GetArrayPointer(i, arrayLen);
+         if (p) {for (uint32 j=0; j<arrayLen; j++) p[j] = defaultItem;}
       }
    }
 
-   FastClear();  // BAB-38:  Gotta call this in ALL cases, to make ensure the Queue is normalized when we return
+   FastClear();  // BAB-38:  Gotta call this in ALL cases, to make sure the Queue is normalized when we return
 }
 
 template <class ItemType>
