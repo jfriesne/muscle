@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added new methods ObjectPool::PerformSanityCheck() and
+     AbstractObjectRecycler::GlobalPerformSanityCheck() to make
+     it easier to detect memory-corruption issues in the future.
    * Merged in Kreeblah's FreeBSD 13.0 compatibility fixes.
    * Fixed a bug in Queue::Clear() that allowed the Queue to remain
      un-normalized in some cases after Clear() returned.  This bug

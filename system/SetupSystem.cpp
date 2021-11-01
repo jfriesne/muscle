@@ -960,9 +960,24 @@ void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
    if ((m)&&(m->Lock().IsError())) m = NULL;
 
    const AbstractObjectRecycler * r = _firstRecycler;
-   while(r) 
+   while(r)
    {
       r->PrintToStream();
+      r = r->_next;
+   }
+
+   if (m) m->Unlock();
+}
+
+void AbstractObjectRecycler :: GlobalPerformSanityCheck()
+{
+   Mutex * m = GetGlobalMuscleLock();
+   if ((m)&&(m->Lock().IsError())) m = NULL;
+
+   const AbstractObjectRecycler * r = _firstRecycler;
+   while(r)
+   {
+      r->PerformSanityCheck();
       r = r->_next;
    }
 

@@ -70,6 +70,14 @@ public:
    /** Should print this object's state to stdout.  Used for debugging. */
    virtual void PrintToStream() const = 0;
 
+   /** May be implemented to perform a sanity-check to make sure cached data
+     * structures haven't been corrupted, and trigger the printing of debug
+     * information and/or an assertion failure if they are found to be corrupted.
+     * Useful for debugging; called by GlobalPerformSanityCheck().
+     * Default implementation is a no-op.
+     */
+   virtual void PerformSanityCheck() const {/* empty */}
+
    /** Walks the linked list of all AbstractObjectRecyclers, calling
      * FlushCachedObjects() on each one, until all cached objects have been destroyed.
      * This method is called by the SetupSystem destructor, to ensure that
@@ -80,6 +88,9 @@ public:
 
    /** Prints information about the AbstractObjectRecyclers to stdout. */
    static void GlobalPrintRecyclersToStream();
+
+   /** Calls PerformSanityCheck() on all AbstractObjectRecyclers */
+   static void GlobalPerformSanityCheck();
 
 private:
    AbstractObjectRecycler * _prev;
@@ -201,6 +212,29 @@ public:
     
    /** Implemented to call Drain() and return the number of objects drained. */
    virtual uint32 FlushCachedObjects() {uint32 ret = 0; (void) Drain(&ret); return ret;}
+
+   /** Implemented to perform various sanity-checks on the ObjectSlab's cached metadata, and call MCRASH with a diagnostic if any memory-corruption is found */
+   virtual void PerformSanityCheck() const
+   {
+      if (_mutex.Lock().IsOK())
+      {
+         ObjectSlab * slab = _firstSlab;
+         ObjectSlab * prevSlab = NULL;
+         while(slab)
+         {
+            if (prevSlab != slab->GetPrev())
+            {
+               LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectPool::PerformSanityCheck:  ObjectSlab %p in ObjectPool %p (%s) has unexpected previous-slab pointer %p (expected %p)!\n", slab, this, GetObjectClassName(), slab->GetPrev(), prevSlab);
+               MCRASH("ObjectPool::PerformSanityCheck() detected memory corruption of ObjectSlab's previous-slab-pointer!");
+            }
+            slab->PerformSanityCheck(this);
+            prevSlab = slab;
+            slab = slab->GetNext();
+         }
+         (void) _mutex.Unlock();
+      }
+      else MCRASH("ObjectPool::PerformSanityCheck:  Couldn't lock Mutex!");
+   }
 
    /** Returns the name of the class of objects this pool is designed to hold. */
    const char * GetObjectClassName() const {return typeid(Object).name();}
@@ -495,12 +529,16 @@ private:
       void SetNext(ObjectSlab * next) {_next = next;}
       ObjectSlab * GetNext() const {return _next;}
 
+      const ObjectSlab * GetPrev() const {return _prev;}
+
       void GetUsageStats(uint32 & min, uint32 & max, uint32 & total) const
       {
          min = muscleMin(min, (uint32)_numNodesInUse);
          max = muscleMax(max, (uint32)_numNodesInUse);
          total += _numNodesInUse;
       }
+
+      const ObjectPool * GetPool() const {return _pool;}
 
    private:
       ObjectPool * _pool;
@@ -540,6 +578,35 @@ private:
 
       void SetNext(ObjectSlab * next) {_data.SetNext(next);}
       ObjectSlab * GetNext() const {return _data.GetNext();}
+
+      const ObjectSlab * GetPrev() const {return _data.GetPrev();}
+
+      void PerformSanityCheck(const ObjectPool * pool) const
+      {
+         if (pool != _data.GetPool())
+         {
+            LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectSlab %p in ObjectPool %p (%s):  ObjectSlabData at %p has unexpected pool-pointer %p!\n", this, pool, pool->GetObjectClassName(), &_data, _data.GetPool());
+            MCRASH("ObjectSlab::PerformSanityCheck() detected memory corruption on ObjectSlabData's pool-pointer!");
+         }
+
+         const uint16 numNodesInUse = _data.GetNumNodesInUse();
+         if (numNodesInUse > NUM_OBJECTS_PER_SLAB)
+         {
+            LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectSlab %p in ObjectPool %p (%s):  ObjectSlabData at %p has too many nodes-in-use %u (max is %u)!\n", this, pool, pool->GetObjectClassName(), &_data, _data.GetNumNodesInUse(), NUM_OBJECTS_PER_SLAB);
+            MCRASH("ObjectSlab::PerformSanityCheck() detected memory corruption on ObjectSlabData's num-nodes-in-use!");
+         }
+
+         for (uint32 i=0; i<NUM_OBJECTS_PER_SLAB; i++)
+         {
+            const ObjectNode & n = _nodes[i];
+            const uint16 arrayIdx = n.GetArrayIndex();
+            if (arrayIdx != i)
+            {
+               LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectSlab %p in ObjectPool %p (%s):  ObjectNode # " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " at %p has unexpected array-index %u -- memory corruption detected!\n", this, pool, pool->GetObjectClassName(), i, NUM_OBJECTS_PER_SLAB, &n, arrayIdx);
+               MCRASH("ObjectSlab::PerformSanityCheck() detected memory corruption on arrayIdx!");
+            }
+         }
+      }
 
       void PrintToStream() const
       {
