@@ -376,7 +376,7 @@ static void LogUsage(const char * argv0)
 
 #ifdef BUILD_MUSCLE_IN_MEYER_CONTEXT
    char buf[256];
-   Log(MUSCLE_LOG_INFO, "%s (%s)\n\n", progName(), GetLocalCoreReleaseVersionTitle(progName(), false, buf));
+   Log(MUSCLE_LOG_INFO, "%s (%s)\n\n", progName(), mslicommon::GetCoreReleaseVersionTitle(progName(), mslicommon::GetLocalCoreReleaseVersion(), true)());
 #else
    Log(MUSCLE_LOG_INFO, "%s (compiled from MUSCLE v%s)\n\n", progName(), MUSCLE_VERSION_STRING);
 #endif
