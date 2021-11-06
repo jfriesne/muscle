@@ -12,6 +12,7 @@ key:  - new feature
    * Fixed a bug in Queue::Clear() that allowed the Queue to remain
      un-normalized in some cases after Clear() returned.  This bug
      could in turn cause Message::Unflatten() to corrupt memory.
+   * Fixed an MSVC warning in GlobalMemoryAllocator.h about strdup()
 
 8.43 - Release 10/25/2021
    - Added BitChord::GetNumBitsSet() method.

@@ -117,7 +117,15 @@ static inline void * muscleRealloc(void * ptr, size_t s, bool retryOnFailure = t
  *  @param retryOnFailure this parameter is ignored in this implementation
  *  @returns Pointer to the duplicate string on success, or NULL on failure.
  */
-static inline char * muscleStrdup(const char * s, bool retryOnFailure = true) {(void) retryOnFailure; return strdup(s);}
+static inline char * muscleStrdup(const char * s, bool retryOnFailure = true)
+{
+   (void) retryOnFailure;
+#ifdef WIN32
+   return _strdup(s);
+#else
+   return strdup(s);
+#endif
+}
 
 #endif
 
