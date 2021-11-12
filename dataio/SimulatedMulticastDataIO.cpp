@@ -224,26 +224,28 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    {
       // Include the next (n) member-IAPs (not including our own) to the PONG's data so that the 
       // receiver can add them all, even if he doesn't get all of the PONGs directly from everyone
-      const bool tableContainsSelf = ((_localAddressAndPort.IsValid())&&(_knownMembers.ContainsKey(_localAddressAndPort)));
-      HashtableIterator<IPAddressAndPort, uint64> iter;
-      if (tableContainsSelf) iter = _knownMembers.GetIteratorAt(_localAddressAndPort);
-                        else iter = _knownMembers.GetIterator();
-      const uint32 maxToAdd = muscleMin(NUM_EXTRA_ADDRESSES, _knownMembers.GetNumItems());
-      for (uint32 count = 0; count < maxToAdd; count++)
+      HashtableIterator<IPAddressAndPort, uint64> iter = _knownMembers.ContainsKey(_localAddressAndPort) ? _knownMembers.GetIteratorAt(_localAddressAndPort) : _knownMembers.GetIterator();
+      IPAddressAndPort firstAdded;
+      uint32 numAdded = 0;
+      for (uint32 count = 0; count < _knownMembers.GetNumItems(); count++)
       {
          // Go to next entry, wrapping around if necessary;
          iter++; if (iter.HasData() == false) iter = _knownMembers.GetIterator();
 
-         // We don't want to send out our own IPAddressAndPort, that will be seen via recvfrom()'s args 
-         IPAddressAndPort nextIAP = iter.GetKey();
-         if ((tableContainsSelf)&&(nextIAP == _localAddressAndPort)) break;
-
-         // We'll assume it doesn't need to know about itself
-         if (nextIAP != destIAP)
+         // We don't want to send out our own IPAddressAndPort, since the receiver can get
+         // that information from the UDP packet headers diretctly.
+         // We'll also assume that (destIAP) doesn't need to know about itself.
+         const IPAddressAndPort nextIAP = iter.GetKey();
+         if (nextIAP == firstAdded) break;  // no sense adding destinations more than once
+         if ((nextIAP != destIAP)&&(nextIAP != _localAddressAndPort))
          {
+            if (++numAdded == 1) firstAdded = nextIAP;
+
             const uint64 millisSinceHeardFrom = muscleMin((uint64) MicrosToMillis(now-iter.GetValue()), (uint64) (MUSCLE_NO_LIMIT-1));  // paranoia: cap at 2^32-1
-            nextIAP = nextIAP.WithInterfaceIndex((uint32) millisSinceHeardFrom);  // yes, I'm abusing this (otherwise-unused-in-this-context) field
-            nextIAP.Flatten(b); b += IPAddressAndPort::FlattenedSize();
+            const IPAddressAndPort sendIAP = nextIAP.WithInterfaceIndex((uint32) millisSinceHeardFrom);  // yes, I'm abusing this (otherwise-unused-in-this-context) field
+            sendIAP.Flatten(b); b += IPAddressAndPort::FlattenedSize();
+
+            if (numAdded >= NUM_EXTRA_ADDRESSES) break;
          }
       }
    }
@@ -370,7 +372,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
       UDPSocketDataIORef & io = _udpDataIOs[i];
       if ((io() == NULL)||(RegisterInternalThreadSocket(io()->GetReadSelectSocket(), SOCKET_SET_READ).IsError()))
       {
-         LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  Unable to set up %s UDP socket\n", this, GetUDPSocketTypeName(i));
+         LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  No %s UDP socket available for [%s], going dormant.\n", this, GetUDPSocketTypeName(i), _multicastAddress.ToString()());
          Thread::InternalThreadEntry();  // just wait for death, then
          return;
       }
@@ -487,7 +489,11 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
       {
          // We'll send a ping to multicast-land, in case there is someone out there we don't know about
          (void) EnqueueOutgoingMulticastControlCommand(SMDIO_COMMAND_PING, now, _multicastAddress);
-         nextMulticastPingTime = now + _multicastPingIntervalMicros;
+
+         // randomize the delay-interval a bit, to avoid the situation where multiple SimulatedMulticastDataIO objects
+         // were started at once and therefore they all ping at once, causing periodic traffic jams on the network
+         const uint64 wanderTime = _multicastPingIntervalMicros/4;
+         nextMulticastPingTime = now + _multicastPingIntervalMicros + ((rand()%wanderTime)-(wanderTime/2));
 
          // And we'll also send unicast pings to anyone who we haven't heard from in a while, just to double-check
          // If we haven't heard from someone for a very long time, we'll drop them
@@ -497,7 +503,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
             const uint64 timeSinceMicros = (now-iter.GetValue());
             if (timeSinceMicros >= _timeoutPeriodMicros)
             {
-               LogTime(MUSCLE_LOG_DEBUG, "Dropping moribund SimulatedMulticast member at [%s], " UINT32_FORMAT_SPEC " members remain in group [%s]\n", destIAP.ToString()(), _knownMembers.GetNumItems()-1, _multicastAddress.ToString()());
+               LogTime(MUSCLE_LOG_DEBUG, "Dropping moribund SimulatedMulticast member at [%s], " UINT32_FORMAT_SPEC " members remain in group [%s] (timeSince=%s)\n", destIAP.ToString()(), _knownMembers.GetNumItems()-1, _multicastAddress.ToString()(), GetHumanReadableTimeIntervalString(timeSinceMicros)());
                (void) _knownMembers.Remove(destIAP);
             }
             else if (timeSinceMicros >= _halfTimeoutPeriodMicros) (void) EnqueueOutgoingMulticastControlCommand(SMDIO_COMMAND_PING, now, destIAP);

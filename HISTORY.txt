@@ -8,6 +8,8 @@ key:  - new feature
    - Added new methods ObjectPool::PerformSanityCheck() and
      AbstractObjectRecycler::GlobalPerformSanityCheck() to make
      it easier to detect memory-corruption issues in the future.
+   - Improved the robustness of the SimulatedMulticastDataIO's
+     distributed-ping algorithm.
    * Merged in Kreeblah's FreeBSD 13.0 compatibility fixes.
    * Fixed a bug in Queue::Clear() that allowed the Queue to remain
      un-normalized in some cases after Clear() returned.  This bug
