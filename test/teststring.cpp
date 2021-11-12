@@ -174,6 +174,7 @@ int main(void)
    const Rect r(3.5,4.5,5.5,6.5);
    const int16 dozen = 13;
    String aString = String("%1 is a %2 %3 booltrue=%4 boolfalse=%5 point=%6 rect=%7 SomeClass=%8").Arg(dozen).Arg("baker's dozen").Arg(3.14159).Arg(true).Arg(false).Arg(p).Arg(r).Arg(SomeClass());
+   aString += SomeClass();
    printf("arg string = [%s]\n", aString());
 
    String temp;
@@ -199,7 +200,7 @@ int main(void)
    printf("[%s]\n", rem());
 
    String test = "hello";
-   test = test + " and " + " goodbye " + '!';
+   test = test + " and " + " goodbye " + '!' + SomeClass();
    printf("test=[%s]\n", test());
 
    test.Replace(test, "foo");

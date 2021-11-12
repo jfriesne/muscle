@@ -14,6 +14,9 @@ key:  - new feature
      so that you can pass a reference to any object with a
      ToString() method and it will call ToString() on the object
      implicitly.
+   - Added templated + and += operators for the String class,
+     so you can append an object with a ToString() method without
+     having to explicitly call ToString() on it.
    * Merged in Kreeblah's FreeBSD 13.0 compatibility fixes.
    * Fixed a bug in Queue::Clear() that allowed the Queue to remain
      un-normalized in some cases after Clear() returned.  This bug

@@ -838,8 +838,8 @@ status_t NybbleizeData(const uint8 * b, uint32 numBytes, String & retString)
    for (uint32 i=0; i<numBytes; i++)
    {
       const uint8 c = b[i];
-      retString += ((c>>0)&0x0F)+'A';
-      retString += ((c>>4)&0x0F)+'A';
+      retString += (char)(((c>>0)&0x0F)+'A');
+      retString += (char)(((c>>4)&0x0F)+'A');
    }
    return B_NO_ERROR;
 }

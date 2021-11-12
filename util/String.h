@@ -189,12 +189,22 @@ public:
       (void) SetFromString(rhs); return *this;
    }
 
-   /** Append Operator. 
+   /** Append Operator.
     *  @param rhs A string to append to this string.
     */
    String & operator += (const String & rhs);
 
-   /** Append Operator. 
+   /** Templated Append Operator.  Equivalent to calling += t.ToString().
+     * @param t Reference to the class object to call ToString() on and then append.
+     */
+   template<class T> String & operator +=(const T & t) {(*this) += t.ToString(); return *this;}
+
+   /** Append Operator.
+    *  @param rhs A string to append to this string.  If NULL, this operation is a no-op.
+    */
+   String & operator += (char * rhs) {return ((*this)+=((const char *)rhs));}
+
+   /** Append Operator.
     *  @param rhs A string to append to this string.  If NULL, this operation is a no-op.
     */
    String & operator += (const char * rhs);
@@ -211,15 +221,20 @@ public:
       }
       return *this;
    }
-   
-   /** Remove Operator. 
+
+   /** Templated Remove Operator.  Equivalent to calling -= t.ToString().
+     * @param t Reference to the class object to call ToString() on and then remove.
+     */
+   template<class T> String & operator -=(const T & t) {(*this) -= t.ToString(); return *this;}
+
+   /** Remove Operator.
     *  @param rhs A substring to remove from this string;  the
     *             last instance of the substring will be cut out.
     *             If (rhs) is not found, there is no effect.
     */
    String & operator -= (const String & rhs);
 
-   /** Remove Operator. 
+   /** Remove Operator.
     *  @param rhs A substring to remove from this string;  the
     *             last instance of the substring will be cut out.
     *             If (rhs) is not found, there is no effect.
@@ -227,12 +242,19 @@ public:
    String & operator -= (const char * rhs);
 
    /** Remove Operator.
+    *  @param rhs A substring to remove from this string;  the
+    *             last instance of the substring will be cut out.
+    *             If (rhs) is not found, there is no effect.
+    */
+   String & operator -= (char * rhs) {return ((*this) -= ((const char *)rhs));}
+
+   /** Remove Operator.
     *  @param ch A character to remove from this string;  the last
     *            instance of this char will be cut out.  If (ch) is
     *            not found, there is no effect.
     */
    String & operator -= (const char ch);
-   
+
    /** Append 'Stream' Operator.
     *  @param rhs A String to append to this string.
     *  @return a non const String refrence to 'this' so you can chain appends.
@@ -244,18 +266,18 @@ public:
     *  @return a non const String refrence to 'this' so you can chain appends.
     */
    String & operator << (const char * rhs) {return (*this += rhs);}
-   
+
    /** Append 'Stream' Operator.
     *  @param rhs An int to append to this string.
     *  @return a non const String refrence to 'this' so you can chain appends.
     */
-   String & operator << (int rhs);   
+   String & operator << (int rhs);
 
    /** Append 'Stream' Operator.
     *  @param rhs A float to append to this string. Formatting is set at 2 decimals of precision.
     *  @return a non const String refrence to 'this' so you can chain appends.
     */
-   String & operator << (float rhs);   
+   String & operator << (float rhs);
 
    /** Append 'Stream' Operator.
     *  @param rhs A bool to append to this string. Converts to 'true' and 'false' strings appropriately.
@@ -283,42 +305,42 @@ public:
      */
    bool operator != (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") != 0);}
 
-   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically (as determined by strcmp()). 
+   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically (as determined by strcmp()).
      * @param rhs A string to compare ourself with
      */
    bool operator < (const String & rhs) const {return (this == &rhs) ? false : (strcmp(Cstr(), rhs.Cstr()) < 0);}
 
-   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically (as determined by strcmp()). 
+   /** Comparison Operator.  Returns true if this string comes before (rhs) lexically (as determined by strcmp()).
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator < (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") < 0);}
 
-   /** Comparison Operator.  Returns true if this string comes after (rhs) lexically (as determined by strcmp()). 
+   /** Comparison Operator.  Returns true if this string comes after (rhs) lexically (as determined by strcmp()).
      * @param rhs A string to compare ourself with
      */
    bool operator > (const String & rhs) const {return (this == &rhs) ? false : (strcmp(Cstr(), rhs.Cstr()) > 0);}
 
-   /** Comparison Operator.  Returns true if this string comes after (rhs) lexically. 
+   /** Comparison Operator.  Returns true if this string comes after (rhs) lexically.
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator > (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") > 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically (as determined by strcmp()). 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically (as determined by strcmp()).
      * @param rhs A string to compare ourself with
      */
    bool operator <= (const String & rhs) const {return (this == &rhs) ? true : (strcmp(Cstr(), rhs.Cstr()) <= 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically (as determined by strcmp()). 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes before (rhs) lexically (as determined by strcmp()).
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator <= (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") <= 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically (as determined by strcmp()). 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically (as determined by strcmp()).
      * @param rhs A string to compare ourself with
      */
    bool operator >= (const String & rhs) const {return (this == &rhs) ? true : (strcmp(Cstr(), rhs.Cstr()) >= 0);}
 
-   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically (as determined by strcmp()). 
+   /** Comparison Operator.  Returns true if the two strings are equal, or this string comes after (rhs) lexically (as determined by strcmp()).
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
    bool operator >= (const char * rhs) const {return (strcmp(Cstr(), rhs?rhs:"") >= 0);}
@@ -344,8 +366,8 @@ public:
     *  @return A character value.
     */
    char CharAt(uint32 index) const {return operator[](index);}
- 
-   /** Compares this string to another string using strcmp() 
+
+   /** Compares this string to another string using strcmp()
      * @param rhs A string to compare ourself with
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
@@ -357,7 +379,7 @@ public:
      */
    int CompareTo(const char * rhs) const {return strcmp(Cstr(), rhs?rhs:"");}
 
-   /** Compares this string to another string using NumericAwareStrcmp() 
+   /** Compares this string to another string using NumericAwareStrcmp()
      * @param rhs A string to compare ourself with
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
@@ -373,7 +395,7 @@ public:
    const char * Cstr() const {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
 
    /** Convenience synonym for Cstr(). */
-   const char * operator()() const {return Cstr();}  
+   const char * operator()() const {return Cstr();}
 
    /** Clears this string so that it contains no characters.  Equivalent to setting this string to "". */
    void Clear() {_length = 0; WriteNULTerminatorByte();}
@@ -401,7 +423,7 @@ public:
      * @param str The new string to copy from.
      * @param beginIndex Index of the first character in (str) to include.  
      *                   Defaults to zero, so that by default the entire string is included.
-     * @param endIndex Index after the last character in (str) to include.  
+     * @param endIndex Index after the last character in (str) to include.
      *                 Defaults to a very large number, so that by default the entire remainder of the string is included.
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
@@ -452,7 +474,7 @@ public:
       return (Length() < suffixLen) ? false : (strcmp(Cstr()+(Length()-suffixLen), suffix) == 0); 
    }
 
-   /** Returns true iff this string is equal to (string), as determined by strcmp(). 
+   /** Returns true iff this string is equal to (string), as determined by strcmp().
      * @param str a String to compare this String with.
      */
    bool Equals(const String & str) const {return (*this == str);}
@@ -1372,14 +1394,20 @@ public:
 /** Convenience method:  returns a string with no characters in it (a.k.a. "") */
 inline const String & GetEmptyString() {return GetDefaultObjectForType<String>();}
 
+template<class T> inline String operator+(const String & lhs, const T & rhs) {return rhs.ToString().Prepend(lhs);}
 inline String operator+(const String & lhs, const String & rhs)  {String ret; (void) ret.Prealloc(lhs.Length()+rhs.Length());        ret = lhs; ret += rhs; return ret;}
 inline String operator+(const String & lhs, const char *rhs)     {String ret; (void) ret.Prealloc(lhs.Length()+(rhs?(uint32)strlen(rhs):0)); ret = lhs; ret += rhs; return ret;}
+inline String operator+(const String & lhs,       char *rhs)     {String ret; (void) ret.Prealloc(lhs.Length()+(rhs?(uint32)strlen(rhs):0)); ret = lhs; ret += rhs; return ret;}
 inline String operator+(const char * lhs,   const String & rhs)  {String ret; (void) ret.Prealloc((lhs?(uint32)strlen(lhs):0)+rhs.Length()); ret = lhs; ret += rhs; return ret;}
+inline String operator+(      char * lhs,   const String & rhs)  {String ret; (void) ret.Prealloc((lhs?(uint32)strlen(lhs):0)+rhs.Length()); ret = lhs; ret += rhs; return ret;}
 inline String operator+(const String & lhs, char rhs)            {String ret; (void) ret.Prealloc(lhs.Length()+1);                   ret = lhs; ret += rhs; return ret;}
 inline String operator+(char lhs,           const String & rhs)  {String ret; (void) ret.Prealloc(1+rhs.Length());                   ret.SetCstr(&lhs, 1); ret += rhs; return ret;}
+template<class T> inline String operator-(const String & lhs, const T & rhs) {String ret = lhs; ret -= rhs; return ret;}
 inline String operator-(const String & lhs, const String & rhs)  {String ret = lhs; ret -= rhs; return ret;}
 inline String operator-(const String & lhs, const char *rhs)     {String ret = lhs; ret -= rhs; return ret;}
+inline String operator-(const String & lhs,       char *rhs)     {String ret = lhs; ret -= rhs; return ret;}
 inline String operator-(const char *lhs,    const String & rhs)  {String ret = lhs; ret -= rhs; return ret;}
+inline String operator-(      char *lhs,    const String & rhs)  {String ret = lhs; ret -= rhs; return ret;}
 inline String operator-(const String & lhs, char rhs)            {String ret = lhs; ret -= rhs; return ret;}
 inline String operator-(char lhs,           const String & rhs)  {String ret; ret.SetCstr(&lhs, 1); ret -= rhs; return ret;}
 
