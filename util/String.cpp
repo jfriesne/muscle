@@ -1027,6 +1027,7 @@ String String :: Arg(long value,               const char * fmt) const {ARG_IMPL
 String String :: Arg(unsigned long int value,  const char * fmt) const {ARG_IMPLEMENTATION;}
 String String :: Arg(long long value,          const char * fmt) const {ARG_IMPLEMENTATION;}
 String String :: Arg(unsigned long long value, const char * fmt) const {ARG_IMPLEMENTATION;}
+String String :: Arg(float value,              const char * fmt) const {ARG_IMPLEMENTATION;}
 String String :: Arg(double value,             const char * fmt) const {ARG_IMPLEMENTATION;}
 String String :: Arg(const String & value)                       const {return ArgAux(value());}
 String String :: Arg(const char * value)                         const {return ArgAux(value);}

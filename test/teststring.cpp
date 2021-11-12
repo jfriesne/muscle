@@ -12,6 +12,15 @@ using namespace muscle;
 
 #define TEST(x) if (!(x)) printf("Test failed, line %i\n",__LINE__)
 
+/** This class is here only to test the templated String::Arg() method */
+class SomeClass
+{
+public:
+   SomeClass() {/* empty */}
+
+   String ToString() const {return "SomeClass::ToString() returned this";}
+};
+
 // This program exercises the String class.
 int main(void) 
 {
@@ -164,7 +173,7 @@ int main(void)
    const Point p(1.5,2.5);
    const Rect r(3.5,4.5,5.5,6.5);
    const int16 dozen = 13;
-   String aString = String("%1 is a %2 %3 booltrue=%4 boolfalse=%5 point=%6 rect=%7").Arg(dozen).Arg("baker's dozen").Arg(3.14159).Arg(true).Arg(false).Arg(p).Arg(r);
+   String aString = String("%1 is a %2 %3 booltrue=%4 boolfalse=%5 point=%6 rect=%7 SomeClass=%8").Arg(dozen).Arg("baker's dozen").Arg(3.14159).Arg(true).Arg(false).Arg(p).Arg(r).Arg(SomeClass());
    printf("arg string = [%s]\n", aString());
 
    String temp;

@@ -1110,6 +1110,25 @@ public:
      */
    String Arg(unsigned long long value, const char * fmt = UINT64_FORMAT_SPEC) const;
 
+   /** As above, but for float values.
+     * @copydoc Arg(bool, const char *) const
+     */
+   String Arg(float value, const char * fmt) const;
+
+   /** As above, but for float values.
+     * Returns a String representation of the given floating point value,
+     * with up to (maxDigitsAfterDecimal) digits appearing after the decimal point.
+     * @param f the floating-point value to return a String representation of.
+     * @param minDigitsAfterDecimal the minimum number of digits to display after the decimal
+     *                              point.  Defaults to 0 (meaning try to use as few as possible)
+     * @param maxDigitsAfterDecimal the maximum number of digits to display after the decimal
+     *                              point.  Defaults to MUSCLE_NO_LIMIT (meaning that no particular
+     *                              maximum value should be enforced)
+     * @note Trailing zeroes will be omitted from the string, as will the decimal point itself, if it
+     *       would otherwise be the last character in the String.
+     */
+   String Arg(float f, uint32 minDigitsAfterDecimal = 0, uint32 maxDigitsAfterDecimal = MUSCLE_NO_LIMIT) const {return Arg((double)f, minDigitsAfterDecimal, maxDigitsAfterDecimal);}
+
    /** As above, but for double values.
      * @copydoc Arg(bool, const char *) const
      */
@@ -1144,15 +1163,38 @@ public:
      */
    String Arg(const Rect & value, const char * fmt = "%f,%f,%f,%f") const;
 
-   /** As above, but for C string values.
+   /** As above, but for C-string values.
      * @param value the string to replace any instances of "%1" with (or "%2" if "%1" isn't present, or etc)
      */
    String Arg(const char * value) const;
+
+   /** As above, but for non-const C-string values.
+     * @param value the string to replace any instances of "%1" with (or "%2" if "%1" isn't present, or etc)
+     */
+   String Arg(char * value) const {return Arg((const char *)value);}
 
    /** As above, but for printing pointer values.
      * @param value the pointer-value whose string representation we should replace any instances of %1 with (or %2 if %1 isn't present, or etc)
      */
    String Arg(const void * value) const;
+
+   /** A templated convenience-method for any class-object with a ToString() method that returns a String.
+     * Equivalent to calling Arg(t.ToString()).
+     * @param t Reference to the class object to call ToString() on.
+     */
+   template<class T> String Arg(const T & t) const {return Arg(t.ToString());}
+
+   /** A templated convenience-method for a pointer of any type.
+     * Equivalent to calling Arg((const void *)tpr).
+     * @param tptr A pointer of some arbitrary type.
+     */
+   template<class T> String Arg(const T * tptr) const {return Arg((const void *)tptr);}
+
+   /** A templated convenience-method for a const pointer of any type.
+     * Equivalent to calling Arg((const T *)tpr).
+     * @param tptr A pointer of some arbitrary type.
+     */
+   template<class T> String Arg(T * tptr) const {return Arg((const T *)tptr);}
 
    /** If this string already ends with the specified character, returns this string verbatim.
      * Otherwise, returns a String equivalent to this one but with the specified character appended.

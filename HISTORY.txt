@@ -10,6 +10,10 @@ key:  - new feature
      it easier to detect memory-corruption issues in the future.
    - Improved the robustness of the SimulatedMulticastDataIO's
      distributed-ping algorithm.
+   - Added a templated Arg(const T &) method to the String class
+     so that you can pass a reference to any object with a
+     ToString() method and it will call ToString() on the object
+     implicitly.
    * Merged in Kreeblah's FreeBSD 13.0 compatibility fixes.
    * Fixed a bug in Queue::Clear() that allowed the Queue to remain
      un-normalized in some cases after Clear() returned.  This bug
