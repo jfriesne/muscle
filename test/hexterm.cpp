@@ -200,7 +200,7 @@ static void DoSession(DataIO & io, bool allowRead = true)
                {
                   const PacketDataIO * packetDataIO = dynamic_cast<const PacketDataIO *>(&io);
                   const IPAddressAndPort & fromIAP = packetDataIO ? packetDataIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();
-                  if (fromIAP.IsValid()) scratchString = String("Read #%1: Received from %2 (%3 since prev)").Arg(readCounter).Arg(fromIAP.ToString()).Arg(sinceString);
+                  if (fromIAP.IsValid()) scratchString = String("Read #%1: Received from %2 (%3 since prev)").Arg(readCounter).Arg(fromIAP).Arg(sinceString);
                                     else scratchString = String("Read #%1: Received (%2 since prev)").Arg(readCounter).Arg(sinceString);
                   LogBytes(buf, ret, scratchString());
                }
