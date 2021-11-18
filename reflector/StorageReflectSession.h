@@ -91,19 +91,9 @@ public:
    /** Virtual Destructor. */
    virtual ~StorageReflectSession();
 
-   /** Called after the constructor, when the session is ready to interact with the server.
-    *  @return B_NO_ERROR if everything is okay to go, or an error code if there was a problem
-    *          setting up, or if the IP address of our client has been banned. 
-    */
    virtual status_t AttachedToServer();
-
-   /** Implemented to remove our nodes from the server-side database and do misc cleanup. */
    virtual void AboutToDetachFromServer();
-
-   // Called when a new message is received from our IO gateway.
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
-
-   // Overridden to call PushSubscriptionMessages()
    virtual void AfterMessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
    /** Returns a read-only reference to our parameters message */

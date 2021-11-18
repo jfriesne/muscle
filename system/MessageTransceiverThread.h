@@ -112,31 +112,12 @@ public:
    /** Destructor */
    virtual ~ThreadWorkerSession();
 
-   /** Overridden to send a message back to the user */
    virtual status_t AttachedToServer();
-
-   /** Overridden to send a message back to the user */
    virtual void AboutToDetachFromServer();
-
-   /** Overridden to send a message back to the user */
    virtual bool ClientConnectionClosed();
-
-   /** Overridden to send a message back to the user to let him know the connection is ready */
    virtual void AsyncConnectCompleted();
-
-   /** Overridden to wrap incoming messages and pass them along to our supervisor session
-     * @copydoc StorageReflectSession::MessageReceivedFromGateway(const MessageRef &, void *)
-     */
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
-
-   /** Overriden to handle messages from our supervisor session
-     * @copydoc StorageReflectSession::MessageReceivedFromSession(AbstractReflectSession &, const MessageRef &, void *)
-     */
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData);
-
-   /** Overridden to clear our _drainNotifiers Queue when appropriate
-     * @copydoc StorageReflectSession::DoOutput(uint32)
-     */
    virtual int32 DoOutput(uint32 maxBytes);
 
    /** Returns true iff our MessageReceivedFromGateway() method should automatically forward all Messages
