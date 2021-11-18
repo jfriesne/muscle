@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+8.44 - Release 11/17/2021
    - Added new methods ObjectPool::PerformSanityCheck() and
      AbstractObjectRecycler::GlobalPerformSanityCheck() to make
      it easier to detect memory-corruption issues in the future.
