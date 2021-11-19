@@ -63,7 +63,7 @@ static void Test(EndianFlags endianFlags)
       const int16 i16s[] = {5,6,7,8};     b.AppendInt16s(i16s, ARRAYITEMS(i16s));
       const int32 i32s[] = {9,10,11,12};  b.AppendInt32s(i32s, ARRAYITEMS(i32s));
       const int64 i64s[] = {13,14,15,16}; b.AppendInt64s(i64s, ARRAYITEMS(i64s));
-      const float ifls[] = {17.9,18.9,19.9,20.9}; b.AppendFloats(ifls, ARRAYITEMS(ifls));
+      const float ifls[] = {17.9f,18.9f,19.9f,20.9f}; b.AppendFloats(ifls, ARRAYITEMS(ifls));
       const double idbs[] = {21.9,22.9,23.9,24.9}; b.AppendDoubles(idbs, ARRAYITEMS(idbs));
       const String strs[] = {"25", "26", "27", "28"}; b.AppendStrings(strs, ARRAYITEMS(strs));
       const Point pts[] = {Point(29,30),Point(31,32),Point(32,33),Point(33,34)}; b.AppendPoints(pts, ARRAYITEMS(pts));

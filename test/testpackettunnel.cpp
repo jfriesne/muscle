@@ -83,7 +83,7 @@ int main(int argc, char ** argv)
    const char * temp; 
 
    uint16 port = 0;
-   if (args.FindString("port", &temp).IsOK()) port = atol(temp);
+   if (args.FindString("port", &temp).IsOK()) port = (uint16) atoi(temp);
    if (port == 0) port = 9999;
 
    uint32 mtu = 0;

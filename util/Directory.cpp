@@ -71,7 +71,7 @@ static int closedir(DIR *dir)
    int result = -1;
    if (dir)
    {
-      if (dir->handle != ((intptr_t)-)1) result = _findclose(dir->handle);
+      if (dir->handle != ((intptr_t)-1)) result = _findclose(dir->handle);
       muscleFree(dir->name);
       muscleFree(dir);
    }

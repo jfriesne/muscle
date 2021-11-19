@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
-   FileDataIO outputFile(fopen("./example_2_output.bin", "wb"));
+   FileDataIO outputFile(muscleFopen("./example_2_output.bin", "wb"));
    if (outputFile.GetFile() == NULL)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't open output file for write, aborting!\n");
@@ -95,7 +95,7 @@ int main(int argc, char ** argv)
    outputFile.Shutdown();  // make sure the output-file-handle is closed before we try to read the file back in
 
    // Now we'll read the file back in, inflate the data, and verify that the inflated data matches the original raw data
-   FileDataIO inputFile(fopen("./example_2_output.bin", "rb"));
+   FileDataIO inputFile(muscleFopen("./example_2_output.bin", "rb"));
    if (inputFile.GetFile() == NULL)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't open output file for read, aborting!\n");

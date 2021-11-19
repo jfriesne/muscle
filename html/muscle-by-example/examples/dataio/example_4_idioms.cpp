@@ -19,7 +19,7 @@ int main(int argc, char ** argv)
 
    printf("Read the entire contents of a file into a ByteBuffer, in two lines:\n");
    const char * inputFileName = "example_4_idioms.cpp";
-   FileDataIO inputFdio(fopen(inputFileName, "r"));
+   FileDataIO inputFdio(muscleFopen(inputFileName, "r"));
    ByteBufferRef bbRef = GetByteBufferFromPool(inputFdio);
    if (bbRef())
    {
@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
    printf("\n\n");
    printf("Write a ByteBuffer out to a file in two lines:\n");
    const char * outputFileName = "example_4_output.txt";
-   FileDataIO outputFdio(fopen(outputFileName, "w"));
+   FileDataIO outputFdio(muscleFopen(outputFileName, "w"));
    const uint32 numBytesWritten = outputFdio.WriteFully(bbRef()->GetBuffer(), bbRef()->GetNumBytes());
    printf("Wrote " UINT32_FORMAT_SPEC " bytes of data to [%s]\n", numBytesWritten, outputFileName);
   

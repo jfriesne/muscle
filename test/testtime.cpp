@@ -8,7 +8,7 @@
 
 using namespace muscle;
 
-static float GetDiffHours(uint64 t1, uint64 t2) {return (float) ((double)((int64)t1 - (int64) t2))/(60.0 * 60.0 * (double)MICROS_PER_SECOND);}
+static float GetDiffHours(uint64 t1, uint64 t2) {return (float) (((double)((int64)t1 - (int64) t2))/(60.0 * 60.0 * (double)MICROS_PER_SECOND));}
 
 // This program is used to test out muscle's time/date interpretation functions
 int main(int argc, char ** argv) 

@@ -16,7 +16,7 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
-   FileDataIO fileDataIO(fopen("example_3_seekable_dataio.txt", "w+"));  // "w+" lets us write, read, and update
+   FileDataIO fileDataIO(muscleFopen("example_3_seekable_dataio.txt", "w+"));  // "w+" lets us write, read, and update
    if (fileDataIO.GetFile() == NULL)
    {
       printf("Unable to open example_3_seekable_dataio.txt for writing!\n");

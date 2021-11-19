@@ -66,7 +66,7 @@ int main(int argc, char ** argv)
       const uint64 fileSize = fdio.GetLength();
       printf("fileSize=" UINT64_FORMAT_SPEC "\n", fileSize);
 
-      ByteBufferRef buf = GetByteBufferFromPool(fileSize);
+      ByteBufferRef buf = GetByteBufferFromPool((uint32)fileSize);
       if (buf() == NULL)
       {
          MWARN_OUT_OF_MEMORY;

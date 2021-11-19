@@ -121,8 +121,8 @@ bool FileDataIO :: EnsureDeferredModeFopenCalled()
 {
    if ((_pendingFilePath)&&(_file == NULL))
    {
-      SetFile(fopen(_pendingFilePath, _pendingFileMode?_pendingFileMode:"rb"));  // SetFile() will call Shutdown()
-      return (_file != NULL);                                                    // which will call FreePendingFileInfo()
+      SetFile(muscleFopen(_pendingFilePath, _pendingFileMode?_pendingFileMode:"rb"));  // SetFile() will call Shutdown()
+      return (_file != NULL);                                                          // which will call FreePendingFileInfo()
    }
    return false;
 }

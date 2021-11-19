@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
    Snooze64(SecondsToMicros(5));  // give the user a bit of time to read the example description!
 
-   srand(time(NULL));
+   srand((unsigned)time(NULL));
 
    const uint32 areaSize = 64;  // bytes
 

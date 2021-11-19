@@ -26,7 +26,7 @@ int main(int argc, char ** argv)
    // This scope is the "output some data" phase of this program
    {
       // Set up a FileDataIO so we can output our stream to a file
-      FileDataIO fileOutput(fopen("example_3_output.txt", "w"));
+      FileDataIO fileOutput(muscleFopen("example_3_output.txt", "w"));
       if (fileOutput.GetFile() == NULL)
       {
          printf("Error, couldn't open example_3_output.txt for writing!\n");
@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
    // Now let's read the data back in and reconstitute the Messages from it
    {
       // Set up a FileDataIO so we can read our stream in from a file
-      FileDataIO fileInput(fopen("example_3_output.txt", "r"));
+      FileDataIO fileInput(muscleFopen("example_3_output.txt", "r"));
       if (fileInput.GetFile() == NULL)
       {
          printf("Error, couldn't open example_3_output.txt for readingk!\n");

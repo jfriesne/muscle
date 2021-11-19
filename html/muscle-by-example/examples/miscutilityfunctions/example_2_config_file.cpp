@@ -47,12 +47,7 @@ int main(int argc, char ** argv)
    printf("Here is the Message we are going to save as an ASCII text file:\n");
    myConfig.PrintToStream();
 
-#ifdef WIN32
-   FILE * fpOut = NULL;
-   (void)fopen_s(&fpOut, "test_config.txt", "w");  // Why MSVC thinks this is more secure than fopen() is beyond me
-#else
-   FILE * fpOut = fopen("test_config.txt", "w");
-#endif
+   FILE * fpOut = muscleFopen("test_config.txt", "w");
    if (fpOut == NULL)
    {
       printf("Error, couldn't open test_config.txt for writing!\n");
@@ -70,7 +65,7 @@ int main(int argc, char ** argv)
    printf("\n");
    printf("Now let's print out the contents of the file we just wrote out, to see what it looks like:\n");
 
-   FileDataIO fdio(fopen("test_config.txt", "r"));
+   FileDataIO fdio(muscleFopen("test_config.txt", "r"));
    ByteBufferRef fileContents = GetByteBufferFromPool(fdio);
    if (fileContents())
    {
@@ -83,12 +78,7 @@ int main(int argc, char ** argv)
    printf("\n");
    printf("Now let's see if we can read the text file back into RAM as a Message again:\n");
 
-#ifdef WIN32
-   FILE * fpIn = NULL;
-   (void)fopen_s(&fpIn, "test_config.txt", "r");  // why MSVC2015 thinks this is more secure than fopen() is beyond me
-#else
-   FILE * fpIn = fopen("test_config.txt", "r");
-#endif
+   FILE * fpIn = muscleFopen("test_config.txt", "r");
    if (fpIn == NULL)
    {
       printf("Error, couldn't open test_config.txt for reading!\n");

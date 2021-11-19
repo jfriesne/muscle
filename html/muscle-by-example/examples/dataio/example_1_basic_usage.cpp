@@ -22,7 +22,7 @@ int main(int argc, char ** argv)
 
    const char * outputFileName = "example_1_dataio_output.txt";
    StdinDataIO stdinIO(true);
-   FileDataIO fileOutputIO(fopen(outputFileName, "w"));
+   FileDataIO fileOutputIO(muscleFopen(outputFileName, "w"));
    if (fileOutputIO.GetFile() == NULL)
    {
       printf("Error opening file %s for writing!  Output to file will be disabled.\n", outputFileName);
