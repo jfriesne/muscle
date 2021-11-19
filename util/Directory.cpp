@@ -8,6 +8,7 @@
 # include <sys/stat.h>  // needed for chmod codes under MacOS/X
 #endif
 
+#include "system/GlobalMemoryAllocator.h"  // for muscleAlloc()/muscleFree()
 #include "system/SystemInfo.h"  // for GetFilePathSeparator()
 #include "util/Directory.h"
 
@@ -34,41 +35,35 @@ struct dirent
 
 typedef struct _DIR
 {
-   long                handle; /* -1 for failed rewind */
-   struct _finddata_t  info;
-   struct dirent       result; /* d_name null iff first time */
-   char                *name;  /* null-terminated char string */
+   intptr_t           handle; /* -1 for failed rewind */
+   struct _finddata_t info;
+   struct dirent      result; /* d_name null iff first time */
+   char               *name;  /* null-terminated char string */
 } DIR;
 
 static DIR * opendir(const char *name)
 {
-   DIR * dir = NULL;
-   if((name)&&(name[0]))
+   if ((name)&&(name[0]))
    {
       const size_t base_length = strlen(name);
-      const char *all = strchr("/\\", name[base_length - 1]) ? "*" : "/*";
-      const size_t nameLen = base_length + strlen(all) + 1;
-      if (((dir = (DIR *)malloc(sizeof *dir)) != NULL) && ((dir->name = (char *) malloc(nameLen)) != NULL))
+      const char * all         = strchr("/\\", name[base_length - 1]) ? "*" : "/*";
+      const size_t nameLen     = base_length + strlen(all) + 1;
+      DIR * dir                = (DIR *)  muscleAlloc(sizeof(DIR));
+      char * name              = (char *) muscleAlloc(nameLen);
+      if ((dir)&&(name))
       {
-         muscleStrncpy(dir->name, name, nameLen);
-         muscleStrncpy(dir->name+base_length, all, nameLen-base_length);
-         if((dir->handle = (long) _findfirst(dir->name, &dir->info)) != -1) dir->result.d_name = NULL;
-         else 
-         {
-            free(dir->name);
-            free(dir);
-            dir = 0;
-         }
+         muscleStrncpy(name,            name, nameLen);
+         muscleStrncpy(name+base_length, all, nameLen-base_length);
+
+         memset(dir, 0, sizeof(DIR));
+         dir->name   = name;
+         dir->handle = _findfirst(dir->name, &dir->info);
+         if (dir->handle != ((intptr_t)-1)) return dir;  // success!
       }
-      else 
-      {
-         free(dir);
-         dir   = 0;
-         errno = ENOMEM;
-      }
+      if (name) muscleFree(name);
+      if (dir)  muscleFree(dir);
    }
-   else errno = EINVAL;
-   return dir;
+   return NULL;
 }
 
 static int closedir(DIR *dir)
@@ -76,9 +71,9 @@ static int closedir(DIR *dir)
    int result = -1;
    if (dir)
    {
-      if (dir->handle != -1) result = _findclose(dir->handle);
-      free(dir->name);
-      free(dir);
+      if (dir->handle != ((intptr_t)-)1) result = _findclose(dir->handle);
+      muscleFree(dir->name);
+      muscleFree(dir);
    }
    if (result == -1) errno = EBADF;
    return result;
@@ -87,9 +82,9 @@ static int closedir(DIR *dir)
 static struct dirent * readdir(DIR *dir)
 {
    struct dirent * result = NULL;
-   if(dir && dir->handle != -1)
+   if ((dir)&&(dir->handle != ((intptr_t)-1)))
    {
-      if((!dir->result.d_name)||(_findnext(dir->handle, &dir->info) != -1))
+      if((!dir->result.d_name)||(_findnext(dir->handle, &dir->info) != ((intptr_t)-1)))
       {
          result         = &dir->result;
          result->d_name = dir->info.name;
@@ -101,10 +96,10 @@ static struct dirent * readdir(DIR *dir)
 
 static void rewinddir(DIR *dir)
 {
-   if((dir)&&(dir->handle != -1))
+   if ((dir)&&(dir->handle != ((intptr_t)-1)))
    {
       _findclose(dir->handle);
-      dir->handle = (long) _findfirst(dir->name, &dir->info);
+      dir->handle = _findfirst(dir->name, &dir->info);
       dir->result.d_name = 0;
    }
    else errno = EBADF;

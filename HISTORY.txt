@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Fixed the Windows implementation of the Directory class
+     to work correctly in 64-bit builds.
+
 8.44 - Release 11/17/2021
    - Added new methods ObjectPool::PerformSanityCheck() and
      AbstractObjectRecycler::GlobalPerformSanityCheck() to make
