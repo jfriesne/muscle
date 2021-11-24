@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   o DataNodeSubscribersTable now uses uint32 keys instead of
+     String keys, for better efficiency.
    * Fixed the Windows implementation of the Directory class
      to work correctly in 64-bit builds.
    * Fixed various MSVC2022 warnings in the muscle-by-example code.

@@ -236,7 +236,7 @@ Cleanup()
          (void) _subscriptions.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &srcArgs);
 
          // Remove any cached tables that reference our session-ID String, as we know they can no longer be useful to anyone.
-         _sharedData->_cachedSubscribersTables.DropAllCacheEntriesContainingKey(GetSessionIDString());
+         _sharedData->_cachedSubscribersTables.DropAllCacheEntriesContainingKey(GetSessionID());
       }
 
       _sharedData = NULL;
@@ -252,7 +252,7 @@ NotifySubscribersThatNodeChanged(DataNode & modifiedNode, const MessageRef & old
 {
    TCHECKPOINT;
 
-   for (HashtableIterator<String, uint32> subIter(modifiedNode.GetSubscribers()); subIter.HasData(); subIter++)
+   for (HashtableIterator<uint32, uint32> subIter(modifiedNode.GetSubscribers()); subIter.HasData(); subIter++)
    {
       StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(GetSession(subIter.GetKey())());
       if ((next)&&((next != this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF)))) next->NodeChanged(modifiedNode, oldData, nodeChangeFlags);
@@ -267,7 +267,7 @@ NotifySubscribersThatNodeIndexChanged(DataNode & modifiedNode, char op, uint32 i
 {
    TCHECKPOINT;
 
-   for (HashtableIterator<String, uint32> subIter(modifiedNode.GetSubscribers()); subIter.HasData(); subIter++)
+   for (HashtableIterator<uint32, uint32> subIter(modifiedNode.GetSubscribers()); subIter.HasData(); subIter++)
    {
       AbstractReflectSessionRef nRef = GetSession(subIter.GetKey());
       StorageReflectSession * s = dynamic_cast<StorageReflectSession *>(nRef());
@@ -294,23 +294,23 @@ NotifySubscribersOfNewNode(DataNode & newNode)
 
 ConstDataNodeSubscribersTableRef
 StorageReflectSession ::
-GetDataNodeSubscribersTableFromPool(const ConstDataNodeSubscribersTableRef & curRef, const String & sessionIDString, int32 delta)
+GetDataNodeSubscribersTableFromPool(const ConstDataNodeSubscribersTableRef & curRef, uint32 sessionID, int32 delta)
 {
    if (delta == 0) return curRef;  // nothing to do!
 
-   const Hashtable<String, uint32> & curTable = curRef() ? curRef()->GetTable() : GetDefaultObjectForType<Hashtable<String, uint32> >();
-   const uint32 curCount = curTable[sessionIDString];
+   const Hashtable<uint32, uint32> & curTable = curRef() ? curRef()->GetTable() : GetDefaultObjectForType<Hashtable<uint32, uint32> >();
+   const uint32 curCount = curTable[sessionID];
    const uint32 newCount = (delta > 0) ? (curCount+delta) : (((int32)curCount>delta)?(curCount-delta):0);
 
    DataNodeSubscribersTablePool & cache = _sharedData->_cachedSubscribersTables;
-   return (newCount > 0) ? cache.GetWithPut(curRef, sessionIDString, newCount) : cache.GetWithRemove(curRef, sessionIDString);
+   return (newCount > 0) ? cache.GetWithPut(curRef, sessionID, newCount) : cache.GetWithRemove(curRef, sessionID);
 }
 
 void
 StorageReflectSession ::
 NodeCreated(DataNode & newNode)
 {
-   newNode._subscribers = GetDataNodeSubscribersTableFromPool(newNode._subscribers, GetSessionIDString(), _subscriptions.GetMatchCount(newNode, NULL, 0));  // FogBugz #14596
+   newNode._subscribers = GetDataNodeSubscribersTableFromPool(newNode._subscribers, GetSessionID(), _subscriptions.GetMatchCount(newNode, NULL, 0));  // FogBugz #14596
 }
 
 void
@@ -1300,7 +1300,7 @@ StorageReflectSession ::
 DoSubscribeRefCallback(DataNode & node, void * userData)
 {
    const SubscribeRefCallbackArgs * srcArgs = static_cast<const SubscribeRefCallbackArgs *>(userData);
-   node._subscribers = GetDataNodeSubscribersTableFromPool(node._subscribers, GetSessionIDString(), srcArgs->GetRefCountDelta());
+   node._subscribers = GetDataNodeSubscribersTableFromPool(node._subscribers, GetSessionID(), srcArgs->GetRefCountDelta());
    return node.GetDepth();  // continue traversal as usual
 }
 

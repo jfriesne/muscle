@@ -532,7 +532,7 @@ private:
    status_t RemoveParameter(const String & paramName, bool & retUpdateDefaultMessageRoute);
    int PassMessageCallbackAux(DataNode & node, const MessageRef & msgRef, bool matchSelfOkay);
    void TallyNodeBytes(const DataNode & n, uint32 & retNumNodes, uint32 & retNodeBytes) const;
-   ConstDataNodeSubscribersTableRef GetDataNodeSubscribersTableFromPool(const ConstDataNodeSubscribersTableRef & curTableRef, const String & sessionIDString, int32 delta);
+   ConstDataNodeSubscribersTableRef GetDataNodeSubscribersTableFromPool(const ConstDataNodeSubscribersTableRef & curTableRef, uint32 sessionID, int32 delta);
 
    DECLARE_MUSCLE_TRAVERSAL_CALLBACK(StorageReflectSession, KickClientCallback);     /** Sessions of matching nodes are EndSession()'d  */
    DECLARE_MUSCLE_TRAVERSAL_CALLBACK(StorageReflectSession, InsertOrderedDataCallback); /** Matching nodes have ordered data inserted into them as child nodes */

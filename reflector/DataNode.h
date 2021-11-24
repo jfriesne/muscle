@@ -17,7 +17,7 @@ class DataNode;
 DECLARE_REFTYPES(DataNode);
 
 /** Declares DataNodeSubscribersTable, DataNodeSubscribersTablePool, and ConstDataNodeSubscribersTableRef */
-DECLARE_IMMUTABLE_HASHTABLE_POOL_TYPES(DataNodeSubscribersTable, String, uint32);
+DECLARE_IMMUTABLE_HASHTABLE_POOL_TYPES(DataNodeSubscribersTable, uint32, uint32);
 
 /** Iterator type for our child objects */
 typedef HashtableIterator<const String *, DataNodeRef> DataNodeRefIterator;
@@ -168,7 +168,7 @@ public:
    void Reset();  
 
    /** Returns a read-only reference to this DataNode's current subscribers-table. */
-   inline const Hashtable<String, uint32> & GetSubscribers() const;
+   inline const Hashtable<uint32, uint32> & GetSubscribers() const;
 
    /** Returns a pointer to our ordered-child index */
    const Queue<DataNodeRef> * GetIndex() const {return _orderedIndex;}
@@ -315,9 +315,9 @@ private:
    DECLARE_COUNTED_OBJECT(DataNode);
 };
 
-inline const Hashtable<String, uint32> & DataNode :: GetSubscribers() const
+inline const Hashtable<uint32, uint32> & DataNode :: GetSubscribers() const
 {
-   return _subscribers() ? _subscribers()->GetTable() : GetDefaultObjectForType<Hashtable<String, uint32> >();
+   return _subscribers() ? _subscribers()->GetTable() : GetDefaultObjectForType<Hashtable<uint32, uint32> >();
 }
 
 } // end namespace muscle
