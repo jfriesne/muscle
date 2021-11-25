@@ -163,12 +163,12 @@ public:
    /** Convenience method:  Given a session ID string, returns a reference to the session, or a NULL reference if no such session exists.
      * @param sessionName the session ID string of the session we are trying to look up (same as its numeric session ID, but in string form)
      */
-   AbstractReflectSessionRef GetSession(const String & sessionName) const;
+   AbstractReflectSessionRef GetSession(const String & sessionName) const {return _sessions[&sessionName];}
 
    /** Convenience method:  Given a session ID number, returns a reference to the session, or a NULL reference if no such session exists. 
      * @param sessionID the numeric session ID of the session we are trying to look up
      */
-   AbstractReflectSessionRef GetSession(uint32 sessionID) const;
+   AbstractReflectSessionRef GetSession(uint32 sessionID) const {char buf[64]; muscleSprintf(buf, UINT32_FORMAT_SPEC, sessionID); return GetSession(buf);}
 
    /** Convenience method:  Returns a pointer to the first session of the specified type.  Returns NULL if no session of the specified type is found.
      * @note this method iterates over the session list, so it's not as efficient as one might hope.
@@ -215,7 +215,7 @@ public:
      *                       (when it was passed in to PutAcceptFactory()), then specify that address again here.
      *                       Defaults to (invalidIP), indicating a factory that listens on all local network interfaces.
      */
-   ReflectSessionFactoryRef GetFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP) const;
+   ReflectSessionFactoryRef GetFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP) const {return _factories[IPAddressAndPort(optInterfaceIP, port)];}
 
    /** Call this and the server will quit ASAP */
    void EndServer();

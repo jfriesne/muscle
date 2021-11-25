@@ -454,7 +454,7 @@ ServerProcessLoop()
             for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
             {
                ConstSocketRef * nextAcceptSocket = iter.GetValue()()->IsReadyToAcceptSessions() ? _factorySockets.Get(iter.GetKey()) : NULL;
-               int nfd = nextAcceptSocket ? nextAcceptSocket->GetFileDescriptor() : -1;
+               const int nfd = nextAcceptSocket ? nextAcceptSocket->GetFileDescriptor() : -1;
                if (nfd >= 0) (void) _multiplexer.RegisterSocketForReadReady(nfd);
                CallGetPulseTimeAux(*iter.GetValue()(), now, nextPulseAt);
             }
@@ -897,32 +897,6 @@ uint32 ReflectServer :: DumpBoggedSessions()
       }
    }
    return ret;
-}
-
-AbstractReflectSessionRef
-ReflectServer ::
-GetSession(const String & name) const
-{
-   AbstractReflectSessionRef ref;
-   (void) _sessions.Get(&name, ref); 
-   return ref;
-}
-
-AbstractReflectSessionRef
-ReflectServer ::
-GetSession(uint32 id) const
-{
-   char buf[64]; muscleSprintf(buf, UINT32_FORMAT_SPEC, id);
-   return GetSession(buf);
-}
-
-ReflectSessionFactoryRef
-ReflectServer ::
-GetFactory(uint16 port, const IPAddress & optInterfaceIP) const
-{
-   ReflectSessionFactoryRef ref;
-   (void) _factories.Get(IPAddressAndPort(optInterfaceIP, port), ref); 
-   return ref;
 }
 
 status_t
