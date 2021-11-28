@@ -660,6 +660,7 @@ bool IsIPAddress(const char * s)
 #endif
 }
 
+static Mutex _cachedLocalhostAddressLock;
 static IPAddress _cachedLocalhostAddress = invalidIP;
 
 static void ExpandLocalhostAddress(IPAddress & ipAddress)
@@ -669,6 +670,7 @@ static void ExpandLocalhostAddress(IPAddress & ipAddress)
       IPAddress altRet = GetLocalHostIPOverride();  // see if the user manually specified a preferred local address
       if (altRet == invalidIP)
       {
+         MutexGuard lock(_cachedLocalhostAddressLock);
          // If not, try to grab one from the OS
          if (_cachedLocalhostAddress == invalidIP)
          {
@@ -1544,6 +1546,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 #endif
                if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType)).IsOK(ret))  // MAC address will be set later
                {
+                  MutexGuard lock(_cachedLocalhostAddressLock);
                   if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
                }
                else break;
