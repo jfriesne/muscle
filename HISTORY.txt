@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a GetSessionsByIDNumber() method to the ReflectServer
+     and ServerComponent clases, for session-lookup with uint32 key.
    o DataNodeSubscribersTable now uses uint32 keys instead of
      String keys, for better efficiency.
    o Inlined some trivial functions in the ReflectServer class.

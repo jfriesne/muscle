@@ -236,6 +236,9 @@ protected:
    /** Returns our server's table of attached sessions. */
    const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const;
 
+   /** Returns our server's table of attached sessions, indexed by uint32. */
+   const Hashtable<uint32, AbstractReflectSessionRef> & GetSessionsByIDNumber() const;
+
    /**
     * Looks up a session connected to our ReflectServer via its session ID string.
     * @param id The ID of the session you are looking for.
@@ -245,10 +248,10 @@ protected:
    
    /**
     * Looks up a session connected to our ReflectServer via its session ID string.
-    * @param id The ID string of the session you are looking for.
+    * @param idStr The ID string of the session you are looking for.
     * @return A reference to the session with the given session ID, or a NULL reference on failure.
     */
-   AbstractReflectSessionRef GetSession(const String & id) const;
+   AbstractReflectSessionRef GetSession(const String & idStr) const;
    
    /** Convenience method:  Returns a pointer to the first session of the specified type.  Returns NULL if no session of the specified type is found.
      * @note this method iterates over the session list, so it's not as efficient as one might hope.

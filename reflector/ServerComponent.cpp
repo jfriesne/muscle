@@ -76,7 +76,15 @@ ServerComponent ::
 GetSessions() const
 {
    MASSERT(_owner, "Can not call GetSessions() while not attached to the server");
-   return _owner->GetSessions(); 
+   return _owner->GetSessions();
+}
+
+const Hashtable<uint32, AbstractReflectSessionRef> &
+ServerComponent ::
+GetSessionsByIDNumber() const
+{
+   MASSERT(_owner, "Can not call GetSessionsByIDNumber() while not attached to the server");
+   return _owner->GetSessionsByIDNumber();
 }
 
 AbstractReflectSessionRef 

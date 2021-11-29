@@ -226,8 +226,11 @@ AttachNewSession(const AbstractReflectSessionRef & ref)
    AbstractReflectSession * newSession = ref();
    if (newSession == NULL) return B_BAD_ARGUMENT;
 
+   const uint32   sessionID       =  newSession->GetSessionID();
+   const String * sessionIDString = &newSession->GetSessionIDString();
+
    status_t ret;
-   if (_sessions.Put(&newSession->GetSessionIDString(), ref).IsOK(ret))
+   if ((_sessions.Put(sessionIDString, ref).IsOK(ret))&&(_sessionsByIDNumber.Put(sessionID, ref).IsOK(ret)))
    {
       newSession->SetOwner(this);
       if (newSession->AttachedToServer().IsOK(ret))
@@ -243,8 +246,12 @@ AttachNewSession(const AbstractReflectSessionRef & ref)
          if (_doLogging) LogTime(MUSCLE_LOG_DEBUG, "%s aborted startup [%s] (" UINT32_FORMAT_SPEC " left)\n", newSession->GetSessionDescriptionString()(), ret(), _sessions.GetNumItems()-1);
       }
       newSession->SetOwner(NULL);
-      (void) _sessions.Remove(&newSession->GetSessionIDString());
    }
+
+   // roll back on failure
+   (void) _sessionsByIDNumber.Remove(sessionID);
+   (void) _sessions.Remove(sessionIDString);
+  
    return ret;
 }
 
@@ -284,6 +291,7 @@ ReflectServer :: Cleanup()
             ars.SetOwner(NULL);
 
             (void) _sessions.MoveToTable(iter.GetKey(), _lameDuckSessions);
+            (void) _sessionsByIDNumber.Remove(ars.GetSessionID());
          }
       }
    }
@@ -779,15 +787,17 @@ status_t ReflectServer :: ClearLameDucks()
       AbstractReflectSession * duck = _lameDuckSessions.GetFirstValue()->GetItemPointer();
       if (duck)
       {
-         const String & id = duck->GetSessionIDString();
-         if (_sessions.ContainsKey(&id))
+         const String * idStr = &duck->GetSessionIDString();
+         if (_sessions.ContainsKey(idStr))
          {
             duck->SetFullyAttachedToServer(false);
             duck->AboutToDetachFromServer();
             duck->DoOutput(MUSCLE_NO_LIMIT);  // one last chance for him to send any leftover data!
             if (_doLogging) LogTime(MUSCLE_LOG_DEBUG, "Closed %s (" UINT32_FORMAT_SPEC " left)\n", duck->GetSessionDescriptionString()(), _sessions.GetNumItems()-1);
             duck->SetOwner(NULL);
-            (void) _sessions.Remove(&id);
+
+            (void) _sessions.Remove(idStr);
+            (void) _sessionsByIDNumber.Remove(duck->GetSessionID());
          }
       }
       (void) _lameDuckSessions.RemoveFirst();

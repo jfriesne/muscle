@@ -157,8 +157,11 @@ public:
     */
    virtual const char * GetServerName() const;
 
-   /** Returns a read-only reference to our table of sessions currently attached to this server. */
+   /** Returns a read-only reference to our table of sessions currently attached to this server (indexed by key-string-pointer). */
    const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const {return _sessions;}
+
+   /** Returns a read-only reference to our table of sessions currently attached to this server (indexed by uint32 session-ID). */
+   const Hashtable<uint32, AbstractReflectSessionRef> & GetSessionsByIDNumber() const {return _sessionsByIDNumber;}
 
    /** Convenience method:  Given a session ID string, returns a reference to the session, or a NULL reference if no such session exists.
      * @param sessionName the session ID string of the session we are trying to look up (same as its numeric session ID, but in string form)
@@ -168,7 +171,7 @@ public:
    /** Convenience method:  Given a session ID number, returns a reference to the session, or a NULL reference if no such session exists. 
      * @param sessionID the numeric session ID of the session we are trying to look up
      */
-   AbstractReflectSessionRef GetSession(uint32 sessionID) const {char buf[64]; muscleSprintf(buf, UINT32_FORMAT_SPEC, sessionID); return GetSession(buf);}
+   AbstractReflectSessionRef GetSession(uint32 sessionID) const {return _sessionsByIDNumber[sessionID];}
 
    /** Convenience method:  Returns a pointer to the first session of the specified type.  Returns NULL if no session of the specified type is found.
      * @note this method iterates over the session list, so it's not as efficient as one might hope.
@@ -406,8 +409,9 @@ private:
    Queue<ReflectSessionFactoryRef> _lameDuckFactories;  // for delayed-deletion of factories when they go away
 
    Message _centralState;
-   Hashtable<const String *, AbstractReflectSessionRef> _sessions;
-   Hashtable<const String *, AbstractReflectSessionRef> _lameDuckSessions;  // sessions that are due to be removed
+   Hashtable<const String *, AbstractReflectSessionRef> _sessions;           // these two tables should always have
+   Hashtable<uint32,         AbstractReflectSessionRef> _sessionsByIDNumber; // the same contents
+   Hashtable<const String *, AbstractReflectSessionRef> _lameDuckSessions;   // sessions that are due to be removed
    bool _keepServerGoing;
    uint64 _serverStartedAt;
    bool _doLogging;
