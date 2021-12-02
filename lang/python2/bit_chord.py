@@ -41,16 +41,16 @@ class BitChord:
       self.SetBit(whichBit, False)
 
    def ClearAllBits(self):
-       for i in range(len(self._words)):
+       for i in xrange(len(self._words)):
           self._words[i] = 0
 
    def SetAllBits(self):
-       for i in range(len(self._words)):
+       for i in xrange(len(self._words)):
          self._words[i] = WORD_WITH_ALL_BITS_SET
        self.__clearUnusedBits()
 
    def ToggleAllBits(self):
-       for i in range(len(self._words)):
+       for i in xrange(len(self._words)):
          self._words[i] ^= WORD_WITH_ALL_BITS_SET
        self.__clearUnusedBits()
 
@@ -64,20 +64,20 @@ class BitChord:
       return self._words[whichWord]
 
    def AreAnyBitsSet(self):
-       for i in range(len(self._words)):
+       for i in xrange(len(self._words)):
          if (self._words[i] != 0):
             return True
       
    def AreAllBitsSet(self):
       if ((self._numBits%NUM_BITS_PER_WORD) == 0):
-         for i in range(len(self._words)):
+         for i in xrange(len(self._words)):
             if (self._words[i] != WORD_WITH_ALL_BITS_SET):
                return False
       else:
-         for i in range(len(self._words)-1):
+         for i in xrange(len(self._words)-1):
             if (self._words[i] != WORD_WITH_ALL_BITS_SET):
                return False
-         for j in range((self.GetNumWords()-1)*NUM_BITS_PER_WORD, self._numBits):
+         for j in xrange((self.GetNumWords()-1)*NUM_BITS_PER_WORD, self._numBits):
             if (not self.IsBitSet(j)):
                return False
       return True
@@ -121,7 +121,7 @@ class BitChord:
       numEncodedBits  = struct.unpack("<L", inFile.read(4))[0]
       numEncodedWords = self.__bitCountToWordCount(numEncodedBits)
       self.ClearAllBits()
-      for i in range(0, numEncodedWords):
+      for i in xrange(0, numEncodedWords):
          nextWord = struct.unpack("<L", inFile.read(4))[0]
          if (i < len(self._words)):
             self._words[i] = nextWord
@@ -136,7 +136,7 @@ class BitChord:
    def __clearUnusedBits(self):
       numLeftoverBits = self._numBits%NUM_BITS_PER_WORD
       if (numLeftoverBits > 0):
-         for i in range(self._numBits, self._numWords*NUM_BITS_PER_WORD):
+         for i in xrange(self._numBits, self._numWords*NUM_BITS_PER_WORD):
             self.ClearBit(i)
 
    def __bitCountToWordCount(self, numBits):

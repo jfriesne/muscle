@@ -41,7 +41,7 @@ _longIs64Bits  = (array.array('l').itemsize > 4)
 def GetHumanReadableTypeString(t):
    """Given a B_*_TYPE value, returns a human-readable string showing its bytes"""
    ret = ""
-   for dummy in range(4):
+   for dummy in xrange(4):
       nextByte = t%256
       ret = chr(nextByte) + ret
       t = t/256
@@ -181,7 +181,7 @@ class Message:
       protocolVersion, self.what, numFields = struct.unpack("<3L", inFile.read(3*4))
       if protocolVersion != CURRENT_PROTOCOL_VERSION:
          raise IOError, "Bad flattened-Message Protocol version ", protocolVersion
-      for dummy in range(numFields):
+      for dummy in xrange(numFields):
          fieldName = inFile.read(struct.unpack("<L", inFile.read(4))[0]-1)
          inFile.read(1)  # throw away the NUL terminator byte, we don't need it
          fieldTypeCode, fieldDataLength = struct.unpack("<2L", inFile.read(2*4))
@@ -212,11 +212,11 @@ class Message:
                global _dataNeedsSwap, _hasStruct64
                fieldContents = []
                if _hasStruct64:
-                  for dummy in range(fieldDataLength/8):
+                  for dummy in xrange(fieldDataLength/8):
                      fieldContents.append(struct.unpack("<q", inFile.read(8))[0])
                else:
                   # Old versions of Python don't have <q, so we'll do it ourself
-                  for dummy in range(fieldDataLength/8):
+                  for dummy in xrange(fieldDataLength/8):
                      lo, hi = struct.unpack('<Ll', inFile.read(8))
                      fieldContents.append((long(hi)<<32)|lo)
          elif fieldTypeCode == B_MESSAGE_TYPE:
@@ -229,22 +229,22 @@ class Message:
                fieldDataLength = fieldDataLength-(subMessageLength+4)
          elif fieldTypeCode == B_POINT_TYPE:
             fieldContents = []
-            for dummy in range(fieldDataLength/8):
+            for dummy in xrange(fieldDataLength/8):
                fieldContents.append(struct.unpack("<2f", inFile.read(8)))
          elif fieldTypeCode == B_RECT_TYPE:
             fieldContents = []
-            for dummy in range(fieldDataLength/16):
+            for dummy in xrange(fieldDataLength/16):
                fieldContents.append(struct.unpack("<4f", inFile.read(16)))
          elif fieldTypeCode == B_STRING_TYPE:
             fieldContents = []
             numItems = struct.unpack("<L", inFile.read(4))[0]
-            for dummy in range(numItems):
+            for dummy in xrange(numItems):
                fieldContents.append(inFile.read(struct.unpack("<L", inFile.read(4))[0]-1))
                inFile.read(1)  # throw away the NUL byte, we don't need it
          else:
             fieldContents = []
             numItems = struct.unpack("<L", inFile.read(4))[0]
-            for dummy in range(numItems):
+            for dummy in xrange(numItems):
                fieldContents.append(inFile.read(struct.unpack("<L", inFile.read(4))[0]))
 
          if _dataNeedsSwap and isinstance(fieldContents, array.array):
