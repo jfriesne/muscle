@@ -6,8 +6,9 @@
 #include <errno.h>
 #include "dataio/FileDataIO.h"
 #include "support/BitChord.h"
-#include "util/Queue.h"
+#include "system/AtomicCounter.h"
 #include "util/Hashtable.h"
+#include "util/Queue.h"
 
 namespace muscle {
 
@@ -338,7 +339,7 @@ private:
    ::HANDLE _childThread;
    ConstSocketRef _masterNotifySocket;
    ConstSocketRef _slaveNotifySocket;
-   volatile bool _requestThreadExit;
+   AtomicCounter _requestThreadExit;
 #else
    ConstSocketRef _handle;
    pid_t _childPID;

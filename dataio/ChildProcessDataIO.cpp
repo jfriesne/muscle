@@ -46,7 +46,7 @@ ChildProcessDataIO :: ChildProcessDataIO(bool blocking)
    , _childProcessCrashed(false)
    , _childProcessIsIndependent(false)
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
-   , _readFromStdout(INVALID_HANDLE_VALUE), _writeToStdin(INVALID_HANDLE_VALUE), _ioThread(INVALID_HANDLE_VALUE), _wakeupSignal(INVALID_HANDLE_VALUE), _childProcess(INVALID_HANDLE_VALUE), _childThread(INVALID_HANDLE_VALUE), _requestThreadExit(false)
+   , _readFromStdout(INVALID_HANDLE_VALUE), _writeToStdin(INVALID_HANDLE_VALUE), _ioThread(INVALID_HANDLE_VALUE), _wakeupSignal(INVALID_HANDLE_VALUE), _childProcess(INVALID_HANDLE_VALUE), _childThread(INVALID_HANDLE_VALUE)
 #else
    , _childPID(-1)
 #endif
@@ -478,7 +478,7 @@ void ChildProcessDataIO :: Close()
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    if (_ioThread != INVALID_HANDLE_VALUE)  // if this is valid, _wakeupSignal is guaranteed valid too
    {
-      _requestThreadExit = true;                // set the "Please go away" flag
+      _requestThreadExit.AtomicIncrement();     // set the "Please go away" flag
       SetEvent(_wakeupSignal);                  // wake the thread up so he'll check the flag
       WaitForSingleObject(_ioThread, INFINITE); // then wait for him to go away
       ::CloseHandle(_ioThread);                 // fix handle leak
@@ -709,7 +709,7 @@ void ChildProcessDataIO :: IOThreadAbort()
 {
    // If we read zero bytes, that means EOF!  Child process has gone away!
    _slaveNotifySocket.Reset();
-   _requestThreadExit = true;  // this will cause the I/O thread to go away now
+   _requestThreadExit.AtomicIncrement();  // this will cause the I/O thread to go away now
 }
 
 void ChildProcessDataIO :: IOThreadEntry()
@@ -724,7 +724,7 @@ void ChildProcessDataIO :: IOThreadEntry()
    uint64 pollTimeMicros          = maxPollTimeMicros;
 
    ::HANDLE events[] = {_wakeupSignal, _childProcess};
-   while(_requestThreadExit == false)
+   while(_requestThreadExit.GetCount() == 0)
    {
       // IOThread <-> UserThread i/o handling here
       {

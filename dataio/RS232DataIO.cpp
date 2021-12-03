@@ -31,7 +31,6 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
    , _handle(INVALID_HANDLE_VALUE)
    , _ioThread(INVALID_HANDLE_VALUE)
    , _wakeupSignal(INVALID_HANDLE_VALUE)
-   , _requestThreadExit(false)
 #endif
 {
    bool okay = false;
@@ -170,7 +169,7 @@ void RS232DataIO :: Close()
 #ifdef USE_WINDOWS_IMPLEMENTATION
    if (_ioThread != INVALID_HANDLE_VALUE)  // if this is valid, _wakeupSignal is guaranteed valid too
    {
-      _requestThreadExit = true;                // set the "Please go away" flag
+      _requestThreadExit.AtomicIncrement();     // set the "Please go away" flag
       SetEvent(_wakeupSignal);                  // wake the thread up so he'll check the bool
       WaitForSingleObject(_ioThread, INFINITE); // then wait for him to go away
       ::CloseHandle(_ioThread);                 // fix handle leak
@@ -407,7 +406,7 @@ void RS232DataIO :: IOThreadEntry()
    bool isWaiting = false;
    bool checkRead = false;
    ::HANDLE events[] = {_ovWait.hEvent, _ovRead.hEvent, _ovWrite.hEvent, _wakeupSignal};  // order is important!!!
-   while(_requestThreadExit == false)
+   while(_requestThreadExit.GetCount() == 0)
    {
       if (isWaiting == false)
       {

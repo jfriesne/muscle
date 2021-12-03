@@ -93,7 +93,6 @@ class DetectNetworkConfigChangesThread : public Thread
 public:
    DetectNetworkConfigChangesThread()
       : Thread(NULL, false)
-      , _threadKeepGoing(false)
       , _isComputerSleeping(false)
 #ifdef __APPLE__
       , _threadRunLoop(NULL)
@@ -282,7 +281,7 @@ protected:
          if (dummySource)
          {
             CFRunLoopAddSource(CFRunLoopGetCurrent(), dummySource, kCFRunLoopDefaultMode);
-            while(_threadKeepGoing) CFRunLoopRun();
+            while(_threadKeepGoingIfZero.GetCount() == 0) CFRunLoopRun();
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), dummySource, kCFRunLoopDefaultMode);
             CFRelease(dummySource);
          }
@@ -314,7 +313,7 @@ protected:
       if (CreateIPAddressListChangeCallbackSCF(muscle::IPConfigChangedCallback, this, &storeRef, &sourceRef, _scKeyToInterfaceName) == noErr)
       {
          CFRunLoopAddSource(CFRunLoopGetCurrent(), sourceRef, kCFRunLoopDefaultMode);
-         while(_threadKeepGoing) CFRunLoopRun();
+         while(_threadKeepGoingIfZero.GetCount() == 0) CFRunLoopRun();
          CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sourceRef, kCFRunLoopDefaultMode);
          CFRelease(storeRef);
          CFRelease(sourceRef);
@@ -367,7 +366,7 @@ protected:
       olap.hEvent = CreateEvent(NULL, false, false, NULL);
       if (olap.hEvent != NULL)
       {
-         while(_threadKeepGoing)
+         while(_threadKeepGoingIfZero.GetCount() == 0)
          {
             ::HANDLE junk;
             int nacRet = NotifyAddrChange(&junk, &olap);
@@ -395,7 +394,7 @@ protected:
                {
                   // Anything else is an error and we should pack it in
                   (void) CancelIPChangeNotify(&olap);
-                  _threadKeepGoing = false;
+                  _threadKeepGoingIfZero.Increment();
                }
             }
             else
@@ -426,10 +425,10 @@ private:
       MRETURN_ON_ERROR(SetupSignalling());
 
       status_t ret;
-      _threadKeepGoing = true;
+      _threadKeepGoingIfZero.SetCount(0);
       if (Thread::StartInternalThread().IsError(ret))
       {
-         _threadKeepGoing = false;
+         _threadKeepGoingIfZero.AtomicIncrement();
          CleanupSignalling();
       }
       return ret;
@@ -437,7 +436,7 @@ private:
 
    virtual void ShutdownInternalThread(bool waitForThread = true)
    {
-      _threadKeepGoing = false;
+      _threadKeepGoingIfZero.AtomicIncrement();
 #ifdef __APPLE__
       if (_threadRunLoop) CFRunLoopStop((CFRunLoopRef)_threadRunLoop);
 #elif WIN32
@@ -470,7 +469,7 @@ private:
 
    Hashtable<DetectNetworkConfigChangesSession *, Void> _registeredSessions;
 
-   volatile bool _threadKeepGoing;
+   AtomicCounter _threadKeepGoingIfZero;
    bool _isComputerSleeping;
 
 #ifdef __APPLE__

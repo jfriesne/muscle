@@ -59,9 +59,11 @@ const ConstSocketRef & Thread :: GetOwnerWakeupSocket()
 
 const ConstSocketRef & Thread :: GetThreadWakeupSocketAux(ThreadSpecificData & tsd)
 {
-   if ((_messageSocketsAllocated == false)&&(CreateConnectedSocketPair(_threadData[MESSAGE_THREAD_INTERNAL]._messageSocket, _threadData[MESSAGE_THREAD_OWNER]._messageSocket).IsError())) return GetNullSocket();
-
-   _messageSocketsAllocated = true;
+   if (_messageSocketsAllocated == false)
+   {
+      if (CreateConnectedSocketPair(_threadData[MESSAGE_THREAD_INTERNAL]._messageSocket, _threadData[MESSAGE_THREAD_OWNER]._messageSocket).IsError()) return GetNullSocket();
+      _messageSocketsAllocated = true;
+   }
    return tsd._messageSocket;
 }
 

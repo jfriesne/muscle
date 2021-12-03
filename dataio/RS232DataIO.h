@@ -5,6 +5,7 @@
 
 #include <errno.h>
 #include "dataio/DataIO.h"
+#include "system/AtomicCounter.h"
 #include "util/String.h"
 #include "util/Queue.h"
 
@@ -78,7 +79,7 @@ private:
    OVERLAPPED _ovWrite;
    ConstSocketRef _masterNotifySocket;
    ConstSocketRef _slaveNotifySocket;
-   volatile bool _requestThreadExit;
+   AtomicCounter _requestThreadExit;
 #else
    ConstSocketRef _handle;
 #endif
