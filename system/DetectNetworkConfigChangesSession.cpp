@@ -394,7 +394,7 @@ protected:
                {
                   // Anything else is an error and we should pack it in
                   (void) CancelIPChangeNotify(&olap);
-                  _threadKeepGoingIfZero.Increment();
+                  _threadKeepGoingIfZero.AtomicIncrement();
                }
             }
             else
