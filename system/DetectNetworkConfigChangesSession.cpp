@@ -265,7 +265,10 @@ protected:
    virtual void InternalThreadEntry()
    {
 #if defined(__APPLE__)
-      _threadRunLoop = CFRunLoopGetCurrent();
+      {
+         MutexGuard mg(_threadRunLoopMutex);
+         _threadRunLoop = CFRunLoopGetCurrent();
+      }
 
 # if TARGET_OS_IPHONE
       nw_path_monitor_t monitor = nw_path_monitor_create();
@@ -304,7 +307,7 @@ protected:
       if (root_port != 0)
       {
          powerNotifyRunLoopSource = IONotificationPortGetRunLoopSource(powerNotifyPortRef);
-         CFRunLoopAddSource((CFRunLoopRef)_threadRunLoop, powerNotifyRunLoopSource, kCFRunLoopCommonModes);
+         CFRunLoopAddSource(CFRunLoopGetCurrent(), powerNotifyRunLoopSource, kCFRunLoopCommonModes);
       }
       else LogTime(MUSCLE_LOG_WARNING, "DetectNetworkConfigChangesThread::InternalThreadEntry():  IORegisterForSystemPower() failed [%s]\n", B_ERRNO());
 
@@ -438,7 +441,10 @@ private:
    {
       _threadKeepGoingIfZero.AtomicIncrement();
 #ifdef __APPLE__
-      if (_threadRunLoop) CFRunLoopStop((CFRunLoopRef)_threadRunLoop);
+      {
+         MutexGuard mg(_threadRunLoopMutex);
+         if (_threadRunLoop) CFRunLoopStop((CFRunLoopRef)_threadRunLoop);
+      }
 #elif WIN32
       SetEvent(_wakeupSignal);
 #endif
@@ -473,7 +479,8 @@ private:
    bool _isComputerSleeping;
 
 #ifdef __APPLE__
-   void * _threadRunLoop; // actually of type CFRunLoopRef but I don't want to include CFRunLoop.h from this header file becaues doing so breaks things
+   Mutex _threadRunLoopMutex;
+   void * _threadRunLoop; // actually of type CFRunLoopRef but I don't want to include CFRunLoop.h from this header file because doing so breaks things
 # if !(TARGET_OS_IPHONE)
    io_connect_t * _rootPortPointer;
    Hashtable<String, String> _scKeyToInterfaceName;
