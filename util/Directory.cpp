@@ -45,23 +45,24 @@ static DIR * opendir(const char *name)
 {
    if ((name)&&(name[0]))
    {
-      const size_t base_length = strlen(name);
-      const char * all         = strchr("/\\", name[base_length - 1]) ? "*" : "/*";
-      const size_t nameLen     = base_length + strlen(all) + 1;
+      const size_t name_length = strlen(name);
+      const char lastChar      = name[name_length-1];
+      const char * appendMe    = ((lastChar=='/')||(lastChar=='\\')) ? "*" : "\\*";
+      const size_t bufLen      = name_length + strlen(appendMe) + 1;
       DIR * dir                = (DIR *)  muscleAlloc(sizeof(DIR));
-      char * name              = (char *) muscleAlloc(nameLen);
-      if ((dir)&&(name))
+      char * buf               = (char *) muscleAlloc(bufLen);
+      if ((dir)&&(buf))
       {
-         muscleStrncpy(name,            name, nameLen);
-         muscleStrncpy(name+base_length, all, nameLen-base_length);
+         muscleStrncpy(buf,            name, bufLen);
+         muscleStrncpy(buf+name_length, appendMe, bufLen-name_length);
 
          memset(dir, 0, sizeof(DIR));
-         dir->name   = name;
+         dir->name   = buf;
          dir->handle = _findfirst(dir->name, &dir->info);
          if (dir->handle != ((intptr_t)-1)) return dir;  // success!
       }
-      if (name) muscleFree(name);
-      if (dir)  muscleFree(dir);
+      if (buf) muscleFree(buf);
+      if (dir) muscleFree(dir);
    }
    return NULL;
 }
