@@ -28,7 +28,7 @@ template <class T> class PointerAndBool
 {
 public:
    /** Default constructor. */
-   PointerAndBool() : _pointer(NULL)
+   PointerAndBool() : _pointer(0)
 #ifdef MUSCLE_AVOID_BITSTUFFING
       , _bool(false)
 #endif
@@ -42,7 +42,7 @@ public:
      */
    PointerAndBool(T * pointerVal, bool boolVal)
 #ifdef MUSCLE_AVOID_BITSTUFFING
-      : _pointer(pointerVal), _bool(boolVal)
+      : _pointer((uintptr)pointerVal), _bool(boolVal)
 #endif
    {
 #ifndef MUSCLE_AVOID_BITSTUFFING
@@ -59,9 +59,9 @@ public:
    T * GetPointer() const
    {
 #ifdef MUSCLE_AVOID_BITSTUFFING
-      return _pointer;
+      return (T*) _pointer;
 #else
-      return WithLowBitCleared(_pointer);
+      return (T*) WithLowBitCleared(_pointer);
 #endif
    }
 
@@ -76,12 +76,14 @@ public:
      */
    void SetPointerAndBool(T * pointer, bool boolVal)
    {
+      const uintptr pVal = (uintptr) pointer;
+
 #ifdef MUSCLE_AVOID_BITSTUFFING
-      _pointer = pointer;
+      _pointer = pVal;
       _bool    = boolVal;
 #else
-       CheckAlignment(pointer);
-       _pointer = boolVal ? WithLowBitSet(pointer) : pointer;
+       CheckAlignment(pVal);
+       _pointer = boolVal ? WithLowBitSet(pVal) : pVal;
 #endif
    }
 
@@ -98,7 +100,7 @@ public:
    /** Returns this PointerAndBool to its default state (NULL, false) */
    void Reset()
    {
-      _pointer = NULL;
+      _pointer = 0;
 #ifdef MUSCLE_AVOID_BITSTUFFING
       _bool = false;
 #endif
@@ -117,17 +119,17 @@ public:
 
 private:
 #ifndef MUSCLE_AVOID_BITSTUFFING
-         T * WithLowBitSet(          T * ptr) const {return (T*)(((uintptr)ptr)| ((uintptr)0x1));}
-         T * WithLowBitCleared(      T * ptr) const {return (T*)(((uintptr)ptr)&~((uintptr)0x1));}
-   bool IsLowBitSet(           const T * ptr) const {return ((((uintptr)ptr)&((uintptr)0x1))!=0);}
-   void CheckAlignment(        const T * ptr) const
+   uintptr WithLowBitSet(    uintptr ptr) const {return ((ptr)| ((uintptr)0x1));}
+   uintptr WithLowBitCleared(uintptr ptr) const {return ((ptr)&~((uintptr)0x1));}
+   bool IsLowBitSet(         uintptr ptr) const {return (((ptr)&((uintptr)0x1))!=0);}
+   void CheckAlignment(      uintptr ptr) const
    {
       (void) ptr;  // avoid compiler warning if MASSERT has been defined to a no-op
       MASSERT((IsLowBitSet(ptr) == false), "Unaligned pointer detected!  PointerAndBool's bit-stuffing code can't handle that.  Either align your pointers to even memory addresses, or recompile with -DMUSCLE_AVOID_BITSTUFFING.");
    }
 #endif
 
-   T * _pointer;
+   uintptr _pointer;
 #ifdef MUSCLE_AVOID_BITSTUFFING
    bool _bool;
 #endif
@@ -147,7 +149,7 @@ template <class T> class PointerAndBools
 {
 public:
    /** Default constructor. */
-   PointerAndBools() : _pointer(NULL)
+   PointerAndBools() : _pointer(0)
 #ifdef MUSCLE_AVOID_DOUBLE_BITSTUFFING
       , _bits(0)
 #endif
@@ -162,7 +164,7 @@ public:
      */
    PointerAndBools(T * pointerVal, bool boolVal1, bool boolVal2)
 #ifdef MUSCLE_AVOID_DOUBLE_BITSTUFFING
-      : _pointer(pointerVal), _bits(BoolsToBits(boolVal1, boolVal2))
+      : _pointer((uintptr)pointerVal), _bits(BoolsToBits(boolVal1, boolVal2))
 #endif
    {
 #ifndef MUSCLE_AVOID_DOUBLE_BITSTUFFING
@@ -179,9 +181,9 @@ public:
    T * GetPointer() const
    {
 #ifdef MUSCLE_AVOID_DOUBLE_BITSTUFFING
-      return _pointer;
+      return (T*) _pointer;
 #else
-      return WithLowBitsCleared(_pointer);
+      return (T*) WithLowBitsCleared(_pointer);
 #endif
    }
 
@@ -202,12 +204,14 @@ public:
      */
    void SetPointerAndBools(T * pointer, bool boolVal1, bool boolVal2)
    {
+      const uintptr pVal = (uintptr) pointer;
+
 #ifdef MUSCLE_AVOID_DOUBLE_BITSTUFFING
-      _pointer = pointer;
+      _pointer = pVal;
       _bits    = BoolsToBits(boolVal1, boolVal2);
 #else
-       CheckAlignment(pointer);
-       _pointer = WithLowBitsSet(pointer, boolVal1, boolVal2);
+       CheckAlignment(pVal);
+       _pointer = WithLowBitsSet(pVal, boolVal1, boolVal2);
 #endif
    }
 
@@ -234,7 +238,7 @@ public:
    /** Returns this PointerAndBools to its default state (NULL, false) */
    void Reset()
    {
-      _pointer = NULL;
+      _pointer = 0;
 #ifdef MUSCLE_AVOID_DOUBLE_BITSTUFFING
       _bits = 0;
 #endif
@@ -255,19 +259,19 @@ private:
    uint8 BoolsToBits(bool b1, bool b2) const {return ((b1?0x01:0x00)|(b2?0x02:0x00));}
 
 #ifndef MUSCLE_AVOID_DOUBLE_BITSTUFFING
-         T * WithLowBitsSet(          T * ptr, bool b1, bool b2) const {return (T*)(((uintptr)ptr) | ((uintptr)BoolsToBits(b1, b2)));}
-         T * WithLowBitsCleared(      T * ptr) const {return (T*)(((uintptr)ptr)&~((uintptr)0x3));}
-   bool IsFirstLowBitSet(       const T * ptr) const {return ((((uintptr)ptr)&((uintptr)0x1))!=0);}
-   bool IsSecondLowBitSet(      const T * ptr) const {return ((((uintptr)ptr)&((uintptr)0x2))!=0);}
-   bool AreAnyLowBitsSet(       const T * ptr) const {return ((((uintptr)ptr)&((uintptr)0x3))!=0);}
-   void CheckAlignment(         const T * ptr) const
+   uintptr WithLowBitsSet(    uintptr ptr, bool b1, bool b2) const {return (ptr | ((uintptr)BoolsToBits(b1, b2)));}
+   uintptr WithLowBitsCleared(uintptr ptr) const {return ((ptr)&~((uintptr)0x3));}
+   bool IsFirstLowBitSet(     uintptr ptr) const {return (((ptr)&((uintptr)0x1))!=0);}
+   bool IsSecondLowBitSet(    uintptr ptr) const {return (((ptr)&((uintptr)0x2))!=0);}
+   bool AreAnyLowBitsSet(     uintptr ptr) const {return (((ptr)&((uintptr)0x3))!=0);}
+   void CheckAlignment(       uintptr ptr) const
    {
       (void) ptr;  // avoid compiler warning if MASSERT has been defined to a no-op
       MASSERT((AreAnyLowBitsSet(ptr) == false), "Unaligned pointer detected!  PointerAndBools' bit-stuffing code can't handle that.  Either align your pointers to four-byte memory addresses, or recompile with -DMUSCLE_AVOID_DOUBLE_BITSTUFFING.");
    }
 #endif
 
-   T * _pointer;
+   uintptr _pointer;
 #ifdef MUSCLE_AVOID_DOUBLE_BITSTUFFING
    uint8 _bits;
 #endif

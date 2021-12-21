@@ -18,6 +18,10 @@ key:  - new feature
    * DummyRef and DummyConstRef constructors now inherent the
      IsRefCounting() parameter of their Ref argument verbatim,
      to avoid bugs introduced by implicit-constructor insertion.
+   * Updated the PointerAndBool classes to hold their internal
+     state as a (uintptr) instead of a (T*), to avoid any
+     potential undefined behavior that might arise from holding a
+     non-aligned object-pointer.
 
 8.44 - Release 11/17/2021
    - Added new methods ObjectPool::PerformSanityCheck() and
