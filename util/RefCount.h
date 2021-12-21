@@ -455,8 +455,9 @@ public:
    /** This constructor is useful for automatic upcasting (e.g. creating a
      * DummyConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
      * @param refItem A Ref to copy our state from.
+     * @note this constructor will use the state of (refItem)'s IsRefCounting() flag verbatim, our Dummy status notwithstanding.
      */
-   template<typename T> DummyConstRef(const ConstRef<T> & refItem) : ConstRef<Item>(refItem(), false) {/* empty */}
+   template<typename T> DummyConstRef(const ConstRef<T> & refItem) : ConstRef<Item>(refItem(), refItem.IsRefCounting()) { /* empty */}
 };
 
 
@@ -573,8 +574,9 @@ public:
    /** This constructor is useful for automatic upcasting (e.g. creating a
      * DummyAbstractReflectSessionRef from a StorageReflectSessionRef)
      * @param refItem A Ref to copy our state from.
+     * @note this constructor will use the state of (refItem)'s IsRefCounting() flag verbatim, our Dummy status notwithstanding.
      */
-   template<typename T> DummyRef(const Ref<T> & refItem) : Ref<Item>(refItem(), false) {/* empty */}
+   template<typename T> DummyRef(const Ref<T> & refItem) : Ref<Item>(refItem(), refItem.IsRefCounting()) {/* empty */}
 };
 
 /** This function works similarly to ConstRefCount::GetItemPointer(), except that this function 

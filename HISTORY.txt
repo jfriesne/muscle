@@ -15,6 +15,9 @@ key:  - new feature
      to work correctly in 64-bit builds.
    * Fixed various MSVC2022 warnings in the muscle-by-example code.
    * Fixed several race conditions reported by ThreadSanitizer.
+   * DummyRef and DummyConstRef constructors now inherent the
+     IsRefCounting() parameter of their Ref argument verbatim,
+     to avoid bugs introduced by implicit-constructor insertion.
 
 8.44 - Release 11/17/2021
    - Added new methods ObjectPool::PerformSanityCheck() and
