@@ -1559,6 +1559,23 @@ public:
      */
    template<class RHSHashFunctorType,class RHSSubclassType> bool operator!= (const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) const {return !this->IsEqualTo(rhs, false);}
 
+   /** Calculates and returns a hash code for this Hashtable.  The value returned by this method
+     * depends on the contents of our keys and values but not on their iteration-ordering.
+     * @param valueHashFunctor reference to a hash-functor object to use to calculate hash values for our value-objects.
+     * @note This method is only callable if this table's value-type is also hashable.
+     */
+   template<class ValueHashFunctorType> uint32 HashCode(const ValueHashFunctorType & valueHashFunctor) const;
+
+   /** Calculates and returns a hash code for this Hashtable using the default hash-functor for our value-type.
+     * The value returned by this method depends on the contents of our keys and values but not on their iteration-ordering.
+     * @note This method is only callable if this table's value-type is also hashable.
+     */
+   uint32 HashCode() const
+   {
+      typedef typename DEFAULT_HASH_FUNCTOR(ValueType) ValueHashFunctorType;
+      return HashCode(GetDefaultObjectForType<ValueHashFunctorType>());
+   }
+
    /** Makes this table into a copy of a table passed in as an argument.
      * @param rhs The HashtableMid to make this HashtableMid a copy of.  Note that only (rhs)'s items are
      *            copied in; other settings such as sort mode and key/value cookies are not copied in.
@@ -1983,6 +2000,13 @@ public:
      */
    template<class RHSHashFunctorType, class RHSSubclassType> Hashtable & operator=(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
+   /** Calculates and returns a hash code for this Hashtable using the default hash-functor for our value-type.
+     * The value returned by this method depends on the contents of our keys and values but not on their iteration-ordering.
+     * @note This method is only callable if this table's value-type is also hashable.
+     * @note This method is redeclared here only because our AutoChooseHashFunctorHelper class isn't smart enough to find it in the superclass.
+     */
+   uint32 HashCode() const {return HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >::HashCode();}
+
    /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).  
     *  That is to say, when this method returns, (swapMe) will be identical to the old state of this 
     *  Hashtable, and this Hashtable will be identical to the old state of (swapMe). 
@@ -2152,6 +2176,13 @@ public:
     */
    void SwapContents(OrderedKeysHashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
 
+   /** Calculates and returns a hash code for this Hashtable using the default hash-functor for our value-type.
+     * The value returned by this method depends on the contents of our keys and values but not on their iteration-ordering.
+     * @note This method is only callable if this table's value-type is also hashable.
+     * @note This method is redeclared here only because our AutoChooseHashFunctorHelper class isn't smart enough to find it in the superclass.
+     */
+   uint32 HashCode() const {return OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByKeyEntryCompareFunctor<KeyCompareFunctorType>, OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> >::HashCode();}
+
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    OrderedKeysHashtable(OrderedKeysHashtable && rhs) : OrderedHashtableType(0, ByKeyEntryCompareFunctorType(_keyCompareFunctor), NULL), _keyCompareFunctor() {this->SwapContents(rhs);}
@@ -2216,6 +2247,13 @@ public:
     *        one in use by this table's auto-sort, you may want to call Sort() on this table after the swap.
     */
    void SwapContents(OrderedValuesHashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
+
+   /** Calculates and returns a hash code for this Hashtable using the default hash-functor for our value-type.
+     * The value returned by this method depends on the contents of our keys and values but not on their iteration-ordering.
+     * @note This method is only callable if this table's value-type is also hashable.
+     * @note This method is redeclared here only because our AutoChooseHashFunctorHelper class isn't smart enough to find it in the superclass.
+     */
+   uint32 HashCode() const {return OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByValueEntryCompareFunctor<ValueCompareFunctorType>, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >::HashCode();}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
@@ -3230,6 +3268,25 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::MoveIterationEntryToCorrectPos
 //===============================================================
 // Implementation of HashtableMid
 //===============================================================
+
+template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
+template<class ValueHashFunctorType>
+uint32
+HashtableMid<KeyType, ValueType, HashFunctorType, SubclassType> ::
+HashCode(const ValueHashFunctorType & valueHashFunctor) const
+{
+   const uint32 numItems = this->GetNumItems();
+
+   uint32 ret = numItems;
+   const HashtableEntryBaseType * e = this->IndexToEntryChecked(this->_iterHeadIdx);
+   while(e)
+   {
+      const uint32 valHash = valueHashFunctor(e->_value);
+      ret += (e->_hash*(valHash?valHash:1));
+      e = this->GetEntryIterNextChecked(e);
+   }
+   return ret;
+}
 
 // CopyFrom() method is similar to the assignment operator, but gives a return value.
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>

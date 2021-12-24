@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -33,7 +33,7 @@ class TestThread : public Thread
 {
 public:
    explicit TestThread(const MessageRef & msg)
-      : _msg(msg) 
+      : _msg(msg)
    {
       // empty
    }
@@ -46,7 +46,7 @@ protected:
       while(GetRunTime64()<endTime)
       {
          uint32 count = 0;
-         for (MessageFieldNameIterator fnIter(*_msg(), B_ANY_TYPE); fnIter.HasData(); fnIter++) 
+         for (MessageFieldNameIterator fnIter(*_msg(), B_ANY_TYPE); fnIter.HasData(); fnIter++)
          {
             count++;
             totalCount++;
@@ -82,7 +82,7 @@ static int DoThreadTest()
       threads[i] = new TestThread(testMsg);
       if (threads[i]->StartInternalThread().IsError()) printf("Error starting thread!\n");
    }
-   for (uint32 i=0; i<ARRAYITEMS(threads); i++) 
+   for (uint32 i=0; i<ARRAYITEMS(threads); i++)
    {
       threads[i]->WaitForInternalThreadToExit();
       delete threads[i];
@@ -126,8 +126,8 @@ static int DoInteractiveTest()
       {
          StringTokenizer tok(buf, NULL, " ");
          const char * arg0 = tok();
-         const char * arg1 = tok(); 
-         const char * arg2 = tok(); 
+         const char * arg1 = tok();
+         const char * arg2 = tok();
 
          char command = arg0 ? arg0[0] : '\0';
 
@@ -138,7 +138,7 @@ static int DoInteractiveTest()
          if (table.HasItems())
          {
             const int32 offset = table.GetNumItems()/2;
-            for (int i=offset-1; i>=0; i--) 
+            for (int i=offset-1; i>=0; i--)
             {
                MASSERT(iter.HasData(), "Not enough keys in table!?!?\n");
                MASSERT((atoi(iter.GetValue()()) == iter.GetKey()), "value/key mismatch B!\n");
@@ -149,8 +149,8 @@ static int DoInteractiveTest()
          }
 
          switch(command)
-         { 
-            case 'F':  
+         {
+            case 'F':
                if ((arg1)&&(arg2))
                {
                   printf("%s(%s %i before %i)", first?"":", ", (table.MoveToBefore(atoi(arg1),atoi(arg2)).IsOK()) ? "Befored" : "FailedToBefored", atoi(arg1), atoi(arg2));
@@ -158,8 +158,8 @@ static int DoInteractiveTest()
                }
                else printf("(No arg1 or arg2!)");
             break;
-            
-            case 'B':  
+
+            case 'B':
                if ((arg1)&&(arg2))
                {
                   printf("%s(%s %i behind %i)", first?"":", ", (table.MoveToBehind(atoi(arg1),atoi(arg2)).IsOK()) ? "Behinded" : "FailedToBehind", atoi(arg1), atoi(arg2));
@@ -167,8 +167,8 @@ static int DoInteractiveTest()
                }
                else printf("(No arg1 or arg2!)");
             break;
-            
-            case 'm':  
+
+            case 'm':
                if ((arg1)&&(arg2))
                {
                   printf("%s(%s %i to position %i)", first?"":", ", (table.MoveToPosition(atoi(arg1),atoi(arg2)).IsOK()) ? "Positioned" : "FailedToPosition", atoi(arg1), atoi(arg2));
@@ -176,8 +176,8 @@ static int DoInteractiveTest()
                }
                else printf("(No arg1 or arg2!)");
             break;
-            
-            case 'f':  
+
+            case 'f':
                if (arg1)
                {
                   printf("%s(%s %i)", first?"":", ", (table.MoveToFront(atoi(arg1)).IsOK()) ? "Fronted" : "FailedToFront", atoi(arg1));
@@ -185,8 +185,8 @@ static int DoInteractiveTest()
                }
                else printf("(No arg1!)");
             break;
-            
-            case 'b':  
+
+            case 'b':
                if (arg1)
                {
                   printf("%s(%s %i)", first?"":", ", (table.MoveToBack(atoi(arg1)).IsOK()) ? "Backed" : "FailedToBack", atoi(arg1));
@@ -194,8 +194,8 @@ static int DoInteractiveTest()
                }
                else printf("(No arg1!)");
             break;
-            
-            case 'p':  
+
+            case 'p':
                if (arg1)
                {
                   printf("%s(%s %i)", first?"":", ", (table.Put(atoi(arg1), arg1).IsOK()) ? "Put" : "FailedToPut", atoi(arg1));
@@ -203,8 +203,8 @@ static int DoInteractiveTest()
                }
                else printf("(No arg1!)");
             break;
-            
-            case 'r':  
+
+            case 'r':
                if (arg1)
                {
                   printf("%s(%s %i)", first?"":", ", (table.Remove(atoi(arg1)).IsOK()) ? "Removed" : "FailedToRemove", atoi(arg1));
@@ -222,7 +222,7 @@ static int DoInteractiveTest()
                else printf("(No arg1!)");
             break;
 
-            case 'c':  
+            case 'c':
                printf("%s(Clearing table)", first?"":", ");
                table.Clear();
                first = false;
@@ -234,7 +234,7 @@ static int DoInteractiveTest()
                first = false;
             break;
 
-            case 'q':  
+            case 'q':
                printf("%sQuitting\n", first?"":", ");
                return 0;
             break;
@@ -354,15 +354,16 @@ int main(int argc, char ** argv)
    // Make sure that setting equal to an empty Hashtable clears the buffer (FogBugz #10274)
    {
       Hashtable<String,String> table;
+      printf("Before population, table's hash code is " UINT32_FORMAT_SPEC "\n", table.HashCode());
       for (int32 i=0; i<1000; i++) table.Put(String("xxx%1").Arg(i), "foo");
-      printf("After population of " UINT32_FORMAT_SPEC " items, table size is " UINT32_FORMAT_SPEC "\n", table.GetNumItems(), table.GetNumAllocatedItemSlots());
+      printf("After population of " UINT32_FORMAT_SPEC " items, table size is " UINT32_FORMAT_SPEC ", hash is " UINT32_FORMAT_SPEC "\n", table.GetNumItems(), table.GetNumAllocatedItemSlots(), table.HashCode());
 
-      if (table.ShrinkToFit().IsOK()) printf("After shrink-to-fit, table allocation is " UINT32_FORMAT_SPEC " for " UINT32_FORMAT_SPEC " items\n", table.GetNumAllocatedItemSlots(), table.GetNumItems());
+      if (table.ShrinkToFit().IsOK()) printf("After shrink-to-fit, table allocation is " UINT32_FORMAT_SPEC " for " UINT32_FORMAT_SPEC " items, hash is " UINT32_FORMAT_SPEC "\n", table.GetNumAllocatedItemSlots(), table.GetNumItems(), table.HashCode());
                                  else printf("Shrink-to-fit failed!?\n");
 
-      printf("Before copy-from-empty, table allocation is " UINT32_FORMAT_SPEC "\n", table.GetNumAllocatedItemSlots()); 
+      printf("Before copy-from-empty, table allocation is " UINT32_FORMAT_SPEC ", hash is " UINT32_FORMAT_SPEC "\n", table.GetNumAllocatedItemSlots(), table.HashCode());
       table = GetDefaultObjectForType< Hashtable<String,String> > ();
-      printf(" After copy-from-empty, table allocation is " UINT32_FORMAT_SPEC "\n", table.GetNumAllocatedItemSlots()); 
+      printf(" After copy-from-empty, table allocation is " UINT32_FORMAT_SPEC ", hash is " UINT32_FORMAT_SPEC "\n", table.GetNumAllocatedItemSlots(), table.HashCode());
    }
 
    // Test C++11 move semantics to make sure they aren't stealing
@@ -388,12 +389,13 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Testing a keys-only Hashtable value...\n");
 
       Hashtable<int, Void> keysOnly;
-      printf("sizeof(keysOnly)=%u\n", (unsigned int) sizeof(keysOnly));
+      printf("A sizeof(keysOnly)=%u hash=" UINT32_FORMAT_SPEC "\n", (unsigned int) sizeof(keysOnly), keysOnly.HashCode());
       keysOnly.PutWithDefault(1);
       keysOnly.PutWithDefault(2);
       keysOnly.PutWithDefault(5);
       keysOnly.PutWithDefault(10);
       for (HashtableIterator<int, Void> iter(keysOnly); iter.HasData(); iter++)  printf("key=%i\n", iter.GetKey());
+      printf("B sizeof(keysOnly)=%u hash=" UINT32_FORMAT_SPEC "\n", (unsigned int) sizeof(keysOnly), keysOnly.HashCode());
    }
 
    {
@@ -431,8 +433,8 @@ int main(int argc, char ** argv)
       MyType b; b[0] = 7; b[1] = 8;
       tupleTable.Put(a, 1);
       tupleTable.Put(b, 2);
-      for (HashtableIterator<MyType, int> iter(tupleTable); iter.HasData(); iter++)  
-      {  
+      for (HashtableIterator<MyType, int> iter(tupleTable); iter.HasData(); iter++)
+      {
          const MyType & key = iter.GetKey();
          printf("key=%i,%i val=%i\n", key[0], key[1], iter.GetValue());
       }
@@ -451,8 +453,8 @@ int main(int argc, char ** argv)
       const Rect b(5,6,7,8);
       tupleTable.Put(a, 1);
       tupleTable.Put(b, 2);
-      for (HashtableIterator<Rect, int> iter(tupleTable); iter.HasData(); iter++)  
-      {  
+      for (HashtableIterator<Rect, int> iter(tupleTable); iter.HasData(); iter++)
+      {
          const Rect & key = iter.GetKey();
          printf("key=%f,%f,%f,%f val=%i\n", key.left(), key.top(), key.right(), key.bottom(), iter.GetValue());
       }
@@ -471,14 +473,78 @@ int main(int argc, char ** argv)
       const Point b(-11,-12);
       tupleTable.Put(a, 1);
       tupleTable.Put(b, 2);
-      for (HashtableIterator<Point, int> iter(tupleTable); iter.HasData(); iter++)  
-      {  
+      for (HashtableIterator<Point, int> iter(tupleTable); iter.HasData(); iter++)
+      {
          const Point & key = iter.GetKey();
          printf("key=%f,%f val=%i\n", key.x(), key.y(), iter.GetValue());
       }
       int * ra = tupleTable.Get(a);
       int * rb = tupleTable.Get(b);
       printf("Point: ra=[%p] rb=[%p]\n", ra, rb);
+   }
+
+   {
+      LogTime(MUSCLE_LOG_INFO, "Testing Queue as a Hashtable key\n");
+
+      Queue<int> key1;
+      key1.AddTail(1);
+      key1.AddTail(2);
+      key1.AddTail(3);
+
+      Queue<int> key2;
+      key1.AddTail(10);
+      key2.AddTail(20);
+      key2.AddTail(30);
+
+      // A quick test of the Hashtable class as a Hashtable key
+      Hashtable<Queue<int>, int> qTable;
+      printf("qTable hash A = " UINT32_FORMAT_SPEC "\n", qTable.HashCode());
+      qTable.Put(key1, 100);
+      printf("qTable hash B = " UINT32_FORMAT_SPEC "\n", qTable.HashCode());
+      qTable.Put(key2, 200);
+      printf("qTable hash C = " UINT32_FORMAT_SPEC "\n", qTable.HashCode());
+
+      for (HashtableIterator<Queue<int>, int> iter(qTable); iter.HasData(); iter++)
+      {
+         const Queue<int> & key = iter.GetKey();
+         printf("qkey=[");
+         for (uint32 i=0; i<key.GetNumItems(); i++)
+         {
+            if (i>0) printf(",");
+            printf("%i", key[i]);
+         }
+         printf("] -> %i\n", iter.GetValue());
+      }
+   }
+
+   {
+      LogTime(MUSCLE_LOG_INFO, "Testing Hashtable as a Hashtable key(!)\n");  // yo dawg, I heard you like Hashtables...
+
+      Hashtable<int, int> key1;
+      key1.Put(3, 4);
+      key1.Put(2, 5);
+      key1.Put(1, 6);
+
+      Hashtable<int, int> key2;
+      key2.Put(30, 31);
+      key2.Put(20, 31);
+      key2.Put(10, 11);
+
+      // A quick test of the Hashtable class as a Hashtable key
+      Hashtable<Hashtable<int, int>, int> tableTable;
+      printf("tableTable hash A = " UINT32_FORMAT_SPEC "\n", tableTable.HashCode());
+      tableTable.Put(key1, 100);
+      printf("tableTable hash B = " UINT32_FORMAT_SPEC "\n", tableTable.HashCode());
+      tableTable.Put(key2, 200);
+      printf("tableTable hash C = " UINT32_FORMAT_SPEC "\n", tableTable.HashCode());
+
+      for (HashtableIterator< Hashtable<int, int>, int> iter(tableTable); iter.HasData(); iter++)
+      {
+         const Hashtable<int, int> & key = iter.GetKey();
+         printf("hkey=[");
+         for (HashtableIterator<int, int> subIter(key); subIter.HasData(); subIter++) printf("(%i->%i)", subIter.GetKey(), subIter.GetValue());
+         printf("] -> %i\n", iter.GetValue());
+      }
    }
 
    {
@@ -604,7 +670,7 @@ int main(int argc, char ** argv)
          printf("%i %s: " UINT32_FORMAT_SPEC " -> %s\n", it.HasData(), ret(), it.GetKey(), nextValue);
       }
    }
-   table.Clear();   
+   table.Clear();
 
    {
       const uint32 NUM_ITEMS = 1000000;
@@ -619,7 +685,7 @@ int main(int argc, char ** argv)
          uint64 startTime = GetRunTime64();
          srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) iTable.Put(rand(), rand());  // we want this to be repeatable, hence srand(0)
          AddTally(tallies, "place", startTime, NUM_ITEMS);
-         
+
          startTime = GetRunTime64();
          iTable.SortByValue();
          AddTally(tallies, "sort", startTime, NUM_ITEMS);
@@ -640,7 +706,7 @@ int main(int argc, char ** argv)
          iTable.Clear();
          AddTally(tallies, "clear", startTime, NUM_ITEMS);
       }
-      printf("GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS); 
+      printf("GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS);
       for (HashtableIterator<String, double> iter(tallies); iter.HasData(); iter++) printf("   %f items/second for %s\n", iter.GetValue()/NUM_RUNS, iter.GetKey()());
    }
 
@@ -659,7 +725,7 @@ int main(int argc, char ** argv)
          uint64 startTime = GetRunTime64();
          srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) sTable.Put(String("%1").Arg(rand()), String("%1").Arg(rand()));  // we want this to be repeatable, hence srand(0)
          AddTally(tallies, "place", startTime, NUM_ITEMS);
-         
+
          startTime = GetRunTime64();
          sTable.SortByValue();
          AddTally(tallies, "sort", startTime, NUM_ITEMS);
@@ -680,7 +746,7 @@ int main(int argc, char ** argv)
          sTable.Clear();
          AddTally(tallies, "clear", startTime, NUM_ITEMS);
       }
-      printf("STRING GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS); 
+      printf("STRING GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS);
       for (HashtableIterator<String, double> iter(tallies); iter.HasData(); iter++) printf("   STRING %f items/second for %s\n", iter.GetValue()/NUM_RUNS, iter.GetKey()());
    }
    PrintAndClearStringCopyCounts("After String Sort test");
@@ -729,7 +795,7 @@ int main(int argc, char ** argv)
                   if (tv != ((uint32)i)) bomb("ERROR, WRONG KEY %s != " UINT32_FORMAT_SPEC "!\n", temp, tv);
                }
             }
-      
+
             //printf("Iterating through table...\n");
             _state = 7;
             {
@@ -760,7 +826,7 @@ int main(int argc, char ** argv)
             //printf("Iterating over only first half...\n");
             _state = 9;
             {
-               uint32 sum = 0; 
+               uint32 sum = 0;
                for (uint32 i=0; i<half; i++) sum += i;
 
                uint32 count = 0, checkSum = 0;
@@ -774,7 +840,7 @@ int main(int argc, char ** argv)
             }
          }
 
-         //printf("Clearing Table (%s)\n", fastClear ? "Quickly" : "Slowly"); 
+         //printf("Clearing Table (%s)\n", fastClear ? "Quickly" : "Slowly");
          _state = 10;
          if (fastClear) t.Clear();
          else

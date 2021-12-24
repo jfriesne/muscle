@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added HashCode() methods to the ByteBuffer, Queue, Hashtable,
+     FilePathInfo, and PointerAndBool classes.
    o Downgraded cmake_minimum_required in the CMakeList.txt files
      to 2.8.12, in order to regain compatibility with older build
      environments

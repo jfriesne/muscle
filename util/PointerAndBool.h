@@ -117,6 +117,16 @@ public:
 #endif
    }
 
+   /** Returns a hash code for this object */
+   uint32 HashCode() const
+   {
+      uint32 ret = CalculateHashCode(_pointer);
+#ifdef MUSCLE_AVOID_BITSTUFFING
+      ret += (_bool?1:0);
+#endif
+      return ret;
+   }
+
 private:
 #ifndef MUSCLE_AVOID_BITSTUFFING
    uintptr WithLowBitSet(    uintptr ptr) const {return ((ptr)| ((uintptr)0x1));}
@@ -253,6 +263,16 @@ public:
 #ifdef MUSCLE_AVOID_DOUBLE_BITSTUFFING
       muscleSwap(_bits, rhs._bits);
 #endif
+   }
+
+   /** Returns a hash code for this object */
+   uint32 HashCode() const
+   {
+      uint32 ret = CalculateHashCode(_pointer);
+#ifdef MUSCLE_AVOID_BITSTUFFING
+      ret += _bits;
+#endif
+      return ret;
    }
 
 private:

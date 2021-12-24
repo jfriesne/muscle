@@ -98,12 +98,14 @@ int main(void)
       Queue<String> q1, q2;
       q1.AddTail("q1");
       q2.AddTail("q2");
+      printf("Before swap, hashes are q1=" UINT32_FORMAT_SPEC ", q2=" UINT32_FORMAT_SPEC "\n", q1.HashCode(), q2.HashCode());
       muscleSwap(q1, q2);
       if ((q1.GetNumItems() != 1)||(q2.GetNumItems() != 1)||(q1[0] != "q2")||(q2[0] != "q1"))
       {
          printf("Oh no, muscleSwap is broken for Message objects!\n");
          exit(10);
       }
+      printf("After swap, hashes are q1=" UINT32_FORMAT_SPEC ", q2=" UINT32_FORMAT_SPEC "\n", q1.HashCode(), q2.HashCode());
       printf("muscleSwap() worked!\n");
    }
 
@@ -113,7 +115,7 @@ int main(void)
 
    const int vars[] = {5,6,7,8,9,10,11,12,13,14,15};
 
-   printf("ADDTAIL TEST\n");
+   printf("ADDTAIL TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
       for (int i=0; i<testSize; i++) 
       {
@@ -122,15 +124,15 @@ int main(void)
       }
    } 
 
-   printf("AddTail array\n");
+   printf("AddTail array hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    q.AddTailMulti(vars, ARRAYITEMS(vars));
    PrintToStream(q);
 
-   printf("AddHead array\n");
+   printf("AddHead array hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    q.AddHeadMulti(vars, ARRAYITEMS(vars));
    PrintToStream(q);
 
-   printf("REPLACEITEMAT TEST\n");
+   printf("REPLACEITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
       for (int i=0; i<testSize; i++) 
       {
@@ -139,7 +141,7 @@ int main(void)
       }
    } 
 
-   printf("INSERTITEMAT TEST\n");
+   printf("INSERTITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
       for (int i=0; i<testSize; i++) 
       {
@@ -148,7 +150,7 @@ int main(void)
       }
    }
 
-   printf("REMOVEITEMAT TEST\n");
+   printf("REMOVEITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
       for (int i=0; i<testSize; i++) 
       {
@@ -169,7 +171,7 @@ int main(void)
       }
    }
 
-   printf("SORT TEST 1\n");
+   printf("SORT TEST 1 hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
       q.Clear();
       for (int i=0; i<testSize; i++)

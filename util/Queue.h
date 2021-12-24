@@ -96,6 +96,23 @@ public:
    /** @copydoc DoxyTemplate::operator>=(const DoxyTemplate &) const */
    bool operator>=(const Queue & rhs) const {return (lexicographicalCompare(rhs) >= 0);}
 
+   /** Calculates and returns a hash code for this Queue.  The value returned by this
+     * method depends on both the ordering and the contents of the items in the Queue.
+     * @param itemHashFunctor reference to a hash-functor object to use to calculate hash values for our items.
+     * @note This method is only callable if our item-type is hashable
+     */
+   template<class ItemHashFunctorType> uint32 HashCode(const ItemHashFunctorType & itemHashFunctor) const;
+
+   /** Calculates and returns a hash code for this Queue using the default hash-functor for our item type.
+     * The value returned by this method depends on both the ordering and the contents of the items in this Queue.
+     * @note This method is only callable if our item-type is hashable
+     */
+   uint32 HashCode() const
+   {
+      typedef typename DEFAULT_HASH_FUNCTOR(ItemType) ItemHashFunctorType;
+      return HashCode<>(GetDefaultObjectForType<ItemHashFunctorType>());
+   }
+
    /** Similar to the assignment operator, except this method returns a status code.
      * @param rhs This Queue's contents will become a copy of (rhs)'s items.
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
@@ -866,6 +883,22 @@ Queue<ItemType>::operator =(const Queue& rhs)
       else if (EnsureSize(hisNumItems, true).IsOK()) for (uint32 i=0; i<hisNumItems; i++) (*this)[i] = rhs[i];
    }
    return *this;
+}
+
+template<class ItemType>
+template<class ItemHashFunctorType>
+uint32
+Queue<ItemType>::HashCode(const ItemHashFunctorType & itemHashFunctor) const
+{
+   const uint32 numItems = GetNumItems();
+
+   uint32 ret = numItems;
+   for (uint32 i=0; i<numItems; i++)
+   {
+      const uint32 itemHash = itemHashFunctor((*this)[i]);
+      ret += ((i+1)*(itemHash?itemHash:1));  // Multiplying by (i+1) so that item-ordering will affect the result
+   }
+   return ret;
 }
 
 template <class ItemType>

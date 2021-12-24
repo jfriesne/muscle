@@ -69,6 +69,25 @@ public:
    /** Resets this object to its default/invalid state */
    void Reset();
 
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
+   bool operator == (const FilePathInfo & rhs) const
+   {
+      return (_flags == rhs._flags)
+          && (_size  == rhs._size)
+          && (_atime == rhs._atime)
+          && (_ctime == rhs._ctime)
+          && (_mtime == rhs._mtime);
+   }
+
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
+   bool operator != (const FilePathInfo & rhs) const {return !(*this==rhs);}
+
+   /** Returns a hash code for this object */
+   uint32 HashCode() const
+   {
+      return _flags.HashCode() + CalculateHashCode(_size) + (3*CalculateHashCode(_atime)) + (7*CalculateHashCode(_ctime)) + (11*CalculateHashCode(_mtime));
+   }
+
 private:
 #ifdef WIN32
    uint64 InternalizeFileTime(const FILETIME & ft) const;

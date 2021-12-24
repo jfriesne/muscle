@@ -194,6 +194,9 @@ public:
       muscleSwap(_allocStrategy,     swapWith._allocStrategy);
    }
 
+   /** Returns a hash code for this ByteBuffer */
+   uint32 HashCode() const {return CalculateHashCode(GetBuffer(), GetNumBytes());}
+
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    ByteBuffer(ByteBuffer && rhs) : _buffer(NULL), _numValidBytes(0), _numAllocatedBytes(0) {SwapContents(rhs);}

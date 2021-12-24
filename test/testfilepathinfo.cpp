@@ -30,5 +30,8 @@ int main(int argc, char ** argv)
    printf("AccessTime:\t\t" UINT64_FORMAT_SPEC " (%s)\n", fpi.GetAccessTime(), GetHumanReadableTimeString(fpi.GetAccessTime())());
    printf("ModificationTime:\t" UINT64_FORMAT_SPEC " (%s)\n", fpi.GetModificationTime(), GetHumanReadableTimeString(fpi.GetModificationTime())());
    printf("CreationTime:\t\t" UINT64_FORMAT_SPEC " (%s)\n", fpi.GetCreationTime(), GetHumanReadableTimeString(fpi.GetCreationTime())());
+
+   const FilePathInfo fpi2 = fpi;
+   printf("Test == operator (%i), hash code " UINT32_FORMAT_SPEC "\n", (fpi==fpi2), fpi.HashCode());
    return 0;
 }
