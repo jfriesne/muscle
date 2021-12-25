@@ -244,13 +244,7 @@ public:
    const ItemType * GetItemPointer(uint32 which) const {return &_items[which];}
 
    /** Returns a hash code for this Tuple.  Implementing this allows Tuples to be used as keys in Hashtables. */
-   uint32 HashCode() const
-   {
-      typename DEFAULT_HASH_FUNCTOR(ItemType) hashFunctor;
-      uint32 ret = 0;
-      for (uint32 i=0; i<NumItems; i++) ret += (i+hashFunctor(_items[i]));
-      return ret;
-   }
+   uint32 HashCode() const {return CalculateHashCode(_items);}
 
 private:
    /** Shifts the values of the indices left (numPlaces) spaces.  Blanks are filled in on the right. */

@@ -1572,8 +1572,8 @@ public:
      */
    uint32 HashCode() const
    {
-      typedef typename DEFAULT_HASH_FUNCTOR(ValueType) ValueHashFunctorType;
-      return HashCode(GetDefaultObjectForType<ValueHashFunctorType>());
+      typename DEFAULT_HASH_FUNCTOR(ValueType) hashFunctor;
+      return HashCode(hashFunctor);
    }
 
    /** Makes this table into a copy of a table passed in as an argument.

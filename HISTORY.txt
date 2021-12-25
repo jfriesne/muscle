@@ -7,6 +7,10 @@ key:  - new feature
 
    - Added HashCode() methods to the ByteBuffer, Queue, Hashtable,
      FilePathInfo, and PointerAndBool classes.
+   - Added a CalculateHashCode() function that takes an array
+     as an argument and returns a hash code for the entire array.
+   o CalculateHashCode(const Type &) now calls HashCode() on the
+     argument if possible, or uses a PODHashFunctor otherwise.
    o Downgraded cmake_minimum_required in the CMakeList.txt files
      to 2.8.12, in order to regain compatibility with older build
      environments

@@ -109,8 +109,8 @@ public:
      */
    uint32 HashCode() const
    {
-      typedef typename DEFAULT_HASH_FUNCTOR(ItemType) ItemHashFunctorType;
-      return HashCode<>(GetDefaultObjectForType<ItemHashFunctorType>());
+      typename DEFAULT_HASH_FUNCTOR(ItemType) hashFunctor;
+      return HashCode<>(hashFunctor);
    }
 
    /** Similar to the assignment operator, except this method returns a status code.

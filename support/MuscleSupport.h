@@ -1495,6 +1495,21 @@ public:
    int Compare(PointerType s1, PointerType s2, void * /*cookie*/) const {return muscleCompare(s1, s2);}
 };
 
+/** Convenience method:  Returns the Euclidean modulo of the given value for the given divisor.
+  * @param value the value to calculate the Euclidean-modulo of
+  * @param divisor the divisor to use in the calculation.  Must not be zero.
+  * @note For non-negative values of (value), this function behaves the same as (value%divisor).
+  *       For negative values of (value), this function behaves differently
+  *       in that e.g. EuclideanModulo(-1,d) will return (d-1) rather than -1.  This is
+  *       arguably more useful for cyclic-sequence applications, as there will not be
+  *       any anomalies in the resulting values as (value) transitions between positive and negative.
+  */
+static inline uint32 EuclideanModulo(int32 value, uint32 divisor)
+{
+   // Derived from the code posted at https://stackoverflow.com/a/51959866/131930
+   return (value < 0) ? ((divisor-1)-((-1-value)%divisor)) : (value%divisor);
+}
+
 /** Hash function for arbitrary data.  Note that the current implementation of this function
   * is MurmurHash2/Aligned, taken from http://murmurhash.googlepages.com/ and used as public domain code.
   * Thanks to Austin Appleby for the cool algorithm!
@@ -1514,18 +1529,6 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed = 0);
   */
 uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int seed = 0);
 
-/** Convenience method; returns the hash code of the given data item.  Any POD type will do.
-  * @param val The value to calculate a hashcode for
-  * @returns a hash code.
-  */
-template<typename T> inline uint32 CalculateHashCode(const T & val) {return CalculateHashCode(&val, sizeof(val));}
-
-/** Convenience method; returns the 64-bit hash code of the given data item.  Any POD type will do.
-  * @param val The value to calculate a hashcode for
-  * @returns a hash code.
-  */
-template<typename T> inline uint64 CalculateHashCode64(const T & val) {return CalculateHashCode64(&val, sizeof(val));}
-
 /** This is a convenience function that will read through the passed-in byte
   * buffer and create a 32-bit checksum corresponding to its contents.
   * Note:  As of MUSCLE 5.22, this function is merely a synonym for CalculateHashCode().
@@ -1536,28 +1539,13 @@ template<typename T> inline uint64 CalculateHashCode64(const T & val) {return Ca
 static inline uint32 CalculateChecksum(const void * buffer, uint32 numBytes) {return CalculateHashCode(buffer, numBytes);}
 
 /** Convenience method:  Given a uint64, returns a corresponding 32-bit checksum value */
-static inline uint32 CalculateChecksumForUint64(uint64 v) {uint64 le = B_HOST_TO_LENDIAN_INT64(v);   return CalculateChecksum(&le, sizeof(le));}
+static inline uint32 CalculateChecksumForUint64(uint64 v) {const uint64 le = B_HOST_TO_LENDIAN_INT64(v); return CalculateChecksum(&le, sizeof(le));}
 
 /** Convenience method:  Given a float, returns a corresponding 32-bit checksum value */
-static inline uint32 CalculateChecksumForFloat(float v)   {uint32 le = (v==0.0f) ? 0 : B_HOST_TO_LENDIAN_IFLOAT(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0f IS necessary, because the sign-bit might be set.  :(
+static inline uint32 CalculateChecksumForFloat(float v)   {const uint32 le = (v==0.0f) ? 0 : B_HOST_TO_LENDIAN_IFLOAT(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0f IS necessary, because the sign-bit might be set.  :(
 
 /** Convenience method:  Given a double, returns a corresponding 32-bit checksum value */
-static inline uint32 CalculateChecksumForDouble(double v) {uint64 le = (v==0.0) ? 0 : B_HOST_TO_LENDIAN_IDOUBLE(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0 IS necessary, because the sign-bit might be set.  :(
-
-/** Convenience method:  Returns the Euclidean modulo of the given value for the given divisor.
-  * @param value the value to calculate the Euclidean-modulo of
-  * @param divisor the divisor to use in the calculation.  Must not be zero.
-  * @note For non-negative values of (value), this function behaves the same as (value%divisor).
-  *       For negative values of (value), this function behaves differently
-  *       in that e.g. EuclideanModulo(-1,d) will return (d-1) rather than -1.  This is
-  *       arguably more useful for cyclic-sequence applications, as there will not be
-  *       any anomalies in the resulting values as (value) transitions between positive and negative.
-  */
-static inline uint32 EuclideanModulo(int32 value, uint32 divisor)
-{
-   // Derived from the code posted at https://stackoverflow.com/a/51959866/131930
-   return (value < 0) ? ((divisor-1)-((-1-value)%divisor)) : (value%divisor);
-}
+static inline uint32 CalculateChecksumForDouble(double v) {const uint64 le = (v==0.0) ? 0 : B_HOST_TO_LENDIAN_IDOUBLE(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0 IS necessary, because the sign-bit might be set.  :(
 
 /** This hashing functor type handles the trivial cases, where the KeyType is
  *  Plain Old Data that we can just feed directly into the CalculateHashCode() function.
@@ -1576,7 +1564,7 @@ public:
       static_assert(!std::is_class<KeyType>::value, "PODHashFunctor cannot be used on class or struct objects, because the object's compiler-inserted padding bytes would be unitialized and therefore they would cause inconsistent hash-code generation.  Try adding a 'uint32 HashCode() const' method to the class/struct instead.");
       static_assert(!std::is_union<KeyType>::value, "PODHashFunctor cannot be used on union objects.");
 #endif
-      return CalculateHashCode(x);
+      return CalculateHashCode(&x, sizeof(x));
    }
    bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const {return (k1==k2);}
 };
@@ -1677,8 +1665,6 @@ template <> class AutoChooseHashFunctorHelper<void *>       {typedef PODHashFunc
 # define AUTOCHOOSE_LEGACY_PRIMITIVE_KEY_TYPE_HACK_WITH_NAMESPACE(ns,x)
 #endif
 
-#endif
-
 // VC++6 and earlier can't handle partial template specialization, so
 // they need some extra help at various places.  Lame....
 #if defined(_MSC_VER)
@@ -1688,6 +1674,56 @@ template <> class AutoChooseHashFunctorHelper<void *>       {typedef PODHashFunc
 #  define MUSCLE_USING_NEW_MICROSOFT_COMPILER 1  // VC.net2004 and later
 # endif
 #endif
+
+/** Convenience method; returns the hash code of the given data item.
+  * @param val The value to calculate a hashcode for.  If the item has a "uint32 HashCode() const"
+  *            method, that method will be called, otherwise we'll use a PODHashFunctor.
+  * @returns a hash code.
+  */
+template<typename T> inline uint32 CalculateHashCode(const T & val)
+{
+   typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
+   return hashFunctor(val);
+}
+
+/** Convenience method; returns a hash code for the given array.
+  * @param theArray The array to calculate a hash code for.  If the array-items are of a class
+  *                 that declares a "uint32 HashCode() const" method, that method will be called
+  *                 on each array item; otherwise a PODHashFunctor object will be used.
+  * @returns a hash code for the array.
+  */
+template<typename T, int size1> inline uint32 CalculateHashCode(const T (&theArray)[size1])
+{
+   typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
+   uint32 ret = size1;
+   for (int i=0; i<size1; i++) ret += ((i+1)*hashFunctor(theArray[i]));
+   return ret;
+}
+
+/** Convenience method; returns a hash code for the given array.
+  * @param theArray The array to calculate a hash code for.  If the array-items are of a class
+  *                 that declares a "uint32 HashCode() const" method, that method will be called
+  *                 on each array item; otherwise a PODHashFunctor object will be used.
+  * @returns a hash code for the array.
+  */
+template<typename T, int size1, int size2> inline uint32 CalculateHashCode(const T (&theArray)[size1][size2])
+{
+   typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
+   uint32 c = 0;
+   uint32 ret = (size1+1)*(size2+1);
+   for (int i=0; i<size1; i++)
+      for (int j=0; j<size2; j++)
+         ret += ((++c)*hashFunctor(theArray[i][j]));
+   return ret;
+}
+
+/** Convenience method; returns the 64-bit hash code of the given data item.  Any POD type will do.
+  * @param val The value to calculate a hashcode for
+  * @returns a hash code.
+  */
+template<typename T> inline uint64 CalculateHashCode64(const T & val) {return CalculateHashCode64(&val, sizeof(val));}
+
+#endif  // __cplusplus
 
 /** Given an ASCII decimal representation of a non-negative number, returns that number as a uint64. */
 uint64 Atoull(const char * str);

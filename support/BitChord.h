@@ -260,15 +260,10 @@ public:
    }
  
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
-   uint32 CalculateChecksum() const 
-   {
-      uint32 ret = 0;
-      for (uint32 i=0; i<NUM_WORDS; i++) ret += ((i+1)*_words[i]);
-      return ret;
-   }
+   uint32 CalculateChecksum() const {return HashCode();}
 
    /** @copydoc DoxyTemplate::HashCode() const */
-   uint32 HashCode() const {return CalculateChecksum();}
+   uint32 HashCode() const {return CalculateHashCode(_words);}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
    /** Equivalent to calling SetBit() multiple times; once per supplied argument.
