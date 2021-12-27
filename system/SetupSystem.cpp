@@ -580,7 +580,7 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
 
 static void DeadlockFinder_ProcessEnding()
 {
-   MutexGuard mg(_mutexLogTableMutex);
+   DECLARE_MUTEXGUARD(_mutexLogTableMutex);
    for (uint32 i=0; i<_mutexLogTable.GetNumItems(); i++) _mutexLogTable[i]->PrintToStream();
 }
 
@@ -1891,7 +1891,7 @@ ObjectCounterBase :: ObjectCounterBase(const char * objectCounterTypeName, uint3
 {
    if (_muscleLock)
    {
-      MutexGuard mg(*_muscleLock);
+      DECLARE_MUTEXGUARD(*_muscleLock);
       PrependObjectCounterBaseToGlobalCountersList();
    }
    else PrependObjectCounterBaseToGlobalCountersList();
@@ -1901,7 +1901,7 @@ ObjectCounterBase :: ~ObjectCounterBase()
 {
    if (_muscleLock)
    {
-      MutexGuard mg(*_muscleLock);
+      DECLARE_MUTEXGUARD(*_muscleLock);
       RemoveObjectCounterBaseFromGlobalCountersList();
    }
    else RemoveObjectCounterBaseFromGlobalCountersList();

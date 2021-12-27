@@ -27,7 +27,7 @@ static uint32 GetNextGlobalID(uint32 & counter)
    Mutex * ml = GetGlobalMuscleLock();
    MASSERT(ml, "Please instantiate a CompleteSetupSystem object on the stack before creating any session or session-factory objects (at beginning of main() is preferred)\n");
 
-   MutexGuard mg(*ml);
+   DECLARE_MUTEXGUARD(*ml);
    return counter++;
 }
 

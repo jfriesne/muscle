@@ -192,7 +192,7 @@ private:
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
       void NotifySocketClosed(int fd)
       {
-         MutexGuard mg(_closedSocketsMutex);
+         DECLARE_MUTEXGUARD(_closedSocketsMutex);
          (void) _closedSockets.PutWithDefault(fd);
       }
 #endif

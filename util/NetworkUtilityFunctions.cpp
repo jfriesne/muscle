@@ -670,7 +670,7 @@ static void ExpandLocalhostAddress(IPAddress & ipAddress)
       IPAddress altRet = GetLocalHostIPOverride();  // see if the user manually specified a preferred local address
       if (altRet == invalidIP)
       {
-         MutexGuard lock(_cachedLocalhostAddressLock);
+         DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
          // If not, try to grab one from the OS
          if (_cachedLocalhostAddress == invalidIP)
          {
@@ -709,7 +709,7 @@ static Hashtable<String, DNSRecord> _hostCache;
 
 void SetHostNameCacheSettings(uint32 maxEntries, uint64 expirationTime)
 {
-   MutexGuard mg(_hostCacheMutex);
+   DECLARE_MUTEXGUARD(_hostCacheMutex);
    _maxHostCacheSize = expirationTime ? maxEntries : 0;  // no sense storing entries that expire instantly
    _hostCacheEntryLifespan = expirationTime;
    while(_hostCache.GetNumItems() > _maxHostCacheSize) (void) _hostCache.RemoveLast();
@@ -736,7 +736,7 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
    else if (_maxHostCacheSize > 0)
    {
       const String s = GetHostByNameKey(name, expandLocalhost, preferIPv6);
-      MutexGuard mg(_hostCacheMutex);
+      DECLARE_MUTEXGUARD(_hostCacheMutex);
       const DNSRecord * r = _hostCache.Get(s);
       if (r)
       {
@@ -800,7 +800,7 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
    {
       // Store our result in the cache for later
       const String s = GetHostByNameKey(name, expandLocalhost, preferIPv6);
-      MutexGuard mg(_hostCacheMutex);
+      DECLARE_MUTEXGUARD(_hostCacheMutex);
       DNSRecord * r = _hostCache.PutAndGet(s, DNSRecord(ret, (_hostCacheEntryLifespan==MUSCLE_TIME_NEVER)?MUSCLE_TIME_NEVER:(GetRunTime64()+_hostCacheEntryLifespan)));
       if (r)
       {
@@ -1546,7 +1546,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 #endif
                if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType)).IsOK(ret))  // MAC address will be set later
                {
-                  MutexGuard lock(_cachedLocalhostAddressLock);
+                  DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
                   if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
                }
                else break;
@@ -1938,7 +1938,7 @@ void ICallbackMechanism :: DispatchCallbacks()
 {
    {
       // Critical section:  grab the set of dirty-subscribers into _scratchSubscribers
-      MutexGuard mg(_dirtySubscribersMutex);
+      DECLARE_MUTEXGUARD(_dirtySubscribersMutex);
       _scratchSubscribers.SwapContents(_dirtySubscribers);
    }
 
@@ -1958,7 +1958,7 @@ void ICallbackMechanism :: RequestCallbackInDispatchThread(ICallbackSubscriber *
       bool sendSignal = false;
       {
          // Critical section
-         MutexGuard mg(_dirtySubscribersMutex);
+         DECLARE_MUTEXGUARD(_dirtySubscribersMutex);
          const bool wasEmpty = _dirtySubscribers.IsEmpty();
          uint32 * subBits = _dirtySubscribers.GetOrPut(sub);
          if (subBits)

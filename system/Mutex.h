@@ -132,18 +132,12 @@ public:
    status_t Lock() const
 #endif
    {
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-      return B_NO_ERROR;
-#else
-      if (_isEnabled == false) return B_NO_ERROR;
-
       const status_t ret = LockAux();
-# ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
       if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
-# endif
-      return ret;
 #endif
+      return ret;
    }
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
@@ -156,18 +150,12 @@ public:
    status_t TryLock() const
 #endif
    {
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-      return B_NO_ERROR;
-#else
-      if (_isEnabled == false) return B_NO_ERROR;
-
       const status_t ret = TryLockAux();
-# ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
       if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
-# endif
-      return ret;
 #endif
+      return ret;
    }
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
@@ -181,18 +169,12 @@ public:
    status_t Unlock() const
 #endif
    {
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-      return B_NO_ERROR;
-#else
-      if (_isEnabled == false) return B_NO_ERROR;
-
-# ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging while we are still are locked, otherwise our counter can suffer from race conditions
       LogDeadlockFinderEvent(false, fileName, fileLine);
-# endif
+#endif
 
       return UnlockAux();
-#endif
    }
 
    /** Turns this Mutex into a no-op object.  Irreversible! */
@@ -237,7 +219,13 @@ private:
       CheckForLockingViolation("Lock");
 #endif
 
-#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
+      if (_isEnabled == false) return B_NO_ERROR;
+#endif
+
+#ifdef MUSCLE_SINGLE_THREAD_ONLY
+      return B_NO_ERROR;
+#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
 # if !defined(MUSCLE_NO_EXCEPTIONS)
       try {
 # endif
@@ -265,7 +253,13 @@ private:
       CheckForLockingViolation("TryLock");
 #endif
 
-#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
+      if (_isEnabled == false) return B_NO_ERROR;
+#endif
+
+#ifdef MUSCLE_SINGLE_THREAD_ONLY
+      return B_NO_ERROR;
+#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
       return _locker.try_lock() ? B_NO_ERROR : B_LOCK_FAILED;
 #elif defined(MUSCLE_USE_PTHREADS)
       const int pret = pthread_mutex_trylock(&_locker);
@@ -285,7 +279,13 @@ private:
       CheckForLockingViolation("Unlock");
 #endif
 
-#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
+      if (_isEnabled == false) return B_NO_ERROR;
+#endif
+
+#ifdef MUSCLE_SINGLE_THREAD_ONLY
+      return B_NO_ERROR;
+#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
       _locker.unlock();
       return B_NO_ERROR;
 #elif defined(MUSCLE_USE_PTHREADS)
@@ -331,7 +331,14 @@ private:
 #endif
 };
 
-/** This convenience class can be used to automatically lock/unlock a Mutex based on the MutexGuard's ctor/dtor */
+/** This convenience class can be used to automatically lock/unlock a Mutex based on the MutexGuard's ctor/dtor.
+  * @note it's safer to use the DECLARE_MUTEXGUARD(theMutex) macro rather than manually placing a MutexGuard object
+  *       onto the stack, since that avoids any possibility of forgetting to give the MutexGuard stack-object a name
+  *       (e.g. typing "MutexGuard(myMutex);" rather than "MutexGuard mg(myMutex);", would introduce a perniciously
+  *       non-obvious run-time error where your Mutex only gets locked momentarily rather than until the end-of-scope)
+  *       Using the DECLARE_MUTEXGUARD(theMutex) macro will also allow deadlockfinder.cpp to give you more useful
+  *       debugging information.
+  */
 class MutexGuard MUSCLE_FINAL_CLASS
 {
 public:
@@ -345,53 +352,28 @@ public:
 #endif
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# ifdef MUSCLE_SINGLE_THREAD_ONLY
-      _isMutexLocked = true;
-# else
-      if ((_mutex._isEnabled==false)||(_mutex.LockAux().IsOK()))
-      {
-         _isMutexLocked = true;
-         _mutex.LogDeadlockFinderEvent(true, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);
-      }
-# endif
+      if (_mutex.LockAux().IsError()) MCRASH("MutexGuard:  Mutex Lock() failed!\n");
+      _mutex.LogDeadlockFinderEvent(true, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the Mutex is locked
 #else
-      if (_mutex.Lock().IsOK()) _isMutexLocked = true;
+      if (_mutex.Lock().IsError())    MCRASH("MutexGuard:  Mutex Lock() failed!\n");
 #endif
-      else
-      {
-         _isMutexLocked = false;
-         printf("MutexGuard %p:  could not lock mutex %p!\n", this, &_mutex);
-      }
    }
 
    /** Destructor.  Unlocks the Mutex previously specified in the constructor. */
    ~MutexGuard()
    {
-      if (_isMutexLocked)
-      {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# ifdef MUSCLE_SINGLE_THREAD_ONLY
-         const status_t ret;
-# else
-         // We gotta do the logging while the mutex is still are locked, otherwise our counter can suffer from race conditions
-         _mutex.LogDeadlockFinderEvent(false, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);
-         const status_t ret = _mutex._isEnabled ? _mutex.UnlockAux() : B_NO_ERROR;
-# endif
+      _mutex.LogDeadlockFinderEvent(false, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the Mutex is locked
+      if (_mutex.UnlockAux().IsError()) MCRASH("MutexGuard:  Mutex Unlock() failed!\n");
 #else
-         const status_t ret = _mutex.Unlock();
+      if (_mutex.Unlock().IsError())    MCRASH("MutexGuard:  Mutex Unlock() failed!\n");
 #endif
-         if (ret.IsError()) printf("MutexGuard %p:  could not unlock mutex %p! [%s]\n", this, &_mutex, ret());
-      }
    }
-
-   /** Returns true iff we successfully locked our Mutex. */
-   bool IsMutexLocked() const {return _isMutexLocked;}
 
 private:
    MutexGuard(const MutexGuard &);  // copy ctor, deliberately inaccessible
 
    const Mutex & _mutex;
-   bool _isMutexLocked;
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    const char * _optFileName;

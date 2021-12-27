@@ -41,7 +41,7 @@ static void POSIXSignalHandlerCallbackFunc(int sigNum)   {SignalMultiplexer::Get
 
 status_t SignalMultiplexer :: AddHandler(ISignalHandler * s) 
 {
-   MutexGuard m(_mutex);
+   DECLARE_MUTEXGUARD(_mutex);
    MRETURN_ON_ERROR(_handlers.AddTail(s));
 
    status_t ret;
@@ -55,7 +55,7 @@ status_t SignalMultiplexer :: AddHandler(ISignalHandler * s)
 
 void SignalMultiplexer :: RemoveHandler(ISignalHandler * s) 
 {
-   MutexGuard m(_mutex);
+   DECLARE_MUTEXGUARD(_mutex);
    if (_handlers.RemoveFirstInstanceOf(s).IsOK()) (void) UpdateSignalSets();
 }
 

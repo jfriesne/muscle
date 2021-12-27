@@ -25,7 +25,7 @@ protected:
       {
          // The lifetime of the MutexGuard object will define our critical section!
          {
-            MutexGuard mg(_theMutex);
+            DECLARE_MUTEXGUARD(_theMutex);  // or we could do:  MutexGuard mg(_theMutex);  but that isn't as safe since we might forget to type the mg
 
             // Do some thready little task
             const int max = 10;

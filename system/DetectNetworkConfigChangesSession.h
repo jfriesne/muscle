@@ -112,7 +112,7 @@ private:
    friend class DetectNetworkConfigChangesThread;
    status_t ThreadSafeMessageReceivedFromSingletonThread(const MessageRef & msg)
    {
-      MutexGuard mg(_messagesFromSingletonThreadMutex);
+      DECLARE_MUTEXGUARD(_messagesFromSingletonThreadMutex);
 
       MRETURN_ON_ERROR(_messagesFromSingletonThread.AddTail(msg));
 

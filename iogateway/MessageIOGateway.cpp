@@ -371,7 +371,7 @@ FlattenHeaderAndMessageAux(const MessageRef & msgRef) const
          MessageReuseTagRef mrtRef(rcRef, false);
          if (mrtRef())
          {
-            MutexGuard mg(_messageReuseTagMutex);  // in case (msgRef) has been shared across threads!
+            DECLARE_MUTEXGUARD(_messageReuseTagMutex);  // in case (msgRef) has been shared across threads!
             if (mrtRef()->_cachedData()) ret = mrtRef()->_cachedData;  // re-use data from a neighboring gateway!
             else
             {

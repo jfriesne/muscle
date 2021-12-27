@@ -130,7 +130,7 @@ public:
 
    void ThreadSafeSendMessageToSessions(const MessageRef & msg)
    {
-      MutexGuard mg(_singletonThreadMutex);
+      DECLARE_MUTEXGUARD(_singletonThreadMutex);
       for (HashtableIterator<DetectNetworkConfigChangesSession *, Void> iter(_registeredSessions); iter.HasData(); iter++)
          iter.GetKey()->ThreadSafeMessageReceivedFromSingletonThread(msg);
    }
@@ -266,7 +266,7 @@ protected:
    {
 #if defined(__APPLE__)
       {
-         MutexGuard mg(_threadRunLoopMutex);
+         DECLARE_MUTEXGUARD(_threadRunLoopMutex);
          _threadRunLoop = CFRunLoopGetCurrent();
       }
 
@@ -442,7 +442,7 @@ private:
       _threadKeepGoingIfZero.AtomicIncrement();
 #ifdef __APPLE__
       {
-         MutexGuard mg(_threadRunLoopMutex);
+         DECLARE_MUTEXGUARD(_threadRunLoopMutex);
          if (_threadRunLoop) CFRunLoopStop((CFRunLoopRef)_threadRunLoop);
       }
 #elif WIN32
@@ -676,7 +676,7 @@ static LRESULT CALLBACK dnccsWindowHandler(HWND hWnd, UINT message, WPARAM wPara
 
 static status_t RegisterWithSingletonThread(DetectNetworkConfigChangesSession * s)
 {
-   MutexGuard mg(_singletonThreadMutex);
+   DECLARE_MUTEXGUARD(_singletonThreadMutex);
 
    if (_singletonThread == NULL)
    {
@@ -697,7 +697,7 @@ static status_t RegisterWithSingletonThread(DetectNetworkConfigChangesSession * 
 
 static status_t UnRegisterFromSingletonThread(DetectNetworkConfigChangesSession * s)
 {
-   MutexGuard mg(_singletonThreadMutex);
+   DECLARE_MUTEXGUARD(_singletonThreadMutex);
    if (_singletonThread)
    {
       status_t ret;
@@ -902,7 +902,7 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
    const int32 ret = ReceiveData(_waitSocket, buf, sizeof(buf), false);  // clear any received signalling bytes
    Queue<MessageRef> incomingMessages;
    {
-      MutexGuard mg(_messagesFromSingletonThreadMutex);
+      DECLARE_MUTEXGUARD(_messagesFromSingletonThreadMutex);
       incomingMessages.SwapContents(_messagesFromSingletonThread);
    }
 

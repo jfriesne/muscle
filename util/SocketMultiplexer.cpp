@@ -37,7 +37,7 @@ SocketMultiplexer :: SocketMultiplexer()
 {
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
    // Prepend this object to the global linked list of SocketMultiplexers
-   MutexGuard mg(_multiplexersListMutex);
+   DECLARE_MUTEXGUARD(_multiplexersListMutex);
    _prevMultiplexer = NULL;
    _nextMultiplexer = _headMultiplexer; 
    if (_headMultiplexer) _headMultiplexer->_prevMultiplexer = this;
@@ -49,7 +49,7 @@ SocketMultiplexer :: ~SocketMultiplexer()
 {
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
    // Unregister this object from the global linked list of SocketMultiplexers
-   MutexGuard mg(_multiplexersListMutex);
+   DECLARE_MUTEXGUARD(_multiplexersListMutex);
    if (_headMultiplexer == this) _headMultiplexer = _nextMultiplexer;
    if (_prevMultiplexer) _prevMultiplexer->_nextMultiplexer = _nextMultiplexer;
    if (_nextMultiplexer) _nextMultiplexer->_prevMultiplexer = _prevMultiplexer;
@@ -274,7 +274,7 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
    {
       // This scope is present so that _closedSocketMutex won't be locked while we iterate
       {
-         MutexGuard mg(_closedSocketsMutex);
+         DECLARE_MUTEXGUARD(_closedSocketsMutex);
          if (_closedSockets.HasItems()) _scratchClosedSockets.SwapContents(_closedSockets);
       }
       if (_scratchClosedSockets.HasItems())

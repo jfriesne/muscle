@@ -14,6 +14,13 @@ key:  - new feature
    o Downgraded cmake_minimum_required in the CMakeList.txt files
      to 2.8.12, in order to regain compatibility with older build
      environments
+   o Replaced instances of MutexGuard objects manually being
+     placed on the stack with DECLARE_MUTEXGUARD() macro invocations,
+     for better code-safety and deadlock-finder compatibility.
+   o MutexGuard now triggers a crash if its call to Lock() or
+     Unlock() its Mutex fails.
+   o Removed MutexGuard::IsMutexLocked() since it is no longer
+     possible for that method to return false.
    * Refactored the Mutex class so that the code associated with
      the -DMUSCLE_ENABLE_DEADLOCK_FINDER deadlock-finding feature
      integrates better with TryLock() and the MutexGuard class.

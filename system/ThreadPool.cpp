@@ -44,7 +44,7 @@ ThreadPool :: ~ThreadPool()
 
 uint32 ThreadPool :: Shutdown()
 {
-   MutexGuard mg(_poolLock);
+   DECLARE_MUTEXGUARD(_poolLock);
    _shuttingDown = true;
 
    for (HashtableIterator<uint32, ThreadPoolThreadRef> iter(_availableThreads); iter.HasData(); iter++) iter.GetValue()()->ShutdownInternalThread();
@@ -63,7 +63,7 @@ uint32 ThreadPool :: Shutdown()
 
 void ThreadPool :: RegisterClient(IThreadPoolClient * client)
 {
-   MutexGuard mg(_poolLock);
+   DECLARE_MUTEXGUARD(_poolLock);
    (void) _registeredClients.Put(client, false);
 }
 
@@ -81,7 +81,7 @@ void ThreadPool :: UnregisterClient(IThreadPoolClient * client)
 
    {
       // If this client has any Messages pending, we need to block until they are gone
-      MutexGuard mg(_poolLock);
+      DECLARE_MUTEXGUARD(_poolLock);
       if (DoesClientHaveMessagesOutstandingUnsafe(client))
       {
          ConstSocketRef signalSock;
@@ -94,7 +94,7 @@ void ThreadPool :: UnregisterClient(IThreadPoolClient * client)
    if (waitSock()) (void) ReadData(waitSock, &buf, sizeof(buf), true);   // block here until ReadData() returns, indicating that we can continue
 
    // final cleanup
-   MutexGuard mg(_poolLock);
+   DECLARE_MUTEXGUARD(_poolLock);
    (void) _registeredClients.Remove(client);
    (void) _pendingMessages.Remove(client);
    (void) _deferredMessages.Remove(client);
@@ -138,9 +138,9 @@ status_t ThreadPool :: ThreadPoolThread :: MessageReceivedFromOwner(const Messag
 
 status_t ThreadPool :: SendMessageToThreadPool(IThreadPoolClient * client, const MessageRef & msg)
 {
-   MutexGuard mg(_poolLock);
+   DECLARE_MUTEXGUARD(_poolLock);
 
-   bool * isBeingHandled = mg.IsMutexLocked() ? _registeredClients.Get(client) : NULL;
+   bool * isBeingHandled = _registeredClients.Get(client);
    if (isBeingHandled == NULL) return B_BAD_ARGUMENT;   
 
    Queue<MessageRef> * mq = ((*isBeingHandled)?_deferredMessages:_pendingMessages).GetOrPut(client);
@@ -203,7 +203,7 @@ void ThreadPool :: DispatchPendingMessagesUnsafe()
 
 void ThreadPool :: ThreadFinishedProcessingClientMessages(uint32 threadID, IThreadPoolClient * client)
 {
-   MutexGuard mg(_poolLock);
+   DECLARE_MUTEXGUARD(_poolLock);
    if (_shuttingDown) return;
 
    bool * isClientBeingHandled = _registeredClients.Get(client);

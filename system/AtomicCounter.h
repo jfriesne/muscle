@@ -37,7 +37,7 @@ static inline int32 DoMutexAtomicIncrement(volatile int32 * count, int32 delta)
    int32 ret;
    if (_muscleAtomicMutexes)
    {
-      MutexGuard mg(_muscleAtomicMutexes[(((uint32)((uintptr)count))/sizeof(int32))%MUSCLE_MUTEX_POOL_SIZE]);  // double-cast for AMD64
+      DECLARE_MUTEXGUARD(_muscleAtomicMutexes[(((uint32)((uintptr)count))/sizeof(int32))%MUSCLE_MUTEX_POOL_SIZE]);  // double-cast for AMD64
       ret = *count = (*count + delta);
    }
    else
