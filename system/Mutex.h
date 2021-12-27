@@ -140,34 +140,11 @@ public:
 #else
       if (_isEnabled == false) return B_NO_ERROR;
 
-#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
-      CheckForLockingViolation("Lock");
-#endif
-
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-      status_t ret = B_NO_ERROR;
-#  if !defined(MUSCLE_NO_EXCEPTIONS)
-      try {
-#  endif
-         _locker.lock();
-#  if !defined(MUSCLE_NO_EXCEPTIONS)
-      } catch(...) {ret = B_LOCK_FAILED;}
-#  endif
-# elif defined(MUSCLE_USE_PTHREADS)
-      status_t ret = B_ERRNUM(pthread_mutex_lock(&_locker));
-# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      EnterCriticalSection(&_locker);
-      status_t ret = B_NO_ERROR;
-# elif defined(MUSCLE_QT_HAS_THREADS)
-      _locker.lock();
-      status_t ret = B_NO_ERROR;
-# endif
-
+      const status_t ret = LockAux();
 # ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
       if (ret.IsOK()) LOG_DEADLOCK_FINDER_EVENT(true);
 # endif
-
       return ret;
 #endif
    }
@@ -187,20 +164,12 @@ public:
 #else
       if (_isEnabled == false) return B_NO_ERROR;
 
-#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
-      CheckForLockingViolation("TryLock");
-#endif
-
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-      return _locker.try_lock() ? B_NO_ERROR : B_LOCK_FAILED;
-# elif defined(MUSCLE_USE_PTHREADS)
-      const int pret = pthread_mutex_trylock(&_locker);
-      return (pret == EBUSY) ? B_LOCK_FAILED : B_ERRNUM(pret);
-# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      return TryEnterCriticalSection(&_locker) ? B_NO_ERROR : B_LOCK_FAILED;
-# elif defined(MUSCLE_QT_HAS_THREADS)
-      return _locker.tryLock() ? B_NO_ERROR : B_LOCK_FAILED;
+      const status_t ret = TryLockAux();
+# ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+      // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
+      if (ret.IsOK()) LOG_DEADLOCK_FINDER_EVENT(true);
 # endif
+      return ret;
 #endif
    }
 
@@ -220,27 +189,12 @@ public:
 #else
       if (_isEnabled == false) return B_NO_ERROR;
 
-#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
-      CheckForLockingViolation("Unlock");
-#endif
-
 # ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging while we are still are locked, otherwise our counter can suffer from race conditions
       LOG_DEADLOCK_FINDER_EVENT(false);
 # endif
 
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-      _locker.unlock();
-      return B_NO_ERROR;
-# elif defined(MUSCLE_USE_PTHREADS)
-      return B_ERRNUM(pthread_mutex_unlock(&_locker));
-# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      LeaveCriticalSection(&_locker);
-      return B_NO_ERROR;
-# elif defined(MUSCLE_QT_HAS_THREADS)
-      _locker.unlock();
-      return B_NO_ERROR;
-# endif
+      return UnlockAux();
 #endif
    }
 
@@ -277,6 +231,76 @@ private:
       if (::IsOkayToAccessMuscleMutex(this, methodName) == false) printf("Mutex(%p)::%s:  Locking violation!\n", this, methodName);
    }
 #endif
+
+   status_t LockAux() const
+   {
+#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+      CheckForLockingViolation("Lock");
+#endif
+
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+# if !defined(MUSCLE_NO_EXCEPTIONS)
+      try {
+# endif
+         _locker.lock();
+# if !defined(MUSCLE_NO_EXCEPTIONS)
+      } catch(...) {return B_LOCK_FAILED;}
+# endif
+      return B_NO_ERROR;
+#elif defined(MUSCLE_USE_PTHREADS)
+      return B_ERRNUM(pthread_mutex_lock(&_locker));
+#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+      EnterCriticalSection(&_locker);
+      return B_NO_ERROR;
+#elif defined(MUSCLE_QT_HAS_THREADS)
+      _locker.lock();
+      return B_NO_ERROR;
+#else
+      return B_UNIMPLEMENTED;
+#endif
+   }
+
+   status_t TryLockAux() const
+   {
+#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+      CheckForLockingViolation("TryLock");
+#endif
+
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+      return _locker.try_lock() ? B_NO_ERROR : B_LOCK_FAILED;
+#elif defined(MUSCLE_USE_PTHREADS)
+      const int pret = pthread_mutex_trylock(&_locker);
+      return (pret == EBUSY) ? B_LOCK_FAILED : B_ERRNUM(pret);
+#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+      return TryEnterCriticalSection(&_locker) ? B_NO_ERROR : B_LOCK_FAILED;
+#elif defined(MUSCLE_QT_HAS_THREADS)
+      return _locker.tryLock() ? B_NO_ERROR : B_LOCK_FAILED;
+#else
+      return B_UNIMPLEMENTED;
+#endif
+   }
+
+   status_t UnlockAux() const
+   {
+#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+      CheckForLockingViolation("Unlock");
+#endif
+
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+      _locker.unlock();
+      return B_NO_ERROR;
+#elif defined(MUSCLE_USE_PTHREADS)
+      return B_ERRNUM(pthread_mutex_unlock(&_locker));
+#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+      LeaveCriticalSection(&_locker);
+      return B_NO_ERROR;
+#elif defined(MUSCLE_QT_HAS_THREADS)
+      _locker.unlock();
+      return B_NO_ERROR;
+#else
+      return B_UNIMPLEMENTED;
+#endif
+   }
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
    bool _isEnabled;  // if false, this Mutex is a no-op
