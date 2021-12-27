@@ -184,6 +184,22 @@ public:
    void AvoidFindDeadlockCallbacks() {_inDeadlockCallbackCount++;}
 #endif
 
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+   /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
+   std::recursive_mutex & GetNativeMutexImplementation() const {return _locker;}
+# elif defined(MUSCLE_USE_PTHREADS)
+   /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
+   pthread_mutex_t & GetNativeMutexImplementation() const {return _locker;}
+# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+   /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
+   CRITICAL_SECTION & GetNativeMutexImplementation() const {return _locker;}
+# elif defined(MUSCLE_QT_HAS_THREADS)
+   /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
+   QMutex & GetNativeMutexImplementation() const {return _locker;}
+# endif
+#endif
+
 private:
    friend class MutexGuard;
 

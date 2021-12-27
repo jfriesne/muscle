@@ -21,6 +21,8 @@ key:  - new feature
      Unlock() its Mutex fails.
    o Removed MutexGuard::IsMutexLocked() since it is no longer
      possible for that method to return false.
+   o Added a Mutex::GetNativeMutexImplementation() method for
+     accessing the Mutex class's back-end directly, if necessary.
    * Refactored the Mutex class so that the code associated with
      the -DMUSCLE_ENABLE_DEADLOCK_FINDER deadlock-finding feature
      integrates better with TryLock() and the MutexGuard class.
