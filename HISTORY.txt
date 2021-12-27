@@ -24,6 +24,8 @@ key:  - new feature
    * Refactored the Mutex class so that the code associated with
      the -DMUSCLE_ENABLE_DEADLOCK_FINDER deadlock-finding feature
      integrates better with TryLock() and the MutexGuard class.
+   * Updated DECLARE_MUTEXGUARD to explicitly specify the muscle
+     namespace, so it can be used from other namespaces also.
 
 8.45 - Release 12/21/2021
    - Added a GetSessionsByIDNumber() method to the ReflectServer

@@ -391,9 +391,9 @@ private:
   *       makes for easier debugging of deadlockfinder.cpp's output.
   */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# define DECLARE_MUTEXGUARD(mutex) MutexGuard MUSCLE_UNIQUE_NAME(mutex, __FILE__, __LINE__)
+# define DECLARE_MUTEXGUARD(mutex) muscle::MutexGuard MUSCLE_UNIQUE_NAME(mutex, __FILE__, __LINE__)
 # else
-# define DECLARE_MUTEXGUARD(mutex) MutexGuard MUSCLE_UNIQUE_NAME(mutex)
+# define DECLARE_MUTEXGUARD(mutex) muscle::MutexGuard MUSCLE_UNIQUE_NAME(mutex)
 #endif
  
 } // end namespace muscle
