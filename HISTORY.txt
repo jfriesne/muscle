@@ -14,6 +14,9 @@ key:  - new feature
    o Downgraded cmake_minimum_required in the CMakeList.txt files
      to 2.8.12, in order to regain compatibility with older build
      environments
+   * Refactored the Mutex class so that the code associated with
+     the -DMUSCLE_ENABLE_DEADLOCK_FINDER deadlock-finding feature
+     integrates better with TryLock() and the MutexGuard class.
 
 8.45 - Release 12/21/2021
    - Added a GetSessionsByIDNumber() method to the ReflectServer

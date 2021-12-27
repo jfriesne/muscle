@@ -520,11 +520,15 @@ private:
 
          MutexEvent(bool isLock, const void * mutexPtr, const char * fileName, uint32 fileLine) : _fileLine(fileLine | (isLock?(1L<<31):0)), _mutexPtr(mutexPtr)
          {
-            const char * lastSlash = strrchr(fileName, '/');
-            if (lastSlash) fileName = lastSlash+1;
+            if (fileName)
+            {
+               const char * lastSlash = strrchr(fileName, '/');
+               if (lastSlash) fileName = lastSlash+1;
 
-            muscleStrncpy(_fileName, fileName, sizeof(_fileName));
-            _fileName[sizeof(_fileName)-1] = '\0';
+               muscleStrncpy(_fileName, fileName, sizeof(_fileName));
+               _fileName[sizeof(_fileName)-1] = '\0';
+            }
+            else muscleStrncpy(_fileName, "<unknown>", sizeof(_fileName));
          }
 
          void PrintToStream(const muscle_thread_id & threadID) const

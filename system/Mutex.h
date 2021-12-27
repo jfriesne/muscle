@@ -56,18 +56,15 @@ namespace muscle {
 # define Unlock()  DeadlockFinderUnlockWrapper (__FILE__, __LINE__)
 extern void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fileName, int fileLine);
 extern bool _enableDeadlockFinderPrints;
-#define LOG_DEADLOCK_FINDER_EVENT(val)                                   \
-      if ((_enableDeadlockFinderPrints)&&(_inDeadlockCallbackCount == 0)) \
-      {                                                                  \
-         _inDeadlockCallbackCount++;                                     \
-         DeadlockFinder_LogEvent(val, this, fileName, fileLine);         \
-         _inDeadlockCallbackCount--;                                    \
-      }
 #endif
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
 // If false, then we must not assume that we are running in single-threaded mode.
 // This variable should be set by the ThreadSetupSystem constructor ONLY!
 extern bool _muscleSingleThreadOnly;
+#endif
+
+class MutexGuard;  // forward declaration
 
 /** This class is a platform-independent API for a recursive mutual exclusion semaphore (a.k.a mutex). 
   * Typically used to serialize the execution of critical sections in a multithreaded API 
@@ -143,7 +140,7 @@ public:
       const status_t ret = LockAux();
 # ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret.IsOK()) LOG_DEADLOCK_FINDER_EVENT(true);
+      if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
 # endif
       return ret;
 #endif
@@ -167,7 +164,7 @@ public:
       const status_t ret = TryLockAux();
 # ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret.IsOK()) LOG_DEADLOCK_FINDER_EVENT(true);
+      if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
 # endif
       return ret;
 #endif
@@ -191,7 +188,7 @@ public:
 
 # ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging while we are still are locked, otherwise our counter can suffer from race conditions
-      LOG_DEADLOCK_FINDER_EVENT(false);
+      LogDeadlockFinderEvent(false, fileName, fileLine);
 # endif
 
       return UnlockAux();
@@ -206,6 +203,8 @@ public:
 #endif
 
 private:
+   friend class MutexGuard;
+
    void Cleanup()
    {
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
@@ -302,6 +301,18 @@ private:
 #endif
    }
 
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+   void LogDeadlockFinderEvent(bool isLock, const char * fileName, int fileLine) const
+   {
+      if ((_enableDeadlockFinderPrints)&&(_inDeadlockCallbackCount == 0))
+      {
+         _inDeadlockCallbackCount++;
+         DeadlockFinder_LogEvent(isLock, this, fileName, fileLine);
+         _inDeadlockCallbackCount--;
+      }
+   }
+#endif
+
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
    bool _isEnabled;  // if false, this Mutex is a no-op
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11)
@@ -327,9 +338,25 @@ public:
    /** Constructor.  Locks the specified Mutex.
      * @param m The Mutex to lock. 
      */
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+   MutexGuard(const Mutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(m), _optFileName(optFileName), _fileLine(fileLine)
+#else
    MutexGuard(const Mutex & m) : _mutex(m)
+#endif
    {
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+# ifdef MUSCLE_SINGLE_THREAD_ONLY
+      _isMutexLocked = true;
+# else
+      if ((_mutex._isEnabled==false)||(_mutex.LockAux().IsOK()))
+      {
+         _isMutexLocked = true;
+         _mutex.LogDeadlockFinderEvent(true, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);
+      }
+# endif
+#else
       if (_mutex.Lock().IsOK()) _isMutexLocked = true;
+#endif
       else
       {
          _isMutexLocked = false;
@@ -340,7 +367,21 @@ public:
    /** Destructor.  Unlocks the Mutex previously specified in the constructor. */
    ~MutexGuard()
    {
-      if ((_isMutexLocked)&&(_mutex.Unlock().IsError())) printf("MutexGuard %p:  could not unlock mutex %p!\n", this, &_mutex);
+      if (_isMutexLocked)
+      {
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+# ifdef MUSCLE_SINGLE_THREAD_ONLY
+         const status_t ret;
+# else
+         // We gotta do the logging while the mutex is still are locked, otherwise our counter can suffer from race conditions
+         _mutex.LogDeadlockFinderEvent(false, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);
+         const status_t ret = _mutex._isEnabled ? _mutex.UnlockAux() : B_NO_ERROR;
+# endif
+#else
+         const status_t ret = _mutex.Unlock();
+#endif
+         if (ret.IsError()) printf("MutexGuard %p:  could not unlock mutex %p! [%s]\n", this, &_mutex, ret());
+      }
    }
 
    /** Returns true iff we successfully locked our Mutex. */
@@ -351,10 +392,27 @@ private:
 
    const Mutex & _mutex;
    bool _isMutexLocked;
+
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+   const char * _optFileName;
+   const int _fileLine;
+#endif
 };
 
-/** A macro to quickly and safely put a MutexGuard on the stack for the given Mutex. */
-#define DECLARE_MUTEXGUARD(mutex) MutexGuard MUSCLE_UNIQUE_NAME(mutex)
+/** A macro to quickly and safely put a MutexGuard on the stack for the given Mutex.
+  * @note Using this macro is better than just declaring a MutexGuard object directly in
+  *       two ways:  (1) it makes it impossible to forget to name the MutexGuard (which
+  *       would result in an anonymous temporary MutexGuard object that wouldn't keep
+  *       the Mutex locked until the end of the scope), and (2) it allows the deadlock
+  *       finding code to specify the MutexGuard's location in its output rather than
+  *       the location of the Lock() call within the MutexGuard constructor, which
+  *       makes for easier debugging of deadlockfinder.cpp's output.
+  */
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+# define DECLARE_MUTEXGUARD(mutex) MutexGuard MUSCLE_UNIQUE_NAME(mutex, __FILE__, __LINE__)
+# else
+# define DECLARE_MUTEXGUARD(mutex) MutexGuard MUSCLE_UNIQUE_NAME(mutex)
+#endif
  
 } // end namespace muscle
 

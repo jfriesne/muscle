@@ -23,10 +23,9 @@ public:
          const bool reverseOrder = ((rand()%2) == 0);
          Mutex * m1 = reverseOrder ? &_mutexB : &_mutexA;
          Mutex * m2 = reverseOrder ? &_mutexA : &_mutexB;
-         if (m1->Lock().IsError()) printf("Error, couldn't lock first Mutex!  (this should never happen!)\n");
+         DECLARE_MUTEXGUARD(*m1);  // using the macro allows the deadlock-finder to find this line-location, rather than the line in Mutex.h
          if (m2->Lock().IsError()) printf("Error, couldn't lock second Mutex!  (this should never happen!)\n");
          if (m2->Unlock().IsError()) printf("Error, couldn't unlock second Mutex!  (this should never happen!)\n");
-         if (m1->Unlock().IsError()) printf("Error, couldn't unlock first Mutex!  (this should never happen!)\n");
       }
    }
 };
