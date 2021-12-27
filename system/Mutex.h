@@ -51,8 +51,9 @@ extern bool IsOkayToAccessMuscleMutex(const muscle::Mutex * m, const char * meth
 namespace muscle {
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# define Lock()   DeadlockFinderLockWrapper  (__FILE__, __LINE__)
-# define Unlock() DeadlockFinderUnlockWrapper(__FILE__, __LINE__)
+# define Lock()    DeadlockFinderLockWrapper   (__FILE__, __LINE__)
+# define TryLock() DeadlockFinderTryLockWrapper(__FILE__, __LINE__)
+# define Unlock()  DeadlockFinderUnlockWrapper (__FILE__, __LINE__)
 extern void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fileName, int fileLine);
 extern bool _enableDeadlockFinderPrints;
 #define LOG_DEADLOCK_FINDER_EVENT(val)                                   \
@@ -171,11 +172,15 @@ public:
 #endif
    }
 
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+   status_t DeadlockFinderTryLockWrapper(const char * fileName, int fileLine) const
+#else
    /** Similar to Lock(), except this method is guaranteed to always return immediately (i.e. never blocks).
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked (e.g. because it is 
      *          already locked by another thread)
      */
    status_t TryLock() const
+#endif
    {
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
       return B_NO_ERROR;
