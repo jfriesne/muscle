@@ -17,7 +17,7 @@ public:
 
    virtual void InternalThreadEntry()
    {
-      const uint32 numIterations = 25;  // enough iterations that we deadlock sometimes, but not always
+      const uint32 numIterations = 5;  // enough iterations that we deadlock sometimes, but not always
       for (uint32 i=0; i<numIterations; i++)
       {
          const bool reverseOrder = ((rand()%2) == 0);

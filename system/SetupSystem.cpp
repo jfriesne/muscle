@@ -458,111 +458,229 @@ TimeSetupSystem :: ~TimeSetupSystem()
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
 /** Gotta do a custom data structure because we can't use the standard new/delete/muscleAlloc()/muscleFree() memory operators,
-  * because to do so would cause an infinite regress if they call Mutex::Lock() or Mutex::Unlock() (which they do)
+  * because to do so would cause an infinite regress when they call through to Mutex::Lock() or Mutex::Unlock()
   */
-class MutexEventLog
+class MutexLockRecordLog
 {
 public:
-   // Note:  You MUST call Initialize() after creating a MutexEventLog object!
-   MutexEventLog() {/* empty */}
+   // Note:  You MUST call Initialize() after creating a MutexLockRecordLog object!
+   MutexLockRecordLog() {/* empty */}
 
-   void Initialize(const muscle_thread_id & id) {_threadID = id; _headBlock = _tailBlock = NULL;}
+   void Initialize(const muscle_thread_id & id) {_threadID = id; _headMLSRecord = _tailMLSRecord = NULL; _numHeldLocks = 0;}
 
    void AddEvent(bool isLock, const void * mutexPtr, const char * fileName, int fileLine)
    {
-      if ((_tailBlock == NULL)||(_tailBlock->IsFull()))
+      if (isLock)
       {
-         MutexEventBlock * newBlock = static_cast<MutexEventBlock *>(malloc(sizeof(MutexEventBlock)));  // THIS LINE CAN ONLY CALL plain old malloc() and nothing else!!!
-         if (newBlock)
+         if (_numHeldLocks >= ARRAYITEMS(_heldLocks))
          {
-            newBlock->Initialize();
-            if (_headBlock == NULL) _headBlock = newBlock;
-            if (_tailBlock) _tailBlock->_nextBlock = newBlock;
-            _tailBlock = newBlock;
+            char tempBuf[20];
+            printf("MutexLockRecordLog ERROR: Maximum simultaneous-held-locks (" UINT32_FORMAT_SPEC ") reached by thread [%s] trying to lock mutex %p at [%s:%i]!\n", ARRAYITEMS(_heldLocks), _threadID.ToString(tempBuf), mutexPtr, fileName, fileLine);
          }
-         else 
+         else
          {
-            printf("MutexEventLog::AddEvent():  malloc() failed!\n");   // what else to do?  Even MWARN_OUT_OF_MEMORY isn't safe here
-            return;
+            _heldLocks[_numHeldLocks++].Set(mutexPtr, fileName, fileLine);
+
+            if ((ContainsSequence(_heldLocks, _numHeldLocks) == false)&&((_tailMLSRecord == NULL)||(_tailMLSRecord->AddLockSequence(_heldLocks, _numHeldLocks).IsError())))
+            {
+               MutexLockSequencesRecord * newMLSRecord = static_cast<MutexLockSequencesRecord *>(malloc(sizeof(MutexLockSequencesRecord)));  // THIS LINE CAN ONLY CALL plain old malloc() and nothing else!!!
+               if (newMLSRecord)
+               {
+                  newMLSRecord->Initialize();
+                  if (_headMLSRecord == NULL) _headMLSRecord = newMLSRecord;
+                  if (_tailMLSRecord) _tailMLSRecord->_nextMLSRecord = newMLSRecord;
+                  _tailMLSRecord = newMLSRecord;
+
+                  status_t ret;
+                  if (_tailMLSRecord->AddLockSequence(_heldLocks, _numHeldLocks).IsError(ret)) printf("MutexLockRecordLog ERROR:  AddLockSequence() failed [%s] for sequence of " UINT32_FORMAT_SPEC " locks\n", ret(), _numHeldLocks);
+               }
+               else
+               {
+                  printf("MutexLockRecordLog ERROR:  malloc() of new MutexLockSequencesRecord failed!\n");   // what else to do?  Even MWARN_OUT_OF_MEMORY isn't safe here
+                  return;
+               }
+            }
          }
       }
-      if (_tailBlock) _tailBlock->AddEvent(isLock, mutexPtr, fileName, fileLine);
+      else
+      {
+         // Remove the most recent instance of (mutexPtr) from our _heldLocks array
+         const int32 mostRecentLockIdx = FindMostRecentInstanceOfHeldLock(mutexPtr);
+         if (mostRecentLockIdx >= 0) RemoveHeldLockInstanceAt(mostRecentLockIdx);
+         else
+         {
+            char tempBuf[20];
+            printf("MutexLockRecordLog ERROR:  Thread [%s] is trying to unlock unacquired mutex %p at [%s:%i]!\n", _threadID.ToString(tempBuf), mutexPtr, fileName, fileLine);
+         }
+      }
+
    }
 
    void PrintToStream() const
    {
-      MutexEventBlock * meb = _headBlock;
-      while(meb)
+      MutexLockSequencesRecord * meb = _headMLSRecord;
+      if (meb)
       {
-         meb->PrintToStream(_threadID);
-         meb = meb->_nextBlock;
+         char buf[20]; const char * threadStr = _threadID.ToString(buf);
+
+         printf("dlf: BEGIN_THREAD %s\n", threadStr);
+         while(meb)
+         {
+            meb->PrintToStream();
+            meb = meb->_nextMLSRecord;
+         }
+         printf("dlf: END_THREAD %s\n", threadStr);
       }
    }
 
 private:
-   class MutexEventBlock
+   /** Records useful information about the locking of a particular mutex */
+   class MutexLockRecord
    {
    public:
-      MutexEventBlock() {/* empty */}
+      MutexLockRecord() {Set(NULL, NULL, 0);}
+      MutexLockRecord(const void * mutexPtr, const char * fileName, uint32 fileLine) {Set(mutexPtr, fileName, fileLine);}
 
-      void Initialize() {_validCount = 0; _nextBlock = NULL;}
-      bool IsFull() const {return (_validCount == ARRAYITEMS(_events));}
-      void AddEvent(bool isLock, const void * mutexPtr, const char * fileName, int fileLine) {_events[_validCount++] = MutexEvent(isLock, mutexPtr, fileName, fileLine);}
-      void PrintToStream(const muscle_thread_id & tid) const {for (uint32 i=0; i<_validCount; i++) _events[i].PrintToStream(tid);}
+      void Set(const void * mutexPtr, const char * fileName, uint32 fileLine)
+      {
+         _fileLine = fileLine;
+         _mutexPtr = mutexPtr;
+
+         if (fileName)
+         {
+            const char * lastSlash = strrchr(fileName, '/');
+            if (lastSlash) fileName = lastSlash+1;
+
+            muscleStrncpy(_fileName, fileName, sizeof(_fileName));
+            _fileName[sizeof(_fileName)-1] = '\0';
+         }
+         else _fileName[0] = '\0';
+      }
+
+      void PrintToStream() const {printf("dlf:   m=%p loc=%s:" UINT32_FORMAT_SPEC "\n", _mutexPtr, _fileName, _fileLine);}
+
+      bool operator == (const MutexLockRecord & rhs) const {return ((_fileLine == rhs._fileLine)&&(_mutexPtr == rhs._mutexPtr)&&(strcmp(_fileName, rhs._fileName)==0));}
+      bool operator != (const MutexLockRecord & rhs) const {return !(*this==rhs);}
+
+      uint32 GetFileLine()           const {return _fileLine;}
+      const void * GetMutexPointer() const {return _mutexPtr;}
+      const char * GetFileName()     const {return _fileName;}
 
    private:
-      friend class MutexEventLog;
-
-      class MutexEvent
-      {
-      public:
-         MutexEvent() {/* empty */}
-
-         MutexEvent(bool isLock, const void * mutexPtr, const char * fileName, uint32 fileLine) : _fileLine(fileLine | (isLock?(1L<<31):0)), _mutexPtr(mutexPtr)
-         {
-            if (fileName)
-            {
-               const char * lastSlash = strrchr(fileName, '/');
-               if (lastSlash) fileName = lastSlash+1;
-
-               muscleStrncpy(_fileName, fileName, sizeof(_fileName));
-               _fileName[sizeof(_fileName)-1] = '\0';
-            }
-            else muscleStrncpy(_fileName, "<unknown>", sizeof(_fileName));
-         }
-
-         void PrintToStream(const muscle_thread_id & threadID) const
-         {
-            char buf[20];
-            printf("%s: tid=%s m=%p loc=%s:" UINT32_FORMAT_SPEC "\n", (_fileLine&(1L<<31))?"mx_lock":"mx_unlk", threadID.ToString(buf), _mutexPtr, _fileName, (uint32)(_fileLine&~(1L<<31)));
-         }
-
-      private: 
-         uint32 _fileLine; 
-         const void * _mutexPtr;
-         char _fileName[48];
-      };
-
-      MutexEventBlock * _nextBlock;
-      uint32 _validCount;
-      MutexEvent _events[4096];
+      const void * _mutexPtr;
+      uint32 _fileLine;
+      char _fileName[48];
    };
 
+   class MutexLockSequencesRecord
+   {
+   public:
+      MutexLockSequencesRecord() {Initialize();}
+
+      void Initialize() {_numValidRecords = 0; _numValidSequenceStartIndices = 0; _nextMLSRecord = NULL;}
+
+      status_t AddLockSequence(const MutexLockRecord * lockSequence, uint32 seqLen)
+      {
+         if (seqLen <= 1) return B_NO_ERROR;  // empty sequences and sequences containing just one mutex can't possibly cause a deadlock, so there's no need to store them
+         if (((_numValidSequenceStartIndices+2) > ARRAYITEMS(_sequenceStartIndices))||((_numValidRecords + seqLen) > ARRAYITEMS(_events))) return B_OUT_OF_MEMORY;  // not enough room to add this sequence!
+
+         _sequenceStartIndices[_numValidSequenceStartIndices++] = _numValidRecords;  // where our sequence starts at
+         for (uint32 i=0; i<seqLen; i++) _events[_numValidRecords++] = lockSequence[i];
+         _sequenceStartIndices[_numValidSequenceStartIndices]   = _numValidRecords;  // pre-write where the next sequence will start at
+
+         return B_NO_ERROR;
+      }
+
+      void PrintToStream() const
+      {
+         for (uint32 i=0; i<_numValidSequenceStartIndices; i++)
+         {
+            const uint32 sequenceStartIdx      = _sequenceStartIndices[i];
+            const uint32 afterSequenceEndIndex = _sequenceStartIndices[i+1];  // yes, this will always be valid!  We pre-write it in AddLockSequence()
+            const uint32 seqLen                = afterSequenceEndIndex-sequenceStartIdx;
+            printf("dlf:  BEGIN_LOCK_SEQUENCE (" UINT32_FORMAT_SPEC " locks)\n", seqLen);
+            for (uint32 i=sequenceStartIdx; i<afterSequenceEndIndex; i++) _events[i].PrintToStream();
+            printf("dlf:  END_LOCK_SEQUENCE (" UINT32_FORMAT_SPEC " locks)\n", seqLen);
+         }
+      }
+
+      bool ContainsSequence(const MutexLockRecord * lockSequence, uint32 seqLen) const
+      {
+         if (seqLen <= 1) return true;  // we don't store empty sequences or sequences containing only one Mutex, so there's no need to look for them; we'll just pretend they are present
+         for (uint32 i=0; i<_numValidSequenceStartIndices; i++)
+         {
+            const uint32 sequenceStartIdx    = _sequenceStartIndices[i];
+            const uint32 afterSequenceEndIdx = _sequenceStartIndices[i+1];  // yes, this will always be valid!  We pre-write it in AddLockSequence()
+            if (SequencesMatch(lockSequence, seqLen, &_events[sequenceStartIdx], afterSequenceEndIdx-sequenceStartIdx)) return true;
+         }
+         return false;
+      }
+
+   private:
+      friend class MutexLockRecordLog;
+
+      bool SequencesMatch(const MutexLockRecord * s1, uint32 s1Len, const MutexLockRecord * s2, uint32 s2Len) const
+      {
+         if (s1Len != s2Len) return false;
+         for (uint32 i=0; i<s1Len; i++) if (s1[i] != s2[i]) return false;
+         return true;
+      }
+
+      MutexLockSequencesRecord * _nextMLSRecord;
+
+      enum {LOCK_RECORDS_PER_SEQUENCE_RECORD = 4096};
+
+      MutexLockRecord _events[LOCK_RECORDS_PER_SEQUENCE_RECORD];
+      uint32 _numValidRecords;
+
+      uint16 _sequenceStartIndices[LOCK_RECORDS_PER_SEQUENCE_RECORD];
+      uint32 _numValidSequenceStartIndices;
+   };
+
+   int32 FindMostRecentInstanceOfHeldLock(const void * mutexPtr) const
+   {
+      for (int32 i=_numHeldLocks-1; i>=0; i--) if (_heldLocks[i].GetMutexPointer() == mutexPtr) return i;
+      return -1;
+   }
+
+   void RemoveHeldLockInstanceAt(uint32 idx)
+   {
+      for (uint32 i=idx; (i+1)<_numHeldLocks; i++) _heldLocks[i] = _heldLocks[i+1];
+      _heldLocks[--_numHeldLocks].Set(NULL, NULL, 0);  // paranoia
+   }
+
+   bool ContainsSequence(const MutexLockRecord * lockSequence, uint32 seqLen) const
+   {
+      if (seqLen <= 1) return true;  // we don't store empty sequences or sequences containing only one Mutex, so there's no need to look for them; we'll just pretend they are present
+      if ((_tailMLSRecord)&&(_tailMLSRecord->ContainsSequence(lockSequence, seqLen))) return true;  // check the most recent record first, because locality
+      const MutexLockSequencesRecord * r = _headMLSRecord;  // if it wasn't there, then we'll check the others too
+      while((r)&&(r != _tailMLSRecord))
+      {
+         if (r->ContainsSequence(lockSequence, seqLen)) return true;
+         r = r->_nextMLSRecord;
+      }
+      return false;
+   }
+
    muscle_thread_id _threadID;
-   MutexEventBlock * _headBlock;
-   MutexEventBlock * _tailBlock;
+   MutexLockSequencesRecord * _headMLSRecord;
+   MutexLockSequencesRecord * _tailMLSRecord;
+
+   enum {MAX_SIMULTANEOUS_HELD_LOCKS=256};  // if your code is holding more locks than this many locks at once, you've got bigger problems than I can solve :)
+   MutexLockRecord _heldLocks[MAX_SIMULTANEOUS_HELD_LOCKS];
+   uint32 _numHeldLocks;
 };
 
-static ThreadLocalStorage<MutexEventLog> _mutexEventsLog(false);  // false argument is necessary otherwise we can't read the threads' logs after they've gone away!
+static ThreadLocalStorage<MutexLockRecordLog> _mutexEventsLog(false);  // false argument is necessary otherwise we can't read the threads' logs after they've gone away!
 static Mutex _mutexLogTableMutex;
-static Queue<MutexEventLog *> _mutexLogTable;  // read at process-shutdown time (I use a Queue rather than a Hashtable because muscle_thread_id isn't usable as a Hashtable key)
+static Queue<MutexLockRecordLog *> _mutexLogTable;  // read at process-shutdown time (I use a Queue rather than a Hashtable because muscle_thread_id isn't usable as a Hashtable key)
 
 void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fileName, int fileLine)
 {
-   MutexEventLog * mel = _mutexEventsLog.GetThreadLocalObject();
+   MutexLockRecordLog * mel = _mutexEventsLog.GetThreadLocalObject();
    if (mel == NULL)
    {
-      mel = static_cast<MutexEventLog *>(malloc(sizeof(MutexEventLog)));  // MUST CALL malloc() here to avoid inappropriate re-entrancy!
+      mel = static_cast<MutexLockRecordLog *>(malloc(sizeof(MutexLockRecordLog)));  // MUST CALL malloc() here to avoid inappropriate re-entrancy!
       if (mel)
       {
          mel->Initialize(muscle_thread_id::GetCurrentThreadID());
@@ -575,7 +693,7 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
       }
    }
    if (mel) mel->AddEvent(isLock, mutexPtr, fileName, fileLine);
-       else printf("DeadlockFinder_LogEvent:  malloc failed!?\n");  // we can't even call MWARN_OUT_OF_MEMORY here
+       else printf("DeadlockFinder_LogEvent:  malloc of MutexLockRecordLog failed!?\n");  // we can't even call MWARN_OUT_OF_MEMORY here
 }
 
 static void DeadlockFinder_ProcessEnding()

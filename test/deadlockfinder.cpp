@@ -1,13 +1,9 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include <stdio.h>
-
+#include "system/SetupSystem.h"
 #include "util/Hashtable.h"
 #include "util/Queue.h"
 #include "util/String.h"
-#include "util/StringTokenizer.h"
-#include "util/MiscUtilityFunctions.h"
-#include "util/NetworkUtilityFunctions.h"
 
 // This program is useful for finding potential synchronization deadlocks in your multi-threaded
 // application.  To use it add -DMUSCLE_ENABLE_DEADLOCK_FINDER to your Makefile and then fully
@@ -45,206 +41,143 @@
 
 using namespace muscle;
 
-#ifdef NOT_CURRENTLY_USED
-static void PrintState(const Hashtable<int, Queue<String> > & state)
+// Returns true iff (seqA)'s locking-order is inconsistent with (seqB)'s locking-order
+static bool SequencesAreInconsistent(const Queue<String> & seqA, const Queue<String> & seqB)
 {
-   printf("--------- Begin Current state ------------\n");
-   for (HashtableIterator<int, Queue<String> > iter(state); iter.HasData(); iter++)
-   {
-      printf("  Thread %i:\n", iter.GetKey());
-      for (uint32 i=0; i<iter.GetValue().GetNumItems(); i++) printf("    " UINT32_FORMAT_SPEC ". %s\n", i, iter.GetValue()[i]());
-   }
-   printf("--------- End Current state ------------\n");
-}
-#endif
+   const Queue<String> & largerQ  = (seqA.GetNumItems()  > seqB.GetNumItems()) ? seqA : seqB;
+   const Queue<String> & smallerQ = (seqA.GetNumItems() <= seqB.GetNumItems()) ? seqA : seqB;
+//printf("CHECK %u/%u seqA=%p seqB=%p larger=%p smaller=%p\n",seqA.GetNumItems(), seqB.GetNumItems(), &seqA, &seqB, &largerQ, &smallerQ);
+//printf("largerQ="); for (uint32 i=0; i<largerQ.GetNumItems(); i++) printf("%s,", largerQ[i]()); printf("\n");
+//printf("smallerQ="); for (uint32 i=0; i<smallerQ.GetNumItems(); i++) printf("%s,", smallerQ[i]()); printf("\n");
 
-static bool LogsMatchExceptForLocation(const Queue<String> & q1, const Queue<String> & q2)
-{
-   if (q1.GetNumItems() != q2.GetNumItems()) return false;
-
-   for (uint32 i=0; i<q1.GetNumItems(); i++)
-   {
-      String s1 = q1[i]; {int32 lastAmp = s1.LastIndexOf('&'); s1 = s1.Substring(0, lastAmp);}
-      String s2 = q2[i]; {int32 lastAmp = s2.LastIndexOf('&'); s2 = s2.Substring(0, lastAmp);}
-      if (s1 != s2) return false;
-   }
-   return true;
-}
-
-static String ExtractPointerString(const String & key) {return key.Substring("p=").Substring(0, " ");}
-static status_t CheckOrderingConstraints(const String & key, const Queue<String> & seqB, const Queue<String> & cantBeBeforeK, const Queue<String> & cantBeAfterK)
-{
-   for (uint32 i=0; i<seqB.GetNumItems(); i++)
-   {
-      if (ExtractPointerString(seqB[i]) == key)
+   for (uint32 i=0; i<largerQ.GetNumItems(); i++)
+      for (uint32 j=0; ((j<i)&&(j<largerQ.GetNumItems())); j++)
       {
-         for (uint32 j=0;   j<i;                  j++) if (cantBeBeforeK.Contains(ExtractPointerString(seqB[j]))) return B_ERROR;
-         for (uint32 j=i+1; j<seqB.GetNumItems(); j++) if (cantBeAfterK.Contains( ExtractPointerString(seqB[j]))) return B_ERROR;
-         break;
+         const String & largerIStr = largerQ[i];
+         const String & largerJStr = largerQ[j];
+         const int32 smallerIPos = smallerQ.IndexOf(largerIStr);
+         const int32 smallerJPos = smallerQ.IndexOf(largerJStr);
+//printf("   i=%u j=%u largerIStr=[%s] largerJStr=[%s] smallerIPos=%i smallerJPos=%i\n", i, j, largerIStr(), largerJStr(), smallerIPos, smallerJPos);
+         if ((smallerIPos >= 0)&&(smallerJPos >= 0)&&((i<j) != (smallerIPos < smallerJPos))) return true;
+      }
+
+   return false;
+}
+
+static String LockSequenceToString(const Queue<String> & seq)
+{
+   String ret;
+   for (uint32 i=0; i<seq.GetNumItems(); i++)
+   {
+      if (ret.HasChars()) ret += ',';
+      ret += seq[i];
+   }
+   return ret;
+}
+
+static void PrintSequenceReport(const char * desc, const Queue<String> & seq, const Hashtable<String, Queue<String> > & details)
+{
+   printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), details.GetNumItems());
+
+   Hashtable<Queue<String>, String> detailsToThreads;
+   {
+      for (HashtableIterator<String, Queue<String> > iter(details); iter.HasData(); iter++)
+      {
+         String * threadsList = detailsToThreads.GetOrPut(iter.GetValue());
+         if (threadsList->HasChars()) (*threadsList) += ',';
+         (*threadsList) += iter.GetKey();
       }
    }
-   return B_NO_ERROR;
-}
 
-static void PrintSequence(uint32 i, const Queue<String> & seq, const char * desc, const Hashtable<unsigned long, Void> & threads)
-{
-   printf("\n%s SEQUENCE " UINT32_FORMAT_SPEC " (" UINT32_FORMAT_SPEC " threads ", desc, i, threads.GetNumItems());
-   bool isFirst = true;
-   for (HashtableIterator<unsigned long, Void> iter(threads); iter.HasData(); iter++) 
+   for (HashtableIterator<Queue<String>, String> iter(detailsToThreads); iter.HasData(); iter++)
    {
-      if (isFirst == false) printf(", ");
-      isFirst = false;
-      printf("%lu", iter.GetKey());
+      printf("    Thread%s [%s] locked mutexes in this order:\n", iter.GetValue().Contains(',')?"s":"", iter.GetValue()());
+      const Queue<String> & details = iter.GetKey();
+      for (uint32 i=0; i<details.GetNumItems(); i++) printf("       " UINT32_FORMAT_SPEC ": %s\n", i, details[i]());
    }
-   printf("):\n");
-   for (uint32 j=0; j<seq.GetNumItems(); j++) printf("   " UINT32_FORMAT_SPEC ".  %s\n", j, seq[j]());
 }
 
 // This program reads debug output to look for potential deadlocks
-int main(void) 
+int main(int, char **)
 {
-   Queue<Queue<String> > maxLogs;
+   CompleteSetupSystem css;
 
-   Hashtable<uint32, Hashtable<unsigned long, Void> > sequenceToThreads;
-   Hashtable<unsigned long, Queue<String> > curLockState;
-   char buf[1024];
-   while(fgets(buf, sizeof(buf), stdin))
+   Hashtable< Queue<String>, Hashtable<String, Queue<String> > > mutexLockSequenceToThreads;  // keys are the sequence of mutex-pointers locked, values are the set of threads that locked in that sequence, each with its own details
+ 
+   // First, read in the input
    {
-      String s = buf; s = s.Trim();
-      StringTokenizer tok(s());
-      const String actionStr = tok();
-      if ((actionStr == "mx_lock:")||(actionStr == "mx_unlk:"))
+      String curThreadID;
+      Queue<String> curMutexes;
+      Queue<String> curDetails;
+
+      char buf[1024];
+      while(fgets(buf, sizeof(buf), stdin))
       {
-         String threadStr = tok();
-         String mutexStr  = tok();
-         String locStr    = tok();
-         if ((threadStr.StartsWith("tid="))&&(mutexStr.StartsWith("m="))&&(locStr.StartsWith("loc=")))
+         if (strncmp(buf, "dlf: ", 5) == 0)
          {
-            threadStr = threadStr.Substring(4);
-            mutexStr  = mutexStr.Substring(2);
-            locStr    = locStr.Substring(4);
+            String s = &buf[5]; s = s.Trim();  // either BEGIN_THREAD, END_THREAD, BEGIN_LOCK_SEQUENCE, or END_LOCK_SEQUENCE
 
-            //printf("thread=[%s] actionStr=[%s] mutexStr=[%s] locStr=[%s]\n", threadStr(), actionStr(), mutexStr(), locStr());
-            const String lockDesc = mutexStr + " & " + locStr;
-
-            const unsigned long threadID = Atoull(threadStr());
-            if (actionStr == "mx_lock:")
+            if ((s.StartsWith("BEGIN_"))||(s.StartsWith("END_")))
             {
-               Queue<String> * q = curLockState.GetOrPut(threadID, Queue<String>());
-               q->AddTail(lockDesc);
-               if (q->GetNumItems() > 1)
-               {
-                  // See if we have this queue logged anywhere already
-                  int32 logIdx = -1;
-                  for (uint32 i=0; i<maxLogs.GetNumItems(); i++)
-                  {
-                     if (LogsMatchExceptForLocation(maxLogs[i], *q))
-                     {
-                        logIdx = i;
-                        break;
-                     }
-                  }
-                  if (logIdx < 0) {maxLogs.AddTail(*q); logIdx = maxLogs.GetNumItems()-1;}
+               if ((curThreadID.HasChars())&&(curDetails.HasItems())) (void) mutexLockSequenceToThreads.GetOrPut(curMutexes)->GetOrPut(curThreadID, curDetails);
+               curMutexes.Clear();
+               curDetails.Clear();
 
-                  // Keep track of which thread(s) used this sequence
-                  Hashtable<unsigned long, Void> * seqToThread = sequenceToThreads.GetOrPut(logIdx);
-                  seqToThread->PutWithDefault(threadID);
-               }
+                    if (s.StartsWith("BEGIN_THREAD")) curThreadID = s.Substring(13).Trim();
+               else if (s.StartsWith("END_THREAD"))   curThreadID.Clear();
             }
-            else
+            else if (s.StartsWith("m="))
             {
-               Queue<String> * q = curLockState.Get(threadID);
-               if (q)
-               {
-                  // Find the last instance of this mutex in our list
-                  String lockName = lockDesc; {int32 lastAmp = lockName.LastIndexOf('&'); lockName = lockName.Substring(0, lastAmp);}
-                  bool foundLock = false;
-                  for (int32 i=q->GetNumItems()-1; i>=0; i--)
-                  {
-                     String nextStr = (*q)[i]; {int32 lastAmp = nextStr.LastIndexOf('&'); nextStr = nextStr.Substring(0, lastAmp);}
-                     if (nextStr == lockName)
-                     {
-                        foundLock = true;
-                        q->RemoveItemAt(i);
-                        break;
-                     }
-                  }
-                  if (foundLock == false) printf("ERROR:  thread %lu is unlocking a lock he never locked!!! [%s]\n", threadID, lockDesc());
-                  if (q->IsEmpty()) curLockState.Remove(threadID);
-               }
-               else printf("ERROR:  thread %lu is unlocking when he has nothing locked!!! [%s]\n", threadID, lockDesc());
+               const String mutexID = s.Substring(2).Substring(0, " ");
+               (void) curMutexes.AddTailIfNotAlreadyPresent(mutexID); // recursively re-locking a mutex that the thread already had locked doesn't make a difference as far as deadlocks are concerned
+               (void) curDetails.AddTail(s);  // but we'll include it in the details anyway, in case it helps the user figure out what is going on
             }
          }
-         else printf("ERROR PARSING OUTPUT LINE [%s]\n", s());
-#ifdef NOT_CURRENTLY_USED
-         PrintState(curLockState);
-#endif
       }
    }
 
-   for (HashtableIterator<unsigned long, Queue<String> > iter(curLockState); iter.HasData(); iter++)
+   printf("\n");
+   LogTime(MUSCLE_LOG_INFO, "------------------- " UINT32_FORMAT_SPEC " UNIQUE LOCK SEQUENCES DETECTED -----------------\n", mutexLockSequenceToThreads.GetNumItems());
+   for (HashtableIterator<Queue<String>, Hashtable<String, Queue<String> > > iter(mutexLockSequenceToThreads); iter.HasData(); iter++)
+      LogTime(MUSCLE_LOG_INFO, "LockSequence [%s] was executed by " UINT32_FORMAT_SPEC " threads\n", LockSequenceToString(iter.GetKey())(), iter.GetValue().GetNumItems());
+
+   // Now we check for inconsistent locking order.  Two sequences are inconsistent with each other if they lock the same two mutexes
+   // but lock them in a different order
+   Hashtable<uint32, uint32> inconsistentSequencePairs;  // smaller key-position -> larger key-position
    {
-      printf("\n\nERROR, AT END OF PROCESSING, LOCKS WERE STILL HELD BY THREAD %lu:\n", iter.GetKey());
-      const Queue<String> & q = iter.GetValue();
-      for (uint32 i=0; i<q.GetNumItems(); i++) printf("  " UINT32_FORMAT_SPEC ". %s\n", i, q[i]());
-   }
-
-   printf("\n------------------- BEGIN UNIQUE LOCK SEQUENCES -----------------\n");
-   for (uint32 i=0; i<maxLogs.GetNumItems(); i++) if (maxLogs[i].GetNumItems() > 1) PrintSequence(i, maxLogs[i], "UNIQUE", *sequenceToThreads.Get(i));
-   printf("\n------------------- END UNIQUE LOCK SEQUENCES -----------------\n\n");
-
-   // Now see if there are any inconsistencies.  First, go through the sequences and remove any redundant re-locks, as they don't count
-   Queue<Queue<String> > simplifiedMaxLogs = maxLogs;
-   for (uint32 i=0; i<simplifiedMaxLogs.GetNumItems(); i++)
-   { 
-      Hashtable<String, uint32> useCounts;
-      Queue<String> & seqA = simplifiedMaxLogs[i];
-      for (uint32 j=0; j<seqA.GetNumItems(); j++) (*useCounts.GetOrPut(ExtractPointerString(seqA[j])))++;
-      for (HashtableIterator<String, uint32> iter(useCounts); iter.HasData(); iter++)
+      uint32 idxA = 0;
+      for (HashtableIterator<Queue<String>, Hashtable<String, Queue<String> > > iterA(mutexLockSequenceToThreads); iterA.HasData(); iterA++,idxA++)
       {
-         const uint32 numToRemove = iter.GetValue()-1;
-         for (int32 j=seqA.GetNumItems()-1; ((numToRemove>0)&&(j>=0)); j--) if (ExtractPointerString(seqA[j]) == iter.GetKey()) seqA.RemoveItemAt(j);
+         uint32 idxB = 0;
+         for (HashtableIterator<Queue<String>, Hashtable<String, Queue<String> > > iterB(mutexLockSequenceToThreads); ((idxB < idxA)&&(iterB.HasData())); iterB++,idxB++)
+            if (SequencesAreInconsistent(iterB.GetKey(), iterA.GetKey())) (void) inconsistentSequencePairs.Put(idxB, idxA);
       }
-      useCounts.Clear();
    }
 
-   // Then do the inconsistencies check
    bool foundProblems = false;
-   for (uint32 i=0; i<simplifiedMaxLogs.GetNumItems(); i++)
+   if (inconsistentSequencePairs.HasItems())
    {
-      const Queue<String> & seqA = simplifiedMaxLogs[i];
-      if (seqA.GetNumItems() > 1)
+      printf("\n");
+      LogTime(MUSCLE_LOG_WARNING, "--------- WARNING: " UINT32_FORMAT_SPEC " INCONSISTENT LOCK SEQUENCE%s DETECTED --------------\n", inconsistentSequencePairs.GetNumItems(), (inconsistentSequencePairs.GetNumItems()==1)?"":"S");
+      uint32 idx = 0;
+      for (HashtableIterator<uint32, uint32> iter(inconsistentSequencePairs); iter.HasData(); iter++,idx++)
       {
-         for (uint32 j=0; j<simplifiedMaxLogs.GetNumItems(); j++)
-         {
-            const Queue<String> & seqB = simplifiedMaxLogs[j];
-            if ((i < j)&&(seqB.GetNumItems() > 1))  // the (i<j) is to rule out testing something against itself, and to eliminate symmetric duplicate reports (e.g. 15 vs 20 AND 20 vs 15)
-            {
-               for (uint32 k=0; k<seqA.GetNumItems(); k++)
-               {
-                  Queue<String> cantBeAfterK;  for (uint32 m=0;   m<k;                  m++) cantBeAfterK.AddTail( ExtractPointerString(seqA[m]));
-                  Queue<String> cantBeBeforeK; for (uint32 m=k+1; m<seqA.GetNumItems(); m++) cantBeBeforeK.AddTail(ExtractPointerString(seqA[m]));
-                  if (CheckOrderingConstraints(ExtractPointerString(seqA[k]), seqB, cantBeBeforeK, cantBeAfterK).IsError())
-                  {
-                     foundProblems = true;
-
-                     // If both patterns were only made within a single thread, then the ordering isn't currently harmful, only potentially so
-                     Hashtable<unsigned long, Void> * ti = sequenceToThreads.Get(i);
-                     Hashtable<unsigned long, Void> * tj = sequenceToThreads.Get(j);
-                     const bool isDefinite = ((ti)&&(tj)&&((ti->GetNumItems() > 1)||(tj->GetNumItems() > 1)||(*ti != *tj)));   // (ti) and (tj) are actually never going to be NULL, but this makes clang++ happy
-     
-                     printf("\n\n------------------------------------------\n");
-                     printf("ERROR, %s LOCK-ACQUISITION ORDERING INCONSISTENCY DETECTED:   SEQUENCE #" UINT32_FORMAT_SPEC " vs SEQUENCE #" UINT32_FORMAT_SPEC "  !!\n", isDefinite?"DEFINITE":"POTENTIAL", i, j);
-                     PrintSequence(i, maxLogs[i], "PROBLEM", *sequenceToThreads.Get(i));
-                     PrintSequence(j, maxLogs[j], "PROBLEM", *sequenceToThreads.Get(j));
-                     break;
-                  }
-               }
-            }
-         }
+         printf("\n");
+         LogTime(MUSCLE_LOG_WARNING, "INCONSISTENT LOCKING ORDER REPORT #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " --------\n", idx+1, inconsistentSequencePairs.GetNumItems());
+         const Queue<String> & seqA = *mutexLockSequenceToThreads.GetKeyAt(iter.GetKey());
+         const Queue<String> & seqB = *mutexLockSequenceToThreads.GetKeyAt(iter.GetValue());
+         PrintSequenceReport("SequenceA", seqA, mutexLockSequenceToThreads[seqA]);
+         PrintSequenceReport("SequenceB", seqB, mutexLockSequenceToThreads[seqB]);
+         foundProblems = true;
       }
    }
-   if (foundProblems == false) printf("No Mutex-acquisition ordering problems detected, yay!\n");
 
+   if (foundProblems == false)
+   {
+      printf("\n");
+      LogTime(MUSCLE_LOG_INFO, "No Mutex-acquisition ordering problems detected, yay!\n");
+   }
+
+   printf("\n\n");
    return 0;
 }

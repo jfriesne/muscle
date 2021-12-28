@@ -9,6 +9,8 @@ key:  - new feature
      FilePathInfo, and PointerAndBool classes.
    - Added a CalculateHashCode() function that takes an array
      as an argument and returns a hash code for the entire array.
+   - Rewrote the deadlock-finder's lock-logging code to use
+     a finite amount of RAM rather than an ever-growing amount.
    o CalculateHashCode(const Type &) now calls HashCode() on the
      argument if possible, or uses a PODHashFunctor otherwise.
    o Downgraded cmake_minimum_required in the CMakeList.txt files
