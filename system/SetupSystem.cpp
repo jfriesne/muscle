@@ -614,7 +614,7 @@ private:
       bool ContainsSequence(const MutexLockRecord * lockSequence, uint32 seqLen) const
       {
          if (seqLen <= 1) return true;  // we don't store empty sequences or sequences containing only one Mutex, so there's no need to look for them; we'll just pretend they are present
-         for (uint32 i=0; i<_numValidSequenceStartIndices; i++)
+         for (int32 i=_numValidSequenceStartIndices-1; i>=0; i--)  // backwards for better locality
          {
             const uint32 sequenceStartIdx    = _sequenceStartIndices[i];
             const uint32 afterSequenceEndIdx = _sequenceStartIndices[i+1];  // yes, this will always be valid!  We pre-write it in AddLockSequence()
@@ -744,12 +744,12 @@ static bool SequencesAreInconsistent(const Queue<const void *> & seqA, const Que
    return false;
 }
 
-static void PrintSequenceReport(const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<String> > & details)
+static void PrintSequenceReport(const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<String> > & detailsTable)
 {
-   printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), details.GetNumItems());
+   printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), detailsTable.GetNumItems());
 
    Hashtable<Queue<String>, Queue<muscle_thread_id> > detailsToThreads;
-   for (HashtableIterator<muscle_thread_id, Queue<String> > iter(details); iter.HasData(); iter++) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
+   for (HashtableIterator<muscle_thread_id, Queue<String> > iter(detailsTable); iter.HasData(); iter++) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
 
    for (HashtableIterator<Queue<String>, Queue<muscle_thread_id> > iter(detailsToThreads); iter.HasData(); iter++)
    {
@@ -813,7 +813,7 @@ void PrintMutexLockingReport()
    if (foundProblems == false)
    {
       printf("\n");
-      LogTime(MUSCLE_LOG_INFO, "No Mutex-acquisition ordering problems detected, yay!\n");
+      LogTime(MUSCLE_LOG_INFO, "No Mutex-acquisition ordering inconsistencies detected, yay!\n");
    }
 
    printf("\n\n");
