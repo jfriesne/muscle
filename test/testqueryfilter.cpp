@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "regex/QueryFilter.h"
+#include "system/SetupSystem.h"
 #include "util/String.h"
 
 using namespace muscle;
@@ -52,8 +53,10 @@ static void TestQueryFilter(MultiQueryFilter & qf, const char * desc, const char
 }
 
 // This program exercises some of the QueryFilter classes.
-int main(void) 
+int main(int, char **) 
 {
+   CompleteSetupSystem css;
+
    {OrQueryFilter   qf; TestQueryFilter(qf, "OR",   "return true iff at least one child returns true", 0);}
    {AndQueryFilter  qf; TestQueryFilter(qf, "AND",  "return true iff all children return true", 0);}
    {NorQueryFilter  qf; TestQueryFilter(qf, "NOR",  "return true iff no children return true", 0);}

@@ -3,12 +3,15 @@
 #include <stdio.h>
 
 #include "regex/StringMatcher.h"
+#include "system/SetupSystem.h"
 
 using namespace muscle;
 
 // Just some quick testing of the StringMatcher class...
 int main(int argc, char ** argv) 
 {
+   CompleteSetupSystem css;
+
    if (argc <= 1)
    {
       printf("Usage:  testregex 'pattern' 'str1' 'str2' [...]\n");

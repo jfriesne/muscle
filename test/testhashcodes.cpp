@@ -22,8 +22,10 @@ uint32 lcg_parkmiller()
 // This program prints out a series of hash-code calculatations for a series of known, arbitrary byte
 // sequences.  The intent is just to check that our hash-code functions give the same results on different
 // CPU architectures.
-int main(void) 
+int main(int, char **) 
 {
+   CompleteSetupSystem css;
+
    const uint32 MAX_BUF_SIZE = 1000;
 
    Queue<uint8> bytes;

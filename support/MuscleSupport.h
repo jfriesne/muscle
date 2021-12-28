@@ -1640,9 +1640,9 @@ public:
    bool AreKeysEqual(const char * k1, const char * k2) const {return (strcmp(k1,k2)==0);}
 };
 
-template <> class AutoChooseHashFunctorHelper<const void *> {typedef PODHashFunctor<const void *> Type;};
-template <> class AutoChooseHashFunctorHelper<char *>       {typedef PODHashFunctor<char *>       Type;};
-template <> class AutoChooseHashFunctorHelper<void *>       {typedef PODHashFunctor<void *>       Type;};
+template <> class AutoChooseHashFunctorHelper<const void *> {public: typedef PODHashFunctor<const void *> Type;};
+template <> class AutoChooseHashFunctorHelper<char *>       {public: typedef PODHashFunctor<char *>       Type;};
+template <> class AutoChooseHashFunctorHelper<void *>       {public: typedef PODHashFunctor<void *>       Type;};
 
 // Hacked-in support for g++ 3.x compilers, that don't handle the AutoChooseHashFunctionHelper SFINAE magic properly
 #if defined(__GNUC__) && (__GNUC__ <= 3)

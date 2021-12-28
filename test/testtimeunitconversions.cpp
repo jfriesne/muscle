@@ -1,7 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include <stdio.h>
-
+#include "system/SetupSystem.h"
 #include "util/TimeUnitConversionFunctions.h"
 
 using namespace muscle;
@@ -21,6 +20,8 @@ using namespace muscle;
 
 int main(int /*argc*/, char ** /*argv*/)
 {
+   CompleteSetupSystem css;
+
    TEST_CONVERSION(Nanos, Micros);
    TEST_CONVERSION(Nanos, Millis);
    TEST_CONVERSION(Nanos, Seconds);

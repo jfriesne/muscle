@@ -261,6 +261,16 @@ public:
 # endif
    }
 
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
+   bool operator < (const muscle_thread_id & rhs) const
+   {
+# if defined(MUSCLE_USE_PTHREADS)
+      return (HashCode() < rhs.HashCode());  // because I don't think pthread_equal() will suffice here
+# else
+      return (_id < rhs._id);
+# endif
+   }
+
    /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator != (const muscle_thread_id & rhs) const {return !(*this == rhs);}
 
@@ -281,6 +291,9 @@ public:
 # endif
       return ret;
    }
+
+   /** Returns a hash code for this muscle_thread_id */
+   uint32 HashCode() const {return CalculateHashCode(&_id, sizeof(_id));}
 
    /** Returns a human-readable string representation of this thread ID.
      * Note that the returned buffer has the same lifetime as this object.

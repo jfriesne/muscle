@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "system/SetupSystem.h"
 #include "syslog/SysLog.h"
 #include "util/String.h"
 #include "util/FilePathInfo.h"
@@ -13,6 +14,8 @@ static const char * GetBoolString(bool b) {return b ? "YES" : "NO";}
 // This program exercises the FilePathInfo class.
 int main(int argc, char ** argv) 
 {
+   CompleteSetupSystem css;
+
    if (argc < 2)
    {
       printf("Usage:  testfilepathinfo <filepath>\n"); 

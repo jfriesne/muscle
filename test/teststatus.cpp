@@ -1,9 +1,9 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include <stdio.h>
 #include <time.h>
 
 #include "support/MuscleSupport.h"
+#include "system/SetupSystem.h"
 
 using namespace muscle;
 
@@ -33,8 +33,10 @@ status_t Func3()
 }
 
 // This program exercises the String class.
-int main(void) 
+int main(int, char **) 
 {
+   CompleteSetupSystem css;
+
    srand((unsigned)time(NULL));
 
    // Simple test

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "system/SetupSystem.h"
 #include "util/String.h"
 #include "util/StringTokenizer.h"
 #include "util/TimeUtilityFunctions.h"
@@ -10,6 +11,8 @@ using namespace muscle;
 
 int main(int, char **)
 {
+   CompleteSetupSystem css;
+
    // First, a performance test
    {
       uint64 totalElapsedTime = 0;

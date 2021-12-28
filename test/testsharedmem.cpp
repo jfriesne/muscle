@@ -1,5 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
+#include "system/SetupSystem.h"
 #include "system/SharedMemory.h"
 #include "util/NetworkUtilityFunctions.h"
 
@@ -11,6 +12,8 @@ static const uint32 TEST_AREA_SIZE = 4096;
 // This program exercises the Message class.
 int main(int argc, char ** argv) 
 {
+   CompleteSetupSystem css;
+
    bool deleteArea = ((argc > 1)&&(strncmp(argv[1], "del", 3) == 0));
 
    uint8 base = 0;

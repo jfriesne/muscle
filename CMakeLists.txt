@@ -23,6 +23,12 @@ if (WITH_SANITIZE)
    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MUSCLE_SANITIZE_ARG}")
 endif (WITH_SANITIZE)
 
+option(WITH_DEADLOCKFINDER "Enable building with MUSCLE's potential-deadlock-detection logic enabled" OFF)
+if (WITH_DEADLOCKFINDER)
+   message("Note:  -DWITH_DEADLOCKFINDER=ON argument was specified:  MUSCLE will include expensive run-time debug-checks for potential deadlock conditions when locking Mutexes.")
+   add_definitions(-DMUSCLE_ENABLE_DEADLOCK_FINDER)
+endif (WITH_DEADLOCKFINDER)
+
 file(GLOB MUSCLE_SRCS
    "./dataio/*.cpp"
    "./iogateway/*.cpp"

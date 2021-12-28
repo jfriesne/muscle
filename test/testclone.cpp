@@ -54,6 +54,8 @@ TestCloneable * CloneTester(const TestCloneable * c)
 // This program exercises the Cloneable interface.
 int main(int, char **)
 {
+   CompleteSetupSystem css;
+
    {
       TestCloneable tc1("Foo");
       TestCloneable * tc2 = CloneTester(&tc1);

@@ -1,8 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include <stdio.h>
-
 #include "dataio/RS232DataIO.h"
+#include "system/SetupSystem.h"
 
 using namespace muscle;
 
@@ -11,6 +10,8 @@ using namespace muscle;
 
 int main(int /*argc*/, char ** /*argv*/) 
 {
+   CompleteSetupSystem css;
+
    RS232DataIO io("/dev/ttyS0", 38400, true);
    if (io.IsPortAvailable())
    {

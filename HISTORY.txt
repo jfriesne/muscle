@@ -6,13 +6,13 @@ key:  - new feature
       o other
 
    - Added HashCode() methods to the ByteBuffer, Queue, Hashtable,
-     FilePathInfo, and PointerAndBool classes.
+     FilePathInfo, muscle_thread_id, and PointerAndBool classes.
    - Added a CalculateHashCode() function that takes an array
      as an argument and returns a hash code for the entire array.
    - Rewrote the deadlock-finder's lock-logging code to use
      a finite amount of RAM rather than an ever-growing amount.
-   - Added PrintMutexLockingLogs() for printout out the current
-     state of the -DMUSCLE_ENABLE_DEADLOCK_FINDER information
+   - Added PrintMutexLockingReport() to print out out the current
+     state of the -DMUSCLE_ENABLE_DEADLOCK_FINDER debug-info
      without having to exit the process.
    o CalculateHashCode(const Type &) now calls HashCode() on the
      argument if possible, or uses a PODHashFunctor otherwise.
@@ -28,11 +28,15 @@ key:  - new feature
      possible for that method to return false.
    o Added a Mutex::GetNativeMutexImplementation() method for
      accessing the Mutex class's back-end directly, if necessary.
+   o Removed deadlockfinder.cpp because its functionality is
+     built in to the core MUSCLE library now.
    * Refactored the Mutex class so that the code associated with
      the -DMUSCLE_ENABLE_DEADLOCK_FINDER deadlock-finding feature
      integrates better with TryLock() and the MutexGuard class.
    * Updated DECLARE_MUTEXGUARD to explicitly specify the muscle
      namespace, so it can be used from other namespaces also.
+   * AutoChooseHashFunctor's explicit instantiations neglected
+     to declare the Type field as public.  Fixed.
 
 8.45 - Release 12/21/2021
    - Added a GetSessionsByIDNumber() method to the ReflectServer

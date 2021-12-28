@@ -74,7 +74,7 @@ public:
 };
 
 // This program exercises the Ref class.
-int main(void) 
+int main(int, char **) 
 {
    CompleteSetupSystem setupSystem;
 

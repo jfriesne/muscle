@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "dataio/FileDataIO.h"
+#include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"
 
 using namespace muscle;
@@ -10,6 +11,8 @@ using namespace muscle;
 // This program exercises the ParseFile() function.
 int main(int argc, char ** argv) 
 {
+   CompleteSetupSystem css;
+
    if (argc < 2) 
    {
       printf("Usage:  parsefile <filename> [filename] [...]\n");

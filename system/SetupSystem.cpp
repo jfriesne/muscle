@@ -513,23 +513,15 @@ public:
             printf("MutexLockRecordLog ERROR:  Thread [%s] is trying to unlock unacquired mutex %p at [%s:%i]!\n", _threadID.ToString(tempBuf), mutexPtr, fileName, fileLine);
          }
       }
-
    }
 
-   void PrintToStream() const
+   void CaptureResults(Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > & capturedResults) const
    {
       MutexLockSequencesRecord * meb = _headMLSRecord;
-      if (meb)
+      while(meb)
       {
-         char buf[20]; const char * threadStr = _threadID.ToString(buf);
-
-         printf("dlf: BEGIN_THREAD %s\n", threadStr);
-         while(meb)
-         {
-            meb->PrintToStream();
-            meb = meb->_nextMLSRecord;
-         }
-         printf("dlf: END_THREAD %s\n", threadStr);
+         meb->CaptureResults(_threadID, capturedResults);
+         meb = meb->_nextMLSRecord;
       }
    }
 
@@ -557,7 +549,7 @@ private:
          else _fileName[0] = '\0';
       }
 
-      void PrintToStream() const {printf("dlf:   m=%p loc=%s:" UINT32_FORMAT_SPEC "\n", _mutexPtr, _fileName, _fileLine);}
+      String GetDetails() const {return String("mutex %1 @ %2:%3").Arg(_mutexPtr).Arg(_fileName).Arg(_fileLine);}
 
       bool operator == (const MutexLockRecord & rhs) const {return ((_fileLine == rhs._fileLine)&&(_mutexPtr == rhs._mutexPtr)&&(strcmp(_fileName, rhs._fileName)==0));}
       bool operator != (const MutexLockRecord & rhs) const {return !(*this==rhs);}
@@ -591,16 +583,31 @@ private:
          return B_NO_ERROR;
       }
 
-      void PrintToStream() const
+      void CaptureResults(muscle_thread_id threadID, Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > & capturedResults) const
       {
+         Queue<const void *> q;
+         Queue<String> details;
          for (uint32 i=0; i<_numValidSequenceStartIndices; i++)
          {
             const uint32 sequenceStartIdx      = _sequenceStartIndices[i];
             const uint32 afterSequenceEndIndex = _sequenceStartIndices[i+1];  // yes, this will always be valid!  We pre-write it in AddLockSequence()
             const uint32 seqLen                = afterSequenceEndIndex-sequenceStartIdx;
-            printf("dlf:  BEGIN_LOCK_SEQUENCE (" UINT32_FORMAT_SPEC " locks)\n", seqLen);
-            for (uint32 j=sequenceStartIdx; j<afterSequenceEndIndex; j++) _events[j].PrintToStream();
-            printf("dlf:  END_LOCK_SEQUENCE (" UINT32_FORMAT_SPEC " locks)\n", seqLen);
+
+            q.Clear();
+            details.Clear();
+
+            if ((q.EnsureSize(seqLen).IsOK())&&(details.EnsureSize(seqLen).IsOK()))
+            {
+               for (uint32 j=sequenceStartIdx; j<afterSequenceEndIndex; j++)
+               {
+                  const MutexLockRecord & mlr = _events[j];
+                  (void) q.AddTail(mlr.GetMutexPointer());  // guaranteed not to fail
+                  (void) details.AddTail(mlr.GetDetails()); // guaranteed not to fail
+               }
+
+               Hashtable<muscle_thread_id, Queue<String> > * tab = capturedResults.GetOrPut(q);
+               if (tab) (void) tab->Put(threadID, details);
+            }
          }
       }
 
@@ -696,17 +703,122 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
        else printf("DeadlockFinder_LogEvent:  malloc of MutexLockRecordLog failed!?\n");  // we can't even call MWARN_OUT_OF_MEMORY here
 }
 
+static String LockSequenceToString(const Queue<const void *> & seq)
+{
+   String ret;
+   for (uint32 i=0; i<seq.GetNumItems(); i++)
+   {
+      if (ret.HasChars()) ret += ',';
+      ret += String("%1").Arg(seq[i]);
+   }
+   return ret;
+}
+
+static String ThreadsListToString(const Queue<muscle_thread_id> & threadsList)
+{
+   String ret;
+   for (uint32 i=0; i<threadsList.GetNumItems(); i++)
+   {
+      if (ret.HasChars()) ret += ',';
+
+      char buf[20];
+      ret += threadsList[i].ToString(buf);
+   }
+   return ret;
+}
+
+// Returns true iff (seqA)'s locking-order is inconsistent with (seqB)'s locking-order
+static bool SequencesAreInconsistent(const Queue<const void *> & seqA, const Queue<const void *> & seqB)
+{
+   const Queue<const void *> & largerQ  = (seqA.GetNumItems()  > seqB.GetNumItems()) ? seqA : seqB;
+   const Queue<const void *> & smallerQ = (seqA.GetNumItems() <= seqB.GetNumItems()) ? seqA : seqB;
+
+   for (uint32 i=0; i<largerQ.GetNumItems(); i++)
+      for (uint32 j=0; ((j<i)&&(j<largerQ.GetNumItems())); j++)
+      {
+         const int32 smallerIPos = smallerQ.IndexOf(largerQ[i]);
+         const int32 smallerJPos = smallerQ.IndexOf(largerQ[j]);
+         if ((smallerIPos >= 0)&&(smallerJPos >= 0)&&((i<j) != (smallerIPos < smallerJPos))) return true;
+      }
+
+   return false;
+}
+
+static void PrintSequenceReport(const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<String> > & details)
+{
+   printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), details.GetNumItems());
+
+   Hashtable<Queue<String>, Queue<muscle_thread_id> > detailsToThreads;
+   for (HashtableIterator<muscle_thread_id, Queue<String> > iter(details); iter.HasData(); iter++) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
+
+   for (HashtableIterator<Queue<String>, Queue<muscle_thread_id> > iter(detailsToThreads); iter.HasData(); iter++)
+   {
+      Queue<muscle_thread_id> & threadsList = iter.GetValue();
+      threadsList.Sort();
+
+      printf("    Thread%s [%s] locked mutexes in this order:\n", (threadsList.GetNumItems()==1)?"s":"", ThreadsListToString(threadsList)());
+      const Queue<String> & details = iter.GetKey();
+
+      for (uint32 i=0; i<details.GetNumItems(); i++) printf("       " UINT32_FORMAT_SPEC ": %s\n", i, details[i]());
+   }
+}
+
 #endif
 
-void PrintMutexLockingLogs()
+void PrintMutexLockingReport()
 {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   printf("dlf: BEGIN_REPORT\n");
-   DECLARE_MUTEXGUARD(_mutexLogTableMutex);
-   for (uint32 i=0; i<_mutexLogTable.GetNumItems(); i++) _mutexLogTable[i]->PrintToStream();
-   printf("dlf: END_REPORT\n");
+   Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > capturedResults;  // mutex-sequence -> (threadID -> details)
+   {
+      DECLARE_MUTEXGUARD(_mutexLogTableMutex);
+      for (uint32 i=0; i<_mutexLogTable.GetNumItems(); i++) _mutexLogTable[i]->CaptureResults(capturedResults);
+   }
+
+   printf("\n");
+   LogTime(MUSCLE_LOG_INFO, "------------------- " UINT32_FORMAT_SPEC " UNIQUE LOCK SEQUENCES DETECTED -----------------\n", capturedResults.GetNumItems());
+   for (HashtableIterator< Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > iter(capturedResults); iter.HasData(); iter++)
+      LogTime(MUSCLE_LOG_INFO, "LockSequence [%s] was executed by " UINT32_FORMAT_SPEC " threads\n", LockSequenceToString(iter.GetKey())(), iter.GetValue().GetNumItems());
+
+   // Now we check for inconsistent locking order.  Two sequences are inconsistent with each other if they lock the same two mutexes
+   // but lock them in a different order
+   Hashtable<uint32, uint32> inconsistentSequencePairs;  // smaller key-position -> larger key-position
+   {
+      uint32 idxA = 0;
+      for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > iterA(capturedResults); iterA.HasData(); iterA++,idxA++)
+      {
+         uint32 idxB = 0;
+         for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > iterB(capturedResults); ((idxB < idxA)&&(iterB.HasData())); iterB++,idxB++)
+            if (SequencesAreInconsistent(iterB.GetKey(), iterA.GetKey())) (void) inconsistentSequencePairs.Put(idxB, idxA);
+      }
+   }
+
+   bool foundProblems = false;
+   if (inconsistentSequencePairs.HasItems())
+   {
+      printf("\n");
+      LogTime(MUSCLE_LOG_WARNING, "--------- WARNING: " UINT32_FORMAT_SPEC " INCONSISTENT LOCK SEQUENCE%s DETECTED --------------\n", inconsistentSequencePairs.GetNumItems(), (inconsistentSequencePairs.GetNumItems()==1)?"":"S");
+      uint32 idx = 0;
+      for (HashtableIterator<uint32, uint32> iter(inconsistentSequencePairs); iter.HasData(); iter++,idx++)
+      {
+         printf("\n");
+         LogTime(MUSCLE_LOG_WARNING, "INCONSISTENT LOCKING ORDER REPORT #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " --------\n", idx+1, inconsistentSequencePairs.GetNumItems());
+         const Queue<const void *> & seqA = *capturedResults.GetKeyAt(iter.GetKey());
+         const Queue<const void *> & seqB = *capturedResults.GetKeyAt(iter.GetValue());
+         PrintSequenceReport("SequenceA", seqA, capturedResults[seqA]);
+         PrintSequenceReport("SequenceB", seqB, capturedResults[seqB]);
+         foundProblems = true;
+      }
+   }
+
+   if (foundProblems == false)
+   {
+      printf("\n");
+      LogTime(MUSCLE_LOG_INFO, "No Mutex-acquisition ordering problems detected, yay!\n");
+   }
+
+   printf("\n\n");
 #else
-   printf("PrintMutexLockingLogs:  MUSCLE_ENABLE_DEADLOCK_FINDER wasn't specified during compilation, so no locking-logs were recorded.\n");
+   printf("PrintMutexLockingReport:  MUSCLE_ENABLE_DEADLOCK_FINDER wasn't specified during compilation, so no locking-logs were recorded.\n");
 #endif
 }
 
@@ -740,7 +852,7 @@ ThreadSetupSystem :: ~ThreadSetupSystem()
       _muscleLock = NULL;
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-     PrintMutexLockingLogs();
+     PrintMutexLockingReport();
 #endif
    }
 }
@@ -896,9 +1008,9 @@ static uint64 GetRunTime64Aux()
       {
          static uint32 _prevVal    = 0;
          static uint64 _wrapOffset = 0;
-         
+
          const uint32 newVal = (uint32) timeGetTime();
-         if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32); 
+         if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
          ret = (_wrapOffset+newVal)*1000;  // convert to microseconds
          _prevVal = newVal;
       }
@@ -914,7 +1026,7 @@ static uint64 GetRunTime64Aux()
       const uint32 hi1 = get_tbu();
       const uint32 low = get_tbl();
       const uint32 hi2 = get_tbu();
-      if (hi1 == hi2) 
+      if (hi1 == hi2)
       {
          // FogBugz #3199
          const uint64 cycles = ((((uint64)hi1)<<32)|((uint64)low));

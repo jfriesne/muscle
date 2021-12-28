@@ -36,7 +36,7 @@ CXXFLAGS += -std=c++11
 
 LFLAGS =  
 LIBS =  -lpthread
-EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlockfinder deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess
+EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess
 
 REGEXOBJS = 
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
@@ -185,7 +185,13 @@ testrefcount : $(STDOBJS) testrefcount.o SysLog.o String.o SetupSystem.o MiscUti
 striphextermoutput : $(STDOBJS) striphextermoutput.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-teststatus : teststatus.o
+teststatus : teststatus.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o FileDataIO.o StringTokenizer.o FilePathInfo.o StringMatcher.o Directory.o NetworkUtilityFunctions.o SocketMultiplexer.o $(ZLIBOBJS)
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+testtimeunitconversions : testtimeunitconversions.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o FileDataIO.o StringTokenizer.o FilePathInfo.o StringMatcher.o Directory.o NetworkUtilityFunctions.o SocketMultiplexer.o $(ZLIBOBJS)
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+testtypedefs : testtypedefs.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o FileDataIO.o StringTokenizer.o FilePathInfo.o StringMatcher.o Directory.o NetworkUtilityFunctions.o SocketMultiplexer.o $(ZLIBOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 teststring : $(STDOBJS) teststring.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
@@ -307,9 +313,6 @@ testnetconfigdetect:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o Quer
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testnetutil:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o DetectNetworkConfigChangesSession.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o Thread.o testnetutil.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-deadlockfinder : $(STDOBJS) deadlockfinder.o SysLog.o String.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 deadlock: $(STDOBJS) deadlock.o SysLog.o String.o SetupSystem.o Thread.o Message.o ByteBuffer.o

@@ -28,7 +28,7 @@ void PrintToStream(const Queue<int> & q)
 }
 
 // This program exercises the Queue class.
-int main(void) 
+int main(int, char **) 
 {
    CompleteSetupSystem css;  // needed for string-count stats
 

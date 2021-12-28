@@ -1,7 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include <stdio.h>
-
+#include "system/SetupSystem.h"
 #include "zlib/ZipFileUtilityFunctions.h"
 
 using namespace muscle;
@@ -12,6 +11,8 @@ using namespace muscle;
 // This program tests the ZipFileUtilityFunctions functions
 int main(int argc, char ** argv)
 {
+   CompleteSetupSystem css;
+
    if (argc <= 1)
    {
       printf("testzip somezipfiletoread.zip [newzipfiletowrite.zip] [namesonly]\n");

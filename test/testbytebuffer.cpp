@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "dataio/FileDataIO.h"
+#include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/ByteBuffer.h"
 
@@ -140,6 +141,8 @@ static void Test(EndianFlags endianFlags)
 // This program exercises the ByteBuffer class.
 int main(int argc, char ** argv) 
 {
+   CompleteSetupSystem css;
+
    if (argc > 1)
    {
       const char * fileName = argv[1];

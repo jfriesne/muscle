@@ -40,9 +40,6 @@ if (WITH_TESTS)
    add_executable(deadlock deadlock.cpp)
    target_link_libraries(deadlock muscle)
 
-   add_executable(deadlockfinder deadlockfinder.cpp)
-   target_link_libraries(deadlockfinder muscle)
-
    add_executable(findsourcelocations findsourcelocations.cpp)
    target_link_libraries(findsourcelocations muscle)
 

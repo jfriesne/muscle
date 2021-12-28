@@ -4,11 +4,14 @@
 
 #include "regex/FilePathExpander.h"
 #include "util/String.h"
+#include "system/SetupSystem.h"
 
 using namespace muscle;
 
-int main(void) 
+int main(int, char **) 
 {
+   CompleteSetupSystem css;
+
    char buf[1024];
    while(fgets(buf, sizeof(buf), stdin))
    {

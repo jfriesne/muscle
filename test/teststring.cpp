@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "message/Message.h"
+#include "system/SetupSystem.h"
 #include "util/String.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/NetworkUtilityFunctions.h"
@@ -22,8 +23,10 @@ public:
 };
 
 // This program exercises the String class.
-int main(void) 
+int main(int, char **) 
 {
+   CompleteSetupSystem css;
+
 #ifdef TEST_ESCAPE
    while(1)
    {

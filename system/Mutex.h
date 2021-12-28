@@ -415,11 +415,11 @@ private:
 #endif
 };
 
-/** If MUSCLE_ENABLE_DEADLOCK_FINDER was defined, this function will print out the current
-  * state of the Mutex-locking logs to stdout.  (This info will also be printed to stdout
-  * when the process exits).  Otherwise an error message will be printed.
+/** If MUSCLE_ENABLE_DEADLOCK_FINDER was defined during compilation, this function will print
+  * to stdout a human-readable report about how Mutexes have been locked so far, and whether
+  * any inconsistent locking ordering has been detected.  Otherwise an error message will be printed.
   */
-void PrintMutexLockingLogs();
+void PrintMutexLockingReport();
 
 /** A macro to quickly and safely put a MutexGuard on the stack for the given Mutex.
   * @note Using this macro is better than just declaring a MutexGuard object directly in

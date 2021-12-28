@@ -1,8 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include <stdio.h>
-
-#include "support/MuscleSupport.h"
+#include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"
 
 using namespace muscle;
@@ -52,8 +50,10 @@ static void PrintSpeedResult(const char * desc, uint64 beginTime, uint64 endTime
 }
 
 // This program checks the accuracy and measures the speed of muscle's byte-swapping macros.
-int main(void) 
+int main(int, char **) 
 {
+   CompleteSetupSystem css;
+
    // Allocate the test arrays...
    origArray16     = new int16[ARRAYLEN];
    origArray32     = new int32[ARRAYLEN];

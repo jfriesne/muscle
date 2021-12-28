@@ -32,7 +32,7 @@ public:
 };
 
 // This program exercises the Thread class.
-int main(void) 
+int main(int, char **) 
 {
    CompleteSetupSystem css;
 

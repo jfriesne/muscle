@@ -1,7 +1,6 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
 
-#include <stdio.h>
-
+#include "system/SetupSystem.h"
 #include "support/Rect.h"
 #include "util/String.h"
 
@@ -138,8 +137,10 @@ static void PrintFiveTuple(const FiveTuple & ft)
 }
 
 // This program exercises the Tuple class
-int main()
+int main(int, char **)
 {
+   CompleteSetupSystem css;
+
    printf("Tuple shift test\n");
    FiveTuple shiftTuple;
    for (uint32 i=0; i<shiftTuple.GetNumItemsInTuple(); i++) shiftTuple[i] = i+10;
