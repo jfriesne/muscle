@@ -23,10 +23,6 @@
 
 namespace muscle {
 
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-extern void DeadlockFinder_PrintAndClearLogEventsForCurrentThread();
-#endif
-
 Thread :: Thread(ICallbackMechanism * optCallbackMechanism, bool useMessagingSockets)
    : ICallbackSubscriber(optCallbackMechanism)
    , _useMessagingSockets(useMessagingSockets)

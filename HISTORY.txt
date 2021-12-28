@@ -11,6 +11,9 @@ key:  - new feature
      as an argument and returns a hash code for the entire array.
    - Rewrote the deadlock-finder's lock-logging code to use
      a finite amount of RAM rather than an ever-growing amount.
+   - Added PrintMutexLockingLogs() for printout out the current
+     state of the -DMUSCLE_ENABLE_DEADLOCK_FINDER information
+     without having to exit the process.
    o CalculateHashCode(const Type &) now calls HashCode() on the
      argument if possible, or uses a PODHashFunctor otherwise.
    o Downgraded cmake_minimum_required in the CMakeList.txt files

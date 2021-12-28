@@ -599,7 +599,7 @@ private:
             const uint32 afterSequenceEndIndex = _sequenceStartIndices[i+1];  // yes, this will always be valid!  We pre-write it in AddLockSequence()
             const uint32 seqLen                = afterSequenceEndIndex-sequenceStartIdx;
             printf("dlf:  BEGIN_LOCK_SEQUENCE (" UINT32_FORMAT_SPEC " locks)\n", seqLen);
-            for (uint32 i=sequenceStartIdx; i<afterSequenceEndIndex; i++) _events[i].PrintToStream();
+            for (uint32 j=sequenceStartIdx; j<afterSequenceEndIndex; j++) _events[j].PrintToStream();
             printf("dlf:  END_LOCK_SEQUENCE (" UINT32_FORMAT_SPEC " locks)\n", seqLen);
          }
       }
@@ -696,13 +696,19 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
        else printf("DeadlockFinder_LogEvent:  malloc of MutexLockRecordLog failed!?\n");  // we can't even call MWARN_OUT_OF_MEMORY here
 }
 
-static void DeadlockFinder_ProcessEnding()
+#endif
+
+void PrintMutexLockingLogs()
 {
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+   printf("dlf: BEGIN_REPORT\n");
    DECLARE_MUTEXGUARD(_mutexLogTableMutex);
    for (uint32 i=0; i<_mutexLogTable.GetNumItems(); i++) _mutexLogTable[i]->PrintToStream();
-}
-
+   printf("dlf: END_REPORT\n");
+#else
+   printf("PrintMutexLockingLogs:  MUSCLE_ENABLE_DEADLOCK_FINDER wasn't specified during compilation, so no locking-logs were recorded.\n");
 #endif
+}
 
 ThreadSetupSystem :: ThreadSetupSystem(bool muscleSingleThreadOnly)
 {
@@ -734,7 +740,7 @@ ThreadSetupSystem :: ~ThreadSetupSystem()
       _muscleLock = NULL;
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-     DeadlockFinder_ProcessEnding();
+     PrintMutexLockingLogs();
 #endif
    }
 }

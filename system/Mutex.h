@@ -5,6 +5,7 @@
 
 #include "support/MuscleSupport.h"  // needed for WIN32 defines, etc
 #include "support/NotCopyable.h"
+#include "util/NestCount.h"
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
 # if defined(QT_CORE_LIB)  // is Qt4 available?
@@ -93,10 +94,6 @@ public:
 # endif
 #endif
    {
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      _inDeadlockCallbackCount = 0;
-#endif
-
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
       if (_isEnabled)
       {
@@ -151,7 +148,7 @@ public:
 #endif
    {
       const status_t ret = TryLockAux();
-#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
       if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
 #endif
@@ -180,10 +177,6 @@ public:
    /** Turns this Mutex into a no-op object.  Irreversible! */
    void Neuter() {Cleanup();}
 
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   void AvoidFindDeadlockCallbacks() {_inDeadlockCallbackCount++;}
-#endif
-
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
@@ -199,6 +192,32 @@ public:
    QMutex & GetNativeMutexImplementation() const {return _locker;}
 # endif
 #endif
+
+   /** If MUSCLE_ENABLE_DEADLOCK_FINDER is defined, this method disables mutex-callback-logging on this Mutex,
+     * and returns true on the outermost nested call (i.e. if we've just entered the disabled-logging state).
+     * Otherwise this method is a no-op and returns false.
+     */
+   bool BeginAvoidFindDeadlockCallbacks()
+   {
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+      return _inDeadlockFinderCallback.Increment();
+#else
+      return false;
+#endif
+   }
+
+   /** If MUSCLE_ENABLE_DEADLOCK_FINDER is defined, this method re-enables mutex-callback-logging on this Mutex,
+     * and returns true on the outermost nested call (i.e. if we've just exited the disabled-logging state).
+     * Otherwise this method is a no-op and returns false.
+     */
+   bool EndAvoidFindDeadlockCallbacks()
+   {
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+      return _inDeadlockFinderCallback.Decrement();
+#else
+      return false;
+#endif
+   }
 
 private:
    friend class MutexGuard;
@@ -320,11 +339,10 @@ private:
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    void LogDeadlockFinderEvent(bool isLock, const char * fileName, int fileLine) const
    {
-      if ((_enableDeadlockFinderPrints)&&(_inDeadlockCallbackCount == 0))
+      if ((_enableDeadlockFinderPrints)&&(!_inDeadlockFinderCallback.IsInBatch()))
       {
-         _inDeadlockCallbackCount++;
+         NestCountGuard ncg(_inDeadlockFinderCallback);
          DeadlockFinder_LogEvent(isLock, this, fileName, fileLine);
-         _inDeadlockCallbackCount--;
       }
    }
 #endif
@@ -343,7 +361,7 @@ private:
 #endif
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   mutable uint32 _inDeadlockCallbackCount;
+   mutable NestCount _inDeadlockFinderCallback;
 #endif
 };
 
@@ -396,6 +414,12 @@ private:
    const int _fileLine;
 #endif
 };
+
+/** If MUSCLE_ENABLE_DEADLOCK_FINDER was defined, this function will print out the current
+  * state of the Mutex-locking logs to stdout.  (This info will also be printed to stdout
+  * when the process exits).  Otherwise an error message will be printed.
+  */
+void PrintMutexLockingLogs();
 
 /** A macro to quickly and safely put a MutexGuard on the stack for the given Mutex.
   * @note Using this macro is better than just declaring a MutexGuard object directly in

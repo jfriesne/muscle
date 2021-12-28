@@ -47,7 +47,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // Avoid re-entrancy problems when the deadlock callbacks are using ThreadLocalStorage to initialize themselves!
-      _allocedObjsMutex.AvoidFindDeadlockCallbacks();
+      (void) _allocedObjsMutex.BeginAvoidFindDeadlockCallbacks();
 #endif
 
 #if defined(MUSCLE_USE_PTHREADS)
