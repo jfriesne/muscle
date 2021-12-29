@@ -457,6 +457,18 @@ TimeSetupSystem :: ~TimeSetupSystem()
 }
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+
+static String LockSequenceToString(const Queue<const void *> & seq)
+{
+   String ret;
+   for (uint32 i=0; i<seq.GetNumItems(); i++)
+   {
+      if (ret.HasChars()) ret += ',';
+      ret += String("%1").Arg(seq[i]);
+   }
+   return ret;
+}
+
 /** Gotta do a custom data structure because we can't use the standard new/delete/muscleAlloc()/muscleFree() memory operators,
   * because to do so would cause an infinite regress when they call through to Mutex::Lock() or Mutex::Unlock()
   */
@@ -605,8 +617,42 @@ private:
                   (void) details.AddTail(mlr.GetDetails()); // guaranteed not to fail
                }
 
+               RemoveDuplicateItemsFromSequence(q);
+
                Hashtable<muscle_thread_id, Queue<String> > * tab = capturedResults.GetOrPut(q);
-               if (tab) (void) tab->Put(threadID, details);
+               if (tab)
+               {
+                  const Queue<String> * oldDetails = tab->Get(threadID);
+                  if ((oldDetails == NULL)||(details.GetNumItems() < oldDetails->GetNumItems())) (void) tab->Put(threadID, details);
+               }
+            }
+         }
+      }
+
+      // Gotta remove all the duplicates while keeping the first instances of each pointer in the same order as before
+      void RemoveDuplicateItemsFromSequence(Queue<const void *> & seq) const
+      {
+         Hashtable<const void *, uint32> histogram;
+         (void) histogram.EnsureSize(seq.GetNumItems());
+         for (uint32 i=0; i<seq.GetNumItems(); i++)
+         {
+            uint32 * count = histogram.GetOrPut(seq[i]);
+            if (count) (*count)++;
+         }
+         for (HashtableIterator<const void *, uint32> iter(histogram); iter.HasData(); iter++)
+         {
+            const void * deDupMe = iter.GetKey();
+            if (iter.GetValue() > 1)
+            {
+               bool foundFirst = false;
+               for (uint32 i=0; i<seq.GetNumItems(); i++)
+               {
+                  if (seq[i] == deDupMe)
+                  {
+                     if (foundFirst) (void) seq.RemoveItemAt(i--);
+                                else foundFirst = true;
+                  }
+               }
             }
          }
       }
@@ -701,17 +747,6 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
    }
    if (mel) mel->AddEvent(isLock, mutexPtr, fileName, fileLine);
        else printf("DeadlockFinder_LogEvent:  malloc of MutexLockRecordLog failed!?\n");  // we can't even call MWARN_OUT_OF_MEMORY here
-}
-
-static String LockSequenceToString(const Queue<const void *> & seq)
-{
-   String ret;
-   for (uint32 i=0; i<seq.GetNumItems(); i++)
-   {
-      if (ret.HasChars()) ret += ',';
-      ret += String("%1").Arg(seq[i]);
-   }
-   return ret;
 }
 
 static String ThreadsListToString(const Queue<muscle_thread_id> & threadsList)

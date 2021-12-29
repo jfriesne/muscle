@@ -24,6 +24,7 @@ public:
          Mutex * m1 = reverseOrder ? &_mutexB : &_mutexA;
          Mutex * m2 = reverseOrder ? &_mutexA : &_mutexB;
          DECLARE_MUTEXGUARD(*m1);  // using the macro allows the deadlock-finder to find this line-location, rather than the line in Mutex.h
+         DECLARE_MUTEXGUARD(*m1);  // doing it a second time just to make sure that recursive-locking is handled as expected
          if (m2->Lock().IsError()) printf("Error, couldn't lock second Mutex!  (this should never happen!)\n");
          if (m2->Unlock().IsError()) printf("Error, couldn't unlock second Mutex!  (this should never happen!)\n");
       }
