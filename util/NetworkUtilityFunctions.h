@@ -25,10 +25,6 @@
 # include <ws2tcpip.h>
 #endif
 
-#ifdef BONE
-# include <sys/select.h>  // sikosis at bebits.com says this is necessary... hmm.
-#endif
-
 namespace muscle {
 
 /** @defgroup networkutilityfunctions The NetworkUtilityFunctions function API
