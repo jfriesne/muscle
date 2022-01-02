@@ -30,6 +30,9 @@ key:  - new feature
      accessing the Mutex class's back-end directly, if necessary.
    o Removed deadlockfinder.cpp because its functionality is
      built in to the core MUSCLE library now.
+   o Refactored various status_t returning code to use
+     MRETURN_ON_ERROR macro instead of manual status-variable
+     management, for better readability.
    * Refactored the Mutex class so that the code associated with
      the -DMUSCLE_ENABLE_DEADLOCK_FINDER deadlock-finding feature
      integrates better with TryLock() and the MutexGuard class.

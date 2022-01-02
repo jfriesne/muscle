@@ -124,59 +124,51 @@ status_t DataNode :: InsertIndexEntryAt(uint32 insertIndex, StorageReflectSessio
 
    if (_children == NULL) return B_BAD_OBJECT;
 
-   status_t ret;
    DataNodeRef childNode;
-   if (_children->Get(&key, childNode).IsOK(ret))
+   MRETURN_ON_ERROR(_children->Get(&key, childNode));
+
+   if (_orderedIndex == NULL)
    {
-      if (_orderedIndex == NULL)
-      {
-         _orderedIndex = newnothrow Queue<DataNodeRef>;
-         MRETURN_OOM_ON_NULL(_orderedIndex);
-      }
-      if (_orderedIndex->InsertItemAt(insertIndex, childNode).IsOK(ret))
-      {
-         // Notify anyone monitoring this node that the ordered-index has been updated
-         notifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, childNode()->GetNodeName());
-         return B_NO_ERROR;
-      }
+      _orderedIndex = newnothrow Queue<DataNodeRef>;
+      MRETURN_OOM_ON_NULL(_orderedIndex);
    }
-   return ret;
+   MRETURN_ON_ERROR(_orderedIndex->InsertItemAt(insertIndex, childNode));
+
+   // Notify anyone monitoring this node that the ordered-index has been updated
+   notifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, childNode()->GetNodeName());
+   return B_NO_ERROR;
 }
 
-status_t DataNode :: ReorderChild(const DataNodeRef & child, const String * moveToBeforeThis, StorageReflectSession * optNotifyWith)
+status_t DataNode :: ReorderChild(const DataNodeRef & child, const String * optMoveToBeforeThis, StorageReflectSession * optNotifyWith)
 {
    TCHECKPOINT;
 
-   if (_orderedIndex == NULL) return B_BAD_OBJECT;
-   if ((child() == NULL)||((moveToBeforeThis)&&(*moveToBeforeThis == child()->GetNodeName()))) return B_BAD_ARGUMENT;
+   if (child() == NULL) return B_BAD_ARGUMENT;
+   if (_orderedIndex == NULL) return B_DATA_NOT_FOUND;
+   if ((optMoveToBeforeThis)&&(*optMoveToBeforeThis == child()->GetNodeName())) return B_NO_ERROR;  // moving a child to before his own position is a no-op, but it's ok
 
-   // Only do anything if we have an index, and the node isn't going to be moved to before itself (silly) and (child) can be removed from the index
-   status_t ret;
-   if (RemoveIndexEntry(child()->GetNodeName(), optNotifyWith).IsOK(ret))
+   MRETURN_ON_ERROR(RemoveIndexEntry(child()->GetNodeName(), optNotifyWith));
+
+   // Then re-add him to the index at the appropriate point
+   uint32 targetIndex = _orderedIndex->GetNumItems();  // default to end of index
+   if ((optMoveToBeforeThis)&&(HasChild(*optMoveToBeforeThis)))
    {
-      // Then re-add him to the index at the appropriate point
-      uint32 targetIndex = _orderedIndex->GetNumItems();  // default to end of index
-      if ((moveToBeforeThis)&&(HasChild(*moveToBeforeThis)))
+      for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--)
       {
-         for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--) 
-         { 
-            if (*moveToBeforeThis == (*_orderedIndex)[i]()->GetNodeName())
-            {
-               targetIndex = i;
-               break; 
-            }
+         if (*optMoveToBeforeThis == (*_orderedIndex)[i]()->GetNodeName())
+         {
+            targetIndex = i;
+            break;
          }
       }
-
-      // Now add the child back into the index at his new position
-      if (_orderedIndex->InsertItemAt(targetIndex, child).IsOK(ret))
-      {
-         // Notify anyone monitoring this node that the ordered-index has been updated
-         if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, targetIndex, child()->GetNodeName());
-         return B_NO_ERROR;
-      }
    }
-   return ret;
+
+   // Now add the child back into the index at his new position
+   MRETURN_ON_ERROR(_orderedIndex->InsertItemAt(targetIndex, child));
+
+   // Notify anyone monitoring this node that the ordered-index has been updated
+   if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, targetIndex, child()->GetNodeName());
+   return B_NO_ERROR;
 }
 
 status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyChangedData)
@@ -195,13 +187,13 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
    child->SetParent(this, optNotifyWithOnSetParent);
    DataNodeRef oldNode;
 
-   status_t ret;
-   if ((_children->Put(&child->_nodeName, node, oldNode).IsOK(ret))&&(optNotifyChangedData))
+   MRETURN_ON_ERROR(_children->Put(&child->_nodeName, node, oldNode));
+   if (optNotifyChangedData)
    {
       MessageRef oldData; if (oldNode()) oldData = oldNode()->GetData();
       optNotifyChangedData->NotifySubscribersThatNodeChanged(*child, oldData, StorageReflectSession::NodeChangeFlags());
    }
-   return ret;
+   return B_NO_ERROR;
 }
 
 void DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNotifyWith)
@@ -304,26 +296,23 @@ status_t DataNode :: RemoveChild(const String & key, StorageReflectSession * opt
 
    if (_children == NULL) return B_DATA_NOT_FOUND;
 
-   status_t ret;
    DataNodeRef childRef;
-   if (_children->Get(&key, childRef).IsOK(ret))
+   MRETURN_ON_ERROR(_children->Get(&key, childRef));
+
+   DataNode * child = childRef();
+   if (child)
    {
-      DataNode * child = childRef();
-      if (child)
-      {
-         if (recurse) while(child->HasChildren()) (void) child->RemoveChild(**(child->_children->GetFirstKey()), optNotifyWith, recurse, optCurrentNodeCount);
+      if (recurse) while(child->HasChildren()) (void) child->RemoveChild(**(child->_children->GetFirstKey()), optNotifyWith, recurse, optCurrentNodeCount);
 
-         (void) RemoveIndexEntry(key, optNotifyWith);
-         if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*child, child->GetData(), StorageReflectSession::NodeChangeFlags(StorageReflectSession::NODE_CHANGE_FLAG_ISBEINGREMOVED));
+      (void) RemoveIndexEntry(key, optNotifyWith);
+      if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*child, child->GetData(), StorageReflectSession::NodeChangeFlags(StorageReflectSession::NODE_CHANGE_FLAG_ISBEINGREMOVED));
 
-         child->SetParent(NULL, optNotifyWith);
-      }
-      if (optCurrentNodeCount) (*optCurrentNodeCount)--;
-
-      (void) _children->Remove(&key, childRef);
-      return B_NO_ERROR;
+      child->SetParent(NULL, optNotifyWith);
    }
-   else return ret;
+   if (optCurrentNodeCount) (*optCurrentNodeCount)--;
+
+   (void) _children->Remove(&key, childRef);
+   return B_NO_ERROR;
 }
 
 status_t DataNode :: RemoveIndexEntry(const String & key, StorageReflectSession * optNotifyWith)

@@ -1019,24 +1019,21 @@ ReflectServer ::
 RemoveAcceptFactoryAux(const IPAddressAndPort & iap)
 {
    ReflectSessionFactoryRef ref;
-   status_t ret;
-   if (_factories.Get(iap, ref).IsOK(ret))  // don't remove it yet, in case AboutToDetachFromServer() calls a method on us
-   {
-      ref()->SetFullyAttachedToServer(false);
-      ref()->AboutToDetachFromServer();
-      _lameDuckFactories.AddTail(ref);  // we'll actually have (factory) deleted later on, since at the moment 
-                                        // we could be in the middle of one of (ref())'s own method calls!
-      (void) _factories.Remove(iap);  // must call this AFTER the AboutToDetachFromServer() call!
+   MRETURN_ON_ERROR(_factories.Get(iap, ref));  // ... but don't remove the entry yet, in case AboutToDetachFromServer() calls a method on us
 
-      // See if there are any other instances of this factory still present.
-      // if there aren't, we'll clear the factory's owner-pointer so he can't access us anymore
-      if (_factories.IndexOfValue(ref) < 0) ref()->SetOwner(NULL);
+   ref()->SetFullyAttachedToServer(false);
+   ref()->AboutToDetachFromServer();
+   (void) _lameDuckFactories.AddTail(ref);  // we'll actually have (factory) deleted later on, since at the moment
+                                            // we could be in the middle of one of (ref())'s own method calls!
+   (void) _factories.Remove(iap);  // must call this AFTER the AboutToDetachFromServer() call!
 
-      (void) _factorySockets.Remove(iap);
+   // See if there are any other instances of this factory still present.
+   // if there aren't, we'll clear the factory's owner-pointer so he can't access us anymore
+   if (_factories.IndexOfValue(ref) < 0) ref()->SetOwner(NULL);
 
-      return B_NO_ERROR;
-   }
-   else return ret;
+   (void) _factorySockets.Remove(iap);
+
+   return B_NO_ERROR;
 }
 
 status_t
@@ -1058,15 +1055,11 @@ FinalizeAsyncConnect(const AbstractReflectSessionRef & ref)
    AbstractReflectSession * session = ref();
    if (session == NULL) return B_BAD_ARGUMENT;
 
-   status_t ret;
-   if (muscle::FinalizeAsyncConnect(session->GetSessionReadSelectSocket()).IsOK(ret))
-   {
-      session->SetConnectingAsync(false);
-      session->_isConnected = session->_wasConnected = true;
-      session->AsyncConnectCompleted();
-      return B_NO_ERROR;
-   }
-   return ret;
+   MRETURN_ON_ERROR(muscle::FinalizeAsyncConnect(session->GetSessionReadSelectSocket()));
+   session->SetConnectingAsync(false);
+   session->_isConnected = session->_wasConnected = true;
+   session->AsyncConnectCompleted();
+   return B_NO_ERROR;
 }
 
 uint64 

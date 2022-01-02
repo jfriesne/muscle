@@ -99,64 +99,55 @@ void ThreadWorkerSession :: SetForwardAllIncomingMessagesToSupervisorIfNotAlread
 
 status_t MessageTransceiverThread :: AddNewSession(const ConstSocketRef & sock, const AbstractReflectSessionRef & sessionRef)
 {
-   status_t ret;
-   if (EnsureServerAllocated().IsOK(ret))
-   {
-      AbstractReflectSessionRef sRef = sessionRef;
-      if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
-      if (sRef())
-      {
-          ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(sRef());
-          if (tws) tws->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
-      }
-      else return B_ERROR("CreateDefaultWorkerSession() failed");
+   MRETURN_ON_ERROR(EnsureServerAllocated());
 
-      return IsInternalThreadRunning() ? SendAddNewSessionMessage(sRef, sock, NULL, invalidIP, 0, false, MUSCLE_TIME_NEVER, MUSCLE_TIME_NEVER) : _server()->AddNewSession(sRef, sock);
+   AbstractReflectSessionRef sRef = sessionRef;
+   if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
+   if (sRef())
+   {
+       ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(sRef());
+       if (tws) tws->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
    }
-   else return ret;
+   else return B_ERROR("CreateDefaultWorkerSession() failed");
+
+   return IsInternalThreadRunning() ? SendAddNewSessionMessage(sRef, sock, NULL, invalidIP, 0, false, MUSCLE_TIME_NEVER, MUSCLE_TIME_NEVER) : _server()->AddNewSession(sRef, sock);
 }
 
 status_t MessageTransceiverThread :: AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, const AbstractReflectSessionRef & sessionRef, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
-   status_t ret;
-   if (EnsureServerAllocated().IsOK(ret))
-   {
-      AbstractReflectSessionRef sRef = sessionRef;
-      if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
-      if (sRef())
-      {
-         ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(sRef());
-         if (tws) tws->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
-      }
-      else return B_ERROR("CreateDefaultWorkerSession() failed");
+   MRETURN_ON_ERROR(EnsureServerAllocated());
 
-      return IsInternalThreadRunning() ? SendAddNewSessionMessage(sRef, ConstSocketRef(), NULL, targetIPAddress, port, false, autoReconnectDelay, maxAsyncConnectPeriod) : _server()->AddNewConnectSession(sRef, targetIPAddress, port, autoReconnectDelay, maxAsyncConnectPeriod);
+   AbstractReflectSessionRef sRef = sessionRef;
+   if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
+   if (sRef())
+   {
+      ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(sRef());
+      if (tws) tws->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
    }
-   else return ret;
+   else return B_ERROR("CreateDefaultWorkerSession() failed");
+
+   return IsInternalThreadRunning() ? SendAddNewSessionMessage(sRef, ConstSocketRef(), NULL, targetIPAddress, port, false, autoReconnectDelay, maxAsyncConnectPeriod) : _server()->AddNewConnectSession(sRef, targetIPAddress, port, autoReconnectDelay, maxAsyncConnectPeriod);
 }
 
 status_t MessageTransceiverThread :: AddNewConnectSession(const String & targetHostName, uint16 port, const AbstractReflectSessionRef & sessionRef, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
-   status_t ret;
-   if (EnsureServerAllocated().IsOK(ret))
-   {
-      AbstractReflectSessionRef sRef = sessionRef;
-      if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
-      if (sRef())
-      {
-         ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(sRef());
-         if (tws) tws->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
+   MRETURN_ON_ERROR(EnsureServerAllocated());
 
-         if (IsInternalThreadRunning()) return SendAddNewSessionMessage(sRef, ConstSocketRef(), targetHostName(), 0, port, expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);
-         else
-         {
-            const IPAddress ip = GetHostByName(targetHostName(), expandLocalhost);
-            return (ip != invalidIP) ? _server()->AddNewConnectSession(sRef, ip, port, autoReconnectDelay, maxAsyncConnectPeriod) : B_ERROR("GetHostByName() failed");
-         }
+   AbstractReflectSessionRef sRef = sessionRef;
+   if (sRef() == NULL) sRef = CreateDefaultWorkerSession();
+   if (sRef())
+   {
+      ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(sRef());
+      if (tws) tws->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
+
+      if (IsInternalThreadRunning()) return SendAddNewSessionMessage(sRef, ConstSocketRef(), targetHostName(), 0, port, expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);
+      else
+      {
+         const IPAddress ip = GetHostByName(targetHostName(), expandLocalhost);
+         return (ip != invalidIP) ? _server()->AddNewConnectSession(sRef, ip, port, autoReconnectDelay, maxAsyncConnectPeriod) : B_ERROR("GetHostByName() failed");
       }
-      else return B_ERROR("CreateDefaultWorkerSession() failed");
    }
-   else return ret;
+   else return B_ERROR("CreateDefaultWorkerSession() failed");
 }
 
 status_t MessageTransceiverThread :: SendAddNewSessionMessage(const AbstractReflectSessionRef & sessionRef, const ConstSocketRef & sock, const char * hostName, const IPAddress & hostIP, uint16 port, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
@@ -179,29 +170,25 @@ status_t MessageTransceiverThread :: SendAddNewSessionMessage(const AbstractRefl
 
 status_t MessageTransceiverThread :: PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const IPAddress & optInterfaceIP, uint16 * optRetPort)
 {
-   status_t ret;
-   if (EnsureServerAllocated().IsOK(ret))
+   MRETURN_ON_ERROR(EnsureServerAllocated());
+
+   ReflectSessionFactoryRef fRef = factoryRef;
+   if (fRef() == NULL) fRef = CreateDefaultSessionFactory();
+   if (fRef() == NULL) return B_ERROR("CreateDefaultSessionFactory() failed");
+
+   ThreadWorkerSessionFactory * twsf = dynamic_cast<ThreadWorkerSessionFactory *>(fRef());
+   if (twsf) twsf->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
+
+   if (IsInternalThreadRunning())
    {
-      ReflectSessionFactoryRef fRef = factoryRef;
-      if (fRef() == NULL) fRef = CreateDefaultSessionFactory();
-      if (fRef())
-      {
-         ThreadWorkerSessionFactory * twsf = dynamic_cast<ThreadWorkerSessionFactory *>(fRef());
-         if (twsf) twsf->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
-         if (IsInternalThreadRunning())
-         {
-            MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_PUT_ACCEPT_FACTORY));
-            MRETURN_OOM_ON_NULL(msgRef());
-            if ((msgRef()->AddInt16(MTT_NAME_PORT, port)                              .IsOK(ret)) &&
-                (msgRef()->AddTag(MTT_NAME_FACTORY, fRef)                             .IsOK(ret)) &&
-                (AddIPAddressToMessage(*msgRef(), MTT_NAME_IP_ADDRESS, optInterfaceIP).IsOK(ret)) &&
-                (SendMessageToInternalThread(msgRef)                                  .IsOK(ret))) return B_NO_ERROR;
-         }
-         else if (_server()->PutAcceptFactory(port, fRef, optInterfaceIP, optRetPort).IsOK(ret)) return B_NO_ERROR;
-      }
-      else return B_ERROR("CreateDefaultSessionFactory() failed");
+      MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_PUT_ACCEPT_FACTORY));
+      MRETURN_OOM_ON_NULL(msgRef());
+      MRETURN_ON_ERROR(msgRef()->AddInt16(MTT_NAME_PORT, port));
+      MRETURN_ON_ERROR(msgRef()->AddTag(MTT_NAME_FACTORY, fRef));
+      MRETURN_ON_ERROR(AddIPAddressToMessage(*msgRef(), MTT_NAME_IP_ADDRESS, optInterfaceIP));
+      return SendMessageToInternalThread(msgRef);
    }
-   return ret;
+   else return _server()->PutAcceptFactory(port, fRef, optInterfaceIP, optRetPort);
 }
 
 status_t MessageTransceiverThread :: RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP)
@@ -324,24 +311,25 @@ status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(cons
    MessageRef replyRef   = GetMessageFromPool(MTT_EVENT_OUTPUT_QUEUES_DRAINED);
    if ((commandRef() == NULL)||(replyRef() == NULL)) MRETURN_OUT_OF_MEMORY;
 
-   status_t ret;
-   if (replyRef()->CAddMessage(MTT_NAME_MESSAGE, notifyRef).IsOK(ret))
-   {
-      DrainTagRef drainTagRef(optDrainTag ? optDrainTag : newnothrow DrainTag);
-      if (drainTagRef()) drainTagRef()->SetReplyMessage(replyRef);
-      if ((drainTagRef())&&
-          (commandRef()->CAddString(MTT_NAME_PATH, optDistPath) .IsOK(ret)) &&
-          (commandRef()->AddTag(MTT_NAME_DRAIN_TAG, drainTagRef).IsOK(ret)) &&
-          (SendMessageToInternalThread(commandRef)              .IsOK(ret))) return B_NO_ERROR;
+   MRETURN_ON_ERROR(replyRef()->CAddMessage(MTT_NAME_MESSAGE, notifyRef));
 
-      // User keeps ownership of his custom DrainTag on error, so we don't delete it.
-      if ((drainTagRef())&&(drainTagRef() == optDrainTag))
-      {
-         drainTagRef()->SetReplyMessage(MessageRef());
-         drainTagRef.Neutralize();
-      }
+   DrainTagRef drainTagRef(optDrainTag ? optDrainTag : newnothrow DrainTag);
+   if (drainTagRef()) drainTagRef()->SetReplyMessage(replyRef);
+   if (drainTagRef())
+   {
+       MRETURN_ON_ERROR(commandRef()->CAddString(MTT_NAME_PATH, optDistPath));
+       MRETURN_ON_ERROR(commandRef()->AddTag(MTT_NAME_DRAIN_TAG, drainTagRef));
+       return SendMessageToInternalThread(commandRef);
    }
-   return ret;
+
+   // User keeps ownership of his custom DrainTag on error, so we don't delete it.
+   if ((drainTagRef())&&(drainTagRef() == optDrainTag))
+   {
+      drainTagRef()->SetReplyMessage(MessageRef());
+      drainTagRef.Neutralize();
+   }
+
+  return B_NO_ERROR;
 }
 
 status_t MessageTransceiverThread :: SetNewInputPolicy(const AbstractSessionIOPolicyRef & pref, const String & optDistPath)

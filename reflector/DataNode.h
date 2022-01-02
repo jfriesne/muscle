@@ -55,16 +55,16 @@ public:
  
    /** 
     * Moves the given node (which must be a child of ours) to be just before the node named
-    * (moveToBeforeThis) in our index.  If (moveToBeforeThis) is not a node in our index,
+    * (optMoveToBeforeThis) in our index.  If (optMoveToBeforeThis) is NULL, or not a node in our index,
     * then (child) will be moved back to the end of the index. 
     * @param child Reference to a child node of ours, to be moved in the node ordering index.
-    * @param moveToBeforeThis name of another child node of ours.  If this name is NULL or
+    * @param optMoveToBeforeThis name of another child node of ours.  If this name is NULL or
     *                         not found in our index, we'll move (child) to the end of the index.
     * @param optNotifyWith If non-NULL, this will be used to sent INDEXUPDATE message to the
     *                      interested clients, notifying them of the change.
-    * @return B_NO_ERROR on success, B_OUT_OF_MEMORY on failure (out of memory)
+    * @return B_NO_ERROR on success, another error code on failure (child not found, or out of memory?)
     */
-   status_t ReorderChild(const DataNodeRef & child, const String * moveToBeforeThis, StorageReflectSession * optNotifyWith);
+   status_t ReorderChild(const DataNodeRef & child, const String * optMoveToBeforeThis, StorageReflectSession * optNotifyWith);
 
    /** Returns true iff we have a child with the given name
      * @param key node-name that we should check our child-nodes-table for (it's an O(1) lookup)

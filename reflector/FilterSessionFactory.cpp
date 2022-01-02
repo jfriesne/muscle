@@ -117,13 +117,9 @@ status_t FilterSessionFactory :: PutBanPattern(const String & banPattern)
    StringMatcherRef newMatcherRef(newnothrow StringMatcher(banPattern));
    MRETURN_OOM_ON_NULL(newMatcherRef());
 
-   status_t ret;
-   if (_bans.Put(banPattern, newMatcherRef).IsOK(ret))
-   {
-      if (_tempLogFor) LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is banning [%s] on port %u\n", _tempLogFor->GetHostName()(), _tempLogFor->GetSessionIDString()(), banPattern(), _tempLogFor->GetPort());
-      return B_NO_ERROR;
-   }
-   return ret;
+   MRETURN_ON_ERROR(_bans.Put(banPattern, newMatcherRef));
+   if (_tempLogFor) LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is banning [%s] on port %u\n", _tempLogFor->GetHostName()(), _tempLogFor->GetSessionIDString()(), banPattern(), _tempLogFor->GetPort());
+   return B_NO_ERROR;
 }
 
 status_t FilterSessionFactory :: PutRequirePattern(const String & requirePattern)
@@ -135,13 +131,9 @@ status_t FilterSessionFactory :: PutRequirePattern(const String & requirePattern
    StringMatcherRef newMatcherRef(newnothrow StringMatcher(requirePattern));
    MRETURN_OOM_ON_NULL(newMatcherRef());
 
-   status_t ret;
-   if (_requires.Put(requirePattern, newMatcherRef).IsOK(ret))
-   {
-      if (_tempLogFor) LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is requiring [%s] on port %u\n", _tempLogFor->GetHostName()(), _tempLogFor->GetSessionIDString()(), requirePattern(), _tempLogFor->GetPort());
-      return B_NO_ERROR;
-   }
-   return ret;
+   MRETURN_ON_ERROR(_requires.Put(requirePattern, newMatcherRef));
+   if (_tempLogFor) LogTime(MUSCLE_LOG_DEBUG, "Session [%s/%s] is requiring [%s] on port %u\n", _tempLogFor->GetHostName()(), _tempLogFor->GetSessionIDString()(), requirePattern(), _tempLogFor->GetPort());
+   return B_NO_ERROR;
 }
 
 status_t FilterSessionFactory :: RemoveBanPattern(const String & banPattern)

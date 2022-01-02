@@ -907,14 +907,10 @@ Queue<ItemType>::CopyFrom(const Queue & rhs)
 {
    if (this == &rhs) return B_NO_ERROR;
 
-   status_t ret;
    const uint32 numItems = rhs.GetNumItems();
-   if (EnsureSize(numItems, true).IsOK(ret))
-   {
-      for (uint32 i=0; i<numItems; i++) (*this)[i] = rhs[i];
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(EnsureSize(numItems, true));
+   for (uint32 i=0; i<numItems; i++) (*this)[i] = rhs[i];
+   return B_NO_ERROR;
 }
 
 template <class ItemType>
@@ -1153,7 +1149,7 @@ RemoveHeadWithDefault()
    if (IsEmpty()) return GetDefaultItem(); 
    else
    {
-      ItemType ret = Head(); 
+      const ItemType ret = Head(); 
       (void) RemoveHead(); 
       return ret;
    }
@@ -1190,7 +1186,7 @@ RemoveTailWithDefault()
    if (IsEmpty()) return GetDefaultItem(); 
    else
    {
-      ItemType ret = Tail(); 
+      const ItemType ret = Tail(); 
       (void) RemoveTail(); 
       return ret;
    }
@@ -1306,15 +1302,13 @@ InsertItemAt(uint32 index, QQ_SinkItemParam item)
    if (index < _itemCount/2)
    {
       // Add a space at the front, and shift things back
-      status_t ret = AddHead();  // allocate an extra slot
-      if (ret.IsError()) return ret;
+      MRETURN_ON_ERROR(AddHead());  // allocate an extra slot
       for (uint32 i=0; i<index; i++) (void) ReplaceItemAt(i, QQ_ForwardItem(*GetItemAtUnchecked(i+1)));
    }
    else
    {
       // Add a space at the rear, and shift things forward
-      status_t ret = AddTail();  // allocate an extra slot
-      if (ret.IsError()) return ret;
+      MRETURN_ON_ERROR(AddTail());  // allocate an extra slot
       for (int32 i=((int32)_itemCount)-1; i>((int32)index); i--) (void) ReplaceItemAt(i, QQ_ForwardItem(*GetItemAtUnchecked(i-1)));
    }
    return ReplaceItemAt(index, QQ_ForwardItem(item));
@@ -1338,8 +1332,7 @@ InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex, ui
    const uint32 oldSize = GetNumItems();
    const uint32 newSize = oldSize+numNewItems;
 
-   status_t ret = EnsureSize(newSize, true);
-   if (ret.IsError()) return ret;
+   MRETURN_ON_ERROR(EnsureSize(newSize, true));
 
    for (uint32 i=index; i<oldSize; i++)           (*this)[i+numNewItems] = (*this)[i];
    for (uint32 i=index; i<index+numNewItems; i++) (*this)[i]             = queue[startIndex++];
@@ -1363,8 +1356,7 @@ InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems)
    const uint32 newSize = oldSize+numNewItems;
 
    ItemType * oldItems;
-   status_t ret = EnsureSizeAux(newSize, true, &oldItems, NULL, false);
-   if (ret.IsError()) return ret;
+   MRETURN_ON_ERROR(EnsureSizeAux(newSize, true, &oldItems, NULL, false));
 
    int32 si = 0;
    for (uint32 i=index; i<oldSize; i++)           (*this)[i+numNewItems] = (*this)[i];

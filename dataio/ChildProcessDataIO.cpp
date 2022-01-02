@@ -77,7 +77,7 @@ status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, Ch
    MRETURN_OOM_ON_NULL(argv);
    for (uint32 i=0; i<numItems; i++) argv[i] = argq[i]();
    argv[numItems] = NULL;
-   status_t ret = LaunchChildProcess(numItems, argv, launchFlags, optDirectory, optEnvironmentVariables);
+   const status_t ret = LaunchChildProcess(numItems, argv, launchFlags, optDirectory, optEnvironmentVariables);
    delete [] argv;
    return ret;
 }
@@ -840,14 +840,10 @@ void ChildProcessDataIO :: IOThreadEntry()
 
 status_t ChildProcessDataIO :: System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
 {
-   status_t ret;
    ChildProcessDataIO cpdio(false);
-   if (cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory, optEnvironmentVariables).IsOK(ret))
-   {
-      (void) cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory, optEnvironmentVariables));
+   (void) cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
+   return B_NO_ERROR;
 }
 
 status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
@@ -867,13 +863,9 @@ status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLa
 status_t ChildProcessDataIO :: System(const char * cmdLine, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
 {
    ChildProcessDataIO cpdio(false);
-   status_t ret;
-   if (cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory, optEnvironmentVariables).IsOK(ret))
-   {
-      (void) cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory, optEnvironmentVariables));
+   (void) cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
+   return B_NO_ERROR;
 }
 
 status_t ChildProcessDataIO :: LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory, ChildProcessLaunchFlags launchFlags, const Hashtable<String, String> * optEnvironmentVariables)

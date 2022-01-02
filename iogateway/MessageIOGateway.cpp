@@ -534,14 +534,11 @@ status_t MessageIOGateway :: ExecuteSynchronousMessaging(AbstractGatewayMessageR
    MessageRef pingMsg = CreateSynchronousPingMessage(_syncPingCounter);
    if (pingMsg() == NULL) return B_ERROR("CreateSynchronousPingMessage() failed");
 
-   status_t ret;
-   if (AddOutgoingMessage(pingMsg).IsOK(ret))
-   {
-      _pendingSyncPingCounter = _syncPingCounter;
-      _syncPingCounter++;
-      return AbstractMessageIOGateway::ExecuteSynchronousMessaging(optReceiver, timeoutPeriod);
-   }
-   else return ret;
+   MRETURN_ON_ERROR(AddOutgoingMessage(pingMsg));
+
+   _pendingSyncPingCounter = _syncPingCounter;
+   _syncPingCounter++;
+   return AbstractMessageIOGateway::ExecuteSynchronousMessaging(optReceiver, timeoutPeriod);
 }
 
 void MessageIOGateway :: SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r) 

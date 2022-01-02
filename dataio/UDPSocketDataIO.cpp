@@ -48,9 +48,9 @@ int32 UDPSocketDataIO :: WriteTo(const void * buffer, uint32 size, const IPAddre
 
 status_t UDPSocketDataIO :: SetBlockingIOEnabled(bool blocking)
 {
-   const status_t ret = SetSocketBlockingEnabled(_sock, blocking);
-   if (ret.IsOK()) _blocking = blocking;
-   return ret;
+   MRETURN_ON_ERROR(SetSocketBlockingEnabled(_sock, blocking));
+   _blocking = blocking;
+   return B_NO_ERROR;
 }
 
 } // end namespace muscle

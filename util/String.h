@@ -1395,13 +1395,13 @@ public:
 inline const String & GetEmptyString() {return GetDefaultObjectForType<String>();}
 
 template<class T> inline String operator+(const String & lhs, const T & rhs) {return rhs.ToString().Prepend(lhs);}
-inline String operator+(const String & lhs, const String & rhs)  {String ret; (void) ret.Prealloc(lhs.Length()+rhs.Length());        ret = lhs; ret += rhs; return ret;}
+inline String operator+(const String & lhs, const String & rhs)  {String ret; (void) ret.Prealloc(lhs.Length()+rhs.Length());                ret = lhs; ret += rhs; return ret;}
 inline String operator+(const String & lhs, const char *rhs)     {String ret; (void) ret.Prealloc(lhs.Length()+(rhs?(uint32)strlen(rhs):0)); ret = lhs; ret += rhs; return ret;}
 inline String operator+(const String & lhs,       char *rhs)     {String ret; (void) ret.Prealloc(lhs.Length()+(rhs?(uint32)strlen(rhs):0)); ret = lhs; ret += rhs; return ret;}
 inline String operator+(const char * lhs,   const String & rhs)  {String ret; (void) ret.Prealloc((lhs?(uint32)strlen(lhs):0)+rhs.Length()); ret = lhs; ret += rhs; return ret;}
 inline String operator+(      char * lhs,   const String & rhs)  {String ret; (void) ret.Prealloc((lhs?(uint32)strlen(lhs):0)+rhs.Length()); ret = lhs; ret += rhs; return ret;}
-inline String operator+(const String & lhs, char rhs)            {String ret; (void) ret.Prealloc(lhs.Length()+1);                   ret = lhs; ret += rhs; return ret;}
-inline String operator+(char lhs,           const String & rhs)  {String ret; (void) ret.Prealloc(1+rhs.Length());                   ret.SetCstr(&lhs, 1); ret += rhs; return ret;}
+inline String operator+(const String & lhs, char rhs)            {String ret; (void) ret.Prealloc(lhs.Length()+1);                           ret = lhs; ret += rhs; return ret;}
+inline String operator+(char lhs,           const String & rhs)  {String ret; (void) ret.Prealloc(1+rhs.Length());                ret.SetCstr(&lhs, 1); ret += rhs; return ret;}
 template<class T> inline String operator-(const String & lhs, const T & rhs) {String ret = lhs; ret -= rhs; return ret;}
 inline String operator-(const String & lhs, const String & rhs)  {String ret = lhs; ret -= rhs; return ret;}
 inline String operator-(const String & lhs, const char *rhs)     {String ret = lhs; ret -= rhs; return ret;}

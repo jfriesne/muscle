@@ -29,13 +29,10 @@ status_t AsyncDataIO :: Seek(int64 offset, int whence)
 {
    if (IsInternalThreadRunning() == false) {LogTime(MUSCLE_LOG_ERROR, "StartInternalThread() must be called before calling AsyncDataIO::Seek()!\n"); return B_BAD_OBJECT;}
 
-   status_t ret;
-   if (_asyncCommandsMutex.Lock().IsOK(ret))
-   {
-      ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_SEEK, offset, whence));
-      _asyncCommandsMutex.Unlock();
-      if (ret.IsOK()) NotifyInternalThread();
-   }
+   MRETURN_ON_ERROR(_asyncCommandsMutex.Lock());
+   const status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_SEEK, offset, whence));
+   (void) _asyncCommandsMutex.Unlock();
+   if (ret.IsOK()) NotifyInternalThread();
    return ret;
 }
 

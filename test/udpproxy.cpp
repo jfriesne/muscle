@@ -82,11 +82,10 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
 
       if (multiplexer.WaitForEvents() >= 0)
       {
-         status_t ret;
-         if (ReadIncomingData( aDesc, aIO, multiplexer, outgoingBData)        .IsError(ret)) return ret;
-         if (ReadIncomingData( bDesc, bIO, multiplexer, outgoingAData)        .IsError(ret)) return ret;
-         if (WriteOutgoingData(aDesc, aIO, multiplexer, outgoingAData, aIndex).IsError(ret)) return ret;
-         if (WriteOutgoingData(bDesc, bIO, multiplexer, outgoingBData, bIndex).IsError(ret)) return ret;
+         MRETURN_ON_ERROR(ReadIncomingData( aDesc, aIO, multiplexer, outgoingBData));
+         MRETURN_ON_ERROR(ReadIncomingData( bDesc, bIO, multiplexer, outgoingAData));
+         MRETURN_ON_ERROR(WriteOutgoingData(aDesc, aIO, multiplexer, outgoingAData, aIndex));
+         MRETURN_ON_ERROR(WriteOutgoingData(bDesc, bIO, multiplexer, outgoingBData, bIndex));
       }
       else 
       {

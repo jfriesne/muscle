@@ -582,7 +582,7 @@ String HexBytesToString(const Queue<uint8> & bytes);
   */
 status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg, bool prepend = false);
 
-/** Returns true iff the file with the specified path exists. 
+/** Returns true iff the file with the specified path exists and is readable. 
   * @param filePath Path of the file to check for.
   * @returns true if the file exists (and is readable), false otherwise.
   */

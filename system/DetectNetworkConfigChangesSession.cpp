@@ -121,9 +121,9 @@ public:
 
    status_t UnregisterSession(DetectNetworkConfigChangesSession * s)
    {
-      status_t ret;
-      if ((_registeredSessions.Remove(s).IsOK(ret))&&(_registeredSessions.IsEmpty())) ShutdownInternalThread();
-      return ret;
+      MRETURN_ON_ERROR(_registeredSessions.Remove(s));
+      if (_registeredSessions.IsEmpty()) ShutdownInternalThread();
+      return B_NO_ERROR;
    }
 
    bool HasRegisteredSessions() const {return _registeredSessions.HasItems();}
@@ -943,14 +943,12 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
 
 status_t DetectNetworkConfigChangesSession :: AttachedToServer()
 {
-   status_t ret;
-   if (AbstractReflectSession::AttachedToServer().IsOK(ret))
-   {
+   MRETURN_ON_ERROR(AbstractReflectSession::AttachedToServer());
 #if defined(USE_SINGLETON_THREAD)
-      return RegisterWithSingletonThread(this);
+   return RegisterWithSingletonThread(this);
+#else
+   return B_NO_ERROR;
 #endif
-   }
-   return ret;
 }
 
 void DetectNetworkConfigChangesSession :: EndSession()

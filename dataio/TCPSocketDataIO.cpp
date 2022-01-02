@@ -40,16 +40,16 @@ void TCPSocketDataIO :: FlushOutput()
    
 status_t TCPSocketDataIO :: SetBlockingIOEnabled(bool blocking)
 {
-   const status_t ret = SetSocketBlockingEnabled(_sock, blocking);
-   if (ret.IsOK()) _blocking = blocking;
-   return ret;
+   MRETURN_ON_ERROR(SetSocketBlockingEnabled(_sock, blocking));
+   _blocking = blocking;
+   return B_NO_ERROR;
 }
 
 status_t TCPSocketDataIO :: SetNaglesAlgorithmEnabled(bool enabled)
 {
-   const status_t ret = SetSocketNaglesAlgorithmEnabled(_sock, enabled);
-   if (ret.IsOK()) _naglesEnabled = enabled;
-   return ret;
+   MRETURN_ON_ERROR(SetSocketNaglesAlgorithmEnabled(_sock, enabled));
+   _naglesEnabled = enabled;
+   return B_NO_ERROR;
 }
 
 } // end namespace muscle

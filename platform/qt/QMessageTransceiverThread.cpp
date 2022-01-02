@@ -237,14 +237,10 @@ QMessageTransceiverThread * QMessageTransceiverThreadPool :: ObtainThread()
 
 status_t QMessageTransceiverThreadPool :: RegisterHandler(QMessageTransceiverThread & thread, QMessageTransceiverHandler * handler, const ThreadWorkerSessionRef & sessionRef)
 {
-   status_t ret;
-   if (thread.RegisterHandler(thread, handler, sessionRef).IsOK(ret))
-   {
-      handler->_master = this;  // necessary since QMessageTransceiverThread::RegisterHandler will have overwritten it
-      if (thread.GetHandlers().GetNumItems() >= _maxSessionsPerThread) (void) _threads.MoveToFront(&thread);
-      return B_NO_ERROR;
-   }
-   return ret;
+   MRETURN_ON_ERROR(thread.RegisterHandler(thread, handler, sessionRef));
+   handler->_master = this;  // necessary since QMessageTransceiverThread::RegisterHandler will have overwritten it
+   if (thread.GetHandlers().GetNumItems() >= _maxSessionsPerThread) (void) _threads.MoveToFront(&thread);
+   return B_NO_ERROR;
 }
 
 void QMessageTransceiverThreadPool :: UnregisterHandler(QMessageTransceiverThread & thread, QMessageTransceiverHandler * handler, bool emitEndMessageBatchIfNecessary)
@@ -290,12 +286,10 @@ status_t QMessageTransceiverHandler :: SetupAsNewSession(IMessageTransceiverMast
    if (sRef() == NULL) sRef = CreateDefaultWorkerSession(*thread);  // gotta do this now so we can know its ID
    if (sRef() == NULL) return B_ERROR("CreateDefaultWorkerSession() failed");
 
-   status_t ret;
-   if (master.RegisterHandler(*thread, this, sRef).IsOK(ret))
-   {
-      if (thread->AddNewSession(sock, sRef).IsOK(ret)) return B_NO_ERROR;
-      master.UnregisterHandler(*thread, this, true);
-   }
+   MRETURN_ON_ERROR(master.RegisterHandler(*thread, this, sRef));
+
+   const status_t ret = thread->AddNewSession(sock, sRef);
+   if (ret.IsError()) master.UnregisterHandler(*thread, this, true);  // roll back!
    return ret;
 }
 
@@ -309,12 +303,10 @@ status_t QMessageTransceiverHandler :: SetupAsNewConnectSession(IMessageTranscei
    if (sRef() == NULL) sRef = CreateDefaultWorkerSession(*thread);  // gotta do this now so we can know its ID
    if (sRef() == NULL) return B_ERROR("CreateDefaultWorkerSession() failed");
 
-   status_t ret;
-   if (master.RegisterHandler(*thread, this, sRef).IsOK(ret))
-   {
-      if (thread->AddNewConnectSession(targetIPAddress, port, sRef, autoReconnectDelay, maxAsyncConnectPeriod).IsOK(ret)) return B_NO_ERROR;
-      master.UnregisterHandler(*thread, this, true);
-   }
+   MRETURN_ON_ERROR(master.RegisterHandler(*thread, this, sRef));
+
+   const status_t ret = thread->AddNewConnectSession(targetIPAddress, port, sRef, autoReconnectDelay, maxAsyncConnectPeriod);
+   if (ret.IsError()) master.UnregisterHandler(*thread, this, true);  // roll back!
    return ret;
 }
 
@@ -328,12 +320,10 @@ status_t QMessageTransceiverHandler :: SetupAsNewConnectSession(IMessageTranscei
    if (sRef() == NULL) sRef = CreateDefaultWorkerSession(*thread);  // gotta do this now so we can know its ID
    if (sRef() == NULL) return B_ERROR("CreateDefaultWorkerSession() failed");
 
-   status_t ret;
-   if (master.RegisterHandler(*thread, this, sRef).IsOK(ret))
-   {
-      if (thread->AddNewConnectSession(targetHostName, port, sRef, expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod).IsOK(ret)) return B_NO_ERROR;
-      master.UnregisterHandler(*thread, this, true);
-   }
+   MRETURN_ON_ERROR(master.RegisterHandler(*thread, this, sRef));
+
+   const status_t ret = thread->AddNewConnectSession(targetHostName, port, sRef, expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);
+   if (ret.IsError()) master.UnregisterHandler(*thread, this, true);  // roll back!
    return ret;
 }
 

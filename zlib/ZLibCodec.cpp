@@ -113,27 +113,22 @@ status_t ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool indepe
       return B_ZLIB_ERROR;
    }
 
-   status_t ret;
    const uint32 compAvailSize = (uint32)(ZLIB_CODEC_HEADER_SIZE+deflateBound(&_deflater, numRaw)+13);
-   if (outBuf.SetNumBytes(addHeaderBytes+compAvailSize+addFooterBytes, false).IsOK(ret))
-   {
-      _deflater.next_in   = (Bytef *)rawBytes;
-      _deflater.total_in  = 0;
-      _deflater.avail_in  = numRaw;
+   MRETURN_ON_ERROR(outBuf.SetNumBytes(addHeaderBytes+compAvailSize+addFooterBytes, false));
 
-      _deflater.next_out  = outBuf.GetBuffer()+addHeaderBytes+ZLIB_CODEC_HEADER_SIZE;
-      _deflater.total_out = 0;
-      _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
-      
-      if (deflate(&_deflater, Z_SYNC_FLUSH) != Z_OK) return B_ZLIB_ERROR;
-      if (outBuf.SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true).IsOK(ret))
-      {
-         WriteZLibCodecHeader(outBuf.GetBuffer()+addHeaderBytes, independent, numRaw);
-         return B_NO_ERROR;
-      }
-      else return ret;
-   }
-   else return ret;
+   _deflater.next_in   = (Bytef *)rawBytes;
+   _deflater.total_in  = 0;
+   _deflater.avail_in  = numRaw;
+
+   _deflater.next_out  = outBuf.GetBuffer()+addHeaderBytes+ZLIB_CODEC_HEADER_SIZE;
+   _deflater.total_out = 0;
+   _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
+   
+   if (deflate(&_deflater, Z_SYNC_FLUSH) != Z_OK) return B_ZLIB_ERROR;
+
+   MRETURN_ON_ERROR(outBuf.SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true));
+   WriteZLibCodecHeader(outBuf.GetBuffer()+addHeaderBytes, independent, numRaw);
+   return B_NO_ERROR;
 }
 
 int32 ZLibCodec :: GetInflatedSize(const uint8 * compBytes, uint32 numComp, bool * optRetIsIndependent) const
@@ -195,21 +190,18 @@ status_t ZLibCodec :: Inflate(const uint8 * compBytes, uint32 numComp, ByteBuffe
       return B_ZLIB_ERROR;
    }
 
-   status_t ret;
-   if (outBuf.SetNumBytes(rawLen, false).IsOK(ret))
-   {
-      _inflater.next_in   = (Bytef *) (compBytes+ZLIB_CODEC_HEADER_SIZE);
-      _inflater.total_in  = 0;
-      _inflater.avail_in  = numComp-ZLIB_CODEC_HEADER_SIZE;
+   MRETURN_ON_ERROR(outBuf.SetNumBytes(rawLen, false));
 
-      _inflater.next_out  = outBuf.GetBuffer();
-      _inflater.total_out = 0;
-      _inflater.avail_out = outBuf.GetNumBytes();
+   _inflater.next_in   = (Bytef *) (compBytes+ZLIB_CODEC_HEADER_SIZE);
+   _inflater.total_in  = 0;
+   _inflater.avail_in  = numComp-ZLIB_CODEC_HEADER_SIZE;
 
-      const int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
-      return (((zRet != Z_OK)&&(zRet != Z_STREAM_END))||((int32)_inflater.total_out != rawLen)) ? B_ZLIB_ERROR : B_NO_ERROR;
-   }
-   else return ret;
+   _inflater.next_out  = outBuf.GetBuffer();
+   _inflater.total_out = 0;
+   _inflater.avail_out = outBuf.GetNumBytes();
+
+   const int zRet = inflate(&_inflater, Z_SYNC_FLUSH);
+   return (((zRet != Z_OK)&&(zRet != Z_STREAM_END))||((int32)_inflater.total_out != rawLen)) ? B_ZLIB_ERROR : B_NO_ERROR;
 }
 
 status_t ZLibCodec :: ReadAndDeflateAndWrite(DataIO & sourceRawIO, DataIO & destDeflatedIO, bool independent, uint32 totalBytesToRead)

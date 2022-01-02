@@ -77,13 +77,9 @@ status_t Thread :: StartInternalThread()
    if (IsInternalThreadRunning() == false)
    {
       const bool needsInitialSignal = (_threadData[MESSAGE_THREAD_INTERNAL]._messages.HasItems());
-      status_t ret;
-      if (StartInternalThreadAux().IsOK(ret))
-      {
-         if (needsInitialSignal) SignalInternalThread();  // make sure he gets his already-queued messages!
-         return B_NO_ERROR;
-      }
-      else return ret;
+      MRETURN_ON_ERROR(StartInternalThreadAux());
+      if (needsInitialSignal) SignalInternalThread();  // make sure he gets his already-queued messages!
+      return B_NO_ERROR;
    }
    return B_BAD_OBJECT;
 }
@@ -156,22 +152,22 @@ status_t Thread :: SendMessageToOwner(const MessageRef & ref)
 
 status_t Thread :: SendMessageAux(int whichQueue, const MessageRef & replyRef)
 {
-   status_t ret;
    ThreadSpecificData & tsd = _threadData[whichQueue];
-   if (tsd._queueLock.Lock().IsOK(ret))
+   MRETURN_ON_ERROR(tsd._queueLock.Lock());
+
+   status_t ret;
+   const bool sendNotification = ((tsd._messages.AddTail(replyRef).IsOK(ret))&&(tsd._messages.GetNumItems() == 1));  // don't reorder this!  AddTail() has to be first!
+   (void) tsd._queueLock.Unlock();
+
+   if (sendNotification)
    {
-      const bool sendNotification = ((tsd._messages.AddTail(replyRef).IsOK(ret))&&(tsd._messages.GetNumItems() == 1));
-      (void) tsd._queueLock.Unlock();
-      if (sendNotification)
+      switch(whichQueue)
       {
-         switch(whichQueue)
-         {
-            case MESSAGE_THREAD_INTERNAL: SignalInternalThread(); break;
-            case MESSAGE_THREAD_OWNER:    SignalOwner();          break;
-         }
+         case MESSAGE_THREAD_INTERNAL: SignalInternalThread(); break;
+         case MESSAGE_THREAD_OWNER:    SignalOwner();          break;
       }
    }
-   return ret;
+   return B_NO_ERROR;
 }
 
 void Thread :: SignalInternalThread() 
@@ -459,21 +455,9 @@ uint32 Thread :: GetCurrentStackUsage() const
 
 status_t Thread :: SetThreadPriority(int newPriority)
 {
-   if (IsInternalThreadRunning())
-   {
-      status_t ret;
-      if (SetThreadPriorityAux(newPriority).IsOK(ret))
-      {
-         _threadPriority = newPriority;
-         return B_NO_ERROR;
-      }
-      else return ret;
-   }
-   else
-   {
-      _threadPriority = newPriority;  // we'll actually try to change to that thread priority in the thread's own startup-sequence
-      return B_NO_ERROR;
-   }
+   if (IsInternalThreadRunning()) MRETURN_ON_ERROR(SetThreadPriorityAux(newPriority));
+   _threadPriority = newPriority;  // just remember the setting for now; when we actually launch the thread we'll set the thread's priority
+   return B_NO_ERROR;
 }
 
 #if defined(MUSCLE_USE_QT_THREADS)

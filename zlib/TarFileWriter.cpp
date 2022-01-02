@@ -104,7 +104,6 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
 {
    if (_writerIO() == NULL) return B_BAD_OBJECT;
 
-   status_t ret;
    if (_currentHeaderOffset >= 0)
    {
       const uint64 currentFileLength = _currentSeekPosition-(_currentHeaderOffset+TAR_BLOCK_SIZE);
@@ -131,8 +130,8 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
          _currentSeekPosition += _currentHeaderOffset;
          if (numBytesWritten != sizeof(_currentHeaderBytes)) return B_IO_ERROR;
 
-         if (_seekableWriterIO()->Seek(0, SeekableDataIO::IO_SEEK_END).IsOK(ret)) _currentSeekPosition = _seekableWriterIO()->GetLength();
-                                                                             else return ret;
+         MRETURN_ON_ERROR(_seekableWriterIO()->Seek(0, SeekableDataIO::IO_SEEK_END));
+         _currentSeekPosition = _seekableWriterIO()->GetLength();
       }
       else if (_prestatedFileSize != currentFileLength)
       {

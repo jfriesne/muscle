@@ -97,13 +97,9 @@ status_t ByteBuffer :: AppendBytes(const uint8 * bytes, uint32 numBytes, bool al
 
 status_t ByteBuffer :: SetNumBytesWithExtraSpace(uint32 newNumValidBytes, bool allocExtra)
 {
-   status_t ret;
-   if (SetNumBytes(((allocExtra)&&(newNumValidBytes > _numAllocatedBytes)) ? muscleMax(newNumValidBytes*4, (uint32)128) : newNumValidBytes, true).IsOK(ret))
-   {
-      _numValidBytes = newNumValidBytes;
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(SetNumBytes(((allocExtra)&&(newNumValidBytes > _numAllocatedBytes)) ? muscleMax(newNumValidBytes*4, (uint32)128) : newNumValidBytes, true));
+   _numValidBytes = newNumValidBytes;
+   return B_NO_ERROR;
 }
 
 status_t ByteBuffer :: FreeExtraBytes()
@@ -195,7 +191,7 @@ ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, SeekableDataI
    if (ret() == NULL) return ByteBufferRef();
 
    // This will truncate the ByteBuffer if we end up reading fewer bytes than we expected to
-   ret()->SetNumBytes(dio.ReadFully(ret()->GetBuffer(), ret()->GetNumBytes()), true);
+   (void) ret()->SetNumBytes(dio.ReadFully(ret()->GetBuffer(), ret()->GetNumBytes()), true);
    return ret;
 }
 

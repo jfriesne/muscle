@@ -977,7 +977,7 @@ status_t StorageReflectSession :: FindMatchingSessions(const String & nodePath, 
          ret = data._ret;
       }
    }
-   else return retSessions.Put(GetSessions());
+   else ret = retSessions.Put(GetSessions());
 
    if (includeSelf == false) (void) retSessions.Remove(&GetSessionIDString());
    return ret;
@@ -998,15 +998,11 @@ status_t StorageReflectSession :: SendMessageToMatchingSessions(const MessageRef
          s = temp();
       }
 
-      status_t ret;
       NodePathMatcher matcher;
-      if (matcher.PutPathString(s, filter).IsOK(ret))
-      {
-         void * sendMessageData[] = {const_cast<MessageRef *>(&msgRef), &includeSelf}; // gotta include the includeSelf param too, alas
-         (void) matcher.DoTraversal((PathMatchCallback)SendMessageCallbackFunc, this, GetGlobalRoot(), true, sendMessageData);
-         return B_NO_ERROR;
-      }
-      return ret;
+      MRETURN_ON_ERROR(matcher.PutPathString(s, filter));
+      void * sendMessageData[] = {const_cast<MessageRef *>(&msgRef), &includeSelf}; // gotta include the includeSelf param too, alas
+      (void) matcher.DoTraversal((PathMatchCallback)SendMessageCallbackFunc, this, GetGlobalRoot(), true, sendMessageData);
+      return B_NO_ERROR;
    }
    else
    {
@@ -1050,18 +1046,13 @@ DataNodeRef StorageReflectSession :: FindMatchingNode(const String & nodePath, c
 
 status_t StorageReflectSession :: FindMatchingNodes(const String & nodePath, const ConstQueryFilterRef & filter, Queue<DataNodeRef> & retNodes, uint32 maxResults) const
 {
-   status_t ret;
-
    const bool isGlobal = nodePath.StartsWith('/');
    NodePathMatcher matcher;
-   if (matcher.PutPathString(isGlobal?nodePath.Substring(1):nodePath, filter).IsOK(ret))
-   {
-      FindMatchingNodesData data(retNodes, maxResults);
-      (void) matcher.DoTraversal((PathMatchCallback)FindNodesCallbackFunc, const_cast<StorageReflectSession*>(this), isGlobal?GetGlobalRoot():*_sessionDir(), true, &data);
-      ret = data._ret;
-   }
+   MRETURN_ON_ERROR(matcher.PutPathString(isGlobal?nodePath.Substring(1):nodePath, filter));
 
-   return ret;
+   FindMatchingNodesData data(retNodes, maxResults);
+   (void) matcher.DoTraversal((PathMatchCallback)FindNodesCallbackFunc, const_cast<StorageReflectSession*>(this), isGlobal?GetGlobalRoot():*_sessionDir(), true, &data);
+   return data._ret;
 }
 
 int
@@ -1403,14 +1394,10 @@ InsertOrderedChildNode(DataNode & node, const String * optInsertBefore, const Me
 {
    if (_currentNodeCount >= _maxNodeCount) return B_ACCESS_DENIED;
 
-   status_t ret;
-   if (node.InsertOrderedChild(childNodeMsg, optInsertBefore, NULL, this, this, optAddNewChildren).IsOK(ret))
-   {
-      _indexingPresent = true;  // disable optimization in GetDataCallback()
-      _currentNodeCount++;
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(node.InsertOrderedChild(childNodeMsg, optInsertBefore, NULL, this, this, optAddNewChildren));
+   _indexingPresent = true;  // disable optimization in GetDataCallback()
+   _currentNodeCount++;
+   return B_NO_ERROR;
 }
 
 int

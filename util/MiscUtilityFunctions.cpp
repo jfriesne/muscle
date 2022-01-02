@@ -388,19 +388,14 @@ status_t ParsePortArg(const Message & args, const String & fn, uint16 & retPort,
 {
    TCHECKPOINT;
 
-   status_t ret;
    const char * v;
-   if (args.FindString(fn, argIdx, &v).IsOK(ret))
-   {
-      const uint16 r = (uint16) atoi(v);
-      if (r > 0)
-      {
-         retPort = r;
-         return B_NO_ERROR;
-      }
-      else return B_BAD_ARGUMENT;
-   }
-   return ret;
+   MRETURN_ON_ERROR(args.FindString(fn, argIdx, &v));
+
+   const uint16 r = (uint16) atoi(v);
+   if (r == 0) return B_BAD_ARGUMENT;
+
+   retPort = r;
+   return B_NO_ERROR;
 }
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -1005,14 +1000,10 @@ status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg, 
    {
       MessageRef newBatchMsg = GetMessageFromPool(PR_COMMAND_BATCH);
       MRETURN_OOM_ON_NULL(newBatchMsg());
-
-      status_t ret;
-      if ((newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?newMsg:batchMsg).IsOK(ret))&&(newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?batchMsg:newMsg).IsOK(ret)))
-      {
-         batchMsg = newBatchMsg;
-         return B_NO_ERROR;
-      }
-      else return ret;
+      MRETURN_ON_ERROR(newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?newMsg:batchMsg));
+      MRETURN_ON_ERROR(newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?batchMsg:newMsg));
+      batchMsg = newBatchMsg;
+      return B_NO_ERROR;
    }
 }
 

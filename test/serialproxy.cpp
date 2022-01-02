@@ -83,11 +83,10 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
 
       if (multiplexer.WaitForEvents() >= 0)
       {
-         status_t ret;
-         if (ReadIncomingData("network",  networkIO, multiplexer, outgoingSerialData)               .IsError())    return B_NO_ERROR;  // tells main() to wait for the next TCP connection
-         if (ReadIncomingData("serial",   serialIO,  multiplexer, outgoingNetworkData)              .IsError(ret)) return ret;         // tells main() to exit
-         if (WriteOutgoingData("network", networkIO, multiplexer, outgoingNetworkData, networkIndex).IsError())    return B_NO_ERROR;  // tells main() to wait for the next TCP connection
-         if (WriteOutgoingData("serial",  serialIO,  multiplexer, outgoingSerialData,  serialIndex) .IsError(ret)) return ret;         // tells main() to exit
+         MRETURN_ON_ERROR(ReadIncomingData("network",  networkIO, multiplexer, outgoingSerialData));                 // tells main() to wait for the next TCP connection
+         MRETURN_ON_ERROR(ReadIncomingData("serial",   serialIO,  multiplexer, outgoingNetworkData));                // tells main() to exit
+         MRETURN_ON_ERROR(WriteOutgoingData("network", networkIO, multiplexer, outgoingNetworkData, networkIndex));  // tells main() to wait for the next TCP connection
+         MRETURN_ON_ERROR(WriteOutgoingData("serial",  serialIO,  multiplexer, outgoingSerialData,  serialIndex));   // tells main() to exit
       }
       else 
       {

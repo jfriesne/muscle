@@ -78,38 +78,30 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounterAux(int32 by
 {
    if (_memberID < 0) return B_BAD_OBJECT;
 
-   status_t ret ;
-   if (_shared.LockAreaReadWrite().IsOK(ret))
+   MRETURN_ON_ERROR(_shared.LockAreaReadWrite());
+
+   const int32 numSlots = _shared.GetAreaSize() / sizeof(size_t);
+   size_t * sa = GetArrayPointer();
+   if ((sa)&&(_memberID < numSlots))
    {
-      const int32 numSlots = _shared.GetAreaSize() / sizeof(size_t);
-      size_t * sa = GetArrayPointer();
-      if ((sa)&&(_memberID < numSlots))
+      if (byteDelta <= 0)
       {
-         if (byteDelta <= 0)
+         const size_t reduceBy = -byteDelta;
+         if (reduceBy > _localAllocated)
          {
-            const size_t reduceBy = -byteDelta;
-            if (reduceBy > _localAllocated)
-            {
-               // This should never happen, but just in case it does...
-               printf("Error, Attempted to reduce slot " INT32_FORMAT_SPEC "'s counter (currently " UINT64_FORMAT_SPEC ") by " UINT64_FORMAT_SPEC "!  Setting counter at zero instead.\n", (int32)_memberID, (uint64)_localAllocated, (uint64)reduceBy);
-               _localAllocated = 0; 
-            }
-            else _localAllocated -= reduceBy;
-
-            ret = B_NO_ERROR;
+            // This should never happen, but just in case it does...
+            printf("Error, Attempted to reduce slot " INT32_FORMAT_SPEC "'s counter (currently " UINT64_FORMAT_SPEC ") by " UINT64_FORMAT_SPEC "!  Setting counter at zero instead.\n", (int32)_memberID, (uint64)_localAllocated, (uint64)reduceBy);
+            _localAllocated = 0; 
          }
-         else if ((CalculateTotalAllocationSum()+byteDelta) <= _maxBytes)
-         {
-            _localAllocated += byteDelta;
-            ret = B_NO_ERROR;
-         }
-
-         sa[_memberID] = _localAllocated;  // write our current allocation out to the shared memory region
+         else _localAllocated -= reduceBy;
       }
+      else if ((CalculateTotalAllocationSum()+byteDelta) <= _maxBytes) _localAllocated += byteDelta;
 
-      _shared.UnlockArea();
+      sa[_memberID] = _localAllocated;  // write our current allocation out to the shared memory region
    }
-   return ret;
+
+   _shared.UnlockArea();
+   return B_NO_ERROR;
 }
 
 size_t SharedUsageLimitProxyMemoryAllocator :: CalculateTotalAllocationSum() const
@@ -126,12 +118,10 @@ size_t SharedUsageLimitProxyMemoryAllocator :: CalculateTotalAllocationSum() con
 
 status_t SharedUsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t cab, size_t arb)
 {
-   status_t ret;
-   if (ChangeDaemonCounter((int32)arb).IsOK(ret))
-   {
-      ret = ProxyMemoryAllocator::AboutToAllocate(cab, arb);
-      if (ret.IsError()) (void) ChangeDaemonCounter(-((int32)arb)); // roll back!
-   }
+   MRETURN_ON_ERROR(ChangeDaemonCounter((int32)arb));
+
+   const status_t ret = ProxyMemoryAllocator::AboutToAllocate(cab, arb);
+   if (ret.IsError()) (void) ChangeDaemonCounter(-((int32)arb)); // roll back!
    return ret;
 }
 
@@ -154,16 +144,13 @@ size_t SharedUsageLimitProxyMemoryAllocator :: GetNumAvailableBytes(size_t alloc
 
 status_t SharedUsageLimitProxyMemoryAllocator :: GetCurrentMemoryUsage(size_t * retCounts, size_t * optRetTotal) const
 {
-   status_t ret;
-   if (_shared.LockAreaReadOnly().IsOK(ret))
-   {
-      const size_t * sa = GetArrayPointer();
-      if ((sa)&&(retCounts)) for (int32 i=GetNumSlots()-1; i>=0; i--) retCounts[i] = sa[i];
-      if (optRetTotal) *optRetTotal = CalculateTotalAllocationSum();
-      _shared.UnlockArea();
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(_shared.LockAreaReadOnly());
+
+   const size_t * sa = GetArrayPointer();
+   if ((sa)&&(retCounts)) for (int32 i=GetNumSlots()-1; i>=0; i--) retCounts[i] = sa[i];
+   if (optRetTotal) *optRetTotal = CalculateTotalAllocationSum();
+   _shared.UnlockArea();
+   return B_NO_ERROR;
 }
 
 } // end namespace muscle

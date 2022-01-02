@@ -248,18 +248,17 @@ public:
 
       DataType temp;
       const uint32 numItems = numBytes / FlatItemSize;
+      MRETURN_ON_ERROR(this->_data.EnsureSize(numItems));
+
       status_t ret;
-      if (this->_data.EnsureSize(numItems).IsOK(ret))
+      for (uint32 i=0; i<numItems; i++)
       {
-         for (uint32 i=0; i<numItems; i++)
+         if ((temp.Unflatten(buffer, FlatItemSize).IsError(ret))||(this->_data.AddTail(temp).IsError(ret)))
          {
-            if ((temp.Unflatten(buffer, FlatItemSize).IsError(ret))||(this->_data.AddTail(temp).IsError(ret)))
-            {
-               LogTime(MUSCLE_LOG_DEBUG, "FixedSizeDataArray %p:  Error unflattened item " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " [%s]\n", this, i, numItems, ret());
-               break;
-            }
-            buffer += FlatItemSize;
+            LogTime(MUSCLE_LOG_DEBUG, "FixedSizeDataArray %p:  Error unflattening item " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " [%s]\n", this, i, numItems, ret());
+            break;
          }
+         buffer += FlatItemSize;
       }
       return ret;
    }
@@ -335,18 +334,15 @@ public:
          return B_BAD_ARGUMENT;  // length must be an even multiple of item size, or something's wrong!
       }
 
-      status_t ret;
       const uint32 numItems = numBytes / sizeof(DataType);
-      if (this->_data.EnsureSize(numItems, true).IsOK(ret))
-      {
-         // Note that typically you can't rely on the contents of a Queue object to
-         // be stored in a single, contiguous field like this, but in this case we've
-         // called Clear() and then EnsureSize(), so we know that the field's headPointer
-         // is at the front of the field, and we are safe to do this.  --jaf
-         ConvertFromNetworkByteOrder(this->_data.HeadPointer(), reinterpret_cast<const DataType *>(buffer), numItems);
-         return B_NO_ERROR;
-      }
-      else return ret;
+      MRETURN_ON_ERROR(this->_data.EnsureSize(numItems, true));
+
+      // Note that typically you can't rely on the contents of a Queue object to
+      // be stored in a single, contiguous field like this, but in this case we've
+      // called Clear() and then EnsureSize(), so we know that the field's headPointer
+      // is at the front of the field, and we are safe to do this.  --jaf
+      ConvertFromNetworkByteOrder(this->_data.HeadPointer(), reinterpret_cast<const DataType *>(buffer), numItems);
+      return B_NO_ERROR;
    }
 
    // Flattenable interface
@@ -472,12 +468,10 @@ public:
    {
       _data.Clear();
 
-      status_t ret;
-      if (_data.EnsureSize(numBytes).IsOK(ret))
-         for (uint32 i=0; i<numBytes; i++) 
-            if (_data.AddTail((buffer[i] != 0) ? true : false).IsError(ret)) break;
+      MRETURN_ON_ERROR(_data.EnsureSize(numBytes));
 
-      return ret;
+      for (uint32 i=0; i<numBytes; i++) MRETURN_ON_ERROR(_data.AddTail((buffer[i] != 0) ? true : false));
+      return B_NO_ERROR;
    }
 
    // Flattenable interface
@@ -1584,8 +1578,7 @@ status_t Message :: AddInt64(const String & fieldName, int64 val)
 status_t Message :: AddBool(const String & fieldName, bool val) 
 {
    MessageField * mf = GetOrCreateMessageField(fieldName, B_BOOL_TYPE);
-   status_t ret = mf ? mf->AddDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
-   return ret;
+   return mf ? mf->AddDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
 }
 
 status_t Message :: AddFloat(const String & fieldName, float val) 
@@ -1841,53 +1834,51 @@ status_t Message :: FindData(const String & fieldName, uint32 tc, uint32 index, 
    const MessageField * field = GetMessageField(fieldName, tc);
    if (field == NULL) return B_DATA_NOT_FOUND;
 
-   status_t ret;
-   if (field->FindDataItem(index, data).IsOK(ret))
+   MRETURN_ON_ERROR(field->FindDataItem(index, data));
+
+   switch(tc)
    {
-      switch(tc)
+      case B_STRING_TYPE:
       {
-         case B_STRING_TYPE:  
-         {
-            const String * str = (const String *) (*data);
-            *data = str->Cstr();  
-            if (setSize) *setSize = str->FlattenedSize();
-         }
-         break;
-
-         case B_ANY_TYPE:
-            return (field->TypeCode() == B_ANY_TYPE) ? B_BAD_OBJECT : FindData(fieldName, field->TypeCode(), 0, data, setSize);
-         break;
-
-         default:
-         {
-            const uint32 es = GetElementSize(tc);
-            if (es > 0) 
-            {
-               if (setSize) *setSize = es;
-            }
-            else
-            {
-               // But for user-generated types, we need to get a pointer to the actual data, not just the ref
-               const FlatCountableRef * fcRef = (const FlatCountableRef *)(*data);
-               const ByteBuffer * buf = dynamic_cast<ByteBuffer *>(fcRef->GetItemPointer());
-               if (buf)
-               {
-                  const void * b = buf->GetBuffer();
-                  if (b)
-                  {
-                     *data = b;
-                     if (setSize) *setSize = buf->GetNumBytes();
-                     return B_NO_ERROR;
-                  }
-               }
-               return B_TYPE_MISMATCH;
-            }
-         }
-         break;
+         const String * str = (const String *) (*data);
+         *data = str->Cstr();
+         if (setSize) *setSize = str->FlattenedSize();
       }
-      return B_NO_ERROR;
+      break;
+
+      case B_ANY_TYPE:
+         return (field->TypeCode() == B_ANY_TYPE) ? B_BAD_OBJECT : FindData(fieldName, field->TypeCode(), 0, data, setSize);
+      break;
+
+      default:
+      {
+         const uint32 es = GetElementSize(tc);
+         if (es > 0)
+         {
+            if (setSize) *setSize = es;
+         }
+         else
+         {
+            // But for user-generated types, we need to get a pointer to the actual data, not just the ref
+            const FlatCountableRef * fcRef = (const FlatCountableRef *)(*data);
+            const ByteBuffer * buf = dynamic_cast<ByteBuffer *>(fcRef->GetItemPointer());
+            if (buf)
+            {
+               const void * b = buf->GetBuffer();
+               if (b)
+               {
+                  *data = b;
+                  if (setSize) *setSize = buf->GetNumBytes();
+                  return B_NO_ERROR;
+               }
+            }
+            return B_TYPE_MISMATCH;
+         }
+      }
+      break;
    }
-   else return ret;
+
+   return B_NO_ERROR;
 }
 
 status_t Message :: FindDataItemAux(const String & fieldName, uint32 index, uint32 tc, void * setValue, uint32 valueSize) const
@@ -1896,8 +1887,7 @@ status_t Message :: FindDataItemAux(const String & fieldName, uint32 index, uint
    if (field == NULL) return B_DATA_NOT_FOUND;
 
    const void * addressOfValue = NULL;
-   const status_t ret = field->FindDataItem(index, &addressOfValue);
-   if (ret.IsError()) return ret;
+   MRETURN_ON_ERROR(field->FindDataItem(index, &addressOfValue));
    if (addressOfValue) memcpy(setValue, addressOfValue, valueSize);  // the "if" is only here to assuage ClangSA's paranoia
    return B_NO_ERROR;
 }
@@ -1937,19 +1927,16 @@ status_t Message :: FindTag(const String & fieldName, uint32 index, RefCountable
 
 status_t Message :: FindMessage(const String & fieldName, uint32 index, Message & msg) const 
 {
-   status_t ret;
    MessageRef msgRef;
-   if (FindMessage(fieldName, index, msgRef).IsOK(ret))
+   MRETURN_ON_ERROR(FindMessage(fieldName, index, msgRef));
+
+   const Message * m = msgRef();
+   if (m)
    {
-      const Message * m = msgRef();
-      if (m) 
-      {
-         msg = *m;
-         return B_NO_ERROR;
-      }
-      else return B_BAD_OBJECT;
+      msg = *m;
+      return B_NO_ERROR;
    }
-   else return ret;
+   else return B_BAD_OBJECT;
 }
 
 status_t Message :: FindMessage(const String & fieldName, uint32 index, MessageRef & ref) const
@@ -1971,13 +1958,10 @@ status_t Message :: FindMessage(const String & fieldName, uint32 index, MessageR
 status_t Message :: FindDataPointer(const String & fieldName, uint32 tc, uint32 index, void ** data, uint32 * setSize) const 
 {
    const void * dataLoc = NULL;
-   status_t ret;
-   if (FindData(fieldName, tc, index, &dataLoc, setSize).IsOK(ret))
-   {
-      *data = (void *) dataLoc;  // breaks const correctness, but oh well
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(FindData(fieldName, tc, index, &dataLoc, setSize));
+
+   *data = (void *) dataLoc;  // breaks const correctness, but oh well
+   return B_NO_ERROR;
 }
 
 status_t Message :: ReplaceString(bool okayToAdd, const String & fieldName, uint32 index, const String & string) 
@@ -2195,13 +2179,9 @@ status_t Message :: MoveName(const String & oldFieldName, Message & moveTo, cons
    const MessageField * mf = GetMessageField(oldFieldName, B_ANY_TYPE);
    if (mf == NULL) return B_DATA_NOT_FOUND;
 
-   status_t ret;
-   if (moveTo._entries.Put(newFieldName, *mf).IsOK(ret))
-   {
-      (void) _entries.Remove(oldFieldName);
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(moveTo._entries.Put(newFieldName, *mf));
+   (void) _entries.Remove(oldFieldName);
+   return B_NO_ERROR;
 }
 
 status_t Message :: SwapName(const String & fieldName, Message & swapWith)
@@ -2546,7 +2526,6 @@ void MessageField :: SingleFlatten(uint8 *buffer) const
 // Note:  we assume here that we have enough bytes, at least for the fixed-size types, because we checked for that in MessageField::Unflatten() 
 status_t MessageField :: SingleUnflatten(const uint8 * buffer, uint32 numBytes)
 {
-   status_t ret;
    switch(_typeCode)
    {
       case B_BOOL_TYPE:   SetInlineItemAsBool(  buffer[0] != 0);                                          break;
@@ -2573,8 +2552,8 @@ status_t MessageField :: SingleUnflatten(const uint8 * buffer, uint32 numBytes)
       break;
 
       case B_POINTER_TYPE: return B_UNIMPLEMENTED;  // pointers should not be serialized!
-      case B_POINT_TYPE:   {Point p; if (p.Unflatten(buffer, numBytes).IsOK(ret)) SetInlineItemAsPoint(p); else return ret;} break;
-      case B_RECT_TYPE:    {Rect  r; if (r.Unflatten(buffer, numBytes).IsOK(ret)) SetInlineItemAsRect (r); else return ret;} break;
+      case B_POINT_TYPE:   {Point p; MRETURN_ON_ERROR(p.Unflatten(buffer, numBytes)); SetInlineItemAsPoint(p);} break;
+      case B_RECT_TYPE:    {Rect  r; MRETURN_ON_ERROR(r.Unflatten(buffer, numBytes)); SetInlineItemAsRect (r);} break;
 
       case B_STRING_TYPE:
       {
@@ -2857,7 +2836,7 @@ void MessageField :: SingleAddToString(String & s, uint32 maxRecurseLevel, int i
          case B_INT16_TYPE:   AddFormattedSingleItemToString(indent, "[%i]", GetInlineItemAsInt16(),                    s); break;
          case B_INT8_TYPE:    AddFormattedSingleItemToString(indent, "[%i]", GetInlineItemAsInt8(),                     s); break;
 
-         case B_MESSAGE_TYPE: 
+         case B_MESSAGE_TYPE:
             MessageDataArray::AddItemDescriptionToString(indent, 0, MessageRef(GetInlineItemAsRefCountableRef(), false), s, maxRecurseLevel);
          break;
 
@@ -3142,14 +3121,10 @@ status_t MessageField :: Unflatten(const uint8 * bytes, uint32 numBytes)
       AbstractDataArrayRef adaRef = CreateDataArray(_typeCode);
       if (adaRef() == NULL) return B_OUT_OF_MEMORY;
 
-      status_t ret;
-      if (adaRef()->Unflatten(bytes, numBytes).IsOK(ret))  // add our existing single-item to the array
-      {
-         _state = FIELD_STATE_ARRAY;
-         SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
-         return B_NO_ERROR;
-      }
-      else return ret;
+      MRETURN_ON_ERROR(adaRef()->Unflatten(bytes, numBytes)); // add our existing single-item to the array
+      _state = FIELD_STATE_ARRAY;
+      SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
+      return B_NO_ERROR;
    }
 }
 

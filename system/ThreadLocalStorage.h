@@ -131,7 +131,7 @@ public:
          else if (newObj) (void) _allocedObjs.AddTail(newObj);
       }
 
-      _allocedObjsMutex.Unlock();
+      (void) _allocedObjsMutex.Unlock();
       if (ret.IsOK()) delete oldObj;
       return ret;
 #endif

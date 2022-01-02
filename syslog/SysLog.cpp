@@ -1877,70 +1877,50 @@ int GetMaxLogLevel()
 
 status_t SetFileLogName(const String & logName)
 {
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      _dfl.SetLogFileName(logName);
-      LogTime(MUSCLE_LOG_DEBUG, "File log name set to: %s\n", logName());
-      (void) UnlockLog();
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(LockLog());
+
+   _dfl.SetLogFileName(logName);
+   LogTime(MUSCLE_LOG_DEBUG, "File log name set to: %s\n", logName());
+   return UnlockLog();
 }
 
 status_t SetOldLogFilesPattern(const String & pattern)
 {
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      const uint32 numAdded = _dfl.AddPreExistingLogFiles(pattern);
-      LogTime(MUSCLE_LOG_DEBUG, "Old Log Files pattern set to: [%s] (" UINT32_FORMAT_SPEC " files matched)\n", pattern(), numAdded);
-      (void) UnlockLog();
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(LockLog());
+
+   const uint32 numAdded = _dfl.AddPreExistingLogFiles(pattern);
+   LogTime(MUSCLE_LOG_DEBUG, "Old Log Files pattern set to: [%s] (" UINT32_FORMAT_SPEC " files matched)\n", pattern(), numAdded);
+   return UnlockLog();
 }
 
 status_t SetFileLogMaximumSize(uint32 maxSizeBytes)
 {
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      _dfl.SetMaxLogFileSize(maxSizeBytes);
-      if (maxSizeBytes == MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_DEBUG, "File log maximum size set to: (unlimited).\n");
-                                      else LogTime(MUSCLE_LOG_DEBUG, "File log maximum size set to: " UINT32_FORMAT_SPEC " bytes.\n", maxSizeBytes);
-      (void) UnlockLog();
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(LockLog());
+
+   _dfl.SetMaxLogFileSize(maxSizeBytes);
+   if (maxSizeBytes == MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_DEBUG, "File log maximum size set to: (unlimited).\n");
+                                   else LogTime(MUSCLE_LOG_DEBUG, "File log maximum size set to: " UINT32_FORMAT_SPEC " bytes.\n", maxSizeBytes);
+   return UnlockLog();
 }
 
 status_t SetMaxNumLogFiles(uint32 maxNumLogFiles)
 {
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      _dfl.SetMaxNumLogFiles(maxNumLogFiles);
-      if (maxNumLogFiles == MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_DEBUG, "Maximum number of log files set to: (unlimited).\n");
-                                        else LogTime(MUSCLE_LOG_DEBUG, "Maximum number of log files to: " UINT32_FORMAT_SPEC "\n", maxNumLogFiles);
-      (void) UnlockLog();
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(LockLog());
+
+   _dfl.SetMaxNumLogFiles(maxNumLogFiles);
+   if (maxNumLogFiles == MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_DEBUG, "Maximum number of log files set to: (unlimited).\n");
+                                     else LogTime(MUSCLE_LOG_DEBUG, "Maximum number of log files to: " UINT32_FORMAT_SPEC "\n", maxNumLogFiles);
+   return UnlockLog();
 }
 
 status_t SetFileLogCompressionEnabled(bool enable)
 {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      _dfl.SetFileCompressionEnabled(enable);
-      LogTime(MUSCLE_LOG_DEBUG, "File log compression %s.\n", enable?"enabled":"disabled");
-      (void) UnlockLog();
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(LockLog());
+
+   _dfl.SetFileCompressionEnabled(enable);
+   LogTime(MUSCLE_LOG_DEBUG, "File log compression %s.\n", enable?"enabled":"disabled");
+   return UnlockLog();
 #else
    if (enable)
    {
@@ -1963,28 +1943,20 @@ void CloseCurrentLogFile()
 
 status_t SetFileLogLevel(int loglevel)
 {
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      _dfl.SetFileLogLevel(loglevel);
-      LogTime(MUSCLE_LOG_DEBUG, "File logging level set to: %s\n", GetLogLevelName(_dfl.GetFileLogLevel()));
-      (void) UnlockLog();
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(LockLog());
+
+   _dfl.SetFileLogLevel(loglevel);
+   LogTime(MUSCLE_LOG_DEBUG, "File logging level set to: %s\n", GetLogLevelName(_dfl.GetFileLogLevel()));
+   return UnlockLog();
 }
 
 status_t SetConsoleLogLevel(int loglevel)
 {
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      _dcl.SetConsoleLogLevel(loglevel);
-      LogTime(MUSCLE_LOG_DEBUG, "Console logging level set to: %s\n", GetLogLevelName(_dcl.GetConsoleLogLevel()));
-      (void) UnlockLog();
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(LockLog());
+
+   _dcl.SetConsoleLogLevel(loglevel);
+   LogTime(MUSCLE_LOG_DEBUG, "Console logging level set to: %s\n", GetLogLevelName(_dcl.GetConsoleLogLevel()));
+   return UnlockLog();
 }
 
 // Our 26-character alphabet of usable symbols
@@ -2136,14 +2108,10 @@ status_t LogFlush()
 {
    TCHECKPOINT;
 
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) if (iter.GetKey()()) iter.GetKey()()->Flush();
-      (void) UnlockLog();
-      return B_NO_ERROR;
-   }
-   else return ret;
+   MRETURN_ON_ERROR(LockLog());
+
+   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) if (iter.GetKey()()) iter.GetKey()()->Flush();
+   return UnlockLog();
 }
 
 status_t LogStackTrace(int ll, uint32 maxDepth)
@@ -2191,35 +2159,23 @@ status_t Log(int ll, const char * fmt, ...)
 
 status_t PutLogCallback(const LogCallbackRef & cb)
 {
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      ret = _logCallbacks.PutWithDefault(cb);
-      (void) UnlockLog();
-   }
-   return ret;
+   MRETURN_ON_ERROR(LockLog());
+   const status_t ret = _logCallbacks.PutWithDefault(cb);
+   return ret | UnlockLog();
 }
 
 status_t ClearLogCallbacks()
 {
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      _logCallbacks.Clear();
-      (void) UnlockLog();
-   }
-   return ret;
+   MRETURN_ON_ERROR(LockLog());
+   _logCallbacks.Clear();
+   return UnlockLog();
 }
 
 status_t RemoveLogCallback(const LogCallbackRef & cb)
 {
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      ret = _logCallbacks.Remove(cb);
-      (void) UnlockLog();
-   }
-   return ret;
+   MRETURN_ON_ERROR(LockLog());
+   const status_t ret = _logCallbacks.Remove(cb);
+   return ret | UnlockLog();
 }
 
 #endif
