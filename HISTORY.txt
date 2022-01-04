@@ -14,6 +14,8 @@ key:  - new feature
    - Added PrintMutexLockingReport() to print out out the current
      state of the -DMUSCLE_ENABLE_DEADLOCK_FINDER debug-info
      without having to exit the process.
+   - Added ToHexString() and ToAnnotatedHexString() methods to
+     the ByteBuffer class.
    o CalculateHashCode(const Type &) now calls HashCode() on the
      argument if possible, or uses a PODHashFunctor otherwise.
    o Downgraded cmake_minimum_required in the CMakeList.txt files
