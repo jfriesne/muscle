@@ -494,14 +494,22 @@ public:
       return ret;
    }
 
-   /** Returns a fixed-length hexadecimal representation of this bit-chord. */
-   String ToHexString() const
+   /** Returns a hexadecimal representation of this bit-chord.
+     * @param suppressLeadingZeroes if true, leading zeros will be suppressed.  Defaults to false.
+     */
+   String ToHexString(bool suppressLeadingZeroes = false) const
    {
       String ret; (void) ret.Prealloc(1+(NUM_BYTES*3));
       for (int32 i=NUM_BYTES-1; i>=0; i--)
       {
-         char buf[4]; muscleSprintf(buf, "%s%02x", (ret.IsEmpty())?"":" ", GetByte(i));
-         ret += buf;
+         const uint8 b = GetByte(i);
+         if ((suppressLeadingZeroes)&&(b == 0)) continue;
+         else
+         {
+            suppressLeadingZeroes = false;
+            char buf[4]; muscleSprintf(buf, "%s%02x", (ret.IsEmpty())?"":" ", b);
+            ret += buf;
+         }
       }
       return ret;
    }

@@ -16,6 +16,7 @@ key:  - new feature
      without having to exit the process.
    - Added ToHexString() and ToAnnotatedHexString() methods to
      the ByteBuffer class.
+   - Added a suppressLeadingZeroes argument to BitChord::ToHexString()
    o CalculateHashCode(const Type &) now calls HashCode() on the
      argument if possible, or uses a PODHashFunctor otherwise.
    o Downgraded cmake_minimum_required in the CMakeList.txt files
