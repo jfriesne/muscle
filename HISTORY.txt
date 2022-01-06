@@ -36,6 +36,8 @@ key:  - new feature
    o Refactored various status_t returning code to use
      MRETURN_ON_ERROR macro instead of manual status-variable
      management, for better readability.
+   o Moved various trivial functions out of MiscUtilityFunctions.cpp
+     and into SetupSystem.cpp, to reduce linking dependencies.
    * Refactored the Mutex class so that the code associated with
      the -DMUSCLE_ENABLE_DEADLOCK_FINDER deadlock-finding feature
      integrates better with TryLock() and the MutexGuard class.

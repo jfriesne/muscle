@@ -888,64 +888,6 @@ String DenybbleizeString(const String & ns)
    return (DenybbleizeData(ns, outBuf).IsOK()) ? String((const char *) outBuf.GetBuffer(), outBuf.GetNumBytes()) : String();
 }
 
-const uint8 * MemMem(const uint8 * lookIn, uint32 numLookInBytes, const uint8 * lookFor, uint32 numLookForBytes)
-{
-        if (numLookForBytes == 0)              return lookIn;  // hmm, existential questions here
-   else if (numLookForBytes == numLookInBytes) return (memcmp(lookIn, lookFor, numLookInBytes) == 0) ? lookIn : NULL;
-   else if (numLookForBytes < numLookInBytes)
-   {
-      const uint32 scanLength = (1+numLookInBytes-numLookForBytes);
-      for (uint32 i=0; i<scanLength; i++)
-      {
-         const uint8 * li = &lookIn[i];
-         if ((*li == *lookFor)&&(memcmp(li, lookFor, numLookForBytes) == 0)) return li;  // FogBugz #9877
-      }
-   }
-   return NULL;
-}
-
-String HexBytesToString(const uint8 * buf, uint32 numBytes)
-{
-   String ret;
-   if (ret.Prealloc(numBytes*3).IsOK())
-   {
-      for (uint32 i=0; i<numBytes; i++)
-      {
-         if (i > 0) ret += ' ';
-         char b[32]; muscleSprintf(b, "%02x", buf[i]);
-         ret += b;
-      }
-   }
-   return ret;
-}
-
-String HexBytesToString(const ConstByteBufferRef & bbRef)
-{
-   return bbRef() ? HexBytesToString(*bbRef()) : String("(null)");
-}
-
-String HexBytesToString(const ByteBuffer & bb)
-{
-   return HexBytesToString(bb.GetBuffer(), bb.GetNumBytes());
-}
-
-String HexBytesToString(const Queue<uint8> & bytes)
-{
-   const uint32 numBytes = bytes.GetNumItems();
-
-   String ret;
-   if (ret.Prealloc(numBytes*3).IsOK())
-   {
-      for (uint32 i=0; i<numBytes; i++)
-      {
-         if (i > 0) ret += ' ';
-         char b[32]; muscleSprintf(b, "%02x", bytes[i]);
-         ret += b;
-      }
-   }
-   return ret;
-}
-
 ByteBufferRef ParseHexBytes(const char * buf)
 {
    ByteBufferRef bb = GetByteBufferFromPool((uint32)strlen(buf));
@@ -955,9 +897,9 @@ ByteBufferRef ParseHexBytes(const char * buf)
       uint32 count = 0;
       StringTokenizer tok(buf, NULL);  // soft/whitespace separators only
       const char * next;
-      while((next = tok()) != NULL) 
+      while((next = tok()) != NULL)
       {
-         if (strlen(next) > 0) 
+         if (strlen(next) > 0)
          {
                  if (next[0] == '/') b[count++] = next[1];
             else if (next[0] == '\\')
@@ -988,6 +930,7 @@ ByteBufferRef ParseHexBytes(const char * buf)
    return bb;
 }
 
+
 status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg, bool prepend)
 {
    if (batchMsg() == NULL)
@@ -1005,19 +948,6 @@ status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg, 
       batchMsg = newBatchMsg;
       return B_NO_ERROR;
    }
-}
-
-bool FileExists(const char * filePath)
-{
-   FILE * fp = muscleFopen(filePath, "rb");
-   const bool ret = (fp != NULL);  // gotta take this value before calling fclose(), or cppcheck complains
-   if (fp) fclose(fp);
-   return ret;
-}
-
-status_t RenameFile(const char * oldPath, const char * newPath)
-{
-   return (rename(oldPath, newPath) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 static status_t CopyDirectoryRecursive(const char * oldDirPath, const char * newDirPath)
@@ -1094,70 +1024,6 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
    return ret;
 }
 
-status_t DeleteFile(const char * filePath)
-{
-#ifdef _MSC_VER
-   const int unlinkRet = _unlink(filePath);
-#else
-   const int unlinkRet = unlink(filePath);
-#endif
-   return (unlinkRet == 0) ? B_NO_ERROR : B_ERRNO;
-}
-
-String GetHumanReadableProgramNameFromArgv0(const char * argv0)
-{
-   String ret = argv0;
-
-#ifdef __APPLE__
-   ret = ret.Substring(0, ".app/");  // we want the user-visible name, not the internal name!
-#endif
-
-#ifdef __WIN32__
-   ret = ret.Substring("\\").Substring(0, ".exe");
-#else
-   ret = ret.Substring("/");
-#endif
-   return ret;
-}
-
-#ifdef WIN32
-void Win32AllocateStdioConsole(const char * optArg)
-{
-   const String optOutFile = optArg;
-
-   const char * conInStr  = optOutFile.HasChars() ? NULL         : "conin$";
-   const char * conOutStr = optOutFile.HasChars() ? optOutFile() : "conout$";
-   if (optOutFile.IsEmpty()) AllocConsole();  // no sense creating a DOS window if we're only outputting to a file anyway
-
-   // Hopefully-temporary work-around for Windows not wanting to send stdout and stderr to the same file
-   String conErrHolder;  // don't move this!  It needs to stay here
-   const char * conErrStr = NULL;
-   if (optOutFile.HasChars())
-   {
-      const int lastDotIdx = optOutFile.LastIndexOf('.');
-
-      if (lastDotIdx > 0)
-         conErrHolder = optOutFile.Substring(0, lastDotIdx) + "_stderr" + optOutFile.Substring(lastDotIdx);
-      else
-         conErrHolder = optOutFile + "_stderr.txt";
-
-      conErrStr = conErrHolder();
-   }
-   else conErrStr = conOutStr;  // for the output-to-console-window case, where redirecting both stdout and stderr DOES work
-
-# if __STDC_WANT_SECURE_LIB__
-   FILE * junk;
-   if (conInStr)  (void) freopen_s(&junk, conInStr,  "r", stdin);
-   if (conOutStr) (void) freopen_s(&junk, conOutStr, "w", stdout);
-   if (conErrStr) (void) freopen_s(&junk, conErrStr, "w", stderr);
-# else
-   if (conInStr)  (void) freopen(conInStr,  "r", stdin);
-   if (conOutStr) (void) freopen(conOutStr, "w", stdout);
-   if (conErrStr) (void) freopen(conErrStr, "w", stderr);
-# endif
-}
-#endif
-
 #if defined(__linux__) || defined(__APPLE__)
 static double ParseMemValue(const char * b)
 {
@@ -1218,17 +1084,6 @@ float GetSystemMemoryUsagePercentage()
    if (GlobalMemoryStatusEx(&stat)) return ((float)stat.dwMemoryLoad)/100.0f;
 #endif
    return -1.0f;
-}
-
-bool ParseBool(const String & word, bool defaultValue)
-{
-   static const char * _onWords[]  = {"on",  "enable",  "enabled",  "true",  "t", "y", "yes", "1"};
-   static const char * _offWords[] = {"off", "disable", "disabled", "false", "f", "n", "no",  "0"};
-
-   const String s = word.Trim().ToLowerCase();
-   for (uint32 i=0; i<ARRAYITEMS(_onWords);  i++) if (s == _onWords[i])  return true;
-   for (uint32 i=0; i<ARRAYITEMS(_offWords); i++) if (s == _offWords[i]) return false;
-   return defaultValue; 
 }
 
 } // end namespace muscle
