@@ -10,7 +10,7 @@
 
 namespace muscle {
 
-template <class KeyType, class ValueType, class KeyHashFunctorType, class ValueHashFunctorType> class ImmutableHashtablePool; // forward reference
+template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class KeyHashFunctorType, class ValueHashFunctorType> class ImmutableHashtablePool; // forward reference
 
 /** This macro declares typedefs for given ImmutableHashtablePool types that follow the standard naming convention.
   * Given a user-provided type name (e.g. MyTable), a Key class (e.g. String), and a Value class (e.g. uint32)
@@ -18,13 +18,13 @@ template <class KeyType, class ValueType, class KeyHashFunctorType, class ValueH
   * desired ImmutableHashtable class, the ImmutableHashtablePool class that uses it, and the read-only
   * reference class used to reference it.
   */
-#define DECLARE_IMMUTABLE_HASHTABLE_POOL_TYPES(ImmutableTableTypeName, KeyType, ValueType) \
-   typedef ImmutableHashtable<KeyType, ValueType> ImmutableTableTypeName;                  \
-   typedef ImmutableHashtablePool<KeyType, ValueType> ImmutableTableTypeName##Pool;        \
-   typedef ImmutableHashtablePool<KeyType, ValueType>::ConstImmutableHashtableTypeRef Const##ImmutableTableTypeName##Ref
+#define DECLARE_IMMUTABLE_HASHTABLE_POOL_TYPES(ImmutableTableTypeName, KeyType, ValueType, MaxCacheableTableSize) \
+   typedef ImmutableHashtable<    KeyType, ValueType, MaxCacheableTableSize> ImmutableTableTypeName;              \
+   typedef ImmutableHashtablePool<KeyType, ValueType, MaxCacheableTableSize> ImmutableTableTypeName##Pool;        \
+   typedef ImmutableHashtablePool<KeyType, ValueType, MaxCacheableTableSize>::ConstImmutableHashtableTypeRef Const##ImmutableTableTypeName##Ref
 
 /** A reference-countable object that contains an immutable Hashtable.  Objects of this type are returned by the methods of the ImmutableHashtablePool class. */
-template <class KeyType, class ValueType, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class ImmutableHashtable MUSCLE_FINAL_CLASS : public RefCountable
+template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class ImmutableHashtable MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Default constructor */
@@ -48,7 +48,7 @@ public:
    const Hashtable<KeyType, ValueType, KeyHashFunctorType> & GetTable() const {return _table;}
 
 private:
-   friend class ImmutableHashtablePool<KeyType, ValueType, KeyHashFunctorType, ValueHashFunctorType>;
+   friend class ImmutableHashtablePool<KeyType, ValueType, MaxCacheableTableSize, KeyHashFunctorType, ValueHashFunctorType>;
 
    static uint32 GetHashCodeForKey(const KeyType & key) {return GetDefaultObjectForType<KeyHashFunctorType>()(key);}
    static uint32 GetHashCodeForValue(const ValueType & val) {return GetDefaultObjectForType<ValueHashFunctorType>()(val);}
@@ -62,7 +62,7 @@ private:
    uint64 _hashCodeSum;
    Hashtable<KeyType, ValueType, KeyHashFunctorType> _table;
 
-   typedef ImmutableHashtable<KeyType, ValueType, KeyHashFunctorType, ValueHashFunctorType> SelfType;  // just to avoid the parsing limitations of the DECLARE_COUNTED_OBJECT macro
+   typedef ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize, KeyHashFunctorType, ValueHashFunctorType> SelfType;  // just to avoid the parsing limitations of the DECLARE_COUNTED_OBJECT macro
    DECLARE_COUNTED_OBJECT(SelfType);
 };
 
@@ -72,17 +72,17 @@ private:
   * DataNode), they can instead all reference the same handful of ImmutableHashtable objects, each one of which represents
   * a single combination of subscribed clients.
   */
-template <class KeyType, class ValueType, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class ImmutableHashtablePool MUSCLE_FINAL_CLASS : private NotCopyable
+template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class ImmutableHashtablePool MUSCLE_FINAL_CLASS : private NotCopyable
 {
 public:
    /** Default constructor. */
    ImmutableHashtablePool() {/* empty */}
 
    /** Convenience definition of the type of ImmutableHashtable this ImmutableHashtablePool is handling. */
-   typedef ImmutableHashtable<KeyType, ValueType, KeyHashFunctorType> ImmutableHashtableType;
+   typedef ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize, KeyHashFunctorType> ImmutableHashtableType;
 
    /** Convenience definition of the a ConstRef for the type of ImmutableHashtable this ImmutableHashtablePool is handling. */
-   typedef ConstRef<ImmutableHashtable<KeyType, ValueType, KeyHashFunctorType> > ConstImmutableHashtableTypeRef;
+   typedef ConstRef<ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize, KeyHashFunctorType> > ConstImmutableHashtableTypeRef;
 
    /** Returns a reference to an empty immutable Hashtable */
    ConstImmutableHashtableTypeRef GetEmptyTable() const {return DummyConstRef<ImmutableHashtableType>(GetDefaultObjectForType<ImmutableHashtableType>());}
@@ -95,6 +95,7 @@ public:
      * @param maxLRUCacheSize a maximum size for our LRU table cache.  If set to something other than MUSCLE_NO_LIMIT (the default) and we add an item
      *                        to the cache, then we will remove not-recently-used items from the LRU cache until the cache has this many items or fewer.
      * @returns a reference to an ImmutableHashtable in the new/updated state, or a NULL reference on error (out of memory?)
+     * @note if (startWith) is a private reference, then this method may update the table that (startWith()) points to and return (startWith).
      */
    ConstImmutableHashtableTypeRef GetWithPut(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, const ValueType & value, uint32 maxLRUCacheSize = MUSCLE_NO_LIMIT) {return GetWithAux(startWith, key, &value, maxLRUCacheSize);}
 
@@ -105,6 +106,7 @@ public:
      * @param maxLRUCacheSize a maximum size for our LRU table cache.  If set to something other than MUSCLE_NO_LIMIT (the default) and we add an item
      *                        to the cache, then we will remove not-recently-used items from the LRU cache until the cache has this many items or fewer.
      * @returns a reference to an ImmutableHashtable in the new/updated state, or a NULL reference on error (out of memory?)
+     * @note if (startWith) is a private reference, then this method may update the table that (startWith()) points to and return (startWith)..
      */
    ConstImmutableHashtableTypeRef GetWithRemove(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, uint32 maxLRUCacheSize = MUSCLE_NO_LIMIT) {return GetWithAux(startWith, key, NULL, maxLRUCacheSize);}
 
@@ -145,8 +147,8 @@ private:
    {
       if (startWith() == NULL) return GetWithAux(GetEmptyTable(), key, optNewVal, maxLRUCacheSize);  // handle the NULL-ref case gracefully, as an empty-set case
 
-      // See if we can find the new Hash table already in our cache and re-use it
       const uint64 newSum = HashCodeAfterModification(startWith, key, optNewVal);
+      // See if we can find the new Hash table already in our cache and re-use it
       const Hashtable<KeyType, ValueType, KeyHashFunctorType> & oldTable = startWith()->GetTable();
       {
          const ConstImmutableHashtableTypeRef * ret = _lruCache.GetAndMoveToFront(newSum);
@@ -156,6 +158,26 @@ private:
       // Calculate how many key/value pairs will be in the new table so we can EnsureSize() the exact amount of slots needed for it
       const bool alreadyHadKey = oldTable.ContainsKey(key);
       const uint32 newSize = oldTable.GetNumItems() + (optNewVal ? (alreadyHadKey?0:1) : (alreadyHadKey?-1:0));
+
+      if ((optNewVal == NULL)||(newSize > MaxCacheableTableSize))
+      {
+         const uint32 refStatus = GetRefStatus(startWith);
+         if (refStatus != REF_STATUS_PUBLIC)
+         {
+            // No sense creating a new table if nobody else has access to (startWith()) anyway; it's cheaper to just modify (startWith()) in-place, ImmutableHashtable notwithstanding
+            ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize> * isw = const_cast<ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize> *>(startWith());
+            if (optNewVal)
+            {
+               if (isw->_table.Put(key, *optNewVal).IsError()) return ConstImmutableHashtableTypeRef();
+            }
+            else if (isw->_table.Remove(key).IsError()) return startWith;  // didn't change anything but the key isn't in the table, so all's good, I guess?
+
+            if (refStatus == REF_STATUS_INLRUCACHE) (void) _lruCache.Remove(isw->_hashCodeSum); // old sum is outdated
+            isw->_hashCodeSum = newSum;
+            if (refStatus == REF_STATUS_INLRUCACHE) (void) _lruCache.Put(isw->_hashCodeSum, startWith); // new sum is correct
+            return startWith;
+         }
+      }
 
       // Demand-create a new table and add it to our tables-cache for potential re-use later by others
       ImmutableHashtableType * newObj = _pool.ObtainObject();
@@ -176,8 +198,11 @@ private:
          if ((alreadyHadKey == false)&&(optNewVal)) (void) newTab->Put(key, *optNewVal);  // guaranteed not to fail!
 
          newObj->_hashCodeSum = newSum;
-         (void) _lruCache.PutAtFront(newSum, newRef);  // even if it fails, we can still at least return our table to the caller
-         while(_lruCache.GetNumItems() > maxLRUCacheSize) (void) _lruCache.RemoveLast();  // keep the cache size down to something reasonable
+         if (newTab->GetNumItems() <= MaxCacheableTableSize)
+         {
+            (void) _lruCache.PutAtFront(newSum, newRef);  // even if it fails, we can still at least return our table to the caller
+            while(_lruCache.GetNumItems() > maxLRUCacheSize) (void) _lruCache.RemoveLast();  // keep the cache size down to something reasonable
+         }
          return newRef;
       }
       else MWARN_OUT_OF_MEMORY;
@@ -185,7 +210,27 @@ private:
       return ConstImmutableHashtableTypeRef();
    }
 
-   ObjectPool<ImmutableHashtable<KeyType, ValueType, KeyHashFunctorType, ValueHashFunctorType> > _pool;  // for efficiently creating new tables
+   enum {
+      REF_STATUS_PRIVATE,    ///< only the caller has access to the table
+      REF_STATUS_INLRUCACHE, ///< the caller and the LRUCache both have access to the table
+      REF_STATUS_PUBLIC,     ///< others have access to the table as well
+      NUM_REF_STATUSES       ///< guard value
+   };
+
+   // Returns a REF_STATUS_* value for the given reference
+   uint32 GetRefStatus(const ConstImmutableHashtableTypeRef & ref) const
+   {
+      if (ref.IsRefPrivate())           return REF_STATUS_PRIVATE;
+      if (ref.IsRefCounting() == false) return REF_STATUS_PUBLIC;  // paranoia?
+      if (ref()->GetRefCount() == 2)
+      {
+         const ConstImmutableHashtableTypeRef * inCache = _lruCache.Get(ref()->_hashCodeSum);
+         if ((inCache)&&(inCache->GetItemPointer() == ref())) return REF_STATUS_INLRUCACHE;
+      }
+      return REF_STATUS_PUBLIC;
+   }
+
+   ObjectPool<ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize, KeyHashFunctorType, ValueHashFunctorType> > _pool;  // for efficiently creating new tables
    Hashtable<uint64, ConstImmutableHashtableTypeRef> _lruCache;  // hash code -> cached immutable hash table
 };
 

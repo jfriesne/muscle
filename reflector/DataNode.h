@@ -17,7 +17,7 @@ class DataNode;
 DECLARE_REFTYPES(DataNode);
 
 /** Declares DataNodeSubscribersTable, DataNodeSubscribersTablePool, and ConstDataNodeSubscribersTableRef */
-DECLARE_IMMUTABLE_HASHTABLE_POOL_TYPES(DataNodeSubscribersTable, uint32, uint32);
+DECLARE_IMMUTABLE_HASHTABLE_POOL_TYPES(DataNodeSubscribersTable, uint32, uint32, MUSCLE_NO_LIMIT);
 
 /** Iterator type for our child objects */
 typedef HashtableIterator<const String *, DataNodeRef> DataNodeRefIterator;

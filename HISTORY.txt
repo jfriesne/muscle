@@ -17,6 +17,11 @@ key:  - new feature
    - Added ToHexString() and ToAnnotatedHexString() methods to
      the ByteBuffer class.
    - Added a suppressLeadingZeroes argument to BitChord::ToHexString()
+   - Added a MaxCacheableTableSize template-argument to the
+     ImmutableHashtable classes.
+   - Added logic to the ImmutableHashtable class to mutate a table
+     in some circumstances (when nobody will notice) to avoid
+     creating a lot of superfluous interim tables.
    o CalculateHashCode(const Type &) now calls HashCode() on the
      argument if possible, or uses a PODHashFunctor otherwise.
    o Downgraded cmake_minimum_required in the CMakeList.txt files
