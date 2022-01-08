@@ -336,6 +336,12 @@ public:
      */
    bool AreKeysAndValuesASupersetOf(const HashtableBase & rhs, bool considerOrdering = false) const {return rhs.AreKeysAndValuesASubsetOf(*this, considerOrdering);}
 
+   /** Returns true iff any of the keys in (rhs) are also keys in this Hashtable.
+     * @param rhs the Hashtable whose keys we should check against this Hashtable's keys
+     * @returns true iff there is a key that is present in both tables, or false otherwise.
+     */
+   template<class HisKeyType, class HisValueType, class HisHashFunctorType> bool HasKeysInCommonWith(const HashtableBase<HisKeyType,HisValueType,HisHashFunctorType> & rhs) const;
+
    /** Returns the given key's position in the hashtable's linked list, or -1 if the key wasn't found.  O(n) count time (if the key exists, O(1) if it doesn't)
      * @param key a key value to find the index of
      * @returns the position of the key in the iteration list, or -1 if the key is not in the table.
@@ -515,7 +521,7 @@ public:
      * @param pairs A table containing keys that should be removed from this table.
      * @returns the number of items actually removed from this table.
      */
-   uint32 Remove(const HashtableBase & pairs);
+   template<class HisKeyType, class HisValueType, class HisHashFunctorType> uint32 Remove(const HashtableBase<HisKeyType,HisValueType,HisHashFunctorType> & pairs);
 
    /** Removes a mapping from the table and returns the removed value.
      * If the mapping did not exist in the table, a default value is returned instead.
@@ -536,7 +542,7 @@ public:
      * @param pairs the other table to intersect our table against
      * @returns the number of items actually removed from this table.
      */
-   uint32 Intersect(const HashtableBase & pairs);
+   template<class HisKeyType, class HisValueType, class HisHashFunctorType> uint32 Intersect(const HashtableBase<HisKeyType,HisValueType,HisHashFunctorType> & pairs);
 
    /** Convenience method:  Removes the first key/value mapping in the table.  (O(1) removal time)
     *  @return B_NO_ERROR if the first mapping was removed, or B_DATA_NOT_FOUND if this table was already empty.
@@ -1302,6 +1308,7 @@ private:
    IteratorType * GetIteratorNextIterator(const IteratorType & iter) const {return iter._nextIter;}
 
    // Give these classes (and only these classes!) access to the HashtableEntryBase inner class
+   template<class HisKeyType, class HisValueType, class HisHashFunctorType>                                 friend class HashtableBase;
    template<class HisKeyType, class HisValueType, class HisHashFunctorType, class HisSubclassType>          friend class HashtableMid;
    template<class HisKeyType, class HisValueType, class HisHashFunctorType>                                 friend class Hashtable;
    template<class HisKeyType, class HisValueType, class HisHashFunctorType, class HisEntryCompareFunctorType, class HisSubclassType> friend class OrderedHashtable;
@@ -3056,8 +3063,9 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::CountAverageLookupComparisons(
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
+template<class HisKeyType, class HisValueType, class HisHashFunctorType>
 uint32 
-HashtableBase<KeyType,ValueType,HashFunctorType>::Remove(const HashtableBase & pairs)
+HashtableBase<KeyType,ValueType,HashFunctorType>::Remove(const HashtableBase<HisKeyType,HisValueType,HisHashFunctorType> & pairs)
 {
    uint32 removeCount = 0;
    if (&pairs == this)
@@ -3067,7 +3075,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Remove(const HashtableBase & p
    }
    else
    {
-      HashtableEntryBase * e = pairs.IndexToEntryChecked(pairs._iterHeadIdx);
+      const typename HashtableBase<HisKeyType,HisValueType,HisHashFunctorType>::HashtableEntryBase * e = pairs.IndexToEntryChecked(pairs._iterHeadIdx);
       while(e)
       {
          if (RemoveAux(e->_hash, e->_key, NULL).IsOK()) removeCount++;
@@ -3078,21 +3086,40 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Remove(const HashtableBase & p
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
+template<class HisKeyType, class HisValueType, class HisHashFunctorType>
 uint32 
-HashtableBase<KeyType,ValueType,HashFunctorType>::Intersect(const HashtableBase & pairs)
+HashtableBase<KeyType,ValueType,HashFunctorType>::Intersect(const HashtableBase<HisKeyType,HisValueType,HisHashFunctorType> & pairs)
 {
    uint32 removeCount = 0;
    if (&pairs != this)
    {
-      HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
+      const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       while(e)
       {
-         HashtableEntryBase * next = this->GetEntryIterNextChecked(e); // save this first, since we might be erasing (e)
+         const HashtableEntryBase * next = this->GetEntryIterNextChecked(e); // save this first, since we might be erasing (e)
          if ((pairs.GetEntry(e->_hash, e->_key) == NULL)&&(this->RemoveAux(e->_hash, e->_key, NULL).IsOK())) removeCount++;
          e = next;
       }
    }
    return removeCount;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+template<class HisKeyType, class HisValueType, class HisHashFunctorType>
+bool
+HashtableBase<KeyType,ValueType,HashFunctorType>::HasKeysInCommonWith(const HashtableBase<HisKeyType,HisValueType,HisHashFunctorType> & rhs) const
+{
+   if (this->GetNumItems() < rhs.GetNumItems())
+   {
+      const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
+      while(e)
+      {
+         if (rhs.GetEntry(e->_hash, e->_key) != NULL) return true;
+         e = this->GetEntryIterNextChecked(e);
+      }
+      return false;
+   }
+   else return rhs.HasKeysInCommonWith(*this);  // we want to iterate over the smaller of the two tables
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>

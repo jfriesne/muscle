@@ -117,12 +117,23 @@ public:
    void ClearCache() {_lruCache.Clear();}
 
    /** Clears all cached ImmutableHashtable from our cache that contain the specified key.
-     * @param key the key to look for in each cached ImmutableHashtable object.  If found, the object will be dropped from our cache.
+     * @param key the key to look for in each cached ImmutableHashtable object.  Any ImmutableHashtables
+     *            containing this key will be dropped from the LRU cache.
      */
    void DropAllCacheEntriesContainingKey(const KeyType & key)
    {
       for (HashtableIterator<uint64, ConstImmutableHashtableTypeRef> iter(_lruCache); iter.HasData(); iter++)
          if (iter.GetValue()()->GetTable().ContainsKey(key)) (void) _lruCache.Remove(iter.GetKey());
+   }
+
+   /** Clears all cached ImmutableHashtables from our cache that contain at least one of the specified keys.
+     * @param keys a Hashtable of keys to look for in each cached ImmutableHashtable object.  Any
+     *             ImmutableHashtables containing any of these keys will be dropped from the LRU cache.
+     */
+   template<typename ValType = Void> void DropAllCacheEntriesContainingAnyOfTheseKeys(const Hashtable<KeyType, ValType> & keys)
+   {
+      for (HashtableIterator<uint64, ConstImmutableHashtableTypeRef> iter(_lruCache); iter.HasData(); iter++)
+         if (keys.HasKeysInCommonWith(iter.GetValue()()->GetTable())) (void) _lruCache.Remove(iter.GetKey());
    }
 
    /** Returns true iff the specified immutable Hashtable is part of our current immutable-tables-cache */

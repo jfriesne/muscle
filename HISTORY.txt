@@ -22,6 +22,12 @@ key:  - new feature
    - Added logic to the ImmutableHashtable class to mutate a table
      in some circumstances (when nobody will notice) to avoid
      creating a lot of superfluous interim tables.
+   - Added a Hashtable::HasKeysInCommonWith() convenience method.
+   - Added a DropAllCacheEntriesContainingAnyOfTheseKeys() method
+     to the ImmutableHashtablePool class, for better efficiency.
+   - Hashtable::Remove() and Hashtable::Intersect() methods are
+     now templated so their argument can be a Hashtable of a
+     different type (as long as its KeyType is the same)
    o CalculateHashCode(const Type &) now calls HashCode() on the
      argument if possible, or uses a PODHashFunctor otherwise.
    o Downgraded cmake_minimum_required in the CMakeList.txt files
