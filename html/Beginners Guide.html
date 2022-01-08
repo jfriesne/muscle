@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
    <H1>MUSCLE Overview and Beginner's Guide</H1>
-   <H4>v8.45 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 12/21/2021</H4>
+   <H4>v8.46 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 1/8/2022</H4>
    <A HREF="https://public.msli.com/lcs/muscle/html/index.html">Click here for DOxygen class API documentation</A><p>
    <A HREF="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/site/index.html">Click here for the MUSCLE-by-example tour</A>
 </HEAD>
@@ -439,11 +439,11 @@ Currently there are only a few parameters that whose values are acted upon by th
 
 <H2>(Optional) Indexed Nodes and Orderly Children </H2>
 
-New for v1.40 of muscled is support for "indexed" nodes.  An indexed node is the same as any other node,
-except that it maintains an ordered index of some or all of its children.  In most cases, this index is 
-unecessary, so by default no indexing is done.  There are some cases where the ordering of child nodes 
-is important, however--for example, if you are advertising to other clients a list of instructions that 
-must be executed in order, and the list too large to upload an entire new list every time the list changes.
+An indexed node is the same as any other node, except that it maintains an ordered index of some or
+all of its children.  In most cases, this index is unecessary, so by default no indexing is done.
+There are some cases where the ordering of child nodes is important, however--for example, if you
+are advertising to other clients a list of instructions that must be executed in order, and the
+list too large to upload an entire new list every time the list changes.
 <p>
 To enable indexing for a node, simply add child nodes to it using PR_COMMAND_INSERTORDEREDDATA
 instead of the usual PR_COMMAND_SETDATA messages.  In a PR_COMMAND_INSERTORDEREDDATA message, you

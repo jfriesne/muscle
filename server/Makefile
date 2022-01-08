@@ -41,7 +41,9 @@ OBJFILES = Message.o AbstractMessageIOGateway.o TemplatingMessageIOGateway.o Mes
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o zip.o unzip.o ioapi.o
 
 # These files aren't used by muscled, but some of the muscle-by-example programs need them to be in libmuscle.a
-EXTRAFILES = MessageTransceiverThread.o DetectNetworkConfigChangesSession.o Thread.o
+ifeq (,$(findstring MUSCLE_SINGLE_THREAD_ONLY,$(CXXFLAGS)))
+   EXTRAFILES = MessageTransceiverThread.o DetectNetworkConfigChangesSession.o Thread.o
+endif
 
 # Where to find .cpp files 
 VPATH = ../message ../besupport ../dataio ../iogateway ../reflector ../regex ../util ../syslog ../system ../zlib ../zlib/zlib ../zlib/zlib/contrib/minizip ../regex/regex
