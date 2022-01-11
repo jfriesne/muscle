@@ -150,7 +150,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
    const bool createTemplate      = ((lengthWord & CREATE_TEMPLATE_BIT) != 0);
    const uint8 * inPtr            = bb->GetBuffer()+offset;
    const uint8 * firstInvalidByte = bb->GetBuffer()+bb->GetNumBytes();
-   const uint32 numBodyBytes      = firstInvalidByte-inPtr;
+   const uint32 numBodyBytes      = (uint32) (firstInvalidByte-inPtr);
    uint64 templateID              = 0;
 
    status_t ret;
@@ -168,7 +168,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
          if (templateMsgRef)
          {
             const uint8 * payloadBytes = inPtr + sizeof(uint64);
-            if (retMsg()->TemplatedUnflatten(*templateMsgRef->GetItemPointer(), payloadBytes, firstInvalidByte-payloadBytes).IsError(ret))
+            if (retMsg()->TemplatedUnflatten(*templateMsgRef->GetItemPointer(), payloadBytes, (uint32)(firstInvalidByte-payloadBytes)).IsError(ret))
             {
                LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Error unflattening " UINT32_FORMAT_SPEC " payload-bytes using template ID " UINT64_FORMAT_SPEC "\n", (uint32)(firstInvalidByte-payloadBytes), templateID);
                return MessageRef();

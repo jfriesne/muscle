@@ -3373,7 +3373,7 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
          subBuf += itemSize; subBufSize -= itemSize;
       }
 
-      mfSize = subBuf-buf;
+      mfSize = (uint32)(subBuf-buf);
       if (isMessageField == false) MRETURN_ON_ERROR(mf->Unflatten(buf, mfSize));
    }
 
