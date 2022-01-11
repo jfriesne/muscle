@@ -712,7 +712,14 @@ template<typename T> inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3, T p4,
   * @param t1 First item to swap.  After this method returns, it will be equal to the old value of t2.
   * @param t2 Second item to swap.  After this method returns, it will be equal to the old value of t1.
   */
-template<typename T> inline void muscleSwap(T & t1, T & t2) {T t=t1; t1 = t2; t2 = t;}
+template<typename T> inline void muscleSwap(T & t1, T & t2)
+{
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   T t=(t1); t1 = t2; t2 = t;
+#else
+  std::swap(t1, t2);
+#endif
+}
 
 #else
 
