@@ -111,14 +111,21 @@ public:
       MASSERT(_registeredSessions.IsEmpty(), "DetectNetworkConfigChangesThread destroyed while sessions were still registered");
    }
 
+   // Should be called ONLY from RegisterWithSingletonThread()
    status_t RegisterSession(DetectNetworkConfigChangesSession * s)
    {
+      if (_registeredSessions.ContainsKey(s)) return B_NO_ERROR;  // already registered!
+
       const bool startInternalThread = _registeredSessions.IsEmpty();
 
       MRETURN_ON_ERROR(_registeredSessions.PutWithDefault(s));
-      return startInternalThread ? StartInternalThread() : B_NO_ERROR;
+
+      const status_t ret = startInternalThread ? StartInternalThread() : B_NO_ERROR;
+      if (ret.IsError()) (void) _registeredSessions.Remove(s);  // roll back
+      return ret;
    }
 
+   // Should be called ONLY from UnregisterFromSingletonThread()
    status_t UnregisterSession(DetectNetworkConfigChangesSession * s)
    {
       MRETURN_ON_ERROR(_registeredSessions.Remove(s));
@@ -493,7 +500,8 @@ private:
 #if TARGET_OS_IPHONE
 static void on_path_monitor_update_event(DetectNetworkConfigChangesThread * t, nw_path_t path)
 {
-   if (t)
+   DECLARE_MUTEXGUARD(_singletonThreadMutex);  // serialize access to _singletonThread
+   if ((t)&&(t == _singletonThread)) // this check is necessary in case (t) was deleted after this event was queued but before the callback
    {
       Hashtable<String, Void> ifaceNames;
       Hashtable<String, Void> * pIfaceNames = &ifaceNames;  // necessary because (ifaceNames) is tagged const inside the block below
@@ -685,7 +693,7 @@ static status_t RegisterWithSingletonThread(DetectNetworkConfigChangesSession * 
    }
 
    status_t ret;
-   if ((_singletonThread)&&(_singletonThread->RegisterSession(s).IsError(ret))&&(_singletonThread->HasRegisteredSessions() == false))
+   if ((_singletonThread->RegisterSession(s).IsError(ret))&&(_singletonThread->HasRegisteredSessions() == false))
    {
       delete _singletonThread;
       _singletonThread = NULL;
@@ -700,8 +708,8 @@ static status_t UnRegisterFromSingletonThread(DetectNetworkConfigChangesSession 
    DECLARE_MUTEXGUARD(_singletonThreadMutex);
    if (_singletonThread)
    {
-      status_t ret;
-      if ((_singletonThread->UnregisterSession(s).IsOK(ret))&&(_singletonThread->HasRegisteredSessions() == false))
+      const status_t ret = _singletonThread->UnregisterSession(s);
+      if (_singletonThread->HasRegisteredSessions() == false)
       {
          delete _singletonThread;
          _singletonThread = NULL;

@@ -6,6 +6,8 @@ key:  - new feature
       o other
 
    o muscleSwap() now calls through to std::swap() when possible.
+   * Fixed a bug in the iOS implementation of DetectNetworkConfigChangesSession
+     that could cause crashes during shutdown.
 
 8.46 - Release 1/8/2022
    - Added HashCode() methods to the ByteBuffer, Queue, Hashtable,
