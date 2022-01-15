@@ -6,6 +6,13 @@ key:  - new feature
       o other
 
    o muscleSwap() now calls through to std::swap() when possible.
+   o Modified various method-calls (e.g. AddNewConnectSession(),
+     Connect(), ConnectAsync()) that took an IPAddress and a port
+     as separate arguments to take an IPAdddressAndPort argument instead.
+   o Removed AbstractReflectSession::GetAsyncConnectIP() and
+     AbstractReflectSession::GetAsyncConnectPort().  Call
+     AbstractReflectSession::GetAsyncConnectDestination() instead.
+   * Made the IPAddress single-argument-String constructor explicit.
    * Fixed a bug in the iOS implementation of DetectNetworkConfigChangesSession
      that could cause crashes during shutdown.
 

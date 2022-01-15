@@ -53,7 +53,8 @@ enum {
 #define MTT_NAME_DATA               "data"  /**< field containing a raw bytes */
 #define MTT_NAME_MESSAGE            "mssg"  /**< field containing a message object */
 #define MTT_NAME_SOCKET             "sock"  /**< field containing a Socket reference */
-#define MTT_NAME_IP_ADDRESS         "addr"  /**< field containing an int32 IP address */
+#define MTT_NAME_IPADDRESS          "addr"  /**< field containing a flattened IPAddress object */
+#define MTT_NAME_IPADDRESSANDPORT   "iap"   /**< field containing a flattened IPAddressAndPort object */
 #define MTT_NAME_HOSTNAME           "host"  /**< field containing an ASCII hostname or IP address */
 #define MTT_NAME_PORT               "port"  /**< field containing an int16 port number */
 #define MTT_NAME_FACTORY_ID         "fcid"  /**< field containing a uint32 factory ID number (new for v3.40) */
@@ -66,7 +67,6 @@ enum {
 #define MTT_NAME_EXPANDLOCALHOST    "expl"  /**< boolean field indicating whether localhost IP should be expanded to primary IP */
 #define MTT_NAME_AUTORECONNECTDELAY "arcd"  /**< int64 indicating how long after disconnect before an auto-reconnect should occur */
 #define MTT_NAME_MAXASYNCCONNPERIOD "maxa"  /**< int64 indicating how long we should wait for an async TCP connect to be established */
-#define MTT_NAME_LOCATION           "loc"   /**< String field representing an IPAddressAndPort of where the session connected to (or was accepted from) */
 
 /** This little class is used to help us track when workers' output queues are empty.
   * When it gets deleted (inside the internal thread), it triggers the supervisor session
@@ -292,7 +292,7 @@ private:
    friend class DrainTag;
 
    void DrainTagIsBeingDeleted(DrainTag * tag);
-   status_t AddNewWorkerConnectSession(const AbstractReflectSessionRef & sessionRef, const IPAddress & hostIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod);
+   status_t AddNewWorkerConnectSession(const AbstractReflectSessionRef & sessionRef, const IPAddressAndPort & hostIPAndPort, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod);
 
    Hashtable<DrainTag *, Void> _drainTags;
    String _defaultDistributionPath;
@@ -371,8 +371,7 @@ public:
      * May be called at any time, but behaves slightly differently depending on whether the internal
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
      * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewConnectSession().
-     * @param targetIPAddress IP address to connect to
-     * @param port Port to connect to at that IP address.
+     * @param targetIPAddressAndPort IP address and port to connect to.
      * @param optSessionRef optional Reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession
      *                      will be created and used.  If you do specify a session here, you will probably want to supply either a
      *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts
@@ -393,15 +392,14 @@ public:
      * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
-   virtual status_t AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, const AbstractReflectSessionRef & optSessionRef, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
+   virtual status_t AddNewConnectSession(const IPAddressAndPort & targetIPAddressAndPort, const AbstractReflectSessionRef & optSessionRef, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
    /**
      * Convenience method:  Adds a new default ThreadWorkerSession that will connect out to the given IP address and port.
      * May be called at any time, but behaves slightly differently depending on whether the internal
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
      * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewConnectSession().
-     * @param targetIPAddress IP address to connect to
-     * @param port Port to connect to at that IP address.
+     * @param targetIPAddressAndPort IP address and port to connect to.
      * @param autoReconnectDelay If specified, this is the number of microseconds after the
      *                           connection is broken that an automatic reconnect should be
      *                           attempted.  If not specified, an automatic reconnect will not
@@ -417,7 +415,8 @@ public:
      * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
-   status_t AddNewConnectSession(const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return AddNewConnectSession(targetIPAddress, port, ThreadWorkerSessionRef(), autoReconnectDelay, maxAsyncConnectPeriod);}
+   status_t AddNewConnectSession(const IPAddressAndPort & targetIPAddressAndPort, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return AddNewConnectSession(targetIPAddressAndPort, ThreadWorkerSessionRef(), autoReconnectDelay, maxAsyncConnectPeriod);}
+
 
    /**
      * Adds a new session that will connect out to the given hostname and port.
@@ -708,8 +707,8 @@ protected:
 
 private:
    /** These method are here (and private, and unimplemented) just to make sure the developer doesn't forget to include the (expandLocalhost) argument. */
-   status_t AddNewConnectSession(const String &, uint16, uint64);           // deliberately private and unimplemented!
-   status_t AddNewConnectSession(const String &, uint16, uint64, uint64);   // deliberately private and unimplemented!
+   status_t AddNewConnectSession(const String &, uint16, uint64);                                             // deliberately private and unimplemented!
+   status_t AddNewConnectSession(const String &, uint16, uint64, uint64);                                     // deliberately private and unimplemented!
    status_t AddNewConnectSession(const String &, uint16, const AbstractReflectSessionRef &, uint64);          // deliberately private and unimplemented!
    status_t AddNewConnectSession(const String &, uint16, const AbstractReflectSessionRef &, uint64, uint64);  // deliberately private and unimplemented!
 
@@ -717,7 +716,7 @@ private:
    status_t EnsureServerAllocated();
    void UpdateWorkerSessionForwardingLogic(ThreadWorkerSessionRef & sRef) const;
    void UpdateWorkerSessionFactoryForwardingLogic(ThreadWorkerSessionFactoryRef & fRef) const;
-   status_t SendAddNewSessionMessage(const AbstractReflectSessionRef & sessionRef, const ConstSocketRef & socket, const char * hostName, const IPAddress & hostIP, uint16 port, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod);
+   status_t SendAddNewSessionMessage(const AbstractReflectSessionRef & sessionRef, const ConstSocketRef & socket, const char * hostName, const IPAddressAndPort & hostIAP, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod);
    status_t SetNewPolicyAux(uint32 what, const AbstractSessionIOPolicyRef & pref, const String & optDistPath);
 
    ReflectServerRef _server;

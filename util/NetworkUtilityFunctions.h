@@ -174,8 +174,7 @@ ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTit
 
 /** Mostly as above, only with the target IP address specified numerically, rather than as an ASCII string. 
  *  This version of connect will never do a DNS lookup.
- * @param hostIP The numeric host IP address to connect to.
- * @param port The port number to connect to.
+ * @param hostIPAndPort The numeric host IP address and port number to connect to.
  * @param debugHostName If non-NULL, we'll print this host name out when reporting errors.  It isn't used for networking purposes, though.
  * @param debugTitle If non-NULL, debug output to stdout will be enabled and debug output will be prefaced by this string.
  * @param debugOutputOnErrorsOnly if true, debug output will be printed only if an error condition occurs.
@@ -184,19 +183,7 @@ ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTit
  *                         to decide when the attempt should time out.
  * @return A non-NULL ConstSocketRef if the connection is successful, or a NULL ConstSocketRef if the connection failed.
  */
-ConstSocketRef Connect(const IPAddress & hostIP, uint16 port, const char * debugHostName = NULL, const char * debugTitle = NULL, bool debugOutputOnErrorsOnly = true, uint64 maxConnectPeriod = MUSCLE_TIME_NEVER);
-
-/** As above, only this version of Connect() takes an IPAddressAndPort object instead of separate IPAddress and port arguments.
- * @param iap IP address and port to connect to.
- * @param debugHostName If non-NULL, we'll print this host name out when reporting errors.  It isn't used for networking purposes, though.
- * @param debugTitle If non-NULL, debug output to stdout will be enabled and debug output will be prefaced by this string.
- * @param debugOutputOnErrorsOnly if true, debug output will be printed only if an error condition occurs.
- * @param maxConnectPeriod The maximum number of microseconds to spend attempting to make this connection.  If left as MUSCLE_TIME_NEVER
- *                         (the default) then no particular time limit will be enforced, and it will be left up to the operating system
- *                         to decide when the attempt should time out.
- * @return A non-NULL ConstSocketRef if the connection is successful, or a NULL ConstSocketRef if the connection failed.
- */
-inline ConstSocketRef Connect(const IPAddressAndPort & iap, const char * debugHostName = NULL, const char * debugTitle = NULL, bool debugOutputOnErrorsOnly = true, uint64 maxConnectPeriod = MUSCLE_TIME_NEVER) {return Connect(iap.GetIPAddress(), iap.GetPort(), debugHostName, debugTitle, debugOutputOnErrorsOnly, maxConnectPeriod);}
+ConstSocketRef Connect(const IPAddressAndPort & hostIPAndPort, const char * debugHostName = NULL, const char * debugTitle = NULL, bool debugOutputOnErrorsOnly = true, uint64 maxConnectPeriod = MUSCLE_TIME_NEVER);
 
 /** Accepts an incoming TCP connection on the given listening-socket.
  *  @param sock the listening-socket to accept the incoming TCP from.  This will typically be a ConstSocketRef that was previously returned by CreateAcceptingSocket().
@@ -284,21 +271,12 @@ int32 WriteData(const ConstSocketRef & fd, const void * buffer, uint32 bufferSiz
   * fully connected (or when the connection fails), at which point you can call 
   * FinalizeAsyncConnect() on the socket:  if FinalizeAsyncConnect() succeeds, the connection 
   * succeeded; if not, the connection failed.
-  * @param hostIP 32-bit IP address to connect to (hostname isn't used as hostname lookups can't be made asynchronous AFAIK)
-  * @param port Port to connect to.
+  * @param hostIPAndPort The IP address and port number to connect to
   * @param retIsReady On success, this bool is set to true iff the socket is ready to use, or 
   *                   false to indicate that an asynchronous connection is now in progress.
   * @return A non-NULL ConstSocketRef (which is likely still in the process of connecting) on success, or a NULL ConstSocketRef if the accept failed.
   */
-ConstSocketRef ConnectAsync(const IPAddress & hostIP, uint16 port, bool & retIsReady);
-
-/** As above, only this version of ConnectAsync() takes an IPAddressAndPort object instead of separate IP address and port arguments.
-  * @param iap IP address and port to connect to.
-  * @param retIsReady On success, this bool is set to true iff the socket is ready to use, or 
-  *                   false to indicate that an asynchronous connection is now in progress.
-  * @return A non-NULL ConstSocketRef (which is likely still in the process of connecting) on success, or a NULL ConstSocketRef if the accept failed.
-  */
-inline ConstSocketRef ConnectAsync(const IPAddressAndPort & iap, bool & retIsReady) {return ConnectAsync(iap.GetIPAddress(), iap.GetPort(), retIsReady);}
+ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIPAndPort, bool & retIsReady);
 
 /** When a TCP socket that was connecting asynchronously finally selects as ready-for-write 
   * to indicate that the asynchronous connect attempt has reached a conclusion, call this function.

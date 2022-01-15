@@ -164,7 +164,7 @@ int main(int argc, char ** argv)
       return 10;
    }
 
-   if (mtt.AddNewConnectSession(localhostIP, SMART_SERVER_TCP_PORT, SecondsToMicros(1)).IsError(ret))
+   if (mtt.AddNewConnectSession(IPAddressAndPort(localhostIP, SMART_SERVER_TCP_PORT), SecondsToMicros(1)).IsError(ret))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "mtt.AddNewConnectSession() failed, aborting! [%s]\n", ret());
       mtt.ShutdownInternalThread();

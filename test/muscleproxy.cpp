@@ -67,7 +67,7 @@ public:
       _upstreamSession.SetRef(newnothrow UpstreamSession(this));
       MRETURN_OOM_ON_NULL(_upstreamSession());
 
-      return AddNewConnectSession(_upstreamSession, _upstreamLocation.GetIPAddress(), _upstreamLocation.GetPort());
+      return AddNewConnectSession(_upstreamSession, _upstreamLocation);
    }
 
    virtual void AboutToDetachFromServer()

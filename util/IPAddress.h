@@ -30,7 +30,7 @@ public:
      * object and then calling SetFromString() on it with the given arguments.
      * @param s an IPAddress to parse (e.g. "127.0.0.1" or "ff12::02@3")
      */
-   IPAddress(const String & s) : _lowBits(0), _highBits(0), _interfaceIndex(MUSCLE_NO_LIMIT) {(void) SetFromString(s);}
+   explicit IPAddress(const String & s) : _lowBits(0), _highBits(0), _interfaceIndex(MUSCLE_NO_LIMIT) {(void) SetFromString(s);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    IPAddress(const IPAddress & rhs) : _lowBits(rhs._lowBits), _highBits(rhs._highBits), _interfaceIndex(rhs._interfaceIndex) {/* empty */}

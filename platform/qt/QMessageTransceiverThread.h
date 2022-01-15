@@ -335,8 +335,7 @@ public:
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
      * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewConnectSession(). 
      * @param master the IMessageTransceiverMaster to bind this handler to.
-     * @param targetIPAddress IP address to connect to
-     * @param port Port to connect to at that IP address.
+     * @param targetIPAddressAndPort IP address and port to connect to
      * @param optSessionRef optional Reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession 
      *                      will be created and used.  If you do specify a session here, you will want to use either a 
      *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts 
@@ -357,7 +356,7 @@ public:
      * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
-   virtual status_t SetupAsNewConnectSession(IMessageTransceiverMaster & master, const IPAddress & targetIPAddress, uint16 port, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
+   virtual status_t SetupAsNewConnectSession(IMessageTransceiverMaster & master, const IPAddressAndPort & targetIPAddressAndPort, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
    /** Convenience method -- calls the above method with a NULL session reference. 
      * Associates this handler with a specified IMessageTransceiverMaster, and tells it to connect to
@@ -367,8 +366,7 @@ public:
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
      * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewConnectSession(). 
      * @param master the IMessageTransceiverMaster to bind this handler to.
-     * @param targetIPAddress IP address to connect to
-     * @param port Port to connect to at that IP address.
+     * @param targetIPAddressAndPort IP address and port to connect to.
      * @param autoReconnectDelay If specified, this is the number of microseconds after the
      *                           connection is broken that an automatic reconnect should be
      *                           attempted.  If not specified, an automatic reconnect will not
@@ -384,7 +382,7 @@ public:
      * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
      */
-   status_t SetupAsNewConnectSession(IMessageTransceiverMaster & master, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return SetupAsNewConnectSession(master, targetIPAddress, port, ThreadWorkerSessionRef(), autoReconnectDelay, maxAsyncConnectPeriod);}
+   status_t SetupAsNewConnectSession(IMessageTransceiverMaster & master, const IPAddressAndPort & targetIPAddressAndPort, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS) {return SetupAsNewConnectSession(master, targetIPAddressAndPort, ThreadWorkerSessionRef(), autoReconnectDelay, maxAsyncConnectPeriod);}
 
    /**
      * Associates this handler with a specified IMessageTransceiverMaster, and tells it to connect to
@@ -581,8 +579,8 @@ protected:
 
 private:
    /** These method are here (and private, and unimplemented) just to make sure the developer doesn't forget to include the (expandLocalhost) argument. */
-   status_t SetupAsNewConnectSession(IMessageTransceiverMaster &, const String &, uint16, uint64);           // deliberately private and unimplemented!
-   status_t SetupAsNewConnectSession(IMessageTransceiverMaster &, const String &, uint16, uint64, uint64);   // deliberately private and unimplemented!
+   status_t SetupAsNewConnectSession(IMessageTransceiverMaster &, const String &, uint16, uint64);                                          // deliberately private and unimplemented!
+   status_t SetupAsNewConnectSession(IMessageTransceiverMaster &, const String &, uint16, uint64, uint64);                                  // deliberately private and unimplemented!
    status_t SetupAsNewConnectSession(IMessageTransceiverMaster &, const String &, uint16, const ThreadWorkerSessionRef &, uint64);          // deliberately private and unimplemented!
    status_t SetupAsNewConnectSession(IMessageTransceiverMaster &, const String &, uint16, const ThreadWorkerSessionRef &, uint64, uint64);  // deliberately private and unimplemented!
 

@@ -129,18 +129,18 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & sock
 
 status_t
 ServerComponent ::
-AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & ip, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddressAndPort & iap, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    MASSERT(_owner, "Can not call AddNewConnectSession() while not attached to the server");
-   return _owner->AddNewConnectSession(ref, ip, port, autoReconnectDelay, maxAsyncConnectPeriod);
+   return _owner->AddNewConnectSession(ref, iap, autoReconnectDelay, maxAsyncConnectPeriod);
 }
 
 status_t
 ServerComponent ::
-AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & ip, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddressAndPort & iap, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    MASSERT(_owner, "Can not call AddNewDormantConnectSession() while not attached to the server");
-   return _owner->AddNewDormantConnectSession(ref, ip, port, autoReconnectDelay, maxAsyncConnectPeriod);
+   return _owner->AddNewDormantConnectSession(ref, iap, autoReconnectDelay, maxAsyncConnectPeriod);
 }
 
 void

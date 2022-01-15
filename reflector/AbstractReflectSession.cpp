@@ -150,7 +150,7 @@ Reconnect()
 
    bool doTCPConnect = ((_reconnectViaTCP)&&(_asyncConnectDest.GetIPAddress() != invalidIP));
    bool isReady = false;
-   ConstSocketRef sock = doTCPConnect ? ConnectAsync(_asyncConnectDest.GetIPAddress(), _asyncConnectDest.GetPort(), isReady) : CreateDefaultSocket();
+   ConstSocketRef sock = doTCPConnect ? ConnectAsync(_asyncConnectDest, isReady) : CreateDefaultSocket();
 
    // FogBugz #5256:  If ConnectAsync() fails, we want to act as if it succeeded, so that the calling
    //                 code still uses its normal asynchronous-connect-failure code path.  That way the

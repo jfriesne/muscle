@@ -128,7 +128,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
 
 status_t
 ReflectServer ::
-AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & destIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddressAndPort & destIAP, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    AbstractReflectSession * session = ref();
    if (session == NULL) return B_BAD_ARGUMENT;
@@ -137,12 +137,12 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & de
    {
       // Oh dear, we're in the time just before the computer is about to go to sleep; it's no good
       // starting a TCP connection now!  Instead we'll make it dormant and call Reconnect() on it when we re-awake.
-      MRETURN_ON_ERROR(AddNewDormantConnectSession(ref, destIP, port, autoReconnectDelay, maxAsyncConnectPeriod));
+      MRETURN_ON_ERROR(AddNewDormantConnectSession(ref, destIAP, autoReconnectDelay, maxAsyncConnectPeriod));
       (void) _sessionsToReconnectOnWakeup.Put(ref()->GetSessionIDString(), true);  // true indicates "Gotta call Reconnect() when we wake up"
       return B_NO_ERROR;
    }
 
-   ConstSocketRef sock = ConnectAsync(destIP, port, session->_isConnected);
+   ConstSocketRef sock = ConnectAsync(destIAP, session->_isConnected);
 
    // FogBugz #5256:  If ConnectAsync() fails, we want to act as if it succeeded, so that the calling
    //                 code still uses its normal asynchronous-connect-failure code path.  That way the
@@ -160,13 +160,13 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & de
    if (sock())
    {
       NestCountGuard ncg(_inDoConnect);
-      session->_asyncConnectDest = IPAddressAndPort(destIP, port);
+      session->_asyncConnectDest = destIAP;
       session->_reconnectViaTCP  = true;
       session->SetMaxAsyncConnectPeriod(maxAsyncConnectPeriod);  // must be done BEFORE SetConnectingAsync()!
       session->SetConnectingAsync((usingFakeBrokenConnection == false)&&(session->_isConnected == false));
 
-      char ipbuf[64]; Inet_NtoA(destIP, ipbuf);
-      session->_hostName = session->GenerateHostName(destIP, (destIP != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME);
+      char ipbuf[64]; Inet_NtoA(destIAP.GetIPAddress(), ipbuf);
+      session->_hostName = session->GenerateHostName(destIAP.GetIPAddress(), (destIAP.GetIPAddress() != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME);
 
       if (AddNewSession(ref, sock).IsOK(ret))
       {
@@ -193,16 +193,16 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & de
 
 status_t
 ReflectServer ::
-AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & destIP, uint16 port, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddressAndPort & destIAP, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    AbstractReflectSession * session = ref();
    if (session == NULL) return B_BAD_ARGUMENT;
 
    NestCountGuard ncg(_inDoConnect);
-   session->_asyncConnectDest = IPAddressAndPort(destIP, port);
+   session->_asyncConnectDest = destIAP;
    session->_reconnectViaTCP  = true;
-   char ipbuf[64]; Inet_NtoA(destIP, ipbuf);
-   session->_hostName = session->GenerateHostName(destIP, (destIP != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME);
+   char ipbuf[64]; Inet_NtoA(destIAP.GetIPAddress(), ipbuf);
+   session->_hostName = session->GenerateHostName(destIAP.GetIPAddress(), (destIAP.GetIPAddress() != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME);
 
    status_t ret;
    if (AddNewSession(ref, ConstSocketRef()).IsOK(ret))

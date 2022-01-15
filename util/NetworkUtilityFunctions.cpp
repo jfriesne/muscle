@@ -460,7 +460,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
 ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTitle, bool errorsOnly, uint64 maxConnectTime, bool expandLocalhost)
 {
    const IPAddress hostIP = GetHostByName(hostName, expandLocalhost);
-   if (hostIP != invalidIP) return Connect(hostIP, port, hostName, debugTitle, errorsOnly, maxConnectTime);
+   if (hostIP != invalidIP) return Connect(IPAddressAndPort(hostIP, port), hostName, debugTitle, errorsOnly, maxConnectTime);
    else
    {
       if (debugTitle) LogTime(MUSCLE_LOG_INFO, "%s: hostname lookup for [%s] failed!\n", debugTitle, hostName);
@@ -468,25 +468,25 @@ ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTit
    }
 }
 
-ConstSocketRef Connect(const IPAddress & hostIP, uint16 port, const char * optDebugHostName, const char * debugTitle, bool errorsOnly, uint64 maxConnectTime)
+ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHostName, const char * debugTitle, bool errorsOnly, uint64 maxConnectTime)
 {
-   char ipbuf[64]; Inet_NtoA(hostIP, ipbuf);
+   char ipbuf[64]; Inet_NtoA(hostIAP.GetIPAddress(), ipbuf);
 
    if ((debugTitle)&&(errorsOnly == false))
    {
-      LogTime(MUSCLE_LOG_INFO, "%s: Connecting to %s: ", debugTitle, GetConnectString(optDebugHostName?optDebugHostName:ipbuf, port)());
+      LogTime(MUSCLE_LOG_INFO, "%s: Connecting to %s: ", debugTitle, GetConnectString(optDebugHostName?optDebugHostName:ipbuf, hostIAP.GetPort())());
       LogFlush();
    }
 
    bool socketIsReady = false;
-   ConstSocketRef s = (maxConnectTime == MUSCLE_TIME_NEVER) ? CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT) : ConnectAsync(hostIP, port, socketIsReady);
+   ConstSocketRef s = (maxConnectTime == MUSCLE_TIME_NEVER) ? CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT) : ConnectAsync(hostIAP, socketIsReady);
    if (s())
    {
       const int fd = s.GetFileDescriptor();
       int ret = -1;
       if (maxConnectTime == MUSCLE_TIME_NEVER)
       {
-         DECLARE_SOCKADDR(saAddr, &hostIP, port);
+         DECLARE_SOCKADDR(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
          ret = connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr));
       }
       else
@@ -528,7 +528,7 @@ ConstSocketRef Connect(const IPAddress & hostIP, uint16 port, const char * optDe
       }
       else if (debugTitle)
       {
-         if (errorsOnly) LogTime(MUSCLE_LOG_INFO, "%s: connect() to %s failed!\n", debugTitle, GetConnectString(optDebugHostName?optDebugHostName:ipbuf, port)());
+         if (errorsOnly) LogTime(MUSCLE_LOG_INFO, "%s: connect() to %s failed!\n", debugTitle, GetConnectString(optDebugHostName?optDebugHostName:ipbuf, hostIAP.GetPort())());
                     else Log(MUSCLE_LOG_INFO, "Connection failed!\n");
       }
    }
@@ -844,14 +844,14 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
    return IPAddress();
 }
 
-ConstSocketRef ConnectAsync(const IPAddress & hostIP, uint16 port, bool & retIsReady)
+ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
 {
    ConstSocketRef s = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT);
    if (s())
    {
       if (SetSocketBlockingEnabled(s, false).IsOK())
       {
-         DECLARE_SOCKADDR(saAddr, &hostIP, port);
+         DECLARE_SOCKADDR(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
          const int result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
 #ifdef WIN32
          const bool inProgress = ((result < 0)&&(WSAGetLastError() == WSAEWOULDBLOCK));

@@ -313,18 +313,6 @@ public:
     */
    String GetSessionDescriptionString() const;
 
-   /** Returns the IP address we connected asynchronously to.
-    *  The returned value is meaningful only if we were added
-    *  with AddNewConnectSession() or AddNewDormantConnectSession().
-    */
-   const IPAddress & GetAsyncConnectIP() const {return _asyncConnectDest.GetIPAddress();}
-
-   /** Returns the remote port we connected asynchronously to.
-    *  The returned value is meaningful only if we were added
-    *  with AddNewConnectSession() or AddNewDormantConnectSession().
-    */
-   uint16 GetAsyncConnectPort() const {return _asyncConnectDest.GetPort();}
-
    /** Returns the destination we connected to asynchronously. */
    const IPAddressAndPort & GetAsyncConnectDestination() const {return _asyncConnectDest;}
 

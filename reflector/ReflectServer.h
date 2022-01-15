@@ -87,8 +87,7 @@ public:
     * except any I/O messages for the client won't be transferred until the connection
     * completes.
     * @param ref New session to add to the server.
-    * @param targetIPAddress IP address to connect to
-    * @param port Port to connect to at that IP address.
+    * @param targetIPAddressAndPort IP address and port to connect to.
     * @param autoReconnectDelay If specified, this is the number of microseconds after the
     *                           connection is broken that an automatic reconnect should be
     *                           attempted.  If not specified, an automatic reconnect will not
@@ -103,7 +102,7 @@ public:
     *                              before timing out the connection attempt.
     * @return B_NO_ERROR if the session was successfully added, or an error code on error.
     */
-   status_t AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS); 
+   status_t AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddressAndPort & targetIPAddressAndPort, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS); 
 
    /**
     * Like AddNewConnectSession(), except that the added session will not initiate
@@ -111,8 +110,7 @@ public:
     * hang out and do nothing until you call Reconnect() on it.  Only then will it
     * create the TCP connection to the address specified here.
     * @param ref New session to add to the server.
-    * @param targetIPAddress IP address to connect to
-    * @param port Port to connect to at that IP address.
+    * @param targetIPAddressAndPort IP address and port to connect to.
     * @param autoReconnectDelay If specified, this is the number of microseconds after the
     *                           connection is broken that an automatic reconnect should be
     *                           attempted.  If not specified, an automatic reconnect will not
@@ -127,7 +125,7 @@ public:
     *                              before timing out the connection attempt.
     * @return B_NO_ERROR if the session was successfully added, or an error code on error.
     */
-   status_t AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddress & targetIPAddress, uint16 port, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
+   status_t AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddressAndPort & targetIPAddressAndPort, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
    /**
     * Should be called just before the ReflectServer is to be destroyed.

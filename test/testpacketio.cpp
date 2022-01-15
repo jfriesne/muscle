@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
    ConstSocketRef s;
    if (connectTo != invalidIP) 
    {
-      s = Connect(connectTo, port, NULL, "testpacketio", false);
+      s = Connect(IPAddressAndPort(connectTo, port), NULL, "testpacketio", false);
       if (s() == NULL) return 10;
    }
    else

@@ -112,7 +112,7 @@ int main(int argc, char ** argv)
       IPAddress connectTo = GetHostByName(temp);
       if (connectTo != invalidIP) 
       {
-         s = Connect(connectTo, port, NULL, "testpackettunnel", false);
+         s = Connect(IPAddressAndPort(connectTo, port), NULL, "testpackettunnel", false);
          if (s() == NULL) return 10;
       }
       else

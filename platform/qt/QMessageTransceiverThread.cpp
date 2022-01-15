@@ -293,7 +293,7 @@ status_t QMessageTransceiverHandler :: SetupAsNewSession(IMessageTransceiverMast
    return ret;
 }
 
-status_t QMessageTransceiverHandler :: SetupAsNewConnectSession(IMessageTransceiverMaster & master, const IPAddress & targetIPAddress, uint16 port, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
+status_t QMessageTransceiverHandler :: SetupAsNewConnectSession(IMessageTransceiverMaster & master, const IPAddressAndPort & targetIPAddressAndPort, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod)
 {
    Reset();
    QMessageTransceiverThread * thread = master.ObtainThread();
@@ -305,7 +305,7 @@ status_t QMessageTransceiverHandler :: SetupAsNewConnectSession(IMessageTranscei
 
    MRETURN_ON_ERROR(master.RegisterHandler(*thread, this, sRef));
 
-   const status_t ret = thread->AddNewConnectSession(targetIPAddress, port, sRef, autoReconnectDelay, maxAsyncConnectPeriod);
+   const status_t ret = thread->AddNewConnectSession(targetIPAddressAndPort, sRef, autoReconnectDelay, maxAsyncConnectPeriod);
    if (ret.IsError()) master.UnregisterHandler(*thread, this, true);  // roll back!
    return ret;
 }

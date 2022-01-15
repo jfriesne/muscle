@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
    }
    else if (arg1.EqualsIgnoreCase("connect"))
    {
-      tcpSock = Connect(localhostIP, tcpPort, NULL, "example_2_message_to_tcp", false);
+      tcpSock = Connect(IPAddressAndPort(localhostIP, tcpPort), NULL, "example_2_message_to_tcp", false);
       if (tcpSock() == NULL)
       {
          printf("Connect() failed, aborting!  (Perhaps you forgot to run \"./example_2_message_to_tcp accept\" in another Terminal first?)\n");
