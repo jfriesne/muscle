@@ -907,7 +907,7 @@ status_t CreateConnectedSocketPair(ConstSocketRef & socket1, ConstSocketRef & so
    socket1 = CreateAcceptingSocket(0, 1, &port, localhostIP);
    if (socket1())
    {
-      socket2 = Connect(localhostIP, port);
+      socket2 = Connect(IPAddressAndPort(localhostIP, port));
       if (socket2())
       {
          ConstSocketRef newfd = Accept(socket1);
