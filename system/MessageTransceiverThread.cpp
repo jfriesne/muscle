@@ -7,15 +7,6 @@
 
 namespace muscle {
 
-static status_t FindIPAddressInMessage(const Message & msg, const String & fieldName, IPAddress & ip)
-{
-   const String * s = NULL;
-   if (msg.FindString(fieldName, &s).IsError()) return B_DATA_NOT_FOUND;
-
-   ip = Inet_AtoN(s->Cstr());
-   return B_NO_ERROR;
-}
-
 MessageTransceiverThread :: MessageTransceiverThread(ICallbackMechanism * optCallbackMechanism)
    : Thread(optCallbackMechanism)
    , _forwardAllIncomingMessagesToSupervisor(true)
