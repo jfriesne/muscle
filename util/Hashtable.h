@@ -906,8 +906,26 @@ public:
      * the returned value to the front of the iteration-ordering-list of this Hashtable.
      * This can be useful when using a Hashtable as an LRU cache.
      * @param key the key to lookup a value for
-     * @returns A pointer to the value associated with key on success, or NULL on failure (key-not-found)
+     * @param retValue on success, the requested value will be written into this object.
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the key is not present in the table.
      */ 
+   status_t GetAndMoveToFront(const KeyType & key, ValueType & retValue)
+   {
+      ValueType * ret = GetAndMoveToFront(key);
+      if (ret)
+      {
+         retValue = *ret;
+         return B_NO_ERROR;
+      }
+      else return B_DATA_NOT_FOUND;
+   }
+
+   /** Similar to Get(), but on success this method will have the side-effect of moving
+     * the returned value to the front of the iteration-ordering-list of this Hashtable.
+     * This can be useful when using a Hashtable as an LRU cache.
+     * @param key the key to lookup a value for
+     * @returns A pointer to the value associated with key on success, or NULL on failure (key-not-found)
+     */
    ValueType * GetAndMoveToBack(const KeyType & key)
    {
       HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
@@ -917,6 +935,24 @@ public:
          return &e->_value;
       }
       else return NULL;
+   }
+
+   /** Similar to Get(), but on success this method will have the side-effect of moving
+     * the returned value to the back of the iteration-ordering-list of this Hashtable.
+     * This can be useful when using a Hashtable as an LRU cache.
+     * @param key the key to lookup a value for
+     * @param retValue on success, the requested value will be written into this object.
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the key is not present in the table.
+     */
+   status_t GetAndMoveToBack(const KeyType & key, ValueType & retValue)
+   {
+      ValueType * ret = GetAndMoveToBack(key);
+      if (ret)
+      {
+         retValue = *ret;
+         return B_NO_ERROR;
+      }
+      else return B_DATA_NOT_FOUND;
    }
 
    /** Returns the number of table-slots that we currently have allocated.  Since we often

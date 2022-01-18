@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added two-argument versions of the GetAndMoveToFront() and
+     GetAndMoveToBack() methods in the Hashtable class.
    o muscleSwap() now calls through to std::swap() when possible.
    o Modified various method-calls (e.g. AddNewConnectSession(),
      Connect(), ConnectAsync()) that took an IPAddress and a port
