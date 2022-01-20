@@ -3145,7 +3145,7 @@ template<class HisKeyType, class HisValueType, class HisHashFunctorType>
 bool
 HashtableBase<KeyType,ValueType,HashFunctorType>::HasKeysInCommonWith(const HashtableBase<HisKeyType,HisValueType,HisHashFunctorType> & rhs) const
 {
-   if (this->GetNumItems() < rhs.GetNumItems())
+   if (this->GetNumItems() <= rhs.GetNumItems())
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       while(e)

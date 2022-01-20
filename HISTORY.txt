@@ -17,6 +17,8 @@ key:  - new feature
    * Made the IPAddress single-argument-String constructor explicit.
    * Fixed a bug in the iOS implementation of DetectNetworkConfigChangesSession
      that could cause crashes during shutdown.
+   * Fixed a bug in Hashtable::HasKeysInCommonWith() that would
+     cause it to infinitely recurse if the two tables were the same size.
 
 8.46 - Release 1/8/2022
    - Added HashCode() methods to the ByteBuffer, Queue, Hashtable,
