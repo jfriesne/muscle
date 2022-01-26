@@ -1718,7 +1718,7 @@ private:
    const muscle_message_imp::MessageField * GetMessageFieldAndTypeCode(const String & fieldName, uint32 index, uint32 * retTypeCode) const;
 
    status_t AddFlatAux(const String & fieldName, const FlatCountableRef & flat, uint32 etc, bool prepend);
-   status_t AddFlatAux(const String & fieldName, const ByteBufferRef & bufRef, uint32 etc, bool prepend)
+   status_t AddFlatAux(const String & fieldName, const ByteBufferRef & bufRef,  uint32 etc, bool prepend)
    {
       FlatCountableRef fcRef; fcRef.SetFromRefCountableRefUnchecked(bufRef.GetRefCountableRef());
       return AddFlatAux(fieldName, fcRef, etc, prepend);
@@ -1729,8 +1729,12 @@ private:
    const uint8 * FindFlatAux(const muscle_message_imp::MessageField * ada, uint32 index, uint32 & retNumBytes, const FlatCountable ** optRetFCPtr) const;
    status_t FindDataItemAux(const String & fieldName, uint32 index, uint32 tc, void * setValue, uint32 valueSize) const;
 
-   status_t ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & bufRef, uint32 tc);
-   status_t ReplaceDataAux(bool okayToAdd, const String & fieldName, uint32 index, void * dataBuf, uint32 bufSize, uint32 tc);
+   status_t ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & flat, uint32 tc);
+   status_t ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & bufRef,  uint32 tc)
+   {
+      FlatCountableRef fcRef; fcRef.SetFromRefCountableRefUnchecked(bufRef.GetRefCountableRef());
+      return ReplaceFlatAux(okayToAdd, fieldName, index, fcRef, tc);
+   }
 
    uint64 TemplateHashCode64Aux(uint32 & count) const;
 

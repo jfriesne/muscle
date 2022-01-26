@@ -1247,14 +1247,14 @@ static inline double B_REINTERPRET_INT64_AS_DOUBLE(uint64 arg) {double r; memcpy
 /** Given a 64-bit integer representing a floating point value in little-endian format, returns the double-precision floating point value in native-endian form. */
 #define B_LENDIAN_TO_HOST_IDOUBLE(arg) B_REINTERPRET_INT64_AS_DOUBLE(B_LENDIAN_TO_HOST_INT64(arg))
 
-/* Macro to turn a type code into a string representation.
+/* Function to turn a type code into a string representation.
  * (typecode) is the type code to get the string for
  * (buf) is a (char *) to hold the output string; it must be >= 5 bytes long.
  */
 static inline void MakePrettyTypeCodeString(uint32 typecode, char *buf)
 {
    uint32 i;  // keep separate, for C compatibility
-   uint32 bigEndian = B_HOST_TO_BENDIAN_INT32(typecode);
+   const uint32 bigEndian = B_HOST_TO_BENDIAN_INT32(typecode);
 
    memcpy(buf, (const char *)&bigEndian, sizeof(bigEndian));
    buf[sizeof(bigEndian)] = '\0';

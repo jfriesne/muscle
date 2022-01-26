@@ -19,6 +19,8 @@ key:  - new feature
      that could cause crashes during shutdown.
    * Fixed a bug in Hashtable::HasKeysInCommonWith() that would
      cause it to infinitely recurse if the two tables were the same size.
+   * Fixed a bug in Message::ReplaceFlat() that would cause it to
+     add incorrect data to the Message if the field didn't already exist.
 
 8.46 - Release 1/8/2022
    - Added HashCode() methods to the ByteBuffer, Queue, Hashtable,

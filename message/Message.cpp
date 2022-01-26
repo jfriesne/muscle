@@ -1971,17 +1971,11 @@ status_t Message :: ReplaceString(bool okayToAdd, const String & fieldName, uint
    return field ? field->ReplaceDataItem(index, &string, sizeof(string)) : B_DATA_NOT_FOUND;
 }
 
-status_t Message :: ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & bufRef, uint32 tc) 
-{
-   FlatCountableRef fcRef; fcRef.SetFromRefCountableRefUnchecked(bufRef.GetRefCountableRef());
-   return ReplaceDataAux(okayToAdd, fieldName, index, &fcRef, sizeof(fcRef), tc);
-}
-
-status_t Message :: ReplaceDataAux(bool okayToAdd, const String & fieldName, uint32 index, void * dataBuf, uint32 bufSize, uint32 tc)
+status_t Message :: ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & ref, uint32 tc)
 {
    MessageField * field = GetMessageField(fieldName, tc);
-   if ((okayToAdd)&&((field == NULL)||(index >= field->GetNumItems()))) return AddDataAux(fieldName, dataBuf, bufSize, tc, false);
-   return field ? field->ReplaceDataItem(index, dataBuf, bufSize) : B_DATA_NOT_FOUND;
+   if ((okayToAdd)&&((field == NULL)||(index >= field->GetNumItems()))) return AddFlatAux(fieldName, ref, tc, false);
+   return field ? field->ReplaceDataItem(index, &ref, sizeof(ref)) : B_DATA_NOT_FOUND;
 }
 
 status_t Message :: ReplaceInt8(bool okayToAdd, const String & fieldName, uint32 index, int8 val) 
