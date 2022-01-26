@@ -316,7 +316,7 @@ public:
    /** Returns the destination we connected to asynchronously. */
    const IPAddressAndPort & GetAsyncConnectDestination() const {return _asyncConnectDest;}
 
-   /** Sets the async-connect-destination (as returned by GetAsyncConnectIP() and GetAsyncConnectPort())
+   /** Sets the async-connect-destination (as returned by GetAsyncConnectDestination())
      * manually.  Typically you don't need to call this; so only call this method if you really know
      * what you are doing and why you need to. 
      * @param iap The IP address and port that this session connected to asynchronously.
