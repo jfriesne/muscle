@@ -65,13 +65,13 @@ BrowserWindow :: BrowserWindow()
    resize(defaultWindowWidth, defaultWindowHeight);
 
    QBoxLayout * vLayout = new QBoxLayout(QBoxLayout::TopToBottom, this);
-   vLayout->setMargin(2);
+   vLayout->setContentsMargins(2,2,2,2);
    vLayout->setSpacing(2);
    
    QWidget * topRow = new QWidget;
    {
       QBoxLayout * topRowLayout = new QBoxLayout(QBoxLayout::LeftToRight, topRow);
-      topRowLayout->setMargin(2);
+      topRowLayout->setContentsMargins(2,2,2,2);
 
       QPushButton * cloneButton = new QPushButton("Clone Window");
       connect(cloneButton, SIGNAL(clicked()), this, SLOT(CloneWindow()));
