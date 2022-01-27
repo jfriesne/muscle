@@ -184,13 +184,13 @@ ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userN
 
    QBoxLayout * vbl = new QBoxLayout(QBoxLayout::TopToBottom, this);
    vbl->setSpacing(3);
-   vbl->setMargin(2);
+   vbl->setContentsMargins(2,2,2,2);
 
    QWidget * topRow = new QWidget;
    {
       QBoxLayout * topRowLayout = new QBoxLayout(QBoxLayout::LeftToRight, topRow);
       topRowLayout->setSpacing(6);
-      topRowLayout->setMargin(2);
+      topRowLayout->setContentsMargins(2,2,2,2);
 
       topRowLayout->addWidget(new QLabel("Server:"));
 
@@ -228,7 +228,7 @@ ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userN
       QWidget * splitBottom = new QWidget;
       {
          QBoxLayout * splitBottomLayout = new QBoxLayout(QBoxLayout::TopToBottom, splitBottom);
-         splitBottomLayout->setMargin(2);
+         splitBottomLayout->setContentsMargins(2,2,2,2);
          splitBottomLayout->setSpacing(2);
  
          _chatText = new QTextEdit;
@@ -239,7 +239,7 @@ ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userN
          {
             QBoxLayout * botRowLayout = new QBoxLayout(QBoxLayout::LeftToRight, botRow);
             botRowLayout->setSpacing(3);
-            botRowLayout->setMargin(3);
+            botRowLayout->setContentsMargins(3,3,3,3);
 
             _userName = new QLineEdit;
             _userName->setText(_curUserName);

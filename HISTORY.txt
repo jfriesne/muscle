@@ -14,6 +14,7 @@ key:  - new feature
    o Removed AbstractReflectSession::GetAsyncConnectIP() and
      AbstractReflectSession::GetAsyncConnectPort().  Call
      AbstractReflectSession::GetAsyncConnectDestination() instead.
+   o Replaced setMargin() with setContentsMargins() in the Qt examples.
    * Made the IPAddress single-argument-String constructor explicit.
    * Fixed a bug in the iOS implementation of DetectNetworkConfigChangesSession
      that could cause crashes during shutdown.

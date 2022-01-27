@@ -74,7 +74,7 @@ AdvancedExampleWindow :: AdvancedExampleWindow()
 
    QBoxLayout * vbl = new QBoxLayout(QBoxLayout::TopToBottom, this);
    vbl->setSpacing(3);
-   vbl->setMargin(2);
+   vbl->setContentsMargins(2,2,2,2);
 
    _sessionsView = new QListWidget;
    _sessionsView->setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -93,7 +93,7 @@ AdvancedExampleWindow :: AdvancedExampleWindow()
    {
       QBoxLayout * buttonRowLayout = new QBoxLayout(QBoxLayout::LeftToRight, buttonRow);
       buttonRowLayout->setSpacing(6);
-      buttonRowLayout->setMargin(2);
+      buttonRowLayout->setContentsMargins(2,2,2,2);
 
       _addInternalSessionButton = new QPushButton("Add InternalThreadSession");
       connect(_addInternalSessionButton, SIGNAL(clicked()), this, SLOT(AddInternalSessionButtonClicked()));

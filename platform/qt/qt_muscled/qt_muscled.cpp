@@ -20,7 +20,7 @@ MuscledWindow :: MuscledWindow(const char * argv0)
    setWindowTitle("MUSCLEd Server Process");
 
    QBoxLayout * bl = new QBoxLayout(QBoxLayout::TopToBottom, this);
-   bl->setMargin(0);
+   bl->setContentsMargins(0,0,0,0);
    bl->setSpacing(0);
 
    _muscledStdoutText = new QPlainTextEdit;
