@@ -126,7 +126,7 @@ status_t MessageTransceiverThread :: AddNewConnectSession(const String & targetH
       ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(sRef());
       if (tws) tws->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
 
-      if (IsInternalThreadRunning()) return SendAddNewSessionMessage(sRef, ConstSocketRef(), targetHostName(), IPAddressAndPort(), expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);
+      if (IsInternalThreadRunning()) return SendAddNewSessionMessage(sRef, ConstSocketRef(), targetHostName(), IPAddressAndPort(invalidIP, port), expandLocalhost, autoReconnectDelay, maxAsyncConnectPeriod);
       else
       {
          const IPAddress ip = GetHostByName(targetHostName(), expandLocalhost);
@@ -143,7 +143,9 @@ status_t MessageTransceiverThread :: SendAddNewSessionMessage(const AbstractRefl
    MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_ADD_NEW_SESSION));
    MRETURN_OOM_ON_NULL(msgRef());
 
-   MRETURN_ON_ERROR(msgRef()->CAddFlat(   MTT_NAME_IPADDRESSANDPORT,   hostIAP));
+   if (hostIAP.IsValid()) {MRETURN_ON_ERROR(msgRef()->CAddFlat( MTT_NAME_IPADDRESSANDPORT, hostIAP));}
+                     else {MRETURN_ON_ERROR(msgRef()->CAddInt16(MTT_NAME_PORT,             hostIAP.GetPort()));}  // sometimes we need to send the port along with MTT_NAME_HOSTNAME instead
+
    MRETURN_ON_ERROR(msgRef()->AddTag(     MTT_NAME_SESSION,            sessionRef));
    MRETURN_ON_ERROR(msgRef()->CAddString( MTT_NAME_HOSTNAME,           hostName));
    MRETURN_ON_ERROR(msgRef()->CAddBool(   MTT_NAME_EXPANDLOCALHOST,    expandLocalhost));

@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Fixed a regression that would cause MessageTransceiverThread to
+     fail to connect an outgoing session if the session's target
+     was specified via hostname-string instead of IPAddressAndPort.
+
 8.50 - Release 1/31/2022
    - Added two-argument versions of the GetAndMoveToFront() and
      GetAndMoveToBack() methods in the Hashtable class.
