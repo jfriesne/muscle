@@ -130,7 +130,7 @@ public:
      * @param keys a Hashtable of keys to look for in each cached ImmutableHashtable object.  Any
      *             ImmutableHashtables containing any of these keys will be dropped from the LRU cache.
      */
-   template<typename ValType = Void> void DropAllCacheEntriesContainingAnyOfTheseKeys(const Hashtable<KeyType, ValType> & keys)
+   template<typename ValType> void DropAllCacheEntriesContainingAnyOfTheseKeys(const Hashtable<KeyType, ValType> & keys)
    {
       for (HashtableIterator<uint64, ConstImmutableHashtableTypeRef> iter(_lruCache); iter.HasData(); iter++)
          if (keys.HasKeysInCommonWith(iter.GetValue()()->GetTable())) (void) _lruCache.Remove(iter.GetKey());

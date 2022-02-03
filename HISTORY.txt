@@ -8,6 +8,9 @@ key:  - new feature
    * Fixed a regression that would cause MessageTransceiverThread to
      fail to connect an outgoing session if the session's target
      was specified via hostname-string instead of IPAddressAndPort.
+   * Removed the default-value for the template-argument of
+     ImmutableHashtablePool::DropAllCacheEntriesContainingAnyOfTheseKeys()
+     since it's unnecessary and ancient (C++03) compilers don't like it.
 
 8.50 - Release 1/31/2022
    - Added two-argument versions of the GetAndMoveToFront() and
