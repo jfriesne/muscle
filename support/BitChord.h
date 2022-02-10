@@ -220,18 +220,18 @@ public:
      * BitChord template-instantiation will always have the same flattened-size, different template-instantiations
      * of BitChords can have different flattened-sizes and they all share the same type-code)
      */
-   bool IsFixedSize() const {return false;}
+   static bool IsFixedSize() {return false;}
 
    /** Part of the pseudo-Flattenable API:  Returns B_BITCHORD_TYPE. */
-   uint32 TypeCode() const {return B_BITCHORD_TYPE;}
+   static uint32 TypeCode() {return B_BITCHORD_TYPE;}
 
    /** Returns true iff (tc) equals B_BITCHORD_TYPE.
      * @param tc the type code to examine
      */
-   bool AllowsTypeCode(uint32 tc) const {return (TypeCode()==tc);}
+   static bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
 
    /** @copydoc DoxyTemplate::FlattenedSize() const */
-   uint32 FlattenedSize() const {return sizeof(uint32)+(NUM_WORDS*sizeof(uint32));}
+   static uint32 FlattenedSize() {return sizeof(uint32)+(NUM_WORDS*sizeof(uint32));}
 
    /** @copydoc DoxyTemplate::Flatten(uint8 *) const */
    void Flatten(uint8 * buffer) const

@@ -8,6 +8,9 @@ key:  - new feature
    - Added support/Archivable.h as an abstract interface to represent
      an object that can have SetFromArchive() and SaveToArchive()
      called on it.
+   * Updated PseudoFlattenable methods in the BitChord class to
+     be static rather than const, so they can be called without
+     an instance.
    * Fixed a regression that would cause MessageTransceiverThread to
      fail to connect an outgoing session if the session's target
      was specified via hostname-string instead of IPAddressAndPort.
