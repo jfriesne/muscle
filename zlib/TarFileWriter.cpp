@@ -8,7 +8,12 @@ namespace muscle {
 
 TarFileWriter :: TarFileWriter()
 {
-   Close();  // this will update our int64 member-variables to their appropriate defaults
+   (void) Close();  // this will update our int64 member-variables to their appropriate defaults
+}
+
+TarFileWriter :: ~TarFileWriter()
+{
+   (void) Close();  // this will ensure that any still-pending data is flushed to the file before we go away
 }
 
 TarFileWriter :: TarFileWriter(const char * outputFileName, bool append)
@@ -19,11 +24,6 @@ TarFileWriter :: TarFileWriter(const char * outputFileName, bool append)
 TarFileWriter :: TarFileWriter(const DataIORef & dio)
 {
    (void) SetFile(dio);  // SetFile() will call Close(), Close() will initialize our int64 member-variables to their appropriate defaults
-}
-
-TarFileWriter :: ~TarFileWriter()
-{
-   (void) Close();
 }
 
 status_t TarFileWriter :: Close()

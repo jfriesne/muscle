@@ -5,6 +5,7 @@
 
 #include "support/NotCopyable.h"
 #include "dataio/SeekableDataIO.h"
+#include "util/RefCount.h"
 
 namespace muscle {
 
@@ -14,7 +15,7 @@ namespace muscle {
  *  only the writing of a .tar file is supported; at some point I may add
  *  support for reading .tar files as well.
  */
-class TarFileWriter : public NotCopyable
+class TarFileWriter : public RefCountable, public NotCopyable
 {
 public:
    /** Default constructor. */
@@ -34,7 +35,7 @@ public:
      */ 
    TarFileWriter(const DataIORef & dio);
 
-   /** Destructor. */
+   /** Destructor.  Calls Close() to make sure any required cleanup/data-flush actions have been performed. */
    ~TarFileWriter();
    
    /** Writes any pending updates to the .tar file (if necessary), then closes the file (if one is open) 
@@ -123,6 +124,7 @@ private:
    uint64 _prestatedFileSize;    // as passed in to WriteFileHeader()
    uint64 _currentSeekPosition;  // gotta track this manually since (_seekableWriterIO()) may be NULL)
 };
+DECLARE_REFTYPES(TarFileWriter);
 
 } // end namespace muscle
 

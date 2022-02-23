@@ -8,6 +8,7 @@ key:  - new feature
    - Added support/Archivable.h as an abstract interface to represent
      an object that can have SetFromArchive() and SaveToArchive()
      called on it.
+   o Updated TarFileWriter class to be RefCountable
    * Updated PseudoFlattenable methods in the BitChord class to
      be static rather than const, so they can be called without
      an instance.
