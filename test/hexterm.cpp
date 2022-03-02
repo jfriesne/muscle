@@ -16,6 +16,9 @@
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketMultiplexer.h"
 #include "util/MiscUtilityFunctions.h"
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+# include "zlib/ZLibDataIO.h"
+#endif
 
 #ifdef BUILD_MUSCLE_IN_MEYER_CONTEXT
 # include "version/core_version.h"
@@ -24,6 +27,8 @@
 using namespace muscle;
 
 static bool _useHex             = true;
+static bool _useZLibDataIO      = false;
+static bool _useGZip            = false;
 static bool _printChecksums     = false;
 static bool _decorateOutput     = true;
 static bool _wifiModeEnabled    = false;
@@ -141,7 +146,7 @@ static status_t FlushOutBuffer(uint64 & writeCounter, const ByteBufferRef & outB
    return B_NO_ERROR;
 }
 
-static void DoSession(DataIO & io, bool allowRead = true)
+static void DoSession(DataIORef io, bool allowRead = true)
 {
    StdinDataIO stdinIO(false);
    PlainTextMessageIOGateway stdinGateway; stdinGateway.SetDataIO(DummyDataIORef(stdinIO));
@@ -150,6 +155,15 @@ static void DoSession(DataIO & io, bool allowRead = true)
 
    String scratchString, sinceString;
 
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+   if (_useZLibDataIO)
+   {
+      ZLibDataIORef zlibIO(newnothrow ZLibDataIO(io, 6, _useGZip));
+      if (zlibIO()) io = zlibIO;
+               else MWARN_OUT_OF_MEMORY;
+   }
+#endif
+
    SocketMultiplexer multiplexer;
 
    uint64 readCounter = 0, writeCounter = 0;
@@ -157,8 +171,8 @@ static void DoSession(DataIO & io, bool allowRead = true)
    bool keepGoing = true;
    while(keepGoing)
    {
-      const int readFD  = io.GetReadSelectSocket().GetFileDescriptor();
-      const int writeFD = io.GetWriteSelectSocket().GetFileDescriptor();
+      const int readFD  = io()->GetReadSelectSocket().GetFileDescriptor();
+      const int writeFD = io()->GetWriteSelectSocket().GetFileDescriptor();
       int stdinFD       = stdinIO.GetReadSelectSocket().GetFileDescriptor();
 
       if (allowRead) multiplexer.RegisterSocketForReadReady(readFD);
@@ -175,7 +189,7 @@ static void DoSession(DataIO & io, bool allowRead = true)
                uint8 v = (uint8)(spamTime%256); 
                for (uint32 i=0; i<_spamSize; i++) b[i] = v++;  // just some nice arbitrary data
                if (_spamSize >= sizeof(uint32)) muscleCopyOut(b, B_HOST_TO_LENDIAN_INT32(_spamSize));  // so we can verify that packets aren't getting truncated on reception
-               spamBytesSent = io.WriteFully(b, _spamSize);
+               spamBytesSent = io()->WriteFully(b, _spamSize);
             }
             if ((!_quietSend)&&(_decorateOutput)) LogTime(MUSCLE_LOG_ERROR, "Sent " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of spam!\n", spamBytesSent, _spamSize);
             spamTime += (1000000/_spamsPerSecond);
@@ -184,7 +198,7 @@ static void DoSession(DataIO & io, bool allowRead = true)
          if (multiplexer.IsSocketReadyForRead(readFD))
          {
             uint8 buf[2048];
-            const int32 ret = io.Read(buf, sizeof(buf));
+            const int32 ret = io()->Read(buf, sizeof(buf));
             if (ret > 0) 
             {
                readCounter++;
@@ -198,7 +212,7 @@ static void DoSession(DataIO & io, bool allowRead = true)
                if (_verifySpam) SanityCheckSpamPacket(buf, ret);
                if (_printReceivedBytes)
                {
-                  const PacketDataIO * packetDataIO = dynamic_cast<const PacketDataIO *>(&io);
+                  const PacketDataIO * packetDataIO = dynamic_cast<const PacketDataIO *>(io());
                   const IPAddressAndPort & fromIAP = packetDataIO ? packetDataIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();
                   if (fromIAP.IsValid()) scratchString = String("Read #%1: Received from %2 (%3 since prev)").Arg(readCounter).Arg(fromIAP).Arg(sinceString);
                                     else scratchString = String("Read #%1: Received (%2 since prev)").Arg(readCounter).Arg(sinceString);
@@ -265,13 +279,13 @@ static void DoSession(DataIO & io, bool allowRead = true)
                      // If we see an empty line, let's send whatever we've got right now
                      // This is useful when the user is piping the output of striphextermoutput
                      // back into hexterm for UDP retransmission
-                     if (FlushOutBuffer(writeCounter, outBuf, io).IsError()) return;
+                     if (FlushOutBuffer(writeCounter, outBuf, *io()).IsError()) return;
                      outBuf.Reset();
                   }
                }
             }
 
-            if (FlushOutBuffer(writeCounter, outBuf, io).IsError()) return;
+            if (FlushOutBuffer(writeCounter, outBuf, *io()).IsError()) return;
             outBuf.Reset();
 
             if (stdinFD < 0) break;  // all done now!
@@ -283,6 +297,10 @@ static void DoSession(DataIO & io, bool allowRead = true)
 
 static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticastGroup, int optBindPort)
 {
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+   if ((_useGZip)||(_useZLibDataIO)) LogTime(MUSCLE_LOG_WARNING, "%s keyword has no effect when hexterm is running in UDP mode!\n", _useGZip?"gzip":"zlib");
+#endif
+
 #ifndef MUSCLE_AVOID_MULTICAST_API
    if (_wifiModeEnabled)
    {
@@ -292,7 +310,7 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
          const IPAddressAndPort iap(ip, port);
          SimulatedMulticastDataIO smdIO(iap);
          LogTime(MUSCLE_LOG_INFO, "Ready to send simulated-multicast UDP packets to %s\n", iap.ToString()());
-         DoSession(smdIO);
+         DoSession(DummyDataIORef(smdIO));
       }
       else LogTime(MUSCLE_LOG_ERROR, "Couldn't parse multicast address [%s] for wifi-mode simulated multicast session!\n", optHost());
       return;
@@ -354,7 +372,7 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
                                                                        else LogTime(MUSCLE_LOG_ERROR, "Couldn't bind UDP socket to port %u [%s]!\n", optBindPort, ret());
          }
          LogTime(MUSCLE_LOG_INFO, "Ready to send UDP packets to %s\n", iap.ToString()());
-         DoSession(udpIO);
+         DoSession(DummyDataIORef(udpIO));
       }
       else LogTime(MUSCLE_LOG_ERROR, "Could not look up target hostname [%s]\n", optHost());
    }
@@ -364,7 +382,7 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
       if (BindUDPSocket(ss, port).IsOK(ret))
       {
          LogTime(MUSCLE_LOG_INFO, "Listening for incoming UDP packets on port %i\n", port);
-         DoSession(udpIO);
+         DoSession(DummyDataIORef(udpIO));
       }
       else LogTime(MUSCLE_LOG_ERROR, "Could not bind UDP socket to port %i [%s]\n", port, ret());
    }
@@ -393,6 +411,8 @@ static void LogUsage(const char * argv0)
    Log(MUSCLE_LOG_INFO, "  Additional optional args include:\n");
    Log(MUSCLE_LOG_INFO, "                ascii                    (print and parse bytes as ASCII rather than hexadecimal)\n");
    Log(MUSCLE_LOG_INFO, "                plain                    (Suppress decorative elements in hexterm's output)\n");
+   Log(MUSCLE_LOG_INFO, "                zlib                     (Enable zlib-deflation/inflation layer on hexterm's I/O)\n");
+   Log(MUSCLE_LOG_INFO, "                gzip                     (Enable gzip-compatible deflation/inflation layer on hexterm's I/O)\n");
    Log(MUSCLE_LOG_INFO, "                quietreceive             (Suppress the printing out of incoming data bytes)\n");
    Log(MUSCLE_LOG_INFO, "                spamrate=<Hz>            (Specify number of automatic-spam-transmissions to send per second)\n");
    Log(MUSCLE_LOG_INFO, "                spamsize=<bytes>         (Specify size of each automatic-spam-transmission; defaults to 1024)\n");
@@ -416,6 +436,26 @@ int hextermmain(const char * argv0, const Message & args)
       LogTime(MUSCLE_LOG_INFO, "ASCII mode activated!\n");
       _useHex = false;
    }
+
+   if (args.HasName("gzip"))
+   {
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+      LogTime(MUSCLE_LOG_INFO, "GZip mode activated!\n");
+      _useGZip = _useZLibDataIO = true;
+#else
+      LogTime(MUSCLE_LOG_ERROR, "GZip mode not activated -- MUSCLE_ENABLE_ZLIB_ENCODING wasn't defined when compiling!\n");
+#endif
+   }
+   else if (args.HasName("zlib"))
+   {
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+      LogTime(MUSCLE_LOG_INFO, "ZLib mode activated!\n");
+      _useZLibDataIO = true;
+#else
+      LogTime(MUSCLE_LOG_ERROR, "ZLib mode not activated -- MUSCLE_ENABLE_ZLIB_ENCODING wasn't defined when compiling!\n");
+#endif
+   }
+
    if (args.HasName("plain"))
    {
       LogTime(MUSCLE_LOG_INFO, "Decorative output characters will be suppressed.\n");
@@ -469,7 +509,7 @@ int hextermmain(const char * argv0, const Message & args)
       if (cpdio.LaunchChildProcess(arg()).IsOK(ret))
       {
          LogTime(MUSCLE_LOG_INFO, "Communicating with child process (%s), childArgs=[%s]\n", childProgName(), childArgs());
-         DoSession(cpdio);
+         DoSession(DummyDataIORef(cpdio));
          LogTime(MUSCLE_LOG_INFO, "Child process session aborted, exiting.\n");
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open child process (%s) with childArgs (%s) [%s]\n", childProgName(), childArgs(), ret());
@@ -497,7 +537,7 @@ int hextermmain(const char * argv0, const Message & args)
             if (io.IsPortAvailable())
             {
                LogTime(MUSCLE_LOG_INFO, "Communicating with serial port %s (baud rate " UINT32_FORMAT_SPEC ")\n", serName(), baudRate);
-               DoSession(io);
+               DoSession(DummyDataIORef(io));
                LogTime(MUSCLE_LOG_INFO, "Serial session aborted, exiting.\n");
             }
             else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open serial device %s (baud rate " UINT32_FORMAT_SPEC ").\n", serName(), baudRate);
@@ -518,7 +558,7 @@ int hextermmain(const char * argv0, const Message & args)
       if (fdio.GetFile() != NULL)
       {
          LogTime(MUSCLE_LOG_INFO, "Reading input bytes from file [%s]\n", arg());
-         DoSession(fdio);
+         DoSession(DummyDataIORef(fdio));
          LogTime(MUSCLE_LOG_INFO, "Reading of input file complete.\n");
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open input file [%s]\n", arg());
@@ -529,7 +569,7 @@ int hextermmain(const char * argv0, const Message & args)
       if (fdio.GetFile() != NULL)
       {
          LogTime(MUSCLE_LOG_INFO, "Writing output bytes to file [%s]\n", arg());
-         DoSession(fdio, false);
+         DoSession(DummyDataIORef(fdio), false);
          LogTime(MUSCLE_LOG_INFO, "Writing of output file complete.\n");
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open input file [%s]\n", arg());
@@ -542,7 +582,7 @@ int hextermmain(const char * argv0, const Message & args)
       {
          LogTime(MUSCLE_LOG_INFO, "Connected to [%s:%i]\n", host(), port);
          TCPSocketDataIO io(ss, false);
-         DoSession(io);
+         DoSession(DummyDataIORef(io));
          LogTime(MUSCLE_LOG_INFO, "Session socket disconnected, exiting.\n");
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to connect to %s\n", GetConnectString(host, port)());
@@ -563,7 +603,7 @@ int hextermmain(const char * argv0, const Message & args)
                char hbuf[64]; Inet_NtoA(acceptedFromIP, hbuf);
                LogTime(MUSCLE_LOG_INFO, "Accepted TCP connection from %s on interface %s, awaiting data...\n", cbuf, hbuf);
                TCPSocketDataIO io(ss, false);
-               DoSession(io);
+               DoSession(DummyDataIORef(io));
                LogTime(MUSCLE_LOG_ERROR, "Session socket disconnected, awaiting next connection.\n");
             }
          }

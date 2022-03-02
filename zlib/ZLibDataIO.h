@@ -20,29 +20,19 @@ public:
    /** Default Constructor -- Be sure to call SetDataIO() before use.
      * @param compressionLevel how much to compress outgoing data.  0 is no
      *                         compression 9 is maximum compression.  Default is 6.
-     * @param emitGZipHeadersAndFooters if set true, this ZLibDataIO will include
-     *                         the 10-byte .gz-file-format header at the start of its
-     *                         output and the 8-byte .gz-file-format footer at the end
-     *                         of its output, making its output readable by the gunzip
-     *                         command line utility (and other .gz-reading software)
-     *                         The argument currently has no effect when using this
-     *                         ZLibDataIO for input -- maybe someday.  Defaults to false.
+     * @param useGZip if set true, this ZLibDataIO will deflate/inflate .gz-file-format
+     *                compatible data rather than raw ZLib data.
      */
-   ZLibDataIO(int compressionLevel = 6, bool emitGZipHeadersAndFooters = false);
+   ZLibDataIO(int compressionLevel = 6, bool useGZip = false);
 
    /** Constructor
      * @param childIO Reference to the DataIO object to pass compressed data to/from.
      * @param compressionLevel how much to compress outgoing data.  0 is no
      *                         compression 9 is maximum compression.  Default is 6.
-     * @param emitGZipHeadersAndFooters if set true, this ZLibDataIO will include
-     *                         the 10-byte .gz-file-format header at the start of its
-     *                         output and the 8-byte .gz-file-format footer at the end
-     *                         of its output, making its output readable by the gunzip
-     *                         command line utility (and other .gz-reading software)
-     *                         The argument currently has no effect when using this
-     *                         ZLibDataIO for input -- maybe someday.  Defaults to false.
+     * @param useGZip if set true, this ZLibDataIO will deflate/inflate .gz-file-format
+     *                compatible data rather than raw ZLib data.
      */
-   ZLibDataIO(const DataIORef & childIO, int compressionLevel = 6, bool emitGZipHeadersAndFooters = false);
+   ZLibDataIO(const DataIORef & childIO, int compressionLevel = 6, bool useGZip = false);
 
    /** Destructor */
    virtual ~ZLibDataIO();
@@ -94,7 +84,7 @@ private:
    bool _deflateAllocated;
    z_stream _writeDeflater;
 
-   const bool _emitGZipHeadersAndFooters;
+   const bool _useGZip;
    DECLARE_COUNTED_OBJECT(ZLibDataIO);
 };
 DECLARE_REFTYPES(ZLibDataIO);

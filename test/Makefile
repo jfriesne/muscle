@@ -103,7 +103,7 @@ ifneq (,$(findstring MUSCLE_ENABLE_SSL,$(CXXFLAGS))) # Add OpenSSL-specific file
        LIBS += -lssl -lcrypto
 endif
 
-HEXTERMOBJS = hexterm.o SysLog.o SetupSystem.o String.o RS232DataIO.o ChildProcessDataIO.o ByteBuffer.o MiscUtilityFunctions.o Message.o StdinDataIO.o PlainTextMessageIOGateway.o AbstractMessageIOGateway.o FileDescriptorDataIO.o PulseNode.o SimulatedMulticastDataIO.o Thread.o
+HEXTERMOBJS = hexterm.o SysLog.o SetupSystem.o String.o RS232DataIO.o ChildProcessDataIO.o ByteBuffer.o MiscUtilityFunctions.o Message.o StdinDataIO.o PlainTextMessageIOGateway.o AbstractMessageIOGateway.o FileDescriptorDataIO.o PulseNode.o SimulatedMulticastDataIO.o Thread.o ZLibDataIO.o
 
 ifeq ($(MUSCLE_BUILD_CONTEXT),meyer)
    CXXFLAGS    += -DBUILD_MUSCLE_IN_MEYER_CONTEXT -I../../..

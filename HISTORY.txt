@@ -12,11 +12,13 @@ key:  - new feature
    - Added support/Archivable.h as an abstract interface to represent
      an object that can have SetFromArchive() and SaveToArchive()
      called on it.
-   - Added an optional argument to the ZLibDataIO constructor that
-     allows it to output .gz-file-format-compatible data.
+   - Added an optional second argument to the ZLibDataIO constructor
+     that allows it to handle .gz-file-format-compatible data.
+   - Added "zlib" and "gzip" flag-arguments to hexterm.
    o Updated TarFileWriter class to be RefCountable
    o ZLibDataIO now subclasses DataIO rather than ProxyDataIO, since
      it isn't actually seekable or packetizable.
+   o Fixed several deprecation-warnings when compiling under MacOS12.
    * Updated PseudoFlattenable methods in the BitChord class to
      be static rather than const, so they can be called without
      an instance.

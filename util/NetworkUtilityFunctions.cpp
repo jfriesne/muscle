@@ -1316,7 +1316,9 @@ static uint32 ParseAppleInterfaceTypeString(CFStringRef appleTypeString)
       kSCNetworkInterfaceTypeFireWire,
       kSCNetworkInterfaceTypeIEEE80211,
       kSCNetworkInterfaceTypeIPSec,
+#if (__MAC_OS_X_VERSION_MIN_REQUIRED < 120000)
       kSCNetworkInterfaceTypeIrDA,
+#endif
       kSCNetworkInterfaceTypeL2TP,
       kSCNetworkInterfaceTypeModem,
       kSCNetworkInterfaceTypePPP,
@@ -1334,7 +1336,9 @@ static uint32 ParseAppleInterfaceTypeString(CFStringRef appleTypeString)
       NETWORK_INTERFACE_HARDWARE_TYPE_FIREWIRE,
       NETWORK_INTERFACE_HARDWARE_TYPE_WIFI,
       NETWORK_INTERFACE_HARDWARE_TYPE_TUNNEL,   // IPSec is a form of tunnel, no?
+#if (__MAC_OS_X_VERSION_MIN_REQUIRED < 120000)
       NETWORK_INTERFACE_HARDWARE_TYPE_IRDA,
+#endif
       NETWORK_INTERFACE_HARDWARE_TYPE_TUNNEL,   // L2TP is a form of tunnel, no?
       NETWORK_INTERFACE_HARDWARE_TYPE_DIALUP,
       NETWORK_INTERFACE_HARDWARE_TYPE_PPP,

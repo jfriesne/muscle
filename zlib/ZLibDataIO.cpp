@@ -17,17 +17,17 @@ static void muscleZLibFree(void *, void * address) {muscleFree(address);}
 # define MUSCLE_ZLIB_FREE  Z_NULL
 #endif
 
-ZLibDataIO :: ZLibDataIO(int compressionLevel, bool emitGZipHeadersAndFooters)
+ZLibDataIO :: ZLibDataIO(int compressionLevel, bool useGZip)
    : _compressionLevel(compressionLevel)
-   , _emitGZipHeadersAndFooters(emitGZipHeadersAndFooters)
+   , _useGZip(useGZip)
 {
    Init();
    (void) SetChildDataIO(DataIORef());  // necessary to get the ZLib stuff initialized
 }
 
-ZLibDataIO :: ZLibDataIO(const DataIORef & childIO, int compressionLevel, bool emitGZipHeadersAndFooters)
+ZLibDataIO :: ZLibDataIO(const DataIORef & childIO, int compressionLevel, bool useGZip)
    : _compressionLevel(compressionLevel)
-   , _emitGZipHeadersAndFooters(emitGZipHeadersAndFooters)
+   , _useGZip(useGZip)
 {
    Init();
    (void) SetChildDataIO(childIO);  // necessary to get the ZLib stuff initialized
@@ -95,20 +95,21 @@ status_t ZLibDataIO :: SetChildDataIO(const DataIORef & dio)
    CleanupZLib();
    Init();
 
-   _childDataIO      = dio;
-   _inputStreamOkay  = (GetChildDataIO()() != NULL);
-   _inflateAllocated = _inflateOkay = ((_inputStreamOkay)&&(inflateInit(&_readInflater) == Z_OK));
+   _childDataIO     = dio;
+   _inputStreamOkay = (GetChildDataIO()() != NULL);
 
-   if (_emitGZipHeadersAndFooters)
+   if (_useGZip)
    {
       // Code to enable GZ-compression mode borrowed from:  https://stackoverflow.com/a/2121190/131930
-      const int method     = Z_DEFLATED; /* mandatory */
-      const int windowBits = 15 + 16;    /* 15 is default (as if deflateInit() were used), plus 16 to enable gzip format */
-      const int memLevel   = 8;          /* default */
-      const int strategy   = Z_DEFAULT_STRATEGY;
-      _deflateAllocated    = (deflateInit2(&_writeDeflater, _compressionLevel, method, windowBits, memLevel, strategy) == Z_OK);
+      const int enableGZWindowBits = MAX_WBITS+16; /* MAX_WBITS is default, plus 16 to enable gzip format */
+      _inflateAllocated = _inflateOkay = ((_inputStreamOkay)&&(inflateInit2(&_readInflater, enableGZWindowBits)                                   == Z_OK));
+      _deflateAllocated =                (deflateInit2(&_writeDeflater, _compressionLevel, Z_DEFLATED, enableGZWindowBits, 8, Z_DEFAULT_STRATEGY) == Z_OK);
    }
-   else _deflateAllocated = (deflateInit(&_writeDeflater, _compressionLevel) == Z_OK);
+   else
+   {
+      _inflateAllocated = _inflateOkay = ((_inputStreamOkay)&&(inflateInit(&_readInflater) == Z_OK));
+      _deflateAllocated =                 (deflateInit(&_writeDeflater, _compressionLevel) == Z_OK);
+   }
 
    return ((_inflateAllocated)&&(_deflateAllocated)) ? B_NO_ERROR : B_ERROR("zlib init failure");
 }
