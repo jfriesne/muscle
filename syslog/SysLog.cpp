@@ -1524,6 +1524,7 @@ static const char * const _logLevelKeywords[] = {
 
 DefaultConsoleLogger :: DefaultConsoleLogger()
    : _consoleLogLevel(MUSCLE_LOG_INFO)
+   , _logToStderr(false)
 {
     // empty
 }
@@ -1532,14 +1533,15 @@ void DefaultConsoleLogger :: Log(const LogCallbackArgs & a)
 {
    if (a.GetLogLevel() <= _consoleLogLevel)
    {
-      vprintf(a.GetText(), *a.GetArgList());
-      fflush(stdout);
+      FILE * fpOut = GetConsoleOutputStream();
+      vfprintf(fpOut, a.GetText(), *a.GetArgList());
+      fflush(fpOut);
    }
 }
 
 void DefaultConsoleLogger :: Flush()
 {
-   fflush(stdout);
+   fflush(GetConsoleOutputStream());
 }
 
 DefaultFileLogger :: DefaultFileLogger()
@@ -1956,6 +1958,15 @@ status_t SetConsoleLogLevel(int loglevel)
 
    _dcl.SetConsoleLogLevel(loglevel);
    LogTime(MUSCLE_LOG_DEBUG, "Console logging level set to: %s\n", GetLogLevelName(_dcl.GetConsoleLogLevel()));
+   return UnlockLog();
+}
+
+status_t SetConsoleLogToStderr(bool toStderr)
+{
+   MRETURN_ON_ERROR(LockLog());
+
+   _dcl.SetConsoleLogToStderr(toStderr);
+   LogTime(MUSCLE_LOG_DEBUG, "Console logging target set to: %s\n", _dcl.GetConsoleLogToStderr()?"stderr":"stdout");
    return UnlockLog();
 }
 

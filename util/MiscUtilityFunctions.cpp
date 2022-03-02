@@ -518,10 +518,13 @@ void HandleStandardDaemonArgs(const Message & args)
    const char * value;
    if (args.FindString("displaylevel", &value).IsOK())
    {
-      int ll = ParseLogLevelKeyword(value);
+      const int ll = ParseLogLevelKeyword(value);
       if (ll >= 0) SetConsoleLogLevel(ll);
               else LogTime(MUSCLE_LOG_INFO, "Error, unknown display log level type [%s]\n", value);
    }
+
+   const char * target = args.GetCstr("logtostderr");
+   if (target) SetConsoleLogToStderr(ParseBool(target, true));
 
    if ((args.FindString("oldlogfilespattern", &value).IsOK())&&(*value != '\0')) SetOldLogFilesPattern(value);
 

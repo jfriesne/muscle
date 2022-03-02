@@ -44,7 +44,7 @@ void TarFileWriter :: SetFile(const DataIORef & dio)
    (void) Close();
 
    _writerIO = dio;
-   (void) _seekableWriterIO.SetFromRefCountableRef(dio);  // _seekableWriterIO be a NULL Ref, and that's okay
+   (void) _seekableWriterIO.SetFromRefCountableRef(dio);  // _seekableWriterIO may be a NULL Ref, and that's okay
 }
 
 status_t TarFileWriter :: SetFile(const char * outputFileName, bool append)
@@ -56,10 +56,10 @@ status_t TarFileWriter :: SetFile(const char * outputFileName, bool append)
       if (append == false) (void) DeleteFile(outputFileName);
 
       FILE * fpOut = muscleFopen(outputFileName, append?"ab":"wb");
-      if (fpOut) 
+      if (fpOut)
       {
          FileDataIORef ioRef(newnothrow FileDataIO(fpOut));
-         if (ioRef()) 
+         if (ioRef())
          {
             SetFile(ioRef);
             if (append) _currentSeekPosition = ioRef()->GetLength();
@@ -125,7 +125,7 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
 
          MRETURN_ON_ERROR(_seekableWriterIO()->Seek(_currentHeaderOffset, SeekableDataIO::IO_SEEK_SET));
          _currentSeekPosition = _currentHeaderOffset;
- 
+
          const uint32 numBytesWritten = _seekableWriterIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes));
          _currentSeekPosition += _currentHeaderOffset;
          if (numBytesWritten != sizeof(_currentHeaderBytes)) return B_IO_ERROR;

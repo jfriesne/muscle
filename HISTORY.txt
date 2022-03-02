@@ -5,10 +5,18 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a SetConsoleLogToStderr(bool) to make it easier to direct
+     LogTime()'s output to stderr rather than stdout if desired.
+   - Added a "logtostderr" option for HandleStandardDaemonArgs() to
+     detect and call SetConsoleLogToStderr(true) in response to.
    - Added support/Archivable.h as an abstract interface to represent
      an object that can have SetFromArchive() and SaveToArchive()
      called on it.
+   - Added an optional argument to the ZLibDataIO constructor that
+     allows it to output .gz-file-format-compatible data.
    o Updated TarFileWriter class to be RefCountable
+   o ZLibDataIO now subclasses DataIO rather than ProxyDataIO, since
+     it isn't actually seekable or packetizable.
    * Updated PseudoFlattenable methods in the BitChord class to
      be static rather than const, so they can be called without
      an instance.

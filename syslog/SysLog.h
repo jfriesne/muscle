@@ -117,6 +117,7 @@ inline status_t SetOldLogFilesPattern(const String &) {return B_NO_ERROR;}
 inline status_t SetMaxNumLogFiles(uint32)             {return B_NO_ERROR;}
 inline status_t SetFileLogCompressionEnabled(bool)    {return B_NO_ERROR;}
 inline status_t SetConsoleLogLevel(int)               {return B_NO_ERROR;}
+inline status_t SetConsoleLogToStderr(bool)           {return B_NO_ERROR;}
 inline void CloseCurrentLogFile()                     {/* empty */}
 #else
 
@@ -228,6 +229,12 @@ status_t SetFileLogCompressionEnabled(bool enable);
  *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
 status_t SetConsoleLogLevel(int loglevel);
+
+/** Sets a flag so that our log output goes to stderr instead of stdout.
+  * @param toStderr true if you want log output to go to stderr rather than stdout; false to set it
+  *                 back to going to stdout again.
+  */
+status_t SetConsoleLogToStderr(bool toStderr);
 
 /** Same semantics as printf, only outputs to the log file/console instead
  *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.

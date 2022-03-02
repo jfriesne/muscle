@@ -216,8 +216,19 @@ public:
      */
    void SetConsoleLogLevel(int logLevel) {_consoleLogLevel = logLevel;}
 
+   /** Sets whether we should log to stderr instead of stdout.
+     * @param toStderr true to log to stderr; false to log to stdout.  (Default is false)
+     */
+   void SetConsoleLogToStderr(bool toStderr) {_logToStderr = toStderr;}
+
+   /** Returns true iff we are currently set to log to stderr instead of stdout */
+   bool GetConsoleLogToStderr() const {return _logToStderr;}
+
 private:
+   FILE * GetConsoleOutputStream() const {return _logToStderr ? stderr : stdout;}
+
    int _consoleLogLevel;
+   bool _logToStderr;
 };
 DECLARE_REFTYPES(DefaultConsoleLogger);
 
