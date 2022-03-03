@@ -62,7 +62,7 @@ public:
 private:
    void Init();
    void InitStream(z_stream & stream, uint8 * toStreamBuf, uint8 * fromStreamBuf, uint32 outBufSize);
-   int32 WriteAux(const void * buffer, uint32 size, bool flushAtEnd);
+   int32 WriteAux(const void * buffer, uint32 size, bool flushAtEnd, bool * optFinishingUp);
    status_t WriteDeflatedOutputToChild();
    void CleanupZLib();
 

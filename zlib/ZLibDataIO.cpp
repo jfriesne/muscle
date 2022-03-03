@@ -47,17 +47,8 @@ void ZLibDataIO :: CleanupZLib()
    }
    if (_deflateAllocated)
    {
-      while(1)
-      {
-         const int deflateRet = deflate(&_writeDeflater, Z_FINISH);  // let ZLib know we are done done DONE
-         if (WriteDeflatedOutputToChild().IsError()) break;      // make sure the deflated at goes out to disk or wherever
-         if (deflateRet == Z_STREAM_END)             break;      // we're done!
-         if ((deflateRet != Z_OK)&&(deflateRet != Z_BUF_ERROR))  // per zlib.h line 328
-         {
-            LogTime(MUSCLE_LOG_ERROR, "ZlibDataIO::CleanupZLib():  unable to finalize output, deflateRet=%i\n", deflateRet);
-            break;
-         }
-      }
+      bool isFinished = false;
+      while((isFinished == false)&&(WriteAux(NULL, 0, true, &isFinished) >= 0)) {/* empty */}
       deflateEnd(&_writeDeflater);
       _deflateAllocated = false;
    }
@@ -165,7 +156,7 @@ int32 ZLibDataIO :: Read(void * buffer, uint32 size)
 
 int32 ZLibDataIO :: Write(const void * buffer, uint32 size)
 {
-   return WriteAux(buffer, size, false);
+   return WriteAux(buffer, size, false, NULL);
 }
 
 status_t ZLibDataIO :: WriteDeflatedOutputToChild()
@@ -174,48 +165,45 @@ status_t ZLibDataIO :: WriteDeflatedOutputToChild()
 
    while(_writeDeflater.next_out > _sendToChild)
    {
-      const int32 bytesWritten = GetChildDataIO()()->Write(_sendToChild, (int32)(_writeDeflater.next_out-_sendToChild));
-      if (bytesWritten >= 0)
+      const uint32 bytesToWrite = (uint32)(_writeDeflater.next_out-_sendToChild);
+      const  int32 bytesWritten = GetChildDataIO()()->Write(_sendToChild, bytesToWrite);
+      if (bytesWritten < 0) return B_IO_ERROR;
+
+      _sendToChild += bytesWritten;
+      if (_sendToChild == _writeDeflater.next_out)
       {
-         _sendToChild += bytesWritten;
-         if (_sendToChild == _writeDeflater.next_out)
-         {
-            _sendToChild = _writeDeflater.next_out = _deflatedBuf;
-            _writeDeflater.avail_out = sizeof(_deflatedBuf);
-         }
+         _sendToChild = _writeDeflater.next_out = _deflatedBuf;
+         _writeDeflater.avail_out = sizeof(_deflatedBuf);
       }
-      else return B_IO_ERROR;
    }
    return B_NO_ERROR;
 }
 
-int32 ZLibDataIO :: WriteAux(const void * buffer, uint32 size, bool flushAtEnd)
+int32 ZLibDataIO :: WriteAux(const void * buffer, uint32 size, bool flushAtEnd, bool * optFinishingUp)
 {
    if ((GetChildDataIO()())&&(_deflateAllocated))
    {
       if (WriteDeflatedOutputToChild().IsError()) return -1;
 
       int32 bytesCompressed = 0;
-      if (_sendToChild == _deflatedBuf)
+      if ((_sendToChild == _deflatedBuf)||(optFinishingUp))
       {
          if (_writeDeflater.avail_in == 0) _writeDeflater.next_in = _toDeflateBuf;
          if (buffer)
          {
             const uint32 bytesToCopy = muscleMin((uint32)((_toDeflateBuf+sizeof(_toDeflateBuf))-_writeDeflater.next_in), size);
             memcpy(_writeDeflater.next_in, buffer, bytesToCopy);
-            bytesCompressed += bytesToCopy;
-#ifdef REMOVED_TO_SUPPRESS_CLANG_STATIC_ANALYZER_WARNING_BUT_REENABLE_THIS_IF_THERES_ANOTHER_STEP_ADDED_IN_THE_FUTURE
-            uint8 * buf8 = (uint8 *) buffer;
-            buffer = buf8+bytesToCopy;
-            size -= bytesToCopy;
-#endif
+            bytesCompressed         += bytesToCopy;
             _writeDeflater.avail_in += bytesToCopy;
          }
 
-         const int zRet = deflate(&_writeDeflater, ((flushAtEnd)&&(_writeDeflater.avail_in == 0)) ? Z_SYNC_FLUSH : Z_NO_FLUSH);
-         if ((zRet != Z_OK)&&(zRet != Z_BUF_ERROR))  return -1;
-         if (WriteDeflatedOutputToChild().IsError()) return -1;
+         const int zRet = deflate(&_writeDeflater, optFinishingUp ? Z_FINISH : (((flushAtEnd)&&(_writeDeflater.avail_in == 0)) ? Z_SYNC_FLUSH : Z_NO_FLUSH));
+              if ((optFinishingUp)&&(zRet == Z_STREAM_END)) *optFinishingUp = true;
+         else if ((zRet != Z_OK)&&(zRet != Z_BUF_ERROR))    return -1;
+
+         if (WriteDeflatedOutputToChild().IsError())        return -1;
       }
+
       return bytesCompressed;
    }
    return -1;
@@ -225,7 +213,7 @@ void ZLibDataIO :: FlushOutput()
 {
    if (GetChildDataIO()())
    {
-      for (uint32 i=0; i<3; i++) WriteAux(NULL, 0, true);  // try to flush any/all buffered data out first...
+      for (uint32 i=0; i<3; i++) WriteAux(NULL, 0, true, NULL);  // try to flush any/all buffered data out first...
       GetChildDataIO()()->FlushOutput();
    }
 }
@@ -248,7 +236,7 @@ bool ZLibDataIO :: HasBufferedOutput() const
 
 void ZLibDataIO :: WriteBufferedOutput()
 {
-   (void) WriteAux(NULL, 0, false);
+   (void) WriteAux(NULL, 0, false, NULL);
 }
 
 } // end namespace muscle
