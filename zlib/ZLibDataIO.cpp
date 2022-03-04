@@ -159,52 +159,59 @@ int32 ZLibDataIO :: Write(const void * buffer, uint32 size)
    return WriteAux(buffer, size, false, NULL);
 }
 
-status_t ZLibDataIO :: WriteDeflatedOutputToChild()
+int32 ZLibDataIO :: WriteDeflatedOutputToChild()
 {
-   if (GetChildDataIO()() == NULL) return B_BAD_OBJECT;
+   if (GetChildDataIO()() == NULL) return -1;
 
+   int32 totalBytesWritten = 0;
    while(_writeDeflater.next_out > _sendToChild)
    {
       const uint32 bytesToWrite = (uint32)(_writeDeflater.next_out-_sendToChild);
       const  int32 bytesWritten = GetChildDataIO()()->Write(_sendToChild, bytesToWrite);
-      if (bytesWritten < 0) return B_IO_ERROR;
+      if (bytesWritten < 0) return -1;
 
-      _sendToChild += bytesWritten;
+      totalBytesWritten += bytesWritten;
+      _sendToChild      += bytesWritten;
+
       if (_sendToChild == _writeDeflater.next_out)
       {
          _sendToChild = _writeDeflater.next_out = _deflatedBuf;
          _writeDeflater.avail_out = sizeof(_deflatedBuf);
       }
    }
-   return B_NO_ERROR;
+   return totalBytesWritten;
 }
 
 int32 ZLibDataIO :: WriteAux(const void * buffer, uint32 size, bool flushAtEnd, bool * optFinishingUp)
 {
    if ((GetChildDataIO()())&&(_deflateAllocated))
    {
-      if (WriteDeflatedOutputToChild().IsError()) return -1;
+      const int32 preWrittenToChildBytes = WriteDeflatedOutputToChild();
+      if (preWrittenToChildBytes < 0) return -1;
 
-      int32 bytesCompressed = 0;
-      if ((_sendToChild == _deflatedBuf)||(optFinishingUp))
+      int32 bytesAbsorbed = 0;
+
+      if (_writeDeflater.avail_in == 0) _writeDeflater.next_in = _toDeflateBuf;
+      if (buffer)
       {
-         if (_writeDeflater.avail_in == 0) _writeDeflater.next_in = _toDeflateBuf;
-         if (buffer)
-         {
-            const uint32 bytesToCopy = muscleMin((uint32)((_toDeflateBuf+sizeof(_toDeflateBuf))-_writeDeflater.next_in), size);
-            memcpy(_writeDeflater.next_in, buffer, bytesToCopy);
-            bytesCompressed         += bytesToCopy;
-            _writeDeflater.avail_in += bytesToCopy;
-         }
-
-         const int zRet = deflate(&_writeDeflater, optFinishingUp ? Z_FINISH : (((flushAtEnd)&&(_writeDeflater.avail_in == 0)) ? Z_SYNC_FLUSH : Z_NO_FLUSH));
-              if ((optFinishingUp)&&(zRet == Z_STREAM_END)) *optFinishingUp = true;
-         else if ((zRet != Z_OK)&&(zRet != Z_BUF_ERROR))    return -1;
-
-         if (WriteDeflatedOutputToChild().IsError())        return -1;
+         uint8 * writeTo = _writeDeflater.next_in + _writeDeflater.avail_in;
+         const uint32 bytesToCopy = muscleMin((uint32)((_toDeflateBuf+sizeof(_toDeflateBuf))-writeTo), size);
+         memcpy(writeTo, buffer, bytesToCopy);
+         _writeDeflater.avail_in += bytesToCopy;
+         bytesAbsorbed           += bytesToCopy;
       }
 
-      return bytesCompressed;
+      const int zRet = deflate(&_writeDeflater, optFinishingUp ? Z_FINISH : (((flushAtEnd)&&(buffer==NULL)) ? Z_SYNC_FLUSH : Z_NO_FLUSH));
+
+           if ((optFinishingUp)&&(zRet == Z_STREAM_END)) *optFinishingUp = true;
+      else if ((zRet != Z_OK)&&(zRet != Z_BUF_ERROR))    return -1;
+
+      const int32 postWrittenToChildBytes = WriteDeflatedOutputToChild();
+      if (postWrittenToChildBytes < 0) return -1;
+
+      // Try to avoid returning 0 just because zlib needed buffers to be flushed; blocking callers don't like it when WriteFully() returns a short write
+      return bytesAbsorbed ? bytesAbsorbed : (((preWrittenToChildBytes+postWrittenToChildBytes) > 0 )? WriteAux(buffer, size, flushAtEnd, optFinishingUp) : 0);
+
    }
    return -1;
 }

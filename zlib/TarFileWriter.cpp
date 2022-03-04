@@ -135,7 +135,7 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
       }
       else if (_prestatedFileSize != currentFileLength)
       {
-         LogTime(MUSCLE_LOG_ERROR, "TarFileWriter::FinishCurrentFileDataBlock():  DataIO isn't seekable, and the current entry's  file-length (" UINT64_FORMAT_SPEC ") doesn't match the prestated file-length (" UINT64_FORMAT_SPEC ")!  Can't update the tar entry header!\n", currentFileLength, _prestatedFileSize);
+         LogTime(MUSCLE_LOG_ERROR, "TarFileWriter::FinishCurrentFileDataBlock():  DataIO isn't seekable, and the current entry's file-length (" UINT64_FORMAT_SPEC ") doesn't match the prestated file-length (" UINT64_FORMAT_SPEC ")!  Can't update the tar entry header!\n", currentFileLength, _prestatedFileSize);
          return B_BAD_ARGUMENT;
       }
 
