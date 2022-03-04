@@ -210,8 +210,7 @@ int32 ZLibDataIO :: WriteAux(const void * buffer, uint32 size, bool flushAtEnd, 
       if (postWrittenToChildBytes < 0) return -1;
 
       // Try to avoid returning 0 just because zlib needed buffers to be flushed; blocking callers don't like it when WriteFully() returns a short write
-      return bytesAbsorbed ? bytesAbsorbed : (((preWrittenToChildBytes+postWrittenToChildBytes) > 0 )? WriteAux(buffer, size, flushAtEnd, optFinishingUp) : 0);
-
+      return bytesAbsorbed ? bytesAbsorbed : (((preWrittenToChildBytes+postWrittenToChildBytes) > 0) ? WriteAux(buffer, size, flushAtEnd, optFinishingUp) : 0);
    }
    return -1;
 }
