@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+8.51 - Released 3/15/2022
    - Added a SetConsoleLogToStderr(bool) to make it easier to direct
      LogTime()'s output to stderr rather than stdout if desired.
    - Added a "logtostderr" option for HandleStandardDaemonArgs() to
@@ -19,6 +20,7 @@ key:  - new feature
    o ZLibDataIO now subclasses DataIO rather than ProxyDataIO, since
      it isn't actually seekable or packetizable.
    o Fixed several deprecation-warnings when compiling under MacOS12.
+   o QueryFilter now subclasses Archivable.
    * Updated PseudoFlattenable methods in the BitChord class to
      be static rather than const, so they can be called without
      an instance.
@@ -29,7 +31,7 @@ key:  - new feature
      ImmutableHashtablePool::DropAllCacheEntriesContainingAnyOfTheseKeys()
      since it's unnecessary and ancient (C++03) compilers don't like it.
 
-8.50 - Release 1/31/2022
+8.50 - Released 1/31/2022
    - Added two-argument versions of the GetAndMoveToFront() and
      GetAndMoveToBack() methods in the Hashtable class.
    o muscleSwap() now calls through to std::swap() when possible.
@@ -48,7 +50,7 @@ key:  - new feature
    * Fixed a bug in Message::ReplaceFlat() that would cause it to
      add incorrect data to the Message if the field didn't already exist.
 
-8.46 - Release 1/8/2022
+8.46 - Released 1/8/2022
    - Added HashCode() methods to the ByteBuffer, Queue, Hashtable,
      FilePathInfo, muscle_thread_id, and PointerAndBool classes.
    - Added a CalculateHashCode() function that takes an array
@@ -101,7 +103,7 @@ key:  - new feature
    * AutoChooseHashFunctor's explicit instantiations neglected
      to declare the Type field as public.  Fixed.
 
-8.45 - Release 12/21/2021
+8.45 - Released 12/21/2021
    - Added a GetSessionsByIDNumber() method to the ReflectServer
      and ServerComponent clases, for session-lookup with uint32 key.
    o DataNodeSubscribersTable now uses uint32 keys instead of
@@ -120,7 +122,7 @@ key:  - new feature
      potential undefined behavior that might arise from holding a
      non-aligned object-pointer.
 
-8.44 - Release 11/17/2021
+8.44 - Released 11/17/2021
    - Added new methods ObjectPool::PerformSanityCheck() and
      AbstractObjectRecycler::GlobalPerformSanityCheck() to make
      it easier to detect memory-corruption issues in the future.
@@ -139,7 +141,7 @@ key:  - new feature
      could in turn cause Message::Unflatten() to corrupt memory.
    * Fixed an MSVC warning in GlobalMemoryAllocator.h about strdup()
 
-8.43 - Release 10/25/2021
+8.43 - Released 10/25/2021
    - Added BitChord::GetNumBitsSet() method.
    - Added a Message::SortDataInField() method.
    - Added HasBufferedIncomingText() method to PlainTextMessageIOGateway
@@ -2364,7 +2366,7 @@ key:  - new feature
      characters, that way they can be escaped (by prefixing them
      with a slash) and entered as ASCII literals.
 
-5.80 Release 8/30/2012
+5.80 Released 8/30/2012
    - Added a new "micromessage" folder that contains a C API
      with functions for constructing and parsing Message data
      directly to/from its flattened form, with no intermediate

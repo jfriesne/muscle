@@ -10,6 +10,7 @@
 #include "util/Queue.h"
 #include "util/ByteBuffer.h"
 #include "message/Message.h"
+#include "support/Archivable.h"
 
 namespace muscle {
 
@@ -43,7 +44,7 @@ enum {
 /** Interface for any object that can examine a Message and tell whether it
   * matches some criterion.  Used primarily for filtering queries based on content.
   */
-class QueryFilter : public RefCountable
+class QueryFilter : public RefCountable, public Archivable
 {
 public:
    /** Default constructor */
