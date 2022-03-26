@@ -394,7 +394,7 @@ void Thread::InternalThreadEntryAux()
    }
 
    status_t ret;
-   if ((_threadPriority != PRIORITY_UNSPECIFIED)&&(SetThreadPriorityAux(_threadPriority, true).IsError(ret)))
+   if ((_threadPriority != PRIORITY_UNSPECIFIED)&&(SetThreadPriorityAux(_threadPriority, true).IsError(ret)))  // true is hard-coded here to avoid race conditions with _thread.native_handle()
    {
       LogTime(MUSCLE_LOG_ERROR, "Thread %p:  Unable to set thread priority to %i [%s]\n", this, _threadPriority, ret());
    }
@@ -455,7 +455,7 @@ uint32 Thread :: GetCurrentStackUsage() const
 
 status_t Thread :: SetThreadPriority(int newPriority)
 {
-   if (IsInternalThreadRunning()) MRETURN_ON_ERROR(SetThreadPriorityAux(newPriority, false));
+   if (IsInternalThreadRunning()) MRETURN_ON_ERROR(SetThreadPriorityAux(newPriority, IsCallerInternalThread()));
    _threadPriority = newPriority;  // just remember the setting for now; when we actually launch the thread we'll set the thread's priority
    return B_NO_ERROR;
 }
@@ -498,8 +498,9 @@ static int MuscleThreadPriorityToWindowsThreadPriority(int muscleThreadPriority)
 
 status_t Thread :: SetThreadPriorityAux(int newPriority, bool calledFromInternalThread)
 {
-   (void) calledFromInternalThread;  // just to inhibit compiler warnings
    if (newPriority == PRIORITY_UNSPECIFIED) return B_NO_ERROR;  // sure, unspecified is easy, anything goes
+
+   (void) calledFromInternalThread;  // just to inhibit compiler warnings
 
 #if defined(MUSCLE_USE_PTHREADS)
    int schedPolicy;
@@ -523,18 +524,18 @@ status_t Thread :: SetThreadPriorityAux(int newPriority, bool calledFromInternal
 # endif
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-   return ::SetThreadPriority(_thread.native_handle(), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
+   return ::SetThreadPriority(calledFromInternalThread ? ::GetCurrentThread() : _thread.native_handle(), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # else
-   return ::SetThreadPriority(_thread,                 MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
+   return ::SetThreadPriority(calledFromInternalThread ? ::GetCurrentThread() : _thread,                 MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # endif
 #elif defined(MUSCLE_USE_QT_THREADS)
    _thread.setPriority(MuscleThreadPriorityToQtThreadPriority(newPriority));
    return B_NO_ERROR;
 #elif defined(WIN32)
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-   return ::SetThreadPriority(_thread.native_handle(), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
+   return ::SetThreadPriority(calledFromInternalThread ? ::GetCurrentThread() :_thread.native_handle(), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # else
-   return ::SetThreadPriority(_thread,                 MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
+   return ::SetThreadPriority(calledFromInternalThread ? ::GetCurrentThread() :_thread,                 MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # endif
 #else
    return B_UNIMPLEMENTED;  // dunno how to set thread priorities on this platform
