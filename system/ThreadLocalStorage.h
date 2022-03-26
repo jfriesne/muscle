@@ -50,10 +50,12 @@ public:
       (void) _allocedObjsMutex.BeginAvoidFindDeadlockCallbacks();
 #endif
 
-#if defined(MUSCLE_USE_PTHREADS)
+#if !defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if defined(MUSCLE_USE_PTHREADS)
       _isKeyValid = (pthread_key_create(&_key, _freeHeldObjects?((PthreadDestructorFunction)DeleteObjFunc):NULL) == 0);
-#elif !defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && defined(MUSCLE_PREFER_WIN32_OVER_QT)
+# elif !defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && defined(MUSCLE_PREFER_WIN32_OVER_QT)
       _tlsIndex = TlsAlloc();
+# endif
 #endif
    }
 
@@ -62,10 +64,12 @@ public:
    {
       if (IsSetupOkay())
       {
-#if defined(MUSCLE_USE_PTHREADS)
+#if !defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if defined(MUSCLE_USE_PTHREADS)
          (void) pthread_key_delete(_key);
-#elif !defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && defined(MUSCLE_PREFER_WIN32_OVER_QT)
+# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
          TlsFree(_tlsIndex);
+# endif
 #endif
       }
 #if !(defined(MUSCLE_USE_QT_THREADLOCALSTORAGE) || defined(MUSCLE_USE_PTHREADS))

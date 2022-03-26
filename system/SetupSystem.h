@@ -246,7 +246,7 @@ public:
       : _id(0)
 # endif
    {
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_PTHREADS) && !defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
       memset(&_id, 0, sizeof(_id));
 # endif  
    }
@@ -254,7 +254,7 @@ public:
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator == (const muscle_thread_id & rhs) const
    {
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_PTHREADS) && !defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
       return pthread_equal(_id, rhs._id);
 # else
       return (_id == rhs._id);
@@ -264,7 +264,7 @@ public:
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator < (const muscle_thread_id & rhs) const
    {
-# if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_USE_PTHREADS) && !defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
       return (HashCode() < rhs.HashCode());  // because I don't think pthread_equal() will suffice here
 # else
       return (_id < rhs._id);

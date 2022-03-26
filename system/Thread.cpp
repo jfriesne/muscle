@@ -394,7 +394,7 @@ void Thread::InternalThreadEntryAux()
    }
 
    status_t ret;
-   if ((_threadPriority != PRIORITY_UNSPECIFIED)&&(SetThreadPriorityAux(_threadPriority).IsError(ret)))
+   if ((_threadPriority != PRIORITY_UNSPECIFIED)&&(SetThreadPriorityAux(_threadPriority, true).IsError(ret)))
    {
       LogTime(MUSCLE_LOG_ERROR, "Thread %p:  Unable to set thread priority to %i [%s]\n", this, _threadPriority, ret());
    }
@@ -455,7 +455,7 @@ uint32 Thread :: GetCurrentStackUsage() const
 
 status_t Thread :: SetThreadPriority(int newPriority)
 {
-   if (IsInternalThreadRunning()) MRETURN_ON_ERROR(SetThreadPriorityAux(newPriority));
+   if (IsInternalThreadRunning()) MRETURN_ON_ERROR(SetThreadPriorityAux(newPriority, false));
    _threadPriority = newPriority;  // just remember the setting for now; when we actually launch the thread we'll set the thread's priority
    return B_NO_ERROR;
 }
@@ -496,17 +496,18 @@ static int MuscleThreadPriorityToWindowsThreadPriority(int muscleThreadPriority)
 }
 #endif
 
-status_t Thread :: SetThreadPriorityAux(int newPriority)
+status_t Thread :: SetThreadPriorityAux(int newPriority, bool calledFromInternalThread)
 {
+   (void) calledFromInternalThread;  // just to inhibit compiler warnings
    if (newPriority == PRIORITY_UNSPECIFIED) return B_NO_ERROR;  // sure, unspecified is easy, anything goes
 
 #if defined(MUSCLE_USE_PTHREADS)
    int schedPolicy;
    sched_param param;
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-   int pret = pthread_getschedparam(_thread.native_handle(), &schedPolicy, &param);
+   const int pret = pthread_getschedparam(calledFromInternalThread ? pthread_self() : _thread.native_handle(), &schedPolicy, &param);
 # else
-   int pret = pthread_getschedparam(_thread, &schedPolicy, &param);
+   const int pret = pthread_getschedparam(calledFromInternalThread ? pthread_self() : _thread,                 &schedPolicy, &param);
 # endif
    if (pret != 0) return B_ERRNUM(pret);
 
@@ -516,15 +517,15 @@ status_t Thread :: SetThreadPriorityAux(int newPriority)
 
    param.sched_priority = muscleClamp(((newPriority*(maxPrio-minPrio))/(NUM_PRIORITIES-1))+minPrio, minPrio, maxPrio);
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-   return B_ERRNUM(pthread_setschedparam(_thread.native_handle(), schedPolicy, &param));
+   return B_ERRNUM(pthread_setschedparam(calledFromInternalThread ? pthread_self() : _thread.native_handle(), schedPolicy, &param));
 # else
-   return B_ERRNUM(pthread_setschedparam(_thread, schedPolicy, &param));
+   return B_ERRNUM(pthread_setschedparam(calledFromInternalThread ? pthread_self() : _thread,                 schedPolicy, &param));
 # endif
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
    return ::SetThreadPriority(_thread.native_handle(), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # else
-   return ::SetThreadPriority(_thread, MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
+   return ::SetThreadPriority(_thread,                 MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # endif
 #elif defined(MUSCLE_USE_QT_THREADS)
    _thread.setPriority(MuscleThreadPriorityToQtThreadPriority(newPriority));
@@ -533,7 +534,7 @@ status_t Thread :: SetThreadPriorityAux(int newPriority)
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
    return ::SetThreadPriority(_thread.native_handle(), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # else
-   return ::SetThreadPriority(_thread, MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
+   return ::SetThreadPriority(_thread,                 MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # endif
 #else
    return B_UNIMPLEMENTED;  // dunno how to set thread priorities on this platform

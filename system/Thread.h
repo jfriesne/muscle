@@ -505,7 +505,7 @@ private:
    status_t SendMessageAux(int whichQueue, const MessageRef & ref);
    void SignalAux(int whichSocket);
    void InternalThreadEntryAux();
-   status_t SetThreadPriorityAux(int newPriority);
+   status_t SetThreadPriorityAux(int newPriority, bool calledFromInternalThread);
 
    enum {
       MESSAGE_THREAD_INTERNAL = 0,  // internal thread's (input queue, socket to block on)

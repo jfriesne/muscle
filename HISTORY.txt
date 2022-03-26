@@ -5,6 +5,12 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Fixed a race condition that could cause Thread::SetThreadPriority()
+     to fail with a "no such process" message.
+   * Fixed some ifdefs in SetupSystem.h and ThreadLocalStorage.h that
+     assumed that MUSCLE_USE_PTHREADS and MUSCLE_USE_CPLUSPLUS11THREADS
+     defines were mutually exclusive, when they aren't.
+
 8.51 - Released 3/15/2022
    - Added a SetConsoleLogToStderr(bool) to make it easier to direct
      LogTime()'s output to stderr rather than stdout if desired.
