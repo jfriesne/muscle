@@ -6,6 +6,7 @@
 #include "zlib/TarFileWriter.h"
 #include "util/Directory.h"
 #include "util/FilePathInfo.h"
+#include "zlib/ZLibDataIO.h"
 
 using namespace muscle;
 
@@ -83,7 +84,6 @@ int main(int argc, char ** argv)
    }
 
    const String outputFileName  = argv[1];
-   const bool enableCompression = ((outputFileName.EndsWith(".tgz"))||(outputFileName.EndsWith(".tar.gz")));
 
    FILE * fpOut = fopen(outputFileName(), "wb");
    if (fpOut == NULL)
@@ -94,7 +94,10 @@ int main(int argc, char ** argv)
 
    const uint64 currentTime = GetCurrentTime64();
 
-   TarFileWriter tarFileWriter(FileDataIORef(new FileDataIO(fpOut)));
+   DataIORef outputFile(new FileDataIO(fpOut));
+   if ((outputFileName.EndsWith(".tgz"))||(outputFileName.EndsWith(".tar.gz"))) outputFile.SetRef(new GZLibDataIO(outputFile));
+
+   TarFileWriter tarFileWriter(outputFile);
    for (int i=2; i<argc; i++)
    {
       const String nextReadFile = argv[i];

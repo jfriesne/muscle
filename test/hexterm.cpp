@@ -158,7 +158,9 @@ static void DoSession(DataIORef io, bool allowRead = true)
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    if (_useZLibDataIO)
    {
-      ZLibDataIORef zlibIO(newnothrow ZLibDataIO(io, 6, _useGZip));
+      ZLibDataIORef zlibIO;
+      if (_useGZip) zlibIO.SetRef(newnothrow GZLibDataIO(io));
+               else zlibIO.SetRef(newnothrow  ZLibDataIO(io));
       if (zlibIO()) io = zlibIO;
                else MWARN_OUT_OF_MEMORY;
    }

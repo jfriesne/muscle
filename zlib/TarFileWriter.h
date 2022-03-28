@@ -69,14 +69,13 @@ public:
      * @param modificationTime A timestamp indicating the file's last modification time (microseconds since 1970)
      * @param linkIndicator one of the TAR_LINK_INDICATOR_* values
      * @param linkedFileName Name of the linked file (if any);
-     * @param fileSize if you know the size of the file in advance, you can pass in the file-size (in bytes) in this argument.
-     *                 Note that if the DataIORef object the TarFileWriter isn't a SeekableDataIORef, then passing in the
-     *                 correct file size here is mandatory, as the TarFileWriter will be unable to seek back and patch up
-     *                 the file-size header field later.  OTOH if you are using a SeekableDataIORef and don't know the file-size
-     *                 up-front, you can just pass in zero here.
+     * @param optFileSize The file size (in bytes) of the file described by this header.
+     *                 If the DataIORef this TarFileWriter is using is a subclass of SeekableDataIO, you can
+     *                 optionally pass in 0 for this argument and the TarFileWriter will automatically place
+     *                 the correct value into the file's header-bytes after it knows how many bytes have been written.
      * @returns B_NO_ERROR on success, or an error code on failure.
      */
-   status_t WriteFileHeader(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkedFileName, uint64 fileSize);
+   status_t WriteFileHeader(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkedFileName, uint64 optFileSize);
 
    /** Writes (numBytes) of data into the currently active file-block.
      * Three must be a file-header currently active for this call to succeed.

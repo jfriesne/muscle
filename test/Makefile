@@ -152,7 +152,7 @@ testbatchguard : $(STDOBJS) Message.o String.o testbatchguard.o SysLog.o ByteBuf
 testzip : $(STDOBJS) Message.o String.o testzip.o SysLog.o ByteBuffer.o SetupSystem.o ZipFileUtilityFunctions.o MiscUtilityFunctions.o $(ZIPOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testtar : $(STDOBJS) Message.o String.o testtar.o SysLog.o ByteBuffer.o SetupSystem.o ZipFileUtilityFunctions.o MiscUtilityFunctions.o TarFileWriter.o $(ZIPOBJS)
+testtar : $(STDOBJS) Message.o String.o testtar.o SysLog.o ByteBuffer.o SetupSystem.o ZipFileUtilityFunctions.o MiscUtilityFunctions.o TarFileWriter.o ZLibDataIO.o $(ZIPOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testmicro : $(STDOBJS) Message.o String.o testmicro.o SysLog.o ByteBuffer.o SetupSystem.o MicroMessage.o

@@ -20,19 +20,15 @@ public:
    /** Default Constructor -- Be sure to call SetDataIO() before use.
      * @param compressionLevel how much to compress outgoing data.  0 is no
      *                         compression 9 is maximum compression.  Default is 6.
-     * @param useGZip if set true, this ZLibDataIO will deflate/inflate .gz-file-format
-     *                compatible data rather than raw ZLib data.
      */
-   ZLibDataIO(int compressionLevel = 6, bool useGZip = false);
+   ZLibDataIO(int compressionLevel = 6);
 
    /** Constructor
      * @param childIO Reference to the DataIO object to pass compressed data to/from.
      * @param compressionLevel how much to compress outgoing data.  0 is no
      *                         compression 9 is maximum compression.  Default is 6.
-     * @param useGZip if set true, this ZLibDataIO will deflate/inflate .gz-file-format
-     *                compatible data rather than raw ZLib data.
      */
-   ZLibDataIO(const DataIORef & childIO, int compressionLevel = 6, bool useGZip = false);
+   ZLibDataIO(const DataIORef & childIO, int compressionLevel = 6);
 
    /** Destructor */
    virtual ~ZLibDataIO();
@@ -58,6 +54,15 @@ public:
 
    /** Returns our current back-end DataIORef, if we have one */
    const DataIORef & GetChildDataIO() const {return _childDataIO;}
+
+protected:
+   /** Internal constructor for GZLibDataIO to call
+     * @param childIO Reference to the DataIO object to pass compressed data to/from.
+     * @param compressionLevel how much to compress outgoing data.  0 is no
+     *                         compression 9 is maximum compression.  Default is 6.
+     * @param useGZFormat set true to use the .GZ-compatible output mode
+     */
+   ZLibDataIO(const DataIORef & childIO, int compressionLevel, bool useGZFormat);
 
 private:
    void Init();
@@ -88,6 +93,34 @@ private:
    DECLARE_COUNTED_OBJECT(ZLibDataIO);
 };
 DECLARE_REFTYPES(ZLibDataIO);
+
+/** This class is the same as ZLibDataIO, except that deflated data it
+  * produces is compatible with the .gz file format.
+  */
+class GZLibDataIO : public ZLibDataIO
+{
+public:
+   /** Default Constructor -- Be sure to call SetDataIO() before use.
+     * @param compressionLevel how much to compress outgoing data.  0 is no
+     *                         compression 9 is maximum compression.  Default is 6.
+     */
+   GZLibDataIO(int compressionLevel = 6) : ZLibDataIO(DataIORef(), compressionLevel, true) {/* empty */}
+
+   /** Constructor
+     * @param childIO Reference to the DataIO object to pass compressed data to/from.
+     * @param compressionLevel how much to compress outgoing data.  0 is no
+     *                         compression 9 is maximum compression.  Default is 6.
+     */
+   GZLibDataIO(const DataIORef & childIO, int compressionLevel = 6) : ZLibDataIO(childIO, compressionLevel, true) {/* empty */}
+
+protected:
+   /** Overridden to return true.  */
+   virtual bool UseGZipFormat() const {return true;}
+
+private:
+   DECLARE_COUNTED_OBJECT(GZLibDataIO);
+};
+DECLARE_REFTYPES(GZLibDataIO);
 
 } // end namespace muscle
 

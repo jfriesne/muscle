@@ -6,6 +6,11 @@ key:  - new feature
       o other
 
    - Added testtar.cpp to the tests folder to test the TarFileWriter class.
+   o Removed the (useGZip) argument from the ZLibDataIO constructors and
+     instead created a separate GZLibDataIO subclass to instantiante
+     when .gz-compatible output is desired.
+   * Fixed a bug in ZLibDataIO.cpp that could cause deflated data not to
+     be fully written out to the child DataIO object in some cases.
    * Fixed a race condition that could cause Thread::SetThreadPriority()
      to fail with a "no such process" message.
    * Fixed some ifdefs in SetupSystem.h and ThreadLocalStorage.h that
