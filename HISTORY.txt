@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added testtar.cpp to the tests folder to test the TarFileWriter class.
    * Fixed a race condition that could cause Thread::SetThreadPriority()
      to fail with a "no such process" message.
    * Fixed some ifdefs in SetupSystem.h and ThreadLocalStorage.h that

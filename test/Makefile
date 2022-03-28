@@ -36,7 +36,7 @@ CXXFLAGS += -std=c++11
 
 LFLAGS =  
 LIBS =  -lpthread
-EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess
+EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess
 
 REGEXOBJS = 
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
@@ -150,6 +150,9 @@ testbatchguard : $(STDOBJS) Message.o String.o testbatchguard.o SysLog.o ByteBuf
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testzip : $(STDOBJS) Message.o String.o testzip.o SysLog.o ByteBuffer.o SetupSystem.o ZipFileUtilityFunctions.o MiscUtilityFunctions.o $(ZIPOBJS)
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+testtar : $(STDOBJS) Message.o String.o testtar.o SysLog.o ByteBuffer.o SetupSystem.o ZipFileUtilityFunctions.o MiscUtilityFunctions.o TarFileWriter.o $(ZIPOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testmicro : $(STDOBJS) Message.o String.o testmicro.o SysLog.o ByteBuffer.o SetupSystem.o MicroMessage.o

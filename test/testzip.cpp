@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
 
    if (argc <= 1)
    {
-      printf("testzip somezipfiletoread.zip [newzipfiletowrite.zip] [namesonly]\n");
+      printf("Usage:  ./testzip somezipfiletoread.zip [newzipfiletowrite.zip] [namesonly]\n");
       return 0;
    }
 
