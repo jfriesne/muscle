@@ -7,14 +7,14 @@ key:  - new feature
 
    - Added testtar.cpp to the tests folder to test the TarFileWriter class.
    o Removed the (useGZip) argument from the ZLibDataIO constructors and
-     instead created a separate GZLibDataIO subclass to instantiante
+     instead created a separate GZLibDataIO subclass to instantiate
      when .gz-compatible output is desired.
-   o Updated muscle.dox to suit DOxygen 1.9.3's tastes.
+   o Updated muscle.dox to suit DOxygen 1.9.3's taste.
    * Fixed a bug in ZLibDataIO.cpp that could cause deflated data not to
      be fully written out to the child DataIO object in some cases.
    * Fixed a race condition that could cause Thread::SetThreadPriority()
-     to fail with a "no such process" message.
-   * Fixed some ifdefs in SetupSystem.h and ThreadLocalStorage.h that
+     to occasionally fail with a "no such process" message.
+   * Fixed some #ifdefs in SetupSystem.h and ThreadLocalStorage.h that
      assumed that MUSCLE_USE_PTHREADS and MUSCLE_USE_CPLUSPLUS11THREADS
      defines were mutually exclusive, when they aren't.
 
