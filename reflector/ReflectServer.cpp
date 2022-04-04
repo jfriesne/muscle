@@ -26,6 +26,10 @@ extern bool _mainReflectServerCatchSignals;  // from SetupSystem.cpp
 
 static const char * DEFAULT_SESSION_HOSTNAME = "_unknown_";
 
+#ifndef MUSCLE_ENABLE_SSL
+static void ComplainAboutNoSSL(const char * funcName) {LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::AddNewSession():  Can't call %s, because MUSCLE was compiled without -DMUSCLE_ENABLE_SSL\n", funcName);}
+#endif
+
 status_t
 ReflectServer ::
 AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
@@ -90,9 +94,9 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
                   }
                   else {newSession->SetOwner(NULL); MRETURN_OUT_OF_MEMORY;}
 #else
-                  if (_publicKey())            LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::AddNewSession():  Can't call SetPublicKeyCertificate(), this code was compiled without -DMUSCLE_ENABLE_SSL\n");
-                  if (_privateKey())           LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::AddNewSession():  Can't call SetPrivateKey(), this code was compiled without -DMUSCLE_ENABLE_SSL\n");
-                  if (_pskUserName.HasChars()) LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::AddNewSession():  Can't call SetPreSharedKeyLoginInfo(), this code was compiled without -DMUSCLE_ENABLE_SSL\n");
+                  if (_publicKey())            ComplainAboutNoSSL("SetPublicKeyCertificate()");
+                  if (_privateKey())           ComplainAboutNoSSL("SetPrivateKey()");
+                  if (_pskUserName.HasChars()) ComplainAboutNoSSL("SetPreSharedKeyLoginInfo()");
 #endif
                }
 

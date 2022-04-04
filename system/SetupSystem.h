@@ -178,11 +178,7 @@ public:
      *                      See the ThreadSetupSystem documentation for details.
      *                      (If you don't know what this flag is, leave it set to false!)
      */
-   CompleteSetupSystem(bool muscleSingleThreadOnly = false) : _threads(muscleSingleThreadOnly)
-   {
-      EnforceBuildFlagConsistency();  // this function MUST be called from within this .h file!
-      Init();                         // since it needs to be evaluated in the context of the app, not the muscle library
-   }
+   CompleteSetupSystem(bool muscleSingleThreadOnly = false);
 
    /** Destructor.  Calls the Callback() method of any items that were previously added
      * to our cleanup-callbacks list (in the opposite order from how they were added), then
@@ -221,24 +217,6 @@ private:
    Queue<GenericCallbackRef> _cleanupCallbacks;
    CompleteSetupSystem * _prevInstance;  // stack (via linked list) so that nested scopes are handled appropriately
    size_t             _initialMemoryUsage;  // RAM footprint of this process at the time our constructor ran
-
-   void Init();
-
-   /** This method must be defined and called inline, since its purpose is
-     * to deliberately cause a linker-error if a MUSCLE-using application
-     * is built with preprocessor-flags that are incompatible with those
-     * used to build the MUSCLE library itself.
-     */
-   inline void EnforceBuildFlagConsistency()
-   {
-#ifdef MUSCLE_ENABLE_SSL
-      extern bool BUILD_ERROR__application_is_built_with_MUSCLE_ENABLE_SSL_defined_but_MUSCLE_library_is_not;
-      BUILD_ERROR__application_is_built_with_MUSCLE_ENABLE_SSL_defined_but_MUSCLE_library_is_not = true;
-#else
-      extern bool BUILD_ERROR__MUSCLE_library_is_built_with_MUSCLE_ENABLE_SSL_defined_but_application_is_not;
-      BUILD_ERROR__MUSCLE_library_is_built_with_MUSCLE_ENABLE_SSL_defined_but_application_is_not = true;
-#endif
-   }
 };
 
 /** Returns a pointer to a process-wide Mutex, or NULL if that Mutex

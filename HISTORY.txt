@@ -6,17 +6,16 @@ key:  - new feature
       o other
 
    - Added testtar.cpp to the tests folder to test the TarFileWriter class.
-   - Added code to SetupSystem.{cpp,h} to generate a linker error if the
-     MUSCLE library is built with -DMUSCLE_ENABLE_SSL defined and the
-     linking application is not, or vice-versa.
-   - Added a assertion-check in the CompleteSetupSystem constructor
+   - Added a assertion-check in the ThreadSetupSystem constructor
      to make sure it is being declared in the main thread.
-   - Added a assertion-check in the CompleteSetupSystem destructor
-     to make sure it is destroyed in LIFO order.
+   - Added a assertion-check in the CompleteSetupSystem destructor to make
+     sure all declared CompleteSetupSystems are destroyed in LIFO order.
    o Removed the (useGZip) argument from the ZLibDataIO constructors and
      instead created a separate GZLibDataIO subclass to instantiate
      when .gz-compatible output is desired.
    o Updated muscle.dox to suit DOxygen 1.9.3's taste.
+   * CompleteSetupSystem's initial-memory-usage value is now set only
+     by the first instance of CompleteSetupSystem.
    * sizeof(ReflectServer) and sizeof(MessageTransceiverThread) no longer
      change depending on whether MUSCLE_ENABLE_SSL is defined or not.
    * sizeof(MessageIOGateway) and sizeof(MiniPacketTunnelIOGateway) no

@@ -207,20 +207,6 @@ template<typename T> void VerifyTypeIsNonTrivial()
 }
 #endif
 
-// These global are here just to deliberately cause linker-errors is an application
-// is built using preprocessor flags that are incompatible with those used to build
-// the MUSCLE library that it links to.  Better to have linker errors than undefined
-// behavior a run-time: that is truly not fun to debug.  :(
-
-// Note that the presence of a global-boolean-definition in the MUSCLE library PREVENTS
-// that linker error from occurring when the application is built correctly!
-
-#ifdef MUSCLE_ENABLE_SSL
-bool BUILD_ERROR__application_is_built_with_MUSCLE_ENABLE_SSL_defined_but_MUSCLE_library_is_not = false;
-#else
-bool BUILD_ERROR__MUSCLE_library_is_built_with_MUSCLE_ENABLE_SSL_defined_but_application_is_not = false;
-#endif
-
 SanitySetupSystem :: SanitySetupSystem()
 {
    // Make sure our data type lengths are as expected
@@ -889,6 +875,7 @@ ThreadSetupSystem :: ThreadSetupSystem(bool muscleSingleThreadOnly)
       MASSERT(_muscleAtomicMutexes, "Could not allocate atomic mutexes!");
 #endif
    }
+   else if (IsCurrentThreadMainThread() == false) MCRASH("All SetupSystem objects should be declared in the same thread");
 }
 
 ThreadSetupSystem :: ~ThreadSetupSystem()
@@ -1277,13 +1264,12 @@ void AbstractObjectRecycler :: GlobalPerformSanityCheck()
 static CompleteSetupSystem * _activeCSS = NULL;
 CompleteSetupSystem * CompleteSetupSystem :: GetCurrentCompleteSetupSystem() {return _activeCSS;}
 
-void CompleteSetupSystem :: Init()
+CompleteSetupSystem :: CompleteSetupSystem(bool muscleSingleThreadOnly)
+   : _threads(muscleSingleThreadOnly)
+   , _prevInstance(_activeCSS)
+   , _initialMemoryUsage(_activeCSS ? _activeCSS->_initialMemoryUsage : (size_t) GetProcessMemoryUsage())
 {
-   _prevInstance       = _activeCSS;
-   _activeCSS          = this;        // push us onto the CSS-stack
-   _initialMemoryUsage = _prevInstance ? _prevInstance->_initialMemoryUsage : (size_t) GetProcessMemoryUsage();
-
-   if (IsCurrentThreadMainThread() == false) MCRASH("CompleteSetupSystem objects should be declared in the main thread only");
+   _activeCSS = this; // push us onto the CSS-stack
 }
 
 CompleteSetupSystem :: ~CompleteSetupSystem()
