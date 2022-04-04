@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #if defined(WIN32)
-#include "winsupport/Win32FileHandleDataIO.h"
+#include "platform/win32/Win32FileHandleDataIO.h"
 
 namespace muscle {
 

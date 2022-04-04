@@ -31,6 +31,7 @@ key:  - new feature
    * Updated various programs in the tests directory to still compile
      (with reduced functionality) even if MUSCLE_ENABLE_ZLIB_ENCODING
      isn't specified.
+   * Fixed #include path in Win32FileHandleDataIO.cpp
 
 8.51 - Released 3/15/2022
    - Added a SetConsoleLogToStderr(bool) to make it easier to direct
