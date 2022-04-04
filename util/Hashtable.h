@@ -1071,9 +1071,9 @@ private:
 
    /** Returns the TABLE_INDEX_TYPE_* value associated with our current table-size */
 #ifndef MUSCLE_HASHTABLE_EXCLUDE_TABLE_INDEX_TYPE_FIELD
-   int GetTableIndexType() const {return _tableIndexType;}
+   uint32 GetTableIndexType() const {return _tableIndexType;}
 #else
-   int GetTableIndexType() const {return this->ComputeTableIndexTypeForTableSize(_tableSize);}
+   uint32 GetTableIndexType() const {return this->ComputeTableIndexTypeForTableSize(_tableSize);}
 #endif
 
    static uint32 ComputeTableIndexTypeForTableSize(uint32 tableSize) {return (tableSize>=255) + (tableSize>=65535);}
@@ -3018,7 +3018,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Clear(bool releaseCachedBuffer
    if (releaseCachedBuffers)
    {
       HashtableEntryBase * oldTable = _table;
-      const uint8 oldTableIndexType = this->GetTableIndexType();
+      const uint32 oldTableIndexType = this->GetTableIndexType();
 
       _table          = NULL;
       _freeHeadIdx    = MUSCLE_HASHTABLE_INVALID_SLOT_INDEX;
