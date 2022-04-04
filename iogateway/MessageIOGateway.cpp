@@ -35,16 +35,19 @@ status_t OptimizeMessageForTransmissionToMultipleGateways(const MessageRef & msg
    return msg()->AddTag(PR_NAME_MESSAGE_REUSE_TAG, tagRef);
 }
 
-MessageIOGateway :: MessageIOGateway(int32 encoding) :
-   _maxIncomingMessageSize(MUSCLE_NO_LIMIT),
-   _outgoingEncoding(encoding), 
-   _aboutToFlattenCallback(NULL), _aboutToFlattenCallbackData(NULL),
-   _flattenedCallback(NULL), _flattenedCallbackData(NULL),
-   _unflattenedCallback(NULL), _unflattenedCallbackData(NULL)
-#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-   , _sendCodec(NULL), _recvCodec(NULL)
-#endif
-   , _syncPingCounter(0), _pendingSyncPingCounter(-1)
+MessageIOGateway :: MessageIOGateway(int32 encoding)
+   : _maxIncomingMessageSize(MUSCLE_NO_LIMIT)
+   , _outgoingEncoding(encoding)
+   , _aboutToFlattenCallback(NULL)
+   , _aboutToFlattenCallbackData(NULL)
+   , _flattenedCallback(NULL)
+   , _flattenedCallbackData(NULL)
+   , _unflattenedCallback(NULL)
+   , _unflattenedCallbackData(NULL)
+   , _sendCodec(NULL)
+   , _recvCodec(NULL)
+   , _syncPingCounter(0)
+   , _pendingSyncPingCounter(-1)
 {
    // empty
 }

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -14,13 +14,16 @@ using namespace muscle;
 
 DataIORef GetFileRef(FILE * file)
 {
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    return DataIORef(new ZLibDataIO(DataIORef(new FileDataIO(file))));   // enable transparent file compression!
-//   return DataIORef(new FileDataIO(file)); 
+#else
+   return DataIORef(new FileDataIO(file));
+#endif
 }
 
 // This program tests the functionality of the MessageIOGateway by writing a Message
 // out to a file, then reading it back in.
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
    QueueGatewayMessageReceiver inQueue;
@@ -53,7 +56,7 @@ int main(int argc, char ** argv)
          printf("Reading test messages from test.dat...\n");
          MessageIOGateway g;
          g.SetDataIO(GetFileRef(in));
-         while(g.DoInput(inQueue) >= 0) 
+         while(g.DoInput(inQueue) >= 0)
          {
             MessageRef msgRef;
             while(inQueue.RemoveHead(msgRef).IsOK()) msgRef()->PrintToStream();
@@ -74,7 +77,7 @@ int main(int argc, char ** argv)
             MessageIOGateway g;
             g.SetDataIO(GetFileRef(in));
             int32 readBytes;
-            while((readBytes = g.DoInput(inQueue)) >= 0) 
+            while((readBytes = g.DoInput(inQueue)) >= 0)
             {
                printf("Read " UINT32_FORMAT_SPEC " bytes...\n", readBytes);
                MessageRef msgRef;

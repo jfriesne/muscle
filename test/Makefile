@@ -1,13 +1,13 @@
-DEFINES += -DMUSCLE_ENABLE_ZLIB_ENCODING 
-DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING 
+#DEFINES += -DMUSCLE_ENABLE_ZLIB_ENCODING
+DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 #DEFINES += -DMUSCLE_DISABLE_KEEPALIVE_API
-#DEFINES += -DMUSCLE_AVOID_NEWNOTHROW 
-#DEFINES += -DMUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS 
+#DEFINES += -DMUSCLE_AVOID_NEWNOTHROW
+#DEFINES += -DMUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS
 #DEFINES += -DMUSCLE_ENABLE_DEADLOCK_FINDER
 #DEFINES += -DMUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
-#DEFINES += -DMUSCLE_AVOID_IPV6 
-#DEFINES += -DMUSCLE_AVOID_BITSTUFFING 
-#DEFINES += -DMUSCLE_AVOID_MULTICAST_API 
+#DEFINES += -DMUSCLE_AVOID_IPV6
+#DEFINES += -DMUSCLE_AVOID_BITSTUFFING
+#DEFINES += -DMUSCLE_AVOID_MULTICAST_API
 #DEFINES += -DMUSCLE_POOL_SLAB_SIZE=0
 #DEFINES += -DMUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS
 #DEFINES += -DMUSCLE_USE_POLL
@@ -20,12 +20,12 @@ DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 #DEFINES += -DMUSCLE_AVOID_CPLUSPLUS11_THREADS
 #DEFINES += -DMUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
 #DEFINES += -DMUSCLE_AVOID_CPLUSPLUS11_BITCHORD
-#DEFINES += -DMUSCLE_USE_PTHREADS 
+#DEFINES += -DMUSCLE_USE_PTHREADS
 #DEFINES += -DMUSCLE_COUNT_STRING_COPY_OPERATIONS
 #DEFINES += -DMUSCLE_NO_EXCEPTIONS
 #DEFINES += -DMUSCLE_AVOID_STDINT
 #DEFINES += -DMUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES
-#DEFINES += -DMUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT 
+#DEFINES += -DMUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
 
 CFLAGS = -I.. -I../zlib/zlib -g
 #CFLAGS += -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk
@@ -34,26 +34,26 @@ GCCFLAGS = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS -W -Wall -Wno-multichar
 CXXFLAGS = $(CFLAGS) -O3 $(DEFINES)
 CXXFLAGS += -std=c++11
 
-LFLAGS =  
+LFLAGS =
 LIBS =  -lpthread
 EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess
 
-REGEXOBJS = 
+REGEXOBJS =
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
 ZIPOBJS = zip.o unzip.o ioapi.o
 STDOBJS = $(ZLIBOBJS) FilePathInfo.o Directory.o StringMatcher.o FileDataIO.o TCPSocketDataIO.o UDPSocketDataIO.o NetworkUtilityFunctions.o SocketMultiplexer.o StringTokenizer.o
 
 VPATH = ../hashtable ../message ../iogateway ../reflector ../regex ../util ../syslog ../system ../dataio ../zlib ../zlib/zlib ../zlib/zlib/contrib/minizip ../lang/c/minimessage ../lang/c/micromessage
 
-# if the OS type variable is unset, try to set it using the uname shell command 
-ifeq ($(OSTYPE),) 
+# if the OS type variable is unset, try to set it using the uname shell command
+ifeq ($(OSTYPE),)
   OSTYPE = $(strip $(shell uname))
-endif 
+endif
 
-# IRIX may report itself as IRIX or as IRIX64.  They are both the same to us. 
-ifeq ($(OSTYPE),IRIX64) 
-  OSTYPE = IRIX 
-endif 
+# IRIX may report itself as IRIX or as IRIX64.  They are both the same to us.
+ifeq ($(OSTYPE),IRIX64)
+  OSTYPE = IRIX
+endif
 
 ifneq (,$(findstring g++,$(CXX)))
     CXXFLAGS += $(GCCFLAGS) $(CCOPTFLAGS)
@@ -61,41 +61,41 @@ else
     CXXFLAGS += $(CCOPTFLAGS)
 endif
 
-ifeq ($(OSTYPE),freebsd4.0) 
-   CXXFLAGS += -I/usr/include/machine 
-endif 
+ifeq ($(OSTYPE),freebsd4.0)
+   CXXFLAGS += -I/usr/include/machine
+endif
 
-ifeq ($(OSTYPE),DragonFly) 
-   # void 
-endif 
+ifeq ($(OSTYPE),DragonFly)
+   # void
+endif
 
-ifeq ($(OSTYPE),Darwin) 
+ifeq ($(OSTYPE),Darwin)
    LIBS += -framework IOKit -framework Carbon -framework SystemConfiguration -framework Security
    CXXFLAGS += -stdlib=libc++
-endif 
+endif
 
-ifeq ($(OSTYPE),linux) 
+ifeq ($(OSTYPE),linux)
    LIBS += -lutil
-endif 
+endif
 
-ifeq ($(OSTYPE),Linux) 
+ifeq ($(OSTYPE),Linux)
    LIBS += -lutil
-endif 
+endif
 
-ifeq ($(OSTYPE),IRIX) 
-   CXXFLAGS += -DSGI -DMIPS 
-   ifneq (,$(findstring g++,$(CXX))) # if we are using SGI's CC compiler, we gotta change a few things 
-      CXX = CC 
-      CCFLAGS = -g2 -n32 -LANG:std -woff 1110,1174,1552,1460,3303 
-      LFLAGS  = -g2 -n32 
-      CXXFLAGS += -DNEW_H_NOT_AVAILABLE 
-      MEMORY_TRACKING_SUPPORTED = no # SGI CC can't handle it correctly :^( 
-   endif 
-endif 
+ifeq ($(OSTYPE),IRIX)
+   CXXFLAGS += -DSGI -DMIPS
+   ifneq (,$(findstring g++,$(CXX))) # if we are using SGI's CC compiler, we gotta change a few things
+      CXX = CC
+      CCFLAGS = -g2 -n32 -LANG:std -woff 1110,1174,1552,1460,3303
+      LFLAGS  = -g2 -n32
+      CXXFLAGS += -DNEW_H_NOT_AVAILABLE
+      MEMORY_TRACKING_SUPPORTED = no # SGI CC can't handle it correctly :^(
+   endif
+endif
 
-ifeq ($(MEMORY_TRACKING_SUPPORTED),yes) 
-   CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING 
-endif 
+ifeq ($(MEMORY_TRACKING_SUPPORTED),yes)
+   CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING
+endif
 
 SSLOBJS =
 ifneq (,$(findstring MUSCLE_ENABLE_SSL,$(CXXFLAGS))) # Add OpenSSL-specific files only if OpenSSL is enabled
@@ -140,7 +140,7 @@ testthread : $(STDOBJS) testthread.o SetupSystem.o Message.o String.o ByteBuffer
 testserverthread : $(STDOBJS) testserverthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testthreadpool : $(STDOBJS) testthreadpool.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o ThreadPool.o 
+testthreadpool : $(STDOBJS) testthreadpool.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o ThreadPool.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testpool : $(STDOBJS) Message.o String.o testpool.o SysLog.o ByteBuffer.o SetupSystem.o SetupSystem.o
@@ -176,7 +176,7 @@ minichatclient : minichatclient.o MiniMessage.o MiniMessageGateway.o
 readmessage : $(STDOBJS) Message.o String.o readmessage.o SysLog.o ByteBuffer.o SetupSystem.o ZLibUtilityFunctions.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testresponse : $(STDOBJS) testresponse.o MessageIOGateway.o AbstractMessageIOGateway.o SysLog.o SetupSystem.o PulseNode.o Message.o String.o ByteBuffer.o ZLibCodec.o 
+testresponse : $(STDOBJS) testresponse.o MessageIOGateway.o AbstractMessageIOGateway.o SysLog.o SetupSystem.o PulseNode.o Message.o String.o ByteBuffer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testnagle : $(STDOBJS) testnagle.o SysLog.o SetupSystem.o String.o ByteBuffer.o
@@ -279,7 +279,7 @@ uploadstress : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.
 portableplaintextclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o portableplaintextclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testchildprocess : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o testchildprocess.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o 
+testchildprocess : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o testchildprocess.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 daemonsitter : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o daemonsitter.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o StdinDataIO.o ReflectServer.o ServerComponent.o AbstractReflectSession.o MessageIOGateway.o TemplatingMessageIOGateway.o StdinDataIO.o FileDescriptorDataIO.o ZLibCodec.o
@@ -294,10 +294,10 @@ serialproxy : $(STDOBJS) serialproxy.o SysLog.o SetupSystem.o String.o RS232Data
 udpproxy : $(STDOBJS) udpproxy.o SysLog.o SetupSystem.o String.o ByteBuffer.o MiscUtilityFunctions.o Message.o AbstractMessageIOGateway.o PulseNode.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-findsourcelocations : $(STDOBJS) findsourcelocations.o SysLog.o SetupSystem.o String.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o PulseNode.o Message.o ByteBuffer.o 
+findsourcelocations : $(STDOBJS) findsourcelocations.o SysLog.o SetupSystem.o String.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o PulseNode.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-printsourcelocations : $(STDOBJS) printsourcelocations.o SysLog.o SetupSystem.o String.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o PulseNode.o Message.o ByteBuffer.o 
+printsourcelocations : $(STDOBJS) printsourcelocations.o SysLog.o SetupSystem.o String.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o PulseNode.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testsharedmem: $(STDOBJS) SysLog.o SharedMemory.o testsharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
@@ -306,7 +306,7 @@ testsharedmem: $(STDOBJS) SysLog.o SharedMemory.o testsharedmem.o String.o MiscU
 testobjectpool: $(STDOBJS) SysLog.o SharedMemory.o testobjectpool.o String.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testqueryfilter: $(STDOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o testqueryfilter.o SetupSystem.o MiscUtilityFunctions.o 
+testqueryfilter: $(STDOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o testqueryfilter.o SetupSystem.o MiscUtilityFunctions.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testpulsenode:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o testpulsenode.o ByteBuffer.o

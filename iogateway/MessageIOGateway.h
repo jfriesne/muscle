@@ -9,6 +9,8 @@
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 # include "zlib/ZLibCodec.h"
+#else
+class ZLibCodec;
 #endif
 
 namespace muscle {
@@ -331,10 +333,10 @@ private:
 
    Message _scratchPacketMessage;
 
-#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+   // these are deliberately NOT conditionally declared, in order to avoid
+   // changing sizeof(MessageIOGateway) dependong on whether -DMUSCLE_ENABLE_ZLIB_ENCODING is defined
    mutable ZLibCodec * _sendCodec;
    mutable ZLibCodec * _recvCodec;
-#endif
 
    NestCount _noRPCReply;
    int32 _syncPingCounter;

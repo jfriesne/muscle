@@ -150,7 +150,14 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "Packet test running on port %u, mtu=" UINT32_FORMAT_SPEC " magic=" UINT32_FORMAT_SPEC "\n", port, mtu, magic);
 
    AbstractMessageIOGatewayRef slaveGatewayRef;
-   if (args.HasName("usegw")) slaveGatewayRef.SetRef(new MessageIOGateway(MUSCLE_MESSAGE_ENCODING_ZLIB_9));
+   if (args.HasName("usegw"))
+   {
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+      slaveGatewayRef.SetRef(new MessageIOGateway(MUSCLE_MESSAGE_ENCODING_ZLIB_9));
+#else
+      slaveGatewayRef.SetRef(new MessageIOGateway);
+#endif
+   }
 
    const bool testMini = args.HasName("mini");
    LogTime(MUSCLE_LOG_INFO, "Using the %s class for I/O\n", testMini?"MiniPacketTunnelIOGateway":"PacketTunnelIOGateway");

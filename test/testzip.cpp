@@ -13,6 +13,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    if (argc <= 1)
    {
       printf("Usage:  ./testzip somezipfiletoread.zip [newzipfiletowrite.zip] [namesonly]\n");
@@ -49,6 +50,9 @@ int main(int argc, char ** argv)
       }
    }
    else printf("Error reading .zip file [%s]\n", argv[1]);
+#else
+   printf("Error, -DMUSCLE_ENABLE_ZLIB_ENCODING wasn't specified, can't to any unzipping!\n");
+#endif
    
    return 0;
 }

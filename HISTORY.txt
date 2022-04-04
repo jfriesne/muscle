@@ -12,6 +12,9 @@ key:  - new feature
    o Updated muscle.dox to suit DOxygen 1.9.3's taste.
    * sizeof(ReflectServer) and sizeof(MessageTransceiverThread) no longer
      change depending on whether MUSCLE_ENABLE_SSL is defined or not.
+   * sizeof(MessageIOGateway) and sizeof(MiniPacketTunnelIOGateway) no
+     longer change depending on whether MUSCLE_ENABLE_ZLIB_ENCODING is
+     defined or not.
    * Fixed a bug in ZLibDataIO.cpp that could cause deflated data not to
      be fully written out to the child DataIO object in some cases.
    * Fixed a race condition that could cause Thread::SetThreadPriority()
@@ -19,6 +22,9 @@ key:  - new feature
    * Fixed some #ifdefs in SetupSystem.h and ThreadLocalStorage.h that
      assumed that MUSCLE_USE_PTHREADS and MUSCLE_USE_CPLUSPLUS11THREADS
      defines were mutually exclusive, when they aren't.
+   * Updated various programs in the tests directory to still compile
+     (with reduced functionality) even if MUSCLE_ENABLE_ZLIB_ENCODING
+     isn't specified.
 
 8.51 - Released 3/15/2022
    - Added a SetConsoleLogToStderr(bool) to make it easier to direct

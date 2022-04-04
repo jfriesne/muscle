@@ -95,7 +95,9 @@ int main(int argc, char ** argv)
    const uint64 currentTime = GetCurrentTime64();
 
    DataIORef outputFile(new FileDataIO(fpOut));
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    if ((outputFileName.EndsWith(".tgz"))||(outputFileName.EndsWith(".tar.gz"))) outputFile.SetRef(new GZLibDataIO(outputFile));
+#endif
 
    TarFileWriter tarFileWriter(outputFile);
    for (int i=2; i<argc; i++)

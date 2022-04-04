@@ -1,6 +1,9 @@
 /* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "iogateway/MiniPacketTunnelIOGateway.h"
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
+# include "zlib/ZLibCodec.h"
+#endif
 
 namespace muscle {
 
@@ -78,7 +81,7 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
                   // Payloads are compressed!  Gotta zlib-inflate them first
                   if (_codec() == NULL) _codec.SetRef(newnothrow ZLibCodec(3));  // compression-level doesn't really matter for inflation step
-                  infBuf = _codec() ? _codec()->Inflate(p, (uint32) (invalidByte-p)) : ByteBufferRef();
+                  infBuf = _codec() ? static_cast<ZLibCodec *>(_codec())->Inflate(p, (uint32) (invalidByte-p)) : ByteBufferRef();
                   if (infBuf())
                   {
                      p = infBuf()->GetBuffer();
@@ -179,10 +182,11 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
          if (_sendCompressionLevel > 0)
          {
-            if ((_codec() == NULL)||(_codec()->GetCompressionLevel() != _sendCompressionLevel)) _codec.SetRef(newnothrow ZLibCodec(_sendCompressionLevel));
-            if (_codec())
+            ZLibCodec * codec = static_cast<ZLibCodec *>(_codec());
+            if ((codec == NULL)||(codec->GetCompressionLevel() != _sendCompressionLevel)) _codec.SetRef(codec = newnothrow ZLibCodec(_sendCompressionLevel));
+            if (codec)
             {
-               defBuf = _codec()->Deflate(_outputPacketBuffer.GetBuffer()+PACKET_HEADER_SIZE, _outputPacketSize-PACKET_HEADER_SIZE, true, PACKET_HEADER_SIZE);
+               defBuf = codec->Deflate(_outputPacketBuffer.GetBuffer()+PACKET_HEADER_SIZE, _outputPacketSize-PACKET_HEADER_SIZE, true, PACKET_HEADER_SIZE);
                if (defBuf())
                {
                   if (defBuf()->GetNumBytes() < writeSize)  // no sense sending deflated data if it didn't actually change anything!

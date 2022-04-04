@@ -81,17 +81,20 @@ int main(int argc, char ** argv)
          return 10;
       }
 
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
       ByteBufferRef infBuf = InflateByteBuffer(buf);
       if (infBuf())
       {
          LogTime(MUSCLE_LOG_INFO, "Zlib-inflated file data from " INT32_FORMAT_SPEC " to " UINT32_FORMAT_SPEC " bytes.\n", numBytesRead, infBuf()->GetNumBytes());
          buf = infBuf;
       }
+#endif
 
       status_t ret;
       Message msg;
       if (msg.Unflatten(buf()->GetBuffer(), buf()->GetNumBytes()).IsOK(ret))
       {
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
          MessageRef infMsg = InflateMessage(DummyMessageRef(msg));
          if ((infMsg())&&(infMsg() != &msg))
          {
@@ -101,6 +104,7 @@ int main(int argc, char ** argv)
             infMsg()->PrintToStream();
          }
          else
+#endif
          {
             LogTime(MUSCLE_LOG_INFO, "Message is:\n");
             PrintMessageReport(msg, isSizeReport);

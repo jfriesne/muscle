@@ -5,9 +5,6 @@
 
 #include "iogateway/ProxyIOGateway.h"
 #include "util/NetworkUtilityFunctions.h"  // for MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET
-#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-# include "zlib/ZLibCodec.h"
-#endif
 
 namespace muscle {
 
@@ -101,9 +98,7 @@ private:
    uint32 _sendPacketIDCounter;
    Queue<ByteBufferRef> _currentOutputBuffers;
 
-#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-   ZLibCodecRef _codec;
-#endif
+   RefCountableRef _codec;  // deliberately NOT conditionally declared!
 
    DECLARE_COUNTED_OBJECT(MiniPacketTunnelIOGateway);
 };
