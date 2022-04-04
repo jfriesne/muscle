@@ -333,8 +333,8 @@ private:
 
    Message _scratchPacketMessage;
 
-   // these are deliberately NOT conditionally declared, in order to avoid
-   // changing sizeof(MessageIOGateway) dependong on whether -DMUSCLE_ENABLE_ZLIB_ENCODING is defined
+   // these are deliberately NOT conditionally declared, in order to avoid changing
+   // sizeof(MessageIOGateway) depending on whether -DMUSCLE_ENABLE_ZLIB_ENCODING is defined
    mutable ZLibCodec * _sendCodec;
    mutable ZLibCodec * _recvCodec;
 

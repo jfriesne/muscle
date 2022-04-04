@@ -27,7 +27,7 @@ class AtomicCounter;
   * be wanting to do.  Typically System objects are placed
   * on the stack at the beginning of main().  They do
   * the setup in their constructor, and tear it down
-  * again in their destructor. 
+  * again in their destructor.
   */
 class SetupSystem
 {
@@ -38,7 +38,7 @@ protected:
     *  without any pure virtuals defined)
    */
    SetupSystem() {/* empty */}
-  
+
 public:
    /** Virtual destructor to keep C++ honest */
    virtual ~SetupSystem() {/* empty */}
@@ -51,11 +51,11 @@ public:
    /** Constructor.  Records the thread ID of the main
      * thread and does some other miscellaneous setup work.
      * @param muscleSingleThreadOnly If set to true, the MUSCLE code will assume that
-     *                      this process is going to be single-threaded, even if the 
+     *                      this process is going to be single-threaded, even if the
      *                      code was not compiled with the -DMUSCLE_SINGLE_THREAD_ONLY flag!
-     *                      This can be useful to gain a bit of extra efficiency, if you 
-     *                      need to compile your code to be multithread-capable but can 
-     *                      sometimes promise that this particular process will never 
+     *                      This can be useful to gain a bit of extra efficiency, if you
+     *                      need to compile your code to be multithread-capable but can
+     *                      sometimes promise that this particular process will never
      *                      spawn multiple threads.
      *                      If your code is NEVER multi-threaded, then it is even more efficient to define
      *                      -DMUSCLE_SINGLE_THREAD_ONLY in your Makefile, rather than setting this flag to false.
@@ -82,7 +82,7 @@ private:
 #if defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
 /** Used by AtomicCounter to get (rather inefficient)
   * atomic counting via a small number of static mutexes.
-  * @param count The value to adjust atomically 
+  * @param count The value to adjust atomically
   * @param delta The amount to add/subtract to/from (*count)
   * @returns the new state of (*count)
   */
@@ -99,7 +99,7 @@ public:
      * get signalled and killed if a remote client closes
      * his connection while we are sending to him.
      */
-   NetworkSetupSystem(); 
+   NetworkSetupSystem();
 
    /** Destructor.  Under Windows, this calls WSACleanup();
      * it's a no-op for everyone else.
@@ -107,7 +107,7 @@ public:
    virtual ~NetworkSetupSystem();
 };
 
-/** This SetupSystem handles initializing the system's 
+/** This SetupSystem handles initializing the system's
   * math routines as necessary.
   */
 class MathSetupSystem : public SetupSystem
@@ -124,7 +124,7 @@ public:
    virtual ~MathSetupSystem();
 };
 
-/** This SetupSystem handles initializing the system's 
+/** This SetupSystem handles initializing the system's
   * time-handling routines as necessary.
   */
 class TimeSetupSystem : public SetupSystem
@@ -174,11 +174,15 @@ class CompleteSetupSystem : public SetupSystem
 {
 public:
    /** Constructor.  No-op, all the other *SetupSystem objects are created at this point.
-     * @param muscleSingleThreadOnly Passed to the ThreadSetupSystem constructor.  
+     * @param muscleSingleThreadOnly Passed to the ThreadSetupSystem constructor.
      *                      See the ThreadSetupSystem documentation for details.
      *                      (If you don't know what this flag is, leave it set to false!)
      */
-   CompleteSetupSystem(bool muscleSingleThreadOnly = false);
+   CompleteSetupSystem(bool muscleSingleThreadOnly = false) : _threads(muscleSingleThreadOnly)
+   {
+      EnforceBuildFlagConsistency();  // this function MUST be called from within this .h file!
+      Init();                         // since it needs to be evaluated in the context of the app, not the muscle library
+   }
 
    /** Destructor.  Calls the Callback() method of any items that were previously added
      * to our cleanup-callbacks list (in the opposite order from how they were added), then
@@ -197,18 +201,18 @@ public:
    const Queue<GenericCallbackRef> & GetCleanupCallbacks() const {return _cleanupCallbacks;}
 
    /** If there are any CompleteSetupSystems anywhere on the stack, this method will
-     * return a pointer to the current (most recently created) CompleteSetupSystem object. 
+     * return a pointer to the current (most recently created) CompleteSetupSystem object.
      * Otherwise, returns NULL.
-     */ 
+     */
    static CompleteSetupSystem * GetCurrentCompleteSetupSystem();
 
-   /** Returns the amount of RAM being used by this process at the moment the
-     * CompleteSetupSystem constructor was executed.  (Useful for comparing how
+   /** Returns the amount of RAM being used by this process at the time the
+     * first CompleteSetupSystem constructor was executed.  (Useful for comparing how
      * much RAM the process is using later on compared to its initial allotment)
      */
    size_t GetInitialMemoryUsage() const {return _initialMemoryUsage;}
 
-private: 
+private:
    TimeSetupSystem    _time;
    NetworkSetupSystem _network;
    ThreadSetupSystem  _threads;
@@ -217,6 +221,24 @@ private:
    Queue<GenericCallbackRef> _cleanupCallbacks;
    CompleteSetupSystem * _prevInstance;  // stack (via linked list) so that nested scopes are handled appropriately
    size_t             _initialMemoryUsage;  // RAM footprint of this process at the time our constructor ran
+
+   void Init();
+
+   /** This method must be defined and called inline, since its purpose is
+     * to deliberately cause a linker-error if a MUSCLE-using application
+     * is built with preprocessor-flags that are incompatible with those
+     * used to build the MUSCLE library itself.
+     */
+   inline void EnforceBuildFlagConsistency()
+   {
+#ifdef MUSCLE_ENABLE_SSL
+      extern bool BUILD_ERROR__application_is_built_with_MUSCLE_ENABLE_SSL_defined_but_MUSCLE_library_is_not;
+      BUILD_ERROR__application_is_built_with_MUSCLE_ENABLE_SSL_defined_but_MUSCLE_library_is_not = true;
+#else
+      extern bool BUILD_ERROR_MUSCLE_library_is_built_with_MUSCLE_ENABLE_SSL_defined_but_application_is_not;
+      BUILD_ERROR_MUSCLE_library_is_built_with_MUSCLE_ENABLE_SSL_defined_but_application_is_not = true;
+#endif
+   }
 };
 
 /** Returns a pointer to a process-wide Mutex, or NULL if that Mutex
@@ -233,7 +255,7 @@ bool IsCurrentThreadMainThread();
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
 
-/** This class represents a unique ID for a thread.  It provides an 
+/** This class represents a unique ID for a thread.  It provides an
   * implementation-neutral and more user-friendly wrapper around pthread_self()
   * and its equivalents.
   */
@@ -241,14 +263,14 @@ class muscle_thread_id
 {
 public:
    /** Default constructor.  Returns an muscle_thread_id object that doesn't represent any thread. */
-   muscle_thread_id() 
+   muscle_thread_id()
 #if !defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && !defined(MUSCLE_USE_PTHREADS)
       : _id(0)
 # endif
    {
 # if defined(MUSCLE_USE_PTHREADS) && !defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
       memset(&_id, 0, sizeof(_id));
-# endif  
+# endif
    }
 
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
@@ -305,7 +327,7 @@ public:
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS) || defined(MUSCLE_USE_PTHREADS)
       // _id is a POD value, so generate a good-enough ID from its bytes
       unsigned long count = 0;
-      unsigned long base  = 1; 
+      unsigned long base  = 1;
       unsigned char * s = (unsigned char*)(void*)(&_id);
       for (size_t i=0; i<sizeof(_id); i++)
       {
