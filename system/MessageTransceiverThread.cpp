@@ -42,6 +42,10 @@ status_t MessageTransceiverThread :: EnsureServerAllocated()
                   if (_privateKey()) server()->SetSSLPrivateKey(_privateKey);
                   if (_publicKey())  server()->SetSSLPublicKeyCertificate(_publicKey);
                   if (_pskUserName.HasChars()) server()->SetSSLPreSharedKeyLoginInfo(_pskUserName, _pskPassword);
+#else
+                  if (_privateKey())           LogTime(MUSCLE_LOG_CRITICALERROR, "MessageTransceiverThread::EnsureServerAllocated():  Can't call SetSSLPrivateKey(), this code was compiled without -DMUSCLE_ENABLE_SSL\n");
+                  if (_publicKey())            LogTime(MUSCLE_LOG_CRITICALERROR, "MessageTransceiverThread::EnsureServerAllocated():  Can't call SetSSLPublicKeyCertificate(), this code was compiled without -DMUSCLE_ENABLE_SSL\n");
+                  if (_pskUserName.HasChars()) LogTime(MUSCLE_LOG_CRITICALERROR, "MessageTransceiverThread::EnsureServerAllocated():  Can't call SetSSLPreSharedKeyLoginInfo(), this code was compiled without -DMUSCLE_ENABLE_SSL\n");
 #endif
                   return B_NO_ERROR;
                }

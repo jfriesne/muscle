@@ -56,9 +56,9 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
             DataIORef io = newSession->CreateDataIO(s);
             if (io()) 
             {
-#ifdef MUSCLE_ENABLE_SSL
                if (((_inDoAccept.IsInBatch())||(_inDoConnect.IsInBatch()))&&(((_publicKey())||(_privateKey())||(_pskUserName.HasChars()))&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL)))
                {
+#ifdef MUSCLE_ENABLE_SSL
                   SSLSocketDataIORef sslIORef(newnothrow SSLSocketDataIO(s, false, _inDoAccept.IsInBatch()));
                   if (sslIORef())
                   {
@@ -89,8 +89,12 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
                      if (gatewayRef() == NULL) {newSession->SetOwner(NULL); MRETURN_OUT_OF_MEMORY;}
                   }
                   else {newSession->SetOwner(NULL); MRETURN_OUT_OF_MEMORY;}
-               }
+#else
+                  if (_publicKey())            LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::AddNewSession():  Can't call SetPublicKeyCertificate(), this code was compiled without -DMUSCLE_ENABLE_SSL\n");
+                  if (_privateKey())           LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::AddNewSession():  Can't call SetPrivateKey(), this code was compiled without -DMUSCLE_ENABLE_SSL\n");
+                  if (_pskUserName.HasChars()) LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::AddNewSession():  Can't call SetPreSharedKeyLoginInfo(), this code was compiled without -DMUSCLE_ENABLE_SSL\n");
 #endif
+               }
 
                gatewayRef()->SetDataIO(io);
                newSession->SetGateway(gatewayRef);

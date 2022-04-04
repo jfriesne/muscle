@@ -10,6 +10,8 @@ key:  - new feature
      instead created a separate GZLibDataIO subclass to instantiate
      when .gz-compatible output is desired.
    o Updated muscle.dox to suit DOxygen 1.9.3's taste.
+   * sizeof(ReflectServer) and sizeof(MessageTransceiverThread) no longer
+     change depending on whether MUSCLE_ENABLE_SSL is defined or not.
    * Fixed a bug in ZLibDataIO.cpp that could cause deflated data not to
      be fully written out to the child DataIO object in some cases.
    * Fixed a race condition that could cause Thread::SetThreadPriority()

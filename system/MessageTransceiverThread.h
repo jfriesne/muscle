@@ -721,12 +721,16 @@ private:
 
    ReflectServerRef _server;
    String _defaultDistributionPath;
-#ifdef MUSCLE_ENABLE_SSL
+
+   // Note that I'm deliberately declaring these member-variables unconditionally, so that
+   // sizeof(MessageTransceiverThread) doesn't change based on whether MUSCLE_ENABLE_SSL is defined or not.
+   // That way if the MUSCLE library is compiled with -DMUSCLE_ENABLE_SSL and the calling code
+   // isn't (or vice versa), at least it won't lead to mysterious stack/heap corruption.  --jaf
    ConstByteBufferRef _privateKey;
    ConstByteBufferRef _publicKey;
    String _pskUserName;            // used for pre-shared-key connections
    String _pskPassword;            // used for pre-shared-key connections
-#endif
+
    bool _forwardAllIncomingMessagesToSupervisor;
 
    DECLARE_COUNTED_OBJECT(MessageTransceiverThread);

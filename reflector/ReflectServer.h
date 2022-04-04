@@ -418,12 +418,15 @@ private:
    Hashtable<IPAddress, String> _remapIPs;  // for v2.20; custom strings for "special" IP addresses
    SocketMultiplexer _multiplexer;
 
-#ifdef MUSCLE_ENABLE_SSL
+   // Note that I'm deliberately declaring these member-variables unconditionally, so that
+   // sizeof(ReflectServer) doesn't change based on whether MUSCLE_ENABLE_SSL is defined or not.
+   // That way if the MUSCLE library is compiled with -DMUSCLE_ENABLE_SSL and the calling code
+   // isn't (or vice versa), at least it won't lead to mysterious stack/heap corruption.  --jaf
    ConstByteBufferRef _publicKey;  // used for making outgoing TCP connections
    ConstByteBufferRef _privateKey; // used for receiving incoming TCP connections
    String _pskUserName;            // used for pre-shared-key connections
    String _pskPassword;            // used for pre-shared-key connections
-#endif
+
    NestCount _inDoAccept;
    NestCount _inDoConnect;
 
