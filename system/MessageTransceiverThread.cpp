@@ -21,47 +21,53 @@ MessageTransceiverThread :: ~MessageTransceiverThread()
 }
 
 #ifndef MUSCLE_ENABLE_SSL
-static void ComplainAboutNoSSL(const char * funcName) {LogTime(MUSCLE_LOG_CRITICALERROR, "MessageTransceiverThread::EnsureServerAllocated():  Can't call %s, because MUSCLE was compiled without -DMUSCLE_ENABLE_SSL\n", funcName);}
+static status_t ComplainAboutNoSSL(const char * funcName)
+{
+   LogTime(MUSCLE_LOG_CRITICALERROR, "MessageTransceiverThread::EnsureServerAllocated():  Can't call %s, because MUSCLE was compiled without -DMUSCLE_ENABLE_SSL\n", funcName);
+   return B_UNIMPLEMENTED;
+}
 #endif
 
 status_t MessageTransceiverThread :: EnsureServerAllocated()
 {
-   if (_server() == NULL)
+   if (_server()) return B_NO_ERROR;  // already allocated, nothing for us to do
+
+   status_t ret;
+   ReflectServerRef server = CreateReflectServer();
+   if (server())
    {
-      ReflectServerRef server = CreateReflectServer();
-      if (server())
+      const ConstSocketRef & sock = GetInternalThreadWakeupSocket();
+      if (sock())
       {
-         const ConstSocketRef & sock = GetInternalThreadWakeupSocket();
-         if (sock())
+         ThreadSupervisorSessionRef controlSession = CreateSupervisorSession();
+         if (controlSession())
          {
-            ThreadSupervisorSessionRef controlSession = CreateSupervisorSession();
-            if (controlSession())
+            controlSession()->_mtt = this;
+            controlSession()->SetDefaultDistributionPath(GetDefaultDistributionPath());
+            if (server()->AddNewSession(controlSession, sock).IsOK(ret))
             {
-               controlSession()->_mtt = this;
-               controlSession()->SetDefaultDistributionPath(GetDefaultDistributionPath());
-               if (server()->AddNewSession(controlSession, sock).IsOK())
+#ifdef MUSCLE_ENABLE_SSL
+               if (_privateKey())           server()->SetSSLPrivateKey(_privateKey);
+               if (_publicKey())            server()->SetSSLPublicKeyCertificate(_publicKey);
+               if (_pskUserName.HasChars()) server()->SetSSLPreSharedKeyLoginInfo(_pskUserName, _pskPassword);
+#else
+               if (_privateKey())           ret |= ComplainAboutNoSSL("SetSSLPrivateKey()");
+               if (_publicKey())            ret |= ComplainAboutNoSSL("SetSSLPublicKeyCertificate()");
+               if (_pskUserName.HasChars()) ret |= ComplainAboutNoSSL("SetSSLPreSharedKeyLoginInfo()");
+#endif
+               if (ret.IsOK())
                {
                   _server = server;
-#ifdef MUSCLE_ENABLE_SSL
-                  if (_privateKey()) server()->SetSSLPrivateKey(_privateKey);
-                  if (_publicKey())  server()->SetSSLPublicKeyCertificate(_publicKey);
-                  if (_pskUserName.HasChars()) server()->SetSSLPreSharedKeyLoginInfo(_pskUserName, _pskPassword);
-#else
-
-                  if (_privateKey())           ComplainAboutNoSSL("SetSSLPrivateKey()");
-                  if (_publicKey())            ComplainAboutNoSSL("SetSSLPublicKeyCertificate()");
-                  if (_pskUserName.HasChars()) ComplainAboutNoSSL("SetSSLPreSharedKeyLoginInfo()");
-#endif
-                  return B_NO_ERROR;
+                  return ret;
                }
             }
-            CloseSockets();  // close the other socket too
          }
-         server()->Cleanup();
+         CloseSockets();  // close the other socket too
       }
-      return B_ERROR("CreateReflectServer() failed");
+      server()->Cleanup();
    }
-   return B_NO_ERROR;
+
+   return ret | B_ERROR("CreateReflectServer() failed");
 }
 
 ReflectServerRef MessageTransceiverThread :: CreateReflectServer()
