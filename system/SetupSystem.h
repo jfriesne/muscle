@@ -235,8 +235,8 @@ private:
       extern bool BUILD_ERROR__application_is_built_with_MUSCLE_ENABLE_SSL_defined_but_MUSCLE_library_is_not;
       BUILD_ERROR__application_is_built_with_MUSCLE_ENABLE_SSL_defined_but_MUSCLE_library_is_not = true;
 #else
-      extern bool BUILD_ERROR_MUSCLE_library_is_built_with_MUSCLE_ENABLE_SSL_defined_but_application_is_not;
-      BUILD_ERROR_MUSCLE_library_is_built_with_MUSCLE_ENABLE_SSL_defined_but_application_is_not = true;
+      extern bool BUILD_ERROR__MUSCLE_library_is_built_with_MUSCLE_ENABLE_SSL_defined_but_application_is_not;
+      BUILD_ERROR__MUSCLE_library_is_built_with_MUSCLE_ENABLE_SSL_defined_but_application_is_not = true;
 #endif
    }
 };
