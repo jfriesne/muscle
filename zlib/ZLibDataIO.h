@@ -17,7 +17,7 @@ namespace muscle {
 class ZLibDataIO : public DataIO
 {
 public:
-   /** Default Constructor -- Be sure to call SetDataIO() before use.
+   /** Default Constructor -- Be sure to call SetChildDataIO() before use.
      * @param compressionLevel how much to compress outgoing data.  0 is no
      *                         compression 9 is maximum compression.  Default is 6.
      */
@@ -100,7 +100,7 @@ DECLARE_REFTYPES(ZLibDataIO);
 class GZLibDataIO : public ZLibDataIO
 {
 public:
-   /** Default Constructor -- Be sure to call SetDataIO() before use.
+   /** Default Constructor -- Be sure to call SetChildDataIO() before use.
      * @param compressionLevel how much to compress outgoing data.  0 is no
      *                         compression 9 is maximum compression.  Default is 6.
      */
