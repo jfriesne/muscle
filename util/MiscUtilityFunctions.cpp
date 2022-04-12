@@ -410,7 +410,7 @@ static void CrashSignalHandler(int sig)
 
    printf("MUSCLE CrashSignalHandler called with signal %i... I'm going to print a stack trace, then kill the process.\n", sig);
    PrintStackTrace();
-   printf("Crashed MUSCLE process aborting now.... bye!\n");
+   printf("CrashSignalHandler:  Crashed process aborting now.... bye!\n");
    fflush(stdout);
    abort();
 }
@@ -445,7 +445,7 @@ LONG Win32FaultHandler(struct _EXCEPTION_POINTERS * ExInfo)
 #endif
     printf("***     Flags: %08X\n", ExInfo->ExceptionRecord->ExceptionFlags);
     _Win32PrintStackTraceForContext(stdout, ExInfo->ContextRecord, MUSCLE_NO_LIMIT);
-    printf("Crashed MUSCLE process aborting now.... bye!\n");
+    printf("Win32FaultHandler:  Crashed process aborting now.... bye!\n");
     fflush(stdout);
 
     return EXCEPTION_CONTINUE_SEARCH;  // now crash in the usual way

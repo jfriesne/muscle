@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Rephrased the message printed when the crash-signal-handler executes.
+
 8.52 - Released 4/7/2022
    - Added testtar.cpp to the tests folder to test the TarFileWriter class.
    - Added a assertion-check in the ThreadSetupSystem constructor
