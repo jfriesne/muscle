@@ -6,6 +6,9 @@ key:  - new feature
       o other
 
    o Rephrased the message printed when the crash-signal-handler executes.
+   * Added code to JUCECallbackMechanism::handleAsyncUpdate() to work around
+     a bug(?) in JUCE where handleAsyncUpdate() could be called re-entrantly
+     in certain circumstances.
 
 8.52 - Released 4/7/2022
    - Added testtar.cpp to the tests folder to test the TarFileWriter class.

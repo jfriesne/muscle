@@ -7,6 +7,7 @@
 #include <juce_events/juce_events.h>
 
 #include "util/ICallbackMechanism.h"
+#include "util/NestCount.h"
 
 namespace muscle {
 
@@ -14,15 +15,23 @@ namespace muscle {
 class JUCECallbackMechanism : public ICallbackMechanism, private juce::AsyncUpdater
 {
 public:
-   /** Destructor */
-   virtual ~JUCECallbackMechanism() {}
+   /** Constructor */
+   virtual JUCECallbackMechanism() {/* empty */}
 
 protected:
    /** May be called from any thread; triggers an asynchronous call to DispatchCallbacks() within the main thread */
    virtual void SignalDispatchThread() {triggerAsyncUpdate();}
 
    /** Called by JUCE's AsyncUpdater, in the main thread, when it is time for muscle-callbacks to be called */
-   virtual void handleAsyncUpdate() {DispatchCallbacks();}
+   virtual void handleAsyncUpdate()
+   {
+      NestCountGuard ncg(_handleAsyncNestCount);
+      if (ncg.IsOutermost()) DispatchCallbacks();
+                        else triggerAsyncUpdate();  // If JUCE called us re-entrantly rather than asyncronously, then we need to schedule the call again for later
+   }
+
+private:
+   NestCount _handleAsyncNestCount;  // avoid problems with JUCE calling handleAsyncUpdate() re-entrantly
 };
 
 }  // end muscle namespace
