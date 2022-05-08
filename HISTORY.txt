@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+8.53 - 
+   - Added a WaitCondition class for easy Wait()/Notify() functionality.
+   - Updated the Thread class to use a WaitCondition object as a fallback
+     if (useMessagingSockets) is passed to the constructor as false.
    o Rephrased the message printed when the crash-signal-handler executes.
    * Added code to JUCECallbackMechanism::handleAsyncUpdate() to work around
      a bug(?) in JUCE where handleAsyncUpdate() could be called re-entrantly

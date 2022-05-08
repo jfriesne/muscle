@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -13,7 +13,21 @@ static ThreadLocalStorage<int> _tls; // just to test the ThreadLocalStorage clas
 class TestThread : public Thread
 {
 public:
-   TestThread() {/* empty */}
+   TestThread(bool useMessagingSockets) : Thread(NULL, useMessagingSockets) {/* empty */}
+
+   virtual void InternalThreadEntry()
+   {
+      while(true)
+      {
+         MessageRef msgRef;
+         const int32 numLeft = WaitForNextMessageFromOwner(msgRef, GetRunTime64()+SecondsToMicros(2));
+         if (numLeft >= 0)
+         {
+            if (MessageReceivedFromOwner(msgRef, numLeft).IsError()) break;
+         }
+         else printf("WaitForNextMessageFromOwner() timed out after 2 seconds\n");
+      }
+   }
 
    virtual status_t MessageReceivedFromOwner(const MessageRef & msgRef, uint32)
    {
@@ -32,7 +46,7 @@ public:
 };
 
 // This program exercises the Thread class.
-int main(int, char **) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
@@ -40,8 +54,10 @@ int main(int, char **)
    if (tls) *tls = 3;
        else MWARN_OUT_OF_MEMORY;
 
-   TestThread t;
-   printf("main thread: TestThread is %p (main thread is %p/%i)\n", &t, Thread::GetCurrentThread(), t.IsCallerInternalThread());
+   const bool useWaitCondition = ((argc>1)&&(strcmp(argv[1], "usewaitcondition") == 0));
+
+   TestThread t(!useWaitCondition);
+   printf("main thread: TestThread(%s) is %p (main thread is %p/%i)\n", useWaitCondition?"waitCondition":"sockets", &t, Thread::GetCurrentThread(), t.IsCallerInternalThread());
 
    status_t ret;
    if (t.SetThreadPriority(Thread::PRIORITY_LOWER).IsError(ret)) printf("Warning, SetThreadPriority(Thread::PRIORITY_LOWER) failed! [%s]\n", ret());  // just to see what happens

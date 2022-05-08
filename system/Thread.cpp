@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #if defined(MUSCLE_USE_PTHREADS)
 # include <pthread.h>  // in case both MUSCLE_USE_CPLUSPLUS11_THREADS and MUSCLE_USE_PTHREADS are defined at once, e.g. for better SetThreadPriority() support
@@ -7,7 +7,7 @@
 #include "system/Thread.h"
 #include "util/NetworkUtilityFunctions.h"
 #include "dataio/TCPSocketDataIO.h"  // to get the proper #includes for recv()'ing
-#include "system/SetupSystem.h"  // for GetCurrentThreadID()
+#include "system/SetupSystem.h"      // for GetCurrentThreadID()
 
 #if defined(MUSCLE_USE_QT_THREADS) && defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
 # include "platform/qt/QMessageTransceiverThread.h"   // for MuscleQThreadSocketNotifier
@@ -26,7 +26,7 @@ namespace muscle {
 Thread :: Thread(ICallbackMechanism * optCallbackMechanism, bool useMessagingSockets)
    : ICallbackSubscriber(optCallbackMechanism)
    , _useMessagingSockets(useMessagingSockets)
-   , _messageSocketsAllocated(!useMessagingSockets)
+   , _messageSocketsAllocated(!useMessagingSockets)  // preset to true if we're not using sockets, to prevent us from demand-allocating them
    , _threadRunning(false)
    , _suggestedStackSize(0)
    , _threadStackBase(NULL)
@@ -35,6 +35,12 @@ Thread :: Thread(ICallbackMechanism * optCallbackMechanism, bool useMessagingSoc
 #if defined(MUSCLE_USE_QT_THREADS)
    _thread.SetOwner(this);
 #endif
+
+   if (_useMessagingSockets == false)
+   {
+      // make sure the WaitConditions get constructed now, to avoid any race conditions in constructing them later
+      for (uint32 i=0; i<ARRAYITEMS(_threadData); i++) _threadData[i]._waitCondition.EnsureObjectConstructed();
+   }
 }
 
 Thread :: ~Thread()
@@ -109,7 +115,7 @@ status_t Thread :: StartInternalThreadAuxAux()
       return B_NO_ERROR;
 # if !defined(MUSCLE_NO_EXCEPTIONS)
    }
-   catch(...) {/* empty */} 
+   catch(...) {/* empty */}
    return B_OUT_OF_MEMORY;
 # endif
 #elif defined(MUSCLE_USE_PTHREADS)
@@ -140,7 +146,7 @@ void Thread :: ShutdownInternalThread(bool waitForThread)
    }
 }
 
-status_t Thread :: SendMessageToInternalThread(const MessageRef & ref) 
+status_t Thread :: SendMessageToInternalThread(const MessageRef & ref)
 {
    return SendMessageAux(MESSAGE_THREAD_INTERNAL, ref);
 }
@@ -170,12 +176,12 @@ status_t Thread :: SendMessageAux(int whichQueue, const MessageRef & replyRef)
    return B_NO_ERROR;
 }
 
-void Thread :: SignalInternalThread() 
+void Thread :: SignalInternalThread()
 {
    SignalAux(MESSAGE_THREAD_OWNER);  // we send a byte on the owner's socket and the byte comes out on the internal socket
 }
 
-void Thread :: SignalOwner() 
+void Thread :: SignalOwner()
 {
    SignalAux(MESSAGE_THREAD_INTERNAL);  // we send a byte on the internal socket and the byte comes out on the owner's socket
    RequestCallbackInDispatchThread();
@@ -183,15 +189,19 @@ void Thread :: SignalOwner()
 
 void Thread :: SignalAux(int whichSocket)
 {
-   if (_messageSocketsAllocated)
+   if (_useMessagingSockets)
    {
-      const int fd = _threadData[whichSocket]._messageSocket.GetFileDescriptor();
-      if (fd >= 0) 
+      if (_messageSocketsAllocated)
       {
-         const char junk = 'S';
-         (void) send_ignore_eintr(fd, &junk, sizeof(junk), 0);
+         const int fd = _threadData[whichSocket]._messageSocket.GetFileDescriptor();
+         if (fd >= 0)
+         {
+            const char junk = 'S';
+            (void) send_ignore_eintr(fd, &junk, sizeof(junk), 0);
+         }
       }
    }
+   else (void) _threadData[(whichSocket==MESSAGE_THREAD_OWNER)?MESSAGE_THREAD_INTERNAL:MESSAGE_THREAD_OWNER]._waitCondition.GetObject().Notify();
 }
 
 // Called in the main thread by the ICallbackMechanism, if there is one
@@ -221,50 +231,56 @@ int32 Thread :: WaitForNextMessageFromOwner(MessageRef & ref, uint64 wakeupTime)
 
 int32 Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref, uint64 wakeupTime)
 {
-   int32 ret = -1;  // pessimistic default
-   if (tsd._queueLock.Lock().IsOK())
+   if (tsd._queueLock.Lock().IsError()) return -1;
+   else
    {
-      if (tsd._messages.RemoveHead(ref).IsOK()) ret = tsd._messages.GetNumItems();
+      const int32 ret = tsd._messages.RemoveHead(ref).IsOK() ? tsd._messages.GetNumItems() : -1;
       (void) tsd._queueLock.Unlock();
+      if ((ret >= 0)||(wakeupTime == 0)) return ret;
+   }
 
-      int msgfd;
-      if ((ret < 0)&&((msgfd = tsd._messageSocket.GetFileDescriptor()) >= 0))  // no Message available?  then we'll have to wait until there is one!
+   // If we got here, no Message was available, so we'll have to wait until there is one (or until wakeupTime)
+   if (_useMessagingSockets)
+   {
+      const int msgfd = tsd._messageSocket.GetFileDescriptor();
+      if (msgfd < 0) return -1;
+
+      // block until either
+      //   (a) a new-message-signal-byte wakes us, or
+      //   (b) we reach our wakeup/timeout time, or
+      //   (c) a user-specified socket in the socket set selects as ready-for-something
+      for (uint32 i=0; i<ARRAYITEMS(tsd._socketSets); i++)
       {
-         // block until either 
-         //   (a) a new-message-signal-byte wakes us, or 
-         //   (b) we reach our wakeup/timeout time, or 
-         //   (c) a user-specified socket in the socket set selects as ready-for-something
-         for (uint32 i=0; i<ARRAYITEMS(tsd._socketSets); i++)
+         const Hashtable<ConstSocketRef, bool> & t = tsd._socketSets[i];
+         if (t.HasItems())
          {
-            const Hashtable<ConstSocketRef, bool> & t = tsd._socketSets[i];
-            if (t.HasItems())
+            for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
             {
-               for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
-               {
-                  int nextFD = iter.GetKey().GetFileDescriptor();
-                  if (nextFD >= 0) tsd._multiplexer.RegisterSocketForEventsByTypeIndex(nextFD, i);
-               }
-            }
-         }
-         tsd._multiplexer.RegisterSocketForReadReady(msgfd);
-
-         if (tsd._multiplexer.WaitForEvents(wakeupTime) >= 0)
-         {
-            for (uint32 j=0; j<ARRAYITEMS(tsd._socketSets); j++)
-            {
-               Hashtable<ConstSocketRef, bool> & t = tsd._socketSets[j];
-               if (t.HasItems()) for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) iter.GetValue() = tsd._multiplexer.IsSocketEventOfTypeFlagged(iter.GetKey().GetFileDescriptor(), j);
-            }
-
-            if (tsd._multiplexer.IsSocketReadyForRead(msgfd))  // any signals from the other thread?
-            {
-               uint8 bytes[256];
-               if (ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(msgfd, (char *)bytes, sizeof(bytes), 0), sizeof(bytes), false) > 0) ret = WaitForNextMessageAux(tsd, ref, wakeupTime);
+               const int nextFD = iter.GetKey().GetFileDescriptor();
+               if (nextFD >= 0) tsd._multiplexer.RegisterSocketForEventsByTypeIndex(nextFD, i);
             }
          }
       }
+      tsd._multiplexer.RegisterSocketForReadReady(msgfd);
+
+      if (tsd._multiplexer.WaitForEvents(wakeupTime) >= 0)
+      {
+         for (uint32 j=0; j<ARRAYITEMS(tsd._socketSets); j++)
+         {
+            Hashtable<ConstSocketRef, bool> & t = tsd._socketSets[j];
+            if (t.HasItems()) for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) iter.GetValue() = tsd._multiplexer.IsSocketEventOfTypeFlagged(iter.GetKey().GetFileDescriptor(), j);
+         }
+
+         if (tsd._multiplexer.IsSocketReadyForRead(msgfd))  // any signals from the other thread?
+         {
+            uint8 bytes[256];
+            if (ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(msgfd, (char *)bytes, sizeof(bytes), 0), sizeof(bytes), false) > 0) return WaitForNextMessageAux(tsd, ref, 0);
+         }
+      }
    }
-   return ret;
+   else return tsd._waitCondition.GetObject().Wait(wakeupTime).IsOK() ? WaitForNextMessageAux(tsd, ref, 0) : -1;
+
+   return -1;
 }
 
 void Thread :: InternalThreadEntry()
@@ -371,7 +387,7 @@ Thread * Thread :: GetCurrentThread()
 {
    muscle_thread_key key = GetCurrentThreadKey();
 
-   Thread * ret = NULL; 
+   Thread * ret = NULL;
    if (_curThreadsMutex.Lock().IsOK())
    {
       (void) _curThreads.Get(key, ret);
@@ -559,7 +575,7 @@ void CheckThreadStackUsage(const char * fileName, uint32 line)
          }
       }
    }
-   else 
+   else
    {
       char buf[20];
       printf("Warning, CheckThreadStackUsage() called from non-MUSCLE thread %s at (%s:" UINT32_FORMAT_SPEC ")\n", muscle_thread_id::GetCurrentThreadID().ToString(buf), fileName, line);

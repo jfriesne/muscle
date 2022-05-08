@@ -5,7 +5,9 @@
 
 #include "support/NotCopyable.h"
 #include "system/Mutex.h"
+#include "system/WaitCondition.h"
 #include "message/Message.h"
+#include "util/DemandConstructedObject.h"
 #include "util/Queue.h"
 #include "util/ICallbackSubscriber.h"
 #include "util/SocketMultiplexer.h"
@@ -34,7 +36,7 @@
 #  endif
 # endif
 #else
-# error "Thread:  threading support not implemented for this platform.  You'll need to add support for your platform to the MUSCLE Lock and Thread classes for your OS before you can use the Thread class here (or define MUSCLE_USE_PTHREADS or QT_THREAD_SUPPORT to use those threading APIs, respectively)."
+# error "Thread:  threading support not implemented for this platform.  You'll need to add support code for your platform to the MUSCLE Lock and Thread classes for your OS before you can use the Thread class here (or define MUSCLE_USE_PTHREADS or QT_THREAD_SUPPORT to use those threading APIs, respectively)."
 #endif
 
 namespace muscle {
@@ -67,11 +69,13 @@ public:
      * @param optCallbackMechanism if specified non-NULL, our SignalOwner() method will call
      *                             RequestCallbackInDispatchThread() in order to request that
      *                             the main/dispatch-thread call DispatchCallbacks() later on.
-     * @param useMessagingSockets Whether or not this thread should allocate a connected pair of 
-     *                            sockets to handle messaging between the internal thread and the
-     *                            calling thread.  Defaults to true.  Don't set this to false unless
-     *                            you really know what you are doing, as setting it to false will
-     *                            break much of the Thread object's standard functionality.
+     * @param useMessagingSockets Specifies whether or not this thread should allocate a connected
+     *                            pair of sockets to handle messaging between the internal thread
+     *                            and the calling thread.  Defaults to true.  If you set it to false,
+     *                            then a WaitCondition object will be used instead; that uses
+     *                            fewer resources but it means you can't easily integrate the
+     *                            Thread object with select()/SocketMultiplexer/etc.
+     *                            If you're unsure about what you want, leave this set to true.
      */
    Thread(ICallbackMechanism * optCallbackMechanism = NULL, bool useMessagingSockets = true);
 
@@ -105,7 +109,6 @@ public:
      * waits for it to go away by calling WaitForInternalThreadToExit().  
      * If the internal thread isn't running, this method is a no-op.
      * You must call this before deleting the MessageTransceiverThread object!
-     * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
      * @param waitForThread if true, this method won't return until the thread is gone.  Defaults to true.
      *                      (if you set this to false, you'll need to also call WaitForThreadToExit() before deleting this object)
      */
@@ -124,7 +127,6 @@ public:
      * and then calls SignalInternalThread() (if necessary) to signal the internal thread that a
      * new message is ready.  If the internal thread isn't currently running, then the 
      * MessageRef will be queued up and available to the internal thread to process when it is started.
-     * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
      * @param msg Reference to the message that is to be given to the internal thread. 
      * @return B_NO_ERROR on success, or an error code on failure (out of memory?)
      */
@@ -329,7 +331,6 @@ protected:
      * method will be called whenever a new MessageRef is received by the internal thread.
      * Default implementation does nothing, and returns B_NO_ERROR if (msgRef) is valid,
      * or B_ERROR if (msgRef) is a NULL reference.
-     * @note this method will not be called if this Thread was created with constructor argument useMessagingSockets=false.
      * @param msgRef Reference to the just-received Message object.
      * @param numLeft Number of Messages still left in the owner's message queue.
      * @return B_NO_ERROR if you wish to continue processing, or an error code if you wish to
@@ -348,7 +349,6 @@ protected:
    /** May be called by the internal thread to send a Message back to the owning thread.
      * Puts the given MessageRef into the replies queue, and then calls SignalOwner()
      * (if necessary) to notify the main thread that replies are pending.
-     * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
      * @param replyRef MessageRef to send back to the owning thread.
      * @returns B_NO_ERROR on success, or an error code on failure.
      */
@@ -372,7 +372,6 @@ protected:
    /** This method is meant to be called by the internally held thread.
      * It will attempt retrieve the next message that has been sent to the 
      * thread via SendMessageToInternalThread().
-     * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
      * @param ref On success, (ref) will be set to be a reference to the retrieved Message.
      * @param wakeupTime Time at which this method should stop blocking and return,
      *                   even if there is no new message ready.  If this value is
@@ -391,7 +390,6 @@ protected:
      * thread so that it will look at its reply queue.
      * Default implementation sends a byte on a socket to implement this,
      * but you can override this method to do it a different way if you need to.
-     * @note this method will not work if this Thread was created with constructor argument useMessagingSockets=false.
      */
    virtual void SignalInternalThread();
 
@@ -496,6 +494,8 @@ private:
       Queue<MessageRef> _messages;
       Hashtable<ConstSocketRef, bool> _socketSets[NUM_SOCKET_SETS];  // (socket -> isFlagged)
       SocketMultiplexer _multiplexer;
+
+      DemandConstructedObject<WaitCondition> _waitCondition;  // only used if (useMessagingSockets) was passed in as false
    };
 
    status_t StartInternalThreadAux();
