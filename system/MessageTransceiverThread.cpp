@@ -8,7 +8,7 @@
 namespace muscle {
 
 MessageTransceiverThread :: MessageTransceiverThread(ICallbackMechanism * optCallbackMechanism)
-   : Thread(optCallbackMechanism)
+   : Thread(true, optCallbackMechanism)
    , _forwardAllIncomingMessagesToSupervisor(true)
 {
    // empty

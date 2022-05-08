@@ -66,9 +66,6 @@ class Thread : public ICallbackSubscriber, private NotCopyable
 public:
    /** Constructor.  Does very little (in particular, the internal thread is not started here...
      * that happens when you call StartInternalThread())
-     * @param optCallbackMechanism if specified non-NULL, our SignalOwner() method will call
-     *                             RequestCallbackInDispatchThread() in order to request that
-     *                             the main/dispatch-thread call DispatchCallbacks() later on.
      * @param useMessagingSockets Specifies whether or not this thread should allocate a connected
      *                            pair of sockets to handle messaging between the internal thread
      *                            and the calling thread.  Defaults to true.  If you set it to false,
@@ -76,8 +73,11 @@ public:
      *                            fewer resources but it means you can't easily integrate the
      *                            Thread object with select()/SocketMultiplexer/etc.
      *                            If you're unsure about what you want, leave this set to true.
+     * @param optCallbackMechanism if specified non-NULL, our SignalOwner() method will call
+     *                             RequestCallbackInDispatchThread() in order to request that
+     *                             the main/dispatch-thread call DispatchCallbacks() later on.
      */
-   Thread(ICallbackMechanism * optCallbackMechanism = NULL, bool useMessagingSockets = true);
+   Thread(bool useMessagingSockets = true, ICallbackMechanism * optCallbackMechanism = NULL);
 
    /** Destructor.  You must have made sure that the internal thread is no longer running before
      * deleting the Thread object, or an assertion failure will occur.  (You should make sure the

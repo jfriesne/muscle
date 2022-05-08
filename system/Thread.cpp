@@ -23,7 +23,7 @@
 
 namespace muscle {
 
-Thread :: Thread(ICallbackMechanism * optCallbackMechanism, bool useMessagingSockets)
+Thread :: Thread(bool useMessagingSockets, ICallbackMechanism * optCallbackMechanism)
    : ICallbackSubscriber(optCallbackMechanism)
    , _useMessagingSockets(useMessagingSockets)
    , _messageSocketsAllocated(!useMessagingSockets)  // preset to true if we're not using sockets, to prevent us from demand-allocating them

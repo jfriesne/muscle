@@ -13,7 +13,7 @@ static ThreadLocalStorage<int> _tls; // just to test the ThreadLocalStorage clas
 class TestThread : public Thread
 {
 public:
-   TestThread(bool useMessagingSockets) : Thread(NULL, useMessagingSockets) {/* empty */}
+   TestThread(bool useMessagingSockets) : Thread(useMessagingSockets) {/* empty */}
 
    virtual void InternalThreadEntry()
    {
