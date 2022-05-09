@@ -8,7 +8,13 @@ OBJECTS_DIR = objects
 MUSCLE_DIR = ../../..
 FLAGSDIR   = .
 
+exists($$FLAGSDIR/muscle_avoid_cplusplus11) {
+   warning("muscle_avoid_cplusplus11 file detected:  Compiling without C++11 support")
+   DEFINES += MUSCLE_AVOID_CPLUSPLUS11
+}
+
 exists($$FLAGSDIR/muscle_enable_ssl) {
+   warning("muscle_enable_ssl file detected:  Compiling with SSL support")
    DEFINES           += MUSCLE_ENABLE_SSL
    unix:LIBS         += -lssl -lcrypto
    win32:LIBS        += libcrypto.lib libssl.lib

@@ -136,7 +136,7 @@ void BrowserWindow :: ConnectedToServer()
    MessageRef uploadMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
    {
       MessageRef dataMsg = GetMessageFromPool();
-      dataMsg()->AddString("timestamp", GetHumanReadableTimeString(GetRunTime64()));
+      dataMsg()->AddString("timestamp", GetHumanReadableTimeString(GetCurrentTime64()));
       uploadMsg()->AddMessage("connected_at", dataMsg);
    }
    _mtt.SendMessageToSessions(uploadMsg);

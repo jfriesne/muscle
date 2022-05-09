@@ -1,14 +1,14 @@
 greaterThan(QT_MAJOR_VERSION, 4) {
    QT += widgets
 }
-win32:LIBS	+= shlwapi.lib ws2_32.lib winmm.lib User32.lib Advapi32.lib shell32.lib iphlpapi.lib version.lib
-unix:!mac:LIBS	+= -lutil -lrt -lz
+win32:LIBS      += shlwapi.lib ws2_32.lib winmm.lib User32.lib Advapi32.lib shell32.lib iphlpapi.lib version.lib
+unix:!mac:LIBS  += -lutil -lrt -lz
 mac:LIBS        += -lz -framework Carbon -framework SystemConfiguration
 
 win32:DEFINES += _WIN32_WINNT=0x0501 WINAPI_FAMILY=100
 
-OBJECTS_DIR	= objects
-MUSCLE_DIR	= ../../..
+OBJECTS_DIR = objects
+MUSCLE_DIR  = ../../..
 
 DEFINES  += UNIFIED_DAEMON   # so we can have our own main() function, without clashing with the one inside muscled.cpp
 DEFINES  += MUSCLE_ENABLE_ZLIB_ENCODING
@@ -16,10 +16,10 @@ DEFINES  += MUSCLE_SINGLE_THREAD_ONLY
 #DEFINES += MUSCLE_AVOID_IPV6
 unix:mac:QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
 
-INCLUDEPATH	+= $$MUSCLE_DIR
-win32:INCLUDEPATH	+= $$MUSCLE_DIR/regex/regex $$MUSCLE_DIR/zlib/zlib/win32
+INCLUDEPATH       += $$MUSCLE_DIR
+win32:INCLUDEPATH += $$MUSCLE_DIR/regex/regex $$MUSCLE_DIR/zlib/zlib/win32
 
-SOURCES	+= $$MUSCLE_DIR/message/Message.cpp \
+SOURCES += $$MUSCLE_DIR/message/Message.cpp \
         $$MUSCLE_DIR/iogateway/MessageIOGateway.cpp \
         $$MUSCLE_DIR/iogateway/AbstractMessageIOGateway.cpp \
         $$MUSCLE_DIR/iogateway/PlainTextMessageIOGateway.cpp \
@@ -57,7 +57,7 @@ SOURCES	+= $$MUSCLE_DIR/message/Message.cpp \
         $$MUSCLE_DIR/server/muscled.cpp \
         qt_muscled.cpp 
 
-win32:SOURCES	+= $$MUSCLE_DIR/regex/regex/regcomp.c \
+win32:SOURCES += $$MUSCLE_DIR/regex/regex/regcomp.c \
         $$MUSCLE_DIR/regex/regex/regerror.c \
         $$MUSCLE_DIR/regex/regex/regexec.c \
         $$MUSCLE_DIR/regex/regex/regfree.c \

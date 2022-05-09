@@ -1,27 +1,27 @@
 greaterThan(QT_MAJOR_VERSION, 4) {
    QT += widgets
 }
-win32:LIBS	+= shlwapi.lib ws2_32.lib winmm.lib User32.lib Advapi32.lib shell32.lib iphlpapi.lib version.lib
-unix:!mac:LIBS	+= -lutil -lrt -lz
+win32:LIBS      += shlwapi.lib ws2_32.lib winmm.lib User32.lib Advapi32.lib shell32.lib iphlpapi.lib version.lib
+unix:!mac:LIBS  += -lutil -lrt -lz
 mac:LIBS        += -lz -framework Carbon -framework SystemConfiguration
 
 win32:DEFINES += _WIN32_WINNT=0x0501 WINAPI_FAMILY=100
 
-!win32:LIBS	+= -lpthread
+!win32:LIBS += -lpthread
 
-OBJECTS_DIR	= objects
-MUSCLE_DIR	= ../../..
+OBJECTS_DIR= objects
+MUSCLE_DIR= ../../..
 
-DEFINES	+= MUSCLE_ENABLE_ZLIB_ENCODING
-DEFINES	+= MUSCLE_AVOID_NEWNOTHROW
-DEFINES	+= MUSCLE_AVOID_SIGNAL_HANDLING
+DEFINES += MUSCLE_ENABLE_ZLIB_ENCODING
+DEFINES += MUSCLE_AVOID_NEWNOTHROW
+DEFINES += MUSCLE_AVOID_SIGNAL_HANDLING
 
-!win32:DEFINES	+= MUSCLE_USE_PTHREADS
+!win32:DEFINES += MUSCLE_USE_PTHREADS
 
-INCLUDEPATH	+= $$MUSCLE_DIR
-win32:INCLUDEPATH	+= $$MUSCLE_DIR/regex/regex $$MUSCLE_DIR/zlib/zlib/win32
+INCLUDEPATH       += $$MUSCLE_DIR
+win32:INCLUDEPATH += $$MUSCLE_DIR/regex/regex $$MUSCLE_DIR/zlib/zlib/win32
 
-SOURCES	+=  \
+SOURCES += \
         $$MUSCLE_DIR/dataio/FileDataIO.cpp \
         $$MUSCLE_DIR/dataio/TCPSocketDataIO.cpp \
         $$MUSCLE_DIR/message/Message.cpp \
@@ -61,7 +61,8 @@ SOURCES	+=  \
         $$MUSCLE_DIR/platform/qt/QMessageTransceiverThread.cpp \
         Browser.cpp
 
-win32:SOURCES	+= $$MUSCLE_DIR/regex/regex/regcomp.c \
+win32:SOURCES += \
+        $$MUSCLE_DIR/regex/regex/regcomp.c \
         $$MUSCLE_DIR/regex/regex/regerror.c \
         $$MUSCLE_DIR/regex/regex/regexec.c \
         $$MUSCLE_DIR/regex/regex/regfree.c \
@@ -78,4 +79,4 @@ win32:SOURCES	+= $$MUSCLE_DIR/regex/regex/regcomp.c \
         $$MUSCLE_DIR/zlib/zlib/trees.c \
         $$MUSCLE_DIR/zlib/zlib/zutil.c
 
-HEADERS	+= $$MUSCLE_DIR/platform/qt/QMessageTransceiverThread.h Browser.h
+HEADERS += $$MUSCLE_DIR/platform/qt/QMessageTransceiverThread.h Browser.h

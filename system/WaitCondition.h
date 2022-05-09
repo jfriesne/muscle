@@ -7,7 +7,7 @@
 #include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
 
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
-# error "WaitCondition.h can't be used when MUSCLE_SINGLE_THREAD_ONLY is defined"
+# error "You're not allowed use the WaitCondition class if you have the MUSCLE_SINGLE_THREAD_ONLY compiler constant defined!"
 #endif
 
 #if defined(QT_CORE_LIB)  // is Qt4 available?

@@ -14,6 +14,8 @@ key:  - new feature
    * Added code to JUCECallbackMechanism::handleAsyncUpdate() to work around
      a bug(?) in JUCE where handleAsyncUpdate() could be called re-entrantly
      in certain circumstances.
+   * qt_muscled_browser's "connected_at" field was being generated using
+     the wrong clock (GetRunTime64() instead of GetCurrentTime64()).  Fixed.
 
 8.52 - Released 4/7/2022
    - Added testtar.cpp to the tests folder to test the TarFileWriter class.
