@@ -9,6 +9,8 @@ key:  - new feature
    - Added a WaitCondition class for easy Wait()/Notify() functionality.
    - Updated the Thread class to use a WaitCondition object as a fallback
      if (useMessagingSockets) is passed to the constructor as false.
+   - Added WITH_CPLUSPLUS11=OFF and WITH_CPLUSPLUS17=ON options to the
+     CMakeLists.txt file.
    o Rephrased the message printed when the crash-signal-handler executes.
    o Swapped the ordering of arguments to the Thread class's constructor.
    * Added code to JUCECallbackMechanism::handleAsyncUpdate() to work around

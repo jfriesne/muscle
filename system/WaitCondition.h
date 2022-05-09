@@ -246,7 +246,7 @@ private:
       while(_conditionSignalled == false)
       {
          timeDeltaMicros = wakeupTime-GetRunTime64();  // how far in the future the wakeup-time is, in microseconds
-         if ((timeDeltaMicros <= 0)||(SleepConditionVariableCS(&_conditionVariable, &_conditionMutex, (DWORD) MicrosToMillis(timeDeltaMicros)) == false)
+         if ((timeDeltaMicros <= 0)||(SleepConditionVariableCS(&_conditionVariable, &_conditionMutex, (DWORD) MicrosToMillis(timeDeltaMicros)) == false))
          {
             ret = (GetLastError() == ERROR_TIMEOUT) ? B_TIMED_OUT : B_ERRNO;  // timeout shouldn't ever happen, but just for form's sake
             break;
