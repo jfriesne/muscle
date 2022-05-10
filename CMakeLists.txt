@@ -29,6 +29,12 @@ else ()
    endif (WITH_CPLUSPLUS11)
 endif (WITH_CPLUSPLUS17)
 
+option(WITH_PTHREADS "Enable pthreads support" OFF)
+if (WITH_PTHREADS)
+   message("Note:  -DWITH_PTHREADS=ON argument was specified:  building MUSCLE with pthreads support!")
+   add_definitions(-DMUSCLE_USE_PTHREADS)
+endif (WITH_PTHREADS)
+
 option(WITH_SANITIZE "Enable building with clang's sanitizer-checks enabled" OFF)
 if (WITH_SANITIZE)
    message("Note:  -DWITH_SANITIZE=ON argument was specified:  clang will build MUSCLE with sanitizer-checks enabled.")

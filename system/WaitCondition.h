@@ -54,7 +54,7 @@ class WaitCondition MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
    /** Constructor */
-   WaitCondition() : _conditionSignalled(false) {Setup();}
+   WaitCondition() : _pendingNotificationsCount(0) {Setup();}
 
    /** Destructor.  If a WaitCondition is destroyed while another thread is blocking in its Lock() method,
      * the results are undefined.
@@ -63,25 +63,35 @@ public:
 
    /** Blocks until the next time someone calls Notify() on this object, or until (wakeupTime)
      * is reached, whichever comes first.
-     * @param wakeupTime the time (e.g. as returned by GetRunTime64()) at which to return B_TIMED_OUT
-     *                   if Notify() hasn't been called by then.  Defaults to MUSCLE_TIME_NEVER.
-     * @returns B_NO_ERROR if Notify() was called, or B_TIMED_OUT if the timeout time was reached,
-     *                     or some other value on an error.
-     * @note that if Notify() was called before Wait() was called, then Wait() will return immediately.
-     *       That way the Wait()-ing thread doesn't have to worry about "missing" a notification if
-     *       it was busy doing something else at the moment Notify() was called.  Only a single Notify()
-     *       call is "cached" in this manner, however; for example, even if Notify() was called multiple times
-     *       since the thread's last call to Wait(), only the first subsequent call to Wait() will return
-     *       immediately.
+     * @param wakeupTime the timestamp (e.g. as returned by GetRunTime64()) at which to give up and return
+     *                   B_TIMED_OUT if Notify() hasn't been called by then.  Defaults to MUSCLE_TIME_NEVER.
+     * @param optRetNotificationsCount if set non-NULL, then when this method returns successfully, the uint32
+     *                   pointed to by this pointer will contain the number of notifications that
+     *                   occurred (via calls to Notify()) since the previous time Wait() was called.
+     * @returns B_NO_ERROR if this method returned because Notify() was called, or B_TIMED_OUT if the
+     *                     timeout time was reached, or some other value if an error occurred.
+     * @note if Notify() had already been called before Wait() was called, then Wait() will return immediately.
+     *       That way the Wait()-ing thread doesn't have to worry about missing notifications if
+     *       it was busy doing something else at the instant Notify() was called.
      */
-   status_t Wait(uint64 wakeupTime = MUSCLE_TIME_NEVER) const {return (wakeupTime == MUSCLE_TIME_NEVER) ? WaitAux() : WaitUntilAux(wakeupTime);}
+   status_t Wait(uint64 wakeupTime = MUSCLE_TIME_NEVER, uint32 * optRetNotificationsCount = NULL) const
+   {
+      uint32 junk;
+      uint32 & retCounter = optRetNotificationsCount ? *optRetNotificationsCount : junk;
+      retCounter = 0;
+      return (wakeupTime == MUSCLE_TIME_NEVER) ? WaitAux(retCounter) : WaitUntilAux(wakeupTime, retCounter);
+   }
 
    /** Wakes up the thread that is blocking inside Wait() on this object.  If no thread is currently
-     * blocking inside Wait(), then it sets a flag so that the next time Wait() is called, Wait() will
-     * return immediately.
+     * blocking inside Wait(), then it just increases this object's internal notifications-counter,
+     * so that the next time Wait() is called, that Wait() call will return immediately.
+     * @param increaseBy the number to increase our internal notification-calls-counter by.  Defaults to 1.
+     * @note the exact value of the internal notifications-counter isn't used directly by the WaitCondition
+     *       class itself (as long as the counter is greater than zero, Wait() will return ASAP), but it can
+     *       be passed to next caller of Wait() for that caller to examine, if it cares to.
      * @returns B_NO_ERROR on success, or another value on failure.
      */
-   status_t Notify() const {return NotifyAux();}
+   status_t Notify(uint32 increaseBy=1) const {return NotifyAux(increaseBy);}
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    /** Returns a reference to our back-end condition-variable implementation object.  Don't call this method from code that is meant to remain portable! */
@@ -140,7 +150,7 @@ private:
 #endif
    }
 
-   mutable bool _conditionSignalled;
+   mutable uint32 _pendingNotificationsCount;
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    mutable std::condition_variable _conditionVariable;
@@ -156,17 +166,24 @@ private:
    mutable QMutex                  _conditionMutex;
 #endif
 
-   status_t WaitAux() const
+   // Should be called with our internal mutex locked!
+   void FlushNotificationsCount(uint32 & retNotificationsCount) const
+   {
+      retNotificationsCount = _pendingNotificationsCount;
+      _pendingNotificationsCount = 0;
+   }
+
+   status_t WaitAux(uint32 & retNotificationsCount) const
    {
       status_t ret;
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       std::unique_lock<std::mutex> lockGuard(_conditionMutex);
-      _conditionVariable.wait(lockGuard, [this]{return _conditionSignalled;});
-      if (ret.IsOK()) _conditionSignalled = false;
+      _conditionVariable.wait(lockGuard, [this]{return (_pendingNotificationsCount>0);});
+      FlushNotificationsCount(retNotificationsCount);
 #elif defined(MUSCLE_USE_PTHREADS)
       if (pthread_mutex_lock(&_conditionMutex) == 0)
       {
-         while(_conditionSignalled == false)
+         while(_pendingNotificationsCount == 0)
          {
             const int pret = pthread_cond_wait(&_conditionVariable, &_conditionMutex);
             if (pret != 0)
@@ -175,13 +192,13 @@ private:
                break;
             }
          }
-         if (ret.IsOK()) _conditionSignalled = false;
+         if (ret.IsOK()) FlushNotificationsCount(retNotificationsCount);
          (void) pthread_mutex_unlock(&_conditionMutex);
       }
       else ret = B_LOCK_FAILED;
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       EnterCriticalSection(&_conditionMutex);
-      while(_conditionSignalled == false)
+      while(_pendingNotificationsCount == 0)
       {
          if (SleepConditionVariableCS(&_conditionVariable, &_conditionMutex, INFINITE) == false)
          {
@@ -189,11 +206,11 @@ private:
             break;
          }
       }
-      if (ret.IsOK()) _conditionSignalled = false;
+      if (ret.IsOK()) FlushNotificationsCount(retNotificationsCount);
       LeaveCriticalSection(&_conditionMutex);
 #elif defined(MUSCLE_QT_HAS_THREADS)
       _conditionMutex.lock();
-      while(_conditionSignalled == false)
+      while(_pendingNotificationsCount == 0)
       {
          if (_conditionVariable.wait(&_conditionMutex) == false)
          {
@@ -201,13 +218,13 @@ private:
             break;
          }
       }
-      if (ret.IsOK()) _conditionSignalled = false;
+      if (ret.IsOK()) FlushNotificationsCount(retNotificationsCount);
       _conditionMutex.unlock();
 #endif
       return ret;
    }
 
-   status_t WaitUntilAux(uint64 wakeupTime) const
+   status_t WaitUntilAux(uint64 wakeupTime, uint32 & retNotificationsCount) const
    {
       int64 timeDeltaMicros = wakeupTime-GetRunTime64();  // how far in the future the wakeup-time is, in microseconds
       if (timeDeltaMicros <= 0) return B_TIMED_OUT;
@@ -217,8 +234,8 @@ private:
       {
          std::unique_lock<std::mutex> lockGuard(_conditionMutex);
          auto timeoutTime = std::chrono::system_clock::now() + std::chrono::microseconds(timeDeltaMicros);
-         if (_conditionVariable.wait_until(lockGuard, timeoutTime, [this](){return _conditionSignalled;}) == false) ret = B_TIMED_OUT;
-         if (ret.IsOK()) _conditionSignalled = false;
+         if (_conditionVariable.wait_until(lockGuard, timeoutTime, [this](){return (_pendingNotificationsCount>0);}) == false) ret = B_TIMED_OUT;
+         if (ret.IsOK()) FlushNotificationsCount(retNotificationsCount);
       }
 #elif defined(MUSCLE_USE_PTHREADS)
       if (pthread_mutex_lock(&_conditionMutex) == 0)
@@ -231,19 +248,19 @@ private:
             struct timespec realTimeClockThen;
             realTimeClockThen.tv_sec  = realTimeClockWakeupTimeNanos / SecondsToNanos(1);
             realTimeClockThen.tv_nsec = realTimeClockWakeupTimeNanos % SecondsToNanos(1);
-            while(_conditionSignalled == false)
+            while(_pendingNotificationsCount == 0)
             {
                const int pret = pthread_cond_timedwait(&_conditionVariable, &_conditionMutex, &realTimeClockThen);
                if (pret != 0) {ret = (pret == ETIMEDOUT) ? B_TIMED_OUT : B_ERRNUM(pret); break;}
             }
          }
-         if (ret.IsOK()) _conditionSignalled = false;
+         if (ret.IsOK()) FlushNotificationsCount(retNotificationsCount);
          (void) pthread_mutex_unlock(&_conditionMutex);
       }
       else ret = B_LOCK_FAILED;
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       EnterCriticalSection(&_conditionMutex);
-      while(_conditionSignalled == false)
+      while(pendingNotificationsCount == 0)
       {
          timeDeltaMicros = wakeupTime-GetRunTime64();  // how far in the future the wakeup-time is, in microseconds
          if ((timeDeltaMicros <= 0)||(SleepConditionVariableCS(&_conditionVariable, &_conditionMutex, (DWORD) MicrosToMillis(timeDeltaMicros)) == false))
@@ -252,11 +269,11 @@ private:
             break;
          }
       }
-      if (ret.IsOK()) _conditionSignalled = false;
+      if (ret.IsOK()) FlushNotificationsCount(retNotificationsCount);
       LeaveCriticalSection(&_conditionMutex);
 #elif defined(MUSCLE_QT_HAS_THREADS)
       _conditionMutex.lock();
-      while(_conditionSignalled == false)
+      while(_pendingNotificationsCount == 0)
       {
          timeDeltaMicros = wakeupTime-GetRunTime64();  // how far in the future the wakeup-time is, in microseconds
          if ((timeDeltaMicros <= 0)||(_conditionVariable.wait(&_conditionMutex, (unsigned long) MicrosToMillis(timeDeltaMicros)) == false))
@@ -265,53 +282,52 @@ private:
             break;
          }
       }
-      if (ret.IsOK()) _conditionSignalled = false;
+      if (ret.IsOK()) FlushNotificationsCount(retNotificationsCount);
       _conditionMutex.unlock();
 #endif
       return ret;
    }
 
-   status_t NotifyAux() const
+   // Should be called with our internal mutex locked!
+   void IncreaseNotificationsCount(uint32 increaseBy) const
    {
+      const uint32 newCount = _pendingNotificationsCount + increaseBy;
+      _pendingNotificationsCount = (newCount > _pendingNotificationsCount) ? newCount : MUSCLE_NO_LIMIT;  // saturating addition
+   }
+
+   status_t NotifyAux(uint32 increaseBy) const
+   {
+      status_t ret;
+
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       std::unique_lock<std::mutex> lockGuard(_conditionMutex);
-      if (_conditionSignalled == false)
-      {
-         _conditionVariable.notify_one();
-         _conditionSignalled = true;
-      }
+      if (_pendingNotificationsCount == 0) _conditionVariable.notify_one();
+      IncreaseNotificationsCount(increaseBy);
 #elif defined(MUSCLE_USE_PTHREADS)
       if (pthread_mutex_lock(&_conditionMutex) == 0)
       {
-         status_t ret;
-         if (_conditionSignalled == false)
-         {
-            if (pthread_cond_signal(&_conditionVariable) == 0) _conditionSignalled = true;
-                                                          else ret = B_BAD_OBJECT;
-         }
+         int pret;
+
+              if (_pendingNotificationsCount > 0)                         IncreaseNotificationsCount(increaseBy);
+         else if ((pret = pthread_cond_signal(&_conditionVariable)) == 0) IncreaseNotificationsCount(increaseBy);
+         else                                                             ret = B_ERRNUM(pret);
+
          (void) pthread_mutex_unlock(&_conditionMutex);
-         return ret;
       }
-      else return B_LOCK_FAILED;
+      else ret = B_LOCK_FAILED;
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       EnterCriticalSection(&_conditionMutex);
-      if (_conditionSignalled == false)
-      {
-         WakeConditionVariable(&_conditionVariable);
-         _conditionSignalled = true;
-      }
+      if (_pendingNotificationsCount == 0) WakeConditionVariable(&_conditionVariable);
+      IncreaseNotificationsCount(increaseBy);
       LeaveCriticalSection(&_conditionMutex);
 #elif defined(MUSCLE_QT_HAS_THREADS)
       _conditionMutex.lock();
-      if (_conditionSignalled == false)
-      {
-         _conditionVariable.wakeOne();
-         _conditionSignalled = true;
-      }
+      if (_pendingNotificationsCount == 0) _conditionVariable.wakeOne();
+      IncreaseNotificationsCount(increaseBy);
       _conditionMutex.unlock();
 #endif
 
-      return B_NO_ERROR;
+      return ret;
    }
 };
 
