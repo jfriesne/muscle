@@ -471,6 +471,8 @@ protected:
    bool IsInternalThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const {return GetInternalThreadSocketSet(socketSet).GetWithDefault(sock, false);}
 
 private:
+   Thread(ICallbackMechanism * optCallbackMechanism);  // deliberately private and unimplemented to avoid implicit-cast-to-boolean errors if you forget the first argument to the Thread ctor
+
    ICallbackMechanism * _optCallbackMechanism;
 
    // The read/write versions of these methods are intentionally private, since we want callers to use the Register()/Unregister() calls instead
