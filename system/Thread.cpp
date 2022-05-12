@@ -233,6 +233,14 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
 {
    if (optRetNumMessagesLeftInQueue) *optRetNumMessagesLeftInQueue = 0;
 
+   if (_useMessagingSockets)
+   {
+      // Be sure to always absorb any signal-bytes that were sent to us, now that we've been awoken,
+      // otherwise we could end up in a CPU-burning loop with select() always returning immediately
+      uint8 bytes[256];
+      (void) recv_ignore_eintr(tsd._messageSocket.GetFileDescriptor(), (char *)bytes, sizeof(bytes), 0);
+   }
+
    if (tsd._queueLock.Lock().IsError()) return B_LOCK_FAILED;
    else
    {
@@ -278,19 +286,13 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
          {
             for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
             {
-               const bool isFlagged =  iter.GetValue() = tsd._multiplexer.IsSocketEventOfTypeFlagged(iter.GetKey().GetFileDescriptor(), j);
+               const bool isFlagged = iter.GetValue() = tsd._multiplexer.IsSocketEventOfTypeFlagged(iter.GetKey().GetFileDescriptor(), j);
                if (isFlagged) ret = B_IO_READY;
             }
          }
       }
 
-      if (tsd._multiplexer.IsSocketReadyForRead(msgfd))  // any signals from the other thread?
-      {
-         uint8 bytes[256];
-         if (ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(msgfd, (char *)bytes, sizeof(bytes), 0), sizeof(bytes), false) > 0) return WaitForNextMessageAux(tsd, ref, 0, optRetNumMessagesLeftInQueue);
-      }
-
-      return ret;
+      return tsd._multiplexer.IsSocketReadyForRead(msgfd) ? WaitForNextMessageAux(tsd, ref, 0, optRetNumMessagesLeftInQueue) : ret;
    }
    else
    {
