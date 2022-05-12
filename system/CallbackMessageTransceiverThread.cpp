@@ -16,7 +16,7 @@ void CallbackMessageTransceiverThread :: DispatchCallbacks(uint32)
    bool seenIncomingMessage = false;
 
    // Check for any new messages from our internal thread
-   while(GetNextEventFromInternalThread(code, &next, &sessionID, &factoryID, &iap) >= 0)
+   while(GetNextEventFromInternalThread(code, &next, &sessionID, &factoryID, &iap).IsOK())
    {
       switch(code)
       {

@@ -30,14 +30,14 @@ status_t ThreadedInternalSession :: AttachedToServer()
    return (AdvancedThreadWorkerSession::AttachedToServer().IsOK(ret)) ? StartInternalThread() : ret;
 }
 
-// Our SignalMessageIOGateway gateway sends us an empty dummy Message whenever it wants us to check our 
-// internal thread's reply-messages-queue.  We respond here (in the MUSCLE thread) by grabbing all of the Messages 
-// from the internal thread's queue, and handing them over to the superclass's MessageReceivedFromGateway() 
+// Our SignalMessageIOGateway gateway sends us an empty dummy Message whenever it wants us to check our
+// internal thread's reply-messages-queue.  We respond here (in the MUSCLE thread) by grabbing all of the Messages
+// from the internal thread's queue, and handing them over to the superclass's MessageReceivedFromGateway()
 // method, as if they came from a regular old (TCP-connected) AdvancedThreadWorkerSession's client process.
 void ThreadedInternalSession :: MessageReceivedFromGateway(const MessageRef & /*dummyMsg*/, void * userData)
 {
    MessageRef ref;
-   while(GetNextReplyFromInternalThread(ref) >= 0) AdvancedThreadWorkerSession::MessageReceivedFromGateway(ref, userData);
+   while(GetNextReplyFromInternalThread(ref).IsOK()) AdvancedThreadWorkerSession::MessageReceivedFromGateway(ref, userData);
 }
 
 /** Called (in the MUSCLE thread) whenever this session receives a Message from one of our neighboring sessions.
@@ -90,7 +90,7 @@ status_t ThreadedInternalSession :: MessageReceivedFromOwner(const MessageRef & 
 }
 
 #if defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
-void TimerSignalReceiverObject :: CallSendExampleMessageToMainThread() 
+void TimerSignalReceiverObject :: CallSendExampleMessageToMainThread()
 {
    printf("TimerSignalReceiveObject %p:  my slot was called by QTimer, calling ThreadInternalSession::SendExampleMessageToMainThread() on object %p\n", this, _master);
    _master->SendExampleMessageToMainThread();
@@ -106,7 +106,7 @@ void ThreadedInternalSession :: InternalThreadEntry()
 {
    printf("internal-slave-thread %s is now ALIVE!!!\n", muscle_thread_id::GetCurrentThreadID().ToString(_threadIDString));
 
-   if (_args()) 
+   if (_args())
    {
       printf("Startup arguments for internal-slave-thread %s are:\n", _threadIDString);
       _args()->PrintToStream();  // a real program would probably use some data from here, not just print it out
@@ -133,15 +133,15 @@ void ThreadedInternalSession :: InternalThreadEntry()
       // in MUSCLE_TIME_NEVER as the second argument to WaitForNextMessageFromOwner() (or just use
       // the default implementation of Thread::InternalThreadEntry(), which does that same thing)
       //
-      // Alternatively, if you never want to block in WaitForNextMessageFromOwner() you could pass 0 as 
+      // Alternatively, if you never want to block in WaitForNextMessageFromOwner() you could pass 0 as
       // the second argument, and that would cause WaitForNextMessageFromOwner() to always return immediately.
       MessageRef msgRef;
-      int32 numLeftInQueue = WaitForNextMessageFromOwner(msgRef, _nextStatusPostTime);
-      if ((numLeftInQueue >= 0)&&(MessageReceivedFromOwner(msgRef, numLeftInQueue).IsError())) 
+      uint32 numLeftInQueue = 0;
+      if ((WaitForNextMessageFromOwner(msgRef, _nextStatusPostTime, &numLeftInQueue).IsOK())&&(MessageReceivedFromOwner(msgRef, numLeftInQueue).IsError()))
       {
          // MessageReceivedFromOwner() returned an error, that means this thread needs to exit!
          break;
-      }         
+      }
 
       const uint64 now = GetRunTime64();
       if (now >= _nextStatusPostTime) SendExampleMessageToMainThread();

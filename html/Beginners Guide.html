@@ -91,7 +91,7 @@ If you're using Qt, this is easy--whenever a Message arrives from the server, th
 
 <pre>MessageRef msg;
 uint32 code;
-while(myTransceiver.GetNextEventFromInternalThread(code, &msg) >= 0)
+while(myTransceiver.GetNextEventFromInternalThread(code, &msg).IsOK())
 {
    switch(code)
    {

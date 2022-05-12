@@ -87,6 +87,7 @@ const status_t B_BAD_DATA(       "Bad Data");
 const status_t B_BAD_OBJECT(     "Bad Object");
 const status_t B_TIMED_OUT(      "Timed Out");
 const status_t B_IO_ERROR(       "I/O Error");
+const status_t B_IO_READY(       "I/O Ready");
 const status_t B_LOCK_FAILED(    "Lock Failed");
 const status_t B_TYPE_MISMATCH(  "Type Mismatch");
 const status_t B_ZLIB_ERROR(     "ZLib Error");

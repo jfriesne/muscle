@@ -73,7 +73,7 @@ void QMessageTransceiverThread :: HandleQueuedIncomingEvents()
    IPAddressAndPort iap;
 
    // Check for any new messages from our internal thread
-   while(GetNextEventFromInternalThread(code, &next, &sessionID, &factoryID, &iap) >= 0)
+   while(GetNextEventFromInternalThread(code, &next, &sessionID, &factoryID, &iap).IsOK())
    {
       switch(code)
       {

@@ -48,7 +48,7 @@ public:
    void HandleEventsFromMainThread(ReflectServer & reflectServer)
    {
       MessageRef msgFromOwner;
-      while(WaitForNextMessageFromOwner(msgFromOwner, 0) >= 0)
+      while(WaitForNextMessageFromOwner(msgFromOwner, 0).IsOK())
       {
          if (msgFromOwner())
          {

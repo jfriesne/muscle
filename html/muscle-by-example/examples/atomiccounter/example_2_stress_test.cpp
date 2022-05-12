@@ -39,7 +39,7 @@ protected:
 
          // See if it is time for us to go away yet
          MessageRef msg;
-         if (WaitForNextMessageFromOwner(msg, 0) >= 0)  // 0 == don't wait, just poll
+         if (WaitForNextMessageFromOwner(msg, 0).IsOK())  // 0 == don't block, just poll and return immediately
          {
             if (msg() == NULL) break;
          }
@@ -64,7 +64,7 @@ protected:
 
          // See if it is time for us to go away yet
          MessageRef msg;
-         if (WaitForNextMessageFromOwner(msg, 0) >= 0)  // 0 == don't wait, just poll
+         if (WaitForNextMessageFromOwner(msg, 0).IsOK())  // 0 == don't block, just poll and return immediately
          {
             if (msg() == NULL) break;
          }

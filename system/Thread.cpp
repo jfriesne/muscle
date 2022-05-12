@@ -207,9 +207,9 @@ void Thread :: SignalAux(int whichSocket)
 // Called in the main thread by the ICallbackMechanism, if there is one
 void Thread :: DispatchCallbacks(uint32 /*eventTypeBits*/)
 {
-   int32 numLeft;
    MessageRef ref;
-   while((numLeft = GetNextReplyFromInternalThread(ref)) >= 0) MessageReceivedFromInternalThread(ref, numLeft);
+   uint32 numLeft = 0;
+   while(GetNextReplyFromInternalThread(ref, 0, &numLeft).IsOK()) MessageReceivedFromInternalThread(ref, numLeft);
 }
 
 // default implementation is a no-op
@@ -219,31 +219,36 @@ void Thread :: MessageReceivedFromInternalThread(const MessageRef & ref, uint32 
    (void) numLeft;
 }
 
-int32 Thread :: GetNextReplyFromInternalThread(MessageRef & ref, uint64 wakeupTime)
+status_t Thread :: GetNextReplyFromInternalThread(MessageRef & ref, uint64 wakeupTime, uint32 * optRetNumMessagesLeftInQueue)
 {
-   return WaitForNextMessageAux(_threadData[MESSAGE_THREAD_OWNER], ref, wakeupTime);
+   return WaitForNextMessageAux(_threadData[MESSAGE_THREAD_OWNER],    ref, wakeupTime, optRetNumMessagesLeftInQueue);
 }
 
-int32 Thread :: WaitForNextMessageFromOwner(MessageRef & ref, uint64 wakeupTime)
+status_t Thread :: WaitForNextMessageFromOwner(MessageRef & ref, uint64 wakeupTime, uint32 * optRetNumMessagesLeftInQueue)
 {
-   return WaitForNextMessageAux(_threadData[MESSAGE_THREAD_INTERNAL], ref, wakeupTime);
+   return WaitForNextMessageAux(_threadData[MESSAGE_THREAD_INTERNAL], ref, wakeupTime, optRetNumMessagesLeftInQueue);
 }
 
-int32 Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref, uint64 wakeupTime)
+status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref, uint64 wakeupTime, uint32 * optRetNumMessagesLeftInQueue)
 {
-   if (tsd._queueLock.Lock().IsError()) return -1;
+   if (optRetNumMessagesLeftInQueue) *optRetNumMessagesLeftInQueue = 0;
+
+   if (tsd._queueLock.Lock().IsError()) return B_LOCK_FAILED;
    else
    {
-      const int32 ret = tsd._messages.RemoveHead(ref).IsOK() ? tsd._messages.GetNumItems() : -1;
+      const status_t ret = tsd._messages.RemoveHead(ref);
+      if (optRetNumMessagesLeftInQueue) *optRetNumMessagesLeftInQueue = tsd._messages.GetNumItems();
       (void) tsd._queueLock.Unlock();
-      if ((ret >= 0)||(wakeupTime == 0)) return ret;
+
+      if (ret.IsOK())      return ret;
+      if (wakeupTime == 0) return B_TIMED_OUT;
    }
 
    // If we got here, no Message was available, so we'll have to wait until there is one (or until wakeupTime)
    if (_useMessagingSockets)
    {
       const int msgfd = tsd._messageSocket.GetFileDescriptor();
-      if (msgfd < 0) return -1;
+      if (msgfd < 0) return B_BAD_OBJECT;  // semi-paranoia
 
       // block until either
       //   (a) a new-message-signal-byte wakes us, or
@@ -263,24 +268,35 @@ int32 Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref
       }
       tsd._multiplexer.RegisterSocketForReadReady(msgfd);
 
-      if (tsd._multiplexer.WaitForEvents(wakeupTime) >= 0)
-      {
-         for (uint32 j=0; j<ARRAYITEMS(tsd._socketSets); j++)
-         {
-            Hashtable<ConstSocketRef, bool> & t = tsd._socketSets[j];
-            if (t.HasItems()) for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) iter.GetValue() = tsd._multiplexer.IsSocketEventOfTypeFlagged(iter.GetKey().GetFileDescriptor(), j);
-         }
+      if (tsd._multiplexer.WaitForEvents(wakeupTime) < 0) return B_IO_ERROR;
 
-         if (tsd._multiplexer.IsSocketReadyForRead(msgfd))  // any signals from the other thread?
+      status_t ret = B_TIMED_OUT;
+      for (uint32 j=0; j<ARRAYITEMS(tsd._socketSets); j++)
+      {
+         Hashtable<ConstSocketRef, bool> & t = tsd._socketSets[j];
+         if (t.HasItems())
          {
-            uint8 bytes[256];
-            if (ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(msgfd, (char *)bytes, sizeof(bytes), 0), sizeof(bytes), false) > 0) return WaitForNextMessageAux(tsd, ref, 0);
+            for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+            {
+               const bool isFlagged =  iter.GetValue() = tsd._multiplexer.IsSocketEventOfTypeFlagged(iter.GetKey().GetFileDescriptor(), j);
+               if (isFlagged) ret = B_IO_READY;
+            }
          }
       }
-   }
-   else return tsd._waitCondition.GetObject().Wait(wakeupTime).IsOK() ? WaitForNextMessageAux(tsd, ref, 0) : -1;
 
-   return -1;
+      if (tsd._multiplexer.IsSocketReadyForRead(msgfd))  // any signals from the other thread?
+      {
+         uint8 bytes[256];
+         if (ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(msgfd, (char *)bytes, sizeof(bytes), 0), sizeof(bytes), false) > 0) return WaitForNextMessageAux(tsd, ref, 0, optRetNumMessagesLeftInQueue);
+      }
+
+      return ret;
+   }
+   else
+   {
+      MRETURN_ON_ERROR(tsd._waitCondition.GetObject().Wait(wakeupTime));
+      return WaitForNextMessageAux(tsd, ref, 0, optRetNumMessagesLeftInQueue);
+   }
 }
 
 void Thread :: InternalThreadEntry()
@@ -295,8 +311,8 @@ void Thread :: InternalThreadEntry()
    while(true)
    {
       MessageRef msgRef;
-      const int32 numLeft = WaitForNextMessageFromOwner(msgRef);
-      if ((numLeft >= 0)&&(MessageReceivedFromOwner(msgRef, numLeft).IsError())) break;
+      uint32 numLeft = 0;
+      if ((WaitForNextMessageFromOwner(msgRef).IsOK())&&(MessageReceivedFromOwner(msgRef, numLeft).IsError())) break;
    }
 #endif
 }
@@ -307,8 +323,7 @@ void Thread :: QtSocketReadReady(int /*sock*/)
    MessageRef msgRef;
    while(1)
    {
-      const int32 numLeft = WaitForNextMessageFromOwner(msgRef, 0);  // 0 because we don't want to block here, this is a poll only
-      if (numLeft >= 0)
+      if (WaitForNextMessageFromOwner(msgRef, 0).IsOK())  // 0 because we don't want to block here, this is a poll only
       {
          if (MessageReceivedFromOwner(msgRef, numLeft).IsError())
          {

@@ -20,8 +20,8 @@ public:
       while(true)
       {
          MessageRef msgRef;
-         const int32 numLeft = WaitForNextMessageFromOwner(msgRef, GetRunTime64()+SecondsToMicros(2));
-         if (numLeft >= 0)
+         uint32 numLeft = 0;
+         if (WaitForNextMessageFromOwner(msgRef, GetRunTime64()+SecondsToMicros(2), &numLeft).IsOK())
          {
             if (MessageReceivedFromOwner(msgRef, numLeft).IsError()) break;
          }

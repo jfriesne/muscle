@@ -11,8 +11,8 @@
 /
 *******************************************************************************/
 
-#define MUSCLE_VERSION_STRING "8.52" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        85200  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "8.60" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        86000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -470,6 +470,7 @@ enum {
         extern const status_t B_BAD_OBJECT;     ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
         extern const status_t B_TIMED_OUT;      ///< "Timed Out"      - the operation took too long, so we gave up
         extern const status_t B_IO_ERROR;       ///< "I/O Error"      - an I/O operation failed
+        extern const status_t B_IO_READY;       ///< "I/O Ready"      - this call has ended early because other I/O is ready for you to handle.
         extern const status_t B_LOCK_FAILED;    ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
         extern const status_t B_TYPE_MISMATCH;  ///< "Type Mismatch"  - tried to fit a square block into a round hole
         extern const status_t B_ZLIB_ERROR;     ///< "ZLib Error"     - a zlib library-function reported an error

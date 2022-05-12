@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifndef MuscleThread_h
 #define MuscleThread_h
@@ -105,8 +105,8 @@ public:
      */
    static Thread * GetCurrentThread();
 
-   /** Tells the internal thread to quit by sending it a NULL MessageRef, and then optionally 
-     * waits for it to go away by calling WaitForInternalThreadToExit().  
+   /** Tells the internal thread to quit by sending it a NULL MessageRef, and then optionally
+     * waits for it to go away by calling WaitForInternalThreadToExit().
      * If the internal thread isn't running, this method is a no-op.
      * You must call this before deleting the MessageTransceiverThread object!
      * @param waitForThread if true, this method won't return until the thread is gone.  Defaults to true.
@@ -116,7 +116,7 @@ public:
 
    /** Blocks and won't return until after the internal thread exits.  If you have called
      * StartInternalThread(), you'll need to call this method (or ShutdownInternalThread())
-     * before deleting this Thread object or calling StartInternalThread() again--even if 
+     * before deleting this Thread object or calling StartInternalThread() again--even if
      * your thread has already terminated itself!  That way consistency is guaranteed and
      * race conditions are avoided.
      * @returns B_NO_ERROR on success, or B_BAD_OBJECT if the internal thread wasn't running.
@@ -125,30 +125,34 @@ public:
 
    /** Puts the given message into a message queue for the internal thread to pick up,
      * and then calls SignalInternalThread() (if necessary) to signal the internal thread that a
-     * new message is ready.  If the internal thread isn't currently running, then the 
+     * new message is ready.  If the internal thread isn't currently running, then the
      * MessageRef will be queued up and available to the internal thread to process when it is started.
-     * @param msg Reference to the message that is to be given to the internal thread. 
+     * @param msg Reference to the message that is to be given to the internal thread.
      * @return B_NO_ERROR on success, or an error code on failure (out of memory?)
      */
    virtual status_t SendMessageToInternalThread(const MessageRef & msg);
 
    /** This method attempts to retrieve the next reply message that has been
      * sent back to the main thread by the internal thread (via SendMessageToOwner()).
-     * @param ref On success, (ref) will be a reference to the new reply message.
+     * @param ref On success, (ref) will be a reference to the newly received reply Message.
      * @param wakeupTime Time at which this method should stop blocking and return,
-     *                   even if there is no new reply message ready.  If this value is
-     *                   0 (the default) or otherwise less than the current time 
-     *                   (as returned by GetRunTime64()), then this method does a 
+     *                   even if there is no new reply Message ready.  If this value is
+     *                   0 (the default) or otherwise less than the current time
+     *                   (as returned by GetRunTime64()), then this method does a
      *                   non-blocking poll of the reply queue.
-     *                   If (wakeuptime) is set to MUSCLE_TIME_NEVER, then this method 
+     *                   If (wakeupTime) is set to MUSCLE_TIME_NEVER, then this method
      *                   will block indefinitely, until a new reply is ready.
-     * @returns The number of Messages left in the reply queue on success, or -1 on failure
-     *          (The call timed out without any replies ever showing up)
+     * @param optRetNumMessagesLeftInQueue if non-NULL, then on return the number of Messages still
+     *                   remaining in the reply queue will be written into the uint32 this argument points to.
+     * @returns B_NO_ERROR if (ref) was updated with a new reply-Message value
+     *          B_TIMED_OUT if we reached the specified wakeup-time without any Messages becoming available
+     *          B_IO_READY if we returned because one of the sockets in a user-suppplied socket-set is ready-for-I/O,
+     *          or some other error code if something else goes wrong.
      * @see GetOwnerThreadSocketSet() for details about advanced control of this method's behaviour.
      */
-   virtual int32 GetNextReplyFromInternalThread(MessageRef & ref, uint64 wakeupTime = 0);
+   virtual status_t GetNextReplyFromInternalThread(MessageRef & ref, uint64 wakeupTime = 0, uint32 * optRetNumMessagesLeftInQueue = NULL);
 
-   /** Locks the internal thread's message queue and returns a pointer to it.  
+   /** Locks the internal thread's message queue and returns a pointer to it.
      * Since the queue is locked, you may examine or modify the queue safely.
      * Once this method has returned successfully, you are responsible for unlocking the
      * message queue again by calling UnlockMessageQueue().  If you don't, the Thread will
@@ -182,7 +186,7 @@ public:
      */
    status_t UnlockReplyQueue();
 
-   /** Returns the socket that the main thread may select() for read on for wakeup-notification bytes. 
+   /** Returns the socket that the main thread may select() for read on for wakeup-notification bytes.
      * This Thread object's thread-signalling sockets will be allocated by this method if they aren't already allocated.
      * @note this method will return a NULL reference if this Thread was created with constructor argument useMessagingSockets=false.
      */
@@ -198,23 +202,23 @@ public:
       NUM_SOCKET_SETS       /**< A guard value */
    };
 
-   /** This function returns a read-only reference to one of the three socket-sets 
-    *  that GetNextReplyFromInternalThread() will optionally use to determine whether 
-    *  to return early.  By default, all three of the socket-sets are empty, and 
+   /** This function returns a read-only reference to one of the three socket-sets
+    *  that GetNextReplyFromInternalThread() will optionally use to determine whether
+    *  to return early.  By default, all three of the socket-sets are empty, and
     *  GetNextReplyFromInternalThread() will return only when a new Message
     *  has arrived from the internal thread, or when the timeout period has elapsed.
     *
     *  However, in some cases it is useful to have GetNextReplyFromInternalThread()
-    *  return under other conditions as well, such as when a specified socket becomes 
-    *  ready-to-read-from or ready-to-write-to.  You can specify that a socket should be 
-    *  watched in this manner, by registering that socket to the appropriate socket set(s).  
-    *  For example, to tell GetNextReplyFromInternalThread() to always return when 
-    *  mySocket is ready to be written to, you would add mySocket to the SOCKET_SET_WRITE 
+    *  return under other conditions as well, such as when a specified socket becomes
+    *  ready-to-read-from or ready-to-write-to.  You can specify that a socket should be
+    *  watched in this manner, by registering that socket to the appropriate socket set(s).
+    *  For example, to tell GetNextReplyFromInternalThread() to always return when
+    *  mySocket is ready to be written to, you would add mySocket to the SOCKET_SET_WRITE
     *  set, like this:
-    *     
+    *
     *     _thread.RegisterOwnerThreadSocket(mySocket, SOCKET_SET_WRITE);
     *
-    *  This only needs to be done once.  After GetNextReplyFromInternalThread() 
+    *  This only needs to be done once.  After GetNextReplyFromInternalThread()
     *  returns, you can determine whether your socket is ready-to-write-to like this:
     *
     *     bool canWrite = _thread.IsOwnerThreadSocketReady(mySocket, SOCKET_SET_WRITE);
@@ -354,7 +358,7 @@ protected:
      */
    status_t SendMessageToOwner(const MessageRef & replyRef);
 
-   /** You may override this method to be your Thread's execution entry point.  
+   /** You may override this method to be your Thread's execution entry point.
      * Default implementation runs in a loop calling WaitForNextMessageFromOwner() and
      * then MessageReceivedFromOwner().  In many cases, that is all you need, so you may
      * not need to override this method.
@@ -368,23 +372,27 @@ protected:
      *       that the QThread::exec() event loop be running in order to function correctly.
      */
    virtual void InternalThreadEntry();
- 
+
    /** This method is meant to be called by the internally held thread.
-     * It will attempt retrieve the next message that has been sent to the 
+     * It will attempt retrieve the next message that has been sent to the
      * thread via SendMessageToInternalThread().
      * @param ref On success, (ref) will be set to be a reference to the retrieved Message.
+     *            Note that (ref) might still be a NULL pointer if our owning thread wants us to exit.
      * @param wakeupTime Time at which this method should stop blocking and return,
      *                   even if there is no new message ready.  If this value is
      *                   0 or otherwise less than the current time (as returned by GetRunTime64()),
      *                   then this method does a non-blocking poll of the queue.
      *                   If (wakeuptime) is set to MUSCLE_TIME_NEVER (the default value),
      *                   then this method will block indefinitely, until a Message is ready.
-     * @returns The number of Messages still remaining in the message queue on success, or 
-     *          -1 on failure (i.e. the call was aborted before any Messages ever showing up,
-     *          and (ref) was not written to)
+     * @param optRetNumMessagesLeftInQueue if non-NULL, then on return the number of Messages still
+     *                   remaining in the Message Queue will be written into the uint32 this argument points to.
+     * @returns B_NO_ERROR if (ref) was updated with a new Message value from the owning-Thread.
+     *          B_TIMED_OUT if we reached the specified wakeup-time without any Messages becoming available
+     *          B_IO_READY if we returned because one of the sockets in a user-suppplied socket-set is ready-for-I/O,
+     *          or some other error code if something else goes wrong.
      * @see GetInternalThreadSocketSet() for details about advanced control of this method's behaviour.
      */
-   virtual int32 WaitForNextMessageFromOwner(MessageRef & ref, uint64 wakeupTime = MUSCLE_TIME_NEVER);
+   virtual status_t WaitForNextMessageFromOwner(MessageRef & ref, uint64 wakeupTime = MUSCLE_TIME_NEVER, uint32 * optRetNumMessagesLeftInQueue = NULL);
 
    /** Called by SendMessageToInternalThread() whenever there is a need to wake up the internal
      * thread so that it will look at its reply queue.
@@ -410,27 +418,27 @@ protected:
    /** Closes all of our threading sockets, if they are open. */
    void CloseSockets();
 
-   /** This function returns a read-only reference to one of the three socket-sets 
-    *  that WaitForNextMessageFromOwner() will optionally use to determine whether 
-    *  to return early.  By default, all three of the socket-sets are empty, and 
+   /** This function returns a read-only reference to one of the three socket-sets
+    *  that WaitForNextMessageFromOwner() will optionally use to determine whether
+    *  to return early.  By default, all three of the socket-sets are empty, and
     *  WaitForNextMessageFromOwner() will return only when a new Message
     *  has arrived from the owner thread, or when the timeout period has elapsed.
     *
     *  However, in some cases it is useful to have WaitForNextMessageFromOwner()
-    *  return under other conditions as well, such as when a specified socket becomes 
-    *  ready-to-read-from or ready-to-write-to.  You can specify that a socket should be 
-    *  watched in this manner, by registering that socket to the appropriate socket set(s).  
-    *  For example, to tell WaitForNextMessageFromOwner() to always return when 
-    *  (mySocket) is ready to be written to, you would register (mySocket) with the 
+    *  return under other conditions as well, such as when a specified socket becomes
+    *  ready-to-read-from or ready-to-write-to.  You can specify that a socket should be
+    *  watched in this manner, by registering that socket to the appropriate socket set(s).
+    *  For example, to tell WaitForNextMessageFromOwner() to always return when
+    *  (mySocket) is ready to be written to, you would register (mySocket) with the
     *  SOCKET_SET_WRITE set, like this:
-    *     
+    *
     *     _thread.RegisterInternalThreadSocket(mySocket, SOCKET_SET_WRITE);
     *
-    *  This only needs to be done once.  After WaitForNextMessageFromOwner() 
-    *  returns, you can determine whether your socket is ready-to-write-to by checking 
+    *  This only needs to be done once.  After WaitForNextMessageFromOwner()
+    *  returns, you can determine whether your socket is ready-to-write-to by checking
     *  its associated value in the table, like this:
     *
-    *     bool canWrite = IsInternalThreadSocketReady(mySocket, SOCKET_SET_WRITE);
+    *     const bool canWrite = IsInternalThreadSocketReady(mySocket, SOCKET_SET_WRITE);
     *     if (canWrite) printf("Socket is ready to be written to!\n");
     *
     *  @param socketSet SOCKET_SET_* indicating which socket-set to return a reference to.
@@ -503,7 +511,7 @@ private:
    status_t StartInternalThreadAux();
    status_t StartInternalThreadAuxAux();
    const ConstSocketRef & GetThreadWakeupSocketAux(ThreadSpecificData & tsd);
-   int32 WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref, uint64 wakeupTime = MUSCLE_TIME_NEVER);
+   status_t WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & ref, uint64 wakeupTime, uint32 * optRetNumThreadsLeftInQueue);
    status_t SendMessageAux(int whichQueue, const MessageRef & ref);
    void SignalAux(int whichSocket);
    void InternalThreadEntryAux();

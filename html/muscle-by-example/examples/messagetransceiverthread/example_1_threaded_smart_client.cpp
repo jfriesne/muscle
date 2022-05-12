@@ -237,7 +237,7 @@ int main(int argc, char ** argv)
          String session;
          uint32 factoryID;
          IPAddressAndPort location;
-         while(mtt.GetNextEventFromInternalThread(code, &ref, &session, &factoryID, &location) >= 0)
+         while(mtt.GetNextEventFromInternalThread(code, &ref, &session, &factoryID, &location).IsOK())
          {
             String codeStr;
             switch(code)

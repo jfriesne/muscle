@@ -57,7 +57,7 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef & /*signalMsg*/, void *)
    {
       MessageRef ref;
-      while(GetNextReplyFromInternalThread(ref) >= 0)
+      while(GetNextReplyFromInternalThread(ref).IsOK())
       {
          String replyTo;
          if ((ref())&&(ref()->FindString(MESSAGE_SOURCE_SESSION_ID_NAME, replyTo).IsOK()))

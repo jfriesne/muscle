@@ -275,7 +275,7 @@ status_t MessageTransceiverThread :: SetDefaultDistributionPath(const String & p
    return B_NO_ERROR;
 }
 
-int32 MessageTransceiverThread :: GetNextEventFromInternalThread(uint32 & code, MessageRef * optRetRef, String * optFromSession, uint32 * optFromFactoryID, IPAddressAndPort * optLocation)
+status_t MessageTransceiverThread :: GetNextEventFromInternalThread(uint32 & code, MessageRef * optRetRef, String * optFromSession, uint32 * optFromFactoryID, IPAddressAndPort * optLocation)
 {
    // First, default values for everyone
    if (optRetRef)        optRetRef->Reset();
@@ -283,20 +283,15 @@ int32 MessageTransceiverThread :: GetNextEventFromInternalThread(uint32 & code, 
    if (optFromFactoryID) *optFromFactoryID = 0;
 
    MessageRef msgRef;
-   int32 ret = GetNextReplyFromInternalThread(msgRef);
-   if (ret >= 0)
-   {
-      if (msgRef())
-      {
-         code = msgRef()->what;
-         if ((optRetRef)&&(msgRef()->FindMessage(MTT_NAME_MESSAGE, *optRetRef).IsError())) *optRetRef = msgRef;
-         if (optFromSession)   *optFromSession   = msgRef()->GetString(MTT_NAME_FROMSESSION);
-         if (optFromFactoryID) *optFromFactoryID = msgRef()->GetInt32(MTT_NAME_FACTORY_ID);
-         if (optLocation)      *optLocation      = msgRef()->GetFlat<IPAddressAndPort>(MTT_NAME_IPADDRESSANDPORT);
-      }
-      else ret = -1;  // NULL event message should never happen, but just in case
-   }
-   return ret;
+   MRETURN_ON_ERROR(GetNextReplyFromInternalThread(msgRef));
+   if (msgRef() == NULL) return B_BAD_DATA;  // semi-paranoia
+
+   code = msgRef()->what;
+   if ((optRetRef)&&(msgRef()->FindMessage(MTT_NAME_MESSAGE, *optRetRef).IsError())) *optRetRef = msgRef;
+   if (optFromSession)   *optFromSession   = msgRef()->GetString(MTT_NAME_FROMSESSION);
+   if (optFromFactoryID) *optFromFactoryID = msgRef()->GetInt32(MTT_NAME_FACTORY_ID);
+   if (optLocation)      *optLocation      = msgRef()->GetFlat<IPAddressAndPort>(MTT_NAME_IPADDRESSANDPORT);
+   return B_NO_ERROR;
 }
 
 status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(const MessageRef & notifyRef, const String & optDistPath, DrainTag * optDrainTag)
@@ -378,8 +373,8 @@ void MessageTransceiverThread :: Reset()
 
    // Clear both message queues of any leftover messages.
    MessageRef junk;
-   while(WaitForNextMessageFromOwner(junk, 0) >= 0) {/* empty */}
-   while(GetNextReplyFromInternalThread(junk) >= 0) {/* empty */}
+   while(WaitForNextMessageFromOwner(junk, 0).IsOK()) {/* empty */}
+   while(GetNextReplyFromInternalThread(junk).IsOK()) {/* empty */}
 }
 
 ThreadSupervisorSessionRef MessageTransceiverThread :: CreateSupervisorSession()
@@ -672,10 +667,10 @@ void ThreadSupervisorSession :: MessageReceivedFromGateway(const MessageRef &, v
    // the message queue from the main thread again, to see if there are
    // new messages from our owner waiting.  So we'll do that here.
    MessageRef msgFromOwner;
-   int32 numLeft;
-   while((numLeft = _mtt->WaitForNextMessageFromOwner(msgFromOwner, 0)) >= 0)
+   uint32 numLeft = 0;
+   while(_mtt->WaitForNextMessageFromOwner(msgFromOwner, 0, &numLeft).IsOK())
    {
-      if (msgFromOwner()) MessageReceivedFromOwner(msgFromOwner, (uint32)numLeft);
+      if (msgFromOwner()) MessageReceivedFromOwner(msgFromOwner, numLeft);
       else
       {
          EndServer();  // this will cause our thread to exit

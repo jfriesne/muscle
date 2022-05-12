@@ -541,7 +541,7 @@ public:
    /**
      * Call this to get the next event notification message from the internal thread.  Typically you will want to call this
      * whenever your main thread has been notified that a new event may be pending.  You should keep calling this method
-     * in a loop until it returns MTT_EVENT_NO_MORE_EVENTS; at that point it is okay to go back to waiting for the next
+     * in a loop until it returns B_TIMED_OUT; at that point it is okay to go back to waiting for the next
      * event notification signal.
      * @param retEventCode On success, this uint32 will be set to the event code of the returned event.
      *                     The event code will typically be one of the following constants:
@@ -569,9 +569,10 @@ public:
      * @param optLocation If non-NULL, the IPAddressAndPort value that this points to will be filled with the IP address
      *                    and port that the event is associated with.  Note that currently only MTT_EVENT_SESSION_CONNECTED
      *                    and MTT_EVENT_SESSION_ACCEPTED events have an associated IPAddressAndPort value.
-     * @returns The number of events left in the event queue (after our having removed one) on success, or -1 on failure.
+     * @returns B_NO_ERROR if an event was successfully retrieved, or another value if an event could not be retrieved.
+     *          In particular, B_TIMED_OUT will be returned if there are no events currently awaiting retrieval.
      */
-   int32 GetNextEventFromInternalThread(uint32 & retEventCode, MessageRef * optRetMsgRef = NULL, String * optFromSession = NULL, uint32 * optFromFactoryID = NULL, IPAddressAndPort * optLocation = NULL);
+   status_t GetNextEventFromInternalThread(uint32 & retEventCode, MessageRef * optRetMsgRef = NULL, String * optFromSession = NULL, uint32 * optFromFactoryID = NULL, IPAddressAndPort * optLocation = NULL);
 
    /**
      * Requests that the MessageTranceiverThread object send us a MTT_EVENT_OUTPUT_QUEUES_DRAINED event

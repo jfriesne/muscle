@@ -5,13 +5,17 @@ key:  - new feature
       * bug fixed
       o other
 
-8.53 - 
+8.60 -
    - Added a WaitCondition class for easy Wait()/Notify() functionality.
    - Updated the Thread class to use a WaitCondition object as a fallback
      if (useMessagingSockets) is passed to the constructor as false.
    - Added WITH_CPLUSPLUS11=OFF and WITH_CPLUSPLUS17=ON options to the
      CMakeLists.txt file.
    - Added a WITH_PTHREADS=ON option to the CMakeLists.txt file.
+   - Added B_IO_READY to the set of declared status_t error-values.
+   o Updated Thread::WaitForNextMessageFromOwner(),
+     Thread::GetNextReplyFromInternalThread(), and MessageTransceiverThread::
+     GetNextEventFromInternalThread() to return status_t instead of int32.
    o Rephrased the message printed when the crash-signal-handler executes.
    o Swapped the ordering of arguments to the Thread class's constructor.
    * Added code to JUCECallbackMechanism::handleAsyncUpdate() to work around

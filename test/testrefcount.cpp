@@ -68,7 +68,7 @@ public:
  
          // Check to see if the main thread wants us to exit yet
          MessageRef r;
-         while(WaitForNextMessageFromOwner(r, 0) >= 0) if (r() == NULL) keepGoing = false;
+         while(WaitForNextMessageFromOwner(r, 0).IsOK()) if (r() == NULL) keepGoing = false;
       }
    }
 };

@@ -42,7 +42,7 @@ int32 SimulatedMulticastDataIO :: ReadFrom(void * buffer, uint32 size, IPAddress
    if (IsInternalThreadRunning() == false) return -1;
 
    MessageRef msg;
-   if (GetNextReplyFromInternalThread(msg) < 0) return 0;  // nothing available to read, right now!
+   if (GetNextReplyFromInternalThread(msg).IsError()) return 0;  // nothing available to read, right now!
 
    ConstByteBufferRef incomingData = msg()->GetFlat(SMDIO_NAME_DATA);
    if (incomingData() == NULL) return 0;  // nothing for now!
@@ -387,8 +387,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
 
       // Block until it is time to do something
       MessageRef msgRef;
-      const int32 numLeft = WaitForNextMessageFromOwner(msgRef, nextMulticastPingTime);
-      if (numLeft >= 0)
+      if (WaitForNextMessageFromOwner(msgRef, nextMulticastPingTime).IsOK())
       {
          if (msgRef())
          {

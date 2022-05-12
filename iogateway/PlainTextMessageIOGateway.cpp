@@ -36,7 +36,7 @@ DoOutputImplementation(uint32 maxBytes)
          if (outBuf())
          {
             uint8 * b = outBuf()->GetBuffer();
-            for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++) 
+            for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++)
             {
                nextStr->Flatten(b);   b += nextStr->Length();   // Advance by Length() instead of FlattenedSize()
                _eolString.Flatten(b); b += _eolString.Length(); // to avoid NUL bytes inside our outBuf
@@ -177,7 +177,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             int32 beginAt = 0;
             for (uint32 i=0; i<filteredBytesRead; i++)
             {
-               char nextChar = pbuf[i];
+               const char nextChar = pbuf[i];
                if ((nextChar == '\r')||(nextChar == '\n'))
                {
                   pbuf[i] = '\0';  // terminate the string here
@@ -187,7 +187,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                prevCharWasCarriageReturn = (nextChar == '\r');
             }
             if (beginAt < (int32)filteredBytesRead) inMsg = AddIncomingText(inMsg, &pbuf[beginAt]);
-            if (inMsg()) 
+            if (inMsg())
             {
                if (GetPacketRemoteLocationTaggingEnabled()) (void) inMsg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP);
                receiver.CallMessageReceivedFromGateway(inMsg);
@@ -243,7 +243,7 @@ FilterInputBuffer(char * /*buf*/, uint32 & /*bufLen*/, uint32 /*maxLen*/)
    // empty
 }
 
-void 
+void
 PlainTextMessageIOGateway :: FlushInput(AbstractGatewayMessageReceiver & receiver)
 {
    if (_incomingText.HasChars())
@@ -299,7 +299,7 @@ FilterInputBuffer(char * buf, uint32 & bufLen, uint32 /*maxLen*/)
    static const unsigned char SE  = 240;
 
    char * output = buf;
-   for (uint32 i=0; i<bufLen; i++) 
+   for (uint32 i=0; i<bufLen; i++)
    {
       unsigned char c = buf[i];
       bool keepChar = ((c & 0x80) == 0);
@@ -310,7 +310,7 @@ FilterInputBuffer(char * buf, uint32 & bufLen, uint32 /*maxLen*/)
          case SE:  _inSubnegotiation = false; _commandBytesLeft = 0; break;
       }
       if (_commandBytesLeft > 0) {--_commandBytesLeft; keepChar = false;}
-      if (_inSubnegotiation) keepChar = false; 
+      if (_inSubnegotiation) keepChar = false;
       if (keepChar) *output++ = c;  // strip out any telnet control/escape codes
    }
    bufLen = (uint32) (output-buf);
