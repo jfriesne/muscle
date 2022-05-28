@@ -333,15 +333,19 @@ NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, NodeChangeFlags
          {
             if (matchedBefore == false) return;  // since the node didn't match before either, no node-removed-update is necessary now
          }
-         else if (constOldData())
+         else
          {
             const bool matchesNow = _subscriptions.MatchesNode(modifiedNode, constNewData, 0);
-
-                 if ((matchedBefore == false)&&(matchesNow == false)) return;                 // no change in status, so no update is necessary
-            else if ((matchedBefore)&&(matchesNow == false))          nodeChangeFlags.SetBit(NODE_CHANGE_FLAG_ISBEINGREMOVED);  // no longer matches, so we need to send a node-removed update
+            if (constOldData())
+            {
+               if (matchesNow == false)
+               {
+                  if (matchedBefore) nodeChangeFlags.SetBit(NODE_CHANGE_FLAG_ISBEINGREMOVED);  // no longer matches, so we need to send a node-removed update
+                                else return;                                                   // no change in status, so no update is necessary
+               }
+            }
+            else if (matchesNow == false) return;  // when adding a new node, only notify the client if it matches at least one of his QueryFilters
          }
-         else if (matchedBefore == false) return;  // Adding a new node:  only notify the client if it matches at least one of his QueryFilters
-         else (void) _subscriptions.MatchesNode(modifiedNode, constNewData, 0);  // just in case one our QueryFilters needs to modify (constNewData)
       }
 
       NodeChangedAux(modifiedNode, CastAwayConstFromRef(constNewData), nodeChangeFlags);
