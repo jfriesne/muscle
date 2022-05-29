@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-8.60 -
+8.60 - Released 5/28/2022
    - Added a WaitCondition class for easy Wait()/Notify() functionality.
    - Updated the Thread class to use a WaitCondition object as a fallback
      if (useMessagingSockets) is passed to the constructor as false.
