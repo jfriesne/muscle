@@ -69,6 +69,7 @@ nav:
 - Multithreading API:
    - Thread: 'thread.md'
    - Mutex/MutexGuard: 'mutex.md'
+   - WaitCondition: 'waitcondition.md'
    - AtomicCounter: 'atomiccounter.md'
    - ThreadLocalStorage: 'threadlocalstorage.md'
    - MessageTransceiverThread: 'messagetransceiverthread.md'

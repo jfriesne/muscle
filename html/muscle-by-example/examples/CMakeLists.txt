@@ -280,6 +280,12 @@ if (WITH_TESTS)
    add_executable(thread_example_2_dumb_server_with_thread thread/example_2_dumb_server_with_thread.cpp)
    target_link_libraries(thread_example_2_dumb_server_with_thread muscle)
 
+   add_executable(waitcondition_example_1_basic_usage waitcondition/example_1_basic_usage.cpp)
+   target_link_libraries(waitcondition_example_1_basic_usage muscle)
+
+   add_executable(waitcondition_example_2_ping_pong waitcondition/example_2_ping_pong.cpp)
+   target_link_libraries(waitcondition_example_2_ping_pong muscle)
+
    add_executable(threadlocalstorage_example_1_basic_usage threadlocalstorage/example_1_basic_usage.cpp)
    target_link_libraries(threadlocalstorage_example_1_basic_usage muscle)
 

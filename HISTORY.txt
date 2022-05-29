@@ -13,6 +13,8 @@ key:  - new feature
      CMakeLists.txt file.
    - Added a WITH_PTHREADS=ON option to the CMakeLists.txt file.
    - Added B_IO_READY to the set of declared status_t error-values.
+   - Added example programs and documentation for the new WaitCondition
+     class to the muscle-by-example folder.
    o Updated Thread::WaitForNextMessageFromOwner(),
      Thread::GetNextReplyFromInternalThread(), and MessageTransceiverThread::
      GetNextEventFromInternalThread() to return status_t instead of int32.
