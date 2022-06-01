@@ -407,6 +407,13 @@ public:
    BitChord WithBit(uint32 whichBit) const {BitChord ret(*this); ret.SetBit(whichBit); return ret;}
 
    /** Convenience method.  Returns a BitChord that is identical to this one, except that the
+     * bit at the specified index has been either set or cleared, based on the boolean parameter
+     * @param whichBit the index of the bit to set in the returned object.
+     * @param newBitVal the new value for the specified bit.
+     */
+   BitChord WithBitSetTo(uint32 whichBit, bool newBitVal) const {return newBitVal ? WithBit(whichBit) : WithoutBit(whichBit);}
+
+   /** Convenience method.  Returns a BitChord that is identical to this one, except that the
      * bit at the specified index has been cleared.
      * @param whichBit the index of the bit to clear in the returned object.
      */

@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a BitChord::WithBitSetTo() convenience method.
+
 8.60 - Released 5/28/2022
    - Added a WaitCondition class for easy Wait()/Notify() functionality.
    - Updated the Thread class to use a WaitCondition object as a fallback
