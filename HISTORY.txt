@@ -6,6 +6,7 @@ key:  - new feature
       o other
 
    - Added a BitChord::WithBitSetTo() convenience method.
+   * Added psapi.lib to Qt .pro files for Windows, so Qt programs can link.
 
 8.60 - Released 5/28/2022
    - Added a WaitCondition class for easy Wait()/Notify() functionality.
