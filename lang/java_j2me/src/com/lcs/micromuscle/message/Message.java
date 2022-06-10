@@ -18,12 +18,12 @@ import com.meyer.micromuscle.support.Point;
 import com.meyer.micromuscle.support.Rect;
 import com.meyer.micromuscle.support.UnflattenFormatException;
 
-/** 
+/**
  *  This class is sort of similar to Be's BMessage class.  When flattened,
  *  the resulting byte stream is compatible with the flattened
  *  buffers of MUSCLE's C++ Message class.
- *  It only acts as a serializable data container; it does not 
- *  include any threading capabilities.  
+ *  It only acts as a serializable data container; it does not
+ *  include any threading capabilities.
  */
 public final class Message implements Flattenable
 {
@@ -33,7 +33,7 @@ public final class Message implements Flattenable
    /** Newest serialization protocol version parsable by this code's unflatten() methods,
      * as well as the version of the protocol produce by this code's flatten() methods. */
    public static final int CURRENT_PROTOCOL_VERSION          = 1347235888; // 'PM00'
-   
+
    /** 32 bit 'what' code, for quick identification of message types.  Set this however you like. */
    public int what = 0;
 
@@ -60,12 +60,12 @@ public final class Message implements Flattenable
       this();
       setEqualTo(copyMe);
    }
-   
+
    /** Returns an independent copy of this Message */
    public Flattenable cloneFlat()
    {
-      Message clone = new Message();  
-      clone.setEqualTo(this); 
+      Message clone = new Message();
+      clone.setEqualTo(this);
       return clone;
    }
 
@@ -79,7 +79,7 @@ public final class Message implements Flattenable
       Message copyMe = (Message)c;
       what = copyMe.what;
       Enumeration fields = copyMe.fieldNames();
-      while(fields.hasMoreElements()) 
+      while(fields.hasMoreElements())
       {
          try {
             copyMe.copyField((String)fields.nextElement(), this);
@@ -106,7 +106,7 @@ public final class Message implements Flattenable
       byte [] temp = new byte[4];
       for (int i=0; i<4; i++)
       {
-         byte b = (byte)((w >> ((3-i)*8)) & 0xFF); 
+         byte b = (byte)((w >> ((3-i)*8)) & 0xFF);
          if ((b<' ')||(b>'~')) b = '?';
          temp[i] = b;
       }
@@ -117,11 +117,11 @@ public final class Message implements Flattenable
     *  @param type The type of field to count, or B_ANY_TYPE to count all field types.
     *  @return The number of matching fields, or zero if there are no fields of the appropriate type.
     */
-   public int countFields(int type) 
+   public int countFields(int type)
    {
       if (_fieldTable == null) return 0;
       if (type == B_ANY_TYPE) return _fieldTable.size();
-      
+
       int count = 0;
       Enumeration e = _fieldTable.elements();
       while(e.hasMoreElements())
@@ -134,7 +134,7 @@ public final class Message implements Flattenable
 
    /** Returns the total number of fields in this Message. */
    public int countFields() {return countFields(B_ANY_TYPE);}
-   
+
    /** Returns true iff there are no fields in this Message. */
    public boolean isEmpty() {return (countFields() == 0);}
 
@@ -151,7 +151,7 @@ public final class Message implements Flattenable
       }
       return ret;
    }
-   
+
    /** Renames a field.
     *  @param old_entry Field name to rename from.
     *  @param new_entry Field name to rename to.  If a field with this name already exists, it will be replaced.
@@ -159,7 +159,7 @@ public final class Message implements Flattenable
     */
    public void renameField(String old_entry, String new_entry) throws FieldNotFoundException
    {
-      MessageField field = getField(old_entry); 
+      MessageField field = getField(old_entry);
       _fieldTable.remove(old_entry);
       _fieldTable.put(new_entry, field);
    }
@@ -171,7 +171,7 @@ public final class Message implements Flattenable
    public int typeCode() {return B_MESSAGE_TYPE;}
 
    /** Returns The number of bytes it would take to flatten this Message into a byte buffer. */
-   public int flattenedSize() 
+   public int flattenedSize()
    {
       int sum = 4 + 4 + 4;  // 4 bytes for the protocol revision #, 4 bytes for the number-of-entries field, 4 bytes for what code
       if (_fieldTable != null)
@@ -181,24 +181,24 @@ public final class Message implements Flattenable
          {
             String fieldName = (String) e.nextElement();
             MessageField field = (MessageField) _fieldTable.get(fieldName);
- 
+
             // 4 bytes for the name length, name data, 4 bytes for entry type code, 4 bytes for entry data length, entry data
             sum += 4 + (fieldName.length()+1) + 4 + 4 + field.flattenedSize();
          }
       }
       return sum;
    }
-   
+
    /** Returns true iff (code) is B_MESSAGE_TYPE */
    public boolean allowsTypeCode(int code) {return (code == B_MESSAGE_TYPE);}
-   
+
    /**
     *  Converts this Message into a flattened stream of bytes that can be saved to disk
     *  or sent over a network, and later converted back into an identical Message object.
     *  @param out The stream to output bytes to.  (Should generally be an LEOutputDataStream object)
     *  @throws IOException if there is a problem outputting the bytes.
     */
-   public void flatten(DataOutput out) throws IOException 
+   public void flatten(DataOutput out) throws IOException
    {
       // Format:  0. Protocol revision number (4 bytes, always set to CURRENT_PROTOCOL_VERSION)
       //          1. 'what' code (4 bytes)
@@ -208,7 +208,7 @@ public final class Message implements Flattenable
       //          5. Entry type code (4 bytes)
       //          6. Entry data length (4 bytes)
       //          7. Entry data (n bytes)
-      //          8. loop to 3 as necessary         
+      //          8. loop to 3 as necessary
       out.writeInt(CURRENT_PROTOCOL_VERSION);
       out.writeInt(what);
       out.writeInt(countFields());
@@ -238,7 +238,7 @@ public final class Message implements Flattenable
    public void unflatten(DataInput in, int numBytes) throws UnflattenFormatException, IOException
    {
       clear();
-      int protocolVersion = in.readInt(); 
+      int protocolVersion = in.readInt();
       if ((protocolVersion > CURRENT_PROTOCOL_VERSION)||(protocolVersion < OLDEST_SUPPORTED_PROTOCOL_VERSION)) throw new UnflattenFormatException("Version mismatch error");
       what = in.readInt();
       int numEntries = in.readInt();
@@ -255,7 +255,7 @@ public final class Message implements Flattenable
       }
    }
 
-   /** Sets the given field name to contain a single boolean value.  Any previous field contents are replaced. 
+   /** Sets the given field name to contain a single boolean value.  Any previous field contents are replaced.
     *  @param name Name of the field to set
     *  @param val Value that will become the sole value in the specified field.
     */
@@ -268,13 +268,13 @@ public final class Message implements Flattenable
       field.setPayload(array, 1);
    }
 
-   /** Sets the given field name to contain the given boolean values.  Any previous field contents are replaced. 
+   /** Sets the given field name to contain the given boolean values.  Any previous field contents are replaced.
     *  @param name Name of the field to set vlaues.
     *  @param val Array of boolean values to assign to the field.  Note that the array is not copied; rather the passed-in array becomes part of the Message.
     */
    public void setBooleans(String name, boolean [] vals) {setObjects(name, B_BOOL_TYPE, vals, vals.length);}
 
-   /** Returns the first boolean value in the given field. 
+   /** Returns the first boolean value in the given field.
     *  @param name Name of the field to look for a boolean value in.
     *  @return The first boolean value in the field.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
@@ -293,8 +293,8 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
-   /** Returns the contents of the given field as an array of boolean values. 
+
+   /** Returns the contents of the given field as an array of boolean values.
     *  @param name Name of the field to look for boolean values in.
     *  @return The array of boolean values associated with (name).  Note that this array is still part of this Message.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
@@ -302,7 +302,7 @@ public final class Message implements Flattenable
     */
    public boolean[] getBooleans(String name) throws MessageException {return (boolean[]) getData(name, B_BOOL_TYPE);}
 
-   /** Sets the given field name to contain a single byte value.  Any previous field contents are replaced. 
+   /** Sets the given field name to contain a single byte value.  Any previous field contents are replaced.
     *  @param name Name of the field to set
     *  @param val Value that will become the sole value in the specified field.
     */
@@ -315,21 +315,21 @@ public final class Message implements Flattenable
       field.setPayload(array, 1);
    }
 
-   /** Sets the given field name to contain the given byte values.  Any previous field contents are replaced. 
+   /** Sets the given field name to contain the given byte values.  Any previous field contents are replaced.
     *  @param name Name of the field to set vlaues.
     *  @param val Array of byte values to assign to the field.  Note that the array is not copied; rather the passed-in array becomes part of the Message.
     */
    public void setBytes(String name, byte [] vals) {setObjects(name, B_INT8_TYPE, vals, vals.length);}
 
-   /** Returns the first byte value in the given field. 
+   /** Returns the first byte value in the given field.
     *  @param name Name of the field to look for a byte value in.
     *  @return The first byte value in the field.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_INT8_TYPE field.
     */
    public byte getByte(String name) throws MessageException {return getBytes(name)[0];}
-   
-   /** Returns the first byte value in the given field. 
+
+   /** Returns the first byte value in the given field.
     *  @param name Name of the field to look for a byte value in.
     *  @param def Default value to return if the field dosen't exist or is the wrong type.
     *  @return The first byte value in the field.
@@ -341,16 +341,16 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
-   /** Returns the contents of the given field as an array of byte values. 
+
+   /** Returns the contents of the given field as an array of byte values.
     *  @param name Name of the field to look for byte values in.
     *  @return The array of byte values associated with (name).  Note that this array is still part of this Message.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_INT8_TYPE field.
     */
    public byte[] getBytes(String name) throws MessageException {return (byte[]) getData(name, B_INT8_TYPE);}
-    
-   /** Sets the given field name to contain a single short value.  Any previous field contents are replaced. 
+
+   /** Sets the given field name to contain a single short value.  Any previous field contents are replaced.
     *  @param name Name of the field to set
     *  @param val Value that will become the sole value in the specified field.
     */
@@ -369,15 +369,15 @@ public final class Message implements Flattenable
     */
    public void setShorts(String name, short [] vals) {setObjects(name, B_INT16_TYPE, vals, vals.length);}
 
-   /** Returns the first short value in the given field. 
+   /** Returns the first short value in the given field.
     *  @param name Name of the field to look for a short value in.
     *  @return The first short value in the field.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_INT16_TYPE field.
     */
    public short getShort(String name) throws MessageException {return getShorts(name)[0];}
-   
-   /** Returns the first short value in the given field. 
+
+   /** Returns the first short value in the given field.
     *  @param name Name of the field to look for a short value in.
     *  @param def the default value to return if the field dosen't exist or is the wrong type.
     *  @return The first short value in the field.
@@ -390,15 +390,15 @@ public final class Message implements Flattenable
       }
    }
 
-   /** Returns the contents of the given field as an array of short values. 
+   /** Returns the contents of the given field as an array of short values.
     *  @param name Name of the field to look for short values in.
     *  @return The array of short values associated with (name).  Note that this array is still part of this Message.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_INT16_TYPE field.
     */
    public short[] getShorts(String name) throws MessageException {return (short[]) getData(name, B_INT16_TYPE);}
-    
-   /** Sets the given field name to contain a single int value.  Any previous field contents are replaced. 
+
+   /** Sets the given field name to contain a single int value.  Any previous field contents are replaced.
     *  @param name Name of the field to set
     *  @param val Value that will become the sole value in the specified field.
     */
@@ -417,15 +417,15 @@ public final class Message implements Flattenable
     */
    public void setInts(String name, int [] vals) {setObjects(name, B_INT32_TYPE, vals, vals.length);}
 
-   /** Returns the first int value in the given field. 
+   /** Returns the first int value in the given field.
     *  @param name Name of the field to look for a int value in.
     *  @return The first int value in the field.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_INT32_TYPE field.
     */
    public int getInt(String name) throws MessageException {return getInts(name)[0];}
-   
-   /** Returns the first int value in the given field. 
+
+   /** Returns the first int value in the given field.
     *  @param name Name of the field to look for a int value in.
     *  @param def The value to return if the field dosen't exist, or if the field is the incorrect type.
     *  @return The first int value in the field.
@@ -437,16 +437,16 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
-   /** Returns the contents of the given field as an array of int values. 
+
+   /** Returns the contents of the given field as an array of int values.
     *  @param name Name of the field to look for int values in.
     *  @return The array of int values associated with (name).  Note that this array is still part of this Message.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_INT32_TYPE field.
     */
    public int[] getInts(String name) throws MessageException {return (int[]) getData(name, B_INT32_TYPE);}
-   
-   /** Returns the contents of the given field as an array of int values. 
+
+   /** Returns the contents of the given field as an array of int values.
     *  @param name Name of the field to look for int values in.
     *  @param defs The Default array to return in the event that one does not exist, or an error occurs.
     *  @return The array of int values associated with (name).  Note that this array is still part of this Message.
@@ -458,8 +458,8 @@ public final class Message implements Flattenable
          return defs;
       }
    }
-   
-   /** Sets the given field name to contain a single long value.  Any previous field contents are replaced. 
+
+   /** Sets the given field name to contain a single long value.  Any previous field contents are replaced.
     *  @param name Name of the field to set
     *  @param val Value that will become the sole value in the specified field.
     */
@@ -478,15 +478,15 @@ public final class Message implements Flattenable
     */
    public void setLongs(String name, long [] vals) {setObjects(name, B_INT64_TYPE, vals, vals.length);}
 
-   /** Returns the first long value in the given field. 
+   /** Returns the first long value in the given field.
     *  @param name Name of the field to look for a long value in.
     *  @return The first long value in the field.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_INT64_TYPE field.
     */
    public long getLong(String name) throws MessageException {return getLongs(name)[0];}
-   
-   /** Returns the first long value in the given field. 
+
+   /** Returns the first long value in the given field.
     *  @param name Name of the field to look for a long value in.
     *  @param def The Default value to return if the field dosen't exist, or if it's the wrong type.
     *  @return The first long value in the field.
@@ -498,16 +498,16 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
-   /** Returns the contents of the given field as an array of long values. 
+
+   /** Returns the contents of the given field as an array of long values.
     *  @param name Name of the field to look for long values in.
     *  @return The array of long values associated with (name).  Note that this array is still part of this Message.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_INT64_TYPE field.
     */
    public long[] getLongs(String name) throws MessageException {return (long[]) getData(name, B_INT64_TYPE);}
-    
-   /** Sets the given field name to contain a single float value.  Any previous field contents are replaced. 
+
+   /** Sets the given field name to contain a single float value.  Any previous field contents are replaced.
     *  @param name Name of the field to set
     *  @param val Value that will become the sole value in the specified field.
     */
@@ -526,15 +526,15 @@ public final class Message implements Flattenable
     */
    public void setFloats(String name, float [] vals) {setObjects(name, B_FLOAT_TYPE, vals, vals.length);}
 
-   /** Returns the first float value in the given field. 
+   /** Returns the first float value in the given field.
     *  @param name Name of the field to look for a float value in.
     *  @return The first float value in the field.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_FLOAT_TYPE field.
     */
    public float getFloat(String name) throws MessageException {return getFloats(name)[0];}
-   
-   /** Returns the first float value in the given field. 
+
+   /** Returns the first float value in the given field.
     *  @param name Name of the field to look for a float value in.
     *  @param def the Default value to return if the field dosen't exist, or is the wrong type.
     *  @return The first float value in the field.
@@ -546,16 +546,16 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
-   /** Returns the contents of the given field as an array of float values. 
+
+   /** Returns the contents of the given field as an array of float values.
     *  @param name Name of the field to look for float values in.
     *  @return The array of float values associated with (name).  Note that this array is still part of this Message.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_FLOAT_TYPE field.
     */
    public float[] getFloats(String name) throws MessageException {return (float[]) getData(name, B_FLOAT_TYPE);}
-    
-   /** Sets the given field name to contain a single double value.  Any previous field contents are replaced. 
+
+   /** Sets the given field name to contain a single double value.  Any previous field contents are replaced.
     *  @param name Name of the field to set
     *  @param val Value that will become the sole value in the specified field.
     */
@@ -565,7 +565,7 @@ public final class Message implements Flattenable
       double [] array = (double[]) field.getData();
       if ((array == null)||(field.size() != 1)) array = new double[1];
       array[0] = val;
-      field.setPayload(array, 1); 
+      field.setPayload(array, 1);
    }
 
    /** Sets the given field name to contain the given double values.  Any previous field contents are replaced.
@@ -574,15 +574,15 @@ public final class Message implements Flattenable
     */
    public void setDoubles(String name, double [] vals) {setObjects(name, B_DOUBLE_TYPE, vals, vals.length);}
 
-   /** Returns the first double value in the given field. 
+   /** Returns the first double value in the given field.
     *  @param name Name of the field to look for a double value in.
     *  @return The first double value in the field.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_DOUBLE_TYPE field.
     */
    public double getDouble(String name) throws MessageException {return getDoubles(name)[0];}
-   
-   /** Returns the first double value in the given field. 
+
+   /** Returns the first double value in the given field.
     *  @param name Name of the field to look for a double value in.
     *  @param def The Default value to return if the field dosen't exist.
     *  @return The first double value in the field.
@@ -594,20 +594,20 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
-   /** Returns the contents of the given field as an array of double values. 
+
+   /** Returns the contents of the given field as an array of double values.
     *  @param name Name of the field to look for double values in.
     *  @return The array of double values associated with (name).  Note that this array is still part of this Message.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_DOUBLE_TYPE field.
     */
    public double[] getDoubles(String name) throws MessageException {return (double[]) getData(name, B_DOUBLE_TYPE);}
-    
-   /** Sets the given field name to contain a single String value.  Any previous field contents are replaced. 
+
+   /** Sets the given field name to contain a single String value.  Any previous field contents are replaced.
     *  @param name Name of the field to set
     *  @param val Value that will become the sole value in the specified field.
     */
-   public void setString(String name, String val) 
+   public void setString(String name, String val)
    {
       MessageField field = getCreateOrReplaceField(name, B_STRING_TYPE);
       String [] array = (String[]) field.getData();
@@ -615,22 +615,22 @@ public final class Message implements Flattenable
       array[0] = val;
       field.setPayload(array, 1);
    }
-   
+
    /** Sets the given field name to contain the given String values.  Any previous field contents are replaced.
     *  @param name Name of the field to set vlaues.
     *  @param val Array of String values to assign to the field.  Note that the array is not copied; rather the passed-in array becomes part of the Message.
     */
    public void setStrings(String name, String [] vals) {setObjects(name, B_STRING_TYPE, vals, vals.length);}
 
-   /** 
+   /**
     *  @param name The name of the field to access.
     *  @return the value(s) associated with the requested field name
     *  @throws MessageFieldNotFoundException If the given field name isn't present in the message
     *  @throws MessageFieldTypeMismatchException If the given field exists, but is the wrong type of data.
     */
    public String getString(String name) throws MessageException {return getStrings(name)[0];}
-   
-   /** 
+
+   /**
     *  @param name The name of the field to access.
     *  @param def the default value to return if the field dosen't exist or is the wrong type.
     *  @return the value(s) associated with the requested field name
@@ -642,16 +642,16 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
-   /** Returns the contents of the given field as an array of String values. 
+
+   /** Returns the contents of the given field as an array of String values.
     *  @param name Name of the field to look for String values in.
     *  @return The array of String values associated with (name).  Note that this array is still part of this Message.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_STRING_TYPE field.
     */
    public String[] getStrings(String name) throws MessageException {return (String[]) getData(name, B_STRING_TYPE);}
-   
-   /** Returns the contents of the given field as an array of String values. 
+
+   /** Returns the contents of the given field as an array of String values.
     *  @param name Name of the field to look for String values in.
     *  @param def the Default values to return.
     *  @return The array of String values associated with (name).  Note that this array is still part of this Message.
@@ -663,22 +663,22 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
-   /** Sets the given field name to contain a single Message value.  
-     * Any previous field contents are replaced. 
+
+   /** Sets the given field name to contain a single Message value.
+     * Any previous field contents are replaced.
      * @param name Name of the field to set
      * @param val Value that will become the sole value in the specified field.
      * Note that a copy of (val) is NOT made; the passed-in mesage object becomes part of this Message.
      */
-   public void setMessage(String name, Message val) 
+   public void setMessage(String name, Message val)
    {
       MessageField field = getCreateOrReplaceField(name, B_MESSAGE_TYPE);
       Message [] array = (Message[]) field.getData();
       if ((array == null)||(field.size() != 1)) array = new Message[1];
       array[0] = val;
-      field.setPayload(array, 1);      
+      field.setPayload(array, 1);
    }
-   
+
    /** Sets the given field name to contain the given Message values.  Any previous field contents are replaced.
     *  @param name Name of the field to set vlaues.
     *  @param val Array of Message objects to assign to the field.  Note that the neither the array nor the
@@ -686,7 +686,7 @@ public final class Message implements Flattenable
     */
    public void setMessages(String name, Message [] vals) {setObjects(name, B_MESSAGE_TYPE, vals, vals.length);}
 
-   /** Returns the first Message value in the given field. 
+   /** Returns the first Message value in the given field.
     *  @param name Name of the field to look for a Message value in.
     *  @return The first Message value in the field.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
@@ -702,38 +702,38 @@ public final class Message implements Flattenable
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_MESSAGE_TYPE field.
     */
    public Message[] getMessages(String name) throws MessageException {return (Message[]) getData(name, B_MESSAGE_TYPE);}
-    
+
    /** Sets the given field name to contain a single Point value.
-     * Any previous field contents are replaced. 
+     * Any previous field contents are replaced.
      * @param name Name of the field to set
      * @param val Value that will become the sole value in the specified field.
      * Note that a copy of (val) is NOT made; the passed-in object becomes part of this Message.
      */
-   public void setPoint(String name, Point val) 
+   public void setPoint(String name, Point val)
    {
       MessageField field = getCreateOrReplaceField(name, B_POINT_TYPE);
       Point [] array = (Point[]) field.getData();
       if ((array == null)||(field.size() != 1)) array = new Point[1];
       array[0] = val;
-      field.setPayload(array, 1);      
+      field.setPayload(array, 1);
    }
-   
+
    /** Sets the given field name to contain the given Point values.  Any previous field contents are replaced.
     *  @param name Name of the field to set vlaues.
-    *  @param val Array of Point objects to assign to the field.  Note that neither the array nor the 
+    *  @param val Array of Point objects to assign to the field.  Note that neither the array nor the
     *             Point objects are copied; rather both the array and the Points become part of this Message.
     */
    public void setPoints(String name, Point [] vals) {setObjects(name, B_POINT_TYPE, vals, vals.length);}
 
-   /** Returns the first Point value in the given field. 
+   /** Returns the first Point value in the given field.
     *  @param name Name of the field to look for a Point value in.
     *  @return The first Point value in the field.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_POINT_TYPE field.
     */
    public Point getPoint(String name) throws MessageException {return getPoints(name)[0];}
-   
-   /** Returns the first Point value in the given field. 
+
+   /** Returns the first Point value in the given field.
     *  @param name Name of the field to look for a Point value in.
     *  @param def The Default value to return if the field dosen't exist or is the wrong type.
     *  @return The first Point value in the field.
@@ -745,23 +745,23 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
-   /** Returns the contents of the given field as an array of Point values.  
-    *  @param name Name of the field to look for Point values in. 
+
+   /** Returns the contents of the given field as an array of Point values.
+    *  @param name Name of the field to look for Point values in.
     *  @return The array of Point values associated with (name).  Note that the array and the
     *          objects it holds are still part of the Message.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_POINT_TYPE field.
     */
    public Point[] getPoints(String name) throws MessageException {return (Point[]) getData(name, B_POINT_TYPE);}
-    
-   /** Sets the given field name to contain a single Rect value. 
-     * Any previous field contents are replaced. 
+
+   /** Sets the given field name to contain a single Rect value.
+     * Any previous field contents are replaced.
      * @param name Name of the field to set
      * @param val Value that will become the sole value in the specified field.
      * Note that a copy of (val) is NOT made; the passed-in object becomes part of this Message.
      */
-   public void setRect(String name, Rect val) 
+   public void setRect(String name, Rect val)
    {
       MessageField field = getCreateOrReplaceField(name, B_RECT_TYPE);
       Rect [] array = (Rect[]) field.getData();
@@ -769,7 +769,7 @@ public final class Message implements Flattenable
       array[0] = val;
       field.setPayload(array, 1);
    }
-   
+
    /** Sets the given field name to contain the given Rect values.  Any previous field contents are replaced.
     *  @param name Name of the field to set vlaues.
     *  @param val Array of Rect objects to assign to the field.  Note that neither the array nor the
@@ -784,7 +784,7 @@ public final class Message implements Flattenable
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_RECT_TYPE field.
     */
    public Rect getRect(String name) throws MessageException {return getRects(name)[0];}
-   
+
    /** Returns the first Rect value in the given field.  Note that the returned object is still part of this Message.
     *  @param name Name of the field to look for a Rect value in.
     *  @param def the default value to return if the field dosen't exist or is the wrong type.
@@ -797,23 +797,23 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
-   /** Returns the contents of the given field as an array of Rect values.  
+
+   /** Returns the contents of the given field as an array of Rect values.
     *  @param name Name of the field to look for Rect values in.
-    *  @return The array of Rect values associated with (name).  Note that the array and the Rects that 
+    *  @return The array of Rect values associated with (name).  Note that the array and the Rects that
     *          it holds are still part of the Message.
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name is not a B_RECT_TYPE field.
     */
    public Rect[] getRects(String name) throws MessageException {return (Rect[]) getData(name, B_RECT_TYPE);}
-    
+
    /** Sets the given field name to contain the flattened bytes of the single given Flattenable object.
      * Any previous field contents are replaced.  The type code of the field is determined by calling val.typeCode().
      * @param name Name of the field to set
      * @param val The object whose bytes are to be flattened out and put into this field.
      * (val) will be flattened and the resulting bytes kept.  (val) does not become part of the Message object.
      */
-   public void setFlat(String name, Flattenable val) 
+   public void setFlat(String name, Flattenable val)
    {
       int type = val.typeCode();
       MessageField field = getCreateOrReplaceField(name, type);
@@ -821,29 +821,29 @@ public final class Message implements Flattenable
       switch(type)
       {
          // For these types, we have explicit support for holding the objects in memory, so we'll just clone them
-         case B_MESSAGE_TYPE:  
+         case B_MESSAGE_TYPE:
          {
             Message array[] = ((payload != null)&&(((Message[])payload).length == 1)) ? ((Message[])payload) : new Message[1];
             array[1] = (Message) val.cloneFlat();
             field.setPayload(array, 1);
          }
          break;
-         
-         case B_POINT_TYPE:  
+
+         case B_POINT_TYPE:
          {
             Point array[] = ((payload != null)&&(((Point[])payload).length == 1)) ? ((Point[])payload) : new Point[1];
             array[1] = (Point) val.cloneFlat();
-            field.setPayload(array, 1);            
+            field.setPayload(array, 1);
          }
          break;
-         
-         case B_RECT_TYPE: 
+
+         case B_RECT_TYPE:
          {
             Rect array[] = ((payload != null)&&(((Rect[])payload).length == 1)) ? ((Rect[])payload) : new Rect[1];
             array[1] = (Rect) val.cloneFlat();
-            field.setPayload(array, 1);            
+            field.setPayload(array, 1);
          }
-         break;         
+         break;
 
          // For everything else, we have to store the objects as byte buffers
          default:
@@ -855,14 +855,14 @@ public final class Message implements Flattenable
          break;
       }
    }
-      
+
    /** Sets the given field name to contain the given Flattenable values.  Any previous field contents are replaced.
     *  @param name Name of the field to set vlaues.
     *  @param val Array of Flattenable objects to assign to the field.  The objects are all flattened and
     *             the flattened data is put into the Message; the objects themselves do not become part of the message.
     *  Note that if the objects are Messages, Points, or Rects, they will be cloned rather than flattened.
     */
-   public void setFlats(String name, Flattenable [] vals) 
+   public void setFlats(String name, Flattenable [] vals)
    {
       int type = vals[0].typeCode();
       int len = vals.length;
@@ -870,29 +870,29 @@ public final class Message implements Flattenable
       switch(type)
       {
          // For these types, we have explicit support for holding the objects in memory, so we'll just clone them
-         case B_MESSAGE_TYPE:  
+         case B_MESSAGE_TYPE:
          {
             Message array[] = new Message[len];
             for (int i=0; i<len; i++) array[i] = (Message) vals[i].cloneFlat();
             field.setPayload(array, len);
          }
          break;
-         
-         case B_POINT_TYPE:  
+
+         case B_POINT_TYPE:
          {
             Point array[] = new Point[len];
             for (int i=0; i<len; i++) array[i] = (Point) vals[i].cloneFlat();
             field.setPayload(array, len);
          }
          break;
-         
-         case B_RECT_TYPE: 
+
+         case B_RECT_TYPE:
          {
             Rect array[] = new Rect[len];
             for (int i=0; i<len; i++) array[i] = (Rect) vals[i].cloneFlat();
             field.setPayload(array, len);
          }
-         break;         
+         break;
 
          default:
          {
@@ -903,8 +903,8 @@ public final class Message implements Flattenable
          }
       }
    }
-      
-   /** Retrieves the first Flattenable value in the given field. 
+
+   /** Retrieves the first Flattenable value in the given field.
     *  @param name Name of the field to look for a Flattenable value in.
     *  @param returnObject A Flattenable object that, on success, will be set to reflect the value held in this field.
     *                      This object will not be referenced by this Message.
@@ -913,7 +913,7 @@ public final class Message implements Flattenable
     *  @throws UnflattenFormatException if the passed-in object can not be set or unflattened from the byte buffer.
     *  @throws ClassCastException if the passed-in object is the wrong type for the held Flattenable objects in the field to copy themselves to.
     */
-   public void getFlat(String name, Flattenable returnObject) throws MessageException, UnflattenFormatException, ClassCastException 
+   public void getFlat(String name, Flattenable returnObject) throws MessageException, UnflattenFormatException, ClassCastException
    {
       MessageField field = getField(name);
       if (returnObject.allowsTypeCode(field.typeCode()))
@@ -922,13 +922,13 @@ public final class Message implements Flattenable
               if (o instanceof byte[][]) unflattenFromArray(returnObject, ((byte[][])o)[0]);
          else if (o instanceof Message[]) returnObject.setEqualTo(((Message[])o)[0]);
          else if (o instanceof Point[])   returnObject.setEqualTo(((Point[])o)[0]);
-         else if (o instanceof Rect[])    returnObject.setEqualTo(((Rect[])o)[0]);      
+         else if (o instanceof Rect[])    returnObject.setEqualTo(((Rect[])o)[0]);
          else throw new FieldTypeMismatchException(name + " isn't a flattened-data field");
       }
       else throw new FieldTypeMismatchException("Passed-in object doesn't like typeCode " + whatString(field.typeCode()));
    }
 
-   /** Retrieves the contents of the given field as an array of Flattenable values. 
+   /** Retrieves the contents of the given field as an array of Flattenable values.
     *  @param name Name of the field to look for Flattenable values in.
     *  @param returnObjects Should be an array of pre-allocated Flattenable objects of the correct type.
     *                       On success, this array's objects will be set to the proper states as determined by the held data in
@@ -938,7 +938,7 @@ public final class Message implements Flattenable
     *  @throws FieldNotFoundException if a field with the given name does not exist.
     *  @throws FieldTypeMismatchException if the field with the given name does not contain Flattenable objects or byte buffers.
     *  @throws UnflattenFormatException If any of the held byte buffers or Flattenable objects cannot be copied or unflattened into
-    *                                   the the objects in the passed-in Flattenable array   
+    *                                   the the objects in the passed-in Flattenable array
     *  @throws ClassCastException if the passed-in object is the wrong type for the held Flattenable objects in the field to copy themselves to.
     */
    public int getFlats(String name, Flattenable [] returnObjects) throws MessageException, UnflattenFormatException, ClassCastException
@@ -946,66 +946,66 @@ public final class Message implements Flattenable
       MessageField field = getField(name);
       if (returnObjects[0].allowsTypeCode(field.typeCode()))
       {
-         Object objs = field.getData();      
+         Object objs = field.getData();
          int num;
          if (objs instanceof byte[][])
          {
             byte bufs[][] = (byte[][]) objs;
-            num = (bufs.length < returnObjects.length) ? bufs.length : returnObjects.length;         
+            num = (bufs.length < returnObjects.length) ? bufs.length : returnObjects.length;
             for (int i=0; i<num; i++) unflattenFromArray(returnObjects[i], bufs[i]);
          }
-         else if (objs instanceof Message[]) 
+         else if (objs instanceof Message[])
          {
             Message messages[] = (Message[]) objs;
             num = (messages.length < returnObjects.length) ? messages.length : returnObjects.length;
             for (int i=0; i<num; i++) returnObjects[i].setEqualTo(messages[i]);
          }
-         else if (objs instanceof Point[])   
+         else if (objs instanceof Point[])
          {
             Point points[] = (Point[]) objs;
             num = (points.length < returnObjects.length) ? points.length : returnObjects.length;
             for (int i=0; i<num; i++) returnObjects[i].setEqualTo(points[i]);
          }
-         else if (objs instanceof Rect[])    
+         else if (objs instanceof Rect[])
          {
             Rect rects[] = (Rect[]) objs;
             num = (rects.length < returnObjects.length) ? rects.length : returnObjects.length;
             for (int i=0; i<num; i++) returnObjects[i].setEqualTo(rects[i]);
          }
-         else throw new FieldTypeMismatchException(name + " wasn't an unflattenable data field");      
-      
+         else throw new FieldTypeMismatchException(name + " wasn't an unflattenable data field");
+
          return num;
       }
       else throw new FieldTypeMismatchException("Passed-in objects doen't like typeCode " + whatString(field.typeCode()));
    }
-    
-   /** Sets the given field name to contain a single byte buffer value.  Any previous field contents are replaced. 
+
+   /** Sets the given field name to contain a single byte buffer value.  Any previous field contents are replaced.
      * @param name Name of the field to set
      * @param type The type code to give the field.  May not be a B_*_TYPE that contains non-byte-buffer data (e.g. B_STRING_TYPE or B_INT32_TYPE).
      * @param val Value that will become the sole value in the specified field.
-     * @throws FieldTypeMismatchException if (type) is not a type code that can legally hold byte buffer data 
+     * @throws FieldTypeMismatchException if (type) is not a type code that can legally hold byte buffer data
      */
-   public void setByteBuffer(String name, int type, byte[] val) throws FieldTypeMismatchException 
+   public void setByteBuffer(String name, int type, byte[] val) throws FieldTypeMismatchException
    {
-      checkByteBuffersOkay(type); 
+      checkByteBuffersOkay(type);
       MessageField field = getCreateOrReplaceField(name, type);
       byte [][] array = (byte[][]) field.getData();
       if ((array == null)||(field.size() != 1)) array = new byte[1][];
       array[0] = val;
       field.setPayload(array, 1);
    }
-   
+
    /** Sets the given field name to contain the given byte buffer values.  Any previous field contents are replaced.
      * @param name Name of the field to set vlaues.
-     * @param type The type code to file the byte buffers under.  
+     * @param type The type code to file the byte buffers under.
      *             May not be any a B_*_TYPE that contains non-byte-buffer data (e.g. B_STRING_TYPE or B_INT32_TYPE).
      * @param vals Array of byte buffers to assign to the field.  Note that the neither the array nor the buffers it contains
      *             are copied; rather the all the passed-in data becomes part of the Message.
-     * @throws FieldTypeMismatchException if (type) is not a type code that can legally hold byte buffer data 
+     * @throws FieldTypeMismatchException if (type) is not a type code that can legally hold byte buffer data
      */
    public void setByteBuffers(String name, int type, byte [][] vals) throws FieldTypeMismatchException {checkByteBuffersOkay(type); setObjects(name, type, vals, vals.length);}
 
-   /** Returns the first byte buffer value in the given field. 
+   /** Returns the first byte buffer value in the given field.
     *  Note that the returned data is still held by this Message object.
     *  @param name Name of the field to look for a byte buffer value in.
     *  @return The first byte buffer value in the field.
@@ -1013,7 +1013,7 @@ public final class Message implements Flattenable
     *  @throws FieldTypeMismatchException if the field with the given name does not contain byte buffers.
     */
    public byte[] getBuffer(String name, int type) throws MessageException {return getBuffers(name,type)[0];}
-   
+
    /** Returns the first byte buffer value in the given field.
     * Note that the returned data is still held by this Message object.
     * @param def The Default value to return if the field is not found or has the wrong type.
@@ -1027,7 +1027,7 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
+
    /** Returns the contents of the given field as an array of byte buffer values.
     *  @param name Name of the field to look for byte buffer values in.
     *  @return The array of byte buffer values associated with (name).  Note that the returned data is still held by this Message object.
@@ -1043,7 +1043,7 @@ public final class Message implements Flattenable
 
    /** Utility method to get the data of a field (any type acceptable) with must-be-there semantics */
    public Object getData(String name) throws FieldNotFoundException {return getField(name).getData();}
-   
+
    /** Gets the data of a field, returns def if any exceptions occur. */
    public Object getData(String name, Object def) {
       try {
@@ -1052,7 +1052,7 @@ public final class Message implements Flattenable
          return def;
       }
    }
-   
+
    /** Utility method to get the data of a field (of a given type, or B_ANY_TYPE) using standard must-be-there semantics */
    public Object getData(String name, int type) throws FieldNotFoundException, FieldTypeMismatchException {return getField(name, type).getData();}
 
@@ -1073,16 +1073,16 @@ public final class Message implements Flattenable
    /** Returns true iff there is a field with the given name and type present in the Message
     *  @param fieldName the field name to look for.
     *  @param type the type to look for, or B_ANY_TYPE if type isn't important to you.
-    *  @return true if such a field exists, else false. 
+    *  @return true if such a field exists, else false.
     */
    public boolean hasField(String fieldName, int type) {return (getFieldIfExists(fieldName, type) != null);}
 
    /** Returns true iff this Message contains a field named (fieldName).
     *  @param fieldName Name of the field to check for.
-    *  @return true if the field exists, else false. 
+    *  @return true if the field exists, else false.
     */
    public boolean hasField(String fieldName) {return hasField(fieldName, B_ANY_TYPE);}
-   
+
    /** Returns the number of items present in the given field, or zero if the field isn't present or is of the wrong type.
     *  @param name Name of the field to check.
     *  @param type Type of field to limit query to, or B_ANY_TYPE if type doesn't matter
@@ -1100,13 +1100,13 @@ public final class Message implements Flattenable
     */
    public int countItemsInField(String fieldName) {return countItemsInField(fieldName, B_ANY_TYPE);}
 
-   /** Returns the B_*_TYPE type code of the given field. 
+   /** Returns the B_*_TYPE type code of the given field.
     *  @param name Name of the field to check.
-    *  @throws FieldNotFoundException if no field with the given name exists. 
+    *  @throws FieldNotFoundException if no field with the given name exists.
     */
    public int getFieldTypeCode(String name) throws FieldNotFoundException {return getField(name).typeCode();}
 
-   /** Take the data under (name) in this message, and moves it into (moveTo). 
+   /** Take the data under (name) in this message, and moves it into (moveTo).
     *  Any data that was under (name) in (moveTo) will be replaced.
     *  @param name Name of an existing field to be moved.
     *  @param moveTo A Message to move the field into.
@@ -1119,13 +1119,13 @@ public final class Message implements Flattenable
       moveTo.ensureFieldTableAllocated();
       moveTo._fieldTable.put(name, field);
    }
-   
+
    /**
-    * Take the data under (name) in this message, and copies it into (moveTo). 
+    * Take the data under (name) in this message, and copies it into (moveTo).
     * Any data that was under (name) in (moveTo) will be replaced.
     * @param name Name of an existing field to be copied.
     * @param copyTo A Message to copy the field into.
-    * @throws FieldNotFound exception if a field named (name) does not exist in this Message. 
+    * @throws FieldNotFound exception if a field named (name) does not exist in this Message.
     */
    public void copyField(String name, Message copyTo) throws FieldNotFoundException
    {
@@ -1140,13 +1140,13 @@ public final class Message implements Flattenable
       try {
          int fs = flat.flattenedSize();
          if ((optOldBuf == null)||(optOldBuf.length != fs)) optOldBuf = new byte[fs];
-      
+
          if (_paos == null)
          {
             _paos = new PreAllocatedByteArrayOutputStream();
             _lepaos = new LEDataOutputStream(_paos);
          }
-         _paos.setOutputBuffer(optOldBuf);      
+         _paos.setOutputBuffer(optOldBuf);
          flat.flatten(_lepaos);
          _paos.setOutputBuffer(null);   // allow gc
       }
@@ -1155,7 +1155,7 @@ public final class Message implements Flattenable
       }
       return optOldBuf;
    }
-   
+
    /** Unflattens the given array into the given object.  Throws UnflattenFormatException on failure. */
    private synchronized void unflattenFromArray(Flattenable flat, byte [] buf) throws UnflattenFormatException
    {
@@ -1195,20 +1195,20 @@ public final class Message implements Flattenable
       MessageField field = (MessageField) _fieldTable.get(name);
       if (field != null)
       {
-         if (field.typeCode() != type) 
+         if (field.typeCode() != type)
          {
             _fieldTable.remove(name);
             return getCreateOrReplaceField(name, type);
          }
       }
-      else 
+      else
       {
          field = new MessageField(type);
          _fieldTable.put(name, field);
       }
       return field;
    }
-   
+
    /** Utility method to get a field (any type acceptable) with must-be-there semantics */
    private MessageField getField(String name) throws FieldNotFoundException
    {
@@ -1216,7 +1216,7 @@ public final class Message implements Flattenable
       if ((_fieldTable != null)&&((field = (MessageField)_fieldTable.get(name)) != null)) return field;
       throw new FieldNotFoundException("Field " + name + " not found.");
    }
-   
+
    /** Utility method to get a field (of a given type) using standard must-be-there semantics */
    private MessageField getField(String name, int type) throws FieldNotFoundException, FieldTypeMismatchException
    {
@@ -1243,7 +1243,7 @@ public final class Message implements Flattenable
       {
          case B_BOOL_TYPE: case B_DOUBLE_TYPE: case B_FLOAT_TYPE:
          case B_INT64_TYPE: case B_INT32_TYPE: case B_INT16_TYPE:
-         case B_MESSAGE_TYPE: case B_POINT_TYPE:  case B_RECT_TYPE: case B_STRING_TYPE: 
+         case B_MESSAGE_TYPE: case B_POINT_TYPE:  case B_RECT_TYPE: case B_STRING_TYPE:
             throw new FieldTypeMismatchException();
 
          default:
@@ -1281,8 +1281,8 @@ public final class Message implements Flattenable
          int ret = 0;
          switch(_type)
          {
-            case B_BOOL_TYPE:  case B_INT8_TYPE: case B_INT16_TYPE: case B_FLOAT_TYPE: case B_INT32_TYPE: 
-            case B_INT64_TYPE: case B_DOUBLE_TYPE: case B_POINT_TYPE: case B_RECT_TYPE:                                       
+            case B_BOOL_TYPE:  case B_INT8_TYPE: case B_INT16_TYPE: case B_FLOAT_TYPE: case B_INT32_TYPE:
+            case B_INT64_TYPE: case B_DOUBLE_TYPE: case B_POINT_TYPE: case B_RECT_TYPE:
                ret += _numItems * flattenedItemSize();
             break;
 
@@ -1328,64 +1328,64 @@ public final class Message implements Flattenable
       {
          switch(typeCode())
          {
-            case B_BOOL_TYPE:  
-            { 
+            case B_BOOL_TYPE:
+            {
                boolean [] array = (boolean[]) _payload;
                for (int i=0; i<_numItems; i++) out.writeByte(array[i] ? 1 : 0);
             }
             break;
 
-            case B_INT8_TYPE:                       
+            case B_INT8_TYPE:
             {
                byte [] array = (byte[]) _payload;
                out.write(array, 0, _numItems);  // wow, easy!
             }
             break;
 
-            case B_INT16_TYPE:                                         
+            case B_INT16_TYPE:
             {
                short [] array = (short[]) _payload;
                for (int i=0; i<_numItems; i++) out.writeShort(array[i]);
             }
             break;
 
-            case B_FLOAT_TYPE: 
-            { 
+            case B_FLOAT_TYPE:
+            {
                float [] array = (float[]) _payload;
                for (int i=0; i<_numItems; i++) out.writeFloat(array[i]);
             }
             break;
 
             case B_INT32_TYPE:
-            { 
+            {
                int [] array = (int[]) _payload;
                for (int i=0; i<_numItems; i++) out.writeInt(array[i]);
             }
             break;
 
-            case B_INT64_TYPE: 
-            { 
+            case B_INT64_TYPE:
+            {
                long [] array = (long[]) _payload;
                for (int i=0; i<_numItems; i++) out.writeLong(array[i]);
             }
             break;
 
-            case B_DOUBLE_TYPE: 
-            { 
+            case B_DOUBLE_TYPE:
+            {
                double [] array = (double[]) _payload;
                for (int i=0; i<_numItems; i++) out.writeDouble(array[i]);
             }
             break;
 
-            case B_POINT_TYPE:  
-            { 
+            case B_POINT_TYPE:
+            {
                Point [] array = (Point[]) _payload;
                for (int i=0; i<_numItems; i++) array[i].flatten(out);
             }
             break;
 
-            case B_RECT_TYPE:                                          
-            { 
+            case B_RECT_TYPE:
+            {
                Rect [] array = (Rect[]) _payload;
                for (int i=0; i<_numItems; i++) array[i].flatten(out);
             }
@@ -1406,7 +1406,7 @@ public final class Message implements Flattenable
             {
                String array[] = (String[]) _payload;
                out.writeInt(_numItems);
-               for (int i=0; i<_numItems; i++) 
+               for (int i=0; i<_numItems; i++)
                {
                   try {
                      byte[] utf8Bytes = array[i].getBytes("UTF8");
@@ -1426,7 +1426,7 @@ public final class Message implements Flattenable
             {
                byte [][] array = (byte[][]) _payload;
                out.writeInt(_numItems);
-               for (int i=0; i<_numItems; i++) 
+               for (int i=0; i<_numItems; i++)
                {
                   out.writeInt(array[i].length);
                   out.write(array[i]);
@@ -1450,7 +1450,7 @@ public final class Message implements Flattenable
 
          switch(_type)
          {
-            case B_BOOL_TYPE:  
+            case B_BOOL_TYPE:
             {
                boolean [] array = new boolean[_numItems];
                for (int i=0; i<_numItems; i++) array[i] = (in.readByte() > 0) ? true : false;
@@ -1458,7 +1458,7 @@ public final class Message implements Flattenable
             }
             break;
 
-            case B_INT8_TYPE:             
+            case B_INT8_TYPE:
             {
                byte [] array = new byte[_numItems];
                in.readFully(array);  // wow, easy
@@ -1466,16 +1466,16 @@ public final class Message implements Flattenable
             }
             break;
 
-            case B_INT16_TYPE:                                         
-            { 
+            case B_INT16_TYPE:
+            {
                short [] array = new short[_numItems];
                for (int i=0; i<_numItems; i++) array[i] = in.readShort();
                _payload = array;
             }
             break;
 
-            case B_FLOAT_TYPE: 
-            { 
+            case B_FLOAT_TYPE:
+            {
                float [] array = new float[_numItems];
                for (int i=0; i<_numItems; i++) array[i] = in.readFloat();
                _payload = array;
@@ -1483,22 +1483,22 @@ public final class Message implements Flattenable
             break;
 
             case B_INT32_TYPE:
-            { 
+            {
                int [] array = new int[_numItems];
                for (int i=0; i<_numItems; i++) array[i] = in.readInt();
                _payload = array;
             }
             break;
 
-            case B_INT64_TYPE: 
-            { 
+            case B_INT64_TYPE:
+            {
                long [] array = new long[_numItems];
                for (int i=0; i<_numItems; i++) array[i] = in.readLong();
                _payload = array;
             }
             break;
 
-            case B_DOUBLE_TYPE: 
+            case B_DOUBLE_TYPE:
             {
                double [] array = new double[_numItems];
                for (int i=0; i<_numItems; i++) array[i] = in.readDouble();
@@ -1506,10 +1506,10 @@ public final class Message implements Flattenable
             }
             break;
 
-            case B_POINT_TYPE:  
-            { 
+            case B_POINT_TYPE:
+            {
                Point [] array = new Point[_numItems];
-               for (int i=0; i<_numItems; i++) 
+               for (int i=0; i<_numItems; i++)
                {
                   Point p = array[i] = new Point();
                   p.unflatten(in, p.flattenedSize());
@@ -1518,10 +1518,10 @@ public final class Message implements Flattenable
             }
             break;
 
-            case B_RECT_TYPE:                                          
+            case B_RECT_TYPE:
             {
                Rect [] array = new Rect[_numItems];
-               for (int i=0; i<_numItems; i++) 
+               for (int i=0; i<_numItems; i++)
                {
                   Rect r = array[i] = new Rect();
                   r.unflatten(in, r.flattenedSize());
@@ -1536,7 +1536,7 @@ public final class Message implements Flattenable
                while(numBytes > 0)
                {
                   Message subMessage = new Message();
-                  int subMessageSize = in.readInt(); 
+                  int subMessageSize = in.readInt();
                   subMessage.unflatten(in, subMessageSize);
                   temp.addElement(subMessage);
                   numBytes -= (subMessageSize + 4);  // 4 for the size int
@@ -1553,7 +1553,7 @@ public final class Message implements Flattenable
                _numItems = in.readInt();
                String array[] = new String[_numItems];
                byte [] temp = null;  // lazy-allocated
-               for (int i=0; i<_numItems; i++) 
+               for (int i=0; i<_numItems; i++)
                {
                   int nextStringLen = in.readInt();
                   if ((temp == null)||(temp.length < nextStringLen)) temp = new byte[nextStringLen];
@@ -1572,7 +1572,7 @@ public final class Message implements Flattenable
             {
                _numItems = in.readInt();
                byte [][] array = new byte[_numItems][];
-               for (int i=0; i<_numItems; i++) 
+               for (int i=0; i<_numItems; i++)
                {
                   array[i] = new byte[in.readInt()];
                   in.readFully(array[i]);
@@ -1590,63 +1590,63 @@ public final class Message implements Flattenable
          int pitems = (_numItems < 10) ? _numItems : 10;
          switch(_type)
          {
-            case B_BOOL_TYPE:  
+            case B_BOOL_TYPE:
             {
                boolean [] array = (boolean[]) _payload;
                for (int i=0; i<pitems; i++) ret += ((array[i]) ? "true " : "false ");
             }
             break;
 
-            case B_INT8_TYPE:                       
+            case B_INT8_TYPE:
             {
                byte [] array = (byte[]) _payload;
                for (int i=0; i<pitems; i++) ret += (array[i] + " ");
             }
             break;
 
-            case B_INT16_TYPE:                                         
-            { 
+            case B_INT16_TYPE:
+            {
                short [] array = (short[]) _payload;
                for (int i=0; i<pitems; i++) ret += (array[i] + " ");
             }
             break;
 
-            case B_FLOAT_TYPE: 
-            { 
+            case B_FLOAT_TYPE:
+            {
                float [] array = (float[]) _payload;
                for (int i=0; i<pitems; i++) ret += (array[i] + " ");
             }
             break;
 
             case B_INT32_TYPE:
-            { 
+            {
                int [] array = (int[]) _payload;
                for (int i=0; i<pitems; i++) ret += (array[i] + " ");
             }
             break;
 
-            case B_INT64_TYPE: 
-            { 
+            case B_INT64_TYPE:
+            {
                long [] array = (long[]) _payload;
                for (int i=0; i<pitems; i++) ret += (array[i] + " ");
             }
             break;
 
-            case B_DOUBLE_TYPE: 
+            case B_DOUBLE_TYPE:
             {
                double [] array = (double[]) _payload;
                for (int i=0; i<pitems; i++) ret += (array[i] + " ");
             }
             break;
 
-            case B_POINT_TYPE:  
-            { 
+            case B_POINT_TYPE:
+            {
                Point [] array = (Point[]) _payload;
                for (int i=0; i<pitems; i++) ret += array[i];
             }
             break;
 
-            case B_RECT_TYPE:                                          
+            case B_RECT_TYPE:
             {
                Rect [] array = (Rect[]) _payload;
                for (int i=0; i<pitems; i++) ret += array[i];
@@ -1684,7 +1684,7 @@ public final class Message implements Flattenable
          Object newArray;  // this will be a copy of our data array
          switch(_type)
          {
-            case B_BOOL_TYPE:    newArray = new boolean[_numItems]; break;            
+            case B_BOOL_TYPE:    newArray = new boolean[_numItems]; break;
             case B_INT8_TYPE:    newArray = new byte[_numItems];    break;
             case B_INT16_TYPE:   newArray = new short[_numItems];   break;
             case B_FLOAT_TYPE:   newArray = new float[_numItems];   break;
@@ -1698,40 +1698,40 @@ public final class Message implements Flattenable
             default:             newArray = new byte[_numItems][];  break;
          }
          System.arraycopy(_payload, 0, newArray, 0, _numItems);
-         
+
          // If the contents of newArray are modifiable, we need to clone the contents also
          switch(_type)
          {
-            case B_POINT_TYPE: 
+            case B_POINT_TYPE:
             {
                Point points[] = (Point[]) newArray;
                for (int i=0; i<_numItems; i++) points[i] = (Point) points[i].cloneFlat();
             }
             break;
-            
-            case B_RECT_TYPE: 
+
+            case B_RECT_TYPE:
             {
                Rect rects[] = (Rect[]) newArray;
-               for (int i=0; i<_numItems; i++) rects[i] = (Rect) rects[i].cloneFlat();               
+               for (int i=0; i<_numItems; i++) rects[i] = (Rect) rects[i].cloneFlat();
             }
             break;
-            
+
             case B_MESSAGE_TYPE:
             {
                Message messages[] = (Message[]) newArray;
                for (int i=0; i<_numItems; i++) messages[i] = (Message) messages[i].cloneFlat();
             }
             break;
-            
-            default:            
+
+            default:
             {
                if (newArray instanceof byte[][])
                {
                   // Clone the byte arrays, since they are modifiable
                   byte [][] array = (byte[][]) newArray;
-                  for (int i=0; i<_numItems; i++) 
+                  for (int i=0; i<_numItems; i++)
                   {
-                     byte [] newBuf = new byte[array[i].length];                     
+                     byte [] newBuf = new byte[array[i].length];
                      System.arraycopy(array[i], 0, newBuf, 0, array[i].length);
                      array[i] = newBuf;
                   }
@@ -1758,7 +1758,7 @@ public final class Message implements Flattenable
    /** Used for more efficient unflattening of Flattenables from byte arrays */
    private final class PreAllocatedByteArrayInputStream extends InputStream
    {
-      public int available() throws IOException {return (_buf != null) ? (_buf.length - _bytesRead) : 0;}      
+      public int available() throws IOException {return (_buf != null) ? (_buf.length - _bytesRead) : 0;}
       public void close() throws IOException {setInputBuffer(null);}
       public void mark(int readLimit) {_mark = _bytesRead;}
       public boolean markSupported() {return true;}
@@ -1776,13 +1776,13 @@ public final class Message implements Flattenable
          else return -1;
       }
       public synchronized void reset() throws IOException {_bytesRead = _mark;}
-      public long skip(long n) throws IOException 
+      public long skip(long n) throws IOException
       {
          if (_buf != null)
          {
             int numLeft = _buf.length - _bytesRead;
             if (numLeft >= n)
-            {                
+            {
                _bytesRead += n;
                return n;
             }
@@ -1794,14 +1794,14 @@ public final class Message implements Flattenable
          }
          else return 0;
       }
- 
+
       public void setInputBuffer(byte [] buf)
       {
          _buf = buf;
          _bytesRead = 0;
          _mark = 0;
       }
-      
+
       private byte [] _buf = null;
       private int _mark = 0;
       private int _bytesRead = 0;
@@ -1809,8 +1809,8 @@ public final class Message implements Flattenable
 
    /** Used for more efficient flattening of Flattenables to byte arrays */
    private class PreAllocatedByteArrayOutputStream extends OutputStream
-   {      
-      public void close() throws IOException {_buf = null;}     
+   {
+      public void close() throws IOException {_buf = null;}
       public void write(byte[] b, int off, int len) throws IOException
       {
          if (_buf != null)
@@ -1821,7 +1821,7 @@ public final class Message implements Flattenable
                System.arraycopy(b, off, _buf, _bytesWritten, len);
                _bytesWritten += len;
                return;
-            }            
+            }
          }
          throw new IOException("no space left in buffer ");
       }
@@ -1831,13 +1831,13 @@ public final class Message implements Flattenable
          if ((_buf != null)&&(_bytesWritten < _buf.length)) _buf[_bytesWritten++] = (byte) b;
          else throw new IOException("no space left in buffer");
       }
-      
-      public void setOutputBuffer(byte [] buf) 
+
+      public void setOutputBuffer(byte [] buf)
       {
          _buf = buf;
          _bytesWritten = 0;
       }
-      
+
       private byte _buf[] = null;
       private int _bytesWritten = 0;
    }
@@ -1846,7 +1846,7 @@ public final class Message implements Flattenable
    private PreAllocatedByteArrayInputStream  _pais = null;
    private PreAllocatedByteArrayOutputStream _paos = null;
    private LEDataInputStream _lepais = null;
-   private LEDataOutputStream _lepaos = null;   
+   private LEDataOutputStream _lepaos = null;
 
    private Hashtable _fieldTable = null;    // our name -> MessageField table
    private static Hashtable _empty; // = new Hashtable(0);  // had to change this to be done on-demand in the ctor, as IE was throwing fits :^(

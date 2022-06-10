@@ -14,7 +14,7 @@ public class UnflattenFormatException extends IOException
     {
        super("unexpected bytes during Flattenable unflatten");
     }
-    
+
     public UnflattenFormatException(String s)
     {
        super(s);

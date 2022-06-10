@@ -12,7 +12,7 @@ public class FieldTypeMismatchException extends MessageException
    {
       super(s);
    }
-    
+
    public FieldTypeMismatchException()
    {
       super("Message entry type mismatch");

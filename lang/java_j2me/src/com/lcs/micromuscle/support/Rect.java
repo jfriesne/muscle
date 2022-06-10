@@ -20,10 +20,10 @@ public class Rect implements Flattenable
    /** Exposed member variable representing the position of the bottom edge of the rectangle. */
    public float bottom = -1.0f;
 
-   /** Default Constructor.  
+   /** Default Constructor.
      * Creates a rectangle with upper left point (0,0), and lower right point (-1,-1).
      * Note that this rectangle has a negative area!  (that is, it's imaginary)
-     */ 
+     */
    public Rect() { /* empty */ }
 
    /** Constructor where you specify the left, top, right, and bottom coordinates */
@@ -46,7 +46,7 @@ public class Rect implements Flattenable
    {
       Rect copyMe = (Rect) rhs;
       set(copyMe.left, copyMe.top, copyMe.right, copyMe.bottom);
-   } 
+   }
 
    /** Set a new position for the rectangle. */
    public void set(float l, float t, float r, float b)
@@ -106,7 +106,7 @@ public class Rect implements Flattenable
    public void offsetTo(float x, float y) {right = x + width(); bottom = y + height(); left = x; top = y;}
 
    /** Comparison Operator.  Returns true iff (r)'s dimensions are exactly the same as this rectangle's. */
-   public boolean equals(Object o) 
+   public boolean equals(Object o)
    {
       if (o instanceof Rect)
       {
@@ -117,7 +117,7 @@ public class Rect implements Flattenable
    }
 
    /** Returns a rectangle whose area is the intersecting subset of this rectangle's and (r)'s */
-   public Rect intersect(Rect r) 
+   public Rect intersect(Rect r)
    {
       Rect ret = new Rect(this);
       if (ret.left   < r.left)   ret.left   = r.left;
@@ -128,7 +128,7 @@ public class Rect implements Flattenable
    }
 
    /** Returns a rectangle whose area is a superset of the union of this rectangle's and (r)'s */
-   public Rect unify(Rect r) 
+   public Rect unify(Rect r)
    {
       Rect ret = new Rect(this);
       if (r.left   < ret.left)   ret.left   = r.left;
@@ -151,13 +151,13 @@ public class Rect implements Flattenable
    public float height() {return bottom - top;}
 
    /** Returns true iff this rectangle contains the specified point. */
-   public boolean contains(Point p) 
+   public boolean contains(Point p)
    {
       return ((p.x >= left)&&(p.x <= right)&&(p.y >= top)&&(p.y <= bottom));
    }
 
    /** Returns true iff this rectangle fully the specified rectangle. */
-   public boolean contains(Rect p) 
+   public boolean contains(Rect p)
    {
       return ((contains(p.leftTop()))&&(contains(p.rightTop()))&&
               (contains(p.leftBottom()))&&(contains(p.rightBottom())));
@@ -180,11 +180,11 @@ public class Rect implements Flattenable
     *  @param out The DataOutput to send the data to.
     *  @throws IOException if there is a problem writing out the output bytes.
     */
-   public void flatten(DataOutput out) throws IOException  
+   public void flatten(DataOutput out) throws IOException
    {
       out.writeFloat(left);
       out.writeFloat(top);
-      out.writeFloat(right);   
+      out.writeFloat(right);
       out.writeFloat(bottom);
    }
 

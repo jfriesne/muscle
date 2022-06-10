@@ -4,9 +4,9 @@ package com.meyer.micromuscle.thread;
 /** Any object that implements this interface may add itself as
  *  a listener to one or more MessageQueue objects.
  */
-public interface MessageListener 
+public interface MessageListener
 {
-   /** Called on all attached MessageListeners whenever a MessageQueue receives a message. 
+   /** Called on all attached MessageListeners whenever a MessageQueue receives a message.
     *  Note that this method will be called asynchronously from another Thread, so you
     *  may want to declare it synchronized when you implement it.
     *  @param message The received message object (may be any sort of Java object, or even null).

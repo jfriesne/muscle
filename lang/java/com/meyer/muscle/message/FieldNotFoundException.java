@@ -13,7 +13,7 @@ public class FieldNotFoundException extends MessageException
    {
       super(s);
    }
-    
+
    public FieldNotFoundException()
    {
       super("Message entry not found");

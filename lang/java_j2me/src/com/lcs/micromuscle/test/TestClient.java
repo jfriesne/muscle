@@ -171,7 +171,7 @@ public class TestClient extends MIDlet implements CommandListener, MessageListen
 			for (int i=0; i<numFloats; i++) {
 				lotsafloats[i] = (float)i;
 			}
-			msg.setFloats("four_megabytes_of_floats", lotsafloats);                  
+			msg.setFloats("four_megabytes_of_floats", lotsafloats);
 		} else if (command.equals("toobig")) {
 			msg.what = PR_COMMAND_PING;
 			int numFloats = 2*1024*1024;
@@ -179,7 +179,7 @@ public class TestClient extends MIDlet implements CommandListener, MessageListen
 			for (int i=0; i<numFloats; i++) {
 				lotsafloats[i] = (float)i;
 			}
-			msg.setFloats("eight_megabytes_of_floats", lotsafloats);                  
+			msg.setFloats("eight_megabytes_of_floats", lotsafloats);
 		}
 		
 		if (msg != null) {

@@ -17,8 +17,8 @@ public interface TypeConstants
    public static final int B_POINT_TYPE   = 1112559188; // 'BPNT',  // muscle.support.Point in Java
    public static final int B_RECT_TYPE    = 1380270932; // 'RECT',  // muscle.support.Rect in Java
    public static final int B_STRING_TYPE  = 1129534546; // 'CSTR',  // java.lang.String
-   public static final int B_OBJECT_TYPE  = 1330664530; // 'OPTR',  
-   public static final int B_RAW_TYPE     = 1380013908; // 'RAWT',  
-   public static final int B_MIME_TYPE    = 1296649541; // 'MIME',  
+   public static final int B_OBJECT_TYPE  = 1330664530; // 'OPTR',
+   public static final int B_RAW_TYPE     = 1380013908; // 'RAWT',
+   public static final int B_MIME_TYPE    = 1296649541; // 'MIME',
 }
 

@@ -22,7 +22,7 @@ public final class Queue
       setEqualTo(copyMe);
    }
 
-   /** Make (this) a shallow copy of the passed-in queue. 
+   /** Make (this) a shallow copy of the passed-in queue.
     *  @param setTo What to set this queue equal to.
     */
    public void setEqualTo(Queue setTo)
@@ -34,7 +34,7 @@ public final class Queue
    }
 
    /** Appends (obj) to the end of the queue.  Queue size grows by one.
-    *  @param obj The element to append. 
+    *  @param obj The element to append.
     */
    public void appendElement(Object obj)
    {
@@ -46,7 +46,7 @@ public final class Queue
    }
 
    /** Prepends (obj) to the head of the queue.  Queue size grows by one.
-    *  @param obj The Object to prepend. 
+    *  @param obj The Object to prepend.
     */
    public void prependElement(Object obj)
    {
@@ -72,7 +72,7 @@ public final class Queue
       }
       return ret;
    }
-   
+
    /** Removes and returns the element at the tail of the Queue.
     *  @return The removed Object, or null if the Queue was empty.
     */
@@ -80,7 +80,7 @@ public final class Queue
    {
       Object ret = null;
       if (_elementCount > 0)
-      {       
+      {
          ret = _queue[_tailIndex];
          _queue[_tailIndex] = null;   // allow garbage collection
          _tailIndex = prevIndex(_tailIndex);
@@ -91,7 +91,7 @@ public final class Queue
 
 
    /** removes the element at the (index)'th position in the queue.
-    *  @param idx Which element to remove--can range from zero 
+    *  @param idx Which element to remove--can range from zero
     *               (head of the queue) to CountElements()-1 (tail of the queue).
     *  @return The removed Object, or null if the Queue was empty.
     *  Note that this method is somewhat inefficient for indices that
@@ -101,23 +101,23 @@ public final class Queue
    public Object removeElementAt(int idx)
    {
       if (idx == 0) return removeFirstElement();
-      
+
       int index = internalizeIndex(idx);
-      Object ret = _queue[index];   
+      Object ret = _queue[index];
       while(index != _tailIndex)
       {
          int next = nextIndex(index);
          _queue[index] = _queue[next];
          index = next;
       }
-      _queue[_tailIndex] = null;    // allow garbage collection 
-      _tailIndex = prevIndex(_tailIndex); 
+      _queue[_tailIndex] = null;    // allow garbage collection
+      _tailIndex = prevIndex(_tailIndex);
       _elementCount--;
       return ret;
    }
 
    /** Copies the (index)'th element into (returnElement).
-    *  @param index Which element to get--can range from zero 
+    *  @param index Which element to get--can range from zero
     *               (head of the queue) to (CountElements()-1) (tail of the queue).
     *  @return The Object at the given index.
     *  @throws IndexOutOfBoundsException if (index) isn't a valid index.
@@ -125,7 +125,7 @@ public final class Queue
    public Object elementAt(int index) {return _queue[internalizeIndex(index)];}
 
    /** Replaces the (index)'th element in the queue with (newElement).
-    *  @param index Which element to replace--can range from zero 
+    *  @param index Which element to replace--can range from zero
     *               (head of the queue) to (CountElements()-1) (tail of the queue).
     *  @param newElement The element to place into the queue at the (index)'th position.
     *  @return The Object that was previously in the (index)'th position.
@@ -138,7 +138,7 @@ public final class Queue
       _queue[iidx] = newElement;
       return ret;
    }
- 
+
    /** Inserts (element) into the (nth) slot in the array.  InsertElementAt(0)
     *  is the same as addHead(element), InsertElementAt(CountElements()) is the same
     *  as addTail(element).  Other positions will involve an O(n) shifting of contents.
@@ -160,7 +160,7 @@ public final class Queue
    }
 
    /** Removes all elements from the queue. */
-   public void removeAllElements() 
+   public void removeAllElements()
    {
       if (_elementCount > 0)
       {
@@ -174,7 +174,7 @@ public final class Queue
 
          _elementCount = 0;
          _headIndex    = -1;
-         _tailIndex    = -1; 
+         _tailIndex    = -1;
       }
    }
 
@@ -199,7 +199,7 @@ public final class Queue
    {
       if ((_queue == null)||(_queue.length < numElements))
       {
-         Object newQueue[] = new Object[(numElements < 5) ? 5 : numElements*2];    
+         Object newQueue[] = new Object[(numElements < 5) ? 5 : numElements*2];
          if (_elementCount > 0)
          {
             for (int i=0; i<_elementCount; i++) newQueue[i] = elementAt(i);
@@ -220,22 +220,22 @@ public final class Queue
       if (_queue != null) for (int i=size()-1; i>=0; i--) if (elementAt(i) == element) return i;
       return -1;
    }
-   
+
    private int nextIndex(int idx) {return (idx >= getArraySize()-1) ? 0 : idx+1;}
    private int prevIndex(int idx) {return (idx <= 0) ? getArraySize()-1 : idx-1;}
 
    // Translates a user-index into an index into the _queue array.
-   private int internalizeIndex(int idx) 
+   private int internalizeIndex(int idx)
    {
       if ((idx < 0)||(idx >= _elementCount)) throw new IndexOutOfBoundsException("bad index " + idx + " (queuelen=" + _elementCount + ")");
       return (_headIndex + idx) % getArraySize();
    }
 
    private int getArraySize() {return (_queue != null) ? _queue.length : 0;}
-   
+
    private Object _queue[] = null;  // demand-allocated object array
    private int _elementCount = 0;  // number of valid elements in the array
-   private int _headIndex = -1;   // index of the first filled slot, or -1 
+   private int _headIndex = -1;   // index of the first filled slot, or -1
    private int _tailIndex = -1;   // index of the last filled slot, or -1
 }
 

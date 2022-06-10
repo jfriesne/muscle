@@ -25,16 +25,16 @@ import com.meyer.muscle.iogateway.MessageIOGateway;
 
 /**
  * <p>DatagramPacketTransceiver - A class for creating Java UDP clients.</p>
- * 
+ *
  * <p>This class is compatible with the C++ muscled PacketTunnelIOGateway.
- * See the class UDPClient in the com.meyer.muscle.test package for example of how 
+ * See the class UDPClient in the com.meyer.muscle.test package for example of how
  * to use this class.</p>
- * 
- * <p>This implementation does not yet pack multiple Message objects into a 
- * single DatagramPacket. It will decode multiple messages packed into 
+ *
+ * <p>This implementation does not yet pack multiple Message objects into a
+ * single DatagramPacket. It will decode multiple messages packed into
  * DatagramPackets, making it compatible with the C++ class. This implementation
- * does support self-exclusion, miscellaneous data delivery (ByteBuffers are 
- * passed to listeners instead of Message objects) max output sizes (mtu), and 
+ * does support self-exclusion, miscellaneous data delivery (ByteBuffers are
+ * passed to listeners instead of Message objects) max output sizes (mtu), and
  * reassembly of message fragments delivered out of order.
  *
  * @author Bryan.Varner
@@ -73,16 +73,16 @@ public class DatagramPacketTransceiver extends Thread implements MessageListener
 	protected DatagramSocket socket;
 	
 	/**
-	 * Creates a PacketTunnelIOGateway that defers to slave, with a MTU, and 
-	 * magic number for the header. It will receive packets on the socket, 
-	 * decode them using the given gateway, and broadcast the results to the 
+	 * Creates a PacketTunnelIOGateway that defers to slave, with a MTU, and
+	 * magic number for the header. It will receive packets on the socket,
+	 * decode them using the given gateway, and broadcast the results to the
 	 * MessageQueue. Messages sent with this Transceiver will have a mtu of
 	 * maxTransferUnit, and a magic number identified by magic.
-	 * 
+	 *
 	 * @param socket The DatagramSocket to send / receive on.
 	 * @param listeners The MessageQueue to post received data to.
 	 * @param slave An AbstractMessageIOGateway to use when encoding / decoding
-	 * @param maxTransferUnit The max size of a datagram packet. 
+	 * @param maxTransferUnit The max size of a datagram packet.
 	 *                        For Ethernet, this should be 1500
 	 * @param magic The "magic number" identifying the packets being sent.
 	 */
@@ -227,8 +227,8 @@ public class DatagramPacketTransceiver extends Thread implements MessageListener
 					while (buffer.remaining() >= FRAGMENT_HEADER_LENGTH) {
 						int[] header = new int[FRAGMENT_HEADER_SIZE];
 						
-						/* The first time through, we've already read the 
-						 * magic number. so assign it, and mark the 
+						/* The first time through, we've already read the
+						 * magic number. so assign it, and mark the
 						 * boolean so that we'll read the magic next time.
 						 */
 						if (firstTime) {
@@ -243,7 +243,7 @@ public class DatagramPacketTransceiver extends Thread implements MessageListener
 						}
 						
 						/* Headers read. Check magic, sexid, positions & remaining space */
-						if ((header[HEADER_MAGIC] == magic) && 
+						if ((header[HEADER_MAGIC] == magic) &&
 						    ((header[HEADER_SEXID] == 0) || (header[HEADER_SEXID] != sexId)) &&
 						    (((buffer.capacity() - buffer.position()) >= header[HEADER_CHUNK_SIZE]) && (header[HEADER_TOTAL_SIZE] <= maxIncomingMessageSize)))
 						{
@@ -269,7 +269,7 @@ public class DatagramPacketTransceiver extends Thread implements MessageListener
 							}
 							
 							int rsCapacity = rs.buffer.capacity();
-							if ((header[HEADER_MESSAGEID] == rs.messageId) && 
+							if ((header[HEADER_MESSAGEID] == rs.messageId) &&
 							    (header[HEADER_TOTAL_SIZE] == rsCapacity) &&
 							    (header[HEADER_OFFSET] == rs.buffer.position()) &&
 							    (header[HEADER_OFFSET] + header[HEADER_CHUNK_SIZE] <= rsCapacity))

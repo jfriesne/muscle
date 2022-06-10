@@ -15,6 +15,6 @@ public final class NotEnoughDataException extends IOException
    {
       _numMissingBytes = numMissingBytes;
    }
-    
+
    public final int getNumMissingBytes() {return _numMissingBytes;}
 }

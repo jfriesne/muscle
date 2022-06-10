@@ -1,19 +1,19 @@
 package com.meyer.micromuscle.iogateway;
 
-public class MessageIOGatewayFactory 
+public class MessageIOGatewayFactory
 {
    // This class is a factory and shouldn't be created anywhere
-   private MessageIOGatewayFactory() 
+   private MessageIOGatewayFactory()
    {
      // empty
    }
-   
-   public static AbstractMessageIOGateway getMessageIOGateway() 
+
+   public static AbstractMessageIOGateway getMessageIOGateway()
    {
       return MessageIOGatewayFactory.getMessageIOGateway(AbstractMessageIOGateway.MUSCLE_MESSAGE_DEFAULT_ENCODING);
    }
-   
-   public static AbstractMessageIOGateway getMessageIOGateway(int encoding) 
+
+   public static AbstractMessageIOGateway getMessageIOGateway(int encoding)
    {
       if (encoding == AbstractMessageIOGateway.MUSCLE_MESSAGE_DEFAULT_ENCODING) return new MessageIOGateway();
 	 System.out.println("New JZLibGateway...");
