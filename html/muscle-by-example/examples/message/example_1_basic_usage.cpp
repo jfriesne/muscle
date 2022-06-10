@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
    const float price = anotherMsg.GetFloat("price", 19.99f);
    printf("The user expects to pay $%.02f for this pizza.\n", price);
    printf("The pizza is to be %s\n", anotherMsg.GetBool("vegan") ? "VEGAN" : "non-vegan");
-   
+
    // And we'll list out all of the toppings (note multiple values in a single field here!)
    String nextTopping;
    for (int32 i=0; anotherMsg.FindString("toppings", i, nextTopping).IsOK(); i++)

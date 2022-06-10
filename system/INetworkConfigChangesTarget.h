@@ -8,7 +8,7 @@
 
 namespace muscle {
 
-/** This is an abstract base class (interface) that can be inherited by any object that 
+/** This is an abstract base class (interface) that can be inherited by any object that
   * wants the DetectNetworkConfigChangesSession to notify it when one or more
   * network interfaces on the local computer have changed, or when the host computer
   * is about to go to sleep or wake up.
@@ -33,13 +33,13 @@ public:
      */
    virtual void NetworkInterfacesChanged(const Hashtable<String, Void> & optInterfaceNames) = 0;
 
-   /** Called by the DetectNetworkConfigChanges session, when the host computer is about to go to sleep.  
-     * Currently implemented for Windows and MacOS/X only.  
+   /** Called by the DetectNetworkConfigChanges session, when the host computer is about to go to sleep.
+     * Currently implemented for Windows and MacOS/X only.
      * @note Default implementation is a no-op.
      */
    virtual void ComputerIsAboutToSleep() {/* empty */}
 
-   /** Called by the DetectNetworkConfigChanges session, when the host computer has just woken up from sleep.  
+   /** Called by the DetectNetworkConfigChanges session, when the host computer has just woken up from sleep.
      * Currently implemented for Windows and MacOS/X only.
      * @note Default implementation is a no-op.
      */

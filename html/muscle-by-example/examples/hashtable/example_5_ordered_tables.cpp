@@ -25,15 +25,15 @@ int main(int argc, char ** argv)
    // making Put an O(N) operation instead of O(1).
 
    OrderedKeysHashtable<int, String> okTable;
-   okTable.Put(3, "Three"); 
-   okTable.Put(7, "Seven"); 
-   okTable.Put(1, "One"); 
-   okTable.Put(5, "Five"); 
-   okTable.Put(9, "Nine"); 
-   okTable.Put(4, "Four"); 
-   okTable.Put(8, "Eight"); 
-   okTable.Put(2, "Two"); 
-   okTable.Put(6, "Six"); 
+   okTable.Put(3, "Three");
+   okTable.Put(7, "Seven");
+   okTable.Put(1, "One");
+   okTable.Put(5, "Five");
+   okTable.Put(9, "Nine");
+   okTable.Put(4, "Four");
+   okTable.Put(8, "Eight");
+   okTable.Put(2, "Two");
+   okTable.Put(6, "Six");
 
    printf("Contents of OrderedKeysHashtable: (auto-sorted by key)\n");
    for (HashtableIterator<int, String> iter(okTable); iter.HasData(); iter++)
@@ -46,15 +46,15 @@ int main(int argc, char ** argv)
    // The OrderedValuesHashtable class is much like the OrderedKeysHashtable class
    // except the key/value pairs are always kept sorted in sorted-by-values order.
    OrderedValuesHashtable<int, String> ovTable;
-   ovTable.Put(3, "Three"); 
-   ovTable.Put(1, "One"); 
-   ovTable.Put(4, "Four"); 
-   ovTable.Put(1, "One"); 
-   ovTable.Put(6, "Six"); 
-   ovTable.Put(9, "Nine"); 
-   ovTable.Put(8, "Eight"); 
-   ovTable.Put(2, "Two"); 
-   ovTable.Put(5, "Five"); 
+   ovTable.Put(3, "Three");
+   ovTable.Put(1, "One");
+   ovTable.Put(4, "Four");
+   ovTable.Put(1, "One");
+   ovTable.Put(6, "Six");
+   ovTable.Put(9, "Nine");
+   ovTable.Put(8, "Eight");
+   ovTable.Put(2, "Two");
+   ovTable.Put(5, "Five");
 
    printf("Contents of OrderedValuesHashtable (Note value-strings are auto-sorted alphabetically):\n");
    for (HashtableIterator<int, String> iter(ovTable); iter.HasData(); iter++)

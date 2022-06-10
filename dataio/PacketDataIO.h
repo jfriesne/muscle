@@ -7,7 +7,7 @@
 #include "util/IPAddress.h"
 
 namespace muscle {
- 
+
 /** Abstract base class for DataIO objects that represent packet-based I/O objects
   * (i.e. for UDP sockets, or objects that can act like UDP sockets)
   */
@@ -27,7 +27,7 @@ public:
    /** For packet-oriented subclasses, this method may be overridden
      * to return the IPAddressAndPort that the most recently Read()
      * packet came from.
-     * The default implementation returns the IPAddressAndPort most recently passed 
+     * The default implementation returns the IPAddressAndPort most recently passed
      * to our SetSourceOfLastReadPacket() method, or an invalid IPAddressAndPort if
      * SetSourceOfLastReadPacket() has never been called.
      */
@@ -48,22 +48,22 @@ public:
      */
    virtual status_t SetPacketSendDestination(const IPAddressAndPort & iap) = 0;
 
-   /** Default implementation of PacketDataIO::Read() 
+   /** Default implementation of PacketDataIO::Read()
     *  which just calls ReadFrom(buffer, size, GetSourceOfLastReadPacket()).
     *  @param buffer Buffer to write the bytes into
-    *  @return Number of bytes read, or -1 on error.   
+    *  @return Number of bytes read, or -1 on error.
     *  @param size Number of bytes in the buffer.
-    */ 
+    */
    virtual int32 Read(void * buffer, uint32 size)
    {
       return ReadFrom(buffer, size, GetWritableSourceOfLastReadPacket());
    }
 
-   /** Default implementation of PacketDataIO::Write() 
+   /** Default implementation of PacketDataIO::Write()
     *  which just calls WriteTo(buffer, size, GetPacketSendDestination()).
     *  @param buffer Buffer of bytes to be sent.
-    *  @param size Number of bytes to send. 
-    *  @return Number of bytes sent, or -1 on error.        
+    *  @param size Number of bytes to send.
+    *  @return Number of bytes sent, or -1 on error.
     */
    virtual int32 Write(const void * buffer, uint32 size)
    {
@@ -77,17 +77,17 @@ public:
     *  @param buffer Buffer to write the bytes into
     *  @param size Number of bytes in the buffer.
     *  @param retPacketSource on success, the incoming packet's source is placed here.
-    *  @return Number of bytes read, or -1 on error.   
+    *  @return Number of bytes read, or -1 on error.
     */
    virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource) = 0;
 
    /** Tries to send a packet of data to the specified location.
-    *  Returns the actual number of sent, or a negative value if 
+    *  Returns the actual number of sent, or a negative value if
     *  there was an error.
     *  @param buffer Buffer to read the bytes from.
     *  @param size Number of bytes in the buffer.
     *  @param packetDest The destination that the packet should be sent to.
-    *  @return Number of bytes written, or -1 on error.        
+    *  @return Number of bytes written, or -1 on error.
     */
    virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) = 0;
 

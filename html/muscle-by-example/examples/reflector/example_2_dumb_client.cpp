@@ -64,7 +64,7 @@ public:
       DumbReflectSession::MessageReceivedFromGateway(msg, userPtr);
    }
 
-   // Called when we've received a MessageRef from another session object on 
+   // Called when we've received a MessageRef from another session object on
    // our ReflectServer.  (In this case it would have to be from the
    // DumbReflectSession object since that is the only other session object present)
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData)
@@ -74,7 +74,7 @@ public:
       msg()->PrintToStream();
    }
 
-   // If stdin is closed (e.g. via the user pressing CTRL-D) 
+   // If stdin is closed (e.g. via the user pressing CTRL-D)
    // that should cause the client to quit, so let's request that here
    virtual bool ClientConnectionClosed()
    {
@@ -127,7 +127,7 @@ int main(int argc, char ** argv)
    else LogTime(MUSCLE_LOG_ERROR, "example_2_dumb_client is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions
-   // before they are destroyed (necessary only because we have 
+   // before they are destroyed (necessary only because we have
    // allocated some of them on the stack rather than on the heap)
    reflectServer.Cleanup();
 

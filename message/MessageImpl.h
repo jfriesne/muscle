@@ -76,7 +76,7 @@ public:
    // returns a separate (deep) copy of this field
    virtual Ref<AbstractDataArray> Clone() const = 0;
 
-   // Returns true iff this field should be included when flattening. 
+   // Returns true iff this field should be included when flattening.
    virtual bool IsFlattenable() const = 0;
 
    // For debugging:  returns a description of our contents as a String
@@ -124,7 +124,7 @@ public:
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    MessageField(const MessageField & rhs) : _typeCode(0), _state(FIELD_STATE_EMPTY), _dataType(DATA_TYPE_NULL) {*this = rhs;}
-   
+
    /** Dtor */
    ~MessageField() {Clear();}
 
@@ -176,8 +176,8 @@ public:
    uint64 TemplatedHashCode64() const {return ((uint64)GetNumItems())*((uint64)TypeCode());}
    uint32 TemplatedFlattenedSize(const MessageField * optPayloadField) const;
    void TemplatedFlatten(const MessageField * optPayloadField, uint8 * & buf) const;
-   status_t TemplatedUnflatten(Message & unflattenTo, const String & fieldName, const uint8 * & buf, uint32 & bufSize) const; 
-   
+   status_t TemplatedUnflatten(Message & unflattenTo, const String & fieldName, const uint8 * & buf, uint32 & bufSize) const;
+
 private:
    const AbstractDataArray * GetArray() const {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
    AbstractDataArray * GetArray() {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}

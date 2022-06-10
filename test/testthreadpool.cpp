@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -11,7 +11,7 @@ class TestClient : public IThreadPoolClient
 {
 public:
    TestClient()
-      : IThreadPoolClient(NULL) 
+      : IThreadPoolClient(NULL)
    {
       // empty
    }
@@ -25,7 +25,7 @@ public:
 };
 
 // This program exercises the Thread class.
-int main(int, char **) 
+int main(int, char **)
 {
    CompleteSetupSystem css;
 
@@ -36,9 +36,9 @@ int main(int, char **)
       printf("Sending TestClient Messages to pool...\n"); fflush(stdout);
       TestClient tcs[10];
       for (uint32 i=0; i<ARRAYITEMS(tcs); i++) tcs[i].SetThreadPool(&pool);
-      for (uint32 i=0; i<10; i++) 
+      for (uint32 i=0; i<10; i++)
       {
-         for (uint32 j=0; j<ARRAYITEMS(tcs); j++) 
+         for (uint32 j=0; j<ARRAYITEMS(tcs); j++)
          {
             MessageRef msg = GetMessageFromPool((j*100)+i);
             msg()->AddString("hey", "dude");

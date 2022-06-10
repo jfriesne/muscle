@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
    {
       printf("Unable to open example_3_seekable_dataio.txt for writing!\n");
    }
-  
+
    // First we'll write out some data to the file, just so we have something to play with
    for (int i=0; i<50; i++)
    {
@@ -58,7 +58,7 @@ int main(int argc, char ** argv)
       inputBuf[numBytesRead] = '\0';
       printf("%s", inputBuf);
    }
-   
+
    printf("\n");
    printf("Program exiting\n");
    printf("\n");

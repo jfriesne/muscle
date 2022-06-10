@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "util/String.h"
 #include "support/Point.h"
@@ -52,27 +52,27 @@ int String :: IndexOfIgnoreCase(char ch, uint32 f) const
    }
 }
 
-int String :: IndexOfIgnoreCase(const String & s, uint32 f) const 
+int String :: IndexOfIgnoreCase(const String & s, uint32 f) const
 {
-   const char * p = (f<Length())?StrcasestrEx(Cstr()+f, Length()-f, s(), s.Length(), false):NULL; 
+   const char * p = (f<Length())?StrcasestrEx(Cstr()+f, Length()-f, s(), s.Length(), false):NULL;
    return p?(int)(p-Cstr()):-1;
 }
 
-int String :: IndexOfIgnoreCase(const char * s, uint32 f) const 
+int String :: IndexOfIgnoreCase(const char * s, uint32 f) const
 {
-   if (s==NULL) s=""; 
+   if (s==NULL) s="";
 
-   const char * p = (f<Length()) ? StrcasestrEx(Cstr()+f, Length()-f, s, (uint32)strlen(s), false) : NULL; 
+   const char * p = (f<Length()) ? StrcasestrEx(Cstr()+f, Length()-f, s, (uint32)strlen(s), false) : NULL;
    return p ? ((int)(p-Cstr())): -1;
 }
 
-int String :: LastIndexOfIgnoreCase(const String & s, uint32 f) const 
-{ 
+int String :: LastIndexOfIgnoreCase(const String & s, uint32 f) const
+{
    const char * p = (f<Length()) ? StrcasestrEx(Cstr()+f, Length()-f, s(), s.Length(), true) : NULL;
    return p ? ((int)(p-Cstr())) : -1;
 }
 
-int String :: LastIndexOfIgnoreCase(const char * s, uint32 f) const 
+int String :: LastIndexOfIgnoreCase(const char * s, uint32 f) const
 {
    if (s==NULL) s="";
 
@@ -93,11 +93,11 @@ int String :: LastIndexOfIgnoreCase(char ch, uint32 f) const
    }
 }
 
-bool String :: EndsWithIgnoreCase(const char * s) const 
+bool String :: EndsWithIgnoreCase(const char * s) const
 {
-   if (s==NULL) s=""; 
+   if (s==NULL) s="";
 
-   const uint32 slen = (uint32) strlen(s); 
+   const uint32 slen = (uint32) strlen(s);
    return ((Length() >= slen)&&(Strcasecmp(Cstr()+(Length()-slen), s) == 0));
 }
 
@@ -107,7 +107,7 @@ void String :: ClearAndFlush()
    if (IsArrayDynamicallyAllocated()) muscleFree(_strData._bigBuffer);
    ClearSmallBuffer();
    _bufferLen = sizeof(_strData._smallBuffer);
-   _length = 0; 
+   _length = 0;
 }
 
 status_t String :: SetFromString(const String & s, uint32 firstChar, uint32 afterLastChar)
@@ -131,7 +131,7 @@ status_t String :: SetFromString(const String & s, uint32 firstChar, uint32 afte
 status_t String :: SetCstr(const char * str, uint32 maxLen)
 {
    // If (str)'s got a NUL byte before maxLen, make (maxLen) smaller.
-   // We can't call strlen(str) because we don't have any guarantee that the NUL 
+   // We can't call strlen(str) because we don't have any guarantee that the NUL
    // byte even exists!  Without a NUL byte, strlen() could run off into the weeds...
    uint32 sLen = 0;
    if (str) {while((sLen<maxLen)&&(str[sLen] != '\0')) sLen++;}
@@ -243,10 +243,10 @@ String & String :: operator<<(float rhs)
 
 String & String :: operator<<(bool rhs)
 {
-   const char * val = rhs ? "true" : "false"; 
+   const char * val = rhs ? "true" : "false";
    return *this << val;
 }
- 
+
 void String :: Reverse()
 {
    if (HasChars())
@@ -260,13 +260,13 @@ void String :: Reverse()
 
 uint32 String :: Replace(char findChar, char replaceChar, uint32 maxReplaceCount, uint32 fromIndex)
 {
-   uint32 ret = 0; 
+   uint32 ret = 0;
    if ((findChar != replaceChar)&&(fromIndex < Length()))
    {
       char * c = GetBuffer()+fromIndex;
       while((*c)&&(maxReplaceCount > 0))
       {
-         if (*c == findChar) 
+         if (*c == findChar)
          {
             *c = replaceChar;
             maxReplaceCount--;
@@ -277,7 +277,7 @@ uint32 String :: Replace(char findChar, char replaceChar, uint32 maxReplaceCount
    }
    return ret;
 }
-   
+
 String String :: WithReplacements(char replaceMe, char withMe, uint32 maxReplaceCount, uint32 fromIndex) const
 {
    String ret = *this;
@@ -305,7 +305,7 @@ String String :: WithCharsEscaped(const char * charsToEscape, char escapeChar) c
 
    const uint32 numBackslashes = GetNumInstancesOf(escapeChar);
    if ((numSeps == 0)&&(numBackslashes == 0)) return *this;  // nothing to do!
-   
+
    String escapedName;
    (void) escapedName.Prealloc(Length()+(2*(numSeps+numBackslashes)));  // conservative estimate, to avoid any reallocs below
 
@@ -384,7 +384,7 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
             if (perInstanceDelta != 0) memmove(writePtr, readPtr, numBytes);
             writePtr += numBytes;
             *writePtr = '\0';
-            if (perInstanceDelta > 0) 
+            if (perInstanceDelta > 0)
             {
                temp._length = (uint32) (writePtr-temp());
                SwapContents(temp);
@@ -403,7 +403,7 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
 
    // We'll set each pointer in this array to point to the key in the Hashtable that has a claim on its associated char in our String
    const String ** reservations = newnothrow const String *[Length()];
-   if (reservations) for (uint32 i=0; i<Length(); i++) reservations[i] = NULL; 
+   if (reservations) for (uint32 i=0; i<Length(); i++) reservations[i] = NULL;
    else
    {
       MWARN_OUT_OF_MEMORY;
@@ -452,12 +452,12 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
          {
             const String & replaceMe = *reservations[i];
             ret += beforeToAfter[replaceMe];
-            i += replaceMe.Length()-1;   // -1 because the for-loop will also do an increment 
+            i += replaceMe.Length()-1;   // -1 because the for-loop will also do an increment
          }
          else ret += (*this)[i];
       }
    }
-   else 
+   else
    {
       MWARN_OUT_OF_MEMORY;
       ret = *this;
@@ -509,7 +509,7 @@ String String :: ToMixedCase() const
    bool prevCharWasLetter = false;
    String ret(*this);
    char * b = ret.GetBuffer();
-   for (uint32 i=0; i<ret.Length(); i++) 
+   for (uint32 i=0; i<ret.Length(); i++)
    {
       char & c = b[i];
       const bool charIsLetter = (muscleInRange(c, 'a', 'z'))||(muscleInRange(c, 'A', 'Z'))||(muscleInRange(c, '0', '9'));  // yes, digits count as letters, dontcha know
@@ -526,15 +526,15 @@ String String :: ToUpperCase() const
    for (uint32 i=0; i<ret.Length(); i++) b[i] = (char)toupper(b[i]);
    return ret;
 }
- 
-String String :: Trim() const 
+
+String String :: Trim() const
 {
    TCHECKPOINT;
 
    const int32 len = (int32) Length();
    const char * s = Cstr();
-   int32 startIdx; for (startIdx = 0;     startIdx<len;    startIdx++) if (!IsSpaceChar(s[startIdx])) break; 
-   int32 endIdx;   for (endIdx   = len-1; endIdx>startIdx; endIdx--)   if (!IsSpaceChar(s[endIdx]))   break; 
+   int32 startIdx; for (startIdx = 0;     startIdx<len;    startIdx++) if (!IsSpaceChar(s[startIdx])) break;
+   int32 endIdx;   for (endIdx   = len-1; endIdx>startIdx; endIdx--)   if (!IsSpaceChar(s[endIdx]))   break;
    return String(*this, (uint32)startIdx, (uint32)(endIdx+1));
 }
 
@@ -607,7 +607,7 @@ String String :: Prepend(const String & str, uint32 count) const
       }
       if (HasChars())
       {
-         memcpy(b, Cstr(), Length()); 
+         memcpy(b, Cstr(), Length());
          b += Length();
       }
 
@@ -643,7 +643,7 @@ String String :: Prepend(const char * str, uint32 count) const
          }
          if (HasChars())
          {
-            memcpy(b, Cstr(), Length()); 
+            memcpy(b, Cstr(), Length());
             b += Length();
          }
          char * afterBuf = ret.GetBuffer();
@@ -667,7 +667,7 @@ String String :: Append(const String & str, uint32 count) const
       char * b = ret.GetBuffer();
       if (HasChars())
       {
-         memcpy(b, Cstr(), Length()); 
+         memcpy(b, Cstr(), Length());
          b += Length();
       }
       if (str.HasChars())
@@ -701,7 +701,7 @@ String String :: Append(const char * str, uint32 count) const
          char * b = ret.GetBuffer();
          if (HasChars())
          {
-            memcpy(b, Cstr(), Length()); 
+            memcpy(b, Cstr(), Length());
             b += Length();
          }
          if (sLen > 0)
@@ -720,14 +720,14 @@ String String :: Append(const char * str, uint32 count) const
    }
 }
 
-String String :: AppendWord(const char * str, const char * sep) const 
+String String :: AppendWord(const char * str, const char * sep) const
 {
    if ((str == NULL)||(*str == '\0')) return *this;
    if ((HasChars())&&(strncmp(str, sep, strlen(sep)) != 0)&&(EndsWith(sep) == false)) return String(*this).Append(sep).Append(str);
                                                                                  else return String(*this).Append(str);
 }
 
-String String :: AppendWord(const String & str, const char * sep) const 
+String String :: AppendWord(const String & str, const char * sep) const
 {
    if (str.IsEmpty()) return *this;
    if ((HasChars())&&(str.StartsWith(sep) == false)&&(EndsWith(sep) == false)) return String(*this).Append(sep).Append(str);
@@ -768,7 +768,7 @@ static uint32 GetNextBufferSize(uint32 bufLen)
    // For large (multi-page) allocations, we'll increase by one page.  According to Trolltech, modern implementations
    // of realloc() don't actually copy the entire large buffer, they just rearrange the memory map and add
    // a new page to the end, so this will be more efficient than it appears.
-   const uint32 curNumPages = (bufLen+STRING_MALLOC_OVERHEAD)/STRING_PAGE_SIZE; 
+   const uint32 curNumPages = (bufLen+STRING_MALLOC_OVERHEAD)/STRING_PAGE_SIZE;
    return ((curNumPages+1)*STRING_PAGE_SIZE)-STRING_MALLOC_OVERHEAD;
 }
 
@@ -788,7 +788,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
    if (newBufLen == 0)
    {
       ClearAndFlush();
-      return B_NO_ERROR; 
+      return B_NO_ERROR;
    }
 
    const bool goToSmallBufferMode = ((allowShrink)&&(newBufLen <= (SMALL_MUSCLE_STRING_LENGTH+1)));
@@ -814,7 +814,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
             MRETURN_OOM_ON_NULL(newBuf);
          }
       }
-      else 
+      else
       {
          if (goToSmallBufferMode)
          {
@@ -884,7 +884,7 @@ String String :: Indent(uint32 numIndentChars, char indentChar) const
            if ((*s == '\n')||(*s == '\r')) seenChars = false;
       else if (seenChars == false)
       {
-         ret += pad; 
+         ret += pad;
          seenChars = true;
       }
       ret += *s;
@@ -896,7 +896,7 @@ String String :: Indent(uint32 numIndentChars, char indentChar) const
 String String :: WithoutSuffix(char c, uint32 maxToRemove) const
 {
    String ret = *this;
-   while(ret.EndsWith(c)) 
+   while(ret.EndsWith(c))
    {
       ret--;
       if (--maxToRemove == 0) break;
@@ -909,12 +909,12 @@ String String :: WithoutSuffix(const String & str, uint32 maxToRemove) const
    if (str.IsEmpty()) return *this;
 
    String ret = *this;
-   while(ret.EndsWith(str)) 
+   while(ret.EndsWith(str))
    {
       ret.TruncateChars(str.Length());
       if (--maxToRemove == 0) break;
    }
-   return ret;  
+   return ret;
 }
 
 String String :: WithoutPrefix(char c, uint32 maxToRemove) const
@@ -923,7 +923,7 @@ String String :: WithoutPrefix(char c, uint32 maxToRemove) const
    const uint32 len = Length();
    for (uint32 i=0; i<len; i++)
    {
-      if ((*this)[i] == c) 
+      if ((*this)[i] == c)
       {
          numInitialChars++;
          if (--maxToRemove == 0) break;
@@ -934,7 +934,7 @@ String String :: WithoutPrefix(char c, uint32 maxToRemove) const
    return Substring(numInitialChars);
 }
 
-String String :: WithoutPrefix(const String & str, uint32 maxToRemove) const 
+String String :: WithoutPrefix(const String & str, uint32 maxToRemove) const
 {
    if ((str.IsEmpty())||(StartsWith(str) == false)) return *this;
 
@@ -970,7 +970,7 @@ String String :: WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove)
       ret.TruncateChars(str.Length());
       if (--maxToRemove == 0) break;
    }
-   return ret;  
+   return ret;
 }
 
 String String :: WithoutPrefixIgnoreCase(char c, uint32 maxToRemove) const
@@ -993,12 +993,12 @@ String String :: WithoutPrefixIgnoreCase(char c, uint32 maxToRemove) const
    return Substring(numInitialChars);
 }
 
-String String :: WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove) const 
+String String :: WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove) const
 {
    if ((str.IsEmpty())||(StartsWithIgnoreCase(str) == false)) return *this;
 
    String ret = *this;
-   while(ret.StartsWithIgnoreCase(str)) 
+   while(ret.StartsWithIgnoreCase(str))
    {
       ret = ret.Substring(str.Length());
       if (--maxToRemove == 0) break;
@@ -1099,7 +1099,7 @@ String String :: ArgAux(const char * buf) const
          {
             const int32 val = (int32) atol(s);
             lowestArg = (lowestArg < 0) ? val : muscleMin(val, lowestArg);
-            while(muscleInRange(*s, '0', '9')) s++; 
+            while(muscleInRange(*s, '0', '9')) s++;
          }
       }
       else s++;
@@ -1239,11 +1239,11 @@ CFStringRef String :: ToCFStringRef() const
    This software is provided 'as-is', without any express or implied
    warranty.  In no event will the authors be held liable for any damages
    arising from the use of this software.
- 
+
    Permission is granted to anyone to use this software for any purpose,
    including commercial applications, and to alter it and redistribute it
    freely, subject to the following restrictions:
- 
+
    1. The origin of this software must not be misrepresented; you must not
       claim that you wrote the original software. If you use this software
       in a product, an acknowledgment in the product documentation would be
@@ -1263,24 +1263,24 @@ static inline char nat_toupper(char a) {return (char) toupper((unsigned char) a)
 static int nat_compare_right(char const *a, char const *b)
 {
    int bias = 0;
-     
+
    /* The longest run of digits wins.  That aside, the greatest
       value wins, but we can't know that it will until we've scanned
       both numbers to know that they have the same magnitude, so we
       remember it in BIAS. */
-   for (;; a++, b++) 
+   for (;; a++, b++)
    {
            if (!nat_isdigit(*a)  &&  !nat_isdigit(*b)) return bias;
       else if (!nat_isdigit(*a)) return -1;
       else if (!nat_isdigit(*b)) return +1;
-      else if (*a < *b) 
+      else if (*a < *b)
       {
          if (!bias) bias = -1;
-      } 
-      else if (*a > *b) 
+      }
+      else if (*a > *b)
       {
           if (!bias) bias = +1;
-      } 
+      }
       else if ((!*a)&&(!*b)) return bias;
    }
    return 0;
@@ -1305,40 +1305,40 @@ static int strnatcmp0(char const *a, char const *b, int fold_case)
 {
    int ai = 0;
    int bi = 0;
-   while(1) 
+   while(1)
    {
-      char ca = a[ai];   
+      char ca = a[ai];
       char cb = b[bi];
 
       /* skip over leading spaces or zeros */
       while(nat_isspace(ca)) ca = a[++ai];
       while(nat_isspace(cb)) cb = b[++bi];
- 
+
       /* process run of digits */
-      if ((nat_isdigit(ca))&&(nat_isdigit(cb))) 
+      if ((nat_isdigit(ca))&&(nat_isdigit(cb)))
       {
          int fractional = (ca == '0' || cb == '0');
-         if (fractional) 
+         if (fractional)
          {
             int result = nat_compare_left(a+ai, b+bi);
             if (result != 0) return result;
-         } 
-         else 
+         }
+         else
          {
             int result = nat_compare_right(a+ai, b+bi);
             if (result != 0) return result;
          }
       }
- 
+
       /* The strings compare the same.  Call strcmp() to break the tie. */
       if (!ca && !cb) return strcmp(a,b);
- 
-      if (fold_case) 
+
+      if (fold_case)
       {
          ca = nat_toupper(ca);
          cb = nat_toupper(cb);
       }
-     
+
            if (ca < cb) return -1;
       else if (ca > cb) return +1;
 

@@ -70,7 +70,7 @@ static void WriteZLibCodecHeader(uint8 * headerBuf, bool independent, uint32 tot
 
 ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool independent, uint32 addHeaderBytes, uint32 addFooterBytes)
 {
-   ByteBufferRef ret; 
+   ByteBufferRef ret;
    if ((rawBytes)&&(_deflateOkay))
    {
       if ((independent)&&(deflateReset(&_deflater) != Z_OK))
@@ -90,7 +90,7 @@ ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool i
          _deflater.next_out  = ret()->GetBuffer()+addHeaderBytes+ZLIB_CODEC_HEADER_SIZE;
          _deflater.total_out = 0;
          _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
-         
+
          if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(ret()->SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true).IsOK()))
          {
             (void) ret()->FreeExtraBytes();  // no sense keeping all that extra space around, is there?
@@ -106,7 +106,7 @@ status_t ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool indepe
 {
    if (rawBytes     == NULL)  return B_BAD_ARGUMENT;
    if (_deflateOkay == false) return B_BAD_OBJECT;
-   
+
    if ((independent)&&(deflateReset(&_deflater) != Z_OK))
    {
       _deflateOkay = false;
@@ -123,7 +123,7 @@ status_t ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool indepe
    _deflater.next_out  = outBuf.GetBuffer()+addHeaderBytes+ZLIB_CODEC_HEADER_SIZE;
    _deflater.total_out = 0;
    _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
-   
+
    if (deflate(&_deflater, Z_SYNC_FLUSH) != Z_OK) return B_ZLIB_ERROR;
 
    MRETURN_ON_ERROR(outBuf.SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true));

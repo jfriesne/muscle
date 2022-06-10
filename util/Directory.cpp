@@ -2,7 +2,7 @@
 
 #if defined(_WIN32) || defined(WIN32)
 # include <errno.h>
-# include <io.h> 
+# include <io.h>
 #else
 # include <dirent.h>
 # include <sys/stat.h>  // needed for chmod codes under MacOS/X
@@ -28,7 +28,7 @@ namespace muscle {
     But that said, if there are any problems please get in touch.
 */
 
-struct dirent 
+struct dirent
 {
    char * d_name;
 };
@@ -114,20 +114,20 @@ void Directory :: operator++(int)
    _currentFileName = entry ? entry->d_name : NULL;
 }
 
-void Directory :: Rewind() 
+void Directory :: Rewind()
 {
-   if (_dirPtr) rewinddir((DIR *)_dirPtr); 
+   if (_dirPtr) rewinddir((DIR *)_dirPtr);
    (*this)++;
 }
 
 void Directory :: Reset()
 {
-   if (_path) 
+   if (_path)
    {
       delete [] _path;
       _path = NULL;
    }
-   if (_dirPtr) 
+   if (_dirPtr)
    {
       closedir((DIR *)_dirPtr);
       _dirPtr = NULL;
@@ -156,7 +156,7 @@ status_t Directory :: SetDir(const char * dirPath)
       if (extraBytes != 0) muscleStrncpy(_path+pathLen, sep, allocLen-pathLen);
 
       _dirPtr = opendir(dirPath);
-      if (_dirPtr == NULL) 
+      if (_dirPtr == NULL)
       {
          Reset();  // to free and null-out _path
          return B_ERRNO;
@@ -209,7 +209,7 @@ status_t Directory :: MakeDirectoryForFile(const char * filePath)
 
    muscleStrncpy(p, filePath, pathLen+1);
    char * lastSep = strrchr(p, GetFilePathSeparator()[0]);
-   if (lastSep) *lastSep = '\0';  // truncate the file name 
+   if (lastSep) *lastSep = '\0';  // truncate the file name
    const status_t ret = lastSep ? MakeDirectory(p, true) : B_NO_ERROR;  // No directory clauses?  then there's nothing for us to do.
    delete [] p;
    return ret;

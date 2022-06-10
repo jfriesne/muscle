@@ -80,7 +80,7 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
             if ((newBaseName.HasChars())&&(newBaseName.EndsWith('/') == false)) newBaseName += '/';
             newBaseName += fn;
 
-            // Message fields we treat as sub-directories   
+            // Message fields we treat as sub-directories
             MessageRef subMsg;
             for (int32 i=0; msg.FindMessage(fn, i, subMsg).IsOK(); i++) MRETURN_ON_ERROR(WriteZipFileAux(zf, newBaseName, *subMsg(), compressionLevel, fileInfo));
          }
@@ -142,7 +142,7 @@ status_t WriteZipFile(DataIO & writeTo, const Message & msg, int compressionLeve
    if (zf)
    {
       zip_fileinfo * fi = NULL;
-      zip_fileinfo fileInfo;  
+      zip_fileinfo fileInfo;
       {
          memset(&fileInfo, 0, sizeof(fileInfo));
          HumanReadableTimeValues v;
@@ -157,10 +157,10 @@ status_t WriteZipFile(DataIO & writeTo, const Message & msg, int compressionLeve
             fileInfo.tmz_date.tm_year = v.GetYear();
          }
       }
-      
+
       const status_t ret = WriteZipFileAux(zf, "", msg, compressionLevel, fi);
       zipClose(zf, NULL);
-      return ret; 
+      return ret;
    }
    else return B_ZLIB_ERROR;
 }
@@ -186,7 +186,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
             {
                // Demand-allocate a sub-message
                MessageRef subMsg;
-               if (m->FindMessage(fn, subMsg).IsError()) 
+               if (m->FindMessage(fn, subMsg).IsError())
                {
                   MRETURN_ON_ERROR(m->AddMessage(fn, Message()));
                   MRETURN_ON_ERROR(m->FindMessage(fn, subMsg));

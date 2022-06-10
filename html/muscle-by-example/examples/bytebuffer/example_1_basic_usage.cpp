@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
    printf("Appending 10 more bytes to it...\n");
    for (uint32 i=0; i<10; i++) buf += (uint8) i;
    buf.PrintToStream();
-   
+
    printf("\n");
    printf("Resizing it up to 128 bytes...\n");
    (void) buf.SetNumBytes(128, true);  // true == retain existing data in the buffer

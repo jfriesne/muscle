@@ -10,9 +10,9 @@
 namespace muscle {
 
 /** This is a convenience decorator factory; it holds a set of "ban patterns", and a
-  * set of "require patterns".  It will refuse to grant access to any clients whose host 
+  * set of "require patterns".  It will refuse to grant access to any clients whose host
   * IP match at least one ban pattern, or who don't match at least one require pattern
-  * (if there are any require patterns)  For IP addresses that don't match a pattern, 
+  * (if there are any require patterns)  For IP addresses that don't match a pattern,
   * the request is passed through to the held factory.
   */
 class FilterSessionFactory : public ProxySessionFactory
@@ -43,9 +43,9 @@ public:
      * @param msgRef the Message the session sent to us
      * @param userData an arbitrary userData pointer for purpose-specific use
      */
-   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void * userData);       
+   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void * userData);
 
-   /** Add a new ban pattern to our set of ban patterns 
+   /** Add a new ban pattern to our set of ban patterns
      * @param banPattern Pattern to match against (e.g. "192.168.0.*")
      * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
@@ -83,7 +83,7 @@ public:
      */
    void RemoveMatchingRequirePatterns(const String & exp);
 
-   /** Sets the input-bandwidth-allocation policy to apply to sessions that we create 
+   /** Sets the input-bandwidth-allocation policy to apply to sessions that we create
      * @param ref reference to the input policy to use, or a NULL reference to use no input policy
      */
    void SetInputPolicy(const AbstractSessionIOPolicyRef & ref) {_inputPolicyRef = ref;}
@@ -99,7 +99,7 @@ public:
      */
    void SetMaxSessionsPerHost(uint32 maxSessionsPerHost) {_maxSessionsPerHost = maxSessionsPerHost;}
 
-   /** Sets the new total-max-sessions limit -- i.e. how many sessions may be connected to our server concurrently. 
+   /** Sets the new total-max-sessions limit -- i.e. how many sessions may be connected to our server concurrently.
      * @param maxSessions the new max-simultaneous-sessions limit
      */
    void SetTotalMaxSessions(uint32 maxSessions) {_totalMaxSessions = maxSessions;}

@@ -24,7 +24,7 @@ enum {
    NETWORK_INTERFACE_HARDWARE_TYPE_FIREWIRE,    /**< IEEE1394/FireWire interface */
    NETWORK_INTERFACE_HARDWARE_TYPE_BLUETOOTH,   /**< Bluetooth short-range wireless interface */
    NETWORK_INTERFACE_HARDWARE_TYPE_BONDED,      /**< Virtual interface representing several other interfaces bonded together */
-   NETWORK_INTERFACE_HARDWARE_TYPE_IRDA,        /**< IrDA line-of-sight infrared short-range wireless interface */ 
+   NETWORK_INTERFACE_HARDWARE_TYPE_IRDA,        /**< IrDA line-of-sight infrared short-range wireless interface */
    NETWORK_INTERFACE_HARDWARE_TYPE_DIALUP,      /**< Phone-line dialup modem interface */
    NETWORK_INTERFACE_HARDWARE_TYPE_SERIAL,      /**< Networking via serial line */
    NETWORK_INTERFACE_HARDWARE_TYPE_VLAN,        /**< VLAN interface */
@@ -114,7 +114,7 @@ public:
    /** Returns true iff this interface is currently enabled ("up"). */
    bool IsEnabled() const {return _enabled;}
 
-   /** Returns true iff this network interface is currently plugged in to anything 
+   /** Returns true iff this network interface is currently plugged in to anything
      * (i.e. iff a connected Ethernet cable is attached to the Ethernet jack).
      */
    bool IsCopperDetected() const {return _copper;}
@@ -175,7 +175,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
   * by GetBroadcastAddress().
   * @param retAddresses On success, zero or more IPAddresses will be added to this Queue for you to look at.
   * @param includeFlags A chord of GNII_FLAG_INCLUDE_* bits indicating which types of network interface you want to be
-  *                    included in the returned list.  Defaults to GNII_FLAG_INCLUDE_ALL_ADDRESSED_INTERFACES, which 
+  *                    included in the returned list.  Defaults to GNII_FLAG_INCLUDE_ALL_ADDRESSED_INTERFACES, which
   *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
   *                    (Note:  if you need to specify this argument explicitly, the syntax for the BitChord constructor
   *                    is e.g. like this:  GNIIFlags(GNII_FLAG_INCLUDE_IPV4_INTERFACES,GNII_FLAG_INCLUDE_IPV6_INTERFACES,...))

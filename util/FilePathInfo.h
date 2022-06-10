@@ -96,7 +96,7 @@ private:
    uint64 InternalizeTimeT(time_t t) const {return (t==((time_t)-1)) ? 0 : (((uint64)t)*MICROS_PER_SECOND);}
 #endif
 
-   enum { 
+   enum {
       FPI_FLAG_EXISTS = 0,
       FPI_FLAG_ISREGULARFILE,
       FPI_FLAG_ISDIRECTORY,

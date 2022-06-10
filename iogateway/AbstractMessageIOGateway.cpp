@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "iogateway/AbstractMessageIOGateway.h"
 #include "util/NetworkUtilityFunctions.h"
@@ -16,7 +16,7 @@ AbstractMessageIOGateway :: AbstractMessageIOGateway()
    // empty
 }
 
-AbstractMessageIOGateway :: ~AbstractMessageIOGateway() 
+AbstractMessageIOGateway :: ~AbstractMessageIOGateway()
 {
    // empty
 }
@@ -71,7 +71,7 @@ class ScratchProxyReceiver : public AbstractGatewayMessageReceiver
 public:
    ScratchProxyReceiver(AbstractMessageIOGateway * gw, AbstractGatewayMessageReceiver * r)
       : _gw(gw)
-      , _r(r) 
+      , _r(r)
    {
       // empty
    }
@@ -86,8 +86,8 @@ private:
    AbstractGatewayMessageReceiver * _r;
 };
 
-status_t 
-AbstractMessageIOGateway :: 
+status_t
+AbstractMessageIOGateway ::
 ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64 timeoutPeriod)
 {
    const int readFD  = GetDataIO()() ? GetDataIO()()->GetReadSelectSocket().GetFileDescriptor()  : -1;
@@ -109,7 +109,7 @@ ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64
    return B_NO_ERROR;
 }
 
-void AbstractMessageIOGateway :: SetDataIO(const DataIORef & ref) 
+void AbstractMessageIOGateway :: SetDataIO(const DataIORef & ref)
 {
    _ioRef = ref;
 
@@ -117,7 +117,7 @@ void AbstractMessageIOGateway :: SetDataIO(const DataIORef & ref)
    _mtuSize = _packetDataIO ? _packetDataIO->GetMaximumPacketSize() : 0;
 }
 
-int32 AbstractMessageIOGateway :: DoOutput(uint32 maxBytes) 
+int32 AbstractMessageIOGateway :: DoOutput(uint32 maxBytes)
 {
    const int32 numBytesSent = DoOutputImplementation(maxBytes);
    if ((numBytesSent > 0)&&(_flushOnEmpty)&&(HasBytesToOutput() == false)) FlushOutput();

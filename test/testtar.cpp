@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <fcntl.h>  // for the S_IR* macros
 #include "dataio/FileDataIO.h"
@@ -38,7 +38,7 @@ static status_t AddFileToTar(TarFileWriter & tarFileWriter, const String & entry
             return B_IO_ERROR;
          }
          MRETURN_ON_ERROR(tarFileWriter.WriteFileData(buf, bytesRead));
-         bytesWritten += bytesRead; 
+         bytesWritten += bytesRead;
       }
       return B_NO_ERROR;  // we could call tarFileWriter.FinishCurrentFileDataBlock() here but it should also work without doing so, so I won't --jaf
    }

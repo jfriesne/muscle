@@ -138,7 +138,7 @@ bool IsMessageDeflated(const MessageRef & msgRef);
 /** Examines the contents of the given Message, and creates and returns a new
  *  Message that represents the same data as the given Message, but in compressed form.
  *  If the passed-in Message is already in compressed form (i.e. it was created by
- *  a previous call to DeflateMessage()) then a reference to the original passed-in Message 
+ *  a previous call to DeflateMessage()) then a reference to the original passed-in Message
  *  is returned instead.
  *  The returned Message is guaranteed to have the same 'what' code as the passed-in Message.
  *  If there is an error (out of memory?), a NULL reference is returned.
@@ -164,7 +164,7 @@ MessageRef DeflateMessage(const MessageRef & msgRef, int compressionLevel = 6, b
  *  Returns a NULL reference on failure (out of memory?)
  *  @param msgRef Message to examine and make an uncompressed equivalent of.
  *  @return A reference to an uncompressed Message on success, or a NULL reference on failure.
- *          (Note that in some cases the returned MessageRef may reference the same Message as 
+ *          (Note that in some cases the returned MessageRef may reference the same Message as
  *          the (msgRef) argument)
  */
 MessageRef InflateMessage(const MessageRef & msgRef);

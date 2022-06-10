@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifndef MuscleCPULoadMeter_h 
-#define MuscleCPULoadMeter_h 
+#ifndef MuscleCPULoadMeter_h
+#define MuscleCPULoadMeter_h
 
 #include "support/MuscleSupport.h"
 #include "util/CountedObject.h"
@@ -11,7 +11,7 @@ namespace muscle {
 /** This class knows how to measure the total load on the host computer's CPU.
   * Note that the internal implementation of this class is OS-specific, and so
   * it will only work properly on the OS's for which an implementation has been
-  * provided (currently Windows, MacOS/X, and Linux).  Under other OS's, 
+  * provided (currently Windows, MacOS/X, and Linux).  Under other OS's,
   * GetCPULoad() will always just return a negative value.
   *
   * To use this class, just instantiate a CPULoadMeter object, and then call
@@ -35,7 +35,7 @@ public:
    float GetCPULoad();
 
 private:
-   float CalculateCPULoad(uint64 idleTicks, uint64 totalTicks); 
+   float CalculateCPULoad(uint64 idleTicks, uint64 totalTicks);
 
    uint64 _previousTotalTicks;
    uint64 _previousIdleTicks;

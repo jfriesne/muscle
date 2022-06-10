@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    PrintExampleDescription();
-   
+
    LogTime(MUSCLE_LOG_INFO, "Downloading the HTML data from www.google.com port 80...\n");
 
    ConstSocketRef tcpSock = Connect("www.google.com", 80, "TCP Client", false, SecondsToMicros(10));

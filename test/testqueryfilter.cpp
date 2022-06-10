@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -46,14 +46,14 @@ static void TestQueryFilter(MultiQueryFilter & qf, const char * desc, const char
          ConstMessageRef dummyMsg;
          printf(" %s--> %i\n", inputs(), qf.Matches(dummyMsg, NULL));
       }
-      
+
       numStates *= 2;
-   } 
+   }
    printf("\n");
 }
 
 // This program exercises some of the QueryFilter classes.
-int main(int, char **) 
+int main(int, char **)
 {
    CompleteSetupSystem css;
 

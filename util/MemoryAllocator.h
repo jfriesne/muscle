@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifndef MuscleMemoryAllocator_h
 #define MuscleMemoryAllocator_h
@@ -48,7 +48,7 @@ public:
     *  @note Implementations of this method shall assume that calls to this method will
     *        be serialized, so they don't need to do any serialization themselves.
     *  @note This method should NOT undo any side effects that were incurred by
-    *        a previous successful AboutToAllocate() method, as that will be done 
+    *        a previous successful AboutToAllocate() method, as that will be done
     *        separately by a call to AboutToFree().
     */
    virtual void AllocationFailed(size_t currentlyAllocatedBytes, size_t allocRequestBytes) = 0;
@@ -109,13 +109,13 @@ private:
 };
 DECLARE_REFTYPES(ProxyMemoryAllocator);
 
-/** This MemoryAllocator decorates its slave MemoryAllocator to 
-  * enforce a user-defined per-process limit on how much memory may be allocated at any given time. 
+/** This MemoryAllocator decorates its slave MemoryAllocator to
+  * enforce a user-defined per-process limit on how much memory may be allocated at any given time.
   */
 class UsageLimitProxyMemoryAllocator : public ProxyMemoryAllocator
 {
 public:
-   /** Constructor.  
+   /** Constructor.
      * @param slaveRef Reference to a sub-MemoryAllocator whose methods we will call through to.
      * @param maxBytes The maximum number of bytes that we will allow (slave) to allocate.  Defaults to no limit.
      *                 This value may be reset later using SetMaxNumBytes().
@@ -125,7 +125,7 @@ public:
    /** Destructor.  */
    virtual ~UsageLimitProxyMemoryAllocator();
 
-   /** Overridden to return false if memory usage would go over maximum due to this allocation. 
+   /** Overridden to return false if memory usage would go over maximum due to this allocation.
     *  @param currentlyAllocatedBytes How many bytes the system has allocated currently
     *  @param allocRequestBytes How many bytes the system would like to allocate.
     */
@@ -158,7 +158,7 @@ DECLARE_REFTYPES(UsageLimitProxyMemoryAllocator);
 class AutoCleanupProxyMemoryAllocator : public ProxyMemoryAllocator
 {
 public:
-   /** Constructor.  
+   /** Constructor.
      * @param slaveRef Reference to a sub-MemoryAllocator whose methods we will call through to.
      */
    AutoCleanupProxyMemoryAllocator(const MemoryAllocatorRef & slaveRef) : ProxyMemoryAllocator(slaveRef) {/* empty */}

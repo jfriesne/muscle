@@ -49,11 +49,11 @@ int main(int argc, char ** argv)
    for (MessageFieldNameIterator mfn(orderPizzaMsg); mfn.HasData(); mfn++)
    {
       const String & fn = mfn.GetFieldName();
-      const uint32 fType = mfn.GetFieldType();  
+      const uint32 fType = mfn.GetFieldType();
 
       printf("   Field [%s] is of type " UINT32_FORMAT_SPEC " (aka '%s') and contains " UINT32_FORMAT_SPEC " data-values.\n", fn(), mfn.GetFieldType(), GetTypeCodeString(fType)(), orderPizzaMsg.GetNumValuesInName(fn));
    }
- 
+
    printf("\n");
    return 0;
 }

@@ -32,10 +32,10 @@ int main(int argc, char ** argv)
    IPAddress example_localhostAddress6("::1");
    printf("example_localhostAddress6=[%s]\n", example_localhostAddress6.ToString()());
 
-   // You can also put together an IP address numerically, if you're the kind 
+   // You can also put together an IP address numerically, if you're the kind
    // of person who likes to do things that way
    IPAddress myMulticastIP((uint64)0x12, ((uint64)0xFF)<<56, 3);  // low-64-bits, high-64-bits, scope-index
-   printf("myMulticastIP=[%s]\n", myMulticastIP.ToString()()); 
+   printf("myMulticastIP=[%s]\n", myMulticastIP.ToString()());
 
    // Similar stuff for an IPAddressAndPort
    IPAddressAndPort myIAP_v4("127.0.0.1:9999", 6666, false);  // false means "avoid using DNS lookups"

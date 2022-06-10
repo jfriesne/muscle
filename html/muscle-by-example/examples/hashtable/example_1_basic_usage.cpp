@@ -71,7 +71,7 @@ int main(int argc, char ** argv)
       printf("C: Removed key \"Fifteen\" from the table, and its associated value (%i)\n", removedValue);
    }
    else printf("C: Weird, key \"Fifteen\" wasn't in the table!?\n");
-   
+
    printf("\n");
 
    // We can remove a key/value pair without even caring what the value was...

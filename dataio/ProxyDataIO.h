@@ -7,7 +7,7 @@
 #include "dataio/SeekableDataIO.h"
 
 namespace muscle {
- 
+
 /** This DataIO is a "wrapper" DataIO that passes all calls through verbatim
   * to a held "child" DataIO.  It's not terribly useful by itself, but can
   * be useful as a base class for a subclass that wants to modify certain
@@ -21,7 +21,7 @@ public:
      */
    ProxyDataIO() : _seekableChildIO(NULL), _packetChildIO(NULL) {/* empty */}
 
-   /** Constructor. 
+   /** Constructor.
      * @param childIO Reference to the DataIO to pass calls on through to
      *                after the data has been XOR'd.
      */
@@ -61,7 +61,7 @@ public:
    /** Sets our current held child DataIO.
      * @param childDataIO The new child DataIO to forward method calls along to.
      */
-   virtual void SetChildDataIO(const DataIORef & childDataIO) 
+   virtual void SetChildDataIO(const DataIORef & childDataIO)
    {
       _childIO         = childDataIO;
       _seekableChildIO = dynamic_cast<SeekableDataIO *>(_childIO());

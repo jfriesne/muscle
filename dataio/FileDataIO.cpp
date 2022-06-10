@@ -27,7 +27,7 @@ FileDataIO :: ~FileDataIO()
    if (_file) fclose(_file);
 }
 
-int32 FileDataIO :: Read(void * buffer, uint32 size)  
+int32 FileDataIO :: Read(void * buffer, uint32 size)
 {
    if (_file)
    {
@@ -66,7 +66,7 @@ int64 FileDataIO :: GetPosition() const
    return _file ? (int64) ftell(_file) : (_pendingFilePath?0:-1);
 }
 
-void FileDataIO :: FlushOutput() 
+void FileDataIO :: FlushOutput()
 {
    if (_file) fflush(_file);
 }
@@ -80,14 +80,14 @@ void FileDataIO :: Shutdown()
    }
    FreePendingFileInfo();
 }
- 
-void FileDataIO :: ReleaseFile() 
+
+void FileDataIO :: ReleaseFile()
 {
    _file = NULL;
    SetSocketsFromFile(NULL);
 }
 
-void FileDataIO :: SetFile(FILE * fp) 
+void FileDataIO :: SetFile(FILE * fp)
 {
    Shutdown();
    _file = fp;
@@ -98,14 +98,14 @@ void FileDataIO :: SetSocketsFromFile(FILE * optFile)
 {
    _selectSocketRef.Reset();
 #ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE   // windows can't do the select-on-file-descriptor trick, sorry!
-   _selectSocket.Clear(); 
+   _selectSocket.Clear();
 
    const int fd = optFile ? fileno(optFile) : -1;
    if (fd >= 0)
    {
       _selectSocket.SetFileDescriptor(fd, false);  // false because the fclose() will call close(fd), so we should not
       _selectSocketRef.SetRef(&_selectSocket, false);
-   } 
+   }
 #else
    (void) optFile; // avoid compiler warning
 #endif

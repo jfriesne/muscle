@@ -26,7 +26,7 @@ public:
 
    void DoSomethingElse()
    {
-      // DoSomethingElse() can now tell whether it is being called by DoSomething() or by 
+      // DoSomethingElse() can now tell whether it is being called by DoSomething() or by
       // someone else, and take the appropriate action based on its context.
       if (_inDoSomething.IsInBatch()) printf("DoSomethingElse():  I was called by DoSomething()\n");
                                  else printf("DoSomethingElse():  I was called from somewhere else\n");

@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
          LogTime(MUSCLE_LOG_INFO, "This is a spam log message, it's only here to demonstrate log rotation (Message #" UINT32_FORMAT_SPEC ")\n", count++);
       }
    }
-   
+
    printf("\n");
    LogTime(MUSCLE_LOG_INFO, "Now that that's over, you can look in the rotated_logs sub-directory to see the final result.\n");
 

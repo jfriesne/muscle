@@ -80,7 +80,7 @@ public:
             // But example_2_udp_pingpong waits 100mS before sending back the reply, so let's do that
             // here as well.  We'll use Pulse() and GetPulseTime() to implement without blocking the
             // server's event loop.
-            if (_pendingReplies.Put(msg, GetRunTime64()+MillisToMicros(100)).IsOK()) InvalidatePulseTime(); 
+            if (_pendingReplies.Put(msg, GetRunTime64()+MillisToMicros(100)).IsOK()) InvalidatePulseTime();
          }
          else LogTime(MUSCLE_LOG_ERROR, "Error, gateway didn't provide the UDP packet's source location?!\n");
       }
@@ -103,7 +103,7 @@ public:
          if (args.GetCallbackTime() >= nextSendTime)
          {
             MessageRef msgToSend;
-            if (_pendingReplies.RemoveFirst(msgToSend).IsOK()) 
+            if (_pendingReplies.RemoveFirst(msgToSend).IsOK())
             {
                IPAddressAndPort dest; (void) msgToSend()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, dest);
 
@@ -137,7 +137,7 @@ int main(int argc, char ** argv)
 
    // This factory will create a StorageReflectSession object whenever
    // a TCP connection is received on SMART_SERVER_TCP_PORT, and
-   // attach the StorageReflectSession to the ReflectServer for use.   
+   // attach the StorageReflectSession to the ReflectServer for use.
    StorageReflectSessionFactory smartSessionFactory;
    status_t ret;
    if (reflectServer.PutAcceptFactory(SMART_SERVER_TCP_PORT, DummyReflectSessionFactoryRef(smartSessionFactory)).IsError(ret))
@@ -153,7 +153,7 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't add UDP ping pong session! [%s]\n", ret());
       return 5;
    }
-   
+
    LogTime(MUSCLE_LOG_INFO, "example_7_smart_server_wth_udp_pingpong is listening for incoming TCP connections on port %u\n", SMART_SERVER_TCP_PORT);
    LogTime(MUSCLE_LOG_INFO, "Try running one or more instances of example_5_smart_client to connect/chat/subscribe!\n");
    LogTime(MUSCLE_LOG_INFO, "\n");
@@ -166,7 +166,7 @@ int main(int argc, char ** argv)
    else LogTime(MUSCLE_LOG_ERROR, "example_7_smart_server_wth_udp_pingpong is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions and factories
-   // before they are destroyed (necessary only because we may have 
+   // before they are destroyed (necessary only because we may have
    // allocated some of them on the stack rather than on the heap)
    reflectServer.Cleanup();
 

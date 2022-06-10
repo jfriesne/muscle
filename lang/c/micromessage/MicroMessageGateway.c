@@ -80,10 +80,10 @@ void UGOutgoingMessagePrepared(UMessageGateway * gw, const UMessage * msg)
       {
          const uint32 msgSize = UMGetFlattenedSize(msg);
 
-         UMWriteInt32(nextAvailByte, msgSize);                          
+         UMWriteInt32(nextAvailByte, msgSize);
          nextAvailByte += sizeof(uint32);
 
-         UMWriteInt32(nextAvailByte, _MUSCLE_MESSAGE_ENCODING_DEFAULT); 
+         UMWriteInt32(nextAvailByte, _MUSCLE_MESSAGE_ENCODING_DEFAULT);
 #ifdef DISABLED_TO_KEEP_CLANG_STATIC_ANALYZER_HAPPY
          nextAvailByte += sizeof(uint32);
 #endif
@@ -115,7 +115,7 @@ int32 UGDoOutput(UMessageGateway * gw, uint32 maxBytes, UGSendFunc sendFunc, voi
    {
       int32 bytesToSend = gw->_numValidOutputBytes;
       if (bytesToSend > maxBytes) bytesToSend = maxBytes;
-      
+
       const int32 bytesSent = sendFunc(gw->_firstValidOutputByte, bytesToSend, arg);
       if (bytesSent < 0) return -1;  /* error! */
       else
@@ -134,7 +134,7 @@ int32 UGDoInput(UMessageGateway * gw, uint32 maxBytes, UGReceiveFunc recvFunc, v
    if (optRetMsg) UMInitializeToInvalid(optRetMsg);
 
    int32 totalRecvd = 0;
-   while(true) 
+   while(true)
    {
       int32 bytesReceived;
       uint32 bytesToRecv = (gw->_numInputBytesToRead-gw->_numValidInputBytes);

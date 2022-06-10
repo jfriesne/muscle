@@ -38,7 +38,7 @@ status_t AsyncDataIO :: Seek(int64 offset, int whence)
 
 void AsyncDataIO :: FlushOutput()
 {
-   if (IsInternalThreadRunning()) 
+   if (IsInternalThreadRunning())
    {
       if (_asyncCommandsMutex.Lock().IsOK())
       {
@@ -67,18 +67,18 @@ void AsyncDataIO :: Shutdown()
 void AsyncDataIO :: ShutdownInternalThread(bool waitForThread)
 {
    _mainThreadNotifySocket.Reset();  // so that the internal thread will know to exit now
-   Thread::ShutdownInternalThread(waitForThread); 
+   Thread::ShutdownInternalThread(waitForThread);
 }
 
 status_t AsyncDataIO :: StartInternalThread()
 {
    MRETURN_ON_ERROR(CreateConnectedSocketPair(_mainThreadNotifySocket, _ioThreadNotifySocket));
-   return Thread::StartInternalThread(); 
+   return Thread::StartInternalThread();
 }
 
 void AsyncDataIO :: NotifyInternalThread()
 {
-   const char buf = 'j'; 
+   const char buf = 'j';
    (void) SendData(_mainThreadNotifySocket, &buf, sizeof(buf), false);
 }
 
@@ -87,7 +87,7 @@ void AsyncDataIO :: InternalThreadEntry()
    bool exitWhenDoneWriting = false;
    bool keepGoing = true;
    uint64 ioThreadBytesWritten = 0;
-   AsyncCommand curCmd; 
+   AsyncCommand curCmd;
 
    char fromMainThreadBuf[4096];
    uint32 fromMainThreadBufReadIdx  = 0;  // which byte to read out of (fromMainThreadBuf) next
@@ -133,9 +133,9 @@ void AsyncDataIO :: InternalThreadEntry()
       }
 
       // All the notify socket needs to do is make WaitForEvents() return.  We just read the junk notify-bytes and ignore them.
-      if ((notifyFD >= 0)&&(multiplexer.IsSocketReadyForRead(notifyFD))) 
+      if ((notifyFD >= 0)&&(multiplexer.IsSocketReadyForRead(notifyFD)))
       {
-         char junk[128]; 
+         char junk[128];
          if (ReceiveData(_ioThreadNotifySocket, junk, sizeof(junk), false) < 0) break;
       }
 
@@ -200,7 +200,7 @@ void AsyncDataIO :: InternalThreadEntry()
             if ((fromChildIOBufReadIdx < fromChildIOBufNumValid)&&(multiplexer.IsSocketReadyForWrite(fromMainFD)))
             {
                const int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromChildIOBuf[fromChildIOBufReadIdx], fromChildIOBufNumValid-fromChildIOBufReadIdx, false);
-               if (bytesWritten >= 0) 
+               if (bytesWritten >= 0)
                {
                   fromChildIOBufReadIdx += bytesWritten;
                   if (fromChildIOBufReadIdx == fromChildIOBufNumValid) fromChildIOBufReadIdx = fromChildIOBufNumValid = 0;
@@ -225,7 +225,7 @@ void AsyncDataIO :: InternalThreadEntry()
                if (childIO) childIO->Shutdown();
             break;
 
-            default: 
+            default:
                LogTime(MUSCLE_LOG_ERROR, "AsyncDataIO:  Unknown ASYNC_COMMAND code %u\n", curCmd.GetCommand());
             break;
          }

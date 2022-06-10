@@ -25,8 +25,8 @@ int main(int argc, char ** argv)
    {
       printf("Here are the contents of this program's source file, as a hex dump:\n");
       bbRef()->PrintToStream();
-   } 
-   else 
+   }
+   else
    {
       printf("Error, couldn't read input file [%s]\n", inputFileName);
       return 10;
@@ -38,6 +38,6 @@ int main(int argc, char ** argv)
    FileDataIO outputFdio(muscleFopen(outputFileName, "w"));
    const uint32 numBytesWritten = outputFdio.WriteFully(bbRef()->GetBuffer(), bbRef()->GetNumBytes());
    printf("Wrote " UINT32_FORMAT_SPEC " bytes of data to [%s]\n", numBytesWritten, outputFileName);
-  
+
    return 0;
 }

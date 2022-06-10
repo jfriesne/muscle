@@ -18,7 +18,7 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    PrintExampleDescription();
-   
+
    printf("The OnceEvery() function returns true once every so-many microseconds.  It can be used to generate output at a measured pace:\n");
    uint64 prevTime = 0;
    int count = 0;
@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
    for (int i=0; i<100000000; i++)
    {
       count += 37;
-      PRINT_CALLS_PER_SECOND("wow"); 
+      PRINT_CALLS_PER_SECOND("wow");
    }
 
    printf("\n");

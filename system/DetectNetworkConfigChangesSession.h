@@ -15,15 +15,15 @@ class DetectNetworkConfigChangesThread;
 /** This class watches the set of available network interfaces and when that set
   * changes, this class calls the NetworkInterfacesChanged() virtual method on any
   * session or factory object that is attached to the same ReflectServer (including itself).
-  *  
+  *
   * Note that this functionality is currently implemented for Linux, Windows, and MacOS/X only.
   * Note also that the Windows and MacOS/X implementations currently make use of the MUSCLE
   * Thread class, and therefore won't compile if -DMUSCLE_SINGLE_THREAD_ONLY is set.
-  * 
-  * This class also provides notification callbacks when the host computer is about to go 
-  * to sleep, and when it has just reawoken from sleep.  This can be useful e.g. if you 
-  * want to make sure your program's TCP connections get cleanly disconnected and are not 
-  * left open while the host computer is sleeping.  This functionality is currently 
+  *
+  * This class also provides notification callbacks when the host computer is about to go
+  * to sleep, and when it has just reawoken from sleep.  This can be useful e.g. if you
+  * want to make sure your program's TCP connections get cleanly disconnected and are not
+  * left open while the host computer is sleeping.  This functionality is currently
   * implemented under MacOS/X and Windows only.
   *
   * @see tests/testnetconfigdetect.cpp for an example usage of this class.

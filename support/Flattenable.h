@@ -16,7 +16,7 @@ class DataIO;
  *  to save itself into an array of bytes, and recover its state from
  *  an array of bytes.
  */
-class Flattenable 
+class Flattenable
 {
 public:
    /** Constructor */
@@ -25,48 +25,48 @@ public:
    /** Destructor */
    virtual ~Flattenable() {/* empty */}
 
-   /** @copydoc DoxyTemplate::IsFixedSize() const */ 
+   /** @copydoc DoxyTemplate::IsFixedSize() const */
    virtual bool IsFixedSize() const = 0;
 
-   /** @copydoc DoxyTemplate::TypeCode() const */ 
+   /** @copydoc DoxyTemplate::TypeCode() const */
    virtual uint32 TypeCode() const = 0;
 
-   /** @copydoc DoxyTemplate::FlattenedSize() const */ 
+   /** @copydoc DoxyTemplate::FlattenedSize() const */
    virtual uint32 FlattenedSize() const = 0;
 
-   /** @copydoc DoxyTemplate::Flatten(uint8 *) const */ 
+   /** @copydoc DoxyTemplate::Flatten(uint8 *) const */
    virtual void Flatten(uint8 *buffer) const = 0;
 
-   /** @copydoc DoxyTemplate::AllowsTypeCode(uint32) const 
+   /** @copydoc DoxyTemplate::AllowsTypeCode(uint32) const
      * @note base class's default implementation returns true iff (tc) equals either B_RAW_DATA, or the value returned by TypeCode().
-     */ 
+     */
    virtual bool AllowsTypeCode(uint32 tc) const {return ((tc == B_RAW_TYPE)||(tc == TypeCode()));}
 
    /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
    virtual status_t Unflatten(const uint8 *buffer, uint32 size) = 0;
 
-   /** 
-    *  Causes (copyTo)'s state to set from this Flattenable, if possible. 
+   /**
+    *  Causes (copyTo)'s state to set from this Flattenable, if possible.
     *  Default implementation is not very efficient, since it has to flatten
-    *  this object into a byte buffer, and then unflatten the bytes back into 
-    *  (copyTo).  However, you can override CopyFromImplementation() to provide 
+    *  this object into a byte buffer, and then unflatten the bytes back into
+    *  (copyTo).  However, you can override CopyFromImplementation() to provide
     *  a more efficient implementation when possible.
     *  @param copyTo Object to make into the equivalent of this object.  (copyTo)
     *                May be any subclass of Flattenable.
     *  @return B_NO_ERROR on success, or an error code (such as B_TYPE_MISMATCH) on failure.
     */
-   status_t CopyTo(Flattenable & copyTo) const 
+   status_t CopyTo(Flattenable & copyTo) const
    {
       return (this == &copyTo) ? B_NO_ERROR : ((copyTo.AllowsTypeCode(TypeCode())) ? copyTo.CopyFromImplementation(*this) : B_TYPE_MISMATCH);
    }
 
-   /** 
-    *  Causes our state to be set from (copyFrom)'s state, if possible. 
+   /**
+    *  Causes our state to be set from (copyFrom)'s state, if possible.
     *  Default implementation is not very efficient, since it has to flatten
-    *  (copyFrom) into a byte buffer, and then unflatten the bytes back into 
-    *  (this).  However, you can override CopyFromImplementation() to provide 
+    *  (copyFrom) into a byte buffer, and then unflatten the bytes back into
+    *  (this).  However, you can override CopyFromImplementation() to provide
     *  a more efficient implementation when possible.
-    *  @param copyFrom Object to read from to set the state of this object.  
+    *  @param copyFrom Object to read from to set the state of this object.
     *                  (copyFrom) may be any subclass of Flattenable.
     *  @return B_NO_ERROR on success, or an error code (such as B_TYPE_MISMATCH) on failure.
     */
@@ -75,7 +75,7 @@ public:
       return (this == &copyFrom) ? B_NO_ERROR : ((AllowsTypeCode(copyFrom.TypeCode())) ? CopyFromImplementation(copyFrom) : B_TYPE_MISMATCH);
    }
 
-   /** 
+   /**
     * Convenience method for writing data into a byte buffer.
     * Writes data consecutively into a byte buffer.  The output buffer is
     * assumed to be large enough to hold the data.
@@ -89,8 +89,8 @@ public:
       memcpy(&outBuf[*writeOffset], copyFrom, blockSize);
       *writeOffset += blockSize;
    }
-    
-   /** 
+
+   /**
     * Convenience method for safely reading bytes from a byte buffer.  (Checks to avoid buffer overrun problems)
     * @param inBuf Flat buffer to read bytes from
     * @param inputBufferBytes total size of the input buffer
@@ -107,8 +107,8 @@ public:
       return B_NO_ERROR;
    }
 
-   /** Convenience method.  Flattens this object into the supplied ByteBuffer object. 
-     * @param outBuf the ByteBuffer to dump our flattened bytes into.  
+   /** Convenience method.  Flattens this object into the supplied ByteBuffer object.
+     * @param outBuf the ByteBuffer to dump our flattened bytes into.
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t FlattenToByteBuffer(ByteBuffer & outBuf) const;
@@ -127,7 +127,7 @@ public:
 
    /** Convenience method.  Allocates an appropriately sized ByteBuffer object via GetByteBufferFromPool(), Flatten()s
      * this object into the byte buffer, and returns the resulting ByteBufferRef.  Returns a NULL reference on failure (out of memory?)
-     */ 
+     */
    Ref<ByteBuffer> FlattenToByteBuffer() const;
 
    /** Convenience method.  Flattens this object to the given DataIO object.
@@ -157,15 +157,15 @@ public:
    status_t UnflattenFromDataIO(DataIO & inputStream, int32 optReadSize, uint32 optMaxReadSize = MUSCLE_NO_LIMIT);
 
 protected:
-   /** 
-    *  Called by CopyFrom() and CopyTo().  Sets our state from (copyFrom) if 
-    *  possible.  Default implementation is not very efficient, since it has 
-    *  to flatten (copyFrom) into a byte buffer, and then unflatten the bytes 
-    *  back into (this).  However, you can override CopyFromImplementation() 
+   /**
+    *  Called by CopyFrom() and CopyTo().  Sets our state from (copyFrom) if
+    *  possible.  Default implementation is not very efficient, since it has
+    *  to flatten (copyFrom) into a byte buffer, and then unflatten the bytes
+    *  back into (this).  However, you can override CopyFromImplementation()
     *  to provide a more efficient implementation when possible.
     *  @param copyFrom Object to set this object's state from.
-    *                  May be any subclass of Flattenable, but it has been 
-    *                  pre-screened by CopyFrom() (or CopyTo()) to make sure 
+    *                  May be any subclass of Flattenable, but it has been
+    *                  pre-screened by CopyFrom() (or CopyTo()) to make sure
     *                  it's not (*this), and that we allow its type code.
     *  @return B_NO_ERROR on success, or an error code on failure.
     */

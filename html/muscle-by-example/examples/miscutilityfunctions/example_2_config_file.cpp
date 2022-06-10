@@ -18,7 +18,7 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    PrintExampleDescription();
-   
+
    printf("First, we'll create a sample Message containing some imaginary configuration info.\n");
    printf("\n");
 
@@ -93,7 +93,7 @@ int main(int argc, char ** argv)
    else printf("Error, ParseFile() failed!\n");
 
    fclose(fpIn);
-   
+
    printf("\n");
    printf("Take a look at the test_config.txt file in this folder to see it for yourself!\n");
 

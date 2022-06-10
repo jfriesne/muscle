@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
             return 10;
          }
       }
-      else 
+      else
       {
          printf("CreateAcceptingSocket() failed!  Perhaps another program is already using port %i?\n", tcpPort);
          return 10;
@@ -76,7 +76,7 @@ int main(int argc, char ** argv)
          return 10;
       }
    }
-   else 
+   else
    {
       printf("Usage:  ./example_2_message_to_tcp [accept] [connect]\n");
       printf("Run an instance with the \"accept\" keyword first, then\n");
@@ -118,7 +118,7 @@ int main(int argc, char ** argv)
          // just because the TCP socket's output-buffer isn't full...
          sm.RegisterSocketForWriteReady(gateway.GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor());
       }
-    
+
       // Wait for something to happen (on either the TCP side or the stdin side)...
       sm.WaitForEvents();
 
@@ -139,13 +139,13 @@ int main(int argc, char ** argv)
          if (userText.HasChars())
          {
             printf("You typed:  [%s]\n", userText());
-   
+
             // Now let's create a Message containing the user's text and send it across the TCP
             MessageRef userMsg = GetMessageFromPool(3456);  // arbitrary command code
             userMsg()->AddString("user input", userText);   // what the user typed in
             userMsg()->AddFloat("pi", 3.1415f);             // some other data fields
             userMsg()->AddRect("my_rect", Rect(1.0f, 2.0f, 3.0f, 4.0f)); // just to show that we can
-    
+
             // And queue it up in the gateway for transmission ASAP
             printf("Your outgoing Message has been queued for transmission ASAP!\n");
             printf("Your outgoing Message is:\n");
@@ -158,11 +158,11 @@ int main(int argc, char ** argv)
       if (sm.IsSocketReadyForRead(gateway.GetDataIO()()->GetReadSelectSocket().GetFileDescriptor()))
       {
          // There are some!  Let's have the gateway read them in.  If the gateway
-         // has enough to assemble a complete Message out of them, it will call 
-         /// MessageReceivedFromGateway(msg) on the AbstractGatewayMessageReceiver 
-         // object we pass in as an argument to gateway.DoInput().  In this case 
-         // we'll just use a QueueGatewayMessageReceiver, whose 
-         // MessageReceivedFromGateway() method simply adds the Message to a 
+         // has enough to assemble a complete Message out of them, it will call
+         /// MessageReceivedFromGateway(msg) on the AbstractGatewayMessageReceiver
+         // object we pass in as an argument to gateway.DoInput().  In this case
+         // we'll just use a QueueGatewayMessageReceiver, whose
+         // MessageReceivedFromGateway() method simply adds the Message to a
          // Queue for us to examing afterwards.
 
          QueueGatewayMessageReceiver qReceiver;

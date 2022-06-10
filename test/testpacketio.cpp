@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/TCPSocketDataIO.h"
 #include "dataio/PacketizedProxyDataIO.h"
@@ -17,11 +17,11 @@ int main(int argc, char ** argv)
 
    Message args;
    (void) ParseArgs(argc, argv, args);
- 
-   const char * temp; 
+
+   const char * temp;
    IPAddress connectTo = invalidIP;
    if (args.FindString("host", &temp).IsOK()) connectTo = GetHostByName(temp);
-   
+
    uint16 port = 0;
    if (args.FindString("port", &temp).IsOK()) port = (uint16) atoi(temp);
    if (port == 0) port = 8888;
@@ -31,7 +31,7 @@ int main(int argc, char ** argv)
    if (mtu == 0) mtu = 64*1024;
 
    ConstSocketRef s;
-   if (connectTo != invalidIP) 
+   if (connectTo != invalidIP)
    {
       s = Connect(IPAddressAndPort(connectTo, port), NULL, "testpacketio", false);
       if (s() == NULL) return 10;
@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "Accept() failed!\n");
          return 10;
-      } 
+      }
    }
 
    ByteBuffer buf;
@@ -62,7 +62,7 @@ int main(int argc, char ** argv)
    }
 
    TCPSocketDataIO tcp(s, true);
-   PacketizedProxyDataIO pack(DummyDataIORef(tcp), mtu); 
+   PacketizedProxyDataIO pack(DummyDataIORef(tcp), mtu);
 
    if (connectTo == invalidIP)
    {

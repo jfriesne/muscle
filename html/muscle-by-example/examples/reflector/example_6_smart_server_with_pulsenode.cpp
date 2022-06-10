@@ -41,7 +41,7 @@ public:
 
    virtual uint64 GetPulseTime(const PulseArgs & args)
    {
-      // Return the time at which Pulse() should next be called.  Note that I call up to the 
+      // Return the time at which Pulse() should next be called.  Note that I call up to the
       // superclass and minimize the result, just in case StorageReflectSession ever wants to
       // do its own Pulse() callbacks (currently it doesn't, but you never know what the future holds)
       return muscleMin(StorageReflectSession::GetPulseTime(args), _nextTimerTime);
@@ -98,7 +98,7 @@ int main(int argc, char ** argv)
 
    // This factory will create a StorageReflectSession object whenever
    // a TCP connection is received on SMART_SERVER_TCP_PORT, and
-   // attach the StorageReflectSession to the ReflectServer for use.   
+   // attach the StorageReflectSession to the ReflectServer for use.
    TimerStorageReflectSessionFactory timerSmartSessionFactory;
    status_t ret;
    if (reflectServer.PutAcceptFactory(SMART_SERVER_TCP_PORT, DummyReflectSessionFactoryRef(timerSmartSessionFactory)).IsError(ret))
@@ -122,7 +122,7 @@ int main(int argc, char ** argv)
    else LogTime(MUSCLE_LOG_ERROR, "example_6_smart_server_with_pulsenode is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions and factories
-   // before they are destroyed (necessary only because we may have 
+   // before they are destroyed (necessary only because we may have
    // allocated some of them on the stack rather than on the heap)
    reflectServer.Cleanup();
 

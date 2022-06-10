@@ -15,10 +15,10 @@ class AbstractMessageIOGateway;
   * source (or destination) of a UDP packet transmitted via a gateway.
   * Used only when sending or receiving via a packet-based protocol (read: UDP).
   */
-#define PR_NAME_PACKET_REMOTE_LOCATION "_rl"  
+#define PR_NAME_PACKET_REMOTE_LOCATION "_rl"
 
 /** Interface for any object that wishes to be notified by AbstractMessageIOGateway::DoInput() about received Messages. */
-class AbstractGatewayMessageReceiver 
+class AbstractGatewayMessageReceiver
 {
 public:
    /** Default constructor */
@@ -27,8 +27,8 @@ public:
    /** Destructor */
    virtual ~AbstractGatewayMessageReceiver() {/* empty */}
 
-   /** This method calls MessageReceivedFromGateway() and then AfterMessageReceivedFromGateway(). 
-    *  AbstractMessageIOGateway::DoInput() should call this method whenever it has received a new 
+   /** This method calls MessageReceivedFromGateway() and then AfterMessageReceivedFromGateway().
+    *  AbstractMessageIOGateway::DoInput() should call this method whenever it has received a new
     *  Message from its DataIO object..
     *  @param msg MessageRef containing the new Message
     *  @param userData This is a miscellaneous value that may be used by some gateways for various purposes.
@@ -88,7 +88,7 @@ private:
 };
 
 /** Handy utility class for programs that don't want to define their own custom subclass
- *  just to gather incoming Messages a gateway -- this receiver just adds the received 
+ *  just to gather incoming Messages a gateway -- this receiver just adds the received
  *  Messages to the tail of the Queue, which your code can then pick up later on at its leisure.
  *  (For high-bandwidth stuff, this isn't as memory efficient, but for simple programs it's good enough)
  */

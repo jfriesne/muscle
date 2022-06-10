@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <netdb.h>
 #include <unistd.h>
@@ -24,7 +24,7 @@ static void Inet_NtoA(uint32 addr, char * ipbuf)
 static int ConnectToIP(uint32 hostIP, uint16 port)
 {
    char ipbuf[16];
-   struct sockaddr_in saAddr; 
+   struct sockaddr_in saAddr;
    int s;
 
    Inet_NtoA(hostIP, ipbuf);
@@ -87,7 +87,7 @@ int main(int argc, char ** argv)
 
    UMessageGateway gw;
    UGGatewayInitialize(&gw, inputBuffer, sizeof(inputBuffer), outputBuffer, sizeof(outputBuffer));
-   
+
    if (argc > 1) hostName = argv[1];
    if (argc > 2) port = atoi(argv[2]);
    if (port <= 0) port = 2960;
@@ -115,7 +115,7 @@ int main(int argc, char ** argv)
          FD_SET(STDIN_FILENO, &readSet);
 #endif
 
-         while(keepGoing) 
+         while(keepGoing)
          {
             if (select(maxfd+1, &readSet, &writeSet, NULL, NULL) < 0) printf("microreflectclient: select() failed!\n");
 
@@ -124,7 +124,7 @@ int main(int argc, char ** argv)
             {
                char * ret;
                if (fgets(text, sizeof(text), stdin) == NULL) text[0] = '\0';
-               ret = strchr(text, '\n'); 
+               ret = strchr(text, '\n');
                if (ret) *ret = '\0';
             }
 #endif
@@ -150,12 +150,12 @@ int main(int argc, char ** argv)
 
                   case 's':
                   {
-                     UMessage subMsg = UMInlineAddMessage(&msg, &text[2], MAKETYPE("HELO"));                     
+                     UMessage subMsg = UMInlineAddMessage(&msg, &text[2], MAKETYPE("HELO"));
                      UMAddString(&subMsg, "test", "this is a sub message");
                      UMSetWhatCode(&msg, PR_COMMAND_SETDATA);
                   }
                   break;
-      
+
                   case 'k':
                      UMAddString(&msg, PR_NAME_KEYS, &text[2]);
                      UMSetWhatCode(&msg, PR_COMMAND_KICK);
@@ -175,7 +175,7 @@ int main(int argc, char ** argv)
                      UMAddString(&msg, PR_NAME_KEYS, &text[2]);
                      UMSetWhatCode(&msg, PR_COMMAND_GETDATA);
                   break;
-      
+
                   case 'G':
                      UMAddString(&msg, PR_NAME_KEYS, &text[2]);
                      UMAddString(&msg, PR_NAME_TREE_REQUEST_ID, "Tree ID!");
@@ -185,26 +185,26 @@ int main(int argc, char ** argv)
                   case 'q':
                      keepGoing = send = UFalse;
                   break;
-      
+
                   case 'p':
                      UMAddString(&msg, &text[2], "");
                      UMSetWhatCode(&msg, PR_COMMAND_SETPARAMETERS);
                   break;
-      
+
                   case 'P':
                      UMSetWhatCode(&msg, PR_COMMAND_GETPARAMETERS);
                   break;
-      
+
                   case 'd':
                      UMAddString(&msg, PR_NAME_KEYS, &text[2]);
                      UMSetWhatCode(&msg, PR_COMMAND_REMOVEDATA);
                   break;
-      
+
                   case 'D':
                      UMAddString(&msg, PR_NAME_KEYS, &text[2]);
                      UMSetWhatCode(&msg, PR_COMMAND_REMOVEPARAMETERS);
                   break;
-      
+
                   case 't':
                   {
                      const uint8 data[] = {0x01, 0x02, 0x03, 0x04, 0x05};
@@ -243,8 +243,8 @@ int main(int argc, char ** argv)
                      send = UFalse;
                   break;
                }
-   
-               if (send) 
+
+               if (send)
                {
                   printf("Sending message...\n");
                   UMPrintToStream(&msg, stdout);
@@ -254,7 +254,7 @@ int main(int argc, char ** argv)
 
                text[0] = '\0';
             }
-   
+
             {
                UMessage incomingMsg; UMInitializeToInvalid(&incomingMsg);
                const UBool reading    = FD_ISSET(s, &readSet);
@@ -287,7 +287,7 @@ int main(int argc, char ** argv)
 #endif
             }
          }
-      } 
+      }
       close(s);
    }
    else printf("Connection to [%s:%i] failed!\n", hostName, port);

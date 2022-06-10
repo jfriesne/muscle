@@ -17,7 +17,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   if (argc == 1) 
+   if (argc == 1)
    {
       PrintExampleDescription();
       return 5;

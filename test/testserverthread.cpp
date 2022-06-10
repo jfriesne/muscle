@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -91,7 +91,7 @@ void WatchNotifySocketSession :: MessageReceivedFromGateway(const MessageRef & /
 }
 
 // This program demonstrates running a ReflectServer event-loop in a child thread, and communicating with it from the main thread
-int main(int, char **) 
+int main(int, char **)
 {
    CompleteSetupSystem css;
 

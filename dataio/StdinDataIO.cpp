@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/StdinDataIO.h"
 #include "util/Hashtable.h"
@@ -77,7 +77,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
 
       // We'll close our own handle, thankyouverymuch
       if (_slaveThread != INVALID_HANDLE_VALUE)
-      { 
+      {
          CloseHandle(_slaveThread);
          _slaveThread = INVALID_HANDLE_VALUE;
       }
@@ -88,7 +88,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
          _stdinHandle = INVALID_HANDLE_VALUE;
       }
 
-      _slaveSocketsMutex.Unlock(); 
+      _slaveSocketsMutex.Unlock();
    }
    return 0;
 }
@@ -108,7 +108,7 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
    if (_stdinBlocking == false)
    {
-      // For non-blocking I/O, we need to handle stdin in a separate thread. 
+      // For non-blocking I/O, we need to handle stdin in a separate thread.
       // note that I freopen stdin to "nul" so that other code (read: Python)
       // won't try to muck about with stdin and interfere with StdinDataIO's
       // operation.  I don't know of any good way to restore it again after,
@@ -157,7 +157,7 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
 }
 
 StdinDataIO ::
-~StdinDataIO() 
+~StdinDataIO()
 {
    Close();
 }

@@ -60,7 +60,7 @@ public:
       for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++) HandleStdinCommandFromUser(*nextStr);
    }
 
-   // Called when we've received a MessageRef from another session object on 
+   // Called when we've received a MessageRef from another session object on
    // our ReflectServer.  (In this case it would have to be from the
    // StorageReflectSession object since that is the only other session object present)
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData)
@@ -70,7 +70,7 @@ public:
       msg()->PrintToStream();
    }
 
-   // If stdin is closed (e.g. via the user pressing CTRL-D) 
+   // If stdin is closed (e.g. via the user pressing CTRL-D)
    // that should cause the client to quit, so let's request that here
    virtual bool ClientConnectionClosed()
    {
@@ -110,7 +110,7 @@ private:
             {
                LogTime(MUSCLE_LOG_INFO, "Sending PR_COMMAND_SETDATA to set node at subpath [%s] to contain a Message containing data string [%s]\n", pathArg(), dataArg());
                if (HasRegexTokens(pathArg)) LogTime(MUSCLE_LOG_WARNING, "Note: PR_COMMAND_SETDATA won't do pattern-matching on wildcard chars; rather they will become literal chars in the node-path!\n");
-   
+
                 MessageRef dataPayloadMsg = GetMessageFromPool();
                 dataPayloadMsg()->AddString("User String", dataArg);
 
@@ -118,7 +118,7 @@ private:
                 setDataMsg()->AddMessage(pathArg, dataPayloadMsg);
 
                 SendMessageToServer(setDataMsg);
-            } 
+            }
          }
          else LogTime(MUSCLE_LOG_INFO, "Usage Example:  set my_node_dir/my_node_file = some text to put in the node\n");
       }
@@ -261,7 +261,7 @@ int main(int argc, char ** argv)
    else LogTime(MUSCLE_LOG_ERROR, "example_5_smart_client is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions
-   // before they are destroyed (necessary only because we have 
+   // before they are destroyed (necessary only because we have
    // allocated some of them on the stack rather than on the heap)
    reflectServer.Cleanup();
 

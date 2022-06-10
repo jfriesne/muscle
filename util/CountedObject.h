@@ -72,25 +72,25 @@ public:
 #endif
 
 /** This is a class that other classes can derive from, or keep as a
-  * private member variable, if it is desired to keep track of the number 
-  * of objects of that other class that are currently allocated.  Note that 
-  * this class will compile down to a no-op unless -DMUSCLE_ENABLE_OBJECT_COUNTING 
-  * is present.  Otherwise, you can call PrintCountedObjectInfo() at any time 
+  * private member variable, if it is desired to keep track of the number
+  * of objects of that other class that are currently allocated.  Note that
+  * this class will compile down to a no-op unless -DMUSCLE_ENABLE_OBJECT_COUNTING
+  * is present.  Otherwise, you can call PrintCountedObjectInfo() at any time
   * to get a report of current object allocation counts by type.
   */
 template <class ObjectType> class CountedObject
 {
 public:
-   /** Default Constructor.  */      
-   CountedObject() 
+   /** Default Constructor.  */
+   CountedObject()
    {
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
       GetGlobalObjectForType< ObjectCounter<ObjectType> >().IncrementCounter();
 #endif
    }
 
-   /** Copy Constructor.  */      
-   CountedObject(const CountedObject<ObjectType> & /*rhs*/) 
+   /** Copy Constructor.  */
+   CountedObject(const CountedObject<ObjectType> & /*rhs*/)
    {
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
       GetGlobalObjectForType< ObjectCounter<ObjectType> >().IncrementCounter();
@@ -98,7 +98,7 @@ public:
    }
 
    /** Destructor (deliberately not virtual, to avoid a vtable-pointer size-penalty) */
-   ~CountedObject() 
+   ~CountedObject()
    {
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
       GetGlobalObjectForType< ObjectCounter<ObjectType> >().DecrementCounter();

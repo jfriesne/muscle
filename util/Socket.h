@@ -46,7 +46,7 @@ public:
      */
    int ReleaseFileDescriptor() {int ret = _fd; _fd = -1; return ret;}
 
-   /** Returns the held socket fd, but does not release ownership of it. */  
+   /** Returns the held socket fd, but does not release ownership of it. */
    int GetFileDescriptor() const {return _fd;}
 
    /** Sets our file-descriptor.  Will close any old one if appropriate.
@@ -58,9 +58,9 @@ public:
      */
    void SetFileDescriptor(int fd, bool okayToCloseFD = true);
 
-   /** Resets this Socket object to its just-constructed state, freeing any held socket descriptor if appropriate. 
+   /** Resets this Socket object to its just-constructed state, freeing any held socket descriptor if appropriate.
      * This call is equivalent to calling SetFileDescriptor(-1, false).
-     */ 
+     */
    void Clear() {SetFileDescriptor(-1, false);}
 
 private:
@@ -156,7 +156,7 @@ public:
 
 /** Returns a ConstSocketRef from our ConstSocketRef pool that references the passed-in file-descriptor.
   * @param fd The file-descriptor that the returned ConstSocketRef should be tracking.
-  * @param okayToClose if true, (fd) will be closed when the last ConstSocketRef 
+  * @param okayToClose if true, (fd) will be closed when the last ConstSocketRef
   *                    that references it is destroyed.  If false, it won't be.  Defaults to true.
   * @param retNULLIfInvalidSocket If left true and (fd) is negative, then a NULL ConstSocketRef
   *                               will be returned.  If set false, then we will return a

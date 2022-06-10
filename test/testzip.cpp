@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "system/SetupSystem.h"
 #include "zlib/ZipFileUtilityFunctions.h"
@@ -31,7 +31,7 @@ int main(int argc, char ** argv)
          break;
       }
    }
-   
+
    MessageRef msg = ReadZipFile(argv[1], loadData);
    if (msg())
    {
@@ -53,6 +53,6 @@ int main(int argc, char ** argv)
 #else
    printf("Error, -DMUSCLE_ENABLE_ZLIB_ENCODING wasn't specified, can't to any unzipping!\n");
 #endif
-   
+
    return 0;
 }

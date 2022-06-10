@@ -137,7 +137,7 @@ status_t ZLibDataIO :: SetChildDataIO(const DataIORef & dio)
       if ((zRet != Z_OK)&&(zRet != Z_BUF_ERROR)) _inflateOkay = false; \
       ZLIB_READ_COPY_TO_USER;                                          \
    }
-         
+
 int32 ZLibDataIO :: Read(void * buffer, uint32 size)
 {
    int32 bytesAdded = 0;

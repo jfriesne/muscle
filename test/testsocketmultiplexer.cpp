@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -35,8 +35,8 @@ int main(int argc, char ** argv)
 
    Queue<ConstSocketRef> senders;   (void) senders.EnsureSize(numPairs, true);
    Queue<ConstSocketRef> receivers; (void) receivers.EnsureSize(numPairs, true);
-   
-   for (uint32 i=0; i<numPairs; i++) 
+
+   for (uint32 i=0; i<numPairs; i++)
    {
       if (CreateConnectedSocketPair(senders[i], receivers[i]).IsError())
       {
@@ -79,18 +79,18 @@ int main(int argc, char ** argv)
       const int ret = multiplexer.WaitForEvents();
       if (ret < 0)
       {
-         printf("WaitForEvents errored out, aborting test!\n"); 
+         printf("WaitForEvents errored out, aborting test!\n");
          break;
       }
 
-      const uint64 elapsed = GetRunTime64()-then; 
+      const uint64 elapsed = GetRunTime64()-then;
       if (quiet == false) printf("WaitForEvents returned %i after " UINT64_FORMAT_SPEC " microseconds.\n", ret, elapsed);
 
       count++;
       tally += elapsed;
       minRunTime = muscleMin(minRunTime, elapsed);
       maxRunTime = muscleMax(maxRunTime, elapsed);
-      
+
       for (uint32 i=0; i<numPairs; i++)
       {
          if (multiplexer.IsSocketReadyForRead(receivers[i].GetFileDescriptor()))

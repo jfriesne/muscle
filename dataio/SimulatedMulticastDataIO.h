@@ -12,7 +12,7 @@ namespace muscle {
 /**
  *  This is a special-purpose type of DataIO meant to simulate multicast semantics while
  *  minimizing the actual transmission of multicast packets on the network by sending the data
- *  via unicast instead.  This is particularly useful on WiFi networks, which are extremely 
+ *  via unicast instead.  This is particularly useful on WiFi networks, which are extremely
  *  inefficient at delivering actual multicast traffic.
  *
  *  On wired networks you are probably better off using actual multicast packets instead,
@@ -40,7 +40,7 @@ public:
 
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
    virtual void FlushOutput() {/* empty */}
-   
+
    /** Overridden to return the maximum packet size of a UDP packet.
      * Defaults to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes),
      * but the returned value can be changed via SetPacketMaximumSize().

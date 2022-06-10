@@ -43,15 +43,15 @@ public:
       SetEndianFlags(EndianFlags(DEFAULT_BYTEBUFFER_ENDIAN_FLAGS));
       (void) SetBuffer(numBytes, optBuffer);
    }
-  
-   /** Copy Constructor. 
+
+   /** Copy Constructor.
      * @param rhs The ByteBuffer to become a copy of.  We will also use (rhs)'s allocation strategy pointer and data flags.
      */
-   ByteBuffer(const ByteBuffer & rhs) : FlatCountable(), _buffer(NULL), _numValidBytes(0), _numAllocatedBytes(0), _allocStrategy(rhs._allocStrategy) 
+   ByteBuffer(const ByteBuffer & rhs) : FlatCountable(), _buffer(NULL), _numValidBytes(0), _numAllocatedBytes(0), _allocStrategy(rhs._allocStrategy)
    {
       *this = rhs;
    }
-  
+
    /** Destructor.  Deletes our held byte buffer. */
    virtual ~ByteBuffer() {Clear(true);}
 
@@ -86,12 +86,12 @@ public:
      */
    bool operator ==(const ByteBuffer &rhs) const {return (this == &rhs) ? true : ((GetNumBytes() == rhs.GetNumBytes()) ? (memcmp(GetBuffer(), rhs.GetBuffer(), GetNumBytes()) == 0) : false);}
 
-   /** Returns true iff the data (rhs) is holding is different from our own (byte-for-byte). 
+   /** Returns true iff the data (rhs) is holding is different from our own (byte-for-byte).
      * @param rhs the ByteBuffer to compare against
      */
    bool operator !=(const ByteBuffer &rhs) const {return !(*this == rhs);}
 
-   /** Appends the bytes contained in (rhs) to this ByteBuffer. 
+   /** Appends the bytes contained in (rhs) to this ByteBuffer.
      * @param rhs the bytes to append to the end of this buffer
      */
    ByteBuffer & operator += (const ByteBuffer & rhs) {(void) AppendBytes(rhs); return *this;}
@@ -153,7 +153,7 @@ public:
      * @param optBuffer May be set to point to an array of bytes to copy into our internal buffer.
      *                  If NULL, this ByteBuffer will contain (numBytes) uninitialized bytes.  Defaults to NULL.
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on out of memory--there are no side effects if that occurs.
-     */ 
+     */
    status_t SetBuffer(uint32 numBytes = 0, const uint8 * optBuffer = NULL);
 
    /** This method is similar to SetBuffer(), except that instead of copying the bytes out of (optBuffer),
@@ -186,7 +186,7 @@ public:
     */
    status_t FreeExtraBytes();
 
-   /** Causes us to forget the byte buffer we were holding, without freeing it.  Once this method 
+   /** Causes us to forget the byte buffer we were holding, without freeing it.  Once this method
      * is called, the calling code becomes responsible for calling muscleFree() on our (previously held) buffer.
      * @returns a pointer to our data bytes.  It becomes the responsibility of the caller to muscleFree() this buffer
      *          when he is done with it!
@@ -225,8 +225,8 @@ public:
    virtual status_t Unflatten(const uint8 *buffer, uint32 size) {return SetBuffer(size, buffer);}
 
    /** Returns a 32-bit checksum corresponding to this ByteBuffer's contents.
-     * Note that this method is O(N).  The checksum is calculated based solely on the valid held 
-     * bytes, and does not depend on the data-format flags, the allocation-strategy setting, or 
+     * Note that this method is O(N).  The checksum is calculated based solely on the valid held
+     * bytes, and does not depend on the data-format flags, the allocation-strategy setting, or
      * any reserve bytes that are currently allocated.
      */
    uint32 CalculateChecksum() const {return muscle::CalculateChecksum(_buffer, _numValidBytes);}
@@ -246,7 +246,7 @@ public:
     *  DEFAULT_BYTEBUFFER_ENDIAN_FLAGS define, which expands to ENDIAN_FLAG_FORCE_LITTLE by default.
     *  @param flags a bit-chord of ENDIAN_FLAG_* values.
     */
-   void SetEndianFlags(EndianFlags flags) 
+   void SetEndianFlags(EndianFlags flags)
    {
 #if B_HOST_IS_BENDIAN
       _allocStrategy.SetBool(flags.IsBitSet(ENDIAN_FLAG_FORCE_LITTLE));
@@ -285,7 +285,7 @@ public:
 ///@}
 
 ///@{
-   /** Convenience method for appending an array of data-items to the end of this buffer.  The buffer will be resized larger if necessary 
+   /** Convenience method for appending an array of data-items to the end of this buffer.  The buffer will be resized larger if necessary
      * to hold the written data.
      * @param vals Pointer to an array of values to append
      * @param numVals the number of value that (vals) points to
@@ -336,7 +336,7 @@ public:
      * @param vals Pointer to an array of values to copy data into (must point to at least maxValsToRead writeable items)
      * @param maxValsToRead the maximum number of values to copy in to (vals)
      * @param readByteOffset The offset from the top of our buffer at which to start reading.  Will be increased as a side-effect of this method.
-     * @returns the actual number of values copied over (which may be smaller than (maxValsToRead) if there weren't enough bytes left in the 
+     * @returns the actual number of values copied over (which may be smaller than (maxValsToRead) if there weren't enough bytes left in the
      *          buffer to read (maxValsToRead) items)
      */
    uint32 ReadInt8s(  int8   * vals, uint32 maxValsToRead, uint32 & readByteOffset) const;
@@ -351,7 +351,7 @@ public:
 ///@}
 
 ///@{
-   /** Convenience method for writing one data-item to a specified offset in this buffer.  (writeByteOffset) will be advanced to the 
+   /** Convenience method for writing one data-item to a specified offset in this buffer.  (writeByteOffset) will be advanced to the
      * byte-offset after the written item.  The buffer will be resized larger if necessary to hold the written data.
      * @param val the value to copy in to the buffer
      * @param writeByteOffset the offset-from-the-top-of-the-buffer, in bytes, to write to.  This value will be increased as a side-effect of this call.
@@ -370,7 +370,7 @@ public:
 ///@}
 
 ///@{
-   /** Convenience method for writing an array data-items to a specified offset in this buffer.  (writeByteOffset) will be advanced to 
+   /** Convenience method for writing an array data-items to a specified offset in this buffer.  (writeByteOffset) will be advanced to
      * the byte-offset after the last written item.  The buffer will be resized larger if necessary to hold the written data.
      * @param vals Pointer to an array of values to copy in to the buffer.  Must point to at least (numVals) valid items.
      * @param numVals How many items to copy out of the (vals) array.
@@ -389,7 +389,7 @@ public:
 ///@}
 
 protected:
-   /** Overridden to set our buffer directly from (copyFrom)'s Flatten() method 
+   /** Overridden to set our buffer directly from (copyFrom)'s Flatten() method
      * @param copyFrom the object to copy data from
      */
    virtual status_t CopyFromImplementation(const Flattenable & copyFrom);
@@ -412,14 +412,14 @@ DECLARE_REFTYPES(ByteBuffer);
   */
 ByteBuffer operator+(const ByteBuffer & lhs, const ByteBuffer & rhs);
 
-/** This function returns a pointer to a singleton ObjectPool that can be used to minimize the number of 
+/** This function returns a pointer to a singleton ObjectPool that can be used to minimize the number of
  *  ByteBuffer allocations and frees by recycling the ByteBuffer objects.
  */
 ByteBufferRef::ItemPool * GetByteBufferPool();
 
 /** Convenience method:  Gets a ByteBuffer from the ByteBuffer pool, makes sure it holds the specified number of bytes, and returns it.
  *  @param numBytes Number of bytes to copy in (or just allocate, if (optBuffer) is NULL).  Defaults to zero bytes (i.e. retrieve an empty buffer)
- *  @param optBuffer If non-NULL, points to an array of (numBytes) bytes to copy in to our internal buffer. 
+ *  @param optBuffer If non-NULL, points to an array of (numBytes) bytes to copy in to our internal buffer.
  *                   If NULL, this ByteBuffer will contain (numBytes) uninitialized bytes.  Defaults to NULL.
  *  @return Reference to a ByteBuffer object that has been initialized as specified, or a NULL ref on failure (out of memory).
  */
@@ -428,20 +428,20 @@ ByteBufferRef GetByteBufferFromPool(uint32 numBytes = 0, const uint8 * optBuffer
 /** As above, except that the byte buffer is obtained from the specified pool instead of from the default ByteBuffer pool.
  *  @param pool the ObjectPool to allocate the ByteBuffer from.
  *  @param numBytes Number of bytes to copy in (or just allocate, if (optBuffer) is NULL).  Defaults to zero bytes (i.e. retrieve an empty buffer)
- *  @param optBuffer If non-NULL, points to an array of (numBytes) bytes to copy in to our internal buffer. 
+ *  @param optBuffer If non-NULL, points to an array of (numBytes) bytes to copy in to our internal buffer.
  *                   If NULL, this ByteBuffer will contain (numBytes) uninitialized bytes.  Defaults to NULL.
  *  @return Reference to a ByteBuffer object that has been initialized as specified, or a NULL ref on failure (out of memory).
  */
 ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, uint32 numBytes = 0, const uint8 * optBuffer = NULL);
 
-/** Convenience method:  Gets a ByteBuffer from the default ByteBuffer pool, flattens (flattenMe) into the byte buffer, and 
+/** Convenience method:  Gets a ByteBuffer from the default ByteBuffer pool, flattens (flattenMe) into the byte buffer, and
  *  returns a reference to the new ByteBuffer.
  *  @param flattenMe A Flattenable object to flatten.
  *  @return Reference to a ByteBuffer object as specified, or a NULL ref on failure (out of memory).
  */
 template <class T> inline ByteBufferRef GetFlattenedByteBufferFromPool(const T & flattenMe) {return GetFlattenedByteBufferFromPool(*GetByteBufferPool(), flattenMe);}
 
-/** Convenience method:  Gets a ByteBuffer from the specified ByteBuffer pool, flattens (flattenMe) into the byte buffer, and 
+/** Convenience method:  Gets a ByteBuffer from the specified ByteBuffer pool, flattens (flattenMe) into the byte buffer, and
  *  returns a reference to the new ByteBuffer.
  *  @param pool The ObjectPool to retrieve the new ByteBuffer object from.
  *  @param flattenMe A Flattenable object (or at least an object with Flatten() and FlattenedSize() methods) to flatten.
@@ -474,7 +474,7 @@ const ByteBuffer & GetEmptyByteBuffer();
 ConstByteBufferRef GetEmptyByteBufferRef();
 
 /** This interface is used to represent any object that knows how to allocate, reallocate, and free memory in a special way. */
-class IMemoryAllocationStrategy 
+class IMemoryAllocationStrategy
 {
 public:
    /** Default constructor */

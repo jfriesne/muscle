@@ -27,8 +27,8 @@ public:
    }
 
    virtual void Flush()
-   {  
-      // not really necessary for stderr, but e.g. if you were logging to a TCPSocketDataIO you might call 
+   {
+      // not really necessary for stderr, but e.g. if you were logging to a TCPSocketDataIO you might call
       // Flush() on it here in order to get the logging data out to the network without a Nagle-200mS-delay.
       fflush(stderr);
 

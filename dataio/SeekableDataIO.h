@@ -6,7 +6,7 @@
 #include "dataio/DataIO.h"
 
 namespace muscle {
- 
+
 /** Abstract base class for DataIO objects that represent seekable data streams (e.g
   * for files, or objects that can act like files)
   */
@@ -28,10 +28,10 @@ public:
    };
 
    /**
-    * Seek to a given position in the I/O stream.  
+    * Seek to a given position in the I/O stream.
     * @param offset Byte offset to seek to or by (depending on the next arg)
     * @param whence Set this to IO_SEEK_SET if you want the offset to
-    *               be relative to the start of the stream; or to 
+    *               be relative to the start of the stream; or to
     *               IO_SEEK_CUR if it should be relative to the current
     *               stream position, or IO_SEEK_END if it should be
     *               relative to the end of the stream.
@@ -40,7 +40,7 @@ public:
    virtual status_t Seek(int64 offset, int whence) = 0;
 
    /**
-    * Should return the current position, in bytes, of the stream from 
+    * Should return the current position, in bytes, of the stream from
     * its start position, or -1 if the current position is not known.
     */
    virtual int64 GetPosition() const = 0;

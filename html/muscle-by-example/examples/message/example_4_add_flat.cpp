@@ -41,7 +41,7 @@ public:
    virtual uint32 TypeCode() const {return COMMAND_CODE_DELIVER_INFO;}
 
    // Returns the number of bytes our Flatten() method will write out if called on this object
-   virtual uint32 FlattenedSize() const 
+   virtual uint32 FlattenedSize() const
    {
       return sizeof(uint32)           +   // 4-byte flattened-size header
              _name.FlattenedSize()    +
@@ -59,7 +59,7 @@ public:
       const uint32 flattenedSize = FlattenedSize();
       muscleCopyOut(writeTo, B_HOST_TO_LENDIAN_INT32(flattenedSize));  // the muscleCopyOut() function handles potential non-aligned writes gracefully
       writeTo += sizeof(flattenedSize);
-      
+
       _name.Flatten(writeTo);    writeTo += _name.FlattenedSize();
       _address.Flatten(writeTo); writeTo += _address.FlattenedSize();
       _city.Flatten(writeTo);    writeTo += _city.FlattenedSize();
@@ -81,7 +81,7 @@ public:
       MRETURN_ON_ERROR(_name.Unflatten(readFrom, numBytes));
       readFrom += _name.FlattenedSize();
       if (readFrom >= afterEnd) return B_BAD_DATA;
-      
+
       MRETURN_ON_ERROR(_address.Unflatten(readFrom, numBytes));
       readFrom += _address.FlattenedSize();
       if (readFrom >= afterEnd) return B_BAD_DATA;
@@ -175,7 +175,7 @@ int main(int argc, char ** argv)
    const float price = anotherMsg.GetFloat("price", 19.99f);
    printf("The user expects to pay $%.02f for this pizza.\n", price);
    printf("The pizza is to be %s\n", anotherMsg.GetBool("vegan") ? "VEGAN" : "non-vegan");
-   
+
    // And we'll list out all of the toppings (note multiple values in a single field here!)
    String nextTopping;
    for (int32 i=0; anotherMsg.FindString("toppings", i, nextTopping).IsOK(); i++)
@@ -192,7 +192,7 @@ int main(int argc, char ** argv)
       anotherDeliveryInfo.PrintToStream();
    }
    else printf("No delivery_info sub-Message was present in (anotherMsg) !?\n");
- 
+
    printf("\n");
    return 0;
 }

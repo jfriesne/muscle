@@ -494,7 +494,7 @@ private:
    /** This class encapsulates data that is used by one of our two threads (internal or owner).
     *  It's put in a class like this so that I can easily access two copies of everything.
     */
-   class ThreadSpecificData 
+   class ThreadSpecificData
    {
    public:
       ThreadSpecificData() {/* empty */}
@@ -588,7 +588,7 @@ private:
 #else
 /** Macro for checking the current Thread's stack usage, and aborting with an error message
   * if the Thread has overrun it's suggested stack-space.  Note that this macro only works
-  * if called from a Thread object's internal thread, and only for Thread objects that 
+  * if called from a Thread object's internal thread, and only for Thread objects that
   * had SetSuggestedStackSize() called on them before the internal thread was started.
   */
 # define CHECK_THREAD_STACK_USAGE CheckThreadStackUsage(__FILE__, __LINE__)

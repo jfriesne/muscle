@@ -981,7 +981,7 @@ BOOL StackWalker::LoadModules()
 }
 
 static __declspec(align(16)) CONTEXT _context;
-static int SaveContextFilterFunc(struct _EXCEPTION_POINTERS *ep) 
+static int SaveContextFilterFunc(struct _EXCEPTION_POINTERS *ep)
 {
   memcpy_s(&_context, sizeof(CONTEXT), ep->ContextRecord, sizeof(CONTEXT));
   return EXCEPTION_EXECUTE_HANDLER;
@@ -1476,7 +1476,7 @@ void UpdateAllocationStackTrace(bool isAllocation, String * & s)
 {
    if (isAllocation)
    {
-      if (s == NULL) 
+      if (s == NULL)
       {
          s = newnothrow String;
          if (s == NULL) MWARN_OUT_OF_MEMORY;
@@ -2534,7 +2534,7 @@ String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, 
    }
    if ((whichUnit >= NUM_TIME_UNITS)||((whichUnit > 0)&&(_timeUnits[whichUnit] > intervalUS))) whichUnit--;
 
-   const uint64 unitSizeUS       = _timeUnits[whichUnit]; 
+   const uint64 unitSizeUS       = _timeUnits[whichUnit];
    const uint64 leftover         = intervalUS%unitSizeUS;
    const bool willAddMoreClauses = ((leftover>minPrecision)&&(maxClauses>1));
    const uint64 numUnits         = (intervalUS/unitSizeUS)+(((roundUp)&&(willAddMoreClauses==false)&&(leftover>=(unitSizeUS/2)))?1:0);
@@ -2555,7 +2555,7 @@ String GetHumanReadableSignedTimeIntervalString(int64 intervalUS, uint32 maxClau
 {
    if (intervalUS == _largestSigned64BitValue) return "forever";  // since we can't use MUSCLE_TIME_NEVER with a signed value, as it comes out as -1
 
-   String ret; 
+   String ret;
    if (intervalUS < 0) ret += '-';
    return ret+GetHumanReadableTimeIntervalString(muscleAbs(intervalUS), maxClauses, minPrecision, optRetIsAccurate, roundUp);
 }

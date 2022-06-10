@@ -9,7 +9,7 @@
 namespace muscle {
 
 /**
- * This class can be used to "wrap" a streaming I/O object (e.g. a FileDataIO) in order to make 
+ * This class can be used to "wrap" a streaming I/O object (e.g. a FileDataIO) in order to make
  * it appear completely non-blocking (even if the wrapped DataIO requires blocking I/O operations).
  * It does this by handing the file I/O operations off to a separate internal thread, so that the main
  * thread will never block.
@@ -69,7 +69,7 @@ protected:
    virtual uint64 InternalThreadGetPulseTime(uint64 prevPulseTime) {(void) prevPulseTime; return MUSCLE_TIME_NEVER;}
 
    /** Called in the internal thread at roughly the time specified by GetInternalThreadPulseTime().
-     * Default implementation is a no-op. 
+     * Default implementation is a no-op.
      * @param scheduledPulseTime the time that this method was supposed to be called at (actually call timing may vary somewhat)
      */
    virtual void InternalThreadPulse(uint64 scheduledPulseTime) {(void) scheduledPulseTime;}
@@ -93,9 +93,9 @@ private:
       ASYNC_COMMAND_SHUTDOWN,
       NUM_ASYNC_COMMANDS
    };
- 
+
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complain that I haven't documented this class -- it's a private class so I don't need to
-   class AsyncCommand 
+   class AsyncCommand
    {
    public:
       AsyncCommand() : _streamLocation(0), _offset(0), _whence(0), _cmd(NUM_ASYNC_COMMANDS) {/* empty */}
@@ -114,7 +114,7 @@ private:
       uint8 _cmd;
    };
 #endif
-  
+
    ConstSocketRef _mainThreadNotifySocket, _ioThreadNotifySocket;
    uint64 _mainThreadBytesWritten;
    Mutex _asyncCommandsMutex;

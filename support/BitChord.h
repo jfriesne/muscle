@@ -15,13 +15,13 @@ namespace muscle {
 #endif
 
 /** A templated class for implement an N-bit-long bit-chord.  Useful for doing efficient parallel boolean operations
-  * on bits-strings of lengths that can't fit in any of the standard integer types, and also for holding bit-shifted 
-  * boolean flags in a "safe" container so that you can query or manipulate the flags via human-readable method-calls 
+  * on bits-strings of lengths that can't fit in any of the standard integer types, and also for holding bit-shifted
+  * boolean flags in a "safe" container so that you can query or manipulate the flags via human-readable method-calls
   * instead of easy-to-get-wrong bit-shifting operators.
   *
-  * @note that the TagClass template-parameter's value isn't directly used for anything; it's provided only as a way 
-  *       to help make unrelated BitChords' template-instantiations unique and not-implicitly-convertible to each other 
-  *       even if they happen to specify the same value for the NumBits template-parameter.  See the 
+  * @note that the TagClass template-parameter's value isn't directly used for anything; it's provided only as a way
+  *       to help make unrelated BitChords' template-instantiations unique and not-implicitly-convertible to each other
+  *       even if they happen to specify the same value for the NumBits template-parameter.  See the
   *       DECLARE_BITCHORD_FLAGS_TYPE macro at the bottom of BitChord.h for more information.
   */
 template <uint32 NumBits, class TagClass=Void> class BitChord : public PseudoFlattenable
@@ -61,7 +61,7 @@ public:
    /** Sets the state of the specified bit to 1.
      * @param whichBit the index of the bit to set to 1 (e.g. 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      */
-   void SetBit(uint32 whichBit) 
+   void SetBit(uint32 whichBit)
    {
       MASSERT(whichBit < NumBits, "BitChord::SetBit:  whichBit was out of range!\n");
       SetBitUnchecked(whichBit);
@@ -71,7 +71,7 @@ public:
      * @param whichBit the index of the bit to set (e.g. 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      * @param newValue true to set the bit, or false to clear it
      */
-   void SetBit(uint32 whichBit, bool newValue) 
+   void SetBit(uint32 whichBit, bool newValue)
    {
       MASSERT(whichBit < NumBits, "BitChord::SetBit:  whichBit was out of range!\n");
       SetBitUnchecked(whichBit, newValue);
@@ -80,7 +80,7 @@ public:
    /** Clears the state of the specified bit
      * @param whichBit the index of the bit to set (e.g. 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      */
-   void ClearBit(uint32 whichBit) 
+   void ClearBit(uint32 whichBit)
    {
       MASSERT(whichBit < NumBits, "BitChord::ClearBit:  whichBit was out of range!\n");
       ClearBitUnchecked(whichBit);
@@ -89,7 +89,7 @@ public:
    /** Toggles the state of the specified bit from 1 to 0, or vice-versa
      * @param whichBit the index of the bit to toggle (e.g. 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      */
-   void ToggleBit(uint32 whichBit) 
+   void ToggleBit(uint32 whichBit)
    {
       MASSERT(whichBit < NumBits, "BitChord::ToggleBit:  whichBit was out of range!\n");
       SetBitUnchecked(whichBit, !IsBitSetUnchecked(whichBit));
@@ -99,14 +99,14 @@ public:
    void ClearAllBits() {for (uint32 i=0; i<NUM_WORDS; i++) _words[i] = 0;}
 
    /** Sets all our bits to true */
-   void SetAllBits() 
+   void SetAllBits()
    {
       for (uint32 i=0; i<NUM_WORDS; i++) _words[i] = ((uint32)-1);
       ClearUnusedBits();
    }
 
    /** Inverts the set/clear state of all our bits */
-   void ToggleAllBits() 
+   void ToggleAllBits()
    {
       for (uint32 i=0; i<NUM_WORDS; i++) _words[i] = ~_words[i];
       ClearUnusedBits();
@@ -116,7 +116,7 @@ public:
    bool AreAnyBitsSet() const
    {
       for (uint32 i=0; i<NUM_WORDS; i++) if (_words[i] != 0) return true;
-      return false; 
+      return false;
    }
 
    /** Returns the number of bits that are currently set in this BitChord */
@@ -209,14 +209,14 @@ public:
    bool operator >=(const BitChord &rhs) const {return !(*this < rhs);}
 
    /** Returns a BitChord that is the bitwise-inverse of this BitChord (i.e. all bits flipped). */
-   BitChord operator ~() const 
+   BitChord operator ~() const
    {
-      BitChord ret; for (uint32 i=0; i<NUM_WORDS; i++) ret._words[i] = ~_words[i]; 
+      BitChord ret; for (uint32 i=0; i<NUM_WORDS; i++) ret._words[i] = ~_words[i];
       ret.ClearUnusedBits();  // don't let (ret) get into a non-normalized state
       return ret;
    }
 
-   /** Part of the pseudo-Flattenable API:  Returns false (because even though all BitChords of a given  
+   /** Part of the pseudo-Flattenable API:  Returns false (because even though all BitChords of a given
      * BitChord template-instantiation will always have the same flattened-size, different template-instantiations
      * of BitChords can have different flattened-sizes and they all share the same type-code)
      */
@@ -251,14 +251,14 @@ public:
 
       const uint32 numWordsToRead = (numBitsToRead+NUM_BITS_PER_WORD-1)/NUM_BITS_PER_WORD;
       if (size < numWordsToRead) return B_BAD_DATA;
-         
+
       for (uint32 i=0; i<numWordsToRead; i++) _words[i] = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&buffer[i*sizeof(uint32)]));
 
       ClearUnusedBits();   // make sure we didn't read in non-zero values for any bits that we don't use
       for (uint32 i=numBitsToRead; i<NumBits; i++) ClearBit(i);  // any bits that we didn't read (because the data was too short) should be cleared
       return B_NO_ERROR;
    }
- 
+
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
    uint32 CalculateChecksum() const {return HashCode();}
 
@@ -336,13 +336,13 @@ public:
      */
    template<typename ...Bits> bool AreAllOfTheseBitsUnset(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit)) return false; return true;}
 
-   /** Pseudo-constructor:  Returns a BitChord whose contents are copied from the supplied list of 32-bit words. 
+   /** Pseudo-constructor:  Returns a BitChord whose contents are copied from the supplied list of 32-bit words.
      * @param words a list of uint32s to copy into our internal array.  The number of arguments must be equal to NUM_WORDS.
      * @note this constructor can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
    template<typename ...Words> static BitChord FromWords(Words... words)
    {
-      const uint32 arr[] {words...}; 
+      const uint32 arr[] {words...};
       static_assert(ARRAYITEMS(arr) == NUM_WORDS, "Wrong number of 32-bit-word arguments was supplied to BitChord::FromWords()");
 
       uint32 i = 0;
@@ -351,13 +351,13 @@ public:
       return ret;
    }
 
-   /** Pseudo-constructor:  Returns a BitChord whose contents are copied from the supplied list of 32-bit words. 
+   /** Pseudo-constructor:  Returns a BitChord whose contents are copied from the supplied list of 32-bit words.
      * @param bytes a list of uint8s to copy into our internal array.  The number of arguments must be equal to NUM_BYTES.
      * @note this constructor can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
    template<typename ...Bytes> static BitChord FromBytes(Bytes... bytes)
    {
-      const uint8 arr[] {bytes...}; 
+      const uint8 arr[] {bytes...};
       static_assert(ARRAYITEMS(arr) == NUM_BYTES, "Wrong number of 8-bit-byte arguments was supplied to BitChord::FromBytes()");
 
       uint32 i = 0;
@@ -371,7 +371,7 @@ public:
      */
    template<typename ...Bits> static BitChord WithAllBitsSetExceptThese(Bits... bits)
    {
-      const int arr[] {bits...}; 
+      const int arr[] {bits...};
 
       BitChord ret = BitChord::WithAllBitsSet();
       for (auto b : arr) ret.ClearBit(b);
@@ -520,7 +520,7 @@ public:
       }
       return ret;
    }
- 
+
    /** Returns a fixed-length binary representation of this bit-chord. */
    String ToBinaryString() const
    {
@@ -528,7 +528,7 @@ public:
       for (int32 i=NumBits-1; i>=0; i--) ret += IsBitSet(i)?'1':'0';
       return ret;
    }
- 
+
    /** Sets a given 32-bit word full of bits in our internal words-array.
      * Don't call this unless you know what you're doing!
      * @param whichWord index of the word to set
@@ -571,7 +571,7 @@ public:
      * Don't call this unless you know what you're doing!
      * @param whichByte index of the byte to return
      */
-   uint8 GetByte(uint32 whichByte) const 
+   uint8 GetByte(uint32 whichByte) const
    {
       MASSERT(whichByte < NUM_BYTES, "BitChord::GetByte:  whichByte was out of range!\n");
       return (uint8) ((_words[whichByte/NUM_BYTES_PER_WORD]>>((whichByte%NUM_BYTES_PER_WORD)*NUM_BITS_PER_BYTE)) & 0xFF);
@@ -700,7 +700,7 @@ public:
 #define BC_CALL_29(o,cn) {o.cn(b1); o.cn(b2); o.cn(b3); o.cn(b4); o.cn(b5); o.cn(b6); o.cn(b7); o.cn(b8); o.cn(b9); o.cn(b10); o.cn(b11); o.cn(b12); o.cn(b13); o.cn(b14); o.cn(b15); o.cn(b16); o.cn(b17); o.cn(b18); o.cn(b19); o.cn(b20); o.cn(b21); o.cn(b22); o.cn(b23); o.cn(b24); o.cn(b25); o.cn(b26); o.cn(b27); o.cn(b28); o.cn(b29);}
 #define BC_CALL_30(o,cn) {o.cn(b1); o.cn(b2); o.cn(b3); o.cn(b4); o.cn(b5); o.cn(b6); o.cn(b7); o.cn(b8); o.cn(b9); o.cn(b10); o.cn(b11); o.cn(b12); o.cn(b13); o.cn(b14); o.cn(b15); o.cn(b16); o.cn(b17); o.cn(b18); o.cn(b19); o.cn(b20); o.cn(b21); o.cn(b22); o.cn(b23); o.cn(b24); o.cn(b25); o.cn(b26); o.cn(b27); o.cn(b28); o.cn(b29); o.cn(b30);}
 #define BC_CALL_31(o,cn) {o.cn(b1); o.cn(b2); o.cn(b3); o.cn(b4); o.cn(b5); o.cn(b6); o.cn(b7); o.cn(b8); o.cn(b9); o.cn(b10); o.cn(b11); o.cn(b12); o.cn(b13); o.cn(b14); o.cn(b15); o.cn(b16); o.cn(b17); o.cn(b18); o.cn(b19); o.cn(b20); o.cn(b21); o.cn(b22); o.cn(b23); o.cn(b24); o.cn(b25); o.cn(b26); o.cn(b27); o.cn(b28); o.cn(b29); o.cn(b30); o.cn(b31);}
-#define BC_CALL_32(o,cn) {o.cn(b1); o.cn(b2); o.cn(b3); o.cn(b4); o.cn(b5); o.cn(b6); o.cn(b7); o.cn(b8); o.cn(b9); o.cn(b10); o.cn(b11); o.cn(b12); o.cn(b13); o.cn(b14); o.cn(b15); o.cn(b16); o.cn(b17); o.cn(b18); o.cn(b19); o.cn(b20); o.cn(b21); o.cn(b22); o.cn(b23); o.cn(b24); o.cn(b25); o.cn(b26); o.cn(b27); o.cn(b28); o.cn(b29); o.cn(b30); o.cn(b31); o.cn(b32);} 
+#define BC_CALL_32(o,cn) {o.cn(b1); o.cn(b2); o.cn(b3); o.cn(b4); o.cn(b5); o.cn(b6); o.cn(b7); o.cn(b8); o.cn(b9); o.cn(b10); o.cn(b11); o.cn(b12); o.cn(b13); o.cn(b14); o.cn(b15); o.cn(b16); o.cn(b17); o.cn(b18); o.cn(b19); o.cn(b20); o.cn(b21); o.cn(b22); o.cn(b23); o.cn(b24); o.cn(b25); o.cn(b26); o.cn(b27); o.cn(b28); o.cn(b29); o.cn(b30); o.cn(b31); o.cn(b32);}
 
 #define BC_CALL2_1(o,cn) {o.cn(0,b1);}
 #define BC_CALL2_2(o,cn) {o.cn(0,b1); o.cn(1,b2);}
@@ -733,7 +733,7 @@ public:
 #define BC_CALL2_29(o,cn) {o.cn(0,b1); o.cn(1,b2); o.cn(2,b3); o.cn(3,b4); o.cn(4,b5); o.cn(5,b6); o.cn(6,b7); o.cn(7,b8); o.cn(8,b9); o.cn(9,b10); o.cn(10,b11); o.cn(11,b12); o.cn(12,b13); o.cn(13,b14); o.cn(14,b15); o.cn(15,b16); o.cn(16,b17); o.cn(17,b18); o.cn(18,b19); o.cn(19,b20); o.cn(20,b21); o.cn(21,b22); o.cn(22,b23); o.cn(23,b24); o.cn(24,b25); o.cn(25,b26); o.cn(26,b27); o.cn(27,b28); o.cn(28,b29);}
 #define BC_CALL2_30(o,cn) {o.cn(0,b1); o.cn(1,b2); o.cn(2,b3); o.cn(3,b4); o.cn(4,b5); o.cn(5,b6); o.cn(6,b7); o.cn(7,b8); o.cn(8,b9); o.cn(9,b10); o.cn(10,b11); o.cn(11,b12); o.cn(12,b13); o.cn(13,b14); o.cn(14,b15); o.cn(15,b16); o.cn(16,b17); o.cn(17,b18); o.cn(18,b19); o.cn(19,b20); o.cn(20,b21); o.cn(21,b22); o.cn(22,b23); o.cn(23,b24); o.cn(24,b25); o.cn(25,b26); o.cn(26,b27); o.cn(27,b28); o.cn(28,b29); o.cn(29,b30);}
 #define BC_CALL2_31(o,cn) {o.cn(0,b1); o.cn(1,b2); o.cn(2,b3); o.cn(3,b4); o.cn(4,b5); o.cn(5,b6); o.cn(6,b7); o.cn(7,b8); o.cn(8,b9); o.cn(9,b10); o.cn(10,b11); o.cn(11,b12); o.cn(12,b13); o.cn(13,b14); o.cn(14,b15); o.cn(15,b16); o.cn(16,b17); o.cn(17,b18); o.cn(18,b19); o.cn(19,b20); o.cn(20,b21); o.cn(21,b22); o.cn(22,b23); o.cn(23,b24); o.cn(24,b25); o.cn(25,b26); o.cn(26,b27); o.cn(27,b28); o.cn(28,b29); o.cn(29,b30); o.cn(30,b31);}
-#define BC_CALL2_32(o,cn) {o.cn(0,b1); o.cn(1,b2); o.cn(2,b3); o.cn(3,b4); o.cn(4,b5); o.cn(5,b6); o.cn(6,b7); o.cn(7,b8); o.cn(8,b9); o.cn(9,b10); o.cn(10,b11); o.cn(11,b12); o.cn(12,b13); o.cn(13,b14); o.cn(14,b15); o.cn(15,b16); o.cn(16,b17); o.cn(17,b18); o.cn(18,b19); o.cn(19,b20); o.cn(20,b21); o.cn(21,b22); o.cn(22,b23); o.cn(23,b24); o.cn(24,b25); o.cn(25,b26); o.cn(26,b27); o.cn(27,b28); o.cn(28,b29); o.cn(29,b30); o.cn(30,b31); o.cn(31,b32);} 
+#define BC_CALL2_32(o,cn) {o.cn(0,b1); o.cn(1,b2); o.cn(2,b3); o.cn(3,b4); o.cn(4,b5); o.cn(5,b6); o.cn(6,b7); o.cn(7,b8); o.cn(8,b9); o.cn(9,b10); o.cn(10,b11); o.cn(11,b12); o.cn(12,b13); o.cn(13,b14); o.cn(14,b15); o.cn(15,b16); o.cn(16,b17); o.cn(17,b18); o.cn(18,b19); o.cn(19,b20); o.cn(20,b21); o.cn(21,b22); o.cn(22,b23); o.cn(23,b24); o.cn(24,b25); o.cn(25,b26); o.cn(26,b27); o.cn(27,b28); o.cn(28,b29); o.cn(29,b30); o.cn(30,b31); o.cn(31,b32);}
 
 #define BC_SUM_1(o,cn) (o.cn(b1))
 #define BC_SUM_2(o,cn) (o.cn(b1)+o.cn(b2))

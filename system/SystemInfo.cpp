@@ -258,7 +258,7 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
    return B_NO_ERROR;
 #elif defined(__linux__)
    FILE * f = muscleFopen("/proc/cpuinfo", "r");
-   if (f) 
+   if (f)
    {
       retNumProcessors = 0;
       char line[256];

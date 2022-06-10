@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -9,7 +9,7 @@
 
 using namespace muscle;
 
-// Test class, just to exercise the ByteBuffer::*Flat() methods 
+// Test class, just to exercise the ByteBuffer::*Flat() methods
 class TestFlattenable : public Flattenable
 {
 public:
@@ -28,7 +28,7 @@ public:
 
    virtual status_t Unflatten(const uint8 *buffer, uint32 size)
    {
-      if (size < FlattenedSize()) return B_BAD_DATA; 
+      if (size < FlattenedSize()) return B_BAD_DATA;
 
       _v1 = B_LENDIAN_TO_HOST_INT32 (muscleCopyIn<int32>(buffer));  buffer += sizeof(_v1);
       _v2 = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<uint32>(buffer)); //buffer += sizeof(_v2);
@@ -92,7 +92,7 @@ static void Test(EndianFlags endianFlags)
 
    printf("string3=[%s]\n", b.ReadString(offset)());  // should be "----"
 
-   int8 i8s[4] = {0}; nr = b.ReadInt8s(i8s, ARRAYITEMS(i8s), offset); 
+   int8 i8s[4] = {0}; nr = b.ReadInt8s(i8s, ARRAYITEMS(i8s), offset);
    printf("i8s=");
    for (uint32 i=0; i<nr; i++) printf(" %i", i8s[i]);
    printf("\n");
@@ -139,7 +139,7 @@ static void Test(EndianFlags endianFlags)
 }
 
 // This program exercises the ByteBuffer class.
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 

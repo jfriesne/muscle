@@ -25,14 +25,14 @@ MuscledWindow :: MuscledWindow(const char * argv0)
 
    _muscledStdoutText = new QPlainTextEdit;
    _muscledStdoutText->setReadOnly(true);
-   bl->addWidget(_muscledStdoutText); 
+   bl->addWidget(_muscledStdoutText);
 
    Queue<String> argv;
    argv.AddTail(argv0);
-   argv.AddTail("muscled");   
+   argv.AddTail("muscled");
    argv.AddTail("displaylevel=trace");
    argv.AddTail("catchsignals");
-   if (_cpdio.LaunchChildProcess(argv).IsOK()) 
+   if (_cpdio.LaunchChildProcess(argv).IsOK())
    {
       _gateway.SetDataIO(DummyDataIORef(_cpdio));
       _notifier = new QSocketNotifier(_cpdio.GetReadSelectSocket().GetFileDescriptor(), QSocketNotifier::Read, this);
@@ -67,7 +67,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   if ((argc > 1)&&(strcmp(argv[1], "muscled") == 0)) 
+   if ((argc > 1)&&(strcmp(argv[1], "muscled") == 0))
    {
       // The muscled process (will be launched by the MuscledWindow constructor)
       return muscledmain(argc, argv);

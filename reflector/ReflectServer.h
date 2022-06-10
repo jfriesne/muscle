@@ -19,7 +19,7 @@ namespace muscle {
  */
 class ReflectServer : public RefCountable, public PulseNode, private PulseNodeManager, private NotCopyable
 {
-public: 
+public:
    /** Constructor. */
    ReflectServer();
 
@@ -28,7 +28,7 @@ public:
 
    /** The main loop for the message reflection server.
     *  This method will not return until the server stops running (usually due to an error).
-    *  @return B_NO_ERROR if the server has decided to exit peacefully, or an error code if there was a 
+    *  @return B_NO_ERROR if the server has decided to exit peacefully, or an error code if there was a
     *                     fatal error during setup or execution.
     */
    virtual status_t ServerProcessLoop();
@@ -48,11 +48,11 @@ public:
     *  @return B_NO_ERROR on success, an error code on failure (couldn't bind to socket?)
     */
    virtual status_t PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & sessionFactoryRef, const IPAddress & optInterfaceIP = invalidIP, uint16 * optRetPort = NULL);
-    
+
    /** Remove a listening port callback that was previously added by PutAcceptFactory().
     *  @param port whose callback should be removed.  If (port) is set to zero, all callbacks will be removed.
     *  @param optInterfaceIP Interface(s) that the specified callbacks were assigned to in their PutAcceptFactory() call.
-    *                        This parameter is ignored when (port) is zero. 
+    *                        This parameter is ignored when (port) is zero.
     *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if a factory for the specified port was not found.
     */
    virtual status_t RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP);
@@ -102,7 +102,7 @@ public:
     *                              before timing out the connection attempt.
     * @return B_NO_ERROR if the session was successfully added, or an error code on error.
     */
-   status_t AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddressAndPort & targetIPAddressAndPort, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS); 
+   status_t AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddressAndPort & targetIPAddressAndPort, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
    /**
     * Like AddNewConnectSession(), except that the added session will not initiate
@@ -150,7 +150,7 @@ public:
    bool GetDoLogging() const {return _doLogging;}
 
    /**
-    * Returns a human-readable string that describes the type of server that is running.  
+    * Returns a human-readable string that describes the type of server that is running.
     * @return Default implementation returns "MUSCLE".
     */
    virtual const char * GetServerName() const;
@@ -166,7 +166,7 @@ public:
      */
    AbstractReflectSessionRef GetSession(const String & sessionName) const {return _sessions[&sessionName];}
 
-   /** Convenience method:  Given a session ID number, returns a reference to the session, or a NULL reference if no such session exists. 
+   /** Convenience method:  Given a session ID number, returns a reference to the session, or a NULL reference if no such session exists.
      * @param sessionID the numeric session ID of the session we are trying to look up
      */
    AbstractReflectSessionRef GetSession(uint32 sessionID) const {return _sessionsByIDNumber[sessionID];}
@@ -209,7 +209,7 @@ public:
    /** Returns an iterator that allows one to iterate over all the session factories currently attached to this server. */
    const Hashtable<IPAddressAndPort, ReflectSessionFactoryRef> & GetFactories() const {return _factories;}
 
-   /** Convenience method: Given a port number, returns a reference to the factory of that port, or a 
+   /** Convenience method: Given a port number, returns a reference to the factory of that port, or a
      *                     NULL reference if no such factory exists.
      * @param port number to check
      * @param optInterfaceIP If the factory was created to listen on a specific local interface address
@@ -228,14 +228,14 @@ public:
      * if no memory watcher was specified in the constructor.
      */
    uint64 GetNumAvailableBytes() const;
- 
+
    /** Returns the maximum number of bytes that may be allocated at any given time, or ((uint64)-1)
-     * if no memory watcher was specified in the constructor. 
+     * if no memory watcher was specified in the constructor.
      */
    uint64 GetMaxNumBytes() const;
- 
+
    /** Returns the number of bytes that are currently allocated, or ((uint64)-1)
-     * if no memory watcher was specified in the constructor. 
+     * if no memory watcher was specified in the constructor.
      */
    uint64 GetNumUsedBytes() const;
 
@@ -250,7 +250,7 @@ public:
    /** Read-only implementation of the above */
    const Hashtable<IPAddress, String> & GetAddressRemappingTable() const {return _remapIPs;}
 
-   /** Returns a number that is (hopefully) unique to each ReflectSession instance. 
+   /** Returns a number that is (hopefully) unique to each ReflectSession instance.
      * This number will be different each time the server is run, but will remain the same for the duration of the server's life.
      */
    uint64 GetServerSessionID() const {return _serverSessionID;}
@@ -282,7 +282,7 @@ public:
    /** Sets the SSL public key data that should be used to authenticate and encrypt
      * outgoing TCP connections.  Default state is a NULL reference (i.e. no SSL
      * encryption will be used for outgoing connections).
-     * @param publicKey Reference to the contents of a .pem file containing a CERTIFICATE 
+     * @param publicKey Reference to the contents of a .pem file containing a CERTIFICATE
      *        section, or a NULL reference if you want to make SSL disabled again.
      * @note this method is only available if MUSCLE_ENABLE_OPENSSL is defined.
      */
@@ -314,8 +314,8 @@ public:
      */
    bool IsWaitingForEvents() const {return (_inWaitForEvents.GetCount() == 1);}
 
-   /** Implemented to call DisconnectSession() on any attached TCP-based sessions, just before 
-     * the computer goes to sleep, so that other computers won't have to deal with moribund 
+   /** Implemented to call DisconnectSession() on any attached TCP-based sessions, just before
+     * the computer goes to sleep, so that other computers won't have to deal with moribund
      * TCP connections that this computer won't handle while it's asleep.
      *
      * @note this method will only be called if you have attached a
@@ -331,7 +331,7 @@ public:
    /** Implemented to call Reconnect() on any sessions that were previously disconnected
      * by our ComputerIsAboutToSleep() call.
      *
-     * @note this method will only be called if you have attached a 
+     * @note this method will only be called if you have attached a
      *       DetectNetworkConfigChangesSession to this ReflectServer.
      *
      * This method also clears the computer-is-about-to-sleep flag that was set by
@@ -341,7 +341,7 @@ public:
 
 protected:
    /**
-    * This version of AddNewSession (which is called by the previous 
+    * This version of AddNewSession (which is called by the previous
     * version) assumes that the gateway, hostname, port, etc of the
     * new session have already been set up.
     * @param ref The new session to add.
@@ -349,7 +349,7 @@ protected:
     */
    virtual status_t AttachNewSession(const AbstractReflectSessionRef & ref);
 
-   /** Called by a session to send a message to its factory.  
+   /** Called by a session to send a message to its factory.
      * @param session the session that is sending the Message
      * @param msgRef the Message that is being sent
      * @param userData an application-specific user-data value
@@ -364,7 +364,7 @@ protected:
     * @param newSession the new session we want to have replace the old one
     * @param replaceThisOne the old session that we want to go away
     * @returns B_NO_ERROR on success, an error code if the new session
-    *          returns an error in its AttachedToServer() method.  If 
+    *          returns an error in its AttachedToServer() method.  If
     *          an error code is returned, then this call is guaranteed not to
     *          have had any effect on the old session.
     */

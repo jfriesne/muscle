@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -12,8 +12,8 @@ int main(int argc, char ** argv)
    {
       char * code = argv[1];
       const uint32 val = (uint32) muscle::Atoull(code);
-      
-      for (int i=3; i>=0; i--) 
+
+      for (int i=3; i>=0; i--)
       {
          const char c = (char) ((val>>(i*8))&0xFF);
          putc(c, stdout);

@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
 
       IPAddressAndPort iap(s, 6666, true);
       printf("I parsed the string [%s] as IPAddressAndPort %s\n", s(), iap.ToString()());
-     
+
       const IPAddress & ip = iap.GetIPAddress();
       printf("    ip.IsValid() returned %i\n", ip.IsValid());
       printf("    ip.IsIPv4() returned %i\n", ip.IsIPv4());

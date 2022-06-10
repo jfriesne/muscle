@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "system/SetupSystem.h"
 #include "support/Rect.h"
@@ -35,12 +35,12 @@ class MyTupleSubclass : public Tuple<5, float>
 public:
    MyTupleSubclass() {/* empty */}
 
-   explicit MyTupleSubclass(float first) 
+   explicit MyTupleSubclass(float first)
    {
       for (uint32 i=0; i<GetNumItemsInTuple(); i++) (*this)[i] = first + 50.0f - (float)i;
       _count = counter++;
    }
- 
+
    void PrintToStream() const
    {
       printf("{");
@@ -71,13 +71,13 @@ class StringTupleSubclass : public Tuple<3, String>
 public:
    StringTupleSubclass() {/* empty */}
 
-   StringTupleSubclass(const String & s1, const String & s2, const String & s3) 
+   StringTupleSubclass(const String & s1, const String & s2, const String & s3)
    {
       (*this)[0] = s1;
       (*this)[1] = s2;
       (*this)[2] = s3;
    }
- 
+
    void PrintToStream() const
    {
       printf("{");
@@ -158,14 +158,14 @@ int main(int, char **)
       PrintFiveTuple(shiftTuple>>rightShift);
       printf("\n");
    }
-   
+
    printf("\nTest 1, with tuple using 3 ints\n");
    {
       MyTuple a;
       a[0] = 5; a[1] = 10; a[2] = 15;
       MyTuple b;
       b[0] = 1; b[1] = 2; b[2] = -3;
-    
+
       b.Replace(-3, -4);
 
       printf("a=");   PrintMyTuple(a);   printf("\n");
@@ -190,7 +190,7 @@ int main(int, char **)
    {
       MyTupleSubclass a(5.0f);
       MyTupleSubclass b(1.0f);
-    
+
       printf("a=");   a.PrintToStream();     printf("\n");
       printf("a+3="); (a+3).PrintToStream(); printf("\n");
       printf("a-3="); (a-3).PrintToStream(); printf("\n");
@@ -213,7 +213,7 @@ int main(int, char **)
    {
       StringTupleSubclass a("red", "green", "blue");
       StringTupleSubclass b("light", "grass", "rinse");
-    
+
       printf("a=");   a.PrintToStream();     printf("\n");
       printf("a+'b'="); (a+"b").PrintToStream(); printf("\n");
       printf("a-'b'="); (a-"b").PrintToStream(); printf("\n");
@@ -229,7 +229,7 @@ int main(int, char **)
    {
       Point a(5.0f, 6.0f);
       Point b(2.0f, 3.0f);
-    
+
       printf("a=");   a.PrintToStream();     printf("\n");
       printf("a+3="); (a+3.0f).PrintToStream(); printf("\n");
       printf("a-3="); (a-3.0f).PrintToStream(); printf("\n");
@@ -252,7 +252,7 @@ int main(int, char **)
    {
       Rect a(5,6,7,8);
       Rect b(5,4,3,2);
-    
+
       printf("a=");   a.PrintToStream();     printf("\n");
       printf("a+3="); (a+3.0f).PrintToStream(); printf("\n");
       printf("a-3="); (a-3.0f).PrintToStream(); printf("\n");

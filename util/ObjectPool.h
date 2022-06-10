@@ -9,7 +9,7 @@
 namespace muscle {
 
 // Uncomment this #define to disable object pools (i.e. turn them into
-// simple passthroughs to the new/delete operators).  
+// simple passthroughs to the new/delete operators).
 // This is helpful if you are trying to track down memory leaks.
 //#define DISABLE_OBJECT_POOLING 1
 
@@ -35,7 +35,7 @@ public:
    /** Virtual dtor to keep C++ honest */
    virtual ~AbstractObjectGenerator() {/* empty */}
 
-   /** Should be implemented to pass through to ObtainObject(). 
+   /** Should be implemented to pass through to ObtainObject().
      * Useful for handling different types of ObjectPool interchangably.
      * Note that the caller is responsible for deleting or recycling
      * the returned object!
@@ -44,7 +44,7 @@ public:
 };
 
 /** An interface that must be implemented by all ObjectPool classes.
-  * Used to support polymorphism in our reference counting. 
+  * Used to support polymorphism in our reference counting.
   */
 class AbstractObjectRecycler
 {
@@ -105,14 +105,14 @@ class AbstractObjectManager : public AbstractObjectGenerator, public AbstractObj
    // empty
 };
 
-/** A thread-safe templated object pooling class that helps reduce the number of 
- *  dynamic allocations and deallocations in your app.  Instead of calling 'new Object', 
+/** A thread-safe templated object pooling class that helps reduce the number of
+ *  dynamic allocations and deallocations in your app.  Instead of calling 'new Object',
  *  you call myObjectPool.ObtainObject(), and instead of calling 'delete Object', you call
  *  myObjectPool.ReleaseObject().  The advantage is that the ObjectPool will
  *  keep (up to a certain number of) "spare" Objects around, and recycle them back
  *  to you as needed.  Note that this class is generally not used directly, but rather is
  *  used in conjuction with the Ref<> and RefCount classes to provide efficient, automatic,
- *  and memory-leak-resistant reference-counting combined with object-pooling.  See 
+ *  and memory-leak-resistant reference-counting combined with object-pooling.  See
  *  GetMessageFromPool() for an example of this.
  */
 template <class Object, int MUSCLE_POOL_SLAB_SIZE=DEFAULT_MUSCLE_POOL_SLAB_SIZE> class ObjectPool : public AbstractObjectManager
@@ -121,7 +121,7 @@ public:
    /**
     *  Constructor.
     *  @param maxPoolSize the approximate maximum number of recycled objects that may be kept around for future reuse at any one time.  Defaults to 100.
-    */      
+    */
    ObjectPool(uint32 maxPoolSize=100) : _curPoolSize(0), _maxPoolSize(maxPoolSize), _firstSlab(NULL), _lastSlab(NULL)
    {
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
@@ -130,14 +130,14 @@ public:
 #endif
    }
 
-   /** 
+   /**
     *  Destructor.  Deletes all objects in the pool.
     */
    virtual ~ObjectPool()
    {
       while(_firstSlab)
       {
-         if (_firstSlab->IsInUse()) 
+         if (_firstSlab->IsInUse())
          {
             LogTime(MUSCLE_LOG_CRITICALERROR, "~ObjectPool %p (%s):  slab %p is still in use when we destroy it!\n", this, _firstSlab->GetObjectClassName(), _firstSlab);
             _firstSlab->PrintToStream();
@@ -178,7 +178,7 @@ public:
    /** Adds the given object to our "standby" object list to be recycled, or
     *  deletes it if the "standby" list is already at its maximum size.
     *  This method is thread-safe.
-    *  @param obj An Object to recycle or delete.  May be NULL.  
+    *  @param obj An Object to recycle or delete.  May be NULL.
     */
    void ReleaseObject(Object * obj)
    {
@@ -209,7 +209,7 @@ public:
      * @param obj the object to recycle
      */
    virtual void RecycleObject(void * obj) {ReleaseObject((Object *)obj);}
-    
+
    /** Implemented to call Drain() and return the number of objects drained. */
    virtual uint32 FlushCachedObjects() {uint32 ret = 0; (void) Drain(&ret); return ret;}
 
@@ -263,7 +263,7 @@ public:
       printf("ObjectPool<%s> contains " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-slot slabs, with " UINT32_FORMAT_SPEC " total items in use (%.1f%% loading, " UINT32_FORMAT_SPEC " total bytes).   LightestSlab=" UINT32_FORMAT_SPEC ", HeaviestSlab=" UINT32_FORMAT_SPEC " (" UINT32_FORMAT_SPEC " bytes per item)\n", GetObjectClassName(), numSlabs, slabSizeItems, totalItemsInUse, (numSlabs>0)?(100.0f*(((float)totalItemsInUse)/(numSlabs*slabSizeItems))):0.0f, (uint32)(numSlabs*sizeof(ObjectSlab)), minItemsInUseInSlab, maxItemsInUseInSlab, (uint32) sizeof(Object));
    }
 
-   /** Removes all "spare" objects from the pool and deletes them. 
+   /** Removes all "spare" objects from the pool and deletes them.
      * This method is thread-safe.
      * @param optSetNumDrained If non-NULL, this value will be set to the number of objects destroyed.
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED if it couldn't lock the lock for some reason.
@@ -397,7 +397,7 @@ public:
      * in turn (including objects in use and objects in reserve).  Note that this
      * method will only compile if the Object type has a GetTotalDataSize() method.
      */
-   uint32 GetTotalDataSize() const 
+   uint32 GetTotalDataSize() const
    {
       uint32 ret = sizeof(*this);
       if (_mutex.Lock().IsOK())
@@ -416,7 +416,7 @@ public:
    /** Returns the total number of items currently allocated by this ObjectPool.
      * Note that the returned figure includes both objects in use and objects in reserve.
      */
-   uint32 GetNumAllocatedItemSlots() const 
+   uint32 GetNumAllocatedItemSlots() const
    {
       uint32 ret = 0;
       if (_mutex.Lock().IsOK())
@@ -457,14 +457,14 @@ private:
       uint16 GetNextIndex() const {return _nextIndex;}
 
       const char * GetObjectClassName() const {return typeid(Object).name();}
- 
+
       const Object & GetObject() const {return _object;}
       Object & GetObject() {return _object;}
 
    private:
       Object _object;      // note:  MUST be the first object in the ObjectNode!
       uint16 _arrayIndex;
-      uint16 _nextIndex;   // only valid when we are in the free list 
+      uint16 _nextIndex;   // only valid when we are in the free list
    };
 
    friend class ObjectSlab;  // for VC++ compatibility, this must be here
@@ -515,7 +515,7 @@ private:
       void PushObjectNode(ObjectNode * node)
       {
          node->SetNextIndex(_firstFreeNodeIndex);
-         _firstFreeNodeIndex = node->GetArrayIndex(); 
+         _firstFreeNodeIndex = node->GetArrayIndex();
          --_numNodesInUse;
       }
 
@@ -554,7 +554,7 @@ private:
       NUM_OBJECTS_PER_SLAB_AUX = (((int)MUSCLE_POOL_SLAB_SIZE-(int)sizeof(ObjectSlabData))/(int)sizeof(ObjectNode)),
       NUM_OBJECTS_PER_SLAB     = ((NUM_OBJECTS_PER_SLAB_AUX>1)?NUM_OBJECTS_PER_SLAB_AUX:1)
    };
-   
+
    class ObjectSlab
    {
    public:
@@ -567,10 +567,10 @@ private:
 
       // Note:  this method assumes a node is available!  Don't call it without
       //        calling HasAvailableNodes() first to check, or you will crash!
-      ObjectNode * ObtainObjectNode() 
+      ObjectNode * ObtainObjectNode()
       {
          ObjectNode * node = &_nodes[_data.GetFirstFreeNodeIndex()];
-         _data.PopObjectNode(node); 
+         _data.PopObjectNode(node);
          return node;
       }
 
@@ -614,7 +614,7 @@ private:
          for (uint32 i=0; i<NUM_OBJECTS_PER_SLAB; i++)
          {
             const ObjectNode * n = &_nodes[i];
-            if (n->GetNextIndex() == INVALID_NODE_INDEX) 
+            if (n->GetNextIndex() == INVALID_NODE_INDEX)
             {
                printf("      " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":   %s %p is possibly still in use?\n", i, (uint32)NUM_OBJECTS_PER_SLAB, GetObjectClassName(), n);
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
@@ -685,7 +685,7 @@ private:
       return ret;
    }
 
-   // Must be called with _mutex locked!   Returns either NULL, or a pointer 
+   // Must be called with _mutex locked!   Returns either NULL, or a pointer
    // an ObjectSlab that should be deleted outside of the critical section.
    ObjectSlab * ReleaseObjectAux(Object * obj)
    {
@@ -700,7 +700,7 @@ private:
          objSlab->RemoveFromSlabList();
          return objSlab;
       }
-      else if (objSlab != _firstSlab) 
+      else if (objSlab != _firstSlab)
       {
          objSlab->RemoveFromSlabList();
          objSlab->PrependToSlabList();

@@ -9,8 +9,8 @@ namespace muscle {
 
 /** A simple templated class that holds a single value of the template-specified type.
   * The only difference between using a TamperEvidentValue<T> and just using the T object directly
-  * is that the TamperEvidentValue class will automatically set a flag whenever the stored 
-  * value is set (via SetValue() or assignment operator), so that you can tell later on if 
+  * is that the TamperEvidentValue class will automatically set a flag whenever the stored
+  * value is set (via SetValue() or assignment operator), so that you can tell later on if
   * anyone has explicitly set this value after it was constructed.
   */
 template <typename T> class TamperEvidentValue
@@ -24,7 +24,7 @@ public:
      */
    TamperEvidentValue(const T & val) : _value(val), _wasExplicitlySet(false) {/* empty */}
 
-   /** Copy constructor.  Copies both the value and the flag-state from the passed-in TamperEvidentValue object. 
+   /** Copy constructor.  Copies both the value and the flag-state from the passed-in TamperEvidentValue object.
      * @param rhs the object to make this object a duplicate of
      */
    TamperEvidentValue(const TamperEvidentValue & rhs) : _value(rhs._value), _wasExplicitlySet(rhs._wasExplicitlySet) {/* empty */}

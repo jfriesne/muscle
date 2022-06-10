@@ -22,6 +22,6 @@ int main(int argc, char ** argv)
 
    LogTime(MUSCLE_LOG_INFO, "This text should appear both on stdout and in the file example_2_log_file.txt\n");
    LogTime(MUSCLE_LOG_INFO, "That way you can have a permanent record of all the things your program did wrong.\n");
-   
+
    return 0;
 }

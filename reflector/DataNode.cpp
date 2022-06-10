@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "reflector/DataNode.h"
 #include "reflector/StorageReflectSession.h"
@@ -13,7 +13,7 @@ DataNode :: DataNode()
    // empty
 }
 
-DataNode :: ~DataNode() 
+DataNode :: ~DataNode()
 {
    delete _children;
    delete _orderedIndex;
@@ -34,7 +34,7 @@ void DataNode :: Reset()
    TCHECKPOINT;
 
    // Note that I'm now deleting these auxiliary objects instead of
-   // just clearing them.  That will save memory, and also makes a 
+   // just clearing them.  That will save memory, and also makes a
    // newly-reset DataNode behavior more like a just-created one
    // (See FogBugz #9845 for details)
    delete _children;     _children     = NULL;
@@ -77,7 +77,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
    uint32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
    if (optInsertBefore)
    {
-      for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--) 
+      for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--)
       {
          if ((*_orderedIndex)[i]()->GetNodeName() == *optInsertBefore)
          {
@@ -86,7 +86,7 @@ status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * 
          }
       }
    }
- 
+
    // Update the index
    status_t ret;
 
@@ -178,7 +178,7 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
    DataNode * child = node();
    if (child == NULL) return B_BAD_ARGUMENT;
 
-   if (_children == NULL) 
+   if (_children == NULL)
    {
       _children = newnothrow Hashtable<const String *, DataNodeRef>;
       MRETURN_OOM_ON_NULL(_children);
@@ -202,7 +202,7 @@ void DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNotifyW
 
    if ((_parent)&&(parent)) LogTime(MUSCLE_LOG_WARNING, "Warning, overwriting previous parent of node [%s]\n", GetNodeName()());
    _parent = parent;
-   if (_parent) 
+   if (_parent)
    {
       const char * nn = _nodeName();
       _parent->_maxChildIDHint = muscleMax(_parent->_maxChildIDHint, (uint32) atol(&nn[(*nn=='I')?1:0]));
@@ -215,7 +215,7 @@ void DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNotifyW
    {
       // Calculate the total length that our node path string will be
       const DataNode * node = this;
-      while(node->_parent) 
+      while(node->_parent)
       {
          _depth++;
          node = node->_parent;
@@ -281,7 +281,7 @@ status_t DataNode :: GetNodePath(String & retPath, uint32 startDepth) const
          node = node->_parent;
          d--;
       }
- 
+
       retPath = (dynBuf ? dynBuf : stackBuf);
       delete [] dynBuf;
    }

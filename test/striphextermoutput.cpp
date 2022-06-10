@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -36,7 +36,7 @@
 
 using namespace muscle;
 
-int main(int, char **) 
+int main(int, char **)
 {
    bool printedSep = true;
    char buf[1024];

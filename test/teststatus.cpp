@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <time.h>
 
@@ -9,31 +9,31 @@ using namespace muscle;
 
 status_t TestFunction()
 {
-   return ((rand()%2)==0) 
-          ? B_NO_ERROR 
+   return ((rand()%2)==0)
+          ? B_NO_ERROR
           : B_ERROR("Bad luck");
 }
 
-status_t Func1() 
+status_t Func1()
 {
    printf("Called Func1(), returning OK\n");
    return B_NO_ERROR;
 }
 
-status_t Func2() 
+status_t Func2()
 {
    printf("Called Func2(), returning Error\n");
    return B_ERROR("Func2");
 }
 
-status_t Func3() 
+status_t Func3()
 {
    printf("Called Func3(), returning Error\n");
    return B_ERROR("Func3");
 }
 
 // This program exercises the String class.
-int main(int, char **) 
+int main(int, char **)
 {
    CompleteSetupSystem css;
 

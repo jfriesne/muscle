@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -20,7 +20,7 @@ void PrintToStream(const Queue<int> & q)
    {
 /*
       int val;
-      TEST(q.GetItemAt(i, val));    
+      TEST(q.GetItemAt(i, val));
       printf(UINT32_FORMAT_SPEC " -> %i\n",i,val);
 */
       printf(UINT32_FORMAT_SPEC " -> %i\n",i,q[i]);
@@ -28,7 +28,7 @@ void PrintToStream(const Queue<int> & q)
 }
 
 // This program exercises the Queue class.
-int main(int, char **) 
+int main(int, char **)
 {
    CompleteSetupSystem css;  // needed for string-count stats
 
@@ -39,7 +39,7 @@ int main(int, char **)
       char qs1[512]; printf("Enter q1: "); fflush(stdout); if (fgets(qs1, sizeof(qs1), stdin) == NULL) qs1[0] = '\0';
       char qs2[512]; printf("Enter q2: "); fflush(stdout); if (fgets(qs2, sizeof(qs2), stdin) == NULL) qs2[0] = '\0';
 
-      Queue<int> q1, q2;      
+      Queue<int> q1, q2;
       StringTokenizer t1(qs1), t2(qs2);
       const char * s;
       while((s = t1()) != NULL) q1.AddTail(atoi(s));
@@ -117,12 +117,12 @@ int main(int, char **)
 
    printf("ADDTAIL TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
-      for (int i=0; i<testSize; i++) 
+      for (int i=0; i<testSize; i++)
       {
          TEST(q.AddTail(i));
          printf("len=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", q.GetNumItems(), q.GetNumAllocatedItemSlots());
       }
-   } 
+   }
 
    printf("AddTail array hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    q.AddTailMulti(vars, ARRAYITEMS(vars));
@@ -134,16 +134,16 @@ int main(int, char **)
 
    printf("REPLACEITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
-      for (int i=0; i<testSize; i++) 
+      for (int i=0; i<testSize; i++)
       {
          TEST(q.ReplaceItemAt(i, i+10));
          PrintToStream(q);
       }
-   } 
+   }
 
    printf("INSERTITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
-      for (int i=0; i<testSize; i++) 
+      for (int i=0; i<testSize; i++)
       {
          TEST(q.InsertItemAt(i,i));
          PrintToStream(q);
@@ -152,7 +152,7 @@ int main(int, char **)
 
    printf("REMOVEITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
-      for (int i=0; i<testSize; i++) 
+      for (int i=0; i<testSize; i++)
       {
          TEST(q.RemoveItemAt(i));
          PrintToStream(q);
@@ -164,7 +164,7 @@ int main(int, char **)
       Queue<String> qq;
       String myStr = "Magic";
       qq.AddTail(myStr);
-      if (myStr != "Magic") 
+      if (myStr != "Magic")
       {
          printf("Error, AddTail() stole my string!\n");
          exit(10);
@@ -207,7 +207,7 @@ int main(int, char **)
       const int iVars[] = {9,2,3,5,8,3,5,6,6,7,2,3,4,6,8,9,3,5,6,4,3,2,1};
       if (qq.AddTailMulti(iVars, ARRAYITEMS(iVars)).IsOK())
       {
-         qq.RemoveDuplicateItems(); 
+         qq.RemoveDuplicateItems();
          for (uint32 i=0; i<qq.GetNumItems(); i++) printf("%u ", qq[i]);
          printf("\n");
       }
@@ -223,7 +223,7 @@ int main(int, char **)
          printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) iq[i] = rand();  // we want this to be repeatable, hence srand(0)
-         
+
          const uint64 startTime = GetRunTime64();
          iq.Sort();
          const uint64 elapsed = (GetRunTime64()-startTime);
@@ -246,7 +246,7 @@ int main(int, char **)
          printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) qq[i] = String("FooBarBaz-%1").Arg(rand()).Pad(500);  // we want this to be repeatable, hence srand(0)
-         
+
          const uint64 startTime = GetRunTime64();
          qq.Sort();
          const uint64 elapsed = (GetRunTime64()-startTime);
@@ -271,7 +271,7 @@ int main(int, char **)
    {
       q.Clear();
       Queue<int> q2;
-      for (int i=0; i<testSize; i++) 
+      for (int i=0; i<testSize; i++)
       {
          TEST(q.AddTail(i));
          TEST(q2.AddTail(i+100));
@@ -284,7 +284,7 @@ int main(int, char **)
    {
       q.Clear();
       Queue<int> q2;
-      for (int i=0; i<testSize; i++) 
+      for (int i=0; i<testSize; i++)
       {
          TEST(q.AddTail(i));
          TEST(q2.AddTail(i+100));

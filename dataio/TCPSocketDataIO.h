@@ -16,7 +16,7 @@ namespace muscle {
 #endif
 
 /**
- *  Data I/O to and from a TCP socket! 
+ *  Data I/O to and from a TCP socket!
  */
 class TCPSocketDataIO : public DataIO
 {
@@ -54,7 +54,7 @@ public:
     * If Nagle's Algorithm is disabled, then this call is a no-op (since there is never anything to flush)
     */
    virtual void FlushOutput();
-   
+
    /**
     * Closes our socket connection
     */

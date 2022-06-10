@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 #ifndef WIN32
@@ -38,7 +38,7 @@ public:
       ChildProcessDataIORef cpioRef(newnothrow ChildProcessDataIO(false));
       if (cpioRef() == NULL) return DataIORef();
 
-      // When shutting down, we'll give the child process three seconds to clean up, 
+      // When shutting down, we'll give the child process three seconds to clean up,
       // and if it hasn't exited by then, we'll nuke it from orbit.
 #ifdef WIN32
       cpioRef()->SetChildProcessShutdownBehavior(true,     -1, SecondsToMicros(3));
@@ -50,7 +50,7 @@ public:
       if (cpioRef()->LaunchChildProcess(_childArgv).IsOK(ret))
       {
          LogTime(MUSCLE_LOG_ERROR, "Spawned child process [%s]\n", _processLabel());
-         return cpioRef; 
+         return cpioRef;
       }
       else
       {
@@ -86,7 +86,7 @@ public:
    virtual bool ClientConnectionClosed()
    {
       ChildProcessDataIO * cpio = dynamic_cast<ChildProcessDataIO *>(GetDataIO()());
-      if (cpio) 
+      if (cpio)
       {
          (void) cpio->WaitForChildProcessToExit(SecondsToMicros(1));  // just so we can accurately report whether it crashed or not
          LogTime(MUSCLE_LOG_WARNING, "Child Process [%s] just %s.  Will re-spawn in one second...\n", _processLabel(), cpio->DidChildProcessCrash()?"crashed":"exited");
@@ -147,7 +147,7 @@ public:
          {
             const String nc = nextCmd->Trim();
             if (nc.IsEmpty()) continue;  // no sense commenting about blank lines
- 
+
             if (nc == "die")
             {
                LogTime(MUSCLE_LOG_INFO, "Ending process [%s]\n", _processLabel());
@@ -178,7 +178,7 @@ public:
                   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
                   {
                      ChildProcessSession * cps = dynamic_cast<ChildProcessSession *>(iter.GetValue()());
-                     if ((cps)&&(wildcardMatcher.Match(cps->GetProcessLabel()))) 
+                     if ((cps)&&(wildcardMatcher.Match(cps->GetProcessLabel())))
                      {
                         LogTime(MUSCLE_LOG_INFO, "StdinSession for process [%s]:  Sending command [%s] to sub-processes [%s]\n", _processLabel(), commandForProcess(), cps->GetProcessLabel()());
                         cps->MessageReceivedFromSession(*this, msgToSubProcess, NULL);
@@ -199,7 +199,7 @@ public:
                for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
                {
                   ChildProcessSession * cps = dynamic_cast<ChildProcessSession *>(iter.GetValue()());
-                  if ((cps)&&(wildcardMatcher.Match(cps->GetProcessLabel()))) 
+                  if ((cps)&&(wildcardMatcher.Match(cps->GetProcessLabel())))
                   {
                      LogTime(MUSCLE_LOG_INFO, "StdinSession for process [%s]:  Unilaterally killing sub-processes [%s]\n", _processLabel(), cps->GetProcessLabel()());
                      cps->KillChildProcess();
@@ -285,7 +285,7 @@ int main(int argc, char ** argv)
             LogTime(MUSCLE_LOG_ERROR, "daemonsitter:  Couldn't add child process #" UINT32_FORMAT_SPEC " [%s]\n", i, ret());
          }
       }
- 
+
       // Then run our event loop
       LogTime(MUSCLE_LOG_INFO, "DaemonSitter parent process is running and listening to stdin.\n");
       if (server.ServerProcessLoop().IsOK(ret)) LogTime(MUSCLE_LOG_INFO,  "DaemonSitter parent process loop finished.\n");
@@ -294,7 +294,7 @@ int main(int argc, char ** argv)
    else LogTime(MUSCLE_LOG_CRITICALERROR, "daemonsitter:  Couldn't add stdin session!  [%s]\n", ret());
 
    LogTime(MUSCLE_LOG_INFO, "daemonsitter process exiting.\n");
-   server.Cleanup(); 
+   server.Cleanup();
 
    return 0;
 }

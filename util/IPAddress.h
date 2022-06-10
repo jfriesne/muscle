@@ -50,7 +50,7 @@ public:
    bool operator != (const IPAddress & rhs) const {return !(*this == rhs);}
 
    /** @copydoc DoxyTemplate::operator<(const DoxyTemplate &) const */
-   bool operator < (const IPAddress & rhs) const 
+   bool operator < (const IPAddress & rhs) const
    {
       if (_highBits < rhs._highBits) return true;
       if (_highBits > rhs._highBits) return false;
@@ -60,7 +60,7 @@ public:
    }
 
    /** @copydoc DoxyTemplate::operator>(const DoxyTemplate &) const */
-   bool operator > (const IPAddress & rhs) const 
+   bool operator > (const IPAddress & rhs) const
    {
       if (_highBits < rhs._highBits) return false;
       if (_highBits > rhs._highBits) return true;
@@ -113,7 +113,7 @@ public:
    void SetHighBits(uint64 hb) {_highBits = hb;}
 
    /** Set a valid interface-index/Zone-ID value for this IP address.
-     * @param iidx the new interface index to use.  To specify an invalid Interface Index, pass 
+     * @param iidx the new interface index to use.  To specify an invalid Interface Index, pass
      *             MUSCLE_NO_LIMIT here, or call UnsetInterfaceIndex() instead.
      * @note this value is meaningful only for link-local IPv6 addresses.
      */
@@ -139,7 +139,7 @@ public:
    uint32 HashCode() const {return CalculateHashCode(_interfaceIndex)+CalculateHashCode(_lowBits)+CalculateHashCode(_highBits);}
 
    /** Writes our address into the specified uint8 array, in the required network-friendly order.
-     * @param networkBuf If non-NULL, the 16-byte network-array to write to.  Typically you would pass in 
+     * @param networkBuf If non-NULL, the 16-byte network-array to write to.  Typically you would pass in
      *                   mySockAddr_in6.sin6_addr.s6_addr as the argument to this function.
      * @param optInterfaceIndex If non-NULL, this value will receive a copy of our interface index.  Typically
      *                          you would pass a pointer to mySockAddr_in6.sin6_addr.sin6_scope_id here.
@@ -155,7 +155,7 @@ public:
    }
 
    /** Reads our address in from the specified uint8 array, in the required network-friendly order.
-     * @param networkBuf If non-NULL, a 16-byte network-endian-array to read from.  Typically you would pass in 
+     * @param networkBuf If non-NULL, a 16-byte network-endian-array to read from.  Typically you would pass in
      *                    mySockAddr_in6.sin6_addr.s6_addr as the argument to this function.
      * @param optInterfaceIndex If non-NULL, this value will be passed to SetInterfaceIndex() to set this object's interface-index value.
      */
@@ -194,7 +194,7 @@ public:
 
    /** Convenience method:  Returns true iff this is a valid IP address
      * (where "valid" in this case means non-zero: or if MUSCLE_AVOID_IPV6 is defined,
-     * it means that the 64 high-bits are all zero, and the upper 32-bits of the 
+     * it means that the 64 high-bits are all zero, and the upper 32-bits of the
      * 64 low-bits are zero, and the lower 32-bits of the 64 low-bits are non-zero.
      */
    bool IsValid() const;
@@ -237,7 +237,7 @@ public:
      */
    void SetIPv4AddressFromUint32(uint32 bits) {_lowBits = bits; _highBits = 0; UnsetInterfaceIndex();}
 
-   /** Returns our IPv4 address as a uint32.  
+   /** Returns our IPv4 address as a uint32.
      * If we represent something other than an IPv4 address, the return value is undefined.
      */
    uint32 GetIPv4AddressAsUint32() const {return ((uint32)(_lowBits & 0xFFFFFFFF));}
@@ -276,7 +276,7 @@ const IPAddress localhostIP_IPv4 = IPAddress((((uint32)127)<<24)|((uint32)1));
 /** IPv6 Numeric representation of localhost (::1) for convenience */
 const IPAddress localhostIP_IPv6(0x01);
 
-/** IPv4 Numeric representation of broadcast (255.255.255.255), for convenience 
+/** IPv4 Numeric representation of broadcast (255.255.255.255), for convenience
   * This constant is defined in both IPv6 and IPv4 modes, since sometimes you
   * need to do an IPv4 broadcast even in an IPv6 program
   */
@@ -342,25 +342,25 @@ public:
 
    /** Comparison operator.  Returns true iff this object is "less than" (rhs).
      * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
+     * @param rhs The IPAddressAndPort object to compare this object to.
      */
    bool operator < (const IPAddressAndPort & rhs) const {return ((_ip < rhs._ip)||((_ip == rhs._ip)&&(_port < rhs._port)));}
 
    /** Comparison operator.  Returns true iff this object is "greater than" (rhs).
      * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
+     * @param rhs The IPAddressAndPort object to compare this object to.
      */
    bool operator > (const IPAddressAndPort & rhs) const {return ((_ip > rhs._ip)||((_ip == rhs._ip)&&(_port > rhs._port)));}
 
    /** Comparison operator.  Returns true iff this object is "less than or equal to" (rhs).
      * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
+     * @param rhs The IPAddressAndPort object to compare this object to.
      */
    bool operator <= (const IPAddressAndPort & rhs) const {return !(*this>rhs);}
 
    /** Comparison operator.  Returns true iff this object is "greater than or equal to" (rhs).
      * The comparison is done first on the IP address, and if that matches, a sub-comparison is done on the port field.
-     * @param rhs The IPAddressAndPort object to compare this object to. 
+     * @param rhs The IPAddressAndPort object to compare this object to.
      */
    bool operator >= (const IPAddressAndPort & rhs) const {return !(*this<rhs);}
 
@@ -384,7 +384,7 @@ public:
      */
    void SetIPAddress(const IPAddress & ip) {_ip = ip;}
 
-   /** Sets this object's port number to (port) 
+   /** Sets this object's port number to (port)
      * @param port the new port to use
      */
    void SetPort(uint16 port) {_port = port;}
@@ -422,7 +422,7 @@ public:
    /** Part of the Flattenable pseudo-interface:  Returns IP_ADDRESS_AND_PORT_TYPE */
    static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_AND_PORT_TYPE;}
 
-   /** Returns true iff (tc) equals IP_ADDRESS_AND_PORT_TYPE. 
+   /** Returns true iff (tc) equals IP_ADDRESS_AND_PORT_TYPE.
      * @param tc the type code to evalutate for appropriateness
      */
    static MUSCLE_CONSTEXPR bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
@@ -453,7 +453,7 @@ public:
    {
       IPAddress addr = _ip;
       addr.SetInterfaceIndex(interfaceIndex);
-      return IPAddressAndPort(addr, _port); 
+      return IPAddressAndPort(addr, _port);
    }
 
    /** Convenience method:  Returns an IPAddressAndPort object identical to this one, but with the interface-index field unset. */

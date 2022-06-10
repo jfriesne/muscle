@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"
@@ -50,7 +50,7 @@ static void PrintSpeedResult(const char * desc, uint64 beginTime, uint64 endTime
 }
 
 // This program checks the accuracy and measures the speed of muscle's byte-swapping macros.
-int main(int, char **) 
+int main(int, char **)
 {
    CompleteSetupSystem css;
 
@@ -69,7 +69,7 @@ int main(int, char **)
 
    // Initialize the arrays...
    {
-      for (uint32 i=0; i<ARRAYLEN; i++) 
+      for (uint32 i=0; i<ARRAYLEN; i++)
       {
          int si = (i-(ARRAYLEN/2));
          origArray16[i]     = si;

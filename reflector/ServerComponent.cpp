@@ -1,8 +1,8 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <typeinfo>   // For typeid().name()
 
-#if defined(__GNUC__) 
+#if defined(__GNUC__)
 # include <cxxabi.h>  // for abi::__cxa_demangle()
 #endif
 
@@ -20,7 +20,7 @@ ServerComponent()
 }
 
 ServerComponent ::
-~ServerComponent() 
+~ServerComponent()
 {
    MASSERT(_owner == NULL, "ServerComponent deleted while still attached to its ReflectServer!  Maybe you did not call Cleanup() on the ReflectServer object, or did not forward an AboutToDetachFromServer() call to your superclass's implementation?");
 }
@@ -29,7 +29,7 @@ static String DemangleTypeName(const char * mangled_name)
 {
    String ret = mangled_name;
 
-#if defined(__GNUC__) 
+#if defined(__GNUC__)
    // Stolen from Wikipedia:  https://en.wikipedia.org/wiki/Name_mangling#Standardised_name_mangling_in_C++
    int status = -1;
    char *demangled_name = abi::__cxa_demangle(ret(), NULL, NULL, &status);
@@ -41,7 +41,7 @@ static String DemangleTypeName(const char * mangled_name)
    return (doubleColonIdx >= 0) ? ret.Substring(doubleColonIdx+2) : ret;   // remove namespace prefix
 }
 
-status_t 
+status_t
 ServerComponent ::
 AttachedToServer()
 {
@@ -63,9 +63,9 @@ AboutToDetachFromServer()
    // empty
 }
 
-Message & 
+Message &
 ServerComponent ::
-GetCentralState() const 
+GetCentralState() const
 {
    MASSERT(_owner, "Can not call GetCentralState() while not attached to the server");
    return _owner->GetCentralState();
@@ -87,7 +87,7 @@ GetSessionsByIDNumber() const
    return _owner->GetSessionsByIDNumber();
 }
 
-AbstractReflectSessionRef 
+AbstractReflectSessionRef
 ServerComponent ::
 GetSession(uint32 id) const
 {
@@ -95,7 +95,7 @@ GetSession(uint32 id) const
    return _owner->GetSession(id);
 }
 
-AbstractReflectSessionRef 
+AbstractReflectSessionRef
 ServerComponent ::
 GetSession(const String & id) const
 {
@@ -105,13 +105,13 @@ GetSession(const String & id) const
 
 const Hashtable<IPAddressAndPort, ReflectSessionFactoryRef> &
 ServerComponent ::
-GetFactories() const 
+GetFactories() const
 {
    MASSERT(_owner, "Can not call GetFactories() while not attached to the server");
-   return _owner->GetFactories(); 
+   return _owner->GetFactories();
 }
 
-ReflectSessionFactoryRef 
+ReflectSessionFactoryRef
 ServerComponent ::
 GetFactory(uint16 port) const
 {
@@ -167,23 +167,23 @@ GetServerSessionID() const
    return _owner->GetServerSessionID();
 }
 
-uint64 
+uint64
 ServerComponent ::
 GetNumAvailableBytes() const
 {
    MASSERT(_owner, "Can not call GetNumAvailableBytes() while not attached to the server");
    return _owner->GetNumAvailableBytes();
 }
- 
-uint64 
+
+uint64
 ServerComponent ::
 GetMaxNumBytes() const
 {
    MASSERT(_owner, "Can not call GetMaxNumBytes() while not attached to the server");
    return _owner->GetMaxNumBytes();
 }
- 
-uint64 
+
+uint64
 ServerComponent ::
 GetNumUsedBytes() const
 {
@@ -207,14 +207,14 @@ RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP)
    return _owner->RemoveAcceptFactory(port, optInterfaceIP);
 }
 
-void 
+void
 ServerComponent ::
 MessageReceivedFromSession(AbstractReflectSession &, const MessageRef &, void *)
 {
    // empty
 }
 
-void 
+void
 ServerComponent ::
 MessageReceivedFromFactory(ReflectSessionFactory &, const MessageRef &, void * )
 {

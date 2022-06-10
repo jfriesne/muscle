@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -103,7 +103,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
    }
    {
       // Test of out-of-line sub-Message importing
-      for (i=0; i<ITEM_COUNT; i++) 
+      for (i=0; i<ITEM_COUNT; i++)
       {
          if (recurseCount > 0)
          {
@@ -113,7 +113,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
             if (UMAddMessage(um, "testMessages", uSubMsg) != CB_NO_ERROR) printf("UMAddMessage() failed!\n");
             m.AddMessage("testMessages", subMsg);
          }
-         else 
+         else
          {
             uint8 subBuf[12]; UMessage uSubMsg; UMInitializeToEmptyMessage(&uSubMsg, subBuf, sizeof(subBuf), i);
             if (UMAddMessage(um, "testMessages", uSubMsg) != CB_NO_ERROR) printf("Trivial UMAddMessage() failed!\n");
@@ -123,7 +123,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
    }
    {
       // Test of in-line Message adddition
-      for (i=0; i<ITEM_COUNT; i++) 
+      for (i=0; i<ITEM_COUNT; i++)
       {
          if (recurseCount > 0)
          {
@@ -136,7 +136,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
                m.AddMessage("inline_Messages", subMsg);
             }
          }
-         else 
+         else
          {
             UMessage uSubMsg = UMInlineAddMessage(um, "inline_Messages", i+1000);
             if (UMIsMessageReadOnly(&uSubMsg)) printf("Error, trivial UMInlineAddMessage() failed!\n");
@@ -188,7 +188,7 @@ int main(int, char **)
         if (umFlatSize != mFlatSize) printf("Flattened buffer sizes didn't match!  UMessage=" UINT32_FORMAT_SPEC " Message=" UINT32_FORMAT_SPEC "\n", umFlatSize, mFlatSize);
    else if (memcmp(mPtr, umPtr, mFlatSize) != 0)
    {
-      for (uint32 i=0; i<mFlatSize; i++) 
+      for (uint32 i=0; i<mFlatSize; i++)
       {
          if (mPtr[i] != umPtr[i])
          {

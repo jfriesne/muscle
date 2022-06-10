@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
    // give Key object, and it must be possible to compare two Key objects
    // for equality (using the == operator).
    //
-   // If you want to call SortByKey() or use the type as a key in an 
+   // If you want to call SortByKey() or use the type as a key in an
    // OrderedKeysHashtable, the < operator must also be defined for the type.
 
    // For primitive/POD key types, the Hashtable class uses SFINAE
@@ -72,13 +72,13 @@ int main(int argc, char ** argv)
    Hashtable<int32,  String> tableWithInt32Keys;   // works!
    Hashtable<char,   String> tableWithCharKeys;    // works!
    Hashtable<float,  String> tableWithFloatKeys;   // works! (but probably a bad idea!)
-  
+
    // When using a "Proper class" as a Key type, you'll want to make
    // sure it has a working == operator and that it has a method
-   // like this one defined:  
+   // like this one defined:
    //
    //   uint32 HashCode() const;
-   // 
+   //
    // This method should return a 32-bit value based on the object's
    // current state; that value will be used to place the key/value
    // pair within the Hashtable's array.
@@ -98,7 +98,7 @@ int main(int argc, char ** argv)
 
    // Test retrieving a value using a MyKeyClass object as the key
    int retVal;
-   if (myTable.Get(MyKeyClass(21, 22), retVal).IsOK()) 
+   if (myTable.Get(MyKeyClass(21, 22), retVal).IsOK())
    {
       printf("myTable.Get(MyKeyClass(21, 22) retrieved a key with value %i\n", retVal);
    }
@@ -107,7 +107,7 @@ int main(int argc, char ** argv)
    // You can even use pointers-to-objects as your keys as long as
    // the pointed-to-objects can be used as keys.  The pointer-keys
    // will generally work the same as the value-keys, but note that
-   // you are responsible for making sure the pointers remain valid 
+   // you are responsible for making sure the pointers remain valid
    // for the lifetime of the Hashtable!
 
    String s1 = "One";

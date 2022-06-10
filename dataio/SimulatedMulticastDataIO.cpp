@@ -28,7 +28,7 @@ SimulatedMulticastDataIO :: SimulatedMulticastDataIO(const IPAddressAndPort & mu
 }
 
 enum {
-   SMDIO_COMMAND_DATA = 1936548964,  // 'smdd' 
+   SMDIO_COMMAND_DATA = 1936548964,  // 'smdd'
    SMDIO_COMMAND_PING,
    SMDIO_COMMAND_PONG,
    SMDIO_COMMAND_BYE,
@@ -56,7 +56,7 @@ int32 SimulatedMulticastDataIO :: ReadFrom(void * buffer, uint32 size, IPAddress
       {
          const uint32 bytesToReturn = muscleMin(incomingData()->GetNumBytes(), size);
          memcpy(buffer, incomingData()->GetBuffer(), bytesToReturn);
-         return bytesToReturn; 
+         return bytesToReturn;
       }
       break;
 
@@ -158,7 +158,7 @@ void SimulatedMulticastDataIO :: NoteHeardFromMember(const IPAddressAndPort & he
 {
    uint64 * lastHeardFromTime = _knownMembers.Get(heardFromPingSource);
         if (lastHeardFromTime) *lastHeardFromTime = muscleMax(*lastHeardFromTime, timeStampMicros);
-   else if (_knownMembers.Put(heardFromPingSource, timeStampMicros).IsOK()) 
+   else if (_knownMembers.Put(heardFromPingSource, timeStampMicros).IsOK())
    {
       LogTime(MUSCLE_LOG_DEBUG, "New member [%s] added to the simulated-multicast group [%s], now there are " UINT32_FORMAT_SPEC " members.\n", heardFromPingSource.ToString()(), _multicastAddress.ToString()(), _knownMembers.GetNumItems());
    }
@@ -183,7 +183,7 @@ void SimulatedMulticastDataIO :: UpdateUnicastSocketRegisteredForWrite(bool shou
    if ((IsInEnobufsErrorMode())&&(shouldBeRegisteredForWrite))
    {
       if (GetRunTime64() < _nextErrorModeSendTime) shouldBeRegisteredForWrite = false; // don't bother trying to write, when in enobufs-error-mode
-      else 
+      else
       {
          LogTime(MUSCLE_LOG_WARNING, "SimulatedMulticastDataIO %p:  Exiting fault-mode to see if the ENOBUFS fault has cleared yet.\n", this);
          SetEnobufsErrorMode(false);
@@ -222,7 +222,7 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    muscleCopyOut(b, B_HOST_TO_LENDIAN_INT32(whatCode));                          b += sizeof(uint32);
    if ((whatCode == SMDIO_COMMAND_PONG)&&(destIAP != _localAddressAndPort))  // no point telling myself about what I know
    {
-      // Include the next (n) member-IAPs (not including our own) to the PONG's data so that the 
+      // Include the next (n) member-IAPs (not including our own) to the PONG's data so that the
       // receiver can add them all, even if he doesn't get all of the PONGs directly from everyone
       HashtableIterator<IPAddressAndPort, uint64> iter = _knownMembers.ContainsKey(_localAddressAndPort) ? _knownMembers.GetIteratorAt(_localAddressAndPort) : _knownMembers.GetIterator();
       IPAddressAndPort firstAdded;
@@ -264,7 +264,7 @@ void SimulatedMulticastDataIO :: DrainOutgoingPacketsTable()
    {
       Queue<ConstByteBufferRef> & pq = *_outgoingPacketsTable.GetFirstValue();
       if (pq.HasItems())
-      { 
+      {
          const IPAddressAndPort & dest = *_outgoingPacketsTable.GetFirstKey();
          const ConstByteBufferRef & b  = pq.Head();
          if (SendDataUDP(udpSock, b()->GetBuffer(), b()->GetNumBytes(), false, dest.GetIPAddress(), dest.GetPort()) == 0)
@@ -284,7 +284,7 @@ void SimulatedMulticastDataIO :: DrainOutgoingPacketsTable()
             return;
          }
          else SetEnobufsErrorMode(false);  // reset the _enobufsCounter to zero on any sign of success
- 
+
          (void) pq.RemoveHead();
       }
       if (pq.IsEmpty()) (void) _outgoingPacketsTable.RemoveFirst();
@@ -310,11 +310,11 @@ status_t SimulatedMulticastDataIO :: ParseMulticastControlPacket(const ByteBuffe
       const uint32 numExtras = (uint32)(((buf.GetBuffer()+buf.GetNumBytes())-b)/IPAddressAndPort::FlattenedSize());
       for (uint32 i=0; i<numExtras; i++)
       {
-         IPAddressAndPort next; 
+         IPAddressAndPort next;
          if (next.Unflatten(b, IPAddressAndPort::FlattenedSize()).IsOK())
          {
             const uint64 microsSinceHeardFrom = MillisToMicros(next.GetIPAddress().GetInterfaceIndex()); // yes, I'm abusing this field
-            if (microsSinceHeardFrom < _timeoutPeriodMicros) 
+            if (microsSinceHeardFrom < _timeoutPeriodMicros)
             {
                next = next.WithInterfaceIndex(_localAddressAndPort.GetIPAddress().GetInterfaceIndex());  // since we don't actually use it anyway
                NoteHeardFromMember(next, (now>microsSinceHeardFrom)?(now-microsSinceHeardFrom):0);       // semi-paranoia
@@ -325,7 +325,7 @@ status_t SimulatedMulticastDataIO :: ParseMulticastControlPacket(const ByteBuffe
       }
    }
 
-   return B_NO_ERROR; 
+   return B_NO_ERROR;
 }
 
 const char * SimulatedMulticastDataIO :: GetUDPSocketTypeName(uint32 which) const
@@ -396,7 +396,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
                case SMDIO_COMMAND_DATA:
                {
                   ConstByteBufferRef data = msgRef()->GetFlat(SMDIO_NAME_DATA);
-                  if (data()) 
+                  if (data())
                   {
                      IPAddressAndPort destIAP;
                      if ((msgRef()->FindFlat(SMDIO_NAME_RLOC, destIAP).IsOK())&&(destIAP != _multicastAddress))
@@ -427,7 +427,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
          if (IsInternalThreadSocketReady(udpIO.GetReadSelectSocket(), SOCKET_SET_READ))
          {
             ByteBufferRef packetData;
-            while(ReadPacket(udpIO, packetData).IsOK()) 
+            while(ReadPacket(udpIO, packetData).IsOK())
             {
                const IPAddressAndPort & fromIAP = udpIO.GetSourceOfLastReadPacket();
                NoteHeardFromMember(fromIAP, now);

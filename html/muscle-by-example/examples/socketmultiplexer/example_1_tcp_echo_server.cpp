@@ -64,7 +64,7 @@ int main(int argc, char ** argv)
       (void) socketMux.WaitForEvents();
       const uint64 nowAfterWaitMicros = GetRunTime64();
       printf("WaitForEvents() returned after %s\n", GetHumanReadableTimeIntervalString(nowAfterWaitMicros-nowBeforeWaitMicros)());
- 
+
       // See if any new TCP connection requests have come in
       if (socketMux.IsSocketReadyForRead(acceptSock.GetFileDescriptor()))
       {

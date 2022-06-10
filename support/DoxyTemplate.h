@@ -7,9 +7,9 @@
 
 #ifdef DOXYGEN_SHOULD_IGNORE_THIS  // yes, the #ifdef (rather than #ifndef) is deliberate here
 
-/** This class isn't meant to be compiled the C++ compiler; rather, 
+/** This class isn't meant to be compiled the C++ compiler; rather,
   * we use it as a repository of standard Doxygen comments for ubiquitous class-members.
-  * That way we don't have to repeat the same boilerplate comments over and over 
+  * That way we don't have to repeat the same boilerplate comments over and over
   * for every class in the distribution
   */
 class DoxyTemplate MUSCLE_FINAL_CLASS
@@ -30,14 +30,14 @@ public:
 
    /** Destructor */
    ~DoxyTemplate();
- 
+
    /** Assignment operator.  Sets this object to be a duplicate of (rhs)
      * @param rhs the object that this object should become a duplicate of
      * @returns a reference to this object
      */
    DoxyTemplate & operator =(const DoxyTemplate & rhs);
 
-   /** Move-Assignment operator (C++11 only).  Sets this object to be a duplicate of 
+   /** Move-Assignment operator (C++11 only).  Sets this object to be a duplicate of
      * (rhs) by stealing the state of (rhs) away so that this object can use it.
      * @param rhs the object that this object can plunder to assume the same state that (rhs) had
      * @returns a reference to this object
@@ -182,4 +182,4 @@ public:
 
 #endif
 
-#endif 
+#endif

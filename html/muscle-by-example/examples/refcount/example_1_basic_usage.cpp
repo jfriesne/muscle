@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
       MyClassRef mc3(new MyClass);
 
       // It's okay to make copies of Ref objects as much as you want
-      // (doing so doesn't copy the RefCountable they point to, but it 
+      // (doing so doesn't copy the RefCountable they point to, but it
       // does increase the RefCountable's reference count)
       MyClassRef mc4(mc1);
       MyClassRef mc5(mc2);

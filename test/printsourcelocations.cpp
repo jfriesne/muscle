@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -38,7 +38,7 @@ static void CheckFile(const String & path, Queue<String> & codes)
             if (ltIdx >= 0)
             {
                const int32 commentIdx = line->IndexOf("//");   // don't include LogTime() calls that are commented out
-               if ((commentIdx < 0)||(commentIdx > ltIdx)) 
+               if ((commentIdx < 0)||(commentIdx > ltIdx))
                {
                   const String loc = SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber));
                   codes.AddTail(line->Prepend(String("[%1] %2:%3: ").Arg(loc).Arg(path).Arg(lineNumber)));
@@ -76,7 +76,7 @@ static void DoSearch(const String & path, Queue<String> & codes)
 
 // This program accepts a directory name as the argument, and will find and print all LogTime()
 // calls in and underneath that directory, along with their source-code-location keys. (e.g. "FB72")
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 

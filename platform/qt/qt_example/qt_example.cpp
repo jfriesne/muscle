@@ -64,7 +64,7 @@ void ExampleWidget :: paintEvent(QPaintEvent *)
       for (HashtableIterator<String, MessageRef> iter(_master->_states); iter.HasData(); iter++) DrawUser(p, iter.GetValue());
       DrawUser(p, _master->_localState);
    }
-   else 
+   else
    {
       p.fillRect(QRect(0,0,width(),height()), Qt::lightGray);
       DrawText(p, NormalizedToQtCoords(Point(0.5f, 0.5f)), "(Not currently connected to server)", Qt::darkGray, false);
@@ -230,7 +230,7 @@ ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userN
          QBoxLayout * splitBottomLayout = new QBoxLayout(QBoxLayout::TopToBottom, splitBottom);
          splitBottomLayout->setContentsMargins(2,2,2,2);
          splitBottomLayout->setSpacing(2);
- 
+
          _chatText = new QTextEdit;
          _chatText->setReadOnly(true);
          splitBottomLayout->addWidget(_chatText, 1);
@@ -248,7 +248,7 @@ ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userN
             connect(_userName, SIGNAL(returnPressed()), this, SLOT(UserChangedName()));
             botRowLayout->addWidget(_userName);
             botRowLayout->addWidget(new QLabel(":"));
-       
+
             _chatEntry = new QLineEdit;
             connect(_chatEntry, SIGNAL(returnPressed()), this, SLOT(SendChatText()));
             botRowLayout->addWidget(_chatEntry, 1);
@@ -258,7 +258,7 @@ ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userN
       splitter->addWidget(splitBottom);
    }
    vbl->addWidget(splitter);
-   
+
    connect(&_mtt, SIGNAL(SessionConnected(const String &, const IPAddressAndPort &)), this, SLOT(SessionConnected()));
    connect(&_mtt, SIGNAL(MessageReceived(const MessageRef &, const String &)), this, SLOT(MessageReceived(const MessageRef &)));
    connect(&_mtt, SIGNAL(SessionDisconnected(const String &)), this, SLOT(SessionDisconnected()));
@@ -314,7 +314,7 @@ void ExampleWindow :: CloneWindow()
 
    ExampleWindow * clone = new ExampleWindow(_serverName->text(), newUserName(), _publicKey, _exampleWidget->IsAnimateEnabled());
    clone->move(pos().x()+30, pos().y()+30);
-   clone->show(); 
+   clone->show();
 }
 
 void ExampleWindow :: ConnectToServer()
@@ -324,7 +324,7 @@ void ExampleWindow :: ConnectToServer()
 
    String hostname;
    uint16 port = 2960;  // default port for muscled
-   if (ParseConnectArg(FromQ(_serverName->text()), hostname, port).IsError()) 
+   if (ParseConnectArg(FromQ(_serverName->text()), hostname, port).IsError())
    {
       AddChatText(QString("Unable to parse server name %1.").arg(_serverName->text()));
    }

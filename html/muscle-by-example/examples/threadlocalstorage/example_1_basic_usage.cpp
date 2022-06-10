@@ -23,7 +23,7 @@ public:
 
 protected:
    virtual void InternalThreadEntry()
-   {  
+   {
       int * myInt = _perThreadVariable.GetOrCreateThreadLocalObject();
       if (myInt == NULL)
       {
@@ -36,14 +36,14 @@ protected:
       *myInt = myVal;
 
       while(1)
-      { 
+      {
          printf("Thread %p:  *myInt is %i (should be %i)\n", this, *myInt, myVal);
-         Snooze64(SecondsToMicros(1)); 
- 
+         Snooze64(SecondsToMicros(1));
+
          // See if it is time for us to go away yet
          MessageRef msg;
          if (WaitForNextMessageFromOwner(msg, 0).IsOK())  // 0 == don't block, just poll and return immediately
-         {  
+         {
             if (msg() == NULL) break;
          }
       }

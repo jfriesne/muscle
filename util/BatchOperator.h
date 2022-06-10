@@ -26,7 +26,7 @@ public:
    public:
       /** Default constructor. */
       BatchGuard() {/* empty */}
-   }; 
+   };
 
    /** Read-only access to our internal NestCount object, in case you are interested in querying its state. */
    const NestCount & GetNestCount() const {return _count;}
@@ -44,7 +44,7 @@ protected:
   * subclass this class, implement its BatchBegins() and BatchEnds() methods, and then place
   * BatchGuard objects on the stack in the calling code, at the top of any routine
   * that may be doing one or more operations in sequence.  The benefit is that your BatchBegins()
-  * and BatchEnd() routines would then be automatically called at the proper times, and 
+  * and BatchEnd() routines would then be automatically called at the proper times, and
   * nesting/recursion is guaranteed to be handled correctly.
   *
   * This is a slightly more complex implementation of BatchOperator, in that it allows
@@ -75,7 +75,7 @@ public:
      * @param args The arguments to pass to BatchEnds(), if we are the outermost level of batch nesting.
      * @returns true iff BatchEnds() was called, or false if it wasn't (because we were already in a batch)
      */
-   inline bool EndOperationBatch(const BatchArgs & args = BatchArgs()) 
+   inline bool EndOperationBatch(const BatchArgs & args = BatchArgs())
    {
       bool ret = false;
       if (_count.IsOutermost()) {BatchEnds(args); ret = true;}  // note that BatchEnds() is called while _count is still non-zero!
@@ -104,7 +104,7 @@ private:
       BatchGuardImp(BatchOperator<BatchArgs> & bop, const BatchArgs & args) : _bop(bop), _args(args) {(void) _bop.BeginOperationBatch(_args);}
       BatchGuardImp(const BatchGuardImp & rhs) : BatchGuard(), _bop(rhs._bop), _args(rhs._args) {(void) _bop.BeginOperationBatch(_args);}
       ~BatchGuardImp() {(void) _bop.EndOperationBatch(_args);}
-      
+
    private:
       BatchOperator<BatchArgs> & _bop;
       BatchArgs _args;
@@ -123,7 +123,7 @@ public:
   * subclass this class, implement its BatchBegins() and BatchEnds() methods, and then place
   * BatchGuard objects on the stack in the calling code, at the top of any routine
   * that may be doing one or more operations in sequence.  The benefit is that your BatchBegins()
-  * and BatchEnd() routines would then be automatically called at the proper times, and 
+  * and BatchEnd() routines would then be automatically called at the proper times, and
   * nesting/recursion is guaranteed to be handled correctly.
   *
   * This is a simple implementation of BatchOperator that doesn't use any batch arguments.
@@ -173,7 +173,7 @@ private:
       BatchGuardImp(BatchOperator & bop) : _bop(bop) {(void) _bop.BeginOperationBatch();}
       BatchGuardImp(const BatchGuardImp & rhs) : BatchGuard(), _bop(rhs._bop) {(void) _bop.BeginOperationBatch();}
       ~BatchGuardImp() {(void) _bop.EndOperationBatch();}
-      
+
    private:
       BatchOperator<void> & _bop;
    };

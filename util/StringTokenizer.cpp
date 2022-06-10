@@ -27,7 +27,7 @@ StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSep
              else MWARN_OUT_OF_MEMORY;
    }
    else bufPtr = _smallStringBuf;
-   
+
    if (bufPtr)
    {
       _nextToRead = _nextToWrite = _tokenizeMe = bufPtr;
@@ -162,7 +162,7 @@ char * StringTokenizer :: GetNextToken()
 }
 
 char * StringTokenizer :: GetRemainderOfString()
-{  
+{
    MovePastSoftSeparatorChars();
    return (*_nextToRead) ? _nextToRead : NULL;  // and return from there
 }

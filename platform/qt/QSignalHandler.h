@@ -24,7 +24,7 @@ class QSignalHandler : public QObject, public ISignalHandler
    Q_OBJECT
 
 public:
-   /** Constructor. 
+   /** Constructor.
      * @param parent Passed on to the QObject constructor
      * @param name Passed on to the QObject constructor
      */
@@ -47,7 +47,7 @@ private slots:
 private:
    ConstSocketRef _mainThreadSocket;
    ConstSocketRef _handlerFuncSocket;
-   QSocketNotifier * _socketNotifier;   
+   QSocketNotifier * _socketNotifier;
 
    DECLARE_COUNTED_OBJECT(QSignalHandler);
 };

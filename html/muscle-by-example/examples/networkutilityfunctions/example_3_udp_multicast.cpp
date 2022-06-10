@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    PrintExampleDescription();
-   
+
    const IPAddressAndPort multicastGroup("ff12::1234", 7777, false);  // arbitrary
 
    status_t ret;
@@ -41,15 +41,15 @@ int main(int argc, char ** argv)
    }
 
    // Let's build up the set of IPv6 scope indices we want to send/receive on
-   Hashtable<uint32, Void> scopeIDs; 
-   for (uint32 i=0; i<niis.GetNumItems(); i++) 
+   Hashtable<uint32, Void> scopeIDs;
+   for (uint32 i=0; i<niis.GetNumItems(); i++)
    {
       const IPAddress & ip = niis[i].GetLocalAddress();
       if (ip.IsInterfaceIndexValid()) (void) scopeIDs.PutWithDefault(ip.GetInterfaceIndex());
    }
 
    // Now let's set up one multicast UDP socket per scope index (IPv6 multicast
-   // works more reliably that way, than if we tried to get a single socket to 
+   // works more reliably that way, than if we tried to get a single socket to
    // handle traffic on all the interfaces at once -- sadly)
    Hashtable<ConstSocketRef, int> udpSocks;   // socket -> scopeID
    for (HashtableIterator<uint32, Void> iter(scopeIDs); iter.HasData(); iter++)
@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to create a UDP socket!\n");
          return 10;
-      }   
+      }
 
       if (BindUDPSocket(udpSock, multicastGroup.GetPort(), NULL, invalidIP, true).IsOK(ret))  // true == share the port with the other UDP sockets
       {
@@ -97,7 +97,7 @@ int main(int argc, char ** argv)
          {
             const IPAddress destAddr =  multicastGroup.GetIPAddress().WithInterfaceIndex(iter.GetValue());
             const int numBytesSent = SendDataUDP(iter.GetKey(), pingData(), pingData.FlattenedSize(), true, destAddr, multicastGroup.GetPort());
-            if (numBytesSent == pingData.FlattenedSize()) 
+            if (numBytesSent == pingData.FlattenedSize())
             {
                LogTime(MUSCLE_LOG_INFO, "Sent %i-byte multicast packet to [%s] on socket #%i: [%s]\n", numBytesSent, destAddr.ToString()(), iter.GetKey().GetFileDescriptor(), pingData());
             }

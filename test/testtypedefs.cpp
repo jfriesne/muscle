@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "system/SetupSystem.h"
 #include "support/MuscleSupport.h"
@@ -17,7 +17,7 @@ static void testStr(const char * title, const char * gen, const char * expected)
 }
 
 // This program makes sure that the MUSCLE typedefs have the proper bit-widths.
-int main(int, char **) 
+int main(int, char **)
 {
    CompleteSetupSystem css;
 

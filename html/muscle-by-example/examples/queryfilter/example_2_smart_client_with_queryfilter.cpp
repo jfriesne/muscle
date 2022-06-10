@@ -12,7 +12,7 @@ static void PrintExampleDescription()
    printf("\n");
    printf("This program implements a limited \"smart\" Message client with a QueryFilter.\n");
    printf("\n");
-   printf("It will connect to the same TCP port that the example_4_smart_server listens on,\n"); 
+   printf("It will connect to the same TCP port that the example_4_smart_server listens on,\n");
    printf("and subscribe to all client-supplied nodes that match the subscription-path\n");
    printf("AND whose current Message contains a field named \"User String\" whose\n");
    printf("contents contain the word \"magic\".\n");
@@ -103,7 +103,7 @@ int main(int argc, char ** argv)
    else LogTime(MUSCLE_LOG_ERROR, "example_2_smart_client_with_queryfilter is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions
-   // before they are destroyed (necessary only because we have 
+   // before they are destroyed (necessary only because we have
    // allocated some of them on the stack rather than on the heap)
    reflectServer.Cleanup();
 

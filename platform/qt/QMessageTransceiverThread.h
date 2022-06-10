@@ -17,7 +17,7 @@ class QMessageTransceiverHandler;
 class QMessageTransceiverThread;
 class QMessageTransceiverThreadPool;
 
-/** 
+/**
  * This is an interface that identifies an object that QMessageTransceiverHandlers
  * can attach themselves to.  It is implemented by both the QMessageTransceiverThread
  * and QMessageTransceiverThreadPool classes.
@@ -52,7 +52,7 @@ protected:
      *                                       a message-batch, then this method will cause (handler) to emit an
      *                                       EndMessageBatch() signal before dissasociating itself
      *                                       from this IMessageTransceiverMaster.  That way the
-     *                                       un-registration won't break the rule that says that one 
+     *                                       un-registration won't break the rule that says that one
      *                                       EndMessageBatch() signal must always be emitted for
      *                                       every one BeginMessageBatch() signal.
      */
@@ -81,11 +81,11 @@ public:
      */
    QMessageTransceiverThread(QObject * parent = NULL, const char * name = NULL);
 
-   /** 
+   /**
     *  Destructor.  This constructor will call ShutdownInternalThread() itself,
     *  so you don't need to call ShutdownInternalThread() explicitly UNLESS you
     *  have subclassed this class and overridden virtual methods that can get
-    *  called from the internal thread -- in that case you should call 
+    *  called from the internal thread -- in that case you should call
     *  ShutdownInternalThread() yourself to avoid potential race conditions between
     *  the internal thread and your own destructor method.
     */
@@ -116,7 +116,7 @@ signals:
      * @param sessionID Session ID string of the newly accepted Session object.
      * @param factoryID Factory ID of the ReflectSessionFactory that accepted the new session.
      * @param iap The location of the peer that we are accepting a connection from.
-     */ 
+     */
    void SessionAccepted(const String & sessionID, uint32 factoryID, const IPAddressAndPort & iap);
 
    /** Emitted when a session object is attached to the internal thread's ReflectServer
@@ -136,7 +136,7 @@ signals:
      */
    void SessionDisconnected(const String & sessionID);
 
-   /** Emitted when a session object is removed from the internal thread's ReflectServer 
+   /** Emitted when a session object is removed from the internal thread's ReflectServer
      * @param sessionID Session ID string of the newly disconnected Session object.
      */
    void SessionDetached(const String & sessionID);
@@ -154,8 +154,8 @@ signals:
    /** Emitted when the thread's internal ReflectServer object exits. */
    void ServerExited();
 
-   /** Emitted when the output-queues of the sessions specified in a previous call to 
-     * RequestOutputQueuesDrainedNotification() have drained.  Note that this signal only 
+   /** Emitted when the output-queues of the sessions specified in a previous call to
+     * RequestOutputQueuesDrainedNotification() have drained.  Note that this signal only
      * gets emitted once per call to RequestOutputQueuesDrainedNotification();
      * it is not emitted spontaneously.
      * @param ref MessageRef that you previously specified in RequestOutputQueuesDrainedNotification().
@@ -235,17 +235,17 @@ public:
      * at most (maxSessionsPerThread) sessions associated with it.  If more than that
      * number of sessions are attached to the pool, another thread will be created to
      * handle the extra sessions (and so on).
-     * @param maxSessionsPerThread The maximum number of sessions to add to each 
+     * @param maxSessionsPerThread The maximum number of sessions to add to each
      *                             thread in the pool. Defaults to 32.
      */
    explicit QMessageTransceiverThreadPool(uint32 maxSessionsPerThread = 32);
 
-   /** Destructor.  Deletes all QMessageTransceiverThread objects in the pool. 
+   /** Destructor.  Deletes all QMessageTransceiverThread objects in the pool.
      * Any QMessageTransceiverHandlers still attached to those threads will be detached.
      */
    virtual ~QMessageTransceiverThreadPool();
- 
-   /** Call this to shut down and delete all QMessageTransceiverThread objects in this pool. 
+
+   /** Call this to shut down and delete all QMessageTransceiverThread objects in this pool.
      * Any QMessageTransceiverHandlers still attached to those threads will be detached.
      */
    void ShutdownAllThreads();
@@ -293,7 +293,7 @@ public:
      */
    QMessageTransceiverHandler(QObject * parent = NULL, const char * name = NULL);
 
-   /** 
+   /**
     *  Destructor.  This destructor will unregister us with our QMessageTransceiverThread object.
     */
    virtual ~QMessageTransceiverHandler();
@@ -304,21 +304,21 @@ public:
      * the previous association will be removed first.
      * May be called at any time, but behaves slightly differently depending on whether the internal
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
-     * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewSession(). 
+     * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewSession().
      * @param master the IMessageTransceiverMaster to bind this handler to.
      * @param socket The TCP socket that the new session will be using, or -1, if the new session is to have no
      *               associated TCP connection.  This socket becomes property of this object on success.
      * @param optSessionRef Optional reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession
-     *                      will be created and used.  If you do specify a session here, you will want to use either a 
-     *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts 
+     *                      will be created and used.  If you do specify a session here, you will want to use either a
+     *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts
      *                      like one, or else things won't work correctly.
      *                      The referenced session becomes sole property of the MessageTransceiverThread on success.
      * @return B_NO_ERROR on success, or an error code on failure.  Note that if the internal thread is currently running,
      *         then success merely indicates that the add command was enqueued successfully, not that it was executed (yet).
-     */  
+     */
    virtual status_t SetupAsNewSession(IMessageTransceiverMaster & master, const ConstSocketRef & socket, const ThreadWorkerSessionRef & optSessionRef);
 
-   /** Convenience method -- calls the above method with a NULL session reference. 
+   /** Convenience method -- calls the above method with a NULL session reference.
      * @param master the IMessageTransceiverMaster to bind this handler to.
      * @param socket The TCP socket that the new session will be using, or -1, if the new session is to have no
      *               associated TCP connection.  This socket becomes property of this object on success.
@@ -333,12 +333,12 @@ public:
      * the previous association will be removed first.
      * May be called at any time, but behaves slightly differently depending on whether the internal
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
-     * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewConnectSession(). 
+     * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewConnectSession().
      * @param master the IMessageTransceiverMaster to bind this handler to.
      * @param targetIPAddressAndPort IP address and port to connect to
-     * @param optSessionRef optional Reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession 
-     *                      will be created and used.  If you do specify a session here, you will want to use either a 
-     *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts 
+     * @param optSessionRef optional Reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession
+     *                      will be created and used.  If you do specify a session here, you will want to use either a
+     *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts
      *                      like one, or things won't work correctly.
      *                      The referenced session becomes sole property of the MessageTransceiverThread on success.
      * @param autoReconnectDelay If specified, this is the number of microseconds after the
@@ -358,13 +358,13 @@ public:
      */
    virtual status_t SetupAsNewConnectSession(IMessageTransceiverMaster & master, const IPAddressAndPort & targetIPAddressAndPort, const ThreadWorkerSessionRef & optSessionRef, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
-   /** Convenience method -- calls the above method with a NULL session reference. 
+   /** Convenience method -- calls the above method with a NULL session reference.
      * Associates this handler with a specified IMessageTransceiverMaster, and tells it to connect to
      * the specified host IP address and port.  If the handler was already associated with a IMessageTransceiverMaster,
      * the previous association will be removed first.
      * May be called at any time, but behaves slightly differently depending on whether the internal
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
-     * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewConnectSession(). 
+     * to the server.  If not, the call is immediately passed on through to ReflectServer::AddNewConnectSession().
      * @param master the IMessageTransceiverMaster to bind this handler to.
      * @param targetIPAddressAndPort IP address and port to connect to.
      * @param autoReconnectDelay If specified, this is the number of microseconds after the
@@ -390,12 +390,12 @@ public:
      * the previous association will be removed first.
      * May be called at any time, but behaves slightly differently depending on whether the internal
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
-     * to the server.  If not, the call is passed immediately on through to ReflectServer::AddNewConnectSession(). 
+     * to the server.  If not, the call is passed immediately on through to ReflectServer::AddNewConnectSession().
      * @param master the IMessageTransceiverMaster to bind this handler to.
      * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (e.g. "blah.com" or "132.239.50.8")
      * @param port Port to connect to at that IP address.
-     * @param optSessionRef optional Reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession 
-     *                      will be created and used.  If you do specify session here, you will want to use either a 
+     * @param optSessionRef optional Reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession
+     *                      will be created and used.  If you do specify session here, you will want to use either a
      *                      ThreadWorkerSession, a subclass of ThreadWorkerSession, or at least something that acts
      *                      like one, or things won't work correctly.
      *                      The referenced session becomes sole property of the MessageTransceiverThread on success.
@@ -417,7 +417,7 @@ public:
      */
    virtual status_t SetupAsNewConnectSession(IMessageTransceiverMaster & master, const String & targetHostName, uint16 port, const ThreadWorkerSessionRef & optSessionRef, bool expandLocalhost = false, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
-   /** Convenience method -- calls the above method with a NULL session reference. 
+   /** Convenience method -- calls the above method with a NULL session reference.
      * @param master the IMessageTransceiverMaster to bind this handler to.
      * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (e.g. "blah.com" or "132.239.50.8")
      * @param port Port to connect to at that IP address.
@@ -443,8 +443,8 @@ public:
      * This method is that Requests that the MessageTranceiverThread object send us a MTT_EVENT_OUTPUT_QUEUES_DRAINED event
      * when this handler's outgoing message queues has become empty.
      * @param notificationMsg MessageRef to return with the MTT_EVENT_OUTPUT_QUEUES_DRAINED event.  May be a NULL ref.
-     * @param optDrainTag If non-NULL, this DrainTag will be used to track drainage, instead of a 
-     *                    default one.  Don't supply a value for this argument unless you think you 
+     * @param optDrainTag If non-NULL, this DrainTag will be used to track drainage, instead of a
+     *                    default one.  Don't supply a value for this argument unless you think you
      *                    know what you are doing.  ;^)  On success, (optDrainTag) becomes property
      *                    of this MessageTransceiverThread.
      * @returns B_NO_ERROR on success (in which case an MTT_EVENT_OUTPUT_QUEUES_DRAINED event will be
@@ -473,7 +473,7 @@ public:
    status_t SetNewOutputPolicy(const AbstractSessionIOPolicyRef & pref);
 
    /**
-     * Tells this handler's worker session to switch to a different message encoding 
+     * Tells this handler's worker session to switch to a different message encoding
      * for the Messages they are sending to the network.  Note that this only works if
      * the worker session is using the usual MessageIOGateways for their I/O.
      * Note that ZLIB encoding is only enabled if your program is compiled with the
@@ -521,7 +521,7 @@ signals:
    /** Emitted when this handler's session object has attached to the I/O thread's ReflectServer */
    void SessionAttached();
 
-   /** Emitted when this handler's session object has connected to its remote peer 
+   /** Emitted when this handler's session object has connected to its remote peer
      * (only used by sessions that were created in connect-mode)
      * @param connectedTo The IP address and port that the session is connected to.
      */
@@ -561,7 +561,7 @@ public slots:
      *                                       a message-batch, then this method will emit an
      *                                       EndMessageBatch() signal before dissasociating itself
      *                                       from the IMessageTransceiverMaster.  That way the
-     *                                       Reset() call won't break the rule that says that one 
+     *                                       Reset() call won't break the rule that says that one
      *                                       EndMessageBatch() signal must always be emitted for
      *                                       every one BeginMessageBatch() signal.
      */
@@ -594,7 +594,7 @@ private:
 
    void ClearRegistrationFields();
 
-   IMessageTransceiverMaster * _master;  
+   IMessageTransceiverMaster * _master;
    QMessageTransceiverThread * _mtt;     // _mtt and _master may or may not point to the same object
 
    int32 _sessionID;  // will be set by our _mtt when we register with it
@@ -608,7 +608,7 @@ private:
 
 #if defined(MUSCLE_USE_QT_THREADS) && defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
 /** Helper class for the Qt implementation of the MUSCLE Thread class.  This class is exposed only
-  * because Qt's signal/slot system requires it to be; please ignore it as it is meant to be a 
+  * because Qt's signal/slot system requires it to be; please ignore it as it is meant to be a
   * private implementation detail.
   */
 class MuscleQThreadSocketNotifier : public QSocketNotifier
@@ -617,9 +617,9 @@ Q_OBJECT
 
 public:
 #if QT_VERSION >= 0x050000
-   MuscleQThreadSocketNotifier(Thread * thread, qintptr sock, Type t, QObject * parent) 
+   MuscleQThreadSocketNotifier(Thread * thread, qintptr sock, Type t, QObject * parent)
 #else
-   MuscleQThreadSocketNotifier(Thread * thread, int     sock, Type t, QObject * parent) 
+   MuscleQThreadSocketNotifier(Thread * thread, int     sock, Type t, QObject * parent)
 #endif
       : QSocketNotifier(sock, t, parent), _thread(thread)
    {

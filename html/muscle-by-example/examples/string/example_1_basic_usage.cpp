@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
       s += " Fa";
       printf("   s = [%s]\n", s());
    }
-   
+
    printf("\n");
    return 0;
 }

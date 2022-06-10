@@ -11,9 +11,9 @@
 namespace muscle {
 
 /** This adapter class allows you to use a MUSCLE DataIO object as a Qt QIODevice. */
-class QDataIODevice : public QIODevice  
+class QDataIODevice : public QIODevice
 {
-public: 
+public:
    /** Class constructor.
     *  @param dataIO a QSocket object that was allocated off the heap.  This object becomes owner of newSocket.
     *  @param parent Passed to the QIODevice constructor
@@ -21,7 +21,7 @@ public:
    QDataIODevice(const DataIORef & dataIO, QObject * parent) : QIODevice(parent), _dataIO(dataIO), _dataSize(dynamic_cast<SeekableDataIO*>(dataIO())?(dynamic_cast<SeekableDataIO*>(dataIO())->GetLength()):-1), _readReady(dataIO()->GetReadSelectSocket().GetFileDescriptor(), QSocketNotifier::Read), _isHosed(false)
    {
       connect(&_readReady, SIGNAL(activated(int)), this, SIGNAL(readyRead()));
-   }   
+   }
 
    /** Destructor */
    virtual ~QDataIODevice() {_readReady.setEnabled(false);}

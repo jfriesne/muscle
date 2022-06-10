@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/PacketDataIO.h"  // for retrieving the source IP address and port, where possible
 #include "iogateway/PacketTunnelIOGateway.h"
@@ -102,14 +102,14 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
                      {
                         memcpy(rs->_buf()->GetBuffer()+offset, p, chunkSize);
                         rs->_offset += chunkSize;
-                        if (rs->_offset == rsSize) 
+                        if (rs->_offset == rsSize)
                         {
                            HandleIncomingByteBuffer(receiver, rs->_buf, fromIAP);
                            rs->_offset = 0;
                            rs->_buf()->Clear(rsSize > MAX_CACHE_SIZE);
                         }
                      }
-                     else 
+                     else
                      {
                         LogTime(MUSCLE_LOG_DEBUG, "Unknown fragment (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") received from %s, ignoring it.\n", messageID, offset, chunkSize, totalSize, fromIAP.ToString()());
                         rs->_offset = 0;
@@ -189,7 +189,7 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          else if (bytesWritten == 0) break;  // no more space to write, for now
          else return -1;
       }
-      else break;  // nothing more to do! 
+      else break;  // nothing more to do!
    }
    return totalBytesWritten;
 }

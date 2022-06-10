@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "reflector/AbstractReflectSession.h"
 #include "reflector/AbstractSessionIOPolicy.h"
@@ -63,7 +63,7 @@ void ProxySessionFactory :: AboutToDetachFromServer()
 }
 
 AbstractReflectSession ::
-AbstractReflectSession() 
+AbstractReflectSession()
    : _sessionID(GetNextGlobalID(_sessionIDCounter))
    , _connectingAsync(false)
    , _isConnected(false)
@@ -85,7 +85,7 @@ AbstractReflectSession()
 }
 
 AbstractReflectSession ::
-~AbstractReflectSession() 
+~AbstractReflectSession()
 {
    TCHECKPOINT;
    SetInputPolicy(AbstractSessionIOPolicyRef());   // make sure the input policy knows we're going away
@@ -94,7 +94,7 @@ AbstractReflectSession ::
 
 const String &
 AbstractReflectSession ::
-GetHostName() const 
+GetHostName() const
 {
    MASSERT(IsAttachedToServer(), "Can not call GetHostName() while not attached to the server");
    return _hostName;
@@ -102,7 +102,7 @@ GetHostName() const
 
 uint16
 AbstractReflectSession ::
-GetPort() const 
+GetPort() const
 {
    MASSERT(IsAttachedToServer(), "Can not call GetPort() while not attached to the server");
    return _ipAddressAndPort.GetPort();
@@ -110,15 +110,15 @@ GetPort() const
 
 const IPAddress &
 AbstractReflectSession ::
-GetLocalInterfaceAddress() const 
+GetLocalInterfaceAddress() const
 {
    MASSERT(IsAttachedToServer(), "Can not call LocalInterfaceAddress() while not attached to the server");
    return _ipAddressAndPort.GetIPAddress();
 }
 
-status_t 
+status_t
 AbstractReflectSession ::
-AddOutgoingMessage(const MessageRef & ref) 
+AddOutgoingMessage(const MessageRef & ref)
 {
    MASSERT(IsAttachedToServer(), "Can not call AddOutgoingMessage() while not attached to the server");
    return _gateway() ? _gateway()->AddOutgoingMessage(ref) : B_BAD_OBJECT;
@@ -181,7 +181,7 @@ Reconnect()
       io.SetRef(ssio);
       MRETURN_ON_ERROR(ssio->SetPublicKeyCertificate(publicKey));
 
-      if (dynamic_cast<SSLSocketAdapterGateway *>(_gateway()) == NULL) 
+      if (dynamic_cast<SSLSocketAdapterGateway *>(_gateway()) == NULL)
       {
          _gateway.SetRef(newnothrow SSLSocketAdapterGateway(_gateway));
          MRETURN_OOM_ON_NULL(_gateway());
@@ -190,12 +190,12 @@ Reconnect()
 #endif
 
    _gateway()->SetDataIO(io);
-   if (isReady) 
+   if (isReady)
    {
       _isConnected = _wasConnected = true;
       AsyncConnectCompleted();
    }
-   else 
+   else
    {
       _isConnected = false;
       SetConnectingAsync(doTCPConnect);
@@ -204,8 +204,8 @@ Reconnect()
    return B_NO_ERROR;
 }
 
-ConstSocketRef 
-AbstractReflectSession :: 
+ConstSocketRef
+AbstractReflectSession ::
 CreateDefaultSocket()
 {
    return ConstSocketRef();  // NULL Ref means run clientless by default
@@ -343,8 +343,8 @@ HasBytesToOutput() const
    return _gateway() ? _gateway()->HasBytesToOutput() : false;
 }
 
-bool 
-AbstractReflectSession :: 
+bool
+AbstractReflectSession ::
 IsReadyForInput() const
 {
    return _gateway() ? _gateway()->IsReadyForInput() : false;
@@ -357,7 +357,7 @@ DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
    return _gateway() ? _gateway()->DoInput(receiver, maxBytes) : 0;
 }
 
-int32 
+int32
 AbstractReflectSession ::
 DoOutput(uint32 maxBytes)
 {
@@ -392,7 +392,7 @@ BroadcastToAllFactories(const MessageRef & msgRef, void * userData, bool toSelf)
    }
 }
 
-void 
+void
 AbstractReflectSession ::
 PlanForReconnect()
 {
@@ -400,8 +400,8 @@ PlanForReconnect()
    InvalidatePulseTime();
 }
 
-uint64 
-AbstractReflectSession :: 
+uint64
+AbstractReflectSession ::
 GetPulseTime(const PulseArgs &)
 {
    return muscleMin(IsThisSessionScheduledForPostSleepReconnect()?MUSCLE_TIME_NEVER:_reconnectTime, _asyncConnectTimeoutTime);
@@ -415,7 +415,7 @@ IsThisSessionScheduledForPostSleepReconnect() const
 }
 
 void
-AbstractReflectSession :: 
+AbstractReflectSession ::
 Pulse(const PulseArgs & args)
 {
    PulseNode::Pulse(args);
@@ -436,7 +436,7 @@ Pulse(const PulseArgs & args)
          }
       }
    }
-   else if ((IsConnectingAsync())&&(args.GetCallbackTime() >= _asyncConnectTimeoutTime)) (void) DisconnectSession();  // force us to terminate our async-connect now 
+   else if ((IsConnectingAsync())&&(args.GetCallbackTime() >= _asyncConnectTimeoutTime)) (void) DisconnectSession();  // force us to terminate our async-connect now
 }
 
 void AbstractReflectSession :: SetConnectingAsync(bool isConnectingAsync)
@@ -447,7 +447,7 @@ void AbstractReflectSession :: SetConnectingAsync(bool isConnectingAsync)
 }
 
 const DataIORef &
-AbstractReflectSession :: 
+AbstractReflectSession ::
 GetDataIO() const
 {
    return _gateway() ? _gateway()->GetDataIO() : GetDefaultObjectForType<DataIORef>();
@@ -469,8 +469,8 @@ GetSessionWriteSelectSocket() const
    return dio() ? dio()->GetWriteSelectSocket() : GetNullSocket();
 }
 
-String 
-AbstractReflectSession :: 
+String
+AbstractReflectSession ::
 GenerateHostName(const IPAddress & /*ip*/, const String & defaultHostName) const
 {
    return defaultHostName;

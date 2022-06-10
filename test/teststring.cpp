@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -23,7 +23,7 @@ public:
 };
 
 // This program exercises the String class.
-int main(int, char **) 
+int main(int, char **)
 {
    CompleteSetupSystem css;
 
@@ -41,7 +41,7 @@ int main(int, char **)
 #ifdef TEST_DISTANCE
    while(1)
    {
-      char base[512];  
+      char base[512];
       printf("Enter string A: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
       String a = base; a = a.Trim();
       printf("Enter string B: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
@@ -188,7 +188,7 @@ int main(int, char **)
 
    String scale("do"); scale = scale.AppendWord("re", ", ").AppendWord("mi").AppendWord(String("fa")).AppendWord("so").AppendWord("la").AppendWord("ti").AppendWord("do");
    printf("scale = [%s]\n", scale());
-   
+
    String rem("Hello sailor");
    printf("[%s]\n", (rem+"maggot"-"sailor")());
    rem -= "llo";

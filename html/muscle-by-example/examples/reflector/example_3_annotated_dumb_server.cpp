@@ -31,7 +31,7 @@ public:
       LogTime(MUSCLE_LOG_INFO, "MyDumbReflectSession Constructor called (this=%p)\n", this);
    }
 
-   virtual ~MyDumbReflectSession() 
+   virtual ~MyDumbReflectSession()
    {
       LogTime(MUSCLE_LOG_INFO, "MyDumbReflectSession Destructor called (this=%p)\n",  this);
    }
@@ -70,7 +70,7 @@ public:
       LogTime(MUSCLE_LOG_INFO, "MyDumbReflectSession(%p)::MessageReceivedFromGateway(%p,%p) called\n", this, msg(), userData);
       LogTime(MUSCLE_LOG_INFO, "The Message from session #" UINT32_FORMAT_SPEC "'s client is:\n", GetSessionID());
       msg()->PrintToStream();
-      DumbReflectSession::MessageReceivedFromGateway(msg, userData);  // will call MessageReceivedFromSession(*this, msg, userData) on all other attached session objects 
+      DumbReflectSession::MessageReceivedFromGateway(msg, userData);  // will call MessageReceivedFromSession(*this, msg, userData) on all other attached session objects
    }
 
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData)
@@ -125,7 +125,7 @@ int main(int argc, char ** argv)
 
    // This factory will create a DumbReflectSession object whenever
    // a TCP connection is received on DUMB_SERVER_TCP_PORT, and
-   // attach the DumbReflectSession to the ReflectServer for use.   
+   // attach the DumbReflectSession to the ReflectServer for use.
    status_t ret;
    MyDumbReflectSessionFactory dumbSessionFactory;
    if (reflectServer.PutAcceptFactory(DUMB_SERVER_TCP_PORT, DummyReflectSessionFactoryRef(dumbSessionFactory)).IsError(ret))
@@ -147,7 +147,7 @@ int main(int argc, char ** argv)
    else LogTime(MUSCLE_LOG_ERROR, "example_3_annotated_dumb_server is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions and factories
-   // before they are destroyed (necessary only because we may have 
+   // before they are destroyed (necessary only because we may have
    // allocated some of them on the stack rather than on the heap)
    reflectServer.Cleanup();
 

@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
    printf("telnet to that port in one or more other Terminal windows to connect.\n");
    printf("Also you can enter input into stdin here to send it to all connected TCP clients.\n");
    printf("\n");
- 
+
    while(true)
    {
       // Tell the SocketMultiplexer what sockets to listen to
@@ -67,7 +67,7 @@ int main(int argc, char ** argv)
          if (tcpSock())
          {
             DataIORef newDataIORef(new TCPSocketDataIO(tcpSock, false));
-            printf("Accepted new TCP connection %p from [%s]\n", newDataIORef(), clientIP.ToString()()); 
+            printf("Accepted new TCP connection %p from [%s]\n", newDataIORef(), clientIP.ToString()());
             (void) tcpClients.PutWithDefault(newDataIORef);
          }
          else printf("Accept failed!?\n");
@@ -86,7 +86,7 @@ int main(int argc, char ** argv)
                const int numBytesWritten = iter.GetKey()()->Write(inputBuf, numBytesRead);
                if (numBytesWritten != numBytesRead)
                {
-                  printf("Error writing to TCP client %p\n", iter.GetKey()()); 
+                  printf("Error writing to TCP client %p\n", iter.GetKey()());
                }
             }
          }
@@ -103,10 +103,10 @@ int main(int argc, char ** argv)
             const int numBytesRead = clientIO->Read(inputBuf, sizeof(inputBuf)-1);
             if (numBytesRead >= 0)
             {
-               inputBuf[numBytesRead] = '\0';  // ensure NUL termination 
+               inputBuf[numBytesRead] = '\0';  // ensure NUL termination
                printf("TCP client %p:  sent this to me: [%s]\n", clientIO, String(inputBuf).Trim()());
             }
-            else 
+            else
             {
                printf("TCP client %p closed his connection to the server.\n", clientIO);
                (void) tcpClients.Remove(iter.GetKey());  // buh-bye

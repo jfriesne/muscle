@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -12,13 +12,13 @@ using namespace muscle;
 static const char * GetBoolString(bool b) {return b ? "YES" : "NO";}
 
 // This program exercises the FilePathInfo class.
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
    if (argc < 2)
    {
-      printf("Usage:  testfilepathinfo <filepath>\n"); 
+      printf("Usage:  testfilepathinfo <filepath>\n");
       return 10;
    }
 

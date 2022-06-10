@@ -134,12 +134,12 @@ public:
      */
    bool Contains(const ItemType & value) const {return (IndexOf(value) >= 0);}
 
-   /** Returns the index of the first value equal to (value), or -1 if not found. 
+   /** Returns the index of the first value equal to (value), or -1 if not found.
      * @param value the item-value to look for the first instance of
      */
    int IndexOf(const ItemType & value) const {for (int i=0; i<NumItems; i++) if (_items[i] == value) return i; return -1;}
 
-   /** Returns the index of the last value equal to (value), or -1 if not found. 
+   /** Returns the index of the last value equal to (value), or -1 if not found.
      * @param value the item-value to look for the final instance of
      */
    int LastIndexOf(const ItemType & value) const {for (int i=NumItems-1; i>=0; i--) if (_items[i] == value) return i; return -1;}
@@ -158,7 +158,7 @@ public:
    /** Multiplies each value by itself, and returns the sum */
    ItemType GetLengthSquared() const {ItemType sum = ItemType(); for (int i=0; i<NumItems; i++) sum += (_items[i]*_items[i]); return sum;}
 
-   /** Returns the number of times (value) appears in this tuple 
+   /** Returns the number of times (value) appears in this tuple
      * @param value the item-value to count the appearances of
      */
    uint32 GetNumInstancesOf(const ItemType & value) const {uint32 count = 0; for (int i=0; i<NumItems; i++) if (_items[i] == value) count++; return count;}
@@ -238,7 +238,7 @@ public:
      */
    ItemType * GetItemPointer(uint32 which) {return &_items[which];}
 
-   /** Convenience method -- returns a read-only pointer to the nth item in our tuple. 
+   /** Convenience method -- returns a read-only pointer to the nth item in our tuple.
      * @param which the index of the item-value to return a pointer to
      */
    const ItemType * GetItemPointer(uint32 which) const {return &_items[which];}

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -22,7 +22,7 @@ uint32 lcg_parkmiller()
 // This program prints out a series of hash-code calculatations for a series of known, arbitrary byte
 // sequences.  The intent is just to check that our hash-code functions give the same results on different
 // CPU architectures.
-int main(int, char **) 
+int main(int, char **)
 {
    CompleteSetupSystem css;
 
@@ -30,7 +30,7 @@ int main(int, char **)
 
    Queue<uint8> bytes;
    if (bytes.EnsureSize(MAX_BUF_SIZE).IsError()) return 10;
-   
+
    uint32 metaHash32 = 0;
    uint64 metaHash64 = 0;
    for (uint32 i=0; i<MAX_BUF_SIZE; i++)

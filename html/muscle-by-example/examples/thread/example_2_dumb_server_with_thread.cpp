@@ -50,8 +50,8 @@ public:
       return DumbReflectSession::AttachedToServer().IsOK(ret) ? StartInternalThread() : ret;
    }
 
-   /** Called in the main thread whenever our slave thread has a result Message for us to get 
-     * from him.  Note that the (signalMsg) Message parameter isn't interesting, as it's just 
+   /** Called in the main thread whenever our slave thread has a result Message for us to get
+     * from him.  Note that the (signalMsg) Message parameter isn't interesting, as it's just
      * a dummy Message telling us that we should check our internal-thread-replies-queue now.
      */
    virtual void MessageReceivedFromGateway(const MessageRef & /*signalMsg*/, void *)
@@ -146,7 +146,7 @@ int main(int argc, char ** argv)
 
    // This factory will create a DumbReflectSession object whenever
    // a TCP connection is received on DUMB_SERVER_TCP_PORT, and
-   // attach the DumbReflectSession to the ReflectServer for use.   
+   // attach the DumbReflectSession to the ReflectServer for use.
    DumbReflectSessionFactory dumbSessionFactory;
    status_t ret;
    if (reflectServer.PutAcceptFactory(DUMB_SERVER_TCP_PORT, DummyReflectSessionFactoryRef(dumbSessionFactory)).IsError(ret))
@@ -175,7 +175,7 @@ int main(int argc, char ** argv)
    else LogTime(MUSCLE_LOG_ERROR, "example_2_dumb_server_with_thread is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions and factories
-   // before they are destroyed (necessary only because we may have 
+   // before they are destroyed (necessary only because we may have
    // allocated some of them on the stack rather than on the heap)
    reflectServer.Cleanup();
 

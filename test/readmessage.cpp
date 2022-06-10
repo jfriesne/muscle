@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -110,13 +110,13 @@ int main(int argc, char ** argv)
             PrintMessageReport(msg, isSizeReport);
          }
       }
-      else 
+      else
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] unflattening message! (" INT32_FORMAT_SPEC " bytes read)\n", ret(), numBytesRead);
          retVal = 10;
       }
    }
-   else 
+   else
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Could not read input flattened-message file [%s] [%s]\n", fileName, B_ERRNO());
       retVal = 10;

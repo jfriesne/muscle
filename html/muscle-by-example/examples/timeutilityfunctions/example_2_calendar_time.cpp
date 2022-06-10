@@ -20,7 +20,7 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    PrintExampleDescription();
-   
+
    Snooze64(SecondsToMicros(1));
 
    while(true)

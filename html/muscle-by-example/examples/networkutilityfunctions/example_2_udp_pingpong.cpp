@@ -22,13 +22,13 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    PrintExampleDescription();
-   
+
    ConstSocketRef udpSock = CreateUDPSocket();
    if (udpSock() == NULL)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to create a UDP socket!\n");
       return 10;
-   }   
+   }
 
    status_t ret;
 
@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to bind the UDP socket! [%s]\n", ret());
       return 10;
-   }   
+   }
 
    // Serve the ball to start the game (if the user specified a port number to serve to)
    const uint16 targetPort = (argc > 1) ? atoi(argv[1]) : 0;

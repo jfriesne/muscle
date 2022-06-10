@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "iogateway/MessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"  // for PR_COMMAND_PING, PR_RESULT_PONG
@@ -11,11 +11,11 @@ static const String PR_NAME_MESSAGE_REUSE_TAG = "_mrutag";
 static Mutex _messageReuseTagMutex;  // we could do one Mutex per tag, but that seems excessive, so let's just use a single Mutex for all
 
 class MessageReuseTag : public RefCountable
-{  
+{
 public:
    MessageReuseTag() {/* empty */}
    virtual ~MessageReuseTag() {/* empty */}
-   
+
    ByteBufferRef _cachedData;   // the first MessageIOGateway's flattened data will be cached here for potential reuse by other gateways
 };
 DECLARE_REFTYPES(MessageReuseTag);
@@ -52,7 +52,7 @@ MessageIOGateway :: MessageIOGateway(int32 encoding)
    // empty
 }
 
-MessageIOGateway :: ~MessageIOGateway() 
+MessageIOGateway :: ~MessageIOGateway()
 {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    delete _sendCodec;
@@ -69,7 +69,7 @@ PopNextOutgoingMessage(MessageRef & retMsg)
 
 // For this method, B_NO_ERROR means "keep sending", and B_ERROR means "stop sending for now", and isn't fatal to the stream
 // If there is a fatal error in the stream it will call SetHosed() to indicate that.
-status_t 
+status_t
 MessageIOGateway :: SendMoreData(int32 & sentBytes, uint32 & maxBytes)
 {
    TCHECKPOINT;
@@ -88,7 +88,7 @@ MessageIOGateway :: SendMoreData(int32 & sentBytes, uint32 & maxBytes)
    return (numBytesSent < attemptSize) ? B_ERROR : B_NO_ERROR;
 }
 
-int32 
+int32
 MessageIOGateway ::
 DoOutputImplementation(uint32 maxBytes)
 {
@@ -114,9 +114,9 @@ DoOutputImplementation(uint32 maxBytes)
                bool movedPRL = false;
                if (mtuSize > 0)
                {
-                  if (nextRef()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, _nextPacketDest).IsOK()) 
+                  if (nextRef()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, _nextPacketDest).IsOK())
                   {
-                     // Temporarily move this field out before flattening the Message, 
+                     // Temporarily move this field out before flattening the Message,
                      // since we don't want to send the destination IAP as part of the packet
                      movedPRL = nextRef()->MoveName(PR_NAME_PACKET_REMOTE_LOCATION, _scratchPacketMessage).IsOK();
                   }
@@ -200,7 +200,7 @@ ForgetScratchReceiveBufferIfSubclassIsStillUsingIt()
    if ((_scratchRecvBuffer())&&(_scratchRecvBuffer.IsRefPrivate() == false)) _scratchRecvBuffer.Reset();
 }
 
-int32 
+int32
 MessageIOGateway ::
 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
@@ -267,7 +267,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
          ByteBuffer * bb = _recvBuffer._buffer();  // guaranteed not to be NULL, if we got here!
          if (_recvBuffer._offset < hs)
-         { 
+         {
             // We don't have the entire header yet, so try and read some more of it
             if (ReceiveMoreData(readBytes, maxBytes, hs).IsError()) break;
             if (_recvBuffer._offset >= hs)  // how about now?
@@ -288,10 +288,10 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                      bb = bigBuf();
                   }
                }
-               else 
+               else
                {
                   LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  bodySize " INT32_FORMAT_SPEC " is out of range, limit is " UINT32_FORMAT_SPEC "\n", this, bodySize, _maxIncomingMessageSize);
-                  SetHosed(); 
+                  SetHosed();
                   break;
                }
             }
@@ -319,7 +319,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
 // For this method, B_NO_ERROR means "We got all the data we had room for", and B_ERROR
 // means "short read".  A real network error will also cause SetHosed() to be called.
-status_t 
+status_t
 MessageIOGateway :: ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32 maxArraySize)
 {
    TCHECKPOINT;
@@ -338,7 +338,7 @@ MessageIOGateway :: ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32
 }
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-ZLibCodec * 
+ZLibCodec *
 MessageIOGateway ::
 GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const
 {
@@ -359,7 +359,7 @@ GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const
 }
 #endif
 
-ByteBufferRef 
+ByteBufferRef
 MessageIOGateway ::
 FlattenHeaderAndMessageAux(const MessageRef & msgRef) const
 {
@@ -387,7 +387,7 @@ FlattenHeaderAndMessageAux(const MessageRef & msgRef) const
    return ret() ? ret : FlattenHeaderAndMessage(msgRef);  // the standard approach (every gateway for himself)
 }
 
-ByteBufferRef 
+ByteBufferRef
 MessageIOGateway ::
 FlattenHeaderAndMessage(const MessageRef & msgRef) const
 {
@@ -430,7 +430,7 @@ FlattenHeaderAndMessage(const MessageRef & msgRef) const
    return ret;
 }
 
-MessageRef 
+MessageRef
 MessageIOGateway ::
 UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const
 {
@@ -459,10 +459,10 @@ UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
          ByteBufferRef expRef;  // must be declared outside the brackets below!
          ZLibCodec * enc = GetCodec(encoding, _recvCodec);
-         if (enc) 
+         if (enc)
          {
             expRef = enc->Inflate(bb->GetBuffer()+offset, bb->GetNumBytes()-offset);
-            if (expRef()) 
+            if (expRef())
             {
                bb = expRef();
                offset = 0;
@@ -485,21 +485,21 @@ UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const
 
 // Returns the size of the pre-flattened-message header section, in bytes.
 // The default format has an 8-byte header (4 bytes for encoding ID, 4 bytes for message length)
-uint32 
+uint32
 MessageIOGateway ::
 GetHeaderSize() const
 {
-   return 2 * sizeof(uint32);  // one long for the encoding ID, and one long for the body length 
+   return 2 * sizeof(uint32);  // one long for the encoding ID, and one long for the body length
 }
 
-int32 
+int32
 MessageIOGateway ::
-GetBodySize(const uint8 * headerBuf) const 
+GetBodySize(const uint8 * headerBuf) const
 {
    return (muscleInRange((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&headerBuf[1*sizeof(uint32)])), (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)MUSCLE_MESSAGE_ENCODING_END_MARKER-1)) ? (int32)(B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&headerBuf[0*sizeof(uint32)]))) : -1;
 }
 
-bool 
+bool
 MessageIOGateway ::
 HasBytesToOutput() const
 {
@@ -544,7 +544,7 @@ status_t MessageIOGateway :: ExecuteSynchronousMessaging(AbstractGatewayMessageR
    return AbstractMessageIOGateway::ExecuteSynchronousMessaging(optReceiver, timeoutPeriod);
 }
 
-void MessageIOGateway :: SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r) 
+void MessageIOGateway :: SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r)
 {
    if ((_pendingSyncPingCounter >= 0)&&(IsSynchronousPongMessage(msg, _pendingSyncPingCounter)))
    {
@@ -572,7 +572,7 @@ MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & 
          uint64 connectDuration = GetRunTime64()-timeBeforeConnect;
          timeoutPeriod = (timeoutPeriod > connectDuration) ? (timeoutPeriod-connectDuration) : 0;
       }
- 
+
       DataIORef oldIO = GetDataIO();
       TCPSocketDataIO tsdio(s, false);
       SetDataIO(DummyDataIORef(tsdio));
@@ -595,7 +595,7 @@ status_t MessageIOGateway :: ExecuteSynchronousMessageSend(const Message & reque
          const uint64 connectDuration = GetRunTime64()-timeBeforeConnect;
          timeoutPeriod = (timeoutPeriod > connectDuration) ? (timeoutPeriod-connectDuration) : 0;
       }
- 
+
       DataIORef oldIO = GetDataIO();
       TCPSocketDataIO tsdio(s, false);
       SetDataIO(DummyDataIORef(tsdio));

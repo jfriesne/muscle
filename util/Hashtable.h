@@ -66,7 +66,7 @@ template <class KeyType, class ValueType, class HashFunctorType>                
 template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableBase;
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class HashtableMid;
 
-/** These flags can be passed to the HashtableIterator constructor (or to the GetIterator()/GetIteratorAt() 
+/** These flags can be passed to the HashtableIterator constructor (or to the GetIterator()/GetIteratorAt()
   * functions in the Hashtable class) to modify the iterator's behaviour.
   */
 enum {
@@ -82,21 +82,21 @@ enum {
  *
  * Given a Hashtable object, you can obtain one or more of these
  * iterator objects by calling the Hashtable's GetIterator() method;
- * or you can just specify the Hashtable you want to iterate over as 
+ * or you can just specify the Hashtable you want to iterate over as
  * an argument to the HashtableIterator constructor.
  *
  * The most common form for a Hashtable iteration is this:
  *
  * for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++)
  * {
- *    const String & nextKey = iter.GetKey(); 
- *    int nextValue = iter.GetValue(); 
+ *    const String & nextKey = iter.GetKey();
+ *    int nextValue = iter.GetValue();
  *    [...]
  * }
  *
- * It is safe to modify or delete a Hashtable during an iteration-traversal (from the same 
- * thread only); any HashtableIterators that are in the middle of iterating over the Hashtable 
- * will be automatically notified about the modification, so that they can do the right thing 
+ * It is safe to modify or delete a Hashtable during an iteration-traversal (from the same
+ * thread only); any HashtableIterators that are in the middle of iterating over the Hashtable
+ * will be automatically notified about the modification, so that they can do the right thing
  * (and in particular, not continue to point to any no-longer-existing hashtable entries).
  */
 template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class HashtableIterator MUSCLE_FINAL_CLASS
@@ -108,7 +108,7 @@ public:
    /**
     * Default constructor.  It's here only so that you can include HashtableIterators
     * as member variables, in arrays, etc.  HashtableIterators created with this
-    * constructor are "empty", so they won't be useful until you set them equal to a 
+    * constructor are "empty", so they won't be useful until you set them equal to a
     * HashtableIterator that was returned by Hashtable::GetIterator().
     */
    HashtableIterator();
@@ -116,13 +116,13 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    HashtableIterator(const HashtableIterator & rhs);
 
-   /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIterator().  
+   /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIterator().
      * @param table the Hashtable to iterate over.
-     * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero for default behaviour.  
+     * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero for default behaviour.
      */
    HashtableIterator(const HashtableType & table, uint32 flags = 0);
 
-   /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIteratorAt().  
+   /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIteratorAt().
      * @param table the Hashtable to iterate over.
      * @param startAt the first key that should be returned by the iteration.  If (startAt) is not in the table,
      *                the iterator will not return any results.
@@ -137,7 +137,7 @@ public:
    HashtableIterator & operator=(const HashtableIterator & rhs);
 
    /** Advances this iterator by one entry in the table.  */
-   void operator++(int) 
+   void operator++(int)
    {
       if (_scratchKeyAndValue.EnsureObjectDestructed() == false) _iterCookie = _owner ? _owner->GetSubsequentEntry(_iterCookie, _flags) : NULL;
       UpdateKeyAndValuePointers();
@@ -147,7 +147,7 @@ public:
    void operator--(int) {bool b = IsBackwards(); SetBackwards(!b); (*this)++; SetBackwards(b);}
 
    /** Returns true iff this iterator is pointing to valid key/value data.  Do not call GetKey() or GetValue()
-     * unless this method returns true!  Note that the value returned by this method can change if the 
+     * unless this method returns true!  Note that the value returned by this method can change if the
      * Hashtable is modified.
      */
    bool HasData() const {return (_currentKey != NULL);}
@@ -159,7 +159,7 @@ public:
     *       Typically you should only call this function after checking to see that HasData() returns true.
     * @note The returned reference is only guaranteed to remain valid for as long as the Hashtable remains unchanged.
     */
-   const KeyType & GetKey() const 
+   const KeyType & GetKey() const
    {
       assert(_currentKey != NULL);  // this makes clang++SA happy
       return *_currentKey;
@@ -172,8 +172,8 @@ public:
     *       Typically you should only call this function after checking to see that HasData() returns true.
     * @note The returned reference is only guaranteed to remain valid for as long as the Hashtable remains unchanged.
     */
-   ValueType & GetValue() const 
-   { 
+   ValueType & GetValue() const
+   {
       assert(_currentVal != NULL);  // this makes clang++SA happy
       return *_currentVal;
    }
@@ -181,8 +181,8 @@ public:
    /** Returns this iterator's HTIT_FLAG_* bit-chord value. */
    uint32 GetFlags() const {return _flags;}
 
-   /** Sets or unsets the HTIT_FLAG_BACWARDS flag on this iterator. 
-     * @param backwards If true, this iterator will be set to iterate backwards from wherever it is currently; 
+   /** Sets or unsets the HTIT_FLAG_BACWARDS flag on this iterator.
+     * @param backwards If true, this iterator will be set to iterate backwards from wherever it is currently;
      *                  if false, this iterator will be set to iterate forwards from wherever it is currently.
      */
    void SetBackwards(bool backwards) {if (backwards) _flags |= HTIT_FLAG_BACKWARDS; else _flags &= ~HTIT_FLAG_BACKWARDS;}
@@ -211,8 +211,8 @@ private:
       }
       else if ((_iterCookie)&&(_owner))  // (_owner) test isn't strictly necessary, but it keeps clang++ happy
       {
-         _currentKey = &_owner->GetKeyFromCookie(_iterCookie); 
-         _currentVal = &_owner->GetValueFromCookie(_iterCookie); 
+         _currentKey = &_owner->GetKeyFromCookie(_iterCookie);
+         _currentVal = &_owner->GetValueFromCookie(_iterCookie);
       }
       else
       {
@@ -236,11 +236,11 @@ private:
    {
    public:
       KeyAndValue() {/* empty */}
-      HT_UniversalSinkKeyValueRef KeyAndValue(HT_SinkKeyParam key, HT_SinkValueParam value) 
+      HT_UniversalSinkKeyValueRef KeyAndValue(HT_SinkKeyParam key, HT_SinkValueParam value)
          : _key(HT_ForwardKey(key))
-         , _value(HT_ForwardValue(value)) 
+         , _value(HT_ForwardValue(value))
       {/* empty */}
-   
+
       KeyType _key;
       ValueType _value;
    };
@@ -266,14 +266,14 @@ public:
      */
    bool ContainsKey(const KeyType & key) const {return (this->GetEntry(this->ComputeHash(key), key) != NULL);}
 
-   /** Returns true iff the table contains a mapping with the given value.  (O(n) search time) 
+   /** Returns true iff the table contains a mapping with the given value.  (O(n) search time)
      * @param value the value to inquire about
      */
    bool ContainsValue(const ValueType & value) const;
 
    /** Returns true iff this Hashtable has the same contents as (rhs).
      * @param rhs The table to compare this table against
-     * @param considerOrdering Whether the order of the key/value pairs within the tables should be considered as part of "equality".  Defaults to false. 
+     * @param considerOrdering Whether the order of the key/value pairs within the tables should be considered as part of "equality".  Defaults to false.
      * @returns true iff (rhs) is equal to (this), false if they differ.
      */
    bool IsEqualTo(const HashtableBase & rhs, bool considerOrdering = false) const;
@@ -363,7 +363,7 @@ public:
     *  @param setValue On success, the associated value is copied into this object.
     *  @return B_NO_ERROR on success, B_DATA_NOT_FOUND if their was no value found for the given key.
     */
-   status_t GetValue(const KeyType & key, ValueType & setValue) const; 
+   status_t GetValue(const KeyType & key, ValueType & setValue) const;
 
    /** Retrieve a pointer to the associated value object for the given key.  (O(1) lookup time)
     *  @param key The key to use to look up a value.
@@ -373,7 +373,7 @@ public:
     */
    ValueType * GetValue(const KeyType & key);
 
-   /** As above, but read-only. 
+   /** As above, but read-only.
     *  @param key The key to use to look up a value.
     *  @return A pointer to the internally held value object for the given key,
     *          or NULL of no object was found.  Note that this object is only
@@ -415,7 +415,7 @@ public:
      * @return an iterator object that can be used to examine the items in the hash table, starting at
      *         the specified key.  If the specified key is not in this table, an empty iterator will be returned.
      */
-   HT_UniversalSinkKeyRef IteratorType GetIteratorAt(HT_KeyParam startAt, uint32 flags = 0) const 
+   HT_UniversalSinkKeyRef IteratorType GetIteratorAt(HT_KeyParam startAt, uint32 flags = 0) const
    {
       return IteratorType(*this, HT_ForwardKey(startAt), flags);
    }
@@ -517,7 +517,7 @@ public:
     */
    status_t Remove(const KeyType & key, ValueType & setRemovedValue) {return RemoveAux(key, &setRemovedValue);}
 
-   /** Convenience method:  For each key in the passed-in-table, removes that key (and its associated value) from this table. 
+   /** Convenience method:  For each key in the passed-in-table, removes that key (and its associated value) from this table.
      * @param pairs A table containing keys that should be removed from this table.
      * @returns the number of items actually removed from this table.
      */
@@ -554,7 +554,7 @@ public:
     *  @param setRemovedKey On success, the removed key is copied into this object.
     *  @return B_NO_ERROR if the first mapping was removed and the key placed into (setRemovedKey), or B_DATA_NOT_FOUND if the table was already empty.
     */
-   status_t RemoveFirst(KeyType & setRemovedKey) 
+   status_t RemoveFirst(KeyType & setRemovedKey)
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       if (e == NULL) return B_DATA_NOT_FOUND;
@@ -562,13 +562,13 @@ public:
       return RemoveEntry(e, NULL);
    }
 
-   /** Convenience method:  Removes the first key/value mapping in the table and places its 
+   /** Convenience method:  Removes the first key/value mapping in the table and places its
     *  key into (setRemovedKey) and its value into (setRemovedValue).  (O(1) removal time)
     *  @param setRemovedKey On success, the removed key is copied into this object.
     *  @param setRemovedValue On success, the removed value is copied into this object.
     *  @return B_NO_ERROR if the first mapping was removed and the key and value placed into the arguments, or B_DATA_NOT_FOUND if the table was already empty.
     */
-   status_t RemoveFirst(KeyType & setRemovedKey, ValueType & setRemovedValue) 
+   status_t RemoveFirst(KeyType & setRemovedKey, ValueType & setRemovedValue)
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       if (e == NULL) return B_DATA_NOT_FOUND;
@@ -579,7 +579,7 @@ public:
    /** Convenience method:  Removes the last key/value mapping in the table.  (O(1) removal time)
     *  @return B_NO_ERROR if the last mapping was removed, or B_DATA_NOT_FOUND if the table was already empty.
     */
-   status_t RemoveLast() 
+   status_t RemoveLast()
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       return e ? RemoveEntry(e, NULL) : B_DATA_NOT_FOUND;
@@ -590,7 +590,7 @@ public:
     *  @param setRemovedKey On success, the removed key is copied into this object.
     *  @return B_NO_ERROR if the last mapping was removed and the key placed into (setRemovedKey), or B_DATA_NOT_FOUND if the table was already empty.
     */
-   status_t RemoveLast(KeyType & setRemovedKey) 
+   status_t RemoveLast(KeyType & setRemovedKey)
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       if (e == NULL) return B_DATA_NOT_FOUND;
@@ -598,13 +598,13 @@ public:
       return RemoveEntry(e, NULL);
    }
 
-   /** Convenience method:  Removes the last key/value mapping in the table and places its 
+   /** Convenience method:  Removes the last key/value mapping in the table and places its
     *  key into (setRemovedKey) and its value into (setRemovedValue).  (O(1) removal time)
     *  @param setRemovedKey On success, the removed key is copied into this object.
     *  @param setRemovedValue On success, the removed value is copied into this object.
     *  @return B_NO_ERROR if the last mapping was removed and the key and value placed into the arguments, or B_DATA_NOT_FOUND if the table was already empty.
     */
-   status_t RemoveLast(KeyType & setRemovedKey, ValueType & setRemovedValue) 
+   status_t RemoveLast(KeyType & setRemovedKey, ValueType & setRemovedValue)
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       setRemovedKey = e->_key;
@@ -612,13 +612,13 @@ public:
    }
 
    /** Removes all mappings from the hash table.  (O(N) clear time)
-    *  @param releaseCachedData If set true, we will immediately free any buffers we may contain.  
+    *  @param releaseCachedData If set true, we will immediately free any buffers we may contain.
     *                           Otherwise, we'll keep them around in case they can be re-used later on.
     */
    void Clear(bool releaseCachedData = false);
 
    /** Computes the average number of key-comparisons that will be required for
-     * looking up the current contents of this table.  
+     * looking up the current contents of this table.
      * Note that this method iterates over the entire table, so it should only
      * be called when performance is not important (e.g. when trying to debug/optimize a hash function)
      * @param printStatistics If true, text describing the table's layout will be printed to stdout also.
@@ -650,9 +650,9 @@ public:
      */
    void SortByValue(void * optCompareCookie = NULL) {SortByValue(CompareFunctor<ValueType>(), optCompareCookie);}
 
-   /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).  
-    *  That is to say, when this method returns, (swapMe) will be identical to the old state of this 
-    *  Hashtable, and this Hashtable will be identical to the old state of (swapMe). 
+   /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).
+    *  That is to say, when this method returns, (swapMe) will be identical to the old state of this
+    *  Hashtable, and this Hashtable will be identical to the old state of (swapMe).
     *  Any active iterators present for either table will swap owners also, becoming associated with the other table.
     *  @param swapMe The table whose contents and iterators are to be swapped with this table's.
     */
@@ -676,11 +676,11 @@ public:
      */
    status_t MoveToBack(const KeyType & moveMe);
 
-   /** Moves the given entry to the spot just in front of the other specified entry in the 
+   /** Moves the given entry to the spot just in front of the other specified entry in the
      * HashtableIterator traversal sequence.
      * @param moveMe Key of the item to be moved.
      * @param toBeforeMe Key of the item that (moveMe) should be placed in front of.
-     * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if (moveMe) was not found in the table, 
+     * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if (moveMe) was not found in the table,
      *         or B_BAD_ARGUMENT if (moveMe) and (toBeforeMe) are equal.
      * @note calling this method is generally a bad idea if the table is in auto-sort mode,
      *       as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
@@ -688,11 +688,11 @@ public:
      */
    status_t MoveToBefore(const KeyType & moveMe, const KeyType & toBeforeMe);
 
-   /** Moves the given entry to the spot just behind the other specified entry in the 
+   /** Moves the given entry to the spot just behind the other specified entry in the
      * HashtableIterator traversal sequence.
      * @param moveMe Key of the item to be moved.
      * @param toBehindMe Key of the item that (moveMe) should be placed behind.
-     * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if (moveMe) was not found in the table, 
+     * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if (moveMe) was not found in the table,
      *         or B_BAD_ARGUMENT if (moveMe) and (toBehindMe) are equal.
      * @note calling this method is generally a bad idea if the table is in auto-sort mode,
      *       as it is likely to unsort the traversal ordering and thus break auto-sorting.  However,
@@ -711,14 +711,14 @@ public:
      */
    status_t MoveToPosition(const KeyType & moveMe, uint32 toPosition);
 
-   /** Convenience synonym for GetValue() 
+   /** Convenience synonym for GetValue()
      * @param key the key to inquire about
      * @param retValue on success, the value associated with (key) is written here
      * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (key-not-found)
      */
    status_t Get(const KeyType & key, ValueType & retValue) const {return GetValue(key, retValue);}
 
-   /** Convenience synonym for GetValue() 
+   /** Convenience synonym for GetValue()
      * @param key the key to lookup a value for
      * @returns A pointer to the value associated with key on success, or NULL on failure (key-not-found)
      */
@@ -740,8 +740,8 @@ public:
       return v ? *v : GetDefaultValue();
    }
 
-   /** The const [] operator returns the Value associated with the specified key, or a 
-     * default-constructed Value object if the specified key is not present in this Hashtable.  
+   /** The const [] operator returns the Value associated with the specified key, or a
+     * default-constructed Value object if the specified key is not present in this Hashtable.
      * That is to say, calling myTable[5] is equivalent to calling myTable.GetWithDefault(5).
      * @param key A key whose associated value we wish to look up.
      * @returns a reference to the associated value, or to a default-constructed value if (key) wasn't present in this Hashtable.
@@ -768,14 +768,14 @@ public:
    }
 
    /** Convenience method.  Returns a pointer to the first key in our iteration list, or NULL if the table is empty. */
-   const KeyType * GetFirstKey() const 
+   const KeyType * GetFirstKey() const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       return e ? &e->_key : NULL;
    }
 
    /** Convenience method.  Returns a reference to the first key in our iteration list, or a default key if the table is empty. */
-   const KeyType & GetFirstKeyWithDefault() const 
+   const KeyType & GetFirstKeyWithDefault() const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       return e ? e->_key : GetDefaultKey();
@@ -787,87 +787,87 @@ public:
      *       returning (defaultKey) by-reference makes it too easy to call this method
      *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   KeyType GetFirstKeyWithDefault(const KeyType & defaultKey) const 
+   KeyType GetFirstKeyWithDefault(const KeyType & defaultKey) const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       return e ? e->_key : defaultKey;
    }
 
    /** As above, but read-ony. */
-   const KeyType * GetLastKey() const 
+   const KeyType * GetLastKey() const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       return e ? & e->_key : NULL;
    }
 
    /** Convenience method.  Returns a reference to the last key in our iteration list, or a default key object if the table is empty.  */
-   const KeyType & GetLastKeyWithDefault() const 
+   const KeyType & GetLastKeyWithDefault() const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       return e ? e->_key : GetDefaultKey();
    }
 
-   /** Convenience method.  Returns a reference to the last key in our iteration list, or the specified default key object if the table is empty. 
+   /** Convenience method.  Returns a reference to the last key in our iteration list, or the specified default key object if the table is empty.
      * @param defaultKey The key value to return if the table is empty.
      * @note that this method returns by-value rather than by-reference, because
      *       returning (defaultKey) by-reference makes it too easy to call this method
      *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   KeyType GetLastKeyWithDefault(const KeyType & defaultKey) const 
+   KeyType GetLastKeyWithDefault(const KeyType & defaultKey) const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       return e ? e->_key : defaultKey;
    }
 
    /** Convenience method.  Returns a pointer to the last value in our iteration list, or NULL if the table is empty. */
-   ValueType * GetFirstValue() 
+   ValueType * GetFirstValue()
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       return e ? &e->_value : NULL;
    }
 
    /** As above, but read-only. */
-   const ValueType * GetFirstValue() const 
+   const ValueType * GetFirstValue() const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       return e ? &e->_value : NULL;
    }
 
    /** Convenience method.  Returns a reference to the first value in our iteration list, or a default value object if the table is empty.  */
-   const ValueType & GetFirstValueWithDefault() const 
+   const ValueType & GetFirstValueWithDefault() const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       return e ? e->_value : GetDefaultValue();
    }
 
-   /** Convenience method.  Returns a copy of the first value in our iteration list, or the specified default value object if the table is empty. 
+   /** Convenience method.  Returns a copy of the first value in our iteration list, or the specified default value object if the table is empty.
      * @param defaultValue The value to return if the table is empty.
      * @note that this method returns by-value rather than by-reference, because
      *       returning (defaultValue) by-reference makes it too easy to call this method
      *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   ValueType GetFirstValueWithDefault(const ValueType & defaultValue) const 
+   ValueType GetFirstValueWithDefault(const ValueType & defaultValue) const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       return e ? e->_value : defaultValue;
    }
 
    /** Convenience method.  Returns a pointer to the last value in our iteration list, or NULL if the table is empty. */
-   ValueType * GetLastValue() 
+   ValueType * GetLastValue()
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       return e ? &e->_value : NULL;
    }
 
    /** As above, but read-only. */
-   const ValueType * GetLastValue() const 
+   const ValueType * GetLastValue() const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       return e ? &e->_value : NULL;
    }
 
    /** Convenience method.  Returns a reference to the last value in our iteration list, or a default value object if the table is empty.  */
-   const ValueType & GetLastValueWithDefault() const 
+   const ValueType & GetLastValueWithDefault() const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       return e ? e->_value : GetDefaultValue();
@@ -879,7 +879,7 @@ public:
      *       returning (defaultValue) by-reference makes it too easy to call this method
      *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   ValueType GetLastValueWithDefault(const ValueType & defaultValue) const 
+   ValueType GetLastValueWithDefault(const ValueType & defaultValue) const
    {
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
       return e ? e->_value : defaultValue;
@@ -890,7 +890,7 @@ public:
      * This can be useful when using a Hashtable as an LRU cache.
      * @param key the key to lookup a value for
      * @returns A pointer to the value associated with key on success, or NULL on failure (key-not-found)
-     */ 
+     */
    ValueType * GetAndMoveToFront(const KeyType & key)
    {
       HashtableEntryBase * e = this->GetEntry(this->ComputeHash(key), key);
@@ -908,7 +908,7 @@ public:
      * @param key the key to lookup a value for
      * @param retValue on success, the requested value will be written into this object.
      * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if the key is not present in the table.
-     */ 
+     */
    status_t GetAndMoveToFront(const KeyType & key, ValueType & retValue)
    {
       ValueType * ret = GetAndMoveToFront(key);
@@ -988,32 +988,32 @@ public:
    const ValueType & GetDefaultValue() const {return GetDefaultObjectForType<ValueType>();}
 
    /** Returns the number of bytes of memory taken up by this Hashtable and its data and metadata */
-   uint32 GetTotalDataSize() const 
+   uint32 GetTotalDataSize() const
    {
       uint32 sizePerItem = 0;
       switch(this->GetTableIndexType())
       {
-         case TABLE_INDEX_TYPE_UINT8:  
+         case TABLE_INDEX_TYPE_UINT8:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            sizePerItem = sizeof(HashtableEntry<uint8>);  
+            sizePerItem = sizeof(HashtableEntry<uint8>);
          break;
 #endif
 
          case TABLE_INDEX_TYPE_UINT16:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            sizePerItem = sizeof(HashtableEntry<uint16>); 
+            sizePerItem = sizeof(HashtableEntry<uint16>);
          break;
 #endif
 
          default:
-            sizePerItem = sizeof(HashtableEntry<uint32>); 
+            sizePerItem = sizeof(HashtableEntry<uint32>);
          break;
       }
       return sizeof(*this)+(this->GetNumAllocatedItemSlots()*sizePerItem);
    }
 
 private:
-   /** If we don't already have the storage array allocated for this Hashtable, 
+   /** If we don't already have the storage array allocated for this Hashtable,
      * allocates one.  If the table was already allocated, does nothing and returns B_NO_ERROR.
      * @returns B_NO_ERROR if the table is present, B_OUT_OF_MEMORY on failure.
      */
@@ -1038,7 +1038,7 @@ private:
 
    void SwapContentsAux(HashtableBase & swapMe, bool swapIterators);
 
-   HashtableBase(uint32 tableSize) 
+   HashtableBase(uint32 tableSize)
       : _numItems(0)
       , _tableSize(tableSize)
 #ifndef MUSCLE_HASHTABLE_EXCLUDE_TABLE_INDEX_TYPE_FIELD
@@ -1061,7 +1061,7 @@ private:
          HashtableEntryBase * myEntry = wasEmpty ? NULL : this->GetEntry(e->_hash, e->_key);
          if (myEntry) myEntry->_value = e->_value;
          else
-         { 
+         {
             this->InsertIterationEntry(PutAuxAux(e->_hash, e->_key, e->_value), this->IndexToEntryChecked(_iterTailIdx));
             this->_numItems++;
          }
@@ -1121,7 +1121,7 @@ private:
         * @param table Pointer to the first entry in the HashtableEntry array
         * @returns the index of the new head of the free list
         */
-      uint32 PopFromFreeList(uint32 freeHeadIdx, HashtableBase * table) 
+      uint32 PopFromFreeList(uint32 freeHeadIdx, HashtableBase * table)
       {
          HashtableEntry * h = static_cast<HashtableEntry *>(table->GetEntriesArrayPointer());
          IndexType & myBucketNext = this->_indices[HTE_INDEX_BUCKET_NEXT];
@@ -1139,7 +1139,7 @@ private:
          HashtableEntry * ret = newnothrow_array(HashtableEntry,size);
          if (ret)
          {
-            for (uint32 i=0; i<size; i++) 
+            for (uint32 i=0; i<size; i++)
             {
                HashtableEntry * e = &ret[i];
                e->_hash                           = MUSCLE_HASHTABLE_INVALID_HASH_CODE;
@@ -1173,7 +1173,7 @@ private:
          return true;
 #endif
       }
-  
+
       /** Returns true iff the given ValueType pointer is located within our allocated array */
       static bool IsPointerPointingIntoDataTable(const HashtableBase * table, const void * ptr)
       {
@@ -1193,12 +1193,12 @@ private:
    {
       switch(this->GetTableIndexType())
       {
-         case TABLE_INDEX_TYPE_UINT8:  
+         case TABLE_INDEX_TYPE_UINT8:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
             {const uint8  r = (static_cast<const HashtableEntry<uint8>  *>(entry))->_indices[whichIndex]; return (r==(uint8)-1)?MUSCLE_HASHTABLE_INVALID_SLOT_INDEX:((uint32)r);}
 #endif
 
-         case TABLE_INDEX_TYPE_UINT16: 
+         case TABLE_INDEX_TYPE_UINT16:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
             {const uint16 r = (static_cast<const HashtableEntry<uint16> *>(entry))->_indices[whichIndex]; return (r==(uint16)-1)?MUSCLE_HASHTABLE_INVALID_SLOT_INDEX:((uint32)r);}
 #endif
@@ -1212,20 +1212,20 @@ private:
    {
       switch(this->GetTableIndexType())
       {
-         case TABLE_INDEX_TYPE_UINT8:  
+         case TABLE_INDEX_TYPE_UINT8:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            static_cast<HashtableEntry<uint8>  *>(entry)->_indices[whichIndex] = (value == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) ? (uint8)255    : ((uint8)  value); 
+            static_cast<HashtableEntry<uint8>  *>(entry)->_indices[whichIndex] = (value == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) ? (uint8)255    : ((uint8)  value);
          break;
 #endif
 
-         case TABLE_INDEX_TYPE_UINT16: 
+         case TABLE_INDEX_TYPE_UINT16:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            static_cast<HashtableEntry<uint16> *>(entry)->_indices[whichIndex] = (value == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) ? (uint16)65535 : ((uint16) value); 
+            static_cast<HashtableEntry<uint16> *>(entry)->_indices[whichIndex] = (value == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) ? (uint16)65535 : ((uint16) value);
          break;
 #endif
 
-         default: 
-            static_cast<HashtableEntry<uint32> *>(entry)->_indices[whichIndex] = (uint32) value; 
+         default:
+            static_cast<HashtableEntry<uint32> *>(entry)->_indices[whichIndex] = (uint32) value;
          break;
       }
    }
@@ -1238,7 +1238,7 @@ private:
    HashtableEntryBase * GetEntryMapToChecked(     const HashtableEntryBase * e) const {return this->IndexToEntryChecked(this->GetEntryIndexValue(e, HTE_INDEX_MAP_TO));}
    HashtableEntryBase * GetEntryMappedFromChecked(const HashtableEntryBase * e) const {return this->IndexToEntryChecked(this->GetEntryIndexValue(e, HTE_INDEX_MAPPED_FROM));}
 
-   // Convenience methods (these assume the requested value will be valid -- be careful, as calling them when it isn't valid will mess things up badly!) 
+   // Convenience methods (these assume the requested value will be valid -- be careful, as calling them when it isn't valid will mess things up badly!)
    HashtableEntryBase * GetEntryBucketNextUnchecked(const HashtableEntryBase * e) const {return this->IndexToEntryUnchecked(this->GetEntryIndexValue(e, HTE_INDEX_BUCKET_NEXT));}
    HashtableEntryBase * GetEntryBucketPrevUnchecked(const HashtableEntryBase * e) const {return this->IndexToEntryUnchecked(this->GetEntryIndexValue(e, HTE_INDEX_BUCKET_PREV));}
    HashtableEntryBase * GetEntryIterNextUnchecked(  const HashtableEntryBase * e) const {return this->IndexToEntryUnchecked(this->GetEntryIndexValue(e, HTE_INDEX_ITER_NEXT));}
@@ -1246,7 +1246,7 @@ private:
    HashtableEntryBase * GetEntryMapToUnchecked(     const HashtableEntryBase * e) const {return this->IndexToEntryUnchecked(this->GetEntryIndexValue(e, HTE_INDEX_MAP_TO));}
    HashtableEntryBase * GetEntryMappedFromUnchecked(const HashtableEntryBase * e) const {return this->IndexToEntryUnchecked(this->GetEntryIndexValue(e, HTE_INDEX_MAPPED_FROM));}
 
-   // Convenience methods (these methods return the index value as a uint32) 
+   // Convenience methods (these methods return the index value as a uint32)
    uint32 GetEntryBucketNext(const HashtableEntryBase * e) const {return this->GetEntryIndexValue(e, HTE_INDEX_BUCKET_NEXT);}
    uint32 GetEntryBucketPrev(const HashtableEntryBase * e) const {return this->GetEntryIndexValue(e, HTE_INDEX_BUCKET_PREV);}
    uint32 GetEntryIterNext(  const HashtableEntryBase * e) const {return this->GetEntryIndexValue(e, HTE_INDEX_ITER_NEXT);}
@@ -1262,7 +1262,7 @@ private:
    void SetEntryMapToChecked(     HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_MAP_TO,      this->EntryToIndexChecked(v));}
    void SetEntryMappedFromChecked(HashtableEntryBase * e, const HashtableEntryBase * v) {this->GetEntryIndexValue(e, HTE_INDEX_MAPPED_FROM, this->EntryToIndexChecked(v));}
 
-   // Convenience methods (these assume the requested value will be valid -- be careful, as calling them when it isn't valid will mess things up badly!) 
+   // Convenience methods (these assume the requested value will be valid -- be careful, as calling them when it isn't valid will mess things up badly!)
    void SetEntryBucketNextUnchecked(HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_BUCKET_NEXT, this->EntryToIndexUnchecked(v));}
    void SetEntryBucketPrevUnchecked(HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_BUCKET_PREV, this->EntryToIndexUnchecked(v));}
    void SetEntryIterNextUnchecked(  HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_ITER_NEXT,   this->EntryToIndexUnchecked(v));}
@@ -1277,17 +1277,17 @@ private:
    void SetEntryIterPrev(  HashtableEntryBase * e, uint32 idx) {this->SetEntryIndexValue(e, HTE_INDEX_ITER_PREV,   idx);}
    void SetEntryMapTo(     HashtableEntryBase * e, uint32 idx) {this->SetEntryIndexValue(e, HTE_INDEX_MAP_TO,      idx);}
    void SetEntryMappedFrom(HashtableEntryBase * e, uint32 idx) {this->SetEntryIndexValue(e, HTE_INDEX_MAPPED_FROM, idx);}
-   
+
    uint32 EntryToIndexUnchecked(const HashtableEntryBase * entry) const
    {
       switch(this->GetTableIndexType())
       {
-         case TABLE_INDEX_TYPE_UINT8:  
+         case TABLE_INDEX_TYPE_UINT8:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
             return ((uint32)(static_cast<const HashtableEntry<uint8>  *>(entry)-static_cast<const HashtableEntry<uint8>  *>(_table)));
 #endif
 
-         case TABLE_INDEX_TYPE_UINT16: 
+         case TABLE_INDEX_TYPE_UINT16:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
             return ((uint32)(static_cast<const HashtableEntry<uint16> *>(entry)-static_cast<const HashtableEntry<uint16> *>(_table)));
 #endif
@@ -1303,12 +1303,12 @@ private:
       HashtableEntryBase * t = const_cast<HashtableEntryBase *>(_table);
       switch(this->GetTableIndexType())
       {
-         case TABLE_INDEX_TYPE_UINT8:  
+         case TABLE_INDEX_TYPE_UINT8:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
             return &(static_cast<HashtableEntry<uint8>  *>(t))[idx];
 #endif
 
-         case TABLE_INDEX_TYPE_UINT16: 
+         case TABLE_INDEX_TYPE_UINT16:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
             return &(static_cast<HashtableEntry<uint16> *>(t))[idx];
 #endif
@@ -1383,7 +1383,7 @@ private:
    void RemoveIterationEntry(HashtableEntryBase * e);
    HashtableEntryBase * GetEntry(uint32 hash, const KeyType & key) const;
    HashtableEntryBase * GetEntryAt(uint32 idx) const;
-   bool IsBucketHead(const HashtableEntryBase * e) const 
+   bool IsBucketHead(const HashtableEntryBase * e) const
    {
       if (e->_hash == MUSCLE_HASHTABLE_INVALID_HASH_CODE) return false;
       return (GetEntryMapToUnchecked(IndexToEntryUnchecked(e->_hash%_tableSize)) == e);
@@ -1397,7 +1397,7 @@ private:
       {
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
          // This logic keeps iterator-registration from causing race conditions when multiple
-         // threads are iterating over the same Hashtable at once.  Only the first thread is 
+         // threads are iterating over the same Hashtable at once.  Only the first thread is
          // allowed to register; subsequent threads' iterators are forced into non-registering mode.
          // Of course that means they won't handle modifications to the Hashtable properly, but
          // then again if modifications are being made during multi-thread read-access periods,
@@ -1422,7 +1422,7 @@ private:
 
          // add (iter) to the head of our linked list of iterators
          iter->_prevIter = NULL;
-         iter->_nextIter = _iterList;  
+         iter->_nextIter = _iterList;
          if (_iterList) _iterList->_prevIter = iter;
          _iterList = iter;
       }
@@ -1448,7 +1448,7 @@ private:
    const KeyType & GetKeyFromCookie(void * c) const {return ((static_cast<const HashtableEntryBase *>(c))->_key);}
    ValueType & GetValueFromCookie(  void * c) const {return ((static_cast<HashtableEntryBase *>(c))->_value);}
 
-   HashtableEntryBase * GetSubsequentEntry(void * entryPtr, uint32 flags) const 
+   HashtableEntryBase * GetSubsequentEntry(void * entryPtr, uint32 flags) const
    {
       if (entryPtr == NULL) return NULL;
       HashtableEntryBase * b = static_cast<HashtableEntryBase *>(entryPtr);
@@ -1495,7 +1495,7 @@ private:
    {
            if (idx == 0)             this->MoveToFrontAux(moveMe);
       else if (idx >= GetNumItems()) this->MoveToBackAux(moveMe);
-      else 
+      else
       {
          RemoveIterationEntry(moveMe);
 
@@ -1628,7 +1628,7 @@ public:
      */
    template<class RHSHashFunctorType> status_t CopyFrom(const HashtableBase<KeyType,ValueType,RHSHashFunctorType> & rhs, bool clearFirst = true);
 
-   /** Places the given (key, value) mapping into the table.  Any previous entry with a key of (key) will be replaced.  
+   /** Places the given (key, value) mapping into the table.  Any previous entry with a key of (key) will be replaced.
     *  (average O(1) insertion time, unless auto-sorting is enabled, in which case it becomes O(N) insertion time for
     *  keys that are not already in the table)
     *  @param key The key that the new value is to be associated with.
@@ -1639,7 +1639,7 @@ public:
     */
    HT_UniversalSinkKeyValueRef status_t Put(HT_SinkKeyParam key, HT_SinkValueParam value, ValueType & setPreviousValue, bool * optSetReplaced = NULL) {return (PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), &setPreviousValue, optSetReplaced) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;}
 
-   /** Places the given (key, value) mapping into the table.  Any previous entry with a key of (key) will be replaced. 
+   /** Places the given (key, value) mapping into the table.  Any previous entry with a key of (key) will be replaced.
     *  (average O(1) insertion time, unless auto-sorting is enabled, in which case it becomes O(N) insertion time for
     *  keys that are not already in the table)
     *  @param key The key that the new value is to be associated with.
@@ -1682,8 +1682,8 @@ public:
      * be located just before (placeBeforeMe) in the table's iteration-sequence.
      * @param key Key of the item to be placed into th table.
      * @param placeBeforeMe Key of the item that (key) should be placed in front of.
-     *                      If (placeBeforeMe==key), or no key equal to (placeBeforeMe) 
-     *                      currently exists in the table, then this method will act the 
+     *                      If (placeBeforeMe==key), or no key equal to (placeBeforeMe)
+     *                      currently exists in the table, then this method will act the
      *                      same as a call to Put().
      * @param v Value of the item to be associated with (key).
      * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
@@ -1694,8 +1694,8 @@ public:
      * be located just behind (placeBehindMe) in the table's iteration-sequence.
      * @param key Key of the item to be placed into th table.
      * @param placeBehindMe Key of the item that (key) should be placed in front of.
-     *                      If (placeBehindMe==key), or no key equal to (placeBehindMe) 
-     *                      currently exists in the table, then this method will act the 
+     *                      If (placeBehindMe==key), or no key equal to (placeBehindMe)
+     *                      currently exists in the table, then this method will act the
      *                      same as a call to Put().
      * @param v Value of the item to be associated with (key).
      * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
@@ -1746,7 +1746,7 @@ public:
       return e ? &e->_value : NULL;
    }
 
-   /** Places the given (key, value) mapping into the table.  Any previous entry with a key of (key) will be replaced. 
+   /** Places the given (key, value) mapping into the table.  Any previous entry with a key of (key) will be replaced.
     *  (average O(1) insertion time, unless auto-sorting is enabled, in which case it becomes O(N) insertion time for
     *  keys that are not already in the table)
     *  @param key The key that the new value is to be associated with.
@@ -1754,19 +1754,19 @@ public:
     *               the default constructor will be placed by default.
     *  @return A pointer to the value object in the table on success, or NULL on failure (out of memory?)
     */
-   HT_UniversalSinkKeyValueRef ValueType * PutAndGet(HT_SinkKeyParam key, HT_SinkValueParam value) 
-   { 
+   HT_UniversalSinkKeyValueRef ValueType * PutAndGet(HT_SinkKeyParam key, HT_SinkValueParam value)
+   {
       HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), NULL, NULL);
       return e ? &e->_value : NULL;
    }
 
-   /** As above, except that a default value is placed into the table and returned. 
+   /** As above, except that a default value is placed into the table and returned.
      * @param key The key that the new value is to be associated with.
      * @return A pointer to the value object in the table on success, or NULL on failure (out of memory?)
      */
    HT_UniversalSinkKeyRef ValueType * PutAndGet(HT_SinkKeyParam key) {return PutAndGet(HT_ForwardKey(key), this->GetDefaultValue());}
 
-   /** Places the given (key, value) mapping into the table.  Any previous entry with a key of (key) will be replaced. 
+   /** Places the given (key, value) mapping into the table.  Any previous entry with a key of (key) will be replaced.
     *  (average O(1) insertion time, unless auto-sorting is enabled, in which case it becomes O(N) insertion time for
     *  keys that are not already in the table)
     *  @param key The key that the new value is to be associated with.
@@ -1774,13 +1774,13 @@ public:
     *               the default constructor will be placed by default.
     *  @return A pointer to the key object in the table on success, or NULL on failure (out of memory?)
     */
-   HT_UniversalSinkKeyValueRef const KeyType * PutAndGetKey(HT_SinkKeyParam key, HT_SinkValueParam value) 
-   { 
+   HT_UniversalSinkKeyValueRef const KeyType * PutAndGetKey(HT_SinkKeyParam key, HT_SinkValueParam value)
+   {
       HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(value), NULL, NULL);
       return e ? &e->_key : NULL;
    }
 
-   /** As above, except that a default value is placed into the table and returned. 
+   /** As above, except that a default value is placed into the table and returned.
      * @param key The key that the new value is to be associated with.
      * @return A pointer to the key object in the table on success, or NULL on failure (out of memory?)
      */
@@ -1836,14 +1836,14 @@ public:
    }
 
    /** Convenience method.  If the given key already exists in the Hashtable, this method returns NULL.
-    *  Otherwise, this method puts a copy of specified value into the table and returns a pointer to the 
+    *  Otherwise, this method puts a copy of specified value into the table and returns a pointer to the
     *  just-placed value.
     *  (average O(1) insertion time, unless auto-sorting is enabled, in which case it becomes O(N) insertion time)
     *  @param key The key that the new value is to be associated with.
     *  @param value The value to associate with the new key.
     *  @return A pointer to the value object in the table on success, or NULL on failure (key already exists, out of memory)
     */
-   HT_UniversalSinkKeyValueRef ValueType * PutIfNotAlreadyPresent(HT_SinkKeyParam key, HT_SinkValueParam value) 
+   HT_UniversalSinkKeyValueRef ValueType * PutIfNotAlreadyPresent(HT_SinkKeyParam key, HT_SinkValueParam value)
    {
       const uint32 hash = this->ComputeHash(key);
       HashtableEntryBaseType * e = this->GetEntry(hash, key);
@@ -1861,7 +1861,7 @@ public:
     *  @param key The key that the new value is to be associated with.
     *  @return A pointer to the value object in the table on success, or NULL on failure (key already exists, out of memory)
     */
-   HT_UniversalSinkKeyRef ValueType * PutIfNotAlreadyPresent(HT_SinkKeyParam key) 
+   HT_UniversalSinkKeyRef ValueType * PutIfNotAlreadyPresent(HT_SinkKeyParam key)
    {
       const uint32 hash = this->ComputeHash(key);
       HashtableEntryBaseType * e = this->GetEntry(hash, key);
@@ -1914,7 +1914,7 @@ public:
     */
    status_t EnsureSize(uint32 newTableSize, bool allowShrink = false);
 
-   /** Convenience wrapper around EnsureSize():  This method ensures that this Hashtable has enough 
+   /** Convenience wrapper around EnsureSize():  This method ensures that this Hashtable has enough
      * extra space allocated to fit another (numExtras) items without having to do a reallocation.
      * If it doesn't, it will do a reallocation so that it does have at least that much extra space.
      * @param numExtraSlots How many extra items we want to ensure room for.  Defaults to 1.
@@ -1930,7 +1930,7 @@ public:
      */
    status_t ShrinkToFit(uint32 numExtraSlots = 0) {return EnsureSize(this->GetNumItems()+numExtraSlots, true);}
 
-   /** Sorts this Hashtable's contents according to its built-in sort ordering. 
+   /** Sorts this Hashtable's contents according to its built-in sort ordering.
      * Specifically, if this object is an OrderedKeysHashtable, the contents will be sorted by key;
      * if this object is an OrderedValuesHashtable, the contents will be sorted by value; and if this
      * class is a plain Hashtable, this method will be a no-op (since a plain Hashtable doesn't have
@@ -1955,11 +1955,11 @@ private:
  *  This is a handy templated Hashtable class, somewhat similar to Java's java.util.Hashtable,
  *  or the STL's unordered_map<>, but with some useful features not typically found in hash table
  *  implementations.  These extra features include:
- *   - Any POD type or user type with a default constructor may be used as a Hashtable Key type.  
- *     If the type is a POD type, MUSCLE's CalculateHashCode() function (which is a wrapper 
- *     around the MurmurHash2 algorithm) will be used to scan the bytes of the Key object, in 
- *     order to calculate a hash code for a given Key.  However, if the Key class has a method 
- *     with the signature "uint32 HashCode() const", then the HashCode() method will be automatically 
+ *   - Any POD type or user type with a default constructor may be used as a Hashtable Key type.
+ *     If the type is a POD type, MUSCLE's CalculateHashCode() function (which is a wrapper
+ *     around the MurmurHash2 algorithm) will be used to scan the bytes of the Key object, in
+ *     order to calculate a hash code for a given Key.  However, if the Key class has a method
+ *     with the signature "uint32 HashCode() const", then the HashCode() method will be automatically
  *     called instead.  Unless -DMUSCLE_AVOID_CPLUSPLUS11 is defined, attempting to use
  *     a non-POD type as a key will cause a compile error, unless the HashCode() method is defined for the Key type.
  *   - Pointers can be used as Key types if desired; if the pointers point to a class with
@@ -1967,15 +1967,15 @@ private:
  *     hash code.  Note that it is up to the calling code to ensure the pointers point to valid
  *     objects, and that the pointed-to objects remain valid for as long as they are pointed
  *     to by the keys in this Hashtable.
- *   - Ordering is preserved:  When iterating over a Hashtable, the iteration will traverse the 
- *     Key/Value pairs in the same order that they were added to the Hashtable.  Also, the ordering 
- *     of Key/Value pairs will be preserved as additional entries are added to (or removed from) 
+ *   - Ordering is preserved:  When iterating over a Hashtable, the iteration will traverse the
+ *     Key/Value pairs in the same order that they were added to the Hashtable.  Also, the ordering
+ *     of Key/Value pairs will be preserved as additional entries are added to (or removed from)
  *     the Hashtable.
  *   - It is possible to manually modify the iteration-traversal ordering of a table's items via the
  *     MoveToFront(), MoveToBack(), MoveToBefore(), MoveToBehind(), or MoveToPosition() methods.
  *   - Adding or removing items from a Hashtable will not break or invalidate HashtableIterator iterations
  *     that are in progress on that same Hashtable.  This makes it possible, for example, to
- *     iterate over a Hashtable, removing undesired items as you go.  (Note that all concurrent 
+ *     iterate over a Hashtable, removing undesired items as you go.  (Note that all concurrent
  *     iterations must be within the same thread, however -- modifying a Hashtable is NOT thread-safe)
  *   - It is possible to iterate backwards over the contents of a Hashtable, or iterate in either
  *     direction, starting at a specified entry.
@@ -1994,7 +1994,7 @@ private:
  *     program start, and be guaranteed thereafter that your Hashtable will never access the heap or
  *     suffer from an out-of-memory error.
  *   - The Hashtable's contents may be sorted by Key or by Value at any time, by calling SortByKey()
- *     or SortByValue().  Sorting will use the Key or Value class's less-than operator by default, 
+ *     or SortByValue().  Sorting will use the Key or Value class's less-than operator by default,
  *     or a custom compare-functor can be provided for more sophisticated sorts.  Sorting is done
  *     using MergeSort with, O(log(N)) complexity.
  *   - OrderedKeysHashtable and OrderedValuesHashtable subclasses are available; these work similarly
@@ -2006,7 +2006,7 @@ private:
  *     that is, swapping the contents of two million-entry Hashtables is just as fast as swapping the
  *     contents of two one-entry Hashtables.
  *   - Various convenience methods such as PutAndGet(), GetOrPut(), PutOrRemove(), and PutIfNotAlreadyPresent()
- *     allow common usage patterns to be reduced to a single method call, making their intent explicit 
+ *     allow common usage patterns to be reduced to a single method call, making their intent explicit
  *     and their implementation uniform.
  *   - Methods like GetFirstKey(), GetFirstValue(), RemoveFirst() and RemoveLast() allow the
  *     Hashtable to be used as an efficient, keyed, double-ended FIFO queue, if desired.  This
@@ -2050,9 +2050,9 @@ public:
      */
    uint32 HashCode() const {return HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >::HashCode();}
 
-   /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).  
-    *  That is to say, when this method returns, (swapMe) will be identical to the old state of this 
-    *  Hashtable, and this Hashtable will be identical to the old state of (swapMe). 
+   /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).
+    *  That is to say, when this method returns, (swapMe) will be identical to the old state of this
+    *  Hashtable, and this Hashtable will be identical to the old state of (swapMe).
     *  Any active iterators present for either table will swap owners also, becoming associated with the other table.
     *  @param swapMe The table whose contents and iterators are to be swapped with this table's.
     *  @note This method is redeclared here solely to make sure that the muscleSwap() SFINAE magic sees it.
@@ -2155,7 +2155,7 @@ public:
       }
       else return B_DATA_NOT_FOUND;
    }
-   
+
 private:
    typedef HashtableMid<KeyType, ValueType, HashFunctorType, SubclassType> HashtableMidType;
    typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase HashtableEntryBaseType;
@@ -2194,7 +2194,7 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    OrderedKeysHashtable(const OrderedKeysHashtable & rhs) : OrderedHashtableType(rhs.GetNumAllocatedItemSlots(), ByKeyEntryCompareFunctorType(_keyCompareFunctor), rhs.GetCompareCookie()), _keyCompareFunctor() {(void) this->CopyFrom(rhs);}
 
-   /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. 
+   /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
      * @param rhs the hash table to make this hash table a duplicate of
      */
    template<class RHSKeyCompareFunctorType, class RHSHashFunctorType> OrderedKeysHashtable(const HashtableMid<KeyType,ValueType,RHSKeyCompareFunctorType,RHSHashFunctorType> & rhs) : OrderedHashtableType(rhs.GetNumAllocatedItemSlots(), ByKeyEntryCompareFunctorType(_keyCompareFunctor), NULL), _keyCompareFunctor() {(void) this->CopyFrom(rhs);}
@@ -2202,14 +2202,14 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    OrderedKeysHashtable & operator=(const OrderedKeysHashtable & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
-   /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types. 
+   /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types.
      * @param rhs the hash table to make this hash table a duplicate of
      */
    template<class RHSHashFunctorType, class RHSSubclassType> OrderedKeysHashtable & operator=(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
-   /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).  
-    *  That is to say, when this method returns, (swapMe) will be identical to the old state of this 
-    *  Hashtable, and this Hashtable will be identical to the old state of (swapMe). 
+   /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).
+    *  That is to say, when this method returns, (swapMe) will be identical to the old state of this
+    *  Hashtable, and this Hashtable will be identical to the old state of (swapMe).
     *  Any active iterators present for either table will swap owners also, becoming associated with the other table.
     *  @param swapMe The table whose contents and iterators are to be swapped with this table's.
     *  @note This method is redeclared here solely to make sure that the muscleSwap() SFINAE magic sees it.
@@ -2266,7 +2266,7 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    OrderedValuesHashtable(const OrderedValuesHashtable & rhs) : OrderedHashtableType(rhs.GetNumAllocatedItemSlots(), ByValueEntryCompareFunctorType(_valueCompareFunctor), rhs.GetCompareCookie()), _valueCompareFunctor() {(void) this->CopyFrom(rhs);}
 
-   /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types. 
+   /** Templated pseudo-copy-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
      * @param rhs the hash table to make this hash table a duplicate of
      */
    template<class RHSValueCompareFunctorType, class RHSHashFunctorType> OrderedValuesHashtable(const HashtableMid<KeyType,ValueType,RHSValueCompareFunctorType,RHSHashFunctorType> & rhs) : OrderedHashtableType(rhs.GetNumAllocatedItemSlots(), ByValueEntryCompareFunctorType(_valueCompareFunctor), NULL), _valueCompareFunctor() {(void) this->CopyFrom(rhs);}
@@ -2274,14 +2274,14 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    OrderedValuesHashtable & operator=(const OrderedValuesHashtable & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
-   /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types. 
+   /** Templated pseudo-assignment-operator:  Allows us to be set from similar table with different functor types.
      * @param rhs the hash table to make this hash table a duplicate of
      */
    template<class RHSHashFunctorType, class RHSSubclassType> OrderedValuesHashtable & operator=(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) {(void) this->CopyFrom(rhs); return *this;}
 
-   /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).  
-    *  That is to say, when this method returns, (swapMe) will be identical to the old state of this 
-    *  Hashtable, and this Hashtable will be identical to the old state of (swapMe). 
+   /** This method does an efficient zero-copy swap of this hash table's contents with those of (swapMe).
+    *  That is to say, when this method returns, (swapMe) will be identical to the old state of this
+    *  Hashtable, and this Hashtable will be identical to the old state of (swapMe).
     *  Any active iterators present for either table will swap owners also, becoming associated with the other table.
     *  @param swapMe The table whose contents and iterators are to be swapped with this table's.
     *  @note This method is redeclared here solely to make sure that the muscleSwap() SFINAE magic sees it.
@@ -2473,7 +2473,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::IndexOfValue(const ValueType &
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-const KeyType * 
+const KeyType *
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAt(uint32 index) const
 {
    const HashtableEntryBase * e = GetEntryAt(index);
@@ -2481,7 +2481,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAt(uint32 index) const
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-status_t 
+status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAt(uint32 index, KeyType & retKey) const
 {
    const HashtableEntryBase * e = GetEntryAt(index);
@@ -2494,7 +2494,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAt(uint32 index, KeyType
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-const KeyType & 
+const KeyType &
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAtWithDefault(uint32 index) const
 {
    const HashtableEntryBase * e = GetEntryAt(index);
@@ -2510,7 +2510,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAtWithDefault(uint32 ind
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-const ValueType * 
+const ValueType *
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAt(uint32 index) const
 {
    const HashtableEntryBase * e = GetEntryAt(index);
@@ -2518,7 +2518,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAt(uint32 index) const
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-status_t 
+status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAt(uint32 index, ValueType & retValue) const
 {
    const HashtableEntryBase * e = GetEntryAt(index);
@@ -2531,7 +2531,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAt(uint32 index, Value
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-const ValueType & 
+const ValueType &
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetValueAtWithDefault(uint32 index) const
 {
    const HashtableEntryBase * e = GetEntryAt(index);
@@ -2576,7 +2576,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetValue(const KeyType & key)
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-const KeyType * 
+const KeyType *
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetKey(const KeyType & lookupKey) const
 {
    const HashtableEntryBase * e = this->GetEntry(this->ComputeHash(lookupKey), lookupKey);
@@ -2602,7 +2602,7 @@ template <class KeyType, class ValueType, class HashFunctorType>
 typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase *
 HashtableBase<KeyType,ValueType,HashFunctorType>::GetEntry(uint32 hash, const KeyType & key) const
 {
-   if (HasItems()) 
+   if (HasItems())
    {
       HashtableEntryBase * e = this->GetEntryMapToUnchecked(this->IndexToEntryUnchecked(hash%_tableSize));
       if (IsBucketHead(e))  // if the e isn't the start of a bucket, then we know our entry doesn't exist
@@ -2640,8 +2640,8 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetEntryAt(uint32 idx) const
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-template <class HisValueType, class HisHashFunctorType> 
-bool 
+template <class HisValueType, class HisHashFunctorType>
+bool
 HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeySetsEqual(const HashtableBase<KeyType, HisValueType, HisHashFunctorType> & rhs, bool considerOrdering) const
 {
    if (GetNumItems() != rhs.GetNumItems()) return false;
@@ -2674,7 +2674,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysASubsetOf(const Hashtab
             rhsIter++;
             if (rhsIter.HasData() == false) return false;
          }
-      } 
+      }
    }
    else
    {
@@ -2700,7 +2700,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysAndValuesASubsetOf(cons
             if (rhsIter.HasData() == false) return false;
          }
          if (!(iter.GetValue() == rhsIter.GetValue())) return false;
-      } 
+      }
    }
    else
    {
@@ -2716,7 +2716,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysAndValuesASubsetOf(cons
 // Linked-list MergeSort adapted from Simon Tatham's C code at http://www.chiark.greenend.org.uk/~sgtatham/algorithms/listsort.c
 template <class KeyType, class ValueType, class HashFunctorType>
 template <class EntryCompareFunctorType>
-void 
+void
 HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompareFunctorType & ecf, void * cookie)
 {
    if (this->_iterHeadIdx == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) return;
@@ -2727,14 +2727,14 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompare
       this->_iterHeadIdx = this->_iterTailIdx = MUSCLE_HASHTABLE_INVALID_SLOT_INDEX;
 
       uint32 numMerges = 0;  /* count number of merges we do in this pass */
-      while(p) 
+      while(p)
       {
          numMerges++;  /* there exists a merge to be done */
 
          /* step `mergeSize' places along from p */
          HashtableEntryBase * q = p;
          uint32 psize = 0;
-         for (uint32 i=0; i<mergeSize; i++) 
+         for (uint32 i=0; i<mergeSize; i++)
          {
              psize++;
              q = this->GetEntryIterNextChecked(q);
@@ -2742,7 +2742,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompare
          }
 
          /* now we have two lists; merge them */
-         for (uint32 qsize=mergeSize; ((psize > 0)||((qsize > 0)&&(q))); /* empty */) 
+         for (uint32 qsize=mergeSize; ((psize > 0)||((qsize > 0)&&(q))); /* empty */)
          {
             HashtableEntryBase * e;
 
@@ -2812,24 +2812,24 @@ template <class KeyType, class ValueType, class HashFunctorType>
 status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::EnsureTableAllocated()
 {
-   if (this->_table == NULL) 
+   if (this->_table == NULL)
    {
       switch(this->GetTableIndexType())
       {
-         case TABLE_INDEX_TYPE_UINT8:  
+         case TABLE_INDEX_TYPE_UINT8:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            this->_table = HashtableEntry<uint8> ::CreateEntriesArray(this->_tableSize); 
+            this->_table = HashtableEntry<uint8> ::CreateEntriesArray(this->_tableSize);
          break;
 #endif
 
-         case TABLE_INDEX_TYPE_UINT16: 
+         case TABLE_INDEX_TYPE_UINT16:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            this->_table = HashtableEntry<uint16>::CreateEntriesArray(this->_tableSize); 
+            this->_table = HashtableEntry<uint16>::CreateEntriesArray(this->_tableSize);
          break;
 #endif
 
          default:
-            this->_table = HashtableEntry<uint32>::CreateEntriesArray(this->_tableSize); 
+            this->_table = HashtableEntry<uint32>::CreateEntriesArray(this->_tableSize);
          break;
       }
       this->_freeHeadIdx = 0;
@@ -2863,7 +2863,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::PutAuxAux(uint32 hash, HT_Sink
       this->SetEntryBucketNext(tableSlot, eIdx);
       return e;
    }
-   else 
+   else
    {
       if (tableSlot->_hash != MUSCLE_HASHTABLE_INVALID_HASH_CODE)
       {
@@ -2878,7 +2878,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::PutAuxAux(uint32 hash, HT_Sink
       tableSlot->_hash  = hash;
       tableSlot->_key   = HT_ForwardKey(key);
       tableSlot->_value = HT_ForwardValue(value);
- 
+
       this->SetEntryBucketPrev(tableSlot, MUSCLE_HASHTABLE_INVALID_SLOT_INDEX);
       this->SetEntryBucketNext(tableSlot, MUSCLE_HASHTABLE_INVALID_SLOT_INDEX);
       return tableSlot;
@@ -2926,7 +2926,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveEntry(HashtableEntryBase
       this->SetEntryBucketNextChecked(prev, next);
       if (next) this->SetEntryBucketPrevUnchecked(next, prev);
    }
-   else if (next) 
+   else if (next)
    {
       this->SetEntryBucketPrev(next, MUSCLE_HASHTABLE_INVALID_SLOT_INDEX);
       SwapEntryMaps(this->GetEntryMappedFrom(e), this->GetEntryMappedFrom(next));
@@ -2935,20 +2935,20 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveEntry(HashtableEntryBase
    _numItems--;
    switch(this->GetTableIndexType())
    {
-      case TABLE_INDEX_TYPE_UINT8:  
+      case TABLE_INDEX_TYPE_UINT8:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-         static_cast<HashtableEntry<uint8> *>(e)->PushToFreeList(GetDefaultKey(), GetDefaultValue(), _freeHeadIdx, this); 
+         static_cast<HashtableEntry<uint8> *>(e)->PushToFreeList(GetDefaultKey(), GetDefaultValue(), _freeHeadIdx, this);
       break;
 #endif
 
-      case TABLE_INDEX_TYPE_UINT16: 
+      case TABLE_INDEX_TYPE_UINT16:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-         static_cast<HashtableEntry<uint16>*>(e)->PushToFreeList(GetDefaultKey(), GetDefaultValue(), _freeHeadIdx, this); 
+         static_cast<HashtableEntry<uint16>*>(e)->PushToFreeList(GetDefaultKey(), GetDefaultValue(), _freeHeadIdx, this);
       break;
 #endif
 
       default:
-         static_cast<HashtableEntry<uint32>*>(e)->PushToFreeList(GetDefaultKey(), GetDefaultValue(), _freeHeadIdx, this); 
+         static_cast<HashtableEntry<uint32>*>(e)->PushToFreeList(GetDefaultKey(), GetDefaultValue(), _freeHeadIdx, this);
       break;
    }
    return B_NO_ERROR;
@@ -2956,18 +2956,18 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveEntry(HashtableEntryBase
 
 template <class KeyType, class ValueType, class HashFunctorType>
 uint32
-HashtableBase<KeyType,ValueType,HashFunctorType>::PopFromFreeList(HashtableEntryBase * e, uint32 freeHeadIdx) 
+HashtableBase<KeyType,ValueType,HashFunctorType>::PopFromFreeList(HashtableEntryBase * e, uint32 freeHeadIdx)
 {
    switch(this->GetTableIndexType())
    {
-      case TABLE_INDEX_TYPE_UINT8:  
+      case TABLE_INDEX_TYPE_UINT8:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
          return static_cast<HashtableEntry<uint8> *>(e)->PopFromFreeList(freeHeadIdx, this);
 #endif
 
-      case TABLE_INDEX_TYPE_UINT16: 
+      case TABLE_INDEX_TYPE_UINT16:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-         return static_cast<HashtableEntry<uint16>*>(e)->PopFromFreeList(freeHeadIdx, this); 
+         return static_cast<HashtableEntry<uint16>*>(e)->PopFromFreeList(freeHeadIdx, this);
 #endif
 
       default:
@@ -2977,18 +2977,18 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::PopFromFreeList(HashtableEntry
 
 template <class KeyType, class ValueType, class HashFunctorType>
 bool
-HashtableBase<KeyType,ValueType,HashFunctorType>::IsPointerPointingIntoDataTable(const void * ptr) const 
+HashtableBase<KeyType,ValueType,HashFunctorType>::IsPointerPointingIntoDataTable(const void * ptr) const
 {
    switch(this->GetTableIndexType())
    {
-      case TABLE_INDEX_TYPE_UINT8:  
+      case TABLE_INDEX_TYPE_UINT8:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
          return HashtableEntry<uint8> ::IsPointerPointingIntoDataTable(this, ptr);
 #endif
 
-      case TABLE_INDEX_TYPE_UINT16: 
+      case TABLE_INDEX_TYPE_UINT16:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-         return HashtableEntry<uint16>::IsPointerPointingIntoDataTable(this, ptr); 
+         return HashtableEntry<uint16>::IsPointerPointingIntoDataTable(this, ptr);
 #endif
 
       default:
@@ -3030,20 +3030,20 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Clear(bool releaseCachedBuffer
       // done after state is updated, in case of re-entrancies in the dtors
       switch(oldTableIndexType)
       {
-         case TABLE_INDEX_TYPE_UINT8:  
+         case TABLE_INDEX_TYPE_UINT8:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            delete [] (static_cast<HashtableEntry<uint8> *>(oldTable)); 
+            delete [] (static_cast<HashtableEntry<uint8> *>(oldTable));
          break;
 #endif
 
-         case TABLE_INDEX_TYPE_UINT16: 
+         case TABLE_INDEX_TYPE_UINT16:
 #ifndef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-            delete [] (static_cast<HashtableEntry<uint16>*>(oldTable)); 
+            delete [] (static_cast<HashtableEntry<uint16>*>(oldTable));
          break;
 #endif
 
          default:
-            delete [] (static_cast<HashtableEntry<uint32>*>(oldTable)); 
+            delete [] (static_cast<HashtableEntry<uint32>*>(oldTable));
          break;
       }
    }
@@ -3100,7 +3100,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::CountAverageLookupComparisons(
 
 template <class KeyType, class ValueType, class HashFunctorType>
 template<class HisKeyType, class HisValueType, class HisHashFunctorType>
-uint32 
+uint32
 HashtableBase<KeyType,ValueType,HashFunctorType>::Remove(const HashtableBase<HisKeyType,HisValueType,HisHashFunctorType> & pairs)
 {
    uint32 removeCount = 0;
@@ -3123,7 +3123,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Remove(const HashtableBase<His
 
 template <class KeyType, class ValueType, class HashFunctorType>
 template<class HisKeyType, class HisValueType, class HisHashFunctorType>
-uint32 
+uint32
 HashtableBase<KeyType,ValueType,HashFunctorType>::Intersect(const HashtableBase<HisKeyType,HisValueType,HisHashFunctorType> & pairs)
 {
    uint32 removeCount = 0;
@@ -3159,7 +3159,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::HasKeysInCommonWith(const Hash
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-status_t 
+status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToFront(const KeyType & moveMe)
 {
    HashtableEntryBase * e = this->GetEntry(this->ComputeHash(moveMe), moveMe);
@@ -3169,7 +3169,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToFront(const KeyType & mo
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-status_t 
+status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToBack(const KeyType & moveMe)
 {
    HashtableEntryBase * e = this->GetEntry(this->ComputeHash(moveMe), moveMe);
@@ -3179,7 +3179,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToBack(const KeyType & mov
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-status_t 
+status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToBefore(const KeyType & moveMe, const KeyType & toBeforeMe)
 {
    if (HasItems())
@@ -3195,7 +3195,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToBefore(const KeyType & m
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-status_t 
+status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToBehind(const KeyType & moveMe, const KeyType & toBehindMe)
 {
    if (HasItems())
@@ -3211,7 +3211,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToBehind(const KeyType & m
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-status_t 
+status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::MoveToPosition(const KeyType & moveMe, uint32 idx)
 {
    HashtableEntryBase * e = this->GetEntry(this->ComputeHash(moveMe), moveMe);
@@ -3239,7 +3239,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::InsertIterationEntry(Hashtable
 
 // Remove (e) from our iteration linked list
 template <class KeyType, class ValueType, class HashFunctorType>
-void 
+void
 HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveIterationEntry(HashtableEntryBase * e)
 {
    // Update any iterators that were pointing at (e), so that they now point to the entry after e.
@@ -3247,7 +3247,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveIterationEntry(Hashtable
    IteratorType * next = this->_iterList;
    while(next)
    {
-      if (next->_iterCookie == e) 
+      if (next->_iterCookie == e)
       {
          if (next->_scratchKeyAndValue.IsObjectConstructed() == false) next->SetScratchValues(e->_key, e->_value);
          next->_iterCookie = GetSubsequentEntry(next->_iterCookie, next->_flags);
@@ -3287,12 +3287,12 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::InsertIterationEntryInOrder(co
                insertAfter = prev;
                break;
             }
-            else 
+            else
             {
                prev = next;
                next = this->GetEntryIterNextChecked(next);
             }
-         }   
+         }
       }
    }
    this->InsertIterationEntry(e, insertAfter);
@@ -3393,7 +3393,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
          nextIter = this->GetIteratorNextIterator(*nextIter);
       }
    }
-    
+
    // 2. Create a new, bigger table, to hold a copy of our data.
    SubclassType biggerTable;
    biggerTable._tableSize      = biggerTableSize;
@@ -3450,7 +3450,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
 # endif
       {
          LogTime(MUSCLE_LOG_WARNING, "Hashtable had average lookup comparison count of %f.  Printing statistics and stack trace to stdout.\n", av);
-         (void) this->CountAverageLookupComparisons(true); 
+         (void) this->CountAverageLookupComparisons(true);
          PrintStackTrace();
       }
    }
@@ -3460,13 +3460,13 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
 template <class RHSHashFunctorType, class RHSSubclassType>
-status_t 
+status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::CopyToTable(const KeyType & copyMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & toTable) const
 {
    const uint32 hash = this->ComputeHash(copyMe);
    HashtableEntryBaseType * e = this->GetEntry(hash, copyMe);
    if (e)
-   { 
+   {
       if (this == &toTable) return B_NO_ERROR;  // it's already here!
       return (toTable.PutAux(hash, copyMe, e->_value, NULL, NULL) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;
    }
@@ -3475,7 +3475,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::CopyToTable(const 
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
 template <class RHSHashFunctorType, class RHSSubclassType>
-status_t 
+status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::MoveToTable(const KeyType & moveMe, HashtableMid<KeyType, ValueType, RHSHashFunctorType, RHSSubclassType> & toTable)
 {
    const uint32 hash = this->ComputeHash(moveMe);
@@ -3527,9 +3527,9 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAux(uint32 hash
    }
 
    // Rehash the table if the threshold is exceeded
-   if (this->_numItems == this->_tableSize) 
+   if (this->_numItems == this->_tableSize)
    {
-      // Avoid dangling-pointer-issues in the case where we need to realloc the array, 
+      // Avoid dangling-pointer-issues in the case where we need to realloc the array,
       // but our arguments are pointing into the old array that is about to be freed inside EnsureSize()
       if ((this->IsKeyLocatedInThisContainer(key))||(this->IsValueLocatedInThisContainer(value)))
       {
@@ -3544,12 +3544,12 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAux(uint32 hash
    static_cast<SubclassType*>(this)->InsertIterationEntryAux(e);
 
    this->_numItems++;
-   return e; 
+   return e;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
 HT_UniversalSinkKeyValueRef
-status_t 
+status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtFront(HT_SinkKeyParam key, HT_SinkValueParam v)
 {
    HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
@@ -3560,7 +3560,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtFront(HT_Sink
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
 HT_UniversalSinkKeyValueRef
-status_t 
+status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtBack(HT_SinkKeyParam key, HT_SinkValueParam v)
 {
    HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
@@ -3571,7 +3571,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtBack(HT_SinkK
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
 HT_UniversalSinkKeyValueRef
-status_t 
+status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutBefore(HT_SinkKeyParam key, HT_SinkKeyParam placeBeforeMe, HT_SinkValueParam v)
 {
    HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
@@ -3583,7 +3583,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutBefore(HT_SinkK
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
 HT_UniversalSinkKeyValueRef
-status_t 
+status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutBehind(HT_SinkKeyParam key, HT_SinkKeyParam placeBehindMe, HT_SinkValueParam v)
 {
    HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
@@ -3595,7 +3595,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutBehind(HT_SinkK
 
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType>
 HT_UniversalSinkKeyValueRef
-status_t 
+status_t
 HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtPosition(HT_SinkKeyParam key, uint32 atPosition, HT_SinkValueParam v)
 {
    HashtableEntryBaseType * e = PutAux(this->ComputeHash(key), HT_ForwardKey(key), HT_ForwardValue(v), NULL, NULL);
@@ -3609,7 +3609,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtPosition(HT_S
 //===============================================================
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator() 
+HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator()
    : _iterCookie(NULL)
    , _currentKey(NULL)
    , _currentVal(NULL)
@@ -3621,7 +3621,7 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator()
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableIterator & rhs) 
+HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableIterator & rhs)
    : _flags(0)
    , _owner(NULL)
    , _okayToUnsetThreadID(false)
@@ -3630,7 +3630,7 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const 
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, uint32 flags) 
+HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, uint32 flags)
    : _flags(flags)
    , _owner(&table)
    , _okayToUnsetThreadID(false)
@@ -3640,7 +3640,7 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const 
 
 template <class KeyType, class ValueType, class HashFunctorType>
 HT_UniversalSinkKeyRef
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, HT_SinkKeyParam startAt, uint32 flags) 
+HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, HT_SinkKeyParam startAt, uint32 flags)
    : _flags(flags)
    , _owner(&table)
    , _okayToUnsetThreadID(false)

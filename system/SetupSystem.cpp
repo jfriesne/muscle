@@ -136,7 +136,7 @@ uint32 GetAndClearFailedMemoryRequestSize()
 {
    const uint32 ret = _failedMemoryRequestSize; // yes, it's racy.  But I'll live with that for now.
    _failedMemoryRequestSize = MUSCLE_NO_LIMIT;
-   return ret; 
+   return ret;
 }
 void SetFailedMemoryRequestSize(uint32 numBytes);  // just to avoid a compiler warning
 void SetFailedMemoryRequestSize(uint32 numBytes) {_failedMemoryRequestSize = numBytes;}
@@ -344,7 +344,7 @@ SanitySetupSystem :: SanitySetupSystem()
    VerifyTypeIsTrivial<int64>();
    VerifyTypeIsTrivial<const char *>();
    VerifyTypeIsTrivial<const String *>();
-   VerifyTypeIsTrivial<String *>(); 
+   VerifyTypeIsTrivial<String *>();
 
    VerifyTypeIsNonTrivial<Point>();
    VerifyTypeIsNonTrivial<Rect>();
@@ -358,7 +358,7 @@ SanitySetupSystem :: SanitySetupSystem()
 #endif
 
    // Make sure our pointer-size matches the defined/not-defined state of our MUSCLE_64_BIT_PLATFORM define
-#ifdef MUSCLE_64_BIT_PLATFORM 
+#ifdef MUSCLE_64_BIT_PLATFORM
    if (sizeof(void *) != 8) GoInsane("MUSCLE_64_BIT_PLATFORM is defined, but sizeof(void*) is not 8!");
 #else
    if (sizeof(void *) != 4) GoInsane("MUSCLE_64_BIT_PLATFORM is not defined, and sizeof(void*) is not 4!");
@@ -1072,11 +1072,11 @@ static uint64 GetRunTime64Aux()
    }
 #elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
    struct timespec ts;
-   return (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) ? (SecondsToMicros(ts.tv_sec)+NanosToMicros(ts.tv_nsec)) : 0; 
+   return (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) ? (SecondsToMicros(ts.tv_sec)+NanosToMicros(ts.tv_nsec)) : 0;
 #else
    // default implementation:  use POSIX API
    if (_posixTicksPerSecond <= 0) InitClockFrequency();  // in case we got called before main()
-   if (sizeof(clock_t) > sizeof(uint32)) 
+   if (sizeof(clock_t) > sizeof(uint32))
    {
       // Easy case:  with a wide clock_t, we don't need to worry about it wrapping
       struct tms junk; clock_t newTicks = (clock_t) times(&junk);
@@ -1089,7 +1089,7 @@ static uint64 GetRunTime64Aux()
       {
          static uint32 _prevVal;
          static uint64 _wrapOffset = 0;
-         
+
          struct tms junk; memset(&junk, 0, sizeof(junk));
          clock_t newTicks = (clock_t) times(&junk);
          const uint32 newVal = (uint32) newTicks;
@@ -1112,7 +1112,7 @@ int64 GetPerProcessRunTime64Offset() {return _perProcessRunTimeOffset;}
 
 status_t Snooze64(uint64 micros)
 {
-   if (micros == MUSCLE_TIME_NEVER) 
+   if (micros == MUSCLE_TIME_NEVER)
    {
       while(Snooze64(DaysToMicros(1)).IsOK()) {/* empty */}
       return B_ERROR;  // we should never exit the while loop above; so if we got here, it's an error
@@ -1137,14 +1137,14 @@ status_t Snooze64(uint64 micros)
 uint64 __Win32FileTimeToMuscleTime(const FILETIME & ft)
 {
    union {
-     uint64 ns100; /*time since 1 Jan 1601 in 100ns units */ 
-     FILETIME ft; 
-   } theTime; 
+     uint64 ns100; /*time since 1 Jan 1601 in 100ns units */
+     FILETIME ft;
+   } theTime;
    theTime.ft = ft;
 
    static const uint64 TIME_DIFF = ((uint64)116444736)*NANOS_PER_SECOND;
    struct timeval tv;
-   tv.tv_usec = (long)((theTime.ns100 / ((uint64)10)) % MICROS_PER_SECOND); 
+   tv.tv_usec = (long)((theTime.ns100 / ((uint64)10)) % MICROS_PER_SECOND);
    tv.tv_sec  = (long)((theTime.ns100 - TIME_DIFF)    / (10*MICROS_PER_SECOND));
    return ConvertTimeValTo64(tv);
 }
@@ -1167,7 +1167,7 @@ uint64 GetCurrentTime64(uint32 timeType)
       time_t now = time(NULL);
       struct tm gmtm;
       struct tm * tm = gmtime_r(&now, &gmtm);
-      if (tm) 
+      if (tm)
       {
          ret += SecondsToMicros(now-mktime(tm));
          if (tm->tm_isdst>0) ret += HoursToMicros(1);  // FogBugz #4498
@@ -1185,7 +1185,7 @@ uint32 _muscleNextTraceValueIndex = 0;
 void SetTraceValuesLocation(volatile uint32 * location)
 {
    _muscleTraceValues = location ? location : _defaultTraceLocation;
-   _muscleNextTraceValueIndex = 0; 
+   _muscleNextTraceValueIndex = 0;
    for (uint32 i=0; i<MUSCLE_TRACE_CHECKPOINTS; i++) _muscleTraceValues[i] = 0;
 }
 #endif
@@ -1202,7 +1202,7 @@ AbstractObjectRecycler :: AbstractObjectRecycler()
    _prev = NULL;
    _next = _firstRecycler;
    _firstRecycler = this;
-   
+
    if (m) m->Unlock();
 }
 
@@ -1440,14 +1440,14 @@ ConstSocketRef GetConstSocketRefFromPool(int fd, bool okayToClose, bool returnNU
       Socket * s = _socketPool.ObtainObject();
       ConstSocketRef ret(s);
 
-      if (s) 
+      if (s)
       {
          s->SetFileDescriptor(fd, okayToClose);
 #ifdef WIN32
          // FogBugz #9911:  Make the socket un-inheritable, since that
          // is the behavior you want 99% of the time.  (Anyone who wants
-         // to inherit the socket will have to either avoid calling this 
-         // for those sockets, or call SetHandleInformation() again 
+         // to inherit the socket will have to either avoid calling this
+         // for those sockets, or call SetHandleInformation() again
          // afterwards to reinstate the inherit-handle flag)
          (void) SetHandleInformation((HANDLE)((ptrdiff)fd), HANDLE_FLAG_INHERIT, 0);
 #endif
@@ -1468,7 +1468,7 @@ void Socket :: SetFileDescriptor(int newFD, bool okayToClose)
    if (newFD != _fd)
    {
       if (_okayToClose) CloseSocket(_fd);  // CloseSocket(-1) is a no-op, so no need to check fd twice
-      _fd = newFD; 
+      _fd = newFD;
    }
    _okayToClose = okayToClose;
 }
@@ -1612,7 +1612,7 @@ void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uin
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
+      char headBuf[256];
       muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       fprintf(optFile, "%s", headBuf);
 
@@ -1676,7 +1676,7 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
+      char headBuf[256];
       muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       fprintf(optFile, "%s", headBuf);
 
@@ -1726,7 +1726,7 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
+      char headBuf[256];
       muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       LogTime(logLevel, "%s", headBuf);
 
@@ -1778,7 +1778,7 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
+      char headBuf[256];
       muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       Log(logLevel, "%s", headBuf);
 
@@ -1839,7 +1839,7 @@ String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char 
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
+      char headBuf[256];
       muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       ret += headBuf;
 
@@ -1894,7 +1894,7 @@ String HexBytesToAnnotatedString(const Queue<uint8> & buf, const char * optDesc,
    else
    {
       // A more useful columnar format with ASCII sidebar
-      char headBuf[256]; 
+      char headBuf[256];
       muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
       ret += headBuf;
 
@@ -1992,7 +1992,7 @@ DebugTimer :: DebugTimer(const String & title, uint64 mlt, uint32 startMode, int
    _startTime = MUSCLE_DEBUG_TIMER_CLOCK;  // re-set it here so that we don't count the Hashtable initialization!
 }
 
-DebugTimer :: ~DebugTimer() 
+DebugTimer :: ~DebugTimer()
 {
    if (_enableLog)
    {
@@ -2011,7 +2011,7 @@ DebugTimer :: ~DebugTimer()
                if (nextTime >= 1000) LogTime(_debugLevel, "%s: mode " UINT32_FORMAT_SPEC ": " UINT64_FORMAT_SPEC " milliseconds elapsed\n", _title(), iter.GetKey(), nextTime/1000);
                                 else LogTime(_debugLevel, "%s: mode " UINT32_FORMAT_SPEC ": " UINT64_FORMAT_SPEC " microseconds elapsed\n", _title(), iter.GetKey(), nextTime);
             }
-            else 
+            else
             {
                // For cases where we don't want to call LogTime()
                if (nextTime >= 1000) printf("%s: mode " UINT32_FORMAT_SPEC ": " UINT64_FORMAT_SPEC " milliseconds elapsed\n", _title(), iter.GetKey(), nextTime/1000);
@@ -2033,7 +2033,7 @@ bool ParseBool(const String & word, bool defaultValue)
    return defaultValue;
 }
 
-/** Gotta define this myself, since atoll() isn't standard. :^( 
+/** Gotta define this myself, since atoll() isn't standard. :^(
   * Note that this implementation doesn't handle negative numbers!
   */
 uint64 Atoull(const char * str)
@@ -2050,7 +2050,7 @@ uint64 Atoull(const char * str)
    while(muscleInRange(*s, '0', '9')) s++;
 
    // Then iterate back to the beginning, tabulating as we go
-   while((--s >= str)&&(*s >= '0')&&(*s <= '9')) 
+   while((--s >= str)&&(*s >= '0')&&(*s <= '9'))
    {
       ret  += base * ((uint64)(*s-'0'));
       base *= (uint64)10;
@@ -2121,10 +2121,10 @@ void DebugTimer :: SetMode(uint32 newMode)
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
 bool IsCurrentThreadMainThread() {return true;}
 #else
-bool IsCurrentThreadMainThread() 
+bool IsCurrentThreadMainThread()
 {
    if (_threadSetupCount > 0) return (_mainThreadID == muscle_thread_id::GetCurrentThreadID());
-   else 
+   else
    {
       MCRASH("IsCurrentThreadMainThread() cannot be called unless there is a CompleteSetupSystem object on the stack!");
       return false;  // to shut the compiler up
@@ -2253,23 +2253,23 @@ uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int
    const int r = 47;
 
    uint64 h = seed ^ (numBytes * m);
-      
+
    const uint64 * data = (const uint64 *)key;
    const uint64 * end = data + (numBytes/sizeof(uint64));
-      
+
    while(data != end)
    {
       uint64 k = *data++;
-      k *= m; 
+      k *= m;
       k ^= k >> r;
-      k *= m; 
+      k *= m;
       h ^= k;
       h *= m;
-   }     
-         
+   }
+
    const unsigned char * data2 = (const unsigned char*)data;
    switch(numBytes & 7)
-   {     
+   {
       case 7: h ^= uint64(data2[6]) << 48; // fall through!
       case 6: h ^= uint64(data2[5]) << 40; // fall through!
       case 5: h ^= uint64(data2[4]) << 32; // fall through!
@@ -2278,10 +2278,10 @@ uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int
       case 2: h ^= uint64(data2[1]) << 8;  // fall through!
       case 1: h ^= uint64(data2[0]);       // fall through!
               h *= m;
-   }     
-            
+   }
+
    h ^= h >> r;
-   h *= m;  
+   h *= m;
    h ^= h >> r;
    return h;
 }
@@ -2406,7 +2406,7 @@ void SetMainReflectServerCatchSignals(bool enable)
    _mainReflectServerCatchSignals = enable;
 }
 
-bool GetMainReflectServerCatchSignals() 
+bool GetMainReflectServerCatchSignals()
 {
    return _mainReflectServerCatchSignals;
 }
@@ -2443,7 +2443,7 @@ Queue<String> GetBuildFlags()
    q.AddTail("MUSCLE_AVOID_STDINT");
 #endif
 
-#ifdef MUSCLE_SINGLE_THREAD_ONLY 
+#ifdef MUSCLE_SINGLE_THREAD_ONLY
    q.AddTail("MUSCLE_SINGLE_THREAD_ONLY");
 #endif
 
@@ -2495,15 +2495,15 @@ Queue<String> GetBuildFlags()
    q.AddTail(String("MUSCLE_ENABLE_MEMORY_PARANOIA=%1").Arg(MUSCLE_ENABLE_MEMORY_PARANOIA));
 #endif
 
-#ifdef MUSCLE_NO_EXCEPTIONS 
+#ifdef MUSCLE_NO_EXCEPTIONS
    q.AddTail("MUSCLE_NO_EXCEPTIONS");
 #endif
 
-#ifdef MUSCLE_ENABLE_MEMORY_TRACKING 
+#ifdef MUSCLE_ENABLE_MEMORY_TRACKING
    q.AddTail("MUSCLE_ENABLE_MEMORY_TRACKING");
 #endif
 
-#ifdef MUSCLE_AVOID_ASSERTIONS 
+#ifdef MUSCLE_AVOID_ASSERTIONS
    q.AddTail("MUSCLE_AVOID_ASSERTIONS");
 #endif
 
@@ -2515,7 +2515,7 @@ Queue<String> GetBuildFlags()
    q.AddTail("MUSCLE_AVOID_INLINE_ASSEMBLY");
 #endif
 
-#ifdef MUSCLE_ENABLE_ZLIB_ENCODING 
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    q.AddTail("MUSCLE_ENABLE_ZLIB_ENCODING");
 #endif
 
@@ -2523,19 +2523,19 @@ Queue<String> GetBuildFlags()
    q.AddTail(String("MUSCLE_TRACE_CHECKPOINTS=%1").Arg(MUSCLE_TRACE_CHECKPOINTS));
 #endif
 
-#ifdef MUSCLE_DISABLE_MESSAGE_FIELD_POOLS 
+#ifdef MUSCLE_DISABLE_MESSAGE_FIELD_POOLS
    q.AddTail("MUSCLE_DISABLE_MESSAGE_FIELD_POOLS");
 #endif
 
-#ifdef MUSCLE_INLINE_LOGGING 
+#ifdef MUSCLE_INLINE_LOGGING
    q.AddTail("MUSCLE_INLINE_LOGGING");
 #endif
 
-#ifdef MUSCLE_DISABLE_LOGGING 
+#ifdef MUSCLE_DISABLE_LOGGING
    q.AddTail("MUSCLE_DISABLE_LOGGING");
 #endif
 
-#ifdef MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS 
+#ifdef MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS
    q.AddTail("MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS");
 #endif
 
@@ -2547,11 +2547,11 @@ Queue<String> GetBuildFlags()
    q.AddTail(String("MUSCLE_POWERPC_TIMEBASE_HZ=%1").Arg(MUSCLE_POWERPC_TIMEBASE_HZ));
 #endif
 
-#ifdef MUSCLE_USE_PTHREADS 
+#ifdef MUSCLE_USE_PTHREADS
    q.AddTail("MUSCLE_USE_PTHREADS");
 #endif
 
-#ifdef MUSCLE_USE_PTHREADS 
+#ifdef MUSCLE_USE_PTHREADS
    q.AddTail("MUSCLE_USE_CPLUSPLUS11_THREADS");
 #endif
 
@@ -2563,11 +2563,11 @@ Queue<String> GetBuildFlags()
    q.AddTail(String("MUSCLE_FD_SETSIZE=%1").Arg(MUSCLE_FD_SETSIZE));
 #endif
 
-#ifdef MUSCLE_AVOID_NEWNOTHROW 
+#ifdef MUSCLE_AVOID_NEWNOTHROW
    q.AddTail("MUSCLE_AVOID_NEWNOTHROW");
 #endif
 
-#ifdef MUSCLE_AVOID_FORKPTY 
+#ifdef MUSCLE_AVOID_FORKPTY
    q.AddTail("MUSCLE_AVOID_FORKPTY");
 #endif
 

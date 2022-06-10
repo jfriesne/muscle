@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/UDPSocketDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
@@ -79,8 +79,8 @@ int main(int argc, char ** argv)
    Message args;
    (void) ParseArgs(argc, argv, args);
    HandleStandardDaemonArgs(args);
- 
-   const char * temp; 
+
+   const char * temp;
 
    uint16 port = 0;
    if (args.FindString("port", &temp).IsOK()) port = (uint16) atoi(temp);
@@ -100,7 +100,7 @@ int main(int argc, char ** argv)
       int spamHz = atol(temp);
       spamInterval = (spamHz > 0) ? MICROS_PER_SECOND/spamHz : 1;
    }
-   
+
    status_t ret;
 
    bool useTCP = false;
@@ -110,7 +110,7 @@ int main(int argc, char ** argv)
       useTCP = true;
       ConstSocketRef s;
       IPAddress connectTo = GetHostByName(temp);
-      if (connectTo != invalidIP) 
+      if (connectTo != invalidIP)
       {
          s = Connect(IPAddressAndPort(connectTo, port), NULL, "testpackettunnel", false);
          if (s() == NULL) return 10;
@@ -129,7 +129,7 @@ int main(int argc, char ** argv)
          {
             LogTime(MUSCLE_LOG_CRITICALERROR, "Accept() failed!\n");
             return 10;
-         } 
+         }
       }
       dio.SetRef(new PacketizedProxyDataIO(DataIORef(new TCPSocketDataIO(s, false)), mtu));
    }

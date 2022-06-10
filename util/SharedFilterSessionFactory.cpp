@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "util/SharedFilterSessionFactory.h"
 #include "util/NetworkUtilityFunctions.h"
@@ -90,7 +90,7 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const IPAddress & ip) co
             }
          }
 
-         _sharedMemory.UnlockArea(); 
+         _sharedMemory.UnlockArea();
       }
    }
    return allowAccess;

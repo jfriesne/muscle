@@ -7,8 +7,8 @@
 
 namespace muscle {
 
-/** This is a class that literally represents no data.  It is primarily meant to be 
-  * used as a dummy/placeholder type in Hashtables that need to contain only keys 
+/** This is a class that literally represents no data.  It is primarily meant to be
+  * used as a dummy/placeholder type in Hashtables that need to contain only keys
   * and don't need to contain any values.
   */
 class Void MUSCLE_FINAL_CLASS

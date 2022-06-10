@@ -21,7 +21,7 @@ public:
    /** Default Constructor.  Sets session to NULL and asInput to false */
    PolicyHolder() : _session(NULL), _asInput(false) {/* empty */}
 
-   /** Constructor.  Sets our held values as specified by the arguments. 
+   /** Constructor.  Sets our held values as specified by the arguments.
      * @param session the AbstractReflectSession object that we will be in use by
      * @param asInput true iff we're being used to regulate input data, false if we're being used to regulate output data
      */

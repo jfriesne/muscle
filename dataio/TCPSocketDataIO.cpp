@@ -9,7 +9,7 @@ TCPSocketDataIO :: TCPSocketDataIO(const ConstSocketRef & sock, bool blocking) :
    (void) SetBlockingIOEnabled(blocking);
 }
 
-TCPSocketDataIO :: ~TCPSocketDataIO() 
+TCPSocketDataIO :: ~TCPSocketDataIO()
 {
    Shutdown();
 }
@@ -37,7 +37,7 @@ void TCPSocketDataIO :: FlushOutput()
 #endif
    }
 }
-   
+
 status_t TCPSocketDataIO :: SetBlockingIOEnabled(bool blocking)
 {
    MRETURN_ON_ERROR(SetSocketBlockingEnabled(_sock, blocking));

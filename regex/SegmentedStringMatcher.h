@@ -30,11 +30,11 @@ public:
     *                    Default is MUSCLE_NO_LIMIT, meaning all segments will be added with no fixed limit applied.
     */
    SegmentedStringMatcher(const String & matchString, bool isSimpleFormat = true, const char * segmentSeparatorChars = "/", uint32 maxSegments = MUSCLE_NO_LIMIT);
-    
+
    /** Destructor */
    ~SegmentedStringMatcher();
 
-   /** 
+   /**
     * Set a new wildcard pattern or regular expression for this SegmentedStringMatcher to use in future Match() calls.
     * @param matchString The new globbing pattern or regular expression to match with.  It may be segmented using any of the
     *                    separator characters specified in our constructor.
@@ -46,7 +46,7 @@ public:
     * @return B_NO_ERROR on success, B_BAD_ARGUMENT if the expression wasn't parsable, or B_OUT_OF_MEMORY.
     */
    status_t SetPattern(const String & matchString, bool isSimpleFormat=true, const char * segmentSeparatorChars = "/", uint32 maxSegments = MUSCLE_NO_LIMIT);
-    
+
    /** Returns the pattern String as it was previously passed in to SetPattern() */
    const String & GetPattern() const {return _pattern;}
 
@@ -63,7 +63,7 @@ public:
     * @return true iff (matchString) matches, false otherwise.
     */
    bool Match(const char * const matchString) const {return _negate ? !MatchAux(matchString) : MatchAux(matchString);}
-    
+
    /** Convenience method:  Same as above, but takes a String object instead of a (const char *).
      * @param matchString a string to match against using our current expression.
      * @return true iff (matchString) matches, false otherwise.

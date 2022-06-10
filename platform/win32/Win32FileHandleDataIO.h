@@ -8,7 +8,7 @@
 namespace muscle {
 
 /**
- *  Data I/O to and from a Win32 style file descriptor 
+ *  Data I/O to and from a Win32 style file descriptor
  */
 class Win32FileHandleDataIO : public SeekableDataIO
 {
@@ -37,7 +37,7 @@ public:
     *  @param buffer Buffer to read the bytes from.
     *  @param size Number of bytes in the buffer.
     *  @return Number of bytes written, or -1 on error.
-    *  @see DataIO::Write()    
+    *  @see DataIO::Write()
     */
    virtual int32 Write(const void * buffer, uint32 size);
 
@@ -59,9 +59,9 @@ public:
 
    /** Seeks to the specified point in the file stream.
     *  @param offset Where to seek to.
-    *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END. 
+    *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END.
     *  @return B_NO_ERROR on success, an error code on failure.
-    */ 
+    */
    virtual status_t Seek(int64 offset, int whence);
 
    /** Returns our current position in the file */
@@ -82,7 +82,7 @@ public:
 
    /**
     * Returns the file descriptor held by this object, or
-    * INVALID_HANDLE_VALUE if there is none. 
+    * INVALID_HANDLE_VALUE if there is none.
     */
    ::HANDLE GetFileHandle() const {return _handle;}
 

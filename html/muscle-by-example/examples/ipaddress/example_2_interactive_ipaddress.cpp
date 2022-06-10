@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
       String s = buf;
       s = s.Trim();  // get rid of newline ugliness
 
-      IPAddress ip; 
+      IPAddress ip;
       if (ip.SetFromString(s).IsOK())
       {
          printf("I parsed the string [%s] as IPAddress %s\n", s(), ip.ToString()());

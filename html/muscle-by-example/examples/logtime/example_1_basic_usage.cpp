@@ -36,6 +36,6 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_DEBUG, "... but after calling SetConsoleLogLevel(MUSCLE_LOG_DEBUG), debug-level output will appear on stdout.\n");
    SetConsoleLogLevel(MUSCLE_LOG_TRACE);  // lower the threshold for stdout-output to MUSCLE_LOG_TRACE or greater
    LogTime(MUSCLE_LOG_TRACE, "... same thing goes for MUSCLE_LOG_TRACE-level output (which is suppressed by default)\n");
-   
+
    return 0;
 }

@@ -1,11 +1,11 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */ 
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifndef MuscleRefCount_h 
-#define MuscleRefCount_h 
+#ifndef MuscleRefCount_h
+#define MuscleRefCount_h
 
-#include "util/Cloneable.h" 
-#include "util/ObjectPool.h" 
-#include "util/PointerAndBool.h" 
+#include "util/Cloneable.h"
+#include "util/ObjectPool.h"
+#include "util/PointerAndBool.h"
 #include "system/AtomicCounter.h"
 
 namespace muscle {
@@ -18,7 +18,7 @@ extern void UpdateAllocationStackTrace(bool isAllocation, String * & s);  // imp
 #endif
 
 /** This macro declares typedefs for a given RefCountable type that follow the standard naming convention.
-  * Given a RefCountable class Named XXX it will create typedefs named XXXRef and ConstXXXRef as 
+  * Given a RefCountable class Named XXX it will create typedefs named XXXRef and ConstXXXRef as
   * more readable synonyms for Ref<XXX> and ConstRef<XXX>, respectively.
   */
 #define DECLARE_REFTYPES(RefCountableClassName)                                            \
@@ -27,7 +27,7 @@ extern void UpdateAllocationStackTrace(bool isAllocation, String * & s);  // imp
    typedef muscle::DummyRef<RefCountableClassName>      Dummy##RefCountableClassName##Ref; \
    typedef muscle::DummyConstRef<RefCountableClassName> DummyConst##RefCountableClassName##Ref
 
-/** This class represents objects that can be reference-counted using the Ref class. 
+/** This class represents objects that can be reference-counted using the Ref class.
   * Note that any object that can be reference-counted can also be cached and recycled via an ObjectPool.
   */
 class RefCountable
@@ -41,7 +41,7 @@ public:
    {/* empty */}
 
    /** Copy constructor -- ref count and manager settings are deliberately not copied over! */
-   RefCountable(const RefCountable &) : _refCount(), _manager(NULL) 
+   RefCountable(const RefCountable &) : _refCount(), _manager(NULL)
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
       , _allocatedAtStackTrace(NULL)
 #endif
@@ -68,10 +68,10 @@ public:
      * is used by the ObjectPool class to recycle this object when it is no longer
      * in use, so as to avoid the overhead of having to delete it and re-create it
      * later on.  The RefCountable class itself does nothing with this pointer.
-     * Default value is NULL. 
+     * Default value is NULL.
      * @param manager Pointer to the new manager object to use, or NULL to use no manager.
      */
-   void SetManager(AbstractObjectManager * manager) 
+   void SetManager(AbstractObjectManager * manager)
    {
       _manager = manager;
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
@@ -81,7 +81,7 @@ public:
 
    /** Returns this object's current recyler pointer. */
    AbstractObjectManager * GetManager() const {return _manager;}
-   
+
    /** Returns this object's current reference count.  Note that
      * the value returned by this method is volatile in multithreaded
      * environments, so it may already be wrong by the time it is returned.
@@ -97,7 +97,7 @@ public:
      * destructors which are very picky about making sure all objects have been returned
      * to the pool before they deallocate the ObjectSlabs.
      *
-     * Note that enabling this feature uses up gobs of extra memory and CPU, so don't leave 
+     * Note that enabling this feature uses up gobs of extra memory and CPU, so don't leave
      * it enabled after you are done debugging.
      */
    const String * GetAllocationLocation() const {return _allocatedAtStackTrace;}
@@ -129,13 +129,13 @@ public:
    typedef ObjectPool<Item> ItemPool;        /**< type of an ObjectPool of user data structures */
    typedef Item ItemType;                    /**< the type we are specialized to */
 
-   /** 
+   /**
     *  Default constructor.
     *  Creates a NULL reference (suitable for later initialization with SetRef(), or the assignment operator)
     */
    ConstRef() : _item(NULL, true) {/* empty */}
 
-   /** 
+   /**
      * Explicit constructor.  Increases the reference-count of the specified item.
      * Once referenced, (item) will be automatically deleted (or recycled) when the last ConstRef that references it goes away.
      * @param item A dynamically allocated object that the ConstRef class will assume responsibility for deleting.  May be NULL.
@@ -165,7 +165,7 @@ public:
      */
    ConstRef(const ConstRefCountableRef & ref, bool junk) : _item(NULL, true)
    {
-      (void) junk; 
+      (void) junk;
       (void) SetFromRefCountableRef(ref);
    }
 
@@ -180,9 +180,9 @@ public:
      * @param item A dynamically allocated object that this ConstRef object will assume responsibility for deleting.
      *             May be NULL, in which case the effect is just to unreference the current item.
      * @param doRefCount If set false, then this ConstRef will not do any ref-counting on (item); rather it
-     *                   just acts as a fancy version of a normal C++ pointer.  Specifically, it will not 
-     *                   modify the object's reference count, nor will it ever delete the object.  
-     *                   Setting this argument to false can be useful if you want to supply a  
+     *                   just acts as a fancy version of a normal C++ pointer.  Specifically, it will not
+     *                   modify the object's reference count, nor will it ever delete the object.
+     *                   Setting this argument to false can be useful if you want to supply a
      *                   ConstRef to an item that wasn't dynamically allocated from the heap.
      *                   But if you do that, it allows the possibility of the object going away while
      *                   other Refs are still using it, so be careful!
@@ -199,12 +199,12 @@ public:
                SetRefCounting(true);
                RefItem();
             }
-            else 
+            else
             {
                // We were ref-counting before, but the user wants us to drop it
                UnrefItem();
                SetRefCounting(false);
-            } 
+            }
          }
       }
       else
@@ -229,7 +229,7 @@ public:
 
    /** Similar to the == operator, except that this version will also call the comparison operator
      * on the objects themselves if necessary, to determine exact equality.  (This is different than
-     * the behavior of the == operator, which only compares the pointers, not the objects themselves) 
+     * the behavior of the == operator, which only compares the pointers, not the objects themselves)
      * @param rhs the ConstRef whose referenced object we will compare to our own referenced object.
      */
    bool IsDeeplyEqualTo(const ConstRef & rhs) const
@@ -245,12 +245,12 @@ public:
      * @param rhs the ConstRef to compare pointers with
      */
    bool operator ==(const ConstRef &rhs) const {return this->GetItemPointer() == rhs.GetItemPointer();}
- 
-   /** Returns true iff both Refs are not referencing the same data. 
+
+   /** Returns true iff both Refs are not referencing the same data.
      * @param rhs the ConstRef to compare pointers with
      */
    bool operator !=(const ConstRef &rhs) const {return this->GetItemPointer() != rhs.GetItemPointer();}
- 
+
    /** Compares the pointers the two Refs are referencing.
      * @param rhs the ConstRef to compare pointers with
      */
@@ -269,19 +269,19 @@ public:
    /** Convenience synonym for GetItemPointer(). */
    const Item * operator()() const {return this->GetItemPointer();}
 
-   /** Unreferences our held data item (if any), and turns this object back into a NULL reference.  
+   /** Unreferences our held data item (if any), and turns this object back into a NULL reference.
     *  (equivalent to *this = ConstRef();)
     */
    void Reset() {UnrefItem();}
 
-   /** Equivalent to Reset(), except that this method will not delete or recycle 
-     * the held object under any circumstances.  Use with caution, as use of this 
+   /** Equivalent to Reset(), except that this method will not delete or recycle
+     * the held object under any circumstances.  Use with caution, as use of this
      * method can result in memory leaks.
      */
-   void Neutralize() 
+   void Neutralize()
    {
       const Item * item = this->IsRefCounting() ? this->GetItemPointer() : NULL;
-      if (item) (void) item->DecrementRefCount();  // remove our ref-count from the item but deliberately never delete the item 
+      if (item) (void) item->DecrementRefCount();  // remove our ref-count from the item but deliberately never delete the item
       _item.SetPointer(NULL);
    }
 
@@ -298,7 +298,7 @@ public:
    /** Convenience method:  Returns a ConstRefCountableRef object referencing the same RefCountable as this typed ref. */
    ConstRefCountableRef GetRefCountableRef() const {ConstRefCountableRef ret; ret.SetRef(this->GetItemPointer(), this->IsRefCounting()); return ret;}
 
-   /** Convenience method; attempts to set this typed ConstRef to be referencing the same item as the given ConstRefCountableRef.  
+   /** Convenience method; attempts to set this typed ConstRef to be referencing the same item as the given ConstRefCountableRef.
      * If the conversion cannot be done, our state will remain unchanged.
      * @param refCountableRef The ConstRefCountableRef to set ourselves from.
      * @returns B_NO_ERROR if the conversion was successful, or B_BAD_ARGUMENT if the ConstRefCountableRef's item
@@ -350,7 +350,7 @@ public:
 
    /** This method will check our referenced object to see if there is any
      * chance that it is shared by other ConstRef objects.  If it is, it will
-     * make a copy of the referenced object and set this ConstRef to reference 
+     * make a copy of the referenced object and set this ConstRef to reference
      * the copy instead of the original.  The upshot of this is that once
      * this method returns B_NO_ERROR, you can safely modify the referenced
      * object without having to worry about race conditions caused by sharing
@@ -377,7 +377,7 @@ public:
      */
    Ref<Item> Clone() const
    {
-      const Item * item = this->GetItemPointer(); 
+      const Item * item = this->GetItemPointer();
       if (item)
       {
          AbstractObjectManager * m = item->GetManager();
@@ -387,7 +387,7 @@ public:
             newItem = static_cast<Item *>(m->ObtainObjectGeneric());
             if (newItem) *newItem = *item;
          }
-         else newItem = CloneObject(*item); 
+         else newItem = CloneObject(*item);
 
          if (newItem) return Ref<Item>(newItem);
                  else MWARN_OUT_OF_MEMORY;
@@ -405,9 +405,9 @@ private:
    ConstRef(const Item * item, bool doRefCount) : _item(item, doRefCount) {RefItem();}
    void SetRefCounting(bool rc) {_item.SetBool(rc);}
 
-   void RefItem() 
+   void RefItem()
    {
-      const Item * item = this->IsRefCounting() ? this->GetItemPointer() : NULL; 
+      const Item * item = this->IsRefCounting() ? this->GetItemPointer() : NULL;
       if (item) item->IncrementRefCount();
    }
 
@@ -426,7 +426,7 @@ private:
          _item.SetPointer(NULL);
       }
    }
-   
+
    PointerAndBool<const Item> _item;
 };
 
@@ -482,13 +482,13 @@ public:
 template <class Item> class Ref : public ConstRef<Item>
 {
 public:
-   /** 
+   /**
     *  Default constructor.
     *  Creates a NULL reference (suitable for later initialization with SetRef(), or the assignment operator)
     */
    Ref() : ConstRef<Item>() {/* empty */}
 
-   /** 
+   /**
      * Explicit constructor.  Increases the reference-count of the specified item.
      * Once referenced, (item) will be automatically deleted (or recycled) when the last ConstRef that references it goes away.
      * @param item A dynamically allocated object that the ConstRef class will assume responsibility for deleting.  May be NULL.
@@ -579,14 +579,14 @@ public:
    template<typename T> DummyRef(const Ref<T> & refItem) : Ref<Item>(refItem(), refItem.IsRefCounting()) {/* empty */}
 };
 
-/** This function works similarly to ConstRefCount::GetItemPointer(), except that this function 
+/** This function works similarly to ConstRefCount::GetItemPointer(), except that this function
  *  can be safely called with a NULL ConstRef object as an argument.
  *  @param rt Pointer to a const reference object, or NULL.
  *  @returns If rt is NULL, this function returns NULL.  Otherwise it returns rt->GetItemPointer().
  */
 template <class Item> inline const Item * CheckedGetItemPointer(const ConstRef<Item> * rt) {return rt ? rt->GetItemPointer() : NULL;}
 
-/** This function works similarly to RefCount::GetItemPointer(), except that this function 
+/** This function works similarly to RefCount::GetItemPointer(), except that this function
  *  can be safely called with a NULL Ref object as an argument.
  *  @param rt Pointer to a const reference object, or NULL.
  *  @returns If rt is NULL, this function returns NULL.  Otherwise it returns rt->GetItemPointer().

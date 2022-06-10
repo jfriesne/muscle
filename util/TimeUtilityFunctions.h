@@ -30,8 +30,8 @@ namespace muscle {
 
 /** Returns the current real-time clock time as a uint64.  The returned value is expressed
  *  as microseconds since the beginning of the year 1970.
- *  @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the value returned will be the current UTC time.  
- *                  If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the returned value will include the proper 
+ *  @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the value returned will be the current UTC time.
+ *                  If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the returned value will include the proper
  *                  offset to make the time be the current time as expressed in this machine's local time zone.
  *                  For any other value, the behaviour of this function is undefined.
  *  @note that the values returned by this function are NOT guaranteed to be monotonically increasing!
@@ -59,8 +59,8 @@ int64 GetPerProcessRunTime64Offset();
 
 /** Given a run-time value, returns the equivalent current-time value.
   * @param runTime64 A run-time value, e.g. as returned by GetRunTime64().
-  * @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the value returned will be the equivalent UTC time.  
-  *                 If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the returned value will include the proper 
+  * @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the value returned will be the equivalent UTC time.
+  *                 If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the returned value will include the proper
   *                 offset to make the time be the equivalent time as expressed in this machine's local time zone.
   *                 For any other value, the behaviour of this function is undefined.
   * @returns a current-time value, as might have been returned by GetCurrentTime64(timeType) at the specified run-time.
@@ -71,7 +71,7 @@ inline uint64 GetCurrentTime64ForRunTime64(uint64 runTime64, uint32 timeType=MUS
 
 /** Given a current-time value, returns the equivalent run-time value.
   * @param currentTime64 A current-time value, e.g. as returned by GetCurrentTime64(timeType).
-  * @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the (currentTime64) argument will be interpreted as a UTC time.  
+  * @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the (currentTime64) argument will be interpreted as a UTC time.
   *                 If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the (currentTime64) argument will be interpreted as
   *                 a current-time in this machine's local time zone.
   *                 For any other value, the behaviour of this function is undefined.
@@ -96,7 +96,7 @@ status_t Snooze64(uint64 micros);
 inline bool OnceEvery(const struct timeval & interval, struct timeval & lastTime)
 {
    uint64 now64 = GetRunTime64();
-   struct timeval now; 
+   struct timeval now;
    Convert64ToTimeVal(now64, now);
    if (!IsLessThan(now, lastTime))
    {
@@ -124,7 +124,7 @@ inline bool OnceEvery(uint64 interval, uint64 & lastTime)
    return false;
 }
 
-/** This handy macro will print out, twice a second, 
+/** This handy macro will print out, twice a second,
  *  the average number of times per second it is being called.
  */
 #define PRINT_CALLS_PER_SECOND(x) \

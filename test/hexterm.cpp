@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -63,21 +63,21 @@ static void LogChecksum(const uint8 * buf, uint32 numBytes)
 
 static void LogBytes(const uint8 * buf, uint32 numBytes, const char * optDesc)
 {
-   if (_useHex) 
+   if (_useHex)
    {
       if (!_quietSend) LogHexBytes(MUSCLE_LOG_INFO, buf, numBytes, optDesc);
       if (_printChecksums) LogChecksum(buf, numBytes);
    }
-   else 
+   else
    {
-      if (_decorateOutput) 
+      if (_decorateOutput)
       {
          LogTime(MUSCLE_LOG_INFO, "/-----------Begin " UINT32_FORMAT_SPEC " bytes of %s%sAscii Data-----------\\\n", numBytes, optDesc?optDesc:"", optDesc?" ":"");
 
          bool atFront = true;
-         for (uint32 i=0; i<numBytes; i++) 
+         for (uint32 i=0; i<numBytes; i++)
          {
-            if (atFront) 
+            if (atFront)
             {
                LogTime(MUSCLE_LOG_INFO, "| ");
                atFront = false;
@@ -132,11 +132,11 @@ static status_t FlushOutBuffer(uint64 & writeCounter, const ByteBufferRef & outB
    {
       const uint32 wrote = io.WriteFully(outBuf()->GetBuffer(), outBuf()->GetNumBytes());
       writeCounter++;
-      if (wrote == outBuf()->GetNumBytes()) 
+      if (wrote == outBuf()->GetNumBytes())
       {
          if (_decorateOutput) LogBytes(outBuf()->GetBuffer(), outBuf()->GetNumBytes(), "Sent");
       }
-      else 
+      else
       {
          LogTime(MUSCLE_LOG_ERROR, "Error, Write() only wrote " INT32_FORMAT_SPEC " of " UINT32_FORMAT_SPEC " bytes... aborting!\n", wrote, outBuf()->GetNumBytes());
          return B_IO_ERROR;
@@ -188,7 +188,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
             uint8 * b = spamBuf() ? spamBuf()->GetBuffer() : NULL;
             if (b)
             {
-               uint8 v = (uint8)(spamTime%256); 
+               uint8 v = (uint8)(spamTime%256);
                for (uint32 i=0; i<_spamSize; i++) b[i] = v++;  // just some nice arbitrary data
                if (_spamSize >= sizeof(uint32)) muscleCopyOut(b, B_HOST_TO_LENDIAN_INT32(_spamSize));  // so we can verify that packets aren't getting truncated on reception
                spamBytesSent = io()->WriteFully(b, _spamSize);
@@ -201,7 +201,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
          {
             uint8 buf[2048];
             const int32 ret = io()->Read(buf, sizeof(buf));
-            if (ret > 0) 
+            if (ret > 0)
             {
                readCounter++;
 
@@ -224,7 +224,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
 
                _prevReceiveTime = now;
             }
-            else if (ret < 0) 
+            else if (ret < 0)
             {
                LogTime(MUSCLE_LOG_ERROR, "Read() returned " INT32_FORMAT_SPEC ", aborting!\n", ret);
                break;
@@ -235,10 +235,10 @@ static void DoSession(DataIORef io, bool allowRead = true)
             while(1)
             {
                const int32 bytesRead = stdinGateway.DoInput(receiver);
-               if (bytesRead < 0) 
+               if (bytesRead < 0)
                {
                   stdinFD = -1;  // indicate that stdin is no longer available
-                  if (keepGoing) 
+                  if (keepGoing)
                   {
                      keepGoing = false;
                      LogTime(MUSCLE_LOG_INFO, "Stdin has been closed; exiting...\n");
@@ -260,7 +260,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                   if (b.HasChars())
                   {
                      if (outBuf() == NULL) outBuf = GetByteBufferFromPool();
- 
+
                      ByteBufferRef nextBuf;
                      if (_useHex) nextBuf = ParseHexBytes(b());
                      else
@@ -325,7 +325,7 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
       LogTime(MUSCLE_LOG_ERROR, "Error creating UDP socket!\n");
       return;
    }
- 
+
    UDPSocketDataIO udpIO(ss, false);
    if (optHost.HasChars())
    {
@@ -378,7 +378,7 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
       }
       else LogTime(MUSCLE_LOG_ERROR, "Could not look up target hostname [%s]\n", optHost());
    }
-   else 
+   else
    {
       status_t ret;
       if (BindUDPSocket(ss, port).IsOK(ret))
@@ -527,7 +527,7 @@ int hextermmain(const char * argv0, const Message & args)
          String serName;
          for (int32 i=devs.GetNumItems()-1; i>=0; i--)
          {
-            if (devs[i] == devName) 
+            if (devs[i] == devName)
             {
                serName = devs[i];
                break;
@@ -544,7 +544,7 @@ int hextermmain(const char * argv0, const Message & args)
             }
             else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open serial device %s (baud rate " UINT32_FORMAT_SPEC ").\n", serName(), baudRate);
          }
-         else 
+         else
          {
             LogTime(MUSCLE_LOG_CRITICALERROR, "Serial device %s not found.\n", devName());
             LogTime(MUSCLE_LOG_CRITICALERROR, "Available serial devices are:\n");
@@ -595,7 +595,7 @@ int hextermmain(const char * argv0, const Message & args)
       if (as())
       {
          LogTime(MUSCLE_LOG_INFO, "Listening for incoming TCP connections on port %i\n", port);
-         while(true) 
+         while(true)
          {
             IPAddress acceptedFromIP;
             ConstSocketRef ss = Accept(as, &acceptedFromIP);
@@ -612,7 +612,7 @@ int hextermmain(const char * argv0, const Message & args)
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not bind to port %i\n", port);
    }
-   else if (ParseConnectArg(args, "udp", host, port, true).IsOK()) 
+   else if (ParseConnectArg(args, "udp", host, port, true).IsOK())
    {
       int optBindPort = -1;  // if we set it to non-negative, we'll also bind the UDP socket to this port (0 == system chooses a port!)
       const String argStr = args.GetString("udp");
@@ -630,7 +630,7 @@ int hextermmain(const char * argv0, const Message & args)
 // Hex bytes are displayed and entered in ASCII format.
 // Good for interactive debugging of low-level protocols like MIDI.
 #ifndef UNIFIED_DAEMON
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 

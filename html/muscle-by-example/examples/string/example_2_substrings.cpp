@@ -49,7 +49,7 @@ int main(int argc, char ** argv)
       printf("  shortString   = [%s]\n", shortString());
       printf("  shorterString = [%s]\n", shorterString());
    }
-   
+
    printf("\n");
    printf("Use of the Substring() method to compute substrings based on a substring-search:\n");
    {
@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
 
       const String firstShortString = longString.Substring(0, "only");  // get only the text before the first occurrence of "only"
       const String lastShortString  = longString.Substring("only");     // get only the text after the last occurrence of "only"
-  
+
       printf("  longString       = [%s]\n", longString());
       printf("  firstShortString = [%s]\n", firstShortString());
       printf("  lastShortString  = [%s]\n", lastShortString());

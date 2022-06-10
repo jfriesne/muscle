@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -30,7 +30,7 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {if (_downstreamSession) _downstreamSession->MessageReceivedFromSession(*this, msg, NULL);}
 
    // When we get handed an incoming-from-the-client Message from our DownstreamSession, pass it on to the upstream server
-   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void *) 
+   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void *)
    {
       if (&from == _downstreamSession)
       {
@@ -111,7 +111,7 @@ public:
 
       AbstractReflectSessionRef ret(newnothrow DownstreamSession(_upstreamLocation));
       if (ret() == NULL) MWARN_OUT_OF_MEMORY;
-      return ret; 
+      return ret;
    }
 
 private:

@@ -80,8 +80,8 @@ int main(int argc, char ** argv)
 
    printf("Shutting down the thread...\n");
    theThread.ShutdownInternalThread();
-   
-   printf("Bye!\n"); 
+
+   printf("Bye!\n");
    printf("\n");
 
    return 0;

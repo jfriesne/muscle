@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifdef MUSCLE_ENABLE_SSL
 # include "dataio/FileDataIO.h"
@@ -46,7 +46,7 @@ static status_t LoadCryptoKey(bool isPublic, const String * optKeyFilePath, Refl
 
 // Aux method; main() without the global stuff.  This is a good method to
 // call if you already have the global stuff set up the way you like it.
-// The third argument can be passed in as NULL, or point to a UsageLimitProxyMemoryAllocator object 
+// The third argument can be passed in as NULL, or point to a UsageLimitProxyMemoryAllocator object
 static int muscledmainAux(int argc, char ** argv, void * cookie)
 {
    TCHECKPOINT;
@@ -74,7 +74,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    const char * value;
    if (args.HasName("help"))
    {
-      Log(MUSCLE_LOG_INFO, "Usage:  muscled [port=%u] [listen=ip:port] [displaylevel=lvl] [filelevel=lvl] [logfile=filename]\n", DEFAULT_MUSCLED_PORT); 
+      Log(MUSCLE_LOG_INFO, "Usage:  muscled [port=%u] [listen=ip:port] [displaylevel=lvl] [filelevel=lvl] [logfile=filename]\n", DEFAULT_MUSCLED_PORT);
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
       Log(MUSCLE_LOG_INFO, "                [maxmem=megs]\n");
 #endif
@@ -186,7 +186,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
       LogTime(MUSCLE_LOG_INFO, "Limiting total session count to " UINT32_FORMAT_SPEC ".\n", maxSessions);
    }
 
-   if (args.FindString("maxsessionsperhost", &value).IsOK()) 
+   if (args.FindString("maxsessionsperhost", &value).IsOK())
    {
       maxSessionsPerHost = atoi(value);
       LogTime(MUSCLE_LOG_INFO, "Limiting session count for any given host to " UINT32_FORMAT_SPEC ".\n", maxSessionsPerHost);
@@ -195,7 +195,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    {
       for (int32 i=0; (args.FindString("ban", i, &value).IsOK()); i++)
       {
-         LogTime(MUSCLE_LOG_INFO, "Banning all clients whose IP addresses match [%s].\n", value);   
+         LogTime(MUSCLE_LOG_INFO, "Banning all clients whose IP addresses match [%s].\n", value);
          bans.AddTail(value);
       }
    }
@@ -203,7 +203,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    {
       for (int32 i=0; (args.FindString("require", i, &value).IsOK()); i++)
       {
-         LogTime(MUSCLE_LOG_INFO, "Allowing only clients whose IP addresses match [%s].\n", value);   
+         LogTime(MUSCLE_LOG_INFO, "Allowing only clients whose IP addresses match [%s].\n", value);
          requires.AddTail(value);
       }
    }
@@ -260,7 +260,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
       if (maxSendRate != MUSCLE_NO_LIMIT)
       {
          outputPolicyRef.SetRef(newnothrow RateLimitSessionIOPolicy(maxSendRate));
-         if (outputPolicyRef()) LogTime(MUSCLE_LOG_INFO, "Limiting aggregate send bandwidth to %.02f kilobytes/second.\n", ((float)maxSendRate/1024.0f)); 
+         if (outputPolicyRef()) LogTime(MUSCLE_LOG_INFO, "Limiting aggregate send bandwidth to %.02f kilobytes/second.\n", ((float)maxSendRate/1024.0f));
          else
          {
             MWARN_OUT_OF_MEMORY;
@@ -310,9 +310,9 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
 }
 
 #ifdef UNIFIED_DAEMON
-int muscledmain(int argc, char ** argv) 
+int muscledmain(int argc, char ** argv)
 #else
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 #endif
 {
    CompleteSetupSystem css;

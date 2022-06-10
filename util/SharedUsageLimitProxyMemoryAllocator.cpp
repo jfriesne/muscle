@@ -15,7 +15,7 @@ SharedUsageLimitProxyMemoryAllocator :: SharedUsageLimitProxyMemoryAllocator(con
    status_t ret;
    if (_shared.SetArea(sharedAreaKey, groupSize*sizeof(size_t), true).IsOK(ret))
    {
-      if (_shared.IsCreatedLocally()) 
+      if (_shared.IsCreatedLocally())
       {
          size_t * sa = GetArrayPointer();
          if (sa)
@@ -91,7 +91,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounterAux(int32 by
          {
             // This should never happen, but just in case it does...
             printf("Error, Attempted to reduce slot " INT32_FORMAT_SPEC "'s counter (currently " UINT64_FORMAT_SPEC ") by " UINT64_FORMAT_SPEC "!  Setting counter at zero instead.\n", (int32)_memberID, (uint64)_localAllocated, (uint64)reduceBy);
-            _localAllocated = 0; 
+            _localAllocated = 0;
          }
          else _localAllocated -= reduceBy;
       }

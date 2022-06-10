@@ -1,7 +1,7 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */ 
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifndef MuscleCloneable_h 
-#define MuscleCloneable_h 
+#ifndef MuscleCloneable_h
+#define MuscleCloneable_h
 
 #include "support/MuscleSupport.h"
 
@@ -47,12 +47,12 @@ protected:
    virtual Cloneable * CloneImp() const = 0;
 };
 
-/** This macro declares a "virtual Cloneable * CloneImp() const" method that performs the 
-  * standard/basic CloneImp() implementation:  Allocates a duplicate of this object on the 
-  * heap, using the copy constructor, and returns it.  The macro allows us to avoid the 
-  * tedious and error-prone re-entering of the same few lines of code for every Cloneable 
-  * class.  (If there was a way to automate this using templates, I'd use that instead, 
-  * but I haven't seen a reasonable way to do that yet) 
+/** This macro declares a "virtual Cloneable * CloneImp() const" method that performs the
+  * standard/basic CloneImp() implementation:  Allocates a duplicate of this object on the
+  * heap, using the copy constructor, and returns it.  The macro allows us to avoid the
+  * tedious and error-prone re-entering of the same few lines of code for every Cloneable
+  * class.  (If there was a way to automate this using templates, I'd use that instead,
+  * but I haven't seen a reasonable way to do that yet)
   */
 #define DECLARE_STANDARD_CLONE_METHOD(class_name)   \
    virtual Cloneable * CloneImp() const             \
@@ -64,18 +64,18 @@ protected:
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
 
-/** 
+/**
   * Returns a heap-allocated clone of the passed-in object.
   * @param item an item to call Clone() on if possible
   * @returns a heap-allocated copy of (item) on success, or NULL on failure.
-  * @note This is an old-style (pre-C++11) implementation of CloneObject() that 
+  * @note This is an old-style (pre-C++11) implementation of CloneObject() that
   *       relies on dynamic_cast<> to determine if the argument inherits
   *       from Cloneable, and if it doesn't, this method will print an error
   *       to stdout and return NULL.  The C++11-aware version (below) is
   *       superior, in that it will do the right thing whether the passed-in
   *       argument derived from Cloneable or not.
   */
-template<typename T> T * CloneObject(const T & item) 
+template<typename T> T * CloneObject(const T & item)
 {
    const Cloneable * c = dynamic_cast<const Cloneable *>(&item);
    if (c) return static_cast<T *>(c->Clone());
@@ -88,7 +88,7 @@ template<typename T> T * CloneObject(const T & item)
 
 #else
 
-/** 
+/**
   * Returns a heap-allocated clone of the passed-in object.
   * @param item an item to call Clone() on if possible, or to clone
   *             using the new operator and the object's copy-constructor otherwise.
@@ -102,7 +102,7 @@ CloneObject(const T& item)
    return static_cast<T *>(item.Clone());
 }
 
-/** 
+/**
   * Returns a heap-allocated clone of the passed-in object.
   * @param item an item to call Clone() on if possible, or to clone
   *             using the new operator and the object's copy-constructor otherwise.

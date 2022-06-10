@@ -8,7 +8,7 @@
 namespace muscle {
 
 /**
- *  Data I/O to and from a stdio FILE. 
+ *  Data I/O to and from a stdio FILE.
  */
 class FileDataIO : public SeekableDataIO
 {
@@ -35,7 +35,7 @@ public:
    /** Reads bytes from our file and places them into (buffer).
     *  @param buffer Buffer to write the bytes into
     *  @param size Number of bytes in the buffer.
-    *  @return Number of bytes read, or -1 on error.  
+    *  @return Number of bytes read, or -1 on error.
     *  @see DataIO::Read()
     */
    virtual int32 Read(void * buffer, uint32 size);
@@ -51,20 +51,20 @@ public:
    /** Seeks to the specified point in the file.
     *  @note this subclass only supports 32-bit offsets.
     *  @param offset Where to seek to.
-    *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END. 
+    *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END.
     *  @return B_NO_ERROR on success, an error code on failure.
-    */ 
+    */
    virtual status_t Seek(int64 offset, int whence);
-   
+
    /** Returns our current position in the file. */
    virtual int64 GetPosition() const;
 
    /** Flushes the file output by calling fflush() */
    virtual void FlushOutput();
-   
+
    /** Calls fclose() on the held file descriptor (if any) and forgets it */
    virtual void Shutdown();
- 
+
    /**
     * Releases control of the contained FILE object to the calling code.
     * After this method returns, this object no longer owns or can

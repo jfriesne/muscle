@@ -15,9 +15,9 @@ namespace muscle {
  *  a member object but, without requiring its constructor to be called at the usual C++ construct-object time.
  *
  *  Instead, the wrapped object's constructor gets called at a time of the caller's choosing;
- *  typically when the wrapped object is first accessed.  This can be useful to avoid the 
- *  overhead of constructing an object that may or may not ever be actually used for anything, 
- *  while at the same time avoiding the overhead and uncertainty of a separate dynamic memory 
+ *  typically when the wrapped object is first accessed.  This can be useful to avoid the
+ *  overhead of constructing an object that may or may not ever be actually used for anything,
+ *  while at the same time avoiding the overhead and uncertainty of a separate dynamic memory
  *  allocation for the object.
  */
 template <typename T> class DemandConstructedObject
@@ -29,7 +29,7 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    DemandConstructedObject(const DemandConstructedObject<T> & rhs) : _objPointer(NULL) {if (rhs.IsObjectConstructed()) (void) EnsureObjectConstructed(rhs.GetObjectUnchecked());}
 
-   /** Pseudo-Copy constructor. 
+   /** Pseudo-Copy constructor.
      * @param rhs the object to make this object a logical copy of
      */
    DemandConstructedObject(const T & rhs) : _objPointer(NULL) {(void) EnsureObjectConstructed(rhs);}
@@ -38,7 +38,7 @@ public:
    ~DemandConstructedObject() {if (_objPointer) _objPointer->~T();}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
-   DemandConstructedObject & operator=(const DemandConstructedObject & rhs) 
+   DemandConstructedObject & operator=(const DemandConstructedObject & rhs)
    {
       if (rhs.IsObjectConstructed()) GetObject() = rhs.GetObjectUnchecked();
                                  else (void) EnsureObjectDestructed();
@@ -48,7 +48,7 @@ public:
    /** Templated Assignment operator, for convenience
      * @param rhs the data object to set our own held object equal to
      */
-   DemandConstructedObject & operator=(const T & rhs) 
+   DemandConstructedObject & operator=(const T & rhs)
    {
       (void) GetObject() = rhs;
       return *this;

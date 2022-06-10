@@ -17,7 +17,7 @@ public:
 
    /** Destructor.  */
    virtual ~IHostNameResolver() {/* empty */}
-  
+
    /** Called by GetHostByName() when it wants to resolve a host name (e.g. "www.google.com" or "blah.local.") into an IPAddress.
      * @param name the hostname string to resolve
      * @param expandLocalhost true iff the caller would prefer that "localhost" should be expanded to a globally meaningful IP address; false if e.g. 127.0.0.1 or ::1 are preferable.

@@ -67,7 +67,7 @@ static MessageRef ParseStdinCommand(const String & stdinCommand)
              setDataMsg()->AddMessage(pathArg, dataPayloadMsg);
 
              return setDataMsg;
-         } 
+         }
       }
       else LogTime(MUSCLE_LOG_INFO, "Usage Example:  set my_node_dir/my_node_file = some text to put in the node\n");
    }
@@ -259,7 +259,7 @@ int main(int argc, char ** argv)
          }
       }
    }
-  
+
    mtt.ShutdownInternalThread();
 
    return 0;

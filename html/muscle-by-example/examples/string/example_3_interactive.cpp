@@ -25,7 +25,7 @@ int main(int argc, char ** argv)
    if (fgets(buf, sizeof(buf), stdin) == NULL) return 10;
 
    String s1 = buf;
-   s1 = s1.Trim();   // Get rid of any newlines/whitespace at front/end of s1 
+   s1 = s1.Trim();   // Get rid of any newlines/whitespace at front/end of s1
 
    printf("Please enter a second string: ");
    if (fgets(buf, sizeof(buf), stdin) == NULL) return 10;

@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
       printf("Blocking in WaitForEvents() until there is something to do... (" UINT32_FORMAT_SPEC " clients currently connected)\n", connectedClients.GetNumItems());
       (void) socketMux.WaitForEvents(nextCounterIncrementTime);  // wait until I/O, *or* until (nextCounterIncrementTime)
       const uint64 nowAfterWaitMicros = GetRunTime64();
- 
+
       if (nowAfterWaitMicros >= nextCounterIncrementTime)
       {
          nextCounterIncrementTime += TIMER_INTERVAL_MICROS;

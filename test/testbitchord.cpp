@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -51,7 +51,7 @@ enum {
 DECLARE_BITCHORD_FLAGS_TYPE(TestOptionBits, NUM_OPTIONS);
 
 // This program exercises the String class.
-int main(void) 
+int main(void)
 {
    TestOptionBits val(OPTION_J, OPTION_E, OPTION_R, OPTION_E, OPTION_M, OPTION_Y);
    printf("X01 [%s]\n", val.ToHexString()());
@@ -101,7 +101,7 @@ int main(void)
 
    TestOptionBits fromWords = TestOptionBits::FromWords((uint32)3,(uint32)0xFFFFFFF5);
    printf("X20 [%s]\n", fromWords.ToHexString()());
-  
+
    TestOptionBits fromBytes = TestOptionBits::FromBytes((uint8)1,(uint8)2,(uint8)3,(uint8)4,(uint8)(0x65));
    printf("X21 [%s]\n", fromBytes.ToHexString()());
 

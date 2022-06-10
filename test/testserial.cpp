@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/RS232DataIO.h"
 #include "system/SetupSystem.h"
@@ -8,7 +8,7 @@ using namespace muscle;
 #define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
 #define TESTSIZE(x) if ((x) < 0) printf("Test failed, line %i\n",__LINE__)
 
-int main(int /*argc*/, char ** /*argv*/) 
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

@@ -53,7 +53,7 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't open output file for write, aborting!\n");
       return 10;
    }
-   
+
    // Generate a series of raw-data-buffers and save them to the output file.
    // Note that in order to improve the compression efficiency, only the first
    // generated buffer is generated using the "independent=true" (third) parameter
@@ -103,7 +103,7 @@ int main(int argc, char ** argv)
    }
 
    LogTime(MUSCLE_LOG_INFO, "Re-Opened output file for reading, to verify it...\n");
-   
+
    uint32 rawBytesRead = 0;
    while(true)
    {
@@ -114,7 +114,7 @@ int main(int argc, char ** argv)
 
       ByteBufferRef deflatedData = GetByteBufferFromPool(bufSize);
       if (deflatedData() == NULL) return 10;  // out of memory?
-     
+
       if (inputFile.ReadFully(deflatedData()->GetBuffer(), deflatedData()->GetNumBytes()) != deflatedData()->GetNumBytes())
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to read full buffer of deflated data, corrupt file?\n");
@@ -130,13 +130,13 @@ int main(int argc, char ** argv)
       }
    }
 
-   if (rawBytesRead != rawBytesWritten) 
+   if (rawBytesRead != rawBytesWritten)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "The amount of re-inflated data read (" UINT64_FORMAT_SPEC " bytes) didn't match the amount written (" UINT64_FORMAT_SPEC " bytes)!  Corrupt data?\n", rawBytesRead, rawBytesWritten);
       return 10;
    }
 
    LogTime(MUSCLE_LOG_INFO, "The output file was verified to contain the same raw data that was generated.\n");
-   
+
    return 0;
 }

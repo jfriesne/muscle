@@ -49,7 +49,7 @@ int main(int argc, char ** argv)
       "file2.bin",
       "file3.bin"
    };
-   for (uint32 i=0; i<ARRAYITEMS(fakeFileNames); i++) 
+   for (uint32 i=0; i<ARRAYITEMS(fakeFileNames); i++)
    {
       if (WriteFakeFileDataToTarFile(writer, fakeFileNames[i]).IsError(ret))
       {
@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "Output file [%s] created.\n", outputFileName);
    LogTime(MUSCLE_LOG_INFO, "Run \"tar tvf %s\" list its contents.\n", outputFileName);
    LogTime(MUSCLE_LOG_INFO, "Run \"tar xvf %s\" un-tar its contents.\n", outputFileName);
- 
+
    printf("\n");
    return 0;
 }

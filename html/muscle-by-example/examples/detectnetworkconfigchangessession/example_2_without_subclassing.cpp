@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
 
    // This factory will create a StorageReflectSession object whenever
    // a TCP connection is received on SMART_SERVER_TCP_PORT, and
-   // attach the StorageReflectSession to the ReflectServer for use.   
+   // attach the StorageReflectSession to the ReflectServer for use.
    StorageReflectSessionFactory smartSessionFactory;
    status_t ret;
    if (reflectServer.PutAcceptFactory(SMART_SERVER_TCP_PORT, DummyReflectSessionFactoryRef(smartSessionFactory)).IsError(ret))
@@ -105,7 +105,7 @@ int main(int argc, char ** argv)
    else LogTime(MUSCLE_LOG_ERROR, "example_2_without_subclassing is exiting due to error [%s].\n", ret());
 
    // Make sure our server lets go of all of its sessions and factories
-   // before they are destroyed (necessary only because we may have 
+   // before they are destroyed (necessary only because we may have
    // allocated some of them on the stack rather than on the heap)
    reflectServer.Cleanup();
 

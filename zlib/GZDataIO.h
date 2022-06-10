@@ -9,7 +9,7 @@
 # include "zlib/zlib/zlib.h"  // for gzFile
 
 namespace muscle {
- 
+
 /** This class wraps around zlib's gzread() and gzwrite() APIs so that you
   * can use it to read or write .gz files.  This is currently implemented for
   * blocking I/O only.

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -9,7 +9,7 @@
 using namespace muscle;
 
 #define TEST(x) if ((x).IsError()) printf("Operation failed, line %i\n", __LINE__);
-#define NEGATIVETEST(x) if ((x).IsOK()) printf("Operation succeeded when it should not have, line %i\n", __LINE__); 
+#define NEGATIVETEST(x) if ((x).IsOK()) printf("Operation succeeded when it should not have, line %i\n", __LINE__);
 
 void printSep(const char * title);
 void printSep(const char * title)
@@ -25,7 +25,7 @@ class TestFlatCountable : public FlatCountable
 {
 public:
    TestFlatCountable()
-      : _val(-1) 
+      : _val(-1)
    {
       // empty
    }
@@ -54,7 +54,7 @@ public:
 
 private:
    String _string;
-   int32 _val; 
+   int32 _val;
 };
 DECLARE_REFTYPES(TestFlatCountable);
 
@@ -81,7 +81,7 @@ static void TestTemplatedFlatten(const Message & m, int lineNumber)
 
    printf("Message is:\n");
    m.PrintToStream();
- 
+
    ByteBufferRef buf = GetByteBufferFromPool(templatedFlatSize);
    memset(buf()->GetBuffer(), 'X', buf()->GetNumBytes());  // just to make any unwritten-to-bytes more obvious
    m.TemplatedFlatten(*messageTemplate(), buf()->GetBuffer());
@@ -103,7 +103,7 @@ static void TestTemplatedFlatten(const Message & m, int lineNumber)
          exit(10);
       }
    }
-   else 
+   else
    {
       printf("TemplatedUnflatten() (line %i) failed [%s]\n", lineNumber, ret());
       exit(10);
@@ -226,12 +226,12 @@ int main(int, char **)
    printf("GetString(\"Friesner(1)\")=%s\n", msg.GetString("Friesner", "<not found>", 1)());
    printf("GetString(\"Friesner(2)\")=%s\n", msg.GetString("Friesner", "<not found>", 2)());
    printf("GetString(\"Friesner(3)\")=%s\n", msg.GetString("Friesner", "<not found>", 3)());
-   printf("GetInt8=%i\n", msg.GetInt8("int8")); 
-   printf("GetInt16=%i\n", msg.GetInt16("int16")); 
-   printf("GetInt32=" INT32_FORMAT_SPEC "\n", msg.GetInt32("int32")); 
-   printf("GetInt64=" INT64_FORMAT_SPEC "\n", msg.GetInt64("int64")); 
-   printf("GetInt64_XXX=" INT64_FORMAT_SPEC "\n", msg.GetInt64("not_present")); 
-   printf("GetInt64_666=" INT64_FORMAT_SPEC "\n", msg.GetInt64("not_present", 666)); 
+   printf("GetInt8=%i\n", msg.GetInt8("int8"));
+   printf("GetInt16=%i\n", msg.GetInt16("int16"));
+   printf("GetInt32=" INT32_FORMAT_SPEC "\n", msg.GetInt32("int32"));
+   printf("GetInt64=" INT64_FORMAT_SPEC "\n", msg.GetInt64("int64"));
+   printf("GetInt64_XXX=" INT64_FORMAT_SPEC "\n", msg.GetInt64("not_present"));
+   printf("GetInt64_666=" INT64_FORMAT_SPEC "\n", msg.GetInt64("not_present", 666));
    printf("GetDouble(0)=%f\n", msg.GetDouble("double", 0, 0));
    printf("GetDouble(1)=%f\n", msg.GetDouble("double", 0, 1));
    printf("GetDouble(2)=%f\n", msg.GetDouble("double", 0, 2));
@@ -239,7 +239,7 @@ int main(int, char **)
    printf("GetPointer(0)=%p\n", msg.GetPointer("ptr", NULL, 0));
    printf("GetPointer(1)=%p\n", msg.GetPointer("ptr", NULL, 1));
    MessageRef getButter = msg.GetMessage("msg");
-   if (getButter()) printf("GetMessage = [%s]\n", getButter()->ToString()()); 
+   if (getButter()) printf("GetMessage = [%s]\n", getButter()->ToString()());
                else printf("GetMessage = NULL\n");
 
    Message subMessage(1);
@@ -252,7 +252,7 @@ int main(int, char **)
    TEST(subMessage.AddMessage("subsubMessage", subsubMessage));
 
    TEST(msg.AddMessage("subMessage", subMessage));
-   
+
    {for (int i=0; i<10; i++) TEST(msg.AddInt8("TestInt8", i));    }
    {for (int i=0; i<10; i++) TEST(msg.AddInt16("TestInt16", i));  }
    {for (int i=0; i<10; i++) TEST(msg.AddInt32("TestInt32", i));  }
@@ -269,12 +269,12 @@ int main(int, char **)
    TEST(msg.RemoveName("Buddha"));
    TEST(msg.RemoveData("Fred", 0));
    TEST(msg.RemoveData("Friesner", 1));
-   NEGATIVETEST(msg.RemoveData("Glorp", 0));  
-   NEGATIVETEST(msg.RemoveData("Chicken", 5)); 
+   NEGATIVETEST(msg.RemoveData("Glorp", 0));
+   NEGATIVETEST(msg.RemoveData("Chicken", 5));
    TEST(msg.ReplaceString(false, "Friesner", 0, "Jorge"));
    TEST(msg.ReplaceString(false, "Chicken", 1, "Feet"));
    TEST(msg.ReplaceString(false, "Chicken", 2, "Breast"));
-   NEGATIVETEST(msg.ReplaceString(false, "Chicken", 3, "Soul"));  
+   NEGATIVETEST(msg.ReplaceString(false, "Chicken", 3, "Soul"));
    TEST(msg.ReplaceDouble(true, "TestDouble", 2, 222.222));
    TEST(msg.ReplaceFloat(true, "TestFloat", 3, 333.333f));
    NEGATIVETEST(msg.ReplaceFloat(false, "RootBeerFloat", 0, 444.444f));
@@ -295,7 +295,7 @@ int main(int, char **)
    TEST(msg.FindString("Friesner", 1, res));
    printf("Friesner(1) = %s\n", res);
    NEGATIVETEST(msg.FindString("Friesner", 2, strResult));
-   NEGATIVETEST(msg.FindString("Friesner", 3, strResult));  
+   NEGATIVETEST(msg.FindString("Friesner", 3, strResult));
 
    int8 int8Result;
    TEST(msg.FindInt8("TestInt8", 5, int8Result));
@@ -356,7 +356,7 @@ int main(int, char **)
    TEST(msg.FindData("Data", B_RAW_TYPE, 1, &gd, &getDataSize));
    dataStr.SetCstr((const char *) gd, getDataSize);
    printf("data(1)=[%s], size=" UINT32_FORMAT_SPEC "\n", dataStr(), getDataSize);
-  
+
    printSep("Testing misc");
 
    printf("There are " UINT32_FORMAT_SPEC " string entries\n", msg.GetNumNames(B_STRING_TYPE));
@@ -387,7 +387,7 @@ int main(int, char **)
 
    {for (uint32 i=flatSize; i<flatSize*10; i++) if (buf[i] != 'J') printf("OVERWRITE ON BYTE " UINT32_FORMAT_SPEC "\n",i);}
    printf("\n====\n");
-   
+
    PrintHexBytes(buf, flatSize);
 
    Message copy;
@@ -422,7 +422,7 @@ int main(int, char **)
    if (msg.AddFlat("tfc", FlatCountableRef(tfcRef.GetRefCountableRef(), false)).IsOK())
    {
       TestFlatCountable tfc2;
-      if (msg.FindFlat("tfc", tfc2).IsOK()) 
+      if (msg.FindFlat("tfc", tfc2).IsOK())
       {
          printf("FindFlat() found: [%s]\n", tfc2.ToString()());
          if (tfc2 != *tfcRef()) printf("Error, found TFC [%s] doesn't match original [%s]\n", tfc2.ToString()(), tfcRef()->ToString()());

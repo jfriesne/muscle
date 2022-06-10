@@ -27,10 +27,10 @@ int main(int argc, char ** argv)
 #endif
       Socket mySock(some_fd);
       // [...]
-      // close(some_fd) will automatically be called here by the Socket object's destructor 
+      // close(some_fd) will automatically be called here by the Socket object's destructor
    }
 
-   // Still atypical, but this time we'll use a ConstSocketRef object so that we can 
+   // Still atypical, but this time we'll use a ConstSocketRef object so that we can
    // keep the file descriptor valid outside of the scope it was created in.
    {
       ConstSocketRef sockRef;
@@ -53,7 +53,7 @@ int main(int argc, char ** argv)
 
          // Code using the UDP socket could go here
          // [...]
-         // UDP socket gets close()'d here 
+         // UDP socket gets close()'d here
       }
       else printf("Failed to create the UDP socket!?\n");
    }

@@ -22,7 +22,7 @@ class NodeTreeWidgetItem : public QTreeWidgetItem
 {
 public:
    explicit NodeTreeWidgetItem(QTreeWidget * parent)
-      : QTreeWidgetItem(parent, QStringList("/")) 
+      : QTreeWidgetItem(parent, QStringList("/"))
 {setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);}
    NodeTreeWidgetItem(NodeTreeWidgetItem * parent, const String & name) : QTreeWidgetItem(parent, QStringList(name())), _name(name) {setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);}
 
@@ -67,7 +67,7 @@ BrowserWindow :: BrowserWindow()
    QBoxLayout * vLayout = new QBoxLayout(QBoxLayout::TopToBottom, this);
    vLayout->setContentsMargins(2,2,2,2);
    vLayout->setSpacing(2);
-   
+
    QWidget * topRow = new QWidget;
    {
       QBoxLayout * topRowLayout = new QBoxLayout(QBoxLayout::LeftToRight, topRow);
@@ -189,7 +189,7 @@ void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscrib
 
          // Also remove from our tree of locally-cached data any nodes that start with this path
          String removePath = nodePath + "/";
-         for (HashtableIterator<String, MessageRef> iter(_pathToMessage); iter.HasData(); iter++) if (iter.GetKey().StartsWith(removePath)) 
+         for (HashtableIterator<String, MessageRef> iter(_pathToMessage); iter.HasData(); iter++) if (iter.GetKey().StartsWith(removePath))
          {
             _pathToMessage.Remove(iter.GetKey());
             LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p dropped node for [%s]\n", this, iter.GetKey()());
@@ -223,7 +223,7 @@ void BrowserWindow :: ClearState()
    _messageContents->clear();
 }
 
-NodeTreeWidgetItem * BrowserWindow :: GetNodeFromPath(const String & nodePath) 
+NodeTreeWidgetItem * BrowserWindow :: GetNodeFromPath(const String & nodePath)
 {
    if (nodePath.StartsWith("/") == false) return NULL;  // all paths must start with "/"
    return (nodePath.Length()>1) ? GetNodeFromPathAux(_nodeRoot, nodePath()+1) : _nodeRoot;
@@ -290,7 +290,7 @@ void BrowserWindow :: MessageReceivedFromServer(const MessageRef & msg)
                   {
                      UpdateDataNodeInTreeView(nodePath);
                      LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p added/updated node at [%s]\n", this, nodePath());
-                  } 
+                  }
                }
             }
          }
@@ -324,7 +324,7 @@ void BrowserWindow :: ConnectButtonClicked()
       String serverName;
       uint16 port = 2960;
       if ((ParseConnectArg(FromQ(_serverName->text()), serverName, port).IsOK())&&(_mtt.AddNewConnectSession(serverName, port).IsOK())&&(_mtt.StartInternalThread().IsOK())) _isConnecting = true;
-   }      
+   }
    UpdateState();
 }
 

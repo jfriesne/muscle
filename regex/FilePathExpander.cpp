@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "regex/StringMatcher.h"
 #include "regex/FilePathExpander.h"
@@ -35,7 +35,7 @@ static status_t ExpandFilePathWildCardsAux(const String & curDir, const String &
                      MRETURN_ON_ERROR(ExpandFilePathWildCardsAux(childPath, restOfString, outputPaths, isSimpleFormat));
                   }
                   else MRETURN_ON_ERROR(outputPaths.AddTail(childPath));
-               } 
+               }
                dir++;
             }
             else break;

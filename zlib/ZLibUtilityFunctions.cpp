@@ -32,11 +32,11 @@ static void FreeZLibCodecs()
 {
    if (_zlibLock.Lock().IsOK())  // probably isn't necessary since this only gets called during shutdown... but just in case
    {
-      for (uint32 i=0; i<ARRAYITEMS(_codecs); i++) 
-      { 
+      for (uint32 i=0; i<ARRAYITEMS(_codecs); i++)
+      {
          delete _codecs[i];
          _codecs[i] = NULL;
-      } 
+      }
       _zlibLock.Unlock();
    }
 }
@@ -67,7 +67,7 @@ static ZLibCodec * GetZLibCodec(int level)
 {
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
    level = muscleClamp(level, 0, 9);
-   if (_codecs[level] == NULL) 
+   if (_codecs[level] == NULL)
    {
       _codecs[level] = newnothrow ZLibCodec(level);  // demand-allocate
       if (_codecs[level] == NULL) MWARN_OUT_OF_MEMORY;
@@ -78,7 +78,7 @@ static ZLibCodec * GetZLibCodec(int level)
 #endif
 }
 
-bool IsMessageDeflated(const MessageRef & msgRef) 
+bool IsMessageDeflated(const MessageRef & msgRef)
 {
    return ((msgRef())&&(msgRef()->HasName(MUSCLE_ZLIB_FIELD_NAME_STRING)));
 }
@@ -149,7 +149,7 @@ MessageRef InflateMessage(const MessageRef & msgRef)
       if (infMsg())
       {
          bufRef = InflateByteBuffer(*bufRef());
-         if ((bufRef())&&(infMsg()->UnflattenFromByteBuffer(bufRef).IsOK())) 
+         if ((bufRef())&&(infMsg()->UnflattenFromByteBuffer(bufRef).IsOK()))
          {
             infMsg()->what = msgRef()->what;  // do this after UnflattenFromByteBuffer(), so that the outer 'what' is the one that gets used
             ret = infMsg;

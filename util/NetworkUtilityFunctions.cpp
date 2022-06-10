@@ -117,7 +117,7 @@ static inline void SET_SOCKADDR_IP(struct sockaddr_in6 & sockAddr, const IPAddre
 
    sockAddr.sin6_scope_id = tmp;
 }
-static inline uint16 GET_SOCKADDR_PORT(const struct sockaddr_in6 & addr) 
+static inline uint16 GET_SOCKADDR_PORT(const struct sockaddr_in6 & addr)
 {
    switch(addr.sin6_family)
    {
@@ -377,7 +377,7 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
             if ((getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0)||(GET_SOCKADDR_FAMILY(toAddr) != MUSCLE_SOCKET_FAMILY)) return -1;
          }
 
-         if (optToIP != invalidIP) 
+         if (optToIP != invalidIP)
          {
             SET_SOCKADDR_IP(toAddr, optToIP);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
@@ -408,7 +408,7 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
 
       const int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
-      if (oldInterfaceIndex >= 0) 
+      if (oldInterfaceIndex >= 0)
       {
          (void) SetSocketMulticastSendInterfaceIndex(sock, oldInterfaceIndex);  // gotta do this AFTER computing the return value, as it clears errno!
          SetErrno(errnoFromSendCall);  // restore the errno from the send_ignore_eintr() call, in case our calling code wants to examine it
@@ -497,7 +497,7 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
             // The harder case:  the user doesn't want the Connect() call to take more than (so many) microseconds.
             // For this, we'll need to go into non-blocking mode and run a SocketMultiplexer loop to get the desired behaviour!
             const uint64 deadline = GetRunTime64()+maxConnectTime;
-            SocketMultiplexer multiplexer; 
+            SocketMultiplexer multiplexer;
             uint64 now;
             while((now = GetRunTime64()) < deadline)
             {
@@ -688,7 +688,7 @@ class DNSRecord
 {
 public:
    DNSRecord()
-      : _expirationTime(0) 
+      : _expirationTime(0)
    {
       // empty
    }
@@ -1114,7 +1114,7 @@ static String MACAddressToString(uint64 mac)
    if (mac == 0) return "None";
 
    char buf[128];
-   muscleSprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x", 
+   muscleSprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x",
        (unsigned) ((mac>>(5*8))&0xFF),
        (unsigned) ((mac>>(4*8))&0xFF),
        (unsigned) ((mac>>(3*8))&0xFF),
@@ -1248,7 +1248,7 @@ bool IPAddress :: IsIPv6LocalMulticast(uint8 scope) const
       if ((highBits & topEight) == topEight)
       {
          const uint8 scopeBits = (highBits >> 48) & 0x0F;
-         return (scopeBits==scope); 
+         return (scopeBits==scope);
       }
    }
    return false;
@@ -1353,8 +1353,8 @@ static uint32 ParseAppleInterfaceTypeString(CFStringRef appleTypeString)
 
    // There doesn't appear to be a constant declared for "Bridge", but Apple returns it sometimes, so we might as well recognize it
    const String s(appleTypeString);
-   if (s.EqualsIgnoreCase("bridge")) return NETWORK_INTERFACE_HARDWARE_TYPE_BRIDGE; 
-   
+   if (s.EqualsIgnoreCase("bridge")) return NETWORK_INTERFACE_HARDWARE_TYPE_BRIDGE;
+
    return NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN;
 }
 #endif
@@ -1752,7 +1752,7 @@ void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4)
 
 String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4)
 {
-   char buf[64]; 
+   char buf[64];
    Inet_NtoA(ipAddress, buf, preferIPv4);
    return buf;
 }
@@ -2067,7 +2067,7 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
       {
          valLen = sizeof(val); if (getsockopt(fd, SOL_TCP, TCP_KEEPCNT, (sockopt_arg *) &val, &valLen) != 0) return B_ERRNO;
          *retMaxProbeCount = val;
-      } 
+      }
    }
 
    if (retIdleTime)

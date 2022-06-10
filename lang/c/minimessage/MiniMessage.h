@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-/** @defgroup minimessage The MiniMessage C function API 
+/** @defgroup minimessage The MiniMessage C function API
  *  These functions are all defined in MiniMessage(.c,.h), and are stand-alone
  *  C functions that provide a way for C programs to use MUSCLE Messages.
  *  This is a minimalist implentation and not so easy to use as the C++ Message
@@ -63,7 +63,7 @@ typedef struct _MMessage MMessage;
 typedef struct _MMessageIterator {
    const MMessage * message;  /**< Message whose fields we are currently iterating over */
    void * iterState;          /**< Internal implementation detail, please ignore */
-   uint32 typeCode;           /**< type code we are looking for, or B_ANY_TYPE if any type is okay */  
+   uint32 typeCode;           /**< type code we are looking for, or B_ANY_TYPE if any type is okay */
 } MMessageIterator;
 
 /** Definition of our byte-array class, including size value */
@@ -72,13 +72,13 @@ typedef struct _MByteBuffer {
    uint8 bytes;      /**< Note that this is only the first byte; there are usually more after this one */
 } MByteBuffer;
 
-/** Allocates and initializes a new MByteBuffer with the specified number of bytes, and returns a pointer to it. 
+/** Allocates and initializes a new MByteBuffer with the specified number of bytes, and returns a pointer to it.
   * @param numBytes How many bytes to allocate in this buffer.
   * @param clearBytes If MTrue, all the data bytes in the returned MByteBuffer will be zero.
   *                   If MFalse, the bytes' values will be undefined (which is a bit more efficient)
-  * @returns a newly allocated MByteBuffer with the specified number of bytes, or NULL on failure.  
-  *          If non-NULL, it becomes the responsibility of the calling code to call FreeMByteBuffer() 
-  *          on the MByteBuffer when it is done using it. 
+  * @returns a newly allocated MByteBuffer with the specified number of bytes, or NULL on failure.
+  *          If non-NULL, it becomes the responsibility of the calling code to call FreeMByteBuffer()
+  *          on the MByteBuffer when it is done using it.
   */
 MByteBuffer * MBAllocByteBuffer(uint32 numBytes, MBool clearBytes);
 
@@ -90,7 +90,7 @@ MByteBuffer * MBAllocByteBuffer(uint32 numBytes, MBool clearBytes);
 MByteBuffer * MBStrdupByteBuffer(const char * sourceString);
 
 /** Attempts to create and return a cloned copy of (cloneMe).
-  * @param cloneMe The MByteBuffer to create a copy of.  
+  * @param cloneMe The MByteBuffer to create a copy of.
   * @returns The newly allocated MByteBuffer, or NULL on failure.
   */
 MByteBuffer * MBCloneByteBuffer(const MByteBuffer * cloneMe);
@@ -107,16 +107,16 @@ MBool MBAreByteBuffersEqual(const MByteBuffer * buf1, const MByteBuffer * buf2);
   */
 void MBFreeByteBuffer(MByteBuffer * msg);
 
-/** Allocates and initializes a new MMessage with the specified what code, and returns a pointer to it. 
+/** Allocates and initializes a new MMessage with the specified what code, and returns a pointer to it.
   * @param what Initial 'what' code to give to the MMessage.
   * @returns a newly allocated MMessage, or NULL on failure.  If non-NULL, it becomes the
   *          the responsibility of the calling code to call MMFreeMessage() on the MMessage
-  *          when it is done using it. 
+  *          when it is done using it.
   */
 MMessage * MMAllocMessage(uint32 what);
 
 /** Attempts to create and return a cloned copy of (cloneMe).
-  * @param cloneMe The MMessage to create a copy of.  
+  * @param cloneMe The MMessage to create a copy of.
   * @returns The newly allocated MMessage, or NULL on failure.
   */
 MMessage * MMCloneMessage(const MMessage * cloneMe);
@@ -126,13 +126,13 @@ MMessage * MMCloneMessage(const MMessage * cloneMe);
   */
 void MMFreeMessage(MMessage * msg);
 
-/** Returns the 'what' code associated with the specified MMessage. 
+/** Returns the 'what' code associated with the specified MMessage.
   * @param msg The MMessage to retrieve the 'what' code of.'
   * @returns The MMessage's what code.
   */
 uint32 MMGetWhat(const MMessage * msg);
 
-/** Sets the 'what' code associated with the specified MMessage. 
+/** Sets the 'what' code associated with the specified MMessage.
   * @param msg The MMessage to set the 'what' code of'.
   * @param newWhat The new 'what' code to install.  (Typically a B_*_TYPE value)
   */
@@ -146,7 +146,7 @@ void MMClearMessage(MMessage * msg);
 
 /** Attempts to remove and free the specified field from the given MMessage.
   * @param msg the MMessage object to remove the field from
-  * @param fieldName Name of the field to remove and free. 
+  * @param fieldName Name of the field to remove and free.
   * @returns CB_NO_ERROR if the field was found and removed, or CB_ERROR if it wasn't found.
   */
 c_status_t MMRemoveField(MMessage * msg, const char * fieldName);
@@ -163,7 +163,7 @@ c_status_t MMRemoveField(MMessage * msg, const char * fieldName);
   * @returns A pointer to an array of (numItems) MByteBuffer pointers, or NULL if there was an error.
   *          The returned array belongs to the MMessage, and will be freed by it at the proper time.
   *          The MByteBuffer pointers in the array, when non-NULL, are also considered to belong to the
-  *          MMessage, and will have MBFreeByteBuffer() called on them when the field is destroyed.  
+  *          MMessage, and will have MBFreeByteBuffer() called on them when the field is destroyed.
   *          NOTE: When setting a value in the array, be sure to allocate its memory using MBAllocByteBuffer()
   *                or MBStrdupByteBuffer(), and be sure to call MBFreeByteBuffer() on the old value before
   *                you replace it.
@@ -341,14 +341,14 @@ MRect * MMPutRectField(MMessage * msg, MBool retainOldData, const char * fieldNa
   * @returns A pointer to an array of (numItems) MByteBuffer pointers, or NULL if there was an error.
   *          The returned array belongs to the MMessage, and will be freed by it at the proper time.
   *          The MByteBuffer pointers in the array, when non-NULL, are also considered to belong to the
-  *          MMessage, and will have MBFreeByteBuffer() called on them when the field is destroyed.  
+  *          MMessage, and will have MBFreeByteBuffer() called on them when the field is destroyed.
   *          NOTE: When setting a value in the array, be sure to allocate its memory using MBAllocByteBuffer()
   *                or MBStrdupByteBuffer(), and be sure to call MBFreeByteBuffer() on the old value before
   *                you replace it.
   */
 MByteBuffer ** MMPutDataField(MMessage * msg, MBool retainOldData, uint32 typeCode, const char * fieldName, uint32 numItems);
 
-/** Returns the number of bytes it would take to hold a flattened representation of (msg). 
+/** Returns the number of bytes it would take to hold a flattened representation of (msg).
   * @param msg MMessage to scan to determine its flattened size.
   * @returns Number of bytes the flattened representation would require.
   */
@@ -367,7 +367,7 @@ void MMFlattenMessage(const MMessage * msg, void * outBuf);
 
 /** Unflattens the supplied byte buffer into the supplied MMessage object.
   * @param msg MMessage object to set the state of, based on the contents of the flattened byte buffer.
-  * @param inBuf Buffer containing the flattened MMessage bytes, as previously created by 
+  * @param inBuf Buffer containing the flattened MMessage bytes, as previously created by
   *              MMFlattenMessage() (or some other code that writes the flattened MUSCLE Message format).
   * @param bufSizeBytes How many valid bytes of data are available at (inBuf).
   * @returns CB_NO_ERROR if the restoration was a success, or CB_ERROR otherwise (in which case (msg) will
@@ -381,7 +381,7 @@ c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 bufSize
   * @param destMsg The MMessage to move the field to.  If a field with this name already exists
   *                inside (destMsg), it will be replaced and freed.  If (destMsg) is NULL, the
   *                field will be removed from the source Message and freed.
-  * @returns CB_NO_ERROR on success, or CB_ERROR on failure.  
+  * @returns CB_NO_ERROR on success, or CB_ERROR on failure.
   */
 c_status_t MMMoveField(MMessage * sourceMsg, const char * fieldName, MMessage * destMsg);
 
@@ -391,7 +391,7 @@ c_status_t MMMoveField(MMessage * sourceMsg, const char * fieldName, MMessage * 
   * @param destMsg The MMessage to copy the field to.  If a field with this name already exists
   *                inside (destMsg), it will be replaced and freed.  If (destMsg) is NULL, this
   *                call will have no effect.
-  * @returns CB_NO_ERROR on success, or CB_ERROR on failure.  
+  * @returns CB_NO_ERROR on success, or CB_ERROR on failure.
   */
 c_status_t MMCopyField(const MMessage * sourceMsg, const char * fieldName, MMessage * destMsg);
 
@@ -400,7 +400,7 @@ c_status_t MMCopyField(const MMessage * sourceMsg, const char * fieldName, MMess
   * @param oldFieldName Current name of the field.
   * @param newFieldName Desired new name of the field.  If a field with this name already exists
   *                inside (sourceMsg), it will be replaced and freed.
-  * @returns CB_NO_ERROR on success, or CB_ERROR on failure.  
+  * @returns CB_NO_ERROR on success, or CB_ERROR on failure.
   */
 c_status_t MMRenameField(MMessage * sourceMsg, const char * oldFieldName, const char * newFieldName);
 
@@ -562,7 +562,7 @@ const char * MMGetNextFieldName(MMessageIterator * iteratorPtr, uint32 * optRetT
 
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
 
-/** A wrapper for malloc() that allows us to track the number of bytes currently allocated.  
+/** A wrapper for malloc() that allows us to track the number of bytes currently allocated.
   * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise defined to be equivalent to malloc().
   * @param numBytes the number of bytes to allocate
   */
@@ -588,7 +588,7 @@ void * MRealloc(void * oldBuf, uint32 newSize);
 # define MFree    free     /**< if MUSCLE_ENABLE_MEMORY_TRACKING is not defined, then MFree() just becomes a synonym for free()       */
 #endif
 
-/** Returns the current number of allocated bytes. 
+/** Returns the current number of allocated bytes.
   * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise always returns zero.
   */
 uint32 MGetNumBytesAllocated();

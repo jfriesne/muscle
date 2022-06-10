@@ -20,13 +20,13 @@ namespace muscle {
 class Rect MUSCLE_FINAL_CLASS : public Tuple<4,float>, public PseudoFlattenable
 {
 public:
-   /** Default Constructor.  
+   /** Default Constructor.
      * Creates a rectangle with upper left point (0,0), and lower right point (-1,-1).
      * Note that this rectangle has a negative area!  (that is to say, it's imaginary)
-     */ 
+     */
    Rect() {Set(0.0f,0.0f,-1.0f,-1.0f);}
 
-   /** Constructor where you specify the left, top, right, and bottom coordinates 
+   /** Constructor where you specify the left, top, right, and bottom coordinates
      * @param l the left-edge coordinate
      * @param t the top-edge coordinate
      * @param r the right-edge coordinate
@@ -120,7 +120,7 @@ public:
      */
    inline void SetLeftBottom(const Point & p) {left() = p.x(); bottom() = p.y();}
 
-   /** Set the right top corner of the rectangle. 
+   /** Set the right top corner of the rectangle.
      * @param p the new right/top corner for this Rect
      */
    inline void SetRightTop(const Point & p) {right() = p.x(); top() = p.y();}
@@ -136,7 +136,7 @@ public:
      */
    inline void InsetBy(float dx, float dy) {left() += dx; top() += dy; right() -= dx; bottom() -= dy;}
 
-   /** Translates the rectangle by the amount specified in both the x and y dimensions 
+   /** Translates the rectangle by the amount specified in both the x and y dimensions
      * @param p a Point whose dimensions indicate how far to translate this Rect in each direction
      */
    inline void OffsetBy(const Point & p) {OffsetBy(p.x(), p.y());}
@@ -147,7 +147,7 @@ public:
      */
    inline void OffsetBy(float dx, float dy) {left() += dx; top() += dy; right() += dx; bottom() += dy;}
 
-   /** Translates the rectangle so that its top left corner is at the point specified. 
+   /** Translates the rectangle so that its top left corner is at the point specified.
      * @param p the new upper-left corner for this rectangle
      */
    inline void OffsetTo(const Point & p) {OffsetTo(p.x(), p.y());}
@@ -159,7 +159,7 @@ public:
    inline void OffsetTo(float x, float y) {right() = x + Width(); bottom() = y + Height(); left() = x; top() = y;}
 
    /** If this Rect has negative width or height, modifies it to have positive width and height.   */
-   void Rationalize() 
+   void Rationalize()
    {
       if (left() > right()) {float t = left(); left() = right(); right() = t;}
       if (top() > bottom()) {float t = top(); top() = bottom(); bottom() = t;}
@@ -168,7 +168,7 @@ public:
    /** Returns a rectangle whose area is the intersecting subset of this rectangle's and (r)'s
      * @param r the Rect to intersect with this rectangle
      */
-   inline Rect operator&(const Rect & r) const 
+   inline Rect operator&(const Rect & r) const
    {
       Rect ret(*this);
       if (this != &r)
@@ -184,7 +184,7 @@ public:
    /** Returns a rectangle whose area is a superset of the union of this rectangle's and (r)'s
      * @param r the Rect to unify with this rectangle
      */
-   inline Rect operator|(const Rect & r) const 
+   inline Rect operator|(const Rect & r) const
    {
       Rect ret(*this);
       if (this != &r)
@@ -205,12 +205,12 @@ public:
      */
    inline Rect & operator |= (const Rect & rhs) {(*this) = (*this) | rhs; return *this;}
 
-   /** Causes this rectangle to be come the intersection of itself and (rhs). 
+   /** Causes this rectangle to be come the intersection of itself and (rhs).
      * @param rhs the rectangle to intersect with this one
      */
    inline Rect & operator &= (const Rect & rhs) {(*this) = (*this) & rhs; return *this;}
 
-   /** Returns true iff this rectangle and (r) overlap in space. 
+   /** Returns true iff this rectangle and (r) overlap in space.
      * @param r the Rect to check to see if it intersects with this Rect
      */
    inline bool Intersects(const Rect & r) const {return (r&(*this)).IsValid();}
@@ -238,7 +238,7 @@ public:
      */
    inline bool Contains(const Point & p) const {return ((p.x() >= left())&&(p.x() <= right())&&(p.y() >= top())&&(p.y() <= bottom()));}
 
-   /** Returns true iff this rectangle fully encompasses the specified rectangle. 
+   /** Returns true iff this rectangle fully encompasses the specified rectangle.
      * @param p the Rect to check to see if it's entirely inside this Rect.
      */
    inline bool Contains(Rect p) const {return ((Contains(p.LeftTop()))&&(Contains(p.RightTop()))&&(Contains(p.LeftBottom()))&&(Contains(p.RightBottom())));}
@@ -283,8 +283,8 @@ public:
       else return B_BAD_DATA;
    }
 
-   /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be 
-     * selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately 
+   /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be
+     * selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately
      * AutoChooseHashFunctor doesn't check the superclasses when it looks for a HashCode method)
      */
    uint32 HashCode() const {return Tuple<4,float>::HashCode();}
@@ -294,4 +294,4 @@ DECLARE_ALL_TUPLE_OPERATORS(Rect,float);
 
 } // end namespace muscle
 
-#endif 
+#endif

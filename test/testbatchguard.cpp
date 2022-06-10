@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -34,7 +34,7 @@ class TestArgsA
 public:
    TestArgsA()
       : _s(NULL)
-      , _i(0) 
+      , _i(0)
    {
       // empty
    }
@@ -43,7 +43,7 @@ public:
    void PrintToStream() const {printf("TestArgsA:  [%s] %i\n", _s, _i);}
 
 private:
-   const char * _s; 
+   const char * _s;
    int _i;
 };
 
@@ -63,7 +63,7 @@ class TestArgsB
 public:
    TestArgsB()
       : _s(NULL)
-      , _i(0) 
+      , _i(0)
    {
       // empty
    }
@@ -72,7 +72,7 @@ public:
    void PrintToStream() const {printf("TestArgsB:  [%s] %i\n", _s, _i);}
 
 private:
-   const char * _s; 
+   const char * _s;
    int _i;
 };
 

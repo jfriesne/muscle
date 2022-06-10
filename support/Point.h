@@ -27,7 +27,7 @@ public:
    /** Default constructor, sets the point to be (0.0f, 0.0f) */
    Point() {/* empty */}
 
-   /** Constructor where you specify the initial value of the point 
+   /** Constructor where you specify the initial value of the point
     *  @param ax Initial x position
     *  @param ay Initial y position
     */
@@ -38,7 +38,7 @@ public:
 
    /** Destructor */
    ~Point() {/* empty */}
- 
+
    /** convenience method to set the x value of this Point */
    inline float & x()       {return (*this)[0];}
 
@@ -52,8 +52,8 @@ public:
    inline float   y() const {return (*this)[1];}
 
    /** Sets a new value for the point.
-    *  @param ax The new x value 
-    *  @param ay The new y value 
+    *  @param ax The new x value
+    *  @param ay The new y value
     */
    void Set(float ax, float ay) {x() = ax; y() = ay;}
 
@@ -81,9 +81,9 @@ public:
       if (optFile == NULL) optFile = stdout;
       fprintf(optFile, "Point: %f %f\n", x(), y());
    }
-      
+
    /** Part of the PseudoFlattenable pseudo-interface:  Returns true */
-   bool IsFixedSize() const {return true;} 
+   bool IsFixedSize() const {return true;}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns B_POINT_TYPE */
    uint32 TypeCode() const {return B_POINT_TYPE;}
@@ -100,14 +100,14 @@ public:
    uint32 CalculateChecksum() const {return CalculateChecksumForFloat(x()) + (3*CalculateChecksumForFloat(y()));}
 
    /** @copydoc DoxyTemplate::Flatten(uint8 *) const */
-   void Flatten(uint8 * buffer) const 
+   void Flatten(uint8 * buffer) const
    {
       muscleCopyOut(&buffer[0*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(x()));
       muscleCopyOut(&buffer[1*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(y()));
    }
 
    /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
-   status_t Unflatten(const uint8 * buffer, uint32 size) 
+   status_t Unflatten(const uint8 * buffer, uint32 size)
    {
       if (size >= FlattenedSize())
       {
@@ -118,19 +118,19 @@ public:
       else return B_BAD_DATA;
    }
 
-   /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be 
-     * selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately 
+   /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be
+     * selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately
      * AutoChooseHashFunctor doesn't check the superclasses when it looks for a HashCode method)
      */
    uint32 HashCode() const {return Tuple<2,float>::HashCode();}
 
-   /** Returns the distance between this point and (pt).  
+   /** Returns the distance between this point and (pt).
      * @param pt The point we want to calculate the distance to.
      * @returns a non-negative distance value.
      */
    float GetDistanceTo(const Point & pt) const {return (float)sqrt(GetDistanceToSquared(pt));}
 
-   /** Returns the square of the distance between this point and (pt).  
+   /** Returns the square of the distance between this point and (pt).
      * @param pt The point we want to calculate the distance to.
      * @returns a non-negative distance-squared value.
      * @note this method is more efficient that calling GetDistanceTo(), since it doesn't have to call sqrt().
@@ -146,4 +146,4 @@ DECLARE_ALL_TUPLE_OPERATORS(Point,float);
 
 } // end namespace muscle
 
-#endif 
+#endif

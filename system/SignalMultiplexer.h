@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #ifndef MuscleSignalMultiplexer_h
 #define MuscleSignalMultiplexer_h
@@ -69,7 +69,7 @@ public:
    /** Returns the total number of signals (of all kinds) that have been received by this SignalMultiplexer object. */
    uint32 GetTotalNumSignalsReceived() const {return _totalSignalCounts;}
 
-   /** Returns the total number of signals of the specified kind that have been received by this SignalMultiplexer object. 
+   /** Returns the total number of signals of the specified kind that have been received by this SignalMultiplexer object.
      * @param type The signal number (e.g. SIGINT).  Note that only signal numbers up to 31 are tracked.
      */
    uint32 GetNumSignalsReceivedOfType(uint32 type) const {return (type<ARRAYITEMS(_signalCounts))?_signalCounts[type]:0;}

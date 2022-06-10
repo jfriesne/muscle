@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
 #else
       Queue<int> q = {1, 2, 3};   // initial Queue contents
 #endif
-      (void) q.AddHead(5);   // note we are adding each item 
+      (void) q.AddHead(5);   // note we are adding each item
       (void) q.AddHead(10);  // *before* the first item in the Queue!
       (void) q.AddHead(15);
       (void) q.AddHead(20);

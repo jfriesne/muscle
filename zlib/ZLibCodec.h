@@ -11,7 +11,7 @@
 # include "zlib/zlib/zlib.h"
 
 namespace muscle {
- 
+
 class DataIO;
 
 /** This class is a handy wrapper around the zlib C functions.

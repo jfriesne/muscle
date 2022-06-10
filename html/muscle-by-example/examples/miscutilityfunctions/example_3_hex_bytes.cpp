@@ -15,12 +15,12 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    PrintExampleDescription();
-   
+
    const uint8 myBuf[] = "This is a buffer of raw binary data.  It just so happens to also be ASCII text, but we will ignore that happy coincidence for now -- it could just as well be any 8-bit bytes.";
 
    printf("Here is our buffer of data printed as ASCII text:  [%s]\n", myBuf);
 
-   printf("\n"); 
+   printf("\n");
    String hexBytesStr = HexBytesToString(myBuf, sizeof(myBuf));
    printf("And now, here it is as rendered by HexBytesToString():  [%s]\n", hexBytesStr());
 
@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
    if (parseHexBytesStr()) printf("Here's the result of parsing that previous string back using ParseHexBytes(): [%s]\n", parseHexBytesStr()->GetBuffer());
                       else printf("ParseHexBytes() failed!?\n");
 
-   printf("\n"); 
+   printf("\n");
    String nybbleizedBytes;
    if (NybbleizeData(myBuf, sizeof(myBuf), nybbleizedBytes).IsOK())
    {
@@ -44,7 +44,7 @@ int main(int argc, char ** argv)
    }
    else printf("NybbleizeData() failed!?\n");
 
-   printf("\n"); 
+   printf("\n");
    printf("And finally, our buffer printed out with annotation using PrintHexBytes():\n");
    printf("\n");
    PrintHexBytes(myBuf, sizeof(myBuf));

@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "regex/PathMatcher.h"
 #include "util/StringTokenizer.h"
@@ -13,7 +13,7 @@ void PathMatcher :: AdjustStringPrefix(String & path, const char * optPrepend) c
    if (path.HasChars())
    {
            if (path[0] == '/') path = path.Substring(1);
-      else if (optPrepend)     
+      else if (optPrepend)
       {
          String temp(optPrepend);  // gcc chokes on more compact code than this :^P
          temp += '/';
@@ -23,7 +23,7 @@ void PathMatcher :: AdjustStringPrefix(String & path, const char * optPrepend) c
    }
 }
 
-status_t PathMatcher :: RemovePathString(const String & wildpath) 
+status_t PathMatcher :: RemovePathString(const String & wildpath)
 {
    PathMatcherEntry temp;
    if (_entries.Remove(wildpath, temp).IsOK())
@@ -39,7 +39,7 @@ status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilte
    TCHECKPOINT;
 
    status_t ret;
-   if (path.HasChars()) 
+   if (path.HasChars())
    {
       StringMatcherQueue * newQ = GetStringMatcherQueuePool()->ObtainObject();
       if (newQ)
@@ -82,7 +82,7 @@ status_t PathMatcher :: PutPathsFromMessage(const char * pathFieldName, const ch
 
    ConstQueryFilterRef filter;  // declared here so that queries can "bleed down" the list without being specified multiple times
    const String * str;
-   for (uint32 i=0; msg.FindString(pathFieldName, i, &str).IsOK(); i++) 
+   for (uint32 i=0; msg.FindString(pathFieldName, i, &str).IsOK(); i++)
    {
       if (optFilterFieldName)
       {
@@ -134,7 +134,7 @@ bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, c
    const uint32 numClauses = GetPathDepth(path);
    for (HashtableIterator<String, PathMatcherEntry> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
-      const StringMatcherQueue * nextSubscription = iter.GetValue().GetParser()();      
+      const StringMatcherQueue * nextSubscription = iter.GetValue().GetParser()();
       if ((nextSubscription)&&(nextSubscription->GetStringMatchers().GetNumItems() == numClauses))
       {
          bool matched = true;  // default
@@ -144,14 +144,14 @@ bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, c
          {
             const char * nextToken = tok();
             const StringMatcher * nextMatcher = nextSubscription->GetStringMatchers().GetItemAt(j)->GetItemPointer();
-            if ((nextToken == NULL)||((nextMatcher)&&(nextMatcher->Match(nextToken) == false))) 
+            if ((nextToken == NULL)||((nextMatcher)&&(nextMatcher->Match(nextToken) == false)))
             {
                matched = false;
                break;
             }
          }
 
-         if (matched) 
+         if (matched)
          {
             DummyConstMessageRef constMsg(optMessage);
             const QueryFilter * filter = iter.GetValue().GetFilter()();
@@ -168,14 +168,14 @@ const char * GetPathClause(int depth, const char * path)
    for (int i=0; i<depth; i++)
    {
       const char * nextSlash = strchr(path, '/');
-      if (nextSlash == NULL) 
+      if (nextSlash == NULL)
       {
          path = NULL;
          break;
       }
       path = nextSlash + 1;
    }
-   return path;          
+   return path;
 }
 
 String GetPathClauseString(int depth, const char * path)

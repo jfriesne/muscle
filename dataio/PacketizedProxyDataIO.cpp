@@ -62,7 +62,7 @@ int32 PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
 
 int32 PacketizedProxyDataIO :: Write(const void * buffer, uint32 size)
 {
-   if (size > _maxTransferUnit) 
+   if (size > _maxTransferUnit)
    {
       LogTime(MUSCLE_LOG_ERROR, "PacketizedProxyDataIO:  Error, tried to send packet with size " UINT32_FORMAT_SPEC ", max transfer unit is set to " UINT32_FORMAT_SPEC "\n", size, _maxTransferUnit);
       return -1;
@@ -95,7 +95,7 @@ status_t PacketizedProxyDataIO :: WriteBufferedOutputAux()
    if (_outputBufferBytesSent < bufSize)
    {
       const int32 bytesSent = ProxyDataIO::Write(_outputBuffer.GetBuffer()+_outputBufferBytesSent, bufSize-_outputBufferBytesSent);
-      if (bytesSent >= 0) 
+      if (bytesSent >= 0)
       {
          _outputBufferBytesSent += bytesSent;
          if (_outputBufferBytesSent == bufSize)

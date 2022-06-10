@@ -9,7 +9,7 @@ static void PrintExampleDescription()
    printf("\n");
    printf("This program implements a version of \"Core War\" using the SharedMemory class.\n");
    printf("\n");
-   printf("It will open a SharedMemory region, and every 100mS it will lock the region for\n");  
+   printf("It will open a SharedMemory region, and every 100mS it will lock the region for\n");
    printf("read/write access, and write its chosen letter to a random location inside that region.\n");
    printf("\n");
    printf("Then it will unlock the region, lock it for read-only access, and print out the\n");

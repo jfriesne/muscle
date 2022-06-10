@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
          SocketMultiplexer multiplexer;
          while(1)
          {
-            if ((pingSent == false)&&(ioGateway.AddOutgoingMessage(DummyMessageRef(pingMessage)).IsOK())) 
+            if ((pingSent == false)&&(ioGateway.AddOutgoingMessage(DummyMessageRef(pingMessage)).IsOK()))
             {
                pingSent = true;
                lastThrowTime = GetRunTime64();

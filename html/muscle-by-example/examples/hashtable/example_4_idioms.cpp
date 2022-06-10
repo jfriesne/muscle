@@ -20,12 +20,12 @@ int main(int argc, char ** argv)
    Hashtable<String, int> table;
 
    // If we know up-front a limit on the number of items we are likely to place
-   // into the table, we can reserve that many slots in advance, and thereby 
-   // avoid any chance of the Hashtable having to reallocate its internal array 
-   // while we are adding items to it.  
+   // into the table, we can reserve that many slots in advance, and thereby
+   // avoid any chance of the Hashtable having to reallocate its internal array
+   // while we are adding items to it.
    //
    // That avoids some inefficiency, and it also means we don't have
-   // to worry about out-of-memory errors, or the memory-locations of key or 
+   // to worry about out-of-memory errors, or the memory-locations of key or
    // value-items changing, while populating the table.
 
    if (table.EnsureSize(20).IsError()) MWARN_OUT_OF_MEMORY;
@@ -50,7 +50,7 @@ int main(int argc, char ** argv)
 
    // GetOrPut() returns a pointer to the value of the given key, if the key is present
    // If the key isn't present, it places a key/value pair into the Hashtable and returns
-   // a pointer to the (default-constructed) placed value.  This is very useful when 
+   // a pointer to the (default-constructed) placed value.  This is very useful when
    // demand-allocating records.
    int * pEight = table.GetOrPut("Eight");
    printf("C:  table.GetOrPut(\"Eight\") returned %p\n", pEight);

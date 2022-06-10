@@ -52,7 +52,7 @@ static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<Strin
          if (cs == false) argName = argName.ToLowerCase();
       }
       if (argName.HasChars())
-      { 
+      {
          // Don't allow the parsing to fail just because the user specified a section name the same as a param name!
          uint32 tc;
          static const String _escapedQuote = "\\\"";
@@ -128,7 +128,7 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
 
    // First, we'll pre-process the string into a StringTokenizer-friendly
    // form, by replacing all quoted spaces with gunk and removing the quotes
-   String tokenizeThis; 
+   String tokenizeThis;
    MRETURN_ON_ERROR(tokenizeThis.Prealloc(len));
 
    const char GUNK_CHAR      = (char) 0x01;
@@ -138,7 +138,7 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
    {
       char c = trimmed[i];
       if ((lastCharWasBackslash == false)&&(c == '\"')) inQuotes = !inQuotes;
-      else 
+      else
       {
          if ((inQuotes == false)&&(c == '#')) break;  // comment to EOL
          tokenizeThis += ((inQuotes)&&(c == ' ')) ? GUNK_CHAR : c;
@@ -175,7 +175,7 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
                MRETURN_ON_ERROR(ParseArgAux(n+"="+n3, optAddToMsg, optAddToQueue, cs));
                t = tok();
             }
-            else 
+            else
             {
                MRETURN_ON_ERROR(ParseArgAux(n, optAddToMsg, optAddToQueue, cs));  // for the "x =" case, just parse x and ignore the equals
                t = NULL;
@@ -235,7 +235,7 @@ static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * op
          checkForSection = checkForSection.Substring(6).Trim();
          const int32 hashIdx = checkForSection.IndexOf('#');
          if (hashIdx >= 0) checkForSection = checkForSection.Substring(0, hashIdx).Trim();
-         
+
          // Don't allow the parsing to fail just because the user specified a section name the same as a param name!
          uint32 tc;
          if ((optAddToMsg->GetInfo(checkForSection, &tc).IsOK())&&(tc != B_MESSAGE_TYPE)) (void) optAddToMsg->RemoveName(checkForSection);
@@ -259,7 +259,7 @@ static status_t ParseFileAux(const String * optInStr, FILE * fpIn, Message * opt
    {
       StringTokenizer tok(optInStr->Cstr(), NULL, "\r\n");
       return (tok.GetRemainderOfString() != NULL) ? ParseFileAux(&tok, NULL, optAddToMsg, optAddToQueue, NULL, 0, cs) : B_BAD_ARGUMENT;
-   } 
+   }
    else
    {
       const int bufSize = 2048;
@@ -284,7 +284,7 @@ static void AddUnparseFileLine(FILE * optFile, String * optString, const String 
    static const char * eol = "\n";
 #endif
 
-   if (optString) 
+   if (optString)
    {
       *optString += indentStr;
       *optString += s;
@@ -351,7 +351,7 @@ static status_t ParseConnectArgAux(const String & s, uint32 startIdx, uint16 & r
    {
       const uint16 p = (uint16) atoi(pStr);
       if (p > 0) retPort = p;
-      return B_NO_ERROR; 
+      return B_NO_ERROR;
    }
    else return portRequired ? B_BAD_ARGUMENT : B_NO_ERROR;
 }
@@ -374,10 +374,10 @@ status_t ParseConnectArg(const String & s, String & retHost, uint16 & retPort, b
       return ParseConnectArgAux(s, rBracket+1, retPort, portRequired);
    }
    else if (s.GetNumInstancesOf(':') != 1)  // I assume IPv6-style address strings never have exactly one colon in them
-   {  
+   {
       retHost = s;
       return portRequired ? B_BAD_ARGUMENT : B_NO_ERROR;
-   }  
+   }
 #endif
 
    retHost = s.Substring(0, ":");
@@ -406,7 +406,7 @@ static void CrashSignalHandler(int sig)
    signal(SIGBUS,  SIG_DFL);
    signal(SIGILL,  SIG_DFL);
    signal(SIGABRT, SIG_DFL);
-   signal(SIGFPE,  SIG_DFL); 
+   signal(SIGFPE,  SIG_DFL);
 
    printf("MUSCLE CrashSignalHandler called with signal %i... I'm going to print a stack trace, then kill the process.\n", sig);
    PrintStackTrace();
@@ -465,7 +465,7 @@ static status_t SetRealTimePriority(const char * priStr, bool useFifo)
       LogTime(MUSCLE_LOG_INFO, "Set process to real-time (%s) priority %i\n", desc, pri);
       return B_NO_ERROR;
    }
-   else 
+   else
    {
       LogTime(MUSCLE_LOG_ERROR, "Could not invoke real time (%s) scheduling priority %i [%s]\n", desc, pri, B_ERRNO());
       return B_ACCESS_DENIED;
@@ -590,7 +590,7 @@ void HandleStandardDaemonArgs(const Message & args)
       signal(SIGBUS,  CrashSignalHandler);
       signal(SIGILL,  CrashSignalHandler);
       signal(SIGABRT, CrashSignalHandler);
-      signal(SIGFPE,  CrashSignalHandler); 
+      signal(SIGFPE,  CrashSignalHandler);
 #elif MUSCLE_USE_MSVC_STACKWALKER
 # ifndef MUSCLE_INLINE_LOGGING
       LogTime(MUSCLE_LOG_INFO, "Enabling stack-trace printing when a crash occurs.\n");
@@ -667,8 +667,8 @@ bool IsDaemonProcess() {return _isDaemonProcess;}
  * Comments from the Unix FAQ
  */
 #ifdef WIN32
-status_t SpawnDaemonProcess(bool &, const char *, const char *, bool) 
-{ 
+status_t SpawnDaemonProcess(bool &, const char *, const char *, bool)
+{
    return B_UNIMPLEMENTED;  // Win32 can't do this trick, he's too lame  :^(
 }
 #else
@@ -682,12 +682,12 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
    //    group leader. The next step, setsid(), fails if you're a process group leader.
    pid_t pid = fork();
    if (pid < 0) return B_ERRNO;
-   if (pid > 0) 
+   if (pid > 0)
    {
       returningAsParent = true;
       return B_NO_ERROR;
    }
-   else returningAsParent = false; 
+   else returningAsParent = false;
 
    // 2. setsid() to become a process group and session group leader. Since a controlling terminal is
    //    associated with a session, and this new session has not yet acquired a controlling terminal
@@ -727,7 +727,7 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
    if (nullfd >= 0) dup2(nullfd, STDIN_FILENO);
 
    int outfd = -1;
-   if (optOutputTo) 
+   if (optOutputTo)
    {
       outfd = open(optOutputTo, O_WRONLY | (createIfNecessary ? O_CREAT : 0), mode);
       if (outfd < 0) LogTime(MUSCLE_LOG_ERROR, "BecomeDaemonProcess():  Could not open %s to redirect stdout, stderr [%s]\n", optOutputTo, B_ERRNO());
@@ -789,7 +789,7 @@ String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChar
 {
    const uint32 len = muscleMin(s.Length(), (uint32)63);  // DNS spec says maximum 63 chars per label!
    String ret; if (ret.Prealloc(len).IsError()) return ret;
-  
+
    const char * p = s();
    for (uint32 i=0; i<len; i++)
    {
@@ -1008,7 +1008,7 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
             ret = B_ERRNO;
             break;
          }
-         
+
          const size_t bytesWritten = fwrite(buf, 1, bytesRead, fpOut);
          if (bytesWritten < bytesRead)
          {

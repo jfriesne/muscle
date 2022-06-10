@@ -78,10 +78,10 @@ int main(int argc, char ** argv)
          const int numBytesRead = cpIO.Read(inputBuf, sizeof(inputBuf)-1);
          if (numBytesRead >= 0)
          {
-            inputBuf[numBytesRead] = '\0';  // ensure NUL termination 
+            inputBuf[numBytesRead] = '\0';  // ensure NUL termination
             printf("Child Process sent this to me: [%s]\n", String(inputBuf).Trim()());
          }
-         else 
+         else
          {
             printf("Child process has exited!\n");
             break;

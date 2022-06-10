@@ -75,7 +75,7 @@ public:
      */
    static status_t MakeDirectoryForFile(const char * filePath);
 
-   /** Returns true iff the specified directory exists. 
+   /** Returns true iff the specified directory exists.
      * @param dirPath Path to check to see if it refers to an existing directory.
      * @returns true iff (dirPath) does in fact refer to an existing directory.
      */

@@ -9,7 +9,7 @@
 namespace muscle {
 
 /**
- *  Data I/O to and from a UDP socket! 
+ *  Data I/O to and from a UDP socket!
  */
 class UDPSocketDataIO : public PacketDataIO
 {
@@ -26,7 +26,7 @@ public:
    /** Destructor.
     *  Closes the socket descriptor, if necessary.
     */
-   virtual ~UDPSocketDataIO(); 
+   virtual ~UDPSocketDataIO();
 
    virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSource);
    virtual int32 Write(const void * buffer, uint32 size);
@@ -34,7 +34,7 @@ public:
 
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
    virtual void FlushOutput() {/* empty */}
-   
+
    /** Overridden to return the maximum packet size of a UDP packet.
      * Defaults to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes),
      * but the returned value can be changed via SetPacketMaximumSize().

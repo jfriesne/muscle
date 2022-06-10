@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "dataio/StdinDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
@@ -29,7 +29,7 @@ enum
    NET_CLIENT_PING,
    NET_CLIENT_PONG,
    NET_CLIENT_SCAN_THREAD_REPORT
-};                       
+};
 
 // ditto
 enum
@@ -40,7 +40,7 @@ enum
    BESHARE_HOME_DEPTH,     // used to separate our stuff from other (non-BeShare) data on the same server
    USER_NAME_DEPTH,        // user's handle node would be found here
    FILE_INFO_DEPTH         // user's shared file list is here
-};         
+};
 
 static MessageRef GenerateChatMessage(const char * targetSessionID, const char * messageText)
 {
@@ -67,7 +67,7 @@ static MessageRef GenerateServerSubscription(const char * subscriptionString, bo
       if (quietly) queryMsg()->AddBool(PR_NAME_SUBSCRIBE_QUIETLY, true);  // suppress initial-state response
    }
    return queryMsg;
-}        
+}
 
 static MessageRef GenerateSetLocalUserName(const char * name)
 {
@@ -82,7 +82,7 @@ static MessageRef GenerateSetLocalUserName(const char * name)
       uploadMsg()->AddMessage("beshare/name", nameMessage);
    }
    return uploadMsg;
-}              
+}
 
 static MessageRef GenerateSetLocalUserStatus(const char * name)
 {
@@ -94,7 +94,7 @@ static MessageRef GenerateSetLocalUserStatus(const char * name)
       uploadMsg()->AddMessage("beshare/userstatus", nameMessage);
    }
    return uploadMsg;
-}              
+}
 
 static String GetUserName(Hashtable<String, String> & users, const String & sessionID)
 {
@@ -117,7 +117,7 @@ int main(int argc, char ** argv)
    const char * tempStr;
    uint16 port = 0; if (args.FindString("port", &tempStr).IsOK()) port = (uint16) atoi(tempStr);
    if (port == 0) port = 2960;
-      
+
    // Connect to the server
    ConstSocketRef s = Connect(hostName, port, "clyde", false);
    if (s() == NULL) return 10;
@@ -127,7 +127,7 @@ int main(int argc, char ** argv)
    gw.AddOutgoingMessage(GenerateSetLocalUserName(userName));
    gw.AddOutgoingMessage(GenerateSetLocalUserStatus(userStatus));
    gw.AddOutgoingMessage(GenerateServerSubscription("SUBSCRIBE:beshare/*", false));
- 
+
    StdinDataIO stdinIO(false);
    QueueGatewayMessageReceiver stdinInQueue;
    PlainTextMessageIOGateway stdinGateway;
@@ -145,7 +145,7 @@ int main(int argc, char ** argv)
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
       multiplexer.RegisterSocketForReadReady(stdinFD);
 
-      while(s()) 
+      while(s())
       {
          if (multiplexer.WaitForEvents() < 0)
          {
@@ -260,13 +260,13 @@ int main(int argc, char ** argv)
                   // Someone has sent a line of chat text to display
                   const char * text;
                   const char * session;
-                  if ((msg()->FindString("text", &text).IsOK())&&(msg()->FindString("session", &session).IsOK())) 
+                  if ((msg()->FindString("text", &text).IsOK())&&(msg()->FindString("session", &session).IsOK()))
                   {
-                     if (strncmp(text, "/me ", 4) == 0) LogTime(MUSCLE_LOG_INFO, "<ACTION>: %s %s\n", GetUserName(_users, session)(), &text[4]); 
+                     if (strncmp(text, "/me ", 4) == 0) LogTime(MUSCLE_LOG_INFO, "<ACTION>: %s %s\n", GetUserName(_users, session)(), &text[4]);
                                                    else LogTime(MUSCLE_LOG_INFO, "%s(%s): %s\n", msg()->HasName("private") ? "<PRIVATE>: ":"", GetUserName(_users, session)(), text);
                   }
                }
-               break;     
+               break;
 
                case PR_RESULT_DATAITEMS:
                {
@@ -283,7 +283,7 @@ int main(int argc, char ** argv)
                         switch(GetPathDepth(nodepath.Cstr()))
                         {
                            case USER_NAME_DEPTH:
-                           if (strncmp(GetPathClause(USER_NAME_DEPTH, nodepath.Cstr()), "name", 4) == 0) 
+                           if (strncmp(GetPathClause(USER_NAME_DEPTH, nodepath.Cstr()), "name", 4) == 0)
                            {
                               String userNameString = GetUserName(_users, sessionID);
                               if (_users.Remove(sessionID).IsOK()) LogTime(MUSCLE_LOG_INFO, "User [%s] has disconnected.\n", userNameString());
@@ -345,7 +345,7 @@ int main(int argc, char ** argv)
          multiplexer.RegisterSocketForReadReady(fd);
          if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
       }
-   } 
+   }
 
    if (gw.HasBytesToOutput())
    {

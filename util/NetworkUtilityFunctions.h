@@ -69,7 +69,7 @@ namespace muscle {
   * should be enabled.  This flag is set to true by default; if you want to set it to false you
   * would typically do so only at the top of main() and then not set it again.
   * This automatic remapping is useful if you want your software to handle both IPv4 and IPv6
-  * traffic without having to open separate IPv4 and IPv6 sockets and without having to do any 
+  * traffic without having to open separate IPv4 and IPv6 sockets and without having to do any
   * special modification of IPv4 addresses.   The only time you'd need to set this flag to false
   * is if you need to run IPv6 traffic over non-IPv6-aware routers, in which case you'd need
   * to use the "::x.y.z.w" address space for actual IPv6 traffic instead.
@@ -85,7 +85,7 @@ bool GetAutomaticIPv4AddressMappingEnabled();
 #endif
 
 /** Given a hostname or IP address string (e.g. "www.google.com" or "192.168.0.1" or "fe80::1"),
-  * returns the numeric IPAddress value that corresponds to that name.  This version of the 
+  * returns the numeric IPAddress value that corresponds to that name.  This version of the
   * function will call through to IHostNameResolver objects that were previously registered
   * (via PutHostNameResolver()), and call GetHostByNameNative() if they don't succeed.
   *
@@ -143,7 +143,7 @@ void SetHostNameCacheSettings(uint32 maxCacheSize, uint64 expirationTimeMicros);
   *                 before calling GetHostByNameNative(); resolvers with priority
   *                 less than zero will be called only if the GetHostByNameNative() doesn't
   *                 return a valid IP address.  Defaults to zero.
-  * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure. 
+  * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
   */
 status_t PutHostNameResolver(const IHostNameResolverRef & resolver, int priority = 0);
 
@@ -172,7 +172,7 @@ void ClearHostNameResolvers();
  */
 ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTitle = NULL, bool debugOutputOnErrorsOnly = true, uint64 maxConnectPeriod = MUSCLE_TIME_NEVER, bool expandLocalhost = false);
 
-/** Mostly as above, only with the target IP address specified numerically, rather than as an ASCII string. 
+/** Mostly as above, only with the target IP address specified numerically, rather than as an ASCII string.
  *  This version of connect will never do a DNS lookup.
  * @param hostIPAndPort The numeric host IP address and port number to connect to.
  * @param debugHostName If non-NULL, we'll print this host name out when reporting errors.  It isn't used for networking purposes, though.
@@ -203,7 +203,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetLocalInfo =
  */
 int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode);
 
-/** Identical to ReceiveData(), except that this function's logic is adjusted to handle UDP semantics properly. 
+/** Identical to ReceiveData(), except that this function's logic is adjusted to handle UDP semantics properly.
  *  @param sock The socket to read from.
  *  @param buffer Location to place the received bytes into.
  *  @param bufferSizeBytes Number of bytes available at the location indicated by (buffer).
@@ -267,24 +267,24 @@ int32 WriteData(const ConstSocketRef & fd, const void * buffer, uint32 bufferSiz
   * It will return the created socket, which may or may not be fully connected yet.
   * If it is connected, (retIsReady) will be to true, otherwise it will be set to false.
   * If (retIsReady) is false, then you can use select() to find out when the state of the
-  * socket has changed:  select() will return ready-to-write on the socket when it is 
-  * fully connected (or when the connection fails), at which point you can call 
-  * FinalizeAsyncConnect() on the socket:  if FinalizeAsyncConnect() succeeds, the connection 
+  * socket has changed:  select() will return ready-to-write on the socket when it is
+  * fully connected (or when the connection fails), at which point you can call
+  * FinalizeAsyncConnect() on the socket:  if FinalizeAsyncConnect() succeeds, the connection
   * succeeded; if not, the connection failed.
   * @param hostIPAndPort The IP address and port number to connect to
-  * @param retIsReady On success, this bool is set to true iff the socket is ready to use, or 
+  * @param retIsReady On success, this bool is set to true iff the socket is ready to use, or
   *                   false to indicate that an asynchronous connection is now in progress.
   * @return A non-NULL ConstSocketRef (which is likely still in the process of connecting) on success, or a NULL ConstSocketRef if the accept failed.
   */
 ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIPAndPort, bool & retIsReady);
 
-/** When a TCP socket that was connecting asynchronously finally selects as ready-for-write 
+/** When a TCP socket that was connecting asynchronously finally selects as ready-for-write
   * to indicate that the asynchronous connect attempt has reached a conclusion, call this function.
-  * This function will finalize the asynchronous-TCP-connection-process, and make the TCP socket 
+  * This function will finalize the asynchronous-TCP-connection-process, and make the TCP socket
   * usable for data-transfer.
   * @param sock The socket that was connecting asynchronously
   * @returns B_NO_ERROR if the connection is ready to use, or an error code if the connect failed.
-  * @note Under Windows, select() won't return ready-for-write if the asynchronous TCP connection fails... 
+  * @note Under Windows, select() won't return ready-for-write if the asynchronous TCP connection fails...
   *       instead it will select-as-ready for your socket on the exceptions-fd_set (if you provided one).
   *       Once this happens, there is no need to call FinalizeAsyncConnect() -- the fact that the
   *       socket notified on the exceptions fd_set is enough for you to know the asynchronous connection
@@ -296,7 +296,7 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock);
 /** Shuts the given socket down.  (Note that you don't generally need to call this function; it's generally
  *  only useful if you need to half-shutdown the socket, e.g. stop the output direction but not the input
  *  direction)
- *  @param sock The socket to permanently shut down communication on. 
+ *  @param sock The socket to permanently shut down communication on.
  *  @param disableReception If true, further reception of data will be disabled on this socket.  Defaults to true.
  *  @param disableTransmission If true, further transmission of data will be disabled on this socket.  Defaults to true.
  *  @return B_NO_ERROR on success, or an error code on failure.
@@ -336,7 +336,7 @@ String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false);
 bool IsIPAddress(const char * s);
 
 /** Given an IP address in ASCII format (e.g. "192.168.0.1" or "ff12::888" or etc), returns
-  * the equivalent IP address in IPAddress (packed binary) form. 
+  * the equivalent IP address in IPAddress (packed binary) form.
   * @param buf numeric IP address in ASCII.
   * @returns IP address as a IPAddress, or invalidIP on failure.
   */
@@ -347,7 +347,7 @@ String GetLocalHostName();
 
 /** Reurns the IP address that the given socket is connected to.
  *  @param sock The socket to find out info about.
- *  @param expandLocalhost If true, then if the peer's ip address is reported as 127.0.0.1, this 
+ *  @param expandLocalhost If true, then if the peer's ip address is reported as 127.0.0.1, this
  *                         function will attempt to determine the host machine's actual primary IP
  *                         address and return that instead.  Otherwise, 127.0.0.1 will be
  *                         returned in this case.
@@ -382,14 +382,14 @@ status_t SetSocketBlockingEnabled(const ConstSocketRef & sock, bool enabled);
  *  @note this function is not implemented under Windows (as Windows doesn't appear to provide any method to
  *        obtain this information from a socket).  Under Windows, this method will simply log an error message
  *        and return false.
- */ 
+ */
 bool GetSocketBlockingEnabled(const ConstSocketRef & sock);
 
 /**
   * Turns Nagle's algorithm (i.e. output-packet-buffering/coalescing, with a 200mS timeout) on or off.
   * @param sock the socket to act on.
-  * @param enabled If true, outgoing TCP data will be held briefly (per Nagle's algorithm) before sending, 
-  *                to allow for fewer, bigger packets.  If false, then each SendData() call will cause a 
+  * @param enabled If true, outgoing TCP data will be held briefly (per Nagle's algorithm) before sending,
+  *                to allow for fewer, bigger packets.  If false, then each SendData() call will cause a
   *                new TCP packet to be sent immediately.
   * @return B_NO_ERROR on success, an error code on error.
   */
@@ -398,17 +398,17 @@ status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabl
 /** Returns true iff the given socket has Nagle's algorithm enabled.
  *  @param sock the socket to query.
  *  @returns true iff the socket is has Nagle's algorithm enabled, or false if it does not (or if it is an invalid socket)
- */ 
+ */
 bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock);
 
 /**
   * Enables or disables the TCP_CORK algorithm (TCP_NOPUSH under BSD-based OS's).
   * With the algorithm enabled, only full TCP packets will be sent.
   * @param sock the socket to act on.
-  * @param enabled If true, partial outgoing TCP packets will be held internally until the 
-  *                TCP_CORK/TCP_NOPUSH algorithm has been disabled on this socket.  Full 
+  * @param enabled If true, partial outgoing TCP packets will be held internally until the
+  *                TCP_CORK/TCP_NOPUSH algorithm has been disabled on this socket.  Full
   *                packets will still be sent ASAP.
-  * @note that this function is currently implemented only under MacOS/X, BSD, and Linux; on 
+  * @note that this function is currently implemented only under MacOS/X, BSD, and Linux; on
   *       other OS's it will return B_UNIMPLEMENTED.
   * @note that MacOS/X's implementation of TCP_NOPUSH is a bit buggy -- as of 10.15.7,
   *       disabling TCP_NOPUSH doesn't cause any of the socket's pending TCP data to be
@@ -422,7 +422,7 @@ status_t SetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock, bool enabled
 /** Returns true iff the given socket has the TCP_CORK/TCP_NOPUSH algorithm enabled.
  *  @param sock the socket to query.
  *  @returns true iff the socket is corked, or false if it is not corked.
- */ 
+ */
 bool GetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock);
 
 /**
@@ -434,7 +434,7 @@ bool GetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock);
   */
 status_t SetSocketSendBufferSize(const ConstSocketRef & sock, uint32 sendBufferSizeBytes);
 
-/** 
+/**
   * Returns the current size of the socket's outgoing-data-buffer.
   * @param sock The socket to query.
   * @return The current size of the socket's outgoing-data-buffer, in bytes, or a negative value on error (e.g. invalid socket)
@@ -450,7 +450,7 @@ int32 GetSocketSendBufferSize(const ConstSocketRef & sock);
   */
 status_t SetSocketReceiveBufferSize(const ConstSocketRef & sock, uint32 receiveBufferSizeBytes);
 
-/** 
+/**
   * Returns the current size of the socket's incoming-data-buffer.
   * @param sock The socket to query.
   * @return The size of the socket's incoming-data-buffer, in bytes, or a negative value on error (e.g. invalid socket)
@@ -459,10 +459,10 @@ int32 GetSocketReceiveBufferSize(const ConstSocketRef & sock);
 
 /** This class is an interface to an object that can have its SocketCallback() method called
   * at the appropriate times when certain actions are performed on a socket.  By installing
-  * a GlobalSocketCallback object via SetGlobalSocketCallback(), behaviors can be set for all 
+  * a GlobalSocketCallback object via SetGlobalSocketCallback(), behaviors can be set for all
   * sockets in the process, which can be simpler than changing every individual code path
   * to install those behaviors on a per-socket basis.
-  */ 
+  */
 class GlobalSocketCallback
 {
 public:
@@ -496,7 +496,7 @@ private:
 /** Set the global socket-callback object for this process.
   * @param cb The object whose SocketCallback() method should be called by Connect(),
   *           Accept(), FinalizeAsyncConnect(), etc, or NULL to have no more callbacks
-  */ 
+  */
 void SetGlobalSocketCallback(GlobalSocketCallback * cb);
 
 /** Returns the currently installed GlobalSocketCallback object, or NULL if there is none installed. */
@@ -514,11 +514,11 @@ GlobalSocketCallback * GetGlobalSocketCallback();
   * @param maxProbeCount The number of keepalive-ping probes that must go unanswered before the TCP connection is closed.
   *                      Passing zero to this argument will disable keepalive-ping behavior.
   * @param idleTime The amount of time (in microseconds) of inactivity on the TCP socket that must pass before the
-  *                 first keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by  
+  *                 first keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by
   *                 the operating system, so the actual timeout period may be somewhat more or less than the specified number
   *                 of microseconds.  (Currently it gets rounded up to the nearest second)
   * @param retransmitTime The amount of time (in microseconds) of further inactivity on the TCP socket that must pass before the
-  *                       next keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by  
+  *                       next keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by
   *                       the operating system, so the actual timeout period may be somewhat more or less than the specified number
   *                       of microseconds.  (Currently it gets rounded up to the nearest second)
   * @returns B_NO_ERROR on success, or an error code on failure.
@@ -535,7 +535,7 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
   * @returns B_NO_ERROR on success, or an error code on failure.
   * @note This function is currently implemented only on Linux; on other OS's it will always just return B_UNIMPLEMENTED.
   * @see SetSocketKeepAliveBehavior()
-  */ 
+  */
 status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMaxProbeCount, uint64 * retIdleTime, uint64 * retRetransmitTime);
 
 #endif
@@ -560,26 +560,26 @@ IPAddress GetLocalHostIPOverride();
  */
 ConstSocketRef CreateUDPSocket();
 
-/** Attempts to given UDP socket to the given port.  
+/** Attempts to given UDP socket to the given port.
  *  @param sock The UDP socket (as previously returned by CreateUDPSocket())
  *  @param port UDP port to bind the socket to.  If zero, the system will choose an available UDP port for you.
  *  @param optRetPort if non-NULL, then on successful return the uint16 that this pointer points to will contain
  *                    the port ID that the socket was bound to.  Defaults to NULL.
  *  @param optFrom If a valid IPAddress, then the socket will be bound in such a way that only data
- *                 packets addressed to the specified IP address will be accepted.  Defaults to 
- *                 invalidIP, meaning that packets addressed to any of this machine's IP addresses 
+ *                 packets addressed to the specified IP address will be accepted.  Defaults to
+ *                 invalidIP, meaning that packets addressed to any of this machine's IP addresses
  *                 will be accepted.
  *  @param allowShared If set to true, the port will be set up so that multiple processes
- *                     can bind to it simultaneously.  This is useful for sockets that are 
- *                     to be receiving multicast or broadcast UDP packets, since then you can 
- *                     run multiple UDP multicast or broadcast-receiving processes on a single computer. 
+ *                     can bind to it simultaneously.  This is useful for sockets that are
+ *                     to be receiving multicast or broadcast UDP packets, since then you can
+ *                     run multiple UDP multicast or broadcast-receiving processes on a single computer.
  *  @returns B_NO_ERROR on success, or an error code on failure.
  */
 status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRetPort = NULL, const IPAddress & optFrom = invalidIP, bool allowShared = false);
 
 /** Set the target/destination address for a UDP socket.  After successful return
  *  of this function, any data that is written to the UDP socket (with no explicit
- *  destination address specified) will be sent to this IP address and port.  
+ *  destination address specified) will be sent to this IP address and port.
  *  Also, the UDP socket will only receive UDP packets from the specified address/port.
  *  @param sock The UDP socket to send to (previously created by CreateUDPSocket()).
  *  @param remoteIP Remote IP address that data should be sent to.
@@ -621,7 +621,7 @@ bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock);
 #ifndef MUSCLE_AVOID_MULTICAST_API
 
 /** Sets whether multicast data sent on this socket should be received by
-  * sockets on the local host machine, or not (IP_MULTICAST_LOOP).  
+  * sockets on the local host machine, or not (IP_MULTICAST_LOOP).
   * Default state is enabled/true.
   * @param sock The socket to set the state of the IP_MULTICAST_LOOP flag on.
   * @param multicastToSelf If true, enable loopback.  Otherwise, disable it.

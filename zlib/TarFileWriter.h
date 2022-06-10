@@ -26,19 +26,19 @@ public:
      * @param append If true, written data will be appended to this file; otherwise
      *               if the file already exists it will be deleted and replaced.
      * This constructor is equivalent to the default constructor, plus calling SetFile().
-     */ 
+     */
    TarFileWriter(const char * outputFileName, bool append);
 
    /** Constructor.
      * @param dio Reference to a DataIO object to use to write out the .tar file data.
      * This constructor is equivalent to the default constructor, plus calling SetFile().
-     */ 
+     */
    TarFileWriter(const DataIORef & dio);
 
    /** Destructor.  Calls Close() to make sure any required cleanup/data-flush actions have been performed. */
    ~TarFileWriter();
-   
-   /** Writes any pending updates to the .tar file (if necessary), then closes the file (if one is open) 
+
+   /** Writes any pending updates to the .tar file (if necessary), then closes the file (if one is open)
     *  and returns this object to its basic just-default-constructed state.
      * @returns B_NO_ERROR on success, or an error code if there was an error writing out pending header-data changes.
      *          Note that this method will always unreference any held DataIO and reset our state to default, even if it returns an error-code.
@@ -49,16 +49,16 @@ public:
      * @param outputFileName Name/path of the .tar file to write to
      * @param append If true, new written data will be appended to the existing file; otherwise
      *               if the file already exists it will be deleted and replaced.
-     */ 
+     */
    status_t SetFile(const char * outputFileName, bool append);
 
    /** Unreferences the currently held DataIO (if any) and uses the specified DataIO instead.
      * @param dioRef Reference to The DataIORef to use to output .tar data to, or a NULL Ref to close only.
      * @note if (dioRef) isn't referencing a SeekableDataIORef, then you are required to pass a valid/correct file-size
      *       arguments to WriteFileHeader().  If (dioRef) is referencing a SeekableDataIORef, then the file-size argument
-     *       can optionally passed in as 0, and the TarFileWriter will update the header-fields automatically based on how 
+     *       can optionally passed in as 0, and the TarFileWriter will update the header-fields automatically based on how
      *       much file-data was actually written.
-     */ 
+     */
    void SetFile(const DataIORef & dioRef);
 
    /** Writes a .tar header fle-block with the given information.
@@ -79,7 +79,7 @@ public:
 
    /** Writes (numBytes) of data into the currently active file-block.
      * Three must be a file-header currently active for this call to succeed.
-     * @param fileData Pointer to some data bytes to write into the tar file.  
+     * @param fileData Pointer to some data bytes to write into the tar file.
      * @param numBytes How many bytes (fileData) points to.
      * @returns B_NO_ERROR on success, or an error code on failure.
      */
@@ -87,7 +87,7 @@ public:
 
    /** Updates the current file-header-block and resets our state to receive the next one.
      * @returns B_NO_ERROR on success (or if no file-header-block was open), or an error code if there was an error updating the file-header-block.
-     * @note that Close() and WriteFileHeader() will call FinishCurrentFileDataBlock() implicitly when necessary, so 
+     * @note that Close() and WriteFileHeader() will call FinishCurrentFileDataBlock() implicitly when necessary, so
      *       calling this method isn't strictly necessary.
      */
    status_t FinishCurrentFileDataBlock();

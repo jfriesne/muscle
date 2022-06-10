@@ -110,7 +110,7 @@ status_t ByteBuffer :: FreeExtraBytes()
    {
       IMemoryAllocationStrategy * as = GetMemoryAllocationStrategy();
       uint8 * newBuf = (uint8 *) (as ? as->Realloc(_buffer, _numValidBytes, _numAllocatedBytes, true) : muscleRealloc(_buffer, _numValidBytes));
-      if ((_numValidBytes == 0)||(newBuf)) 
+      if ((_numValidBytes == 0)||(newBuf))
       {
          _buffer            = newBuf;
          _numAllocatedBytes = _numValidBytes;
@@ -223,7 +223,7 @@ status_t Flattenable :: FlattenToByteBuffer(ByteBuffer & outBuf) const
    return B_NO_ERROR;
 }
 
-status_t Flattenable :: UnflattenFromByteBuffer(const ByteBuffer & buf) 
+status_t Flattenable :: UnflattenFromByteBuffer(const ByteBuffer & buf)
 {
    return Unflatten(buf.GetBuffer(), buf.GetNumBytes());
 }
@@ -343,7 +343,7 @@ uint32 ByteBuffer :: ReadPoints(Point * vals, uint32 numValsToRead, uint32 & rea
 #endif
       }
    }
-   else 
+   else
    {
       for (uint32 i=0; i<numValsToRead; i++)
       {
@@ -368,24 +368,24 @@ uint32 ByteBuffer :: ReadRects(Rect * vals, uint32 numValsToRead, uint32 & readB
       {
          const uint8 * rBase = &readAt[i*bytesPerRect];
 #if B_HOST_IS_BENDIAN
-         vals[i].Set(B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&rBase[0*sizeof(int32)])), 
+         vals[i].Set(B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&rBase[0*sizeof(int32)])),
                      B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&rBase[1*sizeof(int32)])),
                      B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&rBase[2*sizeof(int32)])),
                      B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&rBase[3*sizeof(int32)])));
 #else
-         vals[i].Set(B_BENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&rBase[0*sizeof(int32)])), 
+         vals[i].Set(B_BENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&rBase[0*sizeof(int32)])),
                      B_BENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&rBase[1*sizeof(int32)])),
                      B_BENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&rBase[2*sizeof(int32)])),
                      B_BENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&rBase[3*sizeof(int32)])));
 #endif
       }
    }
-   else 
+   else
    {
       for (uint32 i=0; i<numValsToRead; i++)
       {
          const uint8 * rBase = &readAt[i*bytesPerRect];
-         vals[i].Set(muscleCopyIn<float>(&rBase[0*sizeof(int32)]), 
+         vals[i].Set(muscleCopyIn<float>(&rBase[0*sizeof(int32)]),
                      muscleCopyIn<float>(&rBase[1*sizeof(int32)]),
                      muscleCopyIn<float>(&rBase[2*sizeof(int32)]),
                      muscleCopyIn<float>(&rBase[3*sizeof(int32)]));
@@ -541,7 +541,7 @@ status_t ByteBuffer :: WritePoints(const Point * vals, uint32 numVals, uint32 & 
 #endif
       }
    }
-   else 
+   else
    {
       for (uint32 i=0; i<numVals; i++)
       {
@@ -575,7 +575,7 @@ status_t ByteBuffer :: WriteRects(const Rect * vals, uint32 numVals, uint32 & wr
 #endif
       }
    }
-   else 
+   else
    {
       for (uint32 i=0; i<numVals; i++)
       {

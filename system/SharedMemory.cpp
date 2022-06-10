@@ -24,11 +24,11 @@ static const short LARGEST_SEMAPHORE_DELTA = 10000;  // I'm assuming there will 
 #endif
 
 SharedMemory :: SharedMemory()
-   : 
+   :
 #ifdef WIN32
    _mutex(NULL), _file(INVALID_HANDLE_VALUE), _map(NULL),
 #else
-   _key(IPC_PRIVATE), _areaID(-1), _semID(-1), 
+   _key(IPC_PRIVATE), _areaID(-1), _semID(-1),
 #endif
    _area(NULL), _areaSize(0), _isLocked(false), _isLockedReadOnly(false), _isCreatedLocally(false)
 {
@@ -48,17 +48,17 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    if (createSize > 0)
    {
       _area = muscleAlloc(createSize);
-      if (_area) 
+      if (_area)
       {
          memset(_area, 0, createSize);
          _areaName         = keyString;
-         _areaSize         = createSize; 
+         _areaSize         = createSize;
          _isCreatedLocally = true;
          _isLocked         = returnLocked;
          _isLockedReadOnly = false;
          return B_NO_ERROR;
       }
-      else MWARN_OUT_OF_MEMORY;   
+      else MWARN_OUT_OF_MEMORY;
    }
 #elif defined(WIN32)
    if (keyString == NULL)
@@ -143,7 +143,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
       {
          struct semid_ds semInfo = {};  // the braces zero-initialize the struct for us, to keep clang++SA happy
          semopts.buf = &semInfo;
-         if (semctl(_semID, 0, IPC_STAT, semopts) == 0) 
+         if (semctl(_semID, 0, IPC_STAT, semopts) == 0)
          {
 # ifdef __linux__
             _key = semInfo.sem_perm.__key;
@@ -161,7 +161,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
       if ((_key != IPC_PRIVATE)&&(LockAreaReadWrite().IsOK()))
       {
          _areaID = shmget(_key, 0, permissionBits);
-         if ((_areaID < 0)&&(createSize > 0)) 
+         if ((_areaID < 0)&&(createSize > 0))
          {
             _areaID = shmget(_key, createSize, IPC_CREAT|IPC_EXCL|permissionBits);
             _isCreatedLocally = true;
@@ -194,7 +194,7 @@ status_t SharedMemory :: DeleteArea()
 #if defined(MUSCLE_FAKE_SHARED_MEMORY)
    (void) UnsetArea();
    return B_NO_ERROR;
-#else 
+#else
 # if defined(WIN32)
    if (_mutex != NULL)
 # else
@@ -231,7 +231,7 @@ void SharedMemory :: UnsetArea()
    UnlockArea();
 
 #if defined(MUSCLE_FAKE_SHARED_MEMORY)
-   if (_area) 
+   if (_area)
    {
       muscleFree(_area);
       _area = NULL;
@@ -247,19 +247,19 @@ void SharedMemory :: UnsetArea()
       CloseHandle(_map);
       _map = NULL;
    }
-   if (_file != INVALID_HANDLE_VALUE) 
+   if (_file != INVALID_HANDLE_VALUE)
    {
       CloseHandle(_file);
       _file = INVALID_HANDLE_VALUE;
    }
-   if (_mutex) 
+   if (_mutex)
    {
       CloseHandle(_mutex);
       _mutex = NULL;
    }
    _fileName.Clear();
 #else
-   if (_area) 
+   if (_area)
    {
       (void) shmdt(_area);  // we're done with it now
       _area = NULL;

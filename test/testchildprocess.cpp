@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -40,7 +40,7 @@ public:
       printf("Testing abort-on-takeoff logic, to verify that the child process is aborted cleanly.\n");
 
       Queue<String> args;
-      args.AddTail("foobar"); 
+      args.AddTail("foobar");
 
       // Scope for the child process object
       {
@@ -144,7 +144,7 @@ int main(int argc, char ** argv)
    StdinDataIO stdinIO(false);
    PlainTextMessageIOGateway stdinGateway;
    QueueGatewayMessageReceiver stdinInputQueue;
-   stdinGateway.SetDataIO(DummyDataIORef(stdinIO)); 
+   stdinGateway.SetDataIO(DummyDataIORef(stdinIO));
 
    SocketMultiplexer multiplexer;
 
@@ -191,7 +191,7 @@ int main(int argc, char ** argv)
             printf("Heard message from server:-----------------------------------\n");
             const char * inStr;
             for (int j=0; (incoming()->FindString(PR_NAME_TEXT_LINE, j, &inStr).IsOK()); j++) printf("Line %i: [%s]\n", j, inStr);
-           
+
             printf("-------------------------------------------------------------\n");
          }
 

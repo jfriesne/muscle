@@ -61,7 +61,7 @@ float CPULoadMeter :: GetCPULoad()
       {
          if (strncmp(buf, "cpu ", 4) == 0)
          {
-            StringTokenizer tok(false, &buf[4]); 
+            StringTokenizer tok(false, &buf[4]);
             const char *                                        next = tok();
             const uint64 userTicks   = next ? Atoull(next) : 0; next = tok();
             const uint64 niceTicks   = next ? Atoull(next) : 0; next = tok();

@@ -4,7 +4,7 @@
 
 namespace muscle {
 
-ByteBufferDataIO :: ByteBufferDataIO(const ByteBufferRef & buf) 
+ByteBufferDataIO :: ByteBufferDataIO(const ByteBufferRef & buf)
    : _buf(buf), _seekPos(0)
 {
    // empty
@@ -15,7 +15,7 @@ ByteBufferDataIO :: ~ByteBufferDataIO()
    // empty
 }
 
-int32 ByteBufferDataIO :: Read(void * buffer, uint32 size)  
+int32 ByteBufferDataIO :: Read(void * buffer, uint32 size)
 {
    if (_buf())
    {
@@ -27,7 +27,7 @@ int32 ByteBufferDataIO :: Read(void * buffer, uint32 size)
    return -1;
 }
 
-int32 ByteBufferDataIO :: Write(const void * buffer, uint32 size) 
+int32 ByteBufferDataIO :: Write(const void * buffer, uint32 size)
 {
    if (_buf() == NULL) return -1;
 
@@ -40,7 +40,7 @@ int32 ByteBufferDataIO :: Write(const void * buffer, uint32 size)
       memset(_buf()->GetBuffer()+oldBufSize, 0, preallocBytes-oldBufSize);  // make sure newly alloc'd memory is zeroed out!
       (void) _buf()->SetNumBytes(pastOffset, true);  // guaranteed not to fail
    }
-   
+
    memcpy(_buf()->GetBuffer()+_seekPos, buffer, size);
    _seekPos += size;
    return size;
@@ -62,5 +62,5 @@ status_t ByteBufferDataIO :: Seek(int64 offset, int whence)
    _seekPos = newSeekPos;
    return B_NO_ERROR;
 }
-   
+
 } // end namespace muscle

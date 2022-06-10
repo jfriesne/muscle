@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -16,9 +16,9 @@ static uint32 _maxCount = 0;
 class Counter : public RefCountable
 {
 public:
-   Counter()  
+   Counter()
    {
-      _counter++; 
+      _counter++;
       //printf("++" UINT32_FORMAT_SPEC "\n", _counter);
       if (_counter > _maxCount)
       {
@@ -27,9 +27,9 @@ public:
       }
    }
 
-   ~Counter() 
+   ~Counter()
    {
-      _counter--; 
+      _counter--;
       //printf("--" UINT32_FORMAT_SPEC "\n", _counter);
    }
 };
@@ -39,7 +39,7 @@ ObjectPool<Counter> _pool;
 static CounterRef GetCounterRefFromPool() {return CounterRef(_pool.ObtainObject());}
 
 // This program tests the ObjectPool class to see how well it manages memory usage
-int main(int argc, char ** argv) 
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
    while(1)
    {
       const uint32 max = (rand()%10)+1;
-      for (uint32 i=0; i<MAX_NUM_REFS; i++) 
+      for (uint32 i=0; i<MAX_NUM_REFS; i++)
       {
          const uint32 idx = rand()%MAX_NUM_REFS;
          if ((rand()%max)==0) refs[idx] = GetCounterRefFromPool();
@@ -66,7 +66,7 @@ int main(int argc, char ** argv)
       if ((interactive)&&(fgets(buf, sizeof(buf), stdin)))
       {
               if (buf[0] == 'n') break;
-         else if (buf[0] == 'c') 
+         else if (buf[0] == 'c')
          {
             for (uint32 i=0; i<MAX_NUM_REFS; i++) refs[i].Reset();
             AbstractObjectManager::GlobalPrintRecyclersToStream();

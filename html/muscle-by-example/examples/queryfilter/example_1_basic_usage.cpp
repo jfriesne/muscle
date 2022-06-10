@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
    TestTheMessage(testMsg, "answerIs37", answerIs37);             // does field "answer" contain the value 37?
    TestTheMessage(testMsg, "answerIsNegative", answerIsNegative); // does field "answer" contain a value less than 0?
    TestTheMessage(testMsg, "answerIsPositive", answerIsPositive); // does field "answer" contain a value greater than 0?
-   
+
    // Lastly we'll compose a few boolean expressions
 
    AndQueryFilter answerIs42AndThereIsPi((DummyConstQueryFilterRef(answerIs42)), DummyConstQueryFilterRef(piExists));  // extra parens to avoid most-vexing-parse problem

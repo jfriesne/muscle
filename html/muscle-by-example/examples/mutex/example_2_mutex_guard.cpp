@@ -91,10 +91,10 @@ int main(int argc, char ** argv)
    printf("\n");
    printf("In the above output, you should see that the output of each 1-10 count is separate from the others due to the serialization.\n");
    printf("\n");
-   
+
    printf("Now we'll spawn %i more threads, except this time they'll execute with no Mutex.  See how the output is different!\n", NUM_THREADS);
    Snooze64(SecondsToMicros(5));
-   
+
    {
       ThreadWithoutMutex threads[NUM_THREADS];
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].StartInternalThread();

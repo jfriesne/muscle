@@ -54,7 +54,7 @@ class ThreadedInternalSession;
 class TimerSignalReceiverObject : public QObject
 {
 Q_OBJECT
-   
+
 public:
    explicit TimerSignalReceiverObject(ThreadedInternalSession * master) : _master(master) {/* empty */}
 

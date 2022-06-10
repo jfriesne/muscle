@@ -46,7 +46,7 @@ public:
    /** Returns the name of the shared memory area to consult for a list of IP addresses. */
    const String & GetSharedMemoryAreaName() const {return _sharedMemName;}
 
-   /** Sets the name of the shared memory area to consult for a list of IP addresses. 
+   /** Sets the name of the shared memory area to consult for a list of IP addresses.
      * @param name the new Shared Memory area name to use
      */
    void SetSharedMemoryAreaName(const String & name) {_sharedMemName = name;}
@@ -54,7 +54,7 @@ public:
    /** Returns true iff IP addresses in the shared memory area are to be granted access. */
    bool IsGrantList() const {return _isGrantList;}
 
-   /** Sets whether IP addresses in the shared memory area are to be granted access. 
+   /** Sets whether IP addresses in the shared memory area are to be granted access.
      * @param igl true iff the list of IP addresses is a whitelist; false if it's a blacklist
      */
    void SetIsGrantList(bool igl) {_isGrantList = igl;}
@@ -67,7 +67,7 @@ public:
      */
    void SetDefaultPass(bool dp) {_defaultPass = dp;}
 
-   /** Convenience method:  Returns true iff access should be allowed for the given settings and IP address. 
+   /** Convenience method:  Returns true iff access should be allowed for the given settings and IP address.
      * @param ip the IP address to inquire about
      */
    bool IsAccessAllowedForIP(const IPAddress & ip) const;

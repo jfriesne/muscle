@@ -24,4 +24,4 @@ DECLARE_REFTYPES(FlatCountable);
 
 } // end namespace muscle
 
-#endif 
+#endif

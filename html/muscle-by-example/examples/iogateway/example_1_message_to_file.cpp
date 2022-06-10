@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
       {
          printf("Error, couldn't open example_1_output.bin for writing!\n");
          return 10;
-      }   
+      }
 
       // Set up our gateway to use the FileDataIO
       MessageIOGateway outputGateway;
@@ -50,7 +50,7 @@ int main(int argc, char ** argv)
 
       // Turn the crank to make the sausage
       printf("Outputting some Message-stream data to example_1_output.bin ...\n");
-      while(outputGateway.DoOutput() > 0) {/* empty */} 
+      while(outputGateway.DoOutput() > 0) {/* empty */}
    }
 
    printf("\n");
@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
       {
          printf("Error, couldn't open example_1_output.bin for readingk!\n");
          return 10;
-      }   
+      }
 
       // Set up our gateway to use the FileDataIO
       MessageIOGateway inputGateway;
@@ -72,7 +72,7 @@ int main(int argc, char ** argv)
       // Turn the crank to eat the sausage
       QueueGatewayMessageReceiver qReceiver;  // we'll collect the parsed Messages in this
       printf("Read some Message-stream data from example_1_output.bin ...\n");
-      while(inputGateway.DoInput(qReceiver) > 0) {/* empty */} 
+      while(inputGateway.DoInput(qReceiver) > 0) {/* empty */}
 
       // And finally, we'll print out the Messages that our gateway read in
       printf("Here are the Messages I read back in from example_1_output.bin:\n");

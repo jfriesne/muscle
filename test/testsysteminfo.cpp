@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
 
@@ -17,7 +17,7 @@ static String GetSystemPathAux(uint32 whichPath)
 // This program prints out the results returned by the SystemInfo functions.  The implementation
 // of these functions is very OS-specific, so this is a helpful way to test them on each platform
 // to ensure they are working properly.
-int main(int, char **) 
+int main(int, char **)
 {
    CompleteSetupSystem css;
 
