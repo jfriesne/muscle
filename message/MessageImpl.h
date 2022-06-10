@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 /** This header contains private implementation details of the Message class.  Do not include this header in your
   * code and do not reference any of the classes inside it, as they are private and subject to change without notice.

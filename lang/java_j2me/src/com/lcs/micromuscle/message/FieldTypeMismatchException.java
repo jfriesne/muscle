@@ -1,4 +1,4 @@
-/* This file is Copyright 2001 Level Control Systems.  See the included LICENSE.TXT file for details. */
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.TXT file for details. */
 package com.meyer.micromuscle.message;
 
 /** Exception that is thrown if you try to access a field in a Message

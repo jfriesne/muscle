@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #if defined(MUSCLE_USE_POLL) || defined(MUSCLE_USE_EPOLL)
 # include <limits.h>  // for INT_MAX

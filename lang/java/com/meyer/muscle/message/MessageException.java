@@ -1,4 +1,4 @@
-/* This file is Copyright 2001 Level Control Systems.  See the included LICENSE.TXT file for details. */
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.TXT file for details. */
 package com.meyer.muscle.message;
 
 /** Base class for the various Exceptions that the Message class may throw */

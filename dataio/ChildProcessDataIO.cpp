@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */  
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <limits.h>   // for PATH_MAX
 #include "dataio/ChildProcessDataIO.h"
@@ -124,10 +124,10 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
             {
                SafeCloseHandle(childStdinWrite);  // we'll use the dup from now on
 
-               PROCESS_INFORMATION piProcInfo; 
+               PROCESS_INFORMATION piProcInfo;
                memset(&piProcInfo, 0, sizeof(piProcInfo));
 
-               STARTUPINFOA siStartInfo;         
+               STARTUPINFOA siStartInfo;
                {
                   const bool hideChildGUI = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_WIN32_HIDE_GUI);
 
@@ -203,19 +203,19 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                      ret = B_OUT_OF_MEMORY;
                   }
                }
-             
+
                if (ret.IsOK())
                {
                   if (CreateProcessA((argc>=0)?(((const char **)args)[0]):NULL, (char *)cmd(), NULL, NULL, TRUE, 0, envVars, optDirectory, &siStartInfo, &piProcInfo))
                   {
                      delete [] newBlock;
                      newBlock = NULL;  // void possible double-delete below
-   
+
                      _childProcess   = piProcInfo.hProcess;
                      _childThread    = piProcInfo.hThread;
-   
+
                      if (_blocking) return B_NO_ERROR;  // done!
-                     else 
+                     else
                      {
                         // For non-blocking, we must have a separate proxy thread do the I/O for us :^P
                         _wakeupSignal = CreateEvent(0, false, false, 0);
@@ -274,7 +274,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
    if (_dialogPrompt.HasChars()) return LaunchPrivilegedChildProcess(argv);
 #endif
-   
+
    pid_t pid = (pid_t) -1;
    if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY))
    {
@@ -284,7 +284,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       // New-fangled forkpty() implementation
       int masterFD = -1;
       pid = forkpty(&masterFD, NULL, NULL, NULL);
-           if (pid > 0) _handle = GetConstSocketRefFromPool(masterFD); 
+           if (pid > 0) _handle = GetConstSocketRefFromPool(masterFD);
       else if (pid == 0)
       {
          // Turn off the echo, we don't want to see that back on stdout
@@ -368,7 +368,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
 status_t ChildProcessDataIO :: LaunchPrivilegedChildProcess(const char ** argv)
 {
-   // Code adapted from Performant Design's cocoasudo program 
+   // Code adapted from Performant Design's cocoasudo program
    // at git://github.com/performantdesign/cocoasudo.git
    OSStatus status;
    AuthorizationRef authRef = NULL;
@@ -404,7 +404,7 @@ status_t ChildProcessDataIO :: LaunchPrivilegedChildProcess(const char ** argv)
          _authRef = authRef;
          return _handle() ? SetSocketBlockingEnabled(_handle, false) : B_ERROR;
       }
-      else 
+      else
       {
          AuthorizationFree(authRef, kAuthorizationFlagDestroyRights);
          return (status == errAuthorizationCanceled) ? B_ACCESS_DENIED : B_ERROR("AuthorizationExecuteWithPrivileges() failed");
@@ -431,7 +431,7 @@ bool ChildProcessDataIO :: IsChildProcessAvailable() const
 #else
    return (_handle.GetFileDescriptor() >= 0);
 #endif
-} 
+}
 
 status_t ChildProcessDataIO :: KillChildProcess()
 {
@@ -502,7 +502,7 @@ void ChildProcessDataIO :: Close()
 # if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
    _ioPipe.Shutdown();
    if (_authRef)
-   {  
+   {
       AuthorizationFree((AuthorizationRef)_authRef, kAuthorizationFlagDestroyRights);
       _authRef = NULL;
    }
@@ -542,7 +542,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
    {
       const int fd = fileno(_ioPipe.GetFile());
 
-      // Since AuthorizationExecuteWithPrivileges() doesn't give us a _childPID to wait on, all we can do is 
+      // Since AuthorizationExecuteWithPrivileges() doesn't give us a _childPID to wait on, all we can do is
       // block-and-read until either we read EOF from the _ioPipe or we reach the timeout-time.
       bool sawEOF = false;
       SocketMultiplexer sm;
@@ -567,7 +567,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
    if (_childPID < 0) return B_NO_ERROR; // a non-existent child process is an exited child process, if you ask me.
    _childProcessCrashed = false;         // reset the flag only when there is an actual child process to wait for
 
-   if (maxWaitTimeMicros == MUSCLE_TIME_NEVER) 
+   if (maxWaitTimeMicros == MUSCLE_TIME_NEVER)
    {
       int status = 0;
       const int pid = waitpid(_childPID, &status, 0);
@@ -589,7 +589,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
       {
          int status = 0;
          const int r = waitpid(_childPID, &status, WNOHANG);  // WNOHANG should guarantee that this call will not block
-         if (r == _childPID) 
+         if (r == _childPID)
          {
             _childProcessCrashed = WIFSIGNALED(status);
             return B_NO_ERROR;  // yay, he exited!
@@ -621,7 +621,7 @@ int32 ChildProcessDataIO :: Read(void *buf, uint32 len)
          DWORD actual_read;
          if (ReadFile(_readFromStdout, buf, len, &actual_read, NULL)) return actual_read;
       }
-      else 
+      else
       {
          const int32 ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
          if (ret >= 0) SetEvent(_wakeupSignal);  // wake up the thread in case he has more data to give us
@@ -647,7 +647,7 @@ int32 ChildProcessDataIO :: Write(const void *buf, uint32 len)
          DWORD actual_write;
          if (WriteFile(_writeToStdin, buf, len, &actual_write, 0)) return actual_write;
       }
-      else 
+      else
       {
          const int32 ret = SendData(_masterNotifySocket, buf, len, _blocking);
          if (ret > 0) SetEvent(_wakeupSignal);  // wake up the thread so he'll check his socket for our new data
@@ -661,7 +661,7 @@ int32 ChildProcessDataIO :: Write(const void *buf, uint32 len)
 }
 
 void ChildProcessDataIO :: FlushOutput()
-{ 
+{
    // not implemented
 }
 
@@ -674,7 +674,7 @@ const ConstSocketRef & ChildProcessDataIO :: GetChildSelectSocket() const
 {
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    return _blocking ? GetNullSocket() : _masterNotifySocket;
-#else 
+#else
    return _handle;
 #endif
 }
@@ -694,7 +694,7 @@ class ChildProcessBuffer
 public:
    ChildProcessBuffer()
       : _length(0)
-      , _index(0) 
+      , _index(0)
    {
       // empty
    }
@@ -798,7 +798,7 @@ void ChildProcessDataIO :: IOThreadEntry()
                }
                else break;
             }
-            else 
+            else
             {
                IOThreadAbort();  // child process exited?
                break;

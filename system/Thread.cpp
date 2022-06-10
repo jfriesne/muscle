@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2013 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #if defined(MUSCLE_USE_PTHREADS)
 # include <pthread.h>  // in case both MUSCLE_USE_CPLUSPLUS11_THREADS and MUSCLE_USE_PTHREADS are defined at once, e.g. for better SetThreadPriority() support

@@ -1,4 +1,4 @@
-/* This file is Copyright 2001 Level Control Systems.  See the included LICENSE.TXT file for details. */
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.TXT file for details. */
 package com.meyer.muscle.support;
 
 /** Java declarations for Be's type constants.  The values are all the same as Be's. */

@@ -1,7 +1,7 @@
-/* This file is Copyright 2001 Level Control Systems.  See the included LICENSE.TXT file for details. */
+/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.TXT file for details. */
 package com.meyer.micromuscle.queue;
 
-/* This file is Copyright 2000 Level Control Systems.  See the included LICENSE.txt file for details. */
+/* This file is Copyright 2000 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 /** This class implements a templated double-ended queue data structure.
  *  Adding or removing items from the head or tail of a Queue is (on average)
