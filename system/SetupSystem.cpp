@@ -933,20 +933,30 @@ static int openssl_thread_setup(void)
 {
    mutex_buf = (OPENSSL_MUTEX_TYPE *) malloc(CRYPTO_num_locks() * sizeof(OPENSSL_MUTEX_TYPE));
    if (!mutex_buf) return -1;
+
    for (int i=0;  i<CRYPTO_num_locks();  i++) OPENSSL_MUTEX_SETUP(mutex_buf[i]);
+
    CRYPTO_set_id_callback(openssl_id_function);
+   (void) openssl_id_function;       // just to avoid a compiler warning with newer OpenSSL versions where CRYPTO_set_id_callback() is a no-op macro
+
    CRYPTO_set_locking_callback(openssl_locking_function);
+   (void) openssl_locking_function;  // just to avoid a compiler warning with newer OpenSSL versions where CRYPTO_set_locking_callback() is a no-op macro
+
    return 0;
 }
 
 static int openssl_thread_cleanup(void)
 {
    if (!mutex_buf) return -1;
+
    CRYPTO_set_id_callback(NULL);
    CRYPTO_set_locking_callback(NULL);
+
    for (int i=0;  i < CRYPTO_num_locks();  i++) OPENSSL_MUTEX_CLEANUP(mutex_buf[i]);
+
    free(mutex_buf);
    mutex_buf = NULL;
+
    return 0;
 }
 

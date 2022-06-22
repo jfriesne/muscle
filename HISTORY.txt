@@ -8,6 +8,7 @@ key:  - new feature
    - Added a BitChord::WithBitSetTo() convenience method.
    o Updated copyright notices at the tops of files
    o Removed trailing spaces from all source files
+   o Suppressed a compiler warning when compiling with OpenSSL support enabled.
    * Added psapi.lib to Qt .pro files for Windows, so Qt programs can link.
 
 8.60 - Released 5/28/2022
