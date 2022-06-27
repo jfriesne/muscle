@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-5/28/82022 v8.60 jaf@meyersound.com<p>
+5/28/2022 v8.60 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -23,7 +23,7 @@ qt_muscled will be created.
 The main goal of these classes is to provide an easy way to use
 BMessage-style message passing across a network of heterogeneous
 (MacOS/X, Linux, Windows, BSD, Unix, etc) systems.  The secondary goal
-is just to provide some handy data containers and other utility classes. 
+is just to provide some handy data containers and other utility classes.
 <p>
 All of this code should compile under any up-to-date C++ compiler--
 no proprietary APIs are used except inside of the appropriate #ifdefs.
@@ -47,33 +47,33 @@ Directory contents descriptions follow:
 <li>
 <b>dataio/</b>
 <p>
-   This directory contains the DataIO interface class, which is an abstraction
+   This directory contains the <a href="dataio/DataIO.h">DataIO</a> interface class, which is an abstraction
    for any file-like device that can read or write sequences of bytes, and
-   (optionally) seek to a specified position.  The DataIO class defines an
-   interface for devices that you can Read() bytes from or Write() bytes to. 
-   This folder also includes some useful implementations of the DataIO interface,
+   (optionally) seek to a specified position.  The <a href="dataio/DataIO.h">DataIO</a> class defines an
+   interface for devices that you can Read() bytes from or Write() bytes to.
+   This folder also includes some useful implementations of the <a href="dataio/DataIO.h">DataIO</a> interface,
    including the following:
    <p>
    <table>
-    <tr><td>AsyncDataIO</td><td>Wrapper that delegates I/O calls to an internal I/O thread</td></tr>
-    <tr><td>ByteBufferDataIO</td><td>For file-style reading/writing to a ByteBuffer held in memory</td></tr>
-    <tr><td>ByteBufferPacketDataIO</td><td>Like ByteBufferDataIO, but implements a PacketDataIO interface instead</td></tr>
-    <tr><td>ChildProcessDataIO</td><td>For launching a child process and communicating with it via its stdout/stdin</td></tr>
-    <tr><td>FileDataIO</td><td>For reading/writing via a C (FILE *) file handle</td></tr>
-    <tr><td>FileDescriptorDataIO</td><td>For reading/writing via a Unix file descriptor</td></tr>
-    <tr><td>MultiDataIO</td><td>Multiplexer wrapper class for writing to multiple outputs at once</td></tr>
-    <tr><td>NullDataIO</td><td>Dummy class for directing data to the bit-bucket</td></tr>
-    <tr><td>PacketDataIO</td><td>Extended DataIO interface for UDP-like semantics</td></tr>
-    <tr><td>PacketizedProxyDataIO</td><td>Wrapper for making a TCP connection act like a "reliable UDP connection"</td></tr>
-    <tr><td>ProxyDataIO</td><td>Passes all method-calls through to a "child" DataIO object.</td></tr>
-    <tr><td>RS232DataIO</td><td>For communicating via an RS-232 serial port</td></tr>
-    <tr><td>SeekableDataIO</td><td>Extended DataIO interface for file-like semantics</td></tr>
-    <tr><td>SSLSocketDataIO</td><td>For communicating over SSL over TCP</td></tr>
-    <tr><td>SimulatedMulticastDataIO</td><td>For Wi-Fi; simulates multicast semantics using mostly unicast packets</td></tr>
-    <tr><td>StdinDataIO</td><td>For reading from stdin</td></tr>
-    <tr><td>TCPSocketDataIO</td><td>For communicating using a TCP socket</td></tr>
-    <tr><td>UDPSocketDataIO</td><td>For communicating using a UDP socket</td></tr>
-    <tr><td>XorDataIO</td><td>Wrapper class that applies XOR-"encryption" to all data that flows through it</td></tr>
+    <tr><td><a href="dataio/AsyncDataIO.h">AsyncDataIO</a></td><td>Wrapper that delegates I/O calls to an internal I/O thread</td></tr>
+    <tr><td><a href="dataio/ByteBufferDataIO.h">ByteBufferDataIO</a></td><td>For file-style reading/writing to a ByteBuffer held in memory</td></tr>
+    <tr><td><a href="dataio/ByteBufferPacketDataIO.h">ByteBufferPacketDataIO</a></td><td>Like ByteBufferDataIO, but implements a PacketDataIO interface instead</td></tr>
+    <tr><td><a href="dataio/ChildProcessDataIO.h">ChildProcessDataIO</a></td><td>For launching a child process and communicating with it via its stdout/stdin</td></tr>
+    <tr><td><a href="dataio/FileDataIO.h">FileDataIO</a></td><td>For reading/writing via a C (FILE *) file handle</td></tr>
+    <tr><td><a href="dataio/FileDescriptorDataIO.h">FileDescriptorDataIO</a></td><td>For reading/writing via a Unix file descriptor</td></tr>
+    <tr><td><a href="dataio/MultiDataIO.h">MultiDataIO</a></td><td>Multiplexer wrapper class for writing to multiple outputs at once</td></tr>
+    <tr><td><a href="dataio/NullDataIO.h">NullDataIO</a></td><td>Dummy class for directing data to the bit-bucket</td></tr>
+    <tr><td><a href="dataio/PacketDataIO.h">PacketDataIO</a></td><td>Extended DataIO interface for UDP-like semantics</td></tr>
+    <tr><td><a href="dataio/PacketizedProxyDataIO.h">PacketizedProxyDataIO</a></td><td>Wrapper for making a TCP connection act like a "reliable UDP connection"</td></tr>
+    <tr><td><a href="dataio/ProxyDataIO.h">ProxyDataIO</a></td><td>Passes all method-calls through to a "child" DataIO object.</td></tr>
+    <tr><td><a href="dataio/RS232DataIO.h">RS232DataIO</a></td><td>For communicating via an RS-232 serial port</td></tr>
+    <tr><td><a href="dataio/SeekableDataIO.h">SeekableDataIO</a></td><td>Extended DataIO interface for file-like semantics</td></tr>
+    <tr><td><a href="dataio/SSLSocketDataIO.h">SSLSocketDataIO</a></td><td>For communicating over SSL over TCP</td></tr>
+    <tr><td><a href="dataio/SimulatedMulticastDataIO.h">SimulatedMulticastDataIO</a></td><td>For Wi-Fi; simulates multicast semantics using mostly unicast packets</td></tr>
+    <tr><td><a href="dataio/StdinDataIO.h">StdinDataIO</a></td><td>For reading from stdin</td></tr>
+    <tr><td><a href="dataio/TCPSocketDataIO.h">TCPSocketDataIO</a></td><td>For communicating using a TCP socket</td></tr>
+    <tr><td><a href="dataio/UDPSocketDataIO.h">UDPSocketDataIO</a></td><td>For communicating using a UDP socket</td></tr>
+    <tr><td><a href="dataio/XorProxyDataIO.h">XorProxyDataIO</a></td><td>Wrapper class that applies XOR-"encryption" to all data that flows through it</td></tr>
    </table>
 <p>
 </li>
@@ -98,23 +98,23 @@ Directory contents descriptions follow:
    next MessageRef in the outgoing-message-queue into a sequence of bytes,
    and sends those bytes out via the DataIO object.  It also reads bytes
    coming in from the DataIO object and assembles those bytes back into
-   Message objects, which are then handed back to the AbstractGatewayMessageReceiver
+   <a href="message/Message.h">Message</a> objects, which are then handed back to the AbstractGatewayMessageReceiver
    specified by the calling code.
 
-   This directory also contains some useful implementations of the 
+   This directory also contains some useful implementations of the
    AbstractMessageIOGateway interfaces, which are as follows:
    <p>
    <table>
-    <tr><td>MessageIOGateway</td><td>Flattens Messages to the standard MUSCLE flattened-message binary format</td></tr>
-    <tr><td>PlainTextMessageIOGateway</td><td>Converts free-form lines of ASCII text into Messages, and vice versa</td></tr>
-    <tr><td>RawDataMessageIOGateway</td><td>Converts arbitrary raw data into Messages, and vice versa</td></tr>
-    <tr><td>SLIPFramedDataMessageIOGateway</td><td>Similar to the RawDataMessageIOGateway class, except it uses SLIP framing conventions</td></tr>
-    <tr><td>SSLSocketAdapterGateway</td><td>An adapter class to provide transparent support for OpenSSL's particular I/O needs</td></tr>
-    <tr><td>SignalMessageIOGateway</td><td>Dummy gateway that doesn't send actual data, only indicates when data is available</td></tr>
-    <tr><td>TemplatingMessageIOGateway</td><td>A specialized MessgeIOGateway class that sends Messages' metadata separately from their payload data, to reduce bandwidth</td></tr>
-    <tr><td>PacketTunnelIOGateway</td><td>Flattens Messages into a series of fixed-size packets suitable for UDP transmission</td></tr>
-    <tr><td>MiniPacketTunnelIOGateway</td><td>A lightweight version of PacketTunnelIOGateway that supports small Messages only</td></tr>
-    <tr><td>ProxyIOGateway</td><td>A semi-abstract class with routines to implement calling out to a "child" I/O gateway</td></tr>
+    <tr><td><a href="iogateway/MessageIOGateway.h">MessageIOGateway</a></td><td>Flattens <a href="message/Message.h">Messages</a> to the standard MUSCLE flattened-message binary format</td></tr>
+    <tr><td><a href="iogateway/PlainTextMessageIOGateway.h">PlainTextMessageIOGateway</a></td><td>Converts free-form lines of ASCII text into <a href="message/Message.h">Messages</a>, and vice versa</td></tr>
+    <tr><td><a href="iogateway/RawDataMessageIOGateway.h">RawDataMessageIOGateway</a></td><td>Converts arbitrary raw data into <a href="message/Message.h">Messages</a>, and vice versa</td></tr>
+    <tr><td><a href="iogateway/SLIPFramedDataMessageIOGateway.h">SLIPFramedDataMessageIOGateway</a></td><td>Similar to the RawDataMessageIOGateway class, except it uses SLIP framing conventions</td></tr>
+    <tr><td><a href="iogateway/SSLSocketAdapterGateway.h">SSLSocketAdapterGateway</a></td><td>An adapter class to provide transparent support for OpenSSL's particular I/O needs</td></tr>
+    <tr><td><a href="iogateway/SignalMessageIOGateway.h">SignalMessageIOGateway</a></td><td>Dummy gateway that doesn't send actual data, only indicates when data is available</td></tr>
+    <tr><td><a href="iogateway/TemplatingMessageIOGateway.h">TemplatingMessageIOGateway</a></td><td>A specialized MessgeIOGateway class that sends <a href="message/Message.h">Messages</a>' metadata separately from their payload data, to reduce bandwidth</td></tr>
+    <tr><td><a href="iogateway/PacketTunnelIOGateway.h">PacketTunnelIOGateway</a></td><td>Flattens <a href="message/Message.h">Messages</a> into a series of fixed-size packets suitable for UDP transmission</td></tr>
+    <tr><td><a href="iogateway/MiniPacketTunnelIOGateway.h">MiniPacketTunnelIOGateway</a></td><td>A lightweight version of PacketTunnelIOGateway that supports small <a href="message/Message.h">Messages</a> only</td></tr>
+    <tr><td><a href="iogateway/ProxyIOGateway.h">ProxyIOGateway</a></td><td>A semi-abstract class with routines to implement calling out to a "child" I/O gateway</td></tr>
    </table>
 
 <p>
@@ -130,8 +130,8 @@ Directory contents descriptions follow:
 <li>
 <b>message/</b>
 <p>
-   This directory contains MUSCLE's Message class.  A Message is a general-purpose
-   data structure that is similar to BeOS's BMessage class.  A Message consists
+   This directory contains MUSCLE's <a href="message/Message.h">Message</a> class.  A <a href="message/Message.h">Message</a> is a general-purpose
+   data structure that is similar to BeOS's BMessage class.  A <a href="message/Message.h">Message</a> consists
    of a 32-bit integer "what code", plus zero or more named data fields, each of
    which can contain one or more data items of a specified type.
 <p>
@@ -150,24 +150,24 @@ Directory contents descriptions follow:
  <tr><td>bool</td><td>B_BOOL_TYPE</td><td>boolean values</td></tr>
  <tr><td>float</td><td>B_FLOAT_TYPE</td><td>IEEE 754 floating point values</td></tr>
  <tr><td>Pointer</td><td>B_POINTER_TYPE</td><td>Pointer values (non-flattenable)</td></tr>
- <tr><td>Message</td><td>B_MESSAGE_TYPE</td><td>Message objects</td></tr>
- <tr><td>Flattenable</td><td>(various types)</td><td>Flattened Flattenable objects</td></tr>
- <tr><td>String</td><td>B_STRING_TYPE</td><td>UTF8 character strings</td></tr>
- <tr><td>Rect</td><td>B_RECT_TYPE</td><td>Rectangles (floats for left,top,right,bottom)</td></tr>
- <tr><td>Point</td><td>B_POINT_TYPE</td><td>Points (floats for x,y)</td></tr>
+ <tr><td><a href="message/Message.h">Message</a></td><td>B_MESSAGE_TYPE</td><td><a href="message/Message.h">Message</a> objects</td></tr>
+ <tr><td><a href="support/Flattenable.h">Flattenable</a></td><td>(various types)</td><td>Flattened <a href="support/Flattenable.h">Flattenable</a> objects</td></tr>
+ <tr><td><a href="util/String.h">String</a></td><td>B_STRING_TYPE</td><td>UTF8 character strings</td></tr>
+ <tr><td><a href="support/Rect.h">Rect</a></td><td>B_RECT_TYPE</td><td><a href="support/Rect.h">Rectangles</a> (floats for left,top,right,bottom)</td></tr>
+ <tr><td><a href="support/Point.h">Point</a></td><td>B_POINT_TYPE</td><td><a href="support/Point.h">Points</a> (floats for x,y)</td></tr>
  <tr><td>Raw Data Buffer</td><td>B_RAW_TYPE</td><td>Sequences of zero or more untyped bytes<td></tr>
  <tr><td>Tag</td><td>B_TAG_TYPE</td><td>User-provided arbitrary objects (non-flattenable)</td></tr>
 </table>
 <p>
 <li>
-    Message is a subclass of Flattenable (see below), and therefore a Message can be serialized
+    <a href="message/Message.h">Message</a> is a subclass of Flattenable (see below), and therefore a <a href="message/Message.h">Message</a> can be serialized
     into a "flattened" buffer-of-bytes, which can be sent across a network or saved to a file,
-    and later the bytes can be unflattened back into an equivalent Message object.  This is the
+    and later the bytes can be unflattened back into an equivalent <a href="message/Message.h">Message</a> object.  This is the
     basis for most MUSCLE network communication.  The flattening and unflattening is endian-aware,
     so that e.g. a PowerPC machine can communicate with an Intel machine without problems.
 </li>
 <li>
-    Message has a GetFieldNameIterator() method, which returns
+    <a href="message/Message.h">Message</a> has a GetFieldNameIterator() method, which returns
     a MessageFieldNameIterator object, which can be used to
     iterate over the fields of a Message.
 </li>
@@ -179,11 +179,11 @@ Directory contents descriptions follow:
 <p>
    This directory contains several classes that support clients that use TrollTech's
    Qt cross-platform GUI API.  The main one is the QMessageTransceiverThread class,
-   which is a Qt-aware subclass of the MessageTransceiverThread class. 
+   which is a Qt-aware subclass of the MessageTransceiverThread class.
 
    Using a QMessageTransceiverThread for your network I/O makes network communication
    very simple; instead of dealing with bytes and network protocols, you simply
-   receive a Qt signal whenever incoming Messages are available, and call a method to
+   receive a Qt signal whenever incoming <a href="message/Message.h">Messages</a> are available, and call a method to
    send a Message, etc.
 
    This folder also contains some sub-directories that contain small example
@@ -203,16 +203,16 @@ Directory contents descriptions follow:
    This directory contains server code for an n-way
    "message crossbar server" program.  This program will listen
    on a specified port for TCP connections, and will allow the
-   TCP connections to "talk to each other" by forwarding Messages from
+   TCP connections to "talk to each other" by forwarding <a href="message/Message.h">Messages</a> from
    one client to another (or to multiple others).
    The ServerProcessLoop() method implements the server's event loop,
-   while the AbstractReflectSession class is the interface for the server's side
+   while the <a href="reflector/AbstractReflectSession.h">AbstractReflectSession</a> class is the interface for the server's side
    of a TCP connection.  There are currently two subclasses of
-   AbstractReflectSession included:  the DumbReflectSession
-   class just reflects all received Messages to all connected clients, while
-   the StorageReflectSession class adds nice features like wildcard-based
-   Message routing, server-side data storage, and "notify-me-on-change"
-   subscription services.  (See the MUSCLE Beginner's Guide for more info on this) 
+   <a href="reflector/AbstractReflectSession.h">AbstractReflectSession</a> included:  the <a href="reflector/DumbReflectSession.h">DumbReflectSession</a>
+   class just reflects all received <a href="message/Message.h">Messages</a> to all connected clients, while
+   the <a href="reflector/StorageReflectSession.h">StorageReflectSession</a> class adds nice features like wildcard-based
+   <a href="message/Message.h">Message</a> routing, server-side data storage, and "notify-me-on-change"
+   subscription services.  (See the MUSCLE Beginner's Guide for more info on this)
    More elaborate logic can be added by creating subclasses of these classes.
 <p>
 </li>
@@ -227,11 +227,11 @@ Directory contents descriptions follow:
    Classes implemented in this directory include:
    <p>
    <table>
-   <tr><td>FilePathExpander</td><td>Expands shell-style wildcards into a list of file paths</td></tr>
-   <tr><td>PathMatcher</td><td>Controls wildcard-directed recursive iterations down the tree of DataNode objects</td></tr>
-   <tr><td>QueryFilter</td><td>Implements various predicate-logic operations on DataNode Message data</td></tr>
-   <tr><td>StringMatcher</td><td>Does shell-style pattern matching on arbitrary character strings</td></tr>
-   <tr><td>SegmentedStringMatcher</td><td>Like StringMatcher, except that the strings are divided up into substrings which are evaluated separately (e.g. "a*/b*")</td></tr>
+   <tr><td><a href="regex/FilePathExpander.h">FilePathExpander</a></td><td>Expands shell-style wildcards into a list of file paths</td></tr>
+   <tr><td><a href="regex/PathMatcher.h">PathMatcher</a></td><td>Controls wildcard-directed recursive iterations down the tree of DataNode objects</td></tr>
+   <tr><td><a href="regex/QueryFilter.h">QueryFilter</a></td><td>Implements various predicate-logic operations on DataNode <a href="message/Message.h">Message</a> data</td></tr>
+   <tr><td><a href="regex/StringMatcher.h">StringMatcher</a></td><td>Does shell-style pattern matching on arbitrary character strings</td></tr>
+   <tr><td><a href="regex/SegmentedStringMatcher.h">SegmentedStringMatcher</a></td><td>Like StringMatcher, except that the strings are divided up into substrings which are evaluated separately (e.g. "a*/b*")</td></tr>
    </table>
 <p>
 </li>
@@ -245,23 +245,20 @@ Directory contents descriptions follow:
 <li>
 <b>support/</b>
 <p>
-   This directory contains various "small things" needed to compile the
-   rest of the code.  These include byte-ordering macros, BeOS-style type
-   codes, typedefs, and result constants, and the Flattenable
-   interface definition.
+   This directory contains various "small things" needed to compile the rest of the code.
 <p>
    Classes implemented in this directory include:
    <p>
    <table>
-   <tr><td>BitChord</td><td>Implements an ordered set of N individually-settable binary bits</td></tr>
-   <tr><td>Flattenable</td><td>Interface for an object that can be "Flattened" into a serialized-binary representation, and Unflattened back again</td></tr>
-   <tr><td>PseudoFlattenable</td><td>Same as Flattenable, but without the virtual methods.  Used as a tag for objects that can be flattened without runtime polymorphism</td></tr>
-   <tr><td>NotCopyable</td><td>Inheriting from this class tells the compiler not to allow copies to made of objects of your subclass</td></tr>
-   <tr><td>Point</td><td>A two-float x/y Point class</td></tr>
-   <tr><td>Rect</td><td>A four-float left/top/width/height Rectangle class</td></tr>
-   <tr><td>TamperEvidentValue</td><td>Templatized holder for an arbitrary object that will set a flag whenever the object is modified<td></td></tr>
-   <tr><td>Tuple</td><td>Templatized class that holds a fixed-size array of N same-typed values</td></tr>
-   <tr><td>Void</td><td>Placeholder class that contains no data</td></tr>
+   <tr><td><a href="support/BitChord.h">BitChord</a></td><td>Implements an ordered set of N individually-settable binary bits</td></tr>
+   <tr><td><a href="support/Flattenable.h">Flattenable</a></td><td>Interface for an object that can be "Flattened" into a serialized-binary representation, and Unflattened back again</td></tr>
+   <tr><td><a href="support/PseudoFlattenable.h">PseudoFlattenable</a></td><td>Same as Flattenable, but without the virtual methods.  Used as a tag for objects that can be flattened without runtime polymorphism</td></tr>
+   <tr><td><a href="support/NotCopyable.h">NotCopyable</a></td><td>Inheriting from this class tells the compiler not to allow copies to made of objects of your subclass</td></tr>
+   <tr><td><a href="support/Point.h">Point</a></td><td>A two-float x/y Point class</td></tr>
+   <tr><td><a href="support/Rect.h">Rect</a></td><td>A four-float left/top/width/height Rectangle class</td></tr>
+   <tr><td><a href="support/TamperEvidentValue.h">TamperEvidentValue</a></td><td>Templatized holder for an arbitrary object that will set a flag whenever the object is modified<td></td></tr>
+   <tr><td><a href="support/Tuple.h">Tuple</a></td><td>Templatized class that holds a fixed-size array of N same-typed values</td></tr>
+   <tr><td><a href="support/Void.h">Void</a></td><td>Placeholder class that contains no data</td></tr>
    </table>
 <p>
 </li>
@@ -280,331 +277,147 @@ Directory contents descriptions follow:
 <p>
    This directory contains classes that represent "generic" interfaces
    to OS-specific APIs; as such, they are not guaranteed to work on
-   every platform.   Currently this directory contains the following classes:
+   every platform (but generally will work on at least Windows, Linux, and MacOS/X).
+   Currently this directory contains the following classes:
 
    <p>
    <table>
-    <tr><td>AcceptSocketsThread</td><td>A thread that accepts incoming TCP connections and hands them back to the parent thread</td</tr>
-    <tr><td>AtomicCounter</td><td>Atomic-increment and atomic-decrement counter, for lock-free reference-counting</td</tr>
-    <tr><td>DetectNetworkConfigChangesSession</td><td>A session object that notifies the program when the host computer's network configuration has changed</td</tr>
-    <tr><td>GlobalMemoryAllocator</td><td>Code to monitor and optionally restrict the program's heap usage</td</tr>
-    <tr><td>MessageTransceiverThread</td><td>Runs a MUSCLE ReflectServer object in a separate thread.  Provides asynchronous I/O</td</tr>
-    <tr><td>Mutex</td><td>Provides efficient in-process locking (aka critical sections) for thread-safety</td</tr>
-    <tr><td>SetupSystem</td><td>Provides standardized startup and shutdown routines that must be used by any MUSCLE process</td</tr>
-    <tr><td>SharedMemory</td><td>Implements inter-process shared memory regions, including inter-process read/write locking ability</td</tr>
-    <tr><td>SignalMultiplexer</td><td>Makes system signalling (e.g. catching of SIGINT or SIHUP) available to multiple pieces of code in the same process</td</tr>
-    <tr><td>SystemInfo</td><td>Provides information about the environment the program is operating in (current directory, OS version, etc)</td</tr>
-    <tr><td>Thread</td><td>An OS-neutral Thread class for multithreading purposes.  Includes send/receive Message functionality for easy control</td</tr>
-    <tr><td>ThreadLocalStorage</td><td>An OS-neutral implementation of thread-local data storage</td</tr>
-    <tr><td>ThreadPool</td><td>A thread pool implementation to allow handling of many Messages in parallel across a finite number of threads.</td</tr>
-    <tr><td>WaitCondition</td><td>A simple and lightweight thread-notification mechanism.</td</tr>
+    <tr><td><a href="system/AtomicCounter.h">AtomicCounter</a></td><td>Atomic-increment and atomic-decrement counter, for lock-free reference-counting</td</tr>
+    <tr><td><a href="system/DetectNetworkConfigChangesSession.h">DetectNetworkConfigChangesSession</a></td><td>A session object that notifies the program when the host computer's network configuration has changed</td</tr>
+    <tr><td><a href="system/GlobalMemoryAllocator.h">GlobalMemoryAllocator</a></td><td>Code to monitor and optionally restrict the program's heap usage</td</tr>
+    <tr><td><a href="system/MessageTransceiverThread.h">MessageTransceiverThread</a></td><td>Runs a MUSCLE <a href="reflector/ReflectServer.h">ReflectServer</a> object in a separate thread.  Provides asynchronous I/O</td</tr>
+    <tr><td><a href="system/Mutex.h">Mutex</a></td><td>Provides efficient in-process locking (aka critical sections) for thread-safety</td</tr>
+    <tr><td><a href="system/SetupSystem.h">SetupSystem</a></td><td>Provides standardized startup and shutdown routines that must be used by any MUSCLE process</td</tr>
+    <tr><td><a href="system/SharedMemory.h">SharedMemory</a></td><td>Implements inter-process shared memory regions, including inter-process read/write locking ability</td</tr>
+    <tr><td><a href="system/SignalMultiplexer.h">SignalMultiplexer</a></td><td>Makes system signalling (e.g. catching of SIGINT or SIHUP) available to multiple pieces of code in the same process</td</tr>
+    <tr><td><a href="system/SystemInfo.h">SystemInfo</a></td><td>Provides information about the environment the program is operating in (current directory, OS version, etc)</td</tr>
+    <tr><td><a href="system/Thread.h">Thread</a></td><td>An OS-neutral Thread class for multithreading purposes.  Includes send/receive <a href="message/Message.h">Message</a> functionality for easy control</td</tr>
+    <tr><td><a href="system/ThreadLocalStorage.h">ThreadLocalStorage</a></td><td>An OS-neutral implementation of thread-local data storage</td</tr>
+    <tr><td><a href="system/ThreadPool.h">ThreadPool</a></td><td>A thread pool implementation to allow handling of many <a href="message/Message.h">Messages</a> in parallel across a finite number of threads.</td</tr>
+    <tr><td><a href="system/WaitCondition.h">WaitCondition</a></td><td>A simple and lightweight thread-notification mechanism.</td</tr>
    </table>
    <p>
 </li>
 <li>
 <b>test/</b>
-<p>  
+<p>
    This directory contains various test programs that I use
    to test and develop the code, and a Makefile to build them with.
    <p>
    Currently this directory contains the following programs:
    <p>
     <table>
-    <tr><td>bandwidthtester</td><td>Generates lots of Message traffic and measures how fast a MUSCLE server can receive it</td></tr>
-    <tr><td>calctypecode</td><td>Prints out the decimal equivalent of a four-character ASCII what-code</td></tr>
-    <tr><td>printtypecode</td><td>Prints out the four-character ASCII equivalent of a given decimal value</td></tr>
-    <tr><td>chatclient</td><td>Minimalist BeShare-compatible chat client that can connect to any MUSCLE server</td></tr>
-    <tr><td>daemonsitter</td><td>Demonstration of a program that spawns multiple sub-processes, watches their stdin/stdout, and relaunches them if necessary.</td></tr>
-    <tr><td>deadlock</td><td>Deliberately tries to create a deadlock.  Primarily used for testing deadlockfinder.</td></tr>
-    <tr><td>deadlockfinder</td><td>Parses the output generated by MUSCLE's MUSCLE_ENABLE_DEADLOCK_FINDER feature, and detects potential deadlock issues</td></tr>
-    <tr><td>findsourcelocations</td><td>Parses source code and lists source-locations matching a specified code generated by MUSCLE's MUSCLE_INCLUDE_SOURCE_CODE_LOCATION_IN_LOGTIME feature</td></tr>
-    <tr><td>hexterm</td><td>A simple interactive terminal that sends, receives, and prints hexadecimal representation of all bytes received via TCP, UDP, etc.</td></tr>
-    <tr><td>muscleproxy</td><td>Demonstration of a pass-through TCP proxy for MUSCLE connections.</td></tr>
-    <tr><td>striphextermoutput</td><td>Parses output from hexterm and removes the metadata, leaving behing only the hex values themselves.</td></tr>
-    <tr><td>portableplaintextclient</td><td>A simple interactive terminal for ASCII communication over TCP</td></tr>
-    <tr><td>singlethreadedreflectclient</td><td>A simple interactive terminal for Message communication over TCP (typically with a MUSCLE server)</td></tr>
-    <tr><td>multihreadedreflectclient</td><td>Similar to singlethreadedreflectclient, but implemented using a CallbackMessageTransceiverThread to handle all I/O)</td></tr>
-    <tr><td>portscan</td><td>Attempts to connect via TCP to a range of ports on a host, and reports which ports accepted the connection</td></tr>
-    <tr><td>printsourcelocations</td><td>Prints the source-code-location codes of all LogTime() commands.  Useful for building up a directory of source-location-codes for a given codebase</td></tr>
-    <tr><td>readmessage</td><td>Reads a flattened Message from a file on disk and prints it to stdout in human-readable form</td></tr>
-    <tr><td>serialproxy</td><td>Makes a local serial port available to the network over TCP</td></tr>
-    <tr><td>testbatchguard</td><td>Unit test for the BatchGuard class</td></tr>
-    <tr><td>testbitchord</td><td>Unit test for the BitChord class</td></tr>
-    <tr><td>testbytebuffer</td><td>Unit test for the ByteBuffer class</td></tr>
-    <tr><td>testchildprocess</td><td>Unit test for the ChildProcessDataIO class</td></tr>
-    <tr><td>testclone</td><td>Unit test for the Cloneable interface</td></tr>
-    <tr><td>testendian</td><td>Unit test for the endian-swapping routines</td></tr>
-    <tr><td>testfilepathinfo</td><td>Unit test for the FilePathInfo class</td></tr>
-    <tr><td>testgateway</td><td>Unit test for the MessageIOGateway class</td></tr>
-    <tr><td>testhashcodes</td><td>Unit test for the CalculateHashCode() functions</td></tr>
-    <tr><td>testhashtable</td><td>Unit test for the Hashtable class</td></tr>
-    <tr><td>testmatchfiles</td><td>Unit test for the ExpandFilePathWildCards() function</td></tr>
-    <tr><td>testmessage</td><td>Unit test for the Message class</td></tr>
-    <tr><td>testmicro</td><td>Unit test for the MicroMessage and MicroMessageGateway C routines</td></tr>
-    <tr><td>testmini</td><td>Unit test for the MiniMessage and MiniMessageGateway C routines</td></tr>
-    <tr><td>testnagle</td><td>Unit test to verify the presence of absence of Nagle's algorithm</td></tr>
-    <tr><td>testnetconfigdetect</td><td>Unit test for the DetectNetworkConfigChangesSession class</td></tr>
-    <tr><td>testnetutil</td><td>Unit test for the GetNetworkInterfaces() function</td></tr>
-    <tr><td>testobjectpool</td><td>Unit test for the ObjectPool class</td></tr>
-    <tr><td>testpacketio</td><td>Unit test for the PacketizedDataIO clas</td></tr>
-    <tr><td>testpackettunnel</td><td>Unit test for the PacketTunnelIOGateway class</td></tr>
-    <tr><td>testparsefile</td><td>Unit test for the ParseFile() and ParseArgs() functions</td></tr>
-    <tr><td>testpool</td><td>Unit test for the ObjectPool class</td></tr>
-    <tr><td>testpulsenode</td><td>Unit test for the PulseNode class</td></tr>
-    <tr><td>testqueryfilter</td><td>Unit test for the QueryFilter classes</td></tr>
-    <tr><td>testqueue</td><td>Unit test for the Queue class</td></tr>
-    <tr><td>testrefcount</td><td>Unit test for the RefCount class</td></tr>
-    <tr><td>testregex</td><td>Unit test for the StringMatcher class</td></tr>
-    <tr><td>testresponse</td><td>Test to measure the response latency of a muscle server</td></tr>
-    <tr><td>testserial</td><td>Unit test for the RS232DataIO class</td></tr>
-    <tr><td>testserverthread</td><td>Demonstration of a server that spawns a child thread for asynchronous processing</td></tr>
-    <tr><td>testsharedmem</td><td>Unit test for the SharedMemory class</td></tr>
-    <tr><td>testsocketmultiplexer</td><td>Unit test for the SocketMultiplexer class</td></tr>
-    <tr><td>teststatus</td><td>Unit test for the status_t class</td></tr>
-    <tr><td>teststring</td><td>Unit test for the String class</td></tr>
-    <tr><td>teststringtokenizer</td><td>Unit test for the StringTokenizer class</td></tr>
-    <tr><td>testsysteminfo</td><td>Unit test for the SystemInfo functionality</td></tr>
-    <tr><td>testthread</td><td>Unit test for the Thread class</td></tr>
-    <tr><td>testthreadpool</td><td>Unit test for the ThreadPool class</td></tr>
-    <tr><td>testtime</td><td>Unit test for the various time-string-parsing and time-string-generation functions</td></tr>
-    <tr><td>testtimeunitconversions</td><td>Unit tests for the various time-unit-conversion functions (SecondsToMicros(), etc)</td></tr>
-    <tr><td>testtuple</td><td>Unit test for the Tuple class</td></tr>
-    <tr><td>testtypedefs</td><td>Unit test for MUSCLE's standard type typedefs (int32, int64, etc)</td></tr>
-    <tr><td>testudp</td><td>Test/demonstration of using MUSCLE to send/receive UDP packets</td></tr>
-    <tr><td>testzip</td><td>Unit test of the ReadZipFile() and WriteZipFile() functions</td></tr>
-    <tr><td>udpproxy</td><td>Forwards UDP packets from one computer to another, and vice versa</td></tr>
-    <tr><td>uploadstress</td><td>Spams a MUSCLE server with requests to see if the server can keep up</td></tr>
-   <p>
-   <table>
-
-   </table>
+    <tr><td><a href="test/bandwidthtester.cpp">bandwidthtester</a></td><td>Generates lots of <a href="message/Message.h">Message</a> traffic and measures how fast a MUSCLE server can receive it</td></tr>
+    <tr><td><a href="test/calctypecode.cpp">calctypecode</a></td><td>Prints out the decimal equivalent of a four-character ASCII what-code</td></tr>
+    <tr><td><a href="test/printtypecode.cpp">printtypecode</a></td><td>Prints out the four-character ASCII equivalent of a given decimal value</td></tr>
+    <tr><td><a href="test/chatclient.cpp">chatclient</a></td><td>Minimalist BeShare-compatible chat client that can connect to any MUSCLE server</td></tr>
+    <tr><td><a href="test/daemonsitter.cpp">daemonsitter</a></td><td>Demonstration of a program that spawns multiple sub-processes, watches their stdin/stdout, and relaunches them if necessary.</td></tr>
+    <tr><td><a href="test/deadlock.cpp">deadlock</a></td><td>Deliberately tries to create a deadlock.  Primarily used for testing MUSCLE's built-in deadlock-detection code.</td></tr>
+    <tr><td><a href="test/findsourcelocations.cpp">findsourcelocations</a></td><td>Parses source code and lists source-locations matching a specified code generated by MUSCLE's MUSCLE_INCLUDE_SOURCE_CODE_LOCATION_IN_LOGTIME feature</td></tr>
+    <tr><td><a href="test/hexterm.cpp">hexterm</a></td><td>A simple interactive terminal that sends, receives, and prints hexadecimal representation of all bytes received via TCP, UDP, etc.</td></tr>
+    <tr><td><a href="test/muscleproxy.cpp">muscleproxy</a></td><td>Demonstration of a pass-through TCP proxy for MUSCLE connections.</td></tr>
+    <tr><td><a href="test/striphextermoutput.cpp">striphextermoutput</a></td><td>Parses output from hexterm and removes the metadata, leaving behing only the hex values themselves.</td></tr>
+    <tr><td><a href="test/portableplaintextclient.cpp">portableplaintextclient</a></td><td>A simple interactive terminal for ASCII communication over TCP</td></tr>
+    <tr><td><a href="test/singlethreadedreflectclient.cpp">singlethreadedreflectclient</a></td><td>A simple interactive terminal for <a href="message/Message.h">Message</a> communication over TCP (typically with a MUSCLE server)</td></tr>
+    <tr><td><a href="test/multithreadedreflectclient.cpp">multithreadedreflectclient</a></td><td>Similar to singlethreadedreflectclient, but implemented using a CallbackMessageTransceiverThread to handle all I/O)</td></tr>
+    <tr><td><a href="test/portscan.cpp">portscan</a></td><td>Attempts to connect via TCP to a range of ports on a host, and reports which ports accepted the connection</td></tr>
+    <tr><td><a href="test/printsourcelocations.cpp">printsourcelocations</a></td><td>Prints the source-code-location codes of all LogTime() commands.  Useful for building up a directory of source-location-codes for a given codebase</td></tr>
+    <tr><td><a href="test/readmessage.cpp">readmessage</a></td><td>Reads a flattened <a href="message/Message.h">Message</a> from a file on disk and prints it to stdout in human-readable form</td></tr>
+    <tr><td><a href="test/serialproxy.cpp">serialproxy</a></td><td>Makes a local serial port available to the network over TCP</td></tr>
+    <tr><td><a href="test/testbatchguard.cpp">testbatchguard</a></td><td>Unit test for the BatchGuard class</td></tr>
+    <tr><td><a href="test/testbitchord.cpp">testbitchord</a></td><td>Unit test for the BitChord class</td></tr>
+    <tr><td><a href="test/testbytebuffer.cpp">testbytebuffer</a></td><td>Unit test for the ByteBuffer class</td></tr>
+    <tr><td><a href="test/testchildprocess.cpp">testchildprocess</a></td><td>Unit test for the ChildProcessDataIO class</td></tr>
+    <tr><td><a href="test/testclone.cpp">testclone</a></td><td>Unit test for the Cloneable interface</td></tr>
+    <tr><td><a href="test/testendian.cpp">testendian</a></td><td>Unit test for the endian-swapping routines</td></tr>
+    <tr><td><a href="test/testfilepathinfo.cpp">testfilepathinfo</a></td><td>Unit test for the FilePathInfo class</td></tr>
+    <tr><td><a href="test/testgateway.cpp">testgateway</a></td><td>Unit test for the MessageIOGateway class</td></tr>
+    <tr><td><a href="test/testhashcodes.cpp">testhashcodes</a></td><td>Unit test for the CalculateHashCode() functions</td></tr>
+    <tr><td><a href="test/testhashtable.cpp">testhashtable</a></td><td>Unit test for the Hashtable class</td></tr>
+    <tr><td><a href="test/testmatchfiles.cpp">testmatchfiles</a></td><td>Unit test for the ExpandFilePathWildCards() function</td></tr>
+    <tr><td><a href="test/testmessage.cpp">testmessage</a></td><td>Unit test for the <a href="message/Message.h">Message</a> class</td></tr>
+    <tr><td><a href="test/testmicro.cpp">testmicro</a></td><td>Unit test for the MicroMessage and MicroMessageGateway C routines</td></tr>
+    <tr><td><a href="test/testmini.cpp">testmini</a></td><td>Unit test for the MiniMessage and MiniMessageGateway C routines</td></tr>
+    <tr><td><a href="test/testnagle.cpp">testnagle</a></td><td>Unit test to verify the presence of absence of Nagle's algorithm</td></tr>
+    <tr><td><a href="test/testnetconfigdetect.cpp">testnetconfigdetect</a></td><td>Unit test for the DetectNetworkConfigChangesSession class</td></tr>
+    <tr><td><a href="test/testnetutil.cpp">testnetutil</a></td><td>Unit test for the GetNetworkInterfaces() function</td></tr>
+    <tr><td><a href="test/testobjectpool.cpp">testobjectpool</a></td><td>Unit test for the ObjectPool class</td></tr>
+    <tr><td><a href="test/testpacketio.cpp">testpacketio</a></td><td>Unit test for the PacketizedDataIO clas</td></tr>
+    <tr><td><a href="test/testpackettunnel.cpp">testpackettunnel</a></td><td>Unit test for the PacketTunnelIOGateway class</td></tr>
+    <tr><td><a href="test/testparsefile.cpp">testparsefile</a></td><td>Unit test for the ParseFile() and ParseArgs() functions</td></tr>
+    <tr><td><a href="test/testpool.cpp">testpool</a></td><td>Unit test for the ObjectPool class</td></tr>
+    <tr><td><a href="test/testpulsenode.cpp">testpulsenode</a></td><td>Unit test for the PulseNode class</td></tr>
+    <tr><td><a href="test/testqueryfilter.cpp">testqueryfilter</a></td><td>Unit test for the QueryFilter classes</td></tr>
+    <tr><td><a href="test/testqueue.cpp">testqueue</a></td><td>Unit test for the Queue class</td></tr>
+    <tr><td><a href="test/testrefcount.cpp">testrefcount</a></td><td>Unit test for the RefCount class</td></tr>
+    <tr><td><a href="test/testregex.cpp">testregex</a></td><td>Unit test for the StringMatcher class</td></tr>
+    <tr><td><a href="test/testresponse.cpp">testresponse</a></td><td>Test to measure the response latency of a muscle server</td></tr>
+    <tr><td><a href="test/testserial.cpp">testserial</a></td><td>Unit test for the RS232DataIO class</td></tr>
+    <tr><td><a href="test/testserverthread.cpp">testserverthread</a></td><td>Demonstration of a server that spawns a child thread for asynchronous processing</td></tr>
+    <tr><td><a href="test/testsharedmem.cpp">testsharedmem</a></td><td>Unit test for the SharedMemory class</td></tr>
+    <tr><td><a href="test/testsocketmultiplexer.cpp">testsocketmultiplexer</a></td><td>Unit test for the SocketMultiplexer class</td></tr>
+    <tr><td><a href="test/teststatus.cpp">teststatus</a></td><td>Unit test for the status_t class</td></tr>
+    <tr><td><a href="test/teststring.cpp">teststring</a></td><td>Unit test for the String class</td></tr>
+    <tr><td><a href="test/teststringtokenizer.cpp">teststringtokenizer</a></td><td>Unit test for the StringTokenizer class</td></tr>
+    <tr><td><a href="test/testsysteminfo.cpp">testsysteminfo</a></td><td>Unit test for the SystemInfo functionality</td></tr>
+    <tr><td><a href="test/testthread.cpp">testthread</a></td><td>Unit test for the Thread class</td></tr>
+    <tr><td><a href="test/testthreadpool.cpp">testthreadpool</a></td><td>Unit test for the ThreadPool class</td></tr>
+    <tr><td><a href="test/testtime.cpp">testtime</a></td><td>Unit test for the various time-string-parsing and time-string-generation functions</td></tr>
+    <tr><td><a href="test/testtimeunitconversions.cpp">testtimeunitconversions</a></td><td>Unit tests for the various time-unit-conversion functions (SecondsToMicros(), etc)</td></tr>
+    <tr><td><a href="test/testtuple.cpp">testtuple</a></td><td>Unit test for the Tuple class</td></tr>
+    <tr><td><a href="test/testtypedefs.cpp">testtypedefs</a></td><td>Unit test for MUSCLE's standard type typedefs (int32, int64, etc)</td></tr>
+    <tr><td><a href="test/testudp.cpp">testudp</a></td><td>Test/demonstration of using MUSCLE to send/receive UDP packets</td></tr>
+    <tr><td><a href="test/testzip.cpp">testzip</a></td><td>Unit test of the ReadZipFile() and WriteZipFile() functions</td></tr>
+    <tr><td><a href="test/udpproxy.cpp">udpproxy</a></td><td>Forwards UDP packets from one computer to another, and vice versa</td></tr>
+    <tr><td><a href="test/uploadstress.cpp">uploadstress</a></td><td>Spams a MUSCLE server with requests to see if the server can keep up</td></tr>
+    </table>
    <p>
 
-<p>  
+<p>
 </li>
 <li>
 <b>util/</b>
 <p>
-   This directory contains many useful one-off classes and function
-   collections, including:
-   <ol>
-   <li>
-   <b>BatchOperator</b>
+   This directory contains many useful one-off classes and function collections, including:
    <p>
-      BatchOperator is a templated mechanism for ensuring that a specified
-      method gets called on the first-level recursion into a call tree, and
-      that a matching method gets called on the final recursion out of the call tree.
-      This is handy for making sure that setup and shutdown code is called exactly
-      once at the beginning and once at the end of a set of nested recursive function calls.
-   </p>
-   <b>ByteBuffer</b>
-   <p>
-      ByteBuffer is an intelligent byte-array class, that stores
-      its length, knows how to resize itself efficiently, is
-      reference-countable and flattenable, etc.
-   <p>
-   </li>
-   <li>
-   <b>CountedObject</b>
-   <p>
-      CountedObject is a class that other classes can be derived from
-      if you want to keep track of how many instances of them are in
-      memory at any given time.
-   <p>
-   </li>
-   <li>
-   <b>CPULoadMeter</b>
-   <p>
-      CPULoadMeter reports the percentage of CPU time being used on
-      the local computer from moment to moment (similar to what is
-      reported in Task Manager under Windows, or Activity Monitor
-      under MacOS/X)
-   <p>
-   </li>
-   <li>
-   <b>Directory</b>
-   <p>
-      Directory is a platform-neutral API for scanning a filesystem
-      directory and iterating over its contents.
-   <p>
-   </li>
-   <li>
-   <b>DebugTimer</b>
-   <p>
-      DebugTimer is a useful utility class that is useful for debugging
-      performance problems.  It records the current time in its
-      constructor, and then in its destructor it prints out the
-      time that has elapsed since then (if the elapsed time is more
-      than a specified minimum time).
-   <p>
-   </li>
-   <li>
-   <b>FilePathInfo</b>
-   <p>
-      FilePathInfo is a platform-neutral API for querying the various
-      properties of an entry at a specified location in a file system
-      (e.g. is a file, a directory, or a symlink, how large is it,
-      when was it created or modified, etc)
-   <p>
-   </li>
-   <li>
-   <b>Hashtable</b>
-   <p>
-      Hashtable is a handy hash table class, with templated
-      key and value types and the traditional O(1) lookup time.
-      In addition to that, it includes other nice features, such
-      as "safe" iterators (so you can modify the Hashtable while
-      iterating through it), minimal-frequency memory allocations,
-      and the ability to sort the table by key or by value (it
-      maintains the ordering of the objects placed into the table). 
-      Hashtable is used by the Message class, but is also quite
-      useful on its own.
-   <p>
-   </li>
-   <li>
-   <b>ImmutableHashtablePool</b>
-   <p>
-      The ImmutableHashtablePool class is a utility class used
-      to reduce memory usage when there are a large number of
-      objects that each need to hold a Hashtable, but many of
-      the held Hashtables will be identical to each other.
-      ImmutableHashtablePool manages the allocation and caching
-      of shared Hashtables such that when multiple objects need
-      to reference an identical Hashtable, only one copy of that
-      Hashtable needs to be present in RAM.
-   <p>
-   </li>
-   <li>
-   <b>IPAddress</b>
-   <p>
-      IPAddress is a class that represents an IPv4 or IPv6
-      address in a standardized manner.  There is also an
-      IPAddressAndPort class which represents the combination
-      of an IP address and a port number.
-   <p>
-   </li>
-   <li>
-   <b>NestCount</b>
-   <p>
-      NestCount is a simple class for recording when the execution
-      path enters or exits a particular function, and (optionally)
-      making decisions based on whether a specified function is currently
-      on the stack or not.
-   <p>
-   </li>
-   <li>
-   <b>MiscUtilityFunctions</b>
-   <p>
-      MiscUtilityFunctions.cpp is a catch-all for various useful functions
-      that didn't fit anywhere else.
-   <p>
-   </li>
-   <li>
-   <b>NetworkUtilityFunctions</b>
-   <p>
-      NetworkUtilityFunctions.cpp is a repository of user-friendly
-      wrapper functions around common BSD socket operations, such as setting
-      up sockets to connect or accept TCP connections, or binding a UDP socket
-      to a port.
-   <p>
-   </li>
-   <li>
-   <b>ObjectPool</b>
-   <p>
-      The ObjectPool class is used to avoid excessive deletions and allocations
-      of commonly used objects (such as Messages or RefCountMems). 
-      It works by recycling the items for re-use, and is templated so it can be
-      used for any type of object.
-   <p>
-   </li>
-   <li>
-   <b>PulseNode</b>
-   <p>
-      The PulseNode is an interface for objects that want to execute a particular
-      action at a specified time.  It works in conjunction with the standard MUSCLE
-      event loop.  Implementing classes define a Pulse() method that will be executed
-      at a specified time, and a GetPulseTime() method that returns a clock value
-      indicating when Pulse() should next be executed.
-   <p>
-   </li>
-   <li>
-   <b>Queue</b>
-   <p> 
-      The Queue class is just a little templatized double-ended
-      queue (i.e. AddHead(), AddTail(), RemoveHead(), and RemoveTail()
-      are O(1) operations).  It can be used as a Vector, Stack, or FIFO. 
-      It's templatized for easy, type-safe reuse.
-   <p>
-   </li>
-   <li>
-   <b>RefCount</b>
-   <p>
-      The RefCount class implements generic reference counting for C++
-      objects or arrays.  To enable reference counting on an object, you
-      simply create a single Ref for that object, and (optionally)
-      make one or more copies of the Ref via the copy constructor
-      or the equals operator.   Then, when the last Ref object
-      disappears, the C++ object or array is automatically deleted. It's
-      not a garbage collector, but it beats having to keep track of all your
-      allocations by hand...
-   <p>
-   </li>
-   <li>
-   <b>Socket</b>
-   <p>
-      A reference-countable C++ class wrapper for a socket or file descriptor.
-      Wrapping sockets and file descriptors in these objects allows them to
-      be easily shared across objects without introducing the possibility of
-      leaking them, or closing them before some other piece of code is done
-      using them.
-   <p>
-   </li>
-   <li>
-   <b>SocketMultiplexer</b>
-   <p>
-      An easy-to-use wrapper around the select() socket-multiplexing API.
-      It's also possible to use this as a wrapper around various select()
-      alternatives, such as poll(), epoll(), or kqueue(), by recompiling
-      the code with the appropriate compiler flags (e.g. -DMUSCLE_USE_POLL)
-   <p>
-   </li>
-   <li>
-   <b>String</b>
-   <p>
-      The String class is just your basic character-string class,
-      in this case inspired by the java.lang.String class from Java. 
-      This class was originally written by Michael Olivero (mike95@mike95.com)
-      and modified by myself.  String extends Flattenable,
-      so it can be serialized in a generic manner.
-   <p>
-   </li>
-   <li>
-   <b>StringTokenizer</b>
-   <p>
-      A string tokenizing class similar to Java's Java.util.StringTokenizer,
-      only more efficient.
-   <p>
-   </li>
-   <li>
-   <b>TimeUtilityFunctions</b>
-   <p>
-      TimeUtilityFunctions.h is a repository of functions for dealing with
-      microsecond-accurate timing issues.
-   <p>
-   </li>
-   </ol>
+   <table>
+    <tr><td><a href="util/BatchOperator.h">BatchOperator</a></td><td>An RAII mechanism for ensuring that a specified method gets called on the first-level recursion into a call tree, and that a matching method gets called on the final recursion out of the call tree.</td></tr>
+    <tr><td><a href="util/ByteBuffer.h">ByteBuffer</a></td><td>An intelligent byte-array class, that stores its length, knows how to resize itself efficiently, is reference-countable and flattenable, etc.</td></tr>
+    <tr><td><a href="util/CountedObject.h">CountedObject</a></td><td>A class that other classes can be derived from if you want to keep track of how many instances of them are in memory at any given time.</td></tr>
+    <tr><td><a href="util/CPULoadMeter.h">CPULoadMeter</a></td><td>Reports the percentage of CPU time being used on the local computer from moment to moment.</td></tr>
+    <tr><td><a href="util/Directory.h">Directory</a></td><td>a platform-neutral API for scanning a filesystem directory and iterating over its contents.</td></tr>
+    <tr><td><a href="util/DebugTimer.h">DebugTimer</a></td><td>useful for debugging performance problems.  It records the current time in its constructor, and then in its destructor it prints out the time that has elapsed since then.</td></tr>
+    <tr><td><a href="util/FilePathInfo.h">FilePathInfo</a></td><td>API for querying the various properties of an entry at a specified location in a file system (e.g. is a file, a directory, or a symlink, how large is it, when was it created or modified, etc)</td></tr>
+    <tr><td><a href="util/Hashtable.h">Hashtable</a></td><td>A handy hash table class, with templated key and value types and the traditional O(1) lookup time.  Includes other nice features, such as "safe" iterators (so you can modify the Hashtable while iterating through it), predictable memory allocations, and the ability to sort the table by key or by value (it maintains the ordering of the objects placed into the table).</td></tr>
+    <tr><td><a href="util/ImmutableHashtablePool.h">ImmutableHashtablePool</a></td><td>A utility class used to reduce memory usage when there are a large number of objects that each need to hold a Hashtable, but many of the held Hashtables will be identical to each other.</td></tr>
+    <tr><td><a href="util/IPAddress.h">IPAddress</a></td><td>Represents an IPv4 or IPv6 address in a uniform manner.  There is also an IPAddressAndPort class which represents the combination of an IP address and a port number.</td></tr>
+    <tr><td><a href="util/NestCount.h">NestCount</a></td><td>RAII class for recording when the execution path enters or exits a particular function, and (optionally) making decisions based on whether a specified function is currently on the stack or not.</td></tr>
+    <tr><td><a href="util/MiscUtilityFunctions.h">MiscUtilityFunctions</a></td><td>MiscUtilityFunctions.cpp is a catch-all for various useful functions that didn't fit anywhere else.</td></tr>
+    <tr><td><a href="util/NetworkUtilityFunctions.h">NetworkUtilityFunctions</a></td><td>NetworkUtilityFunctions.cpp is a repository of user-friendly wrapper functions around common BSD socket operations, such as setting up sockets to connect or accept TCP connections, or binding a UDP socket to a port.</td></tr>
+    <tr><td><a href="util/ObjectPool.h">ObjectPool</a></td><td>Slab-allocator-based object-pool class, used to avoid excessive heap access when managing commonly heap-allocated objects (such as <a href="message/Message.h">Message</a> or Socket).</td></tr>
+    <tr><td><a href="util/PulseNode.h">PulseNode</a></td><td>An interface for objects that want to execute a particular action at a specified time.  It works in conjunction with the standard MUSCLE event loop.  Implementing classes define a Pulse() method that will be executed at a specified time, and a GetPulseTime() method that returns a clock value indicating when Pulse() should next be executed.</td></tr>
+    <tr><td><a href="util/Queue.h">Queue</a></td><td>A templatized double-ended/circular queue (i.e. AddHead(), AddTail(), RemoveHead(), and RemoveTail() are O(1) operations).  It can be used as a Vector, Stack, or FIFO.</td></tr>
+    <tr><td><a href="util/RefCount.h">RefCount</a></td><td>Reference-counting shared-pointer class for C++ objects that derive from RefCountable</td></tr>
+    <tr><td><a href="util/Socket.h">Socket</a></td><td>A reference-countable C++ class wrapper for a socket or file descriptor, used to avoid descriptor leaks</td></tr>
+    <tr><td><a href="util/SocketMultiplexer.h">SocketMultiplexer</a></td><td>An easy-to-use wrapper around the select() socket-multiplexing API (or similar alternative multiplexing APIs such as poll()/epoll()/kqueue())</td></tr>
+    <tr><td><a href="util/String.h">String</a></td><td>A basic ASCII/UTF-8 character-string class with SSO.</td></tr>
+    <tr><td><a href="util/StringTokenizer.h">StringTokenizer</a></td><td>A string-tokenizing class similar to Java's Java.util.StringTokenizer, only more efficient.</td></tr>
+    <tr><td><a href="util/TimeUtilityFunctions.h">TimeUtilityFunctions</a></td><td>A repository of functions for dealing with microsecond-accurate timing issues.</td></tr>
+    </table>
+    <p>
+
 </li>
 <li>
 <b>zlib/</b>
-<p>  
+<p>
    This directory contains a subfolder named zlib (which contains the complete
    source code of the zlib compressor/decompressor package).  This directory
-   also contains some zlib-related muscle source, including ZLibCodec, which is a
-   convenience class for compressing and decompressing chunks of data, ZLibDataIO,
+   also contains some zlib-related muscle source, including <a href="zlib/ZLibCodec.h">ZLibCodec</a>, which is a
+   convenience class for compressing and decompressing chunks of data, <a href="zlib/ZLibDataIO.h">ZLibDataIO</a>,
    a wrapper class for transparent compression and decompression of I/O streams,
-   and ZLibUtilityFunctions, which contain some convenience functions for quickly
-   compressing and decompressing a Message in a compatible manner.
-<p>  
+   and <a href="zlib/ZLibUtilityFunctions.h">ZLibUtilityFunctions</a>, which contain some convenience functions for quickly
+   compressing and decompressing a <a href="message/Message.h">Message</a> in a compatible manner.
+<p>
 </li>
 </ol>
 <p>
