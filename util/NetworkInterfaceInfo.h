@@ -76,8 +76,9 @@ public:
      * @param copper True iff the interface is currently operations (e.g. has a connected ethernet cable plugged into it)
      * @param macAddress 48-bit MAC address value, or 0 if MAC address is unknown.
      * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value (NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN if the hardware type isn't known)
+     * @param mtu Max Transfer unit size of this network interface, in bytes
      */
-   NetworkInterfaceInfo(const String & name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType);
+   NetworkInterfaceInfo(const String & name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu);
 
    /** Returns the name of this interface, or "" if the name is not known. */
    const String & GetName() const {return _name;}
@@ -110,6 +111,13 @@ public:
      * or NETWORK_INTERFACE_HARDWARE_LOOPBACK.
      */
    uint32 GetHardwareType() const {return _hardwareType;}
+
+   /** Returns the MTU (Max Transfer Unit) of this network interface, in bytes.
+     * The MTU is the maximum size (including IP headers) of a packet that this network interface can transmit without fragmentation.
+     * Returns zero if the MTU of this network interface isn't known.
+     * Note that on a network path with multiple hops, the effective MTU of the path may be smaller than the MTU of the local interface.
+     */
+   uint32 GetMTU() const {return _mtu;}
 
    /** Returns true iff this interface is currently enabled ("up"). */
    bool IsEnabled() const {return _enabled;}
@@ -152,6 +160,7 @@ private:
    bool _copper;
    uint64 _macAddress;
    uint32 _hardwareType;
+   uint32 _mtu;
 };
 
 /** This function queries the local OS for information about all available network

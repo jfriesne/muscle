@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a GetMTU() method to the NetworkInterfaceInfo class.
    - Added a BitChord::WithBitSetTo() convenience method.
    o Updated copyright notices at the tops of files
    o Removed trailing spaces from all source files

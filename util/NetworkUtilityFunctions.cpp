@@ -1091,11 +1091,12 @@ NetworkInterfaceInfo :: NetworkInterfaceInfo()
    , _copper(false)
    , _macAddress(0)
    , _hardwareType(NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)
+   , _mtu(0)
 {
    // empty
 }
 
-NetworkInterfaceInfo :: NetworkInterfaceInfo(const String &name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType)
+NetworkInterfaceInfo :: NetworkInterfaceInfo(const String &name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu)
    : _name(name)
    , _desc(desc)
    , _ip(ip)
@@ -1105,6 +1106,7 @@ NetworkInterfaceInfo :: NetworkInterfaceInfo(const String &name, const String & 
    , _copper(copper)
    , _macAddress(macAddress)
    , _hardwareType(hardwareType)
+   , _mtu(mtu)
 {
    // empty
 }
@@ -1159,17 +1161,20 @@ bool NetworkInterfaceInfo :: operator == (const NetworkInterfaceInfo & rhs) cons
          &&(_enabled      == rhs._enabled)
          &&(_copper       == rhs._copper)
          &&(_macAddress   == rhs._macAddress)
-         &&(_hardwareType == rhs._hardwareType));
+         &&(_hardwareType == rhs._hardwareType)
+         &&(_mtu          == rhs._mtu));
 }
 
 String NetworkInterfaceInfo :: ToString() const
 {
-   return String("Name=[%1] Description=[%2] Type=[%3] IP=[%4] Netmask=[%5] Broadcast=[%6] MAC=[%7] Enabled=%8 Copper=%9").Arg(_name).Arg(_desc).Arg(GetNetworkHardwareTypeString(_hardwareType)).Arg(Inet_NtoA(_ip)).Arg(Inet_NtoA(_netmask)).Arg(Inet_NtoA(_broadcastIP)).Arg(MACAddressToString(_macAddress)).Arg(_enabled).Arg(_copper);
+   String ret = String("Name=[%1] Description=[%2] Type=[%3] IP=[%4] Netmask=[%5]").Arg(_name).Arg(_desc).Arg(GetNetworkHardwareTypeString(_hardwareType)).Arg(Inet_NtoA(_ip)).Arg(Inet_NtoA(_netmask));
+   ret += String(" Broadcast=[%1] MAC=[%2] Enabled=%3 Copper=%4 MTU=%5").Arg(Inet_NtoA(_broadcastIP)).Arg(MACAddressToString(_macAddress)).Arg(_enabled).Arg(_copper).Arg(_mtu);
+   return ret;
 }
 
 uint32 NetworkInterfaceInfo :: HashCode() const
 {
-   return _name.HashCode() + _desc.HashCode() + _ip.HashCode() + _netmask.HashCode() + _broadcastIP.HashCode() + CalculateHashCode(_macAddress) +_enabled + _copper;
+   return _name.HashCode() + _desc.HashCode() + _hardwareType + _ip.HashCode() + _netmask.HashCode() + _broadcastIP.HashCode() + CalculateHashCode(_macAddress) +_enabled + _copper + _mtu;
 }
 
 #if defined(USE_GETIFADDRS) || defined(WIN32)
@@ -1397,6 +1402,19 @@ static uint32 ConvertLinuxInterfaceType(int saFamily)
 }
 #endif
 
+#if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__) || defined(__linux__)
+static uint32 GetNetworkInterfaceMTU(const ConstSocketRef & dummySocket, const String & iname)
+{
+   struct ifreq ifr;
+   memset(&ifr, 0, sizeof(ifr));
+   memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
+
+   uint32 mtu = 0;
+   if ((dummySocket())&&(ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFMTU, &ifr) == 0)) mtu = ifr.ifr_mtu;
+   return mtu;
+}
+#endif
+
 status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFlags includeFlags)
 {
    const uint32 origResultsSize = results.GetNumItems();
@@ -1440,7 +1458,8 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 
       Hashtable<String, uint64> inameToMAC;
       {
-         ConstSocketRef dummySocket;  // just for doing ioctl()s on; will be demand-allocated when required
+         ConstSocketRef dummySocket = GetConstSocketRefFromPool(socket(AF_UNIX, SOCK_DGRAM, 0));  // just for doing ioctl()s on
+
          struct ifaddrs * p = ifap;
          while(p)
          {
@@ -1481,26 +1500,21 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                         }
 
 #if defined(__APPLE__)
-                        if ((devType == NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)||(devType == NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET))
+                        // Oops, IFT_ETHER is still ambiguous, since it could actually be Wired Ethernet or Wi-Fi or etc.
+                        // let's investigate a bit further and try to figure out what this network interface *really* is!
+                        if ((dummySocket())&&((devType == NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)||(devType == NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET)))
                         {
-                           // Oops, IFT_ETHER is still ambiguous, since it could actually be Wired Ethernet or Wi-Fi or etc.
-                           // let's investigate a bit further and try to figure out what this network interface *really* is!
-                           if (dummySocket() == NULL) dummySocket = GetConstSocketRefFromPool(socket(AF_UNIX, SOCK_DGRAM, 0));
-                           if (dummySocket())
+                           struct ifreq ifr; memset(&ifr, 0, sizeof(ifr)); memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
+                           if (ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFFUNCTIONALTYPE, &ifr) == 0)
                            {
-                              struct ifreq ifr; memset(&ifr, 0, sizeof(ifr));
-                              memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
-                              if (ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFFUNCTIONALTYPE, &ifr) == 0)
+                              switch(ifr.ifr_ifru.ifru_functional_type)
                               {
-                                 switch(ifr.ifr_ifru.ifru_functional_type)
-                                 {
-                                    case IFRTYPE_FUNCTIONAL_LOOPBACK:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK; break;
-                                    case IFRTYPE_FUNCTIONAL_WIRED:      devType = NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET; break;
-                                    case IFRTYPE_FUNCTIONAL_WIFI_INFRA: devType = NETWORK_INTERFACE_HARDWARE_TYPE_WIFI;     break;
-                                    case IFRTYPE_FUNCTIONAL_WIFI_AWDL:  devType = NETWORK_INTERFACE_HARDWARE_TYPE_WIFI;     break;
-                                    case IFRTYPE_FUNCTIONAL_CELLULAR:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_CELLULAR; break;
-                                    default:                            /* empty */                                         break;
-                                 }
+                                 case IFRTYPE_FUNCTIONAL_LOOPBACK:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK; break;
+                                 case IFRTYPE_FUNCTIONAL_WIRED:      devType = NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET; break;
+                                 case IFRTYPE_FUNCTIONAL_WIFI_INFRA: devType = NETWORK_INTERFACE_HARDWARE_TYPE_WIFI;     break;
+                                 case IFRTYPE_FUNCTIONAL_WIFI_AWDL:  devType = NETWORK_INTERFACE_HARDWARE_TYPE_WIFI;     break;
+                                 case IFRTYPE_FUNCTIONAL_CELLULAR:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_CELLULAR; break;
+                                 default:                            /* empty */                                         break;
                               }
                            }
                         }
@@ -1526,6 +1540,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             const bool isEnabled    = ((p->ifa_flags & IFF_UP)      != 0);
             const bool hasCopper    = ((p->ifa_flags & IFF_RUNNING) != 0);
             uint32 hardwareType     = NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN;  // default
+
 #if defined(__APPLE__)
             hardwareType = inameToType.GetWithDefault(iname, NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN);
 #elif defined(__linux__) && !defined(MUSCLE_AVOID_LINUX_DETECT_NETWORK_HARDWARE_TYPES)
@@ -1548,7 +1563,8 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 #ifndef MUSCLE_AVOID_IPV6
                if (unicastIP.IsIPv4() == false) unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignored by the TCP stack
 #endif
-               if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType)).IsOK(ret))  // MAC address will be set later
+
+               if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType, GetNetworkInterfaceMTU(dummySocket, iname))).IsOK(ret))  // MAC address will be set later
                {
                   DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
                   if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
@@ -1682,7 +1698,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 
                      const bool hasCopper = (pCurrAddresses->OperStatus==IfOperStatusUp);
                      const uint32 hardwareType = ConvertWindowsInterfaceType(pCurrAddresses->IfType);
-                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, outBuf, unicastIP, netmask, broadIP, isEnabled, hasCopper, mac, hardwareType)).IsOK(ret))
+                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, outBuf, unicastIP, netmask, broadIP, isEnabled, hasCopper, mac, hardwareType, pCurrAddresses->Mtu)).IsOK(ret))
                      {
                         if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
                      }
