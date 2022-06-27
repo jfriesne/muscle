@@ -498,8 +498,7 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
             // For this, we'll need to go into non-blocking mode and run a SocketMultiplexer loop to get the desired behaviour!
             const uint64 deadline = GetRunTime64()+maxConnectTime;
             SocketMultiplexer multiplexer;
-            uint64 now;
-            while((now = GetRunTime64()) < deadline)
+            while(GetRunTime64() < deadline)
             {
                multiplexer.RegisterSocketForWriteReady(fd);
 #ifdef WIN32
