@@ -36,7 +36,7 @@ CXXFLAGS += -std=c++11
 
 LFLAGS =
 LIBS =  -lpthread
-EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess
+EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess testsharedmem snoopsharedmem
 
 REGEXOBJS =
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
@@ -298,6 +298,9 @@ findsourcelocations : $(STDOBJS) findsourcelocations.o SysLog.o SetupSystem.o St
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 printsourcelocations : $(STDOBJS) printsourcelocations.o SysLog.o SetupSystem.o String.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o PulseNode.o Message.o ByteBuffer.o
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+snoopsharedmem: $(STDOBJS) SysLog.o SharedMemory.o snoopsharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testsharedmem: $(STDOBJS) SysLog.o SharedMemory.o testsharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
