@@ -42,6 +42,8 @@ SharedMemory :: ~SharedMemory()
 
 status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool returnLocked)
 {
+   status_t ret;
+
    UnsetArea();  // make sure everything is deallocated to start with
 
 #if defined(MUSCLE_FAKE_SHARED_MEMORY)
@@ -58,7 +60,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
          _isLockedReadOnly = false;
          return B_NO_ERROR;
       }
-      else MWARN_OUT_OF_MEMORY;
+      else {MWARN_OUT_OF_MEMORY; ret = B_OUT_OF_MEMORY;}
    }
 #elif defined(WIN32)
    if (keyString == NULL)
@@ -75,15 +77,15 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    _mutex = CreateMutexA(NULL, true, (_areaName+"__mutex")());
    if (_mutex != NULL)
    {
-      bool ok = true;
-      if (GetLastError() == ERROR_ALREADY_EXISTS) ok = (LockAreaReadWrite().IsOK());
+      if (GetLastError() == ERROR_ALREADY_EXISTS) (void) LockAreaReadWrite().IsOK(ret);
       else
       {
          // We created it in our CreateMutex() call, and it's already locked for us
          _isLocked = true;
          _isLockedReadOnly = false;
       }
-      if (ok)
+
+      if (ret.IsOK())
       {
          char buf[MAX_PATH];
          if (GetTempPathA(sizeof(buf), buf) > 0)
@@ -106,12 +108,17 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
                         if (returnLocked == false) UnlockArea();
                         return B_NO_ERROR;
                      }
+                     else ret = B_ERROR("MapViewOfFile() failed");
                   }
+                  else ret = B_ERROR("CreateFileMappingA() failed");
                }
             }
+            else ret = B_ERROR("CreateFileA() failed");
          }
+         else ret = B_ERROR("GetTempPathA() failed");
       }
    }
+   else ret = B_ERROR("CreateMutexA() failed");
 #else
    key_t requestedKey = IPC_PRIVATE;
    if (keyString)
@@ -158,7 +165,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
          _areaName = "private";  // sorry, it's the best I can do short of figuring out how to invert the hash function!
       }
 
-      if ((_key != IPC_PRIVATE)&&(LockAreaReadWrite().IsOK()))
+      if ((_key != IPC_PRIVATE)&&(LockAreaReadWrite().IsOK(ret)))
       {
          _areaID = shmget(_key, 0, permissionBits);
          if ((_areaID < 0)&&(createSize > 0))
@@ -179,14 +186,17 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
                   if (returnLocked == false) UnlockArea();
                   return B_NO_ERROR;
                }
+               else ret = B_ERRNO;
             }
+            else ret = B_ERRNO;
          }
+         else ret = B_ERRNO;
       }
    }
 #endif
 
    UnsetArea();  // oops, roll back everything!
-   return B_BAD_OBJECT;
+   return ret | B_BAD_OBJECT;
 }
 
 status_t SharedMemory :: DeleteArea()
@@ -324,7 +334,7 @@ status_t SharedMemory :: AdjustSemaphore(short delta)
       while(1)
       {
          if (semop(_semID, &sop, 1) == 0) return B_NO_ERROR;
-         if (errno != EINTR) break;  // on EINTR, we'll try again --jaf
+         if (errno != EINTR) return B_ERRNO;  // on EINTR, we'll try again --jaf
       }
    }
    return B_BAD_OBJECT;

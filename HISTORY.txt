@@ -7,9 +7,11 @@ key:  - new feature
 
    - Added a GetMTU() method to the NetworkInterfaceInfo class.
    - Added a BitChord::WithBitSetTo() convenience method.
-   - Added a snoopsharedmem program to the tests folder
-   o Updated copyright notices at the tops of files
-   o Removed trailing spaces from all source files
+   - Added a snoopsharedmem program to the tests folder.
+   - Added an erasesharedmem program to the tests folder.
+   - Improved the error codes returned by methods in the SharedMemory class.
+   o Updated copyright notices at the tops of files.
+   o Removed trailing spaces from all source files.
    o Suppressed a compiler warning when compiling with OpenSSL support enabled.
    * Added psapi.lib to Qt .pro files for Windows, so Qt programs can link.
    * Fixed the Makefile in tests to compile testsharedmem by default.
