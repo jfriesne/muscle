@@ -8,6 +8,8 @@
 #endif
 #ifdef WIN32
 # include "Shlwapi.h"
+#else
+# include <pwd.h>
 #endif
 
 namespace muscle {
@@ -176,21 +178,18 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
 #ifdef WIN32
          char homeDir[4096];
          DWORD res = GetEnvironmentVariableA("HOME", homeDir, sizeof(homeDir));
-         if (res == 0)
-            res = GetEnvironmentVariableA("USERPROFILE", homeDir, sizeof(homeDir));
-
-         if (res > 0)
+         if (res == 0) res = GetEnvironmentVariableA("USERPROFILE", homeDir, sizeof(homeDir));
+         if (res > 0) {found = true; outStr = homeDir;}
 #else
          const char * homeDir = getenv("HOME");
+         if (homeDir == NULL) homeDir = getenv("USERPROFILE");
          if (homeDir == NULL)
-            homeDir = getenv("USERPROFILE");
-
-         if (homeDir)
-#endif
          {
-            found = true;
-            outStr = homeDir;
+            const struct passwd * p = getpwuid(geteuid());
+            if (p) homeDir = p->pw_dir;
          }
+         if (homeDir) {found = true; outStr = homeDir;}
+#endif
       }
       break;
 

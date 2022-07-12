@@ -10,6 +10,8 @@ key:  - new feature
    - Added a snoopsharedmem program to the tests folder.
    - Added an erasesharedmem program to the tests folder.
    - Improved the error codes returned by methods in the SharedMemory class.
+   - GetSystemPath(SYSTEM_PATH_USERHOME) now falls back to calling
+     getpwuid() on POSIX systems, if the getenv("HOME") approach fails.
    o Updated copyright notices at the tops of files.
    o Removed trailing spaces from all source files.
    o Suppressed a compiler warning when compiling with OpenSSL support enabled.
