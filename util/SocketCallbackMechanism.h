@@ -21,7 +21,7 @@ public:
    /** Destructor */
    virtual ~SocketCallbackMechanism();
 
-   /** Overridden to then read and discard any bytes received on the  socket, and then it will call
+   /** Overridden to then read and discard any bytes received on the socket, and then it will call
      * up to ICallbackMechanism::DispatchCallbacks(), which will call DispatchCallbacks() on the
      * appropriate registered ICallbackSubscribers.
      */
