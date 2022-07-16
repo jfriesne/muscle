@@ -16,7 +16,7 @@ class JUCECallbackMechanism : public ICallbackMechanism, private juce::AsyncUpda
 {
 public:
    /** Constructor */
-   virtual JUCECallbackMechanism() {/* empty */}
+   JUCECallbackMechanism() {/* empty */}
 
 protected:
    /** May be called from any thread; triggers an asynchronous call to DispatchCallbacks() within the main thread */
