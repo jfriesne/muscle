@@ -13,6 +13,7 @@ key:  - new feature
    - GetSystemPath(SYSTEM_PATH_USERHOME) now falls back to calling
      getpwuid() on POSIX systems, if the getenv("HOME") approach fails.
    - Added a WaitConditionCallbackMechanism utility class.
+   - Added a SpinLock class.
    o Updated copyright notices at the tops of files.
    o Removed trailing spaces from all source files.
    o Suppressed a compiler warning when compiling with OpenSSL support enabled.
