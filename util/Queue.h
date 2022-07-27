@@ -361,17 +361,17 @@ public:
    status_t ReplaceItemAt(uint32 index) {return ReplaceItemAt(index, GetDefaultItem());}
 
    /** Inserts (item) into the (nth) slot in the array.  InsertItemAt(0)
-    *  is the same as AddHead(item), InsertItemAt(GetNumItems()) is the same
+    *  is the same as AddHead(item), InsertItemAt(GetNumItems()) (or larger) is the same
     *  as AddTail(item).  Other positions will involve an O(n) shifting of contents.
     *  @param index The position at which to insert the new item.
     *  @param newItem The item to insert into the queue.
-    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (i.e. bad index).
+    *  @return B_NO_ERROR on success, or an error value on failure (out of memory?)
     */
    QQ_UniversalSinkItemRef status_t InsertItemAt(uint32 index, QQ_SinkItemParam newItem);
 
    /** As above, except that a default-initialized item is inserted.
     *  @param index The position at which to insert the new item.
-    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (i.e. bad index).
+    *  @return B_NO_ERROR on success, or an error value on failure (out of memory?)
     */
    status_t InsertItemAt(uint32 index) {return InsertItemAt(index, GetDefaultItem());}
 
@@ -1294,8 +1294,7 @@ InsertItemAt(uint32 index, QQ_SinkItemParam item)
    }
 
    // Simple cases
-   if (index >  _itemCount) return B_BAD_ARGUMENT;
-   if (index == _itemCount) return AddTail(QQ_ForwardItem(item));
+   if (index >= _itemCount) return AddTail(QQ_ForwardItem(item));
    if (index == 0)          return AddHead(QQ_ForwardItem(item));
 
    // Harder case:  inserting into the middle of the array
@@ -1319,10 +1318,11 @@ status_t
 Queue<ItemType>::
 InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItems)
 {
+   index = muscleMin(index, _itemCount);
+
    const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
    if (numNewItems == 0) return B_NO_ERROR;
-   if (index > _itemCount) return B_BAD_ARGUMENT;
    if (numNewItems == 1)
    {
       if (index == 0)          return AddHead(queue.Head());
@@ -1344,8 +1344,9 @@ status_t
 Queue<ItemType>::
 InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems)
 {
+   index = muscleMin(index, _itemCount);
+
    if (numNewItems == 0) return B_NO_ERROR;
-   if (index > _itemCount) return B_BAD_ARGUMENT;
    if (numNewItems == 1)
    {
       if (index == 0)          return AddHead(*items);
@@ -1677,12 +1678,12 @@ Merge(const CompareFunctorType & compareFunctor, uint32 from, uint32 pivot, uint
                uint32 p2 = p1+shift;
                while (p2 != first_cut + n)
                {
-                  ReplaceItemAt(p1, QQ_PlunderItem(*GetItemAtUnchecked(p2)));
+                  (void) ReplaceItemAt(p1, QQ_PlunderItem(*GetItemAtUnchecked(p2)));
                   p1 = p2;
                   if (second_cut - p2 > shift) p2 += shift;
                                           else p2  = first_cut + (shift - (second_cut - p2));
                }
-               ReplaceItemAt(p1, QQ_PlunderItem(val));
+               (void) ReplaceItemAt(p1, QQ_PlunderItem(val));
             }
          }
 

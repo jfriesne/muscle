@@ -17,6 +17,9 @@ key:  - new feature
    o Updated copyright notices at the tops of files.
    o Removed trailing spaces from all source files.
    o Suppressed a compiler warning when compiling with OpenSSL support enabled.
+   o Modified Queue::InsertItemAt() and Queue::InsertItemsAt() to
+     allow insert-positions greater than the size of the Queue.  Calls
+     like that will append the item(s) to the end of the Queue.
    * Added psapi.lib to Qt .pro files for Windows, so Qt programs can link.
    * Fixed the Makefile in tests to compile testsharedmem by default.
 
