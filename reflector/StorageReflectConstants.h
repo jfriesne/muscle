@@ -63,7 +63,7 @@ enum
    PR_RESULT_PONG,               /**< Response from a PR_COMMAND_PING message */
    PR_RESULT_ERRORACCESSDENIED,  /**< Your client isn't allowed to do something it tried to do */
    PR_RESULT_DATATREES,          /**< Reply to a PR_COMMAND_GETDATATREES message */
-   PR_RESULT_RESERVED5,          /**< reserved for future expansion */
+   PR_RESULT_NOOP,               /**< Clients should ignore this message.  Servers can send this to check TCP connectivity. */
    PR_RESULT_RESERVED6,          /**< reserved for future expansion */
    PR_RESULT_RESERVED7,          /**< reserved for future expansion */
    PR_RESULT_RESERVED8,          /**< reserved for future expansion */
@@ -375,6 +375,14 @@ DECLARE_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS);
 // if 'what' is PR_RESULT_ERRORACCESSDENIED:
 //    You tried to do something that you don't have permission to do (such as kick, ban,
 //    or unban another user).
+//
+// if 'what' is PR_RESULT_DATATREES:
+//    This is the response to a PR_COMMAND_GETDATATREES message you sent earlier.  If
+//    contains the contents of the subtree(s) you requested.
+//
+// if 'what' is PR_RESULT_NOOP:
+//    This is a dummy Message, probably sent just to force the TCP layer to verify that
+//    connectivity is still present.  Please ignore it.
 //
 // if 'what' is anything else:
 //    This message was reflected to your client by a neighboring client session.  The content

@@ -14,6 +14,7 @@ key:  - new feature
      getpwuid() on POSIX systems, if the getenv("HOME") approach fails.
    - Added a WaitConditionCallbackMechanism utility class.
    - Added a SpinLock class.
+   - Added a PR_RESULT_NOOP code to the enum in StorageReflectConstants.h
    o Calling Write() on a UDPSocketDataIO with zero destinations no
      longer results in an error-return; rather the data is discarded and
      Write() returns success.

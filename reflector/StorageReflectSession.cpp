@@ -813,12 +813,6 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
          }
          break;
 
-         case PR_RESULT_PARAMETERS:
-            // fall-thru
-         case PR_RESULT_DATAITEMS:
-            LogTime(MUSCLE_LOG_WARNING, "Warning, client at [%s] sent me a PR_RESULT_* code.  Bad client!\n", GetHostName()());
-         break;
-
          case PR_COMMAND_JETTISONRESULTS:
          {
             if (msg.HasName(PR_NAME_KEYS, B_STRING_TYPE))
