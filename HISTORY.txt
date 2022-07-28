@@ -14,6 +14,9 @@ key:  - new feature
      getpwuid() on POSIX systems, if the getenv("HOME") approach fails.
    - Added a WaitConditionCallbackMechanism utility class.
    - Added a SpinLock class.
+   o Calling Write() on a UDPSocketDataIO with zero destinations no
+     longer results in an error-return; rather the data is discarded and
+     Write() returns success.
    o Updated copyright notices at the tops of files.
    o Removed trailing spaces from all source files.
    o Suppressed a compiler warning when compiling with OpenSSL support enabled.

@@ -27,6 +27,8 @@ int32 UDPSocketDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAndPort &
 
 int32 UDPSocketDataIO :: Write(const void * buffer, uint32 size)
 {
+   if (_sendTo.IsEmpty()) return size;  // with no destinations, we'll just act as a data-sink, for consistency
+
    // This method is overridden to support multiple destinations too
    bool sawErrors  = false;
    bool sawSuccess = false;
