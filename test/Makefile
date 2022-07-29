@@ -36,7 +36,7 @@ CXXFLAGS += -std=c++11
 
 LFLAGS =
 LIBS =  -lpthread
-EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess testsharedmem snoopsharedmem erasesharedmem
+EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testatomicvalue testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess testsharedmem snoopsharedmem erasesharedmem
 
 REGEXOBJS =
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
@@ -144,6 +144,9 @@ testthreadpool : $(STDOBJS) testthreadpool.o SetupSystem.o Message.o String.o By
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testpool : $(STDOBJS) Message.o String.o testpool.o SysLog.o ByteBuffer.o SetupSystem.o SetupSystem.o
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+testatomicvalue : $(STDOBJS) testatomicvalue.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testbatchguard : $(STDOBJS) Message.o String.o testbatchguard.o SysLog.o ByteBuffer.o SetupSystem.o SetupSystem.o

@@ -13,8 +13,10 @@ key:  - new feature
    - GetSystemPath(SYSTEM_PATH_USERHOME) now falls back to calling
      getpwuid() on POSIX systems, if the getenv("HOME") approach fails.
    - Added a WaitConditionCallbackMechanism utility class.
+   - Added an AtomicValue class to support lock-free variable-sharing.
    - Added a SpinLock class.
    - Added a PR_RESULT_NOOP code to the enum in StorageReflectConstants.h
+   - Added testatomicvalue.cpp to test/verify the AtomicValue class.
    o Calling Write() on a UDPSocketDataIO with zero destinations no
      longer results in an error-return; rather the data is discarded and
      Write() returns success.
