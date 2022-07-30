@@ -21,7 +21,7 @@ namespace muscle {
   * That way, the reading-thread's "old" copy of the value is in no danger of being
   * modified while the reading-thread is in the middle of using it.
   */
-template<typename T, uint32 ATOMIC_BUFFER_SIZE=8> class AtomicValue MUSCLE_FINAL_CLASS
+template<typename T, uint32 ATOMIC_BUFFER_SIZE=4> class AtomicValue MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Our value will be default-initialized. */
