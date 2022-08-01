@@ -3,11 +3,12 @@
 #ifndef MuscleAtomicValue_h
 #define MuscleAtomicValue_h
 
-#if defined(MUSCLE_AVOID_CPLUSPLUS11)
-# error "The AtomicValue class requires C++11 or later to use, be sure you have C++11 or later mode set on your compiler!
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+# include <atomic>
+#elif defined(__APPLE__)
+# include <libkern/OSAtomic.h>
 #endif
 
-#include <atomic>
 #include "support/MuscleSupport.h"
 
 namespace muscle {
@@ -47,14 +48,32 @@ public:
      */
    status_t SetValue(const T & newValue)
    {
+#if defined(MUSCLE_AVOID_CPLUSPLUS11)
+      uint32 oldReadIndex = _readIndex % ATOMIC_BUFFER_SIZE;
+#else
       uint32 oldReadIndex = _readIndex.load() % ATOMIC_BUFFER_SIZE;
+#endif
+
       while(1)
       {
          const uint32 newWriteIndex = (++_writeIndex % ATOMIC_BUFFER_SIZE);
          if (newWriteIndex == oldReadIndex) return B_BAD_OBJECT;  // out of buffer space!
 
          _buffer[newWriteIndex] = newValue;
-         if (_readIndex.compare_exchange_strong(oldReadIndex, newWriteIndex, std::memory_order_release, std::memory_order_relaxed)) break;
+
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+         const bool casSucceeded = _readIndex.compare_exchange_strong(oldReadIndex, newWriteIndex, std::memory_order_release, std::memory_order_relaxed);
+#elif defined(__APPLE__)
+         const bool casSucceeded = OSAtomicCompareAndSwap32Barrier(oldReadIndex, newWriteIndex, &_readIndex);
+#elif defined(WIN32)
+         const bool casSucceeded = InterlockedCompareExchange(&_readIndex, newWriteIndex, oldReadIndex);
+#elif defined(__GNUC__) && ((__GNUC__ > 4) || ((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 1)))
+         const bool casSucceeded = __sync_bool_compare_and_swap(&_readIndex, oldReadIndex, newWriteIndex);
+#else
+#        error "AtomicValue:  Unsupported platform, no compare-and-swap function known"
+#endif
+
+         if (casSucceeded) break;
       }
       return B_NO_ERROR;
    }
@@ -69,8 +88,18 @@ public:
    const T * GetInternalValuesArray() const {return _buffer;}
 
 private:
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    std::atomic<uint32> _readIndex;
    std::atomic<uint32> _writeIndex;
+#elif defined(WIN32)
+   volatile long _readIndex;
+   volatile long _writeIndex;
+#elif (defined(__APPLE__) || defined(__GNUC__))
+   volatile int32_t _readIndex;
+   volatile int32_t _writeIndex;
+#else
+#  error "AtomicValue:  Unsupported platform"
+#endif
 
    T _buffer[ATOMIC_BUFFER_SIZE];
 };
