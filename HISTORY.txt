@@ -28,6 +28,7 @@ key:  - new feature
      like that will append the item(s) to the end of the Queue.
    * Added psapi.lib to Qt .pro files for Windows, so Qt programs can link.
    * Fixed the Makefile in tests to compile testsharedmem by default.
+   * Added some missing build-executable directives to tests/CMakeLists.txt.
 
 8.60 - Released 5/28/2022
    - Added a WaitCondition class for easy Wait()/Notify() functionality.

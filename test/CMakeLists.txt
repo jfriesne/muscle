@@ -40,6 +40,9 @@ if (WITH_TESTS)
    add_executable(deadlock deadlock.cpp)
    target_link_libraries(deadlock muscle)
 
+   add_executable(erasesharedmem erasesharedmem.cpp)
+   target_link_libraries(erasesharedmem muscle)
+
    add_executable(findsourcelocations findsourcelocations.cpp)
    target_link_libraries(findsourcelocations muscle)
 
@@ -73,8 +76,14 @@ if (WITH_TESTS)
    add_executable(singlethreadedreflectclient singlethreadedreflectclient.cpp)
    target_link_libraries(singlethreadedreflectclient muscle)
 
+   add_executable(snoopsharedmem snoopsharedmem.cpp)
+   target_link_libraries(snoopsharedmem muscle)
+
    add_executable(striphextermoutput striphextermoutput.cpp)
    target_link_libraries(striphextermoutput muscle)
+
+   add_executable(testatomicvalue testatomicvalue.cpp)
+   target_link_libraries(testatomicvalue muscle)
 
    add_executable(testbatchguard testbatchguard.cpp)
    target_link_libraries(testbatchguard muscle)
@@ -111,6 +120,12 @@ if (WITH_TESTS)
 
    add_executable(testmessage testmessage.cpp)
    target_link_libraries(testmessage muscle)
+
+   add_executable(testmicro testmicro.cpp ../lang/c/micromessage/MicroMessage.c ../lang/c/micromessage/MicroMessageGateway.c)
+   target_link_libraries(testmicro muscle)
+
+   add_executable(testmini testmini.cpp ../lang/c/minimessage/MiniMessage.c ../lang/c/minimessage/MiniMessageGateway.c)
+   target_link_libraries(testmini muscle)
 
    add_executable(testnagle testnagle.cpp)
    target_link_libraries(testnagle muscle)
@@ -177,6 +192,9 @@ if (WITH_TESTS)
 
    add_executable(testsysteminfo testsysteminfo.cpp)
    target_link_libraries(testsysteminfo muscle)
+
+   add_executable(testtar testtar.cpp)
+   target_link_libraries(testtar muscle)
 
    add_executable(testthread testthread.cpp)
    target_link_libraries(testthread muscle)
