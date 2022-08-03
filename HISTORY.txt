@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+8.61 - Released 8/2/2022
    - Added a GetMTU() method to the NetworkInterfaceInfo class.
    - Added a BitChord::WithBitSetTo() convenience method.
    - Added a snoopsharedmem program to the tests folder.
