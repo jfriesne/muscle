@@ -389,4 +389,4 @@ ThreadWorkerSessionRef QMessageTransceiverHandler :: CreateDefaultWorkerSession(
    return thread.CreateDefaultWorkerSession();
 }
 
-}  // end namespace muscle;
+}  // end namespace muscle

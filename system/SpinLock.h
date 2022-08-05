@@ -113,6 +113,6 @@ private:
   */
 #define DECLARE_SPINLOCKGUARD(spinlock) muscle::SpinLockGuard MUSCLE_UNIQUE_NAME(spinlock)
 
-};  // end namespace muscle
+}  // end namespace muscle
 
 #endif
