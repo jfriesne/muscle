@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Rewrote Hashtable::InsertIterationEntryInOrder() to be simpler and
+     more efficient in most cases.
+   * Hashtable::Clear() wasn't updating registered HashtableIterators
+     properly.  Fixed.
+
 8.61 - Released 8/2/2022
    - Added a GetMTU() method to the NetworkInterfaceInfo class.
    - Added a BitChord::WithBitSetTo() convenience method.

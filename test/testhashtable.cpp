@@ -246,10 +246,17 @@ static int DoInteractiveTest()
 
          while(iter.HasData())
          {
-            MASSERT((atoi(iter.GetValue()()) == iter.GetKey()), "value/key mismatch C!\n");
-            printf("%s%i", first?"":", ", iter.GetKey());
-            first = false;
-            iter++;
+            if (atoi(iter.GetValue()()) == iter.GetKey())
+            {
+               printf("%s%i", first?"":", ", iter.GetKey());
+               first = false;
+               iter++;
+            }
+            else
+            {
+               printf("ERROR, value/key mismatch C! key [%i] != value [%s]\n", iter.GetKey(), iter.GetValue()());
+               MCRASH("bug");
+            }
          }
          printf("\n");
       }

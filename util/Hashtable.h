@@ -3003,9 +3003,12 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Clear(bool releaseCachedBuffer
    // First go through our list of active iterators, and let them all know they are now invalid
    while(_iterList)
    {
+      if (_iterList->_iterCookie) _iterList->SetScratchValues(GetKeyFromCookie(_iterList->_iterCookie), GetValueFromCookie(_iterList->_iterCookie));
+
       IteratorType * next = _iterList->_nextIter;
       _iterList->_owner = NULL;
       _iterList->_iterCookie = _iterList->_prevIter = _iterList->_nextIter = NULL;
+      _iterList->UpdateKeyAndValuePointers();
       _iterList = next;
    }
 
@@ -3271,30 +3274,19 @@ template <class EntryCompareFunctorType>
 void
 HashtableBase<KeyType,ValueType,HashFunctorType>::InsertIterationEntryInOrder(const EntryCompareFunctorType & ecf, HashtableEntryBase * e, bool isAutoSortEnabled, void * compareCookie)
 {
-   HashtableEntryBase * insertAfter = this->IndexToEntryChecked(this->_iterTailIdx);  // default to appending to the end of the list
-   if ((isAutoSortEnabled)&&(this->_iterHeadIdx != MUSCLE_HASHTABLE_INVALID_SLOT_INDEX))
+   HashtableEntryBase * insertAfter = NULL;  // NULL == "prepend to the head of the iteration-list"
+   if (isAutoSortEnabled)
    {
-      // We're in sorted mode, so we'll try to place this guy in the correct position.
-           if (ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterHeadIdx), compareCookie) < 0) insertAfter = NULL;  // easy; append to the head of the list
-      else if (ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterTailIdx), compareCookie) < 0)  // only iterate through if we're before the tail, otherwise the tail is fine
+      if ((HasItems())&&(ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterHeadIdx), compareCookie) >= 0))
       {
-         HashtableEntryBase * prev = this->IndexToEntryUnchecked(this->_iterHeadIdx);
-         HashtableEntryBase * next = this->GetEntryIterNextChecked(prev);  // more difficult;  find where to insert into the middle
-         while(next)
-         {
-            if (ecf.Compare(*e, *next, compareCookie) < 0)
-            {
-               insertAfter = prev;
-               break;
-            }
-            else
-            {
-               prev = next;
-               next = this->GetEntryIterNextChecked(next);
-            }
-         }
+         // Iterate backwards through the iteration-list, on the assumption that it's more common to add key/value
+         // pairs near the end of the iteration-list than near the start of it (e.g. when using timestamps as keys)
+         insertAfter = this->IndexToEntryChecked(this->_iterTailIdx);
+         while(ecf.Compare(*e, *insertAfter, compareCookie) < 0) insertAfter = this->GetEntryIterPrevChecked(insertAfter);
       }
    }
+   else insertAfter = this->IndexToEntryChecked(this->_iterTailIdx);  // if auto-sort is disabled, just use the standard Hashtable insert-at-end logic
+
    this->InsertIterationEntry(e, insertAfter);
 }
 
