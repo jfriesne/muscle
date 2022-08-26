@@ -574,7 +574,6 @@ int main(int argc, char ** argv)
       CheckTable(table, actualNumItems, true);
    }
 
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
    {
       LogTime(MUSCLE_LOG_INFO, "Testing ComputeInvertedTable() and ComputeValuesHistogram()...\n");
 
@@ -589,15 +588,22 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Original table:\n");
       for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO, "   [%s] -> %i\n", iter.GetKey()(), iter.GetValue());
 
+#if defined(MUSCLE_AVOID_CPLUSPLUS11) || defined(MUSCLE_AVOID_GCC_SFINAE_BUG)
+      const Hashtable<int, String> inverted = table.ComputeInvertedTable<DEFAULT_HASH_FUNCTOR(int)>(HTIT_FLAG_BACKWARDS);
+#else
       const Hashtable<int, String> inverted = table.ComputeInvertedTable(HTIT_FLAG_BACKWARDS);
+#endif
       LogTime(MUSCLE_LOG_INFO, "Inverted table:\n");
       for (HashtableIterator<int, String> iter(inverted); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO, "   %i -> [%s]\n", iter.GetKey(), iter.GetValue()());
 
+#if defined(MUSCLE_AVOID_CPLUSPLUS11) || defined(MUSCLE_AVOID_GCC_SFINAE_BUG)
+      const Hashtable<int, uint32> hist = table.ComputeValuesHistogram<DEFAULT_HASH_FUNCTOR(int)>();
+#else
       const Hashtable<int, uint32> hist = table.ComputeValuesHistogram();
+#endif
       LogTime(MUSCLE_LOG_INFO, "Histogram:\n");
       for (HashtableIterator<int, uint32> iter(hist); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO, "   %i -> " UINT32_FORMAT_SPEC "\n", iter.GetKey(), iter.GetValue());
    }
-#endif
 
    // Test the sort algorithm for efficiency and correctness
    {
