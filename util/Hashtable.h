@@ -2075,7 +2075,6 @@ public:
      * @param rhs the table to steal the contents of, to make them our own
      */
    template<class RHSHashFunctorType, class RHSSubclassType> Hashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) {this->SwapContents(rhs); return *this;}
-#endif
 
    /** Convenience method:  Returns a table like this one, except the keys and values have swapped positions.
      * @note that if this table has two multiple keys with the same value, then the returned table will be smaller than this table,
@@ -2089,10 +2088,9 @@ public:
    /** Convenience method:  Returns a histogram of the values in this Hashtable.
      * @note keys in the returned Hashtable correspond to values in this Hashtable.  Values in the returned histogram-Hashtable
      *            are uint32's, set to the number of instances of that values that are present in this Hashtable.
-     * @param iterFlags A bit-chord of HTIT_FLAG_* constants to pass to the HashtableIterator we used when iterating over this table's
-     *                  contents to construct the histogram to return.  Defaults to zero for default behaviour.
      */
-   template<class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType)> Hashtable<ValueType, uint32, ValueHashFunctorType> ComputeValuesHistogram(uint32 iterFlags = 0) const;
+   template<class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType)> Hashtable<ValueType, uint32, ValueHashFunctorType> ComputeValuesHistogram() const;
+#endif
 
 private:
    typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase HashtableEntryBaseType;
@@ -3613,6 +3611,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAtPosition(HT_S
    return B_NO_ERROR;
 }
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
 template <class KeyType, class ValueType, class HashFunctorType>
 template<class ValueHashFunctorType>
 Hashtable<ValueType, KeyType, ValueHashFunctorType>
@@ -3628,16 +3627,17 @@ template <class KeyType, class ValueType, class HashFunctorType>
 template<class ValueHashFunctorType>
 Hashtable<ValueType, uint32, ValueHashFunctorType>
 Hashtable<KeyType, ValueType, HashFunctorType> ::
-ComputeValuesHistogram(uint32 iterFlags) const
+ComputeValuesHistogram() const
 {
    Hashtable<ValueType, uint32, ValueHashFunctorType> ret;
-   for (HashtableIterator<KeyType, ValueType> iter(*this, iterFlags); iter.HasData(); iter++)
+   for (HashtableIterator<KeyType, ValueType> iter(*this); iter.HasData(); iter++)
    {
       uint32 * count = ret.GetOrPut(iter.GetValue());
       if (count) (*count)++;
    }
    return ret;
 }
+#endif
 
 //===============================================================
 // Implementation of HashtableIterator
