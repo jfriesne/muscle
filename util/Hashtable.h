@@ -2090,7 +2090,7 @@ public:
      * @note keys in the returned Hashtable correspond to values in this Hashtable.  Values in the returned histogram-Hashtable
      *            are uint32's, set to the number of instances of that values that are present in this Hashtable.
      */
-   template<class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType)> Hashtable<ValueType, uint32, ValueHashFunctorType> ComputeValuesHistogram() const;
+   template<class ValueHashFunctorType> Hashtable<ValueType, uint32, ValueHashFunctorType> ComputeValuesHistogram() const;
 
 private:
    typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase HashtableEntryBaseType;
