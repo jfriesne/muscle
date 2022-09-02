@@ -22,10 +22,6 @@
 # pragma warning(disable: 4786)
 #endif
 
-#if defined(__GNUC__) && (__GNUC__ <= 8)
-# define MUSCLE_AVOID_GCC_SFINAE_BUG  // otherwise Linux gcc errors out on DEFAULT_HASH_FUNCTOR(ValueType) even when the method that uses it is never called
-#endif
-
 #ifndef MUSCLE_HASHTABLE_DEFAULT_CAPACITY
 /** The number of key/value-pairs in the array an empty Hashtable object allocates from the heap the first time data is inserted into it.  Note that 8 is an awkward size because it means that after 5 doublings, the table will be of size 256, which is just slightly too large to use with uint8-indices, since ((uint8)-1) is used as a guard value.  That's why this defaults to 7 rather than 8. */
 # define MUSCLE_HASHTABLE_DEFAULT_CAPACITY 7
@@ -2088,21 +2084,13 @@ public:
      * @param iterFlags A bit-chord of HTIT_FLAG_* constants to pass to the HashtableIterator we used when iterating over this table's
      *                  contents to construct the inverted table to return.  Defaults to zero for default behaviour.
      */
-#if defined(MUSCLE_AVOID_CPLUSPLUS11) || defined(MUSCLE_AVOID_GCC_SFINAE_BUG)
    template<class ValueHashFunctorType> Hashtable<ValueType, KeyType, ValueHashFunctorType> ComputeInvertedTable(uint32 iterFlags = 0) const;
-#else
-   template<class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType)> Hashtable<ValueType, KeyType, ValueHashFunctorType> ComputeInvertedTable(uint32 iterFlags = 0) const;
-#endif
 
    /** Convenience method:  Returns a histogram of the values in this Hashtable.
      * @note keys in the returned Hashtable correspond to values in this Hashtable.  Values in the returned histogram-Hashtable
      *            are uint32's, set to the number of instances of that values that are present in this Hashtable.
      */
-#if defined(MUSCLE_AVOID_CPLUSPLUS11) || defined(MUSCLE_AVOID_GCC_SFINAE_BUG)
-   template<class ValueHashFunctorType> Hashtable<ValueType, uint32, ValueHashFunctorType> ComputeValuesHistogram() const;
-#else
    template<class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType)> Hashtable<ValueType, uint32, ValueHashFunctorType> ComputeValuesHistogram() const;
-#endif
 
 private:
    typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase HashtableEntryBaseType;
