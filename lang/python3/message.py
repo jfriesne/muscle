@@ -186,25 +186,25 @@ class Message:
          fieldTypeCode, fieldDataLength = struct.unpack("<2L", inFile.read(2*4))
          if fieldTypeCode == B_BOOL_TYPE:
             fieldContents = array.array('b')
-            fieldContents.fromstring(inFile.read(fieldDataLength))
+            fieldContents.frombytes(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_DOUBLE_TYPE:
             fieldContents = array.array('d')
-            fieldContents.fromstring(inFile.read(fieldDataLength))
+            fieldContents.frombytes(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_FLOAT_TYPE:
             fieldContents = array.array('f')
-            fieldContents.fromstring(inFile.read(fieldDataLength))
+            fieldContents.frombytes(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_INT32_TYPE: 
             fieldContents = array.array('i')
-            fieldContents.fromstring(inFile.read(fieldDataLength))
+            fieldContents.frombytes(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_INT16_TYPE:
             fieldContents = array.array('h')
-            fieldContents.fromstring(inFile.read(fieldDataLength))
+            fieldContents.frombytes(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_INT8_TYPE:
             fieldContents = array.array('b')
-            fieldContents.fromstring(inFile.read(fieldDataLength))
+            fieldContents.frombytes(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_INT64_TYPE:
             fieldContents = array.array('q')
-            fieldContents.fromstring(inFile.read(fieldDataLength))
+            fieldContents.frombytes(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_MESSAGE_TYPE:
             fieldContents = []
             while fieldDataLength > 0:
@@ -305,7 +305,10 @@ class Message:
                outFile.write(struct.pack("<L", len(fieldContents)))
                for fieldItem in fieldContents:
                   outFile.write(struct.pack("<L", len(fieldItem))) 
-                  outFile.write(fieldItem)
+                  if (isinstance(fieldItem, str)):
+                     outFile.write(str.encode(fieldItem))
+                  else:
+                     outFile.write(fieldItem)
    
    def GetFlattenedBuffer(self):
       """Convenience method:  returns a binary buffer that is the platform-neutral flattened representation of this Message."""

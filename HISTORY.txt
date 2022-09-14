@@ -11,6 +11,10 @@ key:  - new feature
      more efficient in most cases.
    * Hashtable::Clear() wasn't updating registered HashtableIterators
      properly.  Fixed.
+   * python3/message.py was calling deprecated method array.fromstring()
+     when it should be calledin array.frombytes().  Fixed.
+   * python3/message.Flatten() now handles it properly when passed a
+     string as a raw data-item.
 
 8.61 - Released 8/2/2022
    - Added a GetMTU() method to the NetworkInterfaceInfo class.
