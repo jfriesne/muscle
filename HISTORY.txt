@@ -7,6 +7,9 @@ key:  - new feature
 
    - Added a Hashtable::ComputeInvertedTable() convenience-method.
    - Added a Hashtable::ComputeValuesHistogram() convenience-method.
+   - Updated server/Makefile and test/Makefile to compile Universal
+     binaries under MacOS/X, if the BUILD_UNIVERSAL_BINARIES environment
+     variable is set.
    o Rewrote Hashtable::InsertIterationEntryInOrder() to be simpler and
      more efficient in most cases.
    * Hashtable::Clear() wasn't updating registered HashtableIterators

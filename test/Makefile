@@ -72,6 +72,12 @@ endif
 ifeq ($(OSTYPE),Darwin)
    LIBS += -framework IOKit -framework Carbon -framework SystemConfiguration -framework Security
    CXXFLAGS += -stdlib=libc++
+   ifdef BUILD_UNIVERSAL_BINARIES
+      ARCH_FLAGS = -arch x86_64 -arch arm64
+      CFLAGS    += $(ARCH_FLAGS)
+      CXXFLAGS  += $(ARCH_FLAGS)
+      LFLAGS    += $(ARCH_FLAGS)
+   endif
 endif
 
 ifeq ($(OSTYPE),linux)

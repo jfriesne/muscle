@@ -56,6 +56,12 @@ endif
 ifeq ($(OSTYPE),Darwin)
    CXXFLAGS += -stdlib=libc++
    LIBS += -framework SystemConfiguration -framework CoreFoundation -framework IOKit
+   ifdef BUILD_UNIVERSAL_BINARIES
+      ARCH_FLAGS =-arch x86_64 -arch arm64
+      CFLAGS    += $(ARCH_FLAGS)
+      CXXFLAGS  += $(ARCH_FLAGS)
+      LFLAGS    += $(ARCH_FLAGS)
+   endif
 endif
 
 # IRIX may report itself as IRIX or as IRIX64.  They are both the same to us. 
