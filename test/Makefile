@@ -106,10 +106,10 @@ endif
 HEXTERMOBJS = hexterm.o SysLog.o SetupSystem.o String.o RS232DataIO.o ChildProcessDataIO.o ByteBuffer.o MiscUtilityFunctions.o Message.o StdinDataIO.o PlainTextMessageIOGateway.o AbstractMessageIOGateway.o FileDescriptorDataIO.o PulseNode.o SimulatedMulticastDataIO.o Thread.o ZLibDataIO.o
 
 ifeq ($(MUSCLE_BUILD_CONTEXT),meyer)
-   CXXFLAGS    += -DBUILD_MUSCLE_IN_MEYER_CONTEXT -I../../..
+   CXXFLAGS    += -DBUILD_MUSCLE_IN_MEYER_CONTEXT -I../../../libs/libmslicommon/include
    CXXFLAGS    += -DMEYER_RELEASE_IS_FULLY_QUALIFIED=$(MEYER_RELEASE_IS_FULLY_QUALIFIED)
    CXXFLAGS    += -DSVN_VERSION_STRING="$(SVN_REVISION)"
-   VPATH       += ../../../version/
+   VPATH       += ../../../libs/libmslicommon/src/version/
    HEXTERMOBJS += core_version.o
 endif
 
