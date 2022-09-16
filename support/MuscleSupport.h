@@ -718,7 +718,7 @@ template<typename T> inline void muscleSwap(T & t1, T & t2)
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
    T t(t1); t1 = t2; t2 = t;
 #else
-  std::swap(t1, t2);
+   std::swap(t1, t2);
 #endif
 }
 
