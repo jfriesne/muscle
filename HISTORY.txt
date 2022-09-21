@@ -10,6 +10,7 @@ key:  - new feature
    - Updated server/Makefile and test/Makefile to compile Universal
      binaries under MacOS/X, if the BUILD_UNIVERSAL_BINARIES environment
      variable is set.
+   - Updated the captive zlib library to v1.2.12.
    o Rewrote Hashtable::InsertIterationEntryInOrder() to be simpler and
      more efficient in most cases.
    * Hashtable::Clear() wasn't updating registered HashtableIterators
