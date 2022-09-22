@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+8.62 - Released 9/22/2022
    - Added a Hashtable::ComputeInvertedTable() convenience-method.
    - Added a Hashtable::ComputeValuesHistogram() convenience-method.
    - Updated server/Makefile and test/Makefile to compile Universal

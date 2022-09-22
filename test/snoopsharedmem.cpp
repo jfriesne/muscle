@@ -29,7 +29,6 @@ int main(int argc, char ** argv)
       const uint32 memSize = m.GetAreaSize();
       LogTime(MUSCLE_LOG_INFO, "Successfully attached to Shared Memory region [%s], which is located at %p and is " UINT32_FORMAT_SPEC " bytes long.\n", shmemName, a, memSize);
 
-      uint64 lastTime = 0;
       while(1)
       {
          Snooze64(MillisToMicros(100));
