@@ -40,7 +40,7 @@ int main(int, char **)
       char qs2[512]; printf("Enter q2: "); fflush(stdout); if (fgets(qs2, sizeof(qs2), stdin) == NULL) qs2[0] = '\0';
 
       Queue<int> q1, q2;
-      StringTokenizer t1(qs1), t2(qs2);
+      StringTokenizer t1(true, qs1), t2(true, qs2);
       const char * s;
       while((s = t1()) != NULL) q1.AddTail(atoi(s));
       while((s = t2()) != NULL) q2.AddTail(atoi(s));

@@ -2380,7 +2380,7 @@ uint64 ParseHumanReadableTimeString(const String & s, uint32 timeType)
 
    if (s.IndexOfIgnoreCase("never") >= 0) return MUSCLE_TIME_NEVER;
 
-   StringTokenizer tok(s(), "/:");
+   StringTokenizer tok(s(), "//::");
    const char * year   = tok();
    const char * month  = tok();
    const char * day    = tok();

@@ -124,7 +124,7 @@ static int DoInteractiveTest()
       char buf[512];
       if (fgets(buf, sizeof(buf), stdin))
       {
-         StringTokenizer tok(buf, NULL, " ");
+         StringTokenizer tok(buf, " ");
          const char * arg0 = tok();
          const char * arg1 = tok();
          const char * arg2 = tok();

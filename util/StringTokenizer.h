@@ -17,37 +17,33 @@ namespace muscle {
 class StringTokenizer MUSCLE_FINAL_CLASS
 {
 public:
-   /** Initializes the StringTokenizer to parse (tokenizeMe), which should be a string of tokens (e.g. words) separated by any
-    *  of the characters specified in (separators)
+   /** Initializes the StringTokenizer to parse (tokenizeMe), which should be a string of tokens (e.g. words),
+    *  possibly separated by any of the characters specified in (optSepChars)
     *  @param tokenizeMe the string to tokenize.  If NULL is passed in, an empty string ("") is assumed.
-    *  @param hardSeparators ASCII string representing a list of characters to interpret as "hard" substring-separators.
-    *                        Defaults to ","; passing in NULL is the same as passing in "" (i.e. no separators of this type).
-    *  @param softSeparators ASCII string representing a list of characters to interpret as "soft" substring-separators.
-    *                        Defaults to " \t\r\n"; passing in NULL is the same as passing in "" (i.e. no separators of this type).
+    *  @param optSepChars ASCII string representing a list of characters to interpret as substring-separators.
+    *                     Note that if a given char appears in this list once, it will be treated as a whitespace-style
+    *                     "soft" separator, in that multiple contiguous instances of this character will be treated as
+    *                     a single separator.  If a given char appears in this list more than once, it will be treated
+    *                     as a "hard" separator, where multiple contiguous instances are interpreted as separating
+    *                     empty sub-strings.  Default value is is NULL, which will be interpreted as if you has passed in "\t\r\n ,,"
     *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.  Defaults to zero.
-    *  @note the difference between a "soft" separator and a "hard" separator is that a contiguous series of soft separators
-    *        is counted as a single separator, while a contiguous series of hard separators is counted as separating one or
-    *        more empty strings.  For example, given the default separator-arguments listed above, ",A,B,,,C,D" would be tokenized
-    *        as ("", "A", "B", "", "", "C", "D"), while "  A B  C   D  " would be tokenized as ("A", "B", "C", "D").
     */
-   StringTokenizer(const char * tokenizeMe, const char * hardSeparators = ",", const char * softSeparators = " \t\r\n", char escapeChar = '\0');
+   StringTokenizer(const char * tokenizeMe, const char * optSepChars = NULL, char escapeChar = '\0');
 
    /** This Constructor is the same as above, only with this one you allow the StringTokenizer to modify (tokenizeMe) directly,
     *  rather than making a copy of the string first and modifying that.  (it's a bit more efficient as no dynamic allocations
     *  need to be done; however it does modify (tokenizeMe) in the process)
     *  @param junk Ignored; it's only here to disambiguate the two constructors.
     *  @param tokenizeMe The string to tokenize.  This string will get munged!
-    *  @param hardSeparators ASCII string representing a list of characters to interpret as "hard" substring-separators.
-    *                        Defaults to ","; passing in NULL is the same as passing in "" (i.e. no separators of this type).
-    *  @param softSeparators ASCII string representing a list of characters to interpret as "soft" substring-separators.
-    *                        Defaults to " \t\r\n"; passing in NULL is the same as passing in "" (i.e. no separators of this type).
+    *  @param optSepChars ASCII string representing a list of characters to interpret as substring-separators.
+    *                     Note that if a given char appears in this list once, it will be treated as a whitespace-style
+    *                     "soft" separator, in that multiple contiguous instances of this character will be treated as
+    *                     a single separator.  If a given char appears in this list more than once, it will be treated
+    *                     as a "hard" separator, where multiple contiguous instances are interpreted as separating
+    *                     empty sub-strings.  Default value is is NULL, which will be interpreted as if you has passed in "\t\r\n ,,"
     *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.  Defaults to zero.
-    *  @note the difference between a "soft" separator and a "hard" separator is that a contiguous series of soft separators
-    *        is counted as a single separator, while a contiguous series of hard separators is counted as separating one or
-    *        more empty strings.  For example, given the default separator-arguments listed above, ",A,B,,,C,D" would be tokenized
-    *        as ("", "A", "B", "", "", "C", "D"), while "  A B  C   D  " would be tokenized as ("A", "B", "C", "D").
     */
-   StringTokenizer(bool junk, char * tokenizeMe, const char * hardSeparators = ",", const char * softSeparators = " \t\r\n", char escapeChar = '\0');
+   StringTokenizer(bool junk, char * tokenizeMe, const char * optSepChars = NULL, char escapeChar = '\0');
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    StringTokenizer(const StringTokenizer & rhs);
@@ -103,9 +99,6 @@ private:
       if (_prevChar != _escapeChar) _nextToWrite++;  // conditional because we don't want (_escapeChar) to appear in the string returned by GetNextToken()
    }
 
-   bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[whichBit/32]&(1<<(whichBit%32))) != 0);}
-   void SetBitChord(uint32 * bits, const char * seps);
-
    bool _allocedBufferOnHeap;
    bool _prevSepWasHard;
    char _escapeChar;
@@ -119,8 +112,15 @@ private:
 
    char _smallStringBuf[128];
 
-   uint32 _hardSepsBitChord[8];  // 32x8 = 256, aka all possible 8-bit values of a sep
    uint32 _softSepsBitChord[8];  // bit N is set iff the corresponding 8-bit value is a sep
+   uint32 _hardSepsBitChord[8];  // 32x8 = 256, aka all possible 8-bit values of a sep
+
+   enum {BITS_PER_WORD = (sizeof(_softSepsBitChord[0])*8)};
+
+   bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[(whichBit)/BITS_PER_WORD] &  (1<<((whichBit)%BITS_PER_WORD))) != 0);}
+   void SetBit(        uint32 * bits, uint8 whichBit)       {         bits[(whichBit)/BITS_PER_WORD] |= (1<<((whichBit)%BITS_PER_WORD));       }
+
+   void SetBitChords(const char * optSepChars);
 };
 
 } // end namespace muscle

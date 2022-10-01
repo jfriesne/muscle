@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+8.70
+   o Refactored the StringTokenizer class's constructors to
+     take a single (optSepChars) argument instead of separate
+     arguments for hard and soft separator characters.
+
 8.62 - Released 9/22/2022
    - Added a Hashtable::ComputeInvertedTable() convenience-method.
    - Added a Hashtable::ComputeValuesHistogram() convenience-method.

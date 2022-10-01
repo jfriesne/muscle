@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
    printf("   [%s]\n", someCString);
 
    printf("\n");
-   printf("Basic StringTokenizer usage (using default separator-chars arguments:  hard=\",\" soft=\" \\t\\r\\n\"):\n");
+   printf("Basic StringTokenizer usage (using the default separator-chars argument:  \"\\t\\r\\n ,,\"):\n");
    {
       StringTokenizer tok(someCString);
 
@@ -33,9 +33,9 @@ int main(int argc, char ** argv)
    }
 
    printf("\n");
-   printf("Basic StringTokenizer usage (with explicit separator-chars arguments:  hard=\",\" soft=NULL)\n");
+   printf("Basic StringTokenizer usage (with an explicit separator-chars argument:  \",,\")\n");
    {
-      StringTokenizer tok(someCString, ",", NULL);
+      StringTokenizer tok(someCString, ",,");
 
       const char * nextTok;
       while((nextTok = tok()) != NULL)

@@ -1,20 +1,16 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "util/StringTokenizer.h"
+#include "util/MiscUtilityFunctions.h"
 
 namespace muscle {
 
-static char _dummyString[] = "";
-
-StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSeparators, const char * softSeparators, char escapeChar)
+StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * optSepChars, char escapeChar)
    : _allocedBufferOnHeap(false)
    , _prevSepWasHard(false)
    , _escapeChar(escapeChar)
    , _prevChar(escapeChar+1)
 {
-   SetBitChord(_hardSepsBitChord, hardSeparators);
-   SetBitChord(_softSepsBitChord, softSeparators);
-
    if (tokenizeMe == NULL) tokenizeMe = "";
    _bufLen = (uint32) strlen(tokenizeMe)+1; // +1 for the NUL byte
    const bool doAlloc = (_bufLen > sizeof(_smallStringBuf));  // only allocate from the heap if _smallStringBuf isn't big enough
@@ -30,13 +26,17 @@ StringTokenizer :: StringTokenizer(const char * tokenizeMe, const char * hardSep
 
    if (bufPtr)
    {
+      SetBitChords(optSepChars);
+
       _nextToRead = _nextToWrite = _tokenizeMe = bufPtr;
       memcpy(bufPtr, tokenizeMe, _bufLen);
    }
    else DefaultInitialize();  // D'oh!
 }
 
-StringTokenizer :: StringTokenizer(bool junk, char * tokenizeMe, const char * hardSeparators, const char * softSeparators, char escapeChar)
+static char _dummyString[] = "";
+
+StringTokenizer :: StringTokenizer(bool junk, char * tokenizeMe, const char * optSepChars, char escapeChar)
    : _allocedBufferOnHeap(false)
    , _prevSepWasHard(false)
    , _escapeChar(escapeChar)
@@ -47,8 +47,7 @@ StringTokenizer :: StringTokenizer(bool junk, char * tokenizeMe, const char * ha
    , _nextToWrite(_tokenizeMe)
 {
    (void) junk;
-   SetBitChord(_hardSepsBitChord, hardSeparators);
-   SetBitChord(_softSepsBitChord, softSeparators);
+   SetBitChords(optSepChars);
 }
 
 StringTokenizer :: StringTokenizer(const StringTokenizer & rhs)
@@ -82,8 +81,7 @@ void StringTokenizer :: DefaultInitialize()
    _nextToRead          = _dummyString;
    _nextToWrite         = _dummyString;
 
-   SetBitChord(_hardSepsBitChord, NULL);
-   SetBitChord(_softSepsBitChord, NULL);
+   SetBitChords(NULL);
 }
 
 // Note that this method gets called from the copy-constructor while all member variables are still
@@ -167,10 +165,13 @@ char * StringTokenizer :: GetRemainderOfString()
    return (*_nextToRead) ? _nextToRead : NULL;  // and return from there
 }
 
-void StringTokenizer :: SetBitChord(uint32 * bits, const char * seps)
+void StringTokenizer :: SetBitChords(const char * optSepChars)
 {
-   memset(bits, 0, sizeof(_hardSepsBitChord));
-   if (seps) for (const char * s = seps; (*s != '\0'); s++) bits[(*s)/32] |= (1<<((*s)%32));
+   muscleClearArray(_softSepsBitChord);
+   muscleClearArray(_hardSepsBitChord);
+   if (optSepChars == NULL) optSepChars = "\t\r\n ,,";
+   for (const char * s = optSepChars; (*s != '\0'); s++) SetBit(IsBitSet(_softSepsBitChord, *s) ? _hardSepsBitChord : _softSepsBitChord, *s);
+   for (uint32 i=0; i<ARRAYITEMS(_hardSepsBitChord); i++) _softSepsBitChord[i] &= ~_hardSepsBitChord[i];  // if it's hard, it can't be soft!
 }
 
 Queue<String> StringTokenizer :: Split(uint32 maxResults)

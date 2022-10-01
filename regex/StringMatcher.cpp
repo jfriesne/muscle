@@ -76,7 +76,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
             const char * rBracket = strchr(str+1, '>');
             if ((rBracket)&&(*(rBracket+1)=='\0'))   // the right-bracket must be the last char in the string!
             {
-               StringTokenizer clauses(&str[1], ",", NULL);
+               StringTokenizer clauses(&str[1], ",,");
                const char * clause;
                while((clause=clauses()) != NULL)
                {

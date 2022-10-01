@@ -57,7 +57,7 @@ int main(int, char **)
 
          printf("\nYou typed: [%s]\n", s());
          const char * t;
-         StringTokenizer tok(s(), ",", " \t\r\n", '\\');
+         StringTokenizer tok(s(), NULL, '\\');
 
          StringTokenizer tokCopy(tok);
 

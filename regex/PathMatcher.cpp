@@ -139,7 +139,7 @@ bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, c
       {
          bool matched = true;  // default
 
-         StringTokenizer tok(path+((path[0]=='/')?1:0), "/", NULL);
+         StringTokenizer tok(path+((path[0]=='/')?1:0), "//");
          for (uint32 j=0; j<numClauses; j++)
          {
             const char * nextToken = tok();

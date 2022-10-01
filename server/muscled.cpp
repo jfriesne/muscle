@@ -126,7 +126,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    {
       for (int32 i=0; (args.FindString("remap", i, &value).IsOK()); i++)
       {
-         StringTokenizer tok(value, ",=");
+         StringTokenizer tok(value, ",,==");
          const char * from = tok();
          const char * to = tok();
          const IPAddress fromIP = from ? Inet_AtoN(from) : 0;

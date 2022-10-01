@@ -177,7 +177,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
          const char * nulByte = strchr(nameBuf, '\0');
          const bool isFolder = ((nulByte > nameBuf)&&(*(nulByte-1) == '/'));
          Message * m = &msg;
-         StringTokenizer tok(true, nameBuf, "/", NULL);
+         StringTokenizer tok(true, nameBuf, "//");
          const char * nextTok;
          while((nextTok = tok()) != NULL)
          {

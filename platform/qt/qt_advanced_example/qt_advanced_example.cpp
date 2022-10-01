@@ -145,7 +145,7 @@ static status_t ParsePath(const String & path, String & retSessionString, String
 {
    if (path.StartsWith('/') == false) return B_BAD_ARGUMENT;  // paranoia
 
-   StringTokenizer tok(path(), NULL, "/");
+   StringTokenizer tok(path(), "/");
    retSessionString  = "/";
    retSessionString += tok();
    retSessionString += '/';
