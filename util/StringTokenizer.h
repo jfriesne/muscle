@@ -9,6 +9,9 @@
 
 namespace muscle {
 
+#define STRING_TOKENIZER_DEFAULT_SOFT_SEPARATOR_CHARS "\t\r\n " ///< convenience macro containing the soft-separator-characters the StringTokenizer uses by default
+#define STRING_TOKENIZER_DEFAULT_HARD_SEPARATOR_CHARS ","       ///< convenience macro containing the hard-separator-characters the StringTokenizer uses by default
+
 /** String tokenizer class, similar to Java's java.util.StringTokenizer.  This class is used
   * to interpret a specified character string as a series of sub-strings, with each sub-string
   * differentiated from its neighbors by the presence of one or more of the specified separator-tokens

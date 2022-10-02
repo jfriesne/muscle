@@ -169,7 +169,7 @@ void StringTokenizer :: SetBitChords(const char * optSepChars)
 {
    muscleClearArray(_softSepsBitChord);
    muscleClearArray(_hardSepsBitChord);
-   if (optSepChars == NULL) optSepChars = "\t\r\n ,,";
+   if (optSepChars == NULL) optSepChars = STRING_TOKENIZER_DEFAULT_SOFT_SEPARATOR_CHARS STRING_TOKENIZER_DEFAULT_HARD_SEPARATOR_CHARS;
    for (const char * s = optSepChars; (*s != '\0'); s++) SetBit(IsBitSet(_softSepsBitChord, *s) ? _hardSepsBitChord : _softSepsBitChord, *s);
    for (uint32 i=0; i<ARRAYITEMS(_hardSepsBitChord); i++) _softSepsBitChord[i] &= ~_hardSepsBitChord[i];  // if it's hard, it can't be soft!
 }

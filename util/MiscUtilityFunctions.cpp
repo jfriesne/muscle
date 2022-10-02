@@ -145,7 +145,7 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
       }
       lastCharWasBackslash = (c == '\\');
    }
-   StringTokenizer tok(tokenizeThis(), " \t\r\n");   // soft/whitespace separators only
+   StringTokenizer tok(tokenizeThis(), STRING_TOKENIZER_DEFAULT_SOFT_SEPARATOR_CHARS);   // soft/whitespace separators only
    const char * t = tok();
    while(t)
    {
@@ -898,7 +898,7 @@ ByteBufferRef ParseHexBytes(const char * buf)
    {
       uint8 * b = bb()->GetBuffer();
       uint32 count = 0;
-      StringTokenizer tok(buf, " \t\r\n");  // soft/whitespace separators only
+      StringTokenizer tok(buf, STRING_TOKENIZER_DEFAULT_SOFT_SEPARATOR_CHARS);  // soft/whitespace separators only
       const char * next;
       while((next = tok()) != NULL)
       {
