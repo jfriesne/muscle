@@ -119,7 +119,7 @@ private:
    uint32 _softSepsBitChord[8];  // bit N is set iff the corresponding 8-bit value is a sep
    uint32 _hardSepsBitChord[8];  // 32x8 = 256, aka all possible 8-bit values of a sep
 
-   enum {BITS_PER_WORD = (sizeof(_softSepsBitChord[0])*8)};
+   enum {BITS_PER_WORD = (sizeof(uint32)*8)};
 
    bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[(whichBit)/BITS_PER_WORD] &  (1<<((whichBit)%BITS_PER_WORD))) != 0);}
    void SetBit(        uint32 * bits, uint8 whichBit)       {         bits[(whichBit)/BITS_PER_WORD] |= (1<<((whichBit)%BITS_PER_WORD));       }
