@@ -547,7 +547,7 @@ private:
    DECLARE_MUSCLE_TRAVERSAL_CALLBACK(StorageReflectSession, SendMessageCallback);    /** Similar to PassMessageCallback except matchSelf is an argument */
 
    /**
-    * Called by SetParent() to tell us that (node) has been created at a given location.
+    * Called by NotifySubscribersOfNewNode() to tell us that (node) has been created at a given location.
     * We then respond by letting any matching subscriptions add their mark to the node.
     * Private because subclasses should override NodeChanged(), not this.
     * @param node the new Node that has been added to the database.

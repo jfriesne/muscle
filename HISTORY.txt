@@ -6,9 +6,13 @@ key:  - new feature
       o other
 
 8.70
+   - Added a MUSCLE_MAXIMUM_NODE_DEPTH constant that limits
+     how deep the MUSCLE node-tree may become, to prevent
+     stack-overflow attacks.  Defaults to 100.
    o Refactored the StringTokenizer class's constructors to
      take a single (optSepChars) argument instead of separate
      arguments for hard and soft separator characters.
+   o Made the calculation of DataNode depths more efficient.
 
 8.62 - Released 9/22/2022
    - Added a Hashtable::ComputeInvertedTable() convenience-method.

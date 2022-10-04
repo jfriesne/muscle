@@ -187,6 +187,19 @@ int main(int argc, char ** argv)
                }
                break;
 
+               case 'e':
+               {
+                  // test the uploading of a node with an "evil" (i.e. abusively long) node-path.
+                  // Expected behavior is that the server will stop at a path-depth of 100, and print
+                  // an error message to its stdout.
+                  String evilPath = "EVIL";
+                  for (int i=0; i<500; i++) evilPath += String("/DEEPER_%1").Arg(i);
+
+                  ref()->what = PR_COMMAND_SETDATA;
+                  ref()->AddMessage(evilPath(), GetMessageFromPool(MAKETYPE("EVIL")));
+               }
+               break;
+
                case 'c': case 'C':
                {
                   // Set the same node multiple times in rapid succession,

@@ -477,13 +477,12 @@ SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, SetDataNodeF
             childNodeRef = allocedNode;
             if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)))
             {
-               if (node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL).IsOK())
-               {
-                  _currentNodeCount++;
-                  _indexingPresent = true;
-               }
+               MRETURN_ON_ERROR(node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL));
+               _indexingPresent = true;
             }
-            else if (node->PutChild(childNodeRef, this, ((flags.IsBitSet(SETDATANODE_FLAG_QUIET))||(slashPos < 0)) ? NULL : this).IsOK()) _currentNodeCount++;
+            else MRETURN_ON_ERROR(node->PutChild(childNodeRef, this, ((flags.IsBitSet(SETDATANODE_FLAG_QUIET))||(slashPos < 0)) ? NULL : this));
+
+            _currentNodeCount++;
          }
 
          node = childNodeRef();

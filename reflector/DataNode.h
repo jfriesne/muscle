@@ -19,6 +19,10 @@ DECLARE_REFTYPES(DataNode);
 /** Declares DataNodeSubscribersTable, DataNodeSubscribersTablePool, and ConstDataNodeSubscribersTableRef */
 DECLARE_IMMUTABLE_HASHTABLE_POOL_TYPES(DataNodeSubscribersTable, uint32, uint32, MUSCLE_NO_LIMIT);
 
+#ifndef MUSCLE_MAX_NODE_DEPTH
+# define MUSCLE_MAX_NODE_DEPTH (100)  ///< we don't allow anyone to create nodes at a depth greater than this, to thwart potential stack-overflow attacks based on overly-deep recursions
+#endif
+
 /** Iterator type for our child objects */
 typedef HashtableIterator<const String *, DataNodeRef> DataNodeRefIterator;
 
@@ -297,7 +301,7 @@ private:
    DataNode & operator = (const DataNode & rhs) {(void) rhs; Reset(); return *this;}
 
    void Init(const String & nodeName, const MessageRef & initialValue);
-   void SetParent(DataNode * _parent, StorageReflectSession * optNotifyWith);
+   status_t SetParent(DataNode * parent, StorageReflectSession * optNotifyWith);
    status_t RemoveIndexEntry(const String & key, StorageReflectSession * optNotifyWith);
 
    DataNode * _parent;

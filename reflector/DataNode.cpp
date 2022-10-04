@@ -184,10 +184,11 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
       MRETURN_OOM_ON_NULL(_children);
    }
 
-   child->SetParent(this, optNotifyWithOnSetParent);
-   DataNodeRef oldNode;
+   MRETURN_ON_ERROR(child->SetParent(this, optNotifyWithOnSetParent));
 
+   DataNodeRef oldNode;
    MRETURN_ON_ERROR(_children->Put(&child->_nodeName, node, oldNode));
+
    if (optNotifyChangedData)
    {
       MessageRef oldData; if (oldNode()) oldData = oldNode()->GetData();
@@ -196,11 +197,20 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
    return B_NO_ERROR;
 }
 
-void DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNotifyWith)
+status_t DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNotifyWith)
 {
    TCHECKPOINT;
 
-   if ((_parent)&&(parent)) LogTime(MUSCLE_LOG_WARNING, "Warning, overwriting previous parent of node [%s]\n", GetNodeName()());
+   if (parent)
+   {
+      if (_parent) LogTime(MUSCLE_LOG_WARNING, "Warning, overwriting previous parent of node [%s]\n", GetNodeName()());
+      if (parent->_depth >= MUSCLE_MAX_NODE_DEPTH)
+      {
+         LogTime(MUSCLE_LOG_ERROR, "DataNode::SetParent():  Can't set node [%s] as parent of [%s], maximum node depth (%i) exceeded!\n", parent->GetNodePath()(), GetNodeName()(), MUSCLE_MAX_NODE_DEPTH);
+         return B_ACCESS_DENIED;
+      }
+   }
+
    _parent = parent;
    if (_parent)
    {
@@ -209,19 +219,14 @@ void DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNotifyW
    }
    else _subscribers.Reset();
 
-   // Calculate our node's depth into the tree
-   _depth = 0;
    if (_parent)
    {
-      // Calculate the total length that our node path string will be
-      const DataNode * node = this;
-      while(node->_parent)
-      {
-         _depth++;
-         node = node->_parent;
-      }
+      _depth = _parent->_depth+1;
       if (optNotifyWith) optNotifyWith->NotifySubscribersOfNewNode(*this);
    }
+   else _depth = 0;
+
+   return B_NO_ERROR;
 }
 
 const String * DataNode :: GetPathClause(uint32 depth) const
@@ -307,7 +312,7 @@ status_t DataNode :: RemoveChild(const String & key, StorageReflectSession * opt
       (void) RemoveIndexEntry(key, optNotifyWith);
       if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*child, child->GetData(), StorageReflectSession::NodeChangeFlags(StorageReflectSession::NODE_CHANGE_FLAG_ISBEINGREMOVED));
 
-      child->SetParent(NULL, optNotifyWith);
+      (void) child->SetParent(NULL, optNotifyWith);  // guaranteed not to fail because first arg is NULL
    }
    if (optCurrentNodeCount) (*optCurrentNodeCount)--;
 

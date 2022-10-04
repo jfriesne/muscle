@@ -85,6 +85,12 @@ of your Makefile to alter muscle's behaviour:
    flag, MUSCLE signal-handling routines will only be set up
    if you explicitly call SetSignalHandlingEnabled(true)
    somewhere in your code.
+
+-DMUSCLE_MAXIMUM_NODE_DEPTH=100
+   If specified, a different maximum-node-depth will be enforced.
+   Default maximum-node-depth is 100, since I can't think of a
+   reason why anyone would need to build a node-tree deeper than that,
+   and we don't want to allow stack-overflow attacks.
  
 -DMUSCLE_USE_LIBRT
    If specified, GetRunTime64() and Snooze64() will use librt's
