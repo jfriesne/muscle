@@ -25,8 +25,9 @@ public:
    /** Set a new raw array to write to (same as what we do in the constructor, except this updates an existing ByteFlattenerHelper object)
      * @param writeTo the new buffer to point to and write to in future method-calls.
      * @param maxBytes The new maximum number of bytes that we are allowed to write.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
+     * @note this method resets our status-flag back to B_NO_ERROR.
      */
-   void SetBuffer(uint8 * writeTo, uint32 maxBytes) {_writeTo = _origWriteTo = writeTo; _maxBytes = _origMaxBytes = maxBytes; _writeErrorDetected = false;}
+   void SetBuffer(uint8 * writeTo, uint32 maxBytes) {_writeTo = _origWriteTo = writeTo; _maxBytes = _origMaxBytes = maxBytes; _status = B_NO_ERROR;}
 
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
    uint32 GetBuffer() const {return _origWriteTo;}
@@ -37,8 +38,8 @@ public:
    /** Returns the maximum number of bytes we are allowed to write, as passed in to our constructor (or to SetBuffer()) */
    uint32 GetMaxNumBytes() const {return _origMaxBytes;}
 
-   /** Returns true iff we have detected any problems reading in data so far */
-   bool WasWriteErrorDetected() const {return _writeErrorDetected;}
+   /** Returns an error code if we've detected any errors while writing data (so far), or B_NO_ERROR if we haven't seen any. */
+   status_t GetStatus() const {return _status;}
 
    /** Writes the specified byte to our buffer.
      * @param theByte The byte to write
@@ -197,7 +198,20 @@ public:
       return B_NO_ERROR;
    }
 
-   status_t WriteStrings(const String * vals, uint32 numVals) {return WriteFlats(vals, numVals);}
+   // Gotta implement this separately since WriteFlats() would write out a 4-byte header, which we don't want
+   status_t WriteStrings(const String * vals, uint32 numVals)
+   {
+      uint32 numBytes = 0;
+      for (uint32 i=0; i<numVals; i++) numBytes += vals[i].FlattenedSize();
+      MRETURN_ON_ERROR(SizeCheck(numBytes));
+
+      for (uint32 i=0; i<numVals; i++)
+      {
+         const String & s = vals[i];
+         (void) WriteBytes(reinterpret_cast<const uint8 *>(s()), s.FlattenedSize());  // guaranteed not to fail!
+      }
+      return B_NO_ERROR;
+   }
 
    template<typename T> status_t WriteFlats(const T * vals, uint32 numVals)
    {
@@ -246,13 +260,13 @@ public:
 private:
    status_t SizeCheck(uint32 numBytes) {return (numBytes <= _maxBytes) ? B_NO_ERROR : FlagError(B_OUT_OF_MEMORY);}
    status_t Advance(  uint32 numBytes) {_writeTo += numBytes; _maxBytes -= numBytes; return B_NO_ERROR;}
-   status_t FlagError(status_t ret)    {_writeErrorDetected = true; return ret;}
+   status_t FlagError(status_t ret)    {_status |= ret; return ret;}
 
-   uint8 * _writeTo;         // pointer to our output buffer
-   uint8 * _origWriteTo;     // the pointer the user passed in
-   uint32 _maxBytes;         // max number of bytes we are allowed to write into our output buffer
-   uint32 _origMaxBytes;     // the byte-count the user passed in
-   bool _writeErrorDetected; // true iff there's been a writing-error so far
+   uint8 * _writeTo;      // pointer to our output buffer
+   uint8 * _origWriteTo;  // the pointer the user passed in
+   uint32 _maxBytes;      // max number of bytes we are allowed to write into our output buffer
+   uint32 _origMaxBytes;  // the byte-count the user passed in
+   status_t _status;      // cache any errors found so far
 };
 
 typedef ByteFlattenerHelper<ENDIAN_TYPE_LITTLE> LittleEndianByteFlattener;  /**< this flattener-type flattens to little-endian-format data */

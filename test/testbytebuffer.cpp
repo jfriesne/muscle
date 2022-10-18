@@ -16,30 +16,33 @@ class TestFlattenable : public Flattenable
 {
 public:
    TestFlattenable() : _v1(0), _v2(0.0f) {/* empty */}
-   TestFlattenable(int v1, float v2) : _v1(v1), _v2(v2) {/* empty */}
+   TestFlattenable(const String & s1, int v1, float v2) : _s1(s1), _v1(v1), _v2(v2) {/* empty */}
 
-   virtual bool IsFixedSize()     const {return true;}
+   virtual bool IsFixedSize()     const {return false;}
    virtual uint32 TypeCode()      const {return 0;}
-   virtual uint32 FlattenedSize() const {return sizeof(_v1) + sizeof(_v2);}
+   virtual uint32 FlattenedSize() const {return _s1.FlattenedSize() + sizeof(_v1) + sizeof(_v2);}
 
    virtual void Flatten(uint8 *buffer) const
    {
-      muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32 (_v1)); buffer += sizeof(_v1);
-      muscleCopyOut(buffer, B_HOST_TO_LENDIAN_IFLOAT(_v2)); //buffer += sizeof(_v2);
+      ByteFlattener h(buffer, MUSCLE_NO_LIMIT);
+      h.WriteString(_s1);
+      h.WriteInt32(_v1);
+      h.WriteFloat(_v2);
    }
 
    virtual status_t Unflatten(const uint8 *buffer, uint32 size)
    {
-      if (size < FlattenedSize()) return B_BAD_DATA;
-
-      _v1 = B_LENDIAN_TO_HOST_INT32 (muscleCopyIn<int32>(buffer));  buffer += sizeof(_v1);
-      _v2 = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<uint32>(buffer)); //buffer += sizeof(_v2);
-      return B_NO_ERROR;
+      ByteUnflattener h(buffer, size);
+      _s1 = h.ReadString();
+      _v1 = h.ReadInt32();
+      _v2 = h.ReadFloat();
+      return h.GetStatus();
    }
 
-   String ToString() const {return String("TestFlattenable: [%1,%2]").Arg(_v1).Arg(_v2);}
+   String ToString() const {return String("TestFlattenable: [%1,%2,%3]").Arg(_s1).Arg(_v1).Arg(_v2);}
 
 private:
+   String _s1;
    int32 _v1;
    float _v2;
 };
@@ -60,7 +63,7 @@ static void Test(EndianFlags endianFlags)
       b.AppendString("Pardner");
       b.AppendPoint(Point(-1.1f, -2.2f));
       b.AppendRect(Rect(10.1f, 20.2f, 30.3f, 40.4f));
-      b.AppendFlat(TestFlattenable(6, 7.5f));
+      b.AppendFlat(TestFlattenable("foo", 6, 7.5f));
       b.AppendString("----");
       const int8  i8s[]  = {1,2,3,4};     b.AppendInt8s(i8s, ARRAYITEMS(i8s));
       const int16 i16s[] = {5,6,7,8};     b.AppendInt16s(i16s, ARRAYITEMS(i16s));
@@ -138,7 +141,7 @@ template<int EndianType> status_t TestHelpers()
       MRETURN_ON_ERROR(bfh.WriteCString("Pardner"));
       MRETURN_ON_ERROR(bfh.WriteFlat(Point(-1.1f, -2.2f)));
       MRETURN_ON_ERROR(bfh.WriteFlat(Rect(10.1f, 20.2f, 30.3f, 40.4f)));
-      MRETURN_ON_ERROR(bfh.WriteFlat(TestFlattenable(6, 7.5f)));
+      MRETURN_ON_ERROR(bfh.WriteFlat(TestFlattenable("bar", 6, 7.5f)));
       MRETURN_ON_ERROR(bfh.WriteString("----"));
       const int8  i8s[]   = {1,2,3,4};                                             MRETURN_ON_ERROR(bfh.WriteInt8s(   i8s, ARRAYITEMS(i8s)));
       const int16 i16s[]  = {5,6,7,8};                                             MRETURN_ON_ERROR(bfh.WriteInt16s( i16s, ARRAYITEMS(i16s)));
@@ -150,7 +153,7 @@ template<int EndianType> status_t TestHelpers()
       const Point pts[]   = {Point(29,30),Point(31,32),Point(32,33),Point(33,34)}; MRETURN_ON_ERROR(bfh.WriteFlats(   pts, ARRAYITEMS(pts)));
       const Rect rcs[]    = {Rect(35,36,37,38),Rect(39,40,41,42)};                 MRETURN_ON_ERROR(bfh.WriteFlats(   rcs, ARRAYITEMS(rcs)));
    }
-   if (bfh.WasWriteErrorDetected()) return B_ERROR("ByteFlattenerHelper detected a write error");
+   MRETURN_ON_ERROR(bfh.GetStatus());
 
    PrintHexBytes(buf, bfh.GetNumBytesWritten());
 
@@ -202,7 +205,7 @@ template<int EndianType> status_t TestHelpers()
       Rect rcs[2]; MRETURN_ON_ERROR(buh.ReadFlats(rcs, ARRAYITEMS(rcs)));
       printf("rcs="); for (uint32 i=0; i<ARRAYITEMS(rcs); i++) printf(" [%f,%f,%f,%f]", rcs[i][0], rcs[i][1], rcs[i][2], rcs[i][3]); printf("\n");
    }
-   if (buh.WasParseErrorDetected()) return B_ERROR("ByteUnflattenerHelper detected a parse error");
+   MRETURN_ON_ERROR(buh.GetStatus());
 
    return B_NO_ERROR;
 }

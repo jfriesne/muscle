@@ -25,9 +25,9 @@ public:
    /** Set a new raw array to write to (same as what we do in the constructor, except this updates an existing ByteUnflattenerHelper object)
      * @param readFrom the new buffer to point to and read from in future method-calls.
      * @param maxBytes The new maximum number of bytes that we are allowed to read.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
-     * @note calling this method resets our parse-error-detected flag back to false.
+     * @note this method resets our status-flag back to B_NO_ERROR.
      */
-   void SetBuffer(const uint8 * readFrom, uint32 maxBytes) {_readFrom = _origReadFrom = readFrom; _maxBytes = _origMaxBytes = maxBytes; _parseErrorDetected = false;}
+   void SetBuffer(const uint8 * readFrom, uint32 maxBytes) {_readFrom = _origReadFrom = readFrom; _maxBytes = _origMaxBytes = maxBytes; _status = B_NO_ERROR;}
 
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
    uint32 GetBuffer() const {return _origReadFrom;}
@@ -39,7 +39,7 @@ public:
    uint32 GetMaxNumBytes() const {return _origMaxBytes;}
 
    /** Returns true iff we have detected any problems reading in data so far */
-   bool WasParseErrorDetected() const {return _parseErrorDetected;}
+   status_t GetStatus() const {return _status;}
 
    /** Reads the specified byte to this ByteUnflattenerHelper's contents.
      * @param retByte On success, the read byte is written here
@@ -79,7 +79,7 @@ public:
      */
    const char * ReadCString()
    {
-      if (_maxBytes == 0) {_parseErrorDetected = true; return NULL;}
+      if (_maxBytes == 0) {_status = B_DATA_NOT_FOUND; return NULL;}
 
       uint32 flatSize;
       if (_origMaxBytes == MUSCLE_NO_LIMIT) flatSize = strlen(reinterpret_cast<const char *>(_readFrom))+1;
@@ -89,7 +89,7 @@ public:
          const uint8 * temp = _readFrom;
          const uint8 * firstInvalidByte = _readFrom+_maxBytes;
          while((temp < firstInvalidByte)&&(*temp != '\0')) temp++;
-         if (temp == firstInvalidByte) {_parseErrorDetected = true; return NULL;}  // string wasn't terminated, so we can't return it
+         if (temp == firstInvalidByte) {_status |= B_BAD_DATA; return NULL;}  // string wasn't terminated, so we can't return it
          flatSize = (1+temp-_readFrom);  // +1 to include the NUL byte
       }
 
@@ -218,7 +218,17 @@ public:
       return B_NO_ERROR;
    }
 
-   status_t ReadStrings(String * retVals, uint32 numVals) {return ReadFlats(retVals, numVals);}
+   // Gotta implement this separately since ReadStrings() would expect a 4-byte header, which we don't want
+   status_t ReadStrings(String * retVals, uint32 numVals)
+   {
+      for (uint32 i=0; i<numVals; i++)
+      {
+         const char * s = ReadCString();
+         if (s == NULL) return FlagError(B_BAD_DATA);
+         retVals[i] = s;
+      }
+      return B_NO_ERROR;
+   }
 
    template<typename T> status_t ReadFlats(T * retVals, uint32 numVals)
    {
@@ -265,13 +275,13 @@ public:
 private:
    status_t SizeCheck(uint32 numBytes) {return (numBytes <= _maxBytes) ? B_NO_ERROR : FlagError(B_DATA_NOT_FOUND);}
    status_t Advance(  uint32 numBytes) {_readFrom += numBytes; _maxBytes -= numBytes; return B_NO_ERROR;}
-   status_t FlagError(status_t ret)    {_parseErrorDetected = true; return ret;}
+   status_t FlagError(status_t ret)    {_status |= ret; return ret;}
 
    const uint8 * _readFrom;     // pointer to our input buffer
    const uint8 * _origReadFrom; // the pointer the user passed in
    uint32 _maxBytes;            // max number of bytes we are allowed to read from our input buffer
    uint32 _origMaxBytes;        // the byte-count the user passed in
-   bool _parseErrorDetected;    // true iff there's been a parsing error so far
+   status_t _status;            // cache any errors found so far
 };
 
 typedef ByteUnflattenerHelper<ENDIAN_TYPE_LITTLE> LittleEndianByteUnflattener;  /**< this flattener-type flattens to little-endian-format data */
