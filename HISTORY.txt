@@ -9,6 +9,9 @@ key:  - new feature
    - Added a MUSCLE_MAXIMUM_NODE_DEPTH constant that limits
      how deep the MUSCLE node-tree may become, to prevent
      stack-overflow attacks.  Defaults to 100.
+   - Added ByteFlattener and ByteUnflattener classes to
+     allow for safer flattening/unflattening of objects
+     to/from byte-buffers.
    o Refactored the StringTokenizer class's constructors to
      take a single (optSepChars) argument instead of separate
      arguments for hard and soft separator characters.

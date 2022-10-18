@@ -588,6 +588,14 @@ enum {
    B_TAG_TYPE      = 1297367367  /**< 'MTAG' = new for v2.00; for in-mem-only tags         */
 };
 
+/** Enumeration of the various types of data-endian-ness we recognize */
+enum {
+   ENDIAN_TYPE_NATIVE, /**< specifies that the data to be read (or written) is native-endian */
+   ENDIAN_TYPE_LITTLE, /**< specifies that the data to be read (or written) is little-endian */
+   ENDIAN_TYPE_BIG,    /**< specifies that the data to be read (or written) is big-endian */
+   NUM_ENDIAN_TYPES    /**< Guard value */
+};
+
 /** This constant is used in various places to mean 'as much as you want'.  Its value is ((uint32)-1), aka ((2^32)-1) */
 #define MUSCLE_NO_LIMIT ((uint32)-1)
 
