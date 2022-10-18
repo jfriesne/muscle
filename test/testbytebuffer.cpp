@@ -3,11 +3,11 @@
 #include <stdio.h>
 
 #include "dataio/FileDataIO.h"
-#include "support/ByteUnflattener.h"
 #include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/ByteBuffer.h"
 #include "util/ByteFlattener.h"
+#include "util/ByteUnflattener.h"
 
 using namespace muscle;
 
