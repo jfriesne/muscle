@@ -4,7 +4,6 @@
 #define MuscleByteBuffer_h
 
 #include "util/FlatCountable.h"
-#include "support/BitChord.h"
 #include "support/Point.h"
 #include "support/Rect.h"
 #include "util/String.h"
@@ -13,19 +12,6 @@ namespace muscle {
 
 class SeekableDataIO;
 class IMemoryAllocationStrategy;
-
-/** These flags are used as hints regarding what endian-ness a ByteBuffer should store its multibyte data in */
-enum {
-   ENDIAN_FLAG_FORCE_LITTLE, /**< specifies that the data to be read (or written) is little-endian */
-   ENDIAN_FLAG_FORCE_BIG,    /**< specifies that the data to be read (or written) is big-endian */
-   NUM_ENDIAN_FLAGS          /**< Guard value */
-};
-DECLARE_BITCHORD_FLAGS_TYPE(EndianFlags, NUM_ENDIAN_FLAGS);
-
-#ifndef DEFAULT_BYTEBUFFER_ENDIAN_FLAGS
-/** Specified which ENDIAN_FLAG_* value should be used by default by a ByteBuffer object, when doing in-buffer serialization/deserialization operations.  Default value is ENDIAN_FLAG_FORCE_LITTLE (i.e. Intel-native data endian-ness), but this can be overridden on the compiler line via -DDEFAULT_BYTEBUFFER_ENDIAN_FLAGS=ENDIAN_FLAG_FORCE_BIG or -DDEFAULT_BYTEBUFFER_ENDIAN_FLAGS (if you want the default to be native-endian). */
-# define DEFAULT_BYTEBUFFER_ENDIAN_FLAGS ENDIAN_FLAG_FORCE_LITTLE
-#endif
 
 /** This class is used to hold a dynamically-resizable buffer of raw bytes (aka uint8s), and is also Flattenable and RefCountable. */
 class ByteBuffer : public FlatCountable
@@ -38,9 +24,8 @@ public:
      * @param optAllocationStrategy If non-NULL, this object will be used to allocate and free bytes.  If left as NULL (the default),
      *                              then muscleAlloc(), muscleRealloc(), and/or muscleFree() will be called as necessary.
      */
-   ByteBuffer(uint32 numBytes = 0, const uint8 * optBuffer = NULL, IMemoryAllocationStrategy * optAllocationStrategy = NULL) : _buffer(NULL), _numValidBytes(0), _numAllocatedBytes(0), _allocStrategy(optAllocationStrategy, false)
+   ByteBuffer(uint32 numBytes = 0, const uint8 * optBuffer = NULL, IMemoryAllocationStrategy * optAllocationStrategy = NULL) : _buffer(NULL), _numValidBytes(0), _numAllocatedBytes(0), _allocStrategy(optAllocationStrategy)
    {
-      SetEndianFlags(EndianFlags(DEFAULT_BYTEBUFFER_ENDIAN_FLAGS));
       (void) SetBuffer(numBytes, optBuffer);
    }
 
@@ -57,7 +42,7 @@ public:
 
    /** Assigment operator.  Copies the byte buffer from (rhs).  If there is an error copying (out of memory), we become an empty ByteBuffer.
      *  @param rhs the ByteBuffer to become a duplicate of
-     *  @note We do NOT adopt (rhs)'s allocation strategy pointer or data format setting!
+     *  @note We do NOT adopt (rhs)'s allocation strategy pointer!
      */
    ByteBuffer & operator=(const ByteBuffer & rhs) {if ((this != &rhs)&&(SetBuffer(rhs.GetNumBytes(), rhs.GetBuffer()).IsError())) Clear(); return *this;}
 
@@ -226,8 +211,8 @@ public:
 
    /** Returns a 32-bit checksum corresponding to this ByteBuffer's contents.
      * Note that this method is O(N).  The checksum is calculated based solely on the valid held
-     * bytes, and does not depend on the data-format flags, the allocation-strategy setting, or
-     * any reserve bytes that are currently allocated.
+     * bytes and does not depend on the the allocation-strategy setting or any reserve-bytes
+     * that are currently allocated but not valid.
      */
    uint32 CalculateChecksum() const {return muscle::CalculateChecksum(_buffer, _numValidBytes);}
 
@@ -235,158 +220,15 @@ public:
     *  as changing strategies can lead to allocation/deallocation method mismatches.
     *  @param imas Pointer to the new allocation strategy to use from now on.
     */
-   void SetMemoryAllocationStrategy(IMemoryAllocationStrategy * imas) {_allocStrategy.SetPointer(imas);}
+   void SetMemoryAllocationStrategy(IMemoryAllocationStrategy * imas) {_allocStrategy = imas;}
 
    /** Returns the current value of our allocation strategy pointer (may be NULL if the default strategy is in use) */
-   IMemoryAllocationStrategy * GetMemoryAllocationStrategy() const {return _allocStrategy.GetPointer();}
-
-   /** Sets our data-format flags.  These flags are used to determine what sort of
-    *  data-endian-ness rules should be used by any multi-byte Append*(), Read*(), and Write*()
-    *  methods called on this object in the future.  Default state is determined by the
-    *  DEFAULT_BYTEBUFFER_ENDIAN_FLAGS define, which expands to ENDIAN_FLAG_FORCE_LITTLE by default.
-    *  @param flags a bit-chord of ENDIAN_FLAG_* values.
-    */
-   void SetEndianFlags(EndianFlags flags)
-   {
-#if B_HOST_IS_BENDIAN
-      _allocStrategy.SetBool(flags.IsBitSet(ENDIAN_FLAG_FORCE_LITTLE));
-#else
-      _allocStrategy.SetBool(flags.IsBitSet(ENDIAN_FLAG_FORCE_BIG));
-#endif
-   }
-
-   /** Returns true iff Append*(), Read*(), and Write*() methods will swap the endian-ness of
-     * multi-byte data items as they go.
-     * @see SetEndianFlags()
-     */
-   bool IsEndianSwapEnabled() const {return _allocStrategy.GetBool();}
+   IMemoryAllocationStrategy * GetMemoryAllocationStrategy() const {return _allocStrategy;}
 
    /** Returns true iff (byte) is part of our held buffer of bytes.
      * @param byte a pointer to a byte of data.  This pointer will not be derefenced by this method.
      */
    bool IsByteInLocalBuffer(const uint8 * byte) const {return ((_buffer)&&(byte >= _buffer)&&(byte < (_buffer+_numValidBytes)));}
-
-///@{
-   /** Convenience method for appending one data-item to the end of this buffer.  The buffer will be resized larger if necessary to hold
-     * the written data.
-     * @param val the value to append to the end of the buffer
-     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure
-     */
-   status_t AppendInt8(  int8           val) {return AppendInt8s(  &val, 1);}
-   status_t AppendInt16( int16          val) {return AppendInt16s( &val, 1);}
-   status_t AppendInt32( int32          val) {return AppendInt32s( &val, 1);}
-   status_t AppendInt64( int64          val) {return AppendInt64s( &val, 1);}
-   status_t AppendFloat( float          val) {return AppendFloats( &val, 1);}
-   status_t AppendDouble(double         val) {return AppendDoubles(&val, 1);}
-   status_t AppendPoint( const Point  & val) {return AppendPoints( &val, 1);}
-   status_t AppendRect(  const Rect   & val) {return AppendRects(  &val, 1);}
-   status_t AppendString(const String & val) {return AppendStrings(&val, 1);}
-   status_t AppendFlat(  const Flattenable & val) {uint32 w = _numValidBytes; return WriteFlat(val, w);}
-///@}
-
-///@{
-   /** Convenience method for appending an array of data-items to the end of this buffer.  The buffer will be resized larger if necessary
-     * to hold the written data.
-     * @param vals Pointer to an array of values to append
-     * @param numVals the number of value that (vals) points to
-     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure
-     */
-   status_t AppendInt8s(  const int8   * vals, uint32 numVals) {uint32 w = _numValidBytes; return WriteInt8s(  vals, numVals, w);}
-   status_t AppendInt16s( const int16  * vals, uint32 numVals) {uint32 w = _numValidBytes; return WriteInt16s( vals, numVals, w);}
-   status_t AppendInt32s( const int32  * vals, uint32 numVals) {uint32 w = _numValidBytes; return WriteInt32s( vals, numVals, w);}
-   status_t AppendInt64s( const int64  * vals, uint32 numVals) {uint32 w = _numValidBytes; return WriteInt64s( vals, numVals, w);}
-   status_t AppendFloats( const float  * vals, uint32 numVals) {uint32 w = _numValidBytes; return WriteFloats( vals, numVals, w);}
-   status_t AppendDoubles(const double * vals, uint32 numVals) {uint32 w = _numValidBytes; return WriteDoubles(vals, numVals, w);}
-   status_t AppendPoints( const Point  * vals, uint32 numVals) {uint32 w = _numValidBytes; return WritePoints( vals, numVals, w);}
-   status_t AppendRects(  const Rect   * vals, uint32 numVals) {uint32 w = _numValidBytes; return WriteRects(  vals, numVals, w);}
-   status_t AppendStrings(const String * vals, uint32 numVals) {uint32 w = _numValidBytes; return WriteStrings(vals, numVals, w);}
-///@}
-
-   /** Convenience method for reading one data item from this buffer.  (readByteOffset) will be advanced to the byte-offset after the read item.
-     * If the item cannot be read (not enough bytes in the buffer), zero (or a default-constructed item) will be returned instead.
-     * @param readByteOffset The offset from the top of our buffer at which to start reading.  Will be increased as a side-effect of this method.
-     * @returns the read value.
-     */
-///@{
-   int8   ReadInt8(  uint32 & readByteOffset) const {int8 ret;   return (ReadInt8s(  &ret, 1, readByteOffset) == 1) ? ret : 0;}
-   int16  ReadInt16( uint32 & readByteOffset) const {int16 ret;  return (ReadInt16s( &ret, 1, readByteOffset) == 1) ? ret : 0;}
-   int32  ReadInt32( uint32 & readByteOffset) const {int32 ret;  return (ReadInt32s( &ret, 1, readByteOffset) == 1) ? ret : 0;}
-   int64  ReadInt64( uint32 & readByteOffset) const {int64 ret;  return (ReadInt64s( &ret, 1, readByteOffset) == 1) ? ret : 0;}
-   float  ReadFloat( uint32 & readByteOffset) const {float ret;  return (ReadFloats( &ret, 1, readByteOffset) == 1) ? ret : 0.0f;}
-   double ReadDouble(uint32 & readByteOffset) const {double ret; return (ReadDoubles(&ret, 1, readByteOffset) == 1) ? ret : 0.0;}
-   Point  ReadPoint( uint32 & readByteOffset) const {Point ret;  return (ReadPoints( &ret, 1, readByteOffset) == 1) ? ret : Point();}
-   Rect   ReadRect(  uint32 & readByteOffset) const {Rect ret;   return (ReadRects(  &ret, 1, readByteOffset) == 1) ? ret : Rect();}
-   String ReadString(uint32 & readByteOffset) const {String ret; return (ReadStrings(&ret, 1, readByteOffset) == 1) ? ret : String();}
-///@}
-
-   /** Sets the state of the specified Flattenable item from this buffer.
-     * @param flat the Flattenable item whose state should be read in from this buffer.
-     * @param readByteOffset The offset from the top of our buffer at which to start reading.  On success, this value will
-     *                       be increased by flat.FlattenedSize()
-     * @param optMaxReadSize optional maximum number of bytes to pass to flat.Unflatten().  Default is MUSCLE_NO_LIMIT,
-     *                       meaning that the flat.Unflatten() will be given access to the all bytes in this ByteBuffer
-     *                       starting at (readByteOffset).
-     * @returns B_NO_ERROR on success, or an error code on failure.
-     */
-   status_t ReadFlat(Flattenable & flat, uint32 & readByteOffset, uint32 optMaxReadSize = MUSCLE_NO_LIMIT) const;
-
-///@{
-   /** Convenience method for reading an array of data items from this buffer.  (readByteOffset) will be advanced to the byte-offset after
-     * the last read item.  The number of items actually read will be returned.
-     * @param vals Pointer to an array of values to copy data into (must point to at least maxValsToRead writeable items)
-     * @param maxValsToRead the maximum number of values to copy in to (vals)
-     * @param readByteOffset The offset from the top of our buffer at which to start reading.  Will be increased as a side-effect of this method.
-     * @returns the actual number of values copied over (which may be smaller than (maxValsToRead) if there weren't enough bytes left in the
-     *          buffer to read (maxValsToRead) items)
-     */
-   uint32 ReadInt8s(  int8   * vals, uint32 maxValsToRead, uint32 & readByteOffset) const;
-   uint32 ReadInt16s( int16  * vals, uint32 maxValsToRead, uint32 & readByteOffset) const;
-   uint32 ReadInt32s( int32  * vals, uint32 maxValsToRead, uint32 & readByteOffset) const;
-   uint32 ReadInt64s( int64  * vals, uint32 maxValsToRead, uint32 & readByteOffset) const;
-   uint32 ReadFloats( float  * vals, uint32 maxValsToRead, uint32 & readByteOffset) const;
-   uint32 ReadDoubles(double * vals, uint32 maxValsToRead, uint32 & readByteOffset) const;
-   uint32 ReadPoints( Point  * vals, uint32 maxValsToRead, uint32 & readByteOffset) const;
-   uint32 ReadRects(  Rect   * vals, uint32 maxValsToRead, uint32 & readByteOffset) const;
-   uint32 ReadStrings(String * vals, uint32 maxValsToRead, uint32 & readByteOffset) const;
-///@}
-
-///@{
-   /** Convenience method for writing one data-item to a specified offset in this buffer.  (writeByteOffset) will be advanced to the
-     * byte-offset after the written item.  The buffer will be resized larger if necessary to hold the written data.
-     * @param val the value to copy in to the buffer
-     * @param writeByteOffset the offset-from-the-top-of-the-buffer, in bytes, to write to.  This value will be increased as a side-effect of this call.
-     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY.
-     */
-   status_t WriteInt8(  int8           val, uint32 & writeByteOffset) {return WriteInt8s(  &val, 1, writeByteOffset);}
-   status_t WriteInt16( int16          val, uint32 & writeByteOffset) {return WriteInt16s( &val, 1, writeByteOffset);}
-   status_t WriteInt32( int32          val, uint32 & writeByteOffset) {return WriteInt32s( &val, 1, writeByteOffset);}
-   status_t WriteInt64( int64          val, uint32 & writeByteOffset) {return WriteInt64s( &val, 1, writeByteOffset);}
-   status_t WriteFloat( float          val, uint32 & writeByteOffset) {return WriteFloats( &val, 1, writeByteOffset);}
-   status_t WriteDouble(double         val, uint32 & writeByteOffset) {return WriteDoubles(&val, 1, writeByteOffset);}
-   status_t WritePoint( const Point  & val, uint32 & writeByteOffset) {return WritePoints( &val, 1, writeByteOffset);}
-   status_t WriteRect(  const Rect   & val, uint32 & writeByteOffset) {return WriteRects(  &val, 1, writeByteOffset);}
-   status_t WriteString(const String & val, uint32 & writeByteOffset) {return WriteStrings(&val, 1, writeByteOffset);}
-   status_t WriteFlat(const Flattenable & val, uint32 & writeByteOffset);
-///@}
-
-///@{
-   /** Convenience method for writing an array data-items to a specified offset in this buffer.  (writeByteOffset) will be advanced to
-     * the byte-offset after the last written item.  The buffer will be resized larger if necessary to hold the written data.
-     * @param vals Pointer to an array of values to copy in to the buffer.  Must point to at least (numVals) valid items.
-     * @param numVals How many items to copy out of the (vals) array.
-     * @param writeByteOffset the offset-from-the-top-of-the-buffer, in bytes, to write to.  This value will be increased as a side-effect of this call.
-     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
-     */
-   status_t WriteInt8s(  const int8   * vals, uint32 numVals, uint32 & writeByteOffset);
-   status_t WriteInt16s( const int16  * vals, uint32 numVals, uint32 & writeByteOffset);
-   status_t WriteInt32s( const int32  * vals, uint32 numVals, uint32 & writeByteOffset);
-   status_t WriteInt64s( const int64  * vals, uint32 numVals, uint32 & writeByteOffset);
-   status_t WriteFloats( const float  * vals, uint32 numVals, uint32 & writeByteOffset);
-   status_t WriteDoubles(const double * vals, uint32 numVals, uint32 & writeByteOffset);
-   status_t WritePoints( const Point  * vals, uint32 numVals, uint32 & writeByteOffset);
-   status_t WriteRects(  const Rect   * vals, uint32 numVals, uint32 & writeByteOffset);
-   status_t WriteStrings(const String * vals, uint32 numVals, uint32 & writeByteOffset);
-///@}
 
 protected:
    /** Overridden to set our buffer directly from (copyFrom)'s Flatten() method
@@ -395,13 +237,12 @@ protected:
    virtual status_t CopyFromImplementation(const Flattenable & copyFrom);
 
 private:
-   uint32 GetNumValidBytesAtOffset(uint32 offset) const {return (offset<_numValidBytes) ? (_numValidBytes-offset) : 0;}
    status_t SetNumBytesWithExtraSpace(uint32 newNumValidBytes, bool allocExtra);
 
    uint8 * _buffer;            // pointer to our byte array (or NULL if we haven't got one)
    uint32 _numValidBytes;      // number of bytes the user thinks we have
    uint32 _numAllocatedBytes;  // number of bytes we actually have
-   PointerAndBool<IMemoryAllocationStrategy> _allocStrategy;
+   IMemoryAllocationStrategy * _allocStrategy;
 };
 DECLARE_REFTYPES(ByteBuffer);
 

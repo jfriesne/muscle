@@ -14,6 +14,9 @@ key:  - new feature
      to/from byte-buffers.
    - Added support/EndianEncoder.h to allow templating
      over big/little/native endian-encoding strategies.
+   o Removed the SetEndianFlag(), Append*(), Write*(),
+     Read*() methods from the ByteBuffer class.  Use
+     the new ByteFlattener/ByteUnflattener classes instead.
    o Refactored the StringTokenizer class's constructors to
      take a single (optSepChars) argument instead of separate
      arguments for hard and soft separator characters.
