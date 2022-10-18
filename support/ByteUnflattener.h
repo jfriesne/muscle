@@ -3,6 +3,7 @@
 #ifndef MuscleByteUnflattener_h
 #define MuscleByteUnflattener_h
 
+#include "support/EndianEncoder.h"
 #include "support/NotCopyable.h"
 #include "support/PseudoFlattenable.h"
 #include "util/String.h"
@@ -10,7 +11,7 @@
 namespace muscle {
 
 /** This is a super-lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer. */
-template<int EndianType> class ByteUnflattenerHelper : public NotCopyable
+template<class EndianEncoder> class ByteUnflattenerHelper : public NotCopyable
 {
 public:
    /** Constructs a ByteFlattener that will write up to the specified number of bytes
@@ -130,12 +131,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         switch(EndianType)
-         {
-            case ENDIAN_TYPE_LITTLE: retVals[i] = B_LENDIAN_TO_HOST_INT16(muscleCopyIn<int16>(_readFrom)); break;
-            case ENDIAN_TYPE_BIG:    retVals[i] = B_BENDIAN_TO_HOST_INT16(muscleCopyIn<int16>(_readFrom)); break;
-            default:                 retVals[i] =                         muscleCopyIn<int16>(_readFrom) ; break;
-         }
+         retVals[i] = _encoder.ImportInt16(_readFrom);
          _readFrom += sizeof(retVals[0]);
       }
       _maxBytes -= numBytes;
@@ -149,12 +145,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         switch(EndianType)
-         {
-            case ENDIAN_TYPE_LITTLE: retVals[i] = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(_readFrom)); break;
-            case ENDIAN_TYPE_BIG:    retVals[i] = B_BENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(_readFrom)); break;
-            default:                 retVals[i] =                         muscleCopyIn<int32>(_readFrom) ; break;
-         }
+         retVals[i] = _encoder.ImportInt32(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
       _maxBytes -= numBytes;
@@ -168,12 +159,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         switch(EndianType)
-         {
-            case ENDIAN_TYPE_LITTLE: retVals[i] = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<int64>(_readFrom)); break;
-            case ENDIAN_TYPE_BIG:    retVals[i] = B_BENDIAN_TO_HOST_INT64(muscleCopyIn<int64>(_readFrom)); break;
-            default:                 retVals[i] =                         muscleCopyIn<int64>(_readFrom) ; break;
-         }
+         retVals[i] = _encoder.ImportInt64(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
       _maxBytes -= numBytes;
@@ -187,12 +173,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         switch(EndianType)
-         {
-            case ENDIAN_TYPE_LITTLE: retVals[i] = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(_readFrom)); break;
-            case ENDIAN_TYPE_BIG:    retVals[i] = B_BENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(_readFrom)); break;
-            default:                 retVals[i] =                          muscleCopyIn<float>(_readFrom) ; break;
-         }
+         retVals[i] = _encoder.ImportFloat(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
       _maxBytes -= numBytes;
@@ -206,12 +187,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         switch(EndianType)
-         {
-            case ENDIAN_TYPE_LITTLE: retVals[i] = B_LENDIAN_TO_HOST_IDOUBLE(muscleCopyIn<int64>(_readFrom)); break;
-            case ENDIAN_TYPE_BIG:    retVals[i] = B_BENDIAN_TO_HOST_IDOUBLE(muscleCopyIn<int64>(_readFrom)); break;
-            default:                 retVals[i] =                           muscleCopyIn<double>(_readFrom); break;
-         }
+         retVals[i] = _encoder.ImportDouble(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
       _maxBytes -= numBytes;
@@ -251,15 +227,8 @@ public:
       {
          for (uint32 i=0; i<numVals; i++)
          {
-            uint32 flatSize;
+            const uint32 flatSize = _encoder.ImportInt32(_readFrom);
             MRETURN_ON_ERROR(SizeCheck(sizeof(flatSize)));
-
-            switch(EndianType)
-            {
-               case ENDIAN_TYPE_LITTLE: flatSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(_readFrom)); break;
-               case ENDIAN_TYPE_BIG:    flatSize = B_BENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(_readFrom)); break;
-               default:                 flatSize =                         muscleCopyIn<uint32>(_readFrom) ; break;
-            }
             (void) Advance(sizeof(flatSize));
 
             const status_t ret = retVals[i].Unflatten(_readFrom, flatSize);
@@ -273,6 +242,8 @@ public:
 ///@}
 
 private:
+   const EndianEncoder _encoder;
+
    status_t SizeCheck(uint32 numBytes) {return (numBytes <= _maxBytes) ? B_NO_ERROR : FlagError(B_DATA_NOT_FOUND);}
    status_t Advance(  uint32 numBytes) {_readFrom += numBytes; _maxBytes -= numBytes; return B_NO_ERROR;}
    status_t FlagError(status_t ret)    {_status |= ret; return ret;}
@@ -284,10 +255,10 @@ private:
    status_t _status;            // cache any errors found so far
 };
 
-typedef ByteUnflattenerHelper<ENDIAN_TYPE_LITTLE> LittleEndianByteUnflattener;  /**< this flattener-type flattens to little-endian-format data */
-typedef ByteUnflattenerHelper<ENDIAN_TYPE_BIG>    BigEndianByteUnflattener;     /**< this flattener-type flattens to big-endian-format data */
-typedef ByteUnflattenerHelper<ENDIAN_TYPE_NATIVE> NativeEndianByteUnflattener;  /**< this flattener-type flattens to native-endian-format data */
-typedef LittleEndianByteUnflattener               ByteUnflattener;              /**< ByteUnflattener is a pseudonym for LittleEndianByteUnflattener, for convenience */
+typedef ByteUnflattenerHelper<LittleEndianEncoder> LittleEndianByteUnflattener;  /**< this flattener-type flattens to little-endian-format data */
+typedef ByteUnflattenerHelper<BigEndianEncoder>    BigEndianByteUnflattener;     /**< this flattener-type flattens to big-endian-format data */
+typedef ByteUnflattenerHelper<NativeEndianEncoder> NativeEndianByteUnflattener;  /**< this flattener-type flattens to native-endian-format data */
+typedef LittleEndianByteUnflattener                ByteUnflattener;              /**< ByteUnflattener is a pseudonym for LittleEndianByteUnflattener, for convenience (since MUSCLE standardizes on little endian encoding) */
 
 } // end namespace muscle
 

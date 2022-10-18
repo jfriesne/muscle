@@ -125,11 +125,11 @@ static void Test(EndianFlags endianFlags)
    printf("rcs="); for (uint32 i=0; i<nr; i++) printf(" [%f,%f,%f,%f]", rcs[i][0], rcs[i][1], rcs[i][2], rcs[i][3]); printf("\n");
 }
 
-template<int EndianType> status_t TestHelpers()
+template<class EndianEncoder> status_t TestHelpers()
 {
    uint8 buf[300];  // we're actually using 286 of these, last I checked
 
-   ByteFlattenerHelper<EndianType> bfh(buf, sizeof(buf));
+   ByteFlattenerHelper<EndianEncoder> bfh(buf, sizeof(buf));
    {
       MRETURN_ON_ERROR(bfh.WriteInt8(0x01));
       MRETURN_ON_ERROR(bfh.WriteInt16(0x0405));
@@ -157,7 +157,7 @@ template<int EndianType> status_t TestHelpers()
 
    PrintHexBytes(buf, bfh.GetNumBytesWritten());
 
-   ByteUnflattenerHelper<EndianType> buh(buf, bfh.GetNumBytesWritten());
+   ByteUnflattenerHelper<EndianEncoder> buh(buf, bfh.GetNumBytesWritten());
    {
       printf("int8=0x%x\n", buh.ReadInt8());
       printf("int16=0x%x\n", buh.ReadInt16());
@@ -168,8 +168,8 @@ template<int EndianType> status_t TestHelpers()
       printf("string1=[%s]\n", buh.ReadString()());
       printf("string2=[%s]\n", buh.ReadCString());
 
-      Point p = buh.template ReadFlat<Point>(); printf("Point=%f,%f\n", p.x(), p.y());
-      Rect  r = buh.template ReadFlat<Rect>();  printf("Rect=%f,%f,%f,%f\n", r.left(), r.top(), r.Width(), r.Height());
+      const Point p = buh.template ReadFlat<Point>(); printf("Point=%f,%f\n", p.x(), p.y());
+      const Rect  r = buh.template ReadFlat<Rect>();  printf("Rect=%f,%f,%f,%f\n", r.left(), r.top(), r.Width(), r.Height());
 
       TestFlattenable tf;
       MRETURN_ON_ERROR(buh.template ReadFlat<TestFlattenable>(tf));
@@ -240,17 +240,17 @@ int main(int argc, char ** argv)
 
       status_t ret;
 
-      printf("\n\nTesting ByteBufferHelpers with ENDIAN_TYPE_NATIVE:\n");
-      ret = TestHelpers<ENDIAN_TYPE_NATIVE>();
-      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<ENDIAN_TYPE_NATIVE> failed [%s]\n", ret());
+      printf("\n\nTesting ByteBufferHelpers with NativeEndianEncoder:\n");
+      ret = TestHelpers<NativeEndianEncoder>();
+      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<NativeEndianEncoder> failed [%s]\n", ret());
 
-      printf("\n\nTesting ByteBufferHelpers with ENDIAN_TYPE_LITTLE:\n");
-      ret = TestHelpers<ENDIAN_TYPE_LITTLE>();
-      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<ENDIAN_TYPE_LITTLE> failed [%s]\n", ret());
+      printf("\n\nTesting ByteBufferHelpers with LittleEndianEncoder:\n");
+      ret = TestHelpers<LittleEndianEncoder>();
+      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<LittleEndianEncoder> failed [%s]\n", ret());
 
-      printf("\n\nTesting ByteBufferHelpers with ENDIAN_TYPE_BIG:\n");
-      ret = TestHelpers<ENDIAN_TYPE_BIG>();
-      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<ENDIAN_TYPE_BIG> failed [%s]\n", ret());
+      printf("\n\nTesting ByteBufferHelpers with BigEndianEncoder:\n");
+      ret = TestHelpers<BigEndianEncoder>();
+      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<BigEndianEncoder> failed [%s]\n", ret());
    }
    return 0;
 }

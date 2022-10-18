@@ -3,6 +3,7 @@
 #ifndef MuscleByteFlattener_h
 #define MuscleByteFlattener_h
 
+#include "support/EndianEncoder.h"
 #include "support/NotCopyable.h"
 #include "support/PseudoFlattenable.h"
 #include "util/String.h"
@@ -10,7 +11,7 @@
 namespace muscle {
 
 /** This is a super-lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer. */
-template<int EndianType> class ByteFlattenerHelper : public NotCopyable
+template<class EndianEncoder> class ByteFlattenerHelper : public NotCopyable
 {
 public:
    /** Constructs a ByteFlattener that will write up to the specified number of bytes into (writeTo)
@@ -110,12 +111,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         switch(EndianType)
-         {
-            case ENDIAN_TYPE_LITTLE: muscleCopyOut(_writeTo, B_HOST_TO_LENDIAN_INT16(vals[i])); break;
-            case ENDIAN_TYPE_BIG:    muscleCopyOut(_writeTo, B_HOST_TO_BENDIAN_INT16(vals[i])); break;
-            default:                 muscleCopyOut(_writeTo, vals[i]);                          break;
-         }
+         _encoder.ExportInt16(vals[i], _writeTo);
          _writeTo += sizeof(vals[0]);
       }
       _maxBytes -= numBytes;
@@ -129,12 +125,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         switch(EndianType)
-         {
-            case ENDIAN_TYPE_LITTLE: muscleCopyOut(_writeTo, B_HOST_TO_LENDIAN_INT32(vals[i])); break;
-            case ENDIAN_TYPE_BIG:    muscleCopyOut(_writeTo, B_HOST_TO_BENDIAN_INT32(vals[i])); break;
-            default:                 muscleCopyOut(_writeTo, vals[i]);                          break;
-         }
+         _encoder.ExportInt32(vals[i], _writeTo);
          _writeTo += sizeof(vals[i]);
       }
       _maxBytes -= numBytes;
@@ -148,12 +139,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         switch(EndianType)
-         {
-            case ENDIAN_TYPE_LITTLE: muscleCopyOut(_writeTo, B_HOST_TO_LENDIAN_INT64(vals[i])); break;
-            case ENDIAN_TYPE_BIG:    muscleCopyOut(_writeTo, B_HOST_TO_BENDIAN_INT64(vals[i])); break;
-            default:                 muscleCopyOut(_writeTo, vals[i]);                          break;
-         }
+         _encoder.ExportInt64(vals[i], _writeTo);
          _writeTo += sizeof(vals[i]);
       }
       _maxBytes -= numBytes;
@@ -167,12 +153,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         switch(EndianType)
-         {
-            case ENDIAN_TYPE_LITTLE: muscleCopyOut(_writeTo, B_HOST_TO_LENDIAN_IFLOAT(vals[i])); break;
-            case ENDIAN_TYPE_BIG:    muscleCopyOut(_writeTo, B_HOST_TO_BENDIAN_IFLOAT(vals[i])); break;
-            default:                 muscleCopyOut(_writeTo, vals[i]);                           break;
-         }
+         _encoder.ExportFloat(vals[i], _writeTo);
          _writeTo += sizeof(vals[i]);
       }
       _maxBytes -= numBytes;
@@ -186,12 +167,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         switch(EndianType)
-         {
-            case ENDIAN_TYPE_LITTLE: muscleCopyOut(_writeTo, B_HOST_TO_LENDIAN_IDOUBLE(vals[i])); break;
-            case ENDIAN_TYPE_BIG:    muscleCopyOut(_writeTo, B_HOST_TO_BENDIAN_IDOUBLE(vals[i])); break;
-            default:                 muscleCopyOut(_writeTo, vals[i]);                            break;
-         }
+         _encoder.ExportDouble(vals[i], _writeTo);
          _writeTo += sizeof(vals[i]);
       }
       _maxBytes -= numBytes;
@@ -240,12 +216,7 @@ public:
          for (uint32 i=0; i<numVals; i++)
          {
             const uint32 flatSize = vals[i].FlattenedSize();
-            switch(EndianType)
-            {
-               case ENDIAN_TYPE_LITTLE: muscleCopyOut(_writeTo, B_HOST_TO_LENDIAN_INT32(flatSize)); break;
-               case ENDIAN_TYPE_BIG:    muscleCopyOut(_writeTo, B_HOST_TO_BENDIAN_INT32(flatSize)); break;
-               default:                 muscleCopyOut(_writeTo, flatSize);                          break;
-            }
+            _encoder.ExportInt32(flatSize, _writeTo);
             _writeTo += sizeof(flatSize);
 
             vals[i].Flatten(_writeTo);
@@ -258,6 +229,8 @@ public:
 ///@}
 
 private:
+   const EndianEncoder _encoder;
+
    status_t SizeCheck(uint32 numBytes) {return (numBytes <= _maxBytes) ? B_NO_ERROR : FlagError(B_OUT_OF_MEMORY);}
    status_t Advance(  uint32 numBytes) {_writeTo += numBytes; _maxBytes -= numBytes; return B_NO_ERROR;}
    status_t FlagError(status_t ret)    {_status |= ret; return ret;}
@@ -269,10 +242,10 @@ private:
    status_t _status;      // cache any errors found so far
 };
 
-typedef ByteFlattenerHelper<ENDIAN_TYPE_LITTLE> LittleEndianByteFlattener;  /**< this flattener-type flattens to little-endian-format data */
-typedef ByteFlattenerHelper<ENDIAN_TYPE_BIG>    BigEndianByteFlattener;     /**< this flattener-type flattens to big-endian-format data */
-typedef ByteFlattenerHelper<ENDIAN_TYPE_NATIVE> NativeEndianByteFlattener;  /**< this flattener-type flattens to native-endian-format data */
-typedef LittleEndianByteFlattener               ByteFlattener;              /**< ByteFlattener is a pseudonym for LittleEndianByteFlattener, for convenience */
+typedef ByteFlattenerHelper<LittleEndianEncoder> LittleEndianByteFlattener;  /**< this flattener-type flattens to little-endian-format data */
+typedef ByteFlattenerHelper<BigEndianEncoder>    BigEndianByteFlattener;     /**< this flattener-type flattens to big-endian-format data */
+typedef ByteFlattenerHelper<NativeEndianEncoder> NativeEndianByteFlattener;  /**< this flattener-type flattens to native-endian-format data */
+typedef LittleEndianByteFlattener                ByteFlattener;              /**< ByteFlattener is a pseudonym for LittleEndianByteFlattener, for convenience (since MUSCLE standardizes on little-endian encoding) */
 
 } // end namespace muscle
 

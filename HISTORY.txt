@@ -12,6 +12,8 @@ key:  - new feature
    - Added ByteFlattener and ByteUnflattener classes to
      allow for safer flattening/unflattening of objects
      to/from byte-buffers.
+   - Added support/EndianEncoder.h to allow templating
+     over big/little/native endian-encoding strategies.
    o Refactored the StringTokenizer class's constructors to
      take a single (optSepChars) argument instead of separate
      arguments for hard and soft separator characters.
