@@ -284,20 +284,15 @@ public:
      * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the new read-location would be outside
      *          the bounds of our buffer (note moving the read-location to one-past-the-last-byte is ok)
      */
-   status_t SkipBytes(int32 numBytes)
+   status_t SeekRelative(int32 numBytes)
    {
-      if (numBytes > 0)
+      if ((numBytes >= 0) ? (numBytes > _bytesLeft) : ((uint32)(-numBytes) > GetNumBytesRead())) return B_BAD_ARGUMENT;
+      else
       {
-         if (numBytes > _bytesLeft) return B_BAD_ARGUMENT;
+         _readFrom  += numBytes;
+         _bytesLeft -= numBytes;
+         return B_NO_ERROR;
       }
-      else if (numBytes < 0)
-      {
-         if (-numBytes > GetNumBytesRead()) return B_BAD_ARGUMENT;
-      }
-
-      _readFrom  += numBytes;
-      _bytesLeft -= numBytes;
-      return B_NO_ERROR;
    }
 
 private:

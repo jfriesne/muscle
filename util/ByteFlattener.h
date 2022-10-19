@@ -302,7 +302,12 @@ private:
 
    status_t SizeCheck(uint32 numBytes, bool okayToExpandByteBuffer)
    {
-      if (numBytes > _bytesLeft) return FlagError(B_OUT_OF_MEMORY);
+      if (numBytes > _bytesLeft)
+      {
+         // Log about this, because attempting to write past the end of a non-dynamic buffer is almost certainly a program-bug
+         LogTime(MUSCLE_LOG_CRITICALERROR, "ByteFlattener::SizeCheck() failed: wanted to write " UINT32_FORMAT_SPEC " bytes to a fixed-size buffer, but only " UINT32_FORMAT_SPEC " bytes are available to write to!\n", numBytes, _bytesLeft);
+         return FlagError(B_LOGIC_ERROR);
+      }
       if ((okayToExpandByteBuffer)&&(_byteBuffer))
       {
          const uint32 numBytesWritten   = GetNumBytesWritten();
