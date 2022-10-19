@@ -6,38 +6,73 @@
 #include "support/EndianEncoder.h"
 #include "support/NotCopyable.h"
 #include "support/PseudoFlattenable.h"
+#include "util/ByteBuffer.h"
 #include "util/String.h"
 
 namespace muscle {
 
-/** This is a super-lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer. */
+/** This is a lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer. */
 template<class EndianEncoder> class ByteUnflattenerHelper : public NotCopyable
 {
 public:
+   /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
+   ByteUnflattenerHelper() {Reset();}
+
    /** Constructs a ByteFlattener that will write up to the specified number of bytes
      * @param readFrom The buffer to read bytes from.  Caller must guarantee that this pointer remains valid when any methods on this class are called.
      * @param maxBytes The maximum number of bytes that we are allowed to read.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
      */
    ByteUnflattenerHelper(const uint8 * readFrom, uint32 maxBytes) {SetBuffer(readFrom, maxBytes);}
 
+   /** Same as above, except instead of taking a raw pointer as a target, we take a reference to a ByteBuffer object.
+     * @param readFrom Reference to a ByteBuffer that we should read data out of.  A pointer to this ByteBuffer's data will be retained for use in future Read*() method-calls.
+     * @param maxBytes The maximum number of bytes that we should allow ourselves to read out of (readFrom).  If this value is greater
+     *                 than (readFrom.GetNumBytes()) it will treated as equal to (readFrom.GetNumBytes()).  Defaults to MUSCLE_NO_LIMIT.
+     */
+   ByteUnflattenerHelper(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(readFrom, maxBytes);}
+
    /** Destructor. */
    ~ByteUnflattenerHelper() {/* empty */}
 
+   /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
+   void Reset() {SetBuffer(NULL, 0);}
+
    /** Set a new raw array to write to (same as what we do in the constructor, except this updates an existing ByteUnflattenerHelper object)
-     * @param readFrom the new buffer to point to and read from in future method-calls.
+     * @param readFrom the new buffer to point to and read from in future Read*() method-calls.
      * @param maxBytes The new maximum number of bytes that we are allowed to read.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
      * @note this method resets our status-flag back to B_NO_ERROR.
      */
-   void SetBuffer(const uint8 * readFrom, uint32 maxBytes) {_readFrom = _origReadFrom = readFrom; _maxBytes = _origMaxBytes = maxBytes; _status = B_NO_ERROR;}
+   void SetBuffer(const uint8 * readFrom, uint32 maxBytes) {_readFrom = _origReadFrom = readFrom; _bytesLeft = _maxBytes = maxBytes; _status = B_NO_ERROR;}
+
+   /** Same as above, except instead of taking a raw pointer as a target, we take a reference to a ByteBuffer object.
+     * @param readFrom Reference to a ByteBuffer that we should read data out of.  A pointer to this ByteBuffer's data will be retained for use in future Read*() method-calls.
+     * @param maxBytes The maximum number of bytes that we should allow ourselves to read out of (readFrom).  If this value is greater
+     *                 than (readFrom.GetNumBytes()) it will treated as equal to (readFrom.GetNumBytes()).  Defaults to MUSCLE_NO_LIMIT.
+     * @note this method resets our status-flag back to B_NO_ERROR.
+     */
+   void SetBuffer(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(readFrom.GetBuffer(), muscleMin(readFrom.GetNumBytes(), maxBytes));}
+
+   /** Rewinds our "read position" back to the beginning of the output-buffer again.
+     * @note this method resets our status-flag back to B_NO_ERROR.
+     */
+   void Rewind()
+   {
+      _readFrom  = _origReadFrom;
+      _bytesLeft = _maxBytes;
+      _status    = B_NO_ERROR;
+   }
 
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
-   uint32 GetBuffer() const {return _origReadFrom;}
+   const uint8 * GetBuffer() const {return _origReadFrom;}
 
    /** Returns the number of bytes we have read from our buffer so far */
-   uint32 GetNumBytesWritten() const {return (uint32)(_readFrom-_origReadFrom);}
+   uint32 GetNumBytesRead() const {return (uint32)(_readFrom-_origReadFrom);}
+
+   /** Returns the number of bytes we have remaining to read */
+   uint32 GetNumBytesAvailable() const {return _bytesLeft;}
 
    /** Returns the maximum number of bytes we are allowed to read, as passed in to our constructor (or to SetBuffer()) */
-   uint32 GetMaxNumBytes() const {return _origMaxBytes;}
+   uint32 GetMaxNumBytes() const {return _maxBytes;}
 
    /** Returns true iff we have detected any problems reading in data so far */
    status_t GetStatus() const {return _status;}
@@ -80,15 +115,15 @@ public:
      */
    const char * ReadCString()
    {
-      if (_maxBytes == 0) {_status = B_DATA_NOT_FOUND; return NULL;}
+      if (_bytesLeft == 0) {_status = B_DATA_NOT_FOUND; return NULL;}
 
       uint32 flatSize;
-      if (_origMaxBytes == MUSCLE_NO_LIMIT) flatSize = strlen(reinterpret_cast<const char *>(_readFrom))+1;
+      if (_maxBytes == MUSCLE_NO_LIMIT) flatSize = strlen(reinterpret_cast<const char *>(_readFrom))+1;
       else
       {
          // Gotta check for unterminated strings, or we won't be safe
          const uint8 * temp = _readFrom;
-         const uint8 * firstInvalidByte = _readFrom+_maxBytes;
+         const uint8 * firstInvalidByte = _readFrom+_bytesLeft;
          while((temp < firstInvalidByte)&&(*temp != '\0')) temp++;
          if (temp == firstInvalidByte) {_status |= B_BAD_DATA; return NULL;}  // string wasn't terminated, so we can't return it
          flatSize = (1+temp-_readFrom);  // +1 to include the NUL byte
@@ -134,7 +169,7 @@ public:
          retVals[i] = _encoder.ImportInt16(_readFrom);
          _readFrom += sizeof(retVals[0]);
       }
-      _maxBytes -= numBytes;
+      _bytesLeft -= numBytes;
       return B_NO_ERROR;
    }
 
@@ -148,7 +183,7 @@ public:
          retVals[i] = _encoder.ImportInt32(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
-      _maxBytes -= numBytes;
+      _bytesLeft -= numBytes;
       return B_NO_ERROR;
    }
 
@@ -162,7 +197,7 @@ public:
          retVals[i] = _encoder.ImportInt64(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
-      _maxBytes -= numBytes;
+      _bytesLeft -= numBytes;
       return B_NO_ERROR;
    }
 
@@ -176,7 +211,7 @@ public:
          retVals[i] = _encoder.ImportFloat(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
-      _maxBytes -= numBytes;
+      _bytesLeft -= numBytes;
       return B_NO_ERROR;
    }
 
@@ -190,7 +225,7 @@ public:
          retVals[i] = _encoder.ImportDouble(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
-      _maxBytes -= numBytes;
+      _bytesLeft -= numBytes;
       return B_NO_ERROR;
    }
 
@@ -244,14 +279,14 @@ public:
 private:
    const EndianEncoder _encoder;
 
-   status_t SizeCheck(uint32 numBytes) {return (numBytes <= _maxBytes) ? B_NO_ERROR : FlagError(B_DATA_NOT_FOUND);}
-   status_t Advance(  uint32 numBytes) {_readFrom += numBytes; _maxBytes -= numBytes; return B_NO_ERROR;}
+   status_t SizeCheck(uint32 numBytes) {return (numBytes <= _bytesLeft) ? B_NO_ERROR : FlagError(B_DATA_NOT_FOUND);}
+   status_t Advance(  uint32 numBytes) {_readFrom += numBytes; _bytesLeft -= numBytes; return B_NO_ERROR;}
    status_t FlagError(status_t ret)    {_status |= ret; return ret;}
 
    const uint8 * _readFrom;     // pointer to our input buffer
    const uint8 * _origReadFrom; // the pointer the user passed in
-   uint32 _maxBytes;            // max number of bytes we are allowed to read from our input buffer
-   uint32 _origMaxBytes;        // the byte-count the user passed in
+   uint32 _bytesLeft;           // max number of bytes we are allowed to read from our input buffer
+   uint32 _maxBytes;            // the byte-count the user passed in
    status_t _status;            // cache any errors found so far
 };
 

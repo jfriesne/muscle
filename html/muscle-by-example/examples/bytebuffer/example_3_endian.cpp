@@ -22,9 +22,9 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
-   ByteBuffer buf(64);
+   ByteBuffer buf;
 
-   BigEndianByteFlattener flt(buf.GetBuffer(), buf.GetNumBytes());
+   BigEndianByteFlattener flt(buf);
    (void) flt.WriteInt32(1);
    (void) flt.WriteInt32(2);
    (void) flt.WriteInt32(3);
@@ -37,7 +37,6 @@ int main(int argc, char ** argv)
    {
       printf("Here's the ByteBuffer containing three big-endian int32's, followed by\n");
       printf("2 big-endian int16's, pi as a big-endian float, and finally an ASCII string:\n\n");
-      buf.SetNumBytes(flt.GetNumBytesWritten(), true);  // trim off any excess bytes we didn't write to
       buf.PrintToStream();
    }
    else printf("There was an error writing big-endian data into the ByteBuffer!  [%s]\n", flt.GetStatus()());
@@ -45,7 +44,7 @@ int main(int argc, char ** argv)
    printf("\n");
    printf("And now we'll grab that data back out of the buffer and display it:\n");
 
-   BigEndianByteUnflattener uflt(buf.GetBuffer(), buf.GetNumBytes());
+   BigEndianByteUnflattener uflt(buf);
    printf("First int32 is " INT32_FORMAT_SPEC "\n", uflt.ReadInt32());
    printf("Second int32 is " INT32_FORMAT_SPEC "\n", uflt.ReadInt32());
    printf("Third int32 is " INT32_FORMAT_SPEC "\n", uflt.ReadInt32());
