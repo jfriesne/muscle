@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include "util/ByteFlattener.h"
+#include "util/ByteUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for GetConnectString() (which is deliberately defined here)
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketMultiplexer.h"
@@ -1903,36 +1905,34 @@ uint32 IPAddress :: CalculateChecksum() const
 
 void IPAddress :: Flatten(uint8 * buffer) const
 {
-   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT64(_lowBits));        buffer += sizeof(_lowBits);
-   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT64(_highBits));       buffer += sizeof(_highBits);
-   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(_interfaceIndex)); //buffer += sizeof(_interfaceIndex);
+   ByteFlattener flat(buffer, MUSCLE_NO_LIMIT);
+   flat.WriteInt64(_lowBits);
+   flat.WriteInt64(_highBits);
+   flat.WriteInt32(_interfaceIndex);
 }
 
 status_t IPAddress :: Unflatten(const uint8 * buffer, uint32 size)
 {
-   if (size < FlattenedSize()) return B_BAD_DATA;
-
-   _lowBits        = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(buffer)); buffer += sizeof(_lowBits);
-   _highBits       = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(buffer)); buffer += sizeof(_highBits);
-   _interfaceIndex = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer)); //buffer += sizeof(_interfaceIndex);
-   return B_NO_ERROR;
+   ByteUnflattener unflat(buffer, size);
+   _lowBits        = unflat.ReadInt64();
+   _highBits       = unflat.ReadInt64();
+   _interfaceIndex = unflat.ReadInt32();
+   return unflat.GetStatus();
 }
 
 void IPAddressAndPort :: Flatten(uint8 * buffer) const
 {
-   _ip.Flatten(buffer); buffer += _ip.FlattenedSize();
-   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT16(_port));
+   ByteFlattener flat(buffer, MUSCLE_NO_LIMIT);
+   flat.WriteFlat(_ip);
+   flat.WriteInt16(_port);
 }
 
 status_t IPAddressAndPort :: Unflatten(const uint8 * buffer, uint32 size)
 {
-   if (size < FlattenedSize()) return B_BAD_DATA;
-
-   MRETURN_ON_ERROR(_ip.Unflatten(buffer, size));
-
-   buffer += _ip.FlattenedSize();
-   _port = B_LENDIAN_TO_HOST_INT16(muscleCopyIn<uint16>(buffer));
-   return B_NO_ERROR;
+   ByteUnflattener unflat(buffer, size);
+   _ip   = unflat.ReadFlat<IPAddress>();
+   _port = unflat.ReadInt16();
+   return unflat.GetStatus();
 }
 
 // defined here to avoid having to pull in MiscUtilityFunctions.cpp for everything

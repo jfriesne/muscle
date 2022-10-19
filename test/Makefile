@@ -122,22 +122,22 @@ endif
 # Makes all the programs that can be made using just cross-platform code
 all : $(EXECUTABLES)
 
-calctypecode : $(STDOBJS) calctypecode.o SysLog.o SetupSystem.o String.o
+calctypecode : $(STDOBJS) calctypecode.o SysLog.o SetupSystem.o String.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-printtypecode : $(STDOBJS) printtypecode.o SysLog.o SetupSystem.o String.o
+printtypecode : $(STDOBJS) printtypecode.o SysLog.o SetupSystem.o String.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testhashtable : $(STDOBJS) String.o testhashtable.o SysLog.o SetupSystem.o Message.o SetupSystem.o MiscUtilityFunctions.o ByteBuffer.o Thread.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testclone : $(STDOBJS) String.o testclone.o SysLog.o SetupSystem.o
+testclone : $(STDOBJS) String.o testclone.o SysLog.o SetupSystem.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testmessage : $(STDOBJS) Message.o String.o testmessage.o SysLog.o ByteBuffer.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testfilepathinfo : $(STDOBJS) testfilepathinfo.o FilePathInfo.o SetupSystem.o String.o SysLog.o
+testfilepathinfo : $(STDOBJS) testfilepathinfo.o FilePathInfo.o SetupSystem.o String.o SysLog.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testthread : $(STDOBJS) testthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o
@@ -234,13 +234,13 @@ testtime : $(STDOBJS) testtime.o SysLog.o String.o SetupSystem.o MiscUtilityFunc
 testendian : $(STDOBJS) testendian.o MiscUtilityFunctions.o ByteBuffer.o String.o SysLog.o SetupSystem.o Message.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testsysteminfo : $(STDOBJS) testsysteminfo.o String.o SetupSystem.o SystemInfo.o SysLog.o
+testsysteminfo : $(STDOBJS) testsysteminfo.o String.o SetupSystem.o SystemInfo.o SysLog.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testqueue : $(STDOBJS) testqueue.o SysLog.o String.o SetupSystem.o
+testqueue : $(STDOBJS) testqueue.o SysLog.o String.o SetupSystem.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testtuple : $(STDOBJS) testtuple.o String.o SysLog.o SetupSystem.o
+testtuple : $(STDOBJS) testtuple.o String.o SysLog.o SetupSystem.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testserial : $(STDOBJS) testserial.o SysLog.o RS232DataIO.o String.o SetupSystem.o ByteBuffer.o
@@ -249,7 +249,7 @@ testserial : $(STDOBJS) testserial.o SysLog.o RS232DataIO.o String.o SetupSystem
 testgateway : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o testgateway.o SysLog.o PulseNode.o SetupSystem.o ZLibDataIO.o ZLibCodec.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testregex : $(STDOBJS) testregex.o String.o SysLog.o SetupSystem.o $(REGEXOBJS)
+testregex : $(STDOBJS) testregex.o String.o SysLog.o SetupSystem.o ByteBuffer.o $(REGEXOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 singlethreadedreflectclient : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o TemplatingMessageIOGateway.o MessageIOGateway.o String.o singlethreadedreflectclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o QueryFilter.o $(REGEXOBJS)
@@ -318,7 +318,7 @@ erasesharedmem: $(STDOBJS) SysLog.o SharedMemory.o erasesharedmem.o String.o Mis
 testsharedmem: $(STDOBJS) SysLog.o SharedMemory.o testsharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testobjectpool: $(STDOBJS) SysLog.o SharedMemory.o testobjectpool.o String.o SetupSystem.o
+testobjectpool: $(STDOBJS) SysLog.o SharedMemory.o testobjectpool.o String.o SetupSystem.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testqueryfilter: $(STDOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o testqueryfilter.o SetupSystem.o MiscUtilityFunctions.o

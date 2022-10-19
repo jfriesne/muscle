@@ -276,6 +276,30 @@ public:
    }
 ///@}
 
+   /** Returns a pointer into our buffer at the location we will next read from */
+   const uint8 * GetCurrentReadPointer() const {return _readFrom;}
+
+   /** Moves the pointer into our buffer forwards or backwards by the specified number of bytes.
+     * @param numBytes the number of bytes to move the pointer by
+     * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the new read-location would be outside
+     *          the bounds of our buffer (note moving the read-location to one-past-the-last-byte is ok)
+     */
+   status_t SkipBytes(int32 numBytes)
+   {
+      if (numBytes > 0)
+      {
+         if (numBytes > _bytesLeft) return B_BAD_ARGUMENT;
+      }
+      else if (numBytes < 0)
+      {
+         if (-numBytes > GetNumBytesRead()) return B_BAD_ARGUMENT;
+      }
+
+      _readFrom  += numBytes;
+      _bytesLeft -= numBytes;
+      return B_NO_ERROR;
+   }
+
 private:
    const EndianEncoder _encoder;
 

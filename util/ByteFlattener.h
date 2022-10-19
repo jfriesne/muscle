@@ -108,6 +108,9 @@ public:
    /** Returns an error code if we've detected any errors while writing data (so far), or B_NO_ERROR if we haven't seen any. */
    status_t GetStatus() const {return _status;}
 
+   /** Convenience method:  Allocates and returns a ByteBuffer containing a copy of our contents */
+   ByteBufferRef GetByteBufferFromPool() const {return muscle::GetByteBufferFromPool(GetNumBytesWritten(), GetBuffer());}
+
    /** Writes the specified byte to our buffer.
      * @param theByte The byte to write
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY if no space is available.

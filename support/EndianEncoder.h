@@ -45,7 +45,7 @@ public:
 };
 
 /** This class defines a standardized API for encoding POD data values to big-endian format for serialization, and vice-versa. */
-class BigEndianEncoder : public NotCopyable
+class BigEndianEncoder
 {
 public:
    /** Constructor */
@@ -84,7 +84,7 @@ public:
 /** This class defines a standardized API for encoding POD data values to native-endian format for serialization, and vice-versa.
   * That conversion isn't quite a no-op, since we still have to handle pointer-alignment issues, but it's close.
   */
-class NativeEndianEncoder : public NotCopyable
+class NativeEndianEncoder
 {
 public:
    /** Constructor */

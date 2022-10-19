@@ -2,6 +2,8 @@
 
 #include "dataio/PacketDataIO.h"  // for retrieving the source IP address and port, where possible
 #include "iogateway/PacketTunnelIOGateway.h"
+#include "util/ByteFlattener.h"
+#include "util/ByteUnflattener.h"
 
 namespace muscle {
 
@@ -50,27 +52,25 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
          const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
          if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
 
-         const uint8 * p = (const uint8 *) _inputPacketBuffer.GetBuffer();
-         if ((_allowMiscData)&&((bytesRead < (int32)FRAGMENT_HEADER_SIZE)||(((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(p))) != _magic)))
+         ByteUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead);
+         if ((_allowMiscData)&&((bytesRead < (int32)FRAGMENT_HEADER_SIZE)||(((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(_inputPacketBuffer.GetBuffer()))) != _magic)))
          {
             // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
-            HandleIncomingByteBuffer(receiver, p, bytesRead, fromIAP);
+            HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead, fromIAP);
          }
          else
          {
-            const uint8 * invalidByte = p+bytesRead;
-            while(invalidByte-p >= (int32)FRAGMENT_HEADER_SIZE)
+            while(unflat.GetNumBytesAvailable() >= (int32)FRAGMENT_HEADER_SIZE)
             {
-               const uint32 magic     = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[0*sizeof(uint32)]));
-               const uint32 sexID     = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[1*sizeof(uint32)]));
-               const uint32 messageID = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[2*sizeof(uint32)]));
-               const uint32 offset    = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[3*sizeof(uint32)]));
-               const uint32 chunkSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[4*sizeof(uint32)]));
-               const uint32 totalSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&p[5*sizeof(uint32)]));
-//printf("   PARSE magic=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " sex=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " messageID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", magic, _magic, sexID, _sexID, messageID, offset, chunkSize, totalSize);
+               const uint32 magic     = unflat.ReadInt32();
+               const uint32 sexID     = unflat.ReadInt32();
+               const uint32 messageID = unflat.ReadInt32();
+               const uint32 offset    = unflat.ReadInt32();
+               const uint32 chunkSize = unflat.ReadInt32();
+               const uint32 totalSize = unflat.ReadInt32();
+printf("   PARSE magic=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " sex=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " messageID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", magic, _magic, sexID, _sexID, messageID, offset, chunkSize, totalSize);
 
-               p += FRAGMENT_HEADER_SIZE;
-               if ((magic == _magic)&&((_sexID == 0)||(_sexID != sexID))&&((invalidByte-p >= (int32)chunkSize)&&(totalSize <= _maxIncomingMessageSize)))
+               if ((magic == _magic)&&((_sexID == 0)||(_sexID != sexID))&&((unflat.GetNumBytesAvailable() >= (int32)chunkSize)&&(totalSize <= _maxIncomingMessageSize)))
                {
                   ReceiveState * rs = _receiveStates.Get(fromIAP);
                   if (rs == NULL)
@@ -100,7 +100,7 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
 //printf("  CHECK:  offset=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " %s\n", offset, rs->_offset, (offset==rs->_offset)?"":"DISCONTINUITY!!!");
                      if ((messageID == rs->_messageID)&&(totalSize == rsSize)&&(offset == rs->_offset)&&(offset+chunkSize <= rsSize))
                      {
-                        memcpy(rs->_buf()->GetBuffer()+offset, p, chunkSize);
+                        memcpy(rs->_buf()->GetBuffer()+offset, unflat.GetCurrentReadPointer(), chunkSize);
                         rs->_offset += chunkSize;
                         if (rs->_offset == rsSize)
                         {
@@ -116,7 +116,7 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
                         rs->_buf()->Clear(rsSize > MAX_CACHE_SIZE);
                      }
                   }
-                  p += chunkSize;
+                  unflat.SkipBytes(chunkSize);
                }
                else break;
             }
@@ -152,17 +152,17 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          const uint32 sbSize          = _currentOutputBuffers.Head()()->GetNumBytes();
          const uint32 dataBytesToSend = muscleMin(_maxTransferUnit-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
 
-         uint8 * p = _outputPacketBuffer.GetBuffer()+_outputPacketSize;
-         muscleCopyOut(&p[0*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_magic));                      // a well-known magic number, for sanity checking
-         muscleCopyOut(&p[1*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_sexID));                      // source exclusion ID
-         muscleCopyOut(&p[2*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_sendMessageIDCounter));       // message ID tag so the receiver can track what belongs where
-         muscleCopyOut(&p[3*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_currentOutputBufferOffset));  // start offset (within its message) for this sub-chunk
-         muscleCopyOut(&p[4*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(dataBytesToSend));             // size of this sub-chunk
-         muscleCopyOut(&p[5*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(sbSize));                      // total size of this message
+         ByteFlattener flat(_outputPacketBuffer.GetBuffer()+_outputPacketSize, _outputPacketBuffer.GetNumBytes()-_outputPacketSize);
+         flat.WriteInt32(_magic);                      // a well-known magic number, for sanity checking
+         flat.WriteInt32(_sexID);                      // source exclusion ID
+         flat.WriteInt32(_sendMessageIDCounter);       // message ID tag so the receiver can track what belongs where
+         flat.WriteInt32(_currentOutputBufferOffset);  // start offset (within its message) for this sub-chunk
+         flat.WriteInt32(dataBytesToSend);             // size of this sub-chunk
+         flat.WriteInt32(sbSize);                      // total size of this message
 //printf("CREATING PACKET magic=" UINT32_FORMAT_SPEC " msgID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", _magic, _sendMessageIDCounter, _currentOutputBufferOffset, dataBytesToSend, sbSize);
-         memcpy(p+FRAGMENT_HEADER_SIZE, _currentOutputBuffers.Head()()->GetBuffer()+_currentOutputBufferOffset, dataBytesToSend);
+         flat.WriteBytes(_currentOutputBuffers.Head()()->GetBuffer()+_currentOutputBufferOffset, dataBytesToSend);
 
-         _outputPacketSize += (FRAGMENT_HEADER_SIZE+dataBytesToSend);
+         _outputPacketSize += flat.GetNumBytesWritten();
          _currentOutputBufferOffset += dataBytesToSend;
          if (_currentOutputBufferOffset == sbSize)
          {

@@ -1,4 +1,6 @@
 #include "system/SetupSystem.h"         // for CompleteSetupSystem
+#include "util/ByteFlattener.h"
+#include "util/ByteUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
 #include "util/String.h"
 
@@ -57,34 +59,19 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      uint8 * writeTo = buffer;
-
-      muscleCopyOut(writeTo, B_HOST_TO_LENDIAN_IFLOAT(_latitude));
-      writeTo += sizeof(_latitude);
-
-      muscleCopyOut(writeTo, B_HOST_TO_LENDIAN_IFLOAT(_longitude));
-      writeTo += sizeof(_longitude);
-
-      muscleCopyOut(writeTo, B_HOST_TO_LENDIAN_IFLOAT(_altitude));
-      writeTo += sizeof(_altitude);
+      ByteFlattener flat(buffer, MUSCLE_NO_LIMIT);
+      flat.WriteFloat(_latitude);
+      flat.WriteFloat(_longitude);
+      flat.WriteFloat(_altitude);
    }
 
    virtual status_t Unflatten(const uint8 *buffer, uint32 numBytes)
    {
-      if (numBytes < FlattenedSize()) return B_BAD_DATA;
-
-      const uint8 * readFrom = buffer;
-      _latitude  = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<uint32>(readFrom));
-      readFrom += sizeof(_latitude);
-
-      _longitude = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<uint32>(readFrom));
-      readFrom += sizeof(_longitude);
-
-      _altitude = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<uint32>(readFrom));
-      readFrom += sizeof(_altitude);
-
-      // success!
-      return B_NO_ERROR;
+      ByteUnflattener unflat(buffer, numBytes);
+      _latitude  = unflat.ReadFloat();
+      _longitude = unflat.ReadFloat();
+      _altitude  = unflat.ReadFloat();
+      return unflat.GetStatus();;
    }
 
    // Returns our current state as a human-readable String

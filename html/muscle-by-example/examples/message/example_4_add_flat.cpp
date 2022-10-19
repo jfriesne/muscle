@@ -1,5 +1,7 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "message/Message.h"
+#include "util/ByteFlattener.h"
+#include "util/ByteUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
 
 using namespace muscle;
@@ -18,8 +20,7 @@ enum {
 
 /** This class represents the delivery information necessary to deliver a pizza.  We'll use it to demonstrate
   * the lower-level AddFlat()/FindFlat() method to add a class's data to a Message.  Note that this method
-  * is a bit more elaborate to use and maintain, but it reduces the size of the resulting Message.  I recommend
-  * this approach only when minimizing storage-space is more important than keeping the codebase simple.
+  * is a bit more elaborate to use and maintain, but it reduces the size of the resulting Message.
   */
 class DeliveryInfo : public Flattenable
 {
@@ -43,8 +44,7 @@ public:
    // Returns the number of bytes our Flatten() method will write out if called on this object
    virtual uint32 FlattenedSize() const
    {
-      return sizeof(uint32)           +   // 4-byte flattened-size header
-             _name.FlattenedSize()    +
+      return _name.FlattenedSize()    +
              _address.FlattenedSize() +
              _city.FlattenedSize()    +
              _state.FlattenedSize()   +
@@ -53,52 +53,23 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      uint8 * writeTo = buffer;
-
-      // Let's write out our flattened-size first; we can use it to do a sanity-check in Unflatten() later on
-      const uint32 flattenedSize = FlattenedSize();
-      muscleCopyOut(writeTo, B_HOST_TO_LENDIAN_INT32(flattenedSize));  // the muscleCopyOut() function handles potential non-aligned writes gracefully
-      writeTo += sizeof(flattenedSize);
-
-      _name.Flatten(writeTo);    writeTo += _name.FlattenedSize();
-      _address.Flatten(writeTo); writeTo += _address.FlattenedSize();
-      _city.Flatten(writeTo);    writeTo += _city.FlattenedSize();
-      _state.Flatten(writeTo);   writeTo += _state.FlattenedSize();
-      muscleCopyOut(writeTo, B_HOST_TO_LENDIAN_INT32(_zipCode));  // explicitly convert int32 value to little-endian (in case we are running on a big-endian machine)
+      ByteFlattener flat(buffer, MUSCLE_NO_LIMIT);
+      flat.WriteString(_name);
+      flat.WriteString(_address);
+      flat.WriteString(_city);
+      flat.WriteString(_state);
+      flat.WriteInt32(_zipCode);
    }
 
    virtual status_t Unflatten(const uint8 *buffer, uint32 numBytes)
    {
-      if (numBytes < sizeof(uint32)) return B_BAD_DATA;
-
-      const uint8 * readFrom = buffer;
-      const uint8 * afterEnd = buffer+numBytes;   // points to the first forbidden byte after then end of our (buffer, numBytes) array
-
-      const uint32 flattenedSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(readFrom));
-      if (numBytes < flattenedSize) return B_BAD_DATA;  // truncated input buffer?!
-      readFrom += sizeof(flattenedSize);
-
-      MRETURN_ON_ERROR(_name.Unflatten(readFrom, numBytes));
-      readFrom += _name.FlattenedSize();
-      if (readFrom >= afterEnd) return B_BAD_DATA;
-
-      MRETURN_ON_ERROR(_address.Unflatten(readFrom, numBytes));
-      readFrom += _address.FlattenedSize();
-      if (readFrom >= afterEnd) return B_BAD_DATA;
-
-      MRETURN_ON_ERROR(_city.Unflatten(readFrom, numBytes));
-      readFrom += _city.FlattenedSize();
-      if (readFrom >= afterEnd) return B_BAD_DATA;
-
-      MRETURN_ON_ERROR(_state.Unflatten(readFrom, numBytes));
-      readFrom += _state.FlattenedSize();
-      if (readFrom >= afterEnd) return B_BAD_DATA;
-
-      if ((afterEnd-readFrom) < sizeof(_zipCode)) return B_BAD_DATA;
-      _zipCode = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(readFrom));
-
-      // success!
-      return B_NO_ERROR;
+      ByteUnflattener unflat(buffer, numBytes);
+      _name    = unflat.ReadString();
+      _address = unflat.ReadString();
+      _city    = unflat.ReadString();
+      _state   = unflat.ReadString();
+      _zipCode = unflat.ReadInt32();
+      return unflat.GetStatus();
    }
 
    // Print our current state to stdout

@@ -1,5 +1,7 @@
 #include "dataio/SimulatedMulticastDataIO.h"
 #include "util/NetworkInterfaceInfo.h"
+#include "util/ByteFlattener.h"
+#include "util/ByteUnflattener.h"
 
 namespace muscle {
 
@@ -217,9 +219,9 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    uint8 pingBuf[sizeof(uint64)+sizeof(uint32)+(NUM_EXTRA_ADDRESSES*ipAddressAndPortFlattenedSize)];
 #endif
 
-   uint8 * b = pingBuf;
-   muscleCopyOut(b, B_HOST_TO_LENDIAN_INT64(SIMULATED_MULTICAST_CONTROL_MAGIC)); b += sizeof(uint64);
-   muscleCopyOut(b, B_HOST_TO_LENDIAN_INT32(whatCode));                          b += sizeof(uint32);
+   ByteFlattener flat(pingBuf, sizeof(pingBuf));
+   flat.WriteInt64(SIMULATED_MULTICAST_CONTROL_MAGIC);
+   flat.WriteInt32(whatCode);
    if ((whatCode == SMDIO_COMMAND_PONG)&&(destIAP != _localAddressAndPort))  // no point telling myself about what I know
    {
       // Include the next (n) member-IAPs (not including our own) to the PONG's data so that the
@@ -242,15 +244,14 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
             if (++numAdded == 1) firstAdded = nextIAP;
 
             const uint64 millisSinceHeardFrom = muscleMin((uint64) MicrosToMillis(now-iter.GetValue()), (uint64) (MUSCLE_NO_LIMIT-1));  // paranoia: cap at 2^32-1
-            const IPAddressAndPort sendIAP = nextIAP.WithInterfaceIndex((uint32) millisSinceHeardFrom);  // yes, I'm abusing this (otherwise-unused-in-this-context) field
-            sendIAP.Flatten(b); b += IPAddressAndPort::FlattenedSize();
+            flat.WriteFlat(nextIAP.WithInterfaceIndex((uint32) millisSinceHeardFrom));  // yes, I'm abusing this (otherwise-unused-in-this-context) field
 
             if (numAdded >= NUM_EXTRA_ADDRESSES) break;
          }
       }
    }
 
-   ConstByteBufferRef buf = GetByteBufferFromPool((uint32)(b-pingBuf), pingBuf);
+   ConstByteBufferRef buf = flat.GetByteBufferFromPool();
    if (buf() == NULL) return B_OUT_OF_MEMORY;
 
    Queue<ConstByteBufferRef> * pq = _outgoingPacketsTable.GetOrPut(destIAP);
@@ -298,34 +299,30 @@ static const uint64 _halfTimeoutPeriodMicros           = _timeoutPeriodMicros/2;
 
 status_t SimulatedMulticastDataIO :: ParseMulticastControlPacket(const ByteBuffer & buf, uint64 now, uint32 & retWhatCode)
 {
-   if (buf.GetNumBytes() < sizeof(uint64)+sizeof(uint32)) return B_BAD_DATA;
+   ByteUnflattener unflat(buf);
+   if (unflat.ReadInt64() != SIMULATED_MULTICAST_CONTROL_MAGIC) return B_BAD_DATA;  // not the droid we're looking for
 
-   const uint8 * b      = buf.GetBuffer();
-   const uint64 magic   = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(b)); b += sizeof(uint64);
-   if (magic != SIMULATED_MULTICAST_CONTROL_MAGIC) return B_BAD_DATA;
-   retWhatCode          = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(b)); b += sizeof(uint32);
+   retWhatCode = unflat.ReadInt32();
+   MRETURN_ON_ERROR(unflat.GetStatus());  // in case (buf) was too short to read the two header fields
 
    if (retWhatCode == SMDIO_COMMAND_PONG)
    {
-      const uint32 numExtras = (uint32)(((buf.GetBuffer()+buf.GetNumBytes())-b)/IPAddressAndPort::FlattenedSize());
+      const uint32 numExtras = (uint32)(unflat.GetNumBytesAvailable()/IPAddressAndPort::FlattenedSize());
       for (uint32 i=0; i<numExtras; i++)
       {
-         IPAddressAndPort next;
-         if (next.Unflatten(b, IPAddressAndPort::FlattenedSize()).IsOK())
+         IPAddressAndPort next = unflat.ReadFlat<IPAddressAndPort>();
+         MRETURN_ON_ERROR(unflat.GetStatus());
+
+         const uint64 microsSinceHeardFrom = MillisToMicros(next.GetIPAddress().GetInterfaceIndex()); // yes, I'm abusing this field
+         if (microsSinceHeardFrom < _timeoutPeriodMicros)
          {
-            const uint64 microsSinceHeardFrom = MillisToMicros(next.GetIPAddress().GetInterfaceIndex()); // yes, I'm abusing this field
-            if (microsSinceHeardFrom < _timeoutPeriodMicros)
-            {
-               next = next.WithInterfaceIndex(_localAddressAndPort.GetIPAddress().GetInterfaceIndex());  // since we don't actually use it anyway
-               NoteHeardFromMember(next, (now>microsSinceHeardFrom)?(now-microsSinceHeardFrom):0);       // semi-paranoia
-            }
-            b += IPAddressAndPort::FlattenedSize();
+            next = next.WithInterfaceIndex(_localAddressAndPort.GetIPAddress().GetInterfaceIndex()); // since we don't actually use it anyway
+            NoteHeardFromMember(next, (now>microsSinceHeardFrom)?(now-microsSinceHeardFrom):0);      // semi-paranoia
          }
-         else break;  // wtf?
       }
    }
 
-   return B_NO_ERROR;
+   return unflat.GetStatus();
 }
 
 const char * SimulatedMulticastDataIO :: GetUDPSocketTypeName(uint32 which) const

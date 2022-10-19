@@ -4,6 +4,8 @@
 
 #include "message/Message.h"
 #include "system/SetupSystem.h"
+#include "util/ByteFlattener.h"
+#include "util/ByteUnflattener.h"
 #include "util/MiscUtilityFunctions.h"
 
 using namespace muscle;
@@ -39,15 +41,17 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(_val)); buffer += sizeof(_val);
-      _string.Flatten(buffer);
+      ByteFlattener flat(buffer, MUSCLE_NO_LIMIT);
+      flat.WriteInt32(_val);
+      flat.WriteString(_string);
    }
 
    virtual status_t Unflatten(const uint8 *buf, uint32 size)
    {
-      if (size < sizeof(_val)) return B_BAD_DATA;
-      _val = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(buf)); buf += sizeof(_val); size -= sizeof(_val);
-      return _string.Unflatten(buf, size);
+      ByteUnflattener unflat(buf, size);
+      _val    = unflat.ReadInt32();
+      _string = unflat.ReadString();
+      return unflat.GetStatus();
    }
 
    String ToString() const {return String("TFC:  [%1] %2").Arg(_string).Arg(_val);}
