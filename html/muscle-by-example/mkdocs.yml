@@ -86,6 +86,8 @@ nav:
    - StringTokenizer: 'stringtokenizer.md'
    - StringMatcher: 'stringmatcher.md'
    - BitChord: 'bitchord.md'
+   - ByteFlattener: 'byteflattener.md'
+   - ByteUnflattener: 'byteunflattener.md'
    - LogTime/LogCallback: 'logtime.md'
    - NestCount/NestCountGuard: 'nestcount.md'
    - MiscUtilityFunctions: 'miscutilityfunctions.md'

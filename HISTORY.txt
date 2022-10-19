@@ -14,6 +14,8 @@ key:  - new feature
      to/from byte-buffers.
    - Added support/EndianEncoder.h to allow templating
      over big/little/native endian-encoding strategies.
+   - Added pages for ByteFlattener and ByteUnflattener
+     APIs to the muscle-by-example documentation.
    o Removed the SetEndianFlag(), Append*(), Write*(),
      Read*() methods from the ByteBuffer class.  Use
      the new ByteFlattener/ByteUnflattener classes instead.
