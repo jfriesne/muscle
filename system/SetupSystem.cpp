@@ -21,6 +21,10 @@
 # endif
 #endif
 
+#ifdef __linux__
+# include <time.h>   // for clock_nanosleep()
+#endif
+
 #ifdef WIN32
 # if !(defined(__MINGW32__) || defined(__MINGW64__))
 # pragma comment(lib, "ws2_32.lib")
@@ -1131,9 +1135,12 @@ status_t Snooze64(uint64 micros)
 #if WIN32
    Sleep((DWORD)((micros/1000)+(((micros%1000)!=0)?1:0)));
    return B_NO_ERROR;
-#elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK) && !defined(__EMSCRIPTEN__)
+#elif defined(__linux__)
    const struct timespec ts = {(time_t) MicrosToSeconds(micros), (time_t) MicrosToNanos(micros%MICROS_PER_SECOND)};
    return (clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL) == 0) ? B_NO_ERROR : B_ERRNO;
+#elif defined(MUSCLE_USE_LIBRT)
+   const struct timespec ts = {(time_t) MicrosToSeconds(micros), (long) MicrosToNanos(micros%MICROS_PER_SECOND)};
+   return (nanosleep(&ts, NULL) == 0) ? B_NO_ERROR : B_ERRNO;
 #else
    /** We can use select(), if nothing else */
    struct timeval waitTime;
