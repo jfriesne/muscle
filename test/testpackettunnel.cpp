@@ -94,11 +94,11 @@ int main(int argc, char ** argv)
    if (args.FindString("magic", &temp).IsOK()) magic = atol(temp);
    if (magic == 0) magic = 666;
 
-   uint64 spamInterval = 0;
+   uint64 spamIntervalMicros = 0;
    if (args.FindString("spam", &temp).IsOK())
    {
-      int spamHz = atol(temp);
-      spamInterval = (spamHz > 0) ? MICROS_PER_SECOND/spamHz : 1;
+      const int spamHz = atol(temp);
+      spamIntervalMicros = (spamHz > 0) ? MICROS_PER_SECOND/spamHz : MillisToMicros(1);
    }
 
    status_t ret;
@@ -165,10 +165,18 @@ int main(int argc, char ** argv)
    MiniPacketTunnelIOGateway minigw(slaveGatewayRef, mtu, magic); if  (testMini) minigw.SetDataIO(dio);
    TestPacketGatewayMessageReceiver receiver;
 
+   // Just so our event loop can keep going, so we can still print status messages if we're getting 100% spammed
+   gw.SetSuggestedMaximumTimeSlice(MillisToMicros(500));
+   minigw.SetSuggestedMaximumTimeSlice(MillisToMicros(500));
+
+   AbstractMessageIOGateway * gateway;
+   if (testMini) gateway = &minigw;
+            else gateway = &gw;
+
    SocketMultiplexer multiplexer;
 
    uint64 nextSpamTime = 0;
-   LogTime(MUSCLE_LOG_INFO, "%s Event loop starting [%s]...\n", useTCP?"TCP":"UDP", (spamInterval>0) ? "Broadcast mode" : "Receive mode");
+   LogTime(MUSCLE_LOG_INFO, "%s Event loop starting [%s]...\n", useTCP?"TCP":"UDP", (spamIntervalMicros>0) ? "Broadcast mode" : "Receive mode");
    const int readFD  = dio()->GetReadSelectSocket().GetFileDescriptor();
    const int writeFD = dio()->GetWriteSelectSocket().GetFileDescriptor();
    uint64 lastTime = 0;
@@ -176,31 +184,31 @@ int main(int argc, char ** argv)
    {
       if (OnceEvery(MICROS_PER_SECOND, lastTime)) LogTime(MUSCLE_LOG_INFO, "Send counter is currently at " UINT32_FORMAT_SPEC ", Receive counter is currently at " UINT32_FORMAT_SPEC "\n", _sendWhatCounter, _recvWhatCounter);
       multiplexer.RegisterSocketForReadReady(readFD);
-      if (testMini ? minigw.HasBytesToOutput() : gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
-      if (multiplexer.WaitForEvents((spamInterval>0)?nextSpamTime:MUSCLE_TIME_NEVER) < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "testpackettunnel: WaitForEvents() failed!\n");
+      if (gateway->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
+      if (multiplexer.WaitForEvents((spamIntervalMicros>0)?nextSpamTime:MUSCLE_TIME_NEVER) < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "testpackettunnel: WaitForEvents() failed!\n");
 
-      const bool reading = multiplexer.IsSocketReadyForRead(readFD);
-      const bool writing = multiplexer.IsSocketReadyForWrite(writeFD);
-      const bool writeError = ((writing)&&((testMini?minigw.DoOutput():gw.DoOutput()) < 0));
-      const bool readError  = ((reading)&&((testMini?minigw.DoInput(receiver):gw.DoInput(receiver)) < 0));
+      const bool reading    = multiplexer.IsSocketReadyForRead(readFD);
+      const bool writing    = multiplexer.IsSocketReadyForWrite(writeFD);
+      const bool writeError = ((writing)&&(gateway->DoOutput()        < 0));
+      const bool readError  = ((reading)&&(gateway->DoInput(receiver) < 0));
       if ((readError)||(writeError))
       {
          LogTime(MUSCLE_LOG_INFO, "%s:  Connection closed, exiting (%i,%i).\n", readError?"Read Error":"Write Error",readError,writeError);
          break;
       }
 
-      if (spamInterval > 0)
+      if (spamIntervalMicros > 0)
       {
          const uint64 now = GetRunTime64();
          if (now >= nextSpamTime)
          {
-            nextSpamTime = now + spamInterval;
+            nextSpamTime = now + spamIntervalMicros;
             const uint32 numMessages = rand() % 10;
 
             LogTime(MUSCLE_LOG_TRACE, "Spam! (" UINT32_FORMAT_SPEC " messages, counter=" UINT32_FORMAT_SPEC ")\n", numMessages, _sendWhatCounter);
 
             uint32 byteCount = 0;
-            while(byteCount < mtu*5)
+            while((gateway->GetOutgoingMessageQueue().GetNumItems() < 100)&&(byteCount < mtu*5))
             {
                MessageRef m = GetMessageFromPool(_sendWhatCounter++);
                if (m())
@@ -214,7 +222,7 @@ int main(int argc, char ** argv)
                   if (m()->AddString("spam", tmp).IsError()) MWARN_OUT_OF_MEMORY;
                   if (m()->AddInt32("spamlen", spamLen).IsError()) MWARN_OUT_OF_MEMORY;
                   LogTime(MUSCLE_LOG_TRACE, "ADDING OUTGOING MESSAGE what=" UINT32_FORMAT_SPEC " size=" UINT32_FORMAT_SPEC "\n", m()->what, m()->FlattenedSize());
-                  if ((testMini?minigw.AddOutgoingMessage(m):gw.AddOutgoingMessage(m)).IsError()) MWARN_OUT_OF_MEMORY;
+                  if (gateway->AddOutgoingMessage(m).IsError()) MWARN_OUT_OF_MEMORY;
                   delete [] tmp;
                   byteCount += m()->FlattenedSize();
                }

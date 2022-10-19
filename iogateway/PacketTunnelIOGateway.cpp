@@ -182,7 +182,6 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          if (bytesWritten > 0)
          {
             if (bytesWritten != (int32)_outputPacketSize) LogTime(MUSCLE_LOG_ERROR, "PacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten, _outputPacketSize);
-            _outputPacketBuffer.Clear();
             _outputPacketSize = 0;
             totalBytesWritten += bytesWritten;
          }
