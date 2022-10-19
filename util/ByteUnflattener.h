@@ -52,16 +52,6 @@ public:
      */
    void SetBuffer(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(readFrom.GetBuffer(), muscleMin(readFrom.GetNumBytes(), maxBytes));}
 
-   /** Rewinds our "read position" back to the beginning of the output-buffer again.
-     * @note this method resets our status-flag back to B_NO_ERROR.
-     */
-   void Rewind()
-   {
-      _readFrom  = _origReadFrom;
-      _bytesLeft = _maxBytes;
-      _status    = B_NO_ERROR;
-   }
-
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
    const uint8 * GetBuffer() const {return _origReadFrom;}
 
@@ -169,7 +159,7 @@ public:
          retVals[i] = _encoder.ImportInt16(_readFrom);
          _readFrom += sizeof(retVals[0]);
       }
-      _bytesLeft -= numBytes;
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
@@ -183,7 +173,7 @@ public:
          retVals[i] = _encoder.ImportInt32(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
-      _bytesLeft -= numBytes;
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
@@ -197,7 +187,7 @@ public:
          retVals[i] = _encoder.ImportInt64(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
-      _bytesLeft -= numBytes;
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
@@ -211,7 +201,7 @@ public:
          retVals[i] = _encoder.ImportFloat(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
-      _bytesLeft -= numBytes;
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
@@ -225,7 +215,7 @@ public:
          retVals[i] = _encoder.ImportDouble(_readFrom);
          _readFrom += sizeof(retVals[i]);
       }
-      _bytesLeft -= numBytes;
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
@@ -279,33 +269,38 @@ public:
    /** Returns a pointer into our buffer at the location we will next read from */
    const uint8 * GetCurrentReadPointer() const {return _readFrom;}
 
+   /** Moves the pointer into our buffer to the specified absolute offset from the beginning of the buffer.
+     * @param offset the byte-offset from the top of the buffer to move the read-position to.
+     * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the requested position is out-of-bounds.
+     *          (note moving the read-location to one-past-the-last-byte is ok)
+     */
+   status_t SeekTo(uint32 offset)
+   {
+      if (offset > _maxBytes) return B_BAD_ARGUMENT;
+      _readFrom  = _origReadFrom+offset;
+      _bytesLeft = (_maxBytes == MUSCLE_NO_LIMIT) ? MUSCLE_NO_LIMIT : (_maxBytes-offset);
+      return B_NO_ERROR;
+   }
+
    /** Moves the pointer into our buffer forwards or backwards by the specified number of bytes.
      * @param numBytes the number of bytes to move the pointer by
      * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the new read-location would be outside
      *          the bounds of our buffer (note moving the read-location to one-past-the-last-byte is ok)
      */
-   status_t SeekRelative(int32 numBytes)
-   {
-      if ((numBytes >= 0) ? (numBytes > _bytesLeft) : ((uint32)(-numBytes) > GetNumBytesRead())) return B_BAD_ARGUMENT;
-      else
-      {
-         _readFrom  += numBytes;
-         _bytesLeft -= numBytes;
-         return B_NO_ERROR;
-      }
-   }
+   status_t SeekRelative(int32 numBytes) {return SeekTo(GetNumBytesRead()+numBytes);}
 
 private:
    const EndianEncoder _encoder;
 
-   status_t SizeCheck(uint32 numBytes) {return (numBytes <= _bytesLeft) ? B_NO_ERROR : FlagError(B_DATA_NOT_FOUND);}
-   status_t Advance(  uint32 numBytes) {_readFrom += numBytes; _bytesLeft -= numBytes; return B_NO_ERROR;}
-   status_t FlagError(status_t ret)    {_status |= ret; return ret;}
+   status_t SizeCheck(uint32 numBytes)     {return (numBytes <= _bytesLeft) ? B_NO_ERROR : FlagError(B_DATA_NOT_FOUND);}
+   status_t Advance(  uint32 numBytes)     {_readFrom += numBytes; ReduceBytesLeftBy(numBytes); return B_NO_ERROR;}
+   status_t FlagError(status_t ret)        {_status |= ret; return ret;}
+   void ReduceBytesLeftBy(uint32 numBytes) {if (_bytesLeft != MUSCLE_NO_LIMIT) _bytesLeft -= numBytes;}
 
    const uint8 * _readFrom;     // pointer to our input buffer
    const uint8 * _origReadFrom; // the pointer the user passed in
-   uint32 _bytesLeft;           // max number of bytes we are allowed to read from our input buffer
-   uint32 _maxBytes;            // the byte-count the user passed in
+   uint32 _bytesLeft;           // max number of bytes we are allowed to read from our input buffer (may be MUSCLE_NO_LIMIT if no limit was specified)
+   uint32 _maxBytes;            // the byte-count the user passed in (may be MUSCLE_NO_LIMIT if no limit was defined)
    status_t _status;            // cache any errors found so far
 };
 

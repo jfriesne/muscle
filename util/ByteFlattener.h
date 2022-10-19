@@ -70,18 +70,6 @@ public:
       _status      = B_NO_ERROR;
    }
 
-   /** Rewinds our "write position" back to the beginning of the output-buffer.
-     * @note if we are currently associated with a ByteBuffer object, this method will call Clear() on it.
-     * @note this method resets our status-flag back to B_NO_ERROR.
-     */
-   void Rewind()
-   {
-      if (_byteBuffer) _byteBuffer->Clear();
-      _writeTo   = _byteBuffer ? _byteBuffer->GetBuffer() : _origWriteTo;
-      _bytesLeft = _maxBytes;
-      _status    = B_NO_ERROR;
-   }
-
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
    uint8 * GetBuffer() const {return _origWriteTo;}
 
@@ -183,7 +171,7 @@ public:
          _encoder.ExportInt16(vals[i], _writeTo);
          _writeTo += sizeof(vals[0]);
       }
-      _bytesLeft -= numBytes;
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
@@ -197,7 +185,7 @@ public:
          _encoder.ExportInt32(vals[i], _writeTo);
          _writeTo += sizeof(vals[i]);
       }
-      _bytesLeft -= numBytes;
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
@@ -211,7 +199,7 @@ public:
          _encoder.ExportInt64(vals[i], _writeTo);
          _writeTo += sizeof(vals[i]);
       }
-      _bytesLeft -= numBytes;
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
@@ -225,7 +213,7 @@ public:
          _encoder.ExportFloat(vals[i], _writeTo);
          _writeTo += sizeof(vals[i]);
       }
-      _bytesLeft -= numBytes;
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
@@ -239,7 +227,7 @@ public:
          _encoder.ExportDouble(vals[i], _writeTo);
          _writeTo += sizeof(vals[i]);
       }
-      _bytesLeft -= numBytes;
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
@@ -273,7 +261,7 @@ public:
             vals[i].Flatten(_writeTo);
             _writeTo += flatSize;
          }
-         _bytesLeft -= numBytes;
+         ReduceBytesLeftBy(numBytes);
          return B_NO_ERROR;
       }
       else
@@ -291,14 +279,45 @@ public:
             vals[i].Flatten(_writeTo);
             _writeTo += flatSize;
          }
-         _bytesLeft -= numBytes;
+         ReduceBytesLeftBy(numBytes);
          return B_NO_ERROR;
       }
    }
 ///@}
 
+   /** Seeks our "write position" to a new offset within our output buffer.
+     * @param offset the new write-position within our output buffer
+     * @returns B_NO_ERROR on success, or an error code on failure (e.g. B_BAD_ARGUMENT if (offset) is greater than our maximum-bytes value)
+     * @note if we are currently associated with a ByteBuffer object, this method will call SetNumBytes()
+     *       on it, invalidating any bytes in the ByteBuffer that are located at or after (offset)
+     * @note this method resets our status-flag back to B_NO_ERROR.
+     */
+   status_t SeekTo(uint32 offset)
+   {
+      if (offset > _maxBytes) return B_BAD_ARGUMENT;
+      if (_byteBuffer) MRETURN_ON_ERROR(_byteBuffer->SetNumBytes(offset, true));
+
+      _writeTo   = (_byteBuffer ? _byteBuffer->GetBuffer() : _origWriteTo)+offset;
+      _bytesLeft = (_maxBytes == MUSCLE_NO_LIMIT) ? MUSCLE_NO_LIMIT : (_maxBytes-offset);
+      _status    = B_NO_ERROR;
+
+      return B_NO_ERROR;
+   }
+
+   /** Moves the pointer into our buffer forwards or backwards by the specified number of bytes.
+     * @param numBytes the number of bytes to move the pointer by
+     * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the new write-location would be outside
+     *          the bounds of our buffer (note moving the write-location to one-past-the-last-byte is ok)
+     * @note if we are currently associated with a ByteBuffer object, this method will call SetNumBytes()
+     *       on it, invalidating any bytes in the ByteBuffer that are located at or after (offset)
+     * @note this method resets our status-flag back to B_NO_ERROR.
+     */
+   status_t SeekRelative(int32 numBytes) {return SeekTo(GetNumBytesWritten()+numBytes);}
+
 private:
    const EndianEncoder _encoder;
+
+   void ReduceBytesLeftBy(uint32 numBytes) {if (_bytesLeft != MUSCLE_NO_LIMIT) _bytesLeft -= numBytes;}
 
    status_t SizeCheck(uint32 numBytes, bool okayToExpandByteBuffer)
    {
@@ -327,15 +346,16 @@ private:
 
          MRETURN_ON_ERROR(_byteBuffer->AppendBytes(optBytes, numBytes));
 
-         _origWriteTo = _byteBuffer->GetBuffer();  // gotta update our pointers if ByteBuffer::AppendBytes() required a buffer-reallocation!
-         if (_origWriteTo != oldPtr) _writeTo = _origWriteTo+oldOffset;
+         // Recalculate our pointers, in case ByteBuffer::AppendBytes() caused a buffer-reallocation
+         _origWriteTo = _byteBuffer->GetBuffer();
+         _writeTo     = _origWriteTo+oldOffset;
       }
       else if (optBytes) memcpy(_writeTo, optBytes, numBytes);
 
       return B_NO_ERROR;
    }
 
-   status_t Advance(  uint32 numBytes) {_writeTo += numBytes; _bytesLeft -= numBytes; return B_NO_ERROR;}
+   status_t Advance(  uint32 numBytes) {_writeTo += numBytes; ReduceBytesLeftBy(numBytes); return B_NO_ERROR;}
    status_t FlagError(status_t ret)    {_status |= ret; return ret;}
 
    ByteBuffer * _byteBuffer;  // if non-NULL, pointer to a ByteBuffer to use instead of (_writeTo) and (_origWriteTo)
