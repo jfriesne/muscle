@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "util/ByteFlattener.h"
 #include "util/ByteUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for GetConnectString() (which is deliberately defined here)
 #include "util/NetworkUtilityFunctions.h"
@@ -9,7 +10,6 @@
 #include "util/Hashtable.h"
 #include "util/ICallbackSubscriber.h"
 #include "util/SocketCallbackMechanism.h"
-#include "util/UncheckedByteFlattener.h"
 
 #ifdef __APPLE__
 # include <CoreFoundation/CoreFoundation.h>

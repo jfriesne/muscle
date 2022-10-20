@@ -4,9 +4,9 @@
 
 #include "message/Message.h"
 #include "system/SetupSystem.h"
+#include "util/ByteFlattener.h"
 #include "util/ByteUnflattener.h"
 #include "util/MiscUtilityFunctions.h"
-#include "util/UncheckedByteFlattener.h"
 
 using namespace muscle;
 

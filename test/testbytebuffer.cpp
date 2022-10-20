@@ -8,7 +8,6 @@
 #include "util/ByteBuffer.h"
 #include "util/ByteFlattener.h"
 #include "util/ByteUnflattener.h"
-#include "util/UncheckedByteFlattener.h"
 
 using namespace muscle;
 
@@ -23,7 +22,7 @@ public:
    virtual uint32 TypeCode()      const {return 0;}
    virtual uint32 FlattenedSize() const {return _s1.FlattenedSize() + sizeof(_v1) + sizeof(_v2);}
 
-   virtual void Flatten(uint8 *buffer) const
+   virtual void Flatten(uint8 * buffer) const
    {
       UncheckedByteFlattener h(buffer);
       h.WriteString(_s1);

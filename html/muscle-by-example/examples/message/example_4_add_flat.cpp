@@ -1,8 +1,8 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "message/Message.h"
+#include "util/ByteFlattener.h"
 #include "util/ByteUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
-#include "util/UncheckedByteFlattener.h"
 
 using namespace muscle;
 

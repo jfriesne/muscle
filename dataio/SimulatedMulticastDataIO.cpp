@@ -219,7 +219,7 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    uint8 pingBuf[sizeof(uint64)+sizeof(uint32)+(NUM_EXTRA_ADDRESSES*ipAddressAndPortFlattenedSize)];
 #endif
 
-   ByteFlattener flat(pingBuf, sizeof(pingBuf));
+   UncheckedByteFlattener flat(pingBuf, sizeof(pingBuf));  // trust, but verify
    flat.WriteInt64(SIMULATED_MULTICAST_CONTROL_MAGIC);
    flat.WriteInt32(whatCode);
    if ((whatCode == SMDIO_COMMAND_PONG)&&(destIAP != _localAddressAndPort))  // no point telling myself about what I know

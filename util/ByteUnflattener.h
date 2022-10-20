@@ -311,7 +311,11 @@ public:
      * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the new read-location would be outside
      *          the bounds of our buffer (note moving the read-location to one-past-the-last-byte is ok)
      */
-   status_t SeekRelative(int32 numBytes) {return SeekTo(GetNumBytesRead()+numBytes);}
+   status_t SeekRelative(int32 numBytes)
+   {
+      const uint32 nbw = GetNumBytesRead();
+      return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesRead()+numBytes) : B_BAD_ARGUMENT;
+   }
 
 private:
    const EndianEncoder _encoder;
