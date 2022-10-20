@@ -125,7 +125,7 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
 
 int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 {
-   if (_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;
+   if (_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;  // _outputPacketBuffer.GetNumBytes() should be _maxTransferUnit at all times
 
    ByteFlattener flat(_outputPacketBuffer.GetBuffer(), _outputPacketBuffer.GetNumBytes());
    (void) flat.SeekRelative(_outputPacketSize);  // skip past any bytes that are already present in _outputPacketBuffer from previously
@@ -214,7 +214,6 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          {
             if (bytesWritten != (int32)writeSize) LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten, writeSize);
             totalBytesWritten += bytesWritten;
-            _outputPacketBuffer.Clear();
             flat.SeekTo(0);
             _sendPacketIDCounter = (_sendPacketIDCounter+1)%16777216;  // 24-bit counter
          }

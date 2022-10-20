@@ -98,7 +98,7 @@ int main(int argc, char ** argv)
    if (args.FindString("spam", &temp).IsOK())
    {
       const int spamHz = atol(temp);
-      spamIntervalMicros = (spamHz > 0) ? MICROS_PER_SECOND/spamHz : MillisToMicros(1);
+      spamIntervalMicros = (spamHz > 0) ? MICROS_PER_SECOND/spamHz : 1;
    }
 
    status_t ret;
