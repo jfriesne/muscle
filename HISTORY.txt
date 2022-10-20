@@ -10,10 +10,11 @@ key:  - new feature
      how deep the MUSCLE node-tree may become, to prevent
      stack-overflow attacks.  Defaults to 100.
    - Added DataFlattener and DataUnflattener classes to
-     allow for safer flattening/unflattening of objects
+     allow for safer flattening/unflattening of data
      to/from byte-buffers.
-   - Added an UncheckedDataFlattener class for use when
-     array-bounds checking isn't considered necessary.
+   - Added an UncheckedDataFlattener and UncheckedDataUnflattener
+     classes, for better efficiency when the calling code has
+     already done its own bounds-checking.
    - Added support/EndianEncoder.h to allow templating
      over big/little/native endian-encoding strategies.
    - Added pages for DataFlattener and DataUnflattener
