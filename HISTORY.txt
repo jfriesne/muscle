@@ -12,6 +12,8 @@ key:  - new feature
    - Added ByteFlattener and ByteUnflattener classes to
      allow for safer flattening/unflattening of objects
      to/from byte-buffers.
+   - Added an UncheckedByteFlattener class for use when
+     array-bounds checking isn't considered necessary.
    - Added support/EndianEncoder.h to allow templating
      over big/little/native endian-encoding strategies.
    - Added pages for ByteFlattener and ByteUnflattener

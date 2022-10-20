@@ -18,7 +18,7 @@ public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
    ByteUnflattenerHelper() {Reset();}
 
-   /** Constructs a ByteFlattener that will write up to the specified number of bytes
+   /** Constructs a ByteUnflattener that will read up to the specified number of bytes
      * @param readFrom The buffer to read bytes from.  Caller must guarantee that this pointer remains valid when any methods on this class are called.
      * @param maxBytes The maximum number of bytes that we are allowed to read.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
      */
@@ -31,13 +31,10 @@ public:
      */
    ByteUnflattenerHelper(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(readFrom, maxBytes);}
 
-   /** Destructor. */
-   ~ByteUnflattenerHelper() {/* empty */}
-
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
    void Reset() {SetBuffer(NULL, 0);}
 
-   /** Set a new raw array to write to (same as what we do in the constructor, except this updates an existing ByteUnflattenerHelper object)
+   /** Set a new raw array to read from (same as what we do in the constructor, except this updates an existing ByteUnflattenerHelper object)
      * @param readFrom the new buffer to point to and read from in future Read*() method-calls.
      * @param maxBytes The new maximum number of bytes that we are allowed to read.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
      * @note this method resets our status-flag back to B_NO_ERROR.

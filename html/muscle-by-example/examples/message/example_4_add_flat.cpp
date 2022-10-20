@@ -1,8 +1,8 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "message/Message.h"
-#include "util/ByteFlattener.h"
 #include "util/ByteUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
+#include "util/UncheckedByteFlattener.h"
 
 using namespace muscle;
 
@@ -53,7 +53,7 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      ByteFlattener flat(buffer, MUSCLE_NO_LIMIT);
+      UncheckedByteFlattener flat(buffer);
       flat.WriteString(_name);
       flat.WriteString(_address);
       flat.WriteString(_city);

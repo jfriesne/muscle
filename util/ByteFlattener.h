@@ -36,9 +36,6 @@ public:
      */
    ByteFlattenerHelper(ByteBuffer & writeTo, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(writeTo, maxBytes);}
 
-   /** Destructor. */
-   ~ByteFlattenerHelper() {/* empty */}
-
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
    void Reset() {SetBuffer(NULL, 0);}
 

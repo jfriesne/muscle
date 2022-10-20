@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 
-#include "util/ByteFlattener.h"
 #include "util/ByteUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for GetConnectString() (which is deliberately defined here)
 #include "util/NetworkUtilityFunctions.h"
@@ -10,6 +9,7 @@
 #include "util/Hashtable.h"
 #include "util/ICallbackSubscriber.h"
 #include "util/SocketCallbackMechanism.h"
+#include "util/UncheckedByteFlattener.h"
 
 #ifdef __APPLE__
 # include <CoreFoundation/CoreFoundation.h>
@@ -1905,7 +1905,7 @@ uint32 IPAddress :: CalculateChecksum() const
 
 void IPAddress :: Flatten(uint8 * buffer) const
 {
-   ByteFlattener flat(buffer, MUSCLE_NO_LIMIT);
+   UncheckedByteFlattener flat(buffer);
    flat.WriteInt64(_lowBits);
    flat.WriteInt64(_highBits);
    flat.WriteInt32(_interfaceIndex);
@@ -1922,7 +1922,7 @@ status_t IPAddress :: Unflatten(const uint8 * buffer, uint32 size)
 
 void IPAddressAndPort :: Flatten(uint8 * buffer) const
 {
-   ByteFlattener flat(buffer, MUSCLE_NO_LIMIT);
+   UncheckedByteFlattener flat(buffer);
    flat.WriteFlat(_ip);
    flat.WriteInt16(_port);
 }

@@ -4,9 +4,9 @@
 
 #include "message/Message.h"
 #include "system/SetupSystem.h"
-#include "util/ByteFlattener.h"
 #include "util/ByteUnflattener.h"
 #include "util/MiscUtilityFunctions.h"
+#include "util/UncheckedByteFlattener.h"
 
 using namespace muscle;
 
@@ -41,7 +41,7 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      ByteFlattener flat(buffer, MUSCLE_NO_LIMIT);
+      UncheckedByteFlattener flat(buffer);
       flat.WriteInt32(_val);
       flat.WriteString(_string);
    }
