@@ -2,8 +2,8 @@
 
 #include <stdio.h>
 
-#include "util/ByteFlattener.h"
-#include "util/ByteUnflattener.h"
+#include "util/DataFlattener.h"
+#include "util/DataUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for GetConnectString() (which is deliberately defined here)
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketMultiplexer.h"
@@ -1905,7 +1905,7 @@ uint32 IPAddress :: CalculateChecksum() const
 
 void IPAddress :: Flatten(uint8 * buffer) const
 {
-   UncheckedByteFlattener flat(buffer);
+   UncheckedDataFlattener flat(buffer);
    flat.WriteInt64(_lowBits);
    flat.WriteInt64(_highBits);
    flat.WriteInt32(_interfaceIndex);
@@ -1913,7 +1913,7 @@ void IPAddress :: Flatten(uint8 * buffer) const
 
 status_t IPAddress :: Unflatten(const uint8 * buffer, uint32 size)
 {
-   ByteUnflattener unflat(buffer, size);
+   DataUnflattener unflat(buffer, size);
    _lowBits        = unflat.ReadInt64();
    _highBits       = unflat.ReadInt64();
    _interfaceIndex = unflat.ReadInt32();
@@ -1922,14 +1922,14 @@ status_t IPAddress :: Unflatten(const uint8 * buffer, uint32 size)
 
 void IPAddressAndPort :: Flatten(uint8 * buffer) const
 {
-   UncheckedByteFlattener flat(buffer);
+   UncheckedDataFlattener flat(buffer);
    flat.WriteFlat(_ip);
    flat.WriteInt16(_port);
 }
 
 status_t IPAddressAndPort :: Unflatten(const uint8 * buffer, uint32 size)
 {
-   ByteUnflattener unflat(buffer, size);
+   DataUnflattener unflat(buffer, size);
    _ip   = unflat.ReadFlat<IPAddress>();
    _port = unflat.ReadInt16();
    return unflat.GetStatus();

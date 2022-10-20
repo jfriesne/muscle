@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifndef MuscleByteUnflattener_h
-#define MuscleByteUnflattener_h
+#ifndef MuscleDataUnflattener_h
+#define MuscleDataUnflattener_h
 
 #include "support/EndianEncoder.h"
 #include "support/NotCopyable.h"
@@ -12,29 +12,29 @@
 namespace muscle {
 
 /** This is a lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer. */
-template<class EndianEncoder> class ByteUnflattenerHelper : public NotCopyable
+template<class EndianEncoder> class DataUnflattenerHelper : public NotCopyable
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
-   ByteUnflattenerHelper() {Reset();}
+   DataUnflattenerHelper() {Reset();}
 
-   /** Constructs a ByteUnflattener that will read up to the specified number of bytes
+   /** Constructs a DataUnflattener that will read up to the specified number of bytes
      * @param readFrom The buffer to read bytes from.  Caller must guarantee that this pointer remains valid when any methods on this class are called.
      * @param maxBytes The maximum number of bytes that we are allowed to read.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
      */
-   ByteUnflattenerHelper(const uint8 * readFrom, uint32 maxBytes) {SetBuffer(readFrom, maxBytes);}
+   DataUnflattenerHelper(const uint8 * readFrom, uint32 maxBytes) {SetBuffer(readFrom, maxBytes);}
 
    /** Same as above, except instead of taking a raw pointer as a target, we take a reference to a ByteBuffer object.
      * @param readFrom Reference to a ByteBuffer that we should read data out of.  A pointer to this ByteBuffer's data will be retained for use in future Read*() method-calls.
      * @param maxBytes The maximum number of bytes that we should allow ourselves to read out of (readFrom).  If this value is greater
      *                 than (readFrom.GetNumBytes()) it will treated as equal to (readFrom.GetNumBytes()).  Defaults to MUSCLE_NO_LIMIT.
      */
-   ByteUnflattenerHelper(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(readFrom, maxBytes);}
+   DataUnflattenerHelper(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(readFrom, maxBytes);}
 
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
    void Reset() {SetBuffer(NULL, 0);}
 
-   /** Set a new raw array to read from (same as what we do in the constructor, except this updates an existing ByteUnflattenerHelper object)
+   /** Set a new raw array to read from (same as what we do in the constructor, except this updates an existing DataUnflattenerHelper object)
      * @param readFrom the new buffer to point to and read from in future Read*() method-calls.
      * @param maxBytes The new maximum number of bytes that we are allowed to read.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
      * @note this method resets our status-flag back to B_NO_ERROR.
@@ -64,7 +64,7 @@ public:
    /** Returns true iff we have detected any problems reading in data so far */
    status_t GetStatus() const {return _status;}
 
-   /** Reads the specified byte to this ByteUnflattenerHelper's contents.
+   /** Reads the specified byte to this DataUnflattenerHelper's contents.
      * @param retByte On success, the read byte is written here
      * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND if no data is available.
      */
@@ -332,10 +332,10 @@ private:
    status_t _status;            // cache any errors found so far
 };
 
-typedef ByteUnflattenerHelper<LittleEndianEncoder> LittleEndianByteUnflattener;  /**< this flattener-type flattens to little-endian-format data */
-typedef ByteUnflattenerHelper<BigEndianEncoder>    BigEndianByteUnflattener;     /**< this flattener-type flattens to big-endian-format data */
-typedef ByteUnflattenerHelper<NativeEndianEncoder> NativeEndianByteUnflattener;  /**< this flattener-type flattens to native-endian-format data */
-typedef LittleEndianByteUnflattener                ByteUnflattener;              /**< ByteUnflattener is a pseudonym for LittleEndianByteUnflattener, for convenience (since MUSCLE standardizes on little endian encoding) */
+typedef DataUnflattenerHelper<LittleEndianEncoder> LittleEndianDataUnflattener;  /**< this flattener-type flattens to little-endian-format data */
+typedef DataUnflattenerHelper<BigEndianEncoder>    BigEndianDataUnflattener;     /**< this flattener-type flattens to big-endian-format data */
+typedef DataUnflattenerHelper<NativeEndianEncoder> NativeEndianDataUnflattener;  /**< this flattener-type flattens to native-endian-format data */
+typedef LittleEndianDataUnflattener                DataUnflattener;              /**< DataUnflattener is a pseudonym for LittleEndianDataUnflattener, for convenience (since MUSCLE standardizes on little endian encoding) */
 
 } // end namespace muscle
 

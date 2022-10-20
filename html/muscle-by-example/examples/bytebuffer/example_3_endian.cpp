@@ -1,20 +1,20 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "util/ByteBuffer.h"
-#include "util/ByteFlattener.h"
-#include "util/ByteUnflattener.h"
+#include "util/DataFlattener.h"
+#include "util/DataUnflattener.h"
 
 using namespace muscle;
 
 static void PrintExampleDescription()
 {
    printf("\n");
-   printf("This example demonstrates adding big-endian numbers to a ByteBuffer using a BigEndianByteFlattener\n");
+   printf("This example demonstrates adding big-endian numbers to a ByteBuffer using a BigEndianDataFlattener\n");
    printf("\n");
 }
 
-/* This program demonstrates the use of the BigEndianByteFlattener class
+/* This program demonstrates the use of the BigEndianDataFlattener class
  * to safely populate a ByteBuffer with big-endian data.  You could alternatively
- * use a LittleEndianByteFlattener or a NativeEndianByteFlattener the same way.
+ * use a LittleEndianDataFlattener or a NativeEndianDataFlattener the same way.
  */
 int main(int argc, char ** argv)
 {
@@ -24,7 +24,7 @@ int main(int argc, char ** argv)
 
    ByteBuffer buf;
 
-   BigEndianByteFlattener flt(buf);
+   BigEndianDataFlattener flt(buf);
    (void) flt.WriteInt32(1);
    (void) flt.WriteInt32(2);
    (void) flt.WriteInt32(3);
@@ -44,7 +44,7 @@ int main(int argc, char ** argv)
    printf("\n");
    printf("And now we'll grab that data back out of the buffer and display it:\n");
 
-   BigEndianByteUnflattener uflt(buf);
+   BigEndianDataUnflattener uflt(buf);
    printf("First int32 is " INT32_FORMAT_SPEC "\n", uflt.ReadInt32());
    printf("Second int32 is " INT32_FORMAT_SPEC "\n", uflt.ReadInt32());
    printf("Third int32 is " INT32_FORMAT_SPEC "\n", uflt.ReadInt32());

@@ -4,8 +4,8 @@
 
 #include "message/Message.h"
 #include "system/SetupSystem.h"
-#include "util/ByteFlattener.h"
-#include "util/ByteUnflattener.h"
+#include "util/DataFlattener.h"
+#include "util/DataUnflattener.h"
 #include "util/MiscUtilityFunctions.h"
 
 using namespace muscle;
@@ -41,14 +41,14 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      UncheckedByteFlattener flat(buffer);
+      UncheckedDataFlattener flat(buffer);
       flat.WriteInt32(_val);
       flat.WriteString(_string);
    }
 
    virtual status_t Unflatten(const uint8 *buf, uint32 size)
    {
-      ByteUnflattener unflat(buf, size);
+      DataUnflattener unflat(buf, size);
       _val    = unflat.ReadInt32();
       _string = unflat.ReadString();
       return unflat.GetStatus();

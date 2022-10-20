@@ -1,7 +1,7 @@
 #include "dataio/SimulatedMulticastDataIO.h"
 #include "util/NetworkInterfaceInfo.h"
-#include "util/ByteFlattener.h"
-#include "util/ByteUnflattener.h"
+#include "util/DataFlattener.h"
+#include "util/DataUnflattener.h"
 
 namespace muscle {
 
@@ -219,7 +219,7 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    uint8 pingBuf[sizeof(uint64)+sizeof(uint32)+(NUM_EXTRA_ADDRESSES*ipAddressAndPortFlattenedSize)];
 #endif
 
-   UncheckedByteFlattener flat(pingBuf, sizeof(pingBuf));  // trust, but verify
+   UncheckedDataFlattener flat(pingBuf, sizeof(pingBuf));  // trust, but verify
    flat.WriteInt64(SIMULATED_MULTICAST_CONTROL_MAGIC);
    flat.WriteInt32(whatCode);
    if ((whatCode == SMDIO_COMMAND_PONG)&&(destIAP != _localAddressAndPort))  // no point telling myself about what I know
@@ -299,7 +299,7 @@ static const uint64 _halfTimeoutPeriodMicros           = _timeoutPeriodMicros/2;
 
 status_t SimulatedMulticastDataIO :: ParseMulticastControlPacket(const ByteBuffer & buf, uint64 now, uint32 & retWhatCode)
 {
-   ByteUnflattener unflat(buf);
+   DataUnflattener unflat(buf);
    if (unflat.ReadInt64() != SIMULATED_MULTICAST_CONTROL_MAGIC) return B_BAD_DATA;  // not the droid we're looking for
 
    retWhatCode = unflat.ReadInt32();

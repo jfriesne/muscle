@@ -6,8 +6,8 @@
 #include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/ByteBuffer.h"
-#include "util/ByteFlattener.h"
-#include "util/ByteUnflattener.h"
+#include "util/DataFlattener.h"
+#include "util/DataUnflattener.h"
 
 using namespace muscle;
 
@@ -24,7 +24,7 @@ public:
 
    virtual void Flatten(uint8 * buffer) const
    {
-      UncheckedByteFlattener h(buffer);
+      UncheckedDataFlattener h(buffer);
       h.WriteString(_s1);
       h.WriteInt32(_v1);
       h.WriteFloat(_v2);
@@ -32,7 +32,7 @@ public:
 
    virtual status_t Unflatten(const uint8 *buffer, uint32 size)
    {
-      ByteUnflattener h(buffer, size);
+      DataUnflattener h(buffer, size);
       _s1 = h.ReadString();
       _v1 = h.ReadInt32();
       _v2 = h.ReadFloat();
@@ -51,7 +51,7 @@ template<class EndianEncoder> status_t TestHelpers()
 {
    uint8 buf[300];  // we're actually using 286 of these, last I checked
 
-   ByteFlattenerHelper<EndianEncoder> bfh(buf, sizeof(buf));
+   DataFlattenerHelper<EndianEncoder> bfh(buf, sizeof(buf));
    {
       MRETURN_ON_ERROR(bfh.WriteInt8(0x01));
       MRETURN_ON_ERROR(bfh.WriteInt16(0x0405));
@@ -79,7 +79,7 @@ template<class EndianEncoder> status_t TestHelpers()
 
    PrintHexBytes(buf, bfh.GetNumBytesWritten());
 
-   ByteUnflattenerHelper<EndianEncoder> buh(buf, bfh.GetNumBytesWritten());
+   DataUnflattenerHelper<EndianEncoder> buh(buf, bfh.GetNumBytesWritten());
    {
       printf("int8=0x%x\n", buh.ReadInt8());
       printf("int16=0x%x\n", buh.ReadInt16());

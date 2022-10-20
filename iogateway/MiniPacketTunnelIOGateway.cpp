@@ -1,8 +1,8 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "iogateway/MiniPacketTunnelIOGateway.h"
-#include "util/ByteFlattener.h"
-#include "util/ByteUnflattener.h"
+#include "util/DataFlattener.h"
+#include "util/DataUnflattener.h"
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 # include "zlib/ZLibCodec.h"
 #endif
@@ -55,7 +55,7 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
          const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
          if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
 
-         ByteUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead);
+         DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead);
          if ((_allowMiscData)&&((bytesRead < (int32)PACKET_HEADER_SIZE)||(((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(_inputPacketBuffer.GetBuffer()))) != _magic)))
          {
             // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
@@ -127,7 +127,7 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 {
    if (_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;  // _outputPacketBuffer.GetNumBytes() should be _maxTransferUnit at all times
 
-   UncheckedByteFlattener flat(_outputPacketBuffer.GetBuffer(), _outputPacketBuffer.GetNumBytes());
+   UncheckedDataFlattener flat(_outputPacketBuffer.GetBuffer(), _outputPacketBuffer.GetNumBytes());
    (void) flat.SeekRelative(_outputPacketSize);  // skip past any bytes that are already present in _outputPacketBuffer from previously
 
    uint32 totalBytesWritten = 0;

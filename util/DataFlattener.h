@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifndef MuscleByteFlattener_h
-#define MuscleByteFlattener_h
+#ifndef MuscleDataFlattener_h
+#define MuscleDataFlattener_h
 
 #include "support/EndianEncoder.h"
 #include "support/NotCopyable.h"
@@ -12,17 +12,17 @@
 namespace muscle {
 
 /** This is a lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer. */
-template<class EndianEncoder> class ByteFlattenerHelper : public NotCopyable
+template<class EndianEncoder> class DataFlattenerHelper : public NotCopyable
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
-   ByteFlattenerHelper() {Reset();}
+   DataFlattenerHelper() {Reset();}
 
-   /** Constructs a ByteFlattener that will write up to the specified number of bytes into (writeTo)
+   /** Constructs a DataFlattener that will write up to the specified number of bytes into (writeTo)
      * @param writeTo The buffer to write bytes into.  Caller must guarantee that this pointer remains valid when any methods on this class are called.
      * @param maxBytes The maximum number of bytes that we are allowed to write.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
      */
-   ByteFlattenerHelper(uint8 * writeTo, uint32 maxBytes) {SetBuffer(writeTo, maxBytes);}
+   DataFlattenerHelper(uint8 * writeTo, uint32 maxBytes) {SetBuffer(writeTo, maxBytes);}
 
    /** Same as above, except instead of taking a raw pointer as a target, we take a reference to a ByteBuffer object.
      * This will allow us to grow the size of the ByteBuffer when necessary, up to (maxBytes) long, thereby freeing
@@ -31,15 +31,15 @@ public:
      *                A pointer to this ByteBuffer will be retained for use in future Write*() method-calls.
      * @param maxBytes The new maximum size that we should allow the ByteBuffer to grow to.
      *                 Defaults to MUSCLE_NO_LIMIT, meaning no maximum size will be enforced.
-     * @note data written via a ByteFlattener constructed with this constructor will be appended after any existing
+     * @note data written via a DataFlattener constructed with this constructor will be appended after any existing
      *       bytes in the ByteBuffer; it won't overwrite them.
      */
-   ByteFlattenerHelper(ByteBuffer & writeTo, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(writeTo, maxBytes);}
+   DataFlattenerHelper(ByteBuffer & writeTo, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(writeTo, maxBytes);}
 
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
    void Reset() {SetBuffer(NULL, 0);}
 
-   /** Set a new raw array to write to (same as what we do in the constructor, except this updates an existing ByteFlattenerHelper object)
+   /** Set a new raw array to write to (same as what we do in the constructor, except this updates an existing DataFlattenerHelper object)
      * @param writeTo the new buffer to point to and write to in future Write*() method-calls.
      * @param maxBytes The new maximum number of bytes that we are allowed to write.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
      * @note this method resets our status-flag back to B_NO_ERROR.
@@ -60,7 +60,7 @@ public:
      * @param maxBytes The new maximum size that we should allow the ByteBuffer to grow to.
      *                 Defaults to MUSCLE_NO_LIMIT, meaning no maximum size will be enforced.
      * @note this method resets our status-flag back to B_NO_ERROR.
-     * @note data written via a ByteFlattener initialized with this method will be appended after any existing
+     * @note data written via a DataFlattener initialized with this method will be appended after any existing
      *       bytes in the ByteBuffer; it won't overwrite them.
      */
    void SetBuffer(ByteBuffer & writeTo, uint32 maxBytes = MUSCLE_NO_LIMIT)
@@ -315,7 +315,7 @@ private:
       if (numBytes > _bytesLeft)
       {
          // Log about this, because attempting to write past the end of a non-dynamic buffer is almost certainly a program-bug
-         LogTime(MUSCLE_LOG_CRITICALERROR, "ByteFlattener::SizeCheck() failed: wanted to write " UINT32_FORMAT_SPEC " bytes to a fixed-size buffer, but only " UINT32_FORMAT_SPEC " bytes are available to write to!\n", numBytes, _bytesLeft);
+         LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattener::SizeCheck() failed: wanted to write " UINT32_FORMAT_SPEC " bytes to a fixed-size buffer, but only " UINT32_FORMAT_SPEC " bytes are available to write to!\n", numBytes, _bytesLeft);
          return FlagError(B_LOGIC_ERROR);
       }
       if ((okayToExpandByteBuffer)&&(_byteBuffer))
@@ -394,45 +394,45 @@ private:
    status_t _status;     // cache any errors found so far
 };
 
-typedef ByteFlattenerHelper<LittleEndianEncoder> LittleEndianByteFlattener;  /**< this flattener-type flattens to little-endian-format data */
-typedef ByteFlattenerHelper<BigEndianEncoder>    BigEndianByteFlattener;     /**< this flattener-type flattens to big-endian-format data */
-typedef ByteFlattenerHelper<NativeEndianEncoder> NativeEndianByteFlattener;  /**< this flattener-type flattens to native-endian-format data */
-typedef LittleEndianByteFlattener                ByteFlattener;              /**< ByteFlattener is a pseudonym for LittleEndianByteFlattener, for convenience (since MUSCLE standardizes on little-endian encoding) */
+typedef DataFlattenerHelper<LittleEndianEncoder> LittleEndianDataFlattener;  /**< this flattener-type flattens to little-endian-format data */
+typedef DataFlattenerHelper<BigEndianEncoder>    BigEndianDataFlattener;     /**< this flattener-type flattens to big-endian-format data */
+typedef DataFlattenerHelper<NativeEndianEncoder> NativeEndianDataFlattener;  /**< this flattener-type flattens to native-endian-format data */
+typedef LittleEndianDataFlattener                DataFlattener;              /**< DataFlattener is a pseudonym for LittleEndianDataFlattener, for convenience (since MUSCLE standardizes on little-endian encoding) */
 
-/** This is a version of ByteFlattenerHelper that doesn't do any bounds-checking on the array it writes to.
+/** This is a version of DataFlattenerHelper that doesn't do any bounds-checking on the array it writes to.
   * When you use this you should be very careful not to let it write past the end of its array, as doing so
   * will invoke undefined behavior and likely crash the program.
   */
-template<class EndianEncoder> class UncheckedByteFlattenerHelper : public NotCopyable
+template<class EndianEncoder> class UncheckedDataFlattenerHelper : public NotCopyable
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
-   UncheckedByteFlattenerHelper() {Reset();}
+   UncheckedDataFlattenerHelper() {Reset();}
 
-   /** Constructs a UncheckedByteFlattener that will write up to the specified number of bytes into (writeTo)
+   /** Constructs a UncheckedDataFlattener that will write up to the specified number of bytes into (writeTo)
      * @param writeTo The buffer to write bytes into.  Caller must guarantee that this pointer remains valid when any methods on this class are called.
      * @param maxBytes optional maximum number of bytes that should be written.  Since this class doesn't do bounds checking,
      *                 this value will merely be stored and ignored until our destructor runs -- at that point, if the destructor
      *                 sees that more than (maxBytes) bytes have been written, it will log a critical error message and crash the program.
      *                 This is done to help make bugs more obvious during development.  Defaults to MUSCLE_NO_LIMIT.
      */
-   UncheckedByteFlattenerHelper(uint8 * writeTo, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(writeTo, maxBytes);}
+   UncheckedDataFlattenerHelper(uint8 * writeTo, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(writeTo, maxBytes);}
 
    /** This destructor will crash the program if it detects that we wrote past the end of our buffer */
-   ~UncheckedByteFlattenerHelper()
+   ~UncheckedDataFlattenerHelper()
    {
       const uint32 nbw = GetNumBytesWritten();
       if (nbw > _maxBytes)
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "UncheckedByteFlattenerHelper %p:  " UINT32_FORMAT_SPEC " bytes were written into a buffer that only had space for " UINT32_FORMAT_SPEC " bytes!\n", this, nbw, _maxBytes);
-         MCRASH("UncheckedByteFlattenerHelper detected buffer-write overflow");
+         LogTime(MUSCLE_LOG_CRITICALERROR, "UncheckedDataFlattenerHelper %p:  " UINT32_FORMAT_SPEC " bytes were written into a buffer that only had space for " UINT32_FORMAT_SPEC " bytes!\n", this, nbw, _maxBytes);
+         MCRASH("UncheckedDataFlattenerHelper detected buffer-write overflow");
       }
    }
 
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
    void Reset() {SetBuffer(NULL);}
 
-   /** Set a new raw array to write to (same as what we do in the constructor, except this updates an existing UncheckedByteFlattenerHelper object)
+   /** Set a new raw array to write to (same as what we do in the constructor, except this updates an existing UncheckedDataFlattenerHelper object)
      * @param writeTo the new buffer to point to and write to in future Write*() method-calls.
      * @param maxBytes optional maximum number of bytes that should be written.  Since this class doesn't do bounds checking,
      *                 this value will merely be stored and ignored until our destructor runs -- at that point, if the destructor
@@ -664,10 +664,10 @@ private:
    uint32 _maxBytes;     // for sanity checking
 };
 
-typedef UncheckedByteFlattenerHelper<LittleEndianEncoder> LittleEndianUncheckedByteFlattener;  /**< this unchecked flattener-type flattens to little-endian-format data */
-typedef UncheckedByteFlattenerHelper<BigEndianEncoder>    BigEndianUncheckedByteFlattener;     /**< this unchecked flattener-type flattens to big-endian-format data */
-typedef UncheckedByteFlattenerHelper<NativeEndianEncoder> NativeEndianUncheckedByteFlattener;  /**< this unchecked flattener-type flattens to native-endian-format data */
-typedef LittleEndianUncheckedByteFlattener                UncheckedByteFlattener;              /**< UncheckedByteFlattener is a pseudonym for LittleEndianUncheckedByteFlattener, for convenience (since MUSCLE standardizes on little-endian encoding) */
+typedef UncheckedDataFlattenerHelper<LittleEndianEncoder> LittleEndianUncheckedDataFlattener;  /**< this unchecked flattener-type flattens to little-endian-format data */
+typedef UncheckedDataFlattenerHelper<BigEndianEncoder>    BigEndianUncheckedDataFlattener;     /**< this unchecked flattener-type flattens to big-endian-format data */
+typedef UncheckedDataFlattenerHelper<NativeEndianEncoder> NativeEndianUncheckedDataFlattener;  /**< this unchecked flattener-type flattens to native-endian-format data */
+typedef LittleEndianUncheckedDataFlattener                UncheckedDataFlattener;              /**< UncheckedDataFlattener is a pseudonym for LittleEndianUncheckedDataFlattener, for convenience (since MUSCLE standardizes on little-endian encoding) */
 
 } // end namespace muscle
 

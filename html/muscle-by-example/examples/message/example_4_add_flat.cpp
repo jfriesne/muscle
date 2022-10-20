@@ -1,7 +1,7 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "message/Message.h"
-#include "util/ByteFlattener.h"
-#include "util/ByteUnflattener.h"
+#include "util/DataFlattener.h"
+#include "util/DataUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
 
 using namespace muscle;
@@ -53,7 +53,7 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      UncheckedByteFlattener flat(buffer);
+      UncheckedDataFlattener flat(buffer);
       flat.WriteString(_name);
       flat.WriteString(_address);
       flat.WriteString(_city);
@@ -63,7 +63,7 @@ public:
 
    virtual status_t Unflatten(const uint8 *buffer, uint32 numBytes)
    {
-      ByteUnflattener unflat(buffer, numBytes);
+      DataUnflattener unflat(buffer, numBytes);
       _name    = unflat.ReadString();
       _address = unflat.ReadString();
       _city    = unflat.ReadString();

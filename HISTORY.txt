@@ -9,18 +9,18 @@ key:  - new feature
    - Added a MUSCLE_MAXIMUM_NODE_DEPTH constant that limits
      how deep the MUSCLE node-tree may become, to prevent
      stack-overflow attacks.  Defaults to 100.
-   - Added ByteFlattener and ByteUnflattener classes to
+   - Added DataFlattener and DataUnflattener classes to
      allow for safer flattening/unflattening of objects
      to/from byte-buffers.
-   - Added an UncheckedByteFlattener class for use when
+   - Added an UncheckedDataFlattener class for use when
      array-bounds checking isn't considered necessary.
    - Added support/EndianEncoder.h to allow templating
      over big/little/native endian-encoding strategies.
-   - Added pages for ByteFlattener and ByteUnflattener
+   - Added pages for DataFlattener and DataUnflattener
      APIs to the muscle-by-example documentation.
    o Removed the SetEndianFlag(), Append*(), Write*(),
      Read*() methods from the ByteBuffer class.  Use
-     the new ByteFlattener/ByteUnflattener classes instead.
+     the new DataFlattener/DataUnflattener classes instead.
    o Refactored the StringTokenizer class's constructors to
      take a single (optSepChars) argument instead of separate
      arguments for hard and soft separator characters.

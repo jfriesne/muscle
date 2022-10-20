@@ -1,6 +1,6 @@
 #include "system/SetupSystem.h"         // for CompleteSetupSystem
-#include "util/ByteFlattener.h"
-#include "util/ByteUnflattener.h"
+#include "util/DataFlattener.h"
+#include "util/DataUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
 #include "util/String.h"
 
@@ -59,7 +59,7 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      UncheckedByteFlattener flat(buffer);
+      UncheckedDataFlattener flat(buffer);
       flat.WriteFloat(_latitude);
       flat.WriteFloat(_longitude);
       flat.WriteFloat(_altitude);
@@ -67,7 +67,7 @@ public:
 
    virtual status_t Unflatten(const uint8 *buffer, uint32 numBytes)
    {
-      ByteUnflattener unflat(buffer, numBytes);
+      DataUnflattener unflat(buffer, numBytes);
       _latitude  = unflat.ReadFloat();
       _longitude = unflat.ReadFloat();
       _altitude  = unflat.ReadFloat();

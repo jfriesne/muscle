@@ -2,8 +2,8 @@
 
 #include "dataio/PacketDataIO.h"  // for retrieving the source IP address and port, where possible
 #include "iogateway/PacketTunnelIOGateway.h"
-#include "util/ByteFlattener.h"
-#include "util/ByteUnflattener.h"
+#include "util/DataFlattener.h"
+#include "util/DataUnflattener.h"
 
 namespace muscle {
 
@@ -52,7 +52,7 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
          const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
          if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
 
-         ByteUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead);
+         DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead);
          if ((_allowMiscData)&&((bytesRead < (int32)FRAGMENT_HEADER_SIZE)||(((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(_inputPacketBuffer.GetBuffer()))) != _magic)))
          {
             // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
@@ -152,7 +152,7 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          const uint32 sbSize          = _currentOutputBuffers.Head()()->GetNumBytes();
          const uint32 dataBytesToSend = muscleMin(_maxTransferUnit-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
 
-         UncheckedByteFlattener flat(_outputPacketBuffer.GetBuffer()+_outputPacketSize, _outputPacketBuffer.GetNumBytes()-_outputPacketSize);
+         UncheckedDataFlattener flat(_outputPacketBuffer.GetBuffer()+_outputPacketSize, _outputPacketBuffer.GetNumBytes()-_outputPacketSize);
          flat.WriteInt32(_magic);                      // a well-known magic number, for sanity checking
          flat.WriteInt32(_sexID);                      // source exclusion ID
          flat.WriteInt32(_sendMessageIDCounter);       // message ID tag so the receiver can track what belongs where
