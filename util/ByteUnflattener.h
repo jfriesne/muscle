@@ -149,6 +149,7 @@ public:
      */
    status_t ReadInt8s(int8 * retVals, uint32 numVals) {return ReadBytes(reinterpret_cast<uint8 *>(retVals), numVals);}
 
+   status_t ReadInt16s(uint16 * retVals, uint32 numVals) {return ReadInt16s(reinterpret_cast<int16 *>(retVals), numVals);}
    status_t ReadInt16s(int16 * retVals, uint32 numVals)
    {
       const uint32 numBytes = numVals*sizeof(retVals[0]);
@@ -163,6 +164,7 @@ public:
       return B_NO_ERROR;
    }
 
+   status_t ReadInt32s(uint32 * retVals, uint32 numVals) {return ReadInt32s(reinterpret_cast<int32 *>(retVals), numVals);}
    status_t ReadInt32s(int32 * retVals, uint32 numVals)
    {
       const uint32 numBytes = numVals*sizeof(retVals[0]);
@@ -177,6 +179,7 @@ public:
       return B_NO_ERROR;
    }
 
+   status_t ReadInt64s(uint64 * retVals, uint32 numVals) {return ReadInt64s(reinterpret_cast<int64 *>(retVals), numVals);}
    status_t ReadInt64s(int64 * retVals, uint32 numVals)
    {
       const uint32 numBytes = numVals*sizeof(retVals[0]);

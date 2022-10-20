@@ -169,6 +169,7 @@ public:
      */
    status_t WriteInt8s(const int8 * vals, uint32 numVals) {return WriteBytes(reinterpret_cast<const uint8 *>(vals), numVals);}
 
+   status_t WriteInt16s(const uint16 * vals, uint32 numVals) {return WriteInt16s(reinterpret_cast<const int32 *>(vals), numVals);}
    status_t WriteInt16s(const int16 * vals, uint32 numVals)
    {
       const uint32 numBytes = numVals*sizeof(vals[0]);
@@ -183,6 +184,7 @@ public:
       return B_NO_ERROR;
    }
 
+   status_t WriteInt32s(const uint32 * vals, uint32 numVals) {return WriteInt32s(reinterpret_cast<const int32 *>(vals), numVals);}
    status_t WriteInt32s(const int32 * vals, uint32 numVals)
    {
       const uint32 numBytes = numVals*sizeof(vals[0]);
@@ -197,6 +199,7 @@ public:
       return B_NO_ERROR;
    }
 
+   status_t WriteInt64s(const uint64 * vals, uint32 numVals) {return WriteInt64s(reinterpret_cast<const int64 *>(vals), numVals);}
    status_t WriteInt64s(const int64 * vals, uint32 numVals)
    {
       const uint32 numBytes = numVals*sizeof(vals[0]);
