@@ -272,6 +272,9 @@ public:
    }
 ///@}
 
+   /** Returns a pointer into our buffer at the location we will next write to */
+   uint8 * GetCurrentWritePointer() const {return _writeTo;}
+
    /** Seeks our "write position" to a new offset within our output buffer.
      * @param offset the new write-position within our output buffer
      * @returns B_NO_ERROR on success, or an error code on failure (e.g. B_BAD_ARGUMENT if (offset) is greater than our maximum-bytes value)

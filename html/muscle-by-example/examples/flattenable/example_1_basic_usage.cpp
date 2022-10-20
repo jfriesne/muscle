@@ -71,7 +71,7 @@ public:
       _latitude  = unflat.ReadFloat();
       _longitude = unflat.ReadFloat();
       _altitude  = unflat.ReadFloat();
-      return unflat.GetStatus();;
+      return unflat.GetStatus();
    }
 
    // Returns our current state as a human-readable String

@@ -101,7 +101,7 @@ int main(int argc, char ** argv)
    {
       Snooze64(MinutesToMicros(1));
    }
-   else LogTime(MUSCLE_LOG_CRITICALERROR, "Error starting Atomic thread! [%s]\n", ret());;;;
+   else LogTime(MUSCLE_LOG_CRITICALERROR, "Error starting Atomic thread! [%s]\n", ret());
 
    _pleaseExit.AtomicIncrement();
 
