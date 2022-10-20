@@ -141,6 +141,30 @@ public:
      */
    template<typename T> status_t ReadFlat(T & retVal) {return ReadFlats<T>(&retVal, 1);}
 
+   /** Unflattens and returns a Flattenable or PseudoFlattenable object from data in our buffer
+     * without attempting to read any 4-byte length prefix.  Instead, the number of bytes to pass to Unflatten()
+     * is passed as an argument.
+     * @param numBytes how many bytes to pass to the Unflatten() method of the object we return
+     * @note errors in unflattening can be detected by calling GetStatus() after this call.
+     */
+   template<typename T> T ReadFlatWithoutLengthPrefix(uint32 numBytes) {T ret; (void) ReadFlatWithoutLengthPrefix(ret, numBytes); return ret;}
+
+   /** Unflattens and returns a Flattenable or PseudoFlattenable object from data in our buffer
+     * without attempting to read any 4-byte length prefix.  Instead, the number of bytes to pass to Unflatten()
+     * is passed as an argument.
+     * @param retVal the Flattenable or PseudoFlattenable object to write
+     * @param numBytes how many bytes to pass to retVal.Unflatten() method
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (not enough data available)
+     */
+   template<typename T> status_t ReadFlatWithoutLengthPrefix(T & retVal, uint32 numBytes)
+   {
+      MRETURN_ON_ERROR(SizeCheck(numBytes));
+      const status_t ret = retVal.Unflatten(_readFrom, numBytes);
+      if (ret.IsError()) return FlagError(ret);
+      (void) Advance(numBytes);
+      return B_NO_ERROR;
+   }
+
 ///@{
    /** Convenience methods for reading an array of POD-typed data items from our internal buffer.
      * @param retVals Pointer to an array of values to write results to

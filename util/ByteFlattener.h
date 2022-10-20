@@ -161,6 +161,14 @@ public:
      */
    template<typename T> status_t WriteFlat(const T & val) {return WriteFlats<T>(&val, 1);}
 
+   /** Same as WriteFlat(), but this method will never write out a 4-byte length-prefix, even
+     * if (val.IsFixedSize()) returns false.  It will be up to the future reader of the serialized
+     * bytes to figure out how many bytes correspond to this object, by some other means.
+     * @param val the Flattenable or PseudoFlattenable object to write
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure (not enough room available)
+     */
+   template<typename T> status_t WriteFlatWithoutLengthPrefix(const T & val) {return WriteFlatsAux(&val, 1, false);}
+
 ///@{
    /** Convenience methods for writing an array of POD-typed data-items to our buffer.
      * @param vals Pointer to an array of values to write into our buffer
@@ -260,39 +268,7 @@ public:
    template<typename T> status_t WriteFlats(const T * vals, uint32 numVals)
    {
       if (numVals == 0) return B_NO_ERROR; // avoid reading from invalid vals[0] below if the array is zero-length
-
-      if (vals[0].IsFixedSize())
-      {
-         const uint32 flatSize = vals[0].FlattenedSize();
-         const uint32 numBytes = flatSize*numVals;
-         MRETURN_ON_ERROR(SizeCheck(numBytes, true));
-
-         for (uint32 i=0; i<numVals; i++)
-         {
-            vals[i].Flatten(_writeTo);
-            _writeTo += flatSize;
-         }
-         ReduceBytesLeftBy(numBytes);
-         return B_NO_ERROR;
-      }
-      else
-      {
-         uint32 numBytes = (numVals*sizeof(uint32));  // for the flat-size-prefixes
-         for (uint32 i=0; i<numVals; i++) numBytes += vals[i].FlattenedSize();
-         MRETURN_ON_ERROR(SizeCheck(numBytes, true));
-
-         for (uint32 i=0; i<numVals; i++)
-         {
-            const uint32 flatSize = vals[i].FlattenedSize();
-            _encoder.ExportInt32(flatSize, _writeTo);
-            _writeTo += sizeof(flatSize);
-
-            vals[i].Flatten(_writeTo);
-            _writeTo += flatSize;
-         }
-         ReduceBytesLeftBy(numBytes);
-         return B_NO_ERROR;
-      }
+      return WriteFlatsAux(vals, numVals, (vals[0].IsFixedSize() == false));
    }
 ///@}
 
@@ -364,6 +340,42 @@ private:
       else if (optBytes) memcpy(_writeTo, optBytes, numBytes);
 
       return B_NO_ERROR;
+   }
+
+   template<typename T> status_t WriteFlatsAux(const T * vals, uint32 numVals, bool includeLengthPrefix)
+   {
+      if (includeLengthPrefix)
+      {
+         uint32 numBytes = (numVals*sizeof(uint32));  // for the flat-size-prefixes
+         for (uint32 i=0; i<numVals; i++) numBytes += vals[i].FlattenedSize();
+         MRETURN_ON_ERROR(SizeCheck(numBytes, true));
+
+         for (uint32 i=0; i<numVals; i++)
+         {
+            const uint32 flatSize = vals[i].FlattenedSize();
+            _encoder.ExportInt32(flatSize, _writeTo);
+            _writeTo += sizeof(flatSize);
+
+            vals[i].Flatten(_writeTo);
+            _writeTo += flatSize;
+         }
+         ReduceBytesLeftBy(numBytes);
+         return B_NO_ERROR;
+      }
+      else
+      {
+         const uint32 flatSize = vals[0].FlattenedSize();
+         const uint32 numBytes = flatSize*numVals;
+         MRETURN_ON_ERROR(SizeCheck(numBytes, true));
+
+         for (uint32 i=0; i<numVals; i++)
+         {
+            vals[i].Flatten(_writeTo);
+            _writeTo += flatSize;
+         }
+         ReduceBytesLeftBy(numBytes);
+         return B_NO_ERROR;
+      }
    }
 
    status_t Advance(  uint32 numBytes) {_writeTo += numBytes; ReduceBytesLeftBy(numBytes); return B_NO_ERROR;}
