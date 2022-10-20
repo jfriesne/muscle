@@ -148,8 +148,8 @@ public:
    {
       if (networkBuf)
       {
-         WriteToNetworkArrayAux(&networkBuf[0], _highBits);
-         WriteToNetworkArrayAux(&networkBuf[8], _lowBits);
+         WriteToNetworkArrayAux(&networkBuf[0*sizeof(uint64)], _highBits);
+         WriteToNetworkArrayAux(&networkBuf[1*sizeof(uint64)], _lowBits);
       }
       if (optInterfaceIndex) *optInterfaceIndex = GetInterfaceIndex();
    }
@@ -163,8 +163,8 @@ public:
    {
       if (networkBuf)
       {
-         ReadFromNetworkArrayAux(&networkBuf[0], _highBits);
-         ReadFromNetworkArrayAux(&networkBuf[8], _lowBits);
+         ReadFromNetworkArrayAux(&networkBuf[0*sizeof(uint64)], _highBits);
+         ReadFromNetworkArrayAux(&networkBuf[1*sizeof(uint64)], _lowBits);
       }
       if (optInterfaceIndex) SetInterfaceIndex(*optInterfaceIndex);
    }
@@ -258,8 +258,8 @@ public:
 
 private:
    bool IsIPv6LocalMulticast(uint8 scope) const;
-   void WriteToNetworkArrayAux( uint8 * out, const uint64 & in ) const {uint64 tmp = B_HOST_TO_BENDIAN_INT64(in); muscleCopyOut(out, tmp);}
-   void ReadFromNetworkArrayAux(const uint8 * in, uint64 & out) const {uint64 tmp; muscleCopyIn(tmp, in); out = B_BENDIAN_TO_HOST_INT64(tmp);}
+   void WriteToNetworkArrayAux(uint8 * out, uint64 in)          const {muscleCopyOut(out, B_HOST_TO_BENDIAN_INT64(in));}
+   void ReadFromNetworkArrayAux(const uint8 * in, uint64 & out) const {out = B_BENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(in));}
 
    uint64 _lowBits;
    uint64 _highBits;

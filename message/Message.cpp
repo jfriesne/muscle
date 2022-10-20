@@ -2465,13 +2465,13 @@ void MessageField :: SingleFlatten(uint8 *buffer) const
 
    switch(_typeCode)
    {
-      case B_BOOL_TYPE:    *buffer = (GetInlineItemAsBool() ? 1 : 0);                                                 break;
-      case B_DOUBLE_TYPE:  {uint64 d = B_HOST_TO_LENDIAN_IDOUBLE(GetInlineItemAsDouble()); muscleCopyOut(buffer, d);} break;
-      case B_FLOAT_TYPE:   {uint32 f = B_HOST_TO_LENDIAN_IFLOAT(GetInlineItemAsFloat());   muscleCopyOut(buffer, f);} break;
-      case B_INT64_TYPE:   {uint64 i = B_HOST_TO_LENDIAN_INT64(GetInlineItemAsInt64());    muscleCopyOut(buffer, i);} break;
-      case B_INT32_TYPE:   {uint32 i = B_HOST_TO_LENDIAN_INT32(GetInlineItemAsInt32());    muscleCopyOut(buffer, i);} break;
-      case B_INT16_TYPE:   {uint16 i = B_HOST_TO_LENDIAN_INT16(GetInlineItemAsInt16());    muscleCopyOut(buffer, i);} break;
-      case B_INT8_TYPE:    *buffer = GetInlineItemAsInt8();                                                           break;
+      case B_BOOL_TYPE:    *buffer = (GetInlineItemAsBool() ? 1 : 0);                                                       break;
+      case B_DOUBLE_TYPE:  {const uint64 d = B_HOST_TO_LENDIAN_IDOUBLE(GetInlineItemAsDouble()); muscleCopyOut(buffer, d);} break;
+      case B_FLOAT_TYPE:   {const uint32 f = B_HOST_TO_LENDIAN_IFLOAT(GetInlineItemAsFloat());   muscleCopyOut(buffer, f);} break;
+      case B_INT64_TYPE:   {const uint64 i = B_HOST_TO_LENDIAN_INT64(GetInlineItemAsInt64());    muscleCopyOut(buffer, i);} break;
+      case B_INT32_TYPE:   {const uint32 i = B_HOST_TO_LENDIAN_INT32(GetInlineItemAsInt32());    muscleCopyOut(buffer, i);} break;
+      case B_INT16_TYPE:   {const uint16 i = B_HOST_TO_LENDIAN_INT16(GetInlineItemAsInt16());    muscleCopyOut(buffer, i);} break;
+      case B_INT8_TYPE:    *buffer = GetInlineItemAsInt8();                                                                 break;
 
       case B_MESSAGE_TYPE:
       {

@@ -27,8 +27,12 @@ public:
    /** Same as above, except instead of taking a raw pointer as a target, we take a reference to a ByteBuffer object.
      * This will allow us to grow the size of the ByteBuffer when necessary, up to (maxBytes) long, thereby freeing
      * the calling code from having to pre-calculate the amount of buffer space it will need.
-     * @param writeTo Reference to a ByteBuffer that we should append data to the end of.  A pointer to this ByteBuffer will be retained for use in future Write*() method-calls.
-     * @param maxBytes The new maximum size that we should allow the ByteBuffer to grow to.  Defaults to MUSCLE_NO_LIMIT, meaning no limit will be enforced.
+     * @param writeTo Reference to a ByteBuffer that we should append data to the end of.
+     *                A pointer to this ByteBuffer will be retained for use in future Write*() method-calls.
+     * @param maxBytes The new maximum size that we should allow the ByteBuffer to grow to.
+     *                 Defaults to MUSCLE_NO_LIMIT, meaning no maximum size will be enforced.
+     * @note data written via a ByteFlattener constructed with this constructor will be appended after any existing
+     *       bytes in the ByteBuffer; it won't overwrite them.
      */
    ByteFlattenerHelper(ByteBuffer & writeTo, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(writeTo, maxBytes);}
 
@@ -54,9 +58,13 @@ public:
    /** Same as above, except instead of taking a raw pointer as a target, we take a reference to a ByteBuffer object.
      * This will allow us to grow the size of the ByteBuffer when necessary, up to (maxBytes) long, thereby freeing
      * the calling code from having to pre-calculate the amount of buffer space it will need.
-     * @param writeTo Reference to a ByteBuffer that we should append data to the end of.  A pointer to this ByteBuffer will be retained for use in future Write*() method-calls.
-     * @param maxBytes The new maximum size that we should allow the ByteBuffer to grow to.  Defaults to MUSCLE_NO_LIMIT, meaning no limit will be enforced.
+     * @param writeTo Reference to a ByteBuffer that we should append data to the end of.
+     *                A pointer to this ByteBuffer will be retained for use in future Write*() method-calls.
+     * @param maxBytes The new maximum size that we should allow the ByteBuffer to grow to.
+     *                 Defaults to MUSCLE_NO_LIMIT, meaning no maximum size will be enforced.
      * @note this method resets our status-flag back to B_NO_ERROR.
+     * @note data written via a ByteFlattener initialized with this method will be appended after any existing
+     *       bytes in the ByteBuffer; it won't overwrite them.
      */
    void SetBuffer(ByteBuffer & writeTo, uint32 maxBytes = MUSCLE_NO_LIMIT)
    {
