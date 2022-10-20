@@ -2465,13 +2465,13 @@ void MessageField :: SingleFlatten(uint8 *buffer) const
 
    switch(_typeCode)
    {
-      case B_BOOL_TYPE:    *buffer = (GetInlineItemAsBool() ? 1 : 0);                                                       break;
-      case B_DOUBLE_TYPE:  {const uint64 d = B_HOST_TO_LENDIAN_IDOUBLE(GetInlineItemAsDouble()); muscleCopyOut(buffer, d);} break;
-      case B_FLOAT_TYPE:   {const uint32 f = B_HOST_TO_LENDIAN_IFLOAT(GetInlineItemAsFloat());   muscleCopyOut(buffer, f);} break;
-      case B_INT64_TYPE:   {const uint64 i = B_HOST_TO_LENDIAN_INT64(GetInlineItemAsInt64());    muscleCopyOut(buffer, i);} break;
-      case B_INT32_TYPE:   {const uint32 i = B_HOST_TO_LENDIAN_INT32(GetInlineItemAsInt32());    muscleCopyOut(buffer, i);} break;
-      case B_INT16_TYPE:   {const uint16 i = B_HOST_TO_LENDIAN_INT16(GetInlineItemAsInt16());    muscleCopyOut(buffer, i);} break;
-      case B_INT8_TYPE:    *buffer = GetInlineItemAsInt8();                                                                 break;
+      case B_BOOL_TYPE:    *buffer = (GetInlineItemAsBool() ? 1 : 0);                                 break;
+      case B_DOUBLE_TYPE:  muscleCopyOut(buffer, B_HOST_TO_LENDIAN_IDOUBLE(GetInlineItemAsDouble())); break;
+      case B_FLOAT_TYPE:   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_IFLOAT( GetInlineItemAsFloat()));  break;
+      case B_INT64_TYPE:   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT64(  GetInlineItemAsInt64()));  break;
+      case B_INT32_TYPE:   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(  GetInlineItemAsInt32()));  break;
+      case B_INT16_TYPE:   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT16(  GetInlineItemAsInt16()));  break;
+      case B_INT8_TYPE:    *buffer = GetInlineItemAsInt8();                                           break;
 
       case B_MESSAGE_TYPE:
       {
@@ -2524,10 +2524,10 @@ status_t MessageField :: SingleUnflatten(const uint8 * buffer, uint32 numBytes)
    {
       case B_BOOL_TYPE:   SetInlineItemAsBool(  buffer[0] != 0);                                          break;
       case B_DOUBLE_TYPE: SetInlineItemAsDouble(B_LENDIAN_TO_HOST_IDOUBLE(muscleCopyIn<uint64>(buffer))); break;
-      case B_FLOAT_TYPE:  SetInlineItemAsFloat( B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<uint32>(buffer)));  break;
-      case B_INT64_TYPE:  SetInlineItemAsInt64( B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(buffer)));   break;
-      case B_INT32_TYPE:  SetInlineItemAsInt32( B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer)));   break;
-      case B_INT16_TYPE:  SetInlineItemAsInt16( B_LENDIAN_TO_HOST_INT16(muscleCopyIn<uint16>(buffer)));   break;
+      case B_FLOAT_TYPE:  SetInlineItemAsFloat( B_LENDIAN_TO_HOST_IFLOAT( muscleCopyIn<uint32>(buffer))); break;
+      case B_INT64_TYPE:  SetInlineItemAsInt64( B_LENDIAN_TO_HOST_INT64(  muscleCopyIn<uint64>(buffer))); break;
+      case B_INT32_TYPE:  SetInlineItemAsInt32( B_LENDIAN_TO_HOST_INT32(  muscleCopyIn<uint32>(buffer))); break;
+      case B_INT16_TYPE:  SetInlineItemAsInt16( B_LENDIAN_TO_HOST_INT16(  muscleCopyIn<uint16>(buffer))); break;
       case B_INT8_TYPE:   SetInlineItemAsInt8(  *buffer);                                                 break;
 
       case B_MESSAGE_TYPE:
