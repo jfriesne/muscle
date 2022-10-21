@@ -41,7 +41,7 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      UncheckedDataFlattener flat(buffer);
+      DataFlattener flat(buffer, MUSCLE_NO_LIMIT);
       flat.WriteInt32(_val);
       flat.WriteString(_string);
    }

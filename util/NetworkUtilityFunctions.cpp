@@ -1905,7 +1905,7 @@ uint32 IPAddress :: CalculateChecksum() const
 
 void IPAddress :: Flatten(uint8 * buffer) const
 {
-   UncheckedDataFlattener flat(buffer);
+   DataFlattener flat(buffer, MUSCLE_NO_LIMIT);
    flat.WriteInt64(_lowBits);
    flat.WriteInt64(_highBits);
    flat.WriteInt32(_interfaceIndex);
@@ -1922,7 +1922,7 @@ status_t IPAddress :: Unflatten(const uint8 * buffer, uint32 size)
 
 void IPAddressAndPort :: Flatten(uint8 * buffer) const
 {
-   UncheckedDataFlattener flat(buffer);
+   DataFlattener flat(buffer, MUSCLE_NO_LIMIT);
    flat.WriteFlat(_ip);
    flat.WriteInt16(_port);
 }

@@ -12,9 +12,12 @@ key:  - new feature
    - Added DataFlattener and DataUnflattener classes to
      allow for safer flattening/unflattening of data
      to/from byte-buffers.
-   - Added an UncheckedDataFlattener and UncheckedDataUnflattener
-     classes, for better efficiency when the calling code has
-     already done its own bounds-checking.
+   - Added an UncheckedDataUnflattener class, for better
+     efficiency when the calling code has already done its
+     own bounds-checking.
+   - Added a CheckedDataUnflattener class, for better
+     calling code that wants to use a dynamically-growing
+     output buffer.
    - Added support/EndianEncoder.h to allow templating
      over big/little/native endian-encoding strategies.
    - Added pages for DataFlattener and DataUnflattener

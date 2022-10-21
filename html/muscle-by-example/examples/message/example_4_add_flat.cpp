@@ -53,7 +53,7 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      UncheckedDataFlattener flat(buffer);
+      DataFlattener flat(buffer, MUSCLE_NO_LIMIT);
       flat.WriteString(_name);
       flat.WriteString(_address);
       flat.WriteString(_city);

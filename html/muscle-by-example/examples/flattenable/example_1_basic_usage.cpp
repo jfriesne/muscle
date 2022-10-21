@@ -59,7 +59,7 @@ public:
 
    virtual void Flatten(uint8 *buffer) const
    {
-      UncheckedDataFlattener flat(buffer);
+      DataFlattener flat(buffer, MUSCLE_NO_LIMIT);
       flat.WriteFloat(_latitude);
       flat.WriteFloat(_longitude);
       flat.WriteFloat(_altitude);

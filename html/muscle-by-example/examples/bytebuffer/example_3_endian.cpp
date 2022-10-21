@@ -8,11 +8,11 @@ using namespace muscle;
 static void PrintExampleDescription()
 {
    printf("\n");
-   printf("This example demonstrates adding big-endian numbers to a ByteBuffer using a BigEndianDataFlattener\n");
+   printf("This example demonstrates adding big-endian numbers to a ByteBuffer using a CheckedBigEndianDataFlattener\n");
    printf("\n");
 }
 
-/* This program demonstrates the use of the BigEndianDataFlattener class
+/* This program demonstrates the use of the CheckedBigEndianDataFlattener class
  * to safely populate a ByteBuffer with big-endian data.  You could alternatively
  * use a LittleEndianDataFlattener or a NativeEndianDataFlattener the same way.
  */
@@ -24,7 +24,7 @@ int main(int argc, char ** argv)
 
    ByteBuffer buf;
 
-   BigEndianDataFlattener flt(buf);
+   CheckedBigEndianDataFlattener flt(buf);
    (void) flt.WriteInt32(1);
    (void) flt.WriteInt32(2);
    (void) flt.WriteInt32(3);
