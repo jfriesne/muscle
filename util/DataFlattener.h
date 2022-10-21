@@ -122,6 +122,12 @@ public:
       return Advance(numBytes);
    }
 
+   /** Convenience method; writes out all of the bytes inside (buf)
+     * @param buf a ByteBuffer whose bytes we should write out
+     * @returns B_NO_ERROR on success, or an erro code on failure.
+     */
+   status_t WriteBytes(const ByteBuffer & buf) {return WriteBytes(buf.GetBuffer(), buf.GetNumBytes());}
+
 ///@{
    /** Convenience method for writing one POD-typed data-item into our buffer.
      * @param val the value to write to the end of the buffer
@@ -480,6 +486,12 @@ public:
       MRETURN_ON_ERROR(WriteBytesAux(optBytes, numBytes));
       return Advance(numBytes);
    }
+
+   /** Convenience method; writes out all of the bytes inside (buf)
+     * @param buf a ByteBuffer whose bytes we should write out
+     * @returns B_NO_ERROR
+     */
+   status_t WriteBytes(const ByteBuffer & buf) {return WriteBytes(buf.GetBuffer(), buf.GetNumBytes());}
 
 ///@{
    /** Convenience method for writing one POD-typed data-item into our buffer.
