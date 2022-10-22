@@ -261,8 +261,9 @@ public:
    uint32 CalculateChecksum() const {return CalculateChecksumForFloat(left()) + (3*CalculateChecksumForFloat(top())) + (5*CalculateChecksumForFloat(right())) + (7*CalculateChecksumForFloat(bottom()));}
 
    /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
-   void Flatten(uint8 * buffer, uint32 /*flatSize*/) const
+   void Flatten(uint8 * buffer, uint32 flatSize) const
    {
+      (void) flatSize;
       muscleCopyOut(&buffer[0*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(left()));
       muscleCopyOut(&buffer[1*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(top()));
       muscleCopyOut(&buffer[2*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(right()));

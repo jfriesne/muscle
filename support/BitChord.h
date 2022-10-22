@@ -7,6 +7,8 @@
 #include "support/MuscleSupport.h"
 #include "support/PseudoFlattenable.h"
 #include "util/String.h"
+#include "util/DataFlattener.h"
+#include "util/DataUnflattener.h"
 
 namespace muscle {
 
@@ -234,29 +236,25 @@ public:
    static uint32 FlattenedSize() {return sizeof(uint32)+(NUM_WORDS*sizeof(uint32));}
 
    /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
-   void Flatten(uint8 * buffer, uint32 /*flatSize*/) const
+   void Flatten(uint8 * buffer, uint32 flatSize) const
    {
-      muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(NumBits));  // just so we can handle versioning issues more intelligently later on
-      buffer += sizeof(uint32);
-      for (uint32 i=0; i<NUM_WORDS; i++) muscleCopyOut(&buffer[i*sizeof(int32)], B_HOST_TO_LENDIAN_INT32(_words[i]));
+      DataFlattener flat(buffer, flatSize);
+      flat.WriteInt32(NumBits);  // just so we can handle versioning issues more intelligently later on
+      flat.WriteInt32s(_words, NUM_WORDS);
    }
 
    /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
    status_t Unflatten(const uint8 * buffer, uint32 size)
    {
-      if (size < sizeof(uint32)) return B_BAD_DATA;  // not enough data to even read the #-of-valid-bits header?
+      DataUnflattener unflat(buffer, size);
 
-      const uint32 numBitsToRead = muscleMin(B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buffer)), NumBits);
-      buffer += sizeof(uint32); size -= sizeof(uint32);
-
-      const uint32 numWordsToRead = (numBitsToRead+NUM_BITS_PER_WORD-1)/NUM_BITS_PER_WORD;
-      if (size < numWordsToRead) return B_BAD_DATA;
-
-      for (uint32 i=0; i<numWordsToRead; i++) _words[i] = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&buffer[i*sizeof(uint32)]));
+      const uint32 numBitsToRead  = unflat.ReadInt32();
+      const uint32 numWordsToRead = muscleMin((uint32)NUM_WORDS, (numBitsToRead+NUM_BITS_PER_WORD-1)/NUM_BITS_PER_WORD);
+      for (uint32 i=0; i<numWordsToRead; i++) _words[i] = unflat.ReadInt32();
 
       ClearUnusedBits();   // make sure we didn't read in non-zero values for any bits that we don't use
       for (uint32 i=numBitsToRead; i<NumBits; i++) ClearBit(i);  // any bits that we didn't read (because the data was too short) should be cleared
-      return B_NO_ERROR;
+      return unflat.GetStatus();
    }
 
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
