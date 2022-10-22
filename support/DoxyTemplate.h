@@ -135,19 +135,31 @@ public:
      */
    bool AllowsTypeCode(uint32 tc) const;
 
-   /** Returns the number of bytes that Flatten() will write out to its supplied buffer, if called now */
+   /** Returns the number of bytes that Flatten() would write to its buffer, if it was called
+     * while the object is in its current state.
+     */
    uint32 FlattenedSize() const;
 
    /** Writes this object's state out to the supplied memory buffer.
-    *  @param buffer Must points to an array of at least (FlattenedSize()) bytes.
-    *  @param flatSize the result of a recent call to the object's FlattenedSize() method, for convenience.
+    *  @param buffer A pointer to an array that is at least (FlattenedSize()) bytes long.
+    *  @param flatSize the result of a recent call to the object's FlattenedSize() method.
+    *  @note (flatSize) is passed as an argument merely so that Flatten() doesn't have to call the FlattenedSize()
+    *        method again in order to do buffer-overflow checking.  For safety, it's recommended that
+    *        Flatten() implementations declare a DataFlattener object on the stack and pass both
+    *        of these arguments to it, and call its Write*() methods to write serialized-bytes into (buffer).
     */
    void Flatten(uint8 * buffer, uint32 flatSize) const;
 
    /** Restores this object's state from the data contained in the supplied memory buffer.
     *  @param buffer points to the raw data we should read in this object's state from.
-    *  @param size The number of bytes (buffer) points at
-    *  @return B_NO_ERROR on success, B_BAD_DATA if (size) was too small, or B_BAD_DATA if data was inappropriate, or etc.
+    *  @param size The number of bytes (buffer) points at.  Note that this number may be greater than the value
+    *              returned by FlattenedSize(), e.g. if this object's flattened-bytes represent only a portion
+    *              of a larger byte-buffer containing other data.
+    *  @return B_NO_ERROR on success, or an error value on failure (e.g. B_BAD_DATA if (size) was too small,
+    *          or the data-bytes were deemed inappropriate)
+    *  @note For safety, it's recommended that Unflatten() implementations declare a DataUnflattener object
+    *        on the stack and pass both of these arguments to it, and call its Read*() methods to read data
+    *        out of (buffer).
     */
    status_t Unflatten(const uint8 * buffer, uint32 size);
 
