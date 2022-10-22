@@ -96,10 +96,10 @@ public:
    virtual RefCountableRef GetItemAtAsRefCountableRef(uint32 idx) const {(void) idx; return GetDefaultObjectForType<RefCountableRef>();}
 
    /** Used by the TemplatedFlatten() methods */
-   virtual void Flatten(uint8 * buf, uint32 maxItemsToFlatten) const = 0;
+   virtual void Flatten(uint8 * buf, uint32 flatSize, uint32 maxItemsToFlatten) const = 0;
 
    /** Used by the regular Flatten() methods */
-   virtual void Flatten(uint8 * buf) const {Flatten(buf, MUSCLE_NO_LIMIT);}
+   virtual void Flatten(uint8 * buf, uint32 flatSize) const {Flatten(buf, flatSize, MUSCLE_NO_LIMIT);}
 
 protected:
    /** Must be implemented by each subclass to return true iff (rhs) is of the same type
@@ -141,7 +141,7 @@ public:
    uint32 TypeCode() const {return _typeCode;}
    bool AllowsTypeCode(uint32 tc) const {return tc == TypeCode();}
    uint32 FlattenedSize() const {return HasArray() ? GetArray()->FlattenedSize() : SingleFlattenedSize();}
-   void Flatten(uint8 *buffer, uint32 maxItemsToFlatten) const {if (HasArray()) GetArray()->Flatten(buffer, maxItemsToFlatten); else SingleFlatten(buffer);}
+   void Flatten(uint8 *buffer, uint32 flatSize, uint32 maxItemsToFlatten) const {if (HasArray()) GetArray()->Flatten(buffer, flatSize, maxItemsToFlatten); else SingleFlatten(buffer);}
    status_t Unflatten(const uint8 * buf, uint32 numBytes);
 
    // Pseudo-AbstractDataArray interface

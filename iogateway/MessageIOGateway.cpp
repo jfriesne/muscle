@@ -395,10 +395,11 @@ FlattenHeaderAndMessage(const MessageRef & msgRef) const
    if (msgRef())
    {
       const uint32 hs = GetHeaderSize();
-      ret = GetByteBufferFromPool(hs+msgRef()->FlattenedSize());
+      const uint32 msgFlatSize = msgRef()->FlattenedSize();
+      ret = GetByteBufferFromPool(hs+msgFlatSize);
       if (ret())
       {
-         msgRef()->Flatten(ret()->GetBuffer()+hs);
+         msgRef()->Flatten(ret()->GetBuffer()+hs, msgFlatSize);
 
          int32 encoding = MUSCLE_MESSAGE_ENCODING_DEFAULT;
 

@@ -176,32 +176,36 @@ unsigned int SSLSocketDataIO :: PSKServerCallback(const char *identity, unsigned
       return 0;
    }
 
-   if (_pskPassword.FlattenedSize() > pskLen)
+   const uint32 flatSize = _pskPassword.FlattenedSize();
+   if (flatSize > pskLen)
    {
       LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO::pskServerCallback:  output buffer not long enough to hold password!\n");
       return 0;  // failure
    }
 
-   _pskPassword.Flatten((uint8 *)psk);
+   _pskPassword.Flatten((uint8 *)psk, flatSize);
    return _pskPassword.Length();
 }
 
 unsigned int SSLSocketDataIO :: PSKClientCallback(const char * /*hint*/, char * identity, unsigned int maxIdentityLen, unsigned char * psk, unsigned int pskLen) const
 {
+   const uint32 unFS = _pskUserName.FlattenedSize();
+   if (unFS > maxIdentityLen)
    if (_pskUserName.FlattenedSize() > maxIdentityLen)
    {
       LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO::pskClientCallback:  output buffer not long enough to hold identity!\n");
       return 0;  // failure
    }
 
-   if (_pskPassword.FlattenedSize() > pskLen)
+   const uint32 pwFS = _pskPassword.FlattenedSize();
+   if (pwFS > pskLen)
    {
       LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO::pskClientCallback:  output buffer not long enough to hold password!\n");
       return 0;  // failure
    }
 
-   _pskUserName.Flatten((uint8 *)identity);
-   _pskPassword.Flatten((uint8 *)psk);
+   _pskUserName.Flatten((uint8 *)identity, unFS);
+   _pskPassword.Flatten((uint8 *)psk,      pwFS);
    return _pskPassword.Length();
 }
 

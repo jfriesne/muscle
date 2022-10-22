@@ -1903,9 +1903,9 @@ uint32 IPAddress :: CalculateChecksum() const
    return CalculateChecksumForUint64(_lowBits) + CalculateChecksumForUint64(_highBits) + _interfaceIndex;
 }
 
-void IPAddress :: Flatten(uint8 * buffer) const
+void IPAddress :: Flatten(uint8 * buffer, uint32 flatSize) const
 {
-   DataFlattener flat(buffer, MUSCLE_NO_LIMIT);
+   DataFlattener flat(buffer, flatSize);
    flat.WriteInt64(_lowBits);
    flat.WriteInt64(_highBits);
    flat.WriteInt32(_interfaceIndex);
@@ -1920,9 +1920,9 @@ status_t IPAddress :: Unflatten(const uint8 * buffer, uint32 size)
    return unflat.GetStatus();
 }
 
-void IPAddressAndPort :: Flatten(uint8 * buffer) const
+void IPAddressAndPort :: Flatten(uint8 * buffer, uint32 flatSize) const
 {
-   DataFlattener flat(buffer, MUSCLE_NO_LIMIT);
+   DataFlattener flat(buffer, flatSize);
    flat.WriteFlat(_ip);
    flat.WriteInt16(_port);
 }

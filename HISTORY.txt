@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-8.70
+9.00
    - Added a MUSCLE_MAXIMUM_NODE_DEPTH constant that limits
      how deep the MUSCLE node-tree may become, to prevent
      stack-overflow attacks.  Defaults to 100.
@@ -22,6 +22,9 @@ key:  - new feature
      over big/little/native endian-encoding strategies.
    - Added pages for DataFlattener and DataUnflattener
      APIs to the muscle-by-example documentation.
+   o Changed the PseudoFlattenable::Flatten() and
+     Flattenable::Flatten() and methods to take a second
+     argument (flatSize) for better runtime error-checking.
    o Removed the SetEndianFlag(), Append*(), Write*(),
      Read*() methods from the ByteBuffer class.  Use
      the new DataFlattener/DataUnflattener classes instead.

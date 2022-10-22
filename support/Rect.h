@@ -255,13 +255,13 @@ public:
    bool AllowsTypeCode(uint32 tc) const {return (TypeCode()==tc);}
 
    /** Part of the PseudoFlattenable API:  Returns 4*sizeof(float). */
-   uint32 FlattenedSize() const {return 4*sizeof(float);}
+   static uint32 FlattenedSize() {return 4*sizeof(float);}
 
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
    uint32 CalculateChecksum() const {return CalculateChecksumForFloat(left()) + (3*CalculateChecksumForFloat(top())) + (5*CalculateChecksumForFloat(right())) + (7*CalculateChecksumForFloat(bottom()));}
 
-   /** @copydoc DoxyTemplate::Flatten(uint8 *) const */
-   void Flatten(uint8 * buffer) const
+   /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
+   void Flatten(uint8 * buffer, uint32 /*flatSize*/) const
    {
       muscleCopyOut(&buffer[0*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(left()));
       muscleCopyOut(&buffer[1*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(top()));

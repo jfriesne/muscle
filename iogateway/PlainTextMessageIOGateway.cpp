@@ -38,8 +38,8 @@ DoOutputImplementation(uint32 maxBytes)
             uint8 * b = outBuf()->GetBuffer();
             for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++)
             {
-               nextStr->Flatten(b);   b += nextStr->Length();   // Advance by Length() instead of FlattenedSize()
-               _eolString.Flatten(b); b += _eolString.Length(); // to avoid NUL bytes inside our outBuf
+               nextStr->Flatten(  b, nextStr->FlattenedSize());   b += nextStr->Length();   // Advance by Length() instead of FlattenedSize()
+               _eolString.Flatten(b, _eolString.FlattenedSize()); b += _eolString.Length(); // to avoid NUL bytes inside our outBuf
             }
 
             const uint8 * outBytes      = outBuf()->GetBuffer();

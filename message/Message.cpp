@@ -167,7 +167,7 @@ public:
    TagDataArray() {/* empty */}
    virtual ~TagDataArray() {/* empty */}
 
-   virtual void Flatten(uint8 *, uint32) const
+   virtual void Flatten(uint8 *, uint32, uint32) const
    {
       MCRASH("Message::TagDataArray:Flatten()  This method should never be called!");
    }
@@ -224,12 +224,12 @@ public:
       // empty
    }
 
-   virtual void Flatten(uint8 * buffer, uint32 maxItemsToFlatten) const
+   virtual void Flatten(uint8 * buffer, uint32 /*flatSize*/, uint32 maxItemsToFlatten) const
    {
       const uint32 numItems = muscleMin(this->_data.GetNumItems(), maxItemsToFlatten);
       for (uint32 i=0; i<numItems; i++)
       {
-         this->_data[i].Flatten(buffer);
+         this->_data[i].Flatten(buffer, FlatItemSize);
          buffer += FlatItemSize;
       }
    }
@@ -287,7 +287,7 @@ public:
    PrimitiveTypeDataArray() {/* empty */}
    virtual ~PrimitiveTypeDataArray() {/* empty */}
 
-   virtual void Flatten(uint8 * buffer, uint32 maxItemsToFlatten) const
+   virtual void Flatten(uint8 * buffer, uint32 /*flatSize*/, uint32 maxItemsToFlatten) const
    {
       DataType * dBuf = reinterpret_cast<DataType *>(buffer);
       const uint32 numItems = muscleMin(this->_data.GetNumItems(), maxItemsToFlatten);
@@ -458,7 +458,7 @@ public:
 
    virtual AbstractDataArrayRef Clone() const;
 
-   virtual void Flatten(uint8 * buffer, uint32 maxItemsToFlatten) const
+   virtual void Flatten(uint8 * buffer, uint32 /*flatSize*/, uint32 maxItemsToFlatten) const
    {
       const uint32 numItems = muscleMin(_data.GetNumItems(), maxItemsToFlatten);
       for (uint32 i=0; i<numItems; i++) buffer[i] = (uint8) (_data[i] ? 1 : 0);
@@ -732,7 +732,7 @@ public:
      */
    virtual bool ShouldWriteNumItems() const {return true;}
 
-   virtual void Flatten(uint8 * buffer, uint32 maxItemsToFlatten) const
+   virtual void Flatten(uint8 * buffer, uint32 /*flatSize*/, uint32 maxItemsToFlatten) const
    {
       uint32 writeOffset = 0;
       const uint32 numItems = muscleMin(this->_data.GetNumItems(), maxItemsToFlatten);
@@ -752,7 +752,7 @@ public:
             const uint32 fs = next->FlattenedSize();
             const uint32 writeFs = B_HOST_TO_LENDIAN_INT32(fs);
             this->WriteData(buffer, &writeOffset, &writeFs, sizeof(writeFs));
-            next->Flatten(&buffer[writeOffset]);
+            next->Flatten(&buffer[writeOffset], fs);
             writeOffset += fs;
          }
       }
@@ -838,10 +838,11 @@ public:
       ByteBuffer * bb = dynamic_cast<ByteBuffer *>(fc);
       if ((bb == NULL)&&(fc))
       {
-         temp.SetNumBytes(fc->FlattenedSize(), false);
+         const uint32 flatSize = fc->FlattenedSize();
+         temp.SetNumBytes(flatSize, false);
          if (temp())
          {
-            fc->Flatten((uint8*)temp());
+            fc->Flatten((uint8*)temp(), flatSize);
             bb = &temp;
          }
       }
@@ -1023,7 +1024,7 @@ public:
    virtual uint32 GetItemSize(uint32 index) const {return this->ItemAt(index).FlattenedSize();}
    virtual bool ElementsAreFixedSize() const {return false;}
 
-   virtual void Flatten(uint8 * buffer, uint32 maxItemsToFlatten) const
+   virtual void Flatten(uint8 * buffer, uint32 /*flatSize*/, uint32 maxItemsToFlatten) const
    {
       // Format:  0. number of entries (4 bytes)
       //          1. entry size in bytes (4 bytes)
@@ -1044,7 +1045,7 @@ public:
          this->WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
 
          // write element data
-         s.Flatten(&buffer[writeOffset]);
+         s.Flatten(&buffer[writeOffset], nextElementBytes);
          writeOffset += nextElementBytes;
       }
    }
@@ -1357,7 +1358,7 @@ uint32 Message :: CalculateChecksum(bool countNonFlattenableFields) const
    return ret;
 }
 
-void Message :: Flatten(uint8 * buffer) const
+void Message :: Flatten(uint8 * buffer, uint32 flatSize) const
 {
    TCHECKPOINT;
 
@@ -1399,7 +1400,7 @@ void Message :: Flatten(uint8 * buffer) const
          WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
 
          // Write entry name
-         it.GetKey().Flatten(&buffer[writeOffset]);
+         it.GetKey().Flatten(&buffer[writeOffset], keyNameSize);
          writeOffset += keyNameSize;
 
          // Write entry type code
@@ -1412,7 +1413,7 @@ void Message :: Flatten(uint8 * buffer) const
          WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
 
          // Write entry data
-         mf.Flatten(&buffer[writeOffset], MUSCLE_NO_LIMIT);
+         mf.Flatten(&buffer[writeOffset], flatSize, MUSCLE_NO_LIMIT);
          writeOffset += dataSize;
       }
    }
@@ -2477,25 +2478,24 @@ void MessageField :: SingleFlatten(uint8 *buffer) const
       {
          const Message * msg = dynamic_cast<Message *>(GetInlineItemAsRefCountableRef()());
          // Note:  No number-of-items field is written, for historical reasons
-         const uint32 leMsgSize = B_HOST_TO_LENDIAN_INT32(msg->FlattenedSize());
-         muscleCopyOut(buffer, leMsgSize); buffer += sizeof(uint32);
-         msg->Flatten(buffer);
+         const uint32 flatSize = msg->FlattenedSize();
+         muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(flatSize)); buffer += sizeof(uint32);
+         msg->Flatten(buffer, flatSize);
       }
       break;
 
       case B_POINTER_TYPE: /* do nothing */ break;
-      case B_POINT_TYPE:   GetInlineItemAsPoint().Flatten(buffer); break;
-      case B_RECT_TYPE:    GetInlineItemAsRect().Flatten(buffer);  break;
+      case B_POINT_TYPE:   GetInlineItemAsPoint().Flatten(buffer, Point::FlattenedSize()); break;
+      case B_RECT_TYPE:    GetInlineItemAsRect().Flatten( buffer,  Rect::FlattenedSize()); break;
 
       case B_STRING_TYPE:
       {
-         const uint32 leItemCount = B_HOST_TO_LENDIAN_INT32(1);  // because we have one string to write
-         muscleCopyOut(buffer, leItemCount); buffer += sizeof(uint32);
+         muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(1)); buffer += sizeof(uint32);  // because we have one string to write
 
          const String & s = GetInlineItemAsString();
-         const uint32 leFlatSize = B_HOST_TO_LENDIAN_INT32(s.FlattenedSize());
-         muscleCopyOut(buffer, leFlatSize);  buffer += sizeof(uint32);
-         s.Flatten(buffer);
+         const uint32 flatSize = s.FlattenedSize();
+         muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(flatSize)); buffer += sizeof(uint32);
+         s.Flatten(buffer, flatSize);
       }
       break;
 
@@ -2504,14 +2504,13 @@ void MessageField :: SingleFlatten(uint8 *buffer) const
       default:
       {
          // all other types will follow the variable-sized-objects-field convention
-         const uint32 leItemCount = B_HOST_TO_LENDIAN_INT32(1);  // because we have one variable-sized-object to write
-         muscleCopyOut(buffer, leItemCount); buffer += sizeof(uint32);
+         muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(1)); buffer += sizeof(uint32); // because we have one variable-sized-object to write
 
          const FlatCountable * fc = dynamic_cast<const FlatCountable *>(GetInlineItemAsRefCountableRef()());
-         const uint32 leFlatSize = B_HOST_TO_LENDIAN_INT32(fc ? fc->FlattenedSize() : 0);
-         muscleCopyOut(buffer, leFlatSize); buffer += sizeof(uint32);
+         const uint32 flatSize = fc ? fc->FlattenedSize() : 0;
+         muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(flatSize)); buffer += sizeof(uint32);
 
-         if (fc) fc->Flatten(buffer);
+         if (fc) fc->Flatten(buffer, flatSize);
       }
       break;
    }
@@ -3244,7 +3243,7 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
    {
       if (optPayloadField)
       {
-         if (numItemsInPayloadField >= numItemsInTemplateField) optPayloadField->Flatten(buf, numItemsInTemplateField);
+         if (numItemsInPayloadField >= numItemsInTemplateField) optPayloadField->Flatten(buf, optPayloadField->FlattenedSize(), numItemsInTemplateField);
          else
          {
             // In this case the payload-field has fewer values than the template-field, and therefore
@@ -3278,10 +3277,11 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
             }
             else LogTime(MUSCLE_LOG_ERROR, "TemplatedFlatten:  EnsurePrivate() failed! [%s]\n", ret());
 
-            (ret.IsOK() ? &synthField : this)->Flatten(buf, MUSCLE_NO_LIMIT);
+            const MessageField * mf = (ret.IsOK() ? &synthField : this);
+            mf->Flatten(buf, mf->FlattenedSize(), MUSCLE_NO_LIMIT);
          }
       }
-      else Flatten(buf, MUSCLE_NO_LIMIT);  // no payload field means we'll be flattening entirely from the template-Message's field-data
+      else Flatten(buf, FlattenedSize(), MUSCLE_NO_LIMIT);  // no payload field means we'll be flattening entirely from the template-Message's field-data
 
       buf += TemplatedFlattenedSize(optPayloadField);  // advance the pointer for the next call
    }

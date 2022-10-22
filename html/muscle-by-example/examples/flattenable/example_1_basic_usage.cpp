@@ -57,9 +57,9 @@ public:
       return sizeof(_latitude) + sizeof(_longitude) + sizeof(_altitude);
    }
 
-   virtual void Flatten(uint8 *buffer) const
+   virtual void Flatten(uint8 *buffer, uint32 flatSize) const
    {
-      DataFlattener flat(buffer, MUSCLE_NO_LIMIT);
+      DataFlattener flat(buffer, flatSize);
       flat.WriteFloat(_latitude);
       flat.WriteFloat(_longitude);
       flat.WriteFloat(_altitude);
@@ -97,7 +97,7 @@ int main(int argc, char ** argv)
 
    // now let's Flatten() the object into a flat-sized buffer
    uint8 tempBuf[128];  // 128 bytes ought to be enough for anyone
-   gps.Flatten(tempBuf);
+   gps.Flatten(tempBuf, gps.FlattenedSize());
 
    printf("\n");
    printf("Flattened representation is:\n");

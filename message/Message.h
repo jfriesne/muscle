@@ -337,8 +337,9 @@ public:
     *  Converts this Message into a flattened buffer of bytes that can be saved to disk
     *  or sent over a network, and later converted back into an identical Message object.
     *  @param buffer The byte buffer to store the Message into.  It must be FlattenedSize() bytes long.
+    *  @param flatSize the value returned by our FlattenedSize() method, for convenience.
     */
-   virtual void Flatten(uint8 *buffer) const;
+   virtual void Flatten(uint8 *buffer, uint32 flatSize) const;
 
    /**
     *  Convert the given byte buffer back into a Message.  Any previous contents of

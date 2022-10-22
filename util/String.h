@@ -1034,10 +1034,11 @@ public:
    /** Part of the Flattenable pseudo-interface.  Flattens our string into (buffer).
     *  @param buffer A byte array to receive the flattened version of this string.
     *                There must be at least FlattenedSize() bytes available in this array.
+    *  @param flatSize the value returned by our FlattenedSize() method, for convenience.
     *  @note The clever secret here is that a flattened String is just a C-style
     *        zero-terminated char array, and can be used interchangably as such.
     */
-   void Flatten(uint8 *buffer) const {memcpy((char *)buffer, Cstr(), FlattenedSize());}
+   void Flatten(uint8 *buffer, uint32 flatSize) const {memcpy((char *)buffer, Cstr(), flatSize);}
 
    /** Unflattens a String from (buf).
     *  @param buf an array of (size) bytes.

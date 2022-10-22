@@ -51,9 +51,9 @@ public:
              sizeof(_zipCode);
    }
 
-   virtual void Flatten(uint8 *buffer) const
+   virtual void Flatten(uint8 * buffer, uint32 flatSize) const
    {
-      DataFlattener flat(buffer, MUSCLE_NO_LIMIT);
+      DataFlattener flat(buffer, flatSize);
       flat.WriteString(_name);
       flat.WriteString(_address);
       flat.WriteString(_city);
@@ -114,8 +114,9 @@ int main(int argc, char ** argv)
    orderPizzaMsg.PrintToStream();
 
    // Now let's flatten the Message into a ByteBuffer and see what it looks like as flattened data
-   ByteBuffer buf(orderPizzaMsg.FlattenedSize());
-   orderPizzaMsg.Flatten(buf.GetBuffer());
+   const uint32 opmFlatSize = orderPizzaMsg.FlattenedSize();
+   ByteBuffer buf(opmFlatSize);
+   orderPizzaMsg.Flatten(buf.GetBuffer(), opmFlatSize);
 
    printf("\n");
    printf("In Flattened/serialized form, the data looks like this:\n");

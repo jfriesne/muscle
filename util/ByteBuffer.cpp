@@ -123,9 +123,9 @@ status_t ByteBuffer :: FreeExtraBytes()
 /** Overridden to set our buffer directly from (copyFrom)'s Flatten() method */
 status_t ByteBuffer :: CopyFromImplementation(const Flattenable & copyFrom)
 {
-   const uint32 numBytes = copyFrom.FlattenedSize();
-   MRETURN_ON_ERROR(SetNumBytes(numBytes, false));
-   copyFrom.Flatten(_buffer);
+   const uint32 flatSize = copyFrom.FlattenedSize();
+   MRETURN_ON_ERROR(SetNumBytes(flatSize, false));
+   copyFrom.Flatten(_buffer, flatSize);
    return B_NO_ERROR;
 }
 
@@ -211,15 +211,17 @@ ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, SeekableDataI
 
 Ref<ByteBuffer> Flattenable :: FlattenToByteBuffer() const
 {
-   ByteBufferRef bufRef = GetByteBufferFromPool(FlattenedSize());
-   if (bufRef()) Flatten(bufRef()->GetBuffer());
+   const uint32 flatSize = FlattenedSize();
+   ByteBufferRef bufRef = GetByteBufferFromPool(flatSize);
+   if (bufRef()) Flatten(bufRef()->GetBuffer(), flatSize);
    return bufRef;
 }
 
 status_t Flattenable :: FlattenToByteBuffer(ByteBuffer & outBuf) const
 {
-   MRETURN_ON_ERROR(outBuf.SetNumBytes(FlattenedSize(), false));
-   Flatten(outBuf.GetBuffer());
+   const uint32 flatSize = FlattenedSize();
+   MRETURN_ON_ERROR(outBuf.SetNumBytes(flatSize, false));
+   Flatten(outBuf.GetBuffer(), flatSize);
    return B_NO_ERROR;
 }
 

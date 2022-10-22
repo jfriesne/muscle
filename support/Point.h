@@ -94,13 +94,13 @@ public:
    bool AllowsTypeCode(uint32 tc) const {return (TypeCode()==tc);}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns 2*sizeof(float) */
-   uint32 FlattenedSize() const {return 2*sizeof(float);}
+   static uint32 FlattenedSize() {return 2*sizeof(float);}
 
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
    uint32 CalculateChecksum() const {return CalculateChecksumForFloat(x()) + (3*CalculateChecksumForFloat(y()));}
 
-   /** @copydoc DoxyTemplate::Flatten(uint8 *) const */
-   void Flatten(uint8 * buffer) const
+   /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
+   void Flatten(uint8 * buffer, uint32 /*flatSize*/) const
    {
       muscleCopyOut(&buffer[0*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(x()));
       muscleCopyOut(&buffer[1*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(y()));

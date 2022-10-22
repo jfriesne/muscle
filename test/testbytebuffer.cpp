@@ -22,9 +22,9 @@ public:
    virtual uint32 TypeCode()      const {return 0;}
    virtual uint32 FlattenedSize() const {return _s1.FlattenedSize() + sizeof(_v1) + sizeof(_v2);}
 
-   virtual void Flatten(uint8 * buffer) const
+   virtual void Flatten(uint8 * buffer, uint32 flatSize) const
    {
-      DataFlattener h(buffer, MUSCLE_NO_LIMIT);
+      DataFlattener h(buffer, flatSize);
       h.WriteString(_s1);
       h.WriteInt32(_v1);
       h.WriteFloat(_v2);
@@ -54,7 +54,7 @@ template<class EndianEncoder> status_t TestHelpers()
 
    // Write out some POD data into (buf)
    {
-      DataFlattenerHelper<EndianEncoder> bfh(buf, sizeof(buf));
+      DataFlattenerHelper<EndianEncoder> bfh(buf, sizeof(buf), false);
       bfh.WriteInt8(0x01);
       bfh.WriteInt16(0x0405);
       bfh.WriteInt32(0x0708090a);

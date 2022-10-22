@@ -39,9 +39,9 @@ public:
    virtual uint32 TypeCode() const {return 123456;}
    virtual uint32 FlattenedSize() const {return sizeof(_val)+_string.FlattenedSize();}
 
-   virtual void Flatten(uint8 *buffer) const
+   virtual void Flatten(uint8 *buffer, uint32 flatSize) const
    {
-      DataFlattener flat(buffer, MUSCLE_NO_LIMIT);
+      DataFlattener flat(buffer, flatSize);
       flat.WriteInt32(_val);
       flat.WriteString(_string);
    }
@@ -387,7 +387,7 @@ int main(int, char **)
    uint8 * buf = new uint8[flatSize*10];
    {for (uint32 i=flatSize; i<flatSize*10; i++) buf[i] = 'J';}
 
-   msg.Flatten(buf);
+   msg.Flatten(buf, flatSize);
 
    {for (uint32 i=flatSize; i<flatSize*10; i++) if (buf[i] != 'J') printf("OVERWRITE ON BYTE " UINT32_FORMAT_SPEC "\n",i);}
    printf("\n====\n");

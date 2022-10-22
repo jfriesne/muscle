@@ -120,6 +120,26 @@ public:
 ///@}
 };
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+
+/** This class is an implementation detail for the DataUnflattener class; you can ignore it */
+class RealSizeChecker
+{
+public:
+   RealSizeChecker() {/* empty */}
+   bool IsSizeOkay(uint32 numBytes, uint32 numBytesAvailable) const {return (numBytes <= numBytesAvailable);}
+};
+
+/** This class is an implementation detail for the DataUnflattener class; you can ignore it */
+class DummySizeChecker
+{
+public:
+   DummySizeChecker() {/* empty */}
+   bool IsSizeOkay(uint32 /*numBytes*/, uint32 /*numBytesAvailable*/) const {return true;}
+};
+
+#endif
+
 } // end namespace muscle
 
 #endif

@@ -181,7 +181,7 @@ int main(int, char **)
    ByteBufferRef bufRef = GetByteBufferFromPool(m.FlattenedSize());
    uint8 * mPtr = bufRef()->GetBuffer();
    const uint32 mFlatSize = bufRef()->GetNumBytes();
-   m.Flatten(mPtr);
+   m.Flatten(mPtr, mFlatSize);
    printf("\n---------------------------------Msg:\n");
    PrintHexBytes(mPtr, mFlatSize);
 

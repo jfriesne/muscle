@@ -21,28 +21,27 @@ public:
    /** Constructs a DataFlattener that will write up to the specified number of bytes into (writeTo)
      * @param writeTo The buffer to write bytes into.  Caller must guarantee that this pointer remains valid when any methods on this class are called.
      * @param maxBytes How many bytes of writable buffer space (writeTo) is pointing to
+     * @param requireAllBytesToBeWritten if set to true, then it will be considered a programming error if all bytes in our buffer have not been
+     *                                   consumed when this object is destroyed.  Defaults to true.
      */
-   DataFlattenerHelper(uint8 * writeTo, uint32 maxBytes) {SetBuffer(writeTo, maxBytes);}
+   DataFlattenerHelper(uint8 * writeTo, uint32 maxBytes, bool requireAllBytesToBeWritten = true) {SetBuffer(writeTo, maxBytes, requireAllBytesToBeWritten);}
 
-   /** This destructor will crash the program with a diagnostic log-print, if it detects that we wrote past the end of our buffer */
-   ~DataFlattenerHelper()
-   {
-      const uint32 nbw = GetNumBytesWritten();
-      if (nbw > _maxBytes)
-      {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  " UINT32_FORMAT_SPEC " bytes were written into a buffer that only had space for " UINT32_FORMAT_SPEC " bytes!\n", this, nbw, _maxBytes);
-         MCRASH("DataFlattenerHelper detected buffer-write overflow");
-      }
-   }
+   /** This destructor will crash the program with a diagnostic log-print, if it detects that we wrote past the end of our buffer.
+     * If (requireAllBytesToBeWritten) mode is enabled, it will also crash if it detects any bytes that were left un-written.
+     * @note these sanity checks are disabled if compiled with -DMUSCLE_AVOID_ASSERTIONS
+     */
+   ~DataFlattenerHelper();
 
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero maximum-byte-count */
-   void Reset() {SetBuffer(NULL);}
+   void Reset() {SetBuffer(NULL, 0, false);}
 
    /** Set a new raw array to write to (same as what we do in the constructor, except this updates an existing DataFlattenerHelper object)
      * @param writeTo the new buffer to point to and write to in future Write*() method-calls.
      * @param maxBytes How many bytes of writable buffer space (writeTo) is pointing to
+     * @param requireAllBytesToBeWritten if set to true, then it will be considered a programming error if all bytes in our buffer
+     *                                   have not been consumed when this object is destroyed.
      */
-   void SetBuffer(uint8 * writeTo, uint32 maxBytes) {_writeTo = _origWriteTo = writeTo; _maxBytes = maxBytes;}
+   void SetBuffer(uint8 * writeTo, uint32 maxBytes, bool requireAllBytesToBeWritten) {_writeTo = _origWriteTo = writeTo; _maxBytes = maxBytes; _requireAllBytesToBeWritten = requireAllBytesToBeWritten;}
 
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
    uint8 * GetBuffer() const {return _origWriteTo;}
@@ -109,6 +108,20 @@ public:
      *       data with no length-prefix, since the object's flattened-size is considered well-known.
      */
    template<typename T> void WriteFlat(const T & val) {WriteFlats<T>(&val, 1);}
+
+   /** Convenience method:  writes the given 32-bit value, followed by the flattened bytes of (val)
+     * @param val the Flattenable or PseudoFlattenable object to flatten out
+     * @param flatSize the 4-byte value to write before (val)'s bytes.  Should be set to the value
+     *                 returned by val.FlattenedSize(); or if left at the default MUSCLE_NO_LIMIT value,
+     *                 this method will call val.FlattenedSize() for you to find the value to use.
+     */
+   template<typename T> void WriteFlatWithLengthPrefix(const T & val, uint32 flatSize = MUSCLE_NO_LIMIT)
+   {
+      if (flatSize == MUSCLE_NO_LIMIT) flatSize = val.FlattenedSize();
+      WriteInt32(flatSize);
+      val.Flatten(GetCurrentWritePointer(), flatSize);
+      Advance(flatSize);
+   }
 
    /** Same as WriteFlat(), but this method will never write out a 4-byte length-prefix, even
      * if (val.IsFixedSize()) returns false.  It will be up to the future reader of the serialized
@@ -182,6 +195,7 @@ public:
       }
    }
 
+// TODO Get rid of this?  Because there isn't really a 1:1 relationship between fixed-size and wanting a length-prefix
    template<typename T> void WriteFlats(const T * vals, uint32 numVals)
    {
       if (numVals == 0) return;
@@ -197,7 +211,7 @@ public:
      */
    status_t SeekTo(uint32 offset)
    {
-      if (offset > _maxBytes) return B_BAD_ARGUMENT;
+      if ((offset == MUSCLE_NO_LIMIT)||(offset > _maxBytes)) return B_BAD_ARGUMENT;
       _writeTo = _origWriteTo+offset;
       return B_NO_ERROR;
    }
@@ -212,6 +226,11 @@ public:
       return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesWritten()+numBytes) : B_BAD_ARGUMENT;
    }
 
+   /** Moves the pointer to the end of our buffer
+     * @returns B_NO_ERROR on success, or B_BAD_OBJECT on failure because we don't know how big our buffer is
+     */
+   status_t SeekToEnd() {return SeekTo(_maxBytes);}
+
 private:
    const EndianEncoder _encoder;
 
@@ -222,26 +241,12 @@ private:
 
    template<typename T> void WriteFlatsAux(const T * vals, uint32 numVals, bool includeLengthPrefix)
    {
-      if (includeLengthPrefix)
+      for (uint32 i=0; i<numVals; i++)
       {
-         for (uint32 i=0; i<numVals; i++)
-         {
-            const uint32 flatSize = vals[i].FlattenedSize();
-            _encoder.ExportInt32(flatSize, _writeTo);
-            _writeTo += sizeof(flatSize);
-
-            vals[i].Flatten(_writeTo);
-            _writeTo += flatSize;
-         }
-      }
-      else
-      {
-         const uint32 flatSize = vals[0].FlattenedSize();
-         for (uint32 i=0; i<numVals; i++)
-         {
-            vals[i].Flatten(_writeTo);
-            _writeTo += flatSize;
-         }
+         const uint32 flatSize = vals[i].FlattenedSize();
+         if (includeLengthPrefix) WriteInt32(flatSize);
+         vals[i].Flatten(_writeTo, flatSize);
+         Advance(flatSize);
       }
    }
 
@@ -250,7 +255,28 @@ private:
    uint8 * _writeTo;     // pointer to our output buffer
    uint8 * _origWriteTo; // the pointer the user passed in
    uint32 _maxBytes;     // for sanity checking
+   bool _requireAllBytesToBeWritten;  // if true, we'll crash in our destructor if there are still bytes unwritten
 };
+
+template<class EndianEncoder> DataFlattenerHelper<EndianEncoder> :: ~DataFlattenerHelper()
+{
+#ifndef MUSCLE_AVOID_ASSERTIONS
+   if (_maxBytes != MUSCLE_NO_LIMIT)
+   {
+      const uint32 nbw = GetNumBytesWritten();
+      if (nbw > _maxBytes)
+      {
+         LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  " UINT32_FORMAT_SPEC " bytes were written into a buffer that only had space for " UINT32_FORMAT_SPEC " bytes!\n", this, nbw, _maxBytes);
+         MCRASH("DataFlattenerHelper detected buffer-write overflow");
+      }
+      else if ((nbw < _maxBytes)&&(_requireAllBytesToBeWritten))
+      {
+         LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  Only " UINT32_FORMAT_SPEC " bytes were written to a buffer that had space for " UINT32_FORMAT_SPEC " bytes, leaving " UINT32_FORMAT_SPEC " bytes uninitialized!\n", this, nbw, _maxBytes, GetNumBytesAvailable());
+         MCRASH("DataFlattenerHelper detected incomplete buffer-write");
+      }
+   }
+#endif
+}
 
 typedef DataFlattenerHelper<LittleEndianEncoder> LittleEndianDataFlattener;  /**< this flattener-type flattens to little-endian-format data */
 typedef DataFlattenerHelper<BigEndianEncoder>    BigEndianDataFlattener;     /**< this flattener-type flattens to big-endian-format data */
@@ -414,6 +440,23 @@ public:
      */
    template<typename T> status_t WriteFlat(const T & val) {return WriteFlats<T>(&val, 1);}
 
+   /** Convenience method:  writes the given 32-bit value, followed by the flattened bytes of (val)
+     * @param val the Flattenable or PseudoFlattenable object to flatten out
+     * @param flatSize the 4-byte value to write before (val)'s bytes.  Should be set to the value
+     *                 returned by val.FlattenedSize(); or if left at the default MUSCLE_NO_LIMIT value,
+     *                 this method will call val.FlattenedSize() for you to find the value to use.
+     * @returns B_NO_ERROR on success, or an error code on failure.
+     */
+   template<typename T> status_t WriteFlatWithLengthPrefix(const T & val, uint32 flatSize = MUSCLE_NO_LIMIT)
+   {
+      if (flatSize == MUSCLE_NO_LIMIT) flatSize = val.FlattenedSize();
+      MRETURN_ON_ERROR(SizeCheck(sizeof(flatSize)+flatSize));
+
+      MRETURN_ON_ERROR(WriteInt32(flatSize));
+      val.Flatten(GetCurrentWritePointer(), flatSize);
+      return Advance(flatSize);
+   }
+
    /** Same as WriteFlat(), but this method will never write out a 4-byte length-prefix, even
      * if (val.IsFixedSize()) returns false.  It will be up to the future reader of the serialized
      * bytes to figure out how many bytes correspond to this object, by some other means.
@@ -561,6 +604,11 @@ public:
       return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesWritten()+numBytes) : B_BAD_ARGUMENT;
    }
 
+   /** Moves the pointer to the end of our buffer
+     * @returns B_NO_ERROR on success, or B_BAD_OBJECT on failure because we don't know how big our buffer is
+     */
+   status_t SeekToEnd() {return SeekTo(_maxBytes);}
+
 private:
    const EndianEncoder _encoder;
 
@@ -616,7 +664,7 @@ private:
             _encoder.ExportInt32(flatSize, _writeTo);
             _writeTo += sizeof(flatSize);
 
-            vals[i].Flatten(_writeTo);
+            vals[i].Flatten(_writeTo, flatSize);
             _writeTo += flatSize;
          }
          ReduceBytesLeftBy(numBytes);
@@ -630,7 +678,7 @@ private:
 
          for (uint32 i=0; i<numVals; i++)
          {
-            vals[i].Flatten(_writeTo);
+            vals[i].Flatten(_writeTo, flatSize);
             _writeTo += flatSize;
          }
          ReduceBytesLeftBy(numBytes);

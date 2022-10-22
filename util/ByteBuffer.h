@@ -205,7 +205,7 @@ public:
    virtual bool IsFixedSize() const {return false;}
    virtual uint32 TypeCode() const {return B_RAW_TYPE;}
    virtual uint32 FlattenedSize() const {return _numValidBytes;}
-   virtual void Flatten(uint8 *buffer) const {memcpy(buffer, _buffer, _numValidBytes);}
+   virtual void Flatten(uint8 * buffer, uint32 flatSize) const {memcpy(buffer, _buffer, flatSize);}
    virtual bool AllowsTypeCode(uint32 tc) const {(void) tc; return true;}
    virtual status_t Unflatten(const uint8 *buffer, uint32 size) {return SetBuffer(size, buffer);}
 
@@ -291,7 +291,7 @@ template <class T> inline ByteBufferRef GetFlattenedByteBufferFromPool(const T &
 template <class T> inline ByteBufferRef GetFlattenedByteBufferFromPool(ObjectPool<ByteBuffer> & pool, const T & flattenMe)
 {
    ByteBufferRef bufRef = GetByteBufferFromPool(pool, flattenMe.FlattenedSize());
-   if (bufRef()) flattenMe.Flatten(bufRef()->GetBuffer());
+   if (bufRef()) flattenMe.Flatten(bufRef()->GetBuffer(), bufRef()->GetNumBytes());
    return bufRef;
 }
 

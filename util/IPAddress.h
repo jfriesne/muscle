@@ -186,8 +186,8 @@ public:
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
    uint32 CalculateChecksum() const;
 
-   /** @copydoc DoxyTemplate::Flatten(uint8 *) const */
-   void Flatten(uint8 * buffer) const;
+   /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
+   void Flatten(uint8 * buffer, uint32 flatSize) const;
 
    /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
    status_t Unflatten(const uint8 * buffer, uint32 size);
@@ -435,8 +435,9 @@ public:
 
    /** Copies this point into an endian-neutral flattened buffer.
     *  @param buffer Points to an array of at least FlattenedSize() bytes.
+    *  @param flatSize the value tha was just returned from our FlattenedSize() method, for convenience.
     */
-   void Flatten(uint8 * buffer) const;
+   void Flatten(uint8 * buffer, uint32 flatSize) const;
 
    /** Restores this point from an endian-neutral flattened buffer.
     *  @param buffer Points to an array of (size) bytes

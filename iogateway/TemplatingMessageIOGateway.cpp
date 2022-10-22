@@ -53,7 +53,8 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
    }
 
    const uint32 hs = GetHeaderSize();
-   ByteBufferRef retBuf = GetByteBufferFromPool(hs+(templateMsgRef ? (sizeof(uint64)+msgRef()->TemplatedFlattenedSize(*templateMsgRef->GetItemPointer())) : (isMessageTrivial ? sizeof(uint32) : msgRef()->FlattenedSize())));
+   uint32 msgFlatSize = 0;  // demand-calculated
+   ByteBufferRef retBuf = GetByteBufferFromPool(hs+(templateMsgRef ? (sizeof(uint64)+msgRef()->TemplatedFlattenedSize(*templateMsgRef->GetItemPointer())) : (isMessageTrivial ? sizeof(uint32) : (msgFlatSize=msgRef()->FlattenedSize()))));
    if (retBuf())
    {
       uint8 * bodyPtr = retBuf()->GetBuffer()+hs;
@@ -63,7 +64,7 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
          msgRef()->TemplatedFlatten(*templateMsgRef->GetItemPointer(), bodyPtr+sizeof(uint64));  // the new payload-only format
       }
       else if (isMessageTrivial) muscleCopyOut(bodyPtr, B_HOST_TO_LENDIAN_INT32(msgRef()->what));  // special-case for what-code-only Messages
-      else                       msgRef()->Flatten(bodyPtr);  // the old full-freight MessageIOGateway-style format
+      else                       msgRef()->Flatten(bodyPtr, msgFlatSize);  // the old full-freight MessageIOGateway-style format (msgFlatSize will be set non-negative if we got here)
 
       int32 encoding = MUSCLE_MESSAGE_ENCODING_DEFAULT;
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING

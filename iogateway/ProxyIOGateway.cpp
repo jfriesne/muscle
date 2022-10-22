@@ -97,11 +97,15 @@ void ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
 
       _slaveGateway()->SetDataIO(oldIO);  // restore slave gateway's old state
    }
-   else if (_fakeStreamSendBuffer.SetNumBytes(msg()->FlattenedSize(), false).IsOK())
+   else
    {
-      // Default algorithm:  Just Flatten() the Message directly into a buffer
-      msg()->Flatten(_fakeStreamSendBuffer.GetBuffer());
-      (void) outQ.AddTail(DummyByteBufferRef(_fakeStreamSendBuffer));
+      const uint32 msgFlatSize = msg()->FlattenedSize();
+      if (_fakeStreamSendBuffer.SetNumBytes(msgFlatSize, false).IsOK())
+      {
+         // Default algorithm:  Just Flatten() the Message directly into a buffer
+         msg()->Flatten(_fakeStreamSendBuffer.GetBuffer(), msgFlatSize);
+         (void) outQ.AddTail(DummyByteBufferRef(_fakeStreamSendBuffer));
+      }
    }
 }
 

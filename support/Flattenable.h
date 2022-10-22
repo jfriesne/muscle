@@ -34,8 +34,8 @@ public:
    /** @copydoc DoxyTemplate::FlattenedSize() const */
    virtual uint32 FlattenedSize() const = 0;
 
-   /** @copydoc DoxyTemplate::Flatten(uint8 *) const */
-   virtual void Flatten(uint8 *buffer) const = 0;
+   /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
+   virtual void Flatten(uint8 * buffer, uint32 flatSize) const = 0;
 
    /** @copydoc DoxyTemplate::AllowsTypeCode(uint32) const
      * @note base class's default implementation returns true iff (tc) equals either B_RAW_DATA, or the value returned by TypeCode().

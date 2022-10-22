@@ -140,8 +140,9 @@ public:
 
    /** Writes this object's state out to the supplied memory buffer.
     *  @param buffer Must points to an array of at least (FlattenedSize()) bytes.
+    *  @param flatSize the result of a recent call to the object's FlattenedSize() method, for convenience.
     */
-   void Flatten(uint8 * buffer) const;
+   void Flatten(uint8 * buffer, uint32 flatSize) const;
 
    /** Restores this object's state from the data contained in the supplied memory buffer.
     *  @param buffer points to the raw data we should read in this object's state from.

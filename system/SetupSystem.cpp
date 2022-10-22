@@ -1363,9 +1363,9 @@ status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeade
    if (addSizeHeader)
    {
       muscleCopyOut(b, B_HOST_TO_LENDIAN_INT32(fs));
-      Flatten(b+sizeof(uint32));
+      Flatten(b+sizeof(uint32), fs);
    }
-   else Flatten(b);
+   else Flatten(b, fs);
 
    // And finally, write out the buffer
    const status_t ret = (outputStream.WriteFully(b, bufSize) == bufSize) ? B_NO_ERROR : B_IO_ERROR;
@@ -1409,7 +1409,7 @@ status_t Flattenable :: CopyFromImplementation(const Flattenable & copyFrom)
       bigBuf = newnothrow_array(uint8, flatSize);
       MRETURN_OOM_ON_NULL(bigBuf);
    }
-   copyFrom.Flatten(bigBuf ? bigBuf : smallBuf);
+   copyFrom.Flatten(bigBuf ? bigBuf : smallBuf, flatSize);
    const status_t ret = Unflatten(bigBuf ? bigBuf : smallBuf, flatSize);
    delete [] bigBuf;
    return ret;
