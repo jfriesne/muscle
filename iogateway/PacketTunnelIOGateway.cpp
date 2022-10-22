@@ -152,7 +152,7 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          const uint32 sbSize          = _currentOutputBuffers.Head()()->GetNumBytes();
          const uint32 dataBytesToSend = muscleMin(_maxTransferUnit-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
 
-         DataFlattener flat(_outputPacketBuffer.GetBuffer()+_outputPacketSize, _outputPacketBuffer.GetNumBytes()-_outputPacketSize);
+         DataFlattener flat(_outputPacketBuffer.GetBuffer()+_outputPacketSize, _outputPacketBuffer.GetNumBytes()-_outputPacketSize, false);
          flat.WriteInt32(_magic);                      // a well-known magic number, for sanity checking
          flat.WriteInt32(_sexID);                      // source exclusion ID
          flat.WriteInt32(_sendMessageIDCounter);       // message ID tag so the receiver can track what belongs where

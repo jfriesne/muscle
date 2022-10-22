@@ -127,7 +127,7 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 {
    if (_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;  // _outputPacketBuffer.GetNumBytes() should be _maxTransferUnit at all times
 
-   DataFlattener flat(_outputPacketBuffer.GetBuffer(), _outputPacketBuffer.GetNumBytes());
+   DataFlattener flat(_outputPacketBuffer.GetBuffer(), _outputPacketBuffer.GetNumBytes(), false);
    (void) flat.SeekRelative(_outputPacketSize);  // skip past any bytes that are already present in _outputPacketBuffer from previously
 
    uint32 totalBytesWritten = 0;
