@@ -7,6 +7,7 @@
 #include "support/NotCopyable.h"
 #include "support/PseudoFlattenable.h"
 #include "util/ByteBuffer.h"
+#include "util/Queue.h"
 #include "util/String.h"
 
 namespace muscle {
@@ -103,32 +104,13 @@ public:
 
    /** Writes the given Flattenable or PseudoFlattenable object into our buffer
      * @param val the Flattenable or PseudoFlattenable object to write
-     * @note if val.IsFixedSize() returns false, we'll write a 4-byte length-prefix before
-     *       each flattened-object we write.  Otherwise we'll just write the flattened-object
-     *       data with no length-prefix, since the object's flattened-size is considered well-known.
      */
    template<typename T> void WriteFlat(const T & val) {WriteFlats<T>(&val, 1);}
 
-   /** Convenience method:  writes the given 32-bit value, followed by the flattened bytes of (val)
-     * @param val the Flattenable or PseudoFlattenable object to flatten out
-     * @param flatSize the 4-byte value to write before (val)'s bytes.  Should be set to the value
-     *                 returned by val.FlattenedSize(); or if left at the default MUSCLE_NO_LIMIT value,
-     *                 this method will call val.FlattenedSize() for you to find the value to use.
+   /** Convenience method:  writes a 32-bit integer field-size header, followed by the flattened bytes of (val)
+     * @param val the Flattenable or PseudoFlattenable object to Flatten() into our byte-buffer.
      */
-   template<typename T> void WriteFlatWithLengthPrefix(const T & val, uint32 flatSize = MUSCLE_NO_LIMIT)
-   {
-      if (flatSize == MUSCLE_NO_LIMIT) flatSize = val.FlattenedSize();
-      WriteInt32(flatSize);
-      val.Flatten(GetCurrentWritePointer(), flatSize);
-      Advance(flatSize);
-   }
-
-   /** Same as WriteFlat(), but this method will never write out a 4-byte length-prefix, even
-     * if (val.IsFixedSize()) returns false.  It will be up to the future reader of the serialized
-     * bytes to figure out how many bytes correspond to this object, by some other means.
-     * @param val the Flattenable or PseudoFlattenable object to write
-     */
-   template<typename T> void WriteFlatWithoutLengthPrefix(const T & val) {WriteFlatsAux(&val, 1, false);}
+   template<typename T> void WriteFlatWithLengthPrefix(const T & val) {WriteFlatsWithLengthPrefixes(&val, 1);}
 
 ///@{
    /** Convenience methods for writing an array of POD-typed data-items to our buffer.
@@ -185,22 +167,10 @@ public:
       }
    }
 
-   // Gotta implement this separately since WriteFlats() would write out a 4-byte header, which we don't want
-   void WriteStrings(const String * vals, uint32 numVals)
-   {
-      for (uint32 i=0; i<numVals; i++)
-      {
-         const String & s = vals[i];
-         (void) WriteBytes(reinterpret_cast<const uint8 *>(s()), s.FlattenedSize());
-      }
-   }
+   void WriteStrings(const String * vals, uint32 numVals) {WriteFlats(vals, numVals);}
 
-// TODO Get rid of this?  Because there isn't really a 1:1 relationship between fixed-size and wanting a length-prefix
-   template<typename T> void WriteFlats(const T * vals, uint32 numVals)
-   {
-      if (numVals == 0) return;
-      return WriteFlatsAux(vals, numVals, (vals[0].IsFixedSize() == false));
-   }
+   template<typename T> void WriteFlats(                  const T * vals, uint32 numVals) {return WriteFlatsAux(vals, numVals, false);}
+   template<typename T> void WriteFlatsWithLengthPrefixes(const T * vals, uint32 numVals) {return WriteFlatsAux(vals, numVals, true);}
 ///@}
 
    /** Returns a pointer into our buffer at the location we will next write to */
@@ -434,36 +404,13 @@ public:
    /** Writes the given Flattenable or PseudoFlattenable object into our buffer
      * @param val the Flattenable or PseudoFlattenable object to write
      * @returns B_NO_ERROR on success, or an error code on failure.
-     * @note if val.IsFixedSize() returns false, we'll write a 4-byte length-prefix before
-     *       each flattened-object we write.  Otherwise we'll just write the flattened-object
-     *       data with no length-prefix, since the object's flattened-size is considered well-known.
      */
    template<typename T> status_t WriteFlat(const T & val) {return WriteFlats<T>(&val, 1);}
 
-   /** Convenience method:  writes the given 32-bit value, followed by the flattened bytes of (val)
-     * @param val the Flattenable or PseudoFlattenable object to flatten out
-     * @param flatSize the 4-byte value to write before (val)'s bytes.  Should be set to the value
-     *                 returned by val.FlattenedSize(); or if left at the default MUSCLE_NO_LIMIT value,
-     *                 this method will call val.FlattenedSize() for you to find the value to use.
-     * @returns B_NO_ERROR on success, or an error code on failure.
+   /** Convenience method:  writes a 32-bit integer field-size header, followed by the flattened bytes of (val)
+     * @param val the Flattenable or PseudoFlattenable object to Flatten() into our byte-buffer.
      */
-   template<typename T> status_t WriteFlatWithLengthPrefix(const T & val, uint32 flatSize = MUSCLE_NO_LIMIT)
-   {
-      if (flatSize == MUSCLE_NO_LIMIT) flatSize = val.FlattenedSize();
-      MRETURN_ON_ERROR(SizeCheck(sizeof(flatSize)+flatSize));
-
-      MRETURN_ON_ERROR(WriteInt32(flatSize));
-      val.Flatten(GetCurrentWritePointer(), flatSize);
-      return Advance(flatSize);
-   }
-
-   /** Same as WriteFlat(), but this method will never write out a 4-byte length-prefix, even
-     * if (val.IsFixedSize()) returns false.  It will be up to the future reader of the serialized
-     * bytes to figure out how many bytes correspond to this object, by some other means.
-     * @param val the Flattenable or PseudoFlattenable object to write
-     * @returns B_NO_ERROR on success, or an error code on failure.
-     */
-   template<typename T> status_t WriteFlatWithoutLengthPrefix(const T & val) {return WriteFlatsAux(&val, 1, false);}
+   template<typename T> status_t WriteFlatWithLengthPrefix(const T & val) {return WriteFlatsWithLengthPrefixes<T>(&val, 1);}
 
 ///@{
    /** Convenience methods for writing an array of POD-typed data-items to our buffer.
@@ -546,25 +493,40 @@ public:
       return B_NO_ERROR;
    }
 
-   // Gotta implement this separately since WriteFlats() would write out a 4-byte header, which we don't want
-   status_t WriteStrings(const String * vals, uint32 numVals)
+   status_t WriteStrings(const String * vals, uint32 numVals) {return WriteFlats(vals, numVals);}
+
+   template<typename T> status_t WriteFlats(                  const T * vals, uint32 numVals) {return WriteFlatsAux(vals, numVals, false);}
+   template<typename T> status_t WriteFlatsWithLengthPrefixes(const T * vals, uint32 numVals) {return WriteFlatsAux(vals, numVals, true);}
+
+   template<typename T> status_t WriteFlatsAux(const T * vals, uint32 numVals, bool includeLengthPrefix)
    {
-      uint32 numBytes = 0;
-      for (uint32 i=0; i<numVals; i++) numBytes += vals[i].FlattenedSize();
-      MRETURN_ON_ERROR(SizeCheck(numBytes, false));
+      if (numVals == 0) return B_NO_ERROR;  // nothing to do
+
+      uint32 numBytes = includeLengthPrefix ? (numVals*sizeof(uint32)) : 0;
+      const uint32 fixedSizeBytes = vals[0].IsFixedSize() ? vals[0].FlattenedSize() : MUSCLE_NO_LIMIT;
+      Queue<uint32> flatSizes;  // to store the results of all our FlattenedSize() calls so we can reuse them below
+      if (fixedSizeBytes == MUSCLE_NO_LIMIT)
+      {
+         MRETURN_ON_ERROR(flatSizes.EnsureSize(numVals, true));
+         for (uint32 i=0; i<numVals; i++) numBytes += (flatSizes[i] = vals[i].FlattenedSize());
+      }
+      else numBytes += (numVals*fixedSizeBytes);  // if all vals are guaranteed to be the same size then it's easy to compute
+
+      MRETURN_ON_ERROR(SizeCheck(numBytes, true));
 
       for (uint32 i=0; i<numVals; i++)
       {
-         const String & s = vals[i];
-         (void) WriteBytes(reinterpret_cast<const uint8 *>(s()), s.FlattenedSize());  // guaranteed not to fail!
+         const uint32 flatSize = (fixedSizeBytes == MUSCLE_NO_LIMIT) ? flatSizes[i] : fixedSizeBytes;
+         if (includeLengthPrefix)
+         {
+            _encoder.ExportInt32(flatSize, _writeTo);
+            _writeTo += sizeof(flatSize);
+         }
+         vals[i].Flatten(_writeTo, flatSize);
+         _writeTo += flatSize;
       }
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
-   }
-
-   template<typename T> status_t WriteFlats(const T * vals, uint32 numVals)
-   {
-      if (numVals == 0) return B_NO_ERROR; // avoid reading from invalid vals[0] below if the array is zero-length
-      return WriteFlatsAux(vals, numVals, (vals[0].IsFixedSize() == false));
    }
 ///@}
 
@@ -648,42 +610,6 @@ private:
       else if (optBytes) memcpy(_writeTo, optBytes, numBytes);
 
       return B_NO_ERROR;
-   }
-
-   template<typename T> status_t WriteFlatsAux(const T * vals, uint32 numVals, bool includeLengthPrefix)
-   {
-      if (includeLengthPrefix)
-      {
-         uint32 numBytes = (numVals*sizeof(uint32));  // for the flat-size-prefixes
-         for (uint32 i=0; i<numVals; i++) numBytes += vals[i].FlattenedSize();
-         MRETURN_ON_ERROR(SizeCheck(numBytes, true));
-
-         for (uint32 i=0; i<numVals; i++)
-         {
-            const uint32 flatSize = vals[i].FlattenedSize();
-            _encoder.ExportInt32(flatSize, _writeTo);
-            _writeTo += sizeof(flatSize);
-
-            vals[i].Flatten(_writeTo, flatSize);
-            _writeTo += flatSize;
-         }
-         ReduceBytesLeftBy(numBytes);
-         return B_NO_ERROR;
-      }
-      else
-      {
-         const uint32 flatSize = vals[0].FlattenedSize();
-         const uint32 numBytes = flatSize*numVals;
-         MRETURN_ON_ERROR(SizeCheck(numBytes, true));
-
-         for (uint32 i=0; i<numVals; i++)
-         {
-            vals[i].Flatten(_writeTo, flatSize);
-            _writeTo += flatSize;
-         }
-         ReduceBytesLeftBy(numBytes);
-         return B_NO_ERROR;
-      }
    }
 
    status_t Advance(  uint32 numBytes) {_writeTo += numBytes; ReduceBytesLeftBy(numBytes); return B_NO_ERROR;}

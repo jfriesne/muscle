@@ -128,87 +128,48 @@ public:
    }
 
    /** Unflattens and returns a Flattenable or PseudoFlattenable object from data in our buffer
-     * @note if ret.IsFixedSize() returns false, we'll read a 4-byte length-prefix before
-     *       the flattened-object, to know how many bytes to pass to Unflatten().  Otherwise
-     *       we'll just read the flattened-object data with no length-prefix, since the
-     *       object's flattened-size is considered well-known.
+     * @param maxNumBytes how many bytes to pass to retVal's Unflatten() method.
+     *                 If this value is greater than GetNumBytesAvailable(), it will be treated
+     *                 as equal to GetNumBytesAvailable().  Defaults to MUSCLE_NO_LIMIT.
+     * @returns the unflattened object, by value.
+     * @note errors in unflattening can be detected by calling GetStatus() after this call.
      */
-   template<typename T> T ReadFlat() {T ret;(void) ReadFlats<T>(&ret, 1); return ret;}
-
-   /** Unflattens the given Flattenable or PseudoFlattenable object from data in our buffer
-     * @param retVal the Flattenable or PseudoFlattenable object to write
-     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (not enough data available)
-     * @note if retVal.IsFixedSize() returns false, we'll read a 4-byte length-prefix before
-     *       each flattened-object we read.  Otherwise we'll just read the flattened-object
-     *       data with no length-prefix, since the object's flattened-size is considered well-known.
-     */
-   template<typename T> status_t ReadFlat(T & retVal) {return ReadFlats<T>(&retVal, 1);}
+   template<typename T> T ReadFlat(uint32 maxNumBytes = MUSCLE_NO_LIMIT) {T ret; (void) ReadFlat(ret, maxNumBytes); return ret;}
 
    /** Unflattens and returns a Flattenable or PseudoFlattenable object from data in our buffer
-     * without attempting to read any 4-byte length prefix.  Instead, the number of bytes to pass
-     * to the object's Unflatten() method can be passed in as an argument.
+     * without attempting to read any 4-byte length prefix.
      * @param retVal the Flattenable or PseudoFlattenable object to call Unflatten() on.
-     * @param numBytes how many bytes to pass to retVal's Unflatten() method.
-     *                 If this value is greater than GetNumBytesAvailable(), it will be treated as equal
-     *                 to GetNumBytesAvailable().  Defaults to MUSCLE_NO_LIMIT.
+     * @param maxNumBytes how many bytes to pass to retVal's Unflatten() method.
+     *                 If this value is greater than GetNumBytesAvailable(), it will be treated
+     *                 as equal to GetNumBytesAvailable().  Defaults to MUSCLE_NO_LIMIT.
      * @returns B_NO_ERROR on success, or an error code on failure.
      * @note on success, we will have consumed the number of bytes returned by (retVal.FlattenedSize())
      */
-   template<typename T> status_t ReadFlatWithoutLengthPrefix(T & retVal, uint32 numBytes = MUSCLE_NO_LIMIT)
+   template<typename T> status_t ReadFlat(T & retVal, uint32 maxNumBytes = MUSCLE_NO_LIMIT)
    {
-      numBytes = muscleMin(numBytes, GetNumBytesAvailable());
-      MRETURN_ON_ERROR(SizeCheck(numBytes));
-
-      const status_t ret = retVal.Unflatten(_readFrom, numBytes);
+      const status_t ret = retVal.Unflatten(_readFrom, muscleMin(maxNumBytes, GetNumBytesAvailable()));
       if (ret.IsError()) return FlagError(ret);
-
-      (void) Advance(retVal.FlattenedSize());  // note:  may be less than (numBytes), and that's okay
+      (void) Advance(retVal.FlattenedSize());
       return B_NO_ERROR;
-   }
-
-   /** Unflattens and returns a Flattenable or PseudoFlattenable object from data in our buffer
-     * without attempting to read any 4-byte length prefix.  Instead, the number of bytes to pass
-     * to the object's Unflatten() method can be passed in as an argument.
-     * @param numBytes how many bytes to pass to the Unflatten() method of the object we return.
-     *                 If this value is greater than GetNumBytesAvailable(), it will be treated as equal
-     *                 to GetNumBytesAvailable().  Defaults to MUSCLE_NO_LIMIT.
-     * @returns the unflattened Flattenable/PseudoFlattenable object, by value.
-     * @note errors in unflattening can be detected by calling GetStatus() after this call.
-     * @note on success, we will have consumed the number of bytes returned by (retVal.FlattenedSize())
-     */
-   template<typename T> T ReadFlatWithoutLengthPrefix(uint32 numBytes = MUSCLE_NO_LIMIT) {T ret; (void) ReadFlatWithoutLengthPrefix(ret, numBytes); return ret;}
-
-   /** Reads a 4-byte length prefix from our buffer, and then passes the next (N) bytes from our
-     * buffer to the Unflatten() method of the specified Flattenable/PseudoFlattenable object.
-     * @param retVal the Flattenable or PseudoFlattenable object to call Unflatten() on.
-     * @returns B_NO_ERROR on success, or an error code on failure
-     * @note on success, we will have consumed the byte of the 4-byte length-prefix, plus
-     *       the number of bytes it indicated were part of the flattened-object record.
-     */
-   template<typename T> status_t ReadFlatWithLengthPrefix(T & retVal)
-   {
-      MRETURN_ON_ERROR(SizeCheck(sizeof(uint32)));
-
-      const uint32 payloadSize = ReadInt32();
-      MRETURN_ON_ERROR(SizeCheck(payloadSize));
-
-      const status_t ret = retVal.Unflatten(_readFrom, payloadSize);
-      if (ret.IsError()) return FlagError(ret);
-      else
-      {
-         Advance(payloadSize);  // note that we always advance by the stated payload size, not by (retVal.FlattenedSize())
-         return ret;
-      }
    }
 
    /** Reads a 4-byte length prefix from our buffer, and then passes the next (N) bytes from our
      * buffer to the Unflatten() method of an Flattenable/PseudoFlattenable object of the specified type.
      * @returns the unflattened Flattenable/PseudoFlattenable object, by value.
      * @note errors in unflattening can be detected by calling GetStatus() after this call.
-     * @note on success, we will have consumed the byte of the 4-byte length-prefix, plus
-     *       the number of bytes it indicated were part of the flattened-object record.
+     * @note After this method returns, we will have consumed both the 4-byte length prefix
+     *       and the number of bytes it indicates (whether the Unflatten() call succeeded or not)
      */
-   template<typename T> T ReadFlatWithLengthPrefix(uint32 numBytes = MUSCLE_NO_LIMIT) {T ret; (void) ReadFlatWithLengthPrefix(ret, numBytes); return ret;}
+   template<typename T> T ReadFlatWithLengthPrefix() {T ret; (void) ReadFlatWithLengthPrefix(ret); return ret;}
+
+   /** Reads a 4-byte length-prefix from our buffer, and then passes (that many) bytes from our
+     * buffer to the Unflatten() method of the specified Flattenable/PseudoFlattenable object.
+     * @param retVal the Flattenable or PseudoFlattenable object to call Unflatten() on.
+     * @returns B_NO_ERROR on success, or an error code on failure
+     * @note After this method returns, we will have consumed both the 4-byte length prefix
+     *       and the number of bytes it indicates (whether the Unflatten() call succeeded or not)
+     */
+   template<typename T> status_t ReadFlatWithLengthPrefix(T & retVal) {return ReadFlatsWithLengthPrefixes(&retVal, 1);}
 
 ///@{
    /** Convenience methods for reading an array of POD-typed data items from our internal buffer.
@@ -276,17 +237,7 @@ public:
       return B_NO_ERROR;
    }
 
-   // Gotta implement this separately since ReadStrings() would expect a 4-byte header, which we don't want
-   status_t ReadStrings(String * retVals, uint32 numVals)
-   {
-      for (uint32 i=0; i<numVals; i++)
-      {
-         const char * s = ReadCString();
-         if (s == NULL) return FlagError(B_BAD_DATA);
-         retVals[i] = s;
-      }
-      return B_NO_ERROR;
-   }
+   status_t ReadStrings(String * retVals, uint32 numVals) {return ReadFlats(retVals, numVals);}
 
    template<typename T> status_t ReadFlats(T * retVals, uint32 numVals)
    {
@@ -307,18 +258,30 @@ public:
       {
          for (uint32 i=0; i<numVals; i++)
          {
-            const uint32 flatSize = _encoder.ImportInt32(_readFrom);
-            MRETURN_ON_ERROR(SizeCheck(sizeof(flatSize)));
-            (void) Advance(sizeof(flatSize));
-
-            const status_t ret = retVals[i].Unflatten(_readFrom, flatSize);
+            const status_t ret = retVals[i].Unflatten(_readFrom, GetNumBytesAvailable());
             if (ret.IsError()) return FlagError(ret);
-
-            (void) Advance(flatSize);
+            (void) Advance(retVals[i].FlattenedSize());
          }
       }
       return B_NO_ERROR;
    }
+
+   template<typename T> status_t ReadFlatsWithLengthPrefixes(T * retVals, uint32 numVals)
+   {
+      for (uint32 i=0; i<numVals; i++)
+      {
+         MRETURN_ON_ERROR(SizeCheck(sizeof(uint32)));
+         const uint32 payloadSize = _encoder.ImportInt32(_readFrom);
+         MRETURN_ON_ERROR(SizeCheck(payloadSize));
+         Advance(sizeof(payloadSize));
+
+         const status_t ret = retVals[i].Unflatten(_readFrom, payloadSize);
+         Advance(payloadSize);  // note that we always advance by the stated payload size, not by (retVal.FlattenedSize())
+         if (ret.IsError()) return FlagError(ret);
+      }
+      return B_NO_ERROR;
+   }
+
 ///@}
 
    /** Returns a pointer into our buffer at the location we will next read from */
