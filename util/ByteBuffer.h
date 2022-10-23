@@ -207,9 +207,9 @@ public:
    virtual bool AllowsTypeCode(uint32 tc) const {(void) tc; return true;}
    virtual status_t Unflatten(DataUnflattener & unflat)
    {
-      const status_t ret = SetBuffer(unflat.GetNumBytesAvailable(), unflat.GetCurrentReadPointer());
-      if (ret.IsOK()) unflat.SeekToEnd();
-      return ret | unflat.GetStatus();
+      MRETURN_ON_ERROR(SetBuffer(unflat.GetNumBytesAvailable(), unflat.GetCurrentReadPointer()));
+      MRETURN_ON_ERROR(unflat.SeekToEnd());
+      return unflat.GetStatus();
    }
 
    /** Returns a 32-bit checksum corresponding to this ByteBuffer's contents.

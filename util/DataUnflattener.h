@@ -313,8 +313,10 @@ public:
       return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesRead()+numBytes) : B_BAD_ARGUMENT;
    }
 
-   /** Moves the read-pointer to the end of our buffer */
-   void SeekToEnd() {(void) SeekTo(_maxBytes);}
+   /** Moves the read-pointer to the end of our buffer
+     * @returns B_NO_ERROR
+     */
+   status_t SeekToEnd() {return SeekTo(_maxBytes);}
 
    /** Sets our maximum-bytes-allowed-to-be-read value to a different value.
      * @param max the new maximum value

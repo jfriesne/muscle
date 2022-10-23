@@ -341,7 +341,7 @@ public:
       // called Clear() and then EnsureSize(), so we know that the field's headPointer
       // is located at the front of the ring-buffer, so we are safe to do this.  --jaf
       ConvertFromNetworkByteOrder(this->_data.HeadPointer(), reinterpret_cast<const DataType *>(unflat.GetCurrentReadPointer()), numItems);
-      return unflat.SeekRelative(numBytes);
+      return unflat.SeekToEnd();
    }
 
    // Flattenable interface
@@ -472,7 +472,7 @@ public:
 
       const uint8 * buffer = unflat.GetCurrentReadPointer();
       for (uint32 i=0; i<numBytes; i++) _data[i] = (buffer[i] != 0) ? true : false;
-      return unflat.SeekRelative(numBytes);
+      return unflat.SeekToEnd();
    }
 
    // Flattenable interface
@@ -935,7 +935,7 @@ public:
          MRETURN_ON_ERROR(nextMsg()->Unflatten(unflat));
          MRETURN_ON_ERROR(AddDataItem(&nextMsg, sizeof(nextMsg)));
       }
-      return B_NO_ERROR;
+      return unflat.GetStatus();
    }
 
    static void AddItemDescriptionToString(uint32 indent, uint32 i, const MessageRef & msgRef, String & s, uint32 maxRecurseLevel)
@@ -1057,7 +1057,7 @@ public:
          const DataUnflattenerReadLimiter<DataUnflattener> readLimiter(unflat, elementSize);
          MRETURN_ON_ERROR(this->_data[i].Unflatten(unflat));
       }
-      return B_NO_ERROR;
+      return unflat.GetStatus();
    }
 };
 
@@ -2425,7 +2425,7 @@ status_t MessageField :: SingleUnflatten(DataUnflattener & unflat)
          if (msgSize != unflat.GetNumBytesAvailable()) return B_BAD_DATA;
 
          MessageRef msgRef = GetMessageFromPool(unflat.GetCurrentReadPointer(), unflat.GetNumBytesAvailable());
-         unflat.SeekToEnd();
+         MRETURN_ON_ERROR(unflat.SeekToEnd());
          if (msgRef() == NULL) return B_BAD_DATA;
          SetInlineItemAsRefCountableRef(msgRef.GetRefCountableRef());
       }
@@ -2459,7 +2459,7 @@ status_t MessageField :: SingleUnflatten(DataUnflattener & unflat)
          if (itemSize != unflat.GetNumBytesAvailable()) return B_BAD_DATA;  // our one item should take up the entire buffer, or something is wrong
 
          ByteBufferRef bbRef = GetByteBufferFromPool(unflat.GetNumBytesAvailable(), unflat.GetCurrentReadPointer());
-         unflat.SeekToEnd();
+         MRETURN_ON_ERROR(unflat.SeekToEnd());
          if (bbRef() == NULL) return B_OUT_OF_MEMORY;
 
          SetInlineItemAsRefCountableRef(bbRef.GetRefCountableRef());
@@ -2994,7 +2994,7 @@ status_t MessageField :: Unflatten(DataUnflattener & unflat)
       MRETURN_ON_ERROR(unflat.ReadFlat(*adaRef()));
       _state = FIELD_STATE_ARRAY;
       SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
-      return B_NO_ERROR;
+      return unflat.GetStatus();
    }
 }
 
