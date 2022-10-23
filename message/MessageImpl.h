@@ -142,7 +142,7 @@ public:
    bool AllowsTypeCode(uint32 tc) const {return tc == TypeCode();}
    uint32 FlattenedSize() const {return HasArray() ? GetArray()->FlattenedSize() : SingleFlattenedSize();}
    void Flatten(uint8 *buffer, uint32 flatSize, uint32 maxItemsToFlatten) const {if (HasArray()) GetArray()->Flatten(buffer, flatSize, maxItemsToFlatten); else SingleFlatten(buffer);}
-   status_t Unflatten(const uint8 * buf, uint32 numBytes);
+   status_t Unflatten(DataUnflattener & unflat);
 
    // Pseudo-AbstractDataArray interface
    status_t AddDataItem(const void * data, uint32 numBytes) {return HasArray() ? GetArray()->AddDataItem(data, numBytes) : SingleAddDataItem(data, numBytes);}
@@ -187,7 +187,7 @@ private:
    // single-item implementation of the AbstractDataArray methods
    uint32 SingleFlattenedSize() const;
    void SingleFlatten(uint8 * buffer) const;
-   status_t SingleUnflatten(const uint8 * buffer, uint32 numBytes);
+   status_t SingleUnflatten(DataUnflattener & unflat);
    status_t SingleAddDataItem(const void * data, uint32 numBytes);
    status_t SingleRemoveDataItem(uint32 index);
    status_t SinglePrependDataItem(const void * data, uint32 numBytes);

@@ -3,7 +3,6 @@
 #include "dataio/PacketDataIO.h"  // for retrieving the source IP address and port, where possible
 #include "iogateway/PacketTunnelIOGateway.h"
 #include "util/DataFlattener.h"
-#include "util/DataUnflattener.h"
 
 namespace muscle {
 

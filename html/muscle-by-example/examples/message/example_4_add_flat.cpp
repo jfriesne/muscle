@@ -1,7 +1,6 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "message/Message.h"
 #include "util/DataFlattener.h"
-#include "util/DataUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
 
 using namespace muscle;
@@ -61,13 +60,12 @@ public:
       flat.WriteInt32(_zipCode);
    }
 
-   virtual status_t Unflatten(const uint8 *buffer, uint32 numBytes)
+   virtual status_t Unflatten(DataUnflattener & unflat)
    {
-      DataUnflattener unflat(buffer, numBytes);
-      _name    = unflat.ReadString();
-      _address = unflat.ReadString();
-      _city    = unflat.ReadString();
-      _state   = unflat.ReadString();
+      _name    = unflat.ReadFlat<String>();
+      _address = unflat.ReadFlat<String>();
+      _city    = unflat.ReadFlat<String>();
+      _state   = unflat.ReadFlat<String>();
       _zipCode = unflat.ReadInt32();
       return unflat.GetStatus();
    }
@@ -124,7 +122,7 @@ int main(int argc, char ** argv)
 
    // Next we'll parse the flattened bytes back in to a separate Message object, just to show that we can
    Message anotherMsg;
-   if (anotherMsg.Unflatten(buf.GetBuffer(), buf.GetNumBytes()).IsOK())
+   if (anotherMsg.UnflattenFromByteBuffer(buf).IsOK())
    {
       printf("\n");
       printf("Unflattened the ByteBuffer back into anotherMsg.  anotherMsg now contains this:\n");

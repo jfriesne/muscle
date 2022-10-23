@@ -151,17 +151,11 @@ public:
    void Flatten(uint8 * buffer, uint32 flatSize) const;
 
    /** Restores this object's state from the data contained in the supplied memory buffer.
-    *  @param buffer points to the raw data we should read in this object's state from.
-    *  @param size The number of bytes (buffer) points at.  Note that this number may be greater than the value
-    *              returned by FlattenedSize(), e.g. if this object's flattened-bytes represent only a portion
-    *              of a larger byte-buffer containing other data.
+    *  @param unflat the DataUnflattener to use to read in and parse the serialized data bytes.
     *  @return B_NO_ERROR on success, or an error value on failure (e.g. B_BAD_DATA if (size) was too small,
     *          or the data-bytes were deemed inappropriate)
-    *  @note For safety, it's recommended that Unflatten() implementations declare a DataUnflattener object
-    *        on the stack and pass both of these arguments to it, and call its Read*() methods to read data
-    *        out of (buffer).
     */
-   status_t Unflatten(const uint8 * buffer, uint32 size);
+   status_t Unflatten(DataUnflattener & unflat);
 
    /** Returns a 32-bit hash code calculated based on the current state of this object.
      * @note Implementing this method (and operator==()) is what allows a non-POD class to be used as a key in a Hashtable.

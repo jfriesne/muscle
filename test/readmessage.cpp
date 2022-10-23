@@ -92,7 +92,7 @@ int main(int argc, char ** argv)
 
       status_t ret;
       Message msg;
-      if (msg.Unflatten(buf()->GetBuffer(), buf()->GetNumBytes()).IsOK(ret))
+      if (msg.UnflattenFromByteBuffer(buf).IsOK(ret))
       {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
          MessageRef infMsg = InflateMessage(DummyMessageRef(msg));

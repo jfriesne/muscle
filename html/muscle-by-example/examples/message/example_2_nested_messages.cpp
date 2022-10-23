@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
 
    // Next we'll parse the flattened bytes back in to a separate Message object, just to show that we can
    Message anotherMsg;
-   if (anotherMsg.Unflatten(buf.GetBuffer(), buf.GetNumBytes()).IsOK())
+   if (anotherMsg.UnflattenFromByteBuffer(buf).IsOK())
    {
       printf("\n");
       printf("Unflattened the ByteBuffer back into anotherMsg.  anotherMsg now contains this:\n");

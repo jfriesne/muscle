@@ -1041,13 +1041,10 @@ public:
    void Flatten(uint8 *buffer, uint32 flatSize) const {memcpy((char *)buffer, Cstr(), flatSize);}
 
    /** Unflattens a String from (buf).
-    *  @param buf an array of (size) bytes.
-    *  @param size the number of bytes in (buf).
-    *  @note The clever secret here is that (buf) is treated as just a C-style
-    *        zero-terminated char array, and can be used interchangably as such.
-    *  @return B_NO_ERROR (never fails!)
+    *  @param unflat the DataUnflattener we will read our string from (as a NUL-terminated ASCII string)
+    *  @return B_NO_ERROR on success, or another value on failure.
     */
-   status_t Unflatten(const uint8 *buf, uint32 size) {return SetCstr((const char *)buf, size);}
+   status_t Unflatten(DataUnflattener & unflat) {return SetCstr(unflat.ReadCString());}
 
    /** Makes sure that we have pre-allocated enough space for a NUL-terminated string
     *  at least (numChars) bytes long (not including the NUL byte).

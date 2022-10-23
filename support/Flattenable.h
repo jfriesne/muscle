@@ -42,8 +42,8 @@ public:
      */
    virtual bool AllowsTypeCode(uint32 tc) const {return ((tc == B_RAW_TYPE)||(tc == TypeCode()));}
 
-   /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
-   virtual status_t Unflatten(const uint8 *buffer, uint32 size) = 0;
+   /** @copydoc DoxyTemplate::Unflatten(DataUnflattener & unflat) */
+   virtual status_t Unflatten(DataUnflattener & unflat) = 0;
 
    /**
     *  Causes (copyTo)'s state to set from this Flattenable, if possible.
@@ -107,11 +107,16 @@ public:
       return B_NO_ERROR;
    }
 
-   /** Convenience method.  Flattens this object into the supplied ByteBuffer object.
-     * @param outBuf the ByteBuffer to dump our flattened bytes into.
-     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+   /** Convenience method:  Unflattens this object from the bytes in the supplied buffer.
+     * @param buffer pointer to a buffer of bytes
+     * @param numBytes how many bytes (buffer) points to
+     * @returns B_NO_ERROR on success, or another value on failure.
      */
-   status_t FlattenToByteBuffer(ByteBuffer & outBuf) const;
+   status_t UnflattenFromBytes(const uint8 * buffer, uint32 numBytes)
+   {
+      DataUnflattener unflat(buffer, numBytes);
+      return Unflatten(unflat);
+   }
 
    /** Convenience method.  Unflattens this object from the supplied ByteBuffer object.
      * @param buf The ByteBuffer to unflatten from.
@@ -124,6 +129,12 @@ public:
      * @returns B_NO_ERROR on success, or an error code on failure (B_BAD_ARGUMENT if bufRef was a NULL reference)
      */
    status_t UnflattenFromByteBuffer(const ConstRef<ByteBuffer> & bufRef);
+
+   /** Convenience method.  Flattens this object into the supplied ByteBuffer object.
+     * @param outBuf the ByteBuffer to dump our flattened bytes into.
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+     */
+   status_t FlattenToByteBuffer(ByteBuffer & outBuf) const;
 
    /** Convenience method.  Allocates an appropriately sized ByteBuffer object via GetByteBufferFromPool(), Flatten()s
      * this object into the byte buffer, and returns the resulting ByteBufferRef.  Returns a NULL reference on failure (out of memory?)

@@ -1394,7 +1394,7 @@ status_t Flattenable :: UnflattenFromDataIO(DataIO & inputStream, int32 optReadS
       MRETURN_OOM_ON_NULL(bigBuf);
    }
 
-   const status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? Unflatten(b, readSize) : B_IO_ERROR;
+   const status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? UnflattenFromBytes(b, readSize) : B_IO_ERROR;
    delete [] bigBuf;
    return ret;
 }
@@ -1410,7 +1410,8 @@ status_t Flattenable :: CopyFromImplementation(const Flattenable & copyFrom)
       MRETURN_OOM_ON_NULL(bigBuf);
    }
    copyFrom.Flatten(bigBuf ? bigBuf : smallBuf, flatSize);
-   const status_t ret = Unflatten(bigBuf ? bigBuf : smallBuf, flatSize);
+
+   const status_t ret = UnflattenFromBytes(bigBuf ? bigBuf : smallBuf, flatSize);
    delete [] bigBuf;
    return ret;
 }

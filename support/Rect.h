@@ -41,7 +41,7 @@ public:
      * @param leftTop a Point to indicate the left/top corner of this Rect
      * @param rightBottom a Point to indicate the right/bottom corner of this Rect
      */
-   Rect(const Point leftTop, Point rightBottom) {Set(leftTop.x(), leftTop.y(), rightBottom.x(), rightBottom.y());}
+   Rect(Point leftTop, Point rightBottom) {Set(leftTop.x(), leftTop.y(), rightBottom.x(), rightBottom.y());}
 
    /** Destructor */
    ~Rect() {/* empty */}
@@ -270,18 +270,14 @@ public:
       muscleCopyOut(&buffer[3*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(bottom()));
    }
 
-   /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
-   status_t Unflatten(const uint8 * buffer, uint32 size)
+   /** @copydoc DoxyTemplate::Unflatten(DataUnflattener &) */
+   status_t Unflatten(DataUnflattener & unflat)
    {
-      if (size >= FlattenedSize())
-      {
-         left()   = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&buffer[0*sizeof(int32)]));
-         top()    = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&buffer[1*sizeof(int32)]));
-         right()  = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&buffer[2*sizeof(int32)]));
-         bottom() = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&buffer[3*sizeof(int32)]));
-         return B_NO_ERROR;
-      }
-      else return B_BAD_DATA;
+      left()   = unflat.ReadFloat();
+      top()    = unflat.ReadFloat();
+      right()  = unflat.ReadFloat();
+      bottom() = unflat.ReadFloat();
+      return unflat.GetStatus();
    }
 
    /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be

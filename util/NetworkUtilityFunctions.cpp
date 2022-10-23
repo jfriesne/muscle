@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 #include "util/DataFlattener.h"
-#include "util/DataUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for GetConnectString() (which is deliberately defined here)
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketMultiplexer.h"
@@ -1911,9 +1910,8 @@ void IPAddress :: Flatten(uint8 * buffer, uint32 flatSize) const
    flat.WriteInt32(_interfaceIndex);
 }
 
-status_t IPAddress :: Unflatten(const uint8 * buffer, uint32 size)
+status_t IPAddress :: Unflatten(DataUnflattener & unflat)
 {
-   DataUnflattener unflat(buffer, size);
    _lowBits        = unflat.ReadInt64();
    _highBits       = unflat.ReadInt64();
    _interfaceIndex = unflat.ReadInt32();
@@ -1927,9 +1925,8 @@ void IPAddressAndPort :: Flatten(uint8 * buffer, uint32 flatSize) const
    flat.WriteInt16(_port);
 }
 
-status_t IPAddressAndPort :: Unflatten(const uint8 * buffer, uint32 size)
+status_t IPAddressAndPort :: Unflatten(DataUnflattener & unflat)
 {
-   DataUnflattener unflat(buffer, size);
    _ip   = unflat.ReadFlat<IPAddress>();
    _port = unflat.ReadInt16();
    return unflat.GetStatus();

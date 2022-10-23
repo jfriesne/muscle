@@ -1,7 +1,6 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "util/ByteBuffer.h"
 #include "util/DataFlattener.h"
-#include "util/DataUnflattener.h"
 
 using namespace muscle;
 

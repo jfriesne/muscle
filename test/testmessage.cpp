@@ -5,7 +5,6 @@
 #include "message/Message.h"
 #include "system/SetupSystem.h"
 #include "util/DataFlattener.h"
-#include "util/DataUnflattener.h"
 #include "util/MiscUtilityFunctions.h"
 
 using namespace muscle;
@@ -46,11 +45,10 @@ public:
       flat.WriteString(_string);
    }
 
-   virtual status_t Unflatten(const uint8 *buf, uint32 size)
+   virtual status_t Unflatten(DataUnflattener & unflat)
    {
-      DataUnflattener unflat(buf, size);
       _val    = unflat.ReadInt32();
-      _string = unflat.ReadString();
+      _string = unflat.ReadFlat<String>();
       return unflat.GetStatus();
    }
 
@@ -395,7 +393,7 @@ int main(int, char **)
    PrintHexBytes(buf, flatSize);
 
    Message copy;
-   if (copy.Unflatten(buf, flatSize).IsOK())
+   if (copy.UnflattenFromBytes(buf, flatSize).IsOK())
    {
       printf("****************************\n");
       copy.PrintToStream();

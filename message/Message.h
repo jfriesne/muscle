@@ -344,12 +344,11 @@ public:
    /**
     *  Convert the given byte buffer back into a Message.  Any previous contents of
     *  this Message will be erased, and replaced with the data specified in the byte buffer.
-    *  @param buf Pointer to a byte buffer containing a flattened Message to restore.
-    *  @param size The number of bytes in the flattened byte buffer.
+    *  @param unflat the DataUnflattener to use to read the flattened data bytes.
     *  @return B_NO_ERROR if the buffer was successfully Unflattened, or an error code if there
     *          was an error (usually meaning the buffer was corrupt, or out-of-memory)
     */
-   virtual status_t Unflatten(const uint8 *buf, uint32 size);
+   virtual status_t Unflatten(DataUnflattener & unflat);
 
    /** Adds a new string to the Message.
     *  @param fieldName Name of the field to add (or add to)
@@ -893,7 +892,11 @@ public:
          uint32 numBytes;
          const FlatCountable * fcPtr;
          const uint8 * ptr = FindFlatAux(mf, index, numBytes, &fcPtr);
-              if (ptr)   return writeValueHere.Unflatten(ptr, numBytes);
+         if (ptr)
+         {
+            DataUnflattener unflat(ptr, numBytes);
+            return writeValueHere.Unflatten(unflat);
+         }
          else if (fcPtr) return writeValueHere.CopyFrom(*fcPtr);
       }
       return B_TYPE_MISMATCH;

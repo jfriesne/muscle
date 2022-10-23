@@ -23,8 +23,12 @@ key:  - new feature
    - Added pages for DataFlattener and DataUnflattener
      APIs to the muscle-by-example documentation.
    o Changed the PseudoFlattenable::Flatten() and
-     Flattenable::Flatten() and methods to take a second
+     Flattenable::Flatten() methods to take a second
      argument (flatSize) for better runtime error-checking.
+   o Changed the PseudoFlattenable::Unflatten() and
+     Flattenable::Unflatten() methods to take a
+     (DataUnflattener &) as an argument rather than
+     a raw pointer, for better caller/callee cooperation.
    o Removed the SetEndianFlag(), Append*(), Write*(),
      Read*() methods from the ByteBuffer class.  Use
      the new DataFlattener/DataUnflattener classes instead.

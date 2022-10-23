@@ -4,15 +4,13 @@
 #define MuscleDataUnflattener_h
 
 #include "support/EndianEncoder.h"
-#include "support/NotCopyable.h"
-#include "support/PseudoFlattenable.h"
-#include "util/ByteBuffer.h"
-#include "util/String.h"
 
 namespace muscle {
 
+class ByteBuffer;
+
 /** This is a lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer. */
-template<class EndianEncoder, class SizeChecker=RealSizeChecker> class DataUnflattenerHelper : public NotCopyable
+template<class EndianEncoder, class SizeChecker=RealSizeChecker> class DataUnflattenerHelper MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
@@ -28,8 +26,9 @@ public:
      * @param readFrom Reference to a ByteBuffer that we should read data out of.  A pointer to this ByteBuffer's data will be retained for use in future Read*() method-calls.
      * @param maxBytes The maximum number of bytes that we should allow ourselves to read out of (readFrom).  If this value is greater
      *                 than (readFrom.GetNumBytes()) it will treated as equal to (readFrom.GetNumBytes()).  Defaults to MUSCLE_NO_LIMIT.
+     * @param startOffset byte-offset indicating where in (readFrom)'s buffer to start reading at.  Defaults to 0.
      */
-   DataUnflattenerHelper(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(readFrom, maxBytes);}
+   DataUnflattenerHelper(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0) {SetBuffer(readFrom, maxBytes, startOffset);}
 
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
    void Reset() {SetBuffer(NULL, 0);}
@@ -45,9 +44,10 @@ public:
      * @param readFrom Reference to a ByteBuffer that we should read data out of.  A pointer to this ByteBuffer's data will be retained for use in future Read*() method-calls.
      * @param maxBytes The maximum number of bytes that we should allow ourselves to read out of (readFrom).  If this value is greater
      *                 than (readFrom.GetNumBytes()) it will treated as equal to (readFrom.GetNumBytes()).  Defaults to MUSCLE_NO_LIMIT.
+     * @param startOffset byte-offset indicating where in (readFrom)'s buffer to start reading at.  Defaults to 0.
      * @note this method resets our status-flag back to B_NO_ERROR.
      */
-   void SetBuffer(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(readFrom.GetBuffer(), muscleMin(readFrom.GetNumBytes(), maxBytes));}
+   void SetBuffer(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0);
 
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
    const uint8 * GetBuffer() const {return _origReadFrom;}
@@ -93,13 +93,13 @@ public:
      * @note if the call fails, our error-flag will be set true as a side-effect; call
      *       WasParseErrorDetected() to check the error-flag.
      */
+   uint8  ReadByte()   {uint8 v = 0;    (void) ReadBytes(  &v, 1); return v;}
    int8   ReadInt8()   {int8  v = 0;    (void) ReadInt8s(  &v, 1); return v;}
    int16  ReadInt16()  {int16 v = 0;    (void) ReadInt16s( &v, 1); return v;}
    int32  ReadInt32()  {int32 v = 0;    (void) ReadInt32s( &v, 1); return v;}
    int64  ReadInt64()  {int64 v = 0;    (void) ReadInt64s( &v, 1); return v;}
    float  ReadFloat()  {float v = 0.0f; (void) ReadFloats( &v, 1); return v;}
    double ReadDouble() {double v = 0.0; (void) ReadDoubles(&v, 1); return v;}
-   String ReadString() {String v;       (void) ReadStrings(&v, 1); return v;}
 ///@}
 
    /** Returns a pointer to the next NUL-terminated ASCII string inside our buffer, or NULL on failure
@@ -147,9 +147,10 @@ public:
      */
    template<typename T> status_t ReadFlat(T & retVal, uint32 maxNumBytes = MUSCLE_NO_LIMIT)
    {
-      const status_t ret = retVal.Unflatten(_readFrom, muscleMin(maxNumBytes, GetNumBytesAvailable()));
+      DataUnflattenerHelper unflat(_readFrom, muscleMin(maxNumBytes, GetNumBytesAvailable()));
+      const status_t ret = retVal.Unflatten(unflat);
       if (ret.IsError()) return FlagError(ret);
-      (void) Advance(retVal.FlattenedSize());
+      (void) Advance(unflat.GetNumBytesRead());
       return B_NO_ERROR;
    }
 
@@ -237,8 +238,6 @@ public:
       return B_NO_ERROR;
    }
 
-   status_t ReadStrings(String * retVals, uint32 numVals) {return ReadFlats(retVals, numVals);}
-
    template<typename T> status_t ReadFlats(T * retVals, uint32 numVals)
    {
       if (numVals == 0) return B_NO_ERROR; // avoid reading from invalid retVals[0] below if the array is zero-length
@@ -249,8 +248,10 @@ public:
          MRETURN_ON_ERROR(SizeCheck(flatSize*numVals));
          for (uint32 i=0; i<numVals; i++)
          {
-            const status_t ret = retVals[i].Unflatten(_readFrom, flatSize);
+            DataUnflattenerHelper unflat(_readFrom, flatSize);
+            const status_t ret = retVals[i].Unflatten(unflat);
             if (ret.IsError()) return FlagError(ret);
+            if (unflat.GetNumBytesRead() != flatSize) LogTime(MUSCLE_LOG_WARNING, "Unflatten() didn't read the expected number of bytes!  flatSize was " UINT32_FORMAT_SPEC " but Unflatten() read " UINT32_FORMAT_SPEC " bytes\n", flatSize, unflat.GetNumBytesRead());
             (void) Advance(flatSize);
          }
       }
@@ -258,9 +259,10 @@ public:
       {
          for (uint32 i=0; i<numVals; i++)
          {
-            const status_t ret = retVals[i].Unflatten(_readFrom, GetNumBytesAvailable());
+            DataUnflattenerHelper unflat(_readFrom, GetNumBytesAvailable());
+            const status_t ret = retVals[i].Unflatten(unflat);
             if (ret.IsError()) return FlagError(ret);
-            (void) Advance(retVals[i].FlattenedSize());
+            (void) Advance(unflat.GetNumBytesRead());
          }
       }
       return B_NO_ERROR;
@@ -275,7 +277,8 @@ public:
          MRETURN_ON_ERROR(SizeCheck(payloadSize));
          Advance(sizeof(payloadSize));
 
-         const status_t ret = retVals[i].Unflatten(_readFrom, payloadSize);
+         DataUnflattenerHelper unflat(_readFrom, payloadSize);
+         const status_t ret = retVals[i].Unflatten(unflat);
          Advance(payloadSize);  // note that we always advance by the stated payload size, not by (retVal.FlattenedSize())
          if (ret.IsError()) return FlagError(ret);
       }
@@ -295,7 +298,7 @@ public:
    status_t SeekTo(uint32 offset)
    {
       if (offset > _maxBytes) return B_BAD_ARGUMENT;
-      _readFrom  = _origReadFrom+offset;
+      _readFrom = _origReadFrom+offset;
       return B_NO_ERROR;
    }
 
@@ -309,6 +312,14 @@ public:
       const uint32 nbw = GetNumBytesRead();
       return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesRead()+numBytes) : B_BAD_ARGUMENT;
    }
+
+   /** Moves the read-pointer to the end of our buffer */
+   void SeekToEnd() {(void) SeekTo(_maxBytes);}
+
+   /** Sets our maximum-bytes-allowed-to-be-read value to a different value.
+     * @param max the new maximum value
+     */
+   void SetMaxNumBytes(uint32 max) {_maxBytes = max;}
 
 private:
    const EndianEncoder _encoder;
@@ -333,6 +344,26 @@ typedef DataUnflattenerHelper<LittleEndianEncoder, DummySizeChecker> LittleEndia
 typedef DataUnflattenerHelper<BigEndianEncoder,    DummySizeChecker> BigEndianUncheckedDataUnflattener;     /**< this unchecked unflattener-type unflattens from big-endian-format data */
 typedef DataUnflattenerHelper<NativeEndianEncoder, DummySizeChecker> NativeEndianUncheckedDataUnflattener;  /**< this unchecked unflattener-type unflattens from native-endian-format data */
 typedef LittleEndianUncheckedDataUnflattener                         UncheckedDataUnflattener;              /**< UncheckedDataUnflattener is a pseudonym for LittleEndianUncheckedDataUnflattener, for convenience (since MUSCLE standardizes on little endian encoding) */
+
+/** This is an RAII-type class for temporary limiting the number of bytes
+  * available on an existing DataUnflattener object.
+  */
+template<class DataUnflattenerType> class DataUnflattenerReadLimiter MUSCLE_FINAL_CLASS
+{
+public:
+   DataUnflattenerReadLimiter(DataUnflattenerType & unflat, uint32 bytesLimit)
+      : _unflat(unflat)
+      , _oldMaxBytes(unflat.GetMaxNumBytes())
+   {
+      _unflat.SetMaxNumBytes(_unflat.GetNumBytesRead()+muscleMin(bytesLimit, _unflat.GetNumBytesAvailable()));
+   }
+
+   ~DataUnflattenerReadLimiter() {_unflat.SetMaxNumBytes(_oldMaxBytes);}  // pop the stack
+
+private:
+   DataUnflattenerType & _unflat;
+   const uint32 _oldMaxBytes;
+};
 
 } // end namespace muscle
 

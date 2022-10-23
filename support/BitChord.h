@@ -8,7 +8,6 @@
 #include "support/PseudoFlattenable.h"
 #include "util/String.h"
 #include "util/DataFlattener.h"
-#include "util/DataUnflattener.h"
 
 namespace muscle {
 
@@ -243,11 +242,9 @@ public:
       flat.WriteInt32s(_words, NUM_WORDS);
    }
 
-   /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
-   status_t Unflatten(const uint8 * buffer, uint32 size)
+   /** @copydoc DoxyTemplate::Unflatten(DataUnflattener & unflat) */
+   status_t Unflatten(DataUnflattener & unflat)
    {
-      DataUnflattener unflat(buffer, size);
-
       const uint32 numBitsToRead  = unflat.ReadInt32();
       const uint32 numWordsToRead = muscleMin((uint32)NUM_WORDS, (numBitsToRead+NUM_BITS_PER_WORD-1)/NUM_BITS_PER_WORD);
       for (uint32 i=0; i<numWordsToRead; i++) _words[i] = unflat.ReadInt32();

@@ -2,7 +2,6 @@
 
 #include "iogateway/MiniPacketTunnelIOGateway.h"
 #include "util/DataFlattener.h"
-#include "util/DataUnflattener.h"
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 # include "zlib/ZLibCodec.h"
 #endif

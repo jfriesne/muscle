@@ -1,6 +1,5 @@
 #include "system/SetupSystem.h"         // for CompleteSetupSystem
 #include "util/DataFlattener.h"
-#include "util/DataUnflattener.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
 #include "util/String.h"
 
@@ -65,9 +64,8 @@ public:
       flat.WriteFloat(_altitude);
    }
 
-   virtual status_t Unflatten(const uint8 *buffer, uint32 numBytes)
+   virtual status_t Unflatten(DataUnflattener & unflat)
    {
-      DataUnflattener unflat(buffer, numBytes);
       _latitude  = unflat.ReadFloat();
       _longitude = unflat.ReadFloat();
       _altitude  = unflat.ReadFloat();
@@ -106,7 +104,7 @@ int main(int argc, char ** argv)
 
    // Now let's Unflatten() the data again, retrieving it back from the byte-buffer
    GPSCoordinate anotherGPS;
-   if (anotherGPS.Unflatten(tempBuf, gps.FlattenedSize()).IsOK())
+   if (anotherGPS.UnflattenFromBytes(tempBuf, gps.FlattenedSize()).IsOK())
    {
       printf("Recovered from flat-buffer:  %s\n", anotherGPS.ToString()());
    }

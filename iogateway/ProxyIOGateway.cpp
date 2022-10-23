@@ -58,7 +58,7 @@ void ProxyIOGateway :: HandleIncomingByteBuffer(AbstractGatewayMessageReceiver &
    else
    {
       MessageRef inMsg = GetMessageFromPool();
-      if ((inMsg())&&(inMsg()->UnflattenFromByteBuffer(*buf()).IsOK())) receiver.CallMessageReceivedFromGateway(inMsg, (void *) &fromIAP);
+      if ((inMsg())&&(inMsg()->UnflattenFromByteBuffer(buf).IsOK())) receiver.CallMessageReceivedFromGateway(inMsg, (void *) &fromIAP);
    }
 }
 

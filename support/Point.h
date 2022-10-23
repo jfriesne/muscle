@@ -107,16 +107,12 @@ public:
       muscleCopyOut(&buffer[1*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(y()));
    }
 
-   /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
-   status_t Unflatten(const uint8 * buffer, uint32 size)
+   /** @copydoc DoxyTemplate::Unflatten(DataUnflattener &) */
+   status_t Unflatten(DataUnflattener & unflat)
    {
-      if (size >= FlattenedSize())
-      {
-         x() = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&buffer[0*sizeof(int32)]));
-         y() = B_LENDIAN_TO_HOST_IFLOAT(muscleCopyIn<int32>(&buffer[1*sizeof(int32)]));
-         return B_NO_ERROR;
-      }
-      else return B_BAD_DATA;
+      x() = unflat.ReadFloat();
+      y() = unflat.ReadFloat();
+      return unflat.GetStatus();
    }
 
    /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be

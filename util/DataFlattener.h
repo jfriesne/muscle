@@ -13,7 +13,7 @@
 namespace muscle {
 
 /** This is a lightweight helper class designed to safely and efficiently flatten POD data-values to a fixed-size byte-buffer. */
-template<class EndianEncoder> class DataFlattenerHelper : public NotCopyable
+template<class EndianEncoder> class DataFlattenerHelper MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */

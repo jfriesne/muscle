@@ -190,7 +190,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
    else
    {
            if (numBodyBytes == sizeof(uint32)) retMsg()->what = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(inPtr));  // special-case for what-code-only Messages
-      else if (retMsg()->Unflatten(inPtr, numBodyBytes).IsError(ret))
+      else if (retMsg()->UnflattenFromBytes(inPtr, numBodyBytes).IsError(ret))
       {
          LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Unflatten() failed on " UINT32_FORMAT_SPEC "-byte buffer (%s)\n", numBodyBytes, ret());
          return MessageRef();

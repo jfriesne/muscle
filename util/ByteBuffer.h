@@ -4,8 +4,6 @@
 #define MuscleByteBuffer_h
 
 #include "util/FlatCountable.h"
-#include "support/Point.h"
-#include "support/Rect.h"
 #include "util/String.h"
 
 namespace muscle {
@@ -207,7 +205,12 @@ public:
    virtual uint32 FlattenedSize() const {return _numValidBytes;}
    virtual void Flatten(uint8 * buffer, uint32 flatSize) const {memcpy(buffer, _buffer, flatSize);}
    virtual bool AllowsTypeCode(uint32 tc) const {(void) tc; return true;}
-   virtual status_t Unflatten(const uint8 *buffer, uint32 size) {return SetBuffer(size, buffer);}
+   virtual status_t Unflatten(DataUnflattener & unflat)
+   {
+      const status_t ret = SetBuffer(unflat.GetNumBytesAvailable(), unflat.GetCurrentReadPointer());
+      if (ret.IsOK()) unflat.SeekToEnd();
+      return ret | unflat.GetStatus();
+   }
 
    /** Returns a 32-bit checksum corresponding to this ByteBuffer's contents.
      * Note that this method is O(N).  The checksum is calculated based solely on the valid held
@@ -345,6 +348,15 @@ public:
     */
    virtual void Free(void * ptr, size_t size) = 0;
 };
+
+// This method-implementation is placed here (rather than in DataUnflattener.h) to avoid a cyclic-header-include problem
+template<class EndianEncoder, class SizeChecker>
+void DataUnflattenerHelper<EndianEncoder, SizeChecker> :: SetBuffer(const ByteBuffer & readFrom, uint32 maxBytes, uint32 startOffset)
+{
+   maxBytes    = muscleMin(readFrom.GetNumBytes(), maxBytes);
+   startOffset = muscleMin(startOffset,            maxBytes);
+   SetBuffer(readFrom.GetBuffer()+startOffset, maxBytes-startOffset);
+}
 
 } // end namespace muscle
 

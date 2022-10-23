@@ -189,8 +189,8 @@ public:
    /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
    void Flatten(uint8 * buffer, uint32 flatSize) const;
 
-   /** @copydoc DoxyTemplate::Unflatten(const uint8 *, uint32) */
-   status_t Unflatten(const uint8 * buffer, uint32 size);
+   /** @copydoc DoxyTemplate::Unflatten(DataUnflattener &) */
+   status_t Unflatten(DataUnflattener & unflat);
 
    /** Convenience method:  Returns true iff this is a valid IP address
      * (where "valid" in this case means non-zero: or if MUSCLE_AVOID_IPV6 is defined,
@@ -440,11 +440,10 @@ public:
    void Flatten(uint8 * buffer, uint32 flatSize) const;
 
    /** Restores this point from an endian-neutral flattened buffer.
-    *  @param buffer Points to an array of (size) bytes
-    *  @param size The number of bytes (buffer) points to (should be at least FlattenedSize())
+    *  @param unflat the DataUnflattener to use to read the flattened bytes.
     *  @return B_NO_ERROR on success, B_BAD_DATA on failure (size was too small)
     */
-   status_t Unflatten(const uint8 * buffer, uint32 size);
+   status_t Unflatten(DataUnflattener & unflat);
 
    /** Convenience method:  Returns an IPAddressAndPort object identical to this one,
      * except that the included IPAddress has its interface index field set to the specified value.

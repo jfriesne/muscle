@@ -478,7 +478,12 @@ UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const
          if (encoding != MUSCLE_MESSAGE_ENCODING_DEFAULT) bb = NULL;
 #endif
 
-         if ((bb == NULL)||(ret()->Unflatten(bb->GetBuffer()+offset, bb->GetNumBytes()-offset).IsError())) ret.Reset();
+         if (bb == NULL) ret.Reset();
+         else
+         {
+            DataUnflattener unflat(*bb, MUSCLE_NO_LIMIT, offset);
+            if (ret()->Unflatten(unflat).IsError()) ret.Reset();
+         }
       }
    }
    return ret;

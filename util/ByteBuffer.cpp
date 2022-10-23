@@ -227,12 +227,16 @@ status_t Flattenable :: FlattenToByteBuffer(ByteBuffer & outBuf) const
 
 status_t Flattenable :: UnflattenFromByteBuffer(const ByteBuffer & buf)
 {
-   return Unflatten(buf.GetBuffer(), buf.GetNumBytes());
+   DataUnflattener unflat(buf);
+   return Unflatten(unflat);
 }
 
 status_t Flattenable :: UnflattenFromByteBuffer(const ConstRef<ByteBuffer> & buf)
 {
-   return buf() ? Unflatten(buf()->GetBuffer(), buf()->GetNumBytes()) : B_BAD_ARGUMENT;
+   if (buf() == NULL) return B_BAD_ARGUMENT;
+
+   DataUnflattener unflat(*buf());
+   return Unflatten(unflat);
 }
 
 } // end namespace muscle
