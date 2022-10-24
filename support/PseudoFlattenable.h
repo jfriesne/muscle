@@ -11,8 +11,8 @@
 /
 ******************************************************************************/
 
-#include "util/DataFlattener.h"
-#include "util/DataUnflattener.h"
+#include "support/DataFlattener.h"
+#include "support/DataUnflattener.h"
 
 namespace muscle {
 

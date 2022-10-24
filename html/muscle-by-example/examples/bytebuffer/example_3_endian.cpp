@@ -1,5 +1,5 @@
+#include "support/CheckedDataFlattener.h"
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
-#include "util/CheckedDataFlattener.h"
 #include "util/ByteBuffer.h"
 
 using namespace muscle;
