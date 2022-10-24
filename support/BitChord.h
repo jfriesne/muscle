@@ -233,7 +233,7 @@ public:
    /** @copydoc DoxyTemplate::FlattenedSize() const */
    static uint32 FlattenedSize() {return sizeof(uint32)+(NUM_WORDS*sizeof(uint32));}
 
-   /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
+   /** @copydoc DoxyTemplate::Flatten(DataFlattener) const */
    void Flatten(DataFlattener flat) const
    {
       flat.WriteInt32(NumBits);  // just so we can handle versioning issues more intelligently later on

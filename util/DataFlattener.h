@@ -144,7 +144,6 @@ public:
      * (int32, int64, float, double, etc) to our buffer.
      * @param vals Pointer to an array of values to write into our buffer
      * @param numVals the number of values in the value-array that (vals) points to
-     * @returns B_NO_ERROR on success, or an error code on failure.
      */
    template<typename T> void WritePrimitives(const T * vals, uint32 numVals)
    {
@@ -232,10 +231,10 @@ template<class EndianEncoder> DataFlattenerHelper<EndianEncoder> :: ~DataFlatten
 #endif
 }
 
-typedef DataFlattenerHelper<LittleEndianEncoder> LittleEndianDataFlattener;  /**< this flattener-type flattens to little-endian-format data */
-typedef DataFlattenerHelper<BigEndianEncoder>    BigEndianDataFlattener;     /**< this flattener-type flattens to big-endian-format data */
-typedef DataFlattenerHelper<NativeEndianEncoder> NativeEndianDataFlattener;  /**< this flattener-type flattens to native-endian-format data */
-typedef LittleEndianDataFlattener                DataFlattener;              /**< DataFlattener is a pseudonym for LittleEndianDataFlattener, for convenience (since MUSCLE standardizes on little-endian encoding) */
+typedef DataFlattenerHelper<LittleEndianEncoder>  LittleEndianDataFlattener;  /**< this flattener-type flattens to little-endian-format data */
+typedef DataFlattenerHelper<BigEndianEncoder>     BigEndianDataFlattener;     /**< this flattener-type flattens to big-endian-format data */
+typedef DataFlattenerHelper<NativeEndianEncoder>  NativeEndianDataFlattener;  /**< this flattener-type flattens to native-endian-format data */
+typedef DataFlattenerHelper<DefaultEndianEncoder> DataFlattener;              /**< this flattener-type flattens to MUSCLE's preferred endian-format (which is little-endian by default) */
 
 } // end namespace muscle
 

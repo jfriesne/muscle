@@ -109,12 +109,12 @@ public:
      * @param flatSize How many bytes the Flatten() call should write.  This should be equal to the value returned by our FlattenedSize() method.
      *                 Providing it as an argument here allows us to avoid an unecessary second call to FlattenedSize() if you already know its value.
      */
-   void FlattenToBytes(uint8 * bytes, uint32 flatSize) const {Flatten(DataFlattener(bytes, flatSize));}
+   void FlattenToBytes(uint8 * writeTo, uint32 flatSize) const {Flatten(DataFlattener(writeTo, flatSize));}
 
    /** Convenience method.  Calls through to Flatten()
      * @param writeTo The buffer to write bytes into.  The buffer must be at least (FlattenedSize()) bytes long.
      */
-   void FlattenToBytes(uint8 * bytes) const {Flatten(DataFlattener(bytes, FlattenedSize()));}
+   void FlattenToBytes(uint8 * writeTo) const {Flatten(DataFlattener(writeTo, FlattenedSize()));}
 
    /** Convenience method.  Allocates an appropriately sized ByteBuffer object via GetByteBufferFromPool(), Flatten()s
      * this object into the byte buffer, and returns the resulting ByteBufferRef.  Returns a NULL reference on failure (out of memory?)

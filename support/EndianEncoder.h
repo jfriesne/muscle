@@ -8,7 +8,7 @@
 namespace muscle {
 
 /** This class defines a standardized API for encoding POD data values to little-endian format for serialization, and vice-versa. */
-class LittleEndianEncoder
+class LittleEndianEncoder MUSCLE_FINAL_CLASS
 {
 public:
 ///@{
@@ -17,9 +17,9 @@ public:
      * @param writeTo the memory location to write the little-endian data to.  sizeof(readFrom) bytes will be written there.
      *                Note that (writeTo) is NOT required to be an aligned address; these methods will handle unaligned writes correctly.
      */
+   static void Export(const   bool & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const   int8 & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const  uint8 & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
-   static void Export(const   bool & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const  int16 & readFrom, void * writeTo) {muscleCopyOut(writeTo, B_HOST_TO_LENDIAN_INT16(  readFrom));}
    static void Export(const  int32 & readFrom, void * writeTo) {muscleCopyOut(writeTo, B_HOST_TO_LENDIAN_INT32(  readFrom));}
    static void Export(const  int64 & readFrom, void * writeTo) {muscleCopyOut(writeTo, B_HOST_TO_LENDIAN_INT64(  readFrom));}
@@ -34,11 +34,11 @@ public:
    /** Method for reading from a serialized buffer in little-endian format and using it to set a CPU-native POD value
      * @param readFrom the memory location to read the little-endian data from.  sizeof(val) bytes will be read from there.
      *                 Note that (readFrom) is NOT required to be an aligned address; these methods will handle unaligned reads correctly.
-     * @returns the corresponding CPU-native POD value.
+     * @param writeTo the POD-type variable whose value should be set based on the bytes we read.
      */
+   static void Import(const void * readFrom,   bool & writeTo) {writeTo = muscleCopyIn< bool>(readFrom);}
    static void Import(const void * readFrom,   int8 & writeTo) {writeTo = muscleCopyIn< int8>(readFrom);}
    static void Import(const void * readFrom,  uint8 & writeTo) {writeTo = muscleCopyIn<uint8>(readFrom);}
-   static void Import(const void * readFrom,   bool & writeTo) {writeTo = muscleCopyIn< bool>(readFrom);}
    static void Import(const void * readFrom,  int16 & writeTo) {writeTo = B_LENDIAN_TO_HOST_INT16(  muscleCopyIn< int16>(readFrom));}
    static void Import(const void * readFrom,  int32 & writeTo) {writeTo = B_LENDIAN_TO_HOST_INT32(  muscleCopyIn< int32>(readFrom));}
    static void Import(const void * readFrom,  int64 & writeTo) {writeTo = B_LENDIAN_TO_HOST_INT64(  muscleCopyIn< int64>(readFrom));}
@@ -50,19 +50,21 @@ public:
 ///@}
 };
 
+typedef LittleEndianEncoder DefaultEndianEncoder;  /**< MUSCLE has decided to use little-endian encoding as its preferred endian-ness.  Change this at your peril, it will break backwards-compatibility with all existing data if you do! */
+
 /** This class defines a standardized API for encoding POD data values to big-endian format for serialization, and vice-versa. */
-class BigEndianEncoder
+class BigEndianEncoder MUSCLE_FINAL_CLASS
 {
 public:
 ///@{
    /** Method for taking a CPU-native POD value and writing it out to a serialized buffer in big-endian format
-     * @param readFrom the value to write to the buffer
+     * @param readFrom the POD-type value to write into the buffer
      * @param writeTo the memory location to write the big-endian data to.  sizeof(readFrom) bytes will be written there.
      *                Note that (writeTo) is NOT required to be an aligned address; these methods will handle unaligned writes correctly.
      */
+   static void Export(const   bool & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const   int8 & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const  uint8 & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
-   static void Export(const   bool & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const  int16 & readFrom, void * writeTo) {muscleCopyOut(writeTo, B_HOST_TO_BENDIAN_INT16(  readFrom));}
    static void Export(const  int32 & readFrom, void * writeTo) {muscleCopyOut(writeTo, B_HOST_TO_BENDIAN_INT32(  readFrom));}
    static void Export(const  int64 & readFrom, void * writeTo) {muscleCopyOut(writeTo, B_HOST_TO_BENDIAN_INT64(  readFrom));}
@@ -77,11 +79,11 @@ public:
    /** Method for a serialized buffer in big-endian format and using it to set a CPU-native POD value
      * @param readFrom the memory location to read the big-endian data from.  sizeof(val) bytes will be read from there.
      *                 Note that (readFrom) is NOT required to be an aligned address; these methods will handle unaligned reads correctly.
-     * @returns the corresponding CPU-native POD value.
+     * @param writeTo the POD-type variable whose value should be set based on the bytes we read.
      */
+   static void Import(const void * readFrom,   bool & writeTo) {writeTo = muscleCopyIn< bool>(readFrom);}
    static void Import(const void * readFrom,   int8 & writeTo) {writeTo = muscleCopyIn< int8>(readFrom);}
    static void Import(const void * readFrom,  uint8 & writeTo) {writeTo = muscleCopyIn<uint8>(readFrom);}
-   static void Import(const void * readFrom,   bool & writeTo) {writeTo = muscleCopyIn< bool>(readFrom);}
    static void Import(const void * readFrom,  int16 & writeTo) {writeTo = B_BENDIAN_TO_HOST_INT16(  muscleCopyIn< int16>(readFrom));}
    static void Import(const void * readFrom,  int32 & writeTo) {writeTo = B_BENDIAN_TO_HOST_INT32(  muscleCopyIn< int32>(readFrom));}
    static void Import(const void * readFrom,  int64 & writeTo) {writeTo = B_BENDIAN_TO_HOST_INT64(  muscleCopyIn< int64>(readFrom));}
@@ -96,7 +98,7 @@ public:
 /** This class defines a standardized API for encoding POD data values to native-endian format for serialization, and vice-versa.
   * That conversion isn't quite a no-op, since we still have to handle pointer-alignment issues, but it's close.
   */
-class NativeEndianEncoder
+class NativeEndianEncoder MUSCLE_FINAL_CLASS
 {
 public:
 ///@{
@@ -105,9 +107,9 @@ public:
      * @param writeTo the memory location to write the big-endian data to.  sizeof(readFrom) bytes will be written there.
      *                Note that (writeTo) is NOT required to be an aligned address; these methods will handle unaligned writes correctly.
      */
+   static void Export(const   bool & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const   int8 & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const  uint8 & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
-   static void Export(const   bool & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const  int16 & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const  int32 & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
    static void Export(const  int64 & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
@@ -122,11 +124,11 @@ public:
    /** Method for a serialized buffer in big-endian format and using it to set a CPU-native POD value
      * @param readFrom the memory location to read the big-endian data from.  sizeof(readFrom) bytes will be read from there.
      *                 Note that (readFrom) is NOT required to be an aligned address; these methods will handle unaligned reads correctly.
-     * @returns the corresponding CPU-native POD value.
+     * @param writeTo the POD-type variable whose value should be set based on the bytes we read.
      */
+   static void Import(const void * readFrom,   bool & writeTo) {writeTo = muscleCopyIn<  bool>(readFrom);}
    static void Import(const void * readFrom,   int8 & writeTo) {writeTo = muscleCopyIn<  int8>(readFrom);}
    static void Import(const void * readFrom,  uint8 & writeTo) {writeTo = muscleCopyIn< uint8>(readFrom);}
-   static void Import(const void * readFrom,   bool & writeTo) {writeTo = muscleCopyIn<  bool>(readFrom);}
    static void Import(const void * readFrom,  int16 & writeTo) {writeTo = muscleCopyIn< int16>(readFrom);}
    static void Import(const void * readFrom,  int32 & writeTo) {writeTo = muscleCopyIn< int32>(readFrom);}
    static void Import(const void * readFrom,  int64 & writeTo) {writeTo = muscleCopyIn< int64>(readFrom);}

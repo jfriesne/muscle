@@ -241,7 +241,7 @@ public:
 
    /** Generic method for reading an array of any of the standard POD-typed data-items
      * (int32, int64, float, double, etc) from our buffer.
-     * @param vals Pointer to an array of values to restore from our buffer
+     * @param retVals Pointer to an array of values to restore from our buffer
      * @param numVals the number of values in the value-array that (vals) points to
      * @returns B_NO_ERROR on success, or an error code on failure.
      */
@@ -306,15 +306,15 @@ private:
    status_t _status;            // cache any errors found so far
 };
 
-typedef DataUnflattenerHelper<LittleEndianEncoder> LittleEndianDataUnflattener;  /**< this unflattener-type unflattens from little-endian-format data */
-typedef DataUnflattenerHelper<BigEndianEncoder>    BigEndianDataUnflattener;     /**< this unflattener-type unflattens from big-endian-format data */
-typedef DataUnflattenerHelper<NativeEndianEncoder> NativeEndianDataUnflattener;  /**< this unflattener-type unflattens from native-endian-format data */
-typedef LittleEndianDataUnflattener                DataUnflattener;              /**< DataUnflattener is a pseudonym for LittleEndianDataUnflattener, for convenience (since MUSCLE standardizes on little endian encoding) */
+typedef DataUnflattenerHelper<LittleEndianEncoder>  LittleEndianDataUnflattener;  /**< this unflattener-type unflattens from little-endian-format data */
+typedef DataUnflattenerHelper<BigEndianEncoder>     BigEndianDataUnflattener;     /**< this unflattener-type unflattens from big-endian-format data */
+typedef DataUnflattenerHelper<NativeEndianEncoder>  NativeEndianDataUnflattener;  /**< this unflattener-type unflattens from native-endian-format data */
+typedef DataUnflattenerHelper<DefaultEndianEncoder> DataUnflattener;              /**< this unflattener-type unflattens from MUSCLE's preferred endian-format (which is little-endian by default) */
 
-typedef DataUnflattenerHelper<LittleEndianEncoder, DummySizeChecker> LittleEndianUncheckedDataUnflattener;  /**< this unchecked unflattener-type unflattens from little-endian-format data */
-typedef DataUnflattenerHelper<BigEndianEncoder,    DummySizeChecker> BigEndianUncheckedDataUnflattener;     /**< this unchecked unflattener-type unflattens from big-endian-format data */
-typedef DataUnflattenerHelper<NativeEndianEncoder, DummySizeChecker> NativeEndianUncheckedDataUnflattener;  /**< this unchecked unflattener-type unflattens from native-endian-format data */
-typedef LittleEndianUncheckedDataUnflattener                         UncheckedDataUnflattener;              /**< UncheckedDataUnflattener is a pseudonym for LittleEndianUncheckedDataUnflattener, for convenience (since MUSCLE standardizes on little endian encoding) */
+typedef DataUnflattenerHelper<LittleEndianEncoder,  DummySizeChecker> LittleEndianUncheckedDataUnflattener;  /**< this unchecked unflattener-type unflattens from little-endian-format data */
+typedef DataUnflattenerHelper<BigEndianEncoder,     DummySizeChecker> BigEndianUncheckedDataUnflattener;     /**< this unchecked unflattener-type unflattens from big-endian-format data */
+typedef DataUnflattenerHelper<NativeEndianEncoder,  DummySizeChecker> NativeEndianUncheckedDataUnflattener;  /**< this unchecked unflattener-type unflattens from native-endian-format data */
+typedef DataUnflattenerHelper<DefaultEndianEncoder, DummySizeChecker> UncheckedDataUnflattener;              /**< this unchecked unflattener-type unflattens from MUSCLE's preferred endian-format (which is little-endian by default) */
 
 /** This is an RAII-type class for temporary limiting the number of bytes
   * available on an existing DataUnflattener object.

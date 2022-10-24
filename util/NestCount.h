@@ -42,7 +42,7 @@ private:
    uint32 _count;
 };
 
-/** A trivial little class that simply increments the NestCount in its constructor
+/** A trivial little RAII guard-class that increments the NestCount in its constructor
  *  and decrements the NestCount in its destructor.  It's useful for reliably
  *  tracking call-nest-counts in functions with multiple return() points.
  */

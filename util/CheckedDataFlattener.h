@@ -335,10 +335,10 @@ private:
    status_t _status;     // cache any errors found so far
 };
 
-typedef CheckedDataFlattenerHelper<LittleEndianEncoder> CheckedLittleEndianDataFlattener;  /**< this checked-flattener-type flattens to little-endian-format data */
-typedef CheckedDataFlattenerHelper<BigEndianEncoder>    CheckedBigEndianDataFlattener;     /**< this checked-flattener-type flattens to big-endian-format data */
-typedef CheckedDataFlattenerHelper<NativeEndianEncoder> CheckedNativeEndianDataFlattener;  /**< this checked-flattener-type flattens to native-endian-format data */
-typedef CheckedLittleEndianDataFlattener                CheckedDataFlattener;              /**< CheckedDataFlattener is a pseudonym for CheckedLittleEndianDataFlattener, for convenience (since MUSCLE standardizes on little-endian encoding) */
+typedef CheckedDataFlattenerHelper<LittleEndianEncoder>  CheckedLittleEndianDataFlattener;  /**< this checked-flattener-type flattens to little-endian-format data */
+typedef CheckedDataFlattenerHelper<BigEndianEncoder>     CheckedBigEndianDataFlattener;     /**< this checked-flattener-type flattens to big-endian-format data */
+typedef CheckedDataFlattenerHelper<NativeEndianEncoder>  CheckedNativeEndianDataFlattener;  /**< this checked-flattener-type flattens to native-endian-format data */
+typedef CheckedDataFlattenerHelper<DefaultEndianEncoder> CheckedDataFlattener;              /**< this checked-flattener-type flattens to MUSCLE's preferred endian-format (which is little-endian by default) */
 
 } // end namespace muscle
 

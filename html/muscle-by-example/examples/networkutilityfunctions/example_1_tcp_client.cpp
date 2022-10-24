@@ -24,7 +24,7 @@ int main(int argc, char ** argv)
       // Send HTTP request out to the Google
       const char httpRequestStr[] = "GET /index.html HTTP/1.0\r\n\r\n";
       const int reqLen = strlen(httpRequestStr);
-      int numBytesSent = WriteData(tcpSock, httpRequestStr, reqLen, true);
+      const int numBytesSent = WriteData(tcpSock, httpRequestStr, reqLen, true);
       LogTime(MUSCLE_LOG_INFO, "%i/%i bytes of HTTP request data sent to the server.\n", numBytesSent, reqLen);
 
       // Read back the server's response data and print it to stdout
