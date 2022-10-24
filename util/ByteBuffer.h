@@ -203,7 +203,7 @@ public:
    virtual bool IsFixedSize() const {return false;}
    virtual uint32 TypeCode() const {return B_RAW_TYPE;}
    virtual uint32 FlattenedSize() const {return _numValidBytes;}
-   virtual void Flatten(uint8 * buffer, uint32 flatSize) const {memcpy(buffer, _buffer, flatSize);}
+   virtual void Flatten(DataFlattener flat) const {flat.WriteBytes(_buffer, _numValidBytes);}
    virtual bool AllowsTypeCode(uint32 tc) const {(void) tc; return true;}
    virtual status_t Unflatten(DataUnflattener & unflat)
    {
@@ -294,7 +294,7 @@ template <class T> inline ByteBufferRef GetFlattenedByteBufferFromPool(const T &
 template <class T> inline ByteBufferRef GetFlattenedByteBufferFromPool(ObjectPool<ByteBuffer> & pool, const T & flattenMe)
 {
    ByteBufferRef bufRef = GetByteBufferFromPool(pool, flattenMe.FlattenedSize());
-   if (bufRef()) flattenMe.Flatten(bufRef()->GetBuffer(), bufRef()->GetNumBytes());
+   if (bufRef()) flattenMe.Flatten(DataFlattener(bufRef()->GetBuffer(), bufRef()->GetNumBytes()));
    return bufRef;
 }
 
@@ -349,13 +349,41 @@ public:
    virtual void Free(void * ptr, size_t size) = 0;
 };
 
-// This method-implementation is placed here (rather than in DataUnflattener.h) to avoid a cyclic-header-include problem
+// The methods below have been implemented here (instead of inside DataFlattener.h or DataUnflattener.h)
+// to avoid chicken-and-egg programs with include-ordering.  At this location we are guaranteed that the compiler
+// knows everything it needs to know about both the DataFlattener/DataUnflattener classes and the ByteBuffer class.
+
 template<class EndianEncoder, class SizeChecker>
 void DataUnflattenerHelper<EndianEncoder, SizeChecker> :: SetBuffer(const ByteBuffer & readFrom, uint32 maxBytes, uint32 startOffset)
 {
    maxBytes    = muscleMin(readFrom.GetNumBytes(), maxBytes);
    startOffset = muscleMin(startOffset,            maxBytes);
    SetBuffer(readFrom.GetBuffer()+startOffset, maxBytes-startOffset);
+}
+
+template<class EndianEncoder>
+DataFlattenerHelper<EndianEncoder> :: DataFlattenerHelper(ByteBuffer & buf)
+{
+   SetBuffer(buf.GetBuffer(), buf.GetNumBytes());
+}
+
+template<class EndianEncoder>
+DataFlattenerHelper<EndianEncoder> :: DataFlattenerHelper(const Ref<ByteBuffer> & buf)
+{
+   if (buf()) SetBuffer(buf()->GetBuffer(), buf()->GetNumBytes());
+         else Reset();
+}
+
+template<class EndianEncoder>
+Ref<ByteBuffer> DataFlattenerHelper<EndianEncoder> :: GetByteBufferFromPool() const
+{
+   return muscle::GetByteBufferFromPool(GetNumBytesWritten(), GetBuffer());
+}
+
+template<class EndianEncoder>
+void DataFlattenerHelper<EndianEncoder> :: WriteBytes(const ByteBuffer & buf)
+{
+   WriteBytes(buf.GetBuffer(), buf.GetNumBytes());
 }
 
 } // end namespace muscle

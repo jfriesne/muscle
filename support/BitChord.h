@@ -7,7 +7,6 @@
 #include "support/MuscleSupport.h"
 #include "support/PseudoFlattenable.h"
 #include "util/String.h"
-#include "util/DataFlattener.h"
 
 namespace muscle {
 
@@ -235,9 +234,8 @@ public:
    static uint32 FlattenedSize() {return sizeof(uint32)+(NUM_WORDS*sizeof(uint32));}
 
    /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
-   void Flatten(uint8 * buffer, uint32 flatSize) const
+   void Flatten(DataFlattener flat) const
    {
-      DataFlattener flat(buffer, flatSize);
       flat.WriteInt32(NumBits);  // just so we can handle versioning issues more intelligently later on
       flat.WriteInt32s(_words, NUM_WORDS);
    }

@@ -183,7 +183,7 @@ unsigned int SSLSocketDataIO :: PSKServerCallback(const char *identity, unsigned
       return 0;  // failure
    }
 
-   _pskPassword.Flatten((uint8 *)psk, flatSize);
+   _pskPassword.Flatten(DataFlattener((uint8 *)psk, flatSize));
    return _pskPassword.Length();
 }
 
@@ -204,8 +204,8 @@ unsigned int SSLSocketDataIO :: PSKClientCallback(const char * /*hint*/, char * 
       return 0;  // failure
    }
 
-   _pskUserName.Flatten((uint8 *)identity, unFS);
-   _pskPassword.Flatten((uint8 *)psk,      pwFS);
+   _pskUserName.Flatten(DataFlattener((uint8 *)identity, unFS));
+   _pskPassword.Flatten(DataFlattener((uint8 *)psk,      pwFS));
    return _pskPassword.Length();
 }
 

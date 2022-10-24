@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 
-#include "util/DataFlattener.h"
 #include "util/MiscUtilityFunctions.h"  // for GetConnectString() (which is deliberately defined here)
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketMultiplexer.h"
@@ -1902,9 +1901,8 @@ uint32 IPAddress :: CalculateChecksum() const
    return CalculateChecksumForUint64(_lowBits) + CalculateChecksumForUint64(_highBits) + _interfaceIndex;
 }
 
-void IPAddress :: Flatten(uint8 * buffer, uint32 flatSize) const
+void IPAddress :: Flatten(DataFlattener flat) const
 {
-   DataFlattener flat(buffer, flatSize);
    flat.WriteInt64(_lowBits);
    flat.WriteInt64(_highBits);
    flat.WriteInt32(_interfaceIndex);
@@ -1918,9 +1916,8 @@ status_t IPAddress :: Unflatten(DataUnflattener & unflat)
    return unflat.GetStatus();
 }
 
-void IPAddressAndPort :: Flatten(uint8 * buffer, uint32 flatSize) const
+void IPAddressAndPort :: Flatten(DataFlattener flat) const
 {
-   DataFlattener flat(buffer, flatSize);
    flat.WriteFlat(_ip);
    flat.WriteInt16(_port);
 }

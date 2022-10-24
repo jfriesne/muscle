@@ -36,6 +36,8 @@ key:  - new feature
      take a single (optSepChars) argument instead of separate
      arguments for hard and soft separator characters.
    o Made the calculation of DataNode depths more efficient.
+   o Removed Flattenable::WriteData() and Flattenable::ReadData()
+     methods (since DataFlattener/DataUnflattener do it better).
    * Modified Snooze64() to call clock_nanosleep() under Linux,
      and to call nanosleep() when -DMUSCLE_USE_LIBRT is defined.
 

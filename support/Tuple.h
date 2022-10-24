@@ -228,7 +228,7 @@ public:
    void Reset() {ItemType def = ItemType(); for (int i=0; i<NumItems; i++) _items[i] = def;}
 
    /** How many items in this tuple */
-   uint32 GetNumItemsInTuple() const {return NumItems;}
+   static uint32 GetNumItemsInTuple() {return NumItems;}
 
    /** typedef for our item type; used by the binary operators below */
    typedef ItemType TupleItemType;

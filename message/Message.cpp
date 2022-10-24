@@ -167,9 +167,9 @@ public:
    TagDataArray() {/* empty */}
    virtual ~TagDataArray() {/* empty */}
 
-   virtual void Flatten(uint8 *, uint32, uint32) const
+   virtual void FlattenAux(DataFlattener, uint32) const
    {
-      MCRASH("Message::TagDataArray:Flatten()  This method should never be called!");
+      MCRASH("Message::TagDataArray:FlattenAux()  This method should never be called!");
    }
 
    // Flattenable interface
@@ -224,14 +224,10 @@ public:
       // empty
    }
 
-   virtual void Flatten(uint8 * buffer, uint32 /*flatSize*/, uint32 maxItemsToFlatten) const
+   virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const
    {
       const uint32 numItems = muscleMin(this->_data.GetNumItems(), maxItemsToFlatten);
-      for (uint32 i=0; i<numItems; i++)
-      {
-         this->_data[i].Flatten(buffer, FlatItemSize);
-         buffer += FlatItemSize;
-      }
+      for (uint32 i=0; i<numItems; i++) flat.WriteFlat(this->_data[i]);
    }
 
    // Flattenable interface
@@ -284,42 +280,10 @@ public:
    PrimitiveTypeDataArray() {/* empty */}
    virtual ~PrimitiveTypeDataArray() {/* empty */}
 
-   virtual void Flatten(uint8 * buffer, uint32 /*flatSize*/, uint32 maxItemsToFlatten) const
+   virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const
    {
-      DataType * dBuf = reinterpret_cast<DataType *>(buffer);
       const uint32 numItems = muscleMin(this->_data.GetNumItems(), maxItemsToFlatten);
-      switch(numItems)
-      {
-         case 0:
-            // do nothing
-         break;
-
-         case 1:
-            ConvertToNetworkByteOrder(dBuf, this->_data.HeadPointer(), 1);
-         break;
-
-         default:
-         {
-            uint32 len0 = 0;
-            const DataType * field0 = this->_data.GetArrayPointer(0, len0);
-            if (field0)
-            {
-               len0 = muscleMin(len0, numItems);
-               ConvertToNetworkByteOrder(dBuf, field0, len0);
-               if (numItems > len0)
-               {
-                  uint32 len1 = 0;
-                  const DataType * field1 = this->_data.GetArrayPointer(1, len1);
-                  if (field1)
-                  {
-                     len1 = muscleMin(len1, (uint32)(numItems-len0));
-                     ConvertToNetworkByteOrder(&dBuf[len0], field1, len1);
-                  }
-               }
-            }
-         }
-         break;
-      }
+      for (uint32 i=0; i<numItems; i++) flat.WritePrimitive(this->_data[i]);
    }
 
    virtual status_t Unflatten(DataUnflattener & unflat)
@@ -337,20 +301,16 @@ public:
       MRETURN_ON_ERROR(this->_data.EnsureSize(numItems, true));
 
       // Note that typically you can't rely on the contents of a Queue object to
-      // be stored in a single, contiguous field like this, but in this case we've
-      // called Clear() and then EnsureSize(), so we know that the field's headPointer
-      // is located at the front of the ring-buffer, so we are safe to do this.  --jaf
-      ConvertFromNetworkByteOrder(this->_data.HeadPointer(), reinterpret_cast<const DataType *>(unflat.GetCurrentReadPointer()), numItems);
-      return unflat.SeekToEnd();
+      // be stored in a memory-contiguous array like this, but in this case we've
+      // called Clear() and then EnsureSize(), so we are guaranteed that the field's
+      // HeadPointer() is placed at the front of the ring-buffer, so it's safe to do this.  --jaf
+      return unflat.ReadPrimitives(this->_data.HeadPointer(), numItems);
    }
 
    // Flattenable interface
    virtual uint32 FlattenedSize() const {return this->_data.GetNumItems() * sizeof(DataType);}
 
 protected:
-   virtual void ConvertToNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const = 0;
-   virtual void ConvertFromNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const = 0;
-
    virtual const char * GetFormatString() const = 0;
 
    virtual void AddToString(String & s, uint32, int indent) const
@@ -431,17 +391,6 @@ public:
       for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*((uint32)_data[i]));
       return ret;
    }
-
-protected:
-   virtual void ConvertToNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      memcpy(writeToHere, readFromHere, numItems);  // no translation required, really
-   }
-
-   virtual void ConvertFromNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      memcpy(writeToHere, readFromHere, numItems);  // no translation required, really
-   }
 };
 DECLAREFIELDTYPE(Int8DataArray);
 
@@ -457,43 +406,11 @@ public:
 
    virtual AbstractDataArrayRef Clone() const;
 
-   virtual void Flatten(uint8 * buffer, uint32 /*flatSize*/, uint32 maxItemsToFlatten) const
-   {
-      const uint32 numItems = muscleMin(_data.GetNumItems(), maxItemsToFlatten);
-      for (uint32 i=0; i<numItems; i++) buffer[i] = (uint8) (_data[i] ? 1 : 0);
-   }
-
-   virtual status_t Unflatten(DataUnflattener & unflat)
-   {
-      _data.Clear();  // this is to ensure the data is normalized after we're done
-
-      const uint32 numBytes = unflat.GetNumBytesAvailable();
-      MRETURN_ON_ERROR(_data.EnsureSize(numBytes, true));
-
-      const uint8 * buffer = unflat.GetCurrentReadPointer();
-      for (uint32 i=0; i<numBytes; i++) _data[i] = (buffer[i] != 0) ? true : false;
-      return unflat.SeekToEnd();
-   }
-
-   // Flattenable interface
-   virtual uint32 FlattenedSize() const {return _data.GetNumItems()*sizeof(uint8);}  /* bools are always flattened into 1 byte each */
-
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
       for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*(_data[i] ? 1 : 0));
       return ret;
-   }
-
-protected:
-   virtual void ConvertToNetworkByteOrder(void *, const void *, uint32) const
-   {
-      MCRASH("BoolDataArray::ConvertToNetworkByteOrder should never be called");
-   }
-
-   virtual void ConvertFromNetworkByteOrder(void *, const void *, uint32) const
-   {
-      MCRASH("BoolDataArray::ConvertFromNetworkByteOrder should never be called");
    }
 };
 DECLAREFIELDTYPE(BoolDataArray);
@@ -516,21 +433,6 @@ public:
       for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*((uint32)_data[i]));
       return ret;
    }
-
-protected:
-   virtual void ConvertToNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      int16 * writeToHere16 = static_cast<int16 *>(writeToHere);
-      const int16 * readFromHere16 = (const int16 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++) muscleCopyOut(&writeToHere16[i], B_HOST_TO_LENDIAN_INT16(readFromHere16[i]));
-   }
-
-   virtual void ConvertFromNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      int16 * writeToHere16 = (int16 *) writeToHere;
-      const int16 * readFromHere16 = (const int16 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++) writeToHere16[i] = B_LENDIAN_TO_HOST_INT16(muscleCopyIn<int16>(&readFromHere16[i]));
-   }
 };
 DECLAREFIELDTYPE(Int16DataArray);
 
@@ -551,21 +453,6 @@ public:
       uint32 ret = TypeCode() + GetNumItems();
       for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*((uint32)_data[i]));
       return ret;
-   }
-
-protected:
-   virtual void ConvertToNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      int32 * writeToHere32 = (int32 *) writeToHere;
-      const int32 * readFromHere32 = (const int32 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++) muscleCopyOut(&writeToHere32[i], B_HOST_TO_LENDIAN_INT32(readFromHere32[i]));
-   }
-
-   virtual void ConvertFromNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      int32 * writeToHere32 = (int32 *) writeToHere;
-      const int32 * readFromHere32 = (const int32 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++) writeToHere32[i] = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(&readFromHere32[i]));
    }
 };
 DECLAREFIELDTYPE(Int32DataArray);
@@ -588,21 +475,6 @@ public:
       for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculateChecksumForUint64(_data[i]));
       return ret;
    }
-
-protected:
-   virtual void ConvertToNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      int64 * writeToHere64 = (int64 *) writeToHere;
-      const int64 * readFromHere64 = (const int64 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++) muscleCopyOut(&writeToHere64[i], B_HOST_TO_LENDIAN_INT64(readFromHere64[i]));
-   }
-
-   virtual void ConvertFromNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      int64 * writeToHere64 = (int64 *) writeToHere;
-      const int64 * readFromHere64 = (const int64 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++) writeToHere64[i] = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<int64>(&readFromHere64[i]));
-   }
 };
 DECLAREFIELDTYPE(Int64DataArray);
 
@@ -623,21 +495,6 @@ public:
       uint32 ret = TypeCode() + GetNumItems();
       for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculateChecksumForFloat(_data[i]));
       return ret;
-   }
-
-protected:
-   virtual void ConvertToNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      int32 * writeToHere32 = (int32 *) writeToHere;  // yeah, they're really floats, but no need to worry about that here
-      const int32 * readFromHere32 = (const int32 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++) muscleCopyOut(&writeToHere32[i], B_HOST_TO_LENDIAN_INT32(readFromHere32[i]));
-   }
-
-   virtual void ConvertFromNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      int32 * writeToHere32 = (int32 *) writeToHere;  // yeah, they're really floats, but no need to worry about that here
-      const int32 * readFromHere32 = (const int32 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++) writeToHere32[i] = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(&readFromHere32[i]));
    }
 };
 DECLAREFIELDTYPE(FloatDataArray);
@@ -660,25 +517,10 @@ public:
       for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculateChecksumForDouble(_data[i]));
       return ret;
    }
-
-protected:
-   virtual void ConvertToNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      int64 * writeToHere64 = (int64 *) writeToHere;  // yeah, they're really doubles, but no need to worry about that here
-      const int64 * readFromHere64 = (const int64 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++) muscleCopyOut(&writeToHere64[i], B_HOST_TO_LENDIAN_INT64(readFromHere64[i]));
-   }
-
-   virtual void ConvertFromNetworkByteOrder(void * writeToHere, const void * readFromHere, uint32 numItems) const
-   {
-      int64 * writeToHere64 = (int64 *) writeToHere;  // yeah, they're really doubles, but no need to worry about that here
-      const int64 * readFromHere64 = (const int64 *) readFromHere;
-      for (uint32 i=0; i<numItems; i++) writeToHere64[i] = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<int64>(&readFromHere64[i]));
-   }
 };
 DECLAREFIELDTYPE(DoubleDataArray);
 
-class PointerDataArray : public PrimitiveTypeDataArray<void *>
+class PointerDataArray : public FixedSizeDataArray<void *>
 {
 public:
    PointerDataArray() {/* empty */}
@@ -690,6 +532,19 @@ public:
 
    virtual bool IsFlattenable() const {return false;}
 
+   virtual void FlattenAux(DataFlattener, uint32) const
+   {
+      MCRASH("Message::PointerDataArray:FlattenAux()  This method should never be called!");
+   }
+
+   virtual uint32 FlattenedSize() const {return 0;}  // poitners don't get flattened, so they take up no space
+
+   virtual status_t Unflatten(DataUnflattener &)
+   {
+      MCRASH("Message::PointerDataArray:Unflatten()  This method should never be called!");
+      return B_UNIMPLEMENTED;  // just to keep the compiler happy
+   }
+
    virtual AbstractDataArrayRef Clone() const;
 
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
@@ -698,14 +553,15 @@ public:
    }
 
 protected:
-   virtual void ConvertToNetworkByteOrder(void *, const void *, uint32) const
+   virtual void AddToString(String & s, uint32, int indent) const
    {
-      MCRASH("PointerDataArray::ConvertToNetworkByteOrder should never be called");
-   }
-
-   virtual void ConvertFromNetworkByteOrder(void *, const void *, uint32) const
-   {
-      MCRASH("PointerDataArray::ConvertFromNetworkByteOrder should never be called");
+      const uint32 numItems = this->GetNumItems();
+      for (uint32 i=0; i<numItems; i++)
+      {
+         AddItemPreambleToString(indent, i, s);
+         char temp[100]; muscleSprintf(temp, "[%p]\n", this->ItemAt(i));
+         s += temp;
+      }
    }
 };
 DECLAREFIELDTYPE(PointerDataArray);
@@ -733,30 +589,30 @@ public:
      */
    virtual bool ShouldWriteNumItems() const {return true;}
 
-   virtual void Flatten(uint8 * buffer, uint32 /*flatSize*/, uint32 maxItemsToFlatten) const
+   virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const
    {
       uint32 writeOffset = 0;
       const uint32 numItems = muscleMin(this->_data.GetNumItems(), maxItemsToFlatten);
 
-      // Conditional to allow maintaining backwards compatibility with old versions of muscle's MessageDataArrays (sigh)
+      uint8 * writeCountToThisLocation;
       if (ShouldWriteNumItems())
       {
-         const uint32 writeNumElements = B_HOST_TO_LENDIAN_INT32(numItems);
-         this->WriteData(buffer, &writeOffset, &writeNumElements, sizeof(writeNumElements));
+         writeCountToThisLocation = flat.GetCurrentWritePointer();  // we'll write to this location at the end, once we know the exact count
+         flat.SeekRelative(sizeof(uint32));
       }
+      else writeCountToThisLocation = NULL;
 
+      uint32 numWritten = 0;
       for (uint32 i=0; i<numItems; i++)
       {
          const FlatCountable * next = this->ItemAt(i)();
          if (next)
          {
-            const uint32 fs = next->FlattenedSize();
-            const uint32 writeFs = B_HOST_TO_LENDIAN_INT32(fs);
-            this->WriteData(buffer, &writeOffset, &writeFs, sizeof(writeFs));
-            next->Flatten(&buffer[writeOffset], fs);
-            writeOffset += fs;
+            flat.WriteFlatWithLengthPrefix(*next);
+            numWritten++;
          }
       }
+      if (writeCountToThisLocation) muscleCopyOut(writeCountToThisLocation, B_HOST_TO_LENDIAN_INT32(numWritten));
    }
 
    // Flattenable interface
@@ -831,7 +687,7 @@ public:
          temp.SetNumBytes(flatSize, false);
          if (temp())
          {
-            fc->Flatten((uint8*)temp(), flatSize);
+            fc->FlattenToBytes((uint8*)temp(), flatSize);
             bb = &temp;
          }
       }
@@ -1001,30 +857,15 @@ public:
    virtual uint32 GetItemSize(uint32 index) const {return this->ItemAt(index).FlattenedSize();}
    virtual bool ElementsAreFixedSize() const {return false;}
 
-   virtual void Flatten(uint8 * buffer, uint32 /*flatSize*/, uint32 maxItemsToFlatten) const
+   virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const
    {
       // Format:  0. number of entries (4 bytes)
       //          1. entry size in bytes (4 bytes)
       //          2. entry data (n bytes)
       //          (repeat 1. and 2. as necessary)
       const uint32 numElements = muscleMin(this->GetNumItems(), maxItemsToFlatten);
-      uint32 networkByteOrder  = B_HOST_TO_LENDIAN_INT32(numElements);
-      uint32 writeOffset       = 0;
-
-      this->WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
-
-      for (uint32 i=0; i<numElements; i++)
-      {
-         // write element size
-         const DataType & s = this->ItemAt(i);
-         const uint32 nextElementBytes = s.FlattenedSize();
-         networkByteOrder = B_HOST_TO_LENDIAN_INT32(nextElementBytes);
-         this->WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
-
-         // write element data
-         s.Flatten(&buffer[writeOffset], nextElementBytes);
-         writeOffset += nextElementBytes;
-      }
+      flat.WriteInt32(numElements);
+      for (uint32 i=0; i<numElements; i++) flat.WriteFlatWithLengthPrefix(this->ItemAt(i));
    }
 
    virtual uint32 FlattenedSize() const
@@ -1037,27 +878,12 @@ public:
 
    virtual status_t Unflatten(DataUnflattener & unflat)
    {
-      this->Clear(false);
-
       const uint32 numElements = unflat.ReadInt32();
       MRETURN_ON_ERROR(unflat.GetStatus());
+
+      this->Clear(false);
       MRETURN_ON_ERROR(this->_data.EnsureSize(numElements, true));
-
-      for (uint32 i=0; i<numElements; i++)
-      {
-         const uint32 elementSize = unflat.ReadInt32();
-         MRETURN_ON_ERROR(unflat.GetStatus());
-
-         if (elementSize > unflat.GetNumBytesAvailable())
-         {
-            LogTime(MUSCLE_LOG_DEBUG, "VariableSizeFlatObjectArray %p:  Element size was too large! (numBytesAvailable=" UINT32_FORMAT_SPEC ", i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ", elementSize=" UINT32_FORMAT_SPEC ")\n", this, unflat.GetNumBytesAvailable(), i, numElements, elementSize);
-            return B_BAD_DATA;
-         }
-
-         const DataUnflattenerReadLimiter<DataUnflattener> readLimiter(unflat, elementSize);
-         MRETURN_ON_ERROR(this->_data[i].Unflatten(unflat));
-      }
-      return unflat.GetStatus();
+      return unflat.ReadFlatsWithLengthPrefixes(this->_data.HeadPointer(), numElements);
    }
 };
 
@@ -1309,7 +1135,7 @@ uint32 Message :: CalculateChecksum(bool countNonFlattenableFields) const
    return ret;
 }
 
-void Message :: Flatten(uint8 * buffer, uint32 flatSize) const
+void Message :: Flatten(DataFlattener flat) const
 {
    TCHECKPOINT;
 
@@ -1323,18 +1149,12 @@ void Message :: Flatten(uint8 * buffer, uint32 flatSize) const
    //          7. Entry data (n bytes)
    //          8. loop to 3 as necessary
 
-   // Write current protocol version
-   uint32 writeOffset = 0;
-   uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(CURRENT_PROTOCOL_VERSION);
-   WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
-
-   // Write 'what' code
-   networkByteOrder = B_HOST_TO_LENDIAN_INT32(what);
-   WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
+   flat.WriteInt32(CURRENT_PROTOCOL_VERSION);
+   flat.WriteInt32(what);
 
    // Remember where to write the number-of-entries value (we'll actually write it at the end of this method)
-   uint8 * entryCountPtr = &buffer[writeOffset];
-   writeOffset += sizeof(uint32);
+   uint8 * entryCountPtr = flat.GetCurrentWritePointer();
+   flat.SeekRelative(sizeof(uint32));
 
    // Write entries
    uint32 numFlattenedEntries = 0;
@@ -1345,33 +1165,14 @@ void Message :: Flatten(uint8 * buffer, uint32 flatSize) const
       {
          numFlattenedEntries++;
 
-         // Write entry name length
-         const uint32 keyNameSize = it.GetKey().FlattenedSize();
-         networkByteOrder = B_HOST_TO_LENDIAN_INT32(keyNameSize);
-         WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
-
-         // Write entry name
-         it.GetKey().Flatten(&buffer[writeOffset], keyNameSize);
-         writeOffset += keyNameSize;
-
-         // Write entry type code
-         networkByteOrder = B_HOST_TO_LENDIAN_INT32(mf.TypeCode());
-         WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
-
-         // Write entry data length
-         const uint32 dataSize = mf.FlattenedSize();
-         networkByteOrder = B_HOST_TO_LENDIAN_INT32(dataSize);
-         WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
-
-         // Write entry data
-         mf.Flatten(&buffer[writeOffset], flatSize, MUSCLE_NO_LIMIT);
-         writeOffset += dataSize;
+         flat.WriteFlatWithLengthPrefix(it.GetKey());
+         flat.WriteInt32(mf.TypeCode());
+         flat.WriteFlatWithLengthPrefix(mf);
       }
    }
 
    // Write number-of-entries field (now that we know its final value)
-   networkByteOrder = B_HOST_TO_LENDIAN_INT32(numFlattenedEntries);
-   memcpy(entryCountPtr, &networkByteOrder, sizeof(uint32));
+   muscleCopyOut(entryCountPtr, B_HOST_TO_LENDIAN_INT32(numFlattenedEntries));
 }
 
 status_t Message :: Unflatten(DataUnflattener & unflat)
@@ -2349,57 +2150,44 @@ uint32 MessageField :: SingleFlattenedSize() const
    }
 }
 
-void MessageField :: SingleFlatten(uint8 *buffer) const
+void MessageField :: SingleFlatten(DataFlattener flat) const
 {
    MASSERT(_state == FIELD_STATE_INLINE, "SingleFlatten() called on empty field");
 
    switch(_typeCode)
    {
-      case B_BOOL_TYPE:    *buffer = (GetInlineItemAsBool() ? 1 : 0);                                 break;
-      case B_DOUBLE_TYPE:  muscleCopyOut(buffer, B_HOST_TO_LENDIAN_IDOUBLE(GetInlineItemAsDouble())); break;
-      case B_FLOAT_TYPE:   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_IFLOAT( GetInlineItemAsFloat()));  break;
-      case B_INT64_TYPE:   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT64(  GetInlineItemAsInt64()));  break;
-      case B_INT32_TYPE:   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(  GetInlineItemAsInt32()));  break;
-      case B_INT16_TYPE:   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT16(  GetInlineItemAsInt16()));  break;
-      case B_INT8_TYPE:    *buffer = GetInlineItemAsInt8();                                           break;
+      case B_BOOL_TYPE:    flat.WriteByte(  GetInlineItemAsBool()?1:0); break;
+      case B_DOUBLE_TYPE:  flat.WriteDouble(GetInlineItemAsDouble());   break;
+      case B_FLOAT_TYPE:   flat.WriteFloat( GetInlineItemAsFloat());    break;
+      case B_INT64_TYPE:   flat.WriteInt64( GetInlineItemAsInt64());    break;
+      case B_INT32_TYPE:   flat.WriteInt32( GetInlineItemAsInt32());    break;
+      case B_INT16_TYPE:   flat.WriteInt16( GetInlineItemAsInt16());    break;
+      case B_INT8_TYPE:    flat.WriteInt8(  GetInlineItemAsInt8());     break;
+      case B_TAG_TYPE:     /* do nothing */                             break;
+      case B_POINTER_TYPE: /* do nothing */                             break;
+      case B_POINT_TYPE:   flat.WriteFlat(GetInlineItemAsPoint());      break;
+      case B_RECT_TYPE:    flat.WriteFlat(GetInlineItemAsRect());       break;
 
       case B_MESSAGE_TYPE:
       {
          const Message * msg = dynamic_cast<Message *>(GetInlineItemAsRefCountableRef()());
-         // Note:  No number-of-items field is written, for historical reasons
-         const uint32 flatSize = msg->FlattenedSize();
-         muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(flatSize)); buffer += sizeof(uint32);
-         msg->Flatten(buffer, flatSize);
+         if (msg) flat.WriteFlatWithLengthPrefix(*msg); // Note:  No number-of-items field is written, for entirely historical reasons :(
       }
       break;
-
-      case B_POINTER_TYPE: /* do nothing */ break;
-      case B_POINT_TYPE:   GetInlineItemAsPoint().Flatten(buffer, Point::FlattenedSize()); break;
-      case B_RECT_TYPE:    GetInlineItemAsRect().Flatten( buffer,  Rect::FlattenedSize()); break;
 
       case B_STRING_TYPE:
-      {
-         muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(1)); buffer += sizeof(uint32);  // because we have one string to write
-
-         const String & s = GetInlineItemAsString();
-         const uint32 flatSize = s.FlattenedSize();
-         muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(flatSize)); buffer += sizeof(uint32);
-         s.Flatten(buffer, flatSize);
-      }
+         flat.WriteInt32(1);  // because we have one variable-sized object to write
+         flat.WriteFlatWithLengthPrefix(GetInlineItemAsString());
       break;
-
-      case B_TAG_TYPE:     /* do nothing */ break;
 
       default:
       {
          // all other types will follow the variable-sized-objects-field convention
-         muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(1)); buffer += sizeof(uint32); // because we have one variable-sized-object to write
+         flat.WriteInt32(1);  // because we have one variable-sized object to write
 
          const FlatCountable * fc = dynamic_cast<const FlatCountable *>(GetInlineItemAsRefCountableRef()());
-         const uint32 flatSize = fc ? fc->FlattenedSize() : 0;
-         muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(flatSize)); buffer += sizeof(uint32);
-
-         if (fc) fc->Flatten(buffer, flatSize);
+         if (fc) flat.WriteFlatWithLengthPrefix(*fc);
+            else flat.WriteInt32(0);  // no fc => length-prefix with value 0
       }
       break;
    }
@@ -2410,36 +2198,35 @@ status_t MessageField :: SingleUnflatten(DataUnflattener & unflat)
 {
    switch(_typeCode)
    {
-      case B_BOOL_TYPE:   SetInlineItemAsBool(  unflat.ReadByte()!=0); break;
-      case B_DOUBLE_TYPE: SetInlineItemAsDouble(unflat.ReadDouble());  break;
-      case B_FLOAT_TYPE:  SetInlineItemAsFloat( unflat.ReadFloat());   break;
-      case B_INT64_TYPE:  SetInlineItemAsInt64( unflat.ReadInt64());   break;
-      case B_INT32_TYPE:  SetInlineItemAsInt32( unflat.ReadInt32());   break;
-      case B_INT16_TYPE:  SetInlineItemAsInt16( unflat.ReadInt16());   break;
-      case B_INT8_TYPE:   SetInlineItemAsInt8(  unflat.ReadInt8());    break;
+      case B_BOOL_TYPE:    SetInlineItemAsBool(  unflat.ReadByte()!=0);    break;
+      case B_DOUBLE_TYPE:  SetInlineItemAsDouble(unflat.ReadDouble());     break;
+      case B_FLOAT_TYPE:   SetInlineItemAsFloat( unflat.ReadFloat());      break;
+      case B_INT64_TYPE:   SetInlineItemAsInt64( unflat.ReadInt64());      break;
+      case B_INT32_TYPE:   SetInlineItemAsInt32( unflat.ReadInt32());      break;
+      case B_INT16_TYPE:   SetInlineItemAsInt16( unflat.ReadInt16());      break;
+      case B_INT8_TYPE:    SetInlineItemAsInt8(  unflat.ReadInt8());       break;
+      case B_POINT_TYPE:   SetInlineItemAsPoint(unflat.ReadFlat<Point>()); break;
+      case B_RECT_TYPE:    SetInlineItemAsRect (unflat.ReadFlat<Rect>());  break;
+      case B_TAG_TYPE:     return B_UNIMPLEMENTED;  // tags should not be serialized!
+      case B_POINTER_TYPE: return B_UNIMPLEMENTED;  // pointers should not be serialized!
 
       case B_MESSAGE_TYPE:
       {
-         // Note:  Message fields have no number-of-items field, for historical reasons
+         // Note:  Message fields have no number-of-items field, for entirely historical reasons :(
          const uint32 msgSize = unflat.ReadInt32();
          if (msgSize != unflat.GetNumBytesAvailable()) return B_BAD_DATA;
 
-         MessageRef msgRef = GetMessageFromPool(unflat.GetCurrentReadPointer(), unflat.GetNumBytesAvailable());
+         MessageRef msgRef = GetMessageFromPool(unflat.GetCurrentReadPointer(), msgSize);
          MRETURN_ON_ERROR(unflat.SeekToEnd());
          if (msgRef() == NULL) return B_BAD_DATA;
          SetInlineItemAsRefCountableRef(msgRef.GetRefCountableRef());
       }
       break;
 
-      case B_POINTER_TYPE: return B_UNIMPLEMENTED;  // pointers should not be serialized!
-      case B_POINT_TYPE:   SetInlineItemAsPoint(unflat.ReadFlat<Point>()); break;
-      case B_RECT_TYPE:    SetInlineItemAsRect (unflat.ReadFlat<Rect>());  break;
-
       case B_STRING_TYPE:
       {
          // string type follows the variable-sized-objects-field convention
-         const uint32 itemCount = unflat.ReadInt32();
-         if (itemCount != 1) return B_BAD_DATA;  // wtf, if we're in this function there should only be one item!
+         if (unflat.ReadInt32() != 1) return B_BAD_DATA;  // wtf, if we're in this function there should only be one item!
 
          String s;
          MRETURN_ON_ERROR(unflat.ReadFlatWithLengthPrefix(s));
@@ -2447,13 +2234,10 @@ status_t MessageField :: SingleUnflatten(DataUnflattener & unflat)
       }
       break;
 
-      case B_TAG_TYPE:     return B_UNIMPLEMENTED;  // tags should not be serialized!
-
       default:
       {
          // all other types will follow the variable-sized-objects-field convention
-         const uint32 itemCount = unflat.ReadInt32();
-         if (itemCount != 1) return B_BAD_DATA;  // wtf, if we're in this function there should only be one item!
+         if (unflat.ReadInt32() != 1) return B_BAD_DATA;  // wtf, if we're in this function there should only be one item!
 
          const uint32 itemSize = unflat.ReadInt32();
          if (itemSize != unflat.GetNumBytesAvailable()) return B_BAD_DATA;  // our one item should take up the entire buffer, or something is wrong
@@ -3120,7 +2904,7 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
    {
       if (optPayloadField)
       {
-         if (numItemsInPayloadField >= numItemsInTemplateField) optPayloadField->Flatten(buf, optPayloadField->FlattenedSize(), numItemsInTemplateField);
+         if (numItemsInPayloadField >= numItemsInTemplateField) optPayloadField->FlattenAux(DataFlattener(buf, optPayloadField->FlattenedSize()), numItemsInTemplateField);
          else
          {
             // In this case the payload-field has fewer values than the template-field, and therefore
@@ -3155,10 +2939,10 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
             else LogTime(MUSCLE_LOG_ERROR, "TemplatedFlatten:  EnsurePrivate() failed! [%s]\n", ret());
 
             const MessageField * mf = (ret.IsOK() ? &synthField : this);
-            mf->Flatten(buf, mf->FlattenedSize(), MUSCLE_NO_LIMIT);
+            mf->FlattenAux(DataFlattener(buf, mf->FlattenedSize()), MUSCLE_NO_LIMIT);
          }
       }
-      else Flatten(buf, FlattenedSize(), MUSCLE_NO_LIMIT);  // no payload field means we'll be flattening entirely from the template-Message's field-data
+      else FlattenAux(DataFlattener(buf, FlattenedSize()), MUSCLE_NO_LIMIT);  // no payload field means we'll be flattening entirely from the template-Message's field-data
 
       buf += TemplatedFlattenedSize(optPayloadField);  // advance the pointer for the next call
    }

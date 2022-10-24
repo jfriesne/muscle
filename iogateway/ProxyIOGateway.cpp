@@ -103,7 +103,7 @@ void ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
       if (_fakeStreamSendBuffer.SetNumBytes(msgFlatSize, false).IsOK())
       {
          // Default algorithm:  Just Flatten() the Message directly into a buffer
-         msg()->Flatten(_fakeStreamSendBuffer.GetBuffer(), msgFlatSize);
+         msg()->FlattenToBytes(_fakeStreamSendBuffer.GetBuffer(), msgFlatSize);
          (void) outQ.AddTail(DummyByteBufferRef(_fakeStreamSendBuffer));
       }
    }

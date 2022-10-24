@@ -1,6 +1,6 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
+#include "util/CheckedDataFlattener.h"
 #include "util/ByteBuffer.h"
-#include "util/DataFlattener.h"
 
 using namespace muscle;
 
@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
    (void) flt.WriteInt16(4);
    (void) flt.WriteInt16(5);
    (void) flt.WriteFloat(3.14159f);
-   (void) flt.WriteString("howdy");
+   (void) flt.WriteCString("howdy");
 
    if (flt.GetStatus().IsOK())
    {

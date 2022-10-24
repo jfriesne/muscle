@@ -1,5 +1,4 @@
 #include "system/SetupSystem.h"         // for CompleteSetupSystem
-#include "util/DataFlattener.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
 #include "util/String.h"
 
@@ -56,9 +55,8 @@ public:
       return sizeof(_latitude) + sizeof(_longitude) + sizeof(_altitude);
    }
 
-   virtual void Flatten(uint8 *buffer, uint32 flatSize) const
+   virtual void Flatten(DataFlattener flat) const
    {
-      DataFlattener flat(buffer, flatSize);
       flat.WriteFloat(_latitude);
       flat.WriteFloat(_longitude);
       flat.WriteFloat(_altitude);
@@ -95,7 +93,7 @@ int main(int argc, char ** argv)
 
    // now let's Flatten() the object into a flat-sized buffer
    uint8 tempBuf[128];  // 128 bytes ought to be enough for anyone
-   gps.Flatten(tempBuf, gps.FlattenedSize());
+   gps.FlattenToBytes(tempBuf);
 
    printf("\n");
    printf("Flattened representation is:\n");

@@ -35,11 +35,11 @@ DoOutputImplementation(uint32 maxBytes)
          ByteBufferRef outBuf = GetByteBufferFromPool(outBufLen);
          if (outBuf())
          {
-            uint8 * b = outBuf()->GetBuffer();
+            DataFlattener flat(*outBuf());
             for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++)
             {
-               nextStr->Flatten(  b, nextStr->FlattenedSize());   b += nextStr->Length();   // Advance by Length() instead of FlattenedSize()
-               _eolString.Flatten(b, _eolString.FlattenedSize()); b += _eolString.Length(); // to avoid NUL bytes inside our outBuf
+               flat.WriteBytes(reinterpret_cast<const uint8 *>(nextStr->Cstr()), nextStr->Length());   // Note that we write Length() bytes, NOT FlattenedSize()
+               flat.WriteBytes(reinterpret_cast<const uint8 *>(_eolString()),    _eolString.Length()); // bytes (i.e. we don't write NUL terminator byte)
             }
 
             const uint8 * outBytes      = outBuf()->GetBuffer();

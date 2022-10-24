@@ -100,6 +100,7 @@ public:
    int64  ReadInt64()  {int64 v = 0;    (void) ReadInt64s( &v, 1); return v;}
    float  ReadFloat()  {float v = 0.0f; (void) ReadFloats( &v, 1); return v;}
    double ReadDouble() {double v = 0.0; (void) ReadDoubles(&v, 1); return v;}
+   template<typename T> T ReadPrimitive() {T v = T(); (void) ReadPrimitives(&v, 1); return v;}
 ///@}
 
    /** Returns a pointer to the next NUL-terminated ASCII string inside our buffer, or NULL on failure
@@ -178,65 +179,16 @@ public:
      * @param numVals the number of values in the value-array that (retVals) points to
      * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (not enough data available)
      */
-   status_t ReadInt8s(int8 * retVals, uint32 numVals) {return ReadBytes(reinterpret_cast<uint8 *>(retVals), numVals);}
-
-   status_t ReadInt16s(uint16 * retVals, uint32 numVals) {return ReadInt16s(reinterpret_cast<int16 *>(retVals), numVals);}
-   status_t ReadInt16s(int16 * retVals, uint32 numVals)
-   {
-      MRETURN_ON_ERROR(SizeCheck(numVals*sizeof(retVals[0])));
-      for (uint32 i=0; i<numVals; i++)
-      {
-         retVals[i] = _encoder.ImportInt16(_readFrom);
-         _readFrom += sizeof(retVals[0]);
-      }
-      return B_NO_ERROR;
-   }
-
-   status_t ReadInt32s(uint32 * retVals, uint32 numVals) {return ReadInt32s(reinterpret_cast<int32 *>(retVals), numVals);}
-   status_t ReadInt32s(int32 * retVals, uint32 numVals)
-   {
-      MRETURN_ON_ERROR(SizeCheck(numVals*sizeof(retVals[0])));
-      for (uint32 i=0; i<numVals; i++)
-      {
-         retVals[i] = _encoder.ImportInt32(_readFrom);
-         _readFrom += sizeof(retVals[i]);
-      }
-      return B_NO_ERROR;
-   }
-
-   status_t ReadInt64s(uint64 * retVals, uint32 numVals) {return ReadInt64s(reinterpret_cast<int64 *>(retVals), numVals);}
-   status_t ReadInt64s(int64 * retVals, uint32 numVals)
-   {
-      MRETURN_ON_ERROR(SizeCheck(numVals*sizeof(retVals[0])));
-      for (uint32 i=0; i<numVals; i++)
-      {
-         retVals[i] = _encoder.ImportInt64(_readFrom);
-         _readFrom += sizeof(retVals[i]);
-      }
-      return B_NO_ERROR;
-   }
-
-   status_t ReadFloats(float * retVals, uint32 numVals)
-   {
-      MRETURN_ON_ERROR(SizeCheck(numVals*sizeof(retVals[0])));
-      for (uint32 i=0; i<numVals; i++)
-      {
-         retVals[i] = _encoder.ImportFloat(_readFrom);
-         _readFrom += sizeof(retVals[i]);
-      }
-      return B_NO_ERROR;
-   }
-
-   status_t ReadDoubles(double * retVals, uint32 numVals)
-   {
-      MRETURN_ON_ERROR(SizeCheck(numVals*sizeof(retVals[0])));
-      for (uint32 i=0; i<numVals; i++)
-      {
-         retVals[i] = _encoder.ImportDouble(_readFrom);
-         _readFrom += sizeof(retVals[i]);
-      }
-      return B_NO_ERROR;
-   }
+   status_t ReadInt8s(   uint8 * retVals, uint32 numVals) {return ReadBytes(retVals, numVals);}
+   status_t ReadInt8s(    int8 * retVals, uint32 numVals) {return ReadBytes(reinterpret_cast<uint8 *>(retVals), numVals);}
+   status_t ReadInt16s( uint16 * retVals, uint32 numVals) {return ReadPrimitives(retVals, numVals);}
+   status_t ReadInt16s(  int16 * retVals, uint32 numVals) {return ReadPrimitives(retVals, numVals);}
+   status_t ReadInt32s( uint32 * retVals, uint32 numVals) {return ReadPrimitives(retVals, numVals);}
+   status_t ReadInt32s(  int32 * retVals, uint32 numVals) {return ReadPrimitives(retVals, numVals);}
+   status_t ReadInt64s( uint64 * retVals, uint32 numVals) {return ReadPrimitives(retVals, numVals);}
+   status_t ReadInt64s(  int64 * retVals, uint32 numVals) {return ReadPrimitives(retVals, numVals);}
+   status_t ReadFloats(  float * retVals, uint32 numVals) {return ReadPrimitives(retVals, numVals);}
+   status_t ReadDoubles(double * retVals, uint32 numVals) {return ReadPrimitives(retVals, numVals);}
 
    template<typename T> status_t ReadFlats(T * retVals, uint32 numVals)
    {
@@ -273,7 +225,7 @@ public:
       for (uint32 i=0; i<numVals; i++)
       {
          MRETURN_ON_ERROR(SizeCheck(sizeof(uint32)));
-         const uint32 payloadSize = _encoder.ImportInt32(_readFrom);
+         uint32 payloadSize; _encoder.Import(_readFrom, payloadSize);
          MRETURN_ON_ERROR(SizeCheck(payloadSize));
          Advance(sizeof(payloadSize));
 
@@ -286,6 +238,23 @@ public:
    }
 
 ///@}
+
+   /** Generic method for reading an array of any of the standard POD-typed data-items
+     * (int32, int64, float, double, etc) from our buffer.
+     * @param vals Pointer to an array of values to restore from our buffer
+     * @param numVals the number of values in the value-array that (vals) points to
+     * @returns B_NO_ERROR on success, or an error code on failure.
+     */
+   template <typename T> status_t ReadPrimitives(T * retVals, uint32 numVals)
+   {
+      MRETURN_ON_ERROR(SizeCheck(numVals*sizeof(T)));
+      for (uint32 i=0; i<numVals; i++)
+      {
+         _encoder.Import(_readFrom, retVals[i]);
+         _readFrom += sizeof(T);
+      }
+      return B_NO_ERROR;
+   }
 
    /** Returns a pointer into our buffer at the location we will next read from */
    const uint8 * GetCurrentReadPointer() const {return _readFrom;}

@@ -1,6 +1,5 @@
 #include "dataio/SimulatedMulticastDataIO.h"
 #include "util/NetworkInterfaceInfo.h"
-#include "util/DataFlattener.h"
 
 namespace muscle {
 

@@ -1,6 +1,5 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "message/Message.h"
-#include "util/DataFlattener.h"
 #include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
 
 using namespace muscle;
@@ -50,13 +49,12 @@ public:
              sizeof(_zipCode);
    }
 
-   virtual void Flatten(uint8 * buffer, uint32 flatSize) const
+   virtual void Flatten(DataFlattener flat) const
    {
-      DataFlattener flat(buffer, flatSize);
-      flat.WriteString(_name);
-      flat.WriteString(_address);
-      flat.WriteString(_city);
-      flat.WriteString(_state);
+      flat.WriteFlat(_name);
+      flat.WriteFlat(_address);
+      flat.WriteFlat(_city);
+      flat.WriteFlat(_state);
       flat.WriteInt32(_zipCode);
    }
 
@@ -112,9 +110,8 @@ int main(int argc, char ** argv)
    orderPizzaMsg.PrintToStream();
 
    // Now let's flatten the Message into a ByteBuffer and see what it looks like as flattened data
-   const uint32 opmFlatSize = orderPizzaMsg.FlattenedSize();
-   ByteBuffer buf(opmFlatSize);
-   orderPizzaMsg.Flatten(buf.GetBuffer(), opmFlatSize);
+   ByteBuffer buf(orderPizzaMsg.FlattenedSize());
+   orderPizzaMsg.FlattenToByteBuffer(buf);
 
    printf("\n");
    printf("In Flattened/serialized form, the data looks like this:\n");

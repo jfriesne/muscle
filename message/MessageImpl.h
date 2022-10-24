@@ -96,10 +96,10 @@ public:
    virtual RefCountableRef GetItemAtAsRefCountableRef(uint32 idx) const {(void) idx; return GetDefaultObjectForType<RefCountableRef>();}
 
    /** Used by the TemplatedFlatten() methods */
-   virtual void Flatten(uint8 * buf, uint32 flatSize, uint32 maxItemsToFlatten) const = 0;
+   virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const = 0;
 
    /** Used by the regular Flatten() methods */
-   virtual void Flatten(uint8 * buf, uint32 flatSize) const {Flatten(buf, flatSize, MUSCLE_NO_LIMIT);}
+   virtual void Flatten(DataFlattener flat) const {FlattenAux(flat, MUSCLE_NO_LIMIT);}
 
 protected:
    /** Must be implemented by each subclass to return true iff (rhs) is of the same type
@@ -141,7 +141,7 @@ public:
    uint32 TypeCode() const {return _typeCode;}
    bool AllowsTypeCode(uint32 tc) const {return tc == TypeCode();}
    uint32 FlattenedSize() const {return HasArray() ? GetArray()->FlattenedSize() : SingleFlattenedSize();}
-   void Flatten(uint8 *buffer, uint32 flatSize, uint32 maxItemsToFlatten) const {if (HasArray()) GetArray()->Flatten(buffer, flatSize, maxItemsToFlatten); else SingleFlatten(buffer);}
+   void Flatten(DataFlattener flat) const {FlattenAux(flat, MUSCLE_NO_LIMIT);}
    status_t Unflatten(DataUnflattener & unflat);
 
    // Pseudo-AbstractDataArray interface
@@ -178,6 +178,9 @@ public:
    void TemplatedFlatten(const MessageField * optPayloadField, uint8 * & buf) const;
    status_t TemplatedUnflatten(Message & unflattenTo, const String & fieldName, const uint8 * & buf, uint32 & bufSize) const;
 
+protected:
+   void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const {if (HasArray()) GetArray()->FlattenAux(flat, maxItemsToFlatten); else SingleFlatten(flat);}
+
 private:
    const AbstractDataArray * GetArray() const {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
    AbstractDataArray * GetArray() {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
@@ -186,7 +189,7 @@ private:
 
    // single-item implementation of the AbstractDataArray methods
    uint32 SingleFlattenedSize() const;
-   void SingleFlatten(uint8 * buffer) const;
+   void SingleFlatten(DataFlattener flat) const;
    status_t SingleUnflatten(DataUnflattener & unflat);
    status_t SingleAddDataItem(const void * data, uint32 numBytes);
    status_t SingleRemoveDataItem(uint32 index);

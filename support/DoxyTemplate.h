@@ -141,19 +141,17 @@ public:
    uint32 FlattenedSize() const;
 
    /** Writes this object's state out to the supplied memory buffer.
-    *  @param buffer A pointer to an array that is at least (FlattenedSize()) bytes long.
-    *  @param flatSize the result of a recent call to the object's FlattenedSize() method.
-    *  @note (flatSize) is passed as an argument merely so that Flatten() doesn't have to call the FlattenedSize()
-    *        method again in order to do buffer-overflow checking.  For safety, it's recommended that
-    *        Flatten() implementations declare a DataFlattener object on the stack and pass both
-    *        of these arguments to it, and call its Write*() methods to write serialized-bytes into (buffer).
+    *  @param flat a DataFlattener to use to write out the bytes.
+    *  @note (flat)'s (maxBytes) constructor-argument MUST be set equal to the value returned by this object's FlattenedSize() method.
     */
-   void Flatten(uint8 * buffer, uint32 flatSize) const;
+   void Flatten(DataFlattener flat) const;
 
    /** Restores this object's state from the data contained in the supplied memory buffer.
     *  @param unflat the DataUnflattener to use to read in and parse the serialized data bytes.
-    *  @return B_NO_ERROR on success, or an error value on failure (e.g. B_BAD_DATA if (size) was too small,
-    *          or the data-bytes were deemed inappropriate)
+    *  @return B_NO_ERROR on success, or an error value if the method failed to set this object's state from the data.
+    *  @note (unflat) may have more or fewer bytes available in it for reading than are necessary to unflatten
+    *        this object; if there are not enough bytes, this method should return an error like B_BAD_DATA.
+    *        if there are too many bytes, the "extra" bytes should be left unread.
     */
    status_t Unflatten(DataUnflattener & unflat);
 

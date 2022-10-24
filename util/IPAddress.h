@@ -186,8 +186,8 @@ public:
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
    uint32 CalculateChecksum() const;
 
-   /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
-   void Flatten(uint8 * buffer, uint32 flatSize) const;
+   /** @copydoc DoxyTemplate::Flatten(DataFlattener flat) const */
+   void Flatten(DataFlattener flat) const;
 
    /** @copydoc DoxyTemplate::Unflatten(DataUnflattener &) */
    status_t Unflatten(DataUnflattener & unflat);
@@ -434,10 +434,9 @@ public:
    uint32 CalculateChecksum() const {return _ip.CalculateChecksum() + _port;}
 
    /** Copies this point into an endian-neutral flattened buffer.
-    *  @param buffer Points to an array of at least FlattenedSize() bytes.
-    *  @param flatSize the value tha was just returned from our FlattenedSize() method, for convenience.
+    *  @param flat the DataFlattener to use to output serialized bytes
     */
-   void Flatten(uint8 * buffer, uint32 flatSize) const;
+   void Flatten(DataFlattener flat) const;
 
    /** Restores this point from an endian-neutral flattened buffer.
     *  @param unflat the DataUnflattener to use to read the flattened bytes.

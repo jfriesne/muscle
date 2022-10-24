@@ -178,12 +178,12 @@ int main(int, char **)
    const uint32 umFlatSize = UMGetFlattenedSize(&um);
    PrintHexBytes(umPtr, umFlatSize);
 
-   ByteBufferRef bufRef = GetByteBufferFromPool(m.FlattenedSize());
+   ByteBufferRef bufRef = GetFlattenedByteBufferFromPool(m);
+   printf("\n---------------------------------Msg:\n");
+   PrintHexBytes(bufRef);
+
    uint8 * mPtr = bufRef()->GetBuffer();
    const uint32 mFlatSize = bufRef()->GetNumBytes();
-   m.Flatten(mPtr, mFlatSize);
-   printf("\n---------------------------------Msg:\n");
-   PrintHexBytes(mPtr, mFlatSize);
 
         if (umFlatSize != mFlatSize) printf("Flattened buffer sizes didn't match!  UMessage=" UINT32_FORMAT_SPEC " Message=" UINT32_FORMAT_SPEC "\n", umFlatSize, mFlatSize);
    else if (memcmp(mPtr, umPtr, mFlatSize) != 0)

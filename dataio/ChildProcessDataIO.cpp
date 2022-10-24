@@ -190,12 +190,12 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                      for (HashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++)
                      {
                         const uint32 kfs = iter.GetKey().FlattenedSize();
-                        iter.GetKey().Flatten(s, kfs); s += kfs;
+                        iter.GetKey().FlattenToBytes(s, kfs); s += kfs;
 
                         *(s-1) = '=';  // replace key's trailing-NUL with an '=' sign
 
                         const uint32 vfs = iter.GetValue().FlattenedSize();
-                        iter.GetValue().Flatten(s, vfs); s += vfs;
+                        iter.GetValue().FlattenToBytes(s, vfs); s += vfs;
                      }
                      *s++ = '\0';
 

@@ -94,26 +94,16 @@ public:
    bool AllowsTypeCode(uint32 tc) const {return (TypeCode()==tc);}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns 2*sizeof(float) */
-   static uint32 FlattenedSize() {return 2*sizeof(float);}
+   static uint32 FlattenedSize() {return GetNumItemsInTuple()*sizeof(float);}
 
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
    uint32 CalculateChecksum() const {return CalculateChecksumForFloat(x()) + (3*CalculateChecksumForFloat(y()));}
 
-   /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
-   void Flatten(uint8 * buffer, uint32 flatSize) const
-   {
-      (void) flatSize;
-      muscleCopyOut(&buffer[0*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(x()));
-      muscleCopyOut(&buffer[1*sizeof(int32)], B_HOST_TO_LENDIAN_IFLOAT(y()));
-   }
+   /** @copydoc DoxyTemplate::Flatten(DataFlattener) const */
+   void Flatten(DataFlattener flat) const {flat.WriteFloats(GetItemPointer(0), GetNumItemsInTuple());}
 
    /** @copydoc DoxyTemplate::Unflatten(DataUnflattener &) */
-   status_t Unflatten(DataUnflattener & unflat)
-   {
-      x() = unflat.ReadFloat();
-      y() = unflat.ReadFloat();
-      return unflat.GetStatus();
-   }
+   status_t Unflatten(DataUnflattener & unflat) {return unflat.ReadFloats(GetItemPointer(0), GetNumItemsInTuple());}
 
    /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be
      * selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately

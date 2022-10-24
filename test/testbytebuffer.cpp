@@ -6,7 +6,6 @@
 #include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/ByteBuffer.h"
-#include "util/DataFlattener.h"
 
 using namespace muscle;
 
@@ -21,9 +20,8 @@ public:
    virtual uint32 TypeCode()      const {return 0;}
    virtual uint32 FlattenedSize() const {return _s1.FlattenedSize() + sizeof(_v1) + sizeof(_v2);}
 
-   virtual void Flatten(uint8 * buffer, uint32 flatSize) const
+   virtual void Flatten(DataFlattener flat) const
    {
-      DataFlattener flat(buffer, flatSize);
       flat.WriteFlat(_s1);
       flat.WriteInt32(_v1);
       flat.WriteFloat(_v2);
@@ -52,30 +50,31 @@ template<class EndianEncoder> status_t TestHelpers()
 
    // Write out some POD data into (buf)
    {
-      DataFlattenerHelper<EndianEncoder> bfh(buf, sizeof(buf), false);
+      DataFlattenerHelper<EndianEncoder> bfh(buf, sizeof(buf));
       bfh.WriteInt8(0x01);
       bfh.WriteInt16(0x0405);
       bfh.WriteInt32(0x0708090a);
       bfh.WriteInt64(0x1122334455667788LL);
       bfh.WriteFloat(3.14159f);
       bfh.WriteDouble(6.28);
-      bfh.WriteString("Howdy");
+      bfh.WriteFlat(String("Howdy"));
       bfh.WriteCString("Pardner");
       bfh.WriteFlat(Point(-1.1f, -2.2f));
       bfh.WriteFlat(Rect(10.1f, 20.2f, 30.3f, 40.4f));
       bfh.WriteFlat(TestFlattenable("bar", 6, 7.5f));
-      bfh.WriteString("----");
+      bfh.WriteCString("----");
       const int8  i8s[]   = {1,2,3,4};                                             bfh.WriteInt8s(   i8s, ARRAYITEMS(i8s));
       const int16 i16s[]  = {5,6,7,8};                                             bfh.WriteInt16s( i16s, ARRAYITEMS(i16s));
       const int32 i32s[]  = {9,10,11,12};                                          bfh.WriteInt32s( i32s, ARRAYITEMS(i32s));
       const int64 i64s[]  = {13,14,15,16};                                         bfh.WriteInt64s( i64s, ARRAYITEMS(i64s));
       const float ifls[]  = {17.9f,18.9f,19.9f,20.9f};                             bfh.WriteFloats( ifls, ARRAYITEMS(ifls));
       const double idbs[] = {21.9,22.9,23.9,24.9};                                 bfh.WriteDoubles(idbs, ARRAYITEMS(idbs));
-      const String strs[] = {"25", "26", "27", "28"};                              bfh.WriteStrings(strs, ARRAYITEMS(strs));
+      const String strs[] = {"25", "26", "27", "28"};                              bfh.WriteFlats(  strs, ARRAYITEMS(strs));
       const Point pts[]   = {Point(29,30),Point(31,32),Point(32,33),Point(33,34)}; bfh.WriteFlats(   pts, ARRAYITEMS(pts));
       const Rect rcs[]    = {Rect(35,36,37,38),Rect(39,40,41,42)};                 bfh.WriteFlats(   rcs, ARRAYITEMS(rcs));
 
       numValidBytesInBuf = bfh.GetNumBytesWritten();
+      bfh.SeekToEnd();  // avoid an assertion-failure by pretending we've written out the entire array
    }
 
    // Print out the serialized bytes in hexadecimal, so we can see how they were written

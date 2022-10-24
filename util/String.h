@@ -1032,13 +1032,11 @@ public:
    uint32 FlattenedSize() const {return Length()+1;}
 
    /** Part of the Flattenable pseudo-interface.  Flattens our string into (buffer).
-    *  @param buffer A byte array to receive the flattened version of this string.
-    *                There must be at least FlattenedSize() bytes available in this array.
-    *  @param flatSize the value returned by our FlattenedSize() method, for convenience.
+    *  @param flat the DataFlattener to use to write out the flattened data bytes.
     *  @note The clever secret here is that a flattened String is just a C-style
     *        zero-terminated char array, and can be used interchangably as such.
     */
-   void Flatten(uint8 *buffer, uint32 flatSize) const {memcpy((char *)buffer, Cstr(), flatSize);}
+   void Flatten(DataFlattener flat) const {flat.WriteBytes(reinterpret_cast<const uint8 *>(Cstr()), FlattenedSize());}
 
    /** Unflattens a String from (buf).
     *  @param unflat the DataUnflattener we will read our string from (as a NUL-terminated ASCII string)

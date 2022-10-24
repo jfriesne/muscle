@@ -34,8 +34,8 @@ public:
    /** @copydoc DoxyTemplate::FlattenedSize() const */
    virtual uint32 FlattenedSize() const = 0;
 
-   /** @copydoc DoxyTemplate::Flatten(uint8 *, uint32) const */
-   virtual void Flatten(uint8 * buffer, uint32 flatSize) const = 0;
+   /** @copydoc DoxyTemplate::Flatten(DataFlattener) const */
+   virtual void Flatten(DataFlattener flat) const = 0;
 
    /** @copydoc DoxyTemplate::AllowsTypeCode(uint32) const
      * @note base class's default implementation returns true iff (tc) equals either B_RAW_DATA, or the value returned by TypeCode().
@@ -75,38 +75,6 @@ public:
       return (this == &copyFrom) ? B_NO_ERROR : ((AllowsTypeCode(copyFrom.TypeCode())) ? CopyFromImplementation(copyFrom) : B_TYPE_MISMATCH);
    }
 
-   /**
-    * Convenience method for writing data into a byte buffer.
-    * Writes data consecutively into a byte buffer.  The output buffer is
-    * assumed to be large enough to hold the data.
-    * @param outBuf Flat buffer to write to
-    * @param writeOffset Offset into buffer to write to.  Incremented by (blockSize) on success.
-    * @param copyFrom memory location to copy bytes from
-    * @param blockSize number of bytes to copy
-    */
-   static void WriteData(uint8 * outBuf, uint32 * writeOffset, const void * copyFrom, uint32 blockSize)
-   {
-      memcpy(&outBuf[*writeOffset], copyFrom, blockSize);
-      *writeOffset += blockSize;
-   }
-
-   /**
-    * Convenience method for safely reading bytes from a byte buffer.  (Checks to avoid buffer overrun problems)
-    * @param inBuf Flat buffer to read bytes from
-    * @param inputBufferBytes total size of the input buffer
-    * @param readOffset Offset into buffer to read from.  Incremented by (blockSize) on success.
-    * @param copyTo memory location to copy bytes to
-    * @param blockSize number of bytes to copy
-    * @return B_NO_ERROR if the data was successfully read, B_BAD_ARGUMENT if the data couldn't be read (because the buffer wasn't large enough)
-    */
-   static status_t ReadData(const uint8 * inBuf, uint32 inputBufferBytes, uint32 * readOffset, void * copyTo, uint32 blockSize)
-   {
-      if ((*readOffset + blockSize) > inputBufferBytes) return B_BAD_ARGUMENT;
-      memcpy(copyTo, &inBuf[*readOffset], blockSize);
-      *readOffset += blockSize;
-      return B_NO_ERROR;
-   }
-
    /** Convenience method:  Unflattens this object from the bytes in the supplied buffer.
      * @param buffer pointer to a buffer of bytes
      * @param numBytes how many bytes (buffer) points to
@@ -135,6 +103,18 @@ public:
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t FlattenToByteBuffer(ByteBuffer & outBuf) const;
+
+   /** Convenience method.  Calls through to Flatten()
+     * @param writeTo The buffer to write bytes into.  Caller must guarantee that this pointer remains valid when any methods on this class are called.
+     * @param flatSize How many bytes the Flatten() call should write.  This should be equal to the value returned by our FlattenedSize() method.
+     *                 Providing it as an argument here allows us to avoid an unecessary second call to FlattenedSize() if you already know its value.
+     */
+   void FlattenToBytes(uint8 * bytes, uint32 flatSize) const {Flatten(DataFlattener(bytes, flatSize));}
+
+   /** Convenience method.  Calls through to Flatten()
+     * @param writeTo The buffer to write bytes into.  The buffer must be at least (FlattenedSize()) bytes long.
+     */
+   void FlattenToBytes(uint8 * bytes) const {Flatten(DataFlattener(bytes, FlattenedSize()));}
 
    /** Convenience method.  Allocates an appropriately sized ByteBuffer object via GetByteBufferFromPool(), Flatten()s
      * this object into the byte buffer, and returns the resulting ByteBufferRef.  Returns a NULL reference on failure (out of memory?)

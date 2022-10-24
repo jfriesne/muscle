@@ -308,7 +308,7 @@ int main(int, char **)
          buf = (uint8 *)malloc(bufSize);
          if (buf)
          {
-            m.Flatten(buf, bufSize);
+            m.FlattenToBytes(buf, bufSize);
             for (uint32 i=0; i<bufSize; i++) printf("%02x ", buf[i]);
             printf("\n");
          }
