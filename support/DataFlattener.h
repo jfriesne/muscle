@@ -3,7 +3,7 @@
 #ifndef MuscleDataFlattener_h
 #define MuscleDataFlattener_h
 
-#include "support/EndianEncoder.h"
+#include "support/EndianConverter.h"
 #include "support/PseudoFlattenable.h"
 #include "util/Queue.h"
 #include "util/RefCount.h"
@@ -13,7 +13,7 @@ namespace muscle {
 class ByteBuffer;
 
 /** This is a lightweight helper class designed to safely and efficiently flatten POD data-values to a fixed-size byte-buffer. */
-template<class EndianEncoder> class DataFlattenerHelper MUSCLE_FINAL_CLASS
+template<class EndianConverter> class DataFlattenerHelper MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
@@ -149,7 +149,7 @@ public:
    {
       for (uint32 i=0; i<numVals; i++)
       {
-         _encoder.Export(vals[i], _writeTo);
+         _endianConverter.Export(vals[i], _writeTo);
          _writeTo += sizeof(T);
       }
    }
@@ -183,7 +183,7 @@ public:
    status_t SeekToEnd() {return SeekTo(_maxBytes);}
 
 private:
-   const EndianEncoder _encoder;
+   const EndianConverter _endianConverter;
 
    void WriteBytesAux(const uint8 * optBytes, uint32 numBytes)
    {
@@ -208,7 +208,7 @@ private:
    uint32 _maxBytes;     // used for post-hoc detection of underwrite/overwrite errors
 };
 
-template<class EndianEncoder> DataFlattenerHelper<EndianEncoder> :: ~DataFlattenerHelper()
+template<class EndianConverter> DataFlattenerHelper<EndianConverter> :: ~DataFlattenerHelper()
 {
 #ifndef MUSCLE_AVOID_ASSERTIONS
    if (_maxBytes != MUSCLE_NO_LIMIT)
@@ -231,10 +231,10 @@ template<class EndianEncoder> DataFlattenerHelper<EndianEncoder> :: ~DataFlatten
 #endif
 }
 
-typedef DataFlattenerHelper<LittleEndianEncoder>  LittleEndianDataFlattener;  /**< this flattener-type flattens to little-endian-format data */
-typedef DataFlattenerHelper<BigEndianEncoder>     BigEndianDataFlattener;     /**< this flattener-type flattens to big-endian-format data */
-typedef DataFlattenerHelper<NativeEndianEncoder>  NativeEndianDataFlattener;  /**< this flattener-type flattens to native-endian-format data */
-typedef DataFlattenerHelper<DefaultEndianEncoder> DataFlattener;              /**< this flattener-type flattens to MUSCLE's preferred endian-format (which is little-endian by default) */
+typedef DataFlattenerHelper<LittleEndianConverter>  LittleEndianDataFlattener;  /**< this flattener-type flattens to little-endian-format data */
+typedef DataFlattenerHelper<BigEndianConverter>     BigEndianDataFlattener;     /**< this flattener-type flattens to big-endian-format data */
+typedef DataFlattenerHelper<NativeEndianConverter>  NativeEndianDataFlattener;  /**< this flattener-type flattens to native-endian-format data */
+typedef DataFlattenerHelper<DefaultEndianConverter> DataFlattener;              /**< this flattener-type flattens to MUSCLE's preferred endian-format (which is little-endian by default) */
 
 } // end namespace muscle
 

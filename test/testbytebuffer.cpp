@@ -43,14 +43,14 @@ private:
    float _v2;
 };
 
-template<class EndianEncoder> status_t TestHelpers()
+template<class EndianConverter> status_t TestHelpers()
 {
    uint8 buf[300];  // we're actually using 286 of these, last I checked
    uint32 numValidBytesInBuf = 0;
 
    // Write out some POD data into (buf)
    {
-      DataFlattenerHelper<EndianEncoder> bfh(buf, sizeof(buf));
+      DataFlattenerHelper<EndianConverter> bfh(buf, sizeof(buf));
       bfh.WriteInt8(0x01);
       bfh.WriteInt16(0x0405);
       bfh.WriteInt32(0x0708090a);
@@ -81,7 +81,7 @@ template<class EndianEncoder> status_t TestHelpers()
    PrintHexBytes(buf, numValidBytesInBuf);
 
    // Read the serialized bytes back in as POD data again so we can verify it is the same as before
-   DataUnflattenerHelper<EndianEncoder> buh(buf, numValidBytesInBuf);
+   DataUnflattenerHelper<EndianConverter> buh(buf, numValidBytesInBuf);
 
    printf("int8=0x%x\n",                      buh.ReadInt8());
    printf("int16=0x%x\n",                     buh.ReadInt16());
@@ -158,18 +158,18 @@ int main(int argc, char ** argv)
    {
       status_t ret;
 
-      printf("\n\nTesting ByteBufferHelpers with LittleEndianEncoder:\n");
-      ret = TestHelpers<LittleEndianEncoder>();
-      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<LittleEndianEncoder> failed [%s]\n", ret());
+      printf("\n\nTesting ByteBufferHelpers with LittleEndianConverter:\n");
+      ret = TestHelpers<LittleEndianConverter>();
+      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<LittleEndianConverter> failed [%s]\n", ret());
 
 #ifdef DISABLE_FOR_NOW_AS_THEY_ARENT_CURRENTLY_WORKING
-      printf("\n\nTesting ByteBufferHelpers with NativeEndianEncoder:\n");
-      ret = TestHelpers<NativeEndianEncoder>();
-      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<NativeEndianEncoder> failed [%s]\n", ret());
+      printf("\n\nTesting ByteBufferHelpers with NativeEndianConverter:\n");
+      ret = TestHelpers<NativeEndianConverter>();
+      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<NativeEndianConverter> failed [%s]\n", ret());
 
-      printf("\n\nTesting ByteBufferHelpers with BigEndianEncoder:\n");
-      ret = TestHelpers<BigEndianEncoder>();
-      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<BigEndianEncoder> failed [%s]\n", ret());
+      printf("\n\nTesting ByteBufferHelpers with BigEndianConverter:\n");
+      ret = TestHelpers<BigEndianConverter>();
+      if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<BigEndianConverter> failed [%s]\n", ret());
 #endif
    }
    return 0;

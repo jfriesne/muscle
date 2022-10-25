@@ -353,35 +353,35 @@ public:
 // to avoid chicken-and-egg programs with include-ordering.  At this location we are guaranteed that the compiler
 // knows everything it needs to know about both the DataFlattener/DataUnflattener classes and the ByteBuffer class.
 
-template<class EndianEncoder, class SizeChecker>
-void DataUnflattenerHelper<EndianEncoder, SizeChecker> :: SetBuffer(const ByteBuffer & readFrom, uint32 maxBytes, uint32 startOffset)
+template<class EndianConverter, class SizeChecker>
+void DataUnflattenerHelper<EndianConverter, SizeChecker> :: SetBuffer(const ByteBuffer & readFrom, uint32 maxBytes, uint32 startOffset)
 {
    maxBytes    = muscleMin(readFrom.GetNumBytes(), maxBytes);
    startOffset = muscleMin(startOffset,            maxBytes);
    SetBuffer(readFrom.GetBuffer()+startOffset, maxBytes-startOffset);
 }
 
-template<class EndianEncoder>
-DataFlattenerHelper<EndianEncoder> :: DataFlattenerHelper(ByteBuffer & buf)
+template<class EndianConverter>
+DataFlattenerHelper<EndianConverter> :: DataFlattenerHelper(ByteBuffer & buf)
 {
    SetBuffer(buf.GetBuffer(), buf.GetNumBytes());
 }
 
-template<class EndianEncoder>
-DataFlattenerHelper<EndianEncoder> :: DataFlattenerHelper(const Ref<ByteBuffer> & buf)
+template<class EndianConverter>
+DataFlattenerHelper<EndianConverter> :: DataFlattenerHelper(const Ref<ByteBuffer> & buf)
 {
    if (buf()) SetBuffer(buf()->GetBuffer(), buf()->GetNumBytes());
          else Reset();
 }
 
-template<class EndianEncoder>
-Ref<ByteBuffer> DataFlattenerHelper<EndianEncoder> :: GetByteBufferFromPool() const
+template<class EndianConverter>
+Ref<ByteBuffer> DataFlattenerHelper<EndianConverter> :: GetByteBufferFromPool() const
 {
    return muscle::GetByteBufferFromPool(GetNumBytesWritten(), GetBuffer());
 }
 
-template<class EndianEncoder>
-void DataFlattenerHelper<EndianEncoder> :: WriteBytes(const ByteBuffer & buf)
+template<class EndianConverter>
+void DataFlattenerHelper<EndianConverter> :: WriteBytes(const ByteBuffer & buf)
 {
    WriteBytes(buf.GetBuffer(), buf.GetNumBytes());
 }

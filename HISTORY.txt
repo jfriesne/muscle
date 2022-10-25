@@ -18,7 +18,7 @@ key:  - new feature
    - Added a CheckedDataUnflattener class, for better
      calling code that wants to use a dynamically-growing
      output buffer.
-   - Added support/EndianEncoder.h to allow templating
+   - Added support/EndianConverter.h to allow templating
      over big/little/native endian-encoding strategies.
    - Added pages for DataFlattener and DataUnflattener
      APIs to the muscle-by-example documentation.

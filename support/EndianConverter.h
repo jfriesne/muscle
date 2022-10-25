@@ -1,14 +1,14 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifndef MuscleEndianEncoder_h
-#define MuscleEndianEncoder_h
+#ifndef MuscleEndianConverter_h
+#define MuscleEndianConverter_h
 
 #include "support/MuscleSupport.h"
 
 namespace muscle {
 
 /** This class defines a standardized API for encoding POD data values to little-endian format for serialization, and vice-versa. */
-class LittleEndianEncoder MUSCLE_FINAL_CLASS
+class LittleEndianConverter MUSCLE_FINAL_CLASS
 {
 public:
 ///@{
@@ -50,10 +50,10 @@ public:
 ///@}
 };
 
-typedef LittleEndianEncoder DefaultEndianEncoder;  /**< MUSCLE has decided to use little-endian encoding as its preferred endian-ness.  Change this at your peril, it will break backwards-compatibility with all existing data if you do! */
+typedef LittleEndianConverter DefaultEndianConverter;  /**< MUSCLE has decided to use little-endian encoding as its preferred endian-ness.  Change this at your peril, it will break backwards-compatibility with all existing data if you do! */
 
 /** This class defines a standardized API for encoding POD data values to big-endian format for serialization, and vice-versa. */
-class BigEndianEncoder MUSCLE_FINAL_CLASS
+class BigEndianConverter MUSCLE_FINAL_CLASS
 {
 public:
 ///@{
@@ -98,7 +98,7 @@ public:
 /** This class defines a standardized API for encoding POD data values to native-endian format for serialization, and vice-versa.
   * That conversion isn't quite a no-op, since we still have to handle pointer-alignment issues, but it's close.
   */
-class NativeEndianEncoder MUSCLE_FINAL_CLASS
+class NativeEndianConverter MUSCLE_FINAL_CLASS
 {
 public:
 ///@{

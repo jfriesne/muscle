@@ -3,7 +3,7 @@
 #ifndef MuscleCheckedDataFlattener_h
 #define MuscleCheckedDataFlattener_h
 
-#include "support/EndianEncoder.h"
+#include "support/EndianConverter.h"
 #include "support/NotCopyable.h"
 #include "util/ByteBuffer.h"
 #include "util/Queue.h"
@@ -15,7 +15,7 @@ namespace muscle {
   * and automatically resizing the ByteBuffer's internal byte-array larger as necessary to hold data,
   * so that the data-size doesn't need to be calculated in advance.
   */
-template<class EndianEncoder> class CheckedDataFlattenerHelper : public NotCopyable
+template<class EndianConverter> class CheckedDataFlattenerHelper : public NotCopyable
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
@@ -209,7 +209,7 @@ public:
          const uint32 flatSize = (fixedSizeBytes == MUSCLE_NO_LIMIT) ? flatSizes[i] : fixedSizeBytes;
          if (includeLengthPrefix)
          {
-            _encoder.Export(flatSize, _writeTo);
+            _endianConverter.Export(flatSize, _writeTo);
             _writeTo += sizeof(flatSize);
          }
          vals[i].Flatten(DataFlattener(_writeTo, flatSize));
@@ -233,7 +233,7 @@ public:
 
       for (uint32 i=0; i<numVals; i++)
       {
-         _encoder.Export(vals[i], _writeTo);
+         _endianConverter.Export(vals[i], _writeTo);
          _writeTo += sizeof(T);
       }
       ReduceBytesLeftBy(numBytes);
@@ -283,7 +283,7 @@ public:
    status_t SeekToEnd() {return SeekTo(_maxBytes);}
 
 private:
-   const EndianEncoder _encoder;
+   const EndianConverter _endianConverter;
 
    void ReduceBytesLeftBy(uint32 numBytes) {if (_bytesLeft != MUSCLE_NO_LIMIT) _bytesLeft -= numBytes;}
 
@@ -335,10 +335,10 @@ private:
    status_t _status;     // cache any errors found so far
 };
 
-typedef CheckedDataFlattenerHelper<LittleEndianEncoder>  CheckedLittleEndianDataFlattener;  /**< this checked-flattener-type flattens to little-endian-format data */
-typedef CheckedDataFlattenerHelper<BigEndianEncoder>     CheckedBigEndianDataFlattener;     /**< this checked-flattener-type flattens to big-endian-format data */
-typedef CheckedDataFlattenerHelper<NativeEndianEncoder>  CheckedNativeEndianDataFlattener;  /**< this checked-flattener-type flattens to native-endian-format data */
-typedef CheckedDataFlattenerHelper<DefaultEndianEncoder> CheckedDataFlattener;              /**< this checked-flattener-type flattens to MUSCLE's preferred endian-format (which is little-endian by default) */
+typedef CheckedDataFlattenerHelper<LittleEndianConverter>  CheckedLittleEndianDataFlattener;  /**< this checked-flattener-type flattens to little-endian-format data */
+typedef CheckedDataFlattenerHelper<BigEndianConverter>     CheckedBigEndianDataFlattener;     /**< this checked-flattener-type flattens to big-endian-format data */
+typedef CheckedDataFlattenerHelper<NativeEndianConverter>  CheckedNativeEndianDataFlattener;  /**< this checked-flattener-type flattens to native-endian-format data */
+typedef CheckedDataFlattenerHelper<DefaultEndianConverter> CheckedDataFlattener;              /**< this checked-flattener-type flattens to MUSCLE's preferred endian-format (which is little-endian by default) */
 
 } // end namespace muscle
 
