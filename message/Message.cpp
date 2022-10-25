@@ -612,7 +612,7 @@ public:
             numWritten++;
          }
       }
-      if (writeCountToThisLocation) muscleCopyOut(writeCountToThisLocation, B_HOST_TO_LENDIAN_INT32(numWritten));
+      if (writeCountToThisLocation) DefaultEndianConverter::Export(numWritten, writeCountToThisLocation);
    }
 
    // Flattenable interface
@@ -1172,7 +1172,7 @@ void Message :: Flatten(DataFlattener flat) const
    }
 
    // Write number-of-entries field (now that we know its final value)
-   muscleCopyOut(entryCountPtr, B_HOST_TO_LENDIAN_INT32(numFlattenedEntries));
+   DefaultEndianConverter::Export(numFlattenedEntries, entryCountPtr);
 }
 
 status_t Message :: Unflatten(DataUnflattener & unflat)
@@ -2743,8 +2743,8 @@ uint32 MessageField :: GetNumItemsInFlattenedBuffer(const uint8 * bytes, uint32 
    {
       // special case for the Message type since it doesn't have a number-of-items-count, annoyingly enough
       if (numBytes < sizeof(uint32)) return 0;  // huh?
-      const uint32 firstMsgSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(bytes));
 
+      const uint32 firstMsgSize = DefaultEndianConverter::Import<uint32>(bytes);
       numBytes -= sizeof(uint32);                 // this must be done exactly here!
       if (firstMsgSize > numBytes) return 0;      // malformed buffer size?
       return (firstMsgSize == numBytes) ? 1 : 2;  // we don't need to count the actual number of Messages for now
@@ -2753,7 +2753,7 @@ uint32 MessageField :: GetNumItemsInFlattenedBuffer(const uint8 * bytes, uint32 
    {
       // For all other types, the first four bytes in the buffer is the number-of-items-count
       if (numBytes < sizeof(uint32)) return 0;  // huh?
-      return B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(bytes));
+      return DefaultEndianConverter::Import<uint32>(bytes);
    }
 }
 
@@ -2881,7 +2881,7 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
 
    if (_typeCode == B_MESSAGE_TYPE)
    {
-      muscleCopyOut(buf, B_HOST_TO_LENDIAN_INT32(numItemsInTemplateField)); buf += sizeof(uint32);
+      DefaultEndianConverter::Export(numItemsInTemplateField, buf); buf += sizeof(uint32);
       for (uint32 i=0; i<numItemsInTemplateField; i++)
       {
          const Message * templateSubMsg   = static_cast<const Message *>(GetItemAtAsRefCountableRef(i)());
@@ -2889,7 +2889,7 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
          const Message * srcMsg           = optPayloadSubMsg?optPayloadSubMsg:templateSubMsg;
 
          const uint32 subMsgSize = srcMsg->TemplatedFlattenedSize(*templateSubMsg);
-         muscleCopyOut(buf, B_HOST_TO_LENDIAN_INT32(subMsgSize)); buf += sizeof(uint32);
+         DefaultEndianConverter::Export(subMsgSize, buf); buf += sizeof(uint32);
 
          srcMsg->TemplatedFlatten(*templateSubMsg, DataFlattener(buf, subMsgSize));
          buf += subMsgSize;

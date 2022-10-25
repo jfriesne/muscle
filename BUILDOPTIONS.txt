@@ -384,3 +384,18 @@ of your Makefile to alter muscle's behaviour:
    to lock a Mutex somewhere, which is often considered a no-no
    in that context.
 
+-DMUSCLE_USE_BIG_ENDIAN_DATA_FOR_EVERYTHING
+   If specified, MUSCLE will write out all of its binary
+   data using big-endian values.  Note that defining this
+   constant will render your MUSCLE library incompatible
+   with all MUSCLE programs that don't define this constant,
+   since MUSCLE uses little-endian format by default!
+   Don't define this unless you know what you are doing.
+
+-DMUSCLE_USE_NATIVE_ENDIAN_DATA_FOR_EVERYTHING
+   If specified, MUSCLE will write out all of its binary
+   data using the CPU's native endian-format.  Note that
+   defining this constant will render your MUSCLE library
+   incompatible with any computers that don't share the
+   host CPU's endianness!
+   Don't define this unless you know what you are doing.

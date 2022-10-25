@@ -8,7 +8,7 @@
 # include "support/NotCopyable.h"
 # include "util/ByteBuffer.h"
 # include "util/RefCount.h"
-# include "zlib/zlib/zlib.h"
+# include "zlib.h"  // deliberately pathless, to avoid mixing captive headers with system libz
 
 namespace muscle {
 

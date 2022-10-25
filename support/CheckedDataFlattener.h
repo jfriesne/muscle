@@ -19,13 +19,13 @@ template<class EndianConverter> class CheckedDataFlattenerHelper : public NotCop
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
-   CheckedDataFlattenerHelper() {Reset();}
+   CheckedDataFlattenerHelper() : _endianConverter() {Reset();}
 
    /** Constructs a CheckedDataFlattener that will write up to the specified number of bytes into (writeTo)
      * @param writeTo The buffer to write bytes into.  Caller must guarantee that this pointer remains valid when any methods on this class are called.
      * @param maxBytes The maximum number of bytes that we are allowed to write.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
      */
-   CheckedDataFlattenerHelper(uint8 * writeTo, uint32 maxBytes) {SetBuffer(writeTo, maxBytes);}
+   CheckedDataFlattenerHelper(uint8 * writeTo, uint32 maxBytes): _endianConverter()  {SetBuffer(writeTo, maxBytes);}
 
    /** Same as above, except instead of taking a raw pointer as a target, we take a reference to a ByteBuffer object.
      * This will allow us to grow the size of the ByteBuffer when necessary, up to (maxBytes) long, thereby freeing
@@ -37,7 +37,7 @@ public:
      * @note data written via a CheckedDataFlattener constructed with this constructor will be appended after any existing
      *       bytes in the ByteBuffer; it won't overwrite them.
      */
-   CheckedDataFlattenerHelper(ByteBuffer & writeTo, uint32 maxBytes = MUSCLE_NO_LIMIT) {SetBuffer(writeTo, maxBytes);}
+   CheckedDataFlattenerHelper(ByteBuffer & writeTo, uint32 maxBytes = MUSCLE_NO_LIMIT) : _endianConverter() {SetBuffer(writeTo, maxBytes);}
 
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
    void Reset() {SetBuffer(NULL, 0);}

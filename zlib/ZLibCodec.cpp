@@ -61,11 +61,11 @@ static const uint32 ZLIB_CODEC_HEADER_DEPENDENT   = 2053925218;               //
 static const uint32 ZLIB_CODEC_HEADER_INDEPENDENT = 2053925219;               // 'zlic'
 static const uint32 ZLIB_CODEC_HEADER_SIZE  = sizeof(uint32)+sizeof(uint32);  // 4 bytes of magic, 4 bytes of raw-size
 
-// (headerBuf) must point to at least ZLIB_CODEC_HEADER_SIZE bytes of writable memory!
 static void WriteZLibCodecHeader(uint8 * headerBuf, bool independent, uint32 totalBytesToRead)
 {
-   muscleCopyOut(&headerBuf[0*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(independent ? ZLIB_CODEC_HEADER_INDEPENDENT : ZLIB_CODEC_HEADER_DEPENDENT));
-   muscleCopyOut(&headerBuf[1*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(totalBytesToRead));
+   DataFlattener flat(headerBuf, ZLIB_CODEC_HEADER_SIZE);
+   flat.WriteInt32(independent ? ZLIB_CODEC_HEADER_INDEPENDENT : ZLIB_CODEC_HEADER_DEPENDENT);
+   flat.WriteInt32(totalBytesToRead);
 }
 
 ByteBufferRef ZLibCodec :: Deflate(const uint8 * rawBytes, uint32 numRaw, bool independent, uint32 addHeaderBytes, uint32 addFooterBytes)
@@ -135,11 +135,11 @@ int32 ZLibCodec :: GetInflatedSize(const uint8 * compBytes, uint32 numComp, bool
 {
    if ((compBytes)&&(numComp >= ZLIB_CODEC_HEADER_SIZE))
    {
-      const uint32 magic = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(compBytes));
+      const uint32 magic = DefaultEndianConverter::Import<uint32>(compBytes);
       if ((magic == ZLIB_CODEC_HEADER_INDEPENDENT)||(magic == ZLIB_CODEC_HEADER_DEPENDENT))
       {
          if (optRetIsIndependent) *optRetIsIndependent = (magic == ZLIB_CODEC_HEADER_INDEPENDENT);
-         return B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(compBytes+sizeof(magic)));
+         return DefaultEndianConverter::Import<uint32>(compBytes+sizeof(magic));
       }
    }
    return -1;

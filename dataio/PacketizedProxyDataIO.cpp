@@ -25,7 +25,7 @@ int32 PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
       _inputBufferSizeBytesRead += numSizeBytesRead;
       if (_inputBufferSizeBytesRead == sizeof(uint32))
       {
-         _inputBufferSize = B_LENDIAN_TO_HOST_INT32(_inputBufferSize);
+         _inputBufferSize = DefaultEndianConverter::Import<uint32>(&_inputBufferSize);
          if (_inputBufferSize > _maxTransferUnit)
          {
             LogTime(MUSCLE_LOG_ERROR, "PacketizedProxyDataIO:  Error, incoming packet with size " UINT32_FORMAT_SPEC ", max transfer unit is set to " UINT32_FORMAT_SPEC "\n", _inputBufferSize, _maxTransferUnit);
@@ -78,7 +78,7 @@ int32 PacketizedProxyDataIO :: Write(const void * buffer, uint32 size)
       _outputBufferBytesSent = 0;
 
       if (_outputBuffer.SetNumBytes(sizeof(uint32)+size, false).IsError()) return 0;
-      muscleCopyOut(_outputBuffer.GetBuffer(), B_HOST_TO_LENDIAN_INT32(size));
+      DefaultEndianConverter::Export(size, _outputBuffer.GetBuffer());
       memcpy(_outputBuffer.GetBuffer()+sizeof(uint32), buffer, size);
       ret = size;
    }

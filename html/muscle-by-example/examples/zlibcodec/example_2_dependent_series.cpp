@@ -74,7 +74,8 @@ int main(int argc, char ** argv)
          if (deflatedData())
          {
             // Write the size of the deflated buffer into the file for framing purposes
-            uint32 leDeflatedBufSize = B_HOST_TO_LENDIAN_INT32(deflatedData()->GetNumBytes());
+            uint32 leDeflatedBufSize;
+            DefaultEndianConverter::Export(deflatedData()->GetNumBytes(), &leDeflatedBufSize);
             if (outputFile.WriteFully(&leDeflatedBufSize, sizeof(leDeflatedBufSize)) == sizeof(leDeflatedBufSize)) deflatedBytesWritten += sizeof(leDeflatedBufSize);
 
             // Write the actual deflated data into the file
@@ -110,7 +111,7 @@ int main(int argc, char ** argv)
       uint32 leBufSize;
       if (inputFile.ReadFully(&leBufSize, sizeof(leBufSize)) != sizeof(leBufSize)) break;  // EOF?
 
-      uint32 bufSize = B_LENDIAN_TO_HOST_INT32(leBufSize);
+      const uint32 bufSize = DefaultEndianConverter::Import<uint32>(&leBufSize);
 
       ByteBufferRef deflatedData = GetByteBufferFromPool(bufSize);
       if (deflatedData() == NULL) return 10;  // out of memory?

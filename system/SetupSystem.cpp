@@ -1362,7 +1362,7 @@ status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeade
    // Populate the buffer
    if (addSizeHeader)
    {
-      muscleCopyOut(b, B_HOST_TO_LENDIAN_INT32(fs));
+      DefaultEndianConverter::Export(fs, b);
       FlattenToBytes(b+sizeof(uint32), fs);
    }
    else FlattenToBytes(b, fs);
@@ -1380,7 +1380,7 @@ status_t Flattenable :: UnflattenFromDataIO(DataIO & inputStream, int32 optReadS
    {
       uint32 leSize;
       if (inputStream.ReadFully(&leSize, sizeof(leSize)) != sizeof(leSize)) return B_IO_ERROR;
-      readSize = (uint32) B_LENDIAN_TO_HOST_INT32(leSize);
+      readSize = DefaultEndianConverter::Import<uint32>(&leSize);
       if (readSize > optMaxReadSize) return B_BAD_DATA;
    }
 

@@ -48,9 +48,21 @@ public:
    static void Import(const void * readFrom, uint32 & writeTo) {writeTo = B_LENDIAN_TO_HOST_INT32(  muscleCopyIn<uint32>(readFrom));}
    static void Import(const void * readFrom, uint64 & writeTo) {writeTo = B_LENDIAN_TO_HOST_INT64(  muscleCopyIn<uint64>(readFrom));}
 ///@}
+
+   /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
+     * @param the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
+     *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
+     */
+   template<typename T> static T Import(const void * readFrom) {T ret; Import(readFrom, ret); return ret;}
 };
 
-typedef LittleEndianConverter DefaultEndianConverter;  /**< MUSCLE has decided to use little-endian encoding as its preferred endian-ness.  Change this at your peril, it will break backwards-compatibility with all existing data if you do! */
+#if defined(MUSCLE_USE_BIG_ENDIAN_DATA_FOR_EVERYTHING)
+typedef    BigEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
+#elif defined(DMUSCLE_USE_NATIVE_ENDIAN_DATA_FOR_EVERYTHING)
+typedef NativeEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
+#else
+typedef LittleEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
+#endif
 
 /** This class defines a standardized API for encoding POD data values to big-endian format for serialization, and vice-versa. */
 class BigEndianConverter MUSCLE_FINAL_CLASS
@@ -93,6 +105,12 @@ public:
    static void Import(const void * readFrom, uint32 & writeTo) {writeTo = B_BENDIAN_TO_HOST_INT32(  muscleCopyIn<uint32>(readFrom));}
    static void Import(const void * readFrom, uint64 & writeTo) {writeTo = B_BENDIAN_TO_HOST_INT64(  muscleCopyIn<uint64>(readFrom));}
 ///@}
+
+   /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
+     * @param the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
+     *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
+     */
+   template<typename T> static T Import(const void * readFrom) {T ret; Import(readFrom, ret); return ret;}
 };
 
 /** This class defines a standardized API for encoding POD data values to native-endian format for serialization, and vice-versa.
@@ -138,6 +156,12 @@ public:
    static void Import(const void * readFrom, uint32 & writeTo) {writeTo = muscleCopyIn<uint32>(readFrom);}
    static void Import(const void * readFrom, uint64 & writeTo) {writeTo = muscleCopyIn<uint64>(readFrom);}
 ///@}
+
+   /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
+     * @param the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
+     *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
+     */
+   template<typename T> static T Import(const void * readFrom) {T ret; Import(readFrom, ret); return ret;}
 };
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS

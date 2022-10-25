@@ -102,7 +102,7 @@ static void SanityCheckSpamPacket(const uint8 * buf, uint32 bufLen)
       return;
    }
 
-   const uint32 advertisedLength = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buf));
+   const uint32 advertisedLength = DefaultEndianConverter::Import<uint32>(buf);
    if (advertisedLength != bufLen)
    {
       LogTime(MUSCLE_LOG_ERROR, "SanityCheckSpamPacket:  advertised buf length (" UINT32_FORMAT_SPEC " bytes) doesn't match actual buf length (" UINT32_FORMAT_SPEC " bytes)\n", advertisedLength, bufLen);
@@ -190,7 +190,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
             {
                uint8 v = (uint8)(spamTime%256);
                for (uint32 i=0; i<_spamSize; i++) b[i] = v++;  // just some nice arbitrary data
-               if (_spamSize >= sizeof(uint32)) muscleCopyOut(b, B_HOST_TO_LENDIAN_INT32(_spamSize));  // so we can verify that packets aren't getting truncated on reception
+               if (_spamSize >= sizeof(uint32)) DefaultEndianConverter::Export(_spamSize, b);  // so we can verify that packets aren't getting truncated on reception
                spamBytesSent = io()->WriteFully(b, _spamSize);
             }
             if ((!_quietSend)&&(_decorateOutput)) LogTime(MUSCLE_LOG_ERROR, "Sent " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of spam!\n", spamBytesSent, _spamSize);

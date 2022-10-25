@@ -362,14 +362,14 @@ void DataUnflattenerHelper<EndianConverter, SizeChecker> :: SetBuffer(const Byte
 }
 
 template<class EndianConverter>
-DataFlattenerHelper<EndianConverter> :: DataFlattenerHelper(ByteBuffer & buf)
+DataFlattenerHelper<EndianConverter> :: DataFlattenerHelper(ByteBuffer & buf) : _endianConverter()
 {
    Init();
    SetBuffer(buf.GetBuffer(), buf.GetNumBytes());
 }
 
 template<class EndianConverter>
-DataFlattenerHelper<EndianConverter> :: DataFlattenerHelper(const Ref<ByteBuffer> & buf)
+DataFlattenerHelper<EndianConverter> :: DataFlattenerHelper(const Ref<ByteBuffer> & buf) : _endianConverter()
 {
    Init();
    if (buf()) SetBuffer(buf()->GetBuffer(), buf()->GetNumBytes());

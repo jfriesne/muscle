@@ -19,8 +19,8 @@ static const uint32 PAYLOAD_ENCODING_BIT = (((uint32)1)<<31);  // if the high-bi
 
 int32 TemplatingMessageIOGateway :: GetBodySize(const uint8 * headerBuf) const
 {
-   const uint32 bodySize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&headerBuf[0*sizeof(uint32)])) & ~CREATE_TEMPLATE_BIT;
-   const uint32 encoding = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&headerBuf[1*sizeof(uint32)])) & ~PAYLOAD_ENCODING_BIT;
+   const uint32 bodySize = DefaultEndianConverter::Import<uint32>(&headerBuf[0*sizeof(uint32)]) & ~CREATE_TEMPLATE_BIT;
+   const uint32 encoding = DefaultEndianConverter::Import<uint32>(&headerBuf[1*sizeof(uint32)]) & ~PAYLOAD_ENCODING_BIT;
    return muscleInRange(encoding, (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)(MUSCLE_MESSAGE_ENCODING_END_MARKER-1)) ? (int32)bodySize : (int32)-1;
 }
 
@@ -116,7 +116,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
    uint32 offset = GetHeaderSize();
 
    const uint8 * lhb       = bufRef()->GetBuffer();
-   const uint32 lengthWord = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&lhb[0*sizeof(uint32)]));
+   const uint32 lengthWord = DefaultEndianConverter::Import<uint32>(&lhb[0*sizeof(uint32)]);
    const uint32 lhbSize    = lengthWord & ~CREATE_TEMPLATE_BIT;
    if ((offset+lhbSize) != bufRef()->GetNumBytes())
    {
@@ -124,7 +124,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
       return MessageRef();
    }
 
-   const uint32 encodingWord = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&lhb[1*sizeof(uint32)]));
+   const uint32 encodingWord = DefaultEndianConverter::Import<uint32>(&lhb[1*sizeof(uint32)]);
    uint32 encoding = encodingWord & ~PAYLOAD_ENCODING_BIT;
 
    const ByteBuffer * bb = bufRef();  // default; may be changed below
@@ -168,7 +168,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
       }
       else if (numBodyBytes >= sizeof(uint64))
       {
-         templateID = B_LENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(inPtr));
+         templateID = DefaultEndianConverter::Import<uint64>(inPtr);
          const MessageRef * templateMsgRef = _incomingTemplates.GetAndMoveToFront(templateID);
          if (templateMsgRef)
          {
@@ -194,7 +194,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
    }
    else
    {
-           if (numBodyBytes == sizeof(uint32)) retMsg()->what = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(inPtr));  // special-case for what-code-only Messages
+           if (numBodyBytes == sizeof(uint32)) retMsg()->what = DefaultEndianConverter::Import<uint32>(inPtr);  // special-case for what-code-only Messages
       else if (retMsg()->UnflattenFromBytes(inPtr, numBodyBytes).IsError(ret))
       {
          LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Unflatten() failed on " UINT32_FORMAT_SPEC "-byte buffer (%s)\n", numBodyBytes, ret());

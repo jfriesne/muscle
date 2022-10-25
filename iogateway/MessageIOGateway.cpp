@@ -106,7 +106,6 @@ DoOutputImplementation(uint32 maxBytes)
          {
             MessageRef nextRef;
             if (PopNextOutgoingMessage(nextRef).IsError()) return sentBytes;  // nothing more to send, so we're done!
-
             if (nextRef())
             {
                if ((_aboutToFlattenCallback)&&(_aboutToFlattenCallback(nextRef, _aboutToFlattenCallbackData).IsError())) continue;
@@ -173,7 +172,7 @@ DoOutputImplementation(uint32 maxBytes)
          if (_sendBuffer._offset == _sendBuffer._buffer()->GetNumBytes()) _sendBuffer.Reset();
       }
    }
-   return IsHosed() ? -1 : sentBytes;
+   return ((sentBytes <= 0)&&(IsHosed())) ? -1 : sentBytes;
 }
 
 ByteBufferRef
@@ -314,7 +313,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
       }
    }
-   return IsHosed() ? -1 : readBytes;
+   return ((readBytes<=0)&&(IsHosed())) ? -1 : readBytes;
 }
 
 // For this method, B_NO_ERROR means "We got all the data we had room for", and B_ERROR
@@ -423,8 +422,8 @@ FlattenHeaderAndMessage(const MessageRef & msgRef) const
          if (ret())
          {
             uint8 * lhb = ret()->GetBuffer();
-            muscleCopyOut(&lhb[0*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(ret()->GetNumBytes()-hs));
-            muscleCopyOut(&lhb[1*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(encoding));
+            DefaultEndianConverter::Export(ret()->GetNumBytes()-hs, &lhb[0*sizeof(uint32)]);
+            DefaultEndianConverter::Export(encoding,                &lhb[1*sizeof(uint32)]);
          }
       }
    }
@@ -445,15 +444,15 @@ UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const
       {
          uint32 offset = GetHeaderSize();
 
-         const uint8 * lhb = bufRef()->GetBuffer();
-         const uint32 lhbSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&lhb[0*sizeof(uint32)]));
+         const uint8 * lhb    = bufRef()->GetBuffer();
+         const uint32 lhbSize = DefaultEndianConverter::Import<uint32>(&lhb[0*sizeof(uint32)]);
          if ((offset+lhbSize) != bufRef()->GetNumBytes())
          {
             LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " INT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
             return MessageRef();
          }
 
-         const int32 encoding = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(&lhb[1*sizeof(uint32)]));
+         const int32 encoding = DefaultEndianConverter::Import<int32>(&lhb[1*sizeof(uint32)]);
 
          const ByteBuffer * bb = bufRef();  // default; may be changed below
 
@@ -502,7 +501,7 @@ int32
 MessageIOGateway ::
 GetBodySize(const uint8 * headerBuf) const
 {
-   return (muscleInRange((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&headerBuf[1*sizeof(uint32)])), (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)MUSCLE_MESSAGE_ENCODING_END_MARKER-1)) ? (int32)(B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(&headerBuf[0*sizeof(uint32)]))) : -1;
+   return muscleInRange(DefaultEndianConverter::Import<uint32>(&headerBuf[1*sizeof(uint32)]), (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)MUSCLE_MESSAGE_ENCODING_END_MARKER-1) ? DefaultEndianConverter::Import<uint32>(&headerBuf[0*sizeof(uint32)]) : -1;
 }
 
 bool

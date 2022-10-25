@@ -17,7 +17,7 @@ template<class EndianConverter> class DataFlattenerHelper MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using this object! */
-   DataFlattenerHelper() {Init();}
+   DataFlattenerHelper() : _endianConverter() {Init();}
 
    /** Constructs a DataFlattenerHelper to write the specified number of bytes into (writeTo)
      * @param writeTo The buffer to write bytes into.  Caller must guarantee that this pointer is still valid when any methods on this class are called.
@@ -25,7 +25,7 @@ public:
      * @note failure to write out (maxBytes) of data will trigger an assertion failure!
      *       if you don't want that, you can avoid it by calling SeekToEnd() on this object before destroying it.
      */
-   DataFlattenerHelper(uint8 * writeTo, uint32 maxBytes) {Init(); SetBuffer(writeTo, maxBytes);}
+   DataFlattenerHelper(uint8 * writeTo, uint32 maxBytes) : _endianConverter() {Init(); SetBuffer(writeTo, maxBytes);}
 
    /** Constructs a DataFlattenerHelper that will write bytes into (parentFlat.GetCurrentWritePointer())
      * @param parentFlat reference to a parent DataFlattenerHelper object.  Our destructor will call
@@ -34,7 +34,7 @@ public:
      * @note failure to write out (maxBytes) of data will trigger an assertion failure!
      *       if you don't want that, you can avoid it by calling SeekToEnd() on this object before destroying it.
      */
-   DataFlattenerHelper(DataFlattenerHelper & parentFlat, uint32 maxBytes) {Init(); SetBuffer(parentFlat, maxBytes);}
+   DataFlattenerHelper(DataFlattenerHelper & parentFlat, uint32 maxBytes) : _endianConverter() {Init(); SetBuffer(parentFlat, maxBytes);}
 
    /** Convenience constructor:  Sets us to write to the byte-array held by (buf)
      * @param buf a ByteBuffer object whose contents we will overwrite

@@ -22,6 +22,14 @@ key:  - new feature
      over big/little/native endian-encoding strategies.
    - Added pages for DataFlattener and DataUnflattener
      APIs to the muscle-by-example documentation.
+   - Adding -DMUSCLE_USE_BIG_ENDIAN_DATA_FOR_EVERYTHING
+     to your compile line will tell MUSCLE to use big-endian
+     data format for all of its data.  Note that doing so will
+     break interoperability with all existing MUSCLE builds!
+   - Adding -DMUSCLE_USE_NATIVE_ENDIAN_DATA_FOR_EVERYTHING
+     to your compile line will tell MUSCLE to use native-endian
+     data format for all of its data.  Note that doing so will
+     break compatibility with different-endian CPUs!
    o Changed the PseudoFlattenable::Flatten() and
      Flattenable::Flatten() methods to take a second
      argument (flatSize) for better runtime error-checking.
@@ -42,8 +50,22 @@ key:  - new feature
    o Made the calculation of DataNode depths more efficient.
    o Removed Flattenable::WriteData() and Flattenable::ReadData()
      methods (since DataFlattener/DataUnflattener do it better).
+   o Replaced most calls to B_LENDIAN_*_TO_HOST() and
+     B_HOST_TO_LENDIAN_*() with calls to DefaultEndianConverter's
+     Import() and Export() methods, to allow MUSCLE to be built
+     in big-endian mode.
    * Modified Snooze64() to call clock_nanosleep() under Linux,
      and to call nanosleep() when -DMUSCLE_USE_LIBRT is defined.
+   * Changed all the #include "zlib/zlib/zlib.h" directives to
+     #include "zlib.h" to avoid using the captive zlib headers
+     together with any system-supplied zlib implementation (which
+     might be different)
+   * Fixed a bug that could cause ZLibDataIO::WriteAux() to
+     to into an infinite recursion if zlib's deflate() errored out.
+   * Fixed a bug in MessageIOGateway that could cause it fail
+     to report how many bytes it had sent or received, if an
+     I/O error occurred later on in the same call to DoInput()
+     or DoOutput().
 
 8.62 - Released 9/22/2022
    - Added a Hashtable::ComputeInvertedTable() convenience-method.

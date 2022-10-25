@@ -54,7 +54,7 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
          if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
 
          DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead);
-         if ((_allowMiscData)&&((bytesRead < (int32)PACKET_HEADER_SIZE)||(((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(_inputPacketBuffer.GetBuffer()))) != _magic)))
+         if ((_allowMiscData)&&((bytesRead < (int32)PACKET_HEADER_SIZE)||(DefaultEndianConverter::Import<uint32>(_inputPacketBuffer.GetBuffer()) != _magic)))
          {
             // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
             HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead, fromIAP);
@@ -201,7 +201,7 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
             if (defBuf() == NULL)
             {
                // Oops, no compression occurred!  Better patch the packet-header to reflect that or the receiver will be confused
-               muscleCopyOut(&writeBuf[2*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(_sendPacketIDCounter));
+               DefaultEndianConverter::Export(_sendPacketIDCounter, &writeBuf[2*sizeof(uint32)]);
             }
          }
 #endif

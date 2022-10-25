@@ -14,13 +14,13 @@ template<class EndianConverter, class SizeChecker=RealSizeChecker> class DataUnf
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
-   DataUnflattenerHelper() {Reset();}
+   DataUnflattenerHelper() : _endianConverter() {Reset();}
 
    /** Constructs a DataUnflattener that will read up to the specified number of bytes
      * @param readFrom The buffer to read bytes from.  Caller must guarantee that this pointer remains valid when any methods on this class are called.
      * @param maxBytes The maximum number of bytes that we are allowed to read.  Pass in MUSCLE_NO_LIMIT if you don't want to enforce any maximum.
      */
-   DataUnflattenerHelper(const uint8 * readFrom, uint32 maxBytes) {SetBuffer(readFrom, maxBytes);}
+   DataUnflattenerHelper(const uint8 * readFrom, uint32 maxBytes) : _endianConverter() {SetBuffer(readFrom, maxBytes);}
 
    /** Same as above, except instead of taking a raw pointer as a target, we take a reference to a ByteBuffer object.
      * @param readFrom Reference to a ByteBuffer that we should read data out of.  A pointer to this ByteBuffer's data will be retained for use in future Read*() method-calls.
@@ -28,7 +28,7 @@ public:
      *                 than (readFrom.GetNumBytes()) it will treated as equal to (readFrom.GetNumBytes()).  Defaults to MUSCLE_NO_LIMIT.
      * @param startOffset byte-offset indicating where in (readFrom)'s buffer to start reading at.  Defaults to 0.
      */
-   DataUnflattenerHelper(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0) {SetBuffer(readFrom, maxBytes, startOffset);}
+   DataUnflattenerHelper(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0) : _endianConverter() {SetBuffer(readFrom, maxBytes, startOffset);}
 
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
    void Reset() {SetBuffer(NULL, 0);}

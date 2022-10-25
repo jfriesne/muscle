@@ -51,7 +51,7 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
          if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
 
          DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead);
-         if ((_allowMiscData)&&((bytesRead < (int32)FRAGMENT_HEADER_SIZE)||(((uint32)B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(_inputPacketBuffer.GetBuffer()))) != _magic)))
+         if ((_allowMiscData)&&((bytesRead < (int32)FRAGMENT_HEADER_SIZE)||(DefaultEndianConverter::Import<uint32>(_inputPacketBuffer.GetBuffer()) != _magic)))
          {
             // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
             HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead, fromIAP);
