@@ -3,6 +3,7 @@
 #include "util/ByteBuffer.h"
 #include "util/Queue.h"
 #include "message/Message.h"
+#include "util/MiscUtilityFunctions.h"  // TEMP REMOVE THIS
 
 namespace muscle {
 
@@ -946,10 +947,10 @@ MessageRef Message :: CreateMessageTemplate() const
    MessageRef ret = GetMessageFromPool(what);
    if (ret() == NULL) return MessageRef();
 
-   for (HashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
+   for (HashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
-      const String & fn = it.GetKey();
-      const MessageField & mf = it.GetValue();
+      const String & fn = iter.GetKey();
+      const MessageField & mf = iter.GetValue();
 
       const uint32 numItems = mf.GetNumItems();
       if (mf.IsFlattenable())
@@ -1013,7 +1014,7 @@ uint32 Message :: GetNumNames(uint32 type) const
 
    // oops, gotta count just the entries of the given type
    uint32 total = 0;
-   for (HashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++) if (it.GetValue().TypeCode() == type) total++;
+   for (HashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) if (iter.GetValue().TypeCode() == type) total++;
    return total;
 }
 
@@ -2039,29 +2040,32 @@ uint64 Message :: TemplateHashCode64Aux(uint32 & count) const
 uint32 Message :: TemplatedFlattenedSize(const Message & templateMsg) const
 {
    uint32 sum = sizeof(uint32);  // For the what-code
-   for (HashtableIterator<String, MessageField> it(templateMsg._entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
+   for (HashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
-      const MessageField & mf = it.GetValue();
-      if (mf.IsFlattenable()) sum += mf.TemplatedFlattenedSize(_entries.Get(it.GetKey()));
+      const MessageField & mf = iter.GetValue();
+      if (mf.IsFlattenable()) sum += mf.TemplatedFlattenedSize(_entries.Get(iter.GetKey()));
    }
    return sum;
 }
 
-void Message :: TemplatedFlatten(const Message & templateMsg, uint8 * buffer) const
+void Message :: TemplatedFlatten(const Message & templateMsg, DataFlattener flat) const
 {
-   muscleCopyOut(buffer, B_HOST_TO_LENDIAN_INT32(what)); buffer += sizeof(what);
-   for (HashtableIterator<String, MessageField> it(templateMsg._entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
+   flat.WriteInt32(what);
+   uint8 * origBuffer = flat.GetCurrentWritePointer();
+   uint8 * buffer     = origBuffer;
+   for (HashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
-      const MessageField & mf = it.GetValue();
+      const MessageField & mf = iter.GetValue();
       if (mf.IsFlattenable())
       {
-         const MessageField * payloadField = _entries.Get(it.GetKey());
+         const MessageField * payloadField = _entries.Get(iter.GetKey());
          mf.TemplatedFlatten(((payloadField)&&(payloadField->TypeCode() == mf.TypeCode())) ? payloadField : NULL, buffer);
       }
    }
+   flat.SeekRelative(buffer-origBuffer);  // just so we can verify that the right number of bytes were written
 }
 
-status_t Message :: TemplatedUnflatten(const Message & templateMsg, const uint8 *buf, uint32 size)
+status_t Message :: TemplatedUnflatten(const Message & templateMsg, DataUnflattener & unflat)
 {
    if (&templateMsg == this)
    {
@@ -2071,27 +2075,18 @@ status_t Message :: TemplatedUnflatten(const Message & templateMsg, const uint8 
 
    Clear();
 
-   if (size < sizeof(uint32))
-   {
-      LogTime(MUSCLE_LOG_DEBUG, "TemplatedUnflatten:  Buffer is too small to read the what-code! (size=" UINT32_FORMAT_SPEC ")\n", size);
-      return B_BAD_DATA;
-   }
-   else
-   {
-      what  = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(buf));
-      buf  += sizeof(what);
-      size -= sizeof(what);
-   }
+   what = unflat.ReadInt32();
+   MRETURN_ON_ERROR(unflat.GetStatus());
 
-   for (HashtableIterator<String, MessageField> it(templateMsg._entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
+   for (HashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
-      const MessageField & mf = it.GetValue();
+      const MessageField & mf = iter.GetValue();
       if (mf.IsFlattenable())
       {
-         const status_t ret = mf.TemplatedUnflatten(*this, it.GetKey(), buf, size);
+         const status_t ret = mf.TemplatedUnflatten(*this, iter.GetKey(), unflat);
          if (ret.IsError())
          {
-            LogTime(MUSCLE_LOG_DEBUG, "TemplatedUnflatten:  Error unflattening field [%s] [%s]\n", it.GetKey()(), ret());
+            LogTime(MUSCLE_LOG_DEBUG, "TemplatedUnflatten:  Error unflattening field [%s] [%s]\n", iter.GetKey()(), ret());
             return ret;
          }
       }
@@ -2896,7 +2891,10 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
 
          const uint32 subMsgSize = srcMsg->TemplatedFlattenedSize(*templateSubMsg);
          muscleCopyOut(buf, B_HOST_TO_LENDIAN_INT32(subMsgSize)); buf += sizeof(uint32);
-         srcMsg->TemplatedFlatten(*templateSubMsg, buf);
+
+         DataFlattener flat(buf, subMsgSize);
+         srcMsg->TemplatedFlatten(*templateSubMsg, flat);
+         flat.SeekRelative(subMsgSize);  // to avoid an assertion failure, we need to indicate that we consumed those bytes
          buf += subMsgSize;
       }
    }
@@ -2948,99 +2946,67 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
    }
 }
 
-status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String & fieldName, const uint8 * & buf, uint32 & bufSize) const
+status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String & fieldName, DataUnflattener & unflat) const
 {
    MessageField * mf = unflattenTo.GetOrCreateMessageField(fieldName, _typeCode);
    MRETURN_OOM_ON_NULL(mf);
 
-   uint32 mfSize = 0;
    if (mf->ElementsAreFixedSize())
    {
-      mfSize = FlattenedSize();
-      if (bufSize < mfSize)
+      const uint32 mfSize = FlattenedSize();
+      if (unflat.GetNumBytesAvailable() < mfSize)
       {
-         LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  Not enough bytes for field [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", fieldName(), bufSize, mfSize);
+         LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  Not enough bytes for field [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", fieldName(), unflat.GetNumBytesAvailable(), mfSize);
          return B_BAD_DATA;
       }
-
-      DataUnflattener unflat(buf, mfSize);
-      MRETURN_ON_ERROR(mf->Unflatten(unflat));
+      return unflat.ReadFlat(*mf, mfSize);
    }
    else
    {
-      const uint8 * subBuf = buf;
-      uint32 subBufSize = bufSize;
+      DataUnflattener calcSizeUnflat(unflat.GetCurrentReadPointer(), unflat.GetNumBytesAvailable());
+
+      const uint32 numItems = calcSizeUnflat.ReadInt32();
+      MRETURN_ON_ERROR(calcSizeUnflat.GetStatus());
 
       const uint32 expectedNumItems = GetNumItems();
-      if (subBufSize < sizeof(uint32))
-      {
-         LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  Not enough bytes for number-of-items-field [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", fieldName(), subBufSize, sizeof(uint32));
-         return B_BAD_DATA;
-      }
-
-      const uint32 numItems = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(subBuf));
       if (numItems != expectedNumItems)
       {
          LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  number-of-items-field [%s] has wrong value (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", fieldName(), numItems, expectedNumItems);
          return B_BAD_DATA;
       }
 
-      // skip past number-of-items field
-      subBuf     += sizeof(uint32);
-      subBufSize -= sizeof(uint32);
+      const bool doCustomMessageUnflatten = (_typeCode == B_MESSAGE_TYPE);
+      if (doCustomMessageUnflatten) MRETURN_ON_ERROR(unflat.SeekRelative(sizeof(uint32)));  // account for numItems field read
 
-      const bool isMessageField = (_typeCode == B_MESSAGE_TYPE);
-
-      // Calculate the field-size to pass to mf->Unflatten(), by walking the items-list
+      // Use (calcSizeUnflat) to calculate the bytes-size to pass to mf->Unflatten(), by walking the items-list
       for (uint32 i=0; i<expectedNumItems; i++)
       {
-         if (subBufSize < sizeof(uint32))
-         {
-            LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  Not enough bytes for items-size-field " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " of [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", i, expectedNumItems, fieldName(), subBufSize, sizeof(uint32));
-            return B_BAD_DATA;
-         }
+         const uint32 itemSize = calcSizeUnflat.ReadInt32();
+         MRETURN_ON_ERROR(calcSizeUnflat.GetStatus());
 
-         const uint32 itemSize = B_LENDIAN_TO_HOST_INT32(muscleCopyIn<uint32>(subBuf));
-         subBuf += sizeof(uint32); subBufSize -= sizeof(uint32);
-         if (subBufSize < itemSize)
+         if (doCustomMessageUnflatten)
          {
-            LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  Not enough bytes for items-data-field " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " of [%s] (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", i, expectedNumItems, fieldName(), subBufSize, itemSize);
-            return B_BAD_DATA;
-         }
+            MRETURN_ON_ERROR(unflat.SeekRelative(sizeof(uint32)));  // account for itemSize field read
 
-         if (isMessageField)
-         {
-            // Gotta use custom-unflattening logic here, since the regular MessageField::Unflatten() expects
-            // the traditional full-metadata-included format, but our sub-Message's data is expected to be in
-            // the new templated/payload-only format.
+            // Gotta use custom-unflattening-logic here, since the regular MessageField::Unflatten() expects
+            // to see the traditional full-metadata-included data-format, but our sub-Message's data is
+            // expected to be in the new templated/raw-data-only minimal format instead.
             MessageRef subMsg = GetMessageFromPool();
             MRETURN_OOM_ON_NULL(subMsg());
 
             status_t ret;
-            const Message * templateMsg = static_cast<const Message *>(GetItemAtAsRefCountableRef(i)());
-            if (subMsg()->TemplatedUnflatten(*templateMsg, subBuf, itemSize).IsError(ret))
-            {
-               LogTime(MUSCLE_LOG_DEBUG, "MessageField::TemplatedUnflatten():  TemplatedUnflatten() of sub-Message " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " of [%s] failed (%s) (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", i, expectedNumItems, fieldName(), ret(), subBufSize, itemSize);
-               return ret;
-            }
-
+            DataUnflattener tempUnflat(calcSizeUnflat.GetCurrentReadPointer(), itemSize);
+            MRETURN_ON_ERROR(subMsg()->TemplatedUnflatten(*static_cast<const Message *>(GetItemAtAsRefCountableRef(i)()), tempUnflat));
+            MRETURN_ON_ERROR(calcSizeUnflat.SeekRelative(itemSize));
+            MRETURN_ON_ERROR(unflat.SeekRelative(itemSize));
             MRETURN_ON_ERROR(mf->AddDataItem(&subMsg, sizeof(subMsg)));
          }
+         else MRETURN_ON_ERROR(calcSizeUnflat.SeekRelative(itemSize));
 
-         subBuf += itemSize; subBufSize -= itemSize;
       }
 
-      mfSize = (uint32)(subBuf-buf);
-      if (isMessageField == false)
-      {
-         DataUnflattener unflat(buf, mfSize);
-         MRETURN_ON_ERROR(mf->Unflatten(unflat));
-      }
+      return doCustomMessageUnflatten ? B_NO_ERROR : unflat.ReadFlat(*mf, calcSizeUnflat.GetNumBytesRead());
    }
-
-   buf     += mfSize;
-   bufSize -= mfSize;
-   return B_NO_ERROR;
 }
 
 } // end namespace muscle

@@ -84,7 +84,7 @@ static void TestTemplatedFlatten(const Message & m, int lineNumber)
 
    ByteBufferRef buf = GetByteBufferFromPool(templatedFlatSize);
    memset(buf()->GetBuffer(), 'X', buf()->GetNumBytes());  // just to make any unwritten-to-bytes more obvious
-   m.TemplatedFlatten(*messageTemplate(), buf()->GetBuffer());
+   m.TemplatedFlatten(*messageTemplate(), DataFlattener(buf()->GetBuffer(), templatedFlatSize));
 
    //printf("Template Message is:\n");
    //messageTemplate()->PrintToStream();
@@ -94,7 +94,8 @@ static void TestTemplatedFlatten(const Message & m, int lineNumber)
 
    status_t ret;
    Message newMsg;
-   if (newMsg.TemplatedUnflatten(*messageTemplate(), buf()->GetBuffer(), buf()->GetNumBytes()).IsOK(ret))
+   DataUnflattener unflat(*buf());
+   if (newMsg.TemplatedUnflatten(*messageTemplate(), unflat).IsOK(ret))
    {
       if (newMsg != m)
       {
@@ -154,7 +155,7 @@ int main(int, char **)
    printf("m2 flattenedSize=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
 
    printSep("Testing Replace*() with okayToAdd...");
-   Message butter;
+   Message butter(0x05080609);
    butter.ReplaceInt8(true, "int8", 8);
    butter.ReplaceInt16(true, "int16", 16);
    butter.ReplaceInt32(true, "int32", 32);
@@ -208,7 +209,7 @@ int main(int, char **)
    TEST(msg.AddDouble("double", 6.28));
    TEST(msg.AddDouble("double", 6.66));
    TEST(msg.AddMessage("msg", butter));
-   TEST(msg.AddInt64("int64", 99999));
+   TEST(msg.AddInt64("int64", 0x0203040506070809LL));  // aka 144964032628459529 decimal
    TEST(msg.AddData("Data", B_RAW_TYPE, "ABCDEFGHIJKLMNOPQRS", 12));
    TEST(msg.AddData("Data", B_RAW_TYPE, "Mouse", 3));
    TestTemplatedFlatten(msg, __LINE__);

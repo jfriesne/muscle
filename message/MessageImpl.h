@@ -176,7 +176,7 @@ public:
    uint64 TemplatedHashCode64() const {return ((uint64)GetNumItems())*((uint64)TypeCode());}
    uint32 TemplatedFlattenedSize(const MessageField * optPayloadField) const;
    void TemplatedFlatten(const MessageField * optPayloadField, uint8 * & buf) const;
-   status_t TemplatedUnflatten(Message & unflattenTo, const String & fieldName, const uint8 * & buf, uint32 & bufSize) const;
+   status_t TemplatedUnflatten(Message & unflattenTo, const String & fieldName, DataUnflattener & unflat) const;
 
 protected:
    void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const {if (HasArray()) GetArray()->FlattenAux(flat, maxItemsToFlatten); else SingleFlatten(flat);}

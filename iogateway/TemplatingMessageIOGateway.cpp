@@ -52,19 +52,28 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
       }
    }
 
-   const uint32 hs = GetHeaderSize();
-   uint32 msgFlatSize = 0;  // demand-calculated
-   ByteBufferRef retBuf = GetByteBufferFromPool(hs+(templateMsgRef ? (sizeof(uint64)+msgRef()->TemplatedFlattenedSize(*templateMsgRef->GetItemPointer())) : (isMessageTrivial ? sizeof(uint32) : (msgFlatSize=msgRef()->FlattenedSize()))));
+   const uint32 hs      = GetHeaderSize();
+   uint32 msgFlatSize   = 0;  // demand-calculated
+   const uint32 tmSize  = templateMsgRef ? msgRef()->TemplatedFlattenedSize(*templateMsgRef->GetItemPointer()) : 0;
+   const uint32 bufSize = hs + (templateMsgRef ? (sizeof(templateID)+tmSize) : (isMessageTrivial ? sizeof(uint32) : (msgFlatSize=msgRef()->FlattenedSize())));
+   ByteBufferRef retBuf = GetByteBufferFromPool(bufSize);
    if (retBuf())
    {
-      uint8 * bodyPtr = retBuf()->GetBuffer()+hs;
+      DataFlattener flat(*retBuf());
+      flat.SeekRelative(hs);  // skip past the header for now
+
       if (templateMsgRef)
       {
-         muscleCopyOut(bodyPtr, B_HOST_TO_LENDIAN_INT64(templateID));
-         msgRef()->TemplatedFlatten(*templateMsgRef->GetItemPointer(), bodyPtr+sizeof(uint64));  // the new payload-only format
+         flat.WriteInt64(templateID);
+         msgRef()->TemplatedFlatten(*templateMsgRef->GetItemPointer(), DataFlattener(flat.GetCurrentWritePointer(), tmSize));  // the new payload-only format
+         flat.SeekRelative(tmSize);
       }
-      else if (isMessageTrivial) muscleCopyOut(bodyPtr, B_HOST_TO_LENDIAN_INT32(msgRef()->what));  // special-case for what-code-only Messages
-      else                       msgRef()->FlattenToBytes(bodyPtr, msgFlatSize);  // the old full-freight MessageIOGateway-style format (msgFlatSize will be set non-negative if we got here)
+      else if (isMessageTrivial) flat.WriteInt32(msgRef()->what);  // special-case for what-code-only Messages
+      else
+      {
+         msgRef()->FlattenToBytes(flat.GetCurrentWritePointer(), msgFlatSize);  // the old full-freight MessageIOGateway-style format (msgFlatSize will be set non-negative if we got here)
+         flat.SeekRelative(msgFlatSize);
+      }
 
       int32 encoding = MUSCLE_MESSAGE_ENCODING_DEFAULT;
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
@@ -86,9 +95,9 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
 
       if (retBuf())
       {
-         uint8 * lhb = retBuf()->GetBuffer();
-         muscleCopyOut(&lhb[0*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(((uint32)(retBuf()->GetNumBytes()-hs)) | (createTemplate ? CREATE_TEMPLATE_BIT  : 0)));
-         muscleCopyOut(&lhb[1*sizeof(uint32)], B_HOST_TO_LENDIAN_INT32(((uint32)encoding)                     | (templateMsgRef ? PAYLOAD_ENCODING_BIT : 0)));
+         DataFlattener subFlat(retBuf()->GetBuffer(), GetHeaderSize());
+         subFlat.WriteInt32(((uint32)(retBuf()->GetNumBytes()-hs)) | (createTemplate ? CREATE_TEMPLATE_BIT  : 0));
+         subFlat.WriteInt32(((uint32)encoding)                     | (templateMsgRef ? PAYLOAD_ENCODING_BIT : 0));
       }
    }
 
@@ -169,7 +178,8 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
          if (templateMsgRef)
          {
             const uint8 * payloadBytes = inPtr + sizeof(uint64);
-            if (retMsg()->TemplatedUnflatten(*templateMsgRef->GetItemPointer(), payloadBytes, (uint32)(firstInvalidByte-payloadBytes)).IsError(ret))
+            DataUnflattener unflat(payloadBytes, (uint32)(firstInvalidByte-payloadBytes));
+            if (retMsg()->TemplatedUnflatten(*templateMsgRef->GetItemPointer(), unflat).IsError(ret))
             {
                LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Error unflattening " UINT32_FORMAT_SPEC " payload-bytes using template ID " UINT64_FORMAT_SPEC "\n", (uint32)(firstInvalidByte-payloadBytes), templateID);
                return MessageRef();

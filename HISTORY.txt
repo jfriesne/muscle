@@ -29,6 +29,10 @@ key:  - new feature
      Flattenable::Unflatten() methods to take a
      (DataUnflattener &) as an argument rather than
      a raw pointer, for better caller/callee cooperation.
+   o Changed Message::TemplatedFlatten() to use
+     a DataFlattener as an argument.
+   o Changed Message::TemplatedUnflatten() to use
+     a DataUnflattener as an argument.
    o Removed the SetEndianFlag(), Append*(), Write*(),
      Read*() methods from the ByteBuffer class.  Use
      the new DataFlattener/DataUnflattener classes instead.
