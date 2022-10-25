@@ -65,15 +65,10 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
       if (templateMsgRef)
       {
          flat.WriteInt64(templateID);
-         msgRef()->TemplatedFlatten(*templateMsgRef->GetItemPointer(), DataFlattener(flat.GetCurrentWritePointer(), tmSize));  // the new payload-only format
-         flat.SeekRelative(tmSize);
+         msgRef()->TemplatedFlatten(*templateMsgRef->GetItemPointer(), DataFlattener(flat, tmSize));  // the new payload-only format
       }
       else if (isMessageTrivial) flat.WriteInt32(msgRef()->what);  // special-case for what-code-only Messages
-      else
-      {
-         msgRef()->FlattenToBytes(flat.GetCurrentWritePointer(), msgFlatSize);  // the old full-freight MessageIOGateway-style format (msgFlatSize will be set non-negative if we got here)
-         flat.SeekRelative(msgFlatSize);
-      }
+      else msgRef()->Flatten(DataFlattener(flat, msgFlatSize));  // the old full-freight MessageIOGateway-style format (msgFlatSize will be set non-negative if we got here)
 
       int32 encoding = MUSCLE_MESSAGE_ENCODING_DEFAULT;
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING

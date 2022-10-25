@@ -2891,9 +2891,7 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
          const uint32 subMsgSize = srcMsg->TemplatedFlattenedSize(*templateSubMsg);
          muscleCopyOut(buf, B_HOST_TO_LENDIAN_INT32(subMsgSize)); buf += sizeof(uint32);
 
-         DataFlattener flat(buf, subMsgSize);
-         srcMsg->TemplatedFlatten(*templateSubMsg, flat);
-         flat.SeekRelative(subMsgSize);  // to avoid an assertion failure, we need to indicate that we consumed those bytes
+         srcMsg->TemplatedFlatten(*templateSubMsg, DataFlattener(buf, subMsgSize));
          buf += subMsgSize;
       }
    }
