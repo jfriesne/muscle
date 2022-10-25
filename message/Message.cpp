@@ -592,7 +592,6 @@ public:
 
    virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const
    {
-      uint32 writeOffset = 0;
       const uint32 numItems = muscleMin(this->_data.GetNumItems(), maxItemsToFlatten);
 
       uint8 * writeCountToThisLocation;
@@ -2994,7 +2993,6 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
             MessageRef subMsg = GetMessageFromPool();
             MRETURN_OOM_ON_NULL(subMsg());
 
-            status_t ret;
             DataUnflattener tempUnflat(calcSizeUnflat.GetCurrentReadPointer(), itemSize);
             MRETURN_ON_ERROR(subMsg()->TemplatedUnflatten(*static_cast<const Message *>(GetItemAtAsRefCountableRef(i)()), tempUnflat));
             MRETURN_ON_ERROR(calcSizeUnflat.SeekRelative(itemSize));
