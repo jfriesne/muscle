@@ -2061,7 +2061,7 @@ void Message :: TemplatedFlatten(const Message & templateMsg, DataFlattener flat
          mf.TemplatedFlatten(((payloadField)&&(payloadField->TypeCode() == mf.TypeCode())) ? payloadField : NULL, buffer);
       }
    }
-   flat.SeekRelative(buffer-origBuffer);  // just so we can verify that the right number of bytes were written
+   flat.SeekRelative((int32)(buffer-origBuffer));  // just so we can verify that the right number of bytes were written
 }
 
 status_t Message :: TemplatedUnflatten(const Message & templateMsg, DataUnflattener & unflat)

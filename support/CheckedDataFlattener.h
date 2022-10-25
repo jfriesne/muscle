@@ -153,7 +153,7 @@ public:
      */
    status_t WriteCString(const char * str)
    {
-      const uint32 numBytes = strlen(str)+1;  // +1 for the NUL terminator
+      const uint32 numBytes = (uint32) (strlen(str)+1);  // +1 for the NUL terminator
       MRETURN_ON_ERROR(SizeCheck(numBytes, false));
       return WriteBytes(reinterpret_cast<const uint8 *>(str), numBytes);
    }
@@ -310,7 +310,7 @@ private:
       if (_byteBuffer)
       {
          const uint8 * oldPtr   = _byteBuffer->GetBuffer();
-         const uint32 oldOffset = oldPtr ? (_writeTo-oldPtr) : 0;
+         const uint32 oldOffset = oldPtr ? (uint32)(_writeTo-oldPtr) : 0;
 
          MRETURN_ON_ERROR(_byteBuffer->AppendBytes(optBytes, numBytes));
 

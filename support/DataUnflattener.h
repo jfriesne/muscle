@@ -112,7 +112,7 @@ public:
       if (nba == 0) {_status = B_DATA_NOT_FOUND; return NULL;}
 
       uint32 flatSize;
-      if (_maxBytes == MUSCLE_NO_LIMIT) flatSize = strlen(reinterpret_cast<const char *>(_readFrom))+1;
+      if (_maxBytes == MUSCLE_NO_LIMIT) flatSize = (uint32) (strlen(reinterpret_cast<const char *>(_readFrom))+1);
       else
       {
          // Gotta check for unterminated strings, or we won't be safe
@@ -120,7 +120,7 @@ public:
          const uint8 * firstInvalidByte = _readFrom+nba;
          while((temp < firstInvalidByte)&&(*temp != '\0')) temp++;
          if (temp == firstInvalidByte) {_status |= B_BAD_DATA; return NULL;}  // string wasn't terminated, so we can't return it
-         flatSize = (1+temp-_readFrom);  // +1 to include the NUL byte
+         flatSize = (1+((uint32)(temp-_readFrom)));  // +1 to include the NUL byte
       }
 
       const char * ret = reinterpret_cast<const char *>(_readFrom);
