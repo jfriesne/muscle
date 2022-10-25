@@ -170,7 +170,7 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
             if (_currentOutputBuffers.IsEmpty()) ClearFakeSendBuffer(MAX_CACHE_SIZE);  // don't keep too much memory around!
          }
 
-         (void) flat.SeekToEnd();  // avoid assertion failure; it's okay if we didn't write out to the entire _outputPacketBuffer
+         (void) flat.MarkComplete();  // avoid assertion failure; it's okay if we didn't write out to the entire _outputPacketBuffer
       }
 
       // Step 2:  If we have a non-empty packet to send, send it!

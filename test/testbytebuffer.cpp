@@ -74,7 +74,7 @@ template<class EndianConverter> status_t TestHelpers()
       const Rect rcs[]    = {Rect(35,36,37,38),Rect(39,40,41,42)};                 bfh.WriteFlats(   rcs, ARRAYITEMS(rcs));
 
       numValidBytesInBuf = bfh.GetNumBytesWritten();
-      bfh.SeekToEnd();  // avoid an assertion-failure by pretending we've written out the entire array
+      bfh.MarkComplete();
    }
 
    // Print out the serialized bytes in hexadecimal, so we can see how they were written
