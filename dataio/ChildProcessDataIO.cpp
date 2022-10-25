@@ -186,18 +186,14 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                   newBlock = newnothrow uint8[newBlockSize];
                   if (newBlock)
                   {
-                     uint8 * s = newBlock;
+                     DataFlattener flat(newBlock, newBlockSize);
                      for (HashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++)
                      {
-                        const uint32 kfs = iter.GetKey().FlattenedSize();
-                        iter.GetKey().FlattenToBytes(s, kfs); s += kfs;
-
-                        *(s-1) = '=';  // replace key's trailing-NUL with an '=' sign
-
-                        const uint32 vfs = iter.GetValue().FlattenedSize();
-                        iter.GetValue().FlattenToBytes(s, vfs); s += vfs;
+                        flat.WriteFlat(iter.GetKey());
+                        *(flat.GetCurrentWritePointer()-1) = '=';  // replace key's trailing-NUL with an '=' sign
+                        flat.WriteFlat(iter.GetValue());
                      }
-                     *s++ = '\0';
+                     flat.WriteByte('\0');
 
                      envVars = newBlock;
                   }
