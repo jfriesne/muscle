@@ -258,8 +258,8 @@ public:
 
 private:
    bool IsIPv6LocalMulticast(uint8 scope) const;
-   void WriteToNetworkArrayAux(uint8 * out, uint64 in)          const {muscleCopyOut(out, B_HOST_TO_BENDIAN_INT64(in));}
-   void ReadFromNetworkArrayAux(const uint8 * in, uint64 & out) const {out = B_BENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(in));}
+   void WriteToNetworkArrayAux(uint8 * out, uint64 in)          const {BigEndianConverter::Export(in, out);}
+   void ReadFromNetworkArrayAux(const uint8 * in, uint64 & out) const {BigEndianConverter::Import(in, out);}
 
    uint64 _lowBits;
    uint64 _highBits;
