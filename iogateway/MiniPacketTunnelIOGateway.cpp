@@ -221,7 +221,7 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       else break;  // nothing more to do!
    }
    _outputPacketSize = flat.GetNumBytesWritten();  // remember for next time how many still-pending packets are left in our _outputPacketBuffer
-   flat.MarkComplete();   // avoid assertion failure; it's okay if we didn't write out the entire buffer
+   flat.MarkWritingComplete();   // avoid assertion failure; it's okay if we didn't write out the entire buffer
    return totalBytesWritten;
 }
 
