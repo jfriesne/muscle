@@ -124,7 +124,7 @@ const char * StrcasestrEx(const char * haystack, uint32 haystackLen, const char 
   * UTF8-aware, certain operations (such as Reverse() and ToLowerCase()) may not do the right thing when used in
   * conjunction with non-ASCII UTF8 data.
   */
-class String MUSCLE_FINAL_CLASS : public PseudoFlattenable
+class String MUSCLE_FINAL_CLASS : public PseudoFlattenable<String>
 {
 public:
    /** Constructor.
@@ -1020,11 +1020,6 @@ public:
     *  @return B_STRING_TYPE
     */
    uint32 TypeCode() const {return B_STRING_TYPE;}
-
-   /** Returns true iff (tc) equals B_STRING_TYPE.
-     * @param tc the type code to check
-     */
-   bool AllowsTypeCode(uint32 tc) const {return (TypeCode()==tc);}
 
    /** Part of the Flattenable pseudo-interface.
     *  @return Length()+1  (the +1 is for the terminating NUL byte)

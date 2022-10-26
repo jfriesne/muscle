@@ -2,6 +2,7 @@
 
 #include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"
+#include "util/TimeUtilityFunctions.h"
 
 using namespace muscle;
 

@@ -294,7 +294,7 @@ template <class T> inline ByteBufferRef GetFlattenedByteBufferFromPool(const T &
 template <class T> inline ByteBufferRef GetFlattenedByteBufferFromPool(ObjectPool<ByteBuffer> & pool, const T & flattenMe)
 {
    ByteBufferRef bufRef = GetByteBufferFromPool(pool, flattenMe.FlattenedSize());
-   if (bufRef()) flattenMe.Flatten(DataFlattener(bufRef()->GetBuffer(), bufRef()->GetNumBytes()));
+   if ((bufRef())&&(flattenMe.FlattenToByteBuffer(*bufRef()).IsError())) bufRef.Reset();
    return bufRef;
 }
 
@@ -385,6 +385,38 @@ template<class EndianConverter>
 void DataFlattenerHelper<EndianConverter> :: WriteBytes(const ByteBuffer & buf)
 {
    WriteBytes(buf.GetBuffer(), buf.GetNumBytes());
+}
+
+template<class SubclassType>
+status_t PseudoFlattenable<SubclassType> :: UnflattenFromByteBuffer(const ByteBuffer & buf)
+{
+   return static_cast<SubclassType *>(this)->UnflattenFromBytes(buf.GetBuffer(), buf.GetNumBytes());
+}
+
+template<class SubclassType>
+status_t PseudoFlattenable<SubclassType> :: UnflattenFromByteBuffer(const ConstRef<ByteBuffer> & bufRef)
+{
+   return bufRef() ? static_cast<SubclassType *>(this)->UnflattenFromBytes(bufRef()->GetBuffer(), bufRef()->GetNumBytes()) : B_BAD_ARGUMENT;
+}
+
+template<class SubclassType>
+status_t PseudoFlattenable<SubclassType> :: FlattenToByteBuffer(ByteBuffer & outBuf) const
+{
+   const SubclassType * sc = static_cast<const SubclassType *>(this);
+   const uint32 flatSize = sc->FlattenedSize();
+   MRETURN_ON_ERROR(outBuf.SetNumBytes(flatSize, false));
+   sc->FlattenToBytes(outBuf.GetBuffer(), flatSize);
+   return B_NO_ERROR;
+}
+
+template<class SubclassType>
+Ref<ByteBuffer> PseudoFlattenable<SubclassType> :: FlattenToByteBuffer() const
+{
+   const SubclassType * sc = static_cast<const SubclassType *>(this);
+   const uint32 flatSize = sc->FlattenedSize();
+   ByteBufferRef bufRef = GetByteBufferFromPool(flatSize);
+   if (bufRef()) sc->FlattenToBytes(bufRef()->GetBuffer(), flatSize);
+   return bufRef;
 }
 
 } // end namespace muscle

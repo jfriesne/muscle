@@ -4,13 +4,10 @@
 #define MuscleFlattenable_h
 
 #include "support/PseudoFlattenable.h"
-#include "dataio/DataIO.h"
-#include "util/RefCount.h"
 
 namespace muscle {
 
 class ByteBuffer;  // forward reference to avoid chicken-and-egg problems
-class DataIO;
 
 /** This class is an interface representing an object that knows how
  *  to save itself into an array of bytes, and recover its state from

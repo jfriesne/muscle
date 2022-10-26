@@ -24,7 +24,7 @@ namespace muscle {
   *       even if they happen to specify the same value for the NumBits template-parameter.  See the
   *       DECLARE_BITCHORD_FLAGS_TYPE macro at the bottom of BitChord.h for more information.
   */
-template <uint32 NumBits, class TagClass=Void> class BitChord : public PseudoFlattenable
+template <uint32 NumBits, class TagClass=Void> class BitChord : public PseudoFlattenable<BitChord<NumBits, TagClass> >
 {
 public:
    /** Default constructor */
@@ -224,11 +224,6 @@ public:
 
    /** Part of the pseudo-Flattenable API:  Returns B_BITCHORD_TYPE. */
    static uint32 TypeCode() {return B_BITCHORD_TYPE;}
-
-   /** Returns true iff (tc) equals B_BITCHORD_TYPE.
-     * @param tc the type code to examine
-     */
-   static bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
 
    /** @copydoc DoxyTemplate::FlattenedSize() const */
    static uint32 FlattenedSize() {return sizeof(uint32)+(NUM_WORDS*sizeof(uint32));}

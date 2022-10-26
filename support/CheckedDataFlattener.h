@@ -212,7 +212,7 @@ public:
             _endianConverter.Export(flatSize, _writeTo);
             _writeTo += sizeof(flatSize);
          }
-         vals[i].Flatten(DataFlattener(_writeTo, flatSize));
+         vals[i].FlattenToBytes(_writeTo, flatSize);
          _writeTo += flatSize;
       }
       ReduceBytesLeftBy(numBytes);

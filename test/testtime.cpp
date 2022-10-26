@@ -5,6 +5,7 @@
 #include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/StringTokenizer.h"
+#include "util/TimeUtilityFunctions.h"
 
 using namespace muscle;
 

@@ -7,7 +7,7 @@
 #include "support/NotCopyable.h"
 #include "util/IPAddress.h"
 #include "util/PulseNode.h"
-#include "util/RefCount.h"
+#include "util/Socket.h"
 
 namespace muscle {
 

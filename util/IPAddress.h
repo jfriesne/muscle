@@ -16,7 +16,7 @@ enum {
 /** This class represents an IPv6 network address, including the 128-bit IP
   * address and the interface index field (necessary for connecting to link-local addresses)
   */
-class IPAddress MUSCLE_FINAL_CLASS : public PseudoFlattenable
+class IPAddress MUSCLE_FINAL_CLASS : public PseudoFlattenable<IPAddress>
 {
 public:
    /** Constructor
@@ -175,11 +175,6 @@ public:
    /** Part of the PseudoFlattenable pseudo-interface:  Returns IP_ADDRESS_TYPE */
    static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_TYPE;}
 
-   /** Returns true iff (tc) equals IP_ADDRESS_TYPE.
-     * @param tc a type-code to evaluate for appropriateness
-     */
-   static MUSCLE_CONSTEXPR bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
-
    /** Part of the PseudoFlattenable pseudo-interface */
    static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return sizeof(uint64) + sizeof(uint64) + sizeof(uint32);}
 
@@ -306,7 +301,7 @@ const IPAddress broadcastIP = broadcastIP_IPv6;
   * useful things on the two such as using them as key values in a hash table,
   * converting them to/from user-readable strings, etc.
   */
-class IPAddressAndPort MUSCLE_FINAL_CLASS : public PseudoFlattenable
+class IPAddressAndPort MUSCLE_FINAL_CLASS : public PseudoFlattenable<IPAddressAndPort>
 {
 public:
    /** Default constructor.   Creates an IPAddressAndPort object with the address field
@@ -421,11 +416,6 @@ public:
 
    /** Part of the Flattenable pseudo-interface:  Returns IP_ADDRESS_AND_PORT_TYPE */
    static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_AND_PORT_TYPE;}
-
-   /** Returns true iff (tc) equals IP_ADDRESS_AND_PORT_TYPE.
-     * @param tc the type code to evalutate for appropriateness
-     */
-   static MUSCLE_CONSTEXPR bool AllowsTypeCode(uint32 tc) {return (TypeCode()==tc);}
 
    /** Part of the Flattenable pseudo-interface */
    static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return IPAddress::FlattenedSize() + sizeof(uint16);}

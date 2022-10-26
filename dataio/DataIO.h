@@ -4,6 +4,7 @@
 #define MuscleDataIO_h
 
 #include "support/NotCopyable.h"
+#include "support/PseudoFlattenable.h"
 #include "util/Socket.h"
 #include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
 #include "util/CountedObject.h"
@@ -146,6 +147,69 @@ private:
    DECLARE_COUNTED_OBJECT(DataIO);
 };
 DECLARE_REFTYPES(DataIO);
+
+// The methods below have been implemented here (instead of inside DataFlattener.h or DataUnflattener.h)
+// to avoid chicken-and-egg programs with include-ordering.  At this location we are guaranteed that the compiler
+// knows everything it needs to know about both the DataFlattener/DataUnflattener classes and the DataIO class.
+
+template<class SubclassType>
+status_t PseudoFlattenable<SubclassType>::FlattenToDataIO(DataIO & outputStream, bool addSizeHeader) const
+{
+   uint8 smallBuf[256];
+   uint8 * bigBuf = NULL;
+
+   const SubclassType * sc = static_cast<const SubclassType *>(this);
+   const uint32 fs      = sc->FlattenedSize();
+   const uint32 bufSize = fs+(addSizeHeader?sizeof(uint32):0);
+
+   uint8 * b;
+   if (bufSize<=ARRAYITEMS(smallBuf)) b = smallBuf;
+   else
+   {
+      b = bigBuf = newnothrow_array(uint8, bufSize);
+      MRETURN_OOM_ON_NULL(bigBuf);
+   }
+
+   // Populate the buffer
+   if (addSizeHeader)
+   {
+      DefaultEndianConverter::Export(fs, b);
+      sc->FlattenToBytes(b+sizeof(uint32), fs);
+   }
+   else FlattenToBytes(b, fs);
+
+   // And finally, write out the buffer
+   const status_t ret = (outputStream.WriteFully(b, bufSize) == bufSize) ? B_NO_ERROR : B_IO_ERROR;
+   delete [] bigBuf;
+   return ret;
+}
+
+template<class SubclassType>
+status_t PseudoFlattenable<SubclassType>::UnflattenFromDataIO(DataIO & inputStream, int32 optReadSize, uint32 optMaxReadSize)
+{
+   uint32 readSize = (uint32) optReadSize;
+   if (optReadSize < 0)
+   {
+      uint32 leSize;
+      if (inputStream.ReadFully(&leSize, sizeof(leSize)) != sizeof(leSize)) return B_IO_ERROR;
+      readSize = DefaultEndianConverter::Import<uint32>(&leSize);
+      if (readSize > optMaxReadSize) return B_BAD_DATA;
+   }
+
+   uint8 smallBuf[256];
+   uint8 * bigBuf = NULL;
+   uint8 * b;
+   if (readSize<=ARRAYITEMS(smallBuf)) b = smallBuf;
+   else
+   {
+      b = bigBuf = newnothrow_array(uint8, readSize);
+      MRETURN_OOM_ON_NULL(bigBuf);
+   }
+
+   const status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? static_cast<SubclassType *>(this)->UnflattenFromBytes(b, readSize) : B_IO_ERROR;
+   delete [] bigBuf;
+   return ret;
+}
 
 } // end namespace muscle
 

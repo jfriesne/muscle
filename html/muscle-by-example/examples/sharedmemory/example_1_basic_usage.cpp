@@ -1,6 +1,7 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "system/SharedMemory.h"
-#include "util/MiscUtilityFunctions.h"   // for PrintHexBytes()
+#include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
+#include "util/TimeUtilityFunctions.h"  // for SecondsToMicros(), Snooze64(), etc
 
 using namespace muscle;
 

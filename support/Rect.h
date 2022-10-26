@@ -17,7 +17,7 @@
 namespace muscle {
 
 /** A portable version of Be's BRect class. */
-class Rect MUSCLE_FINAL_CLASS : public Tuple<4,float>, public PseudoFlattenable
+class Rect MUSCLE_FINAL_CLASS : public Tuple<4,float>, public PseudoFlattenable<Rect>
 {
 public:
    /** Default Constructor.
@@ -248,11 +248,6 @@ public:
 
    /** Part of the pseudo-Flattenable API:  Returns B_RECT_TYPE. */
    uint32 TypeCode() const {return B_RECT_TYPE;}
-
-   /** Returns true iff (tc) equals B_RECT_TYPE.
-     * @param tc the type code to examine
-     */
-   bool AllowsTypeCode(uint32 tc) const {return (TypeCode()==tc);}
 
    /** Part of the PseudoFlattenable API:  Returns 4*sizeof(float). */
    static uint32 FlattenedSize() {return GetNumItemsInTuple()*sizeof(float);}

@@ -116,7 +116,7 @@ DECLARE_REFTYPES(AbstractDataArray);
 /** This class is a private part of the Message class's implementation.  User code should not access this class directly.
   * This class represents the value-data of one field in a Message object.
   */
-class MessageField MUSCLE_FINAL_CLASS : public PseudoFlattenable
+class MessageField MUSCLE_FINAL_CLASS : public PseudoFlattenable<MessageField>
 {
 public:
    /** Default ctor:  Creates a MessageField with no type */
@@ -139,7 +139,6 @@ public:
 
    // Flattenable Pseudo-Interface
    uint32 TypeCode() const {return _typeCode;}
-   bool AllowsTypeCode(uint32 tc) const {return tc == TypeCode();}
    uint32 FlattenedSize() const {return HasArray() ? GetArray()->FlattenedSize() : SingleFlattenedSize();}
    void Flatten(DataFlattener flat) const {FlattenAux(flat, MUSCLE_NO_LIMIT);}
    status_t Unflatten(DataUnflattener & unflat);

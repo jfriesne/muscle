@@ -54,6 +54,10 @@ key:  - new feature
      B_HOST_TO_LENDIAN_*() with calls to DefaultEndianConverter's
      Import() and Export() methods, to allow MUSCLE to be built
      in big-endian mode.
+   o Changed the PseudoFlattenable class to be templatized, and
+     added methods to it so all the helper methods declared in
+     the Flattenable interface are also available in the
+     PseudoFlattenable interface.
    o Refactored the ZLib-support classes in muscle/zlib so that they
      no longer include any zlib-headers from their header files.
    * Modified Snooze64() to call clock_nanosleep() under Linux,

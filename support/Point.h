@@ -21,7 +21,7 @@ namespace muscle {
 /*----- Point class --------------------------------------------*/
 
 /** A portable version of Be's BPoint class. */
-class Point MUSCLE_FINAL_CLASS : public Tuple<2,float>, public PseudoFlattenable
+class Point MUSCLE_FINAL_CLASS : public Tuple<2,float>, public PseudoFlattenable<Point>
 {
 public:
    /** Default constructor, sets the point to be (0.0f, 0.0f) */
@@ -87,11 +87,6 @@ public:
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns B_POINT_TYPE */
    uint32 TypeCode() const {return B_POINT_TYPE;}
-
-   /** Returns true iff (tc) equals B_POINT_TYPE.
-     * @param tc the type-code to check
-     */
-   bool AllowsTypeCode(uint32 tc) const {return (TypeCode()==tc);}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns 2*sizeof(float) */
    static uint32 FlattenedSize() {return GetNumItemsInTuple()*sizeof(float);}
