@@ -6,7 +6,6 @@
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 
 # include "dataio/DataIO.h"
-# include "zlib.h"  // for gzFile (deliberately pathless, to avoid mixing captive headers with system libz)
 
 namespace muscle {
 
@@ -42,7 +41,7 @@ private:
 
    void ShutdownAux();
 
-   gzFile _file;
+   void * _file;  // really of type gzFile but I don't want to include zlib.h in this header, so
 };
 DECLARE_REFTYPES(GZDataIO);
 

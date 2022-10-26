@@ -3,8 +3,11 @@
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 
 #include "zlib/GZDataIO.h"
+#include "zlib.h"  // deliberately pathless, to avoid mixing captive headers with system libz
 
 namespace muscle {
+
+static gzFile GetGZFile(void * f) {return reinterpret_cast<gzFile>(f);}
 
 GZDataIO :: GZDataIO(const char * filePath, const char * mode)
    : _file(gzopen(filePath, mode))
@@ -20,18 +23,18 @@ GZDataIO :: ~GZDataIO()
 int32 GZDataIO :: Read(void * buffer, uint32 size)
 {
    if (_file == NULL) return -1;
-   return gzread(_file, buffer, size);
+   return gzread(GetGZFile(_file), buffer, size);
 }
 
 int32 GZDataIO :: Write(const void * buffer, uint32 size)
 {
    if (_file == NULL) return -1;
-   return gzwrite(_file, buffer, size);
+   return gzwrite(GetGZFile(_file), buffer, size);
 }
 
 void GZDataIO :: FlushOutput()
 {
-   if (_file) (void) gzflush(_file, Z_BLOCK);
+   if (_file) (void) gzflush(GetGZFile(_file), Z_BLOCK);
 }
 
 void GZDataIO :: Shutdown()
@@ -43,7 +46,7 @@ void GZDataIO :: ShutdownAux()
 {
    if (_file)
    {
-      gzclose(_file);
+      gzclose(GetGZFile(_file));
       _file = NULL;
    }
 }

@@ -5,10 +5,11 @@
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 
-# include "zlib.h"  // deliberately pathless, to avoid mixing captive headers with system libz
 # include "dataio/DataIO.h"
 
 namespace muscle {
+
+class ZLibDataIOImp;
 
 /** This class wraps around another DataIO and transparently compresses all
   * data going to that DataIO, and decompresses all data coming from that
@@ -53,7 +54,7 @@ public:
    status_t SetChildDataIO(const DataIORef & childDataIO);
 
    /** Returns our current back-end DataIORef, if we have one */
-   const DataIORef & GetChildDataIO() const {return _childDataIO;}
+   const DataIORef & GetChildDataIO() const;
 
 protected:
    /** Internal constructor for GZLibDataIO to call
@@ -65,31 +66,8 @@ protected:
    ZLibDataIO(const DataIORef & childIO, int compressionLevel, bool useGZFormat);
 
 private:
-   void Init();
-   void InitStream(z_stream & stream, uint8 * toStreamBuf, uint8 * fromStreamBuf, uint32 outBufSize);
-   int32 WriteAux(const void * buffer, uint32 size, bool flushAtEnd, bool * optFinishingUp);
-   int32 WriteDeflatedOutputToChild();
-   void CleanupZLib();
+   ZLibDataIOImp * _imp;
 
-   DataIORef _childDataIO;
-
-   int _compressionLevel;
-
-   uint8 _toInflateBuf[2048];
-   uint8 _inflatedBuf[2048];
-   const uint8 * _sendToUser;
-   bool _inflateAllocated;
-   bool _inflateOkay;
-   bool _inputStreamOkay;
-   z_stream _readInflater;
-
-   uint8 _toDeflateBuf[2048];
-   uint8 _deflatedBuf[2048];
-   const uint8 * _sendToChild;
-   bool _deflateAllocated;
-   z_stream _writeDeflater;
-
-   const bool _useGZip;
    DECLARE_COUNTED_OBJECT(ZLibDataIO);
 };
 DECLARE_REFTYPES(ZLibDataIO);
@@ -112,10 +90,6 @@ public:
      *                         compression 9 is maximum compression.  Default is 6.
      */
    GZLibDataIO(const DataIORef & childIO, int compressionLevel = 6) : ZLibDataIO(childIO, compressionLevel, true) {/* empty */}
-
-protected:
-   /** Overridden to return true.  */
-   virtual bool UseGZipFormat() const {return true;}
 
 private:
    DECLARE_COUNTED_OBJECT(GZLibDataIO);

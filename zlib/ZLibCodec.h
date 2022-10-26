@@ -8,11 +8,11 @@
 # include "support/NotCopyable.h"
 # include "util/ByteBuffer.h"
 # include "util/RefCount.h"
-# include "zlib.h"  // deliberately pathless, to avoid mixing captive headers with system libz
 
 namespace muscle {
 
 class DataIO;
+class ZLibCodecImp;
 
 /** This class is a handy wrapper around the zlib C functions.
   * It quickly and easily inflates and deflates data to/from independently compressed chunks.
@@ -34,7 +34,7 @@ public:
      * level, although the compression level cannot change from one Inflate() call to another, unless the data
      * was compressed with the (independent) argument set to true.
      */
-   int GetCompressionLevel() const {return _compressionLevel;}
+   int GetCompressionLevel() const;
 
    /** Given a buffer of raw data, returns a reference to a Buffer containing the corresponding compressed data.
      * @param rawData The raw data to compress
@@ -206,15 +206,7 @@ public:
    status_t ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO & destInflatedIO);
 
 private:
-   void InitStream(z_stream & stream);
-
-   int _compressionLevel;
-
-   bool _inflateOkay;
-   z_stream _inflater;
-
-   bool _deflateOkay;
-   z_stream _deflater;
+   ZLibCodecImp * _imp;
 };
 DECLARE_REFTYPES(ZLibCodec);
 

@@ -54,6 +54,8 @@ key:  - new feature
      B_HOST_TO_LENDIAN_*() with calls to DefaultEndianConverter's
      Import() and Export() methods, to allow MUSCLE to be built
      in big-endian mode.
+   o Refactored the ZLib-support classes in muscle/zlib so that they
+     no longer include any zlib-headers from their header files.
    * Modified Snooze64() to call clock_nanosleep() under Linux,
      and to call nanosleep() when -DMUSCLE_USE_LIBRT is defined.
    * Changed all the #include "zlib/zlib/zlib.h" directives to
