@@ -50,7 +50,7 @@ public:
 ///@}
 
    /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
-     * @param the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
+     * @param readFrom the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
      *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
      */
    template<typename T> static T Import(const void * readFrom) {T ret; Import(readFrom, ret); return ret;}
@@ -107,7 +107,7 @@ public:
 ///@}
 
    /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
-     * @param the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
+     * @param readFrom the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
      *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
      */
    template<typename T> static T Import(const void * readFrom) {T ret; Import(readFrom, ret); return ret;}
@@ -158,7 +158,7 @@ public:
 ///@}
 
    /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
-     * @param the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
+     * @param readFrom the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
      *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
      */
    template<typename T> static T Import(const void * readFrom) {T ret; Import(readFrom, ret); return ret;}
