@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-9/22/2022 v9.00 jaf@meyersound.com<p>
+10/27/2022 v9.00 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -251,6 +251,8 @@ Directory contents descriptions follow:
    <p>
    <table>
    <tr><td><a href="support/BitChord.h">BitChord</a></td><td>Implements an ordered set of N individually-settable binary bits</td></tr>
+   <tr><td><a href="support/DataFlattener.h">DataFlattener</a></td><td>A lightweight helper-object for writing out endian-encoded data to a raw binary buffer.</td></tr>
+   <tr><td><a href="support/DataUnflattener.h">DataUnflattener</a></td><td>A lightweight helper-object for reading in endian-encoded data from a raw binary buffer.</td></tr>
    <tr><td><a href="support/Flattenable.h">Flattenable</a></td><td>Interface for an object that can be "Flattened" into a serialized-binary representation, and Unflattened back again</td></tr>
    <tr><td><a href="support/PseudoFlattenable.h">PseudoFlattenable</a></td><td>Same as Flattenable, but without the virtual methods.  Used as a tag for objects that can be flattened without runtime polymorphism</td></tr>
    <tr><td><a href="support/NotCopyable.h">NotCopyable</a></td><td>Inheriting from this class tells the compiler not to allow copies to made of objects of your subclass</td></tr>
@@ -385,8 +387,6 @@ Directory contents descriptions follow:
    <table>
     <tr><td><a href="util/BatchOperator.h">BatchOperator</a></td><td>An RAII mechanism for ensuring that a specified method gets called on the first-level recursion into a call tree, and that a matching method gets called on the final recursion out of the call tree.</td></tr>
     <tr><td><a href="util/ByteBuffer.h">ByteBuffer</a></td><td>An intelligent byte-array class, that stores its length, knows how to resize itself efficiently, is reference-countable and flattenable, etc.</td></tr>
-    <tr><td><a href="util/DataFlattener.h">DataFlattener</a></td><td>A lightweight helper-object for writing out endian-encoded data to a raw binary buffer.</td></tr>
-    <tr><td><a href="util/DataUnflattener.h">DataUnflattener</a></td><td>A lightweight helper-object for reading in endian-encoded data from a raw binary buffer.</td></tr>
     <tr><td><a href="util/CountedObject.h">CountedObject</a></td><td>A class that other classes can be derived from if you want to keep track of how many instances of them are in memory at any given time.</td></tr>
     <tr><td><a href="util/CPULoadMeter.h">CPULoadMeter</a></td><td>Reports the percentage of CPU time being used on the local computer from moment to moment.</td></tr>
     <tr><td><a href="util/Directory.h">Directory</a></td><td>a platform-neutral API for scanning a filesystem directory and iterating over its contents.</td></tr>

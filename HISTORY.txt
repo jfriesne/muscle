@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.00
+9.00 - Released 10/27/2022
    - Added a MUSCLE_MAXIMUM_NODE_DEPTH constant that limits
      how deep the MUSCLE node-tree may become, to prevent
      stack-overflow attacks.  Defaults to 100.
