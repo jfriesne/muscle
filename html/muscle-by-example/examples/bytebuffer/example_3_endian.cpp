@@ -23,40 +23,40 @@ int main(int argc, char ** argv)
 
    ByteBuffer buf;
 
-   CheckedBigEndianDataFlattener flt(buf);
-   (void) flt.WriteInt32(1);
-   (void) flt.WriteInt32(2);
-   (void) flt.WriteInt32(3);
-   (void) flt.WriteInt16(4);
-   (void) flt.WriteInt16(5);
-   (void) flt.WriteFloat(3.14159f);
-   (void) flt.WriteCString("howdy");
+   CheckedBigEndianDataFlattener flat(buf);
+   (void) flat.WriteInt32(1);
+   (void) flat.WriteInt32(2);
+   (void) flat.WriteInt32(3);
+   (void) flat.WriteInt16(4);
+   (void) flat.WriteInt16(5);
+   (void) flat.WriteFloat(3.14159f);
+   (void) flat.WriteCString("howdy");
 
-   if (flt.GetStatus().IsOK())
+   if (flat.GetStatus().IsOK())
    {
       printf("Here's the ByteBuffer containing three big-endian int32's, followed by\n");
       printf("2 big-endian int16's, pi as a big-endian float, and finally an ASCII string:\n\n");
       buf.PrintToStream();
    }
-   else printf("There was an error writing big-endian data into the ByteBuffer!  [%s]\n", flt.GetStatus()());
+   else printf("There was an error writing big-endian data into the ByteBuffer!  [%s]\n", flat.GetStatus()());
 
    printf("\n");
    printf("And now we'll grab that data back out of the buffer and display it:\n");
 
-   BigEndianDataUnflattener uflt(buf);
-   printf("First int32 is " INT32_FORMAT_SPEC "\n", uflt.ReadInt32());
-   printf("Second int32 is " INT32_FORMAT_SPEC "\n", uflt.ReadInt32());
-   printf("Third int32 is " INT32_FORMAT_SPEC "\n", uflt.ReadInt32());
-   printf("First int16 is %i\n", uflt.ReadInt16());
-   printf("Second int16 is %i\n", uflt.ReadInt16());
-   printf("Pi is %f\n", uflt.ReadFloat());
-   printf("String is [%s]\n", uflt.ReadCString());
+   BigEndianDataUnflattener unflat(buf);
+   printf("First int32 is " INT32_FORMAT_SPEC "\n", unflat.ReadInt32());
+   printf("Second int32 is " INT32_FORMAT_SPEC "\n", unflat.ReadInt32());
+   printf("Third int32 is " INT32_FORMAT_SPEC "\n", unflat.ReadInt32());
+   printf("First int16 is %i\n", unflat.ReadInt16());
+   printf("Second int16 is %i\n", unflat.ReadInt16());
+   printf("Pi is %f\n", unflat.ReadFloat());
+   printf("String is [%s]\n", unflat.ReadCString());
 
-   if (uflt.GetStatus().IsOK())
+   if (unflat.GetStatus().IsOK())
    {
       printf("Big-endian unflattening completed successfully.\n");
    }
-   else printf("Big-endian unflattening encountered an error [%s]\n", uflt.GetStatus()());
+   else printf("Big-endian unflattening encountered an error [%s]\n", unflat.GetStatus()());
    printf("\n");
 
    return 0;

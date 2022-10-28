@@ -10,6 +10,8 @@ key:  - new feature
      and DataFlattenerHelper classes.
    - Added a SeekPastPaddingBytesToAlignTo(uint32 alignSize)
      convenience-method to the DataUnflattenerHelper class.
+   - Added DataUnflattener ctor and SetBuffer() calls that
+     take a ByteBufferRef, for convenience.
 
 9.00 - Released 10/27/2022
    - Added a MUSCLE_MAXIMUM_NODE_DEPTH constant that limits

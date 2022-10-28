@@ -30,6 +30,14 @@ public:
      */
    DataUnflattenerHelper(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0) : _endianConverter(), _sizeChecker() {SetBuffer(readFrom, maxBytes, startOffset);}
 
+   /** Same as above, except instead of taking a raw pointer as a target, we take a reference to a ByteBufferRef.
+     * @param readFrom Reference to a ByteBuffer that we should read data out of.  A pointer to this ByteBuffer's data will be retained for use in future Read*() method-calls.
+     * @param maxBytes The maximum number of bytes that we should allow ourselves to read out of (readFrom).  If this value is greater
+     *                 than (readFrom.GetNumBytes()) it will treated as equal to (readFrom.GetNumBytes()).  Defaults to MUSCLE_NO_LIMIT.
+     * @param startOffset byte-offset indicating where in (readFrom)'s buffer to start reading at.  Defaults to 0.
+     */
+   DataUnflattenerHelper(const ConstRef<ByteBuffer> & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0) {SetBuffer(readFrom, maxBytes, startOffset);}
+
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
    void Reset() {SetBuffer(NULL, 0);}
 
@@ -48,6 +56,15 @@ public:
      * @note this method resets our status-flag back to B_NO_ERROR.
      */
    void SetBuffer(const ByteBuffer & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0);
+
+   /** Same as above, except instead of taking a raw pointer as a target, we take a ByteBufferRef object.
+     * @param readFrom Reference to a ByteBuffer that we should read data out of.  A pointer to this ByteBuffer's data will be retained for use in future Read*() method-calls.
+     * @param maxBytes The maximum number of bytes that we should allow ourselves to read out of (readFrom).  If this value is greater
+     *                 than (readFrom.GetNumBytes()) it will treated as equal to (readFrom.GetNumBytes()).  Defaults to MUSCLE_NO_LIMIT.
+     * @param startOffset byte-offset indicating where in (readFrom)'s buffer to start reading at.  Defaults to 0.
+     * @note this method resets our status-flag back to B_NO_ERROR.
+     */
+   void SetBuffer(const ConstRef<ByteBuffer> & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0);
 
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
    const uint8 * GetBuffer() const {return _origReadFrom;}

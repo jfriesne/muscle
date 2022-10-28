@@ -94,7 +94,7 @@ static void TestTemplatedFlatten(const Message & m, int lineNumber)
 
    status_t ret;
    Message newMsg;
-   DataUnflattener unflat(*buf());
+   DataUnflattener unflat(buf);
    if (newMsg.TemplatedUnflatten(*messageTemplate(), unflat).IsOK(ret))
    {
       if (newMsg != m)

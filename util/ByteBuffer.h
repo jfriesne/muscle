@@ -419,6 +419,13 @@ Ref<ByteBuffer> PseudoFlattenable<SubclassType> :: FlattenToByteBuffer() const
    return bufRef;
 }
 
+template<class EndianConverter, class SizeChecker>
+void DataUnflattenerHelper<EndianConverter, SizeChecker> :: SetBuffer(const ConstRef<ByteBuffer> & readFrom, uint32 maxBytes, uint32 startOffset)
+{
+   if (readFrom()) SetBuffer(*readFrom(), maxBytes, startOffset);
+              else Reset();
+}
+
 } // end namespace muscle
 
 #endif
