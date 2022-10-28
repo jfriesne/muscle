@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/site/index.html/dataflattener/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>DataFlattener - MUSCLE by Example</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "DataFlattener";
+        var mkdocs_page_input_path = "dataflattener.md";
+        var mkdocs_page_url = "/lcs/muscle/muscle/html/muscle-by-example/site/index.html/dataflattener/";
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> MUSCLE by Example
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../naming-conventions/">MUSCLE Naming Conventions</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Core MUSCLE Classes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../string/">String</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../queue/">Queue</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../hashtable/">Hashtable</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../refcount/">Ref/RefCountable</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../flattenable/">Flattenable/PseudoFlattenable</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../flatcountable/">FlatCountable</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../bytebuffer/">ByteBuffer</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../message/">Message</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Low-Level Sockets API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../low-level-sockets-api/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../socket/">Socket</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../socketmultiplexer/">SocketMultiplexer</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ipaddress/">IPAddress/IPAddressAndPort</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../networkinterfaceinfo/">NetworkInterfaceInfo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../networkutilityfunctions/">NetworkUtilityFunctions</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Low-Level DataIO API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../dataio/">DataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../seekabledataio/">SeekableDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../packetdataio/">PacketDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tcpsocketdataio/">TCPSocketDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../udpsocketdataio/">UDPSocketDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../stdindataio/">StdinDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../filedataio/">FileDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../filedescriptordataio/">FileDescriptorDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../childprocessdataio/">ChildProcessDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../bytebufferdataio/">ByteBufferDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nulldataio/">NullDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../rs232dataio/">RS232DataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../sslsocketdataio/">SSLSocketDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../simulatedmulticastdataio/">SimulatedMulticastDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../proxydataio/">ProxyDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../win32filehandledataio/">Win32FileHandleDataIO</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Mid-Level AbstractMessageIOGateway API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../abstractmessageiogateway/">AbstractMessageIOGateway</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../messageiogateway/">MessageIOGateway</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../plaintextmessageiogateway/">PlainTextMessageIOGateway</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../rawdatamessageiogateway/">RawDataMessageIOGateway</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../slipframeddatamessageiogateway/">SLIPFramedDataMessageIOGateway</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../signalmessageiogateway/">SignalMessageIOGateway</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">High-Level Messaging API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../reflectserver/">ReflectServer</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reflectsessionfactory/">ReflectSessionFactory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../abstractreflectsession/">AbstractReflectSession</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dumbreflectsession/">DumbReflectSession</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../storagereflectsession/">StorageReflectSession</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../pulsenode/">PulseNode</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../datanode/">DataNode</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../abstractsessioniopolicy/">AbstractSessionIOPolicy</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ratelimitsessioniopolicy/">RateLimitSessionIOPolicy</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">StorageReflectSession Messages</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../srscommandmessages/">Command Messages</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../srsreplymessages/">Reply Messages</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Multithreading API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../thread/">Thread</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../mutex/">Mutex/MutexGuard</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../waitcondition/">WaitCondition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../atomiccounter/">AtomicCounter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../threadlocalstorage/">ThreadLocalStorage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../messagetransceiverthread/">MessageTransceiverThread</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Qt Support Classes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../qmessagetransceiverthread/">QMessageTransceiverThread</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">MicroMessage C API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../micromessage-api/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../micromessage/">MicroMessage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../micromessagegateway/">MicroMessageGateway</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Additional Support Classes</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../stringtokenizer/">StringTokenizer</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../stringmatcher/">StringMatcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../bitchord/">BitChord</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">DataFlattener</a>
+    <ul class="current">
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dataunflattener/">DataUnflattener</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../logtime/">LogTime/LogCallback</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nestcount/">NestCount/NestCountGuard</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../miscutilityfunctions/">MiscUtilityFunctions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../timeutilityfunctions/">TimeUtilityFunctions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../filepathinfo/">FilePathInfo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../directory/">Directory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../systeminfo/">SystemInfo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../queryfilter/">QueryFilter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../signalhandlersession/">SignalHandlerSession</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectnetworkconfigchangessession/">DetectNetworkConfigChangesSession</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../sharedmemory/">SharedMemory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../zipfileutilityfunctions/">ZipFileUtilityFunctions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../zlibutilityfunctions/">ZLibUtilityFunctions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../zlibcodec/">ZLibCodec</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../cpuloadmeter/">CPULoadMeter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tarfilewriter/">TarFileWriter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../void/">Void</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Other Client-side Languages</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../otherlanguages/">Overview</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">MUSCLE by Example</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>Additional Support Classes &raquo;</li>
+      <li>DataFlattener</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="muscledataflattener-class-api">muscle::DataFlattener class <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataFlattenerHelper.html">(API)</a></h1>
+<p><code>#include "util/DataFlattener.h"</code></p>
+<p>A <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataFlattenerHelper.html">DataFlattener</a> is a lightweight binary-data-writer object that makes it easy and safe to write/serialize POD data and <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Flattenable.html">Flattenable</a>/<a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1PseudoFlattenable.html">PseudoFlattenable</a> objects out to a fixed-size byte-buffer.</p>
+<ul>
+<li>Instead of copying data-bytes out "by hand" using pointer-arithmetic and <a href="https://linux.die.net/man/3/memcpy">memcpy()</a>/<a href="https://linux.die.net/man/3/htonl">htonl()</a>/<a href="https://public.msli.com/lcs/muscle/html/MuscleSupport_8h.html#adcf13d828e23ecf7c302b34a8617e235">muscleCopyOut()</a>/etc, you can declare a <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataFlattenerHelper.html">DataFlattener</a> on the stack and call <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataFlattenerHelper.html#a82de116d68a9dc994a85ae703aa63c32">WriteInt32()</a>/<a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataFlattenerHelper.html#a25f288a05d29d59bc5e3bb0b5a1b3ee4">WriteFloat()</a>/<a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataFlattenerHelper.html#a51cce295fcb936a8407a74342ce6dd09">WriteFlat()</a>/etc on it.</li>
+<li><a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataFlattenerHelper.html">DataFlattener</a>'s methods automatically handle endian-conversion and unaligned-data-write-safety issues.</li>
+<li><a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataFlattenerHelper.html">DataFlattener</a> contains logic to detect when the calling code didn't write the expected number of bytes, and <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataFlattenerHelper.html#ada1dcaf93508bf7af601806002da2b9c">notify the programmer via an assertion failure</a> when that happens.</li>
+<li><a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataFlattenerHelper.html">DataFlattener</a> is a synonym for <a href="https://public.msli.com/lcs/muscle/html/namespacemuscle.html#a6a1be468423189772ee19444d6b1cb39">LittleEndianDataFlattener</a> (since MUSCLE uses little-endian data by default).</li>
+<li><a href="https://public.msli.com/lcs/muscle/html/namespacemuscle.html#a6bfa13c9941a6bdea7e8029506619c6f">BigEndianDataFlattener</a> and <a href="https://public.msli.com/lcs/muscle/html/namespacemuscle.html#a2d54be664a90cca70974b2c39ee99746">NativeEndianDataFlattener</a> classes are also available.</li>
+<li><a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1CheckedDataFlattenerHelper.html">Checked*DataFlattener</a> classes that do per-method-call bounds-checking are also available, and they can automatically resize a <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1ByteBuffer.html">ByteBuffer</a> larger as data is written.</li>
+</ul>
+<p>Try compiling and running the mini-example-programs in <code>muscle/html/muscle-by-example/examples/bytebuffer</code> (enter <code>make</code> to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)</p>
+<p>Quick links to source code of relevant MUSCLE-by-example programs:</p>
+<ul>
+<li><a href="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/bytebuffer/example_3_endian.cpp">bytebuffer/example_3_endian.cpp</a></li>
+<li><a href="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/message/example_4_add_flat.cpp">message/example_4_add_flat.cpp</a></li>
+<li><a href="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/flattenable/example_1_basic_usage.cpp">flattenable/example_1_basic_usage.cpp</a></li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../bitchord/" class="btn btn-neutral float-left" title="BitChord"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../dataunflattener/" class="btn btn-neutral float-right" title="DataUnflattener">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../bitchord/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../dataunflattener/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

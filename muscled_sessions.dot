@@ -1,0 +1,37 @@
+graph {
+   rankdir="LR"
+
+   subgraph cluster_muscled {
+      label="Example ReflectServer-based server process (with 3 connected clients)"
+      labelloc=bottom
+      labeljust=right
+      "StorageReflectSessionFactory" [shape=octagon]
+      "ReflectServer" [shape=rectangle]
+
+      "StorageReflectSession A"
+      "StorageReflectSession B"
+      "StorageReflectSession C"
+      "MessageIOGateway A" [shape=house]
+      "MessageIOGateway B" [shape=house]
+      "MessageIOGateway C" [shape=house]
+
+      "TCPSocketDataIO A" [shape=cds]
+      "TCPSocketDataIO B" [shape=cds]
+      "TCPSocketDataIO C" [shape=cds]
+
+      "ConstSocketRef A" [shape=rarrow]
+      "ConstSocketRef B" [shape=rarrow]
+      "ConstSocketRef C" [shape=rarrow]
+   }
+   "portablereflectclient A" [shape=rectangle]
+   "portablereflectclient B" [shape=rectangle]
+   "portablereflectclient C" [shape=rectangle]
+
+   "ReflectServer" -- "StorageReflectSessionFactory"
+   "ReflectServer" -- "StorageReflectSession A" -- "MessageIOGateway A" -- "TCPSocketDataIO A" -- "ConstSocketRef A"
+   "ConstSocketRef A" -- "portablereflectclient A" [color=blue label="Message/TCP"]
+   "ReflectServer" -- "StorageReflectSession B" -- "MessageIOGateway B" -- "TCPSocketDataIO B" -- "ConstSocketRef B"
+   "ConstSocketRef B" -- "portablereflectclient B" [color=blue label="Message/TCP"]
+   "ReflectServer" -- "StorageReflectSession C" -- "MessageIOGateway C" -- "TCPSocketDataIO C" -- "ConstSocketRef C"
+   "ConstSocketRef C" -- "portablereflectclient C" [color=blue label="Message/TCP"]
+}

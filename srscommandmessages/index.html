@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/site/index.html/srscommandmessages/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Command Messages - MUSCLE by Example</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Command Messages";
+        var mkdocs_page_input_path = "srscommandmessages.md";
+        var mkdocs_page_url = "/lcs/muscle/muscle/html/muscle-by-example/site/index.html/srscommandmessages/";
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> MUSCLE by Example
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../naming-conventions/">MUSCLE Naming Conventions</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Core MUSCLE Classes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../string/">String</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../queue/">Queue</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../hashtable/">Hashtable</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../refcount/">Ref/RefCountable</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../flattenable/">Flattenable/PseudoFlattenable</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../flatcountable/">FlatCountable</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../bytebuffer/">ByteBuffer</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../message/">Message</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Low-Level Sockets API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../low-level-sockets-api/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../socket/">Socket</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../socketmultiplexer/">SocketMultiplexer</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ipaddress/">IPAddress/IPAddressAndPort</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../networkinterfaceinfo/">NetworkInterfaceInfo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../networkutilityfunctions/">NetworkUtilityFunctions</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Low-Level DataIO API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../dataio/">DataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../seekabledataio/">SeekableDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../packetdataio/">PacketDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tcpsocketdataio/">TCPSocketDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../udpsocketdataio/">UDPSocketDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../stdindataio/">StdinDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../filedataio/">FileDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../filedescriptordataio/">FileDescriptorDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../childprocessdataio/">ChildProcessDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../bytebufferdataio/">ByteBufferDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nulldataio/">NullDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../rs232dataio/">RS232DataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../sslsocketdataio/">SSLSocketDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../simulatedmulticastdataio/">SimulatedMulticastDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../proxydataio/">ProxyDataIO</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../win32filehandledataio/">Win32FileHandleDataIO</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Mid-Level AbstractMessageIOGateway API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../abstractmessageiogateway/">AbstractMessageIOGateway</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../messageiogateway/">MessageIOGateway</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../plaintextmessageiogateway/">PlainTextMessageIOGateway</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../rawdatamessageiogateway/">RawDataMessageIOGateway</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../slipframeddatamessageiogateway/">SLIPFramedDataMessageIOGateway</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../signalmessageiogateway/">SignalMessageIOGateway</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">High-Level Messaging API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../reflectserver/">ReflectServer</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../reflectsessionfactory/">ReflectSessionFactory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../abstractreflectsession/">AbstractReflectSession</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dumbreflectsession/">DumbReflectSession</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../storagereflectsession/">StorageReflectSession</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../pulsenode/">PulseNode</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../datanode/">DataNode</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../abstractsessioniopolicy/">AbstractSessionIOPolicy</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ratelimitsessioniopolicy/">RateLimitSessionIOPolicy</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">StorageReflectSession Messages</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Command Messages</a>
+    <ul class="current">
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../srsreplymessages/">Reply Messages</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Multithreading API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../thread/">Thread</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../mutex/">Mutex/MutexGuard</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../waitcondition/">WaitCondition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../atomiccounter/">AtomicCounter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../threadlocalstorage/">ThreadLocalStorage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../messagetransceiverthread/">MessageTransceiverThread</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Qt Support Classes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../qmessagetransceiverthread/">QMessageTransceiverThread</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">MicroMessage C API</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../micromessage-api/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../micromessage/">MicroMessage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../micromessagegateway/">MicroMessageGateway</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Additional Support Classes</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../stringtokenizer/">StringTokenizer</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../stringmatcher/">StringMatcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../bitchord/">BitChord</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dataflattener/">DataFlattener</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../dataunflattener/">DataUnflattener</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../logtime/">LogTime/LogCallback</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../nestcount/">NestCount/NestCountGuard</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../miscutilityfunctions/">MiscUtilityFunctions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../timeutilityfunctions/">TimeUtilityFunctions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../filepathinfo/">FilePathInfo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../directory/">Directory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../systeminfo/">SystemInfo</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../queryfilter/">QueryFilter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../signalhandlersession/">SignalHandlerSession</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectnetworkconfigchangessession/">DetectNetworkConfigChangesSession</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../sharedmemory/">SharedMemory</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../zipfileutilityfunctions/">ZipFileUtilityFunctions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../zlibutilityfunctions/">ZLibUtilityFunctions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../zlibcodec/">ZLibCodec</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../cpuloadmeter/">CPULoadMeter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tarfilewriter/">TarFileWriter</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../void/">Void</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Other Client-side Languages</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../otherlanguages/">Overview</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">MUSCLE by Example</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>StorageReflectSession Messages &raquo;</li>
+      <li>Command Messages</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="command-messages-page-overview">Command Messages Page Overview</h2>
+<ul>
+<li>This page describes the semantics of some selected <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Message</a> what-codes that a <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html">StorageReflectSession</a> will accept (via TCP) from its client.</li>
+<li>These what-codes (and their associated PR_NAME_* field-name strings) are defined in <a href="https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h.html">reflector/StorageReflectConstants.h</a></li>
+<li>See also the description in the header comments, beginning at line 139 of <a href="https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h_source.html">StorageReflectConstants.h</a></li>
+<li>Note that the invocation examples shown below would typically be seen in client-side code (because on the server-side, there are methods of the <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html">StorageReflectSession</a> class that you would just call directly, which would be easier and more efficient than hand-constructing a <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Message</a> object with the necessary fields and then calling <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html#a627414e26cbf6869142f10f7f8f5e5bd">MessageReceivedFromGateway()</a> with it)</li>
+</ul>
+<h2 id="command-codes">Command codes</h2>
+<p>This is a partial list -- the full list of command codes can be seen <a href="https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h.html#ab04a0655cd1e3bcac5e8f48c18df1a57acf862fe04d3f070f2739c6631328c79c">here</a>.</p>
+<ul>
+<li><code>PR_COMMAND_PING</code> - <em>Server will echo this message, verbatim (except for the what-code) back to the sending client as a <code>PR_RESULT_PONG</code> reply Message</em><ul>
+<li>This can be useful if the client wants to make sure the server is still alive and responding</li>
+<li>It's also useful as a way of getting a notification when previous operations have completed on the server (since the server will handle all commands in FIFO order)</li>
+<li>Here is an example invocation:</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef pingMsg = GetMessageFromPool(PR_COMMAND_PING);
+pingMsg()->AddString("put_whatever_fields_you_like", "in_the_ping_message");
+pingMsg()->AddString("they_will_come_back_to_you", "in_the_corresponding_pong_message");
+myMessageTransceiverThread.SendMessageToSessions(pingMsg);
+</pre>
+<ul>
+<li><code>PR_COMMAND_SETDATA</code> - <em>Uploads the given Message(s) to nodes at the specified path(s) the session's local node-subtree</em><ul>
+<li>A client would send this when it wants to publish one or more <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html">DataNodes</a> to its local subtree of the database</li>
+<li>If a <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html">DataNode</a> already exists at the specified path, its <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Message</a> payload is updated -- otherwise a <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html">DataNode</a> with the given <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Message</a> is created there.</li>
+<li>If the parent "directories" of the specified path do not exist, they will be created (with default/empty <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Message</a> payloads) as necessary.</li>
+<li>Note that clients can only set nodes in their session's local subtree; they aren't allowed to modify the subtrees of other sessions.</li>
+<li>The fields of this <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Message</a> should have relative-paths as their names, and <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Messages</a> as their values; each field represents one <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html">DataNode</a> to post.  </li>
+<li>Here is an example invocation:</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef setDataMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
+setDataMsg()->AddMessage("nodename1", GetMessageFromPool(1234));
+setDataMsg()->AddMessage("nodename2", GetMessageFromPool(1234));
+setDataMsg()->AddMessage("blah", GetMessageFromPool(1234));
+setDataMsg()->AddMessage("subfolder/nodename3", GetMessageFromPool(1234));
+myMessageTransceiverThread.SendMessageToSessions(setDataMsg);
+</pre>
+
+<ul>
+<li><code>PR_COMMAND_GETDATA</code> - <em>Requests that the server send back a <code>PR_RESULT_DATAITEMS</code> Message containing the contents of the specified path(s) in the node-tree</em><ul>
+<li>If you are using live-subscriptions, this command is generally not necessary (since you'll get automatic updates anyway)</li>
+<li>Clients can use this to download the current <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Messages</a> of nodes in their own session's subtree or in other sessions' subtrees</li>
+<li>If for some reason you don't want to subscribe, however, you can use this to force a one-shot retrieval of matching nodes</li>
+<li>Here is an example invocation:</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef getDataMsg = GetMessageFromPool(PR_COMMAND_GETDATA);
+getDataMsg()->AddString(PR_NAME_KEYS, "/\*/\*/blah");  // absolute path
+getDataMsg()->AddString(PR_NAME_KEYS, "node*");      // relative path
+getDataMsg()->AddString(PR_NAME_KEYS, "sub*/node*");
+myMessageTransceiverThread.SendMessageToSessions(getDataMsg);
+</pre>
+
+<ul>
+<li><code>PR_COMMAND_REMOVEDATA</code> - <em>Deletes the data nodes from the session's subtree whose paths match the patterns in the Message</em><ul>
+<li>Use this to delete nodes in your subtree that you want gone</li>
+<li>Note that clients can only delete nodes in their own session's subtree; they aren't allowed to modify the subtrees of other sessions.</li>
+<li>Here is an example invocation:</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef rmvDataMsg = GetMessageFromPool(PR_COMMAND_REMOVEDATA);
+rmvDataMsg()->AddString(PR_NAME_KEYS, "blah");
+rmvDataMsg()->AddString(PR_NAME_KEYS, "node*");
+rmvDataMsg()->AddString(PR_NAME_KEYS, "subfolder");  // implicitly deletes children of subfolder also
+myMessageTransceiverThread.SendMessageToSessions(rmvDataMsg);
+</pre>
+<ul>
+<li><code>PR_COMMAND_SETPARAMETERS</code> - <em>Sets parameters on the session based on the fields in the Message</em><ul>
+<li>A session's parameters govern its behavior.</li>
+<li>In particular, parameters whose names start with the prefix "SUBSCRIBE:" tell the session to subscribe to whichever <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html">DataNodes</a> have paths that match the path in the remainder of the parameters name (e.g. setting a parameter named "SUBSCRIBE:/*/*" would tell the session to subscribe to all <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html">DataNodes</a> whose paths match "/*/*", which is a good way for the client to be informed whenever another client connects or disconnects)</li>
+<li>Here is an example invocation:</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef setPMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
+setPMsg()->AddBool("SUBSCRIBE:/\*/\*", true);  // type and value of this field don't matter
+setPMsg()->AddBool("SUBSCRIBE:nodename3", true); // relative path, equivalent to "/*/*/nodename3"
+setPMsg()->AddInt32(PR_NAME_REPLY_ENCODING, MUSCLE_MESSAGE_ENCODING_ZLIB_9);
+myMessageTransceiverThread.SendMessageToSessions(setPMsg);
+</pre>
+<ul>
+<li><code>PR_COMMAND_GETPARAMETERS</code> - <em>Requests that the server send the session's current parameters-set back to the client, via a <code>PR_RESULT_PARAMETERS</code> reply Message</em><ul>
+<li>This <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Message</a> takes no parameters (i.e. there's no point adding any fields to a <code>PR_COMMAND_GETPARAMETERS</code> Message)</li>
+<li>Here is an example invocation:</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef getPMsg = GetMessageFromPool(PR_COMMAND_GETPARAMETERS);
+myMessageTransceiverThread.SendMessageToSessions(getPMsg);
+</pre>
+<ul>
+<li><code>PR_COMMAND_REMOVEPARAMETERS</code> - <em>deletes any session parameters whose names match a pattern specified in the <code>PR_NAME_KEYS</code> String-field</em><ul>
+<li>This is typically used to unsubscribe from previous subscriptions</li>
+<li>Names of parameters to unsubscribe to are places in the <code>PR_NAME_KEYS</code> field </li>
+<li>Note that the strings in the <code>PR_NAME_KEYS</code> field will be treated as wildcard-patterns (e.g. "*" will remove all user-settable parameters)</li>
+<li>Therefore, if you want to only match a literal path string (and that path string has wildcard chars in it), you may need to escape those wildcard chars to avoid matching other parameter names by mistake</li>
+<li>Read-only parameters (that were set by the server) cannot be deleted.</li>
+<li>Here is an example invocation:</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef delPMsg = GetMessageFromPool(PR_COMMAND_REMOVEPARAMETERS);
+delPMsg()->AddString(PR_NAME_KEYS, "SUBSCRIBE:/\\\*/\\\*/node\\\*");  // cancel one specific subscription
+delPMsg()->AddString(PR_NAME_KEYS, "SUBSCRIBE:\*");  // cancel all my subscriptions!
+myMessageTransceiverThread.SendMessageToSessions(delPMsg);
+</pre>
+
+<ul>
+<li><code>PR_COMMAND_BATCH</code> - <em>Any sub-Messages in the <code>PR_NAME_KEYS</code> Message-field will be handled in-order, as if they had been sent separately</em><ul>
+<li>This is particularly useful for ensuring atomicity -- i.e. if you have several Messages to send to the server and you want to guarantee that they all get executed at the same time (with no other operations allowed to happen in between)</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef batchMsg = GetMessageFromPool(PR_COMMAND_BATCH);
+batchMsg()->AddMessage(PR_NAME_KEYS, GetMessageFromPool(PR_COMMAND_SETPARAMETERS));
+batchMsg()->AddMessage(PR_NAME_KEYS, GetMessageFromPool(PR_COMMAND_SETDATA));
+batchMsg()->AddMessage(PR_NAME_KEYS, GetMessageFromPool(PR_COMMAND_GETPARAMETERS));
+myMessageTransceiverThread.SendMessageToSessions(batchMsg);
+</pre>
+<ul>
+<li><code>PR_COMMAND_INSERTORDEREDDATA</code> - <em>Insert nodes underneath a node, as an ordered list</em><ul>
+<li>This is a specialized form of the <code>PR_COMMAND_SETDATA</code> command</li>
+<li>It is useful for adding a <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html">DataNode</a> to its parent in such a way that it gets added to the parent node's indexed-nodes index.</li>
+<li>If you don't care about maintaining a well-defined ordering of the child nodes relative to each other, then you don't need this command.</li>
+<li>Here is an example invocation:</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef insertMsg = GetMessageFromPool(PR_COMMAND_INSERTORDEREDDATA);
+insertMsg()->AddString(PR_NAME_KEYS, "blah");  // path of an already-existing node
+insertMsg()->AddMessage("I5", GetMessageFromPool(1234));  // add before existing node I5
+insertMsg()->AddMessage("I8", GetMessageFromPool(1234));  // add before existing node I8
+insertMsg()->AddMessage("xxx", GetMessageFromPool(1234)); // append node (assuming node "xxx" doesn't exist)
+myMessageTransceiverThread.SendMessageToSessions(insertMsg);
+</pre>
+<ul>
+<li><code>PR_COMMAND_REORDERDATA</code> - <em>Moves one or more entries in an indexed-node's node-index to a different spot in its node-index</em><ul>
+<li>This is useful only if you've previously been sending <code>PR_COMMAND_INSERTORDEREDDATA</code> Message to order child-nodes within their parent.</li>
+<li>If you now want to change the ordering of the child nodes relative to each other, this is more efficient then deleting a child-node and then re-uploading it (especially if the child-node's <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Message</a> payload is large)</li>
+<li>Here is an example invocation:</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef reorderMsg = GetMessageFromPool(PR_COMMAND_REORDERDATA);
+reorderMsg()->AddString("blah/I8", "I5");  // move blah's child "I8" to before "I5"
+reorderMsg()->AddString("blah/I9", "append");  // move blah's child "I9" to the end of the index
+myMessageTransceiverThread.SendMessageToSessions(reorderMsg);
+</pre>
+<ul>
+<li><code>PR_COMMAND_GETDATATREES</code> - <em>Returns an entire subtree of data as a single <code>PR_RESULT_DATATREES</code> Message</em><ul>
+<li>The main difference between this an <code>PR_COMMAND_GETDATA</code> is that this form allows you to request an entire subtree to be sent back as a single <a href="https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html">Message</a> (no matter how deep the subtree is -- <code>PR_COMMAND_GETDATA</code> forces you to download only a finite number of levels of subtree)</li>
+<li>Add a String in the <code>PR_NAME_REQUEST_ID</code> fieldname to label your request (reply Message will contain this value)</li>
+<li>You can optionally limit the depth of nodes in the reply Message by specifying a <code>PR_NAME_MAXDEPTH</code> int32 field</li>
+<li>Here is an example invocation:</li>
+</ul>
+</li>
+</ul>
+<pre>
+MessageRef reorderMsg = GetMessageFromPool(PR_COMMAND_GETDATATREES);
+reorderMsg()->AddString(PR_NAME_TREE_REQUEST_ID, "my_request");
+reorderMsg()->AddString(PR_NAME_KEYS, "subfolder");   // path of subtree to start at
+reorderMsg()->AddInt32(PR_NAME_MAXDEPTH, 5);  // no more than 5 levels deep please
+myMessageTransceiverThread.SendMessageToSessions(reorderMsg);
+</pre>
+
+<p>Quick links to source code of relevant MUSCLE-by-example programs:</p>
+<ul>
+<li><a href="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/reflector/example_4_smart_server.cpp">reflector/example_4_smart_server.cpp</a></li>
+<li><a href="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/reflector/example_5_smart_client.cpp">reflector/example_5_smart_client.cpp</a></li>
+<li><a href="https://public.msli.com/lcs/muscle/muscle/test/portablereflectclient.cpp">test/portablereflectclient.cpp</a></li>
+<li><a href="https://public.msli.com/lcs/muscle/muscle/test/chatclient.cpp">test/chatclient.cpp</a></li>
+<li><a href="https://public.msli.com/lcs/muscle/muscle/platform/qt/qt_example/qt_example.cpp">platform/qt/qt_example/qt_example.cpp</a></li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../ratelimitsessioniopolicy/" class="btn btn-neutral float-left" title="RateLimitSessionIOPolicy"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../srsreplymessages/" class="btn btn-neutral float-right" title="Reply Messages">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../ratelimitsessioniopolicy/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../srsreplymessages/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
