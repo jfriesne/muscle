@@ -5,6 +5,12 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a WritePaddingBytesToAlignTo(uint32 alignSize)
+     convenience-method to the CheckedDataFlattenerHelper
+     and DataFlattenerHelper classes.
+   - Added a SeekPastPaddingBytesToAlignTo(uint32 alignSize)
+     convenience-method to the DataUnflattenerHelper class.
+
 9.00 - Released 10/27/2022
    - Added a MUSCLE_MAXIMUM_NODE_DEPTH constant that limits
      how deep the MUSCLE node-tree may become, to prevent

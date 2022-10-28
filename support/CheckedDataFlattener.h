@@ -240,6 +240,24 @@ public:
       return B_NO_ERROR;
    }
 
+   /** Convenience method:  writes between 0 and (alignmentSize-1) 0-initialized bytes,
+     * so that upon return our total-bytes-written-count (as returned by GetNumBytesWritten())
+     * is an even multiple of (alignmentSize).
+     * @param alignmentSize the alignment-size we want the data of the next Write*() call to be aligned to.
+     * @note (alignmentSize) would typically be something like sizeof(uint32) or sizeof(uint64).
+     * @returns B_NO_ERROR on success, or an error code on failure.
+     */
+   status_t WritePaddingBytesToAlignTo(uint32 alignmentSize)
+   {
+      const uint32 modBytes = (GetNumBytesWritten() % alignmentSize);
+      if (modBytes > 0)
+      {
+         const uint32 padBytes = alignmentSize-modBytes;
+         MRETURN_ON_ERROR(WriteBytes(NULL, padBytes));
+         memset(GetCurrentWritePointer()-padBytes, 0, padBytes);
+      }
+      return B_NO_ERROR;
+   }
 
    /** Returns a pointer into our buffer at the location we will next write to */
    uint8 * GetCurrentWritePointer() const {return _writeTo;}

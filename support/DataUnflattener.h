@@ -287,6 +287,19 @@ public:
      */
    status_t SeekToEnd() {return SeekTo(_maxBytes);}
 
+   /** Convenience method:  seeks past between 0 and (alignmentSize-1) 0-initialized bytes,
+     * so that upon return our total-bytes-read-count (as returned by GetNumBytesRead())
+     * is an even multiple of (alignmentSize).
+     * @param alignmentSize the alignment-size we want the data for the next Read*() call to be aligned to.
+     * @note (alignmentSize) would typically be something like sizeof(uint32) or sizeof(uint64).
+     * @returns B_NO_ERROR on success, or an error code on failure (bad seek position?)
+     */
+   status_t SeekPastPaddingBytesToAlignTo(uint32 alignmentSize)
+   {
+      const uint32 modBytes = GetNumBytesRead() % alignmentSize;
+      return (modBytes > 0) ? SeekRelative(alignmentSize - modBytes) : B_NO_ERROR;
+   }
+
    /** Sets our maximum-bytes-allowed-to-be-read value to a different value.
      * @param max the new maximum value
      */

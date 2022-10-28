@@ -50,86 +50,96 @@ template<class EndianConverter> status_t TestHelpers()
 
    // Write out some POD data into (buf)
    {
-      DataFlattenerHelper<EndianConverter> bfh(buf, sizeof(buf));
-      bfh.WriteInt8(0x01);
-      bfh.WriteInt16(0x0405);
-      bfh.WriteInt32(0x0708090a);
-      bfh.WriteInt64(0x1122334455667788LL);
-      bfh.WriteFloat(3.14159f);
-      bfh.WriteDouble(6.28);
-      bfh.WriteFlat(String("Howdy"));
-      bfh.WriteCString("Pardner");
-      bfh.WriteFlat(Point(-1.1f, -2.2f));
-      bfh.WriteFlat(Rect(10.1f, 20.2f, 30.3f, 40.4f));
-      bfh.WriteFlat(TestFlattenable("bar", 6, 7.5f));
-      bfh.WriteCString("----");
-      const int8  i8s[]   = {1,2,3,4};                                             bfh.WriteInt8s(   i8s, ARRAYITEMS(i8s));
-      const int16 i16s[]  = {5,6,7,8};                                             bfh.WriteInt16s( i16s, ARRAYITEMS(i16s));
-      const int32 i32s[]  = {9,10,11,12};                                          bfh.WriteInt32s( i32s, ARRAYITEMS(i32s));
-      const int64 i64s[]  = {13,14,15,16};                                         bfh.WriteInt64s( i64s, ARRAYITEMS(i64s));
-      const float ifls[]  = {17.9f,18.9f,19.9f,20.9f};                             bfh.WriteFloats( ifls, ARRAYITEMS(ifls));
-      const double idbs[] = {21.9,22.9,23.9,24.9};                                 bfh.WriteDoubles(idbs, ARRAYITEMS(idbs));
-      const String strs[] = {"25", "26", "27", "28"};                              bfh.WriteFlats(  strs, ARRAYITEMS(strs));
-      const Point pts[]   = {Point(29,30),Point(31,32),Point(32,33),Point(33,34)}; bfh.WriteFlats(   pts, ARRAYITEMS(pts));
-      const Rect rcs[]    = {Rect(35,36,37,38),Rect(39,40,41,42)};                 bfh.WriteFlats(   rcs, ARRAYITEMS(rcs));
+      DataFlattenerHelper<EndianConverter> flat(buf, sizeof(buf));
+      flat.WriteInt8(0x01);
+      flat.WriteInt16(0x0405);
+      flat.WriteInt32(0x0708090a);
+      flat.WriteInt64(0x1122334455667788LL);
+      flat.WriteFloat(3.14159f);
+      flat.WriteDouble(6.28);
+      flat.WriteFlat(String("Howdy"));
+      flat.WriteCString("Pardner");
+      flat.WriteFlat(Point(-1.1f, -2.2f));
+      flat.WriteFlat(Rect(10.1f, 20.2f, 30.3f, 40.4f));
+      flat.WriteFlat(TestFlattenable("bar", 6, 7.5f));
+      flat.WriteCString("----");
+      const int8  i8s[]   = {1,2,3,4};                                             flat.WriteInt8s(   i8s, ARRAYITEMS(i8s));
+      const int16 i16s[]  = {5,6,7,8};                                             flat.WriteInt16s( i16s, ARRAYITEMS(i16s));
+      const int32 i32s[]  = {9,10,11,12};                                          flat.WriteInt32s( i32s, ARRAYITEMS(i32s));
+      const int64 i64s[]  = {13,14,15,16};                                         flat.WriteInt64s( i64s, ARRAYITEMS(i64s));
+      const float ifls[]  = {17.9f,18.9f,19.9f,20.9f};                             flat.WriteFloats( ifls, ARRAYITEMS(ifls));
+      const double idbs[] = {21.9,22.9,23.9,24.9};                                 flat.WriteDoubles(idbs, ARRAYITEMS(idbs));
+      const String strs[] = {"25", "26", "27", "28"};                              flat.WriteFlats(  strs, ARRAYITEMS(strs));
+      const Point pts[]   = {Point(29,30),Point(31,32),Point(32,33),Point(33,34)}; flat.WriteFlats(   pts, ARRAYITEMS(pts));
+      const Rect rcs[]    = {Rect(35,36,37,38),Rect(39,40,41,42)};                 flat.WriteFlats(   rcs, ARRAYITEMS(rcs));
 
-      numValidBytesInBuf = bfh.GetNumBytesWritten();
-      bfh.MarkWritingComplete();
+      flat.WriteCString("9 bytes!");  // 8 ASCII chars plus a NUL byte
+      flat.WritePaddingBytesToAlignTo(sizeof(uint32));
+      flat.WriteInt32(0x12345678);  // this should be uint32-aligned
+
+      numValidBytesInBuf = flat.GetNumBytesWritten();
+      flat.MarkWritingComplete();
    }
 
    // Print out the serialized bytes in hexadecimal, so we can see how they were written
    PrintHexBytes(buf, numValidBytesInBuf);
 
    // Read the serialized bytes back in as POD data again so we can verify it is the same as before
-   DataUnflattenerHelper<EndianConverter> buh(buf, numValidBytesInBuf);
+   DataUnflattenerHelper<EndianConverter> unflat(buf, numValidBytesInBuf);
 
-   printf("int8=0x%x\n",                      buh.ReadInt8());
-   printf("int16=0x%x\n",                     buh.ReadInt16());
-   printf("int32=0x" XINT32_FORMAT_SPEC "\n", buh.ReadInt32());
-   printf("int64=0x" XINT64_FORMAT_SPEC "\n", buh.ReadInt64());
-   printf("float=%f\n",                       buh.ReadFloat());
-   printf("double=%f\n",                      buh.ReadDouble());
-   printf("string1=[%s]\n",                   buh.template ReadFlat<String>()());
-   printf("string2=[%s]\n",                   buh.ReadCString());
+   printf("int8=0x%x\n",                      unflat.ReadInt8());
+   printf("int16=0x%x\n",                     unflat.ReadInt16());
+   printf("int32=0x" XINT32_FORMAT_SPEC "\n", unflat.ReadInt32());
+   printf("int64=0x" XINT64_FORMAT_SPEC "\n", unflat.ReadInt64());
+   printf("float=%f\n",                       unflat.ReadFloat());
+   printf("double=%f\n",                      unflat.ReadDouble());
+   printf("string1=[%s]\n",                   unflat.template ReadFlat<String>()());
+   printf("string2=[%s]\n",                   unflat.ReadCString());
 
-   const Point p = buh.template ReadFlat<Point>(); printf("Point=%f,%f\n", p.x(), p.y());
-   const Rect  r = buh.template ReadFlat<Rect>();  printf("Rect=%f,%f,%f,%f\n", r.left(), r.top(), r.Width(), r.Height());
+   const Point p = unflat.template ReadFlat<Point>(); printf("Point=%f,%f\n", p.x(), p.y());
+   const Rect  r = unflat.template ReadFlat<Rect>();  printf("Rect=%f,%f,%f,%f\n", r.left(), r.top(), r.Width(), r.Height());
 
    TestFlattenable tf;
-   MRETURN_ON_ERROR(buh.template ReadFlat<TestFlattenable>(tf));
+   MRETURN_ON_ERROR(unflat.template ReadFlat<TestFlattenable>(tf));
 
-   const String s = buh.template ReadFlat<String>();
+   const String s = unflat.template ReadFlat<String>();
    printf("string3=[%s]\n", s());  // should be "----"
    if (s != "----") return B_LOGIC_ERROR("Unexpected string returned by ReadString()!");
 
-   int8 i8s[4] = {0}; MRETURN_ON_ERROR(buh.ReadInt8s(i8s, ARRAYITEMS(i8s)));
+   int8 i8s[4] = {0}; MRETURN_ON_ERROR(unflat.ReadInt8s(i8s, ARRAYITEMS(i8s)));
    printf("i8s="); for (uint32 i=0; i<ARRAYITEMS(i8s); i++) printf(" %i", i8s[i]); printf("\n");
 
-   int16 i16s[4] = {0}; MRETURN_ON_ERROR(buh.ReadInt16s(i16s, ARRAYITEMS(i16s)));
+   int16 i16s[4] = {0}; MRETURN_ON_ERROR(unflat.ReadInt16s(i16s, ARRAYITEMS(i16s)));
    printf("i16s="); for (uint32 i=0; i<ARRAYITEMS(i16s); i++) printf(" %i", i16s[i]); printf("\n");
 
-   int32 i32s[4] = {0}; MRETURN_ON_ERROR(buh.ReadInt32s(i32s, ARRAYITEMS(i32s)));
+   int32 i32s[4] = {0}; MRETURN_ON_ERROR(unflat.ReadInt32s(i32s, ARRAYITEMS(i32s)));
    printf("i32s="); for (uint32 i=0; i<ARRAYITEMS(i32s); i++) printf(" " INT32_FORMAT_SPEC, i32s[i]); printf("\n");
 
-   int64 i64s[4] = {0}; MRETURN_ON_ERROR(buh.ReadInt64s(i64s, ARRAYITEMS(i64s)));
+   int64 i64s[4] = {0}; MRETURN_ON_ERROR(unflat.ReadInt64s(i64s, ARRAYITEMS(i64s)));
    printf("i64s="); for (uint32 i=0; i<ARRAYITEMS(i64s); i++) printf(" " INT64_FORMAT_SPEC, i64s[i]); printf("\n");
 
-   float ifls[4] = {0}; MRETURN_ON_ERROR(buh.ReadFloats(ifls, ARRAYITEMS(ifls)));
+   float ifls[4] = {0}; MRETURN_ON_ERROR(unflat.ReadFloats(ifls, ARRAYITEMS(ifls)));
    printf("ifls="); for (uint32 i=0; i<ARRAYITEMS(ifls); i++) printf(" %f", ifls[i]); printf("\n");
 
-   double idbs[4] = {0}; MRETURN_ON_ERROR(buh.ReadDoubles(idbs, ARRAYITEMS(idbs)));
+   double idbs[4] = {0}; MRETURN_ON_ERROR(unflat.ReadDoubles(idbs, ARRAYITEMS(idbs)));
    printf("idbs="); for (uint32 i=0; i<ARRAYITEMS(idbs); i++) printf(" %f", idbs[i]); printf("\n");
 
-   String strs[4]; MRETURN_ON_ERROR(buh.ReadFlats(strs, ARRAYITEMS(strs)));
+   String strs[4]; MRETURN_ON_ERROR(unflat.ReadFlats(strs, ARRAYITEMS(strs)));
    printf("strs="); for (uint32 i=0; i<ARRAYITEMS(strs); i++) printf(" [%s]", strs[i]()); printf("\n");
 
-   Point pts[4]; MRETURN_ON_ERROR(buh.ReadFlats(pts, ARRAYITEMS(pts)));
+   Point pts[4]; MRETURN_ON_ERROR(unflat.ReadFlats(pts, ARRAYITEMS(pts)));
    printf("pts="); for (uint32 i=0; i<ARRAYITEMS(pts); i++) printf(" [%f,%f]", pts[i][0], pts[i][1]); printf("\n");
 
-   Rect rcs[2]; MRETURN_ON_ERROR(buh.ReadFlats(rcs, ARRAYITEMS(rcs)));
+   Rect rcs[2]; MRETURN_ON_ERROR(unflat.ReadFlats(rcs, ARRAYITEMS(rcs)));
    printf("rcs="); for (uint32 i=0; i<ARRAYITEMS(rcs); i++) printf(" [%f,%f,%f,%f]", rcs[i][0], rcs[i][1], rcs[i][2], rcs[i][3]); printf("\n");
 
-   return buh.GetStatus();
+   const char * nineBytes = unflat.ReadCString();
+   printf("nineBytes=[%s]\n", nineBytes);
+
+   unflat.SeekPastPaddingBytesToAlignTo(sizeof(uint32));
+   printf("Aligned=" XINT32_FORMAT_SPEC "\n", unflat.ReadInt32());
+
+   return unflat.GetStatus();
 }
 
 // This program exercises the ByteBuffer class.

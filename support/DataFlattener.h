@@ -131,7 +131,7 @@ public:
      */
    void WriteBytes(const uint8 * optBytes, uint32 numBytes)
    {
-      WriteBytesAux(optBytes, numBytes);
+      if (optBytes) memcpy(_writeTo, optBytes, numBytes);
       Advance(numBytes);
    }
 
@@ -201,6 +201,23 @@ public:
       }
    }
 
+   /** Convenience method:  writes between 0 and (alignmentSize-1) 0-initialized bytes,
+     * so that upon return our total-bytes-written-count (as returned by GetNumBytesWritten())
+     * is an even multiple of (alignmentSize).
+     * @param alignmentSize the alignment-size we want the data of the next Write*() call to be aligned to.
+     * @note (alignmentSize) would typically be something like sizeof(uint32) or sizeof(uint64).
+     */
+   void WritePaddingBytesToAlignTo(uint32 alignmentSize)
+   {
+      const uint32 modBytes = (GetNumBytesWritten() % alignmentSize);
+      if (modBytes > 0)
+      {
+         const uint32 padBytes = alignmentSize-modBytes;
+         memset(_writeTo, 0, padBytes);
+         WriteBytes(NULL, padBytes);
+      }
+   }
+
    /** Returns a pointer into our buffer at the location we will next write to */
    uint8 * GetCurrentWritePointer() const {return _writeTo;}
 
@@ -234,11 +251,6 @@ private:
    DataFlattenerHelper & operator = (const DataFlattenerHelper &);  // deliberately private and unimplemented
 
    const EndianConverter _endianConverter;
-
-   void WriteBytesAux(const uint8 * optBytes, uint32 numBytes)
-   {
-      if (optBytes) memcpy(_writeTo, optBytes, numBytes);
-   }
 
    template<typename T> void WriteFlatsAux(const T * vals, uint32 numVals, bool includeLengthPrefix)
    {
