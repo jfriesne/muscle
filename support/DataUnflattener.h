@@ -36,7 +36,7 @@ public:
      *                 than (readFrom.GetNumBytes()) it will treated as equal to (readFrom.GetNumBytes()).  Defaults to MUSCLE_NO_LIMIT.
      * @param startOffset byte-offset indicating where in (readFrom)'s buffer to start reading at.  Defaults to 0.
      */
-   DataUnflattenerHelper(const ConstRef<ByteBuffer> & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0) {SetBuffer(readFrom, maxBytes, startOffset);}
+   DataUnflattenerHelper(const ConstRef<ByteBuffer> & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0) : _endianConverter(), _sizeChecker() {SetBuffer(readFrom, maxBytes, startOffset);}
 
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero byte-count */
    void Reset() {SetBuffer(NULL, 0);}
