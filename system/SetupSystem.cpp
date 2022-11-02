@@ -2713,7 +2713,7 @@ void PrintBuildFlags()
 uint64 GetProcessMemoryUsage()
 {
 #if defined(__linux__)
-   FILE* fp = fopen("/proc/self/statm", "r");
+   FILE* fp = muscleFopen("/proc/self/statm", "r");
    if (fp)
    {
       char buf[256];

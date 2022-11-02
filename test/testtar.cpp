@@ -21,7 +21,7 @@ static uint32 GetDefaultFileMode()
 
 static status_t AddFileToTar(TarFileWriter & tarFileWriter, const String & entryPath, const String & filePath, const FilePathInfo & fpi, uint64 currentTime)
 {
-   FILE * fpIn = fopen(filePath(), "rb");
+   FILE * fpIn = muscleFopen(filePath(), "rb");
    if (fpIn)
    {
       FileDataIO inputFile(fpIn);
@@ -85,7 +85,7 @@ int main(int argc, char ** argv)
 
    const String outputFileName  = argv[1];
 
-   FILE * fpOut = fopen(outputFileName(), "wb");
+   FILE * fpOut = muscleFopen(outputFileName(), "wb");
    if (fpOut == NULL)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't open output file [%s]\n", outputFileName());

@@ -556,7 +556,7 @@ int hextermmain(const char * argv0, const Message & args)
 #ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
    else if (args.FindString("rfile", arg).IsOK())
    {
-      FileDataIO fdio(fopen(arg(), "rb"));
+      FileDataIO fdio(muscleFopen(arg(), "rb"));
       if (fdio.GetFile() != NULL)
       {
          LogTime(MUSCLE_LOG_INFO, "Reading input bytes from file [%s]\n", arg());
@@ -567,7 +567,7 @@ int hextermmain(const char * argv0, const Message & args)
    }
    else if (args.FindString("wfile", arg).IsOK())
    {
-      FileDataIO fdio(fopen(arg(), "wb"));
+      FileDataIO fdio(muscleFopen(arg(), "wb"));
       if (fdio.GetFile() != NULL)
       {
          LogTime(MUSCLE_LOG_INFO, "Writing output bytes to file [%s]\n", arg());
