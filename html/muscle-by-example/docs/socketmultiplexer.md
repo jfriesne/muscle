@@ -11,12 +11,12 @@ A lightweight abstraction-layer around I/O multiplexing APIs (`select()`/`poll()
 * This allows you to have a 100%-event-driven program with no wasteful polling.
 * [WaitForEvents()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html#abda53005ba0f856395838607fa971ccc) also takes an optional wakeup-time.  If specified, [WaitForEvents()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SocketMultiplexer.html#abda53005ba0f856395838607fa971ccc) will return at that time even if no I/O events have been recorded.
 
-Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/socketmultiplexer` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
+Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/socketmux` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 
 Quick links to source code of relevant MUSCLE-by-example programs:
 
-* [socketmultiplexer/example_1_tcp_echo_server.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/socketmultiplexer/example_1_tcp_echo_server.cpp)
-* [socketmultiplexer/example_2_tcp_echo_server_with_timed_counter.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/socketmultiplexer/example_2_tcp_echo_server_with_timed_counter.cpp)
+* [socketmux/example_1_tcp_echo_server.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/socketmux/example_1_tcp_echo_server.cpp)
+* [socketmux/example_2_tcp_echo_server_with_timed_counter.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/socketmux/example_2_tcp_echo_server_with_timed_counter.cpp)
 * [dataio/example_2_tcp_server.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/dataio/example_2_tcp_server.cpp)
 * [dataio/example_6_child_process.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/dataio/example_6_child_process.cpp)
 * [networkutilityfunctions/example_3_udp_multicast.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/networkutilityfunctions/example_3_udp_multicast.cpp)

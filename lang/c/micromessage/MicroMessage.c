@@ -31,14 +31,14 @@ UBool IsFieldNameUniquenessEnforced() {return _enforceFieldNameUniqueness;}
 static uint32 GetNumValidBytesAt(const UMessage * msg, const uint8 * ptr)
 {
    const uint8 * afterLast = msg->_buffer+msg->_numValidBytes;
-   return ((ptr >= msg->_buffer)&&(ptr < afterLast)) ? (afterLast-ptr) : 0;
+   return ((ptr >= msg->_buffer)&&(ptr < afterLast)) ? (uint32)(afterLast-ptr) : 0;
 }
 
 /** Returns the number of bytes that are present (i.e. in the buffer) starting at (ptr).  Note that the values of these bytes may or may not be well-defined at this time. */
 static uint32 GetNumBufferBytesAt(const UMessage * msg, const uint8 * ptr)
 {
    const uint8 * afterLast = msg->_buffer+msg->_bufferSize;
-   return ((ptr >= msg->_buffer)&&(ptr < afterLast)) ? (afterLast-ptr) : 0;
+   return ((ptr >= msg->_buffer)&&(ptr < afterLast)) ? (uint32)(afterLast-ptr) : 0;
 }
 
 static inline uint32 GetNumRemainingSpareBufferBytes(const UMessage * msg) {return GetNumBufferBytesAt(msg, msg->_buffer+msg->_numValidBytes);}
@@ -192,7 +192,7 @@ static inline void * GetFieldTypePointer(uint8 * field) {return (((uint8 *)GetFi
 static inline uint32 GetFieldType(       void * ftptr)  {return UMReadInt32((uint8 *)ftptr);}
 static inline uint32 GetFieldDataLength( void * ftptr)  {return UMReadInt32(((uint8 *)ftptr)+sizeof(uint32));}
 static inline uint8 * GetFieldData(      void * ftptr)  {return ((uint8 *)ftptr)+sizeof(uint32)+sizeof(uint32);}
-static inline void SetFieldDataLength(   void * ftptr, uint32 newVal) {return UMWriteInt32(((uint8 *)ftptr)+sizeof(uint32), newVal);}
+static inline void SetFieldDataLength(   void * ftptr, uint32 newVal) {UMWriteInt32(((uint8 *)ftptr)+sizeof(uint32), newVal);}
 
 static const uint32 MINIMUM_FIELD_HEADERS_SIZE = (3*sizeof(uint32));  // name_length, type_code, data_length (name_string and data not included!)
 
@@ -301,7 +301,7 @@ static uint8 * GetOrAddFieldDataPointer(UMessage * msg, const char * fieldName, 
          UMWriteInt32(ptr, fieldHeaderSizeBytes);    ptr += sizeof(uint32);  /* field-data-bytes not included, they will be added by caller */
          if (optRetExtraFieldHeader) *optRetExtraFieldHeader = ptr;
          memset(ptr, 0, fieldHeaderSizeBytes);       ptr += fieldHeaderSizeBytes;
-         msg->_numValidBytes = ptr-msg->_buffer;
+         msg->_numValidBytes = (uint32)(ptr-msg->_buffer);
          IncreaseParentValidBytesBy(msg, msg->_numValidBytes-oldValidBytes);
          UMSetNumFields(msg, UMGetNumFields(msg)+1);
          return ptr;   /* The data bytes themselves will be added by the calling function */
@@ -715,8 +715,8 @@ static void PrintUMessageFieldToStream(const UMessage * msg, const char * fieldN
                   else fprintf(file, "(%i bytes, equal to",nb);
 
                   for (j=0; j<nb; j++) fprintf(file, " %02x", b[j]);
-                  if (nb < subBufLen) fprintf(file, "...)\n");
-                                 else fprintf(file, ")\n");
+                  if (nb < (int)subBufLen) fprintf(file, "...)\n");
+                                      else fprintf(file, ")\n");
                }
                else fprintf(file, "(zero-length buffer)\n");
             }
@@ -905,7 +905,7 @@ const char * UMGetString(const UMessage * msg, const char * fieldName, uint32 id
    while(idx > 0)
    {
       const uint32 stringSize = UMReadInt32(pointerToString-sizeof(uint32));
-      if ((stringSize+sizeof(uint32)) > (afterEndOfField-pointerToString)) return NULL;  /* paranoia */
+      if ((stringSize+sizeof(uint32)) > (uint32)(afterEndOfField-pointerToString)) return NULL;  /* paranoia */
       pointerToString += UMReadInt32(pointerToString-sizeof(uint32))+sizeof(uint32);  /* move past the string and the next string's string-length-field */
       idx--;
    }
@@ -925,7 +925,7 @@ c_status_t UMFindData(const UMessage * msg, const char * fieldName, uint32 dataT
    while(idx > 0)
    {
       uint32 blobSize = UMReadInt32(pointerToBlob-sizeof(uint32));  /* move past the blob and the next blob's string-length-field */
-      if ((blobSize+sizeof(uint32)) > (afterEndOfField-pointerToBlob)) return CB_ERROR;  // paranoia
+      if ((blobSize+sizeof(uint32)) > (uint32)(afterEndOfField-pointerToBlob)) return CB_ERROR;  // paranoia
       pointerToBlob += blobSize+sizeof(uint32);  /* move past the blob and the next blob's string-length-field */
       idx--;
    }
@@ -945,7 +945,7 @@ c_status_t UMFindMessage(const UMessage * msg, const char * fieldName, uint32 id
    while(idx > 0)
    {
       const uint32 msgSize = UMReadInt32(pointerToMsg-sizeof(uint32));
-      if ((msgSize < MESSAGE_HEADER_SIZE)||((msgSize+sizeof(uint32)) > (afterEndOfField-pointerToMsg))) return CB_ERROR;  /* paranoia */
+      if ((msgSize < MESSAGE_HEADER_SIZE)||((msgSize+sizeof(uint32)) > (uint32)(afterEndOfField-pointerToMsg))) return CB_ERROR;  /* paranoia */
       pointerToMsg += msgSize+sizeof(uint32);  /* move past the msg and the next msg's msg-length-field */
       idx--;
    }

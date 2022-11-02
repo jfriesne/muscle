@@ -78,7 +78,7 @@ public:
          if (slash)
          {
             const uint32 allegedHashCode = (uint32) Atoull(slash+3);
-            const uint32 actualHashCode  = s.Substring(0, slash-s()).HashCode();
+            const uint32 actualHashCode  = s.Substring(0, (uint32) (slash-s())).HashCode();
             if (allegedHashCode != actualHashCode) LogTime(MUSCLE_LOG_ERROR, "AtomicReaderThread:  Read string [%s], expected hash code " UINT32_FORMAT_SPEC ", computed hash code " UINT32_FORMAT_SPEC "\n", s(), allegedHashCode, actualHashCode);
          }
       }

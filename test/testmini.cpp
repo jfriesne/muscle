@@ -102,7 +102,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          {
             for (i=0; i<ITEM_COUNT; i++)
             {
-               data[i] = i;
+               data[i] = (float) i;
                m.AddFloat("testFloats", data[i]);
             }
          }
@@ -160,8 +160,8 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          {
             for (i=0; i<ITEM_COUNT; i++)
             {
-               data[i].x = i;
-               data[i].y = i+ITEM_COUNT;
+               data[i].x = (float) i;
+               data[i].y = (float) (i+ITEM_COUNT);
                m.AddPoint("testPoints", Point(data[i].x, data[i].y));
             }
          }
@@ -176,10 +176,10 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          {
             for (i=0; i<ITEM_COUNT; i++)
             {
-               data[i].left   = i;
-               data[i].top    = i+ITEM_COUNT;
-               data[i].right  = i+(ITEM_COUNT*2);
-               data[i].bottom = i+(ITEM_COUNT*3);
+               data[i].left   = (float) (i);
+               data[i].top    = (float) (i+ITEM_COUNT);
+               data[i].right  = (float) (i+(ITEM_COUNT*2));
+               data[i].bottom = (float) (i+(ITEM_COUNT*3));
                m.AddRect("testRects", Rect(data[i].left, data[i].top, data[i].right, data[i].bottom));
             }
          }

@@ -117,7 +117,7 @@ int32 MGDoOutput(MMessageGateway * gw, uint32 maxBytes, MGSendFunc sendFunc, voi
             gw->_curOutputPos = sizeof(MByteBuffer *);  /* send all data after the next-pointer */
          }
       }
-      if (bytesSent < bytesToSend) break;  /* short write indicates that the output buffer is full for now */
+      if (bytesSent < (int32)bytesToSend) break;  /* short write indicates that the output buffer is full for now */
    }
    return totalSent;
 }
@@ -203,7 +203,7 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
             }
          }
       }
-      if (bytesReceived < bytesToRecv) break;  /* short read indicates that the input buffer is empty for now */
+      if (bytesReceived < (int32)bytesToRecv) break;  /* short read indicates that the input buffer is empty for now */
    }
    return totalRecvd;
 }

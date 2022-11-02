@@ -156,7 +156,7 @@ public:
    /** Writes the given string (including its NUL-terminator) into our buffer
      * @param str pointer to a NUL-terminated C-string
      */
-   void WriteCString(const char * str) {WriteBytes(reinterpret_cast<const uint8 *>(str), strlen(str)+1);}  // +1 for the NUL terminator byte
+   void WriteCString(const char * str) {WriteBytes(reinterpret_cast<const uint8 *>(str), (uint32)strlen(str)+1);}  // +1 for the NUL terminator byte
 
    /** Writes the given Flattenable or PseudoFlattenable object into our buffer
      * @param val the Flattenable or PseudoFlattenable object to write

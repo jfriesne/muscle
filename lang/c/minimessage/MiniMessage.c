@@ -1292,8 +1292,8 @@ static void PrintMMessageFieldToStream(const MMessageField * field, FILE * file,
                   else fprintf(file, "(%i bytes, equal to",nb);
 
                   for (j=0; j<nb; j++) fprintf(file, " %02x", b[j]);
-                  if (nb < subBuf->numBytes) fprintf(file, "...)\n");
-                                        else fprintf(file, ")\n");
+                  if (nb < (int)subBuf->numBytes) fprintf(file, "...)\n");
+                                             else fprintf(file, ")\n");
                }
                else fprintf(file, "(zero-length buffer)\n");
             }

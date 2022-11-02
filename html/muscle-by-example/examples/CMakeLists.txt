@@ -241,11 +241,11 @@ if (WITH_TESTS)
    add_executable(socket_example_1_basic_usage socket/example_1_basic_usage.cpp)
    target_link_libraries(socket_example_1_basic_usage muscle)
 
-   add_executable(socketmultiplexer_example_1_tcp_echo_server socketmultiplexer/example_1_tcp_echo_server.cpp)
-   target_link_libraries(socketmultiplexer_example_1_tcp_echo_server muscle)
+   add_executable(socketmux_example_1_tcp_echo_server socketmux/example_1_tcp_echo_server.cpp)
+   target_link_libraries(socketmux_example_1_tcp_echo_server muscle)
 
-   add_executable(socketmultiplexer_example_2_tcp_echo_server_with_timed_counter socketmultiplexer/example_2_tcp_echo_server_with_timed_counter.cpp)
-   target_link_libraries(socketmultiplexer_example_2_tcp_echo_server_with_timed_counter muscle)
+   add_executable(socketmux_example_2_tcp_echo_server_with_timed_counter socketmux/example_2_tcp_echo_server_with_timed_counter.cpp)
+   target_link_libraries(socketmux_example_2_tcp_echo_server_with_timed_counter muscle)
 
    add_executable(string_example_1_basic_usage string/example_1_basic_usage.cpp)
    target_link_libraries(string_example_1_basic_usage muscle)
