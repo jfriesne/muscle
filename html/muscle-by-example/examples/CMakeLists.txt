@@ -61,11 +61,11 @@ if (WITH_TESTS)
    add_executable(dataio_example_6_child_process dataio/example_6_child_process.cpp)
    target_link_libraries(dataio_example_6_child_process muscle)
 
-   add_executable(detectnetworkconfigchangessession_example_1_basic_usage detectnetworkconfigchangessession/example_1_basic_usage.cpp)
-   target_link_libraries(detectnetworkconfigchangessession_example_1_basic_usage muscle)
+   add_executable(netconfig_example_1_basic_usage netconfig/example_1_basic_usage.cpp)
+   target_link_libraries(netconfig_example_1_basic_usage muscle)
 
-   add_executable(detectnetworkconfigchangessession_example_2_without_subclassing detectnetworkconfigchangessession/example_2_without_subclassing.cpp)
-   target_link_libraries(detectnetworkconfigchangessession_example_2_without_subclassing muscle)
+   add_executable(netconfig_example_2_without_subclassing netconfig/example_2_without_subclassing.cpp)
+   target_link_libraries(netconfig_example_2_without_subclassing muscle)
 
    add_executable(directory_example_1_basic_usage directory/example_1_basic_usage.cpp)
    target_link_libraries(directory_example_1_basic_usage muscle)
@@ -142,8 +142,8 @@ if (WITH_TESTS)
    add_executable(message_example_5_field_iteration message/example_5_field_iteration.cpp)
    target_link_libraries(message_example_5_field_iteration muscle)
 
-   add_executable(messagetransceiverthread_example_1_threaded_smart_client messagetransceiverthread/example_1_threaded_smart_client.cpp)
-   target_link_libraries(messagetransceiverthread_example_1_threaded_smart_client muscle)
+   add_executable(rxtxthread_example_1_threaded_smart_client rxtxthread/example_1_threaded_smart_client.cpp)
+   target_link_libraries(rxtxthread_example_1_threaded_smart_client muscle)
 
    add_executable(miscutilityfunctions_example_1_command_line_args miscutilityfunctions/example_1_command_line_args.cpp)
    target_link_libraries(miscutilityfunctions_example_1_command_line_args muscle)

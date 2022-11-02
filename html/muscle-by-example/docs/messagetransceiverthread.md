@@ -10,8 +10,8 @@
 * For Qt-based programs, see the [QMessageTransceiverThread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1QMessageTransceiverThread.html) class, which subclasses this one and adds a Qt signals-and-slots API to make the events integration easier to use.
 * Other [MessageTransceiverThread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1MessageTransceiverThread.html) subclasses are available for other runtime environments (e.g. [SDLMessageTransceiverThread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1SDLMessageTransceiverThread.html) for SDL-base programs, [Win32MessageTransceiverThread](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Win32MessageTransceiverThread.html) for WinAPI-based programs, etc)
 
-Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/messagetransceiverthread` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
+Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/rxtxthread` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 
 Quick links to source code of relevant MUSCLE-by-example programs:
 
-* [messagetransceiverthread/example_1_threaded_smart_client.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/messagetransceiverthread/example_1_threaded_smart_client.cpp)
+* [rxtxthread/example_1_threaded_smart_client.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/rxtxthread/example_1_threaded_smart_client.cpp)
