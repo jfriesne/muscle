@@ -60,7 +60,7 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
 #if PY_MAJOR_VERSION < 3
    else if (PyString_Check (pyValue)) ret = msg.AddString(fname(optKey, "_argString"), PyString_AsString(pyValue));
 #else
-   else if (PyByteArray_Check(pyValue)) ret = msg.AddData(fname(optKey, "_argBlob"),   B_RAW_TYPE, PyByteArray_AS_STRING(pyValue), PyByteArray_GET_SIZE(pyValue));
+   else if (PyByteArray_Check(pyValue)) ret = msg.AddData(fname(optKey, "_argBlob"),   B_RAW_TYPE, PyByteArray_AS_STRING(pyValue), (uint32) PyByteArray_GET_SIZE(pyValue));
 #endif
    else if (PyComplex_Check(pyValue)) ret = msg.AddPoint( fname(optKey, "_argPoint"),  Point((float)PyComplex_RealAsDouble(pyValue), (float)PyComplex_ImagAsDouble(pyValue)));
    else if (PyUnicode_Check(pyValue))
@@ -94,7 +94,7 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
 static status_t ParsePythonSequence(PyObject * args, Message & msg)
 {
    msg.what = MESSAGE_PYTHON_LIST;
-   const int seqLen = PySequence_Fast_GET_SIZE(args);
+   const int seqLen = (int) PySequence_Fast_GET_SIZE(args);
 
    status_t ret;
    for (int i=0; i<seqLen; i++) if (AddPyObjectToMessage("", PySequence_Fast_GET_ITEM(args, i), msg).IsError(ret)) break;
@@ -111,8 +111,8 @@ static status_t ParsePythonDictionary(PyObject * keywords, Message & msg)
       PyListObject * values = (PyListObject *) PyDict_Values(keywords);
       if (values)
       {
-         const int numKeys   = PyList_GET_SIZE(keys);
-         const int numValues = PyList_GET_SIZE(values);
+         const int numKeys   = (int) PyList_GET_SIZE(keys);
+         const int numValues = (int) PyList_GET_SIZE(values);
          if (numKeys == numValues)
          {
             ret = B_NO_ERROR;
