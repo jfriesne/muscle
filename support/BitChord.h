@@ -610,11 +610,13 @@ private:
       }
    }
 
-   enum {NUM_BITS_PER_BYTE  = 8};
-   enum {NUM_BYTES_PER_WORD = sizeof(uint32)};
-   enum {NUM_BITS_PER_WORD  = (NUM_BYTES_PER_WORD*NUM_BITS_PER_BYTE)};
-   enum {NUM_WORDS          = (NumBits+NUM_BITS_PER_WORD-1)/NUM_BITS_PER_WORD};
-   enum {NUM_BYTES          = (NumBits+NUM_BITS_PER_BYTE-1)/NUM_BITS_PER_BYTE};
+   enum {
+      NUM_BITS_PER_BYTE  = 8,
+      NUM_BYTES_PER_WORD = sizeof(uint32),
+      NUM_BITS_PER_WORD  = (NUM_BYTES_PER_WORD*NUM_BITS_PER_BYTE),
+      NUM_WORDS          = (NumBits+NUM_BITS_PER_WORD-1)/NUM_BITS_PER_WORD,
+      NUM_BYTES          = (NumBits+NUM_BITS_PER_BYTE-1)/NUM_BITS_PER_BYTE,
+   };
 
    uint32 _words[NUM_WORDS];
 
