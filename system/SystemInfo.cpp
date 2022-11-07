@@ -178,11 +178,13 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       {
          String homeDir = GetEnvironmentVariableValue("HOME");
          if (homeDir.IsEmpty()) homeDir = GetEnvironmentVariableValue("USERPROFILE");
+#ifndef WIN32
          if (homeDir.IsEmpty())
          {
             const struct passwd * p = getpwuid(geteuid());
             if (p) homeDir = p->pw_dir;
          }
+#endif
          if (homeDir.HasChars()) {found = true; outStr = homeDir;}
       }
       break;

@@ -2743,7 +2743,7 @@ String GetEnvironmentVariableValue(const String & envVarName, const String & def
 {
 #ifdef _MSC_VER
    char s[4096];
-   const DWORD res = GetEnvironmentVariableA(envVarName, s, sizeof(s));
+   const DWORD res = GetEnvironmentVariableA(envVarName(), s, sizeof(s));
    return (res >= 0) ? String(s) : defaultValue;
 #else
    const char * s = getenv(envVarName());
