@@ -650,6 +650,13 @@ float GetSystemMemoryUsagePercentage();
   */
 uint64 GetProcessMemoryUsage();
 
+/** Convenience method for safely returning the value of an environment variable.
+  * @param envVarName the name of the environment variable to returns
+  * @param defaultValue the value to return if the requested environment variable does not exist.
+  *                     Defaults to an empty String.
+  */
+String GetEnvironmentVariableValue(const String & envVarName, const String & defaultValue = GetEmptyString());
+
 /** @} */ // end of miscutilityfunctions doxygen group
 
 } // end namespace muscle

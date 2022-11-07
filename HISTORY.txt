@@ -12,6 +12,8 @@ key:  - new feature
      convenience-method to the DataUnflattenerHelper class.
    - Added DataUnflattener ctor and SetBuffer() calls that
      take a ByteBufferRef, for convenience.
+   - Added a GetEnvironmentVariableValue() convenience function,
+     to avoid calling getenv() directly from user code.
    * Renamed several of the longer mkdocs examples folder names
      to avoid hitting Windows' 260-character path limit. 
 

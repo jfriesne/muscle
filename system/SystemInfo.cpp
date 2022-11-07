@@ -1,6 +1,7 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "system/SystemInfo.h"
+#include "util/MiscUtilityFunctions.h"  // for GetEnvironmentVariableValue() declaration
 
 #if defined(__APPLE__)
 # include <mach/mach_host.h>
@@ -175,21 +176,14 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
 
       case SYSTEM_PATH_USERHOME:  // user's home directory
       {
-#ifdef WIN32
-         char homeDir[4096];
-         DWORD res = GetEnvironmentVariableA("HOME", homeDir, sizeof(homeDir));
-         if (res == 0) res = GetEnvironmentVariableA("USERPROFILE", homeDir, sizeof(homeDir));
-         if (res > 0) {found = true; outStr = homeDir;}
-#else
-         const char * homeDir = getenv("HOME");
-         if (homeDir == NULL) homeDir = getenv("USERPROFILE");
-         if (homeDir == NULL)
+         String homeDir = GetEnvironmentVariableValue("HOME");
+         if (homeDir.IsEmpty()) homeDir = GetEnvironmentVariableValue("USERPROFILE");
+         if (homeDir.IsEmpty())
          {
             const struct passwd * p = getpwuid(geteuid());
             if (p) homeDir = p->pw_dir;
          }
-         if (homeDir) {found = true; outStr = homeDir;}
-#endif
+         if (homeDir.HasChars()) {found = true; outStr = homeDir;}
       }
       break;
 
@@ -214,9 +208,8 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       case SYSTEM_PATH_ROOT:  // the highest possible directory
       {
 #ifdef WIN32
-         char homeDrive[4096];
-         const DWORD res = GetEnvironmentVariableA("HOMEDRIVE", homeDrive, sizeof(homeDrive));
-         if (res > 0)
+         const String homeDrive = GetEnvironmentVariableValue("HOMEDRIVE");
+         if (homeDrive.HasChars())
          {
             outStr = homeDrive;
             found = true;
@@ -269,6 +262,18 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
 #else
    (void) retNumProcessors;  // dunno how to do it on this OS!
    return B_UNIMPLEMENTED;
+#endif
+}
+
+String GetEnvironmentVariableValue(const String & envVarName, const String & defaultValue)
+{
+#ifdef _MSC_VER
+   char s[4096];
+   const DWORD res = GetEnvironmentVariableA(envVarName, s, sizeof(s));
+   return (res >= 0) ? String(s) : defaultValue;
+#else
+   const char * s = getenv(envVarName());
+   return s ? String(s) : defaultValue;
 #endif
 }
 
