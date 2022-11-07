@@ -265,16 +265,4 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
 #endif
 }
 
-String GetEnvironmentVariableValue(const String & envVarName, const String & defaultValue)
-{
-#ifdef _MSC_VER
-   char s[4096];
-   const DWORD res = GetEnvironmentVariableA(envVarName, s, sizeof(s));
-   return (res >= 0) ? String(s) : defaultValue;
-#else
-   const char * s = getenv(envVarName());
-   return s ? String(s) : defaultValue;
-#endif
-}
-
 } // end namespace muscle
