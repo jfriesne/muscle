@@ -941,10 +941,14 @@ static int openssl_thread_setup(void)
    for (int i=0;  i<CRYPTO_num_locks();  i++) OPENSSL_MUTEX_SETUP(mutex_buf[i]);
 
    CRYPTO_set_id_callback(openssl_id_function);
+#ifndef _MSC_VER
    (void) openssl_id_function;       // just to avoid a compiler warning with newer OpenSSL versions where CRYPTO_set_id_callback() is a no-op macro
+#endif
 
    CRYPTO_set_locking_callback(openssl_locking_function);
+#ifndef _MSC_VER
    (void) openssl_locking_function;  // just to avoid a compiler warning with newer OpenSSL versions where CRYPTO_set_locking_callback() is a no-op macro
+#endif
 
    return 0;
 }
