@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+# include <random>
+#endif
 #include "dataio/FileDataIO.h"
 #include "regex/StringMatcher.h"
 #include "syslog/LogCallback.h"
@@ -2341,12 +2344,37 @@ String HumanReadableTimeValues :: ExpandTokens(const String & origString) const
    (void) newString.Replace("%s", String("%1").Arg(GetSecond(),         "%02i"));
    (void) newString.Replace("%x", String("%1").Arg(GetMicrosecond(),    "%06i"));
 
-   while(newString.Contains("%r"))
+   if (newString.Contains("%r"))
    {
-      const uint32 r1 = rand();
-      const uint32 r2 = rand();
-      char buf[64]; muscleSprintf(buf, UINT64_FORMAT_SPEC, (((uint64)r1)<<32)|((uint64)r2));
-      if (newString.Replace("%r", buf) <= 0) break;
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+      std::random_device device;
+      std::mt19937_64 generator(device());
+      std::uniform_int_distribution<uint64> distribution;
+#endif
+
+      while(newString.Contains("%r"))
+      {
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+         const uint32 r1 = (uint32) rand();                  // the old, not-very-good way to generate a sort-of-random number
+         const uint32 r2 = (uint32) rand();                  // we rely on the calling code to call srand() beforehand, if desired
+         const uint64 rn = (((uint64)r1)<<32)|((uint64)r2);
+#else
+         const uint64 rn = distribution(generator);          // the newer (since C++11) and much improved way
+#endif
+
+         char buf[64]; muscleSprintf(buf, UINT64_FORMAT_SPEC, rn);
+         if (newString.Replace("%r", buf, 1) <= 0) break;
+      }
+   }
+
+   if (newString.Contains("%p"))
+   {
+#ifdef WIN32
+      const uint32 processID = (uint32) GetCurrentProcessId();
+#else
+      const uint32 processID = (uint32) ((unsigned long)getpid());
+#endif
+      (void) newString.Replace("%p", String("%1").Arg(processID));
    }
 
    return newString;

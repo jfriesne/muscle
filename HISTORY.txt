@@ -14,6 +14,10 @@ key:  - new feature
      take a ByteBufferRef, for convenience.
    - Added a GetEnvironmentVariableValue() convenience function,
      to avoid calling getenv() directly from user code.
+   - Added %p (aka process ID) to the set of tokens expanded by
+     HumanReadableTimeValues::ExpandTokens().
+   * Generation of the random number that %r expands to is now
+     actually random (not just calling rand()) (in C++11 or newer).
    * Renamed several of the longer mkdocs examples folder names
      to avoid hitting Windows' 260-character path limit. 
 

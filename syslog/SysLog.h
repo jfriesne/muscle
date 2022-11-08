@@ -481,6 +481,7 @@ public:
      * %m -> Current minute (e.g. "00" through "59")
      * %s -> Current second (e.g. "00" through "59")
      * %x -> Current microsecond (e.g. "000000" through "999999", inclusive)
+     * %p -> Process ID of the current process
      * %r -> A random number between 0 and (2^64-1) (for spicing up the uniqueness of a filename)
      * %T -> A human-readable time/date stamp, for convenience (e.g. "January 01 2005 23:59:59")
      * %t -> A numeric time/date stamp, for convenience (e.g. "2005/01/01 15:23:59")
