@@ -1634,6 +1634,30 @@ uint32 DefaultFileLogger :: AddPreExistingLogFiles(const String & filePattern)
    return pathToTime.GetNumItems();
 }
 
+static status_t OpenLogFileForWriting(String & logFileName, FileDataIO & fdio)
+{
+   // First, try to open the log file using its name verbatim
+   fdio.SetFile(muscleFopen(logFileName(), "wx"));  // x means "fail if the file already exists"
+   if (fdio.GetFile() != NULL) return B_NO_ERROR;
+
+   // If that didn't work, perhaps someone else already has a log file open with that name.
+   // Let's see if we can open a log file with an alternate name instead.
+   const int32 lastDotIdx = logFileName.LastIndexOf('.');
+   for (int i=0; i<10; i++)  // we'll only try a few times; since if we're trying to e.g. write to a read-only partition, this will never work anyway
+   {
+      const String infix         = String("%1").Arg((i<8)?((uint64)(i+2)):GetRunTime64());  // insert this additional text into the filename to (hopefully) make a unique filename
+      const String alternateName = (lastDotIdx >= 0) ? String("%1_%2.%3").Arg(logFileName.Substring(0, lastDotIdx)).Arg(infix).Arg(logFileName.Substring(lastDotIdx+1)) : String("%1_%2").Arg(logFileName).Arg(infix);
+      fdio.SetFile(muscleFopen(alternateName(), "wx"));  // x means "fail if the file already exists"
+      if (fdio.GetFile() != NULL)
+      {
+         logFileName = alternateName;
+         return B_NO_ERROR;
+      }
+   }
+
+   return B_IO_ERROR;  // no luck :(
+}
+
 status_t DefaultFileLogger :: EnsureLogFileCreated(const LogCallbackArgs & a)
 {
    if ((_logFile.GetFile() == NULL)&&(_logFileOpenAttemptFailed == false))
@@ -1644,7 +1668,7 @@ status_t DefaultFileLogger :: EnsureLogFileCreated(const LogCallbackArgs & a)
       HumanReadableTimeValues hrtv; (void) GetHumanReadableTimeValues(SecondsToMicros(a.GetWhen()), hrtv);
       logFileName = hrtv.ExpandTokens(logFileName);
 
-      _logFile.SetFile(muscleFopen(logFileName(), "w"));
+      (void) OpenLogFileForWriting(logFileName, _logFile);
       if (_logFile.GetFile() != NULL)
       {
          _activeLogFileName = logFileName;

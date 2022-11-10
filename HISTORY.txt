@@ -16,6 +16,10 @@ key:  - new feature
      to avoid calling getenv() directly from user code.
    - Added %p (aka process ID) to the set of tokens expanded by
      HumanReadableTimeValues::ExpandTokens().
+   - DefaultFileLogger::EnsureLogFileCreated() now tries a little
+     harder: if it can't create a log file with the given file name,
+     it will try up to 10 variants of the file name in the hopes
+     of coming up with a file name that is unique and can be created.
    * Generation of the random number that %r expands to is now
      actually random (not just calling rand()) (in C++11 or newer).
    * Renamed several of the longer mkdocs examples folder names
