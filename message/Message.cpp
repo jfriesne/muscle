@@ -1577,9 +1577,9 @@ status_t Message :: FindDataItemAux(const String & fieldName, uint32 index, uint
    const MessageField * field = GetMessageField(fieldName, tc);
    if (field == NULL) return B_DATA_NOT_FOUND;
 
-   const void * addressOfValue = NULL;
+   const void * addressOfValue;
    MRETURN_ON_ERROR(field->FindDataItem(index, &addressOfValue));
-   if (addressOfValue) memcpy(setValue, addressOfValue, valueSize);  // the "if" is only here to assuage ClangSA's paranoia
+   memcpy(setValue, addressOfValue, valueSize);
    return B_NO_ERROR;
 }
 

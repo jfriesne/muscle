@@ -801,7 +801,9 @@ private:
    // Translates a user-index into an index into the _queue array.
    inline uint32 InternalizeIndex(uint32 idx) const
    {
-      assert(idx < _queueSize);  // just to reassure ClangSA
+#ifdef __clang_analyzer__
+      assert(idx < _queueSize);
+#endif
       return (_headIndex + idx) % _queueSize;
    }
 
@@ -918,7 +920,11 @@ ItemType &
 Queue<ItemType>::operator[](uint32 i)
 {
    MASSERT(i<_itemCount, "Invalid index to Queue::[]");
-   return _queue[InternalizeIndex(i)];
+   ItemType * ret = &_queue[InternalizeIndex(i)];
+#ifdef __clang_analyzer__
+   assert(ret != NULL);  // not sure why this is necessary
+#endif
+   return *ret;
 }
 
 template <class ItemType>
@@ -954,6 +960,9 @@ AddTailAndGet(QQ_SinkItemParam item)
                    else _tailIndex = NextIndex(_tailIndex);
    _itemCount++;
    ItemType * ret = &_queue[_tailIndex];
+#ifdef __clang_analyzer__
+   assert(ret != NULL);
+#endif
    *ret = item;
    delete [] oldArray;  // must do this AFTER the last reference to (item), in case (item) was part of (oldArray)
    return ret;

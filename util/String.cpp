@@ -1149,7 +1149,9 @@ String String :: WithoutNumericSuffix(uint32 * optRemovedSuffixValue) const
 // Stolen from:  https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C.2B.2B
 static uint32 GetLevenshteinDistanceAux(const char *shortString, uint32 shortStringLen, const char * longString, uint32 longStringLen, uint32 maxResult)
 {
-   assert(shortStringLen<=longStringLen);  // this makes clang++SA happy
+#ifdef __clang_analyzer__
+   assert(shortStringLen<=longStringLen);
+#endif
 
    const uint32 allocLen = shortStringLen+1;
 #ifdef __clang_analyzer__

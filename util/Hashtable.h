@@ -161,7 +161,9 @@ public:
     */
    const KeyType & GetKey() const
    {
-      assert(_currentKey != NULL);  // this makes clang++SA happy
+#ifdef __clang_analyzer__
+      assert(_currentKey != NULL);
+#endif
       return *_currentKey;
    }
 
@@ -174,7 +176,9 @@ public:
     */
    ValueType & GetValue() const
    {
-      assert(_currentVal != NULL);  // this makes clang++SA happy
+#ifdef __clang_analyzer__
+      assert(_currentVal != NULL);
+#endif
       return *_currentVal;
    }
 

@@ -460,22 +460,22 @@ enum {
 
         // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of
         // differently-phrased error strings for common types of reasons-for-failure)
-        extern const status_t B_OUT_OF_MEMORY;  ///< "Out of Memory"  - we tried to allocate memory from the heap and got denied
-        extern const status_t B_UNIMPLEMENTED;  ///< "Unimplemented"  - function is not implemented (for this OS?)
-        extern const status_t B_ACCESS_DENIED;  ///< "Access Denied"  - we aren't allowed to do the thing we tried to do
-        extern const status_t B_DATA_NOT_FOUND; ///< "Data not Found" - we couldn't find the data we were looking for
-        extern const status_t B_FILE_NOT_FOUND; ///< "File not Found" - we couldn't find the file we were looking for
-        extern const status_t B_BAD_ARGUMENT;   ///< "Bad Argument"   - one of the passed-in arguments didn't make sense
-        extern const status_t B_BAD_DATA;       ///< "Bad Data"       - data we were trying to use was malformed
-        extern const status_t B_BAD_OBJECT;     ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
-        extern const status_t B_TIMED_OUT;      ///< "Timed Out"      - the operation took too long, so we gave up
-        extern const status_t B_IO_ERROR;       ///< "I/O Error"      - an I/O operation failed
-        extern const status_t B_IO_READY;       ///< "I/O Ready"      - this call has ended early because other I/O is ready for you to handle.
-        extern const status_t B_LOCK_FAILED;    ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
-        extern const status_t B_TYPE_MISMATCH;  ///< "Type Mismatch"  - tried to fit a square block into a round hole
-        extern const status_t B_ZLIB_ERROR;     ///< "ZLib Error"     - a zlib library-function reported an error
-        extern const status_t B_SSL_ERROR;      ///< "SSL Error"      - an OpenSSL library-function reported an error
-        extern const status_t B_LOGIC_ERROR;    ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
+        const status_t B_OUT_OF_MEMORY( "Out of Memory");  ///< "Out of Memory"  - we tried to allocate memory from the heap and got denied
+        const status_t B_UNIMPLEMENTED( "Unimplemented");  ///< "Unimplemented"  - function is not implemented (for this OS?)
+        const status_t B_ACCESS_DENIED( "Access Denied");  ///< "Access Denied"  - we aren't allowed to do the thing we tried to do
+        const status_t B_DATA_NOT_FOUND("Data not Found"); ///< "Data not Found" - we couldn't find the data we were looking for
+        const status_t B_FILE_NOT_FOUND("File not Found"); ///< "File not Found" - we couldn't find the file we were looking for
+        const status_t B_BAD_ARGUMENT(  "Bad Argument");   ///< "Bad Argument"   - one of the passed-in arguments didn't make sense
+        const status_t B_BAD_DATA(      "Bad Data");       ///< "Bad Data"       - data we were trying to use was malformed
+        const status_t B_BAD_OBJECT(    "Bad Object");     ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
+        const status_t B_TIMED_OUT(     "Timed Out");      ///< "Timed Out"      - the operation took too long, so we gave up
+        const status_t B_IO_ERROR(      "I/O Error");      ///< "I/O Error"      - an I/O operation failed
+        const status_t B_IO_READY(      "I/O Ready");      ///< "I/O Ready"      - this call has ended early because other I/O is ready for you to handle.
+        const status_t B_LOCK_FAILED(   "Lock Failed");    ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
+        const status_t B_TYPE_MISMATCH( "Type Mismatch");  ///< "Type Mismatch"  - tried to fit a square block into a round hole
+        const status_t B_ZLIB_ERROR(    "ZLib Error");     ///< "ZLib Error"     - a zlib library-function reported an error
+        const status_t B_SSL_ERROR(     "SSL Error");      ///< "SSL Error"      - an OpenSSL library-function reported an error
+        const status_t B_LOGIC_ERROR(   "Logic Error");    ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
      };
 # endif  /* defined(__cplusplus) */
 #endif  /* !MUSCLE_TYPES_PREDEFINED */
