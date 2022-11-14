@@ -30,8 +30,7 @@ int main(int, char **)
          uint32 count = 0;
          const uint64 startTime = GetRunTime64();
          {
-            const char * t;
-            while((t=tok()) != NULL) count++;
+            while(tok() != NULL) count++;
          }
          const uint64 runTime = GetRunTime64()-startTime;
          LogTime(MUSCLE_LOG_INFO, "Run #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ": Tokenized " UINT32_FORMAT_SPEC " chars into " UINT32_FORMAT_SPEC " strings over [%s], speed was %.0f chars/usec\n", i+1, numRuns, BIGBUFSIZE, count, GetHumanReadableTimeIntervalString(runTime, 1)(), ((double)(BIGBUFSIZE))/((runTime>0)?runTime:1LL));

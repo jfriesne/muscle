@@ -1166,7 +1166,7 @@ static uint32 GetLevenshteinDistanceAux(const char *shortString, uint32 shortStr
       return maxResult;
    }
 
-   for (uint32 x=1; x<allocLen; x++) columns[x] = x;
+   for (uint32 x=0; x<allocLen; x++) columns[x] = x;
    for (uint32 x=1; x<=longStringLen; x++)
    {
       columns[0] = x;

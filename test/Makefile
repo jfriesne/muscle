@@ -28,7 +28,7 @@ DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 #DEFINES += -DMUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
 
 CFLAGS = -I.. -I../zlib/zlib -g
-#CFLAGS += -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk
+#CFLAGS += -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk  # useful when compiling with scan-build/ClangSA
 
 GCCFLAGS = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS -W -Wall -Wno-multichar
 CXXFLAGS = $(CFLAGS) -O3 $(DEFINES)

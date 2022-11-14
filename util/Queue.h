@@ -71,7 +71,12 @@ public:
       , _queueSize(0)
       , _itemCount(0)
    {
-      if (rhs._queue == rhs._smallQueue) *this = rhs; else SwapContents(rhs);
+      if (rhs._queue == rhs._smallQueue) *this = rhs;
+      else
+      {
+         _headIndex = _tailIndex = 0;  // define these so that ClangSA won't complain about swapping undefined values
+         SwapContents(rhs);
+      }
    }
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */

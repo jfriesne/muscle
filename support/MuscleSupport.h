@@ -447,6 +447,39 @@ enum {
            return ret;
         }
 
+#ifdef __clang_analyzer__
+        // Basic/general status_t return codes -- a hacky work-around to prevent Clang Static Analyzer from reporting false-positive warnings
+        // I'd like to get rid of this as soon as I can figure out how --jaf
+
+        #define B_NO_ERROR status_t()        ///< This value is returned by a function or method that succeeded
+        #define B_OK       status_t()        ///< This value is a synonym for B_NO_ERROR
+        #define B_ERROR    status_t("Error") ///< "Error": This value is returned by a function or method that errored out in a non-descript fashion
+#       define B_ERRNO B_ERROR(muscleStrError(GetErrno())) ///< Macro for return a B_ERROR with the current errno-string as its string-value
+
+        /** B_ERRNUM returns B_NO_ERROR if (errnum==0), otherwise it returns a status_t containing the strerror() string for errnum
+          * @param errnum a POSIX-style error code (like ENOMEM) to pass to strerror(), or 0 if there is no error
+          */
+        static inline status_t B_ERRNUM(int errnum) {return ((errnum==0)?B_NO_ERROR:B_ERROR(muscleStrError(errnum)));}
+
+        // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of
+        // differently-phrased error strings for common types of reasons-for-failure)
+        #define B_OUT_OF_MEMORY   status_t( "Out of Memory") ///< "Out of Memory"  - we tried to allocate memory from the heap and got denied
+        #define B_UNIMPLEMENTED   status_t( "Unimplemented") ///< "Unimplemented"  - function is not implemented (for this OS?)
+        #define B_ACCESS_DENIED   status_t( "Access Denied") ///< "Access Denied"  - we aren't allowed to do the thing we tried to do
+        #define B_DATA_NOT_FOUND  status_t("Data not Found") ///< "Data not Found" - we couldn't find the data we were looking for
+        #define B_FILE_NOT_FOUND  status_t("File not Found") ///< "File not Found" - we couldn't find the file we were looking for
+        #define B_BAD_ARGUMENT    status_t(  "Bad Argument") ///< "Bad Argument"   - one of the passed-in arguments didn't make sense
+        #define B_BAD_DATA        status_t(      "Bad Data") ///< "Bad Data"       - data we were trying to use was malformed
+        #define B_BAD_OBJECT      status_t(    "Bad Object") ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
+        #define B_TIMED_OUT       status_t(     "Timed Out") ///< "Timed Out"      - the operation took too long, so we gave up
+        #define B_IO_ERROR        status_t(     "I/O Error") ///< "I/O Error"      - an I/O operation failed
+        #define B_IO_READY        status_t(     "I/O Ready") ///< "I/O Ready"      - this call has ended early because other I/O is ready for you to handle.
+        #define B_LOCK_FAILED     status_t(   "Lock Failed") ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
+        #define B_TYPE_MISMATCH   status_t( "Type Mismatch") ///< "Type Mismatch"  - tried to fit a square block into a round hole
+        #define B_ZLIB_ERROR      status_t(    "ZLib Error") ///< "ZLib Error"     - a zlib library-function reported an error
+        #define B_SSL_ERROR       status_t(     "SSL Error") ///< "SSL Error"      - an OpenSSL library-function reported an error
+        #define B_LOGIC_ERROR     status_t(   "Logic Error") ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
+#else
         // Basic/general status_t return codes
         const status_t B_NO_ERROR;       ///< This value is returned by a function or method that succeeded
         const status_t B_OK;             ///< This value is a synonym for B_NO_ERROR
@@ -476,6 +509,7 @@ enum {
         const status_t B_ZLIB_ERROR(    "ZLib Error");     ///< "ZLib Error"     - a zlib library-function reported an error
         const status_t B_SSL_ERROR(     "SSL Error");      ///< "SSL Error"      - an OpenSSL library-function reported an error
         const status_t B_LOGIC_ERROR(   "Logic Error");    ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
+#  endif
      };
 # endif  /* defined(__cplusplus) */
 #endif  /* !MUSCLE_TYPES_PREDEFINED */
@@ -751,17 +785,16 @@ namespace ugly_swapcontents_method_sfinae_implementation
    public:
       PODSwapper(T & t1, T & t2)
       {
-         if (&t1 == &t2) return;
-
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-         T tmp(std::move(t1));
-         t1 = std::move(t2);
-         t2 = std::move(tmp);
+         if (&t1 != &t2)
+         {
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+            T tmp = t1;
+            t1 = t2;
+            t2 = tmp;
 #else
-         T tmp = t1;
-         t1 = t2;
-         t2 = tmp;
+            std::swap(t1, t2);
 #endif
+         }
       }
    };
 

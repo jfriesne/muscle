@@ -258,8 +258,7 @@ private:
       {
          const uint32 flatSize = vals[i].FlattenedSize();
          if (includeLengthPrefix) WriteInt32(flatSize);
-         vals[i].Flatten(DataFlattenerHelper(_writeTo, flatSize));
-         Advance(flatSize);
+         vals[i].Flatten(DataFlattenerHelper(*this, flatSize));
       }
    }
 
