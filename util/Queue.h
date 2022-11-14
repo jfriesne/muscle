@@ -1423,8 +1423,7 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
       MRETURN_OOM_ON_NULL(newQueue);
       if (newQueue == _smallQueue) newQLen = sqLen;
 
-      // The (_queueSize > 0) check below isn't strictly necessary, but it makes clang++ feel better
-      if (_queueSize > 0) for (uint32 i=0; i<_itemCount; i++) newQueue[i] = QQ_PlunderItem(*GetItemAtUnchecked(i));  // we know that (_itemCount < size)
+      for (uint32 i=0; i<_itemCount; i++) newQueue[i] = QQ_PlunderItem(*GetItemAtUnchecked(i));  // we know that (_itemCount < size)
 
       if (setNumItems) _itemCount = size;
       _headIndex = 0;
@@ -1441,7 +1440,7 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
       else if (retOldArray) *retOldArray = _queue;
       else delete [] _queue;
 
-      _queue = newQueue;
+      _queue     = newQueue;
       _queueSize = newQLen;
    }
 

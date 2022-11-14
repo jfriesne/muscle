@@ -48,6 +48,12 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    BitChord & operator =(const BitChord & rhs) {for (int i=0; i<NUM_WORDS; i++) _words[i] = rhs._words[i]; return *this;}
 
+   /** Convenience method:  Returns true iff this given bit-index is a valid bit-index.
+     * @param whichBit a bit-index to check the validity of
+     * @note a bit-index is valid if its value is less than (NumBits)
+     */
+   static MUSCLE_CONSTEXPR bool IsBitIndexValid(uint32 whichBit) {return (whichBit < NumBits);}
+
    /** Returns the state of the specified bit
      * @param whichBit the index of the bit to query (e.g. 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      * @returns true iff the bit was set
@@ -502,7 +508,7 @@ public:
          else
          {
             suppressLeadingZeroes = false;
-            char buf[4]; muscleSprintf(buf, "%s%02x", (ret.IsEmpty())?"":" ", b);
+            char buf[32]; muscleSnprintf(buf, sizeof(buf), "%s%02x", (ret.IsEmpty())?"":" ", b);
             ret += buf;
          }
       }

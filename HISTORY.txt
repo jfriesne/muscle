@@ -20,6 +20,7 @@ key:  - new feature
      harder: if it can't create a log file with the given file name,
      it will try up to 10 variants of the file name in the hopes
      of coming up with a file name that is unique and can be created.
+   - Added a IsBitIndexValid() convenience-method to the BitChord class.
    o PODSwapper now calls std::swap() rather than reimplementing it.
    * Moved the definitions of the B_* error-codes out of SetupSystem.cpp
      and into MuscleSupport.h, so that Clang's Static Analyzer can see
