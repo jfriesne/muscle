@@ -134,6 +134,12 @@
 # define MUSCLE_CONSTEXPR  /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_AVOID_CPLUSPLUS11 is not defined) */
 #endif
 
+#ifdef MUSCLE_CONSTEXPR_IS_SUPPORTED
+# define MUSCLE_CONSTEXPR_OR_CONST constexpr   /**< Expands to "constexpr" if our environment supports that keyword, or "const" otherwise */
+#else
+# define MUSCLE_CONSTEXPR_OR_CONST const       /**< Expands to "constexpr" if our environment supports that keyword, or "const" otherwise */
+#endif
+
 /* Borland C++ builder also runs under Win32, but it doesn't set this flag So we'd better set it ourselves. */
 #if defined(__BORLANDC__) || defined(__WIN32__) || defined(_MSC_VER) || defined(_WIN32)
 # ifndef WIN32
@@ -481,9 +487,9 @@ enum {
         #define B_LOGIC_ERROR     status_t(   "Logic Error") ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
 #else
         // Basic/general status_t return codes
-        const status_t B_NO_ERROR;       ///< This value is returned by a function or method that succeeded
-        const status_t B_OK;             ///< This value is a synonym for B_NO_ERROR
-        const status_t B_ERROR("Error"); ///< "Error": This value is returned by a function or method that errored out in a non-descript fashion
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_NO_ERROR;       ///< This value is returned by a function or method that succeeded
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_OK;             ///< This value is a synonym for B_NO_ERROR
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_ERROR("Error"); ///< "Error": This value is returned by a function or method that errored out in a non-descript fashion
 #       define B_ERRNO B_ERROR(muscleStrError(GetErrno())) ///< Macro for return a B_ERROR with the current errno-string as its string-value
 
         /** B_ERRNUM returns B_NO_ERROR if (errnum==0), otherwise it returns a status_t containing the strerror() string for errnum
@@ -493,22 +499,22 @@ enum {
 
         // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of
         // differently-phrased error strings for common types of reasons-for-failure)
-        const status_t B_OUT_OF_MEMORY( "Out of Memory");  ///< "Out of Memory"  - we tried to allocate memory from the heap and got denied
-        const status_t B_UNIMPLEMENTED( "Unimplemented");  ///< "Unimplemented"  - function is not implemented (for this OS?)
-        const status_t B_ACCESS_DENIED( "Access Denied");  ///< "Access Denied"  - we aren't allowed to do the thing we tried to do
-        const status_t B_DATA_NOT_FOUND("Data not Found"); ///< "Data not Found" - we couldn't find the data we were looking for
-        const status_t B_FILE_NOT_FOUND("File not Found"); ///< "File not Found" - we couldn't find the file we were looking for
-        const status_t B_BAD_ARGUMENT(  "Bad Argument");   ///< "Bad Argument"   - one of the passed-in arguments didn't make sense
-        const status_t B_BAD_DATA(      "Bad Data");       ///< "Bad Data"       - data we were trying to use was malformed
-        const status_t B_BAD_OBJECT(    "Bad Object");     ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
-        const status_t B_TIMED_OUT(     "Timed Out");      ///< "Timed Out"      - the operation took too long, so we gave up
-        const status_t B_IO_ERROR(      "I/O Error");      ///< "I/O Error"      - an I/O operation failed
-        const status_t B_IO_READY(      "I/O Ready");      ///< "I/O Ready"      - this call has ended early because other I/O is ready for you to handle.
-        const status_t B_LOCK_FAILED(   "Lock Failed");    ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
-        const status_t B_TYPE_MISMATCH( "Type Mismatch");  ///< "Type Mismatch"  - tried to fit a square block into a round hole
-        const status_t B_ZLIB_ERROR(    "ZLib Error");     ///< "ZLib Error"     - a zlib library-function reported an error
-        const status_t B_SSL_ERROR(     "SSL Error");      ///< "SSL Error"      - an OpenSSL library-function reported an error
-        const status_t B_LOGIC_ERROR(   "Logic Error");    ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_OUT_OF_MEMORY( "Out of Memory");  ///< "Out of Memory"  - we tried to allocate memory from the heap and got denied
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_UNIMPLEMENTED( "Unimplemented");  ///< "Unimplemented"  - function is not implemented (for this OS?)
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_ACCESS_DENIED( "Access Denied");  ///< "Access Denied"  - we aren't allowed to do the thing we tried to do
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_DATA_NOT_FOUND("Data not Found"); ///< "Data not Found" - we couldn't find the data we were looking for
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_FILE_NOT_FOUND("File not Found"); ///< "File not Found" - we couldn't find the file we were looking for
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_ARGUMENT(  "Bad Argument");   ///< "Bad Argument"   - one of the passed-in arguments didn't make sense
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_DATA(      "Bad Data");       ///< "Bad Data"       - data we were trying to use was malformed
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_OBJECT(    "Bad Object");     ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_TIMED_OUT(     "Timed Out");      ///< "Timed Out"      - the operation took too long, so we gave up
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_IO_ERROR(      "I/O Error");      ///< "I/O Error"      - an I/O operation failed
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_IO_READY(      "I/O Ready");      ///< "I/O Ready"      - this call has ended early because other I/O is ready for you to handle.
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_LOCK_FAILED(   "Lock Failed");    ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_TYPE_MISMATCH( "Type Mismatch");  ///< "Type Mismatch"  - tried to fit a square block into a round hole
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_ZLIB_ERROR(    "ZLib Error");     ///< "ZLib Error"     - a zlib library-function reported an error
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_SSL_ERROR(     "SSL Error");      ///< "SSL Error"      - an OpenSSL library-function reported an error
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_LOGIC_ERROR(   "Logic Error");    ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
 #  endif
      };
 # endif  /* defined(__cplusplus) */
