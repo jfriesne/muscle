@@ -23,6 +23,8 @@ key:  - new feature
    - Added a IsBitIndexValid() convenience-method to the BitChord class.
    - Added MUSCLE_CONSTEXPR_OR_CONST macro to expand to "constexpr"
      if possible, or "const" otherwise.
+   - GetDefaultObjectForType() now uses constexpr to avoid on-demand
+     initialization, when -DMUSCLE_USE_CPLUSPLUS17 is defined.
    o PODSwapper now calls std::swap() rather than reimplementing it.
    * Moved the definitions of the B_* error-codes out of SetupSystem.cpp
      and into MuscleSupport.h, so that Clang's Static Analyzer can see
