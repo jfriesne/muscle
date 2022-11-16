@@ -1,4 +1,7 @@
 project(qtsupport)
+if(NOT DEFINED CMAKE_CXX_STANDARD)
+   set(CMAKE_CXX_STANDARD 11)
+endif()
 find_package(Threads REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 set(CMAKE_AUTOMOC ON)

@@ -14,18 +14,29 @@ endif()
 
 project (muscle)
 
+option(WITH_THREADS "Enable CMake Threads support" ON)
+
 option(WITH_CPLUSPLUS17 "Enable C++17 support" OFF)
 if (WITH_CPLUSPLUS17)
    message("Note:  -DWITH_CPLUSPLUS17=ON argument was specified:  building MUSCLE with C++17 support enabled!")
    set (CMAKE_CXX_STANDARD 17)
    add_definitions(-DMUSCLE_USE_CPLUSPLUS17)
+   if(${CMAKE_VERSION} VERSION_LESS "3.1.0")
+      add_definitions(-std=c++17)   # fallback for older versions of CMake that don't know about CMAKE_CXX_STANDARD
+   endif ()
 else ()
    option(WITH_CPLUSPLUS11 "Enable C++11 support" ON)
    if (WITH_CPLUSPLUS11)
       set (CMAKE_CXX_STANDARD 11)
+      if(${CMAKE_VERSION} VERSION_LESS "3.1.0")
+         add_definitions(-std=c++11)   # fallback for older versions of CMake that don't know about CMAKE_CXX_STANDARD
+      endif ()
    else ()
       message("Note:  -DWITH_CPLUSPLUS11=OFF argument was specified:  building MUSCLE without C++11 support!")
       add_definitions(-DMUSCLE_AVOID_CPLUSPLUS11)
+      if (NOT WIN32 AND WITH_THREADS)
+         add_definitions(-DMUSCLE_USE_PTHREADS)
+      endif()
    endif (WITH_CPLUSPLUS11)
 endif (WITH_CPLUSPLUS17)
 
@@ -173,7 +184,6 @@ else ()
    )
 endif()
 
-option(WITH_THREADS "Enable CMake Threads support" ON)
 if (WITH_THREADS)
    target_link_libraries(muscle Threads::Threads)
 else()

@@ -274,6 +274,7 @@ public:
    /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator != (const muscle_thread_id & rhs) const {return !(*this == rhs);}
 
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
    /** Returns a muscle_thread_id object representing the calling thread. */
    static muscle_thread_id GetCurrentThreadID()
    {
@@ -291,6 +292,7 @@ public:
 # endif
       return ret;
    }
+#endif
 
    /** Returns a hash code for this muscle_thread_id */
    uint32 HashCode() const {return CalculateHashCode(&_id, sizeof(_id));}

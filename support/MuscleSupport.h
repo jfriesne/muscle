@@ -677,12 +677,7 @@ template <typename T> inline T * broken_gcc_newnothrow_array(size_t count)
 template <typename T> const T & GetDefaultObjectForType()
 {
 #ifdef MUSCLE_USE_CPLUSPLUS17
-   if constexpr (std::is_pointer<T>::value)
-   {
-      static constexpr T _defaultObject = NULL;
-      return _defaultObject;
-   }
-   else if constexpr (std::is_literal_type<T>::value)
+   if constexpr (std::is_literal_type<T>::value)
    {
       static constexpr T _defaultObject = T();
       return _defaultObject;

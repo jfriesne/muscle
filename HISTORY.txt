@@ -25,6 +25,8 @@ key:  - new feature
      if possible, or "const" otherwise.
    - GetDefaultObjectForType() now uses constexpr to avoid on-demand
      initialization, when -DMUSCLE_USE_CPLUSPLUS17 is defined.
+   - CMakeLists.txt now automatically specifies -DMUSCLE_USE_PTHREADS
+     if building on POSIX for C++03, and WITH_THREADS is ON.
    o PODSwapper now calls std::swap() rather than reimplementing it.
    * Moved the definitions of the B_* error-codes out of SetupSystem.cpp
      and into MuscleSupport.h, so that Clang's Static Analyzer can see
@@ -35,6 +37,11 @@ key:  - new feature
      to avoid hitting Windows' 260-character path limit. 
    * Fixed a potential uninitialized-memory-read in the String
      class's GetLevenshteinDistance() method.
+   * Fixed the CMakeList.txt files in the sub-folders to use
+     the inherited CMAKE_CXX_STANDARD setting rather than
+     forcing C++11.
+   * GetCurrentThreadID() is no longer compiled if
+     -DMUSCLE_SINGLE_THREAD_ONLY is specified.
 
 9.00 - Released 10/27/2022
    - Added a MUSCLE_MAXIMUM_NODE_DEPTH constant that limits
