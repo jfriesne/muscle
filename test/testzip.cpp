@@ -9,7 +9,7 @@ using namespace muscle;
 #define COMMAND_GOODBYE 0x4321
 
 // This program tests the ZipFileUtilityFunctions functions
-int main(int, char **)
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
@@ -51,6 +51,8 @@ int main(int, char **)
    }
    else printf("Error reading .zip file [%s]\n", argv[1]);
 #else
+   (void) argc;
+   (void) argv;
    printf("Error, -DMUSCLE_ENABLE_ZLIB_ENCODING wasn't specified, can't to any unzipping!\n");
 #endif
 

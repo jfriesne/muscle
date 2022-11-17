@@ -23,7 +23,7 @@ int main(int argc, char ** argv)
    for (uint32 i=0; i<rawBufferSize; i++) bigBuffer[i] = (i%26)+'A';
 
    printf("\n");
-   LogTime(MUSCLE_LOG_INFO, "Raw buffer size is " UINT32_FORMAT_SPEC " bytes.\n", sizeof(bigBuffer));
+   LogTime(MUSCLE_LOG_INFO, "Raw buffer size is %zu bytes.\n", sizeof(bigBuffer));
 
    // Now let's use a ZLibCodec to generate a deflated representation of same
    ZLibCodec codec(9);  // 9 == maximum compression level, because why not?  Modern CPUs are fast
@@ -50,7 +50,7 @@ int main(int argc, char ** argv)
 
    if (reinflatedBuffer()->GetNumBytes() != sizeof(bigBuffer))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Reinflated buffer is the wrong size!  Expected " UINT32_FORMAT_SPEC ", got " UINT32_FORMAT_SPEC "!\n", sizeof(bigBuffer), reinflatedBuffer()->GetNumBytes());
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Reinflated buffer is the wrong size!  Expected %zu bytes, got " UINT32_FORMAT_SPEC " bytes!\n", sizeof(bigBuffer), reinflatedBuffer()->GetNumBytes());
       return 10;
    }
 

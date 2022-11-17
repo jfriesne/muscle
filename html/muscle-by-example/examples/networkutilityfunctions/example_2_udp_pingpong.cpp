@@ -50,7 +50,7 @@ int main(int argc, char ** argv)
    {
       const uint8 serveBuf[] = "Serve!";
       const int numBytesSent = SendDataUDP(udpSock, serveBuf, sizeof(serveBuf), true, localhostIP, targetPort);
-      LogTime(MUSCLE_LOG_INFO, "Serve:  Sent %i/%u bytes of serve-packet to [%s]\n", numBytesSent, sizeof(serveBuf), IPAddressAndPort(localhostIP, targetPort).ToString()());
+      LogTime(MUSCLE_LOG_INFO, "Serve:  Sent %i/%zu bytes of serve-packet to [%s]\n", numBytesSent, sizeof(serveBuf), IPAddressAndPort(localhostIP, targetPort).ToString()());
    }
    else LogTime(MUSCLE_LOG_WARNING, "No target port argument specified.  To serve the ball, specify a target port number as an argument.\n");
 

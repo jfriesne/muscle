@@ -126,14 +126,14 @@ int main(int argc, char ** argv)
       if (VerifyInflatedData(*inflatedData()).IsOK()) rawBytesRead += inflatedData()->GetNumBytes();
       else
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Verification of re-inflated data failed at offset " UINT64_FORMAT_SPEC ", corrupt file?\n", rawBytesRead);
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Verification of re-inflated data failed at offset " UINT32_FORMAT_SPEC ", corrupt file?\n", rawBytesRead);
          return 10;
       }
    }
 
    if (rawBytesRead != rawBytesWritten)
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "The amount of re-inflated data read (" UINT64_FORMAT_SPEC " bytes) didn't match the amount written (" UINT64_FORMAT_SPEC " bytes)!  Corrupt data?\n", rawBytesRead, rawBytesWritten);
+      LogTime(MUSCLE_LOG_CRITICALERROR, "The amount of re-inflated data read (" UINT32_FORMAT_SPEC " bytes) didn't match the amount written (" UINT32_FORMAT_SPEC " bytes)!  Corrupt data?\n", rawBytesRead, rawBytesWritten);
       return 10;
    }
 
