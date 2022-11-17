@@ -87,7 +87,7 @@ public:
 
 
 // This program exercises the AtomicValue class.
-int main(int argc, char ** argv)
+int main(int, char **)
 {
    CompleteSetupSystem css;
 

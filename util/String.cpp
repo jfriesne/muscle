@@ -3,7 +3,6 @@
 #include "util/String.h"
 #include "support/Point.h"
 #include "support/Rect.h"
-#include <stdarg.h>
 
 #ifdef __APPLE__
 # include <CoreFoundation/CFString.h>

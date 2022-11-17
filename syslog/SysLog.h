@@ -33,15 +33,23 @@ enum
    NUM_MUSCLE_LOGLEVELS         /**< guard value */
 };
 
+#ifdef __clang__
+# define MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(stringIdx, firstVarArgIdx)  __attribute__ ((format (printf, stringIdx, firstVarArgIdx)))  ///< to allow printf()-style format-checking on LogTime() arguments
+#else
+# define MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(stringIdx, firstVarArgIdx)
+#endif
+
 // Define this constant in your Makefile (i.e. -DMUSCLE_DISABLE_LOGGING) to turn all the
 // Log commands into no-ops.
 #ifdef MUSCLE_DISABLE_LOGGING
 # define MUSCLE_INLINE_LOGGING
 
 // No-op implementation of Log()
+MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 static inline status_t Log(int, const char * , ...) {return B_NO_ERROR;}
 
 // No-op implementation of LogTime()
+MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 static inline status_t LogTime(int, const char *, ...) {return B_NO_ERROR;}
 
 // No-op implementation of WarnOutOfMemory()
@@ -72,9 +80,11 @@ static inline const char * GetLogLevelKeyword(int /*logLevel*/) {return "<omitte
 #  define MUSCLE_INLINE_LOGGING
 
 // Minimalist version of Log(), just sends the output to stdout.
+MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 static inline status_t Log(int, const char * fmt, ...) {va_list va; va_start(va, fmt); vprintf(fmt, va); va_end(va); return B_NO_ERROR;}
 
 // Minimalist version of LogTime(), just sends a tiny header and the output to stdout.
+MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 static inline status_t LogTime(int logLevel, const char * fmt, ...) {printf("%i: ", logLevel); va_list va; va_start(va, fmt); vprintf(fmt, va); va_end(va); return B_NO_ERROR;}
 
 // Minimalist version of WarnOutOfMemory()
@@ -241,6 +251,7 @@ status_t SetConsoleLogToStderr(bool toStderr);
  *  @param fmt A printf-style format string (e.g. "hello %s\n").  Note that \n is NOT added for you.
  *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
+MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 status_t Log(int logLevel, const char * fmt, ...);
 
 /** Calls LogTime() with a critical "MEMORY ALLOCATION FAILURE" Message.
@@ -260,6 +271,7 @@ void WarnOutOfMemory(const char * file, int line);
 
 #ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
 # define LogTime(logLevel, ...) _LogTime(__FILE__, __FUNCTION__, __LINE__, logLevel, __VA_ARGS__)
+MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(5,6)
 status_t _LogTime(const char * sourceFile, const char * optSourceFunction, int line, int logLevel, const char * fmt, ...);
 #else
 
@@ -269,6 +281,7 @@ status_t _LogTime(const char * sourceFile, const char * optSourceFunction, int l
  *  @param fmt A printf-style format string (e.g. "hello %s\n").  Note that \n is NOT added for you.
  *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
+MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 status_t LogTime(int logLevel, const char * fmt, ...);
 
 #endif

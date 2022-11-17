@@ -30,9 +30,9 @@ DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 CFLAGS = -I.. -I../zlib/zlib -g
 #CFLAGS += -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk  # useful when compiling with scan-build/ClangSA
 
-GCCFLAGS = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS -W -Wall -Wno-multichar
+GCCFLAGS = -fno-exceptions -DMUSCLE_NO_EXCEPTIONS
 CXXFLAGS = $(CFLAGS) -O3 $(DEFINES)
-CXXFLAGS += -std=c++11
+CXXFLAGS += -std=c++11 -W -Wall
 
 LFLAGS =
 LIBS =  -lpthread

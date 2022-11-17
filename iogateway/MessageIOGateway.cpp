@@ -49,7 +49,8 @@ MessageIOGateway :: MessageIOGateway(int32 encoding)
    , _syncPingCounter(0)
    , _pendingSyncPingCounter(-1)
 {
-   // empty
+   (void) _sendCodec;  // these are just here to avoid a "private field is not used"
+   (void) _recvCodec;  // compiler-warning when -DMUSCLE_ENABLE_ZLIB_ENCODING isn't defined
 }
 
 MessageIOGateway :: ~MessageIOGateway()

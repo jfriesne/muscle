@@ -26,9 +26,12 @@
 
 using namespace muscle;
 
-static bool _useHex             = true;
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
 static bool _useZLibDataIO      = false;
 static bool _useGZip            = false;
+#endif
+
+static bool _useHex             = true;
 static bool _printChecksums     = false;
 static bool _decorateOutput     = true;
 static bool _wifiModeEnabled    = false;
@@ -220,7 +223,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                                     else scratchString = String("Read #%1: Received (%2 since prev)").Arg(readCounter).Arg(sinceString);
                   LogBytes(buf, ret, scratchString());
                }
-               else LogTime(MUSCLE_LOG_DEBUG, "Read #" UINT64_FORMAT_SPEC ": Received " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of data (%s since prev).\n", readCounter, ret, sizeof(buf), sinceString());
+               else LogTime(MUSCLE_LOG_DEBUG, "Read #" UINT64_FORMAT_SPEC ": Received " INT32_FORMAT_SPEC "/%zu bytes of data (%s since prev).\n", readCounter, ret, sizeof(buf), sinceString());
 
                _prevReceiveTime = now;
             }

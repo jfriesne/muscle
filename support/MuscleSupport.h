@@ -548,9 +548,14 @@ static_assert(sizeof(double) == 8, "sizeof(double) != 8");
 #ifdef MUSCLE_AVOID_STDINT
 /** Ugly platform-neutral macros for problematic sprintf()-format-strings */
 # if defined(MUSCLE_64_BIT_PLATFORM)
+#  define  INT16_FORMAT_SPEC_NOPERCENT "hi" /**< format-specifier string to pass in to printf() for an int16, without the percent sign */
+#  define UINT16_FORMAT_SPEC_NOPERCENT "hu" /**< format-specifier string to pass in to printf() for a uint16, without the percent sign */
+#  define XINT16_FORMAT_SPEC_NOPERCENT "hx" /**< format-specifier string to pass in to printf() for an int16 or uint16 that you want printed in hexadecimal, without the percent sign */
+
 #  define  INT32_FORMAT_SPEC_NOPERCENT "i"  /**< format-specifier string to pass in to printf() for an int32, without the percent sign */
 #  define UINT32_FORMAT_SPEC_NOPERCENT "u"  /**< format-specifier string to pass in to printf() for a uint32, without the percent sign */
 #  define XINT32_FORMAT_SPEC_NOPERCENT "x"  /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, without the percent sign */
+
 #  ifdef __APPLE__
 #   define  INT64_FORMAT_SPEC_NOPERCENT "lli"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
 #   define UINT64_FORMAT_SPEC_NOPERCENT "llu"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
@@ -565,9 +570,14 @@ static_assert(sizeof(double) == 8, "sizeof(double) != 8");
 #   define XINT64_FORMAT_SPEC_NOPERCENT "lx"  /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
 #  endif
 # else
+#  define  INT16_FORMAT_SPEC_NOPERCENT "hi"  /**< format-specifier string to pass in to printf() for an int16, without the percent sign */
+#  define UINT16_FORMAT_SPEC_NOPERCENT "hu"  /**< format-specifier string to pass in to printf() for a uint16, without the percent sign */
+#  define XINT16_FORMAT_SPEC_NOPERCENT "hx"  /**< format-specifier string to pass in to printf() for an int16 or uint16 that you want printed in hexadecimal, without the percent sign */
+
 #  define  INT32_FORMAT_SPEC_NOPERCENT "li"  /**< format-specifier string to pass in to printf() for an int32, without the percent sign */
 #  define UINT32_FORMAT_SPEC_NOPERCENT "lu"  /**< format-specifier string to pass in to printf() for a uint32, without the percent sign */
 #  define XINT32_FORMAT_SPEC_NOPERCENT "lx"  /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, without the percent sign */
+
 #  if defined(_MSC_VER) || defined(__MINGW32__)
 #   define  INT64_FORMAT_SPEC_NOPERCENT "I64i"  /**< format-specifier string to pass in to printf() for an int64, without the percent sign */
 #   define UINT64_FORMAT_SPEC_NOPERCENT "I64u"  /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
@@ -580,13 +590,22 @@ static_assert(sizeof(double) == 8, "sizeof(double) != 8");
 # endif
 #else
 // This version just uses the macros provided in inttypes.h
+#  define  INT16_FORMAT_SPEC_NOPERCENT PRIi16 /**< format-specifier string to pass in to printf() for an int16, without the percent sign */
+#  define UINT16_FORMAT_SPEC_NOPERCENT PRIu16 /**< format-specifier string to pass in to printf() for a uint16, without the percent sign */
+#  define XINT16_FORMAT_SPEC_NOPERCENT PRIx16 /**< format-specifier string to pass in to printf() for an int16 or uint16 that you want printed in hexadecimal, without the percent sign */
+
 #  define  INT32_FORMAT_SPEC_NOPERCENT PRIi32 /**< format-specifier string to pass in to printf() for an int32, without the percent sign */
 #  define UINT32_FORMAT_SPEC_NOPERCENT PRIu32 /**< format-specifier string to pass in to printf() for a uint32, without the percent sign */
 #  define XINT32_FORMAT_SPEC_NOPERCENT PRIx32 /**< format-specifier string to pass in to printf() for an int32 or uint32 that you want printed in hexadecimal, without the percent sign */
+
 #  define  INT64_FORMAT_SPEC_NOPERCENT PRIi64 /**< format-specifier string to pass in to printf() for a  int64, without the percent sign */
 #  define UINT64_FORMAT_SPEC_NOPERCENT PRIu64 /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
 #  define XINT64_FORMAT_SPEC_NOPERCENT PRIx64 /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
 #endif
+
+#define  INT16_FORMAT_SPEC "%"  INT16_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int16, including the percent sign */
+#define UINT16_FORMAT_SPEC "%" UINT16_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint16, including the percent sign */
+#define XINT16_FORMAT_SPEC "%" XINT16_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int16 or uint16 that you want printed in hexadecimal, including the percent sign */
 
 #define  INT32_FORMAT_SPEC "%"  INT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int32, including the percent sign */
 #define UINT32_FORMAT_SPEC "%" UINT32_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint32, including the percent sign */

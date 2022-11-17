@@ -27,6 +27,9 @@ key:  - new feature
      initialization, when -DMUSCLE_USE_CPLUSPLUS17 is defined.
    - CMakeLists.txt now automatically specifies -DMUSCLE_USE_PTHREADS
      if building on POSIX for C++03, and WITH_THREADS is ON.
+   - LogTime() calls now emit printf-style format-usage warnings
+     when compiled with Clang++.
+   - Added INT16_FORMAT_SPEC_* macros, for completeness.
    o PODSwapper now calls std::swap() rather than reimplementing it.
    * Moved the definitions of the B_* error-codes out of SetupSystem.cpp
      and into MuscleSupport.h, so that Clang's Static Analyzer can see
@@ -34,7 +37,7 @@ key:  - new feature
    * Generation of the random number that %r expands to is now
      actually random (not just calling rand()) (in C++11 or newer).
    * Renamed several of the longer mkdocs examples folder names
-     to avoid hitting Windows' 260-character path limit. 
+     to avoid hitting Windows' 260-character path limit.
    * Fixed a potential uninitialized-memory-read in the String
      class's GetLevenshteinDistance() method.
    * Fixed the CMakeList.txt files in the sub-folders to use

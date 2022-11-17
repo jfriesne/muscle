@@ -9,7 +9,7 @@ using namespace muscle;
 #define COMMAND_GOODBYE 0x4321
 
 // This program tests the ZipFileUtilityFunctions functions
-int main(int argc, char ** argv)
+int main(int, char **)
 {
    CompleteSetupSystem css;
 
