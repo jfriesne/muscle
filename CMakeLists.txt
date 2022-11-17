@@ -24,6 +24,9 @@ if (WITH_CPLUSPLUS17)
    if(${CMAKE_VERSION} VERSION_LESS "3.1.0")
       add_definitions(-std=c++17)   # fallback for older versions of CMake that don't know about CMAKE_CXX_STANDARD
    endif ()
+   if (WIN32)
+      add_definitions(-D_SILENCE_CXX17_IS_LITERAL_TYPE_DEPRECATION_WARNING)  # avoid getting spammed, I know
+   endif()
 else ()
    option(WITH_CPLUSPLUS11 "Enable C++11 support" ON)
    if (WITH_CPLUSPLUS11)
