@@ -95,7 +95,7 @@ public:
       _parentFlat = &parentFlat;
       if (_maxBytes > parentFlat.GetNumBytesAvailable())
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  SetBuffer() specified more bytes (" UINT32_FORMAT_SPEC ") than the parent DataFlattenerHelper has available (" UINT32_FORMAT_SPEC ")!\n", maxBytes, parentFlat.GetNumBytesAvailable());
+         LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  SetBuffer() specified more bytes (" UINT32_FORMAT_SPEC ") than the parent DataFlattenerHelper has available (" UINT32_FORMAT_SPEC ")!\n", this, maxBytes, parentFlat.GetNumBytesAvailable());
          MCRASH("DataFlattenerHelper::SetBuffer() detected imminent buffer-write overflow");
       }
    }
