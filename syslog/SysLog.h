@@ -33,7 +33,7 @@ enum
    NUM_MUSCLE_LOGLEVELS         /**< guard value */
 };
 
-#ifdef __clang__
+#if defined(__clang__) || defined(__GNUC__)
 # define MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(stringIdx, firstVarArgIdx)  __attribute__ ((format (printf, stringIdx, firstVarArgIdx)))  ///< to allow printf()-style format-checking on LogTime() arguments
 #else
 # define MUSCLE_SYSLOG_PRINTF_ARGS_ANNOTATION_PREFIX(stringIdx, firstVarArgIdx)

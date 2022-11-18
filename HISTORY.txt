@@ -28,7 +28,7 @@ key:  - new feature
    - CMakeLists.txt now automatically specifies -DMUSCLE_USE_PTHREADS
      if building on POSIX for C++03, and WITH_THREADS is ON.
    - LogTime() calls now emit printf-style format-usage warnings
-     when compiled with Clang++.
+     when compiled with g++ or clang++.
    - Added INT16_FORMAT_SPEC_* macros, for completeness.
    o PODSwapper now calls std::swap() rather than reimplementing it.
    * Moved the definitions of the B_* error-codes out of SetupSystem.cpp
