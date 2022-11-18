@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.01 - Released 11/18/2022
    - Added a WritePaddingBytesToAlignTo(uint32 alignSize)
      convenience-method to the CheckedDataFlattenerHelper
      and DataFlattenerHelper classes.
