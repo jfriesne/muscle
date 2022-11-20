@@ -5,6 +5,14 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Rewrote the non-Windows implementation of muscleSprintf()
+     to call vsnprintf() instead of sprintf(), to avoid compiler
+     warnings about sprintf() being insecure.
+   - Instrumented the non-Windows implementation of muscleSprintf()
+     with MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX so that the compiler
+     will warn about calls to muscleSprintf() with the wrong format
+     specifiers.
+
 9.01 - Released 11/18/2022
    - Added a WritePaddingBytesToAlignTo(uint32 alignSize)
      convenience-method to the CheckedDataFlattenerHelper

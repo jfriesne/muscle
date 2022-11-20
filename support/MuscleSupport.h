@@ -917,16 +917,44 @@ template<typename T> inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0
 
 #endif  /* __cplusplus */
 
-#if defined(__cplusplus) && (_MSC_VER >= 1400)
+#if defined(__cplusplus)
+
+#if defined(__clang__) || defined(__GNUC__)
+# define MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(stringIdx, firstVarArgIdx)  __attribute__ ((format (printf, stringIdx, firstVarArgIdx)))  ///< to allow printf()-style format-checking on function-arguments
+#else
+# define MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(stringIdx, firstVarArgIdx)
+#endif
+
+# if (_MSC_VER >= 1400)
 /** For MSVC, we provide CRT-friendly versions of these functions to avoid security warnings */
 # define muscleStrcpy   strcpy_s   /* Ooh, template magic! */
 # define muscleSprintf  sprintf_s  /* Ooh, template magic! */
 static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * fp; return (fopen_s(&fp, path, mode) == 0) ? fp : NULL;}
-#else
+# else
 /** Other OS's can use the usual functions instead. */
 # define muscleStrcpy   strcpy    /**< On Windows, this expands to strcpy_s to avoid security warnings; on other OS's it expands to plain old strcpy */
 # define muscleFopen    fopen     /**< On Windows, this expands to fopen_s to avoid security warnings; on other OS's it expands to plain old fopen */
-# define muscleSprintf  sprintf   /**< On Windows, this expands to sprintf_s to avoid security warnings; on other OS's it expands to plain old sprintf */
+
+/** A safer implementation of sprintf().
+  * @param buf The buffer to write characters into
+  * @param format the printf-style format-string to use when writing characters into (buf)
+  * @returns the number of characters written into (buf), not including the NUL terminator byte.
+  */
+template<size_t size>
+MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
+inline int muscleSprintf(char (&buf)[size], const char * format, ...)
+{
+   va_list args;
+   va_start(args, format);
+   const int ret = vsnprintf(buf, size, format, args);
+   va_end(args);
+   return muscleMin(ret, (int)(size-1));
+}
+# endif
+#else
+# define muscleStrcpy   strcpy    /**< On Windows, this expands to strcpy_s to avoid security warnings; on other OS's it expands to plain old strcpy */
+# define muscleFopen    fopen     /**< On Windows, this expands to fopen_s to avoid security warnings; on other OS's it expands to plain old fopen */
+# define muscleSprintf  sprintf
 #endif
 
 /** Same as strncpy(), except this version ensures that the destination buffer is NUL-terminated in all cases.
