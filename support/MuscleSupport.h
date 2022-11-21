@@ -695,21 +695,12 @@ template <typename T> inline T * broken_gcc_newnothrow_array(size_t count)
   */
 template <typename T> const T & GetDefaultObjectForType()
 {
-#ifdef MUSCLE_USE_CPLUSPLUS17
-   if constexpr (std::is_literal_type<T>::value)
-   {
-      static constexpr T _defaultObject = T();
-      return _defaultObject;
-   }
-   else
-   {
-      static const T _defaultObject;
-      return _defaultObject;
-   }
-#else
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
    static T _defaultObject;
-   return _defaultObject;
+#else
+   static const T _defaultObject{};
 #endif
+   return _defaultObject;
 }
 
 /** This function returns a reference to a read/write, default-constructed

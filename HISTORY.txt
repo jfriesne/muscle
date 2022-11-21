@@ -12,6 +12,9 @@ key:  - new feature
      with MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX so that the compiler
      will warn about calls to muscleSprintf() with the wrong format
      specifiers.
+   o Simplified the implementation of GetDefaultObjectForType() back
+     to one that compile under any version of C++.  We'll rely on
+     the optimizer to do the right thing, rather than SFINAE.
 
 9.01 - Released 11/18/2022
    - Added a WritePaddingBytesToAlignTo(uint32 alignSize)
