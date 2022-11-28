@@ -87,6 +87,7 @@ class MessageTransceiverThread(threading.Thread):
       self.__mainsocket   = None
       self.__threadsocket = None
       self.__preferIPv6   = preferIPv6
+      self._dummyByte     = bytes([ord("x")])
 
       # Used internally by the MessageTransceiverThread class, to clean up
       self._endSession = TimeForMessageTransceiverThreadToGoAwayException()
@@ -113,7 +114,10 @@ class MessageTransceiverThread(threading.Thread):
       and is typically called by your main thread of execution."""
 
       self.__outQ.put(msg, 0)
-      self.__mainsocket.send(bytes([ord("j")]))  # wake up the internal thread to check the Q
+      try:
+         self.__mainsocket.send(self._dummyByte)  # wake up the internal thread to check the Q
+      except:
+         pass  # Ignore EAGAIN exceptions, they don't matter
 
    def Destroy(self):
       """Shuts down the internal thread, closes any TCP connection and releases all held resources.
@@ -169,7 +173,10 @@ class MessageTransceiverThread(threading.Thread):
          the main thread if the main thread is blocking on that socket (via recv() or
          select() or whatnot).  However, if you wish to wake up the main thread using a
          different mechanism, feel free to override this method to do something more appropriate."""
-      self.__threadsocket.send(bytes([ord("t")]))
+      try:
+         self.__threadsocket.send(self._dummyByte)
+      except:
+         pass  # Ignore EAGAIN exceptions, they don't matter
 
    def run(self):
       """Entry point for the internal thread.  Don't call this method; call start() instead."""

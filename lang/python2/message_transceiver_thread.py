@@ -129,7 +129,10 @@ class MessageTransceiverThread(threading.Thread):
       and is typically called by your main thread of execution."""
 
       self.__outQ.put(msg, 0)
-      self.__mainsocket.send("j")  # wake up the internal thread to check the Q
+      try:
+         self.__mainsocket.send("j")  # wake up the internal thread to check the Q
+      except:
+         pass   # Ignore EAGAIN exceptions, they don't matter
 
    def Destroy(self):
       """Shuts down the internal thread, closes any TCP connection and releases all held resources.
@@ -185,7 +188,10 @@ class MessageTransceiverThread(threading.Thread):
          the main thread if the main thread is blocking on that socket (via recv() or
          select() or whatnot).  However, if you wish to wake up the main thread using a
          different mechanism, feel free to override this method to do something more appropriate."""
-      self.__threadsocket.send("t")
+      try:
+         self.__threadsocket.send("t")
+      except:
+         pass   # Ignore EAGAIN exceptions, they don't matter
 
    def run(self):
       """Entry point for the internal thread.  Don't call this method; call start() instead."""
