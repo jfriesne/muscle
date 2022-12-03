@@ -159,7 +159,7 @@ status_t Directory :: SetDir(const char * dirPath)
       if (_dirPtr == NULL)
       {
          Reset();  // to free and null-out _path
-         return B_ERRNO;
+         return B_FILE_NOT_FOUND;  // deliberately not calling B_ERRNO here because doing so caused misbehavior under an older compiler and I'm scared
       }
 
       (*this)++;   // make the first entry in the directory the current entry.
