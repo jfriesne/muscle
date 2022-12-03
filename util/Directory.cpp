@@ -145,11 +145,12 @@ status_t Directory :: SetDir(const char * dirPath)
    Reset();
    if (dirPath)
    {
-      const int pathLen = (int) strlen(dirPath);
-      const char * sep = GetFilePathSeparator();
-      const int sepLen = (int) strlen(sep);
+      const int pathLen    = (int) strlen(dirPath);
+      const char * sep     = GetFilePathSeparator();
+      const int sepLen     = (int) strlen(sep);
       const int extraBytes = ((pathLen<sepLen)||(strcmp(dirPath+pathLen-sepLen, sep) != 0)) ? sepLen : 0;
-      const int allocLen = pathLen+extraBytes+1;
+      const int allocLen   = pathLen+extraBytes+1;
+
       _path = newnothrow_array(char, allocLen);
       MRETURN_OOM_ON_NULL(_path);
       muscleStrncpy(_path, dirPath, allocLen);
@@ -159,7 +160,9 @@ status_t Directory :: SetDir(const char * dirPath)
       if (_dirPtr == NULL)
       {
          Reset();  // to free and null-out _path
-         return B_FILE_NOT_FOUND;  // deliberately not calling B_ERRNO here because doing so caused misbehavior under an older compiler and I'm scared
+
+         static const status_t _directoryNotFound("Directory not found");  // NOTE: this MUST a local static to avoid initialization-order problems (CS5-27) in D-Mitri
+         return _directoryNotFound;
       }
 
       (*this)++;   // make the first entry in the directory the current entry.
