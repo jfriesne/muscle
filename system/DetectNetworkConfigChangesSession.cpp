@@ -855,7 +855,7 @@ io_status_t DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageR
    struct iovec iov = {buf, sizeof(buf)};
    struct sockaddr_nl sa;
    struct msghdr msg = {(void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
-   const int msgLen = recvmsg(fd, &msg, 0);
+   int msgLen = recvmsg(fd, &msg, 0);
    if (msgLen >= 0)  // FogBugz #9620
    {
       for (struct nlmsghdr *nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, (unsigned int)msgLen); nh=NLMSG_NEXT(nh, msgLen))
