@@ -17,24 +17,20 @@ Win32FileHandleDataIO ::
    if (_handle != INVALID_HANDLE_VALUE) CloseHandle(_handle);
 }
 
-int32 Win32FileHandleDataIO :: Read(void * buffer, uint32 size)
+io_status_t Win32FileHandleDataIO :: Read(void * buffer, uint32 size)
 {
-   if (_handle != INVALID_HANDLE_VALUE)
-   {
-      DWORD readCount=0;
-      return ReadFile(_handle, buffer, size, &readCount, 0) ? readCount : -1;
-   }
-   else return -1;
+   if (_handle == INVALID_HANDLE_VALUE) return B_BAD_OBJECT;
+
+   DWORD readCount=0;
+   return ReadFile(_handle, buffer, size, &readCount, 0) ? io_status_t(readCount) : io_status_t(B_IO_ERROR);
 }
 
-int32 Win32FileHandleDataIO :: Write(const void * buffer, uint32 size)
+io_status_t Win32FileHandleDataIO :: Write(const void * buffer, uint32 size)
 {
-   if (_handle != INVALID_HANDLE_VALUE)
-   {
-      DWORD writeCount;
-      return WriteFile(_handle, buffer, size, &writeCount, 0) ? writeCount : -1;
-   }
-   else return -1;
+   if (_handle == INVALID_HANDLE_VALUE) return B_BAD_OBJECT;
+
+   DWORD writeCount;
+   return WriteFile(_handle, buffer, size, &writeCount, 0) ? io_status_t(writeCount) : io_status_t(B_IO_ERROR);
 }
 
 void Win32FileHandleDataIO :: FlushOutput()

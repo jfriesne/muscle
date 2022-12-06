@@ -44,7 +44,13 @@ public:
     *  @param size Number of bytes in the buffer.
     *  @return Number of bytes read, or -1 on error.
     */
-   virtual int32 Read(void * buffer, uint32 size) {return _socket ? _socket->readBlock((char *) buffer, size) : -1;}
+   virtual io_status_t Read(void * buffer, uint32 size)
+   {
+      if (_socket == NULL) return B_BAD_OBJECT;
+
+      const int ret = _socket->readBlock((char *) buffer, size);
+      return (ret >= 0) ? io_status_t(ret) : io_status_t(B_IO_ERROR);
+   }
 
    /** Takes (size) bytes from (buffer) and pushes them in to the
     *  outgoing I/O stream of the QSocket.  Returns the actual number of bytes
@@ -54,7 +60,13 @@ public:
     *  @param size Number of bytes in the buffer.
     *  @return Number of bytes written, or -1 on error.
     */
-   virtual int32 Write(const void * buffer, uint32 size) {return _socket ? _socket->writeBlock((char *) buffer, size) : -1;}
+   virtual io_status_t Write(const void * buffer, uint32 size)
+   {
+      if (_socket == NULL) return B_BAD_OBJECT;
+
+      const int ret = _socket->writeBlock((char *) buffer, size);
+      return (ret >= 0) ? io_status_t(ret) : io_status_t(B_IO_ERROR);
+   }
 
    /**
     * Flushes the output buffer, if possible.
