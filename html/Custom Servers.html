@@ -114,7 +114,7 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
    ReflectServer myServer;  // instantiate regular ReflectServer or your own subclass
    myServer.PutAcceptFactory(2960, ReflectSessionFactoryRef(new MySessionFactory));  // Whenever we get a connection on port 2960, use my factory to create a new session object
-   status_t ret = myServer.ServerProcessLoop();  // everything happens here!  Will not return for a long time (if ever!)
+   const status_t ret = myServer.ServerProcessLoop();  // everything happens here!  Will not return for a long time (if ever!)
    if (ret.IsOK()) printf("Server terminated normally.\n");
               else printf("Server exited with an error condition [%s]!\n", ret());
    myServer.Cleanup();

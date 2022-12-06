@@ -143,7 +143,7 @@ if (connectionSocket())
    QueueGatewayMessageReceiver inputQueue;
    while(1)
    {
-      int socketFD = connectionSocket.GetFileDescriptor();
+      const int socketFD = connectionSocket.GetFileDescriptor();
       multiplexer.RegisterSocketForReadReady(socketFD);  // tell WaitForEvents() to return when there are incoming bytes to read
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(socketFD);  // ditto for outgoing buffer space to write to
 
@@ -154,8 +154,8 @@ if (connectionSocket())
       }
 
       /* Do as much TCP I/O as possible without blocking */
-      bool writeError = ((multiplexer.IsSocketReadyForWrite(socketFD))&&(gw.DoOutput()         &lt; 0));
-      bool readError  = ((multiplexer.IsSocketReadyForRead(socketFD))&&(gw.DoInput(inputQueue) &lt; 0));
+      const bool writeError = ((multiplexer.IsSocketReadyForWrite(socketFD))&&(gw.DoOutput().IsError()));
+      const bool readError  = ((multiplexer.IsSocketReadyForRead(socketFD))&&(gw.DoInput(inputQueue).IsError()));
       if ((readError)||(writeError))
       {
          printf("%s error -- socket connection closed?  Aborting!\n", readError?"Read":"Write");

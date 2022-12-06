@@ -8,6 +8,7 @@ nav:
 - MUSCLE Naming Conventions: 'naming-conventions.md'
 
 - Core MUSCLE Classes:
+   - status_t: 'status_t.md'
    - String: 'string.md'
    - Queue: 'queue.md'
    - Hashtable: 'hashtable.md'
