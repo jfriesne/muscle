@@ -1005,14 +1005,14 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
          const size_t bytesRead = fread(buf, 1, sizeof(buf), fpIn);
          if ((bytesRead < sizeof(buf))&&(feof(fpIn) == false))
          {
-            ret = B_ERRNO;
+            ret = B_IO_ERROR;
             break;
          }
 
          const size_t bytesWritten = fwrite(buf, 1, bytesRead, fpOut);
          if (bytesWritten < bytesRead)
          {
-            ret = B_ERRNO;
+            ret = B_IO_ERROR;
             break;
          }
          if (feof(fpIn)) break;

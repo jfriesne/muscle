@@ -58,7 +58,7 @@ status_t FileDataIO :: Seek(int64 offset, int whence)
       case IO_SEEK_END:  whence = SEEK_END;  break;
       default:           return B_BAD_ARGUMENT;
    }
-   return (fseek(_file, (long) offset, whence) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (fseek(_file, (long) offset, whence) == 0) ? B_NO_ERROR : B_IO_ERROR;
 }
 
 int64 FileDataIO :: GetPosition() const
