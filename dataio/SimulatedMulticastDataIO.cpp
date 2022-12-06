@@ -252,6 +252,7 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    }
 
    ConstByteBufferRef buf = flat.GetByteBufferFromPool();
+   flat.MarkWritingComplete();  // avoid assertion failure due to us not writing out the entire buffer
    if (buf() == NULL) return B_OUT_OF_MEMORY;
 
    Queue<ConstByteBufferRef> * pq = _outgoingPacketsTable.GetOrPut(destIAP);
