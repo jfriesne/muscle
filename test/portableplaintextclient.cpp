@@ -54,14 +54,14 @@ int main(int argc, char ** argv)
          {
             while(1)
             {
-               const int32 bytesRead = stdinGateway.DoInput(stdinInQueue);
-               if (bytesRead < 0)
+               const io_status_t bytesRead = stdinGateway.DoInput(stdinInQueue);
+               if (bytesRead.IsError())
                {
                   printf("Stdin closed, exiting!\n");
                   s.Reset();  // break us out of the outer loop
                   break;
                }
-               else if (bytesRead == 0) break;  // no more to read
+               else if (bytesRead.GetByteCount() == 0) break;  // no more to read
             }
          }
 
@@ -81,8 +81,8 @@ int main(int argc, char ** argv)
 
          const bool reading = multiplexer.IsSocketReadyForRead(fd);
          const bool writing = multiplexer.IsSocketReadyForWrite(fd);
-         const bool writeError = ((writing)&&(gw.DoOutput() < 0));
-         const bool readError  = ((reading)&&(gw.DoInput(inQueue) < 0));
+         const bool writeError = ((writing)&&(gw.DoOutput().IsError()));
+         const bool readError  = ((reading)&&(gw.DoInput(inQueue).IsError()));
          if ((readError)||(writeError))
          {
             printf("Connection closed, exiting.\n");
@@ -110,7 +110,7 @@ int main(int argc, char ** argv)
    if (gw.HasBytesToOutput())
    {
       printf("Waiting for all pending messages to be sent...\n");
-      while((gw.HasBytesToOutput())&&(gw.DoOutput() >= 0)) {printf ("."); fflush(stdout);}
+      while((gw.HasBytesToOutput())&&(gw.DoOutput().IsOK())) {printf ("."); fflush(stdout);}
    }
    printf("\n\nBye!\n");
    return 0;

@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
 
    char buf[1024];
    int numBytesRead;
-   while((numBytesRead = stdinIO.Read(buf, sizeof(buf))) > 0)
+   while((numBytesRead = stdinIO.Read(buf, sizeof(buf)).GetByteCount()) > 0)
    {
       printf("Read %i bytes from stdin--writing them to the output file.\n", numBytesRead);
       if (fileOutputIO.Write(buf, numBytesRead) != numBytesRead) printf("Write to the output file failed!?\n");

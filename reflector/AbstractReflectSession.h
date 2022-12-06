@@ -262,14 +262,14 @@ public:
      * @param maxBytes Maximum number of bytes to read before returning.
      * @returns The total number of bytes read, or -1 if there was a fatal error.
      */
-   virtual int32 DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes);
+   virtual io_status_t DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes);
 
    /** Called by the ReflectServer when it wants us to push some more bytes out to our client.
      * Default implementation simply calls DoOutput() on our Gateway object (if any).
      * @param maxBytes Maximum number of bytes to write before returning.
      * @returns The total number of bytes written, or -1 if there was a fatal error.
      */
-   virtual int32 DoOutput(uint32 maxBytes);
+   virtual io_status_t DoOutput(uint32 maxBytes);
 
    /** Socket factory method.  This method is called by AddNewSession() when
     *  no valid Socket was supplied as an argument to the AddNewSession() call.

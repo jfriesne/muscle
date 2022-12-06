@@ -22,7 +22,7 @@ public:
    virtual ~SignalHandlerSession() {/* empty */}
 
    virtual ConstSocketRef CreateDefaultSocket();
-   virtual int32 DoInput(AbstractGatewayMessageReceiver &, uint32);
+   virtual io_status_t DoInput(AbstractGatewayMessageReceiver &, uint32);
    virtual void MessageReceivedFromGateway(const MessageRef &, void *) {/* empty */}
    virtual status_t AttachedToServer();
    virtual void AboutToDetachFromServer();

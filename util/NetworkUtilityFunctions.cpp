@@ -288,64 +288,76 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRe
    return ConstSocketRef();  // failure
 }
 
-int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
+io_status_t ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
 {
    const int fd = sock.GetFileDescriptor();
-   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(fd, (char *)buffer, size, 0L), size, bm) : -1;
+   if (fd < 0) return B_BAD_ARGUMENT;
+
+   const int32 ret = ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(fd, (char *)buffer, size, 0L), size, bm);
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 }
 
-int32 ReadData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
+io_status_t ReadData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
 {
 #ifdef WIN32
    return ReceiveData(sock, buffer, size, bm);  // Windows doesn't support read(), only recv()
 #else
    const int fd = sock.GetFileDescriptor();
-   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(read_ignore_eintr(fd, (char *)buffer, size), size, bm) : -1;
+   if (fd < 0) return B_BAD_ARGUMENT;
+
+   const int32 ret = ConvertReturnValueToMuscleSemantics(read_ignore_eintr(fd, (char *)buffer, size), size, bm);
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 #endif
 }
 
-int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm, IPAddress * optFromIP, uint16 * optFromPort)
+io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm, IPAddress * optFromIP, uint16 * optFromPort)
 {
    const int fd = sock.GetFileDescriptor();
-   if (fd >= 0)
+   if (fd < 0) return B_BAD_ARGUMENT;
+
+   long r;
+   if ((optFromIP)||(optFromPort))
    {
-      long r;
-      if ((optFromIP)||(optFromPort))
+      DECLARE_SOCKADDR(fromAddr, NULL, 0);
+      muscle_socklen_t fromAddrLen = sizeof(fromAddr);
+      r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
+      if (r >= 0)
       {
-         DECLARE_SOCKADDR(fromAddr, NULL, 0);
-         muscle_socklen_t fromAddrLen = sizeof(fromAddr);
-         r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
-         if (r >= 0)
-         {
-            if (optFromIP) GET_SOCKADDR_IP(fromAddr, *optFromIP);
-            if (optFromPort) *optFromPort = GET_SOCKADDR_PORT(fromAddr);
-         }
+         if (optFromIP) GET_SOCKADDR_IP(fromAddr, *optFromIP);
+         if (optFromPort) *optFromPort = GET_SOCKADDR_PORT(fromAddr);
       }
-      else r = recv_ignore_eintr(fd, (char *)buffer, size, 0L);
-
-      if (r == 0) return 0;  // for UDP, zero is a valid recv() size, since there is no EOS
-      return ConvertReturnValueToMuscleSemantics(r, size, bm);
    }
-   else return -1;
+   else r = recv_ignore_eintr(fd, (char *)buffer, size, 0L);
+
+   if (r == 0) return io_status_t();  // for UDP, zero is a valid recv() size, since there is no EOS
+
+   const int32 ret = ConvertReturnValueToMuscleSemantics(r, size, bm);
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 }
 
-int32 SendData(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm)
+io_status_t SendData(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm)
 {
    const int fd = sock.GetFileDescriptor();
-   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(send_ignore_eintr(fd, (const char *)buffer, size, 0L), size, bm) : -1;
+   if (fd < 0) return B_BAD_ARGUMENT;
+
+   const int32 ret = ConvertReturnValueToMuscleSemantics(send_ignore_eintr(fd, (const char *)buffer, size, 0L), size, bm);
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 }
 
-int32 WriteData(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm)
+io_status_t WriteData(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm)
 {
 #ifdef WIN32
    return SendData(sock, buffer, size, bm);  // Windows doesn't support write(), only send()
 #else
    const int fd = sock.GetFileDescriptor();
-   return (fd >= 0) ? ConvertReturnValueToMuscleSemantics(write_ignore_eintr(fd, (const char *)buffer, size), size, bm) : -1;
+   if (fd < 0) return B_BAD_ARGUMENT;
+
+   const int32 ret = ConvertReturnValueToMuscleSemantics(write_ignore_eintr(fd, (const char *)buffer, size), size, bm);
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 #endif
 }
 
-int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm, const IPAddress & optToIP, uint16 optToPort)
+io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm, const IPAddress & optToIP, uint16 optToPort)
 {
 #ifdef DEBUG_SENDING_UDP_PACKETS_ON_INTERFACE_ZERO
    if ((optToIP != invalidIP)&&(optToIP.IsInterfaceIndexValid() == false)&&(optToIP.IsIPv4() == false)&&(optToIP.IsStandardLoopbackDeviceAddress() == false))
@@ -360,63 +372,63 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size,
 #endif
 
    const int fd = sock.GetFileDescriptor();
-   if (fd >= 0)
+   if (fd < 0) return B_BAD_ARGUMENT;
+
+#ifdef MUSCLE_USE_IFIDX_WORKAROUND
+   int oldInterfaceIndex = -1;  // and remember to set it back afterwards
+#endif
+
+   long s;
+   if ((optToPort)||(optToIP != invalidIP))
    {
-#ifdef MUSCLE_USE_IFIDX_WORKAROUND
-      int oldInterfaceIndex = -1;  // and remember to set it back afterwards
-#endif
-
-      long s;
-      if ((optToPort)||(optToIP != invalidIP))
+      DECLARE_SOCKADDR(toAddr, NULL, 0);
+      if ((optToPort == 0)||(optToIP == invalidIP))
       {
-         DECLARE_SOCKADDR(toAddr, NULL, 0);
-         if ((optToPort == 0)||(optToIP == invalidIP))
-         {
-            // Fill in the values with our socket's current target-values, as defaults
-            muscle_socklen_t length = sizeof(sockaddr_in);
-            if ((getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0)||(GET_SOCKADDR_FAMILY(toAddr) != MUSCLE_SOCKET_FAMILY)) return -1;
-         }
+         // Fill in the values with our socket's current target-values, as defaults
+         muscle_socklen_t length = sizeof(sockaddr_in);
+         if (getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0) return B_ERRNO;
+         if (GET_SOCKADDR_FAMILY(toAddr) != MUSCLE_SOCKET_FAMILY) return B_BAD_OBJECT;
+      }
 
-         if (optToIP != invalidIP)
-         {
-            SET_SOCKADDR_IP(toAddr, optToIP);
+      if (optToIP != invalidIP)
+      {
+         SET_SOCKADDR_IP(toAddr, optToIP);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
-            // Work-around for MacOS/X problem (?) where the interface index in the specified IP address doesn't get used
-            if ((optToIP.IsInterfaceIndexValid())&&(optToIP.IsMulticast()))
+         // Work-around for MacOS/X problem (?) where the interface index in the specified IP address doesn't get used
+         if ((optToIP.IsInterfaceIndexValid())&&(optToIP.IsMulticast()))
+         {
+            const int         oidx = GetSocketMulticastSendInterfaceIndex(sock);
+            const uint32 actualIdx = optToIP.GetInterfaceIndex();
+            if (oidx != ((int)actualIdx))
             {
-               const int         oidx = GetSocketMulticastSendInterfaceIndex(sock);
-               const uint32 actualIdx = optToIP.GetInterfaceIndex();
-               if (oidx != ((int)actualIdx))
-               {
-                  // temporarily set the socket's interface index to the desired one
-                  if (SetSocketMulticastSendInterfaceIndex(sock, actualIdx).IsError()) return -1;
-                  oldInterfaceIndex = oidx;  // and remember to set it back afterwards
-               }
+               // temporarily set the socket's interface index to the desired one
+               MRETURN_ON_ERROR(SetSocketMulticastSendInterfaceIndex(sock, actualIdx));
+               oldInterfaceIndex = oidx;  // and remember to set it back afterwards
             }
-#endif
          }
-         if (optToPort) SET_SOCKADDR_PORT(toAddr, optToPort);
-         s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
-      }
-      else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
-
-      if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
-
-#ifdef MUSCLE_USE_IFIDX_WORKAROUND
-      const int errnoFromSendCall = GetErrno();
 #endif
-
-      const int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
-#ifdef MUSCLE_USE_IFIDX_WORKAROUND
-      if (oldInterfaceIndex >= 0)
-      {
-         (void) SetSocketMulticastSendInterfaceIndex(sock, oldInterfaceIndex);  // gotta do this AFTER computing the return value, as it clears errno!
-         SetErrno(errnoFromSendCall);  // restore the errno from the send_ignore_eintr() call, in case our calling code wants to examine it
       }
-#endif
-      return ret;
+      if (optToPort) SET_SOCKADDR_PORT(toAddr, optToPort);
+      s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
    }
-   else return -1;
+   else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
+
+   if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
+
+#ifdef MUSCLE_USE_IFIDX_WORKAROUND
+   const int errnoFromSendCall = GetErrno();
+#endif
+
+   const int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
+#ifdef MUSCLE_USE_IFIDX_WORKAROUND
+   if (oldInterfaceIndex >= 0)
+   {
+      (void) SetSocketMulticastSendInterfaceIndex(sock, oldInterfaceIndex);  // gotta do this AFTER computing the return value, as it clears errno!
+      SetErrno(errnoFromSendCall);  // restore the errno from the send_ignore_eintr() call, in case our calling code wants to examine it
+   }
+#endif
+
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 }
 
 status_t ShutdownSocket(const ConstSocketRef & sock, bool dRecv, bool dSend)

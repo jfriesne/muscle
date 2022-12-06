@@ -30,8 +30,8 @@ public:
    /** Destructor. */
    virtual ~ProxyDataIO() {/* empty */}
 
-   virtual int32 Read(void * buffer, uint32 size) {return _childIO() ? _childIO()->Read(buffer, size) : -1;}
-   virtual int32 Write(const void * buffer, uint32 size) {return _childIO() ? _childIO()->Write(buffer, size) : -1;}
+   virtual io_status_t Read(void * buffer, uint32 size) {return _childIO() ? _childIO()->Read(buffer, size) : -1;}
+   virtual io_status_t Write(const void * buffer, uint32 size) {return _childIO() ? _childIO()->Write(buffer, size) : -1;}
    virtual uint64 GetOutputStallLimit() const {return _childIO() ? _childIO()->GetOutputStallLimit() : MUSCLE_TIME_NEVER;}
 
    virtual void FlushOutput() {if (_childIO()) _childIO()->FlushOutput();}
@@ -52,8 +52,8 @@ public:
    virtual const IPAddressAndPort & GetPacketSendDestination() const  {return _packetChildIO ? _packetChildIO->GetPacketSendDestination()  : GetDefaultObjectForType<IPAddressAndPort>();}
    virtual status_t SetPacketSendDestination(const IPAddressAndPort & iap) {return _packetChildIO ? _packetChildIO->SetPacketSendDestination(iap) : B_BAD_OBJECT;}
    virtual uint32 GetMaximumPacketSize() const {return _packetChildIO ? _packetChildIO->GetMaximumPacketSize() : 0;}
-   virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource) {return _packetChildIO ? _packetChildIO->ReadFrom(buffer, size, retPacketSource) : -1;}
-   virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) {return _packetChildIO ? _packetChildIO->WriteTo(buffer, size, packetDest) : -1;}
+   virtual io_status_t ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource) {return _packetChildIO ? _packetChildIO->ReadFrom(buffer, size, retPacketSource) : -1;}
+   virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) {return _packetChildIO ? _packetChildIO->WriteTo(buffer, size, packetDest) : -1;}
 
    /** Returns a reference to our held child DataIO (if any) */
    const DataIORef & GetChildDataIO() const {return _childIO;}

@@ -11,17 +11,17 @@ AsyncDataIO :: ~AsyncDataIO()
    ShutdownInternalThread();
 }
 
-int32 AsyncDataIO :: Read(void * buffer, uint32 size)
+io_status_t AsyncDataIO :: Read(void * buffer, uint32 size)
 {
-   if (IsInternalThreadRunning() == false) {LogTime(MUSCLE_LOG_ERROR, "StartInternalThread() must be called before calling AsyncDataIO::Read()!\n"); return -1;}
+   if (IsInternalThreadRunning() == false) {LogTime(MUSCLE_LOG_ERROR, "StartInternalThread() must be called before calling AsyncDataIO::Read()!\n"); return B_BAD_OBJECT;}
    return ReceiveData(GetOwnerWakeupSocket(), buffer, size, false);
 }
 
-int32 AsyncDataIO :: Write(const void * buffer, uint32 size)
+io_status_t AsyncDataIO :: Write(const void * buffer, uint32 size)
 {
-   if (IsInternalThreadRunning() == false) {LogTime(MUSCLE_LOG_ERROR, "StartInternalThread() must be called before calling AsyncDataIO::Write()!\n"); return -1;}
-   const int32 ret = SendData(GetOwnerWakeupSocket(), buffer, size, false);
-   if (ret > 0) _mainThreadBytesWritten += ret;  // we count the bytes written, so that Seek()/Flush()/Shutdown() commands can be re-spliced into the stream later if necessary
+   if (IsInternalThreadRunning() == false) {LogTime(MUSCLE_LOG_ERROR, "StartInternalThread() must be called before calling AsyncDataIO::Write()!\n"); return B_BAD_OBJECT;}
+   const io_status_t ret = SendData(GetOwnerWakeupSocket(), buffer, size, false);
+   if (ret.IsOK()) _mainThreadBytesWritten += ret.GetByteCount();  // we count the bytes written, so that Seek()/Flush()/Shutdown() commands can be re-spliced into the stream later if necessary
    return ret;
 }
 
@@ -136,7 +136,7 @@ void AsyncDataIO :: InternalThreadEntry()
       if ((notifyFD >= 0)&&(multiplexer.IsSocketReadyForRead(notifyFD)))
       {
          char junk[128];
-         if (ReceiveData(_ioThreadNotifySocket, junk, sizeof(junk), false) < 0) break;
+         if (ReceiveData(_ioThreadNotifySocket, junk, sizeof(junk), false).IsError()) break;
       }
 
       // Determine how many bytes until the next command in the output stream (we want them to be executed at the same point
@@ -163,7 +163,7 @@ void AsyncDataIO :: InternalThreadEntry()
          // Read the data from the child FD, into our from-child buffer
          if ((childReadFD >= 0)&&(fromChildIOBufNumValid < sizeof(fromChildIOBuf))&&(multiplexer.IsSocketReadyForRead(childReadFD)))
          {
-            const int32 bytesRead = ProxyDataIO::Read(&fromChildIOBuf[fromChildIOBufNumValid], sizeof(fromChildIOBuf)-fromChildIOBufNumValid);
+            const int32 bytesRead = ProxyDataIO::Read(&fromChildIOBuf[fromChildIOBufNumValid], sizeof(fromChildIOBuf)-fromChildIOBufNumValid).GetByteCount();
             if (bytesRead >= 0) fromChildIOBufNumValid += bytesRead;
                            else break;
          }
@@ -174,7 +174,7 @@ void AsyncDataIO :: InternalThreadEntry()
             const uint32 bytesToWriteToChild = muscleMin(bytesUntilNextCommand, fromMainThreadBufNumValid-fromMainThreadBufReadIdx);
             if ((bytesToWriteToChild > 0)&&(multiplexer.IsSocketReadyForWrite(childWriteFD)))
             {
-               const int32 bytesWritten = ProxyDataIO::Write(&fromMainThreadBuf[fromMainThreadBufReadIdx], bytesToWriteToChild);
+               const int32 bytesWritten = ProxyDataIO::Write(&fromMainThreadBuf[fromMainThreadBufReadIdx], bytesToWriteToChild).GetByteCount();
                if (bytesWritten >= 0)
                {
                   ioThreadBytesWritten         += bytesWritten;
@@ -191,7 +191,7 @@ void AsyncDataIO :: InternalThreadEntry()
             // Read the data from the main thread's socket, into our from-main-thread buffer
             if ((fromMainThreadBufNumValid < sizeof(fromMainThreadBuf))&&(multiplexer.IsSocketReadyForRead(fromMainFD)))
             {
-               const int32 bytesRead = ReceiveData(GetInternalThreadWakeupSocket(), &fromMainThreadBuf[fromMainThreadBufNumValid], sizeof(fromMainThreadBuf)-fromMainThreadBufNumValid, false);
+               const int32 bytesRead = ReceiveData(GetInternalThreadWakeupSocket(), &fromMainThreadBuf[fromMainThreadBufNumValid], sizeof(fromMainThreadBuf)-fromMainThreadBufNumValid, false).GetByteCount();
                if (bytesRead >= 0) fromMainThreadBufNumValid += bytesRead;
                               else exitWhenDoneWriting = true;
             }
@@ -199,7 +199,7 @@ void AsyncDataIO :: InternalThreadEntry()
             // Write the data from our from-child-IO buffer, to the main thread's socket
             if ((fromChildIOBufReadIdx < fromChildIOBufNumValid)&&(multiplexer.IsSocketReadyForWrite(fromMainFD)))
             {
-               const int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromChildIOBuf[fromChildIOBufReadIdx], fromChildIOBufNumValid-fromChildIOBufReadIdx, false);
+               const int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromChildIOBuf[fromChildIOBufReadIdx], fromChildIOBufNumValid-fromChildIOBufReadIdx, false).GetByteCount();
                if (bytesWritten >= 0)
                {
                   fromChildIOBufReadIdx += bytesWritten;

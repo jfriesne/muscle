@@ -58,14 +58,14 @@ int main(int argc, char ** argv)
       if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetFileDescriptor()))
       {
          char inputBuf[1024];
-         const int numBytesRead = stdinIO.Read(inputBuf, sizeof(inputBuf));
-         if (numBytesRead >= 0)
+         const io_status_t numBytesRead = stdinIO.Read(inputBuf, sizeof(inputBuf));
+         if (numBytesRead.IsOK())
          {
-            printf("Read %i bytes from stdin, forwarding them to the child process.\n", numBytesRead);
-            const int numBytesWritten = cpIO.Write(inputBuf, numBytesRead);
+            printf("Read %i bytes from stdin, forwarding them to the child process.\n", numBytesRead.GetByteCount());
+            const io_status_t numBytesWritten = cpIO.Write(inputBuf, numBytesRead.GetByteCount());
             if (numBytesWritten != numBytesRead)
             {
-               printf("Error writing to the child process!\n");
+               printf("Error writing to the child process! [%s]\n", numBytesWritten.GetStatus()());
             }
          }
          else break;  // EOF on stdin; time to go away
@@ -75,15 +75,15 @@ int main(int argc, char ** argv)
       if (sm.IsSocketReadyForRead(cpIO.GetReadSelectSocket().GetFileDescriptor()))
       {
          char inputBuf[1024];
-         const int numBytesRead = cpIO.Read(inputBuf, sizeof(inputBuf)-1);
-         if (numBytesRead >= 0)
+         const io_status_t numBytesRead = cpIO.Read(inputBuf, sizeof(inputBuf)-1);
+         if (numBytesRead.IsOK())
          {
-            inputBuf[numBytesRead] = '\0';  // ensure NUL termination
+            inputBuf[numBytesRead.GetByteCount()] = '\0';  // ensure NUL termination
             printf("Child Process sent this to me: [%s]\n", String(inputBuf).Trim()());
          }
          else
          {
-            printf("Child process has exited!\n");
+            printf("Child process has exited! [%s]\n", numBytesRead.GetStatus()());
             break;
          }
       }

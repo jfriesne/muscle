@@ -30,9 +30,9 @@ MiniPacketTunnelIOGateway :: MiniPacketTunnelIOGateway(const AbstractMessageIOGa
    // empty
 }
 
-int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
+io_status_t MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
-   if (_inputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;
+   MRETURN_ON_ERROR(_inputPacketBuffer.SetNumBytes(_maxTransferUnit, false));
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    ByteBufferRef infBuf;
@@ -44,22 +44,22 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
    {
       firstTime = false;
 
-      const int32 bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
-      if (bytesRead > 0)
+      const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
+      if (bytesRead.GetByteCount() > 0)
       {
-         totalBytesRead += bytesRead;
+         totalBytesRead += bytesRead.GetByteCount();
 
          IPAddressAndPort fromIAP;
          const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
          if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
 
-         DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead);
-         if ((_allowMiscData)&&((bytesRead < (int32)PACKET_HEADER_SIZE)||(DefaultEndianConverter::Import<uint32>(_inputPacketBuffer.GetBuffer()) != _magic)))
+         DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount());
+         if ((_allowMiscData)&&((bytesRead.GetByteCount() < (int32)PACKET_HEADER_SIZE)||(DefaultEndianConverter::Import<uint32>(_inputPacketBuffer.GetBuffer()) != _magic)))
          {
             // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
-            HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead, fromIAP);
+            HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount(), fromIAP);
          }
-         else if (bytesRead >= (int32)PACKET_HEADER_SIZE)
+         else if (bytesRead.GetByteCount() >= (int32)PACKET_HEADER_SIZE)
          {
             // Read the packet header
             const uint32 magic    = unflat.ReadInt32();
@@ -115,15 +115,15 @@ int32 MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageR
             }
          }
       }
-      else if (bytesRead < 0) return -1;
+      else if (bytesRead.GetByteCount() < 0) return bytesRead;
       else break;
    }
    return totalBytesRead;
 }
 
-int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
+io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 {
-   if (_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;  // _outputPacketBuffer.GetNumBytes() should be _maxTransferUnit at all times
+   MRETURN_ON_ERROR(_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false));  // _outputPacketBuffer.GetNumBytes() should be _maxTransferUnit at all times
 
    DataFlattener flat(_outputPacketBuffer.GetBuffer(), _outputPacketBuffer.GetNumBytes());
    (void) flat.SeekRelative(_outputPacketSize);  // skip past any bytes that are already present in _outputPacketBuffer from previously
@@ -207,16 +207,16 @@ int32 MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 #endif
 
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
-         const int32 bytesWritten = GetDataIO()() ? GetDataIO()()->Write(writeBuf, writeSize) : -1;
-         if (bytesWritten > 0)
+         const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(writeBuf, writeSize) : io_status_t(B_BAD_OBJECT);
+         if (bytesWritten.GetByteCount() > 0)
          {
-            if (bytesWritten != (int32)writeSize) LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten, writeSize);
-            totalBytesWritten += bytesWritten;
-            flat.SeekTo(0);
+            if (bytesWritten.GetByteCount() != (int32)writeSize) LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), writeSize);
+            totalBytesWritten += bytesWritten.GetByteCount();
+            (void) flat.SeekTo(0);
             _sendPacketIDCounter = (_sendPacketIDCounter+1)%16777216;  // 24-bit counter
          }
-         else if (bytesWritten == 0) break;  // no more space to write, for now
-         else return -1;
+         else if (bytesWritten.GetByteCount() == 0) break;  // no more space to write, for now
+         else return bytesWritten;
       }
       else break;  // nothing more to do!
    }

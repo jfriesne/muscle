@@ -96,13 +96,13 @@ int main(int argc, char ** argv)
          if (multiplexer.IsSocketReadyForRead(receivers[i].GetFileDescriptor()))
          {
             char buf[64];
-            const int32 numBytesReceived = ReceiveData(receivers[i], buf, sizeof(buf), false);
-            if (quiet == false) printf("Receiver #" UINT32_FORMAT_SPEC " signalled ready-for-read, read " INT32_FORMAT_SPEC " bytes.\n", i, numBytesReceived);
-            if (numBytesReceived > 0)
+            const io_status_t numBytesReceived = ReceiveData(receivers[i], buf, sizeof(buf), false);
+            if (quiet == false) printf("Receiver #" UINT32_FORMAT_SPEC " signalled ready-for-read, read " INT32_FORMAT_SPEC " bytes.\n", i, numBytesReceived.GetByteCount());
+            if (numBytesReceived.GetByteCount() > 0)
             {
                const uint32 nextIdx = (i+1)%numPairs;
-               const int32 sentBytes = SendData(senders[nextIdx], buf, numBytesReceived, false);
-               if (quiet == false) printf("Sent " INT32_FORMAT_SPEC " bytes on sender #" UINT32_FORMAT_SPEC "\n", sentBytes, nextIdx);
+               const io_status_t sentBytes = SendData(senders[nextIdx], buf, numBytesReceived.GetByteCount(), false);
+               if (quiet == false) printf("Sent " INT32_FORMAT_SPEC " bytes on sender #" UINT32_FORMAT_SPEC " [%s]\n", sentBytes.GetByteCount(), nextIdx, sentBytes.GetStatus()());
             }
          }
       }

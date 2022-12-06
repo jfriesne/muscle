@@ -58,8 +58,8 @@ int main(int argc, char ** argv)
             gw.AddOutgoingMessage(smsg);
          }
 
-         const bool writeError = ((writing)&&(gw.DoOutput() < 0));
-         const bool readError  = ((reading)&&(gw.DoInput(inQueue) < 0));
+         const bool writeError = ((writing)&&(gw.DoOutput().IsError()));
+         const bool readError  = ((reading)&&(gw.DoInput(inQueue).IsError()));
          if ((readError)||(writeError))
          {
             printf("Connection closed, exiting.\n");

@@ -56,8 +56,8 @@ public:
    bool HasBufferedIncomingText() const {return _incomingText.HasChars();}
 
 protected:
-   virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
-   virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
+   virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
+   virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
 
    /** Called after each block of data is read from the IO device.  Default implementation
      * is a no-op.  A subclass may override this to modify the input data, if necessary.
@@ -68,7 +68,7 @@ protected:
    virtual void FilterInputBuffer(char * buf, uint32 & bufLen, uint32 maxLen);
 
 private:
-   int32 DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth);
+   io_status_t DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth);
    MessageRef AddIncomingText(const MessageRef & msg, const char * s);
 
    MessageRef _currentSendingMessage;

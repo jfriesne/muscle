@@ -28,7 +28,7 @@ public:
     *  @param size Number of bytes in the buffer.
     *  @return Number of bytes read, or -1 on error.
     */
-   virtual int32 Read(void * buffer, uint32 size) = 0;
+   virtual io_status_t Read(void * buffer, uint32 size) = 0;
 
    /** Takes (size) bytes from (buffer) and pushes them in to the
     *  outgoing I/O stream.  Returns the actual number of bytes
@@ -38,7 +38,7 @@ public:
     *  @param size Number of bytes in the buffer.
     *  @return Number of bytes written, or -1 on error.
     */
-   virtual int32 Write(const void * buffer, uint32 size) = 0;
+   virtual io_status_t Write(const void * buffer, uint32 size) = 0;
 
    /**
     * Returns the max number of microseconds to allow

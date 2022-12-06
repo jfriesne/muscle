@@ -38,7 +38,7 @@ public:
     *  @return Number of bytes read, or -1 on error.
     *  @see DataIO::Read()
     */
-   virtual int32 Read(void * buffer, uint32 size);
+   virtual io_status_t Read(void * buffer, uint32 size);
 
    /** Takes bytes from (buffer) and writes them out to our file.
     *  @param buffer Buffer to read the bytes from.
@@ -46,7 +46,7 @@ public:
     *  @return Number of bytes written, or -1 on error.
     *  @see DataIO::Write()
     */
-   virtual int32 Write(const void * buffer, uint32 size);
+   virtual io_status_t Write(const void * buffer, uint32 size);
 
    /** Seeks to the specified point in the file.
     *  @note this subclass only supports 32-bit offsets.

@@ -77,16 +77,16 @@ int main(int argc, char ** argv)
       if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetFileDescriptor()))
       {
          char inputBuf[1024];
-         const int numBytesRead = stdinIO.Read(inputBuf, sizeof(inputBuf));
-         if (numBytesRead >= 0)
+         const io_status_t numBytesRead = stdinIO.Read(inputBuf, sizeof(inputBuf));
+         if (numBytesRead.IsOK())
          {
-            printf("Read %i bytes from stdin, forwarding them to " UINT32_FORMAT_SPEC " TCP clients.\n", numBytesRead, tcpClients.GetNumItems());
+            printf("Read %i bytes from stdin, forwarding them to " UINT32_FORMAT_SPEC " TCP clients.\n", numBytesRead.GetByteCount(), tcpClients.GetNumItems());
             for (HashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
             {
-               const int numBytesWritten = iter.GetKey()()->Write(inputBuf, numBytesRead);
+               const io_status_t numBytesWritten = iter.GetKey()()->Write(inputBuf, numBytesRead.GetByteCount());
                if (numBytesWritten != numBytesRead)
                {
-                  printf("Error writing to TCP client %p\n", iter.GetKey()());
+                  printf("Error [%s] writing to TCP client %p\n", numBytesWritten.GetStatus()(), iter.GetKey()());
                }
             }
          }
@@ -100,15 +100,15 @@ int main(int argc, char ** argv)
          if (sm.IsSocketReadyForRead(clientIO->GetReadSelectSocket().GetFileDescriptor()))
          {
             char inputBuf[1024];
-            const int numBytesRead = clientIO->Read(inputBuf, sizeof(inputBuf)-1);
-            if (numBytesRead >= 0)
+            const io_status_t numBytesRead = clientIO->Read(inputBuf, sizeof(inputBuf)-1);
+            if (numBytesRead.IsOK())
             {
-               inputBuf[numBytesRead] = '\0';  // ensure NUL termination
+               inputBuf[numBytesRead.GetByteCount()] = '\0';  // ensure NUL termination
                printf("TCP client %p:  sent this to me: [%s]\n", clientIO, String(inputBuf).Trim()());
             }
             else
             {
-               printf("TCP client %p closed his connection to the server.\n", clientIO);
+               printf("TCP client %p closed his connection to the server. [%s]\n", clientIO, numBytesRead.GetStatus()());
                (void) tcpClients.Remove(iter.GetKey());  // buh-bye
             }
          }

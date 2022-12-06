@@ -49,8 +49,9 @@ int main(int argc, char ** argv)
    if (targetPort > 0)
    {
       const uint8 serveBuf[] = "Serve!";
-      const int numBytesSent = SendDataUDP(udpSock, serveBuf, sizeof(serveBuf), true, localhostIP, targetPort);
-      LogTime(MUSCLE_LOG_INFO, "Serve:  Sent %i/%zu bytes of serve-packet to [%s]\n", numBytesSent, sizeof(serveBuf), IPAddressAndPort(localhostIP, targetPort).ToString()());
+      const io_status_t numBytesSent = SendDataUDP(udpSock, serveBuf, sizeof(serveBuf), true, localhostIP, targetPort);
+      if (numBytesSent.IsOK()) LogTime(MUSCLE_LOG_INFO, "Serve:  Sent %i/%zu bytes of serve-packet to [%s]\n", numBytesSent.GetByteCount(), sizeof(serveBuf), IPAddressAndPort(localhostIP, targetPort).ToString()());
+                          else LogTime(MUSCLE_LOG_ERROR, "Serve:  Error [%s] sending %zu bytes of serve-packet to [%s]\n", numBytesSent.GetStatus()(), sizeof(serveBuf), IPAddressAndPort(localhostIP, targetPort).ToString()());
    }
    else LogTime(MUSCLE_LOG_WARNING, "No target port argument specified.  To serve the ball, specify a target port number as an argument.\n");
 
@@ -58,7 +59,7 @@ int main(int argc, char ** argv)
    int numBytesReceived;
    IPAddress sourceIP;
    uint16 sourcePort;
-   while((numBytesReceived = ReceiveDataUDP(udpSock, recvBuf, sizeof(recvBuf)-1, true, &sourceIP, &sourcePort)) >= 0)
+   while((numBytesReceived = ReceiveDataUDP(udpSock, recvBuf, sizeof(recvBuf)-1, true, &sourceIP, &sourcePort).GetByteCount()) >= 0)
    {
       const IPAddressAndPort fromIAP(sourceIP, sourcePort);  // just for convenience
 
@@ -74,8 +75,9 @@ int main(int argc, char ** argv)
          s = String("Return #%1").Arg(returnNum);
       }
 
-      const int numBytesSent = SendDataUDP(udpSock, s(), s.Length()+1, true, sourceIP, sourcePort);
-      LogTime(MUSCLE_LOG_INFO, "Sent %i bytes of data to [%s]:  [%s]\n", numBytesSent, fromIAP.ToString()(), s());
+      const io_status_t numBytesSent = SendDataUDP(udpSock, s(), s.Length()+1, true, sourceIP, sourcePort);
+      if (numBytesSent.IsOK()) LogTime(MUSCLE_LOG_INFO, "Sent %i/%u bytes of data to [%s]:  [%s]\n", numBytesSent.GetByteCount(), s.Length()+1, fromIAP.ToString()(), s());
+                          else LogTime(MUSCLE_LOG_ERROR, "Error [%s] sending %u bytes of data to [%s]:  [%s]\n", numBytesSent.GetStatus()(), s.Length()+1, fromIAP.ToString()(), s());
 
       Snooze64(MillisToMicros(100));  // otherwise the ping-ponging goes too fast for my taste
    }

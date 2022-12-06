@@ -69,21 +69,22 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Receiving packetized data...\n");
       while(1)
       {
-         const int32 numBytesRead = pack.Read(buf.GetBuffer(), buf.GetNumBytes());
-         if (numBytesRead < 0)
+         const io_status_t numBytesRead = pack.Read(buf.GetBuffer(), buf.GetNumBytes());
+         if (numBytesRead.IsError())
          {
-            LogTime(MUSCLE_LOG_ERROR, "Connection closed!\n");
+            LogTime(MUSCLE_LOG_ERROR, "Connection closed! [%s]\n", numBytesRead.GetStatus()());
             break;
          }
 
-         LogTime(MUSCLE_LOG_INFO, "Read a packet that was " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes long...\n", numBytesRead, mtu);
-         const uint8 c = numBytesRead % 256;
+         const uint32 nbr = numBytesRead.GetByteCount();
+         LogTime(MUSCLE_LOG_INFO, "Read a packet that was " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes long...\n", nbr, mtu);
+         const uint8 c = nbr % 256;
          const uint8 * p = buf.GetBuffer();
-         for (int32 i=0; i<numBytesRead; i++)
+         for (uint32 i=0; i<nbr; i++)
          {
             if (p[i] != c)
             {
-               LogTime(MUSCLE_LOG_ERROR, "Position " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":  expected %u, got %u!\n", i, numBytesRead, c, p[i]);
+               LogTime(MUSCLE_LOG_ERROR, "Position " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":  expected %u, got %u!\n", i, nbr, c, p[i]);
                break;
             }
          }
@@ -98,9 +99,9 @@ int main(int argc, char ** argv)
          const uint8 c = (sendLen % 256);
          uint8 * b = buf.GetBuffer();
          for (uint32 i=0; i<sendLen; i++) b[i] = c;
-         const int32 numBytesSent = pack.Write(b, sendLen);
-         LogTime(MUSCLE_LOG_INFO, "Write(" UINT32_FORMAT_SPEC ") returned " INT32_FORMAT_SPEC "\n", sendLen, numBytesSent);
-         if (numBytesSent < 0) break;
+         const io_status_t numBytesSent = pack.Write(b, sendLen);
+         LogTime(MUSCLE_LOG_INFO, "Write(" UINT32_FORMAT_SPEC ") returned " INT32_FORMAT_SPEC " [%s]\n", sendLen, numBytesSent.GetByteCount(), numBytesSent.GetStatus()());
+         if (numBytesSent.IsError()) break;
       }
    }
    LogTime(MUSCLE_LOG_INFO, "Exiting, bye!\n");

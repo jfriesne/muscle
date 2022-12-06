@@ -89,16 +89,17 @@ int main(int argc, char ** argv)
             printf("Socket %p (file descriptor %i) reports ready-for-read...\n", clientSock(), clientSock.GetFileDescriptor());
 
             uint8 tempBuf[1024];
-            const int numBytesRead = ReceiveData(clientSock, tempBuf, sizeof(tempBuf), true);  // true because we're using blocking I/O
-            if (numBytesRead >= 0)   // Note that unlike recv(), ReceiveData() returning 0 doesn't mean connection-closed
+            const io_status_t numBytesRead = ReceiveData(clientSock, tempBuf, sizeof(tempBuf), true);  // true because we're using blocking I/O
+            if (numBytesRead.IsOK())
             {
-               printf("Read %i bytes from socket %i, echoing them back...\n", numBytesRead, clientSock.GetFileDescriptor());
-               const int numBytesWritten = SendData(clientSock, tempBuf, numBytesRead, true);   // true because we're using blocking I/O
-               printf("Wrote %i/%i bytes back to socket %i\n", numBytesWritten, numBytesRead, clientSock.GetFileDescriptor());
+               printf("Read %i bytes from socket %i, echoing them back...\n", numBytesRead.GetByteCount(), clientSock.GetFileDescriptor());
+               const io_status_t numBytesWritten = SendData(clientSock, tempBuf, numBytesRead.GetByteCount(), true);   // true because we're using blocking I/O
+               if (numBytesWritten.IsOK()) printf("Wrote %i/%i bytes back to socket %i\n", numBytesWritten.GetByteCount(), numBytesRead.GetByteCount(), clientSock.GetFileDescriptor());
+                                      else printf("Error [%s] while writing %i bytes back to socket %i\n", numBytesWritten.GetStatus()(), numBytesRead.GetByteCount(), clientSock.GetFileDescriptor());
             }
             else
             {
-               printf("ReceiveData() returned %i, closing connection!\n", numBytesRead);
+               printf("ReceiveData() returned %i, closing connection!\n", numBytesRead.GetByteCount());
                (void) connectedClients.Remove(clientSock);  // yes, that's all!  close() will be called on the file descriptor automatically
             }
          }

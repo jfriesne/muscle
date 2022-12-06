@@ -187,50 +187,46 @@ void RS232DataIO :: Close()
 #endif
 }
 
-int32 RS232DataIO :: Read(void *buf, uint32 len)
+io_status_t RS232DataIO :: Read(void *buf, uint32 len)
 {
-   if (IsPortAvailable())
-   {
+   if (IsPortAvailable() == false) return B_BAD_OBJECT;
+
 #ifdef USE_WINDOWS_IMPLEMENTATION
-      if (_blocking)
-      {
-         DWORD actual_read;
-         if (ReadFile(_handle, buf, len, &actual_read, 0)) return actual_read;
-      }
-      else
-      {
-         const int32 ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
-         if (ret >= 0) SetEvent(_wakeupSignal);  // wake up the thread in case he has more data to give us
-         return ret;
-      }
-#else
-      return ReadData(_handle, buf, len, _blocking);
-#endif
+   if (_blocking)
+   {
+      DWORD actual_read;
+      return ReadFile(_handle, buf, len, &actual_read, 0) ? io_status_t(actual_read) : io_status_t(B_IO_ERROR);
    }
-   return -1;
+   else
+   {
+      const io_status_t ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
+      if (ret.IsOK()) SetEvent(_wakeupSignal);  // wake up the thread in case he has more data to give us
+      return ret;
+   }
+#else
+   return ReadData(_handle, buf, len, _blocking);
+#endif
 }
 
-int32 RS232DataIO :: Write(const void *buf, uint32 len)
+io_status_t RS232DataIO :: Write(const void *buf, uint32 len)
 {
-   if (IsPortAvailable())
-   {
+   if (IsPortAvailable() == false) return B_BAD_OBJECT;
+
 #ifdef USE_WINDOWS_IMPLEMENTATION
-      if (_blocking)
-      {
-         DWORD actual_write;
-         if (WriteFile(_handle, buf, len, &actual_write, 0)) return actual_write;
-      }
-      else
-      {
-         const int32 ret = SendData(_masterNotifySocket, buf, len, _blocking);
-         if (ret > 0) SetEvent(_wakeupSignal);  // wake up the thread so he'll check his socket for our new data
-         return ret;
-      }
-#else
-      return WriteData(_handle, buf, len, _blocking);
-#endif
+   if (_blocking)
+   {
+      DWORD actual_write;
+      return WriteFile(_handle, buf, len, &actual_write, 0) ? io_status_t(actual_write) : io_status_t(B_IO_ERROR);
    }
-   return -1;
+   else
+   {
+      const io_status_t ret = SendData(_masterNotifySocket, buf, len, _blocking);
+      if (ret.IsOK()) SetEvent(_wakeupSignal);  // wake up the thread so he'll check his socket for our new data
+      return ret;
+   }
+#else
+   return WriteData(_handle, buf, len, _blocking);
+#endif
 }
 
 void RS232DataIO :: FlushOutput()

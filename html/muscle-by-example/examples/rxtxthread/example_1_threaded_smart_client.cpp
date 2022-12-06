@@ -211,7 +211,7 @@ int main(int argc, char ** argv)
          // Handle stdin input, and send a Message to the MessageTransceiverThread
          // for it to send on to the server, if appropriate
          uint8 inputBuf[1024];
-         const int numBytesRead = stdinIO.Read(inputBuf, sizeof(inputBuf)-1);
+         const int numBytesRead = stdinIO.Read(inputBuf, sizeof(inputBuf)-1).GetByteCount();
          if (numBytesRead > 0)
          {
             String inputCmd((const char *) inputBuf, numBytesRead);

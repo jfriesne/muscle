@@ -101,8 +101,8 @@ public:
    /** Returns the maxPacketSize value that was passed in to our constructor */
    virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
 
-   virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource);
-   virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
+   virtual io_status_t ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource);
+   virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
 
    /** implemented as a no-op. */
    virtual void FlushOutput() {/* empty */}

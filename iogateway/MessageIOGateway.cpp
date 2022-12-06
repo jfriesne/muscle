@@ -71,25 +71,25 @@ PopNextOutgoingMessage(MessageRef & retMsg)
 // For this method, B_NO_ERROR means "keep sending", and B_ERROR means "stop sending for now", and isn't fatal to the stream
 // If there is a fatal error in the stream it will call SetHosed() to indicate that.
 status_t
-MessageIOGateway :: SendMoreData(int32 & sentBytes, uint32 & maxBytes)
+MessageIOGateway :: SendMoreData(uint32 & sentBytes, uint32 & maxBytes)
 {
    TCHECKPOINT;
 
    const ByteBuffer * bb    = _sendBuffer._buffer();
    const int32 attemptSize  = muscleMin(maxBytes, bb->GetNumBytes()-_sendBuffer._offset);
-   const int32 numBytesSent = GetDataIO()() ? GetDataIO()()->Write(bb->GetBuffer()+_sendBuffer._offset, attemptSize) : -1;
-   if (numBytesSent >= 0)
+   const io_status_t numBytesSent = GetDataIO()() ? GetDataIO()()->Write(bb->GetBuffer()+_sendBuffer._offset, attemptSize) : io_status_t(B_BAD_OBJECT);
+   if (numBytesSent.GetByteCount() >= 0)
    {
-      maxBytes            -= numBytesSent;
-      sentBytes           += numBytesSent;
-      _sendBuffer._offset += numBytesSent;
+      maxBytes            -= numBytesSent.GetByteCount();
+      sentBytes           += numBytesSent.GetByteCount();
+      _sendBuffer._offset += numBytesSent.GetByteCount();
    }
    else SetHosed();
 
-   return (numBytesSent < attemptSize) ? B_ERROR : B_NO_ERROR;
+   return (numBytesSent.GetByteCount() < attemptSize) ? B_ERROR : B_NO_ERROR;
 }
 
-int32
+io_status_t
 MessageIOGateway ::
 DoOutputImplementation(uint32 maxBytes)
 {
@@ -97,7 +97,7 @@ DoOutputImplementation(uint32 maxBytes)
 
    const uint32 mtuSize = GetMaximumPacketSize();
 
-   int32 sentBytes = 0;
+   uint32 sentBytes = 0;
    while((maxBytes > 0)&&(IsHosed() == false))
    {
       // First, make sure our outgoing byte-buffer has data.  If it doesn't, fill it with the next outgoing message.
@@ -106,7 +106,7 @@ DoOutputImplementation(uint32 maxBytes)
          while(true)
          {
             MessageRef nextRef;
-            if (PopNextOutgoingMessage(nextRef).IsError()) return sentBytes;  // nothing more to send, so we're done!
+            if (PopNextOutgoingMessage(nextRef).IsError()) return io_status_t(sentBytes);  // nothing more to send, so we're done!
             if (nextRef())
             {
                if ((_aboutToFlattenCallback)&&(_aboutToFlattenCallback(nextRef, _aboutToFlattenCallbackData).IsError())) continue;
@@ -129,7 +129,7 @@ DoOutputImplementation(uint32 maxBytes)
                // Restore the PR_NAME_PACKET_REMOTE_LOCATION field, since we're not supposed to be modifying any Messages
                if (movedPRL) (void) _scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef());
 
-               if (_sendBuffer._buffer() == NULL) {SetHosed(); return -1;}
+               if (_sendBuffer._buffer() == NULL) {SetHosed(); return B_OUT_OF_MEMORY;}
 
                if (_flattenedCallback) (void) _flattenedCallback(nextRef, _flattenedCallbackData);
 
@@ -155,16 +155,16 @@ DoOutputImplementation(uint32 maxBytes)
          PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL because (mtuSize > 0)
          IPAddressAndPort packetDest;
          const ByteBuffer * bb = _sendBuffer._buffer();
-         const int32 numBytesSent = _nextPacketDest.IsValid()
-                                  ? pdio->WriteTo(bb->GetBuffer(), bb->GetNumBytes(), _nextPacketDest)
-                                  : pdio->Write(  bb->GetBuffer(), bb->GetNumBytes());
-         if (numBytesSent > 0)
+         const io_status_t numBytesSent = _nextPacketDest.IsValid()
+                                        ? pdio->WriteTo(bb->GetBuffer(), bb->GetNumBytes(), _nextPacketDest)
+                                        : pdio->Write(  bb->GetBuffer(), bb->GetNumBytes());
+         if (numBytesSent.GetByteCount() > 0)
          {
-            maxBytes   = (maxBytes>(uint32)numBytesSent)?(maxBytes-numBytesSent):0;
-            sentBytes += numBytesSent;
+            maxBytes   = (maxBytes>(uint32)numBytesSent.GetByteCount())?(maxBytes-numBytesSent.GetByteCount()):0;
+            sentBytes += numBytesSent.GetByteCount();
             _sendBuffer.Reset();
          }
-         else if (numBytesSent < 0) SetHosed();
+         else if (numBytesSent.GetByteCount() < 0) SetHosed();
          else break;
       }
       else
@@ -173,7 +173,7 @@ DoOutputImplementation(uint32 maxBytes)
          if (_sendBuffer._offset == _sendBuffer._buffer()->GetNumBytes()) _sendBuffer.Reset();
       }
    }
-   return ((sentBytes <= 0)&&(IsHosed())) ? -1 : sentBytes;
+   return ((sentBytes == 0)&&(IsHosed())) ? io_status_t(B_BAD_OBJECT) : io_status_t(sentBytes);
 }
 
 ByteBufferRef
@@ -200,7 +200,7 @@ ForgetScratchReceiveBufferIfSubclassIsStillUsingIt()
    if ((_scratchRecvBuffer())&&(_scratchRecvBuffer.IsRefPrivate() == false)) _scratchRecvBuffer.Reset();
 }
 
-int32
+io_status_t
 MessageIOGateway ::
 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
@@ -209,7 +209,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    const uint32 mtuSize = GetMaximumPacketSize();
    const uint32 hs = GetHeaderSize();
    bool firstTime = true;  // always go at least once, to avoid live-lock
-   int32 readBytes = 0;
+   uint32 readBytes = 0;
    while((maxBytes > 0)&&(IsHosed() == false)&&((firstTime)||(IsSuggestedTimeSliceExpired() == false)))
    {
       firstTime = false;
@@ -228,13 +228,13 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
 
          IPAddressAndPort sourceIAP;
-         const int32 numBytesRead = GetPacketDataIO()->ReadFrom(_recvBuffer._buffer()->GetBuffer(), mtuSize, sourceIAP);
-              if (numBytesRead < 0) {SetHosed(); break;}
-         else if (numBytesRead > 0)
+         const io_status_t numBytesRead = GetPacketDataIO()->ReadFrom(_recvBuffer._buffer()->GetBuffer(), mtuSize, sourceIAP);
+              if (numBytesRead.IsError()) {SetHosed(); break;}
+         else if (numBytesRead.GetByteCount() > 0)
          {
-            readBytes += numBytesRead;
-            maxBytes   = (maxBytes>(uint32)numBytesRead)?(maxBytes-numBytesRead):0;
-            (void) _recvBuffer._buffer()->SetNumBytes(numBytesRead, true);  // trim off any unused bytes
+            readBytes += numBytesRead.GetByteCount();
+            maxBytes   = (maxBytes>(uint32)numBytesRead.GetByteCount())?(maxBytes-numBytesRead.GetByteCount()):0;
+            (void) _recvBuffer._buffer()->SetNumBytes(numBytesRead.GetByteCount(), true);  // trim off any unused bytes
 
             MessageRef msg = UnflattenHeaderAndMessage(_recvBuffer._buffer);
             _recvBuffer.Reset();  // reset our state for the next one!
@@ -314,27 +314,27 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
       }
    }
-   return ((readBytes<=0)&&(IsHosed())) ? -1 : readBytes;
+   return ((readBytes==0)&&(IsHosed())) ? io_status_t(B_IO_ERROR) : io_status_t(readBytes);
 }
 
 // For this method, B_NO_ERROR means "We got all the data we had room for", and B_ERROR
 // means "short read".  A real network error will also cause SetHosed() to be called.
 status_t
-MessageIOGateway :: ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32 maxArraySize)
+MessageIOGateway :: ReceiveMoreData(uint32 & readBytes, uint32 & maxBytes, uint32 maxArraySize)
 {
    TCHECKPOINT;
 
-   const int32 attemptSize  = muscleMin(maxBytes, (uint32)((maxArraySize>_recvBuffer._offset)?(maxArraySize-_recvBuffer._offset):0));
-   const int32 numBytesRead = GetDataIO()() ? GetDataIO()()->Read(_recvBuffer._buffer()->GetBuffer()+_recvBuffer._offset, attemptSize) : -1;
-   if (numBytesRead >= 0)
+   const int32 attemptSize        = muscleMin(maxBytes, (uint32)((maxArraySize>_recvBuffer._offset)?(maxArraySize-_recvBuffer._offset):0));
+   const io_status_t numBytesRead = GetDataIO()() ? GetDataIO()()->Read(_recvBuffer._buffer()->GetBuffer()+_recvBuffer._offset, attemptSize) : io_status_t(B_BAD_OBJECT);
+   if (numBytesRead.IsOK())
    {
-      maxBytes            -= numBytesRead;
-      readBytes           += numBytesRead;
-      _recvBuffer._offset += numBytesRead;
+      maxBytes            -= numBytesRead.GetByteCount();
+      readBytes           += numBytesRead.GetByteCount();
+      _recvBuffer._offset += numBytesRead.GetByteCount();
    }
    else SetHosed();
 
-   return (numBytesRead < attemptSize) ? B_ERROR : B_NO_ERROR;
+   return (numBytesRead.GetByteCount() < attemptSize) ? B_ERROR : B_NO_ERROR;
 }
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING

@@ -43,7 +43,7 @@ int main(int argc, char ** argv)
             TEST(m()->AddBool("Ugly", (i%2)!=0));
             TEST(g.AddOutgoingMessage(m));
          }
-         while(g.HasBytesToOutput()) TESTSIZE(g.DoOutput());
+         while(g.HasBytesToOutput()) TESTSIZE(g.DoOutput().GetByteCount());
          //g.GetDataIO()()->FlushOutput();
          printf("Done Writing!\n");
       }
@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
          printf("Reading test messages from test.dat...\n");
          MessageIOGateway g;
          g.SetDataIO(GetFileRef(in));
-         while(g.DoInput(inQueue) >= 0)
+         while(g.DoInput(inQueue).IsOK())
          {
             MessageRef msgRef;
             while(inQueue.RemoveHead(msgRef).IsOK()) msgRef()->PrintToStream();
@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
             MessageIOGateway g;
             g.SetDataIO(GetFileRef(in));
             int32 readBytes;
-            while((readBytes = g.DoInput(inQueue)) >= 0)
+            while((readBytes = g.DoInput(inQueue).GetByteCount()) >= 0)
             {
                printf("Read " UINT32_FORMAT_SPEC " bytes...\n", readBytes);
                MessageRef msgRef;

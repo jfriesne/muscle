@@ -72,10 +72,10 @@ int main(int argc, char ** argv)
 
       if (multiplexer.WaitForEvents() < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "bandwidthtester: WaitForEvents() failed! [%s]\n", B_ERRNO());
       if ((send)&&(gw.HasBytesToOutput() == false)) for (int i=0; i<10; i++) (void) gw.AddOutgoingMessage(sendMsgRef);
-      const bool reading = multiplexer.IsSocketReadyForRead(fd);
-      const bool writing = multiplexer.IsSocketReadyForWrite(fd);
-      const int32 wroteBytes = (writing) ? gw.DoOutput() : 0;
-      const int32 readBytes  = (reading) ? gw.DoInput(inQueue) : 0;
+      const bool  reading    = multiplexer.IsSocketReadyForRead(fd);
+      const bool  writing    = multiplexer.IsSocketReadyForWrite(fd);
+      const int32 wroteBytes = writing ? gw.DoOutput().GetByteCount()       : 0;
+      const int32 readBytes  = reading ? gw.DoInput(inQueue).GetByteCount() : 0;
       if ((readBytes < 0)||(wroteBytes < 0))
       {
          LogTime(MUSCLE_LOG_ERROR, "Connection closed, exiting.\n");

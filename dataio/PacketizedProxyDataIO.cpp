@@ -13,25 +13,26 @@ PacketizedProxyDataIO :: PacketizedProxyDataIO(const DataIORef & childIO, uint32
    // empty
 }
 
-int32 PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
+io_status_t PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
 {
-   int32 ret = 0;
+   uint32 ret = 0;
 
    if (_inputBufferSizeBytesRead < sizeof(uint32))
    {
       uint8 * ip = (uint8 *) &_inputBufferSize;
-      const int32 numSizeBytesRead = ProxyDataIO::Read(&ip[_inputBufferSizeBytesRead], sizeof(uint32)-_inputBufferSizeBytesRead);
-      if (numSizeBytesRead < 0) return -1;
-      _inputBufferSizeBytesRead += numSizeBytesRead;
+      const io_status_t numSizeBytesRead = ProxyDataIO::Read(&ip[_inputBufferSizeBytesRead], sizeof(uint32)-_inputBufferSizeBytesRead);
+      MRETURN_ON_IO_ERROR(numSizeBytesRead);
+
+      _inputBufferSizeBytesRead += numSizeBytesRead.GetByteCount();
       if (_inputBufferSizeBytesRead == sizeof(uint32))
       {
          _inputBufferSize = DefaultEndianConverter::Import<uint32>(&_inputBufferSize);
          if (_inputBufferSize > _maxTransferUnit)
          {
             LogTime(MUSCLE_LOG_ERROR, "PacketizedProxyDataIO:  Error, incoming packet with size " UINT32_FORMAT_SPEC ", max transfer unit is set to " UINT32_FORMAT_SPEC "\n", _inputBufferSize, _maxTransferUnit);
-            return -1;
+            return B_BAD_DATA;
          }
-         if (_inputBuffer.SetNumBytes(_inputBufferSize, false).IsError()) return -1;
+         MRETURN_ON_ERROR(_inputBuffer.SetNumBytes(_inputBufferSize, false));
          _inputBufferBytesRead = 0;
 
          // Special case for empty packets
@@ -42,10 +43,10 @@ int32 PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
    const uint32 inBufSize = _inputBuffer.GetNumBytes();
    if ((_inputBufferSizeBytesRead == sizeof(uint32))&&(_inputBufferBytesRead < inBufSize))
    {
-      const int32 numBytesRead = ProxyDataIO::Read(_inputBuffer.GetBuffer()+_inputBufferBytesRead, inBufSize-_inputBufferBytesRead);
-      if (numBytesRead < 0) return -1;
+      const io_status_t numBytesRead = ProxyDataIO::Read(_inputBuffer.GetBuffer()+_inputBufferBytesRead, inBufSize-_inputBufferBytesRead);
+      MRETURN_ON_IO_ERROR(numBytesRead);
 
-      _inputBufferBytesRead += numBytesRead;
+      _inputBufferBytesRead += numBytesRead.GetByteCount();
       if (_inputBufferBytesRead == inBufSize)
       {
          const uint32 copyBytes = muscleMin(size, inBufSize);
@@ -57,35 +58,36 @@ int32 PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
          _inputBuffer.Clear(inBufSize>(64*1024));  // free up memory after a large packet recv
       }
    }
+
    return ret;
 }
 
-int32 PacketizedProxyDataIO :: Write(const void * buffer, uint32 size)
+io_status_t PacketizedProxyDataIO :: Write(const void * buffer, uint32 size)
 {
    if (size > _maxTransferUnit)
    {
       LogTime(MUSCLE_LOG_ERROR, "PacketizedProxyDataIO:  Error, tried to send packet with size " UINT32_FORMAT_SPEC ", max transfer unit is set to " UINT32_FORMAT_SPEC "\n", size, _maxTransferUnit);
-      return -1;
+      return B_BAD_ARGUMENT;
    }
 
    // Only accept more data if we are done sending the data we already have buffered up
    bool tryAgainAfter = false;
-   int32 ret = 0;
+   uint32 ret = 0;
    if (HasBufferedOutput()) tryAgainAfter = true;
    else
    {
       // No data buffered?
       _outputBufferBytesSent = 0;
 
-      if (_outputBuffer.SetNumBytes(sizeof(uint32)+size, false).IsError()) return 0;
+      MRETURN_ON_ERROR(_outputBuffer.SetNumBytes(sizeof(uint32)+size, false));
       DefaultEndianConverter::Export(size, _outputBuffer.GetBuffer());
       memcpy(_outputBuffer.GetBuffer()+sizeof(uint32), buffer, size);
       ret = size;
    }
 
-   if (WriteBufferedOutputAux().IsError()) return -1;
+   MRETURN_ON_ERROR(WriteBufferedOutputAux());
 
-   return ((tryAgainAfter)&&(HasBufferedOutput() == false)) ? Write(buffer, size) : ret;
+   return ((tryAgainAfter)&&(HasBufferedOutput() == false)) ? Write(buffer, size) : io_status_t(ret);
 }
 
 status_t PacketizedProxyDataIO :: WriteBufferedOutputAux()
@@ -94,17 +96,15 @@ status_t PacketizedProxyDataIO :: WriteBufferedOutputAux()
    const uint32 bufSize = _outputBuffer.GetNumBytes();
    if (_outputBufferBytesSent < bufSize)
    {
-      const int32 bytesSent = ProxyDataIO::Write(_outputBuffer.GetBuffer()+_outputBufferBytesSent, bufSize-_outputBufferBytesSent);
-      if (bytesSent >= 0)
+      const io_status_t bytesSent = ProxyDataIO::Write(_outputBuffer.GetBuffer()+_outputBufferBytesSent, bufSize-_outputBufferBytesSent);
+      MRETURN_ON_ERROR(bytesSent.GetStatus());
+
+      _outputBufferBytesSent += bytesSent.GetByteCount();
+      if (_outputBufferBytesSent == bufSize)
       {
-         _outputBufferBytesSent += bytesSent;
-         if (_outputBufferBytesSent == bufSize)
-         {
-            _outputBuffer.Clear(bufSize>(64*1024));  // free up memory after a large packet send
-            _outputBufferBytesSent = 0;
-         }
+         _outputBuffer.Clear(bufSize>(64*1024));  // free up memory after a large packet send
+         _outputBufferBytesSent = 0;
       }
-      else return B_IO_ERROR;
    }
    return B_NO_ERROR;
 }

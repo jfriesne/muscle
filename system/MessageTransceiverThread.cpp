@@ -523,9 +523,9 @@ void ThreadWorkerSession :: AboutToDetachFromServer()
    StorageReflectSession::AboutToDetachFromServer();
 }
 
-int32 ThreadWorkerSession :: DoOutput(uint32 maxBytes)
+io_status_t ThreadWorkerSession :: DoOutput(uint32 maxBytes)
 {
-   const int32 ret = StorageReflectSession::DoOutput(maxBytes);
+   const io_status_t ret = StorageReflectSession::DoOutput(maxBytes);
    if (_drainedNotifiers.HasItems())
    {
       AbstractMessageIOGateway * gw = GetGateway()();

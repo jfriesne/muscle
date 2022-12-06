@@ -11,8 +11,8 @@
 /
 *******************************************************************************/
 
-#define MUSCLE_VERSION_STRING "9.01" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        90100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "9.10" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        91000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -222,6 +222,9 @@ using std::set_new_handler;
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, it returns the error value. */
 #define MRETURN_ON_ERROR(cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) return the_return_value;}
 
+/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, it returns the error value. */
+#define MRETURN_ON_IO_ERROR(cmd) {const io_status_t the_return_value = (cmd); if (the_return_value.IsError()) return the_return_value;}
+
 /** This macro invokes the MRETURN_OUT_OF_MEMORY macro if the argument is a NULL pointer. */
 #define MRETURN_OOM_ON_NULL(ptr) {if (ptr==NULL) MRETURN_OUT_OF_MEMORY;}
 
@@ -323,7 +326,7 @@ enum {
           * valid indefinitely, since the status_t object will keep only a (const char *) pointer to the
           * string, and therefore depends on that pointed-to char-array remaining valid.
           */
-        class status_t
+        class status_t MUSCLE_FINAL_CLASS
         {
         public:
            /** Default-constructor.  Creates a status_t representing success. */
@@ -516,6 +519,103 @@ enum {
         MUSCLE_CONSTEXPR_OR_CONST status_t B_SSL_ERROR(     "SSL Error");      ///< "SSL Error"      - an OpenSSL library-function reported an error
         MUSCLE_CONSTEXPR_OR_CONST status_t B_LOGIC_ERROR(   "Logic Error");    ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
 #  endif
+
+        /** This class is similar to a status_t, but it also contains a byte-count field.
+          * It's useful for holding the result of an I/O function that either successfully
+          * processed a certain number of bytes, or failed and needs to return an error code.
+          */
+        class io_status_t MUSCLE_FINAL_CLASS
+        {
+        public:
+           /** Default-constructor.  Creates a io_status_t representing the successful transfer of 0 bytes. */
+           MUSCLE_CONSTEXPR io_status_t() : _status(B_NO_ERROR), _byteCount(0) {/* empty */}
+
+           /** Explicit Constructor for an io_status_t representing an error.
+             * @param errorCode the status_t representing an error code.  If no error-code was specified, B_IO_ERROR is used as a default.
+             * @note with this constructor, our byte-count field will be set to -1.
+             */
+           MUSCLE_CONSTEXPR io_status_t(status_t errorCode) : _status(errorCode | B_IO_ERROR), _byteCount(-1) {/* empty */}
+
+           /** Explicit Constructor for an io_status_t representing a successful I/O operation.
+             * @param byteCount the number of bytes that were successfully transferred.
+             * @note with this constructor, our status field will be set to B_IO_ERROR if byteCount was negative, or B_NO_ERROR otherwise.
+             */
+           MUSCLE_CONSTEXPR io_status_t(int32 byteCount) : _status((byteCount<0)?B_IO_ERROR:B_NO_ERROR), _byteCount(byteCount) {/* empty */}
+
+           /** Copy constructor
+             * @param rhs the io_status_t to make this object a copy of
+             */
+           MUSCLE_CONSTEXPR io_status_t(const io_status_t & rhs) : _status(rhs._status), _byteCount(rhs._byteCount) {/* empty */}
+
+           /** Comparison operator.  Returns true iff this object is equivalent to (rhs).
+             * @param rhs the io_status_t to compare against
+             * @note both the status and the byte-count fields are compared.
+             */
+           MUSCLE_CONSTEXPR bool operator ==(const io_status_t & rhs) const
+           {
+              return ((_status == rhs._status)&&(_byteCount == rhs._byteCount));
+           }
+
+           /** Comparison operator.  Returns true iff this object has a different value than (rhs)
+             * @param rhs the io_status_t to compare against
+             */
+           MUSCLE_CONSTEXPR bool operator !=(const io_status_t & rhs) const {return !(*this==rhs);}
+
+           /** This operator returns an io_status_t with the sum of the two byte-counts iff both
+             * inputs are equal to B_NO_ERROR, otherwise it returns one of the error-values.
+             * This operator is useful for aggregating a unordered series of operations together and
+             * checking the aggregate result (e.g. io_status_t ret = a() + b() + c() + d())
+             * @param rhs the second io_status_t to test this io_status_t against
+             * @note Due to the way the + operator is defined in C++, the order of evaluations
+             *       of the operations in the series in unspecified.  Also, no short-circuiting
+             *       is performed; all operands will be evaluated regardless of their values.
+             */
+           MUSCLE_CONSTEXPR io_status_t operator + (const io_status_t & rhs) const {return ((IsOK())&&(rhs.IsOK())) ? io_status_t(_byteCount+rhs._byteCount) : (IsOK() ? rhs : *this);}
+
+           /** Sets this object equal to ((*this)+rhs).
+             * @param rhs the second io_status_t to test this io_status_t against
+             */
+           io_status_t & operator += (const io_status_t & rhs) {*this = ((*this)+rhs); return *this;}
+
+           /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
+           io_status_t & operator = (const io_status_t & rhs) {_status = rhs._status; _byteCount = rhs._byteCount; return *this;}
+
+           /** Returns the value of our status_t field (i.e. success/failure) */
+           MUSCLE_CONSTEXPR status_t GetStatus() const {return _status;}
+
+           /** Returns "OK" if this io_status_t indicates success; otherwise returns the human-readable description
+             * of the error this status_t indicates.
+             */
+           MUSCLE_CONSTEXPR const char * GetDescription() const {return _status.GetDescription();}
+
+           /** Convenience method -- a synonym for GetDescription() */
+           MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
+
+           /** Convenience method:  Returns true this object represents an ok/non-error status */
+           MUSCLE_CONSTEXPR bool IsOK() const {return _status.IsOK();}
+
+           /** Convenience method:  Returns true iff this object represents an ok/non-error status
+             * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
+             * @note this allows for e.g. io_status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
+             */
+           bool IsOK(status_t & writeErrorTo) const {return _status.IsOK(writeErrorTo);}
+
+           /** Convenience method:  Returns true iff this object represents an error-status */
+           MUSCLE_CONSTEXPR bool IsError() const {return _status.IsError();}
+
+           /** Convenience method:  Returns true iff this object represents an error-status
+             * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
+             * @note this allows for e.g. status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
+             */
+           bool IsError(status_t & writeErrorTo) const {return _status.IsError(writeErrorTo);}
+
+           /** Returns the byte-count indicated by the I/O operation, or a negative value if the operation failed. */
+           MUSCLE_CONSTEXPR int32 GetByteCount() const {return _byteCount;}
+
+        private:
+           status_t _status;
+           int32 _byteCount;
+        };
      };
 # endif  /* defined(__cplusplus) */
 #endif  /* !MUSCLE_TYPES_PREDEFINED */

@@ -203,8 +203,8 @@ static void DoSession(DataIORef io, bool allowRead = true)
          if (multiplexer.IsSocketReadyForRead(readFD))
          {
             uint8 buf[2048];
-            const int32 ret = io()->Read(buf, sizeof(buf));
-            if (ret > 0)
+            const io_status_t ret = io()->Read(buf, sizeof(buf));
+            if (ret.GetByteCount() > 0)
             {
                readCounter++;
 
@@ -214,22 +214,22 @@ static void DoSession(DataIORef io, bool allowRead = true)
                if (timeSince < 1000) sinceString = "<1 millisecond";
                                 else sinceString = GetHumanReadableTimeIntervalString(now-_prevReceiveTime, 1);
 
-               if (_verifySpam) SanityCheckSpamPacket(buf, ret);
+               if (_verifySpam) SanityCheckSpamPacket(buf, ret.GetByteCount());
                if (_printReceivedBytes)
                {
                   const PacketDataIO * packetDataIO = dynamic_cast<const PacketDataIO *>(io());
                   const IPAddressAndPort & fromIAP = packetDataIO ? packetDataIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();
                   if (fromIAP.IsValid()) scratchString = String("Read #%1: Received from %2 (%3 since prev)").Arg(readCounter).Arg(fromIAP).Arg(sinceString);
                                     else scratchString = String("Read #%1: Received (%2 since prev)").Arg(readCounter).Arg(sinceString);
-                  LogBytes(buf, ret, scratchString());
+                  LogBytes(buf, ret.GetByteCount(), scratchString());
                }
-               else LogTime(MUSCLE_LOG_DEBUG, "Read #" UINT64_FORMAT_SPEC ": Received " INT32_FORMAT_SPEC "/%zu bytes of data (%s since prev).\n", readCounter, ret, sizeof(buf), sinceString());
+               else LogTime(MUSCLE_LOG_DEBUG, "Read #" UINT64_FORMAT_SPEC ": Received " INT32_FORMAT_SPEC "/%zu bytes of data (%s since prev).\n", readCounter, ret.GetByteCount(), sizeof(buf), sinceString());
 
                _prevReceiveTime = now;
             }
-            else if (ret < 0)
+            else if (ret.IsError())
             {
-               LogTime(MUSCLE_LOG_ERROR, "Read() returned " INT32_FORMAT_SPEC ", aborting!\n", ret);
+               LogTime(MUSCLE_LOG_ERROR, "Read() returned [%s], aborting!\n", ret.GetStatus()());
                break;
             }
          }
@@ -237,8 +237,8 @@ static void DoSession(DataIORef io, bool allowRead = true)
          {
             while(1)
             {
-               const int32 bytesRead = stdinGateway.DoInput(receiver);
-               if (bytesRead < 0)
+               const io_status_t bytesRead = stdinGateway.DoInput(receiver);
+               if (bytesRead.IsError())
                {
                   stdinFD = -1;  // indicate that stdin is no longer available
                   if (keepGoing)
@@ -248,7 +248,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                   }
                   break;
                }
-               if (bytesRead == 0) break;  // nothing more to read, for now
+               if (bytesRead.GetByteCount() == 0) break;  // nothing more to read, for now
             }
 
             // Gather stdin bytes together into a single large buffer, so we can send them in as few groups as possible

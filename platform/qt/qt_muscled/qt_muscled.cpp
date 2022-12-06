@@ -49,7 +49,7 @@ MuscledWindow :: ~MuscledWindow()
 
 void MuscledWindow :: TextAvailableFromChildProcess()
 {
-   if (_gateway.DoInput(*this) < 0)
+   if (_gateway.DoInput(*this).IsError())
    {
       _muscledStdoutText->appendPlainText("\r\n<muscled sub-process exited>");
       delete _notifier;

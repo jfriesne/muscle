@@ -24,13 +24,15 @@ int main(int argc, char ** argv)
       // Send HTTP request out to the Google
       const char httpRequestStr[] = "GET /index.html HTTP/1.0\r\n\r\n";
       const uint32 reqLen = (uint32) strlen(httpRequestStr);
-      const int32 numBytesSent = WriteData(tcpSock, httpRequestStr, reqLen, true);
-      LogTime(MUSCLE_LOG_INFO, "%i/%u bytes of HTTP request data sent to the server.\n", (int) numBytesSent, (unsigned int) reqLen);
+      const io_status_t numBytesSent = WriteData(tcpSock, httpRequestStr, reqLen, true);
+      if (numBytesSent.IsOK()) LogTime(MUSCLE_LOG_INFO, "%i/%u bytes of HTTP request data sent to the server.\n", (int) numBytesSent.GetByteCount(), (unsigned int) reqLen);
+                          else LogTime(MUSCLE_LOG_ERROR, "Error [%s] sending %u bytes of HTTP request data to the server.\n", numBytesSent.GetStatus()(), (unsigned int) reqLen);
+
 
       // Read back the server's response data and print it to stdout
       char buf[2048];
       int numBytesRead;
-      while((numBytesRead = ReadData(tcpSock, buf, sizeof(buf)-1, true)) >= 0)
+      while((numBytesRead = ReadData(tcpSock, buf, sizeof(buf)-1, true).GetByteCount()) >= 0)
       {
          buf[numBytesRead] = '\0';  // make sure our received data is NUL-terminated before we try to print it
          LogTime(MUSCLE_LOG_INFO, "Received %i bytes: [%s]\n", numBytesRead, buf);

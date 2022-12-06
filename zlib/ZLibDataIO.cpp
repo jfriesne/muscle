@@ -80,9 +80,9 @@ public:
       ZLIB_READ_COPY_TO_USER;                                          \
    }
 
-   int32 Read(void * buffer, uint32 size)
+   io_status_t Read(void * buffer, uint32 size)
    {
-      int32 bytesAdded = 0;
+      io_status_t bytesAdded;
       if (GetChildDataIO()())
       {
          ZLIB_READ_COPY_TO_USER; // First, hand any pre-inflated bytes over to the user
@@ -92,7 +92,7 @@ public:
          if (_inputStreamOkay)
          {
             if (_readInflater.avail_in == 0) _readInflater.next_in = _toInflateBuf;
-            const int32 bytesRead = GetChildDataIO()()->Read(_readInflater.next_in, (int32)((_toInflateBuf+sizeof(_toInflateBuf))-_readInflater.next_in));
+            const int32 bytesRead = GetChildDataIO()()->Read(_readInflater.next_in, (int32)((_toInflateBuf+sizeof(_toInflateBuf))-_readInflater.next_in)).GetByteCount();
             if (bytesRead >= 0)
             {
                _readInflater.avail_in += bytesRead;
@@ -101,27 +101,27 @@ public:
             else _inputStreamOkay = false;
          }
       }
-      return (bytesAdded > 0) ? bytesAdded : (((_inputStreamOkay)&&(_inflateOkay)) ? 0 : -1);
+      return (bytesAdded.GetByteCount() > 0) ? bytesAdded : (((_inputStreamOkay)&&(_inflateOkay)) ? io_status_t() : io_status_t(_inputStreamOkay ? B_ZLIB_ERROR : B_IO_ERROR));
    }
 
-   int32 Write(const void * buffer, uint32 size)
+   io_status_t Write(const void * buffer, uint32 size)
    {
       return WriteAux(buffer, size, false, NULL);
    }
 
-   int32 WriteDeflatedOutputToChild()
+   io_status_t WriteDeflatedOutputToChild()
    {
-      if (GetChildDataIO()() == NULL) return -1;
+      if (GetChildDataIO()() == NULL) return B_BAD_OBJECT;
 
-      int32 totalBytesWritten = 0;
+      io_status_t totalBytesWritten;
       while(_writeDeflater.next_out > _sendToChild)
       {
          const uint32 bytesToWrite = (uint32)(_writeDeflater.next_out-_sendToChild);
-         const  int32 bytesWritten = GetChildDataIO()()->Write(_sendToChild, bytesToWrite);
-         if (bytesWritten < 0) return -1;
+         const io_status_t bytesWritten = GetChildDataIO()()->Write(_sendToChild, bytesToWrite);
+         MRETURN_ON_IO_ERROR(bytesWritten);
 
          totalBytesWritten += bytesWritten;
-         _sendToChild      += bytesWritten;
+         _sendToChild      += bytesWritten.GetByteCount();
 
          if (_sendToChild == _writeDeflater.next_out)
          {
@@ -136,7 +136,7 @@ public:
    {
       if (GetChildDataIO()())
       {
-         for (uint32 i=0; i<3; i++) WriteAux(NULL, 0, true, NULL);  // try to flush any/all buffered data out first...
+         for (uint32 i=0; i<3; i++) (void) WriteAux(NULL, 0, true, NULL);  // try to flush any/all buffered data out first...
          GetChildDataIO()()->FlushOutput();
       }
    }
@@ -200,7 +200,7 @@ private:
       if (_deflateAllocated)
       {
          bool isFinished = false;
-         while((isFinished == false)&&(WriteAux(NULL, 0, true, &isFinished) >= 0)) {/* empty */}
+         while((isFinished == false)&&(WriteAux(NULL, 0, true, &isFinished).IsOK())) {/* empty */}
          deflateEnd(&_writeDeflater);
          _deflateAllocated = false;
       }
@@ -221,12 +221,12 @@ private:
       stream.opaque    = Z_NULL;
    }
 
-   int32 WriteAux(const void * buffer, uint32 size, bool flushAtEnd, bool * optFinishingUp)
+   io_status_t WriteAux(const void * buffer, uint32 size, bool flushAtEnd, bool * optFinishingUp)
    {
       if ((GetChildDataIO()())&&(_deflateAllocated))
       {
-         const int32 preWrittenToChildBytes = WriteDeflatedOutputToChild();
-         if (preWrittenToChildBytes < 0) return -1;
+         const io_status_t preWrittenToChildBytes = WriteDeflatedOutputToChild();
+         MRETURN_ON_IO_ERROR(preWrittenToChildBytes);
 
          int32 bytesAbsorbed = 0;
 
@@ -243,14 +243,14 @@ private:
          const int zRet = deflate(&_writeDeflater, optFinishingUp ? Z_FINISH : (((flushAtEnd)&&(buffer==NULL)) ? Z_SYNC_FLUSH : Z_NO_FLUSH));
 
               if ((optFinishingUp)&&(zRet == Z_STREAM_END)) *optFinishingUp = true;
-         else if ((zRet != Z_OK)&&(zRet != Z_BUF_ERROR))    return -1;
+         else if ((zRet != Z_OK)&&(zRet != Z_BUF_ERROR))    return B_ZLIB_ERROR;
 
-         const int32 postWrittenToChildBytes = WriteDeflatedOutputToChild();
-         if (postWrittenToChildBytes < 0) return -1;
+         const io_status_t postWrittenToChildBytes = WriteDeflatedOutputToChild();
+         MRETURN_ON_IO_ERROR(postWrittenToChildBytes);
 
          // Try to avoid returning 0 just because zlib needed buffers to be flushed; blocking callers don't like it when WriteFully() returns a short write
-         if (zRet < 0) return -1;  // avoid infinite recursion if zlib is bonking out
-         return bytesAbsorbed ? bytesAbsorbed : (((zRet == Z_STREAM_END)&&(preWrittenToChildBytes==0)&&(postWrittenToChildBytes==0)) ? 0 : WriteAux(buffer, size, flushAtEnd, optFinishingUp));
+         if (zRet < 0) return B_ZLIB_ERROR;  // avoid infinite recursion if zlib is bonking out
+         return bytesAbsorbed ? io_status_t(bytesAbsorbed) : (((zRet == Z_STREAM_END)&&(preWrittenToChildBytes.GetByteCount()==0)&&(postWrittenToChildBytes.GetByteCount()==0)) ? io_status_t() : WriteAux(buffer, size, flushAtEnd, optFinishingUp));
       }
       return -1;
    }
@@ -279,14 +279,14 @@ ZLibDataIO :: ~ZLibDataIO()
    delete _imp;
 }
 
-int32 ZLibDataIO :: Read(void * buffer, uint32 size)
+io_status_t ZLibDataIO :: Read(void * buffer, uint32 size)
 {
-   return _imp ? _imp->Read(buffer, size) : -1;
+   return _imp ? _imp->Read(buffer, size) : io_status_t(B_BAD_OBJECT);
 }
 
-int32 ZLibDataIO :: Write(const void * buffer, uint32 size)
+io_status_t ZLibDataIO :: Write(const void * buffer, uint32 size)
 {
-   return _imp ? _imp->Write(buffer, size) : -1;
+   return _imp ? _imp->Write(buffer, size) : io_status_t(B_BAD_OBJECT);
 }
 
 void ZLibDataIO :: FlushOutput()

@@ -24,7 +24,7 @@ static void CheckFile(const String & path, uint32 code)
 
       // Read in the file
       QueueGatewayMessageReceiver q;
-      while(gw.DoInput(q) > 0) {/* empty */}
+      while(gw.DoInput(q).GetByteCount() > 0) {/* empty */}
 
       // Now parse the lines, and see if any match
       uint32 lineNumber = 1;

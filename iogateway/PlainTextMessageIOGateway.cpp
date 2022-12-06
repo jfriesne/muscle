@@ -16,7 +16,7 @@ PlainTextMessageIOGateway ::
    // empty
 }
 
-int32
+io_status_t
 PlainTextMessageIOGateway ::
 DoOutputImplementation(uint32 maxBytes)
 {
@@ -47,11 +47,12 @@ DoOutputImplementation(uint32 maxBytes)
 
             PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL
             IPAddressAndPort packetDest;
-            const int32 numBytesSent = (nextMsg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDest).IsOK())
+            const io_status_t subRet = nextMsg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDest).IsOK()
                                      ? pdio->WriteTo(outBytes, numBytesToSend, packetDest)
                                      : pdio->Write(  outBytes, numBytesToSend);
-                 if (numBytesSent > 0) totalNumBytesSent += numBytesSent;
-            else if (numBytesSent < 0) return (totalNumBytesSent > 0) ? totalNumBytesSent : -1;
+
+                 if (subRet.GetByteCount() > 0) totalNumBytesSent += subRet.GetByteCount();
+            else if (subRet.GetByteCount() < 0) return (totalNumBytesSent > 0) ? io_status_t(totalNumBytesSent) : subRet;
             else
             {
                (void) GetOutgoingMessageQueue().AddHead(nextMsg);  // roll back -- we'll try again later to send it, maybe
@@ -60,16 +61,16 @@ DoOutputImplementation(uint32 maxBytes)
          }
          else break;
       }
-      return totalNumBytesSent;
+      return io_status_t(totalNumBytesSent);
    }
    else return DoOutputImplementationAux(maxBytes, 0);  // stream-based implementation is here
 }
 
-int32
+io_status_t
 PlainTextMessageIOGateway ::
 DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth)
 {
-   if (recurseDepth >= 1024) return 0;  // We don't want to recurse so deeply that we overflow the stack!
+   if (recurseDepth >= 1024) return io_status_t();  // We don't want to recurse so deeply that we overflow the stack!
 
    const Message * msg = _currentSendingMessage();
    if (msg == NULL)
@@ -100,17 +101,16 @@ DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth)
       {
          // Send as much as we can of the current text line
          const char * bytes = _currentSendText.Cstr() + _currentSendOffset;
-         const int32 bytesWritten = GetDataIO()() ? GetDataIO()()->Write(bytes, muscleMin(_currentSendText.Length()-_currentSendOffset, maxBytes)) : -1;
-              if (bytesWritten < 0) return -1;
-         else if (bytesWritten > 0)
+         const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(bytes, muscleMin(_currentSendText.Length()-_currentSendOffset, maxBytes)) : io_status_t(B_BAD_OBJECT);
+              if (bytesWritten.IsError()) return bytesWritten;
+         else if (bytesWritten.GetByteCount() > 0)
          {
-            _currentSendOffset += bytesWritten;
-            const int32 subRet = DoOutputImplementationAux(maxBytes-bytesWritten, recurseDepth+1);
-            return (subRet >= 0) ? subRet+bytesWritten : -1;
+            _currentSendOffset += bytesWritten.GetByteCount();
+            return bytesWritten + DoOutputImplementationAux(maxBytes-bytesWritten.GetByteCount(), recurseDepth+1);
          }
       }
    }
-   return 0;
+   return io_status_t();
 }
 
 MessageRef
@@ -131,13 +131,13 @@ AddIncomingText(const MessageRef & inMsg, const char * s)
    return ret;
 }
 
-int32
+io_status_t
 PlainTextMessageIOGateway ::
 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
    TCHECKPOINT;
 
-   int32 ret = 0;
+   io_status_t ret;
    const uint32 tempBufSize = 2048;
    char buf[tempBufSize];
 
@@ -163,11 +163,11 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
       while(true)
       {
          IPAddressAndPort sourceIAP;
-         const int32 bytesRead = GetPacketDataIO()->ReadFrom(pbuf, muscleMin(maxBytes, (uint32)(pbufSize-1)), sourceIAP);
-              if (bytesRead < 0) return (ret > 0) ? ret : -1;
-         else if (bytesRead > 0)
+         const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(pbuf, muscleMin(maxBytes, (uint32)(pbufSize-1)), sourceIAP);
+              if (bytesRead.IsError()) return (ret.GetByteCount() > 0) ? ret : bytesRead;
+         else if (bytesRead.GetByteCount() > 0)
          {
-            uint32 filteredBytesRead = bytesRead;
+            uint32 filteredBytesRead = bytesRead.GetByteCount();
             FilterInputBuffer(pbuf, filteredBytesRead, pbufSize-1);
             ret += filteredBytesRead;
             pbuf[filteredBytesRead] = '\0';
@@ -201,11 +201,11 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    else
    {
       // Stream-IO implementation
-      const int32 bytesRead = GetDataIO()() ? GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)(sizeof(buf)-1))) : -1;
-           if (bytesRead < 0) {FlushInput(receiver); return -1;}
-      else if (bytesRead > 0)
+      const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)(sizeof(buf)-1))) : io_status_t(B_BAD_OBJECT);
+           if (bytesRead.IsError()) {FlushInput(receiver); return bytesRead;}
+      else if (bytesRead.GetByteCount() > 0)
       {
-         uint32 filteredBytesRead = bytesRead;
+         uint32 filteredBytesRead = bytesRead.GetByteCount();
          FilterInputBuffer(buf, filteredBytesRead, sizeof(buf)-1);
          ret += filteredBytesRead;
          buf[filteredBytesRead] = '\0';

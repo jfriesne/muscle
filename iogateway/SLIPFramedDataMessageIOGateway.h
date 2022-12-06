@@ -33,7 +33,7 @@ protected:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
 protected:
-   virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
+   virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
 
    /** Overridden to SLIP-encode the popped Message before returning it. */
    virtual MessageRef PopNextOutgoingMessage();

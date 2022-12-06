@@ -2,48 +2,52 @@
 
 namespace muscle {
 
-int32 MultiDataIO :: Read(void * buffer, uint32 size)
+io_status_t MultiDataIO :: Read(void * buffer, uint32 size)
 {
    if (HasChildren())
    {
-      const int32 ret = GetFirstChild()->Read(buffer, size);
-      if (ret < 0)
+      const io_status_t ret = GetFirstChild()->Read(buffer, size);
+      if (ret.IsError())
       {
          if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1))
          {
             (void) _childIOs.RemoveHead();
             return Read(buffer, size);  // try again with the new first child
          }
-         else return -1;
+         else return ret;
       }
-      else if (ret > 0) return SeekAll(1, ret, IO_SEEK_CUR).IsOK() ? ret : -1;
+      else if (ret.GetByteCount() > 0)
+      {
+         MRETURN_ON_ERROR(SeekAll(1, ret.GetByteCount(), IO_SEEK_CUR));
+         return ret;
+      }
    }
-   return 0;
+   return io_status_t();
 }
 
-int32 MultiDataIO :: Write(const void * buffer, uint32 size)
+io_status_t MultiDataIO :: Write(const void * buffer, uint32 size)
 {
    int64 newSeekPos       = -1;  // just to shut the compiler up
    uint32 maxWrittenBytes = 0;
    uint32 minWrittenBytes = MUSCLE_NO_LIMIT;
    for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--)
    {
-      const int32 childRet = _childIOs[i]()->Write(buffer, muscleMin(size, minWrittenBytes));
-      if (childRet < 0)
+      const io_status_t childRet = _childIOs[i]()->Write(buffer, muscleMin(size, minWrittenBytes));
+      if (childRet.IsError())
       {
          if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1)) (void) _childIOs.RemoveItemAt(i);
-                                                               else return -1;
+                                                               else return childRet;
       }
       else
       {
-         if ((uint32)childRet < minWrittenBytes)
+         if ((uint32)childRet.GetByteCount() < minWrittenBytes)
          {
-            minWrittenBytes = childRet;
+            minWrittenBytes = childRet.GetByteCount();
 
             SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(_childIOs[i]());
             newSeekPos = sdio ? sdio->GetPosition() : -1;
          }
-         maxWrittenBytes = muscleMax(maxWrittenBytes, (uint32)childRet);
+         maxWrittenBytes = muscleMax(maxWrittenBytes, (uint32)childRet.GetByteCount());
       }
    }
 
@@ -51,10 +55,10 @@ int32 MultiDataIO :: Write(const void * buffer, uint32 size)
    {
       // Oh dear, some children wrote more bytes than others.  To make their seek-positions equal again,
       // we are going to seek everybody to the seek-position of the child that wrote the fewest bytes.
-      if (SeekAll(0, newSeekPos, IO_SEEK_CUR).IsError()) return -1;
+      MRETURN_ON_ERROR(SeekAll(0, newSeekPos, IO_SEEK_CUR));
    }
 
-   return (maxWrittenBytes > 0) ? minWrittenBytes : 0;  // the conditional is there in case minWrittenBytes is still MUSCLE_NO_LIMIT
+   return io_status_t((maxWrittenBytes > 0) ? minWrittenBytes : 0);  // the conditional is there in case minWrittenBytes is still MUSCLE_NO_LIMIT
 }
 
 void MultiDataIO :: FlushOutput()

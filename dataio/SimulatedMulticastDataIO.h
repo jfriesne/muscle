@@ -30,9 +30,9 @@ public:
    /** Destructor.  Shuts down the internal thread and cleans up. */
    virtual ~SimulatedMulticastDataIO() {ShutdownAux();}
 
-   virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSourcePacket);
-   virtual int32 Write(const void * buffer, uint32 size);
-   virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
+   virtual io_status_t ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSourcePacket);
+   virtual io_status_t Write(const void * buffer, uint32 size);
+   virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
 
    virtual const ConstSocketRef & GetReadSelectSocket()  const {return const_cast<SimulatedMulticastDataIO &>(*this).GetOwnerWakeupSocket();}
    virtual const ConstSocketRef & GetWriteSelectSocket() const {return const_cast<SimulatedMulticastDataIO &>(*this).GetOwnerWakeupSocket();}

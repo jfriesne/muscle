@@ -45,7 +45,7 @@ public:
     *  @return Number of bytes read, or -1 on error.
     *  @see DataIO::Read()
     */
-   virtual int32 Read(void * buffer, uint32 size);
+   virtual io_status_t Read(void * buffer, uint32 size);
 
    /** If (writeToStdout) was passed as true to the constructor,
      * then we will try to fwrite() the passed-in bytes to stdout.
@@ -55,7 +55,7 @@ public:
      * @returns the number of bytes actually written (or size, if writeToStdout is false)
      * @note writes to stdout are expected to be blocking, even if this StdinDataIO is in non-blocking mode.
      */
-   virtual int32 Write(const void * buffer, uint32 size);
+   virtual io_status_t Write(const void * buffer, uint32 size);
 
    /** Flushes stdout if (writeToStdout) was specified as true; otherwise this is a no-op. */
    virtual void FlushOutput();

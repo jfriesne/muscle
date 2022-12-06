@@ -1722,7 +1722,7 @@ void DefaultFileLogger :: CloseLogFile()
                {
                   while(1)
                   {
-                     const int32 bytesRead = inIO.Read(buf, bufSize);
+                     const int32 bytesRead = inIO.Read(buf, bufSize).GetByteCount();
                      if (bytesRead < 0) break;  // EOF
 
                      const int bytesWritten = gzwrite(gzOut, buf, bytesRead);

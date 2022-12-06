@@ -43,21 +43,23 @@ protected:
    /** DoOutput is a no-op for this gateway... all messages are simply eaten and dropped.
      * @copydoc AbstractMessageIOGateway::DoOutputImplementation(uint32)
      */
-   virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT)
+   virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT)
    {
+      (void) maxBytes;  // avoid compiler warning
+
       // Just eat and drop ... we don't really support outgoing messages
       while(GetOutgoingMessageQueue().RemoveHead().IsOK()) {/* keep doing it */}
-      return maxBytes;
+      return io_status_t();
    }
 
    /** Overridden to enqeue a (signalMessage) whenever data is read.
      * @copydoc AbstractMessageIOGateway::DoInputImplementation(AbstractGatewayMessageReceiver &, uint32)
      */
-   virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT)
+   virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT)
    {
       char buf[256];
-      const int32 bytesRead = GetDataIO()() ? GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)sizeof(buf))) : -1;
-      if (bytesRead > 0) receiver.CallMessageReceivedFromGateway(_signalMessage);
+      const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)sizeof(buf))) : io_status_t(B_BAD_OBJECT);
+      if (bytesRead.GetByteCount() > 0) receiver.CallMessageReceivedFromGateway(_signalMessage);
       return bytesRead;
    }
 

@@ -181,27 +181,28 @@ void StdinDataIO :: Close()
 #endif
 }
 
-int32 StdinDataIO :: Read(void * buffer, uint32 size)
+io_status_t StdinDataIO :: Read(void * buffer, uint32 size)
 {
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
    if (_stdinBlocking)
    {
       DWORD actual_read;
-      return ReadFile(GetStdHandle(STD_INPUT_HANDLE), buffer, size, &actual_read, 0) ? actual_read : -1;
+      return ReadFile(GetStdHandle(STD_INPUT_HANDLE), buffer, size, &actual_read, 0) ? io_status_t(actual_read) : io_status_t(B_IO_ERROR);
    }
    else return ReceiveData(_masterSocket, buffer, size, _stdinBlocking);
 #else
    // Turn off stdin's blocking I/O mode only during the Read() call.
    if (_stdinBlocking == false) (void) _fdIO.SetBlockingIOEnabled(false);
-   const int32 ret = _fdIO.Read(buffer, size);
+   const io_status_t ret = _fdIO.Read(buffer, size);
    if (_stdinBlocking == false) (void) _fdIO.SetBlockingIOEnabled(true);
    return ret;
 #endif
 }
 
-int32 StdinDataIO :: Write(const void * buffer, uint32 size)
+io_status_t StdinDataIO :: Write(const void * buffer, uint32 size)
 {
-   return _writeToStdout ? (int32)fwrite(buffer, 1, size, stdout) : (int32)size;
+   const int32 ret = _writeToStdout ? (int32)fwrite(buffer, 1, size, stdout) : (int32)size;
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 }
 
 void StdinDataIO :: FlushOutput()

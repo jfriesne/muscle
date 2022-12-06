@@ -221,12 +221,13 @@ public:
          // Pull in some more input data, if we don't have any
          if ((_deflater.avail_in == 0)&&(numRawBytesLeftToRead > 0))
          {
-            const int32 numBytesRead = sourceRawIO.Read(scratchInBuf.GetBuffer(), muscleMin(numRawBytesLeftToRead, scratchInBuf.GetNumBytes()));
-            if (numBytesRead <= 0) return B_IO_ERROR;
+            const io_status_t numBytesRead = sourceRawIO.Read(scratchInBuf.GetBuffer(), muscleMin(numRawBytesLeftToRead, scratchInBuf.GetNumBytes()));
+            MRETURN_ON_ERROR(numBytesRead.GetStatus());
+            if (numBytesRead.GetByteCount() == 0) return B_IO_ERROR;
 
-            numRawBytesLeftToRead -= numBytesRead;
+            numRawBytesLeftToRead -= numBytesRead.GetByteCount();
             _deflater.next_in  = scratchInBuf.GetBuffer();
-            _deflater.avail_in = numBytesRead;
+            _deflater.avail_in = numBytesRead.GetByteCount();
          }
 
          const int zRet = deflate(&_deflater, Z_SYNC_FLUSH);
@@ -282,11 +283,12 @@ public:
          // Pull in some more input data, if we don't have any
          if (_inflater.avail_in == 0)
          {
-            const int32 numBytesRead = sourceDeflatedIO.Read(scratchInBuf.GetBuffer(), scratchInBuf.GetNumBytes());
-            if (numBytesRead <= 0) return B_IO_ERROR;
+            const io_status_t numBytesRead = sourceDeflatedIO.Read(scratchInBuf.GetBuffer(), scratchInBuf.GetNumBytes());
+            MRETURN_ON_ERROR(numBytesRead.GetStatus());
+            if (numBytesRead.GetByteCount() == 0) return B_IO_ERROR;
 
             _inflater.next_in  = scratchInBuf.GetBuffer();
-            _inflater.avail_in = numBytesRead;
+            _inflater.avail_in = numBytesRead.GetByteCount();
          }
 
          const int zRet = inflate(&_inflater, Z_SYNC_FLUSH);

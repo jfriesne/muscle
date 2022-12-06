@@ -33,8 +33,8 @@ public:
    virtual void Reset();
 
 protected:
-   virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
-   virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
+   virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
+   virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
 
    /** Removes the next MessageRef from the head of our outgoing-Messages
      * queue and returns it.  Returns a NULL MessageRef if there is no

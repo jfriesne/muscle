@@ -93,14 +93,14 @@ int main(int argc, char ** argv)
          {
             while(1)
             {
-               const int32 bytesRead = stdinGateway.DoInput(stdinInQueue);
-               if (bytesRead < 0)
+               const io_status_t bytesRead = stdinGateway.DoInput(stdinInQueue);
+               if (bytesRead.IsError())
                {
                   printf("Stdin closed, exiting!\n");
                   s.Reset();  // break us out of the outer loop
                   break;
                }
-               else if (bytesRead == 0) break;  // no more to read
+               else if (bytesRead.GetByteCount() == 0) break;  // no more to read
             }
 
             MessageRef msgFromStdin;
@@ -226,8 +226,8 @@ int main(int argc, char ** argv)
 
          const bool reading = multiplexer.IsSocketReadyForRead(fd);
          const bool writing = multiplexer.IsSocketReadyForWrite(fd);
-         const bool writeError = ((writing)&&(agw()->DoOutput() < 0));
-         const bool readError  = ((reading)&&(agw()->DoInput(inQueue) < 0));
+         const bool writeError = ((writing)&&(agw()->DoOutput().IsError()));
+         const bool readError  = ((reading)&&(agw()->DoInput(inQueue).IsError()));
          if ((readError)||(writeError))
          {
             printf("%s:  Connection closed, exiting.\n", readError?"Read Error":"Write Error");
@@ -256,7 +256,7 @@ int main(int argc, char ** argv)
    if (agw()->HasBytesToOutput())
    {
       printf("Waiting for all pending messages to be sent...\n");
-      while((agw()->HasBytesToOutput())&&(agw()->DoOutput() >= 0)) {printf ("."); fflush(stdout);}
+      while((agw()->HasBytesToOutput())&&(agw()->DoOutput().IsOK())) {printf ("."); fflush(stdout);}
    }
    printf("\n\nBye!\n");
 

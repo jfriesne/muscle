@@ -1298,7 +1298,7 @@ uint32 DataIO :: WriteFully(const void * buffer, uint32 size)
    const uint8 * firstInvalidByte = b+size;
    while(b < firstInvalidByte)
    {
-      const int32 bytesWritten = Write(b, (uint32)(firstInvalidByte-b));
+      const int32 bytesWritten = Write(b, (uint32)(firstInvalidByte-b)).GetByteCount();
       if (bytesWritten <= 0) break;
       b += bytesWritten;
    }
@@ -1311,7 +1311,7 @@ uint32 DataIO :: ReadFully(void * buffer, uint32 size)
    uint8 * firstInvalidByte = b+size;
    while(b < firstInvalidByte)
    {
-      const int32 bytesRead = Read(b, (uint32) (firstInvalidByte-b));
+      const int32 bytesRead = Read(b, (uint32) (firstInvalidByte-b)).GetByteCount();
       if (bytesRead <= 0) break;
       b += bytesRead;
    }

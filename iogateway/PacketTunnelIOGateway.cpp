@@ -30,9 +30,9 @@ PacketTunnelIOGateway :: PacketTunnelIOGateway(const AbstractMessageIOGatewayRef
    // empty
 }
 
-int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
+io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
-   if (_inputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;
+   MRETURN_ON_ERROR(_inputPacketBuffer.SetNumBytes(_maxTransferUnit, false));
 
    bool firstTime = true;
    uint32 totalBytesRead = 0;
@@ -40,21 +40,21 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
    {
       firstTime = false;
 
-      const int32 bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
-//printf("   READ " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes\n", bytesRead, _inputPacketBuffer.GetNumBytes());
-      if (bytesRead > 0)
+      const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
+//printf("   READ " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes\n", bytesRead.GetByteCount(), _inputPacketBuffer.GetNumBytes());
+      if (bytesRead.GetByteCount() > 0)
       {
-         totalBytesRead += bytesRead;
+         totalBytesRead += bytesRead.GetByteCount();
 
          IPAddressAndPort fromIAP;
          const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
          if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
 
-         DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead);
-         if ((_allowMiscData)&&((bytesRead < (int32)FRAGMENT_HEADER_SIZE)||(DefaultEndianConverter::Import<uint32>(_inputPacketBuffer.GetBuffer()) != _magic)))
+         DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount());
+         if ((_allowMiscData)&&((bytesRead.GetByteCount() < (int32)FRAGMENT_HEADER_SIZE)||(DefaultEndianConverter::Import<uint32>(_inputPacketBuffer.GetBuffer()) != _magic)))
          {
             // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
-            HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead, fromIAP);
+            HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount(), fromIAP);
          }
          else
          {
@@ -120,15 +120,15 @@ int32 PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageRecei
             }
          }
       }
-      else if (bytesRead < 0) return -1;
+      else if (bytesRead.IsError()) return bytesRead;
       else break;
    }
    return totalBytesRead;
 }
 
-int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
+io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 {
-   if (_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false).IsError()) return -1;
+   MRETURN_ON_ERROR(_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false));
 
    uint32 totalBytesWritten = 0;
    bool firstTime = true;
@@ -177,16 +177,16 @@ int32 PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       if (_outputPacketSize > 0)
       {
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
-         const int32 bytesWritten = GetDataIO()() ? GetDataIO()()->Write(_outputPacketBuffer.GetBuffer(), _outputPacketSize) : -1;
-//printf("WROTE " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes %s\n", bytesWritten, _outputPacketSize, (bytesWritten==(int32)_outputPacketSize)?"":"******** SHORT ***********");
-         if (bytesWritten > 0)
+         const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(_outputPacketBuffer.GetBuffer(), _outputPacketSize) : io_status_t(B_BAD_OBJECT);
+//printf("WROTE " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes %s\n", bytesWritten.GetByteCount(), _outputPacketSize, (bytesWritten.GetByteCount()==(int32)_outputPacketSize)?"":"******** SHORT ***********");
+         if (bytesWritten.GetByteCount() > 0)
          {
-            if (bytesWritten != (int32)_outputPacketSize) LogTime(MUSCLE_LOG_ERROR, "PacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten, _outputPacketSize);
+            if (bytesWritten.GetByteCount() != (int32)_outputPacketSize) LogTime(MUSCLE_LOG_ERROR, "PacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), _outputPacketSize);
             _outputPacketSize = 0;
-            totalBytesWritten += bytesWritten;
+            totalBytesWritten += bytesWritten.GetByteCount();
          }
-         else if (bytesWritten == 0) break;  // no more space to write, for now
-         else return -1;
+         else if (bytesWritten.GetByteCount() == 0) break;  // no more space to write, for now
+         else return bytesWritten;
       }
       else break;  // nothing more to do!
    }

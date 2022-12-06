@@ -30,7 +30,7 @@ public:
      * @param size The number of bytes that (buffer) points to
      * @returns the number of bytes read, or -1 on error.
      */
-   virtual int32 Read(void * buffer, uint32 size);
+   virtual io_status_t Read(void * buffer, uint32 size);
 
    /** Calls Write() on all our held sub-DataIOs.
      * @param buffer Pointer to a buffer of data to write
@@ -39,7 +39,7 @@ public:
      *          amounts, the minimum amount written will be returned, and the sub-DataIOs will be Seek()'d
      *          to the position of the sub-DataIO that wrote the fewest bytes.
      */
-   virtual int32 Write(const void * buffer, uint32 size);
+   virtual io_status_t Write(const void * buffer, uint32 size);
 
    /** Calls Seek() on all our held sub-DataIOs.
      * @param offset Byte offset to seek to or by (depending on the next arg)

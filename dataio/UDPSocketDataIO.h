@@ -28,9 +28,9 @@ public:
     */
    virtual ~UDPSocketDataIO();
 
-   virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSource);
-   virtual int32 Write(const void * buffer, uint32 size);
-   virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
+   virtual io_status_t ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSource);
+   virtual io_status_t Write(const void * buffer, uint32 size);
+   virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
 
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
    virtual void FlushOutput() {/* empty */}

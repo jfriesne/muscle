@@ -20,16 +20,20 @@ GZDataIO :: ~GZDataIO()
    ShutdownAux();
 }
 
-int32 GZDataIO :: Read(void * buffer, uint32 size)
+io_status_t GZDataIO :: Read(void * buffer, uint32 size)
 {
-   if (_file == NULL) return -1;
-   return gzread(GetGZFile(_file), buffer, size);
+   if (_file == NULL) return B_BAD_OBJECT;
+
+   const int ret = gzread(GetGZFile(_file), buffer, size);
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ZLIB_ERROR);
 }
 
-int32 GZDataIO :: Write(const void * buffer, uint32 size)
+io_status_t GZDataIO :: Write(const void * buffer, uint32 size)
 {
-   if (_file == NULL) return -1;
-   return gzwrite(GetGZFile(_file), buffer, size);
+   if (_file == NULL) return B_BAD_OBJECT;
+
+   const int ret = gzwrite(GetGZFile(_file), buffer, size);
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ZLIB_ERROR);
 }
 
 void GZDataIO :: FlushOutput()

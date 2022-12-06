@@ -253,8 +253,8 @@ AttachNewSession(const AbstractReflectSessionRef & ref)
       }
       else
       {
-         newSession->AboutToDetachFromServer();  // well, it *was* attached, if only for a moment
-         newSession->DoOutput(MUSCLE_NO_LIMIT);  // one last chance for him to send any leftover data!
+         newSession->AboutToDetachFromServer();         // well, it *was* attached, if only for a moment
+         (void) newSession->DoOutput(MUSCLE_NO_LIMIT);  // one last chance for him to send any leftover data!
          if (_doLogging) LogTime(MUSCLE_LOG_DEBUG, "%s aborted startup [%s] (" UINT32_FORMAT_SPEC " left)\n", newSession->GetSessionDescriptionString()(), ret(), _sessions.GetNumItems()-1);
       }
       newSession->SetOwner(NULL);
@@ -299,7 +299,7 @@ ReflectServer :: Cleanup()
             AbstractReflectSession & ars = *nextValue();
             ars.SetFullyAttachedToServer(false);
             ars.AboutToDetachFromServer();
-            ars.DoOutput(MUSCLE_NO_LIMIT);  // one last chance for him to send any leftover data!
+            (void) ars.DoOutput(MUSCLE_NO_LIMIT);  // one last chance for him to send any leftover data!
             ars.SetOwner(NULL);
 
             (void) _sessions.MoveToTable(iter.GetKey(), _lameDuckSessions);
@@ -632,7 +632,7 @@ ServerProcessLoop()
                   int32 readBytes = 0;
                   if (_multiplexer.IsSocketReadyForRead(readSock))
                   {
-                     readBytes = session->DoInput(*session, session->_maxInputChunk);  // session->MessageReceivedFromGateway() gets called here
+                     readBytes = session->DoInput(*session, session->_maxInputChunk).GetByteCount();  // session->MessageReceivedFromGateway() gets called here
 
                      AbstractSessionIOPolicy * p = session->GetInputPolicy()();
                      if ((p)&&(readBytes >= 0)) p->BytesTransferred(PolicyHolder(session, true), (uint32)readBytes);
@@ -667,10 +667,11 @@ ServerProcessLoop()
                            if (io) io->WriteBufferedOutput();
                         }
 
-                        wroteBytes = session->DoOutput(session->_maxOutputChunk);
+                        const io_status_t wb = session->DoOutput(session->_maxOutputChunk);
+                        wroteBytes = wb.GetByteCount();
 
                         AbstractSessionIOPolicy * p = session->GetOutputPolicy()();
-                        if ((p)&&(wroteBytes >= 0)) p->BytesTransferred(PolicyHolder(session, false), (uint32)wroteBytes);
+                        if ((p)&&(wb.IsOK())) p->BytesTransferred(PolicyHolder(session, false), (uint32)wroteBytes);
                      }
                   }
 #if defined(WIN32)
@@ -804,7 +805,7 @@ status_t ReflectServer :: ClearLameDucks()
          {
             duck->SetFullyAttachedToServer(false);
             duck->AboutToDetachFromServer();
-            duck->DoOutput(MUSCLE_NO_LIMIT);  // one last chance for him to send any leftover data!
+            (void) duck->DoOutput(MUSCLE_NO_LIMIT);  // one last chance for him to send any leftover data!
             if (_doLogging) LogTime(MUSCLE_LOG_DEBUG, "Closed %s (" UINT32_FORMAT_SPEC " left)\n", duck->GetSessionDescriptionString()(), _sessions.GetNumItems()-1);
             duck->SetOwner(NULL);
 

@@ -38,9 +38,9 @@ public:
     *  Copies bytes from our ByteBuffer into (buffer).  If we have no buffer, returns -1.
     *  @param buffer Points to a buffer to read bytes into.
     *  @param size Number of bytes in the buffer.
-    *  @return zero.
+    *  @returns zero.
     */
-   virtual int32 Read(void * buffer, uint32 size);
+   virtual io_status_t Read(void * buffer, uint32 size);
 
    /**
     *  Writes bytes into our write buffer.  If we have no write buffer, or we cannot allocate more memory for the write buffer, returns -1.
@@ -48,7 +48,7 @@ public:
     *  @param size Number of bytes in the buffer.
     *  @return (size).
     */
-   virtual int32 Write(const void * buffer, uint32 size);
+   virtual io_status_t Write(const void * buffer, uint32 size);
 
    /** Seeks to the specified point in our ByteBuffer.
     *  Note that only 32-bit seeks are supported in this implementation.

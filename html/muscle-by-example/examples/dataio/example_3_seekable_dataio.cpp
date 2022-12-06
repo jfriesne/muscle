@@ -53,7 +53,7 @@ int main(int argc, char ** argv)
 
    char inputBuf[1024];
    int numBytesRead;
-   while((numBytesRead = fileDataIO.Read(inputBuf, sizeof(inputBuf)-1)) >= 0)
+   while((numBytesRead = fileDataIO.Read(inputBuf, sizeof(inputBuf)-1).GetByteCount()) >= 0)
    {
       inputBuf[numBytesRead] = '\0';
       printf("%s", inputBuf);

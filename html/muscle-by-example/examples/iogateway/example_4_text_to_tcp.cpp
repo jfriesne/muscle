@@ -167,14 +167,14 @@ int main(int argc, char ** argv)
          QueueGatewayMessageReceiver qReceiver;
          while(true)
          {
-            const int numBytesRead = gateway.DoInput(qReceiver);
-            if (numBytesRead < 0)
+            const io_status_t numBytesRead = gateway.DoInput(qReceiver);
+            if (numBytesRead.IsError())
             {
                printf("TCP connection closed!  Will quit ASAP.\n");
                keepGoing = false;
                break;
             }
-            else if (numBytesRead == 0) break;  // no more bytes to read for now!
+            else if (numBytesRead.GetByteCount() == 0) break;  // no more bytes to read for now!
          }
 
          // Now that we're done reading (for now), print out any Messages we received
@@ -192,7 +192,7 @@ int main(int argc, char ** argv)
       if (sm.IsSocketReadyForWrite(gateway.GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor()))
       {
          int numBytesSent;
-         while((numBytesSent = gateway.DoOutput()) > 0)
+         while((numBytesSent = gateway.DoOutput().GetByteCount()) > 0)
          {
             printf("PlainTextMessageIOGateway send %i bytes of Message data out to the TCP socket.\n", numBytesSent);
          }

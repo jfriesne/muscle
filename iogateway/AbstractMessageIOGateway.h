@@ -46,7 +46,7 @@ public:
     * @return The number of bytes written, or a negative value if the connection has been broken
     *         or some other catastrophic condition has occurred.
     */
-   int32 DoOutput(uint32 maxBytes = MUSCLE_NO_LIMIT);
+   io_status_t DoOutput(uint32 maxBytes = MUSCLE_NO_LIMIT);
 
    /**
     * Reads some more incoming message bytes from the wire.
@@ -61,10 +61,10 @@ public:
     * @return The number of bytes read, or a negative value if the connection has been broken
     *         or some other catastrophic condition has occurred.
     */
-   int32 DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT)
+   io_status_t DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT)
    {
       receiver.DoInputBegins();
-      const int32 ret = DoInputImplementation(receiver, maxBytes);
+      const io_status_t ret = DoInputImplementation(receiver, maxBytes);
       receiver.DoInputEnds();
       return ret;
    }
@@ -195,7 +195,7 @@ protected:
     * @return The number of bytes written, or a negative value if the connection has been broken
     *         or some other catastrophic condition has occurred.
     */
-   virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT) = 0;
+   virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT) = 0;
 
    /**
     * Reads some more incoming message bytes from the wire.
@@ -209,7 +209,7 @@ protected:
     * @return The number of bytes read, or a negative value if the connection has been broken
     *         or some other catastrophic condition has occurred.
     */
-   virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT) = 0;
+   virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT) = 0;
 
    /** Call this method to flag this gateway as hosed--that is, to say that an unrecoverable error has occurred. */
    void SetHosed() {_hosed = true;}

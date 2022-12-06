@@ -32,7 +32,7 @@ void QSignalHandler :: SocketDataReady()
    while(1)
    {
       char buf[64];
-      const int32 bytesReceived = ReceiveData(_mainThreadSocket, buf, sizeof(buf), false);
+      const int32 bytesReceived = ReceiveData(_mainThreadSocket, buf, sizeof(buf), false).GetByteCount();
       if (bytesReceived <= 0) break;
       for (int32 i=0; i<bytesReceived; i++) emit SignalReceived(buf[i]);
    }

@@ -844,10 +844,10 @@ ConstSocketRef DetectNetworkConfigChangesSession :: CreateDefaultSocket()
 #endif
 }
 
-int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceiver & /*r*/, uint32 /*maxBytes*/)
+io_status_t DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceiver & /*r*/, uint32 /*maxBytes*/)
 {
    const int fd = GetSessionReadSelectSocket().GetFileDescriptor();
-   if (fd < 0) return -1;
+   if (fd < 0) return B_BAD_OBJECT;
 
 #ifdef __linux__
    bool sendReport = false;
@@ -855,7 +855,7 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
    struct iovec iov = {buf, sizeof(buf)};
    struct sockaddr_nl sa;
    struct msghdr msg = {(void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
-   int msgLen = recvmsg(fd, &msg, 0);
+   const int msgLen = recvmsg(fd, &msg, 0);
    if (msgLen >= 0)  // FogBugz #9620
    {
       for (struct nlmsghdr *nh = (struct nlmsghdr *)buf; NLMSG_OK(nh, (unsigned int)msgLen); nh=NLMSG_NEXT(nh, msgLen))
@@ -904,10 +904,10 @@ int32 DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageReceive
       }
    }
    if (sendReport) ScheduleSendReport();
-   return msgLen;
+   return (msgLen >= 0) ? io_status_t(msgLen) : io_status_t(B_ERRNO);
 #elif defined(USE_SINGLETON_THREAD)
    char buf[128];
-   const int32 ret = ReceiveData(_waitSocket, buf, sizeof(buf), false);  // clear any received signalling bytes
+   const io_status_t ret = ReceiveData(_waitSocket, buf, sizeof(buf), false);  // clear any received signalling bytes
    Queue<MessageRef> incomingMessages;
    {
       DECLARE_MUTEXGUARD(_messagesFromSingletonThreadMutex);

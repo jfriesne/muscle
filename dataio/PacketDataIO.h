@@ -54,7 +54,7 @@ public:
     *  @return Number of bytes read, or -1 on error.
     *  @param size Number of bytes in the buffer.
     */
-   virtual int32 Read(void * buffer, uint32 size)
+   virtual io_status_t Read(void * buffer, uint32 size)
    {
       return ReadFrom(buffer, size, GetWritableSourceOfLastReadPacket());
    }
@@ -65,7 +65,7 @@ public:
     *  @param size Number of bytes to send.
     *  @return Number of bytes sent, or -1 on error.
     */
-   virtual int32 Write(const void * buffer, uint32 size)
+   virtual io_status_t Write(const void * buffer, uint32 size)
    {
       return WriteTo(buffer, size, GetPacketSendDestination());
    }
@@ -79,7 +79,7 @@ public:
     *  @param retPacketSource on success, the incoming packet's source is placed here.
     *  @return Number of bytes read, or -1 on error.
     */
-   virtual int32 ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource) = 0;
+   virtual io_status_t ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource) = 0;
 
    /** Tries to send a packet of data to the specified location.
     *  Returns the actual number of sent, or a negative value if
@@ -89,7 +89,7 @@ public:
     *  @param packetDest The destination that the packet should be sent to.
     *  @return Number of bytes written, or -1 on error.
     */
-   virtual int32 WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) = 0;
+   virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) = 0;
 
 protected:
    /** Set the value that should be returned by our GetSourceOfLastReadPacket() method.

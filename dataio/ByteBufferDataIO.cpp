@@ -15,7 +15,7 @@ ByteBufferDataIO :: ~ByteBufferDataIO()
    // empty
 }
 
-int32 ByteBufferDataIO :: Read(void * buffer, uint32 size)
+io_status_t ByteBufferDataIO :: Read(void * buffer, uint32 size)
 {
    if (_buf())
    {
@@ -24,19 +24,19 @@ int32 ByteBufferDataIO :: Read(void * buffer, uint32 size)
       _seekPos += copyBytes;
       return copyBytes;
    }
-   return -1;
+   return B_BAD_OBJECT;
 }
 
-int32 ByteBufferDataIO :: Write(const void * buffer, uint32 size)
+io_status_t ByteBufferDataIO :: Write(const void * buffer, uint32 size)
 {
-   if (_buf() == NULL) return -1;
+   if (_buf() == NULL) return B_BAD_OBJECT;
 
    const uint32 oldBufSize = _buf()->GetNumBytes();
    const uint32 pastOffset = muscleMax(oldBufSize, _seekPos+size);
    if (pastOffset > oldBufSize)
    {
       const uint32 preallocBytes = (pastOffset*2);  // exponential resize to avoid too many reallocs
-      if (_buf()->SetNumBytes(preallocBytes, true).IsError()) return -1;   // allocate the memory
+      MRETURN_ON_ERROR(_buf()->SetNumBytes(preallocBytes, true));   // allocate the memory
       memset(_buf()->GetBuffer()+oldBufSize, 0, preallocBytes-oldBufSize);  // make sure newly alloc'd memory is zeroed out!
       (void) _buf()->SetNumBytes(pastOffset, true);  // guaranteed not to fail
    }

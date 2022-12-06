@@ -102,9 +102,10 @@ ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64
       if (GetRunTime64() >= endTime) return B_TIMED_OUT;
       if (optReceiver)        multiplexer.RegisterSocketForReadReady(readFD);
       if (HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
-      if ((multiplexer.WaitForEvents(endTime) < 0)                        ||
-         ((multiplexer.IsSocketReadyForWrite(writeFD))&&(DoOutput() < 0)) ||
-         ((multiplexer.IsSocketReadyForRead(readFD))&&(DoInput(scratchReceiver) < 0))) return IsStillAwaitingSynchronousMessagingReply() ? B_IO_ERROR : B_NO_ERROR;
+
+      if (multiplexer.WaitForEvents(endTime) < 0) return B_IO_ERROR;
+      if (multiplexer.IsSocketReadyForWrite(writeFD)) MRETURN_ON_ERROR(DoOutput().GetStatus());
+      if (multiplexer.IsSocketReadyForRead(readFD))   MRETURN_ON_ERROR(DoInput(scratchReceiver).GetStatus());
    }
    return B_NO_ERROR;
 }
@@ -117,11 +118,11 @@ void AbstractMessageIOGateway :: SetDataIO(const DataIORef & ref)
    _mtuSize = _packetDataIO ? _packetDataIO->GetMaximumPacketSize() : 0;
 }
 
-int32 AbstractMessageIOGateway :: DoOutput(uint32 maxBytes)
+io_status_t AbstractMessageIOGateway :: DoOutput(uint32 maxBytes)
 {
-   const int32 numBytesSent = DoOutputImplementation(maxBytes);
-   if ((numBytesSent > 0)&&(_flushOnEmpty)&&(HasBytesToOutput() == false)) FlushOutput();
-   return numBytesSent;
+   const io_status_t ret = DoOutputImplementation(maxBytes);
+   if ((ret.GetByteCount() > 0)&&(_flushOnEmpty)&&(HasBytesToOutput() == false)) FlushOutput();
+   return ret;
 }
 
 } // end namespace muscle

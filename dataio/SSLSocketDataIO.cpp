@@ -217,13 +217,17 @@ void SSLSocketDataIO :: SetPreSharedKeyLoginInfo(const String & userName, const 
              else SSL_set_psk_client_callback(_ssl, pskClientCallbackFunc);
 }
 
-int32 SSLSocketDataIO :: Read(void *buffer, uint32 size)
+io_status_t SSLSocketDataIO :: Read(void *buffer, uint32 size)
 {
-   if (_ssl == NULL) return -1;
+   if (_ssl == NULL) return B_BAD_OBJECT;
 
-   int32 bytes = SSL_read(_ssl, buffer, size);
-        if (bytes > 0) _sslState &= ~(SSL_STATE_READ_WANTS_READABLE_SOCKET | SSL_STATE_READ_WANTS_WRITEABLE_SOCKET);
-   else if (bytes == 0) return -1;  // connection was terminated
+   const int32 bytes = SSL_read(_ssl, buffer, size);
+   if (bytes > 0)
+   {
+      _sslState &= ~(SSL_STATE_READ_WANTS_READABLE_SOCKET | SSL_STATE_READ_WANTS_WRITEABLE_SOCKET);
+      return bytes;
+   }
+   else if (bytes == 0) return B_IO_ERROR;  // connection was terminated
    else
    {
       const int err = SSL_get_error(_ssl, bytes);
@@ -232,31 +236,35 @@ int32 SSLSocketDataIO :: Read(void *buffer, uint32 size)
          // We have to wait until our socket is writeable, and then repeat our SSL_read() call.
          _sslState &= ~SSL_STATE_READ_WANTS_READABLE_SOCKET;
          _sslState |=  SSL_STATE_READ_WANTS_WRITEABLE_SOCKET;
-         bytes = 0;
+         return io_status_t();
       }
       else if (err == SSL_ERROR_WANT_READ)
       {
          // We have to wait until our socket is readable, and then repeat our SSL_read() call.
          _sslState |=  SSL_STATE_READ_WANTS_READABLE_SOCKET;
          _sslState &= ~SSL_STATE_READ_WANTS_WRITEABLE_SOCKET;
-         bytes = 0;
+         return io_status_t();
       }
       else
       {
          fprintf(stderr, "SSL_read() ERROR:  ");
          ERR_print_errors_fp(stderr);
+         return B_SSL_ERROR;
       }
    }
-   return bytes;
 }
 
-int32 SSLSocketDataIO :: Write(const void *buffer, uint32 size)
+io_status_t SSLSocketDataIO :: Write(const void *buffer, uint32 size)
 {
-   if (_ssl == NULL) return -1;
+   if (_ssl == NULL) return B_BAD_OBJECT;
 
-   int32 bytes = SSL_write(_ssl, buffer, size);
-        if (bytes > 0) _sslState &= ~(SSL_STATE_WRITE_WANTS_READABLE_SOCKET | SSL_STATE_WRITE_WANTS_WRITEABLE_SOCKET);
-   else if (bytes == 0) return -1;  // connection was terminated
+   const int32 bytes = SSL_write(_ssl, buffer, size);
+   if (bytes > 0)
+   {
+      _sslState &= ~(SSL_STATE_WRITE_WANTS_READABLE_SOCKET | SSL_STATE_WRITE_WANTS_WRITEABLE_SOCKET);
+      return bytes;
+   }
+   else if (bytes == 0) return B_IO_ERROR;  // connection was terminated
    else
    {
       const int err = SSL_get_error(_ssl, bytes);
@@ -265,22 +273,22 @@ int32 SSLSocketDataIO :: Write(const void *buffer, uint32 size)
          // We have to wait until our socket is readable, and then repeat our SSL_write() call.
          _sslState |=  SSL_STATE_WRITE_WANTS_READABLE_SOCKET;
          _sslState &= ~SSL_STATE_WRITE_WANTS_WRITEABLE_SOCKET;
-         bytes = 0;
+         return io_status_t();
       }
       else if (err == SSL_ERROR_WANT_WRITE)
       {
          // We have to wait until our socket is writeable, and then repeat our SSL_write() call.
          _sslState &= ~SSL_STATE_WRITE_WANTS_READABLE_SOCKET;
          _sslState |=  SSL_STATE_WRITE_WANTS_WRITEABLE_SOCKET;
-         bytes = 0;
+         return io_status_t();
       }
       else
       {
          fprintf(stderr,"SSL_write() ERROR!");
          ERR_print_errors_fp(stderr);
+         return B_SSL_ERROR;
       }
    }
-   return bytes;
 }
 
 const ConstSocketRef & SSLSocketDataIO :: GetReadSelectSocket() const

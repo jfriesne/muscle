@@ -41,7 +41,7 @@ public:
     *  @return Number of bytes read, or -1 on error.
     *  @see DataIO::Read()
     */
-   virtual int32 Read(void * buffer, uint32 size);
+   virtual io_status_t Read(void * buffer, uint32 size);
 
    /**
     * Reads bytes from (buffer) and sends them out to the file descriptor.
@@ -50,7 +50,7 @@ public:
     *  @return Number of bytes written, or -1 on error.
     *  @see DataIO::Write()
     */
-   virtual int32 Write(const void * buffer, uint32 size);
+   virtual io_status_t Write(const void * buffer, uint32 size);
 
    /**
     *  Implemented as a no-op (I don't believe file descriptors need flushing?)

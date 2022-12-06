@@ -17,16 +17,16 @@ static status_t ReadIncomingData(const String & desc, DataIO & readIO, const Soc
    if (multiplexer.IsSocketReadyForRead(readIO.GetReadSelectSocket().GetFileDescriptor()))
    {
       uint8 buf[4096];
-      const int32 ret = readIO.Read(buf, sizeof(buf));
-      if (ret > 0)
+      const io_status_t ret = readIO.Read(buf, sizeof(buf));
+      if (ret.GetByteCount() > 0)
       {
-         LogTime(MUSCLE_LOG_TRACE, "Read " INT32_FORMAT_SPEC " bytes from %s:\n", ret, desc());
-         LogHexBytes(MUSCLE_LOG_TRACE, buf, ret);
+         LogTime(MUSCLE_LOG_TRACE, "Read " INT32_FORMAT_SPEC " bytes from %s:\n", ret.GetByteCount(), desc());
+         LogHexBytes(MUSCLE_LOG_TRACE, buf, ret.GetByteCount());
 
-         ByteBufferRef toNetworkBuf = GetByteBufferFromPool(ret, buf);
+         ByteBufferRef toNetworkBuf = GetByteBufferFromPool(ret.GetByteCount(), buf);
          if (toNetworkBuf()) (void) outQ.AddTail(toNetworkBuf);
       }
-      else if (ret < 0) {LogTime(MUSCLE_LOG_ERROR, "Error, readIO.Read() returned %i\n", ret); return B_IO_ERROR;}
+      else if (ret.IsError()) {LogTime(MUSCLE_LOG_ERROR, "Error, readIO.Read() returned [%s]\n", ret.GetStatus()()); return ret.GetStatus();}
    }
    return B_NO_ERROR;
 }
@@ -46,15 +46,15 @@ static status_t WriteOutgoingData(const String & desc, DataIO & writeIO, const S
          }
          else
          {
-            const int32 ret = writeIO.Write(firstBuf()->GetBuffer()+writeIdx, firstBuf()->GetNumBytes()-writeIdx);
-            if (ret > 0)
+            const io_status_t ret = writeIO.Write(firstBuf()->GetBuffer()+writeIdx, firstBuf()->GetNumBytes()-writeIdx);
+            if (ret.GetByteCount() > 0)
             {
                writeIO.FlushOutput();
-               LogTime(MUSCLE_LOG_TRACE, "Wrote " INT32_FORMAT_SPEC " bytes to %s:\n", ret, desc());
-               LogHexBytes(MUSCLE_LOG_TRACE, firstBuf()->GetBuffer()+writeIdx, ret);
-               writeIdx += ret;
+               LogTime(MUSCLE_LOG_TRACE, "Wrote " INT32_FORMAT_SPEC " bytes to %s:\n", ret.GetByteCount(), desc());
+               LogHexBytes(MUSCLE_LOG_TRACE, firstBuf()->GetBuffer()+writeIdx, ret.GetByteCount());
+               writeIdx += ret.GetByteCount();
             }
-            else if (ret < 0) LogTime(MUSCLE_LOG_ERROR, "Error, writeIO.Write() returned %i\n", ret);
+            else if (ret.IsError()) LogTime(MUSCLE_LOG_ERROR, "Error, writeIO.Write() returned [%s]\n", ret.GetStatus()());
          }
       }
    }

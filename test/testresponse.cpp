@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
             }
             if (multiplexer.IsSocketReadyForRead(fd))
             {
-               if (ioGateway.DoInput(inQueue) < 0)
+               if (ioGateway.DoInput(inQueue).IsError())
                {
                   LogTime(MUSCLE_LOG_ERROR, "Error reading from gateway, aborting!\n");
                   break;
@@ -74,7 +74,7 @@ int main(int argc, char ** argv)
                }
             }
 
-            if ((multiplexer.IsSocketReadyForWrite(fd))&&(ioGateway.DoOutput() < 0))
+            if ((multiplexer.IsSocketReadyForWrite(fd))&&(ioGateway.DoOutput().IsError()))
             {
                LogTime(MUSCLE_LOG_ERROR, "Error writing to gateway, aborting!\n");
                break;

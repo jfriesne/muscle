@@ -33,19 +33,21 @@ public:
    /** Implemented to XOR the child DataIO's read bytes before returning.
      * @copydoc ProxyDataIO::Read(void *, uint32)
      */
-   virtual int32 Read(void * buffer, uint32 size)
+   virtual io_status_t Read(void * buffer, uint32 size)
    {
-      const int32 ret = ProxyDataIO::Read(buffer, size);
-      if (ret > 0) XorCopy(buffer, buffer, size);
+      const io_status_t ret = ProxyDataIO::Read(buffer, size);
+      if (ret.GetByteCount() > 0) XorCopy(buffer, buffer, size);
       return ret;
    }
 
    /** Implemented to pass XOR's bytes to the child DataIO's Write() method.
      * @copydoc ProxyDataIO::Write(const void *, uint32)
      */
-   virtual int32 Write(const void * buffer, uint32 size)
+   virtual io_status_t Write(const void * buffer, uint32 size)
    {
-      if ((GetChildDataIO()() == NULL)||(_tempBuf.SetNumBytes(size, buffer).IsError())) return -1;
+      if (GetChildDataIO()() == NULL) return B_BAD_OBJECT;
+      MRETURN_ON_IO_ERROR(_tempBuf.SetNumBytes(size, buffer));
+
       XorCopy(_tempBuf.GetBuffer(), buffer, size);
       return ProxyDataIO::Write(_tempBuf.GetBuffer(), size);
    }

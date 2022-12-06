@@ -31,14 +31,14 @@ static status_t AddFileToTar(TarFileWriter & tarFileWriter, const String & entry
       uint8 buf[64*1024];
       while(bytesWritten < fpi.GetFileSize())
       {
-         const int32 bytesRead = inputFile.Read(buf, sizeof(buf));
-         if (bytesRead < 0)
+         const io_status_t bytesRead = inputFile.Read(buf, sizeof(buf));
+         if (bytesRead.IsError())
          {
-            LogTime(MUSCLE_LOG_ERROR, "Error reading from file [%s]\n", filePath());
+            LogTime(MUSCLE_LOG_ERROR, "Error reading from file [%s] [%s]\n", filePath(), bytesRead.GetStatus()());
             return B_IO_ERROR;
          }
-         MRETURN_ON_ERROR(tarFileWriter.WriteFileData(buf, bytesRead));
-         bytesWritten += bytesRead;
+         MRETURN_ON_ERROR(tarFileWriter.WriteFileData(buf, bytesRead.GetByteCount()));
+         bytesWritten += bytesRead.GetByteCount();
       }
       return B_NO_ERROR;  // we could call tarFileWriter.FinishCurrentFileDataBlock() here but it should also work without doing so, so I won't --jaf
    }

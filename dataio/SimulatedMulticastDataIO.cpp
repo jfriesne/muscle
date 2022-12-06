@@ -37,15 +37,15 @@ enum {
 static const String SMDIO_NAME_DATA = "dat";  // B_RAW_TYPE: packet's data buffer
 static const String SMDIO_NAME_RLOC = "rlc";  // IPAddressAndPort: packet's remote location (source or dest)
 
-int32 SimulatedMulticastDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource)
+io_status_t SimulatedMulticastDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource)
 {
-   if (IsInternalThreadRunning() == false) return -1;
+   if (IsInternalThreadRunning() == false) return B_BAD_OBJECT;
 
    MessageRef msg;
-   if (GetNextReplyFromInternalThread(msg).IsError()) return 0;  // nothing available to read, right now!
+   if (GetNextReplyFromInternalThread(msg).IsError()) return io_status_t();  // nothing available to read, right now!
 
    ConstByteBufferRef incomingData = msg()->GetFlat(SMDIO_NAME_DATA);
-   if (incomingData() == NULL) return 0;  // nothing for now!
+   if (incomingData() == NULL) return io_status_t();  // nothing for now!
 
    if (msg()->FindFlat(SMDIO_NAME_RLOC, retPacketSource).IsError()) retPacketSource.Reset();
    SetSourceOfLastReadPacket(retPacketSource); // in case this was a direct ReadFrom() call and anyone calls GetSourceOfLastReadPacket() later
@@ -64,23 +64,25 @@ int32 SimulatedMulticastDataIO :: ReadFrom(void * buffer, uint32 size, IPAddress
          LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  ReadFrom():  Unexpected whatCode " UINT32_FORMAT_SPEC "\n", this, msg()->what);
       break;
    }
-   return 0;
+   return io_status_t();
 }
 
-int32 SimulatedMulticastDataIO :: Write(const void * buffer, uint32 size)
+io_status_t SimulatedMulticastDataIO :: Write(const void * buffer, uint32 size)
 {
    return WriteTo(buffer, size, GetDefaultObjectForType<IPAddressAndPort>());
 }
 
-int32 SimulatedMulticastDataIO :: WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest)
+io_status_t SimulatedMulticastDataIO :: WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest)
 {
-   if (IsInternalThreadRunning() == false) return -1;
+   if (IsInternalThreadRunning() == false) return B_BAD_OBJECT;
 
    MessageRef toInternalThreadMsg = GetMessageFromPool(SMDIO_COMMAND_DATA);
-   return ((toInternalThreadMsg())&&
-           (toInternalThreadMsg()->AddData(SMDIO_NAME_DATA, B_RAW_TYPE, buffer, size).IsOK())&&
-           ((packetDest.IsValid() == false)||(toInternalThreadMsg()->AddFlat(SMDIO_NAME_RLOC, packetDest).IsOK()))&&
-           (SendMessageToInternalThread(toInternalThreadMsg).IsOK())) ? size : -1;
+   MRETURN_OOM_ON_NULL(toInternalThreadMsg());
+   MRETURN_ON_ERROR(toInternalThreadMsg()->AddData(SMDIO_NAME_DATA, B_RAW_TYPE, buffer, size));
+   if (packetDest.IsValid()) MRETURN_ON_ERROR(toInternalThreadMsg()->AddFlat(SMDIO_NAME_RLOC, packetDest));
+
+   const status_t smRet = SendMessageToInternalThread(toInternalThreadMsg);
+   return smRet.IsOK() ? io_status_t(size) : io_status_t(smRet);
 }
 
 UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IPAddressAndPort & iap) const
@@ -133,15 +135,15 @@ status_t SimulatedMulticastDataIO :: ReadPacket(DataIO & dio, ByteBufferRef & re
    if (_scratchBuf() == NULL) _scratchBuf = GetByteBufferFromPool(_maxPacketSize);
    if ((_scratchBuf() == NULL)||(_scratchBuf()->SetNumBytes(_maxPacketSize, false).IsError())) return B_OUT_OF_MEMORY;
 
-   const int32 bytesRead = dio.Read(_scratchBuf()->GetBuffer(), _scratchBuf()->GetNumBytes());
-   if (bytesRead > 0)
+   const io_status_t bytesRead = dio.Read(_scratchBuf()->GetBuffer(), _scratchBuf()->GetNumBytes());
+   if (bytesRead.GetByteCount() > 0)
    {
-      (void) _scratchBuf()->SetNumBytes(bytesRead, true);
+      (void) _scratchBuf()->SetNumBytes(bytesRead.GetByteCount(), true);
       retBuf = _scratchBuf;
       _scratchBuf.Reset();
       return B_NO_ERROR;
    }
-   else return B_IO_ERROR;
+   else return bytesRead.GetStatus() | B_IO_ERROR;
 }
 
 status_t SimulatedMulticastDataIO :: SendIncomingDataPacketToMainThread(const ByteBufferRef & data, const IPAddressAndPort & source)

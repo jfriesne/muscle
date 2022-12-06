@@ -40,7 +40,7 @@ int main(int argc, char ** argv)
 
    char inputBuf[2048];
    int numBytesRead;
-   while((numBytesRead = udpIO.Read(inputBuf, sizeof(inputBuf))) >= 0)
+   while((numBytesRead = udpIO.Read(inputBuf, sizeof(inputBuf)).GetByteCount()) >= 0)
    {
       const IPAddressAndPort source = udpIO.GetSourceOfLastReadPacket();
 
@@ -48,8 +48,9 @@ int main(int argc, char ** argv)
       PrintHexBytes(inputBuf, numBytesRead);
 
       udpIO.SetPacketSendDestination(source);
-      const int numBytesSent = udpIO.Write(inputBuf, numBytesRead);
-      printf("Echoed %i/%i bytes back to %s\n", numBytesSent, numBytesRead, source.ToString()());
+      const io_status_t numBytesSent = udpIO.Write(inputBuf, numBytesRead);
+      if (numBytesSent.IsOK()) printf("Echoed %i/%i bytes back to %s\n", numBytesSent.GetByteCount(), numBytesRead, source.ToString()());
+                          else printf("Error [%s] sending %i bytes back to %s\n", numBytesSent.GetStatus()(), numBytesRead, source.ToString()());
    }
    return 0;
 }

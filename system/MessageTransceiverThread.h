@@ -118,7 +118,7 @@ public:
    virtual void AsyncConnectCompleted();
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData);
-   virtual int32 DoOutput(uint32 maxBytes);
+   virtual io_status_t DoOutput(uint32 maxBytes);
 
    /** Returns true iff our MessageReceivedFromGateway() method should automatically forward all Messages
      * it receives from the remote peer verbatim to the ThreadSupervisorSession for presentation to the owner

@@ -24,7 +24,7 @@ static void CheckFile(const String & path, Queue<String> & codes)
 
       // Read in the file
       QueueGatewayMessageReceiver q;
-      while(gw.DoInput(q) > 0) {/* empty */}
+      while(gw.DoInput(q).GetByteCount() > 0) {/* empty */}
 
       // Now parse the lines, and for any that have LogTime() in them, print out the line and the corresponding code key
       uint32 lineNumber = 1;

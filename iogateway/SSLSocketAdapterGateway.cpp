@@ -58,17 +58,18 @@ void SSLSocketAdapterGateway :: Reset()
    if (_slaveGateway()) _slaveGateway()->Reset();
 }
 
-int32 SSLSocketAdapterGateway :: DoOutputImplementation(uint32 maxBytes)
+io_status_t SSLSocketAdapterGateway :: DoOutputImplementation(uint32 maxBytes)
 {
    if ((GetSSLState() & SSLSocketDataIO::SSL_STATE_READ_WANTS_WRITEABLE_SOCKET) != 0)
    {
-      if ((_slaveGateway()==NULL)||(_slaveGateway()->DoInput(_sslMessages) < 0)) return -1;
+      if (_slaveGateway() == NULL) return B_BAD_OBJECT;
+      MRETURN_ON_IO_ERROR(_slaveGateway()->DoInput(_sslMessages));
       if (_sslMessages.HasItems()) SetSSLForceReadReady(true);  // to make sure that our DoInput() method gets called ASAP
    }
-   return _slaveGateway() ? _slaveGateway()->DoOutput(maxBytes) : -1;
+   return _slaveGateway() ? _slaveGateway()->DoOutput(maxBytes) : io_status_t(B_BAD_OBJECT);
 }
 
-int32 SSLSocketAdapterGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
+io_status_t SSLSocketAdapterGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
    if (_sslMessages.HasItems())
    {
@@ -76,8 +77,9 @@ int32 SSLSocketAdapterGateway :: DoInputImplementation(AbstractGatewayMessageRec
       MessageRef msg; while(_sslMessages.RemoveHead(msg).IsOK()) receiver.CallMessageReceivedFromGateway(msg);
    }
 
-   if (((GetSSLState() & SSLSocketDataIO::SSL_STATE_WRITE_WANTS_READABLE_SOCKET) != 0)&&((_slaveGateway()==NULL)||(_slaveGateway()->DoOutput() < 0))) return -1;
-   return _slaveGateway() ? _slaveGateway()->DoInput(receiver, maxBytes) : -1;
+   status_t ret;
+   if (((GetSSLState() & SSLSocketDataIO::SSL_STATE_WRITE_WANTS_READABLE_SOCKET) != 0)&&((_slaveGateway()==NULL)||(_slaveGateway()->DoOutput().IsError(ret)))) return ret | B_BAD_OBJECT;
+   return _slaveGateway() ? _slaveGateway()->DoInput(receiver, maxBytes) : io_status_t(B_BAD_OBJECT);
 }
 
 uint32 SSLSocketAdapterGateway :: GetSSLState() const

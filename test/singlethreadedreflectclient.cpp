@@ -140,14 +140,14 @@ int main(int argc, char ** argv)
       {
          while(1)
          {
-            const int32 bytesRead = stdinGateway.DoInput(stdinInQueue);
-            if (bytesRead < 0)
+            const io_status_t bytesRead = stdinGateway.DoInput(stdinInQueue);
+            if (bytesRead.IsError())
             {
                printf("Stdin closed, exiting!\n");
                keepGoing = false;
                break;
             }
-            else if (bytesRead == 0) break;  // no more to read
+            else if (bytesRead.GetByteCount() == 0) break;  // no more to read
          }
       }
 
@@ -333,8 +333,8 @@ int main(int argc, char ** argv)
       // Handle input and output on the TCP socket
       const bool reading = multiplexer.IsSocketReadyForRead(socketReadFD);
       const bool writing = multiplexer.IsSocketReadyForWrite(socketWriteFD);
-      const bool writeError = ((writing)&&(gatewayRef()->DoOutput() < 0));
-      const bool readError  = ((reading)&&(gatewayRef()->DoInput(tcpInQueue) < 0));
+      const bool writeError = ((writing)&&(gatewayRef()->DoOutput().IsError()));
+      const bool readError  = ((reading)&&(gatewayRef()->DoInput(tcpInQueue).IsError()));
       if ((readError)||(writeError))
       {
          printf("Connection closed (%s), exiting.\n", writeError?"Write Error":"Read Error");
@@ -353,7 +353,7 @@ int main(int argc, char ** argv)
    if (gatewayRef()->HasBytesToOutput())
    {
       printf("Waiting for all pending messages to be sent...\n");
-      while((gatewayRef()->HasBytesToOutput())&&(gatewayRef()->DoOutput() >= 0)) {printf ("."); fflush(stdout);}
+      while((gatewayRef()->HasBytesToOutput())&&(gatewayRef()->DoOutput().IsOK())) {printf ("."); fflush(stdout);}
    }
    printf("\n\nBye!\n");
 

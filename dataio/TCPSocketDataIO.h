@@ -35,8 +35,8 @@ public:
     */
    virtual ~TCPSocketDataIO();
 
-   virtual int32 Read(void * buffer, uint32 size) {return ReceiveData(_sock, buffer, size, _blocking);}
-   virtual int32 Write(const void * buffer, uint32 size) {return SendData(_sock, buffer, size, _blocking);}
+   virtual io_status_t Read(void * buffer, uint32 size) {return ReceiveData(_sock, buffer, size, _blocking);}
+   virtual io_status_t Write(const void * buffer, uint32 size) {return SendData(_sock, buffer, size, _blocking);}
 
    /**
     * Stall limit for TCP streams is 180000000 microseconds (aka 3 minutes) by default.

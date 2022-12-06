@@ -96,12 +96,12 @@ int main(int argc, char ** argv)
          for (HashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++)
          {
             const IPAddress destAddr =  multicastGroup.GetIPAddress().WithInterfaceIndex(iter.GetValue());
-            const int numBytesSent = SendDataUDP(iter.GetKey(), pingData(), pingData.FlattenedSize(), true, destAddr, multicastGroup.GetPort());
-            if (numBytesSent == pingData.FlattenedSize())
+            const io_status_t numBytesSent = SendDataUDP(iter.GetKey(), pingData(), pingData.FlattenedSize(), true, destAddr, multicastGroup.GetPort());
+            if (numBytesSent.GetByteCount() == pingData.FlattenedSize())
             {
-               LogTime(MUSCLE_LOG_INFO, "Sent %i-byte multicast packet to [%s] on socket #%i: [%s]\n", numBytesSent, destAddr.ToString()(), iter.GetKey().GetFileDescriptor(), pingData());
+               LogTime(MUSCLE_LOG_INFO, "Sent %i-byte multicast packet to [%s] on socket #%i: [%s]\n", numBytesSent.GetByteCount(), destAddr.ToString()(), iter.GetKey().GetFileDescriptor(), pingData());
             }
-            else LogTime(MUSCLE_LOG_ERROR, "Error sending multicast ping to socket %i\n", iter.GetKey().GetFileDescriptor());
+            else LogTime(MUSCLE_LOG_ERROR, "Error [%s] sending multicast ping to socket %i\n", numBytesSent.GetStatus()(), iter.GetKey().GetFileDescriptor());
          }
 
          nextPingTime += SecondsToMicros(5);
@@ -115,7 +115,7 @@ int main(int argc, char ** argv)
             int numBytesReceived;
             IPAddress sourceIP;
             uint16 sourcePort;
-            if ((numBytesReceived = ReceiveDataUDP(iter.GetKey(), recvBuf, sizeof(recvBuf)-1, true, &sourceIP, &sourcePort)) >= 0)
+            if ((numBytesReceived = ReceiveDataUDP(iter.GetKey(), recvBuf, sizeof(recvBuf)-1, true, &sourceIP, &sourcePort).GetByteCount()) >= 0)
             {
                const IPAddressAndPort fromIAP(sourceIP, sourcePort);  // just for convenience
 

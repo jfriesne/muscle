@@ -84,13 +84,13 @@ protected:
      * came from.
      * @copydoc AbstractMessageIOGateway::DoInputImplementation(AbstractGatewayMessageReceiver &, uint32)
      */
-   virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes);
+   virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes);
 
    /** Implemented to send outgoing Messages in a packet-friendly way... i.e. by chopping up
      * too-large Messages, and batching together too-small Messages.
      * @copydoc AbstractMessageIOGateway::DoOutputImplementation(uint32)
      */
-   virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
+   virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
 
 private:
    const uint32 _magic;                 // our magic number, used to sanity check packets

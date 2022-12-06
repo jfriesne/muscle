@@ -189,8 +189,8 @@ int main(int argc, char ** argv)
 
       const bool reading    = multiplexer.IsSocketReadyForRead(readFD);
       const bool writing    = multiplexer.IsSocketReadyForWrite(writeFD);
-      const bool writeError = ((writing)&&(gateway->DoOutput()        < 0));
-      const bool readError  = ((reading)&&(gateway->DoInput(receiver) < 0));
+      const bool writeError = ((writing)&&(gateway->DoOutput().IsError()));
+      const bool readError  = ((reading)&&(gateway->DoInput(receiver).IsError()));
       if ((readError)||(writeError))
       {
          LogTime(MUSCLE_LOG_INFO, "%s:  Connection closed, exiting (%i,%i).\n", readError?"Read Error":"Write Error",readError,writeError);

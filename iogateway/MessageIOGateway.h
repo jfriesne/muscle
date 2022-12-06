@@ -179,8 +179,8 @@ public:
    MessageRef CallUnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const {return UnflattenHeaderAndMessage(bufRef);}
 
 protected:
-   virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
-   virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
+   virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
+   virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
 
    /**
     * Should flatten the specified Message object into a newly allocated ByteBuffer
@@ -307,8 +307,8 @@ private:
    };
 #endif
 
-   status_t SendMoreData(int32 & sentBytes, uint32 & maxBytes);
-   status_t ReceiveMoreData(int32 & readBytes, uint32 & maxBytes, uint32 maxArraySize);
+   status_t SendMoreData(uint32 & sentBytes, uint32 & maxBytes);
+   status_t ReceiveMoreData(uint32 & readBytes, uint32 & maxBytes, uint32 maxArraySize);
 
    ByteBufferRef GetScratchReceiveBuffer();
    void ForgetScratchReceiveBufferIfSubclassIsStillUsingIt();

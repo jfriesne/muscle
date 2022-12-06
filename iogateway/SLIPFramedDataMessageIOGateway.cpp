@@ -15,9 +15,9 @@ SLIPFramedDataMessageIOGateway :: ~SLIPFramedDataMessageIOGateway()
    // empty
 }
 
-int32 SLIPFramedDataMessageIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
+io_status_t SLIPFramedDataMessageIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
-   int32 ret = RawDataMessageIOGateway::DoInputImplementation(*this, maxBytes);
+   const io_status_t ret = RawDataMessageIOGateway::DoInputImplementation(*this, maxBytes);
    if (_pendingMessage())
    {
       MessageRef msg;

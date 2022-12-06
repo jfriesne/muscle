@@ -36,8 +36,8 @@ public:
    /** Returns the maximum "packet size" we will be willing to send or receive.  Defaults to MUSCLE_NO_LIMIT. */
    uint32 GetMaxTransferUnit() const {return _maxTransferUnit;}
 
-   virtual int32 Read(void * buffer, uint32 size);
-   virtual int32 Write(const void * buffer, uint32 size);
+   virtual io_status_t Read(void * buffer, uint32 size);
+   virtual io_status_t Write(const void * buffer, uint32 size);
    virtual void Shutdown() {ProxyDataIO::Shutdown(); _outputBuffer.Clear(true); _inputBuffer.Clear(true); _inputBufferSizeBytesRead = 0;}
 
    virtual bool HasBufferedOutput() const {return (_outputBufferBytesSent < _outputBuffer.GetNumBytes());}

@@ -48,8 +48,8 @@ public:
    const AbstractMessageIOGatewayRef & GetSlaveGateway() const {return _slaveGateway;}
 
 protected:
-   virtual int32 DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
-   virtual int32 DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
+   virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
+   virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
 
 private:
    uint32 GetSSLState() const;

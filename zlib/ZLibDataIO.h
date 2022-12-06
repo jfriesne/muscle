@@ -34,8 +34,8 @@ public:
    /** Destructor */
    virtual ~ZLibDataIO();
 
-   virtual int32 Read(void * buffer, uint32 size);
-   virtual int32 Write(const void * buffer, uint32 size);
+   virtual io_status_t Read(void * buffer, uint32 size);
+   virtual io_status_t Write(const void * buffer, uint32 size);
    virtual void FlushOutput();
    virtual void Shutdown();
 

@@ -31,24 +31,24 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
 
       if ((myTurnToThrow)&&(multiplexer.IsSocketReadyForWrite(fd)))
       {
-         const int32 bytesWritten = sockIO.Write(&ball, sizeof(ball));
-         if (bytesWritten == sizeof(ball))
+         const io_status_t bytesWritten = sockIO.Write(&ball, sizeof(ball));
+         if (bytesWritten.GetByteCount() == sizeof(ball))
          {
             if (doFlush) sockIO.FlushOutput();   // nagle's algorithm gets toggled here!
             lastThrowTime = GetRunTime64();
             myTurnToThrow = false;  // we thew the ball, now wait to catch it again!
          }
-         else if (bytesWritten < 0)
+         else if (bytesWritten.IsError())
          {
-            LogTime(MUSCLE_LOG_ERROR, "Error sending ball, aborting!\n");
+            LogTime(MUSCLE_LOG_ERROR, "Error sending ball, aborting! [%s]\n", bytesWritten.GetStatus()());
             break;
          }
       }
 
       if (multiplexer.IsSocketReadyForRead(fd))
       {
-         const int32 bytesRead = sockIO.Read(&ball, sizeof(ball));
-         if (bytesRead == sizeof(ball))
+         const io_status_t bytesRead = sockIO.Read(&ball, sizeof(ball));
+         if (bytesRead.GetByteCount() == sizeof(ball))
          {
             if (myTurnToThrow == false)
             {
@@ -64,9 +64,9 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
                myTurnToThrow = true;  // we caught the ball, now throw it back!
             }
          }
-         else if (bytesRead < 0)
+         else if (bytesRead.IsError())
          {
-            LogTime(MUSCLE_LOG_ERROR, "Error reading ball, aborting!\n");
+            LogTime(MUSCLE_LOG_ERROR, "Error reading ball, aborting! [%s]\n", bytesRead.GetStatus()());
             break;
          }
       }

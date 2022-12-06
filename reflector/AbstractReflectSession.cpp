@@ -350,20 +350,20 @@ IsReadyForInput() const
    return _gateway() ? _gateway()->IsReadyForInput() : false;
 }
 
-int32
+io_status_t
 AbstractReflectSession ::
 DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
-   return _gateway() ? _gateway()->DoInput(receiver, maxBytes) : 0;
+   return _gateway() ? _gateway()->DoInput(receiver, maxBytes) : io_status_t();
 }
 
-int32
+io_status_t
 AbstractReflectSession ::
 DoOutput(uint32 maxBytes)
 {
    TCHECKPOINT;
 
-   return _gateway() ? _gateway()->DoOutput(maxBytes) : 0;
+   return _gateway() ? _gateway()->DoOutput(maxBytes) : io_status_t();
 }
 
 void

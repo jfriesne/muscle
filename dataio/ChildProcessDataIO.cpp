@@ -609,55 +609,53 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
    return B_TIMED_OUT;
 }
 
-int32 ChildProcessDataIO :: Read(void *buf, uint32 len)
+io_status_t ChildProcessDataIO :: Read(void *buf, uint32 len)
 {
    TCHECKPOINT;
 
-   if (IsChildProcessAvailable())
-   {
+   if (IsChildProcessAvailable() == false) return B_BAD_OBJECT;
+
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
-      if (_blocking)
-      {
-         DWORD actual_read;
-         if (ReadFile(_readFromStdout, buf, len, &actual_read, NULL)) return actual_read;
-      }
-      else
-      {
-         const int32 ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
-         if (ret >= 0) SetEvent(_wakeupSignal);  // wake up the thread in case he has more data to give us
-         return ret;
-      }
-#else
-      const long r = read_ignore_eintr(_handle.GetFileDescriptor(), buf, len);
-      return _blocking ? (int32)r : ConvertReturnValueToMuscleSemantics(r, len, _blocking);
-#endif
+   if (_blocking)
+   {
+      DWORD actual_read;
+      return ReadFile(_readFromStdout, buf, len, &actual_read, NULL) ? io_status_t(actual_read) : io_status_t(B_IO_ERROR);
    }
-   return -1;
+   else
+   {
+      const io_status_t ret = ReceiveData(_masterNotifySocket, buf, len, _blocking);
+      if (ret.IsOK()) SetEvent(_wakeupSignal);  // wake up the thread in case he has more data to give us
+      return ret;
+   }
+#else
+   const long   r = read_ignore_eintr(_handle.GetFileDescriptor(), buf, len);
+   const int32 er = _blocking ? (int32)r : ConvertReturnValueToMuscleSemantics(r, len, _blocking);
+   return (er >= 0) ? io_status_t(er) : io_status_t(B_ERRNO);
+#endif
 }
 
-int32 ChildProcessDataIO :: Write(const void *buf, uint32 len)
+io_status_t ChildProcessDataIO :: Write(const void *buf, uint32 len)
 {
    TCHECKPOINT;
 
-   if (IsChildProcessAvailable())
-   {
+   if (IsChildProcessAvailable() == false) return B_BAD_OBJECT;
+
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
-      if (_blocking)
-      {
-         DWORD actual_write;
-         if (WriteFile(_writeToStdin, buf, len, &actual_write, 0)) return actual_write;
-      }
-      else
-      {
-         const int32 ret = SendData(_masterNotifySocket, buf, len, _blocking);
-         if (ret > 0) SetEvent(_wakeupSignal);  // wake up the thread so he'll check his socket for our new data
-         return ret;
-      }
-#else
-      return ConvertReturnValueToMuscleSemantics(write_ignore_eintr(_handle.GetFileDescriptor(), buf, len), len, _blocking);
-#endif
+   if (_blocking)
+   {
+      DWORD actual_write;
+      return WriteFile(_writeToStdin, buf, len, &actual_write, 0) ? io_status_t(actual_write) : io_status_t(B_IO_ERROR);
    }
-   return -1;
+   else
+   {
+      const io_status_t ret = SendData(_masterNotifySocket, buf, len, _blocking);
+      if (ret.GetByteCount() > 0) SetEvent(_wakeupSignal);  // wake up the thread so he'll check his socket for our new data
+      return ret;
+   }
+#else
+   const int32 ret = ConvertReturnValueToMuscleSemantics(write_ignore_eintr(_handle.GetFileDescriptor(), buf, len), len, _blocking);
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
+#endif
 }
 
 void ChildProcessDataIO :: FlushOutput()

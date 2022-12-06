@@ -49,7 +49,7 @@ public:
    virtual uint64 GetPulseTime(const PulseArgs & args) {return muscleMin(_callbackTime, AbstractReflectSession::GetPulseTime(args));}
    virtual void Pulse(const PulseArgs & args);
 
-   virtual int32 DoInput(AbstractGatewayMessageReceiver & r, uint32 maxBytes);
+   virtual io_status_t DoInput(AbstractGatewayMessageReceiver & r, uint32 maxBytes);
 
    /** This method can be called to disable or enable this session.
      * A disabled session will not call any of the callback methods in the INetworkConfigChangesTarget class.

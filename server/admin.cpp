@@ -137,8 +137,8 @@ int main(int argc, char ** argv)
          break;
       }
 
-      const bool readError  = ((multiplexer.IsSocketReadyForRead(fd)) &&(gw.DoInput(inQueue) < 0));
-      const bool writeError = ((multiplexer.IsSocketReadyForWrite(fd))&&(gw.DoOutput()       < 0));
+      const bool readError  = ((multiplexer.IsSocketReadyForRead(fd)) &&(gw.DoInput(inQueue).IsError()));
+      const bool writeError = ((multiplexer.IsSocketReadyForWrite(fd))&&(gw.DoOutput().IsError()));
       if ((readError)||(writeError))
       {
          LogTime(MUSCLE_LOG_ERROR, "TCP connection was cut prematurely!\n");

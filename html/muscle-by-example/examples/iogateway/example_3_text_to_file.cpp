@@ -53,7 +53,7 @@ int main(int argc, char ** argv)
 
       // Turn the crank to make the sausage
       printf("Outputting some text-stream data to example_3_output.txt ...\n");
-      while(outputGateway.DoOutput() > 0) {/* empty */}
+      while(outputGateway.DoOutput().GetByteCount() > 0) {/* empty */}
    }
 
    printf("\n");
@@ -75,7 +75,7 @@ int main(int argc, char ** argv)
       // Turn the crank to eat the sausage
       QueueGatewayMessageReceiver qReceiver;  // we'll collect the parsed Messages in this
       printf("Read some text-stream data from example_3_output.txt ...\n");
-      while(inputGateway.DoInput(qReceiver) > 0) {/* empty */}
+      while(inputGateway.DoInput(qReceiver).GetByteCount() > 0) {/* empty */}
 
       // And finally, we'll print out the Messages that our gateway read in
       printf("Here are the Messages I read back in from example_3_output.txt:\n");

@@ -15,35 +15,41 @@ UDPSocketDataIO :: ~UDPSocketDataIO()
    // empty
 }
 
-int32 UDPSocketDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSource)
+io_status_t UDPSocketDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retSource)
 {
    IPAddress tmpAddr = invalidIP;
    uint16 tmpPort = 0;
-   const int32 ret = ReceiveDataUDP(_sock, buffer, size, _blocking, &tmpAddr, &tmpPort);
-   retSource.Set(tmpAddr, tmpPort);
-   SetSourceOfLastReadPacket(retSource);  // in case this is a direct call e.g. from the gateway code
+   const io_status_t ret = ReceiveDataUDP(_sock, buffer, size, _blocking, &tmpAddr, &tmpPort);
+   if (ret.IsOK())
+   {
+      retSource.Set(tmpAddr, tmpPort);
+      SetSourceOfLastReadPacket(retSource);  // in case this is a direct call e.g. from the gateway code
+   }
    return ret;
 }
 
-int32 UDPSocketDataIO :: Write(const void * buffer, uint32 size)
+io_status_t UDPSocketDataIO :: Write(const void * buffer, uint32 size)
 {
    if (_sendTo.IsEmpty()) return size;  // with no destinations, we'll just act as a data-sink, for consistency
 
    // This method is overridden to support multiple destinations too
-   bool sawErrors  = false;
+   status_t seenError;
    bool sawSuccess = false;
-   int32 ret = 0;
+   int32 maxSentBytes = 0;
    for (uint32 i=0; i<_sendTo.GetNumItems(); i++)
    {
-      const int32 numBytesSent = WriteTo(buffer, size, _sendTo[i]);
-      if (numBytesSent >= 0) sawSuccess = true;
-                        else sawErrors  = true;
-      ret = muscleMax(numBytesSent, ret);
+      const io_status_t numBytesSent = WriteTo(buffer, size, _sendTo[i]);
+      if (numBytesSent.IsOK())
+      {
+         sawSuccess = true;
+         maxSentBytes = muscleMax(numBytesSent.GetByteCount(), maxSentBytes);
+      }
+      else seenError = numBytesSent.GetStatus();
    }
-   return ((sawErrors)&&(sawSuccess == false)) ? -1 : ret;
+   return ((seenError.IsError())&&(sawSuccess == false)) ? io_status_t(seenError) : io_status_t(maxSentBytes);
 }
 
-int32 UDPSocketDataIO :: WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest)
+io_status_t UDPSocketDataIO :: WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest)
 {
    return SendDataUDP(_sock, buffer, size, _blocking, packetDest.GetIPAddress(), packetDest.GetPort());
 }

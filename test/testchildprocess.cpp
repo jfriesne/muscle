@@ -64,7 +64,7 @@ public:
                   printf("File descriptor is ready-for-read\n");
 
                   char buf[1024];
-                  const int32 numBytesRead = cpdio.Read(buf, sizeof(buf));
+                  const int32 numBytesRead = cpdio.Read(buf, sizeof(buf)).GetByteCount();
                   printf("numBytesRead=%i\n", numBytesRead);
                   if (numBytesRead >= 0) printf("Read: [%s]\n", buf);
                                     else break;
@@ -169,7 +169,7 @@ int main(int argc, char ** argv)
          if (multiplexer.WaitForEvents() < 0) printf("testchildprocess: WaitForEvents() failed!\n");
 
          // First, deliver any lines of text from stdin to the child process
-         if ((multiplexer.IsSocketReadyForRead(stdinFD))&&(stdinGateway.DoInput(ioGateway) < 0))
+         if ((multiplexer.IsSocketReadyForRead(stdinFD))&&(stdinGateway.DoInput(ioGateway).IsError()))
          {
             printf("Error reading from stdin, aborting!\n");
             break;
@@ -177,8 +177,8 @@ int main(int argc, char ** argv)
 
          const bool reading    = multiplexer.IsSocketReadyForRead(readFD);
          const bool writing    = ((writeFD >= 0)&&(multiplexer.IsSocketReadyForWrite(writeFD)));
-         const bool writeError = ((writing)&&(ioGateway.DoOutput() < 0));
-         const bool readError  = ((reading)&&(ioGateway.DoInput(ioInputQueue) < 0));
+         const bool writeError = ((writing)&&(ioGateway.DoOutput().IsError()));
+         const bool readError  = ((reading)&&(ioGateway.DoInput(ioInputQueue).IsError()));
          if ((readError)||(writeError))
          {
             printf("Connection closed, exiting.\n");
@@ -204,7 +204,7 @@ int main(int argc, char ** argv)
       if (ioGateway.HasBytesToOutput())
       {
          printf("Waiting for all pending messages to be sent...\n");
-         while((ioGateway.HasBytesToOutput())&&(ioGateway.DoOutput() >= 0)) {printf ("."); fflush(stdout);}
+         while((ioGateway.HasBytesToOutput())&&(ioGateway.DoOutput().IsOK())) {printf ("."); fflush(stdout);}
       }
    }
    printf("\n\nBye!\n");

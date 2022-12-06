@@ -201,7 +201,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetLocalInfo =
  *  @return The number of bytes read into (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode);
+io_status_t ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode);
 
 /** Identical to ReceiveData(), except that this function's logic is adjusted to handle UDP semantics properly.
  *  @param sock The socket to read from.
@@ -215,7 +215,7 @@ int32 ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeB
  *  @return The number of bytes read into (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, IPAddress * optRetFromIP = NULL, uint16 * optRetFromPort = NULL);
+io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, IPAddress * optRetFromIP = NULL, uint16 * optRetFromPort = NULL);
 
 /** Similar to ReceiveData(), except that it will call read() instead of recv().
  *  This is the function to use if (fd) is referencing a file descriptor instead of a socket.
@@ -226,7 +226,7 @@ int32 ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bufferSi
  *  @return The number of bytes read into (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 ReadData(const ConstSocketRef & fd, void * buffer, uint32 bufferSizeBytes, bool fdIsInBlockingIOMode);
+io_status_t ReadData(const ConstSocketRef & fd, void * buffer, uint32 bufferSizeBytes, bool fdIsInBlockingIOMode);
 
 /** Transmits as many bytes as possible from the given buffer over the given socket.
  *  @param sock The socket to transmit over.
@@ -236,7 +236,7 @@ int32 ReadData(const ConstSocketRef & fd, void * buffer, uint32 bufferSizeBytes,
  *  @return The number of bytes sent from (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 SendData(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode);
+io_status_t SendData(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode);
 
 /** Similar to SendData(), except that this function's logic is adjusted to handle UDP semantics properly.
  *  @param sock The socket to transmit over.
@@ -250,7 +250,7 @@ int32 SendData(const ConstSocketRef & sock, const void * buffer, uint32 bufferSi
  *  @return The number of bytes sent from (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, const IPAddress & optDestIP = invalidIP, uint16 destPort = 0);
+io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, const IPAddress & optDestIP = invalidIP, uint16 destPort = 0);
 
 /** Similar to SendData(), except that the implementation calls write() instead of send().  This
  *  is the function to use when (fd) refers to a file descriptor instead of a socket.
@@ -261,7 +261,7 @@ int32 SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 buffe
  *  @return The number of bytes sent from (buffer), or a negative value if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
-int32 WriteData(const ConstSocketRef & fd, const void * buffer, uint32 bufferSizeBytes, bool fdIsInBlockingIOMode);
+io_status_t WriteData(const ConstSocketRef & fd, const void * buffer, uint32 bufferSizeBytes, bool fdIsInBlockingIOMode);
 
 /** This function initiates a non-blocking connection to the given host IP address and port.
   * It will return the created socket, which may or may not be fully connected yet.
