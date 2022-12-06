@@ -730,7 +730,7 @@ void ChildProcessDataIO :: IOThreadEntry()
          while(inBuf._index < inBuf._length)
          {
             const int32 bytesToWrite = inBuf._length-inBuf._index;
-            const int32 bytesWritten = (bytesToWrite > 0) ? SendData(_slaveNotifySocket, &inBuf._buf[inBuf._index], bytesToWrite, false) : 0;
+            const int32 bytesWritten = (bytesToWrite > 0) ? SendData(_slaveNotifySocket, &inBuf._buf[inBuf._index], bytesToWrite, false).GetByteCount() : 0;
             if (bytesWritten > 0)
             {
                inBuf._index += bytesWritten;
@@ -747,7 +747,7 @@ void ChildProcessDataIO :: IOThreadEntry()
          while(outBuf._length < sizeof(outBuf._buf))
          {
             const int32 maxLen = sizeof(outBuf._buf)-outBuf._length;
-            const int32 ret = ReceiveData(_slaveNotifySocket, &outBuf._buf[outBuf._length], maxLen, false);
+            const int32 ret = ReceiveData(_slaveNotifySocket, &outBuf._buf[outBuf._length], maxLen, false).GetByteCount();
             if (ret > 0) outBuf._length += ret;
             else
             {

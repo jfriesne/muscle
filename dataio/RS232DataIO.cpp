@@ -491,7 +491,7 @@ void RS232DataIO :: IOThreadEntry()
       {
          SerialBuffer * buf = inQueue.Head();
          const int32 bytesToWrite = buf->_length-buf->_index;
-         const int32 bytesWritten = (bytesToWrite > 0) ? SendData(_slaveNotifySocket, &buf->_buf[buf->_index], bytesToWrite, false) : 0;
+         const int32 bytesWritten = (bytesToWrite > 0) ? SendData(_slaveNotifySocket, &buf->_buf[buf->_index], bytesToWrite, false).GetByteCount() : 0;
          if (bytesWritten > 0)
          {
             buf->_index += bytesWritten;
@@ -513,7 +513,7 @@ void RS232DataIO :: IOThreadEntry()
 
             // fill up the outBuf with as many more bytes as possible...
             const int32 numBytesToRead = sizeof(outBuf._buf)-outBuf._length;
-            const int32 numBytesRead = (numBytesToRead > 0) ? ReceiveData(_slaveNotifySocket, &outBuf._buf[outBuf._length], numBytesToRead, false) : 0;
+            const int32 numBytesRead = (numBytesToRead > 0) ? ReceiveData(_slaveNotifySocket, &outBuf._buf[outBuf._length], numBytesToRead, false).GetByteCount() : 0;
             if (numBytesRead > 0) outBuf._length += numBytesRead;
 
             // Try to write the bytes from outBuf to the serial port
