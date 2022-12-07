@@ -100,9 +100,9 @@ UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IP
 
    // Send a test packet just to verify that packets can be sent on this socket (otherwise there's little use in continuing)
    const uint8 dummyBuf = 0;  // doesn't matter what this is, I just want to make sure I can actually send on this socket
-   if (SendDataUDP(udpSock, &dummyBuf, 0, true, iap.GetIPAddress(), iap.GetPort()) != 0)
+   if (SendDataUDP(udpSock, &dummyBuf, 0, true, iap.GetIPAddress(), iap.GetPort()).IsError(errRet))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "SimulatedMulticastDataIO %p:  Unable to send test UDP packet to multicast destination [%s]\n", this, iap.ToString()());
+      LogTime(MUSCLE_LOG_CRITICALERROR, "SimulatedMulticastDataIO %p:  Unable to send test UDP packet to multicast destination [%s] [%s]\n", this, iap.ToString()(), errRet());
       return UDPSocketDataIORef();
    }
 
@@ -269,7 +269,7 @@ void SimulatedMulticastDataIO :: DrainOutgoingPacketsTable()
       {
          const IPAddressAndPort & dest = *_outgoingPacketsTable.GetFirstKey();
          const ConstByteBufferRef & b  = pq.Head();
-         if (SendDataUDP(udpSock, b()->GetBuffer(), b()->GetNumBytes(), false, dest.GetIPAddress(), dest.GetPort()) == 0)
+         if (SendDataUDP(udpSock, b()->GetBuffer(), b()->GetNumBytes(), false, dest.GetIPAddress(), dest.GetPort()).GetByteCount() == 0)
          {
             // Work-around for occasional Apple bug where a disabled Wi-Fi interface will errneously show up and appear
             // to be usable and ready-for-write, but every call to SendDataUDP() on it results in immediate ENOBUFS,
