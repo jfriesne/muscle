@@ -161,8 +161,8 @@ status_t Directory :: SetDir(const char * dirPath)
       {
          Reset();  // to free and null-out _path
 
-         static const status_t _directoryNotFound("Directory not found");  // NOTE: this MUST a local static to avoid initialization-order problems (CS5-27) in D-Mitri
-         return _directoryNotFound;
+         // deliberately NOT returning a B_* value here to avoid static-initalization-order problems under C++03 compilers
+         return status_t("Directory not found");
       }
 
       (*this)++;   // make the first entry in the directory the current entry.
