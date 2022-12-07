@@ -39,6 +39,9 @@ key:  - new feature
    * Changed some code to return B_IO_ERROR instead of B_ERRNO if
      fread() or fwrite() fails, since those functions are not
      guaranteed to set errno when they fail.
+   * Fixed a bug that would cause GetEnvironmentVariableValue() to
+     sometimes return garbage strings under Windows if the environment
+     variable did not exist.
 
 9.01 - Released 11/18/2022
    - Added a WritePaddingBytesToAlignTo(uint32 alignSize)
