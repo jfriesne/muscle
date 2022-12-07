@@ -100,7 +100,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
          IPAddressAndPort packetSource;
          const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(bufRef()->GetBuffer(), mtuSize, packetSource);
-              if (bytesRead.IsError()) return (ret.GetByteCount() > 0) ? ret : bytesRead;
+              if (bytesRead.IsError()) return ret.WithSubsequentError(bytesRead);
          else if (bytesRead.GetByteCount() > 0)
          {
             (void) bufRef()->SetNumBytes(bytesRead.GetByteCount(), true);

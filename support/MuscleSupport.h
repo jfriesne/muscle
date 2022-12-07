@@ -612,6 +612,16 @@ enum {
            /** Returns the byte-count indicated by the I/O operation, or a negative value if the operation failed. */
            MUSCLE_CONSTEXPR int32 GetByteCount() const {return _byteCount;}
 
+           /** Convenience method:  If our current byte-count is greater than zero, returns this io_status_t;
+             * otherwise returns the io_status_t provided in the argument.
+             * @param subsequentError an error value that was encountered in an I/O routine
+             * @note this method is useful in I/O loops where an error has occurred, but you want
+             *       the function to report back the number of bytes that were successfully transferred
+             *       by the function-call prior to the error, and only report the error if no bytes were transferred
+             *       by the function-call.
+             */
+           MUSCLE_CONSTEXPR io_status_t WithSubsequentError(io_status_t subsequentError) const {return (_byteCount > 0) ? *this : subsequentError;}
+
         private:
            status_t _status;
            int32 _byteCount;

@@ -52,7 +52,7 @@ DoOutputImplementation(uint32 maxBytes)
                                      : pdio->Write(  outBytes, numBytesToSend);
 
                  if (subRet.GetByteCount() > 0) totalNumBytesSent += subRet;
-            else if (subRet.GetByteCount() < 0) return (totalNumBytesSent.GetByteCount() > 0) ? totalNumBytesSent : subRet;
+            else if (subRet.GetByteCount() < 0) return totalNumBytesSent.WithSubsequentError(subRet);
             else
             {
                (void) GetOutgoingMessageQueue().AddHead(nextMsg);  // roll back -- we'll try again later to send it, maybe
@@ -165,7 +165,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
       {
          IPAddressAndPort sourceIAP;
          const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(pbuf, muscleMin(maxBytes, (uint32)(pbufSize-1)), sourceIAP);
-              if (bytesRead.IsError()) return (ret.GetByteCount() > 0) ? ret : bytesRead;
+              if (bytesRead.IsError()) return ret.WithSubsequentError(bytesRead);
          else if (bytesRead.GetByteCount() > 0)
          {
             uint32 filteredBytesRead = bytesRead.GetByteCount();
