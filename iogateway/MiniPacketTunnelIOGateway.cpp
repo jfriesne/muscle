@@ -45,7 +45,7 @@ io_status_t MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMe
       firstTime = false;
 
       const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
-           if (bytesRead.IsError()) return (totalBytesRead.GetByteCount() > 0) ? totalBytesRead : bytesRead;
+           if (bytesRead.IsError()) return totalBytesRead.WithSubsequentError(bytesRead);
       else if (bytesRead.GetByteCount() > 0)
       {
          totalBytesRead += bytesRead;
@@ -208,7 +208,7 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
          const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(writeBuf, writeSize) : io_status_t(B_BAD_OBJECT);
-              if (bytesWritten.IsError()) return (totalBytesWritten.GetByteCount() > 0) ? totalBytesWritten : bytesWritten;
+              if (bytesWritten.IsError()) return totalBytesWritten.WithSubsequentError(bytesWritten);
          else if (bytesWritten.GetByteCount() > 0)
          {
             if (bytesWritten.GetByteCount() != (int32)writeSize) LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), writeSize);
