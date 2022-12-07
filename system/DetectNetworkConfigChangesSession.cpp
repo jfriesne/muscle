@@ -945,7 +945,7 @@ io_status_t DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageR
    if (sendReport) ScheduleSendReport();
    return ret;
 #else
-   return -1;
+   return B_UNIMPLEMENTED;
 #endif
 }
 

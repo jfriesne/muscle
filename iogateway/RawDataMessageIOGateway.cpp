@@ -68,9 +68,8 @@ DoOutputImplementation(uint32 maxBytes)
          {
             // TCP mode -- send as much as we can of the current data block
             const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(&((char *)_sendBuf)[_sendBufByteOffset], muscleMin(maxBytes, (uint32) (_sendBufLength-_sendBufByteOffset))) : io_status_t(B_BAD_OBJECT);
-
-                 if (bytesWritten.IsError()) return -1;
-            else if (bytesWritten.GetByteCount() > 0)
+            MRETURN_ON_IO_ERROR(bytesWritten);
+            if (bytesWritten.GetByteCount() > 0)
             {
                _sendBufByteOffset += bytesWritten.GetByteCount();
                return bytesWritten + DoOutputImplementation(maxBytes-bytesWritten.GetByteCount());

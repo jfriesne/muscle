@@ -252,7 +252,7 @@ private:
          if (zRet < 0) return B_ZLIB_ERROR;  // avoid infinite recursion if zlib is bonking out
          return bytesAbsorbed ? io_status_t(bytesAbsorbed) : (((zRet == Z_STREAM_END)&&(preWrittenToChildBytes.GetByteCount()==0)&&(postWrittenToChildBytes.GetByteCount()==0)) ? io_status_t() : WriteAux(buffer, size, flushAtEnd, optFinishingUp));
       }
-      return -1;
+      return B_BAD_OBJECT;
    }
 };
 

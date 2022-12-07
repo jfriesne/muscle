@@ -23,4 +23,4 @@ Represents whether a function call succeeded or failed (and if it failed, why it
     - `B_IO_ERROR`      - an I/O operation failed
     - etc
 * Or you can return your own statically-allocated error-strings, e.g. `return B_ERROR("It's all gone pear-shaped!");`
-* There is also an [io_status_t](https://public.msli.com/lcs/muscle/html/classmuscle_1_1io_status__t.html) class which is similar, but also contains an `int32` indicating how many byte the I/O function processed.
+* There is also an [io_status_t](https://public.msli.com/lcs/muscle/html/classmuscle_1_1io__status__t.html) class which is similar, but also contains an `int32` indicating how many byte the I/O function processed.

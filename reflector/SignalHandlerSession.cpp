@@ -15,18 +15,20 @@ ConstSocketRef SignalHandlerSession :: CreateDefaultSocket()
 
 io_status_t SignalHandlerSession :: DoInput(AbstractGatewayMessageReceiver &, uint32)
 {
-   uint32 byteCount = 0;
+   io_status_t byteCount;
    while(1)
    {
       char buf[64];
       const io_status_t bytesReceived = ReceiveData(GetSessionReadSelectSocket(), buf, sizeof(buf), false);
+      MRETURN_ON_IO_ERROR(bytesReceived);
+
       if (bytesReceived.GetByteCount() > 0)
       {
-         const uint32 br = (uint32) bytesReceived.GetByteCount();
-         byteCount += br;
+         byteCount += bytesReceived;
+
+         const uint32 br = bytesReceived.GetByteCount();
          for (uint32 i=0; i<br; i++) SignalReceived(buf[i]);
       }
-      else if (bytesReceived.GetByteCount() < 0) return -1;
       else break;
    }
    return byteCount;
