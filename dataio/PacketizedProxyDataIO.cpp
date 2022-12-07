@@ -21,7 +21,7 @@ io_status_t PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
    {
       uint8 * ip = (uint8 *) &_inputBufferSize;
       const io_status_t numSizeBytesRead = ProxyDataIO::Read(&ip[_inputBufferSizeBytesRead], sizeof(uint32)-_inputBufferSizeBytesRead);
-      MRETURN_ON_IO_ERROR(numSizeBytesRead);
+      MRETURN_ON_ERROR(numSizeBytesRead);
 
       _inputBufferSizeBytesRead += numSizeBytesRead.GetByteCount();
       if (_inputBufferSizeBytesRead == sizeof(uint32))
@@ -44,7 +44,7 @@ io_status_t PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
    if ((_inputBufferSizeBytesRead == sizeof(uint32))&&(_inputBufferBytesRead < inBufSize))
    {
       const io_status_t numBytesRead = ProxyDataIO::Read(_inputBuffer.GetBuffer()+_inputBufferBytesRead, inBufSize-_inputBufferBytesRead);
-      MRETURN_ON_IO_ERROR(numBytesRead);
+      MRETURN_ON_ERROR(numBytesRead);
 
       _inputBufferBytesRead += numBytesRead.GetByteCount();
       if (_inputBufferBytesRead == inBufSize)

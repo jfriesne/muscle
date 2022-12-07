@@ -46,7 +46,7 @@ public:
    virtual io_status_t Write(const void * buffer, uint32 size)
    {
       if (GetChildDataIO()() == NULL) return B_BAD_OBJECT;
-      MRETURN_ON_IO_ERROR(_tempBuf.SetNumBytes(size, buffer));
+      MRETURN_ON_ERROR(_tempBuf.SetNumBytes(size, buffer));
 
       XorCopy(_tempBuf.GetBuffer(), buffer, size);
       return ProxyDataIO::Write(_tempBuf.GetBuffer(), size);

@@ -50,7 +50,7 @@ DoOutputImplementation(uint32 maxBytes)
             const io_status_t subRet = nextMsg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDest).IsOK()
                                      ? pdio->WriteTo(outBytes, numBytesToSend, packetDest)
                                      : pdio->Write(  outBytes, numBytesToSend);
-            MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalNumBytesSent, subRet);
+            MTALLY_BYTES_OR_RETURN_ON_ERROR(totalNumBytesSent, subRet);
 
             if (subRet.GetByteCount() == 0)
             {
@@ -101,7 +101,7 @@ DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth)
          // Send as much as we can of the current text line
          const char * bytes = _currentSendText.Cstr() + _currentSendOffset;
          const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(bytes, muscleMin(_currentSendText.Length()-_currentSendOffset, maxBytes)) : io_status_t(B_BAD_OBJECT);
-         MRETURN_ON_IO_ERROR(bytesWritten);
+         MRETURN_ON_ERROR(bytesWritten);
 
          if (bytesWritten.GetByteCount() > 0)
          {
@@ -164,7 +164,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
       {
          IPAddressAndPort sourceIAP;
          const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(pbuf, muscleMin(maxBytes, (uint32)(pbufSize-1)), sourceIAP);
-         MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesRead, bytesRead);
+         MTALLY_BYTES_OR_RETURN_ON_ERROR(totalBytesRead, bytesRead);
 
          if (bytesRead.GetByteCount() > 0)
          {

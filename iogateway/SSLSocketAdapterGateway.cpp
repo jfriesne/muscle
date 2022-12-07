@@ -63,7 +63,7 @@ io_status_t SSLSocketAdapterGateway :: DoOutputImplementation(uint32 maxBytes)
    if ((GetSSLState() & SSLSocketDataIO::SSL_STATE_READ_WANTS_WRITEABLE_SOCKET) != 0)
    {
       if (_slaveGateway() == NULL) return B_BAD_OBJECT;
-      MRETURN_ON_IO_ERROR(_slaveGateway()->DoInput(_sslMessages));
+      MRETURN_ON_ERROR(_slaveGateway()->DoInput(_sslMessages));
       if (_sslMessages.HasItems()) SetSSLForceReadReady(true);  // to make sure that our DoInput() method gets called ASAP
    }
    return _slaveGateway() ? _slaveGateway()->DoOutput(maxBytes) : io_status_t(B_BAD_OBJECT);

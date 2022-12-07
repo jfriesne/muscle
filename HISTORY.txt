@@ -17,7 +17,6 @@ key:  - new feature
      operation.  An io_status_t contains both a status_t and an
      int32 byte-count.
    - Added a MUSCLE-by-example page for the status_t class.
-   - Added MRETURN_ON_IO_ERROR macro to MuscleSupport.h.
    - Added MTALLY_BYTES_OR_RETURN_ON_IO_ERROR macro to MuscleSupport.h.
    o Changed the return-types of the NetworkUtilityFunctions that
      previously returned (int32/byte-count-or-negative-1), aka

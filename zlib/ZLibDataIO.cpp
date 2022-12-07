@@ -117,7 +117,7 @@ public:
       while(_writeDeflater.next_out > _sendToChild)
       {
          const io_status_t bytesWritten = GetChildDataIO()()->Write(_sendToChild, (uint32)(_writeDeflater.next_out-_sendToChild));
-         MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesWritten, bytesWritten);
+         MTALLY_BYTES_OR_RETURN_ON_ERROR(totalBytesWritten, bytesWritten);
 
          _sendToChild += bytesWritten.GetByteCount();
 
@@ -224,7 +224,7 @@ private:
       if ((GetChildDataIO()())&&(_deflateAllocated))
       {
          const io_status_t preWrittenToChildBytes = WriteDeflatedOutputToChild();
-         MRETURN_ON_IO_ERROR(preWrittenToChildBytes);
+         MRETURN_ON_ERROR(preWrittenToChildBytes);
 
          int32 bytesAbsorbed = 0;
 
@@ -244,7 +244,7 @@ private:
          else if ((zRet != Z_OK)&&(zRet != Z_BUF_ERROR))    return B_ZLIB_ERROR;
 
          const io_status_t postWrittenToChildBytes = WriteDeflatedOutputToChild();
-         MRETURN_ON_IO_ERROR(postWrittenToChildBytes);
+         MRETURN_ON_ERROR(postWrittenToChildBytes);
 
          // Try to avoid returning 0 just because zlib needed buffers to be flushed; blocking callers don't like it when WriteFully() returns a short write
          if (zRet < 0) return B_ZLIB_ERROR;  // avoid infinite recursion if zlib is bonking out

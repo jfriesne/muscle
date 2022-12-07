@@ -230,19 +230,14 @@ using std::set_new_handler;
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, it returns the error value.
   * @param cmd a command to call and test the return value of
   */
-#define MRETURN_ON_ERROR(cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) return the_return_value;}
-
-/** This macro calls the specified status_t-returning function-call, and if (cmd) returns an error-value, it forces the calling function to return that error-value also.
-  * @param cmd a command to call and test the return value of
-  */
-#define MRETURN_ON_IO_ERROR(cmd) {const io_status_t the_return_value = (cmd); if (the_return_value.IsError()) return the_return_value;}
+#define MRETURN_ON_ERROR(cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) return the_return_value;}
 
 /** This macro calls the specified status_t-returning function-call, and if (cmd) returns an error-value, it returns tallyRef.WithSubsequentError(the_return_value).
   * On the other hand, if (cmd) succeeds, the number of bytes that (cmd) processed is added to (tallyRef)
   * @param tallyRef an io_status_t representing an I/O loop's current number-of-bytes-already-transferred.  On success, its byte-count will be increased by the number of bytes processed.
   * @param cmd a command to call and test the return value of
   */
-#define MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(tallyRef, cmd) {const io_status_t tiorv = (cmd); if (tiorv.IsOK()) tallyRef += tiorv; else return tallyRef.WithSubsequentError(tiorv);}
+#define MTALLY_BYTES_OR_RETURN_ON_ERROR(tallyRef, cmd) {const io_status_t tiorv = (cmd); if (tiorv.IsOK()) tallyRef += tiorv; else return tallyRef.WithSubsequentError(tiorv);}
 
 /** This macro invokes the MRETURN_OUT_OF_MEMORY macro if the argument is a NULL pointer.
   * @param ptr a pointer to call and test the return value of
@@ -468,6 +463,11 @@ enum {
              */
            MUSCLE_CONSTEXPR status_t operator()(const char * desc) const {return status_t(_desc?desc:NULL);}
 
+           /** Returns (*this)
+             * @note this method exists just so that MRETURN_ON_ERROR can be used with either io_status_t or status_t objects
+             */
+           MUSCLE_CONSTEXPR status_t GetStatus() const {return *this;}
+
         private:
            const char * _desc;  // If non-NULL, we represent an error
         };
@@ -652,7 +652,7 @@ enum {
              *       the function to report back the number of bytes that were successfully transferred
              *       by the function-call prior to the error, and only report the error if no bytes had
              *       previously been transferred by the function-call.
-             * @see the MTALLY_BYTES_OR_RETURN_ON_IO_ERROR macro for a common usage of this method.
+             * @see the MTALLY_BYTES_OR_RETURN_ON_ERROR macro for a common usage of this method.
              */
            MUSCLE_CONSTEXPR io_status_t WithSubsequentError(io_status_t subsequentError) const {return (_byteCount == 0) ? subsequentError : *this;}
 

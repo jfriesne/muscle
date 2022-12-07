@@ -56,7 +56,7 @@ DoOutputImplementation(uint32 maxBytes)
             const io_status_t bytesWritten = msg->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDestIAP).IsOK()
                                            ? pdio->WriteTo(_sendBuf, sendSize, packetDestIAP)
                                            : pdio->Write(  _sendBuf, sendSize);
-            MRETURN_ON_IO_ERROR(bytesWritten);
+            MRETURN_ON_ERROR(bytesWritten);
             if (bytesWritten.GetByteCount() > 0)
             {
                _sendBufByteOffset = _sendBufLength;  // We don't support partial sends for UDP style, so pretend the whole thing was sent
@@ -67,7 +67,7 @@ DoOutputImplementation(uint32 maxBytes)
          {
             // TCP mode -- send as much as we can of the current data block
             const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(&((char *)_sendBuf)[_sendBufByteOffset], muscleMin(maxBytes, (uint32) (_sendBufLength-_sendBufByteOffset))) : io_status_t(B_BAD_OBJECT);
-            MRETURN_ON_IO_ERROR(bytesWritten);
+            MRETURN_ON_ERROR(bytesWritten);
             if (bytesWritten.GetByteCount() > 0)
             {
                _sendBufByteOffset += bytesWritten.GetByteCount();
@@ -100,7 +100,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
          IPAddressAndPort packetSource;
          const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(bufRef()->GetBuffer(), mtuSize, packetSource);
-         MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesRead, bytesRead);
+         MTALLY_BYTES_OR_RETURN_ON_ERROR(totalBytesRead, bytesRead);
          if (bytesRead.GetByteCount() == 0) break;  // no more bytes to process, for now
 
          (void) bufRef()->SetNumBytes(bytesRead.GetByteCount(), true);
@@ -139,7 +139,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
 
          const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(&((char*)_recvBuf)[_recvBufByteOffset], muscleMin(maxBytes, (uint32)(_recvBufLength-_recvBufByteOffset))) : io_status_t(B_BAD_OBJECT);
-         MRETURN_ON_IO_ERROR(bytesRead);
+         MRETURN_ON_ERROR(bytesRead);
 
          if (bytesRead.GetByteCount() > 0)
          {
@@ -168,7 +168,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
 
          const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_recvScratchSpace, muscleMin(_recvScratchSpaceSize, maxBytes)) : io_status_t(B_BAD_OBJECT);
-         MRETURN_ON_IO_ERROR(bytesRead);
+         MRETURN_ON_ERROR(bytesRead);
 
          if (bytesRead.GetByteCount() > 0)
          {

@@ -20,7 +20,7 @@ io_status_t SignalHandlerSession :: DoInput(AbstractGatewayMessageReceiver &, ui
    {
       char buf[64];
       const io_status_t bytesReceived = ReceiveData(GetSessionReadSelectSocket(), buf, sizeof(buf), false);
-      MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalByteCount, bytesReceived);
+      MTALLY_BYTES_OR_RETURN_ON_ERROR(totalByteCount, bytesReceived);
       if (bytesReceived.GetByteCount() == 0) break;  // no more bytes to process, for now
 
       const uint32 br = bytesReceived.GetByteCount();

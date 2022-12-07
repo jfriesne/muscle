@@ -81,7 +81,7 @@ io_status_t SimulatedMulticastDataIO :: WriteTo(const void * buffer, uint32 size
    MRETURN_ON_ERROR(toInternalThreadMsg()->AddData(SMDIO_NAME_DATA, B_RAW_TYPE, buffer, size));
    if (packetDest.IsValid()) MRETURN_ON_ERROR(toInternalThreadMsg()->AddFlat(SMDIO_NAME_RLOC, packetDest));
 
-   MRETURN_ON_IO_ERROR(SendMessageToInternalThread(toInternalThreadMsg));
+   MRETURN_ON_ERROR(SendMessageToInternalThread(toInternalThreadMsg));
    return size;
 }
 

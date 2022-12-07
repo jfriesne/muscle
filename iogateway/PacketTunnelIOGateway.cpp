@@ -42,8 +42,8 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
 
       const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
 //printf("   READ " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes\n", bytesRead.GetByteCount(), _inputPacketBuffer.GetNumBytes());
-      MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesRead, bytesRead);
-      if (bytesRead.GetByteCount() == 0) break;  // it can't be negative here, because MTALLY_BYTES_OR_RETURN_ON_IO_ERROR() would have returned if it was
+      MTALLY_BYTES_OR_RETURN_ON_ERROR(totalBytesRead, bytesRead);
+      if (bytesRead.GetByteCount() == 0) break;  // it can't be negative here, because MTALLY_BYTES_OR_RETURN_ON_ERROR() would have returned if it was
 
       IPAddressAndPort fromIAP;
       const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
@@ -175,7 +175,7 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
          const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(_outputPacketBuffer.GetBuffer(), _outputPacketSize) : io_status_t(B_BAD_OBJECT);
 //printf("WROTE " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes %s\n", bytesWritten.GetByteCount(), _outputPacketSize, (bytesWritten.GetByteCount()==(int32)_outputPacketSize)?"":"******** SHORT ***********");
-         MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesWritten, bytesWritten);
+         MTALLY_BYTES_OR_RETURN_ON_ERROR(totalBytesWritten, bytesWritten);
          if (bytesWritten.GetByteCount() == 0) break;  // no more buffer space to write into, for now
 
          if (bytesWritten.GetByteCount() != (int32)_outputPacketSize) LogTime(MUSCLE_LOG_ERROR, "PacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), _outputPacketSize);

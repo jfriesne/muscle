@@ -45,7 +45,7 @@ io_status_t MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMe
       firstTime = false;
 
       const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
-      MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesRead, bytesRead);
+      MTALLY_BYTES_OR_RETURN_ON_ERROR(totalBytesRead, bytesRead);
       if (bytesRead.GetByteCount() == 0) break;  // no more bytes to process, for now
 
       IPAddressAndPort fromIAP;
@@ -204,7 +204,7 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
          const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(writeBuf, writeSize) : io_status_t(B_BAD_OBJECT);
-         MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesWritten, bytesWritten);
+         MTALLY_BYTES_OR_RETURN_ON_ERROR(totalBytesWritten, bytesWritten);
          if (bytesWritten.GetByteCount() == 0) break;  // no more buffer space to write to, for now
 
          if (bytesWritten.GetByteCount() != (int32)writeSize) LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), writeSize);
