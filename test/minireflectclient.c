@@ -152,14 +152,14 @@ int main(int argc, char ** argv)
                      MByteBuffer ** ib = MMPutStringField(msg, false, "info", 1);
                      if (sb) sb[0] = MBStrdupByteBuffer(&text[2]);
                      if (ib) ib[0] = MBStrdupByteBuffer("This is a user message");
-                     MMSetWhat(msg, MAKETYPE("umsg"));
+                     MMSetWhat(msg, MakeWhatCode("umsg"));
                   }
                   break;
 
                   case 's':
                   {
                      MMessage ** mb = MMPutMessageField(msg, false, &text[2], 1);
-                     if (mb) mb[0] = MMAllocMessage(MAKETYPE("HELO"));
+                     if (mb) mb[0] = MMAllocMessage(MakeWhatCode("HELO"));
                      MMSetWhat(msg, PR_COMMAND_SETDATA);
                   }
                   break;

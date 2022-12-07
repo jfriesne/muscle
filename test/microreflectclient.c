@@ -145,12 +145,12 @@ int main(int argc, char ** argv)
                   case 'm':
                      UMAddString(&msg, PR_NAME_KEYS, &text[2]);
                      UMAddString(&msg, "info", "This is a user message");
-                     UMSetWhatCode(&msg, MAKETYPE("umsg"));
+                     UMSetWhatCode(&msg, MakeWhatCode("umsg"));
                   break;
 
                   case 's':
                   {
-                     UMessage subMsg = UMInlineAddMessage(&msg, &text[2], MAKETYPE("HELO"));
+                     UMessage subMsg = UMInlineAddMessage(&msg, &text[2], MakeWhatCode("HELO"));
                      UMAddString(&subMsg, "test", "this is a sub message");
                      UMSetWhatCode(&msg, PR_COMMAND_SETDATA);
                   }

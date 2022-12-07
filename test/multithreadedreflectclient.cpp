@@ -212,7 +212,7 @@ void TestCallbackMessageTransceiverThread :: HandleTextLineFromStdin(const Strin
    switch(text[0])
    {
       case 'm':
-         ref()->what = MAKETYPE("umsg");
+         ref()->what = MakeWhatCode("umsg");
          if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
          ref()->AddString("info", "This is a user message");
       break;
@@ -225,7 +225,7 @@ void TestCallbackMessageTransceiverThread :: HandleTextLineFromStdin(const Strin
       case 's':
       {
          ref()->what = PR_COMMAND_SETDATA;
-         MessageRef uploadMsg = GetMessageFromPool(MAKETYPE("HELO"));
+         MessageRef uploadMsg = GetMessageFromPool(MakeWhatCode("HELO"));
          uploadMsg()->AddString("This node was posted at: ", GetHumanReadableTimeString(GetRunTime64()));
          if (arg1) ref()->AddMessage(arg1, uploadMsg);
       }

@@ -45,78 +45,74 @@ io_status_t MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMe
       firstTime = false;
 
       const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
-           if (bytesRead.IsError()) return totalBytesRead.WithSubsequentError(bytesRead);
-      else if (bytesRead.GetByteCount() > 0)
+      MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesRead, bytesRead);
+      if (bytesRead.GetByteCount() == 0) break;  // no more bytes to process, for now
+
+      IPAddressAndPort fromIAP;
+      const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
+      if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
+
+      DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount());
+      if ((_allowMiscData)&&((bytesRead.GetByteCount() < (int32)PACKET_HEADER_SIZE)||(DefaultEndianConverter::Import<uint32>(_inputPacketBuffer.GetBuffer()) != _magic)))
       {
-         totalBytesRead += bytesRead;
-
-         IPAddressAndPort fromIAP;
-         const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
-         if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
-
-         DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount());
-         if ((_allowMiscData)&&((bytesRead.GetByteCount() < (int32)PACKET_HEADER_SIZE)||(DefaultEndianConverter::Import<uint32>(_inputPacketBuffer.GetBuffer()) != _magic)))
-         {
-            // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
-            HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount(), fromIAP);
-         }
-         else if (bytesRead.GetByteCount() >= (int32)PACKET_HEADER_SIZE)
-         {
-            // Read the packet header
-            const uint32 magic    = unflat.ReadInt32();
-            const uint32 sexID    = unflat.ReadInt32();
-            const uint32 cLAndID  = unflat.ReadInt32();  // (compressionLevel<<24) | (packetID)
-            const uint8  cLevel   = (cLAndID >> 24) & 0xFF;
+         // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
+         HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount(), fromIAP);
+      }
+      else if (bytesRead.GetByteCount() >= (int32)PACKET_HEADER_SIZE)
+      {
+         // Read the packet header
+         const uint32 magic    = unflat.ReadInt32();
+         const uint32 sexID    = unflat.ReadInt32();
+         const uint32 cLAndID  = unflat.ReadInt32();  // (compressionLevel<<24) | (packetID)
+         const uint8  cLevel   = (cLAndID >> 24) & 0xFF;
 #ifdef PACKET_ID_ISNT_CURRENTLY_USED_SO_AVOID_COMPILER_WARNING
-            const uint32 packetID = (cLAndID >> 00) & 0xFFFFFF;
+         const uint32 packetID = (cLAndID >> 00) & 0xFFFFFF;
 #endif
 //printf("   PARSE magic=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " compressionLevel=%u sex=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " packetID=" UINT32_FORMAT_SPEC " status=[%s]\n", magic, _magic, cLevel, sexID, _sexID, (cLAndID>>00)&0xFFFFFF, unflat.GetStatus()());
 
-            if ((magic == _magic)&&((_sexID == 0)||(_sexID != sexID)))
+         if ((magic == _magic)&&((_sexID == 0)||(_sexID != sexID)))
+         {
+            if (cLevel > 0)
             {
-               if (cLevel > 0)
-               {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-                  // Payload-chunks are compressed!  Gotta zlib-inflate them first
-                  if (_codec() == NULL)
-                  {
-                     _codec.SetRef(newnothrow ZLibCodec(3));  // compression-level doesn't really matter for inflation step
-                     if (_codec() == NULL) MWARN_OUT_OF_MEMORY;
-                  }
-                  infBuf = _codec() ? static_cast<ZLibCodec *>(_codec())->Inflate(unflat.GetCurrentReadPointer(), unflat.GetNumBytesAvailable()) : ByteBufferRef();
-                  if (infBuf()) unflat.SetBuffer(*infBuf());  // code below will read from the inflated-data buffer instead
-                  else
-                  {
-                     LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoInputImplementation():  zlib-inflate failed!\n");
-                     (void) unflat.SeekTo(unflat.GetMaxNumBytes());  // packet looks corrupt, let's skip it
-                  }
-#else
-                  LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoInputImplementation():  Can't zlib-inflate incoming MiniPacketTunnelIOGateway, ZLib support wasn't compiled in!\n");
-                  (void) unflat.SeekTo(unflat.GetMaxNumBytes());   // packet looks unusable, let's skip it
-#endif
-               }
-
-               // Parse out each message-chunk from the packet
-               while(unflat.GetNumBytesAvailable() >= (uint32)CHUNK_HEADER_SIZE)
+               // Payload-chunks are compressed!  Gotta zlib-inflate them first
+               if (_codec() == NULL)
                {
-                  const uint32 chunkSizeBytes = unflat.ReadInt32();  // this is the only field in a MiniPacketTunnelIOGateway chunk-header (for now, anyway)
+                  _codec.SetRef(newnothrow ZLibCodec(3));  // compression-level doesn't really matter for inflation step
+                  if (_codec() == NULL) MWARN_OUT_OF_MEMORY;
+               }
+               infBuf = _codec() ? static_cast<ZLibCodec *>(_codec())->Inflate(unflat.GetCurrentReadPointer(), unflat.GetNumBytesAvailable()) : ByteBufferRef();
+               if (infBuf()) unflat.SetBuffer(*infBuf());  // code below will read from the inflated-data buffer instead
+               else
+               {
+                  LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoInputImplementation():  zlib-inflate failed!\n");
+                  (void) unflat.SeekTo(unflat.GetMaxNumBytes());  // packet looks corrupt, let's skip it
+               }
+#else
+               LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoInputImplementation():  Can't zlib-inflate incoming MiniPacketTunnelIOGateway, ZLib support wasn't compiled in!\n");
+               (void) unflat.SeekTo(unflat.GetMaxNumBytes());   // packet looks unusable, let's skip it
+#endif
+            }
 
-                  const uint32 bytesAvailable = unflat.GetNumBytesAvailable();
-                  if (chunkSizeBytes <= bytesAvailable)
-                  {
-                     HandleIncomingByteBuffer(receiver, unflat.GetCurrentReadPointer(), chunkSizeBytes, fromIAP);
-                     (void) unflat.SeekRelative(chunkSizeBytes);
-                  }
-                  else
-                  {
-                     LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoInputImplementation:  Chunk size " UINT32_FORMAT_SPEC " is too large, only " UINT32_FORMAT_SPEC " bytes remain in the packet!\n", chunkSizeBytes, bytesAvailable);
-                     break;
-                  }
+            // Parse out each message-chunk from the packet
+            while(unflat.GetNumBytesAvailable() >= (uint32)CHUNK_HEADER_SIZE)
+            {
+               const uint32 chunkSizeBytes = unflat.ReadInt32();  // this is the only field in a MiniPacketTunnelIOGateway chunk-header (for now, anyway)
+
+               const uint32 bytesAvailable = unflat.GetNumBytesAvailable();
+               if (chunkSizeBytes <= bytesAvailable)
+               {
+                  HandleIncomingByteBuffer(receiver, unflat.GetCurrentReadPointer(), chunkSizeBytes, fromIAP);
+                  (void) unflat.SeekRelative(chunkSizeBytes);
+               }
+               else
+               {
+                  LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoInputImplementation:  Chunk size " UINT32_FORMAT_SPEC " is too large, only " UINT32_FORMAT_SPEC " bytes remain in the packet!\n", chunkSizeBytes, bytesAvailable);
+                  break;
                }
             }
          }
       }
-      else break;
    }
    return totalBytesRead;
 }
@@ -208,15 +204,12 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
          const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(writeBuf, writeSize) : io_status_t(B_BAD_OBJECT);
-              if (bytesWritten.IsError()) return totalBytesWritten.WithSubsequentError(bytesWritten);
-         else if (bytesWritten.GetByteCount() > 0)
-         {
-            if (bytesWritten.GetByteCount() != (int32)writeSize) LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), writeSize);
-            totalBytesWritten += bytesWritten;
-            (void) flat.SeekTo(0);
-            _sendPacketIDCounter = (_sendPacketIDCounter+1)%16777216;  // 24-bit counter
-         }
-         else break;  // no more space to write, for now
+         MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesWritten, bytesWritten);
+         if (bytesWritten.GetByteCount() == 0) break;  // no more buffer space to write to, for now
+
+         if (bytesWritten.GetByteCount() != (int32)writeSize) LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), writeSize);
+         (void) flat.SeekTo(0);
+         _sendPacketIDCounter = (_sendPacketIDCounter+1)%16777216;  // 24-bit counter
       }
       else break;  // nothing more to do!
    }

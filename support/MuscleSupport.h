@@ -198,7 +198,10 @@ using std::set_new_handler;
   */
 #define MUSCLE_UNIQUE_NAME ___MUSCLE_UNIQUE_NAME_AUX2(__uniqueName, __LINE__)
 
-/** This macro declares an object on the stack with the specified argument(s). */
+/** This macro declares an object on the stack with the specified argument(s).
+  * @param objType class-name of the object to declare on the stack
+  * @note any additional arguments to this macros will be passed as arguments to the object's construtor.
+  */
 #define MDECLARE_ANONYMOUS_STACK_OBJECT(objType, ...) objType MUSCLE_UNIQUE_NAME = objType(__VA_ARGS__)
 
 #ifdef MUSCLE_AVOID_ASSERTIONS
@@ -207,11 +210,16 @@ using std::set_new_handler;
 # define MASSERT(x,msg) {if(!(x)) MCRASH(msg)} /**< assertion macro.  Unless -DMUSCLE_AVOID_ASSERTIONS is specified, this macro will crash the program (with the error message in its second argument) if its first argument evaluates to false. */
 #endif
 
-/** This macro crashes the process with the specified error message. */
+/** This macro crashes the process with the specified error message.
+  * @param msg a text string to include in the critical error printed to the log just before we call Crash()
+  */
 #define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); muscle::Crash();}
 
-/** This macro immediately and rudely exits the process (by calling ExitWithoutCleanup(retVal)) after logging the specified critical error message. */
-#define MEXIT(retVal,msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
+/** This macro immediately and rudely exits the process (by calling ExitWithoutCleanup(retVal)) after logging the specified critical error message.
+  * @param retVal the integer value to pass to ExitWithoutCleanup()
+  * @param msg a text string to include in the critical error printed to the log just before we call ExitWithoutCleanup()
+  */
+#define MEXIT(retVal, msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
 
 /** This macro logs an out-of-memory warning that includes the current filename and source-code line number.  WARN_OUT_OF_MEMORY() should be called whenever newnothrow or malloc() return NULL. */
 #define MWARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)
@@ -219,25 +227,50 @@ using std::set_new_handler;
 /** This macro logs an out-of-memory warning that includes the current filename and source-code line number, and then returns B_OUT_OF_MEMORY.  MRETURN_OUT_OF_MEMORY() may be called whenever newnothrow or malloc() return NULL inside a function that returns a status_t. */
 #define MRETURN_OUT_OF_MEMORY {muscle::WarnOutOfMemory(__FILE__, __LINE__); return B_OUT_OF_MEMORY;}
 
-/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, it returns the error value. */
+/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, it returns the error value.
+  * @param cmd a command to call and test the return value of
+  */
 #define MRETURN_ON_ERROR(cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) return the_return_value;}
 
-/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, it returns the error value. */
+/** This macro calls the specified status_t-returning function-call, and if (cmd) returns an error-value, it forces the calling function to return that error-value also.
+  * @param cmd a command to call and test the return value of
+  */
 #define MRETURN_ON_IO_ERROR(cmd) {const io_status_t the_return_value = (cmd); if (the_return_value.IsError()) return the_return_value;}
 
-/** This macro invokes the MRETURN_OUT_OF_MEMORY macro if the argument is a NULL pointer. */
+/** This macro calls the specified status_t-returning function-call, and if (cmd) returns an error-value, it returns tallyRef.WithSubsequentError(the_return_value).
+  * On the other hand, if (cmd) succeeds, the number of bytes that (cmd) processed is added to (tallyRef)
+  * @param tallyRef an io_status_t representing an I/O loop's current number-of-bytes-already-transferred.  On success, its byte-count will be increased by the number of bytes processed.
+  * @param cmd a command to call and test the return value of
+  */
+#define MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(tallyRef, cmd) {const io_status_t tiorv = (cmd); if (tiorv.IsOK()) tallyRef += tiorv; else return tallyRef.WithSubsequentError(tiorv);}
+
+/** This macro invokes the MRETURN_OUT_OF_MEMORY macro if the argument is a NULL pointer.
+  * @param ptr a pointer to call and test the return value of
+  */
 #define MRETURN_OOM_ON_NULL(ptr) {if (ptr==NULL) MRETURN_OUT_OF_MEMORY;}
 
-/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, writes an error message to the log */
+/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, writes an error message to the log
+  * @param commandDesc a text string to print to the log if the provided command returns an error code
+  * @param cmd a command to call and test the return value of
+  */
 #define MLOG_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) LogTime(MUSCLE_LOG_ERROR, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());}
 
-/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, writes an error message to the log and then returns the error-value */
+/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, writes an error message to the log and then returns the error-value
+  * @param commandDesc a text string to print to the log if the provided command returns an error code
+  * @param cmd a command to call and test the return value of
+  */
 #define MLOG_AND_RETURN_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) {LogTime(MUSCLE_LOG_ERROR, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}}
 
-/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, prints an error message to stdout */
+/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, prints an error message to stdout
+  * @param commandDesc a text string to print to stdout if the provided command returns an error code
+  * @param cmd a command to call and test the return value of
+  */
 #define MPRINT_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());}
 
-/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, prints an error message to stdout */
+/** This macro calls the specified status_t-returning function-call, and if it returns an error-value, prints an error message to stdout
+  * @param commandDesc a text string to print to stdout if the provided command returns an error code
+  * @param cmd a command to call and test the return value of
+  */
 #define MPRINT_AND_RETURN_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) {printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}}
 
 /** This macro logs a warning message including the the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
@@ -254,8 +287,8 @@ using std::set_new_handler;
 #endif
 
 enum {
-   CB_ERROR    = -1,        /**< For C programs: A value typically returned by a function or method with return type status_t, to indicate that it failed.  (When checking the value, it's better to check against B_NO_ERROR though, in case other failure values are defined in the future) */
-   CB_NO_ERROR = 0,         /**< For C programs: The value returned by a function or method with return type status_t, to indicate that it succeeded with no errors. */
+   CB_ERROR    = -1,         /**< For C programs: A value typically returned by a function or method with return type status_t, to indicate that it failed.  (When checking the value, it's better to check against B_NO_ERROR though, in case other failure values are defined in the future) */
+   CB_NO_ERROR = 0,          /**< For C programs: The value returned by a function or method with return type status_t, to indicate that it succeeded with no errors. */
    CB_OK       = CB_NO_ERROR /**< For C programs: Synonym for CB_NO_ERROR */
 };
 
@@ -612,15 +645,22 @@ enum {
            /** Returns the byte-count indicated by the I/O operation, or a negative value if the operation failed. */
            MUSCLE_CONSTEXPR int32 GetByteCount() const {return _byteCount;}
 
-           /** Convenience method:  If our current byte-count is greater than zero, returns this io_status_t;
-             * otherwise returns the io_status_t provided in the argument.
+           /** Convenience method:  If this object's current state is the default state (i.e. no errors and a byte-count),
+             *                      this method returns (subsequentError).  Otherwise it returns (*this).
              * @param subsequentError an error value that was encountered in an I/O routine
-             * @note this method is useful in I/O loops where an error has occurred, but you want
+             * @note this method is useful in I/O loops when an error has occurred, but you want
              *       the function to report back the number of bytes that were successfully transferred
-             *       by the function-call prior to the error, and only report the error if no bytes were transferred
-             *       by the function-call.
+             *       by the function-call prior to the error, and only report the error if no bytes had
+             *       previously been transferred by the function-call.
+             * @see the MTALLY_BYTES_OR_RETURN_ON_IO_ERROR macro for a common usage of this method.
              */
-           MUSCLE_CONSTEXPR io_status_t WithSubsequentError(io_status_t subsequentError) const {return (_byteCount > 0) ? *this : subsequentError;}
+           MUSCLE_CONSTEXPR io_status_t WithSubsequentError(io_status_t subsequentError) const {return (_byteCount == 0) ? subsequentError : *this;}
+
+           /** Same as above, except this version takes a status_t as an argument instead of an io_status_t.
+             * @param subsequentError an error value that was encountered in an I/O routine
+             * @returns subsequentError if we're in the default-state, otherwise *this
+             */
+           MUSCLE_CONSTEXPR io_status_t WithSubsequentError(status_t subsequentError) const {return (_byteCount == 0) ? io_status_t(subsequentError) : *this;}
 
         private:
            status_t _status;
@@ -725,11 +765,11 @@ static_assert(sizeof(double) == 8, "sizeof(double) != 8");
 #define UINT64_FORMAT_SPEC "%" UINT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint64, including the percent sign */
 #define XINT64_FORMAT_SPEC "%" XINT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, including the percent sign */
 
-/** Macro that returns a uint32 word out of the four ASCII characters in the supplied char array.  Used primarily to create 'what'-codes for Message objects (e.g. MAKETYPE("!Pc0") returns 558916400) */
-#define MAKETYPE(x) ((((unsigned long)(x[0])) << 24) | \
-                     (((unsigned long)(x[1])) << 16) | \
-                     (((unsigned long)(x[2])) <<  8) | \
-                     (((unsigned long)(x[3])) <<  0))
+/** Macro that returns a uint32 word out of the four ASCII characters in the supplied char array.  Used primarily to create 'what'-codes for Message objects (e.g. MakeWhatCode("!Pc0") returns 558916400)
+  * @param s the four-character-string to encode as a uint32
+  * @returns the corresponding uint32 value
+  */
+static inline uint32 MakeWhatCode(const char * s) {return ((((uint32)(s[0])) << 24) | (((uint32)(s[1])) << 16) | (((uint32)(s[2])) <<  8) | (((uint32)(s[3])) <<  0));}
 
 /** BeOS-style message-field type codes.
   * I've calculated the integer equivalents for these codes

@@ -42,86 +42,82 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
 
       const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
 //printf("   READ " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes\n", bytesRead.GetByteCount(), _inputPacketBuffer.GetNumBytes());
-      if (bytesRead.GetByteCount() > 0)
+      MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesRead, bytesRead);
+      if (bytesRead.GetByteCount() == 0) break;  // it can't be negative here, because MTALLY_BYTES_OR_RETURN_ON_IO_ERROR() would have returned if it was
+
+      IPAddressAndPort fromIAP;
+      const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
+      if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
+
+      DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount());
+      if ((_allowMiscData)&&((bytesRead.GetByteCount() < (int32)FRAGMENT_HEADER_SIZE)||(DefaultEndianConverter::Import<uint32>(_inputPacketBuffer.GetBuffer()) != _magic)))
       {
-         totalBytesRead += bytesRead;
-
-         IPAddressAndPort fromIAP;
-         const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
-         if (packetIO) fromIAP = packetIO->GetSourceOfLastReadPacket();
-
-         DataUnflattener unflat(_inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount());
-         if ((_allowMiscData)&&((bytesRead.GetByteCount() < (int32)FRAGMENT_HEADER_SIZE)||(DefaultEndianConverter::Import<uint32>(_inputPacketBuffer.GetBuffer()) != _magic)))
+         // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
+         HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount(), fromIAP);
+      }
+      else
+      {
+         while(unflat.GetNumBytesAvailable() >= (int32)FRAGMENT_HEADER_SIZE)
          {
-            // If we're allowed to handle miscellaneous data, we'll just pass it on through verbatim
-            HandleIncomingByteBuffer(receiver, _inputPacketBuffer.GetBuffer(), bytesRead.GetByteCount(), fromIAP);
-         }
-         else
-         {
-            while(unflat.GetNumBytesAvailable() >= (int32)FRAGMENT_HEADER_SIZE)
-            {
-               const uint32 magic     = unflat.ReadInt32();
-               const uint32 sexID     = unflat.ReadInt32();
-               const uint32 messageID = unflat.ReadInt32();
-               const uint32 offset    = unflat.ReadInt32();
-               const uint32 chunkSize = unflat.ReadInt32();
-               const uint32 totalSize = unflat.ReadInt32();
+            const uint32 magic     = unflat.ReadInt32();
+            const uint32 sexID     = unflat.ReadInt32();
+            const uint32 messageID = unflat.ReadInt32();
+            const uint32 offset    = unflat.ReadInt32();
+            const uint32 chunkSize = unflat.ReadInt32();
+            const uint32 totalSize = unflat.ReadInt32();
 //printf("   PARSE magic=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " sex=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " messageID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", magic, _magic, sexID, _sexID, messageID, offset, chunkSize, totalSize);
 
-               if ((magic == _magic)&&((_sexID == 0)||(_sexID != sexID))&&((unflat.GetNumBytesAvailable() >= chunkSize)&&(totalSize <= _maxIncomingMessageSize)))
+            if ((magic == _magic)&&((_sexID == 0)||(_sexID != sexID))&&((unflat.GetNumBytesAvailable() >= chunkSize)&&(totalSize <= _maxIncomingMessageSize)))
+            {
+               ReceiveState * rs = _receiveStates.Get(fromIAP);
+               if (rs == NULL)
                {
-                  ReceiveState * rs = _receiveStates.Get(fromIAP);
-                  if (rs == NULL)
-                  {
-                     if (offset == 0) rs = _receiveStates.PutAndGet(fromIAP, ReceiveState(messageID));
-                     if (rs)
-                     {
-                        rs->_buf = GetByteBufferFromPool(totalSize);
-                        if (rs->_buf() == NULL)
-                        {
-                           _receiveStates.Remove(fromIAP);
-                           rs = NULL;
-                        }
-                     }
-                  }
+                  if (offset == 0) rs = _receiveStates.PutAndGet(fromIAP, ReceiveState(messageID));
                   if (rs)
                   {
-                     if ((offset == 0)||(messageID != rs->_messageID))
+                     rs->_buf = GetByteBufferFromPool(totalSize);
+                     if (rs->_buf() == NULL)
                      {
-                        // A new message... start receiving it (but only if we are starting at the beginning)
-                        rs->_messageID = messageID;
-                        rs->_offset    = 0;
-                        rs->_buf()->SetNumBytes(totalSize, false);
+                        _receiveStates.Remove(fromIAP);
+                        rs = NULL;
                      }
+                  }
+               }
+               if (rs)
+               {
+                  if ((offset == 0)||(messageID != rs->_messageID))
+                  {
+                     // A new message... start receiving it (but only if we are starting at the beginning)
+                     rs->_messageID = messageID;
+                     rs->_offset    = 0;
+                     rs->_buf()->SetNumBytes(totalSize, false);
+                  }
 
-                     const uint32 rsSize = rs->_buf()->GetNumBytes();
+                  const uint32 rsSize = rs->_buf()->GetNumBytes();
 //printf("  CHECK:  offset=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " %s\n", offset, rs->_offset, (offset==rs->_offset)?"":"DISCONTINUITY!!!");
-                     if ((messageID == rs->_messageID)&&(totalSize == rsSize)&&(offset == rs->_offset)&&(offset+chunkSize <= rsSize))
+                  if ((messageID == rs->_messageID)&&(totalSize == rsSize)&&(offset == rs->_offset)&&(offset+chunkSize <= rsSize))
+                  {
+                     memcpy(rs->_buf()->GetBuffer()+offset, unflat.GetCurrentReadPointer(), chunkSize);
+                     rs->_offset += chunkSize;
+                     if (rs->_offset == rsSize)
                      {
-                        memcpy(rs->_buf()->GetBuffer()+offset, unflat.GetCurrentReadPointer(), chunkSize);
-                        rs->_offset += chunkSize;
-                        if (rs->_offset == rsSize)
-                        {
-                           HandleIncomingByteBuffer(receiver, rs->_buf, fromIAP);
-                           rs->_offset = 0;
-                           rs->_buf()->Clear(rsSize > MAX_CACHE_SIZE);
-                        }
-                     }
-                     else
-                     {
-                        LogTime(MUSCLE_LOG_DEBUG, "Unknown fragment (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") received from %s, ignoring it.\n", messageID, offset, chunkSize, totalSize, fromIAP.ToString()());
+                        HandleIncomingByteBuffer(receiver, rs->_buf, fromIAP);
                         rs->_offset = 0;
                         rs->_buf()->Clear(rsSize > MAX_CACHE_SIZE);
                      }
                   }
-                  unflat.SeekRelative(chunkSize);
+                  else
+                  {
+                     LogTime(MUSCLE_LOG_DEBUG, "Unknown fragment (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") received from %s, ignoring it.\n", messageID, offset, chunkSize, totalSize, fromIAP.ToString()());
+                     rs->_offset = 0;
+                     rs->_buf()->Clear(rsSize > MAX_CACHE_SIZE);
+                  }
                }
-               else break;
+               unflat.SeekRelative(chunkSize);
             }
+            else break;
          }
       }
-      else if (bytesRead.IsError()) return totalBytesRead.WithSubsequentError(bytesRead);
-      else break;
    }
    return totalBytesRead;
 }
@@ -179,14 +175,11 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
          const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(_outputPacketBuffer.GetBuffer(), _outputPacketSize) : io_status_t(B_BAD_OBJECT);
 //printf("WROTE " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes %s\n", bytesWritten.GetByteCount(), _outputPacketSize, (bytesWritten.GetByteCount()==(int32)_outputPacketSize)?"":"******** SHORT ***********");
-              if (bytesWritten.IsError()) return totalBytesWritten.WithSubsequentError(bytesWritten);
-         else if (bytesWritten.GetByteCount() > 0)
-         {
-            if (bytesWritten.GetByteCount() != (int32)_outputPacketSize) LogTime(MUSCLE_LOG_ERROR, "PacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), _outputPacketSize);
-            _outputPacketSize = 0;
-            totalBytesWritten += bytesWritten;
-         }
-         else break;  // no more space to write, for now
+         MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesWritten, bytesWritten);
+         if (bytesWritten.GetByteCount() == 0) break;  // no more buffer space to write into, for now
+
+         if (bytesWritten.GetByteCount() != (int32)_outputPacketSize) LogTime(MUSCLE_LOG_ERROR, "PacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), _outputPacketSize);
+         _outputPacketSize = 0;
       }
       else break;  // nothing more to do!
    }

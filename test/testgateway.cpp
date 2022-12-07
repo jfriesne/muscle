@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
          g.SetDataIO(GetFileRef(f));
          for (int i=0; i<100; i++)
          {
-            MessageRef m = GetMessageFromPool(MAKETYPE("TeSt"));
+            MessageRef m = GetMessageFromPool(MakeWhatCode("TeSt"));
             TEST(m()->AddString("Jo", "Mama"));
             TEST(m()->AddInt32("Age", 90+i));
             TEST(m()->AddBool("Ugly", (i%2)!=0));

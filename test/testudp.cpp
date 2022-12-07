@@ -121,14 +121,14 @@ int main(int argc, char ** argv)
                      switch(text[0])
                      {
                         case 'm':
-                           ref()->what = MAKETYPE("umsg");
+                           ref()->what = MakeWhatCode("umsg");
                            ref()->AddString(PR_NAME_KEYS, &text[2]);
                            ref()->AddString("info", "This is a user message");
                         break;
 
                         case 's':
                            ref()->what = PR_COMMAND_SETDATA;
-                           ref()->AddMessage(&text[2], Message(MAKETYPE("HELO")));
+                           ref()->AddMessage(&text[2], Message(MakeWhatCode("HELO")));
                         break;
 
                         case 'k':

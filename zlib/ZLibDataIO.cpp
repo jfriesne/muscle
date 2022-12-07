@@ -116,12 +116,10 @@ public:
       io_status_t totalBytesWritten;
       while(_writeDeflater.next_out > _sendToChild)
       {
-         const uint32 bytesToWrite = (uint32)(_writeDeflater.next_out-_sendToChild);
-         const io_status_t bytesWritten = GetChildDataIO()()->Write(_sendToChild, bytesToWrite);
-         MRETURN_ON_IO_ERROR(bytesWritten);
+         const io_status_t bytesWritten = GetChildDataIO()()->Write(_sendToChild, (uint32)(_writeDeflater.next_out-_sendToChild));
+         MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesWritten, bytesWritten);
 
-         totalBytesWritten += bytesWritten;
-         _sendToChild      += bytesWritten.GetByteCount();
+         _sendToChild += bytesWritten.GetByteCount();
 
          if (_sendToChild == _writeDeflater.next_out)
          {

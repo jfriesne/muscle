@@ -50,12 +50,11 @@ DoOutputImplementation(uint32 maxBytes)
             const io_status_t subRet = nextMsg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDest).IsOK()
                                      ? pdio->WriteTo(outBytes, numBytesToSend, packetDest)
                                      : pdio->Write(  outBytes, numBytesToSend);
+            MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalNumBytesSent, subRet);
 
-                 if (subRet.GetByteCount() > 0) totalNumBytesSent += subRet;
-            else if (subRet.GetByteCount() < 0) return totalNumBytesSent.WithSubsequentError(subRet);
-            else
+            if (subRet.GetByteCount() == 0)
             {
-               (void) GetOutgoingMessageQueue().AddHead(nextMsg);  // roll back -- we'll try again later to send it, maybe
+               (void) GetOutgoingMessageQueue().AddHead(nextMsg);  // roll back -- no more buffer space to output to.  We'll try again later to send it, maybe
                break;
             }
          }
@@ -160,17 +159,19 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
       }
 
-      io_status_t ret;
+      io_status_t totalBytesRead;
       while(true)
       {
          IPAddressAndPort sourceIAP;
          const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(pbuf, muscleMin(maxBytes, (uint32)(pbufSize-1)), sourceIAP);
-              if (bytesRead.IsError()) return ret.WithSubsequentError(bytesRead);
-         else if (bytesRead.GetByteCount() > 0)
+         MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesRead, bytesRead);
+
+         if (bytesRead.GetByteCount() > 0)
          {
-            uint32 filteredBytesRead = bytesRead.GetByteCount();
+            const uint32 origBytesRead = bytesRead.GetByteCount();
+            uint32 filteredBytesRead   = origBytesRead;
             FilterInputBuffer(pbuf, filteredBytesRead, pbufSize-1);
-            ret += filteredBytesRead;
+            totalBytesRead = io_status_t(totalBytesRead.GetByteCount()+((int32)(filteredBytesRead-origBytesRead)));  // adjust totalBytesRead to reflect our filtering, if necessary
             pbuf[filteredBytesRead] = '\0';
 
             bool prevCharWasCarriageReturn = false;  // deliberately a local var, since UDP packets should be independent of each other
@@ -201,7 +202,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             break;
          }
       }
-      return ret;
+      return totalBytesRead;
    }
    else
    {

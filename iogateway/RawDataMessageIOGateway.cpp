@@ -90,7 +90,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    const uint32 mtuSize = GetMaximumPacketSize();
    if (mtuSize > 0)
    {
-      io_status_t ret;
+      io_status_t totalBytesRead;
 
       // UDP mode:  Each UDP packet is represented as a Message containing one data chunk
       while(maxBytes > 0)
@@ -100,21 +100,18 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
          IPAddressAndPort packetSource;
          const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(bufRef()->GetBuffer(), mtuSize, packetSource);
-              if (bytesRead.IsError()) return ret.WithSubsequentError(bytesRead);
-         else if (bytesRead.GetByteCount() > 0)
+         MTALLY_BYTES_OR_RETURN_ON_IO_ERROR(totalBytesRead, bytesRead);
+         if (bytesRead.GetByteCount() == 0) break;  // no more bytes to process, for now
+
+         (void) bufRef()->SetNumBytes(bytesRead.GetByteCount(), true);
+         MessageRef msg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
+         if ((msg())&&(msg()->AddFlat(PR_NAME_DATA_CHUNKS, bufRef).IsOK())&&((GetPacketRemoteLocationTaggingEnabled() == false)||(msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetSource).IsOK())))
          {
-            (void) bufRef()->SetNumBytes(bytesRead.GetByteCount(), true);
-            MessageRef msg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
-            if ((msg())&&(msg()->AddFlat(PR_NAME_DATA_CHUNKS, bufRef).IsOK())&&((GetPacketRemoteLocationTaggingEnabled() == false)||(msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetSource).IsOK())))
-            {
-               ret += bytesRead;
-               maxBytes = (maxBytes>(uint32)bytesRead.GetByteCount()) ? (maxBytes-bytesRead.GetByteCount()) : 0;
-               receiver.CallMessageReceivedFromGateway(msg);
-            }
+            maxBytes = (maxBytes>(uint32)bytesRead.GetByteCount()) ? (maxBytes-bytesRead.GetByteCount()) : 0;
+            receiver.CallMessageReceivedFromGateway(msg);
          }
-         else break;
       }
-      return ret;
+      return totalBytesRead;
    }
    else
    {

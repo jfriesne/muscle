@@ -55,7 +55,7 @@ public:
      * @param maxSize the maximum number of bytes to write.
      * @returns the actual number of bytes written.
      */
-   virtual qint64 writeData(const char * data, qint64 maxSize) 
+   virtual qint64 writeData(const char * data, qint64 maxSize)
    {
       const int32 ret = _dataIO()->Write(data, (uint32) muscleMin(maxSize, (qint64)MUSCLE_NO_LIMIT)).GetByteCount();
       if (ret < 0) _isHosed = true;
