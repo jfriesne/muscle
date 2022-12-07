@@ -39,15 +39,16 @@ io_status_t MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMe
 #endif
 
    bool firstTime = true;
-   uint32 totalBytesRead = 0;
-   while((totalBytesRead < maxBytes)&&((firstTime)||(IsSuggestedTimeSliceExpired() == false)))
+   io_status_t totalBytesRead;
+   while(((uint32)totalBytesRead.GetByteCount() < maxBytes)&&((firstTime)||(IsSuggestedTimeSliceExpired() == false)))
    {
       firstTime = false;
 
       const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
-      if (bytesRead.GetByteCount() > 0)
+           if (bytesRead.IsError()) return (totalBytesRead.GetByteCount() > 0) ? totalBytesRead : bytesRead;
+      else if (bytesRead.GetByteCount() > 0)
       {
-         totalBytesRead += bytesRead.GetByteCount();
+         totalBytesRead += bytesRead;
 
          IPAddressAndPort fromIAP;
          const PacketDataIO * packetIO = dynamic_cast<PacketDataIO *>(GetDataIO()());
@@ -115,7 +116,6 @@ io_status_t MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMe
             }
          }
       }
-      else if (bytesRead.GetByteCount() < 0) return bytesRead;
       else break;
    }
    return totalBytesRead;
@@ -128,9 +128,9 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
    DataFlattener flat(_outputPacketBuffer.GetBuffer(), _outputPacketBuffer.GetNumBytes());
    (void) flat.SeekRelative(_outputPacketSize);  // skip past any bytes that are already present in _outputPacketBuffer from previously
 
-   uint32 totalBytesWritten = 0;
+   io_status_t totalBytesWritten;
    bool firstTime = true;
-   while((totalBytesWritten < maxBytes)&&((firstTime)||(IsSuggestedTimeSliceExpired() == false)))
+   while(((uint32)totalBytesWritten.GetByteCount() < maxBytes)&&((firstTime)||(IsSuggestedTimeSliceExpired() == false)))
    {
       firstTime = false;
 
@@ -208,15 +208,15 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
          const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(writeBuf, writeSize) : io_status_t(B_BAD_OBJECT);
-         if (bytesWritten.GetByteCount() > 0)
+              if (bytesWritten.IsError()) return (totalBytesWritten.GetByteCount() > 0) ? totalBytesWritten : bytesWritten;
+         else if (bytesWritten.GetByteCount() > 0)
          {
             if (bytesWritten.GetByteCount() != (int32)writeSize) LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), writeSize);
-            totalBytesWritten += bytesWritten.GetByteCount();
+            totalBytesWritten += bytesWritten;
             (void) flat.SeekTo(0);
             _sendPacketIDCounter = (_sendPacketIDCounter+1)%16777216;  // 24-bit counter
          }
-         else if (bytesWritten.GetByteCount() == 0) break;  // no more space to write, for now
-         else return bytesWritten;
+         else break;  // no more space to write, for now
       }
       else break;  // nothing more to do!
    }

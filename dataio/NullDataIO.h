@@ -28,7 +28,7 @@ public:
     *  @param size Number of bytes in the buffer (ignored).
     *  @return zero.
     */
-   virtual io_status_t Read(void * buffer, uint32 size)  {(void) buffer; (void) size; return _shutdown ? -1 : 0;}
+   virtual io_status_t Read(void * buffer, uint32 size)  {(void) buffer; (void) size; return _shutdown ? io_status_t(B_BAD_OBJECT) : io_status_t();}
 
    /**
     *  No-op method, always returns (size) (except if Shutdown() was called).
@@ -36,7 +36,7 @@ public:
     *  @param size Number of bytes in the buffer (ignored).
     *  @return (size).
     */
-   virtual io_status_t Write(const void * buffer, uint32 size) {(void) buffer; return _shutdown ? -1 : (int32)size;}
+   virtual io_status_t Write(const void * buffer, uint32 size) {(void) buffer; return _shutdown ? io_status_t(B_BAD_OBJECT) : io_status_t((int32)size);}
 
    /**
     *  No-op method.

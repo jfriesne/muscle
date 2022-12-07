@@ -28,7 +28,6 @@ int main(int argc, char ** argv)
       if (numBytesSent.IsOK()) LogTime(MUSCLE_LOG_INFO, "%i/%u bytes of HTTP request data sent to the server.\n", (int) numBytesSent.GetByteCount(), (unsigned int) reqLen);
                           else LogTime(MUSCLE_LOG_ERROR, "Error [%s] sending %u bytes of HTTP request data to the server.\n", numBytesSent.GetStatus()(), (unsigned int) reqLen);
 
-
       // Read back the server's response data and print it to stdout
       char buf[2048];
       int numBytesRead;

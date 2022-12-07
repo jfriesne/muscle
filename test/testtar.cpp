@@ -35,7 +35,7 @@ static status_t AddFileToTar(TarFileWriter & tarFileWriter, const String & entry
          if (bytesRead.IsError())
          {
             LogTime(MUSCLE_LOG_ERROR, "Error reading from file [%s] [%s]\n", filePath(), bytesRead.GetStatus()());
-            return B_IO_ERROR;
+            return bytesRead.GetStatus();
          }
          MRETURN_ON_ERROR(tarFileWriter.WriteFileData(buf, bytesRead.GetByteCount()));
          bytesWritten += bytesRead.GetByteCount();

@@ -30,7 +30,6 @@ public:
    virtual ~RS232DataIO();
 
    virtual io_status_t Read(void * buffer, uint32 size);
-
    virtual io_status_t Write(const void * buffer, uint32 size);
 
    /** Doesn't return until all outgoing serial bytes have been sent */

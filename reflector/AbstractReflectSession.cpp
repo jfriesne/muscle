@@ -361,8 +361,6 @@ io_status_t
 AbstractReflectSession ::
 DoOutput(uint32 maxBytes)
 {
-   TCHECKPOINT;
-
    return _gateway() ? _gateway()->DoOutput(maxBytes) : io_status_t();
 }
 

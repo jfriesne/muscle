@@ -56,13 +56,12 @@ DoOutputImplementation(uint32 maxBytes)
             const io_status_t bytesWritten = msg->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDestIAP).IsOK()
                                            ? pdio->WriteTo(_sendBuf, sendSize, packetDestIAP)
                                            : pdio->Write(  _sendBuf, sendSize);
-
+            MRETURN_ON_IO_ERROR(bytesWritten);
             if (bytesWritten.GetByteCount() > 0)
             {
                _sendBufByteOffset = _sendBufLength;  // We don't support partial sends for UDP style, so pretend the whole thing was sent
                return bytesWritten + DoOutputImplementation((maxBytes>(uint32)bytesWritten.GetByteCount())?(maxBytes-bytesWritten.GetByteCount()):0);
             }
-            else if (bytesWritten.GetByteCount() < 0) return bytesWritten;
          }
          else
          {
@@ -88,11 +87,11 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 {
    TCHECKPOINT;
 
-   io_status_t ret;
-
    const uint32 mtuSize = GetMaximumPacketSize();
    if (mtuSize > 0)
    {
+      io_status_t ret;
+
       // UDP mode:  Each UDP packet is represented as a Message containing one data chunk
       while(maxBytes > 0)
       {
@@ -101,7 +100,8 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
          IPAddressAndPort packetSource;
          const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(bufRef()->GetBuffer(), mtuSize, packetSource);
-         if (bytesRead.GetByteCount() > 0)
+              if (bytesRead.IsError()) return (ret.GetByteCount() > 0) ? ret : bytesRead;
+         else if (bytesRead.GetByteCount() > 0)
          {
             (void) bufRef()->SetNumBytes(bytesRead.GetByteCount(), true);
             MessageRef msg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
@@ -112,9 +112,9 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                receiver.CallMessageReceivedFromGateway(msg);
             }
          }
-         else if (bytesRead.IsError()) return bytesRead;
          else break;
       }
+      return ret;
    }
    else
    {
@@ -138,25 +138,25 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                   return B_OUT_OF_MEMORY;  // oops, no mem?
                }
             }
+            else MRETURN_OUT_OF_MEMORY;
          }
-         if (inMsg)
-         {
-            const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(&((char*)_recvBuf)[_recvBufByteOffset], muscleMin(maxBytes, (uint32)(_recvBufLength-_recvBufByteOffset))) : io_status_t(B_BAD_OBJECT);
-                 if (bytesRead.IsError()) return bytesRead;
-            else if (bytesRead.GetByteCount() > 0)
-            {
-               ret += bytesRead;
-               _recvBufByteOffset += bytesRead.GetByteCount();
-               if (_recvBufByteOffset == _recvBufLength)
-               {
-                  // This buffer is full... forward it on to the user, and start receiving the next one.
-                  receiver.CallMessageReceivedFromGateway(_recvMsgRef);
-                  _recvMsgRef.Reset();
 
-                  return ret+(IsSuggestedTimeSliceExpired() ? io_status_t() : DoInputImplementation(receiver, maxBytes-bytesRead.GetByteCount()));
-               }
+         const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(&((char*)_recvBuf)[_recvBufByteOffset], muscleMin(maxBytes, (uint32)(_recvBufLength-_recvBufByteOffset))) : io_status_t(B_BAD_OBJECT);
+         MRETURN_ON_IO_ERROR(bytesRead);
+
+         if (bytesRead.GetByteCount() > 0)
+         {
+            _recvBufByteOffset += bytesRead.GetByteCount();
+            if (_recvBufByteOffset == _recvBufLength)
+            {
+               // This buffer is full... forward it on to the user, and start receiving the next one.
+               receiver.CallMessageReceivedFromGateway(_recvMsgRef);
+               _recvMsgRef.Reset();
+
+               return bytesRead+(IsSuggestedTimeSliceExpired() ? io_status_t() : DoInputImplementation(receiver, maxBytes-bytesRead.GetByteCount()));
             }
          }
+         return bytesRead;
       }
       else
       {
@@ -171,17 +171,17 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
 
          const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_recvScratchSpace, muscleMin(_recvScratchSpaceSize, maxBytes)) : io_status_t(B_BAD_OBJECT);
-              if (bytesRead.IsError()) return bytesRead;
-         else if (bytesRead.GetByteCount() > 0)
+         MRETURN_ON_IO_ERROR(bytesRead);
+
+         if (bytesRead.GetByteCount() > 0)
          {
-            ret += bytesRead;
             MessageRef ref = GetMessageFromPool(PR_COMMAND_RAW_DATA);
             if ((ref())&&(ref()->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, _recvScratchSpace, bytesRead.GetByteCount()).IsOK())) receiver.CallMessageReceivedFromGateway(ref);
             // note:  don't recurse here!  It would be bad (tm) on a fast feed since we might never return
          }
+         return bytesRead;
       }
    }
-   return ret;
 }
 
 bool

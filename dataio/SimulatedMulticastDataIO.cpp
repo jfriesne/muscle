@@ -81,8 +81,8 @@ io_status_t SimulatedMulticastDataIO :: WriteTo(const void * buffer, uint32 size
    MRETURN_ON_ERROR(toInternalThreadMsg()->AddData(SMDIO_NAME_DATA, B_RAW_TYPE, buffer, size));
    if (packetDest.IsValid()) MRETURN_ON_ERROR(toInternalThreadMsg()->AddFlat(SMDIO_NAME_RLOC, packetDest));
 
-   const status_t smRet = SendMessageToInternalThread(toInternalThreadMsg);
-   return smRet.IsOK() ? io_status_t(size) : io_status_t(smRet);
+   MRETURN_ON_IO_ERROR(SendMessageToInternalThread(toInternalThreadMsg));
+   return size;
 }
 
 UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IPAddressAndPort & iap) const

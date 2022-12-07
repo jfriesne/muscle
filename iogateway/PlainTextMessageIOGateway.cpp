@@ -24,9 +24,9 @@ DoOutputImplementation(uint32 maxBytes)
    {
       // For the packet-based implementation, we will send one packet per outgoing Message
       // It'll be up to the user to make sure not to put too much text in one Message
-      uint32 totalNumBytesSent = 0;
+      io_status_t totalNumBytesSent;
       MessageRef nextMsg;
-      while((totalNumBytesSent < maxBytes)&&(GetOutgoingMessageQueue().RemoveHead(nextMsg).IsOK()))
+      while(((uint32)totalNumBytesSent.GetByteCount() < maxBytes)&&(GetOutgoingMessageQueue().RemoveHead(nextMsg).IsOK()))
       {
          uint32 outBufLen = 1; // 1 for the one extra NUL byte at the end of all the strings (per String::Flatten(), below)
          const String * nextStr;
@@ -51,8 +51,8 @@ DoOutputImplementation(uint32 maxBytes)
                                      ? pdio->WriteTo(outBytes, numBytesToSend, packetDest)
                                      : pdio->Write(  outBytes, numBytesToSend);
 
-                 if (subRet.GetByteCount() > 0) totalNumBytesSent += subRet.GetByteCount();
-            else if (subRet.GetByteCount() < 0) return (totalNumBytesSent > 0) ? io_status_t(totalNumBytesSent) : subRet;
+                 if (subRet.GetByteCount() > 0) totalNumBytesSent += subRet;
+            else if (subRet.GetByteCount() < 0) return (totalNumBytesSent.GetByteCount() > 0) ? totalNumBytesSent : subRet;
             else
             {
                (void) GetOutgoingMessageQueue().AddHead(nextMsg);  // roll back -- we'll try again later to send it, maybe
@@ -61,7 +61,7 @@ DoOutputImplementation(uint32 maxBytes)
          }
          else break;
       }
-      return io_status_t(totalNumBytesSent);
+      return totalNumBytesSent;
    }
    else return DoOutputImplementationAux(maxBytes, 0);  // stream-based implementation is here
 }
@@ -102,8 +102,9 @@ DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth)
          // Send as much as we can of the current text line
          const char * bytes = _currentSendText.Cstr() + _currentSendOffset;
          const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(bytes, muscleMin(_currentSendText.Length()-_currentSendOffset, maxBytes)) : io_status_t(B_BAD_OBJECT);
-              if (bytesWritten.IsError()) return bytesWritten;
-         else if (bytesWritten.GetByteCount() > 0)
+         MRETURN_ON_IO_ERROR(bytesWritten);
+
+         if (bytesWritten.GetByteCount() > 0)
          {
             _currentSendOffset += bytesWritten.GetByteCount();
             return bytesWritten + DoOutputImplementationAux(maxBytes-bytesWritten.GetByteCount(), recurseDepth+1);
@@ -137,7 +138,6 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 {
    TCHECKPOINT;
 
-   io_status_t ret;
    const uint32 tempBufSize = 2048;
    char buf[tempBufSize];
 
@@ -160,6 +160,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          }
       }
 
+      io_status_t ret;
       while(true)
       {
          IPAddressAndPort sourceIAP;
@@ -193,21 +194,24 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                receiver.CallMessageReceivedFromGateway(inMsg);
                inMsg.Reset();
             }
-            ret += bytesRead;
          }
-         else if ((_flushPartialIncomingLines)&&(HasBufferedIncomingText())) FlushInput(receiver);
+         else
+         {
+            if ((_flushPartialIncomingLines)&&(HasBufferedIncomingText())) FlushInput(receiver);
+            break;
+         }
       }
+      return ret;
    }
    else
    {
       // Stream-IO implementation
       const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)(sizeof(buf)-1))) : io_status_t(B_BAD_OBJECT);
-           if (bytesRead.IsError()) {FlushInput(receiver); return bytesRead;}
+           if (bytesRead.IsError()) FlushInput(receiver);
       else if (bytesRead.GetByteCount() > 0)
       {
          uint32 filteredBytesRead = bytesRead.GetByteCount();
          FilterInputBuffer(buf, filteredBytesRead, sizeof(buf)-1);
-         ret += filteredBytesRead;
          buf[filteredBytesRead] = '\0';
 
          MessageRef inMsg;  // demand-allocated
@@ -231,9 +235,9 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          if (inMsg()) receiver.CallMessageReceivedFromGateway(inMsg);
       }
       else if ((_flushPartialIncomingLines)&&(HasBufferedIncomingText())) FlushInput(receiver);
-   }
 
-   return ret;
+      return bytesRead;
+   }
 }
 
 void

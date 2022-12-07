@@ -55,7 +55,7 @@ static status_t WriteOutgoingData(const char * desc, DataIO & writeIO, const Soc
                LogHexBytes(MUSCLE_LOG_TRACE, firstBuf()->GetBuffer()+writeIdx, ret.GetByteCount());
                writeIdx += ret.GetByteCount();
             }
-            else if (ret.IsError()) {LogTime(MUSCLE_LOG_ERROR, "Error, writeIO.Write() returned [%s]\n", ret.GetStatus()()); return B_IO_ERROR;}
+            else if (ret.IsError()) {LogTime(MUSCLE_LOG_ERROR, "Error, writeIO.Write() returned [%s]\n", ret.GetStatus()()); return ret.GetStatus();}
          }
       }
    }
