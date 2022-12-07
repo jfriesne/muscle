@@ -563,11 +563,11 @@ enum {
            /** Default-constructor.  Creates a io_status_t representing the successful transfer of 0 bytes. */
            MUSCLE_CONSTEXPR io_status_t() : _status(B_NO_ERROR), _byteCount(0) {/* empty */}
 
-           /** Explicit Constructor for an io_status_t representing an error.
-             * @param errorCode the status_t representing an error code.  If no error-code was specified, B_IO_ERROR is used as a default.
-             * @note with this constructor, our byte-count field will be set to -1.
+           /** Explicit Constructor for an io_status_t representing a given error code.
+             * @param errorCode the status_t representing an error code.
+             * @note with this constructor, our byte-count field will be set to 0 if (errorCode) is B_NO_ERROR, otherwise to -1.
              */
-           MUSCLE_CONSTEXPR io_status_t(status_t errorCode) : _status(errorCode | B_IO_ERROR), _byteCount(-1) {/* empty */}
+           MUSCLE_CONSTEXPR io_status_t(status_t errorCode) : _status(errorCode), _byteCount(errorCode.IsOK()?0:-1) {/* empty */}
 
            /** Explicit Constructor for an io_status_t representing a successful I/O operation.
              * @param byteCount the number of bytes that were successfully transferred.
