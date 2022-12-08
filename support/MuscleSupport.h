@@ -237,7 +237,24 @@ using std::set_new_handler;
   * @param tallyRef an io_status_t representing an I/O loop's current number-of-bytes-already-transferred.  On success, its byte-count will be increased by the number of bytes processed.
   * @param cmd a command to call and test the return value of
   */
-#define MTALLY_BYTES_OR_RETURN_ON_ERROR(tallyRef, cmd) {const io_status_t tiorv = (cmd); if (tiorv.IsOK()) tallyRef += tiorv; else return tallyRef.WithSubsequentError(tiorv);}
+#define MTALLY_BYTES_OR_RETURN_ON_ERROR(tallyRef, cmd)              \
+{                                                                   \
+   const io_status_t tiorv = (cmd);                                 \
+   if (tiorv.IsError()) return tallyRef.WithSubsequentError(tiorv); \
+   tallyRef += tiorv;                                               \
+}
+
+/** This macro is the same as MTALLY_BYTES_OR_RETURN_ON_ERROR except that if (cmd)'s byte-count is zero, this macro will break out of the local I/O loop.
+  * @param tallyRef an io_status_t representing an I/O loop's current number-of-bytes-already-transferred.  On success, its byte-count will be increased by the number of bytes processed.
+  * @param cmd a command to call and test the return value of
+  */
+#define MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(tallyRef, cmd)               \
+{                                                                             \
+   const io_status_t tiorv = (cmd);                                           \
+   if (tiorv.IsError())           return tallyRef.WithSubsequentError(tiorv); \
+   if (tiorv.GetByteCount() == 0) break;                                      \
+   tallyRef += tiorv;                                                         \
+}
 
 /** This macro invokes the MRETURN_OUT_OF_MEMORY macro if the argument is a NULL pointer.
   * @param ptr a pointer to call and test the return value of

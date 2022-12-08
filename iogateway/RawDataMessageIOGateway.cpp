@@ -100,8 +100,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
          IPAddressAndPort packetSource;
          const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(bufRef()->GetBuffer(), mtuSize, packetSource);
-         MTALLY_BYTES_OR_RETURN_ON_ERROR(totalBytesRead, bytesRead);
-         if (bytesRead.GetByteCount() == 0) break;  // no more bytes to process, for now
+         MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(totalBytesRead, bytesRead);
 
          (void) bufRef()->SetNumBytes(bytesRead.GetByteCount(), true);
          MessageRef msg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
