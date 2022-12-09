@@ -117,10 +117,9 @@ public:
       while(_writeDeflater.next_out > _sendToChild)
       {
          const io_status_t bytesWritten = GetChildDataIO()()->Write(_sendToChild, (uint32)(_writeDeflater.next_out-_sendToChild));
-         MTALLY_BYTES_OR_RETURN_ON_ERROR(totalBytesWritten, bytesWritten);
+         MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(totalBytesWritten, bytesWritten);
 
          _sendToChild += bytesWritten.GetByteCount();
-
          if (_sendToChild == _writeDeflater.next_out)
          {
             _sendToChild = _writeDeflater.next_out = _deflatedBuf;
