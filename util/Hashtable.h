@@ -1790,11 +1790,10 @@ public:
      */
    HT_UniversalSinkKeyRef const KeyType * PutAndGetKey(HT_SinkKeyParam key) {return PutAndGetKey(HT_ForwardKey(key), this->GetDefaultValue());}
 
-   /** Convenience method:  If (value) is the different from (defaultValue), then (key/value) is placed into the table and a pointer
-     *                      to the placed value object is returned.
-     *                      If (value) is equal to (defaultValue), on the other hand, (key) will be removed from the table, and NULL will be returned.
-     * @param key The key value to affect.
-     * @param value The value to possibly place into the table.
+   /** Convenience method:  If (value) is the different from (defaultValue), then (key/value) is placed into the table.
+     *                      If (value) is equal to (defaultValue), on the other hand, (key) will be removed from the table.
+     * @param key The key to affect.
+     * @param value The value to place into (or remove from) the table.
      * @param defaultValue The value to compare (value) with to decide whether to Put() or Remove() the key.
      * @returns B_NO_ERROR on success (i.e. if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
      */
@@ -1808,8 +1807,8 @@ public:
       else return Put(HT_ForwardKey(key), HT_ForwardValue(value));
    }
 
-   /** As above, except no (defaultValue) is specified.  The default-constructed ValueType is assumed.
-     * @param key The key value to affect.
+   /** As above, except no (defaultValue) is specified.  A default-constructed object of type (ValueType) is assumed.
+     * @param key The key to affect.
      * @param value The value to possibly place into the table.
      * @returns B_NO_ERROR on success (i.e. if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
      */
