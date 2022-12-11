@@ -2,7 +2,7 @@
 
 * This page describes the semantics of some selected [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) what-codes that a [StorageReflectSession](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html) may send (via TCP) to its client.
 * These what-codes (and their associated PR_NAME_* field-name strings) are defined in [reflector/StorageReflectConstants.h](https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h.html)
-* See also the description in the header comments, beginning at line 139 of [StorageReflectConstants.h](https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h_source.html)
+* See also the description in the header comments, beginning at line 58 of [StorageReflectConstants.h](https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h_source.html)
 * Note that the parsing examples shown below would typically be seen in client-side code (because on the server-side, there are virtual methods of the [StorageReflectSession](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html) class that you would override, which would be easier and more efficient than hand-parsing a reply-[Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) object that had just been created locally, just to get the data back out of it)
 
 ## Result codes

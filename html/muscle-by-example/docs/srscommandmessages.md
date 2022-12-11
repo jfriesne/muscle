@@ -2,7 +2,7 @@
 
 * This page describes the semantics of some selected [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) what-codes that a [StorageReflectSession](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html) will accept (via TCP) from its client.
 * These what-codes (and their associated PR_NAME_* field-name strings) are defined in [reflector/StorageReflectConstants.h](https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h.html)
-* See also the description in the header comments, beginning at line 139 of [StorageReflectConstants.h](https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h_source.html)
+* See also the description in the header comments, beginning at line 19 of [StorageReflectConstants.h](https://public.msli.com/lcs/muscle/html/StorageReflectConstants_8h_source.html)
 * Note that the invocation examples shown below would typically be seen in client-side code (because on the server-side, there are methods of the [StorageReflectSession](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html) class that you would just call directly, which would be easier and more efficient than hand-constructing a [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) object with the necessary fields and then calling [MessageReceivedFromGateway()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StorageReflectSession.html#a627414e26cbf6869142f10f7f8f5e5bd) with it)
 
 ## Command codes

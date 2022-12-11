@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.10 - Released
+9.10 - Released 12/10/2022
    - Rewrote the non-Windows implementation of muscleSprintf()
      to call vsnprintf() instead of sprintf(), to avoid compiler
      warnings about sprintf() being insecure.
@@ -48,6 +48,7 @@ key:  - new feature
      variable did not exist.
    * Added missing DOxygen parameter documentation for various
      macros declared in MuscleSupport.h.
+   * Fixed a number of broken hyperlinks in the MUSCLE-by-example docs.
 
 9.01 - Released 11/18/2022
    - Added a WritePaddingBytesToAlignTo(uint32 alignSize)

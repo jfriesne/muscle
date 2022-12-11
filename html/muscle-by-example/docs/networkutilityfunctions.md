@@ -12,10 +12,10 @@ MUSCLE's user-friendly C++ wrapper around the [BSD Sockets C API](https://en.wik
 * [Connect()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga7b33d4801f68ff0fdb0e120cfbd448ad) returns a TCP socket that is connected to the specified host and port.
 * [CreateAcceptingSocket()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga9e64c54918dc8a49ca396a54cf106510) returns a socket that can be used to accept TCP connections.
 * [Accept()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga4432a358162ec504701937831d2329a7) accepts an incoming TCP connection and returns a [ConstSocketRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ConstSocketRef.html) representing the new connection.
-* [SendData()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#gae5353efd5ff5c11cf9524ca45a87974c) sends bytes over a TCP connection.
-* [SendDataUDP()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga5f0a49da4de4d96a7107815009f30986) sends bytes out via a UDP packet.
-* [ReceiveData()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga3f3bbb49c0eb957740aa02d68a03d164) receives bytes over a TCP connection.
-* [ReceiveDataUDP()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#gabced40d584b31406e02ea2189d6a06e4) receives bytes from an incoming UDP packet.
+* [SendData()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga9071b3ae8d6e1957a3fbb8db1ee6ae36) sends bytes over a TCP connection.
+* [SendDataUDP()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#gaa1f2f3e65cf8f6a91fce1de93500f152) sends bytes out via a UDP packet.
+* [ReceiveData()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#ga446af721b2ecd76d1853cbf89c1046c5) receives bytes over a TCP connection.
+* [ReceiveDataUDP()](https://public.msli.com/lcs/muscle/html/group__networkutilityfunctions.html#gaa6dbfdbfc20fcc2e5af8b9e87680bf74) receives bytes from an incoming UDP packet.
 * ... etc etc.
 * Note that there is no `CloseSocket()` function, because it's not necessary.  Sockets will automatically close themselves when their last [ConstSocketRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ConstSocketRef.html) goes away, via RAII-magic.
 

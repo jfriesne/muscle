@@ -5,6 +5,7 @@
 [FileDataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1FileDataIO.html) is used to read/write data from a standard C file-handle (`FILE *`, as returned by `fopen()`).
 
 * The [FileDataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1FileDataIO.html) object will assume ownership of the `FILE *` handle you pass in to it, so don't need to (and shouldn't) call `fclose()` on it yourself.
+* If you'd prefer to defer opening the file until you actually need to access it, [FileDataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1FileDataIO.html) also has a constructor that simply takes the arguments to pass to `fopen()` and will call `fopen()` the first time it tries to access the file.
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/dataio` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 
