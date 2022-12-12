@@ -18,6 +18,7 @@ key:  - new feature
    o Merged the IPv6 and IPv4 versions of AddSocketToMulticastGroup()
      and RemoveSocketFromMulticastGroup() so that a single implementation
      can work on either type of socket.
+   * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.
 
 9.10 - Released 12/10/2022
    - Rewrote the non-Windows implementation of muscleSprintf()

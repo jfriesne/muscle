@@ -265,25 +265,25 @@ using std::set_new_handler;
   * @param commandDesc a text string to print to the log if the provided command returns an error code
   * @param cmd a command to call and test the return value of
   */
-#define MLOG_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) LogTime(MUSCLE_LOG_ERROR, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());}
+#define MLOG_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) LogTime(MUSCLE_LOG_ERROR, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());}
 
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, writes an error message to the log and then returns the error-value
   * @param commandDesc a text string to print to the log if the provided command returns an error code
   * @param cmd a command to call and test the return value of
   */
-#define MLOG_AND_RETURN_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) {LogTime(MUSCLE_LOG_ERROR, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}}
+#define MLOG_AND_RETURN_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) {LogTime(MUSCLE_LOG_ERROR, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}}
 
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, prints an error message to stdout
   * @param commandDesc a text string to print to stdout if the provided command returns an error code
   * @param cmd a command to call and test the return value of
   */
-#define MPRINT_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());}
+#define MPRINT_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());}
 
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, prints an error message to stdout
   * @param commandDesc a text string to print to stdout if the provided command returns an error code
   * @param cmd a command to call and test the return value of
   */
-#define MPRINT_AND_RETURN_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd); if (the_return_value.IsError()) {printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}}
+#define MPRINT_AND_RETURN_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) {printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}}
 
 /** This macro logs a warning message including the the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
 #define MCHECKPOINT muscle::LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
