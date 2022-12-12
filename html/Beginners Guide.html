@@ -147,9 +147,10 @@ if (connectionSocket())
       multiplexer.RegisterSocketForReadReady(socketFD);  // tell WaitForEvents() to return when there are incoming bytes to read
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(socketFD);  // ditto for outgoing buffer space to write to
 
-      if (multiplexer.WaitForEvents() &lt; 0)  // We'll block here until there is some more I/O we can do
+      const io_status_t wret = multiplexer.WaitForEvents();  // We'll block here until there is some more I/O we can do
+      if (wret.IsError())
       {
-         perror("WaitForEvents() failed");
+         printf("WaitEvents() failed [%s]\n", wret());
          break;
       }
 
