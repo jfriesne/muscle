@@ -88,7 +88,9 @@ int main(int argc, char ** argv)
 
       while(s())
       {
-         if (multiplexer.WaitForEvents() < 0) printf("testudp: WaitForEvents() failed!\n");
+         status_t ret;
+         if (multiplexer.WaitForEvents().IsError(ret)) printf("testudp: WaitForEvents() failed! [%s]\n", ret());
+
          if (multiplexer.IsSocketReadyForRead(stdinFD))
          {
             while(1)

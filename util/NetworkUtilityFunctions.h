@@ -309,9 +309,11 @@ status_t ShutdownSocket(const ConstSocketRef & sock, bool disableReception = tru
  *  @param optRetPort If non-NULL, the uint16 this value points to will be set to the actual port bound to (useful when you allowed the system to choose a port for you)
  *  @param optInterfaceIP Optional IP address of the local network interface to listen on.  If left unspecified, or
  *                        if passed in as (invalidIP), then this socket will listen on all available network interfaces.
+ *  @param socketFamily a SOCKET_FAMILY_* value indicating whether this should be an IPv4 or IPv6 socket.  Defaults to SOCKET_FAMILY_PREFERRED,
+ *                      i.e. to IPv6 (unless MUSCLE_AVOID_IPV6 was defined at compile-time).
  *  @return A non-NULL ConstSocketRef if the port was bound successfully, or a NULL ConstSocketRef if the accept failed.
  */
-ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * optRetPort = NULL, const IPAddress & optInterfaceIP = invalidIP);
+ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * optRetPort = NULL, const IPAddress & optInterfaceIP = invalidIP, int socketFamily = SOCKET_FAMILY_PREFERRED);
 
 /** Translates the given 4-byte IP address into a string representation.
  *  @param address The 4-byte IP address to translate into text.
@@ -557,8 +559,13 @@ IPAddress GetLocalHostIPOverride();
  *  Returns a negative value on error, or a non-negative socket handle on
  *  success.  You'll probably want to call BindUDPSocket() or SetUDPSocketTarget()
  *  after calling this method.
+ *  @param socketFamily a SOCKET_FAMILY_* value indicating the family of socket to create.
+ *                      This should be either SOCKET_FAMILY_IPV4 or SOCKET_FAMILY_IPV6.
+ *                      Defaults to SOCKET_FAMILY_PREFERRED, which is a synonym for
+ *                      SOCKET_FAMILY_IPV6 (unless MUSCLE_AVOID_IPV6 is set as a build-flag,
+ *                      in which case it will be a synonym for SOCKET_FAMILY_IPV4)
  */
-ConstSocketRef CreateUDPSocket();
+ConstSocketRef CreateUDPSocket(int socketFamily = SOCKET_FAMILY_PREFERRED);
 
 /** Attempts to given UDP socket to the given port.
  *  @param sock The UDP socket (as previously returned by CreateUDPSocket())
@@ -658,9 +665,41 @@ status_t SetSocketMulticastTimeToLive(const ConstSocketRef & sock, uint8 ttl);
   */
 uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock);
 
+/** Returns the index of the local interface that the given socket will
+  * try to send multicast packets on, or -1 on failure.
+  * @param sock The socket to query the sending interface index of.
+  * @returns the socket's interface index, or -1 on error.
+  */
+int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock);
+
+/** Attempts to add the specified socket to the specified multicast group.
+  * @param sock The socket to add to the multicast group
+  * @param groupAddress The IP address of the multicast group (either IPv4 multicast or IPv6 multicast).
+  * @param localInterfaceAddress Optional IP address of the local interface use for receiving
+  *                              data from this group.  If left as (invalidIP), an appropriate
+  *                              interface will be chosen automatically.  This argument is
+  *                              only used when (groupAddress) is an IPv4 multicast address!
+  * @note Under Windows this call will fail unless the socket has already
+  *       been bound to a port (e.g. with BindUDPSocket()).  Other OS's don't
+  *       seem to have that requirement.
+  * @returns B_NO_ERROR on success, or an error code on failure.
+  */
+status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress = invalidIP);
+
+/** Attempts to remove the specified socket from the specified multicast group that it was previously added to.
+  * @param sock The socket to add to the multicast group
+  * @param groupAddress The IP address of the multicast group.
+  * @param localInterfaceAddress Optional IP address of the local interface used for receiving
+  *                              data from this group.  If left as the default (invalidIP),
+  *                              the first matching group will be removed.  This argument is
+  *                              only used when (groupAddress) is an IPv4 multicast address!
+  * @returns B_NO_ERROR on success, or an error code on failure.
+  */
+status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress = invalidIP);
+
 #ifdef MUSCLE_AVOID_IPV6
 
-// IPv4 multicast
+// begin IPv4-specific multicast API
 
 /** Specify the address of the local interface that the given socket should
   * send multicast packets on.  If this isn't called, the kernel will try to choose
@@ -678,28 +717,7 @@ status_t SetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, con
   */
 IPAddress GetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
 
-/** Attempts to add the specified socket to the specified multicast group.
-  * @param sock The socket to add to the multicast group
-  * @param groupAddress The IP address of the multicast group.
-  * @param localInterfaceAddress Optional IP address of the local interface use for receiving
-  *                              data from this group.  If left as (invalidIP), an appropriate
-  *                              interface will be chosen automatically.
-  * @returns B_NO_ERROR on success, or an error code on failure.
-  */
-status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress = invalidIP);
-
-/** Attempts to remove the specified socket from the specified multicast group
-  * that it was previously added to.
-  * @param sock The socket to add to the multicast group
-  * @param groupAddress The IP address of the multicast group.
-  * @param localInterfaceAddress Optional IP address of the local interface used for receiving
-  *                              data from this group.  If left as (invalidIP), the first matching
-  *                              group will be removed.
-  * @returns B_NO_ERROR on success, or an error code on failure.
-  */
-status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress = invalidIP);
-
-#else  // end IPv4 multicast, begin IPv6 multicast
+#else  // end IPv4-specific multicast API, begin IPv6-specific multicast API
 
 /** Specify the interface index of the local network interface that the given socket should
   * send multicast packets on.  If this isn't called, the kernel will choose an appropriate
@@ -711,30 +729,6 @@ status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAdd
   * @returns B_NO_ERROR on success, or an error code on failure.
   */
 status_t SetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock, uint32 interfaceIndex);
-
-/** Returns the index of the local interface that the given socket will
-  * try to send multicast packets on, or -1 on failure.
-  * @param sock The socket to query the sending interface index of.
-  * @returns the socket's interface index, or -1 on error.
-  */
-int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock);
-
-/** Attempts to add the specified socket to the specified multicast group.
-  * @param sock The socket to add to the multicast group
-  * @param groupAddress The IP address of the multicast group.
-  * @note Under Windows this call will fail unless the socket has already
-  *       been bound to a port (e.g. with BindUDPSocket()).  Other OS's don't
-  *       seem to have that requirement.
-  * @returns B_NO_ERROR on success, or an error code on failure.
-  */
-status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress);
-
-/** Attempts to remove the specified socket from the specified multicast group that it was previously added to.
-  * @param sock The socket to add to the multicast group
-  * @param groupAddress The IP address of the multicast group.
-  * @returns B_NO_ERROR on success, or an error code on failure.
-  */
-status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress);
 
 #endif  // end IPv6 multicast
 

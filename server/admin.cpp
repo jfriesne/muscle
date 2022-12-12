@@ -130,9 +130,10 @@ int main(int argc, char ** argv)
       multiplexer.RegisterSocketForReadReady(fd);
       if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
 
-      if (multiplexer.WaitForEvents() < 0)
+      status_t ret;
+      if (multiplexer.WaitForEvents().IsError(ret))
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, exiting! [%s]\n", B_ERRNO());
+         LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, exiting! [%s]\n", ret());
          errorCount++;
          break;
       }

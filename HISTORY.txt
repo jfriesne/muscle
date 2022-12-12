@@ -5,6 +5,20 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Updated NetworkUtilityFunctions.cpp to better support "real"
+     IPv4 sockets (previously it assumed that IPv4 traffic would
+     be handled using IPv6 sockets and IPv4-mapped IPv6 address,
+     but that approach doesn't give 100% compatibility in all cases)
+   - Added a GetSocketFamily() method to the Socket class.
+   - Added an optional (socketFamily) argument to CreateUDPSocket().
+   - Added IsOK(io_status_t &) and IsError(io_status_t &) method
+     overrides to the io_status_t class.
+   o SocketMultiplexer::WaitForEvents() now returns an io_status_t
+     rather than an int, for better error-reporting.
+   o Merged the IPv6 and IPv4 versions of AddSocketToMulticastGroup()
+     and RemoveSocketFromMulticastGroup() so that a single implementation
+     can work on either type of socket.
+
 9.10 - Released 12/10/2022
    - Rewrote the non-Windows implementation of muscleSprintf()
      to call vsnprintf() instead of sprintf(), to avoid compiler

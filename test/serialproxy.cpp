@@ -81,7 +81,8 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
       if (outgoingNetworkData.HasItems()) multiplexer.RegisterSocketForWriteReady(networkWriteFD);
       if (outgoingSerialData.HasItems())  multiplexer.RegisterSocketForWriteReady(serialWriteFD);
 
-      if (multiplexer.WaitForEvents() >= 0)
+      status_t ret;
+      if (multiplexer.WaitForEvents().IsOK(ret))
       {
          MRETURN_ON_ERROR(ReadIncomingData("network",  networkIO, multiplexer, outgoingSerialData));                 // tells main() to wait for the next TCP connection
          MRETURN_ON_ERROR(ReadIncomingData("serial",   serialIO,  multiplexer, outgoingNetworkData));                // tells main() to exit
@@ -90,8 +91,8 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
       }
       else
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed! [%s]\n", B_ERRNO());
-         return B_ERROR("WaitForEvents() failed");
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed! [%s]\n", ret());
+         return ret;
       }
    }
 }

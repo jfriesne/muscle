@@ -44,9 +44,11 @@ int main(int argc, char ** argv)
             const int fd = s.GetFileDescriptor();
             multiplexer.RegisterSocketForReadReady(fd);
             if (ioGateway.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-            if (multiplexer.WaitForEvents() < 0)
+
+            status_t ret;
+            if (multiplexer.WaitForEvents().IsError(ret))
             {
-               LogTime(MUSCLE_LOG_ERROR, "WaitForEvents() failed, aborting! [%s]\n", B_ERRNO());
+               LogTime(MUSCLE_LOG_ERROR, "WaitForEvents() failed, aborting! [%s]\n", ret());
                break;
             }
             if (multiplexer.IsSocketReadyForRead(fd))

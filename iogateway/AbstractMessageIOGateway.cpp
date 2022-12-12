@@ -103,7 +103,7 @@ ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64
       if (optReceiver)        multiplexer.RegisterSocketForReadReady(readFD);
       if (HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
 
-      if (multiplexer.WaitForEvents(endTime) < 0) return B_IO_ERROR;
+      MRETURN_ON_ERROR(multiplexer.WaitForEvents(endTime));
       if (multiplexer.IsSocketReadyForWrite(writeFD)) MRETURN_ON_ERROR(DoOutput().GetStatus());
       if (multiplexer.IsSocketReadyForRead(readFD))   MRETURN_ON_ERROR(DoInput(scratchReceiver).GetStatus());
    }

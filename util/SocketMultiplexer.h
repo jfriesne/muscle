@@ -99,9 +99,9 @@ public:
      *                      Specifying 0 (or any other value not greater than the current value returned
      *                      by GetRunTime64()) will effect a poll, guaranteed to return immediately.
      * @returns The number of socket-registrations that indicated that they are currently ready,
-     *          or 0 if the timeout period elapsed without any events happening, or -1 if an error occurred.
+     *          or B_NO_ERROR if the timeout period elapsed without any events happening, or an error value if an error occurred.
      */
-   int WaitForEvents(uint64 timeoutAtTime = MUSCLE_TIME_NEVER);
+   io_status_t WaitForEvents(uint64 timeoutAtTime = MUSCLE_TIME_NEVER);
 
    /** Call this after WaitForEvents() returns, to find out if the specified file descriptor has
      * data ready to read or not.
@@ -187,7 +187,8 @@ private:
          return (FD_ISSET(fd, const_cast<fd_set *>(&_fdSets[whichSet])) != 0);
 #endif
       }
-      int WaitForEvents(uint64 timeoutAtTime);
+
+      io_status_t WaitForEvents(uint64 timeoutAtTime);
 
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
       void NotifySocketClosed(int fd)

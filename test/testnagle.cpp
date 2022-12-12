@@ -23,9 +23,10 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
       multiplexer.RegisterSocketForReadReady(fd);
       if (myTurnToThrow) multiplexer.RegisterSocketForWriteReady(fd);
 
-      if (multiplexer.WaitForEvents() < 0)
+      const io_status_t ret = multiplexer.WaitForEvents();
+      if (ret.IsError())
       {
-         LogTime(MUSCLE_LOG_ERROR, "WaitForEvents() failed, aborting!\n");
+         LogTime(MUSCLE_LOG_ERROR, "WaitForEvents() failed, aborting! [%s]\n", ret());
          break;
       }
 

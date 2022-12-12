@@ -76,15 +76,15 @@ int main(int argc, char ** argv)
       const uint64 then = GetRunTime64();
       if (then >= endTime) break;
 
-      const int ret = multiplexer.WaitForEvents();
-      if (ret < 0)
+      const io_status_t ret = multiplexer.WaitForEvents();
+      if (ret.IsError())
       {
-         printf("WaitForEvents errored out, aborting test!\n");
+         printf("WaitForEvents errored out, aborting test! [%s]\n", ret());
          break;
       }
 
       const uint64 elapsed = GetRunTime64()-then;
-      if (quiet == false) printf("WaitForEvents returned %i after " UINT64_FORMAT_SPEC " microseconds.\n", ret, elapsed);
+      if (quiet == false) printf("WaitForEvents returned [%s] after " UINT64_FORMAT_SPEC " microseconds.\n", ret(), elapsed);
 
       count++;
       tally += elapsed;

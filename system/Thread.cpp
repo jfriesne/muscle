@@ -276,7 +276,7 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
       }
       tsd._multiplexer.RegisterSocketForReadReady(msgfd);
 
-      if (tsd._multiplexer.WaitForEvents(wakeupTime) < 0) return B_IO_ERROR;
+      MRETURN_ON_ERROR(tsd._multiplexer.WaitForEvents(wakeupTime));
 
       status_t ret = B_TIMED_OUT;
       for (uint32 j=0; j<ARRAYITEMS(tsd._socketSets); j++)

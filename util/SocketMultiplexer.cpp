@@ -56,9 +56,9 @@ SocketMultiplexer :: ~SocketMultiplexer()
 #endif
 }
 
-int SocketMultiplexer :: WaitForEvents(uint64 optTimeoutAtTime)
+io_status_t SocketMultiplexer :: WaitForEvents(uint64 optTimeoutAtTime)
 {
-   const int ret = GetCurrentFDState().WaitForEvents(optTimeoutAtTime);
+   const io_status_t ret = GetCurrentFDState().WaitForEvents(optTimeoutAtTime);
 #if !defined(MUSCLE_USE_KQUEUE) && !defined(MUSCLE_USE_EPOLL)
    _curFDState = _curFDState?0:1;
 #endif
@@ -66,7 +66,7 @@ int SocketMultiplexer :: WaitForEvents(uint64 optTimeoutAtTime)
    return ret;
 }
 
-int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
+io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
 {
    // Calculate how long we should wait before timing out
    uint64 waitTimeMicros;
@@ -112,8 +112,8 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
          pWaitTime = &waitTime;
       }
 
-      int ret = kevent(_kernelFD, _scratchChanges.HeadPointer(), _scratchChanges.GetNumItems(), _scratchEvents.HeadPointer(), _scratchEvents.GetNumItems(), pWaitTime);
-      if (ret >= 0)
+      const int r = kevent(_kernelFD, _scratchChanges.HeadPointer(), _scratchChanges.GetNumItems(), _scratchEvents.HeadPointer(), _scratchEvents.GetNumItems(), pWaitTime);
+      if (r >= 0)
       {
          // Record that kevent() accepted our _scratchChanges into its kernel-state, so we'll know not to send the changes again next time
          for (HashtableIterator<int, uint16> iter(_bits); iter.HasData(); iter++)
@@ -125,7 +125,7 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
          }
 
          // Now go through our _scratchEvents list and set bits for any flagged events, for quick lookup by the user
-         for (int i=0; i<ret; i++)
+         for (int i=0; i<r; i++)
          {
             const struct kevent & event = _scratchEvents[i];
             uint16 * bits = _bits.Get(event.ident);
@@ -142,11 +142,11 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
 #elif defined(MUSCLE_USE_EPOLL)
       MRETURN_ON_ERROR(ComputeStateBitsChangeRequests());
 
-      int ret = epoll_wait(_kernelFD, _scratchEvents.HeadPointer(), _scratchEvents.GetNumItems(), (waitTimeMicros==MUSCLE_TIME_NEVER)?-1:(int)(muscleMin(MicrosToMillis(waitTimeMicros), (int64)INT_MAX)));
-      if (ret >= 0)
+      const int r = epoll_wait(_kernelFD, _scratchEvents.HeadPointer(), _scratchEvents.GetNumItems(), (waitTimeMicros==MUSCLE_TIME_NEVER)?-1:(int)(muscleMin(MicrosToMillis(waitTimeMicros), (int64)INT_MAX)));
+      if (r >= 0)
       {
          // Now go through our _scratchEvents list and set bits for any flagged events, for quick lookup by the user
-         for (int i=0; i<ret; i++)
+         for (int i=0; i<r; i++)
          {
             const struct epoll_event & event = _scratchEvents[i];
             uint16 * bits = _bits.Get(event.data.fd);
@@ -161,9 +161,9 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
 #elif defined(MUSCLE_USE_POLL)
       const int timeoutMillis = (waitTimeMicros == MUSCLE_TIME_NEVER) ? -1 : ((int) muscleMin(MicrosToMillis(waitTimeMicros), (int64)(INT_MAX)));
 # ifdef WIN32
-      int ret = WSAPoll(_pollFDArray.GetItemAt(0), _pollFDArray.GetNumItems(), timeoutMillis);
+      const int r = WSAPoll(_pollFDArray.GetItemAt(0), _pollFDArray.GetNumItems(), timeoutMillis);
 # else
-      int ret = poll(   _pollFDArray.GetItemAt(0), _pollFDArray.GetNumItems(), timeoutMillis);
+      const int r = poll(   _pollFDArray.GetItemAt(0), _pollFDArray.GetNumItems(), timeoutMillis);
 # endif
 #else
       struct timeval waitTime;
@@ -174,17 +174,17 @@ int SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
          Convert64ToTimeVal(waitTimeMicros, waitTime);
          pWaitTime = &waitTime;
       }
-      int ret = select(maxFD+1, sets[FDSTATE_SET_READ], sets[FDSTATE_SET_WRITE], sets[FDSTATE_SET_EXCEPT], pWaitTime);
+      const int r = select(maxFD+1, sets[FDSTATE_SET_READ], sets[FDSTATE_SET_WRITE], sets[FDSTATE_SET_EXCEPT], pWaitTime);
 #endif
-      if ((ret < 0)&&(PreviousOperationWasInterrupted())) ret = 0;  // on interruption we'll just go round gain
-      return ret;
+      if ((r < 0)&&(PreviousOperationWasInterrupted())) return B_NO_ERROR;  // on interruption we'll just go round gain
+      return (r < 0) ? io_status_t(B_ERRNO) : io_status_t(r);
    }
    else
    {
       // Hmm, no sockets to wait on at all.  All we have to do is sleep!
       // Note doing it this way avoids a Windows problem where select() will fail if no sockets are provided to wait on.
       Snooze64(waitTimeMicros);
-      return 0;
+      return B_NO_ERROR;
    }
 }
 

@@ -80,7 +80,8 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
       if (outgoingAData.HasItems()) multiplexer.RegisterSocketForWriteReady(aWriteFD);
       if (outgoingBData.HasItems()) multiplexer.RegisterSocketForWriteReady(bWriteFD);
 
-      if (multiplexer.WaitForEvents() >= 0)
+      status_t ret;
+      if (multiplexer.WaitForEvents().IsOK(ret))
       {
          MRETURN_ON_ERROR(ReadIncomingData( aDesc, aIO, multiplexer, outgoingBData));
          MRETURN_ON_ERROR(ReadIncomingData( bDesc, bIO, multiplexer, outgoingAData));
@@ -89,8 +90,8 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
       }
       else
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed! [%s]\n", B_ERRNO());
-         return B_ERROR("WaitForEvents() failed");
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error, WaitForEvents() failed! [%s]\n", ret());
+         return ret;
       }
    }
 }

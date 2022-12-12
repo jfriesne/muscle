@@ -81,8 +81,7 @@ static bool _automaticIPv4AddressMappingEnabled = true;   // if true, we automat
 void SetAutomaticIPv4AddressMappingEnabled(bool e) {_automaticIPv4AddressMappingEnabled = e;}
 bool GetAutomaticIPv4AddressMappingEnabled()       {return _automaticIPv4AddressMappingEnabled;}
 
-# define MUSCLE_SOCKET_FAMILY AF_INET6
-static inline void GET_SOCKADDR_IP(const struct sockaddr_in6 & sockAddr, IPAddress & ipAddr)
+static void GET_SOCKADDR_IP_IPV6(const struct sockaddr_in6 & sockAddr, IPAddress & ipAddr)
 {
    switch(sockAddr.sin6_family)
    {
@@ -104,7 +103,7 @@ static inline void GET_SOCKADDR_IP(const struct sockaddr_in6 & sockAddr, IPAddre
       break;
   }
 }
-static inline void SET_SOCKADDR_IP(struct sockaddr_in6 & sockAddr, const IPAddress & ipAddr)
+static void SET_SOCKADDR_IP_IPV6(struct sockaddr_in6 & sockAddr, const IPAddress & ipAddr)
 {
    uint32 tmp;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
    if ((_automaticIPv4AddressMappingEnabled)&&(ipAddr != localhostIP)&&(ipAddr.IsValid())&&(ipAddr.IsIPv4()))
@@ -117,7 +116,8 @@ static inline void SET_SOCKADDR_IP(struct sockaddr_in6 & sockAddr, const IPAddre
 
    sockAddr.sin6_scope_id = tmp;
 }
-static inline uint16 GET_SOCKADDR_PORT(const struct sockaddr_in6 & addr)
+
+static uint16 GET_SOCKADDR_PORT_IPV6(const struct sockaddr_in6 & addr)
 {
    switch(addr.sin6_family)
    {
@@ -127,37 +127,36 @@ static inline uint16 GET_SOCKADDR_PORT(const struct sockaddr_in6 & addr)
    }
 }
 
-static inline void SET_SOCKADDR_PORT(struct sockaddr_in6 & addr, uint16 port) {addr.sin6_port = htons(port);}
-static inline uint16 GET_SOCKADDR_FAMILY(const struct sockaddr_in6 & addr) {return addr.sin6_family;}
-static inline void SET_SOCKADDR_FAMILY(struct sockaddr_in6 & addr, uint16 family) {addr.sin6_family = family;}
+static void   SET_SOCKADDR_FAMILY_IPV6(      struct sockaddr_in6 & addr, uint16 family) {addr.sin6_family = family;}
+static void   SET_SOCKADDR_PORT_IPV6(        struct sockaddr_in6 & addr, uint16 port)   {addr.sin6_port   = htons(port);}
+static uint16 GET_SOCKADDR_FAMILY_IPV6(const struct sockaddr_in6 & addr)                {return addr.sin6_family;}
 static void InitializeSockAddr6(struct sockaddr_in6 & addr, const IPAddress * optFrom, uint16 port)
 {
    memset(&addr, 0, sizeof(struct sockaddr_in6));
 #ifdef SIN6_LEN
    addr.sin6_len = sizeof(struct sockaddr_in6);
 #endif
-   SET_SOCKADDR_FAMILY(addr, MUSCLE_SOCKET_FAMILY);
-   if (optFrom) SET_SOCKADDR_IP(addr, *optFrom);
-   if (port) SET_SOCKADDR_PORT(addr, port);
+   SET_SOCKADDR_FAMILY_IPV6(addr, AF_INET6);
+   if (optFrom) SET_SOCKADDR_IP_IPV6(  addr, *optFrom);
+   if (port)    SET_SOCKADDR_PORT_IPV6(addr, port);
 }
-# define DECLARE_SOCKADDR(addr, ip, port) struct sockaddr_in6 addr; InitializeSockAddr6(addr, ip, port);
-#else
-# define MUSCLE_SOCKET_FAMILY AF_INET
-static inline void GET_SOCKADDR_IP(const struct sockaddr_in & sockAddr, IPAddress & ipAddr) {ipAddr.SetIPv4AddressFromUint32(ntohl(sockAddr.sin_addr.s_addr));}
-static inline void SET_SOCKADDR_IP(struct sockaddr_in & sockAddr, const IPAddress & ipAddr) {sockAddr.sin_addr.s_addr = htonl(ipAddr.GetIPv4AddressAsUint32());}
-static inline uint16 GET_SOCKADDR_PORT(const struct sockaddr_in & addr) {return ntohs(addr.sin_port);}
-static inline void SET_SOCKADDR_PORT(struct sockaddr_in & addr, uint16 port) {addr.sin_port = htons(port);}
-static inline uint16 GET_SOCKADDR_FAMILY(const struct sockaddr_in & addr) {return addr.sin_family;}
-static inline void SET_SOCKADDR_FAMILY(struct sockaddr_in & addr, uint16 family) {addr.sin_family = family;}
+# define DECLARE_SOCKADDR_IPV6(addr, ip, port) struct sockaddr_in6 addr; InitializeSockAddr6(addr, ip, port);
+#endif
+
+static void GET_SOCKADDR_IP_IPV4(const struct sockaddr_in & sockAddr, IPAddress & ipAddr) {ipAddr.SetIPv4AddressFromUint32(ntohl(sockAddr.sin_addr.s_addr));}
+static void SET_SOCKADDR_IP_IPV4(struct sockaddr_in & sockAddr, const IPAddress & ipAddr) {sockAddr.sin_addr.s_addr = htonl(ipAddr.GetIPv4AddressAsUint32());}
+static uint16 GET_SOCKADDR_PORT_IPV4(const struct sockaddr_in & addr) {return ntohs(addr.sin_port);}
+static void SET_SOCKADDR_PORT_IPV4(struct sockaddr_in & addr, uint16 port) {addr.sin_port = htons(port);}
+static uint16 GET_SOCKADDR_FAMILY_IPV4(const struct sockaddr_in & addr) {return addr.sin_family;}
+static void SET_SOCKADDR_FAMILY_IPV4(struct sockaddr_in & addr, uint16 family) {addr.sin_family = family;}
 static void InitializeSockAddr4(struct sockaddr_in & addr, const IPAddress * optFrom, uint16 port)
 {
    memset(&addr, 0, sizeof(struct sockaddr_in));
-   SET_SOCKADDR_FAMILY(addr, MUSCLE_SOCKET_FAMILY);
-   if (optFrom) SET_SOCKADDR_IP(addr, *optFrom);
-   if (port) SET_SOCKADDR_PORT(addr, port);
+   SET_SOCKADDR_FAMILY_IPV4(addr, AF_INET);
+   if (optFrom) SET_SOCKADDR_IP_IPV4(addr, *optFrom);
+   if (port) SET_SOCKADDR_PORT_IPV4(addr, port);
 }
-# define DECLARE_SOCKADDR(addr, ip, port) struct sockaddr_in addr; InitializeSockAddr4(addr, ip, port);
-#endif
+#define DECLARE_SOCKADDR_IPV4(addr, ip, port) struct sockaddr_in addr; InitializeSockAddr4(addr, ip, port);
 
 static GlobalSocketCallback * _globalSocketCallback = NULL;
 void SetGlobalSocketCallback(GlobalSocketCallback * cb) {_globalSocketCallback = cb;}
@@ -170,9 +169,22 @@ static status_t DoGlobalSocketCallback(uint32 eventType, const ConstSocketRef & 
    return _globalSocketCallback->SocketCallback(eventType, s);
 }
 
-static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType)
+static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType, int socketFamily)
 {
-   const int s = static_cast<int>(socket(MUSCLE_SOCKET_FAMILY, socketType, 0));
+#ifdef MUSCLE_AVOID_IPV6
+   if (socketFamily != SOCKET_FAMILY_IPV4) return ConstSocketRef();
+   const int fam = AF_INET;
+#else
+   int fam;
+   switch(socketFamily)
+   {
+      case SOCKET_FAMILY_IPV4: fam = AF_INET;  break;
+      case SOCKET_FAMILY_IPV6: fam = AF_INET6; break;
+      default:                 return ConstSocketRef();
+   }
+#endif
+
+   const int s = static_cast<int>(socket(fam, socketType, 0));
    if (s >= 0)
    {
 #if defined(__APPLE__) || defined(BSD)
@@ -186,7 +198,7 @@ static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType)
       {
 #ifndef MUSCLE_AVOID_IPV6
          // If we're doing IPv4-mapped IPv6 addresses, we gotta tell Windows 7 that it's okay to use them, otherwise they won't work.  :^P
-         if (_automaticIPv4AddressMappingEnabled)
+         if ((socketFamily == SOCKET_FAMILY_IPV6)&&(_automaticIPv4AddressMappingEnabled))
          {
             int v6OnlyEnabled = 0;  // we want v6-only mode disabled, which is to say we want v6-to-v4 compatibility
             if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (const sockopt_arg *) &v6OnlyEnabled, sizeof(v6OnlyEnabled)) != 0) LogTime(MUSCLE_LOG_DEBUG, "Could not disable v6-only mode for socket %i [%s]\n", s, B_ERRNO());
@@ -198,9 +210,9 @@ static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType)
    return ConstSocketRef();
 }
 
-ConstSocketRef CreateUDPSocket()
+ConstSocketRef CreateUDPSocket(int socketFamily)
 {
-   ConstSocketRef ret = CreateMuscleSocket(SOCK_DGRAM, GlobalSocketCallback::SOCKET_CALLBACK_CREATE_UDP);
+   ConstSocketRef ret = CreateMuscleSocket(SOCK_DGRAM, GlobalSocketCallback::SOCKET_CALLBACK_CREATE_UDP, socketFamily);
 #if defined(WIN32) && !defined(__MINGW32__)
    if (ret())
    {
@@ -228,22 +240,54 @@ status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRet
 #endif
    }
 
-   DECLARE_SOCKADDR(saSocket, &optFrom, port);
-   if (bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)
+   switch(sock.GetSocketFamily())
    {
-      if (optRetPort)
+      case SOCKET_FAMILY_IPV4:
       {
-         muscle_socklen_t len = sizeof(saSocket);
-         if (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0)
+         DECLARE_SOCKADDR_IPV4(saSocket, &optFrom, port);
+         if (bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)
          {
-            *optRetPort = GET_SOCKADDR_PORT(saSocket);
+            if (optRetPort)
+            {
+               muscle_socklen_t len = sizeof(saSocket);
+               if (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0)
+               {
+                  *optRetPort = GET_SOCKADDR_PORT_IPV4(saSocket);
+                  return B_NO_ERROR;
+               }
+               else return B_ERRNO;
+            }
             return B_NO_ERROR;
          }
          else return B_ERRNO;
       }
-      return B_NO_ERROR;
+      break;
+
+#ifndef MUSCLE_AVOID_IPV6
+      case SOCKET_FAMILY_IPV6:
+      {
+         DECLARE_SOCKADDR_IPV6(saSocket, &optFrom, port);
+         if (bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)
+         {
+            if (optRetPort)
+            {
+               muscle_socklen_t len = sizeof(saSocket);
+               if (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0)
+               {
+                  *optRetPort = GET_SOCKADDR_PORT_IPV6(saSocket);
+                  return B_NO_ERROR;
+               }
+               else return B_ERRNO;
+            }
+            return B_NO_ERROR;
+         }
+         else return B_ERRNO;
+      }
+      break;
+#endif
+
+      default: return B_BAD_OBJECT;
    }
-   else return B_ERRNO;
 }
 
 status_t SetUDPSocketTarget(const ConstSocketRef & sock, const IPAddress & remoteIP, uint16 remotePort)
@@ -251,8 +295,26 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const IPAddress & remot
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   DECLARE_SOCKADDR(saAddr, &remoteIP, remotePort);
-   return (connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr)) == 0) ? B_NO_ERROR : B_ERRNO;
+   switch(sock.GetSocketFamily())
+   {
+      case SOCKET_FAMILY_IPV4:
+      {
+         DECLARE_SOCKADDR_IPV4(saAddr, &remoteIP, remotePort);
+         return (connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr)) == 0) ? B_NO_ERROR : B_ERRNO;
+      }
+
+#ifndef MUSCLE_AVOID_IPV6
+      case SOCKET_FAMILY_IPV6:
+      {
+         DECLARE_SOCKADDR_IPV6(saAddr, &remoteIP, remotePort);
+         return (connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr)) == 0) ? B_NO_ERROR : B_ERRNO;
+      }
+#endif
+
+      default:
+         return B_UNIMPLEMENTED;
+      break;
+   }
 }
 
 status_t SetUDPSocketTarget(const ConstSocketRef & sock, const char * remoteHostName, uint16 remotePort, bool expandLocalhost)
@@ -261,12 +323,13 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const char * remoteHost
    return (hostIP != invalidIP) ? SetUDPSocketTarget(sock, hostIP, remotePort) : B_ERROR("GetHostByName() failed");
 }
 
-ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRetPort, const IPAddress & optInterfaceIP)
+ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRetPort, const IPAddress & optInterfaceIP, int socketFamily)
 {
-   ConstSocketRef ret = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CREATE_ACCEPTING);
+   ConstSocketRef ret = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CREATE_ACCEPTING, socketFamily);
    if (ret())
    {
       const int fd = ret.GetFileDescriptor();
+      if (fd < 0) return ConstSocketRef();
 
 #ifndef WIN32
       // (Not necessary under windows -- it has the behaviour we want by default)
@@ -274,15 +337,42 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRe
       (void) setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const sockopt_arg *) &trueValue, sizeof(trueValue));
 #endif
 
-      DECLARE_SOCKADDR(saSocket, &optInterfaceIP, port);
-      if ((bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)&&(listen(fd, maxbacklog) == 0))
+      switch(ret()->GetSocketFamily())
       {
-         if (optRetPort)
+         case SOCKET_FAMILY_IPV4:
          {
-            muscle_socklen_t len = sizeof(saSocket);
-            *optRetPort = (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT(saSocket) : 0;
+            DECLARE_SOCKADDR_IPV4(saSocket, &optInterfaceIP, port);
+            if ((bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)&&(listen(fd, maxbacklog) == 0))
+            {
+               if (optRetPort)
+               {
+                  muscle_socklen_t len = sizeof(saSocket);
+                  *optRetPort = (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT_IPV4(saSocket) : 0;
+               }
+               return ret;
+            }
          }
-         return ret;
+         break;
+
+#ifndef MUSCLE_AVOID_IPV6
+         case SOCKET_FAMILY_IPV6:
+         {
+            DECLARE_SOCKADDR_IPV6(saSocket, &optInterfaceIP, port);
+            if ((bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)&&(listen(fd, maxbacklog) == 0))
+            {
+               if (optRetPort)
+               {
+                  muscle_socklen_t len = sizeof(saSocket);
+                  *optRetPort = (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT_IPV6(saSocket) : 0;
+               }
+               return ret;
+            }
+         }
+         break;
+#endif
+
+         default:
+            return ConstSocketRef();  // unknown family!?
       }
    }
    return ConstSocketRef();  // failure
@@ -315,16 +405,41 @@ io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 si
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   long r;
+   ssize_t r = -1;
    if ((optFromIP)||(optFromPort))
    {
-      DECLARE_SOCKADDR(fromAddr, NULL, 0);
-      muscle_socklen_t fromAddrLen = sizeof(fromAddr);
-      r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
-      if (r >= 0)
+      switch(sock.GetSocketFamily())
       {
-         if (optFromIP) GET_SOCKADDR_IP(fromAddr, *optFromIP);
-         if (optFromPort) *optFromPort = GET_SOCKADDR_PORT(fromAddr);
+         case SOCKET_FAMILY_IPV4:
+         {
+            DECLARE_SOCKADDR_IPV4(fromAddr, NULL, 0);
+            muscle_socklen_t fromAddrLen = sizeof(fromAddr);
+            r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
+            if (r >= 0)
+            {
+               if (optFromIP) GET_SOCKADDR_IP_IPV4(fromAddr, *optFromIP);
+               if (optFromPort) *optFromPort = GET_SOCKADDR_PORT_IPV4(fromAddr);
+            }
+         }
+         break;
+
+#ifndef MUSCLE_AVOID_IPV6
+         case SOCKET_FAMILY_IPV6:
+         {
+            DECLARE_SOCKADDR_IPV6(fromAddr, NULL, 0);
+            muscle_socklen_t fromAddrLen = sizeof(fromAddr);
+            r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
+            if (r >= 0)
+            {
+               if (optFromIP) GET_SOCKADDR_IP_IPV6(fromAddr, *optFromIP);
+               if (optFromPort) *optFromPort = GET_SOCKADDR_PORT_IPV6(fromAddr);
+            }
+         }
+         break;
+#endif
+
+         default:
+            return B_UNIMPLEMENTED;
       }
    }
    else r = recv_ignore_eintr(fd, (char *)buffer, size, 0L);
@@ -357,7 +472,54 @@ io_status_t WriteData(const ConstSocketRef & sock, const void * buffer, uint32 s
 #endif
 }
 
-io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm, const IPAddress & optToIP, uint16 optToPort)
+static io_status_t SendDataUDPIPv4(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm, const IPAddress & optToIP, uint16 optToPort)
+{
+   const int fd = sock.GetFileDescriptor();
+   if (fd < 0) return B_BAD_ARGUMENT;
+
+   ssize_t s;
+   if ((optToPort)||(optToIP != invalidIP))
+   {
+      DECLARE_SOCKADDR_IPV4(toAddr, NULL, 0);
+      if ((optToPort == 0)||(optToIP == invalidIP))
+      {
+         // Fill in the values with our socket's current target-values, as defaults
+         muscle_socklen_t length = sizeof(sockaddr_in);
+         if (getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0) return B_ERRNO;
+         if (GET_SOCKADDR_FAMILY_IPV4(toAddr) != AF_INET) return B_BAD_OBJECT;
+      }
+
+      if (optToIP != invalidIP)
+      {
+         SET_SOCKADDR_IP_IPV4(toAddr, optToIP);
+#ifdef MUSCLE_USE_IFIDX_WORKAROUND
+         // Work-around for MacOS/X problem (?) where the interface index in the specified IP address doesn't get used
+         if ((optToIP.IsInterfaceIndexValid())&&(optToIP.IsMulticast()))
+         {
+            const int         oidx = GetSocketMulticastSendInterfaceIndex(sock);
+            const uint32 actualIdx = optToIP.GetInterfaceIndex();
+            if (oidx != ((int)actualIdx))
+            {
+               // temporarily set the socket's interface index to the desired one
+               MRETURN_ON_ERROR(SetSocketMulticastSendInterfaceIndex(sock, actualIdx));
+               oldInterfaceIndex = oidx;  // and remember to set it back afterwards
+            }
+         }
+#endif
+      }
+      if (optToPort) SET_SOCKADDR_PORT_IPV4(toAddr, optToPort);
+      s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
+   }
+   else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
+
+   if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
+
+   const int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
+   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
+}
+
+#ifndef MUSCLE_AVOID_IPV6
+static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm, const IPAddress & optToIP, uint16 optToPort)
 {
 #ifdef DEBUG_SENDING_UDP_PACKETS_ON_INTERFACE_ZERO
    if ((optToIP != invalidIP)&&(optToIP.IsInterfaceIndexValid() == false)&&(optToIP.IsIPv4() == false)&&(optToIP.IsStandardLoopbackDeviceAddress() == false))
@@ -378,21 +540,21 @@ io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32
    int oldInterfaceIndex = -1;  // and remember to set it back afterwards
 #endif
 
-   long s;
+   ssize_t s;
    if ((optToPort)||(optToIP != invalidIP))
    {
-      DECLARE_SOCKADDR(toAddr, NULL, 0);
+      DECLARE_SOCKADDR_IPV6(toAddr, NULL, 0);
       if ((optToPort == 0)||(optToIP == invalidIP))
       {
          // Fill in the values with our socket's current target-values, as defaults
          muscle_socklen_t length = sizeof(sockaddr_in);
          if (getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0) return B_ERRNO;
-         if (GET_SOCKADDR_FAMILY(toAddr) != MUSCLE_SOCKET_FAMILY) return B_BAD_OBJECT;
+         if (GET_SOCKADDR_FAMILY_IPV6(toAddr) != AF_INET6) return B_BAD_OBJECT;
       }
 
       if (optToIP != invalidIP)
       {
-         SET_SOCKADDR_IP(toAddr, optToIP);
+         SET_SOCKADDR_IP_IPV6(toAddr, optToIP);
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
          // Work-around for MacOS/X problem (?) where the interface index in the specified IP address doesn't get used
          if ((optToIP.IsInterfaceIndexValid())&&(optToIP.IsMulticast()))
@@ -408,7 +570,7 @@ io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32
          }
 #endif
       }
-      if (optToPort) SET_SOCKADDR_PORT(toAddr, optToPort);
+      if (optToPort) SET_SOCKADDR_PORT_IPV6(toAddr, optToPort);
       s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
    }
    else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
@@ -430,6 +592,21 @@ io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32
 
    return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 }
+#endif
+
+io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm, const IPAddress & optToIP, uint16 optToPort)
+{
+   switch(sock.GetSocketFamily())
+   {
+      case SOCKET_FAMILY_INVALID: return B_BAD_ARGUMENT;
+      case SOCKET_FAMILY_IPV4:    return SendDataUDPIPv4(sock, buffer, size, bm, optToIP, optToPort);
+#ifndef MUSCLE_AVOID_IPV6
+      case SOCKET_FAMILY_IPV6:    return SendDataUDPIPv6(sock, buffer, size, bm, optToIP, optToPort);
+#endif
+      default:                    return B_UNIMPLEMENTED;
+   }
+}
+
 
 status_t ShutdownSocket(const ConstSocketRef & sock, bool dRecv, bool dSend)
 {
@@ -450,23 +627,53 @@ status_t ShutdownSocket(const ConstSocketRef & sock, bool dRecv, bool dSend)
 
 ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP)
 {
-   DECLARE_SOCKADDR(saSocket, NULL, 0);
-   muscle_socklen_t nLen = sizeof(saSocket);
    const int fd = sock.GetFileDescriptor();
-   if (fd >= 0)
-   {
-      ConstSocketRef ret = GetConstSocketRefFromPool(accept(fd, (struct sockaddr *)&saSocket, &nLen));
-      if (DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret).IsError()) return ConstSocketRef();  // called separately since accept() created this socket, not CreateMuscleSocket()
+   if (fd < 0) return ConstSocketRef();
 
-      if ((ret())&&(optRetInterfaceIP))
+   ConstSocketRef ret;
+   switch(sock()->GetSocketFamily())
+   {
+      case SOCKET_FAMILY_IPV4:
       {
-         muscle_socklen_t len = sizeof(saSocket);
-         if (getsockname(ret.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP(saSocket, *optRetInterfaceIP);
-                                                                                       else *optRetInterfaceIP = invalidIP;
+         DECLARE_SOCKADDR_IPV4(saSocket, NULL, 0);
+         muscle_socklen_t nLen = sizeof(saSocket);
+
+         ret = GetConstSocketRefFromPool(accept(fd, (struct sockaddr *)&saSocket, &nLen));
+         if (DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret).IsError()) return ConstSocketRef();  // called separately since accept() created this socket, not CreateMuscleSocket()
+
+         if ((ret())&&(optRetInterfaceIP))
+         {
+            muscle_socklen_t len = sizeof(saSocket);
+            if (getsockname(ret.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP_IPV4(saSocket, *optRetInterfaceIP);
+                                                                                          else *optRetInterfaceIP = invalidIP;
+         }
       }
-      return ret;
+      break;
+
+#ifndef MUSCLE_AVOID_IPV6
+      case SOCKET_FAMILY_IPV6:
+      {
+         DECLARE_SOCKADDR_IPV6(saSocket, NULL, 0);
+         muscle_socklen_t nLen = sizeof(saSocket);
+
+         ret = GetConstSocketRefFromPool(accept(fd, (struct sockaddr *)&saSocket, &nLen));
+         if (DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret).IsError()) return ConstSocketRef();  // called separately since accept() created this socket, not CreateMuscleSocket()
+
+         if ((ret())&&(optRetInterfaceIP))
+         {
+            muscle_socklen_t len = sizeof(saSocket);
+            if (getsockname(ret.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP_IPV6(saSocket, *optRetInterfaceIP);
+                                                                                          else *optRetInterfaceIP = invalidIP;
+         }
+      }
+      break;
+#endif
+
+      default:
+         // empty
+      break;
    }
-   return ConstSocketRef();  // failure
+   return ret;
 }
 
 ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTitle, bool errorsOnly, uint64 maxConnectTime, bool expandLocalhost)
@@ -491,23 +698,43 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
    }
 
    bool socketIsReady = false;
-   ConstSocketRef s = (maxConnectTime == MUSCLE_TIME_NEVER) ? CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT) : ConnectAsync(hostIAP, socketIsReady);
+   ConstSocketRef s = (maxConnectTime == MUSCLE_TIME_NEVER) ? CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT, SOCKET_FAMILY_PREFERRED) : ConnectAsync(hostIAP, socketIsReady);
    if (s())
    {
       const int fd = s.GetFileDescriptor();
-      int ret = -1;
+      status_t ret;
       if (maxConnectTime == MUSCLE_TIME_NEVER)
       {
-         DECLARE_SOCKADDR(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
-         ret = connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr));
+         switch(s()->GetSocketFamily())
+         {
+            case SOCKET_FAMILY_IPV4:
+            {
+               DECLARE_SOCKADDR_IPV4(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
+               const int r = connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr));
+               if (r < 0) ret = B_ERRNO;
+            }
+            break;
+
+#ifndef MUSCLE_AVOID_IPV6
+            case SOCKET_FAMILY_IPV6:
+            {
+               DECLARE_SOCKADDR_IPV6(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
+               const int r = connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr));
+               if (r < 0) ret = B_ERRNO;
+            }
+            break;
+#endif
+            default:
+               ret = B_UNIMPLEMENTED;
+         }
       }
       else
       {
-         if (socketIsReady) ret = 0;  // immediate success, yay!
-         else
+         if (socketIsReady == false)
          {
             // The harder case:  the user doesn't want the Connect() call to take more than (so many) microseconds.
             // For this, we'll need to go into non-blocking mode and run a SocketMultiplexer loop to get the desired behaviour!
+            ret = B_TIMED_OUT;
             const uint64 deadline = GetRunTime64()+maxConnectTime;
             SocketMultiplexer multiplexer;
             while(GetRunTime64() < deadline)
@@ -516,7 +743,13 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
 #ifdef WIN32
                multiplexer.RegisterSocketForExceptionRaised(fd);
 #endif
-               if (multiplexer.WaitForEvents(deadline) < 0) break;  // error out!
+
+               const io_status_t eret = multiplexer.WaitForEvents(deadline);
+               if (eret.IsError())
+               {
+                  ret = eret.GetStatus();
+                  break; // error out!
+               }
                else
                {
 #ifdef WIN32
@@ -524,7 +757,8 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
 #endif
                   if (multiplexer.IsSocketReadyForWrite(fd))
                   {
-                     if ((FinalizeAsyncConnect(s).IsOK())&&(SetSocketBlockingEnabled(s, true).IsOK())) ret = 0;
+                     ret = B_NO_ERROR;
+                     if (FinalizeAsyncConnect(s).IsOK(ret)) ret = SetSocketBlockingEnabled(s, true);
                      break;
                   }
                }
@@ -532,15 +766,15 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
          }
       }
 
-      if (ret == 0)
+      if (ret.IsOK())
       {
          if ((debugTitle)&&(errorsOnly == false)) Log(MUSCLE_LOG_INFO, "Connected!\n");
          return s;
       }
       else if (debugTitle)
       {
-         if (errorsOnly) LogTime(MUSCLE_LOG_INFO, "%s: connect() to %s failed!\n", debugTitle, GetConnectString(optDebugHostName?optDebugHostName:ipbuf, hostIAP.GetPort())());
-                    else Log(MUSCLE_LOG_INFO, "Connection failed!\n");
+         if (errorsOnly) LogTime(MUSCLE_LOG_INFO, "%s: connect() to %s failed! [%s]\n", debugTitle, GetConnectString(optDebugHostName?optDebugHostName:ipbuf, hostIAP.GetPort())(), ret());
+                    else Log(MUSCLE_LOG_INFO, "Connection failed! [%s]\n", ret());
       }
    }
    else if (debugTitle)
@@ -667,7 +901,7 @@ bool IsIPAddress(const char * s)
    return IsIP4Address(s);
 #else
    struct in6_addr tmp;
-   return ((Inet_PtoN(MUSCLE_SOCKET_FAMILY, s, &tmp) > 0)||(Inet_AtoN(s) != invalidIP)||(IsIP4Address(s)));  // Inet_AtoN() handles the "@blah" suffixes
+   return ((Inet_PtoN(AF_INET6, s, &tmp) > 0)||(Inet_AtoN(s) != invalidIP)||(IsIP4Address(s)));  // Inet_AtoN() handles the "@blah" suffixes
 #endif
 }
 
@@ -857,13 +1091,35 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
 
 ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
 {
-   ConstSocketRef s = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT);
+   ConstSocketRef s = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT, SOCKET_FAMILY_PREFERRED);
    if (s())
    {
       if (SetSocketBlockingEnabled(s, false).IsOK())
       {
-         DECLARE_SOCKADDR(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
-         const int result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
+         int result = -1;
+         switch(s()->GetSocketFamily())
+         {
+            case SOCKET_FAMILY_IPV4:
+            {
+               DECLARE_SOCKADDR_IPV4(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
+               result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
+            }
+            break;
+
+#ifndef MUSCLE_AVOID_IPV6
+            case SOCKET_FAMILY_IPV6:
+            {
+               DECLARE_SOCKADDR_IPV6(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
+               result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
+            }
+            break;
+#endif
+
+            default:
+               // empty
+            break;
+         }
+
 #ifdef WIN32
          const bool inProgress = ((result < 0)&&(WSAGetLastError() == WSAEWOULDBLOCK));
 #else
@@ -885,13 +1141,39 @@ IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, ui
    const int fd = sock.GetFileDescriptor();
    if (fd >= 0)
    {
-      DECLARE_SOCKADDR(saTempAdd, NULL, 0);
-      muscle_socklen_t length = sizeof(saTempAdd);
-      if ((getpeername(fd, (struct sockaddr *)&saTempAdd, &length) == 0)&&(GET_SOCKADDR_FAMILY(saTempAdd) == MUSCLE_SOCKET_FAMILY))
+      switch(sock.GetSocketFamily())
       {
-         GET_SOCKADDR_IP(saTempAdd, ipAddress);
-         if (optRetPort) *optRetPort = GET_SOCKADDR_PORT(saTempAdd);
-         if (expandLocalhost) ExpandLocalhostAddress(ipAddress);
+         case SOCKET_FAMILY_IPV4:
+         {
+            DECLARE_SOCKADDR_IPV4(saTempAdd, NULL, 0);
+            muscle_socklen_t length = sizeof(saTempAdd);
+            if ((getpeername(fd, (struct sockaddr *)&saTempAdd, &length) == 0)&&(GET_SOCKADDR_FAMILY_IPV4(saTempAdd) == AF_INET))
+            {
+               GET_SOCKADDR_IP_IPV4(saTempAdd, ipAddress);
+               if (optRetPort) *optRetPort = GET_SOCKADDR_PORT_IPV4(saTempAdd);
+               if (expandLocalhost) ExpandLocalhostAddress(ipAddress);
+            }
+         }
+         break;
+
+#ifndef MUSCLE_AVOID_IPV6
+         case SOCKET_FAMILY_IPV6:
+         {
+            DECLARE_SOCKADDR_IPV6(saTempAdd, NULL, 0);
+            muscle_socklen_t length = sizeof(saTempAdd);
+            if ((getpeername(fd, (struct sockaddr *)&saTempAdd, &length) == 0)&&(GET_SOCKADDR_FAMILY_IPV6(saTempAdd) == AF_INET6))
+            {
+               GET_SOCKADDR_IP_IPV6(saTempAdd, ipAddress);
+               if (optRetPort) *optRetPort = GET_SOCKADDR_PORT_IPV6(saTempAdd);
+               if (expandLocalhost) ExpandLocalhostAddress(ipAddress);
+            }
+         }
+         break;
+#endif
+
+         default:
+            // empty
+         break;
       }
    }
    return ipAddress;
@@ -978,7 +1260,7 @@ status_t SetUDPSocketBroadcastEnabled(const ConstSocketRef & sock, bool broadcas
    if (fd < 0) return B_BAD_ARGUMENT;
 
    int val = (broadcast ? 1 : 0);
-   return (setsockopt(fd, SOL_SOCKET, SO_BROADCAST,     (const sockopt_arg *) &val, sizeof(val)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (setsockopt(fd, SOL_SOCKET, SO_BROADCAST, (const sockopt_arg *) &val, sizeof(val)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock)
@@ -988,7 +1270,7 @@ bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock)
 
    int val;
    socklen_t len = sizeof(val);
-   return (getsockopt(fd, SOL_SOCKET, SO_BROADCAST,     (sockopt_arg *) &val, &len) == 0) ? (val != 0) : false;
+   return (getsockopt(fd, SOL_SOCKET, SO_BROADCAST, (sockopt_arg *) &val, &len) == 0) ? (val != 0) : false;
 }
 
 status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabled)
@@ -2039,8 +2321,8 @@ IPAddress GetLocalHostIPOverride() {return _customLocalhostIP;}
 #ifndef MUSCLE_DISABLE_KEEPALIVE_API
 
 #ifdef __linux__
-static inline int KeepAliveMicrosToSeconds(uint64 micros) {return ((micros+(MICROS_PER_SECOND-1))/MICROS_PER_SECOND);}  // round up to the nearest second!
-static inline uint64 KeepAliveSecondsToMicros(int second) {return (second*MICROS_PER_SECOND);}
+static int KeepAliveMicrosToSeconds(uint64 micros) {return ((micros+(MICROS_PER_SECOND-1))/MICROS_PER_SECOND);}  // round up to the nearest second!
+static uint64 KeepAliveSecondsToMicros(int second) {return (second*MICROS_PER_SECOND);}
 #endif
 
 status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbeCount, uint64 idleTime, uint64 retransmitTime)
@@ -2164,6 +2446,22 @@ uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock)
 #endif
 }
 
+static status_t AddSocketToMulticastGroupIPv4(int fd, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
+{
+   struct ip_mreq req; memset(&req, 0, sizeof(req));
+   req.imr_multiaddr.s_addr = htonl(groupAddress.GetIPv4AddressAsUint32());
+   req.imr_interface.s_addr = htonl(localInterfaceAddress.GetIPv4AddressAsUint32());
+   return (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+}
+
+static status_t RemoveSocketFromMulticastGroupIPv4(int fd, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
+{
+   struct ip_mreq req; memset(&req, 0, sizeof(req));
+   req.imr_multiaddr.s_addr = htonl(groupAddress.GetIPv4AddressAsUint32());
+   req.imr_interface.s_addr = htonl(localInterfaceAddress.GetIPv4AddressAsUint32());
+   return (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+}
+
 #ifdef MUSCLE_AVOID_IPV6
 
 // IPv4 multicast implementation
@@ -2190,24 +2488,12 @@ IPAddress GetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock)
 
 status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
-
-   struct ip_mreq req; memset(&req, 0, sizeof(req));
-   req.imr_multiaddr.s_addr = htonl(groupAddress.GetIPv4AddressAsUint32());
-   req.imr_interface.s_addr = htonl(localInterfaceAddress.GetIPv4AddressAsUint32());
-   return (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (sock.GetFileDescriptor() >= 0) ? AddSocketToMulticastGroupIPv4(sock.GetFileDescriptor(), groupAddress, localInterfaceAddress) : B_BAD_ARGUMENT;
 }
 
 status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
-
-   struct ip_mreq req; memset(&req, 0, sizeof(req));
-   req.imr_multiaddr.s_addr = htonl(groupAddress.GetIPv4AddressAsUint32());
-   req.imr_interface.s_addr = htonl(localInterfaceAddress.GetIPv4AddressAsUint32());
-   return (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (sock.GetFileDescriptor() >= 0) ? RemoveSocketFromMulticastGroupIPv4(sock.GetFileDescriptor(), groupAddress, localInterfaceAddress) : B_BAD_ARGUMENT;
 }
 
 #else  // end IPv4 multicast, begin IPv6 multicast
@@ -2239,28 +2525,36 @@ int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock)
    return ((getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (sockopt_arg *) &idx, &len) == 0)&&(len == sizeof(idx))) ? idx : -1;
 }
 
-status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress)
+status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   struct ipv6_mreq req; memset(&req, 0, sizeof(req));
-   uint32 interfaceIdx;
-   groupAddress.WriteToNetworkArray((uint8*)(&req.ipv6mr_multiaddr), &interfaceIdx);
-   req.ipv6mr_interface = interfaceIdx;
-   return (setsockopt(fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+   if (sock.GetSocketFamily() == SOCKET_FAMILY_IPV4) return AddSocketToMulticastGroupIPv4(fd, groupAddress, localInterfaceAddress);
+   else
+   {
+      struct ipv6_mreq req; memset(&req, 0, sizeof(req));
+      uint32 interfaceIdx;
+      groupAddress.WriteToNetworkArray((uint8*)(&req.ipv6mr_multiaddr), &interfaceIdx);
+      req.ipv6mr_interface = interfaceIdx;
+      return (setsockopt(fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+   }
 }
 
-status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress)
+status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   struct ipv6_mreq req; memset(&req, 0, sizeof(req));
-   uint32 interfaceIdx;
-   groupAddress.WriteToNetworkArray((uint8*)(&req.ipv6mr_multiaddr), &interfaceIdx);
-   req.ipv6mr_interface = interfaceIdx;
-   return (setsockopt(fd, IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+   if (sock.GetSocketFamily() == SOCKET_FAMILY_IPV4) return RemoveSocketFromMulticastGroupIPv4(fd, groupAddress, localInterfaceAddress);
+   else
+   {
+      struct ipv6_mreq req; memset(&req, 0, sizeof(req));
+      uint32 interfaceIdx;
+      groupAddress.WriteToNetworkArray((uint8*)(&req.ipv6mr_multiaddr), &interfaceIdx);
+      req.ipv6mr_interface = interfaceIdx;
+      return (setsockopt(fd, IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
+   }
 }
 
 #endif  // IPv6 multicast

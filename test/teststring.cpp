@@ -199,8 +199,10 @@ int main(int, char **)
    printf("[%s]\n", rem());
    rem -= 'r';
    printf("[%s]\n", rem());
+#ifdef COMMENTED_OUT_TO_AVOID_COMPILER_WARNING_EVEN_THOUGH_ITS_A_VALID_TEST
    rem -= rem;
    printf("[%s]\n", rem());
+#endif
 
    String test = "hello";
    test = test + " and " + " goodbye " + '!' + SomeClass();

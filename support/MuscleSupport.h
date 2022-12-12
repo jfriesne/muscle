@@ -11,8 +11,8 @@
 /
 *******************************************************************************/
 
-#define MUSCLE_VERSION_STRING "9.10" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        91000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "9.11" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        91100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -302,6 +302,21 @@ enum {
    CB_ERROR    = -1,         /**< For C programs: A value typically returned by a function or method with return type status_t, to indicate that it failed.  (When checking the value, it's better to check against B_NO_ERROR though, in case other failure values are defined in the future) */
    CB_NO_ERROR = 0,          /**< For C programs: The value returned by a function or method with return type status_t, to indicate that it succeeded with no errors. */
    CB_OK       = CB_NO_ERROR /**< For C programs: Synonym for CB_NO_ERROR */
+};
+
+/** Enumeration of the various socket families that we explicitly support */
+enum {
+   SOCKET_FAMILY_INVALID = -1, ///< Socket isn't a valid descriptor
+   SOCKET_FAMILY_IPV4,         ///< Socket is an IPv4 socket
+   SOCKET_FAMILY_IPV6,         ///< Socket is an IPv6 socket
+   SOCKET_FAMILY_OTHER,        ///< Socket is some other kind of socket
+   NUM_SOCKET_FAMILIES,        ///< Guard value
+
+#ifdef MUSCLE_AVOID_IPV6
+   SOCKET_FAMILY_PREFERRED = SOCKET_FAMILY_IPV4 ///< If MUSCLE_AVOID_IPV6 is set, then SOCKET_FAMILY_PREFERRED is a synonym for SOCKET_FAMILY_IPV4
+#else
+   SOCKET_FAMILY_PREFERRED = SOCKET_FAMILY_IPV6 ///< If MUSCLE_AVOID_IPV6 is unset, then SOCKET_FAMILY_PREFERRED is a synonym for SOCKET_FAMILY_IPV6
+#endif
 };
 
 #ifndef MUSCLE_TYPES_PREDEFINED  /* certain (ahem) projects already set these themselves... */
@@ -646,9 +661,15 @@ enum {
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
-             * @note this allows for e.g. io_status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
+             * @note this allows for e.g. status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
              */
            bool IsOK(status_t & writeErrorTo) const {return _status.IsOK(writeErrorTo);}
+
+           /** Convenience method:  Returns true iff this object represents an ok/non-error status.
+             * @param addStateTo This object's state will be added to (addStateTo).
+             * @note this allows for e.g. io_status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
+             */
+           bool IsOK(io_status_t & addStateTo) const {addStateTo += *this; return addStateTo.IsOK();}
 
            /** Convenience method:  Returns true iff this object represents an error-status */
            MUSCLE_CONSTEXPR bool IsError() const {return _status.IsError();}
@@ -658,6 +679,12 @@ enum {
              * @note this allows for e.g. status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
              */
            bool IsError(status_t & writeErrorTo) const {return _status.IsError(writeErrorTo);}
+
+           /** Convenience method:  Returns true iff this object represents an error-status
+             * @param addStateTo This object's state will be added to (addStateTo)
+             * @note this allows for e.g. io_status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
+             */
+           bool IsError(io_status_t & addStateTo) const {addStateTo += *this; return addStateTo.IsError();}
 
            /** Returns the byte-count indicated by the I/O operation, or a negative value if the operation failed. */
            MUSCLE_CONSTEXPR int32 GetByteCount() const {return _byteCount;}

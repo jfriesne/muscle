@@ -40,7 +40,8 @@ int main(int argc, char ** argv)
          multiplexer.RegisterSocketForReadReady(fd);
          multiplexer.RegisterSocketForWriteReady(fd);
 
-         if (multiplexer.WaitForEvents() < 0) printf("uploadstress: WaitForEvents() failed!\n");
+         status_t ret;
+         if (multiplexer.WaitForEvents().IsError(ret)) printf("uploadstress: WaitForEvents() failed! [%s]\n", ret());
 
          const bool reading = multiplexer.IsSocketReadyForRead(fd);
          const bool writing = multiplexer.IsSocketReadyForWrite(fd);

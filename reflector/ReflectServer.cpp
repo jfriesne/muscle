@@ -572,12 +572,12 @@ ServerProcessLoop()
       // This block is the center of the MUSCLE server's universe -- where we sit and wait for the next event
       {
          _inWaitForEvents.AtomicIncrement();   // so a watchdog thread can know we're meant to be waiting at this point
-         const int r = _multiplexer.WaitForEvents(nextPulseAt);
+         const io_status_t r = _multiplexer.WaitForEvents(nextPulseAt);
          _inWaitForEvents.AtomicDecrement();   // so a watchdog thread can know we're done waiting at this point
 
-         if (r < 0)
+         if (r.IsError())
          {
-            if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting! [%s]\n", B_ERRNO());
+            if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting! [%s]\n", ret());
             ClearLameDucks();
             return B_ERRNO;
          }

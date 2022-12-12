@@ -116,7 +116,9 @@ int main(int argc, char ** argv)
       multiplexer.RegisterSocketForReadReady(stdinFD);
       multiplexer.RegisterSocketForReadReady(socketReadFD);
       if (gatewayRef()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(socketWriteFD);
-      if (multiplexer.WaitForEvents(nextTimeoutTime) < 0) printf("singlethreadedreflectclient: WaitForEvents() failed!\n");
+
+      status_t ret;
+      if (multiplexer.WaitForEvents(nextTimeoutTime).IsError(ret)) printf("singlethreadedreflectclient: WaitForEvents() failed! [%s]\n", ret());
 
       const uint64 now = GetRunTime64();
       if (now >= nextTimeoutTime)

@@ -549,7 +549,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
       const uint64 endTime = (maxWaitTimeMicros == MUSCLE_TIME_NEVER) ? MUSCLE_TIME_NEVER : (GetRunTime64()+maxWaitTimeMicros);
       while(GetRunTime64() < endTime)
       {
-         if ((sm.RegisterSocketForReadReady(fd).IsError())||(sm.WaitForEvents(endTime) < 0)) break;
+         if ((sm.RegisterSocketForReadReady(fd).IsError())||(sm.WaitForEvents(endTime).IsError())) break;
          else
          {
             char junk[1024] = "";

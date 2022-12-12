@@ -183,7 +183,8 @@ static void DoSession(DataIORef io, bool allowRead = true)
       if (allowRead) multiplexer.RegisterSocketForReadReady(readFD);
       if (_spamsPerSecond == MUSCLE_NO_LIMIT) multiplexer.RegisterSocketForWriteReady(writeFD);
       multiplexer.RegisterSocketForReadReady(stdinFD);
-      if (multiplexer.WaitForEvents(spamTime) >= 0)
+
+      if (multiplexer.WaitForEvents(spamTime).IsOK())
       {
          if (((_spamsPerSecond == MUSCLE_NO_LIMIT)&&(multiplexer.IsSocketReadyForWrite(writeFD)))||(GetRunTime64() >= spamTime))
          {

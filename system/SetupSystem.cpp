@@ -1467,12 +1467,29 @@ Socket :: ~Socket()
    Clear();
 }
 
+int Socket :: GetFamilyForFD(int fd)
+{
+   if (fd < 0) return SOCKET_FAMILY_INVALID;
+
+   struct sockaddr sockAddr;  // "base class" is okay since all we care about is the family value
+   socklen_t sockAddrLen = sizeof(sockAddr);
+   if (getsockname(fd, &sockAddr, &sockAddrLen) < 0) return SOCKET_FAMILY_INVALID;
+
+   switch(sockAddr.sa_family)
+   {
+      case AF_INET:  return SOCKET_FAMILY_IPV4;
+      case AF_INET6: return SOCKET_FAMILY_IPV6;
+      default:       return SOCKET_FAMILY_OTHER;
+   }
+}
+
 void Socket :: SetFileDescriptor(int newFD, bool okayToClose)
 {
    if (newFD != _fd)
    {
       if (_okayToClose) CloseSocket(_fd);  // CloseSocket(-1) is a no-op, so no need to check fd twice
-      _fd = newFD;
+      _fd     = newFD;
+      _family = Socket::GetFamilyForFD(_fd);
    }
    _okayToClose = okayToClose;
 }

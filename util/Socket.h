@@ -20,14 +20,14 @@ class Socket : public RefCountable, private NotCopyable
 {
 public:
    /** Default constructor. */
-   Socket() : _fd(-1), _okayToClose(false) {/* empty */}
+   Socket() : _family(SOCKET_FAMILY_INVALID), _fd(-1), _okayToClose(false) {/* empty */}
 
    /** Constructor.
      * @param fd File descriptor of a socket.  If (okayToClose) is true, then (fd) becomes property of this Socket object.
      * @param okayToClose If true (fd) will be closed by the destructor.
      *                    If false, we will not close (fd).  Defaults to true.
      */
-   explicit Socket(int fd, bool okayToClose = true) : _fd(fd), _okayToClose(okayToClose) {/* empty */}
+   explicit Socket(int fd, bool okayToClose = true) : _family(Socket::GetFamilyForFD(fd)), _fd(fd), _okayToClose(okayToClose) {/* empty */}
 
 #ifdef WIN32
    /** Convenience-constructor, for Windows only.  Accepts a SOCKET as an argument instead of an int.
@@ -35,16 +35,19 @@ public:
      * @param okayToClose If true (s) will be closed by the destructor.
      *                    If false, we will not close (s).  Defaults to true.
      */
-   explicit Socket(SOCKET s, bool okayToClose = true) : _fd(static_cast<int>(s)), _okayToClose(okayToClose) {/* empty */}
+   explicit Socket(SOCKET s, bool okayToClose = true) : _family(Socket::GetFamilyForFD(static_cast<int>(s))), _fd(static_cast<int>(s)), _okayToClose(okayToClose) {/* empty */}
 #endif
 
    /** Destructor.  Closes our held file-descriptor, if we have one. */
    virtual ~Socket();
 
+   /** Returns a SOCKET_FAMILY_* value indicating what sort of socket this is */
+   int GetFamily() const {return _family;}
+
    /** Returns and releases our held file-descriptor.
      * When this method returns, ownership of the socket is transferred to the calling code.
      */
-   int ReleaseFileDescriptor() {int ret = _fd; _fd = -1; return ret;}
+   int ReleaseFileDescriptor() {int ret = _fd; _family = SOCKET_FAMILY_INVALID; _fd = -1; return ret;}
 
    /** Returns the held socket fd, but does not release ownership of it. */
    int GetFileDescriptor() const {return _fd;}
@@ -63,12 +66,20 @@ public:
      */
    void Clear() {SetFileDescriptor(-1, false);}
 
+   /** Returns a SOCKET_FAMILY_* value describing the type of socket we are holding.
+     * Returns SOCKET_FAMILY_INVALID if we are not holding any file descriptor at all.
+     */
+   int GetSocketFamily() const {return _family;}
+
 private:
    friend class ObjectPool<Socket>;
+
+   static int GetFamilyForFD(int fd);
 
    /** Assignment operator, used only for ObjectPool recycling, private on purpose */
    Socket & operator = (const Socket & /*rhs*/) {Clear(); return *this;}
 
+   int _family;
    int _fd;
    bool _okayToClose;
 
@@ -124,6 +135,9 @@ public:
 
    /** When we're being used as a key in a Hashtable, key on the file-descriptor we hold */
    uint32 HashCode() const {return CalculateHashCode(GetFileDescriptor());}
+
+   /** Convenience method.  Returns the SOCKET_FAMILY_* value of the Socket we are holding, or SOCKET_FAMILY_INVALID if we are a NULL reference. */
+   int GetSocketFamily() const {const Socket * s = GetItemPointer(); return s?s->GetSocketFamily():SOCKET_FAMILY_INVALID;}
 
 private:
    ConstSocketRef(const Socket * sock, bool doRefCount) {SetRef(sock, doRefCount);}

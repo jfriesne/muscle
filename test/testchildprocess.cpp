@@ -56,8 +56,8 @@ public:
             {
                if (sm.RegisterSocketForReadReady(cpdio.GetReadSelectSocket().GetFileDescriptor()).IsError()) printf("RegisterSocketForReadReady() failed!\n");
 
-               const int r = sm.WaitForEvents();
-               printf("WaitForEvents() returned %i\n", r);
+               const io_status_t r = sm.WaitForEvents();
+               printf("WaitForEvents() returned [%s]\n", r());
 
                if (sm.IsSocketReadyForRead(cpdio.GetReadSelectSocket().GetFileDescriptor()))
                {
@@ -166,7 +166,8 @@ int main(int argc, char ** argv)
          const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
          multiplexer.RegisterSocketForReadReady(stdinFD);
 
-         if (multiplexer.WaitForEvents() < 0) printf("testchildprocess: WaitForEvents() failed!\n");
+         status_t ret;
+         if (multiplexer.WaitForEvents().IsError(ret)) printf("testchildprocess: WaitForEvents() failed! [%s]\n", ret());
 
          // First, deliver any lines of text from stdin to the child process
          if ((multiplexer.IsSocketReadyForRead(stdinFD))&&(stdinGateway.DoInput(ioGateway).IsError()))

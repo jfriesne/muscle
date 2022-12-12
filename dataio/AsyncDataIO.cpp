@@ -125,7 +125,7 @@ void AsyncDataIO :: InternalThreadEntry()
       if (notifyFD >= 0) multiplexer.RegisterSocketForReadReady(notifyFD);  // always be on the lookout for notifications...
 
       pulseTime = InternalThreadGetPulseTime(pulseTime);
-      if (multiplexer.WaitForEvents(pulseTime) < 0) break; // we block here, waiting for data availability or for the next pulse time
+      if (multiplexer.WaitForEvents(pulseTime).IsError()) break; // we block here, waiting for data availability or for the next pulse time
       if (pulseTime != MUSCLE_TIME_NEVER)
       {
          const uint64 now = GetRunTime64();

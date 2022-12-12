@@ -49,7 +49,8 @@ int main(int argc, char ** argv)
       QueueGatewayMessageReceiver inQueue;
       while(s())
       {
-         if (multiplexer.WaitForEvents() < 0) printf("portableplaintextclient: WaitForEvents() failed!\n");
+         status_t ret;
+         if (multiplexer.WaitForEvents().IsError(ret)) printf("portableplaintextclient: WaitForEvents() failed! [%s]\n", ret());
          if (multiplexer.IsSocketReadyForRead(stdinFD))
          {
             while(1)
