@@ -1472,7 +1472,7 @@ int Socket :: GetFamilyForFD(int fd)
    if (fd < 0) return SOCKET_FAMILY_INVALID;
 
    struct sockaddr sockAddr;  // "base class" is okay since all we care about is the family value
-   socklen_t sockAddrLen = sizeof(sockAddr);
+   muscle_socklen_t sockAddrLen = sizeof(sockAddr);
    if (getsockname(fd, &sockAddr, &sockAddrLen) < 0) return SOCKET_FAMILY_INVALID;
 
    switch(sockAddr.sa_family)

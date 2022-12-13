@@ -1252,7 +1252,7 @@ bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock)
    if (fd < 0) return false;
 
    int val;
-   socklen_t len = sizeof(val);
+   muscle_socklen_t len = sizeof(val);
    return (getsockopt(fd, SOL_SOCKET, SO_BROADCAST, (sockopt_arg *) &val, &len) == 0) ? (val != 0) : false;
 }
 
@@ -1271,7 +1271,7 @@ bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock)
    if (fd < 0) return false;
 
    int enableNoDelay;
-   socklen_t len = sizeof(enableNoDelay);
+   muscle_socklen_t len = sizeof(enableNoDelay);
    return (getsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (sockopt_arg *) &enableNoDelay, &len) == 0) ? (enableNoDelay == 0) : false;
 }
 
@@ -1302,7 +1302,7 @@ bool GetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock)
    if (fd < 0) return false;
 
    int enabled;
-   socklen_t len = sizeof(enabled);
+   muscle_socklen_t len = sizeof(enabled);
 # if defined(__linux__)
    const int corkOpt = TCP_CORK;
 # else
@@ -1326,7 +1326,7 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
    // Nathan Whitehorn reports that send() doesn't do this trick under FreeBSD 7,
    // so for BSD we'll call getpeername() instead.  -- jaf
    struct sockaddr_in junk;
-   socklen_t length = sizeof(junk);
+   muscle_socklen_t length = sizeof(junk);
    memset(&junk, 0, sizeof(junk));
    return (getpeername(fd, (struct sockaddr *)&junk, &length) == 0) ? B_NO_ERROR : B_ERRNO;
 #else
@@ -1353,7 +1353,7 @@ static int32 GetSocketBufferSizeAux(const ConstSocketRef & sock, int optionName)
    if (fd < 0) return -1;
 
    int iSize;
-   socklen_t len = sizeof(iSize);
+   muscle_socklen_t len = sizeof(iSize);
    return (getsockopt(fd, SOL_SOCKET, optionName, (sockopt_arg *) &iSize, &len) == 0) ? (int32)iSize : -1;
 }
 int32 GetSocketSendBufferSize(   const ConstSocketRef & sock) {return GetSocketBufferSizeAux(sock, SO_SNDBUF);}
@@ -2504,7 +2504,7 @@ int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock)
    if (fd < 0) return -1;
 
    int idx = 0;
-   socklen_t len = sizeof(idx);
+   muscle_socklen_t len = sizeof(idx);
    return ((getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (sockopt_arg *) &idx, &len) == 0)&&(len == sizeof(idx))) ? idx : -1;
 }
 
