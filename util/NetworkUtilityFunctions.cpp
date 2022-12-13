@@ -19,6 +19,7 @@
 
 #ifdef WIN32
 typedef char sockopt_arg;  // Windows setsockopt()/getsockopt() use char pointers
+typedef SSIZE_T ssize_t;   // apparently ssize_t is a POSIX thing while Windows prefers shouty syntax
 # include <iphlpapi.h>
 # include <mswsock.h>  // for SIO_UDP_CONNRESET, etc
 # include <ws2tcpip.h>
