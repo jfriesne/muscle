@@ -15,6 +15,7 @@ key:  - new feature
      overrides to the io_status_t class.
    - hexterm now instantiates a genuine IPv4 socket for use with
      IPv4 multicast traffic.
+   - Tweaked gz*.c includes to compile without a configuration step.
    o SocketMultiplexer::WaitForEvents() now returns an io_status_t
      rather than an int, for better error-reporting.
    o Merged the IPv6 and IPv4 versions of AddSocketToMulticastGroup()

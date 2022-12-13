@@ -3,6 +3,10 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
+#if !defined(_WIN32)
+# include <unistd.h>  // for lseek()
+#endif
+
 #include "gzguts.h"
 
 /* Local functions */
