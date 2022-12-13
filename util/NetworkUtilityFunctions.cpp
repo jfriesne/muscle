@@ -489,24 +489,7 @@ static io_status_t SendDataUDPIPv4(const ConstSocketRef & sock, const void * buf
          if (GET_SOCKADDR_FAMILY_IPV4(toAddr) != AF_INET) return B_BAD_OBJECT;
       }
 
-      if (optToIP != invalidIP)
-      {
-         SET_SOCKADDR_IP_IPV4(toAddr, optToIP);
-#ifdef MUSCLE_USE_IFIDX_WORKAROUND
-         // Work-around for MacOS/X problem (?) where the interface index in the specified IP address doesn't get used
-         if ((optToIP.IsInterfaceIndexValid())&&(optToIP.IsMulticast()))
-         {
-            const int         oidx = GetSocketMulticastSendInterfaceIndex(sock);
-            const uint32 actualIdx = optToIP.GetInterfaceIndex();
-            if (oidx != ((int)actualIdx))
-            {
-               // temporarily set the socket's interface index to the desired one
-               MRETURN_ON_ERROR(SetSocketMulticastSendInterfaceIndex(sock, actualIdx));
-               oldInterfaceIndex = oidx;  // and remember to set it back afterwards
-            }
-         }
-#endif
-      }
+      if (optToIP != invalidIP) SET_SOCKADDR_IP_IPV4(toAddr, optToIP);
       if (optToPort) SET_SOCKADDR_PORT_IPV4(toAddr, optToPort);
       s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
    }
