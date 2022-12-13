@@ -910,7 +910,7 @@ static IPAddress _cachedLocalhostAddress = invalidIP;
 
 static void ExpandLocalhostAddress(IPAddress & ipAddress)
 {
-   if (ipAddress.IsStandardLoopbackDeviceAddress())
+   if ((ipAddress.IsStandardLoopbackDeviceAddress())&&(ipAddress.IsIPv4()))
    {
       IPAddress altRet = GetLocalHostIPOverride();  // see if the user manually specified a preferred local address
       if (altRet == invalidIP)

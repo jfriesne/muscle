@@ -19,6 +19,7 @@ key:  - new feature
      and RemoveSocketFromMulticastGroup() so that a single implementation
      can work on either type of socket.
    * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.
+   * ExpandLocalhostAddress() no longer expands IPv6 loopback addresses.
 
 9.10 - Released 12/10/2022
    - Rewrote the non-Windows implementation of muscleSprintf()
