@@ -323,7 +323,9 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
    }
 #endif
 
-   ConstSocketRef ss = CreateUDPSocket();
+   const IPAddress ip = optHost.HasChars() ? GetHostByName(optHost(), false) : IPAddress();
+
+   ConstSocketRef ss = CreateUDPSocket(((ip.IsIPv4())&&(ip.IsMulticast())) ? SOCKET_FAMILY_IPV4 : SOCKET_FAMILY_IPV6);
    if (ss() == NULL)
    {
       LogTime(MUSCLE_LOG_ERROR, "Error creating UDP socket!\n");
@@ -333,7 +335,6 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
    UDPSocketDataIO udpIO(ss, false);
    if (optHost.HasChars())
    {
-      const IPAddress ip = GetHostByName(optHost(), false);
       if (ip != invalidIP)
       {
 #ifndef MUSCLE_AVOID_MULTICAST_API
