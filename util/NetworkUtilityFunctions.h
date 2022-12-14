@@ -697,10 +697,6 @@ status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress 
   */
 status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress = invalidIP);
 
-#ifdef MUSCLE_AVOID_IPV6
-
-// begin IPv4-specific multicast API
-
 /** Specify the address of the local interface that the given socket should
   * send multicast packets on.  If this isn't called, the kernel will try to choose
   * an appropriate default interface to send on.
@@ -708,16 +704,16 @@ status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAdd
   * @param address The address of the local interface to send multicast packets on.
   * @returns B_NO_ERROR on success, or an error code on failure.
   */
-status_t SetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, const IPAddress & address);
+status_t SetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, const IPAddress & address);
 
 /** Returns the address of the local interface that the given socket will
   * try to send multicast packets on, or invalidIP on failure.
   * @param sock The socket to query the sending interface of.
   * @returns the interface's IP address, or invalidIP on error.
   */
-IPAddress GetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
+IPAddress GetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
 
-#else  // end IPv4-specific multicast API, begin IPv6-specific multicast API
+#ifndef MUSCLE_AVOID_IPV6
 
 /** Specify the interface index of the local network interface that the given socket should
   * send multicast packets on.  If this isn't called, the kernel will choose an appropriate

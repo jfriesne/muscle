@@ -2446,13 +2446,9 @@ static status_t RemoveSocketFromMulticastGroupIPv4(int fd, const IPAddress & gro
    return (setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
-#ifdef MUSCLE_AVOID_IPV6
-
-// IPv4 multicast implementation
-
-status_t SetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, const IPAddress & address)
+status_t SetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, const IPAddress & address)
 {
-   const int fd = sock.GetFileDescriptor();
+   const int fd = (sock.GetSocketFamily() == SOCKET_FAMILY_IPV4) ? sock.GetFileDescriptor() : -1;
    if (fd < 0) return B_BAD_ARGUMENT;
 
    struct in_addr localInterface; memset(&localInterface, 0, sizeof(localInterface));
@@ -2460,15 +2456,19 @@ status_t SetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, con
    return (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, (const sockopt_arg *) &localInterface, sizeof(localInterface)) == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
-IPAddress GetSocketMulticastSendInterfaceAddress(const ConstSocketRef & sock)
+IPAddress GetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock)
 {
-   const int fd = sock.GetFileDescriptor();
+   const int fd = (sock.GetSocketFamily() == SOCKET_FAMILY_IPV4) ? sock.GetFileDescriptor() : -1;
    if (fd < 0) return invalidIP;
 
    struct in_addr localInterface; memset(&localInterface, 0, sizeof(localInterface));
    muscle_socklen_t len = sizeof(localInterface);
    return ((getsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, (sockopt_arg *) &localInterface, &len) == 0)&&(len == sizeof(localInterface))) ? IPAddress(ntohl(localInterface.s_addr)) : invalidIP;
 }
+
+#ifdef MUSCLE_AVOID_IPV6
+
+// IPv4 multicast implementation
 
 status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
