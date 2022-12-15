@@ -20,7 +20,7 @@ io_status_t UDPSocketDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAnd
    IPAddress tmpAddr = invalidIP;
    uint16 tmpPort = 0;
    const io_status_t ret = ReceiveDataUDP(_sock, buffer, size, _blocking, &tmpAddr, &tmpPort);
-   if (ret.IsOK())
+   if (ret.GetByteCount() > 0)
    {
       retSource.Set(tmpAddr, tmpPort);
       SetSourceOfLastReadPacket(retSource);  // in case this is a direct call e.g. from the gateway code

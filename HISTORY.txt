@@ -33,6 +33,8 @@ key:  - new feature
    o Improved error reporting in the ReflectServer event-loop.
    * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.
    * ExpandLocalhostAddress() no longer expands IPv6 loopback addresses.
+   * UDPSocketDataIO::ReadFrom() would call SetSourceOfLastReadPacket()
+     even when no packet had been read, clearing that field.  Fixed.
 
 9.10 - Released 12/10/2022
    - Rewrote the non-Windows implementation of muscleSprintf()
