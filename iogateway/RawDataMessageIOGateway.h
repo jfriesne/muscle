@@ -13,6 +13,9 @@ namespace muscle {
 /** This is the name of the field used to hold data chunks */
 #define PR_NAME_DATA_CHUNKS "rd"
 
+/** This is the name of the int64 field used to hold received-data-timestamps */
+#define PR_NAME_DATA_TIMESTAMP "ts"
+
 /**
  * This gateway is very crude; it can be used to write raw data to a TCP socket, and
  * to retrieve data from the socket in chunks of a specified size range.
@@ -31,6 +34,16 @@ public:
 
    virtual bool HasBytesToOutput() const;
    virtual void Reset();
+
+   /** Sets whether PR_NAME_DATA_TIMESTAMP int64s should be added to incoming Messages,
+     * to indicate the time at which the corresponding chunk of data was received.
+     * Default value is false.
+     * @param en true to enable timestamps, or false to disable them
+     */
+   void SetReceiveTimestampingEnabled(bool en) {_receiveTimestampingEnabled = en;}
+
+   /** Returns true if received-data timestamping is enabled */
+   bool GetReceiveTimestampingEnabled() const {return _receiveTimestampingEnabled;}
 
 protected:
    virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
@@ -61,6 +74,8 @@ private:
 
    uint32 _minChunkSize;
    uint32 _maxChunkSize;
+
+   bool _receiveTimestampingEnabled;
 
    DECLARE_COUNTED_OBJECT(RawDataMessageIOGateway);
 };

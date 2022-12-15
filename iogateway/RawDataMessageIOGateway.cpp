@@ -5,7 +5,11 @@
 namespace muscle {
 
 RawDataMessageIOGateway ::
-RawDataMessageIOGateway(uint32 minChunkSize, uint32 maxChunkSize) : _recvScratchSpace(NULL), _minChunkSize(minChunkSize), _maxChunkSize(maxChunkSize)
+RawDataMessageIOGateway(uint32 minChunkSize, uint32 maxChunkSize)
+   : _recvScratchSpace(NULL)
+   , _minChunkSize(minChunkSize)
+   , _maxChunkSize(maxChunkSize)
+   , _receiveTimestampingEnabled(false)
 {
    // empty
 }
@@ -104,7 +108,9 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
          (void) bufRef()->SetNumBytes(bytesRead.GetByteCount(), true);
          MessageRef msg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
-         if ((msg())&&(msg()->AddFlat(PR_NAME_DATA_CHUNKS, bufRef).IsOK())&&((GetPacketRemoteLocationTaggingEnabled() == false)||(msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetSource).IsOK())))
+         if ((msg())&&(msg()->AddFlat(PR_NAME_DATA_CHUNKS, bufRef).IsOK())
+           &&((GetPacketRemoteLocationTaggingEnabled() == false)||(msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetSource).IsOK()))
+           &&((GetReceiveTimestampingEnabled()         == false)||(msg()->AddInt64(PR_NAME_DATA_TIMESTAMP,      GetRunTime64()).IsOK())))
          {
             maxBytes = (maxBytes>(uint32)bytesRead.GetByteCount()) ? (maxBytes-bytesRead.GetByteCount()) : 0;
             receiver.CallMessageReceivedFromGateway(msg);
@@ -115,26 +121,19 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    else
    {
       // TCP mode:  read in as a stream
-      Message * inMsg = _recvMsgRef();
       if (_minChunkSize > 0)
       {
          // Minimum-chunk-size mode:  we read bytes directly into the Message's data field until it is full, then
          // forward that message on to the user code and start the next.  Advantage of this is:  no data-copying necessary!
-         if (inMsg == NULL)
+         if (_recvMsgRef() == NULL)
          {
-            _recvMsgRef = GetMessageFromPool(PR_COMMAND_RAW_DATA);
-            inMsg = _recvMsgRef();
-            if (inMsg)
-            {
-               if ((inMsg->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, NULL, _minChunkSize)                        .IsOK())&&
-                   (inMsg->FindDataPointer(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, &_recvBuf, (uint32*)&_recvBufLength).IsOK())) _recvBufByteOffset = 0;
-               else
-               {
-                  _recvMsgRef.Reset();
-                  return B_OUT_OF_MEMORY;  // oops, no mem?
-               }
-            }
-            else MRETURN_OUT_OF_MEMORY;
+            MessageRef newMsg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
+            MRETURN_OOM_ON_NULL(newMsg());
+            MRETURN_ON_ERROR(newMsg()->AddData(        PR_NAME_DATA_CHUNKS, B_RAW_TYPE, NULL,      _minChunkSize));
+            MRETURN_ON_ERROR(newMsg()->FindDataPointer(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, &_recvBuf, (uint32*)&_recvBufLength));
+
+            _recvBufByteOffset = 0;
+            _recvMsgRef        = newMsg;
          }
 
          const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(&((char*)_recvBuf)[_recvBufByteOffset], muscleMin(maxBytes, (uint32)(_recvBufLength-_recvBufByteOffset))) : io_status_t(B_BAD_OBJECT);
@@ -142,6 +141,8 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
 
          if (bytesRead.GetByteCount() > 0)
          {
+            if ((GetReceiveTimestampingEnabled())&&(_recvBufByteOffset == 0)) MRETURN_ON_ERROR(_recvMsgRef()->AddInt64(PR_NAME_DATA_TIMESTAMP, GetRunTime64()));
+
             _recvBufByteOffset += bytesRead.GetByteCount();
             if (_recvBufByteOffset == _recvBufLength)
             {
@@ -172,7 +173,13 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          if (bytesRead.GetByteCount() > 0)
          {
             MessageRef ref = GetMessageFromPool(PR_COMMAND_RAW_DATA);
-            if ((ref())&&(ref()->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, _recvScratchSpace, bytesRead.GetByteCount()).IsOK())) receiver.CallMessageReceivedFromGateway(ref);
+            MRETURN_OOM_ON_NULL(ref());
+
+            if (GetReceiveTimestampingEnabled()) MRETURN_ON_ERROR(_recvMsgRef()->AddInt64(PR_NAME_DATA_TIMESTAMP, GetRunTime64()));
+            MRETURN_ON_ERROR(ref()->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, _recvScratchSpace, bytesRead.GetByteCount()));
+
+            receiver.CallMessageReceivedFromGateway(ref);
+
             // note:  don't recurse here!  It would be bad (tm) on a fast feed since we might never return
          }
          return bytesRead;

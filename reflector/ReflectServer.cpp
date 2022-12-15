@@ -629,34 +629,37 @@ ServerProcessLoop()
                const int readSock = session->GetSessionReadSelectSocket().GetFileDescriptor();
                if (readSock >= 0)
                {
-                  int32 readBytes = 0;
+                  io_status_t readBytes;
                   if (_multiplexer.IsSocketReadyForRead(readSock))
                   {
-                     readBytes = session->DoInput(*session, session->_maxInputChunk).GetByteCount();  // session->MessageReceivedFromGateway() gets called here
+                     readBytes = session->DoInput(*session, session->_maxInputChunk);  // session->MessageReceivedFromGateway() gets called here
 
                      AbstractSessionIOPolicy * p = session->GetInputPolicy()();
-                     if ((p)&&(readBytes >= 0)) p->BytesTransferred(PolicyHolder(session, true), (uint32)readBytes);
+                     if ((p)&&(readBytes.IsOK())) p->BytesTransferred(PolicyHolder(session, true), readBytes.GetByteCount());
                   }
 
                   TCHECKPOINT;
 
-                  if (readBytes < 0)
+                  if (readBytes.IsError())
                   {
                      const bool wasConnecting = session->IsConnectingAsync();
-                     if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (read error).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed");
+                     if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (read error: %s).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed", readBytes());
                   }
                }
 
                const int writeSock = session->GetSessionWriteSelectSocket().GetFileDescriptor();
                if (writeSock >= 0)
                {
-                  int32 wroteBytes = 0;
-
                   TCHECKPOINT;
 
+                  io_status_t wroteBytes;
                   if (_multiplexer.IsSocketReadyForWrite(writeSock))
                   {
-                     if (session->IsConnectingAsync()) wroteBytes = (FinalizeAsyncConnect(sessionRef).IsOK()) ? 0 : -1;
+                     if (session->IsConnectingAsync())
+                     {
+                        const status_t facRet = FinalizeAsyncConnect(sessionRef);
+                        if (facRet.IsError()) wroteBytes = facRet;
+                     }
                      else
                      {
                         // if the session's DataIO object is still has bytes buffered for output, try to send them now
@@ -667,30 +670,29 @@ ServerProcessLoop()
                            if (io) io->WriteBufferedOutput();
                         }
 
-                        const io_status_t wb = session->DoOutput(session->_maxOutputChunk);
-                        wroteBytes = wb.GetByteCount();
+                        wroteBytes = session->DoOutput(session->_maxOutputChunk);
 
                         AbstractSessionIOPolicy * p = session->GetOutputPolicy()();
-                        if ((p)&&(wb.IsOK())) p->BytesTransferred(PolicyHolder(session, false), (uint32)wroteBytes);
+                        if ((p)&&(wroteBytes.IsOK())) p->BytesTransferred(PolicyHolder(session, false), wroteBytes.GetByteCount());
                      }
                   }
 #if defined(WIN32)
-                  if (_multiplexer.IsSocketExceptionRaised(writeSock)) wroteBytes = -1;  // async connect() failed!
+                  if (_multiplexer.IsSocketExceptionRaised(writeSock)) wroteBytes = B_ERROR("asynchronous TCP connection failed");
 #endif
 
                   TCHECKPOINT;
 
-                  if (wroteBytes < 0)
+                  if (wroteBytes.IsError())
                   {
                      const bool wasConnecting = session->IsConnectingAsync();
-                     if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (write error).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed");
+                     if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (write error: %s).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed", wroteBytes());
                   }
                   else if (session->_lastByteOutputAt > 0)
                   {
                      // Check for output stalls
                      const uint64 now = GetRunTime64();
 
-                          if ((wroteBytes > 0)||(session->_maxOutputChunk == 0)) session->_lastByteOutputAt = now;  // reset the moribundness-timer
+                          if ((wroteBytes.GetByteCount() > 0)||(session->_maxOutputChunk == 0)) session->_lastByteOutputAt = now;  // reset the moribundness-timer
                      else if (now-session->_lastByteOutputAt > session->_outputStallLimit)
                      {
                         if (_doLogging) LogTime(MUSCLE_LOG_WARNING, "Connection for %s timed out (output stall, no data movement for " UINT64_FORMAT_SPEC " seconds).\n", session->GetSessionDescriptionString()(), MicrosToSeconds(session->_outputStallLimit));

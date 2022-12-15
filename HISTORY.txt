@@ -16,6 +16,10 @@ key:  - new feature
    - hexterm now instantiates a genuine IPv4 socket for use with
      IPv4 multicast traffic.
    - Tweaked gz*.c includes to compile without a configuration step.
+   - Added input-data-timestamping (including a PR_NAME_DATA_TIMESTAMP
+     field and SetReceiveTimestampingEnabled() and
+     GetReceiveTimestampingEnabled() methods) to the
+     RawDataMessageIOGateway class.
    o SocketMultiplexer::WaitForEvents() now returns an io_status_t
      rather than an int, for better error-reporting.
    o Merged the IPv6 and IPv4 versions of AddSocketToMulticastGroup()
@@ -26,6 +30,7 @@ key:  - new feature
      SetIPv4SocketMulticastSendInterfaceAddress() and
      GetIPv4SocketMulticastSendInterfaceAddress(), respectively,
      and made them available even when -DMUSCLE_AVOID_IPV6 isn't set.
+   o Improved error reporting in the ReflectServer event-loop.
    * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.
    * ExpandLocalhostAddress() no longer expands IPv6 loopback addresses.
 
