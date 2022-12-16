@@ -982,7 +982,7 @@ template<typename T> inline void muscleSwap(T & t1, T & t2)
 #else
 
 # ifndef DOXYGEN_SHOULD_IGNORE_THIS
-namespace ugly_swapcontents_method_sfinae_implementation
+namespace muscle_private
 {
    // This code was adapted from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
    // It is used by the muscleSwap() function (below) to automatically call SwapContents() if such a method
@@ -1039,7 +1039,7 @@ namespace ugly_swapcontents_method_sfinae_implementation
   * @param t1 First item to swap.  After this method returns, it will be equal to the old value of t2.
   * @param t2 Second item to swap.  After this method returns, it will be equal to the old value of t1.
   */
-template<typename T> inline void muscleSwap(T & t1, T & t2) {typename ugly_swapcontents_method_sfinae_implementation::AutoChooseSwapperHelper<T>::Type swapper(t1,t2);}
+template<typename T> inline void muscleSwap(T & t1, T & t2) {typename muscle_private::AutoChooseSwapperHelper<T>::Type swapper(t1,t2);}
 
 #endif
 
@@ -1885,7 +1885,7 @@ public:
 #define DEFAULT_HASH_FUNCTOR(type) AutoChooseHashFunctorHelper<type>::Type
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
-namespace ugly_hashcode_method_sfinae_implementation
+namespace muscle_private
 {
    // This code was adapted from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
    // It is used by the AutoChooseHashFunctorHelper (below) to automatically choose the appropriate HashFunctor
@@ -1911,12 +1911,12 @@ namespace ugly_hashcode_method_sfinae_implementation
 template<typename ItemType> class AutoChooseHashFunctorHelper
 {
 public:
-   typedef typename ugly_hashcode_method_sfinae_implementation::if_<ugly_hashcode_method_sfinae_implementation::test_hashcode_impl<ItemType>::value, MethodHashFunctor<ItemType>, PODHashFunctor<ItemType> >::result Type;
+   typedef typename muscle_private::if_<muscle_private::test_hashcode_impl<ItemType>::value, MethodHashFunctor<ItemType>, PODHashFunctor<ItemType> >::result Type;
 };
 template <typename ItemType> class AutoChooseHashFunctorHelper<ItemType *>
 {
 public:
-   typedef typename ugly_hashcode_method_sfinae_implementation::if_<ugly_hashcode_method_sfinae_implementation::test_hashcode_impl<ItemType>::value, MethodHashFunctor<ItemType *>, PODHashFunctor<ItemType *> >::result Type;
+   typedef typename muscle_private::if_<muscle_private::test_hashcode_impl<ItemType>::value, MethodHashFunctor<ItemType *>, PODHashFunctor<ItemType *> >::result Type;
 };
 
 /** This HashFunctor lets us use (const char *)'s as keys in a Hashtable.  They will be

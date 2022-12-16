@@ -175,10 +175,15 @@ bool GetFileLogCompressionEnabled();
  */
 int GetConsoleLogLevel();
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+namespace muscle_private
+{
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
-extern int _maxLogThreshold;               // implementation detail: don't access this directly, call GetMaxLogLevel() instead!
+extern int _maxLogThreshold;
 #else
-extern std::atomic<int> _maxLogThreshold;  // implementation detail: don't access this directly, call GetMaxLogLevel() instead!
+extern std::atomic<int> _maxLogThreshold;
+#endif
+}
 #endif
 
 /** Returns the max of GetFileLogLevel() and GetConsoleLogLevel()
@@ -187,9 +192,9 @@ extern std::atomic<int> _maxLogThreshold;  // implementation detail: don't acces
 static inline int GetMaxLogLevel()
 {
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
-   return _maxLogThreshold;  // I guess we'll take our chances here
+   return muscle_private::_maxLogThreshold;  // I guess we'll take our chances here
 #else
-   return _maxLogThreshold.load();
+   return muscle_private::_maxLogThreshold.load();
 #endif
 }
 
