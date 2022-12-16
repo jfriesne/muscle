@@ -31,6 +31,8 @@ key:  - new feature
      GetIPv4SocketMulticastSendInterfaceAddress(), respectively,
      and made them available even when -DMUSCLE_AVOID_IPV6 isn't set.
    o Improved error reporting in the ReflectServer event-loop.
+   o Removed the functions from TimeUnitConversions.h that take
+     (struct timeval &) as their argument, since they weren't being used.
    * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.
    * ExpandLocalhostAddress() no longer expands IPv6 loopback addresses.
    * UDPSocketDataIO::ReadFrom() would call SetSourceOfLastReadPacket()

@@ -87,26 +87,6 @@ inline uint64 GetRunTime64ForCurrentTime64(uint64 currentTime64, uint32 timeType
  */
 status_t Snooze64(uint64 micros);
 
-/** Convenience function:  Returns true no more often than once every (interval).
- *  Useful if you are in a tight loop, but don't want e.g. more than one debug output line per second, or something like that.
- *  @param interval The minimum time that must elapse between two calls to this function returning true.
- *  @param lastTime A state variable.  Pass in the same reference every time you call this function.
- *  @return true iff it has been at least (interval) since the last time this function returned true, else false.
- */
-inline bool OnceEvery(const struct timeval & interval, struct timeval & lastTime)
-{
-   uint64 now64 = GetRunTime64();
-   struct timeval now;
-   Convert64ToTimeVal(now64, now);
-   if (!IsLessThan(now, lastTime))
-   {
-      lastTime = now;
-      AddTimeVal(lastTime, interval);
-      return true;
-   }
-   return false;
-}
-
 /** Convenience function:  Returns true no more than once every (interval).
  *  Useful if you are in a tight loop, but don't want e.g. more than one debug output line per second, or something like that.
  *  @param interval The minimum time that must elapse between two calls to this function returning true (in microseconds).

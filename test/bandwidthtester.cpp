@@ -35,14 +35,14 @@ int main(int argc, char ** argv)
       gw.AddOutgoingMessage(uploadMsg);
    }
 
-   // Here is a (fairly large) message that we will send repeatedly in order to bandwidthtester the server
+   // Here is a (fairly large) message that we will send repeatedly in order to bandwidth-test the server
    MessageRef sendMsgRef(GetMessageFromPool(0x666));
    sendMsgRef()->AddString(PR_NAME_KEYS, "bandwidthtester");
    sendMsgRef()->AddData("bandwidthtester test data", B_RAW_TYPE, NULL, 8000);
 
    SocketMultiplexer multiplexer;
-   uint64 startTime = GetRunTime64();
-   struct timeval lastPrintTime = {0, 0};
+   uint64 startTime      = GetRunTime64();
+   uint64 lastPrintTime  = 0;
    uint32 tallyBytesSent = 0, tallyBytesReceived = 0;
    QueueGatewayMessageReceiver inQueue;
    while(true)
@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
       multiplexer.RegisterSocketForReadReady(fd);
       if ((send)||(gw.HasBytesToOutput())) multiplexer.RegisterSocketForWriteReady(fd);
 
-      const struct timeval printInterval = {5, 0};
+      const uint64 printInterval = SecondsToMicros(5);
       if (OnceEvery(printInterval, lastPrintTime))
       {
          const uint64 now = GetRunTime64();

@@ -324,46 +324,6 @@ inline void Convert64ToTimeVal(uint64 val, struct timeval & retStruct)
    retStruct.tv_usec = (int32)(val % MICROS_PER_SECOND);
 }
 
-/** Convenience function:  Returns true true iff (t1 < t2)
- *  @param t1 a time value
- *  @param t2 another time value
- *  @returns true iff t1 < t2
- */
-inline bool IsLessThan(const struct timeval & t1, const struct timeval & t2)
-{
-   return (t1.tv_sec == t2.tv_sec) ? (t1.tv_usec < t2.tv_usec) : (t1.tv_sec < t2.tv_sec);
-}
-
-/** Convenience function: Adds (addThis) to (addToThis)
- *  @param addToThis A time value.  On return, this time value will have been modified.
- *  @param addThis Another time value, that will be added to (addToThis).
- */
-inline void AddTimeVal(struct timeval & addToThis, const struct timeval & addThis)
-{
-   addToThis.tv_sec  += addThis.tv_sec;
-   addToThis.tv_usec += addThis.tv_usec;
-   if (addToThis.tv_usec > MICROS_PER_SECOND)
-   {
-      addToThis.tv_sec += addToThis.tv_usec / MICROS_PER_SECOND;
-      addToThis.tv_usec = addToThis.tv_usec % MICROS_PER_SECOND;
-   }
-}
-
-/** Convenience function: Subtracts (subtractThis) from (subtractFromThis)
- *  @param subtractFromThis A time value.  On return, this time value will have been modified.
- *  @param subtractThis Another time value, that will be subtracted from (subtractFromThis).
- */
-inline void SubtractTimeVal(struct timeval & subtractFromThis, const struct timeval & subtractThis)
-{
-   subtractFromThis.tv_sec  -= subtractThis.tv_sec;
-   subtractFromThis.tv_usec -= subtractThis.tv_usec;
-   if (subtractFromThis.tv_usec < 0L)
-   {
-      subtractFromThis.tv_sec += (subtractFromThis.tv_usec / MICROS_PER_SECOND)-1;
-      while(subtractFromThis.tv_usec < 0L) subtractFromThis.tv_usec += MICROS_PER_SECOND;
-   }
-}
-
 /** @} */ // end of timeunitconversionfunctions doxygen group
 
 } // end namespace muscle
