@@ -12,7 +12,7 @@ static void PrintExampleDescription()
    printf("\n");
 }
 
-// This callback is called whenever Log() or LogTime() is called; it's a bit low-level but the most flexible */
+// This callback is called whenever LogPlain() or LogTime() is called; it's a bit low-level but the most flexible */
 class MyLogCallback : public LogCallback
 {
 public:
@@ -71,8 +71,8 @@ int main(int argc, char ** argv)
    printf("\n");
 
    LogTime(MUSCLE_LOG_INFO, "This message was ");
-   Log(MUSCLE_LOG_INFO, "sent across several ");
-   Log(MUSCLE_LOG_INFO, "calls to Log()\n");
+   LogPlain(MUSCLE_LOG_INFO, "sent across several ");
+   LogPlain(MUSCLE_LOG_INFO, "calls to LogPlain()\n");
 
    // Since we declared our log callbacks on the stack, let's take care to
    // remove the callbacks before the objects are destroyed; otherwise a late call

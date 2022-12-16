@@ -352,7 +352,7 @@ int main(int argc, char ** argv)
    if (gw.HasBytesToOutput())
    {
       LogTime(MUSCLE_LOG_INFO, "Waiting for all pending messages to be sent...\n");
-      while((gw.HasBytesToOutput())&&(gw.DoOutput().IsOK())) {Log(MUSCLE_LOG_INFO, "."); fflush(stdout);}
+      while((gw.HasBytesToOutput())&&(gw.DoOutput().IsOK())) {LogPlain(MUSCLE_LOG_INFO, "."); fflush(stdout);}
    }
    LogTime(MUSCLE_LOG_INFO, "Bye!\n");
 

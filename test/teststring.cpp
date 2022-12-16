@@ -22,10 +22,24 @@ public:
    String ToString() const {return "SomeClass::ToString() returned this";}
 };
 
+static int ThisFunctionsArgumentMustBeZero(int f)
+{
+   if (f == 0) return 0;  // the only safe argument
+
+   MCRASH("ThisFunctionsArgumentMustBeZero() should not be called with a non-zero argument!  LogTime() is buggy, perhaps?");
+   return f;
+}
+
 // This program exercises the String class.
 int main(int, char **)
 {
    CompleteSetupSystem css;
+
+   // First, make sure that our logging doesn't evaluate arguments unless it needs to
+   LogPlain(MUSCLE_LOG_INFO,  "Testing LogPlain() argument evaluation:  %i\n", ThisFunctionsArgumentMustBeZero(0));  // ThisFunctionsArgumentMustBeZero() SHOULD be called here!
+   LogPlain(MUSCLE_LOG_DEBUG, "Testing LogPlain() argument evaluation:  %i\n", ThisFunctionsArgumentMustBeZero(1));  // ThisFunctionsArgumentMustBeZero() should NOT be called here!
+   LogTime(MUSCLE_LOG_INFO,   "Testing LogTime()  argument evaluation:  %i\n", ThisFunctionsArgumentMustBeZero(0));  // ThisFunctionsArgumentMustBeZero() SHOULD be called here!
+   LogTime(MUSCLE_LOG_DEBUG,  "Testing LogTime()  argument evaluation:  %i\n", ThisFunctionsArgumentMustBeZero(1));  // ThisFunctionsArgumentMustBeZero() should NOT be called here!
 
 #ifdef TEST_ESCAPE
    while(1)

@@ -99,7 +99,7 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
 
 static void LogUsage()
 {
-   Log(MUSCLE_LOG_INFO, "Usage:  serialproxy serial=<devname>:<baud> [port=5274] (send/receive via a serial device, e.g. /dev/ttyS0)\n");
+   LogPlain(MUSCLE_LOG_INFO, "Usage:  serialproxy serial=<devname>:<baud> [port=5274] (send/receive via a serial device, e.g. /dev/ttyS0)\n");
 }
 
 // This program acts as a proxy to forward serial data to a TCP stream (and back)

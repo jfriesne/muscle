@@ -6,7 +6,7 @@ using namespace muscle;
 static void PrintExampleDescription()
 {
    printf("\n");
-   printf("This program demonstrates the basic functionality of the Log() and LogTime() functions.\n");
+   printf("This program demonstrates the basic functionality of the LogPlain() and LogTime() functions.\n");
    printf("\n");
 }
 
@@ -27,9 +27,9 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "Log messages can have %s-style string interpolation ins them.\n", "printf");
    LogTime(MUSCLE_LOG_INFO, "Including all of the %i standard percent-token-types that %.0f%% of people expect.\n", numTypes, percent);
 
-   LogTime(MUSCLE_LOG_INFO, "You can generate your log-lines");
-   Log(MUSCLE_LOG_INFO, " across multiple function-calls");
-   Log(MUSCLE_LOG_INFO, " by calling Log() instead of LogTime()\n");
+   LogTime( MUSCLE_LOG_INFO, "You can generate your log-lines");
+   LogPlain(MUSCLE_LOG_INFO, " across multiple function-calls");
+   LogPlain(MUSCLE_LOG_INFO, " by calling LogPlain() instead of LogTime()\n");
 
    LogTime(MUSCLE_LOG_DEBUG, "Default log threshold is MUSCLE_LOG_INFO, which is why you don't see this line printed.\n");
    SetConsoleLogLevel(MUSCLE_LOG_DEBUG);  // lower the threshold for stdout-output to MUSCLE_LOG_DEBUG or greater

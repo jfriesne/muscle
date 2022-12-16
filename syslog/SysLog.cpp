@@ -1525,21 +1525,23 @@ static const char * const _logLevelKeywords[] = {
    "trace"
 };
 
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+int _maxLogThreshold = MUSCLE_LOG_INFO;  // I guess we'll take our chances here
+#else
+std::atomic<int> _maxLogThreshold(MUSCLE_LOG_INFO);
+#endif
+
 DefaultConsoleLogger :: DefaultConsoleLogger()
-   : _consoleLogLevel(MUSCLE_LOG_INFO)
-   , _logToStderr(false)
+   : _logToStderr(false)
 {
     // empty
 }
 
 void DefaultConsoleLogger :: Log(const LogCallbackArgs & a)
 {
-   if (a.GetLogLevel() <= _consoleLogLevel)
-   {
-      FILE * fpOut = GetConsoleOutputStream();
-      vfprintf(fpOut, a.GetText(), *a.GetArgList());
-      fflush(fpOut);
-   }
+   FILE * fpOut = GetConsoleOutputStream();
+   vfprintf(fpOut, a.GetText(), *a.GetArgList());
+   fflush(fpOut);
 }
 
 void DefaultConsoleLogger :: Flush()
@@ -1548,8 +1550,7 @@ void DefaultConsoleLogger :: Flush()
 }
 
 DefaultFileLogger :: DefaultFileLogger()
-   : _fileLogLevel(MUSCLE_LOG_NONE)
-   , _maxLogFileSize(MUSCLE_NO_LIMIT)
+   : _maxLogFileSize(MUSCLE_NO_LIMIT)
    , _maxNumLogFiles(MUSCLE_NO_LIMIT)
    , _compressionEnabled(false)
    , _logFileOpenAttemptFailed(false)
@@ -1564,7 +1565,7 @@ DefaultFileLogger :: ~DefaultFileLogger()
 
 void DefaultFileLogger :: Log(const LogCallbackArgs & a)
 {
-   if ((a.GetLogLevel() <= GetFileLogLevel())&&(EnsureLogFileCreated(a).IsOK()))
+   if (EnsureLogFileCreated(a).IsOK())
    {
       vfprintf(_logFile.GetFile(), a.GetText(), *a.GetArgList());
       _logFile.FlushOutput();
@@ -1871,7 +1872,7 @@ int ParseLogLevelKeyword(const char * keyword)
 
 int GetFileLogLevel()
 {
-   return _dfl.GetFileLogLevel();
+   return _dfl.GetLogLevelThreshold();
 }
 
 String GetFileLogName()
@@ -1896,12 +1897,7 @@ bool GetFileLogCompressionEnabled()
 
 int GetConsoleLogLevel()
 {
-   return _dcl.GetConsoleLogLevel();
-}
-
-int GetMaxLogLevel()
-{
-   return muscleMax(_dcl.GetConsoleLogLevel(), _dfl.GetFileLogLevel());
+   return _dcl.GetLogLevelThreshold();
 }
 
 status_t SetFileLogName(const String & logName)
@@ -1970,22 +1966,31 @@ void CloseCurrentLogFile()
    }
 }
 
-status_t SetFileLogLevel(int loglevel)
+// Note that the LogLock must be locked when this method is called!
+static void UpdateMaxLogLevel()
 {
-   MRETURN_ON_ERROR(LockLog());
+   int maxLogThreshold = muscleMax(_dfl.GetLogLevelThreshold(), _dcl.GetLogLevelThreshold());
+   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++)
+   {
+      const LogCallback * cb = iter.GetKey()();
+      if (cb) maxLogThreshold = muscleMax(maxLogThreshold, cb->GetLogLevelThreshold());
+   }
 
-   _dfl.SetFileLogLevel(loglevel);
-   LogTime(MUSCLE_LOG_DEBUG, "File logging level set to: %s\n", GetLogLevelName(_dfl.GetFileLogLevel()));
-   return UnlockLog();
+   _maxLogThreshold = maxLogThreshold;
 }
 
-status_t SetConsoleLogLevel(int loglevel)
+status_t SetFileLogLevel(int logLevel)
 {
-   MRETURN_ON_ERROR(LockLog());
+   MRETURN_ON_ERROR(_dcl.SetLogLevelThreshold(logLevel));
+   LogTime(MUSCLE_LOG_DEBUG, "File logging level set to: %s\n", GetLogLevelName(logLevel));
+   return B_NO_ERROR;
+}
 
-   _dcl.SetConsoleLogLevel(loglevel);
-   LogTime(MUSCLE_LOG_DEBUG, "Console logging level set to: %s\n", GetLogLevelName(_dcl.GetConsoleLogLevel()));
-   return UnlockLog();
+status_t SetConsoleLogLevel(int logLevel)
+{
+   MRETURN_ON_ERROR(_dcl.SetLogLevelThreshold(logLevel));
+   LogTime(MUSCLE_LOG_DEBUG, "Console logging level set to: %s\n", GetLogLevelName(logLevel));
+   return B_NO_ERROR;
 }
 
 status_t SetConsoleLogToStderr(bool toStderr)
@@ -1996,6 +2001,192 @@ status_t SetConsoleLogToStderr(bool toStderr)
    LogTime(MUSCLE_LOG_DEBUG, "Console logging target set to: %s\n", _dcl.GetConsoleLogToStderr()?"stderr":"stdout");
    return UnlockLog();
 }
+
+status_t LogCallback :: SetLogLevelThreshold(int logLevel)
+{
+   MRETURN_ON_ERROR(LockLog());
+
+   _logLevelThreshold = logLevel;
+   UpdateMaxLogLevel();
+   return UnlockLog();
+}
+
+void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
+{
+   const size_t MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION = 64;
+   struct tm ltm;
+   time_t when = a.GetWhen();
+   struct tm * temp = muscle_localtime_r(&when, &ltm);
+#ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
+# ifdef MUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS
+   const char * fn = a.GetSourceFile();
+   const char * lastSlash = fn ? strrchr(fn, '/') : NULL;
+#  ifdef WIN32
+   const char * lastBackSlash = fn ? strrchr(fn, '\\') : NULL;
+   if ((lastBackSlash)&&((lastSlash == NULL)||(lastBackSlash > lastSlash))) lastSlash = lastBackSlash;
+#  endif
+   if (lastSlash) fn = lastSlash+1;
+
+   static const size_t suffixSize = 16;
+   muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION-suffixSize, "[%c %02i/%02i %02i:%02i:%02i] [%s", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, fn);
+   char buf2[suffixSize];
+   muscleSnprintf(buf2, sizeof(buf2), ":%i] ", a.GetSourceLineNumber());
+   strncat(buf, buf2, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION);
+# else
+   muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] [%s] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(a.GetSourceFile(), a.GetSourceLineNumber()))());
+#endif
+#else
+   muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec);
+#endif
+}
+
+static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if we are logging out-of-memory errors but our LogCallbacks try to allocate memory to do the log operation :^P
+
+#define DO_LOGGING_PREAMBLE(cb)            \
+{                                          \
+   NestCountGuard g(_inLogPreamble);       \
+   va_list dummyList;                      \
+   va_start(dummyList, fmt);               \
+   LogCallbackArgs lca(when, ll, sourceFile, sourceFunction, sourceLine, buf, &dummyList); \
+   GetStandardLogLinePreamble(buf, lca);   \
+   lca.SetText(buf);                       \
+   cb.Log(lca);                            \
+   va_end(dummyList);                      \
+}
+
+#define DO_LOGGING_CALLBACKS(ll)                                                             \
+   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) \
+   {                                                                                         \
+      LogCallback * cb = iter.GetKey()();                                                    \
+      if ((cb)&&(ll <= cb->GetLogLevelThreshold())) DO_LOGGING_CALLBACK((*cb));              \
+   }
+
+#define DO_LOGGING_CALLBACK(cb) \
+{                               \
+   va_list argList;             \
+   va_start(argList, fmt);      \
+   cb.Log(LogCallbackArgs(when, ll, sourceFile, sourceFunction, sourceLine, fmt, &argList)); \
+   va_end(argList);             \
+}
+
+#ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
+status_t LogTimeAux(const char * sourceFile, const char * sourceFunction, int sourceLine, int ll, const char * fmt, ...)
+#else
+status_t LogTimeAux(int ll, const char * fmt, ...)
+#endif
+{
+   const status_t lockRet = LockLog();
+   if (_inWarnOutOfMemory.GetCount() < 2)  // avoid potential infinite recursion (while still allowing the first Out-of-memory message to attempt to get into the log)
+   {
+      // First, log the preamble
+      const time_t when = time(NULL);
+      char buf[128];
+
+#ifndef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
+      static const char * sourceFile     = "";
+      static const char * sourceFunction = "";
+      static const int sourceLine        = -1;
+#endif
+
+      // First, send to the log file
+      if (ll <= _dfl.GetLogLevelThreshold())
+      {
+         DO_LOGGING_PREAMBLE(_dfl);
+         DO_LOGGING_CALLBACK(_dfl);
+      }
+
+      // Then, send to the display
+      if (ll <= _dcl.GetLogLevelThreshold())
+      {
+         DO_LOGGING_PREAMBLE(_dcl);
+         DO_LOGGING_CALLBACK(_dcl);  // must be outside of the braces!
+      }
+
+      // Then log the actual message as supplied by the user
+      if (lockRet.IsOK()) DO_LOGGING_CALLBACKS(ll);
+   }
+   if (lockRet.IsOK()) UnlockLog();
+   return lockRet;
+}
+
+status_t LogFlush()
+{
+   TCHECKPOINT;
+
+   MRETURN_ON_ERROR(LockLog());
+
+   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) if (iter.GetKey()()) iter.GetKey()()->Flush();
+   return UnlockLog();
+}
+
+status_t LogStackTrace(int ll, uint32 maxDepth)
+{
+   TCHECKPOINT;
+
+#if defined(MUSCLE_USE_BACKTRACE)
+   void *array[MAX_STACK_TRACE_DEPTH];
+   const size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
+   char ** strings = backtrace_symbols(array, (int)size);
+   if (strings)
+   {
+      LogTime(ll, "--Stack trace follows (%zd frames):\n", size);
+      for (size_t i = 0; i < size; i++) LogTime(ll, "  %s\n", strings[i]);
+      LogTime(ll, "--End Stack trace\n");
+      free(strings);
+      return B_NO_ERROR;
+   }
+   else return B_OUT_OF_MEMORY;
+#else
+   (void) ll;        // shut the compiler up
+   (void) maxDepth;  // shut the compiler up
+   return B_UNIMPLEMENTED;  // I don't know how to do this for other systems!
+#endif
+}
+
+status_t LogPlainAux(int ll, const char * fmt, ...)
+{
+   const status_t lockRet = LockLog();
+   {
+      // No way to get these, since #define Log() as a macro causes
+      // nasty namespace collisions with other methods/functions named Log()
+      static const char * sourceFile     = "";
+      static const char * sourceFunction = "";
+      static const int sourceLine        = -1;
+
+      const time_t when = time(NULL);
+      if (ll <= _dfl.GetLogLevelThreshold()) DO_LOGGING_CALLBACK(_dfl);
+      if (ll <= _dcl.GetLogLevelThreshold()) DO_LOGGING_CALLBACK(_dcl);
+      if (lockRet.IsOK()) DO_LOGGING_CALLBACKS(ll);
+   }
+   if (lockRet.IsOK()) (void) UnlockLog();
+   return lockRet;
+}
+
+status_t PutLogCallback(const LogCallbackRef & cb)
+{
+   MRETURN_ON_ERROR(LockLog());
+   const status_t ret = _logCallbacks.PutWithDefault(cb);
+   UpdateMaxLogLevel();
+   return ret | UnlockLog();
+}
+
+status_t ClearLogCallbacks()
+{
+   MRETURN_ON_ERROR(LockLog());
+   _logCallbacks.Clear();
+   UpdateMaxLogLevel();
+   return UnlockLog();
+}
+
+status_t RemoveLogCallback(const LogCallbackRef & cb)
+{
+   MRETURN_ON_ERROR(LockLog());
+   const status_t ret = _logCallbacks.Remove(cb);
+   UpdateMaxLogLevel();
+   return ret | UnlockLog();
+}
+
+#endif  // end !MUSCLE_INLINE_LOGGING section
 
 // Our 26-character alphabet of usable symbols
 #define NUM_CHARS_IN_KEY_ALPHABET (sizeof(_keyAlphabet)-1)  // -1 because the NUL terminator doesn't count
@@ -2051,172 +2242,6 @@ uint32 SourceCodeLocationKeyFromString(const String & ss)
    return ret;
 }
 
-void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
-{
-   const size_t MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION = 64;
-   struct tm ltm;
-   time_t when = a.GetWhen();
-   struct tm * temp = muscle_localtime_r(&when, &ltm);
-#ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
-# ifdef MUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS
-   const char * fn = a.GetSourceFile();
-   const char * lastSlash = fn ? strrchr(fn, '/') : NULL;
-#  ifdef WIN32
-   const char * lastBackSlash = fn ? strrchr(fn, '\\') : NULL;
-   if ((lastBackSlash)&&((lastSlash == NULL)||(lastBackSlash > lastSlash))) lastSlash = lastBackSlash;
-#  endif
-   if (lastSlash) fn = lastSlash+1;
-
-   static const size_t suffixSize = 16;
-   muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION-suffixSize, "[%c %02i/%02i %02i:%02i:%02i] [%s", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, fn);
-   char buf2[suffixSize];
-   muscleSnprintf(buf2, sizeof(buf2), ":%i] ", a.GetSourceLineNumber());
-   strncat(buf, buf2, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION);
-# else
-   muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] [%s] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(a.GetSourceFile(), a.GetSourceLineNumber()))());
-#endif
-#else
-   muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec);
-#endif
-}
-
-static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if we are logging out-of-memory errors but our LogCallbacks try to allocate memory to do the log operation :^P
-
-#define DO_LOGGING_CALLBACK(cb) \
-{                               \
-   va_list argList;             \
-   va_start(argList, fmt);      \
-   cb.Log(LogCallbackArgs(when, ll, sourceFile, sourceFunction, sourceLine, fmt, &argList)); \
-   va_end(argList);             \
-}
-
-#define DO_LOGGING_CALLBACKS for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) if (iter.GetKey()()) DO_LOGGING_CALLBACK((*iter.GetKey()()));
-
-#ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
-status_t _LogTime(const char * sourceFile, const char * sourceFunction, int sourceLine, int ll, const char * fmt, ...)
-#else
-status_t LogTime(int ll, const char * fmt, ...)
-#endif
-{
-   const status_t lockRet = LockLog();
-   if (_inWarnOutOfMemory.GetCount() < 2)  // avoid potential infinite recursion (while still allowing the first Out-of-memory message to attempt to get into the log)
-   {
-      // First, log the preamble
-      const time_t when = time(NULL);
-      char buf[128];
-
-#ifndef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
-      static const char * sourceFile     = "";
-      static const char * sourceFunction = "";
-      static const int sourceLine        = -1;
-#endif
-
-      // First, send to the log file
-      {
-         NestCountGuard g(_inLogPreamble);  // must be inside the braces!
-         va_list dummyList;
-         va_start(dummyList, fmt);  // not used
-         LogCallbackArgs lca(when, ll, sourceFile, sourceFunction, sourceLine, buf, &dummyList);
-         GetStandardLogLinePreamble(buf, lca);
-         lca.SetText(buf);
-         _dfl.Log(lca);
-         va_end(dummyList);
-      }
-      DO_LOGGING_CALLBACK(_dfl);
-
-      // Then, send to the display
-      {
-         NestCountGuard g(_inLogPreamble);  // must be inside the braces!
-         va_list dummyList;
-         va_start(dummyList, fmt);  // not used
-         _dcl.Log(LogCallbackArgs(when, ll, sourceFile, sourceFunction, sourceLine, buf, &dummyList));
-         va_end(dummyList);
-      }
-      DO_LOGGING_CALLBACK(_dcl);  // must be outside of the braces!
-
-      // Then log the actual message as supplied by the user
-      if (lockRet.IsOK()) DO_LOGGING_CALLBACKS;
-   }
-   if (lockRet.IsOK()) UnlockLog();
-
-   return lockRet;
-}
-
-status_t LogFlush()
-{
-   TCHECKPOINT;
-
-   MRETURN_ON_ERROR(LockLog());
-
-   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) if (iter.GetKey()()) iter.GetKey()()->Flush();
-   return UnlockLog();
-}
-
-status_t LogStackTrace(int ll, uint32 maxDepth)
-{
-   TCHECKPOINT;
-
-#if defined(MUSCLE_USE_BACKTRACE)
-   void *array[MAX_STACK_TRACE_DEPTH];
-   const size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
-   char ** strings = backtrace_symbols(array, (int)size);
-   if (strings)
-   {
-      LogTime(ll, "--Stack trace follows (%zd frames):\n", size);
-      for (size_t i = 0; i < size; i++) LogTime(ll, "  %s\n", strings[i]);
-      LogTime(ll, "--End Stack trace\n");
-      free(strings);
-      return B_NO_ERROR;
-   }
-   else return B_OUT_OF_MEMORY;
-#else
-   (void) ll;        // shut the compiler up
-   (void) maxDepth;  // shut the compiler up
-   return B_UNIMPLEMENTED;  // I don't know how to do this for other systems!
-#endif
-}
-
-status_t Log(int ll, const char * fmt, ...)
-{
-   const status_t lockRet = LockLog();
-   {
-      // No way to get these, since #define Log() as a macro causes
-      // nasty namespace collisions with other methods/functions named Log()
-      static const char * sourceFile     = "";
-      static const char * sourceFunction = "";
-      static const int sourceLine        = -1;
-
-      const time_t when = time(NULL);  // don't inline this, ya dummy
-      DO_LOGGING_CALLBACK(_dfl);
-      DO_LOGGING_CALLBACK(_dcl);
-      if (lockRet.IsOK()) DO_LOGGING_CALLBACKS;
-   }
-   if (lockRet.IsOK()) (void) UnlockLog();
-   return lockRet;
-}
-
-status_t PutLogCallback(const LogCallbackRef & cb)
-{
-   MRETURN_ON_ERROR(LockLog());
-   const status_t ret = _logCallbacks.PutWithDefault(cb);
-   return ret | UnlockLog();
-}
-
-status_t ClearLogCallbacks()
-{
-   MRETURN_ON_ERROR(LockLog());
-   _logCallbacks.Clear();
-   return UnlockLog();
-}
-
-status_t RemoveLogCallback(const LogCallbackRef & cb)
-{
-   MRETURN_ON_ERROR(LockLog());
-   const status_t ret = _logCallbacks.Remove(cb);
-   return ret | UnlockLog();
-}
-
-#endif
 
 #ifdef WIN32
 static const uint64 _windowsDiffTime = ((uint64)116444736)*NANOS_PER_SECOND; // add (1970-1601) to convert to Windows time base

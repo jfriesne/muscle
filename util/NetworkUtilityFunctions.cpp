@@ -752,19 +752,19 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
 
       if (ret.IsOK())
       {
-         if ((debugTitle)&&(errorsOnly == false)) Log(MUSCLE_LOG_INFO, "Connected!\n");
+         if ((debugTitle)&&(errorsOnly == false)) LogPlain(MUSCLE_LOG_INFO, "Connected!\n");
          return s;
       }
       else if (debugTitle)
       {
          if (errorsOnly) LogTime(MUSCLE_LOG_INFO, "%s: connect() to %s failed! [%s]\n", debugTitle, GetConnectString(optDebugHostName?optDebugHostName:ipbuf, hostIAP.GetPort())(), ret());
-                    else Log(MUSCLE_LOG_INFO, "Connection failed! [%s]\n", ret());
+                    else LogPlain(MUSCLE_LOG_INFO, "Connection failed! [%s]\n", ret());
       }
    }
    else if (debugTitle)
    {
       if (errorsOnly) LogTime(MUSCLE_LOG_INFO, "%s: socket() failed!\n", debugTitle);
-                 else Log(MUSCLE_LOG_INFO, "socket() failed!\n");
+                 else LogPlain(MUSCLE_LOG_INFO, "socket() failed!\n");
    }
    return ConstSocketRef();
 }

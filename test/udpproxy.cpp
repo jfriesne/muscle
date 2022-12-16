@@ -98,7 +98,7 @@ static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc
 
 static void LogUsage()
 {
-   Log(MUSCLE_LOG_INFO, "Usage:  udpproxy target=192.168.1.101:8000 [listen=9000] target=192.168.1.2:8000 [listen=9001]\n");
+   LogPlain(MUSCLE_LOG_INFO, "Usage:  udpproxy target=192.168.1.101:8000 [listen=9000] target=192.168.1.2:8000 [listen=9001]\n");
 }
 
 // This program acts as a proxy to redirect UDP packets to a further source (and back)

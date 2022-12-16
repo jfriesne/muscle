@@ -428,10 +428,10 @@ ServerProcessLoop()
             LogTime(MUSCLE_LOG_DEBUG, "%s is listening on port %u ", GetServerName(), iap.GetPort());
             if (iap.GetIPAddress() == invalidIP)
             {
-               Log(MUSCLE_LOG_DEBUG, "on all network interfaces.\n");
+               LogPlain(MUSCLE_LOG_DEBUG, "on all network interfaces.\n");
                listeningOnAll = true;
             }
-            else Log(MUSCLE_LOG_DEBUG, "on network interface %s\n", Inet_NtoA(iap.GetIPAddress())());
+            else LogPlain(MUSCLE_LOG_DEBUG, "on network interface %s\n", Inet_NtoA(iap.GetIPAddress())());
          }
 
          if (listeningOnAll)

@@ -11,8 +11,8 @@
 /
 *******************************************************************************/
 
-#define MUSCLE_VERSION_STRING "9.11" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        91100  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "9.20" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        92000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 /*! \mainpage MUSCLE Documentation Page
  *
@@ -213,13 +213,13 @@ using std::set_new_handler;
 /** This macro crashes the process with the specified error message.
   * @param msg a text string to include in the critical error printed to the log just before we call Crash()
   */
-#define MCRASH(msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); muscle::Crash();}
+#define MCRASH(msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); muscle::Crash();}
 
 /** This macro immediately and rudely exits the process (by calling ExitWithoutCleanup(retVal)) after logging the specified critical error message.
   * @param retVal the integer value to pass to ExitWithoutCleanup()
   * @param msg a text string to include in the critical error printed to the log just before we call ExitWithoutCleanup()
   */
-#define MEXIT(retVal, msg) {muscle::LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
+#define MEXIT(retVal, msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
 
 /** This macro logs an out-of-memory warning that includes the current filename and source-code line number.  WARN_OUT_OF_MEMORY() should be called whenever newnothrow or malloc() return NULL. */
 #define MWARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)
@@ -286,7 +286,7 @@ using std::set_new_handler;
 #define MPRINT_AND_RETURN_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) {printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}}
 
 /** This macro logs a warning message including the the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
-#define MCHECKPOINT muscle::LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
+#define MCHECKPOINT LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
 
 #if !defined(MUSCLE_64_BIT_PLATFORM)
 # if defined(PTRDIFF_MAX)

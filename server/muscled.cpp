@@ -74,37 +74,37 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    const char * value;
    if (args.HasName("help"))
    {
-      Log(MUSCLE_LOG_INFO, "Usage:  muscled [port=%u] [listen=ip:port] [displaylevel=lvl] [filelevel=lvl] [logfile=filename]\n", DEFAULT_MUSCLED_PORT);
+      LogPlain(MUSCLE_LOG_INFO, "Usage:  muscled [port=%u] [listen=ip:port] [displaylevel=lvl] [filelevel=lvl] [logfile=filename]\n", DEFAULT_MUSCLED_PORT);
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
-      Log(MUSCLE_LOG_INFO, "                [maxmem=megs]\n");
+      LogPlain(MUSCLE_LOG_INFO, "                [maxmem=megs]\n");
 #endif
-      Log(MUSCLE_LOG_INFO, "                [maxnodespersession=num] [remap=oldip=newip]\n");
-      Log(MUSCLE_LOG_INFO, "                [ban=ippattern] [require=ippattern]\n");
-      Log(MUSCLE_LOG_INFO, "                [privban=ippattern] [privunban=ippattern]\n");
-      Log(MUSCLE_LOG_INFO, "                [privkick=ippattern] [privall=ippattern]\n");
-      Log(MUSCLE_LOG_INFO, "                [maxsendrate=kBps] [maxreceiverate=kBps]\n");
-      Log(MUSCLE_LOG_INFO, "                [maxcombinedrate=kBps] [maxmessagesize=k]\n");
-      Log(MUSCLE_LOG_INFO, "                [maxsessions=num] [maxsessionsperhost=num]\n");
-      Log(MUSCLE_LOG_INFO, "                [localhost=ipaddress] [daemon]\n");
-      Log(MUSCLE_LOG_INFO, " - port may be any number between 1 and 65536\n");
-      Log(MUSCLE_LOG_INFO, " - listen is like port, except it includes a local interface IP as well.\n");
-      Log(MUSCLE_LOG_INFO, " - lvl is: none, critical, errors, warnings, info, debug, or trace.\n");
+      LogPlain(MUSCLE_LOG_INFO, "                [maxnodespersession=num] [remap=oldip=newip]\n");
+      LogPlain(MUSCLE_LOG_INFO, "                [ban=ippattern] [require=ippattern]\n");
+      LogPlain(MUSCLE_LOG_INFO, "                [privban=ippattern] [privunban=ippattern]\n");
+      LogPlain(MUSCLE_LOG_INFO, "                [privkick=ippattern] [privall=ippattern]\n");
+      LogPlain(MUSCLE_LOG_INFO, "                [maxsendrate=kBps] [maxreceiverate=kBps]\n");
+      LogPlain(MUSCLE_LOG_INFO, "                [maxcombinedrate=kBps] [maxmessagesize=k]\n");
+      LogPlain(MUSCLE_LOG_INFO, "                [maxsessions=num] [maxsessionsperhost=num]\n");
+      LogPlain(MUSCLE_LOG_INFO, "                [localhost=ipaddress] [daemon]\n");
+      LogPlain(MUSCLE_LOG_INFO, " - port may be any number between 1 and 65536\n");
+      LogPlain(MUSCLE_LOG_INFO, " - listen is like port, except it includes a local interface IP as well.\n");
+      LogPlain(MUSCLE_LOG_INFO, " - lvl is: none, critical, errors, warnings, info, debug, or trace.\n");
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
-      Log(MUSCLE_LOG_INFO, " - maxmem is the max megabytes of memory the server may use (default=unlimited)\n");
+      LogPlain(MUSCLE_LOG_INFO, " - maxmem is the max megabytes of memory the server may use (default=unlimited)\n");
 #endif
-      Log(MUSCLE_LOG_INFO, " - You may also put one or more ban=<pattern> arguments in.\n");
-      Log(MUSCLE_LOG_INFO, "   Each pattern specifies one or more IP addresses to\n");
-      Log(MUSCLE_LOG_INFO, "   disallow connections from, e.g. ban=192.168.*.*\n");
-      Log(MUSCLE_LOG_INFO, " - You may put one or more require=<pattern> arguments in.\n");
-      Log(MUSCLE_LOG_INFO, "   If any of these are present, then only IP addresses that match\n");
-      Log(MUSCLE_LOG_INFO, "   at least one of them will be allowed to connect.\n");
-      Log(MUSCLE_LOG_INFO, " - To assign privileges, specify one of the following:\n");
-      Log(MUSCLE_LOG_INFO, "   privban=<pattern>, privunban=<pattern>,\n");
-      Log(MUSCLE_LOG_INFO, "   privkick=<pattern> or privall=<pattern>.\n");
-      Log(MUSCLE_LOG_INFO, "   privall assigns all privileges to the matching IP addresses.\n");
-      Log(MUSCLE_LOG_INFO, " - remap tells muscled to treat connections from a given IP address\n");
-      Log(MUSCLE_LOG_INFO, "   as if they are coming from another (for stupid NAT tricks, etc)\n");
-      Log(MUSCLE_LOG_INFO, " - If daemon is specified, muscled will run as a background process.\n");
+      LogPlain(MUSCLE_LOG_INFO, " - You may also put one or more ban=<pattern> arguments in.\n");
+      LogPlain(MUSCLE_LOG_INFO, "   Each pattern specifies one or more IP addresses to\n");
+      LogPlain(MUSCLE_LOG_INFO, "   disallow connections from, e.g. ban=192.168.*.*\n");
+      LogPlain(MUSCLE_LOG_INFO, " - You may put one or more require=<pattern> arguments in.\n");
+      LogPlain(MUSCLE_LOG_INFO, "   If any of these are present, then only IP addresses that match\n");
+      LogPlain(MUSCLE_LOG_INFO, "   at least one of them will be allowed to connect.\n");
+      LogPlain(MUSCLE_LOG_INFO, " - To assign privileges, specify one of the following:\n");
+      LogPlain(MUSCLE_LOG_INFO, "   privban=<pattern>, privunban=<pattern>,\n");
+      LogPlain(MUSCLE_LOG_INFO, "   privkick=<pattern> or privall=<pattern>.\n");
+      LogPlain(MUSCLE_LOG_INFO, "   privall assigns all privileges to the matching IP addresses.\n");
+      LogPlain(MUSCLE_LOG_INFO, " - remap tells muscled to treat connections from a given IP address\n");
+      LogPlain(MUSCLE_LOG_INFO, "   as if they are coming from another (for stupid NAT tricks, etc)\n");
+      LogPlain(MUSCLE_LOG_INFO, " - If daemon is specified, muscled will run as a background process.\n");
       return(5);
    }
 

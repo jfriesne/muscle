@@ -5,6 +5,9 @@
 
 #include "support/MuscleSupport.h"
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+# include <atomic>
+#endif
 #ifdef MUSCLE_MINIMALIST_LOGGING
 # include <stdarg.h>
 #endif
@@ -38,13 +41,15 @@ enum
 #ifdef MUSCLE_DISABLE_LOGGING
 # define MUSCLE_INLINE_LOGGING
 
-// No-op implementation of Log()
+// No-op implementation of LogPlain()
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
-static inline status_t Log(int, const char * , ...) {return B_NO_ERROR;}
+static inline status_t LogPlainAux(int, const char * , ...) {return B_NO_ERROR;}
+# define LogPlain(logLevel, ...) ((logLevel <= GetMaxLogLevel()) ? LogPlainAux(logLevel, __VA_ARGS__) : B_NO_ERROR)
 
 // No-op implementation of LogTime()
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
-static inline status_t LogTime(int, const char *, ...) {return B_NO_ERROR;}
+static inline status_t LogTimeAux(int, const char *, ...) {return B_NO_ERROR;}
+# define LogTime(logLevel, ...) ((logLevel <= GetMaxLogLevel()) ? LogTimeAux(logLevel, __VA_ARGS__) : B_NO_ERROR)
 
 // No-op implementation of WarnOutOfMemory()
 static inline void WarnOutOfMemory(const char *, int) {/* empty */}
@@ -66,6 +71,7 @@ static inline const char * GetLogLevelName(int /*logLevel*/) {return "<omitted>"
 
 // No-op version of GetLogLevelKeyword(), just returns a dummy string
 static inline const char * GetLogLevelKeyword(int /*logLevel*/) {return "<omitted>";}
+
 #else
 
 // Define this constant in your Makefile (i.e. -DMUSCLE_MINIMALIST_LOGGING) if you don't want to have
@@ -73,13 +79,15 @@ static inline const char * GetLogLevelKeyword(int /*logLevel*/) {return "<omitte
 # ifdef MUSCLE_MINIMALIST_LOGGING
 #  define MUSCLE_INLINE_LOGGING
 
-// Minimalist version of Log(), just sends the output to stdout.
+// Minimalist version of LogPlain(), just sends the output to stdout.
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
-static inline status_t Log(int, const char * fmt, ...) {va_list va; va_start(va, fmt); vprintf(fmt, va); va_end(va); return B_NO_ERROR;}
+static inline status_t LogPlainAux(int, const char * fmt, ...) {va_list va; va_start(va, fmt); vprintf(fmt, va); va_end(va); return B_NO_ERROR;}
+# define LogPlain(logLevel, ...) ((logLevel <= GetMaxLogLevel()) ? LogPlainAux(logLevel, __VA_ARGS__) : B_NO_ERROR)
 
 // Minimalist version of LogTime(), just sends a tiny header and the output to stdout.
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
-static inline status_t LogTime(int logLevel, const char * fmt, ...) {printf("%i: ", logLevel); va_list va; va_start(va, fmt); vprintf(fmt, va); va_end(va); return B_NO_ERROR;}
+static inline status_t LogTimeAux(int logLevel, const char * fmt, ...) {printf("%i: ", logLevel); va_list va; va_start(va, fmt); vprintf(fmt, va); va_end(va); return B_NO_ERROR;}
+# define LogTime(logLevel, ...) ((logLevel <= GetMaxLogLevel()) ? LogTimeAux(logLevel, __VA_ARGS__) : B_NO_ERROR)
 
 // Minimalist version of WarnOutOfMemory()
 static inline void WarnOutOfMemory(const char * file, int line) {printf("ERROR--MEMORY ALLOCATION FAILURE!  (%s:%i)\n", file, line);}
@@ -112,8 +120,8 @@ inline int GetFileLogLevel()                          {return MUSCLE_LOG_NONE;}
 inline uint32 GetFileLogMaximumSize()                 {return MUSCLE_NO_LIMIT;}
 inline uint32 GetMaxNumLogFiles()                     {return MUSCLE_NO_LIMIT;}
 inline bool GetFileLogCompressionEnabled()            {return false;}
-inline int GetConsoleLogLevel()                       {return MUSCLE_LOG_NONE;}
-inline int GetMaxLogLevel()                           {return MUSCLE_LOG_NONE;}
+inline int GetConsoleLogLevel()                       {return MUSCLE_LOG_INFO;}
+inline int GetMaxLogLevel()                           {return MUSCLE_LOG_INFO;}
 inline status_t SetFileLogLevel(int)                  {return B_NO_ERROR;}
 inline status_t SetFileLogName(const String &)        {return B_NO_ERROR;}
 inline status_t SetFileLogMaximumSize(uint32)         {return B_NO_ERROR;}
@@ -123,6 +131,7 @@ inline status_t SetFileLogCompressionEnabled(bool)    {return B_NO_ERROR;}
 inline status_t SetConsoleLogLevel(int)               {return B_NO_ERROR;}
 inline status_t SetConsoleLogToStderr(bool)           {return B_NO_ERROR;}
 inline void CloseCurrentLogFile()                     {/* empty */}
+
 #else
 
 /** Returns the MUSCLE_LOG_* equivalent of the given keyword string
@@ -166,10 +175,23 @@ bool GetFileLogCompressionEnabled();
  */
 int GetConsoleLogLevel();
 
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+extern int _maxLogThreshold;               // implementation detail: don't access this directly, call GetMaxLogLevel() instead!
+#else
+extern std::atomic<int> _maxLogThreshold;  // implementation detail: don't access this directly, call GetMaxLogLevel() instead!
+#endif
+
 /** Returns the max of GetFileLogLevel() and GetConsoleLogLevel()
  *  @return a MUSCLE_LOG_* value
  */
-int GetMaxLogLevel();
+static inline int GetMaxLogLevel()
+{
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   return _maxLogThreshold;  // I guess we'll take our chances here
+#else
+   return _maxLogThreshold.load();
+#endif
+}
 
 /** Sets the log filter level for logging to a file.
  *  Any calls to Log*() that specify a log level greater than (loglevel)
@@ -240,13 +262,20 @@ status_t SetConsoleLogLevel(int loglevel);
   */
 status_t SetConsoleLogToStderr(bool toStderr);
 
-/** Same semantics as printf, only outputs to the log file/console instead
- *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.
+/** LogPlain() works the same as LogTime(), except LogPlain() doesn't emit a time/date/severity preamble before
+ *  the caller-specified text.
+ *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.  This call will generate
+ *                  log text only if (logLevel) is less than or equal to the value returned by GetMaxLogLevel().
  *  @param fmt A printf-style format string (e.g. "hello %s\n").  Note that \n is NOT added for you.
  *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
+ *  @note LogPlain() is implemented as a macro, so the arguments you pass to it will not be evaluated if
+ *        the log-level you specified is not severe enough to pass the log-threshold (as specified by GetMaxLogLevel().
+ *        Therefore you should be careful that the arguments you pass to LogTime() don't have side effects that your
+ *        code depends on for correctness!
  */
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
-status_t Log(int logLevel, const char * fmt, ...);
+status_t LogPlainAux(int logLevel, const char * fmt, ...);
+# define LogPlain(logLevel, ...) ((logLevel <= GetMaxLogLevel()) ? LogPlainAux(logLevel, __VA_ARGS__) : B_NO_ERROR)
 
 /** Calls LogTime() with a critical "MEMORY ALLOCATION FAILURE" Message.
   * Note that you typically wouldn't call this function directly;
@@ -264,19 +293,25 @@ void WarnOutOfMemory(const char * file, int line);
 #endif
 
 #ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
-# define LogTime(logLevel, ...) _LogTime(__FILE__, __FUNCTION__, __LINE__, logLevel, __VA_ARGS__)
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(5,6)
-status_t _LogTime(const char * sourceFile, const char * optSourceFunction, int line, int logLevel, const char * fmt, ...);
+status_t LogTimeAux(const char * sourceFile, const char * optSourceFunction, int line, int logLevel, const char * fmt, ...);
+# define LogTime(logLevel, ...) ((logLevel <= GetMaxLogLevel()) ? LogTimeAux(__FILE__, __FUNCTION__, __LINE__, logLevel, __VA_ARGS__) : B_NO_ERROR)
 #else
 
-/** Formatted.  Automagically prepends a timestamp and status string to your string.
- *  e.g. LogTime(MUSCLE_LOG_INFO, "Hello %s!", "world") would generate "[I 12/18 12:11:49] Hello world!"
- *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.
+/** MUSCLE's primary function for logging.  Automagically prepends a timestamp and status string to the caller-specified text.
+ *  e.g. LogTime(MUSCLE_LOG_INFO, "Hello %s! I am %i.", "world", 42) would generate "[I 12/18 12:11:49] Hello world! I am 42."
+ *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.  This call will generate
+ *                  log text only if (logLevel) is less than or equal to the value returned by GetMaxLogLevel().
  *  @param fmt A printf-style format string (e.g. "hello %s\n").  Note that \n is NOT added for you.
  *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
+ *  @note LogTime() is implemented as a macro, so the arguments you pass to it will not be evaluated if
+ *        the log-level you specified is not severe enough to pass the log-threshold (as specified by GetMaxLogLevel().
+ *        Therefore you should be careful that the arguments you pass to LogTime() don't have side effects that your
+ *        code depends on for correctness!
  */
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
-status_t LogTime(int logLevel, const char * fmt, ...);
+status_t LogTimeAux(int logLevel, const char * fmt, ...);
+# define LogTime(logLevel, ...) ((logLevel <= GetMaxLogLevel()) ? LogTimeAux(logLevel, __VA_ARGS__) : B_NO_ERROR)
 
 #endif
 
@@ -352,6 +387,8 @@ const char * GetLogLevelKeyword(int logLevel);
  */
 void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & lca);
 
+#endif
+
 /** Given a source location (e.g. as provided by the information in a LogCallbackArgs object),
   * returns a corresponding uint32 that represents a hash of that location.
   * The source code location can be later looked up by feeding this hash value
@@ -373,8 +410,6 @@ String SourceCodeLocationKeyToString(uint32 key);
   * @param s the source-code-location-key, represented as a human-readable string.
   */
 uint32 SourceCodeLocationKeyFromString(const String & s);
-
-#endif
 
 /** This class represents all the fields necessary to present a human with a human-readable time/date stamp.  Objects of this class are typically populated by the GetHumanReadableTimeValues() function, below. */
 class HumanReadableTimeValues MUSCLE_FINAL_CLASS

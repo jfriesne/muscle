@@ -85,11 +85,11 @@ static void LogBytes(const uint8 * buf, uint32 numBytes, const char * optDesc)
                LogTime(MUSCLE_LOG_INFO, "| ");
                atFront = false;
             }
-            Log(MUSCLE_LOG_INFO, "%c", buf[i]);
+            LogPlain(MUSCLE_LOG_INFO, "%c", buf[i]);
             if (buf[i] == '\n') atFront = true;
          }
          if (atFront) LogTime(MUSCLE_LOG_INFO, "| ");
-         Log(MUSCLE_LOG_INFO, "\n");
+         LogPlain(MUSCLE_LOG_INFO, "\n");
       }
       else for (uint32 i=0; i<numBytes; i++) putchar(buf[i]);
       if (_printChecksums) LogChecksum(buf, numBytes);
@@ -400,30 +400,30 @@ static void LogUsage(const char * argv0)
    String progName = String(argv0).Substring(GetFilePathSeparator());
 
 #ifdef BUILD_MUSCLE_IN_MEYER_CONTEXT
-   Log(MUSCLE_LOG_INFO, "%s (%s)\n\n", progName(), mslicommon::GetCoreReleaseVersionTitle(progName(), mslicommon::GetLocalCoreReleaseVersion(), true)());
+   LogPlain(MUSCLE_LOG_INFO, "%s (%s)\n\n", progName(), mslicommon::GetCoreReleaseVersionTitle(progName(), mslicommon::GetLocalCoreReleaseVersion(), true)());
 #else
-   Log(MUSCLE_LOG_INFO, "%s (compiled from MUSCLE v%s)\n\n", progName(), MUSCLE_VERSION_STRING);
+   LogPlain(MUSCLE_LOG_INFO, "%s (compiled from MUSCLE v%s)\n\n", progName(), MUSCLE_VERSION_STRING);
 #endif
-   Log(MUSCLE_LOG_INFO, "Usage:  hexterm tcp=<port>               (listen for incoming TCP connections on the given port)\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm tcp=<host>:<port>        (make an outgoing TCP connection to the given host/port)\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm udp=<host>:<port>[_port] (send outgoing UDP packets to the given host/port (optionally binding to _port))\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm udp=<port>               (listen for incoming UDP packets on the given port)\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm serial=<devname>:<baud>  (send/receive via a serial device, e.g. /dev/ttyS0)\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm child=<prog_and_args>    (send/receive via a child process, e.g. 'ls -l')\n");
+   LogPlain(MUSCLE_LOG_INFO, "Usage:  hexterm tcp=<port>               (listen for incoming TCP connections on the given port)\n");
+   LogPlain(MUSCLE_LOG_INFO, "   or:  hexterm tcp=<host>:<port>        (make an outgoing TCP connection to the given host/port)\n");
+   LogPlain(MUSCLE_LOG_INFO, "   or:  hexterm udp=<host>:<port>[_port] (send outgoing UDP packets to the given host/port (optionally binding to _port))\n");
+   LogPlain(MUSCLE_LOG_INFO, "   or:  hexterm udp=<port>               (listen for incoming UDP packets on the given port)\n");
+   LogPlain(MUSCLE_LOG_INFO, "   or:  hexterm serial=<devname>:<baud>  (send/receive via a serial device, e.g. /dev/ttyS0)\n");
+   LogPlain(MUSCLE_LOG_INFO, "   or:  hexterm child=<prog_and_args>    (send/receive via a child process, e.g. 'ls -l')\n");
 #ifndef SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm rfile=<filename>         (read input bytes from a file)\n");
-   Log(MUSCLE_LOG_INFO, "   or:  hexterm wfile=<filename>         (write output bytes to a file)\n");
+   LogPlain(MUSCLE_LOG_INFO, "   or:  hexterm rfile=<filename>         (read input bytes from a file)\n");
+   LogPlain(MUSCLE_LOG_INFO, "   or:  hexterm wfile=<filename>         (write output bytes to a file)\n");
 #endif
-   Log(MUSCLE_LOG_INFO, "  Additional optional args include:\n");
-   Log(MUSCLE_LOG_INFO, "                ascii                    (print and parse bytes as ASCII rather than hexadecimal)\n");
-   Log(MUSCLE_LOG_INFO, "                plain                    (Suppress decorative elements in hexterm's output)\n");
-   Log(MUSCLE_LOG_INFO, "                zlib                     (Enable zlib-deflation/inflation layer on hexterm's I/O)\n");
-   Log(MUSCLE_LOG_INFO, "                gzip                     (Enable gzip-compatible deflation/inflation layer on hexterm's I/O)\n");
-   Log(MUSCLE_LOG_INFO, "                quietreceive             (Suppress the printing out of incoming data bytes)\n");
-   Log(MUSCLE_LOG_INFO, "                spamrate=<Hz>            (Specify number of automatic-spam-transmissions to send per second)\n");
-   Log(MUSCLE_LOG_INFO, "                spamsize=<bytes>         (Specify size of each automatic-spam-transmission; defaults to 1024)\n");
-   Log(MUSCLE_LOG_INFO, "                printchecksums           (print checksums for incoming and sent data)\n");
-   Log(MUSCLE_LOG_INFO, "                help                     (print this help text)\n");
+   LogPlain(MUSCLE_LOG_INFO, "  Additional optional args include:\n");
+   LogPlain(MUSCLE_LOG_INFO, "                ascii                    (print and parse bytes as ASCII rather than hexadecimal)\n");
+   LogPlain(MUSCLE_LOG_INFO, "                plain                    (Suppress decorative elements in hexterm's output)\n");
+   LogPlain(MUSCLE_LOG_INFO, "                zlib                     (Enable zlib-deflation/inflation layer on hexterm's I/O)\n");
+   LogPlain(MUSCLE_LOG_INFO, "                gzip                     (Enable gzip-compatible deflation/inflation layer on hexterm's I/O)\n");
+   LogPlain(MUSCLE_LOG_INFO, "                quietreceive             (Suppress the printing out of incoming data bytes)\n");
+   LogPlain(MUSCLE_LOG_INFO, "                spamrate=<Hz>            (Specify number of automatic-spam-transmissions to send per second)\n");
+   LogPlain(MUSCLE_LOG_INFO, "                spamsize=<bytes>         (Specify size of each automatic-spam-transmission; defaults to 1024)\n");
+   LogPlain(MUSCLE_LOG_INFO, "                printchecksums           (print checksums for incoming and sent data)\n");
+   LogPlain(MUSCLE_LOG_INFO, "                help                     (print this help text)\n");
 }
 
 // Secondary entry point, used when embedding hexterm in a unified daemon

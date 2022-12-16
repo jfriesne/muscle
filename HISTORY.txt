@@ -20,6 +20,9 @@ key:  - new feature
      field and SetReceiveTimestampingEnabled() and
      GetReceiveTimestampingEnabled() methods) to the
      RawDataMessageIOGateway class.
+   - Added SetLogLevelThreshold() and GetLogLevelThreshold() arguments
+     to the LogCallback class so that any LogCallback can now specify
+     what log-levels it is (or is not) interested in.
    o SocketMultiplexer::WaitForEvents() now returns an io_status_t
      rather than an int, for better error-reporting.
    o Merged the IPv6 and IPv4 versions of AddSocketToMulticastGroup()
@@ -30,9 +33,18 @@ key:  - new feature
      SetIPv4SocketMulticastSendInterfaceAddress() and
      GetIPv4SocketMulticastSendInterfaceAddress(), respectively,
      and made them available even when -DMUSCLE_AVOID_IPV6 isn't set.
+   o Renamed Log() to LogPlain().
+   o Made LogTime() and LogPlain() into macros so that their arguments
+     will not be evaluated unless the logging-threshold-test passes.
    o Improved error reporting in the ReflectServer event-loop.
    o Removed the functions from TimeUnitConversions.h that take
      (struct timeval &) as their argument, since they weren't being used.
+   o Removed SetConsoleLogLevel() and GetConsoleLogLevel() from the
+     DefaultConsoleLogger class, in favor of the new equivalent methods
+     in the LogCallback base class.
+   o Removed SetFileLogLevel() and GetFileLogLevel() from the
+     DefaultFileLogger class, in favor of the new equivalent methods
+     in the LogCallback base class.
    * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.
    * ExpandLocalhostAddress() no longer expands IPv6 loopback addresses.
    * UDPSocketDataIO::ReadFrom() would call SetSourceOfLastReadPacket()

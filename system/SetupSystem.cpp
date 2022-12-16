@@ -1739,10 +1739,10 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
    {
       // A simple, single-line format
       if (optDesc) LogTime(logLevel, "%s: ", optDesc);
-      Log(logLevel, "[");
-      if (buf) for (uint32 i=0; i<numBytes; i++) Log(logLevel, "%s%02x", (i==0)?"":" ", buf[i]);
-          else Log(logLevel, "NULL buffer");
-      Log(logLevel, "]\n");
+      LogPlain(logLevel, "[");
+      if (buf) for (uint32 i=0; i<numBytes; i++) LogPlain(logLevel, "%s%02x", (i==0)?"":" ", buf[i]);
+          else LogPlain(logLevel, "NULL buffer");
+      LogPlain(logLevel, "]\n");
    }
    else
    {
@@ -1753,8 +1753,8 @@ void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * 
 
       const int hexBufSize = (numColumns*8)+1;
       const int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
-      for (int i=0; i<numDashes; i++) Log(logLevel, "-");
-      Log(logLevel, "\n");
+      for (int i=0; i<numDashes; i++) LogPlain(logLevel, "-");
+      LogPlain(logLevel, "\n");
       if (buf)
       {
          char * ascBuf = newnothrow_array(char, numColumns+1);
@@ -1792,21 +1792,21 @@ void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, u
    {
       // A simple, single-line format
       if (optDesc) LogTime(logLevel, "%s: ", optDesc);
-      Log(logLevel, "[");
-      for (uint32 i=0; i<numBytes; i++) Log(logLevel, "%s%02x", (i==0)?"":" ", buf[i]);
-      Log(logLevel, "]\n");
+      LogPlain(logLevel, "[");
+      for (uint32 i=0; i<numBytes; i++) LogPlain(logLevel, "%s%02x", (i==0)?"":" ", buf[i]);
+      LogPlain(logLevel, "]\n");
    }
    else
    {
       // A more useful columnar format with ASCII sidebar
       char headBuf[256];
       muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
-      Log(logLevel, "%s", headBuf);
+      LogPlain(logLevel, "%s", headBuf);
 
       const int hexBufSize = (numColumns*8)+1;
       const int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
-      for (int i=0; i<numDashes; i++) Log(logLevel, "-");
-      Log(logLevel, "\n");
+      for (int i=0; i<numDashes; i++) LogPlain(logLevel, "-");
+      LogPlain(logLevel, "\n");
       char * ascBuf = newnothrow_array(char, numColumns+1);
       char * hexBuf = newnothrow_array(char, hexBufSize);
       if ((ascBuf)&&(hexBuf))

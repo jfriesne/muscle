@@ -176,9 +176,9 @@ int main(int argc, char ** argv)
                         case PR_COMMAND_ADDREQUIRES:    action = "require";   break;
                         case PR_COMMAND_REMOVEREQUIRES: action = "unrequire"; break;
                      }
-                     Log(MUSCLE_LOG_ERROR, "You are not allowed to %s [%s]!", action, who);
+                     LogPlain(MUSCLE_LOG_ERROR, "You are not allowed to %s [%s]!", action, who);
                   }
-                  Log(MUSCLE_LOG_ERROR, "\n");
+                  LogPlain(MUSCLE_LOG_ERROR, "\n");
                }
                break;
             }

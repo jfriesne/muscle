@@ -118,7 +118,7 @@ class LogCallback : public RefCountable
 {
 public:
    /** Default constructor */
-   LogCallback() {/* empty */}
+   LogCallback() : _logLevelThreshold(MUSCLE_LOG_INFO) {/* empty */}
 
    /** Destructor, to keep C++ honest */
    virtual ~LogCallback() {/* empty */}
@@ -133,7 +133,22 @@ public:
      */
    virtual void Flush() = 0;
 
+   /** Sets our current MUSCLE_LOG_* log level threshold to a different value.
+     * @param logLevelThreshold the new MUSCLE_LOG_* log level threshold to use.
+     * @returns B_NO_ERROR on success, or an error value on failure.
+     * Logging calls whose severity-value is greater than this value will not be passed to this callback.
+     */
+   status_t SetLogLevelThreshold(int logLevelThreshold);
+
+   /** Returns our current MUSCLE_LOG_* log level threshold.
+     * Logging calls whose severity-value is greater than this value will not be passed to this callback.
+     * Default value is MUSCLE_LOG_INFO.
+     */
+   int GetLogLevelThreshold() const {return _logLevelThreshold;}
+
 private:
+   int _logLevelThreshold;
+
    DECLARE_COUNTED_OBJECT(LogCallback);
 };
 DECLARE_REFTYPES(LogCallback);
@@ -208,14 +223,6 @@ public:
    virtual void Log(const LogCallbackArgs & a);
    virtual void Flush();
 
-   /** Returns the maximum MUSCLE_LOG_* log level we will log to stdout for.  Default value is MUSCLE_LOG_INFO. */
-   int GetConsoleLogLevel() {return _consoleLogLevel;}
-
-   /** Sets the maximum MUSCLE_LOG_* log level we will log to stdout for.
-     * @param logLevel a MUSCLE_LOG_* value.
-     */
-   void SetConsoleLogLevel(int logLevel) {_consoleLogLevel = logLevel;}
-
    /** Sets whether we should log to stderr instead of stdout.
      * @param toStderr true to log to stderr; false to log to stdout.  (Default is false)
      */
@@ -226,8 +233,6 @@ public:
 
 private:
    FILE * GetConsoleOutputStream() const {return _logToStderr ? stderr : stdout;}
-
-   int _consoleLogLevel;
    bool _logToStderr;
 };
 DECLARE_REFTYPES(DefaultConsoleLogger);
@@ -255,9 +260,6 @@ public:
      * @returns the number of existing files found and added to our files-list.
      */
    uint32 AddPreExistingLogFiles(const String & filePattern);
-
-   /** Returns the threshold MUSCLE_LOG_* level that we will output to the log file.  Default value is MUSCLE_LOG_NONE. */
-   int GetFileLogLevel() const {return _fileLogLevel;}
 
    /** Returns the name of the log file we will output to.  Default is an empty string (i.e. file logging disabled) */
    const String & GetFileLogName() const {return _prototypeLogFileName;}
@@ -291,11 +293,6 @@ public:
      */
    void SetFileCompressionEnabled(bool enable) {_compressionEnabled = enable;}
 
-   /** Set the severity-threshold under which log entries will be added to the log file.
-     * @param logLevel a MUSCLE_LOG_* value.
-     */
-   void SetFileLogLevel(int logLevel) {_fileLogLevel = logLevel;}
-
    /** Forces the closing of any log file that we currently have open. */
    void CloseLogFile();
 
@@ -309,7 +306,6 @@ protected:
 private:
    status_t EnsureLogFileCreated(const LogCallbackArgs & a);
 
-   int _fileLogLevel;
    String _prototypeLogFileName;
    uint32 _maxLogFileSize;
    uint32 _maxNumLogFiles;

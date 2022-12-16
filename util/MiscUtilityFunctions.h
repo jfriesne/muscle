@@ -442,7 +442,7 @@ void PrintHexBytes(const ByteBuffer & bb, const char * optDesc = NULL, uint32 nu
   */
 void PrintHexBytes(const Queue<uint8> & bytes, const char * optDesc = NULL, uint32 numColumns = 16, FILE * optFile = NULL);
 
-/** This function is the same as PrintHexBytes(), but the output is sent to Log() instead of fprintf().
+/** This function is the same as PrintHexBytes(), but the output is sent to LogPlain() instead of fprintf().
   * @param logLevel The MUSCLE_LOG_* value indicating the severity level to log the hex bytes at.
   * @param bytes The bytes to print out.  May be NULL.
   * @param numBytes How many bytes (bytes) points to
@@ -454,7 +454,7 @@ void PrintHexBytes(const Queue<uint8> & bytes, const char * optDesc = NULL, uint
   */
 void LogHexBytes(int logLevel, const void * bytes, uint32 numBytes, const char * optDesc = NULL, uint32 numColumns = 16);
 
-/** This function is the same as PrintHexBytes(), but the output is sent to Log() instead of fprintf().
+/** This function is the same as PrintHexBytes(), but the output is sent to LogPlain() instead of fprintf().
   * @param logLevel The MUSCLE_LOG_* value indicating the severity level to log the hex bytes at.
   * @param bbRef Reference to the ByteBuffer to print out.  May be a NULL reference.
   * @param optDesc if non-NULL, this will be used as a prefix/title string.
@@ -465,7 +465,7 @@ void LogHexBytes(int logLevel, const void * bytes, uint32 numBytes, const char *
   */
 void LogHexBytes(int logLevel, const ConstByteBufferRef & bbRef, const char * optDesc = NULL, uint32 numColumns = 16);
 
-/** This function is the same as PrintHexBytes(), but the output is sent to Log() instead of fprintf().
+/** This function is the same as PrintHexBytes(), but the output is sent to LogPlain() instead of fprintf().
   * @param logLevel The MUSCLE_LOG_* value indicating the severity level to log the hex bytes at.
   * @param bb The ByteBuffer to print out.
   * @param optDesc if non-NULL, this will be used as a prefix/title string.
@@ -476,7 +476,7 @@ void LogHexBytes(int logLevel, const ConstByteBufferRef & bbRef, const char * op
   */
 void LogHexBytes(int logLevel, const ByteBuffer & bb, const char * optDesc = NULL, uint32 numColumns = 16);
 
-/** This function is the same as PrintHexBytes(), but the output is sent to Log() instead of fprintf().
+/** This function is the same as PrintHexBytes(), but the output is sent to LogPlain() instead of fprintf().
   * @param logLevel The MUSCLE_LOG_* value indicating the severity level to log the hex bytes at.
   * @param bytes A Queue of uint8s representing the bytes to print out.
   * @param optDesc if non-NULL, this will be used as a prefix/title string.
