@@ -1534,8 +1534,9 @@ std::atomic<int> _maxLogThreshold(MUSCLE_LOG_INFO);
 #endif
 };
 
-DefaultConsoleLogger :: DefaultConsoleLogger()
-   : _logToStderr(false)
+DefaultConsoleLogger :: DefaultConsoleLogger(int defaultLogThreshold)
+   : LogCallback(defaultLogThreshold)
+   , _logToStderr(false)
 {
     // empty
 }
@@ -1552,8 +1553,9 @@ void DefaultConsoleLogger :: Flush()
    fflush(GetConsoleOutputStream());
 }
 
-DefaultFileLogger :: DefaultFileLogger()
-   : _maxLogFileSize(MUSCLE_NO_LIMIT)
+DefaultFileLogger :: DefaultFileLogger(int defaultLogThreshold)
+   : LogCallback(defaultLogThreshold)
+   , _maxLogFileSize(MUSCLE_NO_LIMIT)
    , _maxNumLogFiles(MUSCLE_NO_LIMIT)
    , _compressionEnabled(false)
    , _logFileOpenAttemptFailed(false)
@@ -1845,7 +1847,7 @@ void LogLineCallback :: Flush()
 static Mutex _logMutex;
 static Hashtable<LogCallbackRef, Void> _logCallbacks;
 static DefaultConsoleLogger _dcl;
-static DefaultFileLogger _dfl;
+static DefaultFileLogger _dfl(MUSCLE_LOG_NONE);  // logging-to-file is disabled by default
 
 status_t LockLog()
 {

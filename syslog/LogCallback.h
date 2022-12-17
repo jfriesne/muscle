@@ -117,8 +117,13 @@ private:
 class LogCallback : public RefCountable
 {
 public:
-   /** Default constructor */
-   LogCallback() : _logLevelThreshold(MUSCLE_LOG_INFO) {/* empty */}
+   /** Constructor
+     * @param defaultLogLevelThreshold the default logging threshold; log levels less severe than
+     *                                 this will not be processed by this LogCallback (unless you
+     *                                 later call SetLogLevelThreshold to change the value)
+     *                                 Defaults to MUSCLE_LOG_INFO.
+     */
+   LogCallback(int defaultLogLevelThreshold = MUSCLE_LOG_INFO) : _logLevelThreshold(defaultLogLevelThreshold) {/* empty */}
 
    /** Destructor, to keep C++ honest */
    virtual ~LogCallback() {/* empty */}
@@ -217,8 +222,13 @@ status_t ClearLogCallbacks();
 class DefaultConsoleLogger : public LogCallback
 {
 public:
-   /** Default constructor */
-   DefaultConsoleLogger();
+   /** Constructor
+     * @param defaultLogLevelThreshold the default logging threshold; log levels less severe than
+     *                                 this will not be processed by this LogCallback (unless you
+     *                                 later call SetLogLevelThreshold to change the value)
+     *                                 Defaults to MUSCLE_LOG_INFO.
+     */
+   DefaultConsoleLogger(int defaultLogThreshold = MUSCLE_LOG_INFO);
 
    virtual void Log(const LogCallbackArgs & a);
    virtual void Flush();
@@ -245,8 +255,13 @@ DECLARE_REFTYPES(DefaultConsoleLogger);
 class DefaultFileLogger : public LogCallback
 {
 public:
-   /** Default constructor */
-   DefaultFileLogger();
+   /** Constructor
+     * @param defaultLogLevelThreshold the default logging threshold; log levels less severe than
+     *                                 this will not be processed by this LogCallback (unless you
+     *                                 later call SetLogLevelThreshold to change the value)
+     *                                 Defaults to MUSCLE_LOG_INFO.
+     */
+   DefaultFileLogger(int defaultLogThreshold = MUSCLE_LOG_INFO);
 
    virtual ~DefaultFileLogger();
 
