@@ -795,7 +795,7 @@ static_assert(sizeof(double) == 8, "sizeof(double) != 8");
 #  define  INT64_FORMAT_SPEC_NOPERCENT PRIi64 /**< format-specifier string to pass in to printf() for a  int64, without the percent sign */
 #  define UINT64_FORMAT_SPEC_NOPERCENT PRIu64 /**< format-specifier string to pass in to printf() for a uint64, without the percent sign */
 #  define XINT64_FORMAT_SPEC_NOPERCENT PRIx64 /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, without the percent sign */
-#endif
+#endif  // !MUSCLE_AVOID_STDINT
 
 #define  INT16_FORMAT_SPEC "%"  INT16_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int16, including the percent sign */
 #define UINT16_FORMAT_SPEC "%" UINT16_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint16, including the percent sign */
@@ -845,6 +845,8 @@ enum {
 #define MUSCLE_NO_LIMIT ((uint32)-1)
 
 #ifdef __cplusplus
+
+namespace muscle {
 
 /** A handy little method to swap the bytes of any int-style datatype around */
 template<typename T> inline T muscleSwapBytes(T swapMe)
@@ -984,62 +986,65 @@ template<typename T> inline void muscleSwap(T & t1, T & t2)
 # ifndef DOXYGEN_SHOULD_IGNORE_THIS
 namespace muscle_private
 {
-   // This code was adapted from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
-   // It is used by the muscleSwap() function (below) to automatically call SwapContents() if such a method
-   // is available, otherwise muscleSwap() will use a naive copy-to-temporary-object technique.
-
-   typedef char yes;
-   typedef char (&no)[2];
-   template <typename T, void (T::*f)(T&)> struct test_swapcontents_wrapper {};
-
-   // via SFINAE only one of these overloads will be considered
-   template <typename T> yes swapcontents_tester(test_swapcontents_wrapper<T, &T::SwapContents>*);
-   template <typename T> no  swapcontents_tester(...);
-
-   template <typename T> struct test_swapcontents_impl {static const bool value = sizeof(swapcontents_tester<T>(0)) == sizeof(yes);};
-
-   template <class T> struct has_swapcontents_method : test_swapcontents_impl<T> {};
-   template <bool Condition, typename TrueResult, typename FalseResult> struct if_;
-   template <typename TrueResult, typename FalseResult> struct if_<true,  TrueResult, FalseResult> {typedef TrueResult  result;};
-   template <typename TrueResult, typename FalseResult> struct if_<false, TrueResult, FalseResult> {typedef FalseResult result;};
-
-   template<typename T> class PODSwapper
+   namespace autochoose_swapper
    {
-   public:
-      PODSwapper(T & t1, T & t2)
+      // This code was adapted from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
+      // It is used by the muscleSwap() function (below) to automatically call SwapContents() if such a method
+      // is available, otherwise muscleSwap() will use a naive copy-to-temporary-object technique.
+
+      typedef char yes;
+      typedef char (&no)[2];
+      template <typename T, void (T::*f)(T&)> struct test_swapcontents_wrapper {};
+
+      // via SFINAE only one of these overloads will be considered
+      template <typename T> yes swapcontents_tester(test_swapcontents_wrapper<T, &T::SwapContents>*);
+      template <typename T> no  swapcontents_tester(...);
+
+      template <typename T> struct test_swapcontents_impl {static const bool value = sizeof(swapcontents_tester<T>(0)) == sizeof(yes);};
+
+      template <class T> struct has_swapcontents_method : test_swapcontents_impl<T> {};
+      template <bool Condition, typename TrueResult, typename FalseResult> struct if_;
+      template <typename TrueResult, typename FalseResult> struct if_<true,  TrueResult, FalseResult> {typedef TrueResult  result;};
+      template <typename TrueResult, typename FalseResult> struct if_<false, TrueResult, FalseResult> {typedef FalseResult result;};
+
+      template<typename T> class PODSwapper
       {
-         if (&t1 != &t2)
+      public:
+         PODSwapper(T & t1, T & t2)
          {
+            if (&t1 != &t2)
+            {
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
-            T tmp = t1;
-            t1 = t2;
-            t2 = tmp;
+               T tmp = t1;
+               t1 = t2;
+               t2 = tmp;
 #else
-            std::swap(t1, t2);
+               std::swap(t1, t2);
 #endif
+            }
          }
-      }
-   };
+      };
 
-   template<typename T> class SwapContentsSwapper
-   {
-   public:
-      SwapContentsSwapper(T & t1, T & t2) {if (&t1 != &t2) t1.SwapContents(t2);}
-   };
+      template<typename T> class SwapContentsSwapper
+      {
+      public:
+         SwapContentsSwapper(T & t1, T & t2) {if (&t1 != &t2) t1.SwapContents(t2);}
+      };
 
-   template<typename ItemType> class AutoChooseSwapperHelper
-   {
-   public:
-      typedef typename if_<test_swapcontents_impl<ItemType>::value, SwapContentsSwapper<ItemType>, PODSwapper<ItemType> >::result Type;
-   };
-}
+      template<typename ItemType> class AutoChooseSwapperHelper
+      {
+      public:
+         typedef typename if_<test_swapcontents_impl<ItemType>::value, SwapContentsSwapper<ItemType>, PODSwapper<ItemType> >::result Type;
+      };
+   }  // end namespace autochoose_swapper
+}  // end namespace muscle_private
 # endif
 
 /** Swaps the two arguments.
   * @param t1 First item to swap.  After this method returns, it will be equal to the old value of t2.
   * @param t2 Second item to swap.  After this method returns, it will be equal to the old value of t1.
   */
-template<typename T> inline void muscleSwap(T & t1, T & t2) {typename muscle_private::AutoChooseSwapperHelper<T>::Type swapper(t1,t2);}
+template<typename T> inline void muscleSwap(T & t1, T & t2) {typename muscle_private::autochoose_swapper::AutoChooseSwapperHelper<T>::Type swapper(t1,t2);}
 
 #endif
 
@@ -1100,6 +1105,8 @@ inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return (f>=0.0f) ? ((int)(f+0.
 /** Returns -1 if the value is less than zero, +1 if it is greater than zero, or 0 otherwise. */
 template<typename T> inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
 
+};  // end namespace muscle
+
 #endif  /* __cplusplus */
 
 #if defined(__cplusplus)
@@ -1120,6 +1127,8 @@ static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * f
 # define muscleStrcpy   strcpy    /**< On Windows, this expands to strcpy_s to avoid security warnings; on other OS's it expands to plain old strcpy */
 # define muscleFopen    fopen     /**< On Windows, this expands to fopen_s to avoid security warnings; on other OS's it expands to plain old fopen */
 
+namespace muscle {
+
 /** A safer implementation of sprintf().
   * @param buf The buffer to write characters into
   * @param format the printf-style format-string to use when writing characters into (buf)
@@ -1135,11 +1144,18 @@ inline int muscleSprintf(char (&buf)[size], const char * format, ...)
    va_end(args);
    return muscleMin(ret, (int)(size-1));
 }
+
+};  // end namespace muscle
+
 # endif
-#else
+#else  // begin !defined(__cplusplus)
 # define muscleStrcpy   strcpy    /**< On Windows, this expands to strcpy_s to avoid security warnings; on other OS's it expands to plain old strcpy */
 # define muscleFopen    fopen     /**< On Windows, this expands to fopen_s to avoid security warnings; on other OS's it expands to plain old fopen */
 # define muscleSprintf  sprintf
+#endif  // end !defined(__cplusplus)
+
+#ifdef __cplusplus
+namespace muscle {
 #endif
 
 /** Same as strncpy(), except this version ensures that the destination buffer is NUL-terminated in all cases.
@@ -1183,6 +1199,10 @@ static inline int muscleSnprintf(char * buf, size_t bufLen, const char * format,
 }
 #else
 # define muscleSnprintf snprintf /**< On new Windows and non-Windows platforms, muscleSnprintf() is just a synonym for snprintf() */
+#endif
+
+#ifdef __cplusplus
+}; // end namespace muscle
 #endif
 
 /*
@@ -1712,6 +1732,7 @@ static inline const volatile uint32 * GetTraceValues() {return _muscleTraceValue
 #endif
 
 #else
+
 /* no-op implementations for when we aren't using the trace facility */
 static inline void SetTraceValuesLocation(volatile uint32 * location) {(void) location;}  /* named param is necessary for C compatibility */
 static inline void StoreTraceValue(uint32 v) {(void) v;}  /* named param is necessary for C compatibility */
@@ -1724,7 +1745,7 @@ static inline void StoreTraceValue(uint32 v) {(void) v;}  /* named param is nece
   * @note This function will be a no-op unless MUSCLE_TRACE_CHECKPOINTS is defined to be greater than zero.
   */
 #define TCHECKPOINT {/* empty */}
-#endif
+#endif   // end !MUSCLE_TRACE_CHECKPOINTS
 
 #ifdef __cplusplus
 
@@ -1887,36 +1908,39 @@ public:
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
 namespace muscle_private
 {
-   // This code was adapted from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
-   // It is used by the AutoChooseHashFunctorHelper (below) to automatically choose the appropriate HashFunctor
-   // type based on whether or not class given in the template argument has a "uint32 HashCode() const" method defined.
+   namespace autochoose_hash_functor
+   {
+      // This code was adapted from the example code at http://www.martinecker.com/wiki/index.php?title=Detecting_the_Existence_of_Member_Functions_at_Compile-Time
+      // It is used by the AutoChooseHashFunctorHelper (below) to automatically choose the appropriate HashFunctor
+      // type based on whether or not class given in the template argument has a "uint32 HashCode() const" method defined.
 
-   typedef char yes;
-   typedef char (&no)[2];
-   template <typename T, uint32 (T::*f)() const> struct test_hashcode_wrapper {};
+      typedef char yes;
+      typedef char (&no)[2];
+      template <typename T, uint32 (T::*f)() const> struct test_hashcode_wrapper {};
 
-   // via SFINAE only one of these overloads will be considered
-   template <typename T> yes hashcode_tester(test_hashcode_wrapper<T, &T::HashCode>*);
-   template <typename T> no  hashcode_tester(...);
+      // via SFINAE only one of these overloads will be considered
+      template <typename T> yes hashcode_tester(test_hashcode_wrapper<T, &T::HashCode>*);
+      template <typename T> no  hashcode_tester(...);
 
-   template <typename T> struct test_hashcode_impl {static const bool value = sizeof(hashcode_tester<T>(0)) == sizeof(yes);};
+      template <typename T> struct test_hashcode_impl {static const bool value = sizeof(hashcode_tester<T>(0)) == sizeof(yes);};
 
-   template <class T> struct has_hashcode_method : test_hashcode_impl<T> {};
-   template <bool Condition, typename TrueResult, typename FalseResult> struct if_;
-   template <typename TrueResult, typename FalseResult> struct if_<true,  TrueResult, FalseResult> {typedef TrueResult  result;};
-   template <typename TrueResult, typename FalseResult> struct if_<false, TrueResult, FalseResult> {typedef FalseResult result;};
-}
+      template <class T> struct has_hashcode_method : test_hashcode_impl<T> {};
+      template <bool Condition, typename TrueResult, typename FalseResult> struct if_;
+      template <typename TrueResult, typename FalseResult> struct if_<true,  TrueResult, FalseResult> {typedef TrueResult  result;};
+      template <typename TrueResult, typename FalseResult> struct if_<false, TrueResult, FalseResult> {typedef FalseResult result;};
+   }  // end namespace autochoose_hash_functor
+}  // end namespace muscle_private
 #endif
 
 template<typename ItemType> class AutoChooseHashFunctorHelper
 {
 public:
-   typedef typename muscle_private::if_<muscle_private::test_hashcode_impl<ItemType>::value, MethodHashFunctor<ItemType>, PODHashFunctor<ItemType> >::result Type;
+   typedef typename muscle_private::autochoose_hash_functor::if_<muscle_private::autochoose_hash_functor::test_hashcode_impl<ItemType>::value, MethodHashFunctor<ItemType>, PODHashFunctor<ItemType> >::result Type;
 };
 template <typename ItemType> class AutoChooseHashFunctorHelper<ItemType *>
 {
 public:
-   typedef typename muscle_private::if_<muscle_private::test_hashcode_impl<ItemType>::value, MethodHashFunctor<ItemType *>, PODHashFunctor<ItemType *> >::result Type;
+   typedef typename muscle_private::autochoose_hash_functor::if_<muscle_private::autochoose_hash_functor::test_hashcode_impl<ItemType>::value, MethodHashFunctor<ItemType *>, PODHashFunctor<ItemType *> >::result Type;
 };
 
 /** This HashFunctor lets us use (const char *)'s as keys in a Hashtable.  They will be

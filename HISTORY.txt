@@ -50,6 +50,8 @@ key:  - new feature
    * ExpandLocalhostAddress() no longer expands IPv6 loopback addresses.
    * UDPSocketDataIO::ReadFrom() would call SetSourceOfLastReadPacket()
      even when no packet had been read, clearing that field.  Fixed.
+   * Some functions in MuscleSupport.h were unintentionally being
+     declared outside the muscle namespace.  Fixed.
 
 9.10 - Released 12/10/2022
    - Rewrote the non-Windows implementation of muscleSprintf()

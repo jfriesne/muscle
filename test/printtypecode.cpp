@@ -4,6 +4,8 @@
 
 #include "support/MuscleSupport.h"
 
+using namespace muscle;
+
 // Just a silly program to print the alphabetical equivalent
 // of the passed in integer value.
 int main(int argc, char ** argv)

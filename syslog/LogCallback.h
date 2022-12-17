@@ -120,7 +120,7 @@ public:
    /** Constructor
      * @param defaultLogLevelThreshold the default logging threshold; log levels less severe than
      *                                 this will not be processed by this LogCallback (unless you
-     *                                 later call SetLogLevelThreshold to change the value)
+     *                                 later call SetLogLevelThreshold() to change the value)
      *                                 Defaults to MUSCLE_LOG_INFO.
      */
    LogCallback(int defaultLogLevelThreshold = MUSCLE_LOG_INFO) : _logLevelThreshold(defaultLogLevelThreshold) {/* empty */}
@@ -225,10 +225,10 @@ public:
    /** Constructor
      * @param defaultLogLevelThreshold the default logging threshold; log levels less severe than
      *                                 this will not be processed by this LogCallback (unless you
-     *                                 later call SetLogLevelThreshold to change the value)
+     *                                 later call SetLogLevelThreshold() to change the value)
      *                                 Defaults to MUSCLE_LOG_INFO.
      */
-   DefaultConsoleLogger(int defaultLogThreshold = MUSCLE_LOG_INFO);
+   DefaultConsoleLogger(int defaultLogLevelThreshold = MUSCLE_LOG_INFO);
 
    virtual void Log(const LogCallbackArgs & a);
    virtual void Flush();
@@ -258,10 +258,10 @@ public:
    /** Constructor
      * @param defaultLogLevelThreshold the default logging threshold; log levels less severe than
      *                                 this will not be processed by this LogCallback (unless you
-     *                                 later call SetLogLevelThreshold to change the value)
+     *                                 later call SetLogLevelThreshold() to change the value)
      *                                 Defaults to MUSCLE_LOG_INFO.
      */
-   DefaultFileLogger(int defaultLogThreshold = MUSCLE_LOG_INFO);
+   DefaultFileLogger(int defaultLogLevelThreshold = MUSCLE_LOG_INFO);
 
    virtual ~DefaultFileLogger();
 
