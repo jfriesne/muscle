@@ -1665,7 +1665,7 @@ static inline int PreviousOperationHadTransientFailure()
   * @param blocking True iff the socket/file descriptor is in blocking I/O mode.  (Type is int for C compatibility -- it's really a boolean parameter)
   * @returns The system call's return value equivalent in MUSCLE return value semantics.
   */
-static inline int32 ConvertReturnValueToMuscleSemantics(long origRet, uint32 maxSize, int blocking)
+static inline int32 ConvertReturnValueToMuscleSemantics(int32 origRet, uint32 maxSize, int blocking)
 {
    int32 retForBlocking = ((origRet > 0)||(maxSize == 0)) ? (int32)origRet : -1;
    return blocking ? retForBlocking : ((origRet<0)&&((PreviousOperationWouldBlock())||(PreviousOperationHadTransientFailure()))) ? 0 : retForBlocking;

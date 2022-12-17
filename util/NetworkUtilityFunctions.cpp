@@ -19,7 +19,6 @@
 
 #ifdef WIN32
 typedef char sockopt_arg;  // Windows setsockopt()/getsockopt() use char pointers
-typedef SSIZE_T ssize_t;   // apparently ssize_t is a POSIX thing while Windows prefers shouty syntax
 # include <iphlpapi.h>
 # include <mswsock.h>  // for SIO_UDP_CONNRESET, etc
 # include <ws2tcpip.h>
@@ -406,7 +405,7 @@ io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 si
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   ssize_t r = -1;
+   int32 r = -1;
    if ((optFromIP)||(optFromPort))
    {
       switch(sock.GetSocketFamily())
@@ -478,7 +477,7 @@ static io_status_t SendDataUDPIPv4(const ConstSocketRef & sock, const void * buf
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   ssize_t s;
+   int32 s;
    if ((optToPort)||(optToIP != invalidIP))
    {
       DECLARE_SOCKADDR_IPV4(toAddr, NULL, 0);
@@ -524,7 +523,7 @@ static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buf
    int oldInterfaceIndex = -1;  // and remember to set it back afterwards
 #endif
 
-   ssize_t s;
+   int32 s;
    if ((optToPort)||(optToIP != invalidIP))
    {
       DECLARE_SOCKADDR_IPV6(toAddr, NULL, 0);
