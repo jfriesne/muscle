@@ -162,7 +162,7 @@ public:
    status_t SetNumBytes(uint32 newNumBytes, bool retainData);
 
    /** If we contain any extra bytes that are not being used to hold actual data (i.e. if GetNumAllocatedBytes()
-    *  is returning a valud greater than GetNumBytes(), this method can be called to free up the unused bytes.
+    *  is returning a value greater than GetNumBytes(), this method can be called to free up the unused bytes.
     *  This method calls muscleRealloc(), so it should be quite efficient.  After this method returns successfully,
     *  the number of allocated bytes will be equal to the number of used bytes.
     *  @returns B_NO_ERROR on success or B_OUT_OF_MEMORY (although I can't imagine why muscleRealloc() would ever fail)
@@ -174,7 +174,7 @@ public:
      * @returns a pointer to our data bytes.  It becomes the responsibility of the caller to muscleFree() this buffer
      *          when he is done with it!
      */
-   const uint8 * ReleaseBuffer() {const uint8 * ret = _buffer; _buffer = NULL; _numValidBytes = _numAllocatedBytes = 0; return ret;}
+   uint8 * ReleaseBuffer() {uint8 * ret = _buffer; _buffer = NULL; _numValidBytes = _numAllocatedBytes = 0; return ret;}
 
    /** Swaps our contents with those of the specified ByteBuffer.  This is an efficient O(1) operation.
      * @param swapWith ByteBuffer to swap contents with.
