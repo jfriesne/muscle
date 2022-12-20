@@ -167,7 +167,24 @@ ByteBuffer operator+(const ByteBuffer & lhs, const ByteBuffer & rhs)
    return ret;
 }
 
-static ByteBufferRef::ItemPool _bufferPool;
+class ByteBufferPool : public ObjectPool<ByteBuffer>
+{
+public:
+   ByteBufferPool() {/* empty */}
+
+   virtual void RecycleObject(void * obj)
+   {
+      ByteBuffer * bb = (ByteBuffer *)obj;
+      if (bb)
+      {
+         bb->Clear(true);
+         bb->SetMemoryAllocationStrategy(NULL);  // we didn't set a strategy, so if a strategy was set by the calling code, we assume it was meant to be temporary
+      }
+      ObjectPool<ByteBuffer>::RecycleObject(obj);
+   }
+};
+
+static ByteBufferPool _bufferPool;
 ByteBufferRef::ItemPool * GetByteBufferPool() {return &_bufferPool;}
 const ByteBuffer & GetEmptyByteBuffer() {return _bufferPool.GetDefaultObject();}
 
