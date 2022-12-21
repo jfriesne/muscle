@@ -45,7 +45,7 @@ status_t WriteZipFile(const char * fileName, const Message & msg, int compressio
 
 /** Given a DataIO object to read from (often a FileDataIO for a .zip file on disk),
   * reads the file and creates and returns an equivalent Message object.  Each contained
-  * file in the .zip file will appear in the Message object as a B_RAW_DATA field
+  * file in the .zip file will appear in the Message object as a B_RAW_TYPE field
   * (or a B_INT64_TYPE field, if you specified (loadData) to be false), and each directory
   * in the .zip file will appear in the Message object as a Message field.
   * @param readFrom DataIO to read the .zip file data from.

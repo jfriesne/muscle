@@ -35,7 +35,7 @@ public:
    virtual void Flatten(DataFlattener flat) const = 0;
 
    /** @copydoc DoxyTemplate::AllowsTypeCode(uint32) const
-     * @note base class's default implementation returns true iff (tc) equals either B_RAW_DATA, or the value returned by TypeCode().
+     * @note base class's default implementation returns true iff (tc) equals either B_RAW_TYPE, or the value returned by TypeCode().
      */
    virtual bool AllowsTypeCode(uint32 tc) const {return ((tc == B_RAW_TYPE)||(tc == TypeCode()));}
 
