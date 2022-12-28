@@ -7,7 +7,7 @@ key:  - new feature
 
    - Updated NetworkUtilityFunctions.cpp to better support "real"
      IPv4 sockets (previously it assumed that IPv4 traffic would
-     be handled using IPv6 sockets and IPv4-mapped IPv6 address,
+     be handled using IPv6 sockets and IPv4-mapped IPv6 addresses,
      but that approach doesn't give 100% compatibility in all cases)
    - Added a GetSocketFamily() method to the Socket class.
    - Added an optional (socketFamily) argument to CreateUDPSocket().
@@ -27,6 +27,10 @@ key:  - new feature
      that take any type of Ref as an argument, so calling code no longer
      has to pass in a generic RefCountableRef or FlatCountableRef and then
      do the necessary downcasting separately afterward.
+   - Added templated overloads of Message::AddFlat(), PrependFlat(),
+     ReplaceFlat(), AddTag(), PrependTag(), and ReplaceTag() so that
+     the calling code no longer has to do manual upcasting of typed
+     FlatCountableRef or RefCountableRef objects before calling them.
    o SocketMultiplexer::WaitForEvents() now returns an io_status_t
      rather than an int, for better error-reporting.
    o Merged the IPv6 and IPv4 versions of AddSocketToMulticastGroup()

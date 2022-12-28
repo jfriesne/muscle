@@ -478,6 +478,13 @@ public:
     */
    status_t AddFlat(const String & fieldName, const FlatCountableRef & ref);
 
+   /** As above, but templated so that the caller doesn't need to upcast his reference-argument explicitly.
+    *  @param fieldName Name of the field to add (or add to)
+    *  @param ref The reference (to an object that subclasses FlatCountable) to add to the Message
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
+    */
+   template <class T> status_t AddFlat(const String & fieldName, const Ref<T> & ref) {return AddFlat(fieldName, FlatCountableRef(ref, false));}
+
    /** Adds a reference to a ByteBuffer object to the Message.
     *  @param fieldName Name of the field to add (or add to)
     *  @param ref The ByteBuffer reference to add
@@ -498,6 +505,13 @@ public:
     *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t AddTag(const String & fieldName, const RefCountableRef & tagRef);
+
+   /** As above, but templated so that the caller doesn't need to do manual upcasting of the Ref in his code.
+    *  @param fieldName Name of the field to add (or add to)
+    *  @param tagRef Reference to (an object that subclasses RefCountable) to add.
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
+    */
+   template<class T> status_t AddTag(const String & fieldName, const Ref<T> & tagRef) {return AddTag(fieldName, RefCountableRef(tagRef, false));}
 
    /** Generic method, capable of adding any type of data to the Message.
     *  @param fieldName Name of the field to add (or add to)
@@ -645,6 +659,13 @@ public:
     */
    status_t PrependFlat(const String & fieldName, const FlatCountableRef & flatRef);
 
+   /** As above, but templated so that the caller doesn't need to upcast his reference-argument explicitly.
+    *  @param fieldName Name of the field to add (or prepend to)
+    *  @param ref The reference (to an object that subclasses FlatCountable) to prepend
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
+    */
+   template <class T> status_t PrependFlat(const String & fieldName, const Ref<T> & ref) {return PrependFlat(fieldName, FlatCountableRef(ref, false));}
+
    /** Prepends a reference to a ByteBuffer object to the Message.
     *  @param fieldName Name of the field to add (or prepend to)
     *  @param ref The ByteBuffer reference to prepend
@@ -665,6 +686,13 @@ public:
     *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
    status_t PrependTag(const String & fieldName, const RefCountableRef & tagRef);
+
+   /** As above, but templated so that the caller doesn't need to do manual upcasting of the Ref in his code.
+    *  @param fieldName Name of the field to add (or prepend to)
+    *  @param tagRef Reference to (an object that subclasses RefCountable) to add or prepend.
+    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
+    */
+   template<class T> status_t PrependTag(const String & fieldName, const Ref<T> & tagRef) {return PrependTag(fieldName, RefCountableRef(tagRef, false));}
 
    /** Generic method, capable of prepending any type of data to the Message.
     *  @param fieldName Name of the field to add (or add to)
@@ -1118,7 +1146,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param newString The new string value to put overwrite the old string with.
+    *  @param newString The new string value to overwrite the old string with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceString(bool okayToAdd, const String & fieldName, uint32 index, const String & newString);
@@ -1127,7 +1155,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param val The new int8 value to put overwrite the old int8 with.
+    *  @param val The new int8 value to overwrite the old int8 with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceInt8(bool okayToAdd, const String & fieldName, uint32 index, int8 val);
@@ -1136,7 +1164,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param val The new int16 value to put overwrite the old int16 with.
+    *  @param val The new int16 value to overwrite the old int16 with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceInt16(bool okayToAdd, const String & fieldName, uint32 index, int16 val);
@@ -1145,7 +1173,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param val The new int32 value to put overwrite the old int32 with.
+    *  @param val The new int32 value to overwrite the old int32 with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceInt32(bool okayToAdd, const String & fieldName, uint32 index, int32 val);
@@ -1154,7 +1182,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param val The new int64 value to put overwrite the old int8 with.
+    *  @param val The new int64 value to overwrite the old int8 with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceInt64(bool okayToAdd, const String & fieldName, uint32 index, int64 val);
@@ -1163,7 +1191,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param val The new boolean value to put overwrite the old boolean with.
+    *  @param val The new boolean value to overwrite the old boolean with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceBool(bool okayToAdd, const String & fieldName, uint32 index, bool val);
@@ -1172,7 +1200,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param val The new float value to put overwrite the old float with.
+    *  @param val The new float value to overwrite the old float with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceFloat(bool okayToAdd, const String & fieldName, uint32 index, float val);
@@ -1181,7 +1209,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param val The new double value to put overwrite the old double with.
+    *  @param val The new double value to overwrite the old double with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceDouble(bool okayToAdd, const String & fieldName, uint32 index, double val);
@@ -1190,7 +1218,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param ptr The new pointer value to put overwrite the old pointer with.
+    *  @param ptr The new pointer value to overwrite the old pointer with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplacePointer(bool okayToAdd, const String & fieldName, uint32 index, const void * ptr);
@@ -1199,7 +1227,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param point The new point value to put overwrite the old point with.
+    *  @param point The new point value to overwrite the old point with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplacePoint(bool okayToAdd, const String & fieldName, uint32 index, const Point & point);
@@ -1208,7 +1236,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param rect The new rectangle value to put overwrite the old rectangle with.
+    *  @param rect The new rectangle value to overwrite the old rectangle with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceRect(bool okayToAdd, const String & fieldName, uint32 index, const Rect & rect);
@@ -1217,7 +1245,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param msg The new Message value to put overwrite the old Message with.
+    *  @param msg The new Message value to overwrite the old Message with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceMessage(bool okayToAdd, const String & fieldName, uint32 index, const Message & msg) {return ReplaceMessage(okayToAdd, fieldName, index, GetMessageFromPool(msg));}
@@ -1226,7 +1254,7 @@ public:
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param msgRef The new Message value to put overwrite the old Message with.
+    *  @param msgRef The new Message value to overwrite the old Message with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceMessage(bool okayToAdd, const String & fieldName, uint32 index, const MessageRef & msgRef);
@@ -1259,16 +1287,25 @@ public:
     *  @param okayToAdd If set true, attempting to replace an reference that doesn't exist will cause the new reference to be added to the end of the field array, instead.  If false, attempting to replace a non-existent reference will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param newVal The new FlatCountableRef put overwrite the old reference with.
+    *  @param newVal The new FlatCountableRef to overwrite the old reference with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & newVal);
+
+   /** As above, but templated so the caller doesn't need to do manual upcasting of the reference type.
+    *  @param okayToAdd If set true, attempting to replace an reference that doesn't exist will cause the new reference to be added to the end of the field array, instead.  If false, attempting to replace a non-existent reference will cause B_DATA_NOT_FOUND to be returned with no side effects.
+    *  @param fieldName The field name of an existing field to modify
+    *  @param index The index of the entry within the field name to modify
+    *  @param newVal Reference to the object (which should be a subclass of FlatCountable) to overwrite the old reference with.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
+    */
+   template<class T> status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const Ref<T> & newVal) {return ReplaceFlat(okayToAdd, fieldName, index, FlatCountableRef(newVal, false));}
 
    /** As above, only (ref) is specified as a ByteBufferRef, to save you having to do the necessary casting to FlatCountableRef yourself
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
     *  @param fieldName The field name of an existing field to modify
     *  @param index The index of the entry within the field name to modify
-    *  @param newVal The new ByteBufferRef put overwrite the old reference with.
+    *  @param newVal The new ByteBufferRef to overwrite the old reference with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
      */
    status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & newVal)
@@ -1285,6 +1322,15 @@ public:
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceTag(bool okayToAdd, const String & fieldName, uint32 index, const RefCountableRef & newTag);
+
+   /** As above, but templated for convenience so that the user doesn't need to do manual up-casting of his Ref type in his code.
+    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
+    *  @param fieldName The field name of an existing field to modify
+    *  @param index The index of the entry within the field name to modify
+    *  @param newTag The new tag reference to overwrite the old tag reference with.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
+    */
+   template<class T> status_t ReplaceTag(bool okayToAdd, const String & fieldName, uint32 index, const Ref<T> & newTag) {return ReplaceTag(okayToAdd, fieldName, index, newTag.GetRefCountableRef());}
 
    /** Replace one entry in a field of any type.
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
@@ -1335,11 +1381,13 @@ public:
    status_t ReplaceRect(bool okayToAdd, const String & fieldName, const Rect & newVal) {return ReplaceRect(okayToAdd, fieldName, 0, newVal);}
    status_t ReplaceMessage(bool okayToAdd, const String & fieldName, const Message & newVal) {return ReplaceMessage(okayToAdd, fieldName, 0, newVal);}
    status_t ReplaceMessage(bool okayToAdd, const String & fieldName, const MessageRef & newVal) {return ReplaceMessage(okayToAdd, fieldName, 0, newVal);}
-   template<class T> inline status_t ReplaceArchiveMessage(bool okayToAdd, const String & fieldName, const T & newVal) {return ReplaceArchiveMessage(okayToAdd, fieldName, 0, newVal);}
+   template <class T> status_t ReplaceArchiveMessage(bool okayToAdd, const String & fieldName, const T & newVal) {return ReplaceArchiveMessage(okayToAdd, fieldName, 0, newVal);}
    template <class T> status_t ReplaceFlat(bool okayToAdd, const String & fieldName, const T & newVal) {return ReplaceFlat(okayToAdd, fieldName, 0, newVal);}
+   template <class T> status_t ReplaceFlat(bool okayToAdd, const String & fieldName, const Ref<T> & newVal) {return ReplaceFlat(okayToAdd, fieldName, 0, newVal);}
    status_t ReplaceFlat(bool okayToAdd, const String & fieldName, FlatCountableRef & newVal) {return ReplaceFlat(okayToAdd, fieldName, 0, newVal);}
    status_t ReplaceFlat(bool okayToAdd, const String & fieldName, ByteBufferRef & newVal) {return ReplaceFlat(okayToAdd, fieldName, 0, newVal);}
    status_t ReplaceTag(bool okayToAdd, const String & fieldName, const RefCountableRef & newVal) {return ReplaceTag(okayToAdd, fieldName, 0, newVal);}
+   template <class T> status_t ReplaceTag(bool okayToAdd, const String & fieldName, const Ref<T> & newVal) {return ReplaceTag(okayToAdd, fieldName, 0, newVal);}
 ///@}
 
    /** Convenience method:  Returns the first field name of the given type, or NULL if none is found.
