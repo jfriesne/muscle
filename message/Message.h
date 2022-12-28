@@ -922,14 +922,7 @@ public:
    {
       FlatCountableRef fcRef;
       MRETURN_ON_ERROR(FindFlat(fieldName, index, fcRef));
-
-      Ref<T> r(fcRef, false);
-      if (r())
-      {
-         writeValueHere = r;
-         return B_NO_ERROR;
-      }
-      else return B_TYPE_MISMATCH;
+      return writeValueHere.SetFromRefCountableRef(fcRef);
    }
 
    /** Convenience method:  As above, only the result is placed into the given ByteBufferRef object.
@@ -1033,14 +1026,7 @@ public:
    {
       RefCountableRef rcRef;
       MRETURN_ON_ERROR(FindTag(fieldName, index, rcRef));
-
-      Ref<T> r(rcRef, false);
-      if (r())
-      {
-         writeValueHere = r;
-         return B_NO_ERROR;
-      }
-      else return B_TYPE_MISMATCH;
+      return writeValueHere.SetFromRefCountableRef(rcRef);
    }
 
    /** Retrieve a pointer to the raw data bytes of a stored message field of any type.

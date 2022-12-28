@@ -54,6 +54,8 @@ key:  - new feature
    o The default ByteBufferPool now clears the IMemoryAllocationStrategy
      field of any ByteBuffer it recycles (after freeing its memory),
      to avoid polluting the pool with user-installed strategies.
+   o Ref::SetFromRefCountableRef() now returns B_TYPE_MISMATCH on failure
+     rather than B_BAD_ARGUMENT.
    * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.
    * ExpandLocalhostAddress() no longer expands IPv6 loopback addresses.
    * UDPSocketDataIO::ReadFrom() would call SetSourceOfLastReadPacket()

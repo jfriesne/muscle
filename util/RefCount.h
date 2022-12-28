@@ -301,8 +301,8 @@ public:
    /** Convenience method; attempts to set this typed ConstRef to be referencing the same item as the given ConstRefCountableRef.
      * If the conversion cannot be done, our state will remain unchanged.
      * @param refCountableRef The ConstRefCountableRef to set ourselves from.
-     * @returns B_NO_ERROR if the conversion was successful, or B_BAD_ARGUMENT if the ConstRefCountableRef's item
-     *                     type is incompatible with our own item type (as dictated by dynamic_cast)
+     * @returns B_NO_ERROR if the conversion was successful, or B_TYPE_MISMATCH if the ConstRefCountableRef's item
+     *                     type is incompatible with our own item type (as indicated by our internal dynamic_cast<> call failing)
      */
    status_t SetFromRefCountableRef(const ConstRefCountableRef & refCountableRef)
    {
@@ -310,7 +310,7 @@ public:
       if (refCountableItem)
       {
          const Item * typedItem = dynamic_cast<const Item *>(refCountableItem);
-         if (typedItem == NULL) return B_BAD_ARGUMENT;
+         if (typedItem == NULL) return B_TYPE_MISMATCH;
          SetRef(typedItem, refCountableRef.IsRefCounting());
       }
       else Reset();
