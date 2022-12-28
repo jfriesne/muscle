@@ -906,9 +906,31 @@ public:
     *  @param index The index of the flattened object item in its field entry.
     *  @param writeValueHere On success, this reference will refer to the FlatCountable object.
     *  @return B_NO_ERROR if the flattened object was found, or B_DATA_NOT_FOUND if it wasn't,
-    *                     or B_TYPE_MISMATCH if the found data item isn't compatible with (writeValueHere)
+    *                     or B_TYPE_MISMATCH if the found data item's type isn't compatible with (writeValueHere)
     */
    status_t FindFlat(const String & fieldName, uint32 index, FlatCountableRef & writeValueHere) const;
+
+   /** Templated convenience method; same as the above method but also performs any necessary downcasting of
+    *  the found object (to match the passed-in Ref type) on your behalf.
+    *  @param fieldName The field name to look for the FlatCountable reference under.
+    *  @param index The index of the flattened object item in its field entry.
+    *  @param writeValueHere On success, this reference will refer to the found object.
+    *  @return B_NO_ERROR if the flattened object was found, or B_DATA_NOT_FOUND if it wasn't,
+    *                     or B_TYPE_MISMATCH if the found data item's type isn't compatible with (writeValueHere)
+    */
+   template <class T> status_t FindFlat(const String & fieldName, uint32 index, Ref<T> & writeValueHere) const
+   {
+      FlatCountableRef fcRef;
+      MRETURN_ON_ERROR(FindFlat(fieldName, index, fcRef));
+
+      Ref<T> r(fcRef, false);
+      if (r())
+      {
+         writeValueHere = r;
+         return B_NO_ERROR;
+      }
+      else return B_TYPE_MISMATCH;
+   }
 
    /** Convenience method:  As above, only the result is placed into the given ByteBufferRef object.
      * This saves you having to do the necessary FlatCountableRef->ByteBufferRef casting yourself.
@@ -999,6 +1021,28 @@ public:
     */
    status_t FindTag(const String & fieldName, uint32 index, RefCountableRef & writeValueHere) const;
 
+   /** Templated convenience method; same as the above method but also performs any necessary downcasting of
+    *  the found object (to match the passed-in Ref type) on your behalf.
+    *  @param fieldName The field name to look for the RefCountable reference under.
+    *  @param index The index of the ref-countable object item in its field entry.
+    *  @param writeValueHere On success, this reference will refer to the found object.
+    *  @return B_NO_ERROR if the object was found, or B_DATA_NOT_FOUND if it wasn't,
+    *                     or B_TYPE_MISMATCH if the found data item's type isn't compatible with (writeValueHere)
+    */
+   template <class T> status_t FindTag(const String & fieldName, uint32 index, Ref<T> & writeValueHere) const
+   {
+      RefCountableRef rcRef;
+      MRETURN_ON_ERROR(FindTag(fieldName, index, rcRef));
+
+      Ref<T> r(rcRef, false);
+      if (r())
+      {
+         writeValueHere = r;
+         return B_NO_ERROR;
+      }
+      else return B_TYPE_MISMATCH;
+   }
+
    /** Retrieve a pointer to the raw data bytes of a stored message field of any type.
     *  @param fieldName The field name to retrieve the pointer to
     *  @param type The type code of the field you are interested, or B_ANY_TYPE if any type is acceptable.
@@ -1077,9 +1121,11 @@ public:
    status_t FindPoint(const String & fieldName, Point & writeValueHere) const {return FindPoint(fieldName, 0, writeValueHere);}
    status_t FindRect(const String & fieldName, Rect & writeValueHere) const {return FindRect(fieldName, 0, writeValueHere);}
    template <class T> status_t FindFlat(const String & fieldName, T & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
+   template <class T> status_t FindFlat(const String & fieldName, Ref<T> & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
    status_t FindFlat(const String & fieldName, FlatCountableRef & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
    status_t FindFlat(const String & fieldName, ByteBufferRef & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
    status_t FindTag(const String & fieldName, RefCountableRef & writeValueHere) const {return FindTag(fieldName, 0, writeValueHere);}
+   template <class T> status_t FindTag(const String & fieldName, Ref<T> & writeValueHere) const {return FindTag(fieldName, 0, writeValueHere);}
 ///@}
 
    /** Replaces a string value in an existing Message field with a new value.

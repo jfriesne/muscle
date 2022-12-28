@@ -23,6 +23,10 @@ key:  - new feature
    - Added SetLogLevelThreshold() and GetLogLevelThreshold() arguments
      to the LogCallback class so that any LogCallback can now specify
      what log-levels it is (or is not) interested in.
+   - Added templated overloads of Message::FindFlat() and Message::FindTag()
+     that take any type of Ref as an argument, so calling code no longer
+     has to pass in a generic RefCountableRef or FlatCountableRef and then
+     do the necessary downcasting separately afterward.
    o SocketMultiplexer::WaitForEvents() now returns an io_status_t
      rather than an int, for better error-reporting.
    o Merged the IPv6 and IPv4 versions of AddSocketToMulticastGroup()
