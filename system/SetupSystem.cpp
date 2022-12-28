@@ -1471,11 +1471,19 @@ int Socket :: GetFamilyForFD(int fd)
 {
    if (fd < 0) return SOCKET_FAMILY_INVALID;
 
+#ifdef WIN32
+   WSAPROTOCOL_INFO pInfo;
+   int pInfoSize = sizeof(pInfo);
+   if (getsockopt((SOCKET)fd, SOL_SOCKET, SO_PROTOCOL_INFO, (char *)&pInfo, &pInfoSize) < 0) return SOCKET_FAMILY_INVALID;
+   const int sockFamily = pInfo.iAddressFamily;
+#else
    struct sockaddr sockAddr;  // "base class" is okay since all we care about is the family value
    muscle_socklen_t sockAddrLen = sizeof(sockAddr);
    if (getsockname(fd, &sockAddr, &sockAddrLen) < 0) return SOCKET_FAMILY_INVALID;
+   const int sockFamily = sockAddr.sa_family;
+#endif
 
-   switch(sockAddr.sa_family)
+   switch(sockFamily)
    {
       case AF_INET:  return SOCKET_FAMILY_IPV4;
       case AF_INET6: return SOCKET_FAMILY_IPV6;
