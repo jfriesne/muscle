@@ -420,7 +420,7 @@ int main(int, char **)
 
    printf("Testing adding and retrieval of FlatCountableRefs by reference\n");
    TestFlatCountableRef tfcRef(new TestFlatCountable("Hello", 5));
-   if (msg.AddFlat("tfc", FlatCountableRef(tfcRef.GetRefCountableRef(), false)).IsOK())
+   if (msg.AddFlat("tfc", tfcRef).IsOK())
    {
       TestFlatCountable tfc2;
       if (msg.FindFlat("tfc", tfc2).IsOK())
@@ -430,6 +430,7 @@ int main(int, char **)
       }
       else printf("Error, FindFlat() by value failed!\n");
    }
+   else printf("Error, AddFlat() by reference failed!\n");
 
    printf("Testing adding and retrieval of FlatCountableRefs by value\n");
    {
