@@ -1930,10 +1930,10 @@ template<class T> inline Ref<T> CreateObjectFromArchiveMessage(const Message & m
 }
 
 /** As above, except this version takes a MessageRef instead of a Message.
-  * @param msgRef MessageRef to extract the returned object's state-data from.
+  * @param msgRef Reference to the Message to extract the returned object's state-data from.
   * @returns a reference to the new object on success, or a NULL reference on failure (or if msgRef was a NULL reference).
   */
-template<class T> inline Ref<T> CreateObjectFromArchiveMessage(const MessageRef & msgRef)
+template<class T> inline Ref<T> CreateObjectFromArchiveMessage(const ConstMessageRef & msgRef)
 {
    return msgRef() ? CreateObjectFromArchiveMessage<T>(*msgRef()) : Ref<T>();
 }

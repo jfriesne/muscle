@@ -72,8 +72,8 @@ key:  - new feature
    o Removed the two-argument ConstRef and Ref "pseudo-constuctors"
      and added instead a DowncastTo<SubclassRefType>() method, to
      make Ref-downcasting operations self-documenting.
-   o Changed ITraversalPruner::MatchPath()'s second argument to be of
-     type ConstMessageRef instead of MessageRef.
+   o Changed ITraversalPruner::MatchPath() and CreateObjectFromArchiveMessage()
+     to take ConstMessageRef as an argument rather than MessageRef.
    * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.
    * ExpandLocalhostAddress() no longer expands IPv6 loopback addresses.
    * UDPSocketDataIO::ReadFrom() would call SetSourceOfLastReadPacket()
