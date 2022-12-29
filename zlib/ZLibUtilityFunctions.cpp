@@ -142,7 +142,7 @@ MessageRef InflateMessage(const MessageRef & msgRef)
    TCHECKPOINT;
 
    MessageRef ret;
-   ByteBufferRef bufRef;
+   ConstByteBufferRef bufRef;
    if ((msgRef())&&(msgRef()->FindFlat(MUSCLE_ZLIB_FIELD_NAME_STRING, bufRef).IsOK()))
    {
       MessageRef infMsg = GetMessageFromPool();

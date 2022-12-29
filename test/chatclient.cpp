@@ -301,7 +301,7 @@ int main(int argc, char ** argv)
                      const int pathDepth = GetPathDepth(np());
                      if (pathDepth == USER_NAME_DEPTH)
                      {
-                        MessageRef tempRef;
+                        ConstMessageRef tempRef;
                         if (msg()->FindMessage(np, tempRef).IsOK())
                         {
                            const Message * pmsg = tempRef();

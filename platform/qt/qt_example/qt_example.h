@@ -42,7 +42,7 @@ private slots:
 private:
    Point QtCoordsToNormalized(const QPoint & pt) const;
    QPoint NormalizedToQtCoords(const Point & pt) const;
-   void DrawUser(QPainter & p, const MessageRef & data);
+   void DrawUser(QPainter & p, const ConstMessageRef & data);
    void DrawText(QPainter & p, const QPoint & pt, const QString & text, const QColor & color, bool inBox);
    void SetLocalPosition(const Point & p);
    void UpdateLocalPosition();
@@ -106,7 +106,7 @@ private:
    QMessageTransceiverThread _mtt;
 
    MessageRef _localState;  // contains our local state, as recently uploaded
-   Hashtable<String, MessageRef> _states;  // contains info we gathered about other clients, from our subscription
+   Hashtable<String, ConstMessageRef> _states;  // contains info we gathered about other clients, from our subscription
 
    ConstByteBufferRef _publicKey;
 };

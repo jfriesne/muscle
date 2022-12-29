@@ -50,7 +50,7 @@ private:
    String _messageContentsPath;
 
    Hashtable<String, Void> _subscriptions;   // our current set of subscription strings
-   Hashtable<String, MessageRef> _pathToMessage;  // our current set of known Node states
+   Hashtable<String, ConstMessageRef> _pathToMessage;  // our current set of known Node states
    QMessageTransceiverThread _mtt;
 
    bool _isConnecting;

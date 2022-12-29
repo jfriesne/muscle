@@ -156,6 +156,21 @@ bool IsMessageDeflated(const MessageRef & msgRef);
  */
 MessageRef DeflateMessage(const MessageRef & msgRef, int compressionLevel = 6, bool force=true);
 
+/** Same as the previous method, except this version accepts and returns a ConstMessageRef.
+ *  @param msgRef The Message to create a compact version of.
+ *  @param compressionLevel The level of ZLib compression to use when creating the
+ *                          compressed Message.  Should be between 0 (no compression)
+ *                          and 9 (maximum compression).  Default value is 6.
+ *  @param force If true, we will return a compressed Message even if the compressed Message's
+ *               size is bigger than that of the original(!).  Otherwise, we'll return the
+ *               original Message if the compression didn't actually make the Message's flattened
+ *               size smaller.  Defaults to true.
+ *  @return msgRef A reference to the newly generated compressed Message, or to the passed
+ *                 in Message (if the compressed Message turned out to be larger than the uncompressed
+ *                 one, and force was passed in as false) or a NULL reference on failure.
+ */
+static inline ConstMessageRef DeflateMessage(const ConstMessageRef & msgRef, int compressionLevel = 6, bool force=true) {return DeflateMessage(CastAwayConstFromRef(msgRef), compressionLevel, force);}
+
 /** Examines the given Message, and if it is a Message in compressed form (i.e. one
  *  that was previously created by DeflateMessage()), creates and returns the
  *  equivalent uncompressed Message.  If the passed-in Message was not in compressed
@@ -168,6 +183,14 @@ MessageRef DeflateMessage(const MessageRef & msgRef, int compressionLevel = 6, b
  *          the (msgRef) argument)
  */
 MessageRef InflateMessage(const MessageRef & msgRef);
+
+/** Same as the previous method, except this implementation takes and receives a ConstMessageRef instead.
+  * @param msgRef Message to examine and make an uncompressed equivalent of.
+ *  @return A reference to an uncompressed Message on success, or a NULL reference on failure.
+ *          (Note that in some cases the returned MessageRef may reference the same Message as
+ *          the (msgRef) argument)
+ */
+static inline ConstMessageRef InflateMessage(const ConstMessageRef & msgRef) {return InflateMessage(CastAwayConstFromRef(msgRef));}
 
 /** This is the field name that we store deflated data into when creating a compressed-Message to return from DeflateMessage(), etc. */
 #define MUSCLE_ZLIB_FIELD_NAME "_zlib"

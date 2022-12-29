@@ -834,7 +834,7 @@ public:
     */
    template<class T> inline status_t FindArchiveMessage(const String & fieldName, uint32 index, T & writeValueHere) const
    {
-      MessageRef msg;
+      ConstMessageRef msg;
       return (FindMessage(fieldName, index, msg).IsOK()) ? writeValueHere.SetFromArchive(*msg()) : B_DATA_NOT_FOUND;
    }
 
@@ -850,7 +850,7 @@ public:
     */
    template<class T> inline status_t FindArchiveMessageWithDefault(const String & fieldName, uint32 index, T & writeValueHere, const Message & defaultMsg = GetEmptyMessage()) const
    {
-      MessageRef msg;
+      ConstMessageRef msg;
       return (FindMessage(fieldName, index, msg).IsOK()) ? writeValueHere.SetFromArchive(*msg()) : writeValueHere.SetFromArchive(defaultMsg);
    }
 
@@ -1171,6 +1171,7 @@ public:
    status_t FindDouble(const String & fieldName, double & writeValueHere) const {return FindDouble(fieldName, 0, writeValueHere);}
    status_t FindMessage(const String & fieldName, Message & writeValueHere) const {return FindMessage(fieldName, 0, writeValueHere);}
    status_t FindMessage(const String & fieldName, MessageRef & writeValueHere) const {return FindMessage(fieldName, 0, writeValueHere);}
+   status_t FindMessage(const String & fieldName, ConstMessageRef & writeValueHere) const {return FindMessage(fieldName, 0, writeValueHere);}
    template<class T> inline status_t FindArchiveMessage(const String & fieldName, T & writeValueHere) const {return FindArchiveMessage(fieldName, 0, writeValueHere);}
    status_t FindPointer(const String & fieldName, void * & writeValueHere) const {return FindPointer(fieldName, 0, writeValueHere);}
    status_t FindPoint(const String & fieldName, Point & writeValueHere) const {return FindPoint(fieldName, 0, writeValueHere);}

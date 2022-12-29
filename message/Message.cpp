@@ -2053,7 +2053,7 @@ uint64 Message :: TemplateHashCode64Aux(uint32 & count) const
          sum += (count*(fn.HashCode64() + mf.TemplatedHashCode64()));
          if (mf.TypeCode() == B_MESSAGE_TYPE)
          {
-            MessageRef subMsg;
+            ConstMessageRef subMsg;
             for (uint32 i=0; FindMessage(fn, i, subMsg).IsOK(); i++) sum += subMsg()->TemplateHashCode64Aux(count);
          }
       }

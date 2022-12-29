@@ -58,10 +58,10 @@ void ExampleWidget :: paintEvent(QPaintEvent *)
       // First, draw lines from our local position to all the other user's positions, just cause it looks cool
       QPoint myPt = NormalizedToQtCoords(_master->_localState()->GetPoint("position"));
       p.setPen(Qt::black);
-      for (HashtableIterator<String, MessageRef> iter(_master->_states); iter.HasData(); iter++) p.drawLine(myPt, NormalizedToQtCoords(iter.GetValue()()->GetPoint("position")));
+      for (HashtableIterator<String, ConstMessageRef> iter(_master->_states); iter.HasData(); iter++) p.drawLine(myPt, NormalizedToQtCoords(iter.GetValue()()->GetPoint("position")));
 
       // And finally draw everyone's position-indicator bubble
-      for (HashtableIterator<String, MessageRef> iter(_master->_states); iter.HasData(); iter++) DrawUser(p, iter.GetValue());
+      for (HashtableIterator<String, ConstMessageRef> iter(_master->_states); iter.HasData(); iter++) DrawUser(p, iter.GetValue());
       DrawUser(p, _master->_localState);
    }
    else
@@ -71,7 +71,7 @@ void ExampleWidget :: paintEvent(QPaintEvent *)
    }
 }
 
-void ExampleWidget :: DrawUser(QPainter & p, const MessageRef & data)
+void ExampleWidget :: DrawUser(QPainter & p, const ConstMessageRef & data)
 {
    if (data()) DrawText(p, NormalizedToQtCoords(data()->GetPoint("position")), data()->GetString("username")(), QColor(QRgb(data()->GetInt32("color"))), true);
 }
@@ -404,7 +404,7 @@ void ExampleWindow :: MessageReceived(const MessageRef & msg)
             const String * nodePath;
             for (int i=0; (msg()->FindString(PR_NAME_REMOVED_DATAITEMS, i, &nodePath).IsOK()); i++)
             {
-               MessageRef existingState;
+               ConstMessageRef existingState;
                if (_states.Remove(*nodePath, existingState).IsOK())
                {
                   AddChatText(QString("[%1] has disconnected from the server.").arg(existingState()->GetString("username")()));
@@ -417,7 +417,7 @@ void ExampleWindow :: MessageReceived(const MessageRef & msg)
          {
             for (MessageFieldNameIterator iter = msg()->GetFieldNameIterator(B_MESSAGE_TYPE); iter.HasData(); iter++)
             {
-               MessageRef data;
+               ConstMessageRef data;
                for (uint32 i=0; msg()->FindMessage(iter.GetFieldName(), i, data).IsOK(); i++)
                {
                   if (_states.ContainsKey(iter.GetFieldName()) == false) AddChatText(QString("[%1] has connected to the server.").arg(data()->GetString("username")()));

@@ -254,7 +254,7 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
 
          case B_MESSAGE_TYPE:
          {
-            MessageRef subMsg;
+            ConstMessageRef subMsg;
             if (msg.FindMessage(fieldName, index, subMsg).IsOK())
             {
                PyObject * ret = (subMsg()->what == MESSAGE_PYTHON_LIST) ? PyList_New(0) : PyDict_New();

@@ -152,7 +152,7 @@ void BrowserWindow :: SetMessageContentsViewContents(QTreeWidgetItem * item)
    if (item)
    {
       String itemPath = (static_cast<NodeTreeWidgetItem *>(item))->GetPath();
-      MessageRef * m = _pathToMessage.Get(itemPath);
+      const ConstMessageRef * m = _pathToMessage.Get(itemPath);
       if (m)
       {
          t = QString("Message at path [%1] is:\n\n").arg(itemPath());
@@ -189,7 +189,7 @@ void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscrib
 
          // Also remove from our tree of locally-cached data any nodes that start with this path
          String removePath = nodePath + "/";
-         for (HashtableIterator<String, MessageRef> iter(_pathToMessage); iter.HasData(); iter++) if (iter.GetKey().StartsWith(removePath))
+         for (HashtableIterator<String, ConstMessageRef> iter(_pathToMessage); iter.HasData(); iter++) if (iter.GetKey().StartsWith(removePath))
          {
             _pathToMessage.Remove(iter.GetKey());
             LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p dropped node for [%s]\n", this, iter.GetKey()());
@@ -283,7 +283,7 @@ void BrowserWindow :: MessageReceivedFromServer(const MessageRef & msg)
             for (MessageFieldNameIterator iter = msg()->GetFieldNameIterator(B_MESSAGE_TYPE); iter.HasData(); iter++)
             {
                const String & nodePath = iter.GetFieldName();
-               MessageRef data;
+               ConstMessageRef data;
                for (uint32 i=0; msg()->FindMessage(nodePath, i, data).IsOK(); i++)
                {
                   if (_pathToMessage.Put(nodePath, data).IsOK())

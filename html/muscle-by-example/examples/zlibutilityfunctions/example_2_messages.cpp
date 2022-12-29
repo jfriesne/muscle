@@ -40,12 +40,12 @@ int main(int argc, char ** argv)
 
    printf("\n");
    LogTime(MUSCLE_LOG_INFO, "Deflated Message is:\n");
-   MessageRef deflatedMsg = DeflateMessage(rawMsg, 9);
+   ConstMessageRef deflatedMsg = DeflateMessage(rawMsg, 9);
    deflatedMsg()->PrintToStream();
 
    printf("\n");
    LogTime(MUSCLE_LOG_INFO, "Re-inflated Message is:\n");
-   MessageRef reinflatedMsg = InflateMessage(rawMsg);
+   ConstMessageRef reinflatedMsg = InflateMessage(rawMsg);
    reinflatedMsg()->PrintToStream();
 
    return 0;

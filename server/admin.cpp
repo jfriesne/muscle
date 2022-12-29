@@ -162,7 +162,7 @@ int main(int argc, char ** argv)
                case PR_RESULT_ERRORACCESSDENIED:
                {
                   errorCount++;
-                  MessageRef subMsg;
+                  ConstMessageRef subMsg;
                   LogTime(MUSCLE_LOG_ERROR, "Access denied!  ");
                   const char * who;
                   if ((msg->FindMessage(PR_NAME_REJECTED_MESSAGE, subMsg).IsOK())&&(subMsg()->FindString(PR_NAME_KEYS, &who).IsOK()))

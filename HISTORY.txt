@@ -38,6 +38,8 @@ key:  - new feature
    - Added a DowncastTo<SubclassRefType>() convenience-method to the
      ConstRef class, so that downcasting operations can be made more
      self-documenting.
+   - Added ConstMessageRef overloads of InflateMessage() and DeflateMessage().
+   - Added a ConstMessageRef-returning overload of Message::FindMessage().
    o Removed the ByteBufferRef-specific *Flat() methods from
      the Message class, since we now have more general templatized
      methods that offer the same semantics for any type.
@@ -74,6 +76,8 @@ key:  - new feature
      in favor of single-argument templated constructors that do the
      right thing without requiring the caller to pass in a meaningless
      boolean as a second argument.
+   o Changed ITraversalPruner::MatchPath()'s second argument to be of
+     type ConstMessageRef instead of MessageRef.
    * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.
    * ExpandLocalhostAddress() no longer expands IPv6 loopback addresses.
    * UDPSocketDataIO::ReadFrom() would call SetSourceOfLastReadPacket()

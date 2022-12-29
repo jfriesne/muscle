@@ -81,7 +81,7 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
             newBaseName += fn;
 
             // Message fields we treat as sub-directories
-            MessageRef subMsg;
+            ConstMessageRef subMsg;
             for (int32 i=0; msg.FindMessage(fn, i, subMsg).IsOK(); i++) MRETURN_ON_ERROR(WriteZipFileAux(zf, newBaseName, *subMsg(), compressionLevel, fileInfo));
          }
          break;

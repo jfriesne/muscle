@@ -309,7 +309,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
          {
             case B_MESSAGE_TYPE:
             {
-               MessageRef nextVal;
+               ConstMessageRef nextVal;
                for (uint32 i=0; readFrom.FindMessage(fn, i, nextVal).IsOK(); i++)
                {
                   AddUnparseFileLine(optFile, optString, indentStr, String("begin %1").Arg(fn));

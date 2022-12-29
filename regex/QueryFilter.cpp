@@ -84,7 +84,7 @@ status_t MultiQueryFilter :: SetFromArchive(const Message & archive)
    MRETURN_ON_ERROR(QueryFilter::SetFromArchive(archive));
 
    _children.Clear();
-   MessageRef next;
+   ConstMessageRef next;
    for (uint32 i=0; archive.FindMessage("kid", i, next).IsOK(); i++)
    {
       ConstQueryFilterRef kid = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*next());
@@ -176,7 +176,7 @@ status_t MessageQueryFilter :: SetFromArchive(const Message & archive)
 {
    MRETURN_ON_ERROR(ValueQueryFilter::SetFromArchive(archive));
 
-   MessageRef subMsg;
+   ConstMessageRef subMsg;
    if (archive.FindMessage("kid", subMsg).IsOK())
    {
       _childFilter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*subMsg());
@@ -189,7 +189,7 @@ status_t MessageQueryFilter :: SetFromArchive(const Message & archive)
 
 bool MessageQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
 {
-   MessageRef subMsg;
+   ConstMessageRef subMsg;
    if (msg()->FindMessage(GetFieldName(), GetIndex(), subMsg).IsError()) return false;
    if (_childFilter() == NULL) return true;
 

@@ -68,7 +68,7 @@ public:
      *                 (but be careful not to modify the Message that (nodeData) points to;
      *                 instead, allocate a new Message and set (nodeData) to point to it.
      */
-   virtual bool MatchPath(const String & path, MessageRef & nodeData) const = 0;
+   virtual bool MatchPath(const String & path, ConstMessageRef & nodeData) const = 0;
 };
 
 /** Macro for declaring a MUSCLE DataNode-tree traversal callback within a class.  Declares both the callback method, and a static callback-method that is used to convert the callback's This argument into a genuine C++-"this"-based method call. */

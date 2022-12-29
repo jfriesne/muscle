@@ -86,7 +86,7 @@ status_t PathMatcher :: PutPathsFromMessage(const char * pathFieldName, const ch
    {
       if (optFilterFieldName)
       {
-         MessageRef filterMsgRef;
+         ConstMessageRef filterMsgRef;
          if (msg.FindMessage(optFilterFieldName, i, filterMsgRef).IsOK()) filter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*filterMsgRef());
       }
       (void) PutPathFromString(*str, filter, prependIfNoLeadingSlash).IsError(ret);

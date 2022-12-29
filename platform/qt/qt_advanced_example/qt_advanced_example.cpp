@@ -33,10 +33,9 @@ public:
      * @param subPath relative path of the data item (underneath our session node)
      * @param optData If non-NULL, the new value of the sub-item; if a NULL reference it means the sub-item was deleted.
      */
-   void DataReceived(const String & subPath, const MessageRef & optData)
+   void DataReceived(const String & subPath, const ConstMessageRef & optData)
    {
-      if (optData() != NULL) _data.Put(subPath, optData);
-                        else _data.Remove(subPath);
+      (void) _data.PutOrRemove(subPath, optData);
       Update();
    }
 
@@ -48,7 +47,7 @@ private:
       // This is a super-minimalist display of what nodes our session has; a proper
       // program would do a better job of this (and would probably also be more specific
       // regarding what information it was looking for)
-      for (HashtableIterator<String, MessageRef> iter(_data); iter.HasData(); iter++)
+      for (HashtableIterator<String, ConstMessageRef> iter(_data); iter.HasData(); iter++)
       {
          // Show the sub-path
          s += iter.GetKey();
@@ -63,7 +62,7 @@ private:
    }
 
    String _sessionID;
-   Hashtable<String, MessageRef> _data;
+   Hashtable<String, ConstMessageRef> _data;
 };
 
 AdvancedExampleWindow :: AdvancedExampleWindow()
@@ -216,7 +215,7 @@ void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, 
             String sessionStr, subPath;
             if (ParsePath(pathStr, sessionStr, subPath).IsOK())
             {
-               MessageRef data;
+               ConstMessageRef data;
                for (int32 i=0; msg()->FindMessage(iter.GetFieldName(), i, data).IsOK(); i++)
                {
                   // Create a SessionListViewItem for this sessionStr, if we don't already have one

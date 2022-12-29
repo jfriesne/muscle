@@ -86,7 +86,7 @@ int main(int argc, char ** argv)
    }
 
    // And dig out the delivery-info sub-Message
-   MessageRef anotherSubMsg;
+   ConstMessageRef anotherSubMsg;
    if (anotherMsg.FindMessage("delivery_info", anotherSubMsg).IsOK())
    {
       printf("\n");

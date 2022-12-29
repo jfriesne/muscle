@@ -1720,7 +1720,7 @@ JettisonOutgoingResults(const NodePathMatcher * matcher)
                   const String & nextFieldName = iter.GetFieldName();
                   if (matcher->GetNumFilters() > 0)
                   {
-                     MessageRef nextSubMsgRef;
+                     ConstMessageRef nextSubMsgRef;
                      for (uint32 j=0; msg->FindMessage(nextFieldName, j, nextSubMsgRef).IsOK(); /* empty */)
                      {
                         if (matcher->MatchesPath(nextFieldName(), nextSubMsgRef(), NULL)) msg->RemoveData(nextFieldName, 0);
@@ -1852,19 +1852,19 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
       if (optPruner->MatchPath(path, junk) == false) return B_NO_ERROR;
    }
 
-   MessageRef childrenRef;
+   ConstMessageRef childrenRef;
    if ((maxDepth > 0)&&(msg.FindMessage(PR_NAME_NODECHILDREN, childrenRef).IsOK())&&(childrenRef()))
    {
       // First recurse to the indexed nodes, adding them as indexed children
       Hashtable<const String *, uint32> indexLookup;
       {
-         MessageRef indexRef;
+         ConstMessageRef indexRef;
          if (msg.FindMessage(PR_NAME_NODEINDEX, indexRef).IsOK())
          {
             const String * nextFieldName;
             for (int i=0; indexRef()->FindString(PR_NAME_KEYS, i, &nextFieldName).IsOK(); i++)
             {
-               MessageRef nextChildRef;
+               ConstMessageRef nextChildRef;
                if (childrenRef()->FindMessage(*nextFieldName, nextChildRef).IsOK())
                {
                   String childPath(path);
@@ -1884,7 +1884,7 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
             const String & nextFieldName = iter.GetFieldName();
             if (indexLookup.ContainsKey(&nextFieldName) == false)
             {
-               MessageRef nextChildRef;
+               ConstMessageRef nextChildRef;
                if ((childrenRef()->FindMessage(nextFieldName, nextChildRef).IsOK())&&(nextChildRef()))
                {
                   String childPath(path);
