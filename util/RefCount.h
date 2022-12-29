@@ -160,14 +160,9 @@ public:
 
    /** Attempts to set this reference by downcasting the reference in the provided ConstRefCountableRef.
      * If the downcast cannot be done (via dynamic_cast) then we become a NULL reference.
-     * @param ref The read-only RefCountable reference to set ourselves from.
-     * @param junk This parameter is ignored; it is just here to disambiguate constructors.
+     * @param rcRef The read-only RefCountable reference to set ourselves from.
      */
-   ConstRef(const ConstRefCountableRef & ref, bool junk) : _item(NULL, true)
-   {
-      (void) junk;
-      (void) SetFromRefCountableRef(ref);
-   }
+   template<> ConstRef(const ConstRefCountableRef & rcRef) : _item(NULL, true) {(void) SetFromRefCountableRef(rcRef);}
 
    /** Unreferences the held data item.  If this is the last ConstRef that
     *  references the held data item, the data item will be deleted or recycled at this time.
@@ -329,6 +324,13 @@ public:
    {
       SetRef(static_cast<const Item *>(refCountableRef()), refCountableRef.IsRefCounting());
    }
+
+   /** Convenience method, for clarity:  Downcasts this reference to a reference of the specified
+     * SubclassRefType and returns that.
+     * @returns a reference that points to the same object as this reference, but with the specified
+     *          type, or a NULL reference if the implicit call to dynamic_cast<> returned NULL.
+     */
+   template<class SubclassRefType> SubclassRefType DowncastTo() const {return SubclassRefType(GetRefCountableRef());}
 
    /** Returns true iff we are pointing to a valid item (i.e. if (GetItemPointer() != NULL)) */
    bool IsValid() const {return (this->GetItemPointer() != NULL);}
@@ -514,9 +516,8 @@ public:
    /** Attempts to set this reference by downcasting the reference in the provided RefCountableRef.
      * If the downcast cannot be done (via dynamic_cast) then we become a NULL reference.
      * @param ref The RefCountable reference to set ourselves from.
-     * @param junk This parameter is ignored; it is just here to disambiguate constructors.
      */
-   Ref(const RefCountableRef & ref, bool junk) : ConstRef<Item>(ref, junk) {/* empty */}
+   template<> Ref(const RefCountableRef & ref) : ConstRef<Item>(ref) {/* empty */}
 
    /** Returns the ref-counted data item.  The returned data item
     *  is only guaranteed valid for as long as this RefCount object exists.
@@ -542,6 +543,13 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    inline Ref &operator=(Ref && rhs) {this->SwapContents(rhs); return *this;}
 #endif
+
+   /** Convenience method, for clarity:  Downcasts this reference to a reference of the specified
+     * SubclassRefType and returns that.
+     * @returns a reference that points to the same object as this reference, but with the specified
+     *          type, or a NULL reference if the implicit call to dynamic_cast<> returned NULL.
+     */
+   template<class SubclassRefType> SubclassRefType DowncastTo() const {return SubclassRefType(GetRefCountableRef());}
 
 private:
    friend class DummyRef<Item>;

@@ -483,18 +483,7 @@ public:
     *  @param ref The reference (to an object that subclasses FlatCountable) to add to the Message
     *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
-   template <class T> status_t AddFlat(const String & fieldName, const Ref<T> & ref) {return AddFlat(fieldName, FlatCountableRef(ref, false));}
-
-   /** Adds a reference to a ByteBuffer object to the Message.
-    *  @param fieldName Name of the field to add (or add to)
-    *  @param ref The ByteBuffer reference to add
-    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
-    */
-   status_t AddFlat(const String & fieldName, const ByteBufferRef & ref)
-   {
-      FlatCountableRef fcRef; fcRef.SetFromRefCountableRefUnchecked(ref.GetRefCountableRef());
-      return AddFlat(fieldName, fcRef);
-   }
+   template <class T> status_t AddFlat(const String & fieldName, const Ref<T> & ref) {return AddFlat(fieldName, FlatCountableRef(ref));}
 
    /** Adds a new ephemeral-tag-item to this Message.  Tags are references to arbitrary
     *  ref-countable C++ objects;  They can be added to a Message as a matter of convenience
@@ -511,7 +500,7 @@ public:
     *  @param tagRef Reference to (an object that subclasses RefCountable) to add.
     *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
-   template<class T> status_t AddTag(const String & fieldName, const Ref<T> & tagRef) {return AddTag(fieldName, RefCountableRef(tagRef, false));}
+   template<class T> status_t AddTag(const String & fieldName, const Ref<T> & tagRef) {return AddTag(fieldName, RefCountableRef(tagRef));}
 
    /** Generic method, capable of adding any type of data to the Message.
     *  @param fieldName Name of the field to add (or add to)
@@ -664,18 +653,7 @@ public:
     *  @param ref The reference (to an object that subclasses FlatCountable) to prepend
     *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
-   template <class T> status_t PrependFlat(const String & fieldName, const Ref<T> & ref) {return PrependFlat(fieldName, FlatCountableRef(ref, false));}
-
-   /** Prepends a reference to a ByteBuffer object to the Message.
-    *  @param fieldName Name of the field to add (or prepend to)
-    *  @param ref The ByteBuffer reference to prepend
-    *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
-    */
-   status_t PrependFlat(const String & fieldName, const ByteBufferRef & ref)
-   {
-      FlatCountableRef fcRef; fcRef.SetFromRefCountableRefUnchecked(ref.GetRefCountableRef());
-      return PrependFlat(fieldName, fcRef);
-   }
+   template <class T> status_t PrependFlat(const String & fieldName, const Ref<T> & ref) {return PrependFlat(fieldName, FlatCountableRef(ref));}
 
    /** Prepends a new ephemeral-tag-item to this Message.  Tags are references to arbitrary
     *  ref-countable C++ objects;  They can be added to a Message as a matter of convenience
@@ -692,7 +670,7 @@ public:
     *  @param tagRef Reference to (an object that subclasses RefCountable) to add or prepend.
     *  @return B_NO_ERROR on success, B_OUT_OF_MEMORY out of memory or B_TYPE_MISMATCH if a type conflict occurred
     */
-   template<class T> status_t PrependTag(const String & fieldName, const Ref<T> & tagRef) {return PrependTag(fieldName, RefCountableRef(tagRef, false));}
+   template<class T> status_t PrependTag(const String & fieldName, const Ref<T> & tagRef) {return PrependTag(fieldName, RefCountableRef(tagRef));}
 
    /** Generic method, capable of prepending any type of data to the Message.
     *  @param fieldName Name of the field to add (or add to)
@@ -828,8 +806,8 @@ public:
     */
    status_t FindMessage(const String & fieldName, uint32 index, Message & writeValueHere) const;
 
-   /** Retrieve a Message value from the Message.
-    *  Note that this method is more efficient than the FindMessage(MessageRef)
+   /** Retrieve a MessageRef value from the Message.
+    *  Note that this method is more efficient than the FindMessage(Message)
     *  method, because it the retrieved Message need not be copied.
     *  @param fieldName The field name to look for the Message value under.
     *  @param index The index of the Message item in its field entry.
@@ -837,6 +815,14 @@ public:
     *  @return B_NO_ERROR if the Message value was found, or B_DATA_NOT_FOUND if it wasn't.
     */
    status_t FindMessage(const String & fieldName, uint32 index, MessageRef & writeValueHere) const;
+
+   /** Same as above, except the returned reference is read-only.
+    *  @param fieldName The field name to look for the Message value under.
+    *  @param index The index of the Message item in its field entry.
+    *  @param writeValueHere On success, the value of the Message is written into this object.
+    *  @return B_NO_ERROR if the Message value was found, or B_DATA_NOT_FOUND if it wasn't.
+    */
+   status_t FindMessage(const String & fieldName, uint32 index, ConstMessageRef & writeValueHere) const;
 
    /** Convenience method:  Retrieves a Message value from this Message,
     *  and if successful, calls SetFromArchive(msg) on the passed-in object.
@@ -929,6 +915,15 @@ public:
       return B_TYPE_MISMATCH;
    }
 
+   /** Retrieve a read-only FlatCountable reference from the Message.
+    *  @param fieldName The field name to look for the FlatCountable reference under.
+    *  @param index The index of the flattened object item in its field entry.
+    *  @param writeValueHere On success, this reference will refer to the FlatCountable object.
+    *  @return B_NO_ERROR if the flattened object was found, or B_DATA_NOT_FOUND if it wasn't,
+    *                     or B_TYPE_MISMATCH if the found data item's type isn't compatible with (writeValueHere)
+    */
+   status_t FindFlat(const String & fieldName, uint32 index, ConstFlatCountableRef & writeValueHere) const;
+
    /** Retrieve a FlatCountable reference from the Message.
     *  @param fieldName The field name to look for the FlatCountable reference under.
     *  @param index The index of the flattened object item in its field entry.
@@ -946,26 +941,26 @@ public:
     *  @return B_NO_ERROR if the flattened object was found, or B_DATA_NOT_FOUND if it wasn't,
     *                     or B_TYPE_MISMATCH if the found data item's type isn't compatible with (writeValueHere)
     */
+   template <class T> status_t FindFlat(const String & fieldName, uint32 index, ConstRef<T> & writeValueHere) const
+   {
+      ConstFlatCountableRef fcRef;
+      MRETURN_ON_ERROR(FindFlat(fieldName, index, fcRef));
+      return writeValueHere.SetFromRefCountableRef(fcRef);
+   }
+
+   /** Templated convenience method; same as the above method but also performs any necessary downcasting of
+    *  the found object (to match the passed-in Ref type) on your behalf.
+    *  @param fieldName The field name to look for the FlatCountable reference under.
+    *  @param index The index of the flattened object item in its field entry.
+    *  @param writeValueHere On success, this reference will refer to the found object.
+    *  @return B_NO_ERROR if the flattened object was found, or B_DATA_NOT_FOUND if it wasn't,
+    *                     or B_TYPE_MISMATCH if the found data item's type isn't compatible with (writeValueHere)
+    */
    template <class T> status_t FindFlat(const String & fieldName, uint32 index, Ref<T> & writeValueHere) const
    {
       FlatCountableRef fcRef;
       MRETURN_ON_ERROR(FindFlat(fieldName, index, fcRef));
       return writeValueHere.SetFromRefCountableRef(fcRef);
-   }
-
-   /** Convenience method:  As above, only the result is placed into the given ByteBufferRef object.
-     * This saves you having to do the necessary FlatCountableRef->ByteBufferRef casting yourself.
-     * @param fieldName The field name to look for the FlatCountable reference under.
-     * @param index The index of the flattened object item in its field entry.
-     * @param writeValueHere On success, this reference will refer to the discovered ByteBufferRef object.
-    *  @return B_NO_ERROR if the flattened object was found, or B_DATA_NOT_FOUND if it wasn't,
-    *                     or B_TYPE_MISMATCH if the found data item isn't compatible with (writeValueHere)
-     */
-   status_t FindFlat(const String & fieldName, uint32 index, ByteBufferRef & writeValueHere) const
-   {
-      FlatCountableRef fcRef;
-      status_t ret;
-      return (FindFlat(fieldName, index, fcRef).IsOK(ret)) ? writeValueHere.SetFromRefCountableRef(fcRef.GetRefCountableRef()) : ret;
    }
 
    /** Retrieves and returns an unflattened object of the specified type from the first data-item
@@ -1042,8 +1037,30 @@ public:
     */
    status_t FindTag(const String & fieldName, uint32 index, RefCountableRef & writeValueHere) const;
 
+   /** Same as above, but the returned reference is read-only.
+    *  @param fieldName Name of the field to look for the tag under.
+    *  @param index The index of the tag item in its field entry.
+    *  @param writeValueHere On success, this object becomes a reference to the found tag object.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the tag couldn't be found.
+    */
+   status_t FindTag(const String & fieldName, uint32 index, ConstRefCountableRef & writeValueHere) const;
+
    /** Templated convenience method; same as the above method but also performs any necessary downcasting of
     *  the found object (to match the passed-in Ref type) on your behalf.
+    *  @param fieldName The field name to look for the RefCountable reference under.
+    *  @param index The index of the ref-countable object item in its field entry.
+    *  @param writeValueHere On success, this reference will refer to the found object.
+    *  @return B_NO_ERROR if the object was found, or B_DATA_NOT_FOUND if it wasn't,
+    *                     or B_TYPE_MISMATCH if the found data item's type isn't compatible with (writeValueHere)
+    */
+   template <class T> status_t FindTag(const String & fieldName, uint32 index, ConstRef<T> & writeValueHere) const
+   {
+      ConstRefCountableRef rcRef;
+      MRETURN_ON_ERROR(FindTag(fieldName, index, rcRef));
+      return writeValueHere.SetFromRefCountableRef(rcRef);
+   }
+
+   /** As above, but the returned tag reference is mutable.
     *  @param fieldName The field name to look for the RefCountable reference under.
     *  @param index The index of the ref-countable object item in its field entry.
     *  @param writeValueHere On success, this reference will refer to the found object.
@@ -1055,6 +1072,30 @@ public:
       RefCountableRef rcRef;
       MRETURN_ON_ERROR(FindTag(fieldName, index, rcRef));
       return writeValueHere.SetFromRefCountableRef(rcRef);
+   }
+
+   /** Retrieves and returns a RefCountableRef object of the specified type from the first data-item
+     * in the specified RefCountableRef-field, or a default-constructed item of the specified type on failure.
+     * @param fieldName The field name to look for the RefCountableRef object under.
+     * @returns The unflattened object that was found, if one was found and successfully unflattened, or a default-constructed item if it wasn't.
+     */
+   template <class T> T GetTag(const String & fieldName) const
+   {
+      T ret;
+      return FindTag(fieldName, ret).IsOK() ? ret : GetDefaultObjectForType<T>();
+   }
+
+   /** Retrieves and returns an RefCountableRef object of the specified type from the first data-item
+     * in the specified field, or the specified fallback-object if it wasn't.
+     * @param fieldName The field name to look for the RefCountableRef object under.
+     * @param defaultValue the fallback-value to return on failure.
+     * @param index The index of the object within (fieldName) to return.  Defaults to zero (i.e. the first item)
+     * @returns The object that was found, if one was found, or the specified fallback-item if it wasn't.
+     */
+   template <class T> T GetTag(const String & fieldName, const T & defaultValue, uint32 index = 0) const
+   {
+      T ret;
+      return FindTag(fieldName, index, ret).IsOK() ? ret : defaultValue;
    }
 
    /** Retrieve a pointer to the raw data bytes of a stored message field of any type.
@@ -1134,12 +1175,18 @@ public:
    status_t FindPointer(const String & fieldName, void * & writeValueHere) const {return FindPointer(fieldName, 0, writeValueHere);}
    status_t FindPoint(const String & fieldName, Point & writeValueHere) const {return FindPoint(fieldName, 0, writeValueHere);}
    status_t FindRect(const String & fieldName, Rect & writeValueHere) const {return FindRect(fieldName, 0, writeValueHere);}
-   template <class T> status_t FindFlat(const String & fieldName, T & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
-   template <class T> status_t FindFlat(const String & fieldName, Ref<T> & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
-   status_t FindFlat(const String & fieldName, FlatCountableRef & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
-   status_t FindFlat(const String & fieldName, ByteBufferRef & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
-   status_t FindTag(const String & fieldName, RefCountableRef & writeValueHere) const {return FindTag(fieldName, 0, writeValueHere);}
-   template <class T> status_t FindTag(const String & fieldName, Ref<T> & writeValueHere) const {return FindTag(fieldName, 0, writeValueHere);}
+
+   template <class T> status_t FindFlat(const String & fieldName,           T & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
+   template <class T> status_t FindFlat(const String & fieldName, ConstRef<T> & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
+   template <class T> status_t FindFlat(const String & fieldName,      Ref<T> & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
+   status_t FindFlat(const String & fieldName,          ConstFlatCountableRef & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
+   status_t FindFlat(const String & fieldName,               FlatCountableRef & writeValueHere) const {return FindFlat(fieldName, 0, writeValueHere);}
+
+   template <class T> status_t FindTag(const String & fieldName,            T & writeValueHere) const {return FindTag(fieldName, 0, writeValueHere);}
+   template <class T> status_t FindTag(const String & fieldName,  ConstRef<T> & writeValueHere) const {return FindTag(fieldName, 0, writeValueHere);}
+   template <class T> status_t FindTag(const String & fieldName,       Ref<T> & writeValueHere) const {return FindTag(fieldName, 0, writeValueHere);}
+   status_t FindTag( const String & fieldName,           ConstRefCountableRef & writeValueHere) const {return FindTag(fieldName, 0, writeValueHere);}
+   status_t FindTag( const String & fieldName,                RefCountableRef & writeValueHere) const {return FindTag(fieldName, 0, writeValueHere);}
 ///@}
 
    /** Replaces a string value in an existing Message field with a new value.
@@ -1299,20 +1346,7 @@ public:
     *  @param newVal Reference to the object (which should be a subclass of FlatCountable) to overwrite the old reference with.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
-   template<class T> status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const Ref<T> & newVal) {return ReplaceFlat(okayToAdd, fieldName, index, FlatCountableRef(newVal, false));}
-
-   /** As above, only (ref) is specified as a ByteBufferRef, to save you having to do the necessary casting to FlatCountableRef yourself
-    *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
-    *  @param fieldName The field name of an existing field to modify
-    *  @param index The index of the entry within the field name to modify
-    *  @param newVal The new ByteBufferRef to overwrite the old reference with.
-    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
-     */
-   status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & newVal)
-   {
-      FlatCountableRef fcRef; fcRef.SetFromRefCountableRefUnchecked(newVal.GetRefCountableRef());
-      return ReplaceFlat(okayToAdd, fieldName, index, fcRef);
-   }
+   template<class T> status_t ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const Ref<T> & newVal) {return ReplaceFlat(okayToAdd, fieldName, index, FlatCountableRef(newVal));}
 
    /** Replaces a tag object in an existing Message field with a new tag object.
     *  @param okayToAdd If set true, attempting to replace an item that doesn't exist will cause the new item to be added to the end of the field array, instead.  If false, attempting to replace a non-existent item will cause B_DATA_NOT_FOUND to be returned with no side effects.
@@ -1385,7 +1419,6 @@ public:
    template <class T> status_t ReplaceFlat(bool okayToAdd, const String & fieldName, const T & newVal) {return ReplaceFlat(okayToAdd, fieldName, 0, newVal);}
    template <class T> status_t ReplaceFlat(bool okayToAdd, const String & fieldName, const Ref<T> & newVal) {return ReplaceFlat(okayToAdd, fieldName, 0, newVal);}
    status_t ReplaceFlat(bool okayToAdd, const String & fieldName, FlatCountableRef & newVal) {return ReplaceFlat(okayToAdd, fieldName, 0, newVal);}
-   status_t ReplaceFlat(bool okayToAdd, const String & fieldName, ByteBufferRef & newVal) {return ReplaceFlat(okayToAdd, fieldName, 0, newVal);}
    status_t ReplaceTag(bool okayToAdd, const String & fieldName, const RefCountableRef & newVal) {return ReplaceTag(okayToAdd, fieldName, 0, newVal);}
    template <class T> status_t ReplaceTag(bool okayToAdd, const String & fieldName, const Ref<T> & newVal) {return ReplaceTag(okayToAdd, fieldName, 0, newVal);}
 ///@}
@@ -1727,7 +1760,8 @@ public:
    DECLARE_MUSCLE_CONVENIENCE_METHODS(Rect,    Rect);            ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
    DECLARE_MUSCLE_CONVENIENCE_METHODS(String,  String);          ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
    DECLARE_MUSCLE_CONVENIENCE_METHODS(Message, MessageRef);      ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
-   DECLARE_MUSCLE_CONVENIENCE_METHODS(Flat,    ByteBufferRef);   ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
+   DECLARE_MUSCLE_CONVENIENCE_METHODS(Flat,    FlatCountableRef); ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
+
    DECLARE_MUSCLE_CONVENIENCE_METHODS(Tag,     RefCountableRef); ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
    DECLARE_STANDARD_CLONE_METHOD(Message);  ///< implements the standard Clone() method to copy a Message object.
 #endif
@@ -1800,23 +1834,12 @@ private:
    const muscle_message_imp::MessageField * GetMessageFieldAndTypeCode(const String & fieldName, uint32 index, uint32 * retTypeCode) const;
 
    status_t AddFlatAux(const String & fieldName, const FlatCountableRef & flat, uint32 etc, bool prepend);
-   status_t AddFlatAux(const String & fieldName, const ByteBufferRef & bufRef,  uint32 etc, bool prepend)
-   {
-      FlatCountableRef fcRef; fcRef.SetFromRefCountableRefUnchecked(bufRef.GetRefCountableRef());
-      return AddFlatAux(fieldName, fcRef, etc, prepend);
-   }
-
    status_t AddDataAux(const String & fieldName, const void * data, uint32 size, uint32 etc, bool prepend);
 
    const uint8 * FindFlatAux(const muscle_message_imp::MessageField * ada, uint32 index, uint32 & retNumBytes, const FlatCountable ** optRetFCPtr) const;
    status_t FindDataItemAux(const String & fieldName, uint32 index, uint32 tc, void * setValue, uint32 valueSize) const;
 
    status_t ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & flat, uint32 tc);
-   status_t ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const ByteBufferRef & bufRef,  uint32 tc)
-   {
-      FlatCountableRef fcRef; fcRef.SetFromRefCountableRefUnchecked(bufRef.GetRefCountableRef());
-      return ReplaceFlatAux(okayToAdd, fieldName, index, fcRef, tc);
-   }
 
    uint64 TemplateHashCode64Aux(uint32 & count) const;
 

@@ -666,7 +666,7 @@ public:
             return B_BAD_DATA;  // message size too large for our buffer... corruption?
          }
 
-         FlatCountableRef fcRef(GetByteBufferFromPool(readFs, unflat.GetCurrentReadPointer()).GetRefCountableRef(), true);
+         FlatCountableRef fcRef(GetByteBufferFromPool(readFs, unflat.GetCurrentReadPointer()));
          MRETURN_ON_ERROR(unflat.SeekRelative(readFs));
          MRETURN_OOM_ON_NULL(fcRef());
          MRETURN_ON_ERROR(AddDataItem(&fcRef, sizeof(fcRef)));
@@ -1327,7 +1327,7 @@ status_t Message :: AddFlat(const String & fieldName, const FlatCountableRef & r
          case B_STRING_TYPE:  return B_TYPE_MISMATCH;  // sorry, can't do that (Strings aren't FlatCountables)
          case B_POINT_TYPE:   return B_TYPE_MISMATCH;  // sorry, can't do that (Points aren't FlatCountables)
          case B_RECT_TYPE:    return B_TYPE_MISMATCH;  // sorry, can't do that (Rects aren't FlatCountables)
-         case B_MESSAGE_TYPE: return AddMessage(fieldName, MessageRef(ref.GetRefCountableRef(), true));
+         case B_MESSAGE_TYPE: return AddMessage(fieldName, ref.DowncastTo<MessageRef>());
          default:             return AddFlatAux(fieldName, ref, tc, false);
       }
    }
@@ -1389,7 +1389,7 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
       {
          ByteBufferRef bufRef = GetByteBufferFromPool(elementSize, (const uint8 *)dataToAdd);
          MRETURN_OOM_ON_NULL(bufRef());
-         fcRef.SetFromRefCountableRef(bufRef.GetRefCountableRef());
+         fcRef = bufRef;
          dataToAdd = &fcRef;
          addSize = sizeof(fcRef);
       }
@@ -1504,6 +1504,14 @@ const uint8 * Message :: FindFlatAux(const MessageField * mf, uint32 index, uint
    else return NULL;
 }
 
+status_t Message :: FindFlat(const String & fieldName, uint32 index, ConstFlatCountableRef & ref) const
+{
+   FlatCountableRef fcRef;
+   MRETURN_ON_ERROR(FindFlat(fieldName, index, fcRef));
+   ref = AddConstToRef(fcRef);
+   return B_NO_ERROR;
+}
+
 status_t Message :: FindFlat(const String & fieldName, uint32 index, FlatCountableRef & ref) const
 {
    TCHECKPOINT;
@@ -1616,6 +1624,14 @@ status_t Message :: FindTag(const String & fieldName, uint32 index, RefCountable
    else return B_DATA_NOT_FOUND;
 }
 
+status_t Message :: FindTag(const String & fieldName, uint32 index, ConstRefCountableRef & tag) const
+{
+   RefCountableRef rcRef;
+   MRETURN_ON_ERROR(FindTag(fieldName, index, rcRef));
+   tag = rcRef;
+   return B_NO_ERROR;
+}
+
 status_t Message :: FindMessage(const String & fieldName, uint32 index, Message & msg) const
 {
    MessageRef msgRef;
@@ -1628,6 +1644,15 @@ status_t Message :: FindMessage(const String & fieldName, uint32 index, Message 
       return B_NO_ERROR;
    }
    else return B_BAD_OBJECT;
+}
+
+status_t Message :: FindMessage(const String & fieldName, uint32 index, ConstMessageRef & ref) const
+{
+   MessageRef mRef;
+   MRETURN_ON_ERROR(FindMessage(fieldName, index, mRef));
+
+   ref = mRef;
+   return B_NO_ERROR;
 }
 
 status_t Message :: FindMessage(const String & fieldName, uint32 index, MessageRef & ref) const
@@ -1756,23 +1781,23 @@ status_t Message :: ReplaceMessage(bool okayToAdd, const String & fieldName, uin
    return B_DATA_NOT_FOUND;
 }
 
-status_t Message :: ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & ref)
+status_t Message :: ReplaceFlat(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & fcRef)
 {
-   const FlatCountable * fc = ref();
+   const FlatCountable * fc = fcRef();
    if (fc)
    {
       const uint32 tc = fc->TypeCode();
       MessageField * field = GetMessageField(fieldName, tc);
-      if ((okayToAdd)&&((field == NULL)||(index >= field->GetNumItems()))) return AddFlat(fieldName, ref);
+      if ((okayToAdd)&&((field == NULL)||(index >= field->GetNumItems()))) return AddFlat(fieldName, fcRef);
       if (field)
       {
          switch(tc)
          {
             case B_MESSAGE_TYPE:
-               return (dynamic_cast<const Message *>(fc)) ? ReplaceMessage(okayToAdd, fieldName, index, MessageRef(ref.GetRefCountableRef(), true)) : B_TYPE_MISMATCH;
+               return (dynamic_cast<const Message *>(fc)) ? ReplaceMessage(okayToAdd, fieldName, index, fcRef.DowncastTo<MessageRef>()) : B_TYPE_MISMATCH;
 
             default:
-               if (GetElementSize(tc) == 0) return field->ReplaceFlatCountableDataItem(index, ref);
+               if (GetElementSize(tc) == 0) return field->ReplaceFlatCountableDataItem(index, fcRef);
             break;
          }
       }
@@ -1809,15 +1834,15 @@ status_t Message :: ReplaceData(bool okayToAdd, const String & fieldName, uint32
    const uint8 * dataBuf = (const uint8 *) data;
    for (uint32 i=index; i<index+numElements; i++)
    {
-      FlatCountableRef ref;
+      FlatCountableRef fcRef;
       const void * dataToAdd = &dataBuf[i*elementSize];
       uint32 addSize = elementSize;
       if (isVariableSize)
       {
-         ref.SetFromRefCountableRef(GetByteBufferFromPool(elementSize, (const uint8 *)dataToAdd).GetRefCountableRef());
-         MRETURN_OOM_ON_NULL(ref());
-         dataToAdd = &ref;
-         addSize = sizeof(ref);
+         fcRef = GetByteBufferFromPool(elementSize, (const uint8 *)dataToAdd);
+         MRETURN_OOM_ON_NULL(fcRef());
+         dataToAdd = &fcRef;
+         addSize = sizeof(fcRef);
       }
 
       MRETURN_ON_ERROR(field->ReplaceDataItem(i, dataToAdd, addSize));
@@ -1954,9 +1979,9 @@ status_t Message :: PrependMessage(const String & fieldName, const MessageRef & 
    return mf ? mf->PrependDataItem(&ref, sizeof(ref)) : B_TYPE_MISMATCH;
 }
 
-status_t Message :: PrependFlat(const String & fieldName, const FlatCountableRef & ref)
+status_t Message :: PrependFlat(const String & fieldName, const FlatCountableRef & fcRef)
 {
-   FlatCountable * fc = ref();
+   FlatCountable * fc = fcRef();
    if (fc)
    {
       const uint32 tc = fc->TypeCode();
@@ -1965,8 +1990,8 @@ status_t Message :: PrependFlat(const String & fieldName, const FlatCountableRef
          case B_STRING_TYPE:  return B_TYPE_MISMATCH;  // sorry, can't do that (Strings aren't FlatCountables)
          case B_POINT_TYPE:   return B_TYPE_MISMATCH;  // sorry, can't do that (Strings aren't FlatCountables)
          case B_RECT_TYPE:    return B_TYPE_MISMATCH;  // sorry, can't do that (Strings aren't FlatCountables)
-         case B_MESSAGE_TYPE: return PrependMessage(fieldName, MessageRef(ref.GetRefCountableRef(), true));
-         default:             return AddFlatAux(fieldName, ref, tc, true);
+         case B_MESSAGE_TYPE: return PrependMessage(fieldName, fcRef.DowncastTo<MessageRef>());
+         default:             return AddFlatAux(fieldName, fcRef, tc, true);
       }
    }
    return B_BAD_ARGUMENT;
@@ -2485,7 +2510,7 @@ void MessageField :: SingleAddToString(String & s, uint32 maxRecurseLevel, int i
          case B_INT8_TYPE:    AddFormattedSingleItemToString(indent, "[%i]", GetInlineItemAsInt8(),                     s); break;
 
          case B_MESSAGE_TYPE:
-            MessageDataArray::AddItemDescriptionToString(indent, 0, MessageRef(GetInlineItemAsRefCountableRef(), false), s, maxRecurseLevel);
+            MessageDataArray::AddItemDescriptionToString(indent, 0, MessageRef(GetInlineItemAsRefCountableRef()), s, maxRecurseLevel);
          break;
 
          case B_POINTER_TYPE: AddFormattedSingleItemToString(indent, "[%p]", GetInlineItemAsPointer(), s);        break;
@@ -2496,7 +2521,7 @@ void MessageField :: SingleAddToString(String & s, uint32 maxRecurseLevel, int i
          default:
          {
             const ByteBuffer * bb = dynamic_cast<const ByteBuffer *>(GetInlineItemAsRefCountableRef()());
-            if (bb) ByteBufferDataArray::AddItemDescriptionToString(indent, 0, FlatCountableRef(GetInlineItemAsRefCountableRef(), true), s);
+            if (bb) ByteBufferDataArray::AddItemDescriptionToString(indent, 0, FlatCountableRef(GetInlineItemAsRefCountableRef()), s);
                else AddFormattedSingleItemToString(indent, "%p", GetInlineItemAsRefCountableRef()(), s);
          }
          break;
@@ -2714,7 +2739,7 @@ status_t MessageField :: ReplaceFlatCountableDataItem(uint32 index, muscle::Ref<
          ByteBufferDataArray * bbda = dynamic_cast<ByteBufferDataArray *>(GetArray());
          if (bbda)
          {
-            ByteBufferRef bbRef(fcRef.GetRefCountableRef(), true);
+            ByteBufferRef bbRef(fcRef.GetRefCountableRef());
             return bbRef() ? bbda->ReplaceDataItem(index, &bbRef, sizeof(bbRef)) : B_TYPE_MISMATCH;
          }
 

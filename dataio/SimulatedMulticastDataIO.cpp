@@ -44,7 +44,7 @@ io_status_t SimulatedMulticastDataIO :: ReadFrom(void * buffer, uint32 size, IPA
    MessageRef msg;
    if (GetNextReplyFromInternalThread(msg).IsError()) return io_status_t();  // nothing available to read, right now!
 
-   ConstByteBufferRef incomingData = msg()->GetFlat(SMDIO_NAME_DATA);
+   ConstByteBufferRef incomingData = msg()->GetFlat<ConstByteBufferRef>(SMDIO_NAME_DATA);
    if (incomingData() == NULL) return io_status_t();  // nothing for now!
 
    if (msg()->FindFlat(SMDIO_NAME_RLOC, retPacketSource).IsError()) retPacketSource.Reset();
@@ -393,7 +393,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
             {
                case SMDIO_COMMAND_DATA:
                {
-                  ConstByteBufferRef data = msgRef()->GetFlat(SMDIO_NAME_DATA);
+                  ConstByteBufferRef data = msgRef()->GetFlat<ConstByteBufferRef>(SMDIO_NAME_DATA);
                   if (data())
                   {
                      IPAddressAndPort destIAP;

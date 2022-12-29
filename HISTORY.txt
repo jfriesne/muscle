@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.20 -
    - Updated NetworkUtilityFunctions.cpp to better support "real"
      IPv4 sockets (previously it assumed that IPv4 traffic would
      be handled using IPv6 sockets and IPv4-mapped IPv6 addresses,
@@ -23,14 +24,23 @@ key:  - new feature
    - Added SetLogLevelThreshold() and GetLogLevelThreshold() arguments
      to the LogCallback class so that any LogCallback can now specify
      what log-levels it is (or is not) interested in.
-   - Added templated overloads of Message::FindFlat() and Message::FindTag()
-     that take any type of Ref as an argument, so calling code no longer
-     has to pass in a generic RefCountableRef or FlatCountableRef and then
-     do the necessary downcasting separately afterward.
+   - Added templated overloads of Message::FindFlat(), Message::FindTag()
+     Message::GetFlat(), and Message::GetTag() that take any type of Ref
+     as an argument, so calling code no longer has to pass in a generic
+     RefCountableRef or FlatCountableRef and then do the necessary
+     downcasting separately afterward.
+   - Message::FindTag() now takes a ConstRefCountableRef as an
+     argument rather than a RefCountableRef, for better flexibility.
    - Added templated overloads of Message::AddFlat(), PrependFlat(),
      ReplaceFlat(), AddTag(), PrependTag(), and ReplaceTag() so that
      the calling code no longer has to do manual upcasting of typed
      FlatCountableRef or RefCountableRef objects before calling them.
+   - Added a DowncastTo<SubclassRefType>() convenience-method to the
+     ConstRef class, so that downcasting operations can be made more
+     self-documenting.
+   o Removed the ByteBufferRef-specific *Flat() methods from
+     the Message class, since we now have more general templatized
+     methods that offer the same semantics for any type.
    o SocketMultiplexer::WaitForEvents() now returns an io_status_t
      rather than an int, for better error-reporting.
    o Merged the IPv6 and IPv4 versions of AddSocketToMulticastGroup()
@@ -60,6 +70,10 @@ key:  - new feature
      to avoid polluting the pool with user-installed strategies.
    o Ref::SetFromRefCountableRef() now returns B_TYPE_MISMATCH on failure
      rather than B_BAD_ARGUMENT.
+   o Removed the two-argument ConstRef and Ref "pseudo-constuctors"
+     in favor of single-argument templated constructors that do the
+     right thing without requiring the caller to pass in a meaningless
+     boolean as a second argument.
    * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.
    * ExpandLocalhostAddress() no longer expands IPv6 loopback addresses.
    * UDPSocketDataIO::ReadFrom() would call SetSourceOfLastReadPacket()

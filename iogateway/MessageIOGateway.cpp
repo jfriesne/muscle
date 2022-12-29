@@ -368,19 +368,15 @@ FlattenHeaderAndMessageAux(const MessageRef & msgRef) const
    ByteBufferRef ret;
    if (msgRef())
    {
-      RefCountableRef rcRef;
-      if (msgRef()->FindTag(PR_NAME_MESSAGE_REUSE_TAG, rcRef).IsOK())
+      MessageReuseTagRef mrtRef;
+      if (msgRef()->FindTag(PR_NAME_MESSAGE_REUSE_TAG, mrtRef).IsOK())
       {
-         MessageReuseTagRef mrtRef(rcRef, false);
-         if (mrtRef())
+         DECLARE_MUTEXGUARD(_messageReuseTagMutex);  // in case (msgRef) has been shared across threads!
+         if (mrtRef()->_cachedData()) ret = mrtRef()->_cachedData;  // re-use data from a neighboring gateway!
+         else
          {
-            DECLARE_MUTEXGUARD(_messageReuseTagMutex);  // in case (msgRef) has been shared across threads!
-            if (mrtRef()->_cachedData()) ret = mrtRef()->_cachedData;  // re-use data from a neighboring gateway!
-            else
-            {
-               ret = FlattenHeaderAndMessage(msgRef);
-               if (ret()) mrtRef()->_cachedData = ret;  // also save the buffer for the next gateway to reuse
-            }
+            ret = FlattenHeaderAndMessage(msgRef);
+            if (ret()) mrtRef()->_cachedData = ret;  // also save the buffer for the next gateway to reuse
          }
       }
    }

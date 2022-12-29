@@ -556,23 +556,19 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
          {
             case MTT_COMMAND_NOTIFY_ON_OUTPUT_DRAIN:
             {
-               RefCountableRef genericRef;
-               if (msg->FindTag(MTT_NAME_DRAIN_TAG, genericRef).IsOK())
+               DrainTagRef drainTagRef;
+               if (msg->FindTag(MTT_NAME_DRAIN_TAG, drainTagRef).IsOK())
                {
-                  DrainTagRef drainTagRef(genericRef, true);
-                  if (drainTagRef())
-                  {
-                     // Add our session ID so that the supervisor session will know we received the drain tag
-                     Message * rmsg = drainTagRef()->GetReplyMessage()();
-                     if (rmsg) rmsg->AddString(MTT_NAME_FROMSESSION, GetSessionRootPath());
+                  // Add our session ID so that the supervisor session will know we received the drain tag
+                  Message * rmsg = drainTagRef()->GetReplyMessage()();
+                  if (rmsg) rmsg->AddString(MTT_NAME_FROMSESSION, GetSessionRootPath());
 
-                     // If we have any messages pending, we'll save this message reference until our
-                     // outgoing message queue becomes empty.  That way the DrainTag item held by the
-                     // referenced message won't be deleted until the appropriate time, and hence
-                     // the supervisor won't be notified until all the specified queues have drained.
-                     AbstractMessageIOGateway * gw = GetGateway()();
-                     if ((gw)&&(gw->HasBytesToOutput())) _drainedNotifiers.AddTail(drainTagRef);
-                  }
+                  // If we have any messages pending, we'll save this message reference until our
+                  // outgoing message queue becomes empty.  That way the DrainTag item held by the
+                  // referenced message won't be deleted until the appropriate time, and hence
+                  // the supervisor won't be notified until all the specified queues have drained.
+                  AbstractMessageIOGateway * gw = GetGateway()();
+                  if ((gw)&&(gw->HasBytesToOutput())) _drainedNotifiers.AddTail(drainTagRef);
                }
             }
             break;
@@ -587,9 +583,7 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
             case MTT_COMMAND_SET_INPUT_POLICY:
             case MTT_COMMAND_SET_OUTPUT_POLICY:
             {
-               RefCountableRef tagRef;
-               (void) msg->FindTag(MTT_NAME_POLICY_TAG, tagRef);
-               AbstractSessionIOPolicyRef pref(tagRef, true);
+               AbstractSessionIOPolicyRef pref = msg->GetTag<AbstractSessionIOPolicyRef>(MTT_NAME_POLICY_TAG);
                if (msg->what == MTT_COMMAND_SET_INPUT_POLICY) SetInputPolicy(pref);
                                                          else SetOutputPolicy(pref);
             }
@@ -728,37 +722,27 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
          {
             case MTT_COMMAND_ADD_NEW_SESSION:
             {
-               RefCountableRef tagRef;
-               if (msg->FindTag(MTT_NAME_SESSION, tagRef).IsOK())
+               AbstractReflectSessionRef sessionRef = msg->GetTag<AbstractReflectSessionRef>(MTT_NAME_SESSION);
+               if (sessionRef())
                {
-                  AbstractReflectSessionRef sessionRef(tagRef, true);
-                  if (sessionRef())
-                  {
-                     const char * hostName;
-                     const uint64 autoReconnectDelay    = msg->GetInt64(MTT_NAME_AUTORECONNECTDELAY, MUSCLE_TIME_NEVER);
-                     const uint64 maxAsyncConnectPeriod = msg->GetInt64(MTT_NAME_MAXASYNCCONNPERIOD, MUSCLE_TIME_NEVER);
+                  const char * hostName;
+                  const uint64 autoReconnectDelay    = msg->GetInt64(MTT_NAME_AUTORECONNECTDELAY, MUSCLE_TIME_NEVER);
+                  const uint64 maxAsyncConnectPeriod = msg->GetInt64(MTT_NAME_MAXASYNCCONNPERIOD, MUSCLE_TIME_NEVER);
 
-                     IPAddressAndPort iap;
-                          if (msg->FindFlat<IPAddressAndPort>(MTT_NAME_IPADDRESSANDPORT, iap).IsOK())  (void) AddNewWorkerConnectSession(sessionRef, iap, autoReconnectDelay, maxAsyncConnectPeriod);
-                     else if (msg->FindString(MTT_NAME_HOSTNAME,                    &hostName).IsOK()) (void) AddNewWorkerConnectSession(sessionRef, IPAddressAndPort(GetHostByName(hostName, msg->GetBool(MTT_NAME_EXPANDLOCALHOST)), msg->GetInt16(MTT_NAME_PORT)), autoReconnectDelay, maxAsyncConnectPeriod);
-                     else                                                                              (void) AddNewSession(sessionRef, ConstSocketRef(msg->GetTag(MTT_NAME_SOCKET), true));
-                  }
-                  else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_ADD_NEW_SESSION:  Could not get sessionRef!\n");
+                  IPAddressAndPort iap;
+                       if (msg->FindFlat<IPAddressAndPort>(MTT_NAME_IPADDRESSANDPORT, iap).IsOK())  (void) AddNewWorkerConnectSession(sessionRef, iap, autoReconnectDelay, maxAsyncConnectPeriod);
+                  else if (msg->FindString(MTT_NAME_HOSTNAME,                    &hostName).IsOK()) (void) AddNewWorkerConnectSession(sessionRef, IPAddressAndPort(GetHostByName(hostName, msg->GetBool(MTT_NAME_EXPANDLOCALHOST)), msg->GetInt16(MTT_NAME_PORT)), autoReconnectDelay, maxAsyncConnectPeriod);
+                  else                                                                              (void) AddNewSession(sessionRef, ConstSocketRef(msg->GetTag(MTT_NAME_SOCKET)));
                }
-               else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_ADD_NEW_SESSION:  No MTT_NAME_SESSION tag!\n");
+               else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_ADD_NEW_SESSION:  Could not get sessionRef!\n");
             }
             break;
 
             case MTT_COMMAND_PUT_ACCEPT_FACTORY:
             {
-               RefCountableRef tagRef;
-               if (msg->FindTag(MTT_NAME_FACTORY, tagRef).IsOK())
-               {
-                  ReflectSessionFactoryRef factoryRef(tagRef, true);
-                  if (factoryRef()) (void) PutAcceptFactory(msg->GetInt16(MTT_NAME_PORT), factoryRef, msg->GetFlat<IPAddress>(MTT_NAME_IPADDRESS));
-                               else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_PUT_ACCEPT_FACTORY:  Could not get factoryRef!\n");
-               }
-               else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_PUT_ACCEPT_FACTORY:  No MTT_NAME_FACTORY tag!\n");
+               ReflectSessionFactoryRef factoryRef = msg->GetTag<ReflectSessionFactoryRef>(MTT_NAME_FACTORY);
+               if (factoryRef()) (void) PutAcceptFactory(msg->GetInt16(MTT_NAME_PORT), factoryRef, msg->GetFlat<IPAddress>(MTT_NAME_IPADDRESS));
+                            else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_PUT_ACCEPT_FACTORY:  Could not get factoryRef!\n");
             }
             break;
 
@@ -772,24 +756,20 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
 
             case MTT_COMMAND_NOTIFY_ON_OUTPUT_DRAIN:
             {
-               RefCountableRef genericRef;
-               if (msg->FindTag(MTT_NAME_DRAIN_TAG, genericRef).IsOK())
+               DrainTagRef drainTagRef;
+               if ((msg->FindTag(MTT_NAME_DRAIN_TAG, drainTagRef).IsOK())&&(_drainTags.PutWithDefault(drainTagRef()).IsOK()))
                {
-                  DrainTagRef drainTagRef(genericRef, true);
-                  if ((drainTagRef())&&(_drainTags.PutWithDefault(drainTagRef()).IsOK()))
-                  {
-                     drainTagRef()->SetNotify(this);
-                     SendMessageToWorkers(msgRef);
+                  drainTagRef()->SetNotify(this);
+                  SendMessageToWorkers(msgRef);
 
-                     // Check the tag to see if anyone got it.  If not, we'll add the
-                     // PR_NAME_KEY string to the reply field, to give the user thread
-                     // a hint about which handler the reply should be directed back to.
-                     Message * rmsg = drainTagRef()->GetReplyMessage()();
-                     if ((rmsg)&&(rmsg->HasName(MTT_NAME_FROMSESSION) == false))
-                     {
-                        String t;
-                        if (msg->FindString(MTT_NAME_PATH, t).IsOK()) (void) rmsg->AddString(MTT_NAME_FROMSESSION, t);
-                     }
+                  // Check the tag to see if anyone got it.  If not, we'll add the
+                  // PR_NAME_KEY string to the reply field, to give the user thread
+                  // a hint about which handler the reply should be directed back to.
+                  Message * rmsg = drainTagRef()->GetReplyMessage()();
+                  if ((rmsg)&&(rmsg->HasName(MTT_NAME_FROMSESSION) == false))
+                  {
+                     String t;
+                     if (msg->FindString(MTT_NAME_PATH, t).IsOK()) (void) rmsg->AddString(MTT_NAME_FROMSESSION, t);
                   }
                }
             }
@@ -797,11 +777,11 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
 
 #ifdef MUSCLE_ENABLE_SSL
             case MTT_COMMAND_SET_SSL_PRIVATE_KEY:
-               _mtt->_server()->SetSSLPrivateKey(msg->GetFlat(MTT_NAME_DATA));
+               _mtt->_server()->SetSSLPrivateKey(msg->GetFlat<ConstByteBufferRef>(MTT_NAME_DATA));
             break;
 
             case MTT_COMMAND_SET_SSL_PUBLIC_KEY:
-               _mtt->_server()->SetSSLPublicKeyCertificate(msg->GetFlat(MTT_NAME_DATA));
+               _mtt->_server()->SetSSLPublicKeyCertificate(msg->GetFlat<ConstByteBufferRef>(MTT_NAME_DATA));
             break;
 
             case MTT_COMMAND_SET_SSL_PSK_INFO:

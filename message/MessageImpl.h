@@ -183,7 +183,7 @@ protected:
 private:
    const AbstractDataArray * GetArray() const {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
    AbstractDataArray * GetArray() {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
-   AbstractDataArrayRef GetArrayRef() const {return AbstractDataArrayRef(GetInlineItemAsRefCountableRef(), false);}
+   AbstractDataArrayRef GetArrayRef() const {return AbstractDataArrayRef(GetInlineItemAsRefCountableRef());}
    uint32 GetNumItemsInFlattenedBuffer(const uint8 * bytes, uint32 numBytes) const;
 
    // single-item implementation of the AbstractDataArray methods

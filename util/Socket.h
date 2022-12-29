@@ -113,9 +113,8 @@ public:
 
    /** Downcast constructor
      * @param ref A RefCountableRef object that hopefully holds a Socket object
-     * @param junk This parameter doesn't mean anything; it is only here to differentiate this ctor from the other ctors.
      */
-   ConstSocketRef(const RefCountableRef & ref, bool junk) : ConstRef<Socket>(ref, junk) {/* empty */}
+   ConstSocketRef(const RefCountableRef & ref) : ConstRef<Socket>(ref) {/* empty */}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline ConstSocketRef & operator = (const ConstSocketRef & rhs) {(void) ConstRef<Socket>::operator=(rhs); return *this;}
