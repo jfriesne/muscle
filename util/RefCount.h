@@ -537,18 +537,6 @@ public:
    inline Ref &operator=(Ref && rhs) {this->SwapContents(rhs); return *this;}
 #endif
 
-   /** Convenience method, for clarity:  Downcasts this reference to a reference of the specified
-     * SubclassRefType and returns that.
-     * @returns a reference that points to the same object as this reference, but with the specified
-     *          type, or a NULL reference if the implicit call to dynamic_cast<> returned NULL.
-     */
-   template<class SubclassRefType> SubclassRefType DowncastTo() const
-   {
-      SubclassRefType ret;
-      (void) ret.SetFromRefCountableRef(GetRefCountableRef());
-      return ret;
-   }
-
 private:
    friend class DummyRef<Item>;
 
