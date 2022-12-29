@@ -64,7 +64,7 @@ public:
      * will not be traversed, nor will any of his descendants.
      * @param path The relative path of the node that is about to be traversed.
      * @param nodeData A reference to the Message to be associated with this node.
-     *                 If desired, this can be replaced with a different MessageRef instead
+     *                 If desired, this can be replaced with a different ConstMessageRef instead
      *                 (but be careful not to modify the Message that (nodeData) points to;
      *                 instead, allocate a new Message and set (nodeData) to point to it.
      */
@@ -356,8 +356,7 @@ protected:
     * @param flags optional bit-chord of SETDATANODE_FLAG_* flags to modify our behavior.  Defaults to no-flags-set.
     * @param optInsertBefore If (addToTargetIndex) is true, this argument will be passed on to InsertOrderedChild().
     *                        Otherwise, this argument is ignored.
-    * @param optPruner If non-NULL, this object can be used as a callback to prune the traversal or filter
-    *                  the MessageRefs cloned.
+    * @param optPruner If non-NULL, this object can be used as a callback to prune the traversal or filter the MessageRefs cloned.
     * @return B_NO_ERROR on success, or an error code on failure (may leave a partially cloned subtree on failure)
     */
    status_t CloneDataNodeSubtree(const DataNode & sourceNode, const String & destPath, SetDataNodeFlags flags = SetDataNodeFlags(), const String * optInsertBefore = NULL, const ITraversalPruner * optPruner = NULL);
@@ -369,7 +368,7 @@ protected:
     *                 is being destroyed, this will contain the node's current data.
     *  @param nodeChangeFlags a bit-chord of NODE_CHANGED_* flags describing how the node is being changed
     */
-   virtual void NotifySubscribersThatNodeChanged(DataNode & node, const MessageRef & oldData, NodeChangeFlags nodeChangeFlags);
+   virtual void NotifySubscribersThatNodeChanged(DataNode & node, const ConstMessageRef & oldData, NodeChangeFlags nodeChangeFlags);
 
    /** Tells other sessions that we have changed the index of (node) in our node subtree.
     *  @param node The node whose index was changed.
@@ -387,7 +386,7 @@ protected:
     *                 is being destroyed, this will contain the node's current data.
     *  @param nodeChangeFlags a bit-chord of NODE_CHANGED_* flags describing how the node is being changed
     */
-   virtual void NodeChanged(DataNode & node, const MessageRef & oldData, NodeChangeFlags nodeChangeFlags);
+   virtual void NodeChanged(DataNode & node, const ConstMessageRef & oldData, NodeChangeFlags nodeChangeFlags);
 
    /** Called by NotifySubscribersThatIndexChanged() to tell us how (node)'s index has been modified.
     *  @param node The node whose index was changed.
@@ -405,7 +404,7 @@ protected:
      * @param optMessageData A reference to the DataNode's new state, or a NULL reference if the DataNode has been deleted.
      * @returns B_NO_ERROR on success, or some other error code if there was a failure doing the update.
      */
-   virtual status_t UpdateSubscriptionMessage(Message & subscriptionMessage, const String & nodePath, const MessageRef & optMessageData);
+   virtual status_t UpdateSubscriptionMessage(Message & subscriptionMessage, const String & nodePath, const ConstMessageRef & optMessageData);
 
    /** Called when the StorageReflectSession wants to remove a nodePath from a subscription-notification-Message.
      * Default implementation just calls through to subscriptionMessage.RemoveName(nodePath).
@@ -527,7 +526,7 @@ private:
 
    void PushSubscriptionMessage(MessageRef & msgRef);
    void SendGetDataResults(MessageRef & msg);
-   void NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, NodeChangeFlags nodeChangeFlags);
+   void NodeChangedAux(DataNode & modifiedNode, const ConstMessageRef & nodeData, NodeChangeFlags nodeChangeFlags);
    void UpdateDefaultMessageRoute();
    status_t RemoveParameter(const String & paramName, bool & retUpdateDefaultMessageRoute);
    int PassMessageCallbackAux(DataNode & node, const MessageRef & msgRef, bool matchSelfOkay);

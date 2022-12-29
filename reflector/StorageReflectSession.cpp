@@ -248,7 +248,7 @@ Cleanup()
 
 void
 StorageReflectSession ::
-NotifySubscribersThatNodeChanged(DataNode & modifiedNode, const MessageRef & oldData, NodeChangeFlags nodeChangeFlags)
+NotifySubscribersThatNodeChanged(DataNode & modifiedNode, const ConstMessageRef & oldData, NodeChangeFlags nodeChangeFlags)
 {
    TCHECKPOINT;
 
@@ -315,7 +315,7 @@ NodeCreated(DataNode & newNode)
 
 void
 StorageReflectSession ::
-NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, NodeChangeFlags nodeChangeFlags)
+NodeChanged(DataNode & modifiedNode, const ConstMessageRef & oldData, NodeChangeFlags nodeChangeFlags)
 {
    TCHECKPOINT;
 
@@ -348,13 +348,13 @@ NodeChanged(DataNode & modifiedNode, const MessageRef & oldData, NodeChangeFlags
          }
       }
 
-      NodeChangedAux(modifiedNode, CastAwayConstFromRef(constNewData), nodeChangeFlags);
+      NodeChangedAux(modifiedNode, constNewData, nodeChangeFlags);
    }
 }
 
 void
 StorageReflectSession ::
-NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, NodeChangeFlags nodeChangeFlags)
+NodeChangedAux(DataNode & modifiedNode, const ConstMessageRef & nodeData, NodeChangeFlags nodeChangeFlags)
 {
    TCHECKPOINT;
 
@@ -412,9 +412,9 @@ NodeChangedAux(DataNode & modifiedNode, const MessageRef & nodeData, NodeChangeF
 
 status_t
 StorageReflectSession ::
-UpdateSubscriptionMessage(Message & subscriptionMessage, const String & nodePath, const MessageRef & optMessageData)
+UpdateSubscriptionMessage(Message & subscriptionMessage, const String & nodePath, const ConstMessageRef & optMessageData)
 {
-   return optMessageData() ? subscriptionMessage.AddMessage(nodePath, optMessageData) : subscriptionMessage.AddString(PR_NAME_REMOVED_DATAITEMS, nodePath);
+   return optMessageData() ? subscriptionMessage.AddMessage(nodePath, CastAwayConstFromRef(optMessageData)) : subscriptionMessage.AddString(PR_NAME_REMOVED_DATAITEMS, nodePath);
 }
 
 status_t
@@ -477,7 +477,7 @@ SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetData
             childNodeRef = allocedNode;
             if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)))
             {
-               MRETURN_ON_ERROR(node->InsertOrderedChild(CastAwayConstFromRef(dataMsgRef), optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL));
+               MRETURN_ON_ERROR(node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL));
                _indexingPresent = true;
             }
             else MRETURN_ON_ERROR(node->PutChild(childNodeRef, this, ((flags.IsBitSet(SETDATANODE_FLAG_QUIET))||(slashPos < 0)) ? NULL : this));
@@ -492,7 +492,7 @@ SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetData
             DataNode::SetDataFlags setDataFlags;
             if (node == allocedNode()) setDataFlags.SetBit(DataNode::SET_DATA_FLAG_ISBEINGCREATED);
             if (flags.IsBitSet(SETDATANODE_FLAG_ENABLESUPERCEDE)) setDataFlags.SetBit(DataNode::SET_DATA_FLAG_ENABLESUPERCEDE);
-            node->SetData(CastAwayConstFromRef(dataMsgRef), flags.IsBitSet(SETDATANODE_FLAG_QUIET) ? NULL : this, setDataFlags);  // do this to trigger the changed-notification
+            node->SetData(dataMsgRef, flags.IsBitSet(SETDATANODE_FLAG_QUIET) ? NULL : this, setDataFlags);  // do this to trigger the changed-notification
          }
          prevSlashPos = slashPos;
       }
@@ -1279,7 +1279,7 @@ ChangeQueryFilterCallback(DataNode & node, void * ud)
    ConstMessageRef constMsg2 = node.GetData();
    const bool oldMatches = ((constMsg1() == NULL)||(oldFilter == NULL)||(oldFilter->Matches(constMsg1, &node)));
    const bool newMatches = ((constMsg2() == NULL)||(newFilter == NULL)||(newFilter->Matches(constMsg2, &node)));
-   if (oldMatches != newMatches) NodeChangedAux(node, CastAwayConstFromRef(constMsg2), oldMatches?NodeChangeFlags(NODE_CHANGE_FLAG_ISBEINGREMOVED):NodeChangeFlags());
+   if (oldMatches != newMatches) NodeChangedAux(node, constMsg2, oldMatches?NodeChangeFlags(NODE_CHANGE_FLAG_ISBEINGREMOVED):NodeChangeFlags());
    return node.GetDepth();  // continue traversal as usual
 }
 
@@ -1309,7 +1309,7 @@ GetDataCallback(DataNode & node, void * userData)
    String np1;
    if ((resultMsg())&&(node.GetNodePath(np1).IsOK()))
    {
-      (void) resultMsg()->AddMessage(np1, node.GetData());
+      (void) resultMsg()->AddMessage(np1, CastAwayConstFromRef(node.GetData()));
       if (resultMsg()->GetNumNames() >= _maxSubscriptionMessageItems) SendGetDataResults(resultMsg);
    }
    else
@@ -1391,7 +1391,7 @@ InsertOrderedChildNode(DataNode & node, const String * optInsertBefore, const Co
 {
    if (_currentNodeCount >= _maxNodeCount) return B_ACCESS_DENIED;
 
-   MRETURN_ON_ERROR(node.InsertOrderedChild(CastAwayConstFromRef(childNodeMsg), optInsertBefore, NULL, this, this, optAddNewChildren));
+   MRETURN_ON_ERROR(node.InsertOrderedChild(childNodeMsg, optInsertBefore, NULL, this, this, optAddNewChildren));
    _indexingPresent = true;  // disable optimization in GetDataCallback()
    _currentNodeCount++;
    return B_NO_ERROR;
@@ -1604,8 +1604,8 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optK
                            {
                               // Hey, the QueryFilter retargetted the ConstMessageRef!  So we need the callback to see the modified Message, not the original one.
                               // We'll do that the sneaky way, by temporarily swapping out (nextChild)'s MessageRef, and then swapping it back in afterwards.
-                              MessageRef origNodeMsg = nextChild->GetData();
-                              nextChild->SetData(CastAwayConstFromRef(constDataRef), NULL, DataNode::SetDataFlags());
+                              ConstMessageRef origNodeMsg = nextChild->GetData();
+                              nextChild->SetData(constDataRef, NULL, DataNode::SetDataFlags());
                               nextDepth = data.CallCallbackMethod(*nextChild);
                               nextChild->SetData(origNodeMsg, NULL, DataNode::SetDataFlags());
                            }
@@ -1651,7 +1651,7 @@ GetNewDataNode(const String & name, const ConstMessageRef & initialValue)
    static DataNodeRef::ItemPool _nodePool;
 
    DataNodeRef ret(_nodePool.ObtainObject());
-   if (ret()) ret()->Init(name, CastAwayConstFromRef(initialValue));
+   if (ret()) ret()->Init(name, initialValue);
    return ret;
 }
 
@@ -1744,7 +1744,7 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
    TCHECKPOINT;
 
    {
-      MessageRef payload = node.GetData();
+      ConstMessageRef payload = node.GetData();
       if ((optPruner)&&(optPruner->MatchPath(destPath, payload) == false)) return B_NO_ERROR;
       if (payload() == NULL) return B_BAD_OBJECT;
       MRETURN_ON_ERROR(SetDataNode(destPath, payload, flags, optInsertBefore));
@@ -1784,9 +1784,9 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
    TCHECKPOINT;
 
    {
-      MessageRef payload = node->GetData();
+      ConstMessageRef payload = node->GetData();
       if ((optPruner)&&(optPruner->MatchPath(path, payload) == false)) return B_NO_ERROR;
-      if (saveData) MRETURN_ON_ERROR(msg.AddMessage(PR_NAME_NODEDATA, payload));
+      if (saveData) MRETURN_ON_ERROR(msg.AddMessage(PR_NAME_NODEDATA, CastAwayConstFromRef(payload)));
    }
 
    if ((node->HasChildren())&&(maxDepth > 0))

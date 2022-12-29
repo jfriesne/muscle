@@ -55,7 +55,7 @@ public:
     * @param optAddNewChildren If non-NULL, any newly formed nodes will be added to this hashtable, keyed on their absolute node path.
     * @return B_NO_ERROR on success, B_OUT_OF_MEMORY if out of memory
     */
-   status_t InsertOrderedChild(const MessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyWithOnChangedData, Hashtable<String, DataNodeRef> * optAddNewChildren);
+   status_t InsertOrderedChild(const ConstMessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyWithOnChangedData, Hashtable<String, DataNodeRef> * optAddNewChildren);
 
    /**
     * Moves the given node (which must be a child of ours) to be just before the node named
@@ -157,10 +157,10 @@ public:
     *  @param optNotifyWith if non-NULL, this StorageReflectSession will be used to notify subscribers that this node's data has changed.
     *  @param setDataFlags Flags to influence the behavior of this call.  Defaults to no-flags-set.
     */
-   void SetData(const MessageRef & data, StorageReflectSession * optNotifyWith, SetDataFlags setDataFlags = SetDataFlags());
+   void SetData(const ConstMessageRef & data, StorageReflectSession * optNotifyWith, SetDataFlags setDataFlags = SetDataFlags());
 
    /** Returns a reference to this node's Message payload. */
-   const MessageRef & GetData() const {return _data;}
+   const ConstMessageRef & GetData() const {return _data;}
 
    /** Returns our node's parent, or NULL if this node doesn't have a parent node. */
    DataNode * GetParent() const {return _parent;}
@@ -300,12 +300,12 @@ private:
      */
    DataNode & operator = (const DataNode & rhs) {(void) rhs; Reset(); return *this;}
 
-   void Init(const String & nodeName, const MessageRef & initialValue);
+   void Init(const String & nodeName, const ConstMessageRef & initialValue);
    status_t SetParent(DataNode * parent, StorageReflectSession * optNotifyWith);
    status_t RemoveIndexEntry(const String & key, StorageReflectSession * optNotifyWith);
 
    DataNode * _parent;
-   MessageRef _data;
+   ConstMessageRef _data;
    mutable uint32 _cachedDataChecksum;
    Hashtable<const String *, DataNodeRef> * _children;  // lazy-allocated
    Queue<DataNodeRef> * _orderedIndex;  // only used when tracking the ordering of our children (lazy-allocated)

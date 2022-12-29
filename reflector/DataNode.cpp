@@ -19,7 +19,7 @@ DataNode :: ~DataNode()
    delete _orderedIndex;
 }
 
-void DataNode :: Init(const String & name, const MessageRef & initData)
+void DataNode :: Init(const String & name, const ConstMessageRef & initData)
 {
    _nodeName           = name;
    _parent             = NULL;
@@ -48,7 +48,7 @@ void DataNode :: Reset()
    _cachedDataChecksum = 0;
 }
 
-status_t DataNode :: InsertOrderedChild(const MessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * notifyWithOnSetParent, StorageReflectSession * optNotifyChangedData, Hashtable<String, DataNodeRef> * optRetAdded)
+status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * notifyWithOnSetParent, StorageReflectSession * optNotifyChangedData, Hashtable<String, DataNodeRef> * optRetAdded)
 {
    TCHECKPOINT;
 
@@ -191,7 +191,7 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
 
    if (optNotifyChangedData)
    {
-      MessageRef oldData; if (oldNode()) oldData = oldNode()->GetData();
+      ConstMessageRef oldData; if (oldNode()) oldData = oldNode()->GetData();
       optNotifyChangedData->NotifySubscribersThatNodeChanged(*child, oldData, StorageReflectSession::NodeChangeFlags());
    }
    return B_NO_ERROR;
@@ -340,9 +340,9 @@ status_t DataNode :: RemoveIndexEntry(const String & key, StorageReflectSession 
    return B_DATA_NOT_FOUND;
 }
 
-void DataNode :: SetData(const MessageRef & data, StorageReflectSession * optNotifyWith, SetDataFlags setDataFlags)
+void DataNode :: SetData(const ConstMessageRef & data, StorageReflectSession * optNotifyWith, SetDataFlags setDataFlags)
 {
-   MessageRef oldData;
+   ConstMessageRef oldData;
    if (setDataFlags.IsBitSet(SET_DATA_FLAG_ISBEINGCREATED) == false) oldData = _data;
    _data = data;
    _cachedDataChecksum = 0;
