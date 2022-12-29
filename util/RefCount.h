@@ -158,12 +158,6 @@ public:
    ConstRef(ConstRef && rhs) {this->SwapContents(rhs);}
 #endif
 
-   /** Attempts to set this reference by downcasting the reference in the provided ConstRefCountableRef.
-     * If the downcast cannot be done (via dynamic_cast) then we become a NULL reference.
-     * @param rcRef The read-only RefCountable reference to set ourselves from.
-     */
-   template<> ConstRef(const ConstRefCountableRef & rcRef) : _item(NULL, true) {(void) SetFromRefCountableRef(rcRef);}
-
    /** Unreferences the held data item.  If this is the last ConstRef that
     *  references the held data item, the data item will be deleted or recycled at this time.
     */
@@ -330,7 +324,12 @@ public:
      * @returns a reference that points to the same object as this reference, but with the specified
      *          type, or a NULL reference if the implicit call to dynamic_cast<> returned NULL.
      */
-   template<class SubclassRefType> SubclassRefType DowncastTo() const {return SubclassRefType(GetRefCountableRef());}
+   template<class SubclassRefType> SubclassRefType DowncastTo() const
+   {
+      SubclassRefType ret;
+      (void) ret.SetFromRefCountableRef(GetRefCountableRef());
+      return ret;
+   }
 
    /** Returns true iff we are pointing to a valid item (i.e. if (GetItemPointer() != NULL)) */
    bool IsValid() const {return (this->GetItemPointer() != NULL);}
@@ -513,12 +512,6 @@ public:
    Ref(Ref && rhs) {this->SwapContents(rhs);}
 #endif
 
-   /** Attempts to set this reference by downcasting the reference in the provided RefCountableRef.
-     * If the downcast cannot be done (via dynamic_cast) then we become a NULL reference.
-     * @param ref The RefCountable reference to set ourselves from.
-     */
-   template<> Ref(const RefCountableRef & ref) : ConstRef<Item>(ref) {/* empty */}
-
    /** Returns the ref-counted data item.  The returned data item
     *  is only guaranteed valid for as long as this RefCount object exists.
     */
@@ -549,7 +542,12 @@ public:
      * @returns a reference that points to the same object as this reference, but with the specified
      *          type, or a NULL reference if the implicit call to dynamic_cast<> returned NULL.
      */
-   template<class SubclassRefType> SubclassRefType DowncastTo() const {return SubclassRefType(GetRefCountableRef());}
+   template<class SubclassRefType> SubclassRefType DowncastTo() const
+   {
+      SubclassRefType ret;
+      (void) ret.SetFromRefCountableRef(GetRefCountableRef());
+      return ret;
+   }
 
 private:
    friend class DummyRef<Item>;

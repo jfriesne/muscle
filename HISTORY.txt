@@ -35,9 +35,6 @@ key:  - new feature
      ReplaceFlat(), AddTag(), PrependTag(), and ReplaceTag() so that
      the calling code no longer has to do manual upcasting of typed
      FlatCountableRef or RefCountableRef objects before calling them.
-   - Added a DowncastTo<SubclassRefType>() convenience-method to the
-     ConstRef class, so that downcasting operations can be made more
-     self-documenting.
    - Added ConstMessageRef overloads of InflateMessage() and DeflateMessage().
    - Added a ConstMessageRef-returning overload of Message::FindMessage().
    o Removed the ByteBufferRef-specific *Flat() methods from
@@ -73,9 +70,8 @@ key:  - new feature
    o Ref::SetFromRefCountableRef() now returns B_TYPE_MISMATCH on failure
      rather than B_BAD_ARGUMENT.
    o Removed the two-argument ConstRef and Ref "pseudo-constuctors"
-     in favor of single-argument templated constructors that do the
-     right thing without requiring the caller to pass in a meaningless
-     boolean as a second argument.
+     and added instead a DowncastTo<SubclassRefType>() method, to
+     make Ref-downcasting operations self-documenting.
    o Changed ITraversalPruner::MatchPath()'s second argument to be of
      type ConstMessageRef instead of MessageRef.
    * Fixed MLOG_ON_ERROR and friends to be usable with io_status_t.

@@ -732,7 +732,7 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
                   IPAddressAndPort iap;
                        if (msg->FindFlat<IPAddressAndPort>(MTT_NAME_IPADDRESSANDPORT, iap).IsOK())  (void) AddNewWorkerConnectSession(sessionRef, iap, autoReconnectDelay, maxAsyncConnectPeriod);
                   else if (msg->FindString(MTT_NAME_HOSTNAME,                    &hostName).IsOK()) (void) AddNewWorkerConnectSession(sessionRef, IPAddressAndPort(GetHostByName(hostName, msg->GetBool(MTT_NAME_EXPANDLOCALHOST)), msg->GetInt16(MTT_NAME_PORT)), autoReconnectDelay, maxAsyncConnectPeriod);
-                  else                                                                              (void) AddNewSession(sessionRef, ConstSocketRef(msg->GetTag(MTT_NAME_SOCKET)));
+                  else                                                                              (void) AddNewSession(sessionRef, msg->GetTag(MTT_NAME_SOCKET).DowncastTo<ConstSocketRef>());
                }
                else LogTime(MUSCLE_LOG_ERROR, "MTT_COMMAND_ADD_NEW_SESSION:  Could not get sessionRef!\n");
             }

@@ -111,11 +111,6 @@ public:
      */
    ConstSocketRef(const ConstSocketRef & rhs) : ConstRef<Socket>(rhs) {/* empty */}
 
-   /** Downcast constructor
-     * @param ref A RefCountableRef object that hopefully holds a Socket object
-     */
-   ConstSocketRef(const RefCountableRef & ref) : ConstRef<Socket>(ref) {/* empty */}
-
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline ConstSocketRef & operator = (const ConstSocketRef & rhs) {(void) ConstRef<Socket>::operator=(rhs); return *this;}
 

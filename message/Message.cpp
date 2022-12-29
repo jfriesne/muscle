@@ -2510,7 +2510,7 @@ void MessageField :: SingleAddToString(String & s, uint32 maxRecurseLevel, int i
          case B_INT8_TYPE:    AddFormattedSingleItemToString(indent, "[%i]", GetInlineItemAsInt8(),                     s); break;
 
          case B_MESSAGE_TYPE:
-            MessageDataArray::AddItemDescriptionToString(indent, 0, MessageRef(GetInlineItemAsRefCountableRef()), s, maxRecurseLevel);
+            MessageDataArray::AddItemDescriptionToString(indent, 0, GetInlineItemAsRefCountableRef().DowncastTo<MessageRef>(), s, maxRecurseLevel);
          break;
 
          case B_POINTER_TYPE: AddFormattedSingleItemToString(indent, "[%p]", GetInlineItemAsPointer(), s);        break;
@@ -2521,7 +2521,7 @@ void MessageField :: SingleAddToString(String & s, uint32 maxRecurseLevel, int i
          default:
          {
             const ByteBuffer * bb = dynamic_cast<const ByteBuffer *>(GetInlineItemAsRefCountableRef()());
-            if (bb) ByteBufferDataArray::AddItemDescriptionToString(indent, 0, FlatCountableRef(GetInlineItemAsRefCountableRef()), s);
+            if (bb) ByteBufferDataArray::AddItemDescriptionToString(indent, 0, GetInlineItemAsRefCountableRef().DowncastTo<FlatCountableRef>(), s);
                else AddFormattedSingleItemToString(indent, "%p", GetInlineItemAsRefCountableRef()(), s);
          }
          break;
@@ -2739,7 +2739,7 @@ status_t MessageField :: ReplaceFlatCountableDataItem(uint32 index, muscle::Ref<
          ByteBufferDataArray * bbda = dynamic_cast<ByteBufferDataArray *>(GetArray());
          if (bbda)
          {
-            ByteBufferRef bbRef(fcRef.GetRefCountableRef());
+            ByteBufferRef bbRef = fcRef.DowncastTo<ByteBufferRef>();
             return bbRef() ? bbda->ReplaceDataItem(index, &bbRef, sizeof(bbRef)) : B_TYPE_MISMATCH;
          }
 

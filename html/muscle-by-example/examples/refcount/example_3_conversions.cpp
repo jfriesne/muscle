@@ -53,7 +53,7 @@ int main(int argc, char ** argv)
 
    MyBaseClassRef myBaseClass5 = mySubClass1;   // Initializing a base-class ref from a subclass-ref is ok
 
-   RefCountableRef rc1 = mySubClass1;  // Initializing a RefCountableRef from any Ref is always okay
+   RefCountableRef rc1 = mySubClass1;  // Upcasting to a RefCountableRef from any more-specific Ref type is always okay
    RefCountableRef rc2 = mySubClass1.GetRefCountableRef(); // another way to do the same thing
 
 #ifdef COMMENTED_OUT_BECAUSE_THIS_WONT_COMPILE

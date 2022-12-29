@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_INFO, "Main thread: Press return to call Notify() on the WaitCondition...\n");
 
    char buf[128];
-   (void) fgets(buf, sizeof(buf), stdin);
+   if (fgets(buf, sizeof(buf), stdin) != NULL) {/* empty */}
 
    ret = waitCondition.Notify();
    LogTime(MUSCLE_LOG_INFO, "WaitCondition::Notify() returned [%s], now waiting for MyThread to exit.\n", ret());
