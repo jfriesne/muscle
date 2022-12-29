@@ -122,7 +122,7 @@ protected:
     *                        If NULL, the new node will be appended to the end of the index.  If (addToIndex) is false, this argument is ignored.
     * @return B_NO_ERROR on success, or an error code on failure.
     */
-   virtual status_t SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, SetDataNodeFlags flags = SetDataNodeFlags(), const String *optInsertBefore=NULL);
+   virtual status_t SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetDataNodeFlags flags = SetDataNodeFlags(), const String *optInsertBefore=NULL);
 
    /** Remove all nodes that match (nodePath).
     *  @param nodePath A relative path indicating node(s) to remove.  Wildcarding is okay.
@@ -182,7 +182,7 @@ protected:
      * @param optRetNewNodes If non-NULL, any newly-created DataNodes will be adde to this table for your inspection.
      * @returns B_NO_ERROR on success, or an error code on failure.
      */
-   virtual status_t InsertOrderedData(const MessageRef & insertMsg, Hashtable<String, DataNodeRef> * optRetNewNodes);
+   virtual status_t InsertOrderedData(const ConstMessageRef & insertMsg, Hashtable<String, DataNodeRef> * optRetNewNodes);
 
    /**
      * Utility method:  Adds a new child node to the specified parent node.
@@ -193,7 +193,7 @@ protected:
      * @param optAddNewChildren If non-NULL, any newly formed nodes will be added to this hashtable, keyed on their absolute node path.
      * @return B_NO_ERROR on success, an error code on failure.
      */
-   status_t InsertOrderedChildNode(DataNode & parentNode, const String * optInsertBefore, const MessageRef & data, Hashtable<String, DataNodeRef> * optAddNewChildren);
+   status_t InsertOrderedChildNode(DataNode & parentNode, const String * optInsertBefore, const ConstMessageRef & data, Hashtable<String, DataNodeRef> * optAddNewChildren);
 
    /**
     * This typedef represents the proper signature of a node-tree traversal callback function.
@@ -480,7 +480,7 @@ protected:
     * @param initialValue The Message payload to be given to the new DataNode that will be created.
     * @return A reference to the new DataNode or a NULL reference if out of memory.
     */
-   DataNodeRef GetNewDataNode(const String & nodeName, const MessageRef & initialValue);
+   DataNodeRef GetNewDataNode(const String & nodeName, const ConstMessageRef & initialValue);
 
    /**
     * Call this when you are done with a DataNode, instead of the DataNode destructor.

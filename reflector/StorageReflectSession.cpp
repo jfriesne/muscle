@@ -78,7 +78,7 @@ InitSharedData()
    // oops, there's no shared data object!  We must be the first session.
    // So we'll create the root node and the shared data object, and
    // add it to the central-state Message ourself.
-   DataNodeRef globalRoot = GetNewDataNode("", CastAwayConstFromRef(GetEmptyMessageRef()));
+   DataNodeRef globalRoot = GetNewDataNode("", GetEmptyMessageRef());
    if (globalRoot())
    {
       sd = newnothrow StorageReflectSessionSharedData(globalRoot);
@@ -112,7 +112,7 @@ AttachedToServer()
    if (GetGlobalRoot().GetChild(hostname, hostDir).IsError())
    {
       // nope.... we'll add one then
-      hostDir = GetNewDataNode(hostname, CastAwayConstFromRef(GetEmptyMessageRef()));
+      hostDir = GetNewDataNode(hostname, GetEmptyMessageRef());
       if ((hostDir() == NULL)||(GetGlobalRoot().PutChild(hostDir, this, this).IsError())) {Cleanup(); MRETURN_OUT_OF_MEMORY;}
    }
 
@@ -123,7 +123,7 @@ AttachedToServer()
 
    SetSessionRootPath(hostname.Prepend("/") + "/" + sessionid);
 
-   DataNodeRef sessionNode = GetNewDataNode(sessionid, CastAwayConstFromRef(GetEmptyMessageRef()));
+   DataNodeRef sessionNode = GetNewDataNode(sessionid, GetEmptyMessageRef());
    if (sessionNode())
    {
 #ifdef MUSCLE_AVOID_IPV6
@@ -449,7 +449,7 @@ NodeIndexChanged(DataNode & modifiedNode, char op, uint32 index, const String & 
 
 status_t
 StorageReflectSession ::
-SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, SetDataNodeFlags flags, const String *optInsertBefore)
+SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetDataNodeFlags flags, const String *optInsertBefore)
 {
    TCHECKPOINT;
 
@@ -471,13 +471,13 @@ SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, SetDataNodeF
          {
             if ((_currentNodeCount >= _maxNodeCount)||(flags.IsBitSet(SETDATANODE_FLAG_DONTCREATENODE))) return B_ACCESS_DENIED;
 
-            allocedNode = GetNewDataNode(nextClause, ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false)) ? dataMsgRef : CastAwayConstFromRef(GetEmptyMessageRef()));
+            allocedNode = GetNewDataNode(nextClause, ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false)) ? dataMsgRef : GetEmptyMessageRef());
             MRETURN_OOM_ON_NULL(allocedNode());
 
             childNodeRef = allocedNode;
             if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)))
             {
-               MRETURN_ON_ERROR(node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL));
+               MRETURN_ON_ERROR(node->InsertOrderedChild(CastAwayConstFromRef(dataMsgRef), optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL));
                _indexingPresent = true;
             }
             else MRETURN_ON_ERROR(node->PutChild(childNodeRef, this, ((flags.IsBitSet(SETDATANODE_FLAG_QUIET))||(slashPos < 0)) ? NULL : this));
@@ -492,7 +492,7 @@ SetDataNode(const String & nodePath, const MessageRef & dataMsgRef, SetDataNodeF
             DataNode::SetDataFlags setDataFlags;
             if (node == allocedNode()) setDataFlags.SetBit(DataNode::SET_DATA_FLAG_ISBEINGCREATED);
             if (flags.IsBitSet(SETDATANODE_FLAG_ENABLESUPERCEDE)) setDataFlags.SetBit(DataNode::SET_DATA_FLAG_ENABLESUPERCEDE);
-            node->SetData(dataMsgRef, flags.IsBitSet(SETDATANODE_FLAG_QUIET) ? NULL : this, setDataFlags);  // do this to trigger the changed-notification
+            node->SetData(CastAwayConstFromRef(dataMsgRef), flags.IsBitSet(SETDATANODE_FLAG_QUIET) ? NULL : this, setDataFlags);  // do this to trigger the changed-notification
          }
          prevSlashPos = slashPos;
       }
@@ -1060,7 +1060,7 @@ SendMessageCallback(DataNode & node, void * userData)
    return PassMessageCallbackAux(node, *((MessageRef *)a[0]), *((bool *)a[1]));
 }
 
-status_t StorageReflectSession :: InsertOrderedData(const MessageRef & msgRef, Hashtable<String, DataNodeRef> * optNewNodes)
+status_t StorageReflectSession :: InsertOrderedData(const ConstMessageRef & msgRef, Hashtable<String, DataNodeRef> * optNewNodes)
 {
    TCHECKPOINT;
 
@@ -1068,7 +1068,7 @@ status_t StorageReflectSession :: InsertOrderedData(const MessageRef & msgRef, H
    if (msgRef())
    {
       // Because INSERTORDEREDDATA operates solely on pre-existing nodes, we can allow wildcards in our node paths.
-      void * args[2] = {msgRef(), optNewNodes};
+      void * args[2] = {(void *) msgRef(), optNewNodes};
       NodePathMatcher matcher;
       (void) matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, *msgRef(), NULL);
       (void) matcher.DoTraversal((PathMatchCallback)InsertOrderedDataCallbackFunc, this, *_sessionDir(), true, args);
@@ -1387,11 +1387,11 @@ InsertOrderedDataCallback(DataNode & node, void * userData)
 
 status_t
 StorageReflectSession ::
-InsertOrderedChildNode(DataNode & node, const String * optInsertBefore, const MessageRef & childNodeMsg, Hashtable<String, DataNodeRef> * optAddNewChildren)
+InsertOrderedChildNode(DataNode & node, const String * optInsertBefore, const ConstMessageRef & childNodeMsg, Hashtable<String, DataNodeRef> * optAddNewChildren)
 {
    if (_currentNodeCount >= _maxNodeCount) return B_ACCESS_DENIED;
 
-   MRETURN_ON_ERROR(node.InsertOrderedChild(childNodeMsg, optInsertBefore, NULL, this, this, optAddNewChildren));
+   MRETURN_ON_ERROR(node.InsertOrderedChild(CastAwayConstFromRef(childNodeMsg), optInsertBefore, NULL, this, this, optAddNewChildren));
    _indexingPresent = true;  // disable optimization in GetDataCallback()
    _currentNodeCount++;
    return B_NO_ERROR;
@@ -1646,12 +1646,12 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optK
 
 DataNodeRef
 StorageReflectSession ::
-GetNewDataNode(const String & name, const MessageRef & initialValue)
+GetNewDataNode(const String & name, const ConstMessageRef & initialValue)
 {
    static DataNodeRef::ItemPool _nodePool;
 
    DataNodeRef ret(_nodePool.ObtainObject());
-   if (ret()) ret()->Init(name, initialValue);
+   if (ret()) ret()->Init(name, CastAwayConstFromRef(initialValue));
    return ret;
 }
 
