@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.20 -
+9.20 - Released 12/30/2022
    - Updated NetworkUtilityFunctions.cpp to better support "real"
      IPv4 sockets (previously it assumed that IPv4 traffic would
      be handled using IPv6 sockets and IPv4-mapped IPv6 addresses,
