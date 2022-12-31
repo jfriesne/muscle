@@ -53,6 +53,8 @@ protected:
   * convey information about that batch (e.g. the batch's name, for undo purposes), or
   * to differentiate different types of batch operation (if you want to use batching
   * of different kinds within the same object), or both.
+  *
+  * @tparam BatchArgs optional type of arguments that can be supplied to the BeginOperationBatch() and EndOperationBatch() calls.  Defaults to void (aka no arguments)
   */
 template <typename BatchArgs = void> class BatchOperator : public BatchOperatorBase
 {

@@ -21,6 +21,8 @@ namespace muscle {
   * than the one that the reading-thread might be in the middle of reading from.
   * That way, the reading-thread's "old" copy of the value is in no danger of being
   * modified while the reading-thread is in the middle of using it.
+  *
+  * @tparam T the type of object to allow atomic access to.
   */
 template<typename T, uint32 ATOMIC_BUFFER_SIZE=4> class AtomicValue MUSCLE_FINAL_CLASS
 {

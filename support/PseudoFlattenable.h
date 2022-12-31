@@ -28,6 +28,7 @@ class Flattenable;
   * in your class, but don't make them virtual.  That will be enough to allow you to
   * use Message::AddFlat(), Message::FindFlat(), etc on your objects, with no extra
   * memory overhead.  See the MUSCLE Point and Rect classes for examples of this technique.
+  * @tparam SubclassType the class that is subclassing PseudoFlattenable (used for CRTP purposes)
   */
 template <class SubclassType> class PseudoFlattenable
 {

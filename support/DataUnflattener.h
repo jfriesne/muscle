@@ -9,7 +9,10 @@ namespace muscle {
 
 class ByteBuffer;
 
-/** This is a lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer. */
+/** This is a lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer.
+  * @tparam EndianConverter the type of EndianConverter object use when converting raw serialized bytes to native data-types
+  * @tparam SizeChecker the type of checker-object to use when checking input-buffer sizes.  Defaults to using a RealSizeChecker.
+  */
 template<class EndianConverter, class SizeChecker=RealSizeChecker> class DataUnflattenerHelper MUSCLE_FINAL_CLASS
 {
 public:
@@ -117,6 +120,10 @@ public:
    int64  ReadInt64()  {int64 v = 0;    (void) ReadInt64s( &v, 1); return v;}
    float  ReadFloat()  {float v = 0.0f; (void) ReadFloats( &v, 1); return v;}
    double ReadDouble() {double v = 0.0; (void) ReadDoubles(&v, 1); return v;}
+
+   /** Reads and returns a primitive of the specified type.
+     * @tparam T the type of primitive to return.
+     */
    template<typename T> T ReadPrimitive() {T v = T(); (void) ReadPrimitives(&v, 1); return v;}
 ///@}
 
@@ -146,6 +153,7 @@ public:
    }
 
    /** Unflattens and returns a Flattenable or PseudoFlattenable object from data in our buffer
+     * @tparam T the type of object to return.
      * @param maxNumBytes how many bytes to pass to retVal's Unflatten() method.
      *                 If this value is greater than GetNumBytesAvailable(), it will be treated
      *                 as equal to GetNumBytesAvailable().  Defaults to MUSCLE_NO_LIMIT.
@@ -174,6 +182,7 @@ public:
 
    /** Reads a 4-byte length prefix from our buffer, and then passes the next (N) bytes from our
      * buffer to the Unflatten() method of an Flattenable/PseudoFlattenable object of the specified type.
+     * @tparam T the type of object to return.
      * @returns the unflattened Flattenable/PseudoFlattenable object, by value.
      * @note errors in unflattening can be detected by calling GetStatus() after this call.
      * @note After this method returns, we will have consumed both the 4-byte length prefix
@@ -348,6 +357,7 @@ typedef DataUnflattenerHelper<DefaultEndianConverter, DummySizeChecker> Unchecke
 
 /** This is an RAII-type class for temporary limiting the number of bytes
   * available on an existing DataUnflattener object.
+  * @tparam DataUnflattenerType the type of DataUnflattener to place a temporary read-size-limit on.
   */
 template<class DataUnflattenerType> class DataUnflattenerReadLimiter MUSCLE_FINAL_CLASS
 {

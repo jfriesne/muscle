@@ -50,6 +50,7 @@ public:
 ///@}
 
    /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
+     * @tparam T the type of object to return.
      * @param readFrom the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
      *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
      */
@@ -107,6 +108,7 @@ public:
 ///@}
 
    /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
+     * @tparam T the type of object to return.
      * @param readFrom the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
      *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
      */
@@ -158,6 +160,7 @@ public:
 ///@}
 
    /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
+     * @tparam T the type of object to return.
      * @param readFrom the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
      *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
      */

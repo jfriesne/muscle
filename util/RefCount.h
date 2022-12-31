@@ -122,6 +122,7 @@ DECLARE_REFTYPES(RefCountable);
  *  type that is a subclass of RefCountable.  The RefCountable object
  *  that this ConstRef item holds is considered read-only; if you want
  *  it to be modfiable, you should use the Ref class instead.
+ * @tparam Item the type of object that this ConstRef will reference.
  */
 template <class Item> class ConstRef
 {
@@ -321,6 +322,7 @@ public:
 
    /** Convenience method, for clarity:  Downcasts this reference to a reference of the specified
      * SubclassRefType and returns that.
+     * @tparam SubclassRefType the type of Ref that we should try to return.
      * @returns a reference that points to the same object as this reference, but with the specified
      *          type, or a NULL reference if the implicit call to dynamic_cast<> returned NULL.
      */
@@ -436,6 +438,7 @@ private:
   * that it refers to (e.g. if you need a ConstRef to a stack-based object and
   * are willing to take responsibility for manually managing object-lifetime issues
   * yourself).  It will behave similarly to a raw const-pointer
+  * @tparam Item the type of object that this DummyConstRef should point to.
   */
 template <class Item> class DummyConstRef : public ConstRef<Item>
 {
@@ -479,6 +482,7 @@ public:
  *  type that is a subclass of RefCountable.  The RefCountable object
  *  that this ConstRef item holds is considered modifiable; if you want
  *  it to be read-only, you should use the ConstRef class instead.
+ *  @tparam Item the type of object that this ConstRef should reference.
  */
 template <class Item> class Ref : public ConstRef<Item>
 {
@@ -548,6 +552,7 @@ private:
   * that it refers to (e.g. if you need a Ref to a stack-based object and
   * are willing to take responsibility for manually managing object-lifetime issues
   * yourself).  It will behave similarly to a raw pointer.
+  * @tparam Item the type of object that this DummyRef should point to.
   */
 template <class Item> class DummyRef : public Ref<Item>
 {

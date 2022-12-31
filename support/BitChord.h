@@ -19,10 +19,11 @@ namespace muscle {
   * boolean flags in a "safe" container so that you can query or manipulate the flags via human-readable method-calls
   * instead of easy-to-get-wrong bit-shifting operators.
   *
-  * @note that the TagClass template-parameter's value isn't directly used for anything; it's provided only as a way
-  *       to help make unrelated BitChords' template-instantiations unique and not-implicitly-convertible to each other
-  *       even if they happen to specify the same value for the NumBits template-parameter.  See the
-  *       DECLARE_BITCHORD_FLAGS_TYPE macro at the bottom of BitChord.h for more information.
+  * @tparam NumBits the number of bits that this BitChord should represent.
+  * @tparam TagClass this parameter isn't directly used for anything; it's provided only as a way
+  *       to help make unrelated BitChords' template-instantiations unique and not-implicitly-convertible
+  *       to each other, even if they happen to specify the same value for the NumBits template-parameter.
+  *       See the DECLARE_BITCHORD_FLAGS_TYPE macro at the bottom of BitChord.h for more information.
   */
 template <uint32 NumBits, class TagClass=Void> class BitChord : public PseudoFlattenable<BitChord<NumBits, TagClass> >
 {

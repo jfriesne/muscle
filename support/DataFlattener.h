@@ -14,6 +14,7 @@ class ByteBuffer;
 
 /** This is a lightweight helper class, designed to safely and efficiently flatten POD data-values
   * and/or Flattenable/PseudoFlattenable objects to a fixed-size byte-buffer.
+  * @tparam EndianConverter the type of EndianConverter object to use when flattening data-types into raw bytes.
   */
 template<class EndianConverter> class DataFlattenerHelper MUSCLE_FINAL_CLASS
 {

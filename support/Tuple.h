@@ -8,7 +8,10 @@
 
 namespace muscle {
 
-/** Templated base class representing a fixed-size set of numeric values that can be operated on in parallel.  */
+/** Templated base class representing a fixed-size array of numeric values that can be operated on in parallel.
+  * @tparam NumItems the number of items to hold in the Tuple
+  * @tparam ItemType the type of each of the items
+  */
 template <int NumItems, class ItemType> class Tuple
 {
 public:

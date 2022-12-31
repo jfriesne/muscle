@@ -62,6 +62,7 @@ protected:
     * Convenience method:  Calls MessageReceivedFromFactory() on all session
     * objects of the specified type.  Saves you from having to do your own iteration every time you
     * want to broadcast something.
+    * @tparam SessionType the type of session object you want to send the specified Message to.
     * @param msgRef a reference to the Message you wish to broadcast
     * @param userData any userData value you care to include.  Defaults to NULL.
     */
@@ -409,6 +410,7 @@ public:
     * Convenience method:  Calls MessageReceivedFromSession() on all session
     * objects of the specified type.  Saves you from having to do your own iteration every time you
     * want to broadcast something.
+    * @tparam SessionType the type of session object you want to send the specified Message to.
     * @param msgRef a reference to the Message you wish to broadcast
     * @param userData any userData value you care to include.  Defaults to NULL.
     * @param includeSelf Whether or not MessageReceivedFromSession() should be called on 'this' session.  Defaults to true.

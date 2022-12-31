@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added @tparam DOxygen tags for any template-arguments that
+     the calling code might need to specify explicitly.
+
 9.20 - Released 12/30/2022
    - Updated NetworkUtilityFunctions.cpp to better support "real"
      IPv4 sockets (previously it assumed that IPv4 traffic would

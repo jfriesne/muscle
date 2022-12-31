@@ -19,6 +19,8 @@ namespace muscle {
  *  overhead of constructing an object that may or may not ever be actually used for anything,
  *  while at the same time avoiding the overhead and uncertainty of a separate dynamic memory
  *  allocation for the object.
+ *
+ *  @tparam T the type of object that we will represent (and demand-construct)
  */
 template <typename T> class DemandConstructedObject
 {

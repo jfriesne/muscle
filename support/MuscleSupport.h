@@ -860,7 +860,9 @@ template<typename T> inline T muscleSwapBytes(T swapMe)
    return u2._iWide;
 }
 
-/* This template safely copies a value in from an untyped byte buffer to a typed value, and returns the typed value.  */
+/* This template safely copies a value in from an untyped byte buffer to a typed value, and returns the typed value.
+ * @tparam T the type of value to return.
+ */
 template<typename T> inline T muscleCopyIn(const void * source) {T dest; memcpy(&dest, source, sizeof(dest)); return dest;}
 
 /* This template safely copies a value in from an untyped byte buffer to a typed value.  */
@@ -888,6 +890,7 @@ template <typename T> inline T * broken_gcc_newnothrow_array(size_t count)
 /** This function returns a reference to a read-only, default-constructed
   * static object of type T.  There will be exactly one of these objects
   * present per instantiated type, per process.
+  * @tparam T the type of object to return a reference to.
   */
 template <typename T> const T & GetDefaultObjectForType()
 {
@@ -907,6 +910,7 @@ template <typename T> const T & GetDefaultObjectForType()
   * GetDefaultObjectForType(); the difference (other than there being
   * possibly two separate objects) is that this one can be written to,
   * whereas GetDefaultObjectForType()'s object must always be in its default state.
+  * @tparam T the type of object to return a reference to.
   */
 template <typename T> T & GetGlobalObjectForType()
 {
@@ -1753,6 +1757,7 @@ static inline void StoreTraceValue(uint32 v) {(void) v;}  /* named param is nece
   * For many types, this default CompareFunctor template will do the job, but you also have the option of specifying
   * a different custom CompareFunctor for times when you want to sort in ways other than simply using the
   * less than and equals operators of the ItemType type.
+  * @tparam ItemType the type of object this functor is meant to compare.
   */
 template <typename ItemType> class CompareFunctor
 {
@@ -1801,6 +1806,7 @@ public:
 
 /** For cases where you really do want to just use a pointer as the key, instead
   * of cleverly trying to dereference the object it points to and sorting on that, you can specify this.
+  * @tparam PointerType the type of pointer this functor is meant to compare.
   */
 template <typename PointerType> class PointerCompareFunctor
 {
@@ -1867,6 +1873,7 @@ static inline uint32 CalculateChecksumForDouble(double v) {const uint64 le = (v=
  *      uint32 HashCode() const {return the_calculated_hash_code_for_this_object();}
  *  And that will be enough for the template magic to kick in and use MethodHashFunctor
  *  by default instead.  (See util/String.h for an example of this)
+  * @tparam KeyType the type of object this PODHashFunctor will compute hash codes for (by calling CalculateHashCode() on its raw bytes).
  */
 template <class KeyType> class PODHashFunctor
 {
@@ -1882,7 +1889,9 @@ public:
    bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const {return (k1==k2);}
 };
 
-/** This hashing functor type calls HashCode() on the supplied object to retrieve the hash code. */
+/** This hashing functor type calls HashCode() on the supplied object to retrieve the hash code.
+  * @tparam KeyType the type of object this MethodHashFunctor will compute hash codes for (by calling HashCode() method on it)
+  */
 template <class KeyType> class MethodHashFunctor
 {
 public:
@@ -1890,7 +1899,9 @@ public:
    bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const {return (k1==k2);}
 };
 
-/** This hashing functor type calls HashCode() on the supplied object to retrieve the hash code.  Used for pointers to key values. */
+/** This hashing functor type calls HashCode() on the supplied object to retrieve the hash code.  Used for pointers to key values.
+  * @tparam KeyType the type of pointer this MethodHashFunctor will compute hash codes for (by calling HashCode() method on the object it points to)
+  */
 template <typename KeyType> class MethodHashFunctor<KeyType *>
 {
 public:

@@ -12,6 +12,7 @@ namespace muscle {
   * is that the TamperEvidentValue class will automatically set a flag whenever the stored
   * value is set (via SetValue() or assignment operator), so that you can tell later on if
   * anyone has explicitly set this value after it was constructed.
+  * @tparam T the type of value we should hold and flag changes to.
   */
 template <typename T> class TamperEvidentValue
 {

@@ -37,6 +37,7 @@ namespace muscle {
  *  Adding or removing items from the head or tail of a Queue is (on average)
  *  an O(1) operation.  A Queue can also serve as a reasonably efficient resizable-array
  *  class (aka Vector) if that is all you need.
+ *  @tparam ItemType the type of object to be stored in this Queue.
  */
 template <class ItemType> class Queue MUSCLE_FINAL_CLASS
 {
@@ -830,6 +831,7 @@ private:
 /** A trivial RAII class -- its constructor pushes a specified value onto the end of the specified Queue,
   * and its destructor pops that value off of the end of that same Queue.  Useful for reliably pushing state
   * information for method-calls to read when passing the data as via method-arguments is too onerous.
+  * @tparam ItemType the type of object held by the Queue that we will push/pop items to/from.
   */
 template <typename ItemType> class QueueStackGuard : private NotCopyable
 {

@@ -34,6 +34,7 @@ namespace muscle {
   * variable, or at the top of main()).  Then the various threads of your program can call
   * GetThreadLocalObject() on it, and each thread will receive a pointer that is unique to that
   * thread, which it can use without needing to do any serialization.
+  * @tparam ObjType the type of item to hold on a per-thread basis.
   */
 template <class ObjType> class ThreadLocalStorage
 {

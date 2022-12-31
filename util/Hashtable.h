@@ -98,6 +98,9 @@ enum {
  * thread only); any HashtableIterators that are in the middle of iterating over the Hashtable
  * will be automatically notified about the modification, so that they can do the right thing
  * (and in particular, not continue to point to any no-longer-existing hashtable entries).
+ * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable that this object will iterate over.
+ * @tparam ValueType the type of the values of the key-value pairs in the Hashtable that this object will iterate over.
+ * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
  */
 template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class HashtableIterator MUSCLE_FINAL_CLASS
 {
@@ -252,7 +255,11 @@ private:
    bool _okayToUnsetThreadID;
 };
 
-/** This internal superclass is an implementation detail and should not be instantiated directly.  Instantiate a Hashtable, OrderedKeysHashtable, or OrderedValuesHashtable instead. */
+/** This internal superclass is an implementation detail and should not be instantiated directly.  Instantiate a Hashtable, OrderedKeysHashtable, or OrderedValuesHashtable instead.
+  * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
+  * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
+  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
+  */
 template<class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class HashtableBase
 {
 public:
@@ -1575,7 +1582,12 @@ private:
 #endif
 };
 
-/** This class should not be instantiated directly.  Instantiate a Hashtable, OrderedKeysHashtable, or OrderedValuesHashtable instead. */
+/** This class should not be instantiated directly.  Instantiate a Hashtable, OrderedKeysHashtable, or OrderedValuesHashtable instead.
+  * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
+  * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
+  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
+  * @tparam SubclassType the type of the subclasss that is instantiating this HashtableMid class (used for CRTP pattern)
+  */
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class HashtableMid : public HashtableBase<KeyType, ValueType, HashFunctorType>
 {
 public:
@@ -2020,6 +2032,9 @@ private:
  *   - Memory overhead is 6 bytes per key-value entry if the table's capacity is less than 256;
  *     12 bytes per key-value entry if the table's capacity is less than 65535, and 24 bytes per
  *     key-value entry for tables larger than that.
+ * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
+ * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
+ * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
  */
 template <class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class Hashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, Hashtable<KeyType, ValueType, HashFunctorType> >
 {
@@ -2081,6 +2096,7 @@ public:
 #endif
 
    /** Convenience method:  Returns a table like this one, except the keys and values have swapped positions.
+     * @tparam ValueHashFunctorType the type of the hash functor to use to compute hash values for values in this Hashtable.
      * @note that if this table has two multiple keys with the same value, then the returned table will be smaller than this table,
      *       since the returned table will only contain a key/value pair corresponding to the last associated key/value pair from this table.
      *       (this is a logical consequence of the fact that in a Hashtable a given key can only have a single corresponding value)
@@ -2090,6 +2106,7 @@ public:
    template<class ValueHashFunctorType> Hashtable<ValueType, KeyType, ValueHashFunctorType> ComputeInvertedTable(uint32 iterFlags = 0) const;
 
    /** Convenience method:  Returns a histogram of the values in this Hashtable.
+     * @tparam ValueHashFunctorType the type of the hash functor to use to compute hash values for values in this Hashtable.
      * @note keys in the returned Hashtable correspond to values in this Hashtable.  Values in the returned histogram-Hashtable
      *            are uint32's, set to the number of instances of that values that are present in this Hashtable.
      */
@@ -2110,6 +2127,11 @@ private:
 /** This is an intermediate class containing functionality common to both the OrderedKeysHashtable and the
   * OrderedValuesHashtable classes.  This class is not intended to be instantiated directly -- to use it,
   * you should instantiate an OrderedKeysHashtable or an OrderedValuesHashtable instead.
+  * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
+  * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
+  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.
+  * @tparam EntryCompareFunctorType the type of the compare-functor to use to compare key/value-pair entries in this Hashtable.  (Whether this will be used to compare keys or values depends on the subclass that is instantiating us)
+  * @tparam SubclassType the type of the subclasss that is instantiating this OrderedHashtable class (used for CRTP pattern)
   */
 template <class KeyType, class ValueType, class HashFunctorType, class EntryCompareFunctorType, class SubclassType > class OrderedHashtable : public HashtableMid<KeyType, ValueType, HashFunctorType, SubclassType>
 {
@@ -2197,7 +2219,12 @@ private:
    void * _compareCookie;
 };
 
-/** This is a specialized Hashtable that keeps its iteration entries sorted-by-key at all times (unless you specifically call SetAutoSortEnabled(false)) */
+/** This is a specialized Hashtable that keeps its iteration entries sorted-by-key at all times (unless you specifically call SetAutoSortEnabled(false))
+  * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
+  * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
+  * @tparam KeyCompareFunctorType type of the key-compare functor to use when comparing two keys for sorting purposes.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
+  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
+  */
 template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFunctor<KeyType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedKeysHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByKeyEntryCompareFunctor<KeyCompareFunctorType>, OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> >
 {
 public:
@@ -2269,7 +2296,12 @@ public:
    const KeyCompareFunctorType _keyCompareFunctor;
 };
 
-/** This is a specialized Hashtable that keeps its iteration entries sorted-by-value at all times (unless you specifically call SetAutoSortEnabled(false)) */
+/** This is a specialized Hashtable that keeps its iteration entries sorted-by-value at all times (unless you specifically call SetAutoSortEnabled(false))
+  * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
+  * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
+  * @tparam ValueCompareFunctorType type of the value-compare functor to use when comparing two values for sorting purposes.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
+  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
+  */
 template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareFunctor<ValueType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedValuesHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByValueEntryCompareFunctor<ValueCompareFunctorType>, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >
 {
 public:

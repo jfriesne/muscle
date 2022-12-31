@@ -23,7 +23,13 @@ template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class Ke
    typedef ImmutableHashtablePool<KeyType, ValueType, MaxCacheableTableSize> ImmutableTableTypeName##Pool;        \
    typedef ImmutableHashtablePool<KeyType, ValueType, MaxCacheableTableSize>::ConstImmutableHashtableTypeRef Const##ImmutableTableTypeName##Ref
 
-/** A reference-countable object that contains an immutable Hashtable.  Objects of this type are returned by the methods of the ImmutableHashtablePool class. */
+/** A reference-countable object that contains an immutable Hashtable.  Objects of this type are returned by the methods of the ImmutableHashtablePool class.
+  * @tparam KeyType the type to use for keys in the key-values pairs of the ImmutableHashtable.
+  * @tparam ValueType the type to use for value in the key-values pairs of the ImmutableHashtable.
+  * @tparam MaxCacheableTableSize ImmutableHashtables with more than (this many) key/value pairs won't be cached by the ImmutableHashtablePool.
+  * @tparam KeyHashFunctorType you can optionally specify the hash functor object to use for keys in the pool's ImmutableHashtables.  If left unspecified, an appropriate hash functor will be chosen via SFINAE.
+  * @tparam ValueHashFunctorType you can optionally specify the hash functor object to use for values in the pool's ImmutableHashtables.  If left unspecified, an appropriate hash functor will be chosen via SFINAE.
+  */
 template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class ImmutableHashtable MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
@@ -71,6 +77,11 @@ private:
   * DataNodes at a time, so instead of storing 100,000 individual (but mostly identical) subscribers-tables (one for each
   * DataNode), they can instead all reference the same handful of ImmutableHashtable objects, each one of which represents
   * a single combination of subscribed clients.
+  * @tparam KeyType the type to use for keys in the key-values pairs of the pool's ImmutableHashtables.
+  * @tparam ValueType the type to use for value in the key-values pairs of the pool's ImmutableHashtables.
+  * @tparam MaxCacheableTableSize ImmutableHashtables with more than (this many) key/value pairs won't be cached by the ImmutableHashtablePool.
+  * @tparam KeyHashFunctorType you can optionally specify the hash functor object to use for keys in the ImmutableHashtable.  If left unspecified, an appropriate hash functor will be chosen via SFINAE.
+  * @tparam ValueHashFunctorType you can optionally specify the hash functor object to use for values in the ImmutableHashtable.  If left unspecified, an appropriate hash functor will be chosen via SFINAE.
   */
 template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class ImmutableHashtablePool MUSCLE_FINAL_CLASS : private NotCopyable
 {

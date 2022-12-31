@@ -61,7 +61,9 @@ private:
    AtomicCounter _counter;
 };
 
-/** This class is used by the CountedObject class to count objects.  You shouldn't ever need to instantiate an object of this class directly. */
+/** This class is used by the CountedObject class to count objects.  You shouldn't ever need to instantiate an object of this class directly.
+  * @tparam ObjectType the type of object that this counter will count.
+  */
 template <class ObjectType> class ObjectCounter : public ObjectCounterBase
 {
 public:
@@ -77,6 +79,7 @@ public:
   * this class will compile down to a no-op unless -DMUSCLE_ENABLE_OBJECT_COUNTING
   * is present.  Otherwise, you can call PrintCountedObjectInfo() at any time
   * to get a report of current object allocation counts by type.
+  * @tparam ObjectType the type of object to be counted.
   */
 template <class ObjectType> class CountedObject
 {

@@ -23,6 +23,7 @@ namespace muscle {
   * pointer+boolean pair used.  If you are compiling on a system where pointers-to-objects are not
   * required to be aligned to even addresses, you can define MUSCLE_AVOID_BITSTUFFING to force the
   * boolean to be declared as a separate member variable (at the cost of increased memory usage, of course).
+  * @tparam T the type of object that our pointer will point to.
   */
 template <class T> class PointerAndBool
 {
@@ -154,6 +155,7 @@ private:
   * booleans to be declared as a separate member variable (at the cost of increased memory usage, of course).
   * Note that if MUSCLE_AVOID_BITSTUFFING is defined, then MUSCLE_AVOID_DOUBLE_BITSTUFFING
   * will also be implicitly defined.
+  * @tparam T the type of object that our pointers will point to.
   */
 template <class T> class PointerAndBools
 {

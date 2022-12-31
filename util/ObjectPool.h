@@ -114,6 +114,9 @@ class AbstractObjectManager : public AbstractObjectGenerator, public AbstractObj
  *  used in conjuction with the Ref<> and RefCount classes to provide efficient, automatic,
  *  and memory-leak-resistant reference-counting combined with object-pooling.  See
  *  GetMessageFromPool() for an example of this.
+ *
+ * @tparam Object the type of object that this pool will collect and distribute.
+ * @tparam MUSCLE_POOL_SLAB_SIZE the approximate size, in bytes, of the ObjectSlab arrays we should allocate.  Defaults to DEFAULT_MUSCLE_POOL_SLAB_SIZE (aka 4 kilobytes)
  */
 template <class Object, int MUSCLE_POOL_SLAB_SIZE=DEFAULT_MUSCLE_POOL_SLAB_SIZE> class ObjectPool : public AbstractObjectManager
 {

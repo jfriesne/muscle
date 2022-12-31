@@ -14,6 +14,7 @@ namespace muscle {
   * any chance of writing past the end of the output buffer.  It also supports writing to a ByteBuffer
   * and automatically resizing the ByteBuffer's internal byte-array larger as necessary to hold data,
   * so that the data-size doesn't need to be calculated in advance.
+  * @tparam EndianConverter the type of EndianConverter object to use when flattening data-types into raw bytes.
   */
 template<class EndianConverter> class CheckedDataFlattenerHelper : public NotCopyable
 {

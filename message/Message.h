@@ -965,6 +965,7 @@ public:
 
    /** Retrieves and returns an unflattened object of the specified type from the first data-item
      * in the specified flattened-Message field, or a default-constructed item of the specified type on failure.
+     * @tparam T the type of item to return.
      * @param fieldName The field name to look for the flattened object under.
      * @returns The unflattened object that was found, if one was found and successfully unflattened, or a default-constructed item if it wasn't.
      */
@@ -1076,6 +1077,7 @@ public:
 
    /** Retrieves and returns a RefCountableRef object of the specified type from the first data-item
      * in the specified RefCountableRef-field, or a default-constructed item of the specified type on failure.
+     * @tparam T the type of item to return.
      * @param fieldName The field name to look for the RefCountableRef object under.
      * @returns The unflattened object that was found, if one was found and successfully unflattened, or a default-constructed item if it wasn't.
      */
@@ -1915,6 +1917,7 @@ template<class T> inline MessageRef GetArchiveMessageFromPool(const T & objectTo
 /** Convenience method:  Given a Message that was previously created via GetArchiveMessageFromPool<T>(),
   * creates and returns an object of type T, and calls SetFromArchive() on the object so that it
   * represents the state that was saved into the Message.
+  * @tparam T the type of item to return a reference to.
   * @param msg The Message to extract the returned object's state-data from
   * @returns a reference to the new object on success, or a NULL reference on failure.
   */
@@ -1930,6 +1933,7 @@ template<class T> inline Ref<T> CreateObjectFromArchiveMessage(const Message & m
 }
 
 /** As above, except this version takes a MessageRef instead of a Message.
+  * @tparam T the type of item to return a reference to.
   * @param msgRef Reference to the Message to extract the returned object's state-data from.
   * @returns a reference to the new object on success, or a NULL reference on failure (or if msgRef was a NULL reference).
   */

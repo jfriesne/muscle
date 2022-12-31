@@ -252,6 +252,7 @@ protected:
    AbstractReflectSessionRef GetSession(const String & idStr) const;
 
    /** Convenience method:  Returns a pointer to the first session of the specified type.  Returns NULL if no session of the specified type is found.
+     * @tparam SessionType the type of session object you want to find and return a pointer to.
      * @note this method iterates over the session list, so it's not as efficient as one might hope.
      */
    template <class SessionType> SessionType * FindFirstSessionOfType() const
@@ -265,6 +266,7 @@ protected:
    };
 
    /** Convenience method:  Populates the specified table with sessions of the specified session type.
+     * @tparam SessionType the type of session object you want to find and place into the (results) Queue.
      * @param results The list of matching sessions is returned here.
      * @param maxSessionsToReturn No more than this many sessions will be placed into the table.  Defaults to MUSCLE_NO_LIMIT.
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
