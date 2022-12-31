@@ -267,16 +267,16 @@ status_t SetConsoleLogLevel(int loglevel);
   */
 status_t SetConsoleLogToStderr(bool toStderr);
 
-/** LogPlain() works the same as LogTime(), except LogPlain() doesn't emit a time/date/severity preamble before
- *  the caller-specified text.
+/** LogPlainAux() works the same as LogTimeAux(), except LogPlainAux() doesn't emit a time/date/severity preamble before
+ *  the caller-specified text.  Typically called indirectly, via the LogPlain() macro.
  *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.  This call will generate
  *                  log text only if (logLevel) is less than or equal to the value returned by GetMaxLogLevel().
  *  @param fmt A printf-style format string (e.g. "hello %s\n").  Note that \n is NOT added for you.
  *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
- *  @note LogPlain() is implemented as a macro, so the arguments you pass to it will not be evaluated if
- *        the log-level you specified is not severe enough to pass the log-threshold (as specified by GetMaxLogLevel().
- *        Therefore you should be careful that the arguments you pass to LogTime() don't have side effects that your
- *        code depends on for correctness!
+ *  @note LogPlain() is implemented as a macro, so the arguments you pass to it will not be evaluated or passed to
+ *        LogPlainAux() if the log-level you specified is not severe enough to pass the log-threshold (as specified
+ *        by GetMaxLogLevel().  Therefore you should be careful that the arguments you pass to LogPlain() don't have
+ *        side effects that your code depends on for correctness!
  */
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 status_t LogPlainAux(int logLevel, const char * fmt, ...);
@@ -303,14 +303,15 @@ status_t LogTimeAux(const char * sourceFile, const char * optSourceFunction, int
 # define LogTime(logLevel, ...) (((logLevel) <= GetMaxLogLevel()) ? LogTimeAux(__FILE__, __FUNCTION__, __LINE__, logLevel, __VA_ARGS__) : B_NO_ERROR)
 #else
 
-/** MUSCLE's primary function for logging.  Automagically prepends a timestamp and status string to the caller-specified text.
+/** MUSCLE's primary function for logging.  Typically called indirectly, via the LogTime() macro.
+ *  Automagically prepends a timestamp and status string to the caller-specified text.
  *  e.g. LogTime(MUSCLE_LOG_INFO, "Hello %s! I am %i.", "world", 42) would generate "[I 12/18 12:11:49] Hello world! I am 42."
  *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.  This call will generate
  *                  log text only if (logLevel) is less than or equal to the value returned by GetMaxLogLevel().
  *  @param fmt A printf-style format string (e.g. "hello %s\n").  Note that \n is NOT added for you.
  *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
- *  @note LogTime() is implemented as a macro, so the arguments you pass to it will not be evaluated if
- *        the log-level you specified is not severe enough to pass the log-threshold (as specified by GetMaxLogLevel().
+ *  @note LogTime() is implemented as a macro, so the arguments you pass to it will not be evaluated or passed to LogTimeAux()
+ *        if the log-level you specified is not severe enough to pass the log-threshold (as specified by GetMaxLogLevel().
  *        Therefore you should be careful that the arguments you pass to LogTime() don't have side effects that your
  *        code depends on for correctness!
  */

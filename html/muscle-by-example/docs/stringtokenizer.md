@@ -9,13 +9,15 @@ MUSCLE's class for iterating over substrings in a string.
 * More than one token-separator-char can be specified (e.g. spaces AND commas)
 * By default, separator-chars are "soft":  multiple adjacent soft-separator-chars will be treated as if they were a single separator-char.  (Useful for whitespace)
 * If you specify a separator-char more than once in the constructor-argument, it will become a "hard" separator; multiple adjacent hard-separator-chars will be treated as separating empty strings.
+* You can also optionally specify an escape-character (e.g. `'\'`) that tells the [StringTokenizer](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StringTokenizer.html) that the character directly after it is intended to be treated as a literal character and not a separator-char.
 
 e.g. this code:
 
 ```
-    const char * parseMe = "one,two, three ,,four five";
+    const char * parseMe = "one,two, three ,,four\\,five";
 
-    StringTokenizer tok(parseMe, ",, ");  // comma is deliberately specified twice to make it a "hard separator char"
+    // comma is deliberately specified twice to make it a "hard separator char"
+    StringTokenizer tok(parseMe, ",, ", '\\'); // last arg specifies backslash as escape char
 
     const char * nextTok;
     while((nextTok = tok()) != NULL)
@@ -31,8 +33,7 @@ will print:
 [two]
 [three]
 []
-[four]
-[five]
+[four,five]
 ```
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/stringtokenizer` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
