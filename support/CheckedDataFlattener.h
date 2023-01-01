@@ -188,37 +188,6 @@ public:
    status_t WriteDoubles(const double * vals, uint32 numVals) {return WritePrimitives(vals, numVals);}
    template<typename T> status_t WriteFlats(                  const T * vals, uint32 numVals) {return WriteFlatsAux(vals, numVals, false);}
    template<typename T> status_t WriteFlatsWithLengthPrefixes(const T * vals, uint32 numVals) {return WriteFlatsAux(vals, numVals, true);}
-
-   template<typename T> status_t WriteFlatsAux(const T * vals, uint32 numVals, bool includeLengthPrefix)
-   {
-      if (numVals == 0) return B_NO_ERROR;  // nothing to do
-
-      uint32 numBytes = includeLengthPrefix ? (numVals*sizeof(uint32)) : 0;
-      const uint32 fixedSizeBytes = vals[0].IsFixedSize() ? vals[0].FlattenedSize() : MUSCLE_NO_LIMIT;
-      Queue<uint32> flatSizes;  // to store the results of all our FlattenedSize() calls so we can reuse them below
-      if (fixedSizeBytes == MUSCLE_NO_LIMIT)
-      {
-         MRETURN_ON_ERROR(flatSizes.EnsureSize(numVals, true));
-         for (uint32 i=0; i<numVals; i++) numBytes += (flatSizes[i] = vals[i].FlattenedSize());
-      }
-      else numBytes += (numVals*fixedSizeBytes);  // if all vals are guaranteed to be the same size then it's easy to compute
-
-      MRETURN_ON_ERROR(SizeCheck(numBytes, true));
-
-      for (uint32 i=0; i<numVals; i++)
-      {
-         const uint32 flatSize = (fixedSizeBytes == MUSCLE_NO_LIMIT) ? flatSizes[i] : fixedSizeBytes;
-         if (includeLengthPrefix)
-         {
-            _endianConverter.Export(flatSize, _writeTo);
-            _writeTo += sizeof(flatSize);
-         }
-         vals[i].FlattenToBytes(_writeTo, flatSize);
-         _writeTo += flatSize;
-      }
-      ReduceBytesLeftBy(numBytes);
-      return B_NO_ERROR;
-   }
 ///@}
 
    /** Generic method for writing an array of any of the standard POD-typed data-items
@@ -339,6 +308,37 @@ private:
       }
       else if (optBytes) memcpy(_writeTo, optBytes, numBytes);
 
+      return B_NO_ERROR;
+   }
+
+   template<typename T> status_t WriteFlatsAux(const T * vals, uint32 numVals, bool includeLengthPrefix)
+   {
+      if (numVals == 0) return B_NO_ERROR;  // nothing to do
+
+      uint32 numBytes = includeLengthPrefix ? (numVals*sizeof(uint32)) : 0;
+      const uint32 fixedSizeBytes = vals[0].IsFixedSize() ? vals[0].FlattenedSize() : MUSCLE_NO_LIMIT;
+      Queue<uint32> flatSizes;  // to store the results of all our FlattenedSize() calls so we can reuse them below
+      if (fixedSizeBytes == MUSCLE_NO_LIMIT)
+      {
+         MRETURN_ON_ERROR(flatSizes.EnsureSize(numVals, true));
+         for (uint32 i=0; i<numVals; i++) numBytes += (flatSizes[i] = vals[i].FlattenedSize());
+      }
+      else numBytes += (numVals*fixedSizeBytes);  // if all vals are guaranteed to be the same size then it's easy to compute
+
+      MRETURN_ON_ERROR(SizeCheck(numBytes, true));
+
+      for (uint32 i=0; i<numVals; i++)
+      {
+         const uint32 flatSize = (fixedSizeBytes == MUSCLE_NO_LIMIT) ? flatSizes[i] : fixedSizeBytes;
+         if (includeLengthPrefix)
+         {
+            _endianConverter.Export(flatSize, _writeTo);
+            _writeTo += sizeof(flatSize);
+         }
+         vals[i].FlattenToBytes(_writeTo, flatSize);
+         _writeTo += flatSize;
+      }
+      ReduceBytesLeftBy(numBytes);
       return B_NO_ERROR;
    }
 
