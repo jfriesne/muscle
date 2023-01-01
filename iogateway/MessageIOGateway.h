@@ -142,7 +142,7 @@ public:
      * @param requestMessage the request Message to send
      * @param targetIAP Where to connect to (via TCP) to send (requestMessage)
      * @param timeoutPeriod The maximum amount of time this function should wait for a reply before returning.
-     *                      Defaults to MUSCLE_TIME_NEVER, i.e. no timeout.
+     *                      Defaults to MUSCLE_TIME_NEVER, ie no timeout.
      * @returns A reference to a reply Message, or a NULL MessageRef() if we were unable to connect to the specified
      *          address, or an empty Message if we connected and send our request okay, but received no reply Message.
      */
@@ -437,7 +437,7 @@ bool IsMessageOptimizedForTransmissionToMultipleGateways(const MessageRef & msg)
 //  6   0   0   0   (6      == Length of first name, "!SnKy", include NUL byte)
 // '!' 'S' 'n' 'K'  (Field name ASCII bytes.... "!SnKy")
 // 'y'  0           (last field name ASCII byte and the NUL terminator byte)
-// 'R' 'T' 'S' 'C'  ('CSTR' == B_STRING_TYPE; i.e. this value is a string)
+// 'R' 'T' 'S' 'C'  ('CSTR' == B_STRING_TYPE; ie this value is a string)
 // 13   0   0   0   (13     == Length of value string including NUL byte)
 // '/' '*' '/' '*'  (Field value ASCII bytes.... "/*/*/beshare")
 // '/' 'b' 'e' 's'  (....)
@@ -446,13 +446,13 @@ bool IsMessageOptimizedForTransmissionToMultipleGateways(const MessageRef & msg)
 //  8   0   0   0   (8      == Length of second name, "session", including NUL)
 // 's' 'e' 's' 's'  (Field name ASCII Bytes.... "session")
 // 'i' 'o' 'n'  0   (rest of field name ASCII bytes and NUL terminator)
-// 'R' 'T' 'S' 'C'  ('CSTR' == B_STRING_TYPE; i.e. this value is a string)
+// 'R' 'T' 'S' 'C'  ('CSTR' == B_STRING_TYPE; ie this value is a string)
 //  4   0   0   0   (4      == Length of value string including NUL byte)
 // '1' '2' '3'  0   (Field value ASCII bytes... "123" plus NUL byte)
 //  5   0   0   0   (5      == Length of third name, "text", including NUL)
 // 't' 'e' 'x' 't'  (Field name ASCII bytes... "text")
 //  0               (NUL byte terminator for field name)
-// 'R' 'T' 'S' 'C'  ('CSTR' == B_STRING_TYPE; i.e. this value is a string)
+// 'R' 'T' 'S' 'C'  ('CSTR' == B_STRING_TYPE; ie this value is a string)
 //  4   0   0   0   (3      == Length of value string including NUL byte)
 // 'H' 'i' '!'  0   (Field value ASCII Bytes.... "Hi!" plus NUL byte)
 //

@@ -90,7 +90,7 @@ class DummyConstSocketRef;  // forward declaration
 
 /** ConstSocketRef is subclassed rather than typedef'd so that I can override the == and != operators
   * to check for equality based on the file-descriptor value rather than on the address of the
-  * referenced Socket object.  Doing it this way gives more intuitive hashing behavior (i.e.
+  * referenced Socket object.  Doing it this way gives more intuitive hashing behavior (ie
   * multiple ConstSocketRefs referencing the same file-descriptor will hash to the same entry)
   */
 class ConstSocketRef : public ConstRef<Socket>
@@ -141,7 +141,7 @@ private:
 
 /** This class is just syntactic sugar for more clearly declaring a
   * ConstSocketRef that doesn't actually do any reference-counting of the Socket object
-  * that it refers to (e.g. if you need a ConstSocketRef to a stack-based Socket and
+  * that it refers to (eg if you need a ConstSocketRef to a stack-based Socket and
   * are willing to take responsibility for manually managing object-lifetime issues
   * yourself).  It will behave similarly to a raw pointer.
   */
@@ -193,7 +193,7 @@ static inline ConstSocketRef GetConstSocketRefFromPool(SOCKET s, bool okayToClos
 /** Convenience method:  Returns a NULL socket reference. */
 inline const ConstSocketRef & GetNullSocket() {return GetDefaultObjectForType<ConstSocketRef>();}
 
-/** Convenience method:  Returns a reference to an invalid Socket (i.e. a Socket object with a negative file-descriptor).  Note the difference between what this function returns and what GetNullSocket() returns!  If you're not sure which of these two functions to use, then GetNullSocket() is probably the one you want. */
+/** Convenience method:  Returns a reference to an invalid Socket (ie a Socket object with a negative file-descriptor).  Note the difference between what this function returns and what GetNullSocket() returns!  If you're not sure which of these two functions to use, then GetNullSocket() is probably the one you want. */
 const ConstSocketRef & GetInvalidSocket();
 
 } // end namespace muscle

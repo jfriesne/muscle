@@ -13,7 +13,7 @@ namespace muscle {
 template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class KeyHashFunctorType, class ValueHashFunctorType> class ImmutableHashtablePool; // forward reference
 
 /** This macro declares typedefs for given ImmutableHashtablePool types that follow the standard naming convention.
-  * Given a user-provided type name (e.g. MyTable), a Key class (e.g. String), and a Value class (e.g. uint32)
+  * Given a user-provided type name (eg MyTable), a Key class (eg String), and a Value class (eg uint32)
   * it will create typedefs named MyTable, MyTablePool, and ConstMyTableRef.  These types will refer to the
   * desired ImmutableHashtable class, the ImmutableHashtablePool class that uses it, and the read-only
   * reference class used to reference it.

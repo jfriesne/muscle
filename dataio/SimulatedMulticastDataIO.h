@@ -48,7 +48,7 @@ public:
    virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
 
    /** This can be called to change the maximum packet size value returned
-     * by GetMaximumPacketSize().  You might call this e.g. if you are on a network
+     * by GetMaximumPacketSize().  You might call this eg if you are on a network
      * that supports Jumbo UDP packets and want to take advantage of that.
      * @param maxPacketSize the new maximum packet size, in bytes
      */
@@ -85,8 +85,8 @@ private:
    // Values below this line may be accessed by the internal thread ONLY
 
    enum {
-      SMDIO_SOCKET_TYPE_MULTICAST = 0, // i.e. this socket will send and receive multicast packets
-      SMDIO_SOCKET_TYPE_UNICAST,       // i.e. this socket will send and receive unicast packets
+      SMDIO_SOCKET_TYPE_MULTICAST = 0, // ie this socket will send and receive multicast packets
+      SMDIO_SOCKET_TYPE_UNICAST,       // ie this socket will send and receive unicast packets
       NUM_SMDIO_SOCKET_TYPES
    };
 

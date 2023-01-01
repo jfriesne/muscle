@@ -139,7 +139,7 @@ public:
 
 /** This SetupSystem just does some basic sanity checks
   * to ensure that the code was compiled in a way that
-  * has some chance of working (e.g. it makes sure that
+  * has some chance of working (eg it makes sure that
   * sizeof(uint32)==4, etc)
   */
 class SanitySetupSystem : public SetupSystem
@@ -225,7 +225,7 @@ private:
  */
 Mutex * GetGlobalMuscleLock();
 
-/** Returns true iff the current thread is the process's main thread (i.e. the flow
+/** Returns true iff the current thread is the process's main thread (ie the flow
   * of execution that started at main() and placed a SetupSystem object on the stack).
   * If MUSCLE_SINGLE_THREAD_ONLY is defined, then this function always returns true.
   */

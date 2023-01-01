@@ -114,7 +114,7 @@ public:
    /**
     * By default, AbstractMessageIOGateway::DoOutput() calls FlushOutput() whenever all of the
     * data in the outgoing-data-queue has been sent.  Call SetFlushOnEmpty(false) to inhibit
-    * this behavior (e.g. for possible better bandwidth-efficiency when low message latency
+    * this behavior (eg for possible better bandwidth-efficiency when low message latency
     * is not a requirement).
     * @param flush If true, auto-flushing will be enabled.  If false, it will be disabled.
     */

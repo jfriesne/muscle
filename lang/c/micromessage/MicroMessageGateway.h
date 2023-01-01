@@ -53,7 +53,7 @@ void UGGatewayInitialize(UMessageGateway * gateway, uint8 * inputBuffer, uint32 
   * @param buf The buffer to read bytes from.
   * @param numBytes The number of bytes available for reading at (buf)
   * @param arg This is a user-specified value; it will be the same as the value passed in to UMDoOutput().
-  * @returns The number of bytes actually read from (buf), or a negative value if there was a critical error (e.g. disconnected socket).
+  * @returns The number of bytes actually read from (buf), or a negative value if there was a critical error (eg disconnected socket).
   */
 typedef int32 (*UGSendFunc)(const uint8 * buf, uint32 numBytes, void * arg);
 
@@ -62,7 +62,7 @@ typedef int32 (*UGSendFunc)(const uint8 * buf, uint32 numBytes, void * arg);
   * @param buf The buffer to write bytes to.
   * @param numBytes The number of bytes available for writing at (buf)
   * @param arg This is a user-specified value; it will be the same as the value passed in to UMDoInput().
-  * @returns The number of bytes actually written into (buf), or a negative value if there was a critical error (e.g. disconnected socket).
+  * @returns The number of bytes actually written into (buf), or a negative value if there was a critical error (eg disconnected socket).
   */
 typedef int32 (*UGReceiveFunc)(uint8 * buf, uint32 numBytes, void * arg);
 
@@ -84,7 +84,7 @@ UMessage UGGetOutgoingMessage(UMessageGateway * gateway, uint32 whatCode);
 void UGOutgoingMessagePrepared(UMessageGateway * gateway, const UMessage * msg);
 
 /** You can call this instead of UGOutgoingMessagePrepared() if you decided you don't want to send a UMessage after all.
-  * (e.g. because the UMessage returned by UGGetOutgoingMessage() was too small, or something).
+  * (eg because the UMessage returned by UGGetOutgoingMessage() was too small, or something).
   * This will set the gateway back into its pre-UGGetOutgoingMessage() state.
   * @param gateway The same gateway object that you previously passed to UGGetOutgoingMessage().
   * @param msg A pointer to the UMessage that you previously received from UGGetOutgoingMessage().

@@ -120,7 +120,7 @@ public:
 
    /** Constructor.
      * @param fieldName Name of the field in the Message to look at
-     * @param index Index of the item within the field to look at.  Defaults to zero (i.e. the first item)
+     * @param index Index of the item within the field to look at.  Defaults to zero (ie the first item)
      */
    ValueQueryFilter(const String & fieldName, uint32 index = 0) : _fieldName(fieldName), _index(index) {/* empty */}
 
@@ -454,7 +454,7 @@ private:
 DECLARE_REFTYPES(MultiQueryFilter);
 
 /** This class matches iff more than (n) of its children match.  As such, it can be used as an OR operator,
-  * an AND operator, or as something in-between the two (e.g. "match iff at least N children match")
+  * an AND operator, or as something in-between the two (eg "match iff at least N children match")
   * @note For a slightly simpler interface to AND and OR operators, you can instantiate an AndQueryFilter or an OrQueryFilter instead.
   */
 class MinimumThresholdQueryFilter : public MultiQueryFilter
@@ -898,7 +898,7 @@ public:
    /** Constructor.
      * @param childFilter Reference to the filter to use to match the sub-Message found at (fieldName:index)
      * @param fieldName Name of the field in the Message to look at
-     * @param index Index of the item within the field to look at.  Defaults to zero (i.e. the first item)
+     * @param index Index of the item within the field to look at.  Defaults to zero (ie the first item)
      */
    MessageQueryFilter(const ConstQueryFilterRef & childFilter, const String & fieldName, uint32 index = 0) : ValueQueryFilter(fieldName, index), _childFilter(childFilter) {/* empty */}
 
@@ -975,18 +975,18 @@ public:
 
    /** Enumeration of operators that may be used by the StringQueryFilter */
    enum {
-      OP_EQUAL_TO = 0,                         /**< This token represents '==', e.g. nextValue==myValue (case sensitive) */
-      OP_LESS_THAN,                            /**< This token represents '<',  e.g. nextValue<myValue  (case sensitive) */
-      OP_GREATER_THAN,                         /**< This token represents '>',  e.g. nextValue>myValue  (case sensitive) */
-      OP_LESS_THAN_OR_EQUAL_TO,                /**< This token represents '<=', e.g. nextValue<=myValue (case sensitive) */
-      OP_GREATER_THAN_OR_EQUAL_TO,             /**< This token represents '>=', e.g. nextValue>=myValue (case sensitive) */
-      OP_NOT_EQUAL_TO,                         /**< This token represents '!=', e.g. nextValue!=myValue (case sensitive) */
-      OP_STARTS_WITH,                          /**< This token represents a prefix match, e.g. nextValue.StartsWith(myValue) (case sensitive) */
-      OP_ENDS_WITH,                            /**< This token represents a suffix match, e.g. nextValue.EndsWith(myValue) (case sensitive) */
-      OP_CONTAINS,                             /**< This token represents an infix match, e.g. (nextValue.IndexOf(myValue)>=0) (case sensitive) */
-      OP_START_OF,                             /**< This token represents an inverse prefix match, e.g. myValue.StartsWith(nextValue) (case sensitive) */
-      OP_END_OF,                               /**< This token represents an inverse suffix match, e.g. myValue.StartsWith(nextValue) (case sensitive) */
-      OP_SUBSTRING_OF,                         /**< This token represents an inverse infix match, e.g. myValue.StartsWith(nextValue) (case sensitive) */
+      OP_EQUAL_TO = 0,                         /**< This token represents '==', eg nextValue==myValue (case sensitive) */
+      OP_LESS_THAN,                            /**< This token represents '<',  eg nextValue<myValue  (case sensitive) */
+      OP_GREATER_THAN,                         /**< This token represents '>',  eg nextValue>myValue  (case sensitive) */
+      OP_LESS_THAN_OR_EQUAL_TO,                /**< This token represents '<=', eg nextValue<=myValue (case sensitive) */
+      OP_GREATER_THAN_OR_EQUAL_TO,             /**< This token represents '>=', eg nextValue>=myValue (case sensitive) */
+      OP_NOT_EQUAL_TO,                         /**< This token represents '!=', eg nextValue!=myValue (case sensitive) */
+      OP_STARTS_WITH,                          /**< This token represents a prefix match, eg nextValue.StartsWith(myValue) (case sensitive) */
+      OP_ENDS_WITH,                            /**< This token represents a suffix match, eg nextValue.EndsWith(myValue) (case sensitive) */
+      OP_CONTAINS,                             /**< This token represents an infix match, eg (nextValue.IndexOf(myValue)>=0) (case sensitive) */
+      OP_START_OF,                             /**< This token represents an inverse prefix match, eg myValue.StartsWith(nextValue) (case sensitive) */
+      OP_END_OF,                               /**< This token represents an inverse suffix match, eg myValue.StartsWith(nextValue) (case sensitive) */
+      OP_SUBSTRING_OF,                         /**< This token represents an inverse infix match, eg myValue.StartsWith(nextValue) (case sensitive) */
       OP_EQUAL_TO_IGNORECASE,                  /**< This token is the same as OP_EQUAL_TO, except it is case insensitive */
       OP_LESS_THAN_IGNORECASE,                 /**< This token is the same as OP_LESS_THAN, except it is case insensitive */
       OP_GREATER_THAN_IGNORECASE,              /**< This token is the same as OP_GREATER_THAN, except it is case insensitive */
@@ -999,8 +999,8 @@ public:
       OP_START_OF_IGNORECASE,                  /**< This token is the same as OP_START_OF, except it is case insensitive */
       OP_END_OF_IGNORECASE,                    /**< This token is the same as OP_END_OF, except it is case insensitive */
       OP_SUBSTRING_OF_IGNORECASE,              /**< This token is the same as OP_SUBSTRING_OF, except it is case insensitive */
-      OP_SIMPLE_WILDCARD_MATCH,                /**< This token represents a wildcard match, e.g. StringMatcher(myValue, true).Matches(nextValue) */
-      OP_REGULAR_EXPRESSION_MATCH,             /**< This token represents a proper regex match, e.g. StringMatcher(myValue, false).Matches(nextValue) */
+      OP_SIMPLE_WILDCARD_MATCH,                /**< This token represents a wildcard match, eg StringMatcher(myValue, true).Matches(nextValue) */
+      OP_REGULAR_EXPRESSION_MATCH,             /**< This token represents a proper regex match, eg StringMatcher(myValue, false).Matches(nextValue) */
       NUM_STRING_OPERATORS                     /**< This is a guard token */
    };
 
@@ -1101,12 +1101,12 @@ public:
       OP_LESS_THAN_OR_EQUAL_TO,     /**< This token represents '<=' */
       OP_GREATER_THAN_OR_EQUAL_TO,  /**< This token represents '>=' */
       OP_NOT_EQUAL_TO,              /**< This token represents '!=' */
-      OP_STARTS_WITH,               /**< This token represents a prefix match, e.g. nextValue.StartsWith(myValue) */
-      OP_ENDS_WITH,                 /**< This token represents a suffix match, e.g. nextValue.EndsWith(myValue)   */
-      OP_CONTAINS,                  /**< This token represents an infix match, e.g. (nextValue.IndexOf(myValue)>=0) */
-      OP_START_OF,                  /**< This token represents an inverse prefix match, e.g. myValue.StartsWith(nextValue) */
-      OP_END_OF,                    /**< This token represents an inverse suffix match, e.g. myValue.EndsWith(nextValue) */
-      OP_SUBSET_OF,                 /**< This token represents an inverse infix match,  e.g. (myValue.IndexOf(nextValue)>=0) */
+      OP_STARTS_WITH,               /**< This token represents a prefix match, eg nextValue.StartsWith(myValue) */
+      OP_ENDS_WITH,                 /**< This token represents a suffix match, eg nextValue.EndsWith(myValue)   */
+      OP_CONTAINS,                  /**< This token represents an infix match, eg (nextValue.IndexOf(myValue)>=0) */
+      OP_START_OF,                  /**< This token represents an inverse prefix match, eg myValue.StartsWith(nextValue) */
+      OP_END_OF,                    /**< This token represents an inverse suffix match, eg myValue.EndsWith(nextValue) */
+      OP_SUBSET_OF,                 /**< This token represents an inverse infix match,  eg (myValue.IndexOf(nextValue)>=0) */
       NUM_RAWDATA_OPERATORS         /**< This is a guard value */
    };
 

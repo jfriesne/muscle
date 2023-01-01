@@ -39,7 +39,7 @@ enum {
   * @param whichPath a SYSTEM_PATH_* token.
   * @param outStr on success, this string will contain the appopriate
   *               path name,  The path is guaranteed to end with a file
-  *               separator character (i.e. "/" or "\\", as appropriate).
+  *               separator character (ie "/" or "\\", as appropriate).
   * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the requested path could
   *          not be determined.
   */
@@ -52,7 +52,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr);
 status_t GetNumberOfProcessors(uint32 & retNumProcessors);
 
 /** Returns the file-path-separator character to use for this operating
-  * system:  i.e. backslash for Windows, and forward-slash for every
+  * system:  ie backslash for Windows, and forward-slash for every
   * other operating system.
   */
 inline const char * GetFilePathSeparator()

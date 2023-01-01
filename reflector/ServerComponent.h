@@ -22,7 +22,7 @@ DECLARE_REFTYPES(ReflectSessionFactory);
 /** Defines the maximum amount of time (in microseconds) that an asynchronous TCP connection should be allowed to remain in the "still-connecting" state
   * before the MUSCLE TCP async-connect logic decides it is taking too long and aborts the connection.  Default value is MUSCLE_TIME_NEVER, meaning that
   * MUSCLE will not enforce any explicit time limit (rather only the timeouts implemented by the operating system's network stack will apply).  This value
-  * can be overridden at compile-time via e.g. -DMUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS=MinutesToMicros(2), or you can specify an explicit
+  * can be overridden at compile-time via eg -DMUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS=MinutesToMicros(2), or you can specify an explicit
   * per-connection timeout value at runtime, as an argument to your AddNewConnectSession() calls, etc.
   */
 # define MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS MUSCLE_TIME_NEVER

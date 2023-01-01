@@ -69,7 +69,7 @@ class MutexGuard;  // forward declaration
 
 /** This class is a platform-independent API for a recursive mutual exclusion semaphore (a.k.a mutex).
   * Typically used to serialize the execution of critical sections in a multithreaded API
-  * (e.g. the MUSCLE ObjectPool or Thread classes)
+  * (eg the MUSCLE ObjectPool or Thread classes)
   * When compiling with the MUSCLE_SINGLE_THREAD_ONLY preprocessor flag defined, this class becomes a no-op.
   */
 class Mutex MUSCLE_FINAL_CLASS : public NotCopyable
@@ -140,8 +140,8 @@ public:
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    status_t DeadlockFinderTryLockWrapper(const char * fileName, int fileLine) const
 #else
-   /** Similar to Lock(), except this method is guaranteed to always return immediately (i.e. never blocks).
-     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked (e.g. because it is
+   /** Similar to Lock(), except this method is guaranteed to always return immediately (ie never blocks).
+     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked (eg because it is
      *          already locked by another thread)
      */
    status_t TryLock() const
@@ -194,7 +194,7 @@ public:
 #endif
 
    /** If MUSCLE_ENABLE_DEADLOCK_FINDER is defined, this method disables mutex-callback-logging on this Mutex,
-     * and returns true on the outermost nested call (i.e. if we've just entered the disabled-logging state).
+     * and returns true on the outermost nested call (ie if we've just entered the disabled-logging state).
      * Otherwise this method is a no-op and returns false.
      */
    bool BeginAvoidFindDeadlockCallbacks()
@@ -207,7 +207,7 @@ public:
    }
 
    /** If MUSCLE_ENABLE_DEADLOCK_FINDER is defined, this method re-enables mutex-callback-logging on this Mutex,
-     * and returns true on the outermost nested call (i.e. if we've just exited the disabled-logging state).
+     * and returns true on the outermost nested call (ie if we've just exited the disabled-logging state).
      * Otherwise this method is a no-op and returns false.
      */
    bool EndAvoidFindDeadlockCallbacks()
@@ -368,7 +368,7 @@ private:
 /** This convenience class can be used to automatically lock/unlock a Mutex based on the MutexGuard's ctor/dtor.
   * @note it's safer to use the DECLARE_MUTEXGUARD(theMutex) macro rather than manually placing a MutexGuard object
   *       onto the stack, since that avoids any possibility of forgetting to give the MutexGuard stack-object a name
-  *       (e.g. typing "MutexGuard(myMutex);" rather than "MutexGuard mg(myMutex);", would introduce a perniciously
+  *       (eg typing "MutexGuard(myMutex);" rather than "MutexGuard mg(myMutex);", would introduce a perniciously
   *       non-obvious run-time error where your Mutex only gets locked momentarily rather than until the end-of-scope)
   *       Using the DECLARE_MUTEXGUARD(theMutex) macro will also allow deadlockfinder.cpp to give you more useful
   *       debugging information.

@@ -49,7 +49,7 @@ public:
 
    /**
     * Flushes the output buffer, if possible.  For some implementations,
-    * this is a no-op.  For others (e.g. TCPSocketDataIO) this can be
+    * this is a no-op.  For others (eg TCPSocketDataIO) this can be
     * called to reduced latency of outgoing data blocks.
     */
    virtual void FlushOutput() = 0;

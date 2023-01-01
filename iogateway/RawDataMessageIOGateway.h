@@ -17,17 +17,17 @@ namespace muscle {
 #define PR_NAME_DATA_TIMESTAMP "ts"
 
 /**
- * This gateway is very crude; it can be used to write raw data to a TCP socket, and
- * to retrieve data from the socket in chunks of a specified size range.
+ * This gateway is used to send and receive raw data (ie streams of uint8's)
+ * without making any attempt to convert the bytes from/to a higher-level message-format.
  */
 class RawDataMessageIOGateway : public AbstractMessageIOGateway
 {
 public:
    /** Constructor.
-     * @param minChunkSize Don't return any data in chunks smaller than this.  Defaults to zero.
-     * @param maxChunkSize Don't return any data in chunks larger than this.  Defaults to the largest possible uint32 value.
+     * @param minChunkSizeBytes Don't return any data in chunks smaller than this.  Defaults to zero.
+     * @param maxChunkSizeBytes Don't return any data in chunks larger than this.  Defaults to MUSCLE_NO_LIMIT.
      */
-   RawDataMessageIOGateway(uint32 minChunkSize=0, uint32 maxChunkSize=MUSCLE_NO_LIMIT);
+   RawDataMessageIOGateway(uint32 minChunkSizeBytes=0, uint32 maxChunkSizeBytes=MUSCLE_NO_LIMIT);
 
    /** Destructor */
    virtual ~RawDataMessageIOGateway();

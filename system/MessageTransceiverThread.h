@@ -59,7 +59,7 @@ enum {
 #define MTT_NAME_PORT               "port"  /**< field containing an int16 port number */
 #define MTT_NAME_FACTORY_ID         "fcid"  /**< field containing a uint32 factory ID number (new for v3.40) */
 #define MTT_NAME_SESSION            "sess"  /**< field containing an AbstractReflectSession tag */
-#define MTT_NAME_FROMSESSION        "sfrm"  /**< field containing the root path of the session this message is from (e.g. "192.168.1.103/17") */
+#define MTT_NAME_FROMSESSION        "sfrm"  /**< field containing the root path of the session this message is from (eg "192.168.1.103/17") */
 #define MTT_NAME_FACTORY            "fact"  /**< field containing a ReflectSessionFactory tag */
 #define MTT_NAME_DRAIN_TAG          "dtag"  /**< field containing a DrainTag reference */
 #define MTT_NAME_POLICY_TAG         "ptag"  /**< field containing an IOPolicy reference */
@@ -179,7 +179,7 @@ public:
      * session object should override CreateThreadWorkerSession(const String &, const IPAddressAndPort &);
      * instead of this method.
      *
-     * @param clientAddress A string representing the connecting client's host (typically an IP address, e.g. "192.168.1.102")
+     * @param clientAddress A string representing the connecting client's host (typically an IP address, eg "192.168.1.102")
      * @param factoryInfo The IP address and port number of the local network interface on which this connection was received.
      * @returns a reference to a freshly allocated AbstractReflectSession object on success, or a NULL reference on failure.
      */
@@ -188,7 +188,7 @@ public:
    /** Default implementation returns a new ThreadWorkerSession object.
      * Subclasses may override this method to return a different type of
      * object, as long as the returned object is a subclass of ThreadWorkerSession.
-     * @param clientAddress A string representing the connecting client's host (typically an IP address, e.g. "192.168.1.102")
+     * @param clientAddress A string representing the connecting client's host (typically an IP address, eg "192.168.1.102")
      * @param factoryInfo The IP address and port number of the local network interface on which this connection was received.
      * @returns a reference to a freshly allocated ThreadWorkerSession object on success, or a NULL reference on failure.
      */
@@ -423,7 +423,7 @@ public:
      * May be called at any time, but behaves slightly differently depending on whether the internal
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
      * to the server.  If not, the call is passed immediately on through to ReflectServer::AddNewConnectSession().
-     * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (e.g. "blah.com" or "132.239.50.8")
+     * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (eg "blah.com" or "132.239.50.8")
      * @param port Port to connect to at that IP address.
      * @param optSessionRef optional Reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession
      *                      will be created and used.  If you do specify session here, you will probably want to supply either a
@@ -453,7 +453,7 @@ public:
      * May be called at any time, but behaves slightly differently depending on whether the internal
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
      * to the server.  If not, the call is passed immediately on through to ReflectServer::AddNewConnectSession().
-     * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (e.g. "blah.com" or "132.239.50.8")
+     * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (eg "blah.com" or "132.239.50.8")
      * @param port Port to connect to at that IP address.
      * @param expandLocalhost Passed to GetHostByName().  See GetHostByName() documentation for details.  Defaults to false.
      * @param autoReconnectDelay If specified, this is the number of microseconds after the
@@ -487,7 +487,7 @@ public:
      *                       as (invalidIP), then connections will be accepted from all local network interfaces.
      * @param optRetPort If specified non-NULL, then on success the port that the factory was bound to will
      *                   be placed into this parameter.  NOTE:  This argument is only useful if you are adding the
-     *                   factory synchronously... i.e. if you are calling this method before the MessageTransceiverThread's
+     *                   factory synchronously... ie if you are calling this method before the MessageTransceiverThread's
      *                   internal thread has been started.  If the internal thread is running already, this argument
      *                   will be ignored (because the socket binding will happen asynchronously and therefore the
      *                   port chosen is not known in time to return it here).  Defaults to NULL.
@@ -563,7 +563,7 @@ public:
      *                     it references a Message associated with the event.  This is mainly used with the
      *                     MTT_EVENT_INCOMING_MESSAGE event code.
      * @param optFromSession If non-NULL, the string that this argument points to will be have the root node path of
-     *                       the source AbstractReflectSession written into it (e.g. "/192.168.1.105/17").
+     *                       the source AbstractReflectSession written into it (eg "/192.168.1.105/17").
      * @param optFromFactoryID If non-NULL, the uint32 that this arguments points to will have the factory ID of the
      *                         source ReflectSessionFactory object written into it.
      * @param optLocation If non-NULL, the IPAddressAndPort value that this points to will be filled with the IP address
@@ -653,7 +653,7 @@ public:
 
 #ifdef MUSCLE_ENABLE_SSL
    /** Sets the SSL private key data that should be used to authenticate and encrypt
-     * accepted incoming TCP connections.  Default state is a NULL reference (i.e. no SSL
+     * accepted incoming TCP connections.  Default state is a NULL reference (ie no SSL
      * encryption will be used for incoming connecitons).
      * @param privateKey Reference to the contents of a .pem file containing both
      *        a PRIVATE KEY section and a CERTIFICATE section, or a NULL reference
@@ -663,7 +663,7 @@ public:
    status_t SetSSLPrivateKey(const ConstByteBufferRef & privateKey);
 
    /** Sets the SSL public key data that should be used to authenticate and encrypt
-     * outgoing TCP connections.  Default state is a NULL reference (i.e. no SSL
+     * outgoing TCP connections.  Default state is a NULL reference (ie no SSL
      * encryption will be used for outgoing connections).
      * @param publicKey Reference to the contents of a .pem file containing a CERTIFICATE
      *        section, or a NULL reference if you want to make SSL disabled again.
@@ -692,13 +692,13 @@ protected:
    virtual ThreadSupervisorSessionRef CreateSupervisorSession();
 
    /** Creates and returns a ThreadWorkerSession object.  Called when a new
-     * session is requested (e.g. in AddNewSession(), but no session is specified
+     * session is requested (eg in AddNewSession(), but no session is specified
      * by the call.  This method may be overridden to customize the type of session used.
      */
    virtual ThreadWorkerSessionRef CreateDefaultWorkerSession();
 
    /** Creates and returns a ThreadWorkerSessionFactory object.  Called when a new
-     * factory is requested (e.g. in PutAcceptFactory(), but none is specified.
+     * factory is requested (eg in PutAcceptFactory(), but none is specified.
      * This method may be overridden to customize the type of factory used.
      */
    virtual ThreadWorkerSessionFactoryRef CreateDefaultSessionFactory();

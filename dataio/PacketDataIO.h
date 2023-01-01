@@ -9,7 +9,7 @@
 namespace muscle {
 
 /** Abstract base class for DataIO objects that represent packet-based I/O objects
-  * (i.e. for UDP sockets, or objects that can act like UDP sockets)
+  * (ie for UDP sockets, or objects that can act like UDP sockets)
   */
 class PacketDataIO : public virtual DataIO
 {
@@ -19,7 +19,7 @@ public:
 
    /**
     * Should be implemented to return the maximum number of bytes that
-    * can fit into a single packet.  Used by the I/O gateways e.g. to
+    * can fit into a single packet.  Used by the I/O gateways eg to
     * determine how much memory to allocate before Read()-ing a packet of data in.
     */
    virtual uint32 GetMaximumPacketSize() const = 0;

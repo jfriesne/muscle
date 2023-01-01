@@ -14,7 +14,7 @@ namespace muscle {
   * it will open the shared-memory area with the specified name (using the MUSCLE
   * SharedMemory class) and look in that area for a list of IP addresses.  The decision about
   * whether to pass the CreateSession() call on to the slave ReflectSessionFactory
-  * or just fail (i.e. return NULL) will be made based on whether the requesting client's IP
+  * or just fail (ie return NULL) will be made based on whether the requesting client's IP
   * address is present in that shared memory area (as an IPAddress).
   */
 class SharedFilterSessionFactory : public ProxySessionFactory
@@ -37,7 +37,7 @@ public:
 
    /** Checks the SharedMemory area to see if our client's IP address is acceptable.
      * If so, the call is passed through to our held factory;  if not, it's "access denied" time, and we return NULL.
-     * @param clientAddress A string representing the remote peer's host, in ASCII format (e.g. "192.168.1.102")
+     * @param clientAddress A string representing the remote peer's host, in ASCII format (eg "192.168.1.102")
      * @param factoryInfo The IP address and port number of the local network interface on which this connection was received.
      * @returns A reference to a new session object on approval, or a NULL reference on denial or error.
      */

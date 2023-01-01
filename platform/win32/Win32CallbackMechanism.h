@@ -68,7 +68,7 @@ public:
    UINT GetSignalValue() const {return _signalValue;}
 
    /** Used to set the signal value when value that was set in the constructor call isn't appropriate.  
-     * This value is only used if the signal handle is set to a valid value (i.e. not INVALID_HANDLE_VALUE)
+     * This value is only used if the signal handle is set to a valid value (ie not INVALID_HANDLE_VALUE)
      * @param signalValue Signal value to deliver to the reply thread when notifying it of an event.
      */
    void SetSignalValue(UINT signalValue) {_signalValue = signalValue;}

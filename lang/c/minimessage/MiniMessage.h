@@ -95,7 +95,7 @@ MByteBuffer * MBStrdupByteBuffer(const char * sourceString);
   */
 MByteBuffer * MBCloneByteBuffer(const MByteBuffer * cloneMe);
 
-/** Returns MTrue iff the two byte buffers are equal (i.e. both hold the same byte sequence)
+/** Returns MTrue iff the two byte buffers are equal (ie both hold the same byte sequence)
   * @param buf1 The first byte buffer to compare.
   * @param buf2 The first byte buffer to compare.
   * @returns True if buf1 has the same byte sequence as buf2, otherwise MFalse.

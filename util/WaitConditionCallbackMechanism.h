@@ -22,7 +22,7 @@ public:
 
    /** Blocks until the next time someone calls SignalDispatchThread() on this object, or until (wakeupTime)
      * is reached, whichever comes first.
-     * @param wakeupTime the timestamp (e.g. as returned by GetRunTime64()) at which to give up and return
+     * @param wakeupTime the timestamp (eg as returned by GetRunTime64()) at which to give up and return
      *                   B_TIMED_OUT if SignalDispatchThread() hasn't been called by then.  Defaults to MUSCLE_TIME_NEVER.
      * @param optRetNotificationsCount if set non-NULL, then when this method returns successfully, the uint32
      *                   pointed to by this pointer will contain the number of notifications that

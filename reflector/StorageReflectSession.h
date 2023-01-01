@@ -99,7 +99,7 @@ public:
    /** Returns a read-only reference to our parameters message */
    const Message & GetParametersConst() const {return _parameters;}
 
-   /** Convenience method:  Returns the effective Parameters Message for this session (i.e. as
+   /** Convenience method:  Returns the effective Parameters Message for this session (ie as
      * would be returned in response to a PR_COMMAND_GETPARAMETERS Message from our client)
      */
    MessageRef GetEffectiveParameters() const;
@@ -115,7 +115,7 @@ protected:
 
    /**
     * Create or Set the value of a data node.
-    * @param nodePath Should be the path relative to the home dir (e.g. "MyNode/Child1/Grandchild2")
+    * @param nodePath Should be the path relative to the home dir (eg "MyNode/Child1/Grandchild2")
     * @param dataMsgRef The value to set the node to
     * @param flags a bit-chord of SETDATANODE_FLAG_* bits that can be used to modify this call's behavior.  Defaults to no-flags-set.
     * @param optInsertBefore If (addToIndex) is true, this may be the name of the node to insert this new node before in the index.
@@ -146,7 +146,7 @@ protected:
     * Recursively saves a given subtree of the node database into the given Message object, for safe-keeping.
     * (It's a bit more efficient than it looks, since all data Messages are reference counted rather than copied)
     * @param msg the Message to save the subtree into.  This object can later be provided to RestoreNodeTreeFromMessage() to restore the subtree.
-    * @param node The node to begin recursion from (i.e. the root of the subtree)
+    * @param node The node to begin recursion from (ie the root of the subtree)
     * @param path The path to prepend to the paths of children of the node.  Used in the recursion; you typically want to pass in "" here.
     * @param saveData Whether or not the payload Message of (node) should be saved.  The payload Messages of (node)'s children will always be saved no matter what, as long as (maxDepth) is greater than zero.
     * @param maxDepth How many levels of children should be saved to the Message.  If left as MUSCLE_NO_LIMIT (the default),
@@ -162,7 +162,7 @@ protected:
     * Recursively creates or updates a subtree of the node database from the given Message object.
     * (It's a bit more efficient than it looks, since all data Messages are reference counted rather than copied)
     * @param msg the Message to restore the subtree from.  This Message is typically one that was created earlier by SaveNodeTreeToMessage().
-    * @param path The relative path of the root node to add restored nodes into, e.g. "" is your home session node.
+    * @param path The relative path of the root node to add restored nodes into, eg "" is your home session node.
     * @param loadData Whether or not the payload Message of (node) should be restored.  The payload Messages of (node)'s children will always be restored no matter what.
     * @param flags Optional bit-chord of SETDATANODE_FLAG_* bits to affect our behavior.  Defaults to no-flags-set.
     * @param maxDepth How many levels of children should be restored from the Message.  If left as MUSCLE_NO_LIMIT (the default),
@@ -224,7 +224,7 @@ protected:
        * @param optData Reference to a Message to use for QueryFilter filtering, or NULL to disable filtering.
        *                Note that a filter may optionally retarget this ConstMessageRef to point to a different
        *                Message, but it is not allowed to modify the Message that (optData) points to.
-       * @param rootDepth the depth at which the traversal started (i.e. 0 if started at root)
+       * @param rootDepth the depth at which the traversal started (ie 0 if started at root)
        */
       bool MatchesNode(DataNode & node, ConstMessageRef & optData, int rootDepth) const;
 
@@ -246,7 +246,7 @@ protected:
        * Note this is a bit more expensive than MatchesNode(), as we can't use short-circuit boolean logic here!
        * @param node A node to check against our set of path-matcher strings.
        * @param optData If non-NULL, any QueryFilters will use this Message to filter against.
-       * @param nodeDepth the depth at which the traversal started (i.e. 0 if started at root)
+       * @param nodeDepth the depth at which the traversal started (ie 0 if started at root)
        */
       uint32 GetMatchCount(DataNode & node, const Message * optData, int nodeDepth) const;
 
@@ -298,7 +298,7 @@ protected:
    void Cleanup();
 
    /** Convenience method:  Adds sessions that contain nodes that match the given pattern to the passed-in Hashtable.
-    *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah")
+    *  @param nodePath the node path to match against.  May be absolute (eg "/0/1234/frc*") or relative (eg "blah")
     *                  If the nodePath is a zero-length String, all sessions will match.
     *  @param filter If non-NULL, only nodes whose data Messages match this filter will have their sessions added
     *                to the (retSessions) table.
@@ -310,7 +310,7 @@ protected:
    status_t FindMatchingSessions(const String & nodePath, const ConstQueryFilterRef & filter, Hashtable<const String *, AbstractReflectSessionRef> & retSessions, bool matchSelf, uint32 maxResults = MUSCLE_NO_LIMIT) const;
 
    /** Convenience method:  Same as FindMatchingSessions(), but finds only the first matching session.
-     *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah")
+     *  @param nodePath the node path to match against.  May be absolute (eg "/0/1234/frc*") or relative (eg "blah")
      *                  If the nodePath is a zero-length String, all sessions will match.
      *  @param filter If non-NULL, only nodes whose data Messages match this filter will have their sessions added
      *                to the (retSessions) table.
@@ -323,7 +323,7 @@ protected:
     *  (that is, any sessions who have nodes that match (nodePath) will have their MessageReceivedFromSession()
     *  method called with the given Message)
     *  @param msgRef the Message to pass on.
-    *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah")
+    *  @param nodePath the node path to match against.  May be absolute (eg "/0/1234/frc*") or relative (eg "blah")
     *                  If the nodePath is a zero-length String, all sessions will match.
     *  @param filter If non-NULL, only nodes whose data Messages match this filter will receive the Message.
     *  @param matchSelf If true, we will include as a candidate for pattern matching.  Otherwise we won't.
@@ -332,7 +332,7 @@ protected:
    status_t SendMessageToMatchingSessions(const MessageRef & msgRef, const String & nodePath, const ConstQueryFilterRef & filter, bool matchSelf);
 
    /** Convenience method:  Adds nodes that match the specified path to the passed-in Queue.
-    *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah").
+    *  @param nodePath the node path to match against.  May be absolute (eg "/0/1234/frc*") or relative (eg "blah").
     *                  If it's a relative path, only nodes in the current session's subtree will be searched.
     *  @param filter If non-NULL, only nodes whose data Messages match this filter will be added to the (retMatchingNodes) table.
     *  @param retMatchingNodes A Queue that will on return contain the list of matching nodes.
@@ -342,7 +342,7 @@ protected:
    status_t FindMatchingNodes(const String & nodePath, const ConstQueryFilterRef & filter, Queue<DataNodeRef> & retMatchingNodes, uint32 maxResults = MUSCLE_NO_LIMIT) const;
 
    /** Convenience method:  Same as FindMatchingNodes(), but finds only the first matching node.
-     *  @param nodePath the node path to match against.  May be absolute (e.g. "/0/1234/frc*") or relative (e.g. "blah").
+     *  @param nodePath the node path to match against.  May be absolute (eg "/0/1234/frc*") or relative (eg "blah").
      *                  If it's a relative path, only nodes in the current session's subtree will be searched.
      *  @param filter If non-NULL, only nodes whose data Messages match this filter will be added to the (retMatchingNodes) table.
      *  @returns a reference to the first matching node on success, or a NULL reference on failure.
@@ -622,8 +622,8 @@ DECLARE_REFTYPES(StorageReflectSession);
 
 /** Enumeration of some common node-depth levels in the MUSCLE node-tree database */
 enum {
-   NODE_DEPTH_ROOT = 0,     /**< Depth of the root node at the top of the node-tree (i.e. zero) */
-   NODE_DEPTH_HOSTNAME,     /**< Depth of the hostname/IP-address nodes directly underneath the root node (i.e. one) */
+   NODE_DEPTH_ROOT = 0,     /**< Depth of the root node at the top of the node-tree (ie zero) */
+   NODE_DEPTH_HOSTNAME,     /**< Depth of the hostname/IP-address nodes directly underneath the root node (ie one) */
    NODE_DEPTH_SESSIONNAME,  /**< Depth of the per-connection session ID strings underneath the hostname/IP-address nodes */
    NODE_DEPTH_USER          /**< Depth of the first level of the tree where a client program can add its own nodes */
 };

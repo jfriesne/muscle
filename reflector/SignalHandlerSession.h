@@ -9,7 +9,7 @@
 namespace muscle {
 
 /** This session can be added to a ReflectServer in order to have the server
-  * catch signals (e.g. SIGINT on Unix/MacOS, Console signals on Windows)
+  * catch signals (eg SIGINT on Unix/MacOS, Console signals on Windows)
   * and react by initiating a controlled shutdown of the server.
   */
 class SignalHandlerSession : public AbstractReflectSession, public ISignalHandler

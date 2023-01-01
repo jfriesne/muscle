@@ -196,9 +196,9 @@ public:
     *  GetInternalThreadSocketSet(), and related method calls.
     */
    enum {
-      SOCKET_SET_READ = 0,  /**< set of sockets to watch for ready-to-read (i.e. incoming data available)          */
-      SOCKET_SET_WRITE,     /**< set of sockets to watch for ready-to-write (i.e. outgoing buffer space available) */
-      SOCKET_SET_EXCEPTION, /**< set of sockets to watch for exceptional conditions (implementation-defined)       */
+      SOCKET_SET_READ = 0,  /**< set of sockets to watch for ready-to-read (ie incoming data available)          */
+      SOCKET_SET_WRITE,     /**< set of sockets to watch for ready-to-write (ie outgoing buffer space available) */
+      SOCKET_SET_EXCEPTION, /**< set of sockets to watch for exceptional conditions (implementation-defined)     */
       NUM_SOCKET_SETS       /**< A guard value */
    };
 
@@ -276,7 +276,7 @@ public:
 
    /** If called from within the internal thread, returns (roughly) the amount of data (in bytes)
      * currently on the thread's stack.  Returns zero if the thread stack size is unknown
-     * (e.g. because this method was called from a different thread)
+     * (eg because this method was called from a different thread)
      */
    uint32 GetCurrentStackUsage() const;
 
@@ -597,8 +597,8 @@ private:
 /** Typically called by the CHECK_THREAD_STACK_USAGE macro.  Checks the current thread's stack usage,
   * and causes an assertion failure (and program exit) to occur if the thread is using more stack
   * space than was suggested via SetSuggestedStackSize().
-  * @param fileName the name of the source code file this method was called from (i.e. __FILE__)
-  * @param line the line number that this method was called from (i.e. __LINE__)
+  * @param fileName the name of the source code file this method was called from (ie __FILE__)
+  * @param line the line number that this method was called from (ie __LINE__)
   */
 void CheckThreadStackUsage(const char * fileName, uint32 line);
 

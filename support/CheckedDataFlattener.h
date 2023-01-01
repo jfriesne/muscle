@@ -265,7 +265,7 @@ public:
 
    /** Seeks our "write position" to a new offset within our output buffer.
      * @param offset the new write-position within our output buffer
-     * @returns B_NO_ERROR on success, or an error code on failure (e.g. B_BAD_ARGUMENT if (offset) is greater than our maximum-bytes value)
+     * @returns B_NO_ERROR on success, or an error code on failure (eg B_BAD_ARGUMENT if (offset) is greater than our maximum-bytes value)
      * @note if we are currently associated with a ByteBuffer object, this method will call SetNumBytes()
      *       on it, invalidating any bytes in the ByteBuffer that are located at or after (offset)
      * @note this method resets our status-flag back to B_NO_ERROR.

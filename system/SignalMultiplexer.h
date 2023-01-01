@@ -19,7 +19,7 @@ public:
    virtual ~ISignalHandler() {/* empty */}
 
    /** Retrieves the nth signal number that we should try to catch and respond to.
-     * @param n The index of the signal number that is to be returned (e.g. 0, 1, ... n)
+     * @param n The index of the signal number that is to be returned (eg 0, 1, ... n)
      * @param signalNumber on success, the signal number should be written here.
      * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if there is no (nth) signal number.
      *
@@ -70,7 +70,7 @@ public:
    uint32 GetTotalNumSignalsReceived() const {return _totalSignalCounts;}
 
    /** Returns the total number of signals of the specified kind that have been received by this SignalMultiplexer object.
-     * @param type The signal number (e.g. SIGINT).  Note that only signal numbers up to 31 are tracked.
+     * @param type The signal number (eg SIGINT).  Note that only signal numbers up to 31 are tracked.
      */
    uint32 GetNumSignalsReceivedOfType(uint32 type) const {return (type<ARRAYITEMS(_signalCounts))?_signalCounts[type]:0;}
 

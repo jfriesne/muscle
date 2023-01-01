@@ -61,9 +61,9 @@ public:
     * Note:  In v6.12 and above, the presence of a backtick character (`) at the front of the string will
     * force the string to be parsed as a regex rather than a wildcard pattern.  (The backtick itself will not
     * be included in the regex string).  That way raw regex strings can be used in contexts that would otherwise
-    * not permit the user to specify isSimpleFormat=false (e.g. in MUSCLE subscription strings)
+    * not permit the user to specify isSimpleFormat=false (eg in MUSCLE subscription strings)
     *
-    * Also, simple patterns that begin with a tilde (~) will be logically negated, e.g. ~A* will match all
+    * Also, simple patterns that begin with a tilde (~) will be logically negated, eg ~A* will match all
     * strings that do NOT begin with the character A.
     *
     * @param expression The new globbing pattern or regular expression to match with.
@@ -77,8 +77,8 @@ public:
    const String & GetPattern() const {return _pattern;}
 
    /** Returns true iff this StringMatcher's pattern specifies exactly one possible string.
-    *  (i.e. the pattern is just plain old text, with no wildcards or other pattern matching logic specified)
-    *  @note StringMatchers using numeric ranges are never considered unique, because e.g. looking up the
+    *  (ie the pattern is just plain old text, with no wildcards or other pattern matching logic specified)
+    *  @note StringMatchers using numeric ranges are never considered unique, because eg looking up the
     *        string "<5>" in a Hashtable would not return a child node whose node-name is "5".
     */
    bool IsPatternUnique() const {return ((_ranges.IsEmpty())&&(_flags.AreAnyOfTheseBitsSet(STRINGMATCHER_FLAG_CANMATCHMULTIPLEVALUES,STRINGMATCHER_FLAG_NEGATE) == false));}
@@ -99,7 +99,7 @@ public:
    inline bool Match(const String & matchString) const {return Match(matchString());}
 
    /** If set true, Match() will return the logical opposite of what
-     * it would otherwise return; e.g. it will return true only when
+     * it would otherwise return; eg it will return true only when
      * the given string doesn't match the pattern.
      * Default state is false.  Note that this flag is also set by
      * SetPattern(..., true), based on whether or not the pattern
@@ -232,7 +232,7 @@ bool IsRegexToken(char c, bool isFirstCharInString);
 
 /** Given a regular expression, makes it case insensitive by
  *  replacing every occurance of a letter with a upper-lower combo,
- *  e.g. Hello -> [Hh][Ee][Ll][Ll][Oo]
+ *  eg Hello -> [Hh][Ee][Ll][Ll][Oo]
  *  @param str a string to check for letters, and possibly modify to make case-insensitive
  *  @return true iff anything was changed, false if no changes were necessary.
  */

@@ -21,7 +21,7 @@ namespace muscle {
 class StringTokenizer MUSCLE_FINAL_CLASS
 {
 public:
-   /** Initializes the StringTokenizer to parse (tokenizeMe), which should be a string of tokens (e.g. words),
+   /** Initializes the StringTokenizer to parse (tokenizeMe), which should be a string of tokens (eg words),
     *  possibly separated by any of the characters specified in (optSepChars)
     *  @param tokenizeMe the string to tokenize.  If NULL is passed in, an empty string ("") is assumed.
     *  @param optSepChars ASCII string representing a list of characters to interpret as substring-separators.

@@ -25,7 +25,7 @@ enum {
 DECLARE_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_LAUNCH_FLAGS);
 
 #ifndef MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS
-/** The default value of (launchFlags) that will be suppplied to LaunchChildProcess(), if no value is explicitly supplied.  Defaults to CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY unless overridden at compile time via e.g. -DMUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS=CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY,CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR or etc. */
+/** The default value of (launchFlags) that will be suppplied to LaunchChildProcess(), if no value is explicitly supplied.  Defaults to CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY unless overridden at compile time via eg -DMUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS=CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY,CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR or etc. */
 # define MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY
 #endif
 
@@ -121,7 +121,7 @@ public:
     */
    virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetChildSelectSocket();}
 
-   /** Returns true iff the child process is available (i.e. if startup succeeded). */
+   /** Returns true iff the child process is available (ie if startup succeeded). */
    bool IsChildProcessAvailable() const;
 
    /** Specify the series of actions we should take to gracefully shutdown the child process
@@ -173,7 +173,7 @@ public:
    /** Sends the specified signal to the child process.
      * Note that this method is not currently implemented under Windows,
      * and thus under Windows this method is a no-op that just returns B_UNIMPLEMENTED.
-     * @param sigNum a signal number, e.g. SIGINT or SIGHUP.
+     * @param sigNum a signal number, eg SIGINT or SIGHUP.
      * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t SignalChildProcess(int sigNum);
@@ -183,7 +183,7 @@ public:
      * @param maxWaitTime The maximum amount of time to wait, in microseconds.
      *                    Defaults to MUSCLE_TIME_NEVER, indicating no timeout.
      * @returns true B_NO_ERROR the child process is known to be gone, or an
-     *          error code otherwise (e.g. B_TIMED_OUT if our timeout period
+     *          error code otherwise (eg B_TIMED_OUT if our timeout period
      *          has elapsed and the child process still hadn't exited)
      */
    status_t WaitForChildProcessToExit(uint64 maxWaitTime = MUSCLE_TIME_NEVER);
@@ -210,7 +210,7 @@ public:
      * dialog before it will permit that to happen), then you can call this method
      * before calling LaunchChildProcess() to enable that behavior.
      * @param dialogPrompt the text you'd like the user to see in the dialog
-     *                     (e.g. "Please enter your password so that MyProgram can do privileged stuff")
+     *                     (eg "Please enter your password so that MyProgram can do privileged stuff")
      *                     If an empty String is passed, then privileged-mode will not be requested.
      * @note this method only has an effect if called before LaunchChildProcess() is called.
      */

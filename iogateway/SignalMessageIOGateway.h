@@ -8,10 +8,10 @@
 namespace muscle {
 
 /**
- * This gateway is simple almost to the point of being crippled... all it does
- * is read data from its socket, and whenever it has read some data, it
- * will add a user-specified MessageRef to its incoming Message queue.
- * It's useful primarily for thread synchronization purposes.
+ * This is a special-purpose gateway used to facilitate cross-thread signalling.
+ * All it does is read bytes from its DataIO, and whenever it has read some bytes,
+ * it throws them away and adds a user-specified MessageRef to its incoming-Messages
+ * Queue, so this its session's MessageReceivedFromGateway() method will be called ASAP.
  */
 class SignalMessageIOGateway : public AbstractMessageIOGateway
 {

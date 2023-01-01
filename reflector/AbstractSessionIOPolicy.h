@@ -96,7 +96,7 @@ public:
    /** Should return true iff we want to allow the given session to be able to transfer
      * bytes to/from its DataIO object.
      * Called after BeginIO() for each iteration. Only called for the sessions
-     * that want to transfer data (i.e. whose gateway objects returned true from their
+     * that want to transfer data (ie whose gateway objects returned true from their
      * IsReadyForInput() or HasBytesToOutput() methods), so you can determine the set
      * of 'active' sessions based on what gets called here.
      * @param holder a session who wishes to transfer data.  Guaranteed to be one of

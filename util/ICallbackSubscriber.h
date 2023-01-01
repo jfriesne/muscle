@@ -48,7 +48,7 @@ protected:
      * DispatchCallbacks() will be called in the main/dispatch thread in the very near future.
      * @param eventTypeBits Optional bit-chord indicating which event-types you want to flag
      *                      as requiring attention.  The definition of these bits is left to
-     *                      the subclass.  The default value of this argument is ~0, i.e. an
+     *                      the subclass.  The default value of this argument is ~0, ie an
      *                      indication that every type of event should be serviced.
      * @param clearEventTypeBits Option bit-chord indicating any event-type bits you want
      *                           to remove from the pending-event-types flag.  Defaults to zero.

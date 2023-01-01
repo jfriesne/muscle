@@ -21,7 +21,7 @@ class DetectNetworkConfigChangesThread;
   * Thread class, and therefore won't compile if -DMUSCLE_SINGLE_THREAD_ONLY is set.
   *
   * This class also provides notification callbacks when the host computer is about to go
-  * to sleep, and when it has just reawoken from sleep.  This can be useful e.g. if you
+  * to sleep, and when it has just reawoken from sleep.  This can be useful eg if you
   * want to make sure your program's TCP connections get cleanly disconnected and are not
   * left open while the host computer is sleeping.  This functionality is currently
   * implemented under MacOS/X and Windows only.
@@ -82,7 +82,7 @@ protected:
      * Default implementation is a no-op.  Note, however, that NetworkInterfacesChanged(optInterfaceNames)
      * will be called on any session or factory that implements INetworkConfigChangesTarget (including this session).
      * @param optInterfaceNames optional table containing the names of the interfaces that
-     *                          have changed (e.g. "en0", "en1", etc).  If this table is empty,
+     *                          have changed (eg "en0", "en1", etc).  If this table is empty,
      *                          that indicates that any or all of the network interfaces may have
      *                          changed.  Note that changed-interface enumeration is currently only
      *                          implemented under MacOS/X and Windows, so under other operating systems this

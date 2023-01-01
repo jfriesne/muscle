@@ -50,7 +50,7 @@ protected:
   * This is a slightly more complex implementation of BatchOperator, in that it allows
   * you to specify a BatchArgs argument that is associated with the batch.  The BatchArgs
   * argument may be of any type that you care to specify, and can be used either to
-  * convey information about that batch (e.g. the batch's name, for undo purposes), or
+  * convey information about that batch (eg the batch's name, for undo purposes), or
   * to differentiate different types of batch operation (if you want to use batching
   * of different kinds within the same object), or both.
   *

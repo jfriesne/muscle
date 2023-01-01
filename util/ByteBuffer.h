@@ -16,7 +16,7 @@ class ByteBuffer : public FlatCountable
 {
 public:
    /** Constructs a ByteBuffer that holds the specified bytes.
-     * @param numBytes Number of bytes to copy in (or just allocate, if (optBuffer) is NULL).  Defaults to zero bytes (i.e., don't allocate a buffer)
+     * @param numBytes Number of bytes to copy in (or just allocate, if (optBuffer) is NULL).  Defaults to zero bytes (ie, don't allocate a buffer)
      * @param optBuffer May be set to point to an array of (numBytes) bytes that we should copy into our internal buffer.
      *                  If NULL, this ByteBuffer will contain (numBytes) uninitialized bytes.  Defaults to NULL.
      * @param optAllocationStrategy If non-NULL, this object will be used to allocate and free bytes.  If left as NULL (the default),
@@ -132,7 +132,7 @@ public:
    String ToAnnotatedHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT, uint32 numColumns = 16) const;
 
    /** Sets our content using the given byte buffer.
-     * @param numBytes Number of bytes to copy in (or just to allocate, if (optBuffer) is NULL).  Defaults to zero bytes (i.e., don't allocate a buffer)
+     * @param numBytes Number of bytes to copy in (or just to allocate, if (optBuffer) is NULL).  Defaults to zero bytes (ie, don't allocate a buffer)
      * @param optBuffer May be set to point to an array of bytes to copy into our internal buffer.
      *                  If NULL, this ByteBuffer will contain (numBytes) uninitialized bytes.  Defaults to NULL.
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on out of memory--there are no side effects if that occurs.
@@ -148,7 +148,7 @@ public:
      */
    void AdoptBuffer(uint32 numBytes, uint8 * optBuffer);
 
-   /** Resets this ByteBuffer to its empty state, i.e. not holding any buffer.
+   /** Resets this ByteBuffer to its empty state, ie not holding any buffer.
      * @param releaseBuffer If true, we will immediately muscleFree() any buffer we are holding; otherwise we will keep the buffer around for potential later re-use.
      */
    void Clear(bool releaseBuffer = false);
@@ -161,7 +161,7 @@ public:
      */
    status_t SetNumBytes(uint32 newNumBytes, bool retainData);
 
-   /** If we contain any extra bytes that are not being used to hold actual data (i.e. if GetNumAllocatedBytes()
+   /** If we contain any extra bytes that are not being used to hold actual data (ie if GetNumAllocatedBytes()
     *  is returning a value greater than GetNumBytes(), this method can be called to free up the unused bytes.
     *  This method calls muscleRealloc(), so it should be quite efficient.  After this method returns successfully,
     *  the number of allocated bytes will be equal to the number of used bytes.
@@ -262,7 +262,7 @@ ByteBuffer operator+(const ByteBuffer & lhs, const ByteBuffer & rhs);
 ByteBufferRef::ItemPool * GetByteBufferPool();
 
 /** Convenience method:  Gets a ByteBuffer from the ByteBuffer pool, makes sure it holds the specified number of bytes, and returns it.
- *  @param numBytes Number of bytes to copy in (or just allocate, if (optBuffer) is NULL).  Defaults to zero bytes (i.e. retrieve an empty buffer)
+ *  @param numBytes Number of bytes to copy in (or just allocate, if (optBuffer) is NULL).  Defaults to zero bytes (ie retrieve an empty buffer)
  *  @param optBuffer If non-NULL, points to an array of (numBytes) bytes to copy in to our internal buffer.
  *                   If NULL, this ByteBuffer will contain (numBytes) uninitialized bytes.  Defaults to NULL.
  *  @return Reference to a ByteBuffer object that has been initialized as specified, or a NULL ref on failure (out of memory).
@@ -271,7 +271,7 @@ ByteBufferRef GetByteBufferFromPool(uint32 numBytes = 0, const uint8 * optBuffer
 
 /** As above, except that the byte buffer is obtained from the specified pool instead of from the default ByteBuffer pool.
  *  @param pool the ObjectPool to allocate the ByteBuffer from.
- *  @param numBytes Number of bytes to copy in (or just allocate, if (optBuffer) is NULL).  Defaults to zero bytes (i.e. retrieve an empty buffer)
+ *  @param numBytes Number of bytes to copy in (or just allocate, if (optBuffer) is NULL).  Defaults to zero bytes (ie retrieve an empty buffer)
  *  @param optBuffer If non-NULL, points to an array of (numBytes) bytes to copy in to our internal buffer.
  *                   If NULL, this ByteBuffer will contain (numBytes) uninitialized bytes.  Defaults to NULL.
  *  @return Reference to a ByteBuffer object that has been initialized as specified, or a NULL ref on failure (out of memory).

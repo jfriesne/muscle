@@ -36,7 +36,7 @@ enum
    NUM_MUSCLE_LOGLEVELS         /**< guard value */
 };
 
-// Define this constant in your Makefile (i.e. -DMUSCLE_DISABLE_LOGGING) to turn all the
+// Define this constant in your Makefile (ie -DMUSCLE_DISABLE_LOGGING) to turn all the
 // Log commands into no-ops.
 #ifdef MUSCLE_DISABLE_LOGGING
 # define MUSCLE_INLINE_LOGGING
@@ -74,7 +74,7 @@ static inline const char * GetLogLevelKeyword(int /*logLevel*/) {return "<omitte
 
 #else
 
-// Define this constant in your Makefile (i.e. -DMUSCLE_MINIMALIST_LOGGING) if you don't want to have
+// Define this constant in your Makefile (ie -DMUSCLE_MINIMALIST_LOGGING) if you don't want to have
 // to link in SysLog.cpp and Hashtable.cpp and all the other stuff that is required for "real" logging.
 # ifdef MUSCLE_MINIMALIST_LOGGING
 #  define MUSCLE_INLINE_LOGGING
@@ -155,12 +155,12 @@ int GetFileLogLevel();
 String GetFileLogName();
 
 /** Returns the maximum size (in bytes) that we will allow the log file(s) to grow to.
-  * Default is MUSCLE_NO_LIMIT, i.e. unlimited file size.
+  * Default is MUSCLE_NO_LIMIT, ie unlimited file size.
   */
 uint32 GetFileLogMaximumSize();
 
 /** Returns the maximum number of log files that should be written out before
-  * old log files start to be deleted.  Defaults to MUSCLE_NO_LIMIT, i.e.
+  * old log files start to be deleted.  Defaults to MUSCLE_NO_LIMIT, ie
   * never delete any log files.
   */
 uint32 GetMaxNumLogFiles();
@@ -200,7 +200,7 @@ static inline int GetMaxLogLevel()
 
 /** Sets the log filter level for logging to a file.
  *  Any calls to Log*() that specify a log level greater than (loglevel)
- *  will be suppressed.  Default level is MUSCLE_LOG_NONE (i.e. no file logging is done)
+ *  will be suppressed.  Default level is MUSCLE_LOG_NONE (ie no file logging is done)
  *  @param loglevel The MUSCLE_LOG_* value to use in determining which log messages to save to disk.
  *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
@@ -231,7 +231,7 @@ status_t SetFileLogMaximumSize(uint32 maxSizeBytes);
 
 /** Sets the path-pattern of files that the logger is allowed to assume are old log files, and therefore
   * is allowed to delete.
-  * @param pattern The pattern to match against (e.g. "/var/log/mylogfiles-*.txt").  The matching will
+  * @param pattern The pattern to match against (eg "/var/log/mylogfiles-*.txt").  The matching will
   *                be done immediately/synchronously inside this call.
   * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
   */
@@ -271,7 +271,7 @@ status_t SetConsoleLogToStderr(bool toStderr);
  *  the caller-specified text.  Typically called indirectly, via the LogPlain() macro.
  *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.  This call will generate
  *                  log text only if (logLevel) is less than or equal to the value returned by GetMaxLogLevel().
- *  @param fmt A printf-style format string (e.g. "hello %s\n").  Note that \n is NOT added for you.
+ *  @param fmt A printf-style format string (eg "hello %s\n").  Note that \n is NOT added for you.
  *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  *  @note LogPlain() is implemented as a macro, so the arguments you pass to it will not be evaluated or passed to
  *        LogPlainAux() if the log-level you specified is not severe enough to pass the log-threshold (as specified
@@ -305,10 +305,10 @@ status_t LogTimeAux(const char * sourceFile, const char * optSourceFunction, int
 
 /** MUSCLE's primary function for logging.  Typically called indirectly, via the LogTime() macro.
  *  Automagically prepends a timestamp and status string to the caller-specified text.
- *  e.g. LogTime(MUSCLE_LOG_INFO, "Hello %s! I am %i.", "world", 42) would generate "[I 12/18 12:11:49] Hello world! I am 42."
+ *  eg LogTime(MUSCLE_LOG_INFO, "Hello %s! I am %i.", "world", 42) would generate "[I 12/18 12:11:49] Hello world! I am 42."
  *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.  This call will generate
  *                  log text only if (logLevel) is less than or equal to the value returned by GetMaxLogLevel().
- *  @param fmt A printf-style format string (e.g. "hello %s\n").  Note that \n is NOT added for you.
+ *  @param fmt A printf-style format string (eg "hello %s\n").  Note that \n is NOT added for you.
  *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  *  @note LogTime() is implemented as a macro, so the arguments you pass to it will not be evaluated or passed to LogTimeAux()
  *        if the log-level you specified is not severe enough to pass the log-threshold (as specified by GetMaxLogLevel().
@@ -395,23 +395,23 @@ void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & lca);
 
 #endif
 
-/** Given a source location (e.g. as provided by the information in a LogCallbackArgs object),
+/** Given a source location (eg as provided by the information in a LogCallbackArgs object),
   * returns a corresponding uint32 that represents a hash of that location.
   * The source code location can be later looked up by feeding this hash value
   * as a command line argument into the muscle/tests/findsourcecodelocations program.
-  * @param fileName the filename associated with the location (e.g. as returned by the __FILE__ macro)
+  * @param fileName the filename associated with the location (eg as returned by the __FILE__ macro)
   * @param lineNumber the line number within the file.
   */
 uint32 GenerateSourceCodeLocationKey(const char * fileName, uint32 lineNumber);
 
 /** Given a source-code location key (as returned by GenerateSourceCodeLocationKey()),
-  * returns the standard human-readable representation of that value.  (e.g. "7QF2")
+  * returns the standard human-readable representation of that value.  (eg "7QF2")
   * @param key the source-code-location-key, represented as a uint32.
   */
 String SourceCodeLocationKeyToString(uint32 key);
 
 /** Given a standard human-readable representation of a source-code-location
-  * key (e.g. "7EF2"), returns the uint16 key value.  This is the inverse
+  * key (eg "7EF2"), returns the uint16 key value.  This is the inverse
   * function of SourceCodeLocationKeyToString().
   * @param s the source-code-location-key, represented as a human-readable string.
   */
@@ -425,7 +425,7 @@ public:
    HumanReadableTimeValues() : _year(0), _month(0), _dayOfMonth(0), _dayOfWeek(0), _hour(0), _minute(0), _second(0), _microsecond(0) {/* empty */}
 
    /** Explicit constructor
-     * @param year The year value (e.g. 2005)
+     * @param year The year value (eg 2005)
      * @param month The month value (January=0, February=1, etc)
      * @param dayOfMonth The day within the month (ranges from 0 to 30, inclusive)
      * @param dayOfWeek The day within the week (Sunday=0, Monday=1, etc)
@@ -436,7 +436,7 @@ public:
      */
    HumanReadableTimeValues(int year, int month, int dayOfMonth, int dayOfWeek, int hour, int minute, int second, int microsecond) : _year(year), _month(month), _dayOfMonth(dayOfMonth), _dayOfWeek(dayOfWeek), _hour(hour), _minute(minute), _second(second), _microsecond(microsecond) {/* empty */}
 
-   /** Returns the year value (e.g. 2005) */
+   /** Returns the year value (eg 2005) */
    int GetYear() const {return _year;}
 
    /** Returns the month value (January=0, February=1, March=2, ..., December=11). */
@@ -460,7 +460,7 @@ public:
    /** Returns the microsecond value (which ranges between 0 and 999999, inclusive). */
    int GetMicrosecond() const {return _microsecond;}
 
-   /** Sets the year value (e.g. 2005)
+   /** Sets the year value (eg 2005)
      * @param year new year value A.D. (in full four-digit form)
      */
    void SetYear(int year) {_year = year;}
@@ -517,23 +517,23 @@ public:
    bool operator != (const HumanReadableTimeValues & rhs) const {return !(*this==rhs);}
 
    /** This method will expand the following tokens in the specified String out to the following values:
-     * %Y -> Current year (e.g. "2005")
-     * %M -> Current month (e.g. "01" for January, up to "12" for December)
-     * %Q -> Current month as a string (e.g. "January", "February", "March", etc)
-     * %D -> Current day of the month (e.g. "01" through "31")
-     * %d -> Current day of the month (e.g. "01" through "31") (synonym for %D)
-     * %W -> Current day of the week (e.g. "1" through "7")
-     * %w -> Current day of the week (e.g. "1" through "7") (synonym for %W)
-     * %q -> Current day of the week as a string (e.g. "Sunday", "Monday", "Tuesday", etc)
-     * %h -> Current hour (military style:  e.g. "00" through "23")
-     * %m -> Current minute (e.g. "00" through "59")
-     * %s -> Current second (e.g. "00" through "59")
-     * %x -> Current microsecond (e.g. "000000" through "999999", inclusive)
+     * %Y -> Current year (eg "2005")
+     * %M -> Current month (eg "01" for January, up to "12" for December)
+     * %Q -> Current month as a string (eg "January", "February", "March", etc)
+     * %D -> Current day of the month (eg "01" through "31")
+     * %d -> Current day of the month (eg "01" through "31") (synonym for %D)
+     * %W -> Current day of the week (eg "1" through "7")
+     * %w -> Current day of the week (eg "1" through "7") (synonym for %W)
+     * %q -> Current day of the week as a string (eg "Sunday", "Monday", "Tuesday", etc)
+     * %h -> Current hour (military style:  eg "00" through "23")
+     * %m -> Current minute (eg "00" through "59")
+     * %s -> Current second (eg "00" through "59")
+     * %x -> Current microsecond (eg "000000" through "999999", inclusive)
      * %p -> Process ID of the current process
      * %r -> A random number between 0 and (2^64-1) (for spicing up the uniqueness of a filename)
-     * %T -> A human-readable time/date stamp, for convenience (e.g. "January 01 2005 23:59:59")
-     * %t -> A numeric time/date stamp, for convenience (e.g. "2005/01/01 15:23:59")
-     * %f -> A filename-friendly numeric time/date stamp, for convenience (e.g. "2005-01-01_15h23m59")
+     * %T -> A human-readable time/date stamp, for convenience (eg "January 01 2005 23:59:59")
+     * %t -> A numeric time/date stamp, for convenience (eg "2005/01/01 15:23:59")
+     * %f -> A filename-friendly numeric time/date stamp, for convenience (eg "2005-01-01_15h23m59")
      * %% -> A single percent sign.
      * @param s The string to expand the tokens of
      * @returns The same string, except with any and all of the above tokens expanded as described.
@@ -561,7 +561,7 @@ enum {
 };
 
 /** Given a uint64 representing a time in microseconds since 1970,
-  * (e.g. as returned by GetCurrentTime64()), returns the same value
+  * (eg as returned by GetCurrentTime64()), returns the same value
   * as a set of more human-friendly units.
   *
   * @param timeUS a time in microseconds since 1970.  Note that the interpretation of this value depends on
@@ -591,7 +591,7 @@ status_t GetHumanReadableTimeValues(uint64 timeUS, HumanReadableTimeValues & ret
 status_t GetTimeStampFromHumanReadableTimeValues(const HumanReadableTimeValues & values, uint64 & retTimeUS, uint32 timeType = MUSCLE_TIMEZONE_UTC);
 
 /** Given a uint64 representing a time in microseconds since 1970,
-  * (e.g. as returned by GetCurrentTime64()), returns an equivalent
+  * (eg as returned by GetCurrentTime64()), returns an equivalent
   * human-readable time/date string.  The format of the returned
   * time string is "YYYY/MM/DD HH:MM:SS".
   * @param timeUS a time in microseconds since 1970.  Note that the interpretation of this value depends on
@@ -633,7 +633,7 @@ uint64 ParseHumanReadableTimeString(const String & str, uint32 timeType = MUSCLE
 uint64 ParseHumanReadableTimeIntervalString(const String & str);
 
 /** Given a time interval specified in microseconds, returns a human-readable
-  * string representing that time, e.g. "3 weeks, 2 days, 1 hour, 25 minutes, 2 seconds, 350 microseconds"
+  * string representing that time, eg "3 weeks, 2 days, 1 hour, 25 minutes, 2 seconds, 350 microseconds"
   * @param micros The number of microseconds to describe
   * @param maxClauses The maximum number of clauses to allow in the returned string.  For example, passing this in
   *                   as 1 might return "3 weeks", while passing this in as two might return "3 weeks, 2 days".
@@ -653,7 +653,7 @@ String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUS
 
 /** Works the same as GetHumanReadableTimeIntervalString() except it interprets the passed-in microseconds value
   * as a signed integer rather than unsigned, and thus will yield a useful result for negative values
-  * (e.g. "-3 seconds" rather than "54893 years").
+  * (eg "-3 seconds" rather than "54893 years").
   * @param micros The number of microseconds to describe
   * @param maxClauses The maximum number of clauses to allow in the returned string.  For example, passing this in
   *                   as 1 might return "3 weeks", while passing this in as two might return "3 weeks, 2 days".

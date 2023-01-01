@@ -25,7 +25,7 @@ public:
    /** Called by the DetectNetworkConfigChanges session's default NetworkInterfacesChanged()
      * method after the set of local network interfaces has changed.
      * @param optInterfaceNames optional table containing the names of the interfaces that
-     *                          have changed (e.g. "en0", "en1", etc).  If this table is empty,
+     *                          have changed (eg "en0", "en1", etc).  If this table is empty,
      *                          that indicates that any or all of the network interfaces may have
      *                          changed.  Note that changed-interface enumeration is currently only
      *                          implemented under MacOS/X and Windows, so under other operating systems this

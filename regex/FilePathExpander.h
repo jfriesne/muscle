@@ -8,7 +8,7 @@
 
 namespace muscle {
 
-/** Given a file path (e.g. "*.wav" or "/tmp/myfiles/foo_*.txt"), traverses the local filesystem
+/** Given a file path (eg "*.wav" or "/tmp/myfiles/foo_*.txt"), traverses the local filesystem
   * and adds to (outputPaths) the expanded path of any matching files or folders that were discovered.
   * @param path A potentially wildcarded file path (absolute or relative)
   * @param outputPaths On successful return, this will contain all matching files and folders discovered.

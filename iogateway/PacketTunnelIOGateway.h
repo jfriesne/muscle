@@ -86,7 +86,7 @@ protected:
      */
    virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes);
 
-   /** Implemented to send outgoing Messages in a packet-friendly way... i.e. by chopping up
+   /** Implemented to send outgoing Messages in a packet-friendly way... ie by chopping up
      * too-large Messages, and batching together too-small Messages.
      * @copydoc AbstractMessageIOGateway::DoOutputImplementation(uint32)
      */

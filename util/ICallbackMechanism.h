@@ -12,8 +12,8 @@ class ICallbackSubscriber;
 
 /** This class defines the interface for an object that provides thread-safe callback
   * injection into a thread.  The use case is:  an ICallbackSubscriber in thread A
-  * (e.g. a background networking thread) wants some functions to be called by thread B
-  * (e.g. the GUI thread).
+  * (eg a background networking thread) wants some functions to be called by thread B
+  * (eg the GUI thread).
   *
   * To make that happen, the ICallbackSubscriber calls its RequestCallbackInDispatchThread()
   * method, which in turn calls the SignalDispatchThread() method of the ICallbackMechanism
@@ -33,7 +33,7 @@ public:
    virtual ~ICallbackMechanism();
 
    /** The ICallbackMechanism implementation should call this method from the dispatch-thread
-     * (i.e. typically the main/GUI thread) in response to receiving the dispatch-signal that
+     * (ie typically the main/GUI thread) in response to receiving the dispatch-signal that
      * was sent earlier via SignalDispatchThread().
      * This method will call DispatchCallbacks() on any registered ICallbackSubscriber objects.
      */

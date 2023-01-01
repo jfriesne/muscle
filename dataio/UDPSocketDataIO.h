@@ -42,7 +42,7 @@ public:
    virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
 
    /** This can be called to change the maximum packet size value returned
-     * by GetMaximumPacketSize().  You might call this e.g. if you are on a network
+     * by GetMaximumPacketSize().  You might call this eg if you are on a network
      * that supports Jumbo UDP packets and want to take advantage of that.
      * @param maxPacketSize the new maximum packet size, in bytes
      */
@@ -63,7 +63,7 @@ public:
      */
    virtual status_t SetPacketSendDestination(const IPAddressAndPort & dest) {(void) _sendTo.EnsureSize(1, true); _sendTo.Head() = dest; return B_NO_ERROR;}
 
-   /** Returns the IP address and port that Write() will send to, e.g. as was
+   /** Returns the IP address and port that Write() will send to, eg as was
      * previously specified in SetPacketSendDestination().
      */
    virtual const IPAddressAndPort & GetPacketSendDestination() const {return _sendTo.HasItems() ? _sendTo.Head() : _sendTo.GetDefaultItem();}

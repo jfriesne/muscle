@@ -392,7 +392,7 @@ public:
      * thread is running or not.  If the internal thread is running, the session will be added asynchronously
      * to the server.  If not, the call is passed immediately on through to ReflectServer::AddNewConnectSession().
      * @param master the IMessageTransceiverMaster to bind this handler to.
-     * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (e.g. "blah.com" or "132.239.50.8")
+     * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (eg "blah.com" or "132.239.50.8")
      * @param port Port to connect to at that IP address.
      * @param optSessionRef optional Reference for a session to add.  If it's a NULL reference, a default ThreadWorkerSession
      *                      will be created and used.  If you do specify session here, you will want to use either a
@@ -419,7 +419,7 @@ public:
 
    /** Convenience method -- calls the above method with a NULL session reference.
      * @param master the IMessageTransceiverMaster to bind this handler to.
-     * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (e.g. "blah.com" or "132.239.50.8")
+     * @param targetHostName ASCII hostname or ASCII IP address to connect to.  (eg "blah.com" or "132.239.50.8")
      * @param port Port to connect to at that IP address.
      * @param expandLocalhost Passed to GetHostByName().  See GetHostByName() documentation for details.  Defaults to false.
      * @param autoReconnectDelay If specified, this is the number of microseconds after the
@@ -568,7 +568,7 @@ public slots:
    virtual void Reset(bool emitEndMessageBatchIfNecessary = true);
 
 protected:
-   /** Called when we need a worker session inside one of the SetupAs*() methods. (i.e. if the
+   /** Called when we need a worker session inside one of the SetupAs*() methods. (ie if the
      * user didn't provide a worker session manually).  Default implementation simply calls
      * thread.CreateDefaultWorkerSession(), but the call has been broken out into a separate
      * virtual method so that subclasses can override if they need to.

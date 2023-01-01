@@ -53,7 +53,7 @@ class Point;
 class Rect;
 
 #ifndef SMALL_MUSCLE_STRING_LENGTH
-/** Defines the number of ASCII characters that may be held "inline" in a String object, without requiring a separate heap allocation.  If not specified explicitly via a compiler argument (e.g. -DSMALL_MUSCLE_STRING_LENGTH=15), it defaults to 7, and 7 ASCII-chars plus one NUL byte exactly match the space required for a 64-bit pointer, and thus can be used with no space-penalty.  Beware that setting this to a value greater than 7 will cause sizeof(String) to increase.  */
+/** Defines the number of ASCII characters that may be held "inline" in a String object, without requiring a separate heap allocation.  If not specified explicitly via a compiler argument (eg -DSMALL_MUSCLE_STRING_LENGTH=15), it defaults to 7, and 7 ASCII-chars plus one NUL byte exactly match the space required for a 64-bit pointer, and thus can be used with no space-penalty.  Beware that setting this to a value greater than 7 will cause sizeof(String) to increase.  */
 # define SMALL_MUSCLE_STRING_LENGTH 7
 #endif
 
@@ -110,9 +110,9 @@ const char * Strcasestr(const char * haystack, const char * needle);
 
 /** Extended wrapper for strcasestr(), which isn't always named the same on all OS's
   * @param haystack The string to search in
-  * @param haystackLen The number of text-bytes that (haystack) is pointing to (i.e. strlen(haystack))
+  * @param haystackLen The number of text-bytes that (haystack) is pointing to (ie strlen(haystack))
   * @param needle The string to search for
-  * @param needleLen The number of text-bytes that (needle) is pointing to (i.e. strlen(needle))
+  * @param needleLen The number of text-bytes that (needle) is pointing to (ie strlen(needle))
   * @param searchBackwards If set true, the last instance of (needle) in the (haystack) will be returned rather than the first.
   * @returns a pointer to a (needle), if one exists inside (haystack), or NULL if it doesn't.
   * @note that the search is case-insensitive.
@@ -131,7 +131,7 @@ public:
     *  @param str If non-NULL, the initial value for this String.
     *  @param maxLen The maximum number of characters to place into
     *                this String (not including the NUL terminator byte).
-    *                Default is unlimited (i.e. scan the entire string no matter how long it is)
+    *                Default is unlimited (ie scan the entire string no matter how long it is)
     */
    String(const char * str = NULL, uint32 maxLen = MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
    {
@@ -438,7 +438,7 @@ public:
 
    /** MACOS/X-only convenience method:  Returns a CFStringRef containing the same string that we have.
      * It becomes the caller's responsibility to CFRelease() the CFStringRef when he is done with it.
-     * May return a NULL CFStringRef on failure (e.g. out of memory)
+     * May return a NULL CFStringRef on failure (eg out of memory)
      */
    CFStringRef ToCFStringRef() const;
 #endif
@@ -491,7 +491,7 @@ public:
 
    /** Returns the first index of (ch) in this string starting at or after (fromIndex), or -1 if not found.
      * @param ch A character to look for in this string.
-     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
    int IndexOf(char ch, uint32 fromIndex = 0) const
    {
@@ -501,25 +501,25 @@ public:
 
    /** Returns true iff (ch) is contained in this string.
      * @param ch A character to look for in this string.
-     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
    bool Contains(char ch, uint32 fromIndex = 0) const {return (IndexOf(ch, fromIndex) >= 0);}
 
    /** Returns true iff substring (str) is in this string starting at or after (fromIndex).
      * @param str A String to look for in this string.
-     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
    bool Contains(const String & str, uint32 fromIndex = 0) const {return (IndexOf(str, fromIndex) >=0);}
 
    /** Returns true iff the substring (str) is in this string starting at or after (fromIndex).
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
-     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
    bool Contains(const char * str, uint32 fromIndex = 0) const {return (IndexOf(str, fromIndex) >= 0);}
 
    /** Returns the first index of substring (str) in this string starting at or after (fromIndex), or -1 if not found.
      * @param str A String to look for in this string.
-     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
    int IndexOf(const String & str, uint32 fromIndex = 0) const
    {
@@ -529,7 +529,7 @@ public:
 
    /** Returns the first index of substring (str) in this string starting at or after (fromIndex), or -1 if not found.
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
-     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
    int IndexOf(const char * str, uint32 fromIndex = 0) const
    {
@@ -539,7 +539,7 @@ public:
 
    /** Returns the last index of (ch) in this string starting at or after (fromIndex), or -1 if not found.
      * @param ch A character to look for in this string.
-     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
    int LastIndexOf(char ch, uint32 fromIndex = 0) const
    {
@@ -569,13 +569,13 @@ public:
 
    /** Returns the last index of substring (str) in this string starting at or after (fromIndex), or -1 if not found.
      * @param str A String to look for in this string.
-     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
    int LastIndexOf(const String & str, uint32 fromIndex) const;
 
    /** Returns the last index of substring (str) in this string starting at or after (fromIndex), or -1 if not found.
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
-     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (i.e. start from the first character)
+     * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
    int LastIndexOf(const char * str, uint32 fromIndex) const;
 
@@ -590,19 +590,19 @@ public:
 
    /** Returns the number of instances of (c) in this string.
      * @param ch The character to count the number of instances of in this String.
-     * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (i.e. to the start of the String)
+     * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (ie to the start of the String)
      */
    uint32 GetNumInstancesOf(char ch, uint32 fromIndex=0) const;
 
    /** Returns the number of instances of (substring) in this string.
      * @param substring String to count the number of instances of in this String.
-     * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (i.e. to the start of the String)
+     * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (ie to the start of the String)
      */
    uint32 GetNumInstancesOf(const String & substring, uint32 fromIndex=0) const;
 
    /** Returns the number of instances of (substring) in this string.
      * @param substring C string to count the number of instances of in this String.
-     * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (i.e. to the start of the String)
+     * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (ie to the start of the String)
      */
    uint32 GetNumInstancesOf(const char * substring, uint32 fromIndex=0) const;
 
@@ -611,7 +611,7 @@ public:
      * @param maxResult The maximum score to return.  (Setting a maximum score to return can
      *                  speed up execution time, as it allows this method to return early
      *                  as soon as the maximum score has been reached).  Defaults to MUSCLE_NO_LIMIT.
-     * @returns The Levenshtein distance -- i.e. the number of single-character insertions, deletions,
+     * @returns The Levenshtein distance -- ie the number of single-character insertions, deletions,
      *          or character replacements it would take to convert one string into the other.
      */
    uint32 GetDistanceTo(const String & otherString, uint32 maxResult = MUSCLE_NO_LIMIT) const;
@@ -621,7 +621,7 @@ public:
      * @param maxResult The maximum score to return.  (Setting a maximum score to return can
      *                  speed up execution time, as it allows this method to return early
      *                  as soon as the maximum score has been reached).  Defaults to MUSCLE_NO_LIMIT.
-     * @returns The Levenshtein distance -- i.e. the number of single-character insertions, deletions,
+     * @returns The Levenshtein distance -- ie the number of single-character insertions, deletions,
      *          or character replacements it would take to convert one string into the other.
      */
    uint32 GetDistanceTo(const char * otherString, uint32 maxResult = MUSCLE_NO_LIMIT) const;
@@ -989,7 +989,7 @@ public:
      * @param escapeChar the character to use as the escape character.  Defaults to a backslash ('\\').
      * @returns the escaped String.
      * @note this method is designed for use in combination with the escapeChar feature of the StringTokenizer
-     *       class; i.e. you'd use this method to add escape-characters to literals in a String that you plan
+     *       class; ie you'd use this method to add escape-characters to literals in a String that you plan
      *       to parse later on using a StringTokenizer to which you have passed the same (escapeChar) argument.
      */
    String WithCharsEscaped(const char * charsToEscape, char escapeChar = '\\') const;
@@ -999,7 +999,7 @@ public:
      * @param escapeChar the character to use as the escape character.  Defaults to a backslash ('\\').
      * @returns the escaped String.
      * @note this method is designed for use in combination with the escapeChar feature of the StringTokenizer
-     *       class; i.e. you'd use this method to add escape-characters to literals in a String that you plan
+     *       class; ie you'd use this method to add escape-characters to literals in a String that you plan
      *       to parse later on using a StringTokenizer to which you have passed the same (escapeChar) argument.
      */
    String WithCharsEscaped(char charToEscape, char escapeChar = '\\') const
@@ -1008,7 +1008,7 @@ public:
       return WithCharsEscaped(s, escapeChar);
    }
 
-   /** Reverses the order of all characters in the string, so that e.g. "string" becomes "gnirts" */
+   /** Reverses the order of all characters in the string, so that eg "string" becomes "gnirts" */
    void Reverse();
 
    /** Part of the Flattenable pseudo-interface.
@@ -1236,14 +1236,14 @@ public:
    /** Returns a String like this one, but with any characters (c) removed from the end.
      * @param c The char we want to be sure is not at the end of the returned String.
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
-     *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all trailing (c) chars.
+     *                    Defaults to MUSCLE_NO_LIMIT, ie remove all trailing (c) chars.
      */
    String WithoutSuffix(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any instances of (str) removed from the end.
      * @param str The substring we want to be sure is not at the end of the returned String.
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
-     *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all trailing (str) substrings.
+     *                    Defaults to MUSCLE_NO_LIMIT, ie remove all trailing (str) substrings.
      * @note if (str) is empty, this method will return (*this).
      */
    String WithoutSuffix(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
@@ -1251,14 +1251,14 @@ public:
    /** Returns a String like this one, but with any characters (c) removed from the beginning.
      * @param c The char we want to be sure is not at the beginning of the returned String.
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
-     *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all starting (c) chars.
+     *                    Defaults to MUSCLE_NO_LIMIT, ie remove all starting (c) chars.
      */
    String WithoutPrefix(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any instances of (str) removed from the beginning.
      * @param str The substring we want to be sure is not at the beginning of the returned String.
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
-     *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all starting (str) substrings.
+     *                    Defaults to MUSCLE_NO_LIMIT, ie remove all starting (str) substrings.
      * @note if (str) is empty, this method will return (*this).
      */
    String WithoutPrefix(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
@@ -1266,14 +1266,14 @@ public:
    /** Returns a String like this one, but with any characters (c) removed from the end.
      * @param c The char we want to be sure is not at the end of the returned String (case-insensitive).
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
-     *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all trailing (c) chars.
+     *                    Defaults to MUSCLE_NO_LIMIT, ie remove all trailing (c) chars.
      */
    String WithoutSuffixIgnoreCase(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any instances of (str) removed from the end.
      * @param str The substring we want to be sure is not at the end of the returned String (case-insensitive).
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
-     *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all trailing (str) substrings.
+     *                    Defaults to MUSCLE_NO_LIMIT, ie remove all trailing (str) substrings.
      * @note if (str) is empty, this method will return (*this).
      */
    String WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
@@ -1281,14 +1281,14 @@ public:
    /** Returns a String like this one, but with any characters (c) removed from the beginning.
      * @param c The char we want to be sure is not at the beginning of the returned String (case-insensitive).
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
-     *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all starting (c) chars.
+     *                    Defaults to MUSCLE_NO_LIMIT, ie remove all starting (c) chars.
      */
    String WithoutPrefixIgnoreCase(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any instances of (str) removed from the beginning.
      * @param str The substring we want to be sure is not at the beginning of the returned String (case-insensitive).
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
-     *                    Defaults to MUSCLE_NO_LIMIT, i.e. remove all starting (str) substrings.
+     *                    Defaults to MUSCLE_NO_LIMIT, ie remove all starting (str) substrings.
      * @note if (str) is empty, this method will return (*this).
      */
    String WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
@@ -1297,14 +1297,14 @@ public:
      * For example, if you called this method on the String "Joe-54", this method would return "Joe".
      * @param optRetRemovedSuffixValue If non-NULL, the numeric suffix that was removed will be returned here.
      *                                 If there was no numeric suffix, zero will be written here.
-     * @note that negative numeric suffixes aren't supported -- i.e. plus or minus is not considered to be part of the numeric-suffix.
+     * @note that negative numeric suffixes aren't supported -- ie plus or minus is not considered to be part of the numeric-suffix.
      */
    String WithoutNumericSuffix(uint32 * optRetRemovedSuffixValue = NULL) const;
 
    /** If this string ends in a numeric value, returns that value; otherwise returns (defaultValue).
      *  For example, ParseNumericSuffix("Joe-54") would return 54.
      *  @param defaultValue the value to return if no numeric suffix is found.  Defaults to zero.
-     *  @note that negative numeric suffixes aren't supported -- i.e. plus or minus is not considered to be part of the numeric-suffix.
+     *  @note that negative numeric suffixes aren't supported -- ie plus or minus is not considered to be part of the numeric-suffix.
      */
    uint32 ParseNumericSuffix(uint32 defaultValue = 0) const;
 

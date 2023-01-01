@@ -113,7 +113,7 @@ public:
 
    /** Attempts to remove the given child from our set of child PulseNodes.
     *  @param child The child to remove
-    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (i.e. child wasn't in our current-set of pulse-children)
+    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (ie child wasn't in our current-set of pulse-children)
     */
    status_t RemovePulseChild(PulseNode * child);
 

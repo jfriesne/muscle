@@ -56,7 +56,7 @@ public:
    static MUSCLE_CONSTEXPR bool IsBitIndexValid(uint32 whichBit) {return (whichBit < NumBits);}
 
    /** Returns the state of the specified bit
-     * @param whichBit the index of the bit to query (e.g. 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
+     * @param whichBit the index of the bit to query (eg 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      * @returns true iff the bit was set
      */
    bool IsBitSet(uint32 whichBit) const
@@ -66,7 +66,7 @@ public:
    }
 
    /** Sets the state of the specified bit to 1.
-     * @param whichBit the index of the bit to set to 1 (e.g. 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
+     * @param whichBit the index of the bit to set to 1 (eg 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      */
    void SetBit(uint32 whichBit)
    {
@@ -75,7 +75,7 @@ public:
    }
 
    /** Sets the state of the specified bit to the specified boolean value.
-     * @param whichBit the index of the bit to set (e.g. 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
+     * @param whichBit the index of the bit to set (eg 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      * @param newValue true to set the bit, or false to clear it
      */
    void SetBit(uint32 whichBit, bool newValue)
@@ -85,7 +85,7 @@ public:
    }
 
    /** Clears the state of the specified bit
-     * @param whichBit the index of the bit to set (e.g. 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
+     * @param whichBit the index of the bit to set (eg 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      */
    void ClearBit(uint32 whichBit)
    {
@@ -94,7 +94,7 @@ public:
    }
 
    /** Toggles the state of the specified bit from 1 to 0, or vice-versa
-     * @param whichBit the index of the bit to toggle (e.g. 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
+     * @param whichBit the index of the bit to toggle (eg 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      */
    void ToggleBit(uint32 whichBit)
    {
@@ -215,7 +215,7 @@ public:
    /** @copydoc DoxyTemplate::operator>=(const DoxyTemplate &) const */
    bool operator >=(const BitChord &rhs) const {return !(*this < rhs);}
 
-   /** Returns a BitChord that is the bitwise-inverse of this BitChord (i.e. all bits flipped). */
+   /** Returns a BitChord that is the bitwise-inverse of this BitChord (ie all bits flipped). */
    BitChord operator ~() const
    {
       BitChord ret; for (uint32 i=0; i<NUM_WORDS; i++) ret._words[i] = ~_words[i];
@@ -262,21 +262,21 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
    /** Equivalent to calling SetBit() multiple times; once per supplied argument.
-     * e.g. calling SetBits(a,b,c) is equivalent to calling SetBit(a);SetBit(b);SetBit(c).
+     * eg calling SetBits(a,b,c) is equivalent to calling SetBit(a);SetBit(b);SetBit(c).
      * @param bits a list of bit-indices indicating which bit(s) to set
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
    template<typename ...Bits> void SetBits(Bits... bits) {const int arr[] {bits...}; for (auto bit : arr) SetBit(bit);}
 
    /** Equivalent to calling ClearBit() multiple times; once per supplied argument.
-     * e.g. calling ClearBits(a,b,c) is equivalent to calling ClearBit(a);ClearBit(b);ClearBit(c).
+     * eg calling ClearBits(a,b,c) is equivalent to calling ClearBit(a);ClearBit(b);ClearBit(c).
      * @param bits a list of bit-indices indicating which bit(s) to unset
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
    template<typename ...Bits> void ClearBits(Bits... bits) {const int arr[] {bits...}; for (auto bit : arr) ClearBit(bit);}
 
    /** Equivalent to calling ToggleBit() multiple times; once per supplied argument.
-     * e.g. calling ToggleBits(a,b,c) is equivalent to calling ToggleBit(a);ToggleBit(b);ToggleBit(c).
+     * eg calling ToggleBits(a,b,c) is equivalent to calling ToggleBit(a);ToggleBit(b);ToggleBit(c).
      * @param bits a list of bit-indices indicating which bit(s) to toggle
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
@@ -822,7 +822,7 @@ template<uint32 NumBits, class TagClass> const BitChord<NumBits,TagClass> operat
 template<uint32 NumBits, class TagClass> const BitChord<NumBits,TagClass> operator ^ (const BitChord<NumBits,TagClass> & lhs, const BitChord<NumBits,TagClass> & rhs) {BitChord<NumBits,TagClass> ret(lhs); ret ^= rhs; return ret;}
 
 /** This macros declares a unique BitChord-type with a specified number of bits.
-  * @param typeName the name of the new type e.g. (MySpecialFlags)
+  * @param typeName the name of the new type eg (MySpecialFlags)
   * @param numBitsInType the number of bits a BitChord of this type will represent
   * @note Example usage:  enum {OPTION_A=0, OPTION_B, OPTION_C, NUM_OPTIONS}; DECLARE_BITCHORD_FLAGS_TYPE(MyOptionFlags, NUM_OPTIONS);
   */

@@ -10,7 +10,7 @@ namespace muscle {
 
 /**
  * This class can be used to "wrap" a streaming I/O object (for example a TCPSocketDataIO) in order to make
- * it appear like a packet-based I/O object (e.g. a UDPSocketDataIO) to the calling code.
+ * it appear like a packet-based I/O object (eg a UDPSocketDataIO) to the calling code.
  *
  * It does this by inserting message-length fields into the outgoing byte stream, and parsing
  * message-length fields from the incoming byte stream, so that data will be returned in Read()

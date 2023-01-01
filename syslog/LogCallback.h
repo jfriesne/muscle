@@ -110,9 +110,10 @@ private:
 };
 
 /** Callback object that can be added with PutLogCallback()
- *  Whenever a log message is generated, all added LogCallback
- *  objects will have their Log() methods called.  All log callbacks
- *  are synchronized via a global lock, hence they will be thread safe.
+ *  Whenever LogPlain() or LogTime()  are called, all added LogCallback
+ *  objects (that are interested in log messages of that severity)
+ *  will have their Log() callback-methods called.  All calls to Log()
+ *  are synchronized via a process-global Mutex, so they will be thread-safe.
  */
 class LogCallback : public RefCountable
 {
@@ -134,7 +135,7 @@ public:
    virtual void Log(const LogCallbackArgs & a) = 0;
 
    /** Callback method.  When this method is called, the callback should flush any
-     * held buffers out.  (i.e. call fflush() or whatever)
+     * held buffers out.  (ie call fflush() or whatever)
      */
    virtual void Flush() = 0;
 
@@ -249,7 +250,7 @@ DECLARE_REFTYPES(DefaultConsoleLogger);
 
 /** This class is used to send log information to a file, rotate log files, etc.  An object of this class
   * is instantiated and used internally by MUSCLE, so typically you don't need to instantiate one yourself,
-  * but the class is exposed here anyway in case it comes in useful for other reasons (e.g. for creating and
+  * but the class is exposed here anyway in case it comes in useful for other reasons (eg for creating and
   * rotating a separate set of log files in an additional directory)
   */
 class DefaultFileLogger : public LogCallback
@@ -276,7 +277,7 @@ public:
      */
    uint32 AddPreExistingLogFiles(const String & filePattern);
 
-   /** Returns the name of the log file we will output to.  Default is an empty string (i.e. file logging disabled) */
+   /** Returns the name of the log file we will output to.  Default is an empty string (ie file logging disabled) */
    const String & GetFileLogName() const {return _prototypeLogFileName;}
 
    /** Returns the maximum size of the log file we will output to.  When the file reaches this size we'll create another.  Default is MUSCLE_NO_LIMIT (aka no maximum size). */

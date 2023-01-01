@@ -27,7 +27,7 @@ extern void UpdateAllocationStackTrace(bool isAllocation, String * & s);  // imp
    typedef muscle::DummyRef<RefCountableClassName>      Dummy##RefCountableClassName##Ref; \
    typedef muscle::DummyConstRef<RefCountableClassName> DummyConst##RefCountableClassName##Ref
 
-/** This class represents objects that can be reference-counted using the Ref class.
+/** This class represents an object that can be reference-counted using a Ref or ConstRef.
   * Note that any object that can be reference-counted can also be cached and recycled via an ObjectPool.
   */
 class RefCountable
@@ -118,11 +118,10 @@ template <class Item> class DummyConstRef; // forward reference
 DECLARE_REFTYPES(RefCountable);
 
 /**
- *  This is a ref-count token object that works with any instantiation
- *  type that is a subclass of RefCountable.  The RefCountable object
- *  that this ConstRef item holds is considered read-only; if you want
- *  it to be modfiable, you should use the Ref class instead.
- * @tparam Item the type of object that this ConstRef will reference.
+ *  This class manages the lifetime of an object that derives from RefCountable.
+ *  A ConstRef provides const/read-only access to the object it references.
+ *  If you want read/write access to the referenced object, you should use a Ref instead.
+ *  @tparam Item the type of object that this ConstRef will reference.
  */
 template <class Item> class ConstRef
 {
@@ -149,7 +148,7 @@ public:
     */
    ConstRef(const ConstRef & rhs) : _item(NULL, true) {*this = rhs;}
 
-   /** This constructor is useful for automatic upcasting (e.g. creating an ConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
+   /** This constructor is useful for automatic upcasting (eg creating an ConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
      * @param refItem A Ref or ConstRef to copy our state from.
      */
    template<typename T> ConstRef(const ConstRef<T> & refItem) : _item(refItem(), refItem.IsRefCounting()) {RefItem();}
@@ -333,10 +332,10 @@ public:
       return ret;
    }
 
-   /** Returns true iff we are pointing to a valid item (i.e. if (GetItemPointer() != NULL)) */
+   /** Returns true iff we are pointing to a valid item (ie if (GetItemPointer() != NULL)) */
    bool IsValid() const {return (this->GetItemPointer() != NULL);}
 
-   /** Returns true iff we are not pointing to a valid item (i.e. if (GetItemPointer() == NULL)) */
+   /** Returns true iff we are not pointing to a valid item (ie if (GetItemPointer() == NULL)) */
    bool IsNull() const {return (this->GetItemPointer() == NULL);}
 
    /** Returns true only if we are certain that no other Refs are pointing
@@ -360,9 +359,9 @@ public:
      * data with other threads.  This method is thread safe -- it may occasionally
      * make a copy that wasn't strictly necessary, but it will never fail to
      * make a copy when making a copy is necessary.
-     * @returns B_NO_ERROR on success (i.e. the object was successfully copied,
+     * @returns B_NO_ERROR on success (ie the object was successfully copied,
      *                     or a copy turned out to be unnecessary), or B_OUT_OF_MEMORY
-     *                     on failure (i.e. out of memory)
+     *                     on failure (ie out of memory)
      */
    status_t EnsureRefIsPrivate()
    {
@@ -433,11 +432,10 @@ private:
    PointerAndBool<const Item> _item;
 };
 
-/** This class is just syntactic sugar for more clearly declaring a
-  * ConstRef that doesn't actually do any reference-counting of the object
-  * that it refers to (e.g. if you need a ConstRef to a stack-based object and
-  * are willing to take responsibility for manually managing object-lifetime issues
-  * yourself).  It will behave similarly to a raw const-pointer
+/** This class is similar to ConstRef, except a DummyConstRef
+  * doesn't manage the lifetime of the object it references.
+  * That is, a DummyConstRef will behave similarly to a raw const-pointer
+  * and never increment or decrement the referenced object's reference count.
   * @tparam Item the type of object that this DummyConstRef should point to.
   */
 template <class Item> class DummyConstRef : public ConstRef<Item>
@@ -456,14 +454,13 @@ public:
      */
    explicit DummyConstRef(const Item * item) : ConstRef<Item>(item, false) {/* empty */}
 
-   /** This constructor is useful for automatic upcasting (e.g. creating a
+   /** This constructor is useful for automatic upcasting (eg creating a
      * DummyConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
      * @param refItem A Ref to copy our state from.
      * @note this constructor will use the state of (refItem)'s IsRefCounting() flag verbatim, our Dummy status notwithstanding.
      */
    template<typename T> DummyConstRef(const ConstRef<T> & refItem) : ConstRef<Item>(refItem(), refItem.IsRefCounting()) { /* empty */}
 };
-
 
 /** When we compare references, we really want to be comparing what those references point to */
 template <typename ItemType> class CompareFunctor<ConstRef<ItemType> >
@@ -478,11 +475,10 @@ public:
 };
 
 /**
- *  This is a ref-count token object that works with any instantiation
- *  type that is a subclass of RefCountable.  The RefCountable object
- *  that this ConstRef item holds is considered modifiable; if you want
- *  it to be read-only, you should use the ConstRef class instead.
- *  @tparam Item the type of object that this ConstRef should reference.
+ *  This class manages the lifetime of an object that derives from RefCountable.
+ *  The RefCountable object that the Ref references is considered modifiable;
+ *  If you want to limit yourself to const/read-only access, you should use a ConstRef instead.
+ *  @tparam Item the type of object that this Ref should reference.
  */
 template <class Item> class Ref : public ConstRef<Item>
 {
@@ -506,7 +502,7 @@ public:
     */
    Ref(const Ref & rhs) : ConstRef<Item>(rhs) {/* empty */}
 
-   /** This constructor is useful for automatic upcasting (e.g. creating an AbstractReflectSessionRef from a StorageReflectSessionRef)
+   /** This constructor is useful for automatic upcasting (eg creating an AbstractReflectSessionRef from a StorageReflectSessionRef)
      * @param refItem A Ref to copy our state from.
      */
    template<typename T> Ref(const Ref<T> & refItem) : ConstRef<Item>(refItem(), refItem.IsRefCounting()) {/* empty */}
@@ -547,11 +543,10 @@ private:
    Ref(Item * item, bool doRefCount) : ConstRef<Item>(item, doRefCount) {/* empty */}
 };
 
-/** This class is just syntactic sugar for more clearly declaring a
-  * Ref that doesn't actually do any reference-counting of the object
-  * that it refers to (e.g. if you need a Ref to a stack-based object and
-  * are willing to take responsibility for manually managing object-lifetime issues
-  * yourself).  It will behave similarly to a raw pointer.
+/** This class is similar to Ref, except a DummyRef
+  * doesn't manage the lifetime of the object it references.
+  * That is, a DummyRef will behave similarly to a raw pointer
+  * and never increment or decrement the referenced object's reference count.
   * @tparam Item the type of object that this DummyRef should point to.
   */
 template <class Item> class DummyRef : public Ref<Item>
@@ -570,7 +565,7 @@ public:
      */
    explicit DummyRef(Item * item) : Ref<Item>(item, false) {/* empty */}
 
-   /** This constructor is useful for automatic upcasting (e.g. creating a
+   /** This constructor is useful for automatic upcasting (eg creating a
      * DummyAbstractReflectSessionRef from a StorageReflectSessionRef)
      * @param refItem A Ref to copy our state from.
      * @note this constructor will use the state of (refItem)'s IsRefCounting() flag verbatim, our Dummy status notwithstanding.

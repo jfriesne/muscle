@@ -115,13 +115,13 @@ public:
    /** Returns true iff this node contains any child nodes. */
    bool HasChildren() const {return ((_children)&&(_children->HasItems()));}
 
-   /** Returns the ASCII name of this node (e.g. "joe") */
+   /** Returns the ASCII name of this node (eg "joe") */
    const String & GetNodeName() const {return _nodeName;}
 
-   /** Generates and returns the full node path of this node (e.g. "/12.18.240.15/1234/beshare/files/joe").
+   /** Generates and returns the full node path of this node (eg "/12.18.240.15/1234/beshare/files/joe").
      * @param retPath On success, this String will contain this node's absolute path.
      * @param startDepth The depth at which the path should start.  Defaults to zero, meaning the full path.
-     *                   Values greater than zero will return a partial path (e.g. a startDepth of 1 in the
+     *                   Values greater than zero will return a partial path (eg a startDepth of 1 in the
      *                   above example would return "12.18.240.15/1234/beshare/files/joe", and a startDepth
      *                   of 2 would return "1234/beshare/files/joe")
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
@@ -130,7 +130,7 @@ public:
 
    /** A more convenient verseion of the above GetNodePath() implementation.
      * @param startDepth The depth at which the path should start.  Defaults to zero, meaning the full path.
-     *                   Values greater than zero will return a partial path (e.g. a startDepth of 1 in the
+     *                   Values greater than zero will return a partial path (eg a startDepth of 1 in the
      *                   above example would return "12.18.240.15/1234/beshare/files/joe", and a startDepth
      *                   of 2 would return "1234/beshare/files/joe")
      * @returns this node's node path as a String.
@@ -165,7 +165,7 @@ public:
    /** Returns our node's parent, or NULL if this node doesn't have a parent node. */
    DataNode * GetParent() const {return _parent;}
 
-   /** Returns this node's depth in the tree (e.g. zero if we are the root node, 1 if we are its child, etc) */
+   /** Returns this node's depth in the tree (eg zero if we are the root node, 1 if we are its child, etc) */
    uint32 GetDepth() const {return _depth;}
 
    /** Returns us to our virgin, pre-Init() state, by clearing all our children, subscribers, parent, etc.  */
@@ -223,7 +223,7 @@ public:
    bool IsAncestorOf(const DataNode & descendant) const {return descendant.IsDescendantOf(*this);}
 
    /** Convenience method:  Parses (path) as a series of slash-separated
-     * tokens (e.g. "some/node/names/here") which may contain regex chars
+     * tokens (eg "some/node/names/here") which may contain regex chars
      * if you wish.  Returns the first DataNode whose path (relative to this
      * node) matches (path).  Returns NULL if no matching node is found.
      * If the path is empty (""), this function returns (this).
@@ -311,7 +311,7 @@ private:
    Queue<DataNodeRef> * _orderedIndex;  // only used when tracking the ordering of our children (lazy-allocated)
    uint32 _orderedCounter;
    String _nodeName;
-   uint32 _depth;  // number of ancestors our node has (e.g. root's _depth is zero)
+   uint32 _depth;  // number of ancestors our node has (eg root's _depth is zero)
    uint32 _maxChildIDHint;  // keep track of the largest child ID, for easier allocation of non-conflicting future child IDs
 
    ConstDataNodeSubscribersTableRef _subscribers;  // NULL ref means no subscribers

@@ -18,7 +18,7 @@ class GZDataIO : public DataIO
 public:
    /** Constructor
      * @param filePath the path to the gz-compressed file to read or write
-     * @param mode the mode-string to pass to gzopen() (e.g. "wb9" to write with maximum compression)
+     * @param mode the mode-string to pass to gzopen() (eg "wb9" to write with maximum compression)
      */
    GZDataIO(const char * filePath, const char * mode);
 

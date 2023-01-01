@@ -9,10 +9,10 @@ namespace muscle {
 
 /**
  * This gateway "wraps" a caller-supplied AbstractMessageIOGateway
- * and modifies the gateway's behavior so that it can be used correctly.
- * with an SSLSocketDataIO.  This special logic is necessary because
- * non-blocking SSLSocketDataIOs have their own unique requirements for
- * when SSL_read() and SSL_write() are called that do not necessarily
+ * and modifies the gateway's behavior so that it can be used correctly
+ * in conjunction with an SSLSocketDataIO.  This special logic is necessary
+ * because non-blocking SSLSocketDataIOs have their own unique requirements
+ * for when SSL_read() and SSL_write() are called that do not necessarily
  * coincide with what a normal gateway wants to do.
  *
  * So if you are using an SSLSocketDataIO object for non-blocking I/O,

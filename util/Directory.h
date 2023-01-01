@@ -71,7 +71,7 @@ public:
    /** Convenience method.  Given a path to a file, this method will create any missing directories
      * along that path, so that the file can be created.
      * @param filePath a path to a file, including the filename itself (the filename part will be ignored)
-     * @returns B_NO_ERROR on success (i.e. directory was created, or already exists), or an error code on failure (out of memory or permission denied?)
+     * @returns B_NO_ERROR on success (ie directory was created, or already exists), or an error code on failure (out of memory or permission denied?)
      */
    static status_t MakeDirectoryForFile(const char * filePath);
 

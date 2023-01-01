@@ -8,7 +8,7 @@
 
 namespace muscle {
 
-// Uncomment this #define to disable object pools (i.e. turn them into
+// Uncomment this #define to disable object pools (ie turn them into
 // simple passthroughs to the new/delete operators).
 // This is helpful if you are trying to track down memory leaks.
 //#define DISABLE_OBJECT_POOLING 1
@@ -188,7 +188,7 @@ public:
       if (obj)
       {
          MASSERT(obj->GetManager()==this, "ObjectPool::ReleaseObject was passed an object that it never allocated!");
-         *obj = GetDefaultObject();  // necessary so that e.g. if (obj) is holding any Refs, it will release them now
+         *obj = GetDefaultObject();  // necessary so that eg if (obj) is holding any Refs, it will release them now
          obj->SetManager(NULL);
 
 #ifdef DISABLE_OBJECT_POOLING
@@ -322,7 +322,7 @@ public:
      * @returns B_NO_ERROR on success, or an error code (probably B_OUT_OF_MEMORY) on failure.
      * @note this method is useful if you want to pre-fill the pool
      *       to avoid later allocations happening at an awkward time
-     *       (e.g. in the context of a real-time thread)
+     *       (eg in the context of a real-time thread)
      */
    status_t Prefill(uint32 desiredPrefilledSize = MUSCLE_NO_LIMIT)
    {

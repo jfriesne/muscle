@@ -7,7 +7,7 @@
 
 namespace muscle {
 
-using namespace muscle_message_imp;
+using namespace muscle_private;
 
 static void DoIndents(uint32 num, String & s) {for (uint32 i=0; i<num; i++) s += ' ';}
 

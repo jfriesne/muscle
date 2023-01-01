@@ -30,7 +30,7 @@
 namespace muscle {
 
 /** This class implements easy-to-use thread-local-storage.  Typically what you would do is
-  * to create a ThreadLocalStorage object at the beginning of program execution (e.g. as a global
+  * to create a ThreadLocalStorage object at the beginning of program execution (eg as a global
   * variable, or at the top of main()).  Then the various threads of your program can call
   * GetThreadLocalObject() on it, and each thread will receive a pointer that is unique to that
   * thread, which it can use without needing to do any serialization.

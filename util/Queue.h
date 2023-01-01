@@ -13,7 +13,7 @@
 namespace muscle {
 
 #ifndef SMALL_QUEUE_SIZE
-/** Specifies the number of items that should be held "inline" inside a Queue object.  Any Queue will be able to hold up to this many items without having to do a separate heap allocation.  Defaults to 3 if not specified otherwise by the compiler (e.g. via -DSMALL_QUEUE_SIZE=5) */
+/** Specifies the number of items that should be held "inline" inside a Queue object.  Any Queue will be able to hold up to this many items without having to do a separate heap allocation.  Defaults to 3 if not specified otherwise by the compiler (eg via -DSMALL_QUEUE_SIZE=5) */
 # define SMALL_QUEUE_SIZE 3
 #endif
 
@@ -161,7 +161,7 @@ public:
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** Available in C++11 only:  Appends the items specified in the initializer
     *  list to this Queue.
-    *  @param list The C++11 initializer list of items (e.g. {1,2,3,4,5} to add.
+    *  @param list The C++11 initializer list of items (eg {1,2,3,4,5} to add.
     *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddTailMulti(const std::initializer_list<ItemType> & list)
@@ -289,9 +289,9 @@ public:
    /** Removes the item at the (index)'th position in the queue.
     *  @param index Which item to remove--can range from zero
     *               (head of the queue) to GetNumItems()-1 (tail of the queue).
-    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (i.e. bad index)
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (ie bad index)
     *  Note that this method is somewhat inefficient for indices that
-    *  aren't at the head or tail of the queue (i.e. O(n) time)
+    *  aren't at the head or tail of the queue (ie O(n) time)
     */
    status_t RemoveItemAt(uint32 index);
 
@@ -299,7 +299,7 @@ public:
     *  @param index Which item to remove--can range from zero
     *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
     *  @param returnItem On success, the removed item is copied into this object.
-    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (i.e. bad index)
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (ie bad index)
     */
    status_t RemoveItemAt(uint32 index, ItemType & returnItem);
 
@@ -313,11 +313,11 @@ public:
     *  @param index Which item to get--can range from zero
     *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
     *  @param returnItem On success, the retrieved item is copied into this object.
-    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (e.g. bad index)
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (eg bad index)
     */
    status_t GetItemAt(uint32 index, ItemType & returnItem) const;
 
-   /** Returns a pointer to an item in the array (i.e. no copying of the item is done).
+   /** Returns a pointer to an item in the array (ie no copying of the item is done).
     *  Included for efficiency; be careful with this: modifying the queue can invalidate
     *  the returned pointer!
     *  @param index Index of the item to return a pointer to.
@@ -355,14 +355,14 @@ public:
     *  @param index Which item to replace--can range from zero
     *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
     *  @param newItem The item to place into the queue at the (index)'th position.
-    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (e.g. bad index)
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (eg bad index)
     */
    QQ_UniversalSinkItemRef status_t ReplaceItemAt(uint32 index, QQ_SinkItemParam newItem);
 
    /** As above, except the specified item is replaced with a default-initialized item.
     *  @param index Which item to replace--can range from zero
     *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
-    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (e.g. bad index)
+    *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (eg bad index)
     */
    status_t ReplaceItemAt(uint32 index) {return ReplaceItemAt(index, GetDefaultItem());}
 
@@ -435,7 +435,7 @@ public:
     */
    uint32 GetNumAllocatedItemSlots() const {return _queueSize;}
 
-   /** Returns the number of "extra" (i.e. currently unoccupied) array slots we currently have allocated.
+   /** Returns the number of "extra" (ie currently unoccupied) array slots we currently have allocated.
      * Attempting to add more than (this many) additional items to this Queue will cause a memory reallocation.
      */
    uint32 GetNumUnusedItemSlots() const {return _queueSize-_itemCount;}
@@ -513,7 +513,7 @@ public:
     *                           in the near future is reduced.  Default value is zero, indicating that
     *                           no extra slots will be allocated.  This argument is ignored if (setNumItems) is true.
     *  @param allowShrink If set to true, the array will be reallocated even if the new array size is smaller than the
-    *                     existing size.  Defaults to false (i.e. only reallocate if the desired size is greater than
+    *                     existing size.  Defaults to false (ie only reallocate if the desired size is greater than
     *                     the existing size).
     *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
@@ -576,7 +576,7 @@ public:
 
    /**
     *  Reverses the ordering of the items in the given subrange.
-    *  (e.g. if the items were A,B,C,D,E, this would change them to E,D,C,B,A)
+    *  (eg if the items were A,B,C,D,E, this would change them to E,D,C,B,A)
     *  @param from Index of the start of the subrange.  Defaults to zero.
     *  @param to Index of the next item after the end of the subrange.  If greater than
     *         the number of items currently in the queue, this value will be clipped
@@ -639,7 +639,7 @@ public:
 
    /**
     *  Sorts the Queue, then iterates through the items and
-    *  removes any duplicate items (i.e. any items that are == to each other)
+    *  removes any duplicate items (ie any items that are == to each other)
     *  such that there is only at most a single instance of any given value
     *  left in the Queue.
     *  @return The number of duplicate items that were found and
@@ -749,7 +749,7 @@ public:
      *              delete[] on it at some point (either as part of a resize, or as part of the Queue destructor)
      *              unless you call ReleaseDataArray() beforehand.
      * @param validItemCount how many of the items in (array) should be considered currently-valid.  If larger than (numItemsInArray)
-     *                      this value will be treated as if it was equal to (numItemsInArray).  (Useful if you have e.g. an
+     *                      this value will be treated as if it was equal to (numItemsInArray).  (Useful if you have eg an
      *                      array of 800 items but want the final 300 of them to be used as "room to grow" only).
      *                      Defaults to MUSCLE_NO_LIMIT.
      * @note Don't call this method unless you know what you are doing!

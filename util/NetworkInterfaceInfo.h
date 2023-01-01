@@ -13,7 +13,7 @@ namespace muscle {
 /** A list of possible network-interface-hardware-type values that may be returned by NetworkInterfaceInfo::GetHardwareType() */
 enum {
    NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN = 0, /**< We weren't able to identify this interface as any of our recognized types */
-   NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK,    /**< Loopback interface (e.g. lo0), used to communicate within localhost only */
+   NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK,    /**< Loopback interface (eg lo0), used to communicate within localhost only */
    NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET,    /**< Your standard wired Ethernet interface */
    NETWORK_INTERFACE_HARDWARE_TYPE_WIFI,        /**< IEEE802.11/Wi-Fi wireless medium-range interface */
    NETWORK_INTERFACE_HARDWARE_TYPE_TOKENRING,   /**< Token Ring interface */
@@ -38,8 +38,8 @@ enum {
 enum {
    GNII_FLAG_INCLUDE_IPV4_INTERFACES = 0,                     /**< If set, IPv4-specific interfaces will be returned */
    GNII_FLAG_INCLUDE_IPV6_INTERFACES,                         /**< If set, IPv6-specific interfaces will be returned */
-   GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES,                     /**< If set, loopback interfaces (e.g. lo0/127.0.0.1) will be returned */
-   GNII_FLAG_INCLUDE_NONLOOPBACK_INTERFACES,                  /**< If set, non-loopback interfaces (e.g. en0) will be returned */
+   GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES,                     /**< If set, loopback interfaces (eg lo0/127.0.0.1) will be returned */
+   GNII_FLAG_INCLUDE_NONLOOPBACK_INTERFACES,                  /**< If set, non-loopback interfaces (eg en0) will be returned */
    GNII_FLAG_INCLUDE_ENABLED_INTERFACES,                      /**< If set, enabled (aka "up") interfaces will be returned */
    GNII_FLAG_INCLUDE_DISABLED_INTERFACES,                     /**< If set, disabled (aka "down") interfaces will be returned */
    GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT, /**< If set, loopback interfaces will be returned only if no other interfaces are found */
@@ -67,13 +67,13 @@ public:
    NetworkInterfaceInfo();
 
    /** Constructor.  Sets all member variables to the values specified in the argument list.
-     * @param name The name of the interface, as it is known to the computer (e.g. "/dev/eth0").
-     * @param desc A human-readable description string describing the interface (e.g. "Ethernet Jack 0", or somesuch).
+     * @param name The name of the interface, as it is known to the computer (eg "/dev/eth0").
+     * @param desc A human-readable description string describing the interface (eg "Ethernet Jack 0", or somesuch).
      * @param ip The local IP address associated with the interface.
      * @param netmask The netmask being used by this interface.
      * @param broadcastIP The broadcast IP address associated with this interface.
      * @param enabled True iff the interface is currently enabled; false if it is not.
-     * @param copper True iff the interface is currently operations (e.g. has a connected ethernet cable plugged into it)
+     * @param copper True iff the interface is currently operations (eg has a connected ethernet cable plugged into it)
      * @param macAddress 48-bit MAC address value, or 0 if MAC address is unknown.
      * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value (NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN if the hardware type isn't known)
      * @param mtu Max Transfer unit size of this network interface, in bytes
@@ -123,7 +123,7 @@ public:
    bool IsEnabled() const {return _enabled;}
 
    /** Returns true iff this network interface is currently plugged in to anything
-     * (i.e. iff a connected Ethernet cable is attached to the Ethernet jack).
+     * (ie iff a connected Ethernet cable is attached to the Ethernet jack).
      */
    bool IsCopperDetected() const {return _copper;}
 
@@ -133,7 +133,7 @@ public:
    /** @copydoc DoxyTemplate::HashCode() const */
    uint32 HashCode() const;
 
-   /** Given a NETWORK_INTERFACE_HARDWARE_TYPE_* value, returns a human-readable string describing the type (e.g. "Ethernet" or "WiFi")
+   /** Given a NETWORK_INTERFACE_HARDWARE_TYPE_* value, returns a human-readable string describing the type (eg "Ethernet" or "WiFi")
      * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value
      */
    static const char * GetNetworkHardwareTypeString(uint32 hardwareType);
@@ -172,7 +172,7 @@ private:
   *                    included in the returned list.  Defaults to GNII_FLAG_INCLUDE_ALL_ADDRESSED_INTERFACES, which
   *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
   *                    (Note:  if you need to specify this argument explicitly, the syntax for the BitChord constructor
-  *                    is e.g. like this:  GNIIFlags(GNII_FLAG_INCLUDE_IPV4_INTERFACES,GNII_FLAG_INCLUDE_IPV6_INTERFACES,...))
+  *                    is eg like this:  GNIIFlags(GNII_FLAG_INCLUDE_IPV4_INTERFACES,GNII_FLAG_INCLUDE_IPV6_INTERFACES,...))
   * @returns B_NO_ERROR on success, or an errorcode on failure (out of memory, call not implemented for the current OS, etc)
   */
 status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFlags includeFlags = GNII_FLAGS_INCLUDE_ALL_ADDRESSED_INTERFACES);
@@ -187,7 +187,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
   *                    included in the returned list.  Defaults to GNII_FLAG_INCLUDE_ALL_ADDRESSED_INTERFACES, which
   *                    indicates that any interface with an IPv4 or IPv6 interface should be included.
   *                    (Note:  if you need to specify this argument explicitly, the syntax for the BitChord constructor
-  *                    is e.g. like this:  GNIIFlags(GNII_FLAG_INCLUDE_IPV4_INTERFACES,GNII_FLAG_INCLUDE_IPV6_INTERFACES,...))
+  *                    is eg like this:  GNIIFlags(GNII_FLAG_INCLUDE_IPV4_INTERFACES,GNII_FLAG_INCLUDE_IPV6_INTERFACES,...))
   * @returns B_NO_ERROR on success, or an errorcode on failure (out of memory,
   *          call not implemented for the current OS, etc)
   */

@@ -50,7 +50,7 @@ public:
 
    /** Same as above, except instead of reading the certificate from a
      * file, the certificate is read from memory.
-     * @param bytes The array containing the certificate (i.e. the contents of a .pub file)
+     * @param bytes The array containing the certificate (ie the contents of a .pub file)
      * @param numBytes The number of bytes that (bytes) points to.
      * @returns B_NO_ERROR on success, or an error code on failure.
      */
@@ -77,7 +77,7 @@ public:
 
    /** Same as above, except instead of reading the private key from a
      * file, the private key is read from memory.
-     * @param bytes The array containing the private key (i.e. the contents of a .pem file)
+     * @param bytes The array containing the private key (ie the contents of a .pem file)
      * @param numBytes The number of bytes that (bytes) points to.
      * @returns B_NO_ERROR on success, or an error code on failure.
      * @note Typically on the server side you'll want to call both SetPrivateKey() *and*

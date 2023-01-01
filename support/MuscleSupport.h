@@ -47,7 +47,7 @@
 #include <stdlib.h>
 #include <errno.h>   /* for errno */
 
-/* Define this if the default FD_SETSIZE is too small for you (i.e. under Windows it's only 64) */
+/* Define this if the default FD_SETSIZE is too small for you (ie under Windows it's only 64) */
 #if defined(MUSCLE_FD_SETSIZE)
 # if defined(FD_SETSIZE)
 #  error "MuscleSupport.h:  Can not redefine FD_SETSIZE, someone else has already defined it!  You need to include MuscleSupport.h before including any other header files that define FD_SETSIZE."
@@ -103,7 +103,7 @@
 #  define MUSCLE_CONSTEXPR            /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_AVOID_CPLUSPLUS11 is not defined) */
 # endif
 #else
-# define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (e.g. because we're on an ancient platform) */
+# define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (eg because we're on an ancient platform) */
 #endif
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined(MUSCLE_USE_CPLUSPLUS17) && ((__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L)))
@@ -149,10 +149,10 @@
 
 /* Win32 can't handle this stuff, it's too lame */
 #ifdef WIN32
-# define SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE  /** Defined iff we're not allowed to select() on file descriptor (e.g. because we're on Windows) */
-# define UNISTD_H_NOT_AVAILABLE        /**< Defined iff <unistd.h> header isn't available (e.g. because we're on an ancient platform, or Windows) */
+# define SELECT_ON_FILE_DESCRIPTORS_NOT_AVAILABLE  /** Defined iff we're not allowed to select() on file descriptor (eg because we're on Windows) */
+# define UNISTD_H_NOT_AVAILABLE        /**< Defined iff <unistd.h> header isn't available (eg because we're on an ancient platform, or Windows) */
 # ifndef _MSC_VER  /* 7/3/2006: Mika's patch allows VC++ to use newnothrow */
-#  define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ <new> header isn't available (e.g. because we're on an ancient platform) */
+#  define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ <new> header isn't available (eg because we're on an ancient platform) */
 # endif
 #endif
 
@@ -373,6 +373,7 @@ enum {
 # endif
      typedef int32 c_status_t; /**< For C programs: This type indicates an expected value of either CB_NO_ERROR/CB_OK on success, or another value (often CB_ERROR) on failure. */
 # if defined(__cplusplus)
+     /** The muscle namespace is where all of MUSCLE's public APIs are kept. */
      namespace muscle {
         /** This class represents a return-value from a function or method that indicates success or failure.
           * It's implemented as a class instead of as a typedef or enum so that the compiler can provide
@@ -416,7 +417,7 @@ enum {
            /** This method returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR,
              * otherwise it returns the first non-B_NO_ERROR value available.  This method is
              * useful for chaining a ordered series of operations together and then
-             * checking the aggregate result (e.g. status_t ret = a().And(b()).And(c()).And(d());)
+             * checking the aggregate result (eg status_t ret = a().And(b()).And(c()).And(d());)
              * @param rhs the second status_t to test this status_t against
              * @note Unlike with the | operator (below), the order-of-operations here is
              *       well-defined; however, this method is available only under C++17 or
@@ -435,7 +436,7 @@ enum {
            /** This operator returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR,
              * otherwise it returns one of the non-B_NO_ERROR values.  This operator is
              * useful for aggregating a unordered series of operations together and
-             * checking the aggregate result (e.g. status_t ret = a() | b() | c() | d())
+             * checking the aggregate result (eg status_t ret = a() | b() | c() | d())
              * @param rhs the second status_t to test this status_t against
              * @note Due to the way the | operator is defined in C++, the order of evaluations
              *       of the operations in the series in unspecified.  Also, no short-circuiting
@@ -464,7 +465,7 @@ enum {
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
-             * @note this allows for e.g. status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
+             * @note this allows for eg status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
              */
            bool IsOK(status_t & writeErrorTo) const
            {
@@ -478,7 +479,7 @@ enum {
 
            /** Convenience method:  Returns true iff this object represents an error-status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
-             * @note this allows for e.g. status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
+             * @note this allows for eg status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
              */
            bool IsError(status_t & writeErrorTo) const
            {
@@ -487,7 +488,7 @@ enum {
               return isError;
            }
 
-           /** Returns a status_t with the given error-string.  (Added to allow e.g. B_ERROR("The Reason Why") syntax)
+           /** Returns a status_t with the given error-string.  (Added to allow eg B_ERROR("The Reason Why") syntax)
              * @param desc the error-string the returned status_t should have.  Should be a compile-time constant.
              * @note if this is called on a status_t that has a NULL error-string, then (desc) will be ignored and
              *       the returned status_t will also have a NULL error string.  That is to avoid doing the wrong thing
@@ -548,7 +549,7 @@ enum {
         #define B_TIMED_OUT       status_t(     "Timed Out") ///< "Timed Out"      - the operation took too long, so we gave up
         #define B_IO_ERROR        status_t(     "I/O Error") ///< "I/O Error"      - an I/O operation failed
         #define B_IO_READY        status_t(     "I/O Ready") ///< "I/O Ready"      - this call has ended early because other I/O is ready for you to handle.
-        #define B_LOCK_FAILED     status_t(   "Lock Failed") ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
+        #define B_LOCK_FAILED     status_t(   "Lock Failed") ///< "Lock Failed"    - an attempt to lock a shared resource (eg a Mutex) failed.
         #define B_TYPE_MISMATCH   status_t( "Type Mismatch") ///< "Type Mismatch"  - tried to fit a square block into a round hole
         #define B_ZLIB_ERROR      status_t(    "ZLib Error") ///< "ZLib Error"     - a zlib library-function reported an error
         #define B_SSL_ERROR       status_t(     "SSL Error") ///< "SSL Error"      - an OpenSSL library-function reported an error
@@ -578,7 +579,7 @@ enum {
         MUSCLE_CONSTEXPR_OR_CONST status_t B_TIMED_OUT(     "Timed Out");      ///< "Timed Out"      - the operation took too long, so we gave up
         MUSCLE_CONSTEXPR_OR_CONST status_t B_IO_ERROR(      "I/O Error");      ///< "I/O Error"      - an I/O operation failed
         MUSCLE_CONSTEXPR_OR_CONST status_t B_IO_READY(      "I/O Ready");      ///< "I/O Ready"      - this call has ended early because other I/O is ready for you to handle.
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_LOCK_FAILED(   "Lock Failed");    ///< "Lock Failed"    - an attempt to lock a shared resource (e.g. a Mutex) failed.
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_LOCK_FAILED(   "Lock Failed");    ///< "Lock Failed"    - an attempt to lock a shared resource (eg a Mutex) failed.
         MUSCLE_CONSTEXPR_OR_CONST status_t B_TYPE_MISMATCH( "Type Mismatch");  ///< "Type Mismatch"  - tried to fit a square block into a round hole
         MUSCLE_CONSTEXPR_OR_CONST status_t B_ZLIB_ERROR(    "ZLib Error");     ///< "ZLib Error"     - a zlib library-function reported an error
         MUSCLE_CONSTEXPR_OR_CONST status_t B_SSL_ERROR(     "SSL Error");      ///< "SSL Error"      - an OpenSSL library-function reported an error
@@ -629,7 +630,7 @@ enum {
            /** This operator returns an io_status_t with the sum of the two byte-counts iff both
              * inputs are equal to B_NO_ERROR, otherwise it returns one of the error-values.
              * This operator is useful for aggregating a unordered series of operations together and
-             * checking the aggregate result (e.g. io_status_t ret = a() + b() + c() + d())
+             * checking the aggregate result (eg io_status_t ret = a() + b() + c() + d())
              * @param rhs the second io_status_t to test this io_status_t against
              * @note Due to the way the + operator is defined in C++, the order of evaluations
              *       of the operations in the series in unspecified.  Also, no short-circuiting
@@ -645,7 +646,7 @@ enum {
            /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
            io_status_t & operator = (const io_status_t & rhs) {_status = rhs._status; _byteCount = rhs._byteCount; return *this;}
 
-           /** Returns the value of our status_t field (i.e. success/failure) */
+           /** Returns the value of our status_t field (ie success/failure) */
            MUSCLE_CONSTEXPR status_t GetStatus() const {return _status;}
 
            /** Returns "OK" if this io_status_t indicates success; otherwise returns the human-readable description
@@ -661,13 +662,13 @@ enum {
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
-             * @note this allows for e.g. status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
+             * @note this allows for eg status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
              */
            bool IsOK(status_t & writeErrorTo) const {return _status.IsOK(writeErrorTo);}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status.
              * @param addStateTo This object's state will be added to (addStateTo).
-             * @note this allows for e.g. io_status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
+             * @note this allows for eg io_status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
              */
            bool IsOK(io_status_t & addStateTo) const {addStateTo += *this; return addStateTo.IsOK();}
 
@@ -676,20 +677,20 @@ enum {
 
            /** Convenience method:  Returns true iff this object represents an error-status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
-             * @note this allows for e.g. status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
+             * @note this allows for eg status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
              */
            bool IsError(status_t & writeErrorTo) const {return _status.IsError(writeErrorTo);}
 
            /** Convenience method:  Returns true iff this object represents an error-status
              * @param addStateTo This object's state will be added to (addStateTo)
-             * @note this allows for e.g. io_status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
+             * @note this allows for eg io_status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
              */
            bool IsError(io_status_t & addStateTo) const {addStateTo += *this; return addStateTo.IsError();}
 
            /** Returns the byte-count indicated by the I/O operation, or a negative value if the operation failed. */
            MUSCLE_CONSTEXPR int32 GetByteCount() const {return _byteCount;}
 
-           /** Convenience method:  If this object's current state is the default state (i.e. no errors and a byte-count),
+           /** Convenience method:  If this object's current state is the default state (ie no errors and a byte-count),
              *                      this method returns (subsequentError).  Otherwise it returns (*this).
              * @param subsequentError an error value that was encountered in an I/O routine
              * @note this method is useful in I/O loops when an error has occurred, but you want
@@ -809,7 +810,7 @@ static_assert(sizeof(double) == 8, "sizeof(double) != 8");
 #define UINT64_FORMAT_SPEC "%" UINT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for a uint64, including the percent sign */
 #define XINT64_FORMAT_SPEC "%" XINT64_FORMAT_SPEC_NOPERCENT /**< format-specifier string to pass in to printf() for an int64 or uint64 that you want printed in hexadecimal, including the percent sign */
 
-/** Macro that returns a uint32 word out of the four ASCII characters in the supplied char array.  Used primarily to create 'what'-codes for Message objects (e.g. MakeWhatCode("!Pc0") returns 558916400)
+/** Macro that returns a uint32 word out of the four ASCII characters in the supplied char array.  Used primarily to create 'what'-codes for Message objects (eg MakeWhatCode("!Pc0") returns 558916400)
   * @param s the four-character-string to encode as a uint32
   * @returns the corresponding uint32 value
   */
@@ -1059,19 +1060,19 @@ template<typename T> inline void muscleSwap(T & t1, T & t2) {typename muscle_pri
   */
 template<typename T, int size> inline MUSCLE_CONSTEXPR bool muscleArrayIndexIsValid(int i, T (&theArray)[size]) {return ((theArray==theArray)&&(((unsigned int)i) < size));}
 
-/** Convenience method for setting all items in the specified one-dimensional array to their default-constructed state (i.e. zero)
+/** Convenience method for setting all items in the specified one-dimensional array to their default-constructed state (ie zero)
   * @param theArray an array of any type
   * @param t The object to set every item in the array equal to.  Defaults to a default-constructed object of the appropriate type.
   */
 template<typename T, int size1> inline void muscleClearArray(T (&theArray)[size1], const T & t = GetDefaultObjectForType<T>()) {for (int i=0; i<size1; i++) theArray[i] = t;}
 
-/** Convenience method for setting all items in the specified two-dimensional array to their default-constructed state (i.e. zero)
+/** Convenience method for setting all items in the specified two-dimensional array to their default-constructed state (ie zero)
   * @param theArray an array of any type
   * @param t The object to set every item in the array equal to.  Defaults to a default-constructed object of the appropriate type.
   */
 template<typename T, int size1, int size2> inline void muscleClearArray(T (&theArray)[size1][size2], const T & t = GetDefaultObjectForType<T>()) {for (int i=0; i<size1; i++) for (int j=0; j<size2; j++) theArray[i][j] = t;}
 
-/** Convenience method for setting all items in the specified three-dimensional array to their default-constructed state (i.e. zero)
+/** Convenience method for setting all items in the specified three-dimensional array to their default-constructed state (ie zero)
   * @param theArray an array of any type
   * @param t The object to set every item in the array equal to.  Defaults to a default-constructed object of the appropriate type.
   */
@@ -1664,7 +1665,7 @@ static inline int PreviousOperationHadTransientFailure()
   * of a system I/O call and (errno) into a proper MUSCLE-standard return value.
   * (A MUSCLE-standard return value's semantics are:  Negative on error,
   * otherwise the return value is the number of bytes that were transferred)
-  * @param origRet The return value of the original system call (e.g. to read()/write()/send()/recv())
+  * @param origRet The return value of the original system call (eg to read()/write()/send()/recv())
   * @param maxSize The maximum number of bytes that the system call was permitted to send during that call.
   * @param blocking True iff the socket/file descriptor is in blocking I/O mode.  (Type is int for C compatibility -- it's really a boolean parameter)
   * @returns The system call's return value equivalent in MUSCLE return value semantics.
@@ -1819,7 +1820,7 @@ public:
   * @param divisor the divisor to use in the calculation.  Must not be zero.
   * @note For non-negative values of (value), this function behaves the same as (value%divisor).
   *       For negative values of (value), this function behaves differently
-  *       in that e.g. EuclideanModulo(-1,d) will return (d-1) rather than -1.  This is
+  *       in that eg EuclideanModulo(-1,d) will return (d-1) rather than -1.  This is
   *       arguably more useful for cyclic-sequence applications, as there will not be
   *       any anomalies in the resulting values as (value) transitions between positive and negative.
   */

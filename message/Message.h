@@ -17,7 +17,7 @@
 /
 *******************************************************************************/
 
-#include "message/MessageImpl.h"  // this is the only place that MessageImpl.h should ever be #included!
+#include "message/MessageImpl.h" // this is the only place that MessageImpl.h should ever be #included!
 
 namespace muscle {
 
@@ -140,11 +140,11 @@ public:
 
 private:
    friend class Message;
-   MessageFieldNameIterator(const HashtableIterator<String, muscle_message_imp::MessageField> & iter, uint32 tc) : _typeCode(tc), _iter(iter) {if (_typeCode != B_ANY_TYPE) SkipNonMatchingFieldNames();}
+   MessageFieldNameIterator(const HashtableIterator<String, muscle_private::MessageField> & iter, uint32 tc) : _typeCode(tc), _iter(iter) {if (_typeCode != B_ANY_TYPE) SkipNonMatchingFieldNames();}
    void SkipNonMatchingFieldNames();
 
    uint32 _typeCode;
-   HashtableIterator<String, muscle_message_imp::MessageField> _iter;
+   HashtableIterator<String, muscle_private::MessageField> _iter;
 };
 
 // Version number of the Message serialization protocol.
@@ -218,7 +218,7 @@ private:
  *  your object (again via AddFlat()) to the Message, and the Message will hold on to your
  *  object directly rather than to a buffer of its flattened bytes.  This can be more efficient,
  *  since when done this way the object need not be serialized and later reconstructed, unless/until
- *  the Message itself needs to be serialized and reconstructed (e.g. in order to
+ *  the Message itself needs to be serialized and reconstructed (eg in order to
  *  send it across the network to another machine).
  *
  *  Lastly, it is possible to store inside a Message references to objects of any class that derives
@@ -897,7 +897,7 @@ public:
    template <class T> status_t FindFlat(const String & fieldName, uint32 index, T & writeValueHere) const
    {
       uint32 arrayTypeCode;
-      const muscle_message_imp::MessageField * mf = GetMessageFieldAndTypeCode(fieldName, index, &arrayTypeCode);
+      const muscle_private::MessageField * mf = GetMessageFieldAndTypeCode(fieldName, index, &arrayTypeCode);
       if (mf == NULL) return B_DATA_NOT_FOUND;
 
       if (writeValueHere.AllowsTypeCode(arrayTypeCode))
@@ -979,7 +979,7 @@ public:
      * in the specified flattened-Message field, or the specified fallback-object if it wasn't.
      * @param fieldName The field name to look for the flattened object under.
      * @param defaultValue the fallback-value to return on failure.
-     * @param index The index of the object within (fieldName) to unflatten and return.  Defaults to zero (i.e. the first item)
+     * @param index The index of the object within (fieldName) to unflatten and return.  Defaults to zero (ie the first item)
      * @returns The unflattened object that was found, if one was found and successfully unflattened, or the specified fallback-item if it wasn't.
      */
    template <class T> T GetFlat(const String & fieldName, const T & defaultValue, uint32 index = 0) const
@@ -1091,7 +1091,7 @@ public:
      * in the specified field, or the specified fallback-object if it wasn't.
      * @param fieldName The field name to look for the RefCountableRef object under.
      * @param defaultValue the fallback-value to return on failure.
-     * @param index The index of the object within (fieldName) to return.  Defaults to zero (i.e. the first item)
+     * @param index The index of the object within (fieldName) to return.  Defaults to zero (ie the first item)
      * @returns The object that was found, if one was found, or the specified fallback-item if it wasn't.
      */
    template <class T> T GetTag(const String & fieldName, const T & defaultValue, uint32 index = 0) const
@@ -1571,7 +1571,7 @@ public:
      */
    status_t MoveNameToPosition(const String & fieldNameToMove, uint32 toPosition) {return _entries.MoveToPosition(fieldNameToMove, toPosition);}
 
-   /** Examines the specified field to see if it is referenced more than once (e.g. by
+   /** Examines the specified field to see if it is referenced more than once (eg by
      * another Message object).  If it is referenced more than once, makes a copy of the
      * field (including its contents) and replaces the shared field with the copy.
      * If the field is not referenced more than once, this method returns B_NO_ERROR
@@ -1579,7 +1579,7 @@ public:
      * This method is handy when you are about to modify a field in a Message and you want
      * to first make sure that the field isn't shared by any other Messages.
      * @param fieldName Name of the field to ensure the non-sharedness of.
-     * @returns B_NO_ERROR on success (i.e. either the copy was made, or no copy was necessary)
+     * @returns B_NO_ERROR on success (ie either the copy was made, or no copy was necessary)
      *          or B_DATA_NOT_FOUND if the specified field couldn't be found.
      */
    status_t EnsureFieldIsPrivate(const String & fieldName);
@@ -1614,7 +1614,7 @@ public:
 #endif
 
    /** Sorts the iteration-order of this Message's field names into case-sensitive alphabetical order.
-     * @param maxRecursions maximum depth to which this call should recurse to sub-Messages.  Defaults to zero (i.e. don't recurse)
+     * @param maxRecursions maximum depth to which this call should recurse to sub-Messages.  Defaults to zero (ie don't recurse)
      * @note to specify indefinite recursion, pass in MUSCLE_NO_LIMIT as an argument.
      */
    void SortFieldNames(uint32 maxRecursions=0)
@@ -1650,7 +1650,7 @@ public:
     * Note that this method can be CPU-intensive, since it has to scan
     * everything in the Message.  Don't call it often if you want good
     * performance!
-    * @param countNonFlattenableFields If true, non-flattenable fields (e.g.
+    * @param countNonFlattenableFields If true, non-flattenable fields (eg
     *                        those added with AddTag() will be included in the
     *                        checksum.  If false (the default), they will be
     *                        ignored.
@@ -1683,7 +1683,7 @@ public:
      * When this method returns, this object will look like a copy of (rhs), except that
      * it will share the data in (rhs)'s fields such that modifying the data in (rhs)'s
      * fields will modify the data in this Message, and vice versa.  Making a light-weight
-     * copy can be significantly cheaper than doing a full copy (e.g. with the assignment operator),
+     * copy can be significantly cheaper than doing a full copy (eg with the assignment operator),
      * but you need to be aware of the potential side effects if you then go on to modify
      * the contents of either Message's fields.  Use with caution!
      * @param rhs The Message to make this Message into a light-weight copy of.
@@ -1721,8 +1721,7 @@ public:
      */
    inline const String & GetStringReference(const String & fn, uint32 idx = 0) const {return *GetStringPointer(fn, &GetEmptyString(), idx);}
 
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS
-# define DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(bw)                                                                                               \
+#define DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(bw)                                                                                               \
    inline status_t FindInt##bw (const String & fieldName, uint32 index, uint##bw & val) const {return FindInt##bw (fieldName, index, (int##bw &)val);} \
    inline status_t FindInt##bw (const String & fieldName,               uint##bw & val) const {return FindInt##bw (fieldName,        (int##bw &)val);}
    DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(8);   ///< This macro defined Find methods with unsigned value arguments, so the user doesn't have to do ugly C-style casts to retrieve unsigned values.
@@ -1730,7 +1729,7 @@ public:
    DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(32);  ///< This macro defined Find methods with unsigned value arguments, so the user doesn't have to do ugly C-style casts to retrieve unsigned values.
    DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(64);  ///< This macro defined Find methods with unsigned value arguments, so the user doesn't have to do ugly C-style casts to retrieve unsigned values.
 
-# define DECLARE_MUSCLE_POINTER_FIND_METHODS(name, type)                                                                                \
+#define DECLARE_MUSCLE_POINTER_FIND_METHODS(name, type)                                                                                \
    inline status_t Find##name (const String & fieldName, uint32 index, type * val) const {return Find##name (fieldName, index, *val);} \
    inline status_t Find##name (const String & fieldName,               type * val) const {return Find##name (fieldName,        *val);}
    DECLARE_MUSCLE_POINTER_FIND_METHODS(Bool,    bool);         ///< This macro defines old-style Find methods with pointer value arguments, for backwards compatibility.
@@ -1748,7 +1747,7 @@ public:
    DECLARE_MUSCLE_POINTER_FIND_METHODS(Rect,    Rect);         ///< This macro defines old-style Find methods with pointer value arguments, for backwards compatibility.
    DECLARE_MUSCLE_POINTER_FIND_METHODS(String,  const char *); ///< This macro defines old-style Find methods with pointer value arguments, for backwards compatibility.
 
-# define DECLARE_MUSCLE_CONVENIENCE_METHODS(name, type) \
+#define DECLARE_MUSCLE_CONVENIENCE_METHODS(name, type) \
    inline type Get##name(const String & fieldName, const type & defVal = type(), uint32 idx = 0) const {type r; return (Find##name (fieldName, idx, r).IsOK()) ? (const type &)r : defVal;} \
    inline status_t CAdd##name(    const String & fieldName, const type & value, const type & defVal = type())   {return (value == defVal) ? B_NO_ERROR : Add##name     (fieldName, value);}        \
    inline status_t CPrepend##name(const String & fieldName, const type & value, const type & defVal = type())   {return (value == defVal) ? B_NO_ERROR : Prepend##name (fieldName, value);}
@@ -1767,7 +1766,6 @@ public:
 
    DECLARE_MUSCLE_CONVENIENCE_METHODS(Tag,     RefCountableRef); ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
    DECLARE_STANDARD_CLONE_METHOD(Message);  ///< implements the standard Clone() method to copy a Message object.
-#endif
 
    /**
     * This method calculates and returns a 64-bit checksum based only on the names, ordering,
@@ -1831,15 +1829,15 @@ private:
    // Returns zero if items of the given type are variable length.
    static uint32 GetElementSize(uint32 type);
 
-   muscle_message_imp::MessageField * GetMessageField(const String & fieldName, uint32 etc);
-   const muscle_message_imp::MessageField * GetMessageField(const String & fieldName, uint32 etc) const;
-   muscle_message_imp::MessageField * GetOrCreateMessageField(const String & fieldName, uint32 tc);
-   const muscle_message_imp::MessageField * GetMessageFieldAndTypeCode(const String & fieldName, uint32 index, uint32 * retTypeCode) const;
+   muscle_private::MessageField * GetMessageField(const String & fieldName, uint32 etc);
+   const muscle_private::MessageField * GetMessageField(const String & fieldName, uint32 etc) const;
+   muscle_private::MessageField * GetOrCreateMessageField(const String & fieldName, uint32 tc);
+   const muscle_private::MessageField * GetMessageFieldAndTypeCode(const String & fieldName, uint32 index, uint32 * retTypeCode) const;
 
    status_t AddFlatAux(const String & fieldName, const FlatCountableRef & flat, uint32 etc, bool prepend);
    status_t AddDataAux(const String & fieldName, const void * data, uint32 size, uint32 etc, bool prepend);
 
-   const uint8 * FindFlatAux(const muscle_message_imp::MessageField * ada, uint32 index, uint32 & retNumBytes, const FlatCountable ** optRetFCPtr) const;
+   const uint8 * FindFlatAux(const muscle_private::MessageField * ada, uint32 index, uint32 & retNumBytes, const FlatCountable ** optRetFCPtr) const;
    status_t FindDataItemAux(const String & fieldName, uint32 index, uint32 tc, void * setValue, uint32 valueSize) const;
 
    status_t ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & flat, uint32 tc);
@@ -1854,9 +1852,9 @@ private:
       return iter.HasData() ? &iter.GetFieldName() : NULL;
    }
 
-   friend class muscle_message_imp::MessageField;
+   friend class muscle_private::MessageField;
    friend class MessageFieldNameIterator;
-   Hashtable<String, muscle_message_imp::MessageField> _entries;
+   Hashtable<String, muscle_private::MessageField> _entries;
 
    DECLARE_COUNTED_OBJECT(Message);
 };

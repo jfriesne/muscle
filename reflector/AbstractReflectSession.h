@@ -26,7 +26,7 @@ public:
    virtual ~ReflectSessionFactory() {/* empty */}
 
    /** Should be overriden to return a new ReflectSession object, or NULL on failure.
-    *  @param clientAddress A string representing the connecting client's host (typically an IP address, e.g. "192.168.1.102")
+    *  @param clientAddress A string representing the connecting client's host (typically an IP address, eg "192.168.1.102")
     *  @param factoryInfo The IP address and port number of the local network interface on which this connection was received.
     *  @returns a reference to a freshly allocated AbstractReflectSession object on success, or a NULL reference on failure.
     */
@@ -37,7 +37,7 @@ public:
     * This method is called each time through the event loop, and if this method
     * is overridden to return false, then this factory will not be included in the
     * select() set and any incoming TCP connections on this factory's port will
-    * not be acted upon (i.e. they will be forced to wait).
+    * not be acted upon (ie they will be forced to wait).
     * Default implementation always returns true.
     */
    virtual bool IsReadyToAcceptSessions() const {return true;}
@@ -137,13 +137,13 @@ public:
    const String & GetHostName() const;
 
    /** Returns the server-side port that this session was accepted on, or 0 if
-     * we weren't accepted from a port (e.g. we were created locally)
+     * we weren't accepted from a port (eg we were created locally)
      * May only be called if this session is currently attached to a ReflectServer.
      */
    uint16 GetPort() const;
 
    /** Returns the server-side network interface IP that this session was accepted on,
-     * or 0 if we weren't created via accepting a network connection  (e.g. we were created locally)
+     * or 0 if we weren't created via accepting a network connection  (eg we were created locally)
      * May only be called if this session is currently attached to a ReflectServer.
      */
    const IPAddress & GetLocalInterfaceAddress() const;
@@ -326,7 +326,7 @@ public:
      */
    void SetAsyncConnectDestination(const IPAddressAndPort & iap, bool reconnectViaTCP) {_asyncConnectDest = iap; _reconnectViaTCP = reconnectViaTCP;}
 
-   /** Returns the node path of the node representing this session (e.g. "/192.168.1.105/17") */
+   /** Returns the node path of the node representing this session (eg "/192.168.1.105/17") */
    virtual const String & GetSessionRootPath() const {return _sessionRootPath;}
 
    /** Sets the amount of time that should pass between when this session loses its connection
@@ -472,16 +472,16 @@ public:
 
 protected:
    /** Set by StorageReflectSession::AttachedToServer()
-     * @param p the new session-root-path for us to use (e.g. "/127.0.0.1/12345")
+     * @param p the new session-root-path for us to use (eg "/127.0.0.1/12345")
      */
    void SetSessionRootPath(const String & p) {_sessionRootPath = p;}
 
-   /** When a hostname is being chosen to represent this session (i.e. at the first
+   /** When a hostname is being chosen to represent this session (ie at the first
     *  level of the MUSCLE node-tree), this method is called to allow the subclass
     *  to choose a different name instead.
     *  @param ip The IP address associated with this session, or invalidIP if none is known.
     *  @param defaultHostName The hostname that the system suggests be used for this session.
-    *  Default implementation just returns (defaultHostName), i.e. it goes with the suggested name.
+    *  Default implementation just returns (defaultHostName), ie it goes with the suggested name.
     */
    virtual String GenerateHostName(const IPAddress & ip, const String & defaultHostName) const;
 

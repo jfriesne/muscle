@@ -83,7 +83,7 @@ void UMIteratorInitialize(UMessageFieldNameIterator * iter, const UMessage * msg
   * @param optRetNumItemsInField If non-NULL, the number of values stored in the current field will be returned here.
   * @param optRetFieldType If non-NULL, the type-code of the current field will be returned here.
   * @returns A pointer to the C-string name of the current field, or NULL if the iterator isn't currently pointing at a valid field
-  *          (e.g. because the Message has no fields in it, or because the iteration is complete)
+  *          (eg because the Message has no fields in it, or because the iteration is complete)
   */
 const char * UMIteratorGetCurrentFieldName(UMessageFieldNameIterator * iter, uint32 * optRetNumItemsInField, uint32 * optRetFieldType);
 
@@ -103,7 +103,7 @@ void UMIteratorAdvance(UMessageFieldNameIterator * iter);
   *            as the UMessage object is in use.
   * @param numBytesInBuf Number of usable bytes at (buf).  Must be at least 12.
   * @param whatCode The 'what code' that this UMessage should hold.
-  * @returns CB_NO_ERROR on success, or CB_ERROR on failure (e.g. buffer is too small)
+  * @returns CB_NO_ERROR on success, or CB_ERROR on failure (eg buffer is too small)
   */
 c_status_t UMInitializeToEmptyMessage(UMessage * msg, uint8 * buf, uint32 numBytesInBuf, uint32 whatCode);
 
@@ -116,7 +116,7 @@ c_status_t UMInitializeToEmptyMessage(UMessage * msg, uint8 * buf, uint32 numByt
   *            to read existing flattened-data.  This buffer must remain valid for as long
   *            as the UMessage object is in use.
   * @param numBytesInBuf Number of usable bytes at (buf).  Must be at least 12.
-  * @returns CB_NO_ERROR on success, or CB_ERROR on failure (e.g. buffer is too small, or contains invalid data)
+  * @returns CB_NO_ERROR on success, or CB_ERROR on failure (eg buffer is too small, or contains invalid data)
   */
 c_status_t UMInitializeWithExistingData(UMessage * msg, const uint8 * buf, uint32 numBytesInBuf);
 
@@ -129,8 +129,8 @@ void UMInitializeToInvalid(UMessage * msg);
 
 /**
   * @param msg The UMessage to query.
-  * @returns UTrue iff (msg) is flagged as being read-only (i.e. we are reading a UMessage that was
-  *          received from somewhere else) or UFalse if (msg) is read/write (i.e. we are constructing
+  * @returns UTrue iff (msg) is flagged as being read-only (ie we are reading a UMessage that was
+  *          received from somewhere else) or UFalse if (msg) is read/write (ie we are constructing
   *          it from scratch)
   */
 UBool UMIsMessageReadOnly(const UMessage * msg);
@@ -197,7 +197,7 @@ uint32 UMGetWhatCode(const UMessage * msg);
 /** Sets the 'what code' in the data buffer associated with (msg)
   * @param msg The UMessage associated with the data buffer.
   * @param whatCode the new what-code to set in the data buffer.
-  * @returns CB_NO_ERROR on success, or CB_ERROR on failure (e.g. msg's buffer is too small)
+  * @returns CB_NO_ERROR on success, or CB_ERROR on failure (eg msg's buffer is too small)
   */
 c_status_t UMSetWhatCode(UMessage * msg, uint32 whatCode);
 
@@ -362,7 +362,7 @@ UMessage UMInlineAddMessage(UMessage * parentMsg, const char * fieldName, uint32
 /** Queries the UMessage for a particular boolean value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the boolean item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the boolean item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retBool on success, the requested value is written into this location
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
@@ -371,14 +371,14 @@ c_status_t UMFindBool(const UMessage * msg, const char * fieldName, uint32 idx, 
 /** Returns a pointer to the requested boolean value, or a default value (UFalse) on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the boolean to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the boolean to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline UBool UMGetBool(const UMessage * msg, const char * fieldName, uint32 idx) {UBool r; return (UMFindBool(msg, fieldName, idx, &r)==CB_NO_ERROR)?r:((UBool)UFalse);}
 
 /** Queries the UMessage for a particular int8 value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the int8 item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the int8 item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retInt8 on success, the requested value is written into this location
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
@@ -387,14 +387,14 @@ c_status_t UMFindInt8(const UMessage * msg, const char * fieldName, uint32 idx, 
 /** Returns a pointer to the requested int8 value, or a default value (0) on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the int8 to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the int8 to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline int8 UMGetInt8(const UMessage * msg, const char * fieldName, uint32 idx) {int8 r; return (UMFindInt8(msg, fieldName, idx, &r)==CB_NO_ERROR)?r:0;}
 
 /** Queries the UMessage for a particular int16 value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the int16 item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the int16 item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retInt16 on success, the requested value is written into this location
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
@@ -403,14 +403,14 @@ c_status_t UMFindInt16(const UMessage * msg, const char * fieldName, uint32 idx,
 /** Returns a pointer to the requested int16 value, or a default value (0) on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the int16 to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the int16 to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline int16 UMGetInt16(const UMessage * msg, const char * fieldName, uint32 idx) {int16 r; return (UMFindInt16(msg, fieldName, idx, &r)==CB_NO_ERROR)?r:0;}
 
 /** Queries the UMessage for a particular int32 value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the int32 item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the int32 item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retInt32 on success, the requested value is written into this location
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
@@ -419,14 +419,14 @@ c_status_t UMFindInt32(const UMessage * msg, const char * fieldName, uint32 idx,
 /** Returns a pointer to the requested int32 value, or a default value (0) on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the int32 to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the int32 to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline int32 UMGetInt32(const UMessage * msg, const char * fieldName, uint32 idx) {int32 r; return (UMFindInt32(msg, fieldName, idx, &r)==CB_NO_ERROR)?r:0;}
 
 /** Queries the UMessage for a particular int64 value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the int64 item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the int64 item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retInt64 on success, the requested value is written into this location
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
@@ -435,14 +435,14 @@ c_status_t UMFindInt64(const UMessage * msg, const char * fieldName, uint32 idx,
 /** Returns a pointer to the requested int64 value, or a default value (0) on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the int64 to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the int64 to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline int64 UMGetInt64(const UMessage * msg, const char * fieldName, uint32 idx) {int64 r; return (UMFindInt64(msg, fieldName, idx, &r)==CB_NO_ERROR)?r:0;}
 
 /** Queries the UMessage for a particular floating point value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the floating point item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the floating point item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retFloat on success, the requested value is written into this location
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
@@ -451,14 +451,14 @@ c_status_t UMFindFloat(const UMessage * msg, const char * fieldName, uint32 idx,
 /** Returns a pointer to the requested floating point value, or a default value (0.0f) on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the floating point value to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the floating point value to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline float UMGetFloat(const UMessage * msg, const char * fieldName, uint32 idx) {float r; return (UMFindFloat(msg, fieldName, idx, &r)==CB_NO_ERROR)?r:0.0f;}
 
 /** Queries the UMessage for a particular double-precision floating point value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the double-precision floating point item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the double-precision floating point item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retDouble on success, the requested value is written into this location
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
@@ -467,14 +467,14 @@ c_status_t UMFindDouble(const UMessage * msg, const char * fieldName, uint32 idx
 /** Returns a pointer to the requested double-precision floating point value, or a default value (0.0) on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the double-precision floating point to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the double-precision floating point to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline double UMGetDouble(const UMessage * msg, const char * fieldName, uint32 idx) {double r; return (UMFindDouble(msg, fieldName, idx, &r)==CB_NO_ERROR)?r:0.0f;}
 
 /** Queries the UMessage for a particular UPoint value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the UPoint item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the UPoint item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retPoint on success, the requested value is written into this location
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
@@ -483,14 +483,14 @@ c_status_t UMFindPoint(const UMessage * msg, const char * fieldName, uint32 idx,
 /** Returns a pointer to the requested UPoint value, or a default value (0.0f,0.0f) on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the UPoint to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the UPoint to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline UPoint UMGetPoint(const UMessage * msg, const char * fieldName, uint32 idx) {UPoint r; if (UMFindPoint(msg, fieldName, idx, &r)==CB_NO_ERROR) return r; else {UPoint x = {0.0f,0.0f}; return x;}}
 
 /** Queries the UMessage for a particular URect value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the URect item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the URect item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retRect on success, the requested value is written into this location
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
@@ -499,21 +499,21 @@ c_status_t UMFindRect(const UMessage * msg, const char * fieldName, uint32 idx, 
 /** Returns a pointer to the requested URect value, or a default value (0.0f,0.0f,0.0f,0.0f) on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the URect to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the URect to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
 static inline URect UMGetRect(const UMessage * msg, const char * fieldName, uint32 idx) {URect r; if (UMFindRect(msg, fieldName, idx, &r)==CB_NO_ERROR) return r; else {URect x = {0.0f,0.0f,0.0f,0.0f}; return x;}}
 
 /** Returns a pointer to the requested string value, or NULL on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the string to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the string to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
 const char * UMGetString(const UMessage * msg, const char * fieldName, uint32 idx);
 
 /** Queries the UMessage for a particular string value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the string item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the string item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retStringPointer on success, a pointer to the requested string is written to this location.
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
   */
@@ -524,7 +524,7 @@ static inline c_status_t UMFindString(const UMessage * msg, const char * fieldNa
   * @param fieldName The field to name to look inside
   * @param dataType The type-code to require.  If B_ANY_TYPE is passed, then the field's type code will be ignored; otherwise, this call will only
   *                 succeed if the field's type code is equal to this.
-  * @param idx The index of the raw-data-blob to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the raw-data-blob to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retDataBytes on success, a pointer to the requested data bytes is written to this location.
   * @param retNumBytes on the number of data bytes pointed to by (retDataBytes) is written to this location.
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
@@ -534,7 +534,7 @@ c_status_t UMFindData(const UMessage * msg, const char * fieldName, uint32 dataT
 /** Queries the UMessage for a particular boolean value.
   * @param msg The UMessage to query.
   * @param fieldName The field to name to look inside
-  * @param idx The index of the boolean item to look for (e.g. 0 is the first in the array, 1 is the second, and so on)
+  * @param idx The index of the boolean item to look for (eg 0 is the first in the array, 1 is the second, and so on)
   * @param retMessage on success, the requested UMessage value is written to this location.  (Note that this is a lightweight operation, because
   *                   the returned UMessage object merely points to data within (msg)'s own data buffer; no actual message-data is copied)
   * @returns CB_NO_ERROR on success, or CB_ERROR on failure (field name not found, was of the wrong type, or the array was shorter than (idx+1) items)
@@ -544,7 +544,7 @@ c_status_t UMFindMessage(const UMessage * msg, const char * fieldName, uint32 id
 /** Returns a pointer to the requested UMessage value, or an invalid UMessage value on failure.
   * @param msg The UMessage to query.
   * @param fieldName The field name to look inside.
-  * @param idx The index of the UMessage to look for (e.g. 0 is the first in the field's array, 1 is the second, and so on)
+  * @param idx The index of the UMessage to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   * @note You can tell if the returned UMessage is invalid by calling UMGetFlattenedSize() on it -- if the result is zero, it's an invalid UMessage.
   */
 static inline UMessage UMGetMessage(const UMessage * msg, const char * fieldName, uint32 idx) {UMessage r; if (UMFindMessage(msg, fieldName, idx, &r) == CB_NO_ERROR) return r; else {UMessage x; memset(&x,0,sizeof(x)); return x;}}

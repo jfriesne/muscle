@@ -28,7 +28,7 @@ public:
 
    /** Convenience constructor.  Calling this is equivalent to creating an IPAddress
      * object and then calling SetFromString() on it with the given arguments.
-     * @param s an IPAddress to parse (e.g. "127.0.0.1" or "ff12::02@3")
+     * @param s an IPAddress to parse (eg "127.0.0.1" or "ff12::02@3")
      */
    explicit IPAddress(const String & s) : _lowBits(0), _highBits(0), _interfaceIndex(MUSCLE_NO_LIMIT) {(void) SetFromString(s);}
 
@@ -213,14 +213,14 @@ public:
    /** Returns true iff this address qualifies as an IPv6 link-local multicast address.  */
    bool IsIPv6LinkLocalMulticast() const {return IsIPv6LocalMulticast(0x02);}
 
-   /** Returns true iff this address qualifies as a standard loopback-device address (e.g. 127.0.0.1 or ::1 or fe80::1) */
+   /** Returns true iff this address qualifies as a standard loopback-device address (eg 127.0.0.1 or ::1 or fe80::1) */
    bool IsStandardLoopbackDeviceAddress() const;
 
-   /** Returns true iff this address is a stateless/self-assigned IP address (i.e. 169.254.*.* for IPv4, or fe80::* for IPv6) */
+   /** Returns true iff this address is a stateless/self-assigned IP address (ie 169.254.*.* for IPv4, or fe80::* for IPv6) */
    bool IsSelfAssigned() const;
 
    /** Returns a human-readable string equivalent to this IPAddress object.  Behaves the same as Inet_NtoA(*this, printIPv4AddressesInIPv4Style).
-     *  @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
+     *  @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
      *                                       Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
      */
    String ToString(bool printIPv4AddressesInIPv4Style = true) const;
@@ -322,7 +322,7 @@ public:
 
    /** Convenience constructor.  Calling this is equivalent to creating an IPAddressAndPort
      * object and then calling SetFromString() on it with the given arguments.
-     * @param s an IPAddressAndPortString to parse (e.g. "127.0.0.1:9999" or "www.google.com:80")
+     * @param s an IPAddressAndPortString to parse (eg "127.0.0.1:9999" or "www.google.com:80")
      * @param defaultPort what value we should use as a default port, if (s) doesn't specify one
      * @param allowDNSLookups true iff we want to parse hostnames (could be slow!); false if we only care about parsing explicit IP addresses
      */
@@ -392,18 +392,18 @@ public:
    /** Resets this object to its default state; as if it had just been created by the default constructor. */
    void Reset() {_ip = invalidIP; _port = 0;}
 
-   /** Returns true iff both our IP address and port number are valid (i.e. non-zero) */
+   /** Returns true iff both our IP address and port number are valid (ie non-zero) */
    bool IsValid() const {return ((_ip != invalidIP)&&(_port != 0));}
 
    /** Sets this object's state from the passed-in character string.
      * IPv4 address may be of the form "192.168.1.102", or of the form "192.168.1.102:2960".
-     * As long as -DMUSCLE_AVOID_IPV6 is not defined, IPv6 address (e.g. "::1") are also supported.
+     * As long as -DMUSCLE_AVOID_IPV6 is not defined, IPv6 address (eg "::1") are also supported.
      * Note that if you want to specify an IPv6 address and a port number at the same
      * time, you will need to enclose the IPv6 address in brackets, like this:  "[::1]:2960"
      * @param s The user-readable IP-address string, with optional port specification
      * @param defaultPort What port number to assign if the string does not specify a port number.
      * @param allowDNSLookups If true, this function will try to interpret non-numeric host names
-     *                        e.g. "www.google.com" by doing a DNS lookup.  If false, then no
+     *                        eg "www.google.com" by doing a DNS lookup.  If false, then no
      *                        name resolution will be attempted, and only numeric IP addesses will be parsed.
      */
    void SetFromString(const String & s, uint16 defaultPort, bool allowDNSLookups);
@@ -411,7 +411,7 @@ public:
    /** Returns a string representation of this object, similar to the forms
      * described in the SetFromString() documentation, above.
      * @param includePort If true, the port will be included in the string.  Defaults to true.
-     * @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
+     * @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
      *                                      Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
      */
    String ToString(bool includePort = true, bool printIPv4AddressesInIPv4Style = true) const;

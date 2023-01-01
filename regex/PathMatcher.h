@@ -84,8 +84,8 @@ private:
    ConstQueryFilterRef _filter;
 };
 
-/** This class is used to do efficient regex-pattern-matching of one or more query strings (e.g. ".*./.*./j*remy/fries*")
-  * against various path strings (e.g. "12.18.240.15/123/jeremy/friesner").  A given path string is said to 'match'
+/** This class is used to do efficient regex-pattern-matching of one or more query strings (eg ".*./.*./j*remy/fries*")
+  * against various path strings (eg "12.18.240.15/123/jeremy/friesner").  A given path string is said to 'match'
   * if it matches at least one of the query strings added to this object.
   * Note that the search strings are always treated as relative paths -- if you pass in a search string with
   * a leading slash, then it will be interpeted as a relative query with the first level of the query looking
@@ -106,7 +106,7 @@ public:
    /** Removes all path nodes from this object */
    void Clear() {_entries.Clear(); _numFilters = 0;}
 
-   /** Parses the given query string (e.g. "12.18.240.15/1234/beshare/j*") to this PathMatcher's set of query strings.
+   /** Parses the given query string (eg "12.18.240.15/1234/beshare/j*") to this PathMatcher's set of query strings.
     *  Note that the search strings are always treated as relative paths -- if you pass in a search string with
     *  a leading slash, then it will be interpeted as a relative query with the first level of the query looking
     *  for nodes with name "".
@@ -191,7 +191,7 @@ DECLARE_REFTYPES(PathMatcher);
 
 /** Returns a pointer into (path) after the (depth)'th '/' char
  *  @param depth the depth in the path to search for (0 == root, 1 == first level, 2 == second, etc.)
- *  @param path the path string (e.g. "/x/y/z/...") to search through
+ *  @param path the path string (eg "/x/y/z/...") to search through
  *  @returns a pointer into (path), or NULL on failure.
  */
 const char * GetPathClause(int depth, const char * path);
@@ -200,7 +200,7 @@ const char * GetPathClause(int depth, const char * path);
  *  instead of the entire remainder of the string.  This version is
  *  somewhat less efficient, but easier to user.
  *  @param depth the depth in the path to search for (0 == root, 1 == first level, 2 == second, etc.)
- *  @param path the path string (e.g. "/x/y/z/...") to search through
+ *  @param path the path string (eg "/x/y/z/...") to search through
  *  @returns The string that is the (nth) item in the path, or "" if the depth is invalid.
  */
 String GetPathClauseString(int depth, const char * path);

@@ -103,7 +103,7 @@ status_t ParseArg(const String & arg, Message & addTo, bool caseSensitive = fals
 
 /** Scans a line for multiple arguments and calls ParseArg() on each one found.
  *  Quotation marks will be used to group tokens if necessary.
- *  @param arg A line of text, e.g.  arg1=blah arg2=borf arg3="quoted borf"
+ *  @param arg A line of text, eg  arg1=blah arg2=borf arg3="quoted borf"
  *  @param addTo Message to add the argument results to.
   * @param caseSensitive Defaults to false.  If true, the case of the arguments will be retained; if false, they will be forced to lower case.
  *  @return B_NO_ERROR on success, or an error code on failure.
@@ -167,7 +167,7 @@ status_t ParseArg(const String & arg, Queue<String> & addTo, bool caseSensitive 
 
 /** Scans a line for multiple arguments and calls ParseArg() on each one found.
  *  Quotation marks will be used to group tokens if necessary.
- *  @param arg A line of text, e.g.  arg1=blah arg2=borf arg3="quoted borf"
+ *  @param arg A line of text, eg  arg1=blah arg2=borf arg3="quoted borf"
  *  @param addTo Queue to add the argument results to.
   * @param caseSensitive Defaults to false.  If true, the case of the arguments will be retained; if false, they will be forced to lower case.
  *  @return B_NO_ERROR on success, or an error code on failure.
@@ -196,7 +196,7 @@ String UnparseArgs(const Queue<String> & argQ, uint32 startIdx=0, uint32 afterEn
  *  @param retHost On successful return, the hostname or IP address to connect to will be written here.
  *  @param retPort On successful return, if a port number was parsed it will be written here.
  *  @param portRequired If false, this function will succeed even if no port was specified.
- *                      If true, the function will fail if a port was not specified (e.g. "localhost:5555").
+ *                      If true, the function will fail if a port was not specified (eg "localhost:5555").
  *                      Defaults to false.
  *  @param argIdx The field index to use when parsing the argument string from (args).  Defaults to zero.
  *  @returns B_NO_ERROR if an argument was parsed, or an error code if it wasn't.
@@ -205,17 +205,17 @@ status_t ParseConnectArg(const Message & args, const String & fn, String & retHo
 
 /** Same as above, except that instead of looking for the specified string in a Message, in this
  *  case the string is passed in directly.
- *  @param arg The connect string (e.g. "localhost:2960")
+ *  @param arg The connect string (eg "localhost:2960")
  *  @param retHost On successful return, the hostname or IP address to connect to will be written here.
  *  @param retPort On successful return, if a port number was parsed it will be written here.
  *  @param portRequired If false, this function will succeed even if no port was specified.
- *                      If true, the function will fail if a port was not specified (e.g. "localhost:5555").
+ *                      If true, the function will fail if a port was not specified (eg "localhost:5555").
  *                      Defaults to false.
  *  @returns B_NO_ERROR if an argument was parsed, or an error code if it wasn't.
  */
 status_t ParseConnectArg(const String & arg, String & retHost, uint16 & retPort, bool portRequired = false);
 
-/** Given a hostname (or IP address) and a port number, returns the associated connect-string (e.g. "localhost:9999")
+/** Given a hostname (or IP address) and a port number, returns the associated connect-string (eg "localhost:9999")
   * or ("[ff05::1]:5555")
   * @param host A hostname or IP address
   * @param port A port number.
@@ -232,7 +232,7 @@ String GetConnectString(const String & host, uint16 port);
  */
 status_t ParsePortArg(const Message & args, const String & fn, uint16 & retPort, uint32 argIdx = 0);
 
-/** Given an English word representing a boolean (e.g. "on", "off", "enable", "disable", "true", "false", "1", "0", etc),
+/** Given an English word representing a boolean (eg "on", "off", "enable", "disable", "true", "false", "1", "0", etc),
   * returns the corresponding boolean value.
   * @param word The english word string to parse.
   * @param defaultValue what to return if the passed-in string is not recognized.
@@ -248,8 +248,8 @@ bool ParseBool(const String & word, bool defaultValue=true);
  *     displaylevel=levelstr -- Set the stdout output display filter level to (levelstr)
  *     filelevel=levelstr    -- Set the output log file filter level to (levelstr)
  *     logfile=levelstr      -- Force the log file to have this name/location
- *     nice[=niceLevel]      -- Linux/OSX only: makes this process nicer (i.e. lower priority)
- *     mean[=meanLevel]      -- Linux/OSX only: makes this process meaner (i.e. higher priority)
+ *     nice[=niceLevel]      -- Linux/OSX only: makes this process nicer (ie lower priority)
+ *     mean[=meanLevel]      -- Linux/OSX only: makes this process meaner (ie higher priority)
  *     realtime[=priority]   -- Linux only: makes this process real-time (requires root access)
  *     debugcrashes          -- Linux only: print a stack trace when a crash occurs
  *     console               -- Windows only:  open a DOS box to display this window's output
@@ -258,14 +258,14 @@ bool ParseBool(const String & word, bool defaultValue=true);
 void HandleStandardDaemonArgs(const Message & args);
 
 /** Similar to the standard exit() call, except that no global object destructors will
-  * be called.  This is sometimes useful, e.g. in fork() situations where you want the
+  * be called.  This is sometimes useful, eg in fork() situations where you want the
   * parent process to just go away without any chance of a crash during cleanup.
   * @param exitCode the exit code value that should be passed back to our parent process
-  *                 (i.e. the argument to pass to exit() or _exit())
+  *                 (ie the argument to pass to exit() or _exit())
   */
 void ExitWithoutCleanup(int exitCode);
 
-/** Causes this process to terminate abnormally (i.e. with a crash).
+/** Causes this process to terminate abnormally (ie with a crash).
   * Under Windows, this is implemented by calling RaiseException(EXCEPTION_BREAKPOINT).
   * Under all other OS's, this is implemented by calling abort().
   * @note this function will not return!
@@ -311,21 +311,21 @@ void RemoveANSISequences(String & s);
   * in a DNS label removed.  (According to DNS rules, only letters, digits, and the '-'
   * character are legal in a DNS label, and the label must be less than 64 characters long).
   * Note that this string cleans up just a single part of a DNS hostname path.
-  * If you want to clean up a path string (e.g. "www.foo.com"), call CleanupDNSPath() instead.
+  * If you want to clean up a path string (eg "www.foo.com"), call CleanupDNSPath() instead.
   * @param s A string that is presented as a candidate for being a DNS label.
   * @param optAdditionalAllowedChars if specified, this string represents a list of other
   *                                  characters that we will allow into the returned String as a
-  *                                  special case (i.e. we won't filter them out)
+  *                                  special case (ie we won't filter them out)
   * @returns the DNS label that most closely resembles (s).
   */
 String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChars = GetEmptyString());
 
-/** Given a DNS path string (e.g. "www.foo.com") runs each dot-separated portion of the
+/** Given a DNS path string (eg "www.foo.com") runs each dot-separated portion of the
   * path through CleanupDNSLabel() and returns the cleaned up result.
   * @param s A string that is presented as a candidate for being a DNS path.
   * @param optAdditionalAllowedChars if specified, this string represents a list of other
   *                                  characters that we will allow into the returned String as a
-  *                                  special case (i.e. we won't filter them out)
+  *                                  special case (ie we won't filter them out)
   * @returns the DNS path that most closely resembles (s).
   */
 String CleanupDNSPath(const String & s, const String & optAdditionalAllowedChars = GetEmptyString());
@@ -531,9 +531,9 @@ String HexBytesToAnnotatedString(const Queue<uint8> & bytes, const char * optDes
 /** Given a string with an ASCII representation of hexadecimal bytes,
   * returns the corresponding binary data.
   * @param buf A hexadecimal string.  Each hex byte should be expressed as
-  *            two ASCII characters (e.g. "f0 1f 7e f7"), or alternatively
+  *            two ASCII characters (eg "f0 1f 7e f7"), or alternatively
   *            you can enter chars in ASCII if you prepend each one with
-  *            a slash (e.g. "/h /e /l /l /o").
+  *            a slash (eg "/h /e /l /l /o").
   * @returns a ByteBufferRef containing the corresponding binary data,
   *          or a NULL ByteBufferRef on failure (out of memory?)
   */
@@ -542,25 +542,25 @@ ByteBufferRef ParseHexBytes(const char * buf);
 /** Given a byte buffer, returns an ASCII representation of it.
   * @param buf A buffer of bytes
   * @param numBytes The number of bytes that (buf) points to.
-  * @returns a String with human-readable contents:  e.g. "5F A3 A2"...
+  * @returns a String with human-readable contents:  eg "5F A3 A2"...
   */
 String HexBytesToString(const uint8 * buf, uint32 numBytes);
 
 /** Given a reference to a byte buffer, returns an ASCII representation of it.
   * @param bbRef Reference to a buffer of bytes.
-  * @returns a String with human-readable contents:  e.g. "5F A3 A2"...
+  * @returns a String with human-readable contents:  eg "5F A3 A2"...
   */
 String HexBytesToString(const ConstByteBufferRef & bbRef);
 
 /** Given a byte buffer, returns an ASCII representation of it.
   * @param bb a buffer of bytes.
-  * @returns a String with human-readable contents:  e.g. "5F A3 A2"...
+  * @returns a String with human-readable contents:  eg "5F A3 A2"...
   */
 String HexBytesToString(const ByteBuffer & bb);
 
 /** Given a Queue of uint8s, returns an ASCII representation of it.
   * @param bytes a Queue of uint8s.
-  * @returns a String with human-readable contents:  e.g. "5F A3 A2"...
+  * @returns a String with human-readable contents:  eg "5F A3 A2"...
   */
 String HexBytesToString(const Queue<uint8> & bytes);
 
@@ -644,7 +644,7 @@ void Win32AllocateStdioConsole(const char * optOutFilePath = NULL);
 float GetSystemMemoryUsagePercentage();
 
 /** Returns the (approximate) current size of the process-heap for the current process, in bytes.
-  * Returns 0 on failure (i.e. unable to determine heap size)
+  * Returns 0 on failure (ie unable to determine heap size)
   * @note this function is currently implemented for MacOS/X, Windows, and Linux only.
   *       On other OS's it will always return 0.
   */

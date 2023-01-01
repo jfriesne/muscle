@@ -231,19 +231,19 @@ DECLARE_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS);
 // if 'what' is PR_COMMAND_REMOVEPARAMETERS:
 //    The session looks for PR_NAME_KEYS string entrys.  For each string found
 //    under this entry, any matching field in the parameters message are deleted.
-//    Wildcards are permitted in these strings.  (So e.g. "*" would remove ALL parameters)
+//    Wildcards are permitted in these strings.  (So eg "*" would remove ALL parameters)
 //
 // if 'what' is PR_COMMAND_SETDATA:
 //    Scans the message for all fields of type message.  Each message field
 //    should contain only one message.  The field's name is parsed as a local
-//    key-path of the data item (e.g. "myData", or "imageInfo/colors/red").
+//    key-path of the data item (eg "myData", or "imageInfo/colors/red").
 //    Each contained message will be stored in the local session's data tree under
 //    that key path.  (Note:  fields that start with a '/' are not allowed, and
 //    will be ignored!)
 //
 // if 'what' is PR_COMMAND_REMOVEDATA:
 //    Removes all data nodes that match the path(s) in the PR_NAME_KEYS string field.
-//    Paths should be specified relative to this session's root node (i.e. they should
+//    Paths should be specified relative to this session's root node (ie they should
 //    not start with a slash)  QueryFilter objects may be provided in the PR_NAME_FILTERS
 //    Message field.  Any PR_NAME_KEYS string without a matching PR_NAME_FILTERS Message
 //    will remove data based solely on path matching, without any QueryFilter object.
@@ -350,7 +350,7 @@ DECLARE_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS);
 //    The message contains information about data that is stored on the server.  All stored
 //    data is stored in the form of Messages.  Thus, all data in this message will be
 //    in the form of a message field, with the field's name being the fully qualified path
-//    of the node it represents (e.g. "/my.computer.com/5/MyNodeName") and the value being
+//    of the node it represents (eg "/my.computer.com/5/MyNodeName") and the value being
 //    the stored data itself.  Occasionally it is necessary to inform the client that a data
 //    node has been deleted; this is done by adding the deceased node's path name as a string
 //    to the PR_NAME_REMOVED_DATAITEM field.  If multiple nodes were removed, there may be

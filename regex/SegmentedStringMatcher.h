@@ -51,7 +51,7 @@ public:
    const String & GetPattern() const {return _pattern;}
 
    /** Returns true iff this SegmentedStringMatcher's pattern specifies exactly one possible string.
-    *  (i.e. the pattern is just plain old text, with no wildcards or other pattern matching logic specified)
+    *  (ie the pattern is just plain old text, with no wildcards or other pattern matching logic specified)
     */
    bool IsPatternUnique() const;
 
@@ -71,7 +71,7 @@ public:
    inline bool Match(const String & matchString) const {return Match(matchString());}
 
    /** If set true, Match() will return the logical opposite of what
-     * it would otherwise return; e.g. it will return true only when
+     * it would otherwise return; eg it will return true only when
      * the given string doesn't match the pattern.
      * Default state is false.  Note that this flag is also set by
      * SetPattern(..., true), based on whether or not the pattern

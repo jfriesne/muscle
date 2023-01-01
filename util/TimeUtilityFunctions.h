@@ -43,7 +43,7 @@ uint64 GetCurrentTime64(uint32 timeType=MUSCLE_TIMEZONE_UTC);
 
 /** Returns a current time value, in microseconds, that is guaranteed never to decrease.  The absolute
  *  values returned by this call are undefined, so you should only use it for measuring relative time
- *  (i.e. how much time has passed between two events).  For a "wall clock" type of result with
+ *  (ie how much time has passed between two events).  For a "wall clock" type of result with
  *  a well-defined time-base, you can call GetCurrentTime64() instead.
  */
 uint64 GetRunTime64();
@@ -58,7 +58,7 @@ void SetPerProcessRunTime64Offset(int64 offset);
 int64 GetPerProcessRunTime64Offset();
 
 /** Given a run-time value, returns the equivalent current-time value.
-  * @param runTime64 A run-time value, e.g. as returned by GetRunTime64().
+  * @param runTime64 A run-time value, eg as returned by GetRunTime64().
   * @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the value returned will be the equivalent UTC time.
   *                 If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the returned value will include the proper
   *                 offset to make the time be the equivalent time as expressed in this machine's local time zone.
@@ -70,7 +70,7 @@ int64 GetPerProcessRunTime64Offset();
 inline uint64 GetCurrentTime64ForRunTime64(uint64 runTime64, uint32 timeType=MUSCLE_TIMEZONE_UTC) {return GetCurrentTime64(timeType)+(runTime64-GetRunTime64());}
 
 /** Given a current-time value, returns the equivalent run-time value.
-  * @param currentTime64 A current-time value, e.g. as returned by GetCurrentTime64(timeType).
+  * @param currentTime64 A current-time value, eg as returned by GetCurrentTime64(timeType).
   * @param timeType if left as MUSCLE_TIMEZONE_UTC (the default), the (currentTime64) argument will be interpreted as a UTC time.
   *                 If set to MUSCLE_TIMEZONE_LOCAL, on the other hand, the (currentTime64) argument will be interpreted as
   *                 a current-time in this machine's local time zone.
@@ -88,7 +88,7 @@ inline uint64 GetRunTime64ForCurrentTime64(uint64 currentTime64, uint32 timeType
 status_t Snooze64(uint64 micros);
 
 /** Convenience function:  Returns true no more than once every (interval).
- *  Useful if you are in a tight loop, but don't want e.g. more than one debug output line per second, or something like that.
+ *  Useful if you are in a tight loop, but don't want eg more than one debug output line per second, or something like that.
  *  @param interval The minimum time that must elapse between two calls to this function returning true (in microseconds).
  *  @param lastTime A state variable.  Pass in the same reference every time you call this function.  (set to zero the first time)
  *  @return true iff it has been at least (interval) since the last time this function returned true, else false.

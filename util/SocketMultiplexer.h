@@ -21,7 +21,7 @@
 # endif
 #else
 # ifndef MUSCLE_USE_SELECT
-/** Causes SocketMultiplexer() to use the select() system call in its implementation.  This constant is defined implicitly if none of the other MUSCLE_USE_* preprocessor constants (e.g. MUSCLE_USE_KQUEUE, MUSCLE_USE_EPOLL, MUSCLE_USE_POLL, etc) were defined explicitly. */
+/** Causes SocketMultiplexer() to use the select() system call in its implementation.  This constant is defined implicitly if none of the other MUSCLE_USE_* preprocessor constants (eg MUSCLE_USE_KQUEUE, MUSCLE_USE_EPOLL, MUSCLE_USE_POLL, etc) were defined explicitly. */
 #  define MUSCLE_USE_SELECT 1
 # endif
 #endif

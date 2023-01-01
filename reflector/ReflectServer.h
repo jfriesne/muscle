@@ -245,7 +245,7 @@ public:
      * This table may be examined or altered.  When a new connection is accepted,
      * the ReflectServer will consult this table for the address-level MUSCLE node's
      * name.  If an entry is found, it will be used verbatim; otherwise, a name will
-     * be created based on the peer's IP address.  Useful for e.g. NAT remapping...
+     * be created based on the peer's IP address.  Useful for eg NAT remapping...
      */
    Hashtable<IPAddress, String> & GetAddressRemappingTable() {return _remapIPs;}
 
@@ -269,7 +269,7 @@ public:
 
 #ifdef MUSCLE_ENABLE_SSL
    /** Sets the SSL private key data that should be used to authenticate and encrypt
-     * accepted incoming TCP connections.  Default state is a NULL reference (i.e. no SSL
+     * accepted incoming TCP connections.  Default state is a NULL reference (ie no SSL
      * encryption will be used for incoming connecitons).
      * @param privateKey Reference to the contents of a .pem file containing both
      *        a PRIVATE KEY section and a CERTIFICATE section, or a NULL reference
@@ -282,7 +282,7 @@ public:
    const ConstByteBufferRef & GetSSLPrivateKey() const {return _privateKey;}
 
    /** Sets the SSL public key data that should be used to authenticate and encrypt
-     * outgoing TCP connections.  Default state is a NULL reference (i.e. no SSL
+     * outgoing TCP connections.  Default state is a NULL reference (ie no SSL
      * encryption will be used for outgoing connections).
      * @param publicKey Reference to the contents of a .pem file containing a CERTIFICATE
      *        section, or a NULL reference if you want to make SSL disabled again.

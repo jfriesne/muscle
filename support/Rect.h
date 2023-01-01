@@ -215,7 +215,7 @@ public:
      */
    inline bool Intersects(const Rect & r) const {return (r&(*this)).IsValid();}
 
-   /** Returns true iff this rectangle's area is non imaginary (i.e. Width() and Height()) are both non-negative) */
+   /** Returns true iff this rectangle's area is non imaginary (ie Width() and Height()) are both non-negative) */
    inline bool IsValid() const {return ((Width() >= 0.0f)&&(Height() >= 0.0f));}
 
    /** Returns the area of this rectangle. */

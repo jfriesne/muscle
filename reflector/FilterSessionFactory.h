@@ -32,7 +32,7 @@ public:
 
    /** Checks to see if the new session meets all our acceptance criteria.
      * If so, the call is passed through to our held factory;  if not, it's "access denied" time, and we return NULL.
-     * @param clientAddress A string representing the connecting client's host (typically an IP address, e.g. "192.168.1.102")
+     * @param clientAddress A string representing the connecting client's host (typically an IP address, eg "192.168.1.102")
      * @param factoryInfo the IP address and port of the network interface that accepted the connection
      * @returns A reference to a new session object on approval, or a NULL reference on denial or error.
      */
@@ -46,13 +46,13 @@ public:
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void * userData);
 
    /** Add a new ban pattern to our set of ban patterns
-     * @param banPattern Pattern to match against (e.g. "192.168.0.*")
+     * @param banPattern Pattern to match against (eg "192.168.0.*")
      * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t PutBanPattern(const String & banPattern);
 
    /** Add a new require pattern to our set of require patterns
-     * @param requirePattern Pattern to match against (e.g. "192.168.0.*")
+     * @param requirePattern Pattern to match against (eg "192.168.0.*")
      * @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t PutRequirePattern(const String & requirePattern);
@@ -93,13 +93,13 @@ public:
      */
    void SetOutputPolicy(const AbstractSessionIOPolicyRef & ref) {_outputPolicyRef = ref;}
 
-   /** Sets the new max-sessions-per-host limit -- i.e. how many sessions from any given IP address
+   /** Sets the new max-sessions-per-host limit -- ie how many sessions from any given IP address
      * may be connected to our server concurrently.
      * @param maxSessionsPerHost the new maximum sessions-per-host limit
      */
    void SetMaxSessionsPerHost(uint32 maxSessionsPerHost) {_maxSessionsPerHost = maxSessionsPerHost;}
 
-   /** Sets the new total-max-sessions limit -- i.e. how many sessions may be connected to our server concurrently.
+   /** Sets the new total-max-sessions limit -- ie how many sessions may be connected to our server concurrently.
      * @param maxSessions the new max-simultaneous-sessions limit
      */
    void SetTotalMaxSessions(uint32 maxSessions) {_totalMaxSessions = maxSessions;}
@@ -107,7 +107,7 @@ public:
    /** Returns the current max-sessions-per-host limit  */
    uint32 GetMaxSessionsPerHost() const {return _maxSessionsPerHost;}
 
-   /** Sets the current total-max-sessions limit -- i.e. how many sessions may be connected to our server concurrently.  */
+   /** Sets the current total-max-sessions limit -- ie how many sessions may be connected to our server concurrently.  */
    uint32 GetTotalMaxSessions() const {return _totalMaxSessions;}
 
 private:

@@ -194,7 +194,7 @@ public:
      */
    void SetBackwards(bool backwards) {if (backwards) _flags |= HTIT_FLAG_BACKWARDS; else _flags &= ~HTIT_FLAG_BACKWARDS;}
 
-   /** Returns true iff this iterator is set to iterate in reverse order -- i.e. if HTIT_FLAG_BACKWARDS
+   /** Returns true iff this iterator is set to iterate in reverse order -- ie if HTIT_FLAG_BACKWARDS
      * was passed in to the constructor, or if SetBackwards(true) was called.
      */
    bool IsBackwards() const {return ((_flags & HTIT_FLAG_BACKWARDS) != 0);}
@@ -266,10 +266,10 @@ public:
    /** Returns the number of items stored in the table. */
    uint32 GetNumItems() const {return _numItems;}
 
-   /** Convenience method;  Returns true iff the table is empty (i.e. if GetNumItems() is zero). */
+   /** Convenience method;  Returns true iff the table is empty (ie if GetNumItems() is zero). */
    bool IsEmpty() const {return (_numItems == 0);}
 
-   /** Convenience method;  Returns true iff the table is non-empty (i.e. if GetNumItems() is non-zero). */
+   /** Convenience method;  Returns true iff the table is non-empty (ie if GetNumItems() is non-zero). */
    bool HasItems() const {return (_numItems > 0);}
 
    /** Returns true iff the table contains a mapping with the given key.  (O(1) search time)
@@ -631,7 +631,7 @@ public:
    /** Computes the average number of key-comparisons that will be required for
      * looking up the current contents of this table.
      * Note that this method iterates over the entire table, so it should only
-     * be called when performance is not important (e.g. when trying to debug/optimize a hash function)
+     * be called when performance is not important (eg when trying to debug/optimize a hash function)
      * @param printStatistics If true, text describing the table's layout will be printed to stdout also.
      * @returns The average number of key-comparisons needed to find an item in this table, given its current contents.
      */
@@ -978,7 +978,7 @@ public:
      * @note This method checks whether the specified key-object is physically located
      *       inside this Hashtable's internal data-array, NOT whether a key/value pair
      *       with a key equivalent to the argument is present in the table.
-     *       (i.e. this method is NOT a synonym for the ContainsKey() method!)
+     *       (ie this method is NOT a synonym for the ContainsKey() method!)
      */
    bool IsKeyLocatedInThisContainer(const KeyType & key) {return IsPointerPointingIntoDataTable(&key);}
 
@@ -988,7 +988,7 @@ public:
      * @note This method checks whether the specified value-object is physically located
      *       inside this Hashtable's internal data-array, NOT whether a key/value pair
      *       with a value equivalent to the argument is present in the table.
-     *       (i.e. this method is NOT a synonym for the ContainsValue() method!)
+     *       (ie this method is NOT a synonym for the ContainsValue() method!)
      */
    bool IsValueLocatedInThisContainer(const ValueType & value) {return IsPointerPointingIntoDataTable(&value);}
 
@@ -1807,7 +1807,7 @@ public:
      * @param key The key to affect.
      * @param value The value to place into (or remove from) the table.
      * @param defaultValue The value to compare (value) with to decide whether to Put() or Remove() the key.
-     * @returns B_NO_ERROR on success (i.e. if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
+     * @returns B_NO_ERROR on success (ie if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
      */
    HT_UniversalSinkKeyValueRef status_t PutOrRemove(HT_SinkKeyParam key, HT_SinkValueParam value, const ValueType & defaultValue)  // yes, defaultValue is not declared as HT_SinkValueParam!
    {
@@ -1822,7 +1822,7 @@ public:
    /** As above, except no (defaultValue) is specified.  A default-constructed object of type (ValueType) is assumed.
      * @param key The key to affect.
      * @param value The value to possibly place into the table.
-     * @returns B_NO_ERROR on success (i.e. if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
+     * @returns B_NO_ERROR on success (ie if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
      */
    HT_UniversalSinkKeyValueRef status_t PutOrRemove(HT_SinkKeyParam key, HT_SinkValueParam value)
    {
@@ -1838,7 +1838,7 @@ public:
      * If (optValue) is NULL, this call removes the key/value pair from the table.
      * @param key The key value to affect.
      * @param optValue A pointer to the value to place into the table, or a NULL pointer to remove the key/value pair of the specified key.
-     * @returns B_NO_ERROR on success (i.e. if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
+     * @returns B_NO_ERROR on success (ie if the table has been updated to the appropriate state) or an error code on failure (out of memory?)
      */
    HT_UniversalSinkKeyRef status_t PutOrRemove(HT_SinkKeyParam key, const ValueType * optValue)
    {
@@ -2179,7 +2179,7 @@ public:
 
    /** Moves the specified key/value pair so that it is in the correct position based on the
      * class's current iteration-ordering.  Generally this call isn't necessary if the table's
-     * auto-sort mode is enabled, but you might want to call it after e.g. manually modifying
+     * auto-sort mode is enabled, but you might want to call it after eg manually modifying
      * that table's iteration-order.
      * @param key The key object of the key/value pair that may need to be repositioned to
      *            its correct (sorted-by-value) location.
@@ -3063,7 +3063,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Clear(bool releaseCachedBuffer
    }
 
    // It's important to set each in-use HashtableEntryBase to its default state so
-   // that any held memory (e.g. RefCountables) will be freed, etc.
+   // that any held memory (eg RefCountables) will be freed, etc.
    // Calling RemoveEntry() on each item is necessary to ensure correct behavior
    // even when the templatized classes' assignment operations cause re-entrancies, etc.
    while(_iterHeadIdx != MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) (void) RemoveEntryByIndex(_iterHeadIdx, NULL);
@@ -3330,7 +3330,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::InsertIterationEntryInOrder(co
       if ((HasItems())&&(ecf.Compare(*e, *this->IndexToEntryUnchecked(this->_iterHeadIdx), compareCookie) >= 0))
       {
          // Iterate backwards through the iteration-list, on the assumption that it's more common to add key/value
-         // pairs near the end of the iteration-list than near the start of it (e.g. when using timestamps as keys)
+         // pairs near the end of the iteration-list than near the start of it (eg when using timestamps as keys)
          insertAfter = this->IndexToEntryChecked(this->_iterTailIdx);
          while(ecf.Compare(*e, *insertAfter, compareCookie) < 0) insertAfter = this->GetEntryIterPrevChecked(insertAfter);
       }

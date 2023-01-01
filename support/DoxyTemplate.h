@@ -127,7 +127,7 @@ public:
    /** Returns true iff the FlattenedSize() method of this class will always return the same value for all possible objects of this class. */
    bool IsFixedSize() const;
 
-   /** Returns the type code value (e.g. B_STRING_TYPE or whatever) that represents this class */
+   /** Returns the type code value (eg B_STRING_TYPE or whatever) that represents this class */
    uint32 TypeCode() const;
 
    /** Returns true iff the supplied type code value represents a type we know how to Unflatten() from.

@@ -26,7 +26,7 @@ public:
    /** Returns the current value */
    uint32 GetCount() const {return _count;}
 
-   /** Returns true iff nesting is currently active (i.e. if our counter is non-zero) */
+   /** Returns true iff nesting is currently active (ie if our counter is non-zero) */
    bool IsInBatch() const {return (_count > 0);}
 
    /** Returns true iff we are in the outermost nesting level of the batch */
@@ -61,7 +61,7 @@ public:
    /** Returns our NestCount object's current count. */
    uint32 GetNestCount() const {return _count.GetCount();}
 
-   /** Returns true iff nesting is currently active (i.e. if our counter is non-zero) */
+   /** Returns true iff nesting is currently active (ie if our counter is non-zero) */
    bool IsInBatch() const {return _count.IsInBatch();}
 
    /** Returns true iff we are the outermost of the nested calls to our NestCount */

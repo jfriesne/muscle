@@ -1,8 +1,7 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-/** This header contains private implementation details of the Message class.  Do not include this header in your
-  * code and do not reference any of the classes inside it, as they are private and subject to change without notice.
-  */
+// This header contains private implementation details of the Message class.  Do not include this header in your
+// code and do not reference any of the classes inside it, as they are private and subject to change without notice.
 
 #ifndef MuscleMessage_impl_h
 #define MuscleMessage_impl_h
@@ -21,7 +20,11 @@ namespace muscle {
 
 class Message;
 
-namespace muscle_message_imp {
+/** The muscle_private namespace contains implementation details that are for MUSCLE's internal use only.
+  * User code should not use or reference anything inside the muscle_private namespace, as it its contents
+  * are all subject to change without notice at any time.
+  */
+namespace muscle_private {
 
 /** This class is a private part of the Message class's implementation.  User code should not access this class directly.
   * It is used to hold the values of a Message field that contains multiple values.
@@ -408,7 +411,7 @@ private:
    } _union;
 };
 
-} // end namespace muscle_message_imp
+} // end namespace muscle_private
 
 } // end namespace muscle
 

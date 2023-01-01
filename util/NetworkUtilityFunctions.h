@@ -36,7 +36,7 @@ namespace muscle {
 #ifndef MUSCLE_EXPECTED_MTU_SIZE_BYTES
 /** The total maximum size of a packet (including all headers and user data) that can be sent
  *  over a network without causing packet fragmentation.  Default value is 1500 (appropriate for
- *  standard Ethernet) but it can be overridden to another value at compile time via e.g. -DMUSCLE_EXPECTED_MTU_SIZE_BYTES=1200
+ *  standard Ethernet) but it can be overridden to another value at compile time via eg -DMUSCLE_EXPECTED_MTU_SIZE_BYTES=1200
  */
 # define MUSCLE_EXPECTED_MTU_SIZE_BYTES 1500
 #endif
@@ -46,7 +46,7 @@ namespace muscle {
 #endif
 
 #ifdef MUSCLE_AVOID_IPV6
-# define MUSCLE_IP_HEADER_SIZE_BYTES 24  /**< Number of bytes in an IPv4 packet header: assumes worst-case scenario (i.e. that the options field is included) */
+# define MUSCLE_IP_HEADER_SIZE_BYTES 24  /**< Number of bytes in an IPv4 packet header: assumes worst-case scenario (ie that the options field is included) */
 #else
 # define MUSCLE_IP_HEADER_SIZE_BYTES 40  /**< Number of bytes in an IPv6 packet header: assuming no additional header chunks, of course */
 #endif
@@ -65,7 +65,7 @@ namespace muscle {
 /* IPv6 addressing support */
 
 /** This function sets a global flag that indicates whether or not automatic translation of
-  * IPv4-compatible IPv6 addresses (e.g. "::192.168.0.1") to IPv4-mapped IPv6 addresses (e.g. "::ffff:192.168.0.1")
+  * IPv4-compatible IPv6 addresses (eg "::192.168.0.1") to IPv4-mapped IPv6 addresses (eg "::ffff:192.168.0.1")
   * should be enabled.  This flag is set to true by default; if you want to set it to false you
   * would typically do so only at the top of main() and then not set it again.
   * This automatic remapping is useful if you want your software to handle both IPv4 and IPv6
@@ -84,7 +84,7 @@ bool GetAutomaticIPv4AddressMappingEnabled();
 
 #endif
 
-/** Given a hostname or IP address string (e.g. "www.google.com" or "192.168.0.1" or "fe80::1"),
+/** Given a hostname or IP address string (eg "www.google.com" or "192.168.0.1" or "fe80::1"),
   * returns the numeric IPAddress value that corresponds to that name.  This version of the
   * function will call through to IHostNameResolver objects that were previously registered
   * (via PutHostNameResolver()), and call GetHostByNameNative() if they don't succeed.
@@ -99,7 +99,7 @@ bool GetAutomaticIPv4AddressMappingEnabled();
   *                   will be returned.  Defaults to true.
   * @return The associated IP address (local endianness), or invalidIP on failure.
   * @note This function may invoke a synchronous DNS lookup, which means that it may take
-  *       a long time to return (e.g. if the DNS server is not responding)
+  *       a long time to return (eg if the DNS server is not responding)
   */
 IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
 
@@ -117,7 +117,7 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool pr
   *                   will be returned.  Defaults to true.
   * @return The associated IP address (local endianness), or invalidIP on failure.
   * @note This function may invoke a synchronous DNS lookup, which means that it may take
-  *       a long time to return (e.g. if the DNS server is not responding)
+  *       a long time to return (eg if the DNS server is not responding)
   */
 IPAddress GetHostByNameNative(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
 
@@ -294,7 +294,7 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIPAndPort, bool & retIs
 status_t FinalizeAsyncConnect(const ConstSocketRef & sock);
 
 /** Shuts the given socket down.  (Note that you don't generally need to call this function; it's generally
- *  only useful if you need to half-shutdown the socket, e.g. stop the output direction but not the input
+ *  only useful if you need to half-shutdown the socket, eg stop the output direction but not the input
  *  direction)
  *  @param sock The socket to permanently shut down communication on.
  *  @param disableReception If true, further reception of data will be disabled on this socket.  Defaults to true.
@@ -310,7 +310,7 @@ status_t ShutdownSocket(const ConstSocketRef & sock, bool disableReception = tru
  *  @param optInterfaceIP Optional IP address of the local network interface to listen on.  If left unspecified, or
  *                        if passed in as (invalidIP), then this socket will listen on all available network interfaces.
  *  @param socketFamily a SOCKET_FAMILY_* value indicating whether this should be an IPv4 or IPv6 socket.  Defaults to SOCKET_FAMILY_PREFERRED,
- *                      i.e. to IPv6 (unless MUSCLE_AVOID_IPV6 was defined at compile-time).
+ *                      ie to IPv6 (unless MUSCLE_AVOID_IPV6 was defined at compile-time).
  *  @return A non-NULL ConstSocketRef if the port was bound successfully, or a NULL ConstSocketRef if the accept failed.
  */
 ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * optRetPort = NULL, const IPAddress & optInterfaceIP = invalidIP, int socketFamily = SOCKET_FAMILY_PREFERRED);
@@ -319,25 +319,25 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * 
  *  @param address The 4-byte IP address to translate into text.
  *  @param outBuf Buffer where the NUL-terminated ASCII representation of the string will be placed.
  *                This buffer must be at least 64 bytes long (or at least 16 bytes long if MUSCLE_AVOID_IPV6 is defined)
- *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
+ *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
  *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
  */
 void Inet_NtoA(const IPAddress & address, char * outBuf, bool preferIPv4Style = false);
 
 /** A more convenient version of INet_NtoA().  Given an IP address, returns a human-readable String representation of that address.
   *  @param ipAddress the IP address to return in String form.
-  *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as e.g. "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
+  *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
   *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
   */
 String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false);
 
-/** Returns true iff (s) is a well-formed IP address (e.g. "192.168.0.1" or "ff12::888" or etc)
+/** Returns true iff (s) is a well-formed IP address (eg "192.168.0.1" or "ff12::888" or etc)
   * @param s An ASCII string to check the formatting of
   * @returns true iff the given string represents an IP address; false if it doesn't.
   */
 bool IsIPAddress(const char * s);
 
-/** Given an IP address in ASCII format (e.g. "192.168.0.1" or "ff12::888" or etc), returns
+/** Given an IP address in ASCII format (eg "192.168.0.1" or "ff12::888" or etc), returns
   * the equivalent IP address in IPAddress (packed binary) form.
   * @param buf numeric IP address in ASCII.
   * @returns IP address as a IPAddress, or invalidIP on failure.
@@ -388,7 +388,7 @@ status_t SetSocketBlockingEnabled(const ConstSocketRef & sock, bool enabled);
 bool GetSocketBlockingEnabled(const ConstSocketRef & sock);
 
 /**
-  * Turns Nagle's algorithm (i.e. output-packet-buffering/coalescing, with a 200mS timeout) on or off.
+  * Turns Nagle's algorithm (ie output-packet-buffering/coalescing, with a 200mS timeout) on or off.
   * @param sock the socket to act on.
   * @param enabled If true, outgoing TCP data will be held briefly (per Nagle's algorithm) before sending,
   *                to allow for fewer, bigger packets.  If false, then each SendData() call will cause a
@@ -439,7 +439,7 @@ status_t SetSocketSendBufferSize(const ConstSocketRef & sock, uint32 sendBufferS
 /**
   * Returns the current size of the socket's outgoing-data-buffer.
   * @param sock The socket to query.
-  * @return The current size of the socket's outgoing-data-buffer, in bytes, or a negative value on error (e.g. invalid socket)
+  * @return The current size of the socket's outgoing-data-buffer, in bytes, or a negative value on error (eg invalid socket)
   */
 int32 GetSocketSendBufferSize(const ConstSocketRef & sock);
 
@@ -455,7 +455,7 @@ status_t SetSocketReceiveBufferSize(const ConstSocketRef & sock, uint32 receiveB
 /**
   * Returns the current size of the socket's incoming-data-buffer.
   * @param sock The socket to query.
-  * @return The size of the socket's incoming-data-buffer, in bytes, or a negative value on error (e.g. invalid socket)
+  * @return The size of the socket's incoming-data-buffer, in bytes, or a negative value on error (eg invalid socket)
   */
 int32 GetSocketReceiveBufferSize(const ConstSocketRef & sock);
 
@@ -599,7 +599,7 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const IPAddress & remot
  *  Note that this function may take involve a DNS lookup, and so may take a significant
  *  amount of time to complete.
  *  @param sock The UDP socket to send to (previously created by CreateUDPSocket()).
- *  @param remoteHostName Name of remote host (e.g. "www.mycomputer.com" or "132.239.50.8")
+ *  @param remoteHostName Name of remote host (eg "www.mycomputer.com" or "132.239.50.8")
  *  @param remotePort Remote UDP port ID that data should be sent to.
   * @param expandLocalhost If true, then if (name) corresponds to 127.0.0.1, this function
   *                        will attempt to determine the host machine's actual primary IP
@@ -651,7 +651,7 @@ status_t SetSocketMulticastToSelf(const ConstSocketRef & sock, bool multicastToS
 bool GetSocketMulticastToSelf(const ConstSocketRef & sock);
 
 /** Set the "time to live" flag for packets sent by this socket.
-  * Default state is 1, i.e. "local LAN segment only".
+  * Default state is 1, ie "local LAN segment only".
   * Other possible values include 0 ("localhost only"), 2-31 ("local site only"),
   * 32-63 ("local region only"), 64-127 ("local continent only"), or 128-255 ("global").
   * @param sock The socket to set the TTL value for
@@ -680,7 +680,7 @@ int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock);
   *                              interface will be chosen automatically.  This argument is
   *                              only used when (groupAddress) is an IPv4 multicast address!
   * @note Under Windows this call will fail unless the socket has already
-  *       been bound to a port (e.g. with BindUDPSocket()).  Other OS's don't
+  *       been bound to a port (eg with BindUDPSocket()).  Other OS's don't
   *       seem to have that requirement.
   * @returns B_NO_ERROR on success, or an error code on failure.
   */

@@ -84,13 +84,13 @@ static inline ByteBufferRef DeflateByteBuffer(const ConstByteBufferRef & buf, in
 ByteBufferRef InflateByteBuffer(const uint8 * bytes, uint32 numBytes);
 
 /** Given a compressed ByteBuffer, returns the original/uncompressed version of the data.
-  * @param buf a compressed ByteBuffer (e.g. as previously returned by DeflateByteBuffer()) that you want to get the decompressed version of.
+  * @param buf a compressed ByteBuffer (eg as previously returned by DeflateByteBuffer()) that you want to get the decompressed version of.
   * @returns a reference to an uncompressed ByteBuffer (not (buf)!) on success, or a NULL reference on failure.
   */
 static inline ByteBufferRef InflateByteBuffer(const ByteBuffer & buf) {return InflateByteBuffer(buf.GetBuffer(), buf.GetNumBytes());}
 
 /** Given a reference to a compressed ByteBuffer, returns the original/uncompressed version of the data.
-  * @param buf reference to a compressed ByteBuffer (e.g. as previously returned by DeflateByteBuffer()) that you want to get the decompressed version of.
+  * @param buf reference to a compressed ByteBuffer (eg as previously returned by DeflateByteBuffer()) that you want to get the decompressed version of.
   * @returns a reference to an uncompressed ByteBuffer (not (buf())!) on success, or a NULL reference on failure.
   */
 static inline ByteBufferRef InflateByteBuffer(const ConstByteBufferRef & buf) {return buf() ? InflateByteBuffer(*buf()) : ByteBufferRef();}
@@ -137,7 +137,7 @@ bool IsMessageDeflated(const MessageRef & msgRef);
 
 /** Examines the contents of the given Message, and creates and returns a new
  *  Message that represents the same data as the given Message, but in compressed form.
- *  If the passed-in Message is already in compressed form (i.e. it was created by
+ *  If the passed-in Message is already in compressed form (ie it was created by
  *  a previous call to DeflateMessage()) then a reference to the original passed-in Message
  *  is returned instead.
  *  The returned Message is guaranteed to have the same 'what' code as the passed-in Message.
@@ -171,7 +171,7 @@ MessageRef DeflateMessage(const MessageRef & msgRef, int compressionLevel = 6, b
  */
 static inline ConstMessageRef DeflateMessage(const ConstMessageRef & msgRef, int compressionLevel = 6, bool force=true) {return DeflateMessage(CastAwayConstFromRef(msgRef), compressionLevel, force);}
 
-/** Examines the given Message, and if it is a Message in compressed form (i.e. one
+/** Examines the given Message, and if it is a Message in compressed form (ie one
  *  that was previously created by DeflateMessage()), creates and returns the
  *  equivalent uncompressed Message.  If the passed-in Message was not in compressed
  *  form, then this function just returns a reference to the original passed-in Message.
