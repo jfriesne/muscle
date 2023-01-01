@@ -377,7 +377,7 @@ enum {
 # endif
      typedef int32 c_status_t; /**< For C programs: This type indicates an expected value of either CB_NO_ERROR/CB_OK on success, or another value (often CB_ERROR) on failure. */
 # if defined(__cplusplus)
-     /** The muscle namespace is where all of MUSCLE's public APIs are kept. */
+     /** The muscle namespace contains the public API of the MUSCLE library */
      namespace muscle {
         /** This class represents a return-value from a function or method that indicates success or failure.
           * It's implemented as a class instead of as a typedef or enum so that the compiler can provide
