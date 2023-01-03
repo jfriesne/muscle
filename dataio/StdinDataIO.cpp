@@ -187,7 +187,7 @@ io_status_t StdinDataIO :: Read(void * buffer, uint32 size)
    if (_stdinBlocking)
    {
       DWORD actual_read;
-      return ReadFile(GetStdHandle(STD_INPUT_HANDLE), buffer, size, &actual_read, 0) ? io_status_t(actual_read) : io_status_t(B_IO_ERROR);
+      return ReadFile(GetStdHandle(STD_INPUT_HANDLE), buffer, size, &actual_read, 0) ? io_status_t(actual_read) : io_status_t(B_END_OF_STREAM);
    }
    else return ReceiveData(_masterSocket, buffer, size, _stdinBlocking);
 #else

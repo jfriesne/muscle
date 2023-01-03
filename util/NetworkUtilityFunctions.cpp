@@ -383,7 +383,10 @@ io_status_t ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 size,
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   const int32 ret = ConvertReturnValueToMuscleSemantics(recv_ignore_eintr(fd, (char *)buffer, size, 0L), size, bm);
+   const int32 r = recv_ignore_eintr(fd, (char *)buffer, size, 0L);
+   if (r == 0) return B_END_OF_STREAM;
+
+   const int32 ret = ConvertReturnValueToMuscleSemantics(r, size, bm);
    return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 }
 
@@ -395,7 +398,10 @@ io_status_t ReadData(const ConstSocketRef & sock, void * buffer, uint32 size, bo
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   const int32 ret = ConvertReturnValueToMuscleSemantics(read_ignore_eintr(fd, (char *)buffer, size), size, bm);
+   const int32 r = read_ignore_eintr(fd, (char *)buffer, size);
+   if (r == 0) return B_END_OF_STREAM;
+
+   const int32 ret = ConvertReturnValueToMuscleSemantics(r, size, bm);
    return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 #endif
 }

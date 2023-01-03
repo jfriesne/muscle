@@ -44,8 +44,10 @@ io_status_t FileDescriptorDataIO :: Read(void * buffer, uint32 size)
    const int fd = _fd.GetFileDescriptor();
    if (fd < 0) return B_BAD_OBJECT;
 
-   const long   r = read_ignore_eintr(fd, buffer, size);
-   const int32 er = _blocking ? (int32)r : ConvertReturnValueToMuscleSemantics(r, size, _blocking);
+   const int32 r = read_ignore_eintr(fd, buffer, size);
+   if (r == 0) return B_END_OF_STREAM;
+
+   const int32 er = _blocking ? r : ConvertReturnValueToMuscleSemantics(r, size, _blocking);
    return (er >= 0) ? io_status_t(er) : io_status_t(B_ERRNO);
 }
 

@@ -32,7 +32,7 @@ io_status_t FileDataIO :: Read(void * buffer, uint32 size)
    if (_file)
    {
       const int32 ret = (int32) fread(buffer, 1, size, _file);
-      return (ret > 0) ? io_status_t(ret) : io_status_t(B_IO_ERROR);  // EOF is an error, and it's returned as zero
+      return (ret > 0) ? io_status_t(ret) : io_status_t(B_END_OF_STREAM);  // EOF is an error, and it's returned as zero
    }
    else return EnsureDeferredModeFopenCalled() ? Read(buffer, size) : io_status_t(B_BAD_OBJECT);
 }

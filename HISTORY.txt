@@ -10,6 +10,9 @@ key:  - new feature
    - Enabled tagfile generation in muscle.dox.
    - Added a DataIO::ReadFullyUpTo() convenience-method to handle
      reading (up to n) bytes or (until EOF), whichever comes first.
+   - Added error code B_END_OF_STREAM to allow Read()-type methods
+     to unambiguously specify that the reason they are returning an
+     error is because they have reached EOF/EOS.
    o Changed DataIO::ReadFully() and DataIO::WriteFully() to
      return status_t instead of uint32.
    * Fixed several issues to make DOxygen's output more useful.

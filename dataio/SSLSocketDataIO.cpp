@@ -223,33 +223,34 @@ io_status_t SSLSocketDataIO :: Read(void *buffer, uint32 size)
    if (_ssl == NULL) return B_BAD_OBJECT;
 
    const int32 bytes = SSL_read(_ssl, buffer, size);
-   if (bytes > 0)
+   if (bytes > 0)  // yes, >0 is intentional here (per SSL_read() man page)
    {
       _sslState &= ~(SSL_STATE_READ_WANTS_READABLE_SOCKET | SSL_STATE_READ_WANTS_WRITEABLE_SOCKET);
       return bytes;
    }
-   else if (bytes == 0) return B_IO_ERROR;  // connection was terminated
    else
    {
       const int err = SSL_get_error(_ssl, bytes);
-      if (err == SSL_ERROR_WANT_WRITE)
+      switch(err)
       {
-         // We have to wait until our socket is writeable, and then repeat our SSL_read() call.
-         _sslState &= ~SSL_STATE_READ_WANTS_READABLE_SOCKET;
-         _sslState |=  SSL_STATE_READ_WANTS_WRITEABLE_SOCKET;
+         case SSL_ERROR_WANT_WRITE:
+            // We have to wait until our socket is writeable, and then repeat our SSL_read() call.
+            _sslState &= ~SSL_STATE_READ_WANTS_READABLE_SOCKET;
+            _sslState |=  SSL_STATE_READ_WANTS_WRITEABLE_SOCKET;
          return io_status_t();
-      }
-      else if (err == SSL_ERROR_WANT_READ)
-      {
-         // We have to wait until our socket is readable, and then repeat our SSL_read() call.
-         _sslState |=  SSL_STATE_READ_WANTS_READABLE_SOCKET;
-         _sslState &= ~SSL_STATE_READ_WANTS_WRITEABLE_SOCKET;
+
+         case SSL_ERROR_WANT_READ:
+            // We have to wait until our socket is readable, and then repeat our SSL_read() call.
+            _sslState |=  SSL_STATE_READ_WANTS_READABLE_SOCKET;
+            _sslState &= ~SSL_STATE_READ_WANTS_WRITEABLE_SOCKET;
          return io_status_t();
-      }
-      else
-      {
-         fprintf(stderr, "SSL_read() ERROR:  ");
-         ERR_print_errors_fp(stderr);
+
+         case SSL_ERROR_ZERO_RETURN:
+            return B_END_OF_STREAM;
+
+         default:
+            LogTime(MUSCLE_LOG_DEBUG, "SSL_read() returned error code %i", err);
+            if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stderr);
          return B_SSL_ERROR;
       }
    }

@@ -619,7 +619,7 @@ io_status_t ChildProcessDataIO :: Read(void *buf, uint32 len)
    if (_blocking)
    {
       DWORD actual_read;
-      return ReadFile(_readFromStdout, buf, len, &actual_read, NULL) ? io_status_t(actual_read) : io_status_t(B_IO_ERROR);
+      return ReadFile(_readFromStdout, buf, len, &actual_read, NULL) ? io_status_t(actual_read) : io_status_t(B_END_OF_STREAM);
    }
    else
    {
@@ -628,8 +628,10 @@ io_status_t ChildProcessDataIO :: Read(void *buf, uint32 len)
       return ret;
    }
 #else
-   const long   r = read_ignore_eintr(_handle.GetFileDescriptor(), buf, len);
-   const int32 er = _blocking ? (int32)r : ConvertReturnValueToMuscleSemantics(r, len, _blocking);
+   const int32 r = read_ignore_eintr(_handle.GetFileDescriptor(), buf, len);
+   if (r == 0) return B_END_OF_STREAM;
+
+   const int32 er = _blocking ? r : ConvertReturnValueToMuscleSemantics(r, len, _blocking);
    return (er >= 0) ? io_status_t(er) : io_status_t(B_ERRNO);
 #endif
 }

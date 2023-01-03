@@ -1335,6 +1335,7 @@ io_status_t DataIO :: ReadFullyUpTo(void * buffer, uint32 size)
    while(b < firstInvalidByte)
    {
       const io_status_t subRet = Read(b, (uint32)(firstInvalidByte-b));
+      if (subRet == B_END_OF_STREAM) break;  // end-of-stream isn't considered to be a real error by this method
       MRETURN_ON_ERROR(subRet);
 
       const uint32 byteCount = subRet.GetByteCount();  // guaranteed to be non-negative at this point
@@ -1342,7 +1343,7 @@ io_status_t DataIO :: ReadFullyUpTo(void * buffer, uint32 size)
                     else break; // EOF?
    }
 
-   return io_status_t((int32)(b-((uint8*)buffer)));  // for this method, short reads due to EOF are not considered to be errors
+   return io_status_t((int32)(b-((uint8*)buffer)));
 }
 
 
