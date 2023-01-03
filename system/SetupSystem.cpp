@@ -1329,7 +1329,7 @@ io_status_t DataIO :: ReadFully(void * buffer, uint32 size, bool shortReadIsErro
       b   += byteCount;
    }
 
-   return ((shortReadIsError)&&(ret.GetByteCount() < size)) ? B_DATA_NOT_FOUND : ret;
+   return ((shortReadIsError)&&((uint32)ret.GetByteCount() < size)) ? B_DATA_NOT_FOUND : ret;
 }
 
 int64 SeekableDataIO :: GetLength()
