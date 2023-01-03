@@ -250,6 +250,8 @@ sopno stopst;
 	register char *oldssp;	/* previous ssp */
 	register char *dp;
 
+        (void) dp;  // just to avoid 'dp is set but not used' warning --jaf
+
 	AT("diss", start, stop, startst, stopst);
 	sp = start;
 	for (ss = startst; ss < stopst; ss = es) {

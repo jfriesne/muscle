@@ -22,7 +22,7 @@ static uLong ZCALLBACK fread_dataio_func (voidpf /*opaque*/, voidpf stream, void
    DataIO * dio = (DataIO *)stream;
    if (dio == NULL) return 0;
 
-   const io_status_t rfRet = dio->ReadFully(buf, (uint32)size, false);  // false == short read is okay
+   const io_status_t rfRet = dio->ReadFullyUpTo(buf, (uint32)size);
    return (uLong) rfRet.IsOK() ? rfRet.GetByteCount() : 0;
 }
 

@@ -116,10 +116,10 @@ int main(int argc, char ** argv)
       ByteBufferRef deflatedData = GetByteBufferFromPool(bufSize);
       if (deflatedData() == NULL) return 10;  // out of memory?
 
-      const io_status_t rfRet = inputFile.ReadFully(deflatedData()->GetBuffer(), deflatedData()->GetNumBytes());
+      const status_t rfRet = inputFile.ReadFully(deflatedData()->GetBuffer(), deflatedData()->GetNumBytes());
       if (rfRet.IsError())
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] reading full buffer of deflated data, corrupted file?\n", rfRet());
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] reading full buffer of deflated data, corrupted or truncated file?\n", rfRet());
          return 10;
       }
 

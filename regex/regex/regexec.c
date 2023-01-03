@@ -16,7 +16,9 @@
 #include "utils.h"
 #include "regex2.h"
 
+#ifdef JAF_COMMENTED_THIS_OUT_TO_AVOID_COMPILER_WARNING
 static int nope = 0;		/* for use in asserts; shuts lint up */
+#endif
 
 /* macros for manipulating states, small version */
 #define	states	unsigned
@@ -136,7 +138,7 @@ int eflags;
 		return(REG_BADPAT);
 	eflags = GOODFLAGS(eflags);
 
-	if (g->nstates <= CHAR_BIT*sizeof(states1) && !(eflags&REG_LARGE))
+	if (g->nstates <= (long)(CHAR_BIT*sizeof(states1)) && !(eflags&REG_LARGE))
 		return(smatcher(g, (char *)string, nmatch, pmatch, eflags));
 	else
 		return(lmatcher(g, (char *)string, nmatch, pmatch, eflags));

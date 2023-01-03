@@ -132,19 +132,29 @@ public:
      */
    status_t WriteFully(const void * buffer, uint32 size);
 
-   /** Convenience method:  Calls Read() in a loop until the entire buffer is read, or
-     * until an error occurs.  This method should only be used in conjunction with
+   /** Convenience method:  Calls Read() in a loop until (size) bytes have been
+     * read into (buffer).
+     * This method should only be used in conjunction with
      * blocking I/O; it will not work reliably with non-blocking I/O.
      * @param buffer Pointer to the first byte of the buffer to place the read data into.
      * @param size Number of bytes to read
-     * @param shortReadIsError if true, then this method will return B_DATA_NOT_FOUND if
-     *                         it is unable to read all (size) bytes due to EOF.  If false, and this
-     *                         method reads fewer than (size) bytes, that will be considered
-     *                         a success and the number of bytes actually read will be returned.
-     *                         Defaults to true if unspecified.
-     * @return B_NO_ERROR (and the number of bytes read) on success, or an error code on failure.
+     * @return B_NO_ERROR on success, or an error code on failure.  In particular, if end-of-file is
+     *         reached before (size) bytes have been read, B_DATA_NOT_FOUND is returned.
      */
-   io_status_t ReadFully(void * buffer, uint32 size, bool shortReadIsError = true);
+   status_t ReadFully(void * buffer, uint32 size);
+
+   /** Convenience method:  Calls Read() in a loop until the entire buffer is read, or
+     * until an error occurs, or until end-of-file is reached.
+     * This method should only be used in conjunction with
+     * blocking I/O; it will not work reliably with non-blocking I/O.
+     * @param buffer Pointer to the first byte of the buffer to place the read data into.
+     * @param size Number of bytes to read
+     * @return B_NO_ERROR (and the number of bytes read) on success, or an error code on failure.
+     * @note that the difference between this method and ReadFully() is that this method does
+     *       consider it to be an error-condition if end-of-file is reached before (size) bytes
+     *       have been read.
+     */
+   io_status_t ReadFullyUpTo(void * buffer, uint32 size);
 
 private:
    DECLARE_COUNTED_OBJECT(DataIO);

@@ -8,13 +8,12 @@ key:  - new feature
    - Added @tparam DOxygen tags for any template-arguments that
      the calling code might need to specify explicitly.
    - Enabled tagfile generation in muscle.dox.
-   - Added an optional (shortReadIsError) argument to the
-     DataIO::ReadFully() method.
-   o Changed DataIO::ReadFully() to return an io_status_t instead
-     of a uint32.
-   o Changed DataIO::WriteFully() to return a status_t instead
-     of a uint32.
+   - Added a DataIO::ReadFullyUpTo() convenience-method to handle
+     reading (up to n) bytes or (until EOF), whichever comes first.
+   o Changed DataIO::ReadFully() and DataIO::WriteFully() to
+     return status_t instead of uint32.
    * Fixed several issues to make DOxygen's output more useful.
+   * Fixed some compiler warnings in the captive regex library.
 
 9.20 - Released 12/30/2022
    - Updated NetworkUtilityFunctions.cpp to better support "real"

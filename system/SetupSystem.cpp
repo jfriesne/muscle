@@ -1311,26 +1311,40 @@ status_t DataIO :: WriteFully(const void * buffer, uint32 size)
    return (numBytesWritten == size) ? B_NO_ERROR : (ret | B_IO_ERROR);
 }
 
-io_status_t DataIO :: ReadFully(void * buffer, uint32 size, bool shortReadIsError)
+status_t DataIO :: ReadFully(void * buffer, uint32 size)
 {
-   io_status_t ret;
-
-   uint8 * b = (uint8 *) buffer;
+   uint8 * b                = (uint8 *) buffer;
    uint8 * firstInvalidByte = b+size;
    while(b < firstInvalidByte)
    {
-      const io_status_t subRet = Read(b, (uint32) (firstInvalidByte-b));
+      const io_status_t subRet = Read(b, (uint32)(firstInvalidByte-b));
       MRETURN_ON_ERROR(subRet);
 
       const uint32 byteCount = subRet.GetByteCount();  // guaranteed to be non-negative at this point
-      if (byteCount == 0) break;  // nothing more to read?
-
-      ret += subRet;
-      b   += byteCount;
+      if (byteCount > 0) b += byteCount;
+                    else break; // EOF?
    }
 
-   return ((shortReadIsError)&&((uint32)ret.GetByteCount() < size)) ? B_DATA_NOT_FOUND : ret;
+   return (((uint32)(b-((uint8*)buffer))) < size) ? B_DATA_NOT_FOUND : B_NO_ERROR;  // for this method, we either read (size) bytes or we failed!
 }
+
+io_status_t DataIO :: ReadFullyUpTo(void * buffer, uint32 size)
+{
+   uint8 * b                = (uint8 *) buffer;
+   uint8 * firstInvalidByte = b+size;
+   while(b < firstInvalidByte)
+   {
+      const io_status_t subRet = Read(b, (uint32)(firstInvalidByte-b));
+      MRETURN_ON_ERROR(subRet);
+
+      const uint32 byteCount = subRet.GetByteCount();  // guaranteed to be non-negative at this point
+      if (byteCount > 0) b += byteCount;
+                    else break; // EOF?
+   }
+
+   return io_status_t((int32)(b-((uint8*)buffer)));  // for this method, short reads due to EOF are not considered to be errors
+}
+
 
 int64 SeekableDataIO :: GetLength()
 {

@@ -217,7 +217,7 @@ ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, SeekableDataI
    ByteBufferRef ret = GetByteBufferFromPool(pool, (uint32)numBytesToRead);
    if (ret() == NULL) return ByteBufferRef();
 
-   const io_status_t rfRet = dio.ReadFully(ret()->GetBuffer(), ret()->GetNumBytes(), false);  // false == short reads are ok
+   const io_status_t rfRet = dio.ReadFullyUpTo(ret()->GetBuffer(), ret()->GetNumBytes());
    if (rfRet.IsError()) return ByteBufferRef();  // I/O error?
 
    (void) ret()->SetNumBytes(rfRet.GetByteCount(), true);  // truncate to the size we actually read.  Guaranteed not to fail.

@@ -73,7 +73,7 @@ int main(int argc, char ** argv)
          return 10;
       }
 
-      const io_status_t rfRet = fdio.ReadFully(buf()->GetBuffer(), buf()->GetNumBytes());
+      const status_t rfRet = fdio.ReadFully(buf()->GetBuffer(), buf()->GetNumBytes());
       if (rfRet.IsOK()) LogTime(MUSCLE_LOG_INFO, "Read " UINT32_FORMAT_SPEC " bytes from [%s]\n", buf()->GetNumBytes(), fileName);
       else
       {

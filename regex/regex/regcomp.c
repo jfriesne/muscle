@@ -1214,6 +1214,7 @@ register char *cp;
 	cs->multis[cs->smultis - 1] = '\0';
 }
 
+#ifdef JAF_COMMENTED_THESE_UNUSED_FUNCTIONS_OUT_TO_AVOID_A_COMPILER_WARNING
 /*
  - mcsub - subtract a collating element from a cset
  == static void mcsub(register cset *cs, register char *cp);
@@ -1275,6 +1276,7 @@ register char *cp;
 			return(p);
 	return(NULL);
 }
+#endif
 
 /*
  - mcinvert - invert the list of collating elements in a cset
