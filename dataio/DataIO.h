@@ -128,20 +128,23 @@ public:
      * blocking I/O; it will not work reliably with non-blocking I/O.
      * @param buffer Pointer to the first byte of the buffer to write data from.
      * @param size Number of bytes to write
-     * @return The number of bytes that were actually written.  On success,
-     *         This will be equal to (size).  On failure, it will be a smaller value.
+     * @return B_NO_ERROR on success, or an error code on failure.
      */
-   uint32 WriteFully(const void * buffer, uint32 size);
+   status_t WriteFully(const void * buffer, uint32 size);
 
-   /** Convenience method:  Calls Read() in a loop until the entire buffer is written, or
+   /** Convenience method:  Calls Read() in a loop until the entire buffer is read, or
      * until an error occurs.  This method should only be used in conjunction with
      * blocking I/O; it will not work reliably with non-blocking I/O.
      * @param buffer Pointer to the first byte of the buffer to place the read data into.
      * @param size Number of bytes to read
-     * @return The number of bytes that were actually read.  On success,
-     *         This will be equal to (size).  On failure, it will be a smaller value.
+     * @param shortReadIsError if true, then this method will return B_DATA_NOT_FOUND if
+     *                         it is unable to read all (size) bytes due to EOF.  If false, and this
+     *                         method reads fewer than (size) bytes, that will be considered
+     *                         a success and the number of bytes actually read will be returned.
+     *                         Defaults to true if unspecified.
+     * @return B_NO_ERROR (and the number of bytes read) on success, or an error code on failure.
      */
-   uint32 ReadFully(void * buffer, uint32 size);
+   io_status_t ReadFully(void * buffer, uint32 size, bool shortReadIsError = true);
 
 private:
    DECLARE_COUNTED_OBJECT(DataIO);
@@ -179,7 +182,7 @@ status_t PseudoFlattenable<SubclassType>::FlattenToDataIO(DataIO & outputStream,
    else FlattenToBytes(b, fs);
 
    // And finally, write out the buffer
-   const status_t ret = (outputStream.WriteFully(b, bufSize) == bufSize) ? B_NO_ERROR : B_IO_ERROR;
+   const status_t ret = outputStream.WriteFully(b, bufSize);
    delete [] bigBuf;
    return ret;
 }
@@ -191,7 +194,8 @@ status_t PseudoFlattenable<SubclassType>::UnflattenFromDataIO(DataIO & inputStre
    if (optReadSize < 0)
    {
       uint32 leSize;
-      if (inputStream.ReadFully(&leSize, sizeof(leSize)) != sizeof(leSize)) return B_IO_ERROR;
+      MRETURN_ON_ERROR(inputStream.ReadFully(&leSize, sizeof(leSize)));
+
       readSize = DefaultEndianConverter::Import<uint32>(&leSize);
       if (readSize > optMaxReadSize) return B_BAD_DATA;
    }
@@ -206,7 +210,9 @@ status_t PseudoFlattenable<SubclassType>::UnflattenFromDataIO(DataIO & inputStre
       MRETURN_OOM_ON_NULL(bigBuf);
    }
 
-   const status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? static_cast<SubclassType *>(this)->UnflattenFromBytes(b, readSize) : B_IO_ERROR;
+   status_t ret = inputStream.ReadFully(b, readSize).GetStatus();
+   if (ret.IsOK()) ret = static_cast<SubclassType *>(this)->UnflattenFromBytes(b, readSize);
+
    delete [] bigBuf;
    return ret;
 }

@@ -28,7 +28,7 @@ static status_t LoadCryptoKey(bool isPublic, const String * optKeyFilePath, Refl
 #ifdef MUSCLE_ENABLE_SSL
    FileDataIO fdio(muscleFopen(optKeyFilePath->Cstr(), "rb"));
    ByteBufferRef fileData = GetByteBufferFromPool((uint32)fdio.GetLength());
-   if ((fdio.GetFile())&&(fileData())&&(fdio.ReadFully(fileData()->GetBuffer(), fileData()->GetNumBytes()) == fileData()->GetNumBytes()))
+   if ((fdio.GetFile())&&(fileData())&&(fdio.ReadFully(fileData()->GetBuffer(), fileData()->GetNumBytes()).IsOK()))
    {
       if (isPublic) server.SetSSLPublicKeyCertificate(fileData);
                else server.SetSSLPrivateKey(fileData);

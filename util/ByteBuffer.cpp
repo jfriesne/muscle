@@ -217,8 +217,10 @@ ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, SeekableDataI
    ByteBufferRef ret = GetByteBufferFromPool(pool, (uint32)numBytesToRead);
    if (ret() == NULL) return ByteBufferRef();
 
-   // This will truncate the ByteBuffer if we end up reading fewer bytes than we expected to
-   (void) ret()->SetNumBytes(dio.ReadFully(ret()->GetBuffer(), ret()->GetNumBytes()), true);
+   const io_status_t rfRet = dio.ReadFully(ret()->GetBuffer(), ret()->GetNumBytes(), false);  // false == short reads are ok
+   if (rfRet.IsError()) return ByteBufferRef();  // I/O error?
+
+   (void) ret()->SetNumBytes(rfRet.GetByteCount(), true);  // truncate to the size we actually read.  Guaranteed not to fail.
    return ret;
 }
 

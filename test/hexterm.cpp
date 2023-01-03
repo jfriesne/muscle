@@ -133,15 +133,15 @@ static status_t FlushOutBuffer(uint64 & writeCounter, const ByteBufferRef & outB
 {
    if (outBuf())
    {
-      const uint32 wrote = io.WriteFully(outBuf()->GetBuffer(), outBuf()->GetNumBytes());
+      const status_t wfRet = io.WriteFully(outBuf()->GetBuffer(), outBuf()->GetNumBytes());
       writeCounter++;
-      if (wrote == outBuf()->GetNumBytes())
+      if (wfRet.IsOK())
       {
          if (_decorateOutput) LogBytes(outBuf()->GetBuffer(), outBuf()->GetNumBytes(), "Sent");
       }
       else
       {
-         LogTime(MUSCLE_LOG_ERROR, "Error, Write() only wrote " INT32_FORMAT_SPEC " of " UINT32_FORMAT_SPEC " bytes... aborting!\n", wrote, outBuf()->GetNumBytes());
+         LogTime(MUSCLE_LOG_ERROR, "Error [%s] writing " UINT32_FORMAT_SPEC " bytes... aborting!\n", wfRet(), outBuf()->GetNumBytes());
          return B_IO_ERROR;
       }
       if (_postSendDelay > 0) Snooze64(_postSendDelay);
@@ -195,7 +195,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                uint8 v = (uint8)(spamTime%256);
                for (uint32 i=0; i<_spamSize; i++) b[i] = v++;  // just some nice arbitrary data
                if (_spamSize >= sizeof(uint32)) DefaultEndianConverter::Export(_spamSize, b);  // so we can verify that packets aren't getting truncated on reception
-               spamBytesSent = io()->WriteFully(b, _spamSize);
+               spamBytesSent = io()->WriteFully(b, _spamSize).IsOK() ? _spamSize : 0;
             }
             if ((!_quietSend)&&(_decorateOutput)) LogTime(MUSCLE_LOG_ERROR, "Sent " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of spam!\n", spamBytesSent, _spamSize);
             spamTime += (1000000/_spamsPerSecond);

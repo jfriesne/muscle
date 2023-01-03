@@ -20,13 +20,16 @@ static voidpf ZCALLBACK fopen_dataio_func (voidpf opaque, const char * /*filenam
 static uLong ZCALLBACK fread_dataio_func (voidpf /*opaque*/, voidpf stream, void *buf, uLong size)
 {
    DataIO * dio = (DataIO *)stream;
-   return (uLong) (dio ? dio->ReadFully(buf, (uint32)size) : 0);
+   if (dio == NULL) return 0;
+
+   const io_status_t rfRet = dio->ReadFully(buf, (uint32)size, false);  // false == short read is okay
+   return (uLong) rfRet.IsOK() ? rfRet.GetByteCount() : 0;
 }
 
 static uLong ZCALLBACK fwrite_dataio_func (voidpf /*opaque*/, voidpf stream, const void * buf, uLong size)
 {
    DataIO * dio = (DataIO *)stream;
-   return (uLong) (dio ? dio->WriteFully(buf, (uint32)size) : 0);
+   return (uLong) (((dio)&&(dio->WriteFully(buf, (uint32)size).IsOK())) ? size : 0);
 }
 
 static long ZCALLBACK ftell_dataio_func (voidpf /*opaque*/, voidpf stream)

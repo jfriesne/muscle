@@ -76,10 +76,10 @@ int main(int argc, char ** argv)
             // Write the size of the deflated buffer into the file for framing purposes
             uint32 leDeflatedBufSize;
             DefaultEndianConverter::Export(deflatedData()->GetNumBytes(), &leDeflatedBufSize);
-            if (outputFile.WriteFully(&leDeflatedBufSize, sizeof(leDeflatedBufSize)) == sizeof(leDeflatedBufSize)) deflatedBytesWritten += sizeof(leDeflatedBufSize);
+            if (outputFile.WriteFully(&leDeflatedBufSize, sizeof(leDeflatedBufSize)).IsOK()) deflatedBytesWritten += sizeof(leDeflatedBufSize);
 
             // Write the actual deflated data into the file
-            if (outputFile.WriteFully(deflatedData()->GetBuffer(), deflatedData()->GetNumBytes()) == deflatedData()->GetNumBytes())
+            if (outputFile.WriteFully(deflatedData()->GetBuffer(), deflatedData()->GetNumBytes()).IsOK())
             {
                rawBytesWritten      += rawData()->GetNumBytes();
                deflatedBytesWritten += deflatedData()->GetNumBytes();
@@ -109,16 +109,17 @@ int main(int argc, char ** argv)
    while(true)
    {
       uint32 leBufSize;
-      if (inputFile.ReadFully(&leBufSize, sizeof(leBufSize)) != sizeof(leBufSize)) break;  // EOF?
+      if (inputFile.ReadFully(&leBufSize, sizeof(leBufSize)).IsError()) break;  // EOF?
 
       const uint32 bufSize = DefaultEndianConverter::Import<uint32>(&leBufSize);
 
       ByteBufferRef deflatedData = GetByteBufferFromPool(bufSize);
       if (deflatedData() == NULL) return 10;  // out of memory?
 
-      if (inputFile.ReadFully(deflatedData()->GetBuffer(), deflatedData()->GetNumBytes()) != deflatedData()->GetNumBytes())
+      const io_status_t rfRet = inputFile.ReadFully(deflatedData()->GetBuffer(), deflatedData()->GetNumBytes());
+      if (rfRet.IsError())
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to read full buffer of deflated data, corrupt file?\n");
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] reading full buffer of deflated data, corrupted file?\n", rfRet());
          return 10;
       }
 

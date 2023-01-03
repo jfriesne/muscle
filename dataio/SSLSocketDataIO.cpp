@@ -111,7 +111,8 @@ status_t SSLSocketDataIO :: SetPublicKeyCertificate(const char * path)
    ByteBufferRef buf = GetByteBufferFromPool((uint32)fdio.GetLength());
    MRETURN_OOM_ON_NULL(buf());
 
-   return (fdio.ReadFully(buf()->GetBuffer(), buf()->GetNumBytes()) == buf()->GetNumBytes()) ? SetPublicKeyCertificate(buf) : B_IO_ERROR;
+   MRETURN_ON_ERROR(fdio.ReadFully(buf()->GetBuffer(), buf()->GetNumBytes()));
+   return SetPublicKeyCertificate(buf);
 }
 
 status_t SSLSocketDataIO :: SetPublicKeyCertificate(const uint8 * bytes, uint32 numBytes)

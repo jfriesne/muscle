@@ -25,7 +25,7 @@ int main(int argc, char ** argv)
    FileDataIO fileOutputIO(muscleFopen(outputFileName, "w"));
    if (fileOutputIO.GetFile() == NULL)
    {
-      printf("Error opening file %s for writing!  Output to file will be disabled.\n", outputFileName);
+      printf("Error opening file [%s] for writing!  Output to file will be disabled.\n", outputFileName);
    }
 
    char buf[1024];

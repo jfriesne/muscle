@@ -1292,30 +1292,44 @@ CompleteSetupSystem :: ~CompleteSetupSystem()
    _activeCSS = _prevInstance;  // pop us off the stack
 }
 
-uint32 DataIO :: WriteFully(const void * buffer, uint32 size)
+status_t DataIO :: WriteFully(const void * buffer, uint32 size)
 {
+   status_t ret;
+
    const uint8 * b = (const uint8 *)buffer;
    const uint8 * firstInvalidByte = b+size;
    while(b < firstInvalidByte)
    {
-      const int32 bytesWritten = Write(b, (uint32)(firstInvalidByte-b)).GetByteCount();
-      if (bytesWritten <= 0) break;
-      b += bytesWritten;
+      const io_status_t bytesWritten = Write(b, (uint32)(firstInvalidByte-b));
+      ret |= bytesWritten.GetStatus();
+
+      if (bytesWritten.GetByteCount() <= 0) break;
+      b += bytesWritten.GetByteCount();
    }
-   return (uint32) (b-((const uint8 *)buffer));
+
+   const uint32 numBytesWritten = (uint32) (b-((const uint8 *)buffer));
+   return (numBytesWritten == size) ? B_NO_ERROR : (ret | B_IO_ERROR);
 }
 
-uint32 DataIO :: ReadFully(void * buffer, uint32 size)
+io_status_t DataIO :: ReadFully(void * buffer, uint32 size, bool shortReadIsError)
 {
+   io_status_t ret;
+
    uint8 * b = (uint8 *) buffer;
    uint8 * firstInvalidByte = b+size;
    while(b < firstInvalidByte)
    {
-      const int32 bytesRead = Read(b, (uint32) (firstInvalidByte-b)).GetByteCount();
-      if (bytesRead <= 0) break;
-      b += bytesRead;
+      const io_status_t subRet = Read(b, (uint32) (firstInvalidByte-b));
+      MRETURN_ON_ERROR(subRet);
+
+      const uint32 byteCount = subRet.GetByteCount();  // guaranteed to be non-negative at this point
+      if (byteCount == 0) break;  // nothing more to read?
+
+      ret += subRet;
+      b   += byteCount;
    }
-   return (uint32) (b-((const uint8 *)buffer));
+
+   return ((shortReadIsError)&&(ret.GetByteCount() < size)) ? B_DATA_NOT_FOUND : ret;
 }
 
 int64 SeekableDataIO :: GetLength()
@@ -1354,7 +1368,7 @@ status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeade
    else FlattenToBytes(b, fs);
 
    // And finally, write out the buffer
-   const status_t ret = (outputStream.WriteFully(b, bufSize) == bufSize) ? B_NO_ERROR : B_IO_ERROR;
+   const status_t ret = outputStream.WriteFully(b, bufSize);
    delete [] bigBuf;
    return ret;
 }
@@ -1365,7 +1379,8 @@ status_t Flattenable :: UnflattenFromDataIO(DataIO & inputStream, int32 optReadS
    if (optReadSize < 0)
    {
       uint32 leSize;
-      if (inputStream.ReadFully(&leSize, sizeof(leSize)) != sizeof(leSize)) return B_IO_ERROR;
+      MRETURN_ON_ERROR(inputStream.ReadFully(&leSize, sizeof(leSize)));
+
       readSize = DefaultEndianConverter::Import<uint32>(&leSize);
       if (readSize > optMaxReadSize) return B_BAD_DATA;
    }
@@ -1380,7 +1395,9 @@ status_t Flattenable :: UnflattenFromDataIO(DataIO & inputStream, int32 optReadS
       MRETURN_OOM_ON_NULL(bigBuf);
    }
 
-   const status_t ret = (inputStream.ReadFully(b, readSize) == readSize) ? UnflattenFromBytes(b, readSize) : B_IO_ERROR;
+   status_t ret = inputStream.ReadFully(b, readSize).GetStatus();
+   if (ret.IsOK()) ret = UnflattenFromBytes(b, readSize);
+
    delete [] bigBuf;
    return ret;
 }

@@ -113,9 +113,8 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
          const int64 numPadBytes = (TAR_BLOCK_SIZE-extraBytes);
          uint8 zeros[TAR_BLOCK_SIZE]; memset(zeros, 0, (size_t) numPadBytes);
 
-         const uint32 numBytesWritten = _writerIO()->WriteFully(zeros, (uint32) numPadBytes);
-         _currentSeekPosition += numBytesWritten;
-         if (numBytesWritten != (uint32) numPadBytes) return B_IO_ERROR;
+         MRETURN_ON_ERROR(_writerIO()->WriteFully(zeros, (uint32) numPadBytes));
+         _currentSeekPosition += numPadBytes;
       }
 
       if (_seekableWriterIO())
@@ -126,9 +125,8 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
          MRETURN_ON_ERROR(_seekableWriterIO()->Seek(_currentHeaderOffset, SeekableDataIO::IO_SEEK_SET));
          _currentSeekPosition = _currentHeaderOffset;
 
-         const uint32 numBytesWritten = _seekableWriterIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes));
+         MRETURN_ON_ERROR(_seekableWriterIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes)));
          _currentSeekPosition += _currentHeaderOffset;
-         if (numBytesWritten != sizeof(_currentHeaderBytes)) return B_IO_ERROR;
 
          MRETURN_ON_ERROR(_seekableWriterIO()->Seek(0, SeekableDataIO::IO_SEEK_END));
          _currentSeekPosition = _seekableWriterIO()->GetLength();
@@ -172,23 +170,19 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
 
    // We write out the header as it is now, in order to keep the file offsets correct... but we'll rewrite it again later
    // when we know the actual file size.
-   const uint32 numBytesWritten = _writerIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes));
-   _currentSeekPosition += numBytesWritten;
-   if (numBytesWritten == sizeof(_currentHeaderBytes))
-   {
-      _prestatedFileSize = prestatedFileSize;
-      return B_NO_ERROR;
-   }
-   else return B_IO_ERROR;
+   MRETURN_ON_ERROR(_writerIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes)));
+   _currentSeekPosition += sizeof(_currentHeaderBytes);
+   _prestatedFileSize = prestatedFileSize;
+   return B_NO_ERROR;
 }
 
 status_t TarFileWriter :: WriteFileData(const uint8 * fileData, uint32 numBytes)
 {
    if ((_writerIO() == NULL)||(_currentHeaderOffset < 0)) return B_BAD_OBJECT;
 
-   const uint32 numBytesWritten = _writerIO()->WriteFully(fileData, numBytes);
-   _currentSeekPosition += numBytesWritten;
-   return (numBytesWritten == numBytes) ? B_NO_ERROR : B_IO_ERROR;
+   MRETURN_ON_ERROR(_writerIO()->WriteFully(fileData, numBytes));
+   _currentSeekPosition += numBytes;
+   return B_NO_ERROR;
 }
 
 } // end namespace muscle

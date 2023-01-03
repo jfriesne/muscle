@@ -474,7 +474,7 @@ int main(int argc, char ** argv)
 #ifdef MUSCLE_ENABLE_SSL
          FileDataIO fdio(muscleFopen(a, "rb"));
          ByteBufferRef fileData = GetByteBufferFromPool((uint32)fdio.GetLength());
-         if ((fdio.GetFile())&&(fileData())&&(fdio.ReadFully(fileData()->GetBuffer(), fileData()->GetNumBytes()) == fileData()->GetNumBytes()))
+         if ((fdio.GetFile())&&(fileData())&&(fdio.ReadFully(fileData()->GetBuffer(), fileData()->GetNumBytes()).IsOK()))
          {
             LogTime(MUSCLE_LOG_INFO, "Using public key file [%s] to register with server\n", a);
             publicKey = fileData;

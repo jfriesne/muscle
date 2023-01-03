@@ -204,7 +204,7 @@ public:
 
       uint8 headerBuf[ZLIB_CODEC_HEADER_SIZE];
       WriteZLibCodecHeader(headerBuf, independent, totalBytesToRead);
-      if (destDeflatedIO.WriteFully(headerBuf, sizeof(headerBuf)) != sizeof(headerBuf)) return B_IO_ERROR;
+      MRETURN_ON_ERROR(destDeflatedIO.WriteFully(headerBuf, sizeof(headerBuf)));
 
       _deflater.next_in   = scratchInBuf.GetBuffer();
       _deflater.avail_in  = 0;
@@ -235,11 +235,7 @@ public:
 
          // If deflate() generated some deflated bytes, write them out to the destDeflatedIO
          const int32 numBytesProduced = (int32)(_deflater.next_out-scratchOutBuf.GetBuffer());
-         if (numBytesProduced > 0)
-         {
-            const int32 numBytesWritten = destDeflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced);
-            if (numBytesWritten != numBytesProduced) return B_IO_ERROR;
-         }
+         if (numBytesProduced > 0) MRETURN_ON_ERROR(destDeflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced));
       }
 
       return B_NO_ERROR;
@@ -256,8 +252,7 @@ public:
       if (scratchOutBuf.GetNumBytes() == 0) MRETURN_OUT_OF_MEMORY;
 
       uint8 headerBuf[ZLIB_CODEC_HEADER_SIZE];
-      const uint32 headerBytesRead = sourceDeflatedIO.ReadFully(headerBuf, sizeof(headerBuf));
-      if (headerBytesRead != sizeof(headerBuf)) return B_IO_ERROR;
+      MRETURN_ON_ERROR(sourceDeflatedIO.ReadFully(headerBuf, sizeof(headerBuf)));
 
       bool independent;
       const int32 numBytesToBeWritten = GetInflatedSizeAux(headerBuf, sizeof(headerBuf), &independent);
@@ -296,11 +291,7 @@ public:
 
          // If inflate() generated some inflated bytes, write them out to the destInflatedIO
          const int32 numBytesProduced = (int32)(_inflater.next_out-scratchOutBuf.GetBuffer());
-         if (numBytesProduced > 0)
-         {
-            const int32 numBytesWritten = destInflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced);
-            if (numBytesWritten != numBytesProduced) return B_IO_ERROR;
-         }
+         if (numBytesProduced > 0) MRETURN_ON_ERROR(destInflatedIO.WriteFully(scratchOutBuf.GetBuffer(), numBytesProduced));
       }
       return B_NO_ERROR;
    }

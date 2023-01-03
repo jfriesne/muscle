@@ -20,6 +20,7 @@ int main(int argc, char ** argv)
    if (fileDataIO.GetFile() == NULL)
    {
       printf("Unable to open example_3_seekable_dataio.txt for writing!\n");
+      return 10;
    }
 
    // First we'll write out some data to the file, just so we have something to play with

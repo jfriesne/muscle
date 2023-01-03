@@ -53,7 +53,7 @@ int main(int argc, char ** argv)
                FileDataIO fdio(fpIn);
                const int64 fileLen = fdio.GetLength();
                ByteBuffer bb;
-               if ((fileLen >= 0)&&(bb.SetNumBytes((uint32)fileLen, false).IsOK())&&(fdio.ReadFully(bb.GetBuffer(), (uint32)fileLen) == (uint32)fileLen))
+               if ((fileLen >= 0)&&(bb.SetNumBytes((uint32)fileLen, false).IsOK())&&(fdio.ReadFully(bb.GetBuffer(), (uint32)fileLen).IsOK()))
                {
                   const String s((const char *) bb.GetBuffer(), bb.GetNumBytes());
                   Message msg;

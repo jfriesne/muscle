@@ -73,11 +73,11 @@ int main(int argc, char ** argv)
          return 10;
       }
 
-      const uint32 numBytesRead = fdio.ReadFully(buf()->GetBuffer(), buf()->GetNumBytes());
-      if (numBytesRead == fileSize) LogTime(MUSCLE_LOG_INFO, "Read " INT32_FORMAT_SPEC " bytes from [%s]\n", numBytesRead, fileName);
+      const io_status_t rfRet = fdio.ReadFully(buf()->GetBuffer(), buf()->GetNumBytes());
+      if (rfRet.IsOK()) LogTime(MUSCLE_LOG_INFO, "Read " UINT32_FORMAT_SPEC " bytes from [%s]\n", buf()->GetNumBytes(), fileName);
       else
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Short read error (" UINT32_FORMAT_SPEC "/" UINT64_FORMAT_SPEC " bytes read)\n", numBytesRead, fileSize);
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] reading " UINT32_FORMAT_SPEC " bytes\n", rfRet(), buf()->GetNumBytes());
          return 10;
       }
 
@@ -85,7 +85,7 @@ int main(int argc, char ** argv)
       ByteBufferRef infBuf = InflateByteBuffer(buf);
       if (infBuf())
       {
-         LogTime(MUSCLE_LOG_INFO, "Zlib-inflated file data from " INT32_FORMAT_SPEC " to " UINT32_FORMAT_SPEC " bytes.\n", numBytesRead, infBuf()->GetNumBytes());
+         LogTime(MUSCLE_LOG_INFO, "Zlib-inflated file data from " INT32_FORMAT_SPEC " to " UINT32_FORMAT_SPEC " bytes.\n", buf()->GetNumBytes(), infBuf()->GetNumBytes());
          buf = infBuf;
       }
 #endif
@@ -112,7 +112,7 @@ int main(int argc, char ** argv)
       }
       else
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] unflattening message! (" INT32_FORMAT_SPEC " bytes read)\n", ret(), numBytesRead);
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] unflattening message! (" INT32_FORMAT_SPEC " bytes read)\n", ret(), buf()->GetNumBytes());
          retVal = 10;
       }
    }

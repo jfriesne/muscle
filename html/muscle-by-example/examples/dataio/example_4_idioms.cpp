@@ -36,8 +36,9 @@ int main(int argc, char ** argv)
    printf("Write a ByteBuffer out to a file in two lines:\n");
    const char * outputFileName = "example_4_output.txt";
    FileDataIO outputFdio(muscleFopen(outputFileName, "w"));
-   const uint32 numBytesWritten = outputFdio.WriteFully(bbRef()->GetBuffer(), bbRef()->GetNumBytes());
-   printf("Wrote " UINT32_FORMAT_SPEC " bytes of data to [%s]\n", numBytesWritten, outputFileName);
+   const status_t wfRet = outputFdio.WriteFully(bbRef()->GetBuffer(), bbRef()->GetNumBytes());
+   if (wfRet.IsOK()) printf("Wrote " UINT32_FORMAT_SPEC " bytes of data to [%s]\n", bbRef()->GetNumBytes(), outputFileName);
+                else printf("Error [%s] writing " UINT32_FORMAT_SPEC " bytes of data to [%s]\n", wfRet(), bbRef()->GetNumBytes(), outputFileName);
 
    return 0;
 }
