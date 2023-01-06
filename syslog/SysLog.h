@@ -15,7 +15,7 @@
 namespace muscle {
 
 /** @defgroup systemlog The SystemLog function API
- *  These functions are all defined in SystemLog(.cpp,.h), and are stand-alone
+ *  These functions are all defined in SysLog.h, and are stand-alone
  *  functions that provide console-logging and log-file generation functionality to MUSCLE programs.
  *  @{
  */

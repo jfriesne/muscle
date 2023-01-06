@@ -9,7 +9,7 @@
 namespace muscle {
 
 /** @defgroup zipfileutilityfunctions The ZipFileUtilityFunctions function API
- *  These functions are all defined in ZipFileUtilityFunctions(.cpp,.h), and are stand-alone
+ *  These functions are all defined in ZipFileUtilityFunctions.h, and are stand-alone
  *  functions that conveniently convert .zip files into Message objects, and vice versa.
  *  @{
  */

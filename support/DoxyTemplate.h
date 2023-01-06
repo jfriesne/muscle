@@ -3,9 +3,9 @@
 #ifndef MuscleDoxyTemplate_h
 #define MuscleDoxyTemplate_h
 
-// deliberately *not* putting this class inside the muscle namespace, for simplicity's sake (since it's never compiled anyway)
-
 #ifdef DOXYGEN_SHOULD_IGNORE_THIS  // yes, the #ifdef (rather than #ifndef) is deliberate here
+
+namespace muscle {
 
 /** This class isn't meant to be compiled the C++ compiler; rather,
   * we use it as a repository of standard Doxygen comments for ubiquitous class-members.
@@ -184,6 +184,8 @@ public:
     */
    status_t SetFromArchive(const Message & archive);
 };
+
+};  // end namespace muscle
 
 #endif
 

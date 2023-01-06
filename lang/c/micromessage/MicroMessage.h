@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 /** @defgroup micromessage The MicroMessage C function API
- *  These functions are all defined in MicroMessage(.c,.h), and are stand-alone
+ *  These functions are all defined in MicroMessage.h, and are stand-alone
  *  C functions that provide a way for C programs to use MUSCLE Messages.
  *  This is a very bare-bones implentation that does not do any dynamic memory
  *  allocation, and supports only linear addition of data to a Message.

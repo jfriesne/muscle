@@ -9,7 +9,7 @@
 namespace muscle {
 
 /** @defgroup miscutilityfunctions The MiscUtilityFunctions function API
- *  These functions are all defined in MiscUtilityFunctions(.cpp,.h), and are stand-alone
+ *  These functions are all defined in MiscUtilityFunctions.h, and are stand-alone
  *  functions that do various small convenient things that don't fit anywhere else.
  *  @{
  */

@@ -12,7 +12,7 @@
 namespace muscle {
 
 /** @defgroup pythonutilityfunctions The PythonUtilityFunctions function API
- *  These functions are all defined in PythonUtilityFunctions(.cpp,.h), and are stand-alone
+ *  These functions are all defined in PythonUtilityFunctions.h, and are stand-alone
  *  functions that are useful when embedding a Python interpreter into MUSCLE code.
  *  @{
  */

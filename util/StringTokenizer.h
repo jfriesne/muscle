@@ -29,8 +29,10 @@ public:
     *                     "soft" separator, in that multiple contiguous instances of this character will be treated as
     *                     a single separator.  If a given char appears in this list more than once, it will be treated
     *                     as a "hard" separator, where multiple contiguous instances are interpreted as separating
-    *                     empty sub-strings.  Default value is is NULL, which will be interpreted as if you has passed in "\t\r\n ,,"
-    *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.  Defaults to zero.
+    *                     empty sub-strings.  Default value is is NULL, which will be interpreted as if you had passed in "\t\r\n ,,"
+    *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.
+    *                    Defaults to zero.  A common usage is to pass in a backslash char here, if you want the calling code to be
+    *                    to backslash-escape separator chars that it wants the StringTokenizer to treat as normal/non-separator chars.
     */
    StringTokenizer(const char * tokenizeMe, const char * optSepChars = NULL, char escapeChar = '\0');
 
@@ -44,8 +46,10 @@ public:
     *                     "soft" separator, in that multiple contiguous instances of this character will be treated as
     *                     a single separator.  If a given char appears in this list more than once, it will be treated
     *                     as a "hard" separator, where multiple contiguous instances are interpreted as separating
-    *                     empty sub-strings.  Default value is is NULL, which will be interpreted as if you has passed in "\t\r\n ,,"
-    *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.  Defaults to zero.
+    *                     empty sub-strings.  Default value is is NULL, which will be interpreted as if you had passed in "\t\r\n ,,"
+    *  @param escapeChar If specified as non-zero, separator-chars appearing immediately after this char will not be used as separators.
+    *                    Defaults to zero.  A common usage is to pass in a backslash char here, if you want the calling code to be
+    *                    to backslash-escape separator chars that it wants the StringTokenizer to treat as normal/non-separator chars.
     */
    StringTokenizer(bool junk, char * tokenizeMe, const char * optSepChars = NULL, char escapeChar = '\0');
 

@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 /** @defgroup minimessage The MiniMessage C function API
- *  These functions are all defined in MiniMessage(.c,.h), and are stand-alone
+ *  These functions are all defined in MiniMessage.h, and are stand-alone
  *  C functions that provide a way for C programs to use MUSCLE Messages.
  *  This is a minimalist implentation and not so easy to use as the C++ Message
  *  class, but on the plus side it is much more space-efficient, compiling

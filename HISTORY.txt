@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Added @tparam DOxygen tags for any template-arguments that
+   - Added @tparam Doxygen tags for any template-arguments that
      the calling code might need to specify explicitly.
    - Enabled tagfile generation in muscle.dox.
    - Added a DataIO::ReadFullyUpTo() convenience-method to handle
@@ -15,8 +15,11 @@ key:  - new feature
      error is because they have reached EOF/EOS.
    o Changed DataIO::ReadFully() and DataIO::WriteFully() to
      return status_t instead of uint32.
-   * Fixed several issues to make DOxygen's output more useful.
+   o Removed the C APIs from the Doxygen output.
+   * Fixed several issues to make Doxygen's output more useful.
    * Fixed some compiler warnings in the captive regex library.
+   * Fixed the namespacing of the DoxyTemplates header so that
+     Doxygen generation works with the newest Doxygen version.
 
 9.20 - Released 12/30/2022
    - Updated NetworkUtilityFunctions.cpp to better support "real"
@@ -144,7 +147,7 @@ key:  - new feature
    * Fixed a bug that would cause GetEnvironmentVariableValue() to
      sometimes return garbage strings under Windows if the environment
      variable did not exist.
-   * Added missing DOxygen parameter documentation for various
+   * Added missing Doxygen parameter documentation for various
      macros declared in MuscleSupport.h.
    * Fixed a number of broken hyperlinks in the MUSCLE-by-example docs.
 
@@ -333,7 +336,7 @@ key:  - new feature
    o Removed the (useGZip) argument from the ZLibDataIO constructors and
      instead created a separate GZLibDataIO subclass to instantiate
      when .gz-compatible output is desired.
-   o Updated muscle.dox to suit DOxygen 1.9.3's taste.
+   o Updated muscle.dox to suit Doxygen 1.9.3's taste.
    * CompleteSetupSystem's initial-memory-usage value is now set only
      by the first instance of CompleteSetupSystem.
    * sizeof(ReflectServer) and sizeof(MessageTransceiverThread) no longer
@@ -745,7 +748,7 @@ key:  - new feature
    o Updated the README.html to include descriptions
      of recently-added classes.
    o Updated the muscle.dox file to match the latest
-     DOxygen codebase.
+     Doxygen codebase.
    * Fixed #include in Win32FileHandleDataIO.h
    * Fixed a bug in IPAddress::SetIPv4AddressFromUint32()
      that was causing it to set the interface-index of an
@@ -809,7 +812,7 @@ key:  - new feature
    - Added copy-constructor and assignment-operator to the
      StringTokenizer class.
    - Added an IndexOfName() method to the Message class.
-   o Updated the muscle.dox file to work with DOxygen v1.9.2.
+   o Updated the muscle.dox file to work with Doxygen v1.9.2.
    o Fixed some ClangSA warnings
    o Modified Hashtable::PutOrRemove() to return a status_t
      instead of a pointer-to-value.
@@ -1290,7 +1293,7 @@ key:  - new feature
      with a new MUSCLE_DISABLE_KEEPALIVE_API flag (i.e.
      so that the socket-keepalive API is now enabled by
      default if neither flag is specified)
-   o DOxygen documentation is now generated with C++11
+   o Doxygen documentation is now generated with C++11
      enabled (before it was documenting the pre-C++11 API)
    * In the BitChord class, GetNumBytesInBitChord() and
      GetNumWordsInBitChord() were mis-named.  Fixed.
@@ -1522,7 +1525,7 @@ key:  - new feature
    * Added some missing .c and .cpp files to the the Visual
      Studio projects in the vc++14 folder so that the
      muscle-by-example example programs can all link.
-   o Improved the DOxygen-documentation and code-formatting in
+   o Improved the Doxygen-documentation and code-formatting in
      String.{cpp,h} a bit.
    o Modified several of the muscle-by-example example programs so
      that they will compile and run even when C++11 support isn't
@@ -1542,7 +1545,7 @@ key:  - new feature
    o Removed private-inheritance of CountedObject from all the classes
      that had it -- now they include a CountedObject private member
      variable instead.  This was done only because all that private
-     inheritance was cluttering up the DOxygen inheritance graphs.
+     inheritance was cluttering up the Doxygen inheritance graphs.
    o Added a DECLARE_COUNTED_OBJECT macro to CountedObject.h so that
      any potential memory-overhead of CountedObjects can be eliminated
      in cases where object-counting is not desired.
@@ -1571,7 +1574,7 @@ key:  - new feature
    o Changed the first parameter of ConvertReturnValueToMuscleSemantics()
      from (int) to (long) in order to avoid compiler warnings.
    * Merged in a number of patches from Ruurd Adema that fix compiler
-     warnings and errors in DOxygen comments.  (Thanks Ruurd!)
+     warnings and errors in Doxygen comments.  (Thanks Ruurd!)
    * muscle/server/Makefile was inappropriately including muscled.o
      in the libmuscle.a library.  Fixed.
    * muscle/server/Makefile was specifying certain build-flags twice.  Fixed.

@@ -12,7 +12,7 @@ namespace muscle {
 class DataIO;
 
 /** @defgroup zlibutilityfunctions The ZLibUtilityFunctions function API
- *  These functions are all defined in ZLibUtilityFunctions(.cpp,.h), and are stand-alone
+ *  These functions are all defined in ZLibUtilityFunctions.h, and are stand-alone
  *  functions that give an easy-to-use, high-level way to compress and uncompress
  *  raw data and Message objects.
  *  @{

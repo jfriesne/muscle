@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 /** @defgroup micromessagegateway The MicroMessageGateway C function API
- *  These functions are all defined in MicroMessageGateway(.c,.h), and are stand-alone
+ *  These functions are all defined in MicroMessageGateway.h, and are stand-alone
  *  C functions that provide functionality similar to that of the C++
  *  MessageIOGateway class.
  *  @{

@@ -9,7 +9,7 @@
 namespace muscle {
 
 /** @defgroup systeminfo The SystemInfo function API
- *  These functions are all defined in SystemInfo(.cpp,.h), and are stand-alone
+ *  These functions are all defined in SystemInfo.h, and are stand-alone
  *  functions that provide information about the computer and OS that the program is executing on.
  *  @{
  */
