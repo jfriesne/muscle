@@ -315,8 +315,8 @@ status_t ShutdownSocket(const ConstSocketRef & sock, bool disableReception = tru
  */
 ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * optRetPort = NULL, const IPAddress & optInterfaceIP = invalidIP, int socketFamily = SOCKET_FAMILY_PREFERRED);
 
-/** Translates the given 4-byte IP address into a string representation.
- *  @param address The 4-byte IP address to translate into text.
+/** Translates the given IP address into a string representation.
+ *  @param address The IP address to translate into text.
  *  @param outBuf Buffer where the NUL-terminated ASCII representation of the string will be placed.
  *                This buffer must be at least 64 bytes long (or at least 16 bytes long if MUSCLE_AVOID_IPV6 is defined)
  *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
