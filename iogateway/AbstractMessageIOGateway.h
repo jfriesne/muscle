@@ -43,8 +43,8 @@ public:
     * @note Do not override this method!  Override DoOutputImplementation() instead!
     * @param maxBytes optional limit on the number of bytes that should be sent out.
     *                 Defaults to MUSCLE_NO_LIMIT (which is a very large number)
-    * @return The number of bytes written, or a negative value if the connection has been broken
-    *         or some other catastrophic condition has occurred.
+    * @return The number of bytes written, or an error code if the connection has been
+    *         broken or some other catastrophic condition has occurred.
     */
    io_status_t DoOutput(uint32 maxBytes = MUSCLE_NO_LIMIT);
 
@@ -58,8 +58,8 @@ public:
     * @param maxBytes optional limit on the number of bytes that should be read in.
     *                 Defaults to MUSCLE_NO_LIMIT (which is a very large number)
     * Tries not to block, but may (depending on implementation)
-    * @return The number of bytes read, or a negative value if the connection has been broken
-    *         or some other catastrophic condition has occurred.
+    * @return The number of bytes read, or an error code if the connection has been
+    *         broken or some other catastrophic condition has occurred.
     */
    io_status_t DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT)
    {
@@ -192,8 +192,8 @@ protected:
     * Not guaranteed to write all outgoing messages (it will try not to block)
     * @param maxBytes optional limit on the number of bytes that should be sent out.
     *                 Defaults to MUSCLE_NO_LIMIT (which is a very large number)
-    * @return The number of bytes written, or a negative value if the connection has been broken
-    *         or some other catastrophic condition has occurred.
+    * @return The number of bytes written, or an error code if the connection has
+    *         been broken or some other catastrophic condition has occurred.
     */
    virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT) = 0;
 
@@ -206,8 +206,8 @@ protected:
     * @param maxBytes optional limit on the number of bytes that should be read in.
     *                 Defaults to MUSCLE_NO_LIMIT (which is a very large number)
     * Tries not to block, but may (if the held DataIO object is in blocking mode)
-    * @return The number of bytes read, or a negative value if the connection has been broken
-    *         or some other catastrophic condition has occurred.
+    * @return The number of bytes read, or an error code if if the connection has
+    *         been broken or some other catastrophic condition has occurred.
     */
    virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT) = 0;
 

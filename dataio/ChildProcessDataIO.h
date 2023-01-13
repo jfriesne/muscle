@@ -86,14 +86,14 @@ public:
    /** Read data from the child process's stdout stream.
      * @param buffer The read bytes will be placed here
      * @param size Maximum number of bytes that may be placed into (buffer).
-     * @returns The number of bytes placed into (buffer), or a negative value if there was an error.
+     * @returns The number of bytes placed into (buffer), or an error code if there was an error.
      */
    virtual io_status_t Read(void * buffer, uint32 size);
 
    /** Write data to the child process's stdin stream.
      * @param buffer The bytes to write to the child process's stdin.
      * @param size Maximum number of bytes to read from (buffer) and written to the child process's stdin.
-     * @returns The number of bytes written, or a negative value if there was an error.
+     * @returns The number of bytes written, or an error code if there was an error.
      */
    virtual io_status_t Write(const void * buffer, uint32 size);
 

@@ -51,7 +51,7 @@ public:
    /** Default implementation of PacketDataIO::Read()
     *  which just calls ReadFrom(buffer, size, GetSourceOfLastReadPacket()).
     *  @param buffer Buffer to write the bytes into
-    *  @return Number of bytes read, or -1 on error.
+    *  @return Number of bytes read, or an error code on error.
     *  @param size Number of bytes in the buffer.
     */
    virtual io_status_t Read(void * buffer, uint32 size)
@@ -63,7 +63,7 @@ public:
     *  which just calls WriteTo(buffer, size, GetPacketSendDestination()).
     *  @param buffer Buffer of bytes to be sent.
     *  @param size Number of bytes to send.
-    *  @return Number of bytes sent, or -1 on error.
+    *  @return Number of bytes sent, or an error code on error.
     */
    virtual io_status_t Write(const void * buffer, uint32 size)
    {
@@ -71,23 +71,23 @@ public:
    }
 
    /** Tries to the data from an incoming packet into (buffer).  Returns the
-    *  actual number of bytes placed, or a negative value if there was an error.
+    *  actual number of bytes placed, or an error code if there was an error.
     *  Default implementation calls Read(), and then calls GetSourceOfLastReadPacket()
     *  to fill out the (retPacketSource argument).
     *  @param buffer Buffer to write the bytes into
     *  @param size Number of bytes in the buffer.
     *  @param retPacketSource on success, the incoming packet's source is placed here.
-    *  @return Number of bytes read, or -1 on error.
+    *  @return Number of bytes read, or an error code on error.
     */
    virtual io_status_t ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource) = 0;
 
    /** Tries to send a packet of data to the specified location.
-    *  Returns the actual number of sent, or a negative value if
+    *  Returns the actual number of sent, or an error code if
     *  there was an error.
     *  @param buffer Buffer to read the bytes from.
     *  @param size Number of bytes in the buffer.
     *  @param packetDest The destination that the packet should be sent to.
-    *  @return Number of bytes written, or -1 on error.
+    *  @return Number of bytes written, or an error code on error.
     */
    virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) = 0;
 

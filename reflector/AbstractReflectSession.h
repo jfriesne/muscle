@@ -261,14 +261,14 @@ public:
      * Default implementation simply calls DoInput() on our Gateway object (if any).
      * @param receiver Object to call CallMessageReceivedFromGateway() on when new Messages are ready to be looked at.
      * @param maxBytes Maximum number of bytes to read before returning.
-     * @returns The total number of bytes read, or -1 if there was a fatal error.
+     * @returns The total number of bytes read, or an error code if there was a fatal error.
      */
    virtual io_status_t DoInput(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes);
 
    /** Called by the ReflectServer when it wants us to push some more bytes out to our client.
      * Default implementation simply calls DoOutput() on our Gateway object (if any).
      * @param maxBytes Maximum number of bytes to write before returning.
-     * @returns The total number of bytes written, or -1 if there was a fatal error.
+     * @returns The total number of bytes written, or an error code if there was a fatal error.
      */
    virtual io_status_t DoOutput(uint32 maxBytes);
 

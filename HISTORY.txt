@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.21 - Released 1/13/2023
    - Added @tparam Doxygen tags for any template-arguments that
      the calling code might need to specify explicitly.
    - Enabled tagfile generation in muscle.dox.
@@ -16,10 +17,12 @@ key:  - new feature
    o Changed DataIO::ReadFully() and DataIO::WriteFully() to
      return status_t instead of uint32.
    o Removed the C APIs from the Doxygen output.
+   o Auto-updated the muscle.dox file to the latest Doxygen version.
    * Fixed several issues to make Doxygen's output more useful.
    * Fixed some compiler warnings in the captive regex library.
    * Fixed the namespacing of the DoxyTemplates header so that
      Doxygen generation works with the newest Doxygen version.
+   * Updated a number of out-of-date Doxygen comments.
 
 9.20 - Released 12/30/2022
    - Updated NetworkUtilityFunctions.cpp to better support "real"

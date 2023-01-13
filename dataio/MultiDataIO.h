@@ -28,14 +28,14 @@ public:
      * to read their data (since we only have one memory-buffer to place it in anyway).
      * @param buffer A buffer to read data into
      * @param size The number of bytes that (buffer) points to
-     * @returns the number of bytes read, or -1 on error.
+     * @returns the number of bytes read, or an error code on error.
      */
    virtual io_status_t Read(void * buffer, uint32 size);
 
    /** Calls Write() on all our held sub-DataIOs.
      * @param buffer Pointer to a buffer of data to write
      * @param size Number of bytes pointed to by (buffer).
-     * @returns The number of bytes written, or -1 on error.  If different sub-DataIOs write different
+     * @returns The number of bytes written, or an error code on error.  If different sub-DataIOs write different
      *          amounts, the minimum amount written will be returned, and the sub-DataIOs will be Seek()'d
      *          to the position of the sub-DataIO that wrote the fewest bytes.
      */

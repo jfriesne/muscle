@@ -35,7 +35,7 @@ public:
    /** Reads bytes from our file and places them into (buffer).
     *  @param buffer Buffer to write the bytes into
     *  @param size Number of bytes in the buffer.
-    *  @return Number of bytes read, or -1 on error.
+    *  @return Number of bytes read, or an error code on error.
     *  @see DataIO::Read()
     */
    virtual io_status_t Read(void * buffer, uint32 size);
@@ -43,7 +43,7 @@ public:
    /** Takes bytes from (buffer) and writes them out to our file.
     *  @param buffer Buffer to read the bytes from.
     *  @param size Number of bytes in the buffer.
-    *  @return Number of bytes written, or -1 on error.
+    *  @return Number of bytes written, or an error code on error.
     *  @see DataIO::Write()
     */
    virtual io_status_t Write(const void * buffer, uint32 size);

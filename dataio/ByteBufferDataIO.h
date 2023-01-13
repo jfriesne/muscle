@@ -35,18 +35,18 @@ public:
    const ByteBufferRef & GetBuffer() const {return _buf;}
 
    /**
-    *  Copies bytes from our ByteBuffer into (buffer).  If we have no buffer, returns -1.
+    *  Copies bytes from our ByteBuffer into (buffer).  If we have no buffer, returns B_BAD_OBJECT.
     *  @param buffer Points to a buffer to read bytes into.
     *  @param size Number of bytes in the buffer.
-    *  @returns zero.
+    *  @returns the number of bytes that were written into (buffer), or an error code.
     */
    virtual io_status_t Read(void * buffer, uint32 size);
 
    /**
-    *  Writes bytes into our write buffer.  If we have no write buffer, or we cannot allocate more memory for the write buffer, returns -1.
+    *  Writes bytes into our write buffer.  If we have no write buffer, or we cannot allocate more memory for the write buffer, returns B_BAD_OBJECT.
     *  @param buffer Points to a buffer to write bytes from.
     *  @param size Number of bytes in the buffer.
-    *  @return (size).
+    *  @return the number of bytes that were read out of (buffer), or an error code.
     */
    virtual io_status_t Write(const void * buffer, uint32 size);
 

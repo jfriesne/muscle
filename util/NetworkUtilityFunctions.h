@@ -198,7 +198,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetLocalInfo =
  *  @param buffer Location to write the received bytes into.
  *  @param bufferSizeBytes Number of bytes available at the location indicated by (buffer).
  *  @param socketIsInBlockingIOMode Pass in true if the given socket is set to use blocking I/O, or false otherwise.
- *  @return The number of bytes read into (buffer), or a negative value if there was an error.
+ *  @return The number of bytes read into (buffer), or an error code if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
 io_status_t ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode);
@@ -212,7 +212,7 @@ io_status_t ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 buffe
  *                      with the IP address that the received data came from.  Defaults to NULL.
  *  @param optRetFromPort If set to non-NULL, then on success the uint16 this parameter points to will be filled in
  *                      with the source port that the received data came from.  Defaults to NULL.
- *  @return The number of bytes read into (buffer), or a negative value if there was an error.
+ *  @return The number of bytes read into (buffer), or an error code if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
 io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, IPAddress * optRetFromIP = NULL, uint16 * optRetFromPort = NULL);
@@ -223,7 +223,7 @@ io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bu
  *  @param buffer Location to place the read bytes into.
  *  @param bufferSizeBytes Number of bytes available at the location indicated by (buffer).
  *  @param fdIsInBlockingIOMode Pass in true if the given fd is set to use blocking I/O, or false otherwise.
- *  @return The number of bytes read into (buffer), or a negative value if there was an error.
+ *  @return The number of bytes read into (buffer), or an error code if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
 io_status_t ReadData(const ConstSocketRef & fd, void * buffer, uint32 bufferSizeBytes, bool fdIsInBlockingIOMode);
@@ -233,7 +233,7 @@ io_status_t ReadData(const ConstSocketRef & fd, void * buffer, uint32 bufferSize
  *  @param buffer Buffer to read the outgoing bytes from.
  *  @param bufferSizeBytes Number of bytes to send.
  *  @param socketIsInBlockingIOMode Pass in true if the given socket is set to use blocking I/O, or false otherwise.
- *  @return The number of bytes sent from (buffer), or a negative value if there was an error.
+ *  @return The number of bytes sent from (buffer), or an error code if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
 io_status_t SendData(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode);
@@ -247,7 +247,7 @@ io_status_t SendData(const ConstSocketRef & sock, const void * buffer, uint32 bu
  *                   be sent to the socket's current IP address (see SetUDPSocketTarget()).  Defaults to invalidIP.
  *  @param destPort If set to non-zero, the data will be sent to the specified port.  Otherwise it will
  *                  be sent to the socket's current destination port (see SetUDPSocketTarget()).  Defaults to zero.
- *  @return The number of bytes sent from (buffer), or a negative value if there was an error.
+ *  @return The number of bytes sent from (buffer), or an error code if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
 io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, const IPAddress & optDestIP = invalidIP, uint16 destPort = 0);
@@ -258,7 +258,7 @@ io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32
  *  @param buffer Buffer to read the outgoing bytes from.
  *  @param bufferSizeBytes Number of bytes to write.
  *  @param fdIsInBlockingIOMode Pass in true if the given file descriptor is set to use blocking I/O, or false otherwise.
- *  @return The number of bytes sent from (buffer), or a negative value if there was an error.
+ *  @return The number of bytes sent from (buffer), or an error code if there was an error.
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
 io_status_t WriteData(const ConstSocketRef & fd, const void * buffer, uint32 bufferSizeBytes, bool fdIsInBlockingIOMode);
@@ -556,8 +556,8 @@ void SetLocalHostIPOverride(const IPAddress & ip);
 IPAddress GetLocalHostIPOverride();
 
 /** Creates and returns a socket that can be used for UDP communications.
- *  Returns a negative value on error, or a non-negative socket handle on
- *  success.  You'll probably want to call BindUDPSocket() or SetUDPSocketTarget()
+ *  Returns a non-NULL ConstSocketReference on success, or a NULL reference on failure.
+ *  You'll probably want to call BindUDPSocket() or SetUDPSocketTarget()
  *  after calling this method.
  *  @param socketFamily a SOCKET_FAMILY_* value indicating the family of socket to create.
  *                      This should be either SOCKET_FAMILY_IPV4 or SOCKET_FAMILY_IPV6.

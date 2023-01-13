@@ -42,7 +42,7 @@ public:
    /** Reads bytes from stdin and places them into (buffer).
     *  @param buffer Buffer to write the bytes into
     *  @param size Number of bytes in the buffer.
-    *  @return Number of bytes read, or -1 on error.
+    *  @return Number of bytes read, or an error code on error.
     *  @see DataIO::Read()
     */
    virtual io_status_t Read(void * buffer, uint32 size);
@@ -52,7 +52,8 @@ public:
      * Otherwise we will just return (size) verbatim, without writing the bytes anywhere.
      * @param buffer Pointer to a buffer of data to output
      * @param size The number of bytes pointed to by (buffer)
-     * @returns the number of bytes actually written (or size, if writeToStdout is false)
+     * @returns the number of bytes actually written, or (size), if writeToStdout is false,
+     *          or an error code on error.
      * @note writes to stdout are expected to be blocking, even if this StdinDataIO is in non-blocking mode.
      */
    virtual io_status_t Write(const void * buffer, uint32 size);
