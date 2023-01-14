@@ -804,13 +804,17 @@ private:
    inline uint32 NextIndex(uint32 idx) const {return (idx >= _queueSize-1) ? 0 : idx+1;}
    inline uint32 PrevIndex(uint32 idx) const {return (idx == 0) ? _queueSize-1 : idx-1;}
 
-   // Translates a user-index into an index into the _queue array.
+   /** Translates a user-index into an index into the _queue array.
+     * @param idx user-index between 0 and (_itemCount-1), inclusive
+     * @returns an array-offset between 0 and (_queueSize-1), inclusive
+     */
    inline uint32 InternalizeIndex(uint32 idx) const
    {
 #ifdef __clang_analyzer__
       assert(idx < _queueSize);
 #endif
-      return (_headIndex + idx) % _queueSize;
+      const uint32 o = _headIndex + idx;
+      return (o < _queueSize) ? o : (o-_queueSize);  // was (o % _queueSize), but this way is about 3 times faster
    }
 
    // Helper methods, used for sorting (stolen from http://www-ihm.lri.fr/~thomas/VisuTri/inplacestablesort.html)

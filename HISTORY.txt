@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Modified Queue::InternalizeIndex() to use subtraction
+     instead of modulo, for a 3x efficiency gain.
+
 9.21 - Released 1/13/2023
    - Added @tparam Doxygen tags for any template-arguments that
      the calling code might need to specify explicitly.

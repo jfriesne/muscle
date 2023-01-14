@@ -214,6 +214,29 @@ int main(int, char **)
    }
 
    {
+      const uint32 NUM_ITEMS = 300000000;
+      const uint32 NUM_RUNS  = 3;
+      Queue<int> iq; (void) iq.EnsureSize(NUM_ITEMS, true);
+      double tally = 0.0;
+      for (uint32 t=0; t<NUM_RUNS; t++)
+      {
+         printf("SUM SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
+
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) iq[i] = rand();  // we want this to be repeatable, hence srand(0)
+
+         uint64 count = 0;
+         const uint64 startTime = GetRunTime64();
+         for (uint32 i=0; i<iq.GetNumItems(); i++) count += iq[i];
+         const uint64 elapsed = (GetRunTime64()-startTime);
+
+         const double itemsPerSecond = ((double)NUM_ITEMS*((double)MICROS_PER_SECOND))/(elapsed);
+         printf("   It took " UINT64_FORMAT_SPEC " microseconds to sum " UINT32_FORMAT_SPEC " items, so we summed %f items per second:  " UINT64_FORMAT_SPEC "\n", elapsed, NUM_ITEMS, itemsPerSecond, count);
+         tally += itemsPerSecond;
+      }
+      printf("GRAND AVERAGE ITEMS PER SECOND WAS %f items per second\n", tally/NUM_RUNS);
+   }
+
+   {
       const uint32 NUM_ITEMS = 1000000;
       const uint32 NUM_RUNS  = 3;
       Queue<int> iq; (void) iq.EnsureSize(NUM_ITEMS, true);
