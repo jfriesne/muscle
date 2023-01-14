@@ -67,7 +67,7 @@ public:
    }
 
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   Queue(Queue && rhs)
+   Queue(Queue && rhs)  // note:  can't be MUSCLE_NO_EXCEPT because we may copy items
       : _queue(NULL)
       , _queueSize(0)
       , _itemCount(0)
@@ -81,7 +81,7 @@ public:
    }
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
-   Queue & operator =(Queue && rhs) {if (rhs._queue == rhs._smallQueue) *this = rhs; else SwapContents(rhs); return *this;}
+   Queue & operator =(Queue && rhs) {if (rhs._queue == rhs._smallQueue) *this = rhs; else SwapContents(rhs); return *this;}  // note: can't be MUSCLE_NOEXCEPT because we may copy items
 #endif
 
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
@@ -628,7 +628,7 @@ public:
     *  Swaps our contents with the contents of (that), in an efficient manner.
     *  @param that The queue whose contents are to be swapped with our own.
     */
-   void SwapContents(Queue<ItemType> & that);
+   void SwapContents(Queue<ItemType> & that);  // note:  can't be MUSCLE_NOEXCEPT because we may copy items
 
    /**
     *  Goes through the array and removes every item that is equal to (val).
@@ -799,7 +799,7 @@ private:
    status_t EnsureSizeAux(uint32 numSlots, ItemType ** optRetOldArray) {return EnsureSizeAux(numSlots, false, 0, optRetOldArray, false);}
    status_t EnsureSizeAux(uint32 numSlots, bool setNumItems, uint32 extraReallocItems, ItemType ** optRetOldArray, bool allowShrink);
    const ItemType * GetArrayPointerAux(uint32 whichArray, uint32 & retLength) const;
-   void SwapContentsAux(Queue<ItemType> & that);
+   void SwapContentsAux(Queue<ItemType> & that);  // note:  can't be MUSCLE_NOEXCEPT because we may copy items
 
    inline uint32 NextIndex(uint32 idx) const {return (idx >= _queueSize-1) ? 0 : idx+1;}
    inline uint32 PrevIndex(uint32 idx) const {return (idx == 0) ? _queueSize-1 : idx-1;}
@@ -1791,7 +1791,7 @@ Queue<ItemType> :: GetArrayPointerAux(uint32 whichArray, uint32 & retLength) con
 
 template <class ItemType>
 void
-Queue<ItemType>::SwapContents(Queue<ItemType> & that)
+Queue<ItemType>::SwapContents(Queue<ItemType> & that)  // note:  can't be MUSCLE_NOEXCEPT because we may copy items
 {
    if (&that == this) return;  // no point trying to swap with myself
 
@@ -1826,7 +1826,7 @@ Queue<ItemType>::SwapContents(Queue<ItemType> & that)
 
 template <class ItemType>
 void
-Queue<ItemType>::SwapContentsAux(Queue<ItemType> & largeThat)
+Queue<ItemType>::SwapContentsAux(Queue<ItemType> & largeThat)  // note:  can't be MUSCLE_NOEXCEPT because we may copy items
 {
    // First, copy over our (small) contents to his small-buffer
    const uint32 ni = GetNumItems();

@@ -126,14 +126,14 @@ public:
    /** Efficiently swaps our state with the state of the StringMatcher passed in as an argument.
      * @param withMe the StringMatcher whose state should be swapped with our own.
      */
-   void SwapContents(StringMatcher & withMe);
+   void SwapContents(StringMatcher & withMe) MUSCLE_NOEXCEPT;
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   StringMatcher(StringMatcher && rhs) {SwapContents(rhs);}
+   StringMatcher(StringMatcher && rhs) MUSCLE_NOEXCEPT {SwapContents(rhs);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   StringMatcher & operator =(StringMatcher && rhs) {SwapContents(rhs); return *this;}
+   StringMatcher & operator =(StringMatcher && rhs) MUSCLE_NOEXCEPT {SwapContents(rhs); return *this;}
 #endif
 
 private:

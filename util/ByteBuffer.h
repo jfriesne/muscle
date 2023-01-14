@@ -180,7 +180,7 @@ public:
      * @param swapWith ByteBuffer to swap contents with.
      * @note Allocation strategy pointer and data flags get swapped by this operation.
      */
-   void SwapContents(ByteBuffer & swapWith)
+   void SwapContents(ByteBuffer & swapWith) MUSCLE_NOEXCEPT
    {
       muscleSwap(_buffer,            swapWith._buffer);
       muscleSwap(_numValidBytes,     swapWith._numValidBytes);
@@ -193,10 +193,10 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   ByteBuffer(ByteBuffer && rhs) : _buffer(NULL), _numValidBytes(0), _numAllocatedBytes(0) {SwapContents(rhs);}
+   ByteBuffer(ByteBuffer && rhs) MUSCLE_NOEXCEPT : _buffer(NULL), _numValidBytes(0), _numAllocatedBytes(0) {SwapContents(rhs);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   ByteBuffer & operator =(ByteBuffer && rhs) {SwapContents(rhs); return *this;}
+   ByteBuffer & operator =(ByteBuffer && rhs) MUSCLE_NOEXCEPT {SwapContents(rhs); return *this;}
 #endif
 
    // Flattenable interface

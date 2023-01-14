@@ -777,7 +777,7 @@ public:
    /** Swaps the state of this string with (swapWithMe).  Very efficient since little or no data copying is required.
      * @param swapWithMe the String to swap contents with
      */
-   inline void SwapContents(String & swapWithMe)
+   inline void SwapContents(String & swapWithMe) MUSCLE_NOEXCEPT
    {
       muscleSwap(_strData,   swapWithMe._strData);
       muscleSwap(_bufferLen, swapWithMe._bufferLen);
@@ -786,7 +786,7 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   String(String && rhs) : _bufferLen(0), _length(0)
+   String(String && rhs) MUSCLE_NOEXCEPT : _bufferLen(0), _length(0)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_MOVE_CTOR);
       ClearSmallBuffer();
@@ -794,7 +794,7 @@ public:
    }
 
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   String & operator =(String && rhs)
+   String & operator =(String && rhs) MUSCLE_NOEXCEPT
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_MOVE_FROM_STRING);
       SwapContents(rhs);

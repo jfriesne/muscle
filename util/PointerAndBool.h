@@ -110,7 +110,7 @@ public:
    /** Swaps this object's state with the state of (rhs)
      * @param rhs another PointerAndBool to swap our contents with
      */
-   void SwapContents(PointerAndBool & rhs)
+   void SwapContents(PointerAndBool & rhs) MUSCLE_NOEXCEPT
    {
       muscleSwap(_pointer, rhs._pointer);
 #ifdef MUSCLE_AVOID_BITSTUFFING
@@ -259,7 +259,7 @@ public:
    /** Swaps this object's state with the state of (rhs)
      * @param rhs another PointerAndBools to swap our contents with
      */
-   void SwapContents(PointerAndBools & rhs)
+   void SwapContents(PointerAndBools & rhs) MUSCLE_NOEXCEPT
    {
       muscleSwap(_pointer, rhs._pointer);
 #ifdef MUSCLE_AVOID_DOUBLE_BITSTUFFING

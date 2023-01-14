@@ -7,6 +7,10 @@ key:  - new feature
 
    - Modified Queue::InternalizeIndex() to use subtraction
      instead of modulo, for a 3x efficiency gain.
+   - Added a MUSCLE_NOEXCEPT keyword that expands to noexcept
+     under C++11 or later, or to nothing under C++03
+   - Added MUSCLE_NOEXCEPT tags to the SwapContents() methods
+     and move-constructors/operators that can make that guarantee.
 
 9.21 - Released 1/13/2023
    - Added @tparam Doxygen tags for any template-arguments that

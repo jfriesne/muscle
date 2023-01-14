@@ -155,7 +155,7 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   ConstRef(ConstRef && rhs) {this->SwapContents(rhs);}
+   ConstRef(ConstRef && rhs) MUSCLE_NOEXCEPT {this->SwapContents(rhs);}
 #endif
 
    /** Unreferences the held data item.  If this is the last ConstRef that
@@ -213,7 +213,7 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   inline ConstRef &operator=(ConstRef && rhs) {this->SwapContents(rhs); return *this;}
+   inline ConstRef &operator=(ConstRef && rhs) MUSCLE_NOEXCEPT {this->SwapContents(rhs); return *this;}
 #endif
 
    /** Similar to the == operator, except that this version will also call the comparison operator
@@ -277,7 +277,7 @@ public:
    /** Swaps this ConstRef's contents with those of the specified ConstRef.
      * @param swapWith ConstRef to swap state with.
      */
-   void SwapContents(ConstRef & swapWith) {this->_item.SwapContents(swapWith._item);}
+   void SwapContents(ConstRef & swapWith) MUSCLE_NOEXCEPT {this->_item.SwapContents(swapWith._item);}
 
    /** Returns true iff we are refcounting our held object, or false
      * if we are merely pointing to it (see constructor documentation for details)
@@ -509,7 +509,7 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   Ref(Ref && rhs) {this->SwapContents(rhs);}
+   Ref(Ref && rhs) MUSCLE_NOEXCEPT {this->SwapContents(rhs);}
 #endif
 
    /** Returns the ref-counted data item.  The returned data item
@@ -534,7 +534,7 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   inline Ref &operator=(Ref && rhs) {this->SwapContents(rhs); return *this;}
+   inline Ref &operator=(Ref && rhs) MUSCLE_NOEXCEPT {this->SwapContents(rhs); return *this;}
 #endif
 
 private:

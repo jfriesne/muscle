@@ -2026,7 +2026,7 @@ bool Message :: FieldsAreSubsetOf(const Message & rhs, bool compareContents) con
    return true;
 }
 
-void Message :: SwapContents(Message & swapWith)
+void Message :: SwapContents(Message & swapWith) MUSCLE_NOEXCEPT
 {
    muscleSwap(what, swapWith.what);
    _entries.SwapContents(swapWith._entries);

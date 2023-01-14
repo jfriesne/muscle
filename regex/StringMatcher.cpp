@@ -204,7 +204,7 @@ String StringMatcher :: ToString() const
    }
 }
 
-void StringMatcher :: SwapContents(StringMatcher & withMe)
+void StringMatcher :: SwapContents(StringMatcher & withMe) MUSCLE_NOEXCEPT
 {
    muscleSwap(_flags,   withMe._flags);
    muscleSwap(_pattern, withMe._pattern);

@@ -1603,14 +1603,14 @@ public:
     * This is a very efficient, O(1) operation.
     * @param swapWith Message whose contents should be swapped with this one.
     */
-   void SwapContents(Message & swapWith);
+   void SwapContents(Message & swapWith) MUSCLE_NOEXCEPT;
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   Message(Message && rhs) : what(0) {SwapContents(rhs);}
+   Message(Message && rhs) MUSCLE_NOEXCEPT : what(0) {SwapContents(rhs);}
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
-   Message & operator =(Message && rhs) {SwapContents(rhs); return *this;}
+   Message & operator =(Message && rhs) MUSCLE_NOEXCEPT {SwapContents(rhs); return *this;}
 #endif
 
    /** Sorts the iteration-order of this Message's field names into case-sensitive alphabetical order.

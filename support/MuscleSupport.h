@@ -86,6 +86,7 @@
 #  define MUSCLE_AVOID_CPLUSPLUS11
 # endif
 # ifndef MUSCLE_AVOID_CPLUSPLUS11
+#  define MUSCLE_NOEXCEPT noexcept       /**< MUSCLE_NOEXCEPT expands to noexcept only in C++11 or newer.  In C++03 it expands to nothing. */
 #  if !defined(MUSCLE_USE_PTHREADS) && !defined(MUSCLE_SINGLE_THREAD_ONLY) && !defined(MUSCLE_AVOID_CPLUSPLUS11_THREADS)
 #   define MUSCLE_USE_CPLUSPLUS11_THREADS
 #  endif
@@ -136,6 +137,10 @@
 
 #ifndef MUSCLE_CONSTEXPR
 # define MUSCLE_CONSTEXPR  /**< This tag indicates that the function or variable it decorates can be evaluated at compile time.  (Expands to keyword constexpr iff MUSCLE_AVOID_CPLUSPLUS11 is not defined) */
+#endif
+
+#ifndef MUSCLE_NOEXCEPT
+# define MUSCLE_NOEXCEPT   /**< MUSCLE_NOEXCEPT expands to noexcept only in C++11 or newer.  In C++03 it expands to nothing. */
 #endif
 
 #ifdef MUSCLE_CONSTEXPR_IS_SUPPORTED
@@ -856,7 +861,7 @@ enum {
 namespace muscle {
 
 /** A handy little method to swap the bytes of any int-style datatype around */
-template<typename T> inline T muscleSwapBytes(T swapMe)
+template<typename T> inline T muscleSwapBytes(T swapMe) MUSCLE_NOEXCEPT
 {
    union {T _iWide; uint8 _i8[sizeof(T)];} u1, u2;
    u1._iWide = swapMe;
@@ -983,7 +988,7 @@ template<typename T> inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3, T p4,
   * @param t1 First item to swap.  After this method returns, it will be equal to the old value of t2.
   * @param t2 Second item to swap.  After this method returns, it will be equal to the old value of t1.
   */
-template<typename T> inline void muscleSwap(T & t1, T & t2)
+template<typename T> inline void muscleSwap(T & t1, T & t2) MUSCLE_NOEXCEPT
 {
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
    T t(t1); t1 = t2; t2 = t;
@@ -1021,7 +1026,7 @@ namespace muscle_private
       template<typename T> class PODSwapper
       {
       public:
-         PODSwapper(T & t1, T & t2)
+         PODSwapper(T & t1, T & t2) MUSCLE_NOEXCEPT
          {
             if (&t1 != &t2)
             {
@@ -1039,7 +1044,7 @@ namespace muscle_private
       template<typename T> class SwapContentsSwapper
       {
       public:
-         SwapContentsSwapper(T & t1, T & t2) {if (&t1 != &t2) t1.SwapContents(t2);}
+         SwapContentsSwapper(T & t1, T & t2) MUSCLE_NOEXCEPT {if (&t1 != &t2) t1.SwapContents(t2);}
       };
 
       template<typename ItemType> class AutoChooseSwapperHelper
@@ -1055,7 +1060,7 @@ namespace muscle_private
   * @param t1 First item to swap.  After this method returns, it will be equal to the old value of t2.
   * @param t2 Second item to swap.  After this method returns, it will be equal to the old value of t1.
   */
-template<typename T> inline void muscleSwap(T & t1, T & t2) {typename muscle_private::autochoose_swapper::AutoChooseSwapperHelper<T>::Type swapper(t1,t2);}
+template<typename T> inline void muscleSwap(T & t1, T & t2) MUSCLE_NOEXCEPT {typename muscle_private::autochoose_swapper::AutoChooseSwapperHelper<T>::Type swapper(t1,t2);}
 
 #endif
 

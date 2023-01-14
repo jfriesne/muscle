@@ -667,7 +667,7 @@ public:
     *  Any active iterators present for either table will swap owners also, becoming associated with the other table.
     *  @param swapMe The table whose contents and iterators are to be swapped with this table's.
     */
-   void SwapContents(HashtableBase & swapMe) {SwapContentsAux(swapMe, true);}
+   void SwapContents(HashtableBase & swapMe) MUSCLE_NOEXCEPT {SwapContentsAux(swapMe, true);}
 
    /** Moves the given entry to the head of the HashtableIterator traversal sequence.
      * @param moveMe Key of the item to be moved to the front of the sequence.
@@ -1047,7 +1047,7 @@ private:
       NUM_TABLE_INDEX_TYPES
    };
 
-   void SwapContentsAux(HashtableBase & swapMe, bool swapIterators);
+   void SwapContentsAux(HashtableBase & swapMe, bool swapIterators) MUSCLE_NOEXCEPT;
 
    HashtableBase(uint32 tableSize)
       : _numItems(0)
@@ -2075,24 +2075,24 @@ public:
     *  @param swapMe The table whose contents and iterators are to be swapped with this table's.
     *  @note This method is redeclared here solely to make sure that the muscleSwap() SFINAE magic sees it.
     */
-   void SwapContents(Hashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >::SwapContents(swapMe);}
+   void SwapContents(Hashtable & swapMe) MUSCLE_NOEXCEPT {HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >::SwapContents(swapMe);}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   Hashtable(Hashtable && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0) {this->SwapContents(rhs);}
+   Hashtable(Hashtable && rhs) MUSCLE_NOEXCEPT : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0) {this->SwapContents(rhs);}
 
    /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
      * @param rhs the table to steal the contents of, to make them our own
      */
-   template<class RHSHashFunctorType, class RHSSubclassType> Hashtable(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0) {this->SwapContents(rhs);}
+   template<class RHSHashFunctorType, class RHSSubclassType> Hashtable(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) MUSCLE_NOEXCEPT : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(0) {this->SwapContents(rhs);}
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
-   Hashtable & operator=(Hashtable && rhs) {this->SwapContents(rhs); return *this;}
+   Hashtable & operator=(Hashtable && rhs) MUSCLE_NOEXCEPT {this->SwapContents(rhs); return *this;}
 
    /** Templated pseudo-assignment-move-operator:  Allows us to be set from similar table with different functor types.
      * @param rhs the table to steal the contents of, to make them our own
      */
-   template<class RHSHashFunctorType, class RHSSubclassType> Hashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) {this->SwapContents(rhs); return *this;}
+   template<class RHSHashFunctorType, class RHSSubclassType> Hashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) MUSCLE_NOEXCEPT {this->SwapContents(rhs); return *this;}
 #endif
 
    /** Convenience method:  Returns a table like this one, except the keys and values have swapped positions.
@@ -2262,7 +2262,7 @@ public:
     *        operation.  That means that if (swapMe) was sorted using a different sorting mechanism than the
     *        one in use by this table's auto-sort, you may want to call Sort() on this table after the swap.
     */
-   void SwapContents(OrderedKeysHashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
+   void SwapContents(OrderedKeysHashtable & swapMe) MUSCLE_NOEXCEPT {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedKeysHashtable<KeyType,ValueType,KeyCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
 
    /** Calculates and returns a hash code for this Hashtable using the default hash-functor for our value-type.
      * The value returned by this method depends on the contents of our keys and values but not on their iteration-ordering.
@@ -2273,20 +2273,20 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   OrderedKeysHashtable(OrderedKeysHashtable && rhs) : OrderedHashtableType(0, ByKeyEntryCompareFunctorType(_keyCompareFunctor), NULL), _keyCompareFunctor() {this->SwapContents(rhs);}
+   OrderedKeysHashtable(OrderedKeysHashtable && rhs) MUSCLE_NOEXCEPT : OrderedHashtableType(0, ByKeyEntryCompareFunctorType(_keyCompareFunctor), NULL), _keyCompareFunctor() {this->SwapContents(rhs);}
 
    /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
      * @param rhs the hash table that we are to steal the contents of, to make them our own
      */
-   template<class RHSKeyCompareFunctorType, class RHSHashFunctorType> OrderedKeysHashtable(HashtableMid<KeyType,ValueType,RHSKeyCompareFunctorType,RHSHashFunctorType> && rhs) : OrderedHashtableType(0, ByKeyEntryCompareFunctorType(_keyCompareFunctor), NULL), _keyCompareFunctor() {this->SwapContents(rhs);}
+   template<class RHSKeyCompareFunctorType, class RHSHashFunctorType> OrderedKeysHashtable(HashtableMid<KeyType,ValueType,RHSKeyCompareFunctorType,RHSHashFunctorType> && rhs) MUSCLE_NOEXCEPT : OrderedHashtableType(0, ByKeyEntryCompareFunctorType(_keyCompareFunctor), NULL), _keyCompareFunctor() {this->SwapContents(rhs);}
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
-   OrderedKeysHashtable & operator=(OrderedKeysHashtable && rhs) {this->SwapContents(rhs); return *this;}
+   OrderedKeysHashtable & operator=(OrderedKeysHashtable && rhs) MUSCLE_NOEXCEPT {this->SwapContents(rhs); return *this;}
 
    /** Templated pseudo-move-assignment-operator:  Allows us to be set from similar table with different functor types.
      * @param rhs the hash table that we are to steal the contents of, to make them our own
      */
-   template<class RHSHashFunctorType, class RHSSubclassType> OrderedKeysHashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) {(void) this->SwapContents(rhs); return *this;}
+   template<class RHSHashFunctorType, class RHSSubclassType> OrderedKeysHashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) MUSCLE_NOEXCEPT {(void) this->SwapContents(rhs); return *this;}
 #endif
 
    typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByKeyEntryCompareFunctor<KeyCompareFunctorType> ByKeyEntryCompareFunctorType;
@@ -2339,7 +2339,7 @@ public:
     *        operation.  That means that if (swapMe) was sorted using a different sorting mechanism than the
     *        one in use by this table's auto-sort, you may want to call Sort() on this table after the swap.
     */
-   void SwapContents(OrderedValuesHashtable & swapMe) {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
+   void SwapContents(OrderedValuesHashtable & swapMe) MUSCLE_NOEXCEPT {HashtableMid<KeyType,ValueType,HashFunctorType,OrderedValuesHashtable<KeyType,ValueType,ValueCompareFunctorType,HashFunctorType> >::SwapContents(swapMe);}
 
    /** Calculates and returns a hash code for this Hashtable using the default hash-functor for our value-type.
      * The value returned by this method depends on the contents of our keys and values but not on their iteration-ordering.
@@ -2350,20 +2350,20 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   OrderedValuesHashtable(OrderedValuesHashtable && rhs) : OrderedHashtableType(0, ByValueEntryCompareFunctorType(_valueCompareFunctor), NULL), _valueCompareFunctor() {this->SwapContents(rhs);}
+   OrderedValuesHashtable(OrderedValuesHashtable && rhs) MUSCLE_NOEXCEPT : OrderedHashtableType(0, ByValueEntryCompareFunctorType(_valueCompareFunctor), NULL), _valueCompareFunctor() {this->SwapContents(rhs);}
 
    /** Templated pseudo-move-constructor:  Allows us to be instantiated as a copy of a similar table with different functor types.
      * @param rhs the hash table that we are to steal the contents of, to make them our own
      */
-   template<class RHSValueCompareFunctorType, class RHSHashFunctorType> OrderedValuesHashtable(HashtableMid<KeyType,ValueType,RHSValueCompareFunctorType,RHSHashFunctorType> && rhs) : OrderedHashtableType(0, ByValueEntryCompareFunctorType(_valueCompareFunctor), NULL), _valueCompareFunctor() {this->SwapContents(rhs);}
+   template<class RHSValueCompareFunctorType, class RHSHashFunctorType> OrderedValuesHashtable(HashtableMid<KeyType,ValueType,RHSValueCompareFunctorType,RHSHashFunctorType> && rhs) MUSCLE_NOEXCEPT : OrderedHashtableType(0, ByValueEntryCompareFunctorType(_valueCompareFunctor), NULL), _valueCompareFunctor() {this->SwapContents(rhs);}
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
-   OrderedValuesHashtable & operator=(OrderedValuesHashtable && rhs) {this->SwapContents(rhs); return *this;}
+   OrderedValuesHashtable & operator=(OrderedValuesHashtable && rhs) MUSCLE_NOEXCEPT {this->SwapContents(rhs); return *this;}
 
    /** Templated pseudo-move-assignment-operator:  Allows us to be set from similar table with different functor types.
      * @param rhs the hash table that we are to steal the contents of, to make them our own
      */
-   template<class RHSHashFunctorType, class RHSSubclassType> OrderedValuesHashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) {(void) this->SwapContents(rhs); return *this;}
+   template<class RHSHashFunctorType, class RHSSubclassType> OrderedValuesHashtable & operator=(HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> && rhs) MUSCLE_NOEXCEPT {(void) this->SwapContents(rhs); return *this;}
 #endif
 
    typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByValueEntryCompareFunctor<ValueCompareFunctorType> ByValueEntryCompareFunctorType;
@@ -2819,7 +2819,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SortByEntry(const EntryCompare
 
 template <class KeyType, class ValueType, class HashFunctorType>
 void
-HashtableBase<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableBase<KeyType,ValueType,HashFunctorType> & swapMe, bool swapIterators)
+HashtableBase<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableBase<KeyType,ValueType,HashFunctorType> & swapMe, bool swapIterators) MUSCLE_NOEXCEPT
 {
    muscleSwap(_numItems,       swapMe._numItems);
    muscleSwap(_tableSize,      swapMe._tableSize);
