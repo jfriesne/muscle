@@ -1456,7 +1456,7 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
       if (size > _itemCount)
       {
          // We can do this quickly because the "new" items are already initialized properly
-         _tailIndex = PrevIndex((_headIndex+size)%_queueSize);
+         _tailIndex = PrevIndex(InternalizeIndex(size));
          _itemCount = size;
       }
       else (void) RemoveTailMulti(_itemCount-size);
