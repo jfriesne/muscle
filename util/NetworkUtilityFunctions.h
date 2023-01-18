@@ -742,13 +742,13 @@ typedef int muscle_socklen_t;
 typedef size_t muscle_socklen_t;
 #endif
 
-static inline int32 recv_ignore_eintr(    int s, void *b, uint32 numBytes, int flags) {int32 ret; do {ret = recv(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline int32 recvfrom_ignore_eintr(int s, void *b, uint32 numBytes, int flags, struct sockaddr *a, muscle_socklen_t * alen) {int32 ret; do {ret = recvfrom(s, (char *)b, numBytes, flags, a,  alen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline int32 send_ignore_eintr(    int s, const void *b, uint32 numBytes, int flags) {int32 ret; do {ret = send(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline int32 sendto_ignore_eintr(  int s, const void *b, uint32 numBytes, int flags, const struct sockaddr * d, int dlen) {int32 ret; do {ret = sendto(s, (char *)b, numBytes, flags,  d, dlen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline int32 recv_ignore_eintr(    int s, void *b, uint32 numBytes, int flags) {int32 ret; do {ret = (int32)recv(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline int32 recvfrom_ignore_eintr(int s, void *b, uint32 numBytes, int flags, struct sockaddr *a, muscle_socklen_t * alen) {int32 ret; do {ret = (int32)recvfrom(s, (char *)b, numBytes, flags, a,  alen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline int32 send_ignore_eintr(    int s, const void *b, uint32 numBytes, int flags) {int32 ret; do {ret = (int32)send(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline int32 sendto_ignore_eintr(  int s, const void *b, uint32 numBytes, int flags, const struct sockaddr * d, int dlen) {int32 ret; do {ret = (int32)sendto(s, (char *)b, numBytes, flags,  d, dlen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
 #ifndef WIN32
-static inline int32 read_ignore_eintr(    int f, void *b, uint32 nbyte) {int32 ret; do {ret = read(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline int32 write_ignore_eintr(   int f, const void *b, uint32 nbyte) {int32 ret; do {ret = write(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline int32 read_ignore_eintr(    int f, void *b, uint32 nbyte) {int32 ret; do {ret = (int32)read(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+static inline int32 write_ignore_eintr(   int f, const void *b, uint32 nbyte) {int32 ret; do {ret = (int32)write(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
 #endif
 
 /// @endcond
