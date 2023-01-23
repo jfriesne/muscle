@@ -118,6 +118,12 @@ public:
    /** Returns the ASCII name of this node (eg "joe") */
    const String & GetNodeName() const {return _nodeName;}
 
+   /** Sets this DataNode's node name to something different.
+     * @param newNodeName the new name to use
+     * @note Don't call this unless you know what you are doing -- most of the MUSCLE codebase expects node-names to be constant.
+     */
+   void SetNodeName(const String & newNodeName) {_nodeName = newNodeName;}
+
    /** Generates and returns the full node path of this node (eg "/12.18.240.15/1234/beshare/files/joe").
      * @param retPath On success, this String will contain this node's absolute path.
      * @param startDepth The depth at which the path should start.  Defaults to zero, meaning the full path.

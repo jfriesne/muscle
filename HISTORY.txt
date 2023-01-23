@@ -13,6 +13,7 @@ key:  - new feature
      and move-constructors/operators that can make that guarantee.
    - Added a MatchesNodeNameQueryFilter class, to support query
      filtering against DataNode-names.
+   - Added DataNode::SetNodeName()
 
 9.21 - Released 1/13/2023
    - Added @tparam Doxygen tags for any template-arguments that
