@@ -2346,7 +2346,7 @@ key:  - new feature
      want MUSCLE to use Xenomai anyway.
    * Merged in Augustin Cavalier's patch to get MUSCLE to
      compile again under Haiku.
-   * Modified the Queue code to avoid a static-analyizer warning.
+   * Modified the Queue code to avoid a static-analyzer warning.
    * Fixed a valgrind hit in AbstractReflectSession::Reconnect().
    * Fixed a bug in AsyncDataIO that would cause it to hang
      when being shut down.
