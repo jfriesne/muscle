@@ -37,6 +37,7 @@ enum {
    QUERY_FILTER_TYPE_MINMATCH,              /**< filter matches iff at least (n) of its children match */
    QUERY_FILTER_TYPE_XOR,                   /**< combine the results of two or more child filters using an XOR operator */
    QUERY_FILTER_TYPE_CHILDCOUNT,            /**< filter based on the number of child nodes the DataNode in question has */
+   QUERY_FILTER_TYPE_NODENAME,              /**< filter based on the name of the DataNode holding the Message */
    // add more codes here...
    LAST_QUERY_FILTER_TYPE                   /**< guard value */
 };
@@ -1017,6 +1018,12 @@ public:
      */
    void UnsetAssumedDefault() {_default.Clear(); _assumeDefault = false;}
 
+   /** Convenience method:  Returns true iff this StringQueryFilter matches the specified String
+     * @param s the string to test to see if it meets our criteria
+     * @returns true if the string matches, or false if it doesn't match
+     */
+   bool MatchesString(const String & s) const;
+
 private:
    void FreeMatcher();
    bool DoMatch(const String & s) const;
@@ -1030,6 +1037,28 @@ private:
    mutable StringMatcher * _matcher;
 };
 DECLARE_REFTYPES(StringQueryFilter);
+
+/** This class is similar to a StringQueryFilter, except that instead of matching on the
+  * value of a String field in the Message, it matches on the name of the DataNode containing
+  * the Message.  This can be useful in cases where you need to combine index-searching and
+  * query filtering in ways that aren't possible using the standard approach.
+  */
+class NodeNameQueryFilter : public StringQueryFilter
+{
+public:
+   /** Default constructor.  The string is set to "", and the operator is set to OP_EQUAL_TO. */
+   NodeNameQueryFilter() {/* empty */}
+
+   /** Constructor.
+     * @param op The operator to use (should be one of the OP_* values enumerated in the StringQueryFilter superclass)
+     * @param value The string to compare to the the name of the DataNode passed in to Matches()
+     */
+   NodeNameQueryFilter(uint8 op, const String & value) : StringQueryFilter(GetEmptyString(), op, value) {/* empty */}
+
+   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_NODENAME;}
+   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
+};
+DECLARE_REFTYPES(NodeNameQueryFilter);
 
 /** This class matches on raw data buffers.  */
 class RawDataQueryFilter : public ValueQueryFilter

@@ -11,6 +11,8 @@ key:  - new feature
      under C++11 or later, or to nothing under C++03
    - Added MUSCLE_NOEXCEPT tags to the SwapContents() methods
      and move-constructors/operators that can make that guarantee.
+   - Added a MatchesNodeNameQueryFilter class, to support query
+     filtering against DataNode-names.
 
 9.21 - Released 1/13/2023
    - Added @tparam Doxygen tags for any template-arguments that

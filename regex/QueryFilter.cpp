@@ -217,6 +217,11 @@ status_t StringQueryFilter :: SetFromArchive(const Message & archive)
    return archive.FindString("val", _value).IsOK(ret) ? archive.FindInt8("op", _op) : ret;
 }
 
+bool NodeNameQueryFilter :: Matches(ConstMessageRef &, const DataNode * dataNode) const
+{
+   return ((dataNode)&&(MatchesString(dataNode->GetNodeName())));
+}
+
 bool StringQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) const
 {
    const String * ps;
@@ -225,8 +230,11 @@ bool StringQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) const
       if (_assumeDefault) ps = &_default;
                      else return false;
    }
+   return MatchesString(*ps);
+}
 
-   const String & s = *ps;
+bool StringQueryFilter :: MatchesString(const String & s) const
+{
    switch(_op)
    {
       case OP_EQUAL_TO:                            return s == _value;
@@ -438,6 +446,7 @@ QueryFilterRef MuscleQueryFilterFactory :: CreateQueryFilter(uint32 typeCode) co
       case QUERY_FILTER_TYPE_MINMATCH:    f = newnothrow MinimumThresholdQueryFilter(0); break;
       case QUERY_FILTER_TYPE_XOR:         f = newnothrow XorQueryFilter;         break;
       case QUERY_FILTER_TYPE_CHILDCOUNT:  f = newnothrow ChildCountQueryFilter;  break;
+      case QUERY_FILTER_TYPE_NODENAME:    f = newnothrow NodeNameQueryFilter;    break;
       default:                            return QueryFilterRef();  /* unknown type code! */
    }
    if (f == NULL) MWARN_OUT_OF_MEMORY;
