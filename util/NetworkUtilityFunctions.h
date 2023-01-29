@@ -614,14 +614,14 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const char * remoteHost
  *              (Note that the default state of newly created UDP sockets is broadcast-disabled)
  *  @param broadcast True if broadcasting should be enabled, false if broadcasting should be disabled.
  *  @returns B_NO_ERROR on success, or an error code on failure.
- *  @note this function is only useful in conjunction with IPv4 sockets.  IPv6 doesn't use broadcast anyway.
+ *  @note this function is specific to IPv4.  There is no such thing as "broadcast" in IPv6, only multicast!
  */
 status_t SetUDPSocketBroadcastEnabled(const ConstSocketRef & sock, bool broadcast);
 
 /** Returns true iff the specified UDP socket has broadcast enabled; or false if it does not.
   * @param sock The UDP socket to query.
   * @returns true iff the socket is enabled for UDP broadcast; false otherwise.
-  * @note this function is only useful in conjunction with IPv4 sockets.  IPv6 doesn't use broadcast anyway.
+ *  @note this function is specific to IPv4.  There is no such thing as "broadcast" in IPv6, only multicast!
   */
 bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock);
 

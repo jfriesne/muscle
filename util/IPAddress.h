@@ -204,6 +204,11 @@ public:
      */
    bool IsIPv4() const;
 
+   /** Returns true iff this address qualifies as an IPv4 broadcast address.
+     * @note This method is IPv4-specific (there is no such thing as an IPv6 broadcast address, only multicast!)
+     */
+   bool IsBroadcast() const;
+
    /** Returns true iff this address qualifies as a multicast address.  */
    bool IsMulticast() const;
 

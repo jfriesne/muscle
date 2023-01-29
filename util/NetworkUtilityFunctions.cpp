@@ -1526,6 +1526,11 @@ bool IPAddress :: IsMulticast() const
    return muscleInRange(_lowBits, minMulticastAddress.GetLowBits(), maxMulticastAddress.GetLowBits());
 }
 
+bool IPAddress :: IsIPv4Broadcast() const
+{
+   return ((IsIPv4())&&((GetLowBits() & 0xFF) == 0xFF));
+}
+
 bool IPAddress :: IsIPv6LocalMulticast(uint8 scope) const
 {
    if ((IsIPv4() == false)&&(IsMulticast()))

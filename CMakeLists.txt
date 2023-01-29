@@ -63,6 +63,12 @@ if (WITH_DEADLOCKFINDER)
    add_definitions(-DMUSCLE_ENABLE_DEADLOCK_FINDER)
 endif (WITH_DEADLOCKFINDER)
 
+option(WITH_IPV6 "Enable IPv6 support" ON)
+if (NOT WITH_IPV6)
+   message("Note:  -DWITH_IPV6=OFF argument was specified:  building MUSCLE without IPv6 support!")
+   add_definitions(-DMUSCLE_AVOID_IPV6)
+endif (NOT WITH_IPV6)
+
 file(GLOB MUSCLE_SRCS
    "./dataio/*.cpp"
    "./iogateway/*.cpp"

@@ -14,6 +14,12 @@ key:  - new feature
    - Added a MatchesNodeNameQueryFilter class, to support query
      filtering against DataNode-names.
    - Added DataNode::SetNodeName()
+   - Added a WITH_IPV6=OFF option to the CMakeLists.txt for
+     easier building of MUSCLE in IPv4-only mode.
+   - Added a "shareport" argument to hexterm to enable UDP port-sharing.
+   - Added an IsBroadcast() method to the IPAddress class.
+   * Fixed broken UDP support in hexterm when -DMUSCLE_AVOID_IPV6
+     was set as a compiler-flag.
 
 9.21 - Released 1/13/2023
    - Added @tparam Doxygen tags for any template-arguments that

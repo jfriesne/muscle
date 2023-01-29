@@ -301,7 +301,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
    }
 }
 
-static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticastGroup, int optBindPort)
+static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticastGroup, int optBindPort, bool forceSharePort)
 {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    if ((_useGZip)||(_useZLibDataIO)) LogTime(MUSCLE_LOG_WARNING, "%s keyword has no effect when hexterm is running in UDP mode!\n", _useGZip?"gzip":"zlib");
@@ -325,7 +325,11 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
 
    const IPAddress ip = optHost.HasChars() ? GetHostByName(optHost(), false) : IPAddress();
 
+#ifdef MUSCLE_AVOID_IPV6
+   ConstSocketRef ss = CreateUDPSocket();  // no point trying to create an IPv6 socket when IPv6 support is disabled!
+#else
    ConstSocketRef ss = CreateUDPSocket(((ip.IsIPv4())&&(ip.IsMulticast())) ? SOCKET_FAMILY_IPV4 : SOCKET_FAMILY_IPV6);
+#endif
    if (ss() == NULL)
    {
       LogTime(MUSCLE_LOG_ERROR, "Error creating UDP socket!\n");
@@ -363,20 +367,19 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
 #endif
 
          status_t ret;
-#ifdef MUSCLE_AVOID_IPV6
-         if ((ip & 0xFF) == 0xFF)
+         if (ip.IsBroadcast())
          {
             if (SetUDPSocketBroadcastEnabled(ss, true).IsOK(ret)) LogTime(MUSCLE_LOG_INFO, "Broadcast UDP address detected:  UDP broadcast enabled on socket.\n");
                                                              else LogTime(MUSCLE_LOG_ERROR, "Could not enable UDP broadcast on socket! [%s]\n", ret());
          }
-#endif
+
          const IPAddressAndPort iap(ip, port);
          if (udpIO.SetPacketSendDestination(iap).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SetPacketSendDestination(%s) failed! [%s]\n", iap.ToString()(), ret());
          if (optBindPort >= 0)
          {
             uint16 retPort;
-            if (BindUDPSocket(ss, (uint16)optBindPort, &retPort).IsOK(ret)) LogTime(MUSCLE_LOG_INFO, "Bound UDP socket to port %u\n", retPort);
-                                                                       else LogTime(MUSCLE_LOG_ERROR, "Couldn't bind UDP socket to port %u [%s]!\n", optBindPort, ret());
+            if (BindUDPSocket(ss, (uint16)optBindPort, &retPort, invalidIP, forceSharePort).IsOK(ret)) LogTime(MUSCLE_LOG_INFO, "Bound UDP socket to port %u\n", retPort);
+                                                                                                  else LogTime(MUSCLE_LOG_ERROR, "Couldn't bind UDP socket to port %u [%s]!\n", optBindPort, ret());
          }
          LogTime(MUSCLE_LOG_INFO, "Ready to send UDP packets to %s\n", iap.ToString()());
          DoSession(DummyDataIORef(udpIO));
@@ -386,9 +389,9 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
    else
    {
       status_t ret;
-      if (BindUDPSocket(ss, port).IsOK(ret))
+      if (BindUDPSocket(ss, port, NULL, invalidIP, forceSharePort).IsOK(ret))
       {
-         LogTime(MUSCLE_LOG_INFO, "Listening for incoming UDP packets on port %i\n", port);
+         LogTime(MUSCLE_LOG_INFO, "Listening for incoming UDP packets on port %u\n", port);
          DoSession(DummyDataIORef(udpIO));
       }
       else LogTime(MUSCLE_LOG_ERROR, "Could not bind UDP socket to port %i [%s]\n", port, ret());
@@ -502,6 +505,9 @@ int hextermmain(const char * argv0, const Message & args)
    uint16 port;
 
    const bool joinMulticastGroup = (args.HasName("nojoin") == false);
+   const bool forceSharePort     = args.HasName("shareport");
+
+   if (forceSharePort) LogTime(MUSCLE_LOG_INFO, "shareport arg specified:  UDP sockets will enable SO_REUSEADDRESS\n");
 
    status_t ret;
 
@@ -622,9 +628,9 @@ int hextermmain(const char * argv0, const Message & args)
       const String argStr = args.GetString("udp");
       const int32 lastUnderbar = argStr.LastIndexOf('_');
       if (lastUnderbar >= 0) optBindPort = atoi(argStr()+lastUnderbar+1);
-      DoUDPSession(host, port, joinMulticastGroup, optBindPort);
+      DoUDPSession(host, port, joinMulticastGroup, optBindPort, forceSharePort);
    }
-   else if (ParsePortArg(args, "udp", port).IsOK()) DoUDPSession("", port, joinMulticastGroup, -1);
+   else if (ParsePortArg(args, "udp", port).IsOK()) DoUDPSession("", port, joinMulticastGroup, -1, forceSharePort);
    else LogUsage(argv0);
 
    return 0;
