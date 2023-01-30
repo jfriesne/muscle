@@ -72,7 +72,7 @@ status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const Stri
    }
 
    DataNodeRef dref = notifyWithOnSetParent->GetNewDataNode(*optNodeName, data);
-   MRETURN_OOM_ON_NULL(dref());
+   MRETURN_ON_ERROR(dref);
 
    uint32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
    if (optInsertBefore)

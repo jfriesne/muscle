@@ -87,7 +87,7 @@ status_t MessageTransceiverThread :: StartInternalThread()
 status_t MessageTransceiverThread :: SendMessageToSessions(const MessageRef & userMsg, const String & optPath)
 {
    MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SEND_USER_MESSAGE));
-   MRETURN_OOM_ON_NULL(msgRef());
+   MRETURN_ON_ERROR(msgRef);
 
    status_t ret;
    return ((msgRef()->AddMessage(MTT_NAME_MESSAGE, userMsg).IsOK(ret))&&(msgRef()->CAddString(MTT_NAME_PATH, optPath).IsOK(ret))) ? SendMessageToInternalThread(msgRef) : ret;
@@ -156,7 +156,7 @@ status_t MessageTransceiverThread :: SendAddNewSessionMessage(const AbstractRefl
    if (sessionRef() == NULL) return B_BAD_ARGUMENT;
 
    MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_ADD_NEW_SESSION));
-   MRETURN_OOM_ON_NULL(msgRef());
+   MRETURN_ON_ERROR(msgRef);
 
    if (hostIAP.IsValid()) {MRETURN_ON_ERROR(msgRef()->CAddFlat( MTT_NAME_IPADDRESSANDPORT, hostIAP));}
                      else {MRETURN_ON_ERROR(msgRef()->CAddInt16(MTT_NAME_PORT,             hostIAP.GetPort()));}  // sometimes we need to send the port along with MTT_NAME_HOSTNAME instead
@@ -184,7 +184,7 @@ status_t MessageTransceiverThread :: PutAcceptFactory(uint16 port, const Reflect
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_PUT_ACCEPT_FACTORY));
-      MRETURN_OOM_ON_NULL(msgRef());
+      MRETURN_ON_ERROR(msgRef);
       MRETURN_ON_ERROR(msgRef()->CAddInt16(MTT_NAME_PORT, port));
       MRETURN_ON_ERROR(msgRef()->AddTag(MTT_NAME_FACTORY, fRef));
       MRETURN_ON_ERROR(msgRef()->CAddFlat(MTT_NAME_IPADDRESS, optInterfaceIP));
@@ -200,7 +200,7 @@ status_t MessageTransceiverThread :: RemoveAcceptFactory(uint16 port, const IPAd
       if (IsInternalThreadRunning())
       {
          MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_REMOVE_ACCEPT_FACTORY));
-         MRETURN_OOM_ON_NULL(msgRef());
+         MRETURN_ON_ERROR(msgRef);
 
          MRETURN_ON_ERROR(msgRef()->AddInt16(MTT_NAME_PORT,      port));
          MRETURN_ON_ERROR(msgRef()->CAddFlat(MTT_NAME_IPADDRESS, optInterfaceIP));
@@ -220,7 +220,7 @@ status_t MessageTransceiverThread :: SetSSLPrivateKey(const ConstByteBufferRef &
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PRIVATE_KEY));
-      MRETURN_OOM_ON_NULL(msgRef());
+      MRETURN_ON_ERROR(msgRef);
 
       status_t ret;
       return (((_privateKey())&&(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(privateKey)).IsError(ret)))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
@@ -235,7 +235,7 @@ status_t MessageTransceiverThread :: SetSSLPublicKeyCertificate(const ConstByteB
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PUBLIC_KEY));
-      MRETURN_OOM_ON_NULL(msgRef());
+      MRETURN_ON_ERROR(msgRef);
 
       status_t ret;
       return (((_publicKey())&&(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(_publicKey)).IsError(ret)))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
@@ -251,7 +251,7 @@ status_t MessageTransceiverThread :: SetSSLPreSharedKeyLoginInfo(const String & 
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PSK_INFO));
-      MRETURN_OOM_ON_NULL(msgRef());
+      MRETURN_ON_ERROR(msgRef);
 
       status_t ret;
       return ((msgRef()->AddString(MTT_NAME_DATA, _pskUserName).IsError(ret))||(msgRef()->AddString(MTT_NAME_DATA, _pskPassword).IsError(ret))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
@@ -266,7 +266,7 @@ status_t MessageTransceiverThread :: SetDefaultDistributionPath(const String & p
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_DEFAULT_PATH));
-      MRETURN_OOM_ON_NULL(msgRef());
+      MRETURN_ON_ERROR(msgRef);
       MRETURN_ON_ERROR(msgRef()->AddString(MTT_NAME_PATH, path));
       MRETURN_ON_ERROR(SendMessageToInternalThread(msgRef));
    }
@@ -338,7 +338,7 @@ status_t MessageTransceiverThread :: SetNewOutputPolicy(const AbstractSessionIOP
 status_t MessageTransceiverThread :: SetNewPolicyAux(uint32 what, const AbstractSessionIOPolicyRef & pref, const String & optDistPath)
 {
    MessageRef commandRef = GetMessageFromPool(what);
-   MRETURN_OOM_ON_NULL(commandRef());
+   MRETURN_ON_ERROR(commandRef);
 
    status_t ret;
    return ((commandRef()->CAddString(MTT_NAME_PATH, optDistPath).IsOK(ret))&&(commandRef()->CAddTag(MTT_NAME_POLICY_TAG, pref).IsOK(ret))) ? SendMessageToInternalThread(commandRef) : ret;
@@ -347,7 +347,7 @@ status_t MessageTransceiverThread :: SetNewPolicyAux(uint32 what, const Abstract
 status_t MessageTransceiverThread :: SetOutgoingMessageEncoding(int32 encoding, const String & optDistPath)
 {
    MessageRef commandRef = GetMessageFromPool(MTT_COMMAND_SET_OUTGOING_ENCODING);
-   MRETURN_OOM_ON_NULL(commandRef());
+   MRETURN_ON_ERROR(commandRef);
 
    status_t ret;
    return ((commandRef()->CAddString(MTT_NAME_PATH, optDistPath).IsOK(ret))&&(commandRef()->AddInt32(MTT_NAME_ENCODING, encoding).IsOK(ret))) ? SendMessageToInternalThread(commandRef) : ret;
@@ -356,7 +356,7 @@ status_t MessageTransceiverThread :: SetOutgoingMessageEncoding(int32 encoding, 
 status_t MessageTransceiverThread :: RemoveSessions(const String & optDistPath)
 {
    MessageRef commandRef = GetMessageFromPool(MTT_COMMAND_REMOVE_SESSIONS);
-   MRETURN_OOM_ON_NULL(commandRef());
+   MRETURN_ON_ERROR(commandRef);
 
    status_t ret;
    return (commandRef()->CAddString(MTT_NAME_PATH, optDistPath).IsOK(ret)) ? SendMessageToInternalThread(commandRef) : ret;
@@ -490,7 +490,7 @@ status_t ThreadWorkerSession :: AttachedToServer()
    if (_acceptedIAP.IsValid())
    {
       MessageRef msg = GetMessageFromPool(MTT_EVENT_SESSION_ACCEPTED);
-      MRETURN_OOM_ON_NULL(msg());
+      MRETURN_ON_ERROR(msg);
       MRETURN_ON_ERROR(msg()->AddFlat(MTT_NAME_IPADDRESSANDPORT, _acceptedIAP));
       MRETURN_ON_ERROR(SendMessageToSupervisorSession(msg));
    }

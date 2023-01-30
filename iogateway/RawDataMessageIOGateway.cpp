@@ -100,7 +100,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
       while(maxBytes > 0)
       {
          ByteBufferRef bufRef = GetByteBufferFromPool(mtuSize);
-         MRETURN_OOM_ON_NULL(bufRef());
+         MRETURN_ON_ERROR(bufRef);
 
          IPAddressAndPort packetSource;
          const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(bufRef()->GetBuffer(), mtuSize, packetSource);
@@ -128,7 +128,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          if (_recvMsgRef() == NULL)
          {
             MessageRef newMsg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
-            MRETURN_OOM_ON_NULL(newMsg());
+            MRETURN_ON_ERROR(newMsg);
             MRETURN_ON_ERROR(newMsg()->AddData(        PR_NAME_DATA_CHUNKS, B_RAW_TYPE, NULL,      _minChunkSize));
             MRETURN_ON_ERROR(newMsg()->FindDataPointer(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, &_recvBuf, (uint32*)&_recvBufLength));
 
@@ -173,7 +173,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          if (bytesRead.GetByteCount() > 0)
          {
             MessageRef ref = GetMessageFromPool(PR_COMMAND_RAW_DATA);
-            MRETURN_OOM_ON_NULL(ref());
+            MRETURN_ON_ERROR(ref);
 
             if (GetReceiveTimestampingEnabled()) MRETURN_ON_ERROR(_recvMsgRef()->AddInt64(PR_NAME_DATA_TIMESTAMP, GetRunTime64()));
             MRETURN_ON_ERROR(ref()->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, _recvScratchSpace, bytesRead.GetByteCount()));

@@ -117,9 +117,9 @@ public:
    /** Convenience method:  Returns the state of the (nth) bit, as a boolean.
      * @param whichBit the index of the bit to retrieve the value of.  Must be less than (NumBits).
      */
-   bool GetBit(unsigned int whichBit) const
+   bool IsBitSet(unsigned int whichBit) const
    {
-      MASSERT(whichBit<NumBits, "PointerAndBits::GetBit():  Invalid bit-index!");
+      MASSERT(whichBit<NumBits, "PointerAndBits::IsBitSet():  Invalid bit-index!");
 
       return ((GetDataBitsWord() & GetInternalBitMaskForBitIndex(whichBit)) != 0);
    }

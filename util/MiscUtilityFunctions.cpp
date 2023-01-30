@@ -241,7 +241,7 @@ static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * op
          if ((optAddToMsg->GetInfo(checkForSection, &tc).IsOK())&&(tc != B_MESSAGE_TYPE)) (void) optAddToMsg->RemoveName(checkForSection);
 
          MessageRef subMsg = GetMessageFromPool();
-         MRETURN_OOM_ON_NULL(subMsg());
+         MRETURN_ON_ERROR(subMsg);
          MRETURN_ON_ERROR(optAddToMsg->AddMessage(checkForSection, subMsg));
          MRETURN_ON_ERROR(ParseFileAux(optTok, fpIn, subMsg(), optAddToQueue, scratchBuf, bufSize, cs));
       }
@@ -945,7 +945,7 @@ status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg, 
    else
    {
       MessageRef newBatchMsg = GetMessageFromPool(PR_COMMAND_BATCH);
-      MRETURN_OOM_ON_NULL(newBatchMsg());
+      MRETURN_ON_ERROR(newBatchMsg);
       MRETURN_ON_ERROR(newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?newMsg:batchMsg));
       MRETURN_ON_ERROR(newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?batchMsg:newMsg));
       batchMsg = newBatchMsg;

@@ -201,7 +201,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
                if (loadData)
                {
                   ByteBufferRef bufRef = GetByteBufferFromPool((uint32) fileInfo.uncompressed_size);
-                  MRETURN_OOM_ON_NULL(bufRef());
+                  MRETURN_ON_ERROR(bufRef);
                   if (unzReadCurrentFile(zf, bufRef()->GetBuffer(), bufRef()->GetNumBytes()) != (int32)bufRef()->GetNumBytes()) return B_IO_ERROR;
                   MRETURN_ON_ERROR(m->AddFlat(fn, bufRef));
                }

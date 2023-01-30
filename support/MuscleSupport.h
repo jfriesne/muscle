@@ -567,6 +567,7 @@ enum {
         #define B_TYPE_MISMATCH   status_t( "Type Mismatch") ///< "Type Mismatch"  - tried to fit a square block into a round hole
         #define B_ZLIB_ERROR      status_t(    "ZLib Error") ///< "ZLib Error"     - a zlib library-function reported an error
         #define B_SSL_ERROR       status_t(     "SSL Error") ///< "SSL Error"      - an OpenSSL library-function reported an error
+        #define B_NULL_REF        status_t(      "NULL Ref") ///< "NULL Ref"       - returned by the GetStatus() method of a Ref or ConstRef that is currently NULL
         #define B_LOGIC_ERROR     status_t(   "Logic Error") ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
 #else
         // Basic/general status_t return codes
@@ -598,6 +599,7 @@ enum {
         MUSCLE_CONSTEXPR_OR_CONST status_t B_TYPE_MISMATCH( "Type Mismatch");  ///< "Type Mismatch"  - tried to fit a square block into a round hole
         MUSCLE_CONSTEXPR_OR_CONST status_t B_ZLIB_ERROR(    "ZLib Error");     ///< "ZLib Error"     - a zlib library-function reported an error
         MUSCLE_CONSTEXPR_OR_CONST status_t B_SSL_ERROR(     "SSL Error");      ///< "SSL Error"      - an OpenSSL library-function reported an error
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_NULL_REF(      "NULL Ref");       ///< "NULL Ref"       - returned by the GetStatus() method of a Ref or ConstRef that is currently NULL
         MUSCLE_CONSTEXPR_OR_CONST status_t B_LOGIC_ERROR(   "Logic Error");    ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
 #  endif
 

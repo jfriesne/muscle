@@ -55,7 +55,7 @@ io_status_t ByteBufferPacketDataIO :: ReadFrom(void * buffer, uint32 size, IPAdd
 io_status_t ByteBufferPacketDataIO :: WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest)
 {
    ByteBufferRef buf = GetByteBufferFromPool(size, (const uint8 *) buffer);
-   MRETURN_OOM_ON_NULL(buf());
+   MRETURN_ON_ERROR(buf);
    MRETURN_ON_ERROR(_writtenBufs.Put(buf, packetDest));
    return io_status_t((int32)size);
 }

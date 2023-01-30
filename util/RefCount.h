@@ -133,25 +133,34 @@ public:
     *  Default constructor.
     *  Creates a NULL reference (suitable for later initialization with SetRef(), or the assignment operator)
     */
-   ConstRef() : _item(NULL, BooleansToBitChord(true)) {/* empty */}
+   ConstRef() : _item(NULL, BooleansToBitChord(false, true)) {/* empty */}
 
    /**
      * Explicit constructor.  Increases the reference-count of the specified item.
      * Once referenced, (item) will be automatically deleted (or recycled) when the last ConstRef that references it goes away.
      * @param item A dynamically allocated object that the ConstRef class will assume responsibility for deleting.  May be NULL.
      */
-   explicit ConstRef(const Item * item) : _item(item, BooleansToBitChord(true)) {RefItem();}
+   explicit ConstRef(const Item * item) : _item(item, BooleansToBitChord((item != NULL), true)) {RefItem();}
+
+   /** Error-constructor.  Sets this ConstRef to be a NULL reference with the specified error code.
+     * @param status the B_* error-code to contain.  If you pass in B_NO_ERROR, then B_NULL_REF will be used by default.
+     */
+   ConstRef(status_t status) {SetStatusAux(status);}
 
    /** Copy constructor.  Creates an additional reference to the object referenced by (rhs).
     *  The referenced object won't be deleted until ALL Refs that reference it are gone.
     *  @param rhs the object to make this a copy of.  Note that the data pointed to by (rhs) is not duplicated, only double-referenced.
     */
-   ConstRef(const ConstRef & rhs) : _item(NULL, BooleansToBitChord(true)) {*this = rhs;}
+   ConstRef(const ConstRef & rhs) {*this = rhs;}
 
    /** This constructor is useful for automatic upcasting (eg creating an ConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
      * @param refItem A Ref or ConstRef to copy our state from.
      */
-   template<typename T> ConstRef(const ConstRef<T> & refItem) : _item(refItem(), BooleansToBitChord(refItem.IsRefCounting())) {RefItem();}
+   template<typename T> ConstRef(const ConstRef<T> & refItem)
+   {
+      if (refItem()) this->SetRef(refItem(), refItem.IsRefCounting());
+                else this->SetStatusAux(refItem.GetStatus());
+   }
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
@@ -200,16 +209,45 @@ public:
       {
          // switch items
          UnrefItem();
-         _item.SetPointerAndBits(item, BooleansToBitChord(doRefCount));
+         _item.SetPointerAndBits(item, BooleansToBitChord((item!=NULL), doRefCount));
          RefItem();
       }
+   }
+
+   /** Sets this Ref to an error state.  Note that setting any error clears any item-pointer-value this Ref may have had.
+     * @param errorStatus the error to store in this Ref.
+     * @note if you call SetStatus(B_NO_ERROR), GetStatus() will return B_NULL_REF.
+     */
+   void SetStatus(status_t errorStatus)
+   {
+      Reset();  // dereference anything we're currently holding
+      SetStatusAux(errorStatus);
+   }
+
+   /** Returns this reference's current error-status.
+     * In particular, if this Ref is pointing to a valid (non-NULL) object, this method will return B_NO_ERROR.
+     * Otherwise, it will return an error-code -- either the error-code that was passed in to our constructor or to SetStatus(),
+     * or B_NULL_REF if there is no more-specific error code to return.
+     */
+   status_t GetStatus() const
+   {
+      if (this->GetItemPointer()) return B_NO_ERROR;
+
+      const char * errStr = static_cast<const char *>(_item.GetPointer());      // this pointer doesn't include the low bit!
+      if ((errStr)&&(_item.GetBits() == (1<<REF_BIT_ISREFCOUNTING))) errStr++;  // so we have to add it back in manually
+      return errStr ? status_t(errStr) : B_NULL_REF;
    }
 
    /** Assigment operator.
     *  Unreferences the previous held data item, and adds a reference to the data item of (rhs).
     *  @param rhs Item to become a copy of.
     */
-   inline ConstRef &operator=(const ConstRef & rhs) {this->SetRef(rhs.GetItemPointer(), rhs.IsRefCounting()); return *this;}
+   inline ConstRef &operator=(const ConstRef & rhs)
+   {
+      if (rhs.GetItemPointer()) this->SetRef(rhs.GetItemPointer(), rhs.IsRefCounting());
+                           else this->SetStatus(rhs.GetStatus());
+      return *this;
+   }
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
@@ -220,6 +258,7 @@ public:
      * on the objects themselves if necessary, to determine exact equality.  (This is different than
      * the behavior of the == operator, which only compares the pointers, not the objects themselves)
      * @param rhs the ConstRef whose referenced object we will compare to our own referenced object.
+     * @note error-status values are not considered in this comparison.
      */
    bool IsDeeplyEqualTo(const ConstRef & rhs) const
    {
@@ -230,30 +269,34 @@ public:
       return ((myItem == NULL)||(*myItem == *hisItem));
    }
 
-   /** Returns true iff both ConstRefs are referencing the same data.
+   /** Returns true iff both ConstRefs are referencing the same data item.
      * @param rhs the ConstRef to compare pointers with
+     * @note error-status values are not considered in this comparison.
      */
    bool operator ==(const ConstRef &rhs) const {return this->GetItemPointer() == rhs.GetItemPointer();}
 
-   /** Returns true iff both Refs are not referencing the same data.
+   /** Returns true iff both Refs are not referencing the same data item.
      * @param rhs the ConstRef to compare pointers with
+     * @note error-status values are not considered in this comparison.
      */
    bool operator !=(const ConstRef &rhs) const {return this->GetItemPointer() != rhs.GetItemPointer();}
 
    /** Compares the pointers the two Refs are referencing.
      * @param rhs the ConstRef to compare pointers with
+     * @note error-status values are not considered in this comparison.
      */
    bool operator < (const ConstRef &rhs) const {return this->GetItemPointer() < rhs.GetItemPointer();}
 
    /** Compares the pointers the two Refs are referencing.
      * @param rhs the ConstRef to compare pointers with
+     * @note error-status values are not considered in this comparison.
      */
    bool operator > (const ConstRef &rhs) const {return this->GetItemPointer() > rhs.GetItemPointer();}
 
    /** Returns the ref-counted data item.  The returned data item
     *  is only guaranteed valid for as long as this RefCount object exists.
     */
-   const Item * GetItemPointer() const {return _item.GetPointer();}
+   const Item * GetItemPointer() const {return _item.IsBitSet(REF_BIT_HASVALIDOBJECT) ? static_cast<const Item *>(_item.GetPointer()) : NULL;}
 
    /** Convenience synonym for GetItemPointer(). */
    const Item * operator()() const {return this->GetItemPointer();}
@@ -261,7 +304,7 @@ public:
    /** Unreferences our held data item (if any), and turns this object back into a NULL reference.
     *  (equivalent to *this = ConstRef();)
     */
-   void Reset() {UnrefItem();}
+   void Reset() {UnrefItem(); _item.SetPointerAndBits(NULL, 0);}
 
    /** Equivalent to Reset(), except that this method will not delete or recycle
      * the held object under any circumstances.  Use with caution, as use of this
@@ -271,7 +314,7 @@ public:
    {
       const Item * item = this->IsRefCounting() ? this->GetItemPointer() : NULL;
       if (item) (void) item->DecrementRefCount();  // remove our ref-count from the item but deliberately never delete the item
-      _item.SetPointer(NULL);
+      _item.SetPointerAndBits(NULL, 0);
    }
 
    /** Swaps this ConstRef's contents with those of the specified ConstRef.
@@ -282,10 +325,17 @@ public:
    /** Returns true iff we are refcounting our held object, or false
      * if we are merely pointing to it (see constructor documentation for details)
      */
-   bool IsRefCounting() const {return _item.GetBit(REF_BIT_ISREFCOUNTING);}
+   bool IsRefCounting() const {return (_item.GetBits() == ((1<<REF_BIT_HASVALIDOBJECT)|(1<<REF_BIT_ISREFCOUNTING)));}
 
    /** Convenience method:  Returns a ConstRefCountableRef object referencing the same RefCountable as this typed ref. */
-   ConstRefCountableRef GetRefCountableRef() const {ConstRefCountableRef ret; ret.SetRef(this->GetItemPointer(), this->IsRefCounting()); return ret;}
+   ConstRefCountableRef GetRefCountableRef() const
+   {
+      ConstRefCountableRef ret;
+      const RefCountable * item = this->GetItemPointer();
+      if (item) ret.SetRef(item, this->IsRefCounting());
+           else ret.SetStatus(GetStatus());
+      return ret;
+   }
 
    /** Convenience method; attempts to set this typed ConstRef to be referencing the same item as the given ConstRefCountableRef.
      * If the conversion cannot be done, our state will remain unchanged.
@@ -316,7 +366,9 @@ public:
      */
    inline void SetFromRefCountableRefUnchecked(const ConstRefCountableRef & refCountableRef)
    {
-      SetRef(static_cast<const Item *>(refCountableRef()), refCountableRef.IsRefCounting());
+      const Item * refItem = static_cast<const Item *>(refCountableRef());
+      if (refItem) SetRef(refItem, refCountableRef.IsRefCounting());
+              else SetStatus(refCountableRef.GetStatus());
    }
 
    /** Convenience method, for clarity:  Downcasts this reference to a reference of the specified
@@ -374,37 +426,38 @@ public:
       return B_NO_ERROR;
    }
 
-   /** Makes a copy of our held Item and returns it in a non-const Ref object,
-     * or returns a NULL Ref on out-of-memory (or if we aren't holding an Item).
+   /** Makes a copy of our held Item and returns it via a non-const Ref object,
+     * @returns a Ref with the same error-status as this Ref, if we aren't holding an object.
+     * @returns a NULL/B_OUT_OF_MEMORY Ref on out-of-memory
      */
    Ref<Item> Clone() const
    {
       const Item * item = this->GetItemPointer();
-      if (item)
-      {
-         AbstractObjectManager * m = item->GetManager();
-         Item * newItem;
-         if (m)
-         {
-            newItem = static_cast<Item *>(m->ObtainObjectGeneric());
-            if (newItem) *newItem = *item;
-         }
-         else newItem = CloneObject(*item);
+      if (item == NULL) return Ref<Item>(GetStatus());
 
-         if (newItem) return Ref<Item>(newItem);
-                 else MWARN_OUT_OF_MEMORY;
+      AbstractObjectManager * m = item->GetManager();
+      Item * newItem;
+      if (m)
+      {
+         newItem = static_cast<Item *>(m->ObtainObjectGeneric());
+         if (newItem) *newItem = *item;
       }
-      return Ref<Item>();
+      else newItem = CloneObject(*item);
+
+      if (newItem) return Ref<Item>(newItem);
+              else {MWARN_OUT_OF_MEMORY; return Ref<Item>(B_OUT_OF_MEMORY);}
    }
 
-   /** This method allows Refs to be keys in Hashtables.  Node that we hash on the pointer's value, not the object it points to! */
+   /** This method allows Refs to be keys in Hashtables.  Node that we hash on the pointer's value, not the object it points to!
+     * @note error-status-codes are not considered when computing the hash
+     */
    uint32 HashCode() const {return CalculateHashCode(this->GetItemPointer());}
 
 private:
    friend class DummyConstRef<Item>;
    friend class Ref<Item>;
 
-   ConstRef(const Item * item, bool doRefCount) : _item(item, BooleansToBitChord(doRefCount)) {RefItem();}
+   ConstRef(const Item * item, bool doRefCount) : _item(item, BooleansToBitChord((item != NULL), doRefCount)) {RefItem();}
    void SetRefCounting(bool rc) {_item.SetBit(REF_BIT_ISREFCOUNTING, rc);}
 
    void RefItem()
@@ -425,16 +478,26 @@ private:
             if (m) m->RecycleObject(const_cast<Item *>(item));
               else delete item;
          }
-         _item.SetPointer(NULL);
+         _item.SetPointerAndBits(NULL, 0);
       }
    }
 
+   void SetStatusAux(status_t errorStatus)
+   {
+      // Gotta pass in the char-pointer's low bit separately, because PointerAndBits thinks it's a data-bit
+      uintptr pVal = (uintptr) errorStatus();
+      const bool isLowBitSet = ((pVal % 2) != 0);
+      pVal &= ~((uintptr) 0x1);  // clear the low bit from our "pointer"
+      _item.SetPointerAndBits((const char *)pVal, BooleansToBitChord(false, isLowBitSet));
+   }
+
    enum {
-      REF_BIT_ISREFCOUNTING = 0,  ///< Set iff this Ref owns the object it is pointing to.  Unset if it's acting as like non-owning pointer.
+      REF_BIT_HASVALIDOBJECT = 0, ///< Set iff this Ref is pointing to a valid object.  Must be the first entry in the enum!
+      REF_BIT_ISREFCOUNTING,      ///< Set iff this Ref owns the object it is pointing to.  Unset if it's acting as like non-owning/raw pointer.
       NUM_REF_BITS                ///< Guard value
    };
 
-   PointerAndBits<const Item, NUM_REF_BITS> _item;
+   PointerAndBits<const void, NUM_REF_BITS> _item;
 };
 
 /** This class is similar to ConstRef, except a DummyConstRef
@@ -459,12 +522,17 @@ public:
      */
    explicit DummyConstRef(const Item * item) : ConstRef<Item>(item, false) {/* empty */}
 
+   /** Error-constructor.  Sets this DummyConstRef to be a NULL reference with the specified error code.
+     * @param status the B_* error-code to contain.  If you pass in B_NO_ERROR, then B_NULL_REF will be used by default.
+     */
+   DummyConstRef(status_t status) : ConstRef<Item>(status) {/* empty */}
+
    /** This constructor is useful for automatic upcasting (eg creating a
      * DummyConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
      * @param refItem A Ref to copy our state from.
      * @note this constructor will use the state of (refItem)'s IsRefCounting() flag verbatim, our Dummy status notwithstanding.
      */
-   template<typename T> DummyConstRef(const ConstRef<T> & refItem) : ConstRef<Item>(refItem(), refItem.IsRefCounting()) { /* empty */}
+   template<typename T> DummyConstRef(const ConstRef<T> & refItem) : ConstRef<Item>(refItem(), refItem.IsRefCounting()) {if (refItem() == NULL) this->SetStatus(refItem.GetStatus());}
 };
 
 /** When we compare references, we really want to be comparing what those references point to */
@@ -475,6 +543,7 @@ public:
      * @param item1 the first item to compare
      * @param item2 the first item to compare
      * @param cookie arbitrary user-specific value
+     * @note error-status values are not considered in this comparison.
      */
    int Compare(const ConstRef<ItemType> & item1, const ConstRef<ItemType> & item2, void * cookie) const {return CompareFunctor<const ItemType *>().Compare(item1(), item2(), cookie);}
 };
@@ -507,10 +576,15 @@ public:
     */
    Ref(const Ref & rhs) : ConstRef<Item>(rhs) {/* empty */}
 
+   /** Error-constructor.  Sets this Ref to be a NULL reference with the specified error code.
+     * @param status the B_* error-code to contain.  If you pass in B_NO_ERROR, then B_NULL_REF will be used by default.
+     */
+   Ref(status_t status) : ConstRef<Item>(status) {/* empty */}
+
    /** This constructor is useful for automatic upcasting (eg creating an AbstractReflectSessionRef from a StorageReflectSessionRef)
      * @param refItem A Ref to copy our state from.
      */
-   template<typename T> Ref(const Ref<T> & refItem) : ConstRef<Item>(refItem(), refItem.IsRefCounting()) {/* empty */}
+   template<typename T> Ref(const Ref<T> & refItem) : ConstRef<Item>(refItem(), refItem.IsRefCounting()) {if (refItem() == NULL) this->SetStatus(refItem.GetStatus());}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
@@ -526,7 +600,14 @@ public:
    Item * operator()() const {return GetItemPointer();}
 
    /** Convenience method:  Returns a read/write RefCountableRef object referencing the same RefCountable as this typed ref. */
-   RefCountableRef GetRefCountableRef() const {RefCountableRef r; r.SetRef(GetItemPointer(), this->IsRefCounting()); return r;}
+   RefCountableRef GetRefCountableRef() const
+   {
+      RefCountableRef r;
+      const RefCountable * rc = GetItemPointer();
+      if (rc) r.SetRef(rc, this->IsRefCounting());
+         else r.SetStatus(this->GetStatus());
+      return r;
+   }
 
    /** Redeclared here so that the AutoChooseHashFunctor code will see it */
    uint32 HashCode() const {return this->ConstRef<Item>::HashCode();}
@@ -535,7 +616,13 @@ public:
     *  Unreferences the previous held data item, and adds a reference to the data item of (rhs).
     *  @param rhs Item to become a copy of.
     */
-   inline Ref &operator=(const Ref & rhs) {this->SetRef(rhs.GetItemPointer(), rhs.IsRefCounting()); return *this;}
+   inline Ref &operator=(const Ref & rhs)
+   {
+      Item * item = rhs.GetItemPointer();
+      if (item) this->SetRef(item, rhs.IsRefCounting());
+           else this->SetStatus(rhs.GetStatus());
+      return *this;
+   }
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
@@ -570,12 +657,17 @@ public:
      */
    explicit DummyRef(Item * item) : Ref<Item>(item, false) {/* empty */}
 
+   /** Error-constructor.  Sets this DummyRef to be a NULL reference with the specified error code.
+     * @param status the B_* error-code to contain.  If you pass in B_NO_ERROR, then B_NULL_REF will be used by default.
+     */
+   DummyRef(status_t status) : Ref<Item>(status) {/* empty */}
+
    /** This constructor is useful for automatic upcasting (eg creating a
      * DummyAbstractReflectSessionRef from a StorageReflectSessionRef)
      * @param refItem A Ref to copy our state from.
      * @note this constructor will use the state of (refItem)'s IsRefCounting() flag verbatim, our Dummy status notwithstanding.
      */
-   template<typename T> DummyRef(const Ref<T> & refItem) : Ref<Item>(refItem(), refItem.IsRefCounting()) {/* empty */}
+   template<typename T> DummyRef(const Ref<T> & refItem) : Ref<Item>(refItem(), refItem.IsRefCounting()) {if (refItem() == NULL) this->SetStatus(refItem.GetStatus());}
 };
 
 /** This function works similarly to ConstRefCount::GetItemPointer(), except that this function
@@ -597,7 +689,14 @@ template <class Item> inline Item * CheckedGetItemPointer(const Ref<Item> * rt) 
   * @param constItem the ConstRef we want to return a Ref equivalent of.
   * @returns a non-const Ref that is pointing to the same object that the passed-in ConstRef was pointing to.
   */
-template <class Item> inline Ref<Item> CastAwayConstFromRef(const ConstRef<Item> & constItem) {Ref<Item> ret; ret.SetRef(const_cast<Item *>(constItem()), constItem.IsRefCounting()); return ret;}
+template <class Item> inline Ref<Item> CastAwayConstFromRef(const ConstRef<Item> & constItem)
+{
+   Ref<Item> ret;
+   Item * item = const_cast<Item *>(constItem());
+   if (item) ret.SetRef(item, constItem.IsRefCounting());
+        else ret.SetStatus(constItem.GetStatus());
+   return ret;
+}
 
 /** Convenience method for converting a non-const Ref into a ConstRef.  This method isn't strictly necessary, since
   * you can also just use the assignment-operator, but I'm including it for completeness, and because some compilers
@@ -605,7 +704,14 @@ template <class Item> inline Ref<Item> CastAwayConstFromRef(const ConstRef<Item>
   * @param nonConstItem the Ref we want to return a ConstRef equivalent of.
   * @returns a ConstRef that is pointing to the same object that the passed-in non-const Ref was pointing to.
   */
-template <class Item> inline ConstRef<Item> AddConstToRef(const Ref<Item> & nonConstItem) {ConstRef<Item> ret; ret.SetRef(nonConstItem(), nonConstItem.IsRefCounting()); return ret;}
+template <class Item> inline ConstRef<Item> AddConstToRef(const Ref<Item> & nonConstItem)
+{
+   ConstRef<Item> ret;
+   const Item * item = nonConstItem();
+   if (item) ret.SetRef(item, nonConstItem.IsRefCounting());
+        else ret.SetStatus(nonConstItem.GetStatus());
+   return ret;
+}
 
 } // end namespace muscle
 

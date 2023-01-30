@@ -668,7 +668,7 @@ public:
 
          FlatCountableRef fcRef(GetByteBufferFromPool(readFs, unflat.GetCurrentReadPointer()));
          MRETURN_ON_ERROR(unflat.SeekRelative(readFs));
-         MRETURN_OOM_ON_NULL(fcRef());
+         MRETURN_ON_ERROR(fcRef);
          MRETURN_ON_ERROR(AddDataItem(&fcRef, sizeof(fcRef)));
       }
       return unflat.GetStatus();
@@ -785,7 +785,7 @@ public:
             return B_BAD_DATA;  // message size too large for our buffer... corruption?
          }
          MessageRef nextMsg = GetMessageFromPool();
-         MRETURN_OOM_ON_NULL(nextMsg());
+         MRETURN_ON_ERROR(nextMsg);
 
          const DataUnflattenerReadLimiter<DataUnflattener> readLimiter(unflat, readFS);
          MRETURN_ON_ERROR(nextMsg()->Unflatten(unflat));
@@ -1388,7 +1388,8 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
       if (isVariableSize)
       {
          ByteBufferRef bufRef = GetByteBufferFromPool(elementSize, (const uint8 *)dataToAdd);
-         MRETURN_OOM_ON_NULL(bufRef());
+         MRETURN_ON_ERROR(bufRef);
+
          fcRef = bufRef;
          dataToAdd = &fcRef;
          addSize = sizeof(fcRef);
@@ -1840,7 +1841,8 @@ status_t Message :: ReplaceData(bool okayToAdd, const String & fieldName, uint32
       if (isVariableSize)
       {
          fcRef = GetByteBufferFromPool(elementSize, (const uint8 *)dataToAdd);
-         MRETURN_OOM_ON_NULL(fcRef());
+         MRETURN_ON_ERROR(fcRef);
+
          dataToAdd = &fcRef;
          addSize = sizeof(fcRef);
       }
@@ -3014,7 +3016,7 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
             // to see the traditional full-metadata-included data-format, but our sub-Message's data is
             // expected to be in the new templated/raw-data-only minimal format instead.
             MessageRef subMsg = GetMessageFromPool();
-            MRETURN_OOM_ON_NULL(subMsg());
+            MRETURN_ON_ERROR(subMsg);
 
             DataUnflattener tempUnflat(calcSizeUnflat.GetCurrentReadPointer(), itemSize);
             MRETURN_ON_ERROR(subMsg()->TemplatedUnflatten(*static_cast<const Message *>(GetItemAtAsRefCountableRef(i)()), tempUnflat));

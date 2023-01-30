@@ -472,7 +472,7 @@ SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetData
             if ((_currentNodeCount >= _maxNodeCount)||(flags.IsBitSet(SETDATANODE_FLAG_DONTCREATENODE))) return B_ACCESS_DENIED;
 
             allocedNode = GetNewDataNode(nextClause, ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false)) ? dataMsgRef : GetEmptyMessageRef());
-            MRETURN_OOM_ON_NULL(allocedNode());
+            MRETURN_ON_ERROR(allocedNode);
 
             childNodeRef = allocedNode;
             if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)))
@@ -1799,7 +1799,7 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
          if (indexSize > 0)
          {
             MessageRef indexMsgRef(GetMessageFromPool());
-            MRETURN_OOM_ON_NULL(indexMsgRef());
+            MRETURN_ON_ERROR(indexMsgRef);
             MRETURN_ON_ERROR(msg.AddMessage(PR_NAME_NODEINDEX, indexMsgRef));
 
             Message * indexMsg = indexMsgRef();
@@ -1810,7 +1810,7 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
       // Then save the children, recursing to each one as necessary
       {
          MessageRef childrenMsgRef(GetMessageFromPool());
-         MRETURN_OOM_ON_NULL(childrenMsgRef());
+         MRETURN_ON_ERROR(childrenMsgRef);
          MRETURN_ON_ERROR(msg.AddMessage(PR_NAME_NODECHILDREN, childrenMsgRef));
          for (DataNodeRefIterator childIter = node->GetChildIterator(); childIter.HasData(); childIter++)
          {
@@ -1822,7 +1822,7 @@ StorageReflectSession :: SaveNodeTreeToMessage(Message & msg, const DataNode * n
                childPath += child->GetNodeName();
 
                MessageRef childMsgRef(GetMessageFromPool());
-               MRETURN_OOM_ON_NULL(childMsgRef());
+               MRETURN_ON_ERROR(childMsgRef);
                MRETURN_ON_ERROR(childrenMsgRef()->AddMessage(child->GetNodeName(), childMsgRef));
                MRETURN_ON_ERROR(SaveNodeTreeToMessage(*childMsgRef(), child, childPath, true, maxDepth-1, optPruner));
             }
@@ -1848,7 +1848,7 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
    else if (optPruner)
    {
       MessageRef junk = GetMessageFromPool();
-      MRETURN_OOM_ON_NULL(junk());
+      MRETURN_ON_ERROR(junk);
       if (optPruner->MatchPath(path, junk) == false) return B_NO_ERROR;
    }
 

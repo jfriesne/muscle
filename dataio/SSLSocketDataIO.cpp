@@ -109,8 +109,7 @@ status_t SSLSocketDataIO :: SetPublicKeyCertificate(const char * path)
    if (fdio.GetFile() == NULL) return B_FILE_NOT_FOUND;
 
    ByteBufferRef buf = GetByteBufferFromPool((uint32)fdio.GetLength());
-   MRETURN_OOM_ON_NULL(buf());
-
+   MRETURN_ON_ERROR(buf);
    MRETURN_ON_ERROR(fdio.ReadFully(buf()->GetBuffer(), buf()->GetNumBytes()));
    return SetPublicKeyCertificate(buf);
 }
