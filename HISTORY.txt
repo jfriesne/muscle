@@ -19,6 +19,8 @@ key:  - new feature
    - Added a "shareport" argument to hexterm to enable UDP port-sharing.
    - Added an IsBroadcast() method to the IPAddress class.
    - Added BooleansToBitChord() convenience-functions to PointerAndBits.h
+   - Updated PointerAndBits to be able to use the high bit in a
+     pointer as well as the low bit(s).
    o Replaced the PointerAndBool.h header (and class) with a new
      PointerAndBits.h header (and class) that does the same thing,
      but in a simpler, more generalized fashion.

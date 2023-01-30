@@ -15,18 +15,21 @@ namespace muscle {
 
 /** This class holds a pointer as well as a small set of miscellaneous data-bits, within a single word.
   *
-  * It does this by stealing the least-significant bit(s) of the pointer to hold the bit-values,
-  * which means it only works if the passed-in pointer is sufficiently well-aligned that the
-  * low bits of the pointer are always zero.  If you attempt to pass in a pointer that is
-  * not sufficiently well-aligned, a runtime assertion failure will be triggered.
+  * It does this by stealing the most-significant-bit and least-significant bit(s) of the pointer to
+  * hold bit-values, which means it only works if the passed-in pointer is sufficiently well-aligned
+  * that the (NumBits-1) least-significant bits of the pointer are always zero.  If you attempt to pass
+  * in a pointer that is not sufficiently well-aligned, a runtime assertion failure will be triggered.
   *
   * If you are compiling on a system where pointers-to-objects are not sufficiently well-aligned
-  * for this to trick to work, you can define MUSCLE_AVOID_BITSTUFFING to force the
-  * bits to be declared as a separate member-variable (at the cost of slightly increased memory
-  * usage, of course).
+  * for this to trick to work, you can define MUSCLE_AVOID_BITSTUFFING to force the data-bits
+  * to be stored inside a separate member-variable instead (at the cost of slightly increased
+  * memory usage, of course).
+  *
   * @tparam T the type of object that our pointer will point to.
-  * @tparam NumBits the number of low-bits of the pointer we will appropriate for data-storage.
-  *                 Usually this number shouldn't be greater than 1 or 2.
+  * @tparam NumBits the number of bits of the pointer we will appropriate for data-storage.
+  *                 Under normal circumstances this number should not be greater than 3 (since
+  *                 for a word-aligned pointer, we can re-use the most-significant bit of the
+  *                 pointer as well as the two least-significant bits)
   */
 template <class T, unsigned int NumBits> class PointerAndBits
 {
@@ -42,7 +45,7 @@ public:
 
    /** Constructor.
      * @param pointerVal the pointer value to hold
-     * @param dataBits a bit-chord of bits to store along with the pointer.  Only the low bits may be set in this value!
+     * @param dataBits a bit-chord of bits to store along inside along with the pointer.  Only the low (NumBits) bits may be set in this value!
      */
    PointerAndBits(T * pointerVal, uintptr dataBits) {SetPointerAndBits(pointerVal, dataBits);}
 
@@ -62,19 +65,19 @@ public:
    }
 
    /** Sets our bit-chord of data-bits to the specified new value.  The current pointer-value is retained.
-     * @param bits The new bit-chord to store.  Only the lowest (NumBits) bits may be set in this value, unless MUSCLE_AVOID_BITSTUFFING is defined.
+     * @param dataBits The new bit-chord to store.  Only the lowest (NumBits) bits may be set in this value.
      */
-   void SetBits(uintptr bits) {SetPointerAndBits(GetPointer(), bits);}
+   void SetBits(uintptr dataBits)
+   {
+      const uintptr internalBits = InternalizeBits(dataBits);
+      CheckInternalBits(internalBits);
+
+      uintptr & w = GetReferenceToDataBitsWord();
+      w = (w & ~_allDataBitsMask) | internalBits;
+   }
 
    /** Returns our current bit-chord of data-bits */
-   uintptr GetBits() const
-   {
-#ifdef MUSCLE_AVOID_BITSTUFFING
-      return _dataBits;
-#else
-      return (_pointer & _allDataBitsMask);
-#endif
-   }
+   uintptr GetBits() const {return ExternalizeBits(GetInternalDataBits());}
 
    /** Convenience method:  Sets one of our bits to a new boolean value
      * @param whichBit the index of the bit to set.  Must be less than (NumBits).
@@ -82,26 +85,32 @@ public:
      */
    void SetBit(unsigned int whichBit, bool bitValue)
    {
-      MASSERT(whichBit<NumBits, "PointerAndBits::SetBit()  Invalid bit-index!");
-      SetPointerAndBits(GetPointer(), bitValue ? (GetBits() | (1<<whichBit)) : (GetBits() & ~(1<<whichBit)));
+      MASSERT(whichBit<NumBits, "PointerAndBits::SetBit():  Invalid bit-index!");
+
+      const uintptr mask = GetInternalBitMaskForBitIndex(whichBit);
+      CheckInternalBits(mask);
+
+      uintptr & w = GetReferenceToDataBitsWord();
+      if (bitValue) w |= mask;
+               else w &= ~mask;
    }
 
    /** Sets both the pointer-value and the bit-chord.
-     * @param pointer The new pointer-value to store.  This pointer must be sufficiently well-aligned that its (NumBits) lower bits are all zero!
-     * @param bits The new bit-chord to store.  Only the lowest (NumBits) bits may be set in this value, unless MUSCLE_AVOID_BITSTUFFING is defined.
+     * @param pointer The new pointer-value to store.  This pointer must be sufficiently well-aligned that its (NumBits-1) lower bits are all zero!
+     * @param dataBits The new bit-chord to store.  Only the lowest (NumBits) bits may be set in this value.
      */
-   void SetPointerAndBits(T * pointer, uintptr bits)
+   void SetPointerAndBits(T * pointer, uintptr dataBits)
    {
+      const uintptr internalBits = InternalizeBits(dataBits);
+      CheckInternalBits(internalBits);
+
       const uintptr pVal = (uintptr) pointer;
-
-      MASSERT(((bits & ~_allDataBitsMask) == 0), "SetPointerAndBits():  Bad bit-chord detected!  Bit-chords passed to PointerAndBits can only have the low (NumBits) bits set!");
-
 #ifdef MUSCLE_AVOID_BITSTUFFING
       _pointer  = pVal;
-      _dataBits = bits;
+      _dataBits = internalBits;
 #else
       MASSERT(((pVal & _allDataBitsMask) == 0), "SetPointerAndBits():  Unaligned pointer detected!  PointerAndBits' bit-stuffing code can't handle that.  Either align your pointers so the low bits are always zero, or recompile with -DMUSCLE_AVOID_BITSTUFFING.");
-      _pointer = pVal | bits;
+      _pointer = pVal | internalBits;
 #endif
    }
 
@@ -110,12 +119,9 @@ public:
      */
    bool GetBit(unsigned int whichBit) const
    {
-      MASSERT(whichBit<NumBits, "PointerAndBits::GetBit()  Invalid boolean index!");
-#ifdef MUSCLE_AVOID_BITSTUFFING
-      return ((_dataBits & (1<<whichBit)) != 0);
-#else
-      return (( _pointer & (1<<whichBit)) != 0);
-#endif
+      MASSERT(whichBit<NumBits, "PointerAndBits::GetBit():  Invalid bit-index!");
+
+      return ((GetDataBitsWord() & GetInternalBitMaskForBitIndex(whichBit)) != 0);
    }
 
    /** Returns this PointerAndBits to its default state (i.e. (NULL, 0)) */
@@ -149,7 +155,61 @@ public:
    }
 
 private:
+#ifdef MUSCLE_AVOID_BITSTUFFING
    static const uintptr _allDataBitsMask = ((NumBits > 0) ? ((1<<NumBits)-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
+#else
+   static const uintptr _highBitMask     = ((uintptr)1) << ((sizeof(uintptr)*8)-1); // we use the high-bit of the pointer to store the user's first data-bit
+   static const uintptr _allDataBitsMask = ((NumBits>0)?_highBitMask:0) | ((NumBits > 1) ? ((1<<(NumBits-1))-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
+#endif
+
+   static void CheckInternalBits(uintptr internalBits)
+   {
+      (void) internalBits;  // avoid compiler warning when assertions are disabled
+      MASSERT(((internalBits & ~_allDataBitsMask) == 0), "PointerAndBits():  Bad data-bits detected!  Bit-chords passed to PointerAndBits may only have the lowest (NumBits) bits set!");
+   }
+
+   static inline MUSCLE_CONSTEXPR uintptr GetInternalBitMaskForBitIndex(unsigned int whichBit)
+   {
+      return InternalizeBits(((uintptr)1)<<whichBit);
+   }
+
+   static inline MUSCLE_CONSTEXPR uintptr InternalizeBits(uintptr userBits)
+   {
+#ifdef MUSCLE_AVOID_BITSTUFFING
+      return userBits;
+#else
+      return ((userBits&1) ? _highBitMask : 0) | (userBits>>1);
+#endif
+   }
+
+   static inline MUSCLE_CONSTEXPR uintptr ExternalizeBits(uintptr internalBits)
+   {
+#ifdef MUSCLE_AVOID_BITSTUFFING
+      return internalBits;
+#else
+      return ((uintptr)((internalBits & _highBitMask)?1:0)) | (internalBits<<1);
+#endif
+   }
+
+   uintptr MUSCLE_CONSTEXPR GetInternalDataBits() const {return GetDataBitsWord() & _allDataBitsMask;}
+
+   uintptr & GetReferenceToDataBitsWord()
+   {
+#ifdef MUSCLE_AVOID_BITSTUFFING
+      return _dataBits;
+#else
+      return _pointer;
+#endif
+   }
+
+   uintptr GetDataBitsWord() const
+   {
+#ifdef MUSCLE_AVOID_BITSTUFFING
+      return _dataBits;
+#else
+      return _pointer;
+#endif
+   }
 
    uintptr _pointer;
 #ifdef MUSCLE_AVOID_BITSTUFFING
