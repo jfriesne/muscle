@@ -18,6 +18,10 @@ key:  - new feature
      easier building of MUSCLE in IPv4-only mode.
    - Added a "shareport" argument to hexterm to enable UDP port-sharing.
    - Added an IsBroadcast() method to the IPAddress class.
+   - Added BooleansToBitChord() convenience-functions to PointerAndBits.h
+   o Replaced the PointerAndBool.h header (and class) with a new
+     PointerAndBits.h header (and class) that does the same thing,
+     but in a simpler, more generalized fashion.
    * Fixed broken UDP support in hexterm when -DMUSCLE_AVOID_IPV6
      was set as a compiler-flag.
    * Renamed SOCKET_FAMILY_IPV6 to SOCKET_FAMILY_IPV6_IS_DISABLED

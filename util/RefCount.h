@@ -5,7 +5,7 @@
 
 #include "util/Cloneable.h"
 #include "util/ObjectPool.h"
-#include "util/PointerAndBool.h"
+#include "util/PointerAndBits.h"
 #include "system/AtomicCounter.h"
 
 namespace muscle {
@@ -133,25 +133,25 @@ public:
     *  Default constructor.
     *  Creates a NULL reference (suitable for later initialization with SetRef(), or the assignment operator)
     */
-   ConstRef() : _item(NULL, true) {/* empty */}
+   ConstRef() : _item(NULL, BooleansToBitChord(true)) {/* empty */}
 
    /**
      * Explicit constructor.  Increases the reference-count of the specified item.
      * Once referenced, (item) will be automatically deleted (or recycled) when the last ConstRef that references it goes away.
      * @param item A dynamically allocated object that the ConstRef class will assume responsibility for deleting.  May be NULL.
      */
-   explicit ConstRef(const Item * item) : _item(item, true) {RefItem();}
+   explicit ConstRef(const Item * item) : _item(item, BooleansToBitChord(true)) {RefItem();}
 
    /** Copy constructor.  Creates an additional reference to the object referenced by (rhs).
     *  The referenced object won't be deleted until ALL Refs that reference it are gone.
     *  @param rhs the object to make this a copy of.  Note that the data pointed to by (rhs) is not duplicated, only double-referenced.
     */
-   ConstRef(const ConstRef & rhs) : _item(NULL, true) {*this = rhs;}
+   ConstRef(const ConstRef & rhs) : _item(NULL, BooleansToBitChord(true)) {*this = rhs;}
 
    /** This constructor is useful for automatic upcasting (eg creating an ConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
      * @param refItem A Ref or ConstRef to copy our state from.
      */
-   template<typename T> ConstRef(const ConstRef<T> & refItem) : _item(refItem(), refItem.IsRefCounting()) {RefItem();}
+   template<typename T> ConstRef(const ConstRef<T> & refItem) : _item(refItem(), BooleansToBitChord(refItem.IsRefCounting())) {RefItem();}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
@@ -200,7 +200,7 @@ public:
       {
          // switch items
          UnrefItem();
-         _item.SetPointerAndBool(item, doRefCount);
+         _item.SetPointerAndBits(item, BooleansToBitChord(doRefCount));
          RefItem();
       }
    }
@@ -282,7 +282,7 @@ public:
    /** Returns true iff we are refcounting our held object, or false
      * if we are merely pointing to it (see constructor documentation for details)
      */
-   bool IsRefCounting() const {return _item.GetBool();}
+   bool IsRefCounting() const {return _item.GetBit(REF_BIT_ISREFCOUNTING);}
 
    /** Convenience method:  Returns a ConstRefCountableRef object referencing the same RefCountable as this typed ref. */
    ConstRefCountableRef GetRefCountableRef() const {ConstRefCountableRef ret; ret.SetRef(this->GetItemPointer(), this->IsRefCounting()); return ret;}
@@ -404,8 +404,8 @@ private:
    friend class DummyConstRef<Item>;
    friend class Ref<Item>;
 
-   ConstRef(const Item * item, bool doRefCount) : _item(item, doRefCount) {RefItem();}
-   void SetRefCounting(bool rc) {_item.SetBool(rc);}
+   ConstRef(const Item * item, bool doRefCount) : _item(item, BooleansToBitChord(doRefCount)) {RefItem();}
+   void SetRefCounting(bool rc) {_item.SetBit(REF_BIT_ISREFCOUNTING, rc);}
 
    void RefItem()
    {
@@ -429,7 +429,12 @@ private:
       }
    }
 
-   PointerAndBool<const Item> _item;
+   enum {
+      REF_BIT_ISREFCOUNTING = 0,  ///< Set iff this Ref owns the object it is pointing to.  Unset if it's acting as like non-owning pointer.
+      NUM_REF_BITS                ///< Guard value
+   };
+
+   PointerAndBits<const Item, NUM_REF_BITS> _item;
 };
 
 /** This class is similar to ConstRef, except a DummyConstRef
