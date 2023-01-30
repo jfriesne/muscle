@@ -161,7 +161,7 @@ private:
   * @param whichBit the index of the bit to (possibly) set.
   * @param b a boolean value.  If true, we'll return a bit-chord with the (whichBit)'th bit set.  If false, we'll return 0.
   */
-static inline uintptr BooleanToBitChord(unsigned int whichBit, bool b) {return b ? (((uintptr)1)<<whichBit) : (uintptr)0;}
+static inline MUSCLE_CONSTEXPR uintptr BooleanToBitChord(unsigned int whichBit, bool b) {return b ? (((uintptr)1)<<whichBit) : (uintptr)0;}
 
 /** Convenience method:  Returns a bit-chord with the lowest bit set, or 0
   * @param b0 the boolean value to encode as the least-significant bit
