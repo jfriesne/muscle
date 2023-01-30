@@ -1518,7 +1518,9 @@ int Socket :: GetFamilyForFD(int fd)
    switch(sockFamily)
    {
       case AF_INET:  return SOCKET_FAMILY_IPV4;
+#ifndef MUSCLE_AVOID_IPV6
       case AF_INET6: return SOCKET_FAMILY_IPV6;
+#endif
       default:       return SOCKET_FAMILY_OTHER;
    }
 }

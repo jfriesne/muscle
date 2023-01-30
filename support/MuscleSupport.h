@@ -317,7 +317,11 @@ enum {
 enum {
    SOCKET_FAMILY_INVALID = -1, ///< Socket isn't a valid descriptor
    SOCKET_FAMILY_IPV4,         ///< Socket is an IPv4 socket
+#ifdef MUSCLE_AVOID_IPV6
+   SOCKET_FAMILY_IPV6_IS_DISABLED, ///< when MUSCLE_AVOID_IPV6 is defined, SOCKET_FAMILY_IPV6 is deliberately not available
+#else
    SOCKET_FAMILY_IPV6,         ///< Socket is an IPv6 socket
+#endif
    SOCKET_FAMILY_OTHER,        ///< Socket is some other kind of socket
    NUM_SOCKET_FAMILIES,        ///< Guard value
 

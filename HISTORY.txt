@@ -20,6 +20,8 @@ key:  - new feature
    - Added an IsBroadcast() method to the IPAddress class.
    * Fixed broken UDP support in hexterm when -DMUSCLE_AVOID_IPV6
      was set as a compiler-flag.
+   * Renamed SOCKET_FAMILY_IPV6 to SOCKET_FAMILY_IPV6_IS_DISABLED
+     when -DMUSCLE_AVOID_IPV6 is set, to avoid potential runtime bugs.
 
 9.21 - Released 1/13/2023
    - Added @tparam Doxygen tags for any template-arguments that

@@ -190,7 +190,14 @@ public:
    /** Convenience method:  Returns a SOCKET_FAMILY_* value describing this IP address's associated socket family.
      * @returns SOCKET_FAMILY_IPV4 is we are an IPv4 address, or SOCKET_FAMILY_IPV6 is we are an IPv6 address ,or SOCKET_FAMILY_INVALID if we are an invalid address.
      */
-   int GetSocketFamily() const {return IsValid() ? (IsIPv4() ? SOCKET_FAMILY_IPV4 : SOCKET_FAMILY_IPV6) : SOCKET_FAMILY_INVALID;}
+   int GetSocketFamily() const
+   {
+#ifdef MUSCLE_AVOID_IPV6
+      return IsValid() ? SOCKET_FAMILY_IPV4 : SOCKET_FAMILY_INVALID;
+#else
+      return IsValid() ? (IsIPv4() ? SOCKET_FAMILY_IPV4 : SOCKET_FAMILY_IPV6) : SOCKET_FAMILY_INVALID;
+#endif
+   }
 
    /** Convenience method:  Returns true iff this is a valid IP address
      * (where "valid" in this case means non-zero: or if MUSCLE_AVOID_IPV6 is defined,
