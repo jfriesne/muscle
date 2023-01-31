@@ -220,7 +220,7 @@ ConstSocketRef CreateUDPSocket(int socketFamily)
       // described at http://support.microsoft.com/kb/263823/en-us
       DWORD dwBytesReturned = 0;
       BOOL bNewBehavior = FALSE;
-      if (WSAIoctl(ret.GetFileDescriptor(), SIO_UDP_CONNRESET, &bNewBehavior, sizeof(bNewBehavior), NULL, 0, &dwBytesReturned, NULL, NULL) != 0) ret.Reset();
+      if (WSAIoctl(ret.GetFileDescriptor(), SIO_UDP_CONNRESET, &bNewBehavior, sizeof(bNewBehavior), NULL, 0, &dwBytesReturned, NULL, NULL) != 0) ret.SetStatus(B_IO_ERROR);
    }
 #endif
    return ret;
@@ -326,56 +326,50 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const char * remoteHost
 ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRetPort, const IPAddress & optInterfaceIP, int socketFamily)
 {
    ConstSocketRef ret = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CREATE_ACCEPTING, socketFamily);
-   if (ret())
-   {
-      const int fd = ret.GetFileDescriptor();
-      if (fd < 0) return ConstSocketRef();
+   MRETURN_ON_ERROR(ret);
+
+   const int fd = ret.GetFileDescriptor();
+   if (fd < 0) return B_BAD_OBJECT;
 
 #ifndef WIN32
-      // (Not necessary under windows -- it has the behaviour we want by default)
-      const int trueValue = 1;
-      (void) setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const sockopt_arg *) &trueValue, sizeof(trueValue));
+   // (Not necessary under windows -- it has the behaviour we want by default)
+   const int trueValue = 1;
+   (void) setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const sockopt_arg *) &trueValue, sizeof(trueValue));
 #endif
 
-      switch(ret()->GetSocketFamily())
+   switch(ret()->GetSocketFamily())
+   {
+      case SOCKET_FAMILY_IPV4:
       {
-         case SOCKET_FAMILY_IPV4:
+         DECLARE_SOCKADDR_IPV4(saSocket, &optInterfaceIP, port);
+         if (bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) != 0) return B_ERRNO;
+         if (listen(fd, maxbacklog) != 0) return B_ERRNO;
+         if (optRetPort)
          {
-            DECLARE_SOCKADDR_IPV4(saSocket, &optInterfaceIP, port);
-            if ((bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)&&(listen(fd, maxbacklog) == 0))
-            {
-               if (optRetPort)
-               {
-                  muscle_socklen_t len = sizeof(saSocket);
-                  *optRetPort = (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT_IPV4(saSocket) : 0;
-               }
-               return ret;
-            }
+            muscle_socklen_t len = sizeof(saSocket);
+            *optRetPort = (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT_IPV4(saSocket) : 0;
          }
-         break;
+      }
+      return ret;
 
 #ifndef MUSCLE_AVOID_IPV6
-         case SOCKET_FAMILY_IPV6:
+      case SOCKET_FAMILY_IPV6:
+      {
+         DECLARE_SOCKADDR_IPV6(saSocket, &optInterfaceIP, port);
+         if (bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) != 0) return B_ERRNO;
+         if (listen(fd, maxbacklog) != 0) return B_ERRNO;
+         if (optRetPort)
          {
-            DECLARE_SOCKADDR_IPV6(saSocket, &optInterfaceIP, port);
-            if ((bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)&&(listen(fd, maxbacklog) == 0))
-            {
-               if (optRetPort)
-               {
-                  muscle_socklen_t len = sizeof(saSocket);
-                  *optRetPort = (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT_IPV6(saSocket) : 0;
-               }
-               return ret;
-            }
+            muscle_socklen_t len = sizeof(saSocket);
+            *optRetPort = (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT_IPV6(saSocket) : 0;
          }
-         break;
+      }
+      return ret;
 #endif
 
-         default:
-            return ConstSocketRef();  // unknown family!?
-      }
+      default:
+         return B_UNIMPLEMENTED;  // unknown family!?
    }
-   return ConstSocketRef();  // failure
 }
 
 io_status_t ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 size, bool bm)
@@ -617,9 +611,8 @@ status_t ShutdownSocket(const ConstSocketRef & sock, bool dRecv, bool dSend)
 ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP)
 {
    const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return ConstSocketRef();
+   if (fd < 0) return B_BAD_ARGUMENT;
 
-   ConstSocketRef ret;
    switch(sock()->GetSocketFamily())
    {
       case SOCKET_FAMILY_IPV4:
@@ -627,17 +620,18 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          DECLARE_SOCKADDR_IPV4(saSocket, NULL, 0);
          muscle_socklen_t nLen = sizeof(saSocket);
 
-         ret = GetConstSocketRefFromPool(accept(fd, (struct sockaddr *)&saSocket, &nLen));
-         if (DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret).IsError()) return ConstSocketRef();  // called separately since accept() created this socket, not CreateMuscleSocket()
+         ConstSocketRef ret = GetConstSocketRefFromPool(accept(fd, (struct sockaddr *)&saSocket, &nLen));
+         MRETURN_ON_ERROR(ret);
+         MRETURN_ON_ERROR(DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret));  // called separately since accept() created this socket, not CreateMuscleSocket()
 
-         if ((ret())&&(optRetInterfaceIP))
+         if (optRetInterfaceIP)
          {
             muscle_socklen_t len = sizeof(saSocket);
             if (getsockname(ret.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP_IPV4(saSocket, *optRetInterfaceIP);
                                                                                           else *optRetInterfaceIP = invalidIP;
          }
+         return ret;
       }
-      break;
 
 #ifndef MUSCLE_AVOID_IPV6
       case SOCKET_FAMILY_IPV6:
@@ -645,24 +639,23 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          DECLARE_SOCKADDR_IPV6(saSocket, NULL, 0);
          muscle_socklen_t nLen = sizeof(saSocket);
 
-         ret = GetConstSocketRefFromPool(accept(fd, (struct sockaddr *)&saSocket, &nLen));
-         if (DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret).IsError()) return ConstSocketRef();  // called separately since accept() created this socket, not CreateMuscleSocket()
+         ConstSocketRef ret = GetConstSocketRefFromPool(accept(fd, (struct sockaddr *)&saSocket, &nLen));
+         MRETURN_ON_ERROR(ret);
+         MRETURN_ON_ERROR(DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret)); // called separately since accept() created this socket, not CreateMuscleSocket()
 
-         if ((ret())&&(optRetInterfaceIP))
+         if (optRetInterfaceIP)
          {
             muscle_socklen_t len = sizeof(saSocket);
             if (getsockname(ret.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP_IPV6(saSocket, *optRetInterfaceIP);
                                                                                           else *optRetInterfaceIP = invalidIP;
          }
+         return ret;
       }
-      break;
 #endif
 
       default:
-         // empty
-      break;
+         return B_UNIMPLEMENTED; // unknown family?
    }
-   return ret;
 }
 
 ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTitle, bool errorsOnly, uint64 maxConnectTime, bool expandLocalhost)
@@ -672,7 +665,7 @@ ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTit
    else
    {
       if (debugTitle) LogTime(MUSCLE_LOG_INFO, "%s: hostname lookup for [%s] failed!\n", debugTitle, hostName);
-      return ConstSocketRef();
+      return B_DATA_NOT_FOUND;
    }
 }
 
@@ -765,13 +758,14 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
          if (errorsOnly) LogTime(MUSCLE_LOG_INFO, "%s: connect() to %s failed! [%s]\n", debugTitle, GetConnectString(optDebugHostName?optDebugHostName:ipbuf, hostIAP.GetPort())(), ret());
                     else LogPlain(MUSCLE_LOG_INFO, "Connection failed! [%s]\n", ret());
       }
+      return ret;
    }
    else if (debugTitle)
    {
       if (errorsOnly) LogTime(MUSCLE_LOG_INFO, "%s: socket() failed!\n", debugTitle);
                  else LogPlain(MUSCLE_LOG_INFO, "socket() failed!\n");
    }
-   return ConstSocketRef();
+   return s.GetStatus();
 }
 
 String GetLocalHostName()
@@ -1081,47 +1075,44 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
 ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
 {
    ConstSocketRef s = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT, SOCKET_FAMILY_PREFERRED);
-   if (s())
+   MRETURN_ON_ERROR(s);
+   MRETURN_ON_ERROR(SetSocketBlockingEnabled(s, false));
+
+   int result = -1;
+   switch(s()->GetSocketFamily())
    {
-      if (SetSocketBlockingEnabled(s, false).IsOK())
+      case SOCKET_FAMILY_IPV4:
       {
-         int result = -1;
-         switch(s()->GetSocketFamily())
-         {
-            case SOCKET_FAMILY_IPV4:
-            {
-               DECLARE_SOCKADDR_IPV4(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
-               result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
-            }
-            break;
+         DECLARE_SOCKADDR_IPV4(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
+         result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
+      }
+      break;
 
 #ifndef MUSCLE_AVOID_IPV6
-            case SOCKET_FAMILY_IPV6:
-            {
-               DECLARE_SOCKADDR_IPV6(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
-               result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
-            }
-            break;
+      case SOCKET_FAMILY_IPV6:
+      {
+         DECLARE_SOCKADDR_IPV6(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
+         result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
+      }
+      break;
 #endif
 
-            default:
-               // empty
-            break;
-         }
+      default:
+         // empty
+      break;
+   }
 
 #ifdef WIN32
-         const bool inProgress = ((result < 0)&&(WSAGetLastError() == WSAEWOULDBLOCK));
+   const bool inProgress = ((result < 0)&&(WSAGetLastError() == WSAEWOULDBLOCK));
 #else
-         const bool inProgress = ((result < 0)&&(errno == EINPROGRESS));
+   const bool inProgress = ((result < 0)&&(errno == EINPROGRESS));
 #endif
-         if ((result == 0)||(inProgress))
-         {
-            retIsReady = (inProgress == false);
-            return s;
-         }
-      }
+   if ((result == 0)||(inProgress))
+   {
+      retIsReady = (inProgress == false);
+      return s;
    }
-   return ConstSocketRef();
+   else return B_ERRNO;
 }
 
 IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort)

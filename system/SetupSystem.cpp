@@ -1470,7 +1470,7 @@ ConstSocketRef GetConstSocketRefFromPool(int fd, bool okayToClose, bool returnNU
 {
    static ConstSocketRef::ItemPool _socketPool;
 
-   if ((fd < 0)&&(returnNULLOnInvalidFD)) return ConstSocketRef();
+   if ((fd < 0)&&(returnNULLOnInvalidFD)) return B_BAD_ARGUMENT;
    else
    {
       Socket * s = _socketPool.ObtainObject();
@@ -1487,10 +1487,13 @@ ConstSocketRef GetConstSocketRefFromPool(int fd, bool okayToClose, bool returnNU
          // afterwards to reinstate the inherit-handle flag)
          (void) SetHandleInformation((HANDLE)((ptrdiff)fd), HANDLE_FLAG_INHERIT, 0);
 #endif
+         return ret;
       }
-      else if (okayToClose) CloseSocket(fd);
-
-      return ret;
+      else
+      {
+         if (okayToClose) CloseSocket(fd);
+         MRETURN_OUT_OF_MEMORY;
+      }
    }
 }
 

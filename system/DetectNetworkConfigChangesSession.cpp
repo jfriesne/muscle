@@ -838,9 +838,13 @@ ConstSocketRef DetectNetworkConfigChangesSession :: CreateDefaultSocket()
    sa.nl_groups = RTMGRP_LINK | RTMGRP_IPV6_IFADDR;
 
    ConstSocketRef ret = GetConstSocketRefFromPool(socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE));
-   return ((ret())&&(bind(ret()->GetFileDescriptor(), (struct sockaddr*)&sa, sizeof(sa)) == 0)&&(SetSocketBlockingEnabled(ret, false).IsOK())) ? ret : ConstSocketRef();
+   MRETURN_ON_ERROR(ret);
+   if (bind(ret()->GetFileDescriptor(), (struct sockaddr*)&sa, sizeof(sa)) != 0) return B_ERRNO;
+   MRETURN_ON_ERROR(SetSocketBlockingEnabled(ret, false));
+   return ret;
 #else
-   return CreateConnectedSocketPair(_notifySocket, _waitSocket).IsOK() ? _waitSocket : ConstSocketRef();
+   MRETURN_ON_ERROR(CreateConnectedSocketPair(_notifySocket, _waitSocket));
+   return _waitSocket;
 #endif
 }
 
