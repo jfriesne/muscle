@@ -119,15 +119,15 @@ AddIncomingText(const MessageRef & inMsg, const char * s)
 {
    MessageRef ret = inMsg;
    if (ret() == NULL) ret = GetMessageFromPool(PR_COMMAND_TEXT_STRINGS);
-   if (ret())
+   MRETURN_ON_ERROR(ret);
+
+   if (_incomingText.HasChars())
    {
-      if (_incomingText.HasChars())
-      {
-         (void) ret()->AddString(PR_NAME_TEXT_LINE, _incomingText.Append(s));
-         _incomingText.Clear();
-      }
-      else (void) ret()->AddString(PR_NAME_TEXT_LINE, s);
+      MRETURN_ON_ERROR(ret()->AddString(PR_NAME_TEXT_LINE, _incomingText.Append(s)));
+      _incomingText.Clear();
    }
+   else MRETURN_ON_ERROR(ret()->AddString(PR_NAME_TEXT_LINE, s));
+
    return ret;
 }
 

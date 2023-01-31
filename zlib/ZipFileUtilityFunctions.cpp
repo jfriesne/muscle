@@ -227,35 +227,32 @@ MessageRef ReadZipFile(DataIO & readFrom, bool loadData)
 
    static const int NAME_BUF_LEN = 8*1024;  // names longer than 8KB are ridiculous anyway!
    char * nameBuf = newnothrow_array(char, NAME_BUF_LEN);
-   if (nameBuf)
-   {
-      MessageRef ret = GetMessageFromPool();
-      if (ret())
-      {
-         zlib_filefunc_def zdefs = {
-            fopen_dataio_func,
-            fread_dataio_func,
-            fwrite_dataio_func,
-            ftell_dataio_func,
-            fseek_dataio_func,
-            fclose_dataio_func,
-            ferror_dataio_func,
-            &readFrom
-         };
-         zipFile zf = unzOpen2(NULL, &zdefs);
-         if (zf != NULL)
-         {
-            if (ReadZipFileAux(zf, *ret(), nameBuf, NAME_BUF_LEN, loadData).IsError()) ret.Reset();
-            unzClose(zf);
-         }
-         else ret.Reset();  // failure!
-      }
-      delete [] nameBuf;
-      return ret;
-   }
-   else MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(nameBuf);
 
-   return MessageRef();
+   MessageRef ret = GetMessageFromPool();
+   if (ret())
+   {
+      zlib_filefunc_def zdefs = {
+         fopen_dataio_func,
+         fread_dataio_func,
+         fwrite_dataio_func,
+         ftell_dataio_func,
+         fseek_dataio_func,
+         fclose_dataio_func,
+         ferror_dataio_func,
+         &readFrom
+      };
+      zipFile zf = unzOpen2(NULL, &zdefs);
+      if (zf != NULL)
+      {
+         const status_t subStatus = ReadZipFileAux(zf, *ret(), nameBuf, NAME_BUF_LEN, loadData);
+         if (subStatus.IsError()) ret.SetStatus(subStatus);
+         unzClose(zf);
+      }
+      else ret.SetStatus(B_ZLIB_ERROR);  // failure!
+   }
+   delete [] nameBuf;
+   return ret;
 }
 
 } // end namespace muscle

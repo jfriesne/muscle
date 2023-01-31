@@ -427,61 +427,52 @@ FlattenHeaderAndMessage(const MessageRef & msgRef) const
    return ret;
 }
 
-MessageRef
-MessageIOGateway ::
-UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const
+MessageRef MessageIOGateway :: UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const
 {
+   if (bufRef() == NULL) return B_BAD_ARGUMENT;
+
    TCHECKPOINT;
 
-   MessageRef ret;
-   if (bufRef())
+   MessageRef ret = GetMessageFromPool();
+   MRETURN_ON_ERROR(ret);
+
+   uint32 offset = GetHeaderSize();
+
+   const uint8 * lhb    = bufRef()->GetBuffer();
+   const uint32 lhbSize = DefaultEndianConverter::Import<uint32>(&lhb[0*sizeof(uint32)]);
+   if ((offset+lhbSize) != bufRef()->GetNumBytes())
    {
-      ret = GetMessageFromPool();
-      if (ret())
-      {
-         uint32 offset = GetHeaderSize();
+      LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " INT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
+      return B_BAD_DATA;
+   }
 
-         const uint8 * lhb    = bufRef()->GetBuffer();
-         const uint32 lhbSize = DefaultEndianConverter::Import<uint32>(&lhb[0*sizeof(uint32)]);
-         if ((offset+lhbSize) != bufRef()->GetNumBytes())
-         {
-            LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " INT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
-            return MessageRef();
-         }
+   const int32 encoding = DefaultEndianConverter::Import<int32>(&lhb[1*sizeof(uint32)]);
 
-         const int32 encoding = DefaultEndianConverter::Import<int32>(&lhb[1*sizeof(uint32)]);
-
-         const ByteBuffer * bb = bufRef();  // default; may be changed below
+   const ByteBuffer * bb = bufRef();  // default; may be changed below
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-         ByteBufferRef expRef;  // must be declared outside the brackets below!
-         ZLibCodec * enc = GetCodec(encoding, _recvCodec);
-         if (enc)
-         {
-            expRef = enc->Inflate(bb->GetBuffer()+offset, bb->GetNumBytes()-offset);
-            if (expRef())
-            {
-               bb = expRef();
-               offset = 0;
-            }
-            else
-            {
-               LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Error inflating compressed byte buffer!\n", this);
-               bb = NULL;
-            }
-         }
-#else
-         if (encoding != MUSCLE_MESSAGE_ENCODING_DEFAULT) bb = NULL;
-#endif
-
-         if (bb == NULL) ret.Reset();
-         else
-         {
-            DataUnflattener unflat(*bb, MUSCLE_NO_LIMIT, offset);
-            if (ret()->Unflatten(unflat).IsError()) ret.Reset();
-         }
+   ByteBufferRef expRef;  // must be declared outside the brackets below!
+   ZLibCodec * enc = GetCodec(encoding, _recvCodec);
+   if (enc)
+   {
+      expRef = enc->Inflate(bb->GetBuffer()+offset, bb->GetNumBytes()-offset);
+      if (expRef())
+      {
+         bb = expRef();
+         offset = 0;
+      }
+      else
+      {
+         LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Error inflating compressed byte buffer!\n", this);
+         return expRef.GetStatus();
       }
    }
+#else
+   if (encoding != MUSCLE_MESSAGE_ENCODING_DEFAULT) return B_UNIMPLEMENTED;
+#endif
+
+   DataUnflattener unflat(*bb, MUSCLE_NO_LIMIT, offset);
+   MRETURN_ON_ERROR(ret()->Unflatten(unflat));
    return ret;
 }
 
@@ -528,7 +519,9 @@ Reset()
 MessageRef MessageIOGateway :: CreateSynchronousPingMessage(uint32 syncPingCounter) const
 {
    MessageRef pingMsg = GetMessageFromPool(PR_COMMAND_PING);
-   return ((pingMsg())&&(pingMsg()->AddInt32("_miosp", syncPingCounter).IsOK())) ? pingMsg : MessageRef();
+   MRETURN_ON_ERROR(pingMsg);
+   MRETURN_ON_ERROR(pingMsg()->AddInt32("_miosp", syncPingCounter));
+   return pingMsg;
 }
 
 status_t MessageIOGateway :: ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64 timeoutPeriod)
@@ -563,26 +556,36 @@ bool MessageIOGateway :: IsSynchronousPongMessage(const MessageRef & msg, uint32
 
 MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & requestMessage, const IPAddressAndPort & targetIAP, uint64 timeoutPeriod)
 {
-   MessageRef ret;
-
    const uint64 timeBeforeConnect = GetRunTime64();
-   ConstSocketRef s = Connect(targetIAP, NULL, NULL, true, timeoutPeriod);
-   if (s())
-   {
-      if (timeoutPeriod != MUSCLE_TIME_NEVER)
-      {
-         uint64 connectDuration = GetRunTime64()-timeBeforeConnect;
-         timeoutPeriod = (timeoutPeriod > connectDuration) ? (timeoutPeriod-connectDuration) : 0;
-      }
 
-      DataIORef oldIO = GetDataIO();
-      TCPSocketDataIO tsdio(s, false);
-      SetDataIO(DummyDataIORef(tsdio));
-      QueueGatewayMessageReceiver receiver;
-      if ((AddOutgoingMessage(DummyMessageRef(const_cast<Message &>(requestMessage))).IsOK())&&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod).IsOK())) ret = receiver.GetMessages().HasItems() ? receiver.GetMessages().Head() : GetMessageFromPool();
-      SetDataIO(oldIO);  // restore any previous I/O
+   ConstSocketRef s = Connect(targetIAP, NULL, NULL, true, timeoutPeriod);
+   MRETURN_ON_ERROR(s);
+
+   if (timeoutPeriod != MUSCLE_TIME_NEVER)
+   {
+      const uint64 connectDuration = GetRunTime64()-timeBeforeConnect;
+      timeoutPeriod = (timeoutPeriod > connectDuration) ? (timeoutPeriod-connectDuration) : 0;
    }
-   return ret;
+
+   DataIORef oldIO = GetDataIO();
+   TCPSocketDataIO tsdio(s, false);
+   SetDataIO(DummyDataIORef(tsdio));
+   QueueGatewayMessageReceiver receiver;
+
+   MessageRef retMsg;
+   {
+      status_t ret;
+      if ((AddOutgoingMessage(DummyMessageRef(const_cast<Message &>(requestMessage))).IsOK(ret))
+        &&(ExecuteSynchronousMessaging(&receiver, timeoutPeriod)                     .IsOK(ret)))
+      {
+         retMsg = receiver.GetMessages().HasItems() ? receiver.GetMessages().Head() : GetMessageFromPool();
+      }
+      else retMsg.SetStatus(ret);
+   }
+
+   SetDataIO(oldIO);  // restore any previous I/O
+
+   return retMsg;
 }
 
 status_t MessageIOGateway :: ExecuteSynchronousMessageSend(const Message & requestMessage, const IPAddressAndPort & targetIAP, uint64 timeoutPeriod)

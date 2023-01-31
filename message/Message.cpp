@@ -36,57 +36,89 @@ const ConstMessageRef & GetEmptyMessageRef() {return _emptyMsgRef;}
 MessageRef GetMessageFromPool(uint32 what)
 {
    MessageRef ref(_messagePool.ObtainObject());
-   if (ref()) ref()->what = what;
-   return ref;
+   if (ref())
+   {
+      ref()->what = what;
+      return ref;
+   }
+   else MRETURN_OUT_OF_MEMORY;
 }
 
 MessageRef GetMessageFromPool(const Message & copyMe)
 {
    MessageRef ref(_messagePool.ObtainObject());
-   if (ref()) *(ref()) = copyMe;
-   return ref;
+   if (ref())
+   {
+      *(ref()) = copyMe;
+      return ref;
+   }
+   else MRETURN_OUT_OF_MEMORY;
 }
 
 MessageRef GetMessageFromPool(const uint8 * flatBytes, uint32 numBytes)
 {
    MessageRef ref(_messagePool.ObtainObject());
-   if ((ref())&&(ref()->UnflattenFromBytes(flatBytes, numBytes).IsError())) ref.Reset();
-   return ref;
+   if (ref())
+   {
+      MRETURN_ON_ERROR(ref()->UnflattenFromBytes(flatBytes, numBytes));
+      return ref;
+   }
+   else MRETURN_OUT_OF_MEMORY;
 }
 
 MessageRef GetMessageFromPool(ObjectPool<Message> & pool, uint32 what)
 {
    MessageRef ref(pool.ObtainObject());
-   if (ref()) ref()->what = what;
-   return ref;
+   if (ref())
+   {
+      ref()->what = what;
+      return ref;
+   }
+   else MRETURN_OUT_OF_MEMORY;
 }
 
 MessageRef GetMessageFromPool(ObjectPool<Message> & pool, const Message & copyMe)
 {
    MessageRef ref(pool.ObtainObject());
-   if (ref()) *(ref()) = copyMe;
-   return ref;
+   if (ref())
+   {
+      *(ref()) = copyMe;
+      return ref;
+   }
+   else MRETURN_OUT_OF_MEMORY;
 }
 
 MessageRef GetMessageFromPool(ObjectPool<Message> & pool, const uint8 * flatBytes, uint32 numBytes)
 {
    MessageRef ref(pool.ObtainObject());
-   if ((ref())&&(ref()->UnflattenFromBytes(flatBytes, numBytes).IsError())) ref.Reset();
-   return ref;
+   if (ref())
+   {
+      MRETURN_ON_ERROR(ref()->UnflattenFromBytes(flatBytes, numBytes));
+      return ref;
+   }
+   else MRETURN_OUT_OF_MEMORY;
 }
 
 MessageRef GetLightweightCopyOfMessageFromPool(const Message & copyMe)
 {
    MessageRef ref(_messagePool.ObtainObject());
-   if (ref()) ref()->BecomeLightweightCopyOf(copyMe);
-   return ref;
+   if (ref())
+   {
+      ref()->BecomeLightweightCopyOf(copyMe);
+      return ref;
+   }
+   else MRETURN_OUT_OF_MEMORY;
 }
 
 MessageRef GetLightweightCopyOfMessageFromPool(ObjectPool<Message> & pool, const Message & copyMe)
 {
    MessageRef ref(pool.ObtainObject());
-   if (ref()) ref()->BecomeLightweightCopyOf(copyMe);
-   return ref;
+   if (ref())
+   {
+      ref()->BecomeLightweightCopyOf(copyMe);
+      return ref;
+   }
+   else MRETURN_OUT_OF_MEMORY;
 }
 
 template <class DataType> class FixedSizeDataArray : public AbstractDataArray
@@ -944,7 +976,7 @@ Message & Message :: operator=(const Message & rhs)
 MessageRef Message :: CreateMessageTemplate() const
 {
    MessageRef ret = GetMessageFromPool(what);
-   if (ret() == NULL) return MessageRef();
+   MRETURN_ON_ERROR(ret);
 
    for (HashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
@@ -959,23 +991,25 @@ MessageRef Message :: CreateMessageTemplate() const
             for (uint32 i=0; i<numItems; i++)
             {
                MessageRef newSubMsg = static_cast<const Message *>(mf.GetItemAtAsRefCountableRef(i)())->CreateMessageTemplate();
-               if ((newSubMsg() == NULL)||(ret()->AddMessage(fn, newSubMsg).IsError())) return MessageRef();
+               MRETURN_ON_ERROR(newSubMsg);
+               MRETURN_ON_ERROR(ret()->AddMessage(fn, newSubMsg));
             }
          }
          else if (mf.TypeCode() == B_STRING_TYPE)
          {
-            for (uint32 i=0; i<numItems; i++) if (ret()->AddString(fn, GetEmptyString()).IsError()) return MessageRef();
+            for (uint32 i=0; i<numItems; i++) MRETURN_ON_ERROR(ret()->AddString(fn, GetEmptyString()));
          }
          else if (mf.ElementsAreFixedSize())
          {
-            if (ret()->AddData(fn, mf.TypeCode(), NULL, mf.GetNumItems()*mf.GetItemSize(0)).IsError()) return MessageRef();
+            MRETURN_ON_ERROR(ret()->AddData(fn, mf.TypeCode(), NULL, mf.GetNumItems()*mf.GetItemSize(0)));
          }
          else
          {
             // If we got here, it's a non-fixed-size type; we'll do our best to set it to default values
             // but if it's some user-defined type, we may not be able to do that.
             MessageField * newMF = ret()->_entries.PutAndGet(fn, MessageField(mf));
-            if ((newMF == NULL)||(newMF->EnsurePrivate().IsError())) return MessageRef();
+            MRETURN_OOM_ON_NULL(newMF);
+            MRETURN_ON_ERROR(newMF->EnsurePrivate());
 
             ByteBufferRef emptyBuf;  // demand-allocated
             for (int32 i=newMF->GetNumItems()-1; i>=0; i--)
@@ -986,9 +1020,9 @@ MessageRef Message :: CreateMessageTemplate() const
                   if (emptyBuf() == NULL)
                   {
                      emptyBuf = GetByteBufferFromPool(0);
-                     if (emptyBuf() == NULL) return MessageRef();
+                     MRETURN_ON_ERROR(emptyBuf);
                   }
-                  if (newMF->ReplaceDataItem(i, &emptyBuf, sizeof(emptyBuf)).IsError()) return MessageRef();
+                  MRETURN_ON_ERROR(newMF->ReplaceDataItem(i, &emptyBuf, sizeof(emptyBuf)));
                }
             }
          }

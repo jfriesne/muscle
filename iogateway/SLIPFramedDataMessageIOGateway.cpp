@@ -85,10 +85,10 @@ static ByteBufferRef SLIPEncodeBytes(const uint8 * bytes, uint32 numBytes)
 MessageRef SLIPFramedDataMessageIOGateway :: PopNextOutgoingMessage()
 {
    MessageRef msg = RawDataMessageIOGateway::PopNextOutgoingMessage();
-   if (msg() == NULL) return MessageRef();
+   MRETURN_ON_ERROR(msg);
 
    MessageRef slipMsg = GetLightweightCopyOfMessageFromPool(*msg());
-   if (slipMsg() == NULL) return MessageRef();
+   MRETURN_ON_ERROR(slipMsg);
 
    (void) slipMsg()->RemoveName(PR_NAME_DATA_CHUNKS);  // make sure we don't modify the field object in (msg)
 
@@ -98,7 +98,8 @@ MessageRef SLIPFramedDataMessageIOGateway :: PopNextOutgoingMessage()
    for (int32 i=0; msg()->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, i, (const void **) &buf, &numBytes).IsOK(); i++)
    {
       ByteBufferRef slipData = SLIPEncodeBytes(buf, numBytes);
-      if ((slipData()==NULL)||(slipMsg()->AddFlat(PR_NAME_DATA_CHUNKS, slipData).IsError())) return MessageRef();
+      MRETURN_ON_ERROR(slipData);
+      MRETURN_ON_ERROR(slipMsg()->AddFlat(PR_NAME_DATA_CHUNKS, slipData));
    }
 
    return slipMsg;

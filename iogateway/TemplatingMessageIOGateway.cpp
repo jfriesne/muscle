@@ -111,7 +111,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
    TCHECKPOINT;
 
    MessageRef retMsg = bufRef() ? GetMessageFromPool() : MessageRef();
-   if (retMsg() == NULL) return MessageRef();
+   MRETURN_ON_ERROR(retMsg);
 
    uint32 offset = GetHeaderSize();
 
@@ -121,7 +121,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
    if ((offset+lhbSize) != bufRef()->GetNumBytes())
    {
       LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " INT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
-      return MessageRef();
+      return B_BAD_DATA;
    }
 
    const uint32 encodingWord = DefaultEndianConverter::Import<uint32>(&lhb[1*sizeof(uint32)]);
@@ -143,14 +143,12 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
       else
       {
          LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway %p:  Error inflating compressed byte buffer!\n", this);
-         bb = NULL;
+         return expRef.GetStatus();
       }
    }
 #else
-   if (encoding != MUSCLE_MESSAGE_ENCODING_DEFAULT) bb = NULL;
+   if (encoding != MUSCLE_MESSAGE_ENCODING_DEFAULT) return B_UNIMPLEMENTED;
 #endif
-
-   if (bb == NULL) return MessageRef();
 
    const bool createTemplate      = ((lengthWord & CREATE_TEMPLATE_BIT) != 0);
    const uint8 * inPtr            = bb->GetBuffer()+offset;
@@ -164,7 +162,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
       if (createTemplate)
       {
          LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway %p:  Incoming buffer had both CREATE_TEMPLATE_BIT and PAYLOAD_ENCODING_BIT bits set!\n", this);
-         return MessageRef();
+         return B_BAD_DATA;
       }
       else if (numBodyBytes >= sizeof(uint64))
       {
@@ -177,19 +175,19 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
             if (retMsg()->TemplatedUnflatten(*templateMsgRef->GetItemPointer(), unflat).IsError(ret))
             {
                LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Error unflattening " UINT32_FORMAT_SPEC " payload-bytes using template ID " UINT64_FORMAT_SPEC "\n", (uint32)(firstInvalidByte-payloadBytes), templateID);
-               return MessageRef();
+               return ret;
             }
          }
          else
          {
             LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Template " UINT64_FORMAT_SPEC " not found in incoming-templates cache!\n", templateID);
-            return MessageRef();
+            return B_DATA_NOT_FOUND;
          }
       }
       else
       {
          LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Payload-only buffer is too short for template ID!  (" UINT32_FORMAT_SPEC " bytes)\n", numBodyBytes);
-         return MessageRef();
+         return B_BAD_DATA;
       }
    }
    else
@@ -198,7 +196,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
       else if (retMsg()->UnflattenFromBytes(inPtr, numBodyBytes).IsError(ret))
       {
          LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  Unflatten() failed on " UINT32_FORMAT_SPEC "-byte buffer (%s)\n", numBodyBytes, ret());
-         return MessageRef();
+         return ret;
       }
 
       if (createTemplate)
@@ -207,11 +205,11 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
          if (tMsg() == NULL)
          {
             LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway::UnflattenHeaderAndMessage():  CreateTemplateMessage() failed!\n");
-            return MessageRef();
+            return tMsg;
          }
 
          templateID = tMsg()->TemplateHashCode64();
-         if (_incomingTemplates.PutAtFront(templateID, tMsg).IsError()) return MessageRef();
+         MRETURN_ON_ERROR(_incomingTemplates.PutAtFront(templateID, tMsg));
 
          _incomingTemplatesTotalSizeBytes += tMsg()->FlattenedSize();
          TrimLRUCache(_incomingTemplates, _incomingTemplatesTotalSizeBytes, "RECV");

@@ -111,6 +111,11 @@ public:
      */
    ConstSocketRef(const ConstSocketRef & rhs) : ConstRef<Socket>(rhs) {/* empty */}
 
+   /** Error-constructor.  Sets this ConstSocketRef to be a NULL reference with the specified error code.
+     * @param status the B_* error-code to contain.  If you pass in B_NO_ERROR, then B_NULL_REF will be used by default.
+     */
+   ConstSocketRef(status_t status) : ConstRef<Socket>(status) {/* empty */}
+
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline ConstSocketRef & operator = (const ConstSocketRef & rhs) {(void) ConstRef<Socket>::operator=(rhs); return *this;}
 

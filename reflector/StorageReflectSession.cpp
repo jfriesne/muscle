@@ -861,61 +861,63 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
 
 MessageRef StorageReflectSession :: GetEffectiveParameters() const
 {
-   String np;
+   if (_sessionDir() == NULL) return B_BAD_OBJECT;
+
    MessageRef resultMessage = GetMessageFromPool(_parameters);
-   if ((resultMessage())&&(_sessionDir())&&(_sessionDir()->GetNodePath(np).IsOK()))
-   {
-      // Add hard-coded params
+   MRETURN_ON_ERROR(resultMessage);
 
-      (void) resultMessage()->RemoveName(PR_NAME_REFLECT_TO_SELF);
-      if (IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF)) (void) resultMessage()->AddBool(PR_NAME_REFLECT_TO_SELF, true);
+   String np;
+   MRETURN_ON_ERROR(_sessionDir()->GetNodePath(np));
 
-      (void) resultMessage()->RemoveName(PR_NAME_ROUTE_GATEWAY_TO_NEIGHBORS);
-      if (IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS)) (void) resultMessage()->AddBool(PR_NAME_ROUTE_GATEWAY_TO_NEIGHBORS, true);
+   // Add hard-coded params
 
-      (void) resultMessage()->RemoveName(PR_NAME_ROUTE_NEIGHBORS_TO_GATEWAY);
-      if (IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY)) (void) resultMessage()->AddBool(PR_NAME_ROUTE_NEIGHBORS_TO_GATEWAY, true);
+   (void) resultMessage()->RemoveName(PR_NAME_REFLECT_TO_SELF);
+   if (IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF)) (void) resultMessage()->AddBool(PR_NAME_REFLECT_TO_SELF, true);
 
-      (void) resultMessage()->RemoveName(PR_NAME_SESSION_ROOT);
-      (void) resultMessage()->AddString(PR_NAME_SESSION_ROOT, np);
+   (void) resultMessage()->RemoveName(PR_NAME_ROUTE_GATEWAY_TO_NEIGHBORS);
+   if (IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS)) (void) resultMessage()->AddBool(PR_NAME_ROUTE_GATEWAY_TO_NEIGHBORS, true);
 
-      (void) resultMessage()->RemoveName(PR_NAME_SERVER_VERSION);
-      (void) resultMessage()->AddString(PR_NAME_SERVER_VERSION, MUSCLE_VERSION_STRING);
+   (void) resultMessage()->RemoveName(PR_NAME_ROUTE_NEIGHBORS_TO_GATEWAY);
+   if (IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY)) (void) resultMessage()->AddBool(PR_NAME_ROUTE_NEIGHBORS_TO_GATEWAY, true);
 
-      (void) resultMessage()->RemoveName(PR_NAME_SERVER_MEM_AVAILABLE);
-      (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_AVAILABLE, GetNumAvailableBytes());
+   (void) resultMessage()->RemoveName(PR_NAME_SESSION_ROOT);
+   (void) resultMessage()->AddString(PR_NAME_SESSION_ROOT, np);
 
-      (void) resultMessage()->RemoveName(PR_NAME_SERVER_MEM_USED);
-      (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_USED, GetNumUsedBytes());
+   (void) resultMessage()->RemoveName(PR_NAME_SERVER_VERSION);
+   (void) resultMessage()->AddString(PR_NAME_SERVER_VERSION, MUSCLE_VERSION_STRING);
 
-      (void) resultMessage()->RemoveName(PR_NAME_SERVER_MEM_MAX);
-      (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_MAX, GetMaxNumBytes());
+   (void) resultMessage()->RemoveName(PR_NAME_SERVER_MEM_AVAILABLE);
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_AVAILABLE, GetNumAvailableBytes());
 
-      const uint64 now = GetRunTime64();
+   (void) resultMessage()->RemoveName(PR_NAME_SERVER_MEM_USED);
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_USED, GetNumUsedBytes());
 
-      (void) resultMessage()->RemoveName(PR_NAME_SERVER_UPTIME);
-      (void) resultMessage()->AddInt64(PR_NAME_SERVER_UPTIME, now-GetServerStartTime());
+   (void) resultMessage()->RemoveName(PR_NAME_SERVER_MEM_MAX);
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_MAX, GetMaxNumBytes());
 
-      (void) resultMessage()->RemoveName(PR_NAME_SERVER_CURRENTTIMEUTC);
-      (void) resultMessage()->AddInt64(PR_NAME_SERVER_CURRENTTIMEUTC, GetCurrentTime64(MUSCLE_TIMEZONE_UTC));
+   const uint64 now = GetRunTime64();
 
-      (void) resultMessage()->RemoveName(PR_NAME_SERVER_CURRENTTIMELOCAL);
-      (void) resultMessage()->AddInt64(PR_NAME_SERVER_CURRENTTIMELOCAL, GetCurrentTime64(MUSCLE_TIMEZONE_LOCAL));
+   (void) resultMessage()->RemoveName(PR_NAME_SERVER_UPTIME);
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_UPTIME, now-GetServerStartTime());
 
-      (void) resultMessage()->RemoveName(PR_NAME_SERVER_RUNTIME);
-      (void) resultMessage()->AddInt64(PR_NAME_SERVER_RUNTIME, now);
+   (void) resultMessage()->RemoveName(PR_NAME_SERVER_CURRENTTIMEUTC);
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_CURRENTTIMEUTC, GetCurrentTime64(MUSCLE_TIMEZONE_UTC));
 
-      (void) resultMessage()->RemoveName(PR_NAME_MAX_NODES_PER_SESSION);
-      (void) resultMessage()->AddInt64(PR_NAME_MAX_NODES_PER_SESSION, _maxNodeCount);
+   (void) resultMessage()->RemoveName(PR_NAME_SERVER_CURRENTTIMELOCAL);
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_CURRENTTIMELOCAL, GetCurrentTime64(MUSCLE_TIMEZONE_LOCAL));
 
-      (void) resultMessage()->RemoveName(PR_NAME_SERVER_SESSION_ID);
-      (void) resultMessage()->AddInt64(PR_NAME_SERVER_SESSION_ID, GetServerSessionID());
+   (void) resultMessage()->RemoveName(PR_NAME_SERVER_RUNTIME);
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_RUNTIME, now);
 
-      AddApplicationSpecificParametersToParametersResultMessage(*resultMessage());
+   (void) resultMessage()->RemoveName(PR_NAME_MAX_NODES_PER_SESSION);
+   (void) resultMessage()->AddInt64(PR_NAME_MAX_NODES_PER_SESSION, _maxNodeCount);
 
-      return resultMessage;
-   }
-   else return MessageRef();
+   (void) resultMessage()->RemoveName(PR_NAME_SERVER_SESSION_ID);
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_SESSION_ID, GetServerSessionID());
+
+   AddApplicationSpecificParametersToParametersResultMessage(*resultMessage());
+
+   return resultMessage;
 }
 
 void StorageReflectSession :: UpdateDefaultMessageRoute()
