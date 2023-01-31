@@ -216,7 +216,7 @@ AbstractReflectSession ::
 CreateDataIO(const ConstSocketRef & socket)
 {
    TCPSocketDataIORef dio(newnothrow TCPSocketDataIO(socket, false));
-   if (dio() == NULL) MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(dio());
    return dio;
 }
 
@@ -229,7 +229,7 @@ CreateGateway()
 #else
    MessageIOGatewayRef ret(newnothrow MessageIOGateway());
 #endif
-   if (ret() == NULL) MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(ret());
    return ret;
 }
 

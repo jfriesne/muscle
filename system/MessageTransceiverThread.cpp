@@ -651,7 +651,7 @@ void ThreadSupervisorSession :: DrainTagIsBeingDeleted(DrainTag * tag)
 AbstractMessageIOGatewayRef ThreadSupervisorSession :: CreateGateway()
 {
    AbstractMessageIOGateway * gw = newnothrow SignalMessageIOGateway();
-   if (gw == NULL) MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(gw);
    return AbstractMessageIOGatewayRef(gw);
 }
 
