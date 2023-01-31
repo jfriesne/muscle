@@ -26,7 +26,7 @@ AbstractReflectSessionRef FilterSessionFactory :: CreateSession(const String & c
    if (GetSessions().GetNumItems() >= _totalMaxSessions)
    {
       LogTime(MUSCLE_LOG_DEBUG, "Connection from [%s] refused (all " UINT32_FORMAT_SPEC " sessions slots are in use).\n", clientHostIP(), _totalMaxSessions);
-      return AbstractReflectSessionRef();
+      return B_ACCESS_DENIED;
    }
 
    if (_maxSessionsPerHost != MUSCLE_NO_LIMIT)
@@ -37,51 +37,48 @@ AbstractReflectSessionRef FilterSessionFactory :: CreateSession(const String & c
          if ((iter.GetValue()())&&(strcmp(iter.GetValue()()->GetHostName()(), clientHostIP()) == 0)&&(++count >= _maxSessionsPerHost))
          {
             LogTime(MUSCLE_LOG_DEBUG, "Connection from [%s] refused (host already has " UINT32_FORMAT_SPEC " sessions open).\n", clientHostIP(), _maxSessionsPerHost);
-            return AbstractReflectSessionRef();
+            return B_ACCESS_DENIED;
          }
       }
    }
 
    AbstractReflectSessionRef ret;
-   if (GetSlave()())
-   {
-      // If we have any requires, then this IP must match at least one of them!
-      if (_requires.HasItems())
-      {
-         bool matched = false;
-         for (HashtableIterator<String, StringMatcherRef> iter(_requires); iter.HasData(); iter++)
-         {
-            if (iter.GetValue()()->Match(clientHostIP()))
-            {
-               matched = true;
-               break;
-            }
-         }
-         if (matched == false)
-         {
-            LogTime(MUSCLE_LOG_DEBUG, "Connection from [%s] does not match any require pattern, access denied.\n", clientHostIP());
-            return AbstractReflectSessionRef();
-         }
-      }
+   if (GetSlave()() == NULL) return B_BAD_OBJECT;
 
-      // This IP must *not* match any of our bans!
-      for (HashtableIterator<String, StringMatcherRef> iter(_bans); iter.HasData(); iter++)
+   // If we have any requires, then this IP must match at least one of them!
+   if (_requires.HasItems())
+   {
+      bool matched = false;
+      for (HashtableIterator<String, StringMatcherRef> iter(_requires); iter.HasData(); iter++)
       {
          if (iter.GetValue()()->Match(clientHostIP()))
          {
-            LogTime(MUSCLE_LOG_DEBUG, "Connection from [%s] matches ban pattern [%s], access denied.\n", clientHostIP(), iter.GetKey()());
-            return AbstractReflectSessionRef();
+            matched = true;
+            break;
          }
       }
-
-      // Okay, he passes.  We'll let our slave create a session for him.
-      ret = GetSlave()()->CreateSession(clientHostIP, iap);
-      if (ret())
+      if (matched == false)
       {
-         if (_inputPolicyRef())  ret()->SetInputPolicy(_inputPolicyRef);
-         if (_outputPolicyRef()) ret()->SetOutputPolicy(_outputPolicyRef);
+         LogTime(MUSCLE_LOG_DEBUG, "Connection from [%s] does not match any require pattern, access denied.\n", clientHostIP());
+         return B_ACCESS_DENIED;
       }
    }
+
+   // This IP must *not* match any of our bans!
+   for (HashtableIterator<String, StringMatcherRef> iter(_bans); iter.HasData(); iter++)
+   {
+      if (iter.GetValue()()->Match(clientHostIP()))
+      {
+         LogTime(MUSCLE_LOG_DEBUG, "Connection from [%s] matches ban pattern [%s], access denied.\n", clientHostIP(), iter.GetKey()());
+         return B_ACCESS_DENIED;
+      }
+   }
+
+   // Okay, he passes.  We'll let our slave create a session for him.
+   ret = GetSlave()()->CreateSession(clientHostIP, iap);
+   MRETURN_ON_ERROR(ret);
+   if (_inputPolicyRef())  ret()->SetInputPolicy(_inputPolicyRef);
+   if (_outputPolicyRef()) ret()->SetOutputPolicy(_outputPolicyRef);
    return ret;
 }
 

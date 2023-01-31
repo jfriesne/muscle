@@ -33,8 +33,8 @@ public:
    virtual ThreadWorkerSessionRef CreateThreadWorkerSession(const String & loc, const IPAddressAndPort & iap)
    {
       AdvancedThreadWorkerSession * ret = newnothrow AdvancedThreadWorkerSession();
-      if (ret) printf("AdvancedThreadWorkerSessionFactory created AdvancedThreadWorkerSession %p for client at loc=[%s] iap=[%s]\n", ret, loc(), iap.ToString()());
-          else MWARN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(ret);
+      printf("AdvancedThreadWorkerSessionFactory created AdvancedThreadWorkerSession %p for client at loc=[%s] iap=[%s]\n", ret, loc(), iap.ToString()());
       return ThreadWorkerSessionRef(ret);
    }
 };

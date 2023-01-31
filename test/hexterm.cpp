@@ -597,7 +597,7 @@ int hextermmain(const char * argv0, const Message & args)
          DoSession(DummyDataIORef(io));
          LogTime(MUSCLE_LOG_INFO, "Session socket disconnected, exiting.\n");
       }
-      else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to connect to %s\n", GetConnectString(host, port)());
+      else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to connect to %s [%s]\n", GetConnectString(host, port)(), ss.GetStatus()());
    }
    else if (ParsePortArg(args, "tcp", port).IsOK())
    {

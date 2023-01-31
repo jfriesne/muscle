@@ -58,7 +58,7 @@ protected:
    virtual Cloneable * CloneImp() const             \
    {                                                \
       Cloneable * r = newnothrow class_name(*this); \
-      if (r == NULL) MWARN_OUT_OF_MEMORY;            \
+      if (r == NULL) MWARN_OUT_OF_MEMORY;           \
       return r;                                     \
    }
 

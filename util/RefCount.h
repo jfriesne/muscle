@@ -445,7 +445,7 @@ public:
       else newItem = CloneObject(*item);
 
       if (newItem) return Ref<Item>(newItem);
-              else {MWARN_OUT_OF_MEMORY; return Ref<Item>(B_OUT_OF_MEMORY);}
+              else MRETURN_OUT_OF_MEMORY;
    }
 
    /** This method allows Refs to be keys in Hashtables.  Node that we hash on the pointer's value, not the object it points to!

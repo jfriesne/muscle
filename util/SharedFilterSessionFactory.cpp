@@ -23,7 +23,8 @@ SharedFilterSessionFactory :: ~SharedFilterSessionFactory()
 AbstractReflectSessionRef SharedFilterSessionFactory :: CreateSession(const String & clientIP, const IPAddressAndPort & iap)
 {
    TCHECKPOINT;
-   return ((GetSlave()())&&(IsAccessAllowedForIP(iap.GetIPAddress().IsStandardLoopbackDeviceAddress()?localhostIP:Inet_AtoN(clientIP())))) ? GetSlave()()->CreateSession(clientIP, iap) : AbstractReflectSessionRef();
+   if (GetSlave()() == NULL) return B_BAD_OBJECT;
+   return IsAccessAllowedForIP(iap.GetIPAddress().IsStandardLoopbackDeviceAddress()?localhostIP:Inet_AtoN(clientIP())) ? GetSlave()()->CreateSession(clientIP, iap) : AbstractReflectSessionRef(B_ACCESS_DENIED);
 }
 
 static bool IsMemoryAllZeros(const uint8 * mem, uint32 numBytes)

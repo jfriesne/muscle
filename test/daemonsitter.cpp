@@ -63,7 +63,7 @@ public:
    virtual AbstractMessageIOGatewayRef CreateGateway()
    {
       AbstractMessageIOGateway * gw = newnothrow PlainTextMessageIOGateway;
-      if (gw == NULL) MWARN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(gw);
       return AbstractMessageIOGatewayRef(gw);
    }
 
@@ -120,14 +120,14 @@ public:
    virtual DataIORef CreateDataIO(const ConstSocketRef &)
    {
       DataIO * dio = newnothrow StdinDataIO(false);
-      if (dio == NULL) MWARN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(dio);
       return DataIORef(dio);
    }
 
    virtual AbstractMessageIOGatewayRef CreateGateway()
    {
       AbstractMessageIOGateway * gw = newnothrow PlainTextMessageIOGateway;
-      if (gw == NULL) MWARN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(gw);
       return AbstractMessageIOGatewayRef(gw);
    }
 

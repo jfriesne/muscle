@@ -26,7 +26,7 @@ public:
       // over the main<->child notification socket; rather it just appends the MessageRefs to a Queue
       // and then sends a single byte to let the child thread know when to check the queue.
       SignalMessageIOGatewayRef gwRef(newnothrow SignalMessageIOGateway);
-      if (gwRef() == NULL) MWARN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(gwRef());
       return gwRef;
    }
 

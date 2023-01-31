@@ -73,8 +73,8 @@ status_t MessageTransceiverThread :: EnsureServerAllocated()
 ReflectServerRef MessageTransceiverThread :: CreateReflectServer()
 {
    ReflectServer * rs = newnothrow ReflectServer;
-   if (rs) rs->SetDoLogging(false);  // so that adding/removing client-side sessions won't show up in the log
-      else MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(rs);
+   rs->SetDoLogging(false);  // so that adding/removing client-side sessions won't show up in the log
    return ReflectServerRef(rs);
 }
 
@@ -380,21 +380,21 @@ void MessageTransceiverThread :: Reset()
 ThreadSupervisorSessionRef MessageTransceiverThread :: CreateSupervisorSession()
 {
    ThreadSupervisorSession * ret = newnothrow ThreadSupervisorSession();
-   if (ret == NULL) MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(ret);
    return ThreadSupervisorSessionRef(ret);
 }
 
 ThreadWorkerSessionRef MessageTransceiverThread :: CreateDefaultWorkerSession()
 {
    ThreadWorkerSession * ret = newnothrow ThreadWorkerSession();
-   if (ret == NULL) MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(ret);
    return ThreadWorkerSessionRef(ret);
 }
 
 ThreadWorkerSessionFactoryRef MessageTransceiverThread :: CreateDefaultSessionFactory()
 {
    ThreadWorkerSessionFactory * ret = newnothrow ThreadWorkerSessionFactory();
-   if (ret == NULL) MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(ret);
    return ThreadWorkerSessionFactoryRef(ret);
 }
 
@@ -437,20 +437,19 @@ void ThreadWorkerSessionFactory :: SetForwardAllIncomingMessagesToSupervisorIfNo
 ThreadWorkerSessionRef ThreadWorkerSessionFactory :: CreateThreadWorkerSession(const String &, const IPAddressAndPort &)
 {
    ThreadWorkerSession * ret = newnothrow ThreadWorkerSession();
-   if (ret == NULL) MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(ret);
    return ThreadWorkerSessionRef(ret);
 }
 
 AbstractReflectSessionRef ThreadWorkerSessionFactory :: CreateSession(const String & clientHostIP, const IPAddressAndPort & iap)
 {
    ThreadWorkerSessionRef tws = CreateThreadWorkerSession(clientHostIP, iap);
-   if ((tws())&&(SetMaxIncomingMessageSizeFor(tws()).IsOK()))
-   {
-      tws()->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
-      tws()->_acceptedIAP = iap;  // gotta send the MTT_EVENT_SESSION_ACCEPTED Message from within AttachedToServer()
-      return tws;
-   }
-   return AbstractReflectSessionRef();
+   MRETURN_OOM_ON_NULL(tws());
+   MRETURN_ON_ERROR(SetMaxIncomingMessageSizeFor(tws()));
+
+   tws()->SetForwardAllIncomingMessagesToSupervisorIfNotAlreadySet(_forwardAllIncomingMessagesToSupervisor);
+   tws()->_acceptedIAP = iap;  // gotta send the MTT_EVENT_SESSION_ACCEPTED Message from within AttachedToServer()
+   return tws;
 }
 
 void MessageTransceiverThread :: InternalThreadEntry()

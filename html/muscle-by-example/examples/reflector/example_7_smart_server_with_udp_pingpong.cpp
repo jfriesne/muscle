@@ -53,7 +53,7 @@ public:
    virtual DataIORef CreateDataIO(const ConstSocketRef & socket)
    {
       DataIORef ret(newnothrow UDPSocketDataIO(socket, false));
-      if (ret() == NULL) MWARN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(ret());
       return ret;
    }
 
@@ -61,7 +61,7 @@ public:
    virtual AbstractMessageIOGatewayRef CreateGateway()
    {
       AbstractMessageIOGatewayRef ret(newnothrow RawDataMessageIOGateway);
-      if (ret() == NULL) MWARN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(ret());
       return ret;
    }
 

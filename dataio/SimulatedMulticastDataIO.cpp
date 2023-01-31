@@ -88,14 +88,14 @@ io_status_t SimulatedMulticastDataIO :: WriteTo(const void * buffer, uint32 size
 UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IPAddressAndPort & iap) const
 {
    ConstSocketRef udpSock = CreateUDPSocket();
-   if (udpSock() == NULL) return UDPSocketDataIORef();
+   MRETURN_ON_ERROR(udpSock);
 
    // This must be done before adding the socket to any multicast groups, otherwise Windows gets uncooperative
    status_t errRet;
    if (BindUDPSocket(udpSock, iap.GetPort(), NULL, invalidIP, true).IsError(errRet))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "SimulatedMulticastDataIO %p:  Unable to bind multicast socket to UDP port %u! [%s]\n", this, iap.GetPort(), errRet());
-      return UDPSocketDataIORef();
+      return errRet;
    }
 
    // Send a test packet just to verify that packets can be sent on this socket (otherwise there's little use in continuing)
@@ -103,17 +103,17 @@ UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IP
    if (SendDataUDP(udpSock, &dummyBuf, 0, true, iap.GetIPAddress(), iap.GetPort()).IsError(errRet))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "SimulatedMulticastDataIO %p:  Unable to send test UDP packet to multicast destination [%s] [%s]\n", this, iap.ToString()(), errRet());
-      return UDPSocketDataIORef();
+      return errRet;
    }
 
    if (AddSocketToMulticastGroup(udpSock, iap.GetIPAddress()).IsError(errRet))
    {
       LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  Unable to add UDP socket to multicast address [%s] [%s]\n", this, Inet_NtoA(iap.GetIPAddress())(), errRet());
-      return UDPSocketDataIORef();
+      return errRet;
    }
 
    UDPSocketDataIORef ret(newnothrow UDPSocketDataIO(udpSock, false));
-   if (ret() == NULL) {MWARN_OUT_OF_MEMORY; return UDPSocketDataIORef();}
+   MRETURN_OOM_ON_NULL(ret());
    (void) ret()->SetPacketSendDestination(iap);
    return ret;
 }
@@ -121,12 +121,11 @@ UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IP
 static UDPSocketDataIORef CreateUnicastUDPDataIO(uint16 & retPort)
 {
    ConstSocketRef udpSock = CreateUDPSocket();
-   if (udpSock() == NULL) return UDPSocketDataIORef();
-
-   if (BindUDPSocket(udpSock, 0, &retPort).IsError()) return UDPSocketDataIORef();
+   MRETURN_ON_ERROR(udpSock);
+   MRETURN_ON_ERROR(BindUDPSocket(udpSock, 0, &retPort));
 
    UDPSocketDataIORef ret(newnothrow UDPSocketDataIO(udpSock, false));
-   if (ret() == NULL) {MWARN_OUT_OF_MEMORY; return UDPSocketDataIORef();}
+   MRETURN_OOM_ON_NULL(ret());
    return ret;
 }
 

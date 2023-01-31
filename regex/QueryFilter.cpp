@@ -447,9 +447,9 @@ QueryFilterRef MuscleQueryFilterFactory :: CreateQueryFilter(uint32 typeCode) co
       case QUERY_FILTER_TYPE_XOR:         f = newnothrow XorQueryFilter;         break;
       case QUERY_FILTER_TYPE_CHILDCOUNT:  f = newnothrow ChildCountQueryFilter;  break;
       case QUERY_FILTER_TYPE_NODENAME:    f = newnothrow NodeNameQueryFilter;    break;
-      default:                            return QueryFilterRef();  /* unknown type code! */
+      default:                            return B_UNIMPLEMENTED;  /* unknown type code! */
    }
-   if (f == NULL) MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(f);
    return QueryFilterRef(f);
 }
 

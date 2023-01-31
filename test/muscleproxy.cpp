@@ -80,7 +80,7 @@ public:
    virtual AbstractMessageIOGatewayRef CreateGateway()
    {
       AbstractMessageIOGatewayRef ret(newnothrow PlainTextMessageIOGateway);
-      if (ret() == NULL) MWARN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(ret());
       return ret;
    }
 #endif
@@ -110,7 +110,7 @@ public:
       LogTime(MUSCLE_LOG_INFO, "DownstreamSessionFactory received incoming TCP connection from [%s] on [%s]\n", clientAddress(), factoryInfo.ToString()());
 
       AbstractReflectSessionRef ret(newnothrow DownstreamSession(_upstreamLocation));
-      if (ret() == NULL) MWARN_OUT_OF_MEMORY;
+      MRETURN_OOM_ON_NULL(ret());
       return ret;
    }
 

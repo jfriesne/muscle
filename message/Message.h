@@ -1922,11 +1922,8 @@ template<class T> inline MessageRef GetArchiveMessageFromPool(const T & objectTo
 template<class T> inline Ref<T> CreateObjectFromArchiveMessage(const Message & msg)
 {
    Ref<T> newObjRef(newnothrow T);
-   if (newObjRef())
-   {
-      if (newObjRef()->SetFromArchive(msg).IsError()) newObjRef.Reset();
-   }
-   else MWARN_OUT_OF_MEMORY;
+   MRETURN_OOM_ON_NULL(newObjRef());
+   MRETURN_ON_ERROR(newObjRef()->SetFromArchive(msg));
    return newObjRef;
 }
 
