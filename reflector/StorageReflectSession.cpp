@@ -1042,6 +1042,8 @@ DataNodeRef StorageReflectSession :: FindMatchingNode(const String & nodePath, c
 
 status_t StorageReflectSession :: FindMatchingNodes(const String & nodePath, const ConstQueryFilterRef & filter, Queue<DataNodeRef> & retNodes, uint32 maxResults) const
 {
+   if (_sessionDir() == NULL) return B_BAD_OBJECT;  // just to reassure ClangSA
+
    const bool isGlobal = nodePath.StartsWith('/');
    NodePathMatcher matcher;
    MRETURN_ON_ERROR(matcher.PutPathString(isGlobal?nodePath.Substring(1):nodePath, filter));
