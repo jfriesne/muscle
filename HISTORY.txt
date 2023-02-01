@@ -24,6 +24,7 @@ key:  - new feature
    - Added BooleansToBitChord() convenience-functions to PointerAndBits.h
    - Updated PointerAndBits to be able to use the high bit in a
      pointer as well as the low bit(s).
+   - Updated the captive zlib library to v1.2.13.
    o Replaced the PointerAndBool.h header (and class) with a new
      PointerAndBits.h header (and class) that does the same thing,
      but in a simpler, more generalized fashion.
