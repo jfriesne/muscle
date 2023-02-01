@@ -473,7 +473,7 @@ enum {
            /** Convenience method -- a synonym for GetDescription() */
            MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
 
-           /** Convenience method:  Returns true this object represents an ok/non-error status */
+           /** Convenience method:  Returns true iff this object represents an ok/non-error status */
            MUSCLE_CONSTEXPR bool IsOK() const {return (_desc == NULL);}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status
@@ -674,7 +674,7 @@ enum {
            /** Convenience method -- a synonym for GetDescription() */
            MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
 
-           /** Convenience method:  Returns true this object represents an ok/non-error status */
+           /** Convenience method:  Returns true iff this object represents an ok/non-error status */
            MUSCLE_CONSTEXPR bool IsOK() const {return _status.IsOK();}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status
