@@ -396,7 +396,7 @@ enum {
           * general/undescribed failure, or one of the other B_SOMETHING values (as listed in
           * support/MuscleSupport.h), or it can return B_ERROR("Some Error Description") if it wants to
           * describe its failure using an ad-hoc human-readable string.  In that last case, make sure the
-          * string you pass in to B_ERROR is a compile-time constant, or in some other way * will remain
+          * string you pass in to B_ERROR is a compile-time constant, or in some other way will remain
           * valid indefinitely, since the status_t object will keep only a (const char *) pointer to the
           * string, and therefore depends on that pointed-to char-array remaining valid.
           */

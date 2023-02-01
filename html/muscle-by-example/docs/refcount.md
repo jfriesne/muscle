@@ -2,7 +2,7 @@
 
 ```#include "util/RefCount.h"```
 
-Reference-counting for heap-allocated objects, to makes memory-leaks and use-after-free errors nearly impossible.
+Reference-counting for dynamically-allocated objects, to make memory-leaks and use-after-free errors nearly impossible.
 
 * Similar to: [std::shared_ptr&lt;T&gt;](http://en.cppreference.com/w/cpp/memory/shared_ptr), [boost::intrusive_ptr&lt;T&gt;](https://www.boost.org/doc/libs/1_60_0/libs/smart_ptr/intrusive_ptr.html), [QSharedPointer](http://doc.qt.io/qt-5/qsharedpointer.html)
 * Object to be reference-counted must be a subclass of [RefCountable](https://public.msli.com/lcs/muscle/html/classmuscle_1_1RefCountable.html).
@@ -23,7 +23,9 @@ Reference-counting for heap-allocated objects, to makes memory-leaks and use-aft
     twoRef()->Hello();  // () operator gives pointer to RefCountable object
 ```
 * [Ref](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Ref.html) is similar to a read/write shared-pointer, [ConstRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ConstRef.html) is similar to a read-only shared-pointer.
+* [DummyRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DummyRef.html) acts as a read/write "raw" pointer, and [DummyConstRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DummyConstRef.html) acts as a read-only "raw" pointer.
 * [RefCountable](https://public.msli.com/lcs/muscle/html/classmuscle_1_1RefCountable.html) uses an [AtomicCounter](https://public.msli.com/lcs/muscle/html/classmuscle_1_1AtomicCounter.html) internally for its ref-count, and [ObjectPools](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ObjectPool.html) are thread-safe, so it's safe to pass [Ref](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Ref.html) and [ConstRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ConstRef.html) objects around to different threads.
+* When a function returns a `NULL` [Ref](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Ref.html), it can set an [error-code](https://public.msli.com/lcs/muscle/html//classmuscle_1_1status__t.html) inside the [Ref](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Ref.html) to explain why.  The caller can use the Ref object's [GetStatus()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ConstRef.html#a3d9a77869849decaec5dc4732ce7e63e) method to inspect the error-code.
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/refcount` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 
