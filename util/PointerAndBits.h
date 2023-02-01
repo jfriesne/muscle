@@ -22,14 +22,18 @@ namespace muscle {
   *
   * If you are compiling on a system where pointers-to-objects are not sufficiently well-aligned
   * for this to trick to work, you can define MUSCLE_AVOID_BITSTUFFING to force the data-bits
-  * to be stored inside a separate member-variable instead (at the cost of slightly increased
-  * memory usage, of course).
+  * to be stored inside a separate member-variable instead (at the cost of doubling
+  * sizeof(PointerAndBits), of course).
   *
-  * @tparam T the type of object that our pointer will point to.
-  * @tparam NumBits the number of bits of the pointer we will appropriate for data-storage.
-  *                 Under normal circumstances this number should not be greater than 3 (since
-  *                 for a word-aligned pointer, we can re-use the most-significant bit of the
-  *                 pointer as well as the two least-significant bits)
+  * @tparam T the type of object that our held pointer is expected point to.
+  * @tparam NumBits the number of bits of the held pointer we will appropriate for data-storage.
+  *                 - If your pointers will be 1-byte aligned, (NumBits) must be less than 2.
+  *                 - If your pointers will be 2-byte aligned, (NumBits) must be less than 3.
+  *                 - If your pointers will be 4-byte aligned, (NumBits) must be less than 4.
+  *                 - If your pointers will be 8-byte aligned, (NumBits) must be less than 5.
+  *                 - If your pointers will be 16-byte aligned, (NumBits) must be less than 6.
+  *                 - (and so on)
+  * @note if T is of type void, then no compile-time alignment checking of (NumBits) will be performed.
   */
 template <class T, unsigned int NumBits> class PointerAndBits
 {
@@ -40,7 +44,7 @@ public:
       , _dataBits(0)
 #endif
    {
-      // empty
+      (void) AlignmentCheck((T*)NULL);  // just to invoke a compile-time error if the caller tries to make NumBits larger than it can be
    }
 
    /** Constructor.
@@ -156,10 +160,17 @@ public:
 
 private:
 #ifdef MUSCLE_AVOID_BITSTUFFING
-   static const uintptr _allDataBitsMask = ((NumBits > 0) ? ((1<<NumBits)-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
+   static MUSCLE_CONSTEXPR_OR_CONST uintptr _allDataBitsMask = ((NumBits > 0) ? ((1<<NumBits)-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
 #else
-   static const uintptr _highBitMask     = ((uintptr)1) << ((sizeof(uintptr)*8)-1); // we use the high-bit of the pointer to store the user's first data-bit
-   static const uintptr _allDataBitsMask = ((NumBits>0)?_highBitMask:0) | ((NumBits > 1) ? ((1<<(NumBits-1))-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
+   static MUSCLE_CONSTEXPR_OR_CONST uintptr _highBitMask     = ((uintptr)1) << ((sizeof(uintptr)*8)-1); // we use the high-bit of the pointer to store the user's first data-bit
+   static MUSCLE_CONSTEXPR_OR_CONST uintptr _allDataBitsMask = ((NumBits>0)?_highBitMask:0) | ((NumBits > 1) ? ((1<<(NumBits-1))-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
+
+# ifndef MUSCLE_AVOID_CPLUSPLUS11
+   static inline MUSCLE_CONSTEXPR unsigned int CalcMaxNumBits(int al) {return (al == 1) ? 2 : (CalcMaxNumBits(al/2)+1);}
+   static inline MUSCLE_CONSTEXPR int AlignmentCheck(void *)       {return 0; /* empty -- this is only here to avoid compile-time errors caused by trying to call alignof() on void types */}
+   static inline MUSCLE_CONSTEXPR int AlignmentCheck(const void *) {return 0; /* empty -- this is only here to avoid compile-time errors caused by trying to call alignof() on void types */}
+   template<typename PT> static inline MUSCLE_CONSTEXPR int AlignmentCheck(PT *) {static_assert(NumBits<CalcMaxNumBits(alignof(PT)), "PointerAndBits:  NumBits is too large for pointers of the specified type"); return 0;}
+# endif
 #endif
 
    static void CheckInternalBits(uintptr internalBits)
