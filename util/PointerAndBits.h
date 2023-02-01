@@ -33,7 +33,7 @@ namespace muscle {
   *                 - If your pointers will be 8-byte aligned, (NumBits) must be less than 5.
   *                 - If your pointers will be 16-byte aligned, (NumBits) must be less than 6.
   *                 - (and so on)
-  * @note if T is of type void, then no compile-time alignment checking of (NumBits) will be performed.
+  * @note if T is of type void, then no compile-time validation of the (NumBits) argument will be performed.
   */
 template <class T, unsigned int NumBits> class PointerAndBits
 {
