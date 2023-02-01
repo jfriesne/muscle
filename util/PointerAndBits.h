@@ -44,7 +44,9 @@ public:
       , _dataBits(0)
 #endif
    {
-      (void) AlignmentCheck((T*)NULL);  // just to invoke a compile-time error if the caller tries to make NumBits larger than it can be
+#if !defined(MUSCLE_AVOID_BITSTUFFING) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
+      (void) PointerAndBits::AlignmentCheck((T*)NULL);  // just to invoke a compile-time error if the caller tries to set (NumBits) larger it's allowed to be
+#endif
    }
 
    /** Constructor.
