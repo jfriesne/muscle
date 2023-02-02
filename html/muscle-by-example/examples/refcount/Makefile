@@ -2,7 +2,8 @@ EXECUTABLES = \
 	example_1_basic_usage      \
 	example_2_with_object_pool \
 	example_3_conversions      \
-	example_4_dummy_refs
+	example_4_dummy_refs       \
+	example_5_error_reporting
 
 MUSCLE_DIR = ../../../..
 MUSCLE_LIB = $(MUSCLE_DIR)/server/libmuscle.a

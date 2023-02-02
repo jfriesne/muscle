@@ -210,6 +210,9 @@ if (WITH_TESTS)
    add_executable(refcount_example_4_dummy_refs refcount/example_4_dummy_refs.cpp)
    target_link_libraries(refcount_example_4_dummy_refs muscle)
 
+   add_executable(refcount_example_5_error_reporting refcount/example_5_error_reporting.cpp)
+   target_link_libraries(refcount_example_5_error_reporting muscle)
+
    add_executable(reflector_example_1_dumb_server reflector/example_1_dumb_server.cpp)
    target_link_libraries(reflector_example_1_dumb_server muscle)
 

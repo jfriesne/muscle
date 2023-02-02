@@ -35,3 +35,4 @@ Quick links to source code of relevant MUSCLE-by-example programs:
 * [refcount/example_2_with_object_pool.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/refcount/example_2_with_object_pool.cpp)
 * [refcount/example_3_conversions.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/refcount/example_3_conversions.cpp)
 * [refcount/example_4_dummy_refs.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/refcount/example_4_dummy_refs.cpp)
+* [refcount/example_5_error_reporting.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/refcount/example_5_error_reporting.cpp)
