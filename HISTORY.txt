@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.22 - Released 2/2/2023
    - Modified Queue::InternalizeIndex() to use subtraction
      instead of modulo, for a 3x efficiency gain.
    - Added a MUSCLE_NOEXCEPT keyword that expands to noexcept
