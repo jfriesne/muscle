@@ -3,7 +3,7 @@
 #include "zlib/TarFileWriter.h"
 
 #if defined(__FreeBSD__)
-# define <sys/stat.h> // for the S_IR* macros
+# include <sys/stat.h> // for the S_IR* macros
 #endif
 
 using namespace muscle;
