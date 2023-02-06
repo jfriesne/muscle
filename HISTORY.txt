@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Applied some Android build fixes as suggested by Ruurd Adema.
+
 9.22 - Released 2/2/2023
    - Modified Queue::InternalizeIndex() to use subtraction
      instead of modulo, for a 3x efficiency gain.

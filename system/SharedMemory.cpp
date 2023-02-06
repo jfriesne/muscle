@@ -7,10 +7,14 @@
 # include <sys/shm.h>
 #endif
 
+#if defined(ANDROID) && !defined(MUSCLE_FAKE_SHARED_MEMORY) && (__ANDROID_API__ < 26)
+# error "SharedMemory's implementation requires semop(), which is not defined in Android APIs before version 26.  Please either specify your minimum Android API level to be at least 26, or alternatively you can define -DMUSCLE_FAKE_SHARED_MEMORY to nerf the SharedMemory class if you don't need it for your app"
+#endif
+
 namespace muscle {
 
 #ifndef WIN32
-static const short LARGEST_SEMAPHORE_DELTA = 10000;  // I'm assuming there will never be this many processes
+enum {LARGEST_SEMAPHORE_DELTA = 10000};  // I'm assuming there will never be this many processes
 
 // Unbelievable how messed up the semctl() API is :^P
 # if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
@@ -324,7 +328,7 @@ void SharedMemory :: UnlockArea()
    }
 }
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(MUSCLE_FAKE_SHARED_MEMORY)
 status_t SharedMemory :: AdjustSemaphore(short delta)
 {
    if (_semID >= 0)
