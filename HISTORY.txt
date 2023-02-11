@@ -6,6 +6,7 @@ key:  - new feature
       o other
 
    * Applied some Android build fixes as suggested by Ruurd Adema.
+   * SetFileLogLevel() was broken.  Fixed.
 
 9.22 - Released 2/2/2023
    - Modified Queue::InternalizeIndex() to use subtraction
