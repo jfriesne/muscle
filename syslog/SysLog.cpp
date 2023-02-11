@@ -1935,7 +1935,7 @@ static void UpdateMaxLogLevel()
 
 status_t SetFileLogLevel(int logLevel)
 {
-   MRETURN_ON_ERROR(_dcl.SetLogLevelThreshold(logLevel));
+   MRETURN_ON_ERROR(_dfl.SetLogLevelThreshold(logLevel));
    LogTime(MUSCLE_LOG_DEBUG, "File logging level set to: %s\n", GetLogLevelName(logLevel));
    return B_NO_ERROR;
 }
