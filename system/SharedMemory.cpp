@@ -1,6 +1,6 @@
 #include "system/SharedMemory.h"  // must be first!
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(MUSCLE_FAKE_SHARED_MEMORY)
 # include <sys/types.h>
 # include <sys/ipc.h>
 # include <sys/sem.h>
