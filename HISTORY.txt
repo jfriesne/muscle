@@ -7,6 +7,8 @@ key:  - new feature
 
    * GetNetworkInterfaceinfos() is now implemented for Android
      (API level 24 or later).
+   * SharedMemory.cpp now compiles under Android (pre API level 26)
+     although its methods will return B_UNIMPLEMENTED if called.
    * GetNetworkInterfaceInfos() now returns B_UNIMPLEMENTED when
      called from an OS that it doesn't have an implementation for.
    * Applied some Android build fixes as suggested by Ruurd Adema.

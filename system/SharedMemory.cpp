@@ -7,13 +7,14 @@
 # include <sys/shm.h>
 #endif
 
-#if defined(ANDROID) && !defined(MUSCLE_FAKE_SHARED_MEMORY) && (__ANDROID_API__ < 26)
-# error "SharedMemory's implementation requires semop(), which is not defined in Android APIs before version 26.  Please either specify your minimum Android API level to be at least 26, or alternatively you can define -DMUSCLE_FAKE_SHARED_MEMORY to nerf the SharedMemory class if you don't need it for your app"
+#if defined(ANDROID) && !defined(MUSCLE_FAKE_SHARED_MEMORY) && !defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE) && (__ANDROID_API__ < 26)
+// SharedMemory's implementation requires semop(), which is not defined in Android APIs before version 26.  Please either specify your minimum Android API level to be at least 26, or alternatively you can define -DMUSCLE_FAKE_SHARED_MEMORY to nerf the SharedMemory class if you don't need it for your app
+# define MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE
 #endif
 
 namespace muscle {
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(MUSCLE_FAKE_SHARED_MEMORY) && !defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE)
 enum {LARGEST_SEMAPHORE_DELTA = 10000};  // I'm assuming there will never be this many processes
 
 // Unbelievable how messed up the semctl() API is :^P
@@ -66,6 +67,11 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
       }
       else {MWARN_OUT_OF_MEMORY; ret = B_OUT_OF_MEMORY;}
    }
+#elif defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE)
+   (void) keyString;
+   (void) createSize;
+   (void) returnLocked;
+   return B_UNIMPLEMENTED;   // Android SDK level too low (<26) ?
 #elif defined(WIN32)
    if (keyString == NULL)
    {
@@ -208,6 +214,8 @@ status_t SharedMemory :: DeleteArea()
 #if defined(MUSCLE_FAKE_SHARED_MEMORY)
    (void) UnsetArea();
    return B_NO_ERROR;
+#elif defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE)
+   return B_UNIMPLEMENTED;
 #else
 # if defined(WIN32)
    if (_mutex != NULL)
@@ -250,6 +258,8 @@ void SharedMemory :: UnsetArea()
       muscleFree(_area);
       _area = NULL;
    }
+#elif defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE)
+   // empty -- Android SDK level too low (<26) ?
 #elif defined(WIN32)
    if (_area)
    {
@@ -294,6 +304,9 @@ status_t SharedMemory :: LockArea(bool readOnly)
    _isLocked = true;
    _isLockedReadOnly = readOnly;
    return B_NO_ERROR;
+#elif defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE)
+   (void) readOnly;
+   return B_UNIMPLEMENTED;  // Android SDK level too low (<26) ?
 #else
    status_t ret;
    if (_isLocked) ret = B_LOCK_FAILED;
@@ -320,6 +333,8 @@ void SharedMemory :: UnlockArea()
 #if !defined(MUSCLE_FAKE_SHARED_MEMORY)
 # ifdef WIN32
       (void) ReleaseMutex(_mutex);
+# elif defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE)
+      // empty
 # else
       (void) AdjustSemaphore(_isLockedReadOnly ? 1 : LARGEST_SEMAPHORE_DELTA);
 # endif
@@ -328,7 +343,7 @@ void SharedMemory :: UnlockArea()
    }
 }
 
-#if !defined(WIN32) && !defined(MUSCLE_FAKE_SHARED_MEMORY)
+#if !defined(WIN32) && !defined(MUSCLE_FAKE_SHARED_MEMORY) && !defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE)
 status_t SharedMemory :: AdjustSemaphore(short delta)
 {
    if (_semID >= 0)
