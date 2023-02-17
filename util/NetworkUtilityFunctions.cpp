@@ -45,9 +45,13 @@ typedef void sockopt_arg;  // Whereas sane operating systems use void pointers
 #if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__) || defined(__linux__) || defined(__CYGWIN__)
 # if defined(ANDROID) // JFM
 #  define USE_SOCKETPAIR 1
+#  if __ANDROID_API__ >= 24   // Android only supports getifaddrs() in API level 24 or higher
+#   define USE_GETIFADDRS 1
+#   include <ifaddrs.h>
+#  endif
 # else
-#  define USE_GETIFADDRS 1
 #  define USE_SOCKETPAIR 1
+#  define USE_GETIFADDRS 1
 #  include <ifaddrs.h>
 #  if defined(__linux__)
 #   include <linux/if_packet.h>  // for sockaddr_ll
@@ -1999,7 +2003,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
       }
    }
 #else
-   (void) results;  // for other OS's, this function isn't implemented.
+   return B_UNIMPLEMENTED; // for other OS's (including Android before API level 24), this function isn't implemented (patches are welcome!)
 #endif
 
    return ((ret.IsOK())&&(results.GetNumItems() == origResultsSize)&&(includeFlags.IsBitSet(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT))) ? GetNetworkInterfaceInfos(results, includeFlags.WithBit(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES).WithoutBit(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT)) : ret;

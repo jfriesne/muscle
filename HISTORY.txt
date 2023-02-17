@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   * GetNetworkInterfaceinfos() is now implemented for Android
+     (API level 24 or later).
+   * GetNetworkInterfaceInfos() now returns B_UNIMPLEMENTED when
+     called from an OS that it doesn't have an implementation for.
    * Applied some Android build fixes as suggested by Ruurd Adema.
    * SetFileLogLevel() was broken.  Fixed.
    * Avoid including sem.h when MUSCLE_FAKE_SHARED_MEMORY is defined.
