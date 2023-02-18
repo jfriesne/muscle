@@ -57,6 +57,13 @@ if (WITH_SANITIZE)
    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MUSCLE_SANITIZE_ARG}")
 endif (WITH_SANITIZE)
 
+option(WITH_THREAD_SANITIZER "Enable Thread Sanitizer" OFF)
+if (WITH_THREAD_SANITIZER)
+   message("Note:   -DWITH_THREAD_SANITIZER=ON argument was specified:  Enabling Clang's Thread Sanitizer")
+   add_compile_options(-fsanitize=thread -g)
+   add_link_options(-fsanitize=thread)
+endif()
+
 option(WITH_DEADLOCKFINDER "Enable building with MUSCLE's potential-deadlock-detection logic enabled" OFF)
 if (WITH_DEADLOCKFINDER)
    message("Note:  -DWITH_DEADLOCKFINDER=ON argument was specified:  MUSCLE will include expensive run-time debug-checks for potential deadlock conditions when locking Mutexes.")

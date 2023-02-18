@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a -DWITH_THREAD_SANITIZER=ON option to the CMakeLists.txt.
    * GetNetworkInterfaceinfos() is now implemented for Android
      (API level 24 or later).
    * SharedMemory.cpp now compiles under Android (pre API level 26)
