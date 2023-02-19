@@ -11,6 +11,14 @@
 # endif
 #endif
 
+#ifndef MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS
+# if defined(MUSCLE_64_BIT_PLATFORM) && defined(ANDROID)
+#  define MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS 16  // Android uses ARM's MTE feature, which reserves the 16 most-significant bits of a pointer for its own use.
+# else
+#  define MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS 0   // On other OS's we will assume that the most-significant-bit of a pointer is free for us to (ab)use.
+# endif
+#endif
+
 namespace muscle {
 
 /** This class holds a pointer as well as a small set of miscellaneous data-bits, within a single word.
@@ -164,7 +172,7 @@ private:
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
    static MUSCLE_CONSTEXPR_OR_CONST uintptr _allDataBitsMask = ((NumBits > 0) ? ((1<<NumBits)-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
 #else
-   static MUSCLE_CONSTEXPR_OR_CONST uintptr _highBitMask     = ((uintptr)1) << ((sizeof(uintptr)*8)-1); // we use the high-bit of the pointer to store the user's first data-bit
+   static MUSCLE_CONSTEXPR_OR_CONST uintptr _highBitMask     = ((uintptr)1) << ((sizeof(uintptr)*8)-(MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS+1)); // we use the high-bit of the pointer to store the user's first data-bit
    static MUSCLE_CONSTEXPR_OR_CONST uintptr _allDataBitsMask = ((NumBits>0)?_highBitMask:0) | ((NumBits > 1) ? ((1<<(NumBits-1))-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
 
 # ifndef MUSCLE_AVOID_CPLUSPLUS11
@@ -200,7 +208,7 @@ private:
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return internalBits;
 #else
-      return ((uintptr)((internalBits & _highBitMask)?1:0)) | (internalBits<<1);
+      return ((uintptr)((internalBits & _highBitMask)?1:0)) | ((internalBits & ~_highBitMask)<<1);
 #endif
    }
 

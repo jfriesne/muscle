@@ -30,6 +30,7 @@ DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 #DEFINES += -DMUSCLE_MINIMALIST_LOGGING
 #DEFINES += -DMUSCLE_FAKE_SHARED_MEMORY
 #DEFINES += -DMUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE
+#DEFINES += -DMUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS=16
 
 CFLAGS = -I.. -I../zlib/zlib -g
 #CFLAGS += -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk  # useful when compiling with scan-build/ClangSA

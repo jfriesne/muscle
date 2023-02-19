@@ -6,6 +6,10 @@ key:  - new feature
       o other
 
    - Added a -DWITH_THREAD_SANITIZER=ON option to the CMakeLists.txt.
+   - Added a -DMUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS flag to specify
+     how many of the most-significant-bits of a pointer are reserved for
+     system use.  This value defaults to 16 for 64-bit Android systems
+     (to account for Android's MTE feature) and to 0 on everything else.
    o Renamed -DMUSCLE_AVOID_BITSTUFFING to -DMUSCLE_AVOID_TAGGED_POINTERS
      since the latter is a more commonly-used term.
    * GetNetworkInterfaceinfos() is now implemented for Android

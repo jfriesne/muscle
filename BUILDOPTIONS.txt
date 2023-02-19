@@ -393,3 +393,11 @@ of your Makefile to alter muscle's behaviour:
    incompatible with any computers that don't share the
    host CPU's endianness!
    Don't define this unless you know what you are doing.
+
+-DMUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS
+   If set to an integer, MUSCLE will avoid trying to use any
+   of the (this many)-most-significant-bits of a pointer value
+   to store meta-data in.  By default this value is set to 16
+   when compiling under Android (to avoid a conflict with
+   Android's MTE pointer-tagging feature) and to 0 when
+   compiling under any other build environment.
