@@ -6,8 +6,8 @@
 #include "support/MuscleSupport.h"
 
 #ifdef __clang_analyzer__
-# ifndef MUSCLE_AVOID_BITSTUFFING
-#  define MUSCLE_AVOID_BITSTUFFING // poor ClangSA just can't handle the bit-stuffing
+# ifndef MUSCLE_AVOID_TAGGED_POINTERS
+#  define MUSCLE_AVOID_TAGGED_POINTERS // poor ClangSA just can't handle the bit-stuffing
 # endif
 #endif
 
@@ -21,7 +21,7 @@ namespace muscle {
   * in a pointer that is not sufficiently well-aligned, a runtime assertion failure will be triggered.
   *
   * If you are compiling on a system where pointers-to-objects are not sufficiently well-aligned
-  * for this to trick to work, you can define MUSCLE_AVOID_BITSTUFFING to force the data-bits
+  * for this to trick to work, you can define MUSCLE_AVOID_TAGGED_POINTERS to force the data-bits
   * to be stored inside a separate member-variable instead (at the cost of doubling
   * sizeof(PointerAndBits), of course).
   *
@@ -40,11 +40,11 @@ template <class T, unsigned int NumBits> class PointerAndBits
 public:
    /** Default constructor.  Sets this object to a NULL pointer with all data-bits set to zero. */
    PointerAndBits() : _pointer(0)
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
       , _dataBits(0)
 #endif
    {
-#if !defined(MUSCLE_AVOID_BITSTUFFING) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
+#if !defined(MUSCLE_AVOID_TAGGED_POINTERS) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
       (void) PointerAndBits::AlignmentCheck((T*)NULL);  // just to invoke a compile-time error if the caller tries to set (NumBits) larger it's allowed to be
 #endif
    }
@@ -56,14 +56,14 @@ public:
    PointerAndBits(T * pointerVal, uintptr dataBits) {SetPointerAndBits(pointerVal, dataBits);}
 
    /** Sets our held pointer value to the specified new value.  The current bit-chord values are retained.
-     * @param pointerVal the new pointer value to store.  Must be a sufficiently well-aligned value, unless MUSCLE_AVOID_BITSTUFFING is defined.
+     * @param pointerVal the new pointer value to store.  Must be a sufficiently well-aligned value, unless MUSCLE_AVOID_TAGGED_POINTERS is defined.
      */
    void SetPointer(T * pointerVal) {SetPointerAndBits(pointerVal, GetBits());}
 
    /** Returns our held pointer value, as previously set in the constructor or via SetPointer().  */
    T * GetPointer() const
    {
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return (T*) _pointer;
 #else
       return (T*) (_pointer & ~_allDataBitsMask);
@@ -111,11 +111,11 @@ public:
       CheckInternalBits(internalBits);
 
       const uintptr pVal = (uintptr) pointer;
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
       _pointer  = pVal;
       _dataBits = internalBits;
 #else
-      MASSERT(((pVal & _allDataBitsMask) == 0), "SetPointerAndBits():  Unaligned pointer detected!  PointerAndBits' bit-stuffing code can't handle that.  Either align your pointers so the low bits are always zero, or recompile with -DMUSCLE_AVOID_BITSTUFFING.");
+      MASSERT(((pVal & _allDataBitsMask) == 0), "SetPointerAndBits():  Unaligned pointer detected!  PointerAndBits' bit-stuffing code can't handle that.  Either align your pointers so the low bits are always zero, or recompile with -DMUSCLE_AVOID_TAGGED_POINTERS.");
       _pointer = pVal | internalBits;
 #endif
    }
@@ -134,7 +134,7 @@ public:
    void Reset()
    {
       _pointer = 0;
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
       _dataBits = 0;
 #endif
    }
@@ -145,7 +145,7 @@ public:
    void SwapContents(PointerAndBits & rhs) MUSCLE_NOEXCEPT
    {
       muscleSwap(_pointer, rhs._pointer);
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
       muscleSwap(_dataBits, rhs._dataBits);
 #endif
    }
@@ -154,14 +154,14 @@ public:
    uint32 HashCode() const
    {
       uint32 ret = CalculateHashCode(_pointer);
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
       ret += CalculateHashCode(_dataBits);
 #endif
       return ret;
    }
 
 private:
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
    static MUSCLE_CONSTEXPR_OR_CONST uintptr _allDataBitsMask = ((NumBits > 0) ? ((1<<NumBits)-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
 #else
    static MUSCLE_CONSTEXPR_OR_CONST uintptr _highBitMask     = ((uintptr)1) << ((sizeof(uintptr)*8)-1); // we use the high-bit of the pointer to store the user's first data-bit
@@ -188,7 +188,7 @@ private:
 
    static inline MUSCLE_CONSTEXPR uintptr InternalizeBits(uintptr userBits)
    {
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return userBits;
 #else
       return ((userBits&1) ? _highBitMask : 0) | (userBits>>1);
@@ -197,7 +197,7 @@ private:
 
    static inline MUSCLE_CONSTEXPR uintptr ExternalizeBits(uintptr internalBits)
    {
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return internalBits;
 #else
       return ((uintptr)((internalBits & _highBitMask)?1:0)) | (internalBits<<1);
@@ -208,7 +208,7 @@ private:
 
    uintptr & GetReferenceToDataBitsWord()
    {
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return _dataBits;
 #else
       return _pointer;
@@ -217,7 +217,7 @@ private:
 
    uintptr GetDataBitsWord() const
    {
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return _dataBits;
 #else
       return _pointer;
@@ -225,7 +225,7 @@ private:
    }
 
    uintptr _pointer;
-#ifdef MUSCLE_AVOID_BITSTUFFING
+#ifdef MUSCLE_AVOID_TAGGED_POINTERS
    uintptr _dataBits;
 #endif
 };

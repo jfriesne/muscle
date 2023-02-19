@@ -248,12 +248,13 @@ of your Makefile to alter muscle's behaviour:
    fewer memory allocations, but potentially more memory wasted if all the objects
    in the slabs aren't needed.  This value should be specified in bytes.
 
--DMUSCLE_AVOID_BITSTUFFING
+-DMUSCLE_AVOID_TAGGED_POINTERS
    If set, this flag will cause the PointerAndBits class to use a
    separate member-variable to hold its data-bits, rather than stuffing
-   them into the least-significant-bits of its held pointer.  This flag
-   might be necessary on systems that don't word-align their object pointers
-   (if such systems exist).
+   them into the most and/or least-significant-bits of its held uintptr.
+   This flag might be necessary on systems that don't word-align their
+   object pointers (if such systems exist), or have other uses for
+   the highest and/or lowest bits of pointers.
 
 -DMUSCLE_AVOID_CHECK_THREAD_STACK_USAGE
    If set, calls to the CHECK_THREAD_STACK_USAGE macro will be
