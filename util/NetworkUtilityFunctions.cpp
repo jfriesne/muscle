@@ -48,6 +48,8 @@ typedef void sockopt_arg;  // Whereas sane operating systems use void pointers
 #  if __ANDROID_API__ >= 24   // Android only supports getifaddrs() in API level 24 or higher
 #   define USE_GETIFADDRS 1
 #   include <ifaddrs.h>
+#  else
+#   warning GetNetworkInterfaceInfos() requies Android SDK version 24 or higher in order to function correctly.
 #  endif
 # else
 #  define USE_SOCKETPAIR 1

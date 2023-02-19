@@ -8,8 +8,8 @@
 #endif
 
 #if defined(ANDROID) && !defined(MUSCLE_FAKE_SHARED_MEMORY) && !defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE) && (__ANDROID_API__ < 26)
-// SharedMemory's implementation requires semop(), which is not defined in Android APIs before version 26.  Please either specify your minimum Android API level to be at least 26, or alternatively you can define -DMUSCLE_FAKE_SHARED_MEMORY to nerf the SharedMemory class if you don't need it for your app
 # define MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE
+# warning SharedMemory API requires Android SDK version 26 or higher in order to function correctly.
 #endif
 
 namespace muscle {
