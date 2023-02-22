@@ -2229,6 +2229,7 @@ String GetConnectString(const String & host, uint16 port)
 ICallbackMechanism :: ~ICallbackMechanism()
 {
    // Prevent dangling pointers in any still-registered ICallbackSubscriber objects
+   DECLARE_MUTEXGUARD(_registeredSubscribersMutex);  // probably pointless since any internal thread should be dead already, but just for consistency's sake
    for (HashtableIterator<ICallbackSubscriber *, Void> iter(_registeredSubscribers); iter.HasData(); iter++) iter.GetKey()->SetCallbackMechanism(NULL);
 }
 
@@ -2241,10 +2242,13 @@ void ICallbackMechanism :: DispatchCallbacks()
    }
 
    // Perform requested callbacks
-   for (HashtableIterator<ICallbackSubscriber *, uint32> iter(_scratchSubscribers); iter.HasData(); iter++)
    {
-      ICallbackSubscriber * sub = iter.GetKey();
-      if (_registeredSubscribers.ContainsKey(sub)) sub->DispatchCallbacks(iter.GetValue());  // yes, the if-test is necessary!
+      DECLARE_MUTEXGUARD(_registeredSubscribersMutex);
+      for (HashtableIterator<ICallbackSubscriber *, uint32> iter(_scratchSubscribers); iter.HasData(); iter++)
+      {
+         ICallbackSubscriber * sub = iter.GetKey();
+         if (_registeredSubscribers.ContainsKey(sub)) sub->DispatchCallbacks(iter.GetValue());  // yes, the if-test is necessary!
+      }
    }
    _scratchSubscribers.Clear();
 }

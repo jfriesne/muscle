@@ -50,11 +50,12 @@ private:
    friend class ICallbackSubscriber;
 
    // these methods are here to be called by the ICallbackSubscriber class only
-   void RegisterNetworkThread(  ICallbackSubscriber * sub) {(void) _registeredSubscribers.PutWithDefault(sub);}
-   void UnregisterNetworkThread(ICallbackSubscriber * sub) {(void) _registeredSubscribers.Remove(sub);}
+   void RegisterCallbackSubscriber(  ICallbackSubscriber * sub) {DECLARE_MUTEXGUARD(_registeredSubscribersMutex); (void) _registeredSubscribers.PutWithDefault(sub);}
+   void UnregisterCallbackSubscriber(ICallbackSubscriber * sub) {DECLARE_MUTEXGUARD(_registeredSubscribersMutex); (void) _registeredSubscribers.Remove(sub);}
    void RequestCallbackInDispatchThread(ICallbackSubscriber * sub, uint32 eventTypeBits, uint32 clearBits);
 
    // These tables should be accessed from the main/dispatch thread only
+   Mutex _registeredSubscribersMutex;                              // only necessary for cases where subscribers register from non-dispatch threads!
    Hashtable<ICallbackSubscriber *, Void> _registeredSubscribers;  // everyone who has registered
    Hashtable<ICallbackSubscriber *, uint32> _scratchSubscribers;   // only here to minimize heap reallocations
 

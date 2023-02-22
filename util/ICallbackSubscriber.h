@@ -32,9 +32,9 @@ public:
    {
       if (mechanism != _mechanism)
       {
-         if (_mechanism) _mechanism->UnregisterNetworkThread(this);
+         if (_mechanism) _mechanism->UnregisterCallbackSubscriber(this);
          _mechanism = mechanism;
-         if (_mechanism) _mechanism->RegisterNetworkThread(this);
+         if (_mechanism) _mechanism->RegisterCallbackSubscriber(this);
       }
    }
 
