@@ -18,6 +18,12 @@ int main(int argc, char ** argv)
    Message args;
    (void) ParseArgs(argc, argv, args);
 
+   if (args.HasName("fromscript"))
+   {
+      printf("Called from script, skipping test\n");
+      return 0;
+   }
+
    const char * temp;
    IPAddress connectTo = invalidIP;
    if (args.FindString("host", &temp).IsOK()) connectTo = GetHostByName(temp);

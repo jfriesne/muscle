@@ -43,12 +43,14 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   bool interactive = ((argc < 2)||(strcmp(argv[1], "y") != 0));  // ./testobjectpool y  <-- turbo mode
+   const bool isFromScript = ((argc >= 2)&&(strcmp(argv[1], "fromscript") == 0));
+   const bool interactive  = ((!isFromScript)&&((argc < 2)||(strcmp(argv[1], "y") != 0)));  // ./testobjectpool y  <-- turbo mode
 
    enum {MAX_NUM_REFS = 10000};
    CounterRef refs[MAX_NUM_REFS];
 
-   while(1)
+   int count = isFromScript ? 10000 : -1;
+   while(count != 0)
    {
       const uint32 max = (rand()%10)+1;
       for (uint32 i=0; i<MAX_NUM_REFS; i++)
@@ -73,6 +75,8 @@ int main(int argc, char ** argv)
             AbstractObjectManager::GlobalPerformSanityCheck();
          }
       }
+
+      if (count > 0) count--;
    }
 
    return 0;

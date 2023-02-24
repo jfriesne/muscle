@@ -52,8 +52,10 @@ TestCloneable * CloneTester(const TestCloneable * c)
 }
 
 // This program exercises the Cloneable interface.
-int main(int, char **)
+int main(int argc, char ** argv)
 {
+   const bool isFromScript = ((argc >= 2)&&(strcmp(argv[1], "fromscript") == 0));
+
    CompleteSetupSystem css;
 
    {
@@ -70,6 +72,7 @@ int main(int, char **)
       delete tc2;
    }
 
+   if (isFromScript == false)
    {
       BrokenSubclassOfTestCloneable tc1("Baz");
       TestCloneable * tc2 = CloneTester(&tc1);  // note:  This line is expected to crash with an assertion failure!

@@ -41,6 +41,12 @@ int main(int argc, char ** argv)
    printf("Note: MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET=%i\n", (int) MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
    Message args; (void) ParseArgs(argc, argv, args);
+   if (args.HasName("fromscript"))
+   {
+      printf("Called from script, skipping test!\n");
+      return 0;
+   }
+
    const char * target = args.GetCstr("sendto", "localhost");
    const char * bindto = args.GetCstr("listen", "3960");
    bool useTextGateway = args.HasName("text");

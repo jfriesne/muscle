@@ -62,15 +62,30 @@ int main(int argc, char ** argv)
    status_t ret;
    if (t.SetThreadPriority(Thread::PRIORITY_LOWER).IsError(ret)) printf("Warning, SetThreadPriority(Thread::PRIORITY_LOWER) failed! [%s]\n", ret());  // just to see what happens
 
+   const bool isFromScript = ((argc >= 2)&&(strcmp(argv[1], "fromscript") == 0));
+
    if (t.StartInternalThread().IsOK())
    {
-      char buf[256];
-      while(fgets(buf, sizeof(buf), stdin))
+      if (isFromScript)
       {
-         if (buf[0] == 'q') break;
-         MessageRef msg(GetMessageFromPool(1234));
-         msg()->AddString("str", buf);
-         t.SendMessageToInternalThread(msg);
+         for (uint32 i=0; i<20; i++)
+         {
+            MessageRef msg(GetMessageFromPool(1234));
+            msg()->AddString("str", "howdy");
+            t.SendMessageToInternalThread(msg);
+            Snooze64(MillisToMicros(100));
+         }
+      }
+      else
+      {
+         char buf[256];
+         while(fgets(buf, sizeof(buf), stdin))
+         {
+            if (buf[0] == 'q') break;
+            MessageRef msg(GetMessageFromPool(1234));
+            msg()->AddString("str", buf);
+            t.SendMessageToInternalThread(msg);
+         }
       }
    }
 

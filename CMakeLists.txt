@@ -266,11 +266,10 @@ else ()
    message("Note:  -DWITH_MUSCLED=OFF argument was specified:  muscled will not be built")
 endif ()
 
-option(WITH_TESTS "Enable building of muscle tests" ON)
+option(WITH_TESTS "Enable building of muscle tests" OFF)
 if (WITH_TESTS)
+   message("Note:  -DWITH_TESTS=ON argument was specified:  regression tests will built and executed")
    add_subdirectory(test)
-else()
-   message("Note:  -DWITH_TESTS=OFF argument was specified:  tests will not be built for MUSCLE")
 endif (WITH_TESTS)
 
 option(WITH_EXAMPLES "Enable building of muscle examples" ON)

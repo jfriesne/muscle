@@ -19,7 +19,13 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    uint32 numPairs = 5;
-   if (argc > 1) numPairs = atoi(argv[1]);
+   if ((argc > 1)&&(strcmp(argv[1], "fromscript") != 0)) numPairs = atoi(argv[1]);
+   if (numPairs == 0)
+   {
+      printf("Usage:  ./testsocketmultiplexer <numPairs>\n");
+      printf("numPairs argument must be at least 1\n");
+      return 10;
+   }
 
    bool quiet = false;
    if ((argc > 2)&&(strcmp(argv[2], "quiet") == 0)) quiet = true;
@@ -33,7 +39,7 @@ int main(int argc, char ** argv)
 
    printf("Testing %i socket-pairs chained together...\n", numPairs);
 
-   Queue<ConstSocketRef> senders;   (void) senders.EnsureSize(numPairs, true);
+   Queue<ConstSocketRef> senders;   (void)   senders.EnsureSize(numPairs, true);
    Queue<ConstSocketRef> receivers; (void) receivers.EnsureSize(numPairs, true);
 
    for (uint32 i=0; i<numPairs; i++)

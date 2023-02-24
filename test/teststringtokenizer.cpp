@@ -9,7 +9,7 @@
 
 using namespace muscle;
 
-int main(int, char **)
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
@@ -43,38 +43,42 @@ int main(int, char **)
       LogTime(MUSCLE_LOG_INFO, "Average run time over " UINT32_FORMAT_SPEC " runs was [%s], average speed was %.0f chars/usec\n", numRuns, GetHumanReadableTimeIntervalString(averageRunTime, 1)(), ((double)(totalChars))/((totalElapsedTime>0)?totalElapsedTime:1LL));
    }
 
-   while(1)
+   const bool isFromScript = ((argc >= 2)&&(strcmp(argv[1], "fromscript") == 0));
+   if (isFromScript == false)
    {
-      printf("Enter a string to tokenize: ");
-      fflush(stdout);
-
-      char buf[1024];
-      if (fgets(buf, sizeof(buf), stdin))
+      while(1)
       {
-         String s = buf;
-         s = s.WithoutSuffix("\n").WithoutSuffix("\r");
+         printf("Enter a string to tokenize: ");
+         fflush(stdout);
 
-         printf("\nYou typed: [%s]\n", s());
-         const char * t;
-         StringTokenizer tok(s(), NULL, '\\');
+         char buf[1024];
+         if (fgets(buf, sizeof(buf), stdin))
+         {
+            String s = buf;
+            s = s.WithoutSuffix("\n").WithoutSuffix("\r");
 
-         StringTokenizer tokCopy(tok);
+            printf("\nYou typed: [%s]\n", s());
+            const char * t;
+            StringTokenizer tok(s(), NULL, '\\');
 
-         int i=0;
-         while((t = tok()) != NULL) printf(" %i. tok=[%s] remainder=[%s]\n", i++, t, tok.GetRemainderOfString());
-         printf("\n");
+            StringTokenizer tokCopy(tok);
 
-         printf("Checking copy of StringTokenizer:\n");
-         while((t = tokCopy()) != NULL) printf(" %i. tok=[%s] remainder=[%s]\n", i++, t, tokCopy.GetRemainderOfString());
-         printf("\n");
+            int i=0;
+            while((t = tok()) != NULL) printf(" %i. tok=[%s] remainder=[%s]\n", i++, t, tok.GetRemainderOfString());
+            printf("\n");
 
-         // Call a few more times just to see that it returns NULL as expected
-         const char * extra = tok();
-         if (extra) printf("WTF A?  [%s]\n", extra);
-         extra = tok();
-         if (extra) printf("WTF B?  [%s]\n", extra);
-         extra = tok();
-         if (extra) printf("WTF C?  [%s]\n", extra);
+            printf("Checking copy of StringTokenizer:\n");
+            while((t = tokCopy()) != NULL) printf(" %i. tok=[%s] remainder=[%s]\n", i++, t, tokCopy.GetRemainderOfString());
+            printf("\n");
+
+            // Call a few more times just to see that it returns NULL as expected
+            const char * extra = tok();
+            if (extra) printf("WTF A?  [%s]\n", extra);
+            extra = tok();
+            if (extra) printf("WTF B?  [%s]\n", extra);
+            extra = tok();
+            if (extra) printf("WTF C?  [%s]\n", extra);
+         }
       }
    }
 

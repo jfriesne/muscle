@@ -33,9 +33,13 @@ public:
    {
       _fireTime = args.GetScheduledTime() + (NUM_PULSE_CHILDREN*PULSE_INTERVAL);
       LogTime(MUSCLE_LOG_INFO, "TestPulseChild %i (%p) Pulsed at " UINT64_FORMAT_SPEC "/" UINT64_FORMAT_SPEC " (diff=" INT64_FORMAT_SPEC "), next pulse time will be " UINT64_FORMAT_SPEC "\n", _idx, this, args.GetCallbackTime(), args.GetScheduledTime(), args.GetCallbackTime()-args.GetScheduledTime(), _fireTime);
+
+      CheckForEndOfTest();
    }
 
 private:
+   void CheckForEndOfTest();
+
    uint64 _fireTime;
    int _idx;
 };
@@ -43,7 +47,7 @@ private:
 class TestSession : public AbstractReflectSession
 {
 public:
-   TestSession()
+   TestSession(int maxCount) : _maxCount(maxCount)
    {
       // empty
    }
@@ -75,9 +79,17 @@ public:
 
    virtual void MessageReceivedFromGateway(const MessageRef &, void *) {/* empty */}
 
+   void CheckForEndOfTest() {if ((_maxCount > 0)&&(--_maxCount == 0)) EndServer();}
+
 private:
+   int _maxCount;
    Queue<TestPulseChild *> _tpcs;
 };
+
+void TestPulseChild :: CheckForEndOfTest()
+{
+   static_cast<TestSession *>(GetPulseParent())->CheckForEndOfTest();
+}
 
 int main(int argc, char ** argv)
 {
@@ -87,7 +99,7 @@ int main(int argc, char ** argv)
    HandleStandardDaemonArgs(args);
 
    ReflectServer server;
-   TestSession session;
+   TestSession session(args.HasName("fromscript") ? 100 : -1);
 
    status_t ret;
    if (server.AddNewSession(DummyAbstractReflectSessionRef(session)).IsOK(ret))

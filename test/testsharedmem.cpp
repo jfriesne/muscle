@@ -14,7 +14,8 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   bool deleteArea = ((argc > 1)&&(strncmp(argv[1], "del", 3) == 0));
+   const bool deleteArea   = ((argc > 1)&&(strncmp(argv[1], "del", 3)     == 0));
+   const bool isFromScript = ((argc > 1)&&(strcmp( argv[1], "fromscript") == 0));
 
    uint8 base = 0;
    LogTime(MUSCLE_LOG_INFO, deleteArea ? "Deleting shared memory area!\n" : "Beginning shared memory test!\n");
@@ -41,8 +42,9 @@ int main(int argc, char ** argv)
 
          m.UnlockArea();
 
+         const uint64 endTime = isFromScript ? (GetRunTime64()+SecondsToMicros(5)) : MUSCLE_TIME_NEVER;
          uint64 lastTime = 0;
-         while(1)
+         while(GetRunTime64() < endTime)
          {
             if (OnceEvery(MICROS_PER_SECOND, lastTime)) LogTime(MUSCLE_LOG_INFO, "Still going... base=%u\n", base);
 
@@ -92,5 +94,5 @@ int main(int argc, char ** argv)
    }
    else LogTime(MUSCLE_LOG_ERROR, "SetArea() failed, exiting! [%s]\n", ret());
 
-   return 0;
+   return ret.IsOK() ? 0 : 10;
 }

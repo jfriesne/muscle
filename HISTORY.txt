@@ -12,8 +12,12 @@ key:  - new feature
      (to account for Android's MTE feature) and to 0 on everything else.
    - Added a _registeredSubscribersMutex to the ICallbackMechanism class
      so that it can handle unusual dispatching cases more gracefully.
+   - Added a runtests.sh script to tests folder.  This script can be
+     run to quickly execute all tests and report any detected regressions.
    o Renamed -DMUSCLE_AVOID_BITSTUFFING to -DMUSCLE_AVOID_TAGGED_POINTERS
      since the latter is a more commonly-used term.
+   o Changed the default setting of the WITH_TESTS option to OFF
+     in CMakeLists.txt
    * GetNetworkInterfaceinfos() is now implemented for Android
      (API level 24 or later).
    * SharedMemory.cpp now compiles under Android (pre API level 26)

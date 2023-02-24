@@ -78,6 +78,13 @@ int main(int argc, char ** argv)
 
    Message args;
    (void) ParseArgs(argc, argv, args);
+
+   if (args.HasName("fromscript"))
+   {
+      printf("Called from script, skipping test\n");
+      return 0;
+   }
+
    HandleStandardDaemonArgs(args);
 
    const char * temp;

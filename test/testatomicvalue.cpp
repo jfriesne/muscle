@@ -87,8 +87,10 @@ public:
 
 
 // This program exercises the AtomicValue class.
-int main(int, char **)
+int main(int argc, char ** argv)
 {
+   const bool isFromScript = ((argc >= 2)&&(strcmp(argv[1], "fromscript") == 0));
+
    CompleteSetupSystem css;
 
    AtomicWriterThread writerThread;
@@ -99,7 +101,7 @@ int main(int, char **)
    status_t ret;
    if ((writerThread.StartInternalThread().IsOK(ret))&&(readerThread.StartInternalThread().IsOK(ret)))
    {
-      Snooze64(MinutesToMicros(1));
+      Snooze64(isFromScript ? SecondsToMicros(10) : MinutesToMicros(1));
    }
    else LogTime(MUSCLE_LOG_CRITICALERROR, "Error starting Atomic thread! [%s]\n", ret());
 

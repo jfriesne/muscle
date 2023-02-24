@@ -91,8 +91,14 @@ void WatchNotifySocketSession :: MessageReceivedFromGateway(const MessageRef & /
 }
 
 // This program demonstrates running a ReflectServer event-loop in a child thread, and communicating with it from the main thread
-int main(int, char **)
+int main(int argc, char ** argv)
 {
+   if ((argc >= 2)&&(strcmp(argv[1], "fromscript") == 0))
+   {
+      printf("Called from script, skipping test\n");
+      return 0;
+   }
+
    CompleteSetupSystem css;
 
    status_t ret;

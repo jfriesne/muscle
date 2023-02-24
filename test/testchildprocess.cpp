@@ -90,10 +90,26 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   if ((argc >= 2)&&(strcmp(argv[1], "abortontakeoff") == 0))
+   char * dummyArgv[5];  // holds fake arguments to use when we are launched from runtests.sh
+
+   if (argc >= 2)
    {
-      AbortOnTakeoffChildProcessDataIO::UnitTest();
-      return 0;
+      if (strcmp(argv[1], "abortontakeoff") == 0)
+      {
+         AbortOnTakeoffChildProcessDataIO::UnitTest();
+         return 0;
+      }
+      else if (strcmp(argv[1], "fromscript") == 0)
+      {
+         dummyArgv[0] = argv[0];
+         dummyArgv[1] = (char *) "1";
+         dummyArgv[2] = (char *) "ls";
+         dummyArgv[3] = (char *) "-l";
+         dummyArgv[4] = NULL;
+
+         argc = 4;
+         argv = dummyArgv;
+      }
    }
 
    if (argc < 3) PrintUsageAndExit();
@@ -132,6 +148,7 @@ int main(int argc, char ** argv)
 #endif
 
       status_t ret;
+
       ConstSocketRef s = dio->LaunchChildProcess(argc-2, ((const char **) argv)+2, ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), NULL, &testEnvVars).IsOK(ret) ? dio->GetReadSelectSocket() : ConstSocketRef();
       printf("Finished Launching child process #" UINT32_FORMAT_SPEC ":  [%s]\n", i+1, cmd); fflush(stdout);
       if (s() == NULL)
@@ -189,7 +206,7 @@ int main(int argc, char ** argv)
          MessageRef incoming;
          while(ioInputQueue.RemoveHead(incoming).IsOK())
          {
-            printf("Heard message from server:-----------------------------------\n");
+            printf("Received output from child process:--------------------------\n");
             const char * inStr;
             for (int j=0; (incoming()->FindString(PR_NAME_TEXT_LINE, j, &inStr).IsOK()); j++) printf("Line %i: [%s]\n", j, inStr);
 

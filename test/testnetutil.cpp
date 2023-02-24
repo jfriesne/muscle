@@ -30,9 +30,11 @@ static void TestGetHostByName(const char * hostname)
    printf("GetHostByName(%s) returned %s\n", hostname, addr.ToString()());
 }
 
-int main(int, char **)
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
+
+   const bool isFromScript = ((argc >= 2)&&(strcmp(argv[1], "fromscript") == 0));
 
    printf("Querying local host's IP addresses:\n");
 
@@ -64,12 +66,15 @@ int main(int, char **)
    TestGetHostByName("foobar.local.");
    TestGetHostByName("obviously_broken.wtf.blah");
 
-   printf("\n\nTesting IPAddressAndPort parsing... (defaulting to port 666 when port is unspecified)\n");
-   char buf[256];
-   while(fgets(buf, sizeof(buf), stdin))
+   if (!isFromScript)
    {
-      String s(buf); s = s.Trim();
-      printf("You typed %s ... I interpreted that as %s\n", s(), IPAddressAndPort(s,666,true).ToString(true,true)()); fflush(stdout);
+      printf("\n\nTesting IPAddressAndPort parsing... (defaulting to port 666 when port is unspecified)\n");
+      char buf[256];
+      while(fgets(buf, sizeof(buf), stdin))
+      {
+         String s(buf); s = s.Trim();
+         printf("You typed %s ... I interpreted that as %s\n", s(), IPAddressAndPort(s,666,true).ToString(true,true)()); fflush(stdout);
+      }
    }
 
    return 0;
