@@ -231,7 +231,7 @@ if (WITH_TESTS)
 
    add_executable(testsysteminfo testsysteminfo.cpp)
    target_link_libraries(testsysteminfo muscle)
-   add_test(testsyteminfo testsyteminfo fromscript)
+   add_test(testsysteminfo testsysteminfo fromscript)
 
    add_executable(testtar testtar.cpp)
    target_link_libraries(testtar muscle)
