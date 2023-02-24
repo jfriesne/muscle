@@ -14,6 +14,7 @@ key:  - new feature
      so that it can handle unusual dispatching cases more gracefully.
    - Added a runtests.sh script to tests folder.  This script can be
      run to quickly execute all tests and report any detected regressions.
+   - Added add_test() directives to test/CMakeLists.txt.
    o Renamed -DMUSCLE_AVOID_BITSTUFFING to -DMUSCLE_AVOID_TAGGED_POINTERS
      since the latter is a more commonly-used term.
    o Changed the default setting of the WITH_TESTS option to OFF
