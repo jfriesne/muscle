@@ -268,7 +268,8 @@ endif ()
 
 option(WITH_TESTS "Enable building of muscle tests" OFF)
 if (WITH_TESTS)
-   message("Note:  -DWITH_TESTS=ON argument was specified:  regression tests will built and executed")
+   message("Note:  -DWITH_TESTS=ON argument was specified:  programs in the tests folder will be built (type 'make all test' to run regression tests)")
+   enable_testing()
    add_subdirectory(test)
 endif (WITH_TESTS)
 
