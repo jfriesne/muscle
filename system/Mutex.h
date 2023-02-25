@@ -370,8 +370,9 @@ private:
   *       onto the stack, since that avoids any possibility of forgetting to give the MutexGuard stack-object a name
   *       (eg typing "MutexGuard(myMutex);" rather than "MutexGuard mg(myMutex);", would introduce a perniciously
   *       non-obvious run-time error where your Mutex only gets locked momentarily rather than until the end-of-scope)
-  *       Using the DECLARE_MUTEXGUARD(theMutex) macro will also allow deadlockfinder.cpp to give you more useful
-  *       debugging information.
+  *       Using the DECLARE_MUTEXGUARD(theMutex) macro will also allow MUSCLE's deadlock-finder functionality (enabled
+  *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or via -DMUSCLE_ENABLE_DEADLOCK_FINDER as compiler argument)
+  *       to give you more useful debugging information about deadlocks that could happen (even if they didn't this time)
   */
 class MutexGuard MUSCLE_FINAL_CLASS
 {
@@ -428,7 +429,9 @@ void PrintMutexLockingReport();
   *       the Mutex locked until the end of the scope), and (2) it allows the deadlock
   *       finding code to specify the MutexGuard's location in its output rather than
   *       the location of the Lock() call within the MutexGuard constructor, which
-  *       makes for easier debugging of deadlockfinder.cpp's output.
+  *       makes for easier debugging via MUSCLE's deadlock-finder functionality (enabled
+  *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or by passing -DMUSCLE_ENABLE_DEADLOCK_FINDER
+  *       as a compiler-argument)
   */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
 # define DECLARE_MUTEXGUARD(mutex) muscle::MutexGuard MUSCLE_UNIQUE_NAME(mutex, __FILE__, __LINE__)
