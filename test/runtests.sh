@@ -17,6 +17,9 @@ function RunTest {
    return $result
 }
 
+echo "Compiling test suite..."
+make -j8
+
 # Generate a list of text executables to run
 find . -name 'test*' -type f -maxdepth 1 -print | grep -v '..*\.' > testfiles.txt
 sort <testfiles.txt > sortedtextfiles.txt

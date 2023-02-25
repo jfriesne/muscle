@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.23 - Release 2/24/2023
    - Added a -DWITH_THREAD_SANITIZER=ON option to the CMakeLists.txt.
    - Added a -DMUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS flag to specify
      how many of the most-significant-bits of a pointer are reserved for
@@ -14,7 +15,7 @@ key:  - new feature
      so that it can handle unusual dispatching cases more gracefully.
    - Added a runtests.sh script to tests folder.  This script can be
      run to quickly execute all tests and report any detected regressions.
-   - Added add_test() directives to test/CMakeLists.txt.
+   - Added add_test() directives to test/CMakeLists.txt to enable CTest.
    o Renamed -DMUSCLE_AVOID_BITSTUFFING to -DMUSCLE_AVOID_TAGGED_POINTERS
      since the latter is a more commonly-used term.
    o Changed the default setting of the WITH_TESTS option to OFF
