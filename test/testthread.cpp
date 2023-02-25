@@ -88,6 +88,7 @@ int main(int argc, char ** argv)
          }
       }
    }
+   else return 10;
 
    printf("Cleaning up (mainTLS=%i)...\n", *_tls.GetThreadLocalObject());  // make sure the TLS hasn't been changed by the other thread
    t.SendMessageToInternalThread(MessageRef());  // ask internal thread to shut down

@@ -9,8 +9,8 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
-#define TESTSIZE(x) if ((x) < 0) printf("Test failed, line %i\n",__LINE__)
+#define TEST(x)     {if ((x).IsError()) printf("Test failed, line %i\n",__LINE__); return 10;}
+#define TESTSIZE(x) {if ((x) < 0) printf("Test failed, line %i\n",__LINE__); return 10;}
 
 DataIORef GetFileRef(FILE * file)
 {
@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
    QueueGatewayMessageReceiver inQueue;
-   if (argc == 1)
+   if ((argc<2)||(strcmp(argv[1], "fromscript")==0))
    {
       FILE * f = muscleFopen("test.dat", "wb");
       if (f)

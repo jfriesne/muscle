@@ -8,8 +8,8 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x).IsError()) printf("Operation failed, line %i\n", __LINE__);
-#define NEGATIVETEST(x) if ((x).IsOK()) printf("Operation succeeded when it should not have, line %i\n", __LINE__);
+#define TEST(x) if ((x).IsError()) {printf("Operation failed, line %i\n", __LINE__); ExitWithoutCleanup(10);}
+#define NEGATIVETEST(x) if ((x).IsOK()) {printf("Operation succeeded when it should not have, line %i\n", __LINE__); ExitWithoutCleanup(10);}
 
 void printSep(const char * title);
 void printSep(const char * title)

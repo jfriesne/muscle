@@ -35,6 +35,8 @@ class AtomicWriterThread : public Thread
 public:
    AtomicWriterThread() : Thread(false) {/* empty */}
 
+   status_t GetStatus() const {return _status;}
+
    virtual void InternalThreadEntry()
    {
       String temp;
@@ -49,17 +51,26 @@ public:
          temp += buf;
 
          const status_t ret = _atomicValue.SetValue(temp);
-         if (ret.IsError()) LogTime(MUSCLE_LOG_ERROR, "AtomicWriterThread:   AtomicValue::SetValue(%s) failed! [%s]\n", temp(), ret());
+         if (ret.IsError())
+         {
+            LogTime(MUSCLE_LOG_ERROR, "AtomicWriterThread:   AtomicValue::SetValue(%s) failed! [%s]\n", temp(), ret());
+            _status |= ret;
+         }
 
          Snooze64(MillisToMicros(1));  // otherwise we flood the zone with updates and cause problems
       }
    }
+
+private:
+   status_t _status;
 };
 
 class AtomicReaderThread : public Thread
 {
 public:
    AtomicReaderThread() : Thread(false) {/* empty */}
+
+   status_t GetStatus() const {return _status;}
 
    virtual void InternalThreadEntry()
    {
@@ -79,10 +90,17 @@ public:
          {
             const uint32 allegedHashCode = (uint32) Atoull(slash+3);
             const uint32 actualHashCode  = s.Substring(0, (uint32) (slash-s())).HashCode();
-            if (allegedHashCode != actualHashCode) LogTime(MUSCLE_LOG_ERROR, "AtomicReaderThread:  Read string [%s], expected hash code " UINT32_FORMAT_SPEC ", computed hash code " UINT32_FORMAT_SPEC "\n", s(), allegedHashCode, actualHashCode);
+            if (allegedHashCode != actualHashCode)
+            {
+               LogTime(MUSCLE_LOG_ERROR, "AtomicReaderThread:  ERROR: Read string [%s], expected hash code " UINT32_FORMAT_SPEC ", computed hash code " UINT32_FORMAT_SPEC "\n", s(), allegedHashCode, actualHashCode);
+               _status |= B_LOGIC_ERROR;
+            }
          }
       }
    }
+
+private:
+   status_t _status;
 };
 
 
@@ -110,6 +128,17 @@ int main(int argc, char ** argv)
    readerThread.ShutdownInternalThread();
    writerThread.ShutdownInternalThread();
 
-   LogTime(MUSCLE_LOG_INFO, "Test complete, bye!\n");
-   return 0;
+   ret |= readerThread.GetStatus();
+   ret |= writerThread.GetStatus();
+
+   if (ret.IsOK())
+   {
+      LogTime(MUSCLE_LOG_INFO, "Test completed successfully, bye!\n");
+      return 0;
+   }
+   else
+   {
+      LogTime(MUSCLE_LOG_INFO, "Test detected error [%s], bye!\n", ret());
+      return 10;
+   }
 }
