@@ -28,7 +28,7 @@
 namespace muscle {
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   extern bool _enableDeadlockFinderPrints;
+extern bool _enableDeadlockFinderPrints;
 #endif
 
 extern bool _mainReflectServerCatchSignals;  // from SetupSystem.cpp

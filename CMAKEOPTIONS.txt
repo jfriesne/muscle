@@ -1,0 +1,87 @@
+MUSCLE supports being built via cmake; to make a default build of MUSCLE
+(including the MUSCLE library itself, the muscled server, and miscellaneous
+tools and examples), you can just do the standard cmake invocation:
+
+   cd muscle
+   mkdir _build
+   cd _build
+   cmake ..
+   cmake --build . -j8
+
+If you prefer a fast/minimal build of the MUSCLE library only, you
+can specify that via the "minimal" preset:
+
+   cd muscle
+   mkdir _build
+   cd _build
+   cmake .. --preset=minimal
+   cmake --build . -j8
+
+Or if you want to build everything (including unit/regression tests), you
+can specify the "full" build preset:
+
+   cd muscle
+   mkdir _build
+   cd _build
+   cmake .. --preset=full
+   cmake --build . -j8
+
+... and then if you want to run the regression-test suite, do this
+afterwards:
+
+   make test
+
+If you want slightly more fine-grained control over what gets built or
+doesn't get build, you can enable or disable various features by
+passing -DWHATEVER=ON or -DWHATEVER=OFF arguments to the cmake configuration
+command.  Here is a list of flags that the CMakeLists.txt file recognizes:
+
+-DWITH_THREADS "Enable CMake Threads support" (defaults to ON)
+   Tells CMake to enable multithreading support in the generated code.
+
+-DWITH_CPLUSPLUS17 "Enable C++17 support" (defaults to OFF)
+   Tells CMake to enable C++17-specific features in the generated code.
+
+-DWITH_CPLUSPLUS11 "Enable C++11 support" (defaults to ON)
+   Tells CMake to enable C++11-specific features in the generated code.
+
+-DWITH_PTHREADS "Enable pthreads support" (defaults to OFF)
+   Tells CMake to enable libPthread support in the generated code (usually
+   necessary only if you need pthreads-specific features that aren't available
+   in the thread APIs of the C++11 standard library)
+
+-DWITH_SANITIZE "Enable building with clang's sanitizer-checks enabled" (defaults to OFF)
+   Useful if you want to enable Clang's Address Sanitizer and Undefined Behavior
+   Sanitizer to instrument the generated code to find programming errors at runtime
+   that might otherwise go unnoticed.
+
+-DWITH_THREAD_SANITIZER "Enable Thread Sanitizer" (defaults to OFF)
+   Useful if you want to enable Clang's Thread Sanitizer and Undefined Behavior
+   to instrument the generated code to find programming errors at runtime
+   that might otherwise go unnoticed.
+
+-DWITH_DEADLOCKFINDER "Enable building with MUSCLE's potential-deadlock-detection logic enabled" (defaults to OFF)
+   Useful if you want to instrument the code to find potential deadlocks at runtime.
+
+-DWITH_IPV6 "Enable IPv6 support" (defaults to ON)
+   If disabled, MUSCLE will be compiled to use IPv4 networking only.
+
+-DWITH_SSL "Enable OpenSSL Support" (defaults to OFF)
+   Enable support for encrypted/authenticated networking via OpenSSL.
+
+-DWITH_QT "Enable Qt5 Support" (defaults to ON)
+   Enable building of Qt-based GUI programs.
+
+-DWITH_MUSCLED "Enable building of muscled" (defaults to ON)
+   Enable building of the "muscled" server program.
+
+-DWITH_TESTS "Enable building of muscle tests" (defaults to OFF)
+   Enable building of MUSCLE's regression/unit-test suite.
+   Once built, you can enter "make test" to run the regression tests.
+
+-DWITH_TOOLS "Enable building of muscle's miscellaneous tool executables" (defaults to ON)
+   Enable building of various other executables that are included in the MUSCLE repository.
+
+-DWITH_EXAMPLES "Enable building of muscle examples" (defaults to ON)
+   Enable building of the example programs that go with the "MUSCLE by example"
+   HTML guide/tutorial.

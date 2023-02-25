@@ -28,63 +28,6 @@ target_link_libraries(muscle)
 
 option(WITH_TESTS "Enable building of muscle tests" ON)
 if (WITH_TESTS)
-   add_executable(bandwidthtester bandwidthtester.cpp)
-   target_link_libraries(bandwidthtester muscle)
-
-   add_executable(calctypecode calctypecode.cpp)
-   target_link_libraries(calctypecode muscle)
-
-   add_executable(chatclient chatclient.cpp)
-   target_link_libraries(chatclient muscle)
-
-   add_executable(daemonsitter daemonsitter.cpp)
-   target_link_libraries(daemonsitter muscle)
-
-   add_executable(deadlock deadlock.cpp)
-   target_link_libraries(deadlock muscle)
-
-   add_executable(erasesharedmem erasesharedmem.cpp)
-   target_link_libraries(erasesharedmem muscle)
-
-   add_executable(findsourcelocations findsourcelocations.cpp)
-   target_link_libraries(findsourcelocations muscle)
-
-   add_executable(hexterm hexterm.cpp)
-   target_link_libraries(hexterm muscle)
-
-   add_executable(muscleproxy muscleproxy.cpp)
-   target_link_libraries(muscleproxy muscle)
-
-   add_executable(multithreadedreflectclient multithreadedreflectclient.cpp)
-   target_link_libraries(multithreadedreflectclient muscle)
-
-   add_executable(portableplaintextclient portableplaintextclient.cpp)
-   target_link_libraries(portableplaintextclient muscle)
-
-   add_executable(portscan portscan.cpp)
-   target_link_libraries(portscan muscle)
-
-   add_executable(printsourcelocations printsourcelocations.cpp)
-   target_link_libraries(printsourcelocations muscle)
-
-   add_executable(printtypecode printtypecode.cpp)
-   target_link_libraries(printtypecode muscle)
-
-   add_executable(readmessage readmessage.cpp)
-   target_link_libraries(readmessage muscle)
-
-   add_executable(serialproxy serialproxy.cpp)
-   target_link_libraries(serialproxy muscle)
-
-   add_executable(singlethreadedreflectclient singlethreadedreflectclient.cpp)
-   target_link_libraries(singlethreadedreflectclient muscle)
-
-   add_executable(snoopsharedmem snoopsharedmem.cpp)
-   target_link_libraries(snoopsharedmem muscle)
-
-   add_executable(striphextermoutput striphextermoutput.cpp)
-   target_link_libraries(striphextermoutput muscle)
-
    add_executable(testatomicvalue testatomicvalue.cpp)
    target_link_libraries(testatomicvalue muscle)
    add_test(testatomicvalue testatomicvalue fromscript)
@@ -268,10 +211,4 @@ if (WITH_TESTS)
    add_executable(testzip testzip.cpp)
    target_link_libraries(testzip muscle)
    add_test(testzip testzip fromscript)
-
-   add_executable(udpproxy udpproxy.cpp)
-   target_link_libraries(udpproxy muscle)
-
-   add_executable(uploadstress uploadstress.cpp)
-   target_link_libraries(uploadstress muscle)
 endif ()

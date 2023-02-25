@@ -25,8 +25,8 @@ endif()
 
 target_link_libraries(muscle)
 
-option(WITH_TESTS "Enable building of muscle examples" ON)
-if (WITH_TESTS)
+option(WITH_EXAMPLES "Enable building of muscle examples" ON)
+if (WITH_EXAMPLES)
    add_executable(atomiccounter_example_1_basic_usage atomiccounter/example_1_basic_usage.cpp)
    target_link_libraries(atomiccounter_example_1_basic_usage muscle)
 

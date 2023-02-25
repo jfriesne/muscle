@@ -1,0 +1,36 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 2,
+    "minor": 8,
+    "patch": 12
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default Config (includes tools and examples but not unit-tests)",
+      "description": "Default build"
+    },
+    {
+      "name": "minimal",
+      "inherits": "default",
+      "displayName": "minimal MUSCLE build (library only)",
+      "description": "This configuration builds only the MUSCLE library itself; no tools, examples, Qt executables, or tests will be built",
+      "cacheVariables": {
+        "WITH_EXAMPLES": "OFF",
+        "WITH_MUSCLED":  "OFF",
+        "WITH_TOOLS":    "OFF",
+        "WITH_QT":       "OFF"
+      }
+    },
+    {
+      "name": "full",
+      "inherits": "default",
+      "displayName": "full MUSCLE build (builds everything)",
+      "description": "This configuration builds every executable that can be built (including tools, examples, Qt executables, and unit tests)",
+      "cacheVariables": {
+        "WITH_TESTS":    "ON"
+      }
+    }
+  ]
+}

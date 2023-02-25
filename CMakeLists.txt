@@ -273,6 +273,13 @@ if (WITH_TESTS)
    add_subdirectory(test)
 endif (WITH_TESTS)
 
+option(WITH_TOOLS "Enable building of muscle's miscellaneous tool executables" ON)
+if (WITH_TOOLS)
+   add_subdirectory(tools)
+else ()
+   message("Note:  -DWITH_TOOLS=OFF argument was specified:  programs in the tools folder will not be built")
+endif (WITH_TOOLS)
+
 option(WITH_EXAMPLES "Enable building of muscle examples" ON)
 if (WITH_EXAMPLES)
    add_subdirectory(html/muscle-by-example/examples)

@@ -5,6 +5,14 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a CMakePresets.json file for quick specification of minimal
+     (i.e. library-only) or full (i.e. including unit-tests) builds .
+   - Added a CMAKEOPTIONS.txt file to describe the options available
+     for building MUSCLE via cmake.
+   o Moved the non-unit-test executables out of the "test" folder
+     and into their own new/separate "tools" folder.
+   o Renamed BUILDOPTIONS.txt to COMPILEROPTIONS.txt
+
 9.23 - Release 2/24/2023
    - Added a -DWITH_THREAD_SANITIZER=ON option to the CMakeLists.txt.
    - Added a -DMUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS flag to specify

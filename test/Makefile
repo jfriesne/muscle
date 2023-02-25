@@ -41,7 +41,7 @@ CXXFLAGS += -std=c++11 -W -Wall
 
 LFLAGS =
 LIBS =  -lpthread
-EXECUTABLES = testhashtable microchatclient testmini testfilepathinfo testmicro microreflectclient minireflectclient minichatclient testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions deadlock testendian testsysteminfo portableplaintextclient uploadstress bandwidthtester readmessage testregex testnagle testresponse testqueryfilter testtypedefs daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations testserial chatclient testpulsenode testnetconfigdetect testnetutil testpool testatomicvalue testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess testsharedmem snoopsharedmem erasesharedmem
+EXECUTABLES = testhashtable testmini testfilepathinfo testmicro testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions testendian testsysteminfo testregex testnagle testresponse testqueryfilter testtypedefs testserial testpulsenode testnetconfigdetect testnetutil testpool testatomicvalue testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess testsharedmem
 
 REGEXOBJS =
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
@@ -127,12 +127,6 @@ endif
 # Makes all the programs that can be made using just cross-platform code
 all : $(EXECUTABLES)
 
-calctypecode : $(STDOBJS) calctypecode.o SysLog.o SetupSystem.o String.o ByteBuffer.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-printtypecode : $(STDOBJS) printtypecode.o SysLog.o SetupSystem.o String.o ByteBuffer.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
 testhashtable : $(STDOBJS) String.o testhashtable.o SysLog.o SetupSystem.o Message.o SetupSystem.o MiscUtilityFunctions.o ByteBuffer.o Thread.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
@@ -172,22 +166,7 @@ testtar : $(STDOBJS) Message.o String.o testtar.o SysLog.o ByteBuffer.o SetupSys
 testmicro : $(STDOBJS) Message.o String.o testmicro.o SysLog.o ByteBuffer.o SetupSystem.o MicroMessage.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-microchatclient : microchatclient.o MicroMessage.o MicroMessageGateway.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-microreflectclient : microreflectclient.o MicroMessage.o MicroMessageGateway.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
 testmini : $(STDOBJS) Message.o String.o testmini.o SysLog.o ByteBuffer.o SetupSystem.o MiniMessage.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-minireflectclient : minireflectclient.o MiniMessage.o MiniMessageGateway.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-minichatclient : minichatclient.o MiniMessage.o MiniMessageGateway.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-readmessage : $(STDOBJS) Message.o String.o readmessage.o SysLog.o ByteBuffer.o SetupSystem.o ZLibUtilityFunctions.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testresponse : $(STDOBJS) testresponse.o MessageIOGateway.o AbstractMessageIOGateway.o SysLog.o SetupSystem.o PulseNode.o Message.o String.o ByteBuffer.o ZLibCodec.o
@@ -197,9 +176,6 @@ testnagle : $(STDOBJS) testnagle.o SysLog.o SetupSystem.o String.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testrefcount : $(STDOBJS) testrefcount.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Thread.o Message.o ByteBuffer.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-striphextermoutput : $(STDOBJS) striphextermoutput.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 teststatus : teststatus.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o FileDataIO.o StringTokenizer.o FilePathInfo.o StringMatcher.o Directory.o NetworkUtilityFunctions.o SocketMultiplexer.o $(ZLIBOBJS)
@@ -257,21 +233,6 @@ testgateway : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o
 testregex : $(STDOBJS) testregex.o String.o SysLog.o SetupSystem.o ByteBuffer.o $(REGEXOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-singlethreadedreflectclient : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o TemplatingMessageIOGateway.o MessageIOGateway.o String.o singlethreadedreflectclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o QueryFilter.o $(REGEXOBJS)
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-multithreadedreflectclient : $(STDOBJS) $(SSLOBJS) Message.o Thread.o MessageTransceiverThread.o CallbackMessageTransceiverThread.o AbstractMessageIOGateway.o TemplatingMessageIOGateway.o MessageIOGateway.o String.o multithreadedreflectclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o DataNode.o PathMatcher.o QueryFilter.o ReflectServer.o ServerComponent.o AbstractReflectSession.o DumbReflectSession.o StorageReflectSession.o $(REGEXOBJS)
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-muscleproxy : $(STDOBJS) $(SSLOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o String.o muscleproxy.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o SetupSystem.o MiscUtilityFunctions.o PlainTextMessageIOGateway.o ReflectServer.o ServerComponent.o AbstractReflectSession.o ZLibCodec.o $(REGEXOBJS)
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-portscan : $(STDOBJS) portscan.o SysLog.o SetupSystem.o String.o ByteBuffer.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-chatclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o chatclient.o MiscUtilityFunctions.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PathMatcher.o QueryFilter.o StdinDataIO.o FileDescriptorDataIO.o PlainTextMessageIOGateway.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
 testudp : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o String.o testudp.o MiscUtilityFunctions.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
@@ -284,40 +245,7 @@ testpackettunnel : $(STDOBJS) testpackettunnel.o Message.o AbstractMessageIOGate
 testpacketio : $(STDOBJS) testpacketio.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-bandwidthtester : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o bandwidthtester.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-uploadstress : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o uploadstress.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-portableplaintextclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o portableplaintextclient.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
 testchildprocess : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o testchildprocess.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-daemonsitter : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o daemonsitter.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o StdinDataIO.o ReflectServer.o ServerComponent.o AbstractReflectSession.o MessageIOGateway.o TemplatingMessageIOGateway.o StdinDataIO.o FileDescriptorDataIO.o ZLibCodec.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-hexterm : $(STDOBJS) $(HEXTERMOBJS)
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-serialproxy : $(STDOBJS) serialproxy.o SysLog.o SetupSystem.o String.o RS232DataIO.o ByteBuffer.o MiscUtilityFunctions.o Message.o AbstractMessageIOGateway.o PulseNode.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-udpproxy : $(STDOBJS) udpproxy.o SysLog.o SetupSystem.o String.o ByteBuffer.o MiscUtilityFunctions.o Message.o AbstractMessageIOGateway.o PulseNode.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-findsourcelocations : $(STDOBJS) findsourcelocations.o SysLog.o SetupSystem.o String.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o PulseNode.o Message.o ByteBuffer.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-printsourcelocations : $(STDOBJS) printsourcelocations.o SysLog.o SetupSystem.o String.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o PulseNode.o Message.o ByteBuffer.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-snoopsharedmem: $(STDOBJS) SysLog.o SharedMemory.o snoopsharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-erasesharedmem: $(STDOBJS) SysLog.o SharedMemory.o erasesharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testsharedmem: $(STDOBJS) SysLog.o SharedMemory.o testsharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
@@ -336,9 +264,6 @@ testnetconfigdetect:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o Quer
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testnetutil:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o DetectNetworkConfigChangesSession.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o Thread.o testnetutil.o
-	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
-
-deadlock: $(STDOBJS) deadlock.o SysLog.o String.o SetupSystem.o Thread.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 clean :
