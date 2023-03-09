@@ -185,7 +185,11 @@ int main(int, char **)
    uint8 * mPtr = bufRef()->GetBuffer();
    const uint32 mFlatSize = bufRef()->GetNumBytes();
 
-        if (umFlatSize != mFlatSize) printf("Flattened buffer sizes didn't match!  UMessage=" UINT32_FORMAT_SPEC " Message=" UINT32_FORMAT_SPEC "\n", umFlatSize, mFlatSize);
+   if (umFlatSize != mFlatSize)
+   {
+      printf("Flattened buffer sizes didn't match!  UMessage=" UINT32_FORMAT_SPEC " Message=" UINT32_FORMAT_SPEC "\n", umFlatSize, mFlatSize);
+      return 10;
+   }
    else if (memcmp(mPtr, umPtr, mFlatSize) != 0)
    {
       for (uint32 i=0; i<mFlatSize; i++)
@@ -196,6 +200,7 @@ int main(int, char **)
             break;
          }
       }
+      return 10;
    }
    else printf("Buffers matched, yay!\n");
 

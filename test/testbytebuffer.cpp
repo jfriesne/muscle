@@ -147,7 +147,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   if (argc > 1)
+   if ((argc > 1)&&(strcmp(argv[1], "fromscript") != 0))
    {
       const char * fileName = argv[1];
       FILE * f = muscleFopen(fileName, "rb");
@@ -159,10 +159,13 @@ int main(int argc, char ** argv)
          {
             printf("File [%s] is " UINT32_FORMAT_SPEC " bytes long.  Contents of the file are as follows:\n", fileName, buf()->GetNumBytes());
             PrintHexBytes(buf);
+            return 0;
          }
          else printf("Error reading file [%s]\n", fileName);
       }
       else printf("Error, couldn't open file [%s] for reading\n", fileName);
+
+      return 10;
    }
    else
    {
@@ -181,6 +184,7 @@ int main(int argc, char ** argv)
       ret = TestHelpers<BigEndianConverter>();
       if (ret.IsError()) LogTime(MUSCLE_LOG_CRITICALERROR, "TestHelpers<BigEndianConverter> failed [%s]\n", ret());
 #endif
+
+      return ret.IsOK() ? 0 : 10;
    }
-   return 0;
 }

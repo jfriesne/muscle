@@ -85,5 +85,5 @@ int main(int argc, char ** argv)
 
    server.Cleanup();
 
-   return 0;
+   return ret.IsOK() ? 0 : 10;
 }

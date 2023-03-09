@@ -8,12 +8,17 @@ using namespace muscle;
 template<typename T> inline void testWidth(const T & val, int expectedSize, const char * name)
 {
    printf("%s: size=%i expected %i (%s)\n", name, (int) sizeof(val), expectedSize, (sizeof(val) == expectedSize) ? "pass" : "ERROR, WRONG SIZE!");
+   if (sizeof(val) != expectedSize) MCRASH("testWidth failed");
 }
 
 static void testStr(const char * title, const char * gen, const char * expected)
 {
    if (strcmp(gen, expected) == 0) printf("%s:  pass (%s)\n", title, gen);
-                              else printf("%s:  ERROR, got [%s], expected [%s]\n", title, gen, expected);
+   else
+   {
+      printf("%s:  ERROR, got [%s], expected [%s]\n", title, gen, expected);
+      MCRASH("testStr failed");
+   }
 }
 
 // This program makes sure that the MUSCLE typedefs have the proper bit-widths.

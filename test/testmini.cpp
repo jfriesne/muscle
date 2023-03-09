@@ -232,6 +232,8 @@ static void RecursiveRemoveFields(MMessage * msg, const char * fieldName)
 // make sure the created bytes are the same in both cases.
 int main(int, char **)
 {
+   int ret = 0;
+
    Message m;
    MMessage * mmsg = CreateTestMessage(1, m);
    if (mmsg)
@@ -244,7 +246,7 @@ int main(int, char **)
                                          else printf("ERROR, Cloned Message is not equal?????\n");
          MMFreeMessage(clone);
       }
-      else printf("ERROR cloning MMessage!\n");
+      else {printf("ERROR cloning MMessage!\n"); ret = 10;}
 
       uint8 * buf = NULL, * mmbuf = NULL, * mmbuf2 = NULL;
       uint32 bufSize = 0, mmBufSize = 0, mmBuf2Size = 0;
@@ -283,22 +285,22 @@ int main(int, char **)
                            RecursiveRemoveFields(mmsg3, "testPointers");  /* since this won't have been flattened */
 
                            if (MMAreMessagesEqual(mmsg3, mmsg2)) printf("MMUnflattenMessage()'d Message matches!\n");
-                                                            else printf("ERROR:  MMUnflattenMessage()'d Message did not match!\n");
+                                                            else {printf("ERROR:  MMUnflattenMessage()'d Message did not match!\n"); ret = 10;}
 
                            MMFreeMessage(mmsg3);
                         }
-                        else printf("ERROR:  Could not clone mmsg!\n");
+                        else {printf("ERROR:  Could not clone mmsg!\n"); ret = 10;}
                      }
 
                      mmbuf2 = (uint8 *)malloc(mmBuf2Size);
                      if (mmbuf2) MMFlattenMessage(mmsg2, mmbuf2);
-                            else printf("ERROR:  Could not allocate " UINT32_FORMAT_SPEC " byte buffer for mmbuf2!\n", mmBuf2Size);
+                            else {printf("ERROR:  Could not allocate " UINT32_FORMAT_SPEC " byte buffer for mmbuf2!\n", mmBuf2Size); ret = 10;}
                   }
-                  else printf("ERROR:  mmBuf2Size != mmBufSize!  (" UINT32_FORMAT_SPEC " vs " UINT32_FORMAT_SPEC ")\n", mmBuf2Size, mmBufSize);
+                  else {printf("ERROR:  mmBuf2Size != mmBufSize!  (" UINT32_FORMAT_SPEC " vs " UINT32_FORMAT_SPEC ")\n", mmBuf2Size, mmBufSize); ret = 10;}
                }
-               else printf("ERROR: MMUnflattenMessage() returned an error!\n");
+               else {printf("ERROR: MMUnflattenMessage() returned an error!\n"); ret = 10;}
             }
-            else printf("ERROR allocating mmsg2!\n");
+            else {printf("ERROR allocating mmsg2!\n"); ret = 10;}
          }
       }
 
@@ -312,6 +314,7 @@ int main(int, char **)
             for (uint32 i=0; i<bufSize; i++) printf("%02x ", buf[i]);
             printf("\n");
          }
+         else {printf("malloc() failed!\n"); ret = 10;}
       }
 
       if ((buf)&&(mmbuf))
@@ -325,14 +328,23 @@ int main(int, char **)
                {
                   printf("BYTE MISMATCH AT POSITION " UINT32_FORMAT_SPEC ":  %02x vs %02x or %02x\n", i, buf[i], mmbuf[i], mmbuf2?mmbuf2[i]:0);
                   sawMismatch = true;
+                  ret = 10;
                   break;
                }
             }
             if (sawMismatch == false) printf("Buffers matched (" UINT32_FORMAT_SPEC " bytes).\n", bufSize);
          }
-         else printf("ERROR, BUFFER LENGTHS DON'T MATCH! (bufSize=" UINT32_FORMAT_SPEC " mmBufSize=" UINT32_FORMAT_SPEC " mmBuf2Size=" UINT32_FORMAT_SPEC ")\n", bufSize, mmBufSize, mmBuf2Size);
+         else
+         {
+            printf("ERROR, BUFFER LENGTHS DON'T MATCH! (bufSize=" UINT32_FORMAT_SPEC " mmBufSize=" UINT32_FORMAT_SPEC " mmBuf2Size=" UINT32_FORMAT_SPEC ")\n", bufSize, mmBufSize, mmBuf2Size);
+            ret = 10;
+         }
       }
-      else printf("ERROR, BUFFERS NOT ALLOCED?\n");
+      else
+      {
+         printf("ERROR, BUFFERS NOT ALLOCED?\n");
+         ret = 10;
+      }
 
       if (buf)    free(buf);
       if (mmbuf)  free(mmbuf);
@@ -341,5 +353,7 @@ int main(int, char **)
       MMFreeMessage(mmsg);
       MMFreeMessage(mmsg2);
    }
-   return 0;
+   else ret = 10;
+
+   return ret;
 }

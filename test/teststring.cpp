@@ -30,8 +30,7 @@ static int ThisFunctionsArgumentMustBeZero(int f)
    return f;
 }
 
-// This program exercises the String class.
-int main(int, char **)
+static status_t UnitTestString()
 {
    CompleteSetupSystem css;
 
@@ -41,59 +40,6 @@ int main(int, char **)
    LogTime(MUSCLE_LOG_INFO,   "Testing LogTime()  argument evaluation:  %i\n", ThisFunctionsArgumentMustBeZero(0));  // ThisFunctionsArgumentMustBeZero() SHOULD be called here!
    LogTime(MUSCLE_LOG_DEBUG,  "Testing LogTime()  argument evaluation:  %i\n", ThisFunctionsArgumentMustBeZero(1));  // ThisFunctionsArgumentMustBeZero() should NOT be called here!
 
-#ifdef TEST_ESCAPE
-   while(1)
-   {
-      char base[512];
-      printf("Enter a string to escape dots and spaces in: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
-      String a = base; a = a.Trim();
-      printf("You entered:  [%s]\n", a());
-      printf(" Escaped to:  [%s]\n", a.WithCharsEscaped(". ")());
-   }
-#endif
-
-#ifdef TEST_DISTANCE
-   while(1)
-   {
-      char base[512];
-      printf("Enter string A: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
-      String a = base; a = a.Trim();
-      printf("Enter string B: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
-      String b = base; b = b.Trim();
-
-      printf("Distance from [%s] to [%s] is %u\n", a(), b(), a.GetDistanceTo(b));
-      printf("Distance from [%s] to [%s] is %u\n", b(), a(), b.GetDistanceTo(a));
-   }
-#endif
-
-#ifdef TEST_MEMMEM
-   char lookIn[512]; printf("Enter LookIn  string: "); fflush(stdout); if (fgets(lookIn, sizeof(lookIn), stdin) == NULL) lookIn[0] = '\0';
-   lookIn[strlen(lookIn)-1] = '\0';
-   while(1)
-   {
-      char lookFor[512]; printf("Enter LookFor string: "); fflush(stdout); if (fgets(lookFor, sizeof(lookFor), stdin) == NULL) lookFor[0] = '\0';
-      lookFor[strlen(lookFor)-1] = '\0';
-
-      printf("lookIn=[%s] lookFor=[%s]\n", lookIn, lookFor);
-      const uint8 * r = MemMem((const uint8 *)lookIn, (uint32)strlen(lookIn), (const uint8 *)lookFor, (uint32)strlen(lookFor));
-      printf("r=[%s]\n", r);
-   }
-#endif
-
-#ifdef TEST_PARSE_ARGS
-   while(1)
-   {
-      char base[512];  printf("Enter string: "); fflush(stdout); if (fgets(base, sizeof(base), stdin) == NULL) base[0] = '\0';
-
-      Message args;
-      if (ParseArgs(base, args).IsOK())
-      {
-         printf("Parsed: "); args.PrintToStream();
-      }
-      else printf("Parse failed!\n");
-   }
-#endif
-
    {
       // Test to make sure that when a string is set equal to an empty string, it deletes its buffer.
       // (That way long strings can't build up in an ObjectPool somewhere)
@@ -102,6 +48,7 @@ int main(int, char **)
       printf("Before copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize=" UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
       longString = emptyString;
       printf(" After copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize=" UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
+      if (longString.GetNumAllocatedBytes() > (SMALL_MUSCLE_STRING_LENGTH+1)) return B_ERROR("String set from empty sting still has a non-default buffer!");
    }
 
    {
@@ -123,38 +70,25 @@ int main(int, char **)
             numAllocedBytes = newNumAlloced;
          }
       }
-      if (s.ShrinkToFit().IsOK()) printf("After ShrinkToFit():  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
-                              else printf("ShrinkToFit() failed!\n");
+      MRETURN_ON_ERROR(s.ShrinkToFit());
+      printf("After ShrinkToFit():  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
 
       s = "Now I'm small";
       printf("After setting small:  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
 
-      if (s.ShrinkToFit().IsOK()) printf("After ShrinkToFit to small():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
-                              else printf("ShrinkToFit() to small failed!\n");
+      MRETURN_ON_ERROR(s.ShrinkToFit());
+      printf("After ShrinkToFit to small():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
 
       s = "tiny";
       printf("After setting tiny:  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
-      if (s.ShrinkToFit().IsOK()) printf("After ShrinkToFit to tiny():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
-                              else printf("ShrinkToFit() to tiny failed!\n");
+      MRETURN_ON_ERROR(s.ShrinkToFit());
+      printf("After ShrinkToFit to tiny():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
 
       s = "tin";
       printf("After setting tin:  s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s.Length(), s.GetNumAllocatedBytes());
-      if (s.ShrinkToFit().IsOK()) printf("After ShrinkToFit to tin():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
-                              else printf("ShrinkToFit() to tin failed!\n");
+      MRETURN_ON_ERROR(s.ShrinkToFit());
+      printf("After ShrinkToFit to tin():  s=[%s] s.Length()=" UINT32_FORMAT_SPEC " s.GetNumAllocatedBytes()=" UINT32_FORMAT_SPEC "\n", s(), s.Length(), s.GetNumAllocatedBytes());
    }
-
-#ifdef TEST_REPLACE_METHOD
-   while(1)
-   {
-      char base[512];      printf("Enter string:    "); fflush(stdout); if (fgets(base,      sizeof(base),      stdin) == NULL) base[0]      = '\0';
-      char replaceMe[512]; printf("Enter replaceMe: "); fflush(stdout); if (fgets(replaceMe, sizeof(replaceMe), stdin) == NULL) replaceMe[0] = '\0';
-      char withMe[512];    printf("Enter withMe:    "); fflush(stdout); if (fgets(withMe,    sizeof(withMe),    stdin) == NULL) withMe[0]    = '\0';
-
-      String b(base);
-      const int32 ret = b.Replace(replaceMe, withMe);
-      printf(INT32_FORMAT_SPEC ": Afterwards, [%s] (" UINT32_FORMAT_SPEC ")\n", ret, b(), b.Length());
-   }
-#endif
 
    // Test the multi-search-and-replace version of WithReplacements()
    {
@@ -173,19 +107,25 @@ int main(int, char **)
       else
       {
          printf("ERROR GOT WRONG MULTI-REPLACE RESULT [%s], expected [%s]\n", after(), expected());
-         return 10;
+         return B_LOGIC_ERROR;
       }
    }
 
    int five=5, six=6;
    muscleSwap(five, six);
-   if ((five != 6)||(six != 5)) {printf("Oh no, trivial muscleSwap() is broken!  five=%i six=%i\n", five, six); exit(10);}
+   if ((five != 6)||(six != 5)) {printf("Oh no, trivial muscleSwap() is broken!  five=%i six=%i\n", five, six); return B_LOGIC_ERROR;}
 
-   String ss1 = "This is string 1", ss2 = "This is string 2";
+   const String oss1 = "This is string 1", oss2 = "This is string 2";
+   String ss1 = oss1, ss2 = oss2;
+
    PrintAndClearStringCopyCounts("Before Swap");
    muscleSwap(ss1, ss2);
+
    PrintAndClearStringCopyCounts("After Swap");
    printf("ss1=[%s] ss2=[%s]\n", ss1(), ss2());
+
+   if (ss1 != oss2) return B_LOGIC_ERROR;
+   if (ss2 != oss1) return B_LOGIC_ERROR;
 
    const Point p(1.5,2.5);
    const Rect r(3.5,4.5,5.5,6.5);
@@ -232,5 +172,20 @@ int main(int, char **)
    String s3;
    printf("[%s]\n", s1.AppendWord(s2, ", ").AppendWord(s3, ", ")());
 
-   return 0;
+   return B_NO_ERROR;
+}
+
+int main(int, char **)
+{
+   const status_t ret = UnitTestString();
+   if (ret.IsOK())
+   {
+      LogTime(MUSCLE_LOG_INFO, "teststring unit test passed.\n");
+      return 0;
+   }
+   else
+   {
+      LogTime(MUSCLE_LOG_CRITICALERROR, "teststring unit test failed! [%s]\n", ret());
+      return 10;
+   }
 }

@@ -47,5 +47,19 @@ int main(int, char **)
    }
    printf("For " UINT32_FORMAT_SPEC " items, metaHash32=" UINT32_FORMAT_SPEC ", metaHash64=" UINT64_FORMAT_SPEC "\n", bytes.GetNumItems(), metaHash32, metaHash64);
 
+   const uint32 expectedMetaHash32 = 2688496155;
+   if (metaHash32 != expectedMetaHash32)
+   {
+      printf("ERROR, expected metaHash32 value was " UINT32_FORMAT_SPEC ", calculated value was " UINT32_FORMAT_SPEC "\n", expectedMetaHash32, metaHash32);
+      return 10;
+   }
+
+   const uint64 expectedMetaHash64 = 3434059406311740045LL;
+   if (metaHash64 != expectedMetaHash64)
+   {
+      printf("ERROR, expected metaHash64 value was " UINT64_FORMAT_SPEC ", calculated value was " UINT64_FORMAT_SPEC "\n", expectedMetaHash64, metaHash64);
+      return 10;
+   }
+
    return 0;
 }

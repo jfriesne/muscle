@@ -5,7 +5,7 @@
 
 using namespace muscle;
 
-void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush)
+status_t HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush)
 {
    LogTime(MUSCLE_LOG_ERROR, "Beginning catch session (%s)\n", doFlush?"flush enabled":"flush disabled");
 
@@ -23,12 +23,7 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
       multiplexer.RegisterSocketForReadReady(fd);
       if (myTurnToThrow) multiplexer.RegisterSocketForWriteReady(fd);
 
-      const io_status_t ret = multiplexer.WaitForEvents();
-      if (ret.IsError())
-      {
-         LogTime(MUSCLE_LOG_ERROR, "WaitForEvents() failed, aborting! [%s]\n", ret());
-         break;
-      }
+      MRETURN_ON_ERROR(multiplexer.WaitForEvents());
 
       if ((myTurnToThrow)&&(multiplexer.IsSocketReadyForWrite(fd)))
       {
@@ -42,7 +37,7 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
          else if (bytesWritten.IsError())
          {
             LogTime(MUSCLE_LOG_ERROR, "Error sending ball, aborting! [%s]\n", bytesWritten.GetStatus()());
-            break;
+            return bytesWritten.GetStatus();
          }
       }
 
@@ -68,10 +63,11 @@ void HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush
          else if (bytesRead.IsError())
          {
             LogTime(MUSCLE_LOG_ERROR, "Error reading ball, aborting! [%s]\n", bytesRead.GetStatus()());
-            break;
+            return bytesRead.GetStatus();
          }
       }
    }
+   return B_NO_ERROR;
 }
 
 // This program helps me test whether or not the host OS supports TCPSocketDataIO::FlushOutput() properly or not.
@@ -82,12 +78,14 @@ int main(int argc, char ** argv)
    const bool doFlush = (strcmp(argv[argc-1], "flush") == 0);
    if (doFlush) argc--;
 
+   status_t ret;
+
    const uint16 TEST_PORT = 15000;
    CompleteSetupSystem css;
    if (argc > 1)
    {
       ConstSocketRef s = Connect(argv[1], TEST_PORT, "testnagle");
-      if (s()) HandleSession(s, true, doFlush);
+      ret = s() ? HandleSession(s, true, doFlush) : s.GetStatus();
    }
    else
    {
@@ -97,9 +95,13 @@ int main(int argc, char ** argv)
       {
          LogTime(MUSCLE_LOG_INFO, "testnagle awaiting incoming TCP connections on port %u.\n", port);
          ConstSocketRef s = Accept(as);
-         if (s()) HandleSession(s, false, doFlush);
+         ret = s() ? HandleSession(s, false, doFlush) : s.GetStatus();
       }
-      else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not bind to TCP port %u (already in use?)\n", port);
+      else
+      {
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Could not bind to TCP port %u (already in use?)\n", port);
+         ret = as.GetStatus();
+      }
    }
-   return 0;
+   return ret.IsOK() ? 0 : 10;
 }

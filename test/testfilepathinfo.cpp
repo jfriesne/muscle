@@ -16,15 +16,10 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   if (argc < 2)
-   {
-      printf("Usage:  testfilepathinfo <filepath>\n");
-      return 10;
-   }
+   const char * inFileName = ((argc<2)||(strcmp(argv[1], "fromscript")==0)) ? argv[0] : argv[1];
 
-   FilePathInfo fpi(argv[1]);
-
-   printf("FilePathInfo for [%s]:\n", argv[1]);
+   FilePathInfo fpi(inFileName);
+   printf("FilePathInfo for [%s]:\n", inFileName);
    printf("Exists:\t\t\t%s\n", GetBoolString(fpi.Exists()));
    printf("IsRegularFile:\t\t%s\n", GetBoolString(fpi.IsRegularFile()));
    printf("IsDirectory:\t\t%s\n", GetBoolString(fpi.IsDirectory()));

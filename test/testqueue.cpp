@@ -10,7 +10,7 @@
 
 using namespace muscle;
 
-#define TEST(x) if ((x).IsError()) printf("Test failed, line %i\n",__LINE__)
+#define TEST(x) if ((x).IsError()) {printf("Test failed, line %i\n",__LINE__); ExitWithoutCleanup(10);}
 
 void PrintToStream(const Queue<int> & q);
 void PrintToStream(const Queue<int> & q)
@@ -27,46 +27,16 @@ void PrintToStream(const Queue<int> & q)
    }
 }
 
-// This program exercises the Queue class.
-int main(int, char **)
+static status_t UnitTestQueue()
 {
    CompleteSetupSystem css;  // needed for string-count stats
-
-//#define TEST_SWAP_METHOD
-#ifdef TEST_SWAP_METHOD
-   while(1)
-   {
-      char qs1[512]; printf("Enter q1: "); fflush(stdout); if (fgets(qs1, sizeof(qs1), stdin) == NULL) qs1[0] = '\0';
-      char qs2[512]; printf("Enter q2: "); fflush(stdout); if (fgets(qs2, sizeof(qs2), stdin) == NULL) qs2[0] = '\0';
-
-      Queue<int> q1, q2;
-      StringTokenizer t1(true, qs1), t2(true, qs2);
-      const char * s;
-      while((s = t1()) != NULL) q1.AddTail(atoi(s));
-      while((s = t2()) != NULL) q2.AddTail(atoi(s));
-      printf("T1Before="); PrintToStream(q1);
-      printf("T2Before="); PrintToStream(q2);
-      printf("\n");
-      printf("q1 <  q2 = %i\n",  q1<q2);
-      printf("q1 <= q2 = %i\n", q1<=q2);
-      printf("q1 >  q2 = %i\n", q1>q2);
-      printf("q1 >= q2 = %i\n", q1>=q2);
-      printf("q1 == q2 = %i\n", q1==q2);
-      printf("q1 != q2 = %i\n", q1!=q2);
-      printf("\n");
-
-      q1.SwapContents(q2);
-      printf("T1After="); PrintToStream(q1);
-      printf("T2After="); PrintToStream(q2);
-   }
-#endif
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    {
       Queue<int> q {1,2,3,4,5};
-      if (q.GetNumItems() != 5) {printf("Oh no, initialize list constructor didn't work!\n"); exit(10);}
+      if (q.GetNumItems() != 5) {printf("Oh no, initialize list constructor didn't work!\n"); return B_LOGIC_ERROR;}
       q = {6,7,8,9,10,11};
-      if (q.GetNumItems() != 6) {printf("Oh no, initialize list assignment operator didn't work!\n"); exit(10);}
+      if (q.GetNumItems() != 6) {printf("Oh no, initialize list assignment operator didn't work!\n"); return B_LOGIC_ERROR;}
    }
 #endif
 
@@ -85,8 +55,8 @@ int main(int, char **)
             numAllocedSlots = newNumAlloced;
          }
       }
-      if (q.ShrinkToFit().IsOK()) printf("After ShrinkToFit():  q.GetNumItems()=" UINT32_FORMAT_SPEC " q.GetNumAllocatedItemSlots()=" UINT32_FORMAT_SPEC "\n", q.GetNumItems(), q.GetNumAllocatedItemSlots());
-                             else printf("ShrinkToFit() failed!\n");
+      MRETURN_ON_ERROR(q.ShrinkToFit());
+      printf("After ShrinkToFit():  q.GetNumItems()=" UINT32_FORMAT_SPEC " q.GetNumAllocatedItemSlots()=" UINT32_FORMAT_SPEC "\n", q.GetNumItems(), q.GetNumAllocatedItemSlots());
 
       printf("Before setting equal to empty, q's allocated-slots size is: " UINT32_FORMAT_SPEC "\n", q.GetNumAllocatedItemSlots());
       q = GetDefaultObjectForType< Queue<int> >();
@@ -103,7 +73,7 @@ int main(int, char **)
       if ((q1.GetNumItems() != 1)||(q2.GetNumItems() != 1)||(q1[0] != "q2")||(q2[0] != "q1"))
       {
          printf("Oh no, muscleSwap is broken for Message objects!\n");
-         exit(10);
+         return B_LOGIC_ERROR;
       }
       printf("After swap, hashes are q1=" UINT32_FORMAT_SPEC ", q2=" UINT32_FORMAT_SPEC "\n", q1.HashCode(), q2.HashCode());
       printf("muscleSwap() worked!\n");
@@ -167,7 +137,7 @@ int main(int, char **)
       if (myStr != "Magic")
       {
          printf("Error, AddTail() stole my string!\n");
-         exit(10);
+         return B_LOGIC_ERROR;
       }
    }
 
@@ -205,12 +175,11 @@ int main(int, char **)
    {
       Queue<int> qq;
       const int iVars[] = {9,2,3,5,8,3,5,6,6,7,2,3,4,6,8,9,3,5,6,4,3,2,1};
-      if (qq.AddTailMulti(iVars, ARRAYITEMS(iVars)).IsOK())
-      {
-         qq.RemoveDuplicateItems();
-         for (uint32 i=0; i<qq.GetNumItems(); i++) printf("%u ", qq[i]);
-         printf("\n");
-      }
+      MRETURN_ON_ERROR(qq.AddTailMulti(iVars, ARRAYITEMS(iVars)));
+
+      qq.RemoveDuplicateItems();
+      for (uint32 i=0; i<qq.GetNumItems(); i++) printf("%u ", qq[i]);
+      printf("\n");
    }
 
    {
@@ -299,7 +268,7 @@ int main(int, char **)
          TEST(q.AddTail(i));
          TEST(q2.AddTail(i+100));
       }
-      q.AddTailMulti(q2);
+      MRETURN_ON_ERROR(q.AddTailMulti(q2));
       for (uint32 j=0; j<q.GetNumItems(); j++) printf("After concat, " UINT32_FORMAT_SPEC "->%i\n", j, q[j]);
    }
 
@@ -312,7 +281,7 @@ int main(int, char **)
          TEST(q.AddTail(i));
          TEST(q2.AddTail(i+100));
       }
-      q.AddHeadMulti(q2);
+      MRETURN_ON_ERROR(q.AddHeadMulti(q2));
       for (uint32 j=0; j<q.GetNumItems(); j++) printf("After concat, " UINT32_FORMAT_SPEC "->%i\n", j, q[j]);
    }
    {
@@ -352,12 +321,27 @@ int main(int, char **)
       {
          printf("ERROR IN NORMALIZE!\n");
          for (uint32 j=0; j<qq.GetNumItems(); j++) printf("   Expected %i, got %i (qi=%i at " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", compareArray[j], a[j], qq[j], j, qq.GetNumItems());
-         MCRASH("ERROR IN NORMALIZE!");
+         return B_LOGIC_ERROR;
       }
 
       delete [] compareArray;
    }
    printf("Queue test complete.\n");
 
-   return 0;
+   return B_NO_ERROR;
+}
+
+int main(int, char **)
+{
+   const status_t ret = UnitTestQueue();
+   if (ret.IsOK())
+   {
+      LogTime(MUSCLE_LOG_INFO, "testqueue passed, exiting!\n");
+      return 0;
+   }
+   else
+   {
+      LogTime(MUSCLE_LOG_INFO, "testqueue failed [%s], exiting!\n", ret());
+      return 10;
+   }
 }
