@@ -150,33 +150,32 @@ Reconnect()
 
    bool doTCPConnect = ((_reconnectViaTCP)&&(_asyncConnectDest.GetIPAddress() != invalidIP));
    bool isReady = false;
-   ConstSocketRef sock = doTCPConnect ? ConnectAsync(_asyncConnectDest, isReady) : CreateDefaultSocket();
+   ConstSocketRef optSock = doTCPConnect ? ConnectAsync(_asyncConnectDest, isReady) : CreateDefaultSocket();
 
    // FogBugz #5256:  If ConnectAsync() fails, we want to act as if it succeeded, so that the calling
    //                 code still uses its normal asynchronous-connect-failure code path.  That way the
    //                 caller doesn't have to worry about synchronous failure as a separate case.
-   if ((doTCPConnect)&&(sock() == NULL))
+   if ((doTCPConnect)&&(optSock() == NULL))
    {
       ConstSocketRef tempSockRef;  // tempSockRef represents the closed remote end of the failed connection and is intentionally closed ASAP
-      if (CreateConnectedSocketPair(sock, tempSockRef).IsOK()) doTCPConnect = false;
+      if (CreateConnectedSocketPair(optSock, tempSockRef).IsOK()) doTCPConnect = false;
+      MRETURN_ON_ERROR(optSock);
    }
 
-   if (sock() == NULL) return B_IO_ERROR;
-
-   DataIORef io = CreateDataIO(sock);
-   if (io() == NULL) return B_ERROR("CreateDataIO() failed");
+   DataIORef io = CreateDataIO(optSock);
+   if (io() == NULL) return B_ERROR("Reconnect(): CreateDataIO() failed");
 
    if (_gateway() == NULL)
    {
       _gateway = CreateGateway();
-      if (_gateway() == NULL) return B_ERROR("CreateGateway() failed");
+      if (_gateway() == NULL) return B_ERROR("Reconnect(): CreateGateway() failed");
    }
 
 #ifdef MUSCLE_ENABLE_SSL
    // auto-wrap the user's gateway and socket in the necessary SSL adapters!
-   if ((publicKey())&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL))
+   if ((publicKey())&&(optSock())&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL))
    {
-      SSLSocketDataIO * ssio = newnothrow SSLSocketDataIO(sock, false, false);
+      SSLSocketDataIO * ssio = newnothrow SSLSocketDataIO(optSock, false, false);
       MRETURN_OOM_ON_NULL(ssio);
       io.SetRef(ssio);
       MRETURN_ON_ERROR(ssio->SetPublicKeyCertificate(publicKey));

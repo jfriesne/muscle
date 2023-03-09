@@ -12,6 +12,8 @@ key:  - new feature
    o Moved the non-unit-test executables out of the "test" folder
      and into their own new/separate "tools" folder.
    o Renamed BUILDOPTIONS.txt to COMPILEROPTIONS.txt
+   * Modified AbstractReflectSession::Reconnect() to not fail
+     if CreateDefaultSocket() return a NULL reference.
 
 9.23 - Release 2/24/2023
    - Added a -DWITH_THREAD_SANITIZER=ON option to the CMakeLists.txt.
