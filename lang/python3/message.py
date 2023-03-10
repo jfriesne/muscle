@@ -74,7 +74,7 @@ class Message:
 
    def PutFieldContents(self, fieldName, fieldTypeCode, fieldContents):
       """Adds (or replaces) a new field into this Message.
-         
+
       (fieldName) should be a string representing the unique name of the field.
       (fieldTypeCode) should be a numeric type code for the field (usually B_*_TYPE).
       (fieldContents) should be the field's contents (either an item or a list or array of items)
@@ -101,11 +101,11 @@ class Message:
          ret = self.__fields[fieldName]
          if fieldTypeCode != B_ANY_TYPE and fieldTypeCode != ret[0]:
             return defaultValue # oops!  typecode mismatch
-         else: 
+         else:
             return ret[1]       # return just the data portion
       else:
          return defaultValue
-      
+
    def GetFieldItem(self, fieldName, fieldTypeCode=B_ANY_TYPE, index=0):
       """Returns the (index)th item of an existing field in this message (if any).
 
@@ -113,9 +113,9 @@ class Message:
       (fieldTypeCode) may specify the only type code we want.  If not specified,
                       the default value, B_ANY_TYPE, means that any field found
                       under the given field name will be returned, regardless of type.
-      (index) specifies which item from the given field's list we want.  
+      (index) specifies which item from the given field's list we want.
               Defaults to zero (the first item in the list).
-      Returns the (index)th item of the given field's contents, or None if 
+      Returns the (index)th item of the given field's contents, or None if
       the field doesn't exist or is of the wrong type, or if the index isn't
       a valid one for that list.
       """
@@ -142,7 +142,7 @@ class Message:
       """Dumps our state to stdout.  Handy for debugging purposes"""
       print(self.ToString(maxRecurseLevel, linePrefix))
 
-   def __str__(self): 
+   def __str__(self):
       return self.ToString()
 
    def ToString(self, maxRecurseLevel = 2147483648, linePrefix = ""):
@@ -162,7 +162,7 @@ class Message:
       """Returns the number of bytes that this Message would take up if flattened"""
 
       # Header is 12 bytes: protocol_version(4) + num_entries(4) + what(4)
-      ret = 3*4  
+      ret = 3*4
 
       # Now calculate the space for each field
       fields = self.GetFieldNames()
@@ -193,7 +193,7 @@ class Message:
          elif fieldTypeCode == B_FLOAT_TYPE:
             fieldContents = array.array('f')
             fieldContents.frombytes(inFile.read(fieldDataLength))
-         elif fieldTypeCode == B_INT32_TYPE: 
+         elif fieldTypeCode == B_INT32_TYPE:
             fieldContents = array.array('i')
             fieldContents.frombytes(inFile.read(fieldDataLength))
          elif fieldTypeCode == B_INT16_TYPE:
@@ -237,15 +237,13 @@ class Message:
             fieldContents.byteswap()
 
          self.PutFieldContents(fieldName, fieldTypeCode, fieldContents)
-          
+
    def Flatten(self, outFile):
       """Writes the state of this Message out to the given file object, in the standard platform-neutral flattened represenation."""
       global _dataNeedsSwap
       outFile.write(struct.pack("<3L", CURRENT_PROTOCOL_VERSION, self.what, len(self.__fields)))
       for fieldName in list(self.__fields.keys()):
-         outFile.write(struct.pack("<L", len(fieldName)+1))
-         outFile.write(fieldName.encode())
-         outFile.write(bytes([0]))
+         self.__writeUtf8StringWithHeader(outFile, fieldName)
          fieldContents = self.GetFieldContents(fieldName)
          fieldType = self.GetFieldType(fieldName)
          outFile.write(struct.pack("<2L", fieldType, self.GetFieldContentsLength(fieldType, fieldContents)))
@@ -287,7 +285,7 @@ class Message:
                   outFile.write(struct.pack("<q", fieldItem))
             elif fieldType == B_MESSAGE_TYPE:
                for fieldItem in fieldContents:
-                  outFile.write(struct.pack("<L", fieldItem.FlattenedSize())) 
+                  outFile.write(struct.pack("<L", fieldItem.FlattenedSize()))
                   fieldItem.Flatten(outFile)
             elif fieldType == B_POINT_TYPE:
                for fieldItem in fieldContents:
@@ -298,18 +296,16 @@ class Message:
             elif fieldType == B_STRING_TYPE:
                outFile.write(struct.pack("<L", len(fieldContents)))
                for fieldItem in fieldContents:
-                  outFile.write(struct.pack("<L", len(fieldItem)+1))
-                  outFile.write(fieldItem.encode())
-                  outFile.write(bytes([0]))
+                  self.__writeUtf8StringWithHeader(outFile, fieldItem)
             else:
                outFile.write(struct.pack("<L", len(fieldContents)))
                for fieldItem in fieldContents:
-                  outFile.write(struct.pack("<L", len(fieldItem))) 
                   if (isinstance(fieldItem, str)):
-                     outFile.write(str.encode(fieldItem))
+                     self.__writeUtf8StringWithHeader(outFile, fieldItem)
                   else:
+                     outFile.write(struct.pack("<L", len(fieldItem)))
                      outFile.write(fieldItem)
-   
+
    def GetFlattenedBuffer(self):
       """Convenience method:  returns a binary buffer that is the platform-neutral flattened representation of this Message."""
       f = io.BytesIO()
@@ -349,7 +345,7 @@ class Message:
       elif fieldType == B_STRING_TYPE:
          ret += 4  # num_strings(4)
          for item in fieldContents:
-            ret += 4+len(item)+1  # string_length(4), string(n), NUL(1)
+            ret += 4+len(item.encode())+1  # string_length(4), string(n), NUL(1)
       else:
          ret += 4  # num_bufs(4)
          for item in fieldContents:
@@ -498,7 +494,7 @@ class Message:
          flattenableObject.Unflatten(io.BytesIO(blob))
          return flattenableObject
       return None
-      
+
    def GetFloat(self, fieldName, index=0):
       """Convenience method; returns the (index)th Float item under (fieldName), or None."""
       return self.GetFieldItem(fieldName, B_FLOAT_TYPE, index)
@@ -518,7 +514,13 @@ class Message:
    def GetRect(self, fieldName, index=0):
       """Convenience method; returns the (index)th Rect item under (fieldName), or None."""
       return self.GetFieldItem(fieldName, B_RECT_TYPE, index)
-		
+
+   def __writeUtf8StringWithHeader(self, outFile, s):
+      utf8s = s.encode()
+      outFile.write(struct.pack("<L", len(utf8s)+1))
+      outFile.write(utf8s)
+      outFile.write(bytes([0]))
+
 
 # --------------------------------------------------------------------------------------------
 

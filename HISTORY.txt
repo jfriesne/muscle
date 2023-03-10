@@ -14,6 +14,8 @@ key:  - new feature
    o Renamed BUILDOPTIONS.txt to COMPILEROPTIONS.txt
    * Modified AbstractReflectSession::Reconnect() to not fail
      if CreateDefaultSocket() return a NULL reference.
+   * The Python3 implementation of message.py wasn't encoding
+     non-ASCII utf8 strings correctly when flattening a Message.  Fixed.
 
 9.23 - Release 2/24/2023
    - Added a -DWITH_THREAD_SANITIZER=ON option to the CMakeLists.txt.
