@@ -6,7 +6,7 @@ key:  - new feature
       o other
 
    - Added a CMakePresets.json file for quick specification of minimal
-     (i.e. library-only) or full (i.e. including unit-tests) builds .
+     (i.e. library-only) or full (i.e. including unit-tests) builds.
    - Added a CMAKEOPTIONS.txt file to describe the options available
      for building MUSCLE via cmake.
    o Moved the non-unit-test executables out of the "test" folder

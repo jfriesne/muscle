@@ -65,13 +65,13 @@ inline const char * GetFilePathSeparator()
 }
 
 /** Convenience method for debugging.  Returns a list of human-readable strings
-  * of the various MUSCLE-specific build flags (as documented in BUILDOPTIONS.txt)
+  * of the various MUSCLE-specific build flags (as documented in COMPILEROPTIONS.txt)
   * that the MUSCLE codebase was compiled.
   */
 Queue<String> GetBuildFlags();
 
 /** Convenience method for debugging.  Dumps a human-readable record of the
-  * various MUSCLE-specific build flags (as documented in BUILDOPTIONS.txt)
+  * various MUSCLE-specific build flags (as documented in COMPILEROPTIONS.txt)
   * that the MUSCLE codebase was compiled with to the log, at the specified log level.
   * @param logLevel Optional MUSCLE_LOG_* value to log at.  Defaults to MUSCLE_LOG_INFO.
   */
