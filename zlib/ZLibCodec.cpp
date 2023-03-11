@@ -135,6 +135,7 @@ public:
       const int32 rawLen = GetInflatedSizeAux(compBytes, numComp, &independent);
       if ((rawLen >= 0)&&(_inflateOkay))
       {
+         if (rawLen == 0) return GetByteBufferFromPool(0);  // corner-case of a compressed zero-byte buffer
          if ((independent)&&(inflateReset(&_inflater) != Z_OK))
          {
             _inflateOkay = false;
@@ -165,6 +166,7 @@ public:
       const int32 rawLen = GetInflatedSizeAux(compBytes, numComp, &independent);
       if (rawLen < 0)            return B_BAD_ARGUMENT;
       if (_inflateOkay == false) return B_BAD_OBJECT;
+      if (rawLen == 0) {outBuf.Clear(); return B_NO_ERROR;}  // corner-case of a compressed zero-byte buffer
 
       if ((independent)&&(inflateReset(&_inflater) != Z_OK))
       {
