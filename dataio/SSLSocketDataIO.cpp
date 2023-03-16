@@ -248,7 +248,7 @@ io_status_t SSLSocketDataIO :: Read(void *buffer, uint32 size)
             return B_END_OF_STREAM;
 
          default:
-            LogTime(MUSCLE_LOG_DEBUG, "SSL_read() returned error code %i", err);
+            LogTime(MUSCLE_LOG_DEBUG, "SSL_read() returned error code %i\n", err);
             if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stderr);
          return B_SSL_ERROR;
       }
