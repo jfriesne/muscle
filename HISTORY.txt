@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.24 - Release 3/20/2023
    - Added a CMakePresets.json file for quick specification of minimal
      (i.e. library-only) or full (i.e. including unit-tests) builds.
    - Added a CMAKEOPTIONS.txt file to describe the options available
