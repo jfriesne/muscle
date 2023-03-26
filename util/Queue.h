@@ -351,6 +351,11 @@ public:
      */
    ItemType GetWithDefault(uint32 index, const ItemType & defItem) const {return (index<_itemCount)?(*this)[index]:defItem;}
 
+   /** Sets all items in this Queue to be equal to the argument
+     * @param newItem The item to set everything in this Queue equal to
+     */
+   void ReplaceAllItems(const ItemType & newItem) {for (uint32 i=0; i<GetNumItems(); i++) (*this)[i] = newItem;}
+
    /** Replaces the (index)'th item in the queue with (newItem).
     *  @param index Which item to replace--can range from zero
     *               (head of the queue) to (GetNumItems()-1) (tail of the queue).

@@ -95,13 +95,14 @@ static status_t UnitTestString()
       const String before = "One potato, Two potato, Three potato, Four.  Five potato, Six potato, Seven potato, more!  One Two Three Four Five";
 
       Hashtable<String,String> replaceMap;
-      replaceMap.Put("One", "Two");
-      replaceMap.Put("Two", "3");
-      replaceMap.Put("Three", "4");
+      replaceMap.Put("One",    "Two");
+      replaceMap.Put("Two",    "3");
+      replaceMap.Put("Three",  "4");
       replaceMap.Put("potato", "sweet potato");
-      replaceMap.Put("sweet", "sour");   // shouldn't have any effect, since the original string doesn't contain the substring 'sour'
-      const String after = before.WithReplacements(replaceMap);
+      replaceMap.Put("pot",    "mary jane");  // shouldn't have any effect, since "potato" was specified first and should therefore take precedence
+      replaceMap.Put("sweet",  "sour");       // shouldn't have any effect, since the original string doesn't contain the substring 'sour'
 
+      const String after = before.WithReplacements(replaceMap);
       const String expected = "Two sweet potato, 3 sweet potato, 4 sweet potato, Four.  Five sweet potato, Six sweet potato, Seven sweet potato, more!  Two 3 4 Four Five";
       if (after == expected) printf("Multi-replace:  got expected result [%s]\n", after());
       else
