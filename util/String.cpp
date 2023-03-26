@@ -397,34 +397,28 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
    return ret;  // just to shut the compiler up; we never actually get here
 }
 
-struct TrieNode
+template<typename T> struct TrieNode
 {
    // _next[0], if non-zero, is (1 plus the index of the before-string that terminates at this TrieNode)
    // all other entries, if non-zero, are the offset to the next TriedNode in our sequence, for the given char
-   uint32 _next[256];
+   T _next[256];
 };
 
-String String :: WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount) const
+template<typename T> static String WithReplacementsAux(uint32 trieSize, const String & origStr, const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount)
 {
-   if ((maxReplaceCount == 0)||(beforeToAfter.IsEmpty())||(IsEmpty())) return *this;
+   Queue< TrieNode<T> > trie;
+   if (trie.EnsureSize(trieSize).IsError()) {MWARN_OUT_OF_MEMORY; return origStr;}  // so we won't have to worry about reallocs below
 
-   // Compute the worst-case number of TrieNodes we could possibly need (i.e. if none of our before-strings share any common prefix)
-   uint32 trieSize = 1;  // 1 for the root-node
-   for (HashtableIterator<String, String> iter(beforeToAfter); iter.HasData(); iter++) trieSize += iter.GetKey().Length();
-
-   Queue<TrieNode> trie;
-   if (trie.EnsureSize(trieSize).IsError()) {MWARN_OUT_OF_MEMORY; return *this;}  // so we won't have to worry about reallocs below
-
-   TrieNode * root = trie.AddTailAndGet();
+   TrieNode<T> * root = trie.AddTailAndGet();
    muscleClearArray(root->_next);
 
    const uint32 numPairs = beforeToAfter.GetNumItems();
-   Queue<const TrieNode *> trieStates;
-   if (trieStates.EnsureSize(numPairs, true).IsError()) {MWARN_OUT_OF_MEMORY; return *this;}  // we'll initialize the contents via ReplaceAllItems() calls, below
+   Queue<const TrieNode<T> *> trieStates;
+   if (trieStates.EnsureSize(numPairs, true).IsError()) {MWARN_OUT_OF_MEMORY; return origStr;}  // we'll initialize the contents via ReplaceAllItems() calls, below
 
    // Just so we can have fast lookup of index->beforeStr later on
    Queue<const String *> beforeStrs;
-   if (beforeStrs.EnsureSize(numPairs).IsError()) {MWARN_OUT_OF_MEMORY; return *this;}
+   if (beforeStrs.EnsureSize(numPairs).IsError()) {MWARN_OUT_OF_MEMORY; return origStr;}
    for (HashtableIterator<String, String> iter(beforeToAfter); iter.HasData(); iter++) (void) beforeStrs.AddTail(&iter.GetKey());
 
    // Build a state-machine trie that each trieState can later iterate through simultaneously
@@ -433,21 +427,21 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
       const String & beforeStr = *beforeStrs[i];
       if (beforeStr.IsEmpty()) continue;  // semi-paranoia
 
-      TrieNode * tn = root;
+      TrieNode<T> * tn = root;
       for (uint32 j=0; j<beforeStr.Length(); j++)
       {
-         uint32 & p = tn->_next[(uint8)beforeStr[j]];
+         T & p = tn->_next[(uint8)beforeStr[j]];
 
          if (p > 0) tn += p;  // skip to the next node in our sequence (it was already allocated before we got here)
          else
          {
-            TrieNode * newNode = trie.AddTailAndGet(); // guaranteed not to fail
+            TrieNode<T> * newNode = trie.AddTailAndGet(); // guaranteed not to fail
             muscleClearArray(newNode->_next);
-            p  = (uint32) (newNode-tn);
+            p  = (T) (newNode-tn);
             tn = newNode;
          }
       }
-      tn->_next[0] = i+1;  // mark this node as a success-point (the +1 is so that before-string #0 will still be recognized as valid)
+      tn->_next[0] = (T) (i+1);  // mark this node as a success-point (the +1 is so that before-string #0 will still be recognized as valid)
    }
    if (trie.GetNumItems() > trieSize)  // should never happen, but just in case I messed up somehow
    {
@@ -456,7 +450,7 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
    }
 
    // We'll do a preliminary run just to see how the size of our string will need to change; that way we won't need to realloc later
-   const uint32 origStringLength = Length();
+   const uint32 origStringLength = origStr.Length();
    uint32 finalStringLength = origStringLength;
    {
       trieStates.ReplaceAllItems(root);
@@ -464,13 +458,13 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
       uint32 rc = maxReplaceCount;
       for (uint32 i=0; ((rc > 0)&&(i<=origStringLength)); i++)  // <= is deliberate since we want to include the trailing NUL
       {
-         const char   c = *(Cstr()+i);
+         const char   c = *(origStr()+i);
          const uint8 uc = (uint8) c;
 
          for (uint32 j=0; j<numPairs; j++)
          {
-            const TrieNode * & tn = trieStates[j];
-            const uint32 s = tn->_next[0];
+            const TrieNode<T> * & tn = trieStates[j];
+            const T s = tn->_next[0];
             if (s > 0)
             {
                const uint32 whichBefore = s-1;
@@ -490,7 +484,7 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
             }
             else
             {
-               const uint32 p = tn->_next[uc];
+               const T p = tn->_next[uc];
                tn = (p > 0) ? (tn+p) : root;
             }
          }
@@ -501,7 +495,7 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
    if (ret.Prealloc(finalStringLength).IsError())
    {
       MWARN_OUT_OF_MEMORY;
-      return *this;
+      return origStr;
    }
 
    // Finally we can do the actual search-and-replace
@@ -509,14 +503,14 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
    trieStates.ReplaceAllItems(root);  // reset to default state
    for (uint32 i=0; i<=origStringLength; i++)  // <= is deliberate since we want to include the trailing NUL
    {
-      const char   c = *(Cstr()+i);
+      const char   c = *(origStr()+i);
       const uint8 uc = (uint8) c;
       ret += c;
 
       for (uint32 j=0; ((rc > 0)&&(j<numPairs)); j++)
       {
-         const TrieNode * & tn = trieStates[j];
-         const uint32 s = tn->_next[0];
+         const TrieNode<T> * & tn = trieStates[j];
+         const T s = tn->_next[0];
          if (s > 0)
          {
             const uint32 whichBefore = s-1;
@@ -540,7 +534,7 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
          }
          else
          {
-            const uint32 p = tn->_next[uc];
+            const T p = tn->_next[uc];
             tn = (p > 0) ? (tn+p) : root;
          }
       }
@@ -553,6 +547,21 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
       MCRASH("WithReplacementsD");
    }
    return ret;
+}
+
+String String :: WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount) const
+{
+   if ((maxReplaceCount == 0)||(beforeToAfter.IsEmpty())||(IsEmpty())) return *this;
+
+   // Compute the worst-case number of TrieNodes we could possibly need (i.e. if none of our before-strings share any common prefix)
+   uint32 trieSize = 1;  // start with 1, representing the root-node
+   for (HashtableIterator<String, String> iter(beforeToAfter); iter.HasData(); iter++) trieSize += iter.GetKey().Length();
+
+   const uint32 maxSlotValue = muscleMax(beforeToAfter.GetNumItems(), trieSize-1);  // the largest integer we expect to need to fit into a TrieNode::_next[] slot
+
+        if (maxSlotValue < 256)   return WithReplacementsAux<uint8>( trieSize, *this, beforeToAfter, maxReplaceCount);
+   else if (maxSlotValue < 65536) return WithReplacementsAux<uint16>(trieSize, *this, beforeToAfter, maxReplaceCount);
+   else                           return WithReplacementsAux<uint32>(trieSize, *this, beforeToAfter, maxReplaceCount);
 }
 
 String String :: WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount, uint32 fromIndex) const
