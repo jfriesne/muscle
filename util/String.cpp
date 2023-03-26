@@ -399,10 +399,9 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
 
 struct TrieNode
 {
-   // positive value = relative-offset to the next TrieNode in our matching-char-sequence
-   // zero           = unset
-   // negative value = index into the beforeToAfter keys-list (encoded as -1-idx); used only for the last char of a sequence
-   int32 _next[256];  // one "pointer" for each possible value of a uint8
+   // _next[0], if non-zero, is (1 plus the index of the before-string that terminates at this TrieNode)
+   // all other entries, if non-zero, are the offset to the next TriedNode in our sequence, for the given char
+   uint32 _next[256];
 };
 
 String String :: WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount) const
@@ -431,23 +430,24 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
    // Build a state-machine trie that each trieState can later iterate through simultaneously
    for (int32 i=beforeStrs.GetNumItems()-1; i>=0; i--)  // backwards so that earlier key-value-pairs will get priority whenever there is a conflict
    {
-      TrieNode * tn = root;
-
       const String & beforeStr = *beforeStrs[i];
+      if (beforeStr.IsEmpty()) continue;  // semi-paranoia
+
+      TrieNode * tn = root;
       for (uint32 j=0; j<beforeStr.Length(); j++)
       {
-         int32 & n = tn->_next[(uint8)beforeStr[j]];
+         uint32 & p = tn->_next[(uint8)beforeStr[j]];
 
-              if ((j+1) == beforeStr.Length()) n = -1-i;
-         else if (n > 0) tn += n;  // skip to the next node in our sequence (it was already allocated before we got here)
+         if (p > 0) tn += p;  // skip to the next node in our sequence (it was already allocated before we got here)
          else
          {
             TrieNode * newNode = trie.AddTailAndGet(); // guaranteed not to fail
             muscleClearArray(newNode->_next);
-            n  = (int32) (newNode-tn);
+            p  = (uint32) (newNode-tn);
             tn = newNode;
          }
       }
+      tn->_next[0] = i+1;  // mark this node as a success-point (the +1 is so that before-string #0 will still be recognized as valid)
    }
    if (trie.GetNumItems() > trieSize)  // should never happen, but just in case I messed up somehow
    {
@@ -462,18 +462,18 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
       trieStates.ReplaceAllItems(root);
 
       uint32 rc = maxReplaceCount;
-      for (uint32 i=0; ((rc > 0)&&(i<origStringLength)); i++)
+      for (uint32 i=0; ((rc > 0)&&(i<=origStringLength)); i++)  // <= is deliberate since we want to include the trailing NUL
       {
-         const uint8 c = (uint8) (*this)[i];
+         const char   c = *(Cstr()+i);
+         const uint8 uc = (uint8) c;
+
          for (uint32 j=0; j<numPairs; j++)
          {
-            const TrieNode * & ts = trieStates[j];
-            const int32 p = ts->_next[c];
-                 if (p == 0) ts = root;  // match failed; reset this trieState back to the start
-            else if (p >  0) ts += p;    // aha, a partial match: move to the next TrieNode in the sequence
-            else
+            const TrieNode * & tn = trieStates[j];
+            const uint32 s = tn->_next[0];
+            if (s > 0)
             {
-               const uint32 whichBefore = (uint32)(-1-p);
+               const uint32 whichBefore = s-1;
                const String & before    = *beforeStrs[whichBefore];
                const String * after     = beforeToAfter.Get(before);
 
@@ -487,6 +487,11 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
                trieStates.ReplaceAllItems(root);  // we have a winner, so everyone should reset
                if (rc != MUSCLE_NO_LIMIT) rc--;
                break;
+            }
+            else
+            {
+               const uint32 p = tn->_next[uc];
+               tn = (p > 0) ? (tn+p) : root;
             }
          }
       }
@@ -502,27 +507,26 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
    // Finally we can do the actual search-and-replace
    uint32 rc = maxReplaceCount;
    trieStates.ReplaceAllItems(root);  // reset to default state
-   for (uint32 i=0; i<origStringLength; i++)
+   for (uint32 i=0; i<=origStringLength; i++)  // <= is deliberate since we want to include the trailing NUL
    {
-      const char   c = (*this)[i];
+      const char   c = *(Cstr()+i);
       const uint8 uc = (uint8) c;
       ret += c;
 
       for (uint32 j=0; ((rc > 0)&&(j<numPairs)); j++)
       {
-         const TrieNode * & ts = trieStates[j];
-         const int32 p = ts->_next[uc];
-              if (p == 0) ts = root;  // match failed; reset this trieState back to the start
-         else if (p >  0) ts += p;    // aha, a partial match:  move to the next TrieNode in the sequence
-         else
+         const TrieNode * & tn = trieStates[j];
+         const uint32 s = tn->_next[0];
+         if (s > 0)
          {
-            const uint32 whichBefore = (uint32)(-1-p);
+            const uint32 whichBefore = s-1;
             const String & before    = *beforeStrs[whichBefore];
             const String * after     = beforeToAfter.Get(before);
             if (after)
             {
-               ret.TruncateChars(before.Length()); // out with the old
-               ret += *after;                      // in with the new
+               ret.TruncateChars(before.Length()+1); // out with the old
+               ret += *after;                        // in with the new
+               if (uc > 0) i--; // gotta retry the last letter again
             }
             else
             {
@@ -534,7 +538,13 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
             if (rc != MUSCLE_NO_LIMIT) rc--;
             break;
          }
+         else
+         {
+            const uint32 p = tn->_next[uc];
+            tn = (p > 0) ? (tn+p) : root;
+         }
       }
+      if ((ret.HasChars())&&(ret[ret.Length()-1] == '\0')) ret--;  // don't leave any superfluous NUL terminator
    }
 
    if (ret.Length() != finalStringLength)

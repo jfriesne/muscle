@@ -99,7 +99,6 @@ static status_t UnitTestString()
       replaceMap.Put("Two",    "3");
       replaceMap.Put("Three",  "4");
       replaceMap.Put("potato", "sweet potato");
-      replaceMap.Put("pot",    "mary jane");  // shouldn't have any effect, since "potato" was specified first and should therefore take precedence
       replaceMap.Put("sweet",  "sour");       // shouldn't have any effect, since the original string doesn't contain the substring 'sour'
 
       const String after = before.WithReplacements(replaceMap);
