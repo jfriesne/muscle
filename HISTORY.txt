@@ -7,6 +7,7 @@ key:  - new feature
 
    - Rewrote String::WithReplacements(const Hashtable<String,String> &)
      to only scan the input string once, instead of once per key.
+   - Added a String::Replace(const Hashtable<String,String> &) method.
    - Added a ReplaceAllItems() convenience-method to the Queue class.
 
 9.24 - Release 3/20/2023

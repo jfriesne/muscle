@@ -399,21 +399,34 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
 
 String String :: WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount) const
 {
-   if ((maxReplaceCount == 0)||(beforeToAfter.IsEmpty())||(IsEmpty())) return *this;  // nothing to do!
+   String writeTo;
+   return (ReplaceAux(beforeToAfter, maxReplaceCount, writeTo) > 0) ? writeTo : *this;
+}
+
+int32 String :: Replace(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount)
+{
+   String writeTo;
+   const int32 ret = ReplaceAux(beforeToAfter, maxReplaceCount, writeTo);
+   if (ret > 0) SwapContents(writeTo);
+   return ret;
+}
+
+int32 String :: ReplaceAux(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount, String & writeTo) const
+{
+   if ((maxReplaceCount == 0)||(beforeToAfter.IsEmpty())||(IsEmpty())) return 0;  // nothing to do!
 
    const uint32 origStrLength = Length();
    const uint32 numPairs      = beforeToAfter.GetNumItems();
 
    Queue<const String *> beforeStrs;
-   if (beforeStrs.EnsureSize(beforeToAfter.GetNumItems()).IsError()) {MWARN_OUT_OF_MEMORY; return *this;}
+   if (beforeStrs.EnsureSize(beforeToAfter.GetNumItems()).IsError()) return -1;
    for (HashtableIterator<String, String> iter(beforeToAfter); iter.HasData(); iter++) if (iter.GetKey().HasChars()) (void) beforeStrs.AddTail(&iter.GetKey());
-   if (beforeStrs.IsEmpty()) return *this;  // possible if our only before-key was an empty String
 
    // Build up a map of what substrings to replace at what offsets into the original-string
    Hashtable<uint32, uint32> sourceOffsetToPairIndex;
    {
       Queue<const char *> states;
-      if (states.EnsureSize(numPairs, true).IsError()) {MWARN_OUT_OF_MEMORY; return *this;}  // so we won't have to worry about reallocs below
+      if (states.EnsureSize(numPairs, true).IsError()) return -1; // so we won't have to worry about reallocs below
       for (uint32 i=0; i<numPairs; i++) states[i] = beforeStrs[i]->Cstr();
 
       for (uint32 i=0; i<origStrLength; i++)
@@ -427,17 +440,12 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
                // We got to the NUL byte so we found a match for this before-string!  Record where and what it is for later
                uint32 * pairIdx = sourceOffsetToPairIndex.GetOrPut(1+i-beforeStrs[j]->Length(), MUSCLE_NO_LIMIT);
                if (pairIdx) *pairIdx = muscleMin(*pairIdx, j);  // earlier key/value pairs get precedence when there are two matches at the same offset
-               else
-               {
-                  MWARN_OUT_OF_MEMORY;
-                  return *this;
-               }
+                       else return -1;
             }
          }
       }
    }
-
-   if (sourceOffsetToPairIndex.IsEmpty()) return *this;  // nothing to do!
+   if (sourceOffsetToPairIndex.IsEmpty()) return 0;  // nothing to do!
 
    // Now let's precalculate what our post-update string's length will be so we won't have to reallocate its buffer later
    uint32 finalStringLength = origStrLength;
@@ -458,36 +466,33 @@ String String :: WithReplacements(const Hashtable<String, String> & beforeToAfte
       }
    }
 
-   String ret;
-   if (ret.Prealloc(finalStringLength).IsError())
-   {
-      MWARN_OUT_OF_MEMORY;
-      return *this;
-   }
+   writeTo.Clear();  // paranoia
+   if (writeTo.Prealloc(finalStringLength).IsError()) return -1;
 
    // Finally we can assemble our actual updated string
-   uint32 rc = maxReplaceCount;
+   uint32 rc = 0;
    for (uint32 i=0; i<origStrLength; i++)
    {
-      const uint32 * pairIdx = (rc > 0) ? sourceOffsetToPairIndex.Get(i) : NULL;
+      const uint32 * pairIdx = (maxReplaceCount > 0) ? sourceOffsetToPairIndex.Get(i) : NULL;
       if (pairIdx)
       {
          const String & before = *beforeStrs[*pairIdx];
-         ret += beforeToAfter[before];
+         writeTo += beforeToAfter[before];
          i += (before.Length()-1);  // -1 since our for-loop will also increment the counter
-         if (rc != MUSCLE_NO_LIMIT) rc--;
+         if (maxReplaceCount != MUSCLE_NO_LIMIT) maxReplaceCount--;
+         rc++;
       }
-      else ret += (*this)[i];
+      else writeTo += (*this)[i];
    }
 
    // This shouldn't ever happen, but I'm checking anyway just so any bugs in the above code will show up with an obvious symptom
-   if (ret.Length() != finalStringLength)
+   if (writeTo.Length() != finalStringLength)
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "String::WithReplacements():  Final string length is " UINT32_FORMAT_SPEC ", expected " UINT32_FORMAT_SPEC "\n", ret.Length(), finalStringLength);
+      LogTime(MUSCLE_LOG_CRITICALERROR, "String::WithReplacements():  Final string length is " UINT32_FORMAT_SPEC ", expected " UINT32_FORMAT_SPEC "\n", writeTo.Length(), finalStringLength);
       MCRASH("WithReplacements::Wrong String Length");
    }
 
-   return ret;
+   return rc;
 }
 
 String String :: WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount, uint32 fromIndex) const

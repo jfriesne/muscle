@@ -967,6 +967,14 @@ public:
      */
    String WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT, uint32 fromIndex=0) const;
 
+   /** Replaces all instances in this String of each key in (beforeToAfter) with its corresponding value.
+     * @param beforeToAfter a table of before/after pairs to replace.
+     * @param maxReplaceCount The maximum number of substrings that should be replaced.  Defaults to MUSCLE_NO_LIMIT.
+     * @returns the number of strings that were replaced, or -1 if there was an error (out of memory?)
+     * @see WithReplacements(const Hashtable<String, String> &) for more details.
+     */
+   int32 Replace(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount = MUSCLE_NO_LIMIT);
+
    /** Returns a String equal to this one, except with a set of search-and-replace operations simultaneously performed.
      * @param beforeToAfter the set of search-and-replace operations to perform.  Each keys in this table is a substring
      *                      to be searched for, and each key's associated value is the string to replace that substring with.
@@ -1327,6 +1335,7 @@ private:
    char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
    void ClearSmallBuffer() {memset(_strData._smallBuffer, 0, sizeof(_strData._smallBuffer));}
    void WriteNULTerminatorByte() {GetBuffer()[_length] = '\0';}
+   int32 ReplaceAux(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount, String & writeTo) const;
 
 #ifdef __clang_analyzer__
    struct ShortStringOptimizationData {  // ClangSA gets confused by unions, so we'll avoid SSO during Clang analysis
