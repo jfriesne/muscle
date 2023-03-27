@@ -968,16 +968,17 @@ public:
    String WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT, uint32 fromIndex=0) const;
 
    /** Returns a String equal to this one, except with a set of search-and-replace operations simultaneously performed.
-     * @param beforeToAfter the set of search-and-replace operations to perform.  Keys in this table are the strings
-     *                      to be searched for, and each key's associated value is the string to replace it with.
+     * @param beforeToAfter the set of search-and-replace operations to perform.  Each keys in this table is a substring
+     *                      to be searched for, and each key's associated value is the string to replace that substring with.
      * @param maxReplaceCount The maximum number of substrings that should be replaced.  Defaults to MUSCLE_NO_LIMIT.
+     * @note In the case where a key in the supplied Hashtable is a prefix of another key in the Hashtable,
+     *       the key/value pair that comes first in the Hashtable's iteration-order will get priority -- that is, in
+     *       any case where either of the two key/value pairs could have been used, the algorithm will apply the key/value
+     *       pair that appeared first in the Hashtable's iteration-ordering.
      * @note By performing multiple search-and-replace operations simultaneously, we can give correct results in
      *       certain cases where a series of single-string search-and-replace operations would not.  For example,
-     *       String("1,2,3,4").WithReplacements("1","2").WithReplacements("2","3") returns "3,3,3,4"
-     *       instead of the hoped-for "2,3,3,4".
-     * @note In the case where some of the keys in the Hashtable are prefixes of other keys in the Hashtable,
-     *       the shorter key will take precedence over the longer key.  For example, if you had passed in Hashtable
-     *       with "Hi"->"Low" and "High->Dude", then the String "Highest calling" would return "Lowghest calling".
+     *       String("1,2,3,4").WithReplacements("1","2").WithReplacements("2","3") would unhelpfully return "3,3,3,4"
+     *       while the corresponding single call to this method would return the desired result "2,3,3,4".
      */
    String WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const;
 

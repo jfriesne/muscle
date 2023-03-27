@@ -92,17 +92,23 @@ static status_t UnitTestString()
 
    // Test the multi-search-and-replace version of WithReplacements()
    {
-      const String before = "One potato, Two potato, Three potato, Four.  Five potato, Six potato, Seven potato, more!  One Two Three Four Five";
+      printf("Testing multi-search-and-replace...\n");
+
+      const String before = "One potato, Two potato, Three potato, Four.  Five potato, Six potato, Seven potato, more!  One Two Threepot Four Five";
 
       Hashtable<String,String> replaceMap;
       replaceMap.Put("One",    "Two");
       replaceMap.Put("Two",    "3");
+      replaceMap.Put("Twofer", "xxx");
       replaceMap.Put("Three",  "4");
       replaceMap.Put("potato", "sweet potato");
-      replaceMap.Put("sweet",  "sour");       // shouldn't have any effect, since the original string doesn't contain the substring 'sour'
+      replaceMap.Put("pot",    "mary jane");  // should replace any "pot" that isn't also a "potato"
+      replaceMap.Put("sweet",  "sour");       // shouldn't have any effect, since the original string doesn't contain the substring 'sweet'
+
+      for (uint32 i=0; i<15; i++) printf("  Max=" UINT32_FORMAT_SPEC ". [%s]\n", i, before.WithReplacements(replaceMap, i)());
 
       const String after = before.WithReplacements(replaceMap);
-      const String expected = "Two sweet potato, 3 sweet potato, 4 sweet potato, Four.  Five sweet potato, Six sweet potato, Seven sweet potato, more!  Two 3 4 Four Five";
+      const String expected = "Two sweet potato, 3 sweet potato, 4 sweet potato, Four.  Five sweet potato, Six sweet potato, Seven sweet potato, more!  Two 3 4mary jane Four Five";
       if (after == expected) printf("Multi-replace:  got expected result [%s]\n", after());
       else
       {

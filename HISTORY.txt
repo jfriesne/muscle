@@ -5,8 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Replaced String::WithReplacements(const Hashtable<String,String> &)
-     with a more CPU-efficient Trie-based implementation.
+   - Rewrote String::WithReplacements(const Hashtable<String,String> &)
+     to only scan the input string once, instead of once per key.
    - Added a ReplaceAllItems() convenience-method to the Queue class.
 
 9.24 - Release 3/20/2023

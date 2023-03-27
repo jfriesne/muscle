@@ -397,96 +397,63 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
    return ret;  // just to shut the compiler up; we never actually get here
 }
 
-template<typename T> struct TrieNode
+String String :: WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount) const
 {
-   // _next[0], if non-zero, is (1 plus the index of the before-string that terminates at this TrieNode)
-   // all other entries, if non-zero, are the offset to the next TriedNode in our sequence, for the given char
-   T _next[256];
-};
+   if ((maxReplaceCount == 0)||(beforeToAfter.IsEmpty())||(IsEmpty())) return *this;  // nothing to do!
 
-template<typename T> static String WithReplacementsAux(uint32 trieSize, const String & origStr, const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount)
-{
-   Queue< TrieNode<T> > trie;
-   if (trie.EnsureSize(trieSize).IsError()) {MWARN_OUT_OF_MEMORY; return origStr;}  // so we won't have to worry about reallocs below
+   const uint32 origStrLength = Length();
+   const uint32 numPairs      = beforeToAfter.GetNumItems();
 
-   TrieNode<T> * root = trie.AddTailAndGet();
-   muscleClearArray(root->_next);
-
-   const uint32 numPairs = beforeToAfter.GetNumItems();
-   Queue<const TrieNode<T> *> trieStates;
-   if (trieStates.EnsureSize(numPairs, true).IsError()) {MWARN_OUT_OF_MEMORY; return origStr;}  // we'll initialize the contents via ReplaceAllItems() calls, below
-
-   // Just so we can have fast lookup of index->beforeStr later on
    Queue<const String *> beforeStrs;
-   if (beforeStrs.EnsureSize(numPairs).IsError()) {MWARN_OUT_OF_MEMORY; return origStr;}
-   for (HashtableIterator<String, String> iter(beforeToAfter); iter.HasData(); iter++) (void) beforeStrs.AddTail(&iter.GetKey());
+   if (beforeStrs.EnsureSize(beforeToAfter.GetNumItems()).IsError()) {MWARN_OUT_OF_MEMORY; return *this;}
+   for (HashtableIterator<String, String> iter(beforeToAfter); iter.HasData(); iter++) if (iter.GetKey().HasChars()) (void) beforeStrs.AddTail(&iter.GetKey());
+   if (beforeStrs.IsEmpty()) return *this;  // possible if our only before-key was an empty String
 
-   // Build a state-machine trie that each trieState can later iterate through simultaneously
-   for (int32 i=beforeStrs.GetNumItems()-1; i>=0; i--)  // backwards so that earlier key-value-pairs will get priority whenever there is a conflict
+   // Build up a map of what substrings to replace at what offsets into the original-string
+   Hashtable<uint32, uint32> sourceOffsetToPairIndex;
    {
-      const String & beforeStr = *beforeStrs[i];
-      if (beforeStr.IsEmpty()) continue;  // semi-paranoia
+      Queue<const char *> states;
+      if (states.EnsureSize(numPairs, true).IsError()) {MWARN_OUT_OF_MEMORY; return *this;}  // so we won't have to worry about reallocs below
+      for (uint32 i=0; i<numPairs; i++) states[i] = beforeStrs[i]->Cstr();
 
-      TrieNode<T> * tn = root;
-      for (uint32 j=0; j<beforeStr.Length(); j++)
+      for (uint32 i=0; i<origStrLength; i++)
       {
-         T & p = tn->_next[(uint8)beforeStr[j]];
-
-         if (p > 0) tn += p;  // skip to the next node in our sequence (it was already allocated before we got here)
-         else
-         {
-            TrieNode<T> * newNode = trie.AddTailAndGet(); // guaranteed not to fail
-            muscleClearArray(newNode->_next);
-            p  = (T) (newNode-tn);
-            tn = newNode;
-         }
-      }
-      tn->_next[0] = (T) (i+1);  // mark this node as a success-point (the +1 is so that before-string #0 will still be recognized as valid)
-   }
-   if (trie.GetNumItems() > trieSize)  // should never happen, but just in case I messed up somehow
-   {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "String::WithReplacementsA:  trie overflowed!  (Has " UINT32_FORMAT_SPEC " items, expected " UINT32_FORMAT_SPEC ")\n", trie.GetNumItems(), trieSize);
-      MCRASH("WithReplacementsA");
-   }
-
-   // We'll do a preliminary run just to see how the size of our string will need to change; that way we won't need to realloc later
-   const uint32 origStringLength = origStr.Length();
-   uint32 finalStringLength = origStringLength;
-   {
-      trieStates.ReplaceAllItems(root);
-
-      uint32 rc = maxReplaceCount;
-      for (uint32 i=0; ((rc > 0)&&(i<=origStringLength)); i++)  // <= is deliberate since we want to include the trailing NUL
-      {
-         const char   c = *(origStr()+i);
-         const uint8 uc = (uint8) c;
-
+         const char c = (*this)[i];
          for (uint32 j=0; j<numPairs; j++)
          {
-            const TrieNode<T> * & tn = trieStates[j];
-            const T s = tn->_next[0];
-            if (s > 0)
+            if (*states[j] != c) states[j] = beforeStrs[j]->Cstr();  // match failed: back to initial state!
+            if ((*states[j] == c)&&(*(++states[j]) == '\0'))
             {
-               const uint32 whichBefore = s-1;
-               const String & before    = *beforeStrs[whichBefore];
-               const String * after     = beforeToAfter.Get(before);
-
-               if (after) finalStringLength += (after->Length()-before.Length());
+               // We got to the NUL byte so we found a match for this before-string!  Record where and what it is for later
+               uint32 * pairIdx = sourceOffsetToPairIndex.GetOrPut(1+i-beforeStrs[j]->Length(), MUSCLE_NO_LIMIT);
+               if (pairIdx) *pairIdx = muscleMin(*pairIdx, j);  // earlier key/value pairs get precedence when there are two matches at the same offset
                else
                {
-                  LogTime(MUSCLE_LOG_CRITICALERROR, "String::WithReplacementsB:  Couldn't find afterString for beforeString #" UINT32_FORMAT_SPEC " [%s]!\n", whichBefore, before());  // should never happen
-                  MCRASH("WithReplacementsB");
+                  MWARN_OUT_OF_MEMORY;
+                  return *this;
                }
+            }
+         }
+      }
+   }
 
-               trieStates.ReplaceAllItems(root);  // we have a winner, so everyone should reset
-               if (rc != MUSCLE_NO_LIMIT) rc--;
-               break;
-            }
-            else
-            {
-               const T p = tn->_next[uc];
-               tn = (p > 0) ? (tn+p) : root;
-            }
+   if (sourceOffsetToPairIndex.IsEmpty()) return *this;  // nothing to do!
+
+   // Now let's precalculate what our post-update string's length will be so we won't have to reallocate its buffer later
+   uint32 finalStringLength = origStrLength;
+   {
+      uint32 rc = maxReplaceCount;
+      for (uint32 i=0; ((rc>0)&&(i<origStrLength)); i++)
+      {
+         const uint32 * beforeIdx = sourceOffsetToPairIndex.Get(i);
+         if (beforeIdx)
+         {
+            const String & before = *beforeStrs[*beforeIdx];    // guaranteed non-NULL
+            const String & after  = *beforeToAfter.Get(before); // guaranteed non-NULL
+
+            finalStringLength += (after.Length()-before.Length());
+            i += (before.Length()-1);  // -1 to account for the fact the for-loop will increment i also
+            if (rc != MUSCLE_NO_LIMIT) rc--;
          }
       }
    }
@@ -495,73 +462,32 @@ template<typename T> static String WithReplacementsAux(uint32 trieSize, const St
    if (ret.Prealloc(finalStringLength).IsError())
    {
       MWARN_OUT_OF_MEMORY;
-      return origStr;
+      return *this;
    }
 
-   // Finally we can do the actual search-and-replace
+   // Finally we can assemble our actual updated string
    uint32 rc = maxReplaceCount;
-   trieStates.ReplaceAllItems(root);  // reset to default state
-   for (uint32 i=0; i<=origStringLength; i++)  // <= is deliberate since we want to include the trailing NUL
+   for (uint32 i=0; i<origStrLength; i++)
    {
-      const char   c = *(origStr()+i);
-      const uint8 uc = (uint8) c;
-      ret += c;
-
-      for (uint32 j=0; ((rc > 0)&&(j<numPairs)); j++)
+      const uint32 * pairIdx = (rc > 0) ? sourceOffsetToPairIndex.Get(i) : NULL;
+      if (pairIdx)
       {
-         const TrieNode<T> * & tn = trieStates[j];
-         const T s = tn->_next[0];
-         if (s > 0)
-         {
-            const uint32 whichBefore = s-1;
-            const String & before    = *beforeStrs[whichBefore];
-            const String * after     = beforeToAfter.Get(before);
-            if (after)
-            {
-               ret.TruncateChars(before.Length()+1); // out with the old
-               ret += *after;                        // in with the new
-               if (uc > 0) i--; // gotta retry the last letter again
-            }
-            else
-            {
-               LogTime(MUSCLE_LOG_CRITICALERROR, "String::WithReplacementsC:  Couldn't find afterString for beforeString #" UINT32_FORMAT_SPEC " [%s]!\n", whichBefore, before());  // should never happen
-               MCRASH("WithReplacementsC");
-            }
-
-            trieStates.ReplaceAllItems(root);  // we have a winner, so everyone should reset
-            if (rc != MUSCLE_NO_LIMIT) rc--;
-            break;
-         }
-         else
-         {
-            const T p = tn->_next[uc];
-            tn = (p > 0) ? (tn+p) : root;
-         }
+         const String & before = *beforeStrs[*pairIdx];
+         ret += beforeToAfter[before];
+         i += (before.Length()-1);  // -1 since our for-loop will also increment the counter
+         if (rc != MUSCLE_NO_LIMIT) rc--;
       }
-      if ((ret.HasChars())&&(ret[ret.Length()-1] == '\0')) ret--;  // don't leave any superfluous NUL terminator
+      else ret += (*this)[i];
    }
 
+   // This shouldn't ever happen, but I'm checking anyway just so any bugs in the above code will show up with an obvious symptom
    if (ret.Length() != finalStringLength)
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "String::WithReplacementsD:  Final string length is " UINT32_FORMAT_SPEC ", expected " UINT32_FORMAT_SPEC "\n", ret.Length(), finalStringLength);  // more paranoia
-      MCRASH("WithReplacementsD");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "String::WithReplacements():  Final string length is " UINT32_FORMAT_SPEC ", expected " UINT32_FORMAT_SPEC "\n", ret.Length(), finalStringLength);
+      MCRASH("WithReplacements::Wrong String Length");
    }
+
    return ret;
-}
-
-String String :: WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount) const
-{
-   if ((maxReplaceCount == 0)||(beforeToAfter.IsEmpty())||(IsEmpty())) return *this;
-
-   // Compute the worst-case number of TrieNodes we could possibly need (i.e. if none of our before-strings share any common prefix)
-   uint32 trieSize = 1;  // start with 1, representing the root-node
-   for (HashtableIterator<String, String> iter(beforeToAfter); iter.HasData(); iter++) trieSize += iter.GetKey().Length();
-
-   const uint32 maxSlotValue = muscleMax(beforeToAfter.GetNumItems(), trieSize-1);  // the largest integer we expect to need to fit into a TrieNode::_next[] slot
-
-        if (maxSlotValue < 256)   return WithReplacementsAux<uint8>( trieSize, *this, beforeToAfter, maxReplaceCount);
-   else if (maxSlotValue < 65536) return WithReplacementsAux<uint16>(trieSize, *this, beforeToAfter, maxReplaceCount);
-   else                           return WithReplacementsAux<uint32>(trieSize, *this, beforeToAfter, maxReplaceCount);
 }
 
 String String :: WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount, uint32 fromIndex) const
