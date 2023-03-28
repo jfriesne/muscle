@@ -2773,16 +2773,15 @@ uint64 GetProcessMemoryUsage()
       if (firstSpace) return Atoull(firstSpace+1)*sysconf(_SC_PAGESIZE);
    }
 #elif defined(__APPLE__)
-
-#if defined(MAC_OS_X_VERSION_10_11)  // The phys_footprint field was introduced in MacOS 10.11
-    task_vm_info_data_t task_vm_info;
-    mach_msg_type_number_t outCount = TASK_VM_INFO_COUNT;
-    return (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&task_vm_info, &outCount) == KERN_SUCCESS) ? task_vm_info.phys_footprint : 0;
-#else
-    // This old method is less accurate as it only measure the memory currently resident in RAM; it doesn't include paged-out memory
-    mach_task_basic_info_data_t taskinfo; memset(&taskinfo, 0, sizeof(taskinfo));
-    mach_msg_type_number_t outCount = MACH_TASK_BASIC_INFO_COUNT;
-    if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&taskinfo, &outCount) == KERN_SUCCESS) return taskinfo.resident_size;
+# if defined(MAC_OS_X_VERSION_10_11)  // The phys_footprint field was introduced in MacOS 10.11
+   task_vm_info_data_t task_vm_info;
+   mach_msg_type_number_t outCount = TASK_VM_INFO_COUNT;
+   return (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&task_vm_info, &outCount) == KERN_SUCCESS) ? task_vm_info.phys_footprint : 0;
+# else
+   // This old method is less accurate as it only measure the memory currently resident in RAM; it doesn't include paged-out memory
+   mach_task_basic_info_data_t taskinfo; memset(&taskinfo, 0, sizeof(taskinfo));
+   mach_msg_type_number_t outCount = MACH_TASK_BASIC_INFO_COUNT;
+   if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&taskinfo, &outCount) == KERN_SUCCESS) return taskinfo.resident_size;
 # endif
 #elif defined(WIN32) && !defined(__MINGW32__)
    PROCESS_MEMORY_COUNTERS pmc;
