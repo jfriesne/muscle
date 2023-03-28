@@ -2764,13 +2764,10 @@ uint64 GetProcessMemoryUsage()
    FILE* fp = muscleFopen("/proc/self/statm", "r");
    if (fp)
    {
-      char buf[256];
-      if (fgets(buf, sizeof(buf), fp) == NULL) buf[0] = '\0';
+      size_t vmSize, residentPages, sharedPages;
+      const bool readData = (fscanf(fp, "%zu %zu %zu", &vmSize, &residentPages, &sharedPages) == 3);
       fclose(fp);
-
-      // skip past the first number (total program size) and return Rss
-      const char * firstSpace = strchr(buf, ' ');
-      if (firstSpace) return Atoull(firstSpace+1)*sysconf(_SC_PAGESIZE);
+      return readData ? (residentPages-sharedPages)*sysconf(_SC_PAGESIZE) : 0;
    }
 #elif defined(__APPLE__)
 # if defined(MAC_OS_X_VERSION_10_11)  // The phys_footprint field was introduced in MacOS 10.11
@@ -2784,8 +2781,8 @@ uint64 GetProcessMemoryUsage()
    if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&taskinfo, &outCount) == KERN_SUCCESS) return taskinfo.resident_size;
 # endif
 #elif defined(WIN32) && !defined(__MINGW32__)
-   PROCESS_MEMORY_COUNTERS pmc;
-   if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) return pmc.WorkingSetSize;
+   PROCESS_MEMORY_COUNTERS_EX pmc;
+   if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) return pmc.PrivateUsage;
 #endif
    return 0;
 }

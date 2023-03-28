@@ -9,8 +9,7 @@ key:  - new feature
      to only scan the input string once, instead of once per key.
    - Added a String::Replace(const Hashtable<String,String> &) method.
    - Added a ReplaceAllItems() convenience-method to the Queue class.
-   * GetProcessMemoryUsage() now returns a more accurate value when
-     compiled under MacOS/X 10.11 or newer.
+   * GetProcessMemoryUsage() now returns more accurate values.
 
 9.24 - Release 3/20/2023
    - Added a CMakePresets.json file for quick specification of minimal

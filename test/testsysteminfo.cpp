@@ -4,6 +4,7 @@
 
 #include "system/SystemInfo.h"
 #include "system/SetupSystem.h"
+#include "util/MiscUtilityFunctions.h"  // for GetProcessMemoryUsage()
 
 using namespace muscle;
 
@@ -29,5 +30,6 @@ int main(int, char **)
    printf("                 cur path = [%s]\n", GetSystemPathAux(SYSTEM_PATH_CURRENT)());
    printf("                 exe path = [%s]\n", GetSystemPathAux(SYSTEM_PATH_EXECUTABLE)());
    printf("                 tmp path = [%s]\n", GetSystemPathAux(SYSTEM_PATH_TEMPFILES)());
+   printf("                 proc mem = " UINT64_FORMAT_SPEC " bytes\n", GetProcessMemoryUsage());
    return 0;
 }
