@@ -2782,7 +2782,7 @@ uint64 GetProcessMemoryUsage()
 # endif
 #elif defined(WIN32) && !defined(__MINGW32__)
    PROCESS_MEMORY_COUNTERS_EX pmc;
-   if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) return pmc.PrivateUsage;
+   if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) return pmc.PrivateUsage;
 #endif
    return 0;
 }
