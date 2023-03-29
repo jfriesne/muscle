@@ -91,21 +91,6 @@ public:
    virtual const ConstSocketRef & GetWriteSelectSocket() const = 0;
 
    /**
-    * Optional interface for returning information on when a given byte
-    * returned by the previous Read() call was received.  Not implemented
-    * by default, and not implemented by any of the standard MUSCLE DataIO
-    * subclasses. (Used by an LCS dataIO class that needs precision timing)
-    * @param whichByte Index of the byte in the previously returned
-    *                  read-buffer that you are interested in.
-    * @param retStamp On success, this value is set to the timestamp
-    *                 of the byte.
-    * @return B_NO_ERROR if a timestamp was written into (retStamp),
-    *                    otherwise an error code.  Default implementation
-    *                    always just returns B_UNIMPLEMENTED.
-    */
-   virtual status_t GetReadByteTimeStamp(int32 whichByte, uint64 & retStamp) const {(void) whichByte; (void) retStamp; return B_UNIMPLEMENTED;}
-
-   /**
     * Optional:  If your DataIO subclass is holding buffered data that it wants
     *            to output as soon as possible but hasn't been able to yet,
     *            then override this method to return true, and that will cause

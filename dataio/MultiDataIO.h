@@ -68,8 +68,6 @@ public:
    virtual const ConstSocketRef & GetReadSelectSocket()  const {return HasChildren() ? GetFirstChild()->GetReadSelectSocket()  : GetNullSocket();}
    virtual const ConstSocketRef & GetWriteSelectSocket() const {return HasChildren() ? GetFirstChild()->GetWriteSelectSocket() : GetNullSocket();}
 
-   virtual status_t GetReadByteTimeStamp(int32 whichByte, uint64 & retStamp) const {return HasChildren() ? GetFirstChild()->GetReadByteTimeStamp(whichByte, retStamp) : B_BAD_OBJECT;}
-
    virtual bool HasBufferedOutput() const;
    virtual void WriteBufferedOutput();
 

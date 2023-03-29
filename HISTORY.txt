@@ -9,6 +9,7 @@ key:  - new feature
      to only scan the input string once, instead of once per key.
    - Added a String::Replace(const Hashtable<String,String> &) method.
    - Added a ReplaceAllItems() convenience-method to the Queue class.
+   o Removed DataIO::GetReadByteTimeStamp() as it wasn't being used.
    * GetProcessMemoryUsage() now returns more accurate values.
 
 9.24 - Release 3/20/2023

@@ -39,7 +39,6 @@ public:
 
    virtual const ConstSocketRef & GetReadSelectSocket()  const {return _childIO() ? _childIO()->GetReadSelectSocket()  : GetNullSocket();}
    virtual const ConstSocketRef & GetWriteSelectSocket() const {return _childIO() ? _childIO()->GetWriteSelectSocket() : GetNullSocket();}
-   virtual status_t GetReadByteTimeStamp(int32 whichByte, uint64 & retStamp) const {return _childIO() ? _childIO()->GetReadByteTimeStamp(whichByte, retStamp) : B_BAD_OBJECT;}
 
    virtual bool HasBufferedOutput() const {return _childIO() ? _childIO()->HasBufferedOutput() : false;}
    virtual void WriteBufferedOutput() {if (_childIO()) _childIO()->WriteBufferedOutput();}
