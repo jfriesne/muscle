@@ -161,6 +161,12 @@ public:
      */
    status_t SetNumBytes(uint32 newNumBytes, bool retainData);
 
+   /** Convenience method:  If our current buffer size is greater than (newNumBytes), reduces our buffer size to (newNumBytes).
+     * Otherwise, does nothing.  (In particular, this method will never grow our buffer larger; call SetNumBytes() to do that)
+     * @param newNumBytes New desired length for our buffer
+     */
+   void TruncateToLength(uint32 newNumBytes) {if (newNumBytes < GetNumBytes()) (void) SetNumBytes(newNumBytes, true);}
+
    /** If we contain any extra bytes that are not being used to hold actual data (ie if GetNumAllocatedBytes()
     *  is returning a value greater than GetNumBytes(), this method can be called to free up the unused bytes.
     *  This method calls muscleRealloc(), so it should be quite efficient.  After this method returns successfully,

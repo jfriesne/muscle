@@ -106,7 +106,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(bufRef()->GetBuffer(), mtuSize, packetSource);
          MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(totalBytesRead, bytesRead);
 
-         (void) bufRef()->SetNumBytes(bytesRead.GetByteCount(), true);
+         bufRef()->TruncateToLength(bytesRead.GetByteCount());
          MessageRef msg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
          if ((msg())&&(msg()->AddFlat(PR_NAME_DATA_CHUNKS, bufRef).IsOK())
            &&((GetPacketRemoteLocationTaggingEnabled() == false)||(msg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetSource).IsOK()))

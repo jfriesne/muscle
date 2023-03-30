@@ -38,7 +38,7 @@ io_status_t ByteBufferDataIO :: Write(const void * buffer, uint32 size)
       const uint32 preallocBytes = (pastOffset*2);  // exponential resize to avoid too many reallocs
       MRETURN_ON_ERROR(_buf()->SetNumBytes(preallocBytes, true));   // allocate the memory
       memset(_buf()->GetBuffer()+oldBufSize, 0, preallocBytes-oldBufSize);  // make sure newly alloc'd memory is zeroed out!
-      (void) _buf()->SetNumBytes(pastOffset, true);  // guaranteed not to fail
+      _buf()->TruncateToLength(pastOffset);
    }
 
    memcpy(_buf()->GetBuffer()+_seekPos, buffer, size);

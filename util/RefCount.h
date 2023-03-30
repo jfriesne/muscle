@@ -506,7 +506,7 @@ private:
   * and never increment or decrement the referenced object's reference count.
   * @tparam Item the type of object that this DummyConstRef should point to.
   */
-template <class Item> class DummyConstRef : public ConstRef<Item>
+template <class Item> class MUSCLE_NODISCARD DummyConstRef : public ConstRef<Item>
 {
 public:
    /** Default constructor.  Creates a NULL reference. */
@@ -641,7 +641,7 @@ private:
   * and never increment or decrement the referenced object's reference count.
   * @tparam Item the type of object that this DummyRef should point to.
   */
-template <class Item> class DummyRef : public Ref<Item>
+template <class Item> class MUSCLE_NODISCARD DummyRef : public Ref<Item>
 {
 public:
    /** Default constructor.  Creates a NULL reference. */

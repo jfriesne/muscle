@@ -234,7 +234,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          {
             readBytes += numBytesRead.GetByteCount();
             maxBytes   = (maxBytes>(uint32)numBytesRead.GetByteCount())?(maxBytes-numBytesRead.GetByteCount()):0;
-            (void) _recvBuffer._buffer()->SetNumBytes(numBytesRead.GetByteCount(), true);  // trim off any unused bytes
+            _recvBuffer._buffer()->TruncateToLength(numBytesRead.GetByteCount());  // trim off any unused bytes
 
             MessageRef msg = UnflattenHeaderAndMessage(_recvBuffer._buffer);
             _recvBuffer.Reset();  // reset our state for the next one!
@@ -277,7 +277,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                if ((bodySize >= 0)&&(((uint32)bodySize) <= _maxIncomingMessageSize))
                {
                   const int32 availableBodyBytes = bb->GetNumBytes()-hs;
-                  if (bodySize <= availableBodyBytes) (void) bb->SetNumBytes(hs+bodySize, true);  // trim off any extra space we don't need
+                  if (bodySize <= availableBodyBytes) bb->TruncateToLength(hs+bodySize);  // trim off any extra space we don't need
                   else
                   {
                      // Oops, the Message body is greater than our buffer has bytes to store!  We're going to need a bigger buffer!

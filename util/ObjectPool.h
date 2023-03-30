@@ -372,7 +372,7 @@ public:
          }
       }
 
-      _mutex.Unlock();
+      (void) _mutex.Unlock();
 #endif
 
       return ret;
@@ -411,7 +411,7 @@ public:
             ret += slab->GetTotalDataSize();
             slab = slab->GetNext();
          }
-         _mutex.Unlock();
+         (void) _mutex.Unlock();
       }
       return ret;
    }
@@ -430,7 +430,7 @@ public:
             ret += NUM_OBJECTS_PER_SLAB;
             slab = slab->GetNext();
          }
-         _mutex.Unlock();
+         (void) _mutex.Unlock();
       }
       return ret;
    }

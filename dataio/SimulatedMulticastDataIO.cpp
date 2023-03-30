@@ -137,7 +137,7 @@ status_t SimulatedMulticastDataIO :: ReadPacket(DataIO & dio, ByteBufferRef & re
    const io_status_t bytesRead = dio.Read(_scratchBuf()->GetBuffer(), _scratchBuf()->GetNumBytes());
    if (bytesRead.GetByteCount() > 0)
    {
-      (void) _scratchBuf()->SetNumBytes(bytesRead.GetByteCount(), true);
+      _scratchBuf()->TruncateToLength(bytesRead.GetByteCount());
       retBuf = _scratchBuf;
       _scratchBuf.Reset();
       return B_NO_ERROR;

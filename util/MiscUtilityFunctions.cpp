@@ -928,7 +928,7 @@ ByteBufferRef ParseHexBytes(const char * buf)
             else b[count++] = (uint8) strtol(next, NULL, 16);
          }
       }
-      (void) bb()->SetNumBytes(count, true);
+      bb()->TruncateToLength(count);
    }
    return bb;
 }
