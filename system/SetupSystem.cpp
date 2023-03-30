@@ -2411,7 +2411,7 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint64> & results)
          oc = oc->GetNextCounter();
       }
 
-      if (m) m->Unlock();
+      if (m) (void) m->Unlock();
       return ret;
    }
    else return B_LOCK_FAILED;
