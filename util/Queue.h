@@ -1614,7 +1614,7 @@ RemoveAllInstancesOf(const ItemType & val)
    }
 
    // Now get rid of any now-surplus slots
-   for (; writeTo<origSize; writeTo++) RemoveTail();
+   for (; writeTo<origSize; writeTo++) (void) RemoveTail();
 
    return ret;
 }
