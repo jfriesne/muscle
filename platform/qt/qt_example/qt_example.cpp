@@ -172,7 +172,7 @@ ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userN
    , _publicKey(publicKey)
 {
 #ifdef MUSCLE_ENABLE_SSL
-   if (_publicKey()) _mtt.SetSSLPublicKeyCertificate(_publicKey);
+   if (_publicKey()) (void) _mtt.SetSSLPublicKeyCertificate(_publicKey);
 #endif
 
    QPalette p = palette();
