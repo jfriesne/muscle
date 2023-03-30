@@ -93,7 +93,7 @@ class DummyConstSocketRef;  // forward declaration
   * referenced Socket object.  Doing it this way gives more intuitive hashing behavior (ie
   * multiple ConstSocketRefs referencing the same file-descriptor will hash to the same entry)
   */
-class ConstSocketRef : public ConstRef<Socket>
+class MUSCLE_NODISCARD ConstSocketRef : public ConstRef<Socket>
 {
 public:
    /** Default constructor */

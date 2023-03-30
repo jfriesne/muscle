@@ -123,7 +123,7 @@ DECLARE_REFTYPES(RefCountable);
  *  If you want read/write access to the referenced object, you should use a Ref instead.
  *  @tparam Item the type of object that this ConstRef will reference.
  */
-template <class Item> class ConstRef
+template <class Item> class MUSCLE_NODISCARD ConstRef
 {
 public:
    typedef ObjectPool<Item> ItemPool;        /**< type of an ObjectPool of user data structures */
@@ -554,7 +554,7 @@ public:
  *  If you want to limit yourself to const/read-only access, you should use a ConstRef instead.
  *  @tparam Item the type of object that this Ref should reference.
  */
-template <class Item> class Ref : public ConstRef<Item>
+template <class Item> class MUSCLE_NODISCARD Ref : public ConstRef<Item>
 {
 public:
    /**
