@@ -39,13 +39,13 @@ int main(int argc, char ** argv)
 
       // Create a couple of dummy Messages to test with
       MessageRef msg1 = GetMessageFromPool(PR_COMMAND_TEXT_STRINGS);
-      msg1()->AddString(PR_NAME_TEXT_LINE, "This is a line of text.");
-      msg1()->AddString(PR_NAME_TEXT_LINE, "There are many like it.");
-      msg1()->AddString(PR_NAME_TEXT_LINE, "But this one is mine.");
+      (void) msg1()->AddString(PR_NAME_TEXT_LINE, "This is a line of text.");
+      (void) msg1()->AddString(PR_NAME_TEXT_LINE, "There are many like it.");
+      (void) msg1()->AddString(PR_NAME_TEXT_LINE, "But this one is mine.");
 
       MessageRef msg2 = GetMessageFromPool(PR_COMMAND_TEXT_STRINGS);
-      msg1()->AddString(PR_NAME_TEXT_LINE, "Here is some more text");
-      msg1()->AddString(PR_NAME_TEXT_LINE, "From the second Message");
+      (void) msg1()->AddString(PR_NAME_TEXT_LINE, "Here is some more text");
+      (void) msg1()->AddString(PR_NAME_TEXT_LINE, "From the second Message");
 
       // Queue up the Messages for output
       (void) outputGateway.AddOutgoingMessage(msg1);

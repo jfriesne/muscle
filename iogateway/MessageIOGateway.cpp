@@ -308,7 +308,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                ForgetScratchReceiveBufferIfSubclassIsStillUsingIt();
 
                if (msg() == NULL) {SetHosed(); break;}
-               if (_unflattenedCallback) _unflattenedCallback(msg, _unflattenedCallbackData);
+               if (_unflattenedCallback) MRETURN_ON_ERROR(_unflattenedCallback(msg, _unflattenedCallbackData));
                receiver.CallMessageReceivedFromGateway(msg);
             }
          }

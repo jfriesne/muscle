@@ -152,8 +152,8 @@ AttachedToServer()
       }
       if (privBits != 0L)
       {
-         _parameters.RemoveName(PR_NAME_PRIVILEGE_BITS);
-         _parameters.AddInt32(PR_NAME_PRIVILEGE_BITS, privBits);
+         (void) _parameters.RemoveName(PR_NAME_PRIVILEGE_BITS);
+         (void) _parameters.AddInt32(PR_NAME_PRIVILEGE_BITS, privBits);
       }
 
       _sessionDir = sessionNode;
@@ -222,7 +222,7 @@ Cleanup()
       // If the global root is now empty, it goes too
       if (GetGlobalRoot().HasChildren() == false)
       {
-         GetCentralState().RemoveName(SRS_SHARED_DATA);
+         (void) GetCentralState().RemoveName(SRS_SHARED_DATA);
          _sharedData->_root.Reset(); // do this first!
          delete _sharedData;
       }
@@ -571,7 +571,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                   int32 maxDepth = -1;  (void) msg.FindInt32(PR_NAME_MAXDEPTH, maxDepth);
 
                   NodePathMatcher matcher;
-                  matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, msg, DEFAULT_PATH_PREFIX);
+                  (void) matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, msg, DEFAULT_PATH_PREFIX);
 
                   GetSubtreesCallbackArgs args(reply(), maxDepth);
                   (void) matcher.DoTraversal((PathMatchCallback)GetSubtreesCallbackFunc, this, GetGlobalRoot(), true, &args);
@@ -691,7 +691,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                }
                else if ((fn == PR_NAME_KEYS)||(fn == PR_NAME_FILTERS))
                {
-                  msg.MoveName(fn, _defaultMessageRouteMessage);
+                  (void) msg.MoveName(fn, _defaultMessageRouteMessage);
                   updateDefaultMessageRoute = true;
                }
                else if (fn == PR_NAME_SUBSCRIBE_QUIETLY)
@@ -717,7 +717,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                   if (gw) gw->SetOutgoingEncoding(enc);
                }
 
-               if (copyField) msg.CopyName(fn, _parameters);
+               if (copyField) (void) msg.CopyName(fn, _parameters);
             }
             if (updateDefaultMessageRoute) UpdateDefaultMessageRoute();
             if (getMsg.HasName(PR_NAME_KEYS)) DoGetData(getMsg);  // return any data that matches the subscription
@@ -765,7 +765,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
             for (MessageFieldNameIterator it = msg.GetFieldNameIterator(B_MESSAGE_TYPE); it.HasData(); it++)
             {
                MessageRef dataMsgRef;
-               for (int32 i=0; msg.FindMessage(it.GetFieldName(), i, dataMsgRef).IsOK(); i++) SetDataNode(it.GetFieldName(), dataMsgRef, flags);
+               for (int32 i=0; msg.FindMessage(it.GetFieldName(), i, dataMsgRef).IsOK(); i++) (void) SetDataNode(it.GetFieldName(), dataMsgRef, flags);
             }
          }
          break;
@@ -786,7 +786,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                   if (msg.FindString(iter.GetFieldName(), &value).IsOK())
                   {
                      Message temp;
-                     temp.AddString(PR_NAME_KEYS, iter.GetFieldName());
+                     (void) temp.AddString(PR_NAME_KEYS, iter.GetFieldName());
 
                      NodePathMatcher matcher;
                      (void) matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, temp, NULL);
@@ -804,7 +804,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
          case PR_COMMAND_REMOVEDATA:
          {
             NodePathMatcher matcher;
-            matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, msg, NULL);
+            (void) matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, msg, NULL);
             DoRemoveData(matcher, msg.HasName(PR_NAME_REMOVE_QUIETLY));
          }
          break;
@@ -814,7 +814,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
             if (msg.HasName(PR_NAME_KEYS, B_STRING_TYPE))
             {
                NodePathMatcher matcher;
-               matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, msg, DEFAULT_PATH_PREFIX);
+               (void) matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, msg, DEFAULT_PATH_PREFIX);
                JettisonOutgoingResults(&matcher);
             }
             else JettisonOutgoingResults(NULL);
@@ -920,7 +920,7 @@ MessageRef StorageReflectSession :: GetEffectiveParameters() const
 void StorageReflectSession :: UpdateDefaultMessageRoute()
 {
    _defaultMessageRoute.Clear();
-   _defaultMessageRoute.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, _defaultMessageRouteMessage, DEFAULT_PATH_PREFIX);
+   (void) _defaultMessageRoute.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, _defaultMessageRouteMessage, DEFAULT_PATH_PREFIX);
 }
 
 /** A little bitty class just to hold the find-sessions-traversal's results properly */
@@ -1086,7 +1086,7 @@ BounceMessage(uint32 errorCode, const MessageRef & msgRef)
    MessageRef bounce = GetMessageFromPool(errorCode);
    if (bounce())
    {
-      bounce()->AddMessage(PR_NAME_REJECTED_MESSAGE, msgRef);
+      (void) bounce()->AddMessage(PR_NAME_REJECTED_MESSAGE, msgRef);
       MessageReceivedFromSession(*this, bounce, NULL);  // send rejection notice to client
    }
 }
@@ -1098,7 +1098,7 @@ DoGetData(const Message & msg)
    TCHECKPOINT;
 
    NodePathMatcher matcher;
-   matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, msg, DEFAULT_PATH_PREFIX);
+   (void) matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, msg, DEFAULT_PATH_PREFIX);
 
    MessageRef messageArray[2];  // first is the DATAITEMS message, second is the INDEXUPDATED message (both demand-allocated)
    (void) matcher.DoTraversal((PathMatchCallback)GetDataCallbackFunc, this, GetGlobalRoot(), true, messageArray);
@@ -1406,7 +1406,7 @@ ReorderDataCallback(DataNode & node, void * userData)
    if (indexNode)
    {
       DataNodeRef childNodeRef;
-      if (indexNode->GetChild(node.GetNodeName(), childNodeRef).IsOK()) indexNode->ReorderChild(childNodeRef, static_cast<const String *>(userData), this);
+      if (indexNode->GetChild(node.GetNodeName(), childNodeRef).IsOK()) (void) indexNode->ReorderChild(childNodeRef, static_cast<const String *>(userData), this);
    }
    return node.GetDepth();
 }
@@ -1682,7 +1682,7 @@ JettisonOutgoingSubtrees(const String * optMatchString)
                }
                else if (batchID == NULL) removeIt = true;
 
-               if (removeIt) oq.RemoveItemAt(i);
+               if (removeIt) (void) oq.RemoveItemAt(i);
             }
          }
       }
@@ -1711,7 +1711,7 @@ JettisonOutgoingResults(const NodePathMatcher * matcher)
                const String * rname;
                while(msg->FindString(PR_NAME_REMOVED_DATAITEMS, nextr, &rname).IsOK())
                {
-                  if (matcher->MatchesPath(rname->Cstr(), NULL, NULL)) msg->RemoveData(PR_NAME_REMOVED_DATAITEMS, nextr);
+                  if (matcher->MatchesPath(rname->Cstr(), NULL, NULL)) (void) msg->RemoveData(PR_NAME_REMOVED_DATAITEMS, nextr);
                                                                   else nextr++;
                }
 
@@ -1724,11 +1724,11 @@ JettisonOutgoingResults(const NodePathMatcher * matcher)
                      ConstMessageRef nextSubMsgRef;
                      for (uint32 j=0; msg->FindMessage(nextFieldName, j, nextSubMsgRef).IsOK(); /* empty */)
                      {
-                        if (matcher->MatchesPath(nextFieldName(), nextSubMsgRef(), NULL)) msg->RemoveData(nextFieldName, 0);
+                        if (matcher->MatchesPath(nextFieldName(), nextSubMsgRef(), NULL)) (void) msg->RemoveData(nextFieldName, 0);
                                                                                      else j++;
                      }
                   }
-                  else if (matcher->MatchesPath(nextFieldName(), NULL, NULL)) msg->RemoveName(nextFieldName);
+                  else if (matcher->MatchesPath(nextFieldName(), NULL, NULL)) (void) msg->RemoveName(nextFieldName);
                }
             }
             else msg->Clear();
@@ -1930,7 +1930,7 @@ status_t StorageReflectSession :: RemoveParameter(const String & paramName, bool
    }
    else if ((paramName == PR_NAME_KEYS)||(paramName == PR_NAME_FILTERS))
    {
-      _defaultMessageRouteMessage.RemoveName(paramName);
+      (void) _defaultMessageRouteMessage.RemoveName(paramName);
       retUpdateDefaultMessageRoute = true;
    }
 

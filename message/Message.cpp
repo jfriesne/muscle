@@ -630,7 +630,7 @@ public:
       if (ShouldWriteNumItems())
       {
          writeCountToThisLocation = flat.GetCurrentWritePointer();  // we'll write to this location at the end, once we know the exact count
-         flat.SeekRelative(sizeof(uint32));
+         MPRINT_ON_ERROR("FlattenAux::SeekRelative()", flat.SeekRelative(sizeof(uint32)));
       }
       else writeCountToThisLocation = NULL;
 
@@ -716,7 +716,7 @@ public:
       if ((bb == NULL)&&(fc))
       {
          const uint32 flatSize = fc->FlattenedSize();
-         temp.SetNumBytes(flatSize, false);
+         (void) temp.SetNumBytes(flatSize, false);
          if (temp())
          {
             fc->FlattenToBytes((uint8*)temp(), flatSize);
@@ -968,7 +968,7 @@ Message & Message :: operator=(const Message & rhs)
       Clear((rhs._entries.IsEmpty())&&(_entries.GetNumAllocatedItemSlots()>MUSCLE_HASHTABLE_DEFAULT_CAPACITY));  // FogBugz #10274
       what     = rhs.what;
       _entries = rhs._entries;
-      for (HashtableIterator<String, MessageField> iter(_entries); iter.HasData(); iter++) iter.GetValue().EnsurePrivate();  // a copied Message shouldn't share data
+      for (HashtableIterator<String, MessageField> iter(_entries); iter.HasData(); iter++) MPRINT_ON_ERROR("EnsurePrivate()", iter.GetValue().EnsurePrivate());  // a copied Message shouldn't share data
    }
    return *this;
 }
@@ -1188,7 +1188,7 @@ void Message :: Flatten(DataFlattener flat) const
 
    // Remember where to write the number-of-entries value (we'll actually write it at the end of this method)
    uint8 * entryCountPtr = flat.GetCurrentWritePointer();
-   flat.SeekRelative(sizeof(uint32));
+   (void) flat.SeekRelative(sizeof(uint32));
 
    // Write entries
    uint32 numFlattenedEntries = 0;
@@ -1555,8 +1555,8 @@ status_t Message :: FindFlat(const String & fieldName, uint32 index, FlatCountab
    if ((mf)&&(index < mf->GetNumItems()))
    {
       RefCountableRef rcRef = mf->GetItemAtAsRefCountableRef(index);
-      ref.SetFromRefCountableRef(rcRef);
-      return ref() ? B_NO_ERROR : B_TYPE_MISMATCH;
+      const status_t r = ref.SetFromRefCountableRef(rcRef);
+      return ref() ? B_NO_ERROR : (r|B_TYPE_MISMATCH);
    }
    else return B_DATA_NOT_FOUND;
 }
@@ -1698,8 +1698,8 @@ status_t Message :: FindMessage(const String & fieldName, uint32 index, MessageR
       RefCountableRef rcRef = mf->GetItemAtAsRefCountableRef(index);
       if (rcRef())
       {
-         ref.SetFromRefCountableRef(rcRef);
-         return ref() ? B_NO_ERROR : B_TYPE_MISMATCH;
+         const status_t r = ref.SetFromRefCountableRef(rcRef);
+         return ref() ? B_NO_ERROR : (r|B_TYPE_MISMATCH);
       }
       else return B_BAD_OBJECT;
    }
@@ -2122,7 +2122,7 @@ void Message :: TemplatedFlatten(const Message & templateMsg, DataFlattener flat
          mf.TemplatedFlatten(((payloadField)&&(payloadField->TypeCode() == mf.TypeCode())) ? payloadField : NULL, buffer);
       }
    }
-   flat.SeekRelative((int32)(buffer-origBuffer));  // just so we can verify that the right number of bytes were written
+   (void) flat.SeekRelative((int32)(buffer-origBuffer));  // just so we can verify that the right number of bytes were written
 }
 
 status_t Message :: TemplatedUnflatten(const Message & templateMsg, DataUnflattener & unflat)

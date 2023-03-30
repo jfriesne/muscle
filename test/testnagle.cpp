@@ -20,8 +20,8 @@ status_t HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doF
    while(1)
    {
       const int fd = sock.GetFileDescriptor();
-      multiplexer.RegisterSocketForReadReady(fd);
-      if (myTurnToThrow) multiplexer.RegisterSocketForWriteReady(fd);
+      (void) multiplexer.RegisterSocketForReadReady(fd);
+      if (myTurnToThrow) (void) multiplexer.RegisterSocketForWriteReady(fd);
 
       MRETURN_ON_ERROR(multiplexer.WaitForEvents());
 

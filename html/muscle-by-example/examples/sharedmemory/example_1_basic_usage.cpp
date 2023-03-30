@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    PrintExampleDescription();
-   Snooze64(SecondsToMicros(5));  // give the user a bit of time to read the example description!
+   (void) Snooze64(SecondsToMicros(5));  // give the user a bit of time to read the example description!
 
    srand((unsigned)time(NULL));
 
@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
       }
       else printf("LockAreaReadOnly() failed?! [%s]\n", ret());
 
-      Snooze64(MillisToMicros(100));
+      (void) Snooze64(MillisToMicros(100));
    }
 
    return 0;

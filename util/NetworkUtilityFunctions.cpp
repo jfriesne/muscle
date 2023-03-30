@@ -682,7 +682,7 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
    if ((debugTitle)&&(errorsOnly == false))
    {
       LogTime(MUSCLE_LOG_INFO, "%s: Connecting to %s: ", debugTitle, GetConnectString(optDebugHostName?optDebugHostName:ipbuf, hostIAP.GetPort())());
-      LogFlush();
+      (void) LogFlush();
    }
 
    bool socketIsReady = false;
@@ -727,9 +727,9 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
             SocketMultiplexer multiplexer;
             while(GetRunTime64() < deadline)
             {
-               multiplexer.RegisterSocketForWriteReady(fd);
+               (void) multiplexer.RegisterSocketForWriteReady(fd);
 #ifdef WIN32
-               multiplexer.RegisterSocketForExceptionRaised(fd);
+               (void) multiplexer.RegisterSocketForExceptionRaised(fd);
 #endif
 
                const io_status_t eret = multiplexer.WaitForEvents(deadline);
@@ -1038,7 +1038,7 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
       DNSRecord * r = _hostCache.PutAndGet(s, DNSRecord(ret, (_hostCacheEntryLifespan==MUSCLE_TIME_NEVER)?MUSCLE_TIME_NEVER:(GetRunTime64()+_hostCacheEntryLifespan)));
       if (r)
       {
-         _hostCache.MoveToFront(s);  // LRU logic
+         (void) _hostCache.MoveToFront(s);  // LRU logic
          while(_hostCache.GetNumItems() > _maxHostCacheSize) (void) _hostCache.RemoveLast();
       }
    }

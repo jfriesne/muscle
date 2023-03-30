@@ -139,7 +139,7 @@ public:
    {
       DECLARE_MUTEXGUARD(_singletonThreadMutex);
       for (HashtableIterator<DetectNetworkConfigChangesSession *, Void> iter(_registeredSessions); iter.HasData(); iter++)
-         iter.GetKey()->ThreadSafeMessageReceivedFromSingletonThread(msg);
+         (void) iter.GetKey()->ThreadSafeMessageReceivedFromSingletonThread(msg);
    }
 
    void SleepCallback(bool isAboutToSleep)
@@ -248,7 +248,7 @@ public:
          {
             const NetworkInterfaceInfo & nii = q[i];
             const IPAddress & ip = nii.GetLocalAddress();
-            if ((ip.IsInterfaceIndexValid())&&(ip.GetInterfaceIndex() == changedIdx)) iNames.PutWithDefault(nii.GetName());
+            if ((ip.IsInterfaceIndexValid())&&(ip.GetInterfaceIndex() == changedIdx)) (void) iNames.PutWithDefault(nii.GetName());
          }
       }
       SignalInterfacesChanged(iNames);
@@ -260,7 +260,7 @@ public:
       if (optInterfaceNames.HasItems())
       {
          msg = GetMessageFromPool(DNCCS_MESSAGE_INTERFACES_CHANGED);
-         if (msg()) for (HashtableIterator<String, Void> iter(optInterfaceNames); iter.HasData(); iter++) msg()->AddString("if", iter.GetKey());
+         if (msg()) for (HashtableIterator<String, Void> iter(optInterfaceNames); iter.HasData(); iter++) (void) msg()->AddString("if", iter.GetKey());
       }
 
       static Message _defaultMsg(DNCCS_MESSAGE_INTERFACES_CHANGED);
@@ -548,7 +548,7 @@ static void StoreRecordFunc(const void * key, const void * value, void * context
       else
       {
          const String interfaceName((const CFStringRef) CFDictionaryGetValue((CFDictionaryRef) propList, CFSTR("InterfaceName")));
-         if (interfaceName.HasChars()) ((Hashtable<String, String> *)(context))->Put(k, interfaceName);
+         if (interfaceName.HasChars()) (void) ((Hashtable<String, String> *)(context))->Put(k, interfaceName);
       }
    }
 }
@@ -931,7 +931,7 @@ io_status_t DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageR
                if (msg()->HasName("if", B_STRING_TYPE))
                {
                   const String * ifName;
-                  for (int32 i=0; msg()->FindString("if", i, &ifName).IsOK(); i++) _pendingChangedInterfaceNames.PutWithDefault(*ifName);
+                  for (int32 i=0; msg()->FindString("if", i, &ifName).IsOK(); i++) (void) _pendingChangedInterfaceNames.PutWithDefault(*ifName);
                }
                else _changeAllPending = true;  // no interfaces specified means "it could be anything"
             }
@@ -966,7 +966,7 @@ status_t DetectNetworkConfigChangesSession :: AttachedToServer()
 void DetectNetworkConfigChangesSession :: EndSession()
 {
 #if defined(USE_SINGLETON_THREAD)
-   UnRegisterFromSingletonThread(this);  // do this ASAP, otherwise we get the occasional crash on shutdown :(
+   (void) UnRegisterFromSingletonThread(this);  // do this ASAP, otherwise we get the occasional crash on shutdown :(
 #endif
    AbstractReflectSession::EndSession();
 }
@@ -974,7 +974,7 @@ void DetectNetworkConfigChangesSession :: EndSession()
 void DetectNetworkConfigChangesSession :: AboutToDetachFromServer()
 {
 #if defined(USE_SINGLETON_THREAD)
-   UnRegisterFromSingletonThread(this);
+   (void) UnRegisterFromSingletonThread(this);
 #endif
    AbstractReflectSession::AboutToDetachFromServer();
 }

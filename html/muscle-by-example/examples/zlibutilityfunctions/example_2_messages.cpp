@@ -19,20 +19,20 @@ int main(int argc, char ** argv)
    // First let's create an example Message object.
    MessageRef rawMsg = GetMessageFromPool(1234);
    {
-      rawMsg()->AddFloat("Pi", 3.14159f);
-      rawMsg()->AddString("Description", "This is some descriptive text for my example Message.");
-      rawMsg()->AddPoint("gps_loc", Point(1.5f, 2.5f));
-      rawMsg()->AddInt32("numbers", 1);
-      rawMsg()->AddInt32("numbers", 2);
-      rawMsg()->AddInt32("numbers", 3);
+      (void) rawMsg()->AddFloat("Pi", 3.14159f);
+      (void) rawMsg()->AddString("Description", "This is some descriptive text for my example Message.");
+      (void) rawMsg()->AddPoint("gps_loc", Point(1.5f, 2.5f));
+      (void) rawMsg()->AddInt32("numbers", 1);
+      (void) rawMsg()->AddInt32("numbers", 2);
+      (void) rawMsg()->AddInt32("numbers", 3);
 
       MessageRef subMsg = GetMessageFromPool(6666);
-      subMsg()->AddBool("This is a sub-Message", true);
-      subMsg()->AddString("Peanut Butter", "Jelly");
-      subMsg()->AddString("Chocolate", "Vanilla");
-      subMsg()->AddString("Cheese", "Crackers");
-      subMsg()->AddData("some_data", B_RAW_TYPE, NULL, 10*1024); // a big raw-data buffer of zeros, just to give the deflater more data to deflate
-      rawMsg()->AddMessage("subMessage", subMsg);
+      (void) subMsg()->AddBool("This is a sub-Message", true);
+      (void) subMsg()->AddString("Peanut Butter", "Jelly");
+      (void) subMsg()->AddString("Chocolate", "Vanilla");
+      (void) subMsg()->AddString("Cheese", "Crackers");
+      (void) subMsg()->AddData("some_data", B_RAW_TYPE, NULL, 10*1024); // a big raw-data buffer of zeros, just to give the deflater more data to deflate
+      (void) rawMsg()->AddMessage("subMessage", subMsg);
    }
 
    LogTime(MUSCLE_LOG_INFO, "Original Message is:\n");

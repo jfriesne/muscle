@@ -129,17 +129,17 @@ void BrowserWindow :: ConnectedToServer()
 
    // Tell the server we want to see our own nodes as well as everyone else's
    MessageRef msg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-   msg()->AddBool(PR_NAME_REFLECT_TO_SELF, true);
-   _mtt.SendMessageToSessions(msg);
+   (void) msg()->AddBool(PR_NAME_REFLECT_TO_SELF, true);
+   (void) _mtt.SendMessageToSessions(msg);
 
    // Also upload a node to the server, just for fun
    MessageRef uploadMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
    {
       MessageRef dataMsg = GetMessageFromPool();
-      dataMsg()->AddString("timestamp", GetHumanReadableTimeString(GetCurrentTime64()));
-      uploadMsg()->AddMessage("connected_at", dataMsg);
+      (void) dataMsg()->AddString("timestamp", GetHumanReadableTimeString(GetCurrentTime64()));
+      (void) uploadMsg()->AddMessage("connected_at", dataMsg);
    }
-   _mtt.SendMessageToSessions(uploadMsg);
+   (void) _mtt.SendMessageToSessions(uploadMsg);
 
    // Start by subscribing to the children of the root node only
    _nodeRoot = new NodeTreeWidgetItem(_nodeTree);  // add the root node to the node tree
@@ -169,47 +169,47 @@ void BrowserWindow :: SetMessageContentsViewContents(QTreeWidgetItem * item)
 
 void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscribe)
 {
-   String subscribePath = nodePath+"/*";
+   const String subscribePath = nodePath+"/*";
    if (_subscriptions.ContainsKey(subscribePath) != isSubscribe)
    {
       if (isSubscribe)
       {
          MessageRef subMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-         subMsg()->AddBool(subscribePath.Prepend("SUBSCRIBE:"), true);
-         _subscriptions.PutWithDefault(subscribePath);
+         (void) subMsg()->AddBool(subscribePath.Prepend("SUBSCRIBE:"), true);
+         (void) _subscriptions.PutWithDefault(subscribePath);
          LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p subscribed to path [%s]\n", this, subscribePath());
-         _mtt.SendMessageToSessions(subMsg);
+         (void) _mtt.SendMessageToSessions(subMsg);
       }
       else
       {
          MessageRef unsubMsg = GetMessageFromPool(PR_COMMAND_REMOVEPARAMETERS);
-         unsubMsg()->AddString(PR_NAME_KEYS, EscapeRegexTokens(subscribePath).Prepend("SUBSCRIBE:"));
+         (void) unsubMsg()->AddString(PR_NAME_KEYS, EscapeRegexTokens(subscribePath).Prepend("SUBSCRIBE:"));
          LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p unsubscribed from path [%s]\n", this, subscribePath());
-         _subscriptions.Remove(subscribePath);
+         (void) _subscriptions.Remove(subscribePath);
 
          // Also remove from our tree of locally-cached data any nodes that start with this path
-         String removePath = nodePath + "/";
+         const String removePath = nodePath + "/";
          for (HashtableIterator<String, ConstMessageRef> iter(_pathToMessage); iter.HasData(); iter++) if (iter.GetKey().StartsWith(removePath))
          {
-            _pathToMessage.Remove(iter.GetKey());
+            (void) _pathToMessage.Remove(iter.GetKey());
             LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p dropped node for [%s]\n", this, iter.GetKey()());
          }
 
-         _mtt.SendMessageToSessions(unsubMsg);
+         (void) _mtt.SendMessageToSessions(unsubMsg);
       }
    }
 }
 
 void BrowserWindow :: NodeExpanded(QTreeWidgetItem * node)
 {
-   String nodePath = static_cast<const NodeTreeWidgetItem *>(node)->GetPath();
+   const String nodePath = static_cast<const NodeTreeWidgetItem *>(node)->GetPath();
    SetNodeSubscribed(nodePath, true);
 }
 
 void BrowserWindow :: NodeCollapsed(QTreeWidgetItem * node)
 {
    NodeTreeWidgetItem * ntwi = static_cast<NodeTreeWidgetItem *>(node);
-   String subPath = ntwi->GetPath() + "/";
+   const String subPath = ntwi->GetPath() + "/";
    for (HashtableIterator<String, Void> iter(_subscriptions); iter.HasData(); iter++) if (iter.GetKey().StartsWith(subPath)) SetNodeSubscribed(iter.GetKey().Substring(0, iter.GetKey().Length()-2), false);
    ntwi->DeleteChildren();
 }
@@ -239,7 +239,7 @@ NodeTreeWidgetItem * BrowserWindow :: GetNodeFromPathAux(NodeTreeWidgetItem * no
 // Add or remove the modified node from its parent in the tree view, as necessary
 void BrowserWindow :: UpdateDataNodeInTreeView(const String & nodePath)
 {
-   int lastSlash = nodePath.LastIndexOf('/');
+   const int lastSlash = nodePath.LastIndexOf('/');
    if (lastSlash >= 0)
    {
       String parentPath = nodePath.Substring(0, lastSlash);
@@ -315,7 +315,7 @@ void BrowserWindow :: CloneWindow()
 
 void BrowserWindow :: ConnectButtonClicked()
 {
-   bool wasConnecting = ((_isConnected)||(_isConnecting));
+   const bool wasConnecting = ((_isConnected)||(_isConnecting));
    _isConnected = _isConnecting = false;
    _mtt.Reset();
 

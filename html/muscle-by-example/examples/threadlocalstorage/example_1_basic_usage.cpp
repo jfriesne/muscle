@@ -38,7 +38,7 @@ protected:
       while(1)
       {
          printf("Thread %p:  *myInt is %i (should be %i)\n", this, *myInt, myVal);
-         Snooze64(SecondsToMicros(1));
+         (void) Snooze64(SecondsToMicros(1));
 
          // See if it is time for us to go away yet
          MessageRef msg;
@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
    MyThread threads[NUM_THREADS];
    for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].StartInternalThread();
 
-   Snooze64(SecondsToMicros(5));
+   (void) Snooze64(SecondsToMicros(5));
 
    for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].ShutdownInternalThread();
 

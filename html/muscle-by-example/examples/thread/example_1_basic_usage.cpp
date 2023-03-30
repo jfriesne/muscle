@@ -26,7 +26,7 @@ protected:
          msgRef()->PrintToStream();
 
          printf("MyThread internal thread sleeping for 1 second, just to demonstrate the asynchronous nature of things...\n");
-         Snooze64(SecondsToMicros(1));
+         (void) Snooze64(SecondsToMicros(1));
          printf("MyThread internal thread has awoke from its 1-second nap.\n");
 
          return B_NO_ERROR;
@@ -73,7 +73,7 @@ int main(int argc, char ** argv)
          printf("Main thread:  Sending message containing [%s] to internal thread.\n", s());
 
          MessageRef toThread = GetMessageFromPool();
-         toThread()->AddString("user_command", s);
+         (void) toThread()->AddString("user_command", s);
          if (theThread.SendMessageToInternalThread(toThread).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SendMessageToThread() failed!? [%s]\n", ret());
       }
    }

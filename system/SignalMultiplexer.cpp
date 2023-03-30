@@ -48,7 +48,7 @@ status_t SignalMultiplexer :: AddHandler(ISignalHandler * s)
    if (UpdateSignalSets().IsOK(ret)) return B_NO_ERROR;
    else
    {
-      _handlers.RemoveTail();
+      (void) _handlers.RemoveTail();  // roll back!
       return ret;
    }
 }

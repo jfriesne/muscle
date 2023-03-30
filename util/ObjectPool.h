@@ -170,7 +170,7 @@ public:
       if (_mutex.Lock().IsOK())
       {
          ret = ObtainObjectAux();
-         _mutex.Unlock();
+         (void) _mutex.Unlock();
       }
       if (ret) ret->SetManager(this);
           else MWARN_OUT_OF_MEMORY;
@@ -197,7 +197,7 @@ public:
          if (_mutex.Lock().IsOK())
          {
             ObjectSlab * slabToDelete = ReleaseObjectAux(obj);
-            _mutex.Unlock();
+            (void) _mutex.Unlock();
             delete slabToDelete;  // do this outside the critical section, for better concurrency
          }
          else MWARN_OUT_OF_MEMORY;  // critical error -- not really out of memory but still
@@ -258,7 +258,7 @@ public:
             slab->GetUsageStats(minItemsInUseInSlab, maxItemsInUseInSlab, totalItemsInUse);
             slab = slab->GetNext();
          }
-         _mutex.Unlock();
+         (void) _mutex.Unlock();
       }
       if (minItemsInUseInSlab == MUSCLE_NO_LIMIT) minItemsInUseInSlab = 0;  // just to avoid questions
 

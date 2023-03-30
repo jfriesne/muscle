@@ -401,7 +401,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
                         // Special case for WriteTo():  This packet can go out as a normal UDP packet
                         (void) _udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST]()->WriteTo(data()->GetBuffer(), data()->GetNumBytes(), destIAP);
                      }
-                     else if (IsInEnobufsErrorMode() == false) outgoingUserPacketsQueue.AddTail(data);  // Normal case:  the packet will go out via simulated-multicast
+                     else if (IsInEnobufsErrorMode() == false) (void) outgoingUserPacketsQueue.AddTail(data);  // Normal case:  the packet will go out via simulated-multicast
                   }
                   else LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  No data in SMDIO_COMMAND_DATA Message!\n", this);
                }

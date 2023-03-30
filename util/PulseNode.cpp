@@ -22,7 +22,7 @@ PulseNode :: PulseNode()
 PulseNode :: ~PulseNode()
 {
    // unlink everybody, but don't delete anyone; no ownership is implied here!
-   if (_parent) _parent->RemovePulseChild(this);
+   if (_parent) (void) _parent->RemovePulseChild(this);
    ClearPulseChildren();
 }
 
@@ -89,7 +89,7 @@ void PulseNode :: PulseAux(uint64 now)
 
 status_t PulseNode :: PutPulseChild(PulseNode * child)
 {
-   if (child->_parent) child->_parent->RemovePulseChild(child);
+   if (child->_parent) (void) child->_parent->RemovePulseChild(child);
    child->_parent = this;
    ReschedulePulseChild(child, LINKED_LIST_NEEDSRECALC);
    return B_NO_ERROR;

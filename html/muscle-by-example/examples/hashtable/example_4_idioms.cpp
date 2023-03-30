@@ -31,8 +31,8 @@ int main(int argc, char ** argv)
    if (table.EnsureSize(20).IsError()) MWARN_OUT_OF_MEMORY;
 
    // Put some initial data into the table
-   table.Put("One", 1);
-   table.Put("Two", 2);
+   (void) table.Put("One", 1);
+   (void) table.Put("Two", 2);
 
    // table.GetWithDefault() returns a reference to the value of the specified
    // key, or a reference to a default-constructed value otherwise.

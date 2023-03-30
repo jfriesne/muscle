@@ -48,8 +48,8 @@ int main(int argc, char ** argv)
    while(true)
    {
       // Tell the SocketMultiplexer what sockets to listen to
-      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
-      sm.RegisterSocketForReadReady(cpIO.GetReadSelectSocket().GetFileDescriptor());
+      (void) sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
+      (void) sm.RegisterSocketForReadReady(cpIO.GetReadSelectSocket().GetFileDescriptor());
 
       // Wait here until something happens
       (void) sm.WaitForEvents();

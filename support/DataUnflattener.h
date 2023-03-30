@@ -148,7 +148,7 @@ public:
       }
 
       const char * ret = reinterpret_cast<const char *>(_readFrom);
-      Advance(flatSize);
+      (void) Advance(flatSize);
       return ret;
    }
 
@@ -253,11 +253,11 @@ public:
          MRETURN_ON_ERROR(SizeCheck(sizeof(uint32)));
          uint32 payloadSize; _endianConverter.Import(_readFrom, payloadSize);
          MRETURN_ON_ERROR(SizeCheck(payloadSize));
-         Advance(sizeof(payloadSize));
+         MRETURN_ON_ERROR(Advance(sizeof(payloadSize)));
 
          DataUnflattenerHelper unflat(_readFrom, payloadSize);
          const status_t ret = retVals[i].Unflatten(unflat);
-         Advance(payloadSize);  // note that we always advance by the stated payload size, not by (retVal.FlattenedSize())
+         MRETURN_ON_ERROR(Advance(payloadSize));  // note that we always advance by the stated payload size, not by (retVal.FlattenedSize())
          if (ret.IsError()) return FlagError(ret);
       }
       return B_NO_ERROR;

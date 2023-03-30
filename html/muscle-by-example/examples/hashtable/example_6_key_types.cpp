@@ -110,17 +110,17 @@ int main(int argc, char ** argv)
    // you are responsible for making sure the pointers remain valid
    // for the lifetime of the Hashtable!
 
-   String s1 = "One";
-   String s2 = "Two";
-   String s3 = "Three";
-   Hashtable<String *, int> ptrTable;
-   ptrTable.Put(&s1, 1);
-   ptrTable.Put(&s2, 2);
-   ptrTable.Put(&s3, 3);
+   const String s1 = "One";
+   const String s2 = "Two";
+   const String s3 = "Three";
+   Hashtable<const String *, int> ptrTable;
+   (void) ptrTable.Put(&s1, 1);
+   (void) ptrTable.Put(&s2, 2);
+   (void) ptrTable.Put(&s3, 3);
 
    printf("\n");
    printf("ptrTable's contents are:\n");
-   for (HashtableIterator<String *, int> iter(ptrTable); iter.HasData(); iter++)
+   for (HashtableIterator<const String *, int> iter(ptrTable); iter.HasData(); iter++)
    {
       printf("   %s -> %i\n", iter.GetKey()->Cstr(), iter.GetValue());
    }
@@ -130,7 +130,7 @@ int main(int argc, char ** argv)
    // Refs can also be used as keys, if, you're in to that sort of thing.
    // Here's a Hashtable with ConstSocketRefs as keys!
    Hashtable<ConstSocketRef, Void> sockTable;
-   for (int i=0; i<10; i++) sockTable.PutWithDefault(CreateUDPSocket());
+   for (int i=0; i<10; i++) (void) sockTable.PutWithDefault(CreateUDPSocket());
 
    printf("sockTable's contents are:\n");
    for (HashtableIterator<ConstSocketRef, Void> iter(sockTable); iter.HasData(); iter++)

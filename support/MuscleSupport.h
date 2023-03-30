@@ -115,6 +115,23 @@
 # define MUSCLE_USE_CPLUSPLUS17
 #endif
 
+#ifndef MUSCLE_AVOID_NODISCARD
+# if defined(MUSCLE_USE_CPLUSPLUS17)
+#  define MUSCLE_NODISCARD [[nodiscard]]
+# elif defined(__GNUC__) && (__GNUC__ >= 4)
+#  define MUSCLE_NODISCARD __attribute__((warn_unused_result))
+# elif defined(_MSC_VER) && (_MSC_VER >= 1700)
+#  define MUSCLE_NODISCARD _Check_return_
+# else
+#  define MUSCLE_NODISCARD
+# endif
+#endif
+
+// If all else fails, we'll just make it a no-op
+#ifndef MUSCLE_NODISCARD
+# define MUSCLE_NODISCARD
+#endif
+
 #if !defined(MUSCLE_AVOID_STDINT) && (defined(MUSCLE_AVOID_CPLUSPLUS11) || (defined(_MSC_VER) && (_MSC_VER < 1800)))
 # define MUSCLE_AVOID_STDINT  // No sense trying to use cstdint on older compilers that we know do not provide it
 #endif
@@ -222,13 +239,13 @@ using std::set_new_handler;
 /** This macro crashes the process with the specified error message.
   * @param msg a text string to include in the critical error printed to the log just before we call Crash()
   */
-#define MCRASH(msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); muscle::Crash();}
+#define MCRASH(msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); (void) muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); muscle::Crash();}
 
 /** This macro immediately and rudely exits the process (by calling ExitWithoutCleanup(retVal)) after logging the specified critical error message.
   * @param retVal the integer value to pass to ExitWithoutCleanup()
   * @param msg a text string to include in the critical error printed to the log just before we call ExitWithoutCleanup()
   */
-#define MEXIT(retVal, msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
+#define MEXIT(retVal, msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); (void) muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
 
 /** This macro logs an out-of-memory warning that includes the current filename and source-code line number.  WARN_OUT_OF_MEMORY() should be called whenever newnothrow or malloc() return NULL. */
 #define MWARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)
@@ -400,7 +417,7 @@ enum {
           * valid indefinitely, since the status_t object will keep only a (const char *) pointer to the
           * string, and therefore depends on that pointed-to char-array remaining valid.
           */
-        class status_t MUSCLE_FINAL_CLASS
+        class MUSCLE_NODISCARD status_t MUSCLE_FINAL_CLASS
         {
         public:
            /** Default-constructor.  Creates a status_t representing success. */
@@ -607,7 +624,7 @@ enum {
           * It's useful for holding the result of an I/O function that either successfully
           * processed a certain number of bytes, or failed and needs to return an error code.
           */
-        class io_status_t MUSCLE_FINAL_CLASS
+        class MUSCLE_NODISCARD io_status_t MUSCLE_FINAL_CLASS
         {
         public:
            /** Default-constructor.  Creates a io_status_t representing the successful transfer of 0 bytes. */

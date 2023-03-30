@@ -24,9 +24,9 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    Message testMsg(1234);
-   testMsg.AddString("Friendship is", "magic");
-   testMsg.AddFloat("pi", 3.14159f);
-   testMsg.AddInt32("answer", 42);
+   (void) testMsg.AddString("Friendship is", "magic");
+   (void) testMsg.AddFloat("pi", 3.14159f);
+   (void) testMsg.AddInt32("answer", 42);
 
    LogTime(MUSCLE_LOG_INFO, "Today's test Message is:\n");
    testMsg.PrintToStream();
@@ -70,8 +70,8 @@ int main(int argc, char ** argv)
    TestTheMessage(testMsg, "answerIs37OrThereIsPi", answerIs37OrThereIsPi); // does field "answer" contain 37 OR the field "pi" exists?
 
    OrQueryFilter answerIs37OrThereIsFnord;
-   answerIs37OrThereIsFnord.GetChildren().AddTail(DummyConstQueryFilterRef(answerIs37));
-   answerIs37OrThereIsFnord.GetChildren().AddTail(DummyConstQueryFilterRef(fnordExists));
+   (void) answerIs37OrThereIsFnord.GetChildren().AddTail(DummyConstQueryFilterRef(answerIs37));
+   (void) answerIs37OrThereIsFnord.GetChildren().AddTail(DummyConstQueryFilterRef(fnordExists));
    TestTheMessage(testMsg, "answerIs37OrThereIsFnord", answerIs37OrThereIsFnord); // does field "answer" contain 37 OR the field "fnord" exists?
 
    return 0;

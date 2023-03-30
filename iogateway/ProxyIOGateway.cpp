@@ -70,7 +70,7 @@ void ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
    if (_slaveGateway())
    {
       // Get the slave gateway to generate its output into our ByteBuffer
-      _slaveGateway()->AddOutgoingMessage(msg);
+      (void) _slaveGateway()->AddOutgoingMessage(msg);
 
       DataIORef oldIO = _slaveGateway()->GetDataIO(); // save slave gateway's old state
 
@@ -88,8 +88,8 @@ void ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
       }
       else
       {
-         _fakeStreamSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
-         _fakeStreamSendBuffer.SetNumBytes(0, false);
+         (void) _fakeStreamSendIO.Seek(0, SeekableDataIO::IO_SEEK_SET);
+         (void) _fakeStreamSendBuffer.SetNumBytes(0, false);
          _slaveGateway()->SetDataIO(DummyDataIORef(_fakeStreamSendIO));
          while(_slaveGateway()->DoOutput().GetByteCount() > 0) {/* empty */}
          (void) outQ.AddTail(DummyByteBufferRef(_fakeStreamSendBuffer));

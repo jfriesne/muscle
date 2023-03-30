@@ -50,11 +50,11 @@ public:
             {
                muscleSprintf(buf, "-" UINT32_FORMAT_SPEC, ++counter);
                tRef()->SetName(prefix+buf);
-               q.AddTail(tRef);
+               (void) q.AddTail(tRef);
             }
             else MWARN_OUT_OF_MEMORY;
          }
-         while(q.GetNumItems() > x) q.RemoveTail();
+         while(q.GetNumItems() > x) (void) q.RemoveTail();
 
          // Check to make sure no other threads are overwriting our objects
          for (uint32 i=0; i<q.GetNumItems(); i++)
@@ -90,10 +90,10 @@ int main(int, char **)
          TestItemRef tr(new TestItem(temp));
          ConstTestItemRef ctr(tr);
          ConstTestItemRef t2(ctr);
-         q.AddTail(tr);
+         (void) q.AddTail(tr);
       }
       printf("Removing refs...\n");
-      while(q.HasItems()) q.RemoveHead();
+      while(q.HasItems()) (void) q.RemoveHead();
       printf("Done with queue test!\n");
    }
 
@@ -104,13 +104,13 @@ int main(int, char **)
       for (int i=0; i<10; i++)
       {
          char temp[50]; muscleSprintf(temp, "%i", i);
-         ht.Put(String(temp), TestItemRef(new TestItem(temp)));
+         (void) ht.Put(String(temp), TestItemRef(new TestItem(temp)));
       }
       printf("Removing refs...\n");
       for (int i=0; i<10; i++)
       {
          char temp[50]; muscleSprintf(temp, "%i", i);
-         ht.Remove(String(temp));
+         (void) ht.Remove(String(temp));
       }
       printf("Done with hash table test!\n");
    }
@@ -119,8 +119,8 @@ int main(int, char **)
    {
       const uint32 NUM_THREADS = 50;
       TestThread threads[NUM_THREADS];
-      for (uint32 i=0; i<NUM_THREADS; i++) threads[i].StartInternalThread();
-      Snooze64(SecondsToMicros(10));
+      for (uint32 i=0; i<NUM_THREADS; i++) (void) threads[i].StartInternalThread();
+      (void) Snooze64(SecondsToMicros(10));
       for (uint32 i=0; i<NUM_THREADS; i++) threads[i].ShutdownInternalThread();
       printf("Multithreaded object usage test complete.\n");
    }

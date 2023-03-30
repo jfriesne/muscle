@@ -1206,7 +1206,7 @@ AbstractObjectRecycler :: AbstractObjectRecycler()
    _next = _firstRecycler;
    _firstRecycler = this;
 
-   if (m) m->Unlock();
+   if (m) (void) m->Unlock();
 }
 
 AbstractObjectRecycler :: ~AbstractObjectRecycler()
@@ -1219,7 +1219,7 @@ AbstractObjectRecycler :: ~AbstractObjectRecycler()
    if (_next) _next->_prev = _prev;
    if (_firstRecycler == this) _firstRecycler = _next;
 
-   if (m) m->Unlock();
+   if (m) (void) m->Unlock();
 }
 
 void AbstractObjectRecycler :: GlobalFlushAllCachedObjects()
@@ -1232,7 +1232,7 @@ void AbstractObjectRecycler :: GlobalFlushAllCachedObjects()
    // been flushed.
    AbstractObjectRecycler * r = _firstRecycler;
    while(r) r = (r->FlushCachedObjects() > 0) ? _firstRecycler : r->_next;
-   if (m) m->Unlock();
+   if (m) (void) m->Unlock();
 }
 
 void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
@@ -1247,7 +1247,7 @@ void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
       r = r->_next;
    }
 
-   if (m) m->Unlock();
+   if (m) (void) m->Unlock();
 }
 
 void AbstractObjectRecycler :: GlobalPerformSanityCheck()
@@ -1262,7 +1262,7 @@ void AbstractObjectRecycler :: GlobalPerformSanityCheck()
       r = r->_next;
    }
 
-   if (m) m->Unlock();
+   if (m) (void) m->Unlock();
 }
 
 static CompleteSetupSystem * _activeCSS = NULL;
@@ -2482,263 +2482,267 @@ Queue<String> GetBuildFlags()
    Queue<String> q;
 
 #ifdef MUSCLE_ENABLE_SSL
-   q.AddTail("MUSCLE_ENABLE_SSL");
+   (void) q.AddTail("MUSCLE_ENABLE_SSL");
 #endif
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
-   q.AddTail("MUSCLE_AVOID_CPLUSPLUS11");
+   (void) q.AddTail("MUSCLE_AVOID_CPLUSPLUS11");
 #endif
 
 #ifdef MUSCLE_USE_CPLUSPLUS17
-   q.AddTail("MUSCLE_USE_CPLUSPLUS17");
+   (void) q.AddTail("MUSCLE_USE_CPLUSPLUS17");
 #endif
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11_THREADS
-   q.AddTail("MUSCLE_AVOID_CPLUSPLUS11_THREADS");
+   (void) q.AddTail("MUSCLE_AVOID_CPLUSPLUS11_THREADS");
 #endif
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
-   q.AddTail("MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD");
+   (void) q.AddTail("MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD");
 #endif
 
 #ifdef MUSCLE_AVOID_IPV6
-   q.AddTail("MUSCLE_AVOID_IPV6");
+   (void) q.AddTail("MUSCLE_AVOID_IPV6");
 #endif
 
 #ifdef MUSCLE_AVOID_STDINT
-   q.AddTail("MUSCLE_AVOID_STDINT");
+   (void) q.AddTail("MUSCLE_AVOID_STDINT");
 #endif
 
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
-   q.AddTail("MUSCLE_SINGLE_THREAD_ONLY");
+   (void) q.AddTail("MUSCLE_SINGLE_THREAD_ONLY");
 #endif
 
 #ifdef MUSCLE_USE_EPOLL
-   q.AddTail("MUSCLE_USE_EPOLL");
+   (void) q.AddTail("MUSCLE_USE_EPOLL");
 #endif
 
 #ifdef MUSCLE_USE_POLL
-   q.AddTail("MUSCLE_USE_POLL");
+   (void) q.AddTail("MUSCLE_USE_POLL");
 #endif
 
 #ifdef MUSCLE_USE_KQUEUE
-   q.AddTail("MUSCLE_USE_KQUEUE");
+   (void) q.AddTail("MUSCLE_USE_KQUEUE");
 #endif
 
 #ifdef MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS
-   q.AddTail(String("MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS=%1").Arg(MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS));
+   (void) q.AddTail(String("MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS=%1").Arg(MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS));
 #endif
 
 #ifdef MUSCLE_CATCH_SIGNALS_BY_DEFAULT
-   q.AddTail("MUSCLE_CATCH_SIGNALS_BY_DEFAULT");
+   (void) q.AddTail("MUSCLE_CATCH_SIGNALS_BY_DEFAULT");
 #endif
 
 #ifdef MUSCLE_USE_LIBRT
-   q.AddTail("MUSCLE_USE_LIBRT");
+   (void) q.AddTail("MUSCLE_USE_LIBRT");
 #endif
 
 #ifdef MUSCLE_AVOID_MULTICAST_API
-   q.AddTail("MUSCLE_AVOID_MULTICAST_API");
+   (void) q.AddTail("MUSCLE_AVOID_MULTICAST_API");
 #endif
 
 #ifdef MUSCLE_DISABLE_KEEPALIVE_API
-   q.AddTail("MUSCLE_DISABLE_KEEPALIVE_API");
+   (void) q.AddTail("MUSCLE_DISABLE_KEEPALIVE_API");
 #endif
 
 #ifdef MUSCLE_64_BIT_PLATFORM
-   q.AddTail("MUSCLE_64_BIT_PLATFORM");
+   (void) q.AddTail("MUSCLE_64_BIT_PLATFORM");
 #endif
 
 #ifdef MUSCLE_USE_LLSEEK
-   q.AddTail("MUSCLE_USE_LLSEEK");
+   (void) q.AddTail("MUSCLE_USE_LLSEEK");
 #endif
 
 #ifdef MUSCLE_PREFER_QT_OVER_WIN32
-   q.AddTail("MUSCLE_PREFER_QT_OVER_WIN32");
+   (void) q.AddTail("MUSCLE_PREFER_QT_OVER_WIN32");
 #endif
 
 #ifdef MUSCLE_ENABLE_MEMORY_PARANOIA
-   q.AddTail(String("MUSCLE_ENABLE_MEMORY_PARANOIA=%1").Arg(MUSCLE_ENABLE_MEMORY_PARANOIA));
+   (void) q.AddTail(String("MUSCLE_ENABLE_MEMORY_PARANOIA=%1").Arg(MUSCLE_ENABLE_MEMORY_PARANOIA));
 #endif
 
 #ifdef MUSCLE_NO_EXCEPTIONS
-   q.AddTail("MUSCLE_NO_EXCEPTIONS");
+   (void) q.AddTail("MUSCLE_NO_EXCEPTIONS");
 #endif
 
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
-   q.AddTail("MUSCLE_ENABLE_MEMORY_TRACKING");
+   (void) q.AddTail("MUSCLE_ENABLE_MEMORY_TRACKING");
 #endif
 
 #ifdef MUSCLE_AVOID_ASSERTIONS
-   q.AddTail("MUSCLE_AVOID_ASSERTIONS");
+   (void) q.AddTail("MUSCLE_AVOID_ASSERTIONS");
 #endif
 
 #ifdef MUSCLE_AVOID_SIGNAL_HANDLING
-   q.AddTail("MUSCLE_AVOID_SIGNAL_HANDLING");
+   (void) q.AddTail("MUSCLE_AVOID_SIGNAL_HANDLING");
 #endif
 
 #ifdef MUSCLE_AVOID_INLINE_ASSEMBLY
-   q.AddTail("MUSCLE_AVOID_INLINE_ASSEMBLY");
+   (void) q.AddTail("MUSCLE_AVOID_INLINE_ASSEMBLY");
 #endif
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-   q.AddTail("MUSCLE_ENABLE_ZLIB_ENCODING");
+   (void) q.AddTail("MUSCLE_ENABLE_ZLIB_ENCODING");
 #endif
 
 #ifdef MUSCLE_TRACE_CHECKPOINTS
-   q.AddTail(String("MUSCLE_TRACE_CHECKPOINTS=%1").Arg(MUSCLE_TRACE_CHECKPOINTS));
+   (void) q.AddTail(String("MUSCLE_TRACE_CHECKPOINTS=%1").Arg(MUSCLE_TRACE_CHECKPOINTS));
 #endif
 
 #ifdef MUSCLE_DISABLE_MESSAGE_FIELD_POOLS
-   q.AddTail("MUSCLE_DISABLE_MESSAGE_FIELD_POOLS");
+   (void) q.AddTail("MUSCLE_DISABLE_MESSAGE_FIELD_POOLS");
 #endif
 
 #ifdef MUSCLE_INLINE_LOGGING
-   q.AddTail("MUSCLE_INLINE_LOGGING");
+   (void) q.AddTail("MUSCLE_INLINE_LOGGING");
 #endif
 
 #ifdef MUSCLE_DISABLE_LOGGING
-   q.AddTail("MUSCLE_DISABLE_LOGGING");
+   (void) q.AddTail("MUSCLE_DISABLE_LOGGING");
 #endif
 
 #ifdef MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS
-   q.AddTail("MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS");
+   (void) q.AddTail("MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS");
 #endif
 
 #ifdef MUSCLE_MUTEX_POOL_SIZE
-   q.AddTail(String("MUSCLE_MUTEX_POOL_SIZE").Arg(MUSCLE_MUTEX_POOL_SIZE));
+   (void) q.AddTail(String("MUSCLE_MUTEX_POOL_SIZE").Arg(MUSCLE_MUTEX_POOL_SIZE));
 #endif
 
 #ifdef MUSCLE_POWERPC_TIMEBASE_HZ
-   q.AddTail(String("MUSCLE_POWERPC_TIMEBASE_HZ=%1").Arg(MUSCLE_POWERPC_TIMEBASE_HZ));
+   (void) q.AddTail(String("MUSCLE_POWERPC_TIMEBASE_HZ=%1").Arg(MUSCLE_POWERPC_TIMEBASE_HZ));
 #endif
 
 #ifdef MUSCLE_USE_PTHREADS
-   q.AddTail("MUSCLE_USE_PTHREADS");
+   (void) q.AddTail("MUSCLE_USE_PTHREADS");
 #endif
 
 #ifdef MUSCLE_USE_PTHREADS
-   q.AddTail("MUSCLE_USE_CPLUSPLUS11_THREADS");
+   (void) q.AddTail("MUSCLE_USE_CPLUSPLUS11_THREADS");
 #endif
 
 #ifdef MUSCLE_DEFAULT_TCP_STALL_TIMEOUT
-   q.AddTail("MUSCLE_DEFAULT_TCP_STALL_TIMEOUT=%1").Arg(MUSCLE_DEFAULT_TCP_STALL_TIMEOUT);
+   (void) q.AddTail("MUSCLE_DEFAULT_TCP_STALL_TIMEOUT=%1").Arg(MUSCLE_DEFAULT_TCP_STALL_TIMEOUT);
 #endif
 
 #ifdef MUSCLE_FD_SETSIZE
-   q.AddTail(String("MUSCLE_FD_SETSIZE=%1").Arg(MUSCLE_FD_SETSIZE));
+   (void) q.AddTail(String("MUSCLE_FD_SETSIZE=%1").Arg(MUSCLE_FD_SETSIZE));
 #endif
 
 #ifdef MUSCLE_AVOID_NEWNOTHROW
-   q.AddTail("MUSCLE_AVOID_NEWNOTHROW");
+   (void) q.AddTail("MUSCLE_AVOID_NEWNOTHROW");
 #endif
 
 #ifdef MUSCLE_AVOID_FORKPTY
-   q.AddTail("MUSCLE_AVOID_FORKPTY");
+   (void) q.AddTail("MUSCLE_AVOID_FORKPTY");
 #endif
 
 #ifdef MUSCLE_HASHTABLE_DEFAULT_CAPACITY
-   q.AddTail(String("MUSCLE_HASHTABLE_DEFAULT_CAPACITY=%1").Arg(MUSCLE_HASHTABLE_DEFAULT_CAPACITY));
+   (void) q.AddTail(String("MUSCLE_HASHTABLE_DEFAULT_CAPACITY=%1").Arg(MUSCLE_HASHTABLE_DEFAULT_CAPACITY));
 #endif
 
 #ifdef SMALL_QUEUE_SIZE
-   q.AddTail(String("SMALL_QUEUE_SIZE=%1").Arg(SMALL_QUEUE_SIZE));
+   (void) q.AddTail(String("SMALL_QUEUE_SIZE=%1").Arg(SMALL_QUEUE_SIZE));
 #endif
 
 #ifdef SMALL_MUSCLE_STRING_LENGTH
-   q.AddTail(String("SMALL_MUSCLE_STRING_LENGTH=%1").Arg(SMALL_MUSCLE_STRING_LENGTH));
+   (void) q.AddTail(String("SMALL_MUSCLE_STRING_LENGTH=%1").Arg(SMALL_MUSCLE_STRING_LENGTH));
 #endif
 
 #ifdef MUSCLE_USE_QUERYPERFORMANCECOUNTER
-   q.AddTail("MUSCLE_USE_QUERYPERFORMANCECOUNTER");
+   (void) q.AddTail("MUSCLE_USE_QUERYPERFORMANCECOUNTER");
 #endif
 
 #ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
-   q.AddTail("MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME");
+   (void) q.AddTail("MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME");
 #endif
 
 #ifdef MUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS
-   q.AddTail("MUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS");
+   (void) q.AddTail("MUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS");
 #endif
 
 #ifdef MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS
-   q.AddTail(String("MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS=%1").Arg(MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS));
+   (void) q.AddTail(String("MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS=%1").Arg(MUSCLE_WARN_ABOUT_LOUSY_HASH_FUNCTIONS));
 #endif
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   q.AddTail("MUSCLE_ENABLE_DEADLOCK_FINDER");
+   (void) q.AddTail("MUSCLE_ENABLE_DEADLOCK_FINDER");
 #endif
 
 #ifdef MUSCLE_DEFAULT_RUNTIME_DISABLE_DEADLOCK_FINDER
-   q.AddTail("MUSCLE_DEFAULT_RUNTIME_DISABLE_DEADLOCK_FINDER");
+   (void) q.AddTail("MUSCLE_DEFAULT_RUNTIME_DISABLE_DEADLOCK_FINDER");
 #endif
 
 #ifdef MUSCLE_POOL_SLAB_SIZE
-   q.AddTail(String("MUSCLE_POOL_SLAB_SIZE=%1").Arg(MUSCLE_POOL_SLAB_SIZE));
+   (void) q.AddTail(String("MUSCLE_POOL_SLAB_SIZE=%1").Arg(MUSCLE_POOL_SLAB_SIZE));
 #endif
 
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
-   q.AddTail("MUSCLE_AVOID_TAGGED_POINTERS");
+   (void) q.AddTail("MUSCLE_AVOID_TAGGED_POINTERS");
 #endif
 
 #ifdef MUSCLE_AVOID_CHECK_THREAD_STACK_USAGE
-   q.AddTail("MUSCLE_AVOID_CHECK_THREAD_STACK_USAGE");
+   (void) q.AddTail("MUSCLE_AVOID_CHECK_THREAD_STACK_USAGE");
 #endif
 
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
-   q.AddTail("MUSCLE_ENABLE_OBJECT_COUNTING");
+   (void) q.AddTail("MUSCLE_ENABLE_OBJECT_COUNTING");
 #endif
 
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
-   q.AddTail("MUSCLE_AVOID_THREAD_LOCAL_STORAGE");
+   (void) q.AddTail("MUSCLE_AVOID_THREAD_LOCAL_STORAGE");
 #endif
 
 #ifdef MUSCLE_AVOID_MINIMIZED_HASHTABLES
-   q.AddTail("MUSCLE_AVOID_MINIMIZED_HASHTABLES");
+   (void) q.AddTail("MUSCLE_AVOID_MINIMIZED_HASHTABLES");
 #endif
 
 #ifdef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
-   q.AddTail("MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS");
+   (void) q.AddTail("MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS");
 #endif
 
 #ifdef MUSCLE_FAKE_SHARED_MEMORY
-   q.AddTail("MUSCLE_FAKE_SHARED_MEMORY");
+   (void) q.AddTail("MUSCLE_FAKE_SHARED_MEMORY");
 #endif
 
 #ifdef MUSCLE_COUNT_STRING_COPY_OPERATIONS
-   q.AddTail("MUSCLE_COUNT_STRING_COPY_OPERATIONS");
+   (void) q.AddTail("MUSCLE_COUNT_STRING_COPY_OPERATIONS");
 #endif
 
 #ifdef MUSCLE_AVOID_XENOMAI
-   q.AddTail("MUSCLE_AVOID_XENOMAI");
+   (void) q.AddTail("MUSCLE_AVOID_XENOMAI");
 #endif
 
 #ifdef DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
-   q.AddTail(String("DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD=%1").Arg(DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD));
+   (void) q.AddTail(String("DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD=%1").Arg(DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD));
 #endif
 
 #ifdef MUSCLE_AVOID_AUTOCHOOSE_SWAP
-   q.AddTail("MUSCLE_AVOID_AUTOCHOOSE_SWAP");
+   (void) q.AddTail("MUSCLE_AVOID_AUTOCHOOSE_SWAP");
+#endif
+
+#ifdef MUSCLE_AVOID_NODISCARD
+   (void) q.AddTail("MUSCLE_AVOID_NODISCARD");
 #endif
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
-   q.AddTail("MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS");
+   (void) q.AddTail("MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS");
 #endif
 
 #ifdef MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION
-   q.AddTail("MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION");
+   (void) q.AddTail("MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION");
 #endif
 
 #ifdef MUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION
-   q.AddTail("MUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION");
+   (void) q.AddTail("MUSCLE_USE_DUMMY_DETECT_NETWORK_CONFIG_CHANGES_SESSION");
 #endif
 
 #ifdef MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES
-   q.AddTail("MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES");
+   (void) q.AddTail("MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES");
 #endif
 
 #ifdef MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
-   q.AddTail("MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT");
+   (void) q.AddTail("MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT");
 #endif
    return q;
 }

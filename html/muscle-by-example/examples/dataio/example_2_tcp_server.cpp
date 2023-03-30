@@ -49,11 +49,11 @@ int main(int argc, char ** argv)
    while(true)
    {
       // Tell the SocketMultiplexer what sockets to listen to
-      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
-      sm.RegisterSocketForReadReady(acceptSock.GetFileDescriptor());
+      (void) sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
+      (void) sm.RegisterSocketForReadReady(acceptSock.GetFileDescriptor());
       for (HashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
       {
-         sm.RegisterSocketForReadReady(iter.GetKey()()->GetReadSelectSocket().GetFileDescriptor());
+         (void) sm.RegisterSocketForReadReady(iter.GetKey()()->GetReadSelectSocket().GetFileDescriptor());
       }
 
       // Wait here until something happens

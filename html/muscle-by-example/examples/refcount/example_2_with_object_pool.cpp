@@ -64,7 +64,7 @@ int main(int argc, char ** argv)
    {
       // Grab a number of MyClass objects from the ObjectPool for our use here
       Queue<MyClassRef> q;
-      for (int j=0; j<i; j++) q.AddTail(MyClassRef(_myClassPool.ObtainObject()));
+      for (int j=0; j<i; j++) (void) q.AddTail(MyClassRef(_myClassPool.ObtainObject()));
 
       printf("   Iteration %i of the loop is (pretending to use) %i MyClass objects\n", i, i);
       q.Clear();  // not strictly necessary since (q) is about to go out of scope anyway

@@ -309,7 +309,7 @@ ReflectServer :: Cleanup()
    }
 
    // Detach all factories
-   RemoveAcceptFactory(0);
+   (void) RemoveAcceptFactory(0);
 
    // This will dereference everything so they can be safely deleted here
    _lameDuckSessions.Clear();
@@ -339,7 +339,7 @@ CheckPolicy(Hashtable<AbstractSessionIOPolicyRef, Void> & policies, const Abstra
    if (p)
    {
       // Any policy that is found attached to a session goes into our temporary policy set
-       policies.PutWithDefault(policyRef);
+       (void) policies.PutWithDefault(policyRef);
 
       // If the session is ready, and BeginIO() hasn't been called on this policy already, do so now
       if ((ph.GetSession())&&(p->_hasBegun == false))
@@ -578,7 +578,7 @@ ServerProcessLoop()
          if (r.IsError())
          {
             if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting! [%s]\n", ret());
-            ClearLameDucks();
+            (void) ClearLameDucks();
             return B_ERRNO;
          }
       }
@@ -1182,7 +1182,7 @@ SetComputerIsAboutToSleep(bool isAboutToSleep)
          if (s())
          {
             (void) _sessionsToReconnectOnWakeup.Remove(iter.GetKey());  // gotta do this first, otherwise AbstractReflectSession::GetPulseTime() won't do the right thing
-            if (iter.GetValue()) s()->Reconnect();            // dormant sessions need Reconnect() called
+            if (iter.GetValue()) (void) s()->Reconnect();     // dormant sessions need Reconnect() called
                             else s()->InvalidatePulseTime();  // auto-reconnect sessions just need to update their pulse time
             reconnectCount++;
          }

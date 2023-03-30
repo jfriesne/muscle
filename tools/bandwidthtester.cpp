@@ -31,14 +31,14 @@ int main(int argc, char ** argv)
       printf("Listening for bandwidthtester messages....\n");
       // Tell the server that we are interested in receiving bandwidthtester messages
       MessageRef uploadMsg(GetMessageFromPool(PR_COMMAND_SETDATA));
-      uploadMsg()->AddMessage("bandwidthtester", GetMessageFromPool());
-      gw.AddOutgoingMessage(uploadMsg);
+      (void) uploadMsg()->AddMessage("bandwidthtester", GetMessageFromPool());
+      (void) gw.AddOutgoingMessage(uploadMsg);
    }
 
    // Here is a (fairly large) message that we will send repeatedly in order to bandwidth-test the server
    MessageRef sendMsgRef(GetMessageFromPool(0x666));
-   sendMsgRef()->AddString(PR_NAME_KEYS, "bandwidthtester");
-   sendMsgRef()->AddData("bandwidthtester test data", B_RAW_TYPE, NULL, 8000);
+   (void) sendMsgRef()->AddString(PR_NAME_KEYS, "bandwidthtester");
+   (void) sendMsgRef()->AddData("bandwidthtester test data", B_RAW_TYPE, NULL, 8000);
 
    SocketMultiplexer multiplexer;
    uint64 startTime      = GetRunTime64();
@@ -48,8 +48,8 @@ int main(int argc, char ** argv)
    while(true)
    {
       const int fd = s.GetFileDescriptor();
-      multiplexer.RegisterSocketForReadReady(fd);
-      if ((send)||(gw.HasBytesToOutput())) multiplexer.RegisterSocketForWriteReady(fd);
+      (void) multiplexer.RegisterSocketForReadReady(fd);
+      if ((send)||(gw.HasBytesToOutput())) (void) multiplexer.RegisterSocketForWriteReady(fd);
 
       const uint64 printInterval = SecondsToMicros(5);
       if (OnceEvery(printInterval, lastPrintTime))

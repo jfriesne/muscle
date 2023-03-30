@@ -77,12 +77,12 @@ int main(int argc, char ** argv)
    const int NUM_THREADS = 10;
 
    printf("Demonstration of a Mutex.  First we'll spawn %i threads, and have them each count to 10 repeatedly inside a Mutex....\n", NUM_THREADS);
-   Snooze64(SecondsToMicros(5));
+   (void) Snooze64(SecondsToMicros(5));
 
    {
       ThreadThatUsesAMutex threads[NUM_THREADS];
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].StartInternalThread();
-      Snooze64(SecondsToMicros(5));
+      (void) Snooze64(SecondsToMicros(5));
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].ShutdownInternalThread();
    }
 
@@ -91,12 +91,12 @@ int main(int argc, char ** argv)
    printf("\n");
 
    printf("Now we'll spawn %i more threads, except this time they'll execute with no Mutex.  See how the output is different!\n", NUM_THREADS);
-   Snooze64(SecondsToMicros(5));
+   (void) Snooze64(SecondsToMicros(5));
 
    {
       ThreadWithoutMutex threads[NUM_THREADS];
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].StartInternalThread();
-      Snooze64(SecondsToMicros(5));
+      (void) Snooze64(SecondsToMicros(5));
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].ShutdownInternalThread();
    }
 

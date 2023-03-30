@@ -40,9 +40,9 @@ int main(int argc, char ** argv)
    LogTime(MUSCLE_LOG_DEBUG, "Default log threshold is MUSCLE_LOG_INFO, which is why you don't see this line printed.\n");
    LogTime(MUSCLE_LOG_DEBUG, "Filtered LogTime() calls don't evaluate their arguments, so SomeFunction(%i) isn't called here!\n", SomeFunction(5));
 
-   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);  // lower the threshold for stdout-output to MUSCLE_LOG_DEBUG or greater
+   (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);  // lower the threshold for stdout-output to MUSCLE_LOG_DEBUG or greater
    LogTime(MUSCLE_LOG_DEBUG, "... but after calling SetConsoleLogLevel(MUSCLE_LOG_DEBUG), debug-level output will appear on stdout.\n");
-   SetConsoleLogLevel(MUSCLE_LOG_TRACE);  // lower the threshold for stdout-output to MUSCLE_LOG_TRACE or greater
+   (void) SetConsoleLogLevel(MUSCLE_LOG_TRACE);  // lower the threshold for stdout-output to MUSCLE_LOG_TRACE or greater
    LogTime(MUSCLE_LOG_TRACE, "... same thing goes for MUSCLE_LOG_TRACE-level output (which is suppressed by default)\n");
 
    return 0;

@@ -127,7 +127,7 @@ status_t ThreadPool :: ThreadPoolThread :: MessageReceivedFromOwner(const Messag
    while(_internalQueue.HasItems())
    {
       _threadPool->MessageReceivedFromThreadPoolAux(_currentClient, _internalQueue.Head(), _internalQueue.GetNumItems()-1);
-      _internalQueue.RemoveHead();
+      (void) _internalQueue.RemoveHead();
    }
 
    IThreadPoolClient * client = _currentClient;
@@ -197,7 +197,7 @@ void ThreadPool :: DispatchPendingMessagesUnsafe()
          }
          else break;  // nothing more we can do for now, all our pool threads are already busy
       }
-      else _pendingMessages.RemoveFirst();  // nothing to do for this client!?
+      else (void) _pendingMessages.RemoveFirst();  // nothing to do for this client!?
    }
 }
 
@@ -226,7 +226,7 @@ void ThreadPool :: ThreadFinishedProcessingClientMessages(uint32 threadID, IThre
    (void) _activeThreads.MoveToTable(threadID, _availableThreads);  // this thread is now available again for further tasks
    DispatchPendingMessagesUnsafe();
 
-   if (DoesClientHaveMessagesOutstandingUnsafe(client) == false) _waitingForCompletion.Remove(client);  // wake up user thread if he's waiting in UnregisterClient()
+   if (DoesClientHaveMessagesOutstandingUnsafe(client) == false) (void) _waitingForCompletion.Remove(client);  // wake up user thread if he's waiting in UnregisterClient()
 }
 
 status_t ThreadPool :: StartInternalThread(Thread & thread)

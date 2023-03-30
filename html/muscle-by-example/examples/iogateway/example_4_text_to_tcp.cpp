@@ -110,18 +110,18 @@ int main(int argc, char ** argv)
    while(keepGoing)
    {
       // Tell the SocketMultiplexer what file descriptors to watch
-      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
-      sm.RegisterSocketForReadReady(gateway.GetDataIO()()->GetReadSelectSocket().GetFileDescriptor());
+      (void) sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
+      (void) sm.RegisterSocketForReadReady(gateway.GetDataIO()()->GetReadSelectSocket().GetFileDescriptor());
       if (gateway.HasBytesToOutput())
       {
          // We only care about the TCP socket's ready-for-write status if our gateway
          // actually has some data queued up to send.  Otherwise there is no point waking up
          // just because the TCP socket's output-buffer isn't full...
-         sm.RegisterSocketForWriteReady(gateway.GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor());
+         (void) sm.RegisterSocketForWriteReady(gateway.GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor());
       }
 
       // Wait for something to happen (on either the TCP side or the stdin side)...
-      sm.WaitForEvents();
+      if (sm.WaitForEvents().IsError()) break;
 
       // Are there bytes ready-for-read on stdin?
       if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetFileDescriptor()))
@@ -142,14 +142,14 @@ int main(int argc, char ** argv)
 
             // Now let's create a Message containing the user's text and send it across the TCP
             MessageRef userMsg = GetMessageFromPool(PR_COMMAND_TEXT_STRINGS);
-            userMsg()->AddString(PR_NAME_TEXT_LINE, userText);   // what the user typed in
+            (void) userMsg()->AddString(PR_NAME_TEXT_LINE, userText);   // what the user typed in
 
             // And queue it up in the gateway for transmission ASAP
             printf("Your outgoing Message has been queued for transmission ASAP!\n");
             printf("Your outgoing Message is:\n");
             userMsg()->PrintToStream();
 
-            gateway.AddOutgoingMessage(userMsg);
+            (void) gateway.AddOutgoingMessage(userMsg);
          }
       }
 

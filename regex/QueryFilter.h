@@ -437,7 +437,7 @@ public:
    /** Initializer-list Constructor (C++11 only)
      * @param childrenList the initializer-list of child QueryFilters to add to our set of children.
      */
-   MultiQueryFilter(const std::initializer_list<ConstQueryFilterRef> & childrenList) {_children.AddTailMulti(childrenList);}
+   MultiQueryFilter(const std::initializer_list<ConstQueryFilterRef> & childrenList) {(void) _children.AddTailMulti(childrenList);}
 #endif
 
    virtual status_t SaveToArchive(Message & archive) const;
@@ -842,8 +842,8 @@ public:
      */
    XorQueryFilter(const ConstQueryFilterRef & child1, const ConstQueryFilterRef & child2)
    {
-      GetChildren().AddTail(child1);
-      GetChildren().AddTail(child2);
+      (void) GetChildren().AddTail(child1);
+      (void) GetChildren().AddTail(child2);
    }
 
    /** Convenience constructor to specify a ternary 'xor' operator.

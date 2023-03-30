@@ -86,7 +86,7 @@ int main(int argc, char ** argv)
    SocketMultiplexer sm;
    while(true)
    {
-      for (HashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++) sm.RegisterSocketForReadReady(iter.GetKey().GetFileDescriptor());
+      for (HashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++) (void) sm.RegisterSocketForReadReady(iter.GetKey().GetFileDescriptor());
       (void) sm.WaitForEvents(nextPingTime);
 
       const uint64 now = GetRunTime64();

@@ -86,7 +86,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
                   if (dash)
                   {
                      String beforeDash;
-                     if (dash>clause) {beforeDash.SetCstr(clause, (int32)(dash-clause)); beforeDash = DigitsOnly(beforeDash);}
+                     if (dash>clause) {(void) beforeDash.SetCstr(clause, (int32)(dash-clause)); beforeDash = DigitsOnly(beforeDash);}
 
                      String afterDash(dash+1); afterDash = DigitsOnly(afterDash);
 
@@ -95,7 +95,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
                   }
                   else if (clause[0] != '>') min = max = atoi(String(clause).Trim()());
 
-                  _ranges.AddTail(IDRange(min,max));
+                  MRETURN_ON_ERROR(_ranges.AddTail(IDRange(min,max)));
                }
             }
          }

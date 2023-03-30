@@ -61,10 +61,10 @@ static MessageRef ParseStdinCommand(const String & stdinCommand)
             if (HasRegexTokens(pathArg)) LogTime(MUSCLE_LOG_WARNING, "Note: PR_COMMAND_SETDATA won't do pattern-matching on wildcard chars; rather they will become literal chars in the node-path!\n");
 
              MessageRef dataPayloadMsg = GetMessageFromPool();
-             dataPayloadMsg()->AddString("User String", dataArg);
+             MRETURN_ON_ERROR(dataPayloadMsg()->AddString("User String", dataArg));
 
              MessageRef setDataMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
-             setDataMsg()->AddMessage(pathArg, dataPayloadMsg);
+             MRETURN_ON_ERROR(setDataMsg()->AddMessage(pathArg, dataPayloadMsg));
 
              return setDataMsg;
          }
@@ -79,7 +79,7 @@ static MessageRef ParseStdinCommand(const String & stdinCommand)
          LogTime(MUSCLE_LOG_INFO, "Sending PR_COMMAND_GETDATA to do a one-time download of nodes matching the following path: [%s]\n", pathArg());
 
          MessageRef getDataMsg = GetMessageFromPool(PR_COMMAND_GETDATA);
-         getDataMsg()->AddString(PR_NAME_KEYS, pathArg);
+         MRETURN_ON_ERROR(getDataMsg()->AddString(PR_NAME_KEYS, pathArg));
          return getDataMsg;
       }
       else LogTime(MUSCLE_LOG_INFO, "Usage Example:  get /*/*\n");
@@ -92,7 +92,7 @@ static MessageRef ParseStdinCommand(const String & stdinCommand)
          LogTime(MUSCLE_LOG_INFO, "Sending PR_COMMAND_REMOVEDATA to delete any nodes matching the following path: [%s]\n", pathArg());
 
          MessageRef deleteNodesMsg = GetMessageFromPool(PR_COMMAND_REMOVEDATA);
-         deleteNodesMsg()->AddString(PR_NAME_KEYS, pathArg);
+         MRETURN_ON_ERROR(deleteNodesMsg()->AddString(PR_NAME_KEYS, pathArg));
          return deleteNodesMsg;
       }
       else LogTime(MUSCLE_LOG_INFO, "Usage Example:  delete *\n");
@@ -105,7 +105,7 @@ static MessageRef ParseStdinCommand(const String & stdinCommand)
          LogTime(MUSCLE_LOG_INFO, "Sending PR_COMMAND_SETPARAMETERS to set up a \"live\" subscription to any nodes matching the following path: [%s]\n", pathArg());
 
          MessageRef subscribeToNodesMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-         subscribeToNodesMsg()->AddBool(String("SUBSCRIBE:%1").Arg(pathArg), true);
+         MRETURN_ON_ERROR(subscribeToNodesMsg()->AddBool(String("SUBSCRIBE:%1").Arg(pathArg), true));
          return subscribeToNodesMsg;
       }
       else LogTime(MUSCLE_LOG_INFO, "Usage Example:  subscribe /*/*\n");
@@ -118,7 +118,7 @@ static MessageRef ParseStdinCommand(const String & stdinCommand)
          LogTime(MUSCLE_LOG_INFO, "Sending PR_COMMAND_REMOVEPARAMETERS to get rid of any \"live\" subscriptions that match the following string: [SUBSCRIBE:%s]\n", pathArg());
 
          MessageRef unsubscribeFromNodesMsg = GetMessageFromPool(PR_COMMAND_REMOVEPARAMETERS);
-         unsubscribeFromNodesMsg()->AddString(PR_NAME_KEYS, String("SUBSCRIBE:%1").Arg(pathArg));
+         MRETURN_ON_ERROR(unsubscribeFromNodesMsg()->AddString(PR_NAME_KEYS, String("SUBSCRIBE:%1").Arg(pathArg)));
          return unsubscribeFromNodesMsg;
       }
       else LogTime(MUSCLE_LOG_INFO, "Usage Example:  unsubscribe /*/*\n");
@@ -131,8 +131,8 @@ static MessageRef ParseStdinCommand(const String & stdinCommand)
          const String userText = tok.GetRemainderOfString();
 
          MessageRef chatMsg = GetMessageFromPool(1234);  // any non-PR_COMMAND_* message code will work here
-         chatMsg()->AddString(PR_NAME_KEYS, pathArg);
-         chatMsg()->AddString("chat_text", userText);
+         MRETURN_ON_ERROR(chatMsg()->AddString(PR_NAME_KEYS, pathArg));
+         MRETURN_ON_ERROR(chatMsg()->AddString("chat_text", userText));
          return chatMsg;
       }
       else LogTime(MUSCLE_LOG_INFO, "Usage Example:  msg /*/* Hey guys!\n");
@@ -153,7 +153,7 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    // Let's enable a bit of debug-output, just to see what the client is doing
-   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
+   (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
 
    status_t ret;
 
@@ -201,10 +201,9 @@ int main(int argc, char ** argv)
    SocketMultiplexer sm;
    while(true)
    {
-      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
-      sm.RegisterSocketForReadReady(mtt.GetOwnerWakeupSocket().GetFileDescriptor());
-
-      sm.WaitForEvents();
+      (void) sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
+      (void) sm.RegisterSocketForReadReady(mtt.GetOwnerWakeupSocket().GetFileDescriptor());
+      if (sm.WaitForEvents().IsError()) break;
 
       if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetFileDescriptor()))
       {

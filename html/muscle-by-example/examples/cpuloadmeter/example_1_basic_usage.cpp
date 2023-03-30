@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
    CPULoadMeter meter;
    while(true)
    {
-      Snooze64(MillisToMicros(250));
+      (void) Snooze64(MillisToMicros(250));
       LogTime(MUSCLE_LOG_INFO, "Current CPU usage is %.0f%%\n", meter.GetCPULoad()*100.0f);
    }
 

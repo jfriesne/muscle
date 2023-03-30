@@ -42,8 +42,8 @@ int main(int argc, char ** argv)
             }
 
             const int fd = s.GetFileDescriptor();
-            multiplexer.RegisterSocketForReadReady(fd);
-            if (ioGateway.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+            (void) multiplexer.RegisterSocketForReadReady(fd);
+            if (ioGateway.HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
 
             status_t ret;
             if (multiplexer.WaitForEvents().IsError(ret))

@@ -299,6 +299,7 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
          io_iterator_t serialPortIterator;
          if (IOServiceGetMatchingServices(masterPort, classesToMatch, &serialPortIterator) == KERN_SUCCESS)
          {
+            status_t ret;
             io_object_t modemService;
             while((modemService = IOIteratorNext(serialPortIterator)) != MACH_PORT_NULL)
             {
@@ -306,13 +307,13 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
                if (bsdPathAsCFString)
                {
                   const String bsdPath((const CFStringRef)bsdPathAsCFString);
-                  if (bsdPath.HasChars()) retList.AddTail(bsdPath);
+                  if (bsdPath.HasChars()) ret |= retList.AddTail(bsdPath);
                   CFRelease(bsdPathAsCFString);
                }
                (void) IOObjectRelease(modemService);
             }
             IOObjectRelease(serialPortIterator);
-            return B_NO_ERROR;
+            return ret;
          }
       }
    }

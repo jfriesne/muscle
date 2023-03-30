@@ -31,7 +31,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
                *b = '\0';
 
                data[i] = MBStrdupByteBuffer(buf);
-               m.AddString("testStrings", buf);
+               (void) m.AddString("testStrings", buf);
             }
          }
          else printf("Error allocating string field!\n");
@@ -43,7 +43,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
             for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = (i%2) ? true : false;
-               m.AddBool("testBools", data[i]);
+               (void) m.AddBool("testBools", data[i]);
             }
          }
          else printf("Error allocating bool field!\n");
@@ -55,7 +55,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
             for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = i;
-               m.AddInt8("testInt8s", data[i]);
+               (void) m.AddInt8("testInt8s", data[i]);
             }
          }
          else printf("Error allocating int8 field!\n");
@@ -67,7 +67,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
             for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = i;
-               m.AddInt16("testInt16s", data[i]);
+               (void) m.AddInt16("testInt16s", data[i]);
             }
          }
          else printf("Error allocating int16 field!\n");
@@ -79,7 +79,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
             for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = i;
-               m.AddInt32("testInt32s", data[i]);
+               (void) m.AddInt32("testInt32s", data[i]);
             }
          }
          else printf("Error allocating int32 field!\n");
@@ -91,7 +91,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
             for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = i;
-               m.AddInt64("testInt64s", data[i]);
+               (void) m.AddInt64("testInt64s", data[i]);
             }
          }
          else printf("Error allocating int64 field!\n");
@@ -103,7 +103,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
             for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = (float) i;
-               m.AddFloat("testFloats", data[i]);
+               (void) m.AddFloat("testFloats", data[i]);
             }
          }
          else printf("Error allocating float field!\n");
@@ -115,7 +115,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
             for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = i;
-               m.AddDouble("testDoubles", data[i]);
+               (void) m.AddDouble("testDoubles", data[i]);
             }
          }
          else printf("Error allocating double field!\n");
@@ -130,12 +130,12 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
                {
                   Message subMsg;
                   data[i] = CreateTestMessage(recurseCount-1, subMsg);
-                  m.AddMessage("testMessages", subMsg);
+                  (void) m.AddMessage("testMessages", subMsg);
                }
                else
                {
                   data[i] = MMAllocMessage(i);
-                  m.AddMessage("testMessages", Message(i));
+                  (void) m.AddMessage("testMessages", Message(i));
                }
             }
          }
@@ -149,7 +149,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
             for (i=0; i<ITEM_COUNT; i++)
             {
                data[i] = &c[i];  // note that these aren't pointers to anything in particular... don't dereference them!
-               m.AddPointer("testPointers", data[i]);
+               (void) m.AddPointer("testPointers", data[i]);
             }
          }
          else printf("Error allocating pointer field!\n");
@@ -162,7 +162,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
             {
                data[i].x = (float) i;
                data[i].y = (float) (i+ITEM_COUNT);
-               m.AddPoint("testPoints", Point(data[i].x, data[i].y));
+               (void) m.AddPoint("testPoints", Point(data[i].x, data[i].y));
             }
          }
          else printf("Error allocating point field!\n");
@@ -180,7 +180,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
                data[i].top    = (float) (i+ITEM_COUNT);
                data[i].right  = (float) (i+(ITEM_COUNT*2));
                data[i].bottom = (float) (i+(ITEM_COUNT*3));
-               m.AddRect("testRects", Rect(data[i].left, data[i].top, data[i].right, data[i].bottom));
+               (void) m.AddRect("testRects", Rect(data[i].left, data[i].top, data[i].right, data[i].bottom));
             }
          }
          else printf("Error allocating rect field!\n");
@@ -198,7 +198,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
                *b = '\0';
 
                data[i] = MBStrdupByteBuffer(buf);
-               m.AddData("testDatas", 0x666, buf, ((uint32)strlen(buf))+1);
+               (void) m.AddData("testDatas", 0x666, buf, ((uint32)strlen(buf))+1);
             }
          }
          else printf("Error allocating data field!\n");

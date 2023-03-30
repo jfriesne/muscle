@@ -112,13 +112,13 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
       for (int32 i=0; (args.FindString("port", i, &value).IsOK()); i++)
       {
          const int16 port = (int16) atoi(value);
-         if (port >= 0) listenPorts.PutWithDefault(IPAddressAndPort(invalidIP, port));
+         if (port >= 0) (void) listenPorts.PutWithDefault(IPAddressAndPort(invalidIP, port));
       }
 
       for (int32 i=0; (args.FindString("listen", i, &value).IsOK()); i++)
       {
          const IPAddressAndPort iap(value, DEFAULT_MUSCLED_PORT, false);
-         if (iap.GetPort() > 0) listenPorts.PutWithDefault(iap);
+         if (iap.GetPort() > 0) (void) listenPorts.PutWithDefault(iap);
                            else LogTime(MUSCLE_LOG_ERROR, "Unable to parse IP/port string [%s]\n", value);
       }
    }
@@ -134,7 +134,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
          {
             char ipbuf[64]; Inet_NtoA(fromIP, ipbuf);
             LogTime(MUSCLE_LOG_INFO, "Will treat connections coming from [%s] as if they were from [%s].\n", ipbuf, to);
-            tempRemaps.Put(fromIP, to);
+            (void) tempRemaps.Put(fromIP, to);
          }
          else LogTime(MUSCLE_LOG_ERROR, "Error parsing remap argument (it should look something like remap=192.168.0.1,132.239.50.8).\n");
       }
@@ -196,7 +196,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
       for (int32 i=0; (args.FindString("ban", i, &value).IsOK()); i++)
       {
          LogTime(MUSCLE_LOG_INFO, "Banning all clients whose IP addresses match [%s].\n", value);
-         bans.AddTail(value);
+         (void) bans.AddTail(value);
       }
    }
 
@@ -204,7 +204,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
       for (int32 i=0; (args.FindString("require", i, &value).IsOK()); i++)
       {
          LogTime(MUSCLE_LOG_INFO, "Allowing only clients whose IP addresses match [%s].\n", value);
-         requires.AddTail(value);
+         (void) requires.AddTail(value);
       }
    }
 
@@ -229,8 +229,8 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    status_t ret;
    server.GetAddressRemappingTable() = tempRemaps;
 
-   if (maxNodesPerSession != MUSCLE_NO_LIMIT) server.GetCentralState().AddInt32(PR_NAME_MAX_NODES_PER_SESSION, maxNodesPerSession);
-   for (MessageFieldNameIterator iter = tempPrivs.GetFieldNameIterator(); iter.HasData(); iter++) tempPrivs.CopyName(iter.GetFieldName(), server.GetCentralState());
+   if (maxNodesPerSession != MUSCLE_NO_LIMIT) (void) server.GetCentralState().AddInt32(PR_NAME_MAX_NODES_PER_SESSION, maxNodesPerSession);
+   for (MessageFieldNameIterator iter = tempPrivs.GetFieldNameIterator(); iter.HasData(); iter++) (void) tempPrivs.CopyName(iter.GetFieldName(), server.GetCentralState());
 
    // If the user asked for bandwidth limiting, create Policy objects to handle that.
    AbstractSessionIOPolicyRef inputPolicyRef, outputPolicyRef;
@@ -284,7 +284,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
 
    // Set up ports.  We allow multiple ports, mostly just to show how it can be done;
    // they all get the same set of ban/require patterns (since they all do the same thing anyway).
-   if (listenPorts.IsEmpty()) listenPorts.PutWithDefault(IPAddressAndPort(invalidIP, DEFAULT_MUSCLED_PORT));
+   if (listenPorts.IsEmpty()) (void) listenPorts.PutWithDefault(IPAddressAndPort(invalidIP, DEFAULT_MUSCLED_PORT));
    for (HashtableIterator<IPAddressAndPort, Void> iter(listenPorts); iter.HasData(); iter++)
    {
       const IPAddressAndPort & iap = iter.GetKey();

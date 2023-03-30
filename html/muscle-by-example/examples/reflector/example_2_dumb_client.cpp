@@ -51,8 +51,8 @@ public:
       if (msg()->GetString(PR_NAME_TEXT_LINE).IsEmpty()) return;  // no sense sending a Message with no text
 
       // Add some other data to the Message, just because we can
-      msg()->AddString("This Message inspected for quality by", "Jeremy");
-      msg()->AddInt32("The answer is", 42);
+      (void) msg()->AddString("This Message inspected for quality by", "Jeremy");
+      (void) msg()->AddInt32("The answer is", 42);
 
       printf("\n");
       LogTime(MUSCLE_LOG_INFO, "Sending the following Message to the dumb server:\n");
@@ -91,7 +91,7 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    // Let's enable a bit of debug-output, just to see what the client is doing
-   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
+   (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
 
    // This object contains our client program's event loop.
    // (Yes, even though it says 'Server'.  It's a general-purpose event loop)

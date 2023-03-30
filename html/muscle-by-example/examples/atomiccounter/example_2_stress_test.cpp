@@ -85,7 +85,7 @@ int main(int argc, char ** argv)
    {
       ThreadThatUsesAtomicCounter threads[NUM_THREADS];
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].StartInternalThread();
-      Snooze64(SecondsToMicros(5));
+      (void) Snooze64(SecondsToMicros(5));
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].ShutdownInternalThread();
    }
 
@@ -96,7 +96,7 @@ int main(int argc, char ** argv)
    {
       ThreadWithoutAtomicCounter threads[NUM_THREADS];
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].StartInternalThread();
-      Snooze64(SecondsToMicros(5));
+      (void) Snooze64(SecondsToMicros(5));
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].ShutdownInternalThread();
    }
 

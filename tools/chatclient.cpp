@@ -50,10 +50,10 @@ static MessageRef GenerateChatMessage(const char * targetSessionID, const char *
       String toString("/*/");  // send message to all hosts...
       toString += targetSessionID;
       toString += "/beshare";
-      chatMessage()->AddString(PR_NAME_KEYS, toString.Cstr());
-      chatMessage()->AddString("session", "blah");  // will be set by server
-      chatMessage()->AddString("text", messageText);
-      if (strcmp(targetSessionID, "*")) chatMessage()->AddBool("private", true);
+      MRETURN_ON_ERROR(chatMessage()->AddString(PR_NAME_KEYS, toString.Cstr()));
+      MRETURN_ON_ERROR(chatMessage()->AddString("session", "blah"));  // will be set by server
+      MRETURN_ON_ERROR(chatMessage()->AddString("text", messageText));
+      if (strcmp(targetSessionID, "*")) MRETURN_ON_ERROR(chatMessage()->AddBool("private", true));
    }
    return chatMessage;
 }
@@ -63,8 +63,8 @@ static MessageRef GenerateServerSubscription(const char * subscriptionString, bo
    MessageRef queryMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
    if (queryMsg())
    {
-      queryMsg()->AddBool(subscriptionString, true);  // the true doesn't signify anything
-      if (quietly) queryMsg()->AddBool(PR_NAME_SUBSCRIBE_QUIETLY, true);  // suppress initial-state response
+      MRETURN_ON_ERROR(queryMsg()->AddBool(subscriptionString, true));  // the true doesn't signify anything
+      MRETURN_ON_ERROR(queryMsg()->CAddBool(PR_NAME_SUBSCRIBE_QUIETLY, quietly));  // suppress initial-state response
    }
    return queryMsg;
 }
@@ -75,11 +75,11 @@ static MessageRef GenerateSetLocalUserName(const char * name)
    MessageRef nameMessage = GetMessageFromPool();
    if ((uploadMsg())&&(nameMessage()))
    {
-      nameMessage()->AddString("name", name);
-      nameMessage()->AddInt32("port", 0);  // BeShare requires this, even though we don't use it
-      nameMessage()->AddString("version_name", "MUSCLE demo chat client");
-      nameMessage()->AddString("version_num", VERSION_STRING);
-      uploadMsg()->AddMessage("beshare/name", nameMessage);
+      MRETURN_ON_ERROR(nameMessage()->AddString("name", name));
+      MRETURN_ON_ERROR(nameMessage()->AddInt32("port", 0));  // BeShare requires this, even though we don't use it
+      MRETURN_ON_ERROR(nameMessage()->AddString("version_name", "MUSCLE demo chat client"));
+      MRETURN_ON_ERROR(nameMessage()->AddString("version_num", VERSION_STRING));
+      MRETURN_ON_ERROR(uploadMsg()->AddMessage("beshare/name", nameMessage));
    }
    return uploadMsg;
 }
@@ -90,8 +90,8 @@ static MessageRef GenerateSetLocalUserStatus(const char * name)
    MessageRef nameMessage = GetMessageFromPool();
    if ((uploadMsg())&&(nameMessage()))
    {
-      nameMessage()->AddString("userstatus", name);
-      uploadMsg()->AddMessage("beshare/userstatus", nameMessage);
+      MRETURN_ON_ERROR(nameMessage()->AddString("userstatus", name));
+      MRETURN_ON_ERROR(uploadMsg()->AddMessage("beshare/userstatus", nameMessage));
    }
    return uploadMsg;
 }
@@ -124,9 +124,9 @@ int main(int argc, char ** argv)
 
    // Do initial setup
    MessageIOGateway gw; gw.SetDataIO(DataIORef(new TCPSocketDataIO(s, false)));
-   gw.AddOutgoingMessage(GenerateSetLocalUserName(userName));
-   gw.AddOutgoingMessage(GenerateSetLocalUserStatus(userStatus));
-   gw.AddOutgoingMessage(GenerateServerSubscription("SUBSCRIBE:beshare/*", false));
+   (void) gw.AddOutgoingMessage(GenerateSetLocalUserName(userName));
+   (void) gw.AddOutgoingMessage(GenerateSetLocalUserStatus(userStatus));
+   (void) gw.AddOutgoingMessage(GenerateServerSubscription("SUBSCRIBE:beshare/*", false));
 
    StdinDataIO stdinIO(false);
    QueueGatewayMessageReceiver stdinInQueue;
@@ -141,9 +141,9 @@ int main(int argc, char ** argv)
    while(s())
    {
       const int fd = s.GetFileDescriptor();
-      multiplexer.RegisterSocketForReadReady(fd);
-      if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-      multiplexer.RegisterSocketForReadReady(stdinFD);
+      (void) multiplexer.RegisterSocketForReadReady(fd);
+      if (gw.HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
+      (void) multiplexer.RegisterSocketForReadReady(stdinFD);
 
       while(s())
       {
@@ -183,27 +183,27 @@ int main(int argc, char ** argv)
                   {
                      (void) tok();
                      const char * targetSessionID = tok();
-                     String sendText = String(tok.GetRemainderOfString()).Trim();
-                     if (sendText.HasChars()) gw.AddOutgoingMessage(GenerateChatMessage(targetSessionID, sendText()));
+                     const String sendText = String(tok.GetRemainderOfString()).Trim();
+                     if (sendText.HasChars()) (void)gw.AddOutgoingMessage(GenerateChatMessage(targetSessionID, sendText()));
                   }
                   else if (text.StartsWith("/nick "))
                   {
                      (void) tok();
-                     String name = String(tok.GetRemainderOfString()).Trim();
+                     const String name = String(tok.GetRemainderOfString()).Trim();
                      if (name.HasChars())
                      {
                         LogTime(MUSCLE_LOG_INFO, "Setting local user name to [%s]\n", name());
-                        gw.AddOutgoingMessage(GenerateSetLocalUserName(name()));
+                        (void) gw.AddOutgoingMessage(GenerateSetLocalUserName(name()));
                      }
                   }
                   else if (text.StartsWith("/status "))
                   {
                      (void) tok();
-                     String status = String(tok.GetRemainderOfString()).Trim();
+                     const String status = String(tok.GetRemainderOfString()).Trim();
                      if (status.HasChars())
                      {
                         LogTime(MUSCLE_LOG_INFO, "Setting local user status to [%s]\n", status());
-                        gw.AddOutgoingMessage(GenerateSetLocalUserStatus(status()));
+                        (void) gw.AddOutgoingMessage(GenerateSetLocalUserStatus(status()));
                      }
                   }
                   else if (text.StartsWith("/help"))
@@ -211,7 +211,7 @@ int main(int argc, char ** argv)
                      LogTime(MUSCLE_LOG_INFO, "Available commands are:  /nick, /msg, /status, /help, and /quit\n");
                   }
                   else if (text.StartsWith("/quit")) s.Reset();
-                  else if (strlen(text()) > 0) gw.AddOutgoingMessage(GenerateChatMessage("*", text()));
+                  else if (strlen(text()) > 0) (void) gw.AddOutgoingMessage(GenerateChatMessage("*", text()));
                }
             }
          }
@@ -242,16 +242,16 @@ int main(int argc, char ** argv)
                      toString += replyTo;
                      toString += "/beshare";
 
-                     msg()->RemoveName(PR_NAME_KEYS);
-                     msg()->AddString(PR_NAME_KEYS, toString);
+                     (void) msg()->RemoveName(PR_NAME_KEYS);
+                     (void) msg()->AddString(PR_NAME_KEYS, toString);
 
-                     msg()->RemoveName("session");
-                     msg()->AddString("session", "blah");  // server will set this correctly for us
+                     (void) msg()->RemoveName("session");
+                     (void) msg()->AddString("session", "blah");  // server will set this correctly for us
 
-                     msg()->RemoveName("version");
-                     msg()->AddString("version", "MUSCLE demo chat client v" VERSION_STRING);
+                     (void) msg()->RemoveName("version");
+                     (void) msg()->AddString("version", "MUSCLE demo chat client v" VERSION_STRING);
 
-                     gw.AddOutgoingMessage(msg);
+                     (void) gw.AddOutgoingMessage(msg);
                   }
                }
                break;
@@ -321,7 +321,7 @@ int main(int argc, char ** argv)
                                     if (pmsg->FindString("name", &name).IsOK())
                                     {
                                        if (_users.ContainsKey(sessionID) == false) LogTime(MUSCLE_LOG_INFO, "User #%s has connected\n", sessionID());
-                                       _users.Put(sessionID, name);
+                                       (void) _users.Put(sessionID, name);
                                        LogTime(MUSCLE_LOG_INFO, "User #%s is now known as %s\n", sessionID(), name);
                                     }
                                  }
@@ -343,9 +343,9 @@ int main(int argc, char ** argv)
 
          if ((reading == false)&&(writing == false)) break;
 
-         multiplexer.RegisterSocketForReadReady(stdinFD);
-         multiplexer.RegisterSocketForReadReady(fd);
-         if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+         (void) multiplexer.RegisterSocketForReadReady(stdinFD);
+         (void) multiplexer.RegisterSocketForReadReady(fd);
+         if (gw.HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
       }
    }
 

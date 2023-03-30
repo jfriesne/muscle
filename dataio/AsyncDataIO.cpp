@@ -43,7 +43,7 @@ void AsyncDataIO :: FlushOutput()
       if (_asyncCommandsMutex.Lock().IsOK())
       {
          const status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_FLUSH));
-         _asyncCommandsMutex.Unlock();
+         (void) _asyncCommandsMutex.Unlock();
          if (ret.IsOK()) NotifyInternalThread();
       }
    }
@@ -57,7 +57,7 @@ void AsyncDataIO :: Shutdown()
       if (_asyncCommandsMutex.Lock().IsOK())
       {
          const status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_SHUTDOWN));
-         _asyncCommandsMutex.Unlock();
+         (void) _asyncCommandsMutex.Unlock();
          if (ret.IsOK()) NotifyInternalThread();
       }
    }
@@ -109,20 +109,20 @@ void AsyncDataIO :: InternalThreadEntry()
    DataIO  * childIO    = childIORef();     // just for convenience
    while(keepGoing)
    {
-      int childReadFD  = childIO?childIO->GetReadSelectSocket().GetFileDescriptor():-1;
-      int childWriteFD = childIO?childIO->GetWriteSelectSocket().GetFileDescriptor():-1;
-      int fromMainFD   = GetInternalThreadWakeupSocket().GetFileDescriptor();
-      int notifyFD     = _ioThreadNotifySocket.GetFileDescriptor();
+      const int childReadFD  = childIO?childIO->GetReadSelectSocket().GetFileDescriptor():-1;
+      const int childWriteFD = childIO?childIO->GetWriteSelectSocket().GetFileDescriptor():-1;
+      const int fromMainFD   = GetInternalThreadWakeupSocket().GetFileDescriptor();
+      const int notifyFD     = _ioThreadNotifySocket.GetFileDescriptor();
 
-      if ((childReadFD  >= 0)&&(fromChildIOBufNumValid    < sizeof(fromChildIOBuf)))   multiplexer.RegisterSocketForReadReady(childReadFD);
-      if ((childWriteFD >= 0)&&(fromMainThreadBufNumValid > fromMainThreadBufReadIdx)) multiplexer.RegisterSocketForWriteReady(childWriteFD);
+      if ((childReadFD  >= 0)&&(fromChildIOBufNumValid    < sizeof(fromChildIOBuf)))   (void) multiplexer.RegisterSocketForReadReady(childReadFD);
+      if ((childWriteFD >= 0)&&(fromMainThreadBufNumValid > fromMainThreadBufReadIdx)) (void) multiplexer.RegisterSocketForWriteReady(childWriteFD);
 
       if (fromMainFD >= 0)
       {
-         if (fromMainThreadBufNumValid < sizeof(fromMainThreadBuf)) multiplexer.RegisterSocketForReadReady(fromMainFD);
-         if (fromChildIOBufNumValid > fromChildIOBufReadIdx)        multiplexer.RegisterSocketForWriteReady(fromMainFD);
+         if (fromMainThreadBufNumValid < sizeof(fromMainThreadBuf)) (void) multiplexer.RegisterSocketForReadReady(fromMainFD);
+         if (fromChildIOBufNumValid > fromChildIOBufReadIdx)        (void) multiplexer.RegisterSocketForWriteReady(fromMainFD);
       }
-      if (notifyFD >= 0) multiplexer.RegisterSocketForReadReady(notifyFD);  // always be on the lookout for notifications...
+      if (notifyFD >= 0) (void) multiplexer.RegisterSocketForReadReady(notifyFD);  // always be on the lookout for notifications...
 
       pulseTime = InternalThreadGetPulseTime(pulseTime);
       if (multiplexer.WaitForEvents(pulseTime).IsError()) break; // we block here, waiting for data availability or for the next pulse time
@@ -155,7 +155,7 @@ void AsyncDataIO :: InternalThreadEntry()
             else bytesUntilNextCommand = (uint32) (nextCmd.GetStreamLocation()-ioThreadBytesWritten);
          }
          else if ((exitWhenDoneWriting)&&(fromMainThreadBufReadIdx == fromMainThreadBufNumValid)) keepGoing = false;
-         _asyncCommandsMutex.Unlock();
+         (void) _asyncCommandsMutex.Unlock();
       }
 
       if (bytesUntilNextCommand > 0)

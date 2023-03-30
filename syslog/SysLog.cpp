@@ -1574,7 +1574,7 @@ uint32 DefaultFileLogger :: AddPreExistingLogFiles(const String & filePattern)
             {
                const String fullPath = dirPart+GetFilePathSeparator()+fn;
                FilePathInfo fpi(fullPath());
-               if ((fpi.Exists())&&(fpi.IsRegularFile())) pathToTime.Put(fullPath, fpi.GetCreationTime());
+               if ((fpi.Exists())&&(fpi.IsRegularFile())) (void) pathToTime.Put(fullPath, fpi.GetCreationTime());
             }
             d++;
          }
@@ -1634,7 +1634,7 @@ status_t DefaultFileLogger :: EnsureLogFileCreated(const LogCallbackArgs & a)
             const char * c = _oldLogFileNames.Head()();
                  if (remove(c) == 0)  LogTime(MUSCLE_LOG_DEBUG, "Deleted old Log file [%s]\n", c);
             else if (errno != ENOENT) LogTime(MUSCLE_LOG_ERROR, "Error [%s] deleting old Log file [%s]\n", B_ERRNO(), c);
-            _oldLogFileNames.RemoveHead();
+            (void) _oldLogFileNames.RemoveHead();
          }
 
          const String headerString = GetLogFileHeaderString(a);
@@ -2059,7 +2059,7 @@ status_t LogTimeAux(int ll, const char * fmt, ...)
       // Then log the actual message as supplied by the user
       if (lockRet.IsOK()) DO_LOGGING_CALLBACKS(ll);
    }
-   if (lockRet.IsOK()) UnlockLog();
+   if (lockRet.IsOK()) (void) UnlockLog();
    return lockRet;
 }
 
@@ -2606,7 +2606,7 @@ void WarnOutOfMemory(const char * file, int line)
    if (_inWarnOutOfMemory.IsOutermost())
    {
       static uint64 _prevCallTime = 0;
-      if (OnceEvery(SecondsToMicros(5), _prevCallTime)) PrintStackTrace();
+      if (OnceEvery(SecondsToMicros(5), _prevCallTime)) (void) PrintStackTrace();
    }
 }
 

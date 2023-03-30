@@ -28,10 +28,10 @@ MuscledWindow :: MuscledWindow(const char * argv0)
    bl->addWidget(_muscledStdoutText);
 
    Queue<String> argv;
-   argv.AddTail(argv0);
-   argv.AddTail("muscled");
-   argv.AddTail("displaylevel=trace");
-   argv.AddTail("catchsignals");
+   (void) argv.AddTail(argv0);
+   (void) argv.AddTail("muscled");
+   (void) argv.AddTail("displaylevel=trace");
+   (void) argv.AddTail("catchsignals");
    if (_cpdio.LaunchChildProcess(argv).IsOK())
    {
       _gateway.SetDataIO(DummyDataIORef(_cpdio));

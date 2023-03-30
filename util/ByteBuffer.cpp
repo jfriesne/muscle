@@ -138,7 +138,7 @@ void ByteBuffer :: Clear(bool releaseBuffers)
       _buffer = NULL;
       _numValidBytes = _numAllocatedBytes = 0;
    }
-   else SetNumBytes(0, false);
+   else (void) SetNumBytes(0, false);
 }
 
 void ByteBuffer :: PrintToStream(uint32 maxBytesToPrint, uint32 numColumns, FILE * optFile) const

@@ -183,8 +183,7 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
    {
       // Hmm, no sockets to wait on at all.  All we have to do is sleep!
       // Note doing it this way avoids a Windows problem where select() will fail if no sockets are provided to wait on.
-      Snooze64(waitTimeMicros);
-      return B_NO_ERROR;
+      return Snooze64(waitTimeMicros);
    }
 }
 

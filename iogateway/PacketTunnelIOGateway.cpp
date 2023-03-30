@@ -77,7 +77,7 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
                      rs->_buf = GetByteBufferFromPool(totalSize);
                      if (rs->_buf() == NULL)
                      {
-                        _receiveStates.Remove(fromIAP);
+                        (void) _receiveStates.Remove(fromIAP);
                         rs = NULL;
                      }
                   }
@@ -89,7 +89,7 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
                      // A new message... start receiving it (but only if we are starting at the beginning)
                      rs->_messageID = messageID;
                      rs->_offset    = 0;
-                     rs->_buf()->SetNumBytes(totalSize, false);
+                     (void) rs->_buf()->SetNumBytes(totalSize, false);
                   }
 
                   const uint32 rsSize = rs->_buf()->GetNumBytes();
@@ -112,7 +112,7 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
                      rs->_buf()->Clear(rsSize > MAX_CACHE_SIZE);
                   }
                }
-               unflat.SeekRelative(chunkSize);
+               (void) unflat.SeekRelative(chunkSize);
             }
             else break;
          }

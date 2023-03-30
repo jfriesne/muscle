@@ -17,7 +17,7 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
 
    Message argsMsg;
-   ParseArgs(argc, argv, argsMsg);
+   (void) ParseArgs(argc, argv, argsMsg);
    HandleStandardDaemonArgs(argsMsg);
 
    const uint64 epoch = 0;

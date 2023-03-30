@@ -19,35 +19,35 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
       {
          const bool b = ((i%2) != 0);
          if (UMAddBool(um, "testBools", b?UTrue:UFalse) != CB_NO_ERROR) printf("UMAddBool(%i) failed!\n", b);
-         m.AddBool("testBools", b);
+         (void) m.AddBool("testBools", b);
       }
    }
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
          if (UMAddInt8(um, "testInt8s", i) != CB_NO_ERROR) printf("UMAddInt8(" UINT32_FORMAT_SPEC ") failed!\n", i);
-         m.AddInt8("testInt8s", i);
+         (void) m.AddInt8("testInt8s", i);
       }
    }
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
          if (UMAddInt16(um, "testInt16s", i) != CB_NO_ERROR) printf("UMAddInt16(" UINT32_FORMAT_SPEC ") failed!\n", i);
-         m.AddInt16("testInt16s", i);
+         (void) m.AddInt16("testInt16s", i);
       }
    }
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
          if (UMAddInt32(um, "testInt32s", i) != CB_NO_ERROR) printf("UMAddInt32(" UINT32_FORMAT_SPEC ") failed!\n", i);
-         m.AddInt32("testInt32s", i);
+         (void) m.AddInt32("testInt32s", i);
       }
    }
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
          if (UMAddInt64(um, "testInt64s", i) != CB_NO_ERROR) printf("UMAddInt64(" UINT32_FORMAT_SPEC ") failed!\n", i);
-         m.AddInt64("testInt64s", i);
+         (void) m.AddInt64("testInt64s", i);
       }
    }
    {
@@ -55,7 +55,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
       {
          const float v = i/10.0f;
          if (UMAddFloat(um, "testFloats", v) != CB_NO_ERROR) printf("UMAddFloat(%f) failed!\n", v);
-         m.AddFloat("testFloats", v);
+         (void) m.AddFloat("testFloats", v);
       }
    }
    {
@@ -63,7 +63,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
       {
          const double v = i/100.0f;
          if (UMAddDouble(um, "testDoubles", v) != CB_NO_ERROR) printf("UMAddDouble(%f) failed!\n", v);
-         m.AddDouble("testDoubles", v);
+         (void) m.AddDouble("testDoubles", v);
       }
    }
    {
@@ -73,7 +73,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
          p.x = i*10.0f;
          p.y = i*100.0f;
          if (UMAddPoint(um, "testPoints", p) != CB_NO_ERROR) printf("UMAddPoint(%f,%f) failed!\n", p.x, p.y);
-         m.AddPoint("testPoints", Point(p.x, p.y));
+         (void) m.AddPoint("testPoints", Point(p.x, p.y));
       }
    }
    {
@@ -85,7 +85,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
          r.right   = i*1000.0f;
          r.bottom  = i*10000.0f;
          if (UMAddRect(um, "testRects", r) != CB_NO_ERROR) printf("UMAddRect(%f,%f,%f,%f) failed!\n", r.left, r.top, r.right, r.bottom);
-         m.AddRect("testRects", Rect(r.left, r.top, r.right, r.bottom));
+         (void) m.AddRect("testRects", Rect(r.left, r.top, r.right, r.bottom));
       }
    }
    {
@@ -98,7 +98,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
          *b = '\0';
 
          if (UMAddString(um, "testStrings", buf) != CB_NO_ERROR) printf("UMAddString(%s) failed!\n", buf);
-         m.AddString("testStrings", buf);
+         (void) m.AddString("testStrings", buf);
       }
    }
    {
@@ -111,13 +111,13 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
             uint8 subBuf[16384]; UMessage uSubMsg; UMInitializeToEmptyMessage(&uSubMsg, subBuf, sizeof(subBuf), i);
             CreateTestMessage(recurseCount-1, subMsg, &uSubMsg);
             if (UMAddMessage(um, "testMessages", uSubMsg) != CB_NO_ERROR) printf("UMAddMessage() failed!\n");
-            m.AddMessage("testMessages", subMsg);
+            (void) m.AddMessage("testMessages", subMsg);
          }
          else
          {
             uint8 subBuf[12]; UMessage uSubMsg; UMInitializeToEmptyMessage(&uSubMsg, subBuf, sizeof(subBuf), i);
             if (UMAddMessage(um, "testMessages", uSubMsg) != CB_NO_ERROR) printf("Trivial UMAddMessage() failed!\n");
-            m.AddMessage("testMessages", Message(i));
+            (void) m.AddMessage("testMessages", Message(i));
          }
       }
    }
@@ -133,14 +133,14 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
             else
             {
                CreateTestMessage(recurseCount-1, subMsg, &uSubMsg);
-               m.AddMessage("inline_Messages", subMsg);
+               (void) m.AddMessage("inline_Messages", subMsg);
             }
          }
          else
          {
             UMessage uSubMsg = UMInlineAddMessage(um, "inline_Messages", i+1000);
             if (UMIsMessageReadOnly(&uSubMsg)) printf("Error, trivial UMInlineAddMessage() failed!\n");
-                                          else m.AddMessage("inline_Messages", Message(i+1000));
+                                          else (void) m.AddMessage("inline_Messages", Message(i+1000));
          }
       }
    }
@@ -154,7 +154,7 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
          *b = '\0';
 
          UMAddData(um, "testDatas", 0x666, buf, ((uint32)strlen(buf))+1);
-         m.AddData(    "testDatas", 0x666, buf, ((uint32)strlen(buf))+1);
+         (void) m.AddData("testDatas", 0x666, buf, ((uint32)strlen(buf))+1);
       }
    }
 }

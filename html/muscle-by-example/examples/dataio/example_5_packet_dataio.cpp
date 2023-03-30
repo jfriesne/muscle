@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
       printf("Received a %i-byte UDP packet from %s:\n", numBytesRead, source.ToString()());
       PrintHexBytes(inputBuf, numBytesRead);
 
-      udpIO.SetPacketSendDestination(source);
+      (void) udpIO.SetPacketSendDestination(source);
       const io_status_t numBytesSent = udpIO.Write(inputBuf, numBytesRead);
       if (numBytesSent.IsOK()) printf("Echoed %i/%i bytes back to %s\n", numBytesSent.GetByteCount(), numBytesRead, source.ToString()());
                           else printf("Error [%s] sending %i bytes back to %s\n", numBytesSent.GetStatus()(), numBytesRead, source.ToString()());

@@ -16,6 +16,10 @@ of your Makefile to alter muscle's behaviour:
    is targetting C++17 or later.  If not, you can manually define it in
    order to enable C++17-specific features in MUSCLE.
 
+-DMUSCLE_AVOID_NODISCARD
+   Set this to avoid setting the [[nodiscard]] attribute for status_t
+   and io_status_t return values.
+
 -DMUSCLE_AVOID_CPLUSPLUS11_THREADS
    Set this to avoid using the C++11-specific APIs (thread, mutex,
    etc) as back-ends for the MUSCLE Thread/Mutex/AtomicCounter etc

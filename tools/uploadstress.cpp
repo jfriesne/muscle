@@ -37,8 +37,8 @@ int main(int argc, char ** argv)
       while(true)
       {
          const int fd = s.GetFileDescriptor();
-         multiplexer.RegisterSocketForReadReady(fd);
-         multiplexer.RegisterSocketForWriteReady(fd);
+         (void) multiplexer.RegisterSocketForReadReady(fd);
+         (void) multiplexer.RegisterSocketForWriteReady(fd);
 
          status_t ret;
          if (multiplexer.WaitForEvents().IsError(ret)) printf("uploadstress: WaitForEvents() failed! [%s]\n", ret());
@@ -54,9 +54,9 @@ int main(int argc, char ** argv)
 
             MessageRef smsg = GetMessageFromPool(PR_COMMAND_SETDATA);
             Message data(1234);
-            data.AddString("nerf", "boy!");
-            smsg()->AddMessage(buf, data);
-            gw.AddOutgoingMessage(smsg);
+            (void) data.AddString("nerf", "boy!");
+            (void) smsg()->AddMessage(buf, data);
+            (void) gw.AddOutgoingMessage(smsg);
          }
 
          const bool writeError = ((writing)&&(gw.DoOutput().IsError()));

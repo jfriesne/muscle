@@ -20,7 +20,7 @@ public:
    {
       char buf[20];
       printf("MessageFromOwner called in thread %s, msgRef=%p (what=" UINT32_FORMAT_SPEC "), numLeft=" UINT32_FORMAT_SPEC "\n", muscle_thread_id::GetCurrentThreadID().ToString(buf), msgRef(), msgRef()?msgRef()->what:666, numLeft);
-      Snooze64(200000);
+      (void) Snooze64(200000);
    }
 };
 
@@ -41,8 +41,8 @@ int main(int, char **)
          for (uint32 j=0; j<ARRAYITEMS(tcs); j++)
          {
             MessageRef msg = GetMessageFromPool((j*100)+i);
-            msg()->AddString("hey", "dude");
-            tcs[j].SendMessageToThreadPool(msg);
+            (void) msg()->AddString("hey", "dude");
+            (void) tcs[j].SendMessageToThreadPool(msg);
          }
       }
 

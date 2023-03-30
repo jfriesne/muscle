@@ -44,12 +44,12 @@ enum
 // No-op implementation of LogPlain()
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 static inline status_t LogPlainAux(int, const char * , ...) {return B_NO_ERROR;}
-# define LogPlain(logLevel, ...) (((logLevel) <= GetMaxLogLevel()) ? LogPlainAux(logLevel, __VA_ARGS__) : B_NO_ERROR)
+# define LogPlain(logLevel, ...) ((void)(((logLevel) <= GetMaxLogLevel()) ? LogPlainAux(logLevel, __VA_ARGS__) : B_NO_ERROR))
 
 // No-op implementation of LogTime()
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 static inline status_t LogTimeAux(int, const char *, ...) {return B_NO_ERROR;}
-# define LogTime(logLevel, ...) (((logLevel) <= GetMaxLogLevel()) ? LogTimeAux(logLevel, __VA_ARGS__) : B_NO_ERROR)
+# define LogTime(logLevel, ...) ((void)(((logLevel) <= GetMaxLogLevel()) ? LogTimeAux(logLevel, __VA_ARGS__) : B_NO_ERROR))
 
 // No-op implementation of WarnOutOfMemory()
 static inline void WarnOutOfMemory(const char *, int) {/* empty */}

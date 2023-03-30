@@ -202,7 +202,7 @@ public:
                   if ((cps)&&(wildcardMatcher.Match(cps->GetProcessLabel())))
                   {
                      LogTime(MUSCLE_LOG_INFO, "StdinSession for process [%s]:  Unilaterally killing sub-processes [%s]\n", _processLabel(), cps->GetProcessLabel()());
-                     cps->KillChildProcess();
+                     (void) cps->KillChildProcess();
                      killCount++;
                   }
                }

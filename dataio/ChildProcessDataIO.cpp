@@ -601,7 +601,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
 
          // At this point, r was probably zero because the child wasn't ready to exit
          if ((int64)pollInterval < MillisToMicros(200)) pollInterval += MillisToMicros(10);
-         Snooze64(muscleMin(pollInterval, (uint64)microsLeft));
+         (void) Snooze64(muscleMin(pollInterval, (uint64)microsLeft));
       }
    }
 #endif

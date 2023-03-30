@@ -24,25 +24,25 @@ int main(int argc, char ** argv)
 
    // Basic settings demo
    Message myConfig;
-   myConfig.AddString("num_inputs",    "8");
-   myConfig.AddString("num_outputs",   "16");
-   myConfig.AddString("serial_number", "A1234B727");
-   myConfig.AddString("dist_license",  "BSD");
-   myConfig.AddString("arg with spaces",  "Yes, spaces require quote marks");
+   (void) myConfig.AddString("num_inputs",    "8");
+   (void) myConfig.AddString("num_outputs",   "16");
+   (void) myConfig.AddString("serial_number", "A1234B727");
+   (void) myConfig.AddString("dist_license",  "BSD");
+   (void) myConfig.AddString("arg with spaces",  "Yes, spaces require quote marks");
 
    // Demonstrate how we can store sub-settings-areas as child Messages
    Message subConfig;
    {
-      subConfig.AddString("run_mode",  "fast");
-      subConfig.AddString("debug",     "yes");
-      subConfig.AddString("max_mem",   "10 gigabytes");
-      subConfig.AddString("has spaces", "yes");
+      (void) subConfig.AddString("run_mode",  "fast");
+      (void) subConfig.AddString("debug",     "yes");
+      (void) subConfig.AddString("max_mem",   "10 gigabytes");
+      (void) subConfig.AddString("has spaces", "yes");
 
       Message subSubConfig;
-      subSubConfig.AddString("all the way", "down");
-      subConfig.AddMessage("turtles", subSubConfig);
+      (void) subSubConfig.AddString("all the way", "down");
+      (void) subConfig.AddMessage("turtles", subSubConfig);
    }
-   myConfig.AddMessage("run_flags", subConfig);
+   (void) myConfig.AddMessage("run_flags", subConfig);
 
    printf("Here is the Message we are going to save as an ASCII text file:\n");
    myConfig.PrintToStream();

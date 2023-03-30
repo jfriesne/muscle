@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
       AddFileToDir(*test1Dir(), "some_data_1.bin", 1024);
       AddFileToDir(*test1Dir(), "some_data_2.bin", 1024);
       AddFileToDir(*test1Dir(), "some_data_3.bin", 1024);
-      someDataMsg.AddMessage("sub_dir", test1Dir);
+      (void) someDataMsg.AddMessage("sub_dir", test1Dir);
 
       AddFileToDir(someDataMsg, "blah_blah.txt", 512);
       AddFileToDir(someDataMsg, "nerf_nerf.txt", 512);

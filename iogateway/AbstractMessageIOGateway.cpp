@@ -100,8 +100,8 @@ ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64
    while(IsStillAwaitingSynchronousMessagingReply())
    {
       if (GetRunTime64() >= endTime) return B_TIMED_OUT;
-      if (optReceiver)        multiplexer.RegisterSocketForReadReady(readFD);
-      if (HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
+      if (optReceiver)        MRETURN_ON_ERROR(multiplexer.RegisterSocketForReadReady(readFD));
+      if (HasBytesToOutput()) MRETURN_ON_ERROR(multiplexer.RegisterSocketForWriteReady(writeFD));
 
       MRETURN_ON_ERROR(multiplexer.WaitForEvents(endTime));
       if (multiplexer.IsSocketReadyForWrite(writeFD)) MRETURN_ON_ERROR(DoOutput().GetStatus());

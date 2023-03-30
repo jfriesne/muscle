@@ -62,7 +62,7 @@ public:
          String replyTo;
          if ((ref())&&(ref()->FindString(MESSAGE_SOURCE_SESSION_ID_NAME, replyTo).IsOK()))
          {
-            ref()->RemoveName(MESSAGE_SOURCE_SESSION_ID_NAME);  // might as well clean up after myself
+            (void) ref()->RemoveName(MESSAGE_SOURCE_SESSION_ID_NAME);  // might as well clean up after myself
             LogTime(MUSCLE_LOG_INFO, "ServerThreadSession: got Message from my internal thread, sending it back to [%s]\n", replyTo());
 
             AbstractReflectSessionRef replyToSession = GetSessions().GetWithDefault(&replyTo);
@@ -79,8 +79,8 @@ public:
 
       // Add the source session's ID string to the Message, so that we'll know
       // where to send the reply Message to later on!
-      msgRef()->AddString(MESSAGE_SOURCE_SESSION_ID_NAME, from.GetSessionIDString());
-      SendMessageToInternalThread(msgRef);  // and off it goes for asynchronous processing
+      (void) msgRef()->AddString(MESSAGE_SOURCE_SESSION_ID_NAME, from.GetSessionIDString());
+      (void) SendMessageToInternalThread(msgRef);  // and off it goes for asynchronous processing
    }
 
    /** Called when we are about to go away -- overridden so we can shut down the slave thread first */
@@ -97,13 +97,13 @@ protected:
       if (msgRef())
       {
          LogTime(MUSCLE_LOG_ERROR, "Internal Thread now processing a Message (5 seconds to complete!)\n");
-         Snooze64(5*1000000);  // simulate a lengthy operation (e.g. disk I/O) for demonstration purposes
+         (void) Snooze64(5*1000000);  // simulate a lengthy operation (e.g. disk I/O) for demonstration purposes
          _count++;
          LogTime(MUSCLE_LOG_ERROR, "Internal Thread processing complete!  Tagging the Message with the result (" UINT32_FORMAT_SPEC "), and returning it!\n", _count);
 
          // Add a tag to the Message -- in real life, you might add the results of the operation or whatnot
-         msgRef()->AddInt32("ServerThreadSession's processing-result was", _count);
-         SendMessageToOwner(msgRef);
+         (void) msgRef()->AddInt32("ServerThreadSession's processing-result was", _count);
+         (void) SendMessageToOwner(msgRef);
 
          return B_NO_ERROR;
       }
@@ -139,7 +139,7 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    // Let's enable a bit of debug-output, just to see what the server is doing
-   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
+   (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
 
    // This object contains our server's event loop.
    ReflectServer reflectServer;

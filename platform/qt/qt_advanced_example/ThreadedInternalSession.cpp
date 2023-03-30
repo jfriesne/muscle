@@ -50,7 +50,7 @@ void ThreadedInternalSession :: MessageReceivedFromSession(AbstractReflectSessio
       // We send ADVANCED_COMMAND_* Messages up to our superclass to process in the current (MUSCLE) thread
       AdvancedThreadWorkerSession::MessageReceivedFromSession(from, msgRef, userData);
    }
-   else SendMessageToInternalThread(msgRef);  // all other commands get forwarded to our internal thread for it to process
+   else (void) SendMessageToInternalThread(msgRef);  // all other commands get forwarded to our internal thread for it to process
 }
 
 /** Called in the MUSCLE thread when we are about to go away -- overridden to the internal slave thread first */
@@ -157,11 +157,11 @@ void ThreadedInternalSession :: SendExampleMessageToMainThread()
 
    // Send a message to the MUSCLE thread, telling him to update our session's database node with our new count value
    MessageRef dataMsg = GetMessageFromPool();
-   dataMsg()->AddInt32("count", _count);
+   (void) dataMsg()->AddInt32("count", _count);
 
    MessageRef sendMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
-   sendMsg()->AddMessage("thread_status", dataMsg);
-   SendMessageToOwner(sendMsg);
+   (void) sendMsg()->AddMessage("thread_status", dataMsg);
+   (void) SendMessageToOwner(sendMsg);
 
    _nextStatusPostTime = GetRunTime64() + SecondsToMicros(1);  // we'll update our status once every 1 second
    _count++;  // in real life this would be something more interesting, e.g. temperature or something

@@ -31,7 +31,7 @@ int main(int argc, char ** argv)
 
       while(1)
       {
-         Snooze64(MillisToMicros(100));
+         (void) Snooze64(MillisToMicros(100));
          PrintHexBytes(a, memSize);
       }
    }

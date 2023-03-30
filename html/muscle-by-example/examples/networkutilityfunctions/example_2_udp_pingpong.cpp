@@ -79,7 +79,7 @@ int main(int argc, char ** argv)
       if (numBytesSent.IsOK()) LogTime(MUSCLE_LOG_INFO, "Sent %i/%u bytes of data to [%s]:  [%s]\n", numBytesSent.GetByteCount(), s.Length()+1, fromIAP.ToString()(), s());
                           else LogTime(MUSCLE_LOG_ERROR, "Error [%s] sending %u bytes of data to [%s]:  [%s]\n", numBytesSent.GetStatus()(), s.Length()+1, fromIAP.ToString()(), s());
 
-      Snooze64(MillisToMicros(100));  // otherwise the ping-ponging goes too fast for my taste
+      (void) Snooze64(MillisToMicros(100));  // otherwise the ping-ponging goes too fast for my taste
    }
 
    LogTime(MUSCLE_LOG_INFO, "\n");

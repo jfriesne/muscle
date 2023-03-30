@@ -85,7 +85,7 @@ int main(int argc, char ** argv)
    if ((argc > 2)&&(strcmp(argv[2], "hold") == 0))
    {
       printf("Holding indefinitely, so that you can look at OS reported memory usage...\n");
-      while(1) Snooze64(SecondsToMicros(10));
+      while(1) (void) Snooze64(SecondsToMicros(10));
    }
 
    return 0;

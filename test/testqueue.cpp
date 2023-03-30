@@ -47,7 +47,7 @@ static status_t UnitTestQueue()
       uint32 numAllocedSlots = 0;
       for (int i=0; i<50000; i++)
       {
-         q.AddTail(i);
+         MPRINT_ON_ERROR("AddTail", q.AddTail(i));
          const uint32 newNumAlloced = q.GetNumAllocatedItemSlots();
          if (newNumAlloced != numAllocedSlots)
          {
@@ -66,8 +66,8 @@ static status_t UnitTestQueue()
    // Test muscleSwap()
    {
       Queue<String> q1, q2;
-      q1.AddTail("q1");
-      q2.AddTail("q2");
+      (void) q1.AddTail("q1");
+      (void) q2.AddTail("q2");
       printf("Before swap, hashes are q1=" UINT32_FORMAT_SPEC ", q2=" UINT32_FORMAT_SPEC "\n", q1.HashCode(), q2.HashCode());
       muscleSwap(q1, q2);
       if ((q1.GetNumItems() != 1)||(q2.GetNumItems() != 1)||(q1[0] != "q2")||(q2[0] != "q1"))
@@ -95,11 +95,11 @@ static status_t UnitTestQueue()
    }
 
    printf("AddTail array hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
-   q.AddTailMulti(vars, ARRAYITEMS(vars));
+   MPRINT_ON_ERROR("AddTailMulti", q.AddTailMulti(vars, ARRAYITEMS(vars)));
    PrintToStream(q);
 
    printf("AddHead array hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
-   q.AddHeadMulti(vars, ARRAYITEMS(vars));
+   MPRINT_ON_ERROR("AddHeadMulti", q.AddHeadMulti(vars, ARRAYITEMS(vars)));
    PrintToStream(q);
 
    printf("REPLACEITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
@@ -133,7 +133,7 @@ static status_t UnitTestQueue()
    {
       Queue<String> qq;
       String myStr = "Magic";
-      qq.AddTail(myStr);
+      (void) qq.AddTail(myStr);
       if (myStr != "Magic")
       {
          printf("Error, AddTail() stole my string!\n");
@@ -305,10 +305,10 @@ static status_t UnitTestQueue()
       {
          switch(rand()%6)
          {
-            case 0:  case 1: qq.AddTail(counter++); break;
-            case 2:  case 3: qq.AddHead(counter++); break;
-            case 4:          qq.RemoveHead();       break;
-            case 5:          qq.RemoveTail();       break;
+            case 0:  case 1: MPRINT_ON_ERROR("AddTail",    qq.AddTail(counter++)); break;
+            case 2:  case 3: MPRINT_ON_ERROR("AddHead",    qq.AddHead(counter++)); break;
+            case 4:          MPRINT_ON_ERROR("RemoveHead", qq.RemoveHead());       break;
+            case 5:          MPRINT_ON_ERROR("RemoveTail", qq.RemoveTail());       break;
          }
       }
 

@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
-   Snooze64(SecondsToMicros(1));
+   (void) Snooze64(SecondsToMicros(1));
 
    while(true)
    {
@@ -43,7 +43,7 @@ int main(int argc, char ** argv)
          printf("  UTC HumanReadableTimeValues=[%s]\n", utcVals.ToString()());
       }
 
-      Snooze64(MillisToMicros(500));  // wait 500mS
+      (void) Snooze64(MillisToMicros(500));  // wait 500mS
    }
 
    return 0;

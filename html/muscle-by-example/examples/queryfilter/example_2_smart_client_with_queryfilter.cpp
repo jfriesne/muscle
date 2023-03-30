@@ -44,7 +44,7 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    // Let's enable a bit of debug-output, just to see what the client is doing
-   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
+   (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
 
    ReflectServer reflectServer;
 

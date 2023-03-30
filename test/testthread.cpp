@@ -71,9 +71,9 @@ int main(int argc, char ** argv)
          for (uint32 i=0; i<20; i++)
          {
             MessageRef msg(GetMessageFromPool(1234));
-            msg()->AddString("str", "howdy");
-            t.SendMessageToInternalThread(msg);
-            Snooze64(MillisToMicros(100));
+            (void) msg()->AddString("str", "howdy");
+            (void) t.SendMessageToInternalThread(msg);
+            (void) Snooze64(MillisToMicros(100));
          }
       }
       else
@@ -83,16 +83,16 @@ int main(int argc, char ** argv)
          {
             if (buf[0] == 'q') break;
             MessageRef msg(GetMessageFromPool(1234));
-            msg()->AddString("str", buf);
-            t.SendMessageToInternalThread(msg);
+            (void) msg()->AddString("str", buf);
+            (void) t.SendMessageToInternalThread(msg);
          }
       }
    }
    else return 10;
 
    printf("Cleaning up (mainTLS=%i)...\n", *_tls.GetThreadLocalObject());  // make sure the TLS hasn't been changed by the other thread
-   t.SendMessageToInternalThread(MessageRef());  // ask internal thread to shut down
-   t.WaitForInternalThreadToExit();
+   (void) t.SendMessageToInternalThread(MessageRef());  // ask internal thread to shut down
+   (void) t.WaitForInternalThreadToExit();
    printf("Bye!\n");
    return 0;
 }

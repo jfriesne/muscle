@@ -127,8 +127,8 @@ int main(int argc, char ** argv)
    while(s())
    {
       const int fd = s()->GetFileDescriptor();
-      multiplexer.RegisterSocketForReadReady(fd);
-      if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
+      (void) multiplexer.RegisterSocketForReadReady(fd);
+      if (gw.HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
 
       status_t ret;
       if (multiplexer.WaitForEvents().IsError(ret))

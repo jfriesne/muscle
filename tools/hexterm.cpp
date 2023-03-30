@@ -144,7 +144,7 @@ static status_t FlushOutBuffer(uint64 & writeCounter, const ByteBufferRef & outB
          LogTime(MUSCLE_LOG_ERROR, "Error [%s] writing " UINT32_FORMAT_SPEC " bytes... aborting!\n", wfRet(), outBuf()->GetNumBytes());
          return B_IO_ERROR;
       }
-      if (_postSendDelay > 0) Snooze64(_postSendDelay);
+      if (_postSendDelay > 0) (void) Snooze64(_postSendDelay);
    }
    return B_NO_ERROR;
 }
@@ -180,9 +180,9 @@ static void DoSession(DataIORef io, bool allowRead = true)
       const int writeFD = io()->GetWriteSelectSocket().GetFileDescriptor();
       int stdinFD       = stdinIO.GetReadSelectSocket().GetFileDescriptor();
 
-      if (allowRead) multiplexer.RegisterSocketForReadReady(readFD);
-      if (_spamsPerSecond == MUSCLE_NO_LIMIT) multiplexer.RegisterSocketForWriteReady(writeFD);
-      multiplexer.RegisterSocketForReadReady(stdinFD);
+      if (allowRead) (void) multiplexer.RegisterSocketForReadReady(readFD);
+      if (_spamsPerSecond == MUSCLE_NO_LIMIT) (void) multiplexer.RegisterSocketForWriteReady(writeFD);
+      (void) multiplexer.RegisterSocketForReadReady(stdinFD);
 
       if (multiplexer.WaitForEvents(spamTime).IsOK())
       {
@@ -270,7 +270,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                      else
                      {
                         nextBuf = GetByteBufferFromPool(b.FlattenedSize(), (const uint8 *) b());
-                        if (nextBuf()) nextBuf()->AppendByte('\n'); // add a newline byte
+                        if (nextBuf()) (void) nextBuf()->AppendByte('\n'); // add a newline byte
                      }
 
                      const uint32 count = nextBuf() ? nextBuf()->GetNumBytes() : 0;

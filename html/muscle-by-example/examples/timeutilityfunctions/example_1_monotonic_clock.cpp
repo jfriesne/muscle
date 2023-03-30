@@ -19,12 +19,12 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
-   Snooze64(SecondsToMicros(1));
+   (void) Snooze64(SecondsToMicros(1));
 
    while(true)
    {
       printf("Current monotonic clock time is:  " UINT64_FORMAT_SPEC "\n", GetRunTime64());
-      Snooze64(MillisToMicros(200));  // wait 200mS
+      (void) Snooze64(MillisToMicros(200));  // wait 200mS
    }
 
    return 0;

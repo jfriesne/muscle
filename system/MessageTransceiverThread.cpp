@@ -459,7 +459,7 @@ void MessageTransceiverThread :: InternalThreadEntry()
       (void) _server()->ServerProcessLoop();
       _server()->Cleanup();
    }
-   SendMessageToOwner(GetMessageFromPool(MTT_EVENT_SERVER_EXITED));
+   (void) SendMessageToOwner(GetMessageFromPool(MTT_EVENT_SERVER_EXITED));
 }
 
 ThreadWorkerSession :: ThreadWorkerSession()
@@ -560,14 +560,14 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
                {
                   // Add our session ID so that the supervisor session will know we received the drain tag
                   Message * rmsg = drainTagRef()->GetReplyMessage()();
-                  if (rmsg) rmsg->AddString(MTT_NAME_FROMSESSION, GetSessionRootPath());
+                  if (rmsg) (void) rmsg->AddString(MTT_NAME_FROMSESSION, GetSessionRootPath());
 
                   // If we have any messages pending, we'll save this message reference until our
                   // outgoing message queue becomes empty.  That way the DrainTag item held by the
                   // referenced message won't be deleted until the appropriate time, and hence
                   // the supervisor won't be notified until all the specified queues have drained.
                   AbstractMessageIOGateway * gw = GetGateway()();
-                  if ((gw)&&(gw->HasBytesToOutput())) _drainedNotifiers.AddTail(drainTagRef);
+                  if ((gw)&&(gw->HasBytesToOutput())) (void) _drainedNotifiers.AddTail(drainTagRef);
                }
             }
             break;
@@ -575,7 +575,7 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
             case MTT_COMMAND_SEND_USER_MESSAGE:
             {
                MessageRef userMsg;
-               if (msg->FindMessage(MTT_NAME_MESSAGE, userMsg).IsOK()) AddOutgoingMessage(userMsg);
+               if (msg->FindMessage(MTT_NAME_MESSAGE, userMsg).IsOK()) (void) AddOutgoingMessage(userMsg);
             }
             break;
 
@@ -644,7 +644,7 @@ void ThreadSupervisorSession :: AboutToDetachFromServer()
 
 void ThreadSupervisorSession :: DrainTagIsBeingDeleted(DrainTag * tag)
 {
-   if (_drainTags.Remove(tag).IsOK()) _mtt->SendMessageToOwner(tag->GetReplyMessage());
+   if (_drainTags.Remove(tag).IsOK()) (void) _mtt->SendMessageToOwner(tag->GetReplyMessage());
 }
 
 AbstractMessageIOGatewayRef ThreadSupervisorSession :: CreateGateway()
@@ -663,7 +663,7 @@ void ThreadSupervisorSession :: MessageReceivedFromGateway(const MessageRef &, v
    uint32 numLeft = 0;
    while(_mtt->WaitForNextMessageFromOwner(msgFromOwner, 0, &numLeft).IsOK())
    {
-      if (msgFromOwner()) MessageReceivedFromOwner(msgFromOwner, numLeft);
+      if (msgFromOwner()) (void) MessageReceivedFromOwner(msgFromOwner, numLeft);
       else
       {
          EndServer();  // this will cause our thread to exit
@@ -675,13 +675,13 @@ void ThreadSupervisorSession :: MessageReceivedFromGateway(const MessageRef &, v
 void ThreadSupervisorSession :: MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void *)
 {
    if (msgRef()) (void) msgRef()->AddString(MTT_NAME_FROMSESSION, from.GetSessionRootPath());
-   _mtt->SendMessageToOwner(msgRef);
+   (void) _mtt->SendMessageToOwner(msgRef);
 }
 
 void ThreadSupervisorSession :: MessageReceivedFromFactory(ReflectSessionFactory & from, const MessageRef & msgRef, void *)
 {
-   if (msgRef()) msgRef()->AddInt32(MTT_NAME_FACTORY_ID, from.GetFactoryID());
-   _mtt->SendMessageToOwner(msgRef);
+   if (msgRef()) (void) msgRef()->AddInt32(MTT_NAME_FACTORY_ID, from.GetFactoryID());
+   (void) _mtt->SendMessageToOwner(msgRef);
 }
 
 bool ThreadSupervisorSession :: ClientConnectionClosed()
@@ -699,7 +699,7 @@ status_t ThreadSupervisorSession :: AddNewWorkerConnectSession(const AbstractRef
    {
       // We have to synthesize the MTT_NAME_FROMSESSION path ourselves, since the session was never added to the server and thus its path isn't set
       MessageRef errorMsg = GetMessageFromPool(MTT_EVENT_SESSION_DISCONNECTED);
-      if ((errorMsg())&&(errorMsg()->AddString(MTT_NAME_FROMSESSION, String("/%1/%2").Arg(Inet_NtoA(hostIAP.GetIPAddress())).Arg(sessionRef()->GetSessionID())).IsOK())) _mtt->SendMessageToOwner(errorMsg);
+      if ((errorMsg())&&(errorMsg()->AddString(MTT_NAME_FROMSESSION, String("/%1/%2").Arg(Inet_NtoA(hostIAP.GetIPAddress())).Arg(sessionRef()->GetSessionID())).IsOK())) (void) _mtt->SendMessageToOwner(errorMsg);
    }
    return ret;
 }
@@ -707,7 +707,7 @@ status_t ThreadSupervisorSession :: AddNewWorkerConnectSession(const AbstractRef
 void ThreadSupervisorSession :: SendMessageToWorkers(const MessageRef & distMsg)
 {
    String distPath;
-   SendMessageToMatchingSessions(distMsg, (distMsg()->FindString(MTT_NAME_PATH, distPath).IsOK()) ? distPath : _defaultDistributionPath, ConstQueryFilterRef(), false);
+   (void) SendMessageToMatchingSessions(distMsg, (distMsg()->FindString(MTT_NAME_PATH, distPath).IsOK()) ? distPath : _defaultDistributionPath, ConstQueryFilterRef(), false);
 }
 
 status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & msgRef, uint32)

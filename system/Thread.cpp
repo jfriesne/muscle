@@ -142,7 +142,7 @@ void Thread :: ShutdownInternalThread(bool waitForThread)
    if (IsInternalThreadRunning())
    {
       (void) SendMessageToInternalThread(MessageRef());  // a NULL message ref tells him to quit
-      if (waitForThread) WaitForInternalThreadToExit();
+      if (waitForThread) (void) WaitForInternalThreadToExit();
    }
 }
 
@@ -270,11 +270,11 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
             for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
             {
                const int nextFD = iter.GetKey().GetFileDescriptor();
-               if (nextFD >= 0) tsd._multiplexer.RegisterSocketForEventsByTypeIndex(nextFD, i);
+               if (nextFD >= 0) (void) tsd._multiplexer.RegisterSocketForEventsByTypeIndex(nextFD, i);
             }
          }
       }
-      tsd._multiplexer.RegisterSocketForReadReady(msgfd);
+      (void) tsd._multiplexer.RegisterSocketForReadReady(msgfd);
 
       MRETURN_ON_ERROR(tsd._multiplexer.WaitForEvents(wakeupTime));
 
@@ -408,7 +408,7 @@ Thread * Thread :: GetCurrentThread()
    if (_curThreadsMutex.Lock().IsOK())
    {
       (void) _curThreads.Get(key, ret);
-      _curThreadsMutex.Unlock();
+      (void) _curThreadsMutex.Unlock();
    }
    return ret;
 }
@@ -423,7 +423,7 @@ void Thread::InternalThreadEntryAux()
    if (_curThreadsMutex.Lock().IsOK())
    {
       (void) _curThreads.Put(curThreadKey, this);
-      _curThreadsMutex.Unlock();
+      (void) _curThreadsMutex.Unlock();
    }
 
    status_t ret;
@@ -439,7 +439,7 @@ void Thread::InternalThreadEntryAux()
    if (_curThreadsMutex.Lock().IsOK())
    {
       (void) _curThreads.Remove(curThreadKey);
-      _curThreadsMutex.Unlock();
+      (void) _curThreadsMutex.Unlock();
    }
 
    _threadStackBase = NULL;

@@ -1,7 +1,6 @@
 #include "reflector/DumbReflectSession.h"
 #include "reflector/ReflectServer.h"
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
-#include "syslog/SysLog.h"       // for SetConsoleLogLevel()
 #include "util/String.h"
 
 using namespace muscle;

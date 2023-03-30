@@ -112,10 +112,10 @@ private:
                if (HasRegexTokens(pathArg)) LogTime(MUSCLE_LOG_WARNING, "Note: PR_COMMAND_SETDATA won't do pattern-matching on wildcard chars; rather they will become literal chars in the node-path!\n");
 
                 MessageRef dataPayloadMsg = GetMessageFromPool();
-                dataPayloadMsg()->AddString("User String", dataArg);
+                (void) dataPayloadMsg()->AddString("User String", dataArg);
 
                 MessageRef setDataMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
-                setDataMsg()->AddMessage(pathArg, dataPayloadMsg);
+                (void) setDataMsg()->AddMessage(pathArg, dataPayloadMsg);
 
                 SendMessageToServer(setDataMsg);
             }
@@ -130,7 +130,7 @@ private:
             LogTime(MUSCLE_LOG_INFO, "Sending PR_COMMAND_GETDATA to do a one-time download of nodes matching the following path: [%s]\n", pathArg());
 
             MessageRef getDataMsg = GetMessageFromPool(PR_COMMAND_GETDATA);
-            getDataMsg()->AddString(PR_NAME_KEYS, pathArg);
+            (void) getDataMsg()->AddString(PR_NAME_KEYS, pathArg);
             SendMessageToServer(getDataMsg);
          }
          else LogTime(MUSCLE_LOG_INFO, "Usage Example:  get /*/*\n");
@@ -143,7 +143,7 @@ private:
             LogTime(MUSCLE_LOG_INFO, "Sending PR_COMMAND_REMOVEDATA to delete any nodes matching the following path: [%s]\n", pathArg());
 
             MessageRef deleteNodesMsg = GetMessageFromPool(PR_COMMAND_REMOVEDATA);
-            deleteNodesMsg()->AddString(PR_NAME_KEYS, pathArg);
+            (void) deleteNodesMsg()->AddString(PR_NAME_KEYS, pathArg);
             SendMessageToServer(deleteNodesMsg);
          }
          else LogTime(MUSCLE_LOG_INFO, "Usage Example:  delete *\n");
@@ -156,7 +156,7 @@ private:
             LogTime(MUSCLE_LOG_INFO, "Sending PR_COMMAND_SETPARAMETERS to set up a \"live\" subscription to any nodes matching the following path: [%s]\n", pathArg());
 
             MessageRef subscribeToNodesMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-            subscribeToNodesMsg()->AddBool(String("SUBSCRIBE:%1").Arg(pathArg), true);
+            (void) subscribeToNodesMsg()->AddBool(String("SUBSCRIBE:%1").Arg(pathArg), true);
             SendMessageToServer(subscribeToNodesMsg);
          }
          else LogTime(MUSCLE_LOG_INFO, "Usage Example:  subscribe /*/*\n");
@@ -169,7 +169,7 @@ private:
             LogTime(MUSCLE_LOG_INFO, "Sending PR_COMMAND_REMOVEPARAMETERS to get rid of any \"live\" subscriptions that match the following string: [SUBSCRIBE:%s]\n", pathArg());
 
             MessageRef unsubscribeFromNodesMsg = GetMessageFromPool(PR_COMMAND_REMOVEPARAMETERS);
-            unsubscribeFromNodesMsg()->AddString(PR_NAME_KEYS, String("SUBSCRIBE:%1").Arg(pathArg));
+            (void) unsubscribeFromNodesMsg()->AddString(PR_NAME_KEYS, String("SUBSCRIBE:%1").Arg(pathArg));
             SendMessageToServer(unsubscribeFromNodesMsg);
          }
          else LogTime(MUSCLE_LOG_INFO, "Usage Example:  unsubscribe /*/*\n");
@@ -182,8 +182,8 @@ private:
             const String userText = tok.GetRemainderOfString();
 
             MessageRef chatMsg = GetMessageFromPool(1234);  // any non-PR_COMMAND_* message code will work here
-            chatMsg()->AddString(PR_NAME_KEYS, pathArg);
-            chatMsg()->AddString("chat_text", userText);
+            (void) chatMsg()->AddString(PR_NAME_KEYS, pathArg);
+            (void) chatMsg()->AddString("chat_text", userText);
             SendMessageToServer(chatMsg);
          }
          else LogTime(MUSCLE_LOG_INFO, "Usage Example:  msg /*/* Hey guys!\n");
@@ -212,7 +212,7 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    // Let's enable a bit of debug-output, just to see what the client is doing
-   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
+   (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
 
    ReflectServer reflectServer;
 

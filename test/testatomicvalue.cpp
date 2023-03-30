@@ -57,7 +57,7 @@ public:
             _status |= ret;
          }
 
-         Snooze64(MillisToMicros(1));  // otherwise we flood the zone with updates and cause problems
+         (void) Snooze64(MillisToMicros(1));  // otherwise we flood the zone with updates and cause problems
       }
    }
 
@@ -119,7 +119,7 @@ int main(int argc, char ** argv)
    status_t ret;
    if ((writerThread.StartInternalThread().IsOK(ret))&&(readerThread.StartInternalThread().IsOK(ret)))
    {
-      Snooze64(isFromScript ? SecondsToMicros(10) : MinutesToMicros(1));
+      (void) Snooze64(isFromScript ? SecondsToMicros(10) : MinutesToMicros(1));
    }
    else LogTime(MUSCLE_LOG_CRITICALERROR, "Error starting Atomic thread! [%s]\n", ret());
 

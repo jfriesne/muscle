@@ -123,7 +123,7 @@ int main(int argc, char ** argv)
       else
       {
          MessageRef msg = GetMessageFromPool(1234);
-         msg()->AddString("text", s);
+         (void) msg()->AddString("text", s);
          if (t.SendMessageToInternalThread(msg).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "Error sending Message to child thread!  [%s]\n", ret());
       }
    }

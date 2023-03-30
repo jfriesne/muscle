@@ -352,8 +352,8 @@ void ExampleWindow :: SessionConnected()
 
    // Subscribe to the data published by other ExampleClients
    MessageRef subscribeMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-   subscribeMsg()->AddBool("SUBSCRIBE:qt_example/state", true);
-   _mtt.SendMessageToSessions(subscribeMsg);
+   (void) subscribeMsg()->AddBool("SUBSCRIBE:qt_example/state", true);
+   (void) _mtt.SendMessageToSessions(subscribeMsg);
 
    // And upload our current state to the server
    UploadLocalState();
@@ -370,15 +370,15 @@ void ExampleWindow :: AddChatText(const QString & text)
 void ExampleWindow :: UploadLocalState()
 {
    MessageRef stateMsg = GetMessageFromPool();
-   stateMsg()->AddString("username", FromQ(_curUserName));
-   stateMsg()->AddPoint("position", _exampleWidget->GetLocalPosition());
-   stateMsg()->AddInt32("color", (int32) (_localColor.rgb()));
+   (void) stateMsg()->AddString("username", FromQ(_curUserName));
+   (void) stateMsg()->AddPoint("position", _exampleWidget->GetLocalPosition());
+   (void) stateMsg()->AddInt32("color", (int32) (_localColor.rgb()));
 
    MessageRef uploadMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
-   uploadMsg()->AddMessage("qt_example/state", stateMsg);
+   (void) uploadMsg()->AddMessage("qt_example/state", stateMsg);
 
    _localState = stateMsg;
-   if (_isConnected) _mtt.SendMessageToSessions(uploadMsg);
+   if (_isConnected) (void) _mtt.SendMessageToSessions(uploadMsg);
 }
 
 enum {
@@ -421,7 +421,7 @@ void ExampleWindow :: MessageReceived(const MessageRef & msg)
                for (uint32 i=0; msg()->FindMessage(iter.GetFieldName(), i, data).IsOK(); i++)
                {
                   if (_states.ContainsKey(iter.GetFieldName()) == false) AddChatText(QString("[%1] has connected to the server.").arg(data()->GetString("username")()));
-                  _states.Put(iter.GetFieldName(), data);
+                  (void) _states.Put(iter.GetFieldName(), data);
                }
                _exampleWidget->update();
             }
@@ -437,12 +437,12 @@ void ExampleWindow :: SendChatText()
    _chatEntry->setText(QString());
 
    MessageRef chatMsg = GetMessageFromPool(QT_EXAMPLE_CHAT_TEXT);
-   chatMsg()->AddString("username", FromQ(_curUserName));  // tag Message with who sent it
-   chatMsg()->AddString("text", FromQ(text));
-   chatMsg()->AddString(PR_NAME_KEYS, "qt_example");  // make sure the chat text only goes to qt_example clients on the server
+   (void) chatMsg()->AddString("username", FromQ(_curUserName));  // tag Message with who sent it
+   (void) chatMsg()->AddString("text", FromQ(text));
+   (void) chatMsg()->AddString(PR_NAME_KEYS, "qt_example");  // make sure the chat text only goes to qt_example clients on the server
    MessageReceived(chatMsg);  // handle it locally also (the server won't send it back to us, by default)
 
-   _mtt.SendMessageToSessions(chatMsg);
+   (void) _mtt.SendMessageToSessions(chatMsg);
 }
 
 void ExampleWindow :: SessionDisconnected()

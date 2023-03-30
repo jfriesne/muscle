@@ -120,8 +120,8 @@ AdvancedExampleWindow :: AdvancedExampleWindow()
    {
       // Tell the ThreadSuperVisorSession in the MUSCLE thread that we want to know about updates to session status nodes
       MessageRef subscribeMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-      subscribeMsg()->AddBool("SUBSCRIBE:/*/*", true);    // so we can see all sessions that are created or destroyed
-      subscribeMsg()->AddBool("SUBSCRIBE:/*/*/*", true);  // so we can watch any nodes any session places in its "home directory" also
+      (void) subscribeMsg()->AddBool("SUBSCRIBE:/*/*", true);    // so we can see all sessions that are created or destroyed
+      (void) subscribeMsg()->AddBool("SUBSCRIBE:/*/*/*", true);  // so we can watch any nodes any session places in its "home directory" also
       if (_serverThread.SendMessageToInternalThread(subscribeMsg).IsError()) printf("Error, couldn't send subcribe message to MUSCLE thread!\n");
    }
    else printf("Error, couldn't start MUSCLE thread!\n");
@@ -223,7 +223,7 @@ void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, 
                   if (_sessionLookup.Get(sessionStr, item).IsError())
                   {
                      item = new SessionListViewItem(_sessionsView, sessionStr);
-                     _sessionLookup.Put(sessionStr, item);
+                     (void) _sessionLookup.Put(sessionStr, item);
                      printf("GUI Thread adding SessionListViewItem %p (for session [%s])\n", item, sessionStr());
                   }
                   if (subPath.HasChars()) item->DataReceived(subPath, data);
@@ -242,10 +242,9 @@ void AdvancedExampleWindow :: AddInternalSessionButtonClicked()
    printf("AddInternalSessionButtonClicked:  GUI Thread is asking the MUSCLE thread to create a new internal session...\n");
 
    MessageRef args = GetMessageFromPool();
-   args()->AddString("Your startup instructions/parameters to pass to the internal thread", "could go here");
-   args()->AddInt32("Really", 1234);
-
-   _serverThread.AddNewThreadedInternalSession(args);
+   (void) args()->AddString("Your startup instructions/parameters to pass to the internal thread", "could go here");
+   (void) args()->AddInt32("Really", 1234);
+   (void) _serverThread.AddNewThreadedInternalSession(args);
 }
 
 void AdvancedExampleWindow :: RemoveSelectedSessionsButtonClicked()
@@ -256,8 +255,8 @@ void AdvancedExampleWindow :: RemoveSelectedSessionsButtonClicked()
       SessionListViewItem * slvi = static_cast<SessionListViewItem *>(selectedItems[i]);
 
       MessageRef endSession = GetMessageFromPool(ADVANCED_COMMAND_ENDSESSION);
-      endSession()->AddString(PR_NAME_KEYS, slvi->GetSessionID());  // make sure it only goes to the session we want to go away
-      _serverThread.SendMessageToInternalThread(endSession);
+      (void) endSession()->AddString(PR_NAME_KEYS, slvi->GetSessionID());  // make sure it only goes to the session we want to go away
+      (void) _serverThread.SendMessageToInternalThread(endSession);
 
       printf("RemoveSelectedSessionsButtonClicked: GUI Thread is asking the MUSCLE thread to remove session [%s]\n", slvi->GetSessionID()());
    }
@@ -272,10 +271,10 @@ void AdvancedExampleWindow :: SendMessageToSelectedSessionsButtonClicked()
       SessionListViewItem * slvi = static_cast<SessionListViewItem *>(selectedItems[i]);
 
       MessageRef pokeSession = GetMessageFromPool(INTERNAL_THREAD_COMMAND_HURRYUP);
-      pokeSession()->AddString(PR_NAME_KEYS, slvi->GetSessionID());  // make sure it only goes to the session we want it to go to
-      pokeSession()->AddString("hurry up", "already!");
-      pokeSession()->AddInt32("count", 9);  // this will cause the internal thread to increment their counters by 9, plus one for the timeout
-      _serverThread.SendMessageToInternalThread(pokeSession);
+      (void) pokeSession()->AddString(PR_NAME_KEYS, slvi->GetSessionID());  // make sure it only goes to the session we want it to go to
+      (void) pokeSession()->AddString("hurry up", "already!");
+      (void) pokeSession()->AddInt32("count", 9);  // this will cause the internal thread to increment their counters by 9, plus one for the timeout
+      (void) _serverThread.SendMessageToInternalThread(pokeSession);
 
       printf("SendMessageToSelectedSessionsButtonClicked: GUI Thread is asking the MUSCLE thread to hurry up session [%s]\n", slvi->GetSessionID()());
    }
@@ -287,8 +286,8 @@ void AdvancedExampleWindow :: GrabCurrentStateButtonClicked()
    printf("GUI Thread sending a request for a snapshot of the current state from the MUSCLE thread...\n");
 
    MessageRef msg = GetMessageFromPool(PR_COMMAND_GETDATATREES);
-   msg()->AddString(PR_NAME_KEYS, "/*");  // ask for the entire tree!
-   _serverThread.SendMessageToInternalThread(msg);
+   (void) msg()->AddString(PR_NAME_KEYS, "/*");  // ask for the entire tree!
+   (void) _serverThread.SendMessageToInternalThread(msg);
 }
 
 int main(int argc, char ** argv)

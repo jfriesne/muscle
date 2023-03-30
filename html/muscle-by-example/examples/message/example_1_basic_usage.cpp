@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
 
    // Now let's flatten the Message into a ByteBuffer and see what it looks like as flattened data
    ByteBuffer buf(orderPizzaMsg.FlattenedSize());
-   orderPizzaMsg.FlattenToByteBuffer(buf);
+   (void) orderPizzaMsg.FlattenToByteBuffer(buf);
 
    printf("\n");
    printf("In Flattened/serialized form, the data looks like this:\n");

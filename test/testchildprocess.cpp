@@ -40,7 +40,7 @@ public:
       printf("Testing abort-on-takeoff logic, to verify that the child process is aborted cleanly.\n");
 
       Queue<String> args;
-      args.AddTail("foobar");
+      (void) args.AddTail("foobar");
 
       // Scope for the child process object
       {
@@ -72,7 +72,7 @@ public:
             }
 
             printf("Sleeping for 10 seconds...\n");
-            Snooze64(SecondsToMicros(10));
+            (void) Snooze64(SecondsToMicros(10));
          }
          else printf("ChildProcessDataIO::LaunchChildProcess() failed!\n");
 
@@ -80,7 +80,7 @@ public:
       }
 
       printf("AbortOnTakeoffChildProcessDataIO dtor returned, sleeping 10 more seconds\n");
-      Snooze64(SecondsToMicros(10));
+      (void) Snooze64(SecondsToMicros(10));
    }
 };
 
@@ -140,7 +140,7 @@ int main(int argc, char ** argv)
    for (uint32 i=0; i<numProcesses; i++)
    {
       ChildProcessDataIO * dio = new ChildProcessDataIO(false);
-      refs.AddTail(DataIORef(dio));
+      (void) refs.AddTail(DataIORef(dio));
       printf("About To Launch child process #" UINT32_FORMAT_SPEC ":  [%s]\n", i+1, cmd); fflush(stdout);
 
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
@@ -174,14 +174,14 @@ int main(int argc, char ** argv)
       QueueGatewayMessageReceiver ioInputQueue;
       while(1)
       {
-         int readFD = readSock.GetFileDescriptor();
-         multiplexer.RegisterSocketForReadReady(readFD);
+         const int readFD = readSock.GetFileDescriptor();
+         (void) multiplexer.RegisterSocketForReadReady(readFD);
 
          const int writeFD = ioGateway.HasBytesToOutput() ? refs[i]()->GetWriteSelectSocket().GetFileDescriptor() : -1;
-         if (writeFD >= 0) multiplexer.RegisterSocketForWriteReady(writeFD);
+         if (writeFD >= 0) (void) multiplexer.RegisterSocketForWriteReady(writeFD);
 
          const int stdinFD = stdinIO.GetReadSelectSocket().GetFileDescriptor();
-         multiplexer.RegisterSocketForReadReady(stdinFD);
+         (void) multiplexer.RegisterSocketForReadReady(stdinFD);
 
          status_t ret;
          if (multiplexer.WaitForEvents().IsError(ret)) printf("testchildprocess: WaitForEvents() failed! [%s]\n", ret());
@@ -215,8 +215,8 @@ int main(int argc, char ** argv)
 
          if ((reading == false)&&(writing == false)) break;
 
-         multiplexer.RegisterSocketForReadReady(readFD);
-         if (ioGateway.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
+         (void) multiplexer.RegisterSocketForReadReady(readFD);
+         if (ioGateway.HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(writeFD);
       }
 
       if (ioGateway.HasBytesToOutput())

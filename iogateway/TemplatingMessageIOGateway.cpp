@@ -60,7 +60,7 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
    if (retBuf())
    {
       DataFlattener flat(*retBuf());
-      flat.SeekRelative(hs);  // skip past the header for now
+      (void) flat.SeekRelative(hs);  // skip past the header for now
 
       if (templateMsgRef)
       {

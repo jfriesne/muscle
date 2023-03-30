@@ -42,9 +42,9 @@ int main(int argc, char ** argv)
    while(s())
    {
       const int fd = s.GetFileDescriptor();
-      multiplexer.RegisterSocketForReadReady(fd);
-      if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-      multiplexer.RegisterSocketForReadReady(stdinFD);
+      (void) multiplexer.RegisterSocketForReadReady(fd);
+      if (gw.HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
+      (void) multiplexer.RegisterSocketForReadReady(stdinFD);
 
       QueueGatewayMessageReceiver inQueue;
       while(s())
@@ -102,9 +102,9 @@ int main(int argc, char ** argv)
 
          if ((reading == false)&&(writing == false)) break;
 
-         multiplexer.RegisterSocketForReadReady(fd);
-         if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-         multiplexer.RegisterSocketForReadReady(stdinFD);
+         (void) multiplexer.RegisterSocketForReadReady(fd);
+         if (gw.HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
+         (void) multiplexer.RegisterSocketForReadReady(stdinFD);
       }
    }
 

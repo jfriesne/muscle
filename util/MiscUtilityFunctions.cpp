@@ -409,7 +409,7 @@ static void CrashSignalHandler(int sig)
    signal(SIGFPE,  SIG_DFL);
 
    printf("MUSCLE CrashSignalHandler called with signal %i... I'm going to print a stack trace, then kill the process.\n", sig);
-   PrintStackTrace();
+   (void) PrintStackTrace();
    printf("CrashSignalHandler:  Crashed process aborting now.... bye!\n");
    fflush(stdout);
    abort();
@@ -519,43 +519,43 @@ void HandleStandardDaemonArgs(const Message & args)
    if (args.FindString("displaylevel", &value).IsOK())
    {
       const int ll = ParseLogLevelKeyword(value);
-      if (ll >= 0) SetConsoleLogLevel(ll);
+      if (ll >= 0) (void) SetConsoleLogLevel(ll);
               else LogTime(MUSCLE_LOG_INFO, "Error, unknown display log level type [%s]\n", value);
    }
 
    const char * target = args.GetCstr("logtostderr");
-   if (target) SetConsoleLogToStderr(ParseBool(target, true));
+   if (target) (void) SetConsoleLogToStderr(ParseBool(target, true));
 
-   if ((args.FindString("oldlogfilespattern", &value).IsOK())&&(*value != '\0')) SetOldLogFilesPattern(value);
+   if ((args.FindString("oldlogfilespattern", &value).IsOK())&&(*value != '\0')) (void) SetOldLogFilesPattern(value);
 
    if ((args.FindString("maxlogfiles", &value).IsOK())||(args.FindString("maxnumlogfiles", &value).IsOK()))
    {
       const uint32 maxNumFiles = (uint32) atol(value);
-      if (maxNumFiles > 0) SetMaxNumLogFiles(maxNumFiles);
+      if (maxNumFiles > 0) (void) SetMaxNumLogFiles(maxNumFiles);
                       else LogTime(MUSCLE_LOG_ERROR, "Please specify a maxnumlogfiles value that is greater than zero.\n");
    }
 
    if (args.FindString("logfile", &value).IsOK())
    {
-      SetFileLogName(value);
-      if (GetFileLogLevel() == MUSCLE_LOG_NONE) SetFileLogLevel(MUSCLE_LOG_INFO); // no sense specifying a name and then not logging anything!
+      (void) SetFileLogName(value);
+      if (GetFileLogLevel() == MUSCLE_LOG_NONE) (void) SetFileLogLevel(MUSCLE_LOG_INFO); // no sense specifying a name and then not logging anything!
    }
 
    if (args.FindString("filelevel", &value).IsOK())
    {
       const int ll = ParseLogLevelKeyword(value);
-      if (ll >= 0) SetFileLogLevel(ll);
+      if (ll >= 0) (void) SetFileLogLevel(ll);
               else LogTime(MUSCLE_LOG_INFO, "Error, unknown file log level type [%s]\n", value);
    }
 
    if (args.FindString("maxlogfilesize", &value).IsOK())
    {
       const uint32 maxSizeKB = (uint32) atol(value);
-      if (maxSizeKB > 0) SetFileLogMaximumSize(maxSizeKB*1024);
+      if (maxSizeKB > 0) (void) SetFileLogMaximumSize(maxSizeKB*1024);
                     else LogTime(MUSCLE_LOG_ERROR, "Please specify a maxlogfilesize in kilobytes, that is greater than zero.\n");
    }
 
-   if ((args.HasName("compresslogfile"))||(args.HasName("compresslogfiles"))) SetFileLogCompressionEnabled(true);
+   if ((args.HasName("compresslogfile"))||(args.HasName("compresslogfiles"))) (void) SetFileLogCompressionEnabled(true);
 
    if (args.FindString("localhost", &value).IsOK())
    {
@@ -928,7 +928,7 @@ ByteBufferRef ParseHexBytes(const char * buf)
             else b[count++] = (uint8) strtol(next, NULL, 16);
          }
       }
-      bb()->SetNumBytes(count, true);
+      (void) bb()->SetNumBytes(count, true);
    }
    return bb;
 }

@@ -56,8 +56,8 @@ public:
          LogTime(MUSCLE_LOG_INFO, "TimerStorageSession %p: Pulse() called on session #" UINT32_FORMAT_SPEC ", sending a Message with counter = " UINT32_FORMAT_SPEC " to my client.\n", this, GetSessionID(), _counter);
 
          MessageRef countMsg = GetMessageFromPool(3333);  // arbitrary
-         countMsg()->AddInt32("timer count", _counter);
-         AddOutgoingMessage(countMsg);
+         (void) countMsg()->AddInt32("timer count", _counter);
+         (void) AddOutgoingMessage(countMsg);
 
          _counter++;
          _nextTimerTime += SecondsToMicros(3);
@@ -91,7 +91,7 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    // Let's enable a bit of debug-output, just to see what the server is doing
-   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
+   (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
 
    // This object contains our server's event loop.
    ReflectServer reflectServer;

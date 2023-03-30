@@ -26,7 +26,7 @@ public:
 
    void QueueValue(int qv)
    {
-      if (_inBatch.IsInBatch()) _queuedValues.PutWithDefault(qv);  // we'll call ProcessValue() at the end of the batch
+      if (_inBatch.IsInBatch()) (void) _queuedValues.PutWithDefault(qv);  // we'll call ProcessValue() at the end of the batch
                            else ProcessValue(qv);  // if we're not in a batch, then process the value right now
    }
 

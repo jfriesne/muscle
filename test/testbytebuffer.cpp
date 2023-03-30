@@ -136,7 +136,7 @@ template<class EndianConverter> status_t TestHelpers()
    const char * nineBytes = unflat.ReadCString();
    printf("nineBytes=[%s]\n", nineBytes);
 
-   unflat.SeekPastPaddingBytesToAlignTo(sizeof(uint32));
+   (void) unflat.SeekPastPaddingBytesToAlignTo(sizeof(uint32));
    printf("Aligned=" XINT32_FORMAT_SPEC "\n", unflat.ReadInt32());
 
    return unflat.GetStatus();

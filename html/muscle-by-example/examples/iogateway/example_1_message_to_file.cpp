@@ -36,13 +36,13 @@ int main(int argc, char ** argv)
 
       // Create a couple of dummy Messages to test with
       MessageRef msg1 = GetMessageFromPool(1234);
-      msg1()->AddString("Hi there", "everybody");
-      msg1()->AddFloat("pi", 3.14159f);
-      msg1()->AddPoint("los angeles GPS", Point(34.0522f, 118.2437f));
+      (void) msg1()->AddString("Hi there", "everybody");
+      (void) msg1()->AddFloat("pi", 3.14159f);
+      (void) msg1()->AddPoint("los angeles GPS", Point(34.0522f, 118.2437f));
 
       MessageRef msg2 = GetMessageFromPool(2345);
-      msg2()->AddInt32("three+three", 6);
-      msg2()->AddInt32("four+four", 8);
+      (void) msg2()->AddInt32("three+three", 6);
+      (void) msg2()->AddInt32("four+four", 8);
 
       // Queue up the Messages for output
       (void) outputGateway.AddOutgoingMessage(msg1);

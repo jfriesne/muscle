@@ -42,7 +42,7 @@ static status_t WriteOutgoingData(const char * desc, DataIO & writeIO, const Soc
          const uint32 bufSize = firstBuf()->GetNumBytes();
          if (writeIdx >= bufSize)
          {
-            outQ.RemoveHead();
+            (void) outQ.RemoveHead();
             writeIdx = 0;
          }
          else
@@ -75,11 +75,11 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
       const int networkWriteFD = networkIO.GetWriteSelectSocket().GetFileDescriptor();
       const int serialWriteFD  = serialIO.GetWriteSelectSocket().GetFileDescriptor();
 
-      multiplexer.RegisterSocketForReadReady(networkReadFD);
-      multiplexer.RegisterSocketForReadReady(serialReadFD);
+      (void) multiplexer.RegisterSocketForReadReady(networkReadFD);
+      (void) multiplexer.RegisterSocketForReadReady(serialReadFD);
 
-      if (outgoingNetworkData.HasItems()) multiplexer.RegisterSocketForWriteReady(networkWriteFD);
-      if (outgoingSerialData.HasItems())  multiplexer.RegisterSocketForWriteReady(serialWriteFD);
+      if (outgoingNetworkData.HasItems()) (void) multiplexer.RegisterSocketForWriteReady(networkWriteFD);
+      if (outgoingSerialData.HasItems())  (void) multiplexer.RegisterSocketForWriteReady(serialWriteFD);
 
       status_t ret;
       if (multiplexer.WaitForEvents().IsOK(ret))

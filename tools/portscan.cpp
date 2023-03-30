@@ -39,7 +39,7 @@ int main(int argc, char ** argv)
    for (int i=base; i<final; i++)
    {
       ConstSocketRef s = Connect(IPAddressAndPort(ip, (uint16)i), NULL, NULL, true, 10000);
-      if (s()) {foundPorts.AddTail(i); LogTime(MUSCLE_LOG_INFO, "Found open port %i!\n", i);}
+      if (s()) {(void) foundPorts.AddTail(i); LogTime(MUSCLE_LOG_INFO, "Found open port %i!\n", i);}
       if (OnceEvery(MICROS_PER_SECOND, lastTime)) LogTime(MUSCLE_LOG_INFO, "Scanning %s (now at port %i...)\n", buf, i);
    }
 

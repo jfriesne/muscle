@@ -115,13 +115,13 @@ static void TestTemplatedFlatten(const Message & m, int lineNumber)
 int main(int, char **)
 {
    CompleteSetupSystem css;  // required!
-   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);  // so if unflatten() fails we can see why
+   (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);  // so if unflatten() fails we can see why
 
    // Test muscleSwap()
    {
       Message m1(1), m2(2);
-      m1.AddString("blah", "m1");
-      m2.AddString("blah", "m2");
+      (void) m1.AddString("blah", "m1");
+      (void) m2.AddString("blah", "m2");
       PrintAndClearStringCopyCounts("Before muscleSwap()");
       muscleSwap(m1, m2);
       PrintAndClearStringCopyCounts("After muscleSwap()");
@@ -135,8 +135,8 @@ int main(int, char **)
    // Test SwapName()
    {
       Message m1(1), m2(2);
-      m1.AddString("blah", "m1");
-      m2.AddString("blah", "m2");
+      (void) m1.AddString("blah", "m1");
+      (void) m2.AddString("blah", "m2");
 
       status_t ret = m1.SwapName("blah", m2);
       printf("SwapName(\"blah\") returned %s\n", ret());
@@ -145,36 +145,36 @@ int main(int, char **)
    }
 
    Message m1;
-   m1.AddFloat("va", 1.0f);
+   (void) m1.AddFloat("va", 1.0f);
    TestTemplatedFlatten(m1, __LINE__);
-   m1.AddFloat("va", 2.0f);
+   (void) m1.AddFloat("va", 2.0f);
    TestTemplatedFlatten(m1, __LINE__);
    printf("m1 flattenedSize=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
-   m1.AddInt32("co", 32);
+   (void) m1.AddInt32("co", 32);
    TestTemplatedFlatten(m1, __LINE__);
    printf("m2 flattenedSize=" UINT32_FORMAT_SPEC "\n", m1.FlattenedSize());
 
    printSep("Testing Replace*() with okayToAdd...");
    Message butter(0x05080609);
-   butter.ReplaceInt8(true, "int8", 8);
-   butter.ReplaceInt16(true, "int16", 16);
-   butter.ReplaceInt32(true, "int32", 32);
-   butter.ReplaceInt64(true, "int64", 64);
-   butter.ReplaceFloat(true, "float", 3.14f);
-   butter.ReplaceDouble(true, "double", 6.28);
-   butter.ReplacePoint(true, "point", Point(5,4));
-   butter.ReplaceRect(true, "rect", Rect(5,6,7,8));
+   (void) butter.ReplaceInt8(true, "int8", 8);
+   (void) butter.ReplaceInt16(true, "int16", 16);
+   (void) butter.ReplaceInt32(true, "int32", 32);
+   (void) butter.ReplaceInt64(true, "int64", 64);
+   (void) butter.ReplaceFloat(true, "float", 3.14f);
+   (void) butter.ReplaceDouble(true, "double", 6.28);
+   (void) butter.ReplacePoint(true, "point", Point(5,4));
+   (void) butter.ReplaceRect(true, "rect", Rect(5,6,7,8));
    TestTemplatedFlatten(butter, __LINE__);
-   butter.ReplacePointer(true, "pointer", &butter);
+   (void) butter.ReplacePointer(true, "pointer", &butter);
    butter.PrintToStream();
 
-   butter.ReplaceInt16(true, "int16", 0, 17);
-   butter.ReplaceInt16(true, "int16", 1, 18);
-   butter.ReplaceInt8(true, "int8", 25, 25);  // should work the same as AddInt8("int8", 25);
+   (void) butter.ReplaceInt16(true, "int16", 0, 17);
+   (void) butter.ReplaceInt16(true, "int16", 1, 18);
+   (void) butter.ReplaceInt8(true, "int8", 25, 25);  // should work the same as AddInt8("int8", 25);
 
-   butter.AddTag("Tag", RefCountableRef(GetMessageFromPool(6666)()));
-   butter.AddTag("Tag", RefCountableRef(GetMessageFromPool(7777)()));
-   butter.AddPointer("pointer", &butter);
+   (void) butter.AddTag("Tag", RefCountableRef(GetMessageFromPool(6666)()));
+   (void) butter.AddTag("Tag", RefCountableRef(GetMessageFromPool(7777)()));
+   (void) butter.AddPointer("pointer", &butter);
    butter.PrintToStream();
 
    void * t;
@@ -346,7 +346,7 @@ int main(int, char **)
    TEST(msg.FindPoint("point12", 1, pointResult));
    printf("TestPoint: "); pointResult.PrintToStream();
 
-   msg.AddTag("ThisShouldn'tBeBackAfterUnflatten", RefCountableRef(NULL));
+   (void) msg.AddTag("ThisShouldn'tBeBackAfterUnflatten", RefCountableRef(NULL));
 
    const void * gd;
    uint32 getDataSize;
@@ -355,7 +355,7 @@ int main(int, char **)
    printf("data=[%s], size=" UINT32_FORMAT_SPEC "\n", dataStr(), getDataSize);
 
    TEST(msg.FindData("Data", B_RAW_TYPE, 1, &gd, &getDataSize));
-   dataStr.SetCstr((const char *) gd, getDataSize);
+   (void) dataStr.SetCstr((const char *) gd, getDataSize);
    printf("data(1)=[%s], size=" UINT32_FORMAT_SPEC "\n", dataStr(), getDataSize);
 
    printSep("Testing misc");
@@ -364,7 +364,7 @@ int main(int, char **)
    msg.PrintToStream();
    Message tryMe = msg;
    printf("Msg is " UINT32_FORMAT_SPEC " bytes.\n",msg.FlattenedSize());
-   msg.AddTag("anothertag", RefCountableRef(GetMessageFromPool()()));
+   (void) msg.AddTag("anothertag", RefCountableRef(GetMessageFromPool()()));
    printf("After adding tag, msg is (hopefully still) " UINT32_FORMAT_SPEC " bytes.\n",msg.FlattenedSize());
    tryMe.PrintToStream();
 

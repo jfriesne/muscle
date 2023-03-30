@@ -109,18 +109,18 @@ int main(int argc, char ** argv)
    while(keepGoing)
    {
       // Tell the SocketMultiplexer what file descriptors to watch
-      sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
-      sm.RegisterSocketForReadReady(gateway.GetDataIO()()->GetReadSelectSocket().GetFileDescriptor());
+      (void) sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
+      (void) sm.RegisterSocketForReadReady(gateway.GetDataIO()()->GetReadSelectSocket().GetFileDescriptor());
       if (gateway.HasBytesToOutput())
       {
          // We only care about the TCP socket's ready-for-write status if our gateway
          // actually has some data queued up to send.  Otherwise there is no point waking up
          // just because the TCP socket's output-buffer isn't full...
-         sm.RegisterSocketForWriteReady(gateway.GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor());
+         (void) sm.RegisterSocketForWriteReady(gateway.GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor());
       }
 
       // Wait for something to happen (on either the TCP side or the stdin side)...
-      sm.WaitForEvents();
+      if (sm.WaitForEvents().IsError()) break;
 
       // Are there bytes ready-for-read on stdin?
       if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetFileDescriptor()))
@@ -141,16 +141,16 @@ int main(int argc, char ** argv)
             printf("You typed:  [%s]\n", userText());
 
             // Now let's create a Message containing the user's text and send it across the TCP
-            MessageRef userMsg = GetMessageFromPool(3456);  // arbitrary command code
-            userMsg()->AddString("user input", userText);   // what the user typed in
-            userMsg()->AddFloat("pi", 3.1415f);             // some other data fields
-            userMsg()->AddRect("my_rect", Rect(1.0f, 2.0f, 3.0f, 4.0f)); // just to show that we can
+            MessageRef userMsg = GetMessageFromPool(3456);                      // arbitrary command code
+            (void) userMsg()->AddString("user input", userText);                // what the user typed in
+            (void) userMsg()->AddFloat("pi", 3.1415f);                          // some other data fields
+            (void) userMsg()->AddRect("my_rect", Rect(1.0f, 2.0f, 3.0f, 4.0f)); // just to show that we can
 
             // And queue it up in the gateway for transmission ASAP
             printf("Your outgoing Message has been queued for transmission ASAP!\n");
             printf("Your outgoing Message is:\n");
             userMsg()->PrintToStream();
-            gateway.AddOutgoingMessage(userMsg);
+            (void) gateway.AddOutgoingMessage(userMsg);
          }
       }
 

@@ -71,7 +71,7 @@ static int DoThreadTest();
 static int DoThreadTest()
 {
    MessageRef testMsg = GetMessageFromPool(1234);
-   for (int i=0; i<100; i++) testMsg()->AddInt32(String("field-%1").Arg(i), i);
+   for (int i=0; i<100; i++) MPRINT_ON_ERROR("AddInt32", testMsg()->AddInt32(String("field-%1").Arg(i), i));
 
    printf("BEGIN THREAD-SAFETY TEST!\n");
 
@@ -84,7 +84,7 @@ static int DoThreadTest()
    }
    for (uint32 i=0; i<ARRAYITEMS(threads); i++)
    {
-      threads[i]->WaitForInternalThreadToExit();
+      MPRINT_ON_ERROR("WaitForInternalThreadToExit", threads[i]->WaitForInternalThreadToExit());
       delete threads[i];
    }
 
@@ -103,7 +103,7 @@ static int DoInteractiveTest()
    {
       char buf[32];
       muscleSprintf(buf, "%i", i);
-      table.Put(i, buf);
+      (void) table.Put(i, buf);
    }
 
    while(true)
@@ -285,7 +285,7 @@ static void TestIteratorSanityOnRemoval(bool backwards)
    for (uint32 i=0; i<COUNT; i++)
    {
       Hashtable<int32, int32> table;
-      for (uint32 j=0; j<COUNT; j++) table.Put(j, j+COUNT);
+      for (uint32 j=0; j<COUNT; j++) (void) table.Put(j, j+COUNT);
 
       uint32 numPairsFound = 0;
       int32 prevKey = backwards ? (int32)COUNT : -1;
@@ -303,7 +303,7 @@ static void TestIteratorSanityOnRemoval(bool backwards)
             ExitWithoutCleanup(10);
          }
 
-         if ((gotKey%(i+1))==0) {LogTime(MUSCLE_LOG_TRACE, "    -> Deleting key=" INT32_FORMAT_SPEC "\n", gotKey); table.Remove(gotKey);}
+         if ((gotKey%(i+1))==0) {LogTime(MUSCLE_LOG_TRACE, "    -> Deleting key=" INT32_FORMAT_SPEC "\n", gotKey); (void) table.Remove(gotKey);}
 
          numPairsFound++;
          prevKey = gotKey;
@@ -319,8 +319,8 @@ static void TestIteratorSanityOnRemoval(bool backwards)
 template<class T> void TestMuscleSwap(const char * desc)
 {
    T m1, m2;
-   m1.Put("m1", "m1");
-   m2.Put("m2", "m2");
+   (void) m1.Put("m1", "m1");
+   (void) m2.Put("m2", "m2");
 
    char buf[256];
    muscleSprintf(buf, "Before muscleSwap[%s] test", desc);
@@ -361,7 +361,7 @@ int main(int argc, char ** argv)
    {
       Hashtable<String,String> table;
       printf("Before population, table's hash code is " UINT32_FORMAT_SPEC "\n", table.HashCode());
-      for (int32 i=0; i<1000; i++) table.Put(String("xxx%1").Arg(i), "foo");
+      for (int32 i=0; i<1000; i++) (void) table.Put(String("xxx%1").Arg(i), "foo");
       printf("After population of " UINT32_FORMAT_SPEC " items, table size is " UINT32_FORMAT_SPEC ", hash is " UINT32_FORMAT_SPEC "\n", table.GetNumItems(), table.GetNumAllocatedItemSlots(), table.HashCode());
 
       if (table.ShrinkToFit().IsOK()) printf("After shrink-to-fit, table allocation is " UINT32_FORMAT_SPEC " for " UINT32_FORMAT_SPEC " items, hash is " UINT32_FORMAT_SPEC "\n", table.GetNumAllocatedItemSlots(), table.GetNumItems(), table.HashCode());
@@ -377,7 +377,7 @@ int main(int argc, char ** argv)
       const String key = "key";
       const String value = "value";
       Hashtable<String,String> table;
-      table.Put(key, value);
+      MPRINT_ON_ERROR("Put", table.Put(key, value));
       if (key != "key") {printf("ERROR, Hashtable stole my key!\n"); exit(10);}
       if (value != "value") {printf("ERROR, Hashtable stole my value!\n"); exit(10);}
    }
@@ -396,10 +396,10 @@ int main(int argc, char ** argv)
 
       Hashtable<int, Void> keysOnly;
       printf("A sizeof(keysOnly)=%u hash=" UINT32_FORMAT_SPEC "\n", (unsigned int) sizeof(keysOnly), keysOnly.HashCode());
-      keysOnly.PutWithDefault(1);
-      keysOnly.PutWithDefault(2);
-      keysOnly.PutWithDefault(5);
-      keysOnly.PutWithDefault(10);
+      (void) keysOnly.PutWithDefault(1);
+      (void) keysOnly.PutWithDefault(2);
+      (void) keysOnly.PutWithDefault(5);
+      (void) keysOnly.PutWithDefault(10);
       for (HashtableIterator<int, Void> iter(keysOnly); iter.HasData(); iter++)  printf("key=%i\n", iter.GetKey());
       printf("B sizeof(keysOnly)=%u hash=" UINT32_FORMAT_SPEC "\n", (unsigned int) sizeof(keysOnly), keysOnly.HashCode());
    }
@@ -437,8 +437,8 @@ int main(int argc, char ** argv)
 
       MyType a; a[0] = 5; a[1] = 6;
       MyType b; b[0] = 7; b[1] = 8;
-      tupleTable.Put(a, 1);
-      tupleTable.Put(b, 2);
+      (void) tupleTable.Put(a, 1);
+      (void) tupleTable.Put(b, 2);
       for (HashtableIterator<MyType, int> iter(tupleTable); iter.HasData(); iter++)
       {
          const MyType & key = iter.GetKey();
@@ -457,8 +457,8 @@ int main(int argc, char ** argv)
 
       const Rect a(1,2,3,4);
       const Rect b(5,6,7,8);
-      tupleTable.Put(a, 1);
-      tupleTable.Put(b, 2);
+      (void) tupleTable.Put(a, 1);
+      (void) tupleTable.Put(b, 2);
       for (HashtableIterator<Rect, int> iter(tupleTable); iter.HasData(); iter++)
       {
          const Rect & key = iter.GetKey();
@@ -477,8 +477,8 @@ int main(int argc, char ** argv)
 
       const Point a(9,10);
       const Point b(-11,-12);
-      tupleTable.Put(a, 1);
-      tupleTable.Put(b, 2);
+      (void) tupleTable.Put(a, 1);
+      (void) tupleTable.Put(b, 2);
       for (HashtableIterator<Point, int> iter(tupleTable); iter.HasData(); iter++)
       {
          const Point & key = iter.GetKey();
@@ -493,21 +493,21 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Testing Queue as a Hashtable key\n");
 
       Queue<int> key1;
-      key1.AddTail(1);
-      key1.AddTail(2);
-      key1.AddTail(3);
+      (void) key1.AddTail(1);
+      (void) key1.AddTail(2);
+      (void) key1.AddTail(3);
 
       Queue<int> key2;
-      key1.AddTail(10);
-      key2.AddTail(20);
-      key2.AddTail(30);
+      (void) key1.AddTail(10);
+      (void) key2.AddTail(20);
+      (void) key2.AddTail(30);
 
       // A quick test of the Hashtable class as a Hashtable key
       Hashtable<Queue<int>, int> qTable;
       printf("qTable hash A = " UINT32_FORMAT_SPEC "\n", qTable.HashCode());
-      qTable.Put(key1, 100);
+      (void) qTable.Put(key1, 100);
       printf("qTable hash B = " UINT32_FORMAT_SPEC "\n", qTable.HashCode());
-      qTable.Put(key2, 200);
+      (void) qTable.Put(key2, 200);
       printf("qTable hash C = " UINT32_FORMAT_SPEC "\n", qTable.HashCode());
 
       for (HashtableIterator<Queue<int>, int> iter(qTable); iter.HasData(); iter++)
@@ -527,21 +527,21 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Testing Hashtable as a Hashtable key(!)\n");  // yo dawg, I heard you like Hashtables...
 
       Hashtable<int, int> key1;
-      key1.Put(3, 4);
-      key1.Put(2, 5);
-      key1.Put(1, 6);
+      (void) key1.Put(3, 4);
+      (void) key1.Put(2, 5);
+      (void) key1.Put(1, 6);
 
       Hashtable<int, int> key2;
-      key2.Put(30, 31);
-      key2.Put(20, 31);
-      key2.Put(10, 11);
+      (void) key2.Put(30, 31);
+      (void) key2.Put(20, 31);
+      (void) key2.Put(10, 11);
 
       // A quick test of the Hashtable class as a Hashtable key
       Hashtable<Hashtable<int, int>, int> tableTable;
       printf("tableTable hash A = " UINT32_FORMAT_SPEC "\n", tableTable.HashCode());
-      tableTable.Put(key1, 100);
+      (void) tableTable.Put(key1, 100);
       printf("tableTable hash B = " UINT32_FORMAT_SPEC "\n", tableTable.HashCode());
-      tableTable.Put(key2, 200);
+      (void) tableTable.Put(key2, 200);
       printf("tableTable hash C = " UINT32_FORMAT_SPEC "\n", tableTable.HashCode());
 
       for (HashtableIterator< Hashtable<int, int>, int> iter(tableTable); iter.HasData(); iter++)
@@ -557,8 +557,8 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Preparing large table for sort...\n");
 
       const uint32 numItems = 100000;
-      Hashtable<int, Void> table; (void) table.EnsureSize(100000);
-      for (uint32 i=0; i<numItems; i++) table.PutWithDefault((int)rand());
+      Hashtable<int, Void> table; MPRINT_ON_ERROR("EnsureSize", table.EnsureSize(100000));
+      for (uint32 i=0; i<numItems; i++) MPRINT_ON_ERROR("PutWithDefault", table.PutWithDefault((int)rand()));
       const uint32 actualNumItems = table.GetNumItems();  // may be smaller than numItems, due to duplicate values!
       (void) table.CountAverageLookupComparisons(true);
 
@@ -578,12 +578,12 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Testing ComputeInvertedTable() and ComputeValuesHistogram()...\n");
 
       Hashtable<String, int> table;
-      table.Put("One",        1);
-      table.Put("Three",      3);
-      table.Put("Five",       5);
-      table.Put("Seven",      7);
-      table.Put("Also Three", 3);
-      table.Put("Also Five",  5);
+      (void) table.Put("One",        1);
+      (void) table.Put("Three",      3);
+      (void) table.Put("Five",       5);
+      (void) table.Put("Seven",      7);
+      (void) table.Put("Also Three", 3);
+      (void) table.Put("Also Five",  5);
 
       LogTime(MUSCLE_LOG_INFO, "Original table:\n");
       for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO, "   [%s] -> %i\n", iter.GetKey()(), iter.GetValue());
@@ -603,7 +603,7 @@ int main(int argc, char ** argv)
 
       const uint32 numItems = 100000;
       Hashtable<int, Void> table;
-      for (uint32 i=0; i<numItems; i++) table.PutWithDefault((int)rand());
+      for (uint32 i=0; i<numItems; i++) MPRINT_ON_ERROR("PutWithDefault", table.PutWithDefault((int)rand()));
       const uint32 actualNumItems = table.GetNumItems();  // may be smaller than numItems, due to duplicate values!
 
       LogTime(MUSCLE_LOG_INFO, "Sorting...\n");
@@ -620,23 +620,23 @@ int main(int argc, char ** argv)
 
    Hashtable<String, String> table;
    {
-      table.Put("Hello", "World");
-      table.Put("Peanut Butter", "Jelly");
-      table.Put("Ham", "Eggs");
-      table.Put("Pork", "Beans");
-      table.Put("Slash", "Dot");
-      table.Put("Data", "Mining");    // will be overwritten and moved to the end by PutAtBack() below
-      table.PutAtFront("TestDouble", "ThisShouldBeFirst");
-      table.Put("Abbot", "Costello");
-      table.Put("Laurel", "Hardy");
-      table.Put("Thick", "Thin");
-      table.Put("Butter", "Parkay");
-      table.Put("Total", "Carnage");
-      table.Put("Summer", "Time");
-      table.Put("Terrible", "Twos");
-      table.PutAtBack("Data", "ThisShouldBeLast");  // should overwrite Data->Mining and move it to the end
-      table.PutBefore(String("Margarine"), String("Butter"), "ThisShouldBeBeforeButter");
-      table.PutBehind(String("Oil"),       String("Butter"), "ThisShouldBeAfterButter");
+      (void) table.Put("Hello", "World");
+      (void) table.Put("Peanut Butter", "Jelly");
+      (void) table.Put("Ham", "Eggs");
+      (void) table.Put("Pork", "Beans");
+      (void) table.Put("Slash", "Dot");
+      (void) table.Put("Data", "Mining");    // will be overwritten and moved to the end by PutAtBack() below
+      (void) table.PutAtFront("TestDouble", "ThisShouldBeFirst");
+      (void) table.Put("Abbot", "Costello");
+      (void) table.Put("Laurel", "Hardy");
+      (void) table.Put("Thick", "Thin");
+      (void) table.Put("Butter", "Parkay");
+      (void) table.Put("Total", "Carnage");
+      (void) table.Put("Summer", "Time");
+      (void) table.Put("Terrible", "Twos");
+      (void) table.PutAtBack("Data", "ThisShouldBeLast");  // should overwrite Data->Mining and move it to the end
+      (void) table.PutBefore(String("Margarine"), String("Butter"), "ThisShouldBeBeforeButter");
+      (void) table.PutBehind(String("Oil"),       String("Butter"), "ThisShouldBeAfterButter");
 
       {
          LogTime(MUSCLE_LOG_INFO, "String Table contents\n");
@@ -679,16 +679,16 @@ int main(int argc, char ** argv)
       }
 
       Hashtable<uint32, const char *> sillyTable;
-      sillyTable.Put(15, "Fifteen");
-      sillyTable.Put(100, "One Hundred");
-      sillyTable.Put(150, "One Hundred and Fifty");
-      sillyTable.Put(200, "Two Hundred");
-      sillyTable.Put((uint32)-1, "2^32 - 1!");
+      (void) sillyTable.Put(15, "Fifteen");
+      (void) sillyTable.Put(100, "One Hundred");
+      (void) sillyTable.Put(150, "One Hundred and Fifty");
+      (void) sillyTable.Put(200, "Two Hundred");
+      (void) sillyTable.Put((uint32)-1, "2^32 - 1!");
       if (sillyTable.ContainsKey((uint32)-1) == false) bomb("large value failed!");
 
       const char * tempStr = NULL;
-      sillyTable.Get(100, tempStr);
-      sillyTable.Get(101, tempStr); // will fail
+      (void) sillyTable.Get(100, tempStr);
+      (void) sillyTable.Get(101, tempStr); // will fail
       printf("100 -> %s\n", tempStr);
 
       printf("Entries in sillyTable:\n");
@@ -712,7 +712,7 @@ int main(int argc, char ** argv)
          printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) iTable.Put(rand(), rand());  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) (void) iTable.Put(rand(), rand());  // we want this to be repeatable, hence srand(0)
          AddTally(tallies, "place", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
@@ -752,7 +752,7 @@ int main(int argc, char ** argv)
          printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) sTable.Put(String("%1").Arg(rand()), String("%1").Arg(rand()));  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) (void) sTable.Put(String("%1").Arg(rand()), String("%1").Arg(rand()));  // we want this to be repeatable, hence srand(0)
          AddTally(tallies, "place", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();

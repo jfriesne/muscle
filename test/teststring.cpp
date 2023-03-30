@@ -97,13 +97,13 @@ static status_t UnitTestString()
       const String before = "One potato, Two potato, Three potato, Four.  Five potato, Six potato, Seven potato, more!  One Two Threepot Four Five";
 
       Hashtable<String,String> replaceMap;
-      replaceMap.Put("One",    "Two");
-      replaceMap.Put("Two",    "3");
-      replaceMap.Put("Twofer", "xxx");
-      replaceMap.Put("Three",  "4");
-      replaceMap.Put("potato", "sweet potato");
-      replaceMap.Put("pot",    "mary jane");  // should replace any "pot" that isn't also a "potato"
-      replaceMap.Put("sweet",  "sour");       // shouldn't have any effect, since the original string doesn't contain the substring 'sweet'
+      (void) replaceMap.Put("One",    "Two");
+      (void) replaceMap.Put("Two",    "3");
+      (void) replaceMap.Put("Twofer", "xxx");
+      (void) replaceMap.Put("Three",  "4");
+      (void) replaceMap.Put("potato", "sweet potato");
+      (void) replaceMap.Put("pot",    "mary jane");  // should replace any "pot" that isn't also a "potato"
+      (void) replaceMap.Put("sweet",  "sour");       // shouldn't have any effect, since the original string doesn't contain the substring 'sweet'
 
       for (uint32 i=0; i<15; i++) printf("  Max=" UINT32_FORMAT_SPEC ". [%s]\n", i, before.WithReplacements(replaceMap, i)());
 
@@ -141,9 +141,9 @@ static status_t UnitTestString()
    printf("arg string = [%s]\n", aString());
 
    String temp;
-   temp.SetCstr("1234567890", 3);
+   (void) temp.SetCstr("1234567890", 3);
    printf("123=[%s]\n", temp());
-   temp.SetCstr("1234567890");
+   (void) temp.SetCstr("1234567890");
    printf("%s\n", temp());
 
    String scale("do"); scale = scale.AppendWord("re", ", ").AppendWord("mi").AppendWord(String("fa")).AppendWord("so").AppendWord("la").AppendWord("ti").AppendWord("do");

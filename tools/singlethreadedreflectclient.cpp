@@ -34,7 +34,7 @@ int main(int argc, char ** argv)
 
    String hostName = "localhost";
    uint16 port = 2960;
-   if (argc > 1) ParseConnectArg(argv[1], hostName, port, false);
+   if (argc > 1) (void) ParseConnectArg(argv[1], hostName, port, false);
    ConstSocketRef sock = Connect(hostName(), port, "singlethreadedreflectclient", false);
    if (sock() == NULL) return 10;
 
@@ -113,9 +113,9 @@ int main(int argc, char ** argv)
       const int socketReadFD  = networkIORef()->GetReadSelectSocket().GetFileDescriptor();
       const int socketWriteFD = networkIORef()->GetWriteSelectSocket().GetFileDescriptor();
 
-      multiplexer.RegisterSocketForReadReady(stdinFD);
-      multiplexer.RegisterSocketForReadReady(socketReadFD);
-      if (gatewayRef()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(socketWriteFD);
+      (void) multiplexer.RegisterSocketForReadReady(stdinFD);
+      (void) multiplexer.RegisterSocketForReadReady(socketReadFD);
+      if (gatewayRef()->HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(socketWriteFD);
 
       status_t ret;
       if (multiplexer.WaitForEvents(nextTimeoutTime).IsError(ret)) printf("singlethreadedreflectclient: WaitForEvents() failed! [%s]\n", ret());
@@ -126,13 +126,13 @@ int main(int argc, char ** argv)
          // For OpenSSL testing:  Generate some traffic to the server every 50mS
          printf("Uploading timed OpenSSL-tester update at time " UINT64_FORMAT_SPEC "\n", now);
          MessageRef stateMsg = GetMessageFromPool();
-         stateMsg()->AddString("username", "singlethreadedreflectclient");
-         stateMsg()->AddPoint("position", Point((rand()%100)/100.0f, (rand()%100)/100.0f));
-         stateMsg()->AddInt32("color", -1);
+         (void) stateMsg()->AddString("username", "singlethreadedreflectclient");
+         (void) stateMsg()->AddPoint("position", Point((rand()%100)/100.0f, (rand()%100)/100.0f));
+         (void) stateMsg()->AddInt32("color", -1);
 
          MessageRef uploadMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
-         uploadMsg()->AddMessage("qt_example/state", stateMsg);
-         gatewayRef()->AddOutgoingMessage(uploadMsg);
+         (void) uploadMsg()->AddMessage("qt_example/state", stateMsg);
+         (void) gatewayRef()->AddOutgoingMessage(uploadMsg);
 
          nextTimeoutTime = now + MillisToMicros(50);
       }
@@ -171,21 +171,21 @@ int main(int argc, char ** argv)
             {
                case 'm':
                   ref()->what = MakeWhatCode("umsg");
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
-                  ref()->AddString("info", "This is a user message");
+                  if (arg1) (void) ref()->AddString(PR_NAME_KEYS, arg1);
+                  (void) ref()->AddString("info", "This is a user message");
                break;
 
                case 'i':
                   ref()->what = PR_COMMAND_PING;
-                  ref()->AddString("Test ping", "yeah");
+                  (void) ref()->AddString("Test ping", "yeah");
                break;
 
                case 's':
                {
                   ref()->what = PR_COMMAND_SETDATA;
                   MessageRef uploadMsg = GetMessageFromPool(MakeWhatCode("HELO"));
-                  uploadMsg()->AddString("This node was posted at: ", GetHumanReadableTimeString(GetRunTime64()));
-                  if (arg1) ref()->AddMessage(arg1, uploadMsg);
+                  (void) uploadMsg()->AddString("This node was posted at: ", GetHumanReadableTimeString(GetRunTime64()));
+                  if (arg1) (void) ref()->AddMessage(arg1, uploadMsg);
                }
                break;
 
@@ -198,7 +198,7 @@ int main(int argc, char ** argv)
                   for (int i=0; i<500; i++) evilPath += String("/DEEPER_%1").Arg(i);
 
                   ref()->what = PR_COMMAND_SETDATA;
-                  ref()->AddMessage(evilPath(), GetMessageFromPool(MakeWhatCode("EVIL")));
+                  (void) ref()->AddMessage(evilPath(), GetMessageFromPool(MakeWhatCode("EVIL")));
                }
                break;
 
@@ -211,13 +211,13 @@ int main(int argc, char ** argv)
                   for (int j=0; j<10; j++)
                   {
                      ref = GetMessageFromPool(PR_COMMAND_SETDATA);
-                     if (enableSupercede)  ref()->AddFlat(PR_NAME_FLAGS, SetDataNodeFlags(SETDATANODE_FLAG_ENABLESUPERCEDE));
+                     if (enableSupercede) (void) ref()->AddFlat(PR_NAME_FLAGS, SetDataNodeFlags(SETDATANODE_FLAG_ENABLESUPERCEDE));
 
                      MessageRef subMsg = GetMessageFromPool();
-                     subMsg()->AddInt32(String("%1 counter").Arg(enableSupercede?"Supercede":"Normal"), j);
-                     ref()->AddMessage("test_node", subMsg);
+                     (void) subMsg()->AddInt32(String("%1 counter").Arg(enableSupercede?"Supercede":"Normal"), j);
+                     (void) ref()->AddMessage("test_node", subMsg);
 
-                     gatewayRef()->AddOutgoingMessage(ref);
+                     (void) gatewayRef()->AddOutgoingMessage(ref);
                   }
 
                   ref = GetMessageFromPool(PR_COMMAND_PING);  // just so we can see when it's done
@@ -226,28 +226,28 @@ int main(int argc, char ** argv)
 
                case 'k':
                   ref()->what = PR_COMMAND_KICK;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+                  if (arg1) (void) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 'b':
                   ref()->what = PR_COMMAND_ADDBANS;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+                  if (arg1) (void) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 'B':
                   ref()->what = PR_COMMAND_REMOVEBANS;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+                  if (arg1) (void) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 'g':
                   ref()->what = PR_COMMAND_GETDATA;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+                  if (arg1) (void) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 'G':
                   ref()->what = PR_COMMAND_GETDATATREES;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
-                  ref()->AddString(PR_NAME_TREE_REQUEST_ID, "Tree ID!");
+                  if (arg1) (void) ref()->AddString(PR_NAME_KEYS, arg1);
+                  (void) ref()->AddString(PR_NAME_TREE_REQUEST_ID, "Tree ID!");
                break;
 
                case 'q':
@@ -256,7 +256,7 @@ int main(int argc, char ** argv)
 
                case 'p':
                   ref()->what = PR_COMMAND_SETPARAMETERS;
-                  if (arg1) ref()->AddString(arg1, "");
+                  if (arg1) (void) ref()->AddString(arg1, "");
                break;
 
                case 'P':
@@ -267,7 +267,7 @@ int main(int argc, char ** argv)
                {
                   // simulate the behavior of qt_example, for testing OpenSSL problem
                   ref()->what = PR_COMMAND_SETPARAMETERS;
-                  ref()->AddBool("SUBSCRIBE:qt_example/state", true);
+                  (void) ref()->AddBool("SUBSCRIBE:qt_example/state", true);
                   printf("Starting OpenSSL problem test...\n");
                   nextTimeoutTime = 0;
                }
@@ -277,43 +277,43 @@ int main(int argc, char ** argv)
                {
                   ref()->what = PR_COMMAND_SETPARAMETERS;
                   StringQueryFilter sqf("sc_tstr", StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH, "*Output*");
-                  ref()->AddArchiveMessage("SUBSCRIBE:/*/*/csproj/default/subcues/*", sqf);
+                  (void) ref()->AddArchiveMessage("SUBSCRIBE:/*/*/csproj/default/subcues/*", sqf);
                }
                break;
 
                case 'd':
                   ref()->what = PR_COMMAND_REMOVEDATA;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+                  if (arg1) (void) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 'D':
                   ref()->what = PR_COMMAND_REMOVEPARAMETERS;
-                  if (arg1) ref()->AddString(PR_NAME_KEYS, arg1);
+                  if (arg1) (void) ref()->AddString(PR_NAME_KEYS, arg1);
                break;
 
                case 't':
                {
                   // test all data types
                   ref()->what = 1234;
-                  ref()->AddString("String", "this is a string");
-                  ref()->AddInt8("Int8", 123);
-                  ref()->AddInt8("-Int8", -123);
-                  ref()->AddInt16("Int16", 1234);
-                  ref()->AddInt16("-Int16", -1234);
-                  ref()->AddInt32("Int32", 12345);
-                  ref()->AddInt32("-Int32", -12345);
-                  ref()->AddInt64("Int64", 123456789);
-                  ref()->AddInt64("-Int64", -123456789);
-                  ref()->AddBool("Bool", true);
-                  ref()->AddBool("-Bool", false);
-                  ref()->AddFloat("Float", 1234.56789f);
-                  ref()->AddFloat("-Float", -1234.56789f);
-                  ref()->AddDouble("Double", 1234.56789);
-                  ref()->AddDouble("-Double", -1234.56789);
-                  ref()->AddPointer("Pointer", ref());
-                  ref()->AddFlat("Flat", *ref());
+                  (void) ref()->AddString("String", "this is a string");
+                  (void) ref()->AddInt8("Int8", 123);
+                  (void) ref()->AddInt8("-Int8", -123);
+                  (void) ref()->AddInt16("Int16", 1234);
+                  (void) ref()->AddInt16("-Int16", -1234);
+                  (void) ref()->AddInt32("Int32", 12345);
+                  (void) ref()->AddInt32("-Int32", -12345);
+                  (void) ref()->AddInt64("Int64", 123456789);
+                  (void) ref()->AddInt64("-Int64", -123456789);
+                  (void) ref()->AddBool("Bool", true);
+                  (void) ref()->AddBool("-Bool", false);
+                  (void) ref()->AddFloat("Float", 1234.56789f);
+                  (void) ref()->AddFloat("-Float", -1234.56789f);
+                  (void) ref()->AddDouble("Double", 1234.56789);
+                  (void) ref()->AddDouble("-Double", -1234.56789);
+                  (void) ref()->AddPointer("Pointer", ref());
+                  (void) ref()->AddFlat("Flat", *ref());
                   char data[] = "This is some data";
-                  ref()->AddData("Flat", B_RAW_TYPE, data, sizeof(data));
+                  (void) ref()->AddData("Flat", B_RAW_TYPE, data, sizeof(data));
                }
                break;
 
@@ -327,7 +327,7 @@ int main(int argc, char ** argv)
             {
                printf("Sending message...\n");
                ref()->PrintToStream();
-               gatewayRef()->AddOutgoingMessage(ref);
+               (void) gatewayRef()->AddOutgoingMessage(ref);
             }
          }
       }

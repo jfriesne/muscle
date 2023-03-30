@@ -190,8 +190,8 @@ int main(int argc, char ** argv)
    while(1)
    {
       if (OnceEvery(MICROS_PER_SECOND, lastTime)) LogTime(MUSCLE_LOG_INFO, "Send counter is currently at " UINT32_FORMAT_SPEC ", Receive counter is currently at " UINT32_FORMAT_SPEC "\n", _sendWhatCounter, _recvWhatCounter);
-      multiplexer.RegisterSocketForReadReady(readFD);
-      if (gateway->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(writeFD);
+      (void) multiplexer.RegisterSocketForReadReady(readFD);
+      if (gateway->HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(writeFD);
 
       status_t ret;
       if (multiplexer.WaitForEvents((spamIntervalMicros>0)?nextSpamTime:MUSCLE_TIME_NEVER).IsError(ret)) LogTime(MUSCLE_LOG_CRITICALERROR, "testpackettunnel: WaitForEvents() failed! [%s]\n", ret());

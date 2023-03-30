@@ -88,9 +88,9 @@ int main(int argc, char ** argv)
    while(s())
    {
       const int fd = s.GetFileDescriptor();
-      multiplexer.RegisterSocketForReadReady(fd);
-      if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-      multiplexer.RegisterSocketForReadReady(stdinFD);
+      (void) multiplexer.RegisterSocketForReadReady(fd);
+      if (agw()->HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
+      (void) multiplexer.RegisterSocketForReadReady(stdinFD);
 
       while(s())
       {
@@ -122,47 +122,47 @@ int main(int argc, char ** argv)
                   bool send = true;
                   MessageRef ref = GetMessageFromPool(useTextGateway?PR_COMMAND_TEXT_STRINGS:(useRawGateway?PR_COMMAND_RAW_DATA:0));
 
-                       if (useTextGateway) ref()->AddString(PR_NAME_TEXT_LINE, st->Trim());
-                  else if (useRawGateway)  ref()->AddFlat(PR_NAME_DATA_CHUNKS, ParseHexBytes(text));
+                       if (useTextGateway) (void) ref()->AddString(PR_NAME_TEXT_LINE, st->Trim());
+                  else if (useRawGateway)  (void) ref()->AddFlat(PR_NAME_DATA_CHUNKS, ParseHexBytes(text));
                   else
                   {
                      switch(text[0])
                      {
                         case 'm':
                            ref()->what = MakeWhatCode("umsg");
-                           ref()->AddString(PR_NAME_KEYS, &text[2]);
-                           ref()->AddString("info", "This is a user message");
+                           (void) ref()->AddString(PR_NAME_KEYS, &text[2]);
+                           (void) ref()->AddString("info", "This is a user message");
                         break;
 
                         case 's':
                            ref()->what = PR_COMMAND_SETDATA;
-                           ref()->AddMessage(&text[2], Message(MakeWhatCode("HELO")));
+                           (void) ref()->AddMessage(&text[2], Message(MakeWhatCode("HELO")));
                         break;
 
                         case 'k':
                            ref()->what = PR_COMMAND_KICK;
-                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                           (void) ref()->AddString(PR_NAME_KEYS, &text[2]);
                         break;
 
                         case 'b':
                            ref()->what = PR_COMMAND_ADDBANS;
-                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                           (void) ref()->AddString(PR_NAME_KEYS, &text[2]);
                         break;
 
                         case 'B':
                            ref()->what = PR_COMMAND_REMOVEBANS;
-                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                           (void) ref()->AddString(PR_NAME_KEYS, &text[2]);
                         break;
 
                         case 'g':
                            ref()->what = PR_COMMAND_GETDATA;
-                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                           (void) ref()->AddString(PR_NAME_KEYS, &text[2]);
                         break;
 
                         case 'G':
                            ref()->what = PR_COMMAND_GETDATATREES;
-                           ref()->AddString(PR_NAME_KEYS, &text[2]);
-                           ref()->AddString(PR_NAME_TREE_REQUEST_ID, "Tree ID!");
+                           (void) ref()->AddString(PR_NAME_KEYS, &text[2]);
+                           (void) ref()->AddString(PR_NAME_TREE_REQUEST_ID, "Tree ID!");
                         break;
 
                         case 'q':
@@ -172,7 +172,7 @@ int main(int argc, char ** argv)
 
                         case 'p':
                            ref()->what = PR_COMMAND_SETPARAMETERS;
-                           ref()->AddString(&text[2], "");
+                           (void) ref()->AddString(&text[2], "");
                         break;
 
                         case 'P':
@@ -181,37 +181,37 @@ int main(int argc, char ** argv)
 
                         case 'd':
                            ref()->what = PR_COMMAND_REMOVEDATA;
-                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                           (void) ref()->AddString(PR_NAME_KEYS, &text[2]);
                         break;
 
                         case 'D':
                            ref()->what = PR_COMMAND_REMOVEPARAMETERS;
-                           ref()->AddString(PR_NAME_KEYS, &text[2]);
+                           (void) ref()->AddString(PR_NAME_KEYS, &text[2]);
                         break;
 
                         case 't':
                         {
                            // test all data types
                            ref()->what = 1234;
-                           ref()->AddString("String", "this is a string");
-                           ref()->AddInt8("Int8", 123);
-                           ref()->AddInt8("-Int8", -123);
-                           ref()->AddInt16("Int16", 1234);
-                           ref()->AddInt16("-Int16", -1234);
-                           ref()->AddInt32("Int32", 12345);
-                           ref()->AddInt32("-Int32", -12345);
-                           ref()->AddInt64("Int64", 123456789);
-                           ref()->AddInt64("-Int64", -123456789);
-                           ref()->AddBool("Bool", true);
-                           ref()->AddBool("-Bool", false);
-                           ref()->AddFloat("Float", 1234.56789f);
-                           ref()->AddFloat("-Float", -1234.56789f);
-                           ref()->AddDouble("Double", 1234.56789);
-                           ref()->AddDouble("-Double", -1234.56789);
-                           ref()->AddPointer("Pointer", ref());
-                           ref()->AddFlat("Flat", *ref());
+                           (void) ref()->AddString("String", "this is a string");
+                           (void) ref()->AddInt8("Int8", 123);
+                           (void) ref()->AddInt8("-Int8", -123);
+                           (void) ref()->AddInt16("Int16", 1234);
+                           (void) ref()->AddInt16("-Int16", -1234);
+                           (void) ref()->AddInt32("Int32", 12345);
+                           (void) ref()->AddInt32("-Int32", -12345);
+                           (void) ref()->AddInt64("Int64", 123456789);
+                           (void) ref()->AddInt64("-Int64", -123456789);
+                           (void) ref()->AddBool("Bool", true);
+                           (void) ref()->AddBool("-Bool", false);
+                           (void) ref()->AddFloat("Float", 1234.56789f);
+                           (void) ref()->AddFloat("-Float", -1234.56789f);
+                           (void) ref()->AddDouble("Double", 1234.56789);
+                           (void) ref()->AddDouble("-Double", -1234.56789);
+                           (void) ref()->AddPointer("Pointer", ref());
+                           (void) ref()->AddFlat("Flat", *ref());
                            char data[] = "This is some data";
-                           ref()->AddData("Flat", B_RAW_TYPE, data, sizeof(data));
+                           (void) ref()->AddData("Flat", B_RAW_TYPE, data, sizeof(data));
                         }
                         break;
 
@@ -226,7 +226,7 @@ int main(int argc, char ** argv)
                   {
                      printf("Sending message...\n");
 //                   ref()->PrintToStream();
-                     agw()->AddOutgoingMessage(ref);
+                     (void) agw()->AddOutgoingMessage(ref);
                   }
                }
             }
@@ -255,9 +255,9 @@ int main(int argc, char ** argv)
 
          if ((reading == false)&&(writing == false)) break;
 
-         multiplexer.RegisterSocketForReadReady(fd);
-         if (agw()->HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(fd);
-         multiplexer.RegisterSocketForReadReady(stdinFD);
+         (void) multiplexer.RegisterSocketForReadReady(fd);
+         if (agw()->HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
+         (void) multiplexer.RegisterSocketForReadReady(stdinFD);
       }
    }
 
