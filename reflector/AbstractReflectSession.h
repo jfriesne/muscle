@@ -485,6 +485,11 @@ protected:
     */
    virtual String GenerateHostName(const IPAddress & ip, const String & defaultHostName) const;
 
+   /** Returns the timestamp (in microseconds, as reported by GetRunTime64()) of the most recent
+     * time this session successfully sent some data to its client.
+     */
+   uint64 GetLastByteOutputTimeStamp() const {return _lastByteOutputAt;}
+
 private:
    virtual void TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint32 & tallyNumNodes, uint32 & tallyNumNodeBytes) const;  // yes, this virtual method is intentionally private!
 
@@ -507,10 +512,11 @@ private:
 
    String _hostName;
    IPAddressAndPort _asyncConnectDest;
-   bool _reconnectViaTCP;  // only valid when _asyncConnectDest is set
+   bool _reconnectViaTCP;            // only valid when _asyncConnectDest is set
    AbstractMessageIOGatewayRef _gateway;
-   uint64 _lastByteOutputAt;
-   uint32 _lastReportedQueueSize;  // used by ReflectServer.cpp to warn about growing/socket-free queues
+   uint64 _lastByteOutputAt;         // timestamp of last time we output a byt
+   uint64 _pendingLastByteOutputAt;  // same as _lastByteOutputAt but 0 if we don't currently want to output anything
+   uint32 _lastReportedQueueSize;    // used by ReflectServer.cpp to warn about growing/socket-free queues
    AbstractSessionIOPolicyRef _inputPolicyRef;
    AbstractSessionIOPolicyRef _outputPolicyRef;
    uint32 _maxInputChunk;   // as determined by our Policy object

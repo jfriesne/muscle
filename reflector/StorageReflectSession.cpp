@@ -49,7 +49,9 @@ StorageReflectSession() :
    _maxSubscriptionMessageItems(DEFAULT_MAX_SUBSCRIPTION_MESSAGE_SIZE),
    _indexingPresent(false),
    _currentNodeCount(0),
-   _maxNodeCount(MUSCLE_NO_LIMIT)
+   _maxNodeCount(MUSCLE_NO_LIMIT),
+   _keepAliveIntervalSeconds(0),
+   _nextKeepAliveSendTimeStamp(MUSCLE_TIME_NEVER)
 {
    // empty
 }
@@ -627,6 +629,8 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
 
          case PR_COMMAND_SETPARAMETERS:
          {
+            static const String _subscribePrefix = "SUBSCRIBE:";
+
             bool updateDefaultMessageRoute = false;
             const bool subscribeQuietly = msg.HasName(PR_NAME_SUBSCRIBE_QUIETLY);
             Message getMsg(PR_COMMAND_GETDATA);
@@ -634,15 +638,14 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
             {
                const String & fn = it.GetFieldName();
                bool copyField = true;
-               if (strncmp(fn(), "SUBSCRIBE:", 10) == 0)
+               if (fn.StartsWith(_subscribePrefix))
                {
                   ConstQueryFilterRef filter;
                   MessageRef filterMsgRef;
                   if (msg.FindMessage(fn, filterMsgRef).IsOK()) filter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*filterMsgRef());
 
-                  const String path = fn.Substring(10);
-                  String fixPath(path);
-                  _subscriptions.AdjustStringPrefix(fixPath, DEFAULT_PATH_PREFIX);
+                  const String path = fn.Substring(_subscribePrefix.Length());
+                  String fixPath(path); _subscriptions.AdjustStringPrefix(fixPath, DEFAULT_PATH_PREFIX);
                   const PathMatcherEntry * e = _subscriptions.GetEntries().Get(fixPath);
                   if (e)
                   {
@@ -711,10 +714,13 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                }
                else if (fn == PR_NAME_REPLY_ENCODING)
                {
-                  int32 enc;
-                  if (msg.FindInt32(PR_NAME_REPLY_ENCODING, enc).IsError()) enc = MUSCLE_MESSAGE_ENCODING_DEFAULT;
                   MessageIOGateway * gw = dynamic_cast<MessageIOGateway *>(GetGateway()());
-                  if (gw) gw->SetOutgoingEncoding(enc);
+                  if (gw) gw->SetOutgoingEncoding(msg.GetInt32(PR_NAME_REPLY_ENCODING, MUSCLE_MESSAGE_ENCODING_DEFAULT));
+               }
+               else if (fn == PR_NAME_KEEPALIVE_INTERVAL_SECONDS)
+               {
+                  _keepAliveIntervalSeconds = msg.GetInt32(PR_NAME_KEEPALIVE_INTERVAL_SECONDS);
+                  ScheduleNextKeepAliveSend(GetRunTime64());
                }
 
                if (copyField) (void) msg.CopyName(fn, _parameters);
@@ -1933,6 +1939,11 @@ status_t StorageReflectSession :: RemoveParameter(const String & paramName, bool
       (void) _defaultMessageRouteMessage.RemoveName(paramName);
       retUpdateDefaultMessageRoute = true;
    }
+   else if (paramName == PR_NAME_KEEPALIVE_INTERVAL_SECONDS)
+   {
+      _keepAliveIntervalSeconds = 0;
+      ScheduleNextKeepAliveSend(GetRunTime64());
+   }
 
    return _parameters.RemoveName(paramName);  // FogBugz #6348:  MUST BE DONE LAST, because this call may clear (paramName)
 }
@@ -1949,14 +1960,56 @@ void StorageReflectSession :: TallyNodeBytes(const DataNode & n, uint32 & retNum
    for (DataNodeRefIterator iter = n.GetChildIterator(); iter.HasData(); iter++) TallyNodeBytes(*iter.GetValue()(), retNumNodes, retNodeBytes);
 }
 
-void
-StorageReflectSession ::
-TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint32 & tallyNumNodes, uint32 & tallyNumNodeBytes) const
+void StorageReflectSession :: TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint32 & tallyNumNodes, uint32 & tallyNumNodeBytes) const
 {
    retNumCachedSubscriberTables = muscleMax(retNumCachedSubscriberTables, _sharedData->_cachedSubscribersTables.GetNumCachedItems());
 
    const DataNode * dn = GetSessionNode()();
    if (dn) TallyNodeBytes(*dn, tallyNumNodes, tallyNumNodeBytes);
+}
+
+uint64 StorageReflectSession :: GetPulseTime(const PulseArgs & args)
+{
+   return muscleMin(AbstractReflectSession::GetPulseTime(args), _nextKeepAliveSendTimeStamp);
+}
+
+void StorageReflectSession :: Pulse(const PulseArgs & args)
+{
+   AbstractReflectSession::GetPulseTime(args);
+
+   const uint64 now = args.GetCallbackTime();
+   if (now >= _nextKeepAliveSendTimeStamp)
+   {
+      if ((GetSessionWriteSelectSocket().GetFileDescriptor() >= 0)&&((int64)(now-GetLastByteOutputTimeStamp()) >= SecondsToMicros(_keepAliveIntervalSeconds)))
+      {
+         static Message _noopMsgRef(PR_RESULT_NOOP);
+         (void) AddOutgoingMessage(DummyMessageRef(_noopMsgRef));
+      }
+      ScheduleNextKeepAliveSend(args.GetCallbackTime());
+   }
+}
+
+bool StorageReflectSession :: ClientConnectionClosed()
+{
+   const bool ret = AbstractReflectSession::ClientConnectionClosed();
+   ScheduleNextKeepAliveSend(GetRunTime64());
+   return ret;
+}
+
+void StorageReflectSession :: AsyncConnectCompleted()
+{
+   AbstractReflectSession::AsyncConnectCompleted();
+   ScheduleNextKeepAliveSend(GetRunTime64());
+}
+
+void StorageReflectSession :: ScheduleNextKeepAliveSend(uint64 now)
+{
+   const uint64 nextTimeStamp = ((GetSessionWriteSelectSocket().GetFileDescriptor() >= 0)&&(_keepAliveIntervalSeconds > 0)) ? (now+SecondsToMicros(_keepAliveIntervalSeconds)) : MUSCLE_TIME_NEVER;
+   if (nextTimeStamp != _nextKeepAliveSendTimeStamp)
+   {
+      _nextKeepAliveSendTimeStamp = nextTimeStamp;
+      InvalidatePulseTime();
+   }
 }
 
 } // end namespace muscle

@@ -13,6 +13,9 @@ key:  - new feature
      ConstRef classes and to the status_t and io_status_t types, so that
      calls ignoring these return values will generate compile-time warnings.
    - Added a TruncateToLength() convenience method to the ByteBuffer class.
+   - Added a PR_NAME_KEEPALIVE_INTERVAL_SECONDS parameter so clients can
+     tell muscled to send a PR_RESULT_NOOP every (so many) seconds to
+     verify TCP connectivity on an otherwise idle connection.
    o Removed DataIO::GetReadByteTimeStamp() as it wasn't being used.
    * GetProcessMemoryUsage() now returns more accurate values.
 

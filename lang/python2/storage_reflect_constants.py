@@ -134,8 +134,8 @@ PR_RESULT_ERRORACCESSDENIED  = 558920246
 # Reply to a PR_COMMAND_GETDATATREES message
 PR_RESULT_DATATREES          = 558920247 
 
-# Reserved for future expansion
-PR_RESULT_RESERVED5          = 558920248 
+# Clients should ignore this message.  Servers can send this to check TCP connectivity.
+PR_RESULT_NOOP               = 558920248
 
 # Reserved for future expansion
 PR_RESULT_RESERVED6          = 558920249 
@@ -253,6 +253,9 @@ PR_NAME_DISABLE_SUBSCRIPTIONS     = "!Dsub"
 
 # Field name of int parameter sets max # of items per PR_RESULT_DATAITEMS message
 PR_NAME_MAX_UPDATE_MESSAGE_ITEMS  = "!MxUp" 
+
+# If set as an int32 parameter; if set, the server will send a PR_RESULT_NOOP Message every (so many) seconds
+PR_NAME_KEEPALIVE_INTERVAL_SECONDS = "!Ksec"
 
 # Field name of String returned in parameter set contains this session's /host/sessionID path
 PR_NAME_SESSION_ROOT              = "!Root" 

@@ -253,6 +253,15 @@ void TestCallbackMessageTransceiverThread :: HandleTextLineFromStdin(const Strin
       }
       break;
 
+      case 'K':
+      {
+         const uint32 keepAliveSeconds = arg1 ? (uint32) atol(arg1) : 0;
+
+         ref = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
+         if ((ref())&&(ref()->AddInt32(PR_NAME_KEEPALIVE_INTERVAL_SECONDS, keepAliveSeconds).IsOK())) LogTime(MUSCLE_LOG_INFO, "Sending PR_NAME_KEEPALIVE_INTERVAL_SECONDS=" UINT32_FORMAT_SPEC "\n", keepAliveSeconds);
+      }
+      break;
+
       case 'k':
          ref()->what = PR_COMMAND_KICK;
          if (arg1) (void) ref()->AddString(PR_NAME_KEYS, arg1);

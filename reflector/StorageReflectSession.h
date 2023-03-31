@@ -104,6 +104,11 @@ public:
      */
    MessageRef GetEffectiveParameters() const;
 
+   virtual bool ClientConnectionClosed();
+   virtual void AsyncConnectCompleted();
+   virtual uint64 GetPulseTime(const PulseArgs & args);
+   virtual void Pulse(const PulseArgs & args);
+
 protected:
    /// Flags that may be passed to a NotifySubscribersThatNodeChanged() callback
    enum {
@@ -532,6 +537,7 @@ private:
    int PassMessageCallbackAux(DataNode & node, const MessageRef & msgRef, bool matchSelfOkay);
    void TallyNodeBytes(const DataNode & n, uint32 & retNumNodes, uint32 & retNodeBytes) const;
    ConstDataNodeSubscribersTableRef GetDataNodeSubscribersTableFromPool(const ConstDataNodeSubscribersTableRef & curTableRef, uint32 sessionID, int32 delta);
+   void ScheduleNextKeepAliveSend(uint64 now);
 
    DECLARE_MUSCLE_TRAVERSAL_CALLBACK(StorageReflectSession, KickClientCallback);     /** Sessions of matching nodes are EndSession()'d  */
    DECLARE_MUSCLE_TRAVERSAL_CALLBACK(StorageReflectSession, InsertOrderedDataCallback); /** Matching nodes have ordered data inserted into them as child nodes */
@@ -613,6 +619,12 @@ private:
 
    /** The maximum number of database nodes we are allowed to create */
    uint32 _maxNodeCount;
+
+   /** Keepalive-noop send interval, in seconds (0==disabled) */
+   uint32 _keepAliveIntervalSeconds;
+
+   /** Time at which we should next send a PR_RESULT_NOOP Message, or MUSCLE_TIME_NEVER */
+   uint64 _nextKeepAliveSendTimeStamp;
 
    /** Our node class needs access to our internals too */
    friend class StorageReflectSession :: NodePathMatcher;

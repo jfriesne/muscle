@@ -130,6 +130,7 @@ DECLARE_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS);
 #define PR_NAME_ROUTE_NEIGHBORS_TO_GATEWAY "!N2G"       /**< If set as parameter, session accepts unrecognized Messages from neighbors and sends them to gateway (set by default) */
 #define PR_NAME_DISABLE_SUBSCRIPTIONS      "!Dsub"      /**< If set as a parameter, disable all subscription updates. */
 #define PR_NAME_MAX_UPDATE_MESSAGE_ITEMS   "!MxUp"      /**< Int32 parameter; sets max # of items per PR_RESULT_DATAITEMS message */
+#define PR_NAME_KEEPALIVE_INTERVAL_SECONDS "!Ksec"      /**< Int32 parameter; if set, the server will send a PR_RESULT_NOOP Message every (so many) seconds */
 #define PR_NAME_SESSION_ROOT               "!Root"      /**< String returned in parameter set; contains this sessions /host/sessionID */
 #define PR_NAME_REJECTED_MESSAGE           "!Rjct"      /**< Message: In PR_RESULT_ERROR_* messages, returns the client's message that failed to execute. */
 #define PR_NAME_PRIVILEGE_BITS             "!Priv"      /**< int32 bit-chord of PR_PRIVILEGE_* bits. */

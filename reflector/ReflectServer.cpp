@@ -522,10 +522,10 @@ ServerProcessLoop()
                         if (out)
                         {
                            (void) _multiplexer.RegisterSocketForWriteReady(sessionWriteFD);
-                           if (session->_lastByteOutputAt == 0) session->_lastByteOutputAt = now;  // the bogged-session-clock starts ticking when we first want to write...
-                           if (session->_outputStallLimit != MUSCLE_TIME_NEVER) nextPulseAt = muscleMin(nextPulseAt, session->_lastByteOutputAt+session->_outputStallLimit);
+                           if (session->_pendingLastByteOutputAt == 0) session->_lastByteOutputAt = session->_pendingLastByteOutputAt = now;  // the bogged-session-clock starts ticking when we first want to write...
+                           if (session->_outputStallLimit != MUSCLE_TIME_NEVER) nextPulseAt = muscleMin(nextPulseAt, session->_pendingLastByteOutputAt+session->_outputStallLimit);
                         }
-                        else session->_lastByteOutputAt = 0;  // If we no longer want to write, then the bogged-session-clock-timeout is cancelled
+                        else session->_pendingLastByteOutputAt = 0;  // If we no longer want to write, then the bogged-session-clock-timeout is cancelled
                      }
 
                      TCHECKPOINT;
@@ -687,13 +687,13 @@ ServerProcessLoop()
                      const bool wasConnecting = session->IsConnectingAsync();
                      if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (write error: %s).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed", wroteBytes());
                   }
-                  else if (session->_lastByteOutputAt > 0)
+                  else if (session->_pendingLastByteOutputAt > 0)
                   {
                      // Check for output stalls
                      const uint64 now = GetRunTime64();
 
-                          if ((wroteBytes.GetByteCount() > 0)||(session->_maxOutputChunk == 0)) session->_lastByteOutputAt = now;  // reset the moribundness-timer
-                     else if (now-session->_lastByteOutputAt > session->_outputStallLimit)
+                          if ((wroteBytes.GetByteCount() > 0)||(session->_maxOutputChunk == 0)) session->_pendingLastByteOutputAt = now;  // reset the moribundness-timer
+                     else if (now-session->_pendingLastByteOutputAt > session->_outputStallLimit)
                      {
                         if (_doLogging) LogTime(MUSCLE_LOG_WARNING, "Connection for %s timed out (output stall, no data movement for " UINT64_FORMAT_SPEC " seconds).\n", session->GetSessionDescriptionString()(), MicrosToSeconds(session->_outputStallLimit));
                         (void) DisconnectSession(session);
