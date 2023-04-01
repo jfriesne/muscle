@@ -328,7 +328,7 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
       if (temp >= 0)
       {
          close(temp);
-         retList.AddTail(buf);
+         (void) retList.AddTail(buf);
       }
       else break;
    }

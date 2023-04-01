@@ -622,9 +622,9 @@ void HandleStandardDaemonArgs(const Message & args)
 
 #ifdef __linux__
    const char * priStr;
-        if (args.FindString("realtime",      &priStr).IsOK()) SetRealTimePriority(priStr, false);
-   else if (args.FindString("realtime_rr",   &priStr).IsOK()) SetRealTimePriority(priStr, false);
-   else if (args.FindString("realtime_fifo", &priStr).IsOK()) SetRealTimePriority(priStr, true);
+        if (args.FindString("realtime",      &priStr).IsOK()) {MLOG_ON_ERROR("SetRealTimePriority(realtime)", SetRealTimePriority(priStr, false));}
+   else if (args.FindString("realtime_rr",   &priStr).IsOK()) {MLOG_ON_ERROR("SetRealTimePriority(realtime_rr)", SetRealTimePriority(priStr, false));}
+   else if (args.FindString("realtime_fifo", &priStr).IsOK()) {MLOG_ON_ERROR("SetRealTimePriority(realtime_fifo)", SetRealTimePriority(priStr, true));}
 #endif
 
 #ifdef MUSCLE_CATCH_SIGNALS_BY_DEFAULT
