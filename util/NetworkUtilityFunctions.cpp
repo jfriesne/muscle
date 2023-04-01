@@ -1328,7 +1328,7 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
 #if defined(__FreeBSD__) || defined(BSD)
    // Nathan Whitehorn reports that send() doesn't do this trick under FreeBSD 7,
    // so for BSD we'll call getpeername() instead.  -- jaf
-   struct sockaddr_in junk;
+   struct sockaddr_in6 junk;  // gotta be in6 to avoid buffer-too-short problems
    muscle_socklen_t length = sizeof(junk);
    memset(&junk, 0, sizeof(junk));
    return (getpeername(fd, (struct sockaddr *)&junk, &length) == 0) ? B_NO_ERROR : B_ERRNO;

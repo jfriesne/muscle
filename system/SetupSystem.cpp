@@ -1453,10 +1453,11 @@ static void CloseSocket(int fd)
 #endif
 
 #if defined(WIN32)
-      ::closesocket(fd);
+      const int ret = ::closesocket(fd);
 #else
-      close(fd);
+      const int ret = close(fd);
 #endif
+      if (ret != 0) LogTime(MUSCLE_LOG_ERROR, "CloseSocket(%i) failed [%s]\n", fd, B_ERRNO());
    }
 }
 

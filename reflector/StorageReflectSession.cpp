@@ -1975,7 +1975,7 @@ uint64 StorageReflectSession :: GetPulseTime(const PulseArgs & args)
 
 void StorageReflectSession :: Pulse(const PulseArgs & args)
 {
-   AbstractReflectSession::GetPulseTime(args);
+   AbstractReflectSession::Pulse(args);
 
    const uint64 now = args.GetCallbackTime();
    if (now >= _nextKeepAliveSendTimeStamp)
