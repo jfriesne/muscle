@@ -17,6 +17,7 @@ key:  - new feature
      tell muscled to send a PR_RESULT_NOOP every (so many) seconds to
      verify TCP connectivity on an otherwise idle connection.
    o Removed DataIO::GetReadByteTimeStamp() as it wasn't being used.
+   o CloseSocket() now prints an error message if its call to close() fails.
    * GetProcessMemoryUsage() now returns more accurate values.
 
 9.24 - Release 3/20/2023
