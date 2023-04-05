@@ -59,6 +59,9 @@ key:  - new feature
    * Applied some Android build fixes as suggested by Ruurd Adema.
    * SetFileLogLevel() was broken.  Fixed.
    * Avoid including sem.h when MUSCLE_FAKE_SHARED_MEMORY is defined.
+   * Fixed a minor bug where the socket's assigned network interface
+     index might not get restored when after sending a zero-byte
+     multicast UDP packet.
 
 9.22 - Released 2/2/2023
    - Modified Queue::InternalizeIndex() to use subtraction

@@ -564,14 +564,10 @@ static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buf
    }
    else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
 
-   if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
+   const int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
 
 #ifdef MUSCLE_USE_IFIDX_WORKAROUND
    const int errnoFromSendCall = GetErrno();
-#endif
-
-   const int32 ret = ConvertReturnValueToMuscleSemantics(s, size, bm);
-#ifdef MUSCLE_USE_IFIDX_WORKAROUND
    if (oldInterfaceIndex >= 0)
    {
       (void) SetSocketMulticastSendInterfaceIndex(sock, oldInterfaceIndex);  // gotta do this AFTER computing the return value, as it clears errno!
@@ -579,7 +575,8 @@ static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buf
    }
 #endif
 
-   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
+   if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
+          else return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 }
 #endif
 

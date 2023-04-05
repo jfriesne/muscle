@@ -1706,7 +1706,7 @@ static inline int PreviousOperationHadTransientFailure()
   */
 static inline int32 ConvertReturnValueToMuscleSemantics(int32 origRet, uint32 maxSize, int blocking)
 {
-   int32 retForBlocking = ((origRet > 0)||(maxSize == 0)) ? (int32)origRet : -1;
+   const int32 retForBlocking = ((origRet > 0)||(maxSize == 0)) ? (int32)origRet : -1;
    return blocking ? retForBlocking : ((origRet<0)&&((PreviousOperationWouldBlock())||(PreviousOperationHadTransientFailure()))) ? 0 : retForBlocking;
 }
 
