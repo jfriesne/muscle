@@ -15,7 +15,7 @@
        {
           int localVarsAreLowerCamelCase = 0;
 
-          // On failure, prefer returning an error-code 
+          // On failure, prefer returning an error-code
           // (e.g. B_ERROR) over throwing an exception
           if (SomethingWentWrong()) return B_ERROR("Something bad happened");
 
@@ -26,7 +26,7 @@
 
        enum {
           COMPILE_TIME_CONSTANTS_ARE_ALL_UPPER_CASE
-       };           
+       };
 
     private:
        int _memberVariablesStartWithAnUnderbar;

@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.25 - Release 4/7/2023
    - Rewrote String::WithReplacements(const Hashtable<String,String> &)
      to only scan the input string once, instead of once per key.
    - Added a String::Replace(const Hashtable<String,String> &) method.
@@ -19,6 +20,7 @@ key:  - new feature
    o Removed DataIO::GetReadByteTimeStamp() as it wasn't being used.
    o CloseSocket() now prints an error message if its call to close() fails.
    * GetProcessMemoryUsage() now returns more accurate values.
+   * Fixed a number of broken hyperlinks in the MUSCLE-by-example mkdocs.
 
 9.24 - Release 3/20/2023
    - Added a CMakePresets.json file for quick specification of minimal

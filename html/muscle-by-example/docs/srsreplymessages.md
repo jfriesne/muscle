@@ -49,8 +49,8 @@ This is a partial list -- the full list of result codes can be seen [here](https
     - A client would typically update a local data structure according to these strings' instructions, in order to keep it in sync with the index's data structure on the server.
     - An example of how a client might parse a [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) of this type follows:
 
-<pre>  
-   // This table holds the child-node-names-in-index-order list for each 
+<pre>
+   // This table holds the child-node-names-in-index-order list for each
    // ordered-index-node that the client is subscribed to
    Hashtable&lt;String, Queue&lt;String&gt; &gt; indices;  // nodepath -> index
 
@@ -82,7 +82,7 @@ This is a partial list -- the full list of result codes can be seen [here](https
                   if (idx) (void) idx->InsertItemAt(pos, childName);
                }
                break;
- 
+
                case INDEX_OP_ENTRYREMOVED:   // a.k.a 'r'
                {
                   Queue&lt;String&gt; * idx = indices.GetOrPut(parentNodePath);
@@ -92,7 +92,7 @@ This is a partial list -- the full list of result codes can be seen [here](https
                   }
                }
                break;
-            } 
+            }
          }
       }
    }
@@ -102,6 +102,6 @@ Quick links to source code of relevant MUSCLE-by-example programs:
 
 * [reflector/example_4_smart_server.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/reflector/example_4_smart_server.cpp)
 * [reflector/example_5_smart_client.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/reflector/example_5_smart_client.cpp)
-* [test/portablereflectclient.cpp](https://public.msli.com/lcs/muscle/muscle/test/portablereflectclient.cpp)
-* [test/chatclient.cpp](https://public.msli.com/lcs/muscle/muscle/test/chatclient.cpp)
+* [tools/singlethreadedreflectclient.cpp](https://public.msli.com/lcs/muscle/muscle/tools/singlethreadedreflectclient.cpp)
+* [tools/chatclient.cpp](https://public.msli.com/lcs/muscle/muscle/tools/chatclient.cpp)
 * [platform/qt/qt_example/qt_example.cpp](https://public.msli.com/lcs/muscle/muscle/platform/qt/qt_example/qt_example.cpp)

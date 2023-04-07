@@ -10,7 +10,7 @@ Holds a resizable array of `chars` that contains a 0-terminated C-string (ASCII 
 * Idiom:  [() operator](https://public.msli.com/lcs/muscle/html/classmuscle_1_1String.html#aedbbb225272c3e6e225682a23562206e) is a shorthand for calling [Cstr()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1String.html#af1598eaf8f566523418a31cb9c855c83) method to get a `(const char *)`:
 
 ```
-    const String s = "foobar"; 
+    const String s = "foobar";
     const char * cptr = s();   // s() is shorthand for s.Cstr()
     printf("s contains [%s]\n", cptr);
 ```

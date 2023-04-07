@@ -10,7 +10,7 @@ Templated container class `Hashtable<Key,Value>` is a hash-based dictionary clas
 * O(N*log(N)) [SortByKey()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#aed9bd2abb05b26914a83735bed57c3e3)
 * O(N*log(N)) [SortByValue()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#a9fc3e1a503a8889a0cacb6ed1ef7f9ec)
 * O(1) [MoveToFront()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#a4216f4cb9567bb38ab4e42f546b4e3a8)/[MoveToBack()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#ade6408ab7e42d5dcd2b9924910c2d528)/[MoveToBefore()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#a71e3c5d80457fd0e59fb5cc5e1eb72c2)/[MoveToBehind()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#a3c2935ce21a8855d3128b79c52ece19d)
-* O(1) [SwapContents()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Hashtable.html#a40d409c769d9ada96a45b3bfcca39481)
+* O(1) [SwapContents()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableBase.html#a2a5a0401bcdc4a2f59ca15b4bebf4347)
 * Iteration of key/value pairs is done via [HashtableIterator](https://public.msli.com/lcs/muscle/html/classmuscle_1_1HashtableIterator.html) class
 * Addresses of key and value objects never change (except when the [Hashtable](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Hashtable.html)'s internal array is reallocated)
 * No heap allocations/deletions during use (except when the [Hashtable](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Hashtable.html)'s internal array is reallocated)

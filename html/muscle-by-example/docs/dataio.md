@@ -6,7 +6,7 @@
 
 * Similar to:  [QIODevice](http://doc.qt.io/qt-5/qiodevice.html), [BDataIO](https://www.haiku-os.org/docs/api/classBDataIO.html)
 * Used to unify networking, file, child-process, RS-232, and various other I/O APIs behind a single generic interface
-* A program written to use a [DataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataIO.html) can be easily modified to talk to any kind of I/O hardware (see `muscle/test/hexterm.cpp` for a good example)
+* A program written to use a [DataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataIO.html) can be easily modified to talk to any kind of I/O hardware (see `muscle/tools/hexterm.cpp` for a good example)
 * Both blocking and non-blocking I/O are supported.
 * [virtual io_status_t Read(void * buf, uint32 bufSize)](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataIO.html#af093606c8aab0b42632e89a372a0d4e8) is implemented by [DataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataIO.html) subclasses to read data from the hardware into a buffer
 * [virtual io_status_t Write(const void * buf, uint32 bufSize)](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataIO.html#ada04bde999b32675319dab05e797588c) is implemented by [DataIO](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataIO.html) subclasses to write data from a buffer to the hardware
@@ -22,7 +22,7 @@
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/dataio` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 
 Quick links to source code of relevant MUSCLE-by-example programs:
-    
+
 * [dataio/example_1_basic_usage.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/dataio/example_1_basic_usage.cpp)
 * [dataio/example_2_tcp_server.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/dataio/example_2_tcp_server.cpp)
 * [dataio/example_3_seekable_dataio.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/dataio/example_3_seekable_dataio.cpp)

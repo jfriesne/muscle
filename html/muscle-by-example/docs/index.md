@@ -14,12 +14,12 @@ window open, so you can view, compile, and execute the corresponding toy example
 
 The MUSCLE toy example programs may be compiled and run under any common desktop OS.
 
-Under Linux and MacOS/X, you can compile them by `cd`'ing to the 
+Under Linux and MacOS/X, you can compile them by `cd`'ing to the
 `muscle/html/muscle-by-example/examples` sub-directory (or to any one
 of the sub-directories underneath it) and typing `make`.
 
-Under Windows, make sure Visual Studio 2015 or higher, is installed, 
-and run the `BUILD_ALL.bat` file that is located in the 
-`muscle\html\muscle-by-example\examples\vc++14` sub-directory (or, 
-if you prefer to use an IDE, you can double-click on any of the 
+Under Windows, make sure Visual Studio 2015 or higher, is installed,
+and run the `BUILD_ALL.bat` file that is located in the
+`muscle\html\muscle-by-example\examples\vc++14` sub-directory (or,
+if you prefer to use an IDE, you can double-click on any of the
 `.vcxproj` or `.sln` files in that same folder to launch Visual Studio)

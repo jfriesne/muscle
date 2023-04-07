@@ -11,5 +11,5 @@ Try compiling and running the \*micro\*.c programs in `muscle/test` (enter `make
 
 Quick links to source code of relevant test programs:
 
-* [muscle/test/microchatclient.c](https://public.msli.com/lcs/muscle/muscle/test/microchatclient.c)
-* [muscle/test/microreflectclient.c](https://public.msli.com/lcs/muscle/muscle/test/microreflectclient.c)
+* [muscle/tools/microchatclient.c](https://public.msli.com/lcs/muscle/muscle/tools/microchatclient.c)
+* [muscle/tools/microreflectclient.c](https://public.msli.com/lcs/muscle/muscle/tools/microreflectclient.c)

@@ -8,8 +8,8 @@ A [ByteBuffer](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ByteBuffer
 * Similar to: [QByteBuffer](http://doc.qt.io/qt-5/qbytearray.html), [std::vector&lt;uint8_t&gt;](http://en.cppreference.com/w/cpp/container/vector)
 * Holds up to (2^32) bytes
 * [ByteBuffer](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ByteBuffer.html) inherits [FlatCountable](https://public.msli.com/lcs/muscle/html/classmuscle_1_1FlatCountable.html) for efficient passing around of large binary blobs
-* O(1) [SwapContents()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ByteBuffer.html#a837d6130df99b279da586edd767230c2)
-* Idiom:  [ByteBufferRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ByteBuffer.html)s are often allocated using [GetByteBufferFromPool()](https://public.msli.com/lcs/muscle/html/namespacemuscle.html#a527bec3824435111b6abb9a75cb1e305)
+* O(1) [SwapContents()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ByteBuffer.html#a1cb0220b11043fbc7c535ede314c8b7d)
+* Idiom:  [ByteBufferRef](https://public.msli.com/lcs/muscle/html/classmuscle_1_1ByteBuffer.html)s are often allocated using [GetByteBufferFromPool()](https://public.msli.com/lcs/muscle/html/namespacemuscle.html#a79a465f37fac47d6430d9a495e46f434)
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/bytebuffer` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 

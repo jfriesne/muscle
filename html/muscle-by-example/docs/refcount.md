@@ -11,7 +11,7 @@ Reference-counting for dynamically-allocated objects, to make memory-leaks and u
 * Idiom:  For any [RefCountable](https://public.msli.com/lcs/muscle/html/classmuscle_1_1RefCountable.html) class `FooBar`, the [DECLARE_REFTYPES()](https://public.msli.com/lcs/muscle/html/RefCount_8h.html#a5f9b4b0acbe24ff62f3cfddaa4b01d88) macro defines typedefs `FooBarRef` and `ConstFooBarRef`:
 
 ```
-    class FooBar : public RefCountable 
+    class FooBar : public RefCountable
     {
        [...]
     };

@@ -4,16 +4,16 @@
 
 MUSCLE's logging mechanism, for debugging, troubleshooting, and status/monitoring purposes.
 
-* [LogPlain()](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga967e05bef1f65995466ee17ff37ae15b) outputs just the specified text, e.g. `Hello.`
-* [LogTime()](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga347d199c3019a4ad8d474befded2b25f) outputs the specified text with a prefix, e.g. `[I 03/20 11:45:56] Hello.`
-* Each line of log-output is tagged with one of the following [severity levels](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ggaabfcbcb5ac86a1edac4035264bc7d2b8ab59c09ea8b69899ae8812ab2ac1e6f8e)
+* [LogPlain()](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga7fba38edf46b321ea42a15e6c69dbae9) outputs just the specified text, e.g. `Hello.`
+* [LogTime()](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga7a1febce28c8d4c7937b2fc53e068d8a) outputs the specified text with a prefix, e.g. `[I 03/20 11:45:56] Hello.`
+* Each line of log-output is tagged with one of the following [severity levels](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga0944a4353780132eeab7b06e3e42291d)
     * `MUSCLE_LOG_TRACE`   - for fine-grained tracing of program execution
     * `MUSCLE_LOG_DEBUG`   - for use during debugging only
     * `MUSCLE_LOG_INFO`    - normal severity level, for informational messages
     * `MUSCLE_LOG_WARNING` - warning about a potential problem
     * `MUSCLE_LOG_ERROR`   - report of an error (but program execution can continue)
     * `MUSCLE_LOG_CRITICALERROR` - report of a critical error (program execution may be in trouble)
-* Strings passed to [LogPlain()](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga967e05bef1f65995466ee17ff37ae15b) and [LogTime()](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga347d199c3019a4ad8d474befded2b25f) should include newline chars where appropriate to indicate the end of a log-line (e.g. `LogTime(MUSCLE_LOG_INFO, "Hi!\n");`)
+* Strings passed to [LogPlain()](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga7fba38edf46b321ea42a15e6c69dbae9) and [LogTime()](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga7a1febce28c8d4c7937b2fc53e068d8a) should include newline chars where appropriate to indicate the end of a log-line (e.g. `LogTime(MUSCLE_LOG_INFO, "Hi!\n");`)
 * `printf()`-style variable interpolation is supported (e.g. `LogTime(MUSCLE_LOG_INFO, "3+2=%i\n", 5);`)
 * Log-text can be sent to stdout and/or to a log file.
 * [LogTime()](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga7a1febce28c8d4c7937b2fc53e068d8a) and [LogPlain()](https://public.msli.com/lcs/muscle/html/group__systemlog.html#ga7fba38edf46b321ea42a15e6c69dbae9) are implemented as macros such that their arguments will only be evaluated if the log-text is not going to be filtered.  This makes it efficient to include debug/trace logging even in tight loops.

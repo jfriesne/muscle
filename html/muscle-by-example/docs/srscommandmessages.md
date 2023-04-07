@@ -24,7 +24,7 @@ myMessageTransceiverThread.SendMessageToSessions(pingMsg);
     - If a [DataNode](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html) already exists at the specified path, its [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) payload is updated -- otherwise a [DataNode](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html) with the given [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) is created there.
     - If the parent "directories" of the specified path do not exist, they will be created (with default/empty [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) payloads) as necessary.
     - Note that clients can only set nodes in their session's local subtree; they aren't allowed to modify the subtrees of other sessions.
-    - The fields of this [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) should have relative-paths as their names, and [Messages](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) as their values; each field represents one [DataNode](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html) to post.  
+    - The fields of this [Message](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) should have relative-paths as their names, and [Messages](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Message.html) as their values; each field represents one [DataNode](https://public.msli.com/lcs/muscle/html/classmuscle_1_1DataNode.html) to post.
     - Here is an example invocation:
 <pre>
 MessageRef setDataMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
@@ -79,7 +79,7 @@ myMessageTransceiverThread.SendMessageToSessions(getPMsg);
 </pre>
 * `PR_COMMAND_REMOVEPARAMETERS` - *deletes any session parameters whose names match a pattern specified in the `PR_NAME_KEYS` String-field*
     - This is typically used to unsubscribe from previous subscriptions
-    - Names of parameters to unsubscribe to are places in the `PR_NAME_KEYS` field 
+    - Names of parameters to unsubscribe to are places in the `PR_NAME_KEYS` field
     - Note that the strings in the `PR_NAME_KEYS` field will be treated as wildcard-patterns (e.g. "*" will remove all user-settable parameters)
     - Therefore, if you want to only match a literal path string (and that path string has wildcard chars in it), you may need to escape those wildcard chars to avoid matching other parameter names by mistake
     - Read-only parameters (that were set by the server) cannot be deleted.
@@ -140,6 +140,6 @@ Quick links to source code of relevant MUSCLE-by-example programs:
 
 * [reflector/example_4_smart_server.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/reflector/example_4_smart_server.cpp)
 * [reflector/example_5_smart_client.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/reflector/example_5_smart_client.cpp)
-* [test/portablereflectclient.cpp](https://public.msli.com/lcs/muscle/muscle/test/portablereflectclient.cpp)
-* [test/chatclient.cpp](https://public.msli.com/lcs/muscle/muscle/test/chatclient.cpp)
+* [tools/singlethreadedreflectclient.cpp](https://public.msli.com/lcs/muscle/muscle/tools/singlethreadedreflectclient.cpp)
+* [tools/chatclient.cpp](https://public.msli.com/lcs/muscle/muscle/tools/chatclient.cpp)
 * [platform/qt/qt_example/qt_example.cpp](https://public.msli.com/lcs/muscle/muscle/platform/qt/qt_example/qt_example.cpp)
