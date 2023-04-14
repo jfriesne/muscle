@@ -25,7 +25,7 @@ public:
    {
    public:
       /** Default constructor. */
-      BatchGuard() {/* empty */}
+      MUSCLE_NODISCARD BatchGuard() {/* empty */}
    };
 
    /** Read-only access to our internal NestCount object, in case you are interested in querying its state. */

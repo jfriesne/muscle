@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Tagged the constructor of the MutexGuard class (and friends) as
+     MUSCLE_NODISCARD so the compiler will warm about anonymous guards.
+
 9.25 - Release 4/7/2023
    - Rewrote String::WithReplacements(const Hashtable<String,String> &)
      to only scan the input string once, instead of once per key.

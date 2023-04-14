@@ -381,9 +381,9 @@ public:
      * @param m The Mutex to lock.
      */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   MutexGuard(const Mutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(m), _optFileName(optFileName), _fileLine(fileLine)
+   MUSCLE_NODISCARD MutexGuard(const Mutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(m), _optFileName(optFileName), _fileLine(fileLine)
 #else
-   MutexGuard(const Mutex & m) : _mutex(m)
+   MUSCLE_NODISCARD MutexGuard(const Mutex & m) : _mutex(m)
 #endif
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER

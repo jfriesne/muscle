@@ -849,7 +849,7 @@ public:
      * @param q the Queue to add an item to
      * @param item the item to add to the tail of the Queue
      */
-   QueueStackGuard(Queue<ItemType> & q, const ItemType & item) : _queue(q) {(void) _queue.AddTail(item);}
+   MUSCLE_NODISCARD QueueStackGuard(Queue<ItemType> & q, const ItemType & item) : _queue(q) {(void) _queue.AddTail(item);}
 
    /** Destructor -- pops the last item out of the Queue that was specified in the constructor. */
    ~QueueStackGuard() {(void) _queue.RemoveTail();}

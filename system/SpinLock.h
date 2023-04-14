@@ -77,7 +77,7 @@ public:
    /** Constructor.  Locks the specified SpinLock.
      * @param sl The SpinLock to lock.
      */
-   SpinLockGuard(const SpinLock & sl) : _spinlock(sl)
+   MUSCLE_NODISCARD SpinLockGuard(const SpinLock & sl) : _spinlock(sl)
    {
       status_t ret;
       if (_spinlock.Lock().IsOK(ret)) _isSpinLockLocked = true;

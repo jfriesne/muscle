@@ -53,7 +53,7 @@ public:
      * @param count A reference to the uint32 that our constructor will
      *              increment, and our destructor will decrement.
      */
-   NestCountGuard(NestCount & count) : _count(count) {(void) _count.Increment();}
+   MUSCLE_NODISCARD NestCountGuard(NestCount & count) : _count(count) {(void) _count.Increment();}
 
    /** Destructor.  Decrements our associated counter value. */
    ~NestCountGuard() {(void) _count.Decrement();}
