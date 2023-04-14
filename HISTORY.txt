@@ -7,6 +7,7 @@ key:  - new feature
 
    - Tagged the constructor of the MutexGuard class (and friends) as
      MUSCLE_NODISCARD so the compiler will warm about anonymous guards.
+   - Tagged ObjectPool::ObtainObject() with MUSCLE_NODISCARD.
 
 9.25 - Release 4/7/2023
    - Rewrote String::WithReplacements(const Hashtable<String,String> &)

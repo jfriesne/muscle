@@ -40,7 +40,7 @@ public:
      * Note that the caller is responsible for deleting or recycling
      * the returned object!
      */
-   virtual void * ObtainObjectGeneric() = 0;
+   MUSCLE_NODISCARD virtual void * ObtainObjectGeneric() = 0;
 };
 
 /** An interface that must be implemented by all ObjectPool classes.
@@ -158,7 +158,7 @@ public:
     *  This method is thread-safe.
     *  @return a new Object, or NULL if out of memory.
     */
-   Object * ObtainObject()
+   MUSCLE_NODISCARD Object * ObtainObject()
    {
 #ifdef DISABLE_OBJECT_POOLING
       Object * ret = newnothrow Object;
@@ -206,7 +206,7 @@ public:
    }
 
    /** AbstractObjectGenerator API:  Useful for polymorphism */
-   virtual void * ObtainObjectGeneric() {return ObtainObject();}
+   MUSCLE_NODISCARD virtual void * ObtainObjectGeneric() {return ObtainObject();}
 
    /** AbstractObjectRecycler API:  Useful for polymorphism
      * @param obj the object to recycle
