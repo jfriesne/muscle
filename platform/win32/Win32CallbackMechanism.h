@@ -38,7 +38,7 @@ public:
    virtual ~Win32CallbackMechanism() {if ((_signalHandle != INVALID_HANDLE_VALUE)&&(_closeHandleWhenDone)) CloseHandle(_signalHandle);}
 
    /** Returns the signal HANDLE that was passed in to our constructor, or INVALID_HANDLE_VALUE if there wasn't one. */
-   ::HANDLE GetSignalHandle() const {return _signalHandle;}
+   MUSCLE_NODISCARD ::HANDLE GetSignalHandle() const {return _signalHandle;}
 
    /** Used to set the signal HANDLE when the constructor call isn't appropriate.
      * If set to INVALID_HANDLE_VALUE, we'll use PostThreadMessage() to signal the user thread;
@@ -53,10 +53,10 @@ public:
    void SetSignalHandle(::HANDLE signalHandle, bool closeHandleWhenDone) {_signalHandle = signalHandle; _closeHandleWhenDone = closeHandleWhenDone;}
 
    /** Returns true iff we plan to call CloseHandle() on our held signal handle when we are destroyed. */
-   bool GetCloseHandleWhenDone() const {return _closeHandleWhenDone;}
+   MUSCLE_NODISCARD bool GetCloseHandleWhenDone() const {return _closeHandleWhenDone;}
 
    /** Returns the reply thread ID that was passed in to our constructor, or 0 if there wasn't one. */
-   DWORD GetReplyThreadID() const {return _replyThreadID;}
+   MUSCLE_NODISCARD DWORD GetReplyThreadID() const {return _replyThreadID;}
 
    /** Used to set the reply thread ID when the constructor call isn't appropriate. 
      * @param replyThreadID The new thread ID to call PostThreadMessage() on to signal the user thread. 
@@ -65,7 +65,7 @@ public:
    void SetReplyThreadID(DWORD replyThreadID) {_replyThreadID = replyThreadID;}
 
    /** Returns the signal value that was passed in to our constructor, or 0 if there wasn't one. */
-   UINT GetSignalValue() const {return _signalValue;}
+   MUSCLE_NODISCARD UINT GetSignalValue() const {return _signalValue;}
 
    /** Used to set the signal value when value that was set in the constructor call isn't appropriate.  
      * This value is only used if the signal handle is set to a valid value (ie not INVALID_HANDLE_VALUE)

@@ -65,13 +65,13 @@ public:
    virtual status_t Seek(int64 offset, int whence);
 
    /** Returns our current position in the file */
-   virtual int64 GetPosition() const;
+   MUSCLE_NODISCARD virtual int64 GetPosition() const;
 
    /** Win32 HANDLES are not compatible with unix-style select, so this method always returns a NULL socket ref.  */
-   virtual const ConstSocketRef & GetReadSelectSocket() const {return GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const {return GetNullSocket();}
 
    /** Win32 HANDLES are not compatible with unix-style select, so this method always returns a NULL socket ref.  */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
 
    /**
     * Releases control of the contained file descriptor to the calling code.
@@ -84,7 +84,7 @@ public:
     * Returns the file descriptor held by this object, or
     * INVALID_HANDLE_VALUE if there is none.
     */
-   ::HANDLE GetFileHandle() const {return _handle;}
+   MUSCLE_NODISCARD ::HANDLE GetFileHandle() const {return _handle;}
 
 private:
    ::HANDLE _handle;

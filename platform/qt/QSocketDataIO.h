@@ -79,13 +79,13 @@ public:
     */
    virtual void Shutdown() {if (_socket) _socket->close(); delete _socket; _socket = NULL; _socketRef.Reset();}
 
-   virtual const ConstSocketRef & GetReadSelectSocket()  const {return _socket ? _socketRef : GetNullSocket();}
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return _socket ? _socketRef : GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return _socket ? _socketRef : GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _socket ? _socketRef : GetNullSocket();}
 
    /**
     * Returns the held QSocket object (in case you need to access it directly for some reason)
     */
-   QSocket * GetSocket() {return _socket;}
+   MUSCLE_NODISCARD QSocket * GetSocket() {return _socket;}
 
    /**
     * Releases the held QSocket object into your custody.  After calling this, this

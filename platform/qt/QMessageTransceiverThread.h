@@ -35,7 +35,7 @@ protected:
    /** Must be implemented to return an available QMessageTransceiverThread object,
      * or return NULL on failure.
      */
-   virtual QMessageTransceiverThread * ObtainThread() = 0;
+   MUSCLE_NODISCARD virtual QMessageTransceiverThread * ObtainThread() = 0;
 
    /** Must be implemented to attach (handler) to the specified thread.
      * @param thread the QMessageTransceiverThread to attach the handler to
@@ -97,7 +97,7 @@ public:
    virtual bool event(QEvent * event);
 
    /** Returns a read-only reference to our table of registered QMessageTransceiverHandler objects. */
-   const Hashtable<uint32, QMessageTransceiverHandler *> GetHandlers() const {return _handlers;}
+   MUSCLE_NODISCARD const Hashtable<uint32, QMessageTransceiverHandler *> GetHandlers() const {return _handlers;}
 
 signals:
    /** Emitted when MessageReceived() is about to be emitted one or more times. */
@@ -198,7 +198,7 @@ protected:
    /** Overridden to send a QEvent */
    virtual void SignalOwner();
 
-   virtual QMessageTransceiverThread * ObtainThread() {return this;}
+   MUSCLE_NODISCARD virtual QMessageTransceiverThread * ObtainThread() {return this;}
    virtual status_t RegisterHandler(QMessageTransceiverThread & thread, QMessageTransceiverHandler * handler, const ThreadWorkerSessionRef & sessionRef);
    virtual void UnregisterHandler(QMessageTransceiverThread & thread, QMessageTransceiverHandler * handler, bool emitEndMessageBatchIfNecessary);
 
@@ -251,7 +251,7 @@ public:
    void ShutdownAllThreads();
 
 protected:
-   virtual QMessageTransceiverThread * ObtainThread();
+   MUSCLE_NODISCARD virtual QMessageTransceiverThread * ObtainThread();
    virtual status_t RegisterHandler(QMessageTransceiverThread & thread, QMessageTransceiverHandler * handler, const ThreadWorkerSessionRef & sessionRef);
    virtual void UnregisterHandler(QMessageTransceiverThread & thread, QMessageTransceiverHandler * handler, bool emitEndMessageBatchIfNecessary);
 
@@ -259,7 +259,7 @@ protected:
      * Broken out into a virtual method so that subclasses may alter its behavior if necessary.
      * Default implementation creates and returns a new QMessageTransceiverThread object.
      */
-   virtual QMessageTransceiverThread * CreateThread();
+   MUSCLE_NODISCARD virtual QMessageTransceiverThread * CreateThread();
 
 private:
    uint32 _maxSessionsPerThread;
@@ -484,27 +484,27 @@ public:
    status_t SetOutgoingMessageEncoding(int32 encoding);
 
    /** Returns this handler's current session ID, or -1 if this handler is not currently associated with a thread. */
-   int32 GetSessionID() const {return _sessionID;}
+   MUSCLE_NODISCARD int32 GetSessionID() const {return _sessionID;}
 
    /** Returns a pointer to this handler's associated QMessageTransceiverThread, or NULL if the handler
      * is not currently associated with any thread.
      */
-   QMessageTransceiverThread * GetThread() {return _mtt;}
+   MUSCLE_NODISCARD QMessageTransceiverThread * GetThread() {return _mtt;}
 
    /** Returns a pointer to this handler's associated QMessageTransceiverThread, or NULL if the handler
      * is not currently associated with any thread.
      */
-   const QMessageTransceiverThread * GetThread() const {return _mtt;}
+   MUSCLE_NODISCARD const QMessageTransceiverThread * GetThread() const {return _mtt;}
 
    /** Returns a pointer to this handler's associated IMessageTransceiverMaster, or NULL if the handler
      * is not currently associated with any master.
      */
-   IMessageTransceiverMaster * GetMaster() {return _master;}
+   MUSCLE_NODISCARD IMessageTransceiverMaster * GetMaster() {return _master;}
 
    /** Returns a pointer to this handler's associated IMessageTransceiverMaster, or NULL if the handler
      * is not currently associated with any master.
      */
-   const IMessageTransceiverMaster * GetMaster() const {return _master;}
+   MUSCLE_NODISCARD const IMessageTransceiverMaster * GetMaster() const {return _master;}
 
 signals:
    /** Emitted when MessageReceived() is about to be emitted one or more times by this handler. */
